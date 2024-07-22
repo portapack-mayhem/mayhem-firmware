@@ -23,8 +23,8 @@
     Creator: @htotoo
 */
 
-#ifndef __PROC_WEATHER_H__
-#define __PROC_WEATHER_H__
+#ifndef __PROC_PROTOVIEW_H__
+#define __PROC_PROTOVIEW_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
@@ -32,9 +32,7 @@
 #include "message.hpp"
 #include "dsp_decimate.hpp"
 
-#include "fprotos/weatherprotos.hpp"
-
-class WeatherProcessor : public BasebandProcessor {
+class ProtoViewProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
@@ -55,6 +53,7 @@ class WeatherProcessor : public BasebandProcessor {
 
     uint32_t currentDuration = 0;
     uint32_t threshold = 0x0630;  // will overwrite after the first iteration
+
     bool currentHiLow = false;
     bool configured{false};
 
@@ -62,13 +61,14 @@ class WeatherProcessor : public BasebandProcessor {
     uint32_t cnt = 0;
     uint32_t tm = 0;
 
-    FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);
     void on_beep_message(const AudioBeepMessage& message);
+
+    ProtoViewDataMessage message = {};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 };
 
-#endif /*__PROC_WEATHER_H__*/
+#endif /*__PROC_PROTOVIEW_H__*/

@@ -124,6 +124,7 @@ class Message {
         AudioBeep = 66,
         PocsagTosend = 67,
         BatteryStateData = 68,
+        ProtoViewData = 69,
         MAX
     };
 
@@ -1427,6 +1428,15 @@ class BatteryStateMessage : public Message {
     uint8_t percent = 0;
     bool on_charger = false;
     uint16_t voltage = 0;  // mV
+};
+
+class ProtoViewDataMessage : public Message {
+   public:
+    constexpr ProtoViewDataMessage()
+        : Message{ID::ProtoViewData} {}
+    int32_t times[100] = {0};  // positive: high, negative: low
+    uint8_t timeptr = 0;
+    const uint8_t maxptr = 99;
 };
 
 #endif /*__MESSAGE_H__*/

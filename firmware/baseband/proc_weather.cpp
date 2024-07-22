@@ -36,6 +36,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);       // Input:2048 complex/4 (decim factor) = 512_output complex (1024 I/Q samples)
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
+    feed_channel_stats(decim_1_out);
 
     for (size_t i = 0; i < decim_1_out.count; i++) {
         int16_t re = decim_1_out.p[i].real();
