@@ -77,6 +77,7 @@ class ProtoView : public View {
         nav_};
     Labels labels{
         {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground}};
+
     OptionsField options_zoom{
         {7 * 8, 1 * 16},
         4,
@@ -90,6 +91,10 @@ class ProtoView : public View {
          {"200", 200},
          {"500", 500},
          {"1000", 1000}}};
+
+    Button button_reset{
+        {screen_width - 12 * 8, 1 * 16, 96, 24},
+        LanguageHelper::currentMessages[LANG_RESET]};
 
     Waveform waveform{
         {0, 5 * 8, 240, 50},

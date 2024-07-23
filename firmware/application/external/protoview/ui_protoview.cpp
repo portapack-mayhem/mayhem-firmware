@@ -51,6 +51,7 @@ ProtoView::ProtoView(NavigationView& nav)
                   &field_frequency,
                   &labels,
                   &options_zoom,
+                  &button_reset,
                   &waveform,
                   &waveform2,
                   &waveform3,
@@ -62,6 +63,9 @@ ProtoView::ProtoView(NavigationView& nav)
         draw();
         draw2();
     };
+    button_reset.on_select = [this](Button&) {
+        reset();
+    };
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -72,6 +76,8 @@ void ProtoView::reset() {
     cnt = 0;
     for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
     needCntReset = false;
+    draw();
+    draw2();
 }
 
 void ProtoView::on_timer() {
@@ -147,7 +153,7 @@ void ProtoView::draw() {
 }
 
 void ProtoView::add_time(int32_t time) {
-    if (cnt >= MAXSIGNALBUFFER) return;  // cnt = 0;
+    if (cnt >= MAXSIGNALBUFFER) cnt = 0;
     time_buffer[cnt++] = time;
 }
 
@@ -167,7 +173,7 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
         }
     }
     if (!has_valid) return;  // no valid data arrived
-    if (needCntReset) reset();
+    // if (needCntReset) reset();   //todo implement auto reset
 
     datacnt++;
 
