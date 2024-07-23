@@ -1435,8 +1435,8 @@ class ProtoViewDataMessage : public Message {
     constexpr ProtoViewDataMessage()
         : Message{ID::ProtoViewData} {}
     int32_t times[100] = {0};  // positive: high, negative: low
-    uint8_t timeptr = 0;
-    const uint8_t maxptr = 99;
+    uint16_t timeptr = 0;
+    const uint16_t maxptr = 99;
 };
 
 #endif /*__MESSAGE_H__*/

@@ -23,6 +23,10 @@
 #ifndef __UI_PROTOVIEW_H__
 #define __UI_PROTOVIEW_H__
 
+#define MAXSIGNALBUFFER 500
+#define MAXDRAWCNT 600
+#define MAXDRAWCNTPERWF 150
+
 #include "ui.hpp"
 #include "ui_language.hpp"
 #include "ui_navigation.hpp"
@@ -48,6 +52,9 @@ class ProtoView : public View {
     std::string title() const override { return "ProtoView"; };
 
    private:
+    int16_t waveform_buffer[MAXDRAWCNT];
+    int32_t time_buffer[MAXSIGNALBUFFER];
+
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
@@ -68,16 +75,79 @@ class ProtoView : public View {
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
+    Labels labels{
+        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground}};
+    OptionsField options_zoom{
+        {7 * 8, 1 * 16},
+        4,
+        {{"1", 1},
+         {"2", 2},
+         {"5", 5},
+         {"15", 15},
+         {"30", 30},
+         {"50", 50},
+         {"100", 100},
+         {"200", 200},
+         {"500", 500},
+         {"1000", 1000}}};
 
-    Console console{
-        {0, 4 * 16, 240, screen_width}};
+    Waveform waveform{
+        {0, 5 * 8, 240, 50},
+        waveform_buffer,
+        0,
+        0,
+        true,
+        Theme::getInstance()->fg_yellow->foreground};
 
+    Waveform waveform2{
+        {0, 5 * 8 + 55, 240, 50},
+        &waveform_buffer[MAXDRAWCNTPERWF],
+        0,
+        0,
+        true,
+        Theme::getInstance()->fg_yellow->foreground};
+
+    Waveform waveform3{
+        {0, 5 * 8 + 110, 240, 50},
+        &waveform_buffer[MAXDRAWCNTPERWF * 2],
+        0,
+        0,
+        true,
+        Theme::getInstance()->fg_yellow->foreground};
+
+    Waveform waveform4{
+        {0, 5 * 8 + 165, 240, 50},
+        &waveform_buffer[MAXDRAWCNTPERWF * 3],
+        0,
+        0,
+        true,
+        Theme::getInstance()->fg_yellow->foreground};
+
+    int16_t zoom = 1;  // one value in ms
+
+    uint16_t cnt = 0;      // pointer to next element
+    uint16_t drawcnt = 0;  // pointer to draw next element
+
+    uint16_t timercnt = 0;  // screen refresh count
+    uint16_t datacnt = 0;   // how many data i got. these are for track if there is no data, so need a cnt reset
+
+    void add_time(int32_t time);
+    void on_timer();
     void on_data(const ProtoViewDataMessage* message);
+    void draw();
+    void draw2();
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ProtoViewData,
         [this](Message* const p) {
             const auto message = static_cast<const ProtoViewDataMessage*>(p);
             this->on_data(message);
+        }};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_timer();
         }};
 };
 

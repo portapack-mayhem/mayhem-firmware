@@ -49,27 +49,128 @@ ProtoView::ProtoView(NavigationView& nav)
                   &field_vga,
                   &field_volume,
                   &field_frequency,
-                  &console});
+                  &labels,
+                  &options_zoom,
+                  &waveform,
+                  &waveform2,
+                  &waveform3,
+                  &waveform4});
 
     field_frequency.set_step(100);
-
+    options_zoom.on_change = [this](size_t, int32_t v) {
+        zoom = v;
+        draw();
+        draw2();
+    };
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
     receiver_model.enable();
 }
 
-void ProtoView::on_data(const ProtoViewDataMessage* message) {
-    // todo draw
-    console.clear(true);
-    std::string tmp = "";
-    for (int i = 0; i <= message->maxptr; i++) {
-        if (message->times[i] > 0)
-            tmp.append("*");
-        else
-            tmp.append(".");
+void ProtoView::on_timer() {
+    timercnt++;
+    if ((timercnt % 60) == 0) {
+        if (datacnt == 0) {
+            cnt = 0;
+            for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
+        }
+        datacnt = 0;
     }
-    console.write(tmp);
+}
+
+void ProtoView::draw2() {
+    if (drawcnt < MAXDRAWCNTPERWF) {
+        waveform.set_length(drawcnt);
+        waveform2.set_length(0);
+        waveform3.set_length(0);
+        waveform4.set_length(0);
+    } else if (drawcnt < MAXDRAWCNTPERWF * 2) {
+        waveform.set_length(MAXDRAWCNTPERWF);
+        waveform2.set_length(drawcnt - MAXDRAWCNTPERWF);
+        waveform3.set_length(0);
+        waveform4.set_length(0);
+    } else if (drawcnt < MAXDRAWCNTPERWF * 3) {
+        waveform.set_length(MAXDRAWCNTPERWF);
+        waveform2.set_length(MAXDRAWCNTPERWF);
+        waveform3.set_length(drawcnt - MAXDRAWCNTPERWF * 2);
+        waveform4.set_length(0);
+    } else {
+        waveform.set_length(MAXDRAWCNTPERWF);
+        waveform2.set_length(MAXDRAWCNTPERWF);
+        waveform3.set_length(MAXDRAWCNTPERWF);
+        waveform4.set_length(drawcnt - MAXDRAWCNTPERWF * 3);
+    }
+    waveform.set_dirty();
+    waveform2.set_dirty();
+    waveform3.set_dirty();
+    waveform4.set_dirty();
+}
+
+void ProtoView::draw() {
+    uint32_t remain = 0;
+    int32_t lmax = 0;
+    bool lmaxstate = false;
+    bool state = false;
+    drawcnt = 0;
+    for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
+
+    for (uint16_t i = 0; i < MAXSIGNALBUFFER; ++i) {
+        state = time_buffer[i] >= 0;
+        int32_t timeabs = state ? time_buffer[i] : -1 * time_buffer[i];
+        int32_t timesize = timeabs / zoom;
+        if (timesize == 0) {
+            remain += timeabs;
+            if (lmax < timeabs) {
+                lmax = timeabs;
+                lmaxstate = state;
+            }
+            if (remain / zoom > 0) {
+                timesize = remain / zoom;
+                state = lmaxstate;
+            } else {
+                continue;
+            }
+        }
+        remain = 0;
+        lmax = 0;
+        for (int32_t ii = 0; ii < timesize; ++ii) {
+            waveform_buffer[drawcnt++] = state;
+            if (drawcnt >= MAXDRAWCNT) return;
+        }
+    }
+}
+
+void ProtoView::add_time(int32_t time) {
+    if (cnt >= MAXSIGNALBUFFER) cnt = 0;
+    time_buffer[cnt++] = time;
+}
+
+void ProtoView::on_data(const ProtoViewDataMessage* message) {
+    // filter out invalid ones.
+    uint16_t start = 0;
+    uint16_t stop = 0;
+    bool has_valid = false;
+    for (uint16_t i = 0; i <= message->maxptr; ++i) {
+        if (message->times[i] > 60000 || message->times[i] < -60000) {
+            if (!has_valid) {
+                start = i;
+            }
+        } else {
+            has_valid = true;
+            stop = i;
+        }
+    }
+    if (stop - start <= 0) return;  // no valid data arrived
+    datacnt++;
+
+    // valid data, redraw
+    for (uint16_t i = start; i <= stop; i++) {
+        add_time(message->times[i]);
+    }
+
+    draw();
+    draw2();
 }
 
 ProtoView::~ProtoView() {
