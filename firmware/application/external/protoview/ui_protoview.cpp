@@ -68,12 +68,17 @@ ProtoView::ProtoView(NavigationView& nav)
     receiver_model.enable();
 }
 
+void ProtoView::reset() {
+    cnt = 0;
+    for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
+    needCntReset = false;
+}
+
 void ProtoView::on_timer() {
     timercnt++;
-    if ((timercnt % 60) == 0) {
+    if ((timercnt % 90) == 0) {
         if (datacnt == 0) {
-            cnt = 0;
-            for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
+            needCntReset = true;
         }
         datacnt = 0;
     }
@@ -142,7 +147,7 @@ void ProtoView::draw() {
 }
 
 void ProtoView::add_time(int32_t time) {
-    if (cnt >= MAXSIGNALBUFFER) cnt = 0;
+    if (cnt >= MAXSIGNALBUFFER) return;  // cnt = 0;
     time_buffer[cnt++] = time;
 }
 
@@ -152,7 +157,7 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
     uint16_t stop = 0;
     bool has_valid = false;
     for (uint16_t i = 0; i <= message->maxptr; ++i) {
-        if (message->times[i] > 60000 || message->times[i] < -60000) {
+        if (message->times[i] >= 30000 || message->times[i] <= -30000) {
             if (!has_valid) {
                 start = i;
             }
@@ -161,7 +166,9 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
             stop = i;
         }
     }
-    if (stop - start <= 0) return;  // no valid data arrived
+    if (!has_valid) return;  // no valid data arrived
+    if (needCntReset) reset();
+
     datacnt++;
 
     // valid data, redraw

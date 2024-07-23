@@ -47,7 +47,7 @@ void ProtoViewProcessor::execute(const buffer_c8_t& buffer) {
 
         bool meashl = (mag > threshold);
         tm += mag;
-        if (meashl == currentHiLow && currentDuration < 60'000'000)  // allow pass 'end' signal
+        if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.

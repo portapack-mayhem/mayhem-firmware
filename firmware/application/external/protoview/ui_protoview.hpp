@@ -23,7 +23,7 @@
 #ifndef __UI_PROTOVIEW_H__
 #define __UI_PROTOVIEW_H__
 
-#define MAXSIGNALBUFFER 500
+#define MAXSIGNALBUFFER 400
 #define MAXDRAWCNT 600
 #define MAXDRAWCNTPERWF 150
 
@@ -123,6 +123,8 @@ class ProtoView : public View {
         true,
         Theme::getInstance()->fg_yellow->foreground};
 
+    bool needCntReset = false;
+
     int16_t zoom = 1;  // one value in ms
 
     uint16_t cnt = 0;      // pointer to next element
@@ -136,6 +138,7 @@ class ProtoView : public View {
     void on_data(const ProtoViewDataMessage* message);
     void draw();
     void draw2();
+    void reset();
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ProtoViewData,
