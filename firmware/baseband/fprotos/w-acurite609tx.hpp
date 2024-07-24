@@ -39,16 +39,11 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
 
             case Acurite_609TXCDecoderStepCheckDuration:
                 if (!level) {
-                    if (DURATION_DIFF(te_last, te_short) <
-                        te_delta) {
-                        if ((DURATION_DIFF(duration, te_short) <
-                             te_delta) ||
-                            (duration > te_long * 3)) {
+                    if (DURATION_DIFF(te_last, te_short) < te_delta) {
+                        if ((DURATION_DIFF(duration, te_short) < te_delta) || (duration > te_long * 3)) {
                             // Found syncPostfix
                             parser_step = Acurite_609TXCDecoderStepReset;
-                            if ((decode_count_bit ==
-                                 min_count_bit_for_found) &&
-                                ws_protocol_acurite_609txc_check()) {
+                            if ((decode_count_bit == min_count_bit_for_found) && ws_protocol_acurite_609txc_check()) {
                                 data = decode_data;
                                 data_count_bit = decode_count_bit;
                                 ws_protocol_acurite_609txc_remote_controller();
@@ -56,14 +51,10 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
                             }
                             decode_data = 0;
                             decode_count_bit = 0;
-                        } else if (
-                            DURATION_DIFF(duration, te_long) <
-                            te_delta * 2) {
+                        } else if (DURATION_DIFF(duration, te_long) < te_delta * 2) {
                             subghz_protocol_blocks_add_bit(0);
                             parser_step = Acurite_609TXCDecoderStepSaveDuration;
-                        } else if (
-                            DURATION_DIFF(duration, te_long * 2) <
-                            te_delta * 4) {
+                        } else if (DURATION_DIFF(duration, te_long * 2) < te_delta * 4) {
                             subghz_protocol_blocks_add_bit(1);
                             parser_step = Acurite_609TXCDecoderStepSaveDuration;
                         } else {
@@ -81,7 +72,7 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
 
    protected:
     uint32_t te_short = 500;
-    uint32_t te_long = 2000;
+    uint32_t te_long = 1000;
     uint32_t te_delta = 150;
     uint32_t min_count_bit_for_found = 32;
 
@@ -97,7 +88,6 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
             (int16_t)(((data >> 12) & 0xf000) | ((data >> 16) << 4));
         temp = (temp_raw >> 4) * 0.1f;
         humidity = (data >> 8) & 0xff;
-        btn = WS_NO_BTN;
     }
     bool ws_protocol_acurite_609txc_check() {
         if (!decode_data) return false;

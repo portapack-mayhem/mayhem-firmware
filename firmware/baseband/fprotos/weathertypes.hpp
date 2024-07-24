@@ -11,7 +11,7 @@ Also it must have a switch-case element in the getWeatherSensorTypeName() functi
 #define WS_NO_BATT 0xFF
 #define WS_NO_HUMIDITY 0xFF
 #define WS_NO_CHANNEL 0xFF
-#define WS_NO_BTN 0xFF
+// #define WS_NO_BTN 0xFF
 #define WS_NO_TEMPERATURE -273.0f
 
 enum FPROTO_WEATHER_SENSOR {
@@ -34,7 +34,11 @@ enum FPROTO_WEATHER_SENSOR {
     FPW_THERMOPROTX4 = 16,
     FPW_TX_8300 = 17,
     FPW_WENDOX_W6726 = 18,
-    FPW_Acurite986 = 19
+    FPW_Acurite986 = 19,
+    FPW_KEDSUM = 20,
+    FPW_Acurite5in1 = 21,
+    FPW_EmosE601x = 22
+
 };
 
 #endif

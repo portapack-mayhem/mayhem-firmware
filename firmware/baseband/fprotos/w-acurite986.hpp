@@ -118,7 +118,6 @@ class FProtoWeatherAcurite986 : public FProtoWeatherBase {
             temp = -(temp & 0x7F);
         }
         temp = FProtoGeneral::locale_fahrenheit_to_celsius((float)temp);
-        btn = WS_NO_BTN;
         humidity = WS_NO_HUMIDITY;
     }
 

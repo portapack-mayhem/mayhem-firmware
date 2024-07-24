@@ -92,7 +92,6 @@ class FProtoWeatherAcurite606TX : public FProtoWeatherBase {
         } else {
             temp = (float)((~(data >> 8) & 0x07FF) + 1) / -10.0f;
         }
-        btn = WS_NO_BTN;
         humidity = WS_NO_HUMIDITY;
     }
     bool ws_protocol_acurite_606tx_check() {

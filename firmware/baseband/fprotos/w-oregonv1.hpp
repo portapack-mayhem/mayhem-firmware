@@ -137,7 +137,7 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
     uint32_t min_count_bit_for_found = 32;
 
     uint8_t first_bit{0};
-
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
     bool ws_protocol_oregon_v1_check() {
         if (!decode_data) return false;
         uint64_t data = FProtoGeneral::subghz_protocol_blocks_reverse_key(decode_data, 32);
@@ -159,7 +159,6 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
             temp = -temp_raw;
         }
         battery_low = !((data2 >> 23) & 1ULL);
-        btn = WS_NO_BTN;
         humidity = WS_NO_HUMIDITY;
     }
 };

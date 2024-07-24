@@ -113,7 +113,7 @@ class FProtoWeatherLaCrosseTx141thbv2 : public FProtoWeatherBase {
         }
         id = data >> 32;
         battery_low = (data >> 31) & 1;
-        btn = (data >> 30) & 1;
+        // btn = (data >> 30) & 1;
         channel = ((data >> 28) & 0x03) + 1;
         temp = ((float)((data >> 16) & 0x0FFF) - 500.0f) / 10.0f;
         humidity = (data >> 8) & 0xFF;

@@ -91,7 +91,6 @@ class FProtoWeatherAuriolTh : public FProtoWeatherBase {
         id = (data >> 31) & 0xFF;
         battery_low = ((data >> 30) & 1);
         channel = ((data >> 25) & 0x03) + 1;
-        btn = WS_NO_BTN;
         if (!((data >> 23) & 1)) {
             temp = (float)((data >> 13) & 0x07FF) / 10.0f;
         } else {

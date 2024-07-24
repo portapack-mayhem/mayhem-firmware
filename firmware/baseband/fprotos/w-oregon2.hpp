@@ -160,7 +160,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
     bool prev_bit = 0;
     uint8_t var_bits{0};
     uint32_t var_data{0};
-
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
     void ws_protocol_decoder_oregon2_reset() {
         parser_step = Oregon2DecoderStepReset;
         decode_data = 0UL;

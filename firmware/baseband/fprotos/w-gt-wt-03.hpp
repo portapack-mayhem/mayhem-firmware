@@ -124,7 +124,7 @@ class FProtoWeatherGTWT03 : public FProtoWeatherBase {
         }
 
         battery_low = (data >> 24) & 1;
-        btn = (data >> 23) & 1;
+        // (data >> 23) & 1;
         channel = ((data >> 21) & 0x03) + 1;
 
         if (!((data >> 20) & 1)) {

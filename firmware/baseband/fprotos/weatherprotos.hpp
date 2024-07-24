@@ -25,6 +25,10 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "w-tx8300.hpp"
 #include "w-wendox-w6726.hpp"
 #include "w-acurite986.hpp"
+#include "w-kedsum.hpp"
+#include "w-acurite5in1.hpp"
+#include "w-emose601x.hpp"
+
 #include <vector>
 #include <memory>
 #include "portapack_shared_memory.hpp"
@@ -55,6 +59,9 @@ class WeatherProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoWeatherTX8300>());              // 17
         protos.push_back(std::make_unique<FProtoWeatherWendoxW6726>());         // 18
         protos.push_back(std::make_unique<FProtoWeatherAcurite986>());          // 19
+        protos.push_back(std::make_unique<FProtoWeatherKedsum>());              // 20
+        protos.push_back(std::make_unique<FProtoWeatherAcurite5in1>());         // 21
+        protos.push_back(std::make_unique<FProtoWeatherEmosE601x>());           // 22
 
         // set callback for them
         for (const auto& obj : protos) {
@@ -65,7 +72,7 @@ class WeatherProtos : public FProtoListGeneral {
     static void callbackTarget(FProtoWeatherBase* instance) {
         WeatherDataMessage packet_message{instance->getSensorType(), instance->getSensorId(),
                                           instance->getTemp(), instance->getHumidity(), instance->getBattLow(),
-                                          instance->getChannel(), instance->getButton()};
+                                          instance->getChannel()};
         shared_memory.application_queue.push(packet_message);
     }
 

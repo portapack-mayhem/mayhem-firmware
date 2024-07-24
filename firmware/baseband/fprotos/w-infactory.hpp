@@ -125,7 +125,6 @@ class FProtoWeatherInfactory : public FProtoWeatherBase {
     void ws_protocol_infactory_remote_controller() {
         id = data >> 32;
         battery_low = (data >> 26) & 1;
-        btn = WS_NO_BTN;
         temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data >> 12) & 0x0FFF) - 900.0f) / 10.0f);
         humidity = (((data >> 8) & 0x0F) * 10) + ((data >> 4) & 0x0F);  // BCD, 'A0'=100%rH
         channel = data & 0x03;

@@ -91,7 +91,7 @@ class FProtoWeatherGTWT02 : public FProtoWeatherBase {
     void ws_protocol_gt_wt_02_remote_controller() {
         id = (data >> 29) & 0xFF;
         battery_low = (data >> 28) & 1;
-        btn = (data >> 27) & 1;
+        // btn = (data >> 27) & 1;
         channel = ((data >> 25) & 0x3) + 1;
 
         if (!((data >> 24) & 1)) {

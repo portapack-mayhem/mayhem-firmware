@@ -137,7 +137,6 @@ class FProtoWeatherLaCrosseTx : public FProtoWeatherBase {
             // furi_crash("WS: WSProtocolLaCrosse_TX incorrect msg_type.");
         }
 
-        btn = WS_NO_BTN;
         battery_low = WS_NO_BATT;
         channel = WS_NO_CHANNEL;
     }

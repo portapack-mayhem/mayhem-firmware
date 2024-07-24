@@ -148,7 +148,6 @@ class FProtoWeatherAcurite592TXR : public FProtoWeatherBase {
         humidity = (data >> 24) & 0x7F;
         uint16_t temp_raw = ((data >> 9) & 0xF80) | ((data >> 8) & 0x7F);
         temp = ((float)(temp_raw)-1000) / 10.0f;
-        btn = WS_NO_BTN;
     }
 };
 
