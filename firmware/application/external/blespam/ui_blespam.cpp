@@ -596,6 +596,7 @@ void BLESpamView::createAnyPacket(bool safe) {
         ATK_WINDOWS,
         ATK_SAMSUNG,
         ATK_NAMESPAM,
+        ATK_NAMERANDOM,
         ATK_IOS_CRASH};
     ATK_TYPE attackType = type[rand() % (COUNT_OF(type) - (1 ? safe : 0))];
     createPacket(attackType);
