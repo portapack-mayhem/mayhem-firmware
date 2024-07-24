@@ -339,7 +339,7 @@ char BLESpamView::randomNameChar() {
 }
 
 void BLESpamView::createNameRandomPacket() {
-    char* name = "         ";
+    char name[] = "         ";
 
     uint8_t name_len = strlen(name);
     for (uint8_t i = 0; i < name_len; ++i) {
