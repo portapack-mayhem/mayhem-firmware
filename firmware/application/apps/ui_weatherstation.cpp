@@ -205,7 +205,8 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "Acurite986";
         case FPW_KEDSUM:
             return "Kedsum";
-
+        case FPW_Acurite5in1:
+            return "Acurite5in1";
         case FPW_Invalid:
         default:
             return "Unknown";

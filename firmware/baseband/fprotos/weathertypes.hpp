@@ -35,7 +35,8 @@ enum FPROTO_WEATHER_SENSOR {
     FPW_TX_8300 = 17,
     FPW_WENDOX_W6726 = 18,
     FPW_Acurite986 = 19,
-    FPW_KEDSUM = 20
+    FPW_KEDSUM = 20,
+    FPW_Acurite5in1 = 21
 };
 
 #endif
