@@ -203,6 +203,8 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "Wendox W6726";
         case FPW_Acurite986:
             return "Acurite986";
+        case FPW_KEDSUM:
+            return "Kedsum";
 
         case FPW_Invalid:
         default:

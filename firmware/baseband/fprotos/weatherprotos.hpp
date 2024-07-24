@@ -25,6 +25,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "w-tx8300.hpp"
 #include "w-wendox-w6726.hpp"
 #include "w-acurite986.hpp"
+#include "w-kedsum.hpp"
 #include <vector>
 #include <memory>
 #include "portapack_shared_memory.hpp"
@@ -55,6 +56,7 @@ class WeatherProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoWeatherTX8300>());              // 17
         protos.push_back(std::make_unique<FProtoWeatherWendoxW6726>());         // 18
         protos.push_back(std::make_unique<FProtoWeatherAcurite986>());          // 19
+        protos.push_back(std::make_unique<FProtoWeatherKedsum>());              // 20
 
         // set callback for them
         for (const auto& obj : protos) {
