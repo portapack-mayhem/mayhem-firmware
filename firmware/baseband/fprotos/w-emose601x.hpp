@@ -102,22 +102,27 @@ class FProtoWeatherEmosE601x : public FProtoWeatherBase {
     uint32_t min_count_bit_for_found = 24;
 
     uint64_t upper_decode_data = 0;
-
+    void subghz_protocol_blocks_add_to_128_bit(uint8_t bit, uint64_t* head_64_bit) {
+        if (++decode_count_bit > 64) {
+            (*head_64_bit) = ((*head_64_bit) << 1) | (decode_data >> 63);
+        }
+        decode_data = decode_data << 1 | bit;
+    }
     bool ws_protocol_emose601x_check() {
         uint8_t msg[] = {
-            upper_decode_data >> 48,
-            upper_decode_data >> 40,
-            upper_decode_data >> 32,
-            upper_decode_data >> 24,
-            upper_decode_data >> 16,
-            upper_decode_data >> 8,
-            upper_decode_data,
-            decode_data >> 56,
-            decode_data >> 48,
-            decode_data >> 40,
-            decode_data >> 32,
-            decode_data >> 24,
-            decode_data >> 16};
+            static_cast<uint8_t>(upper_decode_data >> 48),
+            static_cast<uint8_t>(upper_decode_data >> 40),
+            static_cast<uint8_t>(upper_decode_data >> 32),
+            static_cast<uint8_t>(upper_decode_data >> 24),
+            static_cast<uint8_t>(upper_decode_data >> 16),
+            static_cast<uint8_t>(upper_decode_data >> 8),
+            static_cast<uint8_t>(upper_decode_data),
+            static_cast<uint8_t>(decode_data >> 56),
+            static_cast<uint8_t>(decode_data >> 48),
+            static_cast<uint8_t>(decode_data >> 40),
+            static_cast<uint8_t>(decode_data >> 32),
+            static_cast<uint8_t>(decode_data >> 24),
+            static_cast<uint8_t>(decode_data >> 16)};
 
         uint8_t sum = FProtoGeneral::subghz_protocol_blocks_add_bytes(msg, 13);
         return (sum == ((decode_data >> 8) & 0xff));
@@ -126,7 +131,6 @@ class FProtoWeatherEmosE601x : public FProtoWeatherBase {
     void ws_protocol_emose601x_extract_data() {
         id = (upper_decode_data >> 24) & 0xff;
         battery_low = (decode_data >> 10) & 1;
-        btn = WS_NO_BTN;
         int16_t temp = (decode_data >> 40) & 0xfff;
         /* Handle signed data */
         if (temp & 0x800) {

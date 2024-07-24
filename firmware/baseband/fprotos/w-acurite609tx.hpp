@@ -88,7 +88,6 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
             (int16_t)(((data >> 12) & 0xf000) | ((data >> 16) << 4));
         temp = (temp_raw >> 4) * 0.1f;
         humidity = (data >> 8) & 0xff;
-        btn = WS_NO_BTN;
     }
     bool ws_protocol_acurite_609txc_check() {
         if (!decode_data) return false;

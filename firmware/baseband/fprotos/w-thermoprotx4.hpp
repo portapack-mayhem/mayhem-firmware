@@ -96,7 +96,7 @@ class FProtoWeatherThermoProTx4 : public FProtoWeatherBase {
     void ws_protocol_thermopro_tx4_remote_controller() {
         id = (data >> 25) & 0xFF;
         battery_low = (data >> 24) & 1;
-        btn = (data >> 23) & 1;
+        // btn = (data >> 23) & 1;
         channel = ((data >> 21) & 0x03) + 1;
         if (!((data >> 20) & 1)) {
             temp = (float)((data >> 9) & 0x07FF) / 10.0f;

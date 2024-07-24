@@ -117,13 +117,13 @@ class FProtoWeatherAcurite5in1 : public FProtoWeatherBase {
 
     bool ws_protocol_acurite_5n1_check_crc() {
         uint8_t msg[] = {
-            static_cast<uint8_t>(decode_data >> 56),
-            static_cast<uint8_t>(decode_data >> 48),
-            static_cast<uint8_t>(decode_data >> 40),
-            static_cast<uint8_t>(decode_data >> 32),
-            static_cast<uint8_t>(decode_data >> 24),
-            static_cast<uint8_t>(decode_data >> 16),
-            static_cast<uint8_t>(decode_data >> 8)};
+            (uint8_t)(decode_data >> 56),
+            (uint8_t)(decode_data >> 48),
+            (uint8_t)(decode_data >> 40),
+            (uint8_t)(decode_data >> 32),
+            (uint8_t)(decode_data >> 24),
+            (uint8_t)(decode_data >> 16),
+            (uint8_t)(decode_data >> 8)};
 
         if ((FProtoGeneral::subghz_protocol_blocks_add_bytes(msg, 7) ==
              (uint8_t)(decode_data & 0xFF)) &&
@@ -143,7 +143,6 @@ class FProtoWeatherAcurite5in1 : public FProtoWeatherBase {
         humidity = (data >> 8) & 0x7F;
         uint16_t temp_raw = ((data >> (24 - 7)) & 0x780) | ((data >> 16) & 0x7F);
         temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)(temp_raw)-400) / 10.0f);
-        btn = WS_NO_BTN;
     };
 };
 

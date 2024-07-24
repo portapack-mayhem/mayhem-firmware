@@ -136,7 +136,6 @@ class FProtoWeatherKedsum : public FProtoWeatherBase {
             battery_low = 1;
         }
         channel = ((data >> 28) & 0x3) + 1;
-        btn = WS_NO_BTN;
         uint16_t temp_raw = ((data >> 16) & 0x0f) << 8 |
                             ((data >> 20) & 0x0f) << 4 | ((data >> 24) & 0x0f);
         temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)temp_raw - 900.0f) / 10.0f);

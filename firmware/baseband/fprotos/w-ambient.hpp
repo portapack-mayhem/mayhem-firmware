@@ -62,7 +62,7 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
     uint32_t te_long = 1000;
     uint32_t te_delta = 120;
     uint32_t min_count_bit_for_found = 48;
-
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
     bool ws_protocol_ambient_weather_check_crc() {
         uint8_t msg[] = {
             static_cast<uint8_t>(decode_data >> 40),
@@ -81,7 +81,6 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
         channel = ((data >> 28) & 0x07) + 1;
         temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data >> 16) & 0x0FFF) - 400.0f) / 10.0f);
         humidity = (data >> 8) & 0xFF;
-        btn = WS_NO_BTN;
     }
 };
 

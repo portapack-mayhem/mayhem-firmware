@@ -72,7 +72,7 @@ class WeatherProtos : public FProtoListGeneral {
     static void callbackTarget(FProtoWeatherBase* instance) {
         WeatherDataMessage packet_message{instance->getSensorType(), instance->getSensorId(),
                                           instance->getTemp(), instance->getHumidity(), instance->getBattLow(),
-                                          instance->getChannel(), instance->getButton()};
+                                          instance->getChannel()};
         shared_memory.application_queue.push(packet_message);
     }
 

@@ -1267,16 +1267,14 @@ class WeatherDataMessage : public Message {
         float temp = -273.0f,
         uint8_t humidity = 0xFF,
         uint8_t battery_low = 0xFF,
-        uint8_t channel = 0xFF,
-        uint8_t btn = 0xFF)
+        uint8_t channel = 0xFF)
         : Message{ID::WeatherData},
           sensorType{sensorType},
           id{id},
           temp{temp},
           humidity{humidity},
           battery_low{battery_low},
-          channel{channel},
-          btn{btn} {
+          channel{channel} {
     }
     uint8_t sensorType = 0;
     uint32_t id = 0xFFFFFFFF;
@@ -1284,7 +1282,6 @@ class WeatherDataMessage : public Message {
     uint8_t humidity = 0xFF;
     uint8_t battery_low = 0xFF;
     uint8_t channel = 0xFF;
-    uint8_t btn = 0xFF;
 };
 
 class SubGhzDDataMessage : public Message {

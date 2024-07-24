@@ -91,7 +91,7 @@ class FProtoWeatherAuriolAhfl : public FProtoWeatherBase {
     void ws_protocol_auriol_ahfl_remote_controller() {
         id = data >> 34;
         battery_low = (data >> 33) & 1;
-        btn = (data >> 32) & 1;
+        // btn = (data >> 32) & 1;
         channel = ((data >> 30) & 0x3) + 1;
         if (!((data >> 29) & 1)) {
             temp = (float)((data >> 18) & 0x07FF) / 10.0f;

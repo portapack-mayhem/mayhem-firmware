@@ -147,8 +147,6 @@ class FProtoWeatherWendoxW6726 : public FProtoWeatherBase {
         } else if (temp > 70.0f) {
             temp = 70.0f;
         }
-
-        btn = WS_NO_BTN;
         humidity = WS_NO_HUMIDITY;
     }
 };

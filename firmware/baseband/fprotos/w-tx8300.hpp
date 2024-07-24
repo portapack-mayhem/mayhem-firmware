@@ -120,7 +120,6 @@ class FProtoWeatherTX8300 : public FProtoWeatherBase {
     }
     void ws_protocol_tx_8300_remote_controller() {
         humidity = (((data >> 28) & 0x0F) * 10) + ((data >> 24) & 0x0F);
-        btn = WS_NO_BTN;
         if (!((data >> 22) & 0x03))
             battery_low = 0;
         else

@@ -117,7 +117,7 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
     bool prev_bit = false;
     uint8_t var_bits{0};
     uint64_t var_data{0};
-
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
     ManchesterEvent level_and_duration_to_event(bool level, uint32_t duration) {
         bool is_long = false;
 
