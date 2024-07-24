@@ -37,7 +37,12 @@ class FProtoWeatherBase {
         decode_data = decode_data << 1 | bit;
         decode_count_bit++;
     }
-
+    void subghz_protocol_blocks_add_to_128_bit(uint8_t bit, uint64_t* head_64_bit) {
+        if (++decode_count_bit > 64) {
+            (*head_64_bit) = ((*head_64_bit) << 1) | (decode_data >> 63);
+        }
+        decode_data = decode_data << 1 | bit;
+    }
     // General weather data holder
     uint8_t sensorType = FPW_Invalid;
     uint32_t id = WS_NO_ID;
