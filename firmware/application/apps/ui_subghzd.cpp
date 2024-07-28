@@ -208,6 +208,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "X10";
         case FPS_LEGRAND:
             return "Legrand";
+        case FPS_SOMIFY_KEYTIS:
+            return "Somify Keytis";
         case FPS_Invalid:
         default:
             return "Unknown";

@@ -49,6 +49,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-x10.hpp"
 // #include "s-hormannbisecure.hpp" //fm
 #include "s-legrand.hpp"
+#include "s-somify_keytis.hpp"
 
 // GENIE FROM PR
 
@@ -96,6 +97,7 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_SECPLUSV1] = new FProtoSubGhzDSecPlusV1();
         protos[FPS_SECPLUSV2] = new FProtoSubGhzDSecPlusV2();
         protos[FPS_SMC5326] = new FProtoSubGhzDSmc5326();
+        protos[FPS_SOMIFY_KEYTIS] = new FProtoSubGhzDSomifyKeytis();
         // somify keytis skipped
         // somify telis skipped
         protos[FPS_STARLINE] = new FProtoSubGhzDStarLine();
@@ -103,8 +105,6 @@ class SubGhzDProtos : public FProtoListGeneral {
         // protos[FPS_HORMANNBISECURE] = new FProtoSubGhzDHormannBiSecure();  //fm
         protos[FPS_LEGRAND] = new FProtoSubGhzDLegrand();
         // genie skipped
-
-        // todo new:      Schrader
 
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);

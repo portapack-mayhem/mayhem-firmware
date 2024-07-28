@@ -54,7 +54,7 @@ enum FPROTO_SUBGHZD_SENSOR : uint8_t {
     FPS_SMC5326,
     FPS_STARLINE,
     FPS_X10,
-
+    FPS_SOMIFY_KEYTIS,
     FPS_COUNT
 };
 
