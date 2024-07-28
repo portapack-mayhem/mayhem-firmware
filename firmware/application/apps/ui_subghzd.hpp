@@ -23,6 +23,10 @@
 #ifndef __UI_SUBGHZD_H__
 #define __UI_SUBGHZD_H__
 
+#define SD_NO_SERIAL 0xFFFFFFFF
+#define SD_NO_BTN 0xFF
+#define SD_NO_CNT 0xFF
+
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -140,6 +144,11 @@ class SubGhzDRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     SubGhzDRecentEntry entry_{};
+
+    uint32_t serial = 0;
+    uint8_t btn = SD_NO_BTN;
+    uint32_t cnt = SD_NO_CNT;
+
     Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
 
@@ -155,6 +164,8 @@ class SubGhzDRecentEntryDetailView : public View {
     Button button_done{
         {screen_width - 96 - 4, screen_height - 32 - 12, 96, 32},
         "Done"};
+
+    void parseProtocol();
 };
 
 }  // namespace ui

@@ -32,14 +32,16 @@ using namespace ui;
 namespace ui {
 
 void SubGhzDRecentEntryDetailView::update_data() {
+    // process protocol data
+    parseProtocol();
     // set text elements
     text_type.set(SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry_.sensorType));
-    // todo FIX
-    /*text_id.set("0x" + to_string_hex(entry_.serial));
+
+    text_id.set("0x" + to_string_hex(serial));
     if (entry_.bits > 0) console.writeln("Bits: " + to_string_dec_uint(entry_.bits));
-    if (entry_.btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(entry_.btn));
-    if (entry_.cnt != SD_NO_CNT) console.writeln("Cnt: " + to_string_dec_uint(entry_.cnt));
-*/
+    if (btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(btn));
+    if (cnt != SD_NO_CNT) console.writeln("Cnt: " + to_string_dec_uint(cnt));
+
     if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
 }
 
@@ -238,6 +240,13 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
+}
+
+void SubGhzDRecentEntryDetailView::parseProtocol() {
+    btn = SD_NO_BTN;
+    cnt = SD_NO_CNT;
+
+    // todo parse all subghzd protocol
 }
 
 }  // namespace ui

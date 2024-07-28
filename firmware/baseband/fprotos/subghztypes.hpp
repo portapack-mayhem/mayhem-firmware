@@ -11,10 +11,6 @@ Also it must have a switch-case element in the getSubGhzDSensorTypeName() functi
 #define FPM_AM 0
 #define FPM_FM 1
 
-#define SD_NO_SERIAL 0xFFFFFFFF
-#define SD_NO_BTN 0xFF
-#define SD_NO_CNT 0xFF
-
 enum FPROTO_SUBGHZD_SENSOR : uint8_t {
     FPS_Invalid = 0,
     FPS_PRINCETON,
