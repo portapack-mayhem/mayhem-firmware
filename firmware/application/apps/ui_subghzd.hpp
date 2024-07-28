@@ -37,6 +37,7 @@
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/subghztypes.hpp"
+#include "../baseband/fprotos/fprotogeneral.hpp"
 
 using namespace ui;
 
@@ -148,6 +149,7 @@ class SubGhzDRecentEntryDetailView : public View {
     uint32_t serial = 0;
     uint8_t btn = SD_NO_BTN;
     uint32_t cnt = SD_NO_CNT;
+    uint32_t seed = 0;
 
     Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};

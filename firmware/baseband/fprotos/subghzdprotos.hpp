@@ -100,6 +100,8 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_X10] = new FProtoSubGhzDX10();
         // genie skipped
 
+        // todo new: hormann bisecure, kia, legrand,  ScherKhan, Schrader
+
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
         }
