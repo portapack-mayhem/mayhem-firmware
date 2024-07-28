@@ -73,8 +73,6 @@ class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
                 // the data is good. process it.
                 data = decode_data;
                 data_count_bit = decode_count_bit;  // maybe set it to 64, and hack the first 2 bits to 1! will see if replay needs it
-                serial = (decode_data >> 24) & 0xFFFFF;
-                btn = (decode_data >> 16) & 0xFF;  // not exactly button, but can contain btn data too.
                 if (callback) callback(this);
                 decode_data = 0;
                 decode_count_bit = 0;

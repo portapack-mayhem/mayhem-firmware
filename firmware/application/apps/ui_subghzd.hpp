@@ -42,29 +42,20 @@ struct SubGhzDRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;
     uint8_t sensorType = FPS_Invalid;
-    uint8_t btn = SD_NO_BTN;
-    uint32_t serial = SD_NO_SERIAL;
     uint16_t bits = 0;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
-    uint32_t cnt = SD_NO_CNT;
     uint64_t data = 0;
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
-        uint32_t serial,
-        uint16_t bits = 0,
         uint64_t data = 0,
-        uint8_t btn = SD_NO_BTN,
-        uint32_t cnt = SD_NO_CNT)
+        uint16_t bits = 0)
         : sensorType{sensorType},
-          btn{btn},
-          serial{serial},
           bits{bits},
-          cnt{cnt},
           data{data} {
     }
     Key key() const {
-        return (data ^ ((static_cast<uint64_t>(serial) << 32) | (static_cast<uint64_t>(sensorType) & 0xFF) << 0));
+        return (data ^ ((static_cast<uint64_t>(sensorType) & 0xFF) << 0));
     }
     void inc_age(int delta) {
         if (UINT16_MAX - delta > age) age += delta;

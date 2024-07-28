@@ -47,12 +47,6 @@ class FProtoSubGhzDPhoenixV2 : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            uint64_t data_rev = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, data_count_bit + 4);
-                            serial = data_rev & 0xFFFFFFFF;
-                            cnt = (data_rev >> 40) & 0xFFFF;
-                            btn = (data_rev >> 32) & 0xF;
-
                             if (callback) callback(this);
                         }
                         decode_data = 0;

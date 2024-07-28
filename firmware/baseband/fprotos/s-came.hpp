@@ -53,8 +53,6 @@ class FProtoSubGhzDCame : public FProtoSubGhzDBase {
                         parser_step = CameDecoderStepFoundStartBit;
                         if ((decode_count_bit == min_count_bit_for_found) || (decode_count_bit == AIRFORCE_COUNT_BIT) ||
                             (decode_count_bit == PRASTEL_COUNT_BIT) || (decode_count_bit == CAME_24_COUNT_BIT)) {
-                            serial = SD_NO_SERIAL;
-                            btn = SD_NO_BTN;
                             data = decode_data;
                             data_count_bit = decode_count_bit;
                             // if flippa hacky, i hacky

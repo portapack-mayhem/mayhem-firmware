@@ -49,8 +49,6 @@ class FProtoSubGhzDHormann : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            btn = (data >> 4) & 0xF;
                             if (callback) callback(this);
                         }
                         break;

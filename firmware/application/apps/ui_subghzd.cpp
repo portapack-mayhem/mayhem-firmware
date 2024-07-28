@@ -34,11 +34,12 @@ namespace ui {
 void SubGhzDRecentEntryDetailView::update_data() {
     // set text elements
     text_type.set(SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry_.sensorType));
-    text_id.set("0x" + to_string_hex(entry_.serial));
+    // todo FIX
+    /*text_id.set("0x" + to_string_hex(entry_.serial));
     if (entry_.bits > 0) console.writeln("Bits: " + to_string_dec_uint(entry_.bits));
     if (entry_.btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(entry_.btn));
     if (entry_.cnt != SD_NO_CNT) console.writeln("Cnt: " + to_string_dec_uint(entry_.cnt));
-
+*/
     if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
 }
 
@@ -103,7 +104,7 @@ void SubGhzDView::on_tick_second() {
 }
 
 void SubGhzDView::on_data(const SubGhzDDataMessage* data) {
-    SubGhzDRecentEntry key{data->sensorType, data->serial, data->bits, data->data, data->btn, data->cnt};
+    SubGhzDRecentEntry key{data->sensorType, data->data, data->bits};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
@@ -224,7 +225,7 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    line = line + " " + to_string_hex(entry.serial);
+    // line = line + " " + to_string_hex(entry.serial);
     if (line.length() < 19) {
         line += SubGhzDView::pad_string_with_spaces(19 - line.length());
     } else {

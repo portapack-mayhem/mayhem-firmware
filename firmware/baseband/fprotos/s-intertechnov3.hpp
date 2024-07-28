@@ -68,7 +68,6 @@ class FProtoSubGhzDIntertechnoV3 : public FProtoSubGhzDBase {
                             (decode_count_bit == INTERTECHNO_V3_DIMMING_COUNT_BIT)) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            remote_controller();
                             if (callback) callback(this);
                         }
                         break;
@@ -120,29 +119,6 @@ class FProtoSubGhzDIntertechnoV3 : public FProtoSubGhzDBase {
     }
 
    protected:
-    void remote_controller() {
-        if (data_count_bit == min_count_bit_for_found) {
-            serial = (data >> 6) & 0x3FFFFFF;
-            if ((data >> 5) & 0x1) {
-                cnt = 1 << 5;
-            } else {
-                cnt = (~data & 0xF);
-            }
-            btn = (data >> 4) & 0x1;
-        } else if (data_count_bit == INTERTECHNO_V3_DIMMING_COUNT_BIT) {
-            serial = (data >> 10) & 0x3FFFFFF;
-            if ((data >> 9) & 0x1) {
-                cnt = 1 << 5;
-            } else {
-                cnt = (~(data >> 4) & 0xF);
-            }
-            btn = data & 0xF;
-        } else {
-            serial = 0;
-            cnt = 0;
-            btn = 0;
-        }
-    }
 };
 
 #endif

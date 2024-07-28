@@ -115,7 +115,7 @@ class SubGhzDProtos : public FProtoListGeneral {
     };
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
-        SubGhzDDataMessage packet_message{instance->sensorType, instance->btn, instance->data_count_bit, instance->serial, instance->data, instance->cnt};
+        SubGhzDDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->data};
         shared_memory.application_queue.push(packet_message);
     }
 

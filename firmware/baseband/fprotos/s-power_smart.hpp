@@ -52,11 +52,6 @@ class FProtoSubGhzDPowerSmart : public FProtoSubGhzDBase {
                     data = decode_data;
                     data_count_bit = min_count_bit_for_found;
 
-                    // controller
-                    btn = ((data >> 54) & 0x02) | ((data >> 40) & 0x1);
-                    serial = ((data >> 33) & 0x3FFF00) | ((data >> 32) & 0xFF);
-                    cnt = ((data >> 49) & 0x3F);
-
                     if (callback) callback(this);
                     decode_data = 0;
                     decode_count_bit = 0;
