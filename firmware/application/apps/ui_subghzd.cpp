@@ -210,6 +210,9 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Legrand";
         case FPS_SOMIFY_KEYTIS:
             return "Somify Keytis";
+        case FPS_SOMIFY_TELIS:
+            return "Somify Telis";
+
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -692,6 +695,22 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_X10) {
         serial = (entry_.data & 0xF0000000) >> (24 + 4);
         btn = (((entry_.data & 0x07000000) >> 24) | ((entry_.data & 0xF800) >> 8));
+        return;
+    }
+
+    if (entry_.sensorType == FPS_SOMIFY_KEYTIS) {
+        uint64_t dataa = entry_.data ^ (entry_.data >> 8);
+        btn = (dataa >> 48) & 0xF;
+        cnt = (dataa >> 24) & 0xFFFF;
+        serial = dataa & 0xFFFFFF;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_SOMIFY_TELIS) {
+        uint64_t dataa = entry_.data ^ (entry_.data >> 8);
+        btn = (dataa >> 44) & 0xF;     // ctrl
+        cnt = (dataa >> 24) & 0xFFFF;  // rolling code
+        serial = dataa & 0xFFFFFF;     // address}
         return;
     }
 }
