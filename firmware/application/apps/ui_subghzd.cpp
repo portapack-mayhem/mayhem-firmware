@@ -234,7 +234,7 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    line = line + " " + to_string_hex(entry.data);
+    line = line + " " + to_string_hex(entry.data << 32);
     if (line.length() < 19) {
         line += SubGhzDView::pad_string_with_spaces(19 - line.length());
     } else {
