@@ -206,6 +206,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Star Line";
         case FPS_X10:
             return "X10";
+        case FPS_LEGRAND:
+            return "Legrand";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -227,7 +229,7 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    // line = line + " " + to_string_hex(entry.serial);
+    line = line + " " + to_string_hex(entry.data);
     if (line.length() < 19) {
         line += SubGhzDView::pad_string_with_spaces(19 - line.length());
     } else {
@@ -510,15 +512,13 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
         return;
     }
 
-    /*  enable if implemented..
-    if (entry_.sensorType == FPS_HORMANNISECURE) {
+    /* if (entry_.sensorType == FPS_HORMANNBISECURE) { //fm not implemented
         serial = 0;
 
         for (uint8_t i = 1; i < 5; i++) {
             serial = serial << 8 | ((uint8_t*)(&entry_.data))[i];
         }
-    }
-    */
+    } */
 
     if (entry_.sensorType == FPS_IDO) {
         uint64_t code_found_reverse = FProtoGeneral::subghz_protocol_blocks_reverse_key(entry_.data, entry_.bits);
@@ -558,7 +558,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
         return;
     }
 
-    /* enable when implemented
+    /* fm not  implemented
     if (entry_.sensorType == FPS_KIA) {
         serial = (uint32_t)((entry_.data >> 12) & 0x0FFFFFFF);
         btn = (entry_.data >> 8) & 0x0F;
@@ -574,11 +574,9 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
         return;
     }
 
-    /* enable when implemented
     if (entry_.sensorType == FPS_LEGRAND) {
-        return; //nothing
+        return;  // nothing
     }
-    */
 
     if (entry_.sensorType == FPS_LINEAR || entry_.sensorType == FPS_LINEARDELTA3) {
         return;  // nothing

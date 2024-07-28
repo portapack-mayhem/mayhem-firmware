@@ -47,6 +47,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-smc5326.hpp"
 #include "s-star_line.hpp"
 #include "s-x10.hpp"
+// #include "s-hormannbisecure.hpp" //fm
+#include "s-legrand.hpp"
 
 // GENIE FROM PR
 
@@ -98,9 +100,11 @@ class SubGhzDProtos : public FProtoListGeneral {
         // somify telis skipped
         protos[FPS_STARLINE] = new FProtoSubGhzDStarLine();
         protos[FPS_X10] = new FProtoSubGhzDX10();
+        // protos[FPS_HORMANNBISECURE] = new FProtoSubGhzDHormannBiSecure();  //fm
+        protos[FPS_LEGRAND] = new FProtoSubGhzDLegrand();
         // genie skipped
 
-        // todo new: hormann bisecure, kia, legrand,  ScherKhan, Schrader
+        // todo new:      Schrader
 
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
