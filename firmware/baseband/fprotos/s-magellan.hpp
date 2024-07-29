@@ -92,11 +92,6 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
                             subghz_protocol_magellan_check_crc()) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-
-                            // controller
-                            uint64_t data_rev = FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 8, 24);
-                            serial = data_rev & 0xFFFF;
-                            btn = (data_rev >> 16) & 0xFF;
                             if (callback) callback(this);
                         }
                         decode_data = 0;

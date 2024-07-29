@@ -50,16 +50,7 @@ class FProtoSubGhzDMegacode : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            if ((data >> 23) == 1) {
-                                serial = (data >> 3) & 0xFFFF;
-                                btn = data & 0b111;
-                                cnt = (data >> 19) & 0b1111;
-                            } else {
-                                serial = 0;
-                                btn = 0;
-                                cnt = 0;
-                            }
+
                             if (callback) callback(this);
                         }
                         break;

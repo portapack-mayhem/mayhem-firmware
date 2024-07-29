@@ -61,13 +61,8 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
                         if (decode_count_bit ==
                             min_count_bit_for_found) {
                             data = data_2;
-                            data_2 = decode_data;
+                            data_2 = decode_data;  // TODO DATA2
                             data_count_bit = decode_count_bit;
-                            // controller
-                            uint64_t fix = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, 53);
-
-                            btn = (fix >> 17) & 0x0F;
-                            serial = ((fix >> 5) & 0xFFFF0000) | (fix & 0xFFFF);
                             if (callback) callback(this);
                         }
 

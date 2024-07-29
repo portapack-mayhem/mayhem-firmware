@@ -57,8 +57,6 @@ class FProtoSubGhzDChambCode : public FProtoSubGhzDBase {
                 if (!level) {  // save interval
                     if (duration > te_short * 5) {
                         if (decode_count_bit >= min_count_bit_for_found) {
-                            serial = SD_NO_SERIAL;
-                            btn = SD_NO_BTN;
                             if (subghz_protocol_decoder_chamb_code_check_mask_and_parse()) {
                                 data = decode_data;
                                 data_count_bit = decode_count_bit;

@@ -58,10 +58,7 @@ class FProtoSubGhzDNiceflors : public FProtoSubGhzDBase {
                         if ((decode_count_bit == min_count_bit_for_found) || (decode_count_bit == NICE_ONE_COUNT_BIT)) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller-
-                            cnt = SD_NO_CNT;
-                            serial = SD_NO_SERIAL;
-                            btn = SD_NO_BTN;
+
                             if (callback) callback(this);
                         }
                         break;

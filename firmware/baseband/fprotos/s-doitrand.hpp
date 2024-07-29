@@ -46,10 +46,6 @@ class FProtoSubGhzDDoitrand : public FProtoSubGhzDBase {
                         if (decode_count_bit == min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-
-                            // controller
-                            cnt = (data >> 24) | ((data >> 15) & 0x1);
-                            btn = ((data >> 18) & 0x3);
                             if (callback) callback(this);
                         }
                         decode_data = 0;

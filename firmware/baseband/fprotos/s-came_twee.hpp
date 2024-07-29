@@ -45,7 +45,6 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
                         if (decode_count_bit == min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            subghz_protocol_came_twee_remote_controller();
                             if (callback) callback(this);
                         }
                         decode_data = 0;
@@ -79,69 +78,6 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
 
    protected:
     ManchesterState manchester_saved_state = ManchesterStateMid1;
-
-    void subghz_protocol_came_twee_remote_controller() {
-        /*      Came Twee 54 bit, rolling code 15 parcels with
-         *       a decreasing counter from 0xE to 0x0
-         *       with originally coded dip switches on the console 10 bit code
-         *
-         *  0x003FFF72E04A6FEE
-         *  0x003FFF72D17B5EDD
-         *  0x003FFF72C2684DCC
-         *  0x003FFF72B3193CBB
-         *  0x003FFF72A40E2BAA
-         *  0x003FFF72953F1A99
-         *  0x003FFF72862C0988
-         *  0x003FFF7277DDF877
-         *  0x003FFF7268C2E766
-         *  0x003FFF7259F3D655
-         *  0x003FFF724AE0C544
-         *  0x003FFF723B91B433
-         *  0x003FFF722C86A322
-         *  0x003FFF721DB79211
-         *  0x003FFF720EA48100
-         *
-         *   decryption
-         * the last 32 bits, do XOR by the desired number, divide the result by 4,
-         * convert the first 16 bits of the resulting 32-bit number to bin and do
-         * bit-by-bit mirroring, adding up to 10 bits
-         *
-         * Example
-         * Step 1. 0x003FFF721DB79211        => 0x1DB79211
-         * Step 4. 0x1DB79211 xor 0x1D1D1D11 => 0x00AA8F00
-         * Step 4. 0x00AA8F00 / 4            => 0x002AA3C0
-         * Step 5. 0x002AA3C0                => 0x002A
-         * Step 6. 0x002A    bin             => b101010
-         * Step 7. b101010                   => b0101010000
-         * Step 8. b0101010000               => (Dip) Off ON Off ON Off ON Off Off Off Off
-         */
-
-        uint8_t cnt_parcel = (uint8_t)(data & 0xF);
-        serial = (uint32_t)(data & 0x0FFFFFFFF);
-        data = (data ^ came_twee_magic_numbers_xor[cnt_parcel]);
-        data /= 4;
-        btn = (data >> 4) & 0x0F;
-        data >>= 16;
-        data = (uint16_t)FProtoGeneral::subghz_protocol_blocks_reverse_key(data, 16);
-        cnt = data >> 6;
-    }
-    inline static const uint32_t came_twee_magic_numbers_xor[15] = {
-        0x0E0E0E00,
-        0x1D1D1D11,
-        0x2C2C2C22,
-        0x3B3B3B33,
-        0x4A4A4A44,
-        0x59595955,
-        0x68686866,
-        0x77777777,
-        0x86868688,
-        0x95959599,
-        0xA4A4A4AA,
-        0xB3B3B3BB,
-        0xC2C2C2CC,
-        0xD1D1D1DD,
-        0xE0E0E0EE,
-    };
 };
 
 #endif

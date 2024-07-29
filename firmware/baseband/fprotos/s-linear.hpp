@@ -54,11 +54,8 @@ class FProtoSubGhzDLinear : public FProtoSubGhzDBase {
                             subghz_protocol_blocks_add_bit(1);
                         }
                         if (decode_count_bit == min_count_bit_for_found) {
-                            serial = SD_NO_SERIAL;
-                            btn = SD_NO_BTN;
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-
                             if (callback) callback(this);
                         }
                         break;

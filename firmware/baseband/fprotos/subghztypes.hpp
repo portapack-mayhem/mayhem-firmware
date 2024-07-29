@@ -11,10 +11,6 @@ Also it must have a switch-case element in the getSubGhzDSensorTypeName() functi
 #define FPM_AM 0
 #define FPM_FM 1
 
-#define SD_NO_SERIAL 0xFFFFFFFF
-#define SD_NO_BTN 0xFF
-#define SD_NO_CNT 0xFF
-
 enum FPROTO_SUBGHZD_SENSOR : uint8_t {
     FPS_Invalid = 0,
     FPS_PRINCETON,
@@ -35,10 +31,12 @@ enum FPROTO_SUBGHZD_SENSOR : uint8_t {
     FPS_HONEYWELL,
     FPS_HONEYWELLWDB,
     FPS_HORMANN,
+    // FPS_HORMANNBISECURE,
     FPS_IDO,
     FPS_INTERTECHNOV3,
     FPS_KEELOQ,
     FPS_KINGGATESSTYLO4K,
+    FPS_LEGRAND,
     FPS_LINEAR,
     FPS_LINEARDELTA3,
     FPS_MAGELLAN,
@@ -56,7 +54,8 @@ enum FPROTO_SUBGHZD_SENSOR : uint8_t {
     FPS_SMC5326,
     FPS_STARLINE,
     FPS_X10,
-
+    FPS_SOMIFY_KEYTIS,
+    FPS_SOMIFY_TELIS,
     FPS_COUNT
 };
 

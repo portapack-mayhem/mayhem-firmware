@@ -23,6 +23,10 @@
 #ifndef __UI_SUBGHZD_H__
 #define __UI_SUBGHZD_H__
 
+#define SD_NO_SERIAL 0xFFFFFFFF
+#define SD_NO_BTN 0xFF
+#define SD_NO_CNT 0xFF
+
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -33,6 +37,7 @@
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/subghztypes.hpp"
+#include "../baseband/fprotos/fprotogeneral.hpp"
 
 using namespace ui;
 
@@ -42,29 +47,20 @@ struct SubGhzDRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;
     uint8_t sensorType = FPS_Invalid;
-    uint8_t btn = SD_NO_BTN;
-    uint32_t serial = SD_NO_SERIAL;
     uint16_t bits = 0;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
-    uint32_t cnt = SD_NO_CNT;
     uint64_t data = 0;
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
-        uint32_t serial,
-        uint16_t bits = 0,
         uint64_t data = 0,
-        uint8_t btn = SD_NO_BTN,
-        uint32_t cnt = SD_NO_CNT)
+        uint16_t bits = 0)
         : sensorType{sensorType},
-          btn{btn},
-          serial{serial},
           bits{bits},
-          cnt{cnt},
           data{data} {
     }
     Key key() const {
-        return (data ^ ((static_cast<uint64_t>(serial) << 32) | (static_cast<uint64_t>(sensorType) & 0xFF) << 0));
+        return (data ^ ((static_cast<uint64_t>(sensorType) & 0xFF) << 0));
     }
     void inc_age(int delta) {
         if (UINT16_MAX - delta > age) age += delta;
@@ -149,6 +145,12 @@ class SubGhzDRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     SubGhzDRecentEntry entry_{};
+
+    uint32_t serial = 0;
+    uint8_t btn = SD_NO_BTN;
+    uint32_t cnt = SD_NO_CNT;
+    uint32_t seed = 0;
+
     Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
 
@@ -164,6 +166,8 @@ class SubGhzDRecentEntryDetailView : public View {
     Button button_done{
         {screen_width - 96 - 4, screen_height - 32 - 12, 96, 32},
         "Done"};
+
+    void parseProtocol();
 };
 
 }  // namespace ui

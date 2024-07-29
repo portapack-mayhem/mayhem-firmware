@@ -25,10 +25,7 @@ class FProtoSubGhzDBase {
 
     // General data holder, these will be passed
     uint8_t sensorType = FPS_Invalid;
-    uint8_t btn = SD_NO_BTN;
     uint16_t data_count_bit = 0;
-    uint32_t cnt = SD_NO_CNT;
-    uint32_t serial = SD_NO_SERIAL;
     uint64_t data = 0;
 
    protected:

@@ -50,12 +50,8 @@ class FProtoSubGhzDLinearDelta3 : public FProtoSubGhzDBase {
                         }
                         if (decode_count_bit == min_count_bit_for_found) {
                             if ((data == decode_data) && data) {
-                                serial = SD_NO_SERIAL;
-                                btn = SD_NO_BTN;
-
                                 data = decode_data;
                                 data_count_bit = decode_count_bit;
-
                                 if (callback) callback(this);
                             }
                             parser_step = LinearD3DecoderStepSaveDuration;

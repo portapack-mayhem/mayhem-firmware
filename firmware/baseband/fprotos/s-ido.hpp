@@ -46,12 +46,6 @@ class FProtoSubGhzDIdo : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            uint64_t code_found_reverse = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, data_count_bit);
-                            uint32_t code_fix = code_found_reverse & 0xFFFFFF;
-
-                            serial = code_fix & 0xFFFFF;
-                            btn = (code_fix >> 20) & 0x0F;
                             if (callback) callback(this);
                         }
                         decode_data = 0;

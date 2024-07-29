@@ -45,36 +45,6 @@ class FProtoSubGhzDCameAtomo : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            data ^= 0xFFFFFFFFFFFFFFFF;
-                            data <<= 4;
-
-                            uint8_t pack[8] = {};
-                            pack[0] = (data >> 56);
-                            pack[1] = ((data >> 48) & 0xFF);
-                            pack[2] = ((data >> 40) & 0xFF);
-                            pack[3] = ((data >> 32) & 0xFF);
-                            pack[4] = ((data >> 24) & 0xFF);
-                            pack[5] = ((data >> 16) & 0xFF);
-                            pack[6] = ((data >> 8) & 0xFF);
-                            pack[7] = (data & 0xFF);
-
-                            atomo_decrypt(pack);
-
-                            cnt = (uint16_t)pack[1] << 8 | pack[2];
-                            serial = (uint32_t)(pack[3]) << 24 | pack[4] << 16 | pack[5] << 8 | pack[6];
-
-                            uint8_t btn_decode = (pack[7] >> 4);
-                            if (btn_decode == 0x0) {
-                                btn = 0x1;
-                            } else if (btn_decode == 0x2) {
-                                btn = 0x2;
-                            } else if (btn_decode == 0x4) {
-                                btn = 0x3;
-                            } else if (btn_decode == 0x6) {
-                                btn = 0x4;
-                            }
-
                             if (callback) callback(this);
                         }
                         decode_data = 0;

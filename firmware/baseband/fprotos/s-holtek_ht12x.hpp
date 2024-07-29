@@ -47,9 +47,6 @@ class FProtoSubGhzDHoltekHt12x : public FProtoSubGhzDBase {
                             if (data != decode_data) {
                                 data = decode_data;
                                 data_count_bit = decode_count_bit;
-                                // controller
-                                btn = data & 0x0F;
-                                cnt = (data >> 4) & 0xFF;
                                 if (callback) callback(this);
                             }
                         }

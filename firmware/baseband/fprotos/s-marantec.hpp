@@ -45,9 +45,6 @@ class FProtoSubGhzDMarantec : public FProtoSubGhzDBase {
                         if (decode_count_bit == min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            btn = (data >> 16) & 0xF;
-                            serial = ((data >> 12) & 0xFFFFFF00) | ((data >> 8) & 0xFF);
                             if (callback) callback(this);
                         }
                         decode_data = 1;
