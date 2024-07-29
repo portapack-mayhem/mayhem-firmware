@@ -38,36 +38,47 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 
 class WeatherProtos : public FProtoListGeneral {
    public:
+    WeatherProtos(const WeatherProtos&) { WeatherProtos(); };         // won't use, but makes compiler happy
+    WeatherProtos& operator=(const WeatherProtos&) { return *this; }  // won't use, but makes compiler happy
     WeatherProtos() {
         // add protos
-        protos.push_back(std::make_unique<FProtoWeatherNexusTH>());             // 1
-        protos.push_back(std::make_unique<FProtoWeatherAcurite592TXR>());       // 2
-        protos.push_back(std::make_unique<FProtoWeatherAcurite606TX>());        // 3
-        protos.push_back(std::make_unique<FProtoWeatherAcurite609TX>());        // 4
-        protos.push_back(std::make_unique<FProtoWeatherAmbient>());             // 5
-        protos.push_back(std::make_unique<FProtoWeatherAuriolAhfl>());          // 6
-        protos.push_back(std::make_unique<FProtoWeatherAuriolTh>());            // 7
-        protos.push_back(std::make_unique<FProtoWeatherGTWT02>());              // 8
-        protos.push_back(std::make_unique<FProtoWeatherGTWT03>());              // 9
-        protos.push_back(std::make_unique<FProtoWeatherInfactory>());           // 10
-        protos.push_back(std::make_unique<FProtoWeatherLaCrosseTx>());          // 11
-        protos.push_back(std::make_unique<FProtoWeatherLaCrosseTx141thbv2>());  // 12
-        protos.push_back(std::make_unique<FProtoWeatherOregon2>());             // 13
-        protos.push_back(std::make_unique<FProtoWeatherOregon3>());             // 14
-        protos.push_back(std::make_unique<FProtoWeatherOregonV1>());            // 15
-        protos.push_back(std::make_unique<FProtoWeatherThermoProTx4>());        // 16
-        protos.push_back(std::make_unique<FProtoWeatherTX8300>());              // 17
-        protos.push_back(std::make_unique<FProtoWeatherWendoxW6726>());         // 18
-        protos.push_back(std::make_unique<FProtoWeatherAcurite986>());          // 19
-        protos.push_back(std::make_unique<FProtoWeatherKedsum>());              // 20
-        protos.push_back(std::make_unique<FProtoWeatherAcurite5in1>());         // 21
-        protos.push_back(std::make_unique<FProtoWeatherEmosE601x>());           // 22
+        protos[FPW_NexusTH] = new FProtoWeatherNexusTH();
+        protos[FPW_Acurite592TXR] = new FProtoWeatherAcurite592TXR();
+        protos[FPW_Acurite606TX] = new FProtoWeatherAcurite606TX();
+        protos[FPW_Acurite609TX] = new FProtoWeatherAcurite609TX();
+        protos[FPW_Ambient] = new FProtoWeatherAmbient();
+        protos[FPW_AuriolAhfl] = new FProtoWeatherAuriolAhfl();
+        protos[FPW_AuriolTH] = new FProtoWeatherAuriolTh();
+        protos[FPW_GTWT02] = new FProtoWeatherGTWT02();
+        protos[FPW_GTWT03] = new FProtoWeatherGTWT03();
+        protos[FPW_INFACTORY] = new FProtoWeatherInfactory();
+        protos[FPW_LACROSSETX] = new FProtoWeatherLaCrosseTx();
+        protos[FPW_LACROSSETX141thbv2] = new FProtoWeatherLaCrosseTx141thbv2();
+        protos[FPW_OREGON2] = new FProtoWeatherOregon2();
+        protos[FPW_OREGON3] = new FProtoWeatherOregon3();
+        protos[FPW_OREGONv1] = new FProtoWeatherOregonV1();
+        protos[FPW_THERMOPROTX4] = new FProtoWeatherThermoProTx4();
+        protos[FPW_TX_8300] = new FProtoWeatherTX8300();
+        protos[FPW_WENDOX_W6726] = new FProtoWeatherWendoxW6726();
+        protos[FPW_Acurite986] = new FProtoWeatherAcurite986();
+        protos[FPW_KEDSUM] = new FProtoWeatherKedsum();
+        protos[FPW_Acurite5in1] = new FProtoWeatherAcurite5in1();
+        protos[FPW_EmosE601x] = new FProtoWeatherEmosE601x();
 
         // set callback for them
-        for (const auto& obj : protos) {
-            obj->setCallback(callbackTarget);
+        for (uint8_t i = 0; i < FPW_COUNT; ++i) {
+            protos[i]->setCallback(callbackTarget);
         }
     }
+
+    ~WeatherProtos() {  // not needed for current operation logic, but a bit more elegant :)
+        for (uint8_t i = 0; i < FPW_COUNT; ++i) {
+            if (protos[i] != NULL) {
+                free(protos[i]);
+                protos[i] = NULL;
+            }
+        }
+    };
 
     static void callbackTarget(FProtoWeatherBase* instance) {
         WeatherDataMessage packet_message{instance->getSensorType(), instance->getSensorId(),
@@ -77,13 +88,13 @@ class WeatherProtos : public FProtoListGeneral {
     }
 
     void feed(bool level, uint32_t duration) {
-        for (const auto& obj : protos) {
-            obj->feed(level, duration);
+        for (uint8_t i = 0; i < FPW_COUNT; ++i) {
+            if (protos[i] != NULL) protos[i]->feed(level, duration);
         }
     }
 
    protected:
-    std::vector<std::unique_ptr<FProtoWeatherBase>> protos{};
+    FProtoWeatherBase* protos[FPW_COUNT] = {NULL};
 };
 
 #endif

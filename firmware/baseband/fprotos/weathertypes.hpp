@@ -37,8 +37,8 @@ enum FPROTO_WEATHER_SENSOR {
     FPW_Acurite986 = 19,
     FPW_KEDSUM = 20,
     FPW_Acurite5in1 = 21,
-    FPW_EmosE601x = 22
-
+    FPW_EmosE601x = 22,
+    FPW_COUNT  // this must be the last
 };
 
 #endif
