@@ -2630,12 +2630,12 @@ void Waveform::paint(Painter& painter) {
     const float y_scale = (float)(h - 1) / 65536.0;
     int16_t* data_start = data_ + offset_;
 
+    // Clear
+    painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
+
     if (!length_) return;
 
     x_inc = (float)screen_rect().size().width() / length_;
-
-    // Clear
-    painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
 
     if (digital_) {
         // Digital waveform: each value is an horizontal line

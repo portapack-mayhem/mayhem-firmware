@@ -20,11 +20,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_subghzd.hpp"
+#include "proc_protoview.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
-void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
+void ProtoViewProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
     // SR = 4Mhz ,  and we are decimating by /8 in total , decim1_out clock 4Mhz /8= 500khz samples/sec.
@@ -50,7 +51,11 @@ void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
         {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
-            if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
+            message.times[message.timeptr++] = currentHiLow ? (int32_t)(currentDuration / 1000) : -1 * (int32_t)(currentDuration / 1000);
+            if (message.timeptr > message.maxptr) {
+                shared_memory.application_queue.push(message);
+                message.timeptr = 0;
+            }
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
@@ -66,20 +71,28 @@ void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
-void SubGhzDProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::SubGhzFPRxConfigure)
-        configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
+void ProtoViewProcessor::on_message(const Message* const message) {
+    switch (message->id) {
+        case Message::ID::SubGhzFPRxConfigure:
+            configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
+            break;
+
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
+            break;
+
+        default:
+            break;
+    }
 }
 
-void SubGhzDProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
-    // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
-    // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
-
-    modulation = message.modulation;  // TODO: add support for FM (currently AM only)
-
+void ProtoViewProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     baseband_fs = message.sampling_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
     nsPerDecSamp = 1'000'000'000 / baseband_fs * 8;  // Scaled it due to less array buffer sampes due to /8 decimation.  250 nseg (4Mhz) * 8
+
+    // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
+    // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
 
     decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_wfm_decim_1.taps);
@@ -87,8 +100,13 @@ void SubGhzDProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     configured = true;
 }
 
+void ProtoViewProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 int main() {
-    EventDispatcher event_dispatcher{std::make_unique<SubGhzDProcessor>()};
+    audio::dma::init_audio_out();
+    EventDispatcher event_dispatcher{std::make_unique<ProtoViewProcessor>()};
     event_dispatcher.run();
     return 0;
 }

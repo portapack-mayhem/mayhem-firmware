@@ -1,6 +1,6 @@
 #include "ui_language.hpp"
 
-const char* LanguageHelper::englishMessages[] = {"OK", "Cancel", "Error", "Modem setup", "Debug", "Log", "Done", "Start", "Stop", "Scan", "Clear", "Ready", "Data:", "Loop"};
+const char* LanguageHelper::englishMessages[] = {"OK", "Cancel", "Error", "Modem setup", "Debug", "Log", "Done", "Start", "Stop", "Scan", "Clear", "Ready", "Data:", "Loop", "Reset"};
 
 const char** LanguageHelper::currentMessages = englishMessages;
 

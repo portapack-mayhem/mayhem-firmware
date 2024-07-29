@@ -116,6 +116,7 @@ constexpr image_tag_t image_tag_usb_sd{'P', 'U', 'S', 'B'};
 
 constexpr image_tag_t image_tag_weather{'P', 'W', 'T', 'H'};
 constexpr image_tag_t image_tag_subghzd{'P', 'S', 'G', 'D'};
+constexpr image_tag_t image_tag_protoview{'P', 'P', 'V', 'W'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 

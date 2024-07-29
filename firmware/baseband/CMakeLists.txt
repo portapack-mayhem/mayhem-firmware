@@ -648,6 +648,15 @@ set(MODE_CPPSRC
 DeclareTargets(PABP audio_beep)
 
 
+### ProtoView
+
+set(MODE_CPPSRC
+	proc_protoview.cpp
+)
+DeclareTargets(PPVW protoview)
+
+
+
 ### TPMS
 
 set(MODE_CPPSRC

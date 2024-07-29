@@ -80,6 +80,10 @@ set(EXTCPPSRC
 	#tpmsrx
 	external/tpmsrx/main.cpp
 	external/tpmsrx/tpms_app.cpp
+
+	#protoview
+	external/protoview/main.cpp
+	external/protoview/ui_protoview.cpp
 )
 
 set(EXTAPPLIST
@@ -102,4 +106,5 @@ set(EXTAPPLIST
 	audio_test
 	wardrivemap
 	tpmsrx
+	protoview
 )
