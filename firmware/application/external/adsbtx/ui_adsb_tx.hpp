@@ -34,7 +34,7 @@
 
 using namespace adsb;
 
-namespace ui {
+namespace ui::external_app::adsbtx {
 
 class Compass : public Widget {
    public:
@@ -251,4 +251,4 @@ class ADSBTxView : public View {
     std::unique_ptr<ADSBTXThread> tx_thread{};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::adsbtx

@@ -35,7 +35,7 @@
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
-#include "ui_adsb_tx.hpp"
+// #include "ui_adsb_tx.hpp" //moved to ext
 #include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
@@ -181,7 +181,7 @@ const NavigationView::AppList NavigationView::appList = {
     //{"sstv", "SSTV", RX, Color::dark_grey(), &bitmap_icon_sstv, new ViewFactory<NotImplementedView>()},
     //{"tetra", "TETRA", RX, Color::dark_grey(), &bitmap_icon_tetra, new ViewFactory<NotImplementedView>()},
     /* TX ********************************************************************/
-    {"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
+    //{"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},

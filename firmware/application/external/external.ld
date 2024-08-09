@@ -43,6 +43,7 @@ MEMORY
     ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
     ram_external_app_tpmsrx(rwx) : org = 0xADC30000, len = 32k
     ram_external_app_protoview(rwx) : org = 0xADC40000, len = 32k
+    ram_external_app_adsbtx(rwx) : org = 0xADC50000, len = 32k
 }
 
 SECTIONS
@@ -167,6 +168,12 @@ SECTIONS
         KEEP(*(.external_app.app_protoview.application_information));
         *(*ui*external_app*protoview*);
     } > ram_external_app_protoview
+
+   .external_app_adsbtx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_adsbtx.application_information));
+        *(*ui*external_app*adsbtx*);
+    } > ram_external_app_adsbtx
 
 
 }
