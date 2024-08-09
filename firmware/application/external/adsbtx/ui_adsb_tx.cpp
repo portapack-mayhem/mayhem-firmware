@@ -34,7 +34,7 @@
 using namespace adsb;
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::adsbtx {
 
 Compass::Compass(
     const Point parent_pos)
@@ -311,7 +311,8 @@ void ADSBTxView::start_tx() {
 ADSBTxView::ADSBTxView(
     NavigationView& nav)
     : nav_{nav} {
-    baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
+    // baseband::run_image(portapack::spi_flash::image_tag_adsb_tx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&tab_view,
                   &labels,
@@ -341,4 +342,4 @@ ADSBTxView::ADSBTxView(
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::adsbtx */
