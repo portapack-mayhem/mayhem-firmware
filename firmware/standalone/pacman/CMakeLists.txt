@@ -31,7 +31,7 @@ include(CheckCXXCompilerFlag)
 project(pacman_app)
 
 # Compiler options here.
-set(USE_OPT "-Os -g --specs=nano.specs")
+set(USE_OPT "-Os -g --specs=nano.specs --specs=nosys.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -120,7 +120,7 @@ set(TCPPSRC)
 # List ASM source files here
 set(ASMSRC)
 
-set(INCDIR 
+set(INCDIR
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${COMMON}
 	${COMMON}/../application
