@@ -68,7 +68,7 @@ ThemeYellow::ThemeYellow() {
         .foreground = Color::black(),
     };
     bg_lightest_small = new Style{
-        .font = font::fixed_8x16,
+        .font = font::fixed_5x8,
         .background = {255, 255, 204},
         .foreground = Color::black(),
     };
@@ -105,8 +105,8 @@ ThemeYellow::ThemeYellow() {
     };
 
     bg_important_small = new Style{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
+        .font = font::fixed_5x8,
+        .background = Color::yellow(),
         .foreground = {31, 31, 0},
     };
 
@@ -201,7 +201,7 @@ ThemeAqua::ThemeAqua() {
         .foreground = Color::black(),
     };
     bg_lightest_small = new Style{
-        .font = font::fixed_8x16,
+        .font = font::fixed_5x8,
         .background = {204, 255, 255},
         .foreground = Color::black(),
     };
@@ -238,8 +238,8 @@ ThemeAqua::ThemeAqua() {
     };
 
     bg_important_small = new Style{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
+        .font = font::fixed_5x8,
+        .background = Color::yellow(),
         .foreground = {0, 31, 31},
     };
 
@@ -334,7 +334,7 @@ ThemeDefault::ThemeDefault() {
         .foreground = Color::black(),
     };
     bg_lightest_small = new Style{
-        .font = font::fixed_8x16,
+        .font = font::fixed_5x8,
         .background = Color::white(),
         .foreground = Color::black(),
     };
@@ -371,9 +371,9 @@ ThemeDefault::ThemeDefault() {
     };
 
     bg_important_small = new Style{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
-        .foreground = ui::Color::black(),
+        .font = font::fixed_5x8,
+        .background = Color::yellow(),
+        .foreground = Color::black(),
     };
 
     error_dark = new Style{
@@ -466,7 +466,7 @@ ThemeGreen::ThemeGreen() {
         .foreground = Color::black(),
     };
     bg_lightest_small = new Style{
-        .font = font::fixed_8x16,
+        .font = font::fixed_5x8,
         .background = {0, 245, 29},
         .foreground = Color::black(),
     };
@@ -503,8 +503,8 @@ ThemeGreen::ThemeGreen() {
     };
 
     bg_important_small = new Style{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
+        .font = font::fixed_5x8,
+        .background = Color::yellow(),
         .foreground = {0, 33, 4},
     };
 
@@ -599,7 +599,7 @@ ThemeRed::ThemeRed() {
         .foreground = Color::black(),
     };
     bg_lightest_small = new Style{
-        .font = font::fixed_8x16,
+        .font = font::fixed_5x8,
         .background = {245, 29, 0},
         .foreground = Color::black(),
     };
@@ -636,8 +636,8 @@ ThemeRed::ThemeRed() {
     };
 
     bg_important_small = new Style{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
+        .font = font::fixed_5x8,
+        .background = Color::yellow(),
         .foreground = {33, 4, 0},
     };
 
