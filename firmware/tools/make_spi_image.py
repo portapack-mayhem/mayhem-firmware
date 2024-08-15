@@ -135,8 +135,8 @@ for image in images:
     padded_data = image['data'] + (spi_image_default_byte * pad_size)
     spi_image += padded_data
 
-# if len(spi_image) > spi_size - 4:
-  #  raise RuntimeError('SPI flash image size of %d exceeds device size of %d bytes' % (len(spi_image) + 4, spi_size))
+if len(spi_image) > spi_size - 4:
+    raise RuntimeError('SPI flash image size of %d exceeds device size of %d bytes' % (len(spi_image) + 4, spi_size))
 
 pad_size = spi_size - 4 - len(spi_image)
 for i in range(pad_size):
