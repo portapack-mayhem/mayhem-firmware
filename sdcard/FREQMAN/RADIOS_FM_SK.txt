@@ -1,407 +1,94 @@
-f=89100000,m=WFM,bw=200k,d=Rádio Slovensko Stará Ľubovňa
-f=90100000,m=WFM,bw=200k,d=Rádio Slovensko Banská Bystrica
-f=90900000,m=WFM,bw=200k,d=Rádio Slovensko Modrý Kameň
-f=91200000,m=WFM,bw=200k,d=Rádio Slovensko Nitra
-f=91200000,m=WFM,bw=200k,d=Rádio Slovensko Snina
-f=92200000,m=WFM,bw=200k,d=Rádio Slovensko Dubnica nad Váhom
-f=92200000,m=WFM,bw=200k,d=Rádio Slovensko Poprad
-f=92200000,m=WFM,bw=200k,d=Rádio Slovensko Veľká Franková
-f=92200000,m=WFM,bw=200k,d=Rádio Slovensko Ždiar
-f=93500000,m=WFM,bw=200k,d=Rádio Slovensko Bardejov
-f=96300000,m=WFM,bw=200k,d=Rádio Slovensko Štúrovo
-f=96600000,m=WFM,bw=200k,d=Rádio Slovensko Bratislava
-f=96600000,m=WFM,bw=200k,d=Rádio Slovensko Košice
-f=96600000,m=WFM,bw=200k,d=Rádio Slovensko Malá Franková
-f=96600000,m=WFM,bw=200k,d=Rádio Slovensko Osturňa
-f=96600000,m=WFM,bw=200k,d=Rádio Slovensko Spišská Stará Ves
-f=97300000,m=WFM,bw=200k,d=Rádio Slovensko Rožňava
-f=99000000,m=WFM,bw=200k,d=Rádio Slovensko Banská Štiavnica
-f=102400000,m=WFM,bw=200k,d=Rádio Slovensko Námestovo
-f=103200000,m=WFM,bw=200k,d=Rádio Slovensko Nové Mesto nad Váhom
-f=103500000,m=WFM,bw=200k,d=Rádio Slovensko Žilina
-f=103600000,m=WFM,bw=200k,d=Rádio Slovensko Lučenec
-f=103800000,m=WFM,bw=200k,d=Rádio Slovensko Ružomberok
-f=88200000,m=WFM,bw=200k,d=Rádio Regina Lučenec
-f=88500000,m=WFM,bw=200k,d=Rádio Regina Modrý Kameň
-f=88600000,m=WFM,bw=200k,d=Rádio Regina Rožňava
-f=89200000,m=WFM,bw=200k,d=Rádio Regina Trebišov
-f=89300000,m=WFM,bw=200k,d=Rádio Regina Bardejov
-f=91700000,m=WFM,bw=200k,d=Rádio Regina Štúrovo
-f=94400000,m=WFM,bw=200k,d=Rádio Regina Svidník
-f=95000000,m=WFM,bw=200k,d=Rádio Regina Rimavská Sobota
-f=96900000,m=WFM,bw=200k,d=Rádio Regina Poprad
-f=97200000,m=WFM,bw=200k,d=Rádio Regina Medzilaborce
-f=99300000,m=WFM,bw=200k,d=Rádio Regina Bratislava
-f=100100000,m=WFM,bw=200k,d=Rádio Regina Žilina
-f=100300000,m=WFM,bw=200k,d=Rádio Regina Košice
-f=100300000,m=WFM,bw=200k,d=Rádio Regina Malá Franková
-f=100300000,m=WFM,bw=200k,d=Rádio Regina Osturňa
-f=100300000,m=WFM,bw=200k,d=Rádio Regina Spišská Stará Ves
-f=100400000,m=WFM,bw=200k,d=Rádio Regina Námestovo
-f=100600000,m=WFM,bw=200k,d=Rádio Regina Ružomberok
-f=100700000,m=WFM,bw=200k,d=Rádio Regina Nové Mesto nad Váhom
-f=101500000,m=WFM,bw=200k,d=Rádio Regina Banská Bystrica
-f=101500000,m=WFM,bw=200k,d=Rádio Regina Veľká Franková
-f=101500000,m=WFM,bw=200k,d=Rádio Regina Ždiar
-f=102200000,m=WFM,bw=200k,d=Rádio Regina Nitra
-f=102300000,m=WFM,bw=200k,d=Rádio Regina Stará Ľubovňa
-f=88700000,m=WFM,bw=200k,d=Rádio Devín Námestovo
-f=88800000,m=WFM,bw=200k,d=Rádio Devín Bardejov
-f=89600000,m=WFM,bw=200k,d=Rádio Devín Plešivec
-f=90000000,m=WFM,bw=200k,d=Rádio Devín Rožňava
-f=90800000,m=WFM,bw=200k,d=Rádio Devín Nové Mesto nad Váhom
-f=94200000,m=WFM,bw=200k,d=Rádio Devín Poprad
-f=95600000,m=WFM,bw=200k,d=Rádio Devín Borský Mikuláš
-f=96100000,m=WFM,bw=200k,d=Rádio Devín Stará Ľubovňa
-f=96200000,m=WFM,bw=200k,d=Rádio Devín Košice
-f=97200000,m=WFM,bw=200k,d=Rádio Devín Žilina
-f=97600000,m=WFM,bw=200k,d=Rádio Devín Raslavice
-f=97800000,m=WFM,bw=200k,d=Rádio Devín Trenčín
-f=98700000,m=WFM,bw=200k,d=Rádio Devín Nové Zámky
-f=99700000,m=WFM,bw=200k,d=Rádio Devín Trebišov
-f=99800000,m=WFM,bw=200k,d=Rádio Devín Zvolen
-f=99900000,m=WFM,bw=200k,d=Rádio Devín Giraltovce
-f=102000000,m=WFM,bw=200k,d=Rádio Devín Banská Bystrica
-f=102200000,m=WFM,bw=200k,d=Rádio Devín Snina
-f=102600000,m=WFM,bw=200k,d=Rádio Devín Banská Štiavnica
-f=103100000,m=WFM,bw=200k,d=Rádio Devín Modrý Kameň
-f=104400000,m=WFM,bw=200k,d=Rádio Devín Bratislava
-f=104600000,m=WFM,bw=200k,d=Rádio Devín Ružomberok
-f=106200000,m=WFM,bw=200k,d=Rádio Devín Štúrovo
-f=106700000,m=WFM,bw=200k,d=Rádio Devín Prešov
-f=106700000,m=WFM,bw=200k,d=Rádio Devín Trebišov
-f=89000000,m=WFM,bw=200k,d=Rádio _FM Zvolen
-f=89300000,m=WFM,bw=200k,d=Rádio _FM Bratislava
-f=91700000,m=WFM,bw=200k,d=Rádio _FM Dolný Kubín
-f=91800000,m=WFM,bw=200k,d=Rádio _FM Čadca
-f=91900000,m=WFM,bw=200k,d=Rádio _FM Námestovo
-f=94500000,m=WFM,bw=200k,d=Rádio _FM Žilina
-f=98000000,m=WFM,bw=200k,d=Rádio _FM Lučenec
-f=98300000,m=WFM,bw=200k,d=Rádio _FM Modrý Kameň
-f=98400000,m=WFM,bw=200k,d=Rádio _FM Žiar nad Hronom
-f=98900000,m=WFM,bw=200k,d=Rádio _FM Stará Ľubovňa
-f=101200000,m=WFM,bw=200k,d=Rádio _FM Košice
-f=101200000,m=WFM,bw=200k,d=Rádio _FM Trenčín
-f=101300000,m=WFM,bw=200k,d=Rádio _FM Trebišov
-f=101500000,m=WFM,bw=200k,d=Rádio _FM Prešov
-f=101700000,m=WFM,bw=200k,d=Rádio _FM Bardejov
-f=102100000,m=WFM,bw=200k,d=Rádio _FM Ružomberok
-f=102800000,m=WFM,bw=200k,d=Rádio _FM Borský Mikuláš
-f=102800000,m=WFM,bw=200k,d=Rádio _FM Nové Zámky
-f=103700000,m=WFM,bw=200k,d=Rádio _FM Štúrovo
-f=104300000,m=WFM,bw=200k,d=Rádio _FM Poprad
-f=105400000,m=WFM,bw=200k,d=Rádio _FM Banská Bystrica
-f=105800000,m=WFM,bw=200k,d=Rádio _FM Moldava nad Bodvou
-f=105900000,m=WFM,bw=200k,d=Rádio _FM Rožňava
-f=107600000,m=WFM,bw=200k,d=Rádio _FM Snina
-f=98900000,m=WFM,bw=200k,d=Rádio Patria Bratislava
-f=91400000,m=WFM,bw=200k,d=Rádio Patria Dunajská Streda
-f=98000000,m=WFM,bw=200k,d=Rádio Patria Lučenec
-f=98300000,m=WFM,bw=200k,d=Rádio Patria Modrý Kameň
-f=105800000,m=WFM,bw=200k,d=Rádio Patria Moldava nad Bodvou
-f=98700000,m=WFM,bw=200k,d=Rádio Patria Nové Zámky
-f=89600000,m=WFM,bw=200k,d=Rádio Patria Plešivec
-f=105900000,m=WFM,bw=200k,d=Rádio Patria Rožňava
-f=102400000,m=WFM,bw=200k,d=Rádio Patria Senec
-f=106200000,m=WFM,bw=200k,d=Rádio Patria Štúrovo
-f=106700000,m=WFM,bw=200k,d=Rádio Patria Trebišov
-f=98900000,m=WFM,bw=200k,d=Rádio Slovakia International Bratislava
-f=91400000,m=WFM,bw=200k,d=Rádio Slovakia International Dunajská Streda
-f=102400000,m=WFM,bw=200k,d=Rádio Slovakia International Senec
-f=107600000,m=WFM,bw=200k,d=Rádio Expres Bratislava
-f=88400000,m=WFM,bw=200k,d=Rádio Expres Hlohovec
-f=89700000,m=WFM,bw=200k,d=Rádio Expres Nitra
-f=92700000,m=WFM,bw=200k,d=Rádio Expres Nové Zámky
-f=107000000,m=WFM,bw=200k,d=Rádio Expres Senica
-f=99400000,m=WFM,bw=200k,d=Rádio Expres Štúrovo
-f=106900000,m=WFM,bw=200k,d=Rádio Expres Skalica
-f=99700000,m=WFM,bw=200k,d=Rádio Expres Nové Mesto
-f=102500000,m=WFM,bw=200k,d=Rádio Expres Trenčín
-f=99800000,m=WFM,bw=200k,d=Rádio Expres Topoľčany
-f=107500000,m=WFM,bw=200k,d=Rádio Expres Prievidza
-f=96300000,m=WFM,bw=200k,d=Rádio Expres Stará Turá
-f=96400000,m=WFM,bw=200k,d=Rádio Expres Partizánske
-f=96900000,m=WFM,bw=200k,d=Rádio Expres Bánovce nad Bebravou
-f=99600000,m=WFM,bw=200k,d=Rádio Expres Zlaté Moravce
-f=96500000,m=WFM,bw=200k,d=Rádio Expres Žilina
-f=107500000,m=WFM,bw=200k,d=Rádio Expres Čadca
-f=93100000,m=WFM,bw=200k,d=Rádio Expres Martin
-f=96500000,m=WFM,bw=200k,d=Rádio Expres Trstená
-f=95400000,m=WFM,bw=200k,d=Rádio Expres Dolný Kubín
-f=105200000,m=WFM,bw=200k,d=Rádio Expres Považská Bystrica
-f=95400000,m=WFM,bw=200k,d=Rádio Expres Dolný Hričov
-f=99500000,m=WFM,bw=200k,d=Rádio Expres Liptovská Osada
-f=88400000,m=WFM,bw=200k,d=Rádio Expres Ružomberok
-f=95400000,m=WFM,bw=200k,d=Rádio Expres Vrútky
-f=93100000,m=WFM,bw=200k,d=Rádio Expres Terchová
-f=96700000,m=WFM,bw=200k,d=Rádio Expres Liptovský Mikuláš
-f=96500000,m=WFM,bw=200k,d=Rádio Expres B.Bystrica
-f=92600000,m=WFM,bw=200k,d=Rádio Expres Zvolen
-f=101100000,m=WFM,bw=200k,d=Rádio Expres Žiar nad Hronom
-f=106500000,m=WFM,bw=200k,d=Rádio Expres Modrý Kameň
-f=89300000,m=WFM,bw=200k,d=Rádio Expres Rimavská Sobota
-f=101100000,m=WFM,bw=200k,d=Rádio Expres Lučenec
-f=89200000,m=WFM,bw=200k,d=Rádio Expres Brezno
-f=99600000,m=WFM,bw=200k,d=Rádio Expres Žarnovica
-f=97000000,m=WFM,bw=200k,d=Rádio Expres Levice
-f=93600000,m=WFM,bw=200k,d=Rádio Expres Donovaly
-f=95100000,m=WFM,bw=200k,d=Rádio Expres Banská Štiavnica
-f=92900000,m=WFM,bw=200k,d=Rádio Expres Detva
-f=92800000,m=WFM,bw=200k,d=Rádio Expres Krupina
-f=95400000,m=WFM,bw=200k,d=Rádio Expres Heľpa
-f=94900000,m=WFM,bw=200k,d=Rádio Expres Handlová
-f=95000000,m=WFM,bw=200k,d=Rádio Expres Nová Baňa
-f=95200000,m=WFM,bw=200k,d=Rádio Expres Košice
-f=91000000,m=WFM,bw=200k,d=Rádio Expres Žarnov
-f=105200000,m=WFM,bw=200k,d=Rádio Expres Prešov
-f=106200000,m=WFM,bw=200k,d=Rádio Expres Makovica
-f=95300000,m=WFM,bw=200k,d=Rádio Expres Levoča
-f=98200000,m=WFM,bw=200k,d=Rádio Expres Bardejov
-f=99500000,m=WFM,bw=200k,d=Rádio Expres Východná
-f=95700000,m=WFM,bw=200k,d=Rádio Expres Rožňava
-f=105700000,m=WFM,bw=200k,d=Rádio Expres Stará Ľubovňa
-f=91000000,m=WFM,bw=200k,d=Rádio Expres Poprad
-f=93700000,m=WFM,bw=200k,d=Rádio Expres Spišská Nová Ves
+f=91200000,m=WFM,bw=200k,d=Radio Slovensko Nitra
+f=92200000,m=WFM,bw=200k,d=Radio Slovensko Poprad
+f=96600000,m=WFM,bw=200k,d=Radio Slovensko Bratislava
+f=96600000,m=WFM,bw=200k,d=Radio Slovensko Kosice
+f=103500000,m=WFM,bw=200k,d=Radio Slovensko Zilina
+f=99300000,m=WFM,bw=200k,d=Radio Regina Bratislava
+f=100100000,m=WFM,bw=200k,d=Radio Regina Zilina
+f=100300000,m=WFM,bw=200k,d=Radio Regina Kosice
+f=96200000,m=WFM,bw=200k,d=Radio Devin Kosice
+f=104400000,m=WFM,bw=200k,d=Radio Devin Bratislava
+f=106700000,m=WFM,bw=200k,d=Radio Devin Presov
+f=89300000,m=WFM,bw=200k,d=Radio _FM Bratislava
+f=94500000,m=WFM,bw=200k,d=Radio _FM Zilina
+f=101200000,m=WFM,bw=200k,d=Radio _FM Kosice
+f=101500000,m=WFM,bw=200k,d=Radio _FM Presov
+f=105400000,m=WFM,bw=200k,d=Radio _FM Banska Bystrica
+f=98900000,m=WFM,bw=200k,d=Radio Patria Bratislava
+f=102400000,m=WFM,bw=200k,d=Radio Patria Senec
+f=98900000,m=WFM,bw=200k,d=Radio Slovakia International Bratislava
+f=107600000,m=WFM,bw=200k,d=Radio Expres Bratislava
+f=96500000,m=WFM,bw=200k,d=Radio Expres Zilina
+f=93100000,m=WFM,bw=200k,d=Radio Expres Martin
+f=93600000,m=WFM,bw=200k,d=Radio Expres Donovaly
+f=95100000,m=WFM,bw=200k,d=Radio Expres Banska Stiavnica
+f=95200000,m=WFM,bw=200k,d=Radio Expres Kosice
+f=105200000,m=WFM,bw=200k,d=Radio Expres Presov
+f=99500000,m=WFM,bw=200k,d=Radio Expres Vychodna
 f=104800000,m=WFM,bw=200k,d=Europa 2 Bratislava
-f=98500000,m=WFM,bw=200k,d=Europa 2 Nové Mesto nad Váhom
-f=95200000,m=WFM,bw=200k,d=Europa 2 Nitra
-f=95200000,m=WFM,bw=200k,d=Europa 2 Námestovo
-f=96300000,m=WFM,bw=200k,d=Europa 2 Považská Bystrica
-f=102800000,m=WFM,bw=200k,d=Europa 2 Žilina
 f=93500000,m=WFM,bw=200k,d=Europa 2 Martin
-f=106000000,m=WFM,bw=200k,d=Europa 2 Banská Bystrica
-f=98800000,m=WFM,bw=200k,d=Europa 2 Ružomberok
-f=100900000,m=WFM,bw=200k,d=Europa 2 Poprad
-f=97200000,m=WFM,bw=200k,d=Europa 2 Prešov
-f=103700000,m=WFM,bw=200k,d=Europa 2 Prešov (okolie)
-f=102000000,m=WFM,bw=200k,d=Europa 2 Košice
-f=107100000,m=WFM,bw=200k,d=Europa 2 Bardejov
-f=87900000,m=WFM,bw=200k,d=Europa 2 Čadca
-f=92900000,m=WFM,bw=200k,d=Europa 2 Rimavská Sobota
-f=89000000,m=WFM,bw=200k,d=Europa 2 Rožňava
-f=89100000,m=WFM,bw=200k,d=Europa 2 Lučenec
-f=93200000,m=WFM,bw=200k,d=Europa 2 Snina
-f=93000000,m=WFM,bw=200k,d=Europa 2 Trebišov
-f=106600000,m=WFM,bw=200k,d=Rádio Melody Bratislava
-f=88000000,m=WFM,bw=200k,d=Rádio Melody Veľká Javorina
-f=88800000,m=WFM,bw=200k,d=Rádio Melody Nitra
-f=104500000,m=WFM,bw=200k,d=Rádio Melody Štúrovo
-f=97600000,m=WFM,bw=200k,d=Rádio Melody Suchá Hora
-f=106900000,m=WFM,bw=200k,d=Rádio Melody Krížava
-f=101300000,m=WFM,bw=200k,d=Rádio Melody Ružomberok
-f=96300000,m=WFM,bw=200k,d=Rádio Melody Liptovský Mikuláš
-f=98500000,m=WFM,bw=200k,d=Rádio Melody Tornaľa
-f=92400000,m=WFM,bw=200k,d=Rádio Melody Trstená
-f=89700000,m=WFM,bw=200k,d=Rádio Melody Námestovo
-f=92500000,m=WFM,bw=200k,d=Rádio Melody Nová Baňa
-f=99600000,m=WFM,bw=200k,d=Rádio Melody Lučenec
-f=93800000,m=WFM,bw=200k,d=Rádio Melody Rimavská Sobota
-f=99600000,m=WFM,bw=200k,d=Rádio Melody Brezno
-f=98600000,m=WFM,bw=200k,d=Rádio Melody Dubník
-f=107700000,m=WFM,bw=200k,d=Rádio Melody Stará Ľubovňa
-f=103600000,m=WFM,bw=200k,d=Rádio Melody Poprad
-f=99400000,m=WFM,bw=200k,d=Rádio Melody Rožňava
-f=98100000,m=WFM,bw=200k,d=Rádio Melody Spišská Nová Ves
-f=88100000,m=WFM,bw=200k,d=Rádio Rock Zvolen
-f=89800000,m=WFM,bw=200k,d=Rádio Rock Prešov
-f=91000000,m=WFM,bw=200k,d=Rádio Rock Žiar nad Hronom
-f=91100000,m=WFM,bw=200k,d=Rádio Rock Rimavská Sobota
-f=93500000,m=WFM,bw=200k,d=Rádio Rock Lučenec
-f=97600000,m=WFM,bw=200k,d=Rádio Rock Bratislava
-f=100300000,m=WFM,bw=200k,d=Rádio Rock Bratislava
-f=100300000,m=WFM,bw=200k,d=Rádio Rock Trenčín
-f=104200000,m=WFM,bw=200k,d=Rádio Rock Žilina
-f=87700000,m=WFM,bw=200k,d=Fun rádio Košice Dubník
-f=89100000,m=WFM,bw=200k,d=Fun rádio Trenčín Nad Oborou
-f=89200000,m=WFM,bw=200k,d=Fun rádio Ružomberok
-f=91600000,m=WFM,bw=200k,d=Fun rádio Lučenec
-f=93200000,m=WFM,bw=200k,d=Fun rádio Tornala
-f=94000000,m=WFM,bw=200k,d=Fun rádio Nitra
-f=94300000,m=WFM,bw=200k,d=Fun rádio Bratislava
-f=95000000,m=WFM,bw=200k,d=Fun rádio Liptovský
-f=98100000,m=WFM,bw=200k,d=Fun rádio Čadca
-f=98500000,m=WFM,bw=200k,d=Fun rádio Tvrdošín
-f=99200000,m=WFM,bw=200k,d=Fun rádio Žilina
-f=102500000,m=WFM,bw=200k,d=Fun rádio Poprad
-f=102800000,m=WFM,bw=200k,d=Fun rádio Bardejov
-f=102800000,m=WFM,bw=200k,d=Fun rádio Rožňava
-f=102900000,m=WFM,bw=200k,d=Fun rádio Košice
-f=104000000,m=WFM,bw=200k,d=Fun rádio Banská Bystrica
-f=104000000,m=WFM,bw=200k,d=Fun rádio Senica
-f=106300000,m=WFM,bw=200k,d=Fun rádio Považská Bystrica
-f=107100000,m=WFM,bw=200k,d=Fun rádio Levice
-f=87700000,m=WFM,bw=200k,d=Rádio Vlna Banská Bystrica
-f=87900000,m=WFM,bw=200k,d=Rádio Vlna Dolný Kubín
-f=88100000,m=WFM,bw=200k,d=Rádio Vlna Turňa n. Bodvou
-f=88500000,m=WFM,bw=200k,d=Rádio Vlna Snina
-f=90000000,m=WFM,bw=200k,d=Rádio Vlna Medzilaborce
-f=90700000,m=WFM,bw=200k,d=Rádio Vlna Trstená
-f=91100000,m=WFM,bw=200k,d=Rádio Vlna Brezno
-f=91100000,m=WFM,bw=200k,d=Rádio Vlna Ružomberok
-f=92400000,m=WFM,bw=200k,d=Rádio Vlna Stropkov
-f=92700000,m=WFM,bw=200k,d=Rádio Vlna Žilina
-f=92800000,m=WFM,bw=200k,d=Rádio Vlna Ružomberok
-f=92900000,m=WFM,bw=200k,d=Rádio Vlna Prievidza
-f=95600000,m=WFM,bw=200k,d=Rádio Vlna Bardejov
-f=94800000,m=WFM,bw=200k,d=Rádio Vlna Košice
-f=96000000,m=WFM,bw=200k,d=Rádio Vlna Lučenec
-f=96100000,m=WFM,bw=200k,d=Rádio Vlna Nitra
-f=99000000,m=WFM,bw=200k,d=Rádio Vlna Michalovce
-f=99600000,m=WFM,bw=200k,d=Rádio Vlna Čadca
-f=101400000,m=WFM,bw=200k,d=Rádio Vlna Rožňava
-f=101800000,m=WFM,bw=200k,d=Rádio Vlna Bratislava
-f=104800000,m=WFM,bw=200k,d=Rádio Vlna Poprad
-f=104900000,m=WFM,bw=200k,d=Rádio Vlna Martin
-f=105100000,m=WFM,bw=200k,d=Rádio Vlna Banská Štiavnica
-f=105500000,m=WFM,bw=200k,d=Rádio Vlna Trenčín
-f=105800000,m=WFM,bw=200k,d=Rádio Vlna Prešov
-f=106700000,m=WFM,bw=200k,d=Rádio Vlna Rimavská Sobota
-f=107000000,m=WFM,bw=200k,d=Rádio Vlna Dobšiná
-f=95600000,m=WFM,bw=200k,d=Best FM Banská Bystrica
+f=97200000,m=WFM,bw=200k,d=Europa 2 Presov
+f=102000000,m=WFM,bw=200k,d=Europa 2 Kosice
+f=106600000,m=WFM,bw=200k,d=Radio Melody Bratislava
+f=88800000,m=WFM,bw=200k,d=Radio Melody Nitra
+f=89800000,m=WFM,bw=200k,d=Radio Rock Presov
+f=97600000,m=WFM,bw=200k,d=Radio Rock Bratislava
+f=100300000,m=WFM,bw=200k,d=Radio Rock Trencin
+f=94000000,m=WFM,bw=200k,d=Fun radio Nitra
+f=94300000,m=WFM,bw=200k,d=Fun radio Bratislava
+f=102900000,m=WFM,bw=200k,d=Fun radio Kosice
+f=94800000,m=WFM,bw=200k,d=Radio Vlna Kosice
+f=96100000,m=WFM,bw=200k,d=Radio Vlna Nitra
+f=101800000,m=WFM,bw=200k,d=Radio Vlna Bratislava
+f=104800000,m=WFM,bw=200k,d=Radio Vlna Poprad
+f=104900000,m=WFM,bw=200k,d=Radio Vlna Martin
+f=105100000,m=WFM,bw=200k,d=Radio Vlna Banska Stiavnica
+f=105800000,m=WFM,bw=200k,d=Radio Vlna Presov
 f=95600000,m=WFM,bw=200k,d=Best FM Bratislava
-f=88000000,m=WFM,bw=200k,d=Best FM Bratislava Devínska Nová Ves
-f=90600000,m=WFM,bw=200k,d=Best FM Bratislava Dúbravka
-f=105500000,m=WFM,bw=200k,d=Best FM Bratislava Petržalka
-f=93800000,m=WFM,bw=200k,d=Best FM Košice
-f=99700000,m=WFM,bw=200k,d=Best FM Malacky
+f=93800000,m=WFM,bw=200k,d=Best FM Kosice
 f=88200000,m=WFM,bw=200k,d=Best FM Nitra
-f=95500000,m=WFM,bw=200k,d=Best FM Nové Mesto nad Váhom
-f=91600000,m=WFM,bw=200k,d=Best FM Piešťany
-f=89500000,m=WFM,bw=200k,d=Best FM Považská Bystrica
-f=94000000,m=WFM,bw=200k,d=Best FM Prešov
-f=105600000,m=WFM,bw=200k,d=Best FM Stupava
-f=98900000,m=WFM,bw=200k,d=Best FM Trenčín
+f=94000000,m=WFM,bw=200k,d=Best FM Presov
+f=98900000,m=WFM,bw=200k,d=Best FM Trencin
 f=93000000,m=WFM,bw=200k,d=Best FM Trnava
-f=98000000,m=WFM,bw=200k,d=Best FM Žilina
-f=89400000,m=WFM,bw=200k,d=Rádio Lumen Martin
-f=89700000,m=WFM,bw=200k,d=Rádio Lumen Ružomberok
-f=89800000,m=WFM,bw=200k,d=Rádio Lumen Žilina
-f=90600000,m=WFM,bw=200k,d=Rádio Lumen Skalité
-f=92900000,m=WFM,bw=200k,d=Rádio Lumen Lendak
-f=92900000,m=WFM,bw=200k,d=Rádio Lumen Prešov
-f=93300000,m=WFM,bw=200k,d=Rádio Lumen Banská Štiavnica
-f=93300000,m=WFM,bw=200k,d=Rádio Lumen Trenčín
-f=93500000,m=WFM,bw=200k,d=Rádio Lumen Štúrovo
-f=93700000,m=WFM,bw=200k,d=Rádio Lumen Nové Mesto nad Váhom
-f=93800000,m=WFM,bw=200k,d=Rádio Lumen Bratislava
-f=94400000,m=WFM,bw=200k,d=Rádio Lumen Košice
-f=95600000,m=WFM,bw=200k,d=Rádio Lumen Topoľčany
-f=95700000,m=WFM,bw=200k,d=Rádio Lumen Nitra
-f=95900000,m=WFM,bw=200k,d=Rádio Lumen Snina
-f=96100000,m=WFM,bw=200k,d=Rádio Lumen Senica
-f=97700000,m=WFM,bw=200k,d=Rádio Lumen Spišská Nová Ves
-f=97800000,m=WFM,bw=200k,d=Rádio Lumen Medzilaborce
-f=97800000,m=WFM,bw=200k,d=Rádio Lumen Stropkov
-f=98000000,m=WFM,bw=200k,d=Rádio Lumen Zlaté Moravce
-f=98100000,m=WFM,bw=200k,d=Rádio Lumen Prievidza
-f=98100000,m=WFM,bw=200k,d=Rádio Lumen Trnava
-f=99100000,m=WFM,bw=200k,d=Rádio Lumen Bardejov
-f=99600000,m=WFM,bw=200k,d=Rádio Lumen Spišská Stará Ves
-f=99800000,m=WFM,bw=200k,d=Rádio Lumen Levoča
-f=99800000,m=WFM,bw=200k,d=Rádio Lumen Stará Ľubovňa
-f=102900000,m=WFM,bw=200k,d=Rádio Lumen Banská Bystrica
-f=102900000,m=WFM,bw=200k,d=Rádio Lumen Štrbské Pleso
-f=103300000,m=WFM,bw=200k,d=Rádio Lumen Michalovce
-f=103400000,m=WFM,bw=200k,d=Rádio Lumen Brezno
-f=105200000,m=WFM,bw=200k,d=Rádio Lumen Skalica
-f=105800000,m=WFM,bw=200k,d=Rádio Lumen Čadca
-f=105800000,m=WFM,bw=200k,d=Rádio Lumen Námestovo
-f=106300000,m=WFM,bw=200k,d=Rádio Lumen Lučenec
-f=106300000,m=WFM,bw=200k,d=Rádio Lumen Rožňava
-f=107700000,m=WFM,bw=200k,d=Rádio 7 Banská Bystrica
-f=91700000,m=WFM,bw=200k,d=Rádio 7 Bratislava
-f=103600000,m=WFM,bw=200k,d=Rádio 7 Bratislava
-f=88600000,m=WFM,bw=200k,d=Rádio 7 Košice
-f=107800000,m=WFM,bw=200k,d=Rádio 7 Liptovský Mikuláš
-f=103600000,m=WFM,bw=200k,d=Rádio 7 Nitra
-f=107400000,m=WFM,bw=200k,d=Rádio 7 Nové Mesto nad Váhom
-f=96400000,m=WFM,bw=200k,d=Rádio 7 Poprad
-f=91300000,m=WFM,bw=200k,d=Rádio 7 Rožňava
-f=107500000,m=WFM,bw=200k,d=Rádio 7 Ružomberok
-f=101000000,m=WFM,bw=200k,d=Rádio 7 Žilina
-f=88900000,m=WFM,bw=200k,d=Dobré rádio Liptovský Mikuláš
-f=95000000,m=WFM,bw=200k,d=Dobré rádio Trenčín-Záblatie
-f=95100000,m=WFM,bw=200k,d=Dobré rádio Považská Bystrica
-f=98000000,m=WFM,bw=200k,d=Dobré rádio Ružomberok
-f=104100000,m=WFM,bw=200k,d=Dobré rádio Nitra
-f=104100000,m=WFM,bw=200k,d=Dobré rádio Prešov
-f=104200000,m=WFM,bw=200k,d=Dobré rádio Domaša
-f=104500000,m=WFM,bw=200k,d=Dobré rádio Košice
-f=106300000,m=WFM,bw=200k,d=Dobré rádio Martin
-f=106400000,m=WFM,bw=200k,d=Dobré rádio Čadca
-f=106400000,m=WFM,bw=200k,d=Dobré rádio Nové Mesto nad Váhom
-f=106400000,m=WFM,bw=200k,d=Dobré rádio Prievidza
-f=106500000,m=WFM,bw=200k,d=Dobré rádio Žilina
-f=107000000,m=WFM,bw=200k,d=Dobré rádio Bratislava
-f=107300000,m=WFM,bw=200k,d=Dobré rádio Poprad
-f=107700000,m=WFM,bw=200k,d=Dobré rádio Dolný Kubín
-f=89700000,m=WFM,bw=200k,d=Rádio Beta Zvolen
-f=90500000,m=WFM,bw=200k,d=Rádio Beta Banská Bystrica
-f=91400000,m=WFM,bw=200k,d=Rádio Beta Žiar nad Hronom
-f=93900000,m=WFM,bw=200k,d=Rádio Beta Prievidza
-f=102000000,m=WFM,bw=200k,d=Rádio Beta Handlová
-f=104300000,m=WFM,bw=200k,d=Rádio Beta Trenčín
-f=96100000,m=WFM,bw=200k,d=Rádio Frontinus Čadca
-f=96200000,m=WFM,bw=200k,d=Rádio Frontinus Martin
-f=104600000,m=WFM,bw=200k,d=Rádio Frontinus Žilina
-f=99600000,m=WFM,bw=200k,d=Rádio Rebeca Martin
-f=88600000,m=WFM,bw=200k,d=Rádio Rebeca Žilina
-f=89700000,m=WFM,bw=200k,d=Rádio SiTy Bratislava-Devínska Nová Ves
-f=92300000,m=WFM,bw=200k,d=Rádio SiTy Bratislava-Dúbravka
-f=96000000,m=WFM,bw=200k,d=Rádio SiTy Bratislava-Ružinov
-f=98500000,m=WFM,bw=200k,d=Rádio SiTy Bratislava-Ružinov
-f=92100000,m=WFM,bw=200k,d=Rádio SiTy Galanta
-f=95000000,m=WFM,bw=200k,d=Sky Rádio Humenné
-f=97700000,m=WFM,bw=200k,d=Sky Rádio Košice
-f=91400000,m=WFM,bw=200k,d=Sky Rádio Prešov
-f=106600000,m=WFM,bw=200k,d=Sky Rádio Poprad
-f=93400000,m=WFM,bw=200k,d=Trnavské rádio Galanta
-f=97300000,m=WFM,bw=200k,d=Trnavské rádio Piešťany
-f=98300000,m=WFM,bw=200k,d=Trnavské rádio Dunajská Streda
-f=103900000,m=WFM,bw=200k,d=Trnavské rádio Hlohovec
-f=106000000,m=WFM,bw=200k,d=Trnavské rádio Holíč
-f=106200000,m=WFM,bw=200k,d=Trnavské rádio Trnava
-f=107900000,m=WFM,bw=200k,d=Trnavské rádio Piešťany
-f=93300000,m=WFM,bw=200k,d=Rádio VIVA Bratislava-Ružinov
-f=94900000,m=WFM,bw=200k,d=Rádio VIVA Bratislava-Petržalka
-f=99400000,m=WFM,bw=200k,d=Rádio VIVA Banská Bystrica
-f=100700000,m=WFM,bw=200k,d=Rádio VIVA Zvolen
-f=101000000,m=WFM,bw=200k,d=Rádio VIVA Nitra
-f=101000000,m=WFM,bw=200k,d=Rádio VIVA Trnava
-f=101100000,m=WFM,bw=200k,d=Rádio VIVA Bratislava-Lakeside Park
-f=101100000,m=WFM,bw=200k,d=Rádio VIVA Bratislava-Dúbravka
-f=101900000,m=WFM,bw=200k,d=Rádio VIVA Žilina
-f=90400000,m=WFM,bw=200k,d=Rádio WOW Bánovce nad Bebravou
-f=90500000,m=WFM,bw=200k,d=Rádio WOW Bojnice
-f=90600000,m=WFM,bw=200k,d=Rádio WOW Handlová
-f=93600000,m=WFM,bw=200k,d=Rádio WOW Nitra
-f=106400000,m=WFM,bw=200k,d=Rádio WOW Topoľčany
-f=106700000,m=WFM,bw=200k,d=Rádio WOW Partizánske
-f=106700000,m=WFM,bw=200k,d=Rádio WOW Trenčín
-f=89200000,m=WFM,bw=200k,d=Záhorácke rádio Skalica
-f=101500000,m=WFM,bw=200k,d=Záhorácke rádio Senica
-f=89600000,m=WFM,bw=200k,d=Rádio Goldies Prievidza
-f=92000000,m=WFM,bw=200k,d=Rádio Goldies Banská Bystrica
-f=92400000,m=WFM,bw=200k,d=Rádio Goldies Martin
-f=92800000,m=WFM,bw=200k,d=Rádio Goldies Trenčín
-f=104100000,m=WFM,bw=200k,d=Rádio Kiss Prešov
-f=104500000,m=WFM,bw=200k,d=Rádio Kiss Košice
-f=89500000,m=WFM,bw=200k,d=Rádio Košice Spišská Nová Ves
-f=90100000,m=WFM,bw=200k,d=Rádio Košice Bratislava
-f=90400000,m=WFM,bw=200k,d=Rádio Košice Prešov
-f=90800000,m=WFM,bw=200k,d=Rádio Košice Prešov
-f=91000000,m=WFM,bw=200k,d=Rádio Košice Trebišov
-f=91700000,m=WFM,bw=200k,d=Rádio Košice Košice
-f=91700000,m=WFM,bw=200k,d=Rádio Košice Poprad
-f=92600000,m=WFM,bw=200k,d=Rádio Košice Levoča
-f=93200000,m=WFM,bw=200k,d=Rádio Košice Štrba
-f=95900000,m=WFM,bw=200k,d=Rádio Košice Liptovský Mikuláš
-f=97000000,m=WFM,bw=200k,d=Rádio Košice Strážske
-f=97400000,m=WFM,bw=200k,d=Rádio Košice Stará Ľubovňa
-f=102000000,m=WFM,bw=200k,d=Rádio Košice Rožňava
-f=102700000,m=WFM,bw=200k,d=Rádio Košice Michalovce
-f=103200000,m=WFM,bw=200k,d=Rádio Košice Moldava nad Bodvou
-f=106900000,m=WFM,bw=200k,d=Rádio Košice Košice
-f=92400000,m=WFM,bw=200k,d=Rádio Liptov Ružomberok
-f=106400000,m=WFM,bw=200k,d=Rádio Liptov Liptovský Mikuláš
-f=106100000,m=WFM,bw=200k,d=Rádio Modra
+f=98000000,m=WFM,bw=200k,d=Best FM Zilina
+f=89400000,m=WFM,bw=200k,d=Radio Lumen Martin
+f=92900000,m=WFM,bw=200k,d=Radio Lumen Presov
+f=93800000,m=WFM,bw=200k,d=Radio Lumen Bratislava
+f=94400000,m=WFM,bw=200k,d=Radio Lumen Kosice
+f=98100000,m=WFM,bw=200k,d=Radio Lumen Trnava
+f=91700000,m=WFM,bw=200k,d=Radio 7 Bratislava
+f=88600000,m=WFM,bw=200k,d=Radio 7 Kosice
+f=103600000,m=WFM,bw=200k,d=Radio 7 Nitra
+f=96400000,m=WFM,bw=200k,d=Radio 7 Poprad
+f=107500000,m=WFM,bw=200k,d=Radio 7 Ruzomberok
+f=101000000,m=WFM,bw=200k,d=Radio 7 Zilina
+f=104100000,m=WFM,bw=200k,d=Dobre radio Presov
+f=104200000,m=WFM,bw=200k,d=Dobre radio Domasa
+f=104500000,m=WFM,bw=200k,d=Dobre radio Kosice
+f=107000000,m=WFM,bw=200k,d=Dobre radio Bratislava
+f=89700000,m=WFM,bw=200k,d=Radio Beta Zvolen
+f=104300000,m=WFM,bw=200k,d=Radio Beta Trencin
+f=96200000,m=WFM,bw=200k,d=Radio Frontinus Martin
+f=104600000,m=WFM,bw=200k,d=Radio Frontinus Zilina
+f=99600000,m=WFM,bw=200k,d=Radio Rebeca Martin
+f=88600000,m=WFM,bw=200k,d=Radio Rebeca Zilina
+f=96000000,m=WFM,bw=200k,d=Radio SiTy Bratislava
+f=97700000,m=WFM,bw=200k,d=Sky Radio Kosice
+f=91400000,m=WFM,bw=200k,d=Sky Radio Presov
+f=106600000,m=WFM,bw=200k,d=Sky Radio Poprad
+f=106200000,m=WFM,bw=200k,d=Trnavske radio Trnava
+f=107900000,m=WFM,bw=200k,d=Trnavske radio Piestany
+f=93300000,m=WFM,bw=200k,d=Radio VIVA Bratislava
+f=101000000,m=WFM,bw=200k,d=Radio VIVA Trnava
+f=93600000,m=WFM,bw=200k,d=Radio WOW Nitra
+f=106700000,m=WFM,bw=200k,d=Radio WOW Trencin
+f=89200000,m=WFM,bw=200k,d=Zahoracke radio Skalica
+f=101500000,m=WFM,bw=200k,d=Zahoracke radio Senica
+f=92400000,m=WFM,bw=200k,d=Radio Goldies Martin
+f=92800000,m=WFM,bw=200k,d=Radio Goldies Trencin
+f=104100000,m=WFM,bw=200k,d=Radio Kiss Presov
+f=90100000,m=WFM,bw=200k,d=Radio Kosice Bratislava
+f=90400000,m=WFM,bw=200k,d=Radio Kosice Presov
+f=91700000,m=WFM,bw=200k,d=Radio Kosice Kosice
+f=106400000,m=WFM,bw=200k,d=Radio Liptov Liptovsky Mikulas
+f=106100000,m=WFM,bw=200k,d=Radio Modra
