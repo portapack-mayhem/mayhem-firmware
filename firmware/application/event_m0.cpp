@@ -281,6 +281,7 @@ void EventDispatcher::emulateTouch(ui::TouchEvent event) {
     while (injected_touch_event != nullptr) {
         chThdSleepMilliseconds(5);
     }
+    injected_touch_event = nullptr;  // to clean event_mo.cpp, compile warning error : "storing the address of local variable 'event' in 'this_4(D)->injected_touch_event' [-Wdangling-pointer=]"
 }
 
 void EventDispatcher::emulateKeyboard(ui::KeyboardEvent event) {
@@ -288,6 +289,7 @@ void EventDispatcher::emulateKeyboard(ui::KeyboardEvent event) {
     while (injected_keyboard_event != nullptr) {
         chThdSleepMilliseconds(5);
     }
+    injected_keyboard_event = nullptr;  // to clean event_mo.cpp, compile warning error : "storing the address of local variable 'event' in 'this_4(D)->injected_keyboard_event' [-Wdangling-pointer=]"
 }
 
 void EventDispatcher::on_keyboard_event(ui::KeyboardEvent event) {

@@ -84,6 +84,10 @@ set(EXTCPPSRC
 	#protoview
 	external/protoview/main.cpp
 	external/protoview/ui_protoview.cpp
+
+	#adsbtx
+	external/adsbtx/main.cpp
+	external/adsbtx/ui_adsb_tx.cpp
 )
 
 set(EXTAPPLIST
@@ -107,4 +111,5 @@ set(EXTAPPLIST
 	wardrivemap
 	tpmsrx
 	protoview
+	adsbtx
 )

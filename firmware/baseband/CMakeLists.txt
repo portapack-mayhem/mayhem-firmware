@@ -328,12 +328,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADR adsbrx)
 
-### ADS-B TX
-
-set(MODE_CPPSRC
-	proc_adsbtx.cpp
-)
-DeclareTargets(PADT adsbtx)
 
 ### AFSK TX
 
@@ -663,6 +657,14 @@ set(MODE_CPPSRC
 	proc_tpms.cpp
 )
 DeclareTargets(PTPM tpms)
+
+
+### ADS-B TX
+
+set(MODE_CPPSRC
+	proc_adsbtx.cpp
+)
+DeclareTargets(PADT adsbtx)
 
 
 ### HackRF "factory" firmware

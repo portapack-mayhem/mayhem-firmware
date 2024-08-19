@@ -55,8 +55,12 @@ def write_image(data, path):
 
 def patch_image(path, image_data, search_address, replace_address):
 	if (len(image_data) % 4) != 0:
-		print("file size not divideable by 4")
-		sys.exit(-1)
+		#sys.exit(-1)
+		print("\n External App image file:", path, ", size not divideable by 4 :", len(image_data))
+		j=0
+		while (len(image_data) % 4) != 0:
+			image_data += b'\x00' ; j+=1
+		print("file size:", len(image_data)," after padded:",j, "bytes")
 
 	external_application_image = bytearray()
 
