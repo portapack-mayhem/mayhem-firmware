@@ -64,7 +64,6 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPerc
     } else if (detected_ == BATT_ADS1110) {
         battery_ads1110.getBatteryInfo(valid_mask, voltage);
         batteryPercentage = calc_percent_voltage(voltage);
-        valid_mask += BATT_VALID_PERCENT;
         return;
     } else if (detected_ == BATT_MAX17055) {
         battery_max17055.getBatteryInfo(valid_mask, batteryPercentage, voltage, current);

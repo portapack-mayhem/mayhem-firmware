@@ -79,7 +79,7 @@ void BattinfoView::update_result() {
         text_current.hidden(true);
         text_charge.hidden(true);
     }
-    if (valid_mask & battery::BatteryManagement::BATT_VALID_PERCENT == battery::BatteryManagement::BATT_VALID_PERCENT) {
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_PERCENT) == battery::BatteryManagement::BATT_VALID_PERCENT) {
         text_method.set("IC");
     } else {
         text_method.set("Voltage");
