@@ -958,6 +958,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
+        battery::BatteryManagement::set_calc_override(checkbox_overridebatt.value());
         send_system_refresh();
         nav.pop();
     };
@@ -1001,9 +1002,9 @@ void SettingsMenuView::on_populate() {
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
-        {"Battery", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetBatteryView>(); }},
         {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
+    if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetBatteryView>(); }});
 }
 
 } /* namespace ui */

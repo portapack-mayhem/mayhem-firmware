@@ -28,7 +28,7 @@
 namespace battery {
 
 #define BATTERY_MIN_VOLTAGE 3000.0
-#define BATTERY_MAX_VOLTAGE 4000.0
+#define BATTERY_MAX_VOLTAGE 4075.0
 
 class BatteryManagement {
    public:
@@ -53,10 +53,10 @@ class BatteryManagement {
     static uint8_t getPercent();
     static uint16_t read_register(const uint8_t reg);
     static bool write_register(const uint8_t reg, const uint16_t value);
-    static bool set_calc_override(bool override);
+    static void set_calc_override(bool override);
+    static uint8_t calc_percent_voltage(uint16_t);  // calculates battery percentage from the voltage
 
    private:
-    static uint8_t calc_percent_voltage(uint16_t);  // calculates battery percentage from the voltage
     static void create_thread();
     static msg_t timer_fn(void* arg);
     static Thread* thread;
