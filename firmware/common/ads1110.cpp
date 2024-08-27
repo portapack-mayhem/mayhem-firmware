@@ -27,9 +27,6 @@
 namespace battery {
 namespace ads1110 {
 
-constexpr uint16_t BATTERY_MIN_VOLTAGE = 3000;
-constexpr uint16_t BATTERY_MAX_VOLTAGE = 4000;
-
 void ADS1110::init() {
     if (!detected_) {
         detected_ = detect();
@@ -118,15 +115,8 @@ uint16_t ADS1110::readVoltage() {
     return (uint16_t)voltage;
 }
 
-void ADS1110::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage) {
+void ADS1110::getBatteryInfo(uint8_t& valid_mask, uint16_t& voltage) {
     voltage = readVoltage();
-
-    // Calculate the remaining battery percentage
-    batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
-
-    // Limit the values to the valid range
-    batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
-    // ToDo: if its > 4, then 100%, if < 3 then 0%
     valid_mask = 1;  // BATT_VALID_VOLTAGE
 }
 
