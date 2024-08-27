@@ -1,6 +1,7 @@
 > [!WARNING]
-> __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED PACKAGES, YOU'RE BEING SCAMMED.__ 
-> The only legitimate link leading to our repositories is the organization [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware).
+> __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED VERSIONS, YOU'RE BEING SCAMMED.__ 
+>
+> The only legitimate link to our repositories is the [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware) organization on GitHub.
 
 # PortaPack Mayhem
 
