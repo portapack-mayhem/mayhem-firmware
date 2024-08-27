@@ -49,6 +49,7 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
         text_current.set("-");
         text_charge.set("-");
+        text_method.set("-");
         return;
     }
     bool uichg = false;
@@ -78,6 +79,11 @@ void BattinfoView::update_result() {
         text_current.hidden(true);
         text_charge.hidden(true);
     }
+    if (valid_mask & battery::BatteryManagement::BATT_VALID_PERCENT == battery::BatteryManagement::BATT_VALID_PERCENT) {
+        text_method.set("IC");
+    } else {
+        text_method.set("Voltage");
+    }
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
     BatteryStateMessage msg{valid_mask, percent, current >= 0, voltage};
@@ -92,6 +98,7 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &text_voltage,
                   &text_current,
                   &text_charge,
+                  &text_method,
                   &button_exit});
 
     button_exit.on_select = [this, &nav](Button&) {
