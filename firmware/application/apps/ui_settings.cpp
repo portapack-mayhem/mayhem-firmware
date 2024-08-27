@@ -948,6 +948,31 @@ void SetThemeView::focus() {
     options.focus();
 }
 
+/* SetBatteryView ************************************/
+
+SetBatteryView::SetBatteryView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel,
+                  &checkbox_overridebatt});
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    checkbox_overridebatt.set_value(pmem::ui_override_batt_calc());
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetBatteryView::focus() {
+    button_cancel.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -976,6 +1001,7 @@ void SettingsMenuView::on_populate() {
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
+        {"Battery", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetBatteryView>(); }},
         {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
 }
