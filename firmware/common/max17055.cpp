@@ -29,6 +29,21 @@ Boston, MA 02110-1301, USA.
 namespace battery {
 namespace max17055 {
 
+// ToDo: Use this if the test actually works
+// bool MAX17055::needsInitialization() {
+//     uint16_t designCap = readRegister(0x18);
+//     uint16_t vEmpty = readRegister(0x3A);
+//     uint16_t iChgTerm = readRegister(0x1E);
+
+//     // Compare with expected values
+//     if (designCap != __MAX17055_Design_Capacity__ ||
+//         vEmpty != __MAX17055_Empty_Voltage__ ||
+//         iChgTerm != __MAX17055_Termination_Current__) {
+//         return true;
+//     }
+//     return false;
+// }
+
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
