@@ -888,6 +888,35 @@ class SetThemeView : public View {
     };
 };
 
+class SetBatteryView : public View {
+   public:
+    SetBatteryView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Battery"; };
+
+   private:
+    int32_t selected = 0;
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Override batt calculation", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Checkbox checkbox_overridebatt{
+        {2 * 8, 6 * 16},
+        23,
+        "Override"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);

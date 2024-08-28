@@ -133,7 +133,7 @@ struct ui_config2_t {
     bool hide_fake_brightness : 1;
     bool hide_numeric_battery : 1;
     bool hide_battery_icon : 1;
-    bool UNUSED_3 : 1;
+    bool override_batt_calc : 1;
     bool charge_ic_initialized : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
@@ -969,6 +969,10 @@ bool ui_charge_ic_initialized() {
     return data->ui_config2.charge_ic_initialized;
 }
 
+bool ui_override_batt_calc() {
+    return data->ui_config2.override_batt_calc;
+}
+
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
 }
@@ -1009,9 +1013,6 @@ void set_ui_hide_battery_icon(bool v) {
 }
 void set_ui_theme_id(uint8_t theme_id) {
     data->ui_config2.theme_id = theme_id;
-}
-void set_ui_charge_ic_initialized(bool v) {
-    data->ui_config2.charge_ic_initialized = v;
 }
 
 /* Converter */
