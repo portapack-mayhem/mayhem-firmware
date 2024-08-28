@@ -953,24 +953,20 @@ bool ui_hide_sd_card() {
 bool ui_hide_fake_brightness() {
     return data->ui_config2.hide_fake_brightness;
 }
-
 bool ui_hide_numeric_battery() {
     return data->ui_config2.hide_numeric_battery;
 }
 bool ui_hide_battery_icon() {
     return data->ui_config2.hide_battery_icon;
 }
-
 uint8_t ui_theme_id() {
     return data->ui_config2.theme_id;
 }
-
-bool ui_charge_ic_initialized() {
-    return data->ui_config2.charge_ic_initialized;
-}
-
 bool ui_override_batt_calc() {
     return data->ui_config2.override_batt_calc;
+}
+bool ui_charge_ic_initialized() {
+    return data->ui_config2.charge_ic_initialized;
 }
 
 void set_ui_hide_speaker(bool v) {
@@ -1013,6 +1009,12 @@ void set_ui_hide_battery_icon(bool v) {
 }
 void set_ui_theme_id(uint8_t theme_id) {
     data->ui_config2.theme_id = theme_id;
+}
+void set_ui_override_batt_calc(bool v) {
+    data->ui_config2.override_batt_calc = v;
+}
+void set_ui_charge_ic_initialized(bool v) {
+    data->ui_config2.charge_ic_initialized = v;
 }
 
 /* Converter */
