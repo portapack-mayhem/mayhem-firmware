@@ -21,6 +21,7 @@ Boston, MA 02110-1301, USA.
 */
 #include "max17055.hpp"
 #include "utility.hpp"
+#include "portapack_persistent_memory.hpp"
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
@@ -32,49 +33,45 @@ void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
     }
-    if (detected_) {  // check again if it is detected
-        config();
-        setHibCFG(0x0000);
+    if (detected_) {
+        // uint16_t status = getStatus();
+        // bool isPOR = status & 0x0002;  // Check POR bit
 
-        // Design Capacity Register
-        setDesignCapacity(__MAX17055_Design_Capacity__);
+        // if (isPOR || !persistent_memory::sui_charge_ic_initialized()) {
+        if (!portapack::persistent_memory::charge_ic_initialized()) {
+            // First-time or POR initialization
+            fullInit();
+            portapack::persistent_memory::set_ui_charge_ic_initialized(true);
+        } else {
+            // Subsequent boot
+            partialInit();
+        }
 
-        // ModelCfg Register
-        setModelCfg(__MAX17055_Battery_Model__);
-
-        // IChgTerm Register
-        setChargeTerminationCurrent(__MAX17055_Termination_Current__);
-
-        // VEmpty Register
-        setEmptyVoltage(__MAX17055_Empty_Voltage__);
-
-        // VRecovery Register
-        setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
-
-        // Set Minimum Voltage
-        setMinVoltage(__MAX17055_Min_Voltage__);
-
-        // Set Maximum Voltage
-        setMaxVoltage(__MAX17055_Max_Voltage__);
-
-        // Set Maximum Current
-        setMaxCurrent(__MAX17055_Max_Current__);
-
-        // Set Minimum SOC
-        setMinSOC(__MAX17055_Min_SOC__);
-
-        // Set Maximum SOC
-        setMaxSOC(__MAX17055_Max_SOC__);
-
-        // Set Minimum Temperature
-        setMinTemperature(__MAX17055_Min_Temperature__);
-
-        // Set Maximum Temperature
-        setMaxTemperature(__MAX17055_Max_Temperature__);
-
-        // Clear Bits
         statusClear();
     }
+}
+
+void MAX17055::fullInit() {
+    config();
+    setHibCFG(0x0000);
+    setDesignCapacity(__MAX17055_Design_Capacity__);
+    setModelCfg(__MAX17055_Battery_Model__);
+    setChargeTerminationCurrent(__MAX17055_Termination_Current__);
+    setEmptyVoltage(__MAX17055_Empty_Voltage__);
+    setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
+    setMinVoltage(__MAX17055_Min_Voltage__);
+    setMaxVoltage(__MAX17055_Max_Voltage__);
+    setMaxCurrent(__MAX17055_Max_Current__);
+    setMinSOC(__MAX17055_Min_SOC__);
+    setMaxSOC(__MAX17055_Max_SOC__);
+    setMinTemperature(__MAX17055_Min_Temperature__);
+    setMaxTemperature(__MAX17055_Max_Temperature__);
+}
+
+void MAX17055::partialInit() {
+    // Only update necessary volatile settings
+    setHibCFG(0x0000);  // If you always want hibernation disabled
+    // Add any other volatile settings that need updating
 }
 
 bool MAX17055::detect() {

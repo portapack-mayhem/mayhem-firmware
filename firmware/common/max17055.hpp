@@ -292,6 +292,9 @@ class MAX17055 {
     const I2C::address_t bus_address;
     bool detected_ = false;
 
+    void fullInit();
+    void partialInit();
+
     bool readRegister(uint8_t reg, uint16_t& value);
     bool readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission);
     bool writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t length);
