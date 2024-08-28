@@ -18,6 +18,7 @@ ads1110::ADS1110 battery_ads1110{portapack::i2c0, 0x48};
 max17055::MAX17055 battery_max17055{portapack::i2c0, 0x36};
 
 Thread* BatteryManagement::thread = nullptr;
+bool BatteryManagement::calcOverride = false;
 
 void BatteryManagement::detect() {
     // try to detect supported modules
@@ -43,10 +44,16 @@ void BatteryManagement::detect() {
 #endif
 }
 
-void BatteryManagement::init() {
+void BatteryManagement::init(bool override) {
+    calcOverride = override;
     detect();
     // sets timer to query and broadcats this info
     create_thread();
+}
+
+// set if the default percentage calculation should be overrided by voltage based one
+void BatteryManagement::set_calc_override(bool override) {
+    calcOverride = override;
 }
 
 // sets the values, it the currend module supports it.
@@ -55,10 +62,15 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPerc
         valid_mask = BATT_VALID_NONE;
         return;
     } else if (detected_ == BATT_ADS1110) {
-        battery_ads1110.getBatteryInfo(valid_mask, batteryPercentage, voltage);
+        battery_ads1110.getBatteryInfo(valid_mask, voltage);
+        batteryPercentage = calc_percent_voltage(voltage);
         return;
     } else if (detected_ == BATT_MAX17055) {
         battery_max17055.getBatteryInfo(valid_mask, batteryPercentage, voltage, current);
+        if (calcOverride) {
+            valid_mask &= ~BATT_VALID_PERCENT;  // indicate it is voltage based
+            batteryPercentage = calc_percent_voltage(voltage);
+        }
         return;
     }
     // add new module query here
@@ -70,7 +82,7 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPerc
         voltage = rand() % 1000 + 3000;  // mV
         current = rand() % 150;          // mA
         isCharging = rand() % 2;
-        valid_mask = 3;
+        valid_mask = 7;
         return true;
     }
 #endif
@@ -100,6 +112,18 @@ uint8_t BatteryManagement::getPercent() {
     int32_t current = 0;
     getBatteryInfo(validity, batteryPercentage, voltage, current);
     if ((validity & BATT_VALID_VOLTAGE) != BATT_VALID_VOLTAGE) return 102;
+    if (calcOverride || ((validity & BATT_VALID_PERCENT) != BATT_VALID_PERCENT)) {
+        validity &= ~BATT_VALID_PERCENT;  // indicate it is voltage based
+        batteryPercentage = calc_percent_voltage(voltage);
+    }
+    return batteryPercentage;
+}
+
+uint8_t BatteryManagement::calc_percent_voltage(uint16_t voltage) {
+    // Calculate the remaining battery percentage
+    uint8_t batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
+    // Limit the values to the valid range
+    batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
     return batteryPercentage;
 }
 

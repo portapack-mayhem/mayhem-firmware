@@ -49,6 +49,7 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
         text_current.set("-");
         text_charge.set("-");
+        text_method.set("-");
         return;
     }
     bool uichg = false;
@@ -78,6 +79,13 @@ void BattinfoView::update_result() {
         text_current.hidden(true);
         text_charge.hidden(true);
     }
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_PERCENT) == battery::BatteryManagement::BATT_VALID_PERCENT) {
+        text_method.set("IC");
+        button_mode.set_text("Volt");
+    } else {
+        text_method.set("Voltage");
+        button_mode.set_text("IC");
+    }
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
     BatteryStateMessage msg{valid_mask, percent, current >= 0, voltage};
@@ -92,12 +100,24 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &text_voltage,
                   &text_current,
                   &text_charge,
+                  &text_method,
+                  &button_mode,
                   &button_exit});
 
     button_exit.on_select = [this, &nav](Button&) {
         nav.pop();
     };
-
+    button_mode.on_select = [this, &nav](Button&) {
+        if (button_mode.text() == "IC") {
+            battery::BatteryManagement::set_calc_override(false);
+            persistent_memory::set_ui_override_batt_calc(false);
+            button_mode.set_text("Volt");
+        } else {
+            battery::BatteryManagement::set_calc_override(true);
+            persistent_memory::set_ui_override_batt_calc(true);
+            button_mode.set_text("IC");
+        }
+    };
     update_result();
     if (thread == nullptr) thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, BattinfoView::static_fn, this);
 }

@@ -53,11 +53,14 @@ class BattinfoView : public View {
 
     Labels labels{
         {{2 * 8, 1 * 16}, "Percent:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 2 * 16}, "Voltage:", Theme::getInstance()->fg_light->foreground}};
+        {{2 * 8, 2 * 16}, "Voltage:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 3 * 16}, "Method:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Change method:", Theme::getInstance()->fg_light->foreground},
+    };
 
     Labels labels_opt{
-        {{2 * 8, 3 * 16}, "Current:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 4 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground}};
+        {{2 * 8, 4 * 16}, "Current:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_percent{
         {13 * 8, 1 * 16, 10 * 16, 16},
@@ -65,12 +68,19 @@ class BattinfoView : public View {
     Text text_voltage{
         {13 * 8, 2 * 16, 10 * 16, 16},
         "-"};
-    Text text_current{
+    Text text_method{
         {13 * 8, 3 * 16, 10 * 16, 16},
         "-"};
-    Text text_charge{
+    Text text_current{
         {13 * 8, 4 * 16, 10 * 16, 16},
         "-"};
+    Text text_charge{
+        {13 * 8, 5 * 16, 10 * 16, 16},
+        "-"};
+
+    Button button_mode{
+        {2 * 8, 8 * 16 + 5, 5 * 16, 32},
+        "Volt"};
 
     Button button_exit{
         {72, 17 * 16, 96, 32},

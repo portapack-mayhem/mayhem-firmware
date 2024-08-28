@@ -586,7 +586,7 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
-    battery::BatteryManagement::init();
+    battery::BatteryManagement::init(persistent_memory::ui_override_batt_calc());
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);

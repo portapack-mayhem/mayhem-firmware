@@ -26,6 +26,7 @@
 #include <array>
 #include <string>
 
+#include "battery.hpp"
 #include "i2c_pp.hpp"
 
 #define MAX17055_POR 0
@@ -47,7 +48,7 @@
 
 // Define Battery Capacity
 #ifndef __MAX17055_Design_Capacity__
-#define __MAX17055_Design_Capacity__ 2500  // Battery Capacity
+#define __MAX17055_Design_Capacity__ BATTERY_DESIGN_CAP  // Battery Capacity
 #endif
 
 // Define Gauge Resistor
@@ -57,17 +58,17 @@
 
 // Define Minimum Voltage
 #ifndef __MAX17055_Min_Voltage__
-#define __MAX17055_Min_Voltage__ 3.0  // Minimum Voltage
+#define __MAX17055_Min_Voltage__ BATTERY_MIN_VOLTAGE / 1000.0  // Minimum Voltage
 #endif
 
 // Define Maximum Voltage
 #ifndef __MAX17055_Max_Voltage__
-#define __MAX17055_Max_Voltage__ 4.17  // Maximum Voltage
+#define __MAX17055_Max_Voltage__ BATTERY_MAX_VOLTAGE / 1000.0  // Maximum Voltage
 #endif
 
 // Define Empty Voltage
 #ifndef __MAX17055_Empty_Voltage__
-#define __MAX17055_Empty_Voltage__ 3.0  // Empty Voltage
+#define __MAX17055_Empty_Voltage__ BATTERY_MIN_VOLTAGE / 1000.0  // Empty Voltage
 #endif
 
 // Define Recovery Voltage
