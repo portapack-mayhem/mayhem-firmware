@@ -124,7 +124,6 @@ uint8_t BatteryManagement::calc_percent_voltage(uint16_t voltage) {
     uint8_t batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
     // Limit the values to the valid range
     batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
-    if (batteryPercentage <= 2) batteryPercentage = 0;
     return batteryPercentage;
 }
 

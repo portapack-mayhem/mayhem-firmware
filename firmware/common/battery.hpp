@@ -29,6 +29,7 @@ namespace battery {
 
 #define BATTERY_MIN_VOLTAGE 3000.0
 #define BATTERY_MAX_VOLTAGE 4170.0
+#define BATTERY_DESIGN_CAP 2500
 
 class BatteryManagement {
    public:
