@@ -83,7 +83,7 @@
 
 // Define Termination Current
 #ifndef __MAX17055_Termination_Current__
-#define __MAX17055_Termination_Current__ 0.1  // Termination Current
+#define __MAX17055_Termination_Current__ 200  // Termination Current
 #endif
 
 // Define Minimum Temperature
@@ -283,7 +283,7 @@ class MAX17055 {
     uint16_t batteryAge(void);
     uint16_t chargeCycle(void);
     bool statusControl(const uint8_t _Status);
-    void statusClear(void);
+    bool statusClear();
     uint16_t chargeTerminationCurrent(void);
     uint16_t read_register(const uint8_t reg);
     bool write_register(const uint8_t reg, const uint16_t value);
@@ -293,12 +293,11 @@ class MAX17055 {
     const I2C::address_t bus_address;
     bool detected_ = false;
 
+    bool needsInitialization();
     void fullInit();
     void partialInit();
 
     bool readRegister(uint8_t reg, uint16_t& value);
-    bool readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission);
-    bool writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t length);
 
     bool setEmptyVoltage(uint16_t _Empty_Voltage);
     bool setRecoveryVoltage(uint16_t _Recovery_Voltage);

@@ -29,21 +29,6 @@ Boston, MA 02110-1301, USA.
 namespace battery {
 namespace max17055 {
 
-// ToDo: Use this if the test actually works
-// bool MAX17055::needsInitialization() {
-//     uint16_t designCap = readRegister(0x18);
-//     uint16_t vEmpty = readRegister(0x3A);
-//     uint16_t iChgTerm = readRegister(0x1E);
-
-//     // Compare with expected values
-//     if (designCap != __MAX17055_Design_Capacity__ ||
-//         vEmpty != __MAX17055_Empty_Voltage__ ||
-//         iChgTerm != __MAX17055_Termination_Current__) {
-//         return true;
-//     }
-//     return false;
-// }
-
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
@@ -53,10 +38,11 @@ void MAX17055::init() {
         // bool isPOR = status & 0x0002;  // Check POR bit
 
         // if (isPOR || !persistent_memory::sui_charge_ic_initialized()) {
-        if (!portapack::persistent_memory::charge_ic_initialized()) {
+        // if (!portapack::persistent_memory::charge_ic_initialized()) {
+
+        if (needsInitialization()) {
             // First-time or POR initialization
             fullInit();
-            portapack::persistent_memory::set_ui_charge_ic_initialized(true);
         } else {
             // Subsequent boot
             partialInit();
@@ -64,6 +50,20 @@ void MAX17055::init() {
 
         statusClear();
     }
+}
+
+bool MAX17055::needsInitialization() {
+    uint16_t designCap = read_register(0x18);
+    uint16_t vEmpty = read_register(0x3A);
+    uint16_t iChgTerm = read_register(0x1E);
+
+    // Compare with expected values
+    if (designCap != __MAX17055_Design_Capacity__ ||
+        vEmpty != __MAX17055_Empty_Voltage__ ||
+        iChgTerm != __MAX17055_Termination_Current__) {
+        return true;
+    }
+    return false;
 }
 
 void MAX17055::fullInit() {
@@ -90,13 +90,22 @@ void MAX17055::partialInit() {
 }
 
 bool MAX17055::detect() {
-    uint8_t _MAX17055_Data[2];
+    // Read the DevName register (0x21)
+    uint16_t dev_name = read_register(0x21);
 
-    // Get Data from IC
-    if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
+    // The DevName register should return 0x4010 for MAX17055
+    if (dev_name == 0x4010) {
         detected_ = true;
         return true;
     }
+
+    // If DevName doesn't match, try reading Status register as a fallback
+    uint16_t status = read_register(0x00);
+    if (status != 0xFFFF && status != 0x0000) {
+        detected_ = true;
+        return true;
+    }
+
     detected_ = false;
     return false;
 }
@@ -136,41 +145,14 @@ bool MAX17055::write_register(const uint8_t reg, const uint16_t value) {
     tx[2] = (value >> 8) & 0xFF;  // High byte
 
     bool success = bus.transmit(bus_address, tx.data(), tx.size());
+    chThdSleepMilliseconds(1);
     return success;
-}
-
-bool MAX17055::readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
-    if (bus.transmit(bus_address, &reg, 1)) {
-        if (bus.receive(bus_address, data, length)) {
-            if (endTransmission) {
-                // bus.stop();  // Testing if we need this line
-                // Perform any necessary end transmission actions
-                // For example, you can use bus.endTransmission()
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t length) {
-    uint8_t buffer[length + 1];
-    buffer[0] = reg;
-    memcpy(buffer + 1, data, length);
-
-    if (bus.transmit(bus_address, buffer, length + 1)) {
-        // Perform any necessary end transmission actions
-        // For example, you can use bus.endTransmission()
-        return true;
-    }
-    return false;
 }
 
 void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
     if (detected_) {
-        uint16_t status = 0;
         // Read Status Register
-        readMultipleRegister(0x00, (uint8_t*)&status, 2, false);
+        uint16_t status = read_register(0x00);
         voltage = averageVoltage();
         if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
             valid_mask = 0;
@@ -186,397 +168,179 @@ void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, u
 }
 
 bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
-    // Set Voltage Value
-    uint16_t _Raw_Voltage = ((uint16_t)((uint16_t)_Empty_Voltage * 100) << 7) & 0b1111111110000000;
+    // Calculate the new VE_Empty value (upper 9 bits)
+    uint16_t ve_empty = ((_Empty_Voltage * 100) / 10) & 0xFF80;
 
-    // Define Data Variable
-    uint8_t MAX17055_RAW_Data[2];
+    // Read the current register value
+    uint16_t current_value = read_register(0x3A);
 
-    // Handle Data
-    MAX17055_RAW_Data[1] = (uint8_t)(_Raw_Voltage >> 8);
-    MAX17055_RAW_Data[0] = (uint8_t)(_Raw_Voltage & 0x00FF);
+    // Preserve the lower 7 bits (VR_Empty) and combine with new VE_Empty
+    uint16_t new_value = (ve_empty & 0xFF80) | (current_value & 0x007F);
 
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
-
-    // Read Current Register
-    readMultipleRegister(0x3A, MAX17055_Current_Data, 2, true);
-
-    // Clear Current Value
-    MAX17055_Current_Data[0] &= 0b01111111;
-    MAX17055_Current_Data[1] &= 0b00000000;
-
-    // Define Data Variable
-    uint8_t MAX17055_Handle_Data[2];
-
-    // Handle Data
-    MAX17055_Handle_Data[0] = MAX17055_Current_Data[0] | MAX17055_RAW_Data[0];
-    MAX17055_Handle_Data[1] = MAX17055_Current_Data[1] | MAX17055_RAW_Data[1];
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x3A, MAX17055_Handle_Data, 2);
-
-    // End Function
-    return _Result;
+    // Write the new value back to the register
+    return write_register(0x3A, new_value);
 }
 
 bool MAX17055::setRecoveryVoltage(uint16_t _Recovery_Voltage) {
-    // Handle Value
-    _Recovery_Voltage = _Recovery_Voltage * 1000 / 40;
+    // Calculate the new VR_Empty value (lower 7 bits)
+    uint16_t vr_empty = (_Recovery_Voltage * 25) & 0x007F;  // 40mV per bit, 25 = 1000/40
 
-    // Set Voltage Value
-    uint16_t _Raw_Voltage = ((uint16_t)_Recovery_Voltage);
+    // Read the current register value
+    uint16_t current_value = read_register(0x3A);
 
-    // Define Data Variable
-    uint8_t MAX17055_RAW_Data[2];
+    // Preserve the upper 9 bits (VE_Empty) and combine with new VR_Empty
+    uint16_t new_value = (current_value & 0xFF80) | vr_empty;
 
-    // Handle Data
-    MAX17055_RAW_Data[1] = (uint8_t)(_Raw_Voltage >> 8);
-    MAX17055_RAW_Data[0] = (uint8_t)(_Raw_Voltage & 0x00FF);
-
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
-
-    // Read Current Register
-    readMultipleRegister(0x3A, MAX17055_Current_Data, 2, true);
-
-    // Clear Current Value
-    MAX17055_Current_Data[0] &= 0b10000000;
-    MAX17055_Current_Data[1] &= 0b11111111;
-
-    // Define Data Variable
-    uint8_t MAX17055_Handle_Data[2];
-
-    // Handle Data
-    MAX17055_Handle_Data[0] = MAX17055_Current_Data[0] | MAX17055_RAW_Data[0];
-    MAX17055_Handle_Data[1] = MAX17055_Current_Data[1] | MAX17055_RAW_Data[1];
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x3A, MAX17055_Handle_Data, 2);
-
-    // End Function
-    return _Result;
+    // Write the new value back to the register
+    return write_register(0x3A, new_value);
 }
 
 bool MAX17055::setMinVoltage(uint16_t _Minimum_Voltage) {
-    // Set Voltage Value
-    uint8_t _Raw_Voltage = (uint8_t)(_Minimum_Voltage * 1000 / 20);
+    uint16_t current_value = read_register(0x01);
 
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t min_voltage_raw = (_Minimum_Voltage * 50) & 0x00FF;  // 20mV per bit, 50 = 1000/20
+    uint16_t new_value = (current_value & 0xFF00) | min_voltage_raw;
 
-    // Read Current Register
-    readMultipleRegister(0x01, MAX17055_Current_Data, 2, true);
-
-    // Set Voltage Value
-    MAX17055_Current_Data[0] = _Raw_Voltage;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x01, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x01, new_value);
 }
 
 bool MAX17055::setMaxVoltage(uint16_t _Maximum_Voltage) {
-    // Set Voltage Value
-    uint8_t _Raw_Voltage = (uint8_t)(_Maximum_Voltage * 1000 / 20);
+    uint16_t current_value = read_register(0x01);
 
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t max_voltage_raw = ((_Maximum_Voltage * 50) & 0x00FF) << 8;  // 20mV per bit, 50 = 1000/20
+    uint16_t new_value = (current_value & 0x00FF) | max_voltage_raw;
 
-    // Read Current Register
-    readMultipleRegister(0x01, MAX17055_Current_Data, 2, true);
-
-    // Set Voltage Value
-    MAX17055_Current_Data[1] = _Raw_Voltage;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x01, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x01, new_value);
 }
 
 bool MAX17055::setMaxCurrent(uint16_t _Maximum_Current) {
-    // Set Current Value
-    uint8_t _Raw_Current = (uint8_t)(_Maximum_Current * 1000 / 40);
+    uint16_t current_value = read_register(0xB4);
 
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t max_current_raw = ((_Maximum_Current * 25) & 0x00FF) << 8;  // 40mV per bit, 25 = 1000/40
+    uint16_t new_value = (current_value & 0x00FF) | max_current_raw;
 
-    // Read Current Register
-    readMultipleRegister(0xB4, MAX17055_Current_Data, 2, true);
-
-    // Set Current Value
-    MAX17055_Current_Data[1] = _Raw_Current;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0xB4, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0xB4, new_value);
 }
 
 bool MAX17055::setChargeTerminationCurrent(uint16_t _Charge_Termination_Current) {
-    // Handle Raw Data
-    uint16_t _RAW_Data = (uint16_t)(_Charge_Termination_Current * 1000000 * __MAX17055_Resistor__ / 1.5625);
+    float lsb_mA = 1.5625 / (__MAX17055_Resistor__ * 1000);  // Convert to mA
+    uint16_t ichgterm_value = static_cast<uint16_t>(round(_Charge_Termination_Current / lsb_mA));
 
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_RAW_Data & (uint16_t)0x00FF));
-    _Data[1] = ((_RAW_Data & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x1E, _Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x1E, ichgterm_value);
 }
 
 bool MAX17055::setDesignCapacity(const uint16_t _Capacity) {
-    // Set Raw
-    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
-
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
-    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x18, _Data, 2);
-
-    // End Function
-    return _Result;
+    uint16_t raw_cap = (uint16_t)_Capacity * 2;
+    return write_register(0x18, raw_cap);
 }
 
 bool MAX17055::setFullCapRep(const uint16_t _Capacity) {
-    // Set Raw
-    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
-
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
-    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x10, _Data, 2);
-
-    // End Function
-    return _Result;
+    uint16_t raw_cap = _Capacity * 2;  // 0.5mAh per LSB
+    return write_register(0x10, raw_cap);
 }
 
 bool MAX17055::setFullCapNom(const uint16_t _Capacity) {
-    // Set Raw
-    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
-
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
-    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x23, _Data, 2);
-
-    // End Function
-    return _Result;
+    uint16_t raw_cap = _Capacity * 2;  // 0.5mAh per LSB
+    return write_register(0x23, raw_cap);
 }
 
 bool MAX17055::setRepCap(const uint16_t _Capacity) {
-    // Set Raw
-    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
-
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
-    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x05, _Data, 2);
-
-    // End Function
-    return _Result;
+    uint16_t raw_cap = _Capacity * 2;  // 0.5mAh per LSB
+    return write_register(0x05, raw_cap);
 }
 
 bool MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t current_value = read_register(0x03);
 
-    // Read Current Register
-    readMultipleRegister(0x03, MAX17055_Current_Data, 2, true);
+    uint16_t min_soc_raw = ((_Minimum_SOC * 256) / 100) & 0x00FF;
+    uint16_t new_value = (current_value & 0xFF00) | min_soc_raw;
 
-    // Scale Value
-    uint8_t _MinSOC = (_Minimum_SOC / 100) * 255;
-
-    // Set Voltage Value
-    MAX17055_Current_Data[0] = _MinSOC;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x03, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x03, new_value);
 }
 
 bool MAX17055::setMaxSOC(uint8_t _Maximum_SOC) {
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t current_value = read_register(0x03);
 
-    // Read Current Register
-    readMultipleRegister(0x03, MAX17055_Current_Data, 2, true);
+    uint16_t max_soc_raw = (((_Maximum_SOC * 256) / 100) & 0x00FF) << 8;
+    uint16_t new_value = (current_value & 0x00FF) | max_soc_raw;
 
-    // Scale Value
-    uint8_t _MaxSOC = (_Maximum_SOC / 100) * 255;
-
-    // Set Voltage Value
-    MAX17055_Current_Data[1] = _MaxSOC;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x03, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x03, new_value);
 }
 
 bool MAX17055::setMinTemperature(uint8_t _Minimum_Temperature) {
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t current_value = read_register(0x02);
 
-    // Read Current Register
-    readMultipleRegister(0x02, MAX17055_Current_Data, 2, true);
+    uint16_t min_temp_raw = (uint8_t)_Minimum_Temperature;
+    uint16_t new_value = (current_value & 0xFF00) | min_temp_raw;
 
-    // Set Voltage Value
-    MAX17055_Current_Data[0] = _Minimum_Temperature;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x02, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x02, new_value);
 }
 
 bool MAX17055::setMaxTemperature(uint8_t _Maximum_Temperature) {
-    // Define Data Variable
-    uint8_t MAX17055_Current_Data[2];
+    uint16_t current_value = read_register(0x02);
 
-    // Read Current Register
-    readMultipleRegister(0x02, MAX17055_Current_Data, 2, true);
+    uint16_t max_temp_raw = ((uint8_t)_Maximum_Temperature) << 8;
+    uint16_t new_value = (current_value & 0x00FF) | max_temp_raw;
 
-    // Set Voltage Value
-    MAX17055_Current_Data[1] = _Maximum_Temperature;
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0x02, MAX17055_Current_Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0x02, new_value);
 }
 
 bool MAX17055::setModelCfg(const uint8_t _Model_ID) {
-    // Declare Variable
-    uint16_t _Data_Set = 0x00;
-
-    // Set Charge Voltage
-    bitSet(_Data_Set, 10);
+    uint16_t model_cfg = 0x0400;  // Set Charge Voltage (bit 10)
 
     // Set Battery Model
-    if (_Model_ID == 0) {
-        bitClear(_Data_Set, 4);
-        bitClear(_Data_Set, 5);
-        bitClear(_Data_Set, 6);
-        bitClear(_Data_Set, 7);
-    }
-    if (_Model_ID == 2) {
-        bitClear(_Data_Set, 4);
-        bitSet(_Data_Set, 5);
-        bitClear(_Data_Set, 6);
-        bitClear(_Data_Set, 7);
-    }
-    if (_Model_ID == 6) {
-        bitClear(_Data_Set, 4);
-        bitSet(_Data_Set, 5);
-        bitSet(_Data_Set, 6);
-        bitClear(_Data_Set, 7);
+    switch (_Model_ID) {
+        case 0:  // Default model
+            break;
+        case 2:  // EZ model
+            model_cfg |= 0x0020;
+            break;
+        case 6:  // Short EZ model
+            model_cfg |= 0x0060;
+            break;
+        default:
+            return false;  // Invalid model ID
     }
 
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_Data_Set & (uint16_t)0x00FF));
-    _Data[1] = ((_Data_Set & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0xDB, _Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0xDB, model_cfg);
 }
 
 bool MAX17055::setHibCFG(const uint16_t _Config) {
-    // Declare Default Data Array
-    uint8_t _Data[2];
-
-    // Set Data Low/High Byte
-    _Data[0] = ((_Config & (uint16_t)0x00FF));
-    _Data[1] = ((_Config & (uint16_t)0xFF00) >> 8);
-
-    // Set Register
-    bool _Result = writeMultipleRegister(0xBA, _Data, 2);
-
-    // End Function
-    return _Result;
+    return write_register(0xBA, _Config);
 }
 
 void MAX17055::config(void) {
-    // Declare Default Data Array
-    uint8_t _Config1[2];
-    uint8_t _Config2[2];
-
-    // Set Default Data
-    _Config1[0] = 0b00000000;
-    _Config1[1] = 0b00000000;
-    _Config2[0] = 0b00011000;
-    _Config2[1] = 0b00000110;
+    uint16_t config1 = 0x0000;
+    uint16_t config2 = 0x0618;  // Default value: 0b00011000 00000110
 
     // Set Configuration bits [Config1]
-    if (MAX17055_Ber) bitSet(_Config1[0], 0);
-    if (MAX17055_Bei) bitSet(_Config1[0], 1);
-    if (MAX17055_Aen) bitSet(_Config1[0], 2);
-    if (MAX17055_FTHRM) bitSet(_Config1[0], 3);
-    if (MAX17055_ETHRM) bitSet(_Config1[0], 4);
-    if (MAX17055_COMMSH) bitSet(_Config1[0], 6);
-    if (MAX17055_SHDN) bitSet(_Config1[0], 7);
-    if (MAX17055_Tex) bitSet(_Config1[1], 0);
-    if (MAX17055_Ten) bitSet(_Config1[1], 1);
-    if (MAX17055_AINSH) bitSet(_Config1[1], 2);
-    if (MAX17055_IS) bitSet(_Config1[1], 3);
-    if (MAX17055_VS) bitSet(_Config1[1], 4);
-    if (MAX17055_TS) bitSet(_Config1[1], 5);
-    if (MAX17055_SS) bitSet(_Config1[1], 6);
-    if (MAX17055_TSel) bitSet(_Config1[1], 7);
+    if (MAX17055_Ber) config1 |= 0x0001;
+    if (MAX17055_Bei) config1 |= 0x0002;
+    if (MAX17055_Aen) config1 |= 0x0004;
+    if (MAX17055_FTHRM) config1 |= 0x0008;
+    if (MAX17055_ETHRM) config1 |= 0x0010;
+    if (MAX17055_COMMSH) config1 |= 0x0040;
+    if (MAX17055_SHDN) config1 |= 0x0080;
+    if (MAX17055_Tex) config1 |= 0x0100;
+    if (MAX17055_Ten) config1 |= 0x0200;
+    if (MAX17055_AINSH) config1 |= 0x0400;
+    if (MAX17055_IS) config1 |= 0x0800;
+    if (MAX17055_VS) config1 |= 0x1000;
+    if (MAX17055_TS) config1 |= 0x2000;
+    if (MAX17055_SS) config1 |= 0x4000;
+    if (MAX17055_TSel) config1 |= 0x8000;
 
     // Set Configuration bits [Config2]
-    if (MAX17055_CPMode) bitSet(_Config2[0], 1);
-    if (MAX17055_LDMDL) bitSet(_Config2[0], 5);
-    if (MAX17055_TAIrtEN) bitSet(_Config2[0], 6);
-    if (MAX17055_dSOCen) bitSet(_Config2[0], 7);
-    if (MAX17055_DPEn) bitSet(_Config2[1], 4);
-    if (MAX17055_AtRateEn) bitSet(_Config2[1], 5);
+    if (MAX17055_CPMode) config2 |= 0x0002;
+    if (MAX17055_LDMDL) config2 |= 0x0020;
+    if (MAX17055_TAIrtEN) config2 |= 0x0040;
+    if (MAX17055_dSOCen) config2 |= 0x0080;
+    if (MAX17055_DPEn) config2 |= 0x1000;
+    if (MAX17055_AtRateEn) config2 |= 0x2000;
 
-    // Config1 Setting
-    writeMultipleRegister(0x1D, _Config1, 2);
-    writeMultipleRegister(0xBB, _Config2, 2);
+    // Write configurations to registers
+    write_register(0x1D, config1);
+    write_register(0xBB, config2);
 }
 
 uint16_t MAX17055::instantVoltage(void) {
@@ -772,50 +536,45 @@ uint16_t MAX17055::chargeCycle(void) {
 }
 
 bool MAX17055::statusControl(const uint8_t _Status) {
-    // Define Data Variable
-    uint8_t _Status_Register[2] = {0x00, 0x00};
-
-    // Read Status Register
-    readMultipleRegister(0x00, _Status_Register, 2, false);
+    // Read Status Register (0x00)
+    uint16_t status_register = read_register(0x00);
 
     // Control for Status
-    if (_Status == MAX17055_POR)
-        return bitRead(_Status_Register[0], 1);
-    else if (_Status == MAX17055_IMin)
-        return bitRead(_Status_Register[0], 2);
-    else if (_Status == MAX17055_IMax)
-        return bitRead(_Status_Register[0], 6);
-    else if (_Status == MAX17055_VMin)
-        return bitRead(_Status_Register[1], 0);
-    else if (_Status == MAX17055_VMax)
-        return bitRead(_Status_Register[1], 4);
-    else if (_Status == MAX17055_TMin)
-        return bitRead(_Status_Register[1], 1);
-    else if (_Status == MAX17055_TMax)
-        return bitRead(_Status_Register[1], 5);
-    else if (_Status == MAX17055_SOC_Min)
-        return bitRead(_Status_Register[1], 2);
-    else if (_Status == MAX17055_SOC_Max)
-        return bitRead(_Status_Register[1], 6);
-    else if (_Status == MAX17055_SOC_Change)
-        return bitRead(_Status_Register[0], 7);
-    else if (_Status == MAX17055_Bat_Status)
-        return bitRead(_Status_Register[0], 3);
-    else if (_Status == MAX17055_Bat_Insert)
-        return bitRead(_Status_Register[1], 3);
-    else if (_Status == MAX17055_Bat_Remove)
-        return bitRead(_Status_Register[1], 7);
-
-    // End Function
-    return false;
+    switch (_Status) {
+        case MAX17055_POR:
+            return bitRead(status_register & 0xFF, 1);
+        case MAX17055_IMin:
+            return bitRead(status_register & 0xFF, 2);
+        case MAX17055_IMax:
+            return bitRead(status_register & 0xFF, 6);
+        case MAX17055_SOC_Change:
+            return bitRead(status_register & 0xFF, 7);
+        case MAX17055_Bat_Status:
+            return bitRead(status_register & 0xFF, 3);
+        case MAX17055_VMin:
+            return bitRead(status_register >> 8, 0);
+        case MAX17055_VMax:
+            return bitRead(status_register >> 8, 4);
+        case MAX17055_TMin:
+            return bitRead(status_register >> 8, 1);
+        case MAX17055_TMax:
+            return bitRead(status_register >> 8, 5);
+        case MAX17055_SOC_Min:
+            return bitRead(status_register >> 8, 2);
+        case MAX17055_SOC_Max:
+            return bitRead(status_register >> 8, 6);
+        case MAX17055_Bat_Insert:
+            return bitRead(status_register >> 8, 3);
+        case MAX17055_Bat_Remove:
+            return bitRead(status_register >> 8, 7);
+        default:
+            return false;
+    }
 }
 
-void MAX17055::statusClear(void) {
-    // Define Data Variable
-    const uint8_t _Status_Register[2] = {0x00, 0x00};
-
-    // Write Status Register
-    writeMultipleRegister(0x00, _Status_Register, 2);
+bool MAX17055::statusClear() {
+    // Clear all bits in the Status register (0x00)
+    return write_register(0x00, 0x0000);
 }
 
 uint16_t MAX17055::chargeTerminationCurrent(void) {

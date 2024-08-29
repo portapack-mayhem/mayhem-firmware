@@ -29,7 +29,7 @@ void BatteryManagement::detect() {
         return;
     }
     if (battery_max17055.detect()) {
-        // battery_max17055.init(); //detect will call this on each "re detect"
+        battery_max17055.init();  // detect will call this on each "re detect"
         detected_ = BATT_MAX17055;
         return;
     }
