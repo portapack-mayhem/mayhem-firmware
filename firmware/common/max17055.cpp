@@ -53,9 +53,13 @@ void MAX17055::init() {
 }
 
 bool MAX17055::needsInitialization() {
-    uint16_t designCap = read_register(0x18);
-    uint16_t vEmpty = read_register(0x3A);
-    uint16_t iChgTerm = read_register(0x1E);
+    // uint16_t designCap = read_register(0x18);
+    // uint16_t vEmpty = read_register(0x3A);
+    // uint16_t iChgTerm = read_register(0x1E);
+
+    uint16_t designCap = designCapacity();
+    uint16_t vEmpty = emptyVoltage();
+    uint16_t iChgTerm = chargeTerminationCurrent();
 
     // Compare with expected values
     if (designCap != __MAX17055_Design_Capacity__ ||
@@ -578,13 +582,9 @@ bool MAX17055::statusClear() {
 }
 
 uint16_t MAX17055::chargeTerminationCurrent(void) {
-    // Get Data from IC
     uint16_t _Measurement_Raw = read_register(0x1E);
-
-    // Calculate Data
-    uint16_t Value = (((uint32_t)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__);
-
-    // End Function
+    float lsb_mA = 1.5625 / (__MAX17055_Resistor__ * 1000);  // Convert to mA
+    uint16_t Value = static_cast<uint16_t>(round(_Measurement_Raw * lsb_mA));
     return Value;
 }
 
