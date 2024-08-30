@@ -287,7 +287,7 @@ class MAX17055 {
     uint16_t chargeTerminationCurrent(void);
     uint16_t read_register(const uint8_t reg);
     bool write_register(const uint8_t reg, const uint16_t value);
-    void reset_learned();
+    bool reset_learned();
 
    private:
     I2C& bus;

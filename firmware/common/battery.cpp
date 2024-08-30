@@ -51,9 +51,9 @@ void BatteryManagement::init(bool override) {
     create_thread();
 }
 
-void BatteryManagement::reset_learned() {
+bool BatteryManagement::reset_learned() {
     if (detected_ == BATT_MAX17055) {
-        battery_max17055.reset_learned();
+        return battery_max17055.reset_learned();
     }
 }
 

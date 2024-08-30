@@ -93,10 +93,11 @@ void MAX17055::partialInit() {
     // Add any other volatile settings that need updating
 }
 
-void MAX17055::reset_learned() {
+bool MAX17055::reset_learned() {
     // this if for reset all the learned parameters by ic
     // the full inis should do this
     fullInit();
+    return true;
 }
 
 bool MAX17055::detect() {
