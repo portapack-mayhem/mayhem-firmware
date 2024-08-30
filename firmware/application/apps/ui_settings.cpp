@@ -956,7 +956,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
                   &button_cancel,
                   &checkbox_overridebatt});
 
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BATT_MAX17055) add_children({&button_reset});
+    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BATT_MAX17055) add_children({&button_reset, &labels2});
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());

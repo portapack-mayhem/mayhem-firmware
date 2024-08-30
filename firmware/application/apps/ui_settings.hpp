@@ -900,9 +900,9 @@ class SetBatteryView : public View {
     int32_t selected = 0;
     Labels labels{
         {{1 * 8, 1 * 16}, "Override batt calculation", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground}};
+    Labels labels2{
         {{1 * 8, 6 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
-
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
