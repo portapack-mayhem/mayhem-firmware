@@ -93,6 +93,12 @@ void MAX17055::partialInit() {
     // Add any other volatile settings that need updating
 }
 
+void MAX17055::reset_learned() {
+    // this if for reset all the learned parameters by ic
+    // the full inis should do this
+    fullInit();
+}
+
 bool MAX17055::detect() {
     // Read the DevName register (0x21)
     uint16_t dev_name = read_register(0x21);

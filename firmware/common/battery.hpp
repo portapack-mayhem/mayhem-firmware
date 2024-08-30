@@ -56,6 +56,7 @@ class BatteryManagement {
     static bool write_register(const uint8_t reg, const uint16_t value);
     static void set_calc_override(bool override);
     static uint8_t calc_percent_voltage(uint16_t);  // calculates battery percentage from the voltage
+    static void reset_learned();                    // resets the ic's learned parameters
 
    private:
     static void create_thread();

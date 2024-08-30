@@ -954,6 +954,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
+                  &button_reset,
                   &checkbox_overridebatt});
 
     button_save.on_select = [&nav, this](Button&) {
@@ -961,6 +962,11 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
         battery::BatteryManagement::set_calc_override(checkbox_overridebatt.value());
         send_system_refresh();
         nav.pop();
+    };
+
+    button_reset.on_select = [&nav, this](Button&) {
+        battery::BatteryManagement::reset_learned();
+        nav.display_modal("Reset", "Battery parameters reseted");
     };
 
     checkbox_overridebatt.set_value(pmem::ui_override_batt_calc());

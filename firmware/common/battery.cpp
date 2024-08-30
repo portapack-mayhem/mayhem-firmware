@@ -51,6 +51,12 @@ void BatteryManagement::init(bool override) {
     create_thread();
 }
 
+void BatteryManagement::reset_learned() {
+    if (detected_ == BATT_MAX17055) {
+        battery_max17055.reset_learned();
+    }
+}
+
 // set if the default percentage calculation should be overrided by voltage based one
 void BatteryManagement::set_calc_override(bool override) {
     calcOverride = override;
