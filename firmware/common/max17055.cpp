@@ -34,12 +34,6 @@ void MAX17055::init() {
         detected_ = detect();
     }
     if (detected_) {
-        // uint16_t status = getStatus();
-        // bool isPOR = status & 0x0002;  // Check POR bit
-
-        // if (isPOR || !persistent_memory::sui_charge_ic_initialized()) {
-        // if (!portapack::persistent_memory::charge_ic_initialized()) {
-
         if (needsInitialization()) {
             // First-time or POR initialization
             fullInit();
@@ -48,7 +42,7 @@ void MAX17055::init() {
             partialInit();
         }
 
-        statusClear();
+        // statusClear(); I am not sure if this should be here or not
     }
 }
 
@@ -62,9 +56,10 @@ bool MAX17055::needsInitialization() {
     uint16_t iChgTerm = chargeTerminationCurrent();
 
     // Compare with expected values
-    if (designCap != __MAX17055_Design_Capacity__ ||
-        vEmpty != __MAX17055_Empty_Voltage__ ||
-        iChgTerm != __MAX17055_Termination_Current__) {
+    // if (designCap != __MAX17055_Design_Capacity__ ||
+    //     vEmpty != __MAX17055_Empty_Voltage__ ||
+    //     iChgTerm != __MAX17055_Termination_Current__) {
+    if (designCap != __MAX17055_Design_Capacity__) {
         return true;
     }
     return false;

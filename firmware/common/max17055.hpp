@@ -298,8 +298,6 @@ class MAX17055 {
     void fullInit();
     void partialInit();
 
-    bool readRegister(uint8_t reg, uint16_t& value);
-
     bool setEmptyVoltage(uint16_t _Empty_Voltage);
     bool setRecoveryVoltage(uint16_t _Recovery_Voltage);
     bool setMinVoltage(uint16_t _Minimum_Voltage);
