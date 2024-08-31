@@ -463,12 +463,8 @@ uint16_t MAX17055::instantCapacity(void) {
 uint16_t MAX17055::designCapacity(void) {
     // Get Data from IC
     uint16_t _Measurement_Raw = read_register(0x18);
-
-    // Calculate Data
-    uint16_t _Value = _Measurement_Raw * 5 / 1000 / __MAX17055_Resistor__;
-
     // End Function
-    return _Value;
+    return _Measurement_Raw / 2;
 }
 
 uint16_t MAX17055::fullCapacity(void) {
