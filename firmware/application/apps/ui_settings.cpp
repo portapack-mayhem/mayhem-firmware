@@ -967,7 +967,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
 
     button_reset.on_select = [&nav, this](Button&) {
         if (battery::BatteryManagement::reset_learned())
-            nav.display_modal("Reset", "Battery parameters reseted");
+            nav.display_modal("Reset", "Battery parameters reset");
         else
             nav.display_modal("Error", "Error parameter reset");
     };
