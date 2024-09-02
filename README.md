@@ -17,9 +17,9 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-[<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="512">](https://grabify.link/9UZGEW)
+[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="800">](https://grabify.link/X4D5TF)
 
-[<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="254">](https://grabify.link/5MU2VH) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="254">](https://grabify.link/C0J6ZR)
+[<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="263">](https://grabify.link/9UZGEW) [<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="263">](https://grabify.link/5MU2VH) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="263">](https://grabify.link/C0J6ZR)
 
 # Frequently Asked Questions
 
@@ -55,13 +55,7 @@ Consider that the hardware and firmware has been created and maintain by a [lot]
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
 ## What if I really want something specific?
-If what you need can be relevant in general, you can [request a feature](https://github.com/portapack-mayhem/mayhem-firmware/issues/new?labels=enhancement&template=feature_request.md).
-
-<del>You can create a bounty and invite people to your own bounty. This will incentivize coders to work on a new feature, solving a bug or even writting documentation. Start a bounty by [creating](https://github.com/portapack-mayhem/mayhem-firmware/issues/new/choose) or [choosing](https://github.com/portapack-mayhem/mayhem-firmware/issues/) an existing issue. Then, go to [Bountysource](https://www.bountysource.com/) and post a bounty using the link to that specific [issue](https://www.bountysource.com/teams/portapack-mayhem/issues).</del>
-
-<del>Promote your bounty over our Discord by clicking the chat badge on [top](#portapack-mayhem).</del>
-
-Bountysource has not been reliable lately, so until this changes, please **DO NOT** post a bounty there. Go to our Discord by clicking the chat badge on [top](#portapack-mayhem) and discuss there.
+If what you need can be relevant in general, you can [request a feature](https://github.com/portapack-mayhem/mayhem-firmware/issues/new?labels=enhancement&template=feature_request.md). Alternatively, go to our Discord by clicking the chat badge on [top](#portapack-mayhem) and discuss there.
 
 ## What if I need help?
 First, check the [documentation](https://github.com/portapack-mayhem/mayhem-firmware/wiki). If you find a bug or you think the problem is related to the current repository, please open an [issue](https://github.com/portapack-mayhem/mayhem-firmware/issues/new/choose).
