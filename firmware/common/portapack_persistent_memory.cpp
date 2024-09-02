@@ -212,7 +212,7 @@ struct data_t {
     bool updown_converter;
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
-    bool UNUSED_4 : 1;
+    bool lcd_inverted_mode : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
     bool UNUSED_7 : 1;
@@ -292,7 +292,7 @@ struct data_t {
           updown_converter(false),
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
-          UNUSED_4(false),
+          lcd_inverted_mode(false),
           UNUSED_5(false),
           UNUSED_6(false),
           UNUSED_7(false),
@@ -1062,6 +1062,14 @@ void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
+// LCD invert
+bool config_lcd_inverted_mode() {
+    return data->lcd_inverted_mode;
+}
+void set_lcd_inverted_mode(bool v) {
+    data->lcd_inverted_mode = v;
+}
+
 // Rotary encoder dial settings
 uint8_t encoder_dial_sensitivity() {
     return data->encoder_dial_sensitivity;
@@ -1231,7 +1239,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
-    // pmem_dump_file.write_line("UNUSED_4: " + to_string_dec_int(data->UNUSED_4));
+    pmem_dump_file.write_line("lcd_inverted_mode: " + to_string_dec_uint(data->lcd_inverted_mode));
     // pmem_dump_file.write_line("UNUSED_5: " + to_string_dec_int(data->UNUSED_5));
     // pmem_dump_file.write_line("UNUSED_6: " + to_string_dec_int(data->UNUSED_6));
     // pmem_dump_file.write_line("UNUSED_7: " + to_string_dec_int(data->UNUSED_7));
@@ -1278,6 +1286,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_battery_icon: " + to_string_dec_uint(data->ui_config2.hide_battery_icon));
     pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(data->ui_config2.hide_numeric_battery));
     pmem_dump_file.write_line("ui_config2 theme_id: " + to_string_dec_uint(data->ui_config2.theme_id));
+    pmem_dump_file.write_line("ui_config2 override_batt_calc: " + to_string_dec_uint(data->ui_config2.override_batt_calc));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));

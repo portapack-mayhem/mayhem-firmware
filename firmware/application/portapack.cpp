@@ -319,8 +319,7 @@ static void shutdown_base() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
+    while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_boot);
 
@@ -358,15 +357,13 @@ static void set_cpu_clock_speed() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
+    while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_step);
 
     /* Delay >50us at 90-110MHz clock speed */
     volatile uint32_t delay = 1400;
-    while (delay--)
-        ;
+    while (delay--);
 
     set_clock_config(clock_config_pll1);
 
@@ -534,6 +531,8 @@ init_status_t init() {
     cgu::pll1::disable();
 
     set_cpu_clock_speed();
+
+    if (persistent_memory::config_lcd_inverted_mode()) display.set_inverted(true);
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);

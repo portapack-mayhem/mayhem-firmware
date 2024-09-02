@@ -711,13 +711,13 @@ class SetConfigModeView : public View {
 
 using portapack::persistent_memory::fake_brightness_level_options;
 
-class SetFakeBrightnessView : public View {
+class SetDisplayView : public View {
    public:
-    SetFakeBrightnessView(NavigationView& nav);
+    SetDisplayView(NavigationView& nav);
 
     void focus() override;
 
-    std::string title() const override { return "Brightness"; };
+    std::string title() const override { return "Display"; };
 
    private:
     Labels labels{
@@ -738,6 +738,11 @@ class SetFakeBrightnessView : public View {
         {1 * 8, 5 * 16},
         16,
         "Enable brightness adjust"};
+
+    Checkbox checkbox_invert_switch{
+        {1 * 8, 10 * 16},
+        16,
+        "Invert colors"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
