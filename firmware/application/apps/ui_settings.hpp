@@ -741,8 +741,8 @@ class SetDisplayView : public View {
 
     Checkbox checkbox_invert_switch{
         {1 * 8, 10 * 16},
-        16,
-        "Invert colors"};
+        23,
+        "Invert colors (For IPS)"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
