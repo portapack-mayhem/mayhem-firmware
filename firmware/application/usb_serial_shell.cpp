@@ -1155,7 +1155,7 @@ static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
     int64_t freq = atol(argv[0]);
 
-    if (freq == 0) {
+    if (freq <= 0) {
         chprintf(chp, usage);
         return;
     }

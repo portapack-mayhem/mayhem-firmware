@@ -119,7 +119,7 @@ class ERTAppView : public View {
 
     // Prevent painting of region covered entirely by a child.
     // TODO: Add flag to View that specifies view does not need to be cleared before painting.
-    void paint(Painter&) override {};
+    void paint(Painter&) override{};
 
     void focus() override;
 
