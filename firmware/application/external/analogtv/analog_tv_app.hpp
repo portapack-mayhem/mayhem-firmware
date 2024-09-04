@@ -108,6 +108,15 @@ class AnalogTvView : public View {
     void set_options_widget(std::unique_ptr<Widget> new_widget);
 
     void update_modulation(const ReceiverModel::Mode modulation);
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
 };
 
 }  // namespace ui::external_app::analogtv

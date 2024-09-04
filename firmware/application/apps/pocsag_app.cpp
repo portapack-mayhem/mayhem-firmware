@@ -321,6 +321,10 @@ void POCSAGAppView::on_stats(const POCSAGStatsMessage* stats) {
     widget_frames.set_sync(stats->has_sync);
 }
 
+void POCSAGAppView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 void BaudIndicator::paint(Painter& painter) {
     auto p = screen_pos();
     char top = '-';

@@ -186,6 +186,10 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
     draw2();
 }
 
+void ProtoView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 ProtoView::~ProtoView() {
     audio::output::stop();
     receiver_model.disable();

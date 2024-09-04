@@ -220,6 +220,10 @@ std::string WeatherView::pad_string_with_spaces(int snakes) {
     return paddedStr;
 }
 
+void WeatherView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 template <>
 void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     const Entry& entry,

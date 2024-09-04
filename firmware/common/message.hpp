@@ -125,6 +125,7 @@ class Message {
         PocsagTosend = 67,
         BatteryStateData = 68,
         ProtoViewData = 69,
+        FreqChangeCommand = 70,
         MAX
     };
 
@@ -1425,6 +1426,13 @@ class ProtoViewDataMessage : public Message {
     int32_t times[100] = {0};  // positive: high, negative: low
     uint16_t timeptr = 0;
     const uint16_t maxptr = 99;
+};
+
+class FreqChangeCommandMessage : public Message {
+   public:
+    constexpr FreqChangeCommandMessage(int64_t freq)
+        : Message{ID::FreqChangeCommand}, freq{freq} {}
+    int64_t freq = 0;
 };
 
 #endif /*__MESSAGE_H__*/

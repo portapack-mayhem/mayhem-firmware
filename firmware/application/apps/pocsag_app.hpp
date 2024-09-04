@@ -292,6 +292,15 @@ class POCSAGAppView : public View {
     Console console{
         {0, 2 * 16 + 6, screen_width, screen_height - 54}};
 
+    void on_freqchg(int64_t freq);
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::POCSAGPacket,
         [this](Message* const p) {
