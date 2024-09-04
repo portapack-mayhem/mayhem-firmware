@@ -1147,6 +1147,23 @@ static void cmd_asyncmsg(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
     }
 }
+static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: setfreq freq_in_hz\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    int64_t freq = atol(argv[0]);
+
+    if (freq == 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    // radio::set_tuning_frequency(freq); // sadly this doesn't update any widget, just change the frequency.
+    FreqChangeCommandMessage message{freq};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
 
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
@@ -1180,6 +1197,7 @@ static const ShellCommand commands[] = {
     {"settingsreset", cmd_settingsreset},
     {"sendpocsag", cmd_sendpocsag},
     {"asyncmsg", cmd_asyncmsg},
+    {"setfreq", cmd_setfreq},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

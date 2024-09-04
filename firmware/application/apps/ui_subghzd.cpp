@@ -224,6 +224,10 @@ std::string SubGhzDView::pad_string_with_spaces(int snakes) {
     return paddedStr;
 }
 
+void SubGhzDView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 template <>
 void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     const Entry& entry,

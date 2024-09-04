@@ -103,6 +103,14 @@ class FoxhuntRxView : public View {
         [this](const Message* const p) {
             this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
 
     float my_lat = 200;
     float my_lon = 200;

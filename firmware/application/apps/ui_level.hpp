@@ -188,6 +188,15 @@ class LevelView : public View {
 
     void handle_coded_squelch(const uint32_t value);
 
+    void on_freqchg(int64_t freq);
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* const p) {

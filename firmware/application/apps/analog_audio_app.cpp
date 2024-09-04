@@ -435,4 +435,7 @@ void AnalogAudioView::handle_coded_squelch(uint32_t value) {
     text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
 }
 
+void AnalogAudioView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
 } /* namespace ui */
