@@ -100,10 +100,15 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             curr_state = ACARS_STATE_MSGSTARTED;
             decode_count_bit = 0;
             decode_data = 0;
+            message.msg_len = 0;
+            memset(message.message, 0, 250);
+            crc = CRC_INITIAL;
             return;
         }
-        // here i don't have the right packets. so drop to 7 bits
-        decode_count_bit = 7;
+        // here i don't have the right packets. so reset
+        decode_count_bit = 0;
+        decode_data = 0;
+        curr_state = ACARS_STATE_RESET;
     }
     if (curr_state == ACARS_STATE_MSGSTARTED && decode_count_bit == 8) {
         // got a character
@@ -114,9 +119,18 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             decode_data = 0;
             return;
         }
-        update_crc(decode_data & 0xff);
-        message.message[message.msg_len++] = decode_data & 0x7F;
-        if (message.msg_len > 250) message.msg_len--;  // todo handle any other way
+        update_crc(decode_data & 0x7f);
+        message.message[message.msg_len++] = decode_data & 0x7f;
+        decode_data = 0;
+        decode_count_bit = 0;
+
+        if (message.msg_len >= 249) {
+            message.msg_len = 0;
+            memset(message.message, 0, 250);  // todo handle any other way
+            crc = CRC_INITIAL;
+            curr_state = ACARS_STATE_RESET;
+        }
+        return;
     }
     if (curr_state == ACARS_STATE_MSGENDED && decode_count_bit == 16) {
         // got the crc data. check it against the calculated one
