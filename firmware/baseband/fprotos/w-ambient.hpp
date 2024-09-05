@@ -42,9 +42,6 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
             if (((decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) == AMBIENT_WEATHER_PACKET_HEADER_1) ||
                 ((decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) == AMBIENT_WEATHER_PACKET_HEADER_2)) {
                 if (ws_protocol_ambient_weather_check_crc()) {
-                    data = decode_data;
-                    data_count_bit = min_count_bit_for_found;
-                    ws_protocol_ambient_weather_remote_controller();
                     if (callback) callback(this);
                     decode_data = 0;
                     decode_count_bit = 0;
@@ -73,14 +70,6 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
 
         uint8_t crc = FProtoGeneral::subghz_protocol_blocks_lfsr_digest8(msg, 5, 0x98, 0x3e) ^ 0x64;
         return (crc == (uint8_t)(decode_data & 0xFF));
-    }
-
-    void ws_protocol_ambient_weather_remote_controller() {
-        id = (data >> 32) & 0xFF;
-        battery_low = (data >> 31) & 1;
-        channel = ((data >> 28) & 0x07) + 1;
-        temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data >> 16) & 0x0FFF) - 400.0f) / 10.0f);
-        humidity = (data >> 8) & 0xFF;
     }
 };
 

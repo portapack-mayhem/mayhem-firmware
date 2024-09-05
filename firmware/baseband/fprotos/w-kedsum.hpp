@@ -78,9 +78,6 @@ class FProtoWeatherKedsum : public FProtoWeatherBase {
                         if ((decode_count_bit ==
                              min_count_bit_for_found) &&
                             ws_protocol_kedsum_th_check_crc()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_kedsum_th_remote_controller();
                             if (callback) callback(this);
                         }
                         decode_data = 0;
@@ -126,20 +123,6 @@ class FProtoWeatherKedsum : public FProtoWeatherBase {
         uint8_t crc = FProtoGeneral::subghz_protocol_blocks_crc4(msg, 4, 0x03, 0);  // CRC-4 poly 0x3 init 0x0 xor last 4 bits
         crc ^= msg[4] >> 4;                                                         // last nibble is only XORed
         return (crc == (msg[4] & 0x0F));
-    }
-
-    void ws_protocol_kedsum_th_remote_controller() {
-        id = data >> 32;
-        if ((data >> 30) & 0x3) {
-            battery_low = 0;
-        } else {
-            battery_low = 1;
-        }
-        channel = ((data >> 28) & 0x3) + 1;
-        uint16_t temp_raw = ((data >> 16) & 0x0f) << 8 |
-                            ((data >> 20) & 0x0f) << 4 | ((data >> 24) & 0x0f);
-        temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)temp_raw - 900.0f) / 10.0f);
-        humidity = ((data >> 8) & 0x0f) << 4 | ((data >> 12) & 0x0f);
     }
 };
 

@@ -1264,25 +1264,13 @@ class WeatherDataMessage : public Message {
    public:
     constexpr WeatherDataMessage(
         uint8_t sensorType = 0,
-        uint32_t id = 0xFFFFFFFF,
-        float temp = -273.0f,
-        uint8_t humidity = 0xFF,
-        uint8_t battery_low = 0xFF,
-        uint8_t channel = 0xFF)
+        uint64_t decode_data = 0xFFFFFFFF)
         : Message{ID::WeatherData},
           sensorType{sensorType},
-          id{id},
-          temp{temp},
-          humidity{humidity},
-          battery_low{battery_low},
-          channel{channel} {
+          decode_data{decode_data} {
     }
     uint8_t sensorType = 0;
-    uint32_t id = 0xFFFFFFFF;
-    float temp = -273.0f;
-    uint8_t humidity = 0xFF;
-    uint8_t battery_low = 0xFF;
-    uint8_t channel = 0xFF;
+    uint64_t decode_data = 0;
 };
 
 class SubGhzDDataMessage : public Message {

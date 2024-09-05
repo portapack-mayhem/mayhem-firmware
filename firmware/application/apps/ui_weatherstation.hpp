@@ -96,7 +96,7 @@ class WeatherView : public View {
    private:
     void on_tick_second();
     void on_data(const WeatherDataMessage* data);
-
+    WeatherRecentEntry process_data(const WeatherDataMessage* data);
     NavigationView& nav_;
     RxRadioState radio_state_{
         433'920'000 /* frequency */,
