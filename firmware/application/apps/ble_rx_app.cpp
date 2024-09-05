@@ -500,7 +500,8 @@ BLERxView::BLERxView(NavigationView& nav)
 
     check_name.on_select = [this](Checkbox&, bool v) {
         name_enable = v;
-        setAllMembersToValue(recent, &BleRecentEntry::include_name, v); // update the include_name instance variable value of each entry in recent entries
+        // update the include_name instance variable value of each entry in recent entries
+        setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
         recent_entries_view.set_dirty();
     };
 
