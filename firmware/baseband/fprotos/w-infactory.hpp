@@ -71,7 +71,7 @@ class FProtoWeatherInfactory : public FProtoWeatherBase {
                         if ((decode_count_bit ==
                              min_count_bit_for_found) &&
                             ws_protocol_infactory_check_crc()) {
-                                                    if (callback) callback(this);
+                            if (callback) callback(this);
                         }
                         decode_data = 0;
                         decode_count_bit = 0;
