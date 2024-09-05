@@ -47,7 +47,6 @@ class FProtoSubGhzDX10 : public FProtoSubGhzDBase {
                             if (decode_count_bit >= min_count_bit_for_found &&
                                 ((((decode_data >> 24) ^ (decode_data >> 16)) & 0xFF) == 0xFF) &&
                                 ((((decode_data >> 8) ^ (decode_data)) & 0xFF) == 0xFF)) {
-                                data = decode_data;
                                 data_count_bit = decode_count_bit;
 
                                 if (callback) callback(this);

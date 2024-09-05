@@ -49,7 +49,6 @@ class FProtoSubGhzDPowerSmart : public FProtoSubGhzDBase {
             }
             if ((decode_data & POWER_SMART_PACKET_HEADER_MASK) == POWER_SMART_PACKET_HEADER) {
                 if (subghz_protocol_power_smart_chek_valid(decode_data)) {
-                    data = decode_data;
                     data_count_bit = min_count_bit_for_found;
 
                     if (callback) callback(this);

@@ -68,11 +68,9 @@ class FProtoSubGhzDSomifyKeytis : public FProtoSubGhzDBase {
                         duration >= (te_long + te_delta)) {
                         if (decode_count_bit == min_count_bit_for_found) {
                             // check crc
-                            uint64_t data_tmp = data ^ (data >> 8);
+                            uint64_t data_tmp = decode_data ^ (decode_data >> 8);
                             if (((data_tmp >> 40) & 0xF) == subghz_protocol_somfy_keytis_crc(data_tmp)) {
-                                data = decode_data;
                                 data_count_bit = decode_count_bit;
-
                                 if (callback) callback(this);
                             }
                         }
@@ -124,6 +122,8 @@ class FProtoSubGhzDSomifyKeytis : public FProtoSubGhzDBase {
         }
         return crc & 0xf;
     }
+
+    uint16_t header_count = 0;
 };
 
 #endif

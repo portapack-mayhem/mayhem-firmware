@@ -56,10 +56,9 @@ class FProtoSubGhzDNiceflors : public FProtoSubGhzDBase {
                         // Found STOP bit
                         parser_step = NiceFlorSDecoderStepReset;
                         if ((decode_count_bit == min_count_bit_for_found) || (decode_count_bit == NICE_ONE_COUNT_BIT)) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
-
                             if (callback) callback(this);
+                            decode_data = 0;
                         }
                         break;
                     } else {
@@ -86,8 +85,8 @@ class FProtoSubGhzDNiceflors : public FProtoSubGhzDBase {
                     parser_step = NiceFlorSDecoderStepReset;
                 }
                 if (decode_count_bit == min_count_bit_for_found) {
-                    data = decode_data;
-                    decode_data = 0;
+                    // data = decode_data;
+                    // decode_data = 0;
                 }
                 break;
         }

@@ -66,7 +66,6 @@ class FProtoSubGhzDIntertechnoV3 : public FProtoSubGhzDBase {
                         parser_step = IntertechnoV3DecoderStepStartSync;
                         if ((decode_count_bit == min_count_bit_for_found) ||
                             (decode_count_bit == INTERTECHNO_V3_DIMMING_COUNT_BIT)) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             if (callback) callback(this);
                         }

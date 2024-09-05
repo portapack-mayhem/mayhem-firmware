@@ -44,7 +44,6 @@ class FProtoSubGhzDDoitrand : public FProtoSubGhzDBase {
                     if (duration >= ((uint32_t)te_short * 10 + te_delta)) {
                         parser_step = DoitrandDecoderStepFoundStartBit;
                         if (decode_count_bit == min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             if (callback) callback(this);
                         }

@@ -24,7 +24,6 @@ class FProtoSubGhzDHormannBiSecure : public FProtoSubGhzDBase {
 
     void subghz_protocol_decoder_hormann_bisecur_reset() {
         parser_step = HormannBiSecurDecoderStepReset;
-        data = 0;
         for (uint8_t i = 0; i < 22; ++i) dataa[i] = 0;
         data_count_bit = 0;
         manchester_saved_state = ManchesterStateStart1;

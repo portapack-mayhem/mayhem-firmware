@@ -43,7 +43,6 @@ class FProtoSubGhzDFaac : public FProtoSubGhzDBase {
                     if (duration >= ((uint32_t)te_short * 3 + te_delta)) {
                         parser_step = FaacSLHDecoderStepFoundPreambula;
                         if (decode_count_bit == min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             // remark controller skipped
                             if (callback) callback(this);
