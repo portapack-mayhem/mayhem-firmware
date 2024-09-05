@@ -101,6 +101,13 @@ constexpr std::array<std::complex<float>, 16> rect_taps_38k4_4k8_1t_2k4_p{{
     {4.4194173824e-02f, -4.4194173824e-02f},
 }};
 
+typedef enum {
+    ACARS_STATE_RESET = 0,
+    ACARS_STATE_PRE = 1,
+    ACARS_STATE_MSGSTARTED = 2,
+    ACARS_STATE_MSGENDED = 3
+} ACARS_STATE;
+
 class ACARSProcessor : public BasebandProcessor {
    public:
     ACARSProcessor();
@@ -109,6 +116,8 @@ class ACARSProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 2457600;
+    const uint16_t CRC_POLYNOMIAL = 0x1021;
+    const uint16_t CRC_INITIAL = 0xFFFF;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -124,24 +133,23 @@ class ACARSProcessor : public BasebandProcessor {
         2400,
         {0.0555f},
         [this](const float symbol) { this->consume_symbol(symbol); }};
-    symbol_coding::ACARSDecoder acars_decode{};
-    /*PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
-                { 0b011010000110100010000000, 24, 1 },	// SYN, SYN, SOH
-                { },
-                { 128 },
-                [this](const baseband::Packet& packet) {
-                        this->payload_handler(packet);
-                }
-        };*/
-    baseband::Packet packet{};
+
+    uint16_t update_crc(uint8_t dataByte);
+    void consume_symbol(const float symbol);
+    void payload_handler();
+    void add_bit(uint8_t bit);
+
+    uint16_t crc = CRC_INITIAL;
+    ACARS_STATE curr_state = ACARS_STATE_RESET;
+
+    uint32_t decode_data = 0;
+    uint8_t decode_count_bit = 0;
+    ACARSPacketMessage message{};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
-
-    void consume_symbol(const float symbol);
-    void payload_handler(const baseband::Packet& packet);
 };
 
 #endif /*__PROC_ACARS_H__*/

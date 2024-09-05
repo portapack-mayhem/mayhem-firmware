@@ -32,7 +32,6 @@
 
 #include "baseband_packet.hpp"
 
-#include "acars_packet.hpp"
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
@@ -376,13 +375,10 @@ class POCSAGStatsMessage : public Message {
 
 class ACARSPacketMessage : public Message {
    public:
-    constexpr ACARSPacketMessage(
-        const baseband::Packet& packet)
-        : Message{ID::ACARSPacket},
-          packet{packet} {
-    }
-
-    baseband::Packet packet;
+    constexpr ACARSPacketMessage()
+        : Message{ID::ACARSPacket} {}
+    uint8_t msg_len = 0;
+    char message[250] = {0};
 };
 
 class ADSBFrameMessage : public Message {

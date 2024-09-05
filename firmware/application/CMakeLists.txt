@@ -130,7 +130,6 @@ set(CSRC
 set(CPPSRC
 	main.cpp
 	shell.cpp
-	${COMMON}/acars_packet.cpp
 	${COMMON}/adsb.cpp
 	${COMMON}/adsb_frame.cpp
 	${COMMON}/ais_baseband.cpp

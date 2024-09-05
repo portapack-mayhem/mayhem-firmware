@@ -20,10 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_acars.hpp"
-
 #include "portapack_shared_memory.hpp"
-
+#include "proc_acars.hpp"
 #include "dsp_fir_taps.hpp"
 
 #include "event_m4.hpp"
@@ -31,7 +29,8 @@
 ACARSProcessor::ACARSProcessor() {
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
-    packet.clear();
+    decode_data = 0;
+    decode_count_bit = 0;
     baseband_thread.start();
 }
 
@@ -52,24 +51,88 @@ void ACARSProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
-void ACARSProcessor::consume_symbol(
-    const float raw_symbol) {
+void ACARSProcessor::add_bit(uint8_t bit) {
+    decode_data = decode_data << 1 | bit;
+    decode_count_bit++;
+}
+
+uint16_t ACARSProcessor::update_crc(uint8_t dataByte) {
+    crc ^= (static_cast<uint16_t>(dataByte) << 8);  // XOR the byte with the CRC's upper byte
+
+    for (int bit = 0; bit < 8; ++bit) {         // Process each bit
+        if (crc & 0x8000) {                     // If the uppermost bit is set
+            crc = (crc << 1) ^ CRC_POLYNOMIAL;  // Shift left and XOR with the polynomial
+        } else {
+            crc <<= 1;  // Just shift left if the uppermost bit is not set
+        }
+    }
+
+    return crc;  // Return the current CRC value
+}
+
+void ACARSProcessor::consume_symbol(const float raw_symbol) {
     const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
     // const auto decoded_symbol = acars_decode(sliced_symbol);
 
-    // DEBUG
-    packet.add(sliced_symbol);
-    if (packet.size() == 256) {
-        payload_handler(packet);
-        packet.clear();
+    // acars can have max 220 characters.
+    //  starts with preampble  0x7E (n number of times)
+    // it should followed by message start 0x02, then comes the ascii 7 bit characters (sent with 8 bits!) and the closing 0x03. after it there must be a crc
+    // ACARS uses the CRC-16-CCITT (polynomial 0x1021) for error detection. This 16-bit CRC is computed over the message content, excluding the preamble and CRC field itself
+    add_bit(sliced_symbol);
+    if (curr_state == ACARS_STATE_RESET && decode_count_bit == 8) {
+        // this should be the 0x7e
+        if ((decode_data & 0xff) == 0x7e) {
+            curr_state = ACARS_STATE_PRE;
+        } else {
+            decode_count_bit -= 1;  // just drop the first bit
+        }
+        return;
     }
-
-    // packet_builder.execute(decoded_symbol);
+    if (curr_state == ACARS_STATE_PRE && decode_count_bit == 16) {
+        if ((decode_data & 0xffff) == 0x7e7e) {
+            // multi preamble, drop first
+            decode_data = 0x7e;
+            decode_count_bit = 8;
+            return;
+        }
+        if ((decode_data & 0xffff) == 0x7e02) {
+            // data start found! now comes the real data content until 0x03
+            curr_state = ACARS_STATE_MSGSTARTED;
+            decode_count_bit = 0;
+            decode_data = 0;
+            return;
+        }
+        // here i don't have the right packets. so drop to 7 bits
+        decode_count_bit = 7;
+    }
+    if (curr_state == ACARS_STATE_MSGSTARTED && decode_count_bit == 8) {
+        // got a character
+        if ((decode_data & 0xff) == 0x03) {
+            // message end. should wait for crc, check.
+            curr_state = ACARS_STATE_MSGENDED;
+            decode_count_bit = 0;
+            decode_data = 0;
+            return;
+        }
+        update_crc(decode_data & 0xff);
+        message.message[message.msg_len++] = decode_data & 0x7F;
+        if (message.msg_len > 250) message.msg_len--;  // todo handle any other way
+    }
+    if (curr_state == ACARS_STATE_MSGENDED && decode_count_bit == 16) {
+        // got the crc data. check it against the calculated one
+        if (crc == decode_data || true) {  // todo
+            // send message to app core.
+            payload_handler();
+        }
+        curr_state = ACARS_STATE_RESET;
+        decode_count_bit = 0;
+        decode_data = 0;
+        crc = CRC_INITIAL;
+        return;
+    }
 }
 
-void ACARSProcessor::payload_handler(
-    const baseband::Packet& packet) {
-    const ACARSPacketMessage message{packet};
+void ACARSProcessor::payload_handler() {
     shared_memory.application_queue.push(message);
 }
 
