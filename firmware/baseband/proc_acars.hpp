@@ -103,9 +103,12 @@ constexpr std::array<std::complex<float>, 16> rect_taps_38k4_4k8_1t_2k4_p{{
 
 typedef enum {
     ACARS_STATE_RESET = 0,
-    ACARS_STATE_PRE = 1,
-    ACARS_STATE_MSGSTARTED = 2,
-    ACARS_STATE_MSGENDED = 3
+    ACARS_STATE_BSYNC1,
+    ACARS_STATE_BSYNCOK,
+    ACARS_STATE_SYNCOK,
+    ACARS_STATE_SOHOK,
+    ACARS_STATE_TEXTEND,
+    ACARS_STATE_FRAMEEND,
 } ACARS_STATE;
 
 class ACARSProcessor : public BasebandProcessor {
@@ -138,7 +141,7 @@ class ACARSProcessor : public BasebandProcessor {
     void consume_symbol(const float symbol);
     void payload_handler();
     void add_bit(uint8_t bit);
-
+    void reset();
     uint16_t crc = CRC_INITIAL;
     ACARS_STATE curr_state = ACARS_STATE_RESET;
 

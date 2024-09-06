@@ -57,88 +57,100 @@ void ACARSProcessor::add_bit(uint8_t bit) {
 }
 
 uint16_t ACARSProcessor::update_crc(uint8_t dataByte) {
-    crc ^= (static_cast<uint16_t>(dataByte) << 8);
-    for (int bit = 0; bit < 8; ++bit) {
-        if (crc & 0x8000) {
-            crc = (crc << 1) ^ CRC_POLYNOMIAL;
-        } else {
-            crc <<= 1;
-        }
-    }
-    return crc;
+    (void)dataByte;
+}
+
+void ACARSProcessor::reset() {
+    decode_data = 0;
+    decode_count_bit = 0;
+    curr_state = ACARS_STATE_RESET;
+    message.msg_len = 0;
+    memset(message.message, 0, 250);
+    crc = CRC_INITIAL;
 }
 
 void ACARSProcessor::consume_symbol(const float raw_symbol) {
     const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-    // acars can have max 220 characters.
-    //  starts with preampble  0x7E (n number of times)
-    // it should followed by message start 0x02, then comes the ascii 7 bit characters (sent with 8 bits?!) and the closing 0x03. after it there must be a crc
-    // ACARS uses the CRC-16-CCITT (polynomial 0x1021) for error detection. This 16-bit CRC is computed over the message content, excluding the preamble and CRC field itself
+    // https://www.wavecom.ch/content/ext/DecoderOnlineHelp/default.htm#!worddocuments/acars.htm
+    // https://allsdr.blogspot.com/2016/07/acars-aircraft-communications.html
+    //  acars can have max 220 characters.
+    //  starts with a pre-key. we skip it.
+    //  2 byte bit sync + and * characters.
+    //  2 byte SYN characters (0x16)
+    //  1 byte SOH (0x01)
+    //  1 byte MODE
+    //  7 byte ADDR
+    //  1 byte ACK (0x06 ack, 0x15 nak)
+    //  2 byte label
+    //  1 byte block id
+    //  1 byte STX(0x02) or ETX (0x03). if ETX no message, go to end. --for us, skip the message for now
+    //  6 byte flight number
+    //  0-220 byte text. printable only
+    //  1 byte suffix. ETX (0x03) or ETB ( 0x17)
+    //  2 byte BCS
+    //  1 byte BCS suffix ETB (0x17) or DEL (0x7F)
+
     add_bit(sliced_symbol);
     if (curr_state == ACARS_STATE_RESET && decode_count_bit == 8) {
         // this should be the 0x7e
-        if ((decode_data & 0xff) == 0x7e) {
-            curr_state = ACARS_STATE_PRE;
+        if ((decode_data & 0xff) == 0x2b) {
+            curr_state = ACARS_STATE_BSYNC1;
         } else {
             decode_count_bit -= 1;  // just drop the first bit
         }
         return;
     }
-    if (curr_state == ACARS_STATE_PRE && decode_count_bit == 16) {
-        if ((decode_data & 0xffff) == 0x7e7e) {
-            // multi preamble, drop first
-            decode_data = 0x7e;
-            decode_count_bit = 8;
-            return;
-        }
-        if ((decode_data & 0xffff) == 0x7e02) {
+    if (curr_state == ACARS_STATE_BSYNC1 && decode_count_bit == 16) {
+        if ((decode_data & 0xffff) == 0x2b2a) {
             // data start found! now comes the real data content until 0x03
-            curr_state = ACARS_STATE_MSGSTARTED;
-            decode_count_bit = 0;
-            decode_data = 0;
-            message.msg_len = 0;
-            memset(message.message, 0, 250);
-            crc = CRC_INITIAL;
+            reset();
+            curr_state = ACARS_STATE_BSYNCOK;
             return;
         }
         // here i don't have the right packets. so reset
-        decode_count_bit = 0;
-        decode_data = 0;
-        curr_state = ACARS_STATE_RESET;
+        reset();
     }
-    if (curr_state == ACARS_STATE_MSGSTARTED && decode_count_bit == 8) {
+    if (curr_state == ACARS_STATE_BSYNCOK && decode_count_bit == 16) {
         // got a character
-        if ((decode_data & 0xff) == 0x03) {
+        if ((decode_data & 0xffff) == 0x1616) {
             // message end. should wait for crc, check.
-            curr_state = ACARS_STATE_MSGENDED;
+            curr_state = ACARS_STATE_SYNCOK;
             decode_count_bit = 0;
             decode_data = 0;
             return;
         }
-        update_crc(decode_data & 0xff);
-        message.message[message.msg_len++] = (decode_data) & 0xff;  // todo check how to extract the actual data
-        decode_data = 0;
-        decode_count_bit = 0;
-
-        if (message.msg_len >= 249) {
-            message.msg_len = 0;
-            memset(message.message, 0, 250);  // drop it, because likely noise. we may lose valid packets, but re-interpreting would be costly.
-            crc = CRC_INITIAL;
-            curr_state = ACARS_STATE_RESET;
-        }
-        return;
+        reset();
     }
-    if (curr_state == ACARS_STATE_MSGENDED && decode_count_bit == 16) {
-        // got the crc data. check it against the calculated one
-        if (crc == decode_data || true) {  // todo really do the crc check.
-            // send message to app core.
-            payload_handler();
+    if (curr_state == ACARS_STATE_SYNCOK && decode_count_bit == 8) {
+        if ((decode_data & 0xff) == 0x01) {
+            curr_state = ACARS_STATE_SOHOK;
+            decode_count_bit = 0;
+            decode_data = 0;
+        } else {
+            reset();
         }
-        curr_state = ACARS_STATE_RESET;
-        decode_count_bit = 0;
-        decode_data = 0;
-        crc = CRC_INITIAL;
-        return;
+    }
+    if (curr_state == ACARS_STATE_SOHOK && decode_count_bit == 8) {
+        uint8_t ch = (decode_data & 0xff);
+        if (ch == 0x03 || ch == 0x17 || ch == 0x7f) {
+            curr_state = ACARS_STATE_TEXTEND;
+            decode_count_bit = 0;
+            decode_data = 0;
+            //
+            payload_handler();  // todo crc?!
+            reset();
+            return;
+        } else {
+            update_crc(decode_data & 0xff);
+            message.message[message.msg_len++] = (decode_data) & 0xff;  // todo check how to extract the actual data
+            decode_data = 0;
+            decode_count_bit = 0;
+
+            if (message.msg_len >= 249) {
+                reset();  // drop it, because likely noise. we may lose valid packets, but re-interpreting would be costly.
+            }
+            return;
+        }
     }
 }
 
