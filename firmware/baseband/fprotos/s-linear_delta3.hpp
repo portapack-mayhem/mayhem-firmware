@@ -49,11 +49,8 @@ class FProtoSubGhzDLinearDelta3 : public FProtoSubGhzDBase {
                             subghz_protocol_blocks_add_bit(0);
                         }
                         if (decode_count_bit == min_count_bit_for_found) {
-                            if ((data == decode_data) && data) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                if (callback) callback(this);
-                            }
+                            data_count_bit = decode_count_bit;
+                            if (callback) callback(this);
                             parser_step = LinearD3DecoderStepSaveDuration;
                         }
                         break;

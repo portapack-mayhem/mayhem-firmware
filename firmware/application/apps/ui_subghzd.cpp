@@ -212,7 +212,10 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Somify Keytis";
         case FPS_SOMIFY_TELIS:
             return "Somify Telis";
-
+        case FPS_GANGQI:
+            return "GangQi";
+        case FPS_MARANTEC24:
+            return "Marantec24";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -715,6 +718,19 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
         btn = (dataa >> 44) & 0xF;     // ctrl
         cnt = (dataa >> 24) & 0xFFFF;  // rolling code
         serial = dataa & 0xFFFFFF;     // address}
+        return;
+    }
+
+    if (entry_.sensorType == FPS_GANGQI) {
+        btn = 0;  // parser needs some time i think in flipper side.
+        cnt = (uint8_t)(entry_.data >> 32);
+        serial = (entry_.data & 0xFFFFFFFF);
+        return;
+    }
+
+    if (entry_.sensorType == FPS_MARANTEC24) {
+        serial = (entry_.data >> 4);
+        btn = entry_.data & 0xf;
         return;
     }
 }

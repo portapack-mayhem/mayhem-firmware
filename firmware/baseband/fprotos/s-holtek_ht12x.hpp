@@ -44,11 +44,8 @@ class FProtoSubGhzDHoltekHt12x : public FProtoSubGhzDBase {
                 if (!level) {
                     if (duration >= ((uint32_t)te_short * 10 + te_delta)) {
                         if (decode_count_bit == min_count_bit_for_found) {
-                            if (data != decode_data) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                if (callback) callback(this);
-                            }
+                            data_count_bit = decode_count_bit;
+                            if (callback) callback(this);
                         }
                         decode_data = 0;
                         decode_count_bit = 0;

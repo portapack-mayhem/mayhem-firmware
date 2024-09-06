@@ -73,9 +73,6 @@ class FProtoWeatherAcurite5in1 : public FProtoWeatherBase {
                         if ((decode_count_bit == min_count_bit_for_found) &&
                             ws_protocol_acurite_5n1_check_crc() &&
                             ws_protocol_acurite_5n1_check_message_type()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_acurite_5n1_remote_controller();
                             if (callback) callback(this);
                         }
                         decode_data = 0;
@@ -133,17 +130,6 @@ class FProtoWeatherAcurite5in1 : public FProtoWeatherBase {
             return false;
         }
     }
-
-    void ws_protocol_acurite_5n1_remote_controller() {
-        uint8_t channell[] = {3, 0, 2, 1};
-        uint8_t channel_raw = ((data >> 62) & 0x03);
-        channel = channell[channel_raw];
-        id = (data >> 48) & 0x3FFF;
-        battery_low = !((data >> 46) & 1);
-        humidity = (data >> 8) & 0x7F;
-        uint16_t temp_raw = ((data >> (24 - 7)) & 0x780) | ((data >> 16) & 0x7F);
-        temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)(temp_raw)-400) / 10.0f);
-    };
 };
 
 #endif

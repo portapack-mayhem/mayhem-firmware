@@ -79,23 +79,17 @@ class FProtoSubGhzDLegrand : public FProtoSubGhzDBase {
                     if (found) {
                         te += duration;
 
-                        if (decode_count_bit <
-                            min_count_bit_for_found) {
+                        if (decode_count_bit < min_count_bit_for_found) {
                             parser_step = LegrandDecoderStepSaveDuration;
                             break;
                         }
 
                         // enough bits for a packet found, save it only if there was a previous packet
                         // with the same data
-                        if (data && (data != decode_data)) {
-                            te /= decode_count_bit * 4;
-
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-
-                            if (callback) {
-                                callback(this);
-                            }
+                        te /= decode_count_bit * 4;
+                        data_count_bit = decode_count_bit;
+                        if (callback) {
+                            callback(this);
                         }
                         // fallthrough to reset, the next bit is expected to be a sync
                         // it also takes care of resetting the decoder state

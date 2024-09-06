@@ -90,7 +90,6 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
                         // Found stop bit
                         if ((decode_count_bit == min_count_bit_for_found) &&
                             subghz_protocol_magellan_check_crc()) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             if (callback) callback(this);
                         }
@@ -129,6 +128,7 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
         }
         return crc;
     }
+    uint16_t header_count = 0;
 };
 
 #endif

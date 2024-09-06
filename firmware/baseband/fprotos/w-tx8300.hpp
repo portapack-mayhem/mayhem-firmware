@@ -51,12 +51,8 @@ class FProtoWeatherTX8300 : public FProtoWeatherBase {
                 if (!level) {
                     if (duration >= ((uint32_t)te_short * 5)) {
                         // Found syncPostfix
-                        if ((decode_count_bit ==
-                             min_count_bit_for_found) &&
-                            ws_protocol_tx_8300_check_crc()) {
-                            data = package_1;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_tx_8300_remote_controller();
+                        if ((decode_count_bit == min_count_bit_for_found) && ws_protocol_tx_8300_check_crc()) {
+                            decode_data = package_1;
                             if (callback) callback(this);
                         }
                         decode_data = 0;
@@ -117,23 +113,6 @@ class FProtoWeatherTX8300 : public FProtoWeatherBase {
         }
         uint8_t crc = (~x & 0xF) << 4 | (~y & 0xF);
         return (crc == (decode_data & 0xFF));
-    }
-    void ws_protocol_tx_8300_remote_controller() {
-        humidity = (((data >> 28) & 0x0F) * 10) + ((data >> 24) & 0x0F);
-        if (!((data >> 22) & 0x03))
-            battery_low = 0;
-        else
-            battery_low = 1;
-        channel = (data >> 20) & 0x03;
-        id = (data >> 12) & 0x7F;
-
-        float temp_raw = ((data >> 8) & 0x0F) * 10.0f + ((data >> 4) & 0x0F) +
-                         (data & 0x0F) * 0.1f;
-        if (!((data >> 19) & 1)) {
-            temp = temp_raw;
-        } else {
-            temp = -temp_raw;
-        }
     }
 };
 

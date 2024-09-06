@@ -47,9 +47,6 @@ class FProtoWeatherAuriolTh : public FProtoWeatherBase {
                         if ((decode_count_bit ==
                              min_count_bit_for_found) &&
                             ws_protocol_auriol_th_check()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_auriol_th_remote_controller();
                             if (callback) callback(this);
                             parser_step = auriol_THDecoderStepCheckDuration;
                         }
@@ -87,18 +84,6 @@ class FProtoWeatherAuriolTh : public FProtoWeatherBase {
     uint32_t te_delta = 150;
     uint32_t min_count_bit_for_found = 37;
 
-    void ws_protocol_auriol_th_remote_controller() {
-        id = (data >> 31) & 0xFF;
-        battery_low = ((data >> 30) & 1);
-        channel = ((data >> 25) & 0x03) + 1;
-        if (!((data >> 23) & 1)) {
-            temp = (float)((data >> 13) & 0x07FF) / 10.0f;
-        } else {
-            temp = (float)((~(data >> 13) & 0x07FF) + 1) / -10.0f;
-        }
-
-        humidity = (data >> 1) & 0x7F;
-    }
     bool ws_protocol_auriol_th_check() {
         uint8_t type = (decode_data >> 8) & 0x0F;
 

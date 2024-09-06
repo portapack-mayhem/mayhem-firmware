@@ -28,6 +28,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "w-kedsum.hpp"
 #include "w-acurite5in1.hpp"
 #include "w-emose601x.hpp"
+#include "w-solight_te44.hpp"
 
 #include <vector>
 #include <memory>
@@ -64,6 +65,7 @@ class WeatherProtos : public FProtoListGeneral {
         protos[FPW_KEDSUM] = new FProtoWeatherKedsum();
         protos[FPW_Acurite5in1] = new FProtoWeatherAcurite5in1();
         protos[FPW_EmosE601x] = new FProtoWeatherEmosE601x();
+        protos[FPW_SolightTE44] = new FProtoWeatherSolightTE44();
 
         // set callback for them
         for (uint8_t i = 0; i < FPW_COUNT; ++i) {
@@ -81,9 +83,7 @@ class WeatherProtos : public FProtoListGeneral {
     };
 
     static void callbackTarget(FProtoWeatherBase* instance) {
-        WeatherDataMessage packet_message{instance->getSensorType(), instance->getSensorId(),
-                                          instance->getTemp(), instance->getHumidity(), instance->getBattLow(),
-                                          instance->getChannel()};
+        WeatherDataMessage packet_message{instance->getSensorType(), instance->getData()};
         shared_memory.application_queue.push(packet_message);
     }
 

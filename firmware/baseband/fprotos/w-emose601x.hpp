@@ -81,9 +81,7 @@ class FProtoWeatherEmosE601x : public FProtoWeatherBase {
                     }
 
                     if (decode_count_bit == 120) {
-                        data_count_bit = decode_count_bit;
                         if (ws_protocol_emose601x_check()) {
-                            ws_protocol_emose601x_extract_data();
                             if (callback) callback(this);
                         }
                         break;
@@ -126,20 +124,6 @@ class FProtoWeatherEmosE601x : public FProtoWeatherBase {
 
         uint8_t sum = FProtoGeneral::subghz_protocol_blocks_add_bytes(msg, 13);
         return (sum == ((decode_data >> 8) & 0xff));
-    }
-
-    void ws_protocol_emose601x_extract_data() {
-        id = (upper_decode_data >> 24) & 0xff;
-        battery_low = (decode_data >> 10) & 1;
-        int16_t temp = (decode_data >> 40) & 0xfff;
-        /* Handle signed data */
-        if (temp & 0x800) {
-            temp |= 0xf000;
-        }
-        temp = (float)temp / 10.0;
-        humidity = (decode_data >> 32) & 0xff;
-        channel = (decode_data >> 52) & 0x03;
-        data = (decode_data >> 16);
     }
 };
 
