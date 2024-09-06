@@ -57,26 +57,22 @@ void ACARSProcessor::add_bit(uint8_t bit) {
 }
 
 uint16_t ACARSProcessor::update_crc(uint8_t dataByte) {
-    crc ^= (static_cast<uint16_t>(dataByte) << 8);  // XOR the byte with the CRC's upper byte
-
-    for (int bit = 0; bit < 8; ++bit) {         // Process each bit
-        if (crc & 0x8000) {                     // If the uppermost bit is set
-            crc = (crc << 1) ^ CRC_POLYNOMIAL;  // Shift left and XOR with the polynomial
+    crc ^= (static_cast<uint16_t>(dataByte) << 8);
+    for (int bit = 0; bit < 8; ++bit) {
+        if (crc & 0x8000) {
+            crc = (crc << 1) ^ CRC_POLYNOMIAL;
         } else {
-            crc <<= 1;  // Just shift left if the uppermost bit is not set
+            crc <<= 1;
         }
     }
-
-    return crc;  // Return the current CRC value
+    return crc;
 }
 
 void ACARSProcessor::consume_symbol(const float raw_symbol) {
     const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-    // const auto decoded_symbol = acars_decode(sliced_symbol);
-
     // acars can have max 220 characters.
     //  starts with preampble  0x7E (n number of times)
-    // it should followed by message start 0x02, then comes the ascii 7 bit characters (sent with 8 bits!) and the closing 0x03. after it there must be a crc
+    // it should followed by message start 0x02, then comes the ascii 7 bit characters (sent with 8 bits?!) and the closing 0x03. after it there must be a crc
     // ACARS uses the CRC-16-CCITT (polynomial 0x1021) for error detection. This 16-bit CRC is computed over the message content, excluding the preamble and CRC field itself
     add_bit(sliced_symbol);
     if (curr_state == ACARS_STATE_RESET && decode_count_bit == 8) {
@@ -119,14 +115,14 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             decode_data = 0;
             return;
         }
-        update_crc(decode_data & 0x7f);
-        message.message[message.msg_len++] = decode_data & 0x7f;
+        update_crc(decode_data & 0xff);
+        message.message[message.msg_len++] = (decode_data) & 0xff;  // todo check how to extract the actual data
         decode_data = 0;
         decode_count_bit = 0;
 
         if (message.msg_len >= 249) {
             message.msg_len = 0;
-            memset(message.message, 0, 250);  // todo handle any other way
+            memset(message.message, 0, 250);  // drop it, because likely noise. we may lose valid packets, but re-interpreting would be costly.
             crc = CRC_INITIAL;
             curr_state = ACARS_STATE_RESET;
         }
@@ -134,7 +130,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
     }
     if (curr_state == ACARS_STATE_MSGENDED && decode_count_bit == 16) {
         // got the crc data. check it against the calculated one
-        if (crc == decode_data || true) {  // todo
+        if (crc == decode_data || true) {  // todo really do the crc check.
             // send message to app core.
             payload_handler();
         }
