@@ -44,9 +44,6 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
                             // Found syncPostfix
                             parser_step = Acurite_609TXCDecoderStepReset;
                             if ((decode_count_bit == min_count_bit_for_found) && ws_protocol_acurite_609txc_check()) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                ws_protocol_acurite_609txc_remote_controller();
                                 if (callback) callback(this);
                             }
                             decode_data = 0;
@@ -76,19 +73,6 @@ class FProtoWeatherAcurite609TX : public FProtoWeatherBase {
     uint32_t te_delta = 150;
     uint32_t min_count_bit_for_found = 32;
 
-    void ws_protocol_acurite_609txc_remote_controller() {
-        id = (data >> 32) & 0xFF;
-        battery_low = (data >> 31) & 1;
-        channel = WS_NO_CHANNEL;
-
-        // Temperature in Celsius is encoded as a 12 bit integer value
-        // multiplied by 10 using the 4th - 6th nybbles (bytes 1 & 2)
-        // negative values are recovered by sign extend from int16_t.
-        int16_t temp_raw =
-            (int16_t)(((data >> 12) & 0xf000) | ((data >> 16) << 4));
-        temp = (temp_raw >> 4) * 0.1f;
-        humidity = (data >> 8) & 0xff;
-    }
     bool ws_protocol_acurite_609txc_check() {
         if (!decode_data) return false;
         uint8_t crc = (uint8_t)(decode_data >> 32) +

@@ -103,4 +103,8 @@ void FoxhuntRxView::on_orientation(const OrientationDataMessage* msg) {
     geomap.update_my_orientation(msg->angle, true);
 }
 
+void FoxhuntRxView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 }  // namespace ui::external_app::foxhunt_rx

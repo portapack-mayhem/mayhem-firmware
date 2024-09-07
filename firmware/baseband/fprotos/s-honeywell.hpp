@@ -71,7 +71,6 @@ class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
             uint16_t crc = decode_data & 0xFFFF;
             if (crc == crc_calc) {
                 // the data is good. process it.
-                data = decode_data;
                 data_count_bit = decode_count_bit;  // maybe set it to 64, and hack the first 2 bits to 1! will see if replay needs it
                 if (callback) callback(this);
                 decode_data = 0;

@@ -89,6 +89,15 @@ class NRFRxView : public View {
             const auto message = static_cast<const AFSKDataMessage*>(p);
             this->on_data(message->value, message->is_data);
         }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
 };
 
 } /* namespace ui::external_app::nrf_rx */

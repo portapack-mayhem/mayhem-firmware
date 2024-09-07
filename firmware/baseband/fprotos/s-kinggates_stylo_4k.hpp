@@ -50,7 +50,8 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
                     DURATION_DIFF(duration, te_short * 2) < te_delta * 2) {
                     parser_step = KingGates_stylo_4kDecoderStepSaveDuration;
                     decode_data = 0;
-                    data_2 = 0;
+                    // data_2 = 0;
+                    // data = 0;
                     decode_count_bit = 0;
                     header_count = 0;
                 }
@@ -58,17 +59,17 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
             case KingGates_stylo_4kDecoderStepSaveDuration:
                 if (!level) {
                     if (duration >= ((uint32_t)te_long * 3)) {
-                        if (decode_count_bit ==
-                            min_count_bit_for_found) {
-                            data = data_2;
-                            data_2 = decode_data;  // TODO DATA2
+                        if (decode_count_bit == min_count_bit_for_found) {
+                            // data = data_2;
+                            // data_2 = decode_data;  // TODO DATA2
                             data_count_bit = decode_count_bit;
+                            // decode_data = data;
                             if (callback) callback(this);
                         }
 
                         parser_step = KingGates_stylo_4kDecoderStepReset;
                         decode_data = 0;
-                        data_2 = 0;
+                        // data_2 = 0;
                         decode_count_bit = 0;
                         header_count = 0;
                         break;
@@ -101,7 +102,7 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
                         header_count = 0;
                     }
                     if (decode_count_bit == 53) {
-                        data_2 = decode_data;
+                        // data_2 = decode_data;
                         decode_data = 0;
                     }
                 } else {
@@ -113,7 +114,9 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint64_t data_2 = 0;
+    // uint64_t data_2 = 0;
+    // uint64_t data = 0;
+    uint16_t header_count = 0;
 };
 
 #endif

@@ -36,7 +36,6 @@ class FProtoSubGhzDBett : public FProtoSubGhzDBase {
                         (te_delta * 15)) {
                         if (decode_count_bit ==
                             min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             // dip decoder needed
                             if (callback) callback(this);

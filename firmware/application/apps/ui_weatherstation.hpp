@@ -96,7 +96,7 @@ class WeatherView : public View {
    private:
     void on_tick_second();
     void on_data(const WeatherDataMessage* data);
-
+    WeatherRecentEntry process_data(const WeatherDataMessage* data);
     NavigationView& nav_;
     RxRadioState radio_state_{
         433'920'000 /* frequency */,
@@ -150,6 +150,14 @@ class WeatherView : public View {
         {"Age", 4},
     }};
     WeatherRecentEntriesView recent_entries_view{columns, recent};
+
+    void on_freqchg(int64_t freq);
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::WeatherData,

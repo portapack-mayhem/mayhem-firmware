@@ -307,6 +307,14 @@ void ILI9341::wake() {
     lcd_wake();
 }
 
+void ILI9341::set_inverted(bool invert) {
+    if (invert) {
+        io.lcd_data_write_command_and_data(0x21, {});
+    } else {
+        io.lcd_data_write_command_and_data(0x20, {});
+    }
+}
+
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
     const auto r_clipped = r.intersect(screen_rect());
     if (!r_clipped.is_empty()) {

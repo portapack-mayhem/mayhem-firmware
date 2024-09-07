@@ -323,4 +323,9 @@ void LevelView::handle_coded_squelch(const uint32_t value) {
         text_ctcss.set("        ");
 }
 
+void LevelView::on_freqchg(int64_t freq) {
+    receiver_model.set_target_frequency(freq);
+    button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
+}
+
 } /* namespace ui */

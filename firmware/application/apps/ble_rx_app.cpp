@@ -428,6 +428,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &text_found_count,
                   &check_serial_log,
                   &button_filter,
+                  &options_filter,
                   &button_save_list,
                   &button_clear_list,
                   &button_switch,
@@ -499,6 +500,7 @@ BLERxView::BLERxView(NavigationView& nav)
 
     check_name.on_select = [this](Checkbox&, bool v) {
         name_enable = v;
+        // update the include_name instance variable value of each entry in recent entries
         setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
         recent_entries_view.set_dirty();
     };
@@ -525,8 +527,14 @@ BLERxView::BLERxView(NavigationView& nav)
         handle_entries_sort(v);
     };
 
+    options_filter.on_change = [this](size_t index, int32_t v) {
+        filter_index = (uint8_t)index;
+        handle_filter_options(v);
+    };
+
     options_channel.set_selected_index(channel_index, true);
     options_sort.set_selected_index(sort_index, true);
+    options_filter.set_selected_index(filter_index, true);
 
     button_find.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".TXT");
@@ -716,10 +724,11 @@ void BLERxView::on_data(BlePacketData* packet) {
     updateEntry(packet, entry, (ADV_PDU_TYPE)packet->type);
 
     // Add entries if they meet the criteria.
-    auto value = filter;
-    resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-        return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
-    });
+    // auto value = filter;
+    // resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+    //     return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+    // });
+    handle_filter_options(options_filter.selected_index());
 
     handle_entries_sort(options_sort.selected_index());
 
@@ -756,12 +765,13 @@ void BLERxView::on_data(BlePacketData* packet) {
 void BLERxView::on_filter_change(std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
-        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-            return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
-        });
+        // resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+        //     // return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+        //     return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos) && (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos);
+        // });
+        filter = value;
+        handle_filter_options(options_filter.selected_index());
     }
-
-    filter = value;
 }
 
 void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
@@ -852,6 +862,24 @@ void BLERxView::handle_entries_sort(uint8_t index) {
     recent_entries_view.set_dirty();
 }
 
+void BLERxView::handle_filter_options(uint8_t index) {
+    auto value = filter;
+    switch (index) {
+        case 0:  // filter by Data
+            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+                return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+            });
+            break;
+        case 1:  // filter by MAC address (All caps: e.g. AA:BB:CC:DD:EE:FF)
+            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+                return (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos);
+            });
+            break;
+        default:
+            break;
+    }
+}
+
 void BLERxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
@@ -914,6 +942,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
 
             // Subtract 1 because type is part of the length.
             for (int i = 0; i < length - 1; i++) {
+                // parse the name of bluetooth device: 0x08->Shortened Local Name; 0x09->Complete Local Name
                 if (type == 0x08 || type == 0x09) {
                     decoded_data += (char)advertiseData->Data[currentByte];
                 }

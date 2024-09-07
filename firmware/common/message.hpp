@@ -124,6 +124,7 @@ class Message {
         PocsagTosend = 67,
         BatteryStateData = 68,
         ProtoViewData = 69,
+        FreqChangeCommand = 70,
         MAX
     };
 
@@ -1260,25 +1261,13 @@ class WeatherDataMessage : public Message {
    public:
     constexpr WeatherDataMessage(
         uint8_t sensorType = 0,
-        uint32_t id = 0xFFFFFFFF,
-        float temp = -273.0f,
-        uint8_t humidity = 0xFF,
-        uint8_t battery_low = 0xFF,
-        uint8_t channel = 0xFF)
+        uint64_t decode_data = 0xFFFFFFFF)
         : Message{ID::WeatherData},
           sensorType{sensorType},
-          id{id},
-          temp{temp},
-          humidity{humidity},
-          battery_low{battery_low},
-          channel{channel} {
+          decode_data{decode_data} {
     }
     uint8_t sensorType = 0;
-    uint32_t id = 0xFFFFFFFF;
-    float temp = -273.0f;
-    uint8_t humidity = 0xFF;
-    uint8_t battery_low = 0xFF;
-    uint8_t channel = 0xFF;
+    uint64_t decode_data = 0;
 };
 
 class SubGhzDDataMessage : public Message {
@@ -1421,6 +1410,13 @@ class ProtoViewDataMessage : public Message {
     int32_t times[100] = {0};  // positive: high, negative: low
     uint16_t timeptr = 0;
     const uint16_t maxptr = 99;
+};
+
+class FreqChangeCommandMessage : public Message {
+   public:
+    constexpr FreqChangeCommandMessage(int64_t freq)
+        : Message{ID::FreqChangeCommand}, freq{freq} {}
+    int64_t freq = 0;
 };
 
 #endif /*__MESSAGE_H__*/

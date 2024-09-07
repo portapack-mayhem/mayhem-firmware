@@ -774,21 +774,27 @@ void SetConfigModeView::focus() {
     button_save.focus();
 }
 
-/* SetFakeBrightnessView ************************************/
+/* SetDisplayView ************************************/
 
-SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
+SetDisplayView::SetDisplayView(NavigationView& nav) {
     add_children({&labels,
                   &field_fake_brightness,
                   &button_save,
                   &button_cancel,
+                  &checkbox_invert_switch,
                   &checkbox_brightness_switch});
 
     field_fake_brightness.set_by_value(pmem::fake_brightness_level());
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
+    checkbox_invert_switch.set_value(pmem::config_lcd_inverted_mode());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
         pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
+        if (checkbox_invert_switch.value() != pmem::config_lcd_inverted_mode()) {
+            display.set_inverted(checkbox_invert_switch.value());
+            pmem::set_lcd_inverted_mode(checkbox_invert_switch.value());
+        }
         send_system_refresh();
         nav.pop();
     };
@@ -798,7 +804,7 @@ SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
     };
 }
 
-void SetFakeBrightnessView::focus() {
+void SetDisplayView::focus() {
     button_save.focus();
 }
 
@@ -999,7 +1005,7 @@ void SettingsMenuView::on_populate() {
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
         //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
-        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
+        {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
         {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},

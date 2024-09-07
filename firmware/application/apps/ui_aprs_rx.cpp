@@ -122,6 +122,10 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
     receiver_model.enable();
 }
 
+void APRSRxView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 void APRSRxView::on_packet(const APRSPacketMessage* message) {
     std::string str_console = "\x1B";
 

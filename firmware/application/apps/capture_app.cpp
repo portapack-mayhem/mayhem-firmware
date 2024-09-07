@@ -128,4 +128,8 @@ void CaptureAppView::focus() {
     record_view.focus();
 }
 
+void CaptureAppView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 } /* namespace ui */

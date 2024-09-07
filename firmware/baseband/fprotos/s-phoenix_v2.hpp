@@ -45,7 +45,6 @@ class FProtoSubGhzDPhoenixV2 : public FProtoSubGhzDBase {
                         parser_step = Phoenix_V2DecoderStepFoundStartBit;
                         if (decode_count_bit ==
                             min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             if (callback) callback(this);
                         }

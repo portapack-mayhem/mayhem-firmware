@@ -202,4 +202,8 @@ void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {
     receiver_model.enable();
 }
 
+void AnalogTvView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 }  // namespace ui::external_app::analogtv

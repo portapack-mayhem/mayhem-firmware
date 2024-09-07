@@ -127,6 +127,14 @@ class SubGhzDView : public View {
     }};
     SubGhzDRecentEntriesView recent_entries_view{columns, recent};
 
+    void on_freqchg(int64_t freq);
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::SubGhzDData,
         [this](Message* const p) {

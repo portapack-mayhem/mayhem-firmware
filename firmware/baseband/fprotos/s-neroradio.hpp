@@ -82,7 +82,6 @@ class FProtoSubGhzDNeroRadio : public FProtoSubGhzDBase {
                         parser_step = NeroRadioDecoderStepReset;
                         if ((decode_count_bit == min_count_bit_for_found) ||
                             (decode_count_bit == min_count_bit_for_found + 1)) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
 
                             if (callback) callback(this);
@@ -110,6 +109,7 @@ class FProtoSubGhzDNeroRadio : public FProtoSubGhzDBase {
                 break;
         }
     }
+    uint16_t header_count = 0;
 };
 
 #endif

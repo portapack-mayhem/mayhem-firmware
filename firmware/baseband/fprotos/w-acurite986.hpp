@@ -84,9 +84,6 @@ class FProtoWeatherAcurite986 : public FProtoWeatherBase {
                         // Found syncPostfix
                         parser_step = Acurite_986DecoderStepReset;
                         if ((decode_count_bit == min_count_bit_for_found) && ws_protocol_acurite_986_check()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_acurite_986_remote_controller();
                             if (callback) callback(this);
                         }
                         decode_data = 0;
@@ -104,22 +101,6 @@ class FProtoWeatherAcurite986 : public FProtoWeatherBase {
     uint32_t te_long = 1750;
     uint32_t te_delta = 50;
     uint32_t min_count_bit_for_found = 40;
-
-    void ws_protocol_acurite_986_remote_controller() {
-        int temp;
-
-        id = FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 24, 8);
-        id = (id << 8) | FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 16, 8);
-        battery_low = (data >> 14) & 1;
-        channel = ((data >> 15) & 1) + 1;
-
-        temp = FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 32, 8);
-        if (temp & 0x80) {
-            temp = -(temp & 0x7F);
-        }
-        temp = FProtoGeneral::locale_fahrenheit_to_celsius((float)temp);
-        humidity = WS_NO_HUMIDITY;
-    }
 
     bool ws_protocol_acurite_986_check() {
         if (!decode_data) return false;

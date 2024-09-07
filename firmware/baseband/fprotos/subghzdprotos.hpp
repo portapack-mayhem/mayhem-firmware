@@ -51,7 +51,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-legrand.hpp"
 #include "s-somify_keytis.hpp"
 #include "s-somify_telis.hpp"
-
+#include "s-gangqi.hpp"
+#include "s-marantec24.hpp"
 // GENIE FROM PR
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
@@ -104,6 +105,8 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_X10] = new FProtoSubGhzDX10();
         // protos[FPS_HORMANNBISECURE] = new FProtoSubGhzDHormannBiSecure();  //fm
         protos[FPS_LEGRAND] = new FProtoSubGhzDLegrand();
+        protos[FPS_GANGQI] = new FProtoSubGhzDGangqi();
+        protos[FPS_MARANTEC24] = new FProtoSubGhzDMarantec24();
 
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
@@ -120,7 +123,7 @@ class SubGhzDProtos : public FProtoListGeneral {
     };
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
-        SubGhzDDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->data};
+        SubGhzDDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->decode_data};
         shared_memory.application_queue.push(packet_message);
     }
 

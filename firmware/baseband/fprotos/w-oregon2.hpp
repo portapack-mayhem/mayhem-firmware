@@ -107,7 +107,6 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
                 // waiting for fixed oregon2 data
                 if (decode_count_bit == 32) {
                     data = decode_data;
-                    data_count_bit = decode_count_bit;
                     decode_data = 0UL;
                     decode_count_bit = 0;
 
@@ -117,13 +116,13 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
                     data = (data & 0x33333333) << 2 |
                            (data & 0xCCCCCCCC) >> 2;
 
-                    ws_oregon2_decode_const_data();
+                    // ws_oregon2_decode_const_data();
                     var_bits = oregon2_sensor_id_var_bits(OREGON2_SENSOR_ID(data));
 
                     if (!var_bits) {
-                        // sensor is not supported, stop decoding, but showing the decoded fixed part
+                        // sensor is not supported, stop decoding, so won't showing the decoded fixed part
                         parser_step = Oregon2DecoderStepReset;
-                        if (callback) callback(this);
+                        // if (callback) callback(this);
                     } else {
                         parser_step = Oregon2DecoderStepVarData;
                     }
@@ -139,8 +138,8 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
                                (var_data & 0xAAAAAAAA) >> 1;
                     var_data = (var_data & 0x33333333) << 2 |
                                (var_data & 0xCCCCCCCC) >> 2;
-
-                    ws_oregon2_decode_var_data(OREGON2_SENSOR_ID(data), var_data >> OREGON2_CHECKSUM_BITS);
+                    decode_data = var_data;
+                    // ws_oregon2_decode_var_data(OREGON2_SENSOR_ID(data), var_data >> OREGON2_CHECKSUM_BITS); //a bit stepback, but will work
 
                     parser_step = Oregon2DecoderStepReset;
                     if (callback) callback(this);
@@ -155,6 +154,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
     uint32_t te_long = 1000;
     uint32_t te_delta = 200;
     uint32_t min_count_bit_for_found = 32;
+    uint64_t data = 0;
 
     bool have_bit = false;
     bool prev_bit = 0;
@@ -202,19 +202,21 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
                 return 0;
         }
     }
-    void ws_oregon2_decode_const_data() {
-        id = OREGON2_SENSOR_ID(data);
-        uint8_t ch_bits = (data >> 12) & 0xF;
-        channel = 1;
-        while (ch_bits > 1) {
-            channel++;
-            ch_bits >>= 1;
-        }
-        battery_low = (data & OREGON2_FLAG_BAT_LOW) ? 1 : 0;
-    }
+    /*   void ws_oregon2_decode_const_data() {
+           id = OREGON2_SENSOR_ID(data);
+           uint8_t ch_bits = (data >> 12) & 0xF;
+           channel = 1;
+           while (ch_bits > 1) {
+               channel++;
+               ch_bits >>= 1;
+           }
+           battery_low = (data & OREGON2_FLAG_BAT_LOW) ? 1 : 0;
+       }
+
     uint16_t bcd_decode_short(uint32_t data) {
         return (data & 0xF) * 10 + ((data >> 4) & 0xF);
     }
+
     float ws_oregon2_decode_temp(uint32_t data) {
         int32_t temp_val;
         temp_val = bcd_decode_short(data >> 4);
@@ -241,7 +243,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
             default:
                 break;
         }
-    }
+    }*/
 };
 
 #endif

@@ -71,7 +71,6 @@ class FProtoSubGhzDSomifyTelis : public FProtoSubGhzDBase {
                             // check crc
                             uint64_t data_tmp = decode_data ^ (decode_data >> 8);
                             if (((data_tmp >> 40) & 0xF) == subghz_protocol_somfy_telis_crc(data_tmp)) {
-                                data = decode_data;
                                 data_count_bit = decode_count_bit;
 
                                 if (callback) callback(this);
@@ -118,6 +117,7 @@ class FProtoSubGhzDSomifyTelis : public FProtoSubGhzDBase {
         }
         return crc & 0xf;
     }
+    uint16_t header_count = 0;
 };
 
 #endif

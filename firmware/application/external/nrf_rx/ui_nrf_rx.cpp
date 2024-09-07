@@ -125,6 +125,10 @@ void NRFRxView::on_data(uint32_t value, bool is_data) {
     }
 }
 
+void NRFRxView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 NRFRxView::~NRFRxView() {
     audio::output::stop();
     receiver_model.disable();

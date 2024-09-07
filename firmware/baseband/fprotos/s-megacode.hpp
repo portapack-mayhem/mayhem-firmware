@@ -48,7 +48,6 @@ class FProtoSubGhzDMegacode : public FProtoSubGhzDBase {
                         parser_step = MegaCodeDecoderStepReset;
                         if (decode_count_bit ==
                             min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
 
                             if (callback) callback(this);

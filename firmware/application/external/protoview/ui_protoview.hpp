@@ -157,6 +157,15 @@ class ProtoView : public View {
         [this](const Message* const) {
             this->on_timer();
         }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
 };
 
 }  // namespace ui::external_app::protoview
