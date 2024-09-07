@@ -535,6 +535,8 @@ init_status_t init() {
 
     set_cpu_clock_speed();
 
+    if (persistent_memory::config_lcd_inverted_mode()) display.set_inverted(true);
+
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);
 
