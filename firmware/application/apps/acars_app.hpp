@@ -37,6 +37,7 @@ class ACARSLogger {
         return log_file.append(filename);
     }
     void log_raw_data(const ACARSPacketMessage* packet, const uint32_t frequency);
+    void log_str(std::string msg);
 
    private:
     LogFile log_file{};

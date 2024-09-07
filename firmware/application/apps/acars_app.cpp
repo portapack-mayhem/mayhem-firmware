@@ -37,6 +37,10 @@ void ACARSLogger::log_raw_data(const ACARSPacketMessage* packet, const uint32_t 
     log_file.write_entry(packet->message);
 }
 
+void ACARSLogger::log_str(std::string msg) {
+    log_file.write_entry(msg);
+}
+
 namespace ui {
 
 ACARSAppView::ACARSAppView(NavigationView& nav)
@@ -91,8 +95,12 @@ void ACARSAppView::on_packet(const ACARSPacketMessage* packet) {
 }
 
 void ACARSAppView::on_debug(const AcarsDebugMessage* packet) {
-    console.write("STATE: ");
-    console.writeln(to_string_dec_int(packet->state));
+    std::string console_info;
+    console_info += "State: ";
+    console_info += to_string_dec_int(packet->state);
+    console_info += "\r\n";
+    console.write(console_info);
+    logger->log_str(console_info);
 }
 
 } /* namespace ui */
