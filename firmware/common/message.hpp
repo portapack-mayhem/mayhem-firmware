@@ -125,6 +125,7 @@ class Message {
         BatteryStateData = 68,
         ProtoViewData = 69,
         FreqChangeCommand = 70,
+        AcarsDebugMessage = 71,
         MAX
     };
 
@@ -1417,6 +1418,13 @@ class FreqChangeCommandMessage : public Message {
     constexpr FreqChangeCommandMessage(int64_t freq)
         : Message{ID::FreqChangeCommand}, freq{freq} {}
     int64_t freq = 0;
+};
+
+class AcarsDebugMessage : public Message {
+   public:
+    constexpr AcarsDebugMessage(int64_t state)
+        : Message{ID::AcarsDebugMessage}, state{state} {}
+    int64_t state = 0;
 };
 
 #endif /*__MESSAGE_H__*/

@@ -46,6 +46,8 @@
 #include "baseband_packet.hpp"
 
 #include "message.hpp"
+#include "dsp_demodulate.hpp"
+#include "audio_output.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -142,8 +144,19 @@ class ACARSProcessor : public BasebandProcessor {
     void payload_handler();
     void add_bit(uint8_t bit);
     void reset();
+    void sendDebug();
+
+    std::array<float, 32> audio{};
+    const buffer_f32_t audio_buffer{
+        audio.data(),
+        audio.size()};
+    dsp::demodulate::AM demod{};
+    AudioOutput audio_output{};
+
     uint16_t crc = CRC_INITIAL;
     ACARS_STATE curr_state = ACARS_STATE_RESET;
+
+    AcarsDebugMessage debugmsg{0};
 
     uint32_t decode_data = 0;
     uint8_t decode_count_bit = 0;

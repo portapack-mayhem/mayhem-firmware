@@ -23,14 +23,17 @@
 #include "portapack_shared_memory.hpp"
 #include "proc_acars.hpp"
 #include "dsp_fir_taps.hpp"
+#include "audio_dma.hpp"
 
 #include "event_m4.hpp"
 
 ACARSProcessor::ACARSProcessor() {
+    audio::dma::init_audio_out();
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
     decode_data = 0;
     decode_count_bit = 0;
+    audio_output.configure(false);
     baseband_thread.start();
 }
 
@@ -43,6 +46,9 @@ void ACARSProcessor::execute(const buffer_c8_t& buffer) {
 
     /* 38.4kHz, 32 samples */
     feed_channel_stats(decimator_out);
+
+    auto audio = demod.execute(decimator_out, audio_buffer);
+    audio_output.write(audio);
 
     for (size_t i = 0; i < decimator_out.count; i++) {
         if (mf.execute_once(decimator_out.p[i])) {
@@ -58,6 +64,13 @@ void ACARSProcessor::add_bit(uint8_t bit) {
 
 uint16_t ACARSProcessor::update_crc(uint8_t dataByte) {
     (void)dataByte;
+    return 0;
+}
+
+void ACARSProcessor::sendDebug() {
+    if (curr_state <= 1) return;
+    debugmsg.state = curr_state;
+    shared_memory.application_queue.push(debugmsg);
 }
 
 void ACARSProcessor::reset() {
@@ -95,6 +108,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
         // this should be the 0x7e
         if ((decode_data & 0xff) == 0x2b) {
             curr_state = ACARS_STATE_BSYNC1;
+            sendDebug();
         } else {
             decode_count_bit -= 1;  // just drop the first bit
         }
@@ -105,6 +119,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             // data start found! now comes the real data content until 0x03
             reset();
             curr_state = ACARS_STATE_BSYNCOK;
+            sendDebug();
             return;
         }
         // here i don't have the right packets. so reset
@@ -115,15 +130,19 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
         if ((decode_data & 0xffff) == 0x1616) {
             // message end. should wait for crc, check.
             curr_state = ACARS_STATE_SYNCOK;
+            sendDebug();
             decode_count_bit = 0;
             decode_data = 0;
             return;
         }
+        debugmsg.state = decode_data;
+        shared_memory.application_queue.push(debugmsg);
         reset();
     }
     if (curr_state == ACARS_STATE_SYNCOK && decode_count_bit == 8) {
         if ((decode_data & 0xff) == 0x01) {
             curr_state = ACARS_STATE_SOHOK;
+            sendDebug();
             decode_count_bit = 0;
             decode_data = 0;
         } else {
@@ -134,6 +153,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
         uint8_t ch = (decode_data & 0xff);
         if (ch == 0x03 || ch == 0x17 || ch == 0x7f) {
             curr_state = ACARS_STATE_TEXTEND;
+            sendDebug();
             decode_count_bit = 0;
             decode_data = 0;
             //
@@ -145,9 +165,9 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             message.message[message.msg_len++] = (decode_data) & 0xff;  // todo check how to extract the actual data
             decode_data = 0;
             decode_count_bit = 0;
-
             if (message.msg_len >= 249) {
                 reset();  // drop it, because likely noise. we may lose valid packets, but re-interpreting would be costly.
+                sendDebug();
             }
             return;
         }

@@ -81,7 +81,7 @@ class ACARSAppView : public View {
         {0 * 8, 0 * 8},
         nav_};
     Checkbox check_log{
-        {22 * 8, 21},
+        {16 * 8, 1 * 16},
         3,
         "LOG",
         true};
@@ -89,15 +89,26 @@ class ACARSAppView : public View {
     Console console{
         {0, 3 * 16, 240, 256}};
 
+    AudioVolumeField field_volume{
+        {28 * 8, 1 * 16}};
+
     std::unique_ptr<ACARSLogger> logger{};
 
     void on_packet(const ACARSPacketMessage* packet);
+    void on_debug(const AcarsDebugMessage* packet);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ACARSPacket,
         [this](Message* const p) {
             const auto message = static_cast<const ACARSPacketMessage*>(p);
             this->on_packet(message);
+        }};
+
+    MessageHandlerRegistration message_handler_debug{
+        Message::ID::AcarsDebugMessage,
+        [this](Message* const p) {
+            const auto message = static_cast<const AcarsDebugMessage*>(p);
+            this->on_debug(message);
         }};
 };
 

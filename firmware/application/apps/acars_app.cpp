@@ -23,6 +23,7 @@
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "file_path.hpp"
+#include "audio.hpp"
 
 #include "acars_app.hpp"
 using namespace portapack;
@@ -48,6 +49,7 @@ ACARSAppView::ACARSAppView(NavigationView& nav)
                   &field_lna,
                   &field_vga,
                   &field_frequency,
+                  &field_volume,
                   &check_log,
                   &console});
 
@@ -61,6 +63,9 @@ ACARSAppView::ACARSAppView(NavigationView& nav)
     logger = std::make_unique<ACARSLogger>();
     if (logger)
         logger->append(logs_dir / u"ACARS.TXT");
+
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
 }
 
 ACARSAppView::~ACARSAppView() {
@@ -83,6 +88,11 @@ void ACARSAppView::on_packet(const ACARSPacketMessage* packet) {
     // Log raw data whatever it contains
     if (logger && logging)
         logger->log_raw_data(packet, receiver_model.target_frequency());
+}
+
+void ACARSAppView::on_debug(const AcarsDebugMessage* packet) {
+    console.write("STATE: ");
+    console.writeln(to_string_dec_int(packet->state));
 }
 
 } /* namespace ui */
