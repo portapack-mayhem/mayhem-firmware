@@ -1072,7 +1072,7 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
+    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, true);
 
     // Break lines.
     auto lines = split_string(message_, '\n');
