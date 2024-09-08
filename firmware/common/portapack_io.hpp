@@ -163,10 +163,7 @@ class IO {
 
     void lcd_write_pixel(ui::Color pixel) {
         if (get_dark_cover()) {
-            if (!get_is_inverted())
-                pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
-            else
-                pixel.v = UNDARKENED_PIXEL(pixel.v, get_brightness());
+            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
         }
         lcd_write_data(pixel.v);
     }
@@ -177,10 +174,7 @@ class IO {
 
     void lcd_write_pixels(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            if (!get_is_inverted())
-                pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
-            else
-                pixel.v = UNDARKENED_PIXEL(pixel.v, get_brightness());
+            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
         }
         while (n--) {
             lcd_write_data(pixel.v);
@@ -189,10 +183,7 @@ class IO {
 
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            if (!get_is_inverted())
-                pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
-            else
-                pixel.v = UNDARKENED_PIXEL(pixel.v, get_brightness());
+            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
         }
         auto v = pixel.v;
         n >>= 3;
@@ -426,10 +417,7 @@ class IO {
         uint32_t original_value = (value_high << 8) | value_low;
 
         if (get_dark_cover()) {
-            if (!get_is_inverted())
-                original_value = DARKENED_PIXEL(original_value, get_brightness());
-            else
-                original_value = UNDARKENED_PIXEL(original_value, get_brightness());
+            original_value = DARKENED_PIXEL(original_value, get_brightness());
         }
         return original_value;
     }
