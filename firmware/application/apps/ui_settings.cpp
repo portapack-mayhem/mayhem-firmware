@@ -798,6 +798,13 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
         send_system_refresh();
         nav.pop();
     };
+    // only enable invert OR fake brightness
+    checkbox_invert_switch.on_select = [this](Checkbox&, bool v) {
+        if (v) checkbox_brightness_switch.set_value(false);
+    };
+    checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
+        if (v) checkbox_invert_switch.set_value(false);
+    };
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();

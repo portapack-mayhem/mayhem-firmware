@@ -1129,7 +1129,7 @@ void set_fake_brightness_level(uint8_t v) {
 // Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
 void toggle_fake_brightness_level() {
     bool fbe = apply_fake_brightness();
-
+    if (config_lcd_inverted_mode()) return;  // for now only inverted mode OR fake brightness
     if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
         set_apply_fake_brightness(!fbe);
         data->fake_brightness_level = BRIGHTNESS_50;
