@@ -53,6 +53,8 @@
 #include <cstddef>
 #include <bitset>
 
+#include "crc.hpp"
+
 // AIS:
 // IN: 2457600/8/8 = 38400
 // Offset: 2457600/4 = 614400 (614400/8/8 = 9600)
@@ -103,15 +105,13 @@ constexpr std::array<std::complex<float>, 16> rect_taps_38k4_4k8_1t_2k4_p{{
     {4.4194173824e-02f, -4.4194173824e-02f},
 }};
 
-typedef enum {
-    ACARS_STATE_RESET = 0,
-    ACARS_STATE_BSYNC1,
-    ACARS_STATE_BSYNCOK,
-    ACARS_STATE_SYNCOK,
-    ACARS_STATE_SOHOK,
-    ACARS_STATE_TEXTEND,
-    ACARS_STATE_FRAMEEND,
-} ACARS_STATE;
+typedef enum { WSYN,
+               SYN2,
+               SOH1,
+               TXT,
+               CRC1,
+               CRC2,
+               END } Acarsstate;
 
 class ACARSProcessor : public BasebandProcessor {
    public:
@@ -121,8 +121,6 @@ class ACARSProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 2457600;
-    const uint16_t CRC_POLYNOMIAL = 0x1021;
-    const uint16_t CRC_INITIAL = 0xFFFF;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -153,14 +151,13 @@ class ACARSProcessor : public BasebandProcessor {
     dsp::demodulate::AM demod{};
     AudioOutput audio_output{};
 
-    uint16_t crc = CRC_INITIAL;
-    ACARS_STATE curr_state = ACARS_STATE_RESET;
-
-    AcarsDebugMessage debugmsg{0};
+    Acarsstate curr_state = WSYN;
 
     uint32_t decode_data = 0;
     uint8_t decode_count_bit = 0;
     ACARSPacketMessage message{};
+    AcarsDebugMessage debugmsg{0};
+    uint8_t parity_errors = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{

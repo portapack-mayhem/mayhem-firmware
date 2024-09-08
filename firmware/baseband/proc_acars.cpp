@@ -27,6 +27,13 @@
 
 #include "event_m4.hpp"
 
+#define SYN 0x16
+#define SOH 0x01
+#define STX 0x02
+#define ETX 0x83
+#define ETB 0x97
+#define DLE 0x7f
+
 ACARSProcessor::ACARSProcessor() {
     audio::dma::init_audio_out();
     decim_0.configure(taps_11k0_decim_0.taps);
@@ -68,7 +75,7 @@ uint16_t ACARSProcessor::update_crc(uint8_t dataByte) {
 }
 
 void ACARSProcessor::sendDebug() {
-    if (curr_state <= 1) return;
+    // if (curr_state <= 1) return;
     debugmsg.state = curr_state;
     shared_memory.application_queue.push(debugmsg);
 }
@@ -76,101 +83,107 @@ void ACARSProcessor::sendDebug() {
 void ACARSProcessor::reset() {
     decode_data = 0;
     decode_count_bit = 0;
-    curr_state = ACARS_STATE_RESET;
+    curr_state = WSYN;
     message.msg_len = 0;
     memset(message.message, 0, 250);
-    crc = CRC_INITIAL;
+    message.crc[0] = 0;
+    message.crc[1] = 0;
+    parity_errors = 0;
 }
 
 void ACARSProcessor::consume_symbol(const float raw_symbol) {
     const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-    // https://www.wavecom.ch/content/ext/DecoderOnlineHelp/default.htm#!worddocuments/acars.htm
-    // https://allsdr.blogspot.com/2016/07/acars-aircraft-communications.html
-    //  acars can have max 220 characters.
-    //  starts with a pre-key. we skip it.
-    //  2 byte bit sync + and * characters.
-    //  2 byte SYN characters (0x16)
-    //  1 byte SOH (0x01)
-    //  1 byte MODE
-    //  7 byte ADDR
-    //  1 byte ACK (0x06 ack, 0x15 nak)
-    //  2 byte label
-    //  1 byte block id
-    //  1 byte STX(0x02) or ETX (0x03). if ETX no message, go to end. --for us, skip the message for now
-    //  6 byte flight number
-    //  0-220 byte text. printable only
-    //  1 byte suffix. ETX (0x03) or ETB ( 0x17)
-    //  2 byte BCS
-    //  1 byte BCS suffix ETB (0x17) or DEL (0x7F)
 
     add_bit(sliced_symbol);
-    if (curr_state == ACARS_STATE_RESET && decode_count_bit == 8) {
-        // this should be the 0x7e
-        if ((decode_data & 0xff) == 0x2b) {
-            curr_state = ACARS_STATE_BSYNC1;
-            sendDebug();
+    if (curr_state == WSYN && decode_count_bit == 8) {
+        if ((decode_data & 0xff) == SYN) {
+            curr_state = SYN2;
+            decode_data = 0;
+            decode_count_bit = 0;
         } else {
             decode_count_bit -= 1;  // just drop the first bit
         }
         return;
     }
-    if (curr_state == ACARS_STATE_BSYNC1 && decode_count_bit == 16) {
-        if ((decode_data & 0xffff) == 0x2b2a) {
-            // data start found! now comes the real data content until 0x03
-            reset();
-            curr_state = ACARS_STATE_BSYNCOK;
+    if (curr_state == SYN2 && decode_count_bit == 8) {
+        if ((decode_data & 0xff) == SYN) {
+            curr_state = SOH1;
+            decode_data = 0;
+            decode_count_bit = 0;
             sendDebug();
             return;
         }
         // here i don't have the right packets. so reset
         reset();
     }
-    if (curr_state == ACARS_STATE_BSYNCOK && decode_count_bit == 16) {
-        // got a character
-        if ((decode_data & 0xffff) == 0x1616) {
-            // message end. should wait for crc, check.
-            curr_state = ACARS_STATE_SYNCOK;
+    if (curr_state == SOH1 && decode_count_bit == 8) {
+        if ((decode_data & 0xff) == SOH) {
+            reset();
+            curr_state = TXT;
             sendDebug();
-            decode_count_bit = 0;
-            decode_data = 0;
             return;
         }
-        debugmsg.state = decode_data;
-        shared_memory.application_queue.push(debugmsg);
         reset();
+        sendDebug();
     }
-    if (curr_state == ACARS_STATE_SYNCOK && decode_count_bit == 8) {
-        if ((decode_data & 0xff) == 0x01) {
-            curr_state = ACARS_STATE_SOHOK;
-            sendDebug();
-            decode_count_bit = 0;
-            decode_data = 0;
-        } else {
-            reset();
-        }
-    }
-    if (curr_state == ACARS_STATE_SOHOK && decode_count_bit == 8) {
+    if (curr_state == TXT && decode_count_bit == 8) {
         uint8_t ch = (decode_data & 0xff);
-        if (ch == 0x03 || ch == 0x17 || ch == 0x7f) {
-            curr_state = ACARS_STATE_TEXTEND;
-            sendDebug();
-            decode_count_bit = 0;
-            decode_data = 0;
-            //
-            payload_handler();  // todo crc?!
-            reset();
-            return;
-        } else {
-            update_crc(decode_data & 0xff);
-            message.message[message.msg_len++] = (decode_data) & 0xff;  // todo check how to extract the actual data
-            decode_data = 0;
-            decode_count_bit = 0;
-            if (message.msg_len >= 249) {
-                reset();  // drop it, because likely noise. we may lose valid packets, but re-interpreting would be costly.
+        message.message[message.msg_len++] = ch;
+
+        if (!ParityCheck::parity_check(ch)) {
+            // parity error
+            parity_errors++;
+            if (parity_errors > 4) {
+                reset();  // too many parity errors, skip packet
                 sendDebug();
+                return;
             }
+        }
+
+        if (ch == ETX || ch == ETB) {
+            curr_state = CRC1;
+            sendDebug();
+            decode_data = 0;
+            decode_count_bit = 0;
             return;
         }
+        if (message.msg_len > 240) {
+            reset();
+            sendDebug();
+        }
+        if (message.msg_len > 20 && ch == DLE) {
+            message.msg_len -= 3;
+            message.crc[0] = message.message[message.msg_len];
+            message.crc[1] = message.message[message.msg_len + 1];
+            curr_state = CRC2;
+            sendDebug();
+            // to hack the path:
+            decode_data = message.crc[1];
+        } else {
+            decode_count_bit = 0;
+            decode_data = 0;
+            return;
+        }
+    }
+    if (curr_state == CRC1 && decode_count_bit == 8) {
+        message.crc[0] = (decode_data & 0xff);
+        curr_state = CRC2;
+        decode_data = 0;
+        decode_count_bit = 0;
+        sendDebug();
+    }
+
+    if (curr_state == CRC2 && decode_count_bit == 8) {
+        message.crc[1] = (decode_data & 0xff);
+        // send it to app cpu, and it'll take care of the rest
+        payload_handler();
+        reset();
+        curr_state = END;
+        sendDebug();
+    }
+    if (curr_state == END && decode_count_bit == 8) {
+        reset();
+        sendDebug();
     }
 }
 

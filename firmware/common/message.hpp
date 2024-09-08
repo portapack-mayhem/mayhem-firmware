@@ -381,6 +381,7 @@ class ACARSPacketMessage : public Message {
         : Message{ID::ACARSPacket} {}
     uint8_t msg_len = 0;
     char message[250] = {0};
+    uint8_t crc[2] = {0};
 };
 
 class ADSBFrameMessage : public Message {
