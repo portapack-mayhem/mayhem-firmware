@@ -1426,6 +1426,7 @@ class AcarsDebugMessage : public Message {
     constexpr AcarsDebugMessage(int64_t state)
         : Message{ID::AcarsDebugMessage}, state{state} {}
     int64_t state = 0;
+    int64_t gotinstead = 0;
 };
 
 #endif /*__MESSAGE_H__*/

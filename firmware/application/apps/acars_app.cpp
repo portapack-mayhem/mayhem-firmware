@@ -98,8 +98,9 @@ void ACARSAppView::on_debug(const AcarsDebugMessage* packet) {
     std::string console_info;
     console_info += "State: ";
     console_info += to_string_dec_int(packet->state);
-    console_info += "\r\n";
-    console.write(console_info);
+    console_info += " got: ";
+    console_info += to_string_dec_int(packet->gotinstead);
+    console.writeln(console_info);
     logger->log_str(console_info);
 }
 

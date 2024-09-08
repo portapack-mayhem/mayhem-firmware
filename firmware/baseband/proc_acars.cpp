@@ -123,6 +123,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             sendDebug();
             return;
         }
+        debugmsg.gotinstead = (decode_data & 0xff);
         reset();
         sendDebug();
     }
@@ -179,6 +180,8 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
         payload_handler();
         reset();
         curr_state = END;
+        decode_data = 0;
+        decode_count_bit = 0;
         sendDebug();
     }
     if (curr_state == END && decode_count_bit == 8) {
