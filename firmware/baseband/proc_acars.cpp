@@ -76,8 +76,8 @@ uint16_t ACARSProcessor::update_crc(uint8_t dataByte) {
 
 void ACARSProcessor::sendDebug() {
     // if (curr_state <= 1) return;
-    debugmsg.state = curr_state;
-    shared_memory.application_queue.push(debugmsg);
+    message.state = curr_state;
+    shared_memory.application_queue.push(message);
 }
 
 void ACARSProcessor::reset() {
@@ -123,7 +123,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
             sendDebug();
             return;
         }
-        debugmsg.gotinstead = (decode_data & 0xff);
+        message.message[0] = (decode_data & 0xff);  // debug
         reset();
         sendDebug();
     }
@@ -191,6 +191,7 @@ void ACARSProcessor::consume_symbol(const float raw_symbol) {
 }
 
 void ACARSProcessor::payload_handler() {
+    message.state = 255;  // to indicate this is an actual payload, not a debug packet
     shared_memory.application_queue.push(message);
 }
 

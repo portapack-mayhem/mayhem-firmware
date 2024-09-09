@@ -156,7 +156,6 @@ class ACARSProcessor : public BasebandProcessor {
     uint32_t decode_data = 0;
     uint8_t decode_count_bit = 0;
     ACARSPacketMessage message{};
-    AcarsDebugMessage debugmsg{0};
     uint8_t parity_errors = 0;
 
     /* NB: Threads should be the last members in the class definition. */

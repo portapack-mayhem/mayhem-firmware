@@ -31,12 +31,6 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "utility.hpp"
 
-void ACARSLogger::log_raw_data(const ACARSPacketMessage* packet, const uint32_t frequency) {
-    (void)frequency;
-    // todo better logging
-    log_file.write_entry(packet->message);
-}
-
 void ACARSLogger::log_str(std::string msg) {
     log_file.write_entry(msg);
 }
@@ -83,25 +77,29 @@ void ACARSAppView::focus() {
 
 void ACARSAppView::on_packet(const ACARSPacketMessage* packet) {
     std::string console_info;
-    rtc::RTC datetime;
-    rtc_time::now(datetime);
-    console_info = to_string_datetime(datetime, HMS);
-    console_info += ": ";
-    console_info += packet->message;
-    console.writeln(console_info);
-    // Log raw data whatever it contains
-    if (logger && logging)
-        logger->log_raw_data(packet, receiver_model.target_frequency());
-}
 
-void ACARSAppView::on_debug(const AcarsDebugMessage* packet) {
-    std::string console_info;
-    console_info += "State: ";
-    console_info += to_string_dec_int(packet->state);
-    console_info += " got: ";
-    console_info += to_string_dec_int(packet->gotinstead);
-    console.writeln(console_info);
-    logger->log_str(console_info);
+    if (packet->state == 255) {
+        // got a packet, parse it, and display
+        rtc::RTC datetime;
+        rtc_time::now(datetime);
+        // todo parity error recovery
+        console_info = to_string_datetime(datetime, HMS);
+        console_info += ": ";
+        console_info += packet->message;
+        console.writeln(console_info);
+        // Log raw data whatever it contains
+        if (logger && logging)
+            logger->log_str(console_info);
+    } else {
+        // debug message arrived
+        console_info = "State: ";
+        console_info += to_string_dec_int(packet->state);
+        console_info += " lastbyte: ";
+        console_info += to_string_dec_uint(packet->message[0]);
+        console.writeln(console_info);
+        if (logger && logging)
+            logger->log_str(console_info);
+    }
 }
 
 } /* namespace ui */

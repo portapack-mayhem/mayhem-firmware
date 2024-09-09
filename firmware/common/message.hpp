@@ -125,7 +125,6 @@ class Message {
         BatteryStateData = 68,
         ProtoViewData = 69,
         FreqChangeCommand = 70,
-        AcarsDebugMessage = 71,
         MAX
     };
 
@@ -380,8 +379,9 @@ class ACARSPacketMessage : public Message {
     constexpr ACARSPacketMessage()
         : Message{ID::ACARSPacket} {}
     uint8_t msg_len = 0;
-    char message[250] = {0};
+    char message[250] = {0};  // contains the whole packet
     uint8_t crc[2] = {0};
+    uint8_t state = 0;  // for debug
 };
 
 class ADSBFrameMessage : public Message {
@@ -1419,14 +1419,6 @@ class FreqChangeCommandMessage : public Message {
     constexpr FreqChangeCommandMessage(int64_t freq)
         : Message{ID::FreqChangeCommand}, freq{freq} {}
     int64_t freq = 0;
-};
-
-class AcarsDebugMessage : public Message {
-   public:
-    constexpr AcarsDebugMessage(int64_t state)
-        : Message{ID::AcarsDebugMessage}, state{state} {}
-    int64_t state = 0;
-    int64_t gotinstead = 0;
 };
 
 #endif /*__MESSAGE_H__*/

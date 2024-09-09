@@ -36,7 +36,6 @@ class ACARSLogger {
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
-    void log_raw_data(const ACARSPacketMessage* packet, const uint32_t frequency);
     void log_str(std::string msg);
 
    private:
@@ -96,20 +95,12 @@ class ACARSAppView : public View {
     std::unique_ptr<ACARSLogger> logger{};
 
     void on_packet(const ACARSPacketMessage* packet);
-    void on_debug(const AcarsDebugMessage* packet);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ACARSPacket,
         [this](Message* const p) {
             const auto message = static_cast<const ACARSPacketMessage*>(p);
             this->on_packet(message);
-        }};
-
-    MessageHandlerRegistration message_handler_debug{
-        Message::ID::AcarsDebugMessage,
-        [this](Message* const p) {
-            const auto message = static_cast<const AcarsDebugMessage*>(p);
-            this->on_debug(message);
         }};
 };
 
