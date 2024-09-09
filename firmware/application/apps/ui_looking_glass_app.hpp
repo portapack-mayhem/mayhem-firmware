@@ -109,6 +109,7 @@ class GlassView : public View {
         std::string label{};
     };
 
+    void on_freqchg(int64_t freq);
     int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     std::vector<preset_entry> presets_db{};
     void manage_beep_audio();
@@ -307,6 +308,7 @@ class GlassView : public View {
             const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
             this->fifo = message.fifo;
         }};
+
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
@@ -316,6 +318,13 @@ class GlassView : public View {
                     this->on_channel_spectrum(channel_spectrum);
                 }
             }
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
         }};
 };
 }  // namespace ui
