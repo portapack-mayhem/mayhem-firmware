@@ -971,7 +971,7 @@ void Button::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->bg_light->background);
     painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Theme::getInstance()->bg_dark->background);
     painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Theme::getInstance()->bg_dark->background);
 
@@ -1311,7 +1311,7 @@ void NewButton::paint(Painter& painter) {
     const auto r = screen_rect();
     const Style style = paint_style();
 
-    painter.draw_rectangle({r.location(), {r.width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location(), {r.width(), 1}}, Theme::getInstance()->bg_light->background);
     painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Theme::getInstance()->bg_dark->background);
     painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Theme::getInstance()->bg_dark->background);
 
