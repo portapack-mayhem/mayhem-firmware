@@ -561,6 +561,17 @@ GlassView::GlassView(
     update_display_beep();
 }
 
+void GlassView::on_freqchg(int64_t freq) {
+    int64_t half_range = abs(field_frequency_max.value() - field_frequency_max.value()) / 2;
+    if (half_range < 1) {
+        half_range = 1;
+    }
+    range_presets.set_selected_index(0);  // Manual
+    update_min(freq - half_range);
+    update_max(freq + half_range);
+    on_range_changed();
+}
+
 uint8_t GlassView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
     return iq_phase_calibration_value;
 }
