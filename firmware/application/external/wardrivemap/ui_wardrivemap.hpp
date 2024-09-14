@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -19,10 +18,6 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
-
-// Code from https://github.com/Flipper-XFW/Xtreme-Apps/tree/04c3a60093e2c2378e79498b4505aa8072980a42/ble_spam/protocols
-// Thanks for the work of the original creators!
-// Saying thanks in the main view!
 
 #ifndef __UI_WARDRIVEMAP_H__
 #define __UI_WARDRIVEMAP_H__
@@ -52,20 +47,26 @@ class WardriveMapView : public View {
    private:
     NavigationView& nav_;
 
-    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "All GEOTAG from CAPTURES"};
-    Text text_notfound{{0 * 8, 3 * 8, 30 * 8, 16 * 1}, "No GeoTagged captures found"};
+    Text text_info{{0 * 8, 0 * 8, 20 * 8, 16 * 1}, "0 / 30"};
+    Text text_notfound{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "No GeoTagged captures found"};
     GeoPos geopos{
         {0, 20},
         GeoPos::alt_unit::METERS,
         GeoPos::spd_unit::HIDDEN};
     GeoMap geomap{{0, 75, 240, 320 - 75}};
 
+    Button btn_back{{22 * 8, 0 * 8, 3 * 8, 16}, "<-"};
+    Button btn_next{{26 * 8, 0 * 8, 3 * 8, 16}, "->"};
+
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
 
-    bool load_markers();  // returns true if any exists, false if none.
+    uint16_t load_markers();  // returns true if any exists, false if none.
 
     bool first_init = false;
+    bool markers_counted = false;
+    uint16_t marker_start = 0;
+    uint16_t marker_cntall = 0;
 
     MessageHandlerRegistration message_handler_gps{
         Message::ID::GPSPosData,
