@@ -73,10 +73,10 @@ void WardriveMapView::load_markers() {
         }
     }
     // load flipper files too
-    for (const auto& entry : std::filesystem::directory_iterator(captures_dir, u"*.sub")) {
+    for (const auto& entry : std::filesystem::directory_iterator(flippersub_dir, u"*.sub")) {
         if (std::filesystem::is_regular_file(entry.status())) {
             if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return;  // only if not fist iteration, since then not counted all elements
-            std::filesystem::path pth = captures_dir;
+            std::filesystem::path pth = flippersub_dir;
             pth += u"/" + entry.path();
             auto metadata = read_flippersub_file(pth);
 

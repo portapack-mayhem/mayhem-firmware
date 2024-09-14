@@ -45,6 +45,7 @@ class WardriveMapView : public View {
     };
 
    private:
+    const std::filesystem::path flippersub_dir = u"subghz";
     NavigationView& nav_;
 
     Text text_info{{0 * 8, 0 * 8, 20 * 8, 16 * 1}, "0 / 30"};
