@@ -26,8 +26,6 @@
 #include "string_format.hpp"
 #include <string_view>
 
-#include "usb_serial_asyncmsg.hpp"
-
 namespace fs = std::filesystem;
 using namespace std::literals;
 
@@ -86,9 +84,6 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
         if (cols[1].length() <= 1) continue;
         std::string fixed = cols[1].data() + 1;
         fixed = trim(fixed);
-        UsbSerialAsyncmsg::asyncmsg(cols[0].data());
-        UsbSerialAsyncmsg::asyncmsg(cols[1].data());
-        UsbSerialAsyncmsg::asyncmsg(fixed);
         if (cols[0] == filetype_name) {
             if (fixed != "Flipper SubGhz Key File" && fixed != "Flipper SubGhz RAW File") return {};  // not supported
         } else if (cols[0] == frequency_name)
