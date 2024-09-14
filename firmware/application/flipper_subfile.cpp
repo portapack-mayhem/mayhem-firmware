@@ -101,7 +101,7 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
             continue;
     }
 
-    if (metadata.center_frequency == 0 || metadata.protocol == 0) return {};  // Parse failed.
+    if (metadata.center_frequency == 0) return {};  // Parse failed.
 
     return metadata;
 }
