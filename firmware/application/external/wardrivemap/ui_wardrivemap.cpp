@@ -105,10 +105,10 @@ void WardriveMapView::load_markers() {
 
     markers_counted = true;
     // show / hide paginator buttons
-    btn_back.hidden(marker_start == 0);
-    btn_next.hidden((marker_start + ui::GeoMap::NumMarkerListElements) >= marker_cntall);
+    btn_back.hidden((marker_start == 0) || (marker_cntall == 0));
+    btn_next.hidden(((marker_start + ui::GeoMap::NumMarkerListElements) >= marker_cntall) || (marker_cntall == 0));
     // update text
-    text_info.set(to_string_dec_uint(marker_start) + " - " + to_string_dec_uint(displayed_cnt + marker_start) + " / " + to_string_dec_uint(marker_cntall));
+    text_info.set(to_string_dec_uint(marker_start + 1) + " - " + to_string_dec_uint(displayed_cnt + marker_start) + " / " + to_string_dec_uint(marker_cntall));
     set_dirty();
     return;
 }
