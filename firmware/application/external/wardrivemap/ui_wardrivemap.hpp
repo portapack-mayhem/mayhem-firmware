@@ -61,7 +61,7 @@ class WardriveMapView : public View {
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
 
-    uint16_t load_markers();  // returns true if any exists, false if none.
+    void load_markers();  // returns true if any exists, false if none.
 
     bool first_init = false;
     bool markers_counted = false;

@@ -37,14 +37,14 @@ void WardriveMapView::focus() {
 
 // needs to load on every map change, because won't store or draw all while marker is not in the current view.
 // todo optimize this somehow
-uint16_t WardriveMapView::load_markers() {
+void WardriveMapView::load_markers() {
     uint16_t displayed_cnt = 0;
     uint16_t cnt = 0;
     geomap.clear_markers();
     // serach for files with geotag, and add it to geomap as marker with tag. limit to N bc of mem limit.
     for (const auto& entry : std::filesystem::directory_iterator(captures_dir, u"*.txt")) {
         if (std::filesystem::is_regular_file(entry.status())) {
-            if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return displayed_cnt;  // only if not fist iteration, since then not counted all elements
+            if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return;  // only if not fist iteration, since then not counted all elements
             std::filesystem::path pth = captures_dir;
             pth += u"/" + entry.path();
             auto metadata_path = get_metadata_path(pth);
@@ -75,7 +75,7 @@ uint16_t WardriveMapView::load_markers() {
     // load flipper files too
     for (const auto& entry : std::filesystem::directory_iterator(captures_dir, u"*.sub")) {
         if (std::filesystem::is_regular_file(entry.status())) {
-            if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return displayed_cnt;  // only if not fist iteration, since then not counted all elements
+            if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return;  // only if not fist iteration, since then not counted all elements
             std::filesystem::path pth = captures_dir;
             pth += u"/" + entry.path();
             auto metadata = read_flippersub_file(pth);
@@ -110,7 +110,7 @@ uint16_t WardriveMapView::load_markers() {
     // update text
     text_info.set(to_string_dec_uint(marker_start) + " - " + to_string_dec_uint(displayed_cnt + marker_start) + " / " + to_string_dec_uint(marker_cntall));
     set_dirty();
-    return displayed_cnt;
+    return;
 }
 
 WardriveMapView::WardriveMapView(NavigationView& nav)
