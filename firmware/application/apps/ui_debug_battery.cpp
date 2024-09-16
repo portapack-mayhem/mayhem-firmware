@@ -229,8 +229,6 @@ void BatteryCapacityView::update_values() {
                 scaled_value = raw_value * entry.scalar;
             }
 
-            // value_texts[i].set(to_string_dec_int(scaled_value, entry.resolution) + " " + entry.unit);
-
             // Format the value with appropriate decimal places
             std::string formatted_value;
             if (entry.resolution > 0) {
