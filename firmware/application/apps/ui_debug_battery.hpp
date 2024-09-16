@@ -11,9 +11,10 @@ namespace ui {
 class BatteryCapacityView : public View {
    public:
     BatteryCapacityView(NavigationView& nav);
-    ~BatteryCapacityView();
     void focus() override;
     std::string title() const override { return "Battery Registers"; }
+
+    bool on_encoder(const EncoderEvent delta) override;
 
    private:
     struct RegisterEntry {
@@ -41,8 +42,6 @@ class BatteryCapacityView : public View {
     std::array<Text, 16> hex_texts;
     std::array<Text, 16> value_texts;
 
-    Button button_prev;
-    Button button_next;
     Text page_text;
     Button button_done;
 

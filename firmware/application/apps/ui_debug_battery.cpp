@@ -166,25 +166,23 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
 }
 
 size_t BatteryCapacityView::get_entry_count() {
-    return 144;  // Update this to the total number of entries
+    return 144;
 }
 
 BatteryCapacityView::BatteryCapacityView(NavigationView& nav)
     : labels({
-          {{0 * 8, 0 * 16}, "Register", Theme::getInstance()->fg_yellow->foreground},
-          {{11 * 8, 0 * 16}, "Addr", Theme::getInstance()->fg_yellow->foreground},
-          {{17 * 8, 0 * 16}, "Hex", Theme::getInstance()->fg_yellow->foreground},
-          {{23 * 8, 0 * 16}, "Value", Theme::getInstance()->fg_yellow->foreground},
+          {{0 * 8, 0 * 16}, "Reg", Theme::getInstance()->fg_yellow->foreground},
+          {{9 * 8, 0 * 16}, "Addr", Theme::getInstance()->fg_yellow->foreground},
+          {{14 * 8, 0 * 16}, "Hex", Theme::getInstance()->fg_yellow->foreground},
+          {{21 * 8, 0 * 16}, "Value", Theme::getInstance()->fg_yellow->foreground},
       }),
-      button_prev{{16, 280, 48, 24}, "<"},
-      button_next{{80, 280, 48, 24}, ">"},
       page_text{{144, 284, 80, 16}, "Page 1/1"},
-      button_done{{224, 280, 64, 24}, "Done"} {
+      button_done{{16, 280, 96, 24}, "Done"} {
     for (size_t i = 0; i < ENTRIES_PER_PAGE; ++i) {
-        name_texts[i].set_parent_rect({0 * 8, static_cast<int>((i + 1) * 16), 10 * 8, 16});
-        addr_texts[i].set_parent_rect({11 * 8, static_cast<int>((i + 1) * 16), 5 * 8, 16});
-        hex_texts[i].set_parent_rect({17 * 8, static_cast<int>((i + 1) * 16), 5 * 8, 16});
-        value_texts[i].set_parent_rect({23 * 8, static_cast<int>((i + 1) * 16), 10 * 8, 16});
+        name_texts[i].set_parent_rect({0 * 8, static_cast<int>((i + 1) * 16), 8 * 8, 16});
+        addr_texts[i].set_parent_rect({9 * 8, static_cast<int>((i + 1) * 16), 4 * 8, 16});
+        hex_texts[i].set_parent_rect({14 * 8, static_cast<int>((i + 1) * 16), 6 * 8, 16});
+        value_texts[i].set_parent_rect({21 * 8, static_cast<int>((i + 1) * 16), 10 * 8, 16});
 
         add_child(&name_texts[i]);
         add_child(&addr_texts[i]);
@@ -192,42 +190,26 @@ BatteryCapacityView::BatteryCapacityView(NavigationView& nav)
         add_child(&value_texts[i]);
     }
 
-    add_children({&labels, &button_prev, &button_next, &page_text, &button_done});
+    add_children({&labels, &page_text, &button_done});
 
     button_done.on_select = [&nav](Button&) { nav.pop(); };
-
-    button_prev.on_select = [this](Button&) {
-        if (current_page > 0) {
-            current_page--;
-            populate_page(current_page * ENTRIES_PER_PAGE);
-            update_page_text();
-        }
-    };
-
-    button_next.on_select = [this](Button&) {
-        if ((current_page + 1) * ENTRIES_PER_PAGE < get_entry_count()) {
-            current_page++;
-            populate_page(current_page * ENTRIES_PER_PAGE);
-            update_page_text();
-        }
-    };
 
     populate_page(0);
     update_page_text();
 }
 
-// Add destructor to clean up resources
-BatteryCapacityView::~BatteryCapacityView() {
-    // for (size_t i = 0; i < ENTRIES_PER_PAGE; ++i) {
-    //     name_texts[i].~Text();
-    //     addr_texts[i].~Text();
-    //     hex_texts[i].~Text();
-    //     value_texts[i].~Text();
-    // }
-}
-
 void BatteryCapacityView::focus() {
     button_done.focus();
+}
+
+bool BatteryCapacityView::on_encoder(const EncoderEvent delta) {
+    int32_t new_page = current_page + delta;
+    if (new_page >= 0 && new_page < (get_entry_count() + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE) {
+        current_page = new_page;
+        populate_page(current_page * ENTRIES_PER_PAGE);
+        update_page_text();
+    }
+    return true;
 }
 
 void BatteryCapacityView::update_values() {
