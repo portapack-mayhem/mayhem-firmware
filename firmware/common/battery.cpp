@@ -23,14 +23,14 @@ bool BatteryManagement::calcOverride = false;
 void BatteryManagement::detect() {
     // try to detect supported modules
     detected_ = BATT_NONE;
-    if (battery_ads1110.detect()) {
-        battery_ads1110.init();
-        detected_ = BATT_ADS1110;
-        return;
-    }
     if (battery_max17055.detect()) {
         battery_max17055.init();  // detect will call this on each "re detect"
         detected_ = BATT_MAX17055;
+        return;
+    }
+    if (battery_ads1110.detect()) {
+        battery_ads1110.init();
+        detected_ = BATT_ADS1110;
         return;
     }
 

@@ -34,17 +34,95 @@ void MAX17055::init() {
         detected_ = detect();
     }
     if (detected_) {
-        if (needsInitialization()) {
-            // First-time or POR initialization
-            fullInit();
-        } else {
-            // Subsequent boot
-            partialInit();
-        }
-
+        // if (needsInitialization()) {
+        //     // First-time or POR initialization
+        //     fullInit();
+        // } else {
+        //     // Subsequent boot
+        //     partialInit();
+        // }
+        partialInit();
         // statusClear(); I am not sure if this should be here or not
     }
 }
+
+// ==========================================
+bool MAX17055::full_reset_and_init() {
+    if (!soft_reset()) {
+        return false;
+    }
+
+    if (!initialize_custom_parameters()) {
+        return false;
+    }
+
+    if (!load_custom_parameters()) {
+        return false;
+    }
+
+    if (!clear_por()) {
+        return false;
+    }
+
+    // if (!update_full_capacity_learned()) {
+    //     return false;
+    // }
+
+    return true;
+}
+
+bool MAX17055::soft_reset() {
+    return write_register(0x0BB, 0x0000);
+}
+
+bool MAX17055::clear_por() {
+    uint16_t status = read_register(0x00);
+    status &= ~(1 << 1);
+    return write_register(0x00, status);
+}
+
+bool MAX17055::initialize_custom_parameters() {
+    if (!write_register(0xD0, 0x03E8)) return false;  // Unknown register, possibly related to battery profile
+    if (!write_register(0xDB, 0x0000)) return false;  // ModelCfg
+    if (!write_register(0x05, 0x0000)) return false;  // RepCap
+    if (!write_register(0x18, 0x1388)) return false;  // DesignCap
+    if (!write_register(0x45, 0x009C)) return false;  // dQAcc
+    if (!write_register(0x1E, 0x03C0)) return false;  // IChgTerm
+    if (!write_register(0x3A, 0x9661)) return false;  // VEmpty
+    if (!write_register(0x60, 0x0090)) return false;  // Unknown register
+    if (!write_register(0x46, 0x0561)) return false;  // dPAcc
+    if (!write_register(0xDB, 0x8000)) return false;  // ModelCfg
+    return true;
+}
+
+bool MAX17055::load_custom_parameters() {
+    uint16_t hib_cfg = read_register(0xBA);
+    if (!write_register(0xBA, 0x0000)) return false;  // Disable hibernate mode
+    if (!write_register(0x60, 0x0000)) return false;  // Unknown register
+
+    // Wait for the model to be loaded
+    for (int i = 0; i < 10; i++) {
+        uint16_t model_cfg = read_register(0xDB);
+        if ((model_cfg & 0x8000) == 0) {
+            break;
+        }
+        chThdSleepMilliseconds(10);
+    }
+
+    if (!write_register(0xBA, hib_cfg)) return false;  // Restore hibernate config
+    return true;
+}
+
+bool MAX17055::update_full_capacity_learned() {
+    // This function is no longer needed as per the desktop software output
+
+    // uint16_t rep_cap = read_register(0x05);
+    // if (!write_register(0x23, rep_cap)) return false;
+    // if (!write_register(0x10, rep_cap)) return false;
+    return true;
+}
+
+// ==========================================
 
 bool MAX17055::needsInitialization() {
     uint16_t status = read_register(0x00);
@@ -90,55 +168,56 @@ bool MAX17055::needsInitialization() {
 // }
 
 void MAX17055::fullInit() {
-    // Perform software Power-On Reset
-    write_register(0x00, 0x0000);
-    chThdSleepMilliseconds(10);  // Wait for POR to complete
+    full_reset_and_init();
+    // // Perform software Power-On Reset
+    // write_register(0x00, 0x0000);
+    // chThdSleepMilliseconds(10);  // Wait for POR to complete
 
-    // Reset learned parameters
-    uint16_t hibcfg = read_register(0xBA);
-    write_register(0xBA, hibcfg | 0x0002);  // Set POR bit
-    chThdSleepMilliseconds(10);             // Wait for reset to complete
+    // // Reset learned parameters
+    // uint16_t hibcfg = read_register(0xBA);
+    // write_register(0xBA, hibcfg | 0x0002);  // Set POR bit
+    // chThdSleepMilliseconds(10);             // Wait for reset to complete
 
-    // Basic configuration
-    config();
-    setHibCFG(0x0000);
-    setDesignCapacity(__MAX17055_Design_Capacity__);
+    // // Basic configuration
+    // config();
+    // setHibCFG(0x0000);
+    // setDesignCapacity(__MAX17055_Design_Capacity__);
 
-    // Set model and wait for initialization
-    setModelCfg(__MAX17055_Battery_Model__);
-    uint16_t model_cfg;
-    do {
-        model_cfg = read_register(0xDB);
-        chThdSleepMilliseconds(10);
-    } while (model_cfg & 0x0008);  // Wait for IChgTerm to clear
+    // // Set model and wait for initialization
+    // setModelCfg(__MAX17055_Battery_Model__);
+    // uint16_t model_cfg;
+    // do {
+    //     model_cfg = read_register(0xDB);
+    //     chThdSleepMilliseconds(10);
+    // } while (model_cfg & 0x0008);  // Wait for IChgTerm to clear
 
-    // Set other parameters
-    setChargeTerminationCurrent(__MAX17055_Termination_Current__);
-    setEmptyVoltage(__MAX17055_Empty_Voltage__);
-    setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
-    setMinVoltage(__MAX17055_Min_Voltage__);
-    setMaxVoltage(__MAX17055_Max_Voltage__);
-    setMaxCurrent(__MAX17055_Max_Current__);
-    setMinSOC(__MAX17055_Min_SOC__);
-    setMaxSOC(__MAX17055_Max_SOC__);
-    setMinTemperature(__MAX17055_Min_Temperature__);
-    setMaxTemperature(__MAX17055_Max_Temperature__);
+    // // Set other parameters
+    // setChargeTerminationCurrent(__MAX17055_Termination_Current__);
+    // setEmptyVoltage(__MAX17055_Empty_Voltage__);
+    // setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
+    // setMinVoltage(__MAX17055_Min_Voltage__);
+    // setMaxVoltage(__MAX17055_Max_Voltage__);
+    // setMaxCurrent(__MAX17055_Max_Current__);
+    // setMinSOC(__MAX17055_Min_SOC__);
+    // setMaxSOC(__MAX17055_Max_SOC__);
+    // setMinTemperature(__MAX17055_Min_Temperature__);
+    // setMaxTemperature(__MAX17055_Max_Temperature__);
 
-    // Set initial RepCap and FullCapRep
-    setRepCap(__MAX17055_Design_Capacity__);
-    setFullCapRep(__MAX17055_Design_Capacity__);
+    // // Set initial RepCap and FullCapRep
+    // setRepCap(__MAX17055_Design_Capacity__);
+    // setFullCapRep(__MAX17055_Design_Capacity__);
 
-    // Clear POR bit
-    uint16_t status = read_register(0x00);
-    write_register(0x00, status & ~0x0002);
+    // // Clear POR bit
+    // uint16_t status = read_register(0x00);
+    // write_register(0x00, status & ~0x0002);
 
-    // Wait for VFSOC to be calculated
-    chThdSleepMilliseconds(350);
+    // // Wait for VFSOC to be calculated
+    // chThdSleepMilliseconds(350);
 
-    // Optional: Update Config2 register if needed
-    // uint16_t config2 = read_register(0xBB);
-    // config2 |= 0x0001;  // Set Ldm bit
-    // write_register(0xBB, config2);
+    // // Optional: Update Config2 register if needed
+    // // uint16_t config2 = read_register(0xBB);
+    // // config2 |= 0x0001;  // Set Ldm bit
+    // // write_register(0xBB, config2);
 }
 
 void MAX17055::partialInit() {

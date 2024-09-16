@@ -298,6 +298,14 @@ class MAX17055 {
     void fullInit();
     void partialInit();
 
+    // Testing
+    bool full_reset_and_init();
+    bool soft_reset();
+    bool clear_por();
+    bool initialize_custom_parameters();
+    bool load_custom_parameters();
+    bool update_full_capacity_learned();
+
     bool setEmptyVoltage(uint16_t _Empty_Voltage);
     bool setRecoveryVoltage(uint16_t _Recovery_Voltage);
     bool setMinVoltage(uint16_t _Minimum_Voltage);
