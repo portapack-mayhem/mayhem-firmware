@@ -11,6 +11,7 @@ namespace ui {
 class BatteryCapacityView : public View {
    public:
     BatteryCapacityView(NavigationView& nav);
+    ~BatteryCapacityView();
     void focus() override;
     std::string title() const override { return "Battery Registers"; }
 
@@ -31,26 +32,23 @@ class BatteryCapacityView : public View {
         bool is_read_only;
     };
 
-    std::vector<RegisterEntry> entries;
+    static RegisterEntry get_entry(size_t index);
+    static size_t get_entry_count();
 
-    Labels labels{
-        {{0 * 8, 0 * 16}, "Register", Theme::getInstance()->fg_yellow->foreground},
-        {{11 * 8, 0 * 16}, "Addr", Theme::getInstance()->fg_yellow->foreground},
-        {{17 * 8, 0 * 16}, "Hex", Theme::getInstance()->fg_yellow->foreground},
-        {{23 * 8, 0 * 16}, "Value", Theme::getInstance()->fg_yellow->foreground},
-    };
+    Labels labels;
+    std::array<Text, 16> name_texts;
+    std::array<Text, 16> addr_texts;
+    std::array<Text, 16> hex_texts;
+    std::array<Text, 16> value_texts;
 
-    std::vector<Text> name_texts;
-    std::vector<Text> addr_texts;
-    std::vector<Text> hex_texts;
-    std::vector<Text> value_texts;
-
-    Button button_done{
-        {16, 280, 96, 24},  // Adjusted Y position from 264 to 280
-        "Done"};
+    Button button_prev;
+    Button button_next;
+    Text page_text;
+    Button button_done;
 
     void update_values();
     void populate_page(int start_index);
+    void update_page_text();
     int current_page = 0;
     static constexpr int ENTRIES_PER_PAGE = 16;
 };
