@@ -206,6 +206,7 @@ set(CPPSRC
 	irq_rtc.cpp
 	log_file.cpp
 	metadata_file.cpp
+	flipper_subfile.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
 	usb_serial_shell_filesystem.cpp
