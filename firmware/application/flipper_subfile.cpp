@@ -34,6 +34,7 @@ const std::string_view frequency_name = "Frequency"sv;
 const std::string_view latitude_name = "Latitute"sv;
 const std::string_view longitude_name = "Longitude"sv;
 const std::string_view protocol_name = "Protocol"sv;
+const std::string_view preset_name = "Preset"sv;
 const std::string_view te_name = "TE"sv;  // only in BinRAW
 
 /*
@@ -93,10 +94,19 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
         else if (cols[0] == longitude_name)
             parse_float_meta(fixed, metadata.longitude);
         else if (cols[0] == protocol_name) {
-            if (fixed == "RAW") metadata.protocol = 1;
-            if (fixed == "BinRAW") metadata.protocol = 2;
+            if (fixed == "RAW") metadata.protocol = FLIPPER_PROTO_RAW;
+            if (fixed == "BinRAW") metadata.protocol = FLIPPER_PROTO_BINRAW;
         } else if (cols[0] == te_name) {
             metadata.te = atoi(fixed.c_str());
+        } else if (cols[0] == preset_name) {
+            if (fixed.find("FSK") != std::string::npos) {
+                metadata.preset = FLIPPER_PRESET_2FSK;
+            } else if (fixed.find("Ook") != std::string::npos) {
+                metadata.preset = FLIPPER_PRESET_OOK;
+            } else if (fixed.find("Custom") != std::string::npos) {
+                metadata.preset = FLIPPER_PRESET_CUSTOM;
+            }
+
         } else
             continue;
     }

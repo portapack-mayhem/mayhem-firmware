@@ -64,10 +64,10 @@ class WardriveMapView : public View {
 
     void load_markers();  // returns true if any exists, false if none.
 
-    bool first_init = false;
-    bool markers_counted = false;
-    uint16_t marker_start = 0;
-    uint16_t marker_cntall = 0;
+    bool first_init = false;       // to center map to first marker, before callback is set
+    bool markers_counted = false;  // to iterate all files on first, but only on first.
+    uint16_t marker_start = 0;     // for paginator, this will be the first displayed
+    uint16_t marker_cntall = 0;    // all geotagged marker count
 
     MessageHandlerRegistration message_handler_gps{
         Message::ID::GPSPosData,

@@ -24,11 +24,25 @@
 
 #include "metadata_file.hpp"
 
+typedef enum : uint8_t {
+    FLIPPER_PROTO_UNSUPPORTED = 0,
+    FLIPPER_PROTO_RAW = 1,
+    FLIPPER_PROTO_BINRAW = 2
+} FlipperProto;
+
+typedef enum : uint8_t {
+    FLIPPER_PRESET_UNK = 0,
+    FLIPPER_PRESET_CUSTOM = 1,
+    FLIPPER_PRESET_OOK = 2,
+    FLIPPER_PRESET_2FSK = 3,
+} FlipperPreset;
+
 struct flippersub_metadata {
     rf::Frequency center_frequency;
     float latitude = 0;
     float longitude = 0;
-    uint8_t protocol = 0;
+    FlipperProto protocol = FLIPPER_PROTO_UNSUPPORTED;
+    FlipperPreset preset = FLIPPER_PRESET_UNK;
     uint16_t te = 0;
 };
 
