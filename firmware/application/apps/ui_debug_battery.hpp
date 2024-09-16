@@ -46,13 +46,13 @@ class BatteryCapacityView : public View {
     std::vector<Text> value_texts;
 
     Button button_done{
-        {16, 264, 96, 24},
+        {16, 280, 96, 24},  // Adjusted Y position from 264 to 280
         "Done"};
 
     void update_values();
     void populate_page(int start_index);
     int current_page = 0;
-    static constexpr int ENTRIES_PER_PAGE = 15;
+    static constexpr int ENTRIES_PER_PAGE = 16;
 };
 
 }  // namespace ui
