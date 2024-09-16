@@ -21,6 +21,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"MixSOC", 0x0D, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
         {"AvSOC", 0x0E, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
         {"MixCap", 0x0F, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+
         {"FullCapRep", 0x10, "capacity", 0.5, false, "mAh", true, 1, true, true, false, 0, false},
         {"TTE", 0x11, "time", 0.0015625, false, "hr", true, 6, true, false, false, 0, false},
         {"QRTable00", 0x12, "model", 1, false, "", false, 0, true, true, false, 0, false},
@@ -37,6 +38,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"Config", 0x1D, "model", 1, false, "", false, 0, true, false, false, 0, false},
         {"IChgTerm", 0x1E, "model", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
         {"AvCap", 0x1F, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+
         {"TTF", 0x20, "time", 0.0015625, false, "hr", true, 6, true, false, false, 0, false},
         {"DevName", 0x21, "", 1, false, "", false, 0, true, false, false, 0, false},
         {"QRTable10", 0x22, "model", 1, false, "", false, 0, true, true, false, 0, false},
@@ -53,6 +55,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"TOff", 0x2D, "temperature", 1, false, "", false, 0, true, false, false, 0, false},
         {"CGain", 0x2E, "current", 0.09765625, true, "%", true, 8, true, false, false, 0, false},
         {"COff", 0x2F, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+
         {"Reserved", 0x30, "", 0.00125, false, "V", true, 5, true, false, false, 0, true},
         {"Reserved", 0x31, "", 0.005, true, "mA", true, 3, true, false, false, 0, true},
         {"QRTable20", 0x32, "model", 1, false, "", false, 0, true, true, false, 0, false},
@@ -69,6 +72,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"FStat", 0x3D, "", 1, false, "", false, 0, true, false, false, 0, false},
         {"Timer", 0x3E, "time", 4.88E-05, false, "hr", true, 7, true, false, false, 0, false},
         {"ShdnTimer", 0x3F, "", 0.000366, false, "hr", true, 6, true, false, false, 0, false},
+
         {"UserMem1", 0x40, "led", 1, false, "", false, 0, true, false, false, 0, false},
         {"Reserved", 0x41, "", 1, false, "", false, 0, true, false, false, 0, true},
         {"QRTable30", 0x42, "model", 0.15625, false, "", false, 0, true, true, false, 0, false},
@@ -85,6 +89,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"QH", 0x4D, "capacity", 0.5, true, "mAh", true, 1, true, false, false, 0, false},
         {"Reserved", 0x4E, "", 7.63E-06, false, "mAh", true, 8, true, false, false, 0, true},
         {"Reserved", 0x4F, "", 0.5, false, "mAh", true, 1, true, false, false, 0, true},
+
         {"Status2", 0xB0, "", 1, false, "", false, 0, true, false, false, 0, false},
         {"Power", 0xB1, "", 0.8, true, "", false, 1, true, false, false, 0, false},
         {"ID", 0xB2, "", 1, false, "", false, 0, true, false, false, 0, false},
@@ -101,6 +106,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"RippleCfg", 0xBD, "", 1, false, "", false, 0, true, false, false, 0, false},
         {"TimerH", 0xBE, "time", 3.2, false, "hr", true, 1, true, false, false, 0, false},
         {"Reserved", 0xBF, "", 0.00390625, false, "%", true, 6, true, false, false, 0, true},
+
         {"Rsense", 0xD0, "", 1, false, "", false, 0, true, false, false, 0, false},
         {"ScOcvLim", 0xD1, "", 1, false, "", false, 0, true, false, false, 0, false},
         {"Reserved", 0xD2, "", 1, false, "", false, 0, true, false, false, 0, true},
@@ -117,6 +123,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"AtTTE", 0xDD, "time", 0.0015625, false, "hr", true, 6, true, false, false, 0, false},
         {"AtAvSOC", 0xDE, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
         {"AtAvCap", 0xDF, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+
         {"Reserved", 0xE0, "", 1, false, "", false, 0, true, false, false, 0, true},
         {"Reserved", 0xE1, "", 1, false, "", false, 0, true, false, false, 0, true},
         {"Reserved", 0xE2, "", 1, false, "", false, 0, true, false, false, 0, true},
@@ -133,6 +140,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
         {"Reserved", 0xED, "", 1, false, "", false, 0, true, false, false, 0, true},
         {"Reserved", 0xEE, "voltage", 0.000078125, false, "V", true, 9, true, false, false, 0, true},
         {"Reserved", 0xEF, "", 1, false, "", false, 0, true, false, false, 0, true},
+
         {"Reserved", 0xF0, "", 1, false, "", false, 0, true, false, false, 0, true},
         {"Reserved", 0xF1, "", 1, false, "", false, 0, true, false, false, 0, true},
         {"Reserved", 0xF2, "", 1, false, "", false, 0, true, false, false, 0, true},
