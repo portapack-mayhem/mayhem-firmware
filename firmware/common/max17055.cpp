@@ -550,7 +550,30 @@ void MAX17055::config(void) {
     write_register(0xBB, config2);
 }
 
+bool MAX17055::statusClear() {
+    // Clear all bits in the Status register (0x00)
+    return write_register(0x00, 0x0000);
+}
+
 // ============================================
+
+int16_t MAX17055::getValue(const char* entityName) {
+    const RegisterEntry* entry = findEntry(entityName);
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+
+        float scaled_value;
+        if (entry->is_signed) {
+            int16_t signed_value = static_cast<int16_t>(raw_value);
+            scaled_value = signed_value * entry->scalar;
+        } else {
+            scaled_value = raw_value * entry->scalar;
+        }
+
+        return static_cast<uint16_t>(scaled_value);
+    }
+    return 0;  // Return 0 if entry not found
+}
 
 uint16_t MAX17055::instantVoltage(void) {
     return getValue("VCell");
@@ -587,6 +610,17 @@ uint16_t MAX17055::recoveryVoltage(void) {
 
 int32_t MAX17055::instantCurrent(void) {
     return getValue("Current");
+
+    // Get Data from IC
+    uint16_t _Measurement_Raw = read_register(0x0A);
+
+    // Convert to signed int16_t (two's complement)
+    int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
+
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
+
+    // End Function
+    return _Value;
 }
 
 int32_t MAX17055::averageCurrent(void) {
@@ -609,24 +643,6 @@ int32_t MAX17055::averageCurrent(void) {
 // // End Function
 // return _Value;
 // }
-
-uint16_t MAX17055::getValue(const char* entityName) {
-    const RegisterEntry* entry = findEntry(entityName);
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-
-        float scaled_value;
-        if (entry->is_signed) {
-            int16_t signed_value = static_cast<int16_t>(raw_value);
-            scaled_value = signed_value * entry->scalar;
-        } else {
-            scaled_value = raw_value * entry->scalar;
-        }
-
-        return static_cast<uint16_t>(scaled_value);
-    }
-    return 0;  // Return 0 if entry not found
-}
 
 uint16_t MAX17055::stateOfCharge(void) {
     return getValue("RepSOC");
@@ -668,6 +684,13 @@ uint16_t MAX17055::chargeCycle(void) {
     return getValue("Cycles");
 }
 
+uint16_t MAX17055::chargeTerminationCurrent(void) {
+    uint16_t _Measurement_Raw = read_register(0x1E);
+    float lsb_mA = 1.5625 / (__MAX17055_Resistor__ * 1000);  // Convert to mA
+    uint16_t Value = static_cast<uint16_t>(round(_Measurement_Raw * lsb_mA));
+    return Value;
+}
+
 bool MAX17055::statusControl(const uint8_t _Status) {
     // Read Status Register (0x00)
     uint16_t status_register = read_register(0x00);
@@ -703,18 +726,6 @@ bool MAX17055::statusControl(const uint8_t _Status) {
         default:
             return false;
     }
-}
-
-bool MAX17055::statusClear() {
-    // Clear all bits in the Status register (0x00)
-    return write_register(0x00, 0x0000);
-}
-
-uint16_t MAX17055::chargeTerminationCurrent(void) {
-    uint16_t _Measurement_Raw = read_register(0x1E);
-    float lsb_mA = 1.5625 / (__MAX17055_Resistor__ * 1000);  // Convert to mA
-    uint16_t Value = static_cast<uint16_t>(round(_Measurement_Raw * lsb_mA));
-    return Value;
 }
 
 } /* namespace max17055 */
