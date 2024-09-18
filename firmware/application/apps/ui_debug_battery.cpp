@@ -101,7 +101,7 @@ void BatteryCapacityView::populate_page(int start_index) {
             value_texts[i].hidden(true);
         }
     }
-    // update_values();
+    update_values();
 }
 
 void BatteryCapacityView::update_page_text() {

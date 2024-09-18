@@ -184,25 +184,6 @@ const RegisterEntry MAX17055::entries[] = {
     {"Reserved", 0xFF, "", 0.00390625, false, "%", true, 6, true, false, false, 0, true},
 };
 
-// // const size_t MAX17055::entries_count = sizeof(MAX17055::entries) / sizeof(MAX17055::entries[0]);
-
-// float MAX17055::read_and_calculate(uint8_t address) const {
-//     for (const auto& entry : entries) {
-//         if (entry.address == address) {
-//             uint16_t raw_value = read_register(address);
-//             float scaled_value;
-//             if (entry.is_signed) {
-//                 int16_t signed_value = static_cast<int16_t>(raw_value);
-//                 scaled_value = signed_value * entry.scalar;
-//             } else {
-//                 scaled_value = raw_value * entry.scalar;
-//             }
-//             return scaled_value;
-//         }
-//     }
-//     return 0.0f;  // Return 0 if address not found
-// }
-
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
@@ -569,27 +550,17 @@ void MAX17055::config(void) {
     write_register(0xBB, config2);
 }
 
+// ============================================
+
 uint16_t MAX17055::instantVoltage(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x09);
-
-    // Calculate Measurement
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 1.25 / 16);
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("VCell");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 1000);  // Convert to mV
+    }
+    return 0;  // Return 0 if entry not found
 }
-
-// uint16_t MAX17055::averageVoltage(void) {
-//     // Get Data from IC
-//     uint16_t _Measurement_Raw = read_register(0x19);
-
-// // Calculate Measurement
-// uint16_t _Value = ((uint32_t)_Measurement_Raw * 1.25 / 16);
-
-// // End Function
-// return _Value;
-// }
 
 uint16_t MAX17055::averageVoltage(void) {
     const RegisterEntry* entry = findEntry("AvgVCell");
@@ -627,144 +598,123 @@ uint16_t MAX17055::recoveryVoltage(void) {
 }
 
 int32_t MAX17055::instantCurrent(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x0A);
-
-    // Convert to signed int16_t (two's complement)
-    int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
-
-    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("Current");
+    if (entry) {
+        int16_t raw_value = static_cast<int16_t>(read_register(entry->address));
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<int32_t>(scaled_value * 1000 / __MAX17055_Resistor__);  // Convert to mA
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 int32_t MAX17055::averageCurrent(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x0B);
-
-    // Convert to signed int16_t (two's complement)
-    int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
-
-    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("AvgCurrent");
+    if (entry) {
+        int16_t raw_value = static_cast<int16_t>(read_register(entry->address));
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<int32_t>(scaled_value * 1000 / __MAX17055_Resistor__);  // Convert to mA
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::stateOfCharge(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x06);  // RepSOC
-
-    // Calculate Measurement
-    uint8_t _Value = (_Measurement_Raw >> 8) & 0xFF;
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("RepSOC");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 100);  // Convert to percentage
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::averageStateOfCharge(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x0E);
-
-    // Calculate Measurement
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 100 / 256);
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("AvSOC");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 100);  // Convert to percentage
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::instantCapacity(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x05);
-
-    // Calculate Data
-    uint16_t _Value = _Measurement_Raw * 5 / 1000 / __MAX17055_Resistor__;
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("RepCap");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value);  // Already in mAh
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::designCapacity(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x18);
-    // End Function
-    return _Measurement_Raw / 2;
+    const RegisterEntry* entry = findEntry("DesignCap");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value);  // Already in mAh
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::fullCapacity(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x35);
-
-    // Calculate Data
-    uint16_t _Value = _Measurement_Raw * 5 / 1000 / __MAX17055_Resistor__;
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("FullCap");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value);  // Already in mAh
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::icTemperature(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x08);
-
-    // Declare Variables
-    bool _Signiture = false;
-
-    // Control for Negative Value
-    if ((_Measurement_Raw >> 12) == 0xF) {
-        // Calculate Data
-        _Measurement_Raw = 0xFFFF - _Measurement_Raw;
-
-        // Assign Signiture
-        _Signiture = true;
+    const RegisterEntry* entry = findEntry("Temp");
+    if (entry) {
+        int16_t raw_value = static_cast<int16_t>(read_register(entry->address));
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 100);  // Convert to centi-degrees Celsius
     }
-
-    // Calculate Data
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 100 / 256);
-
-    // Assign Signiture
-    if (_Signiture) _Value = -_Value;
-
-    // End Function
-    return _Value;
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::timeToEmpty(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x11);
-
-    // Calculate Data
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 5625 / 60 / 60 / 100);
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("TTE");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 60);  // Convert to minutes
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::timeToFull(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x20);
-
-    // Calculate Data
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 5625 / 60 / 60 / 100);
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("TTF");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 60);  // Convert to minutes
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::batteryAge(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x07);
-
-    // End Function
-    return _Measurement_Raw;
+    const RegisterEntry* entry = findEntry("Age");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value);  // Already in percentage
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::chargeCycle(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x17);
-
-    // End Function
-    return _Measurement_Raw;
+    const RegisterEntry* entry = findEntry("Cycles");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value);  // Already in cycles
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 bool MAX17055::statusControl(const uint8_t _Status) {

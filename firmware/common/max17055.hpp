@@ -283,9 +283,6 @@ class MAX17055 {
     static const RegisterEntry entries[];
     static constexpr size_t entries_count = 144;
 
-    // New generic function to read and calculate values
-    float read_and_calculate(uint8_t address) const;
-
     uint16_t instantVoltage(void);
     uint16_t averageVoltage(void);
     uint16_t emptyVoltage(void);
