@@ -283,6 +283,7 @@ class MAX17055 {
     static const RegisterEntry entries[];
     static constexpr size_t entries_count = 144;
 
+    uint16_t getValue(const char* entityName);
     uint16_t instantVoltage(void);
     uint16_t averageVoltage(void);
     uint16_t emptyVoltage(void);

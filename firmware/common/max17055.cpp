@@ -553,23 +553,11 @@ void MAX17055::config(void) {
 // ============================================
 
 uint16_t MAX17055::instantVoltage(void) {
-    const RegisterEntry* entry = findEntry("VCell");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 1000);  // Convert to mV
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("VCell");
 }
 
 uint16_t MAX17055::averageVoltage(void) {
-    const RegisterEntry* entry = findEntry("AvgVCell");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 1000);  // Convert to mV
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("AvgVCell");
 }
 
 uint16_t MAX17055::emptyVoltage(void) {
@@ -598,22 +586,7 @@ uint16_t MAX17055::recoveryVoltage(void) {
 }
 
 int32_t MAX17055::instantCurrent(void) {
-     const RegisterEntry* entry = findEntry("Current");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        // float scaled_value = raw_value * entry->scalar;
-
-        float scaled_value;
-        if (entry->is_signed) {
-            int16_t signed_value = static_cast<int16_t>(raw_value);
-            scaled_value = signed_value * entry->scalar;
-        } else {
-            scaled_value = raw_value * entry->scalar;
-        }
-
-        return static_cast<uint16_t>(scaled_value);  // Convert to percentage
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("Current");
 }
 
 int32_t MAX17055::averageCurrent(void) {
@@ -637,12 +610,10 @@ int32_t MAX17055::averageCurrent(void) {
 // return _Value;
 // }
 
-// ToDo: Do something like this
-uint16_t MAX17055::getValue(entityName: string) {
+uint16_t MAX17055::getValue(const char* entityName) {
     const RegisterEntry* entry = findEntry(entityName);
     if (entry) {
         uint16_t raw_value = read_register(entry->address);
-        // float scaled_value = raw_value * entry->scalar;
 
         float scaled_value;
         if (entry->is_signed) {
@@ -652,118 +623,49 @@ uint16_t MAX17055::getValue(entityName: string) {
             scaled_value = raw_value * entry->scalar;
         }
 
-        return static_cast<uint16_t>(scaled_value);  // Convert to percentage
+        return static_cast<uint16_t>(scaled_value);
     }
     return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::stateOfCharge(void) {
-    const RegisterEntry* entry = findEntry("RepSOC");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        // float scaled_value = raw_value * entry->scalar;
-
-        float scaled_value;
-        if (entry->is_signed) {
-            int16_t signed_value = static_cast<int16_t>(raw_value);
-            scaled_value = signed_value * entry->scalar;
-        } else {
-            scaled_value = raw_value * entry->scalar;
-        }
-
-        return static_cast<uint16_t>(scaled_value);  // Convert to percentage
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("RepSOC");
 }
 
 uint16_t MAX17055::averageStateOfCharge(void) {
-    const RegisterEntry* entry = findEntry("AvSOC");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 100);  // Convert to percentage
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("AvSOC");
 }
 
 uint16_t MAX17055::instantCapacity(void) {
-    const RegisterEntry* entry = findEntry("RepCap");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value);  // Already in mAh
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("RepCap");
 }
 
 uint16_t MAX17055::designCapacity(void) {
-    const RegisterEntry* entry = findEntry("DesignCap");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value);  // Already in mAh
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("DesignCap");
 }
 
 uint16_t MAX17055::fullCapacity(void) {
-    const RegisterEntry* entry = findEntry("FullCap");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value);  // Already in mAh
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("FullCap");
 }
 
 uint16_t MAX17055::icTemperature(void) {
-    const RegisterEntry* entry = findEntry("Temp");
-    if (entry) {
-        int16_t raw_value = static_cast<int16_t>(read_register(entry->address));
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 100);  // Convert to centi-degrees Celsius
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("Temp");
 }
 
 uint16_t MAX17055::timeToEmpty(void) {
-    const RegisterEntry* entry = findEntry("TTE");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 60);  // Convert to minutes
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("TTE");
 }
 
 uint16_t MAX17055::timeToFull(void) {
-    const RegisterEntry* entry = findEntry("TTF");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 60);  // Convert to minutes
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("TTF");
 }
 
 uint16_t MAX17055::batteryAge(void) {
-    const RegisterEntry* entry = findEntry("Age");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value);  // Already in percentage
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("Age");
 }
 
 uint16_t MAX17055::chargeCycle(void) {
-    const RegisterEntry* entry = findEntry("Cycles");
-    if (entry) {
-        uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value);  // Already in cycles
-    }
-    return 0;  // Return 0 if entry not found
+    return getValue("Cycles");
 }
 
 bool MAX17055::statusControl(const uint8_t _Status) {
