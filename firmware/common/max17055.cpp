@@ -598,11 +598,20 @@ uint16_t MAX17055::recoveryVoltage(void) {
 }
 
 int32_t MAX17055::instantCurrent(void) {
-    const RegisterEntry* entry = findEntry("Current");
+     const RegisterEntry* entry = findEntry("Current");
     if (entry) {
-        int16_t raw_value = static_cast<int16_t>(read_register(entry->address));
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<int32_t>(scaled_value * 1000 / __MAX17055_Resistor__);  // Convert to mA
+        uint16_t raw_value = read_register(entry->address);
+        // float scaled_value = raw_value * entry->scalar;
+
+        float scaled_value;
+        if (entry->is_signed) {
+            int16_t signed_value = static_cast<int16_t>(raw_value);
+            scaled_value = signed_value * entry->scalar;
+        } else {
+            scaled_value = raw_value * entry->scalar;
+        }
+
+        return static_cast<uint16_t>(scaled_value);  // Convert to percentage
     }
     return 0;  // Return 0 if entry not found
 }
@@ -617,12 +626,52 @@ int32_t MAX17055::averageCurrent(void) {
     return 0;  // Return 0 if entry not found
 }
 
+// uint16_t MAX17055::stateOfCharge_OLD(void) {
+//     // Get Data from IC
+//     uint16_t _Measurement_Raw = read_register(0x06);  // RepSOC
+
+// // Calculate Measurement
+// uint8_t _Value = (_Measurement_Raw >> 8) & 0xFF;
+
+// // End Function
+// return _Value;
+// }
+
+// ToDo: Do something like this
+uint16_t MAX17055::getValue(entityName: string) {
+    const RegisterEntry* entry = findEntry(entityName);
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        // float scaled_value = raw_value * entry->scalar;
+
+        float scaled_value;
+        if (entry->is_signed) {
+            int16_t signed_value = static_cast<int16_t>(raw_value);
+            scaled_value = signed_value * entry->scalar;
+        } else {
+            scaled_value = raw_value * entry->scalar;
+        }
+
+        return static_cast<uint16_t>(scaled_value);  // Convert to percentage
+    }
+    return 0;  // Return 0 if entry not found
+}
+
 uint16_t MAX17055::stateOfCharge(void) {
     const RegisterEntry* entry = findEntry("RepSOC");
     if (entry) {
         uint16_t raw_value = read_register(entry->address);
-        float scaled_value = raw_value * entry->scalar;
-        return static_cast<uint16_t>(scaled_value * 100);  // Convert to percentage
+        // float scaled_value = raw_value * entry->scalar;
+
+        float scaled_value;
+        if (entry->is_signed) {
+            int16_t signed_value = static_cast<int16_t>(raw_value);
+            scaled_value = signed_value * entry->scalar;
+        } else {
+            scaled_value = raw_value * entry->scalar;
+        }
+
+        return static_cast<uint16_t>(scaled_value);  // Convert to percentage
     }
     return 0;  // Return 0 if entry not found
 }
