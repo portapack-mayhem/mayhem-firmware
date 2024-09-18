@@ -5,6 +5,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "battery.hpp"
+#include "max17055.hpp"
 
 namespace ui {
 
@@ -16,25 +17,10 @@ class BatteryCapacityView : public View {
 
     bool on_encoder(const EncoderEvent delta) override;
 
-   private:
-    struct RegisterEntry {
-        std::string name;
-        uint8_t address;
-        std::string type;
-        float scalar;
-        bool is_signed;
-        std::string unit;
-        bool abbr_units;
-        int resolution;
-        bool is_user;
-        bool is_save_restore;
-        bool is_nv;
-        uint16_t por_data;
-        bool is_read_only;
-    };
+    using RegisterEntry = battery::max17055::RegisterEntry;
 
+   private:
     static RegisterEntry get_entry(size_t index);
-    static size_t get_entry_count();
 
     Labels labels;
     std::array<Text, 16> name_texts;

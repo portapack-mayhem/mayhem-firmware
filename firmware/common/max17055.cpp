@@ -29,24 +29,197 @@ Boston, MA 02110-1301, USA.
 namespace battery {
 namespace max17055 {
 
+const RegisterEntry MAX17055::entries[] = {
+    {"Status", 0x00, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"VAlrtTh", 0x01, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"TAlrtTh", 0x02, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"SAlrtTh", 0x03, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"AtRate", 0x04, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+    {"RepCap", 0x05, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"RepSOC", 0x06, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
+    {"Age", 0x07, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
+    {"Temp", 0x08, "temperature", 0.00390625, true, "C", true, 6, true, false, false, 0, false},
+    {"VCell", 0x09, "voltage", 0.000078125, false, "V", true, 9, true, false, false, 0, false},
+    {"Current", 0x0A, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+    {"AvgCurrent", 0x0B, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+    {"QResidual", 0x0C, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"MixSOC", 0x0D, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
+    {"AvSOC", 0x0E, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
+    {"MixCap", 0x0F, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+
+    {"FullCapRep", 0x10, "capacity", 0.5, false, "mAh", true, 1, true, true, false, 0, false},
+    {"TTE", 0x11, "time", 0.0015625, false, "hr", true, 6, true, false, false, 0, false},
+    {"QRTable00", 0x12, "model", 1, false, "", false, 0, true, true, false, 0, false},
+    {"FullSocThr", 0x13, "model", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
+    {"RCell", 0x14, "resistance", 0.244140625, false, "mOhms", false, 6, true, false, false, 0, false},
+    {"Reserved", 0x15, "", 0.244140625, false, "mOhms", false, 6, true, false, false, 0, true},
+    {"AvgTA", 0x16, "temperature", 0.00390625, true, "C", true, 6, true, false, false, 0, false},
+    {"Cycles", 0x17, "cycles", 0.01, false, "Cycles", false, 2, true, true, false, 0, false},
+    {"DesignCap", 0x18, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"AvgVCell", 0x19, "voltage", 0.000078125, false, "V", true, 9, true, false, false, 0, false},
+    {"MaxMinTemp", 0x1A, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"MaxMinVolt", 0x1B, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"MaxMinCurr", 0x1C, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Config", 0x1D, "model", 1, false, "", false, 0, true, false, false, 0, false},
+    {"IChgTerm", 0x1E, "model", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+    {"AvCap", 0x1F, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+
+    {"TTF", 0x20, "time", 0.0015625, false, "hr", true, 6, true, false, false, 0, false},
+    {"DevName", 0x21, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"QRTable10", 0x22, "model", 1, false, "", false, 0, true, true, false, 0, false},
+    {"FullCapNom", 0x23, "capacity", 0.5, false, "mAh", true, 1, true, true, false, 0, false},
+    {"Reserved", 0x24, "", 0.00390625, true, "C", true, 6, true, false, false, 0, true},
+    {"Reserved", 0x25, "", 0.00390625, true, "C", true, 6, true, false, false, 0, true},
+    {"Reserved", 0x26, "", 0.00390625, true, "C", true, 6, true, false, false, 0, true},
+    {"AIN", 0x27, "temperature", 0.0015259, false, "%", true, 6, true, false, false, 0, false},
+    {"LearnCfg", 0x28, "model", 1, false, "", false, 0, true, false, false, 0, false},
+    {"FilterCfg", 0x29, "model", 1, false, "", false, 0, true, false, false, 0, false},
+    {"RelaxCfg", 0x2A, "model", 1, false, "", false, 0, true, false, false, 0, false},
+    {"MiscCfg", 0x2B, "model", 1, false, "", false, 0, true, false, false, 0, false},
+    {"TGain", 0x2C, "temperature", 1, false, "", false, 0, true, false, false, 0, false},
+    {"TOff", 0x2D, "temperature", 1, false, "", false, 0, true, false, false, 0, false},
+    {"CGain", 0x2E, "current", 0.09765625, true, "%", true, 8, true, false, false, 0, false},
+    {"COff", 0x2F, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+
+    {"Reserved", 0x30, "", 0.00125, false, "V", true, 5, true, false, false, 0, true},
+    {"Reserved", 0x31, "", 0.005, true, "mA", true, 3, true, false, false, 0, true},
+    {"QRTable20", 0x32, "model", 1, false, "", false, 0, true, true, false, 0, false},
+    {"Reserved", 0x33, "", 0.0015625, false, "hr", true, 6, true, true, false, 0, true},
+    {"DieTemp", 0x34, "temperature", 0.00390625, true, "C", true, 6, true, false, false, 0, false},
+    {"FullCap", 0x35, "model", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"Reserved", 0x36, "", 0.15625, true, "mA", true, 5, true, false, false, 0, true},
+    {"Reserved", 0x37, "led", 1, false, "", false, 0, true, true, false, 0, false},
+    {"RComp0", 0x38, "model", 1, false, "", false, 0, true, true, false, 0, false},
+    {"TempCo", 0x39, "model", 1, false, "", false, 0, true, true, false, 0, false},
+    {"VEmpty", 0x3A, "model", 0.000078125, false, "", false, 1, true, false, false, 0, false},
+    {"Reserved", 0x3B, "", 0.15625, true, "mA", true, 5, true, false, false, 0, true},
+    {"Reserved", 0x3C, "", 0.000976563, false, "s", true, 6, true, false, false, 0, true},
+    {"FStat", 0x3D, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Timer", 0x3E, "time", 4.88E-05, false, "hr", true, 7, true, false, false, 0, false},
+    {"ShdnTimer", 0x3F, "", 0.000366, false, "hr", true, 6, true, false, false, 0, false},
+
+    {"UserMem1", 0x40, "led", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Reserved", 0x41, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"QRTable30", 0x42, "model", 0.15625, false, "", false, 0, true, true, false, 0, false},
+    {"RGain", 0x43, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Reserved", 0x44, "", 0.000078125, false, "V", true, 9, true, false, false, 0, true},
+    {"dQAcc", 0x45, "capacity", 16, false, "mAh", true, 0, true, true, false, 0, false},
+    {"dPAcc", 0x46, "percent", 0.0625, false, "%", true, 4, true, true, false, 0, false},
+    {"Reserved", 0x47, "", 0.00390625, true, "%", true, 6, true, true, false, 0, true},
+    {"Reserved", 0x48, "", 0.00390625, false, "%", true, 6, true, true, false, 0, true},
+    {"ConvgCfg", 0x49, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"VFRemCap", 0x4A, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"Reserved", 0x4B, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Reserved", 0x4C, "", 0.5, true, "mAh", true, 1, true, false, false, 0, true},
+    {"QH", 0x4D, "capacity", 0.5, true, "mAh", true, 1, true, false, false, 0, false},
+    {"Reserved", 0x4E, "", 7.63E-06, false, "mAh", true, 8, true, false, false, 0, true},
+    {"Reserved", 0x4F, "", 0.5, false, "mAh", true, 1, true, false, false, 0, true},
+
+    {"Status2", 0xB0, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Power", 0xB1, "", 0.8, true, "", false, 1, true, false, false, 0, false},
+    {"ID", 0xB2, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"AvgPower", 0xB3, "", 0.8, true, "", false, 1, true, false, false, 0, false},
+    {"IAlrtTh", 0xB4, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"TTFCfg", 0xB5, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"CVMixCap", 0xB6, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"CVHalfTime", 0xB7, "time", 0.000195313, false, "hr", true, 6, true, false, false, 0, false},
+    {"CGTempCo", 0xB8, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Curve", 0xB9, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"HibCfg", 0xBA, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Config2", 0xBB, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"VRipple", 0xBC, "voltage", 9.77E-06, false, "V", true, 8, true, false, false, 0, false},
+    {"RippleCfg", 0xBD, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"TimerH", 0xBE, "time", 3.2, false, "hr", true, 1, true, false, false, 0, false},
+    {"Reserved", 0xBF, "", 0.00390625, false, "%", true, 6, true, false, false, 0, true},
+
+    {"Rsense", 0xD0, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"ScOcvLim", 0xD1, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"Reserved", 0xD2, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"SOCHold", 0xD3, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"MaxPeakPower", 0xD4, "", 0.8, true, "", false, 0, true, false, false, 0, false},
+    {"SusPeakPower", 0xD5, "", 0.8, true, "", false, 0, true, false, false, 0, false},
+    {"PackResistance", 0xD6, "", 0.244141063, false, "", false, 0, true, false, false, 0, false},
+    {"SysResistance", 0xD7, "", 0.244141063, false, "", false, 0, true, false, false, 0, false},
+    {"MinSysVoltage", 0xD8, "", 0.000078125, false, "", false, 0, true, false, false, 0, false},
+    {"MPPCurrent", 0xD9, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+    {"SPPCurrent", 0xDA, "current", 0.15625, true, "mA", true, 5, true, false, false, 0, false},
+    {"ModelCfg", 0xDB, "", 1, false, "", false, 0, true, false, false, 0, false},
+    {"AtQResidual", 0xDC, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+    {"AtTTE", 0xDD, "time", 0.0015625, false, "hr", true, 6, true, false, false, 0, false},
+    {"AtAvSOC", 0xDE, "percent", 0.00390625, false, "%", true, 6, true, false, false, 0, false},
+    {"AtAvCap", 0xDF, "capacity", 0.5, false, "mAh", true, 1, true, false, false, 0, false},
+
+    {"Reserved", 0xE0, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE1, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE2, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE3, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE4, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE5, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE6, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE7, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE8, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xE9, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xEA, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xEB, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xEC, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xED, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xEE, "voltage", 0.000078125, false, "V", true, 9, true, false, false, 0, true},
+    {"Reserved", 0xEF, "", 1, false, "", false, 0, true, false, false, 0, true},
+
+    {"Reserved", 0xF0, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xF1, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xF2, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xF3, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xF4, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xF5, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xF6, "", 0.00390625, false, "%", true, 6, true, false, false, 0, true},
+    {"Reserved", 0xF7, "", 0.001, true, "s", true, 3, true, false, false, 0, true},
+    {"Reserved", 0xF8, "", 0.003051758, true, "C", true, 6, true, false, false, 0, true},
+    {"Reserved", 0xF9, "", 0.00015625, false, "V", true, 6, true, false, false, 0, true},
+    {"Reserved", 0xFA, "", 0.15625, true, "mA", true, 5, true, false, false, 0, true},
+    {"Reserved", 0xFB, "", 0.000078125, false, "V", true, 9, true, false, false, 0, true},
+    {"Reserved", 0xFC, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xFD, "", 1, false, "", false, 0, true, false, false, 0, true},
+    {"Reserved", 0xFE, "", 0.000078125, false, "V", true, 9, true, false, false, 0, true},
+    {"Reserved", 0xFF, "", 0.00390625, false, "%", true, 6, true, false, false, 0, true},
+};
+
+// // const size_t MAX17055::entries_count = sizeof(MAX17055::entries) / sizeof(MAX17055::entries[0]);
+
+// float MAX17055::read_and_calculate(uint8_t address) const {
+//     for (const auto& entry : entries) {
+//         if (entry.address == address) {
+//             uint16_t raw_value = read_register(address);
+//             float scaled_value;
+//             if (entry.is_signed) {
+//                 int16_t signed_value = static_cast<int16_t>(raw_value);
+//                 scaled_value = signed_value * entry.scalar;
+//             } else {
+//                 scaled_value = raw_value * entry.scalar;
+//             }
+//             return scaled_value;
+//         }
+//     }
+//     return 0.0f;  // Return 0 if address not found
+// }
+
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
     }
     if (detected_) {
-        // if (needsInitialization()) {
-        //     // First-time or POR initialization
-        //     fullInit();
-        // } else {
-        //     // Subsequent boot
-        //     partialInit();
-        // }
+        if (needsInitialization()) {
+            // First-time or POR initialization
+            full_reset_and_init();
+        } else {
+            // Subsequent boot
+            partialInit();
+        }
         partialInit();
         // statusClear(); I am not sure if this should be here or not
     }
 }
 
-// ==========================================
 bool MAX17055::full_reset_and_init() {
     if (!soft_reset()) {
         return false;
@@ -64,21 +237,11 @@ bool MAX17055::full_reset_and_init() {
         return false;
     }
 
-    // if (!update_full_capacity_learned()) {
-    //     return false;
-    // }
-
     return true;
 }
 
 bool MAX17055::soft_reset() {
     return write_register(0x0BB, 0x0000);
-}
-
-bool MAX17055::clear_por() {
-    uint16_t status = read_register(0x00);
-    status &= ~(1 << 1);
-    return write_register(0x00, status);
 }
 
 bool MAX17055::initialize_custom_parameters() {
@@ -92,6 +255,8 @@ bool MAX17055::initialize_custom_parameters() {
     if (!write_register(0x60, 0x0090)) return false;  // Unknown register
     if (!write_register(0x46, 0x0561)) return false;  // dPAcc
     if (!write_register(0xDB, 0x8000)) return false;  // ModelCfg
+
+    if (!write_register(0x40, 0x0001)) return false;  // Set user mem to 1
     return true;
 }
 
@@ -113,111 +278,19 @@ bool MAX17055::load_custom_parameters() {
     return true;
 }
 
-bool MAX17055::update_full_capacity_learned() {
-    // This function is no longer needed as per the desktop software output
-
-    // uint16_t rep_cap = read_register(0x05);
-    // if (!write_register(0x23, rep_cap)) return false;
-    // if (!write_register(0x10, rep_cap)) return false;
-    return true;
+bool MAX17055::clear_por() {
+    uint16_t status = read_register(0x00);
+    status &= ~(1 << 1);
+    return write_register(0x00, status);
 }
 
-// ==========================================
-
 bool MAX17055::needsInitialization() {
-    uint16_t status = read_register(0x00);
-    if (status & 0x0002) {  // Check POR bit
-        return true;
-    }
+    uint16_t UserMem1 = read_register(0x40);
 
-    // uint16_t designCap = read_register(0x18);
-    // uint16_t vEmpty = read_register(0x3A);
-    // uint16_t iChgTerm = read_register(0x1E);
-
-    uint16_t designCap = designCapacity();
-    uint16_t vEmpty = emptyVoltage();
-    uint16_t iChgTerm = chargeTerminationCurrent();
-    uint16_t hibCfg = read_register(0xBA);
-
-    // Compare with expected values
-    // if (designCap != __MAX17055_Design_Capacity__ ||
-    //     vEmpty != __MAX17055_Empty_Voltage__ ||
-    //     iChgTerm != __MAX17055_Termination_Current__) {
-    if (designCap != __MAX17055_Design_Capacity__ ||
-        (hibCfg & 0x0002)) {
+    if (UserMem1 == 0) {
         return true;
     }
     return false;
-}
-
-// void MAX17055::fullInit() {
-//     config();
-//     setHibCFG(0x0000);
-//     setDesignCapacity(__MAX17055_Design_Capacity__);
-//     setModelCfg(__MAX17055_Battery_Model__);
-//     setChargeTerminationCurrent(__MAX17055_Termination_Current__);
-//     setEmptyVoltage(__MAX17055_Empty_Voltage__);
-//     setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
-//     setMinVoltage(__MAX17055_Min_Voltage__);
-//     setMaxVoltage(__MAX17055_Max_Voltage__);
-//     setMaxCurrent(__MAX17055_Max_Current__);
-//     setMinSOC(__MAX17055_Min_SOC__);
-//     setMaxSOC(__MAX17055_Max_SOC__);
-//     setMinTemperature(__MAX17055_Min_Temperature__);
-//     setMaxTemperature(__MAX17055_Max_Temperature__);
-// }
-
-void MAX17055::fullInit() {
-    full_reset_and_init();
-    // // Perform software Power-On Reset
-    // write_register(0x00, 0x0000);
-    // chThdSleepMilliseconds(10);  // Wait for POR to complete
-
-    // // Reset learned parameters
-    // uint16_t hibcfg = read_register(0xBA);
-    // write_register(0xBA, hibcfg | 0x0002);  // Set POR bit
-    // chThdSleepMilliseconds(10);             // Wait for reset to complete
-
-    // // Basic configuration
-    // config();
-    // setHibCFG(0x0000);
-    // setDesignCapacity(__MAX17055_Design_Capacity__);
-
-    // // Set model and wait for initialization
-    // setModelCfg(__MAX17055_Battery_Model__);
-    // uint16_t model_cfg;
-    // do {
-    //     model_cfg = read_register(0xDB);
-    //     chThdSleepMilliseconds(10);
-    // } while (model_cfg & 0x0008);  // Wait for IChgTerm to clear
-
-    // // Set other parameters
-    // setChargeTerminationCurrent(__MAX17055_Termination_Current__);
-    // setEmptyVoltage(__MAX17055_Empty_Voltage__);
-    // setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
-    // setMinVoltage(__MAX17055_Min_Voltage__);
-    // setMaxVoltage(__MAX17055_Max_Voltage__);
-    // setMaxCurrent(__MAX17055_Max_Current__);
-    // setMinSOC(__MAX17055_Min_SOC__);
-    // setMaxSOC(__MAX17055_Max_SOC__);
-    // setMinTemperature(__MAX17055_Min_Temperature__);
-    // setMaxTemperature(__MAX17055_Max_Temperature__);
-
-    // // Set initial RepCap and FullCapRep
-    // setRepCap(__MAX17055_Design_Capacity__);
-    // setFullCapRep(__MAX17055_Design_Capacity__);
-
-    // // Clear POR bit
-    // uint16_t status = read_register(0x00);
-    // write_register(0x00, status & ~0x0002);
-
-    // // Wait for VFSOC to be calculated
-    // chThdSleepMilliseconds(350);
-
-    // // Optional: Update Config2 register if needed
-    // // uint16_t config2 = read_register(0xBB);
-    // // config2 |= 0x0001;  // Set Ldm bit
-    // // write_register(0xBB, config2);
 }
 
 void MAX17055::partialInit() {
@@ -229,7 +302,7 @@ void MAX17055::partialInit() {
 bool MAX17055::reset_learned() {
     // this if for reset all the learned parameters by ic
     // the full inis should do this
-    fullInit();
+    full_reset_and_init();
     return true;
 }
 
@@ -252,6 +325,15 @@ bool MAX17055::detect() {
 
     detected_ = false;
     return false;
+}
+
+const RegisterEntry* MAX17055::findEntry(const char* name) const {
+    for (const auto& entry : entries) {
+        if (std::strcmp(entry.name, name) == 0) {
+            return &entry;
+        }
+    }
+    return nullptr;
 }
 
 bool bitRead(uint8_t value, uint8_t bit) {
@@ -498,15 +580,25 @@ uint16_t MAX17055::instantVoltage(void) {
     return _Value;
 }
 
+// uint16_t MAX17055::averageVoltage(void) {
+//     // Get Data from IC
+//     uint16_t _Measurement_Raw = read_register(0x19);
+
+// // Calculate Measurement
+// uint16_t _Value = ((uint32_t)_Measurement_Raw * 1.25 / 16);
+
+// // End Function
+// return _Value;
+// }
+
 uint16_t MAX17055::averageVoltage(void) {
-    // Get Data from IC
-    uint16_t _Measurement_Raw = read_register(0x19);
-
-    // Calculate Measurement
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 1.25 / 16);
-
-    // End Function
-    return _Value;
+    const RegisterEntry* entry = findEntry("AvgVCell");
+    if (entry) {
+        uint16_t raw_value = read_register(entry->address);
+        float scaled_value = raw_value * entry->scalar;
+        return static_cast<uint16_t>(scaled_value * 1000);  // Convert to mV
+    }
+    return 0;  // Return 0 if entry not found
 }
 
 uint16_t MAX17055::emptyVoltage(void) {

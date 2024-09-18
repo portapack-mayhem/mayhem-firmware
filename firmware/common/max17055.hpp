@@ -253,6 +253,22 @@ namespace max17055 {
 
 using address_t = uint8_t;
 
+struct RegisterEntry {
+    const char* name;
+    uint8_t address;
+    const char* type;
+    float scalar;
+    bool is_signed;
+    const char* unit;
+    bool abbr_units;
+    int resolution;
+    bool is_user;
+    bool is_save_restore;
+    bool is_nv;
+    uint16_t por_data;
+    bool is_read_only;
+};
+
 class MAX17055 {
    public:
     constexpr MAX17055(I2C& bus, const I2C::address_t bus_address)
@@ -262,9 +278,13 @@ class MAX17055 {
     bool detect();
     bool isDetected() const { return detected_; }
 
-    uint16_t readVoltage();
-    uint8_t readPercentage();
     void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+
+    static const RegisterEntry entries[];
+    static constexpr size_t entries_count = 144;
+
+    // New generic function to read and calculate values
+    float read_and_calculate(uint8_t address) const;
 
     uint16_t instantVoltage(void);
     uint16_t averageVoltage(void);
@@ -294,8 +314,9 @@ class MAX17055 {
     const I2C::address_t bus_address;
     bool detected_ = false;
 
+    const RegisterEntry* findEntry(const char* name) const;
+
     bool needsInitialization();
-    void fullInit();
     void partialInit();
 
     // Testing
