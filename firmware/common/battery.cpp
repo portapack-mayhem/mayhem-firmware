@@ -55,6 +55,7 @@ bool BatteryManagement::reset_learned() {
     if (detected_ == BATT_MAX17055) {
         return battery_max17055.reset_learned();
     }
+    return false;
 }
 
 // set if the default percentage calculation should be overrided by voltage based one
@@ -94,6 +95,26 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPerc
 #endif
 
     (void)current;
+}
+
+uint16_t BatteryManagement::get_cycles() {
+    if (detected_ == BATT_MAX17055) {
+        return (uint16_t)battery_max17055.getValue("Cycles");
+    }
+    return 0;
+}
+
+float BatteryManagement::get_tte() {
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.getValue("AtTTE");
+    }
+    return 0;
+}
+float BatteryManagement::get_ttf() {
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.getValue("TTF");
+    }
+    return 0;
 }
 
 uint16_t BatteryManagement::read_register(const uint8_t reg) {

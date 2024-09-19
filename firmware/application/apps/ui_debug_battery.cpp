@@ -10,15 +10,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
     return {"", 0, "", 0, false, "", false, 0, false, false, false, 0, false};
 }
 
-BatteryCapacityView::BatteryCapacityView(NavigationView& nav)
-    : labels({
-          {{0 * 8, 0 * 16}, "Reg", Theme::getInstance()->fg_yellow->foreground},
-          {{9 * 8, 0 * 16}, "Addr", Theme::getInstance()->fg_yellow->foreground},
-          {{14 * 8, 0 * 16}, "Hex", Theme::getInstance()->fg_yellow->foreground},
-          {{21 * 8, 0 * 16}, "Value", Theme::getInstance()->fg_yellow->foreground},
-      }),
-      page_text{{144, 284, 80, 16}, "Page 1/1"},
-      button_done{{16, 280, 96, 24}, "Done"} {
+BatteryCapacityView::BatteryCapacityView(NavigationView& nav) {
     for (size_t i = 0; i < ENTRIES_PER_PAGE; ++i) {
         name_texts[i].set_parent_rect({0 * 8, static_cast<int>((i + 1) * 16), 8 * 8, 16});
         addr_texts[i].set_parent_rect({9 * 8, static_cast<int>((i + 1) * 16), 4 * 8, 16});
@@ -45,7 +37,7 @@ void BatteryCapacityView::focus() {
 
 bool BatteryCapacityView::on_encoder(const EncoderEvent delta) {
     int32_t new_page = current_page + delta;
-    if (new_page >= 0 && new_page < (battery::max17055::MAX17055::entries_count + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE) {
+    if (new_page >= 0 && new_page < ((int32_t)battery::max17055::MAX17055::entries_count + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE) {
         current_page = new_page;
         populate_page(current_page * ENTRIES_PER_PAGE);
         update_page_text();

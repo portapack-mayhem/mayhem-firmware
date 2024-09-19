@@ -44,6 +44,8 @@ class BatteryManagement {
         BATT_VALID_VOLTAGE = 1,
         BATT_VALID_CURRENT = 2,
         BATT_VALID_PERCENT = 4,
+        BATT_VALID_CYCLES = 8,
+        BATT_VALID_TTEF = 16,
     };
     static void init(bool override = false);
     static void detect();
@@ -57,6 +59,9 @@ class BatteryManagement {
     static void set_calc_override(bool override);
     static uint8_t calc_percent_voltage(uint16_t);  // calculates battery percentage from the voltage
     static bool reset_learned();                    // resets the ic's learned parameters
+    static uint16_t get_cycles();
+    static float get_tte();
+    static float get_ttf();
 
    private:
     static void create_thread();

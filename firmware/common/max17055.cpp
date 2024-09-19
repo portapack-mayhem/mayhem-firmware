@@ -351,7 +351,7 @@ void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, u
         }
         batteryPercentage = stateOfCharge();
         current = instantCurrent();
-        valid_mask = 7;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT
+        valid_mask = 31;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT + BATT_VALID_CYCLES + BATT_VALID_TTEF
     } else {
         // let's indicate the data is wrong. ui will handle this by display UNK values.
         valid_mask = 0;
