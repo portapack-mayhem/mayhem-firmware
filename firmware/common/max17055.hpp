@@ -274,38 +274,23 @@ class MAX17055 {
     constexpr MAX17055(I2C& bus, const I2C::address_t bus_address)
         : bus(bus), bus_address(bus_address), detected_(false) {}
 
+    static const RegisterEntry entries[];
+    static constexpr size_t entries_count = 144;
+
+    uint16_t read_register(const uint8_t reg);
+    bool write_register(const uint8_t reg, const uint16_t value);
+
     void init();
     bool detect();
     bool isDetected() const { return detected_; }
 
     void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
-
-    static const RegisterEntry entries[];
-    static constexpr size_t entries_count = 144;
-
-    int16_t getValue(const char* entityName);
-    uint16_t instantVoltage(void);
-    uint16_t averageVoltage(void);
-    uint16_t emptyVoltage(void);
-    uint16_t recoveryVoltage(void);
-    int32_t instantCurrent(void);
-    int32_t averageCurrent(void);
-    uint16_t stateOfCharge(void);
-    uint16_t averageStateOfCharge(void);
-    uint16_t instantCapacity(void);
-    uint16_t designCapacity(void);
-    uint16_t fullCapacity(void);
-    uint16_t icTemperature(void);
-    uint16_t timeToEmpty(void);
-    uint16_t timeToFull(void);
-    uint16_t batteryAge(void);
-    uint16_t chargeCycle(void);
-    bool statusControl(const uint8_t _Status);
-    bool statusClear();
-    uint16_t chargeTerminationCurrent(void);
-    uint16_t read_register(const uint8_t reg);
-    bool write_register(const uint8_t reg, const uint16_t value);
     bool reset_learned();
+
+    float getValue(const char* entityName);
+    uint16_t averageMVoltage(void);
+    int32_t instantCurrent(void);
+    uint16_t stateOfCharge(void);
 
    private:
     I2C& bus;
@@ -317,13 +302,14 @@ class MAX17055 {
     bool needsInitialization();
     void partialInit();
 
-    // Testing
+    bool statusControl(const uint8_t _Status);
+    bool statusClear();
+
     bool full_reset_and_init();
     bool soft_reset();
     bool clear_por();
     bool initialize_custom_parameters();
     bool load_custom_parameters();
-    bool update_full_capacity_learned();
 
     bool setEmptyVoltage(uint16_t _Empty_Voltage);
     bool setRecoveryVoltage(uint16_t _Recovery_Voltage);
