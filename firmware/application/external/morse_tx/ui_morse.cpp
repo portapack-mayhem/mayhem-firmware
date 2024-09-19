@@ -36,7 +36,7 @@ using namespace portapack;
 using namespace morse;
 using namespace hackrf::one;
 
-namespace ui {
+namespace ui::external_app::morse_tx {
 
 static WORKING_AREA(ookthread_wa, 256);
 
@@ -284,4 +284,4 @@ MorseView::MorseView(
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::morse_tx

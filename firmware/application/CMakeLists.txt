@@ -306,7 +306,7 @@ set(CPPSRC
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
-	apps/ui_morse.cpp
+	# apps/ui_morse.cpp
 	# apps/ui_nrf_rx.cpp
 	# apps/ui_nuoptix.cpp
 	apps/ui_playlist.cpp
