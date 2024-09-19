@@ -85,6 +85,7 @@ void BattinfoView::update_result() {
         text_charge.hidden(true);
         text_cycles.hidden(true);
         text_ttef.hidden(true);
+        text_warn.set("");
     }
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
         text_cycles.hidden(false);
@@ -96,6 +97,7 @@ void BattinfoView::update_result() {
         text_cycles.set(to_string_dec_uint(cycles));
     } else {
         text_cycles.hidden(true);
+        text_warn.set("");
     }
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
         text_ttef.hidden(false);
