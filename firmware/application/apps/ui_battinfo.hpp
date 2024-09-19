@@ -62,7 +62,7 @@ class BattinfoView : public View {
         {{2 * 8, 5 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 6 * 16}, "Cycles:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 7 * 16}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 9 * 16}, "Change method:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "Change method:", Theme::getInstance()->fg_light->foreground},
     };
 
     Text text_percent{
@@ -87,8 +87,12 @@ class BattinfoView : public View {
         {13 * 8, 7 * 16, 10 * 16, 16},
         "-"};
 
+    Text text_warn{
+        {0 * 8, 8 * 16, 30 * 16, 16},
+        ""};
+
     Button button_mode{
-        {2 * 8, 10 * 16 + 5, 5 * 16, 32},
+        {2 * 8, 11 * 16 + 5, 5 * 16, 32},
         "Volt"};
 
     Button button_exit{

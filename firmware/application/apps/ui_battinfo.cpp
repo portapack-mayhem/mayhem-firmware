@@ -52,6 +52,7 @@ void BattinfoView::update_result() {
         text_cycles.set("-");
         text_ttef.set("-");
         text_method.set("-");
+        text_warn.set("");
         return;
     }
     bool uichg = false;
@@ -87,7 +88,11 @@ void BattinfoView::update_result() {
     }
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
         text_cycles.hidden(false);
-        auto cycles = battery::BatteryManagement::get_cycles();
+        uint16_t cycles = battery::BatteryManagement::get_cycles();
+        if (cycles < 4)
+            text_warn.set("MAY BE INACCURATE");
+        else
+            text_warn.set("");
         text_cycles.set(to_string_dec_uint(cycles));
     } else {
         text_cycles.hidden(true);
@@ -128,6 +133,7 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &button_mode,
                   &button_exit,
                   &text_cycles,
+                  &text_warn,
                   &text_ttef});
 
     button_exit.on_select = [this, &nav](Button&) {

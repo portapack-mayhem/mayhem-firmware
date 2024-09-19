@@ -106,7 +106,7 @@ uint16_t BatteryManagement::get_cycles() {
 
 float BatteryManagement::get_tte() {
     if (detected_ == BATT_MAX17055) {
-        return battery_max17055.getValue("AtTTE");
+        return battery_max17055.getValue("TTE");
     }
     return 0;
 }
