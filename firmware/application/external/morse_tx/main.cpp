@@ -76,7 +76,7 @@ __attribute__((section(".external_app.app_morse_tx.application_information"), us
     /*.icon_color = */ ui::Color::green().v,
     /*.menu_location = */ app_location_t::TX,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_tones */ {'P', 'T', 'O', 'N'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
