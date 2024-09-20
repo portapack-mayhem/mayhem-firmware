@@ -38,7 +38,7 @@
 
 using namespace sstv;
 
-namespace ui {
+namespace ui::external_app::sstvtx {
 
 class SSTVTXView : public View {
    public:
@@ -110,6 +110,6 @@ class SSTVTXView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::sstvtx */
 
 #endif /*__UI_SSTVTX_H__*/
