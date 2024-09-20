@@ -292,6 +292,7 @@ set(CPPSRC
 	apps/ui_btle_rx.cpp
 	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
+	apps/ui_debug_battery.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
@@ -306,7 +307,7 @@ set(CPPSRC
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
-	apps/ui_morse.cpp
+	# apps/ui_morse.cpp
 	# apps/ui_nrf_rx.cpp
 	# apps/ui_nuoptix.cpp
 	apps/ui_playlist.cpp
