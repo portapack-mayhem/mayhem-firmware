@@ -90,8 +90,8 @@ void BattinfoView::update_result() {
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
         text_cycles.hidden(false);
         uint16_t cycles = battery::BatteryManagement::get_cycles();
-        if (cycles < 4)
-            text_warn.set("MAY BE INACCURATE");
+        if (cycles < 2)
+            text_warn.set("SoC improves after 2 cycles");
         else
             text_warn.set("");
         text_cycles.set(to_string_dec_uint(cycles));
@@ -102,10 +102,11 @@ void BattinfoView::update_result() {
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
         text_ttef.hidden(false);
         float ttef = 0;
-        if (current <= 0)
+        if (current <= 0) {
             ttef = battery::BatteryManagement::get_tte();
-        else
+        } else {
             ttef = battery::BatteryManagement::get_ttf();
+        }
         text_ttef.set(to_string_decimal(ttef, 1) + " h");
     } else {
         text_ttef.hidden(true);

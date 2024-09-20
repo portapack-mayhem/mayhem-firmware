@@ -60,8 +60,8 @@ class BattinfoView : public View {
     Labels labels_opt{
         {{2 * 8, 4 * 16}, "Current:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 5 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 6 * 16}, "Cycles:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 7 * 16}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 6 * 16}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Cycles:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 16}, "Change method:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -80,15 +80,15 @@ class BattinfoView : public View {
     Text text_charge{
         {13 * 8, 5 * 16, 10 * 16, 16},
         "-"};
-    Text text_cycles{
+    Text text_ttef{
         {13 * 8, 6 * 16, 10 * 16, 16},
         "-"};
-    Text text_ttef{
+    Text text_cycles{
         {13 * 8, 7 * 16, 10 * 16, 16},
         "-"};
 
     Text text_warn{
-        {0 * 8, 8 * 16, 30 * 16, 16},
+        {0 * 8, 8 * 16, 30 * 8, 2 * 16},
         ""};
 
     Button button_mode{
