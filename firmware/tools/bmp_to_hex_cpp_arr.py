@@ -23,11 +23,13 @@ def bmp_to_hex_cpp_arr(input_file, output_file):
         for i in range(0, len(data), 12):
             line = data[i:i + 12]
             hex_values = [f"0x{byte:02x}" for byte in line]
+            f.write(f"    {', '.join(hex_values)},\n")
 
-            if i + 16 >= len(data):
-                f.write("    " + ", ".join(hex_values) + "};\n")
-            else:
-                f.write("    " + ", ".join(hex_values) + ",\n")
+        # this is for remove last the extra comma
+        f.seek(f.tell() - 2, os.SEEK_SET)
+        f.truncate()
+        
+        f.write("};\n")
 
         f.write(f"unsigned int {name_without_extension}_len = {len(data)};\n")
 
