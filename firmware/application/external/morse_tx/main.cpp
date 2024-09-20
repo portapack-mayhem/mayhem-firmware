@@ -20,63 +20,63 @@
  */
 
 #include "ui.hpp"
-#include "ui_blespam.hpp"
+#include "ui_morse.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::blespam {
+namespace ui::external_app::morse_tx {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<BLESpamView>();
+    nav.push<MorseView>();
 }
-}  // namespace ui::external_app::blespam
+}  // namespace ui::external_app::morse_tx
 
 extern "C" {
 
-__attribute__((section(".external_app.app_blespam.application_information"), used)) application_information_t _application_information_blespam = {
+__attribute__((section(".external_app.app_morse_tx.application_information"), used)) application_information_t _application_information_morse_tx = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::blespam::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::morse_tx::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "BLESpam",
+    /*.app_name = */ "Morse",
     /*.bitmap_data = */ {
         0x00,
         0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0xF8,
-        0x1F,
-        0x04,
-        0x20,
-        0x02,
-        0x40,
+        0xFE,
+        0x7F,
+        0xFF,
+        0xFF,
+        0xBB,
+        0xD0,
         0xFF,
         0xFF,
         0xFF,
         0xFF,
-        0xAB,
-        0xDF,
-        0xAB,
-        0xDF,
+        0x0B,
+        0xE1,
         0xFF,
         0xFF,
         0xFF,
         0xFF,
+        0xEB,
+        0xD0,
+        0xFF,
+        0xFF,
+        0xFE,
+        0x7F,
+        0x70,
         0x00,
+        0x30,
         0x00,
-        0x00,
+        0x10,
         0x00,
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::yellow().v,
+    /*.icon_color = */ ui::Color::green().v,
     /*.menu_location = */ app_location_t::TX,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_btle_tx */ {'P', 'B', 'T', 'T'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_tones */ {'P', 'T', 'O', 'N'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

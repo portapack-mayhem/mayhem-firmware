@@ -49,7 +49,10 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
         text_current.set("-");
         text_charge.set("-");
+        text_cycles.set("-");
+        text_ttef.set("-");
         text_method.set("-");
+        text_warn.set("");
         return;
     }
     bool uichg = false;
@@ -73,11 +76,52 @@ void BattinfoView::update_result() {
         text_current.set(to_string_dec_int(current) + " mA");
         text_charge.set(current >= 0 ? "Charging" : "Discharging");
         labels_opt.hidden(false);
+
+        text_ttef.hidden(false);
     } else {
         if (!labels_opt.hidden()) uichg = true;
         labels_opt.hidden(true);
         text_current.hidden(true);
         text_charge.hidden(true);
+        text_cycles.hidden(true);
+        text_ttef.hidden(true);
+        text_warn.set("");
+    }
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
+        text_cycles.hidden(false);
+        uint16_t cycles = battery::BatteryManagement::get_cycles();
+        if (cycles < 2)
+            text_warn.set("SoC improves after 2 cycles");
+        else
+            text_warn.set("");
+        text_cycles.set(to_string_dec_uint(cycles));
+    } else {
+        text_cycles.hidden(true);
+        text_warn.set("");
+    }
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
+        text_ttef.hidden(false);
+        float ttef = 0;
+        if (current <= 0) {
+            ttef = battery::BatteryManagement::get_tte();
+        } else {
+            ttef = battery::BatteryManagement::get_ttf();
+        }
+
+        // Convert ttef to hours and minutes
+        uint8_t hours = static_cast<uint8_t>(ttef);
+        uint8_t minutes = static_cast<uint8_t>((ttef - hours) * 60 + 0.5);  // +0.5 for rounding
+
+        // Create the formatted string
+        std::string formatted_time;
+        if (hours > 0) {
+            formatted_time += to_string_dec_uint(hours) + "h ";
+        }
+        formatted_time += to_string_dec_uint(minutes) + "m";
+
+        text_ttef.set(formatted_time);
+    } else {
+        text_ttef.hidden(true);
     }
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_PERCENT) == battery::BatteryManagement::BATT_VALID_PERCENT) {
         text_method.set("IC");
@@ -102,7 +146,10 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &text_charge,
                   &text_method,
                   &button_mode,
-                  &button_exit});
+                  &button_exit,
+                  &text_cycles,
+                  &text_warn,
+                  &text_ttef});
 
     button_exit.on_select = [this, &nav](Button&) {
         nav.pop();

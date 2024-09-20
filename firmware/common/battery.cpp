@@ -23,14 +23,14 @@ bool BatteryManagement::calcOverride = false;
 void BatteryManagement::detect() {
     // try to detect supported modules
     detected_ = BATT_NONE;
+    if (battery_max17055.detect()) {
+        battery_max17055.init();
+        detected_ = BATT_MAX17055;
+        return;
+    }
     if (battery_ads1110.detect()) {
         battery_ads1110.init();
         detected_ = BATT_ADS1110;
-        return;
-    }
-    if (battery_max17055.detect()) {
-        // battery_max17055.init(); //detect will call this on each "re detect"
-        detected_ = BATT_MAX17055;
         return;
     }
 
@@ -49,6 +49,13 @@ void BatteryManagement::init(bool override) {
     detect();
     // sets timer to query and broadcats this info
     create_thread();
+}
+
+bool BatteryManagement::reset_learned() {
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.reset_learned();
+    }
+    return false;
 }
 
 // set if the default percentage calculation should be overrided by voltage based one
@@ -88,6 +95,26 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPerc
 #endif
 
     (void)current;
+}
+
+uint16_t BatteryManagement::get_cycles() {
+    if (detected_ == BATT_MAX17055) {
+        return (uint16_t)battery_max17055.getValue("Cycles");
+    }
+    return 0;
+}
+
+float BatteryManagement::get_tte() {
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.getValue("TTE");
+    }
+    return 0;
+}
+float BatteryManagement::get_ttf() {
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.getValue("TTF");
+    }
+    return 0;
 }
 
 uint16_t BatteryManagement::read_register(const uint8_t reg) {

@@ -36,7 +36,7 @@ using namespace portapack;
 using namespace morse;
 using namespace hackrf::one;
 
-namespace ui {
+namespace ui::external_app::morse_tx {
 
 static WORKING_AREA(ookthread_wa, 256);
 
@@ -194,7 +194,8 @@ void MorseView::set_foxhunt(size_t i) {
 MorseView::MorseView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_tones);
+    // baseband::run_image(portapack::spi_flash::image_tag_tones);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &checkbox_foxhunt,
@@ -284,4 +285,4 @@ MorseView::MorseView(
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::morse_tx

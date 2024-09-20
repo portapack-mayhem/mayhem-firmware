@@ -39,7 +39,7 @@
 
 using namespace morse;
 
-namespace ui {
+namespace ui::external_app::morse_tx {
 
 class MorseView : public View {
    public:
@@ -179,6 +179,6 @@ class MorseView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::morse_tx
 
 #endif /*__MORSE_TX_H__*/
