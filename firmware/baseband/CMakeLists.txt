@@ -480,12 +480,6 @@ set(MODE_CPPSRC
 DeclareTargets(PSIG siggen)
 
 
-### SSTV TX
-
-set(MODE_CPPSRC
-	proc_sstvtx.cpp
-)
-DeclareTargets(PSTX sstvtx)
 
 ### Tones
 
@@ -650,6 +644,12 @@ set(MODE_CPPSRC
 DeclareTargets(PPVW protoview)
 
 
+### SSTV TX
+
+set(MODE_CPPSRC
+	proc_sstvtx.cpp
+)
+DeclareTargets(PSTX sstvtx)
 
 ### TPMS
 

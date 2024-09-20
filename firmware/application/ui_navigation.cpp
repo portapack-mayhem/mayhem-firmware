@@ -74,7 +74,7 @@
 #include "ui_sonde.hpp"
 // #include "ui_spectrum_painter.hpp" //moved to ext app
 #include "ui_ss_viewer.hpp"
-#include "ui_sstvtx.hpp"
+// #include "ui_sstvtx.hpp" //moved to ext
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
@@ -191,7 +191,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
-    {"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()},
+    //{"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()}, //moved to ext
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* UTILITIES *************************************************************/
     {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},

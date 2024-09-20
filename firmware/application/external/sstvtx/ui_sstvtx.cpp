@@ -31,7 +31,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::sstvtx {
 
 void SSTVTXView::focus() {
     if (file_error)
@@ -232,7 +232,8 @@ SSTVTXView::SSTVTXView(
 
     // Maybe this could be merged with proc_tones ? Pretty much the same except lots
     // of different tones (256+)
-    baseband::run_image(portapack::spi_flash::image_tag_sstv_tx);
+    // baseband::run_image(portapack::spi_flash::image_tag_sstv_tx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &options_bitmaps,
@@ -283,4 +284,4 @@ SSTVTXView::SSTVTXView(
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::sstvtx
