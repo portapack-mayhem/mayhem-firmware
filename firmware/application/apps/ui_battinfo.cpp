@@ -107,7 +107,19 @@ void BattinfoView::update_result() {
         } else {
             ttef = battery::BatteryManagement::get_ttf();
         }
-        text_ttef.set(to_string_decimal(ttef, 2) + " h");
+
+        // Convert ttef to hours and minutes
+        uint8_t hours = static_cast<uint8_t>(ttef);
+        uint8_t minutes = static_cast<uint8_t>((ttef - hours) * 60 + 0.5);  // +0.5 for rounding
+
+        // Create the formatted string
+        std::string formatted_time;
+        if (hours > 0) {
+            formatted_time += to_string_dec_uint(hours) + "h ";
+        }
+        formatted_time += to_string_dec_uint(minutes) + "m";
+
+        text_ttef.set(formatted_time);
     } else {
         text_ttef.hidden(true);
     }
