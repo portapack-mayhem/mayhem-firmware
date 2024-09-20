@@ -107,7 +107,7 @@ void BattinfoView::update_result() {
         } else {
             ttef = battery::BatteryManagement::get_ttf();
         }
-        text_ttef.set(to_string_decimal(ttef, 1) + " h");
+        text_ttef.set(to_string_decimal(ttef, 2) + " h");
     } else {
         text_ttef.hidden(true);
     }
