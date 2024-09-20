@@ -31,7 +31,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::sstvtx {
 
 void SSTVTXView::focus() {
     if (file_error)
@@ -283,4 +283,4 @@ SSTVTXView::SSTVTXView(
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::sstvtx
