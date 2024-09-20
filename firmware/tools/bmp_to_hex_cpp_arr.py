@@ -23,13 +23,16 @@ def bmp_to_hex_cpp_arr(input_file, output_file):
         for i in range(0, len(data), 12):
             line = data[i:i + 12]
             hex_values = [f"0x{byte:02x}" for byte in line]
+
             f.write(f"    {', '.join(hex_values)},\n")
 
         # this is for remove last the extra comma
         f.seek(f.tell() - 2, os.SEEK_SET)
         f.truncate()
-        
+
         f.write("};\n")
+
+
 
         f.write(f"unsigned int {name_without_extension}_len = {len(data)};\n")
 
@@ -37,7 +40,7 @@ def bmp_to_hex_cpp_arr(input_file, output_file):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("usage: python script.py INPUTFILE OUTPUTFILE")
+        print("usage: python bmp_to_hex_cpp_arr.py INPUTFILE OUTPUTFILE")
         sys.exit(1)
 
     input_file = sys.argv[1]
