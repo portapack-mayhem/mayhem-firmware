@@ -138,7 +138,7 @@ class ProtoView : public View {
     bool needCntReset = false;
 
     int16_t zoom = 1;  // one value in ms
-    int32_t waveform_shift = 0;
+    int16_t waveform_shift = 0;
 
     uint16_t cnt = 0;      // pointer to next element
     uint16_t drawcnt = 0;  // pointer to draw next element
