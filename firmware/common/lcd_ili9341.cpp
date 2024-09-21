@@ -359,12 +359,12 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
     data_idx = bmp_header->image_data;
     const bmp_palette_t* bmp_palette = (const bmp_palette_t*)&bitmap[bmp_header->BIH_size + 14];
 
-    // Convert palette and find pure magenta index (alpha color key)
+    // Convert palette and find pure black index (alpha color key), previously it's rgb(255,0,255), now it's rgb(0,0,0)
     for (c = 0; c < 16; c++) {
         palette[c] = ui::Color(bmp_palette->color[c].R, bmp_palette->color[c].G, bmp_palette->color[c].B);
-        if ((bmp_palette->color[c].R == 0xFF) &&
+        if ((bmp_palette->color[c].R == 0x00) &&
             (bmp_palette->color[c].G == 0x00) &&
-            (bmp_palette->color[c].B == 0xFF)) transp_idx = c;
+            (bmp_palette->color[c].B == 0x00)) transp_idx = c;
     }
 
     if (!transparency) {
