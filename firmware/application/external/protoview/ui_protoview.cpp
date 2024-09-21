@@ -134,8 +134,12 @@ void ProtoView::draw() {
     bool state = false;
     drawcnt = 0;
     for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
+    
+    for (int32_t i = 0; i < ((waveform_shift > 0) ? 0 : -waveform_shift) && drawcnt < MAXDRAWCNT; ++i) {
+        waveform_buffer[drawcnt++] = false;
+    }
 
-    for (uint16_t i = (waveform_shift >= 0 ? 0 : -waveform_shift); i < (waveform_shift >= 0 ? MAXSIGNALBUFFER - waveform_shift : MAXSIGNALBUFFER); ++i) {
+    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0); i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT; ++i) {
         int32_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
         state = time_buffer[buffer_index] >= 0;
         int32_t timeabs = state ? time_buffer[buffer_index] : -1 * time_buffer[buffer_index];
@@ -155,9 +159,8 @@ void ProtoView::draw() {
         }
         remain = 0;
         lmax = 0;
-        for (int32_t ii = 0; ii < timesize; ++ii) {
+        for (int32_t ii = 0; ii < timesize && drawcnt < MAXDRAWCNT; ++ii) {
             waveform_buffer[drawcnt++] = state;
-            if (drawcnt >= MAXDRAWCNT) return;
         }
     }
 }
