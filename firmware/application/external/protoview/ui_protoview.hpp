@@ -104,7 +104,7 @@ class ProtoView : public View {
         LanguageHelper::currentMessages[LANG_RESET]};
 
     Waveform waveform{
-        {0, 6 * 8, 240, 50},
+        {0, 8 * 8, 240, 50},
         waveform_buffer,
         0,
         0,
@@ -112,7 +112,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform2{
-        {0, 6 * 8 + 55, 240, 50},
+        {0, 8 * 8 + 55, 240, 50},
         &waveform_buffer[MAXDRAWCNTPERWF],
         0,
         0,
@@ -120,7 +120,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform3{
-        {0, 6 * 8 + 110, 240, 50},
+        {0, 8 * 8 + 110, 240, 50},
         &waveform_buffer[MAXDRAWCNTPERWF * 2],
         0,
         0,
@@ -128,7 +128,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform4{
-        {0, 6 * 8 + 165, 240, 50},
+        {0, 8 * 8 + 165, 240, 50},
         &waveform_buffer[MAXDRAWCNTPERWF * 3],
         0,
         0,
