@@ -134,15 +134,17 @@ void ProtoView::draw() {
     drawcnt = 0;
     for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
 
-    for (int32_t i = 0; i < ((waveform_shift > 0) ? 0 : -waveform_shift) && drawcnt < MAXDRAWCNT; ++i) {
-        waveform_buffer[drawcnt++] = false;
+    // add empty data for padding (so you can shift left/nagetive)
+    for (int32_t i = 0;
+         i < ((waveform_shift > 0) ? 0 : -waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (left side)
+         ++i) {
+        waveform_buffer[drawcnt++] = 0;
     }
 
-    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0);
-         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;
+    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0);  // this is for shift positive aka right side
+         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;                // prevent out of ranging
          ++i) {
-
-        int32_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
+        uint16_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
         state = time_buffer[buffer_index] >= 0;
         int32_t timeabs = state ? time_buffer[buffer_index] : -1 * time_buffer[buffer_index];
         int32_t timesize = timeabs / zoom;
