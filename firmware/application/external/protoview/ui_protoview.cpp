@@ -28,7 +28,6 @@
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "file_path.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -139,7 +138,10 @@ void ProtoView::draw() {
         waveform_buffer[drawcnt++] = false;
     }
 
-    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0); i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT; ++i) {
+    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0);
+         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;
+         ++i) {
+
         int32_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
         state = time_buffer[buffer_index] >= 0;
         int32_t timeabs = state ? time_buffer[buffer_index] : -1 * time_buffer[buffer_index];
