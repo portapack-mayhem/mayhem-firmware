@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -76,7 +75,8 @@ class ProtoView : public View {
         {0 * 8, 0 * 16},
         nav_};
     Labels labels{
-        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Shift: ", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_zoom{
         {7 * 8, 1 * 16},
@@ -92,12 +92,19 @@ class ProtoView : public View {
          {"500", 500},
          {"1000", 1000}}};
 
+    NumberField number_shift{
+        {7 * 8, 2 * 16},
+        5,
+        {-MAXSIGNALBUFFER, MAXSIGNALBUFFER},
+        1,
+        ' '};
+
     Button button_reset{
         {screen_width - 12 * 8, 1 * 16, 96, 24},
         LanguageHelper::currentMessages[LANG_RESET]};
 
     Waveform waveform{
-        {0, 5 * 8, 240, 50},
+        {0, 8 * 8, 240, 50},
         waveform_buffer,
         0,
         0,
@@ -105,7 +112,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform2{
-        {0, 5 * 8 + 55, 240, 50},
+        {0, 8 * 8 + 55, 240, 50},
         &waveform_buffer[MAXDRAWCNTPERWF],
         0,
         0,
@@ -113,7 +120,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform3{
-        {0, 5 * 8 + 110, 240, 50},
+        {0, 8 * 8 + 110, 240, 50},
         &waveform_buffer[MAXDRAWCNTPERWF * 2],
         0,
         0,
@@ -121,7 +128,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform4{
-        {0, 5 * 8 + 165, 240, 50},
+        {0, 8 * 8 + 165, 240, 50},
         &waveform_buffer[MAXDRAWCNTPERWF * 3],
         0,
         0,
@@ -131,6 +138,7 @@ class ProtoView : public View {
     bool needCntReset = false;
 
     int16_t zoom = 1;  // one value in ms
+    int16_t waveform_shift = 0;
 
     uint16_t cnt = 0;      // pointer to next element
     uint16_t drawcnt = 0;  // pointer to draw next element
