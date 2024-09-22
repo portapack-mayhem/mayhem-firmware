@@ -51,6 +51,7 @@ ProtoView::ProtoView(NavigationView& nav)
                   &field_frequency,
                   &labels,
                   &options_zoom,
+                  &number_shift,
                   &button_reset,
                   &waveform,
                   &waveform2,
@@ -60,6 +61,11 @@ ProtoView::ProtoView(NavigationView& nav)
     field_frequency.set_step(100);
     options_zoom.on_change = [this](size_t, int32_t v) {
         zoom = v;
+        draw();
+        draw2();
+    };
+    number_shift.on_change = [this](int32_t value) {
+        waveform_shift = value;
         draw();
         draw2();
     };
@@ -74,6 +80,8 @@ ProtoView::ProtoView(NavigationView& nav)
 
 void ProtoView::reset() {
     cnt = 0;
+    number_shift.set_value(0);
+    waveform_shift = 0;
     for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
     needCntReset = false;
     draw();
@@ -126,9 +134,19 @@ void ProtoView::draw() {
     drawcnt = 0;
     for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
 
-    for (uint16_t i = 0; i < MAXSIGNALBUFFER; ++i) {
-        state = time_buffer[i] >= 0;
-        int32_t timeabs = state ? time_buffer[i] : -1 * time_buffer[i];
+    // add empty data for padding (so you can shift left/nagetive)
+    for (int32_t i = 0;
+         i < ((waveform_shift > 0) ? 0 : -waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (left side)
+         ++i) {
+        waveform_buffer[drawcnt++] = 0;
+    }
+
+    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0);  // this is for shift positive aka right side
+         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;                // prevent out of ranging
+         ++i) {
+        uint16_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
+        state = time_buffer[buffer_index] >= 0;
+        int32_t timeabs = state ? time_buffer[buffer_index] : -1 * time_buffer[buffer_index];
         int32_t timesize = timeabs / zoom;
         if (timesize == 0) {
             remain += timeabs;
@@ -145,9 +163,8 @@ void ProtoView::draw() {
         }
         remain = 0;
         lmax = 0;
-        for (int32_t ii = 0; ii < timesize; ++ii) {
+        for (int32_t ii = 0; ii < timesize && drawcnt < MAXDRAWCNT; ++ii) {
             waveform_buffer[drawcnt++] = state;
-            if (drawcnt >= MAXDRAWCNT) return;
         }
     }
 }
