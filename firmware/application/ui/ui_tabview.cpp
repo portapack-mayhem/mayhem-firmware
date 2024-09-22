@@ -52,7 +52,7 @@ void Tab::paint(Painter& painter) {
     painter.fill_rectangle({rect.left(), rect.top(), rect.width() - 8, rect.height()}, color);
 
     if (!highlighted())
-        painter.draw_hline({rect.left(), rect.top()}, rect.width() - 9, Theme::getInstance()->fg_light->foreground);
+        painter.draw_hline({rect.left(), rect.top()}, rect.width() - 9, Theme::getInstance()->bg_light->background);
 
     painter.draw_bitmap(
         {rect.right() - 8, rect.top()},
