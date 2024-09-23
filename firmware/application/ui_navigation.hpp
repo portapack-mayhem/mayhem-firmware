@@ -344,14 +344,16 @@ public:
     void focus() override;
 
     bool on_touch(const TouchEvent event) override;
+    void handle_pop();
 
 private:
     NavigationView& nav_;
     Button button_done{
         {240, 0, 1, 1},
         ""};
-    Coord touch_start_y{0};
-    Coord touch_end_y{0};
+    Coord touch_start{0};
+    Coord touch_end{0};
+//    uint32_t event_count{0};
 };
 
 class ReceiversMenuView : public BtnGridView {
