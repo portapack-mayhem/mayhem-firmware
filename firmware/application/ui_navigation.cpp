@@ -1001,7 +1001,7 @@ BMPView::BMPView(NavigationView& nav)
     add_children({&button_done});
 
     button_done.on_select = [this](Button&) {
-        nav_.pop();
+        handle_pop();
     };
 }
 
