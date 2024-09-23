@@ -1083,7 +1083,9 @@ bool BMPView::on_touch(const TouchEvent event) {
 }
 
 void BMPView::handle_pop() {
+    chThdSleep(10);
     if (nav_.is_valid()) {
+        chThdSleep(10);
         nav_.pop();
     }
 }
