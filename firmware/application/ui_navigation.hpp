@@ -351,6 +351,7 @@ private:
         {240, 0, 1, 1},
         ""};
     Coord touch_start_y{0};
+    Coord touch_end_y{0};
 };
 
 class ReceiversMenuView : public BtnGridView {

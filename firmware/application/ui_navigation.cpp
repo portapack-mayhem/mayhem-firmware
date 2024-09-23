@@ -1026,8 +1026,9 @@ bool BMPView::on_touch(const TouchEvent event) {
             return true;
 
         case TouchEvent::Type::End:
-            UsbSerialAsyncmsg::asyncmsg("case1 end");
-            UsbSerialAsyncmsg::asyncmsg(touch_start_y);
+            UsbSerialAsyncmsg::asyncmsg("case2 end");
+            touch_end_y = event.point.y();
+            UsbSerialAsyncmsg::asyncmsg(touch_end_y);
             if (touch_start_y != 0 && event.point.y() < touch_start_y - 50) {
                 UsbSerialAsyncmsg::asyncmsg("pop");
                 touch_start_y = 0;
@@ -1038,7 +1039,7 @@ bool BMPView::on_touch(const TouchEvent event) {
             break;
 
         case TouchEvent::Type::Move:
-            UsbSerialAsyncmsg::asyncmsg("case1 move");
+//            UsbSerialAsyncmsg::asyncmsg("case3 move");
             break;
 
         default:
