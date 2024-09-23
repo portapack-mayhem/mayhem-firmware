@@ -1057,7 +1057,7 @@ bool BMPView::on_touch(const TouchEvent event) {
     //         break;
     // }
 
-    /// drag from top to pop (like iphone)
+    /// drag from bottom to pop (like iphone)
     // switch (event.type) {
     //     case TouchEvent::Type::Start:
     //
