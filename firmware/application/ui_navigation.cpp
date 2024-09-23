@@ -1011,11 +1011,8 @@ void BMPView::paint(Painter&) {
 }
 
 bool BMPView::on_touch(const TouchEvent event) {
-    /*
-     * TODO: since the touch screen detect touching evt policy is kind of bad, with hard-coded threshold it works but not sensitive, i will use single touch firstly
-     * and it's a waist of space to implement them all and as options in settings.
+    /* the event thing were resolved by HTotoo, talked here https://discord.com/channels/719669764804444213/956561375155589192/1287756910950486027
      * the touch screen policy can be better, talked here https://discord.com/channels/719669764804444213/956561375155589192/1198926225897443328
-     * when that fixed (so the threshold won't make the corner always been touched), just un-comment one of the field and two var in header to make it works.
      */
 
     if (!nav_.is_valid()) {
@@ -1024,68 +1021,21 @@ bool BMPView::on_touch(const TouchEvent event) {
 
     switch (event.type) {
         case TouchEvent::Type::Start:
-            chThdSleep(10);
-            handle_pop();
-            return false;
+            return true;
 
         case TouchEvent::Type::End:
-            chThdSleep(10);
             handle_pop();
-            return false;
+            return true;
 
         default:
             break;
     }
 
-    /// drag any direction to pop (like samsung phone)
-    // switch (event.type) {
-    //     case TouchEvent::Type::Start:
-    //         touch_start = event.point.y();
-    //         return true;
-    //
-    //     case TouchEvent::Type::End:
-    //         touch_end = event.point.y();
-    //
-    //         if (abs(touch_start - touch_end) > 100) {
-    //             if (touch_start < touch_end) {
-    //                 handle_pop();
-    //             }
-    //         }
-    //         return true;
-    //
-    //     default:
-    //         break;
-    // }
-
-    /// drag from bottom to pop (like iphone)
-    // switch (event.type) {
-    //     case TouchEvent::Type::Start:
-    //
-    //         touch_start = event.point.y();
-    //
-    //         return true;
-    //
-    //     case TouchEvent::Type::End:
-    //
-    //         touch_end = event.point.y();
-    //
-    //         if (touch_start > screen_height - 20 &&  // make sure drag from bottom
-    //             touch_end < touch_start - 100) {
-    //             handle_pop();
-    //         }
-    //         return true;
-    //
-    //     default:
-    //         break;
-    // }
-
     return false;
 }
 
 void BMPView::handle_pop() {
-    chThdSleep(10);
     if (nav_.is_valid()) {
-        chThdSleep(10);
         nav_.pop();
     }
 }

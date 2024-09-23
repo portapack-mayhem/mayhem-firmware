@@ -351,8 +351,6 @@ class BMPView : public View {
     Button button_done{
         {240, 0, 1, 1},
         ""};
-    // Coord touch_start{0};
-    // Coord touch_end{0};
 };
 
 class ReceiversMenuView : public BtnGridView {
