@@ -1002,6 +1002,7 @@ BMPView::BMPView(NavigationView& nav)
     : nav_(nav) {
     add_children({&button_done});
 
+    portapack::async_tx_enabled = true; //debug, remember to remove
     button_done.on_select = [this](Button&) {
         nav_.pop();
     };
@@ -1017,26 +1018,35 @@ bool BMPView::on_touch(const TouchEvent event) {
         return false;
     }
 
-    // switch(event.type) {
-        // case TouchEvent::Type::Start:
-        //     touch_start_y = event.point.y();
-        //     return true;
+    switch(event.type) {
+        case TouchEvent::Type::Start:
+            UsbSerialAsyncmsg::asyncmsg("case1 start");
+            touch_start_y = event.point.y();
+            UsbSerialAsyncmsg::asyncmsg(touch_start_y);
+            return true;
 
-        // case TouchEvent::Type::End:
-            // if (touch_start_y != 0 && event.point.y() < touch_start_y - 50) {
-            //     touch_start_y = 0;
+        case TouchEvent::Type::End:
+            UsbSerialAsyncmsg::asyncmsg("case1 end");
+            UsbSerialAsyncmsg::asyncmsg(touch_start_y);
+            if (touch_start_y != 0 && event.point.y() < touch_start_y - 50) {
+                UsbSerialAsyncmsg::asyncmsg("pop");
+                touch_start_y = 0;
                 nav_.pop();
-                // return true;
-            // }
-            // touch_start_y = 0;
-            // break;
+                return true;
+            }
+            touch_start_y = 0;
+            break;
 
-        // case TouchEvent::Type::Move:
-        //     break;
+        case TouchEvent::Type::Move:
+            UsbSerialAsyncmsg::asyncmsg("case1 move");
+            break;
 
-        // default:
-        //     break;
-    // }
+        default:
+            UsbSerialAsyncmsg::asyncmsg("fb");
+            break;
+    }
+
+    UsbSerialAsyncmsg::asyncmsg("exit switch");
     return false;
 }
 
