@@ -1002,7 +1002,7 @@ BMPView::BMPView(NavigationView& nav)
     : nav_(nav) {
     add_children({&button_done});
 
-    portapack::async_tx_enabled = true;  // debug, remember to remove
+    // portapack::async_tx_enabled = true;  // debug, remember to remove
     button_done.on_select = [this](Button&) {
         nav_.pop();
     };
@@ -1014,47 +1014,82 @@ void BMPView::paint(Painter&) {
 }
 
 bool BMPView::on_touch(const TouchEvent event) {
+    /*
+     * TODO: since the touch screen detect touching evt policy is kind of bad, with hard-coded threshold it works but not sensitive, i will use single touch firstly
+     * and it's a waist of space to implement them all and as options in settings.
+     * the touch screen policy can be better, talked here https://discord.com/channels/719669764804444213/956561375155589192/1198926225897443328
+     * when that fixed (so the threshold won't make the corner always been touched), just un-comment one of the field and two var in header to make it works.
+     */
+
     UsbSerialAsyncmsg::asyncmsg("on touch");
     if (!nav_.is_valid()) {
-        UsbSerialAsyncmsg::asyncmsg("nav is invalid1");
+        // UsbSerialAsyncmsg::asyncmsg("nav is invalid1");
         return false;
     }
 
     switch (event.type) {
         case TouchEvent::Type::Start:
-             UsbSerialAsyncmsg::asyncmsg("case1 start");
-             touch_start = event.point.y();
-             UsbSerialAsyncmsg::asyncmsg(touch_start);
-             return true;
+            // UsbSerialAsyncmsg::asyncmsg("case1 start");
+            chThdSleep(10);
+            handle_pop();
+            return false;
 
-
-            case TouchEvent::Type::End:
-             UsbSerialAsyncmsg::asyncmsg("case2 end");
-             touch_end = event.point.y();
-             UsbSerialAsyncmsg::asyncmsg(touch_end);
-
-             if (abs(touch_start - touch_end) > 10) {
-                 if (touch_start < touch_end) {
-                     handle_pop();
-                 }
-             }
-             return true;
-
-
-//            case TouchEvent::Type::Move:
-//            UsbSerialAsyncmsg::asyncmsg("case3 move");
-//            if(event_count > 12){
-//                handle_pop();
-//            }else{
-//                event_count++;
-//            }
-
-            break;
+        case TouchEvent::Type::End:
+            // UsbSerialAsyncmsg::asyncmsg("case2 end");
+            chThdSleep(10);
+            handle_pop();
+            return false;
 
         default:
-            // UsbSerialAsyncmsg::asyncmsg("fb");
             break;
     }
+
+    /// drag any direction to pop (like samsung phone)
+    // switch (event.type) {
+    //     case TouchEvent::Type::Start:
+    //         UsbSerialAsyncmsg::asyncmsg("case1 start");
+    //         touch_start = event.point.y();
+    //         UsbSerialAsyncmsg::asyncmsg(touch_start);
+    //         return true;
+    //
+    //     case TouchEvent::Type::End:
+    //         UsbSerialAsyncmsg::asyncmsg("case2 end");
+    //         touch_end = event.point.y();
+    //         UsbSerialAsyncmsg::asyncmsg(touch_end);
+    //
+    //         if (abs(touch_start - touch_end) > 100) {
+    //             if (touch_start < touch_end) {
+    //                 handle_pop();
+    //             }
+    //         }
+    //         return true;
+    //
+    //     default:
+    //         // UsbSerialAsyncmsg::asyncmsg("fb");
+    //         break;
+    // }
+
+    /// drag from top to pop (like iphone)
+    // switch (event.type) {
+    //     case TouchEvent::Type::Start:
+    //
+    //         touch_start = event.point.y();
+    //
+    //         return true;
+    //
+    //     case TouchEvent::Type::End:
+    //
+    //         touch_end = event.point.y();
+    //
+    //         if (touch_start > screen_height - 20 &&  // make sure drag from bottom
+    //             touch_end < touch_start - 100) {
+    //             handle_pop();
+    //         }
+    //         return true;
+    //
+    //     default:
+    //         break;
+    // }
 
     return false;
 }
