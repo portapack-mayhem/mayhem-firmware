@@ -109,6 +109,8 @@
 #include "file_path.hpp"
 #include "ff.h"
 
+#include "usb_serial_asyncmsg.hpp"
+
 #include <locale>
 #include <codecvt>
 
@@ -996,17 +998,46 @@ void BMPView::focus() {
     button_done.focus();
 }
 
-BMPView::BMPView(NavigationView& nav) {
+BMPView::BMPView(NavigationView& nav)
+    : nav_(nav) {
     add_children({&button_done});
 
-    button_done.on_select = [this, &nav](Button&) {
-        nav.pop();
+    button_done.on_select = [this](Button&) {
+        nav_.pop();
     };
 }
 
 void BMPView::paint(Painter&) {
     if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
         portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, true);
+}
+
+bool BMPView::on_touch(const TouchEvent event) {
+    if (!nav_.is_valid()) {
+        return false;
+    }
+
+    // switch(event.type) {
+        // case TouchEvent::Type::Start:
+        //     touch_start_y = event.point.y();
+        //     return true;
+
+        // case TouchEvent::Type::End:
+            // if (touch_start_y != 0 && event.point.y() < touch_start_y - 50) {
+            //     touch_start_y = 0;
+                nav_.pop();
+                // return true;
+            // }
+            // touch_start_y = 0;
+            // break;
+
+        // case TouchEvent::Type::Move:
+        //     break;
+
+        // default:
+        //     break;
+    // }
+    return false;
 }
 
 /* NotImplementedView ****************************************************/

@@ -338,15 +338,19 @@ class InformationView : public View {
 };
 
 class BMPView : public View {
-   public:
+public:
     BMPView(NavigationView& nav);
     void paint(Painter&) override;
     void focus() override;
 
-   private:
+    bool on_touch(const TouchEvent event) override;
+
+private:
+    NavigationView& nav_;
     Button button_done{
         {240, 0, 1, 1},
         ""};
+    Coord touch_start_y{0};
 };
 
 class ReceiversMenuView : public BtnGridView {
