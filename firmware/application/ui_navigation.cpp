@@ -109,8 +109,6 @@
 #include "file_path.hpp"
 #include "ff.h"
 
-#include "usb_serial_asyncmsg.hpp"
-
 #include <locale>
 #include <codecvt>
 
@@ -1002,7 +1000,6 @@ BMPView::BMPView(NavigationView& nav)
     : nav_(nav) {
     add_children({&button_done});
 
-    // portapack::async_tx_enabled = true;  // debug, remember to remove
     button_done.on_select = [this](Button&) {
         nav_.pop();
     };
@@ -1021,21 +1018,17 @@ bool BMPView::on_touch(const TouchEvent event) {
      * when that fixed (so the threshold won't make the corner always been touched), just un-comment one of the field and two var in header to make it works.
      */
 
-    UsbSerialAsyncmsg::asyncmsg("on touch");
     if (!nav_.is_valid()) {
-        // UsbSerialAsyncmsg::asyncmsg("nav is invalid1");
         return false;
     }
 
     switch (event.type) {
         case TouchEvent::Type::Start:
-            // UsbSerialAsyncmsg::asyncmsg("case1 start");
             chThdSleep(10);
             handle_pop();
             return false;
 
         case TouchEvent::Type::End:
-            // UsbSerialAsyncmsg::asyncmsg("case2 end");
             chThdSleep(10);
             handle_pop();
             return false;
@@ -1047,15 +1040,11 @@ bool BMPView::on_touch(const TouchEvent event) {
     /// drag any direction to pop (like samsung phone)
     // switch (event.type) {
     //     case TouchEvent::Type::Start:
-    //         UsbSerialAsyncmsg::asyncmsg("case1 start");
     //         touch_start = event.point.y();
-    //         UsbSerialAsyncmsg::asyncmsg(touch_start);
     //         return true;
     //
     //     case TouchEvent::Type::End:
-    //         UsbSerialAsyncmsg::asyncmsg("case2 end");
     //         touch_end = event.point.y();
-    //         UsbSerialAsyncmsg::asyncmsg(touch_end);
     //
     //         if (abs(touch_start - touch_end) > 100) {
     //             if (touch_start < touch_end) {
@@ -1065,7 +1054,6 @@ bool BMPView::on_touch(const TouchEvent event) {
     //         return true;
     //
     //     default:
-    //         // UsbSerialAsyncmsg::asyncmsg("fb");
     //         break;
     // }
 
@@ -1095,11 +1083,9 @@ bool BMPView::on_touch(const TouchEvent event) {
 }
 
 void BMPView::handle_pop() {
-    UsbSerialAsyncmsg::asyncmsg("handle pop");
     if (nav_.is_valid()) {
         nav_.pop();
     }
-    UsbSerialAsyncmsg::asyncmsg("nav is invalid2");
 }
 
 /* NotImplementedView ****************************************************/
