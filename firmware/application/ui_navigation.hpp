@@ -343,7 +343,11 @@ class BMPView : public View {
     void paint(Painter&) override;
     void focus() override;
 
+    bool on_touch(const TouchEvent event) override;
+    void handle_pop();
+
    private:
+    NavigationView& nav_;
     Button button_done{
         {240, 0, 1, 1},
         ""};
