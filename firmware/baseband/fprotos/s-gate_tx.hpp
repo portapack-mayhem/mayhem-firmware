@@ -44,14 +44,7 @@ class FProtoSubGhzDGateTx : public FProtoSubGhzDBase {
                     if (duration >= ((uint32_t)te_short * 10 + te_delta)) {
                         parser_step = GateTXDecoderStepFoundStartBit;
                         if (decode_count_bit == min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
-
-                            // controller
-                            uint32_t code_found_reverse = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, data_count_bit);
-                            serial = (code_found_reverse & 0xFF) << 12 | ((code_found_reverse >> 8) & 0xFF) << 4 | ((code_found_reverse >> 20) & 0x0F);
-                            btn = ((code_found_reverse >> 16) & 0x0F);
-
                             if (callback) callback(this);
                         }
                         decode_data = 0;

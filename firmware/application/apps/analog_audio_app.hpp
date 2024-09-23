@@ -29,7 +29,6 @@
 #include "ui_freq_field.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
-#include "ui_styles.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "tone_key.hpp"
@@ -248,11 +247,20 @@ class AnalogAudioView : public View {
 
     void handle_coded_squelch(uint32_t value);
 
+    void on_freqchg(int64_t freq);
+
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* p) {
             const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
             this->handle_coded_squelch(message.value);
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
         }};
 };
 

@@ -144,12 +144,15 @@ Continuous (Fox-oring)
 
 #include "rffc507x.hpp" /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
 rffc507x::RFFC507x first_if;
+ui::SystemView* system_view_ptr;
 
 static void event_loop() {
     static ui::Context context;
     static ui::SystemView system_view{
         context,
         portapack::display.screen_rect()};
+
+    system_view_ptr = &system_view;
 
     EventDispatcher event_dispatcher{&system_view, context};
     static MessageHandlerRegistration message_handler_display_sleep{
@@ -183,6 +186,8 @@ int main(void) {
 
             lcd_frame_sync_configure();
             rtc_interrupt_enable();
+
+            Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());  // load theme
 
             event_loop();
 

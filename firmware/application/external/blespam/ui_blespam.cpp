@@ -327,6 +327,52 @@ void BLESpamView::createNameSpamPacket() {
     std::copy(res.begin(), res.end(), advertisementData);
 }
 
+char BLESpamView::randomNameChar() {
+    int randVal = rand() % 62;  // 26 uppercase + 26 lowercase + 10 digits
+    if (randVal < 26) {
+        return 'A' + randVal;  // Uppercase letters
+    } else if (randVal < 52) {
+        return 'a' + (randVal - 26);  // Lowercase letters
+    } else {
+        return '0' + (randVal - 52);  // Digits
+    }
+}
+
+void BLESpamView::createNameRandomPacket() {
+    char name[] = "         ";
+
+    uint8_t name_len = strlen(name);
+    for (uint8_t i = 0; i < name_len; ++i) {
+        name[i] = randomNameChar();
+    }
+
+    uint8_t size = 12 + name_len;
+    uint8_t i = 0;
+
+    packet[i++] = 2;     // Size
+    packet[i++] = 0x01;  // AD Type (Flags)
+    packet[i++] = 0x06;  // Flags
+
+    packet[i++] = name_len + 1;          // Size
+    packet[i++] = 0x09;                  // AD Type (Complete Local Name)
+    memcpy(&packet[i], name, name_len);  // Device Name
+    i += name_len;
+
+    packet[i++] = 3;     // Size
+    packet[i++] = 0x02;  // AD Type (Incomplete Service UUID List)
+    packet[i++] = 0x12;  // Service UUID (Human Interface Device)
+    packet[i++] = 0x18;  // ...
+
+    packet[i++] = 2;     // Size
+    packet[i++] = 0x0A;  // AD Type (Tx Power Level)
+    packet[i++] = 0x00;  // 0dBm
+
+    // size, packet
+    std::string res = to_string_hex_array(packet, size);
+    memset(advertisementData, 0, sizeof(advertisementData));
+    std::copy(res.begin(), res.end(), advertisementData);
+}
+
 void BLESpamView::createIosPacket(bool crash = false) {
     uint8_t ios_packet_sizes[18] = {0, 0, 0, 0, 0, 24, 0, 31, 0, 12, 0, 0, 20, 0, 12, 11, 11, 17};
     ContinuityType type;
@@ -550,6 +596,7 @@ void BLESpamView::createAnyPacket(bool safe) {
         ATK_WINDOWS,
         ATK_SAMSUNG,
         ATK_NAMESPAM,
+        ATK_NAMERANDOM,
         ATK_IOS_CRASH};
     ATK_TYPE attackType = type[rand() % (COUNT_OF(type) - (1 ? safe : 0))];
     createPacket(attackType);
@@ -571,6 +618,9 @@ void BLESpamView::createPacket(ATK_TYPE attackType) {
             break;
         case ATK_NAMESPAM:
             createNameSpamPacket();
+            break;
+        case ATK_NAMERANDOM:
+            createNameRandomPacket();
             break;
         case ATK_ALL_SAFE:
             createAnyPacket(true);

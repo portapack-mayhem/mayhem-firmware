@@ -50,9 +50,6 @@ class FProtoWeatherGTWT02 : public FProtoWeatherBase {
                             if ((decode_count_bit ==
                                  min_count_bit_for_found) &&
                                 ws_protocol_gt_wt_02_check()) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                ws_protocol_gt_wt_02_remote_controller();
                                 if (callback) callback(this);
                             } else if (decode_count_bit == 1) {
                                 parser_step = GT_WT02DecoderStepSaveDuration;
@@ -87,25 +84,6 @@ class FProtoWeatherGTWT02 : public FProtoWeatherBase {
     uint32_t te_long = 2000;
     uint32_t te_delta = 150;
     uint32_t min_count_bit_for_found = 37;
-
-    void ws_protocol_gt_wt_02_remote_controller() {
-        id = (data >> 29) & 0xFF;
-        battery_low = (data >> 28) & 1;
-        btn = (data >> 27) & 1;
-        channel = ((data >> 25) & 0x3) + 1;
-
-        if (!((data >> 24) & 1)) {
-            temp = (float)((data >> 13) & 0x07FF) / 10.0f;
-        } else {
-            temp = (float)((~(data >> 13) & 0x07FF) + 1) / -10.0f;
-        }
-
-        humidity = (data >> 6) & 0x7F;
-        if (humidity <= 10)  // actually the sensors sends 10 below working range of 20%
-            humidity = 0;
-        else if (humidity > 90)  // actually the sensors sends 110 above working range of 90%
-            humidity = 100;
-    }
 
     bool ws_protocol_gt_wt_02_check() {
         if (!decode_data) return false;

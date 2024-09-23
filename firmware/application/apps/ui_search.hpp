@@ -26,7 +26,6 @@
 #include "radio_state.hpp"
 #include "spectrum_color_lut.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 
 namespace ui {
 
@@ -162,12 +161,12 @@ class SearchView : public View {
     RecentEntriesView<RecentEntries<SearchRecentEntry>> recent_entries_view{columns, recent};
 
     Labels labels{
-        {{1 * 8, 0}, "Min:      Max:       LNA VGA", Color::light_grey()},
-        {{1 * 8, 4 * 8}, "Trig:   /255    Mean:   /255", Color::light_grey()},
-        {{1 * 8, 6 * 8}, "Slices:  /32      Rate:   Hz", Color::light_grey()},
-        {{6 * 8, 10 * 8}, "Timer  Status", Color::light_grey()},
-        {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Color::light_grey()},
-        {{26 * 8, 25 * 8}, "MHz", Color::light_grey()}};
+        {{1 * 8, 0}, "Min:      Max:       LNA VGA", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 4 * 8}, "Trig:   /255    Mean:   /255", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 6 * 8}, "Slices:  /32      Rate:   Hz", Theme::getInstance()->fg_light->foreground},
+        {{6 * 8, 10 * 8}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
+        {{26 * 8, 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
 
     FrequencyField field_frequency_min{
         {1 * 8, 1 * 16}};

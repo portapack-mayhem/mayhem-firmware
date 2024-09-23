@@ -185,6 +185,7 @@ class APRSRxView : public View {
 
     std::string title() const override { return "APRS RX"; };
     void on_packet(const APRSPacketMessage* message);
+    void on_freqchg(int64_t freq);
 
    private:
     void on_data(uint32_t value, bool is_data);
@@ -261,8 +262,8 @@ class APRSRXView : public View {
     APRSTableView view_table{nav_, view_rect};
 
     TabView tab_view{
-        {"Stream", Color::cyan(), &view_stream},
-        {"List", Color::yellow(), &view_table}};
+        {"Stream", Theme::getInstance()->fg_cyan->foreground, &view_stream},
+        {"List", Theme::getInstance()->fg_yellow->foreground, &view_table}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::APRSPacket,
@@ -270,6 +271,13 @@ class APRSRXView : public View {
             const auto message = static_cast<const APRSPacketMessage*>(p);
             this->view_stream.on_packet(message);
             this->view_table.on_pkt(message);
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->view_stream.on_freqchg(message->freq);
         }};
 };
 

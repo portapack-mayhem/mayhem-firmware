@@ -122,6 +122,10 @@ class Message {
         OrientationData = 64,
         EnvironmentData = 65,
         AudioBeep = 66,
+        PocsagTosend = 67,
+        BatteryStateData = 68,
+        ProtoViewData = 69,
+        FreqChangeCommand = 70,
         MAX
     };
 
@@ -1261,52 +1265,28 @@ class WeatherDataMessage : public Message {
    public:
     constexpr WeatherDataMessage(
         uint8_t sensorType = 0,
-        uint32_t id = 0xFFFFFFFF,
-        float temp = -273.0f,
-        uint8_t humidity = 0xFF,
-        uint8_t battery_low = 0xFF,
-        uint8_t channel = 0xFF,
-        uint8_t btn = 0xFF)
+        uint64_t decode_data = 0xFFFFFFFF)
         : Message{ID::WeatherData},
           sensorType{sensorType},
-          id{id},
-          temp{temp},
-          humidity{humidity},
-          battery_low{battery_low},
-          channel{channel},
-          btn{btn} {
+          decode_data{decode_data} {
     }
     uint8_t sensorType = 0;
-    uint32_t id = 0xFFFFFFFF;
-    float temp = -273.0f;
-    uint8_t humidity = 0xFF;
-    uint8_t battery_low = 0xFF;
-    uint8_t channel = 0xFF;
-    uint8_t btn = 0xFF;
+    uint64_t decode_data = 0;
 };
 
 class SubGhzDDataMessage : public Message {
    public:
     constexpr SubGhzDDataMessage(
         uint8_t sensorType = 0,
-        uint8_t btn = 0xFF,
         uint16_t bits = 0,
-        uint32_t serial = 0xFFFFFFFF,
-        uint64_t data = 0,
-        uint32_t cnt = 0xFF)
+        uint64_t data = 0)
         : Message{ID::SubGhzDData},
           sensorType{sensorType},
-          btn{btn},
           bits{bits},
-          serial{serial},
-          cnt{cnt},
           data{data} {
     }
     uint8_t sensorType = 0;
-    uint8_t btn = 0xFF;
     uint16_t bits = 0;
-    uint32_t serial = 0xFFFFFFFF;
-    uint32_t cnt = 0xFF;
     uint64_t data = 0;
 };
 
@@ -1379,4 +1359,68 @@ class AudioBeepMessage : public Message {
     uint32_t sample_rate = 24000;
     uint32_t duration_ms = 100;
 };
+
+class PocsagTosendMessage : public Message {
+   public:
+    constexpr PocsagTosendMessage(
+        uint16_t baud = 1200,
+        uint8_t type = 2,
+        char function = 'D',
+        char phase = 'N',
+        uint8_t msglen = 0,
+        uint8_t msg[31] = {0},
+        uint64_t addr = 0)
+        : Message{ID::PocsagTosend},
+          baud{baud},
+          type{type},
+          function{function},
+          phase{phase},
+          msglen{msglen},
+          addr{addr} {
+        memcpy(this->msg, msg, 31);
+    }
+    uint16_t baud = 1200;
+    uint8_t type = 2;
+    char function = 'D';
+    char phase = 'N';
+    uint8_t msglen = 0;
+    uint8_t msg[31] = {0};
+    uint64_t addr = 0;
+};
+
+class BatteryStateMessage : public Message {
+   public:
+    constexpr BatteryStateMessage(
+        uint8_t valid_mask,
+        uint8_t percent,
+        bool on_charger,
+        uint16_t voltage)
+        : Message{ID::BatteryStateData},
+          valid_mask{valid_mask},
+          percent{percent},
+          on_charger{on_charger},
+          voltage{voltage} {
+    }
+    uint8_t valid_mask = 0;
+    uint8_t percent = 0;
+    bool on_charger = false;
+    uint16_t voltage = 0;  // mV
+};
+
+class ProtoViewDataMessage : public Message {
+   public:
+    constexpr ProtoViewDataMessage()
+        : Message{ID::ProtoViewData} {}
+    int32_t times[100] = {0};  // positive: high, negative: low
+    uint16_t timeptr = 0;
+    const uint16_t maxptr = 99;
+};
+
+class FreqChangeCommandMessage : public Message {
+   public:
+    constexpr FreqChangeCommandMessage(int64_t freq)
+        : Message{ID::FreqChangeCommand}, freq{freq} {}
+    int64_t freq = 0;
+};
+
 #endif /*__MESSAGE_H__*/

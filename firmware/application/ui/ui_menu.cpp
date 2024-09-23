@@ -98,7 +98,7 @@ MenuView::MenuView(
 
     add_child(&arrow_more);
     arrow_more.set_focusable(false);
-    arrow_more.set_foreground(Color::black());
+    arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 }
 
 MenuView::~MenuView() {
@@ -135,9 +135,9 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 
 void MenuView::on_tick_second() {
     if (more && blink)
-        arrow_more.set_foreground(Color::white());
+        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->foreground);
     else
-        arrow_more.set_foreground(Color::black());
+        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 
     blink = !blink;
 
@@ -251,8 +251,12 @@ bool MenuView::on_key(const KeyEvent key) {
         case KeyEvent::Down:
             return set_highlighted(highlighted_item + 1);
 
-        case KeyEvent::Select:
         case KeyEvent::Right:
+            if (on_right) {
+                on_right();
+            }
+            [[fallthrough]];
+        case KeyEvent::Select:
             if (menu_items[highlighted_item].on_select) {
                 menu_items[highlighted_item].on_select(key);
             }

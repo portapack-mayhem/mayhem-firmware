@@ -251,6 +251,8 @@ void set_config_audio_mute(bool v);
 void set_config_speaker_disable(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
+bool config_lcd_inverted_mode();
+void set_lcd_inverted_mode(bool v);
 
 uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
@@ -335,7 +337,11 @@ bool ui_hide_sleep();
 bool ui_hide_bias_tee();
 bool ui_hide_clock();
 bool ui_hide_fake_brightness();
+bool ui_hide_numeric_battery();
+bool ui_hide_battery_icon();
 bool ui_hide_sd_card();
+uint8_t ui_theme_id();
+bool ui_override_batt_calc();
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
 void set_ui_hide_converter(bool v);
@@ -345,7 +351,11 @@ void set_ui_hide_sleep(bool v);
 void set_ui_hide_bias_tee(bool v);
 void set_ui_hide_clock(bool v);
 void set_ui_hide_fake_brightness(bool v);
+void set_ui_hide_numeric_battery(bool v);
+void set_ui_hide_battery_icon(bool v);
 void set_ui_hide_sd_card(bool v);
+void set_ui_theme_id(uint8_t v);
+void set_ui_override_batt_calc(bool v);
 
 // sd persisting settings
 bool should_use_sdcard_for_pmem();

@@ -56,8 +56,8 @@ class CaptureAppView : public View {
         "rx_capture", app_settings::Mode::RX};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
-        {{11 * 8, 1 * 16}, "Format:", Color::light_grey()},
+        {{0 * 8, 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
+        {{11 * 8, 1 * 16}, "Format:", Theme::getInstance()->fg_light->foreground},
     };
 
     RSSI rssi{
@@ -108,6 +108,15 @@ class CaptureAppView : public View {
         3};
 
     spectrum::WaterfallView waterfall{};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
 };
 
 } /* namespace ui */

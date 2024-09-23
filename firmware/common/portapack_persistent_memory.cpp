@@ -32,7 +32,6 @@
 #include "portapack.hpp"
 #include "string_format.hpp"
 #include "ui.hpp"
-#include "ui_styles.hpp"
 #include "ui_painter.hpp"
 #include "ui_flash_utility.hpp"
 #include "utility.hpp"
@@ -132,14 +131,14 @@ struct ui_config2_t {
 
     bool hide_mute : 1;
     bool hide_fake_brightness : 1;
-    bool UNUSED_1 : 1;
-    bool UNUSED_2 : 1;
-    bool UNUSED_3 : 1;
+    bool hide_numeric_battery : 1;
+    bool hide_battery_icon : 1;
+    bool override_batt_calc : 1;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
 
-    uint8_t PLACEHOLDER_2;
+    uint8_t theme_id;
     uint8_t PLACEHOLDER_3;
 };
 static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
@@ -213,7 +212,7 @@ struct data_t {
     bool updown_converter;
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
-    bool UNUSED_4 : 1;
+    bool lcd_inverted_mode : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
     bool UNUSED_7 : 1;
@@ -293,7 +292,7 @@ struct data_t {
           updown_converter(false),
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
-          UNUSED_4(false),
+          lcd_inverted_mode(false),
           UNUSED_5(false),
           UNUSED_6(false),
           UNUSED_7(false),
@@ -423,6 +422,7 @@ void defaults() {
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
     set_menu_color(Color::grey());
+    set_ui_hide_numeric_battery(true);  // hide the numeric battery by default - no space to display it
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
@@ -953,6 +953,18 @@ bool ui_hide_sd_card() {
 bool ui_hide_fake_brightness() {
     return data->ui_config2.hide_fake_brightness;
 }
+bool ui_hide_numeric_battery() {
+    return data->ui_config2.hide_numeric_battery;
+}
+bool ui_hide_battery_icon() {
+    return data->ui_config2.hide_battery_icon;
+}
+uint8_t ui_theme_id() {
+    return data->ui_config2.theme_id;
+}
+bool ui_override_batt_calc() {
+    return data->ui_config2.override_batt_calc;
+}
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
@@ -985,6 +997,18 @@ void set_ui_hide_sd_card(bool v) {
 }
 void set_ui_hide_fake_brightness(bool v) {
     data->ui_config2.hide_fake_brightness = v;
+}
+void set_ui_hide_numeric_battery(bool v) {
+    data->ui_config2.hide_numeric_battery = v;
+}
+void set_ui_hide_battery_icon(bool v) {
+    data->ui_config2.hide_battery_icon = v;
+}
+void set_ui_theme_id(uint8_t theme_id) {
+    data->ui_config2.theme_id = theme_id;
+}
+void set_ui_override_batt_calc(bool v) {
+    data->ui_config2.override_batt_calc = v;
 }
 
 /* Converter */
@@ -1033,6 +1057,14 @@ void set_config_freq_tx_correction(uint32_t v) {
 }
 void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
+}
+
+// LCD invert
+bool config_lcd_inverted_mode() {
+    return data->lcd_inverted_mode;
+}
+void set_lcd_inverted_mode(bool v) {
+    data->lcd_inverted_mode = v;
 }
 
 // Rotary encoder dial settings
@@ -1094,7 +1126,7 @@ void set_fake_brightness_level(uint8_t v) {
 // Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
 void toggle_fake_brightness_level() {
     bool fbe = apply_fake_brightness();
-
+    if (config_lcd_inverted_mode()) return;  // for now only inverted mode OR fake brightness
     if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
         set_apply_fake_brightness(!fbe);
         data->fake_brightness_level = BRIGHTNESS_50;
@@ -1156,13 +1188,13 @@ bool debug_dump() {
     ensure_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
     if (filename.empty()) {
-        painter.draw_string({0, 320 - 16}, ui::Styles::red, "COULD NOT GET DUMP NAME !");
+        painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_red, "COULD NOT GET DUMP NAME !");
         return false;
     }
     // dump data fo filename
     auto error = pmem_dump_file.create(filename);
     if (error) {
-        painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
+        painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_red, "ERROR DUMPING " + filename.filename().string() + " !");
         return false;
     }
     pmem_dump_file.write_line("FW version: " VERSION_STRING);
@@ -1204,7 +1236,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
-    // pmem_dump_file.write_line("UNUSED_4: " + to_string_dec_int(data->UNUSED_4));
+    pmem_dump_file.write_line("lcd_inverted_mode: " + to_string_dec_uint(data->lcd_inverted_mode));
     // pmem_dump_file.write_line("UNUSED_5: " + to_string_dec_int(data->UNUSED_5));
     // pmem_dump_file.write_line("UNUSED_6: " + to_string_dec_int(data->UNUSED_6));
     // pmem_dump_file.write_line("UNUSED_7: " + to_string_dec_int(data->UNUSED_7));
@@ -1248,6 +1280,10 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
     pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(data->ui_config2.hide_mute));
     pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(data->ui_config2.hide_fake_brightness));
+    pmem_dump_file.write_line("ui_config2 hide_battery_icon: " + to_string_dec_uint(data->ui_config2.hide_battery_icon));
+    pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(data->ui_config2.hide_numeric_battery));
+    pmem_dump_file.write_line("ui_config2 theme_id: " + to_string_dec_uint(data->ui_config2.theme_id));
+    pmem_dump_file.write_line("ui_config2 override_batt_calc: " + to_string_dec_uint(data->ui_config2.override_batt_calc));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
@@ -1301,7 +1337,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("tx_gain: " + to_string_dec_int(transmitter_model.tx_gain()));
     pmem_dump_file.write_line("channel_bandwidth: " + to_string_dec_uint(transmitter_model.channel_bandwidth()));
     // on screen information
-    painter.draw_string({0, 320 - 16}, ui::Styles::green, filename.filename().string() + " DUMPED !");
+    painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_green, filename.filename().string() + " DUMPED !");
     return true;
 }
 

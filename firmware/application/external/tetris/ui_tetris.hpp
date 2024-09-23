@@ -26,7 +26,6 @@
 #include "event_m0.hpp"
 #include "message.hpp"
 #include "irq_controls.hpp"
-#include "ui_styles.hpp"
 #include "random.hpp"
 #include "lpc43xx_cpp.hpp"
 #include "limits.h"

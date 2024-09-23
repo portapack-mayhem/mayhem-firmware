@@ -24,7 +24,6 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "ui_menu.hpp"
-#include "ui_styles.hpp"
 #include "ui_navigation.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"

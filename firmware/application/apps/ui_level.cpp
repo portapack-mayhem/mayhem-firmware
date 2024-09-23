@@ -169,9 +169,9 @@ LevelView::LevelView(NavigationView& nav)
     rssi_resolution.set_selected_index(1);
     // FILL STEP OPTIONS
     freqman_set_step_option_short(step_mode);
-    freq_stats_rssi.set_style(&Styles::white);
-    freq_stats_db.set_style(&Styles::white);
-    freq_stats_rx.set_style(&Styles::white);
+    freq_stats_rssi.set_style(Theme::getInstance()->bg_darkest);
+    freq_stats_db.set_style(Theme::getInstance()->bg_darkest);
+    freq_stats_rx.set_style(Theme::getInstance()->bg_darkest);
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
@@ -321,6 +321,11 @@ void LevelView::handle_coded_squelch(const uint32_t value) {
         text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
     else
         text_ctcss.set("        ");
+}
+
+void LevelView::on_freqchg(int64_t freq) {
+    receiver_model.set_target_frequency(freq);
+    button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
 }
 
 } /* namespace ui */

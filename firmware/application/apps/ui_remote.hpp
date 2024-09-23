@@ -200,15 +200,15 @@ class RemoteEntryEditView : public View {
     void load_path(std::filesystem::path&& path);
 
     Labels labels{
-        {{2 * 8, 1 * 16}, "Name:", Color::light_grey()},
-        {{2 * 8, 2 * 16}, "Path:", Color::light_grey()},
-        {{2 * 8, 3 * 16}, "Freq:", Color::light_grey()},
-        {{17 * 8, 3 * 16}, "MHz", Color::light_grey()},
-        {{2 * 8, 4 * 16}, "Rate:", Color::light_grey()},
-        {{2 * 8, 5 * 16}, "Icon:", Color::light_grey()},
-        {{2 * 8, 6 * 16}, "FG Color:", Color::light_grey()},
-        {{2 * 8, 7 * 16}, "BG Color:", Color::light_grey()},
-        {{8 * 8, 9 * 16}, "Button preview", Color::light_grey()},
+        {{2 * 8, 1 * 16}, "Name:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 2 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 3 * 16}, "Freq:", Theme::getInstance()->fg_light->foreground},
+        {{17 * 8, 3 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 4 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Icon:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 6 * 16}, "FG Color:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "BG Color:", Theme::getInstance()->fg_light->foreground},
+        {{8 * 8, 9 * 16}, "Button preview", Theme::getInstance()->fg_light->foreground},
     };
 
     TextField field_name{{8 * 8, 1 * 16, 20 * 8, 1 * 16}, {}};

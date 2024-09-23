@@ -176,7 +176,11 @@ set(CPPSRC
 	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	${COMMON}/ads1110.cpp
+	${COMMON}/max17055.cpp
+	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
+	${COMMON}/bmpfile.cpp
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
@@ -202,6 +206,7 @@ set(CPPSRC
 	irq_rtc.cpp
 	log_file.cpp
 	metadata_file.cpp
+	flipper_subfile.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
 	usb_serial_shell_filesystem.cpp
@@ -209,6 +214,7 @@ set(CPPSRC
 	usb_serial_thread.cpp
 	usb_serial.cpp
 	usb_serial_host_to_device.cpp
+	usb_serial_asyncmsg.cpp
 	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
@@ -221,6 +227,7 @@ set(CPPSRC
 	spectrum_color_lut.cpp
 	string_format.cpp
 	temperature_logger.cpp
+	theme.cpp
 	touch.cpp
 	tone_key.cpp
 	transmitter_model.cpp
@@ -254,11 +261,11 @@ set(CPPSRC
 	ui/ui_freqlist.cpp
 	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
-	ui/ui_styles.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
 	ui/ui_tone_key.cpp
 	ui/ui_transmitter.cpp
+	ui/ui_bmpview.cpp
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
@@ -273,17 +280,19 @@ set(CPPSRC
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
-	apps/tpms_app.cpp
-	apps/tpms_app.cpp
+	# apps/tpms_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp
-	apps/ui_adsb_tx.cpp
+	# apps/ui_adsb_tx.cpp #moved to ext
 	apps/ui_aprs_rx.cpp
 	apps/ui_aprs_tx.cpp
+	apps/ui_battinfo.cpp
 	apps/ui_bht_tx.cpp
+	apps/ui_bmp_file_viewer.cpp
 	apps/ui_btle_rx.cpp
 	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
+	apps/ui_debug_battery.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
@@ -298,7 +307,7 @@ set(CPPSRC
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
-	apps/ui_morse.cpp
+	# apps/ui_morse.cpp
 	# apps/ui_nrf_rx.cpp
 	# apps/ui_nuoptix.cpp
 	apps/ui_playlist.cpp
@@ -318,7 +327,8 @@ set(CPPSRC
 	# apps/ui_spectrum_painter_text.cpp
 	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
-	apps/ui_sstvtx.cpp
+	# apps/ui_sstvtx.cpp #moved to ext
+	apps/ui_standalone_view.cpp
 	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
@@ -501,6 +511,7 @@ include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
 target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_LIST_DIR}/external")
 target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin

@@ -51,9 +51,6 @@ class FProtoWeatherNexusTH : public FProtoWeatherBase {
                         parser_step = Nexus_THDecoderStepReset;
                         if ((decode_count_bit == min_count_bit_for_found) &&
                             ws_protocol_nexus_th_check()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_nexus_th_remote_controller();
                             if (callback) callback((FProtoWeatherBase*)this);
                             parser_step = Nexus_THDecoderStepCheckDuration;
                         }
@@ -97,24 +94,6 @@ class FProtoWeatherNexusTH : public FProtoWeatherBase {
             return false;
         }
         return true;
-    }
-
-    // fill the base class's variables before calling the callback
-    void ws_protocol_nexus_th_remote_controller() {
-        id = (data >> 28) & 0xFF;
-        battery_low = !((data >> 27) & 1);
-        channel = ((data >> 24) & 0x03) + 1;
-        btn = WS_NO_BTN;
-        if (!((data >> 23) & 1)) {
-            temp = (float)((data >> 12) & 0x07FF) / 10.0f;
-        } else {
-            temp = (float)((~(data >> 12) & 0x07FF) + 1) / -10.0f;
-        }
-        humidity = data & 0xFF;
-        if (humidity > 95)
-            humidity = 95;
-        else if (humidity < 20)
-            humidity = 20;
     }
 };
 

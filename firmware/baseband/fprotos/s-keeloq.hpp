@@ -57,17 +57,8 @@ class FProtoSubGhzDKeeLoq : public FProtoSubGhzDBase {
                         parser_step = KeeloqDecoderStepReset;
                         if ((decode_count_bit >= min_count_bit_for_found) &&
                             (decode_count_bit <= min_count_bit_for_found + 2)) {
-                            if (data != decode_data) {
-                                data = decode_data;
-                                data_count_bit = min_count_bit_for_found;
-                                // controller
-                                uint64_t key = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, data_count_bit);
-                                uint32_t key_fix = key >> 32;
-                                // uint32_t key_hop = key & 0x00000000ffffffff; //unused
-                                serial = key_fix & 0x0FFFFFFF;
-                                btn = key_fix >> 28;
-                                if (callback) callback(this);
-                            }
+                            data_count_bit = min_count_bit_for_found;
+                            if (callback) callback(this);
                             decode_data = 0;
                             decode_count_bit = 0;
                             header_count = 0;
@@ -102,6 +93,8 @@ class FProtoSubGhzDKeeLoq : public FProtoSubGhzDBase {
                 break;
         }
     }
+
+    uint16_t header_count = 0;
 };
 
 #endif

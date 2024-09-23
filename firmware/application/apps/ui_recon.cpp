@@ -65,16 +65,16 @@ void ReconView::reload_restart_recon() {
         recon_resume();
     }
     if (scanner_mode) {
-        file_name.set_style(&Styles::red);
-        button_scanner_mode.set_style(&Styles::red);
+        file_name.set_style(Theme::getInstance()->fg_red);
+        button_scanner_mode.set_style(Theme::getInstance()->fg_red);
         button_scanner_mode.set_text("SCAN");
     } else {
-        file_name.set_style(&Styles::blue);
-        button_scanner_mode.set_style(&Styles::blue);
+        file_name.set_style(Theme::getInstance()->fg_blue);
+        button_scanner_mode.set_style(Theme::getInstance()->fg_blue);
         button_scanner_mode.set_text("RECON");
     }
     if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
-        file_name.set_style(&Styles::yellow);
+        file_name.set_style(Theme::getInstance()->fg_yellow);
     }
 }
 
@@ -104,7 +104,7 @@ freqman_entry& ReconView::current_entry() {
 
 void ReconView::set_loop_config(bool v) {
     continuous = v;
-    button_loop_config.set_style(v ? &Styles::green : &Styles::white);
+    button_loop_config.set_style(v ? Theme::getInstance()->fg_green : Theme::getInstance()->bg_darkest);
     persistent_memory::set_recon_continuous(continuous);
 }
 
@@ -121,8 +121,8 @@ void ReconView::recon_stop_recording(bool exiting) {
         } else {
             button_audio_app.set_text("AUDIO");
         }
-        button_audio_app.set_style(&Styles::white);
-        button_config.set_style(&Styles::white);
+        button_audio_app.set_style(Theme::getInstance()->bg_darkest);
+        button_config.set_style(Theme::getInstance()->bg_darkest);
     }
 }
 
@@ -171,23 +171,23 @@ void ReconView::update_description() {
 void ReconView::colorize_waits() {
     // colorize wait on match
     if (wait == 0) {
-        field_wait.set_style(&Styles::blue);
+        field_wait.set_style(Theme::getInstance()->fg_blue);
     } else if (wait >= 500) {
-        field_wait.set_style(&Styles::white);
+        field_wait.set_style(Theme::getInstance()->bg_darkest);
     } else if (wait > -500 && wait < 500) {
-        field_wait.set_style(&Styles::red);
+        field_wait.set_style(Theme::getInstance()->fg_red);
     } else if (wait <= -500) {
-        field_wait.set_style(&Styles::green);
+        field_wait.set_style(Theme::getInstance()->fg_green);
     }
     // colorize lock time if in SPARSE mode as in continuous the lock_wait time is disarmed at first lock count
     if (recon_match_mode == RECON_MATCH_SPARSE) {
         if ((recon_lock_duration / STATS_UPDATE_INTERVAL) <= recon_lock_nb_match) {
-            field_lock_wait.set_style(&Styles::yellow);
+            field_lock_wait.set_style(Theme::getInstance()->fg_yellow);
         } else {
-            field_lock_wait.set_style(&Styles::white);
+            field_lock_wait.set_style(Theme::getInstance()->bg_darkest);
         }
     } else {
-        field_lock_wait.set_style(&Styles::white);
+        field_lock_wait.set_style(Theme::getInstance()->bg_darkest);
     }
 }
 
@@ -259,17 +259,17 @@ void ReconView::recon_redraw() {
         text_nb_locks.set(to_string_dec_uint(freq_lock) + "/" + to_string_dec_uint(recon_lock_nb_match));
         if (freq_lock == 0) {
             // NO FREQ LOCK, ONGOING STANDARD SCANNING
-            big_display.set_style(&Styles::white);
+            big_display.set_style(Theme::getInstance()->bg_darkest);
             if (recon)
                 button_pause.set_text("<PAUSE>");
             else
                 button_pause.set_text("<RESUME>");
         } else if (freq_lock == 1 && recon_lock_nb_match != 1) {
             // STARTING LOCK FREQ
-            big_display.set_style(&Styles::yellow);
+            big_display.set_style(Theme::getInstance()->fg_yellow);
             button_pause.set_text("<SKPLCK>");
         } else if (freq_lock >= recon_lock_nb_match) {
-            big_display.set_style(&Styles::green);
+            big_display.set_style(Theme::getInstance()->fg_green);
             button_pause.set_text("<UNLOCK>");
         }
     }
@@ -591,18 +591,18 @@ ReconView::ReconView(NavigationView& nav)
             current_entry().bandwidth = freqman_invalid_index;
             current_entry().step = def_step;
 
-            big_display.set_style(&Styles::white);  // Back to white color
+            big_display.set_style(Theme::getInstance()->bg_darkest);  // Back to white color
 
-            freq_stats.set_style(&Styles::white);
+            freq_stats.set_style(Theme::getInstance()->bg_darkest);
             freq_stats.set("0/0/0");
 
             text_cycle.set_text("1");
             text_max.set("/1");
-            button_scanner_mode.set_style(&Styles::white);
+            button_scanner_mode.set_style(Theme::getInstance()->bg_darkest);
             button_scanner_mode.set_text("MANUAL");
-            file_name.set_style(&Styles::white);
+            file_name.set_style(Theme::getInstance()->bg_darkest);
             file_name.set("MANUAL => " + output_file);
-            desc_cycle.set_style(&Styles::white);
+            desc_cycle.set_style(Theme::getInstance()->bg_darkest);
 
             last_entry.modulation = freqman_invalid_index;
             last_entry.bandwidth = freqman_invalid_index;
@@ -648,12 +648,12 @@ ReconView::ReconView(NavigationView& nav)
         manual_mode = false;
         if (scanner_mode) {
             scanner_mode = false;
-            button_scanner_mode.set_style(&Styles::blue);
+            button_scanner_mode.set_style(Theme::getInstance()->fg_blue);
             button_scanner_mode.set_text("RECON");
             button_remove.set_text("<REMOVE>");
         } else {
             scanner_mode = true;
-            button_scanner_mode.set_style(&Styles::red);
+            button_scanner_mode.set_style(Theme::getInstance()->fg_red);
             button_scanner_mode.set_text("SCAN");
             button_remove.set_text("<DELETE>");
         }
@@ -726,7 +726,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     // PRE-CONFIGURATION:
-    button_scanner_mode.set_style(&Styles::blue);
+    button_scanner_mode.set_style(Theme::getInstance()->fg_blue);
     button_scanner_mode.set_text("RECON");
     file_name.set("=>");
 
@@ -772,14 +772,14 @@ void ReconView::frequency_file_load() {
     std::string file_input = input_file;    // default recon mode
     if (scanner_mode) {
         file_input = output_file;
-        file_name.set_style(&Styles::red);
-        button_scanner_mode.set_style(&Styles::red);
-        desc_cycle.set_style(&Styles::red);
+        file_name.set_style(Theme::getInstance()->fg_red);
+        button_scanner_mode.set_style(Theme::getInstance()->fg_red);
+        desc_cycle.set_style(Theme::getInstance()->fg_red);
         button_scanner_mode.set_text("SCAN");
     } else {
-        file_name.set_style(&Styles::blue);
-        button_scanner_mode.set_style(&Styles::blue);
-        desc_cycle.set_style(&Styles::blue);
+        file_name.set_style(Theme::getInstance()->fg_blue);
+        button_scanner_mode.set_style(Theme::getInstance()->fg_blue);
+        desc_cycle.set_style(Theme::getInstance()->fg_blue);
         button_scanner_mode.set_text("RECON");
     }
 
@@ -791,7 +791,7 @@ void ReconView::frequency_file_load() {
         .load_hamradios = load_hamradios,
         .load_repeaters = load_repeaters};
     if (!load_freqman_file(file_input, frequency_list, options) || frequency_list.empty()) {
-        file_name.set_style(&Styles::red);
+        file_name.set_style(Theme::getInstance()->fg_red);
         desc_cycle.set("...empty file...");
         frequency_list.clear();
         text_cycle.set_text(" ");
@@ -799,7 +799,7 @@ void ReconView::frequency_file_load() {
     }
 
     if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
-        file_name.set_style(&Styles::yellow);
+        file_name.set_style(Theme::getInstance()->fg_yellow);
     }
 
     reset_indexes();
@@ -888,13 +888,13 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                         audio_output_start();
                     // contents of a possible recon_start_recording(), but not yet since it's only called once
                     if (auto_record_locked && !is_recording) {
-                        button_audio_app.set_style(&Styles::red);
+                        button_audio_app.set_style(Theme::getInstance()->fg_red);
                         if (field_mode.selected_index_value() == SPEC_MODULATION) {
                             button_audio_app.set_text("RAW REC");
                         } else
                             button_audio_app.set_text("WAV REC");
                         record_view->start();
-                        button_config.set_style(&Styles::light_grey);  // disable config while recording as it's causing an IO error pop up at exit
+                        button_config.set_style(Theme::getInstance()->fg_light);  // disable config while recording as it's causing an IO error pop up at exit
                         is_recording = true;
                     }
                     // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
@@ -1106,7 +1106,7 @@ void ReconView::recon_pause() {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio_output_start();
 
-    big_display.set_style(&Styles::white);
+    big_display.set_style(Theme::getInstance()->bg_darkest);
     button_pause.set_text("<RESUME>");  // PAUSED, show resume
 }
 
@@ -1118,7 +1118,7 @@ void ReconView::recon_resume() {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
 
-    big_display.set_style(&Styles::white);
+    big_display.set_style(Theme::getInstance()->bg_darkest);
     button_pause.set_text("<PAUSE>");
 }
 
@@ -1401,8 +1401,8 @@ void ReconView::start_repeat() {
             std::string delay_message = "TX DELAY: " + to_string_dec_uint(delay) + "s";
 
             // update display information
-            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Color::light_grey());
-            p.draw_string({(SCREEN_W / 2) - 7 * 8, SCREEN_H / 2}, Styles::red, delay_message);
+            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Theme::getInstance()->fg_light->foreground);
+            p.draw_string({(SCREEN_W / 2) - 7 * 8, SCREEN_H / 2}, *Theme::getInstance()->fg_red, delay_message);
 
             // sleep 1 second
             chThdSleepMilliseconds(1000);

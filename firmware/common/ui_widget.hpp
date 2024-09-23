@@ -33,6 +33,8 @@
 #include "portapack.hpp"
 #include "utility.hpp"
 
+#include "ui/ui_font_fixed_5x8.hpp"
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -523,7 +525,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
-    Color bg_color_{Color::grey()};
+    Color bg_color_{Theme::getInstance()->bg_medium->background};
 
    private:
     std::string text_;
@@ -639,7 +641,7 @@ class ImageOptionsField : public Widget {
         options_t options);
 
     ImageOptionsField()
-        : ImageOptionsField{{}, Color::white(), Color::black(), {}} {
+        : ImageOptionsField{{}, Theme::getInstance()->bg_darkest->foreground, Theme::getInstance()->bg_darkest->background, {}} {
     }
 
     void set_options(options_t new_options);
@@ -779,6 +781,54 @@ class TextField : public Text {
 
    private:
     using Text::set;
+};
+
+class BatteryTextField : public Widget {
+   public:
+    std::function<void()> on_select{};
+
+    BatteryTextField(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
+
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
+    void set_text(std::string_view value);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    uint8_t percent_{102};
+    uint8_t valid_{0};
+    bool charge_{false};
+
+    Style style{
+        .font = font::fixed_5x8,
+        .background = Theme::getInstance()->bg_dark->background,
+        .foreground = Theme::getInstance()->bg_dark->foreground,
+    };
+};
+
+class BatteryIcon : public Widget {
+   public:
+    std::function<void()> on_select{};
+
+    BatteryIcon(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    uint8_t percent_{102};
+    uint8_t valid_{0};
+    bool charge_{false};
 };
 
 class NumberField : public Widget {
@@ -932,7 +982,7 @@ class Waveform : public Widget {
     void paint(Painter& painter) override;
 
    private:
-    const Color cursor_colors[2] = {Color::cyan(), Color::magenta()};
+    const Color cursor_colors[2] = {Theme::getInstance()->fg_cyan->foreground, Theme::getInstance()->fg_magenta->foreground};
 
     int16_t* data_;
     uint32_t length_;

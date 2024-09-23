@@ -46,7 +46,7 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
     Color target_color;
     // auto entry_age = entry.age;
 
-    target_color = Color::green();
+    target_color = Theme::getInstance()->fg_green->foreground;
 
     std::string entry_string = "";
 
@@ -120,6 +120,10 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
     audio::output::start();
 
     receiver_model.enable();
+}
+
+void APRSRxView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
 }
 
 void APRSRxView::on_packet(const APRSPacketMessage* message) {

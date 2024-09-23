@@ -52,6 +52,7 @@ using asahi_kasei::ak4951::AK4951;
 #include "sd_card.hpp"
 #include "string_format.hpp"
 #include "bitmap.hpp"
+#include "ui_widget.hpp"
 
 namespace portapack {
 
@@ -379,8 +380,8 @@ static void draw_splash_screen_icon(int16_t n, const ui::Bitmap& bitmap) {
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 8 - 40 + (n * 20), portapack::display.height() / 2 - 8 + 40},
         bitmap,
-        ui::Color::white(),
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background);
 }
 
 static bool is_portapack_present() {
@@ -439,7 +440,7 @@ static void initialize_boot_splash_screen() {
 
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     chThdSleepMilliseconds(17);
     portapack::backlight()->on();
@@ -447,8 +448,8 @@ static void initialize_boot_splash_screen() {
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
         ui::bitmap_titlebar_image,
-        ui::Color::white(),
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background);
 }
 
 /* Clock scheme after exiting bootloader in SPIFI mode:
@@ -534,6 +535,8 @@ init_status_t init() {
 
     set_cpu_clock_speed();
 
+    if (persistent_memory::config_lcd_inverted_mode()) display.set_inverted(true);
+
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);
 
@@ -585,6 +588,7 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
+    battery::BatteryManagement::init(persistent_memory::ui_override_batt_calc());
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);
@@ -616,5 +620,7 @@ void shutdown(const bool leave_screen_on) {
 void setEventDispatcherToUSBSerial(EventDispatcher* evt) {
     usb_serial.setEventDispatcher(evt);
 }
+
+bool async_tx_enabled = false;  // this is for serial tx things, globally
 
 } /* namespace portapack */

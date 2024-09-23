@@ -214,7 +214,7 @@ void SoundBoardView::refresh_list() {
 
         for (size_t n = 0; n < file_list.size(); n++) {
             menu_view.add_item({file_list[n].string().substr(0, 30),
-                                ui::Color::dark_magenta(),
+                                ui::Theme::getInstance()->fg_magenta->foreground,
                                 nullptr,
                                 [this](KeyEvent) {
                                     on_select_entry();

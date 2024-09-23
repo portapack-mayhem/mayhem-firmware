@@ -29,7 +29,7 @@ struct bmp_header_t {
     uint32_t image_data;
     uint32_t BIH_size;
     uint32_t width;
-    uint32_t height;
+    int32_t height;  // can be negative, to signal the bottom-up or reserve status
     uint16_t planes;
     uint16_t bpp;
     uint32_t compression;

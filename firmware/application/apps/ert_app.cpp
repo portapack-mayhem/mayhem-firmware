@@ -178,4 +178,8 @@ void ERTAppView::on_show_list() {
     recent_entries_view.focus();
 }
 
+void ERTAppView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 } /* namespace ui */

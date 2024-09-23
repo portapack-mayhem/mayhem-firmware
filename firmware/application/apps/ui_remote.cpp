@@ -177,11 +177,11 @@ void RemoteButton::paint(Painter& painter) {
     // Add a border on the highlighted button.
     if (has_focus() || highlighted()) {
         auto r = screen_rect();
-        painter.draw_rectangle(r, Color::white());
+        painter.draw_rectangle(r, Theme::getInstance()->bg_darkest->foreground);
 
         auto p = r.location() + Point{1, 1};
         auto s = Size{r.size().width() - 2, r.size().height() - 2};
-        painter.draw_rectangle({p, s}, Color::light_grey());
+        painter.draw_rectangle({p, s}, Theme::getInstance()->fg_light->foreground);
     }
 };
 

@@ -33,7 +33,6 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "string_format.hpp"
 #include "analog_audio_app.hpp"
 #include "spectrum_color_lut.hpp"
@@ -110,6 +109,7 @@ class GlassView : public View {
         std::string label{};
     };
 
+    void on_freqchg(int64_t freq);
     int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     std::vector<preset_entry> presets_db{};
     void manage_beep_audio();
@@ -171,12 +171,12 @@ class GlassView : public View {
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
-        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
-        {{0, 2 * 16}, "P:", Color::light_grey()},
-        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Color::light_grey()},
-        //{{0, 4 * 16}, "RES:    STEPS:", Color::light_grey()}};
-        {{0, 4 * 16}, "RES:     VOL:", Color::light_grey()}};
+        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
+        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
+        {{0, 2 * 16}, "P:", Theme::getInstance()->fg_light->foreground},
+        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::getInstance()->fg_light->foreground},
+        //{{0, 4 * 16}, "RES:    STEPS:", Theme::getInstance()->fg_light->foreground}};
+        {{0, 4 * 16}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency_min{
         {4 * 8, 0 * 16},
@@ -308,6 +308,7 @@ class GlassView : public View {
             const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
             this->fifo = message.fifo;
         }};
+
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
@@ -317,6 +318,13 @@ class GlassView : public View {
                     this->on_channel_spectrum(channel_spectrum);
                 }
             }
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
         }};
 };
 }  // namespace ui

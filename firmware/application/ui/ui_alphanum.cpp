@@ -129,13 +129,13 @@ void AlphanumView::refresh_keys() {
 
     switch (shift_mode) {
         case ShiftMode::None:
-            button_shift.set_color(Color::dark_grey());
+            button_shift.set_color(Theme::getInstance()->bg_dark->background);
             break;
         case ShiftMode::Shift:
-            button_shift.set_color(Color::black());
+            button_shift.set_color(Theme::getInstance()->bg_darkest->background);
             break;
         case ShiftMode::ShiftLock:
-            button_shift.set_color(Color::dark_blue());
+            button_shift.set_color(Theme::getInstance()->fg_blue->foreground);
             break;
     }
 }

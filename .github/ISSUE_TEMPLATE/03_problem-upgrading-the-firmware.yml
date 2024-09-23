@@ -1,0 +1,45 @@
+name: Firmware/boot issue
+description: If you are having firmware upgrade or booting problems.
+labels:
+  - firmware
+body:
+  - type: markdown
+    attributes:
+      value: >2-
+         Thank you for taking the time to fill out an issue, this template is meant for any issues related to the Mayhem firmware.
+              Before creating this issue, **do the following**: 
+        * Read the Wiki on booting:
+        https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won't-boot
+
+        * Read:
+        https://github.com/portapack-mayhem/mayhem-firmware/wiki/Update-firmware
+
+        * Watch carefully: https://www.youtube.com/watch?v=_zx4ZvurgOs
+
+        * (if you are not in Windows) also check:
+        https://www.youtube.com/watch?v=kjFB58Y1TAo
+
+        * Check hardware versions:
+        https://github.com/portapack-mayhem/mayhem-firmware/wiki/PortaPack-Versions
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: If after following the above troubleshooting the problem still remains
+      placeholder: Describe what was is the problem
+  - type: input
+    id: hardware
+    attributes:
+      label: Your hardware
+      description: Check the link with the versions above
+      placeholder: Which device you have?
+  - type: checkboxes
+    id: firmware_update_before
+    attributes:
+      label: Tests
+      description: >-
+        Things might be confusing the first time, please check the documentation
+        above
+      options:
+        - label: I managed to update/boot previously
+          required: false

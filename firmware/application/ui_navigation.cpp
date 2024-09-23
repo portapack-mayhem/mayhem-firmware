@@ -35,7 +35,7 @@
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
-#include "ui_adsb_tx.hpp"
+// #include "ui_adsb_tx.hpp" //moved to ext
 #include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
@@ -55,7 +55,7 @@
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
-#include "ui_morse.hpp"
+// #include "ui_morse.hpp" //moved to ext
 // #include "ui_nrf_rx.hpp" //moved to ext
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
@@ -74,8 +74,7 @@
 #include "ui_sonde.hpp"
 // #include "ui_spectrum_painter.hpp" //moved to ext app
 #include "ui_ss_viewer.hpp"
-#include "ui_sstvtx.hpp"
-#include "ui_styles.hpp"
+// #include "ui_sstvtx.hpp" //moved to ext
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
@@ -84,13 +83,14 @@
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
 #include "ui_whipcalc.hpp"
+#include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 // #include "analog_tv_app.hpp" //moved to ext
-#include "ble_comm_app.hpp"
+// #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
@@ -100,7 +100,7 @@
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
 #include "soundboard_app.hpp"
-#include "tpms_app.hpp"
+// #include "tpms_app.hpp" //moved to ext
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -171,9 +171,9 @@ const NavigationView::AppList NavigationView::appList = {
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"recon", "Recon", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
-    {"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
-    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
+    //{"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()},
     //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
     //{"sigfox", "SIGFOX", RX, Color::dark_grey(), &bitmap_icon_fox, new ViewFactory<NotImplementedView>()},
@@ -181,17 +181,17 @@ const NavigationView::AppList NavigationView::appList = {
     //{"sstv", "SSTV", RX, Color::dark_grey(), &bitmap_icon_sstv, new ViewFactory<NotImplementedView>()},
     //{"tetra", "TETRA", RX, Color::dark_grey(), &bitmap_icon_tetra, new ViewFactory<NotImplementedView>()},
     /* TX ********************************************************************/
-    {"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
+    //{"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
-    {"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()},
+    //{"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()}, //moved to ext
     //{"nuoptixdtmf", "Nuoptix DTMF", TX, ui::Color::green(), &bitmap_icon_nuoptix, new ViewFactory<NuoptixView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
-    {"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()},
+    //{"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()}, //moved to ext
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* UTILITIES *************************************************************/
     {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
@@ -292,7 +292,7 @@ SystemStatusView::SystemStatusView(
     pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io(), false);
 
     button_back.id = -1;  // Special ID used by FocusManager
-    title.set_style(&Styles::bg_dark_grey);
+    title.set_style(Theme::getInstance()->bg_dark);
 
     button_back.on_select = [this](ImageButton&) {
         if (pmem::should_use_sdcard_for_pmem()) {
@@ -334,6 +334,9 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
+    battery_icon.on_select = [this]() { on_battery_details(); };
+    battery_text.on_select = [this]() { on_battery_details(); };
+
     button_fake_brightness.on_select = [this](ImageButton&) {
         set_dirty();
         pmem::toggle_fake_brightness_level();
@@ -370,6 +373,31 @@ SystemStatusView::SystemStatusView(
     refresh();
 }
 
+// when battery icon / text is clicked
+void SystemStatusView::on_battery_details() {
+    if (!nav_.is_valid()) return;
+    if (batt_info_up) return;
+    batt_info_up = true;
+    nav_.push<BattinfoView>();
+    nav_.set_on_pop([this]() {
+        batt_info_up = false;
+    });
+}
+
+void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
+    if (!batt_was_inited) {
+        batt_was_inited = true;
+        refresh();
+        return;
+    }
+    if (!pmem::ui_hide_numeric_battery()) {
+        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+    }
+    if (!pmem::ui_hide_battery_icon()) {
+        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+    };
+}
+
 void SystemStatusView::refresh() {
     // NB: Order of insertion is the display order Left->Right.
     // TODO: Might be better to support hide and only add once.
@@ -385,31 +413,44 @@ void SystemStatusView::refresh() {
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
-    if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
+    if (!pmem::ui_hide_fake_brightness() && !pmem::config_lcd_inverted_mode()) status_icons.add(&button_fake_brightness);
+    if (battery::BatteryManagement::isDetected()) {
+        batt_was_inited = true;
+        uint8_t percent = battery::BatteryManagement::getPercent();
+        if (!pmem::ui_hide_battery_icon()) {
+            status_icons.add(&battery_icon);
+            battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);  // got an on select, that may pop up the details of the battery.
+        };
+        if (!pmem::ui_hide_numeric_battery()) {
+            status_icons.add(&battery_text);
+            battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);
+        }
+    }
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
+
     status_icons.update_layout();
 
     // Clock status
     bool external_clk = portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External;
     button_clock_status.set_bitmap(external_clk ? &bitmap_icon_clk_ext : &bitmap_icon_clk_int);
-    button_clock_status.set_foreground(pmem::clkout_enabled() ? Color::green() : Color::light_grey());
+    button_clock_status.set_foreground(pmem::clkout_enabled() ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
 
     // Antenna DC Bias
     if (portapack::get_antenna_bias()) {
         button_bias_tee.set_bitmap(&bitmap_icon_biast_on);
-        button_bias_tee.set_foreground(Color::yellow());
+        button_bias_tee.set_foreground(Theme::getInstance()->warning_dark->foreground);
     } else {
         button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
-        button_bias_tee.set_foreground(Color::light_grey());
+        button_bias_tee.set_foreground(Theme::getInstance()->fg_light->foreground);
     }
 
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
-    button_converter.set_foreground(pmem::config_converter() ? Color::red() : Color::light_grey());
+    button_converter.set_foreground(pmem::config_converter() ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_light->foreground);
 
     // Fake Brightness
-    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Color::green() : Color::light_grey());
+    button_fake_brightness.set_foreground((pmem::apply_fake_brightness() & (!pmem::config_lcd_inverted_mode())) ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
 
     set_dirty();
 }
@@ -420,6 +461,10 @@ void SystemStatusView::set_back_enabled(bool new_value) {
     } else {
         remove_child(&button_back);
     }
+}
+
+void SystemStatusView::set_back_hidden(bool new_value) {
+    button_back.hidden(new_value);
 }
 
 void SystemStatusView::set_title_image_enabled(bool new_value) {
@@ -564,28 +609,22 @@ void SystemStatusView::rtc_battery_workaround() {
 InformationView::InformationView(
     NavigationView& nav)
     : nav_(nav) {
-    static constexpr Style style_infobar{
-        .font = font::fixed_8x16,
-        .background = {33, 33, 33},
-        .foreground = Color::white(),
-    };
-
     add_children({&backdrop,
                   &version,
                   &ltime});
 
 #if GCC_VERSION_MISMATCH
-    version.set_style(&Styles::yellow);
+    version.set_style(Theme::getInstance()->warning_dark);
 #else
-    version.set_style(&style_infobar);
+    version.set_style(Theme::getInstance()->bg_darker);
 #endif
 
     if (firmware_checksum_error()) {
         version.set("FLASH ERR");
-        version.set_style(&Styles::red);
+        version.set_style(Theme::getInstance()->error_dark);
     }
 
-    ltime.set_style(&style_infobar);
+    ltime.set_style(Theme::getInstance()->bg_darker);
     refresh();
     set_dirty();
 }
@@ -663,8 +702,9 @@ void NavigationView::display_modal(
     const std::string& title,
     const std::string& message,
     modal_t type,
-    std::function<void(bool)> on_choice) {
-    push<ModalMessageView>(title, message, type, on_choice);
+    std::function<void(bool)> on_choice,
+    bool compact) {
+    push<ModalMessageView>(title, message, type, on_choice, compact);
 }
 
 void NavigationView::free_view() {
@@ -745,7 +785,7 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
         grid.insert_item({"Notice!",
-                          Color::red(),
+                          Theme::getInstance()->error_dark->foreground,
                           nullptr,
                           [&nav]() {
                               nav.display_modal(
@@ -770,7 +810,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
 
 void ReceiversMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }});
+        add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
 
     add_apps(nav_, *this, RX);
@@ -785,7 +825,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
 
 void TransmittersMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, TX);
@@ -802,7 +842,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
 
 void UtilitiesMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, UTILITIES);
@@ -833,7 +873,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
 
-    add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
+    add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
 /* SystemView ************************************************************/
@@ -843,7 +883,7 @@ SystemView::SystemView(
     const Rect parent_rect)
     : View{parent_rect},
       context_(context) {
-    set_style(&Styles::white);
+    set_style(Theme::getInstance()->bg_darkest);
 
     constexpr Dim status_view_height = 16;
     constexpr Dim info_view_height = 16;
@@ -896,6 +936,9 @@ Context& SystemView::context() const {
 NavigationView* SystemView::get_navigation_view() {
     return &navigation_view;
 }
+SystemStatusView* SystemView::get_status_view() {
+    return &status_view;
+}
 
 void SystemView::toggle_overlay() {
     static uint8_t last_perf_counter_status = shared_memory.request_m4_performance_counter;
@@ -938,6 +981,15 @@ void SystemView::paint_overlay() {
     }
 }
 
+void SystemView::set_app_fullscreen(bool fullscreen) {
+    auto parent_rect = screen_rect();
+    Dim status_view_height = (fullscreen) ? 0 : 16;
+    status_view.hidden(fullscreen);
+    navigation_view.set_parent_rect(
+        {{0, status_view_height},
+         {parent_rect.width(), static_cast<Dim>(parent_rect.height() - status_view_height)}});
+}
+
 /* ***********************************************************************/
 
 void BMPView::focus() {
@@ -954,7 +1006,7 @@ BMPView::BMPView(NavigationView& nav) {
 
 void BMPView::paint(Painter&) {
     if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
+        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, true);
 }
 
 /* NotImplementedView ****************************************************/
@@ -981,11 +1033,13 @@ ModalMessageView::ModalMessageView(
     const std::string& title,
     const std::string& message,
     modal_t type,
-    std::function<void(bool)> on_choice)
+    std::function<void(bool)> on_choice,
+    bool compact)
     : title_{title},
       message_{message},
       type_{type},
-      on_choice_{on_choice} {
+      on_choice_{on_choice},
+      compact{compact} {
     if (type == INFO) {
         add_child(&button_ok);
         button_ok.on_select = [this, &nav](Button&) {
@@ -1018,13 +1072,13 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
+    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, true);
 
     // Break lines.
     auto lines = split_string(message_, '\n');
     for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
-            {1 * 8, (Coord)(120 + (i * 16))},
+            {1 * 8, (Coord)(((compact) ? 8 * 3 : 120) + (i * 16))},
             style(),
             lines[i]);
     }

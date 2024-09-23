@@ -23,7 +23,6 @@ MEMORY
      * Also need to consider processor memory map - reading 0xADxxxxxx generates a fault which may be better than unexpected behavior.
      * External app address ranges below must match those in python file "external_app_info.py".
      */
-    ram_external_app_pacman     (rwx) : org = 0xADB00000, len = 32k
     ram_external_app_afsk_rx    (rwx) : org = 0xADB10000, len = 32k
     ram_external_app_calculator (rwx) : org = 0xADB20000, len = 32k
     ram_external_app_font_viewer(rwx) : org = 0xADB30000, len = 32k
@@ -42,16 +41,15 @@ MEMORY
     ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
     ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
     ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
+    ram_external_app_tpmsrx(rwx) : org = 0xADC30000, len = 32k
+    ram_external_app_protoview(rwx) : org = 0xADC40000, len = 32k
+    ram_external_app_adsbtx(rwx) : org = 0xADC50000, len = 32k
+    ram_external_app_morse_tx(rwx) : org = 0xADC60000, len = 32k
+    ram_external_app_sstvtx(rwx) : org = 0xADC70000, len = 32k
 }
 
 SECTIONS
 {
-    .external_app_pacman : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_pacman.application_information));
-        *(*ui*external_app*pacman*);
-    } > ram_external_app_pacman
-
     .external_app_afsk_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_afsk_rx.application_information));
@@ -159,5 +157,39 @@ SECTIONS
         KEEP(*(.external_app.app_wardrivemap.application_information));
         *(*ui*external_app*wardrivemap*);
     } > ram_external_app_wardrivemap
+
+   .external_app_tpmsrx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_tpmsrx.application_information));
+        *(*ui*external_app*tpmsrx*);
+    } > ram_external_app_tpmsrx
+
+
+   .external_app_protoview : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_protoview.application_information));
+        *(*ui*external_app*protoview*);
+    } > ram_external_app_protoview
+
+   .external_app_adsbtx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_adsbtx.application_information));
+        *(*ui*external_app*adsbtx*);
+    } > ram_external_app_adsbtx
+
+
+   .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_morse_tx.application_information));
+        *(*ui*external_app*morse_tx*);
+    } > ram_external_app_morse_tx
+
+   .external_app_sstvtx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_sstvtx.application_information));
+        *(*ui*external_app*sstvtx*);
+    } > ram_external_app_sstvtx
+
+
 
 }

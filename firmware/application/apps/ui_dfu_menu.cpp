@@ -41,12 +41,19 @@ DfuMenu::DfuMenu(NavigationView& nav)
                   &text_info_line_8,
                   &text_info_line_9,
                   &text_info_line_10});
+
+    if (battery::BatteryManagement::isDetected()) {
+        add_child(&voltage_label);
+        add_child(&text_info_line_11);
+    }
 }
 
 void DfuMenu::paint(Painter& painter) {
     auto utilisation = get_cpu_utilisation_in_percent();
     size_t m0_fragmented_free_space = 0;
     const auto m0_fragments = chHeapStatus(NULL, &m0_fragmented_free_space);
+
+    auto lines = (battery::BatteryManagement::isDetected() ? 11 : 10) + 2;
 
     text_info_line_1.set(to_string_dec_uint(chCoreStatus(), 6));
     text_info_line_2.set(to_string_dec_uint(m0_fragmented_free_space, 6));
@@ -58,34 +65,36 @@ void DfuMenu::paint(Painter& painter) {
     text_info_line_8.set(to_string_dec_uint(shared_memory.m4_performance_counter, 6));
     text_info_line_9.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
     text_info_line_10.set(to_string_dec_uint(chTimeNow() / 1000, 6));
+    if (battery::BatteryManagement::isDetected()) {
+        text_info_line_11.set(to_string_decimal_padding((float)battery::BatteryManagement::getVoltage() / 1000.0, 3, 6));
+    }
 
     constexpr auto margin = 5;
-    constexpr auto lines = 10 + 2;
 
     painter.fill_rectangle(
         {{6 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {15 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{21 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
          {17 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
          {17 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 }
 
 DfuMenu2::DfuMenu2(NavigationView& nav)
@@ -124,27 +133,27 @@ void DfuMenu2::paint(Painter& painter) {
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {19 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{24 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
          {21 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
          {21 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 }
 
 } /* namespace ui */

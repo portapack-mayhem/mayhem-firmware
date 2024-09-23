@@ -159,6 +159,7 @@ std::string to_string_decimal(float decimal, int8_t precision) {
     double fractional_part;
 
     std::string result;
+    if (precision > 9) precision = 9;  // we will convert to uin32_t, and that is the max it can hold.
 
     fractional_part = modf(decimal, &integer_part) * pow(10, precision);
 
@@ -167,6 +168,31 @@ std::string to_string_decimal(float decimal, int8_t precision) {
     }
 
     result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision, '0');
+
+    return result;
+}
+
+std::string to_string_decimal_padding(float decimal, int8_t precision, const int32_t l) {
+    double integer_part;
+    double fractional_part;
+
+    std::string result;
+    if (precision > 9) precision = 9;  // we will convert to uin32_t, and that is the max it can hold.
+
+    fractional_part = modf(decimal, &integer_part) * pow(10, precision);
+
+    if (fractional_part < 0) {
+        fractional_part = -fractional_part;
+    }
+
+    result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision, '0');
+
+    // Add padding with spaces to meet the length requirement
+    if (result.length() < (uint32_t)l) {
+        int padding_length = l - result.length();
+        std::string padding(padding_length, ' ');
+        result = padding + result;
+    }
 
     return result;
 }

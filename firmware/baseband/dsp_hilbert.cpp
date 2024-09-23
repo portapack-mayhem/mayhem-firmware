@@ -27,29 +27,34 @@ namespace dsp {
 HilbertTransform::HilbertTransform() {
     n = 0;
 
+    sos_input.configure(half_band_lpf_config);
     sos_i.configure(half_band_lpf_config);
     sos_q.configure(half_band_lpf_config);
 }
 
 void HilbertTransform::execute(float in, float& out_i, float& out_q) {
+    // Synthesized Hilbert Transform, it is implemented  based on 1/2 band LPF and later freq shift fs/4, achieving a H.T_BW of transmitted = fs/2 ;
+    // Half_band LPF  means a LP filter with f_cut_off = fs/4; Half band = Half max band = 1/2 * fs_max =  1/2 x f_Nyquist = 1/2 * fs/2 = fs/4
     float a = 0, b = 0;
+
+    float in_filtered = sos_input.execute(in) * 1.0f;  // Anti-aliasing LPF at fs/4 mic audio filter front-end.
 
     switch (n) {
         case 0:
-            a = in;
+            a = in_filtered;
             b = 0;
             break;
         case 1:
             a = 0;
-            b = -in;
+            b = -in_filtered;
             break;
         case 2:
-            a = -in;
+            a = -in_filtered;
             b = 0;
             break;
         case 3:
             a = 0;
-            b = in;
+            b = in_filtered;
             break;
     }
 

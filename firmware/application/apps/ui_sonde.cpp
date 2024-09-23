@@ -187,4 +187,8 @@ void SondeView::on_packet(const sonde::Packet& packet) {
     }
 }
 
+void SondeView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 } /* namespace ui */

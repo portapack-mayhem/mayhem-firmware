@@ -47,10 +47,7 @@ class FProtoSubGhzDHormann : public FProtoSubGhzDBase {
                         parser_step = HormannDecoderStepFoundStartBit;
                         if (decode_count_bit >=
                             min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
-                            // controller
-                            btn = (data >> 4) & 0xF;
                             if (callback) callback(this);
                         }
                         break;

@@ -51,6 +51,7 @@ enum ATK_TYPE {
     ATK_WINDOWS,
     ATK_SAMSUNG,
     ATK_NAMESPAM,
+    ATK_NAMERANDOM,
     ATK_ALL_SAFE,
     ATK_ALL
 };
@@ -129,8 +130,9 @@ class BLESpamView : public View {
          {"Windows", 3},
          {"Samsung", 4},
          {"NameSpam", 5},
-         {"All-Safe", 6},
-         {"All", 7}}};
+         {"NameRandom", 6},
+         {"All-Safe", 7},
+         {"All", 8}}};
 
     bool is_running{false};
 
@@ -155,6 +157,7 @@ class BLESpamView : public View {
     void createSamsungPacket();
     void createWindowsPacket();
     void createNameSpamPacket();
+    void createNameRandomPacket();
     void createAnyPacket(bool safe);
     void createPacket(ATK_TYPE attackType);
     void changePacket(bool forced);
@@ -163,6 +166,7 @@ class BLESpamView : public View {
     uint64_t get_freq_by_channel_number(uint8_t channel_number);
     void randomizeMac();
     void randomChn();
+    char randomNameChar();
 
     void furi_hal_random_fill_buf(uint8_t* buf, uint32_t len);
 

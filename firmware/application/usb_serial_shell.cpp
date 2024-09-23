@@ -107,13 +107,13 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->fg_yellow->background);
 
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
         ui::bitmap_icon_hackrf,
-        ui::Color::yellow(),
-        ui::Color::black());
+        Theme::getInstance()->fg_yellow->foreground,
+        Theme::getInstance()->fg_yellow->background);
 
     sdcDisconnect(&SDCD1);
     sdcStop(&SDCD1);
@@ -1053,6 +1053,118 @@ static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[])
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [phase] \r\n";
+    (void)argv;
+    if (argc < 2) {
+        chprintf(chp, usage);
+        return;
+    }
+    uint64_t addr = atol(argv[0]);
+    int msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
+    if (msglen > 30 || msglen < 0) {
+        chprintf(chp, "error, msglen max is 30\r\n");
+        return;
+    }
+
+    int baud = 1200;
+    if (argc >= 3) {
+        baud = atoi(argv[2]);
+        if (baud != 512 && baud != 1200 && baud != 2400) {
+            chprintf(chp, "error, baud can only be 512, 1200 or 2400\r\n");
+            return;
+        }
+    }
+
+    int type = 2;
+    if (argc >= 4) {
+        type = atoi(argv[3]);
+        if (type > 2 || type < 0) {
+            chprintf(chp, "error, type can be 0 (ADDRESS_ONLY) 1 (NUMERIC_ONLY) 2 (ALPHANUMERIC)\r\n");
+            return;
+        }
+    }
+
+    char function = 'D';
+    if (argc >= 5) {
+        function = *argv[4];
+        if (function < 'A' && function > 'D') {
+            chprintf(chp, "error, function can be A, B, C or D\r\n");
+            return;
+        }
+    }
+
+    char phase = 'P';
+    if (argc >= 6) {
+        phase = *argv[5];
+        if (phase != 'P' && phase != 'N') {
+            chprintf(chp, "error, phase can be P or N\r\n");
+            return;
+        }
+    }
+
+    uint8_t msg[31] = {0};
+    if (msglen > 0) {
+        chprintf(chp, "send %d bytes\r\n", msglen);
+        do {
+            size_t bytes_to_read = msglen > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : msglen;
+            size_t bytes_read = chSequentialStreamRead(chp, &msg[0], bytes_to_read);
+            if (bytes_read != bytes_to_read)
+                return;
+            msglen -= bytes_read;
+        } while (msglen > 0);
+    }
+
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    if (!nav->StartAppByName("pocsagtx")) {
+        chprintf(chp, "error starting pocsagtx\r\n");
+        return;
+    }
+    chThdSleepMilliseconds(1000);  // wait for app to start
+    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, phase, (uint8_t)msglen, msg, addr};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_asyncmsg(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: asyncmsg x, x can be enable or disable\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    if (strcmp(argv[0], "disable") == 0) {
+        portapack::async_tx_enabled = false;
+        chprintf(chp, "ok\r\n");
+    } else if (strcmp(argv[0], "enable") == 0) {
+        portapack::async_tx_enabled = true;
+        chprintf(chp, "ok\r\n");
+    } else {
+        chprintf(chp, usage);
+    }
+}
+static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: setfreq freq_in_hz\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    int64_t freq = atol(argv[0]);
+
+    if (freq <= 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    // radio::set_tuning_frequency(freq); // sadly this doesn't update any widget, just change the frequency.
+    FreqChangeCommandMessage message{freq};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1083,6 +1195,9 @@ static const ShellCommand commands[] = {
     {"radioinfo", cmd_radioinfo},
     {"pmemreset", cmd_pmemreset},
     {"settingsreset", cmd_settingsreset},
+    {"sendpocsag", cmd_sendpocsag},
+    {"asyncmsg", cmd_asyncmsg},
+    {"setfreq", cmd_setfreq},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

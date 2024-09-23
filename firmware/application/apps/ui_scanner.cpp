@@ -185,16 +185,16 @@ void ScannerView::bigdisplay_update(int32_t v) {
 
         switch (bigdisplay_current_color) {
             case BDC_GREY:
-                big_display.set_style(&Styles::grey);
+                big_display.set_style(Theme::getInstance()->fg_medium);
                 break;
             case BDC_YELLOW:
-                big_display.set_style(&Styles::yellow);
+                big_display.set_style(Theme::getInstance()->fg_yellow);
                 break;
             case BDC_GREEN:
-                big_display.set_style(&Styles::green);
+                big_display.set_style(Theme::getInstance()->fg_green);
                 break;
             case BDC_RED:
-                big_display.set_style(&Styles::red);
+                big_display.set_style(Theme::getInstance()->fg_red);
                 break;
             default:
                 break;
@@ -280,10 +280,10 @@ void ScannerView::show_max_index() {  // show total number of freqs to scan
     field_current_index.set_text("<->");
 
     if (entries.size() == FREQMAN_MAX_PER_FILE) {
-        text_max_index.set_style(&Styles::red);
+        text_max_index.set_style(Theme::getInstance()->fg_red);
         text_max_index.set("/ " + to_string_dec_uint(FREQMAN_MAX_PER_FILE) + " (DB MAX!)");
     } else {
-        text_max_index.set_style(&Styles::grey);
+        text_max_index.set_style(Theme::getInstance()->fg_medium);
         text_max_index.set("/ " + to_string_dec_uint(entries.size()));
     }
 }

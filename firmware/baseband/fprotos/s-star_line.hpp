@@ -53,11 +53,8 @@ class FProtoSubGhzDStarLine : public FProtoSubGhzDBase {
                         parser_step = StarLineDecoderStepReset;
                         if ((decode_count_bit >= min_count_bit_for_found) &&
                             (decode_count_bit <= min_count_bit_for_found + 2)) {
-                            if (data != decode_data) {
-                                data = decode_data;
-                                data_count_bit = min_count_bit_for_found;
-                                if (callback) callback(this);
-                            }
+                            data_count_bit = min_count_bit_for_found;
+                            if (callback) callback(this);
                         }
                         decode_data = 0;
                         decode_count_bit = 0;
@@ -101,6 +98,7 @@ class FProtoSubGhzDStarLine : public FProtoSubGhzDBase {
                 break;
         }
     }
+    uint16_t header_count = 0;
 };
 
 #endif

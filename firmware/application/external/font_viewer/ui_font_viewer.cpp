@@ -22,7 +22,6 @@
 #include "ui_font_viewer.hpp"
 
 #include "ui_font_fixed_8x16.hpp"
-#include "ui_styles.hpp"
 #include "ui_painter.hpp"
 
 #include "portapack.hpp"
@@ -57,8 +56,8 @@ uint16_t DebugFontsView::display_font(Painter& painter, uint16_t y_offset, const
 void DebugFontsView::paint(Painter& painter) {
     int16_t line_pos;
 
-    line_pos = display_font(painter, 32, &Styles::white, "Fixed 8x16");
-    display_font(painter, line_pos + 16, &Styles::white_small, "Fixed 5x8");
+    line_pos = display_font(painter, 32, Theme::getInstance()->bg_darkest, "Fixed 8x16");
+    display_font(painter, line_pos + 16, Theme::getInstance()->bg_darkest_small, "Fixed 5x8");
 }
 
 DebugFontsView::DebugFontsView(NavigationView& nav)

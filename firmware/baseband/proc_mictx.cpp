@@ -113,13 +113,27 @@ void MicTXProcessor::on_message(const Message* const msg) {
             }
 
             if (usb_enabled) {
-                modulator = new dsp::modulate::SSB();
-                modulator->set_mode(dsp::modulate::Mode::USB);
+                dsp::modulate::SSB* ssb = new dsp::modulate::SSB();
+
+                // Config fs_div_factor  private var inside DSP modulate.cpp
+                ssb->set_fs_div_factor(config_message.deviation_hz);  // we use same FM var deviation_hz , to set up also SSB BW
+                ssb->set_mode(dsp::modulate::Mode::USB);
+                modulator = ssb;
+
+                // modulator = new dsp::modulate::SSB();             // Keeping previous code as ref., when not passing deviation_hz parameter.
+                // modulator->set_mode(dsp::modulate::Mode::USB);
             }
 
             if (lsb_enabled) {
-                modulator = new dsp::modulate::SSB();
-                modulator->set_mode(dsp::modulate::Mode::LSB);
+                dsp::modulate::SSB* ssb = new dsp::modulate::SSB();
+
+                // Config fs_div_factor  private var inside DSP modulate.cpp
+                ssb->set_fs_div_factor(config_message.deviation_hz);  // we use same FM var deviation_hz , to set up also SSB BW
+                ssb->set_mode(dsp::modulate::Mode::LSB);
+                modulator = ssb;
+
+                // modulator = new dsp::modulate::SSB();             // Keeping previous code as ref., when not passing deviation_hz parameter.
+                // modulator->set_mode(dsp::modulate::Mode::LSB);
             }
             if (am_enabled) {
                 modulator = new dsp::modulate::AM();
@@ -130,7 +144,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
                 modulator->set_mode(dsp::modulate::Mode::DSB);
             }
 
-            modulator->set_over(baseband_fs / 24000);  // Keep no change.
+            modulator->set_over(baseband_fs / 24000);  // "over" is calculated based on relationship fs_transceiver / fs_audio_mic_capture, to be used in dsp_modulate.cpp
 
             am_enabled = config_message.am_enabled;
             usb_enabled = config_message.usb_enabled;

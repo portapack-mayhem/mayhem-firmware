@@ -45,9 +45,6 @@ class FProtoWeatherThermoProTx4 : public FProtoWeatherBase {
                         parser_step = ThermoPRO_TX4DecoderStepReset;
                         if ((decode_count_bit == min_count_bit_for_found) &&
                             ws_protocol_thermopro_tx4_check()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_thermopro_tx4_remote_controller();
                             if (callback) callback(this);
                             parser_step = ThermoPRO_TX4DecoderStepCheckDuration;
                         }
@@ -91,19 +88,6 @@ class FProtoWeatherThermoProTx4 : public FProtoWeatherBase {
         } else {
             return false;
         }
-    }
-
-    void ws_protocol_thermopro_tx4_remote_controller() {
-        id = (data >> 25) & 0xFF;
-        battery_low = (data >> 24) & 1;
-        btn = (data >> 23) & 1;
-        channel = ((data >> 21) & 0x03) + 1;
-        if (!((data >> 20) & 1)) {
-            temp = (float)((data >> 9) & 0x07FF) / 10.0f;
-        } else {
-            temp = (float)((~(data >> 9) & 0x07FF) + 1) / -10.0f;
-        }
-        humidity = (data >> 1) & 0xFF;
     }
 };
 

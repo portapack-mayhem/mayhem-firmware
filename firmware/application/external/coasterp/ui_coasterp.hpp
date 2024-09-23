@@ -65,8 +65,8 @@ class CoasterPagerView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     Labels labels{
-        {{1 * 8, 3 * 8}, "Syscall pager TX beta", Color::light_grey()},
-        {{1 * 8, 8 * 8}, LanguageHelper::currentMessages[LANG_DATADP], Color::light_grey()}};
+        {{1 * 8, 3 * 8}, "Syscall pager TX beta", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 8 * 8}, LanguageHelper::currentMessages[LANG_DATADP], Theme::getInstance()->fg_light->foreground}};
 
     SymField sym_data{
         {7 * 8, 8 * 8},

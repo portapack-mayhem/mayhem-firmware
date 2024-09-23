@@ -38,7 +38,6 @@
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
-#include "ui_styles.hpp"
 
 namespace ui {
 
@@ -81,8 +80,8 @@ class LevelView : public View {
         }};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Theme::getInstance()->fg_light->foreground},
     };
 
     LNAGainField field_lna{
@@ -188,6 +187,15 @@ class LevelView : public View {
     };
 
     void handle_coded_squelch(const uint32_t value);
+
+    void on_freqchg(int64_t freq);
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,

@@ -307,6 +307,14 @@ void ILI9341::wake() {
     lcd_wake();
 }
 
+void ILI9341::set_inverted(bool invert) {
+    if (invert) {
+        io.lcd_data_write_command_and_data(0x21, {});
+    } else {
+        io.lcd_data_write_command_and_data(0x20, {});
+    }
+}
+
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
     const auto r_clipped = r.intersect(screen_rect());
     if (!r_clipped.is_empty()) {
@@ -351,12 +359,12 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
     data_idx = bmp_header->image_data;
     const bmp_palette_t* bmp_palette = (const bmp_palette_t*)&bitmap[bmp_header->BIH_size + 14];
 
-    // Convert palette and find pure magenta index (alpha color key)
+    // Convert palette and find pure magenta index (alpha color key) rgb dec(41,24,22)
     for (c = 0; c < 16; c++) {
         palette[c] = ui::Color(bmp_palette->color[c].R, bmp_palette->color[c].G, bmp_palette->color[c].B);
-        if ((bmp_palette->color[c].R == 0xFF) &&
-            (bmp_palette->color[c].G == 0x00) &&
-            (bmp_palette->color[c].B == 0xFF)) transp_idx = c;
+        if ((bmp_palette->color[c].R == 0x29) &&
+            (bmp_palette->color[c].G == 0x18) &&
+            (bmp_palette->color[c].B == 0x16)) transp_idx = c;
     }
 
     if (!transparency) {

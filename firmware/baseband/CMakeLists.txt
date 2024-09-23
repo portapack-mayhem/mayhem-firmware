@@ -278,7 +278,9 @@ macro(DeclareTargets chunk_tag name)
 	include_directories(. ${INCDIR} ${MODE_INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+	
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+	target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
 
 	if(add_to_firmware)
 
@@ -326,12 +328,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADR adsbrx)
 
-### ADS-B TX
-
-set(MODE_CPPSRC
-	proc_adsbtx.cpp
-)
-DeclareTargets(PADT adsbtx)
 
 ### AFSK TX
 
@@ -484,12 +480,6 @@ set(MODE_CPPSRC
 DeclareTargets(PSIG siggen)
 
 
-### SSTV TX
-
-set(MODE_CPPSRC
-	proc_sstvtx.cpp
-)
-DeclareTargets(PSTX sstvtx)
 
 ### Tones
 
@@ -498,12 +488,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTON tones)
 
-### TPMS
-
-set(MODE_CPPSRC
-	proc_tpms.cpp
-)
-DeclareTargets(PTPM tpms)
 
 ### Wideband Spectrum
 
@@ -650,6 +634,38 @@ set(MODE_CPPSRC
 	proc_audio_beep.cpp
 )
 DeclareTargets(PABP audio_beep)
+
+
+### ProtoView
+
+set(MODE_CPPSRC
+	proc_protoview.cpp
+)
+DeclareTargets(PPVW protoview)
+
+
+### SSTV TX
+
+set(MODE_CPPSRC
+	proc_sstvtx.cpp
+)
+DeclareTargets(PSTX sstvtx)
+
+### TPMS
+
+set(MODE_CPPSRC
+	proc_tpms.cpp
+)
+DeclareTargets(PTPM tpms)
+
+
+### ADS-B TX
+
+set(MODE_CPPSRC
+	proc_adsbtx.cpp
+)
+DeclareTargets(PADT adsbtx)
+
 
 ### HackRF "factory" firmware
 

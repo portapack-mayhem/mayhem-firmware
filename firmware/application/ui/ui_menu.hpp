@@ -75,6 +75,7 @@ class MenuItemView : public Widget {
 class MenuView : public View {
    public:
     std::function<void(void)> on_left{};
+    std::function<void(void)> on_right{};
     std::function<void(void)> on_highlight{nullptr};
 
     MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
@@ -112,8 +113,8 @@ class MenuView : public View {
     Image arrow_more{
         {228, screen_height - 8, 8, 8},
         &bitmap_more,
-        Color::white(),
-        Color::black()};
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background};
 
     const size_t item_height = 24;
     bool blink = false;

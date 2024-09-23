@@ -205,15 +205,15 @@ class ADSBRxAircraftDetailsView : public View {
 
    private:
     Labels labels{
-        {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Registration:", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Manufacturer:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "Model:", Color::light_grey()},
-        {{0 * 8, 7 * 16}, "Type:", Color::light_grey()},
-        {{0 * 8, 8 * 16}, "Number of engines:", Color::light_grey()},
-        {{0 * 8, 9 * 16}, "Engine type:", Color::light_grey()},
-        {{0 * 8, 11 * 16}, "Owner:", Color::light_grey()},
-        {{0 * 8, 13 * 16}, "Operator:", Color::light_grey()}};
+        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Registration:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Model:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Number of engines:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 9 * 16}, "Engine type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 11 * 16}, "Owner:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 13 * 16}, "Operator:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
         {5 * 8, 1 * 16, 6 * 8, 16},
@@ -289,13 +289,13 @@ class ADSBRxDetailsView : public View {
     bool airline_checked{false};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
-        {{13 * 8, 1 * 16}, "Callsign:", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Last seen:", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Airline:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "Country:", Color::light_grey()},
-        {{0 * 8, 13 * 16}, "Even position frame:", Color::light_grey()},
-        {{0 * 8, 15 * 16}, "Odd position frame:", Color::light_grey()}};
+        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
+        {{13 * 8, 1 * 16}, "Callsign:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Last seen:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Airline:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Country:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 13 * 16}, "Even position frame:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 15 * 16}, "Odd position frame:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
         {5 * 8, 1 * 16, 6 * 8, 16},
@@ -414,7 +414,7 @@ class ADSBRxView : public View {
     ADSBRxDetailsView* details_view{nullptr};
 
     Labels labels{
-        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
+        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};
@@ -431,12 +431,12 @@ class ADSBRxView : public View {
 
     ActivityDot status_frame{
         {27 * 8 + 2, 5, 2, 2},
-        Color::white(),
+        Theme::getInstance()->bg_darkest->foreground,
     };
 
     ActivityDot status_good_frame{
         {27 * 8 + 2, 9, 2, 2},
-        Color::green(),
+        Theme::getInstance()->fg_green->foreground,
     };
 
     AudioVolumeField field_volume{

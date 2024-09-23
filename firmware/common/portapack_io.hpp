@@ -231,7 +231,7 @@ class IO {
 
         return switches_raw;
     }
-
+    bool get_is_inverted();
     bool get_dark_cover();
     uint8_t get_brightness();
     // TODO: cache the value ^^ & ^ to increaase performance, need a trigger cuz init doesn't work. And since the constructor is constexpr, we can't use with in class var to cache it. maybe cache from outside somewhere and pass it here as argument.
@@ -417,7 +417,7 @@ class IO {
         uint32_t original_value = (value_high << 8) | value_low;
 
         if (get_dark_cover()) {
-            original_value = UNDARKENED_PIXEL(original_value, get_brightness());
+            original_value = DARKENED_PIXEL(original_value, get_brightness());
         }
         return original_value;
     }

@@ -72,18 +72,7 @@ class FProtoSubGhzDDooya : public FProtoSubGhzDBase {
                         parser_step = DooyaDecoderStepFoundStartBit;
                         if (decode_count_bit ==
                             min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
-
-                            // controller:
-                            serial = (data >> 16);
-                            if ((data >> 12) & 0x0F) {
-                                cnt = (data >> 8) & 0x0F;
-                            } else {
-                                cnt = 0xFF;
-                            }
-                            btn = data & 0xFF;
-
                             if (callback) callback(this);
                         }
                         break;

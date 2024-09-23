@@ -79,9 +79,6 @@ class FProtoWeatherLaCrosseTx : public FProtoWeatherBase {
                         if ((decode_data & LACROSSE_TX_SUNC_MASK) ==
                             LACROSSE_TX_SUNC_PATTERN) {
                             if (ws_protocol_lacrosse_tx_check_crc()) {
-                                data = decode_data;
-                                data_count_bit = LACROSSE_TX_BIT_SIZE;
-                                ws_protocol_lacrosse_tx_remote_controller();
                                 if (callback) callback(this);
                             }
                         }
@@ -118,29 +115,6 @@ class FProtoWeatherLaCrosseTx : public FProtoWeatherBase {
     uint32_t te_long = 1300;
     uint32_t te_delta = 120;
     uint32_t min_count_bit_for_found = 40;
-
-    void ws_protocol_lacrosse_tx_remote_controller() {
-        uint8_t msg_type = (data >> 32) & 0x0F;
-        id = (((data >> 28) & 0x0F) << 3) | (((data >> 24) & 0x0F) >> 1);
-
-        float msg_value = (float)((data >> 20) & 0x0F) * 10.0f +
-                          (float)((data >> 16) & 0x0F) +
-                          (float)((data >> 12) & 0x0F) * 0.1f;
-
-        if (msg_type == LACROSSE_TX_MSG_TYPE_TEMP) {  //-V1051
-            temp = msg_value - 50.0f;
-            humidity = WS_NO_HUMIDITY;
-        } else if (msg_type == LACROSSE_TX_MSG_TYPE_HUM) {
-            // ToDo for verification, records are needed with sensors maintaining temperature and temperature for this standard
-            humidity = (uint8_t)msg_value;
-        } else {
-            // furi_crash("WS: WSProtocolLaCrosse_TX incorrect msg_type.");
-        }
-
-        btn = WS_NO_BTN;
-        battery_low = WS_NO_BATT;
-        channel = WS_NO_CHANNEL;
-    }
 
     bool ws_protocol_lacrosse_tx_check_crc() {
         if (!decode_data) return false;
