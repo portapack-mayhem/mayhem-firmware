@@ -20,7 +20,9 @@ enum LangConsts {
     LANG_READY,
     LANG_DATADP,
     LANG_LOOP,
-    LANG_RESET
+    LANG_RESET,
+    LANG_PAUSE,
+    LANG_RESUME
 };
 
 class LanguageHelper {

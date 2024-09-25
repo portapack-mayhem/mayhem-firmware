@@ -214,7 +214,7 @@ void ProtoView::on_freqchg(int64_t freq) {
 
 void ProtoView::set_pause(bool pause) {
     paused = pause;
-    button_pause.set_text(pause ? "Resume" : "Pause");
+    button_pause.set_text(pause ? LanguageHelper::currentMessages[LANG_RESUME] : LanguageHelper::currentMessages[LANG_PAUSE]);
 }
 
 ProtoView::~ProtoView() {

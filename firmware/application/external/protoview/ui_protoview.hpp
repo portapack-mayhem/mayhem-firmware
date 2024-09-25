@@ -105,7 +105,7 @@ class ProtoView : public View {
 
     Button button_pause{
         {screen_width - 12 * 8, 1 * 16 + 24, 96, 24},
-        "Pause"};
+        LanguageHelper::currentMessages[LANG_PAUSE]};
 
     Waveform waveform{
         {0, 8 * 8, 240, 50},
