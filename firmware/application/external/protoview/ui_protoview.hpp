@@ -74,8 +74,11 @@ class ProtoView : public View {
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
-    Labels labels{
-        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground},
+
+    // need to seperate because label shift need to hide independently
+    Labels label_zoom{
+        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground}};
+    Labels label_shift{
         {{0 * 8, 2 * 16}, "Shift: ", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_zoom{

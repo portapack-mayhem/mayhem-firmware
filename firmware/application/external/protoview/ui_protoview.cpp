@@ -48,7 +48,8 @@ ProtoView::ProtoView(NavigationView& nav)
                   &field_vga,
                   &field_volume,
                   &field_frequency,
-                  &labels,
+                  &label_zoom,
+                  &label_shift,
                   &options_zoom,
                   &number_shift,
                   &button_reset,
@@ -75,6 +76,7 @@ ProtoView::ProtoView(NavigationView& nav)
     button_pause.on_select = [this](Button&) {
         set_pause(!paused);
     };
+    set_pause(false);  // need to use this to default hide shift functionality
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -214,7 +216,16 @@ void ProtoView::on_freqchg(int64_t freq) {
 
 void ProtoView::set_pause(bool pause) {
     paused = pause;
-    button_pause.set_text(pause ? LanguageHelper::currentMessages[LANG_RESUME] : LanguageHelper::currentMessages[LANG_PAUSE]);
+    if (pause) {
+        label_shift.hidden(false);
+        number_shift.hidden(false);
+        button_pause.set_text("Resume");
+    } else {
+        label_shift.hidden(true);
+        number_shift.hidden(true);
+        button_pause.set_text("Pause");
+    }
+    set_dirty();
 }
 
 ProtoView::~ProtoView() {
