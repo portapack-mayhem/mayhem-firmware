@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -49,10 +48,12 @@ ProtoView::ProtoView(NavigationView& nav)
                   &field_vga,
                   &field_volume,
                   &field_frequency,
-                  &labels,
+                  &label_zoom,
+                  &label_shift,
                   &options_zoom,
                   &number_shift,
                   &button_reset,
+                  &button_pause,
                   &waveform,
                   &waveform2,
                   &waveform3,
@@ -72,6 +73,10 @@ ProtoView::ProtoView(NavigationView& nav)
     button_reset.on_select = [this](Button&) {
         reset();
     };
+    button_pause.on_select = [this](Button&) {
+        set_pause(!paused);
+    };
+    set_pause(false);  // need to use this to default hide shift functionality
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -80,6 +85,7 @@ ProtoView::ProtoView(NavigationView& nav)
 
 void ProtoView::reset() {
     cnt = 0;
+    set_pause(false);
     number_shift.set_value(0);
     waveform_shift = 0;
     for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
@@ -175,6 +181,7 @@ void ProtoView::add_time(int32_t time) {
 }
 
 void ProtoView::on_data(const ProtoViewDataMessage* message) {
+    if (paused) return;
     // filter out invalid ones.
     uint16_t start = 0;
     uint16_t stop = 0;
@@ -205,6 +212,20 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
 
 void ProtoView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
+}
+
+void ProtoView::set_pause(bool pause) {
+    paused = pause;
+    if (pause) {
+        label_shift.hidden(false);
+        number_shift.hidden(false);
+        button_pause.set_text("Resume");
+    } else {
+        label_shift.hidden(true);
+        number_shift.hidden(true);
+        button_pause.set_text("Pause");
+    }
+    set_dirty();
 }
 
 ProtoView::~ProtoView() {
