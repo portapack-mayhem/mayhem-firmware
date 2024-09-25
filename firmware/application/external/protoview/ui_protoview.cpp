@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2024 HTotoo, zxkmm
  *
  * This file is part of PortaPack.
  *
@@ -141,18 +141,19 @@ void ProtoView::draw() {
     for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
 
     // add empty data for padding (so you can shift left/nagetive)
-    for (int32_t i = 0;
-         i < ((waveform_shift > 0) ? 0 : -waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (left side)
-         ++i) {
-        waveform_buffer[drawcnt++] = 0;
+    if (waveform_shift < 0) {
+        for (int32_t i = 0; (i < -1 * waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (move to right)
+             ++i) {
+            waveform_buffer[drawcnt++] = 0;
+        }
     }
-
-    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0);  // this is for shift positive aka right side
-         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;                // prevent out of ranging
+    uint16_t skipped = 0;
+    uint16_t to_skip = ((waveform_shift > 0) ? waveform_shift : 0);  // when >0 it'll skip some to move left
+    for (uint16_t i = 0;
+         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;  // prevent out of ranging
          ++i) {
-        uint16_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
-        state = time_buffer[buffer_index] >= 0;
-        int32_t timeabs = state ? time_buffer[buffer_index] : -1 * time_buffer[buffer_index];
+        state = time_buffer[i] >= 0;
+        int32_t timeabs = state ? time_buffer[i] : -1 * time_buffer[i];
         int32_t timesize = timeabs / zoom;
         if (timesize == 0) {
             remain += timeabs;
@@ -170,7 +171,11 @@ void ProtoView::draw() {
         remain = 0;
         lmax = 0;
         for (int32_t ii = 0; ii < timesize && drawcnt < MAXDRAWCNT; ++ii) {
-            waveform_buffer[drawcnt++] = state;
+            if (skipped < to_skip) {
+                skipped++;
+            } else {
+                waveform_buffer[drawcnt++] = state;
+            }
         }
     }
 }
