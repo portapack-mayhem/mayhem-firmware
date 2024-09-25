@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -53,6 +52,7 @@ ProtoView::ProtoView(NavigationView& nav)
                   &options_zoom,
                   &number_shift,
                   &button_reset,
+                  &button_pause,
                   &waveform,
                   &waveform2,
                   &waveform3,
@@ -72,6 +72,10 @@ ProtoView::ProtoView(NavigationView& nav)
     button_reset.on_select = [this](Button&) {
         reset();
     };
+    button_pause.on_select = [this](Button&) {
+        paused = !paused;
+        button_pause.set_text(paused ? "Continue" : "Pause");
+    };
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -80,6 +84,8 @@ ProtoView::ProtoView(NavigationView& nav)
 
 void ProtoView::reset() {
     cnt = 0;
+    paused = false;
+    button_pause.set_text("Pause");
     number_shift.set_value(0);
     waveform_shift = 0;
     for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
@@ -175,6 +181,7 @@ void ProtoView::add_time(int32_t time) {
 }
 
 void ProtoView::on_data(const ProtoViewDataMessage* message) {
+    if (paused) return;
     // filter out invalid ones.
     uint16_t start = 0;
     uint16_t stop = 0;

@@ -103,6 +103,10 @@ class ProtoView : public View {
         {screen_width - 12 * 8, 1 * 16, 96, 24},
         LanguageHelper::currentMessages[LANG_RESET]};
 
+    Button button_pause{
+        {screen_width - 12 * 8, 1 * 16 + 24, 96, 24},
+        "Pause"};
+
     Waveform waveform{
         {0, 8 * 8, 240, 50},
         waveform_buffer,
@@ -136,6 +140,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     bool needCntReset = false;
+    bool paused = false;
 
     int16_t zoom = 1;  // one value in ms
     int16_t waveform_shift = 0;
