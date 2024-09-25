@@ -156,6 +156,7 @@ class ProtoView : public View {
     void on_data(const ProtoViewDataMessage* message);
     void draw();
     void draw2();
+    void set_pause(bool pause);
     void reset();
 
     MessageHandlerRegistration message_handler_packet{

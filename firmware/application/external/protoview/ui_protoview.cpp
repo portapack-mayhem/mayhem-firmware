@@ -73,8 +73,7 @@ ProtoView::ProtoView(NavigationView& nav)
         reset();
     };
     button_pause.on_select = [this](Button&) {
-        paused = !paused;
-        button_pause.set_text(paused ? "Continue" : "Pause");
+        set_pause(!paused);
     };
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
@@ -84,8 +83,7 @@ ProtoView::ProtoView(NavigationView& nav)
 
 void ProtoView::reset() {
     cnt = 0;
-    paused = false;
-    button_pause.set_text("Pause");
+    set_pause(false);
     number_shift.set_value(0);
     waveform_shift = 0;
     for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
@@ -212,6 +210,11 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
 
 void ProtoView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
+}
+
+void ProtoView::set_pause(bool pause) {
+    paused = pause;
+    button_pause.set_text(pause ? "Continue" : "Pause");
 }
 
 ProtoView::~ProtoView() {
