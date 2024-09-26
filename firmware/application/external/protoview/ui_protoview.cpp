@@ -224,11 +224,11 @@ void ProtoView::set_pause(bool pause) {
     if (pause) {
         label_shift.hidden(false);
         number_shift.hidden(false);
-        button_pause.set_text("Resume");
+        button_pause.set_text(LanguageHelper::currentMessages[LANG_RESUME]);
     } else {
         label_shift.hidden(true);
         number_shift.hidden(true);
-        button_pause.set_text("Pause");
+        button_pause.set_text(LanguageHelper::currentMessages[LANG_PAUSE]);
     }
     set_dirty();
 }
