@@ -142,7 +142,7 @@ void ProtoView::draw() {
 
     // add empty data for padding (so you can shift left/nagetive)
     if (waveform_shift < 0) {
-        for (int32_t i = 0; (i < -1 * waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (move to right)
+        for (int32_t i = 0; (i < -1 * waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift negative (move to right)
              ++i) {
             waveform_buffer[drawcnt++] = 0;
         }
