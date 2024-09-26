@@ -722,8 +722,8 @@ void NavigationView::update_view() {
     auto top_view = top.view.get();
 
     add_child(top_view);
-    top_view->set_parent_rect({{0, 0}, size()});
-
+    auto newSize = (is_top()) ? Size{size().width(), size().height() - 16} : size();
+    top_view->set_parent_rect({{0, 0}, newSize});
     focus();
     set_dirty();
 
