@@ -355,7 +355,7 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
  * don't draw transparent, pass nullptr as arg, usage
  * portapack::display.drawBMP({100, 100}, foo_bmp, nullptr);
  *
- * ifyour image use RLE as transparency, pass any valid color as arg, it doesn't matter (like the modal bmp. TODO: write RLE transparency generator)
+ * if your image use RLE compress as transparency methods, pass any valid color as arg, it doesn't matter (like the modal bmp. TODO: write RLE transparency generator)
  * */
 void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const uint8_t* transparency_color) {
     const bmp_header_t* bmp_header = (const bmp_header_t*)bitmap;
