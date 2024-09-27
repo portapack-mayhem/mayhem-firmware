@@ -55,7 +55,7 @@
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
-#include "ui_morse.hpp"
+// #include "ui_morse.hpp" //moved to ext
 // #include "ui_nrf_rx.hpp" //moved to ext
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
@@ -74,7 +74,7 @@
 #include "ui_sonde.hpp"
 // #include "ui_spectrum_painter.hpp" //moved to ext app
 #include "ui_ss_viewer.hpp"
-#include "ui_sstvtx.hpp"
+// #include "ui_sstvtx.hpp" //moved to ext
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
@@ -90,7 +90,7 @@
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 // #include "analog_tv_app.hpp" //moved to ext
-#include "ble_comm_app.hpp"
+// #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
@@ -185,13 +185,13 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
-    {"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()},
+    //{"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()}, //moved to ext
     //{"nuoptixdtmf", "Nuoptix DTMF", TX, ui::Color::green(), &bitmap_icon_nuoptix, new ViewFactory<NuoptixView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
-    {"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()},
+    //{"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()}, //moved to ext
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* UTILITIES *************************************************************/
     {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
@@ -722,8 +722,8 @@ void NavigationView::update_view() {
     auto top_view = top.view.get();
 
     add_child(top_view);
-    top_view->set_parent_rect({{0, 0}, size()});
-
+    auto newSize = (is_top()) ? Size{size().width(), size().height() - 16} : size();  // if top(), then there is the info bar at the bottom, so leave space for it
+    top_view->set_parent_rect({{0, 0}, newSize});
     focus();
     set_dirty();
 
@@ -996,17 +996,48 @@ void BMPView::focus() {
     button_done.focus();
 }
 
-BMPView::BMPView(NavigationView& nav) {
+BMPView::BMPView(NavigationView& nav)
+    : nav_(nav) {
     add_children({&button_done});
 
-    button_done.on_select = [this, &nav](Button&) {
-        nav.pop();
+    button_done.on_select = [this](Button&) {
+        handle_pop();
     };
 }
 
 void BMPView::paint(Painter&) {
     if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
+        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, true);
+}
+
+bool BMPView::on_touch(const TouchEvent event) {
+    /* the event thing were resolved by HTotoo, talked here https://discord.com/channels/719669764804444213/956561375155589192/1287756910950486027
+     * the touch screen policy can be better, talked here https://discord.com/channels/719669764804444213/956561375155589192/1198926225897443328
+     */
+
+    if (!nav_.is_valid()) {
+        return false;
+    }
+
+    switch (event.type) {
+        case TouchEvent::Type::Start:
+            return true;
+
+        case TouchEvent::Type::End:
+            handle_pop();
+            return true;
+
+        default:
+            break;
+    }
+
+    return false;
+}
+
+void BMPView::handle_pop() {
+    if (nav_.is_valid()) {
+        nav_.pop();
+    }
 }
 
 /* NotImplementedView ****************************************************/

@@ -44,6 +44,8 @@ MEMORY
     ram_external_app_tpmsrx(rwx) : org = 0xADC30000, len = 32k
     ram_external_app_protoview(rwx) : org = 0xADC40000, len = 32k
     ram_external_app_adsbtx(rwx) : org = 0xADC50000, len = 32k
+    ram_external_app_morse_tx(rwx) : org = 0xADC60000, len = 32k
+    ram_external_app_sstvtx(rwx) : org = 0xADC70000, len = 32k
 }
 
 SECTIONS
@@ -174,6 +176,20 @@ SECTIONS
         KEEP(*(.external_app.app_adsbtx.application_information));
         *(*ui*external_app*adsbtx*);
     } > ram_external_app_adsbtx
+
+
+   .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_morse_tx.application_information));
+        *(*ui*external_app*morse_tx*);
+    } > ram_external_app_morse_tx
+
+   .external_app_sstvtx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_sstvtx.application_information));
+        *(*ui*external_app*sstvtx*);
+    } > ram_external_app_sstvtx
+
 
 
 }

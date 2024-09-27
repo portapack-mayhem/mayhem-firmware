@@ -206,6 +206,7 @@ set(CPPSRC
 	irq_rtc.cpp
 	log_file.cpp
 	metadata_file.cpp
+	flipper_subfile.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
 	usb_serial_shell_filesystem.cpp
@@ -291,6 +292,7 @@ set(CPPSRC
 	apps/ui_btle_rx.cpp
 	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
+	apps/ui_debug_battery.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp
@@ -305,7 +307,7 @@ set(CPPSRC
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
-	apps/ui_morse.cpp
+	# apps/ui_morse.cpp
 	# apps/ui_nrf_rx.cpp
 	# apps/ui_nuoptix.cpp
 	apps/ui_playlist.cpp
@@ -325,7 +327,7 @@ set(CPPSRC
 	# apps/ui_spectrum_painter_text.cpp
 	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
-	apps/ui_sstvtx.cpp
+	# apps/ui_sstvtx.cpp #moved to ext
 	apps/ui_standalone_view.cpp
 	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp

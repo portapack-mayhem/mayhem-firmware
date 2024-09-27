@@ -953,18 +953,15 @@ bool ui_hide_sd_card() {
 bool ui_hide_fake_brightness() {
     return data->ui_config2.hide_fake_brightness;
 }
-
 bool ui_hide_numeric_battery() {
     return data->ui_config2.hide_numeric_battery;
 }
 bool ui_hide_battery_icon() {
     return data->ui_config2.hide_battery_icon;
 }
-
 uint8_t ui_theme_id() {
     return data->ui_config2.theme_id;
 }
-
 bool ui_override_batt_calc() {
     return data->ui_config2.override_batt_calc;
 }

@@ -27,11 +27,11 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## What to buy?
 
+:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous [PortaPack H4M Mayhem](https://grabify.link/VPMPSL), featuring numerous improvements and accessories. Sold by our friends at OpenSourceSDRLab. Join their giveaways on discord (check the badge on top).
+
 :heavy_check_mark: A recommended one is this [PortaPack H2](https://grabify.link/7T28JP), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
 
 :heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/HTDXG5), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
-
-:heavy_check_mark: Our friends at OpenSourceSDRLab give away five units every three months in our discord (check the badge on top) of one of their [PortaPack H2 bundle](https://grabify.link/T328XL) or [only metal case kits](https://grabify.link/LG0OUY), you can support them too by ordering.
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 

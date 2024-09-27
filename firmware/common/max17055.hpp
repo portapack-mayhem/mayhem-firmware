@@ -83,7 +83,7 @@
 
 // Define Termination Current
 #ifndef __MAX17055_Termination_Current__
-#define __MAX17055_Termination_Current__ 0.1  // Termination Current
+#define __MAX17055_Termination_Current__ 200  // Termination Current
 #endif
 
 // Define Minimum Temperature
@@ -253,49 +253,63 @@ namespace max17055 {
 
 using address_t = uint8_t;
 
+struct RegisterEntry {
+    const char* name;
+    uint8_t address;
+    const char* type;
+    float scalar;
+    bool is_signed;
+    const char* unit;
+    bool abbr_units;
+    int resolution;
+    bool is_user;
+    bool is_save_restore;
+    bool is_nv;
+    uint16_t por_data;
+    bool is_read_only;
+};
+
 class MAX17055 {
    public:
     constexpr MAX17055(I2C& bus, const I2C::address_t bus_address)
         : bus(bus), bus_address(bus_address), detected_(false) {}
 
+    static const RegisterEntry entries[];
+    static constexpr size_t entries_count = 144;
+
+    uint16_t read_register(const uint8_t reg);
+    bool write_register(const uint8_t reg, const uint16_t value);
+
     void init();
     bool detect();
     bool isDetected() const { return detected_; }
 
-    uint16_t readVoltage();
-    uint8_t readPercentage();
     void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+    bool reset_learned();
 
-    uint16_t instantVoltage(void);
-    uint16_t averageVoltage(void);
-    uint16_t emptyVoltage(void);
-    uint16_t recoveryVoltage(void);
+    float getValue(const char* entityName);
+    uint16_t averageMVoltage(void);
     int32_t instantCurrent(void);
-    int32_t averageCurrent(void);
     uint16_t stateOfCharge(void);
-    uint16_t averageStateOfCharge(void);
-    uint16_t instantCapacity(void);
-    uint16_t designCapacity(void);
-    uint16_t fullCapacity(void);
-    uint16_t icTemperature(void);
-    uint16_t timeToEmpty(void);
-    uint16_t timeToFull(void);
-    uint16_t batteryAge(void);
-    uint16_t chargeCycle(void);
-    bool statusControl(const uint8_t _Status);
-    void statusClear(void);
-    uint16_t chargeTerminationCurrent(void);
-    uint16_t read_register(const uint8_t reg);
-    bool write_register(const uint8_t reg, const uint16_t value);
 
    private:
     I2C& bus;
     const I2C::address_t bus_address;
     bool detected_ = false;
 
-    bool readRegister(uint8_t reg, uint16_t& value);
-    bool readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission);
-    bool writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t length);
+    const RegisterEntry* findEntry(const char* name) const;
+
+    bool needsInitialization();
+    void partialInit();
+
+    bool statusControl(const uint8_t _Status);
+    bool statusClear();
+
+    bool full_reset_and_init();
+    bool soft_reset();
+    bool clear_por();
+    bool initialize_custom_parameters();
+    bool load_custom_parameters();
 
     bool setEmptyVoltage(uint16_t _Empty_Voltage);
     bool setRecoveryVoltage(uint16_t _Recovery_Voltage);
