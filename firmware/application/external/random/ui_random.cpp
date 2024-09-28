@@ -24,7 +24,6 @@
 #include "ui_modemsetup.hpp"
 
 #include "modems.hpp"
-#include "audio.hpp"
 #include "rtc_time.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -54,7 +53,6 @@ RandomView::RandomView(NavigationView& nav)
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
-                  &field_volume,
                   &field_frequency,
                   &check_log,
                   &text_debug,
@@ -141,8 +139,6 @@ RandomView::RandomView(NavigationView& nav)
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);
 
-    audio::set_rate(audio::Rate::Hz_24000);
-    audio::output::start();
 
     receiver_model.enable();
     set_random_freq();
@@ -266,7 +262,6 @@ std::string RandomView::generate_log_line(const std::string& password) {
 bool RandomView::seed_protect_helper(const unsigned int& seed) {}
 
 RandomView::~RandomView() {
-    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
