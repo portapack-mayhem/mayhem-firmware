@@ -40,6 +40,7 @@
 namespace ui {
 
 #define LOOKING_GLASS_SLICE_WIDTH_MAX 20000000
+#define LOOKING_GLASS_MAX_SAMPLERATE 20000000
 #define MHZ_DIV 1000000
 
 // blanked DC (16 centered bins ignored ) and top left and right (2 bins ignored on each side )
