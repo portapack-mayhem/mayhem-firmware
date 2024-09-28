@@ -85,7 +85,29 @@ RandomView::RandomView(NavigationView& nav)
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
-        logging = v;
+        if (v) {
+            nav_.display_modal(
+                "Warning",
+                "Sure?\n"
+                "this will save all generated\n"
+                "password to sdcard\n"
+                "in plain text\n"
+                "those which generated before\n"
+                "you check me, will lost",
+                YESNO,
+                [this, v](bool c) {
+                    if (c) {
+                        logging = v;
+                    } else {
+                        check_log.set_value(false);
+                        // this is needed to check back to false cuz when trigger by human, the check to true already happened
+                        // this blocked interface so won't accidently saved even if user checked but selected no later here,
+                        // but take care of here if in the future implemented ticking/auto/batch save etc
+                    }
+                });
+        } else {
+            logging = v;
+        }
     };
 
     button_modem_setup.on_select = [&nav](Button&) {
@@ -118,7 +140,7 @@ RandomView::RandomView(NavigationView& nav)
     };
 
     button_show_qr.on_select = [this, &nav](Button&) {
-//        std::string qr = text_generated_passwd.
+        // std::string qr = text_generated_passwd.
         nav.push<QRCodeView>(global_password.data());
     };
 
@@ -138,7 +160,6 @@ RandomView::RandomView(NavigationView& nav)
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);
-
 
     receiver_model.enable();
     set_random_freq();
@@ -179,7 +200,6 @@ void RandomView::on_freqchg(int64_t freq) {
 }
 
 void RandomView::set_random_freq() {
-
     std::srand(LPC_RTC->CTIME0);
     // this is only for seed to visit random freq, the radio is still real random
 
@@ -247,9 +267,9 @@ void RandomView::new_password() {
     }
 
     global_password = password;
-    portapack::async_tx_enabled = true;
-    UsbSerialAsyncmsg::asyncmsg(password);
-    portapack::async_tx_enabled = false;
+    // portapack::async_tx_enabled = true;
+    // UsbSerialAsyncmsg::asyncmsg(password);
+    // portapack::async_tx_enabled = false;
 }
 
 std::string RandomView::generate_log_line(const std::string& password) {
