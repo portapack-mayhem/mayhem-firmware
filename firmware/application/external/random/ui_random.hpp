@@ -33,6 +33,9 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "ui_qrcode.hpp"
+#include "usb_serial_asyncmsg.hpp"
+
 
 using namespace ui;
 
@@ -61,6 +64,7 @@ class RandomView : public View {
 
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
+    std::string global_password = ""; //this is a temp one for test, TODO
 
     void on_data(uint32_t value, bool is_data);
     void new_password();

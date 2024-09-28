@@ -119,8 +119,9 @@ RandomView::RandomView(NavigationView& nav)
         this->new_password();
     };
 
-    button_show_qr.on_select = [this](Button&) {
-        // TODO
+    button_show_qr.on_select = [this, &nav](Button&) {
+//        std::string qr = text_generated_passwd.
+        nav.push<QRCodeView>(global_password.data());
     };
 
     field_digits.on_change = [this](int32_t) {
@@ -248,6 +249,11 @@ void RandomView::new_password() {
         logger->log_raw_data(str_log);
         str_log = "";
     }
+
+    global_password = password;
+    portapack::async_tx_enabled = true;
+    UsbSerialAsyncmsg::asyncmsg(password);
+    portapack::async_tx_enabled = false;
 }
 
 std::string RandomView::generate_log_line(const std::string& password) {
