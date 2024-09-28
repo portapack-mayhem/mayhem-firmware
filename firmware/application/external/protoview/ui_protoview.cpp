@@ -140,9 +140,9 @@ void ProtoView::draw() {
     drawcnt = 0;
     for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
 
-    // add empty data for padding (so you can shift left/nagetive)
+    // add empty data for padding (so you can shift left/negative)
     if (waveform_shift < 0) {
-        for (int32_t i = 0; (i < -1 * waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (move to right)
+        for (int32_t i = 0; (i < -1 * waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift negative (move to right)
              ++i) {
             waveform_buffer[drawcnt++] = 0;
         }
@@ -224,11 +224,11 @@ void ProtoView::set_pause(bool pause) {
     if (pause) {
         label_shift.hidden(false);
         number_shift.hidden(false);
-        button_pause.set_text("Resume");
+        button_pause.set_text(LanguageHelper::currentMessages[LANG_RESUME]);
     } else {
         label_shift.hidden(true);
         number_shift.hidden(true);
-        button_pause.set_text("Pause");
+        button_pause.set_text(LanguageHelper::currentMessages[LANG_PAUSE]);
     }
     set_dirty();
 }

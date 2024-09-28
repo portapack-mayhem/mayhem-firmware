@@ -35,6 +35,8 @@ using namespace portapack;
 
 namespace ui {
 
+#define FILE_PER_PAGE 50
+
 bool SoundBoardView::is_active() const {
     return (bool)replay_thread;
 }
@@ -178,9 +180,9 @@ void SoundBoardView::refresh_list() {
                         if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                             // sounds[c].ms_duration = reader->ms_duration();
                             // sounds[c].path = u"WAV/" + entry.path().native();
-                            if (count >= (page - 1) * 100 && count < page * 100) {
+                            if (count >= (page - 1) * FILE_PER_PAGE && count < page * FILE_PER_PAGE) {
                                 file_list.push_back(entry.path());
-                                if (file_list.size() == 100) {
+                                if (file_list.size() == FILE_PER_PAGE) {
                                     page++;
                                     break;
                                 }
@@ -225,7 +227,7 @@ void SoundBoardView::refresh_list() {
         menu_view.set_highlighted(0);  // Refresh
     }
 
-    if (file_list.size() < 100) {
+    if (file_list.size() < FILE_PER_PAGE) {
         page = 1;
     }
 }

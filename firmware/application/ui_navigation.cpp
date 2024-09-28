@@ -1007,7 +1007,7 @@ BMPView::BMPView(NavigationView& nav)
 
 void BMPView::paint(Painter&) {
     if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, true);
+        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
 }
 
 bool BMPView::on_touch(const TouchEvent event) {
@@ -1103,7 +1103,7 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, true);
+    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, (const uint8_t[]){0, 0, 0});
 
     // Break lines.
     auto lines = split_string(message_, '\n');
