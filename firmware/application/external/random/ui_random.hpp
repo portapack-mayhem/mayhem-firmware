@@ -57,10 +57,13 @@ class RandomView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "AFSK RX"; };
+    std::string title() const override { return "random"; };
 
    private:
+    unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
+
     void on_data(uint32_t value, bool is_data);
+    void new_password();
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
@@ -105,7 +108,58 @@ class RandomView : public View {
         LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Console console{
-        {0, 4 * 16, 240, screen_width}};
+        {0, 3 * 16, 240, 16}};
+
+    Labels labels{
+        {{5 * 8, 9 * 16}, "digits:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_generated_passwd{
+        {0, 5 * 16, screen_width, 28},
+        "000000000000000000000000000000"};
+
+    Text text_char_type_hints{
+        {0, 6 * 16, screen_width, 28},
+        "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"};
+
+    Checkbox check_digits{
+        {3 * 8, 13 * 16},
+        3,
+        "123"};
+
+    Checkbox check_punctuation{
+        {20 * 8, 13 * 16},
+        6,
+        ".,-!?"};
+
+    Checkbox check_latin_lower{
+        {3 * 8, 15 * 16},
+        3,
+        "abc"};
+
+    Checkbox check_latin_upper{
+        {20 * 8, 15 * 16},
+        3,
+        "ABC"};
+
+    Checkbox check_allow_confusable_chars{
+        {3 * 8, 11 * 16},
+        20,
+        "Include 0 O o 1 l"};
+
+    Button button_refresh{
+        {0 * 8, 17 * 16 + 10, screen_width / 2, 24},
+        "refresh"};
+
+    Button button_show_qr{
+        {screen_width / 2, 17 * 16 + 10, screen_width / 2, 24},
+        "show QR"};
+
+    NumberField field_digits{
+        {24 * 8, 9 * 16},
+        2,
+        {1, 30},
+        1,
+        ' '};
 
     void on_data_afsk(const AFSKDataMessage& message);
 

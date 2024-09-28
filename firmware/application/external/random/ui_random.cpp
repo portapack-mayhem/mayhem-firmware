@@ -59,7 +59,18 @@ RandomView::RandomView(NavigationView& nav)
                   &check_log,
                   &text_debug,
                   &button_modem_setup,
-                  &console});
+                  &console,
+                  &labels,
+                  &text_generated_passwd,
+                  &text_char_type_hints,
+                  &check_digits,
+                  &check_latin_lower,
+                  &check_latin_upper,
+                  &check_punctuation,
+                  &button_refresh,
+                  &button_show_qr,
+                  &field_digits,
+                  &check_allow_confusable_chars});
 
     // Auto-configure modem for LCR RX (TODO remove)
     field_frequency.set_value(467225500);
@@ -83,6 +94,44 @@ RandomView::RandomView(NavigationView& nav)
         nav.push<ModemSetupView>();
     };
 
+    check_digits.on_select = [this](Checkbox&, bool) {
+        this->new_password();
+    };
+
+    check_latin_lower.on_select = [this](Checkbox&, bool) {
+        this->new_password();
+    };
+
+    check_latin_upper.on_select = [this](Checkbox&, bool) {
+        this->new_password();
+    };
+
+    check_punctuation.on_select = [this](Checkbox&, bool) {
+        this->new_password();
+    };
+
+    check_allow_confusable_chars.on_select = [this](Checkbox&, bool) {
+        this->new_password();
+    };
+
+    button_refresh.on_select = [this](Button&) {
+        this->new_password();
+    };
+
+    button_show_qr.on_select = [this](Button&) {
+        // TODO
+    };
+
+    field_digits.on_change = [this](int32_t) {
+        this->new_password();
+    };
+
+    /// v init setting
+    check_digits.set_value(true);
+    check_latin_lower.set_value(true);
+    field_digits.set_value(8);
+    ///^ init setting
+
     logger = std::make_unique<RandomLogger>();
     if (logger)
         logger->append(logs_dir / u"AFSK.TXT");
@@ -94,6 +143,7 @@ RandomView::RandomView(NavigationView& nav)
     audio::output::start();
 
     receiver_model.enable();
+    new_password();
 }
 
 void RandomView::on_data(uint32_t value, bool is_data) {
@@ -101,6 +151,7 @@ void RandomView::on_data(uint32_t value, bool is_data) {
     std::string str_byte = "";
 
     if (is_data) {
+        seed = static_cast<unsigned int>(value);
         // Colorize differently after message splits
         str_console += (char)((console_color & 3) + 9);
 
@@ -131,6 +182,59 @@ void RandomView::on_data(uint32_t value, bool is_data) {
 
 void RandomView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
+}
+
+void RandomView::new_password() {
+    std::string charset;
+    std::string password;
+    std::string char_type_hints;
+
+    if (check_digits.value())
+        charset += "0123456789";
+    if (check_latin_lower.value())
+        charset += "abcdefghijklmnopqrstuvwxyz";
+    if (check_latin_upper.value())
+        charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (check_punctuation.value())
+        charset += ".,-!?";
+
+    if (!check_allow_confusable_chars.value()) {
+        charset.erase(std::remove_if(charset.begin(), charset.end(),
+                                     [](char c) { return c == '0' || c == 'O' || c == 'o' || c == '1' || c == 'l'; }),
+                      charset.end());
+    }
+
+    if (charset.empty()) {
+        text_generated_passwd.set("generate failed,");
+        text_char_type_hints.set("select at least 1 type");
+
+        return;
+    }
+
+    if (seed == 0) {
+            text_generated_passwd.set("generate failed,");
+            text_char_type_hints.set("random seed exception");
+        }else {
+        std::srand(seed);  // extern void srand (unsigned int __seed) __THROW;
+    }
+
+    int password_length = field_digits.value();
+    for (int i = 0; i < password_length; i++) {
+        char c = charset[std::rand() % charset.length()];
+        password += c;
+
+        if (std::isdigit(c))
+            char_type_hints += "1";
+        else if (std::islower(c))
+            char_type_hints += "a";
+        else if (std::isupper(c))
+            char_type_hints += "A";
+        else
+            char_type_hints += ",";
+    }
+
+    text_generated_passwd.set(password);
+    text_char_type_hints.set(char_type_hints);
 }
 
 RandomView::~RandomView() {
