@@ -23,6 +23,8 @@ cmake_policy(SET CMP0005 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex-m.cmake)
 
+option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
+
 project(portapack-h1)
 
 set(EXPECTED_GCC_VERSION "9.2.1")
@@ -72,13 +74,24 @@ set(HACKRF_CPLD_XSVF_PATH ${HACKRF_PATH}/firmware/cpld/sgpio_if/${HACKRF_CPLD_XS
 set(HACKRF_FIRMWARE_DFU_IMAGE ${hackrf_usb_BINARY_DIR}/${HACKRF_FIRMWARE_DFU_FILENAME})
 set(HACKRF_FIRMWARE_BIN_IMAGE ${hackrf_usb_BINARY_DIR}/${HACKRF_FIRMWARE_BIN_FILENAME})
 
-# this seems causing some issues (ref. in discord discussions), so temporarily disabled, until figure out the pros and cons and bugs of this tool.
-#find_program(CCACHE "ccache")
-#if(CCACHE)
-#    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE})
-#    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE})
-#    set(ENV{CCACHE_SLOPPINESS} pch_defines,time_macros)
-#endif(CCACHE)
+# this seems causing some issues (ref. in discord discussions), but it sometimes do helps, so you have your choice to use. it's default disabled,  unless you use such command:
+# cmake -DUSE_CCACHE=ON ..
+# `make` or `make -j` or `make -j10` etc
+# the default behavior `cmake ..` isn't changed (aka don't use ccache)
+message(STATUS "-------v ccache info--------")
+if(USE_CCACHE)
+	find_program(CCACHE_FOUND ccache)
+	if(CCACHE_FOUND)
+		set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_FOUND})
+		set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_FOUND})
+		message(STATUS "Using ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary.\n-- use `cmake -DUSE_CCACHE=OFF ..` to turn off ccache")
+	else()
+		message(WARNING "ccache is enabled but not found on the system.")
+	endif()
+else()
+	message(STATUS "Not using ccache, use `cmake -DUSE_CCACHE=ON ..` to turn on ccache")
+endif()
+message(STATUS "-------^ ccache info--------")
 
 enable_testing()
 add_subdirectory(firmware)
