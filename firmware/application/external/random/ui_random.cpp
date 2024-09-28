@@ -115,6 +115,7 @@ RandomView::RandomView(NavigationView& nav)
     };
 
     button_refresh.on_select = [this](Button&) {
+        this->set_random_freq();
         this->new_password();
     };
 
@@ -143,6 +144,7 @@ RandomView::RandomView(NavigationView& nav)
     audio::output::start();
 
     receiver_model.enable();
+    set_random_freq();
     new_password();
 }
 
@@ -161,14 +163,12 @@ void RandomView::on_data(uint32_t value, bool is_data) {
 
         console.write(str_console);
 
-//        if (logger && logging) str_log += str_byte;
+        // if (logger && logging) str_log += str_byte;
 
         if ((value != 0x7F) && (prev_value == 0x7F)) {
             // Message split
             console.writeln("");
             console_color++;
-
-
         }
         prev_value = value;
     } else {
@@ -179,6 +179,16 @@ void RandomView::on_data(uint32_t value, bool is_data) {
 
 void RandomView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
+}
+
+void RandomView::set_random_freq() {
+
+    std::srand(LPC_RTC->CTIME0);
+    // this is only for seed to visit random freq, the radio is still real random
+
+    auto random_freq = 100000000 + (std::rand() % 900000000);  // 100mhz to 1ghz
+    receiver_model.set_target_frequency(random_freq);
+    field_frequency.set_value(random_freq);
 }
 
 void RandomView::new_password() {
@@ -209,9 +219,9 @@ void RandomView::new_password() {
     }
 
     if (seed == 0) {
-            text_generated_passwd.set("generate failed,");
-            text_char_type_hints.set("random seed exception");
-        }else {
+        text_generated_passwd.set("generate failed,");
+        text_char_type_hints.set("random seed exception");
+    } else {
         std::srand(seed);  // extern void srand (unsigned int __seed) __THROW;
     }
 
@@ -240,14 +250,14 @@ void RandomView::new_password() {
     }
 }
 
-std::string RandomView::generate_log_line(const std::string &password) {
+std::string RandomView::generate_log_line(const std::string& password) {
     std::string line = "\npassword=" + password +
                        "\nseed=" + std::to_string(seed) +
                        "\n";
     return line;
 }
 
-bool RandomView::seed_protect_helper(const unsigned int &seed){}
+bool RandomView::seed_protect_helper(const unsigned int& seed) {}
 
 RandomView::~RandomView() {
     audio::output::stop();

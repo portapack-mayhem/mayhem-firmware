@@ -60,7 +60,7 @@ class RandomView : public View {
     std::string title() const override { return "random"; };
 
    private:
-    unsigned int seed = nullptr;  // extern void srand (unsigned int __seed) __THROW;
+    unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
 
     void on_data(uint32_t value, bool is_data);
     void new_password();
@@ -97,7 +97,7 @@ class RandomView : public View {
     Checkbox check_log{
         {0 * 8, 1 * 16},
         3,
-        LanguageHelper::currentMessages[LANG_LOG],
+        "save gened pw",
         false};
 
     Text text_debug{
@@ -106,7 +106,7 @@ class RandomView : public View {
 
     Button button_modem_setup{
         {screen_width - 12 * 8, 1 * 16, 96, 24},
-        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
+        "AFSK modem"};
 
     Console console{
         {0, 3 * 16, 240, 16}};
@@ -180,7 +180,10 @@ class RandomView : public View {
             this->on_freqchg(message->freq);
         }};
 
+    bool seed_protect_helper(const unsigned int& seed);
+
     void on_freqchg(int64_t freq);
+    void set_random_freq();
 };
 
 }  // namespace ui::external_app::random
