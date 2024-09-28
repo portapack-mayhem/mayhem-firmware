@@ -41,7 +41,7 @@ void RandomLogger::log_raw_data(const std::string& data) {
 }
 
 void RandomView::focus() {
-    field_frequency.focus();
+    field_digits.focus();
 }
 
 RandomView::RandomView(NavigationView& nav)
@@ -71,7 +71,7 @@ RandomView::RandomView(NavigationView& nav)
                   &check_allow_confusable_chars});
 
     // Auto-configure modem for LCR RX (TODO remove)
-    field_frequency.set_value(467225500);
+//    field_frequency.set_value(467225500);
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;
