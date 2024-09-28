@@ -134,7 +134,7 @@ RandomView::RandomView(NavigationView& nav)
 
     logger = std::make_unique<RandomLogger>();
     if (logger)
-        logger->append(logs_dir / u"AFSK.TXT");
+        logger->append(logs_dir / u"random.TXT");
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);
@@ -161,17 +161,14 @@ void RandomView::on_data(uint32_t value, bool is_data) {
 
         console.write(str_console);
 
-        if (logger && logging) str_log += str_byte;
+//        if (logger && logging) str_log += str_byte;
 
         if ((value != 0x7F) && (prev_value == 0x7F)) {
             // Message split
             console.writeln("");
             console_color++;
 
-            if (logger && logging) {
-                logger->log_raw_data(str_log);
-                str_log = "";
-            }
+
         }
         prev_value = value;
     } else {
@@ -235,7 +232,22 @@ void RandomView::new_password() {
 
     text_generated_passwd.set(password);
     text_char_type_hints.set(char_type_hints);
+
+    if (logger && logging) {
+        str_log += generate_log_line(password);
+        logger->log_raw_data(str_log);
+        str_log = "";
+    }
 }
+
+std::string RandomView::generate_log_line(const std::string &password) {
+    std::string line = "\npassword=" + password +
+                       "\nseed=" + std::to_string(seed) +
+                       "\n";
+    return line;
+}
+
+bool RandomView::seed_protect_helper(const unsigned int &seed){}
 
 RandomView::~RandomView() {
     audio::output::stop();

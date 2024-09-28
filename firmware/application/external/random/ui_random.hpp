@@ -60,10 +60,11 @@ class RandomView : public View {
     std::string title() const override { return "random"; };
 
    private:
-    unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
+    unsigned int seed = nullptr;  // extern void srand (unsigned int __seed) __THROW;
 
     void on_data(uint32_t value, bool is_data);
     void new_password();
+    std::string generate_log_line(const std::string &password);
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
