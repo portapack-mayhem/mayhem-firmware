@@ -209,6 +209,7 @@ void RandomView::set_random_freq() {
 }
 
 void RandomView::new_password() {
+    password = "";
     std::string charset;
     std::string char_type_hints;
 
