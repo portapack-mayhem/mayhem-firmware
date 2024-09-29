@@ -75,7 +75,6 @@ class RandomView : public View {
     app_settings::SettingsManager settings_{
         "rx_afsk", app_settings::Mode::RX};
 
-    uint8_t console_color{0};
     uint32_t prev_value{0};
     std::string str_log{""};
     bool logging{false};
@@ -111,8 +110,6 @@ class RandomView : public View {
         {screen_width - 12 * 8, 1 * 16, 96, 24},
         "AFSK modem"};
 
-    Console console{
-        {0, 3 * 16, 1, 16}};
     Text text_seed{
         {0, 4 * 16, 240, 16},
         "test seed"

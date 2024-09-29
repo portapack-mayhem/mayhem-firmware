@@ -57,7 +57,6 @@ RandomView::RandomView(NavigationView& nav)
                   &check_log,
                   &text_debug,
                   &button_modem_setup,
-                  &console,
                   &labels,
                   &text_generated_passwd,
                   &text_char_type_hints,
@@ -168,33 +167,16 @@ RandomView::RandomView(NavigationView& nav)
 }
 
 void RandomView::on_data(uint32_t value, bool is_data) {
-    std::string str_console = "\x1B";
-    std::string str_byte = "";
 
     if (is_data) {
         seed = static_cast<unsigned int>(value);
         text_seed.set( to_string_dec_uint(seed));
 
-        // Colorize differently after message splits
-        // str_console += (char)((console_color & 3) + 9);
 
-        // Directly print the received value without decoding
-        str_console += "[" + to_string_hex(value, 2) + "]";
-        str_byte += "[" + to_string_hex(value, 2) + "]";
-
-        // console.write(str_console);
-
-        // if (logger && logging) str_log += str_byte;
-
-        if ((value != 0x7F) && (prev_value == 0x7F)) {
-            // Message split
-            // console.writeln("");
-            // console_color++;
-        }
         prev_value = value;
     } else {
-        // Baudrate estimation
-        text_debug.set("Baudrate estimation: ~" + to_string_dec_uint(value));
+        text_generated_passwd.set("Baudrate estimation: ~");
+        text_char_type_hints.set(to_string_dec_uint(value));
     }
 }
 
