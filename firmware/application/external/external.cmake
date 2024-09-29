@@ -96,10 +96,6 @@ set(EXTCPPSRC
         #sstvtx
         external/sstvtx/main.cpp
         external/sstvtx/ui_sstvtx.cpp
-
-        #random
-        external/random/main.cpp
-        external/random/ui_random.cpp
 )
 
 set(EXTAPPLIST
