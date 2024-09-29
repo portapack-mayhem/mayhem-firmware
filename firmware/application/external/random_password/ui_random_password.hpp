@@ -21,8 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_RANDOM_H__
-#define __UI_RANDOM_H__
+#ifndef __UI_RANDOM_PASSWORD_H__
+#define __UI_RANDOM_PASSWORD_H__
 
 #include "ui.hpp"
 #include "ui_language.hpp"
@@ -39,9 +39,9 @@
 
 using namespace ui;
 
-namespace ui::external_app::random {
+namespace ui::external_app::random_password {
 
-class RandomLogger {
+class RandomPasswordLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
@@ -53,14 +53,14 @@ class RandomLogger {
     LogFile log_file{};
 };
 
-class RandomView : public View {
+class RandomPasswordView : public View {
    public:
-    RandomView(NavigationView& nav);
-    ~RandomView();
+    RandomPasswordView(NavigationView& nav);
+    ~RandomPasswordView();
 
     void focus() override;
 
-    std::string title() const override { return "random"; };
+    std::string title() const override { return "r.passwd"; };
 
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
@@ -184,7 +184,7 @@ class RandomView : public View {
 
     void on_data_afsk(const AFSKDataMessage& message);
 
-    std::unique_ptr<RandomLogger> logger{};
+    std::unique_ptr<RandomPasswordLogger> logger{};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::AFSKData,
@@ -204,6 +204,6 @@ class RandomView : public View {
     void set_random_freq();
 };
 
-}  // namespace ui::external_app::random
+}  // namespace ui::external_app::random_password
 
-#endif /*__UI_RANDOM_H__*/
+#endif /*__UI_RANDOM_PASSWORD_H__*/

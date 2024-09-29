@@ -21,7 +21,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_random.hpp"
+#include "ui_random_password.hpp"
 #include "ui_modemsetup.hpp"
 
 #include "modems.hpp"
@@ -35,17 +35,17 @@ using namespace portapack;
 using namespace modems;
 using namespace ui;
 
-namespace ui::external_app::random {
+namespace ui::external_app::random_password {
 
-void RandomLogger::log_raw_data(const std::string& data) {
+void RandomPasswordLogger::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
 }
 
-void RandomView::focus() {
+void RandomPasswordView::focus() {
     field_digits.focus();
 }
 
-RandomView::RandomView(NavigationView& nav)
+RandomPasswordView::RandomPasswordView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
@@ -172,7 +172,7 @@ RandomView::RandomView(NavigationView& nav)
     field_digits.set_value(8);
     ///^ check defauly val init
 
-    logger = std::make_unique<RandomLogger>();
+    logger = std::make_unique<RandomPasswordLogger>();
     if (logger)
         logger->append(logs_dir / u"random.TXT");
 
@@ -185,7 +185,7 @@ RandomView::RandomView(NavigationView& nav)
     new_password();
 }
 
-void RandomView::on_data(uint32_t value, bool is_data) {
+void RandomPasswordView::on_data(uint32_t value, bool is_data) {
     if (paused)
         return;
     if (is_data) {
@@ -197,11 +197,11 @@ void RandomView::on_data(uint32_t value, bool is_data) {
     }
 }
 
-void RandomView::on_freqchg(int64_t freq) {
+void RandomPasswordView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
 }
 
-void RandomView::set_random_freq() {
+void RandomPasswordView::set_random_freq() {
     std::srand(LPC_RTC->CTIME0);
     // this is only for seed to visit random freq, the radio is still real random
 
@@ -210,7 +210,7 @@ void RandomView::set_random_freq() {
     field_frequency.set_value(random_freq);
 }
 
-void RandomView::new_password() {
+void RandomPasswordView::new_password() {
     password = "";
     std::string charset;
     std::string char_type_hints;
@@ -287,7 +287,7 @@ void RandomView::new_password() {
 // 4. override nav's paint func (i think it can tried to capture same obj) and paint in a seperate func, hoping set_dirty handle it correctly
 // all these methods failed, and all of them only flash and disappeared. only when set_dirty in on_data (which seems incorrect), and it keep flashing never stop. but see painted content (flashing too)
 // btw this is not caused by the seed text set thing, cuz commented it out not helping.
-void RandomView::paint_password_hints() {
+void RandomPasswordView::paint_password_hints() {
     Painter painter;
     const int char_width = 8;
     const int char_height = 16;
@@ -314,16 +314,16 @@ void RandomView::paint_password_hints() {
     }
 }
 
-std::string RandomView::generate_log_line() {
+std::string RandomPasswordView::generate_log_line() {
     std::string line = "\npassword=" + password +
                        "\nseed=" + std::to_string(seed) +
                        "\n";
     return line;
 }
 
-RandomView::~RandomView() {
+RandomPasswordView::~RandomPasswordView() {
     receiver_model.disable();
     baseband::shutdown();
 }
 
-}  // namespace ui::external_app::random
+}  // namespace ui::external_app::random_password

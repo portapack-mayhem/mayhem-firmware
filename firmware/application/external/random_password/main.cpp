@@ -20,25 +20,25 @@
  */
 
 #include "ui.hpp"
-#include "ui_random.hpp"
+#include "ui_random_password.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::random {
+namespace ui::external_app::random_password {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<RandomView>();
+    nav.push<RandomPasswordView>();
 }
-}  // namespace ui::external_app::random
+}  // namespace ui::external_app::random_password
 
 extern "C" {
 
-__attribute__((section(".external_app.app_random.application_information"), used)) application_information_t _application_information_random = {
+__attribute__((section(".external_app.app_random_password.application_information"), used)) application_information_t _application_information_random_password = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::random::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::random_password::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "random",
+    /*.app_name = */ "random_password",
     /*.bitmap_data = */ {
         0xC0,
         0x03,

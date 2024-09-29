@@ -46,7 +46,7 @@ MEMORY
     ram_external_app_adsbtx(rwx) : org = 0xADC50000, len = 32k
     ram_external_app_morse_tx(rwx) : org = 0xADC60000, len = 32k
     ram_external_app_sstvtx(rwx) : org = 0xADC70000, len = 32k
-    ram_external_app_random(rwx) : org = 0xADC80000, len = 32k
+    ram_external_app_random_password(rwx) : org = 0xADC80000, len = 32k
 }
 
 SECTIONS
@@ -191,10 +191,10 @@ SECTIONS
         *(*ui*external_app*sstvtx*);
     } > ram_external_app_sstvtx
 
-    .external_app_random : ALIGN(4) SUBALIGN(4)
+    .external_app_random_password : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_random.application_information));
-        *(*ui*external_app*random*);
-    } > ram_external_app_random
+        KEEP(*(.external_app.app_random_password.application_information));
+        *(*ui*external_app*random_password*);
+    } > ram_external_app_random_password
 
 }
