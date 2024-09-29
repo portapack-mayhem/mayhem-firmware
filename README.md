@@ -11,7 +11,7 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 [<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_front.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_inside.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview#portapack-internals)
 
-*[PortaPack H2+HackRF+battery](https://grabify.link/7T28JP) (clone) with a custom [3d printed case](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure)*
+*[PortaPack H2+HackRF+battery](https://www.ebay.com/itm/405046593369?_skw=portapack&itmmeta=01J8ZAHRQ8E0PJH10BJXKDE4K0&hash=item5e4ea88759:g:BYMAAOSwdcxmckWm&itmprp=enc%3AAQAJAAAA8HoV3kP08IDx%2BKZ9MfhVJKnMe9VUIBFDWPwZBl1Zzx%2BT%2Bn2dRw0j3y3N%2F8oGR2uylRGP5TxT8Fuk0U6n5W%2BrF2juYKib5hR0DcrgB5aTYWQbzNVk%2Bbl3yuk4sukxhSpiJ0Fl6Vz7QP%2FScdaMGSpzrkabj77jaWY%2F7x%2Bsa6ca%2BFk63z2H8mKi09RfiS2P3EoYPA2nza%2B2xA%2FAu7BBw7T3DTtcqcMNI6CIA%2FvJRUkt2tERN%2BP683yJsDrMKx4hAorew0VWOWe713Rdx6AtAYvInZZC5NsFakaAc7M7c4e%2FyaP4dtMLG%2BeFLm0jjz800l%2FDYw%3D%3D%7Ctkp%3ABk9SR-KLx-rHZA) (clone) with a custom [3d printed case](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure)*
 
 # What is this?
 
@@ -29,9 +29,9 @@ This repository expands upon the previous work by many people and aims to consta
 
 :heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous [PortaPack H4M Mayhem](https://grabify.link/VPMPSL), featuring numerous improvements and accessories. Sold by our friends at OpenSourceSDRLab. Join their giveaways on discord (check the badge on top).
 
-:heavy_check_mark: A recommended one is this [PortaPack H2](https://grabify.link/7T28JP), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
+:heavy_check_mark: A recommended one is this [PortaPack H2](https://www.ebay.com/itm/405046593369?_skw=portapack&itmmeta=01J8ZAHRQ8E0PJH10BJXKDE4K0&hash=item5e4ea88759:g:BYMAAOSwdcxmckWm&itmprp=enc%3AAQAJAAAA8HoV3kP08IDx%2BKZ9MfhVJKnMe9VUIBFDWPwZBl1Zzx%2BT%2Bn2dRw0j3y3N%2F8oGR2uylRGP5TxT8Fuk0U6n5W%2BrF2juYKib5hR0DcrgB5aTYWQbzNVk%2Bbl3yuk4sukxhSpiJ0Fl6Vz7QP%2FScdaMGSpzrkabj77jaWY%2F7x%2Bsa6ca%2BFk63z2H8mKi09RfiS2P3EoYPA2nza%2B2xA%2FAu7BBw7T3DTtcqcMNI6CIA%2FvJRUkt2tERN%2BP683yJsDrMKx4hAorew0VWOWe713Rdx6AtAYvInZZC5NsFakaAc7M7c4e%2FyaP4dtMLG%2BeFLm0jjz800l%2FDYw%3D%3D%7Ctkp%3ABk9SR-KLx-rHZA), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
 
-:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/HTDXG5), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
+:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://www.ebay.com/itm/355990755259?_skw=portapack&itmmeta=01J8ZAHRQ8NR8C71KBAEG8T7AJ&hash=item52e2b3d7bb:g:IdgAAOSw6tpmzn9Z&itmprp=enc%3AAQAJAAAA0HoV3kP08IDx%2BKZ9MfhVJKlrfr1b2mh1vRyOK60T4UgHMG%2BX2OQqsxp%2FL6lW0NydMSTR1CGhuo%2FzlB390KHl2c4H7A1n2J7vy%2FEikVENbg40MlBLRH8TB7iikj1sFWlDZo53flbxzkzck%2B8pKiuQzsa5LL5Lh9FIYYvWmX22QlFdFob1%2FxX2Etqc09nF8NxMnZzWwcBfdejzcKOvDfhKQ1JzmRb2KnxfUNQA5fnV5xN2%2F8QShTO9Jh98phxNU%2FPtjyqIwpJNz1lDA0eow%2B%2Fr8Ik%3D%7Ctkp%3ABk9SR-KLx-rHZA), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
