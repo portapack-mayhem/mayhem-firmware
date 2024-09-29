@@ -74,7 +74,7 @@ __attribute__((section(".external_app.app_random.application_information"), used
         0x01,
     },
     /*.icon_color = */ ui::Color::yellow().v,
-    /*.menu_location = */ app_location_t::RX,
+    /*.menu_location = */ app_location_t::UTILITIES,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_afsk_rx */ {'P', 'A', 'F', 'R'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
