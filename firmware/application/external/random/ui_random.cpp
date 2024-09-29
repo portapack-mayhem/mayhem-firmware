@@ -55,7 +55,6 @@ RandomView::RandomView(NavigationView& nav)
                   &field_vga,
                   &field_frequency,
                   &check_log,
-                  &text_debug,
                   &button_modem_setup,
                   &labels,
                   &text_generated_passwd,
@@ -64,8 +63,12 @@ RandomView::RandomView(NavigationView& nav)
                   &check_latin_lower,
                   &check_latin_upper,
                   &check_punctuation,
+                  &check_show_seeds,
+                  &check_auto_send,
                   &button_refresh,
                   &button_show_qr,
+                  &button_pause,
+                  &button_send,
                   &field_digits,
                   &check_allow_confusable_chars,
                   &text_seed});
@@ -144,15 +147,33 @@ RandomView::RandomView(NavigationView& nav)
         nav.push<QRCodeView>(password.data());
     };
 
+    button_pause.on_select = [this](Button&) {
+        if (paused) {
+            paused = false;
+            button_pause.set_text("pause");
+        } else {
+            paused = true;
+            button_pause.set_text("resume");
+        }
+    };
+    button_send.on_select = [this, &nav](Button&) {
+        portapack::async_tx_enabled = true;
+        UsbSerialAsyncmsg::asyncmsg(password);
+        portapack::async_tx_enabled = false;
+    };
+
     field_digits.on_change = [this](int32_t) {
         this->new_password();
     };
 
-    /// v init setting
+    /// v check defauly val init
     check_digits.set_value(true);
     check_latin_lower.set_value(true);
+    check_latin_upper.set_value(true);
+    check_punctuation.set_value(true);
+    check_show_seeds.set_value(true);
     field_digits.set_value(8);
-    ///^ init setting
+    ///^ check defauly val init
 
     logger = std::make_unique<RandomLogger>();
     if (logger)
@@ -167,13 +188,11 @@ RandomView::RandomView(NavigationView& nav)
 }
 
 void RandomView::on_data(uint32_t value, bool is_data) {
-
+    if (paused)
+        return;
     if (is_data) {
         seed = static_cast<unsigned int>(value);
-        text_seed.set( to_string_dec_uint(seed));
-
-
-        prev_value = value;
+        text_seed.set(to_string_dec_uint(check_show_seeds.value() ? seed : 0));
     } else {
         text_generated_passwd.set("Baudrate estimation: ~");
         text_char_type_hints.set(to_string_dec_uint(value));
@@ -228,22 +247,26 @@ void RandomView::new_password() {
     }
 
     int password_length = field_digits.value();
+
     for (int i = 0; i < password_length; i++) {
         char c = charset[std::rand() % charset.length()];
         password += c;
 
-        if (std::isdigit(c))
+        if (std::isdigit(c)) {
             char_type_hints += "1";
-        else if (std::islower(c))
+        } else if (std::islower(c)) {
             char_type_hints += "a";
-        else if (std::isupper(c))
+        } else if (std::isupper(c)) {
             char_type_hints += "A";
-        else
+        } else {
             char_type_hints += ",";
+        }
     }
 
     text_generated_passwd.set(password);
     text_char_type_hints.set(char_type_hints);
+
+    paint_password_hints();  // TODO: why flash and disappeared
 
     if (logger && logging) {
         str_log += generate_log_line();
@@ -251,9 +274,38 @@ void RandomView::new_password() {
         str_log = "";
     }
 
-    // portapack::async_tx_enabled = true;
-    // UsbSerialAsyncmsg::asyncmsg(password);
-    // portapack::async_tx_enabled = false;
+    if (check_auto_send.value()) {
+        portapack::async_tx_enabled = true;
+        UsbSerialAsyncmsg::asyncmsg(password);
+        portapack::async_tx_enabled = false;
+    }
+}
+
+void RandomView::paint_password_hints() {  // TODO: why flash and disappeared
+    Painter painter;
+    const int char_width = 8;
+    const int char_height = 16;
+    const int start_y = 6 * char_height + 5;
+    const int rect_height = 4;
+
+    for (size_t i = 0; i < password.length(); i++) {
+        char c = password[i];
+        Color color;
+        if (std::isdigit(c)) {
+            color = Color::red();
+        } else if (std::islower(c)) {
+            color = Color::green();
+        } else if (std::isupper(c)) {
+            color = Color::blue();
+        } else {
+            color = Color::white();
+        }
+
+        painter.fill_rectangle(
+            {{static_cast<int>(i) * char_width, start_y},
+             {char_width, rect_height}},
+            color);
+    }
 }
 
 std::string RandomView::generate_log_line() {
@@ -262,8 +314,6 @@ std::string RandomView::generate_log_line() {
                        "\n";
     return line;
 }
-
-bool RandomView::seed_protect_helper() {}
 
 RandomView::~RandomView() {
     receiver_model.disable();

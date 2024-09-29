@@ -36,7 +36,6 @@
 #include "ui_qrcode.hpp"
 #include "usb_serial_asyncmsg.hpp"
 
-
 using namespace ui;
 
 namespace ui::external_app::random {
@@ -69,98 +68,114 @@ class RandomView : public View {
     void on_data(uint32_t value, bool is_data);
     void new_password();
     std::string generate_log_line();
+    void paint_password_hints();
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_afsk", app_settings::Mode::RX};
 
-    uint32_t prev_value{0};
     std::string str_log{""};
     bool logging{false};
+    bool paused{false};
+
+    Labels labels{
+        {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, 7 * 16}, "digits:", Theme::getInstance()->fg_light->foreground},
+    };
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, 1 * 16}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, 1 * 16}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, 1 * 16}};
+
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 1 * 16 + 0, 6 * 8, 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
-
-
+        {21 * 8, 1 * 16 + 5, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {0 * 8, 1 * 16},
         nav_};
 
-    Checkbox check_log{
-        {0 * 8, 1 * 16},
-        3,
-        "save gened pw",
-        false};
-
-    Text text_debug{
-        {0 * 8, 12 + 2 * 16, screen_width, 16},
-        LanguageHelper::currentMessages[LANG_DEBUG]};
-
     Button button_modem_setup{
-        {screen_width - 12 * 8, 1 * 16, 96, 24},
+        {screen_width - 12 * 8, 2 * 16, 96, 16},
         "AFSK modem"};
 
     Text text_seed{
-        {0, 4 * 16, 240, 16},
-        "test seed"
-    };
-
-    Labels labels{
-        {{5 * 8, 9 * 16}, "digits:", Theme::getInstance()->fg_light->foreground}};
+        {0, 2 * 16, screen_width / 2, 16},
+        "0000000000"};
 
     Text text_generated_passwd{
-        {0, 5 * 16, screen_width, 28},
+        {0, 4 * 16, screen_width, 28},
         "000000000000000000000000000000"};
 
     Text text_char_type_hints{
-        {0, 6 * 16, screen_width, 28},
+        {0, 5 * 16, screen_width, 28},
         "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"};
 
-    Checkbox check_digits{
-        {3 * 8, 13 * 16},
-        3,
-        "123"};
+    Checkbox check_show_seeds{
+        {17 * 8, 8 * 16},
+        6,
+        "show seed"};
+
+    Checkbox check_auto_send{
+        {1 * 8, 8 * 16},
+        20,
+        "auto send"};
 
     Checkbox check_punctuation{
-        {20 * 8, 13 * 16},
+        {17 * 8, 12 * 16},
         6,
         ".,-!?"};
 
+    Checkbox check_allow_confusable_chars{
+        {1 * 8, 10 * 16},
+        20,
+        "0 O o 1 l"};
+
+    Checkbox check_digits{
+        {1 * 8, 12 * 16},
+        3,
+        "123"};
+
     Checkbox check_latin_lower{
-        {3 * 8, 15 * 16},
+        {1 * 8, 14 * 16},
         3,
         "abc"};
 
     Checkbox check_latin_upper{
-        {20 * 8, 15 * 16},
+        {17 * 8, 14 * 16},
         3,
         "ABC"};
 
-    Checkbox check_allow_confusable_chars{
-        {3 * 8, 11 * 16},
-        20,
-        "Include 0 O o 1 l"};
+    Checkbox check_log{
+        {17 * 8, 10 * 16},
+        3,
+        "savin",
+        false};
+
+    Button button_pause{
+        {0 * 8, 15 * 16 + 20, screen_width / 2, 24},
+        "pause"};
+
+    Button button_send{
+        {screen_width / 2, 15 * 16 + 20, screen_width / 2, 24},
+        "send pwd"};
 
     Button button_refresh{
         {0 * 8, 17 * 16 + 10, screen_width / 2, 24},
-        "refresh"};
+        "generate"};
 
     Button button_show_qr{
         {screen_width / 2, 17 * 16 + 10, screen_width / 2, 24},
         "show QR"};
 
     NumberField field_digits{
-        {24 * 8, 9 * 16},
+        {16 * 8, 7 * 16},
         2,
         {1, 30},
         1,
@@ -183,8 +198,6 @@ class RandomView : public View {
             const auto message = static_cast<const FreqChangeCommandMessage*>(p);
             this->on_freqchg(message->freq);
         }};
-
-    bool seed_protect_helper();
 
     void on_freqchg(int64_t freq);
     void set_random_freq();
