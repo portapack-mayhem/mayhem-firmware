@@ -64,11 +64,11 @@ class RandomView : public View {
 
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
-    std::string global_password = ""; //this is a temp one for test, TODO
+    std::string password = "";
 
     void on_data(uint32_t value, bool is_data);
     void new_password();
-    std::string generate_log_line(const std::string &password);
+    std::string generate_log_line();
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
@@ -183,7 +183,7 @@ class RandomView : public View {
             this->on_freqchg(message->freq);
         }};
 
-    bool seed_protect_helper(const unsigned int& seed);
+    bool seed_protect_helper();
 
     void on_freqchg(int64_t freq);
     void set_random_freq();
