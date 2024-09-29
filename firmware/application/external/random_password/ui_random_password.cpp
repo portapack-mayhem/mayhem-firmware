@@ -212,8 +212,8 @@ void RandomPasswordView::set_random_freq() {
 
 void RandomPasswordView::new_password() {
     password = "";
-    std::string charset;
-    std::string char_type_hints;
+    std::string charset = "";
+    std::string char_type_hints = "";
 
     if (check_digits.value())
         charset += "0123456789";
