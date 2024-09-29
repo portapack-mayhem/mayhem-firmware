@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * copyleft zxkmm
  *
  * This file is part of PortaPack.
  *
@@ -20,8 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_AFSK_RX_H__
-#define __UI_AFSK_RX_H__
+#ifndef __UI_RANDOM_H__
+#define __UI_RANDOM_H__
 
 #include "ui.hpp"
 #include "ui_language.hpp"
@@ -205,4 +206,4 @@ class RandomView : public View {
 
 }  // namespace ui::external_app::random
 
-#endif /*__UI_AFSK_RX_H__*/
+#endif /*__UI_RANDOM_H__*/

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * copyleft zxkmm
  *
  * This file is part of PortaPack.
  *
@@ -73,8 +74,7 @@ RandomView::RandomView(NavigationView& nav)
                   &check_allow_confusable_chars,
                   &text_seed});
 
-    // Auto-configure modem for LCR RX (TODO remove)
-    // field_frequency.set_value(467225500);
+    // no idea what's these, i copied from afsk rx app and they seems needed'
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;
@@ -83,8 +83,6 @@ RandomView::RandomView(NavigationView& nav)
     serial_format.stop_bits = 1;
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
-
-    field_frequency.set_step(100);
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
@@ -113,7 +111,7 @@ RandomView::RandomView(NavigationView& nav)
         }
     };
 
-    button_modem_setup.on_select = [&nav](Button&) {
+    button_modem_setup.on_select = [&nav](Button&) { //copied from afsk rx app
         nav.push<ModemSetupView>();
     };
 
@@ -143,7 +141,6 @@ RandomView::RandomView(NavigationView& nav)
     };
 
     button_show_qr.on_select = [this, &nav](Button&) {
-        // std::string qr = text_generated_passwd.
         nav.push<QRCodeView>(password.data());
     };
 
@@ -179,7 +176,7 @@ RandomView::RandomView(NavigationView& nav)
     if (logger)
         logger->append(logs_dir / u"random.TXT");
 
-    // Auto-configure modem for LCR RX (will be removed later)
+    // Auto-configure modem for LCR RX (will be removed later), copied from afsk rx app
     baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);
 
     receiver_model.enable();
@@ -281,7 +278,15 @@ void RandomView::new_password() {
     }
 }
 
-void RandomView::paint_password_hints() {  // TODO: why flash and disappeared
+  // TODO: why flash and disappeared
+  // tried:
+  // 1. paint inline in new_password func
+  // 2. paint in a seperate func and call from new_password
+  // 3. override nav's paint func (i think it can tried to capture same obj) and paint, hoping set_dirty handle it correctly
+  // 4. override nav's paint func (i think it can tried to capture same obj) and paint in a seperate func, hoping set_dirty handle it correctly
+  // all these methods failed, and all of them only flash and disappeared. only when set_dirty in on_data (which seems incorrect), and it keep flashing never stop. but see painted content (flashing too)
+  // btw this is not caused by the seed text set thing, cuz commented it out not helping.
+void RandomView::paint_password_hints() {
     Painter painter;
     const int char_width = 8;
     const int char_height = 16;
