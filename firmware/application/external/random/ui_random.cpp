@@ -111,7 +111,7 @@ RandomView::RandomView(NavigationView& nav)
         }
     };
 
-    button_modem_setup.on_select = [&nav](Button&) { //copied from afsk rx app
+    button_modem_setup.on_select = [&nav](Button&) {  // copied from afsk rx app
         nav.push<ModemSetupView>();
     };
 
@@ -180,6 +180,7 @@ RandomView::RandomView(NavigationView& nav)
     baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);
 
     receiver_model.enable();
+    receiver_model.set_rf_amp(false);
     set_random_freq();
     new_password();
 }
@@ -278,14 +279,14 @@ void RandomView::new_password() {
     }
 }
 
-  // TODO: why flash and disappeared
-  // tried:
-  // 1. paint inline in new_password func
-  // 2. paint in a seperate func and call from new_password
-  // 3. override nav's paint func (i think it can tried to capture same obj) and paint, hoping set_dirty handle it correctly
-  // 4. override nav's paint func (i think it can tried to capture same obj) and paint in a seperate func, hoping set_dirty handle it correctly
-  // all these methods failed, and all of them only flash and disappeared. only when set_dirty in on_data (which seems incorrect), and it keep flashing never stop. but see painted content (flashing too)
-  // btw this is not caused by the seed text set thing, cuz commented it out not helping.
+// TODO: why flash and disappeared
+// tried:
+// 1. paint inline in new_password func
+// 2. paint in a seperate func and call from new_password
+// 3. override nav's paint func (i think it can tried to capture same obj) and paint, hoping set_dirty handle it correctly
+// 4. override nav's paint func (i think it can tried to capture same obj) and paint in a seperate func, hoping set_dirty handle it correctly
+// all these methods failed, and all of them only flash and disappeared. only when set_dirty in on_data (which seems incorrect), and it keep flashing never stop. but see painted content (flashing too)
+// btw this is not caused by the seed text set thing, cuz commented it out not helping.
 void RandomView::paint_password_hints() {
     Painter painter;
     const int char_width = 8;
