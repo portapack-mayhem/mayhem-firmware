@@ -61,7 +61,7 @@ class UsbSerialAsyncmsg {
 // ussgae:    UsbSerialAsyncmsg::asyncmsg(vec);
 template <typename VECTORCOVER>
 void UsbSerialAsyncmsg::asyncmsg(const std::vector<VECTORCOVER>& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     for (const auto& item : data) {

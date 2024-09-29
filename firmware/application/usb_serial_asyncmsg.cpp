@@ -23,6 +23,7 @@
  */
 
 #include "usb_serial_asyncmsg.hpp"
+#include "usb_serial.hpp"
 
 /// value
 // to_string_bin/ to_string_decimal/ to_string_hex/ to_string_hex_array/ to_string_dec_uint/ to_string_dec_int etc seems usellss so i didn't add them here
@@ -30,7 +31,7 @@
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<int64_t>(const int64_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -38,7 +39,7 @@ void UsbSerialAsyncmsg::asyncmsg<int64_t>(const int64_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<int32_t>(const int32_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -46,7 +47,7 @@ void UsbSerialAsyncmsg::asyncmsg<int32_t>(const int32_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<int16_t>(const int16_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -54,7 +55,7 @@ void UsbSerialAsyncmsg::asyncmsg<int16_t>(const int16_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<int8_t>(const int8_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -62,7 +63,7 @@ void UsbSerialAsyncmsg::asyncmsg<int8_t>(const int8_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<uint8_t>(const uint8_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -70,7 +71,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint8_t>(const uint8_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<uint16_t>(const uint16_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -78,7 +79,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint16_t>(const uint16_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<uint32_t>(const uint32_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -86,7 +87,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint32_t>(const uint32_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<uint64_t>(const uint64_t& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
@@ -94,7 +95,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint64_t>(const uint64_t& data) {
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<float>(const float& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_decimal(data, 7).c_str());
@@ -105,7 +106,7 @@ void UsbSerialAsyncmsg::asyncmsg<float>(const float& data) {
 template <>
 // usage:     UsbSerialAsyncmsg::asyncmsg(path);
 void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path>(const std::filesystem::path& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     std::string path_str = data.string();
@@ -114,7 +115,7 @@ void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path>(const std::filesystem::p
 
 template <>
 void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path::string_type>(const std::filesystem::path::string_type& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     std::string str_data(data.begin(), data.end());
@@ -127,7 +128,7 @@ void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path::string_type>(const std::
 template <>
 // usage:     UsbSerialAsyncmsg::asyncmsg(str);
 void UsbSerialAsyncmsg::asyncmsg<std::string>(const std::string& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data.c_str());
@@ -136,7 +137,7 @@ void UsbSerialAsyncmsg::asyncmsg<std::string>(const std::string& data) {
 // string literal AKA char[]
 // usage: UsbSerialAsyncmsg::asyncmsg("abc");
 void UsbSerialAsyncmsg::asyncmsg(const char* data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data);
@@ -146,7 +147,7 @@ void UsbSerialAsyncmsg::asyncmsg(const char* data) {
 template <>
 // usage:     UsbSerialAsyncmsg::asyncmsg(true);
 void UsbSerialAsyncmsg::asyncmsg<bool>(const bool& data) {
-    if (!portapack::async_tx_enabled) {
+    if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data ? "true" : "false");
