@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * copyleft zxkmm
+ * Copyright (C) 2024 HToToo
  *
  * This file is part of PortaPack.
  *
@@ -24,6 +25,8 @@
 #ifndef __UI_RANDOM_PASSWORD_H__
 #define __UI_RANDOM_PASSWORD_H__
 
+#define MAX_DIGITS 30
+
 #include "ui.hpp"
 #include "ui_language.hpp"
 #include "ui_navigation.hpp"
@@ -36,12 +39,13 @@
 #include "utility.hpp"
 #include "ui_qrcode.hpp"
 #include "usb_serial_asyncmsg.hpp"
+#include <deque>
 
 using namespace ui;
 
 namespace ui::external_app::random_password {
 
-class RandomPasswordLogger {
+class RandomPasswordLogger {  // TODO: log is broken after introduced the buffer thing
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
@@ -65,8 +69,12 @@ class RandomPasswordView : public View {
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
     std::string password = "";
+    std::deque<unsigned int> seeds_deque = {0};
+    std::deque<std::string> char_deque = {""};
+    bool seeds_buffer_not_full = true;
 
     void on_data(uint32_t value, bool is_data);
+    void clean_buffer();
     void new_password();
     std::string generate_log_line();
     void paint_password_hints();
@@ -109,6 +117,9 @@ class RandomPasswordView : public View {
     Text text_seed{
         {0, 2 * 16, screen_width / 2, 16},
         "0000000000"};
+
+    ProgressBar progressbar{
+        {screen_width / 2 + 1, 2 * 16, screen_width - 96 - (0 * 8 + screen_width / 2 + 1) - 1, 16}};
 
     Text text_generated_passwd{
         {0, 4 * 16, screen_width, 28},

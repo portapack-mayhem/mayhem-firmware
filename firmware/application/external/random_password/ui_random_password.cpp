@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * copyleft zxkmm
+ * Copyright (C) 2024 HToToo
  *
  * This file is part of PortaPack.
  *
@@ -72,7 +73,8 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
                   &button_send,
                   &field_digits,
                   &check_allow_confusable_chars,
-                  &text_seed});
+                  &text_seed,
+                  &progressbar});
 
     // no idea what's these, i copied from afsk rx app and they seems needed'
     auto def_bell202 = &modem_defs[0];
@@ -83,6 +85,8 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     serial_format.stop_bits = 1;
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
+
+    progressbar.set_max(30);
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
@@ -160,6 +164,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     };
 
     field_digits.on_change = [this](int32_t) {
+        clean_buffer();
         this->new_password();
     };
 
@@ -191,10 +196,25 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
     if (is_data) {
         seed = static_cast<unsigned int>(value);
         text_seed.set(to_string_dec_uint(check_show_seeds.value() ? seed : 0));
+
+        /// v feed deque
+        seeds_deque.push_back(value);
+        if (seeds_deque.size() > MAX_DIGITS) {
+            seeds_deque.pop_front();
+        }
+        ///^ feed deque
+
+        progressbar.set_value(seeds_deque.size());
+
     } else {
         text_generated_passwd.set("Baudrate estimation: ~");
         text_char_type_hints.set(to_string_dec_uint(value));
     }
+}
+
+void RandomPasswordView::clean_buffer() {
+    seeds_deque = {0};
+    char_deque = {""};
 }
 
 void RandomPasswordView::on_freqchg(int64_t freq) {
@@ -233,22 +253,31 @@ void RandomPasswordView::new_password() {
     if (charset.empty()) {
         text_generated_passwd.set("generate failed,");
         text_char_type_hints.set("select at least 1 type");
-
         return;
     }
 
-    if (seed == 0) {
-        text_generated_passwd.set("generate failed,");
-        text_char_type_hints.set("random seed exception");
-    } else {
-        std::srand(seed);  // extern void srand (unsigned int __seed) __THROW;
+    if (seeds_deque.size() < MAX_DIGITS) {
+        seeds_buffer_not_full = true;
+        text_generated_passwd.set("wait seeds buffer full");
+        text_char_type_hints.set("then press generate");
+        return;
     }
 
     int password_length = field_digits.value();
 
+    /*the seeds_buffer were feed streaming by AFSK,
+     * and when generate, it use each seed for each char, and uint seeds totally can generate UINT_MAX result,
+     * which already cover the 10+26+25+4 (123+abc+abc+.!)
+     * so total possible password would be PW_LENGTH ^ (10+26+25+4), which already covered all the possible solution
+     * (assume AFSK data is averaged in chaotic space, which maybe no one can garentee but I hope so)
+     * */
+
     for (int i = 0; i < password_length; i++) {
+        unsigned int seed = seeds_deque[i];
+        std::srand(seed);
         char c = charset[std::rand() % charset.length()];
         password += c;
+        char_deque.push_back(std::string(1, c));
 
         if (std::isdigit(c)) {
             char_type_hints += "1";
