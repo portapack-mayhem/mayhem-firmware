@@ -37,6 +37,8 @@ class USBSerial {
     void on_channel_closed();
     void setEventDispatcher(EventDispatcher* ed) { _eventDispatcher = ed; }
 
+    bool serial_connected() { return connected; }
+
    private:
     void enable_xtal();
     void disable_pll0();
