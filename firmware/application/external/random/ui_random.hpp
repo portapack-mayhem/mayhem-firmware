@@ -112,7 +112,11 @@ class RandomView : public View {
         "AFSK modem"};
 
     Console console{
-        {0, 3 * 16, 240, 16}};
+        {0, 3 * 16, 1, 16}};
+    Text text_seed{
+        {0, 4 * 16, 240, 16},
+        "test seed"
+    };
 
     Labels labels{
         {{5 * 8, 9 * 16}, "digits:", Theme::getInstance()->fg_light->foreground}};

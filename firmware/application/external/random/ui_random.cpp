@@ -68,10 +68,11 @@ RandomView::RandomView(NavigationView& nav)
                   &button_refresh,
                   &button_show_qr,
                   &field_digits,
-                  &check_allow_confusable_chars});
+                  &check_allow_confusable_chars,
+                  &text_seed});
 
     // Auto-configure modem for LCR RX (TODO remove)
-//    field_frequency.set_value(467225500);
+    // field_frequency.set_value(467225500);
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;
@@ -172,21 +173,23 @@ void RandomView::on_data(uint32_t value, bool is_data) {
 
     if (is_data) {
         seed = static_cast<unsigned int>(value);
+        text_seed.set( to_string_dec_uint(seed));
+
         // Colorize differently after message splits
-        str_console += (char)((console_color & 3) + 9);
+        // str_console += (char)((console_color & 3) + 9);
 
         // Directly print the received value without decoding
         str_console += "[" + to_string_hex(value, 2) + "]";
         str_byte += "[" + to_string_hex(value, 2) + "]";
 
-        console.write(str_console);
+        // console.write(str_console);
 
         // if (logger && logging) str_log += str_byte;
 
         if ((value != 0x7F) && (prev_value == 0x7F)) {
             // Message split
-            console.writeln("");
-            console_color++;
+            // console.writeln("");
+            // console_color++;
         }
         prev_value = value;
     } else {
