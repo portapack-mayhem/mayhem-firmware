@@ -43,7 +43,7 @@ void RandomPasswordLogger::log_raw_data(const std::string& data) {
 }
 
 void RandomPasswordView::focus() {
-    field_digits.focus();
+    button_refresh.focus();
 }
 
 RandomPasswordView::RandomPasswordView(NavigationView& nav)
@@ -174,7 +174,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     check_latin_upper.set_value(true);
     check_punctuation.set_value(true);
     check_show_seeds.set_value(true);
-    field_digits.set_value(24);
+    field_digits.set_value(16);
     ///^ check defauly val init
 
     logger = std::make_unique<RandomPasswordLogger>();
