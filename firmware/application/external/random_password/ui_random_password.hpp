@@ -91,7 +91,7 @@ class RandomPasswordView : public View {
     Labels labels{
         {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 7 * 16}, "digits:", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
     };
 
     RFAmpField field_rf_amp{
@@ -115,11 +115,11 @@ class RandomPasswordView : public View {
         "AFSK modem"};
 
     Text text_seed{
-        {0, 2 * 16, screen_width / 2, 16},
+        {0, 2 * 16, 10 * 8, 16},
         "0000000000"};
 
     ProgressBar progressbar{
-        {screen_width / 2 + 1, 2 * 16, screen_width - 96 - (0 * 8 + screen_width / 2 + 1) - 1, 16}};
+        {10 * 8 + 2, 2 * 16, screen_width - 96 - (10 * 8 + 4) - 1, 16}};
 
     Text text_generated_passwd{
         {0, 4 * 16, screen_width, 28},
@@ -170,23 +170,23 @@ class RandomPasswordView : public View {
         "savin"};
 
     Button button_flood{
-        {0 * 8, 15 * 16 + 20, screen_width / 2, 24},
+        {0 * 8, 15 * 16 + 18, screen_width / 2, 22},
         "flood"};
 
     Button button_send{
-        {screen_width / 2, 15 * 16 + 20, screen_width / 2, 24},
+        {screen_width / 2 + 2, 15 * 16 + 18, screen_width / 2 - 2, 22},
         "send pwd"};
 
     Button button_refresh{
-        {0 * 8, 17 * 16 + 10, screen_width / 2, 24},
+        {0 * 8, 17 * 16 + 10, screen_width / 2, 22},
         "generate"};
 
     Button button_show_qr{
-        {screen_width / 2, 17 * 16 + 10, screen_width / 2, 24},
+        {screen_width / 2 + 2, 17 * 16 + 10, screen_width / 2 - 2, 22},
         "show QR"};
 
     NumberField field_digits{
-        {16 * 8, 7 * 16},
+        {16 * 8, 7 * 16 - 2},
         2,
         {1, 30},
         1,

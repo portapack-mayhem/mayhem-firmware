@@ -174,7 +174,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     check_latin_upper.set_value(true);
     check_punctuation.set_value(true);
     check_show_seeds.set_value(true);
-    field_digits.set_value(8);
+    field_digits.set_value(24);
     ///^ check defauly val init
 
     logger = std::make_unique<RandomPasswordLogger>();
@@ -352,8 +352,13 @@ void RandomPasswordView::paint_password_hints() {
 }
 
 std::string RandomPasswordView::generate_log_line() {
+    std::string seeds_set = "";
+     for (auto seed : seeds_deque) {
+         seeds_set += std::to_string(seed);
+         seeds_set += " ";
+     }
     std::string line = "\npassword=" + password +
-                       "\nseed=" + std::to_string(seed) +
+                       "\nseeds=" + seeds_set +
                        "\n";
     return line;
 }
