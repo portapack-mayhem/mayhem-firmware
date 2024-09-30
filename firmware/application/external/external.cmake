@@ -96,6 +96,10 @@ set(EXTCPPSRC
 	#sstvtx
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
+
+	#random
+	external/random_password/main.cpp
+	external/random_password/ui_random_password.cpp
 )
 
 set(EXTAPPLIST
@@ -122,4 +126,5 @@ set(EXTAPPLIST
 	adsbtx
 	morse_tx
 	sstvtx
+	random_password
 )
