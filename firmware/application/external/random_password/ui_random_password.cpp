@@ -353,10 +353,10 @@ void RandomPasswordView::paint_password_hints() {
 
 std::string RandomPasswordView::generate_log_line() {
     std::string seeds_set = "";
-     for (auto seed : seeds_deque) {
-         seeds_set += std::to_string(seed);
-         seeds_set += " ";
-     }
+    for (auto seed : seeds_deque) {
+        seeds_set += std::to_string(seed);
+        seeds_set += " ";
+    }
     std::string line = "\npassword=" + password +
                        "\nseeds=" + seeds_set +
                        "\n";
