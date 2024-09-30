@@ -69,7 +69,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
                   &check_auto_send,
                   &button_refresh,
                   &button_show_qr,
-                  &button_pause,
+                  &button_flood,
                   &button_send,
                   &field_digits,
                   &check_allow_confusable_chars,
@@ -148,13 +148,13 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
         nav.push<QRCodeView>(password.data());
     };
 
-    button_pause.on_select = [this](Button&) {
-        if (paused) {
-            paused = false;
-            button_pause.set_text("pause");
+    button_flood.on_select = [this](Button&) {
+        if (flooding) {
+            flooding = false;
+            button_flood.set_text("flood");
         } else {
-            paused = true;
-            button_pause.set_text("resume");
+            flooding = true;
+            button_flood.set_text("stop");
         }
     };
     button_send.on_select = [this, &nav](Button&) {
@@ -191,8 +191,6 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
 }
 
 void RandomPasswordView::on_data(uint32_t value, bool is_data) {
-    if (paused)
-        return;
     if (is_data) {
         seed = static_cast<unsigned int>(value);
         text_seed.set(to_string_dec_uint(check_show_seeds.value() ? seed : 0));
@@ -202,9 +200,14 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
         if (seeds_deque.size() > MAX_DIGITS) {
             seeds_deque.pop_front();
         }
+
         ///^ feed deque
 
         progressbar.set_value(seeds_deque.size());
+
+        if (flooding && seeds_deque.size() >= MAX_DIGITS) {
+            new_password();
+        }
 
     } else {
         text_generated_passwd.set("Baudrate estimation: ~");
@@ -213,7 +216,7 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
 }
 
 void RandomPasswordView::clean_buffer() {
-    seeds_deque = {0};
+    seeds_deque = {};
     char_deque = {""};
 }
 
@@ -231,6 +234,12 @@ void RandomPasswordView::set_random_freq() {
 }
 
 void RandomPasswordView::new_password() {
+    if (seeds_deque.size() < MAX_DIGITS) {
+        seeds_buffer_not_full = true;
+        text_generated_passwd.set("wait seeds buffer full");
+        text_char_type_hints.set("then press generate");
+        return;
+    }
     password = "";
     std::string charset = "";
     std::string char_type_hints = "";
@@ -253,13 +262,6 @@ void RandomPasswordView::new_password() {
     if (charset.empty()) {
         text_generated_passwd.set("generate failed,");
         text_char_type_hints.set("select at least 1 type");
-        return;
-    }
-
-    if (seeds_deque.size() < MAX_DIGITS) {
-        seeds_buffer_not_full = true;
-        text_generated_passwd.set("wait seeds buffer full");
-        text_char_type_hints.set("then press generate");
         return;
     }
 
@@ -301,11 +303,17 @@ void RandomPasswordView::new_password() {
         str_log = "";
     }
 
-    if (check_auto_send.value()) {
+    if (check_auto_send.value() || flooding) {
         portapack::async_tx_enabled = true;
+        // printing out seeds buufer
+        // for (auto seed : seeds_deque) {
+        //     UsbSerialAsyncmsg::asyncmsg(std::to_string(seed));
+        // }
         UsbSerialAsyncmsg::asyncmsg(password);
         portapack::async_tx_enabled = false;
     }
+
+    clean_buffer();
 }
 
 // TODO: why flash and disappeared

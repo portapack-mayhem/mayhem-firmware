@@ -72,6 +72,10 @@ class RandomPasswordView : public View {
     std::deque<unsigned int> seeds_deque = {0};
     std::deque<std::string> char_deque = {""};
     bool seeds_buffer_not_full = true;
+    bool in_benchmark = false;
+    bool flooding = false;
+    bool logging = false;
+    std::string str_log{""};
 
     void on_data(uint32_t value, bool is_data);
     void clean_buffer();
@@ -83,10 +87,6 @@ class RandomPasswordView : public View {
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_afsk", app_settings::Mode::RX};
-
-    std::string str_log{""};
-    bool logging{false};
-    bool paused{false};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
@@ -167,12 +167,11 @@ class RandomPasswordView : public View {
     Checkbox check_log{
         {17 * 8, 10 * 16},
         3,
-        "savin",
-        false};
+        "savin"};
 
-    Button button_pause{
+    Button button_flood{
         {0 * 8, 15 * 16 + 20, screen_width / 2, 24},
-        "pause"};
+        "flood"};
 
     Button button_send{
         {screen_width / 2, 15 * 16 + 20, screen_width / 2, 24},
