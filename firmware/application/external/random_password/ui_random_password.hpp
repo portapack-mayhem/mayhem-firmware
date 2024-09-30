@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * copyleft zxkmm
- * Copyright (C) 2024 HToToo
+ * Copyright (C) 2024 zxkmm
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -64,17 +64,17 @@ class RandomPasswordView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "r.passwd"; };
+    std::string title() const override { return "R.passwd"; };
 
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
     std::string password = "";
     std::deque<unsigned int> seeds_deque = {0};
-    std::deque<std::string> char_deque = {""};
     bool seeds_buffer_not_full = true;
     bool in_benchmark = false;
     bool flooding = false;
     bool logging = false;
+    bool async_prev_val = false;
     std::string str_log{""};
 
     void on_data(uint32_t value, bool is_data);
@@ -86,7 +86,7 @@ class RandomPasswordView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
-        "rx_afsk", app_settings::Mode::RX};
+        "rx_passgen", app_settings::Mode::RX};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
@@ -112,7 +112,7 @@ class RandomPasswordView : public View {
 
     Button button_modem_setup{
         {screen_width - 12 * 8, 2 * 16 - 1, 96, 16 + 2},
-        "AFSK modem"};
+        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Text text_seed{
         {0, 2 * 16, 10 * 8, 16},
