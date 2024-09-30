@@ -111,7 +111,7 @@ class RandomPasswordView : public View {
         nav_};
 
     Button button_modem_setup{
-        {screen_width - 12 * 8, 2 * 16, 96, 16},
+        {screen_width - 12 * 8, 2 * 16 - 1, 96, 16 + 2},
         "AFSK modem"};
 
     Text text_seed{
