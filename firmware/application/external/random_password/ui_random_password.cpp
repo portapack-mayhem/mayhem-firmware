@@ -277,7 +277,7 @@ void RandomPasswordView::new_password() {
     for (int i = 0; i < password_length * 2; i += 2) {
         unsigned int seed = seeds_deque[i];
         std::srand(seed);
-        uint8_t rollnum = (uint8_t)(seeds_deque[i + 1] % 256);
+        uint8_t rollnum = (uint8_t)(seeds_deque[i + 1] % 128);
         uint8_t nu = 0;
         for (uint8_t o = 0; o < rollnum; ++o) nu = std::rand();
         nu++;
