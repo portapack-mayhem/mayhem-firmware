@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * copyleft zxkmm
- * Copyright (C) 2024 HToToo
+ * Copyright (C) 2024 zxkmm
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -64,17 +64,17 @@ class RandomPasswordView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "r.passwd"; };
+    std::string title() const override { return "R.passwd"; };
 
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
     std::string password = "";
     std::deque<unsigned int> seeds_deque = {0};
-    std::deque<std::string> char_deque = {""};
     bool seeds_buffer_not_full = true;
     bool in_benchmark = false;
     bool flooding = false;
     bool logging = false;
+    bool async_prev_val = false;
     std::string str_log{""};
 
     void on_data(uint32_t value, bool is_data);
@@ -86,7 +86,7 @@ class RandomPasswordView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
-        "rx_afsk", app_settings::Mode::RX};
+        "rx_passgen", app_settings::Mode::RX};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
@@ -112,7 +112,7 @@ class RandomPasswordView : public View {
 
     Button button_modem_setup{
         {screen_width - 12 * 8, 2 * 16 - 1, 96, 16 + 2},
-        "AFSK modem"};
+        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Text text_seed{
         {0, 2 * 16, 10 * 8, 16},
@@ -122,22 +122,22 @@ class RandomPasswordView : public View {
         {10 * 8 + 2, 2 * 16, screen_width - 96 - (10 * 8 + 4) - 1, 16}};
 
     Text text_generated_passwd{
-        {0, 4 * 16, screen_width, 28},
+        {0, 4 * 16, screen_width, 16},
         "000000000000000000000000000000"};
 
     Text text_char_type_hints{
-        {0, 5 * 16, screen_width, 28},
+        {0, 5 * 16, screen_width, 16},
         "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"};
 
     Checkbox check_show_seeds{
         {17 * 8, 8 * 16},
         6,
-        "show seed"};
+        "Show seed"};
 
     Checkbox check_auto_send{
         {1 * 8, 8 * 16},
         20,
-        "auto send"};
+        "Auto send"};
 
     Checkbox check_punctuation{
         {17 * 8, 12 * 16},
@@ -167,23 +167,23 @@ class RandomPasswordView : public View {
     Checkbox check_log{
         {17 * 8, 10 * 16},
         3,
-        "savin"};
+        LanguageHelper::currentMessages[LANG_SAVE]};
 
     Button button_flood{
         {0 * 8, 15 * 16 + 18, screen_width / 2, 22},
-        "flood"};
+        LanguageHelper::currentMessages[LANG_FLOOD]};
 
     Button button_send{
         {screen_width / 2 + 2, 15 * 16 + 18, screen_width / 2 - 2, 22},
-        "send pwd"};
+        "Send pwd"};
 
     Button button_refresh{
         {0 * 8, 17 * 16 + 10, screen_width / 2, 22},
-        "generate"};
+        "Generate"};
 
     Button button_show_qr{
         {screen_width / 2 + 2, 17 * 16 + 10, screen_width / 2 - 2, 22},
-        "show QR"};
+        LanguageHelper::currentMessages[LANG_SHOWQR]};
 
     NumberField field_digits{
         {16 * 8, 7 * 16 - 2},

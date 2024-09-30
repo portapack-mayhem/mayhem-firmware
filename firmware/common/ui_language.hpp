@@ -55,7 +55,10 @@ enum LangConsts {
     LANG_LOOP,
     LANG_RESET,
     LANG_PAUSE,
-    LANG_RESUME
+    LANG_RESUME,
+    LANG_FLOOD,
+    LANG_SHOWQR,
+    LANG_SAVE
 };
 
 class LanguageHelper {

@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * copyleft zxkmm
- * Copyright (C) 2024 HToToo
+ * Copyright (C) 2024 zxkmm
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -86,7 +86,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
 
-    progressbar.set_max(30);
+    progressbar.set_max(MAX_DIGITS * 2);
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
@@ -151,16 +151,17 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     button_flood.on_select = [this](Button&) {
         if (flooding) {
             flooding = false;
-            button_flood.set_text("flood");
+            button_flood.set_text(LanguageHelper::currentMessages[LANG_FLOOD]);
         } else {
             flooding = true;
-            button_flood.set_text("stop");
+            button_flood.set_text(LanguageHelper::currentMessages[LANG_STOP]);
         }
     };
     button_send.on_select = [this, &nav](Button&) {
+        async_prev_val = portapack::async_tx_enabled;
         portapack::async_tx_enabled = true;
         UsbSerialAsyncmsg::asyncmsg(password);
-        portapack::async_tx_enabled = false;
+        portapack::async_tx_enabled = async_prev_val;
     };
 
     field_digits.on_change = [this](int32_t) {
@@ -197,7 +198,7 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
 
         /// v feed deque
         seeds_deque.push_back(value);
-        if (seeds_deque.size() > MAX_DIGITS) {
+        if (seeds_deque.size() > MAX_DIGITS * 2) {
             seeds_deque.pop_front();
         }
 
@@ -205,7 +206,7 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
 
         progressbar.set_value(seeds_deque.size());
 
-        if (flooding && seeds_deque.size() >= MAX_DIGITS) {
+        if (flooding && seeds_deque.size() >= MAX_DIGITS * 2) {
             new_password();
         }
 
@@ -217,7 +218,6 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
 
 void RandomPasswordView::clean_buffer() {
     seeds_deque = {};
-    char_deque = {""};
 }
 
 void RandomPasswordView::on_freqchg(int64_t freq) {
@@ -234,7 +234,7 @@ void RandomPasswordView::set_random_freq() {
 }
 
 void RandomPasswordView::new_password() {
-    if (seeds_deque.size() < MAX_DIGITS) {
+    if (seeds_deque.size() < MAX_DIGITS * 2) {
         seeds_buffer_not_full = true;
         text_generated_passwd.set("wait seeds buffer full");
         text_char_type_hints.set("then press generate");
@@ -274,12 +274,15 @@ void RandomPasswordView::new_password() {
      * (assume AFSK data is averaged in chaotic space, which maybe no one can garentee but I hope so)
      * */
 
-    for (int i = 0; i < password_length; i++) {
+    for (int i = 0; i < password_length * 2; i += 2) {
         unsigned int seed = seeds_deque[i];
         std::srand(seed);
+        uint8_t rollnum = (uint8_t)(seeds_deque[i + 1] % 128);
+        uint8_t nu = 0;
+        for (uint8_t o = 0; o < rollnum; ++o) nu = std::rand();
+        nu++;
         char c = charset[std::rand() % charset.length()];
         password += c;
-        char_deque.push_back(std::string(1, c));
 
         if (std::isdigit(c)) {
             char_type_hints += "1";
@@ -304,19 +307,19 @@ void RandomPasswordView::new_password() {
     }
 
     if (check_auto_send.value() || flooding) {
+        async_prev_val = portapack::async_tx_enabled;
         portapack::async_tx_enabled = true;
         // printing out seeds buufer
         // for (auto seed : seeds_deque) {
         //     UsbSerialAsyncmsg::asyncmsg(std::to_string(seed));
         // }
         UsbSerialAsyncmsg::asyncmsg(password);
-        portapack::async_tx_enabled = false;
+        portapack::async_tx_enabled = async_prev_val;
     }
 
     clean_buffer();
 }
 
-// TODO: why flash and disappeared
 // tried:
 // 1. paint inline in new_password func
 // 2. paint in a seperate func and call from new_password
@@ -328,7 +331,7 @@ void RandomPasswordView::paint_password_hints() {
     Painter painter;
     const int char_width = 8;
     const int char_height = 16;
-    const int start_y = 6 * char_height + 5;
+    const int start_y = 7 * char_height + 5;
     const int rect_height = 4;
 
     for (size_t i = 0; i < password.length(); i++) {
