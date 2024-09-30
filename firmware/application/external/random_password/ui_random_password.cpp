@@ -86,7 +86,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
 
-    progressbar.set_max(30);
+    progressbar.set_max(MAX_DIGITS * 2);
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
