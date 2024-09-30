@@ -97,8 +97,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show(){};
-    virtual void on_hide(){};
+    virtual void on_show() {};
+    virtual void on_hide() {};
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
@@ -156,6 +156,8 @@ class Widget {
 };
 
 class View : public Widget {
+    // unlike Paint class, our Y ignored the top bar;
+    // so when you draw some of us as Y = 0, it would be exact below the top bar, instead of overlapped with top bar
    public:
     View() {
     }

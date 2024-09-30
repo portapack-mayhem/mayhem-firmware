@@ -45,7 +45,7 @@ using namespace ui;
 
 namespace ui::external_app::random_password {
 
-class RandomPasswordLogger {  // TODO: log is broken after introduced the buffer thing
+class RandomPasswordLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
@@ -126,7 +126,7 @@ class RandomPasswordView : public View {
         "000000000000000000000000000000"};
 
     Text text_char_type_hints{
-        {0, 5 * 16, screen_width, 16},
+        {0, 5 * 16 + 4, screen_width, 16},
         "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"};
 
     Checkbox check_show_seeds{

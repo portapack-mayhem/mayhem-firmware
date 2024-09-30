@@ -298,7 +298,7 @@ void RandomPasswordView::new_password() {
     text_generated_passwd.set(password);
     text_char_type_hints.set(char_type_hints);
 
-    paint_password_hints();  // TODO: why flash and disappeared
+    paint_password_hints();
 
     if (logger && logging) {
         str_log += generate_log_line();
@@ -309,7 +309,7 @@ void RandomPasswordView::new_password() {
     if (check_auto_send.value() || flooding) {
         async_prev_val = portapack::async_tx_enabled;
         portapack::async_tx_enabled = true;
-        // printing out seeds buufer
+        // printing out seeds buffer
         // for (auto seed : seeds_deque) {
         //     UsbSerialAsyncmsg::asyncmsg(std::to_string(seed));
         // }
@@ -320,18 +320,11 @@ void RandomPasswordView::new_password() {
     clean_buffer();
 }
 
-// tried:
-// 1. paint inline in new_password func
-// 2. paint in a seperate func and call from new_password
-// 3. override nav's paint func (i think it can tried to capture same obj) and paint, hoping set_dirty handle it correctly
-// 4. override nav's paint func (i think it can tried to capture same obj) and paint in a seperate func, hoping set_dirty handle it correctly
-// all these methods failed, and all of them only flash and disappeared. only when set_dirty in on_data (which seems incorrect), and it keep flashing never stop. but see painted content (flashing too)
-// btw this is not caused by the seed text set thing, cuz commented it out not helping.
 void RandomPasswordView::paint_password_hints() {
     Painter painter;
     const int char_width = 8;
     const int char_height = 16;
-    const int start_y = 7 * char_height + 5;
+    const int start_y = 6 * char_height;
     const int rect_height = 4;
 
     for (size_t i = 0; i < password.length(); i++) {
