@@ -97,8 +97,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show() {};
-    virtual void on_hide() {};
+    virtual void on_show(){};
+    virtual void on_hide(){};
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
