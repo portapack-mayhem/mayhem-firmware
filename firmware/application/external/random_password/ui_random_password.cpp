@@ -151,10 +151,10 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     button_flood.on_select = [this](Button&) {
         if (flooding) {
             flooding = false;
-            button_flood.set_text("flood");
+            button_flood.set_text(LanguageHelper::currentMessages[LANG_FLOOD]);
         } else {
             flooding = true;
-            button_flood.set_text("stop");
+            button_flood.set_text(LanguageHelper::currentMessages[LANG_STOP]);
         }
     };
     button_send.on_select = [this, &nav](Button&) {
@@ -320,7 +320,6 @@ void RandomPasswordView::new_password() {
     clean_buffer();
 }
 
-// TODO: why flash and disappeared
 // tried:
 // 1. paint inline in new_password func
 // 2. paint in a seperate func and call from new_password
@@ -332,7 +331,7 @@ void RandomPasswordView::paint_password_hints() {
     Painter painter;
     const int char_width = 8;
     const int char_height = 16;
-    const int start_y = 6 * char_height + 5;
+    const int start_y = 7 * char_height + 5;
     const int rect_height = 4;
 
     for (size_t i = 0; i < password.length(); i++) {
