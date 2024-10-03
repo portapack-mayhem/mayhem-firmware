@@ -178,6 +178,7 @@ set(CPPSRC
 	${COMMON}/wm8731.cpp
 	${COMMON}/ads1110.cpp
 	${COMMON}/max17055.cpp
+	${COMMON}/i2cdevmanager.cpp
 	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp

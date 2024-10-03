@@ -29,6 +29,21 @@ void I2C::stop() {
     i2cStop(_driver);
 }
 
+bool I2C::probe(i2caddr_t addr, systime_t timeout) {
+    i2cAcquireBus(_driver);
+    chSysLock();
+    _driver->errors = I2CD_NO_ERROR;
+    _driver->state = I2C_ACTIVE_TX;
+    msg_t rdymsg = i2c_lld_master_transmit_timeout(_driver, addr, nullptr, 0, nullptr, 0, timeout);
+    if (rdymsg == RDY_TIMEOUT)
+        _driver->state = I2C_LOCKED;
+    else
+        _driver->state = I2C_READY;
+    chSysUnlock();
+    i2cReleaseBus(_driver);
+    return (rdymsg == RDY_OK);
+}
+
 bool I2C::transfer(
     const address_t slave_address,
     const uint8_t* const data_tx,
