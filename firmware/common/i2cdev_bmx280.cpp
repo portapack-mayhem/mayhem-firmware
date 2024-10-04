@@ -163,7 +163,7 @@ float I2cDev_BMX280::read_pressure() {
 
     float P = var4 / 256.0;
 
-    return P;
+    return P / 100;
 }
 
 float I2cDev_BMX280::read_humidity() {

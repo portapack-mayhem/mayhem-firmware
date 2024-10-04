@@ -205,7 +205,7 @@ bool I2CDevManager::scan() {
 }
 
 void I2CDevManager::create_thread() {
-    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO, I2CDevManager::timer_fn, nullptr);
+    thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, I2CDevManager::timer_fn, nullptr);
 }
 
 msg_t I2CDevManager::timer_fn(void* arg) {
