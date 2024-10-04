@@ -36,8 +36,11 @@ namespace i2cdev {
 
 class I2cDev {
    public:
-    bool init(uint8_t addr);         // returns true if it is that that device we are looking for.
-    virtual void update() = 0;       // override this, and you'll be able to query your device and broadcast the result to the system
+    I2cDev();
+    I2cDev(uint8_t addr_);
+    virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
+    virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
+
     bool need_del = false;           // device can self destruct, and re-init when new scan discovers it
     I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the derived class's constructor!!!
 
@@ -57,14 +60,16 @@ class I2DevListElement {
 
 class I2CDevManager {
    public:
-    static void init();
-    static void manual_scan();                             // todo figure out the scan method, not to interfere with the thread
+    static void init();                                    // creates the thread, and sets an one time full scan
+    static void manual_scan();                             // it'll init a forced device scan in the thread's next cycle. (1sec max)
     static void set_autoscan_interval(uint16_t interval);  // 0 no auto scan, other values: seconds
     static I2cDev* get_dev_by_addr(uint8_t addr);          // caller function needs to cast to the specific device!
-
+    static I2cDev* get_dev_by_model(I2C_DEVS model);       // caller function needs to cast to the specific device!
+    static std::vector<I2C_DEVS> get_gev_list_by_model();  // returns the currently discovered
+    static std::vector<uint8_t> get_gev_list_by_addr();    // returns the currently discovered
    private:
     static uint16_t scan_interval;
-    static bool force_scan;
+    static bool force_scan;  // if set to true, on hte next run it'll do an i2c scan, ONCE
     static std::vector<I2DevListElement> devlist;
 
     static void found(uint8_t addr);
@@ -72,6 +77,7 @@ class I2CDevManager {
     static void create_thread();
     static msg_t timer_fn(void* arg);
     static Thread* thread;
+    static Mutex mutex_list;
 };
 };  // namespace i2cdev
 #endif

@@ -22,6 +22,7 @@
 #include "rtc_time.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "i2cdevmanager.hpp"
 
 using namespace portapack;
 using namespace ui;
@@ -39,7 +40,24 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_gps,
                   &text_orientation,
                   &text_envl1,
-                  &text_envl2});
+                  &text_envl2,
+                  &console,
+                  &btnscan});
+
+    console.writeln("Found I2C devices:");
+    auto addrlist = i2cdev::I2CDevManager::get_gev_list_by_addr();
+    for (size_t i = 0; i < addrlist.size(); ++i) {
+        console.write("0x");
+        console.write(to_string_hex(addrlist[i]));
+        console.write(", ");
+        if (i % 5 == 0 && i != 0) console.writeln("");
+    }
+    if (addrlist.size() == 0) console.writeln("No I2C devs found.");
+
+    btnscan.on_select = [this](Button&) {
+        i2cdev::I2CDevManager::manual_scan();
+    };
+    // todo htotoo subscribe to new dev message
 }
 
 ExtSensorsView::~ExtSensorsView() {

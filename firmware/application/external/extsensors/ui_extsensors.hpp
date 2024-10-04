@@ -64,6 +64,9 @@ class ExtSensorsView : public View {
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
     Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
+    Button btnscan{{1 * 8, 11 * 16, 5 * 8, 16}, "Scan"};
+    Console console{
+        {1, 13 * 16, screen_width - 1, screen_height - 18 * 16}};
 
     void on_any();
 
