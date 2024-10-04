@@ -244,7 +244,10 @@ void RandomPasswordView::new_password() {
     password = "";
     std::string charset = "";
     std::string char_type_hints = "";
+    std::string initial_password = "";
+    int password_length = field_digits.value();
 
+    /// charset worker
     if (check_digits.value())
         charset += "0123456789";
     if (check_latin_lower.value())
@@ -266,54 +269,34 @@ void RandomPasswordView::new_password() {
         return;
     }
 
-    int password_length = field_digits.value();
+    /// roll worker
+    for (int i = 0; i < password_length * 2; i += 2) {
+        unsigned int seed = seeds_deque[i];
+        std::srand(seed);
+        uint8_t rollnum = (uint8_t)(seeds_deque[i + 1] % 128);
+        uint8_t nu = 0;
+        for (uint8_t o = 0; o < rollnum; ++o) nu = std::rand();
+        nu++;
+        char c = charset[std::rand() % charset.length()];
+        initial_password += c;
+    }
 
-        /*the seeds_buffer were feed streaming by AFSK,
-     * and when generate, it use each seed for each char, and uint seeds totally can generate UINT_MAX result,
-     * which already cover the 10+26+25+4 (123+abc+abc+.!)
-     * so total possible password would be PW_LENGTH ^ (10+26+25+4), which already covered all the possible solution
-     * (assume AFSK data is averaged in chaotic space, which maybe no one can garentee but I hope so)
-     * */
+    /// init pw using seeds (unsafe is from std::rand with LCG)
 
-    ///v init pw using seeds (unsafe is from std::rand with LCG)
-    std::string initial_password = "";
     for (std::size_t i = 0; i < seeds_deque.size() && initial_password.length() < password_length; i++) {
         unsigned int index = seeds_deque[i] % charset.length();
         initial_password += charset[index];
     }
-    ///^ init pw using seeds
+    ///init pw using seeds
 
-    //v hashed pw using sha512 (worm out the unsafe rand)
+    // hashed pw using sha512 (worm out the unsafe rand)
     std::string hashed_password = sha512(initial_password);
-    ///^ hashed pw using sha512
 
-    //v ensure char types
     std::vector<char> password_chars(password_length);
     for (int i = 0; i < password_length; i++) {
-        unsigned int index = std::stoul(hashed_password.substr(i * 2, 2), nullptr, 16) % charset.length();
+        unsigned int index = std::stoul(hashed_password.substr(i * 2, 2), nullptr, 16) % charset.length(); //result from 0 to charset.length()-1,should be very evenly tiled in the charset space
         password_chars[i] = charset[index];
     }
-
-
-
-    auto ensure_char_type = [&](const std::string& type_chars) {
-        if (charset.find_first_of(type_chars) != std::string::npos) {
-            char c = type_chars[std::rand() % type_chars.length()];
-            int pos = std::rand() % password_length;
-            password_chars[pos] = c;
-        }
-    };
-
-    if (check_digits.value())
-        ensure_char_type("0123456789");
-    if (check_latin_lower.value())
-        ensure_char_type("abcdefghijklmnopqrstuvwxyz");
-    if (check_latin_upper.value())
-        ensure_char_type("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    if (check_punctuation.value())
-        ensure_char_type(".,-!?");
-
-    ///^ ensure char types
 
 
     for (char c : password_chars) {
