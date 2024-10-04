@@ -178,6 +178,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     check_punctuation.set_value(true);
     check_show_seeds.set_value(true);
     field_digits.set_value(16);
+    field_method.set_by_value(Method::RADIO_LCG_ROLL_HASH);
     ///^ check defauly val init
 
     logger = std::make_unique<RandomPasswordLogger>();
@@ -307,6 +308,18 @@ void RandomPasswordView::new_password() {
         }
     }
 
+    /// decision worker
+    switch (field_method.selected_index_value()) {
+        case Method::RADIO_LCG_ROLL:
+            password = initial_password;
+            break;
+        case Method::RADIO_LCG_ROLL_HASH:
+            break;
+        default:
+            break;
+    }
+
+    /// give out result worker
     text_generated_passwd.set(password);
     text_char_type_hints.set(char_type_hints);
 
