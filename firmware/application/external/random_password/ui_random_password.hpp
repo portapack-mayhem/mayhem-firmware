@@ -48,6 +48,11 @@ using namespace ui;
 
 namespace ui::external_app::random_password {
 
+enum Method {
+    RADIO_LCG_ROLL,
+    RADIO_LCG_ROLL_HASH,
+};
+
 class RandomPasswordLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -96,7 +101,8 @@ class RandomPasswordView : public View {
     Labels labels{
         {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
+        {{screen_width /2 , 7 * 16 - 2}, "method:", Theme::getInstance()->fg_light->foreground},
     };
 
     RFAmpField field_rf_amp{
@@ -191,11 +197,17 @@ class RandomPasswordView : public View {
         LanguageHelper::currentMessages[LANG_SHOWQR]};
 
     NumberField field_digits{
-        {16 * 8, 7 * 16 - 2},
+        {0 + (sizeof("digits:") - 1) * 8, 7 * 16 - 2},
         2,
         {1, 30},
         1,
         ' '};
+
+    OptionsField field_method{
+        {(screen_width / 2) + ( sizeof("method:") - 1) * 8, 7 * 16 - 2},
+        sizeof("R+L+R+H"),
+        {{"R+L+R", Method::RADIO_LCG_ROLL},
+         {"R+L+R+H", Method::RADIO_LCG_ROLL_HASH}}};
 
     void on_data_afsk(const AFSKDataMessage& message);
 

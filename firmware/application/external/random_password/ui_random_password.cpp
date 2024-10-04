@@ -73,6 +73,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
                   &button_flood,
                   &button_send,
                   &field_digits,
+                  &field_method,
                   &check_allow_confusable_chars,
                   &text_seed,
                   &progressbar});
@@ -281,15 +282,8 @@ void RandomPasswordView::new_password() {
         initial_password += c;
     }
 
-    /// init pw using seeds (unsafe is from std::rand with LCG)
 
-    for (std::size_t i = 0; i < seeds_deque.size() && initial_password.length() < password_length; i++) {
-        unsigned int index = seeds_deque[i] % charset.length();
-        initial_password += charset[index];
-    }
-    ///init pw using seeds
-
-    // hashed pw using sha512 (worm out the unsafe rand)
+    // hash worker
     std::string hashed_password = sha512(initial_password);
 
     std::vector<char> password_chars(password_length);
@@ -299,6 +293,7 @@ void RandomPasswordView::new_password() {
     }
 
 
+    /// hint text worker
     for (char c : password_chars) {
         password += c;
         if (std::isdigit(c)) {
@@ -326,10 +321,6 @@ void RandomPasswordView::new_password() {
     if (check_auto_send.value() || flooding) {
         async_prev_val = portapack::async_tx_enabled;
         portapack::async_tx_enabled = true;
-        // printing out seeds buffer
-        // for (auto seed : seeds_deque) {
-        //     UsbSerialAsyncmsg::asyncmsg(std::to_string(seed));
-        // }
         UsbSerialAsyncmsg::asyncmsg(password);
         portapack::async_tx_enabled = async_prev_val;
     }
