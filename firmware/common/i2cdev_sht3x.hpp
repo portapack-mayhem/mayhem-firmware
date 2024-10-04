@@ -19,15 +19,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __I2CDEVLIST_H__
-#define __I2CDEVLIST_H__
+#ifndef __I2CDEV_SHT3X_H__
+#define __I2CDEV_SHT3X_H__
 
-enum I2C_DEVS {
-    I2CDEV_NOTSET,
-    I2CDEV_MAX17055,
-    I2CDEV_SHT3X,
-    I2CDEV_BMP280,
-    I2CDEV_BME280,
+#include "i2cdevmanager.hpp"
+
+namespace i2cdev {
+
+class I2cDev_SHT3x : public I2cDev {
+   public:
+    bool init(uint8_t addr_) override;  // sets the addr to our local variable, set the model, try to init the module, and only return true if it is really that module, and inited ok
+    void update() override;             // query the module for recent data, and send it to the system via the corresponding Message
+
+   private:
+    float read_temperature();
+    float read_humidity();
 };
+}  // namespace i2cdev
 
 #endif

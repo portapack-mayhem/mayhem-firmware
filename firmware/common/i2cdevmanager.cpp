@@ -29,6 +29,7 @@
 */
 
 #include "i2cdev_bmx280.hpp"
+#include "i2cdev_sht3x.hpp"
 
 namespace i2cdev {
 
@@ -53,14 +54,20 @@ bool I2CDevManager::found(uint8_t addr) {
     // try to find a suitable driver
     I2DevListElement item;
     item.addr = addr;
-    if (!item.dev && (addr == 0x76 || addr == 0x77)) {  // check if device is already taken, and i can handle the address
-        item.dev = std::make_unique<I2cDev_BMX280>();
-        if (!item.dev->init(addr)) item.dev = nullptr;  // if not inited, reset it's instance, and let other handlers try
-    }
     /*
         DEAR DEVS
         Put your driver's init code here. ALLWAYS check the !item.dev, if any other driver already took it. Also check the addr if it suits your module. (also need additional checks in the init() code)
     */
+
+    if (!item.dev && (addr == 0x76 || addr == 0x77)) {  // check if device is already taken, and i can handle the address
+        item.dev = std::make_unique<I2cDev_BMX280>();
+        if (!item.dev->init(addr)) item.dev = nullptr;  // if not inited, reset it's instance, and let other handlers try
+    }
+
+    if (!item.dev && (addr == 0x44 || addr == 0x45)) {  // check if device is already taken, and i can handle the address
+        item.dev = std::make_unique<I2cDev_SHT3x>();
+        if (!item.dev->init(addr)) item.dev = nullptr;  // if not inited, reset it's instance, and let other handlers try
+    }
 
     // if can't find any driver, add it too with empty, so we won't try to init it again and again
     devlist.push_back(std::move(item));
