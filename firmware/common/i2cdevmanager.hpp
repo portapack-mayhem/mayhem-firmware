@@ -36,14 +36,13 @@ namespace i2cdev {
 
 class I2cDev {
    public:
-    I2cDev();
-    I2cDev(uint8_t addr_);
+    virtual ~I2cDev() {};
     virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
     virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
 
     bool need_del = false;           // device can self destruct, and re-init when new scan discovers it
-    I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the derived class's constructor!!!
-
+    I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the init()!!!
+    uint8_t query_interval = 5;      // in seconds. can be overriden in init() if necessary
    protected:
     void got_error();    // update will call this when communication was not ok
     void got_success();  // update will call this when the communication was ok

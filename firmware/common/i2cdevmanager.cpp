@@ -21,8 +21,14 @@
 
 #include "i2cdevmanager.hpp"
 #include "event_m0.hpp"
-
 #define i2cbus portapack::i2c0
+
+/*
+    DEAR DEVS.
+    Include your devices headers here:
+*/
+
+#include "i2cdev_bmp280.hpp"
 
 namespace i2cdev {
 
@@ -45,20 +51,21 @@ bool I2CDevManager::found(uint8_t addr) {
         if (devlist[i].addr == addr) return false;
     }
     // try to find a suitable driver
-    // todo htotoo
-    // std::unique_ptr<I2cDev> ptr;
-    // if (addr == 12 || addr == 44) ptr = std::make_unique<I2cDev>();
+    I2DevListElement item;
+    item.addr = addr;
+    if (!item.dev && (addr == 0x76 || addr == 0x77)) {  // check if device is already taken, and i can handle the address
+        item.dev = std::make_unique<I2cDev_BMP280>();
+        if (!item.dev->init(addr)) item.dev = nullptr;  // if not inited, reset it's instance, and let other handlers try
+    }
+    /*
+        DEAR DEVS
+        Put your driver's init code here. ALLWAYS check the !item.dev, if any other driver already took it. Also check the addr if it suits your module. (also need additional checks in the init() code)
+    */
 
-    // if can't find any driver, add it too with empty
-
-    devlist.push_back({addr});
+    // if can't find any driver, add it too with empty, so we won't try to init it again and again
+    devlist.push_back(std::move(item));
     return true;
 }
-
-I2cDev::I2cDev() {};
-I2cDev::I2cDev(uint8_t addr_) {
-    addr = addr_;
-};
 
 void I2CDevManager::init() {
     force_scan = true;
@@ -126,6 +133,7 @@ std::vector<uint8_t> I2CDevManager::get_gev_list_by_addr() {
 
 bool I2CDevManager::scan() {
     bool found_new = false;
+    // todo htotoo remove unplugged items
     for (uint8_t i = 1; i < 128; ++i) {
         if (i2cbus.probe(i, 50)) {
             // chMtxLock(&mutex_list);
@@ -152,7 +160,9 @@ msg_t I2CDevManager::timer_fn(void* arg) {
         }
         for (size_t i = 0; i < devlist.size(); i++) {
             if (devlist[i].addr != 0 && devlist[i].dev) {
-                devlist[i].dev->update();  // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
+                if ((curr_timer % devlist[i].dev->query_interval) == 0) {  // only if it is device's interval
+                    devlist[i].dev->update();                              // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
+                }
             }
         }
 
@@ -172,7 +182,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
             I2CDevListChangedMessage msg{};
             EventDispatcher::send_message(msg);
         }
-        chThdSleepMilliseconds(1000);  // 1sec timer //todo htotoo make it really 1 sec, substract the elpased time
+        chThdSleepMilliseconds(1000);  // 1sec timer //todo htotoo make it really 1 sec, substract the elpased time, but minimayl wait of 100 must be met
         ++curr_timer;
     }
     return 0;
