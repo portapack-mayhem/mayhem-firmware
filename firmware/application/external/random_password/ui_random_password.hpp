@@ -39,7 +39,10 @@
 #include "utility.hpp"
 #include "ui_qrcode.hpp"
 #include "usb_serial_asyncmsg.hpp"
+#include "sha512.h"
+
 #include <deque>
+#include <string>
 
 using namespace ui;
 
@@ -69,6 +72,8 @@ class RandomPasswordView : public View {
    private:
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
     std::string password = "";
+
+
     std::deque<unsigned int> seeds_deque = {0};
     bool seeds_buffer_not_full = true;
     bool in_benchmark = false;
