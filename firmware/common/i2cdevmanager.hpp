@@ -29,6 +29,7 @@
 #include "portapack.hpp"
 #include "i2c_pp.hpp"
 #include "i2cdevlist.hpp"
+#include "event_m0.hpp"
 
 extern I2C portapack::i2c0;
 
@@ -39,6 +40,16 @@ class I2cDev {
     virtual ~I2cDev() {};
     virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
     virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
+
+    bool i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes);   // if want to read without register addr, just set reg_size to 0. this way can read 8, or 16 or 32 bit registers too. reg_size in bytes! returns true on succes. handles the errcnt automatically!
+    bool i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes);  // if want to write without register addr, just set reg_size to 0. this way can read 8, or 16 or 32 bit registers too. reg_size in bytes! returns true on succes. handles the errcnt automatically!
+
+    // helpers for easier i2c communication
+    uint8_t read8_1(uint8_t reg);
+    bool write8_1(uint8_t reg, uint8_t data);
+    uint16_t read16_1(uint8_t reg);
+    uint16_t read16_LE_1(uint8_t reg);
+    int16_t readS16_LE_1(uint8_t reg);
 
     bool need_del = false;           // device can self destruct, and re-init when new scan discovers it
     I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the init()!!!

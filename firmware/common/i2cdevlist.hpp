@@ -27,6 +27,7 @@ enum I2C_DEVS {
     I2CDEV_MAX17055,
     I2CDEV_SHT30,
     I2CDEV_BMP280,
+    I2CDEV_BME280,
 };
 
 #endif

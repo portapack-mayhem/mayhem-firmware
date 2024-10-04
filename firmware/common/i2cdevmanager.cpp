@@ -20,7 +20,7 @@
  */
 
 #include "i2cdevmanager.hpp"
-#include "event_m0.hpp"
+
 #define i2cbus portapack::i2c0
 
 /*
@@ -28,7 +28,7 @@
     Include your devices headers here:
 */
 
-#include "i2cdev_bmp280.hpp"
+#include "i2cdev_bmx280.hpp"
 
 namespace i2cdev {
 
@@ -54,7 +54,7 @@ bool I2CDevManager::found(uint8_t addr) {
     I2DevListElement item;
     item.addr = addr;
     if (!item.dev && (addr == 0x76 || addr == 0x77)) {  // check if device is already taken, and i can handle the address
-        item.dev = std::make_unique<I2cDev_BMP280>();
+        item.dev = std::make_unique<I2cDev_BMX280>();
         if (!item.dev->init(addr)) item.dev = nullptr;  // if not inited, reset it's instance, and let other handlers try
     }
     /*
@@ -65,6 +65,45 @@ bool I2CDevManager::found(uint8_t addr) {
     // if can't find any driver, add it too with empty, so we won't try to init it again and again
     devlist.push_back(std::move(item));
     return true;
+}
+
+bool I2cDev::i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
+    if (bytes == 0) return false;
+    if (reg_size > 0 && reg) i2cbus.transmit(addr, reg, reg_size);
+    return i2cbus.receive(addr, data, bytes);
+}
+
+bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
+    if (bytes == 0) return false;
+    if (reg_size > 0 && reg) i2cbus.transmit(addr, reg, reg_size);
+    return i2cbus.transmit(addr, data, bytes);
+}
+
+bool I2cDev::write8_1(uint8_t reg, uint8_t data) {
+    return i2c_write(&reg, 1, &data, 1);
+}
+
+uint8_t I2cDev::read8_1(uint8_t reg) {
+    uint8_t res = 0;
+    i2c_read(&reg, 1, &res, 1);
+    return res;
+}
+
+uint16_t I2cDev::read16_1(uint8_t reg) {
+    uint16_t res = 0;
+    i2c_read(&reg, 1, (uint8_t*)&res, 2);
+    return res;
+}
+
+uint16_t I2cDev::read16_LE_1(uint8_t reg) {
+    uint16_t res = read16_1(reg);
+    res = (res >> 8) | (res << 8);
+    return res;
+}
+int16_t I2cDev::readS16_LE_1(uint8_t reg) {
+    int16_t res = (int16_t)read16_1(reg);
+    res = (res >> 8) | (res << 8);
+    return res;
 }
 
 void I2CDevManager::init() {

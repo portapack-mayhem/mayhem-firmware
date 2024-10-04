@@ -30,7 +30,7 @@ using namespace ui;
 namespace ui::external_app::extsensors {
 
 void ExtSensorsView::focus() {
-    text_info.focus();
+    btnscan.focus();
 }
 
 ExtSensorsView::ExtSensorsView(NavigationView& nav)
