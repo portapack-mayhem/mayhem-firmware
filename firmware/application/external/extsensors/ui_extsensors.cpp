@@ -30,7 +30,7 @@ using namespace ui;
 namespace ui::external_app::extsensors {
 
 void ExtSensorsView::focus() {
-    btnscan.focus();
+    console.focus();
 }
 
 ExtSensorsView::ExtSensorsView(NavigationView& nav)
@@ -41,16 +41,11 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_orientation,
                   &text_envl1,
                   &text_envl2,
-                  &console,
-                  &btnscan});
+                  &console});
 
     prev_scan_int = i2cdev::I2CDevManager::get_autoscan_interval();
-    btnscan.on_select = [this](Button&) {
-        i2cdev::I2CDevManager::manual_scan();
-    };
-
     refreshi2c();
-    i2cdev::I2CDevManager::set_autoscan_interval(3);  // scan each 3 sec
+    i2cdev::I2CDevManager::set_autoscan_interval(3);  // scan each 3 sec for new i2c devices
 }
 
 void ExtSensorsView::on_new_dev() {
