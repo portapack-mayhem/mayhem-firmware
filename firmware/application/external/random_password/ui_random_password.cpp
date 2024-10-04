@@ -22,6 +22,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/* Notes about safety/randomness:
+ * - Radio data is from nature, so if it's evenly tiled in space, it's random enough, but usually it's not
+ * - A unsafe point is the freq that fetch data is from LCG (from Cpp STL) using time as seed, but should be spread out by later random calculation
+ * - A unsafe point is the init data is still using LCG to generate, but used following methods to spread out:
+ * - - Radio data
+ * - - save a buffer of seeds and generate char by char, this cover all the possible chars combination
+ * - - Rollout with teo seeds and get a final char, this spread out again
+ * - - Hash out the generated password and spread out again if you choose. SHA-512 is proven very spreading out in random space by math
+ * - But still, this isn't meant to become a TRNG generator, don't use at critical/high safety requited/important system, this FOSS has absolutely no warranty
+ */
+
 #include "ui_random_password.hpp"
 #include "ui_modemsetup.hpp"
 
@@ -283,16 +294,14 @@ void RandomPasswordView::new_password() {
         initial_password += c;
     }
 
-
     // hash worker
     std::string hashed_password = sha512(initial_password);
 
     std::vector<char> password_chars(password_length);
     for (int i = 0; i < password_length; i++) {
-        unsigned int index = std::stoul(hashed_password.substr(i * 2, 2), nullptr, 16) % charset.length(); //result from 0 to charset.length()-1,should be very evenly tiled in the charset space
+        unsigned int index = std::stoul(hashed_password.substr(i * 2, 2), nullptr, 16) % charset.length();  // result from 0 to charset.length()-1,should be very evenly tiled in the charset space
         password_chars[i] = charset[index];
     }
-
 
     /// hint text worker
     for (char c : password_chars) {

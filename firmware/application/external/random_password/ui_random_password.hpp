@@ -78,7 +78,6 @@ class RandomPasswordView : public View {
     unsigned int seed = 0;  // extern void srand (unsigned int __seed) __THROW;
     std::string password = "";
 
-
     std::deque<unsigned int> seeds_deque = {0};
     bool seeds_buffer_not_full = true;
     bool in_benchmark = false;
@@ -102,7 +101,7 @@ class RandomPasswordView : public View {
         {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
-        {{screen_width /2 , 7 * 16 - 2}, "method:", Theme::getInstance()->fg_light->foreground},
+        {{screen_width / 2, 7 * 16 - 2}, "method:", Theme::getInstance()->fg_light->foreground},
     };
 
     RFAmpField field_rf_amp{
@@ -204,7 +203,7 @@ class RandomPasswordView : public View {
         ' '};
 
     OptionsField field_method{
-        {(screen_width / 2) + ( sizeof("method:") - 1) * 8, 7 * 16 - 2},
+        {(screen_width / 2) + (sizeof("method:") - 1) * 8, 7 * 16 - 2},
         sizeof("R+L+R+H"),
         {{"R+L+R", Method::RADIO_LCG_ROLL},
          {"R+L+R+H", Method::RADIO_LCG_ROLL_HASH}}};
