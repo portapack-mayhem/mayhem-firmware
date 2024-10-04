@@ -44,6 +44,21 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &console,
                   &btnscan});
 
+    prev_scan_int = i2cdev::I2CDevManager::get_autoscan_interval();
+    btnscan.on_select = [this](Button&) {
+        i2cdev::I2CDevManager::manual_scan();
+    };
+
+    refreshi2c();
+    i2cdev::I2CDevManager::set_autoscan_interval(3);  // scan each 3 sec
+}
+
+void ExtSensorsView::on_new_dev() {
+    refreshi2c();
+}
+
+void ExtSensorsView::refreshi2c() {
+    console.clear(true);
     console.writeln("Found I2C devices:");
     auto addrlist = i2cdev::I2CDevManager::get_gev_list_by_addr();
     for (size_t i = 0; i < addrlist.size(); ++i) {
@@ -53,14 +68,10 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
         if (i % 5 == 0 && i != 0) console.writeln("");
     }
     if (addrlist.size() == 0) console.writeln("No I2C devs found.");
-
-    btnscan.on_select = [this](Button&) {
-        i2cdev::I2CDevManager::manual_scan();
-    };
-    // todo htotoo subscribe to new dev message
 }
 
 ExtSensorsView::~ExtSensorsView() {
+    i2cdev::I2CDevManager::set_autoscan_interval(prev_scan_int);
 }
 
 void ExtSensorsView::on_any() {

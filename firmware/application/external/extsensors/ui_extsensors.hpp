@@ -53,6 +53,7 @@ class ExtSensorsView : public View {
     NavigationView& nav_;
 
     bool has_data = false;
+    uint16_t prev_scan_int = 0;
 
     Labels labels{
         {{0 * 8, 3 * 16}, "GPS:", Theme::getInstance()->fg_light->foreground},
@@ -68,6 +69,8 @@ class ExtSensorsView : public View {
     Console console{
         {1, 13 * 16, screen_width - 1, screen_height - 18 * 16}};
 
+    void refreshi2c();
+    void on_new_dev();
     void on_any();
 
     void on_gps(const GPSPosDataMessage* msg);
@@ -92,6 +95,13 @@ class ExtSensorsView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const EnvironmentDataMessage*>(p);
             this->on_environment(message);
+        }};
+
+    MessageHandlerRegistration message_handler_dev{
+        Message::ID::I2CDevListChanged,
+        [this](Message* const p) {
+            (void)p;  // make compiler happy
+            this->on_new_dev();
         }};
 };
 };  // namespace ui::external_app::extsensors

@@ -126,6 +126,7 @@ class Message {
         BatteryStateData = 68,
         ProtoViewData = 69,
         FreqChangeCommand = 70,
+        I2CDevListChanged = 71,
         MAX
     };
 
@@ -1421,6 +1422,12 @@ class FreqChangeCommandMessage : public Message {
     constexpr FreqChangeCommandMessage(int64_t freq)
         : Message{ID::FreqChangeCommand}, freq{freq} {}
     int64_t freq = 0;
+};
+
+class I2CDevListChangedMessage : public Message {
+   public:
+    constexpr I2CDevListChangedMessage()
+        : Message{ID::I2CDevListChanged} {}
 };
 
 #endif /*__MESSAGE_H__*/

@@ -63,6 +63,7 @@ class I2CDevManager {
     static void init();                                    // creates the thread, and sets an one time full scan
     static void manual_scan();                             // it'll init a forced device scan in the thread's next cycle. (1sec max)
     static void set_autoscan_interval(uint16_t interval);  // 0 no auto scan, other values: seconds
+    static uint16_t get_autoscan_interval();
     static I2cDev* get_dev_by_addr(uint8_t addr);          // caller function needs to cast to the specific device!
     static I2cDev* get_dev_by_model(I2C_DEVS model);       // caller function needs to cast to the specific device!
     static std::vector<I2C_DEVS> get_gev_list_by_model();  // returns the currently discovered
@@ -72,12 +73,12 @@ class I2CDevManager {
     static bool force_scan;  // if set to true, on hte next run it'll do an i2c scan, ONCE
     static std::vector<I2DevListElement> devlist;
 
-    static void found(uint8_t addr);
-    static void scan();
+    static bool found(uint8_t addr);  // returns true on any new device. also initializes the driver if there is a suitable one
+    static bool scan();
     static void create_thread();
     static msg_t timer_fn(void* arg);
     static Thread* thread;
-    static Mutex mutex_list;
+    static Mutex mutex_list;  // todo fix mutex crash
 };
 };  // namespace i2cdev
 #endif

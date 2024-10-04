@@ -20,6 +20,7 @@
  */
 
 #include "i2cdevmanager.hpp"
+#include "event_m0.hpp"
 
 #define i2cbus portapack::i2c0
 
@@ -38,19 +39,20 @@ Mutex I2CDevManager::mutex_list;
     THE INIT MUST RETURN FALSE, WHEN THE DEVICE NOT MATCH OR NOT WORKING.
 */
 
-void I2CDevManager::found(uint8_t addr) {
+bool I2CDevManager::found(uint8_t addr) {
     // check if present already
     for (size_t i = 0; i < devlist.size(); i++) {
-        if (devlist[i].addr == addr) return;
+        if (devlist[i].addr == addr) return false;
     }
     // try to find a suitable driver
-    // todo
+    // todo htotoo
     // std::unique_ptr<I2cDev> ptr;
     // if (addr == 12 || addr == 44) ptr = std::make_unique<I2cDev>();
 
     // if can't find any driver, add it too with empty
 
     devlist.push_back({addr});
+    return true;
 }
 
 I2cDev::I2cDev() {};
@@ -69,6 +71,9 @@ void I2CDevManager::manual_scan() {
 
 void I2CDevManager::set_autoscan_interval(uint16_t interval) {
     scan_interval = interval;
+}
+uint16_t I2CDevManager::get_autoscan_interval() {
+    return scan_interval;
 }
 
 I2cDev* I2CDevManager::get_dev_by_addr(uint8_t addr) {
@@ -119,14 +124,16 @@ std::vector<uint8_t> I2CDevManager::get_gev_list_by_addr() {
     return ret;
 }
 
-void I2CDevManager::scan() {
-    // chMtxLock(&mutex_list);
+bool I2CDevManager::scan() {
+    bool found_new = false;
     for (uint8_t i = 1; i < 128; ++i) {
         if (i2cbus.probe(i, 50)) {
-            found(i);
+            // chMtxLock(&mutex_list);
+            found_new = found_new | found(i);
+            // chMtxUnlock();
         }
     }
-    // chMtxUnlock();
+    return found_new;
 }
 
 void I2CDevManager::create_thread() {
@@ -137,9 +144,10 @@ msg_t I2CDevManager::timer_fn(void* arg) {
     (void)arg;
     uint16_t curr_timer = 0;  // seconds since thread start
     while (1) {
+        bool changed = false;
         // check if i2c scan needed
         if (force_scan || (scan_interval != 0 && curr_timer % scan_interval == 0)) {
-            scan();
+            changed = changed | scan();
             force_scan = false;
         }
         for (size_t i = 0; i < devlist.size(); i++) {
@@ -150,6 +158,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
 
         // remove all unneeded items
         // chMtxLock(&mutex_list);
+        size_t cnt = devlist.size();
         devlist.erase(std::remove_if(devlist.begin(), devlist.end(), [](const I2DevListElement& x) {
                           if (x.addr == 0) return true;
                           if (x.dev && x.dev->need_del == true) return true;  // self destruct on too many errors
@@ -157,7 +166,13 @@ msg_t I2CDevManager::timer_fn(void* arg) {
                       }),
                       devlist.end());
         // chMtxUnlock();
-        chThdSleepMilliseconds(1000);  // 1sec timer //todo make it really 1 sec, substract the elpased time
+        if (cnt != devlist.size()) changed = true;
+
+        if (changed) {
+            I2CDevListChangedMessage msg{};
+            EventDispatcher::send_message(msg);
+        }
+        chThdSleepMilliseconds(1000);  // 1sec timer //todo htotoo make it really 1 sec, substract the elpased time
         ++curr_timer;
     }
     return 0;
