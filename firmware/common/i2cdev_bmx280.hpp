@@ -105,6 +105,7 @@ class I2cDev_BMX280 : public I2cDev {
     float read_temperature();
     float read_pressure();
     float read_humidity();
+    bool is_reading_calib();
     uint16_t _dig_T1 = 0;
     int16_t _dig_T2 = 0;
     int16_t _dig_T3 = 0;

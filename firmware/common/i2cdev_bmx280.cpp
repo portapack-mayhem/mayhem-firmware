@@ -52,20 +52,31 @@ bool I2cDev_BMX280::init(uint8_t addr_) {
     reg = BME280_REG_RESET;
     tmp = RESET_KEY;
     i2c_write(&reg, 1, &tmp, 1);
-    chThdSleepMilliseconds(150);  // wait to get awake
+    chThdSleepMilliseconds(10);  // wait to get awake
+    uint8_t timeout = 0;
+    while (is_reading_calib()) {
+        timeout++;
+        if (timeout > 200) return false;
+        chThdSleepMilliseconds(10);
+    }
 
     read_coeff();
     set_sampling();
+    chThdSleepMilliseconds(100);
     return true;
 }
 
 void I2cDev_BMX280::update() {
-    // todo
     float temp = read_temperature();
     float pressure = read_pressure();
     float hum = read_humidity();
     EnvironmentDataMessage msg{temp, hum, pressure};
     EventDispatcher::send_message(msg);
+}
+
+bool I2cDev_BMX280::is_reading_calib() {
+    uint8_t const rStatus = read8_1(BMX280_REG_STATUS);
+    return (rStatus & (1 << 0)) != 0;
 }
 
 void I2cDev_BMX280::read_coeff() {
@@ -96,105 +107,89 @@ void I2cDev_BMX280::read_coeff() {
 void I2cDev_BMX280::set_sampling() {
     //
     write8_1(BMX280_REG_CTRL_MEAS, BMX280_MODE_SLEEP);
-    write8_1(BMX280_REG_CONFIG, (BMX280_STANDBY_MS_0_5 << 5) | (BMX280_FILTER_OFF << 2));
+    write8_1(BMX280_REG_CONFIG, (uint8_t)((BMX280_STANDBY_MS_0_5 << 5) | (BMX280_FILTER_OFF << 2)));
     if (model == I2C_DEVS::I2CDEV_BME280) write8_1(BME280_REG_CTRL_HUM, BMX280_SAMPLING_X16);
-    write8_1(BMX280_REG_CTRL_MEAS, (BMX280_SAMPLING_X16 << 5) | (BMX280_SAMPLING_X16 << 2) | BMX280_MODE_NORMAL);
+    write8_1(BMX280_REG_CTRL_MEAS, (uint8_t)((BMX280_SAMPLING_X16 << 5) | (BMX280_SAMPLING_X16 << 2) | BMX280_MODE_NORMAL));
 }
 
 float I2cDev_BMX280::read_temperature() {
-    int32_t var1, var2, adc_T;
-    float temperature;
+    int32_t var1, var2;
 
-    // Read temperature registers
-    uint8_t reg = BMX280_REG_TEMP;
-    i2c_read(&reg, 1, ((uint8_t*)&adc_T), 3);
-    adc_T >>= 4 + 8;
-    // See datasheet 4.2.3 Compensation formulas
-    var1 = ((((adc_T >> 3) - ((int32_t)_dig_T1 << 1))) * ((int32_t)_dig_T2)) >> 11;
+    int32_t adc_T = read24_1(BMX280_REG_TEMP);
+    if (adc_T == 0x800000)  // value in case temp measurement was disabled
+        return 0;
+    adc_T >>= 4;
 
-    var2 = (((((adc_T >> 4) - ((int32_t)_dig_T1)) *
-              ((adc_T >> 4) - ((int32_t)_dig_T1))) >>
-             12) *
-            ((int32_t)_dig_T3)) >>
-           14;
+    var1 = (int32_t)((adc_T / 8) - ((int32_t)_dig_T1 * 2));
+    var1 = (var1 * ((int32_t)_dig_T2)) / 2048;
+    var2 = (int32_t)((adc_T / 16) - ((int32_t)_dig_T1));
+    var2 = (((var2 * var2) / 4096) * ((int32_t)_dig_T3)) / 16384;
 
-    _t_fine = var1 + var2;
-    temperature = ((_t_fine * 5) + 128) >> 8;
-    return temperature / 100.0;
+    _t_fine = var1 + var2;  // + t_fine_adjust;
+
+    int32_t T = (_t_fine * 5 + 128) / 256;
+    return (float)T / 100;
 }
 
 float I2cDev_BMX280::read_pressure() {
-    int64_t var1;
-    int64_t var2;
-    int64_t p;
-    int32_t adc_P;
+    int64_t var1, var2, var3, var4;
 
-    // Read temperature for t_fine
-    // read_temperature();
+    // readTemperature(); // must be done first to get t_fine
 
-    // Read pressure registers
-    uint8_t reg = BMX280_REG_PRESS;
-    i2c_read(&reg, 1, ((uint8_t*)&adc_P), 3);
-    adc_P >>= 4 + 8;
+    int32_t adc_P = read24_1(BMX280_REG_PRESS);
+    if (adc_P == 0x800000)  // value in case pressure measurement was disabled
+        return 0;
+    adc_P >>= 4;
 
-    // See datasheet 4.2.3 Compensation formulas
     var1 = ((int64_t)_t_fine) - 128000;
     var2 = var1 * var1 * (int64_t)_dig_P6;
-    var2 = var2 + ((var1 * (int64_t)_dig_P5) << 17);
-    var2 = var2 + (((int64_t)_dig_P4) << 35);
-    var1 = ((var1 * var1 * (int64_t)_dig_P3) >> 8) + ((var1 * (int64_t)_dig_P2) << 12);
-    var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)_dig_P1) >> 33;
+    var2 = var2 + ((var1 * (int64_t)_dig_P5) * 131072);
+    var2 = var2 + (((int64_t)_dig_P4) * 34359738368);
+    var1 = ((var1 * var1 * (int64_t)_dig_P3) / 256) +
+           ((var1 * ((int64_t)_dig_P2) * 4096));
+    var3 = ((int64_t)1) * 140737488355328;
+    var1 = (var3 + var1) * ((int64_t)_dig_P1) / 8589934592;
 
     if (var1 == 0) {
         return 0;  // avoid exception caused by division by zero
     }
-    p = 1048576 - adc_P;
-    p = (((p << 31) - var2) * 3125) / var1;
-    var1 = (((int64_t)_dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-    var2 = (((int64_t)_dig_P8) * p) >> 19;
 
-    p = ((p + var1 + var2) >> 8) + (((int64_t)_dig_P7) << 4);
+    var4 = 1048576 - adc_P;
+    var4 = (((var4 * 2147483648) - var2) * 3125) / var1;
+    var1 = (((int64_t)_dig_P9) * (var4 / 8192) * (var4 / 8192)) /
+           33554432;
+    var2 = (((int64_t)_dig_P8) * var4) / 524288;
+    var4 = ((var4 + var1 + var2) / 256) + (((int64_t)_dig_P7) * 16);
 
-    return (float)p / 256;
+    float P = var4 / 256.0;
+
+    return P;
 }
 
 float I2cDev_BMX280::read_humidity() {
-    int32_t v_x1_u32r;
-    int32_t adc_H;
-    float humidity;
-
-    if (model != I2C_DEVS::I2CDEV_BME280) {
+    if (model != I2C_DEVS::I2CDEV_BME280) return 0;
+    int32_t var1, var2, var3, var4, var5;
+    // readTemperature();  // must be done first to get t_fine
+    int32_t adc_H = read16_1(BME280_REG_HUM);
+    if (adc_H == 0x8000)  // value in case humidity measurement was disabled
         return 0;
-    }
-    // Read temperature for t_fine
-    // read_temperature();
 
-    // Read humidity registers
-    adc_H = read16_1(BME280_REG_HUM);
-    // See datasheet 4.2.3 Compensation formulas
-    v_x1_u32r = (_t_fine - ((int32_t)76800));
-    v_x1_u32r = ((((adc_H << 14) - (((int32_t)_dig_H4) << 20) - (((int32_t)_dig_H5) * v_x1_u32r)) + ((int32_t)16384)) >> 15) *
-                (((((((v_x1_u32r *
-                       ((int32_t)_dig_H6)) >>
-                      10) *
-                     (((v_x1_u32r *
-                        ((int32_t)_dig_H3)) >>
-                       11) +
-                      ((int32_t)32768))) >>
-                    10) +
-                   ((int32_t)2097152)) *
-                      ((int32_t)_dig_H2) +
-                  8192) >>
-                 14);
-
-    v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) *
-                               ((int32_t)_dig_H1)) >>
-                              4));
-
-    v_x1_u32r = (v_x1_u32r < 0) ? 0 : v_x1_u32r;
-    v_x1_u32r = (v_x1_u32r > 419430400) ? 419430400 : v_x1_u32r;
-    humidity = (v_x1_u32r >> 12);
-    return humidity / 1024.0;
+    var1 = _t_fine - ((int32_t)76800);
+    var2 = (int32_t)(adc_H * 16384);
+    var3 = (int32_t)(((int32_t)_dig_H4) * 1048576);
+    var4 = ((int32_t)_dig_H5) * var1;
+    var5 = (((var2 - var3) - var4) + (int32_t)16384) / 32768;
+    var2 = (var1 * ((int32_t)_dig_H6)) / 1024;
+    var3 = (var1 * ((int32_t)_dig_H3)) / 2048;
+    var4 = ((var2 * (var3 + (int32_t)32768)) / 1024) + (int32_t)2097152;
+    var2 = ((var4 * ((int32_t)_dig_H2)) + 8192) / 16384;
+    var3 = var5 * var2;
+    var4 = ((var3 / 32768) * (var3 / 32768)) / 128;
+    var5 = var3 - ((var4 * ((int32_t)_dig_H1)) / 16);
+    var5 = (var5 < 0 ? 0 : var5);
+    var5 = (var5 > 419430400 ? 419430400 : var5);
+    uint32_t H = (uint32_t)(var5 / 4096);
+    return (float)H / 1024.0;
 }
 
 }  // namespace i2cdev

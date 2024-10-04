@@ -48,8 +48,10 @@ class I2cDev {
     uint8_t read8_1(uint8_t reg);
     bool write8_1(uint8_t reg, uint8_t data);
     uint16_t read16_1(uint8_t reg);
+    int16_t readS16_1(uint8_t reg);
     uint16_t read16_LE_1(uint8_t reg);
     int16_t readS16_LE_1(uint8_t reg);
+    uint32_t read24_1(uint8_t reg);
 
     bool need_del = false;           // device can self destruct, and re-init when new scan discovers it
     I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the init()!!!

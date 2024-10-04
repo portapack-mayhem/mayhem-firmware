@@ -74,9 +74,22 @@ bool I2cDev::i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t byt
 }
 
 bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
+    // Check if there's any data to write
     if (bytes == 0) return false;
-    if (reg_size > 0 && reg) i2cbus.transmit(addr, reg, reg_size);
-    return i2cbus.transmit(addr, data, bytes);
+    // Create a new buffer to hold both reg and data
+    uint8_t total_size = reg_size + bytes;
+    uint8_t* buffer = new uint8_t[total_size];
+    // Copy the register data into the buffer
+    if (reg_size > 0 && reg) {
+        memcpy(buffer, reg, reg_size);
+    }
+    // Copy the data into the buffer after the register data
+    memcpy(buffer + reg_size, data, bytes);
+    // Transmit the combined data
+    bool result = i2cbus.transmit(addr, buffer, total_size);
+    // Clean up the dynamically allocated buffer
+    delete[] buffer;
+    return result;
 }
 
 bool I2cDev::write8_1(uint8_t reg, uint8_t data) {
@@ -90,9 +103,18 @@ uint8_t I2cDev::read8_1(uint8_t reg) {
 }
 
 uint16_t I2cDev::read16_1(uint8_t reg) {
-    uint16_t res = 0;
-    i2c_read(&reg, 1, (uint8_t*)&res, 2);
-    return res;
+    uint8_t buffer[2];
+    i2c_read(&reg, 1, buffer, 2);
+    return uint16_t(buffer[0]) << 8 | uint16_t(buffer[1]);
+}
+uint32_t I2cDev::read24_1(uint8_t reg) {
+    uint8_t buffer[3];
+    i2c_read(&reg, 1, buffer, 2);
+    return uint32_t(buffer[0]) << 16 | uint32_t(buffer[1]) << 8 | uint32_t(buffer[2]);
+}
+
+int16_t I2cDev::readS16_1(uint8_t reg) {
+    return (int16_t)read16_1(reg);
 }
 
 uint16_t I2cDev::read16_LE_1(uint8_t reg) {
@@ -100,10 +122,9 @@ uint16_t I2cDev::read16_LE_1(uint8_t reg) {
     res = (res >> 8) | (res << 8);
     return res;
 }
+
 int16_t I2cDev::readS16_LE_1(uint8_t reg) {
-    int16_t res = (int16_t)read16_1(reg);
-    res = (res >> 8) | (res << 8);
-    return res;
+    return (int16_t)read16_LE_1(reg);
 }
 
 void I2CDevManager::init() {
