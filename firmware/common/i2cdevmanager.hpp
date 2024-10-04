@@ -35,6 +35,7 @@ extern I2C portapack::i2c0;
 
 namespace i2cdev {
 
+// The device class. You'll derive your from this. Override init() and update();
 class I2cDev {
    public:
     virtual ~I2cDev() {};
@@ -57,17 +58,18 @@ class I2cDev {
     I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the init()!!!
     uint8_t query_interval = 5;      // in seconds. can be overriden in init() if necessary
    protected:
-    void got_error();    // update will call this when communication was not ok
-    void got_success();  // update will call this when the communication was ok
+    void got_error();    // i2c communication will call this when communication was not ok. you can call it from any part of your code too.
+    void got_success();  // i2c communication will call this when the communication was ok. you can call it from any part of your code too.
 
     uint8_t addr = 0;    // some devices can have different addresses, so we store what was it wound with
     uint8_t errcnt = 0;  // error count during communication. if it reaches a threshold set need_del to remove itself from the device list
 };
 
+// store for the devices. may not have a driver if not supported
 class I2DevListElement {
    public:
-    uint8_t addr = 0;
-    std::unique_ptr<I2cDev> dev = nullptr;
+    uint8_t addr = 0;                       // i2c addr of the device
+    std::unique_ptr<I2cDev> dev = nullptr;  // device driver if any
 };
 
 class I2CDevManager {
@@ -80,13 +82,14 @@ class I2CDevManager {
     static I2cDev* get_dev_by_model(I2C_DEVS model);       // caller function needs to cast to the specific device!
     static std::vector<I2C_DEVS> get_gev_list_by_model();  // returns the currently discovered
     static std::vector<uint8_t> get_gev_list_by_addr();    // returns the currently discovered
+
    private:
     static uint16_t scan_interval;
     static bool force_scan;  // if set to true, on hte next run it'll do an i2c scan, ONCE
     static std::vector<I2DevListElement> devlist;
 
     static bool found(uint8_t addr);  // returns true on any new device. also initializes the driver if there is a suitable one
-    static bool scan();
+    static bool scan();               // return true on any change (delete or found new)
     static void create_thread();
     static msg_t timer_fn(void* arg);
     static Thread* thread;

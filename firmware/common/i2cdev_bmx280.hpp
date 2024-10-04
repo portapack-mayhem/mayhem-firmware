@@ -21,10 +21,9 @@
 
 /*
     DEAR DEVS THIS IS AN EXAMPLE FILE FOR i2C COMMUNICATION
-    YOU Have to derive your class from I2cDev and override at least the init(), and the update()
-    The update() should query the device, and send the corresponding Message to the system with the data.
-    The init() must check the device if it is really that this driver meant to handle, and fully set the device up.
-    If all ok, set the device's model to the corresponting enum value from "i2cdevlist.hpp" and return true. Othervise false, so next driver can check it. (since multiple different devices manufactured with the same addr)
+    YOU have to derive your class from I2cDev and override the init(), and the update()
+    The update() query the device, and send the corresponding Message to the system with the data.
+    The init() must check the device if it is really that this driver meant to handle, and fully set the device up. If all ok, set the device's model to the corresponting enum value from "i2cdevlist.hpp" and return true. Othervise false, so next driver can check it. (since multiple different devices manufactured with the same addr)
 
     You can create custom functions, that can be called from any app that identifies the device and casts the I2cDev to your class.
     This can be checked by query the 'model' variable.

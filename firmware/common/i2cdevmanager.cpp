@@ -18,7 +18,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
-
+#include <algorithm>
 #include "i2cdevmanager.hpp"
 
 #define i2cbus portapack::i2c0
@@ -67,10 +67,24 @@ bool I2CDevManager::found(uint8_t addr) {
     return true;
 }
 
+void I2cDev::got_error() {
+    errcnt++;
+    if (errcnt >= 20) need_del = true;  // too many errors. remove dev from list. may be re-discovered and re inited
+}
+
+void I2cDev::got_success() {
+    errcnt = 0;
+}
+
 bool I2cDev::i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
     if (bytes == 0) return false;
     if (reg_size > 0 && reg) i2cbus.transmit(addr, reg, reg_size);
-    return i2cbus.receive(addr, data, bytes);
+    bool ret = i2cbus.receive(addr, data, bytes);
+    if (!ret)
+        got_error();
+    else
+        got_success();
+    return ret;
 }
 
 bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
@@ -89,6 +103,10 @@ bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t by
     bool result = i2cbus.transmit(addr, buffer, total_size);
     // Clean up the dynamically allocated buffer
     delete[] buffer;
+    if (!result)
+        got_error();
+    else
+        got_success();
     return result;
 }
 
@@ -192,16 +210,25 @@ std::vector<uint8_t> I2CDevManager::get_gev_list_by_addr() {
 }
 
 bool I2CDevManager::scan() {
-    bool found_new = false;
-    // todo htotoo remove unplugged items
+    bool changed = false;
+    std::vector<uint8_t> currList;
     for (uint8_t i = 1; i < 128; ++i) {
         if (i2cbus.probe(i, 50)) {
             // chMtxLock(&mutex_list);
-            found_new = found_new | found(i);
+            changed = changed | found(i);
+            currList.push_back(i);
             // chMtxUnlock();
         }
     }
-    return found_new;
+    // remove those not present
+    for (size_t i = 0; i < devlist.size(); ++i) {
+        if (std::find(currList.begin(), currList.end(), devlist[i].addr) == currList.end()) {
+            // found on our list, but now not discovered, so remove it
+            devlist[i].addr = 0;  // mark to delete
+            changed = true;
+        }
+    }
+    return changed;
 }
 
 void I2CDevManager::create_thread() {

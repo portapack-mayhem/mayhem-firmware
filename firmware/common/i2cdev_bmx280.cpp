@@ -19,18 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*
-    DEAR DEVS THIS IS AN EXAMPLE FILE FOR i2C COMMUNICATION
-    YOU Have to derive your class from I2cDev and override at least the init(), and the update()
-    The update() should query the device, and send the corresponding Message to the system with the data.
-    The init() must check the device if it is really that this driver meant to handle, and fully set the device up.
-    If all ok, set the device's model to the corresponting enum value from "i2cdevlist.hpp" and return true. Othervise false, so next driver can check it. (since multiple different devices manufactured with the same addr)
-
-    You can create custom functions, that can be called from any app that identifies the device and casts the I2cDev to your class.
-    This can be checked by query the 'model' variable.
-
-*/
-
 #include "i2cdev_bmx280.hpp"
 
 namespace i2cdev {
@@ -40,11 +28,11 @@ bool I2cDev_BMX280::init(uint8_t addr_) {
     model = I2C_DEVS::I2CDEV_BMP280;  // set the device model!!!!!!!!!!!!!!!!!!
     query_interval = 5;               // set update interval in sec
 
-    uint8_t reg = BME280_REG_CHIPID;  // register
-    uint8_t tmp = 0;                  // value. will save fw space, but harder to read code. so read comments
-    i2c_read(&reg, 1, &tmp, 1);       // read chip id to tmp
-    if (tmp != CHIP_ID_BMP280 && tmp != CHIP_ID_BME280) return false;
-    if (tmp == CHIP_ID_BME280) model = I2C_DEVS::I2CDEV_BME280;
+    uint8_t reg = BME280_REG_CHIPID;                                   // register
+    uint8_t tmp = 0;                                                   // value. will save fw space, but harder to read code. so read comments
+    i2c_read(&reg, 1, &tmp, 1);                                        // read chip id to tmp
+    if (tmp != CHIP_ID_BMP280 && tmp != CHIP_ID_BME280) return false;  // this is not BME280 or BMP280, so skip
+    if (tmp == CHIP_ID_BME280) model = I2C_DEVS::I2CDEV_BME280;        // update dev model, since this driver can handle 2 type of models
 
     // here we can be "sure" this is a bmp280, so init it
 
@@ -53,26 +41,31 @@ bool I2cDev_BMX280::init(uint8_t addr_) {
     tmp = RESET_KEY;
     i2c_write(&reg, 1, &tmp, 1);
     chThdSleepMilliseconds(10);  // wait to get awake
-    uint8_t timeout = 0;
+    uint8_t timeout = 0;         // wait for calibration data load
     while (is_reading_calib()) {
         timeout++;
-        if (timeout > 200) return false;
+        if (timeout > 200) return false;  // timeout, bad device
         chThdSleepMilliseconds(10);
     }
-
     read_coeff();
     set_sampling();
-    chThdSleepMilliseconds(100);
+    chThdSleepMilliseconds(50);
     return true;
 }
 
 void I2cDev_BMX280::update() {
-    float temp = read_temperature();
+    float temp = read_temperature();  // internal data gathering from the device.
     float pressure = read_pressure();
     float hum = read_humidity();
-    EnvironmentDataMessage msg{temp, hum, pressure};
-    EventDispatcher::send_message(msg);
+    EnvironmentDataMessage msg{temp, hum, pressure};  // create the system message
+    EventDispatcher::send_message(msg);               // and send it
 }
+
+/*
+
+    INTERNAL FUNCTIONS
+
+*/
 
 bool I2cDev_BMX280::is_reading_calib() {
     uint8_t const rStatus = read8_1(BMX280_REG_STATUS);
@@ -162,7 +155,6 @@ float I2cDev_BMX280::read_pressure() {
     var4 = ((var4 + var1 + var2) / 256) + (((int64_t)_dig_P7) * 16);
 
     float P = var4 / 256.0;
-
     return P / 100;
 }
 
