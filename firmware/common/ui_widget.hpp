@@ -156,6 +156,8 @@ class Widget {
 };
 
 class View : public Widget {
+    // unlike Paint class, our Y ignored the top bar;
+    // so when you draw some of us as Y = 0, it would be exact below the top bar, instead of overlapped with top bar
    public:
     View() {
     }
