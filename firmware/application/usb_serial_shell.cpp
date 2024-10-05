@@ -939,18 +939,25 @@ static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]
 }
 
 static void cmd_gotenv(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: gotenv <temperature> [humidity] [pressure]\r\n";
-    if (argc < 1 || argc > 3) {
+    const char* usage = "usage: gotenv <temperature> [humidity] [pressure] [light]\r\n";  // keeping light here too for compatibility
+    if (argc < 1 || argc > 4) {
         chprintf(chp, usage);
         return;
     }
     float temp = atof(argv[0]);
     float humi = 0;
     float pressure = 0;
+    uint16_t light = 0;
     if (argc > 1) humi = atof(argv[1]);
     if (argc > 2) pressure = atof(argv[2]);
+    if (argc > 3) light = strtol(argv[0], NULL, 10);
     EnvironmentDataMessage msg{temp, humi, pressure};
     EventDispatcher::send_message(msg);
+    // compatibility:
+    if (argc > 3) {
+        LightDataMessage msg{light};
+        EventDispatcher::send_message(msg);
+    }
     chprintf(chp, "ok\r\n");
 }
 
