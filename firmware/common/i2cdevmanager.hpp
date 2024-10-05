@@ -40,7 +40,7 @@ namespace i2cdev {
 // The device class. You'll derive your from this. Override init() and update();
 class I2cDev {
    public:
-    virtual ~I2cDev() {};
+    virtual ~I2cDev(){};
     virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
     virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
 
