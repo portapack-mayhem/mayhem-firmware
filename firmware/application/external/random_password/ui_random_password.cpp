@@ -22,6 +22,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/* Notes about safety/randomness:
+ * - Radio data is from nature, so if it's evenly tiled in space, it's random enough, but usually it's not
+ * - A unsafe point is the freq that fetch data is from LCG (from Cpp STL) using time as seed, but should be spread out by later random calculation
+ * - A unsafe point is the init data is still using LCG to generate, but used following methods to spread out:
+ * - - Radio data
+ * - - save a buffer of seeds and generate char by char, this cover all the possible chars combination
+ * - - Rollout with teo seeds and get a final char, this spread out again
+ * - - Hash out the generated password and spread out again if you choose. SHA-512 is proven very spreading out in random space by math
+ * - But still, this isn't meant to become a TRNG generator, don't use at critical/high safety requited/important system, this FOSS has absolutely no warranty
+ */
+
 #include "ui_random_password.hpp"
 #include "ui_modemsetup.hpp"
 
@@ -31,6 +42,7 @@
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "file_path.hpp"
+#include "sha512.h"
 
 using namespace portapack;
 using namespace modems;
@@ -72,6 +84,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
                   &button_flood,
                   &button_send,
                   &field_digits,
+                  &field_method,
                   &check_allow_confusable_chars,
                   &text_seed,
                   &progressbar});
@@ -176,6 +189,7 @@ RandomPasswordView::RandomPasswordView(NavigationView& nav)
     check_punctuation.set_value(true);
     check_show_seeds.set_value(true);
     field_digits.set_value(16);
+    field_method.set_by_value(Method::RADIO_LCG_ROLL_HASH);
     ///^ check defauly val init
 
     logger = std::make_unique<RandomPasswordLogger>();
@@ -243,7 +257,10 @@ void RandomPasswordView::new_password() {
     password = "";
     std::string charset = "";
     std::string char_type_hints = "";
+    std::string initial_password = "";
+    int password_length = field_digits.value();
 
+    /// charset worker
     if (check_digits.value())
         charset += "0123456789";
     if (check_latin_lower.value())
@@ -265,15 +282,7 @@ void RandomPasswordView::new_password() {
         return;
     }
 
-    int password_length = field_digits.value();
-
-    /*the seeds_buffer were feed streaming by AFSK,
-     * and when generate, it use each seed for each char, and uint seeds totally can generate UINT_MAX result,
-     * which already cover the 10+26+25+4 (123+abc+abc+.!)
-     * so total possible password would be PW_LENGTH ^ (10+26+25+4), which already covered all the possible solution
-     * (assume AFSK data is averaged in chaotic space, which maybe no one can garentee but I hope so)
-     * */
-
+    /// roll worker
     for (int i = 0; i < password_length * 2; i += 2) {
         unsigned int seed = seeds_deque[i];
         std::srand(seed);
@@ -282,8 +291,21 @@ void RandomPasswordView::new_password() {
         for (uint8_t o = 0; o < rollnum; ++o) nu = std::rand();
         nu++;
         char c = charset[std::rand() % charset.length()];
-        password += c;
+        initial_password += c;
+    }
 
+    // hash worker
+    std::string hashed_password = sha512(initial_password);
+
+    std::vector<char> password_chars(password_length);
+    for (int i = 0; i < password_length; i++) {
+        unsigned int index = std::stoul(hashed_password.substr(i * 2, 2), nullptr, 16) % charset.length();  // result from 0 to charset.length()-1,should be very evenly tiled in the charset space
+        password_chars[i] = charset[index];
+    }
+
+    /// hint text worker
+    for (char c : password_chars) {
+        password += c;
         if (std::isdigit(c)) {
             char_type_hints += "1";
         } else if (std::islower(c)) {
@@ -295,6 +317,18 @@ void RandomPasswordView::new_password() {
         }
     }
 
+    /// decision worker
+    switch (field_method.selected_index_value()) {
+        case Method::RADIO_LCG_ROLL:
+            password = initial_password;
+            break;
+        case Method::RADIO_LCG_ROLL_HASH:
+            break;
+        default:
+            break;
+    }
+
+    /// give out result worker
     text_generated_passwd.set(password);
     text_char_type_hints.set(char_type_hints);
 
@@ -309,10 +343,6 @@ void RandomPasswordView::new_password() {
     if (check_auto_send.value() || flooding) {
         async_prev_val = portapack::async_tx_enabled;
         portapack::async_tx_enabled = true;
-        // printing out seeds buffer
-        // for (auto seed : seeds_deque) {
-        //     UsbSerialAsyncmsg::asyncmsg(std::to_string(seed));
-        // }
         UsbSerialAsyncmsg::asyncmsg(password);
         portapack::async_tx_enabled = async_prev_val;
     }
