@@ -41,6 +41,7 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_orientation,
                   &text_envl1,
                   &text_envl2,
+                  &text_envl3,
                   &console});
 
     prev_scan_int = i2cdev::I2CDevManager::get_autoscan_interval();
@@ -102,9 +103,14 @@ void ExtSensorsView::on_environment(const EnvironmentDataMessage* msg) {
     tmp += "C";
     tmp += "; H: " + to_string_decimal(msg->humidity, 1) + "%";  // humidity
     text_envl1.set(tmp);
-    tmp = "P: " + to_string_decimal(msg->pressure, 1) + " hPa; L:";  // pressure
-    tmp += to_string_dec_int(msg->light) + " LUX";                   // light
+    tmp = "P: " + to_string_decimal(msg->pressure, 1) + " hPa";  // pressure
     text_envl2.set(tmp);
+}
+
+void ExtSensorsView::on_light(const LightDataMessage* msg) {
+    on_any();
+    std::string tmp = "L: " + to_string_dec_int(msg->light) + " LUX";
+    text_envl3.set(tmp);
 }
 
 }  // namespace ui::external_app::extsensors

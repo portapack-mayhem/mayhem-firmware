@@ -65,6 +65,7 @@ class ExtSensorsView : public View {
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
     Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
+    Text text_envl3{{1 * 8, 11 * 16, 24 * 8, 16}, "-"};
     Console console{
         {1, 13 * 16, screen_width - 1, screen_height - 18 * 16}};
 
@@ -72,6 +73,7 @@ class ExtSensorsView : public View {
     void on_new_dev();
     void on_any();
 
+    void on_light(const LightDataMessage* msg);
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
     void on_environment(const EnvironmentDataMessage* msg);
@@ -94,6 +96,13 @@ class ExtSensorsView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const EnvironmentDataMessage*>(p);
             this->on_environment(message);
+        }};
+
+    MessageHandlerRegistration message_handler_light{
+        Message::ID::LightData,
+        [this](Message* const p) {
+            const auto message = static_cast<const LightDataMessage*>(p);
+            this->on_light(message);
         }};
 
     MessageHandlerRegistration message_handler_dev{
