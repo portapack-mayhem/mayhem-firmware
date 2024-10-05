@@ -30,4 +30,9 @@ enum I2C_DEVS {
     I2CDEV_BME280,
 };
 
+#define I2CDEV_BMX280_ADDR_1 0x76
+#define I2CDEV_BMX280_ADDR_2 0x77
+#define I2CDEV_SHT3X_1 0x44
+#define I2CDEV_SHT3X_2 0x45
+
 #endif

@@ -24,6 +24,7 @@
 namespace i2cdev {
 
 bool I2cDev_BMX280::init(uint8_t addr_) {
+    if (addr_ != I2CDEV_BMX280_ADDR_1 && addr_ != I2CDEV_BMX280_ADDR_2) return false;
     addr = addr_;                     // store the addr
     model = I2C_DEVS::I2CDEV_BMP280;  // set the device model!!!!!!!!!!!!!!!!!!
     query_interval = 5;               // set update interval in sec
