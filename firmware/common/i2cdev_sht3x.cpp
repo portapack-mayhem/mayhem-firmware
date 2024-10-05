@@ -28,11 +28,12 @@ bool I2cDev_SHT3x::init(uint8_t addr_) {
     addr = addr_;                    // store the addr
     model = I2C_DEVS::I2CDEV_SHT3X;  // set the device model!!!!!!!!!!!!!!!!!!
     query_interval = 5;              // set update interval in sec
-
+    chThdSleepMilliseconds(50);
     uint8_t tmp[2];  // command buffer
     tmp[0] = 0x30;
     tmp[1] = 0x66;
     if (!i2c_write(nullptr, 0, tmp, 2)) return false;  // heater off
+    chThdSleepMilliseconds(50);
     tmp[0] = 0x22;
     tmp[1] = 0x36;
     if (!i2c_write(nullptr, 0, tmp, 2)) return false;  // conti, 2mps

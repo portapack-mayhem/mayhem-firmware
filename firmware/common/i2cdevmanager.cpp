@@ -80,7 +80,7 @@ bool I2CDevManager::found(uint8_t addr) {
 
 void I2cDev::got_error() {
     errcnt++;
-    if (errcnt >= 20) need_del = true;  // too many errors. remove dev from list. may be re-discovered and re inited
+    if (errcnt >= 5) need_del = true;  // too many errors. remove dev from list. may be re-discovered and re inited
 }
 
 void I2cDev::got_success() {
