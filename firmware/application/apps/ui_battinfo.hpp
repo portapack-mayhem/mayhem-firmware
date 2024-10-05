@@ -27,6 +27,8 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include "i2cdevmanager.hpp"
+#include "i2cdev_max17055.hpp"
 
 namespace ui {
 class BattinfoView : public View {
@@ -43,6 +45,7 @@ class BattinfoView : public View {
 
    private:
     void update_result();
+    void update_results_max17055(i2cdev::I2cDev_MAX17055* dev);
     void on_timer();
     NavigationView& nav_;
     uint16_t timer_period = 60;

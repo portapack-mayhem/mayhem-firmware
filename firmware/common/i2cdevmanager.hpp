@@ -31,6 +31,8 @@
 #include "i2cdevlist.hpp"
 #include "event_m0.hpp"
 
+#define i2cbus portapack::i2c0
+
 extern I2C portapack::i2c0;
 
 namespace i2cdev {
@@ -38,7 +40,7 @@ namespace i2cdev {
 // The device class. You'll derive your from this. Override init() and update();
 class I2cDev {
    public:
-    virtual ~I2cDev(){};
+    virtual ~I2cDev() {};
     virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
     virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
 
@@ -80,7 +82,7 @@ class I2CDevManager {
     static uint16_t get_autoscan_interval();
     static I2cDev* get_dev_by_addr(uint8_t addr);          // caller function needs to cast to the specific device!
     static I2cDev* get_dev_by_model(I2C_DEVS model);       // caller function needs to cast to the specific device!
-    static std::vector<I2C_DEVS> get_gev_list_by_model();  // returns the currently discovered
+    static std::vector<I2C_DEVS> get_dev_list_by_model();  // returns the currently discovered
     static std::vector<uint8_t> get_gev_list_by_addr();    // returns the currently discovered
 
    private:

@@ -416,7 +416,7 @@ void SystemStatusView::refresh() {
     if (!pmem::ui_hide_fake_brightness() && !pmem::config_lcd_inverted_mode()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
         batt_was_inited = true;
-        uint8_t percent = battery::BatteryManagement::getPercent();
+        uint8_t percent = 102;
         if (!pmem::ui_hide_battery_icon()) {
             status_icons.add(&battery_icon);
             battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);  // got an on select, that may pop up the details of the battery.

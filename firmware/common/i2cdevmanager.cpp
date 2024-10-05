@@ -21,8 +21,6 @@
 #include <algorithm>
 #include "i2cdevmanager.hpp"
 
-#define i2cbus portapack::i2c0
-
 /*
     DEAR DEVS.
     Include your devices headers here:
@@ -30,6 +28,7 @@
 
 #include "i2cdev_bmx280.hpp"
 #include "i2cdev_sht3x.hpp"
+#include "i2cdev_max17055.hpp"
 
 namespace i2cdev {
 
@@ -64,8 +63,13 @@ bool I2CDevManager::found(uint8_t addr) {
         if (!item.dev->init(addr)) item.dev = nullptr;  // if not inited, reset it's instance, and let other handlers try
     }
 
-    if (!item.dev && (addr == I2CDEV_SHT3X_1 || addr == I2CDEV_SHT3X_2)) {
+    if (!item.dev && (addr == I2CDEV_SHT3X_ADDR_1 || addr == I2CDEV_SHT3X_ADDR_2)) {
         item.dev = std::make_unique<I2cDev_SHT3x>();
+        if (!item.dev->init(addr)) item.dev = nullptr;
+    }
+
+    if (!item.dev && (addr == I2CDEV_MAX17055_ADDR_1)) {
+        item.dev = std::make_unique<I2cDev_MAX17055>();
         if (!item.dev->init(addr)) item.dev = nullptr;
     }
 
@@ -192,7 +196,7 @@ I2cDev* I2CDevManager::get_dev_by_model(I2C_DEVS model) {
     return nullptr;
 }
 
-std::vector<I2C_DEVS> I2CDevManager::get_gev_list_by_model() {
+std::vector<I2C_DEVS> I2CDevManager::get_dev_list_by_model() {
     std::vector<I2C_DEVS> ret;
     // chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
