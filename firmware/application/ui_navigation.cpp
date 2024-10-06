@@ -654,7 +654,6 @@ bool NavigationView::is_valid() const {
 
 View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     free_view();
-    i2cdev::I2CDevManager::set_autoscan_interval(0);  // running an app, so disable auto scan. the app can re-enable it in itself
     const auto p = new_view.get();
     view_stack.emplace_back(ViewState{std::move(new_view), {}});
 
@@ -863,6 +862,11 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);
+    i2cdev::I2CDevManager::set_autoscan_interval(3);
+}
+
+SystemMenuView::~SystemMenuView() {
+    i2cdev::I2CDevManager::set_autoscan_interval(0);
 }
 
 void SystemMenuView::on_populate() {
@@ -907,8 +911,6 @@ SystemView::SystemView(
         } else {
             add_child(&info_view);
             info_view.refresh();
-            // set auto update on i2c devices
-            i2cdev::I2CDevManager::set_autoscan_interval(3);
         }
 
         this->status_view.set_back_enabled(!this->navigation_view.is_top());
