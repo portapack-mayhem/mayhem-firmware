@@ -386,7 +386,6 @@ class UtilitiesMenuView : public BtnGridView {
 class SystemMenuView : public BtnGridView {
    public:
     SystemMenuView(NavigationView& nav);
-    ~SystemMenuView();
 
    private:
     NavigationView& nav_;

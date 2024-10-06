@@ -769,7 +769,9 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() { nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
+                           [&nav, &app]() { 
+                            i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
+                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
         }
     };
 }
@@ -862,16 +864,10 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);
-    i2cdev::I2CDevManager::set_autoscan_interval(3);
-}
-
-SystemMenuView::~SystemMenuView() {
-    i2cdev::I2CDevManager::set_autoscan_interval(0);
 }
 
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
-
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
@@ -911,6 +907,7 @@ SystemView::SystemView(
         } else {
             add_child(&info_view);
             info_view.refresh();
+            i2cdev::I2CDevManager::set_autoscan_interval(3);  // turn on autoscan in sysmainv
         }
 
         this->status_view.set_back_enabled(!this->navigation_view.is_top());

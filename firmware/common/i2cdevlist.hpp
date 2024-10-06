@@ -48,6 +48,6 @@ enum I2C_DEVMDL {
 #define I2CDEV_BH1750_ADDR_1 0x23
 
 // this will be the update interval for battery management ic's:
-#define BATTERY_WIDGET_REFRESH_INTERVAL 20
+#define BATTERY_WIDGET_REFRESH_INTERVAL 10
 
 #endif
