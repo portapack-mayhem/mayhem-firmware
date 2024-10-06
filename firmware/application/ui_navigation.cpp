@@ -758,14 +758,30 @@ void NavigationView::handle_autostart() {
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};
     if (!autostart_app.empty()) {
-        if (StartAppByName(autostart_app.c_str())) return;
-        // if returned false, check for external apps by that name, and try to start it
-        std::string appwithpath = "/" + apps_dir.string() + "/";
-        appwithpath += autostart_app;
-        appwithpath += ".ppma";
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-        std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
-        ui::ExternalItemsMenuLoader::run_external_app(*this, pth);
+        bool app_started = false;
+
+        // try innerapp
+        if (StartAppByName(autostart_app.c_str())) {
+            app_started = true;
+        } else {
+            // try outside app
+            auto external_items = ExternalItemsMenuLoader::load_external_items(app_location_t::HOME, *this);
+            for (const auto& item : external_items) {
+                if (item.text == autostart_app) {
+                    item.on_select();
+                    app_started = true;
+                    break;
+                }
+            }
+        }
+
+        if (!app_started) {
+            display_modal(
+                "Notice", "Autostart failed:\n" +
+                              autostart_app +
+                              "\nupdate sdcard content\n" +
+                              "and check if .ppma exists");
+        }
     }
 }
 
