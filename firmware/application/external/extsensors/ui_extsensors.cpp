@@ -61,7 +61,6 @@ void ExtSensorsView::refreshi2c() {
         console.write("0x");
         console.write(to_string_hex(addrlist[i]));
         console.write(", ");
-        if (i % 5 == 0 && i != 0) console.writeln("");
     }
     if (addrlist.size() == 0) console.writeln("No I2C devs found.");
 }

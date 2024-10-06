@@ -98,7 +98,7 @@ FROM HERE YOU SHOULDN'T WRITE ANYTHING IF YOU JUST IMPLEMENT A NEW DRIVER
 void I2cDev::set_update_interval(uint8_t interval) {
     query_interval = interval;
 }
-uint8_t I2cDev::det_update_interval() {
+uint8_t I2cDev::get_update_interval() {
     return query_interval;
 }
 

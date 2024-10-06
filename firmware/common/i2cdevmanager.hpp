@@ -44,8 +44,8 @@ class I2cDev {
     virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
     virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
 
-    void set_update_interval(uint8_t interval);  // sets the device's update interval in sec
-    uint8_t det_update_interval();               // gets the device's update interval in sec
+    void set_update_interval(uint8_t interval);  // sets the device's update interval in sec. if you change it, don't forget to change back to it's original value after you finished!
+    uint8_t get_update_interval();               // gets the device's update interval in sec
 
     bool i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes);   // if want to read without register addr, just set reg_size to 0. this way can read 8, or 16 or 32 bit registers too. reg_size in bytes! returns true on succes. handles the errcnt automatically!
     bool i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes);  // if want to write without register addr, just set reg_size to 0. this way can read 8, or 16 or 32 bit registers too. reg_size in bytes! returns true on succes. handles the errcnt automatically!

@@ -67,7 +67,7 @@ class ExtSensorsView : public View {
     Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
     Text text_envl3{{1 * 8, 11 * 16, 24 * 8, 16}, "-"};
     Console console{
-        {1, 13 * 16, screen_width - 1, screen_height - 18 * 16}};
+        {1, 13 * 16, screen_width - 1, screen_height - 13 * 16}};
 
     void refreshi2c();
     void on_new_dev();
