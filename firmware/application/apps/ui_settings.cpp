@@ -6,6 +6,7 @@
  * Copyright (C) 2024 Mark Thompson
  * Copyright (C) 2024 u-foka
  * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -876,6 +877,7 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
+                  &button_reset,
                   &options});
 
     button_save.on_select = [&nav, this](Button&) {
@@ -890,6 +892,12 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
+    };
+
+    button_reset.on_select = [this](Button&) {
+        selected = 0;
+        options.set_selected_index(0);
+        autostart_app = "";
     };
 
     // options

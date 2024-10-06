@@ -851,6 +851,10 @@ class SetAutostartView : public View {
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
+
+    Button button_reset{
+        {2 * 8, 6 * 16, screen_width - 4 * 8, 32},
+        "Reset"};
 };
 
 class SetThemeView : public View {

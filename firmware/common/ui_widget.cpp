@@ -1697,10 +1697,12 @@ bool ImageOptionsField::on_touch(const TouchEvent event) {
 OptionsField::OptionsField(
     Point parent_pos,
     size_t length,
-    options_t options)
+    options_t options,
+    bool centered)
     : Widget{{parent_pos, {8 * (int)length, 16}}},
       length_{length},
-      options_{std::move(options)} {
+      options_{std::move(options)},
+      centered_{centered} {
     set_focusable(true);
 }
 
@@ -1792,8 +1794,17 @@ void OptionsField::paint(Painter& painter) {
         std::string_view temp = selected_index_name();
         if (temp.length() > length_)
             temp = temp.substr(0, length_);
+        
+        Point draw_pos = screen_pos();
+        if (centered_) {
+            // 计算居中位置
+            int text_width = temp.length() * 8;
+            int available_width = length_ * 8;
+            draw_pos = Point(draw_pos.x() + (available_width - text_width) / 2, draw_pos.y());
+        }
+        
         painter.draw_string(
-            screen_pos(),
+            draw_pos,
             paint_style,
             temp);
     }

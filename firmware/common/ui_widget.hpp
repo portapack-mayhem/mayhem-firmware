@@ -680,7 +680,7 @@ class OptionsField : public Widget {
     std::function<void(size_t, value_t)> on_change{};
     std::function<void(void)> on_show_options{};
 
-    OptionsField(Point parent_pos, size_t length, options_t options);
+    OptionsField(Point parent_pos, size_t length, options_t options, bool centered = false);
 
     options_t& options() { return options_; }
     const options_t& options() const { return options_; }
@@ -708,6 +708,7 @@ class OptionsField : public Widget {
     const size_t length_;
     options_t options_;
     size_t selected_index_{0};
+    bool centered_{false};
 };
 
 // A TextEdit is bound to a string reference and allows the string
