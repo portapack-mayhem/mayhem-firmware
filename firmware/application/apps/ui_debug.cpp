@@ -36,7 +36,7 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_painter.hpp"
 #include "ui_external_items_menu_loader.hpp"
-#include "ui_debug_battery.hpp"
+#include "ui_debug_max17055.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -226,8 +226,10 @@ uint32_t RegistersWidget::reg_read(const uint32_t register_number) {
                 return radio::debug::second_if::register_read(register_number);
             case CT_SI5351:
                 return portapack::clock_generator.read_register(register_number);
-            case CT_BATTERY:
-                return battery::BatteryManagement::read_register(register_number);
+            case CT_MAX17055: {
+                i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+                return dev->read_register(register_number);
+            }
             case CT_AUDIO:
                 return audio::debug::reg_read(register_number);
         }
@@ -249,9 +251,11 @@ void RegistersWidget::reg_write(const uint32_t register_number, const uint32_t v
             case CT_SI5351:
                 portapack::clock_generator.write_register(register_number, value);
                 break;
-            case CT_BATTERY:
-                battery::BatteryManagement::write_register(register_number, value);
+            case CT_MAX17055: {
+                i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+                dev->write_register(register_number, value);
                 break;
+            }
             case CT_AUDIO:
                 audio::debug::reg_write(register_number, value);
                 break;
@@ -465,9 +469,9 @@ void DebugPeripheralsMenuView::on_populate() {
         {si5351x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
         {audio::debug::codec_name(), Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BatteryModules::BATT_MAX17055) {
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) {
         add_item(
-            {"MAX17055", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("MAX17055", RegistersWidgetConfig{CT_BATTERY, 256, 16, 16}); }});
+            {"MAX17055", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("MAX17055", RegistersWidgetConfig{CT_MAX17055, 256, 16, 16}); }});
     }
     set_max_rows(2);  // allow wider buttons
 }
@@ -512,7 +516,7 @@ void DebugMenuView::on_populate() {
         {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
     });
 
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BatteryModules::BATT_MAX17055) {
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) {
         add_item(
             {"Battery", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_batt_icon, [this]() { nav_.push<BatteryCapacityView>(); }});
     }

@@ -43,87 +43,86 @@ void BattinfoView::on_timer() {
     }
 }
 
-void BattinfoView::update_result() {
-    if (!battery::BatteryManagement::isDetected()) {
-        text_percent.set("UNKNOWN");
-        text_voltage.set("UNKNOWN");
-        text_current.set("-");
-        text_charge.set("-");
-        text_cycles.set("-");
-        text_ttef.set("-");
-        text_method.set("-");
-        text_warn.set("");
-        return;
-    }
+void BattinfoView::update_results_ads1110(i2cdev::I2cDev_ADS1110* dev) {
     bool uichg = false;
-    uint8_t valid_mask = 0;
-    battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
-    // update text fields
-    if (percent <= 100 && (valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) == battery::BatteryManagement::BATT_VALID_VOLTAGE)
+    auto voltage = dev->readVoltage();
+    auto percent = battery::BatteryManagement::calc_percent_voltage(voltage);
+    if (percent <= 100)
         text_percent.set(to_string_dec_uint(percent) + " %");
     else
         text_percent.set("UNKNOWN");
-    if (voltage > 1 && (valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) == battery::BatteryManagement::BATT_VALID_VOLTAGE) {
+    if (voltage > 1) {
         text_voltage.set(to_string_decimal(voltage / 1000.0, 3) + " V");
     } else {
         text_voltage.set("UNKNOWN");
     }
-    if ((valid_mask & battery::BatteryManagement::BATT_VALID_CURRENT) == battery::BatteryManagement::BATT_VALID_CURRENT) {
-        if (labels_opt.hidden()) uichg = true;
-        labels_opt.hidden(false);
-        text_current.hidden(false);
-        text_charge.hidden(false);
-        text_current.set(to_string_dec_int(current) + " mA");
-        text_charge.set(current >= 0 ? "Charging" : "Discharging");
-        labels_opt.hidden(false);
 
-        text_ttef.hidden(false);
+    // ui hide:
+    if (!labels_opt.hidden()) uichg = true;
+    labels_opt.hidden(true);
+    text_current.hidden(true);
+    text_charge.hidden(true);
+    labels_opt.hidden(true);
+    text_ttef.hidden(true);
+    text_cycles.hidden(true);
+    text_warn.set("");
+    text_ttef.hidden(true);
+    text_method.set("Voltage");
+    button_mode.set_text("Voltage");
+    if (uichg) set_dirty();
+    BatteryStateMessage msg{1, percent, false, voltage};
+    EventDispatcher::send_message(msg);
+}
+
+void BattinfoView::update_results_max17055(i2cdev::I2cDev_MAX17055* dev) {
+    bool uichg = false;
+    uint8_t valid_mask = 0;
+    dev->getBatteryInfo(valid_mask, percent, voltage, current);
+    // update text fields
+    if (percent <= 100)
+        text_percent.set(to_string_dec_uint(percent) + " %");
+    else
+        text_percent.set("UNKNOWN");
+    if (voltage > 1) {
+        text_voltage.set(to_string_decimal(voltage / 1000.0, 3) + " V");
     } else {
-        if (!labels_opt.hidden()) uichg = true;
-        labels_opt.hidden(true);
-        text_current.hidden(true);
-        text_charge.hidden(true);
-        text_cycles.hidden(true);
-        text_ttef.hidden(true);
+        text_voltage.set("UNKNOWN");
+    }
+    if (labels_opt.hidden()) uichg = true;
+    labels_opt.hidden(false);
+    text_current.hidden(false);
+    text_charge.hidden(false);
+    text_current.set(to_string_dec_int(current) + " mA");
+    text_charge.set(current >= 0 ? "Charging" : "Discharging");
+    labels_opt.hidden(false);
+    text_ttef.hidden(false);
+    // cycles
+    text_cycles.hidden(false);
+    uint16_t cycles = (uint16_t)dev->getValue("Cycles");
+    if (cycles < 2)
+        text_warn.set("SoC improves after 2 cycles");
+    else
         text_warn.set("");
-    }
-    if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
-        text_cycles.hidden(false);
-        uint16_t cycles = battery::BatteryManagement::get_cycles();
-        if (cycles < 2)
-            text_warn.set("SoC improves after 2 cycles");
-        else
-            text_warn.set("");
-        text_cycles.set(to_string_dec_uint(cycles));
+    text_cycles.set(to_string_dec_uint(cycles));
+    // ttef
+    text_ttef.hidden(false);
+    float ttef = 0;
+    if (current <= 0) {
+        ttef = dev->getValue("TTE");
     } else {
-        text_cycles.hidden(true);
-        text_warn.set("");
+        ttef = dev->getValue("TTF");
     }
-    if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
-        text_ttef.hidden(false);
-        float ttef = 0;
-        if (current <= 0) {
-            ttef = battery::BatteryManagement::get_tte();
-        } else {
-            ttef = battery::BatteryManagement::get_ttf();
-        }
-
-        // Convert ttef to hours and minutes
-        uint8_t hours = static_cast<uint8_t>(ttef);
-        uint8_t minutes = static_cast<uint8_t>((ttef - hours) * 60 + 0.5);  // +0.5 for rounding
-
-        // Create the formatted string
-        std::string formatted_time;
-        if (hours > 0) {
-            formatted_time += to_string_dec_uint(hours) + "h ";
-        }
-        formatted_time += to_string_dec_uint(minutes) + "m";
-
-        text_ttef.set(formatted_time);
-    } else {
-        text_ttef.hidden(true);
+    // Convert ttef to hours and minutes
+    uint8_t hours = static_cast<uint8_t>(ttef);
+    uint8_t minutes = static_cast<uint8_t>((ttef - hours) * 60 + 0.5);  // +0.5 for rounding
+    // Create the formatted string
+    std::string formatted_time;
+    if (hours > 0) {
+        formatted_time += to_string_dec_uint(hours) + "h ";
     }
-    if ((valid_mask & battery::BatteryManagement::BATT_VALID_PERCENT) == battery::BatteryManagement::BATT_VALID_PERCENT) {
+    formatted_time += to_string_dec_uint(minutes) + "m";
+    text_ttef.set(formatted_time);
+    if (!battery::BatteryManagement::calcOverride) {
         text_method.set("IC");
         button_mode.set_text("Volt");
     } else {
@@ -134,6 +133,30 @@ void BattinfoView::update_result() {
     // to update status bar too, send message in behalf of batt manager
     BatteryStateMessage msg{valid_mask, percent, current >= 0, voltage};
     EventDispatcher::send_message(msg);
+}
+
+void BattinfoView::update_result() {
+    auto dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_MAX17055);
+    if (dev) {
+        update_results_max17055((i2cdev::I2cDev_MAX17055*)dev);
+        return;
+    }
+
+    dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_ADS1110);
+    if (dev) {
+        update_results_ads1110((i2cdev::I2cDev_ADS1110*)dev);
+        return;
+    }
+
+    // no dev found
+    text_percent.set("UNKNOWN");
+    text_voltage.set("UNKNOWN");
+    text_current.set("-");
+    text_charge.set("-");
+    text_cycles.set("-");
+    text_ttef.set("-");
+    text_method.set("-");
+    text_warn.set("");
 }
 
 BattinfoView::BattinfoView(NavigationView& nav)

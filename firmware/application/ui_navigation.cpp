@@ -388,7 +388,6 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
     if (!batt_was_inited) {
         batt_was_inited = true;
         refresh();
-        return;
     }
     if (!pmem::ui_hide_numeric_battery()) {
         battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
@@ -416,14 +415,11 @@ void SystemStatusView::refresh() {
     if (!pmem::ui_hide_fake_brightness() && !pmem::config_lcd_inverted_mode()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
         batt_was_inited = true;
-        uint8_t percent = battery::BatteryManagement::getPercent();
         if (!pmem::ui_hide_battery_icon()) {
             status_icons.add(&battery_icon);
-            battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);  // got an on select, that may pop up the details of the battery.
         };
         if (!pmem::ui_hide_numeric_battery()) {
             status_icons.add(&battery_text);
-            battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);
         }
     }
 
@@ -658,12 +654,10 @@ bool NavigationView::is_valid() const {
 
 View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     free_view();
-
     const auto p = new_view.get();
     view_stack.emplace_back(ViewState{std::move(new_view), {}});
 
     update_view();
-
     return p;
 }
 
@@ -791,7 +785,9 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() { nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
+                           [&nav, &app]() { 
+                            i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
+                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
         }
     };
 }
@@ -888,7 +884,6 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
-
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
@@ -928,6 +923,7 @@ SystemView::SystemView(
         } else {
             add_child(&info_view);
             info_view.refresh();
+            i2cdev::I2CDevManager::set_autoscan_interval(3);  // turn on autoscan in sysmainv
         }
 
         this->status_view.set_back_enabled(!this->navigation_view.is_top());

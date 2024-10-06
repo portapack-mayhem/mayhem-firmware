@@ -125,6 +125,9 @@ set(CSRC
 	${CHIBIOS}/os/various/chprintf.c
 )
 
+#look for all i2cdev_ files
+file(GLOB I2CDEV_SOURCES ${COMMON}/i2cdev_*.cpp)
+
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 set(CPPSRC
@@ -176,8 +179,8 @@ set(CPPSRC
 	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
-	${COMMON}/ads1110.cpp
-	${COMMON}/max17055.cpp
+	${COMMON}/i2cdevmanager.cpp
+	${I2CDEV_SOURCES}
 	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
@@ -292,7 +295,7 @@ set(CPPSRC
 	apps/ui_btle_rx.cpp
 	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
-	apps/ui_debug_battery.cpp
+	apps/ui_debug_max17055.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
 	apps/ui_fileman.cpp

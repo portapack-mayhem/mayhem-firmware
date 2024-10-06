@@ -126,6 +126,8 @@ class Message {
         BatteryStateData = 68,
         ProtoViewData = 69,
         FreqChangeCommand = 70,
+        I2CDevListChanged = 71,
+        LightData = 72,
         MAX
     };
 
@@ -1330,18 +1332,26 @@ class EnvironmentDataMessage : public Message {
     constexpr EnvironmentDataMessage(
         float temperature = 0,
         float humidity = 0,
-        float pressure = 0,
-        uint16_t light = 0)
+        float pressure = 0)
         : Message{ID::EnvironmentData},
           temperature{temperature},
           humidity{humidity},
-          pressure{pressure},
-          light{light} {
+          pressure{pressure} {
     }
     float temperature = 0;  // celsius
     float humidity = 0;     // percent (rh)
     float pressure = 0;     // hpa
-    uint16_t light = 0;     // lux
+};
+
+class LightDataMessage : public Message {
+   public:
+    constexpr LightDataMessage(
+
+        uint16_t light = 0)
+        : Message{ID::LightData},
+          light{light} {
+    }
+    uint16_t light = 0;  // lux
 };
 
 class AudioBeepMessage : public Message {
@@ -1421,6 +1431,12 @@ class FreqChangeCommandMessage : public Message {
     constexpr FreqChangeCommandMessage(int64_t freq)
         : Message{ID::FreqChangeCommand}, freq{freq} {}
     int64_t freq = 0;
+};
+
+class I2CDevListChangedMessage : public Message {
+   public:
+    constexpr I2CDevListChangedMessage()
+        : Message{ID::I2CDevListChanged} {}
 };
 
 #endif /*__MESSAGE_H__*/

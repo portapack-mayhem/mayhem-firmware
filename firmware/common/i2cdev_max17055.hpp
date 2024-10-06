@@ -25,9 +25,9 @@
 #include <cstdint>
 #include <array>
 #include <string>
-
 #include "battery.hpp"
-#include "i2c_pp.hpp"
+
+#include "i2cdevmanager.hpp"
 
 #define MAX17055_POR 0
 #define MAX17055_IMin 1
@@ -248,41 +248,36 @@
 #define MAX17055_AtRateEn 0
 #endif
 
-namespace battery {
-namespace max17055 {
+namespace i2cdev {
 
 using address_t = uint8_t;
 
-struct RegisterEntry {
-    const char* name;
-    uint8_t address;
-    const char* type;
-    float scalar;
-    bool is_signed;
-    const char* unit;
-    bool abbr_units;
-    int resolution;
-    bool is_user;
-    bool is_save_restore;
-    bool is_nv;
-    uint16_t por_data;
-    bool is_read_only;
-};
-
-class MAX17055 {
+class I2cDev_MAX17055 : public I2cDev {
    public:
-    constexpr MAX17055(I2C& bus, const I2C::address_t bus_address)
-        : bus(bus), bus_address(bus_address), detected_(false) {}
-
+    struct RegisterEntry {
+        const char* name;
+        uint8_t address;
+        const char* type;
+        float scalar;
+        bool is_signed;
+        const char* unit;
+        bool abbr_units;
+        int resolution;
+        bool is_user;
+        bool is_save_restore;
+        bool is_nv;
+        uint16_t por_data;
+        bool is_read_only;
+    };
     static const RegisterEntry entries[];
     static constexpr size_t entries_count = 144;
 
     uint16_t read_register(const uint8_t reg);
     bool write_register(const uint8_t reg, const uint16_t value);
 
-    void init();
+    bool init(uint8_t addr_) override;
+    void update() override;
     bool detect();
-    bool isDetected() const { return detected_; }
 
     void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
     bool reset_learned();
@@ -293,10 +288,6 @@ class MAX17055 {
     uint16_t stateOfCharge(void);
 
    private:
-    I2C& bus;
-    const I2C::address_t bus_address;
-    bool detected_ = false;
-
     const RegisterEntry* findEntry(const char* name) const;
 
     bool needsInitialization();
@@ -330,6 +321,5 @@ class MAX17055 {
     void config(void);
 };
 
-} /* namespace max17055 */
-}  // namespace battery
+} /* namespace i2cdev */
 #endif /* __MAX17055_H__ */

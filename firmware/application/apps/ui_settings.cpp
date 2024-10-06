@@ -50,6 +50,8 @@ namespace fs = std::filesystem;
 #include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 #include "config_mode.hpp"
+#include "i2cdevmanager.hpp"
+#include "i2cdev_max17055.hpp"
 
 extern ui::SystemView* system_view_ptr;
 
@@ -977,7 +979,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
                   &button_cancel,
                   &checkbox_overridebatt});
 
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BATT_MAX17055) add_children({&button_reset, &labels2});
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) add_children({&button_reset, &labels2});
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
@@ -987,7 +989,8 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     };
 
     button_reset.on_select = [&nav, this](Button&) {
-        if (battery::BatteryManagement::reset_learned())
+        auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+        if (dev->reset_learned())
             nav.display_modal("Reset", "Battery parameters reset");
         else
             nav.display_modal("Error", "Error parameter reset");

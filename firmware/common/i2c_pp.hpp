@@ -59,7 +59,7 @@ class I2C {
 
     void start(const I2CConfig& config);
     void stop();
-
+    bool probe(i2caddr_t addr, systime_t timeout = TIME_INFINITE);
     bool receive(
         const address_t slave_address,
         uint8_t* const data,

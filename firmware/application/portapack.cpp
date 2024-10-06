@@ -53,6 +53,8 @@ using asahi_kasei::ak4951::AK4951;
 #include "string_format.hpp"
 #include "bitmap.hpp"
 #include "ui_widget.hpp"
+#include "i2cdevmanager.hpp"
+#include "battery.hpp"
 
 namespace portapack {
 
@@ -588,7 +590,8 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
-    battery::BatteryManagement::init(persistent_memory::ui_override_batt_calc());
+    battery::BatteryManagement::set_calc_override(persistent_memory::ui_override_batt_calc());
+    i2cdev::I2CDevManager::init();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);

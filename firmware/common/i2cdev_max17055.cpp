@@ -19,17 +19,17 @@ along with this program; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street,
 Boston, MA 02110-1301, USA.
 */
-#include "max17055.hpp"
+#include "i2cdev_max17055.hpp"
+#include "battery.hpp"
 #include "utility.hpp"
 #include "portapack_persistent_memory.hpp"
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
 
-namespace battery {
-namespace max17055 {
+namespace i2cdev {
 
-const RegisterEntry MAX17055::entries[] = {
+const I2cDev_MAX17055::RegisterEntry I2cDev_MAX17055::entries[] = {
     {"Status", 0x00, "", 1, false, "", false, 0, true, false, false, 0, false},
     {"VAlrtTh", 0x01, "", 1, false, "", false, 0, true, false, false, 0, false},
     {"TAlrtTh", 0x02, "", 1, false, "", false, 0, true, false, false, 0, false},
@@ -184,11 +184,24 @@ const RegisterEntry MAX17055::entries[] = {
     {"Reserved", 0xFF, "", 0.00390625, false, "%", true, 6, true, false, false, 0, true},
 };
 
-void MAX17055::init() {
-    if (!detected_) {
-        detected_ = detect();
-    }
-    if (detected_) {
+void I2cDev_MAX17055::update() {
+    uint8_t validity = 0;
+    uint8_t batteryPercentage = 102;
+    uint16_t voltage = 0;
+    int32_t current = 0;
+    getBatteryInfo(validity, batteryPercentage, voltage, current);
+
+    // send local message
+    BatteryStateMessage msg{validity, batteryPercentage, current >= 0, voltage};
+    EventDispatcher::send_message(msg);
+}
+
+bool I2cDev_MAX17055::init(uint8_t addr_) {
+    if (addr_ != I2CDEV_MAX17055_ADDR_1) return false;
+    addr = addr_;
+    model = I2CDEVMDL_MAX17055;
+    query_interval = BATTERY_WIDGET_REFRESH_INTERVAL;
+    if (detect()) {
         if (needsInitialization()) {
             // First-time or POR initialization
             full_reset_and_init();
@@ -198,10 +211,12 @@ void MAX17055::init() {
         }
         partialInit();
         // statusClear(); I am not sure if this should be here or not
+        return true;
     }
+    return false;
 }
 
-bool MAX17055::full_reset_and_init() {
+bool I2cDev_MAX17055::full_reset_and_init() {
     if (!soft_reset()) {
         return false;
     }
@@ -221,11 +236,11 @@ bool MAX17055::full_reset_and_init() {
     return true;
 }
 
-bool MAX17055::soft_reset() {
+bool I2cDev_MAX17055::soft_reset() {
     return write_register(0x0BB, 0x0000);
 }
 
-bool MAX17055::initialize_custom_parameters() {
+bool I2cDev_MAX17055::initialize_custom_parameters() {
     if (!write_register(0xD0, 0x03E8)) return false;  // Unknown register, possibly related to battery profile
     if (!write_register(0xDB, 0x0000)) return false;  // ModelCfg
     if (!write_register(0x05, 0x0000)) return false;  // RepCap
@@ -241,7 +256,7 @@ bool MAX17055::initialize_custom_parameters() {
     return true;
 }
 
-bool MAX17055::load_custom_parameters() {
+bool I2cDev_MAX17055::load_custom_parameters() {
     uint16_t hib_cfg = read_register(0xBA);
     if (!write_register(0xBA, 0x0000)) return false;  // Disable hibernate mode
     if (!write_register(0x60, 0x0000)) return false;  // Unknown register
@@ -259,13 +274,13 @@ bool MAX17055::load_custom_parameters() {
     return true;
 }
 
-bool MAX17055::clear_por() {
+bool I2cDev_MAX17055::clear_por() {
     uint16_t status = read_register(0x00);
     status &= ~(1 << 1);
     return write_register(0x00, status);
 }
 
-bool MAX17055::needsInitialization() {
+bool I2cDev_MAX17055::needsInitialization() {
     uint16_t UserMem1 = read_register(0x40);
 
     if (UserMem1 == 0) {
@@ -274,41 +289,38 @@ bool MAX17055::needsInitialization() {
     return false;
 }
 
-void MAX17055::partialInit() {
+void I2cDev_MAX17055::partialInit() {
     // Only update necessary volatile settings
     setHibCFG(0x0000);  // If you always want hibernation disabled
     // Add any other volatile settings that need updating
 }
 
-bool MAX17055::reset_learned() {
+bool I2cDev_MAX17055::reset_learned() {
     // this if for reset all the learned parameters by ic
     // the full inis should do this
     full_reset_and_init();
     return true;
 }
 
-bool MAX17055::detect() {
+bool I2cDev_MAX17055::detect() {
     // Read the DevName register (0x21)
     uint16_t dev_name = read_register(0x21);
 
     // The DevName register should return 0x4010 for MAX17055
     if (dev_name == 0x4010) {
-        detected_ = true;
         return true;
     }
 
     // If DevName doesn't match, try reading Status register as a fallback
     uint16_t status = read_register(0x00);
     if (status != 0xFFFF && status != 0x0000) {
-        detected_ = true;
         return true;
     }
 
-    detected_ = false;
     return false;
 }
 
-const RegisterEntry* MAX17055::findEntry(const char* name) const {
+const I2cDev_MAX17055::RegisterEntry* I2cDev_MAX17055::findEntry(const char* name) const {
     for (const auto& entry : entries) {
         if (std::strcmp(entry.name, name) == 0) {
             return &entry;
@@ -317,48 +329,47 @@ const RegisterEntry* MAX17055::findEntry(const char* name) const {
     return nullptr;
 }
 
-uint16_t MAX17055::read_register(const uint8_t reg) {
+uint16_t I2cDev_MAX17055::read_register(const uint8_t reg) {
     const std::array<uint8_t, 1> tx{reg};
     std::array<uint8_t, 2> rx{0x00, 0x00};
 
-    bus.transmit(bus_address, tx.data(), tx.size());
-    bus.receive(bus_address, rx.data(), rx.size());
+    i2cbus.transmit(addr, tx.data(), tx.size());
+    i2cbus.receive(addr, rx.data(), rx.size());
 
     // Combine the two bytes into a 16-bit value
     // little-endian format (LSB first)
     return static_cast<uint16_t>((rx[1] << 8) | rx[0]);
 }
 
-bool MAX17055::write_register(const uint8_t reg, const uint16_t value) {
+bool I2cDev_MAX17055::write_register(const uint8_t reg, const uint16_t value) {
     std::array<uint8_t, 3> tx;
     tx[0] = reg;
     tx[1] = value & 0xFF;         // Low byte
     tx[2] = (value >> 8) & 0xFF;  // High byte
 
-    bool success = bus.transmit(bus_address, tx.data(), tx.size());
+    bool success = i2cbus.transmit(addr, tx.data(), tx.size());
     chThdSleepMilliseconds(1);
     return success;
 }
 
-void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
-    if (detected_) {
-        // Read Status Register
-        uint16_t status = read_register(0x00);
-        voltage = averageMVoltage();
-        if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
-            valid_mask = 0;
-            return;
-        }
-        batteryPercentage = stateOfCharge();
-        current = instantCurrent();
-        valid_mask = 31;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT + BATT_VALID_CYCLES + BATT_VALID_TTEF
-    } else {
-        // let's indicate the data is wrong. ui will handle this by display UNK values.
+void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+    // Read Status Register
+    uint16_t status = read_register(0x00);
+    voltage = averageMVoltage();
+    if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
         valid_mask = 0;
+        return;
+    }
+    batteryPercentage = stateOfCharge();
+    current = instantCurrent();
+    valid_mask = 31;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT + BATT_VALID_CYCLES + BATT_VALID_TTEF
+    if (battery::BatteryManagement::calcOverride) {
+        valid_mask &= ~battery::BatteryManagement::BATT_VALID_PERCENT;  // indicate it is voltage based
+        batteryPercentage = battery::BatteryManagement::calc_percent_voltage(voltage);
     }
 }
 
-float MAX17055::getValue(const char* entityName) {
+float I2cDev_MAX17055::getValue(const char* entityName) {
     const RegisterEntry* entry = findEntry(entityName);
     if (entry) {
         uint16_t raw_value = read_register(entry->address);
@@ -376,11 +387,11 @@ float MAX17055::getValue(const char* entityName) {
     return 0;  // Return 0 if entry not found
 }
 
-uint16_t MAX17055::averageMVoltage(void) {
+uint16_t I2cDev_MAX17055::averageMVoltage(void) {
     return static_cast<uint16_t>(getValue("AvgVCell") * 1000.0f);  // Convert to millivolts
 }
 
-int32_t MAX17055::instantCurrent(void) {
+int32_t I2cDev_MAX17055::instantCurrent(void) {
     return getValue("Current");
 
     // Get Data from IC
@@ -395,11 +406,11 @@ int32_t MAX17055::instantCurrent(void) {
     return _Value;
 }
 
-uint16_t MAX17055::stateOfCharge(void) {
+uint16_t I2cDev_MAX17055::stateOfCharge(void) {
     return getValue("RepSOC");
 }
 
-bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
+bool I2cDev_MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
     // Calculate the new VE_Empty value (upper 9 bits)
     uint16_t ve_empty = ((_Empty_Voltage * 100) / 10) & 0xFF80;
 
@@ -413,7 +424,7 @@ bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
     return write_register(0x3A, new_value);
 }
 
-bool MAX17055::setRecoveryVoltage(uint16_t _Recovery_Voltage) {
+bool I2cDev_MAX17055::setRecoveryVoltage(uint16_t _Recovery_Voltage) {
     // Calculate the new VR_Empty value (lower 7 bits)
     uint16_t vr_empty = (_Recovery_Voltage * 25) & 0x007F;  // 40mV per bit, 25 = 1000/40
 
@@ -427,7 +438,7 @@ bool MAX17055::setRecoveryVoltage(uint16_t _Recovery_Voltage) {
     return write_register(0x3A, new_value);
 }
 
-bool MAX17055::setMinVoltage(uint16_t _Minimum_Voltage) {
+bool I2cDev_MAX17055::setMinVoltage(uint16_t _Minimum_Voltage) {
     uint16_t current_value = read_register(0x01);
 
     uint16_t min_voltage_raw = (_Minimum_Voltage * 50) & 0x00FF;  // 20mV per bit, 50 = 1000/20
@@ -436,7 +447,7 @@ bool MAX17055::setMinVoltage(uint16_t _Minimum_Voltage) {
     return write_register(0x01, new_value);
 }
 
-bool MAX17055::setMaxVoltage(uint16_t _Maximum_Voltage) {
+bool I2cDev_MAX17055::setMaxVoltage(uint16_t _Maximum_Voltage) {
     uint16_t current_value = read_register(0x01);
 
     uint16_t max_voltage_raw = ((_Maximum_Voltage * 50) & 0x00FF) << 8;  // 20mV per bit, 50 = 1000/20
@@ -445,7 +456,7 @@ bool MAX17055::setMaxVoltage(uint16_t _Maximum_Voltage) {
     return write_register(0x01, new_value);
 }
 
-bool MAX17055::setMaxCurrent(uint16_t _Maximum_Current) {
+bool I2cDev_MAX17055::setMaxCurrent(uint16_t _Maximum_Current) {
     uint16_t current_value = read_register(0xB4);
 
     uint16_t max_current_raw = ((_Maximum_Current * 25) & 0x00FF) << 8;  // 40mV per bit, 25 = 1000/40
@@ -454,34 +465,34 @@ bool MAX17055::setMaxCurrent(uint16_t _Maximum_Current) {
     return write_register(0xB4, new_value);
 }
 
-bool MAX17055::setChargeTerminationCurrent(uint16_t _Charge_Termination_Current) {
+bool I2cDev_MAX17055::setChargeTerminationCurrent(uint16_t _Charge_Termination_Current) {
     float lsb_mA = 1.5625 / (__MAX17055_Resistor__ * 1000);  // Convert to mA
     uint16_t ichgterm_value = static_cast<uint16_t>(round(_Charge_Termination_Current / lsb_mA));
 
     return write_register(0x1E, ichgterm_value);
 }
 
-bool MAX17055::setDesignCapacity(const uint16_t _Capacity) {
+bool I2cDev_MAX17055::setDesignCapacity(const uint16_t _Capacity) {
     uint16_t raw_cap = (uint16_t)_Capacity * 2;
     return write_register(0x18, raw_cap);
 }
 
-bool MAX17055::setFullCapRep(const uint16_t _Capacity) {
+bool I2cDev_MAX17055::setFullCapRep(const uint16_t _Capacity) {
     uint16_t raw_cap = _Capacity * 2;  // 0.5mAh per LSB
     return write_register(0x10, raw_cap);
 }
 
-bool MAX17055::setFullCapNom(const uint16_t _Capacity) {
+bool I2cDev_MAX17055::setFullCapNom(const uint16_t _Capacity) {
     uint16_t raw_cap = _Capacity * 2;  // 0.5mAh per LSB
     return write_register(0x23, raw_cap);
 }
 
-bool MAX17055::setRepCap(const uint16_t _Capacity) {
+bool I2cDev_MAX17055::setRepCap(const uint16_t _Capacity) {
     uint16_t raw_cap = _Capacity * 2;  // 0.5mAh per LSB
     return write_register(0x05, raw_cap);
 }
 
-bool MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
+bool I2cDev_MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
     uint16_t current_value = read_register(0x03);
 
     uint16_t min_soc_raw = ((_Minimum_SOC * 256) / 100) & 0x00FF;
@@ -490,7 +501,7 @@ bool MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
     return write_register(0x03, new_value);
 }
 
-bool MAX17055::setMaxSOC(uint8_t _Maximum_SOC) {
+bool I2cDev_MAX17055::setMaxSOC(uint8_t _Maximum_SOC) {
     uint16_t current_value = read_register(0x03);
 
     uint16_t max_soc_raw = (((_Maximum_SOC * 256) / 100) & 0x00FF) << 8;
@@ -499,7 +510,7 @@ bool MAX17055::setMaxSOC(uint8_t _Maximum_SOC) {
     return write_register(0x03, new_value);
 }
 
-bool MAX17055::setMinTemperature(uint8_t _Minimum_Temperature) {
+bool I2cDev_MAX17055::setMinTemperature(uint8_t _Minimum_Temperature) {
     uint16_t current_value = read_register(0x02);
 
     uint16_t min_temp_raw = (uint8_t)_Minimum_Temperature;
@@ -508,7 +519,7 @@ bool MAX17055::setMinTemperature(uint8_t _Minimum_Temperature) {
     return write_register(0x02, new_value);
 }
 
-bool MAX17055::setMaxTemperature(uint8_t _Maximum_Temperature) {
+bool I2cDev_MAX17055::setMaxTemperature(uint8_t _Maximum_Temperature) {
     uint16_t current_value = read_register(0x02);
 
     uint16_t max_temp_raw = ((uint8_t)_Maximum_Temperature) << 8;
@@ -517,7 +528,7 @@ bool MAX17055::setMaxTemperature(uint8_t _Maximum_Temperature) {
     return write_register(0x02, new_value);
 }
 
-bool MAX17055::setModelCfg(const uint8_t _Model_ID) {
+bool I2cDev_MAX17055::setModelCfg(const uint8_t _Model_ID) {
     uint16_t model_cfg = 0x0400;  // Set Charge Voltage (bit 10)
 
     // Set Battery Model
@@ -537,11 +548,11 @@ bool MAX17055::setModelCfg(const uint8_t _Model_ID) {
     return write_register(0xDB, model_cfg);
 }
 
-bool MAX17055::setHibCFG(const uint16_t _Config) {
+bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
     return write_register(0xBA, _Config);
 }
 
-void MAX17055::config(void) {
+void I2cDev_MAX17055::config(void) {
     uint16_t config1 = 0x0000;
     uint16_t config2 = 0x0618;  // Default value: 0b00011000 00000110
 
@@ -575,7 +586,7 @@ void MAX17055::config(void) {
     write_register(0xBB, config2);
 }
 
-bool MAX17055::statusClear() {
+bool I2cDev_MAX17055::statusClear() {
     // Clear all bits in the Status register (0x00)
     return write_register(0x00, 0x0000);
 }
@@ -584,7 +595,7 @@ bool bitRead(uint8_t value, uint8_t bit) {
     return (value >> bit) & 0x01;
 }
 
-bool MAX17055::statusControl(const uint8_t _Status) {
+bool I2cDev_MAX17055::statusControl(const uint8_t _Status) {
     // Read Status Register (0x00)
     uint16_t status_register = read_register(0x00);
 
@@ -621,5 +632,4 @@ bool MAX17055::statusControl(const uint8_t _Status) {
     }
 }
 
-} /* namespace max17055 */
-}  // namespace battery
+} /* namespace i2cdev */
