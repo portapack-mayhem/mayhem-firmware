@@ -43,6 +43,37 @@ void BattinfoView::on_timer() {
     }
 }
 
+void BattinfoView::update_results_ads1110(i2cdev::I2cDev_ADS1110* dev) {
+    bool uichg = false;
+    auto voltage = dev->readVoltage();
+    auto percent = battery::BatteryManagement::calc_percent_voltage(voltage);
+    if (percent <= 100)
+        text_percent.set(to_string_dec_uint(percent) + " %");
+    else
+        text_percent.set("UNKNOWN");
+    if (voltage > 1) {
+        text_voltage.set(to_string_decimal(voltage / 1000.0, 3) + " V");
+    } else {
+        text_voltage.set("UNKNOWN");
+    }
+
+    // ui hide:
+    if (!labels_opt.hidden()) uichg = true;
+    labels_opt.hidden(true);
+    text_current.hidden(true);
+    text_charge.hidden(true);
+    labels_opt.hidden(true);
+    text_ttef.hidden(true);
+    text_cycles.hidden(true);
+    text_warn.set("");
+    text_ttef.hidden(true);
+    text_method.set("Voltage");
+    button_mode.set_text("Voltage");
+    if (uichg) set_dirty();
+    BatteryStateMessage msg{1, percent, false, voltage};
+    EventDispatcher::send_message(msg);
+}
+
 void BattinfoView::update_results_max17055(i2cdev::I2cDev_MAX17055* dev) {
     bool uichg = false;
     uint8_t valid_mask = 0;
@@ -111,7 +142,11 @@ void BattinfoView::update_result() {
         return;
     }
 
-    // todo htotoo fallback to a1110
+    dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_ADS1110);
+    if (dev) {
+        update_results_ads1110((i2cdev::I2cDev_ADS1110*)dev);
+        return;
+    }
 
     // no dev found
     text_percent.set("UNKNOWN");
