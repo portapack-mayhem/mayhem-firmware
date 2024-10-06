@@ -97,8 +97,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show(){};
-    virtual void on_hide(){};
+    virtual void on_show() {};
+    virtual void on_hide() {};
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
@@ -708,7 +708,7 @@ class OptionsField : public Widget {
     const size_t length_;
     options_t options_;
     size_t selected_index_{0};
-    bool centered_{false}; // e.g.: length as screen_width/8, x position as 0, it will be centered in x axis
+    bool centered_{false};  // e.g.: length as screen_width/8, x position as 0, it will be centered in x axis
 };
 
 // A TextEdit is bound to a string reference and allows the string
