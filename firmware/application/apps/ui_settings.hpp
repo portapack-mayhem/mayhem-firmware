@@ -843,9 +843,10 @@ class SetAutostartView : public View {
         "Save"};
 
     OptionsField options{
-        {8 * 8, 4 * 16},
-        30,
-        {}};
+        {0 * 8, 4 * 16},
+        screen_width / 8,
+        {},
+        true};
 
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
@@ -876,15 +877,16 @@ class SetThemeView : public View {
         "Save"};
 
     OptionsField options{
-        {8 * 8, 4 * 16},
-        30,
+        {0 * 8, 4 * 16},
+        screen_width / 8,
         {
             {"Default - Grey", 0},
             {"Yellow", 1},
             {"Aqua", 2},
             {"Green", 3},
             {"Red", 4},
-        }};
+        },
+        true};
 
     Checkbox checkbox_menuset{
         {2 * 8, 6 * 16},

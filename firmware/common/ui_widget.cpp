@@ -1794,15 +1794,17 @@ void OptionsField::paint(Painter& painter) {
         std::string_view temp = selected_index_name();
         if (temp.length() > length_)
             temp = temp.substr(0, length_);
-        
+
         Point draw_pos = screen_pos();
         if (centered_) {
-            // 计算居中位置
+            // 8 is because big font width is 8px
+            // type is from: struct Point : constexpr int x() const
             int text_width = temp.length() * 8;
             int available_width = length_ * 8;
-            draw_pos = Point(draw_pos.x() + (available_width - text_width) / 2, draw_pos.y());
+            int x_offset = (available_width - text_width) / 2;
+            draw_pos = {draw_pos.x() + x_offset, draw_pos.y()};
         }
-        
+
         painter.draw_string(
             draw_pos,
             paint_style,
@@ -2633,6 +2635,8 @@ void Waveform::set_length(const uint32_t new_length) {
 }
 
 void Waveform::paint(Painter& painter) {
+    // previously it's upside down , low level is up and high level is down, which doesn't make sense,
+    // if that was made for a reason, feel free to revert.
     size_t n;
     Coord y, y_offset = screen_rect().location().y();
     Coord prev_x = screen_rect().location().x(), prev_y;
@@ -2653,7 +2657,7 @@ void Waveform::paint(Painter& painter) {
         x = 0;
         h--;
         for (n = 0; n < length_; n++) {
-            y = *(data_start++) ? h : 0;
+            y = *(data_start++) ? 0 : h;
 
             if (n) {
                 if (y != prev_y)
@@ -2669,9 +2673,10 @@ void Waveform::paint(Painter& painter) {
         // Analog waveform: each value is a point's Y coordinate
         x = prev_x + x_inc;
         h /= 2;
-        prev_y = y_offset + h - (*(data_start++) * y_scale);
+
+        prev_y = y_offset + h + (*(data_start++) * y_scale);
         for (n = 1; n < length_; n++) {
-            y = y_offset + h - (*(data_start++) * y_scale);
+            y = y_offset + h + (*(data_start++) * y_scale);
             display.draw_line({prev_x, prev_y}, {(Coord)x, y}, color_);
 
             prev_x = x;
