@@ -289,6 +289,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
     (void)arg;
     uint16_t curr_timer = 0;  // seconds since thread start
     while (1) {
+        systime_t start_time = chTimeNow();
         bool changed = false;
         // check if i2c scan needed
         if (force_scan || (scan_interval != 0 && curr_timer % scan_interval == 0)) {
@@ -319,7 +320,11 @@ msg_t I2CDevManager::timer_fn(void* arg) {
             I2CDevListChangedMessage msg{};
             EventDispatcher::send_message(msg);
         }
-        chThdSleepMilliseconds(1000);  // 1sec timer //todo htotoo make it really 1 sec, substract the elpased time, but minimayl wait of 100 must be met
+        systime_t end_time = chTimeNow();
+        systime_t delta = (end_time > start_time) ? end_time - start_time : 100;  // wont calculate overflow, just guess.
+        if (delta > 950) delta = 950;                                             // ensure minimum 50 milli sleep
+
+        chThdSleepMilliseconds(1000 - delta);  // 1sec timer
         ++curr_timer;
     }
     return 0;
