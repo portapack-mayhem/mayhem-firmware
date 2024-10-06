@@ -29,6 +29,7 @@
 #include "i2cdev_bmx280.hpp"
 #include "i2cdev_sht3x.hpp"
 #include "i2cdev_max17055.hpp"
+#include "i2cdev_ads1110.hpp"
 
 namespace i2cdev {
 
@@ -53,6 +54,7 @@ bool I2CDevManager::found(uint8_t addr) {
     // try to find a suitable driver
     I2DevListElement item;
     item.addr = addr;
+
     /*
         DEAR DEVS
         Put your driver's init code here. ALLWAYS check the !item.dev, if any other driver already took it. Also check the addr if it suits your module. (also need additional checks in the init() code)
@@ -73,9 +75,31 @@ bool I2CDevManager::found(uint8_t addr) {
         if (!item.dev->init(addr)) item.dev = nullptr;
     }
 
+    if (!item.dev && (addr == I2CDEV_ADS1110_ADDR_1)) {
+        item.dev = std::make_unique<I2cDev_ADS1110>();
+        if (!item.dev->init(addr)) item.dev = nullptr;
+    }
+
     // if can't find any driver, add it too with empty, so we won't try to init it again and again
     devlist.push_back(std::move(item));
     return true;
+}
+
+/*
+
+
+FROM HERE YOU SHOULDN'T WRITE ANYTHING IF YOU JUST IMPLEMENT A NEW DRIVER
+(maybe maximum i2c_rewd / write helpers)
+
+
+
+*/
+
+void I2cDev::set_update_interval(uint8_t interval) {
+    query_interval = interval;
+}
+uint8_t I2cDev::det_update_interval() {
+    return query_interval;
 }
 
 void I2cDev::got_error() {
@@ -86,6 +110,12 @@ void I2cDev::got_error() {
 void I2cDev::got_success() {
     errcnt = 0;
 }
+
+/*
+
+    I2C read / write functions and helpers.
+
+*/
 
 bool I2cDev::i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
     if (bytes == 0) return false;
@@ -156,6 +186,8 @@ int16_t I2cDev::readS16_LE_1(uint8_t reg) {
     return (int16_t)read16_LE_1(reg);
 }
 
+// END OF i2C communication + helpers
+
 void I2CDevManager::init() {
     force_scan = true;
     create_thread();
@@ -184,7 +216,7 @@ I2cDev* I2CDevManager::get_dev_by_addr(uint8_t addr) {
     return nullptr;
 }
 
-I2cDev* I2CDevManager::get_dev_by_model(I2C_DEVS model) {
+I2cDev* I2CDevManager::get_dev_by_model(I2C_DEVMDL model) {
     // chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
         if (devlist[i].dev && devlist[i].dev->model == model) {
@@ -196,8 +228,8 @@ I2cDev* I2CDevManager::get_dev_by_model(I2C_DEVS model) {
     return nullptr;
 }
 
-std::vector<I2C_DEVS> I2CDevManager::get_dev_list_by_model() {
-    std::vector<I2C_DEVS> ret;
+std::vector<I2C_DEVMDL> I2CDevManager::get_dev_list_by_model() {
+    std::vector<I2C_DEVMDL> ret;
     // chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
         if (devlist[i].dev) {

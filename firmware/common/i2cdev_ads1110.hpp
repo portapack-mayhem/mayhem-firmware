@@ -19,39 +19,29 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __ADS1110_H__
-#define __ADS1110_H__
+#ifndef __I2CDEV_ADS1110_H__
+#define __I2CDEV_ADS1110_H__
 
 #include <cstdint>
 #include <array>
 #include <string>
+#include "battery.hpp"
+#include "i2cdevmanager.hpp"
 
-#include "i2c_pp.hpp"
-namespace battery {
-namespace ads1110 {
+namespace i2cdev {
 
 using address_t = uint8_t;
 
-class ADS1110 {
+class I2cDev_ADS1110 : public I2cDev {
    public:
-    constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
-        : bus(bus), bus_address(bus_address), detected_(false) {}
-
-    void init();
-    bool detect();
-    bool isDetected() const { return detected_; }
-
+    bool init(uint8_t addr_) override;
+    void update() override;
     uint16_t readVoltage();
-    void getBatteryInfo(uint8_t& valid_mask, uint16_t& voltage);
 
    private:
-    I2C& bus;
-    const I2C::address_t bus_address;
-    bool detected_;
-
     bool write(const uint8_t value);
+    bool detect();
 };
 
-} /* namespace ads1110 */
-}  // namespace battery
-#endif /* __ADS1110_H__ */
+} /* namespace i2cdev */
+#endif /* __I2CDEV_ADS1110_H__ */

@@ -30,6 +30,7 @@ namespace battery {
 #define BATTERY_MAX_VOLTAGE 4170.0
 #define BATTERY_DESIGN_CAP 2500
 
+// this will just hold the config and a calculation. also some defines above for the battery management. could be movet to the classes, but it is a bit more readeable i think.
 class BatteryManagement {
    public:
     enum BatteryValidMask {

@@ -40,9 +40,12 @@ namespace i2cdev {
 // The device class. You'll derive your from this. Override init() and update();
 class I2cDev {
    public:
-    virtual ~I2cDev(){};
+    virtual ~I2cDev() {};
     virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
     virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
+
+    void set_update_interval(uint8_t interval);  // sets the device's update interval in sec
+    uint8_t det_update_interval();               // gets the device's update interval in sec
 
     bool i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes);   // if want to read without register addr, just set reg_size to 0. this way can read 8, or 16 or 32 bit registers too. reg_size in bytes! returns true on succes. handles the errcnt automatically!
     bool i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes);  // if want to write without register addr, just set reg_size to 0. this way can read 8, or 16 or 32 bit registers too. reg_size in bytes! returns true on succes. handles the errcnt automatically!
@@ -56,9 +59,9 @@ class I2cDev {
     int16_t readS16_LE_1(uint8_t reg);
     uint32_t read24_1(uint8_t reg);
 
-    bool need_del = false;           // device can self destruct, and re-init when new scan discovers it
-    I2C_DEVS model = I2CDEV_NOTSET;  // overwrite it in the init()!!!
-    uint8_t query_interval = 5;      // in seconds. can be overriden in init() if necessary
+    bool need_del = false;                // device can self destruct, and re-init when new scan discovers it
+    I2C_DEVMDL model = I2CDEVMDL_NOTSET;  // overwrite it in the init()!!!
+    uint8_t query_interval = 5;           // in seconds. can be overriden in init() if necessary
    protected:
     void got_error();    // i2c communication will call this when communication was not ok. you can call it from any part of your code too.
     void got_success();  // i2c communication will call this when the communication was ok. you can call it from any part of your code too.
@@ -80,10 +83,10 @@ class I2CDevManager {
     static void manual_scan();                             // it'll init a forced device scan in the thread's next cycle. (1sec max)
     static void set_autoscan_interval(uint16_t interval);  // 0 no auto scan, other values: seconds
     static uint16_t get_autoscan_interval();
-    static I2cDev* get_dev_by_addr(uint8_t addr);          // caller function needs to cast to the specific device!
-    static I2cDev* get_dev_by_model(I2C_DEVS model);       // caller function needs to cast to the specific device!
-    static std::vector<I2C_DEVS> get_dev_list_by_model();  // returns the currently discovered
-    static std::vector<uint8_t> get_gev_list_by_addr();    // returns the currently discovered
+    static I2cDev* get_dev_by_addr(uint8_t addr);            // caller function needs to cast to the specific device!
+    static I2cDev* get_dev_by_model(I2C_DEVMDL model);       // caller function needs to cast to the specific device!
+    static std::vector<I2C_DEVMDL> get_dev_list_by_model();  // returns the currently discovered
+    static std::vector<uint8_t> get_gev_list_by_addr();      // returns the currently discovered
 
    private:
     static uint16_t scan_interval;
@@ -95,7 +98,7 @@ class I2CDevManager {
     static void create_thread();
     static msg_t timer_fn(void* arg);
     static Thread* thread;
-    static Mutex mutex_list;  // todo fix mutex crash
+    static Mutex mutex_list;  // todo htotoo fix mutex crash
 };
 };  // namespace i2cdev
 #endif

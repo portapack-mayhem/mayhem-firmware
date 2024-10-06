@@ -27,7 +27,7 @@ BatteryCapacityView::BatteryCapacityView(NavigationView& nav) {
 
     button_done.on_select = [&nav](Button&) { nav.pop(); };
 
-    auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVS::I2CDEV_MAX17055);
+    auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
     if (!dev) {  // dev not found
         nav.pop();
         return;
@@ -52,7 +52,7 @@ bool BatteryCapacityView::on_encoder(const EncoderEvent delta) {
 }
 
 void BatteryCapacityView::update_values() {
-    i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVS::I2CDEV_MAX17055);
+    i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
     for (size_t i = 0; i < ENTRIES_PER_PAGE; ++i) {
         size_t entry_index = current_page * ENTRIES_PER_PAGE + i;
         if (entry_index < i2cdev::I2cDev_MAX17055::entries_count) {

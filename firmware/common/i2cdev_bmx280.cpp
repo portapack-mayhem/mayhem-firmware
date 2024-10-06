@@ -25,15 +25,15 @@ namespace i2cdev {
 
 bool I2cDev_BMX280::init(uint8_t addr_) {
     if (addr_ != I2CDEV_BMX280_ADDR_1 && addr_ != I2CDEV_BMX280_ADDR_2) return false;
-    addr = addr_;                     // store the addr
-    model = I2C_DEVS::I2CDEV_BMP280;  // set the device model!!!!!!!!!!!!!!!!!!
-    query_interval = 5;               // set update interval in sec
+    addr = addr_;                          // store the addr
+    model = I2C_DEVMDL::I2CDEVMDL_BMP280;  // set the device model!!!!!!!!!!!!!!!!!!
+    query_interval = 5;                    // set update interval in sec
 
     uint8_t reg = BME280_REG_CHIPID;                                   // register
     uint8_t tmp = 0;                                                   // value. will save fw space, but harder to read code. so read comments
     i2c_read(&reg, 1, &tmp, 1);                                        // read chip id to tmp
     if (tmp != CHIP_ID_BMP280 && tmp != CHIP_ID_BME280) return false;  // this is not BME280 or BMP280, so skip
-    if (tmp == CHIP_ID_BME280) model = I2C_DEVS::I2CDEV_BME280;        // update dev model, since this driver can handle 2 type of models
+    if (tmp == CHIP_ID_BME280) model = I2C_DEVMDL::I2CDEVMDL_BME280;   // update dev model, since this driver can handle 2 type of models
 
     // here we can be "sure" this is a bmp280, so init it
 
@@ -88,7 +88,7 @@ void I2cDev_BMX280::read_coeff() {
     _dig_P8 = readS16_LE_1(BMX280_REG_DIG_P8);
     _dig_P9 = readS16_LE_1(BMX280_REG_DIG_P9);
 
-    if (model == I2C_DEVS::I2CDEV_BME280) {
+    if (model == I2C_DEVMDL::I2CDEVMDL_BME280) {
         _dig_H1 = read8_1(BME280_REG_DIG_H1);
         _dig_H2 = readS16_LE_1(BME280_REG_DIG_H2);
         _dig_H3 = read8_1(BME280_REG_DIG_H3);
@@ -102,7 +102,7 @@ void I2cDev_BMX280::set_sampling() {
     //
     write8_1(BMX280_REG_CTRL_MEAS, BMX280_MODE_SLEEP);
     write8_1(BMX280_REG_CONFIG, (uint8_t)((BMX280_STANDBY_MS_0_5 << 5) | (BMX280_FILTER_OFF << 2)));
-    if (model == I2C_DEVS::I2CDEV_BME280) write8_1(BME280_REG_CTRL_HUM, BMX280_SAMPLING_X16);
+    if (model == I2C_DEVMDL::I2CDEVMDL_BME280) write8_1(BME280_REG_CTRL_HUM, BMX280_SAMPLING_X16);
     write8_1(BMX280_REG_CTRL_MEAS, (uint8_t)((BMX280_SAMPLING_X16 << 5) | (BMX280_SAMPLING_X16 << 2) | BMX280_MODE_NORMAL));
 }
 
@@ -160,7 +160,7 @@ float I2cDev_BMX280::read_pressure() {
 }
 
 float I2cDev_BMX280::read_humidity() {
-    if (model != I2C_DEVS::I2CDEV_BME280) return 0;
+    if (model != I2C_DEVMDL::I2CDEVMDL_BME280) return 0;
     int32_t var1, var2, var3, var4, var5;
     // readTemperature();  // must be done first to get t_fine
     int32_t adc_H = read16_1(BME280_REG_HUM);

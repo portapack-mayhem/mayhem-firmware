@@ -33,6 +33,7 @@
 #include "string_format.hpp"
 #include "usb_serial_device_to_host.h"
 #include "rtc_time.hpp"
+#include "battery.hpp"
 
 using namespace portapack;
 using namespace rtc_time;

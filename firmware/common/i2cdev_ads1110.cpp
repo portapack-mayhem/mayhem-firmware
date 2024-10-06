@@ -19,53 +19,60 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ads1110.hpp"
+#include "i2cdev_ads1110.hpp"
 #include "utility.hpp"
 #include <algorithm>
 #include <cstdint>
 
-namespace battery {
-namespace ads1110 {
+namespace i2cdev {
 
-void ADS1110::init() {
-    if (!detected_) {
-        detected_ = detect();
-    }
-    if (detected_) {
+bool I2cDev_ADS1110::init(uint8_t addr_) {
+    if (addr_ != I2CDEV_ADS1110_ADDR_1) return false;
+    addr = addr_;
+    model = I2CDEVMDL_ADS1110;
+    query_interval = BATTERY_WIDGET_REFRESH_INTERVAL;
+
+    if (detect()) {
         // Set the configuration register
         write(0x8C);
+        return true;
     }
+    return false;
 }
 
-bool ADS1110::detect() {
+bool I2cDev_ADS1110::detect() {
     uint8_t data[3];
-    if (bus.receive(bus_address, data, 3)) {
+    if (i2cbus.receive(addr, data, 3)) {
         // Check if the received data is valid
         uint8_t configRegister = data[2];
         if ((configRegister & 0x0F) == 0x0C) {
             // The configuration register value matches the expected value (0x8C)
-            detected_ = true;
             return true;
         }
     }
-    detected_ = false;
     return false;
 }
 
-bool ADS1110::write(const uint8_t value) {
-    return bus.transmit(bus_address, &value, 1);
+void I2cDev_ADS1110::update() {
+    uint16_t voltage = readVoltage();
+    uint8_t batteryPercentage = battery::BatteryManagement::calc_percent_voltage(voltage);
+    // send local message
+    BatteryStateMessage msg{1, batteryPercentage, false, voltage};
+    EventDispatcher::send_message(msg);
+}
+
+bool I2cDev_ADS1110::write(const uint8_t value) {
+    return i2cbus.transmit(addr, &value, 1);
 }
 
 // returns the batt voltage in mV
-uint16_t ADS1110::readVoltage() {
+uint16_t I2cDev_ADS1110::readVoltage() {
     // Read the conversion result
     uint8_t data[3];
-    if (!bus.receive(bus_address, data, 3)) {
+    if (!i2cbus.receive(addr, data, 3)) {
         return 0.0f;  // Return 0 if the read fails
     }
-
     uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
-
     // Calculate the voltage based on the output code
     int16_t voltage = 0;
     float minCode = 0;
@@ -115,10 +122,4 @@ uint16_t ADS1110::readVoltage() {
     return (uint16_t)voltage;
 }
 
-void ADS1110::getBatteryInfo(uint8_t& valid_mask, uint16_t& voltage) {
-    voltage = readVoltage();
-    valid_mask = 1;  // BATT_VALID_VOLTAGE
-}
-
-} /* namespace ads1110 */
-}  // namespace battery
+} /* namespace i2cdev */

@@ -33,12 +33,9 @@
 #include "backlight.hpp"
 #include "usb_serial.hpp"
 
-#include "ads1110.hpp"
-
 #include "radio.hpp"
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
-#include "battery.hpp"
 #include "theme.hpp"
 
 /* TODO: This would be better as a class to add

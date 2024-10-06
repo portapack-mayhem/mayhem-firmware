@@ -198,13 +198,10 @@ void I2cDev_MAX17055::update() {
 
 bool I2cDev_MAX17055::init(uint8_t addr_) {
     if (addr_ != I2CDEV_MAX17055_ADDR_1) return false;
-    bus_address = addr_;
-    model = I2CDEV_MAX17055;
-    query_interval = 20;  // set update interval in sec
-    if (!detected_) {
-        detected_ = detect();
-    }
-    if (detected_) {
+    addr = addr_;
+    model = I2CDEVMDL_MAX17055;
+    query_interval = BATTERY_WIDGET_REFRESH_INTERVAL;
+    if (detect()) {
         if (needsInitialization()) {
             // First-time or POR initialization
             full_reset_and_init();
@@ -311,18 +308,15 @@ bool I2cDev_MAX17055::detect() {
 
     // The DevName register should return 0x4010 for MAX17055
     if (dev_name == 0x4010) {
-        detected_ = true;
         return true;
     }
 
     // If DevName doesn't match, try reading Status register as a fallback
     uint16_t status = read_register(0x00);
     if (status != 0xFFFF && status != 0x0000) {
-        detected_ = true;
         return true;
     }
 
-    detected_ = false;
     return false;
 }
 
@@ -339,8 +333,8 @@ uint16_t I2cDev_MAX17055::read_register(const uint8_t reg) {
     const std::array<uint8_t, 1> tx{reg};
     std::array<uint8_t, 2> rx{0x00, 0x00};
 
-    i2cbus.transmit(bus_address, tx.data(), tx.size());
-    i2cbus.receive(bus_address, rx.data(), rx.size());
+    i2cbus.transmit(addr, tx.data(), tx.size());
+    i2cbus.receive(addr, rx.data(), rx.size());
 
     // Combine the two bytes into a 16-bit value
     // little-endian format (LSB first)
@@ -353,30 +347,25 @@ bool I2cDev_MAX17055::write_register(const uint8_t reg, const uint16_t value) {
     tx[1] = value & 0xFF;         // Low byte
     tx[2] = (value >> 8) & 0xFF;  // High byte
 
-    bool success = i2cbus.transmit(bus_address, tx.data(), tx.size());
+    bool success = i2cbus.transmit(addr, tx.data(), tx.size());
     chThdSleepMilliseconds(1);
     return success;
 }
 
 void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
-    if (detected_) {
-        // Read Status Register
-        uint16_t status = read_register(0x00);
-        voltage = averageMVoltage();
-        if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
-            valid_mask = 0;
-            return;
-        }
-        batteryPercentage = stateOfCharge();
-        current = instantCurrent();
-        valid_mask = 31;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT + BATT_VALID_CYCLES + BATT_VALID_TTEF
-        if (battery::BatteryManagement::calcOverride) {
-            valid_mask &= ~battery::BatteryManagement::BATT_VALID_PERCENT;  // indicate it is voltage based
-            batteryPercentage = battery::BatteryManagement::calc_percent_voltage(voltage);
-        }
-    } else {
-        // let's indicate the data is wrong. ui will handle this by display UNK values.
+    // Read Status Register
+    uint16_t status = read_register(0x00);
+    voltage = averageMVoltage();
+    if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
         valid_mask = 0;
+        return;
+    }
+    batteryPercentage = stateOfCharge();
+    current = instantCurrent();
+    valid_mask = 31;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT + BATT_VALID_CYCLES + BATT_VALID_TTEF
+    if (battery::BatteryManagement::calcOverride) {
+        valid_mask &= ~battery::BatteryManagement::BATT_VALID_PERCENT;  // indicate it is voltage based
+        batteryPercentage = battery::BatteryManagement::calc_percent_voltage(voltage);
     }
 }
 

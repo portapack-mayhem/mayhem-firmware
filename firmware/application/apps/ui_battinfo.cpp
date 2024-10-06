@@ -105,7 +105,7 @@ void BattinfoView::update_results_max17055(i2cdev::I2cDev_MAX17055* dev) {
 }
 
 void BattinfoView::update_result() {
-    auto dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEV_MAX17055);
+    auto dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_MAX17055);
     if (dev) {
         update_results_max17055((i2cdev::I2cDev_MAX17055*)dev);
         return;

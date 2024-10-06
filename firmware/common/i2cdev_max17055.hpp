@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <array>
 #include <string>
+#include "battery.hpp"
 
 #include "i2cdevmanager.hpp"
 
@@ -277,7 +278,6 @@ class I2cDev_MAX17055 : public I2cDev {
     bool init(uint8_t addr_) override;
     void update() override;
     bool detect();
-    bool isDetected() const { return detected_; }
 
     void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
     bool reset_learned();
@@ -288,9 +288,6 @@ class I2cDev_MAX17055 : public I2cDev {
     uint16_t stateOfCharge(void);
 
    private:
-    I2C::address_t bus_address = 0;
-    bool detected_ = false;
-
     const RegisterEntry* findEntry(const char* name) const;
 
     bool needsInitialization();

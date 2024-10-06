@@ -971,7 +971,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
                   &button_cancel,
                   &checkbox_overridebatt});
 
-    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVS::I2CDEV_MAX17055)) add_children({&button_reset, &labels2});
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) add_children({&button_reset, &labels2});
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
@@ -981,7 +981,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     };
 
     button_reset.on_select = [&nav, this](Button&) {
-        auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVS::I2CDEV_MAX17055);
+        auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
         if (dev->reset_learned())
             nav.display_modal("Reset", "Battery parameters reset");
         else

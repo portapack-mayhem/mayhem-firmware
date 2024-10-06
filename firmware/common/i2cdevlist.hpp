@@ -22,13 +22,18 @@
 #ifndef __I2CDEVLIST_H__
 #define __I2CDEVLIST_H__
 
-enum I2C_DEVS {
-    I2CDEV_NOTSET,
-    I2CDEV_MAX17055,
-    I2CDEV_ADS1110,
-    I2CDEV_SHT3X,
-    I2CDEV_BMP280,
-    I2CDEV_BME280,
+/*
+    DEAR DEVS: Put your new driver to this enum's end. Also consider using define to store it's address.
+    If the same driver can handle multiple devices, with different data, should use different names. Like BMP280 + BME280. If the data is the same across multiple devices, can use the same name. Like SHT3x (sht30, sht31, ..)
+*/
+
+enum I2C_DEVMDL {
+    I2CDEVMDL_NOTSET,  // i2c dev present, but no driver for it
+    I2CDEVMDL_MAX17055,
+    I2CDEVMDL_ADS1110,
+    I2CDEVMDL_SHT3X,
+    I2CDEVMDL_BMP280,
+    I2CDEVMDL_BME280,
 };
 
 #define I2CDEV_BMX280_ADDR_1 0x76
@@ -37,5 +42,9 @@ enum I2C_DEVS {
 #define I2CDEV_SHT3X_ADDR_2 0x45
 
 #define I2CDEV_MAX17055_ADDR_1 0x36
+#define I2CDEV_ADS1110_ADDR_1 0x48
+
+// this will be the update interval for battery management ic's:
+#define BATTERY_WIDGET_REFRESH_INTERVAL 20
 
 #endif
