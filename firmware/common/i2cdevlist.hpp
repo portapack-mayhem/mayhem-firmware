@@ -34,6 +34,7 @@ enum I2C_DEVMDL {
     I2CDEVMDL_SHT3X,
     I2CDEVMDL_BMP280,
     I2CDEVMDL_BME280,
+    I2CDECMDL_BH1750,
 };
 
 #define I2CDEV_BMX280_ADDR_1 0x76
@@ -43,6 +44,8 @@ enum I2C_DEVMDL {
 
 #define I2CDEV_MAX17055_ADDR_1 0x36
 #define I2CDEV_ADS1110_ADDR_1 0x48
+
+#define I2CDEV_BH1750_ADDR_1 0x23
 
 // this will be the update interval for battery management ic's:
 #define BATTERY_WIDGET_REFRESH_INTERVAL 20
