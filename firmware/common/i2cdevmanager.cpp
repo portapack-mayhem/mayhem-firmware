@@ -39,7 +39,7 @@ uint16_t I2CDevManager::scan_interval = 0;
 bool I2CDevManager::force_scan = false;
 Thread* I2CDevManager::thread;
 std::vector<I2DevListElement> I2CDevManager::devlist;
-Mutex I2CDevManager::mutex_list;
+Mutex I2CDevManager::mutex_list{};
 
 /*
     DEAR DEVELOPERS!
@@ -211,50 +211,50 @@ uint16_t I2CDevManager::get_autoscan_interval() {
 }
 
 I2cDev* I2CDevManager::get_dev_by_addr(uint8_t addr) {
-    // chMtxLock(&mutex_list);
+    chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
         if (devlist[i].addr == addr) {
             chMtxUnlock();
             return devlist[i].dev.get();
         }
     }
-    // chMtxUnlock();
+    chMtxUnlock();
     return nullptr;
 }
 
 I2cDev* I2CDevManager::get_dev_by_model(I2C_DEVMDL model) {
-    // chMtxLock(&mutex_list);
+    chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
         if (devlist[i].dev && devlist[i].dev->model == model) {
-            // chMtxUnlock();
+            chMtxUnlock();
             return devlist[i].dev.get();
         }
     }
-    // chMtxUnlock();
+    chMtxUnlock();
     return nullptr;
 }
 
 std::vector<I2C_DEVMDL> I2CDevManager::get_dev_list_by_model() {
     std::vector<I2C_DEVMDL> ret;
-    // chMtxLock(&mutex_list);
+    chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
         if (devlist[i].dev) {
             ret.push_back(devlist[i].dev->model);
         }
     }
-    // chMtxUnlock();
+    chMtxUnlock();
     return ret;
 }
 
 std::vector<uint8_t> I2CDevManager::get_gev_list_by_addr() {
     std::vector<uint8_t> ret;
-    // chMtxLock(&mutex_list);
+    chMtxLock(&mutex_list);
     for (size_t i = 0; i < devlist.size(); i++) {
         if (devlist[i].addr) {
             ret.push_back(devlist[i].addr);
         }
     }
-    // chMtxUnlock();
+    chMtxUnlock();
     return ret;
 }
 
@@ -263,10 +263,10 @@ bool I2CDevManager::scan() {
     std::vector<uint8_t> currList;
     for (uint8_t i = 1; i < 128; ++i) {
         if (i2cbus.probe(i, 50)) {
-            // chMtxLock(&mutex_list);
+            chMtxLock(&mutex_list);
             changed = changed | found(i);
+            chMtxUnlock();
             currList.push_back(i);
-            // chMtxUnlock();
         }
     }
     // remove those not present
@@ -281,6 +281,7 @@ bool I2CDevManager::scan() {
 }
 
 void I2CDevManager::create_thread() {
+    chMtxInit(&mutex_list);
     thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, I2CDevManager::timer_fn, nullptr);
 }
 
@@ -303,7 +304,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
         }
 
         // remove all unneeded items
-        // chMtxLock(&mutex_list);
+        chMtxLock(&mutex_list);
         size_t cnt = devlist.size();
         devlist.erase(std::remove_if(devlist.begin(), devlist.end(), [](const I2DevListElement& x) {
                           if (x.addr == 0) return true;
@@ -311,7 +312,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
                           return false;                                       // won't remove the unidentified ones, so we can list them, and not trying all the time with them
                       }),
                       devlist.end());
-        // chMtxUnlock();
+        chMtxUnlock();
         if (cnt != devlist.size()) changed = true;
 
         if (changed) {

@@ -98,7 +98,7 @@ class I2CDevManager {
     static void create_thread();
     static msg_t timer_fn(void* arg);
     static Thread* thread;
-    static Mutex mutex_list;  // todo htotoo fix mutex crash
+    static Mutex mutex_list;
 };
 };  // namespace i2cdev
 #endif
