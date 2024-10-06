@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 jLynx.
+ * Copyright (C) 2024 HTotoo.
  *
  * This file is part of PortaPack.
  *
