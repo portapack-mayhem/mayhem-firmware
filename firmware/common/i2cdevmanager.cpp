@@ -268,6 +268,7 @@ bool I2CDevManager::scan() {
             chMtxUnlock();
             currList.push_back(i);
         }
+        chThdSleepMilliseconds(1);
     }
     // remove those not present
     for (size_t i = 0; i < devlist.size(); ++i) {
