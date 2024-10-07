@@ -21,12 +21,16 @@
 
 #pragma once
 
-#include "i2c_pp.hpp"
-
+#include <cstdint>
+#include <array>
+#include <string>
 #include <optional>
-#include <vector>
+#include "battery.hpp"
+#include "i2cdevmanager.hpp"
 
-class ExternalModule {
+namespace i2cdev {
+
+class I2cDev_PPmod : public I2cDev {
    public:
     typedef struct {
         uint32_t api_version;
@@ -37,17 +41,15 @@ class ExternalModule {
     typedef struct {
         uint32_t api_version;
         char name[32];
-        uint32_t module_version;
+        uint32_t binary_size;
     } standalone_app_info;
 
-    constexpr ExternalModule(I2C& bus, I2C::address_t address)
-        : bus_(bus), address_(address) {}
+    bool init(uint8_t addr_) override;
+    void update() override;
 
-    std::optional<device_info> get_device_info() const;
-    std::vector<standalone_app_info> get_standalone_apps() const;
-    std::vector<uint8_t> download_standalone_app() const;
-
-   private:
-    I2C& bus_;
-    I2C::address_t address_;
+    std::optional<device_info> readDeviceInfo();
+    std::vector<standalone_app_info> getStandaloneApps();
+    std::vector<uint8_t> downloadStandaloneApp(size_t offset, size_t length);
 };
+
+} /* namespace i2cdev */

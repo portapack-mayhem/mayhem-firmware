@@ -21,14 +21,27 @@
 
 #include "ui_external_module_view.hpp"
 #include "portapack.hpp"
-#include "external_module_api.hpp"
+
+#include "i2cdevmanager.hpp"
+#include "i2cdev_ppmod.hpp"
 
 #include <optional>
 
 namespace ui {
 
 void ExternalModuleView::on_tick_second() {
-    std::optional<ExternalModule::device_info> device_info = portapack::external_module.get_device_info();
+    i2cdev::I2CDevManager::manual_scan();
+
+    auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+
+    if (!dev) {
+        text_header.set("No module connected");
+        text_name.set("");
+        text_version.set("");
+        return;
+    }
+
+    auto device_info = dev->readDeviceInfo();
 
     if (device_info.has_value() == false) {
         text_header.set("No module connected");

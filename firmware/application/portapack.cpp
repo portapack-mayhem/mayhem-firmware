@@ -36,7 +36,6 @@ using namespace hackrf::one;
 #include "backlight.hpp"
 #include "touch_adc.hpp"
 #include "audio.hpp"
-#include "external_module_api.hpp"
 
 #include "wm8731.hpp"
 using wolfson::wm8731::WM8731;
@@ -85,8 +84,6 @@ ClockManager clock_manager{i2c0, clock_generator};
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 AK4951 audio_codec_ak4951{i2c0, 0x12};
-
-ExternalModule external_module{i2c0, 0x51};
 
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;
