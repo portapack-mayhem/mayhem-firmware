@@ -46,10 +46,14 @@
 #include "baseband_packet.hpp"
 
 #include "message.hpp"
+#include "dsp_demodulate.hpp"
+#include "audio_output.hpp"
 
 #include <cstdint>
 #include <cstddef>
 #include <bitset>
+
+#include "crc.hpp"
 
 // AIS:
 // IN: 2457600/8/8 = 38400
@@ -101,6 +105,14 @@ constexpr std::array<std::complex<float>, 16> rect_taps_38k4_4k8_1t_2k4_p{{
     {4.4194173824e-02f, -4.4194173824e-02f},
 }};
 
+typedef enum { WSYN,
+               SYN2,
+               SOH1,
+               TXT,
+               CRC1,
+               CRC2,
+               END } Acarsstate;
+
 class ACARSProcessor : public BasebandProcessor {
    public:
     ACARSProcessor();
@@ -124,24 +136,32 @@ class ACARSProcessor : public BasebandProcessor {
         2400,
         {0.0555f},
         [this](const float symbol) { this->consume_symbol(symbol); }};
-    symbol_coding::ACARSDecoder acars_decode{};
-    /*PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
-                { 0b011010000110100010000000, 24, 1 },	// SYN, SYN, SOH
-                { },
-                { 128 },
-                [this](const baseband::Packet& packet) {
-                        this->payload_handler(packet);
-                }
-        };*/
-    baseband::Packet packet{};
+
+    uint16_t update_crc(uint8_t dataByte);
+    void consume_symbol(const float symbol);
+    void payload_handler();
+    void add_bit(uint8_t bit);
+    void reset();
+    void sendDebug();
+
+    std::array<float, 32> audio{};
+    const buffer_f32_t audio_buffer{
+        audio.data(),
+        audio.size()};
+    dsp::demodulate::AM demod{};
+    AudioOutput audio_output{};
+
+    Acarsstate curr_state = WSYN;
+
+    uint32_t decode_data = 0;
+    uint8_t decode_count_bit = 0;
+    ACARSPacketMessage message{};
+    uint8_t parity_errors = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
-
-    void consume_symbol(const float symbol);
-    void payload_handler(const baseband::Packet& packet);
 };
 
 #endif /*__PROC_ACARS_H__*/

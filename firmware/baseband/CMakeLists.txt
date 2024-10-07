@@ -314,12 +314,6 @@ endmacro()
 
 set(add_to_firmware TRUE)
 
-### ACARS RX
-
-set(MODE_CPPSRC
-	proc_acars.cpp
-)
-DeclareTargets(PACA acars)
 
 ### ADS-B RX
 
@@ -578,6 +572,15 @@ DeclareTargets(PUSB sd_over_usb)
 
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
+
+
+### ACARS RX
+
+set(MODE_CPPSRC
+	proc_acars.cpp
+)
+DeclareTargets(PACA acars)
+
 
 ### AFSK RX
 
