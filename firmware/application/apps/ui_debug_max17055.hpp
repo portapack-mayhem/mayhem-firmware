@@ -14,7 +14,7 @@ class BatteryCapacityView : public View {
    public:
     BatteryCapacityView(NavigationView& nav);
     void focus() override;
-    std::string title() const override { return "MAX17055 Registers"; }
+    std::string title() const override { return "Battery Registers"; }
 
     bool on_encoder(const EncoderEvent delta) override;
 
