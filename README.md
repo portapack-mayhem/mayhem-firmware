@@ -17,9 +17,9 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="700">](https://grabify.link/X4D5TF)
+[<img alt="The new HackRF Portapack H4M" src="https://img.youtube.com/vi/onQRdCITmuk/maxresdefault.jpg" width="701">](https://grabify.link/0JUHZ6)
 
-[<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="230">](https://grabify.link/9UZGEW) [<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="230">](https://grabify.link/5MU2VH) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="230">](https://grabify.link/C0J6ZR)
+[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">](https://grabify.link/X4D5TF) [<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="172">](https://grabify.link/9UZGEW) [<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="172">](https://grabify.link/5MU2VH) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="172">](https://grabify.link/C0J6ZR)
 
 # Frequently Asked Questions
 
@@ -31,7 +31,7 @@ This repository expands upon the previous work by many people and aims to consta
 
 :heavy_check_mark: A recommended one is this [PortaPack H2](https://grabify.link/ZYYPLB), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
 
-:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/D001O0), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
+:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/XNGTAP), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 

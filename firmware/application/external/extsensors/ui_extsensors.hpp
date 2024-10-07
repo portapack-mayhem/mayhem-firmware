@@ -53,6 +53,7 @@ class ExtSensorsView : public View {
     NavigationView& nav_;
 
     bool has_data = false;
+    uint16_t prev_scan_int = 0;
 
     Labels labels{
         {{0 * 8, 3 * 16}, "GPS:", Theme::getInstance()->fg_light->foreground},
@@ -64,9 +65,15 @@ class ExtSensorsView : public View {
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
     Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
+    Text text_envl3{{1 * 8, 11 * 16, 24 * 8, 16}, "-"};
+    Console console{
+        {1, 13 * 16, screen_width - 1, screen_height - 13 * 16}};
 
+    void refreshi2c();
+    void on_new_dev();
     void on_any();
 
+    void on_light(const LightDataMessage* msg);
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
     void on_environment(const EnvironmentDataMessage* msg);
@@ -89,6 +96,20 @@ class ExtSensorsView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const EnvironmentDataMessage*>(p);
             this->on_environment(message);
+        }};
+
+    MessageHandlerRegistration message_handler_light{
+        Message::ID::LightData,
+        [this](Message* const p) {
+            const auto message = static_cast<const LightDataMessage*>(p);
+            this->on_light(message);
+        }};
+
+    MessageHandlerRegistration message_handler_dev{
+        Message::ID::I2CDevListChanged,
+        [this](Message* const p) {
+            (void)p;  // make compiler happy
+            this->on_new_dev();
         }};
 };
 };  // namespace ui::external_app::extsensors

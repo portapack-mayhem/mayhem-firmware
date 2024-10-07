@@ -23,7 +23,6 @@
 #define __BATTERY_H__
 
 #include <cstdint>
-#include "ch.h"
 
 namespace battery {
 
@@ -31,14 +30,9 @@ namespace battery {
 #define BATTERY_MAX_VOLTAGE 4170.0
 #define BATTERY_DESIGN_CAP 2500
 
+// this will just hold the config and a calculation. also some defines above for the battery management. could be movet to the classes, but it is a bit more readeable i think.
 class BatteryManagement {
    public:
-    enum BatteryModules {
-        BATT_NONE = 0,
-        BATT_ADS1110 = 1,
-        BATT_MAX17055 = 2,
-        BATT_EMULATOR = 254
-    };
     enum BatteryValidMask {
         BATT_VALID_NONE = 0,
         BATT_VALID_VOLTAGE = 1,
@@ -47,28 +41,16 @@ class BatteryManagement {
         BATT_VALID_CYCLES = 8,
         BATT_VALID_TTEF = 16,
     };
-    static void init(bool override = false);
-    static void detect();
-    static bool isDetected() { return detected_ != BATT_NONE; }
-    static BatteryModules detectedModule() { return detected_; }
-    static void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
-    static uint16_t getVoltage();
-    static uint8_t getPercent();
-    static uint16_t read_register(const uint8_t reg);
-    static bool write_register(const uint8_t reg, const uint16_t value);
+    static bool isDetected();
     static void set_calc_override(bool override);
     static uint8_t calc_percent_voltage(uint16_t);  // calculates battery percentage from the voltage
-    static bool reset_learned();                    // resets the ic's learned parameters
+    static bool calcOverride;                       // if set to true, it'll override the battery percent calculation based on current voltage.
+    static void getBatteryInfo(uint8_t& valid_mask, uint8_t& percent, uint16_t& voltage, int32_t& current);
     static uint16_t get_cycles();
     static float get_tte();
     static float get_ttf();
 
    private:
-    static void create_thread();
-    static msg_t timer_fn(void* arg);
-    static Thread* thread;
-    static BatteryModules detected_;  // if there is any batt management system
-    static bool calcOverride;         // if set to true, it'll override the battery percent calculation based on current voltage.
 };
 };  // namespace battery
 #endif

@@ -100,6 +100,13 @@ set(EXTCPPSRC
 	#random
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
+	external/random_password/sha512.cpp
+	external/random_password/sha512.h
+
+	#acars
+	external/acars_rx/main.cpp
+	external/acars_rx/acars_app.cpp
+	
 )
 
 set(EXTAPPLIST
@@ -127,4 +134,5 @@ set(EXTAPPLIST
 	morse_tx
 	sstvtx
 	random_password
+	#acars_rx
 )

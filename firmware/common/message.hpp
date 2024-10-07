@@ -32,7 +32,6 @@
 
 #include "baseband_packet.hpp"
 
-#include "acars_packet.hpp"
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
@@ -126,6 +125,8 @@ class Message {
         BatteryStateData = 68,
         ProtoViewData = 69,
         FreqChangeCommand = 70,
+        I2CDevListChanged = 71,
+        LightData = 72,
         MAX
     };
 
@@ -377,13 +378,12 @@ class POCSAGStatsMessage : public Message {
 
 class ACARSPacketMessage : public Message {
    public:
-    constexpr ACARSPacketMessage(
-        const baseband::Packet& packet)
-        : Message{ID::ACARSPacket},
-          packet{packet} {
-    }
-
-    baseband::Packet packet;
+    constexpr ACARSPacketMessage()
+        : Message{ID::ACARSPacket} {}
+    uint8_t msg_len = 0;
+    char message[250] = {0};  // contains the whole packet
+    uint8_t crc[2] = {0};
+    uint8_t state = 0;  // for debug
 };
 
 class ADSBFrameMessage : public Message {
@@ -1330,18 +1330,26 @@ class EnvironmentDataMessage : public Message {
     constexpr EnvironmentDataMessage(
         float temperature = 0,
         float humidity = 0,
-        float pressure = 0,
-        uint16_t light = 0)
+        float pressure = 0)
         : Message{ID::EnvironmentData},
           temperature{temperature},
           humidity{humidity},
-          pressure{pressure},
-          light{light} {
+          pressure{pressure} {
     }
     float temperature = 0;  // celsius
     float humidity = 0;     // percent (rh)
     float pressure = 0;     // hpa
-    uint16_t light = 0;     // lux
+};
+
+class LightDataMessage : public Message {
+   public:
+    constexpr LightDataMessage(
+
+        uint16_t light = 0)
+        : Message{ID::LightData},
+          light{light} {
+    }
+    uint16_t light = 0;  // lux
 };
 
 class AudioBeepMessage : public Message {
@@ -1421,6 +1429,12 @@ class FreqChangeCommandMessage : public Message {
     constexpr FreqChangeCommandMessage(int64_t freq)
         : Message{ID::FreqChangeCommand}, freq{freq} {}
     int64_t freq = 0;
+};
+
+class I2CDevListChangedMessage : public Message {
+   public:
+    constexpr I2CDevListChangedMessage()
+        : Message{ID::I2CDevListChanged} {}
 };
 
 #endif /*__MESSAGE_H__*/

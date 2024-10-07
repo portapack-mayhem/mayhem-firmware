@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 jLynx.
+ * Copyright (C) 2024 HTotoo.
  *
  * This file is part of PortaPack.
  *
@@ -19,39 +19,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __ADS1110_H__
-#define __ADS1110_H__
+#ifndef __I2CDEV_SHT3X_H__
+#define __I2CDEV_SHT3X_H__
 
-#include <cstdint>
-#include <array>
-#include <string>
+#include "i2cdevmanager.hpp"
 
-#include "i2c_pp.hpp"
-namespace battery {
-namespace ads1110 {
+namespace i2cdev {
 
-using address_t = uint8_t;
-
-class ADS1110 {
+class I2cDev_SHT3x : public I2cDev {
    public:
-    constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
-        : bus(bus), bus_address(bus_address), detected_(false) {}
-
-    void init();
-    bool detect();
-    bool isDetected() const { return detected_; }
-
-    uint16_t readVoltage();
-    void getBatteryInfo(uint8_t& valid_mask, uint16_t& voltage);
+    bool init(uint8_t addr_) override;  // sets the addr to our local variable, set the model, try to init the module, and only return true if it is really that module, and inited ok
+    void update() override;             // query the module for recent data, and send it to the system via the corresponding Message
 
    private:
-    I2C& bus;
-    const I2C::address_t bus_address;
-    bool detected_;
-
-    bool write(const uint8_t value);
+    float read_temperature();
+    float read_humidity();
 };
+}  // namespace i2cdev
 
-} /* namespace ads1110 */
-}  // namespace battery
-#endif /* __ADS1110_H__ */
+#endif

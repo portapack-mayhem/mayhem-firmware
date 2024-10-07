@@ -31,22 +31,18 @@
 #include "ui_rssi.hpp"
 #include "log_file.hpp"
 
-#include "acars_packet.hpp"
+namespace ui::external_app::acars_rx {
 
 class ACARSLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
-
-    void log_raw_data(const acars::Packet& packet, const uint32_t frequency);
-    // void log_decoded(const acars::Packet& packet, const std::string text);
+    void log_str(std::string msg);
 
    private:
     LogFile log_file{};
 };
-
-namespace ui {
 
 class ACARSAppView : public View {
    public:
@@ -55,12 +51,12 @@ class ACARSAppView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "ACARS (WIP)"; };
+    std::string title() const override { return "ACARS"; };
 
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{
-        131550000 /* frequency */,
+        131825000 /* frequency */,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };
@@ -85,7 +81,7 @@ class ACARSAppView : public View {
         {0 * 8, 0 * 8},
         nav_};
     Checkbox check_log{
-        {22 * 8, 21},
+        {16 * 8, 1 * 16},
         3,
         "LOG",
         true};
@@ -93,19 +89,21 @@ class ACARSAppView : public View {
     Console console{
         {0, 3 * 16, 240, 256}};
 
+    AudioVolumeField field_volume{
+        {28 * 8, 1 * 16}};
+
     std::unique_ptr<ACARSLogger> logger{};
 
-    void on_packet(const acars::Packet& packet);
+    void on_packet(const ACARSPacketMessage* packet);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ACARSPacket,
         [this](Message* const p) {
             const auto message = static_cast<const ACARSPacketMessage*>(p);
-            const acars::Packet packet{message->packet};
-            this->on_packet(packet);
+            this->on_packet(message);
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::acars_rx
 
 #endif /*__ACARS_APP_H__*/

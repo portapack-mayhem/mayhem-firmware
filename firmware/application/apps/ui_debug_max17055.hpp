@@ -5,7 +5,8 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "battery.hpp"
-#include "max17055.hpp"
+#include "i2cdevmanager.hpp"
+#include "i2cdev_max17055.hpp"
 
 namespace ui {
 
@@ -17,7 +18,7 @@ class BatteryCapacityView : public View {
 
     bool on_encoder(const EncoderEvent delta) override;
 
-    using RegisterEntry = battery::max17055::RegisterEntry;
+    using RegisterEntry = i2cdev::I2cDev_MAX17055::RegisterEntry;
 
    private:
     static RegisterEntry get_entry(size_t index);

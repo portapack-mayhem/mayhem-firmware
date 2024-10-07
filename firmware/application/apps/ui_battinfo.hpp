@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +28,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include "i2cdevmanager.hpp"
 
 namespace ui {
 class BattinfoView : public View {
