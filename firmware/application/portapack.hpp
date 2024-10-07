@@ -25,6 +25,7 @@
 
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
+#include "external_module_api.hpp"
 
 #include "i2c_pp.hpp"
 #include "spi_pp.hpp"
@@ -65,6 +66,8 @@ extern portapack::USBSerial usb_serial;
 
 extern si5351::Si5351 clock_generator;
 extern ClockManager clock_manager;
+
+extern ExternalModule external_module;
 
 extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;

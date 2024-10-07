@@ -148,6 +148,7 @@ set(CPPSRC
 	debug.cpp
 	${COMMON}/ert_packet.cpp
 	${COMMON}/event.cpp
+	${COMMON}/external_module_api.cpp
 	${COMMON}/gcc.cpp
 	${COMMON}/hackrf_hal.cpp
 	${COMMON}/i2c_pp.cpp
@@ -295,6 +296,7 @@ set(CPPSRC
 	apps/ui_debug_battery.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
+	apps/ui_external_module_view.cpp
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp

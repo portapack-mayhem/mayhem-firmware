@@ -37,6 +37,7 @@
 #include "ui_painter.hpp"
 #include "ui_external_items_menu_loader.hpp"
 #include "ui_debug_battery.hpp"
+#include "ui_external_module_view.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -510,6 +511,7 @@ void DebugMenuView::on_populate() {
         {"Temperature", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
         {"Touch Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
         {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
+        {"Ext Module", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<ExternalModuleView>(); }},
     });
 
     if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BatteryModules::BATT_MAX17055) {

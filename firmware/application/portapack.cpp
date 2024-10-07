@@ -36,6 +36,7 @@ using namespace hackrf::one;
 #include "backlight.hpp"
 #include "touch_adc.hpp"
 #include "audio.hpp"
+#include "external_module_api.hpp"
 
 #include "wm8731.hpp"
 using wolfson::wm8731::WM8731;
@@ -77,14 +78,13 @@ I2C i2c0(&I2CD0);
 SPI ssp1(&SPID2);
 portapack::USBSerial usb_serial;
 
-si5351::Si5351 clock_generator{
-    i2c0, hackrf::one::si5351_i2c_address};
-
-ClockManager clock_manager{
-    i2c0, clock_generator};
+si5351::Si5351 clock_generator{i2c0, hackrf::one::si5351_i2c_address};
+ClockManager clock_manager{i2c0, clock_generator};
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 AK4951 audio_codec_ak4951{i2c0, 0x12};
+
+ExternalModule external_module{i2c0, 0x51};
 
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;
@@ -319,8 +319,7 @@ static void shutdown_base() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
+    while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_boot);
 
@@ -358,15 +357,13 @@ static void set_cpu_clock_speed() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
+    while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_step);
 
     /* Delay >50us at 90-110MHz clock speed */
     volatile uint32_t delay = 1400;
-    while (delay--)
-        ;
+    while (delay--);
 
     set_clock_config(clock_config_pll1);
 
