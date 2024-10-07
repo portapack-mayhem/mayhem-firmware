@@ -50,6 +50,7 @@
 #include "sd_card.hpp"
 #include "external_app.hpp"
 #include "view_factory.hpp"
+#include "battery.hpp"
 
 // for incrementing fake date when RTC battery is dead
 #define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"

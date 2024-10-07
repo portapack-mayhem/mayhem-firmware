@@ -45,6 +45,11 @@ class BatteryManagement {
     static void set_calc_override(bool override);
     static uint8_t calc_percent_voltage(uint16_t);  // calculates battery percentage from the voltage
     static bool calcOverride;                       // if set to true, it'll override the battery percent calculation based on current voltage.
+    static void getBatteryInfo(uint8_t& valid_mask, uint8_t& percent, uint16_t& voltage, int32_t& current);
+    static uint16_t get_cycles();
+    static float get_tte();
+    static float get_ttf();
+
    private:
 };
 };  // namespace battery
