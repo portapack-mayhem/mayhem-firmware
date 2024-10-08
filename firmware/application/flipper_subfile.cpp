@@ -31,8 +31,10 @@ using namespace std::literals;
 
 const std::string_view filetype_name = "Filetype"sv;
 const std::string_view frequency_name = "Frequency"sv;
-const std::string_view latitude_name = "Latitute"sv;
-const std::string_view longitude_name = "Longitude"sv;
+const std::string_view latitude_name_old = "Latitute"sv;
+const std::string_view longitude_name_old = "Longitude"sv;
+const std::string_view latitude_name = "Lat"sv;
+const std::string_view longitude_name = "Lon"sv;
 const std::string_view protocol_name = "Protocol"sv;
 const std::string_view preset_name = "Preset"sv;
 const std::string_view te_name = "TE"sv;  // only in BinRAW
@@ -92,6 +94,10 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
         else if (cols[0] == latitude_name)
             parse_float_meta(fixed, metadata.latitude);
         else if (cols[0] == longitude_name)
+            parse_float_meta(fixed, metadata.longitude);
+        else if (cols[0] == latitude_name_old)
+            parse_float_meta(fixed, metadata.latitude);
+        else if (cols[0] == longitude_name_old)
             parse_float_meta(fixed, metadata.longitude);
         else if (cols[0] == protocol_name) {
             if (fixed == "RAW") metadata.protocol = FLIPPER_PROTO_RAW;
