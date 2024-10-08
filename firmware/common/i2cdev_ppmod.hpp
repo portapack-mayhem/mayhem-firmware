@@ -25,7 +25,8 @@
 #include <array>
 #include <string>
 #include <optional>
-#include "battery.hpp"
+
+#include "standalone_app.hpp"
 #include "i2cdevmanager.hpp"
 
 namespace i2cdev {
@@ -36,11 +37,15 @@ class I2cDev_PPmod : public I2cDev {
         uint32_t api_version;
         uint32_t module_version;
         char module_name[20];
+        uint32_t application_count;
     } device_info;
 
     typedef struct {
-        uint32_t api_version;
-        char name[32];
+        uint32_t header_version;
+        uint8_t app_name[16];
+        uint8_t bitmap_data[32];
+        uint32_t icon_color;
+        app_location_t menu_location;
         uint32_t binary_size;
     } standalone_app_info;
 
@@ -48,8 +53,8 @@ class I2cDev_PPmod : public I2cDev {
     void update() override;
 
     std::optional<device_info> readDeviceInfo();
-    std::vector<standalone_app_info> getStandaloneApps();
-    std::vector<uint8_t> downloadStandaloneApp(size_t offset, size_t length);
+    std::optional<standalone_app_info> getStandaloneAppInfo(uint32_t index);
+    std::vector<uint8_t> downloadStandaloneApp(uint32_t index, size_t offset);
 };
 
 } /* namespace i2cdev */

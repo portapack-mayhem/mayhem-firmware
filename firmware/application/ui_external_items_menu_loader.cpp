@@ -4,6 +4,9 @@
 #include "file_path.hpp"
 #include "ui_standalone_view.hpp"
 
+#include "i2cdevmanager.hpp"
+#include "i2cdev_ppmod.hpp"
+
 namespace ui {
 
 /* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
@@ -83,6 +86,59 @@ namespace ui {
     bitmaps.clear();
 
     std::vector<GridItem> external_apps;
+
+    auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+
+    if (dev) {
+        auto device_info = dev->readDeviceInfo();
+
+        if (device_info.has_value()) {
+            for (uint32_t i = 0; i < device_info->application_count; i++) {
+                auto appInfo = dev->getStandaloneAppInfo(i);
+                if (appInfo.has_value() == false) {
+                    continue;
+                }
+
+                if (appInfo->menu_location != app_location) {
+                    continue;
+                }
+
+                if (appInfo->header_version > CURRENT_STANDALONE_APPLICATION_API_VERSION)
+                    continue;
+
+                GridItem gridItem = {};
+                gridItem.text = reinterpret_cast<char*>(&appInfo->app_name[0]);
+
+                gridItem.color = Color((uint16_t)appInfo->icon_color);
+
+                auto dyn_bmp = DynamicBitmap<16, 16>{appInfo->bitmap_data};
+                gridItem.bitmap = dyn_bmp.bitmap();
+                bitmaps.push_back(std::move(dyn_bmp));
+
+                gridItem.on_select = [&nav, appInfo, i]() {
+                    auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+                    if (dev2) {
+                        auto app_image = std::make_unique<uint8_t[]>(appInfo->binary_size);
+                        for (size_t j = 0; j < appInfo->binary_size; j += 32) {
+                            auto segment = dev2->downloadStandaloneApp(i, j);
+                            if (segment.size() != 32) {
+                                continue;
+                            }
+
+                            std::copy(segment.begin(), segment.end(), app_image.get() + j);
+                        }
+
+                        if (!run_module_app(nav, std::move(app_image), appInfo->binary_size)) {
+                            nav.display_modal("Error", "Unable to run downloaded app.");
+                        }
+                    } else
+                        nav.display_modal("Error", "Unable to download app.");
+                };
+
+                external_apps.push_back(gridItem);
+            }
+        }
+    }
 
     if (sd_card::status() != sd_card::Status::Mounted)
         return external_apps;
@@ -283,6 +339,19 @@ namespace ui {
     }
 
     for (size_t file_read_index = 0; file_read_index < app.size() / 4; file_read_index++) {
+        uint32_t* ptr = reinterpret_cast<uint32_t*>(&app_image[file_read_index * 4]);
+
+        if (*ptr >= 0xADB10000 && *ptr < (0xADB10000 + 64 * 1024)) {
+            *ptr = *ptr - 0xADB10000 + (uint32_t)app_image.get();
+        }
+    }
+
+    nav.push<StandaloneView>(std::move(app_image));
+    return true;
+}
+
+/* static */ bool ExternalItemsMenuLoader::run_module_app(ui::NavigationView& nav, std::unique_ptr<uint8_t[]> app_image, size_t app_size) {
+    for (size_t file_read_index = 0; file_read_index < app_size / 4; file_read_index++) {
         uint32_t* ptr = reinterpret_cast<uint32_t*>(&app_image[file_read_index * 4]);
 
         if (*ptr >= 0xADB10000 && *ptr < (0xADB10000 + 64 * 1024)) {

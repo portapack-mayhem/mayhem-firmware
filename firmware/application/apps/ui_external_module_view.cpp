@@ -21,6 +21,7 @@
 
 #include "ui_external_module_view.hpp"
 #include "portapack.hpp"
+#include "ui_standalone_view.hpp"
 
 #include "i2cdevmanager.hpp"
 #include "i2cdev_ppmod.hpp"
@@ -28,6 +29,10 @@
 #include <optional>
 
 namespace ui {
+
+void ExternalModuleView::focus() {
+    dummy.focus();
+}
 
 void ExternalModuleView::on_tick_second() {
     i2cdev::I2CDevManager::manual_scan();
@@ -38,6 +43,12 @@ void ExternalModuleView::on_tick_second() {
         text_header.set("No module connected");
         text_name.set("");
         text_version.set("");
+        text_number_apps.set("");
+        text_app1_name.set("");
+        text_app2_name.set("");
+        text_app3_name.set("");
+        text_app4_name.set("");
+        text_app5_name.set("");
         return;
     }
 
@@ -47,6 +58,12 @@ void ExternalModuleView::on_tick_second() {
         text_header.set("No module connected");
         text_name.set("");
         text_version.set("");
+        text_number_apps.set("");
+        text_app1_name.set("");
+        text_app2_name.set("");
+        text_app3_name.set("");
+        text_app4_name.set("");
+        text_app5_name.set("");
         return;
     }
 
@@ -55,5 +72,51 @@ void ExternalModuleView::on_tick_second() {
     std::string btnText = (std::string) "Module: " + device_info->module_name;
     text_name.set(btnText);
     text_version.set("Version: " + std::to_string(device_info->module_version));
+    text_number_apps.set("No# Apps: " + std::to_string(device_info->application_count));
+
+    for (uint32_t i = 0; i < device_info->application_count && i < 5; i++) {
+        auto appInfo = dev->getStandaloneAppInfo(i);
+        if (appInfo.has_value() == false) {
+            continue;
+        }
+
+        std::string btnText = (std::string) "App " + std::to_string(device_info->application_count) + ": " + (const char*)appInfo->app_name;
+
+        switch (appInfo->menu_location) {
+            case app_location_t::UTILITIES:
+                btnText += " (Utilities)";
+                break;
+            case app_location_t::RX:
+                btnText += " (RX)";
+                break;
+            case app_location_t::TX:
+                btnText += " (TX)";
+                break;
+            case app_location_t::DEBUG:
+                btnText += " (Debug)";
+                break;
+            case app_location_t::HOME:
+                btnText += " (Home)";
+                break;
+        }
+
+        switch (i) {
+            case 0:
+                text_app1_name.set(btnText);
+                break;
+            case 1:
+                text_app2_name.set(btnText);
+                break;
+            case 2:
+                text_app3_name.set(btnText);
+                break;
+            case 3:
+                text_app4_name.set(btnText);
+                break;
+            case 4:
+                text_app5_name.set(btnText);
+                break;
+        }
+    }
 }
 }  // namespace ui

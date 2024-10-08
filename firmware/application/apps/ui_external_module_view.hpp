@@ -46,7 +46,14 @@ class ExternalModuleView : public View {
         : nav_(nav) {
         add_children({&text_header,
                       &text_name,
-                      &text_version});
+                      &text_version,
+                      &text_number_apps,
+                      &text_app1_name,
+                      &text_app2_name,
+                      &text_app3_name,
+                      &text_app4_name,
+                      &text_app5_name,
+                      &dummy});
 
         text_header.set("No module connected");
 
@@ -60,12 +67,25 @@ class ExternalModuleView : public View {
     }
 
     std::string title() const override { return "Ext Module"; };
+    void focus() override;
 
    private:
     NavigationView& nav_;
     Text text_header{{16, 16, 208, 16}};
     Text text_name{{24, 32, 200, 16}};
     Text text_version{{24, 48, 200, 16}};
+    Text text_number_apps{{24, 64, 200, 16}};
+
+    Text text_app1_name{{24, 96, 200, 16}};
+    Text text_app2_name{{24, 112, 200, 16}};
+    Text text_app3_name{{24, 128, 200, 16}};
+    Text text_app4_name{{24, 144, 200, 16}};
+    Text text_app5_name{{24, 160, 200, 16}};
+
+    Button dummy{
+        {240, 0, 0, 0},
+        ""};
+
     SignalToken signal_token_tick_second{};
 
     void on_tick_second();
