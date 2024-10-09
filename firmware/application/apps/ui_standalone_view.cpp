@@ -34,6 +34,16 @@ void fill_rectangle(int x, int y, int width, int height, uint16_t color) {
     painter.fill_rectangle({x, y, width, height}, ui::Color(color));
 }
 
+void fill_rectangle_unrolled8(int x, int y, int width, int height, uint16_t color) {
+    ui::Painter painter;
+    painter.fill_rectangle_unrolled8({x, y, width, height}, ui::Color(color));
+}
+
+void draw_bitmap(int x, int y, int width, int height, const uint8_t* pixels, uint16_t foreground, uint16_t background) {
+    ui::Painter painter;
+    painter.draw_bitmap({x, y}, {{width, height}, pixels}, ui::Color(foreground), ui::Color(background));
+}
+
 void* alloc(size_t size) {
     void* p = chHeapAlloc(0x0, size);
     if (p == nullptr)
@@ -52,6 +62,8 @@ standalone_application_api_t api = {
     /* .free = */ &chHeapFree,
     /* .create_thread = */ &create_thread,
     /* .fill_rectangle = */ &fill_rectangle,
+    /* .fill_rectangle_unrolled8 = */ &fill_rectangle_unrolled8,
+    /* .draw_bitmap = */ &draw_bitmap,
     /* .swizzled_switches = */ &swizzled_switches,
     /* .get_switches_state = */ &get_switches_state_ulong,
 };
@@ -68,6 +80,13 @@ void StandaloneView::focus() {
 
 void StandaloneView::paint(Painter& painter) {
     (void)painter;
+
+    if (get_application_information() != nullptr &&
+        get_application_information()->PaintViewMirror != nullptr &&
+        initialized &&
+        get_application_information()->header_version > 1) {
+        get_application_information()->PaintViewMirror();
+    }
 }
 
 void StandaloneView::frame_sync() {

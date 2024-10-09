@@ -26,7 +26,7 @@
 #include <cstdint>
 #include <stddef.h>
 
-#define CURRENT_STANDALONE_APPLICATION_API_VERSION 1
+#define CURRENT_STANDALONE_APPLICATION_API_VERSION 2
 
 struct standalone_application_api_t {
     void* (*malloc)(size_t size);
@@ -37,6 +37,8 @@ struct standalone_application_api_t {
     void (*fill_rectangle)(int x, int y, int width, int height, uint16_t color);
     uint8_t (*swizzled_switches)();
     uint64_t (*get_switches_state)();
+    void (*fill_rectangle_unrolled8)(int x, int y, int width, int height, uint16_t color);
+    void (*draw_bitmap)(int x, int y, int width, int height, const uint8_t* pixels, uint16_t foreground, uint16_t background);
 
     // HOW TO extend this interface:
     // to keep everything backward compatible: add new fields at the end
@@ -69,6 +71,8 @@ struct standalone_application_information_t {
 
     /// @brief gets called once at application shutdown
     void (*shutdown)();
+
+    void (*PaintViewMirror)();
 };
 
 #endif /*__UI_STANDALONE_APP_H__*/
