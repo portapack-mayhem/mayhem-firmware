@@ -62,10 +62,10 @@ standalone_application_api_t api = {
     /* .free = */ &chHeapFree,
     /* .create_thread = */ &create_thread,
     /* .fill_rectangle = */ &fill_rectangle,
-    /* .fill_rectangle_unrolled8 = */ &fill_rectangle_unrolled8,
-    /* .draw_bitmap = */ &draw_bitmap,
     /* .swizzled_switches = */ &swizzled_switches,
     /* .get_switches_state = */ &get_switches_state_ulong,
+    /* .fill_rectangle_unrolled8 = */ &fill_rectangle_unrolled8,
+    /* .draw_bitmap = */ &draw_bitmap,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image)
