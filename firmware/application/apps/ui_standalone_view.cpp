@@ -22,6 +22,12 @@
 #include "ui_standalone_view.hpp"
 #include "irq_controls.hpp"
 
+#include "i2cdevmanager.hpp"
+#include "i2cdev_ppmod.hpp"
+
+#include "ui_font_fixed_5x8.hpp"
+#include "ui_font_fixed_8x16.hpp"
+
 namespace ui {
 
 void create_thread(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority) {
@@ -55,6 +61,15 @@ uint64_t get_switches_state_ulong() {
     return get_switches_state().to_ulong();
 }
 
+bool i2c_read(uint8_t* cmd, size_t cmd_len, uint8_t* data, size_t data_len) {
+    auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+    if (!dev) {
+        return false;
+    }
+
+    return dev->i2c_read(cmd, cmd_len, data, data_len);
+}
+
 standalone_application_api_t api = {
     /* .malloc = */ &alloc,
     /* .calloc = */ &calloc,
@@ -64,8 +79,11 @@ standalone_application_api_t api = {
     /* .fill_rectangle = */ &fill_rectangle,
     /* .swizzled_switches = */ &swizzled_switches,
     /* .get_switches_state = */ &get_switches_state_ulong,
+    /* .fixed_5x8_glyph_data = */ ui::font::fixed_5x8.get_data(),
+    /* .fixed_8x16_glyph_data = */ ui::font::fixed_8x16.get_data(),
     /* .fill_rectangle_unrolled8 = */ &fill_rectangle_unrolled8,
     /* .draw_bitmap = */ &draw_bitmap,
+    /* .i2c_read = */ &i2c_read,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image)

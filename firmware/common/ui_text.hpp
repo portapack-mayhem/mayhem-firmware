@@ -94,6 +94,10 @@ class Font {
 
     Size size_of(const std::string s) const;
 
+    const uint8_t* get_data() const {
+        return data;
+    }
+
    private:
     const Dim w;
     const Dim h;

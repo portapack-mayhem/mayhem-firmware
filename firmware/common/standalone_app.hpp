@@ -29,6 +29,7 @@
 #define CURRENT_STANDALONE_APPLICATION_API_VERSION 2
 
 struct standalone_application_api_t {
+    // Version 1
     void* (*malloc)(size_t size);
     void* (*calloc)(size_t num, size_t size);
     void* (*realloc)(void* p, size_t size);
@@ -37,8 +38,14 @@ struct standalone_application_api_t {
     void (*fill_rectangle)(int x, int y, int width, int height, uint16_t color);
     uint8_t (*swizzled_switches)();
     uint64_t (*get_switches_state)();
+
+    // Version 2
+    const uint8_t* fixed_5x8_glyph_data;
+    const uint8_t* fixed_8x16_glyph_data;
+
     void (*fill_rectangle_unrolled8)(int x, int y, int width, int height, uint16_t color);
     void (*draw_bitmap)(int x, int y, int width, int height, const uint8_t* pixels, uint16_t foreground, uint16_t background);
+    bool (*i2c_read)(uint8_t* cmd, size_t cmd_len, uint8_t* data, size_t data_len);
 
     // HOW TO extend this interface:
     // to keep everything backward compatible: add new fields at the end
