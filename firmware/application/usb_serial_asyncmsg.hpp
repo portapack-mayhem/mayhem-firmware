@@ -47,7 +47,7 @@ class UsbSerialAsyncmsg {
 };
 
 /*Notes:
- * - Don't use MayhemHub since it currently not support real time serial output (to hide some instructions from default features call (like screenframe) it filtered out by the response type)
+ * - Don't use MayhemHub since it's currently not supporting real time serial output (it's hiding some instructions to support some features like screenshot, and it's filtering out answers by response type)
  * - use this client to debug with serial: https://github.com/portapack-mayhem/mayhem-cli
  * - usage:
  *        portapack::async_tx_enabled = true; // note that use this when debugging, unless the msg would be forbidden. but don't use this in production, since it's not real async and multiple serial transmittions will broken each other. if this class is used in other scene in the future, just use command to cover (protect your serial tramsnitton) in your extern thing: asyncmsg enable --- your cmd --- asyncmsg disable
