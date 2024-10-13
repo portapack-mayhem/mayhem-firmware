@@ -34,11 +34,17 @@ class StandaloneView : public View {
     StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image);
     virtual ~StandaloneView() override { get_application_information()->shutdown(); }
 
-    void focus() override;
-
     std::string title() const override { return (const char*)get_application_information()->app_name; };
 
+    void focus() override;
     void paint(Painter& painter) override;
+
+    void on_focus() override;
+    bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent event) override;
+    bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
+
     void frame_sync();
 
    private:
@@ -48,10 +54,6 @@ class StandaloneView : public View {
     standalone_application_information_t* get_application_information() const {
         return reinterpret_cast<standalone_application_information_t*>(_app_image.get());
     }
-
-    Button dummy{
-        {240, 0, 0, 0},
-        ""};
 
     MessageHandlerRegistration message_handler_sample{
         Message::ID::DisplayFrameSync,

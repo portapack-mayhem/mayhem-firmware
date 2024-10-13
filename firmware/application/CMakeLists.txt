@@ -150,7 +150,6 @@ set(CPPSRC
 	debug.cpp
 	${COMMON}/ert_packet.cpp
 	${COMMON}/event.cpp
-	${COMMON}/i2cdev_ppmod.cpp
 	${COMMON}/gcc.cpp
 	${COMMON}/hackrf_hal.cpp
 	${COMMON}/i2c_pp.cpp

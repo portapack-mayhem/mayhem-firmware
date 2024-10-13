@@ -33,6 +33,19 @@ namespace i2cdev {
 
 class I2cDev_PPmod : public I2cDev {
    public:
+    enum class Command : uint16_t {
+        COMMAND_NONE = 0,
+
+        // will respond with device_info
+        COMMAND_INFO = 0x18F0,
+
+        // will respond with info of application
+        COMMAND_APP_INFO = 0xA90B,
+
+        // will respond with application data
+        COMMAND_APP_TRANSFER = 0x4183,
+    };
+
     typedef struct {
         uint32_t api_version;
         uint32_t module_version;

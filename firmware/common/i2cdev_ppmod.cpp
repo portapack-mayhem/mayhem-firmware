@@ -38,7 +38,7 @@ void I2cDev_PPmod::update() {
 }
 
 std::optional<I2cDev_PPmod::device_info> I2cDev_PPmod::readDeviceInfo() {
-    uint16_t cmd = 0x18F0;
+    Command cmd = Command::COMMAND_INFO;
     I2cDev_PPmod::device_info info;
 
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&info, sizeof(I2cDev_PPmod::device_info));
@@ -50,8 +50,8 @@ std::optional<I2cDev_PPmod::device_info> I2cDev_PPmod::readDeviceInfo() {
 }
 
 std::optional<I2cDev_PPmod::standalone_app_info> I2cDev_PPmod::getStandaloneAppInfo(uint32_t index) {
-    uint16_t cmd = 0xA90B;
-    uint32_t data = cmd + (index << 16);
+    Command cmd = Command::COMMAND_APP_INFO;
+    uint32_t data = (uint32_t)cmd + (index << 16);
     I2cDev_PPmod::standalone_app_info info;
 
     bool success = i2c_read((uint8_t*)&data, 4, (uint8_t*)&info, sizeof(I2cDev_PPmod::standalone_app_info));
@@ -62,15 +62,17 @@ std::optional<I2cDev_PPmod::standalone_app_info> I2cDev_PPmod::getStandaloneAppI
     return info;
 }
 
+constexpr size_t transfer_block_size = 128;
+
 std::vector<uint8_t> I2cDev_PPmod::downloadStandaloneApp(uint32_t index, size_t offset) {
-    if (offset % 32 != 0) {
+    if (offset % transfer_block_size != 0) {
         return {};
     }
 
-    uint16_t data[3] = {0x4183, index, offset / 32};
+    uint16_t data[3] = {(uint16_t)Command::COMMAND_APP_TRANSFER, index, offset / transfer_block_size};
 
-    std::vector<uint8_t> ret(32);
-    bool success = i2c_read((uint8_t*)&data, sizeof(data), (uint8_t*)ret.data(), 32);
+    std::vector<uint8_t> ret(transfer_block_size);
+    bool success = i2c_read((uint8_t*)&data, sizeof(data), (uint8_t*)ret.data(), transfer_block_size);
     if (success == false) {
         return {};
     }

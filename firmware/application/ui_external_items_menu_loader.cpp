@@ -119,9 +119,9 @@ namespace ui {
                     auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
                     if (dev2) {
                         auto app_image = std::make_unique<uint8_t[]>(appInfo->binary_size);
-                        for (size_t j = 0; j < appInfo->binary_size; j += 32) {
+                        for (size_t j = 0; j < appInfo->binary_size; j += 128) {
                             auto segment = dev2->downloadStandaloneApp(i, j);
-                            if (segment.size() != 32) {
+                            if (segment.size() != 128) {
                                 continue;
                             }
 

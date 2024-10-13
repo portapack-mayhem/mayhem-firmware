@@ -61,13 +61,43 @@ uint64_t get_switches_state_ulong() {
     return get_switches_state().to_ulong();
 }
 
+ui::Coord scroll_area_y(const ui::Coord y) {
+    return portapack::display.scroll_area_y(y);
+}
+
+void scroll_set_area(const ui::Coord top_y, const ui::Coord bottom_y) {
+    portapack::display.scroll_set_area(top_y, bottom_y);
+}
+
+void scroll_disable() {
+    portapack::display.scroll_disable();
+}
+
+ui::Coord scroll_set_position(const ui::Coord position) {
+    return portapack::display.scroll_set_position(position);
+}
+
+ui::Coord scroll(const int32_t delta) {
+    return portapack::display.scroll(delta);
+}
+
 bool i2c_read(uint8_t* cmd, size_t cmd_len, uint8_t* data, size_t data_len) {
+    if (data == nullptr)
+        chDbgPanic("i2c_read without data");
+
     auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
     if (!dev) {
         return false;
     }
 
     return dev->i2c_read(cmd, cmd_len, data, data_len);
+}
+
+StandaloneView* standaloneView = nullptr;
+
+void set_dirty() {
+    if (standaloneView != nullptr)
+        standaloneView->set_dirty();
 }
 
 standalone_application_api_t api = {
@@ -83,28 +113,67 @@ standalone_application_api_t api = {
     /* .fixed_8x16_glyph_data = */ ui::font::fixed_8x16.get_data(),
     /* .fill_rectangle_unrolled8 = */ &fill_rectangle_unrolled8,
     /* .draw_bitmap = */ &draw_bitmap,
+    /* .scroll_area_y = */ &scroll_area_y,
+    /* .scroll_set_area = */ &scroll_set_area,
+    /* .scroll_disable = */ &scroll_disable,
+    /* .scroll_set_position = */ &scroll_set_position,
+    /* .scroll = */ &scroll,
     /* .i2c_read = */ &i2c_read,
+    /* .panic = */ &chDbgPanic,
+    /* .set_dirty = */ &set_dirty,
 };
 
+// TODO: fix memory hog
 StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image)
     : nav_(nav), _app_image(std::move(app_image)) {
+    if (_app_image == nullptr) {
+        chDbgPanic("Invalid application image");
+    }
+
     get_application_information()->initialize(api);
-    add_children({&dummy});
+
+    set_focusable(true);
+
+    standaloneView = this;
 }
 
 void StandaloneView::focus() {
-    dummy.focus();
+    View::focus();
+
+    if (get_application_information()->header_version > 1) {
+        get_application_information()->OnFocus();
+    }
 }
 
 void StandaloneView::paint(Painter& painter) {
     (void)painter;
 
-    if (get_application_information() != nullptr &&
-        get_application_information()->PaintViewMirror != nullptr &&
-        initialized &&
+    if (initialized &&
         get_application_information()->header_version > 1) {
         get_application_information()->PaintViewMirror();
     }
+}
+
+void StandaloneView::on_focus() {
+}
+
+bool StandaloneView::on_key(const KeyEvent key) {
+    return false;
+}
+
+bool StandaloneView::on_encoder(const EncoderEvent event) {
+    return false;
+}
+
+bool StandaloneView::on_touch(const TouchEvent event) {
+    if (get_application_information()->header_version > 1) {
+        get_application_information()->OnTouchEvent(event.point.x() - 24, event.point.y(), (uint32_t)event.type);
+    }
+    return true;
+}
+
+bool StandaloneView::on_keyboard(const KeyboardEvent event) {
+    return false;
 }
 
 void StandaloneView::frame_sync() {
