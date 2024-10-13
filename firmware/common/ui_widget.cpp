@@ -94,7 +94,13 @@ void Widget::set_parent(Widget* const widget) {
         visible(false);
     }
 
+    if (widget == nullptr)
+        on_before_detach();
+
     parent_ = widget;
+
+    if (widget != nullptr)
+        on_after_attach();
 
     set_dirty();
 }

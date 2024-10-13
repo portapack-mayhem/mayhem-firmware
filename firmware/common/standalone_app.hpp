@@ -93,6 +93,7 @@ struct standalone_application_information_t {
     void (*PaintViewMirror)();
     void (*OnTouchEvent)(int x, int y, uint32_t type);
     void (*OnFocus)();
+    bool (*OnKeyEvent)(uint8_t key);
 };
 
 #endif /*__UI_STANDALONE_APP_H__*/

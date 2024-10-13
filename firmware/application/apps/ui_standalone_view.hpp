@@ -32,7 +32,8 @@ namespace ui {
 class StandaloneView : public View {
    public:
     StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image);
-    virtual ~StandaloneView() override { get_application_information()->shutdown(); }
+    virtual ~StandaloneView() override {
+    }
 
     std::string title() const override { return (const char*)get_application_information()->app_name; };
 
@@ -44,6 +45,9 @@ class StandaloneView : public View {
     bool on_encoder(const EncoderEvent event) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+
+    void on_after_attach() override;
+    void on_before_detach() override;
 
     void frame_sync();
 

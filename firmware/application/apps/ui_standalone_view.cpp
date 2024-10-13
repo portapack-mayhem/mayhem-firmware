@@ -130,8 +130,6 @@ StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> a
         chDbgPanic("Invalid application image");
     }
 
-    get_application_information()->initialize(api);
-
     set_focusable(true);
 
     standaloneView = this;
@@ -139,10 +137,6 @@ StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> a
 
 void StandaloneView::focus() {
     View::focus();
-
-    if (get_application_information()->header_version > 1) {
-        get_application_information()->OnFocus();
-    }
 }
 
 void StandaloneView::paint(Painter& painter) {
@@ -155,9 +149,16 @@ void StandaloneView::paint(Painter& painter) {
 }
 
 void StandaloneView::on_focus() {
+    if (get_application_information()->header_version > 1) {
+        get_application_information()->OnFocus();
+    }
 }
 
 bool StandaloneView::on_key(const KeyEvent key) {
+    if (get_application_information()->header_version > 1) {
+        return get_application_information()->OnKeyEvent((uint8_t)key);
+    }
+
     return false;
 }
 
@@ -183,6 +184,16 @@ void StandaloneView::frame_sync() {
     } else {
         get_application_information()->on_event(1);
     }
+}
+
+void StandaloneView::on_after_attach() {
+    context().focus_manager().setMirror(this);
+    get_application_information()->initialize(api);
+}
+
+void StandaloneView::on_before_detach() {
+    get_application_information()->shutdown();
+    context().focus_manager().clearMirror();
 }
 
 }  // namespace ui
