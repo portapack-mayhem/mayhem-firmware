@@ -31,6 +31,7 @@
 #include "i2cdev_max17055.hpp"
 #include "i2cdev_ads1110.hpp"
 #include "i2cdev_bh1750.hpp"
+#include "i2cdev_ppmod.hpp"
 
 namespace i2cdev {
 
@@ -83,6 +84,11 @@ bool I2CDevManager::found(uint8_t addr) {
 
     if (!item.dev && (addr == I2CDEV_BH1750_ADDR_1)) {
         item.dev = std::make_unique<I2cDev_BH1750>();
+        if (!item.dev->init(addr)) item.dev = nullptr;
+    }
+
+    if (!item.dev && (addr == I2CDEV_PPMOD_ADDR_1)) {
+        item.dev = std::make_unique<I2cDev_PPmod>();
         if (!item.dev->init(addr)) item.dev = nullptr;
     }
 
