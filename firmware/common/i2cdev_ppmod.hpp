@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __I2CDEV_PPMOD_H
+#define __I2CDEV_PPMOD_H
 
 #include <cstdint>
 #include <array>
@@ -71,3 +72,5 @@ class I2cDev_PPmod : public I2cDev {
 };
 
 } /* namespace i2cdev */
+
+#endif

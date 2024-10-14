@@ -20,7 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __IO_WAVE_H
+#define __IO_WAVE_H
 
 #include "io_file.hpp"
 
@@ -181,3 +182,5 @@ class WAVFileWriter : public FileWriter {
     Optional<File::Error> update_header();
     Optional<File::Error> write_tags();
 };
+
+#endif

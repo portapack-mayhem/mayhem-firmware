@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __PORTAPACK_H
+#define __PORTAPACK_H
 
 #include "portapack_io.hpp"
 
@@ -85,3 +86,5 @@ Backlight* backlight();
 extern bool async_tx_enabled;  // this is for serial tx things, globally
 
 } /* namespace portapack */
+
+#endif

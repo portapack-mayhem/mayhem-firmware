@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_SHELL_H
+#define __USB_SERIAL_SHELL_H
 
 #include "ch.h"
 #include "hal.h"
@@ -29,3 +30,5 @@
 class EventDispatcher;
 
 void create_shell(EventDispatcher* evtd);
+
+#endif

@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __MOCK_FILE_H
+#define __MOCK_FILE_H
 
 #include "file.hpp"
 #include <cstring>
@@ -87,3 +88,5 @@ class MockFile {
     std::string data_;
     uint32_t offset_{0};
 };
+
+#endif

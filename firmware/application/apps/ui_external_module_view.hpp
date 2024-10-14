@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __UI_EXTERNAL_MODULE_VIEW_H
+#define __UI_EXTERNAL_MODULE_VIEW_H
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -92,3 +93,5 @@ class ExternalModuleView : public View {
 };
 
 }  // namespace ui
+
+#endif

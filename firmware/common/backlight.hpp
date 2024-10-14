@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __BACKLIGHT_H
+#define __BACKLIGHT_H
 
 #include <cstdint>
 
@@ -118,3 +119,5 @@ class BacklightCAT4004 : public BacklightBase {
 };
 
 } /* namespace portapack */
+
+#endif

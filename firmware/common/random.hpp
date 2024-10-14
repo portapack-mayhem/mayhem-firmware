@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __RANDOM_H
+#define __RANDOM_H
 
 /* Period parameters */
 #define N 624
@@ -33,3 +34,5 @@
 /* initializes state[N] with a seed */
 extern void init_genrand(unsigned long s);
 extern long genrand_int31(void);
+
+#endif
