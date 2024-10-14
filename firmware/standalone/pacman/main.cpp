@@ -75,13 +75,13 @@ __attribute__((section(".standalone_application_information"), used)) standalone
     /*OnFocus */ NULL,
     /*OnKeyEvent */ NULL,
     /*OnEncoder */ NULL,
-    /*OnKeyboard */ NULL
-};
+    /*OnKeyboard */ NULL};
 }
 
 /* Implementing abort() eliminates requirement for _getpid(), _kill(), _exit(). */
 extern "C" void abort() {
-    while (true);
+    while (true)
+        ;
 }
 
 // replace memory allocations to use heap from chibios
