@@ -162,7 +162,7 @@ bool StandaloneView::on_key(const KeyEvent key) {
 }
 
 bool StandaloneView::on_encoder(const EncoderEvent event) {
-    //TODO: implement
+    // TODO: implement
     return false;
 }
 
@@ -174,7 +174,7 @@ bool StandaloneView::on_touch(const TouchEvent event) {
 }
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {
-    //TODO: implement
+    // TODO: implement
     return false;
 }
 

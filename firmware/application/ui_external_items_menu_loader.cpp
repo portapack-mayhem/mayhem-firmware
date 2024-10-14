@@ -118,8 +118,8 @@ namespace ui {
                 gridItem.on_select = [&nav, appInfo, i]() {
                     auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
                     if (dev2) {
-                        //TODO: move this to m4 memory space
-                        //auto target_memory = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base();
+                        // TODO: move this to m4 memory space
+                        // auto target_memory = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base();
                         auto app_image = std::make_unique<uint8_t[]>(appInfo->binary_size);
                         for (size_t j = 0; j < appInfo->binary_size; j += 128) {
                             auto segment = dev2->downloadStandaloneApp(i, j);
@@ -317,7 +317,7 @@ namespace ui {
     return true;
 }
 
-//TODO: implement baseband image support
+// TODO: implement baseband image support
 /* static */ bool ExternalItemsMenuLoader::run_standalone_app(ui::NavigationView& nav, std::filesystem::path filePath) {
     File app;
 
@@ -325,8 +325,8 @@ namespace ui {
     if (openError)
         return false;
 
-    //TODO: move this to m4 memory space
-    //auto target_memory = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base();
+    // TODO: move this to m4 memory space
+    // auto target_memory = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base();
     auto app_image = std::make_unique<uint8_t[]>(app.size());
 
     // read file in 512 byte chunks
@@ -355,7 +355,7 @@ namespace ui {
     return true;
 }
 
-//TODO: implement baseband image support
+// TODO: implement baseband image support
 /* static */ bool ExternalItemsMenuLoader::run_module_app(ui::NavigationView& nav, std::unique_ptr<uint8_t[]> app_image, size_t app_size) {
     for (size_t file_read_index = 0; file_read_index < app_size / 4; file_read_index++) {
         uint32_t* ptr = reinterpret_cast<uint32_t*>(&app_image[file_read_index * 4]);
