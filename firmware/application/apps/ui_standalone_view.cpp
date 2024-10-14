@@ -123,8 +123,8 @@ standalone_application_api_t api = {
     /* .set_dirty = */ &set_dirty,
 };
 
-StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image)
-    : nav_(nav), _app_image(std::move(app_image)) {
+StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)
+    : nav_(nav), _app_image(app_image) {
     if (_app_image == nullptr) {
         chDbgPanic("Invalid application image");
     }

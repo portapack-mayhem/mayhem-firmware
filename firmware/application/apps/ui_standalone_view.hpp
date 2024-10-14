@@ -31,7 +31,7 @@ namespace ui {
 
 class StandaloneView : public View {
    public:
-    StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image);
+    StandaloneView(NavigationView& nav, uint8_t* app_image);
     virtual ~StandaloneView() override {
     }
 
@@ -54,9 +54,9 @@ class StandaloneView : public View {
    private:
     bool initialized = false;
     NavigationView& nav_;
-    std::unique_ptr<uint8_t[]> _app_image;
+    uint8_t* _app_image;
     standalone_application_information_t* get_application_information() const {
-        return reinterpret_cast<standalone_application_information_t*>(_app_image.get());
+        return reinterpret_cast<standalone_application_information_t*>(_app_image);
     }
 
     MessageHandlerRegistration message_handler_sample{

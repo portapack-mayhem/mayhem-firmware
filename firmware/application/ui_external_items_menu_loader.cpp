@@ -118,19 +118,17 @@ namespace ui {
                 gridItem.on_select = [&nav, appInfo, i]() {
                     auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
                     if (dev2) {
-                        // TODO: move this to m4 memory space
-                        // auto target_memory = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base();
-                        auto app_image = std::make_unique<uint8_t[]>(appInfo->binary_size);
+                        auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - appInfo->binary_size);
                         for (size_t j = 0; j < appInfo->binary_size; j += 128) {
                             auto segment = dev2->downloadStandaloneApp(i, j);
                             if (segment.size() != 128) {
                                 continue;
                             }
 
-                            std::copy(segment.begin(), segment.end(), app_image.get() + j);
+                            std::copy(segment.begin(), segment.end(), app_image + j);
                         }
 
-                        if (!run_module_app(nav, std::move(app_image), appInfo->binary_size)) {
+                        if (!run_module_app(nav, app_image, appInfo->binary_size)) {
                             nav.display_modal("Error", "Unable to run downloaded app.");
                         }
                     } else
@@ -326,8 +324,7 @@ namespace ui {
         return false;
 
     // TODO: move this to m4 memory space
-    // auto target_memory = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base();
-    auto app_image = std::make_unique<uint8_t[]>(app.size());
+    auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - app.size());
 
     // read file in 512 byte chunks
     for (size_t file_read_index = 0; file_read_index < app.size(); file_read_index += std::filesystem::max_file_block_size) {
@@ -347,25 +344,25 @@ namespace ui {
         uint32_t* ptr = reinterpret_cast<uint32_t*>(&app_image[file_read_index * 4]);
 
         if (*ptr >= 0xADB10000 && *ptr < (0xADB10000 + 64 * 1024)) {
-            *ptr = *ptr - 0xADB10000 + (uint32_t)app_image.get();
+            *ptr = *ptr - 0xADB10000 + (uint32_t)app_image;
         }
     }
 
-    nav.push<StandaloneView>(std::move(app_image));
+    nav.push<StandaloneView>(app_image);
     return true;
 }
 
 // TODO: implement baseband image support
-/* static */ bool ExternalItemsMenuLoader::run_module_app(ui::NavigationView& nav, std::unique_ptr<uint8_t[]> app_image, size_t app_size) {
+/* static */ bool ExternalItemsMenuLoader::run_module_app(ui::NavigationView& nav, uint8_t* app_image, size_t app_size) {
     for (size_t file_read_index = 0; file_read_index < app_size / 4; file_read_index++) {
         uint32_t* ptr = reinterpret_cast<uint32_t*>(&app_image[file_read_index * 4]);
 
         if (*ptr >= 0xADB10000 && *ptr < (0xADB10000 + 64 * 1024)) {
-            *ptr = *ptr - 0xADB10000 + (uint32_t)app_image.get();
+            *ptr = *ptr - 0xADB10000 + (uint32_t)app_image;
         }
     }
 
-    nav.push<StandaloneView>(std::move(app_image));
+    nav.push<StandaloneView>(app_image);
     return true;
 }
 
