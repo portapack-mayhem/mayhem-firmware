@@ -82,13 +82,13 @@ ui::Coord scroll(const int32_t delta) {
 }
 
 bool i2c_read(uint8_t* cmd, size_t cmd_len, uint8_t* data, size_t data_len) {
-    if (data == nullptr)
-        chDbgPanic("i2c_read without data");
-
     auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
     if (!dev) {
         return false;
     }
+
+    if (data_len == 0 || data == nullptr)
+        return dev->i2c_write(nullptr, 0, cmd, cmd_len);
 
     return dev->i2c_read(cmd, cmd_len, data, data_len);
 }
@@ -123,7 +123,6 @@ standalone_application_api_t api = {
     /* .set_dirty = */ &set_dirty,
 };
 
-// TODO: fix memory hog
 StandaloneView::StandaloneView(NavigationView& nav, std::unique_ptr<uint8_t[]> app_image)
     : nav_(nav), _app_image(std::move(app_image)) {
     if (_app_image == nullptr) {
@@ -163,17 +162,19 @@ bool StandaloneView::on_key(const KeyEvent key) {
 }
 
 bool StandaloneView::on_encoder(const EncoderEvent event) {
+    //TODO: implement
     return false;
 }
 
 bool StandaloneView::on_touch(const TouchEvent event) {
     if (get_application_information()->header_version > 1) {
-        get_application_information()->OnTouchEvent(event.point.x() - 24, event.point.y(), (uint32_t)event.type);
+        get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
     }
     return true;
 }
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {
+    //TODO: implement
     return false;
 }
 

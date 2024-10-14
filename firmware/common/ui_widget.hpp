@@ -84,8 +84,8 @@ class Widget {
     Widget* parent() const;
     void set_parent(Widget* const widget);
 
-    virtual void on_after_attach() {};
-    virtual void on_before_detach() {};
+    virtual void on_after_attach() { return; };
+    virtual void on_before_detach() { return; };
 
     bool hidden() const { return flags.hidden; }
     void hidden(bool hide);
@@ -100,8 +100,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show() {};
-    virtual void on_hide() {};
+    virtual void on_show() { return; };
+    virtual void on_hide() { return; };
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
