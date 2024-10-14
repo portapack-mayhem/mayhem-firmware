@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __UI_SPECTRUM_PAINTER_IMAGE_H
+#define __UI_SPECTRUM_PAINTER_IMAGE_H
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -64,3 +65,5 @@ class SpectrumInputImageView : public View {
 };
 
 }  // namespace ui::external_app::spainter
+
+#endif
