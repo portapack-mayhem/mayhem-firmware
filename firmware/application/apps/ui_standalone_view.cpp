@@ -177,7 +177,7 @@ bool StandaloneView::on_touch(const TouchEvent event) {
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {
     if (get_application_information()->header_version > 1) {
-        return get_application_information()->OnKeyboad((uint8_t)event);
+        return get_application_information()->OnKeyboard((uint8_t)event);
     }
     return false;
 }

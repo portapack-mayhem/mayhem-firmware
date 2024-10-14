@@ -98,7 +98,7 @@ struct standalone_application_information_t {
     void (*OnFocus)();
     bool (*OnKeyEvent)(uint8_t key);
     bool (*OnEncoder)(int32_t delta);
-    bool (*OnKeyboad)(uint8_t key);
+    bool (*OnKeyboard)(uint8_t key);
 };
 
 #endif /*__UI_STANDALONE_APP_H__*/
