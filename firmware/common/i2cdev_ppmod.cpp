@@ -69,7 +69,7 @@ std::vector<uint8_t> I2cDev_PPmod::downloadStandaloneApp(uint32_t index, size_t 
         return {};
     }
 
-    uint16_t data[3] = {(uint16_t)Command::COMMAND_APP_TRANSFER, index, offset / transfer_block_size};
+    uint16_t data[3] = {(uint16_t)Command::COMMAND_APP_TRANSFER, (uint16_t)index, (uint16_t)(offset / transfer_block_size)};
 
     std::vector<uint8_t> ret(transfer_block_size);
     bool success = i2c_read((uint8_t*)&data, sizeof(data), (uint8_t*)ret.data(), transfer_block_size);
