@@ -58,6 +58,9 @@ struct standalone_application_api_t {
     void (*panic)(const char* msg);
     void (*set_dirty)();
 
+    // TODO: add filesystem access functions
+    // TODO: add baseband access functions
+
     // HOW TO extend this interface:
     // to keep everything backward compatible: add new fields at the end
     // and increment CURRENT_STANDALONE_APPLICATION_API_VERSION
@@ -94,6 +97,8 @@ struct standalone_application_information_t {
     void (*OnTouchEvent)(int x, int y, uint32_t type);
     void (*OnFocus)();
     bool (*OnKeyEvent)(uint8_t key);
+    bool (*OnEncoder)(int32_t delta);
+    bool (*OnKeyboad)(uint8_t key);
 };
 
 #endif /*__UI_STANDALONE_APP_H__*/

@@ -162,7 +162,9 @@ bool StandaloneView::on_key(const KeyEvent key) {
 }
 
 bool StandaloneView::on_encoder(const EncoderEvent event) {
-    // TODO: implement
+    if (get_application_information()->header_version > 1) {
+        return get_application_information()->OnEncoder((int32_t)event);
+    }
     return false;
 }
 
@@ -174,7 +176,9 @@ bool StandaloneView::on_touch(const TouchEvent event) {
 }
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {
-    // TODO: implement
+    if (get_application_information()->header_version > 1) {
+        return get_application_information()->OnKeyboad((uint8_t)event);
+    }
     return false;
 }
 
