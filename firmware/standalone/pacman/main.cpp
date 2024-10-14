@@ -70,6 +70,12 @@ __attribute__((section(".standalone_application_information"), used)) standalone
     /*.initialize_app = */ initialize,
     /*.on_event = */ on_event,
     /*.shutdown = */ shutdown,
+    /*PaintViewMirror */ NULL,
+    /*OnTouchEvent */ NULL,
+    /*OnFocus */ NULL,
+    /*OnKeyEvent */ NULL,
+    /*OnEncoder */ NULL,
+    /*OnKeyboard */ NULL
 };
 }
 
