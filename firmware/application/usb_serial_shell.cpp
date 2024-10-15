@@ -1079,8 +1079,8 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
     uint64_t addr = atol(argv[0]);
     int msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
-    if (msglen > 30 || msglen < 0) {
-        chprintf(chp, "error, msglen max is 30\r\n");
+    if (msglen > 80 || msglen < 0) {
+        chprintf(chp, "error, msglen max is 80\r\n");
         return;
     }
 
@@ -1120,7 +1120,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         }
     }
 
-    uint8_t msg[31] = {0};
+    uint8_t msg[81] = {0};
     if (msglen > 0) {
         chprintf(chp, "send %d bytes\r\n", msglen);
         do {
