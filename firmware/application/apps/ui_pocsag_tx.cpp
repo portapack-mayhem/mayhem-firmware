@@ -33,7 +33,7 @@ using namespace pocsag;
 
 namespace ui {
 
-#define MAX_POCSAG_LENGTH 40
+#define MAX_POCSAG_LENGTH 80
 
 void POCSAGTXView::focus() {
     field_address.focus();
@@ -142,9 +142,11 @@ bool POCSAGTXView::start_tx() {
 
 void POCSAGTXView::paint(Painter&) {
     message = buffer;
-    text_message.set(message);  // thoe whole message, but it may not fit.
-    if (message.length() > 30) {
+    text_message.set(message);  // the whole message, but it may not fit.
+    if (message.length() > 30 && message.length() <= 60) {
         text_message_l2.set(message.substr(29));  // remaining to 2nd line
+    } else if (message.length() > 60) {
+        text_message_l2.set(message.substr(29, 27) + "...");
     } else {
         text_message_l2.set("");
     }
