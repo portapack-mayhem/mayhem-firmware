@@ -329,8 +329,6 @@ set(CPPSRC
 	protocols/encoders.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
-	# ui_numbers.cpp
-	# ui_script.cpp
 	ui_sd_card_debug.cpp
 	config_mode.cpp
 	${CPLD_20150901_DATA_CPP}
