@@ -246,7 +246,6 @@ set(CPPSRC
 	hw/touch_adc.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
-	ui_playdead.cpp
 	ui_record_view.cpp
 	ui_sd_card_status_view.cpp
 	ui/ui_alphanum.cpp

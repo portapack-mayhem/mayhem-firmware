@@ -35,12 +35,10 @@
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
-// #include "ui_adsb_tx.hpp" //moved to ext
 #include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_btle_rx.hpp"
-// #include "ui_coasterp.hpp" //moved to ext
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
@@ -49,17 +47,12 @@
 #include "ui_freqman.hpp"
 #include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
-// #include "ui_jammer.hpp" //moved to ext
-//  #include "ui_keyfob.hpp" //moved to ext
-//  #include "ui_lcr.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
-// #include "ui_morse.hpp" //moved to ext
-// #include "ui_nrf_rx.hpp" //moved to ext
+
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
-// #include "ui_playdead.hpp"
 #include "ui_playlist.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
@@ -72,9 +65,7 @@
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
-// #include "ui_spectrum_painter.hpp" //moved to ext app
 #include "ui_ss_viewer.hpp"
-// #include "ui_sstvtx.hpp" //moved to ext
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
@@ -88,18 +79,14 @@
 
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-// #include "analog_tv_app.hpp" //moved to ext
 // #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
-// #include "gps_sim_app.hpp" //moved to ext
-// #include "lge_app.hpp" //moved to ext
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
 #include "soundboard_app.hpp"
-// #include "tpms_app.hpp" //moved to ext
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -142,7 +129,6 @@ static NavigationView::AppMap generate_app_map(const NavigationView::AppList& ap
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
-    //{"playdead", "Play dead", HOME, Color::red(), &bitmap_icon_playdead, new ViewFactory<PlayDeadView>()},
     {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},

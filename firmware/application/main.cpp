@@ -96,7 +96,6 @@ Continuous (Fox-oring)
 // Multimon-style stuff:
 // TODO: DMR detector
 // TODO: GSM channel detector
-// TODO: Playdead amnesia and login
 // TODO: Setup: Play dead by default ? Enable/disable ?
 
 // Old or low-priority stuff:

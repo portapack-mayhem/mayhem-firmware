@@ -184,10 +184,9 @@ struct data_t {
     int32_t modem_baudrate;
     int32_t modem_repeat;
 
-    // Play dead unlock (Used?)
-    uint32_t playdead_magic;
-    uint32_t playing_dead;
-    uint32_t playdead_sequence;
+    uint32_t UNUSED_2;
+    uint32_t UNUSED_3;
+    uint32_t UNUSED_4;
 
     // UI Config
     ui_config_t ui_config;
@@ -269,11 +268,9 @@ struct data_t {
           afsk_space_freq(afsk_space_reset_value),
           modem_baudrate(modem_baudrate_reset_value),
           modem_repeat(modem_repeat_reset_value),
-
-          playdead_magic(),     // TODO: Unused?
-          playing_dead(),       // TODO: Unused?
-          playdead_sequence(),  // TODO: Unused?
-
+          UNUSED_2(0),
+          UNUSED_3(0),
+          UNUSED_4(0),
           ui_config(),
 
           pocsag_last_address(0),    // TODO: A better default?
@@ -1221,9 +1218,6 @@ bool debug_dump() {
     pmem_dump_file.write_line("afsk_space_freq: " + to_string_dec_int(data->afsk_space_freq));
     pmem_dump_file.write_line("modem_baudrate: " + to_string_dec_int(data->modem_baudrate));
     pmem_dump_file.write_line("modem_repeat: " + to_string_dec_int(data->modem_repeat));
-    pmem_dump_file.write_line("playdead_magic: " + to_string_dec_uint(data->playdead_magic));
-    pmem_dump_file.write_line("playing_dead: " + to_string_dec_uint(data->playing_dead));
-    pmem_dump_file.write_line("playdead_sequence: " + to_string_dec_uint(data->playdead_sequence));
     pmem_dump_file.write_line("pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address));
     pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
