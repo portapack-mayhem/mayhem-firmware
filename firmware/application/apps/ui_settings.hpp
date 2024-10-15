@@ -765,6 +765,10 @@ class SetTouchscreenSensitivityView : public View {
     std::string title() const override { return "Touch S"; };
 
    private:
+
+    uint16_t sensitive_to_threshold(uint16_t sensitive);
+    uint16_t threshold_to_sensitive(uint16_t threshold);
+
     Labels labels{
         {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 2 * 16}, "default value is 32", Theme::getInstance()->fg_light->foreground},
@@ -772,10 +776,17 @@ class SetTouchscreenSensitivityView : public View {
         {{1 * 8, 4 * 16}, "And wait till finished", Theme::getInstance()->fg_light->foreground},
     };
 
+    bool handel_auto_detect();
+    void on_frame_sync();
+
+    /* sample max: 1023 sample_t AKA uint16_t
+     * touch_sensitivity: range: 1 to 128
+     * threshold range: 1023/1 to 1023/128  =  1023 to 8
+     */
     NumberField field_sensitivity{
         {1 * 8, 6 * 16},
-        2,
-        {0, 100},
+        3,
+        {1, 128},
         1,
         ' ',
     };
@@ -796,6 +807,13 @@ class SetTouchscreenSensitivityView : public View {
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
+
+    MessageHandlerRegistration message_handler_frame_sync{
+    Message::ID::DisplayFrameSync,
+    [this](const Message* const) {
+        this->on_frame_sync();
+    }};
+
 };
 
 class SetMenuColorView : public View {

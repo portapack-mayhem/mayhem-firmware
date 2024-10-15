@@ -95,6 +95,7 @@ TemperatureLogger temperature_logger;
 
 bool antenna_bias{false};
 uint32_t bl_tick_counter{0};
+uint16_t touch_threshold{3};
 
 void set_antenna_bias(const bool v) {
     antenna_bias = v;
@@ -321,8 +322,7 @@ static void shutdown_base() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
+    while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_boot);
 
@@ -360,15 +360,13 @@ static void set_cpu_clock_speed() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
+    while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_step);
 
     /* Delay >50us at 90-110MHz clock speed */
     volatile uint32_t delay = 1400;
-    while (delay--)
-        ;
+    while (delay--);
 
     set_clock_config(clock_config_pll1);
 
@@ -538,6 +536,11 @@ init_status_t init() {
     set_cpu_clock_speed();
 
     if (persistent_memory::config_lcd_inverted_mode()) display.set_inverted(true);
+    /* sample max: 1023 sample_t AKA uint16_t
+     * touch_sensitivity: range: 1 to 128
+     * threshold range: 1023/1 to 1023/128  =  1023 to 8
+     */
+    touch_threshold = portapack::persistent_memory::touchscreen_sensitivity();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);

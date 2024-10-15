@@ -477,7 +477,6 @@ void init() {
     // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
     if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
     if (menu_color().v == 0) set_menu_color(Color::grey());
-    if (touchscreen_sensitivity() == 0) set_touchscreen_sensitivity(32);
 }
 
 void persist() {

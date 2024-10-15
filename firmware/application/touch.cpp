@@ -28,15 +28,15 @@ using namespace portapack;
 
 namespace touch {
 
-    sample_t get_touch_sensitivity() {
-    if (touch_sensitivity == 0) {
-        touch_sensitivity = portapack::persistent_memory::touchscreen_sensitivity();
-    }
-    return touch_sensitivity;
-    }
+    // sample_t get_touch_sensitivity() {
+    // if (touch_sensitivity == 0) {
+    //     touch_sensitivity = portapack::persistent_memory::touchscreen_sensitivity();
+    // }
+    // return touch_sensitivity;
+    // }
 
-    sample_t touch_sensitivity = get_touch_sensitivity();
-    sample_t touch_threshold = sample_max / touch_sensitivity;
+    // sample_t touch_sensitivity = get_touch_sensitivity();
+    // sample_t touch_threshold = sample_max / touch_sensitivity;
 
 
 

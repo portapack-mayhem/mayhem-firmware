@@ -827,11 +827,18 @@ SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav
                   &button_save,
                   &button_cancel});
 
-    field_sensitivity.set_value(pmem::touchscreen_sensitivity());
+    field_sensitivity.set_value(threshold_to_sensitive(pmem::touchscreen_sensitivity()));
 
+    button_autodetect.on_select = [this](Button&) {
+        handel_auto_detect();
+    };
+
+    button_reset.on_select = [this](Button&) {
+        field_sensitivity.set_value(threshold_to_sensitive(32));
+    };
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_touchscreen_sensitivity(field_sensitivity.value());
+        pmem::set_touchscreen_sensitivity(sensitive_to_threshold(field_sensitivity.value()));
         send_system_refresh();
         nav.pop();
     };
@@ -839,6 +846,23 @@ SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
     };
+}
+
+/* sample max: 1023 sample_t AKA uint16_t
+    * touch_sensitivity: range: 1 to 128
+    * threshold = 1023 / sensitive
+    * threshold range: 1023/1 to 1023/128  =  1023 to 8
+    */
+uint16_t SetTouchscreenSensitivityView::sensitive_to_threshold(uint16_t sensitive) {
+    return 1023 / sensitive;
+}
+
+uint16_t SetTouchscreenSensitivityView::threshold_to_sensitive(uint16_t threshold) {
+    return 1023 / threshold;
+}
+
+bool SetTouchscreenSensitivityView::handel_auto_detect() {
+    
 }
 
 void SetTouchscreenSensitivityView::focus() {

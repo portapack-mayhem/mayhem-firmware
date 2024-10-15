@@ -156,7 +156,7 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     //{"about", "About", HOME, Color::cyan(), nullptr, new ViewFactory<AboutView>()},
     /* RX ********************************************************************/
-    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
+    {"adsbrx", "ADSB", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
     {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
@@ -834,9 +834,12 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
     : nav_(nav) {}
 
 void TransmittersMenuView::on_populate() {
+    uint16_t temp_to_print = portapack::touch_threshold;
+    std::string temp_to_print_string = to_string_dec_uint(temp_to_print);
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
+    add_items({{temp_to_print_string.c_str(), Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
 
     add_apps(nav_, *this, TX);
 
