@@ -339,7 +339,6 @@ set(CPPSRC
 	protocols/modems.cpp
 	protocols/rds.cpp
 	# ui_handwrite.cpp
-	# ui_loadmodule.cpp
 	# ui_numbers.cpp
 	# ui_replay_view.cpp
 	# ui_script.cpp
