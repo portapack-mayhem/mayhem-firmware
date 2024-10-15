@@ -274,7 +274,6 @@ set(CPPSRC
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
-	# apps/gps_sim_app.cpp
 	apps/pocsag_app.cpp
 	apps/soundboard_app.cpp
 	apps/ui_about_simple.cpp
@@ -330,7 +329,6 @@ set(CPPSRC
 	protocols/encoders.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
-	# ui_handwrite.cpp
 	# ui_numbers.cpp
 	# ui_script.cpp
 	ui_sd_card_debug.cpp
