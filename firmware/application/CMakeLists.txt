@@ -315,7 +315,6 @@ set(CPPSRC
 	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
-	apps/ui_tone_search.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
 	apps/ui_view_wav.cpp
