@@ -69,8 +69,22 @@ std::vector<uint8_t> I2cDev_PPmod::downloadStandaloneApp(uint32_t index, size_t 
         return {};
     }
 
-    uint16_t data[3] = {(uint16_t)Command::COMMAND_APP_TRANSFER, index, offset / transfer_block_size};
+    uint16_t data[3] = {
+        static_cast<uint16_t>(Command::COMMAND_APP_TRANSFER),
+        static_cast<uint16_t>(index & 0xFFFF),                          // keep index in 16 bits range
+        static_cast<uint16_t>((offset / transfer_block_size) & 0xFFFF)  // keep (offset / transfer_block_size) in 16 bits range
+    };
 
+    /*
+    // TODO: check if there was an out of range, manage error
+    if (index > std::numeric_limits<uint16_t>::max()) {
+        // manage error if index is bigger than a 16 bits value
+    }
+    // TODO: check if there was an out of range, manage error
+    if (offset / transfer_block_size > std::numeric_limits<uint16_t>::max()) {
+        // manage error if (offset / transfer_block_size ) is bigger than a 16 bits value
+    }
+    */
     std::vector<uint8_t> ret(transfer_block_size);
     bool success = i2c_read((uint8_t*)&data, sizeof(data), (uint8_t*)ret.data(), transfer_block_size);
     if (success == false) {

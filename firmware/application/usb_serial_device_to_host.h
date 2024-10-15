@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_DEVICE_TO_HOST_H
+#define __USB_SERIAL_DEVICE_TO_HOST_H
 
 #include "ch.h"
 #include "hal.h"
@@ -55,4 +56,6 @@ extern "C" {
 size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
 #ifdef __cplusplus
 }
+#endif
+
 #endif

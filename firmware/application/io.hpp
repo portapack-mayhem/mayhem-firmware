@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __IO_H
+#define __IO_H
 
 #include "file.hpp"
 
@@ -38,3 +39,5 @@ class Writer {
 };
 
 } /* namespace stream */
+
+#endif

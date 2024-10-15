@@ -54,9 +54,9 @@ class StandaloneView : public View {
    private:
     bool initialized = false;
     NavigationView& nav_;
-    uint8_t* _app_image;
+    uint8_t& _app_image;
     standalone_application_information_t* get_application_information() const {
-        return reinterpret_cast<standalone_application_information_t*>(_app_image);
+        return reinterpret_cast<standalone_application_information_t*>(&_app_image);
     }
 
     MessageHandlerRegistration message_handler_sample{

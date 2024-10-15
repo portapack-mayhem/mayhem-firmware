@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __IO_CONVERT_H
+#define __IO_CONVERT_H
 
 #include "io_file.hpp"
 
@@ -77,3 +78,5 @@ class FileConvertWriter : public stream::Writer {
     File file_{};
     uint64_t bytes_written_{0};
 };
+
+#endif

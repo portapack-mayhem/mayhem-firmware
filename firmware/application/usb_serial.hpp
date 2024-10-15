@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_H
+#define __USB_SERIAL_H
 
 #include "ch.h"
 #include "hal.h"
@@ -54,3 +55,5 @@ class USBSerial {
 };
 
 }  // namespace portapack
+
+#endif

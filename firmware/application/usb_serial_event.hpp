@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_EVENT_H
+#define __USB_SERIAL_EVENT_H
 
 #include "ch.h"
 #include "hal.h"
@@ -31,4 +32,6 @@ void on_channel_opened(void);
 void on_channel_closed(void);
 #ifdef __cplusplus
 }
+#endif
+
 #endif
