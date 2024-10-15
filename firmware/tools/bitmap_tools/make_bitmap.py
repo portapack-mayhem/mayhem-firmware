@@ -70,6 +70,7 @@ def convert_png(file):
 
 count = 0
 
+f = open('bitmap.hpp', 'w')
 f.write("/*\n"
 	" * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.\n"
 	" * Copyright (C) 2016 Furrtek\n"
