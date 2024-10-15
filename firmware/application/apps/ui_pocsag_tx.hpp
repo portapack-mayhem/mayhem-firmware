@@ -122,7 +122,7 @@ class POCSAGTXView : public View {
         }};
 
     Text text_message{
-        {0 * 8, 16 * 8, 16 * 8, 16},
+        {0 * 8, 16 * 8, 30 * 8, 16},
         ""};
 
     Button button_message{
