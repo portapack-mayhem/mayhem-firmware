@@ -276,7 +276,6 @@ set(CPPSRC
 	apps/ert_app.cpp
 	# apps/gps_sim_app.cpp
 	apps/pocsag_app.cpp
-	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp
@@ -300,8 +299,6 @@ set(CPPSRC
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
-	# apps/ui_morse.cpp
-	# apps/ui_nrf_rx.cpp
 	apps/ui_playlist.cpp
 	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
@@ -315,11 +312,7 @@ set(CPPSRC
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
-	# apps/ui_spectrum_painter_image.cpp
-	# apps/ui_spectrum_painter_text.cpp
-	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
-	# apps/ui_sstvtx.cpp #moved to ext
 	apps/ui_standalone_view.cpp
 	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp
@@ -335,12 +328,10 @@ set(CPPSRC
 	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/encoders.cpp
-	# protocols/lcr.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
 	# ui_handwrite.cpp
 	# ui_numbers.cpp
-	# ui_replay_view.cpp
 	# ui_script.cpp
 	ui_sd_card_debug.cpp
 	config_mode.cpp

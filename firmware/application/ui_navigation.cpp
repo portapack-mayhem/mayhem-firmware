@@ -82,7 +82,6 @@
 #include "capture_app.hpp"
 #include "ert_app.hpp"
 #include "pocsag_app.hpp"
-#include "replay_app.hpp"
 #include "soundboard_app.hpp"
 
 #include "core_control.hpp"
