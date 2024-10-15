@@ -818,6 +818,33 @@ void SetDisplayView::focus() {
     button_save.focus();
 }
 
+/* SetTouchscreenSensitivityView ************************************/
+SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_sensitivity,
+                  &button_autodetect,
+                  &button_save,
+                  &button_cancel});
+
+    field_sensitivety.set_value(pmem::touchscreen_sensitivity());
+
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_touchscreen_sensitivity(field_sensitivety.value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetDisplayView::focus() {
+    button_save.focus();
+}
+
+
 /* SetMenuColorView ************************************/
 
 void SetMenuColorView::paint_sample() {

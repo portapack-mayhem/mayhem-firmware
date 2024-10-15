@@ -754,6 +754,50 @@ class SetDisplayView : public View {
     };
 };
 
+using portapack::persistent_memory::touchscreen_sensitivity;
+
+class SetTouchscreenSensitivityView : public View {
+   public:
+    SetTouchscreenSensitivityView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Touch S"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "default value is 32", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "Or press auto detect button", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 4 * 16}, "And wait till finished", Theme::getInstance()->fg_light->foreground},
+    };
+
+    NumberField field_sensitivety{
+        {1 * 8, 6 * 16},
+        2,
+        {0, 100},
+        1,
+        '32',
+    };
+
+    Button button_autodetect{
+        {2 * 8, 13 * 16, 12 * 8, 32},
+        "Auto"};
+    Button button_reset{
+        {16 * 8, 13 * 16, 12 * 8, 32},
+        "Reset",
+    };
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SetMenuColorView : public View {
    public:
     SetMenuColorView(NavigationView& nav);
@@ -932,6 +976,47 @@ class SetBatteryView : public View {
         {2 * 8, 8 * 16, 12 * 8, 32},
         "Reset",
     };
+};
+
+class SetTouchscreenSensitivety : public View {
+   public:
+    SetTouchscreenSensitivety(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Autostart"; };
+
+   private:
+    int32_t i = 0;
+    std::string autostart_app{""};
+    OptionsField::options_t opts{};
+    std::map<int32_t, std::string> full_app_list{};  // looking table
+    int32_t selected = 0;
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 2 * 16}, "Or touch auto detect and wait for succeed", Theme::getInstance()->fg_light->foreground}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    OptionsField options{
+        {0 * 8, 4 * 16},
+        screen_width / 8,
+        {},
+        true};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+
+    Button button_autodetect{
+        {2 * 8, 6 * 16, screen_width - 4 * 8, 32},
+        "Auto Detect"};
 };
 
 class SettingsMenuView : public BtnGridView {

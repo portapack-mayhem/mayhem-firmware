@@ -253,6 +253,8 @@ struct data_t {
     // Menu Color Scheme
     Color menu_color;
 
+    uint16_t touchscreen_sensitivity;
+
     uint16_t UNUSED_16;
 
     constexpr data_t()
@@ -313,6 +315,7 @@ struct data_t {
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
           dst_config(),
           menu_color(Color::grey()),
+          touchscreen_sensitivity(32),
           UNUSED_16() {
     }
 };
@@ -474,6 +477,7 @@ void init() {
     // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
     if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
     if (menu_color().v == 0) set_menu_color(Color::grey());
+    if (touchscreen_sensitivity() == 0) set_touchscreen_sensitivity(32);
 }
 
 void persist() {
@@ -1143,6 +1147,13 @@ void set_menu_color(Color v) {
     data->menu_color = v;
 }
 
+uint16_t touchscreen_sensitivity() {
+    return data->fake_brightness_level;
+}
+void set_touchscreen_sensitivity(uint16_t v) {
+    data->touchscreen_sensitivity = v;
+}
+
 // PMem to sdcard settings
 
 bool should_use_sdcard_for_pmem() {
@@ -1250,6 +1261,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
     pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(data->fake_brightness_level));
     pmem_dump_file.write_line("menu_color: 0x" + to_string_hex(data->menu_color.v, 4));
+    pmem_dump_file.write_line("touchscreen_sensitivity: " + to_string_dec_uint(data->touchscreen_sensitivity));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
