@@ -33,6 +33,8 @@ using namespace pocsag;
 
 namespace ui {
 
+#define MAX_POCSAG_LENGTH 40
+
 void POCSAGTXView::focus() {
     field_address.focus();
 }
@@ -57,6 +59,7 @@ void POCSAGTXView::on_remote(const PocsagTosendMessage data) {
     options_phase.set_selected_index(data.phase == 'P' ? 0 : 1);
     field_address.set_value(data.addr);
     message = (char*)data.msg;
+    buffer = message;
     text_message.set(message);
     options_bitrate.dirty();
     options_type.dirty();
@@ -139,11 +142,16 @@ bool POCSAGTXView::start_tx() {
 
 void POCSAGTXView::paint(Painter&) {
     message = buffer;
-    text_message.set(message);
+    text_message.set(message);  // thoe whole message, but it may not fit.
+    if (message.length() > 30) {
+        text_message_l2.set(message.substr(29));  // remaining to 2nd line
+    } else {
+        text_message_l2.set("");
+    }
 }
 
 void POCSAGTXView::on_set_text(NavigationView& nav) {
-    text_prompt(nav, buffer, 30);
+    text_prompt(nav, buffer, MAX_POCSAG_LENGTH);
 }
 
 POCSAGTXView::POCSAGTXView(
@@ -158,6 +166,7 @@ POCSAGTXView::POCSAGTXView(
                   &options_function,
                   &options_phase,
                   &text_message,
+                  &text_message_l2,
                   &button_message,
                   &progressbar,
                   &tx_view});

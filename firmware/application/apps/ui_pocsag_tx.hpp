@@ -124,13 +124,16 @@ class POCSAGTXView : public View {
     Text text_message{
         {0 * 8, 16 * 8, 30 * 8, 16},
         ""};
+    Text text_message_l2{
+        {0 * 8, 18 * 8, 30 * 8, 16},
+        ""};
 
     Button button_message{
-        {0 * 8, 18 * 8, 14 * 8, 32},
+        {0 * 8, 20 * 8, 14 * 8, 32},
         "Set message"};
 
     ProgressBar progressbar{
-        {16, 200, 208, 16}};
+        {16, 210, 208, 16}};
 
     TransmitterView tx_view{
         16 * 16,
