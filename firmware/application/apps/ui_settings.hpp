@@ -772,12 +772,12 @@ class SetTouchscreenSensitivityView : public View {
         {{1 * 8, 4 * 16}, "And wait till finished", Theme::getInstance()->fg_light->foreground},
     };
 
-    NumberField field_sensitivety{
+    NumberField field_sensitivity{
         {1 * 8, 6 * 16},
         2,
         {0, 100},
         1,
-        '32',
+        ' ',
     };
 
     Button button_autodetect{

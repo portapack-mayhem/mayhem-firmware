@@ -1148,7 +1148,7 @@ void set_menu_color(Color v) {
 }
 
 uint16_t touchscreen_sensitivity() {
-    return data->fake_brightness_level;
+    return data->touchscreen_sensitivity;
 }
 void set_touchscreen_sensitivity(uint16_t v) {
     data->touchscreen_sensitivity = v;

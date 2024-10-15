@@ -823,14 +823,15 @@ SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav
     add_children({&labels,
                   &field_sensitivity,
                   &button_autodetect,
+                  &button_reset,
                   &button_save,
                   &button_cancel});
 
-    field_sensitivety.set_value(pmem::touchscreen_sensitivity());
+    field_sensitivity.set_value(pmem::touchscreen_sensitivity());
 
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_touchscreen_sensitivity(field_sensitivety.value());
+        pmem::set_touchscreen_sensitivity(field_sensitivity.value());
         send_system_refresh();
         nav.pop();
     };
@@ -840,7 +841,7 @@ SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav
     };
 }
 
-void SetDisplayView::focus() {
+void SetTouchscreenSensitivityView::focus() {
     button_save.focus();
 }
 
@@ -1063,6 +1064,7 @@ void SettingsMenuView::on_populate() {
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
         {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
+        {"Touchscreen Sensitivity", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<SetTouchscreenSensitivityView>(); }},
     });
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});
 }

@@ -28,6 +28,20 @@ using namespace portapack;
 
 namespace touch {
 
+    sample_t get_touch_sensitivity() {
+    if (touch_sensitivity == 0) {
+        touch_sensitivity = portapack::persistent_memory::touchscreen_sensitivity();
+    }
+    return touch_sensitivity;
+    }
+
+    sample_t touch_sensitivity = get_touch_sensitivity();
+    sample_t touch_threshold = sample_max / touch_sensitivity;
+
+
+
+
+
 Metrics calculate_metrics(const Frame& frame) {
     /* TODO: Yikes! M0 doesn't have floating point, so this code is
      * expensive! On the other hand, it seems to be working well (and
