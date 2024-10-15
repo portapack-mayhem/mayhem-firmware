@@ -296,6 +296,7 @@ set(CPPSRC
 	apps/ui_debug_max17055.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
+	apps/ui_external_module_view.cpp
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp

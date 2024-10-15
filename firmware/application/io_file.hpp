@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __IO_FILE_H
+#define __IO_FILE_H
 
 #include "io.hpp"
 
@@ -71,3 +72,5 @@ class FileWriter : public stream::Writer {
 };
 
 using RawFileWriter = FileWriter;
+
+#endif

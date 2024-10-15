@@ -59,6 +59,7 @@ class ExternalItemsMenuLoader {
     ExternalItemsMenuLoader() = delete;
     static bool run_external_app(ui::NavigationView&, std::filesystem::path);
     static bool run_standalone_app(ui::NavigationView&, std::filesystem::path);
+    static bool run_module_app(ui::NavigationView&, uint8_t*, size_t);
     static void load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback);
 
    private:

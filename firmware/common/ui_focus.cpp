@@ -38,6 +38,14 @@ Widget* FocusManager::focus_widget() const {
     return focus_widget_;
 }
 
+void FocusManager::setMirror(Widget* const mirror_widget) {
+    mirror_widget_ = mirror_widget;
+}
+
+void FocusManager::clearMirror() {
+    mirror_widget_ = nullptr;
+}
+
 void FocusManager::set_focus_widget(Widget* const new_focus_widget) {
     // Widget already has focus.
     if (new_focus_widget == focus_widget()) {
@@ -153,9 +161,12 @@ static int32_t rect_distances(
     }
 }
 
-void FocusManager::update(
-    Widget* const top_widget,
-    const KeyEvent event) {
+void FocusManager::update(Widget* const top_widget, const KeyEvent event) {
+    if (mirror_widget_) {
+        if (mirror_widget_->on_key(event))
+            return;
+    }
+
     if (focus_widget()) {
         const auto focus_screen_rect = focus_widget()->screen_rect();
 
