@@ -96,7 +96,6 @@ Continuous (Fox-oring)
 // Multimon-style stuff:
 // TODO: DMR detector
 // TODO: GSM channel detector
-// TODO: Playdead amnesia and login
 // TODO: Setup: Play dead by default ? Enable/disable ?
 
 // Old or low-priority stuff:
@@ -106,7 +105,6 @@ Continuous (Fox-oring)
 // TODO: Check more OOK encoders
 // BUG (fixed ?): No audio in about when shown second time
 // TODO: Show MD5 mismatches for modules not found, etc...
-// TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
 // BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
 // TODO: Two players tic-tac-toe
 // TODO: Analog TV pong game

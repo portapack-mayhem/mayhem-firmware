@@ -24,8 +24,6 @@
 
 #include "ui_navigation.hpp"
 
-// #include "modules.h"
-
 #include "bmp_modal_warning.hpp"
 #include "bmp_splash.hpp"
 #include "event_m0.hpp"
@@ -35,12 +33,10 @@
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
-// #include "ui_adsb_tx.hpp" //moved to ext
 #include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_btle_rx.hpp"
-// #include "ui_coasterp.hpp" //moved to ext
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
@@ -49,17 +45,10 @@
 #include "ui_freqman.hpp"
 #include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
-// #include "ui_jammer.hpp" //moved to ext
-//  #include "ui_keyfob.hpp" //moved to ext
-//  #include "ui_lcr.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
-// #include "ui_morse.hpp" //moved to ext
-// #include "ui_nrf_rx.hpp" //moved to ext
-// #include "ui_numbers.hpp"
-// #include "ui_nuoptix.hpp"
-// #include "ui_playdead.hpp"
+
 #include "ui_playlist.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
@@ -72,12 +61,9 @@
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
-// #include "ui_spectrum_painter.hpp" //moved to ext app
 #include "ui_ss_viewer.hpp"
-// #include "ui_sstvtx.hpp" //moved to ext
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
-#include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_weatherstation.hpp"
@@ -88,18 +74,13 @@
 
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-// #include "analog_tv_app.hpp" //moved to ext
 // #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
-// #include "gps_sim_app.hpp" //moved to ext
-// #include "lge_app.hpp" //moved to ext
 #include "pocsag_app.hpp"
-#include "replay_app.hpp"
 #include "soundboard_app.hpp"
-// #include "tpms_app.hpp" //moved to ext
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -142,7 +123,6 @@ static NavigationView::AppMap generate_app_map(const NavigationView::AppList& ap
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
-    //{"playdead", "Play dead", HOME, Color::red(), &bitmap_icon_playdead, new ViewFactory<PlayDeadView>()},
     {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
@@ -154,13 +134,11 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
-    //{"about", "About", HOME, Color::cyan(), nullptr, new ViewFactory<AboutView>()},
     /* RX ********************************************************************/
     {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
     {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
-    //{"btle", "BTLE", RX, Color::yellow(), &bitmap_icon_btle, new ViewFactory<BTLERxView>()},
     //{"blecomm", "BLE Comm", RX, ui::Color::orange(), &bitmap_icon_btle, new ViewFactory<BLECommView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
@@ -169,10 +147,8 @@ const NavigationView::AppList NavigationView::appList = {
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"recon", "Recon", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
-    //{"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
-    //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()},
     //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
     //{"sigfox", "SIGFOX", RX, Color::dark_grey(), &bitmap_icon_fox, new ViewFactory<NotImplementedView>()},
     //{"lora", "LoRa", RX, Color::dark_grey(), &bitmap_icon_lora, new ViewFactory<NotImplementedView>()},
@@ -183,13 +159,10 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
-    //{"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()}, //moved to ext
-    //{"nuoptixdtmf", "Nuoptix DTMF", TX, ui::Color::green(), &bitmap_icon_nuoptix, new ViewFactory<NuoptixView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
-    //{"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()}, //moved to ext
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* UTILITIES *************************************************************/
     {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
@@ -200,7 +173,7 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
     {"signalgen", "Signal Gen", UTILITIES, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
-    //{"tonesearch", "Tone Search", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<ToneSearchView>()},
+
     {"wavview", "Wav View", UTILITIES, Color::yellow(), &bitmap_icon_soundboard, new ViewFactory<ViewWavView>()},
     // Dangerous apps.
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_temperature, new ViewFactory<FlashUtilityView>()},

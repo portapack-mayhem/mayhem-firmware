@@ -189,12 +189,6 @@ void set_modem_baudrate(const int32_t new_value);
 uint8_t modem_repeat();
 void set_modem_repeat(const uint32_t new_value);
 
-uint32_t playing_dead();
-void set_playing_dead(const uint32_t new_value);
-
-uint32_t playdead_sequence();
-void set_playdead_sequence(const uint32_t new_value);
-
 bool stealth_mode();
 void set_stealth_mode(const bool v);
 

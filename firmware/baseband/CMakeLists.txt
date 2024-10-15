@@ -424,13 +424,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNFM nfm_audio)
 
-#### No op
-#
-#set(MODE_CPPSRC
-#	proc_noop.cpp
-#)
-#DeclareTargets(PNOP no_operation)
-
 ### OOK
 
 set(MODE_CPPSRC
@@ -438,12 +431,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(POOK ook)
 
-#### POCSAG RX
-#
-#set(MODE_CPPSRC
-#	proc_pocsag.cpp
-#)
-#DeclareTargets(PPOC pocsag)
 
 ### POCSAG2 RX
 
