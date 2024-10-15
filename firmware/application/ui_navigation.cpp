@@ -52,7 +52,6 @@
 #include "ui_mictx.hpp"
 
 // #include "ui_numbers.hpp"
-// #include "ui_nuoptix.hpp"
 #include "ui_playlist.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
@@ -169,13 +168,10 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
-    //{"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()}, //moved to ext
-    //{"nuoptixdtmf", "Nuoptix DTMF", TX, ui::Color::green(), &bitmap_icon_nuoptix, new ViewFactory<NuoptixView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
-    //{"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()}, //moved to ext
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* UTILITIES *************************************************************/
     {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
