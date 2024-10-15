@@ -1023,6 +1023,7 @@ void BMPView::paint(Painter&) {
 bool BMPView::on_touch(const TouchEvent event) {
     /* the event thing were resolved by HTotoo, talked here https://discord.com/channels/719669764804444213/956561375155589192/1287756910950486027
      * the touch screen policy can be better, talked here https://discord.com/channels/719669764804444213/956561375155589192/1198926225897443328
+     * this workaround discussed here: https://discord.com/channels/719669764804444213/1170738202924044338/1295630640158478418
      */
 
     if (!nav_.is_valid()) {
@@ -1031,11 +1032,8 @@ bool BMPView::on_touch(const TouchEvent event) {
 
     switch (event.type) {
         case TouchEvent::Type::Start:
-            return true;
-
-        case TouchEvent::Type::End:
             handle_pop();
-            return true;
+            return false;
 
         default:
             break;
