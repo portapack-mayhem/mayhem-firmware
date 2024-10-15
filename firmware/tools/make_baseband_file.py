@@ -114,4 +114,4 @@ for args in sys.argv:
 	# Update original binary with MD5 footprint
 	write_file(data[512:(32768+512)], args + '/build/' + args + '_inc.bin')
 
-write_file(h_data, 'common/modules.h')
+# write_file(h_data, 'common/modules.h')

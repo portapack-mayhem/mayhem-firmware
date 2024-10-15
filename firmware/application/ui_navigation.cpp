@@ -24,8 +24,6 @@
 
 #include "ui_navigation.hpp"
 
-// #include "modules.h"
-
 #include "bmp_modal_warning.hpp"
 #include "bmp_splash.hpp"
 #include "event_m0.hpp"
