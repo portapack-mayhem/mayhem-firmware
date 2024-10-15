@@ -108,9 +108,9 @@ bool POCSAGTXView::start_tx() {
 
     progressbar.set_max(total_frames);
 
-    transmitter_model.set_rf_amp(true);
-    transmitter_model.set_tx_gain(40);
-    // We left exactly same TX LPF settings as previous fw 1.7.4,  TX LPF= 1M75 (min). It is fine even in max FM dev. 150khz and 2400 bauds.
+    // transmitter_model.set_rf_amp(true);
+    // transmitter_model.set_tx_gain(40);
+    //  We left exactly same TX LPF settings as previous fw 1.7.4,  TX LPF= 1M75 (min). It is fine even in max FM dev. 150khz and 2400 bauds.
     transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF . Pocsag is NBFM , using BW channel 25khz or 12khz
     transmitter_model.enable();
 
