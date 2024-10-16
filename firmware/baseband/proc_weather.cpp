@@ -39,7 +39,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     feed_channel_stats(decim_1_out);
 
     threshold = (ook_low_estimate + ook_high_estimate) / 2;
-    int16_t const hysteresis = threshold / 8;  // +-12%
+    int32_t const hysteresis = threshold / 8;  // +-12%
 
     for (size_t i = 0; i < decim_1_out.count; i++) {
         int16_t re = decim_1_out.p[i].real();
@@ -47,7 +47,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
 
         mag = (mag >> 10);
-        int16_t const ook_low_delta = mag - ook_low_estimate;
+        int32_t const ook_low_delta = mag - ook_low_estimate;
         bool meashl = currentHiLow;
         if (ook_state == PD_OOK_STATE_IDLE) {
             if (mag > (threshold + hysteresis)) {  // just become high
@@ -59,9 +59,9 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
                 ook_low_estimate += ook_low_delta / OOK_EST_LOW_RATIO;
                 ook_low_estimate += ((ook_low_delta > 0) ? 1 : -1);  // Hack to compensate for lack of fixed-point scaling
                 // Calculate default OOK high level estimate
-                ook_high_estimate = 1.5 * ook_low_estimate;  // Default is a ratio of low level
+                ook_high_estimate = 1.35 * ook_low_estimate;  // Default is a ratio of low level
                 ook_high_estimate = std::max(ook_high_estimate, ook_min_high_level);
-                ook_high_estimate = std::min(ook_high_estimate, (int16_t)OOK_MAX_HIGH_LEVEL);
+                ook_high_estimate = std::min(ook_high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
             }
 
         } else if (ook_state == PD_OOK_STATE_PULSE) {
@@ -80,7 +80,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
             } else {
                 ook_high_estimate += mag / OOK_EST_HIGH_RATIO - ook_high_estimate / OOK_EST_HIGH_RATIO;
                 ook_high_estimate = std::max(ook_high_estimate, ook_min_high_level);
-                ook_high_estimate = std::min(ook_high_estimate, (int16_t)OOK_MAX_HIGH_LEVEL);
+                ook_high_estimate = std::min(ook_high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
                 meashl = true;  // still high
             }
         } else if (ook_state == PD_OOK_STATE_GAP_START) {
