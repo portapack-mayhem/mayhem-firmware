@@ -834,6 +834,7 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
                   &text_hint,
                   &text_wait_timer});
 
+    set_dirty();
     org_threshold = portapack::touch_threshold;
     field_threshold.set_value(pmem::touchscreen_threshold());
     text_hint.set_style(Theme::getInstance()->error_dark);
@@ -844,7 +845,7 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
     button_autodetect.on_select = [this, &nav](Button&) {
         nav.display_modal("NOTICE",
                           "Now on don't touch screen;\n"
-                          "Use arrow keys to select.\n"
+                          "Use arrow keys to operate.\n"
                           "Follow instructions.\n"
                           "Press YES to continue",
                           YESNO, [this, &nav](bool choice) {
@@ -862,10 +863,12 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
 
     button_reset.on_select = [this](Button&) {
         field_threshold.set_value(32);
+        portapack::touch_threshold = 32;
     };
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_touchscreen_threshold(field_threshold.value());
+        portapack::touch_threshold = field_threshold.value();
         send_system_refresh();
         nav.pop();
     };
@@ -878,6 +881,7 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
 
 void SetTouchscreenThresholdView::focus() {
     button_autodetect.focus();
+    set_dirty();
 }
 
 void SetTouchscreenThresholdView::on_frame_sync() {
@@ -888,6 +892,8 @@ void SetTouchscreenThresholdView::on_frame_sync() {
         in_auto_detect = false;
         text_wait_timer.hidden(true);
         text_hint.set("OK, press save and reboot");
+        portapack::touch_threshold = org_threshold;
+        pmem::set_touchscreen_threshold(org_threshold);
         set_dirty();
         auto_detect_succeed_consumed = true;
         button_save.focus();
@@ -901,6 +907,15 @@ void SetTouchscreenThresholdView::on_frame_sync() {
             field_threshold.set_value(sen);
         }
     }
+}
+
+SetTouchscreenThresholdView::~SetTouchscreenThresholdView() {
+    // setting view didn't destruct correctly, this is a work around to prevent resume all values,
+    // but they are not released just resetted, but that's a thing thia can't fix here other than setting itself.
+    // TODO: correct the setting distructing process
+    in_auto_detect = false;
+    auto_detect_succeed_consumed = false;
+    time_start_auto_detect = 0;
 }
 
 /* SetMenuColorView ************************************/

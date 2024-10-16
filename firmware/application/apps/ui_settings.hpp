@@ -760,6 +760,7 @@ using portapack::persistent_memory::touchscreen_threshold;
 class SetTouchscreenThresholdView : public View {
    public:
     SetTouchscreenThresholdView(NavigationView& nav);
+    ~SetTouchscreenThresholdView();
 
     void focus() override;
 
