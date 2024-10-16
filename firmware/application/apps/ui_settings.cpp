@@ -52,7 +52,6 @@ namespace fs = std::filesystem;
 #include "config_mode.hpp"
 #include "i2cdevmanager.hpp"
 #include "i2cdev_max17055.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 extern ui::SystemView* system_view_ptr;
 
@@ -880,19 +879,12 @@ void SetTouchscreenThresholdView::focus() {
 
 void SetTouchscreenThresholdView::on_frame_sync() {
     if (get_touch_frame().touch) {
-        if (in_auto_detect) {
-            UsbSerialAsyncmsg::asyncmsg("in_auto_detect");
-        }
 
-        UsbSerialAsyncmsg::asyncmsg("touch");
         if (in_auto_detect) {
             uint16_t sen = field_threshold.value();
-            UsbSerialAsyncmsg::asyncmsg(sen);
             sen++;
             portapack::touch_threshold = sen;
             field_threshold.set_value(sen);
-            // set_dirty();
-            // chThdSleep(100);
         }
     }
 }
