@@ -35,9 +35,9 @@
 
 #include "fprotos/weatherprotos.hpp"
 
-#define OOK_EST_HIGH_RATIO 3       // Constant for slowness of OOK high level estimator
-#define OOK_EST_LOW_RATIO 5        // Constant for slowness of OOK low level (noise) estimator (very slow)
-#define OOK_MAX_HIGH_LEVEL 127000  // Maximum estimate for high level (-0 dB)
+#define OOK_EST_HIGH_RATIO 3  // Constant for slowness of OOK high level estimator
+#define OOK_EST_LOW_RATIO 5   // Constant for slowness of OOK low level (noise) estimator (very slow)
+#define OOK_MAX_HIGH_LEVEL 427000
 
 class WeatherProcessor : public BasebandProcessor {
    public:
