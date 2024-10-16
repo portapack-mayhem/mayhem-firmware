@@ -911,9 +911,9 @@ void SetTouchscreenThresholdView::on_frame_sync() {
 }
 
 SetTouchscreenThresholdView::~SetTouchscreenThresholdView() {
-    // setting view didn't destruct correctly, this is a work around to prevent resume all values,
-    // but they are not released just resetted, but that's a thing thia can't fix here other than setting itself.
-    // TODO: correct the setting distructing process
+    // it seems that sometimes in the msg handler func it would enter the condi that not possible to entered,
+    // so added this workaround.
+    // TODO: find out why
     in_auto_detect = false;
     auto_detect_succeed_consumed = false;
     time_start_auto_detect = 0;
