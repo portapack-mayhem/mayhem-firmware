@@ -37,7 +37,6 @@
 #include "portapack_persistent_memory.hpp"
 #include "irq_controls.hpp"
 
-
 #include <cstdint>
 
 namespace ui {
@@ -767,7 +766,6 @@ class SetTouchscreenThresholdView : public View {
     std::string title() const override { return "Touch S"; };
 
    private:
-
     bool in_auto_detect = false;
 
     Labels labels{
@@ -810,11 +808,10 @@ class SetTouchscreenThresholdView : public View {
     };
 
     MessageHandlerRegistration message_handler_frame_sync{
-    Message::ID::DisplayFrameSync,
-    [this](const Message* const) {
-        this->on_frame_sync();
-    }};
-
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_frame_sync();
+        }};
 };
 
 class SetMenuColorView : public View {
