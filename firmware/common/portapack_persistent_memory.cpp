@@ -253,7 +253,7 @@ struct data_t {
     // Menu Color Scheme
     Color menu_color;
 
-    uint16_t touchscreen_sensitivity;
+    uint16_t touchscreen_threshold;
 
     uint16_t UNUSED_16;
 
@@ -315,7 +315,7 @@ struct data_t {
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
           dst_config(),
           menu_color(Color::grey()),
-          touchscreen_sensitivity(32),
+          touchscreen_threshold(32),
           UNUSED_16() {
     }
 };
@@ -1146,11 +1146,11 @@ void set_menu_color(Color v) {
     data->menu_color = v;
 }
 
-uint16_t touchscreen_sensitivity() {
-    return data->touchscreen_sensitivity;
+uint16_t touchscreen_threshold() {
+    return data->touchscreen_threshold;
 }
-void set_touchscreen_sensitivity(uint16_t v) {
-    data->touchscreen_sensitivity = v;
+void set_touchscreen_threshold(uint16_t v) {
+    data->touchscreen_threshold = v;
 }
 
 // PMem to sdcard settings
@@ -1260,7 +1260,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
     pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(data->fake_brightness_level));
     pmem_dump_file.write_line("menu_color: 0x" + to_string_hex(data->menu_color.v, 4));
-    pmem_dump_file.write_line("touchscreen_sensitivity: " + to_string_dec_uint(data->touchscreen_sensitivity));
+    pmem_dump_file.write_line("touchscreen_threshold: " + to_string_dec_uint(data->touchscreen_threshold));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();

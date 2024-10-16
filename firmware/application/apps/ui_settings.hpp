@@ -35,6 +35,8 @@
 #include "bitmap.hpp"
 #include "ff.h"
 #include "portapack_persistent_memory.hpp"
+#include "irq_controls.hpp"
+
 
 #include <cstdint>
 
@@ -754,11 +756,11 @@ class SetDisplayView : public View {
     };
 };
 
-using portapack::persistent_memory::touchscreen_sensitivity;
+using portapack::persistent_memory::touchscreen_threshold;
 
-class SetTouchscreenSensitivityView : public View {
+class SetTouchscreenThresholdView : public View {
    public:
-    SetTouchscreenSensitivityView(NavigationView& nav);
+    SetTouchscreenThresholdView(NavigationView& nav);
 
     void focus() override;
 
@@ -766,34 +768,33 @@ class SetTouchscreenSensitivityView : public View {
 
    private:
 
-    uint16_t sensitive_to_threshold(uint16_t sensitive);
-    uint16_t threshold_to_sensitive(uint16_t threshold);
+    bool in_auto_detect = false;
 
     Labels labels{
         {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "default value is 32", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 3 * 16}, "Or press auto detect button", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 4 * 16}, "And wait till finished", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Or press auto detect button", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "FOLLOW INSTRUCTIONS", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 4 * 16}, "REBOOT TO APPLY", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 6 * 16}, "Threshold:", Theme::getInstance()->fg_light->foreground},
     };
 
-    bool handel_auto_detect();
     void on_frame_sync();
 
     /* sample max: 1023 sample_t AKA uint16_t
      * touch_sensitivity: range: 1 to 128
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
-    NumberField field_sensitivity{
-        {1 * 8, 6 * 16},
+    NumberField field_threshold{
+        {1 * 8 + sizeof("Threshold:") * 8 + 8, 6 * 16},
         3,
-        {1, 128},
+        {1, 1023},
         1,
         ' ',
     };
 
     Button button_autodetect{
         {2 * 8, 13 * 16, 12 * 8, 32},
-        "Auto"};
+        "Auto Detect"};
     Button button_reset{
         {16 * 8, 13 * 16, 12 * 8, 32},
         "Reset",
@@ -994,47 +995,6 @@ class SetBatteryView : public View {
         {2 * 8, 8 * 16, 12 * 8, 32},
         "Reset",
     };
-};
-
-class SetTouchscreenSensitivety : public View {
-   public:
-    SetTouchscreenSensitivety(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "Autostart"; };
-
-   private:
-    int32_t i = 0;
-    std::string autostart_app{""};
-    OptionsField::options_t opts{};
-    std::map<int32_t, std::string> full_app_list{};  // looking table
-    int32_t selected = 0;
-    SettingsStore nav_setting{
-        "nav"sv,
-        {{"autostart_app"sv, &autostart_app}}};
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 2 * 16}, "Or touch auto detect and wait for succeed", Theme::getInstance()->fg_light->foreground}};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    OptionsField options{
-        {0 * 8, 4 * 16},
-        screen_width / 8,
-        {},
-        true};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-
-    Button button_autodetect{
-        {2 * 8, 6 * 16, screen_width - 4 * 8, 32},
-        "Auto Detect"};
 };
 
 class SettingsMenuView : public BtnGridView {

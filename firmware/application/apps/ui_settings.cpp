@@ -52,6 +52,7 @@ namespace fs = std::filesystem;
 #include "config_mode.hpp"
 #include "i2cdevmanager.hpp"
 #include "i2cdev_max17055.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 extern ui::SystemView* system_view_ptr;
 
@@ -819,26 +820,51 @@ void SetDisplayView::focus() {
 }
 
 /* SetTouchscreenSensitivityView ************************************/
-SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav) {
+/* sample max: 1023 sample_t AKA uint16_t
+ * touch_sensitivity: range: 1 to 128
+ * threshold = 1023 / sensitive
+ * threshold range: 1023/1 to 1023/128  =  1023 to 8
+ */
+SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
     add_children({&labels,
-                  &field_sensitivity,
+                  &field_threshold,
                   &button_autodetect,
                   &button_reset,
                   &button_save,
                   &button_cancel});
 
-    field_sensitivity.set_value(threshold_to_sensitive(pmem::touchscreen_sensitivity()));
+    field_threshold.set_value(pmem::touchscreen_threshold());
 
-    button_autodetect.on_select = [this](Button&) {
-        handel_auto_detect();
+    button_autodetect.on_select = [this, &nav](Button&) {
+        nav.display_modal("NOTICE", 
+        "READ CAREFULLY:\n"
+        "now on don't touch screen\n"
+        "use buttons to select,\n"
+        "In auto detect, wait a few\n"
+        "until the number\n"
+        "stops increasing, then press\n"
+        "Save, then reboot to apply\n"
+        "read wiki for more info\n"
+        "Press YES to continue\n"
+        "Press NO to abort\n"
+        , YESNO,             
+        [this, &nav](bool choice) {
+                if (choice)
+                    {
+                        in_auto_detect = true;
+                        field_threshold.set_value(1);
+                        portapack::touch_threshold = 1;
+                        set_dirty();
+                    }
+            }, TRUE);
     };
 
     button_reset.on_select = [this](Button&) {
-        field_sensitivity.set_value(threshold_to_sensitive(32));
+        field_threshold.set_value(32);
     };
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_touchscreen_sensitivity(sensitive_to_threshold(field_sensitivity.value()));
+        pmem::set_touchscreen_threshold(field_threshold.value());
         send_system_refresh();
         nav.pop();
     };
@@ -848,27 +874,28 @@ SetTouchscreenSensitivityView::SetTouchscreenSensitivityView(NavigationView& nav
     };
 }
 
-/* sample max: 1023 sample_t AKA uint16_t
-    * touch_sensitivity: range: 1 to 128
-    * threshold = 1023 / sensitive
-    * threshold range: 1023/1 to 1023/128  =  1023 to 8
-    */
-uint16_t SetTouchscreenSensitivityView::sensitive_to_threshold(uint16_t sensitive) {
-    return 1023 / sensitive;
+void SetTouchscreenThresholdView::focus() {
+    button_autodetect.focus();
 }
 
-uint16_t SetTouchscreenSensitivityView::threshold_to_sensitive(uint16_t threshold) {
-    return 1023 / threshold;
-}
+void SetTouchscreenThresholdView::on_frame_sync() {
+    if (get_touch_frame().touch) {
+        if (in_auto_detect) {
+            UsbSerialAsyncmsg::asyncmsg("in_auto_detect");
+        }
 
-bool SetTouchscreenSensitivityView::handel_auto_detect() {
-    
+        UsbSerialAsyncmsg::asyncmsg("touch");
+        if (in_auto_detect) {
+            uint16_t sen = field_threshold.value();
+            UsbSerialAsyncmsg::asyncmsg(sen);
+            sen++;
+            portapack::touch_threshold = sen;
+            field_threshold.set_value(sen);
+            // set_dirty();
+            // chThdSleep(100);
+        }
+    }
 }
-
-void SetTouchscreenSensitivityView::focus() {
-    button_save.focus();
-}
-
 
 /* SetMenuColorView ************************************/
 
@@ -1074,6 +1101,7 @@ void SettingsMenuView::on_populate() {
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<TouchCalibrationView>(); }},
+        {"TouchThreshold", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<SetTouchscreenThresholdView>(); }},
         {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [this]() { nav_.push<SetConfigModeView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
@@ -1088,7 +1116,6 @@ void SettingsMenuView::on_populate() {
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
         {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
-        {"Touchscreen Sensitivity", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<SetTouchscreenSensitivityView>(); }},
     });
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});
 }

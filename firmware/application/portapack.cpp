@@ -540,7 +540,7 @@ init_status_t init() {
      * touch_sensitivity: range: 1 to 128
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
-    touch_threshold = portapack::persistent_memory::touchscreen_sensitivity();
+    touch_threshold = portapack::persistent_memory::touchscreen_threshold();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);
