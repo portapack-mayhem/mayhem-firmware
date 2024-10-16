@@ -37,7 +37,7 @@
 
 #define OOK_EST_HIGH_RATIO 3       // Constant for slowness of OOK high level estimator
 #define OOK_EST_LOW_RATIO 5        // Constant for slowness of OOK low level (noise) estimator (very slow)
-#define OOK_MAX_HIGH_LEVEL 125000  // Maximum estimate for high level (-0 dB)
+#define OOK_MAX_HIGH_LEVEL 127000  // Maximum estimate for high level (-0 dB)
 
 class WeatherProcessor : public BasebandProcessor {
    public:
@@ -46,14 +46,14 @@ class WeatherProcessor : public BasebandProcessor {
 
    private:
     enum {
-        PD_OOK_STATE_IDLE = 0,
-        PD_OOK_STATE_PULSE = 1,
-        PD_OOK_STATE_GAP_START = 2,
-        PD_OOK_STATE_GAP = 3,
-    } ook_state = PD_OOK_STATE_IDLE;
-    uint32_t ook_low_estimate = 100;
-    uint32_t ook_high_estimate = 12000;
-    uint32_t ook_min_high_level = 10;
+        STATE_IDLE = 0,
+        STATE_PULSE = 1,
+        STATE_GAP_START = 2,
+        STATE_GAP = 3,
+    } sig_state = STATE_IDLE;
+    uint32_t low_estimate = 100;
+    uint32_t high_estimate = 12000;
+    uint32_t min_high_level = 10;
     size_t baseband_fs = 0;  // will be set later by configure message.
     uint32_t nsPerDecSamp = 0;
     uint8_t numg = 0;  // count of matched signals to filter spikes

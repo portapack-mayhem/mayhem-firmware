@@ -38,7 +38,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
     feed_channel_stats(decim_1_out);
 
-    threshold = (ook_low_estimate + ook_high_estimate) / 2;
+    threshold = (low_estimate + high_estimate) / 2;
     int32_t const hysteresis = threshold / 8;  // +-12%
 
     for (size_t i = 0; i < decim_1_out.count; i++) {
@@ -47,56 +47,56 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
 
         mag = (mag >> 10);
-        int32_t const ook_low_delta = mag - ook_low_estimate;
+        int32_t const ook_low_delta = mag - low_estimate;
         bool meashl = currentHiLow;
-        if (ook_state == PD_OOK_STATE_IDLE) {
+        if (sig_state == STATE_IDLE) {
             if (mag > (threshold + hysteresis)) {  // just become high
                 meashl = true;
-                ook_state = PD_OOK_STATE_PULSE;
+                sig_state = STATE_PULSE;
                 numg = 0;
             } else {
                 meashl = false;  // still low
-                ook_low_estimate += ook_low_delta / OOK_EST_LOW_RATIO;
-                ook_low_estimate += ((ook_low_delta > 0) ? 1 : -1);  // Hack to compensate for lack of fixed-point scaling
+                low_estimate += ook_low_delta / OOK_EST_LOW_RATIO;
+                low_estimate += ((ook_low_delta > 0) ? 1 : -1);  // Hack to compensate for lack of fixed-point scaling
                 // Calculate default OOK high level estimate
-                ook_high_estimate = 1.35 * ook_low_estimate;  // Default is a ratio of low level
-                ook_high_estimate = std::max(ook_high_estimate, ook_min_high_level);
-                ook_high_estimate = std::min(ook_high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
+                high_estimate = 1.35 * low_estimate;  // Default is a ratio of low level
+                high_estimate = std::max(high_estimate, min_high_level);
+                high_estimate = std::min(high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
             }
 
-        } else if (ook_state == PD_OOK_STATE_PULSE) {
+        } else if (sig_state == STATE_PULSE) {
             ++numg;
             if (numg > 100) numg = 100;
             if (mag < (threshold - hysteresis)) {
                 // check if really a bad value
                 if (numg < 3) {
                     // susp
-                    ook_state = PD_OOK_STATE_GAP;
+                    sig_state = STATE_GAP;
                 } else {
                     numg = 0;
-                    ook_state = PD_OOK_STATE_GAP_START;
+                    sig_state = STATE_GAP_START;
                 }
                 meashl = false;  // low
             } else {
-                ook_high_estimate += mag / OOK_EST_HIGH_RATIO - ook_high_estimate / OOK_EST_HIGH_RATIO;
-                ook_high_estimate = std::max(ook_high_estimate, ook_min_high_level);
-                ook_high_estimate = std::min(ook_high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
+                high_estimate += mag / OOK_EST_HIGH_RATIO - high_estimate / OOK_EST_HIGH_RATIO;
+                high_estimate = std::max(high_estimate, min_high_level);
+                high_estimate = std::min(high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
                 meashl = true;  // still high
             }
-        } else if (ook_state == PD_OOK_STATE_GAP_START) {
+        } else if (sig_state == STATE_GAP_START) {
             ++numg;
             if (mag > (threshold + hysteresis)) {  // New pulse?
-                ook_state = PD_OOK_STATE_PULSE;
+                sig_state = STATE_PULSE;
                 meashl = true;
             } else if (numg >= 3) {
-                ook_state = PD_OOK_STATE_GAP;
+                sig_state = STATE_GAP;
                 meashl = false;  // gap
             }
-        } else if (ook_state == PD_OOK_STATE_GAP) {
+        } else if (sig_state == STATE_GAP) {
             ++numg;
             if (mag > (threshold + hysteresis)) {  // New pulse?
                 numg = 0;
-                ook_state = PD_OOK_STATE_PULSE;
+                sig_state = STATE_PULSE;
                 meashl = true;
             } else {
                 meashl = false;
@@ -108,7 +108,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
-            if (currentDuration >= 30'000'000) ook_state = PD_OOK_STATE_IDLE;
+            if (currentDuration >= 30'000'000) sig_state = STATE_IDLE;
             if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
