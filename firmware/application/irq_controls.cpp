@@ -36,7 +36,6 @@
 
 #include "portapack_io.hpp"
 #include "hackrf_hal.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 using namespace hackrf::one;
 using namespace portapack;

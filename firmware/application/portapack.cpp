@@ -95,7 +95,7 @@ TemperatureLogger temperature_logger;
 
 bool antenna_bias{false};
 uint32_t bl_tick_counter{0};
-uint16_t touch_threshold{3};
+uint16_t touch_threshold{32};
 
 void set_antenna_bias(const bool v) {
     antenna_bias = v;
