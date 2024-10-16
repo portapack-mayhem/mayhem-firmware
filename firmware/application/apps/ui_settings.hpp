@@ -767,14 +767,25 @@ class SetTouchscreenThresholdView : public View {
 
    private:
     bool in_auto_detect = false;
+    uint16_t org_threshold = 0;
+    uint8_t auto_detect_succeed_consumed = false;  // prevent screen flash but can still change text content
+    uint32_t time_start_auto_detect = 0;
 
     Labels labels{
         {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 2 * 16}, "Or press auto detect button", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 16}, "FOLLOW INSTRUCTIONS", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 4 * 16}, "REBOOT TO APPLY", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 6 * 16}, "Threshold:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "Threshold:", Theme::getInstance()->fg_light->foreground},
     };
+
+    Text text_hint{
+        {1 * 8, 7 * 16, screen_width - 2 * 8, 1 * 16},
+        "DON'T TOUCH SCREEN"};
+
+    Text text_wait_timer{
+        {1 * 8, 8 * 16, screen_width - 2 * 8, 1 * 16},
+        "ETA 00:00"};
 
     void on_frame_sync();
 
@@ -783,8 +794,8 @@ class SetTouchscreenThresholdView : public View {
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
     NumberField field_threshold{
-        {1 * 8 + sizeof("Threshold:") * 8 + 8, 6 * 16},
-        3,
+        {1 * 8 + sizeof("Threshold:") * 8 + 8, 11 * 16},
+        4,
         {1, 1023},
         1,
         ' ',
