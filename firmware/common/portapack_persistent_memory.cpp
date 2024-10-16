@@ -254,8 +254,6 @@ struct data_t {
 
     uint16_t touchscreen_threshold;
 
-    uint16_t UNUSED_16;
-
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           target_frequency(target_frequency_reset_value),
@@ -312,8 +310,7 @@ struct data_t {
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
           dst_config(),
           menu_color(Color::grey()),
-          touchscreen_threshold(32),
-          UNUSED_16() {
+          touchscreen_threshold(32) {
     }
 };
 
