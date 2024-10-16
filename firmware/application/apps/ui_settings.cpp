@@ -834,25 +834,27 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
 
     field_threshold.set_value(pmem::touchscreen_threshold());
 
+    // clang-format off
     button_autodetect.on_select = [this, &nav](Button&) {
         nav.display_modal("NOTICE",
                           "READ CAREFULLY:\n"
                           "now on don't touch screen\n"
                           "use buttons to select,\n"
                           "In auto detect, wait a few\n"
-                          "until the number\n""stops increasing, then press\n"
+                          "until the number\n"
+                          "stops increasing, then press\n"
                           "Save, then reboot to apply\n"
                           "read wiki for more info\n"
                           "Press YES to continue\n"
                           "Press NO to abort",
-                          YESNO,
-                          [this, &nav](bool choice) {
+                          YESNO, [this, &nav](bool choice) {
                 if (choice){
                         in_auto_detect = true;
                         field_threshold.set_value(1);
                         portapack::touch_threshold = 1;
                         set_dirty(); } }, TRUE);
     };
+    // clang-format on
 
     button_reset.on_select = [this](Button&) {
         field_threshold.set_value(32);
