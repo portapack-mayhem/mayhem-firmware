@@ -845,7 +845,7 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
                           "Save, then reboot to apply\n"
                           "read wiki for more info\n"
                           "Press YES to continue\n"
-                          "Press NO to abort\n",
+                          "Press NO to abort",
                           YESNO, [this, &nav](bool choice) {
                 if (choice)
                     {
