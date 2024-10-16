@@ -818,6 +818,107 @@ void SetDisplayView::focus() {
     button_save.focus();
 }
 
+/* SetTouchscreenSensitivityView ************************************/
+/* sample max: 1023 sample_t AKA uint16_t
+ * touch_sensitivity: range: 1 to 128
+ * threshold = 1023 / sensitive
+ * threshold range: 1023/1 to 1023/128  =  1023 to 8
+ */
+SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_threshold,
+                  &button_autodetect,
+                  &button_reset,
+                  &button_save,
+                  &button_cancel,
+                  &text_hint,
+                  &text_wait_timer});
+
+    set_dirty();
+    org_threshold = portapack::touch_threshold;
+    field_threshold.set_value(pmem::touchscreen_threshold());
+    text_hint.set_style(Theme::getInstance()->error_dark);
+    text_hint.hidden(true);
+    text_wait_timer.set_style(Theme::getInstance()->error_dark);
+    text_wait_timer.hidden(true);
+    // clang-format off
+    button_autodetect.on_select = [this, &nav](Button&) {
+        nav.display_modal("NOTICE",
+                          "Now on don't touch screen;\n"
+                          "Use arrow keys to operate.\n"
+                          "Follow instructions.\n"
+                          "Press YES to continue",
+                          YESNO, [this, &nav](bool choice) {
+                if (choice){
+                        time_start_auto_detect = chTimeNow();
+                        text_hint.hidden(false);
+                        text_wait_timer.hidden(false);
+                        text_wait_timer.set("ETA " + to_string_dec_uint(10) + "s");
+                        in_auto_detect = true;
+                        field_threshold.set_value(1);
+                        portapack::touch_threshold = 1;
+                        set_dirty(); } }, TRUE);
+    };
+    // clang-format on
+
+    button_reset.on_select = [this](Button&) {
+        field_threshold.set_value(32);
+        portapack::touch_threshold = 32;
+    };
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_touchscreen_threshold(field_threshold.value());
+        portapack::touch_threshold = field_threshold.value();
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        portapack::touch_threshold = org_threshold;
+        nav.pop();
+    };
+}
+
+void SetTouchscreenThresholdView::focus() {
+    button_autodetect.focus();
+    set_dirty();
+}
+
+void SetTouchscreenThresholdView::on_frame_sync() {
+    if (!in_auto_detect) return;
+    uint32_t time_now = chTimeNow();
+    int32_t time_diff = time_now - time_start_auto_detect;
+    text_wait_timer.set("ETA " + to_string_dec_uint((10 - time_diff / 1000) <= 0 ? 0 : 10 - time_diff / 1000) + "s");
+    if (time_diff >= 10001 && !auto_detect_succeed_consumed) {  // 10s
+        in_auto_detect = false;
+        text_wait_timer.hidden(true);
+        text_hint.set("OK, press save and reboot");
+        portapack::touch_threshold = org_threshold;
+        pmem::set_touchscreen_threshold(org_threshold);
+        set_dirty();
+        auto_detect_succeed_consumed = true;
+        button_save.focus();
+        return;
+    }
+    if (get_touch_frame().touch) {
+        if (in_auto_detect) {
+            uint16_t sen = field_threshold.value();
+            sen++;
+            portapack::touch_threshold = sen;
+            field_threshold.set_value(sen);
+        }
+    }
+}
+
+SetTouchscreenThresholdView::~SetTouchscreenThresholdView() {
+    // it seems that sometimes in the msg handler func it would enter the condi that not possible to entered,
+    // so added this workaround.
+    // TODO: find out why
+    in_auto_detect = false;
+    auto_detect_succeed_consumed = false;
+    time_start_auto_detect = 0;
+}
+
 /* SetMenuColorView ************************************/
 
 void SetMenuColorView::paint_sample() {
@@ -1022,6 +1123,7 @@ void SettingsMenuView::on_populate() {
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<TouchCalibrationView>(); }},
+        {"TouchThreshold", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<SetTouchscreenThresholdView>(); }},
         {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [this]() { nav_.push<SetConfigModeView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
