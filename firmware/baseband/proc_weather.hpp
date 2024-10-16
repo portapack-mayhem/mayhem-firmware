@@ -37,7 +37,7 @@
 
 #define OOK_EST_HIGH_RATIO 3  // Constant for slowness of OOK high level estimator
 #define OOK_EST_LOW_RATIO 5   // Constant for slowness of OOK low level (noise) estimator (very slow)
-#define OOK_MAX_HIGH_LEVEL 427000
+#define OOK_MAX_HIGH_LEVEL 450000
 
 class WeatherProcessor : public BasebandProcessor {
    public:
@@ -71,10 +71,6 @@ class WeatherProcessor : public BasebandProcessor {
     uint32_t threshold = 0x0630;  // will overwrite after the first iteration
     bool currentHiLow = false;
     bool configured{false};
-
-    // for threshold
-    uint32_t cnt = 0;
-    uint32_t tm = 0;
 
     FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);

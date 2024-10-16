@@ -38,10 +38,9 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
     feed_channel_stats(decim_1_out);
 
-    threshold = (low_estimate + high_estimate) / 2;
-    int32_t const hysteresis = threshold / 8;  // +-12%
-
     for (size_t i = 0; i < decim_1_out.count; i++) {
+        threshold = (low_estimate + high_estimate) / 2;
+        int32_t const hysteresis = threshold / 8;  // +-12%
         int16_t re = decim_1_out.p[i].real();
         int16_t im = decim_1_out.p[i].imag();
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
@@ -103,7 +102,6 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
             }
         }
 
-        tm += mag;
         if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             currentDuration += nsPerDecSamp;
