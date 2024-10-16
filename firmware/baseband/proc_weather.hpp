@@ -26,6 +26,7 @@
 #ifndef __PROC_WEATHER_H__
 #define __PROC_WEATHER_H__
 
+#include <algorithm>
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
@@ -34,15 +35,29 @@
 
 #include "fprotos/weatherprotos.hpp"
 
+#define OOK_EST_HIGH_RATIO 3      // Constant for slowness of OOK high level estimator
+#define OOK_EST_LOW_RATIO 15      // Constant for slowness of OOK low level (noise) estimator (very slow)
+#define OOK_MAX_HIGH_LEVEL 30000  // Maximum estimate for high level (-0 dB)
+#define OOK_MAX_LOW_LEVEL 10
+
 class WeatherProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
    private:
+    enum {
+        PD_OOK_STATE_IDLE = 0,
+        PD_OOK_STATE_PULSE = 1,
+        PD_OOK_STATE_GAP_START = 2,
+        PD_OOK_STATE_GAP = 3,
+    } ook_state = PD_OOK_STATE_IDLE;
+    int16_t ook_low_estimate = 100;
+    int16_t ook_high_estimate = 12000;
+    int16_t ook_min_high_level = 100;
     size_t baseband_fs = 0;  // will be set later by configure message.
     uint32_t nsPerDecSamp = 0;
-
+    uint8_t numg = 0;  // count of matched signals to filter spikes
     /* Array Buffer aux. used in decim0 and decim1 IQ c16 signed  data ; (decim0 defines the max length of the array) */
     std::array<complex16_t, 512> dst{};  // decim0 /4 ,  2048/4 = 512 complex I,Q
     const buffer_c16_t dst_buffer{

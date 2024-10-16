@@ -38,32 +38,81 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
     feed_channel_stats(decim_1_out);
 
+    threshold = (ook_low_estimate + ook_high_estimate) / 2;
+    int16_t const hysteresis = threshold / 8;  // +-12%
+
     for (size_t i = 0; i < decim_1_out.count; i++) {
         int16_t re = decim_1_out.p[i].real();
         int16_t im = decim_1_out.p[i].imag();
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
 
-        mag = (mag >> 12);  // Decim samples are calculated with saturated gain . (we could also reduce that sat. param at configure time)
+        mag = (mag >> 10);
+        int16_t const ook_low_delta = mag - ook_low_estimate;
+        bool meashl = currentHiLow;
+        if (ook_state == PD_OOK_STATE_IDLE) {
+            if (mag > (threshold + hysteresis)) {  // just become high
+                meashl = true;
+                ook_state = PD_OOK_STATE_PULSE;
+                numg = 0;
+            } else {
+                meashl = false;  // still low
+                ook_low_estimate += ook_low_delta / OOK_EST_LOW_RATIO;
+                ook_low_estimate += ((ook_low_delta > 0) ? 1 : -1);  // Hack to compensate for lack of fixed-point scaling
+                // Calculate default OOK high level estimate
+                ook_high_estimate = 1.5 * ook_low_estimate;  // Default is a ratio of low level
+                ook_high_estimate = std::max(ook_high_estimate, ook_min_high_level);
+                ook_high_estimate = std::min(ook_high_estimate, (int16_t)OOK_MAX_HIGH_LEVEL);
+            }
 
-        bool meashl = (mag > threshold);
+        } else if (ook_state == PD_OOK_STATE_PULSE) {
+            ++numg;
+            if (numg > 100) numg = 100;
+            if (mag < (threshold - hysteresis)) {
+                // check if really a bad value
+                if (numg < 3) {
+                    // susp
+                    ook_state = PD_OOK_STATE_GAP;
+                } else {
+                    numg = 0;
+                    ook_state = PD_OOK_STATE_GAP_START;
+                }
+                meashl = false;  // low
+            } else {
+                ook_high_estimate += mag / OOK_EST_HIGH_RATIO - ook_high_estimate / OOK_EST_HIGH_RATIO;
+                ook_high_estimate = std::max(ook_high_estimate, ook_min_high_level);
+                ook_high_estimate = std::min(ook_high_estimate, (int16_t)OOK_MAX_HIGH_LEVEL);
+                meashl = true;  // still high
+            }
+        } else if (ook_state == PD_OOK_STATE_GAP_START) {
+            ++numg;
+            if (mag > (threshold + hysteresis)) {  // New pulse?
+                ook_state = PD_OOK_STATE_PULSE;
+                meashl = true;
+            } else if (numg >= 3) {
+                ook_state = PD_OOK_STATE_GAP;
+                meashl = false;  // gap
+            }
+        } else if (ook_state == PD_OOK_STATE_GAP) {
+            ++numg;
+            if (mag > (threshold + hysteresis)) {  // New pulse?
+                numg = 0;
+                ook_state = PD_OOK_STATE_PULSE;
+                meashl = true;
+            } else {
+                meashl = false;
+            }
+        }
+
         tm += mag;
         if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
+            if (currentDuration >= 30'000'000) ook_state = PD_OOK_STATE_IDLE;
             if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
-    }
-
-    cnt += decim_1_out.count;  // TODO , check if it is necessary that xdecim factor.
-    if (cnt > 90'000) {
-        threshold = (tm / cnt) / 2;
-        cnt = 0;
-        tm = 0;
-        if (threshold < 50) threshold = 50;
-        if (threshold > 1700) threshold = 1700;
     }
 }
 
