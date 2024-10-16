@@ -35,6 +35,7 @@
 #include "bitmap.hpp"
 #include "ff.h"
 #include "portapack_persistent_memory.hpp"
+#include "irq_controls.hpp"
 
 #include <cstdint>
 
@@ -752,6 +753,77 @@ class SetDisplayView : public View {
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
+};
+
+using portapack::persistent_memory::touchscreen_threshold;
+
+class SetTouchscreenThresholdView : public View {
+   public:
+    SetTouchscreenThresholdView(NavigationView& nav);
+    ~SetTouchscreenThresholdView();
+
+    void focus() override;
+
+    std::string title() const override { return "Touch S"; };
+
+   private:
+    bool in_auto_detect = false;
+    uint16_t org_threshold = 0;
+    uint8_t auto_detect_succeed_consumed = false;  // prevent screen flash but can still change text content
+    uint32_t time_start_auto_detect = 0;
+
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Or press auto detect button", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "FOLLOW INSTRUCTIONS", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 4 * 16}, "REBOOT TO APPLY", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "Threshold:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    Text text_hint{
+        {1 * 8, 7 * 16, screen_width - 2 * 8, 1 * 16},
+        "DON'T TOUCH SCREEN"};
+
+    Text text_wait_timer{
+        {1 * 8, 8 * 16, screen_width - 2 * 8, 1 * 16},
+        "ETA 00:00"};
+
+    void on_frame_sync();
+
+    /* sample max: 1023 sample_t AKA uint16_t
+     * touch_sensitivity: range: 1 to 128
+     * threshold range: 1023/1 to 1023/128  =  1023 to 8
+     */
+    NumberField field_threshold{
+        {1 * 8 + sizeof("Threshold:") * 8 + 8, 11 * 16},
+        4,
+        {1, 1023},
+        1,
+        ' ',
+    };
+
+    Button button_autodetect{
+        {2 * 8, 13 * 16, 12 * 8, 32},
+        "Auto Detect"};
+    Button button_reset{
+        {16 * 8, 13 * 16, 12 * 8, 32},
+        "Reset",
+    };
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_frame_sync();
+        }};
 };
 
 class SetMenuColorView : public View {

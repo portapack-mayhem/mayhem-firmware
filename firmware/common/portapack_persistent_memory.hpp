@@ -282,6 +282,10 @@ uint8_t fake_brightness_level();
 void set_fake_brightness_level(uint8_t v);
 void toggle_fake_brightness_level();
 
+/* Touchscreen threshold */
+uint16_t touchscreen_threshold();
+void set_touchscreen_threshold(uint16_t v);
+
 Color menu_color();
 void set_menu_color(Color v);
 
