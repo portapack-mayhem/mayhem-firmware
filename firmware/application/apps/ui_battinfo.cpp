@@ -75,7 +75,7 @@ void BattinfoView::update_result() {
         text_current.hidden(false);
         text_charge.hidden(false);
         text_current.set(to_string_dec_int(current) + " mA");
-        text_charge.set(current > 0 ? "Charging" : (current < 0 ? "Discharging" : "Disconnected"));
+        text_charge.set(current >= 0 ? "Charging" : "Discharging");
         labels_opt.hidden(false);
 
         text_ttef.hidden(false);
