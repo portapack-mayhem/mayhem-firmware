@@ -840,20 +840,18 @@ SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
                           "now on don't touch screen\n"
                           "use buttons to select,\n"
                           "In auto detect, wait a few\n"
-                          "until the number\n"
-                          "stops increasing, then press\n"
+                          "until the number\n""stops increasing, then press\n"
                           "Save, then reboot to apply\n"
                           "read wiki for more info\n"
                           "Press YES to continue\n"
                           "Press NO to abort",
-                          YESNO, [this, &nav](bool choice) {
-                if (choice)
-                    {
+                          YESNO,
+                          [this, &nav](bool choice) {
+                if (choice){
                         in_auto_detect = true;
                         field_threshold.set_value(1);
                         portapack::touch_threshold = 1;
-                        set_dirty();
-                    } }, TRUE);
+                        set_dirty(); } }, TRUE);
     };
 
     button_reset.on_select = [this](Button&) {
