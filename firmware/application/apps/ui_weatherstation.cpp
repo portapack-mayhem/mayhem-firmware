@@ -213,6 +213,9 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "EmosE601x";
         case FPW_SolightTE44:
             return "SolightTE44";
+        case FPW_Bresser3CH:
+        case FPW_Bresser3CH_V1:
+            return "Bresser3CH";
         case FPW_Invalid:
         default:
             return "Unknown";
