@@ -26,6 +26,7 @@
 #ifndef __PROC_WEATHER_H__
 #define __PROC_WEATHER_H__
 
+#include <algorithm>
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
@@ -34,15 +35,28 @@
 
 #include "fprotos/weatherprotos.hpp"
 
+#define OOK_EST_HIGH_RATIO 3  // Constant for slowness of OOK high level estimator
+#define OOK_EST_LOW_RATIO 5   // Constant for slowness of OOK low level (noise) estimator (very slow)
+#define OOK_MAX_HIGH_LEVEL 450000
+
 class WeatherProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
    private:
+    enum {
+        STATE_IDLE = 0,
+        STATE_PULSE = 1,
+        STATE_GAP_START = 2,
+        STATE_GAP = 3,
+    } sig_state = STATE_IDLE;
+    uint32_t low_estimate = 100;
+    uint32_t high_estimate = 12000;
+    uint32_t min_high_level = 10;
     size_t baseband_fs = 0;  // will be set later by configure message.
     uint32_t nsPerDecSamp = 0;
-
+    uint8_t numg = 0;  // count of matched signals to filter spikes
     /* Array Buffer aux. used in decim0 and decim1 IQ c16 signed  data ; (decim0 defines the max length of the array) */
     std::array<complex16_t, 512> dst{};  // decim0 /4 ,  2048/4 = 512 complex I,Q
     const buffer_c16_t dst_buffer{
@@ -57,10 +71,6 @@ class WeatherProcessor : public BasebandProcessor {
     uint32_t threshold = 0x0630;  // will overwrite after the first iteration
     bool currentHiLow = false;
     bool configured{false};
-
-    // for threshold
-    uint32_t cnt = 0;
-    uint32_t tm = 0;
 
     FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);

@@ -39,31 +39,78 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     feed_channel_stats(decim_1_out);
 
     for (size_t i = 0; i < decim_1_out.count; i++) {
+        threshold = (low_estimate + high_estimate) / 2;
+        int32_t const hysteresis = threshold / 8;  // +-12%
         int16_t re = decim_1_out.p[i].real();
         int16_t im = decim_1_out.p[i].imag();
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
 
-        mag = (mag >> 12);  // Decim samples are calculated with saturated gain . (we could also reduce that sat. param at configure time)
+        mag = (mag >> 10);
+        int32_t const ook_low_delta = mag - low_estimate;
+        bool meashl = currentHiLow;
+        if (sig_state == STATE_IDLE) {
+            if (mag > (threshold + hysteresis)) {  // just become high
+                meashl = true;
+                sig_state = STATE_PULSE;
+                numg = 0;
+            } else {
+                meashl = false;  // still low
+                low_estimate += ook_low_delta / OOK_EST_LOW_RATIO;
+                low_estimate += ((ook_low_delta > 0) ? 1 : -1);  // Hack to compensate for lack of fixed-point scaling
+                // Calculate default OOK high level estimate
+                high_estimate = 1.35 * low_estimate;  // Default is a ratio of low level
+                high_estimate = std::max(high_estimate, min_high_level);
+                high_estimate = std::min(high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
+            }
 
-        bool meashl = (mag > threshold);
-        tm += mag;
+        } else if (sig_state == STATE_PULSE) {
+            ++numg;
+            if (numg > 100) numg = 100;
+            if (mag < (threshold - hysteresis)) {
+                // check if really a bad value
+                if (numg < 3) {
+                    // susp
+                    sig_state = STATE_GAP;
+                } else {
+                    numg = 0;
+                    sig_state = STATE_GAP_START;
+                }
+                meashl = false;  // low
+            } else {
+                high_estimate += mag / OOK_EST_HIGH_RATIO - high_estimate / OOK_EST_HIGH_RATIO;
+                high_estimate = std::max(high_estimate, min_high_level);
+                high_estimate = std::min(high_estimate, (uint32_t)OOK_MAX_HIGH_LEVEL);
+                meashl = true;  // still high
+            }
+        } else if (sig_state == STATE_GAP_START) {
+            ++numg;
+            if (mag > (threshold + hysteresis)) {  // New pulse?
+                sig_state = STATE_PULSE;
+                meashl = true;
+            } else if (numg >= 3) {
+                sig_state = STATE_GAP;
+                meashl = false;  // gap
+            }
+        } else if (sig_state == STATE_GAP) {
+            ++numg;
+            if (mag > (threshold + hysteresis)) {  // New pulse?
+                numg = 0;
+                sig_state = STATE_PULSE;
+                meashl = true;
+            } else {
+                meashl = false;
+            }
+        }
+
         if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
+            if (currentDuration >= 30'000'000) sig_state = STATE_IDLE;
             if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
-    }
-
-    cnt += decim_1_out.count;  // TODO , check if it is necessary that xdecim factor.
-    if (cnt > 90'000) {
-        threshold = (tm / cnt) / 2;
-        cnt = 0;
-        tm = 0;
-        if (threshold < 50) threshold = 50;
-        if (threshold > 1700) threshold = 1700;
     }
 }
 
