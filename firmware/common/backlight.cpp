@@ -29,6 +29,7 @@ void BacklightOnOff::on() {
     if (!is_on()) {
         io.lcd_backlight(true);
         on_ = true;
+        
     }
 }
 
@@ -40,6 +41,7 @@ void BacklightOnOff::off() {
 }
 
 void BacklightCAT4004::set_level(const value_t value) {
+    on_ = true;
     auto target = value;
 
     // Clip target value to valid range.
