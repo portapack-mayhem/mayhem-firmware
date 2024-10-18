@@ -139,10 +139,9 @@ def pp_write_bitmaphpp(pngicons_path, hpp_outpath):
 ### Convert from a bitmap.hpp file one or all icons in png.
 ###########################################################
 
-def parse_bitmaphpp():
+def parse_bitmaphpp(bitmaphpp_file):
     ico_pattern = re.compile(r"static constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\nstatic constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
     ico_data = []
-    bitmaphpp_file = '/home/lupus/work/bitmap.hpp'
     
     # read file to buffer, to find multiline regex
     readfile = open(bitmaphpp_file,'r')
@@ -193,7 +192,7 @@ if __name__ == '__main__':
 
     if args.reverse:
         print("Reverse: Converting from hpp to png")
-        icons = parse_bitmaphpp()
+        icons = parse_bitmaphpp(os.path.join(args.graphics, ''))
         ## todo: implement chose name of icon
         if args.graphics:
             graphics_path = os.path.join(args.graphics, '')
