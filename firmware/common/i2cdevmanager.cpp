@@ -304,7 +304,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
             force_scan = false;
         }
         for (size_t i = 0; i < devlist.size(); i++) {
-            if (devlist[i].addr != 0 && devlist[i].dev) {
+            if (devlist[i].addr != 0 && devlist[i].dev && devlist[i].dev->query_interval != 0) {
                 if ((curr_timer % devlist[i].dev->query_interval) == 0) {  // only if it is device's interval
                     devlist[i].dev->update();                              // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
                 }
