@@ -113,6 +113,10 @@ uint64_t I2cDev_PPmod::get_features_mask() {
     if (success == false) {
         return 0;
     }
+    // sanity check
+    if (mask == UINT64_MAX) {
+        return 0;
+    }
     return mask;
 }
 
@@ -124,7 +128,10 @@ std::optional<I2cDev_PPmod::device_info> I2cDev_PPmod::readDeviceInfo() {
     if (success == false) {
         return std::nullopt;
     }
-
+    // sanity check
+    if (info.application_count > 1000) {
+        return std::nullopt;
+    }
     return info;
 }
 
@@ -135,6 +142,10 @@ std::optional<I2cDev_PPmod::standalone_app_info> I2cDev_PPmod::getStandaloneAppI
 
     bool success = i2c_read((uint8_t*)&data, 4, (uint8_t*)&info, sizeof(I2cDev_PPmod::standalone_app_info));
     if (success == false) {
+        return std::nullopt;
+    }
+    // sanity check
+    if (info.binary_size == UINT32_MAX) {
         return std::nullopt;
     }
 
