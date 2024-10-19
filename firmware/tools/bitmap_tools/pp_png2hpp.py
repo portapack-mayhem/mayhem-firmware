@@ -121,20 +121,21 @@ def pp_bitmaphpp_footer():
 #endif /*__BITMAP_HPP__*/
 """)
 
+
 def pp_write_bitmaphpp(pngicons_path, hpp_outpath):
     bitmaphpp_file = []
 
-    print("Add header")
     bitmaphpp_file.append(pp_bitmaphpp_header())
-    print("Add", pngicons_path)
     bitmaphpp_file.append("".join(str(x) for x in pp_bitmaphpp_data(pngicons_path)))
-    print("Add footer")
     bitmaphpp_file.append(pp_bitmaphpp_footer())
     
     out_file = "".join(str(x) for x in bitmaphpp_file)
 
     with open(hpp_outpath, "w", encoding="utf-8") as fd:
         fd.writelines(out_file)
+    
+    print("Find your bitmap.hpp at", out_file)
+
 
 ### Convert from a bitmap.hpp file one or all icons in png.
 ###########################################################

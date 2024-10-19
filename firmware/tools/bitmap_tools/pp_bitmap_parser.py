@@ -5,7 +5,6 @@ import re
 from PIL import Image
 
 
-
 def parse_bitmaphpp():
     ico_pattern = re.compile(r"static constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\nstatic constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
     ico_data = []
@@ -45,7 +44,11 @@ def convert_hpp(icon_name,bitmap_array,iconsize_str):
             image_data[y, x] = pixel_value * 255
 
     image = Image.fromarray(image_data, 'L')
-    image.save(icon_name+".png")
+    imagea = image.copy()
+    imagea.putalpha(image)
+    imagea.save(icon_name+".png")
+
+    
 
 
 if __name__ == "__main__":
