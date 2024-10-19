@@ -131,8 +131,13 @@ void I2cDev::got_success() {
 
 bool I2cDev::i2c_read(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t bytes) {
     if (bytes == 0) return false;
-    if (reg_size > 0 && reg) i2cbus.transmit(addr, reg, reg_size);
-    bool ret = i2cbus.receive(addr, data, bytes);
+    bool ret = true;
+    if (reg_size > 0 && reg) ret = i2cbus.transmit(addr, reg, reg_size, 150);
+    if (!ret) {
+        got_error();
+        return false;
+    }
+    ret = i2cbus.receive(addr, data, bytes, 150);
     if (!ret)
         got_error();
     else
@@ -153,7 +158,7 @@ bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t by
     // Copy the data into the buffer after the register data
     memcpy(buffer + reg_size, data, bytes);
     // Transmit the combined data
-    bool result = i2cbus.transmit(addr, buffer, total_size);
+    bool result = i2cbus.transmit(addr, buffer, total_size, 150);
     // Clean up the dynamically allocated buffer
     delete[] buffer;
     if (!result)
@@ -304,7 +309,7 @@ msg_t I2CDevManager::timer_fn(void* arg) {
             force_scan = false;
         }
         for (size_t i = 0; i < devlist.size(); i++) {
-            if (devlist[i].addr != 0 && devlist[i].dev) {
+            if (devlist[i].addr != 0 && devlist[i].dev && devlist[i].dev->query_interval != 0) {
                 if ((curr_timer % devlist[i].dev->query_interval) == 0) {  // only if it is device's interval
                     devlist[i].dev->update();                              // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
                 }
