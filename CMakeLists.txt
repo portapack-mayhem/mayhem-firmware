@@ -23,6 +23,10 @@ cmake_policy(SET CMP0005 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex-m.cmake)
 
+set(CMAKE_COLOR_MAKEFILE ON)
+
+add_compile_options(-fdiagnostics-color=always)
+
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
 project(portapack-h1)
