@@ -30,7 +30,11 @@
 #include "standalone_app.hpp"
 #include "i2cdevmanager.hpp"
 
+#include "i2cdev_ppmod_helper.hpp"
+
 namespace i2cdev {
+
+#define USER_COMMANDS_START 0x7F01
 
 class I2cDev_PPmod : public I2cDev {
    public:
@@ -45,6 +49,20 @@ class I2cDev_PPmod : public I2cDev {
 
         // will respond with application data
         COMMAND_APP_TRANSFER = 0x4183,
+
+        // UART specific commands
+        COMMAND_UART_REQUESTDATA_SHORT = USER_COMMANDS_START,
+        COMMAND_UART_REQUESTDATA_LONG,
+        COMMAND_UART_BAUDRATE_INC,
+        COMMAND_UART_BAUDRATE_DEC,
+        COMMAND_UART_BAUDRATE_GET,
+        // Sensor specific commands
+        COMMAND_GETFEATURE_MASK,
+        COMMAND_GETFEAT_DATA_GPS,
+        COMMAND_GETFEAT_DATA_ORIENTATION,
+        COMMAND_GETFEAT_DATA_ENVIRONMENT,
+        COMMAND_GETFEAT_DATA_LIGHT,
+
     };
 
     typedef struct {
@@ -66,9 +84,14 @@ class I2cDev_PPmod : public I2cDev {
     bool init(uint8_t addr_) override;
     void update() override;
 
-    std::optional<device_info> readDeviceInfo();
     std::optional<standalone_app_info> getStandaloneAppInfo(uint32_t index);
     std::vector<uint8_t> downloadStandaloneApp(uint32_t index, size_t offset);
+    uint64_t get_features_mask();
+    std::optional<device_info> readDeviceInfo();
+    std::optional<gpssmall_t> get_gps_data();
+    std::optional<orientation_t> get_orientation_data();
+    std::optional<environment_t> get_environment_data();
+    std::optional<uint16_t> get_light_data();
 };
 
 } /* namespace i2cdev */
