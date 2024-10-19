@@ -34,30 +34,23 @@
 
 namespace i2cdev {
 
-#define USER_COMMANDS_START 0x7F01
-
 class I2cDev_PPmod : public I2cDev {
    public:
     enum class Command : uint16_t {
         COMMAND_NONE = 0,
 
         // will respond with device_info
-        COMMAND_INFO = 0x18F0,
+        COMMAND_INFO = 1,
 
         // will respond with info of application
-        COMMAND_APP_INFO = 0xA90B,
+        COMMAND_APP_INFO,
 
         // will respond with application data
-        COMMAND_APP_TRANSFER = 0x4183,
+        COMMAND_APP_TRANSFER,
 
-        // UART specific commands
-        COMMAND_UART_REQUESTDATA_SHORT = USER_COMMANDS_START,
-        COMMAND_UART_REQUESTDATA_LONG,
-        COMMAND_UART_BAUDRATE_INC,
-        COMMAND_UART_BAUDRATE_DEC,
-        COMMAND_UART_BAUDRATE_GET,
-        // Sensor specific commands
+        // Feature specific commands
         COMMAND_GETFEATURE_MASK,
+        // Feature data getter commands
         COMMAND_GETFEAT_DATA_GPS,
         COMMAND_GETFEAT_DATA_ORIENTATION,
         COMMAND_GETFEAT_DATA_ENVIRONMENT,

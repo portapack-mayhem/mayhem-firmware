@@ -1,23 +1,7 @@
-#ifndef CDEV_PPMOD_HELPER_H
+#ifndef I2CDEV_PPMOD_HELPER_H
 #define I2CDEV_PPMOD_HELPER_H
 
 #include <cstdint>
-
-typedef struct {
-    uint32_t api_version;
-    uint32_t module_version;
-    char module_name[20];
-    uint32_t application_count;
-} device_info;
-
-typedef struct {
-    uint32_t header_version;
-    uint8_t app_name[16];
-    uint8_t bitmap_data[32];
-    uint32_t icon_color;
-    app_location_t menu_location;
-    uint32_t binary_size;
-} standalone_app_info;
 
 enum class SupportedFeatures : uint64_t {
     FEAT_NONE = 0,
@@ -69,5 +53,7 @@ typedef struct
     float humidity;
     float pressure;
 } environment_t;
+
+// light is uint16_t
 
 #endif
