@@ -416,8 +416,12 @@ class IO {
         const auto value_low = data_read();
         uint32_t original_value = (value_high << 8) | value_low;
 
+        if (get_is_inverted()) return original_value;
+
         if (get_dark_cover()) {
-            original_value = DARKENED_PIXEL(original_value, get_brightness());
+            // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,
+            // then shift to back side AKA UNDARKENED_PIXEL, to prevent read shifted darkern info
+            original_value = UNDARKENED_PIXEL(original_value, get_brightness());
         }
         return original_value;
     }
