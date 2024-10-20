@@ -5,6 +5,7 @@
 # Convert bitmap.hpp to icons inspyred by
 #  bitmap_arr_reverse_decode.py - Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
 #  bitmap_arr_reverse_decode.py - Copyleft (ɔ) 2024 zxkmm with the GPL license
+# Copysomething (c) 2024 LupusE with the license, needed by the PortaPack project
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -140,7 +141,7 @@ def pp_write_bitmaphpp(pngicons_path, hpp_outpath):
 ### Convert from a bitmap.hpp file one or all icons in png.
 ###########################################################
 
-def parse_bitmaphpp(bitmaphpp_file):
+def parse_bitmaphpp(bitmaphpp_file,icon_name):
     ico_pattern = re.compile(r"static constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\nstatic constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
     ico_data = []
     
@@ -149,9 +150,14 @@ def parse_bitmaphpp(bitmaphpp_file):
     buff = readfile.read()
     readfile.close()
 
-    for match in ico_pattern.finditer(buff):
-        ico_data.append([match.group(1), match.group(2), match.group(3)])
-
+    if icon_name == 'all':
+        for match in ico_pattern.finditer(buff):
+            ico_data.append([match.group(1), match.group(2), match.group(3)])
+    else:
+        for match in ico_pattern.finditer(buff):
+            if match.group(1) in icon_name:
+                ico_data.append([match.group(1), match.group(2), match.group(3)])
+        
     return (ico_data)
 
 
@@ -184,26 +190,41 @@ def convert_hpp(icon_name,bitmap_array,iconsize_str,png_outdir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("hpp", help="Path for bitmap.hpp")
+    parser.add_argument("hpp", help="Path of the bitmap.hpp")
     parser.add_argument("graphics", help="Path of <icon>.png files to convert", default=os.path.join(os.getcwd(),"graphics"))
-    parser.add_argument("--icon","-i", help="Name of the icon to convert")
+    parser.add_argument("--icon","-i", help="Name of the icon to convert in reverse. Use 'all' to convert all. More names can be comma seperated.")
     parser.add_argument("--reverse","-r", help="Convert icon from bitmap.hpp to <name>.png", action="store_true")
     
     args = parser.parse_args()
 
     if args.reverse:
         print("Reverse: Converting from hpp to png")
-        icons = parse_bitmaphpp(os.path.join(args.graphics, ''))
-        ## todo: implement chose name of icon
+                
+        # filter hpp arg is a file
+        hpp_file_path = args.hpp
+        if not os.path.isfile(hpp_file_path):
+            print(f"Error: {hpp_file_path} is not a valid file.")
+            sys.exit(1)
+        
+        # filter graph arg is a path
         if args.graphics:
             graphics_path = os.path.join(args.graphics, '')
         else:
             graphics_path = os.path.join(os.getcwd(),"graphics", '')
         if not os.path.exists(graphics_path):
-             os.mkdir(graphics_path)
+             os.makedirs(graphics_path)  # create if not exist
+
+        # define icons to convert
+        if args.icon:
+            icon_name = args.icon
+        else:
+            icon_name = 'titlebar_image'
+
+        icons = parse_bitmaphpp(hpp_file_path, icon_name)
+
         for icon in icons:
             print("Converting icon", icon[0])
-            convert_hpp(icon[0],icon[1],icon[2],graphics_path)
+            convert_hpp(icon[0], icon[1], icon[2], graphics_path)
         sys.exit()
     else:
         print("Converting from png to hpp")
@@ -214,4 +235,3 @@ if __name__ == '__main__':
         print("Path", graphics_path, "hpp", args.hpp)
         pp_write_bitmaphpp(graphics_path, args.hpp)
         sys.exit()
-        
