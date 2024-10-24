@@ -135,7 +135,7 @@ def pp_write_bitmaphpp(pngicons_path, hpp_outpath):
     with open(hpp_outpath, "w", encoding="utf-8") as fd:
         fd.writelines(out_file)
     
-    print("Find your bitmap.hpp at", out_file)
+    print("Find your bitmap.hpp at", hpp_outpath)
 
 
 ### Convert from a bitmap.hpp file one or all icons in png.
@@ -232,6 +232,6 @@ if __name__ == '__main__':
             graphics_path = os.path.join(args.graphics, '')
         else:
             graphics_path = os.path.join(os.getcwd(),"graphics", '')
-        print("Path", graphics_path, "hpp", args.hpp)
+        print("From path", graphics_path, "to file", args.hpp)
         pp_write_bitmaphpp(graphics_path, args.hpp)
         sys.exit()
