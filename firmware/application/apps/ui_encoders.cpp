@@ -167,8 +167,8 @@ void EncodersConfigView::draw_waveform() {
     // clang-format on
 
     // currently not needed since all the supported OOK protocol wont exceed 550 yet
-    if (length + PADDING_LEFT >= WAVEFORM_BUFFER_SIZE) {
-        length = WAVEFORM_BUFFER_SIZE - PADDING_LEFT;
+    if (length + (PADDING_LEFT + PADDING_RIGHT) >= WAVEFORM_BUFFER_SIZE) {
+        length = WAVEFORM_BUFFER_SIZE - (PADDING_LEFT + PADDING_RIGHT);
     }
 
     // padding l
