@@ -159,9 +159,9 @@ void EncodersConfigView::draw_waveform() {
     the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
     so just for out of looking things*/
 
+    // clang-format off
     size_t length = frame_fragments.length();
 
-    // clang-format off
     #define PADDING_LEFT 1
     #define PADDING_RIGHT 1
     // clang-format on
