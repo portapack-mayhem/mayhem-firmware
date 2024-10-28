@@ -2681,9 +2681,9 @@ void Waveform::paint(Painter& painter) {
         x = prev_x + x_inc;
         h /= 2;
 
-        prev_y = y_offset + h + (*(data_start++) * y_scale);
+        prev_y = y_offset + h - (*(data_start++) * y_scale);
         for (n = 1; n < length_; n++) {
-            y = y_offset + h + (*(data_start++) * y_scale);
+            y = y_offset + h - (*(data_start++) * y_scale);
             display.draw_line({prev_x, prev_y}, {(Coord)x, y}, color_);
 
             prev_x = x;

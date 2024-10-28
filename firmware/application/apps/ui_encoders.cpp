@@ -154,12 +154,30 @@ void EncodersConfigView::on_show() {
 }
 
 void EncodersConfigView::draw_waveform() {
+    /*the waveform_buffer only controls drawing, the real wf that been sent is controlled by frame_fragments*/
+
     size_t length = frame_fragments.length();
 
-    for (size_t n = 0; n < length; n++)
-        waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
+    // clang-format off
+    #define PADDING_LEFT 1
+    // clang-format on
 
-    waveform.set_length(length);
+    // currently not needed since all the supported OOK protocol wont exceed 550 yet
+    if (length + PADDING_LEFT >= WAVEFORM_BUFFER_SIZE) {
+        length = WAVEFORM_BUFFER_SIZE - PADDING_LEFT;
+    }
+
+    // padding
+    for (size_t i = 0; i < PADDING_LEFT; i++) {
+        waveform_buffer[i] = 0;
+    }
+
+    // real wf
+    for (size_t n = 0; n < length; n++) {
+        waveform_buffer[n + PADDING_LEFT] = (frame_fragments[n] == '0') ? 0 : 1;
+    }
+
+    waveform.set_length(length + PADDING_LEFT);
     waveform.set_dirty();
 }
 
