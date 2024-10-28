@@ -25,6 +25,9 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
+#define PADDING_LEFT 1
+#define PADDING_RIGHT 1
+
 using namespace portapack;
 
 namespace ui {
@@ -153,15 +156,11 @@ void EncodersConfigView::on_show() {
     on_type_change(0);
 }
 
-// clang-format off
 void EncodersConfigView::draw_waveform() {
     // padding reason:
     // in real world the signal would always start with low level and became low level again after yout turn off the radio;
     // the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
     // so just for out of looking things
-    
-    #define PADDING_LEFT 1
-    #define PADDING_RIGHT 1
 
     size_t length = frame_fragments.length();
 
@@ -188,7 +187,6 @@ void EncodersConfigView::draw_waveform() {
     waveform.set_length(length + PADDING_LEFT + PADDING_RIGHT);
     waveform.set_dirty();
 }
-// clang-format on
 
 void EncodersConfigView::generate_frame() {
     frame_fragments.clear();
