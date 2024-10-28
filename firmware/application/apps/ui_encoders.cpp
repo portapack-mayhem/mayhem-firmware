@@ -154,10 +154,10 @@ void EncodersConfigView::on_show() {
 }
 
 void EncodersConfigView::draw_waveform() {
-    /*padding reason:
-    in real world the signal would always start with low level and became low level again after yout turn off the radio;
-    the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
-    so just for out of looking things*/
+    /* padding reason:
+     * in real world the signal would always start with low level and became low level again after yout turn off the radio;
+     * the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
+     * so just for out of looking things*/
 
     // clang-format off
     #define PADDING_LEFT 1
