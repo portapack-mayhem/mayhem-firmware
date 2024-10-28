@@ -154,12 +154,16 @@ void EncodersConfigView::on_show() {
 }
 
 void EncodersConfigView::draw_waveform() {
-    /*the waveform_buffer only controls drawing, the real wf that been sent is controlled by frame_fragments*/
+    /*padding reason:
+    in real world the signal would always start with low level and became low level again after yout turn off the radio;
+    the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
+    so just for out of looking things*/
 
     size_t length = frame_fragments.length();
 
     // clang-format off
     #define PADDING_LEFT 1
+    #define PADDING_RIGHT 1
     // clang-format on
 
     // currently not needed since all the supported OOK protocol wont exceed 550 yet
@@ -167,7 +171,7 @@ void EncodersConfigView::draw_waveform() {
         length = WAVEFORM_BUFFER_SIZE - PADDING_LEFT;
     }
 
-    // padding
+    // padding l
     for (size_t i = 0; i < PADDING_LEFT; i++) {
         waveform_buffer[i] = 0;
     }
@@ -177,7 +181,12 @@ void EncodersConfigView::draw_waveform() {
         waveform_buffer[n + PADDING_LEFT] = (frame_fragments[n] == '0') ? 0 : 1;
     }
 
-    waveform.set_length(length + PADDING_LEFT);
+    // padding r
+    for (size_t i = length + PADDING_LEFT; i < WAVEFORM_BUFFER_SIZE; i++) {
+        waveform_buffer[i] = 0;
+    }
+
+    waveform.set_length(length + PADDING_LEFT + PADDING_RIGHT);
     waveform.set_dirty();
 }
 
