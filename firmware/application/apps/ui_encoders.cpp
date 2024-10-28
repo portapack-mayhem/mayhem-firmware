@@ -160,11 +160,11 @@ void EncodersConfigView::draw_waveform() {
     so just for out of looking things*/
 
     // clang-format off
-    size_t length = frame_fragments.length();
-
     #define PADDING_LEFT 1
     #define PADDING_RIGHT 1
     // clang-format on
+
+    size_t length = frame_fragments.length();
 
     // currently not needed since all the supported OOK protocol wont exceed 550 yet
     if (length + (PADDING_LEFT + PADDING_RIGHT) >= WAVEFORM_BUFFER_SIZE) {
