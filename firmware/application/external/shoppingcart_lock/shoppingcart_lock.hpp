@@ -9,6 +9,8 @@
 #include "io_wave.hpp"
 #include "audio.hpp"
 #include "portapack_shared_memory.hpp"
+#include "ui_language.hpp"
+#include "file_path.hpp"
 
 namespace ui::external_app::shoppingcart_lock {
 
@@ -26,7 +28,6 @@ public:
 
 private:
     NavigationView& nav_;
-    const std::string wav_dir{"/WAV"};
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
     bool thread_sync_complete{false};
@@ -54,17 +55,17 @@ private:
 
     Button button_lock {
         {40, 165, 160, 35},
-        "LOCK"
+        LanguageHelper::currentMessages[LANG_LOCK] 
     };
     
     Button button_unlock {
         {40, 205, 160, 35},
-        "UNLOCK"
+        LanguageHelper::currentMessages[LANG_UNLOCK] 
     };
     
     Button button_stop {
         {40, 245, 160, 35},
-        "STOP"
+        LanguageHelper::currentMessages[LANG_STOP] 
     };
 
     MessageHandlerRegistration message_handler_fifo_signal{

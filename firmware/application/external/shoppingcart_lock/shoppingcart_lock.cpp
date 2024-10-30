@@ -7,10 +7,26 @@ using namespace portapack;
 namespace ui::external_app::shoppingcart_lock {
 
 void ShoppingCartLock::log_event(const std::string& message) {
-    menu_view.add_item({message,
-        ui::Theme::getInstance()->fg_green->foreground,
-        nullptr,
-        [](KeyEvent){}});
+    static const size_t MAX_LOG_LINES = 50;
+    static std::vector<std::string> message_history;
+    
+    message_history.push_back(message);
+    if (message_history.size() > MAX_LOG_LINES) {
+        message_history.erase(message_history.begin());
+        menu_view.clear();
+        for (const auto& msg : message_history) {
+            menu_view.add_item({msg,
+                ui::Theme::getInstance()->fg_green->foreground,
+                nullptr,
+                [](KeyEvent){}});
+        }
+    } else {
+        menu_view.add_item({message,
+            ui::Theme::getInstance()->fg_green->foreground,
+            nullptr,
+            [](KeyEvent){}});
+    }
+    
     menu_view.set_highlighted(menu_view.item_count() - 1);
 }
 
@@ -92,7 +108,7 @@ void ShoppingCartLock::wait_for_thread() {
 
 void ShoppingCartLock::restart_playback() {
     auto reader = std::make_unique<WAVFileReader>();
-    std::string file_path = wav_dir + "/" + current_file;
+    std::string file_path = (wav_dir / current_file).string();
     
     if (!reader->open(file_path)) return;
 
@@ -116,7 +132,7 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
     auto reader = std::make_unique<WAVFileReader>();
     stop();
 
-    std::string file_path = wav_dir + "/" + filename;
+    std::string file_path = (wav_dir / filename).string();
     if (!reader->open(file_path)) {
         nav_.display_modal("Error", "Cannot open " + filename);
         return;

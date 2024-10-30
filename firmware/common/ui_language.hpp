@@ -58,7 +58,9 @@ enum LangConsts {
     LANG_RESUME,
     LANG_FLOOD,
     LANG_SHOWQR,
-    LANG_SAVE
+    LANG_SAVE,
+    LANG_LOCK,
+    LANG_UNLOCK 
 };
 
 class LanguageHelper {

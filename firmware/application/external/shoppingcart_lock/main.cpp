@@ -5,9 +5,6 @@
 #include "shoppingcart_lock.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
-#include "portapack.hpp"
-#include "baseband_api.hpp"
-#include "portapack_shared_memory.hpp"
 
 namespace ui::external_app::shoppingcart_lock {
     void initialize_app(NavigationView& nav) {
