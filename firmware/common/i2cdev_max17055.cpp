@@ -192,7 +192,7 @@ void I2cDev_MAX17055::update() {
     getBatteryInfo(validity, batteryPercentage, voltage, current);
 
     // send local message
-    BatteryStateMessage msg{validity, batteryPercentage, current >= 0, voltage};
+    BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage};
     EventDispatcher::send_message(msg);
 }
 
