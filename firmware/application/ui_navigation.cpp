@@ -739,7 +739,8 @@ void NavigationView::handle_autostart() {
             std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
             std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
             if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
-                return;
+                app_started = true;
+                // return; //TODO: return here would cause UI lagging, just like the about page string order lagging issue
             }
         }
 
