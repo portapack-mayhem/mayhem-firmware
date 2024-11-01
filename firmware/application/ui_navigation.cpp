@@ -731,17 +731,25 @@ void NavigationView::handle_autostart() {
             return;
         }
 
-        // outside app
-        if (!app_started) {
-            std::string appwithpath = "/" + apps_dir.string() + "/";
-            appwithpath += autostart_app;
-            appwithpath += ".ppma";
+        // lambda
+        auto execute_app = [=](const std::string& extension) {  // TODO: capture ref aka [&] would also lagging th GUI, no idea why
+            std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + extension;
             std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
             std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
             if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
-                app_started = true;
-                // return; //TODO: return here would cause UI lagging, just like the about page string order lagging issue
+                return true;
             }
+            return false;
+        };
+
+        // outside app
+        if (!app_started) {
+            app_started = execute_app(".ppma");
+        }
+
+        // standalone app
+        if (!app_started) {
+            app_started = execute_app(".ppmp");
         }
 
         if (!app_started) {
