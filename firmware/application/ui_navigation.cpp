@@ -750,6 +750,7 @@ void NavigationView::handle_autostart() {
                           "\nupdate sdcard content\n" +
                           "and check if .ppma exists");
     }  // autostart end
+    return;
 }
 
 /* Helpers  **************************************************************/
