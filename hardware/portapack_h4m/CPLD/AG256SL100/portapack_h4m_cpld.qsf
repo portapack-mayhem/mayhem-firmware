@@ -1,0 +1,352 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2014 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II 32-bit
+# Version 13.1.4 Build 182 03/12/2014 SJ Web Edition
+# Date created = 21:24:55  April 29, 2014
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		portapack_h4m_cpld_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "MAX II"
+set_global_assignment -name DEVICE EPM240T100C5
+set_global_assignment -name TOP_LEVEL_ENTITY top
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 13.1
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:24:55  APRIL 29, 2014"
+set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name DEVICE_FILTER_PIN_COUNT 100
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
+set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (VHDL)"
+set_global_assignment -name EDA_NETLIST_WRITER_OUTPUT_DIR simulation/modelsim -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_D
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_L
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_R
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_ROT_A
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_ROT_B
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_SEL
+set_instance_assignment -name IO_STANDARD "3.3V SCHMITT TRIGGER INPUT" -to SW_U
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to TP_D
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to TP_L
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to TP_R
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to TP_U
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[15]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[14]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[13]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[12]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[11]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[10]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[9]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_DB[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_RDX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_RS
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_TE
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_WRX
+set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH top_tb -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_NAME top_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME uut -section_id top_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME top_tb -section_id top_tb
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
+set_global_assignment -name EDA_TEST_BENCH_RUN_SIM_FOR "500 ns" -section_id top_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE top_tb.vhd -section_id top_tb
+set_global_assignment -name EDA_BOARD_DESIGN_BOUNDARY_SCAN_TOOL "BSDL (Boundary Scan)"
+set_global_assignment -name EDA_NETLIST_WRITER_OUTPUT_DIR /home/jboone/src/portapack/portapack_hackrf/hardware/portapack_h2/cpld -section_id eda_board_design_boundary_scan
+set_global_assignment -name EDA_BOARD_BOUNDARY_SCAN_OPERATION POST_CONFIG -section_id eda_board_design_boundary_scan
+set_global_assignment -name AUTO_RESTART_CONFIGURATION OFF
+set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
+set_global_assignment -name ENABLE_NCE_PIN OFF
+set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name GENERATE_RBF_FILE OFF
+set_global_assignment -name GENERATE_SVF_FILE ON
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_RESETX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_ADDR
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_D[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_DIR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_D
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_L
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_R
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_U
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_ROT_B
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_SEL
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_ROT_A
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[15]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[14]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[13]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[12]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[11]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[10]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[9]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[8]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_DB[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_RDX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_RESETX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_RS
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_TE
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_WRX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_ADDR
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_D[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_DIR
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_D
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_L
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_R
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_ROT_A
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_ROT_B
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_SEL
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SW_U
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to TP_D
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to TP_L
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to TP_R
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to TP_U
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[15]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[14]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[13]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[12]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[11]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[10]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[9]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[8]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[7]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[6]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[5]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[4]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[3]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[2]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[1]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_DB[0]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_RDX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_RESETX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_RS
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_TE
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_WRX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_ADDR
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[7]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[6]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[5]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[4]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[3]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[2]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[1]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_D[0]
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_DIR
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_D
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_L
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_R
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_ROT_A
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_ROT_B
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_SEL
+set_instance_assignment -name SLOW_SLEW_RATE ON -to SW_U
+set_instance_assignment -name SLOW_SLEW_RATE ON -to TP_D
+set_instance_assignment -name SLOW_SLEW_RATE ON -to TP_L
+set_instance_assignment -name SLOW_SLEW_RATE ON -to TP_R
+set_instance_assignment -name SLOW_SLEW_RATE ON -to TP_U
+set_global_assignment -name ENABLE_DEVICE_WIDE_RESET OFF
+set_global_assignment -name IOBANK_VCCIO 3.3V -section_id 2
+set_global_assignment -name IOBANK_VCCIO 3.3V -section_id 1
+set_instance_assignment -name PCI_IO OFF -to MCU_DIR
+set_global_assignment -name ALLOW_LVTTL_LVCMOS_INPUT_LEVELS_TO_OVERDRIVE_INPUT_BUFFER ON
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LCD_BACKLIGHT
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to LCD_BACKLIGHT
+set_instance_assignment -name SLOW_SLEW_RATE ON -to LCD_BACKLIGHT
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to AUDIO_RESETX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to AUDIO_RESETX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to AUDIO_RESETX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_RDX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_RDX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_RDX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_WRX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_WRX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_WRX
+set_instance_assignment -name PCI_IO OFF -to MCU_LCD_WRX
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_IO_STBX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_IO_STBX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_IO_STBX
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_R
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_D
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_L
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to TP_U
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_LCD_TE
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_LCD_TE
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_LCD_TE
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to MCU_P2_8
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to MCU_P2_8
+set_instance_assignment -name SLOW_SLEW_RATE ON -to MCU_P2_8
+set_instance_assignment -name PCI_IO OFF -to MCU_P2_8
+set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
+
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[15]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[14]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[13]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[12]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[11]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[10]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[9]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[8]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[7]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[6]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[5]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[4]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[3]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[1]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LCD_DB[0]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[7]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[6]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[5]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[4]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[3]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[1]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_D[0]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_ADDR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_DIR
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_IO_STBX
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to MCU_LCD_RDX
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR OFF -to MCU_LCD_WRX
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR OFF -to MCU_P2_8
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to GPS_TIMEPULSE
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to GPS_TIMEPULSE
+set_instance_assignment -name SLOW_SLEW_RATE ON -to GPS_TIMEPULSE
+set_instance_assignment -name PCI_IO OFF -to GPS_TIMEPULSE
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPS_TIMEPULSE
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to GPS_TX_READY
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to GPS_TX_READY
+set_instance_assignment -name SLOW_SLEW_RATE ON -to GPS_TX_READY
+set_instance_assignment -name PCI_IO OFF -to GPS_TX_READY
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPS_TX_READY
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to REF_EN
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to REF_EN
+set_instance_assignment -name SLOW_SLEW_RATE ON -to REF_EN
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to GPS_RESETX
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to GPS_RESETX
+set_instance_assignment -name SLOW_SLEW_RATE ON -to GPS_RESETX
+
+set_location_assignment PIN_58 -to REF_EN
+set_location_assignment PIN_72 -to MCU_DIR
+set_location_assignment PIN_41 -to MCU_IO_STBX
+set_location_assignment PIN_40 -to MCU_LCD_TE
+set_location_assignment PIN_43 -to MCU_P2_8
+set_location_assignment PIN_71 -to MCU_LCD_WRX
+set_location_assignment PIN_42 -to MCU_ADDR
+set_location_assignment PIN_39 -to MCU_LCD_RDX
+set_location_assignment PIN_35 -to MCU_D[0]
+set_location_assignment PIN_33 -to MCU_D[2]
+set_location_assignment PIN_28 -to MCU_D[4]
+set_location_assignment PIN_27 -to MCU_D[6]
+set_location_assignment PIN_8 -to TP_U
+set_location_assignment PIN_7 -to TP_L
+set_location_assignment PIN_6 -to TP_D
+set_location_assignment PIN_5 -to TP_R
+set_location_assignment PIN_26 -to MCU_D[7]
+set_location_assignment PIN_29 -to MCU_D[5]
+set_location_assignment PIN_30 -to MCU_D[3]
+set_location_assignment PIN_36 -to MCU_D[1]
+set_location_assignment PIN_73 -to GPS_RESETX
+set_location_assignment PIN_75 -to GPS_TX_READY
+set_location_assignment PIN_74 -to GPS_TIMEPULSE
+set_location_assignment PIN_34 -to SW_U
+set_location_assignment PIN_37 -to SW_L
+set_location_assignment PIN_17 -to SW_SEL
+set_location_assignment PIN_12 -to SW_R
+set_location_assignment PIN_14 -to SW_D
+set_location_assignment PIN_15 -to SW_ROT_A
+set_location_assignment PIN_16 -to SW_ROT_B
+set_location_assignment PIN_99 -to LCD_DB[0]
+set_location_assignment PIN_98 -to LCD_DB[1]
+set_location_assignment PIN_97 -to LCD_DB[2]
+set_location_assignment PIN_96 -to LCD_DB[3]
+set_location_assignment PIN_95 -to LCD_DB[4]
+set_location_assignment PIN_92 -to LCD_DB[5]
+set_location_assignment PIN_91 -to LCD_DB[6]
+set_location_assignment PIN_90 -to LCD_DB[7]
+set_location_assignment PIN_89 -to LCD_DB[8]
+set_location_assignment PIN_88 -to LCD_DB[9]
+set_location_assignment PIN_87 -to LCD_DB[10]
+set_location_assignment PIN_86 -to LCD_DB[11]
+set_location_assignment PIN_85 -to LCD_DB[12]
+set_location_assignment PIN_84 -to LCD_DB[13]
+set_location_assignment PIN_83 -to LCD_DB[14]
+set_location_assignment PIN_82 -to LCD_DB[15]
+set_location_assignment PIN_100 -to LCD_RESETX
+set_location_assignment PIN_1 -to LCD_RDX
+set_location_assignment PIN_3 -to LCD_RS
+set_location_assignment PIN_2 -to LCD_WRX
+set_location_assignment PIN_76 -to LCD_BACKLIGHT
+set_location_assignment PIN_4 -to LCD_TE
+set_global_assignment -name ENABLE_OCT_DONE OFF
+set_location_assignment PIN_38 -to DEVICE_RESET_V
+set_location_assignment PIN_44 -to DEVICE_RESET
+set_global_assignment -name SDC_FILE portapack_h4m_cpld.sdc
+set_global_assignment -name VHDL_FILE top.vhd
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to SYSOFF
+set_location_assignment PIN_47 -to SYSOFF
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR OFF -to SYSOFF

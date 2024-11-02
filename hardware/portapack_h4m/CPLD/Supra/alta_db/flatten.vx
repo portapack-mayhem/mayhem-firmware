@@ -1,0 +1,1975 @@
+`timescale 1 ps/ 1 ps
+
+module top(
+	MCU_D,
+	MCU_DIR,
+	MCU_IO_STBX,
+	MCU_LCD_WRX,
+	MCU_ADDR,
+	MCU_LCD_TE,
+	MCU_P2_8,
+	MCU_LCD_RDX,
+	TP_U,
+	TP_D,
+	TP_L,
+	TP_R,
+	SW_SEL,
+	SW_ROT_A,
+	SW_ROT_B,
+	SW_U,
+	SW_D,
+	SW_L,
+	SW_R,
+	LCD_RESETX,
+	LCD_RS,
+	LCD_WRX,
+	LCD_RDX,
+	LCD_DB,
+	LCD_TE,
+	LCD_BACKLIGHT,
+	SYSOFF,
+	AUDIO_RESETX,
+	REF_EN,
+	GPS_RESETX,
+	GPS_TX_READY,
+	GPS_TIMEPULSE,
+	DEVICE_RESET,
+	DEVICE_RESET_V);
+output	[7:0] MCU_D;
+input	MCU_DIR;
+input	MCU_IO_STBX;
+input	MCU_LCD_WRX;
+input	MCU_ADDR;
+output	MCU_LCD_TE;
+input	MCU_P2_8;
+input	MCU_LCD_RDX;
+output	TP_U;
+output	TP_D;
+output	TP_L;
+output	TP_R;
+input	SW_SEL;
+input	SW_ROT_A;
+input	SW_ROT_B;
+input	SW_U;
+input	SW_D;
+input	SW_L;
+input	SW_R;
+output	LCD_RESETX;
+output	LCD_RS;
+output	LCD_WRX;
+output	LCD_RDX;
+output	[15:0] LCD_DB;
+input	LCD_TE;
+output	LCD_BACKLIGHT;
+output	SYSOFF;
+output	AUDIO_RESETX;
+output	REF_EN;
+output	GPS_RESETX;
+input	GPS_TX_READY;
+input	GPS_TIMEPULSE;
+input	DEVICE_RESET;
+input	DEVICE_RESET_V;
+
+// module hard_block
+// Design Ports Information
+// ~ALTERA_ASDO_DATA1~	=>  Location: PIN_F4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_FLASH_nCE_nCSO~	=>  Location: PIN_E2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_DCLK~	=>  Location: PIN_P3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_DATA0~	=>  Location: PIN_N7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_nCEO~	=>  Location: PIN_P28,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+
+// module top
+// Design Ports Information
+// MCU_LCD_TE	=>  Location: PIN_AC4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_P2_8	=>  Location: PIN_D6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// TP_U	=>  Location: PIN_AA4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// TP_D	=>  Location: PIN_AB3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// TP_L	=>  Location: PIN_AA3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// TP_R	=>  Location: PIN_AD1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_RESETX	=>  Location: PIN_AB4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_RS	=>  Location: PIN_AF2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_WRX	=>  Location: PIN_M1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_RDX	=>  Location: PIN_R6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_BACKLIGHT	=>  Location: PIN_W3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// SYSOFF	=>  Location: PIN_AE2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// AUDIO_RESETX	=>  Location: PIN_AE1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// REF_EN	=>  Location: PIN_AC5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// GPS_RESETX	=>  Location: PIN_AC26,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// GPS_TX_READY	=>  Location: PIN_D9,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// GPS_TIMEPULSE	=>  Location: PIN_E25,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// DEVICE_RESET	=>  Location: PIN_AF15,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// DEVICE_RESET_V	=>  Location: PIN_AE25,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_D[0]	=>  Location: PIN_AC1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[1]	=>  Location: PIN_AC3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[2]	=>  Location: PIN_AD3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[3]	=>  Location: PIN_V3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[4]	=>  Location: PIN_V2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[5]	=>  Location: PIN_V1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[6]	=>  Location: PIN_Y3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[7]	=>  Location: PIN_AC2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[0]	=>  Location: PIN_U5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[1]	=>  Location: PIN_AB1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[2]	=>  Location: PIN_U2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[3]	=>  Location: PIN_T3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[4]	=>  Location: PIN_R5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[5]	=>  Location: PIN_T4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[6]	=>  Location: PIN_Y4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[7]	=>  Location: PIN_AB2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[8]	=>  Location: PIN_U6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[9]	=>  Location: PIN_U1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[10]	=>  Location: PIN_V4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[11]	=>  Location: PIN_R2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[12]	=>  Location: PIN_R1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[13]	=>  Location: PIN_R4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[14]	=>  Location: PIN_W2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[15]	=>  Location: PIN_W1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_TE	=>  Location: PIN_AB6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_ADDR	=>  Location: PIN_AB5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_LCD_WRX	=>  Location: PIN_Y1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_LCD_RDX	=>  Location: PIN_Y2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_IO_STBX	=>  Location: PIN_J1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_DIR	=>  Location: PIN_AD2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_R	=>  Location: PIN_U8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_L	=>  Location: PIN_U7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_D	=>  Location: PIN_T7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_U	=>  Location: PIN_R3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_SEL	=>  Location: PIN_U3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_ROT_A	=>  Location: PIN_U4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_ROT_B	=>  Location: PIN_T8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+
+//wire	gnd;
+//wire	gnd;
+//wire	vcc;
+//wire	vcc;
+//wire	\AUDIO_RESETX~output_o ;
+wire	\DEVICE_RESET_V~input_o ;
+wire	\DEVICE_RESET~input_o ;
+//wire	\GPS_RESETX~output_o ;
+wire	\GPS_TIMEPULSE~input_o ;
+wire	\GPS_TX_READY~input_o ;
+//wire	\LCD_BACKLIGHT~output_o ;
+//wire	\LCD_DB[0]~output_o ;
+wire	\LCD_DB[0]~input_o ;
+//wire	\LCD_DB[10]~output_o ;
+wire	\LCD_DB[10]~input_o ;
+//wire	\LCD_DB[11]~output_o ;
+wire	\LCD_DB[11]~input_o ;
+//wire	\LCD_DB[12]~output_o ;
+wire	\LCD_DB[12]~input_o ;
+//wire	\LCD_DB[13]~output_o ;
+wire	\LCD_DB[13]~input_o ;
+//wire	\LCD_DB[14]~output_o ;
+wire	\LCD_DB[14]~input_o ;
+//wire	\LCD_DB[15]~output_o ;
+wire	\LCD_DB[15]~input_o ;
+//wire	\LCD_DB[1]~output_o ;
+wire	\LCD_DB[1]~input_o ;
+//wire	\LCD_DB[2]~output_o ;
+wire	\LCD_DB[2]~input_o ;
+//wire	\LCD_DB[3]~output_o ;
+wire	\LCD_DB[3]~input_o ;
+//wire	\LCD_DB[4]~output_o ;
+wire	\LCD_DB[4]~input_o ;
+//wire	\LCD_DB[5]~output_o ;
+wire	\LCD_DB[5]~input_o ;
+//wire	\LCD_DB[6]~output_o ;
+wire	\LCD_DB[6]~input_o ;
+//wire	\LCD_DB[7]~output_o ;
+wire	\LCD_DB[7]~input_o ;
+//wire	\LCD_DB[8]~output_o ;
+wire	\LCD_DB[8]~input_o ;
+//wire	\LCD_DB[9]~output_o ;
+wire	\LCD_DB[9]~input_o ;
+//wire	\LCD_RDX~output_o ;
+//wire	\LCD_RESETX~output_o ;
+//wire	\LCD_RS~output_o ;
+wire	\LCD_TE~input_o ;
+//wire	\LCD_WRX~output_o ;
+wire	\MCU_ADDR~input_o ;
+wire	\MCU_DIR~input_o ;
+//wire	\MCU_D[0]~output_o ;
+wire	\MCU_D[0]~input_o ;
+//wire	\MCU_D[1]~output_o ;
+wire	\MCU_D[1]~input_o ;
+//wire	\MCU_D[2]~output_o ;
+wire	\MCU_D[2]~input_o ;
+//wire	\MCU_D[3]~output_o ;
+wire	\MCU_D[3]~input_o ;
+//wire	\MCU_D[4]~output_o ;
+wire	\MCU_D[4]~input_o ;
+//wire	\MCU_D[5]~output_o ;
+wire	\MCU_D[5]~input_o ;
+//wire	\MCU_D[6]~output_o ;
+wire	\MCU_D[6]~input_o ;
+//wire	\MCU_D[7]~output_o ;
+wire	\MCU_D[7]~input_o ;
+wire	\MCU_IO_STBX~input_o ;
+wire	\MCU_IO_STBX~inputclkctrl_outclk ;
+wire	\MCU_LCD_RDX~input_o ;
+wire	\MCU_LCD_RDX~inputclkctrl_outclk ;
+//wire	\MCU_LCD_TE~output_o ;
+wire	\MCU_LCD_WRX~input_o ;
+wire	\MCU_LCD_WRX~inputclkctrl_outclk ;
+wire	\MCU_P2_8~input_o ;
+//wire	\REF_EN~output_o ;
+wire	\SW_D~input_o ;
+wire	\SW_L~input_o ;
+wire	\SW_ROT_A~input_o ;
+wire	\SW_ROT_B~input_o ;
+wire	\SW_R~input_o ;
+wire	\SW_SEL~input_o ;
+wire	\SW_U~input_o ;
+//wire	\SYSOFF~output_o ;
+//wire	\TP_D~output_o ;
+//wire	\TP_L~output_o ;
+//wire	\TP_R~output_o ;
+//wire	\TP_U~output_o ;
+wire	\audio_reset_q~0_combout ;
+wire	\audio_reset_q~q ;
+//wire	devclrn;
+tri1	devclrn;
+//wire	devoe;
+tri1	devoe;
+//wire	devpor;
+tri1	devpor;
+wire	\lcd_backlight_q~feeder_combout ;
+wire	\lcd_backlight_q~q ;
+wire	[7:0] lcd_data_in_q;
+//wire	lcd_data_in_q[0];
+//wire	lcd_data_in_q[1];
+//wire	lcd_data_in_q[2];
+//wire	lcd_data_in_q[3];
+//wire	lcd_data_in_q[4];
+//wire	lcd_data_in_q[5];
+//wire	lcd_data_in_q[6];
+//wire	lcd_data_in_q[7];
+wire	[7:0] lcd_data_out_q;
+//wire	lcd_data_out_q[0];
+wire	\lcd_data_out_q[0]~feeder_combout ;
+//wire	lcd_data_out_q[1];
+wire	\lcd_data_out_q[1]~feeder_combout ;
+//wire	lcd_data_out_q[2];
+wire	\lcd_data_out_q[2]~feeder_combout ;
+//wire	lcd_data_out_q[3];
+//wire	lcd_data_out_q[4];
+wire	\lcd_data_out_q[4]~feeder_combout ;
+//wire	lcd_data_out_q[5];
+//wire	lcd_data_out_q[6];
+//wire	lcd_data_out_q[7];
+wire	\lcd_data_out_q[7]~feeder_combout ;
+wire	\lcd_reset_q~0_combout ;
+wire	\lcd_reset_q~1_combout ;
+wire	\lcd_reset_q~q ;
+wire	\mcu_data_out[0]~0_combout ;
+wire	\mcu_data_out[0]~1_combout ;
+wire	\mcu_data_out[1]~2_combout ;
+wire	\mcu_data_out[1]~3_combout ;
+wire	\mcu_data_out[2]~4_combout ;
+wire	\mcu_data_out[2]~5_combout ;
+wire	\mcu_data_out[3]~6_combout ;
+wire	\mcu_data_out[3]~7_combout ;
+wire	\mcu_data_out[4]~8_combout ;
+wire	\mcu_data_out[4]~9_combout ;
+wire	\mcu_data_out[5]~10_combout ;
+wire	\mcu_data_out[5]~11_combout ;
+wire	\mcu_data_out[6]~12_combout ;
+wire	\mcu_data_out[6]~13_combout ;
+wire	\mcu_data_out[7]~14_combout ;
+wire	\mcu_data_out[7]~15_combout ;
+wire	\ref_en_q~feeder_combout ;
+wire	\ref_en_q~q ;
+wire	\sysoff_q~feeder_combout ;
+wire	\sysoff_q~q ;
+wire	[7:0] tp_q;
+//wire	tp_q[0];
+//wire	tp_q[1];
+//wire	tp_q[2];
+wire	\tp_q[2]~feeder_combout ;
+//wire	tp_q[3];
+wire	\tp_q[3]~0_combout ;
+//wire	tp_q[4];
+wire	\tp_q[4]~feeder_combout ;
+//wire	tp_q[5];
+//wire	tp_q[6];
+wire	\tp_q[6]~feeder_combout ;
+//wire	tp_q[7];
+wire	\tp_q[7]~feeder_combout ;
+wire	unknown;
+wire	unknown;
+wire	\~ALTERA_ASDO_DATA1~~ibuf_o ;
+wire	\~ALTERA_ASDO_DATA1~~padout ;
+wire	\~ALTERA_DATA0~~ibuf_o ;
+wire	\~ALTERA_DATA0~~padout ;
+wire	\~ALTERA_FLASH_nCE_nCSO~~ibuf_o ;
+wire	\~ALTERA_FLASH_nCE_nCSO~~padout ;
+
+wire vcc;
+wire gnd;
+assign vcc = 1'b1;
+assign gnd = 1'b0;
+
+// Location: IOOBUF_X0_Y9_N16
+cycloneive_io_obuf \AUDIO_RESETX~output (
+	.i(\audio_reset_q~q ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(AUDIO_RESETX),
+	.obar());
+defparam \AUDIO_RESETX~output .bus_hold = "false";
+defparam \AUDIO_RESETX~output .open_drain_output = "false";
+
+// Location: IOIBUF_X78_Y0_N8
+cycloneive_io_ibuf \DEVICE_RESET_V~input (
+	.i(DEVICE_RESET_V),
+	.ibar(gnd),
+	.o(\DEVICE_RESET_V~input_o ));
+defparam \DEVICE_RESET_V~input .bus_hold = "false";
+defparam \DEVICE_RESET_V~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X51_Y0_N1
+cycloneive_io_ibuf \DEVICE_RESET~input (
+	.i(DEVICE_RESET),
+	.ibar(gnd),
+	.o(\DEVICE_RESET~input_o ));
+defparam \DEVICE_RESET~input .bus_hold = "false";
+defparam \DEVICE_RESET~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X94_Y9_N16
+cycloneive_io_obuf \GPS_RESETX~output (
+	.i(vcc),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(GPS_RESETX),
+	.obar());
+defparam \GPS_RESETX~output .bus_hold = "false";
+defparam \GPS_RESETX~output .open_drain_output = "false";
+
+// Location: IOIBUF_X56_Y62_N1
+cycloneive_io_ibuf \GPS_TIMEPULSE~input (
+	.i(GPS_TIMEPULSE),
+	.ibar(gnd),
+	.o(\GPS_TIMEPULSE~input_o ));
+defparam \GPS_TIMEPULSE~input .bus_hold = "false";
+defparam \GPS_TIMEPULSE~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X23_Y62_N22
+cycloneive_io_ibuf \GPS_TX_READY~input (
+	.i(GPS_TX_READY),
+	.ibar(gnd),
+	.o(\GPS_TX_READY~input_o ));
+defparam \GPS_TX_READY~input .bus_hold = "false";
+defparam \GPS_TX_READY~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y8_N23
+cycloneive_io_obuf \LCD_BACKLIGHT~output (
+	.i(\lcd_backlight_q~q ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_BACKLIGHT),
+	.obar());
+defparam \LCD_BACKLIGHT~output .bus_hold = "false";
+defparam \LCD_BACKLIGHT~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y19_N15
+cycloneive_io_ibuf \LCD_DB[0]~input (
+	.i(LCD_DB[0]),
+	.ibar(gnd),
+	.o(\LCD_DB[0]~input_o ));
+defparam \LCD_DB[0]~input .bus_hold = "false";
+defparam \LCD_DB[0]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y19_N16
+cycloneive_io_obuf \LCD_DB[0]~output (
+	.i(\MCU_D[0]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[0]),
+	.obar());
+defparam \LCD_DB[0]~output .bus_hold = "false";
+defparam \LCD_DB[0]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y24_N22
+cycloneive_io_ibuf \LCD_DB[10]~input (
+	.i(LCD_DB[10]),
+	.ibar(gnd),
+	.o(\LCD_DB[10]~input_o ));
+defparam \LCD_DB[10]~input .bus_hold = "false";
+defparam \LCD_DB[10]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y24_N23
+cycloneive_io_obuf \LCD_DB[10]~output (
+	.i(lcd_data_out_q[2]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[10]),
+	.obar());
+defparam \LCD_DB[10]~output .bus_hold = "false";
+defparam \LCD_DB[10]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y29_N1
+cycloneive_io_ibuf \LCD_DB[11]~input (
+	.i(LCD_DB[11]),
+	.ibar(gnd),
+	.o(\LCD_DB[11]~input_o ));
+defparam \LCD_DB[11]~input .bus_hold = "false";
+defparam \LCD_DB[11]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y29_N2
+cycloneive_io_obuf \LCD_DB[11]~output (
+	.i(lcd_data_out_q[3]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[11]),
+	.obar());
+defparam \LCD_DB[11]~output .bus_hold = "false";
+defparam \LCD_DB[11]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y29_N8
+cycloneive_io_ibuf \LCD_DB[12]~input (
+	.i(LCD_DB[12]),
+	.ibar(gnd),
+	.o(\LCD_DB[12]~input_o ));
+defparam \LCD_DB[12]~input .bus_hold = "false";
+defparam \LCD_DB[12]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y29_N9
+cycloneive_io_obuf \LCD_DB[12]~output (
+	.i(lcd_data_out_q[4]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[12]),
+	.obar());
+defparam \LCD_DB[12]~output .bus_hold = "false";
+defparam \LCD_DB[12]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y26_N1
+cycloneive_io_ibuf \LCD_DB[13]~input (
+	.i(LCD_DB[13]),
+	.ibar(gnd),
+	.o(\LCD_DB[13]~input_o ));
+defparam \LCD_DB[13]~input .bus_hold = "false";
+defparam \LCD_DB[13]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y26_N2
+cycloneive_io_obuf \LCD_DB[13]~output (
+	.i(lcd_data_out_q[5]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[13]),
+	.obar());
+defparam \LCD_DB[13]~output .bus_hold = "false";
+defparam \LCD_DB[13]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y20_N1
+cycloneive_io_ibuf \LCD_DB[14]~input (
+	.i(LCD_DB[14]),
+	.ibar(gnd),
+	.o(\LCD_DB[14]~input_o ));
+defparam \LCD_DB[14]~input .bus_hold = "false";
+defparam \LCD_DB[14]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y20_N2
+cycloneive_io_obuf \LCD_DB[14]~output (
+	.i(lcd_data_out_q[6]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[14]),
+	.obar());
+defparam \LCD_DB[14]~output .bus_hold = "false";
+defparam \LCD_DB[14]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y20_N8
+cycloneive_io_ibuf \LCD_DB[15]~input (
+	.i(LCD_DB[15]),
+	.ibar(gnd),
+	.o(\LCD_DB[15]~input_o ));
+defparam \LCD_DB[15]~input .bus_hold = "false";
+defparam \LCD_DB[15]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y20_N9
+cycloneive_io_obuf \LCD_DB[15]~output (
+	.i(lcd_data_out_q[7]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[15]),
+	.obar());
+defparam \LCD_DB[15]~output .bus_hold = "false";
+defparam \LCD_DB[15]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y21_N8
+cycloneive_io_ibuf \LCD_DB[1]~input (
+	.i(LCD_DB[1]),
+	.ibar(gnd),
+	.o(\LCD_DB[1]~input_o ));
+defparam \LCD_DB[1]~input .bus_hold = "false";
+defparam \LCD_DB[1]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y21_N9
+cycloneive_io_obuf \LCD_DB[1]~output (
+	.i(\MCU_D[1]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[1]),
+	.obar());
+defparam \LCD_DB[1]~output .bus_hold = "false";
+defparam \LCD_DB[1]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y24_N1
+cycloneive_io_ibuf \LCD_DB[2]~input (
+	.i(LCD_DB[2]),
+	.ibar(gnd),
+	.o(\LCD_DB[2]~input_o ));
+defparam \LCD_DB[2]~input .bus_hold = "false";
+defparam \LCD_DB[2]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y24_N2
+cycloneive_io_obuf \LCD_DB[2]~output (
+	.i(\MCU_D[2]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[2]),
+	.obar());
+defparam \LCD_DB[2]~output .bus_hold = "false";
+defparam \LCD_DB[2]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y26_N15
+cycloneive_io_ibuf \LCD_DB[3]~input (
+	.i(LCD_DB[3]),
+	.ibar(gnd),
+	.o(\LCD_DB[3]~input_o ));
+defparam \LCD_DB[3]~input .bus_hold = "false";
+defparam \LCD_DB[3]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y26_N16
+cycloneive_io_obuf \LCD_DB[3]~output (
+	.i(\MCU_D[3]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[3]),
+	.obar());
+defparam \LCD_DB[3]~output .bus_hold = "false";
+defparam \LCD_DB[3]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y26_N22
+cycloneive_io_ibuf \LCD_DB[4]~input (
+	.i(LCD_DB[4]),
+	.ibar(gnd),
+	.o(\LCD_DB[4]~input_o ));
+defparam \LCD_DB[4]~input .bus_hold = "false";
+defparam \LCD_DB[4]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y26_N23
+cycloneive_io_obuf \LCD_DB[4]~output (
+	.i(\MCU_D[4]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[4]),
+	.obar());
+defparam \LCD_DB[4]~output .bus_hold = "false";
+defparam \LCD_DB[4]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y26_N8
+cycloneive_io_ibuf \LCD_DB[5]~input (
+	.i(LCD_DB[5]),
+	.ibar(gnd),
+	.o(\LCD_DB[5]~input_o ));
+defparam \LCD_DB[5]~input .bus_hold = "false";
+defparam \LCD_DB[5]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y26_N9
+cycloneive_io_obuf \LCD_DB[5]~output (
+	.i(\MCU_D[5]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[5]),
+	.obar());
+defparam \LCD_DB[5]~output .bus_hold = "false";
+defparam \LCD_DB[5]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y19_N22
+cycloneive_io_ibuf \LCD_DB[6]~input (
+	.i(LCD_DB[6]),
+	.ibar(gnd),
+	.o(\LCD_DB[6]~input_o ));
+defparam \LCD_DB[6]~input .bus_hold = "false";
+defparam \LCD_DB[6]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y19_N23
+cycloneive_io_obuf \LCD_DB[6]~output (
+	.i(\MCU_D[6]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[6]),
+	.obar());
+defparam \LCD_DB[6]~output .bus_hold = "false";
+defparam \LCD_DB[6]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y21_N1
+cycloneive_io_ibuf \LCD_DB[7]~input (
+	.i(LCD_DB[7]),
+	.ibar(gnd),
+	.o(\LCD_DB[7]~input_o ));
+defparam \LCD_DB[7]~input .bus_hold = "false";
+defparam \LCD_DB[7]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y21_N2
+cycloneive_io_obuf \LCD_DB[7]~output (
+	.i(\MCU_D[7]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[7]),
+	.obar());
+defparam \LCD_DB[7]~output .bus_hold = "false";
+defparam \LCD_DB[7]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y19_N1
+cycloneive_io_ibuf \LCD_DB[8]~input (
+	.i(LCD_DB[8]),
+	.ibar(gnd),
+	.o(\LCD_DB[8]~input_o ));
+defparam \LCD_DB[8]~input .bus_hold = "false";
+defparam \LCD_DB[8]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y19_N2
+cycloneive_io_obuf \LCD_DB[8]~output (
+	.i(lcd_data_out_q[0]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[8]),
+	.obar());
+defparam \LCD_DB[8]~output .bus_hold = "false";
+defparam \LCD_DB[8]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y24_N8
+cycloneive_io_ibuf \LCD_DB[9]~input (
+	.i(LCD_DB[9]),
+	.ibar(gnd),
+	.o(\LCD_DB[9]~input_o ));
+defparam \LCD_DB[9]~input .bus_hold = "false";
+defparam \LCD_DB[9]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y24_N9
+cycloneive_io_obuf \LCD_DB[9]~output (
+	.i(lcd_data_out_q[1]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_DB[9]),
+	.obar());
+defparam \LCD_DB[9]~output .bus_hold = "false";
+defparam \LCD_DB[9]~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y29_N16
+cycloneive_io_obuf \LCD_RDX~output (
+	.i(\MCU_LCD_RDX~input_o ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_RDX),
+	.obar());
+defparam \LCD_RDX~output .bus_hold = "false";
+defparam \LCD_RDX~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y7_N2
+cycloneive_io_obuf \LCD_RESETX~output (
+	.i(\lcd_reset_q~q ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_RESETX),
+	.obar());
+defparam \LCD_RESETX~output .bus_hold = "false";
+defparam \LCD_RESETX~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y4_N16
+cycloneive_io_obuf \LCD_RS~output (
+	.i(\MCU_ADDR~input_o ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_RS),
+	.obar());
+defparam \LCD_RS~output .bus_hold = "false";
+defparam \LCD_RS~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y6_N22
+cycloneive_io_ibuf \LCD_TE~input (
+	.i(LCD_TE),
+	.ibar(gnd),
+	.o(\LCD_TE~input_o ));
+defparam \LCD_TE~input .bus_hold = "false";
+defparam \LCD_TE~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y37_N2
+cycloneive_io_obuf \LCD_WRX~output (
+	.i(\MCU_LCD_WRX~input_o ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(LCD_WRX),
+	.obar());
+defparam \LCD_WRX~output .bus_hold = "false";
+defparam \LCD_WRX~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y4_N22
+cycloneive_io_ibuf \MCU_ADDR~input (
+	.i(MCU_ADDR),
+	.ibar(gnd),
+	.o(\MCU_ADDR~input_o ));
+defparam \MCU_ADDR~input .bus_hold = "false";
+defparam \MCU_ADDR~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y16_N22
+cycloneive_io_ibuf \MCU_DIR~input (
+	.i(MCU_DIR),
+	.ibar(gnd),
+	.o(\MCU_DIR~input_o ));
+defparam \MCU_DIR~input .bus_hold = "false";
+defparam \MCU_DIR~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y17_N8
+cycloneive_io_ibuf \MCU_D[0]~input (
+	.i(MCU_D[0]),
+	.ibar(gnd),
+	.o(\MCU_D[0]~input_o ));
+defparam \MCU_D[0]~input .bus_hold = "false";
+defparam \MCU_D[0]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y17_N9
+cycloneive_io_obuf \MCU_D[0]~output (
+	.i(\mcu_data_out[0]~1_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[0]),
+	.obar());
+defparam \MCU_D[0]~output .bus_hold = "false";
+defparam \MCU_D[0]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y16_N8
+cycloneive_io_ibuf \MCU_D[1]~input (
+	.i(MCU_D[1]),
+	.ibar(gnd),
+	.o(\MCU_D[1]~input_o ));
+defparam \MCU_D[1]~input .bus_hold = "false";
+defparam \MCU_D[1]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y16_N9
+cycloneive_io_obuf \MCU_D[1]~output (
+	.i(\mcu_data_out[1]~3_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[1]),
+	.obar());
+defparam \MCU_D[1]~output .bus_hold = "false";
+defparam \MCU_D[1]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y16_N15
+cycloneive_io_ibuf \MCU_D[2]~input (
+	.i(MCU_D[2]),
+	.ibar(gnd),
+	.o(\MCU_D[2]~input_o ));
+defparam \MCU_D[2]~input .bus_hold = "false";
+defparam \MCU_D[2]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y16_N16
+cycloneive_io_obuf \MCU_D[2]~output (
+	.i(\mcu_data_out[2]~5_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[2]),
+	.obar());
+defparam \MCU_D[2]~output .bus_hold = "false";
+defparam \MCU_D[2]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y23_N1
+cycloneive_io_ibuf \MCU_D[3]~input (
+	.i(MCU_D[3]),
+	.ibar(gnd),
+	.o(\MCU_D[3]~input_o ));
+defparam \MCU_D[3]~input .bus_hold = "false";
+defparam \MCU_D[3]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y23_N2
+cycloneive_io_obuf \MCU_D[3]~output (
+	.i(\mcu_data_out[3]~7_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[3]),
+	.obar());
+defparam \MCU_D[3]~output .bus_hold = "false";
+defparam \MCU_D[3]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y23_N8
+cycloneive_io_ibuf \MCU_D[4]~input (
+	.i(MCU_D[4]),
+	.ibar(gnd),
+	.o(\MCU_D[4]~input_o ));
+defparam \MCU_D[4]~input .bus_hold = "false";
+defparam \MCU_D[4]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y23_N9
+cycloneive_io_obuf \MCU_D[4]~output (
+	.i(\mcu_data_out[4]~9_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[4]),
+	.obar());
+defparam \MCU_D[4]~output .bus_hold = "false";
+defparam \MCU_D[4]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y22_N8
+cycloneive_io_ibuf \MCU_D[5]~input (
+	.i(MCU_D[5]),
+	.ibar(gnd),
+	.o(\MCU_D[5]~input_o ));
+defparam \MCU_D[5]~input .bus_hold = "false";
+defparam \MCU_D[5]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y22_N9
+cycloneive_io_obuf \MCU_D[5]~output (
+	.i(\mcu_data_out[5]~11_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[5]),
+	.obar());
+defparam \MCU_D[5]~output .bus_hold = "false";
+defparam \MCU_D[5]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y18_N15
+cycloneive_io_ibuf \MCU_D[6]~input (
+	.i(MCU_D[6]),
+	.ibar(gnd),
+	.o(\MCU_D[6]~input_o ));
+defparam \MCU_D[6]~input .bus_hold = "false";
+defparam \MCU_D[6]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y18_N16
+cycloneive_io_obuf \MCU_D[6]~output (
+	.i(\mcu_data_out[6]~13_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[6]),
+	.obar());
+defparam \MCU_D[6]~output .bus_hold = "false";
+defparam \MCU_D[6]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y18_N22
+cycloneive_io_ibuf \MCU_D[7]~input (
+	.i(MCU_D[7]),
+	.ibar(gnd),
+	.o(\MCU_D[7]~input_o ));
+defparam \MCU_D[7]~input .bus_hold = "false";
+defparam \MCU_D[7]~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y18_N23
+cycloneive_io_obuf \MCU_D[7]~output (
+	.i(\mcu_data_out[7]~15_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_D[7]),
+	.obar());
+defparam \MCU_D[7]~output .bus_hold = "false";
+defparam \MCU_D[7]~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y30_N8
+cycloneive_io_ibuf \MCU_IO_STBX~input (
+	.i(MCU_IO_STBX),
+	.ibar(gnd),
+	.o(\MCU_IO_STBX~input_o ));
+defparam \MCU_IO_STBX~input .bus_hold = "false";
+defparam \MCU_IO_STBX~input .simulate_z_as = "z";
+
+// Location: CLKCTRL_G2
+cycloneive_clkctrl \MCU_IO_STBX~inputclkctrl (
+	.inclk({vcc, vcc, vcc, \MCU_IO_STBX~input_o }),
+	.clkselect({gnd, gnd}),
+	.ena(vcc),
+	.devpor(devpor),
+	.devclrn(devclrn),
+	.outclk(\MCU_IO_STBX~inputclkctrl_outclk ));
+defparam \MCU_IO_STBX~inputclkctrl .clock_type = "global clock";
+defparam \MCU_IO_STBX~inputclkctrl .ena_register_mode = "none";
+
+// Location: IOIBUF_X0_Y30_N15
+cycloneive_io_ibuf \MCU_LCD_RDX~input (
+	.i(MCU_LCD_RDX),
+	.ibar(gnd),
+	.o(\MCU_LCD_RDX~input_o ));
+defparam \MCU_LCD_RDX~input .bus_hold = "false";
+defparam \MCU_LCD_RDX~input .simulate_z_as = "z";
+
+// Location: CLKCTRL_G4
+cycloneive_clkctrl \MCU_LCD_RDX~inputclkctrl (
+	.inclk({vcc, vcc, vcc, \MCU_LCD_RDX~input_o }),
+	.clkselect({gnd, gnd}),
+	.ena(vcc),
+	.devpor(devpor),
+	.devclrn(devclrn),
+	.outclk(\MCU_LCD_RDX~inputclkctrl_outclk ));
+defparam \MCU_LCD_RDX~inputclkctrl .clock_type = "global clock";
+defparam \MCU_LCD_RDX~inputclkctrl .ena_register_mode = "none";
+
+// Location: IOOBUF_X0_Y6_N16
+cycloneive_io_obuf \MCU_LCD_TE~output (
+	.i(\LCD_TE~input_o ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(MCU_LCD_TE),
+	.obar());
+defparam \MCU_LCD_TE~output .bus_hold = "false";
+defparam \MCU_LCD_TE~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y30_N22
+cycloneive_io_ibuf \MCU_LCD_WRX~input (
+	.i(MCU_LCD_WRX),
+	.ibar(gnd),
+	.o(\MCU_LCD_WRX~input_o ));
+defparam \MCU_LCD_WRX~input .bus_hold = "false";
+defparam \MCU_LCD_WRX~input .simulate_z_as = "z";
+
+// Location: CLKCTRL_G3
+cycloneive_clkctrl \MCU_LCD_WRX~inputclkctrl (
+	.inclk({vcc, vcc, vcc, \MCU_LCD_WRX~input_o }),
+	.clkselect({gnd, gnd}),
+	.ena(vcc),
+	.devpor(devpor),
+	.devclrn(devclrn),
+	.outclk(\MCU_LCD_WRX~inputclkctrl_outclk ));
+defparam \MCU_LCD_WRX~inputclkctrl .clock_type = "global clock";
+defparam \MCU_LCD_WRX~inputclkctrl .ena_register_mode = "none";
+
+// Location: IOIBUF_X18_Y62_N15
+cycloneive_io_ibuf \MCU_P2_8~input (
+	.i(MCU_P2_8),
+	.ibar(gnd),
+	.o(\MCU_P2_8~input_o ));
+defparam \MCU_P2_8~input .bus_hold = "false";
+defparam \MCU_P2_8~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y7_N9
+cycloneive_io_obuf \REF_EN~output (
+	.i(\ref_en_q~q ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(REF_EN),
+	.obar());
+defparam \REF_EN~output .bus_hold = "false";
+defparam \REF_EN~output .open_drain_output = "false";
+
+// Location: IOIBUF_X0_Y25_N15
+cycloneive_io_ibuf \SW_D~input (
+	.i(SW_D),
+	.ibar(gnd),
+	.o(\SW_D~input_o ));
+defparam \SW_D~input .bus_hold = "false";
+defparam \SW_D~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y10_N1
+cycloneive_io_ibuf \SW_L~input (
+	.i(SW_L),
+	.ibar(gnd),
+	.o(\SW_L~input_o ));
+defparam \SW_L~input .bus_hold = "false";
+defparam \SW_L~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y28_N8
+cycloneive_io_ibuf \SW_ROT_A~input (
+	.i(SW_ROT_A),
+	.ibar(gnd),
+	.o(\SW_ROT_A~input_o ));
+defparam \SW_ROT_A~input .bus_hold = "false";
+defparam \SW_ROT_A~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y14_N8
+cycloneive_io_ibuf \SW_ROT_B~input (
+	.i(SW_ROT_B),
+	.ibar(gnd),
+	.o(\SW_ROT_B~input_o ));
+defparam \SW_ROT_B~input .bus_hold = "false";
+defparam \SW_ROT_B~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y10_N8
+cycloneive_io_ibuf \SW_R~input (
+	.i(SW_R),
+	.ibar(gnd),
+	.o(\SW_R~input_o ));
+defparam \SW_R~input .bus_hold = "false";
+defparam \SW_R~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y29_N22
+cycloneive_io_ibuf \SW_SEL~input (
+	.i(SW_SEL),
+	.ibar(gnd),
+	.o(\SW_SEL~input_o ));
+defparam \SW_SEL~input .bus_hold = "false";
+defparam \SW_SEL~input .simulate_z_as = "z";
+
+// Location: IOIBUF_X0_Y28_N15
+cycloneive_io_ibuf \SW_U~input (
+	.i(SW_U),
+	.ibar(gnd),
+	.o(\SW_U~input_o ));
+defparam \SW_U~input .bus_hold = "false";
+defparam \SW_U~input .simulate_z_as = "z";
+
+// Location: IOOBUF_X0_Y9_N9
+cycloneive_io_obuf \SYSOFF~output (
+	.i(\sysoff_q~q ),
+	.oe(vcc),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(SYSOFF),
+	.obar());
+defparam \SYSOFF~output .bus_hold = "false";
+defparam \SYSOFF~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y15_N23
+cycloneive_io_obuf \TP_D~output (
+	.i(tp_q[2]),
+	.oe(tp_q[6]),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(TP_D),
+	.obar());
+defparam \TP_D~output .bus_hold = "false";
+defparam \TP_D~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y11_N9
+cycloneive_io_obuf \TP_L~output (
+	.i(tp_q[1]),
+	.oe(tp_q[5]),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(TP_L),
+	.obar());
+defparam \TP_L~output .bus_hold = "false";
+defparam \TP_L~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y15_N16
+cycloneive_io_obuf \TP_R~output (
+	.i(tp_q[0]),
+	.oe(tp_q[4]),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(TP_R),
+	.obar());
+defparam \TP_R~output .bus_hold = "false";
+defparam \TP_R~output .open_drain_output = "false";
+
+// Location: IOOBUF_X0_Y11_N2
+cycloneive_io_obuf \TP_U~output (
+	.i(tp_q[3]),
+	.oe(tp_q[7]),
+	.seriesterminationcontrol({gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd, gnd}),
+	.devoe(devoe),
+	.o(TP_U),
+	.obar());
+defparam \TP_U~output .bus_hold = "false";
+defparam \TP_U~output .open_drain_output = "false";
+
+// Location: FF_X1_Y15_N23
+dffeas audio_reset_q(
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\audio_reset_q~0_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\lcd_reset_q~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(\audio_reset_q~q ),
+	.prn(vcc));
+defparam audio_reset_q.is_wysiwyg = "true";
+defparam audio_reset_q.power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N22
+cycloneive_lcell_comb \audio_reset_q~0 (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(\MCU_D[1]~input_o ),
+	.datad(gnd),
+	.cin(gnd),
+	.combout(\audio_reset_q~0_combout ),
+	.cout());
+defparam \audio_reset_q~0 .lut_mask = 16'h0F0F;
+defparam \audio_reset_q~0 .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N17
+dffeas lcd_backlight_q(
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\lcd_backlight_q~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\lcd_reset_q~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(\lcd_backlight_q~q ),
+	.prn(vcc));
+defparam lcd_backlight_q.is_wysiwyg = "true";
+defparam lcd_backlight_q.power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N16
+cycloneive_lcell_comb \lcd_backlight_q~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[7]~input_o ),
+	.cin(gnd),
+	.combout(\lcd_backlight_q~feeder_combout ),
+	.cout());
+defparam \lcd_backlight_q~feeder .lut_mask = 16'hFF00;
+defparam \lcd_backlight_q~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y19_N31
+dffeas \lcd_data_in_q[0] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[0]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[0]),
+	.prn(vcc));
+defparam \lcd_data_in_q[0] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[0] .power_up = "low";
+
+// Location: FF_X1_Y21_N5
+dffeas \lcd_data_in_q[1] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[1]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[1]),
+	.prn(vcc));
+defparam \lcd_data_in_q[1] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[1] .power_up = "low";
+
+// Location: FF_X1_Y24_N31
+dffeas \lcd_data_in_q[2] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[2]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[2]),
+	.prn(vcc));
+defparam \lcd_data_in_q[2] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[2] .power_up = "low";
+
+// Location: FF_X1_Y26_N7
+dffeas \lcd_data_in_q[3] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[3]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[3]),
+	.prn(vcc));
+defparam \lcd_data_in_q[3] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[3] .power_up = "low";
+
+// Location: FF_X1_Y26_N11
+dffeas \lcd_data_in_q[4] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[4]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[4]),
+	.prn(vcc));
+defparam \lcd_data_in_q[4] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[4] .power_up = "low";
+
+// Location: FF_X1_Y26_N9
+dffeas \lcd_data_in_q[5] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[5]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[5]),
+	.prn(vcc));
+defparam \lcd_data_in_q[5] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[5] .power_up = "low";
+
+// Location: FF_X1_Y19_N5
+dffeas \lcd_data_in_q[6] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[6]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[6]),
+	.prn(vcc));
+defparam \lcd_data_in_q[6] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[6] .power_up = "low";
+
+// Location: FF_X1_Y21_N29
+dffeas \lcd_data_in_q[7] (
+	.clk(\MCU_LCD_RDX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\LCD_DB[7]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_in_q[7]),
+	.prn(vcc));
+defparam \lcd_data_in_q[7] .is_wysiwyg = "true";
+defparam \lcd_data_in_q[7] .power_up = "low";
+
+// Location: FF_X1_Y20_N31
+dffeas \lcd_data_out_q[0] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(\lcd_data_out_q[0]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[0]),
+	.prn(vcc));
+defparam \lcd_data_out_q[0] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[0] .power_up = "low";
+
+// Location: LCCOMB_X1_Y20_N30
+cycloneive_lcell_comb \lcd_data_out_q[0]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[0]~input_o ),
+	.cin(gnd),
+	.combout(\lcd_data_out_q[0]~feeder_combout ),
+	.cout());
+defparam \lcd_data_out_q[0]~feeder .lut_mask = 16'hFF00;
+defparam \lcd_data_out_q[0]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y20_N1
+dffeas \lcd_data_out_q[1] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(\lcd_data_out_q[1]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[1]),
+	.prn(vcc));
+defparam \lcd_data_out_q[1] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[1] .power_up = "low";
+
+// Location: LCCOMB_X1_Y20_N0
+cycloneive_lcell_comb \lcd_data_out_q[1]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[1]~input_o ),
+	.cin(gnd),
+	.combout(\lcd_data_out_q[1]~feeder_combout ),
+	.cout());
+defparam \lcd_data_out_q[1]~feeder .lut_mask = 16'hFF00;
+defparam \lcd_data_out_q[1]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y20_N11
+dffeas \lcd_data_out_q[2] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(\lcd_data_out_q[2]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[2]),
+	.prn(vcc));
+defparam \lcd_data_out_q[2] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[2] .power_up = "low";
+
+// Location: LCCOMB_X1_Y20_N10
+cycloneive_lcell_comb \lcd_data_out_q[2]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[2]~input_o ),
+	.cin(gnd),
+	.combout(\lcd_data_out_q[2]~feeder_combout ),
+	.cout());
+defparam \lcd_data_out_q[2]~feeder .lut_mask = 16'hFF00;
+defparam \lcd_data_out_q[2]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y26_N15
+dffeas \lcd_data_out_q[3] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[3]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[3]),
+	.prn(vcc));
+defparam \lcd_data_out_q[3] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[3] .power_up = "low";
+
+// Location: FF_X1_Y26_N13
+dffeas \lcd_data_out_q[4] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(\lcd_data_out_q[4]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[4]),
+	.prn(vcc));
+defparam \lcd_data_out_q[4] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[4] .power_up = "low";
+
+// Location: LCCOMB_X1_Y26_N12
+cycloneive_lcell_comb \lcd_data_out_q[4]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[4]~input_o ),
+	.cin(gnd),
+	.combout(\lcd_data_out_q[4]~feeder_combout ),
+	.cout());
+defparam \lcd_data_out_q[4]~feeder .lut_mask = 16'hFF00;
+defparam \lcd_data_out_q[4]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y26_N5
+dffeas \lcd_data_out_q[5] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[5]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[5]),
+	.prn(vcc));
+defparam \lcd_data_out_q[5] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[5] .power_up = "low";
+
+// Location: FF_X1_Y20_N13
+dffeas \lcd_data_out_q[6] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[6]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[6]),
+	.prn(vcc));
+defparam \lcd_data_out_q[6] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[6] .power_up = "low";
+
+// Location: FF_X1_Y20_N15
+dffeas \lcd_data_out_q[7] (
+	.clk(!\MCU_LCD_WRX~inputclkctrl_outclk ),
+	.d(\lcd_data_out_q[7]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(vcc),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(lcd_data_out_q[7]),
+	.prn(vcc));
+defparam \lcd_data_out_q[7] .is_wysiwyg = "true";
+defparam \lcd_data_out_q[7] .power_up = "low";
+
+// Location: LCCOMB_X1_Y20_N14
+cycloneive_lcell_comb \lcd_data_out_q[7]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[7]~input_o ),
+	.cin(gnd),
+	.combout(\lcd_data_out_q[7]~feeder_combout ),
+	.cout());
+defparam \lcd_data_out_q[7]~feeder .lut_mask = 16'hFF00;
+defparam \lcd_data_out_q[7]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N3
+dffeas lcd_reset_q(
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\lcd_reset_q~1_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\lcd_reset_q~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(\lcd_reset_q~q ),
+	.prn(vcc));
+defparam lcd_reset_q.is_wysiwyg = "true";
+defparam lcd_reset_q.power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N10
+cycloneive_lcell_comb \lcd_reset_q~0 (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(\MCU_ADDR~input_o ),
+	.datad(\MCU_DIR~input_o ),
+	.cin(gnd),
+	.combout(\lcd_reset_q~0_combout ),
+	.cout());
+defparam \lcd_reset_q~0 .lut_mask = 16'h00F0;
+defparam \lcd_reset_q~0 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y15_N2
+cycloneive_lcell_comb \lcd_reset_q~1 (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(\MCU_D[0]~input_o ),
+	.datad(gnd),
+	.cin(gnd),
+	.combout(\lcd_reset_q~1_combout ),
+	.cout());
+defparam \lcd_reset_q~1 .lut_mask = 16'h0F0F;
+defparam \lcd_reset_q~1 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y19_N30
+cycloneive_lcell_comb \mcu_data_out[0]~0 (
+	.dataa(\LCD_DB[8]~input_o ),
+	.datab(gnd),
+	.datac(lcd_data_in_q[0]),
+	.datad(\MCU_LCD_RDX~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[0]~0_combout ),
+	.cout());
+defparam \mcu_data_out[0]~0 .lut_mask = 16'hF0AA;
+defparam \mcu_data_out[0]~0 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y18_N30
+cycloneive_lcell_comb \mcu_data_out[0]~1 (
+	.dataa(\SW_R~input_o ),
+	.datab(\MCU_IO_STBX~input_o ),
+	.datac(\mcu_data_out[0]~0_combout ),
+	.datad(\MCU_DIR~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[0]~1_combout ),
+	.cout());
+defparam \mcu_data_out[0]~1 .lut_mask = 16'hD1F0;
+defparam \mcu_data_out[0]~1 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y21_N4
+cycloneive_lcell_comb \mcu_data_out[1]~2 (
+	.dataa(\LCD_DB[9]~input_o ),
+	.datab(\MCU_LCD_RDX~input_o ),
+	.datac(lcd_data_in_q[1]),
+	.datad(gnd),
+	.cin(gnd),
+	.combout(\mcu_data_out[1]~2_combout ),
+	.cout());
+defparam \mcu_data_out[1]~2 .lut_mask = 16'hE2E2;
+defparam \mcu_data_out[1]~2 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y18_N28
+cycloneive_lcell_comb \mcu_data_out[1]~3 (
+	.dataa(\SW_L~input_o ),
+	.datab(\MCU_DIR~input_o ),
+	.datac(\MCU_IO_STBX~input_o ),
+	.datad(\mcu_data_out[1]~2_combout ),
+	.cin(gnd),
+	.combout(\mcu_data_out[1]~3_combout ),
+	.cout());
+defparam \mcu_data_out[1]~3 .lut_mask = 16'hF704;
+defparam \mcu_data_out[1]~3 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y24_N30
+cycloneive_lcell_comb \mcu_data_out[2]~4 (
+	.dataa(\LCD_DB[10]~input_o ),
+	.datab(gnd),
+	.datac(lcd_data_in_q[2]),
+	.datad(\MCU_LCD_RDX~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[2]~4_combout ),
+	.cout());
+defparam \mcu_data_out[2]~4 .lut_mask = 16'hF0AA;
+defparam \mcu_data_out[2]~4 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y23_N16
+cycloneive_lcell_comb \mcu_data_out[2]~5 (
+	.dataa(\SW_D~input_o ),
+	.datab(\MCU_IO_STBX~input_o ),
+	.datac(\mcu_data_out[2]~4_combout ),
+	.datad(\MCU_DIR~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[2]~5_combout ),
+	.cout());
+defparam \mcu_data_out[2]~5 .lut_mask = 16'hD1F0;
+defparam \mcu_data_out[2]~5 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y26_N6
+cycloneive_lcell_comb \mcu_data_out[3]~6 (
+	.dataa(\MCU_LCD_RDX~input_o ),
+	.datab(\LCD_DB[11]~input_o ),
+	.datac(lcd_data_in_q[3]),
+	.datad(gnd),
+	.cin(gnd),
+	.combout(\mcu_data_out[3]~6_combout ),
+	.cout());
+defparam \mcu_data_out[3]~6 .lut_mask = 16'hE4E4;
+defparam \mcu_data_out[3]~6 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y23_N12
+cycloneive_lcell_comb \mcu_data_out[3]~7 (
+	.dataa(\SW_U~input_o ),
+	.datab(\MCU_IO_STBX~input_o ),
+	.datac(\MCU_DIR~input_o ),
+	.datad(\mcu_data_out[3]~6_combout ),
+	.cin(gnd),
+	.combout(\mcu_data_out[3]~7_combout ),
+	.cout());
+defparam \mcu_data_out[3]~7 .lut_mask = 16'hDF10;
+defparam \mcu_data_out[3]~7 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y26_N10
+cycloneive_lcell_comb \mcu_data_out[4]~8 (
+	.dataa(\MCU_LCD_RDX~input_o ),
+	.datab(\LCD_DB[12]~input_o ),
+	.datac(lcd_data_in_q[4]),
+	.datad(gnd),
+	.cin(gnd),
+	.combout(\mcu_data_out[4]~8_combout ),
+	.cout());
+defparam \mcu_data_out[4]~8 .lut_mask = 16'hE4E4;
+defparam \mcu_data_out[4]~8 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y23_N14
+cycloneive_lcell_comb \mcu_data_out[4]~9 (
+	.dataa(\MCU_DIR~input_o ),
+	.datab(\SW_SEL~input_o ),
+	.datac(\MCU_IO_STBX~input_o ),
+	.datad(\mcu_data_out[4]~8_combout ),
+	.cin(gnd),
+	.combout(\mcu_data_out[4]~9_combout ),
+	.cout());
+defparam \mcu_data_out[4]~9 .lut_mask = 16'hF702;
+defparam \mcu_data_out[4]~9 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y26_N8
+cycloneive_lcell_comb \mcu_data_out[5]~10 (
+	.dataa(\MCU_LCD_RDX~input_o ),
+	.datab(gnd),
+	.datac(lcd_data_in_q[5]),
+	.datad(\LCD_DB[13]~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[5]~10_combout ),
+	.cout());
+defparam \mcu_data_out[5]~10 .lut_mask = 16'hF5A0;
+defparam \mcu_data_out[5]~10 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y23_N30
+cycloneive_lcell_comb \mcu_data_out[5]~11 (
+	.dataa(\MCU_DIR~input_o ),
+	.datab(\SW_ROT_A~input_o ),
+	.datac(\MCU_IO_STBX~input_o ),
+	.datad(\mcu_data_out[5]~10_combout ),
+	.cin(gnd),
+	.combout(\mcu_data_out[5]~11_combout ),
+	.cout());
+defparam \mcu_data_out[5]~11 .lut_mask = 16'hF702;
+defparam \mcu_data_out[5]~11 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y19_N4
+cycloneive_lcell_comb \mcu_data_out[6]~12 (
+	.dataa(\LCD_DB[14]~input_o ),
+	.datab(gnd),
+	.datac(lcd_data_in_q[6]),
+	.datad(\MCU_LCD_RDX~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[6]~12_combout ),
+	.cout());
+defparam \mcu_data_out[6]~12 .lut_mask = 16'hF0AA;
+defparam \mcu_data_out[6]~12 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y18_N16
+cycloneive_lcell_comb \mcu_data_out[6]~13 (
+	.dataa(\SW_ROT_B~input_o ),
+	.datab(\MCU_IO_STBX~input_o ),
+	.datac(\mcu_data_out[6]~12_combout ),
+	.datad(\MCU_DIR~input_o ),
+	.cin(gnd),
+	.combout(\mcu_data_out[6]~13_combout ),
+	.cout());
+defparam \mcu_data_out[6]~13 .lut_mask = 16'hD1F0;
+defparam \mcu_data_out[6]~13 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y21_N28
+cycloneive_lcell_comb \mcu_data_out[7]~14 (
+	.dataa(\LCD_DB[15]~input_o ),
+	.datab(\MCU_LCD_RDX~input_o ),
+	.datac(lcd_data_in_q[7]),
+	.datad(gnd),
+	.cin(gnd),
+	.combout(\mcu_data_out[7]~14_combout ),
+	.cout());
+defparam \mcu_data_out[7]~14 .lut_mask = 16'hE2E2;
+defparam \mcu_data_out[7]~14 .sum_lutc_input = "datac";
+
+// Location: LCCOMB_X1_Y18_N14
+cycloneive_lcell_comb \mcu_data_out[7]~15 (
+	.dataa(\LCD_TE~input_o ),
+	.datab(\MCU_DIR~input_o ),
+	.datac(\MCU_IO_STBX~input_o ),
+	.datad(\mcu_data_out[7]~14_combout ),
+	.cin(gnd),
+	.combout(\mcu_data_out[7]~15_combout ),
+	.cout());
+defparam \mcu_data_out[7]~15 .lut_mask = 16'hFB08;
+defparam \mcu_data_out[7]~15 .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N31
+dffeas ref_en_q(
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\ref_en_q~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\lcd_reset_q~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(\ref_en_q~q ),
+	.prn(vcc));
+defparam ref_en_q.is_wysiwyg = "true";
+defparam ref_en_q.power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N30
+cycloneive_lcell_comb \ref_en_q~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[6]~input_o ),
+	.cin(gnd),
+	.combout(\ref_en_q~feeder_combout ),
+	.cout());
+defparam \ref_en_q~feeder .lut_mask = 16'hFF00;
+defparam \ref_en_q~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N7
+dffeas sysoff_q(
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\sysoff_q~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\lcd_reset_q~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(\sysoff_q~q ),
+	.prn(vcc));
+defparam sysoff_q.is_wysiwyg = "true";
+defparam sysoff_q.power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N6
+cycloneive_lcell_comb \sysoff_q~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[2]~input_o ),
+	.cin(gnd),
+	.combout(\sysoff_q~feeder_combout ),
+	.cout());
+defparam \sysoff_q~feeder .lut_mask = 16'hFF00;
+defparam \sysoff_q~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N19
+dffeas \tp_q[0] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[0]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[0]),
+	.prn(vcc));
+defparam \tp_q[0] .is_wysiwyg = "true";
+defparam \tp_q[0] .power_up = "low";
+
+// Location: FF_X1_Y15_N21
+dffeas \tp_q[1] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[1]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[1]),
+	.prn(vcc));
+defparam \tp_q[1] .is_wysiwyg = "true";
+defparam \tp_q[1] .power_up = "low";
+
+// Location: FF_X1_Y15_N27
+dffeas \tp_q[2] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\tp_q[2]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[2]),
+	.prn(vcc));
+defparam \tp_q[2] .is_wysiwyg = "true";
+defparam \tp_q[2] .power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N26
+cycloneive_lcell_comb \tp_q[2]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[2]~input_o ),
+	.cin(gnd),
+	.combout(\tp_q[2]~feeder_combout ),
+	.cout());
+defparam \tp_q[2]~feeder .lut_mask = 16'hFF00;
+defparam \tp_q[2]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N13
+dffeas \tp_q[3] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[3]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[3]),
+	.prn(vcc));
+defparam \tp_q[3] .is_wysiwyg = "true";
+defparam \tp_q[3] .power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N4
+cycloneive_lcell_comb \tp_q[3]~0 (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(\MCU_ADDR~input_o ),
+	.datad(\MCU_DIR~input_o ),
+	.cin(gnd),
+	.combout(\tp_q[3]~0_combout ),
+	.cout());
+defparam \tp_q[3]~0 .lut_mask = 16'h000F;
+defparam \tp_q[3]~0 .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N15
+dffeas \tp_q[4] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\tp_q[4]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[4]),
+	.prn(vcc));
+defparam \tp_q[4] .is_wysiwyg = "true";
+defparam \tp_q[4] .power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N14
+cycloneive_lcell_comb \tp_q[4]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[4]~input_o ),
+	.cin(gnd),
+	.combout(\tp_q[4]~feeder_combout ),
+	.cout());
+defparam \tp_q[4]~feeder .lut_mask = 16'hFF00;
+defparam \tp_q[4]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N29
+dffeas \tp_q[5] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(gnd),
+	.asdata(\MCU_D[5]~input_o ),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(vcc),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[5]),
+	.prn(vcc));
+defparam \tp_q[5] .is_wysiwyg = "true";
+defparam \tp_q[5] .power_up = "low";
+
+// Location: FF_X1_Y15_N9
+dffeas \tp_q[6] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\tp_q[6]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[6]),
+	.prn(vcc));
+defparam \tp_q[6] .is_wysiwyg = "true";
+defparam \tp_q[6] .power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N8
+cycloneive_lcell_comb \tp_q[6]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[6]~input_o ),
+	.cin(gnd),
+	.combout(\tp_q[6]~feeder_combout ),
+	.cout());
+defparam \tp_q[6]~feeder .lut_mask = 16'hFF00;
+defparam \tp_q[6]~feeder .sum_lutc_input = "datac";
+
+// Location: FF_X1_Y15_N25
+dffeas \tp_q[7] (
+	.clk(\MCU_IO_STBX~inputclkctrl_outclk ),
+	.d(\tp_q[7]~feeder_combout ),
+	.asdata(vcc),
+	.clrn(vcc),
+	.aload(gnd),
+	.sclr(gnd),
+	.sload(gnd),
+	.ena(\tp_q[3]~0_combout ),
+	.devclrn(devclrn),
+	.devpor(devpor),
+	.q(tp_q[7]),
+	.prn(vcc));
+defparam \tp_q[7] .is_wysiwyg = "true";
+defparam \tp_q[7] .power_up = "low";
+
+// Location: LCCOMB_X1_Y15_N24
+cycloneive_lcell_comb \tp_q[7]~feeder (
+	.dataa(gnd),
+	.datab(gnd),
+	.datac(gnd),
+	.datad(\MCU_D[7]~input_o ),
+	.cin(gnd),
+	.combout(\tp_q[7]~feeder_combout ),
+	.cout());
+defparam \tp_q[7]~feeder .lut_mask = 16'hFF00;
+defparam \tp_q[7]~feeder .sum_lutc_input = "datac";
+
+endmodule

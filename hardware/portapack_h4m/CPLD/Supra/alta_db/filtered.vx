@@ -1,0 +1,2929 @@
+`timescale 1 ps/ 1 ps
+
+module top(
+	MCU_D,
+	MCU_DIR,
+	MCU_IO_STBX,
+	MCU_LCD_WRX,
+	MCU_ADDR,
+	MCU_LCD_TE,
+	MCU_P2_8,
+	MCU_LCD_RDX,
+	TP_U,
+	TP_D,
+	TP_L,
+	TP_R,
+	SW_SEL,
+	SW_ROT_A,
+	SW_ROT_B,
+	SW_U,
+	SW_D,
+	SW_L,
+	SW_R,
+	LCD_RESETX,
+	LCD_RS,
+	LCD_WRX,
+	LCD_RDX,
+	LCD_DB,
+	LCD_TE,
+	LCD_BACKLIGHT,
+	SYSOFF,
+	AUDIO_RESETX,
+	REF_EN,
+	GPS_RESETX,
+	GPS_TX_READY,
+	GPS_TIMEPULSE,
+	DEVICE_RESET,
+	DEVICE_RESET_V);
+output	[7:0] MCU_D;
+input	MCU_DIR;
+input	MCU_IO_STBX;
+input	MCU_LCD_WRX;
+input	MCU_ADDR;
+output	MCU_LCD_TE;
+input	MCU_P2_8;
+input	MCU_LCD_RDX;
+output	TP_U;
+output	TP_D;
+output	TP_L;
+output	TP_R;
+input	SW_SEL;
+input	SW_ROT_A;
+input	SW_ROT_B;
+input	SW_U;
+input	SW_D;
+input	SW_L;
+input	SW_R;
+output	LCD_RESETX;
+output	LCD_RS;
+output	LCD_WRX;
+output	LCD_RDX;
+output	[15:0] LCD_DB;
+input	LCD_TE;
+output	LCD_BACKLIGHT;
+output	SYSOFF;
+output	AUDIO_RESETX;
+output	REF_EN;
+output	GPS_RESETX;
+input	GPS_TX_READY;
+input	GPS_TIMEPULSE;
+input	DEVICE_RESET;
+input	DEVICE_RESET_V;
+
+// module hard_block
+// Design Ports Information
+// ~ALTERA_ASDO_DATA1~	=>  Location: PIN_F4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_FLASH_nCE_nCSO~	=>  Location: PIN_E2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_DCLK~	=>  Location: PIN_P3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_DATA0~	=>  Location: PIN_N7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// ~ALTERA_nCEO~	=>  Location: PIN_P28,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+
+// module top
+// Design Ports Information
+// MCU_LCD_TE	=>  Location: PIN_AC4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_P2_8	=>  Location: PIN_D6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// TP_U	=>  Location: PIN_AA4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// TP_D	=>  Location: PIN_AB3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// TP_L	=>  Location: PIN_AA3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// TP_R	=>  Location: PIN_AD1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_RESETX	=>  Location: PIN_AB4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_RS	=>  Location: PIN_AF2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_WRX	=>  Location: PIN_M1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_RDX	=>  Location: PIN_R6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_BACKLIGHT	=>  Location: PIN_W3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// SYSOFF	=>  Location: PIN_AE2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// AUDIO_RESETX	=>  Location: PIN_AE1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// REF_EN	=>  Location: PIN_AC5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// GPS_RESETX	=>  Location: PIN_AC26,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// GPS_TX_READY	=>  Location: PIN_D9,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// GPS_TIMEPULSE	=>  Location: PIN_E25,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// DEVICE_RESET	=>  Location: PIN_AF15,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// DEVICE_RESET_V	=>  Location: PIN_AE25,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_D[0]	=>  Location: PIN_AC1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[1]	=>  Location: PIN_AC3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[2]	=>  Location: PIN_AD3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[3]	=>  Location: PIN_V3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[4]	=>  Location: PIN_V2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[5]	=>  Location: PIN_V1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[6]	=>  Location: PIN_Y3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// MCU_D[7]	=>  Location: PIN_AC2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[0]	=>  Location: PIN_U5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[1]	=>  Location: PIN_AB1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[2]	=>  Location: PIN_U2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[3]	=>  Location: PIN_T3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[4]	=>  Location: PIN_R5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[5]	=>  Location: PIN_T4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[6]	=>  Location: PIN_Y4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[7]	=>  Location: PIN_AB2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[8]	=>  Location: PIN_U6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[9]	=>  Location: PIN_U1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[10]	=>  Location: PIN_V4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[11]	=>  Location: PIN_R2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[12]	=>  Location: PIN_R1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[13]	=>  Location: PIN_R4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[14]	=>  Location: PIN_W2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_DB[15]	=>  Location: PIN_W1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// LCD_TE	=>  Location: PIN_AB6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_ADDR	=>  Location: PIN_AB5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_LCD_WRX	=>  Location: PIN_Y1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_LCD_RDX	=>  Location: PIN_Y2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_IO_STBX	=>  Location: PIN_J1,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// MCU_DIR	=>  Location: PIN_AD2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_R	=>  Location: PIN_U8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_L	=>  Location: PIN_U7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_D	=>  Location: PIN_T7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_U	=>  Location: PIN_R3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_SEL	=>  Location: PIN_U3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_ROT_A	=>  Location: PIN_U4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// SW_ROT_B	=>  Location: PIN_T8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+
+//wire	gnd;
+//wire	gnd;
+//wire	vcc;
+//wire	vcc;
+//wire	\AUDIO_RESETX~output_o ;
+wire	\DEVICE_RESET_V~input_o ;
+wire	\DEVICE_RESET~input_o ;
+//wire	\GPS_RESETX~output_o ;
+wire	\GPS_TIMEPULSE~input_o ;
+wire	\GPS_TX_READY~input_o ;
+//wire	\LCD_BACKLIGHT~output_o ;
+//wire	\LCD_DB[0]~output_o ;
+wire	\LCD_DB[0]~input_o ;
+//wire	\LCD_DB[10]~output_o ;
+wire	\LCD_DB[10]~input_o ;
+//wire	\LCD_DB[11]~output_o ;
+wire	\LCD_DB[11]~input_o ;
+//wire	\LCD_DB[12]~output_o ;
+wire	\LCD_DB[12]~input_o ;
+//wire	\LCD_DB[13]~output_o ;
+wire	\LCD_DB[13]~input_o ;
+//wire	\LCD_DB[14]~output_o ;
+wire	\LCD_DB[14]~input_o ;
+//wire	\LCD_DB[15]~output_o ;
+wire	\LCD_DB[15]~input_o ;
+//wire	\LCD_DB[1]~output_o ;
+wire	\LCD_DB[1]~input_o ;
+//wire	\LCD_DB[2]~output_o ;
+wire	\LCD_DB[2]~input_o ;
+//wire	\LCD_DB[3]~output_o ;
+wire	\LCD_DB[3]~input_o ;
+//wire	\LCD_DB[4]~output_o ;
+wire	\LCD_DB[4]~input_o ;
+//wire	\LCD_DB[5]~output_o ;
+wire	\LCD_DB[5]~input_o ;
+//wire	\LCD_DB[6]~output_o ;
+wire	\LCD_DB[6]~input_o ;
+//wire	\LCD_DB[7]~output_o ;
+wire	\LCD_DB[7]~input_o ;
+//wire	\LCD_DB[8]~output_o ;
+wire	\LCD_DB[8]~input_o ;
+//wire	\LCD_DB[9]~output_o ;
+wire	\LCD_DB[9]~input_o ;
+//wire	\LCD_RDX~output_o ;
+//wire	\LCD_RESETX~output_o ;
+//wire	\LCD_RS~output_o ;
+wire	\LCD_TE~input_o ;
+//wire	\LCD_WRX~output_o ;
+wire	\MCU_ADDR~input_o ;
+wire	\MCU_DIR~input_o ;
+//wire	\MCU_D[0]~output_o ;
+wire	\MCU_D[0]~input_o ;
+//wire	\MCU_D[1]~output_o ;
+wire	\MCU_D[1]~input_o ;
+//wire	\MCU_D[2]~output_o ;
+wire	\MCU_D[2]~input_o ;
+//wire	\MCU_D[3]~output_o ;
+wire	\MCU_D[3]~input_o ;
+//wire	\MCU_D[4]~output_o ;
+wire	\MCU_D[4]~input_o ;
+//wire	\MCU_D[5]~output_o ;
+wire	\MCU_D[5]~input_o ;
+//wire	\MCU_D[6]~output_o ;
+wire	\MCU_D[6]~input_o ;
+//wire	\MCU_D[7]~output_o ;
+wire	\MCU_D[7]~input_o ;
+wire	\MCU_IO_STBX~input_o ;
+wire	\MCU_IO_STBX~inputclkctrl_outclk ;
+wire	\MCU_LCD_RDX~input_o ;
+wire	\MCU_LCD_RDX~inputclkctrl_outclk ;
+//wire	\MCU_LCD_TE~output_o ;
+wire	\MCU_LCD_WRX~input_o ;
+wire	\MCU_LCD_WRX~inputclkctrl_outclk ;
+wire	\MCU_P2_8~input_o ;
+//wire	\REF_EN~output_o ;
+wire	\SW_D~input_o ;
+wire	\SW_L~input_o ;
+wire	\SW_ROT_A~input_o ;
+wire	\SW_ROT_B~input_o ;
+wire	\SW_R~input_o ;
+wire	\SW_SEL~input_o ;
+wire	\SW_U~input_o ;
+//wire	\SYSOFF~output_o ;
+//wire	\TP_D~output_o ;
+//wire	\TP_L~output_o ;
+//wire	\TP_R~output_o ;
+//wire	\TP_U~output_o ;
+wire	\audio_reset_q~0_combout ;
+wire	\audio_reset_q~q ;
+//wire	devclrn;
+tri1	devclrn;
+//wire	devoe;
+tri1	devoe;
+//wire	devpor;
+tri1	devpor;
+wire	\lcd_backlight_q~feeder_combout ;
+wire	\lcd_backlight_q~q ;
+wire	[7:0] lcd_data_in_q;
+//wire	lcd_data_in_q[0];
+//wire	lcd_data_in_q[1];
+//wire	lcd_data_in_q[2];
+//wire	lcd_data_in_q[3];
+//wire	lcd_data_in_q[4];
+//wire	lcd_data_in_q[5];
+//wire	lcd_data_in_q[6];
+//wire	lcd_data_in_q[7];
+wire	[7:0] lcd_data_out_q;
+//wire	lcd_data_out_q[0];
+wire	\lcd_data_out_q[0]~feeder_combout ;
+//wire	lcd_data_out_q[1];
+wire	\lcd_data_out_q[1]~feeder_combout ;
+//wire	lcd_data_out_q[2];
+wire	\lcd_data_out_q[2]~feeder_combout ;
+//wire	lcd_data_out_q[3];
+//wire	lcd_data_out_q[4];
+wire	\lcd_data_out_q[4]~feeder_combout ;
+//wire	lcd_data_out_q[5];
+//wire	lcd_data_out_q[6];
+//wire	lcd_data_out_q[7];
+wire	\lcd_data_out_q[7]~feeder_combout ;
+wire	\lcd_reset_q~0_combout ;
+wire	\lcd_reset_q~1_combout ;
+wire	\lcd_reset_q~q ;
+wire	\mcu_data_out[0]~0_combout ;
+wire	\mcu_data_out[0]~1_combout ;
+wire	\mcu_data_out[1]~2_combout ;
+wire	\mcu_data_out[1]~3_combout ;
+wire	\mcu_data_out[2]~4_combout ;
+wire	\mcu_data_out[2]~5_combout ;
+wire	\mcu_data_out[3]~6_combout ;
+wire	\mcu_data_out[3]~7_combout ;
+wire	\mcu_data_out[4]~8_combout ;
+wire	\mcu_data_out[4]~9_combout ;
+wire	\mcu_data_out[5]~10_combout ;
+wire	\mcu_data_out[5]~11_combout ;
+wire	\mcu_data_out[6]~12_combout ;
+wire	\mcu_data_out[6]~13_combout ;
+wire	\mcu_data_out[7]~14_combout ;
+wire	\mcu_data_out[7]~15_combout ;
+wire	\ref_en_q~feeder_combout ;
+wire	\ref_en_q~q ;
+wire	\sysoff_q~feeder_combout ;
+wire	\sysoff_q~q ;
+wire	[7:0] tp_q;
+//wire	tp_q[0];
+//wire	tp_q[1];
+//wire	tp_q[2];
+wire	\tp_q[2]~feeder_combout ;
+//wire	tp_q[3];
+wire	\tp_q[3]~0_combout ;
+//wire	tp_q[4];
+wire	\tp_q[4]~feeder_combout ;
+//wire	tp_q[5];
+//wire	tp_q[6];
+wire	\tp_q[6]~feeder_combout ;
+//wire	tp_q[7];
+wire	\tp_q[7]~feeder_combout ;
+wire	unknown;
+wire	unknown;
+wire	\~ALTERA_ASDO_DATA1~~ibuf_o ;
+wire	\~ALTERA_ASDO_DATA1~~padout ;
+wire	\~ALTERA_DATA0~~ibuf_o ;
+wire	\~ALTERA_DATA0~~padout ;
+wire	\~ALTERA_FLASH_nCE_nCSO~~ibuf_o ;
+wire	\~ALTERA_FLASH_nCE_nCSO~~padout ;
+
+wire vcc;
+wire gnd;
+assign vcc = 1'b1;
+assign gnd = 1'b0;
+
+// Location: IOIBUF_X0_Y10_N0
+// alta_io_ibuf \SW_L~input (
+alta_io \SW_L~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_L~input_o ),
+	.regout(),
+	.padio(SW_L));
+defparam \SW_L~input .CFG_KEEP = 2'b00;
+// defparam \SW_L~input .simulate_z_as = "z";
+
+defparam \SW_L~input .coord_x = 0;
+defparam \SW_L~input .coord_y = 10;
+defparam \SW_L~input .coord_z = 0;
+// Location: IOIBUF_X0_Y10_N1
+// alta_io_ibuf \SW_R~input (
+alta_io \SW_R~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_R~input_o ),
+	.regout(),
+	.padio(SW_R));
+defparam \SW_R~input .CFG_KEEP = 2'b00;
+// defparam \SW_R~input .simulate_z_as = "z";
+
+defparam \SW_R~input .coord_x = 0;
+defparam \SW_R~input .coord_y = 10;
+defparam \SW_R~input .coord_z = 1;
+// Location: IOOBUF_X0_Y11_N0
+// alta_io_obuf \TP_U~output (
+alta_io \TP_U~output (
+	.datain(tp_q[3]),
+	.oe(tp_q[7]),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(TP_U));
+defparam \TP_U~output .CFG_KEEP = 2'b00;
+// defparam \TP_U~output .open_drain_output = "false";
+
+defparam \TP_U~output .coord_x = 0;
+defparam \TP_U~output .coord_y = 11;
+defparam \TP_U~output .coord_z = 0;
+// Location: IOOBUF_X0_Y11_N1
+// alta_io_obuf \TP_L~output (
+alta_io \TP_L~output (
+	.datain(tp_q[1]),
+	.oe(tp_q[5]),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(TP_L));
+defparam \TP_L~output .CFG_KEEP = 2'b00;
+// defparam \TP_L~output .open_drain_output = "false";
+
+defparam \TP_L~output .coord_x = 0;
+defparam \TP_L~output .coord_y = 11;
+defparam \TP_L~output .coord_z = 1;
+// Location: IOIBUF_X0_Y14_N1
+// alta_io_ibuf \SW_ROT_B~input (
+alta_io \SW_ROT_B~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_ROT_B~input_o ),
+	.regout(),
+	.padio(SW_ROT_B));
+defparam \SW_ROT_B~input .CFG_KEEP = 2'b00;
+// defparam \SW_ROT_B~input .simulate_z_as = "z";
+
+defparam \SW_ROT_B~input .coord_x = 0;
+defparam \SW_ROT_B~input .coord_y = 14;
+defparam \SW_ROT_B~input .coord_z = 1;
+// Location: IOOBUF_X0_Y15_N2
+// alta_io_obuf \TP_R~output (
+alta_io \TP_R~output (
+	.datain(tp_q[0]),
+	.oe(tp_q[4]),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(TP_R));
+defparam \TP_R~output .CFG_KEEP = 2'b00;
+// defparam \TP_R~output .open_drain_output = "false";
+
+defparam \TP_R~output .coord_x = 0;
+defparam \TP_R~output .coord_y = 15;
+defparam \TP_R~output .coord_z = 2;
+// Location: IOOBUF_X0_Y15_N3
+// alta_io_obuf \TP_D~output (
+alta_io \TP_D~output (
+	.datain(tp_q[2]),
+	.oe(tp_q[6]),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(TP_D));
+defparam \TP_D~output .CFG_KEEP = 2'b00;
+// defparam \TP_D~output .open_drain_output = "false";
+
+defparam \TP_D~output .coord_x = 0;
+defparam \TP_D~output .coord_y = 15;
+defparam \TP_D~output .coord_z = 3;
+// Location: IOIBUF_X0_Y16_N1
+// alta_io_ibuf \MCU_D[1]~input (
+// Location: IOOBUF_X0_Y16_N1
+// alta_io_obuf \MCU_D[1]~output (
+alta_io \MCU_D[1]~output (
+	.datain(\mcu_data_out[1]~3_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[1]~input_o ),
+	.regout(),
+	.padio(MCU_D[1]));
+defparam \MCU_D[1]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[1]~input .simulate_z_as = "z";
+// defparam \MCU_D[1]~output .open_drain_output = "false";
+
+defparam \MCU_D[1]~output .coord_x = 0;
+defparam \MCU_D[1]~output .coord_y = 16;
+defparam \MCU_D[1]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y16_N2
+// alta_io_ibuf \MCU_D[2]~input (
+// Location: IOOBUF_X0_Y16_N2
+// alta_io_obuf \MCU_D[2]~output (
+alta_io \MCU_D[2]~output (
+	.datain(\mcu_data_out[2]~5_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[2]~input_o ),
+	.regout(),
+	.padio(MCU_D[2]));
+defparam \MCU_D[2]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[2]~input .simulate_z_as = "z";
+// defparam \MCU_D[2]~output .open_drain_output = "false";
+
+defparam \MCU_D[2]~output .coord_x = 0;
+defparam \MCU_D[2]~output .coord_y = 16;
+defparam \MCU_D[2]~output .coord_z = 2;
+// Location: IOIBUF_X0_Y16_N3
+// alta_io_ibuf \MCU_DIR~input (
+alta_io \MCU_DIR~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_DIR~input_o ),
+	.regout(),
+	.padio(MCU_DIR));
+defparam \MCU_DIR~input .CFG_KEEP = 2'b00;
+// defparam \MCU_DIR~input .simulate_z_as = "z";
+
+defparam \MCU_DIR~input .coord_x = 0;
+defparam \MCU_DIR~input .coord_y = 16;
+defparam \MCU_DIR~input .coord_z = 3;
+// Location: IOIBUF_X0_Y17_N1
+// alta_io_ibuf \MCU_D[0]~input (
+// Location: IOOBUF_X0_Y17_N1
+// alta_io_obuf \MCU_D[0]~output (
+alta_io \MCU_D[0]~output (
+	.datain(\mcu_data_out[0]~1_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[0]~input_o ),
+	.regout(),
+	.padio(MCU_D[0]));
+defparam \MCU_D[0]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[0]~input .simulate_z_as = "z";
+// defparam \MCU_D[0]~output .open_drain_output = "false";
+
+defparam \MCU_D[0]~output .coord_x = 0;
+defparam \MCU_D[0]~output .coord_y = 17;
+defparam \MCU_D[0]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y18_N2
+// alta_io_ibuf \MCU_D[6]~input (
+// Location: IOOBUF_X0_Y18_N2
+// alta_io_obuf \MCU_D[6]~output (
+alta_io \MCU_D[6]~output (
+	.datain(\mcu_data_out[6]~13_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[6]~input_o ),
+	.regout(),
+	.padio(MCU_D[6]));
+defparam \MCU_D[6]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[6]~input .simulate_z_as = "z";
+// defparam \MCU_D[6]~output .open_drain_output = "false";
+
+defparam \MCU_D[6]~output .coord_x = 0;
+defparam \MCU_D[6]~output .coord_y = 18;
+defparam \MCU_D[6]~output .coord_z = 2;
+// Location: IOIBUF_X0_Y18_N3
+// alta_io_ibuf \MCU_D[7]~input (
+// Location: IOOBUF_X0_Y18_N3
+// alta_io_obuf \MCU_D[7]~output (
+alta_io \MCU_D[7]~output (
+	.datain(\mcu_data_out[7]~15_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[7]~input_o ),
+	.regout(),
+	.padio(MCU_D[7]));
+defparam \MCU_D[7]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[7]~input .simulate_z_as = "z";
+// defparam \MCU_D[7]~output .open_drain_output = "false";
+
+defparam \MCU_D[7]~output .coord_x = 0;
+defparam \MCU_D[7]~output .coord_y = 18;
+defparam \MCU_D[7]~output .coord_z = 3;
+// Location: IOIBUF_X0_Y19_N0
+// alta_io_ibuf \LCD_DB[8]~input (
+// Location: IOOBUF_X0_Y19_N0
+// alta_io_obuf \LCD_DB[8]~output (
+alta_io \LCD_DB[8]~output (
+	.datain(lcd_data_out_q[0]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[8]~input_o ),
+	.regout(),
+	.padio(LCD_DB[8]));
+defparam \LCD_DB[8]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[8]~input .simulate_z_as = "z";
+// defparam \LCD_DB[8]~output .open_drain_output = "false";
+
+defparam \LCD_DB[8]~output .coord_x = 0;
+defparam \LCD_DB[8]~output .coord_y = 19;
+defparam \LCD_DB[8]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y19_N2
+// alta_io_ibuf \LCD_DB[0]~input (
+// Location: IOOBUF_X0_Y19_N2
+// alta_io_obuf \LCD_DB[0]~output (
+alta_io \LCD_DB[0]~output (
+	.datain(\MCU_D[0]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[0]~input_o ),
+	.regout(),
+	.padio(LCD_DB[0]));
+defparam \LCD_DB[0]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[0]~input .simulate_z_as = "z";
+// defparam \LCD_DB[0]~output .open_drain_output = "false";
+
+defparam \LCD_DB[0]~output .coord_x = 0;
+defparam \LCD_DB[0]~output .coord_y = 19;
+defparam \LCD_DB[0]~output .coord_z = 2;
+// Location: IOIBUF_X0_Y19_N3
+// alta_io_ibuf \LCD_DB[6]~input (
+// Location: IOOBUF_X0_Y19_N3
+// alta_io_obuf \LCD_DB[6]~output (
+alta_io \LCD_DB[6]~output (
+	.datain(\MCU_D[6]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[6]~input_o ),
+	.regout(),
+	.padio(LCD_DB[6]));
+defparam \LCD_DB[6]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[6]~input .simulate_z_as = "z";
+// defparam \LCD_DB[6]~output .open_drain_output = "false";
+
+defparam \LCD_DB[6]~output .coord_x = 0;
+defparam \LCD_DB[6]~output .coord_y = 19;
+defparam \LCD_DB[6]~output .coord_z = 3;
+// Location: IOIBUF_X0_Y20_N0
+// alta_io_ibuf \LCD_DB[14]~input (
+// Location: IOOBUF_X0_Y20_N0
+// alta_io_obuf \LCD_DB[14]~output (
+alta_io \LCD_DB[14]~output (
+	.datain(lcd_data_out_q[6]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[14]~input_o ),
+	.regout(),
+	.padio(LCD_DB[14]));
+defparam \LCD_DB[14]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[14]~input .simulate_z_as = "z";
+// defparam \LCD_DB[14]~output .open_drain_output = "false";
+
+defparam \LCD_DB[14]~output .coord_x = 0;
+defparam \LCD_DB[14]~output .coord_y = 20;
+defparam \LCD_DB[14]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y20_N1
+// alta_io_ibuf \LCD_DB[15]~input (
+// Location: IOOBUF_X0_Y20_N1
+// alta_io_obuf \LCD_DB[15]~output (
+alta_io \LCD_DB[15]~output (
+	.datain(lcd_data_out_q[7]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[15]~input_o ),
+	.regout(),
+	.padio(LCD_DB[15]));
+defparam \LCD_DB[15]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[15]~input .simulate_z_as = "z";
+// defparam \LCD_DB[15]~output .open_drain_output = "false";
+
+defparam \LCD_DB[15]~output .coord_x = 0;
+defparam \LCD_DB[15]~output .coord_y = 20;
+defparam \LCD_DB[15]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y21_N0
+// alta_io_ibuf \LCD_DB[7]~input (
+// Location: IOOBUF_X0_Y21_N0
+// alta_io_obuf \LCD_DB[7]~output (
+alta_io \LCD_DB[7]~output (
+	.datain(\MCU_D[7]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[7]~input_o ),
+	.regout(),
+	.padio(LCD_DB[7]));
+defparam \LCD_DB[7]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[7]~input .simulate_z_as = "z";
+// defparam \LCD_DB[7]~output .open_drain_output = "false";
+
+defparam \LCD_DB[7]~output .coord_x = 0;
+defparam \LCD_DB[7]~output .coord_y = 21;
+defparam \LCD_DB[7]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y21_N1
+// alta_io_ibuf \LCD_DB[1]~input (
+// Location: IOOBUF_X0_Y21_N1
+// alta_io_obuf \LCD_DB[1]~output (
+alta_io \LCD_DB[1]~output (
+	.datain(\MCU_D[1]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[1]~input_o ),
+	.regout(),
+	.padio(LCD_DB[1]));
+defparam \LCD_DB[1]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[1]~input .simulate_z_as = "z";
+// defparam \LCD_DB[1]~output .open_drain_output = "false";
+
+defparam \LCD_DB[1]~output .coord_x = 0;
+defparam \LCD_DB[1]~output .coord_y = 21;
+defparam \LCD_DB[1]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y22_N1
+// alta_io_ibuf \MCU_D[5]~input (
+// Location: IOOBUF_X0_Y22_N1
+// alta_io_obuf \MCU_D[5]~output (
+alta_io \MCU_D[5]~output (
+	.datain(\mcu_data_out[5]~11_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[5]~input_o ),
+	.regout(),
+	.padio(MCU_D[5]));
+defparam \MCU_D[5]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[5]~input .simulate_z_as = "z";
+// defparam \MCU_D[5]~output .open_drain_output = "false";
+
+defparam \MCU_D[5]~output .coord_x = 0;
+defparam \MCU_D[5]~output .coord_y = 22;
+defparam \MCU_D[5]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y23_N0
+// alta_io_ibuf \MCU_D[3]~input (
+// Location: IOOBUF_X0_Y23_N0
+// alta_io_obuf \MCU_D[3]~output (
+alta_io \MCU_D[3]~output (
+	.datain(\mcu_data_out[3]~7_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[3]~input_o ),
+	.regout(),
+	.padio(MCU_D[3]));
+defparam \MCU_D[3]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[3]~input .simulate_z_as = "z";
+// defparam \MCU_D[3]~output .open_drain_output = "false";
+
+defparam \MCU_D[3]~output .coord_x = 0;
+defparam \MCU_D[3]~output .coord_y = 23;
+defparam \MCU_D[3]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y23_N1
+// alta_io_ibuf \MCU_D[4]~input (
+// Location: IOOBUF_X0_Y23_N1
+// alta_io_obuf \MCU_D[4]~output (
+alta_io \MCU_D[4]~output (
+	.datain(\mcu_data_out[4]~9_combout ),
+	.oe(\MCU_DIR~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_D[4]~input_o ),
+	.regout(),
+	.padio(MCU_D[4]));
+defparam \MCU_D[4]~output .CFG_KEEP = 2'b00;
+// defparam \MCU_D[4]~input .simulate_z_as = "z";
+// defparam \MCU_D[4]~output .open_drain_output = "false";
+
+defparam \MCU_D[4]~output .coord_x = 0;
+defparam \MCU_D[4]~output .coord_y = 23;
+defparam \MCU_D[4]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y24_N0
+// alta_io_ibuf \LCD_DB[2]~input (
+// Location: IOOBUF_X0_Y24_N0
+// alta_io_obuf \LCD_DB[2]~output (
+alta_io \LCD_DB[2]~output (
+	.datain(\MCU_D[2]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[2]~input_o ),
+	.regout(),
+	.padio(LCD_DB[2]));
+defparam \LCD_DB[2]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[2]~input .simulate_z_as = "z";
+// defparam \LCD_DB[2]~output .open_drain_output = "false";
+
+defparam \LCD_DB[2]~output .coord_x = 0;
+defparam \LCD_DB[2]~output .coord_y = 24;
+defparam \LCD_DB[2]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y24_N1
+// alta_io_ibuf \LCD_DB[9]~input (
+// Location: IOOBUF_X0_Y24_N1
+// alta_io_obuf \LCD_DB[9]~output (
+alta_io \LCD_DB[9]~output (
+	.datain(lcd_data_out_q[1]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[9]~input_o ),
+	.regout(),
+	.padio(LCD_DB[9]));
+defparam \LCD_DB[9]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[9]~input .simulate_z_as = "z";
+// defparam \LCD_DB[9]~output .open_drain_output = "false";
+
+defparam \LCD_DB[9]~output .coord_x = 0;
+defparam \LCD_DB[9]~output .coord_y = 24;
+defparam \LCD_DB[9]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y24_N3
+// alta_io_ibuf \LCD_DB[10]~input (
+// Location: IOOBUF_X0_Y24_N3
+// alta_io_obuf \LCD_DB[10]~output (
+alta_io \LCD_DB[10]~output (
+	.datain(lcd_data_out_q[2]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[10]~input_o ),
+	.regout(),
+	.padio(LCD_DB[10]));
+defparam \LCD_DB[10]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[10]~input .simulate_z_as = "z";
+// defparam \LCD_DB[10]~output .open_drain_output = "false";
+
+defparam \LCD_DB[10]~output .coord_x = 0;
+defparam \LCD_DB[10]~output .coord_y = 24;
+defparam \LCD_DB[10]~output .coord_z = 3;
+// Location: IOIBUF_X0_Y25_N2
+// alta_io_ibuf \SW_D~input (
+alta_io \SW_D~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_D~input_o ),
+	.regout(),
+	.padio(SW_D));
+defparam \SW_D~input .CFG_KEEP = 2'b00;
+// defparam \SW_D~input .simulate_z_as = "z";
+
+defparam \SW_D~input .coord_x = 0;
+defparam \SW_D~input .coord_y = 25;
+defparam \SW_D~input .coord_z = 2;
+// Location: IOIBUF_X0_Y26_N0
+// alta_io_ibuf \LCD_DB[13]~input (
+// Location: IOOBUF_X0_Y26_N0
+// alta_io_obuf \LCD_DB[13]~output (
+alta_io \LCD_DB[13]~output (
+	.datain(lcd_data_out_q[5]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[13]~input_o ),
+	.regout(),
+	.padio(LCD_DB[13]));
+defparam \LCD_DB[13]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[13]~input .simulate_z_as = "z";
+// defparam \LCD_DB[13]~output .open_drain_output = "false";
+
+defparam \LCD_DB[13]~output .coord_x = 0;
+defparam \LCD_DB[13]~output .coord_y = 26;
+defparam \LCD_DB[13]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y26_N1
+// alta_io_ibuf \LCD_DB[5]~input (
+// Location: IOOBUF_X0_Y26_N1
+// alta_io_obuf \LCD_DB[5]~output (
+alta_io \LCD_DB[5]~output (
+	.datain(\MCU_D[5]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[5]~input_o ),
+	.regout(),
+	.padio(LCD_DB[5]));
+defparam \LCD_DB[5]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[5]~input .simulate_z_as = "z";
+// defparam \LCD_DB[5]~output .open_drain_output = "false";
+
+defparam \LCD_DB[5]~output .coord_x = 0;
+defparam \LCD_DB[5]~output .coord_y = 26;
+defparam \LCD_DB[5]~output .coord_z = 1;
+// Location: IOIBUF_X0_Y26_N2
+// alta_io_ibuf \LCD_DB[3]~input (
+// Location: IOOBUF_X0_Y26_N2
+// alta_io_obuf \LCD_DB[3]~output (
+alta_io \LCD_DB[3]~output (
+	.datain(\MCU_D[3]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[3]~input_o ),
+	.regout(),
+	.padio(LCD_DB[3]));
+defparam \LCD_DB[3]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[3]~input .simulate_z_as = "z";
+// defparam \LCD_DB[3]~output .open_drain_output = "false";
+
+defparam \LCD_DB[3]~output .coord_x = 0;
+defparam \LCD_DB[3]~output .coord_y = 26;
+defparam \LCD_DB[3]~output .coord_z = 2;
+// Location: IOIBUF_X0_Y26_N3
+// alta_io_ibuf \LCD_DB[4]~input (
+// Location: IOOBUF_X0_Y26_N3
+// alta_io_obuf \LCD_DB[4]~output (
+alta_io \LCD_DB[4]~output (
+	.datain(\MCU_D[4]~input_o ),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[4]~input_o ),
+	.regout(),
+	.padio(LCD_DB[4]));
+defparam \LCD_DB[4]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[4]~input .simulate_z_as = "z";
+// defparam \LCD_DB[4]~output .open_drain_output = "false";
+
+defparam \LCD_DB[4]~output .coord_x = 0;
+defparam \LCD_DB[4]~output .coord_y = 26;
+defparam \LCD_DB[4]~output .coord_z = 3;
+// Location: IOIBUF_X0_Y28_N1
+// alta_io_ibuf \SW_ROT_A~input (
+alta_io \SW_ROT_A~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_ROT_A~input_o ),
+	.regout(),
+	.padio(SW_ROT_A));
+defparam \SW_ROT_A~input .CFG_KEEP = 2'b00;
+// defparam \SW_ROT_A~input .simulate_z_as = "z";
+
+defparam \SW_ROT_A~input .coord_x = 0;
+defparam \SW_ROT_A~input .coord_y = 28;
+defparam \SW_ROT_A~input .coord_z = 1;
+// Location: IOIBUF_X0_Y28_N2
+// alta_io_ibuf \SW_U~input (
+alta_io \SW_U~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_U~input_o ),
+	.regout(),
+	.padio(SW_U));
+defparam \SW_U~input .CFG_KEEP = 2'b00;
+// defparam \SW_U~input .simulate_z_as = "z";
+
+defparam \SW_U~input .coord_x = 0;
+defparam \SW_U~input .coord_y = 28;
+defparam \SW_U~input .coord_z = 2;
+// Location: IOIBUF_X0_Y29_N0
+// alta_io_ibuf \LCD_DB[11]~input (
+// Location: IOOBUF_X0_Y29_N0
+// alta_io_obuf \LCD_DB[11]~output (
+alta_io \LCD_DB[11]~output (
+	.datain(lcd_data_out_q[3]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[11]~input_o ),
+	.regout(),
+	.padio(LCD_DB[11]));
+defparam \LCD_DB[11]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[11]~input .simulate_z_as = "z";
+// defparam \LCD_DB[11]~output .open_drain_output = "false";
+
+defparam \LCD_DB[11]~output .coord_x = 0;
+defparam \LCD_DB[11]~output .coord_y = 29;
+defparam \LCD_DB[11]~output .coord_z = 0;
+// Location: IOIBUF_X0_Y29_N1
+// alta_io_ibuf \LCD_DB[12]~input (
+// Location: IOOBUF_X0_Y29_N1
+// alta_io_obuf \LCD_DB[12]~output (
+alta_io \LCD_DB[12]~output (
+	.datain(lcd_data_out_q[4]),
+	.oe(\MCU_LCD_RDX~input_o ),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_DB[12]~input_o ),
+	.regout(),
+	.padio(LCD_DB[12]));
+defparam \LCD_DB[12]~output .CFG_KEEP = 2'b00;
+// defparam \LCD_DB[12]~input .simulate_z_as = "z";
+// defparam \LCD_DB[12]~output .open_drain_output = "false";
+
+defparam \LCD_DB[12]~output .coord_x = 0;
+defparam \LCD_DB[12]~output .coord_y = 29;
+defparam \LCD_DB[12]~output .coord_z = 1;
+// Location: IOOBUF_X0_Y29_N2
+// alta_io_obuf \LCD_RDX~output (
+alta_io \LCD_RDX~output (
+	.datain(\MCU_LCD_RDX~input_o ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(LCD_RDX));
+defparam \LCD_RDX~output .CFG_KEEP = 2'b00;
+// defparam \LCD_RDX~output .open_drain_output = "false";
+
+defparam \LCD_RDX~output .coord_x = 0;
+defparam \LCD_RDX~output .coord_y = 29;
+defparam \LCD_RDX~output .coord_z = 2;
+// Location: IOIBUF_X0_Y29_N3
+// alta_io_ibuf \SW_SEL~input (
+alta_io \SW_SEL~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\SW_SEL~input_o ),
+	.regout(),
+	.padio(SW_SEL));
+defparam \SW_SEL~input .CFG_KEEP = 2'b00;
+// defparam \SW_SEL~input .simulate_z_as = "z";
+
+defparam \SW_SEL~input .coord_x = 0;
+defparam \SW_SEL~input .coord_y = 29;
+defparam \SW_SEL~input .coord_z = 3;
+// Location: IOIBUF_X0_Y30_N1
+// alta_io_ibuf \MCU_IO_STBX~input (
+alta_io \MCU_IO_STBX~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_IO_STBX~input_o ),
+	.regout(),
+	.padio(MCU_IO_STBX));
+defparam \MCU_IO_STBX~input .CFG_KEEP = 2'b00;
+// defparam \MCU_IO_STBX~input .simulate_z_as = "z";
+
+defparam \MCU_IO_STBX~input .coord_x = 0;
+defparam \MCU_IO_STBX~input .coord_y = 30;
+defparam \MCU_IO_STBX~input .coord_z = 1;
+// Location: IOIBUF_X0_Y30_N2
+// alta_io_ibuf \MCU_LCD_RDX~input (
+alta_io \MCU_LCD_RDX~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_LCD_RDX~input_o ),
+	.regout(),
+	.padio(MCU_LCD_RDX));
+defparam \MCU_LCD_RDX~input .CFG_KEEP = 2'b00;
+// defparam \MCU_LCD_RDX~input .simulate_z_as = "z";
+
+defparam \MCU_LCD_RDX~input .coord_x = 0;
+defparam \MCU_LCD_RDX~input .coord_y = 30;
+defparam \MCU_LCD_RDX~input .coord_z = 2;
+// Location: IOIBUF_X0_Y30_N3
+// alta_io_ibuf \MCU_LCD_WRX~input (
+alta_io \MCU_LCD_WRX~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_LCD_WRX~input_o ),
+	.regout(),
+	.padio(MCU_LCD_WRX));
+defparam \MCU_LCD_WRX~input .CFG_KEEP = 2'b00;
+// defparam \MCU_LCD_WRX~input .simulate_z_as = "z";
+
+defparam \MCU_LCD_WRX~input .coord_x = 0;
+defparam \MCU_LCD_WRX~input .coord_y = 30;
+defparam \MCU_LCD_WRX~input .coord_z = 3;
+// Location: IOOBUF_X0_Y37_N0
+// alta_io_obuf \LCD_WRX~output (
+alta_io \LCD_WRX~output (
+	.datain(\MCU_LCD_WRX~input_o ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(LCD_WRX));
+defparam \LCD_WRX~output .CFG_KEEP = 2'b00;
+// defparam \LCD_WRX~output .open_drain_output = "false";
+
+defparam \LCD_WRX~output .coord_x = 0;
+defparam \LCD_WRX~output .coord_y = 37;
+defparam \LCD_WRX~output .coord_z = 0;
+// Location: IOOBUF_X0_Y4_N2
+// alta_io_obuf \LCD_RS~output (
+alta_io \LCD_RS~output (
+	.datain(\MCU_ADDR~input_o ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(LCD_RS));
+defparam \LCD_RS~output .CFG_KEEP = 2'b00;
+// defparam \LCD_RS~output .open_drain_output = "false";
+
+defparam \LCD_RS~output .coord_x = 0;
+defparam \LCD_RS~output .coord_y = 4;
+defparam \LCD_RS~output .coord_z = 2;
+// Location: IOIBUF_X0_Y4_N3
+// alta_io_ibuf \MCU_ADDR~input (
+alta_io \MCU_ADDR~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_ADDR~input_o ),
+	.regout(),
+	.padio(MCU_ADDR));
+defparam \MCU_ADDR~input .CFG_KEEP = 2'b00;
+// defparam \MCU_ADDR~input .simulate_z_as = "z";
+
+defparam \MCU_ADDR~input .coord_x = 0;
+defparam \MCU_ADDR~input .coord_y = 4;
+defparam \MCU_ADDR~input .coord_z = 3;
+// Location: IOOBUF_X0_Y6_N2
+// alta_io_obuf \MCU_LCD_TE~output (
+alta_io \MCU_LCD_TE~output (
+	.datain(\LCD_TE~input_o ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(MCU_LCD_TE));
+defparam \MCU_LCD_TE~output .CFG_KEEP = 2'b00;
+// defparam \MCU_LCD_TE~output .open_drain_output = "false";
+
+defparam \MCU_LCD_TE~output .coord_x = 0;
+defparam \MCU_LCD_TE~output .coord_y = 6;
+defparam \MCU_LCD_TE~output .coord_z = 2;
+// Location: IOIBUF_X0_Y6_N3
+// alta_io_ibuf \LCD_TE~input (
+alta_io \LCD_TE~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\LCD_TE~input_o ),
+	.regout(),
+	.padio(LCD_TE));
+defparam \LCD_TE~input .CFG_KEEP = 2'b00;
+// defparam \LCD_TE~input .simulate_z_as = "z";
+
+defparam \LCD_TE~input .coord_x = 0;
+defparam \LCD_TE~input .coord_y = 6;
+defparam \LCD_TE~input .coord_z = 3;
+// Location: IOOBUF_X0_Y7_N0
+// alta_io_obuf \LCD_RESETX~output (
+alta_io \LCD_RESETX~output (
+	.datain(\lcd_reset_q~q ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(LCD_RESETX));
+defparam \LCD_RESETX~output .CFG_KEEP = 2'b00;
+// defparam \LCD_RESETX~output .open_drain_output = "false";
+
+defparam \LCD_RESETX~output .coord_x = 0;
+defparam \LCD_RESETX~output .coord_y = 7;
+defparam \LCD_RESETX~output .coord_z = 0;
+// Location: IOOBUF_X0_Y7_N1
+// alta_io_obuf \REF_EN~output (
+alta_io \REF_EN~output (
+	.datain(\ref_en_q~q ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(REF_EN));
+defparam \REF_EN~output .CFG_KEEP = 2'b00;
+// defparam \REF_EN~output .open_drain_output = "false";
+
+defparam \REF_EN~output .coord_x = 0;
+defparam \REF_EN~output .coord_y = 7;
+defparam \REF_EN~output .coord_z = 1;
+// Location: IOOBUF_X0_Y8_N3
+// alta_io_obuf \LCD_BACKLIGHT~output (
+alta_io \LCD_BACKLIGHT~output (
+	.datain(\lcd_backlight_q~q ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(LCD_BACKLIGHT));
+defparam \LCD_BACKLIGHT~output .CFG_KEEP = 2'b00;
+// defparam \LCD_BACKLIGHT~output .open_drain_output = "false";
+
+defparam \LCD_BACKLIGHT~output .coord_x = 0;
+defparam \LCD_BACKLIGHT~output .coord_y = 8;
+defparam \LCD_BACKLIGHT~output .coord_z = 3;
+// Location: IOOBUF_X0_Y9_N1
+// alta_io_obuf \SYSOFF~output (
+alta_io \SYSOFF~output (
+	.datain(\sysoff_q~q ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(SYSOFF));
+defparam \SYSOFF~output .CFG_KEEP = 2'b00;
+// defparam \SYSOFF~output .open_drain_output = "false";
+
+defparam \SYSOFF~output .coord_x = 0;
+defparam \SYSOFF~output .coord_y = 9;
+defparam \SYSOFF~output .coord_z = 1;
+// Location: IOOBUF_X0_Y9_N2
+// alta_io_obuf \AUDIO_RESETX~output (
+alta_io \AUDIO_RESETX~output (
+	.datain(\audio_reset_q~q ),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(AUDIO_RESETX));
+defparam \AUDIO_RESETX~output .CFG_KEEP = 2'b00;
+// defparam \AUDIO_RESETX~output .open_drain_output = "false";
+
+defparam \AUDIO_RESETX~output .coord_x = 0;
+defparam \AUDIO_RESETX~output .coord_y = 9;
+defparam \AUDIO_RESETX~output .coord_z = 2;
+// Location: IOIBUF_X18_Y62_N2
+// alta_io_ibuf \MCU_P2_8~input (
+alta_io \MCU_P2_8~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\MCU_P2_8~input_o ),
+	.regout(),
+	.padio(MCU_P2_8));
+defparam \MCU_P2_8~input .CFG_KEEP = 2'b00;
+// defparam \MCU_P2_8~input .simulate_z_as = "z";
+
+defparam \MCU_P2_8~input .coord_x = 18;
+defparam \MCU_P2_8~input .coord_y = 62;
+defparam \MCU_P2_8~input .coord_z = 2;
+// Location: IOIBUF_X23_Y62_N3
+// alta_io_ibuf \GPS_TX_READY~input (
+alta_io \GPS_TX_READY~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\GPS_TX_READY~input_o ),
+	.regout(),
+	.padio(GPS_TX_READY));
+defparam \GPS_TX_READY~input .CFG_KEEP = 2'b00;
+// defparam \GPS_TX_READY~input .simulate_z_as = "z";
+
+defparam \GPS_TX_READY~input .coord_x = 23;
+defparam \GPS_TX_READY~input .coord_y = 62;
+defparam \GPS_TX_READY~input .coord_z = 3;
+// Location: IOIBUF_X51_Y0_N0
+// alta_io_ibuf \DEVICE_RESET~input (
+alta_io \DEVICE_RESET~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\DEVICE_RESET~input_o ),
+	.regout(),
+	.padio(DEVICE_RESET));
+defparam \DEVICE_RESET~input .CFG_KEEP = 2'b00;
+// defparam \DEVICE_RESET~input .simulate_z_as = "z";
+
+defparam \DEVICE_RESET~input .coord_x = 51;
+defparam \DEVICE_RESET~input .coord_y = 0;
+defparam \DEVICE_RESET~input .coord_z = 0;
+// Location: IOIBUF_X56_Y62_N0
+// alta_io_ibuf \GPS_TIMEPULSE~input (
+alta_io \GPS_TIMEPULSE~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\GPS_TIMEPULSE~input_o ),
+	.regout(),
+	.padio(GPS_TIMEPULSE));
+defparam \GPS_TIMEPULSE~input .CFG_KEEP = 2'b00;
+// defparam \GPS_TIMEPULSE~input .simulate_z_as = "z";
+
+defparam \GPS_TIMEPULSE~input .coord_x = 56;
+defparam \GPS_TIMEPULSE~input .coord_y = 62;
+defparam \GPS_TIMEPULSE~input .coord_z = 0;
+// Location: IOIBUF_X78_Y0_N1
+// alta_io_ibuf \DEVICE_RESET_V~input (
+alta_io \DEVICE_RESET_V~input (
+	.datain(gnd),
+	.oe(gnd),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(\DEVICE_RESET_V~input_o ),
+	.regout(),
+	.padio(DEVICE_RESET_V));
+defparam \DEVICE_RESET_V~input .CFG_KEEP = 2'b00;
+// defparam \DEVICE_RESET_V~input .simulate_z_as = "z";
+
+defparam \DEVICE_RESET_V~input .coord_x = 78;
+defparam \DEVICE_RESET_V~input .coord_y = 0;
+defparam \DEVICE_RESET_V~input .coord_z = 1;
+// Location: IOOBUF_X94_Y9_N2
+// alta_io_obuf \GPS_RESETX~output (
+alta_io \GPS_RESETX~output (
+	.datain(vcc),
+	.oe(vcc),
+	.outclk(gnd),
+	.outclkena(vcc),
+	.inclk(gnd),
+	.inclkena(vcc),
+	.areset(gnd),
+	.sreset(gnd),
+	.combout(),
+	.regout(),
+	.padio(GPS_RESETX));
+defparam \GPS_RESETX~output .CFG_KEEP = 2'b00;
+// defparam \GPS_RESETX~output .open_drain_output = "false";
+
+defparam \GPS_RESETX~output .coord_x = 94;
+defparam \GPS_RESETX~output .coord_y = 9;
+defparam \GPS_RESETX~output .coord_z = 2;
+// Location: CLKCTRL_G2
+alta_io_gclk \MCU_IO_STBX~inputclkctrl (
+	.inclk (\MCU_IO_STBX~input_o ),
+	.outclk(\MCU_IO_STBX~inputclkctrl_outclk ));
+//defparam \MCU_IO_STBX~inputclkctrl .clock_type = "global clock";
+//defparam \MCU_IO_STBX~inputclkctrl .ena_register_mode = "none";
+
+// Location: CLKCTRL_G3
+alta_io_gclk \MCU_LCD_WRX~inputclkctrl (
+	.inclk (\MCU_LCD_WRX~input_o ),
+	.outclk(\MCU_LCD_WRX~inputclkctrl_outclk ));
+//defparam \MCU_LCD_WRX~inputclkctrl .clock_type = "global clock";
+//defparam \MCU_LCD_WRX~inputclkctrl .ena_register_mode = "none";
+
+// Location: CLKCTRL_G4
+alta_io_gclk \MCU_LCD_RDX~inputclkctrl (
+	.inclk (\MCU_LCD_RDX~input_o ),
+	.outclk(\MCU_LCD_RDX~inputclkctrl_outclk ));
+//defparam \MCU_LCD_RDX~inputclkctrl .clock_type = "global clock";
+//defparam \MCU_LCD_RDX~inputclkctrl .ena_register_mode = "none";
+
+// Location: LCCOMB_X1_Y15_N10
+// alta_lcell_comb \lcd_reset_q~0 (
+alta_slice \lcd_reset_q~0 (
+	.A(vcc),
+	.B(vcc),
+	.C(\MCU_ADDR~input_o ),
+	.D(\MCU_DIR~input_o ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_reset_q~0_combout ),
+	.Cout(),
+	.Q());
+defparam \lcd_reset_q~0 .mask = 16'h00F0;
+defparam \lcd_reset_q~0 .mode = "logic";
+defparam \lcd_reset_q~0 .modeMux = 1'b0;
+defparam \lcd_reset_q~0 .FeedbackMux = 1'b0;
+defparam \lcd_reset_q~0 .ShiftMux = 1'b0;
+defparam \lcd_reset_q~0 .BypassEn = 1'b0;
+defparam \lcd_reset_q~0 .CarryEnb = 1'b1;
+defparam \lcd_reset_q~0 .AsyncResetMux = 2'bxx;
+defparam \lcd_reset_q~0 .SyncResetMux = 2'bxx;
+defparam \lcd_reset_q~0 .SyncLoadMux = 2'bxx;
+defparam \lcd_reset_q~0 .coord_x = 1;
+defparam \lcd_reset_q~0 .coord_y = 15;
+defparam \lcd_reset_q~0 .coord_z = 5;
+// Location: FF_X1_Y15_N12
+// alta_lcell_ff \tp_q[3] (
+alta_slice \tp_q[3] (
+	.A(),
+	.B(),
+	.C(\MCU_D[3]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(tp_q[3]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(SyncReset_X1_Y15_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y15_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(tp_q[3]));
+defparam \tp_q[3] .mask = 16'hFFFF;
+defparam \tp_q[3] .mode = "ripple";
+defparam \tp_q[3] .modeMux = 1'b1;
+defparam \tp_q[3] .FeedbackMux = 1'b0;
+defparam \tp_q[3] .ShiftMux = 1'b0;
+defparam \tp_q[3] .BypassEn = 1'b1;
+defparam \tp_q[3] .CarryEnb = 1'b1;
+defparam \tp_q[3] .AsyncResetMux = 2'b00;
+defparam \tp_q[3] .SyncResetMux = 2'b00;
+defparam \tp_q[3] .SyncLoadMux = 2'b01;
+defparam \tp_q[3] .coord_x = 1;
+defparam \tp_q[3] .coord_y = 15;
+defparam \tp_q[3] .coord_z = 6;
+// Location: FF_X1_Y15_N14
+// alta_lcell_ff \tp_q[4] (
+// Location: LCCOMB_X1_Y15_N14
+// alta_lcell_comb \tp_q[4]~feeder (
+alta_slice \tp_q[4] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[4]~input_o ),
+	.Cin(),
+	.Qin(tp_q[4]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\tp_q[4]~feeder_combout ),
+	.Cout(),
+	.Q(tp_q[4]));
+defparam \tp_q[4] .mask = 16'hFF00;
+defparam \tp_q[4] .mode = "logic";
+defparam \tp_q[4] .modeMux = 1'b0;
+defparam \tp_q[4] .FeedbackMux = 1'b0;
+defparam \tp_q[4] .ShiftMux = 1'b0;
+defparam \tp_q[4] .BypassEn = 1'b0;
+defparam \tp_q[4] .CarryEnb = 1'b1;
+defparam \tp_q[4] .AsyncResetMux = 2'b00;
+defparam \tp_q[4] .SyncResetMux = 2'bxx;
+defparam \tp_q[4] .SyncLoadMux = 2'bxx;
+defparam \tp_q[4] .coord_x = 1;
+defparam \tp_q[4] .coord_y = 15;
+defparam \tp_q[4] .coord_z = 7;
+// Location: FF_X1_Y15_N16
+// alta_lcell_ff lcd_backlight_q(
+// Location: LCCOMB_X1_Y15_N16
+// alta_lcell_comb \lcd_backlight_q~feeder (
+alta_slice lcd_backlight_q(
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[7]~input_o ),
+	.Cin(),
+	.Qin(\lcd_backlight_q~q ),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_backlight_q~feeder_combout ),
+	.Cout(),
+	.Q(\lcd_backlight_q~q ));
+defparam lcd_backlight_q.mask = 16'hFF00;
+defparam lcd_backlight_q.mode = "logic";
+defparam lcd_backlight_q.modeMux = 1'b0;
+defparam lcd_backlight_q.FeedbackMux = 1'b0;
+defparam lcd_backlight_q.ShiftMux = 1'b0;
+defparam lcd_backlight_q.BypassEn = 1'b0;
+defparam lcd_backlight_q.CarryEnb = 1'b1;
+defparam lcd_backlight_q.AsyncResetMux = 2'b00;
+defparam lcd_backlight_q.SyncResetMux = 2'bxx;
+defparam lcd_backlight_q.SyncLoadMux = 2'bxx;
+defparam lcd_backlight_q.coord_x = 1;
+defparam lcd_backlight_q.coord_y = 15;
+defparam lcd_backlight_q.coord_z = 8;
+// Location: FF_X1_Y15_N18
+// alta_lcell_ff \tp_q[0] (
+alta_slice \tp_q[0] (
+	.A(),
+	.B(),
+	.C(\MCU_D[0]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(tp_q[0]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(SyncReset_X1_Y15_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y15_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(tp_q[0]));
+defparam \tp_q[0] .mask = 16'hFFFF;
+defparam \tp_q[0] .mode = "ripple";
+defparam \tp_q[0] .modeMux = 1'b1;
+defparam \tp_q[0] .FeedbackMux = 1'b0;
+defparam \tp_q[0] .ShiftMux = 1'b0;
+defparam \tp_q[0] .BypassEn = 1'b1;
+defparam \tp_q[0] .CarryEnb = 1'b1;
+defparam \tp_q[0] .AsyncResetMux = 2'b00;
+defparam \tp_q[0] .SyncResetMux = 2'b00;
+defparam \tp_q[0] .SyncLoadMux = 2'b01;
+defparam \tp_q[0] .coord_x = 1;
+defparam \tp_q[0] .coord_y = 15;
+defparam \tp_q[0] .coord_z = 9;
+// Location: FF_X1_Y15_N2
+// alta_lcell_ff lcd_reset_q(
+// Location: LCCOMB_X1_Y15_N2
+// alta_lcell_comb \lcd_reset_q~1 (
+alta_slice lcd_reset_q(
+	.A(vcc),
+	.B(vcc),
+	.C(\MCU_D[0]~input_o ),
+	.D(vcc),
+	.Cin(),
+	.Qin(\lcd_reset_q~q ),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_reset_q~1_combout ),
+	.Cout(),
+	.Q(\lcd_reset_q~q ));
+defparam lcd_reset_q.mask = 16'h0F0F;
+defparam lcd_reset_q.mode = "logic";
+defparam lcd_reset_q.modeMux = 1'b0;
+defparam lcd_reset_q.FeedbackMux = 1'b0;
+defparam lcd_reset_q.ShiftMux = 1'b0;
+defparam lcd_reset_q.BypassEn = 1'b0;
+defparam lcd_reset_q.CarryEnb = 1'b1;
+defparam lcd_reset_q.AsyncResetMux = 2'b00;
+defparam lcd_reset_q.SyncResetMux = 2'bxx;
+defparam lcd_reset_q.SyncLoadMux = 2'bxx;
+defparam lcd_reset_q.coord_x = 1;
+defparam lcd_reset_q.coord_y = 15;
+defparam lcd_reset_q.coord_z = 1;
+// Location: FF_X1_Y15_N20
+// alta_lcell_ff \tp_q[1] (
+alta_slice \tp_q[1] (
+	.A(),
+	.B(),
+	.C(\MCU_D[1]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(tp_q[1]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(SyncReset_X1_Y15_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y15_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(tp_q[1]));
+defparam \tp_q[1] .mask = 16'hFFFF;
+defparam \tp_q[1] .mode = "ripple";
+defparam \tp_q[1] .modeMux = 1'b1;
+defparam \tp_q[1] .FeedbackMux = 1'b0;
+defparam \tp_q[1] .ShiftMux = 1'b0;
+defparam \tp_q[1] .BypassEn = 1'b1;
+defparam \tp_q[1] .CarryEnb = 1'b1;
+defparam \tp_q[1] .AsyncResetMux = 2'b00;
+defparam \tp_q[1] .SyncResetMux = 2'b00;
+defparam \tp_q[1] .SyncLoadMux = 2'b01;
+defparam \tp_q[1] .coord_x = 1;
+defparam \tp_q[1] .coord_y = 15;
+defparam \tp_q[1] .coord_z = 10;
+// Location: FF_X1_Y15_N22
+// alta_lcell_ff audio_reset_q(
+// Location: LCCOMB_X1_Y15_N22
+// alta_lcell_comb \audio_reset_q~0 (
+alta_slice audio_reset_q(
+	.A(vcc),
+	.B(vcc),
+	.C(\MCU_D[1]~input_o ),
+	.D(vcc),
+	.Cin(),
+	.Qin(\audio_reset_q~q ),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\audio_reset_q~0_combout ),
+	.Cout(),
+	.Q(\audio_reset_q~q ));
+defparam audio_reset_q.mask = 16'h0F0F;
+defparam audio_reset_q.mode = "logic";
+defparam audio_reset_q.modeMux = 1'b0;
+defparam audio_reset_q.FeedbackMux = 1'b0;
+defparam audio_reset_q.ShiftMux = 1'b0;
+defparam audio_reset_q.BypassEn = 1'b0;
+defparam audio_reset_q.CarryEnb = 1'b1;
+defparam audio_reset_q.AsyncResetMux = 2'b00;
+defparam audio_reset_q.SyncResetMux = 2'bxx;
+defparam audio_reset_q.SyncLoadMux = 2'bxx;
+defparam audio_reset_q.coord_x = 1;
+defparam audio_reset_q.coord_y = 15;
+defparam audio_reset_q.coord_z = 11;
+// Location: FF_X1_Y15_N24
+// alta_lcell_ff \tp_q[7] (
+// Location: LCCOMB_X1_Y15_N24
+// alta_lcell_comb \tp_q[7]~feeder (
+alta_slice \tp_q[7] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[7]~input_o ),
+	.Cin(),
+	.Qin(tp_q[7]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\tp_q[7]~feeder_combout ),
+	.Cout(),
+	.Q(tp_q[7]));
+defparam \tp_q[7] .mask = 16'hFF00;
+defparam \tp_q[7] .mode = "logic";
+defparam \tp_q[7] .modeMux = 1'b0;
+defparam \tp_q[7] .FeedbackMux = 1'b0;
+defparam \tp_q[7] .ShiftMux = 1'b0;
+defparam \tp_q[7] .BypassEn = 1'b0;
+defparam \tp_q[7] .CarryEnb = 1'b1;
+defparam \tp_q[7] .AsyncResetMux = 2'b00;
+defparam \tp_q[7] .SyncResetMux = 2'bxx;
+defparam \tp_q[7] .SyncLoadMux = 2'bxx;
+defparam \tp_q[7] .coord_x = 1;
+defparam \tp_q[7] .coord_y = 15;
+defparam \tp_q[7] .coord_z = 12;
+// Location: FF_X1_Y15_N26
+// alta_lcell_ff \tp_q[2] (
+// Location: LCCOMB_X1_Y15_N26
+// alta_lcell_comb \tp_q[2]~feeder (
+alta_slice \tp_q[2] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[2]~input_o ),
+	.Cin(),
+	.Qin(tp_q[2]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\tp_q[2]~feeder_combout ),
+	.Cout(),
+	.Q(tp_q[2]));
+defparam \tp_q[2] .mask = 16'hFF00;
+defparam \tp_q[2] .mode = "logic";
+defparam \tp_q[2] .modeMux = 1'b0;
+defparam \tp_q[2] .FeedbackMux = 1'b0;
+defparam \tp_q[2] .ShiftMux = 1'b0;
+defparam \tp_q[2] .BypassEn = 1'b0;
+defparam \tp_q[2] .CarryEnb = 1'b1;
+defparam \tp_q[2] .AsyncResetMux = 2'b00;
+defparam \tp_q[2] .SyncResetMux = 2'bxx;
+defparam \tp_q[2] .SyncLoadMux = 2'bxx;
+defparam \tp_q[2] .coord_x = 1;
+defparam \tp_q[2] .coord_y = 15;
+defparam \tp_q[2] .coord_z = 13;
+// Location: FF_X1_Y15_N28
+// alta_lcell_ff \tp_q[5] (
+alta_slice \tp_q[5] (
+	.A(),
+	.B(),
+	.C(\MCU_D[5]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(tp_q[5]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(SyncReset_X1_Y15_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y15_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(tp_q[5]));
+defparam \tp_q[5] .mask = 16'hFFFF;
+defparam \tp_q[5] .mode = "ripple";
+defparam \tp_q[5] .modeMux = 1'b1;
+defparam \tp_q[5] .FeedbackMux = 1'b0;
+defparam \tp_q[5] .ShiftMux = 1'b0;
+defparam \tp_q[5] .BypassEn = 1'b1;
+defparam \tp_q[5] .CarryEnb = 1'b1;
+defparam \tp_q[5] .AsyncResetMux = 2'b00;
+defparam \tp_q[5] .SyncResetMux = 2'b00;
+defparam \tp_q[5] .SyncLoadMux = 2'b01;
+defparam \tp_q[5] .coord_x = 1;
+defparam \tp_q[5] .coord_y = 15;
+defparam \tp_q[5] .coord_z = 14;
+// Location: FF_X1_Y15_N30
+// alta_lcell_ff ref_en_q(
+// Location: LCCOMB_X1_Y15_N30
+// alta_lcell_comb \ref_en_q~feeder (
+alta_slice ref_en_q(
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[6]~input_o ),
+	.Cin(),
+	.Qin(\ref_en_q~q ),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\ref_en_q~feeder_combout ),
+	.Cout(),
+	.Q(\ref_en_q~q ));
+defparam ref_en_q.mask = 16'hFF00;
+defparam ref_en_q.mode = "logic";
+defparam ref_en_q.modeMux = 1'b0;
+defparam ref_en_q.FeedbackMux = 1'b0;
+defparam ref_en_q.ShiftMux = 1'b0;
+defparam ref_en_q.BypassEn = 1'b0;
+defparam ref_en_q.CarryEnb = 1'b1;
+defparam ref_en_q.AsyncResetMux = 2'b00;
+defparam ref_en_q.SyncResetMux = 2'bxx;
+defparam ref_en_q.SyncLoadMux = 2'bxx;
+defparam ref_en_q.coord_x = 1;
+defparam ref_en_q.coord_y = 15;
+defparam ref_en_q.coord_z = 15;
+// Location: LCCOMB_X1_Y15_N4
+// alta_lcell_comb \tp_q[3]~0 (
+alta_slice \tp_q[3]~0 (
+	.A(vcc),
+	.B(vcc),
+	.C(\MCU_ADDR~input_o ),
+	.D(\MCU_DIR~input_o ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\tp_q[3]~0_combout ),
+	.Cout(),
+	.Q());
+defparam \tp_q[3]~0 .mask = 16'h000F;
+defparam \tp_q[3]~0 .mode = "logic";
+defparam \tp_q[3]~0 .modeMux = 1'b0;
+defparam \tp_q[3]~0 .FeedbackMux = 1'b0;
+defparam \tp_q[3]~0 .ShiftMux = 1'b0;
+defparam \tp_q[3]~0 .BypassEn = 1'b0;
+defparam \tp_q[3]~0 .CarryEnb = 1'b1;
+defparam \tp_q[3]~0 .AsyncResetMux = 2'bxx;
+defparam \tp_q[3]~0 .SyncResetMux = 2'bxx;
+defparam \tp_q[3]~0 .SyncLoadMux = 2'bxx;
+defparam \tp_q[3]~0 .coord_x = 1;
+defparam \tp_q[3]~0 .coord_y = 15;
+defparam \tp_q[3]~0 .coord_z = 2;
+// Location: FF_X1_Y15_N6
+// alta_lcell_ff sysoff_q(
+// Location: LCCOMB_X1_Y15_N6
+// alta_lcell_comb \sysoff_q~feeder (
+alta_slice sysoff_q(
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[2]~input_o ),
+	.Cin(),
+	.Qin(\sysoff_q~q ),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\sysoff_q~feeder_combout ),
+	.Cout(),
+	.Q(\sysoff_q~q ));
+defparam sysoff_q.mask = 16'hFF00;
+defparam sysoff_q.mode = "logic";
+defparam sysoff_q.modeMux = 1'b0;
+defparam sysoff_q.FeedbackMux = 1'b0;
+defparam sysoff_q.ShiftMux = 1'b0;
+defparam sysoff_q.BypassEn = 1'b0;
+defparam sysoff_q.CarryEnb = 1'b1;
+defparam sysoff_q.AsyncResetMux = 2'b00;
+defparam sysoff_q.SyncResetMux = 2'bxx;
+defparam sysoff_q.SyncLoadMux = 2'bxx;
+defparam sysoff_q.coord_x = 1;
+defparam sysoff_q.coord_y = 15;
+defparam sysoff_q.coord_z = 3;
+// Location: FF_X1_Y15_N8
+// alta_lcell_ff \tp_q[6] (
+// Location: LCCOMB_X1_Y15_N8
+// alta_lcell_comb \tp_q[6]~feeder (
+alta_slice \tp_q[6] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[6]~input_o ),
+	.Cin(),
+	.Qin(tp_q[6]),
+	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
+	.AsyncReset(AsyncReset_X1_Y15_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\tp_q[6]~feeder_combout ),
+	.Cout(),
+	.Q(tp_q[6]));
+defparam \tp_q[6] .mask = 16'hFF00;
+defparam \tp_q[6] .mode = "logic";
+defparam \tp_q[6] .modeMux = 1'b0;
+defparam \tp_q[6] .FeedbackMux = 1'b0;
+defparam \tp_q[6] .ShiftMux = 1'b0;
+defparam \tp_q[6] .BypassEn = 1'b0;
+defparam \tp_q[6] .CarryEnb = 1'b1;
+defparam \tp_q[6] .AsyncResetMux = 2'b00;
+defparam \tp_q[6] .SyncResetMux = 2'bxx;
+defparam \tp_q[6] .SyncLoadMux = 2'bxx;
+
+defparam \tp_q[6] .coord_x = 1;
+defparam \tp_q[6] .coord_y = 15;
+defparam \tp_q[6] .coord_z = 4;
+// Location: CLKENCTRL_X1_Y15_N0
+alta_clkenctrl clken_ctrl_X1_Y15_N0(.ClkIn(\MCU_IO_STBX~inputclkctrl_outclk ), .ClkEn(\tp_q[3]~0_combout ), .ClkOut(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ));
+defparam clken_ctrl_X1_Y15_N0.ClkMux = 2'b10;
+defparam clken_ctrl_X1_Y15_N0.ClkEnMux = 2'b10;
+
+defparam clken_ctrl_X1_Y15_N0.coord_x = 1;
+defparam clken_ctrl_X1_Y15_N0.coord_y = 15;
+defparam clken_ctrl_X1_Y15_N0.coord_z = 0;
+// Location: ASYNCCTRL_X1_Y15_N0
+alta_asyncctrl asyncreset_ctrl_X1_Y15_N0(.Din(), .Dout(AsyncReset_X1_Y15_GND));
+defparam asyncreset_ctrl_X1_Y15_N0.AsyncCtrlMux = 2'b00;
+
+defparam asyncreset_ctrl_X1_Y15_N0.coord_x = 1;
+defparam asyncreset_ctrl_X1_Y15_N0.coord_y = 15;
+defparam asyncreset_ctrl_X1_Y15_N0.coord_z = 0;
+// Location: CLKENCTRL_X1_Y15_N1
+alta_clkenctrl clken_ctrl_X1_Y15_N1(.ClkIn(\MCU_IO_STBX~inputclkctrl_outclk ), .ClkEn(\lcd_reset_q~0_combout ), .ClkOut(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ));
+defparam clken_ctrl_X1_Y15_N1.ClkMux = 2'b10;
+defparam clken_ctrl_X1_Y15_N1.ClkEnMux = 2'b10;
+
+defparam clken_ctrl_X1_Y15_N1.coord_x = 1;
+defparam clken_ctrl_X1_Y15_N1.coord_y = 15;
+defparam clken_ctrl_X1_Y15_N1.coord_z = 1;
+// Location: SYNCCTRL_X1_Y15_N0
+alta_syncctrl syncreset_ctrl_X1_Y15(.Din(), .Dout(SyncReset_X1_Y15_GND));
+defparam syncreset_ctrl_X1_Y15.SyncCtrlMux = 2'b00;
+
+defparam syncreset_ctrl_X1_Y15.coord_x = 1;
+defparam syncreset_ctrl_X1_Y15.coord_y = 15;
+defparam syncreset_ctrl_X1_Y15.coord_z = 0;
+// Location: SYNCCTRL_X1_Y15_N1
+alta_syncctrl syncload_ctrl_X1_Y15(.Din(), .Dout(SyncLoad_X1_Y15_VCC));
+defparam syncload_ctrl_X1_Y15.SyncCtrlMux = 2'b01;
+defparam syncload_ctrl_X1_Y15.coord_x = 1;
+defparam syncload_ctrl_X1_Y15.coord_y = 15;
+defparam syncload_ctrl_X1_Y15.coord_z = 1;
+// Location: LCCOMB_X1_Y18_N14
+// alta_lcell_comb \mcu_data_out[7]~15 (
+alta_slice \mcu_data_out[7]~15 (
+	.A(\LCD_TE~input_o ),
+	.B(\MCU_DIR~input_o ),
+	.C(\MCU_IO_STBX~input_o ),
+	.D(\mcu_data_out[7]~14_combout ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[7]~15_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[7]~15 .mask = 16'hFB08;
+defparam \mcu_data_out[7]~15 .mode = "logic";
+defparam \mcu_data_out[7]~15 .modeMux = 1'b0;
+defparam \mcu_data_out[7]~15 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[7]~15 .ShiftMux = 1'b0;
+defparam \mcu_data_out[7]~15 .BypassEn = 1'b0;
+defparam \mcu_data_out[7]~15 .CarryEnb = 1'b1;
+defparam \mcu_data_out[7]~15 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[7]~15 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[7]~15 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[7]~15 .coord_x = 1;
+defparam \mcu_data_out[7]~15 .coord_y = 18;
+defparam \mcu_data_out[7]~15 .coord_z = 7;
+// Location: LCCOMB_X1_Y18_N16
+// alta_lcell_comb \mcu_data_out[6]~13 (
+alta_slice \mcu_data_out[6]~13 (
+	.A(\SW_ROT_B~input_o ),
+	.B(\MCU_IO_STBX~input_o ),
+	.C(\mcu_data_out[6]~12_combout ),
+	.D(\MCU_DIR~input_o ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[6]~13_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[6]~13 .mask = 16'hD1F0;
+defparam \mcu_data_out[6]~13 .mode = "logic";
+defparam \mcu_data_out[6]~13 .modeMux = 1'b0;
+defparam \mcu_data_out[6]~13 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[6]~13 .ShiftMux = 1'b0;
+defparam \mcu_data_out[6]~13 .BypassEn = 1'b0;
+defparam \mcu_data_out[6]~13 .CarryEnb = 1'b1;
+defparam \mcu_data_out[6]~13 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[6]~13 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[6]~13 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[6]~13 .coord_x = 1;
+defparam \mcu_data_out[6]~13 .coord_y = 18;
+defparam \mcu_data_out[6]~13 .coord_z = 8;
+// Location: LCCOMB_X1_Y18_N28
+// alta_lcell_comb \mcu_data_out[1]~3 (
+alta_slice \mcu_data_out[1]~3 (
+	.A(\SW_L~input_o ),
+	.B(\MCU_DIR~input_o ),
+	.C(\MCU_IO_STBX~input_o ),
+	.D(\mcu_data_out[1]~2_combout ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[1]~3_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[1]~3 .mask = 16'hF704;
+defparam \mcu_data_out[1]~3 .mode = "logic";
+defparam \mcu_data_out[1]~3 .modeMux = 1'b0;
+defparam \mcu_data_out[1]~3 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[1]~3 .ShiftMux = 1'b0;
+defparam \mcu_data_out[1]~3 .BypassEn = 1'b0;
+defparam \mcu_data_out[1]~3 .CarryEnb = 1'b1;
+defparam \mcu_data_out[1]~3 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[1]~3 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[1]~3 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[1]~3 .coord_x = 1;
+defparam \mcu_data_out[1]~3 .coord_y = 18;
+defparam \mcu_data_out[1]~3 .coord_z = 14;
+// Location: LCCOMB_X1_Y18_N30
+// alta_lcell_comb \mcu_data_out[0]~1 (
+alta_slice \mcu_data_out[0]~1 (
+	.A(\SW_R~input_o ),
+	.B(\MCU_IO_STBX~input_o ),
+	.C(\mcu_data_out[0]~0_combout ),
+	.D(\MCU_DIR~input_o ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[0]~1_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[0]~1 .mask = 16'hD1F0;
+defparam \mcu_data_out[0]~1 .mode = "logic";
+defparam \mcu_data_out[0]~1 .modeMux = 1'b0;
+defparam \mcu_data_out[0]~1 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[0]~1 .ShiftMux = 1'b0;
+defparam \mcu_data_out[0]~1 .BypassEn = 1'b0;
+defparam \mcu_data_out[0]~1 .CarryEnb = 1'b1;
+defparam \mcu_data_out[0]~1 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[0]~1 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[0]~1 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[0]~1 .coord_x = 1;
+defparam \mcu_data_out[0]~1 .coord_y = 18;
+defparam \mcu_data_out[0]~1 .coord_z = 15;
+// Location: FF_X1_Y19_N30
+// alta_lcell_ff \lcd_data_in_q[0] (
+// Location: LCCOMB_X1_Y19_N30
+// alta_lcell_comb \mcu_data_out[0]~0 (
+alta_slice \lcd_data_in_q[0] (
+	.A(\LCD_DB[8]~input_o ),
+	.B(vcc),
+	.C(\LCD_DB[0]~input_o ),
+	.D(\MCU_LCD_RDX~input_o ),
+	.Cin(),
+	.Qin(lcd_data_in_q[0]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y19_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y19_GND),
+	.SyncReset(SyncReset_X1_Y19_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y19_VCC),
+	.LutOut(\mcu_data_out[0]~0_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[0]));
+defparam \lcd_data_in_q[0] .mask = 16'hF0AA;
+defparam \lcd_data_in_q[0] .mode = "logic";
+defparam \lcd_data_in_q[0] .modeMux = 1'b0;
+defparam \lcd_data_in_q[0] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[0] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[0] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[0] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[0] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[0] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[0] .SyncLoadMux = 2'b01;
+defparam \lcd_data_in_q[0] .coord_x = 1;
+defparam \lcd_data_in_q[0] .coord_y = 19;
+defparam \lcd_data_in_q[0] .coord_z = 15;
+// Location: FF_X1_Y19_N4
+// alta_lcell_ff \lcd_data_in_q[6] (
+// Location: LCCOMB_X1_Y19_N4
+// alta_lcell_comb \mcu_data_out[6]~12 (
+alta_slice \lcd_data_in_q[6] (
+	.A(\LCD_DB[14]~input_o ),
+	.B(vcc),
+	.C(\LCD_DB[6]~input_o ),
+	.D(\MCU_LCD_RDX~input_o ),
+	.Cin(),
+	.Qin(lcd_data_in_q[6]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y19_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y19_GND),
+	.SyncReset(SyncReset_X1_Y19_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y19_VCC),
+	.LutOut(\mcu_data_out[6]~12_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[6]));
+defparam \lcd_data_in_q[6] .mask = 16'hF0AA;
+defparam \lcd_data_in_q[6] .mode = "logic";
+defparam \lcd_data_in_q[6] .modeMux = 1'b0;
+defparam \lcd_data_in_q[6] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[6] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[6] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[6] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[6] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[6] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[6] .SyncLoadMux = 2'b01;
+
+defparam \lcd_data_in_q[6] .coord_x = 1;
+defparam \lcd_data_in_q[6] .coord_y = 19;
+defparam \lcd_data_in_q[6] .coord_z = 2;
+// Location: CLKENCTRL_X1_Y19_N0
+alta_clkenctrl clken_ctrl_X1_Y19_N0(.ClkIn(\MCU_LCD_RDX~inputclkctrl_outclk ), .ClkEn(), .ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y19_SIG_VCC ));
+defparam clken_ctrl_X1_Y19_N0.ClkMux = 2'b10;
+defparam clken_ctrl_X1_Y19_N0.ClkEnMux = 2'b01;
+
+defparam clken_ctrl_X1_Y19_N0.coord_x = 1;
+defparam clken_ctrl_X1_Y19_N0.coord_y = 19;
+defparam clken_ctrl_X1_Y19_N0.coord_z = 0;
+// Location: ASYNCCTRL_X1_Y19_N0
+alta_asyncctrl asyncreset_ctrl_X1_Y19_N0(.Din(), .Dout(AsyncReset_X1_Y19_GND));
+defparam asyncreset_ctrl_X1_Y19_N0.AsyncCtrlMux = 2'b00;
+
+defparam asyncreset_ctrl_X1_Y19_N0.coord_x = 1;
+defparam asyncreset_ctrl_X1_Y19_N0.coord_y = 19;
+defparam asyncreset_ctrl_X1_Y19_N0.coord_z = 0;
+// Location: SYNCCTRL_X1_Y19_N0
+alta_syncctrl syncreset_ctrl_X1_Y19(.Din(), .Dout(SyncReset_X1_Y19_GND));
+defparam syncreset_ctrl_X1_Y19.SyncCtrlMux = 2'b00;
+
+defparam syncreset_ctrl_X1_Y19.coord_x = 1;
+defparam syncreset_ctrl_X1_Y19.coord_y = 19;
+defparam syncreset_ctrl_X1_Y19.coord_z = 0;
+// Location: SYNCCTRL_X1_Y19_N1
+alta_syncctrl syncload_ctrl_X1_Y19(.Din(), .Dout(SyncLoad_X1_Y19_VCC));
+defparam syncload_ctrl_X1_Y19.SyncCtrlMux = 2'b01;
+defparam syncload_ctrl_X1_Y19.coord_x = 1;
+defparam syncload_ctrl_X1_Y19.coord_y = 19;
+defparam syncload_ctrl_X1_Y19.coord_z = 1;
+// Location: FF_X1_Y20_N0
+// alta_lcell_ff \lcd_data_out_q[1] (
+// Location: LCCOMB_X1_Y20_N0
+// alta_lcell_comb \lcd_data_out_q[1]~feeder (
+alta_slice \lcd_data_out_q[1] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[1]~input_o ),
+	.Cin(),
+	.Qin(lcd_data_out_q[1]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y20_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_data_out_q[1]~feeder_combout ),
+	.Cout(),
+	.Q(lcd_data_out_q[1]));
+defparam \lcd_data_out_q[1] .mask = 16'hFF00;
+defparam \lcd_data_out_q[1] .mode = "logic";
+defparam \lcd_data_out_q[1] .modeMux = 1'b0;
+defparam \lcd_data_out_q[1] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[1] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[1] .BypassEn = 1'b0;
+defparam \lcd_data_out_q[1] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[1] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[1] .SyncResetMux = 2'bxx;
+defparam \lcd_data_out_q[1] .SyncLoadMux = 2'bxx;
+defparam \lcd_data_out_q[1] .coord_x = 1;
+defparam \lcd_data_out_q[1] .coord_y = 20;
+defparam \lcd_data_out_q[1] .coord_z = 0;
+// Location: FF_X1_Y20_N10
+// alta_lcell_ff \lcd_data_out_q[2] (
+// Location: LCCOMB_X1_Y20_N10
+// alta_lcell_comb \lcd_data_out_q[2]~feeder (
+alta_slice \lcd_data_out_q[2] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[2]~input_o ),
+	.Cin(),
+	.Qin(lcd_data_out_q[2]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y20_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_data_out_q[2]~feeder_combout ),
+	.Cout(),
+	.Q(lcd_data_out_q[2]));
+defparam \lcd_data_out_q[2] .mask = 16'hFF00;
+defparam \lcd_data_out_q[2] .mode = "logic";
+defparam \lcd_data_out_q[2] .modeMux = 1'b0;
+defparam \lcd_data_out_q[2] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[2] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[2] .BypassEn = 1'b0;
+defparam \lcd_data_out_q[2] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[2] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[2] .SyncResetMux = 2'bxx;
+defparam \lcd_data_out_q[2] .SyncLoadMux = 2'bxx;
+defparam \lcd_data_out_q[2] .coord_x = 1;
+defparam \lcd_data_out_q[2] .coord_y = 20;
+defparam \lcd_data_out_q[2] .coord_z = 5;
+// Location: FF_X1_Y20_N12
+// alta_lcell_ff \lcd_data_out_q[6] (
+alta_slice \lcd_data_out_q[6] (
+	.A(),
+	.B(),
+	.C(\MCU_D[6]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(lcd_data_out_q[6]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y20_GND),
+	.SyncReset(SyncReset_X1_Y20_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y20_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(lcd_data_out_q[6]));
+defparam \lcd_data_out_q[6] .mask = 16'hFFFF;
+defparam \lcd_data_out_q[6] .mode = "ripple";
+defparam \lcd_data_out_q[6] .modeMux = 1'b1;
+defparam \lcd_data_out_q[6] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[6] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[6] .BypassEn = 1'b1;
+defparam \lcd_data_out_q[6] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[6] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[6] .SyncResetMux = 2'b00;
+defparam \lcd_data_out_q[6] .SyncLoadMux = 2'b01;
+defparam \lcd_data_out_q[6] .coord_x = 1;
+defparam \lcd_data_out_q[6] .coord_y = 20;
+defparam \lcd_data_out_q[6] .coord_z = 6;
+// Location: FF_X1_Y20_N14
+// alta_lcell_ff \lcd_data_out_q[7] (
+// Location: LCCOMB_X1_Y20_N14
+// alta_lcell_comb \lcd_data_out_q[7]~feeder (
+alta_slice \lcd_data_out_q[7] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[7]~input_o ),
+	.Cin(),
+	.Qin(lcd_data_out_q[7]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y20_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_data_out_q[7]~feeder_combout ),
+	.Cout(),
+	.Q(lcd_data_out_q[7]));
+defparam \lcd_data_out_q[7] .mask = 16'hFF00;
+defparam \lcd_data_out_q[7] .mode = "logic";
+defparam \lcd_data_out_q[7] .modeMux = 1'b0;
+defparam \lcd_data_out_q[7] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[7] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[7] .BypassEn = 1'b0;
+defparam \lcd_data_out_q[7] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[7] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[7] .SyncResetMux = 2'bxx;
+defparam \lcd_data_out_q[7] .SyncLoadMux = 2'bxx;
+defparam \lcd_data_out_q[7] .coord_x = 1;
+defparam \lcd_data_out_q[7] .coord_y = 20;
+defparam \lcd_data_out_q[7] .coord_z = 7;
+// Location: FF_X1_Y20_N30
+// alta_lcell_ff \lcd_data_out_q[0] (
+// Location: LCCOMB_X1_Y20_N30
+// alta_lcell_comb \lcd_data_out_q[0]~feeder (
+alta_slice \lcd_data_out_q[0] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[0]~input_o ),
+	.Cin(),
+	.Qin(lcd_data_out_q[0]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y20_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_data_out_q[0]~feeder_combout ),
+	.Cout(),
+	.Q(lcd_data_out_q[0]));
+defparam \lcd_data_out_q[0] .mask = 16'hFF00;
+defparam \lcd_data_out_q[0] .mode = "logic";
+defparam \lcd_data_out_q[0] .modeMux = 1'b0;
+defparam \lcd_data_out_q[0] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[0] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[0] .BypassEn = 1'b0;
+defparam \lcd_data_out_q[0] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[0] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[0] .SyncResetMux = 2'bxx;
+defparam \lcd_data_out_q[0] .SyncLoadMux = 2'bxx;
+
+defparam \lcd_data_out_q[0] .coord_x = 1;
+defparam \lcd_data_out_q[0] .coord_y = 20;
+defparam \lcd_data_out_q[0] .coord_z = 15;
+// Location: CLKENCTRL_X1_Y20_N0
+alta_clkenctrl clken_ctrl_X1_Y20_N0(.ClkIn(\MCU_LCD_WRX~inputclkctrl_outclk ), .ClkEn(), .ClkOut(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ));
+defparam clken_ctrl_X1_Y20_N0.ClkMux = 2'b11;
+defparam clken_ctrl_X1_Y20_N0.ClkEnMux = 2'b01;
+
+defparam clken_ctrl_X1_Y20_N0.coord_x = 1;
+defparam clken_ctrl_X1_Y20_N0.coord_y = 20;
+defparam clken_ctrl_X1_Y20_N0.coord_z = 0;
+// Location: ASYNCCTRL_X1_Y20_N0
+alta_asyncctrl asyncreset_ctrl_X1_Y20_N0(.Din(), .Dout(AsyncReset_X1_Y20_GND));
+defparam asyncreset_ctrl_X1_Y20_N0.AsyncCtrlMux = 2'b00;
+
+defparam asyncreset_ctrl_X1_Y20_N0.coord_x = 1;
+defparam asyncreset_ctrl_X1_Y20_N0.coord_y = 20;
+defparam asyncreset_ctrl_X1_Y20_N0.coord_z = 0;
+// Location: SYNCCTRL_X1_Y20_N0
+alta_syncctrl syncreset_ctrl_X1_Y20(.Din(), .Dout(SyncReset_X1_Y20_GND));
+defparam syncreset_ctrl_X1_Y20.SyncCtrlMux = 2'b00;
+
+defparam syncreset_ctrl_X1_Y20.coord_x = 1;
+defparam syncreset_ctrl_X1_Y20.coord_y = 20;
+defparam syncreset_ctrl_X1_Y20.coord_z = 0;
+// Location: SYNCCTRL_X1_Y20_N1
+alta_syncctrl syncload_ctrl_X1_Y20(.Din(), .Dout(SyncLoad_X1_Y20_VCC));
+defparam syncload_ctrl_X1_Y20.SyncCtrlMux = 2'b01;
+defparam syncload_ctrl_X1_Y20.coord_x = 1;
+defparam syncload_ctrl_X1_Y20.coord_y = 20;
+defparam syncload_ctrl_X1_Y20.coord_z = 1;
+// Location: FF_X1_Y21_N28
+// alta_lcell_ff \lcd_data_in_q[7] (
+// Location: LCCOMB_X1_Y21_N28
+// alta_lcell_comb \mcu_data_out[7]~14 (
+alta_slice \lcd_data_in_q[7] (
+	.A(\LCD_DB[15]~input_o ),
+	.B(\MCU_LCD_RDX~input_o ),
+	.C(\LCD_DB[7]~input_o ),
+	.D(vcc),
+	.Cin(),
+	.Qin(lcd_data_in_q[7]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y21_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y21_GND),
+	.SyncReset(SyncReset_X1_Y21_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y21_VCC),
+	.LutOut(\mcu_data_out[7]~14_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[7]));
+defparam \lcd_data_in_q[7] .mask = 16'hE2E2;
+defparam \lcd_data_in_q[7] .mode = "logic";
+defparam \lcd_data_in_q[7] .modeMux = 1'b0;
+defparam \lcd_data_in_q[7] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[7] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[7] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[7] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[7] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[7] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[7] .SyncLoadMux = 2'b01;
+defparam \lcd_data_in_q[7] .coord_x = 1;
+defparam \lcd_data_in_q[7] .coord_y = 21;
+defparam \lcd_data_in_q[7] .coord_z = 14;
+// Location: FF_X1_Y21_N4
+// alta_lcell_ff \lcd_data_in_q[1] (
+// Location: LCCOMB_X1_Y21_N4
+// alta_lcell_comb \mcu_data_out[1]~2 (
+alta_slice \lcd_data_in_q[1] (
+	.A(\LCD_DB[9]~input_o ),
+	.B(\MCU_LCD_RDX~input_o ),
+	.C(\LCD_DB[1]~input_o ),
+	.D(vcc),
+	.Cin(),
+	.Qin(lcd_data_in_q[1]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y21_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y21_GND),
+	.SyncReset(SyncReset_X1_Y21_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y21_VCC),
+	.LutOut(\mcu_data_out[1]~2_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[1]));
+defparam \lcd_data_in_q[1] .mask = 16'hE2E2;
+defparam \lcd_data_in_q[1] .mode = "logic";
+defparam \lcd_data_in_q[1] .modeMux = 1'b0;
+defparam \lcd_data_in_q[1] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[1] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[1] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[1] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[1] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[1] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[1] .SyncLoadMux = 2'b01;
+
+defparam \lcd_data_in_q[1] .coord_x = 1;
+defparam \lcd_data_in_q[1] .coord_y = 21;
+defparam \lcd_data_in_q[1] .coord_z = 2;
+// Location: CLKENCTRL_X1_Y21_N0
+alta_clkenctrl clken_ctrl_X1_Y21_N0(.ClkIn(\MCU_LCD_RDX~inputclkctrl_outclk ), .ClkEn(), .ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y21_SIG_VCC ));
+defparam clken_ctrl_X1_Y21_N0.ClkMux = 2'b10;
+defparam clken_ctrl_X1_Y21_N0.ClkEnMux = 2'b01;
+
+defparam clken_ctrl_X1_Y21_N0.coord_x = 1;
+defparam clken_ctrl_X1_Y21_N0.coord_y = 21;
+defparam clken_ctrl_X1_Y21_N0.coord_z = 0;
+// Location: ASYNCCTRL_X1_Y21_N0
+alta_asyncctrl asyncreset_ctrl_X1_Y21_N0(.Din(), .Dout(AsyncReset_X1_Y21_GND));
+defparam asyncreset_ctrl_X1_Y21_N0.AsyncCtrlMux = 2'b00;
+
+defparam asyncreset_ctrl_X1_Y21_N0.coord_x = 1;
+defparam asyncreset_ctrl_X1_Y21_N0.coord_y = 21;
+defparam asyncreset_ctrl_X1_Y21_N0.coord_z = 0;
+// Location: SYNCCTRL_X1_Y21_N0
+alta_syncctrl syncreset_ctrl_X1_Y21(.Din(), .Dout(SyncReset_X1_Y21_GND));
+defparam syncreset_ctrl_X1_Y21.SyncCtrlMux = 2'b00;
+
+defparam syncreset_ctrl_X1_Y21.coord_x = 1;
+defparam syncreset_ctrl_X1_Y21.coord_y = 21;
+defparam syncreset_ctrl_X1_Y21.coord_z = 0;
+// Location: SYNCCTRL_X1_Y21_N1
+alta_syncctrl syncload_ctrl_X1_Y21(.Din(), .Dout(SyncLoad_X1_Y21_VCC));
+defparam syncload_ctrl_X1_Y21.SyncCtrlMux = 2'b01;
+defparam syncload_ctrl_X1_Y21.coord_x = 1;
+defparam syncload_ctrl_X1_Y21.coord_y = 21;
+defparam syncload_ctrl_X1_Y21.coord_z = 1;
+// Location: LCCOMB_X1_Y23_N12
+// alta_lcell_comb \mcu_data_out[3]~7 (
+alta_slice \mcu_data_out[3]~7 (
+	.A(\SW_U~input_o ),
+	.B(\MCU_IO_STBX~input_o ),
+	.C(\MCU_DIR~input_o ),
+	.D(\mcu_data_out[3]~6_combout ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[3]~7_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[3]~7 .mask = 16'hDF10;
+defparam \mcu_data_out[3]~7 .mode = "logic";
+defparam \mcu_data_out[3]~7 .modeMux = 1'b0;
+defparam \mcu_data_out[3]~7 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[3]~7 .ShiftMux = 1'b0;
+defparam \mcu_data_out[3]~7 .BypassEn = 1'b0;
+defparam \mcu_data_out[3]~7 .CarryEnb = 1'b1;
+defparam \mcu_data_out[3]~7 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[3]~7 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[3]~7 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[3]~7 .coord_x = 1;
+defparam \mcu_data_out[3]~7 .coord_y = 23;
+defparam \mcu_data_out[3]~7 .coord_z = 6;
+// Location: LCCOMB_X1_Y23_N14
+// alta_lcell_comb \mcu_data_out[4]~9 (
+alta_slice \mcu_data_out[4]~9 (
+	.A(\MCU_DIR~input_o ),
+	.B(\SW_SEL~input_o ),
+	.C(\MCU_IO_STBX~input_o ),
+	.D(\mcu_data_out[4]~8_combout ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[4]~9_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[4]~9 .mask = 16'hF702;
+defparam \mcu_data_out[4]~9 .mode = "logic";
+defparam \mcu_data_out[4]~9 .modeMux = 1'b0;
+defparam \mcu_data_out[4]~9 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[4]~9 .ShiftMux = 1'b0;
+defparam \mcu_data_out[4]~9 .BypassEn = 1'b0;
+defparam \mcu_data_out[4]~9 .CarryEnb = 1'b1;
+defparam \mcu_data_out[4]~9 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[4]~9 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[4]~9 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[4]~9 .coord_x = 1;
+defparam \mcu_data_out[4]~9 .coord_y = 23;
+defparam \mcu_data_out[4]~9 .coord_z = 7;
+// Location: LCCOMB_X1_Y23_N16
+// alta_lcell_comb \mcu_data_out[2]~5 (
+alta_slice \mcu_data_out[2]~5 (
+	.A(\SW_D~input_o ),
+	.B(\MCU_IO_STBX~input_o ),
+	.C(\mcu_data_out[2]~4_combout ),
+	.D(\MCU_DIR~input_o ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[2]~5_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[2]~5 .mask = 16'hD1F0;
+defparam \mcu_data_out[2]~5 .mode = "logic";
+defparam \mcu_data_out[2]~5 .modeMux = 1'b0;
+defparam \mcu_data_out[2]~5 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[2]~5 .ShiftMux = 1'b0;
+defparam \mcu_data_out[2]~5 .BypassEn = 1'b0;
+defparam \mcu_data_out[2]~5 .CarryEnb = 1'b1;
+defparam \mcu_data_out[2]~5 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[2]~5 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[2]~5 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[2]~5 .coord_x = 1;
+defparam \mcu_data_out[2]~5 .coord_y = 23;
+defparam \mcu_data_out[2]~5 .coord_z = 8;
+// Location: LCCOMB_X1_Y23_N30
+// alta_lcell_comb \mcu_data_out[5]~11 (
+alta_slice \mcu_data_out[5]~11 (
+	.A(\MCU_DIR~input_o ),
+	.B(\SW_ROT_A~input_o ),
+	.C(\MCU_IO_STBX~input_o ),
+	.D(\mcu_data_out[5]~10_combout ),
+	.Cin(),
+	.Qin(),
+	.Clk(),
+	.AsyncReset(),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\mcu_data_out[5]~11_combout ),
+	.Cout(),
+	.Q());
+defparam \mcu_data_out[5]~11 .mask = 16'hF702;
+defparam \mcu_data_out[5]~11 .mode = "logic";
+defparam \mcu_data_out[5]~11 .modeMux = 1'b0;
+defparam \mcu_data_out[5]~11 .FeedbackMux = 1'b0;
+defparam \mcu_data_out[5]~11 .ShiftMux = 1'b0;
+defparam \mcu_data_out[5]~11 .BypassEn = 1'b0;
+defparam \mcu_data_out[5]~11 .CarryEnb = 1'b1;
+defparam \mcu_data_out[5]~11 .AsyncResetMux = 2'bxx;
+defparam \mcu_data_out[5]~11 .SyncResetMux = 2'bxx;
+defparam \mcu_data_out[5]~11 .SyncLoadMux = 2'bxx;
+defparam \mcu_data_out[5]~11 .coord_x = 1;
+defparam \mcu_data_out[5]~11 .coord_y = 23;
+defparam \mcu_data_out[5]~11 .coord_z = 15;
+// Location: FF_X1_Y24_N30
+// alta_lcell_ff \lcd_data_in_q[2] (
+// Location: LCCOMB_X1_Y24_N30
+// alta_lcell_comb \mcu_data_out[2]~4 (
+alta_slice \lcd_data_in_q[2] (
+	.A(\LCD_DB[10]~input_o ),
+	.B(vcc),
+	.C(\LCD_DB[2]~input_o ),
+	.D(\MCU_LCD_RDX~input_o ),
+	.Cin(),
+	.Qin(lcd_data_in_q[2]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y24_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y24_GND),
+	.SyncReset(SyncReset_X1_Y24_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y24_VCC),
+	.LutOut(\mcu_data_out[2]~4_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[2]));
+defparam \lcd_data_in_q[2] .mask = 16'hF0AA;
+defparam \lcd_data_in_q[2] .mode = "logic";
+defparam \lcd_data_in_q[2] .modeMux = 1'b0;
+defparam \lcd_data_in_q[2] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[2] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[2] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[2] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[2] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[2] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[2] .SyncLoadMux = 2'b01;
+
+defparam \lcd_data_in_q[2] .coord_x = 1;
+defparam \lcd_data_in_q[2] .coord_y = 24;
+defparam \lcd_data_in_q[2] .coord_z = 15;
+// Location: CLKENCTRL_X1_Y24_N0
+alta_clkenctrl clken_ctrl_X1_Y24_N0(.ClkIn(\MCU_LCD_RDX~inputclkctrl_outclk ), .ClkEn(), .ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y24_SIG_VCC ));
+defparam clken_ctrl_X1_Y24_N0.ClkMux = 2'b10;
+defparam clken_ctrl_X1_Y24_N0.ClkEnMux = 2'b01;
+
+defparam clken_ctrl_X1_Y24_N0.coord_x = 1;
+defparam clken_ctrl_X1_Y24_N0.coord_y = 24;
+defparam clken_ctrl_X1_Y24_N0.coord_z = 0;
+// Location: ASYNCCTRL_X1_Y24_N0
+alta_asyncctrl asyncreset_ctrl_X1_Y24_N0(.Din(), .Dout(AsyncReset_X1_Y24_GND));
+defparam asyncreset_ctrl_X1_Y24_N0.AsyncCtrlMux = 2'b00;
+
+defparam asyncreset_ctrl_X1_Y24_N0.coord_x = 1;
+defparam asyncreset_ctrl_X1_Y24_N0.coord_y = 24;
+defparam asyncreset_ctrl_X1_Y24_N0.coord_z = 0;
+// Location: SYNCCTRL_X1_Y24_N0
+alta_syncctrl syncreset_ctrl_X1_Y24(.Din(), .Dout(SyncReset_X1_Y24_GND));
+defparam syncreset_ctrl_X1_Y24.SyncCtrlMux = 2'b00;
+
+defparam syncreset_ctrl_X1_Y24.coord_x = 1;
+defparam syncreset_ctrl_X1_Y24.coord_y = 24;
+defparam syncreset_ctrl_X1_Y24.coord_z = 0;
+// Location: SYNCCTRL_X1_Y24_N1
+alta_syncctrl syncload_ctrl_X1_Y24(.Din(), .Dout(SyncLoad_X1_Y24_VCC));
+defparam syncload_ctrl_X1_Y24.SyncCtrlMux = 2'b01;
+defparam syncload_ctrl_X1_Y24.coord_x = 1;
+defparam syncload_ctrl_X1_Y24.coord_y = 24;
+defparam syncload_ctrl_X1_Y24.coord_z = 1;
+// Location: FF_X1_Y26_N10
+// alta_lcell_ff \lcd_data_in_q[4] (
+// Location: LCCOMB_X1_Y26_N10
+// alta_lcell_comb \mcu_data_out[4]~8 (
+alta_slice \lcd_data_in_q[4] (
+	.A(\MCU_LCD_RDX~input_o ),
+	.B(\LCD_DB[12]~input_o ),
+	.C(\LCD_DB[4]~input_o ),
+	.D(vcc),
+	.Cin(),
+	.Qin(lcd_data_in_q[4]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y26_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y26_GND),
+	.SyncReset(SyncReset_X1_Y26_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y26_VCC),
+	.LutOut(\mcu_data_out[4]~8_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[4]));
+defparam \lcd_data_in_q[4] .mask = 16'hE4E4;
+defparam \lcd_data_in_q[4] .mode = "logic";
+defparam \lcd_data_in_q[4] .modeMux = 1'b0;
+defparam \lcd_data_in_q[4] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[4] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[4] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[4] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[4] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[4] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[4] .SyncLoadMux = 2'b01;
+defparam \lcd_data_in_q[4] .coord_x = 1;
+defparam \lcd_data_in_q[4] .coord_y = 26;
+defparam \lcd_data_in_q[4] .coord_z = 5;
+// Location: FF_X1_Y26_N12
+// alta_lcell_ff \lcd_data_out_q[4] (
+// Location: LCCOMB_X1_Y26_N12
+// alta_lcell_comb \lcd_data_out_q[4]~feeder (
+alta_slice \lcd_data_out_q[4] (
+	.A(vcc),
+	.B(vcc),
+	.C(vcc),
+	.D(\MCU_D[4]~input_o ),
+	.Cin(),
+	.Qin(lcd_data_out_q[4]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y26_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y26_GND),
+	.SyncReset(),
+	.ShiftData(),
+	.SyncLoad(),
+	.LutOut(\lcd_data_out_q[4]~feeder_combout ),
+	.Cout(),
+	.Q(lcd_data_out_q[4]));
+defparam \lcd_data_out_q[4] .mask = 16'hFF00;
+defparam \lcd_data_out_q[4] .mode = "logic";
+defparam \lcd_data_out_q[4] .modeMux = 1'b0;
+defparam \lcd_data_out_q[4] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[4] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[4] .BypassEn = 1'b0;
+defparam \lcd_data_out_q[4] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[4] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[4] .SyncResetMux = 2'bxx;
+defparam \lcd_data_out_q[4] .SyncLoadMux = 2'bxx;
+defparam \lcd_data_out_q[4] .coord_x = 1;
+defparam \lcd_data_out_q[4] .coord_y = 26;
+defparam \lcd_data_out_q[4] .coord_z = 6;
+// Location: FF_X1_Y26_N14
+// alta_lcell_ff \lcd_data_out_q[3] (
+alta_slice \lcd_data_out_q[3] (
+	.A(),
+	.B(),
+	.C(\MCU_D[3]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(lcd_data_out_q[3]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y26_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y26_GND),
+	.SyncReset(SyncReset_X1_Y26_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y26_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(lcd_data_out_q[3]));
+defparam \lcd_data_out_q[3] .mask = 16'hFFFF;
+defparam \lcd_data_out_q[3] .mode = "ripple";
+defparam \lcd_data_out_q[3] .modeMux = 1'b1;
+defparam \lcd_data_out_q[3] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[3] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[3] .BypassEn = 1'b1;
+defparam \lcd_data_out_q[3] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[3] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[3] .SyncResetMux = 2'b00;
+defparam \lcd_data_out_q[3] .SyncLoadMux = 2'b01;
+defparam \lcd_data_out_q[3] .coord_x = 1;
+defparam \lcd_data_out_q[3] .coord_y = 26;
+defparam \lcd_data_out_q[3] .coord_z = 7;
+// Location: FF_X1_Y26_N4
+// alta_lcell_ff \lcd_data_out_q[5] (
+alta_slice \lcd_data_out_q[5] (
+	.A(),
+	.B(),
+	.C(\MCU_D[5]~input_o ),
+	.D(),
+	.Cin(),
+	.Qin(lcd_data_out_q[5]),
+	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y26_INV_VCC ),
+	.AsyncReset(AsyncReset_X1_Y26_GND),
+	.SyncReset(SyncReset_X1_Y26_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y26_VCC),
+	.LutOut(),
+	.Cout(),
+	.Q(lcd_data_out_q[5]));
+defparam \lcd_data_out_q[5] .mask = 16'hFFFF;
+defparam \lcd_data_out_q[5] .mode = "ripple";
+defparam \lcd_data_out_q[5] .modeMux = 1'b1;
+defparam \lcd_data_out_q[5] .FeedbackMux = 1'b0;
+defparam \lcd_data_out_q[5] .ShiftMux = 1'b0;
+defparam \lcd_data_out_q[5] .BypassEn = 1'b1;
+defparam \lcd_data_out_q[5] .CarryEnb = 1'b1;
+defparam \lcd_data_out_q[5] .AsyncResetMux = 2'b00;
+defparam \lcd_data_out_q[5] .SyncResetMux = 2'b00;
+defparam \lcd_data_out_q[5] .SyncLoadMux = 2'b01;
+defparam \lcd_data_out_q[5] .coord_x = 1;
+defparam \lcd_data_out_q[5] .coord_y = 26;
+defparam \lcd_data_out_q[5] .coord_z = 2;
+// Location: FF_X1_Y26_N6
+// alta_lcell_ff \lcd_data_in_q[3] (
+// Location: LCCOMB_X1_Y26_N6
+// alta_lcell_comb \mcu_data_out[3]~6 (
+alta_slice \lcd_data_in_q[3] (
+	.A(\MCU_LCD_RDX~input_o ),
+	.B(\LCD_DB[11]~input_o ),
+	.C(\LCD_DB[3]~input_o ),
+	.D(vcc),
+	.Cin(),
+	.Qin(lcd_data_in_q[3]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y26_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y26_GND),
+	.SyncReset(SyncReset_X1_Y26_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y26_VCC),
+	.LutOut(\mcu_data_out[3]~6_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[3]));
+defparam \lcd_data_in_q[3] .mask = 16'hE4E4;
+defparam \lcd_data_in_q[3] .mode = "logic";
+defparam \lcd_data_in_q[3] .modeMux = 1'b0;
+defparam \lcd_data_in_q[3] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[3] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[3] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[3] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[3] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[3] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[3] .SyncLoadMux = 2'b01;
+defparam \lcd_data_in_q[3] .coord_x = 1;
+defparam \lcd_data_in_q[3] .coord_y = 26;
+defparam \lcd_data_in_q[3] .coord_z = 3;
+// Location: FF_X1_Y26_N8
+// alta_lcell_ff \lcd_data_in_q[5] (
+// Location: LCCOMB_X1_Y26_N8
+// alta_lcell_comb \mcu_data_out[5]~10 (
+alta_slice \lcd_data_in_q[5] (
+	.A(\MCU_LCD_RDX~input_o ),
+	.B(vcc),
+	.C(\LCD_DB[5]~input_o ),
+	.D(\LCD_DB[13]~input_o ),
+	.Cin(),
+	.Qin(lcd_data_in_q[5]),
+	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y26_SIG_VCC ),
+	.AsyncReset(AsyncReset_X1_Y26_GND),
+	.SyncReset(SyncReset_X1_Y26_GND),
+	.ShiftData(),
+	.SyncLoad(SyncLoad_X1_Y26_VCC),
+	.LutOut(\mcu_data_out[5]~10_combout ),
+	.Cout(),
+	.Q(lcd_data_in_q[5]));
+defparam \lcd_data_in_q[5] .mask = 16'hF5A0;
+defparam \lcd_data_in_q[5] .mode = "logic";
+defparam \lcd_data_in_q[5] .modeMux = 1'b0;
+defparam \lcd_data_in_q[5] .FeedbackMux = 1'b1;
+defparam \lcd_data_in_q[5] .ShiftMux = 1'b0;
+defparam \lcd_data_in_q[5] .BypassEn = 1'b1;
+defparam \lcd_data_in_q[5] .CarryEnb = 1'b1;
+defparam \lcd_data_in_q[5] .AsyncResetMux = 2'b00;
+defparam \lcd_data_in_q[5] .SyncResetMux = 2'b00;
+defparam \lcd_data_in_q[5] .SyncLoadMux = 2'b01;
+
+defparam \lcd_data_in_q[5] .coord_x = 1;
+defparam \lcd_data_in_q[5] .coord_y = 26;
+defparam \lcd_data_in_q[5] .coord_z = 4;
+// Location: CLKENCTRL_X1_Y26_N0
+alta_clkenctrl clken_ctrl_X1_Y26_N0(.ClkIn(\MCU_LCD_RDX~inputclkctrl_outclk ), .ClkEn(), .ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y26_SIG_VCC ));
+defparam clken_ctrl_X1_Y26_N0.ClkMux = 2'b10;
+defparam clken_ctrl_X1_Y26_N0.ClkEnMux = 2'b01;
+
+defparam clken_ctrl_X1_Y26_N0.coord_x = 1;
+defparam clken_ctrl_X1_Y26_N0.coord_y = 26;
+defparam clken_ctrl_X1_Y26_N0.coord_z = 0;
+// Location: ASYNCCTRL_X1_Y26_N0
+alta_asyncctrl asyncreset_ctrl_X1_Y26_N0(.Din(), .Dout(AsyncReset_X1_Y26_GND));
+defparam asyncreset_ctrl_X1_Y26_N0.AsyncCtrlMux = 2'b00;
+
+defparam asyncreset_ctrl_X1_Y26_N0.coord_x = 1;
+defparam asyncreset_ctrl_X1_Y26_N0.coord_y = 26;
+defparam asyncreset_ctrl_X1_Y26_N0.coord_z = 0;
+// Location: CLKENCTRL_X1_Y26_N1
+alta_clkenctrl clken_ctrl_X1_Y26_N1(.ClkIn(\MCU_LCD_WRX~inputclkctrl_outclk ), .ClkEn(), .ClkOut(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y26_INV_VCC ));
+defparam clken_ctrl_X1_Y26_N1.ClkMux = 2'b11;
+defparam clken_ctrl_X1_Y26_N1.ClkEnMux = 2'b01;
+
+defparam clken_ctrl_X1_Y26_N1.coord_x = 1;
+defparam clken_ctrl_X1_Y26_N1.coord_y = 26;
+defparam clken_ctrl_X1_Y26_N1.coord_z = 1;
+// Location: SYNCCTRL_X1_Y26_N0
+alta_syncctrl syncreset_ctrl_X1_Y26(.Din(), .Dout(SyncReset_X1_Y26_GND));
+defparam syncreset_ctrl_X1_Y26.SyncCtrlMux = 2'b00;
+
+defparam syncreset_ctrl_X1_Y26.coord_x = 1;
+defparam syncreset_ctrl_X1_Y26.coord_y = 26;
+defparam syncreset_ctrl_X1_Y26.coord_z = 0;
+// Location: SYNCCTRL_X1_Y26_N1
+alta_syncctrl syncload_ctrl_X1_Y26(.Din(), .Dout(SyncLoad_X1_Y26_VCC));
+defparam syncload_ctrl_X1_Y26.SyncCtrlMux = 2'b01;
+defparam syncload_ctrl_X1_Y26.coord_x = 1;
+defparam syncload_ctrl_X1_Y26.coord_y = 26;
+defparam syncload_ctrl_X1_Y26.coord_z = 1;
+endmodule
+

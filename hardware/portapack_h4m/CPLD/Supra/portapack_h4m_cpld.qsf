@@ -1,0 +1,115 @@
+# Design name Assignments, replace __design_name__ with actual design name
+# ========================
+set_global_assignment -name DEVICE EP4CE75F29C8
+set_global_assignment -name FAMILY "Cyclone IV E"
+
+set_global_assignment -name TOP_LEVEL_ENTITY "top"
+set_global_assignment -name SEARCH_PATH "A:\\Users\\jLynx\\Documents\\Code\\C\\portapack-mayhem\\hardware\\portapack_h4m\\CPLD\\AG256SL100\\."
+
+set_global_assignment -name VERILOG_FILE "A:\\Users\\jLynx\\Downloads\\Supra-2023.02.b0-7773ca8a-win64-all\\etc\\arch\\rodinia\\alta_sim.v"
+set_global_assignment -name VHDL_FILE "A:\\Users\\jLynx\\Documents\\Code\\C\\portapack-mayhem\\hardware\\portapack_h4m\\CPLD\\AG256SL100\\top.vhd"
+
+set_global_assignment -name SDC_FILE "A:\\Users\\jLynx\\Documents\\Code\\C\\portapack-mayhem\\hardware\\portapack_h4m\\CPLD\\AG256SL100\\portapack_h4m_cpld.sdc"
+
+set_global_assignment -name SDC_FILE .\\portapack_h4m_cpld_derate.sdc
+#set_global_assignment -name LOGICLOCK_INCREMENTAL_COMPILE_FILE "atom_netlists/__design_name__.vqm"
+
+# Project-Wide Assignments
+# ========================
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 11.1
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "09:37:04  JANUARY 04, 2013"
+set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.1 Lite Edition"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY ./quartus_logs
+set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
+set_global_assignment -name FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS ON
+#set_global_assignment -name SMART_RECOMPILE ON
+
+# Classic Timing Assignments
+# ==========================
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+
+# Analysis & Synthesis Assignments
+# ================================
+set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
+#set_global_assignment -name MAX_BALANCING_DSP_BLOCKS 0
+#set_global_assignment -name AUTO_ROM_RECOGNITION OFF
+#set_global_assignment -name AUTO_RAM_RECOGNITION OFF
+#set_global_assignment -name MAX_RAM_BLOCKS_M4K 0
+set_global_assignment -name AUTO_OPEN_DRAIN_PINS OFF
+# set_instance_assignment -name PRESERVE_REGISTER ON -to *
+#set_instance_assignment -name PRESERVE_PLL_COUNTER_ORDER ON -to *
+#set_instance_assignment -name MAX_NUMBER_OF_REGISTERS_FROM_UNINFERRED_RAMS 0 -to *
+
+# Fitter Assignments
+# ==================
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name ROUTING_BACK_ANNOTATION_MODE OFF
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "IO PATHS AND MINIMUM TPD PATHS"
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 10
+set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 10
+set_global_assignment -name ECO_OPTIMIZE_TIMING ON
+set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION ALWAYS
+set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION ALWAYS
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_global_assignment -name IO_PLACEMENT_OPTIMIZATION ON
+set_global_assignment -name SEED 1
+set_global_assignment -name FIT_ONLY_ONE_ATTEMPT OFF
+set_global_assignment -name MAX_GLOBAL_CLOCKS_ALLOWED 4
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
+#set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
+#set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+
+# EDA Netlist Writer Assignments
+# ==============================
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim (Verilog)"
+
+# LogicLock Region Assignments
+# ============================
+set_global_assignment -name LOGICLOCK_INCREMENTAL_COMPILE_ASSIGNMENT OFF
+
+# Power Estimation Assignments
+# ============================
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+
+# start EDA_TOOL_SETTINGS(eda_simulation)
+# ---------------------------------------
+
+# EDA Netlist Writer Assignments
+# ==============================
+set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
+
+# end EDA_TOOL_SETTINGS(eda_simulation)
+# -------------------------------------
+
+# start DESIGN_PARTITION(Top)
+# ---------------------------
+
+# Incremental Compilation Assignments
+# ===================================
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
+
+# end DESIGN_PARTITION(Top)
+# -------------------------
+
+
+
+set_global_assignment -name MAX_BALANCING_DSP_BLOCKS 0
+set_global_assignment -name MAX_RAM_BLOCKS_M4K 0
+set_global_assignment -name AUTO_ROM_RECOGNITION OFF
+set_global_assignment -name AUTO_RAM_RECOGNITION OFF
+set_global_assignment -name OPTIMIZE_IOC_REGISTER_PLACEMENT_FOR_TIMING OFF
+
+
+set_global_assignment -name EDA_MAINTAIN_DESIGN_HIERARCHY PARTITION_ONLY -section_id eda_simulation
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

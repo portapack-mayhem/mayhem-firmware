@@ -1,0 +1,112 @@
+set_location_assignment -to MCU_D[7] PIN_26
+set_location_assignment -to MCU_D[6] PIN_27
+set_location_assignment -to MCU_D[5] PIN_29
+set_location_assignment -to MCU_D[4] PIN_28
+set_location_assignment -to MCU_D[3] PIN_30
+set_location_assignment -to MCU_D[2] PIN_33
+set_location_assignment -to MCU_D[1] PIN_36
+set_location_assignment -to MCU_D[0] PIN_35
+set_location_assignment -to MCU_DIR PIN_72
+set_location_assignment -to MCU_IO_STBX PIN_41
+set_location_assignment -to MCU_LCD_WRX PIN_71
+set_location_assignment -to MCU_ADDR PIN_42
+set_location_assignment -to MCU_LCD_TE PIN_40
+set_location_assignment -to MCU_P2_8 PIN_43
+set_location_assignment -to MCU_LCD_RDX PIN_39
+set_location_assignment -to TP_U PIN_8
+set_location_assignment -to TP_D PIN_6
+set_location_assignment -to TP_L PIN_7
+set_location_assignment -to TP_R PIN_5
+set_location_assignment -to SW_SEL PIN_17
+set_location_assignment -to SW_ROT_A PIN_15
+set_location_assignment -to SW_ROT_B PIN_16
+set_location_assignment -to SW_U PIN_34
+set_location_assignment -to SW_D PIN_14
+set_location_assignment -to SW_L PIN_37
+set_location_assignment -to SW_R PIN_12
+set_location_assignment -to LCD_RESETX PIN_100
+set_location_assignment -to LCD_RS PIN_3
+set_location_assignment -to LCD_WRX PIN_2
+set_location_assignment -to LCD_RDX PIN_1
+set_location_assignment -to LCD_DB[15] PIN_82
+set_location_assignment -to LCD_DB[14] PIN_83
+set_location_assignment -to LCD_DB[13] PIN_84
+set_location_assignment -to LCD_DB[12] PIN_85
+set_location_assignment -to LCD_DB[11] PIN_86
+set_location_assignment -to LCD_DB[10] PIN_87
+set_location_assignment -to LCD_DB[9] PIN_88
+set_location_assignment -to LCD_DB[8] PIN_89
+set_location_assignment -to LCD_DB[7] PIN_90
+set_location_assignment -to LCD_DB[6] PIN_91
+set_location_assignment -to LCD_DB[5] PIN_92
+set_location_assignment -to LCD_DB[4] PIN_95
+set_location_assignment -to LCD_DB[3] PIN_96
+set_location_assignment -to LCD_DB[2] PIN_97
+set_location_assignment -to LCD_DB[1] PIN_98
+set_location_assignment -to LCD_DB[0] PIN_99
+set_location_assignment -to LCD_TE PIN_4
+set_location_assignment -to LCD_BACKLIGHT PIN_76
+set_location_assignment -to SYSOFF PIN_47
+set_location_assignment -to AUDIO_RESETX PIN_57
+set_location_assignment -to REF_EN PIN_58
+set_location_assignment -to GPS_RESETX PIN_73
+set_location_assignment -to GPS_TX_READY PIN_75
+set_location_assignment -to GPS_TIMEPULSE PIN_74
+set_location_assignment -to DEVICE_RESET PIN_44
+set_location_assignment -to DEVICE_RESET_V PIN_38
+set_instance_assignment -name IO_STANDARD -to MCU_D[7] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[6] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[5] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[4] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[3] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[2] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[1] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_D[0] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_DIR "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_IO_STBX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_LCD_WRX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_ADDR "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_LCD_TE "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_P2_8 "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to MCU_LCD_RDX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to TP_U "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to TP_D "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to TP_L "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to TP_R "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to SW_SEL "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to SW_ROT_A "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to SW_ROT_B "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to SW_U "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to SW_D "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to SW_L "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to SW_R "3.3V Schmitt Trigger Input"
+set_instance_assignment -name IO_STANDARD -to LCD_RESETX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_RS "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_WRX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_RDX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[15] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[14] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[13] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[12] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[11] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[10] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[9] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[8] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[7] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[6] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[5] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[4] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[3] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[2] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[1] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_DB[0] "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_TE "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to LCD_BACKLIGHT "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to SYSOFF "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to AUDIO_RESETX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to REF_EN "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to GPS_RESETX "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to GPS_TX_READY "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to GPS_TIMEPULSE "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to DEVICE_RESET "3.3-V LVCMOS"
+set_instance_assignment -name IO_STANDARD -to DEVICE_RESET_V "3.3-V LVCMOS"
