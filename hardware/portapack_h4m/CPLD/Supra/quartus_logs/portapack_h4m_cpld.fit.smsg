@@ -1,0 +1,8 @@
+Extra Info (176273): Performing register packing on registers with non-logic cell location assignments
+Extra Info (176274): Completed register packing on registers with non-logic cell location assignments
+Extra Info (176236): Started Fast Input/Output/OE register processing
+Extra Info (176237): Finished Fast Input/Output/OE register processing
+Extra Info (176238): Start inferring scan chains for DSP blocks
+Extra Info (176239): Inferring scan chains for DSP blocks is complete
+Extra Info (176248): Moving registers into I/O cells, Multiplier Blocks, and RAM blocks to improve timing and density
+Extra Info (176249): Finished moving registers into I/O cells, Multiplier Blocks, and RAM blocks

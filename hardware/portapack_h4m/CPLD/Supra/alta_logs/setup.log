@@ -1,0 +1,57 @@
+> alta::tcl_whisper "Cmd : [alta::prog_path] [alta::prog_version]([alta::prog_subversion])\n"
+Cmd : A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/bin/af.exe 2023.02.b0(7773ca8a)
+> alta::tcl_whisper "Args : $tcl_cmd_args\n"
+Args : -X {set DEVICE_FAMILY 1} -X {set MODE QUARTUS} -X {set DESIGN portapack_h4m_cpld} -X {set TOP_MODULE portapack_h4m_cpld} -X {set DEVICE AG256SL100} -X {set AF_QUARTUS_TEMPL "A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/etc/af_quartus.tcl"} -X {set AF_QUARTUS "./af_quartus.tcl"} -X {set AF_IP_TEMPL "A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/etc/af_ip.tcl"} -X {set AF_IP "./af_ip.tcl"} -X {set AF_MAP_TEMPL "A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/etc/af_map.tcl"} -X {set AF_MAP "./af_map.tcl"} -X {set AF_RUN_TEMPL "A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/etc/af_run.tcl"} -X {set AF_RUN "./af_run.tcl"} -X {set AF_BATCH_TEMPL "A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/etc/af_batch.tcl"} -X {set AF_BATCH "./af_batch.tcl"} -X {set WORK_DIR "."} -X {set ORIGINAL_DIR "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100"} -X {set ORIGINAL_OUTPUT ""} -F A:/Users/jLynx/Downloads/Supra-2023.02.b0-7773ca8a-win64-all/etc/af_setup_.tcl
+> 
+> if { [info exists TIMING_DERATE] } {
+  set ar_timing_derate ${TIMING_DERATE}
+}
+> 
+> load_architect -no_route -type ${DEVICE} 1 1 1000 1000
+Total IO  : 104
+Total Pin : 80/4
+Top array is built.
+Loading architect libraries...
+## CPU time: 0:0:0, REAL time: 0:0:0
+## Memory Usage: 30MB (30MB)
+> foreach ip_file $IP_FILES {
+  read_ip $ip_file
+}
+> 
+> if { [info exist DEVICE_FAMILY] } {
+  set db_target_device_family $DEVICE_FAMILY
+}
+> set ret [alta::setupRun ${DESIGN} ${TOP_MODULE} \
+                        "${IP_FILES}" \
+                        "${VERILOG_FILES}" \
+                        "${VQM_FILES}" \
+                        "${VHDL_FILES}"\
+                        "${AF_QUARTUS_TEMPL}" "${AF_QUARTUS}"\
+                        "${AF_IP_TEMPL}" "${AF_IP}" \
+                        "${AF_MAP_TEMPL}" "${AF_MAP}" \
+                        "${AF_RUN_TEMPL}" "${AF_RUN}" \
+                        "${AF_BATCH_TEMPL}" "${AF_BATCH}" \
+                        "${VE_FILE}" \
+                        "${WORK_DIR}" "${ORIGINAL_DIR}" "${ORIGINAL_OUTPUT}"\
+                        "${ORIGINAL_QSF}" "${ORIGINAL_PIN}" \
+                        "${GCLK_CNT}" "${USE_DESIGN_TEMPL}"]
+Info: Top level entity name top is different from design name portapack_h4m_cpld.
+> if { !$ret } { exit -1 }
+> 
+> alta::tcl_print "\nSetup done...\n"
+
+Setup done...
+> alta::tcl_print "Next, compile with quartus using one of following 2 approaches:\n"
+Next, compile with quartus using one of following 2 approaches:
+> alta::tcl_print " 1) Command line base, run \'quartus_sh -t af_quartus.tcl\'\n"
+ 1) Command line base, run 'quartus_sh -t af_quartus.tcl'
+> alta::tcl_print " 2) GUI base, start quartus GUI, open project ${DESIGN},\n"
+ 2) GUI base, start quartus GUI, open project portapack_h4m_cpld,
+> alta::tcl_print "    select Tools->Tcl Scripts..., load af_quartus.tcl and run\n"
+    select Tools->Tcl Scripts..., load af_quartus.tcl and run
+> alta::tcl_print "Then, run \'af_run\' to generate ${DESIGN} bit-stream files\n"
+Then, run 'af_run' to generate portapack_h4m_cpld bit-stream files
+> 
+> exit
+
+Total 0 fatals, 0 errors, 0 warnings, 1 infos.

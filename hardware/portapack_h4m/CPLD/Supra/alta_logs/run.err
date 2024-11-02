@@ -1,0 +1,33 @@
+Info: Found GCLK net MCU_IO_STBX~inputclkctrl_outclk (2).
+Info: Found GCLK net MCU_LCD_WRX~inputclkctrl_outclk (2).
+Info: Found GCLK net MCU_LCD_RDX~inputclkctrl_outclk (4).
+Info: Top level output port MCU_D[7] is identified as an inout.
+Info: Top level output port MCU_D[5] is identified as an inout.
+Info: Top level output port MCU_D[6] is identified as an inout.
+Info: Top level output port LCD_DB[14] is identified as an inout.
+Info: Top level output port LCD_DB[13] is identified as an inout.
+Info: Top level output port LCD_DB[9] is identified as an inout.
+Info: Top level output port LCD_DB[7] is identified as an inout.
+Info: Top level output port LCD_DB[5] is identified as an inout.
+Info: Top level output port LCD_DB[4] is identified as an inout.
+Info: Top level output port LCD_DB[1] is identified as an inout.
+Info: Top level output port LCD_DB[0] is identified as an inout.
+Info: Top level output port MCU_D[3] is identified as an inout.
+Info: Top level output port LCD_DB[10] is identified as an inout.
+Info: Top level output port MCU_D[0] is identified as an inout.
+Info: Top level output port LCD_DB[8] is identified as an inout.
+Info: Top level output port LCD_DB[2] is identified as an inout.
+Info: Top level output port MCU_D[1] is identified as an inout.
+Info: Top level output port LCD_DB[12] is identified as an inout.
+Info: Top level output port LCD_DB[11] is identified as an inout.
+Info: Top level output port LCD_DB[15] is identified as an inout.
+Info: Top level output port LCD_DB[6] is identified as an inout.
+Info: Top level output port LCD_DB[3] is identified as an inout.
+Info: Top level output port MCU_D[4] is identified as an inout.
+Info: Top level output port MCU_D[2] is identified as an inout.
+Warn: Auto constraint INTERNAL: create_clock -name Internal_generated_clock_top|MCU_LCD_RDX -period 1000.000 MCU_LCD_RDX.
+Warn: Auto constraint INTERNAL: create_clock -name Internal_generated_clock_top|MCU_IO_STBX -period 1000.000 MCU_IO_STBX.
+Warn: User constraints coverage is too low at 5.6%.
+Info: Using config file ./portapack_h4m_cpld.bin to generate download file ./portapack_h4m_cpld_download.svf.
+
+Total 0 fatals, 0 errors, 3 warnings, 28 infos.

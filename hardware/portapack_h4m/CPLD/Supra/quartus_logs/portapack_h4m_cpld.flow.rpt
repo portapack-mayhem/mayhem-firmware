@@ -1,0 +1,157 @@
+Flow report for portapack_h4m_cpld
+Sat Jul 20 11:05:44 2024
+Quartus Prime Version 22.1std.1 Build 917 02/14/2023 SC Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Flow Summary
+  3. Flow Settings
+  4. Flow Non-Default Global Settings
+  5. Flow Elapsed Time
+  6. Flow OS Summary
+  7. Flow Log
+  8. Flow Messages
+  9. Flow Suppressed Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2023  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
+
+
+
++-------------------------------------------------------------------------------------+
+; Flow Summary                                                                        ;
++------------------------------------+------------------------------------------------+
+; Flow Status                        ; Successful - Sat Jul 20 11:05:44 2024          ;
+; Quartus Prime Version              ; 22.1std.1 Build 917 02/14/2023 SC Lite Edition ;
+; Revision Name                      ; portapack_h4m_cpld                             ;
+; Top-level Entity Name              ; top                                            ;
+; Family                             ; Cyclone IV E                                   ;
+; Device                             ; EP4CE75F29C8                                   ;
+; Timing Models                      ; Final                                          ;
+; Total logic elements               ; 39 / 75,408 ( < 1 % )                          ;
+;     Total combinational functions  ; 20 / 75,408 ( < 1 % )                          ;
+;     Dedicated logic registers      ; 29 / 75,408 ( < 1 % )                          ;
+; Total registers                    ; 29                                             ;
+; Total pins                         ; 56 / 427 ( 13 % )                              ;
+; Total virtual pins                 ; 0                                              ;
+; Total memory bits                  ; 0 / 2,810,880 ( 0 % )                          ;
+; Embedded Multiplier 9-bit elements ; 0 / 400 ( 0 % )                                ;
+; Total PLLs                         ; 0 / 4 ( 0 % )                                  ;
++------------------------------------+------------------------------------------------+
+
+
++-----------------------------------------+
+; Flow Settings                           ;
++-------------------+---------------------+
+; Option            ; Setting             ;
++-------------------+---------------------+
+; Start date & time ; 07/20/2024 11:04:56 ;
+; Main task         ; Compilation         ;
+; Revision Name     ; portapack_h4m_cpld  ;
++-------------------+---------------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Flow Non-Default Global Settings                                                                                                                             ;
++--------------------------------------------+-------------------------------------------------------------+--------------------+-------------+----------------+
+; Assignment Name                            ; Value                                                       ; Default Value      ; Entity Name ; Section Id     ;
++--------------------------------------------+-------------------------------------------------------------+--------------------+-------------+----------------+
+; ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP        ; On                                                          ; Off                ; --          ; --             ;
+; AUTO_OPEN_DRAIN_PINS                       ; Off                                                         ; On                 ; --          ; --             ;
+; AUTO_RAM_RECOGNITION                       ; Off                                                         ; On                 ; --          ; --             ;
+; AUTO_ROM_RECOGNITION                       ; Off                                                         ; On                 ; --          ; --             ;
+; COMPILER_SIGNATURE_ID                      ; 91767492399.172143029605440                                 ; --                 ; --          ; --             ;
+; ECO_OPTIMIZE_TIMING                        ; On                                                          ; Off                ; --          ; --             ;
+; EDA_MAINTAIN_DESIGN_HIERARCHY              ; PARTITION_ONLY                                              ; --                 ; --          ; eda_simulation ;
+; EDA_OUTPUT_DATA_FORMAT                     ; Verilog Hdl                                                 ; --                 ; --          ; eda_simulation ;
+; EDA_SIMULATION_TOOL                        ; ModelSim (Verilog)                                          ; <None>             ; --          ; --             ;
+; EDA_TIME_SCALE                             ; 1 ps                                                        ; --                 ; --          ; eda_simulation ;
+; FINAL_PLACEMENT_OPTIMIZATION               ; Always                                                      ; Automatically      ; --          ; --             ;
+; FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION ; Always                                                      ; Automatically      ; --          ; --             ;
+; FITTER_EFFORT                              ; Standard Fit                                                ; Auto Fit           ; --          ; --             ;
+; FLOW_DISABLE_ASSEMBLER                     ; On                                                          ; Off                ; --          ; --             ;
+; FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS         ; On                                                          ; Off                ; --          ; --             ;
+; MAX_BALANCING_DSP_BLOCKS                   ; 0                                                           ; -1 (Unlimited)     ; --          ; --             ;
+; MAX_CORE_JUNCTION_TEMP                     ; 85                                                          ; --                 ; --          ; --             ;
+; MAX_GLOBAL_CLOCKS_ALLOWED                  ; 4                                                           ; -1 (Unlimited)     ; --          ; --             ;
+; MAX_RAM_BLOCKS_M4K                         ; 0                                                           ; -1 (Unlimited)     ; --          ; --             ;
+; MIN_CORE_JUNCTION_TEMP                     ; 0                                                           ; --                 ; --          ; --             ;
+; NUM_PARALLEL_PROCESSORS                    ; All                                                         ; --                 ; --          ; --             ;
+; OPTIMIZE_HOLD_TIMING                       ; IO Paths and Minimum TPD Paths                              ; All Paths          ; --          ; --             ;
+; OPTIMIZE_IOC_REGISTER_PLACEMENT_FOR_TIMING ; Off                                                         ; Normal             ; --          ; --             ;
+; PARTITION_COLOR                            ; -- (Not supported for targeted family)                      ; --                 ; top         ; Top            ;
+; PARTITION_FITTER_PRESERVATION_LEVEL        ; -- (Not supported for targeted family)                      ; --                 ; top         ; Top            ;
+; PARTITION_NETLIST_TYPE                     ; -- (Not supported for targeted family)                      ; --                 ; top         ; Top            ;
+; PHYSICAL_SYNTHESIS_COMBO_LOGIC             ; On                                                          ; Off                ; --          ; --             ;
+; PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA    ; On                                                          ; Off                ; --          ; --             ;
+; PHYSICAL_SYNTHESIS_EFFORT                  ; Extra                                                       ; Normal             ; --          ; --             ;
+; PLACEMENT_EFFORT_MULTIPLIER                ; 10                                                          ; 1.0                ; --          ; --             ;
+; POWER_BOARD_THERMAL_MODEL                  ; None (CONSERVATIVE)                                         ; --                 ; --          ; --             ;
+; POWER_PRESET_COOLING_SOLUTION              ; 23 MM HEAT SINK WITH 200 LFPM AIRFLOW                       ; --                 ; --          ; --             ;
+; PROJECT_OUTPUT_DIRECTORY                   ; ./quartus_logs                                              ; --                 ; --          ; --             ;
+; ROUTER_EFFORT_MULTIPLIER                   ; 10                                                          ; 1.0                ; --          ; --             ;
+; ROUTER_TIMING_OPTIMIZATION_LEVEL           ; MAXIMUM                                                     ; Normal             ; --          ; --             ;
+; ROUTING_BACK_ANNOTATION_MODE               ; Off                                                         ; --                 ; --          ; --             ;
+; SEARCH_PATH                                ; A:\Users\jLynx\Documents\Code\CPLD\PP_CPLD\H4M\AG256SL100\. ; --                 ; --          ; --             ;
+; TOP_LEVEL_ENTITY                           ; top                                                         ; portapack_h4m_cpld ; --          ; --             ;
++--------------------------------------------+-------------------------------------------------------------+--------------------+-------------+----------------+
+
+
++-----------------------------------------------------------------------------------------------------------------------------+
+; Flow Elapsed Time                                                                                                           ;
++-------------------------+--------------+-------------------------+---------------------+------------------------------------+
+; Module Name             ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
++-------------------------+--------------+-------------------------+---------------------+------------------------------------+
+; Analysis & Synthesis    ; 00:00:08     ; 1.0                     ; 4896 MB             ; 00:00:18                           ;
+; I/O Assignment Analysis ; 00:00:03     ; 1.0                     ; 4997 MB             ; 00:00:02                           ;
+; Fitter                  ; 00:00:29     ; 1.0                     ; 6625 MB             ; 00:00:39                           ;
+; Timing Analyzer         ; 00:00:02     ; 1.1                     ; 4935 MB             ; 00:00:02                           ;
+; EDA Netlist Writer      ; 00:00:01     ; 1.0                     ; 4649 MB             ; 00:00:01                           ;
+; Total                   ; 00:00:43     ; --                      ; --                  ; 00:01:02                           ;
++-------------------------+--------------+-------------------------+---------------------+------------------------------------+
+
+
++---------------------------------------------------------------------------------------+
+; Flow OS Summary                                                                       ;
++-------------------------+------------------+------------+------------+----------------+
+; Module Name             ; Machine Hostname ; OS Name    ; OS Version ; Processor type ;
++-------------------------+------------------+------------+------------+----------------+
+; Analysis & Synthesis    ; jLynx-Desktop    ; Windows 10 ; 10.0       ; x86_64         ;
+; I/O Assignment Analysis ; jLynx-Desktop    ; Windows 10 ; 10.0       ; x86_64         ;
+; Fitter                  ; jLynx-Desktop    ; Windows 10 ; 10.0       ; x86_64         ;
+; Timing Analyzer         ; jLynx-Desktop    ; Windows 10 ; 10.0       ; x86_64         ;
+; EDA Netlist Writer      ; jLynx-Desktop    ; Windows 10 ; 10.0       ; x86_64         ;
++-------------------------+------------------+------------+------------+----------------+
+
+
+------------
+; Flow Log ;
+------------
+quartus_map --read_settings_files=on --write_settings_files=off portapack_h4m_cpld -c portapack_h4m_cpld
+quartus_fit --read_settings_files=off --write_settings_files=off portapack_h4m_cpld -c portapack_h4m_cpld --plan
+quartus_fit --read_settings_files=off --write_settings_files=off portapack_h4m_cpld -c portapack_h4m_cpld
+quartus_sta portapack_h4m_cpld -c portapack_h4m_cpld
+quartus_eda --read_settings_files=off --write_settings_files=off portapack_h4m_cpld -c portapack_h4m_cpld
+
+
+

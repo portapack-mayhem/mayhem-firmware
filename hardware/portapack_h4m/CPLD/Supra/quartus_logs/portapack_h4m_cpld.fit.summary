@@ -1,0 +1,16 @@
+Fitter Status : Successful - Sat Jul 20 11:05:39 2024
+Quartus Prime Version : 22.1std.1 Build 917 02/14/2023 SC Lite Edition
+Revision Name : portapack_h4m_cpld
+Top-level Entity Name : top
+Family : Cyclone IV E
+Device : EP4CE75F29C8
+Timing Models : Final
+Total logic elements : 39 / 75,408 ( < 1 % )
+    Total combinational functions : 20 / 75,408 ( < 1 % )
+    Dedicated logic registers : 29 / 75,408 ( < 1 % )
+Total registers : 29
+Total pins : 56 / 427 ( 13 % )
+Total virtual pins : 0
+Total memory bits : 0 / 2,810,880 ( 0 % )
+Embedded Multiplier 9-bit elements : 0 / 400 ( 0 % )
+Total PLLs : 0 / 4 ( 0 % )
