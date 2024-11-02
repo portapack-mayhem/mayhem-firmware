@@ -15,18 +15,21 @@
 namespace ui::external_app::shoppingcart_lock {
 
 class ShoppingCartLock : public View {
-public:
+   public:
     explicit ShoppingCartLock(NavigationView& nav);
     ~ShoppingCartLock();
-    
+
     ShoppingCartLock(const ShoppingCartLock&) = delete;
     ShoppingCartLock& operator=(const ShoppingCartLock&) = delete;
-    
+
     std::string title() const override { return "Cart Lock"; };
 
     void focus() override;
 
-private:
+   private:
+    static constexpr size_t BUFFER_SIZE = 8192;
+    static constexpr size_t NUM_BUFFERS = 8;
+
     NavigationView& nav_;
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
@@ -34,39 +37,41 @@ private:
     bool looping{false};
     std::string current_file{};
 
+    struct WAVProperties {
+        uint32_t sample_rate;
+        uint16_t channels;
+        uint16_t bits_per_sample;
+        size_t file_size;
+    };
+
     void log_event(const std::string& message);
     std::string list_wav_files();
-    void handle_error(const std::string& message);    
+    void handle_error(const std::string& message);
     void play_audio(const std::string& filename, bool loop = false);
     void stop();
     bool is_active() const;
     void wait_for_thread();
     void restart_playback();
-    
+
     MenuView menu_view{
         {0, 0, 240, 150},
-        true
-    };
+        true};
 
     Text text_empty{
         {40, 70, 160, 16},
-        "RocketGod was here"
-    };
+        "RocketGod was here"};
 
-    Button button_lock {
+    Button button_lock{
         {40, 165, 160, 35},
-        LanguageHelper::currentMessages[LANG_LOCK] 
-    };
-    
-    Button button_unlock {
+        LanguageHelper::currentMessages[LANG_LOCK]};
+
+    Button button_unlock{
         {40, 205, 160, 35},
-        LanguageHelper::currentMessages[LANG_UNLOCK] 
-    };
-    
-    Button button_stop {
+        LanguageHelper::currentMessages[LANG_UNLOCK]};
+
+    Button button_stop{
         {40, 245, 160, 35},
-        LanguageHelper::currentMessages[LANG_STOP] 
-    };
+        LanguageHelper::currentMessages[LANG_STOP]};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,
@@ -75,8 +80,7 @@ private:
             if (message->signal == RequestSignalMessage::Signal::FillRequest) {
                 ready_signal = true;
             }
-        }
-    };
+        }};
 
     MessageHandlerRegistration message_handler_replay_thread_done{
         Message::ID::ReplayThreadDone,
@@ -91,8 +95,7 @@ private:
                 thread_sync_complete = true;
                 stop();
             }
-        }
-    };
+        }};
 };
 
-}
+}  // namespace ui::external_app::shoppingcart_lock
