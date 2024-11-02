@@ -1,5 +1,6 @@
 --
 -- Copyright (C) 2012 Jared Boone, ShareBrained Technology, Inc.
+-- Copyright (C) 2024 jLynx.net https://github.com/jLynx
 --
 -- This file is part of PortaPack.
 --
