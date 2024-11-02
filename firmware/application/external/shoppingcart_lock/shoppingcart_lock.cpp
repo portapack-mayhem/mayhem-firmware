@@ -149,7 +149,6 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
     }
 
     const uint32_t wav_sample_rate = reader->sample_rate();
-    const uint16_t wav_channels = reader->channels();
     const uint16_t wav_bits_per_sample = reader->bits_per_sample();
 
     current_file = filename;
@@ -169,20 +168,20 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
 
     log_event("... Configuring Baseband");
 
-    const uint32_t bb_sample_rate = 20000000;
+    const uint32_t bb_sample_rate = 1536000;
     const uint32_t decimation = bb_sample_rate / wav_sample_rate;
 
     baseband::set_audiotx_config(
-        bb_sample_rate / decimation,  // Match WAV sample rate
-        20000000,                     // Center frequency
-        3.0f,                         // Gain
-        wav_bits_per_sample,          // Use actual bits per sample
-        wav_bits_per_sample,          // Output bits
-        0,                            // No shift
-        wav_channels > 1,             // Stereo if channels > 1
-        false,                        // No DSB
-        false,                        // No USB
-        false                         // No LSB
+        bb_sample_rate / decimation, 
+        0.0f, 
+        5.0f,  
+        wav_bits_per_sample,  
+        wav_bits_per_sample,  
+        0,
+        true,                           
+        false,                       
+        false,                        
+        false                        
     );
 
     baseband::set_sample_rate(wav_sample_rate);

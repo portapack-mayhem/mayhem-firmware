@@ -39,7 +39,6 @@ class ShoppingCartLock : public View {
 
     struct WAVProperties {
         uint32_t sample_rate;
-        uint16_t channels;
         uint16_t bits_per_sample;
         size_t file_size;
     };
