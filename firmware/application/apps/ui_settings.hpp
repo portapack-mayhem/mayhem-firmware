@@ -795,7 +795,7 @@ class SetTouchscreenThresholdView : public View {
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
     NumberField field_threshold{
-        {1 * 8 + sizeof("Threshold:") * 8 + 8, 11 * 16},
+        {1 * 8 + 11 * 8 + 8, 11 * 16},
         4,
         {1, 1023},
         1,
