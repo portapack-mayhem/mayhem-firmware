@@ -159,8 +159,8 @@ static void event_loop() {
             event_dispatcher.set_display_sleep(true);
         }};
     portapack::setEventDispatcherToUSBSerial(&event_dispatcher);
-    event_dispatcher.run();
     system_view.get_navigation_view()->handle_autostart();
+    event_dispatcher.run();
 }
 
 int main(void) {
