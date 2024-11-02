@@ -1143,7 +1143,7 @@ defparam \TP_U~output .PU = 4'b1000;
 alta_asyncctrl asyncreset_ctrl_X1_Y15_N0(
 	.Din(),
 	.Dout(AsyncReset_X1_Y15_GND));
-defparam asyncreset_ctrl_X1_Y15_N0.coord_x = 2;
+defparam asyncreset_ctrl_X1_Y15_N0.coord_x = 3;
 defparam asyncreset_ctrl_X1_Y15_N0.coord_y = 3;
 defparam asyncreset_ctrl_X1_Y15_N0.coord_z = 0;
 defparam asyncreset_ctrl_X1_Y15_N0.AsyncCtrlMux = 2'b00;
@@ -1152,14 +1152,14 @@ alta_asyncctrl asyncreset_ctrl_X1_Y19_N0(
 	.Din(),
 	.Dout(AsyncReset_X1_Y19_GND));
 defparam asyncreset_ctrl_X1_Y19_N0.coord_x = 3;
-defparam asyncreset_ctrl_X1_Y19_N0.coord_y = 2;
+defparam asyncreset_ctrl_X1_Y19_N0.coord_y = 1;
 defparam asyncreset_ctrl_X1_Y19_N0.coord_z = 0;
 defparam asyncreset_ctrl_X1_Y19_N0.AsyncCtrlMux = 2'b00;
 
 alta_asyncctrl asyncreset_ctrl_X1_Y20_N0(
 	.Din(),
 	.Dout(AsyncReset_X1_Y20_GND));
-defparam asyncreset_ctrl_X1_Y20_N0.coord_x = 3;
+defparam asyncreset_ctrl_X1_Y20_N0.coord_x = 4;
 defparam asyncreset_ctrl_X1_Y20_N0.coord_y = 3;
 defparam asyncreset_ctrl_X1_Y20_N0.coord_z = 0;
 defparam asyncreset_ctrl_X1_Y20_N0.AsyncCtrlMux = 2'b00;
@@ -1168,31 +1168,31 @@ alta_asyncctrl asyncreset_ctrl_X1_Y21_N0(
 	.Din(),
 	.Dout(AsyncReset_X1_Y21_GND));
 defparam asyncreset_ctrl_X1_Y21_N0.coord_x = 5;
-defparam asyncreset_ctrl_X1_Y21_N0.coord_y = 2;
+defparam asyncreset_ctrl_X1_Y21_N0.coord_y = 3;
 defparam asyncreset_ctrl_X1_Y21_N0.coord_z = 0;
 defparam asyncreset_ctrl_X1_Y21_N0.AsyncCtrlMux = 2'b00;
 
 alta_asyncctrl asyncreset_ctrl_X1_Y24_N0(
 	.Din(),
 	.Dout(AsyncReset_X1_Y24_GND));
-defparam asyncreset_ctrl_X1_Y24_N0.coord_x = 3;
-defparam asyncreset_ctrl_X1_Y24_N0.coord_y = 1;
+defparam asyncreset_ctrl_X1_Y24_N0.coord_x = 5;
+defparam asyncreset_ctrl_X1_Y24_N0.coord_y = 2;
 defparam asyncreset_ctrl_X1_Y24_N0.coord_z = 0;
 defparam asyncreset_ctrl_X1_Y24_N0.AsyncCtrlMux = 2'b00;
 
 alta_asyncctrl asyncreset_ctrl_X1_Y26_N0(
 	.Din(),
 	.Dout(AsyncReset_X1_Y26_GND));
-defparam asyncreset_ctrl_X1_Y26_N0.coord_x = 4;
-defparam asyncreset_ctrl_X1_Y26_N0.coord_y = 3;
+defparam asyncreset_ctrl_X1_Y26_N0.coord_x = 3;
+defparam asyncreset_ctrl_X1_Y26_N0.coord_y = 2;
 defparam asyncreset_ctrl_X1_Y26_N0.coord_z = 0;
 defparam asyncreset_ctrl_X1_Y26_N0.AsyncCtrlMux = 2'b00;
 
 alta_slice audio_reset_q(
-	.A(vcc),
+	.A(\MCU_D[1]~input_o ),
 	.B(vcc),
 	.C(vcc),
-	.D(\MCU_D[1]~input_o ),
+	.D(vcc),
 	.Cin(),
 	.Qin(\audio_reset_q~q ),
 	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
@@ -1203,10 +1203,10 @@ alta_slice audio_reset_q(
 	.LutOut(\audio_reset_q~0_combout ),
 	.Cout(),
 	.Q(\audio_reset_q~q ));
-defparam audio_reset_q.coord_x = 2;
+defparam audio_reset_q.coord_x = 3;
 defparam audio_reset_q.coord_y = 3;
-defparam audio_reset_q.coord_z = 1;
-defparam audio_reset_q.mask = 16'h00FF;
+defparam audio_reset_q.coord_z = 12;
+defparam audio_reset_q.mask = 16'h5555;
 defparam audio_reset_q.modeMux = 1'b0;
 defparam audio_reset_q.FeedbackMux = 1'b0;
 defparam audio_reset_q.ShiftMux = 1'b0;
@@ -1217,7 +1217,7 @@ alta_clkenctrl clken_ctrl_X1_Y15_N0(
 	.ClkIn(\MCU_IO_STBX~inputclkctrl_outclk ),
 	.ClkEn(\tp_q[3]~0_combout ),
 	.ClkOut(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ));
-defparam clken_ctrl_X1_Y15_N0.coord_x = 2;
+defparam clken_ctrl_X1_Y15_N0.coord_x = 3;
 defparam clken_ctrl_X1_Y15_N0.coord_y = 3;
 defparam clken_ctrl_X1_Y15_N0.coord_z = 0;
 defparam clken_ctrl_X1_Y15_N0.ClkMux = 2'b10;
@@ -1227,7 +1227,7 @@ alta_clkenctrl clken_ctrl_X1_Y15_N1(
 	.ClkIn(\MCU_IO_STBX~inputclkctrl_outclk ),
 	.ClkEn(\lcd_reset_q~0_combout ),
 	.ClkOut(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ));
-defparam clken_ctrl_X1_Y15_N1.coord_x = 2;
+defparam clken_ctrl_X1_Y15_N1.coord_x = 3;
 defparam clken_ctrl_X1_Y15_N1.coord_y = 3;
 defparam clken_ctrl_X1_Y15_N1.coord_z = 1;
 defparam clken_ctrl_X1_Y15_N1.ClkMux = 2'b10;
@@ -1238,7 +1238,7 @@ alta_clkenctrl clken_ctrl_X1_Y19_N0(
 	.ClkEn(),
 	.ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y19_SIG_VCC ));
 defparam clken_ctrl_X1_Y19_N0.coord_x = 3;
-defparam clken_ctrl_X1_Y19_N0.coord_y = 2;
+defparam clken_ctrl_X1_Y19_N0.coord_y = 1;
 defparam clken_ctrl_X1_Y19_N0.coord_z = 0;
 defparam clken_ctrl_X1_Y19_N0.ClkMux = 2'b10;
 defparam clken_ctrl_X1_Y19_N0.ClkEnMux = 2'b01;
@@ -1247,7 +1247,7 @@ alta_clkenctrl clken_ctrl_X1_Y20_N0(
 	.ClkIn(\MCU_LCD_WRX~inputclkctrl_outclk ),
 	.ClkEn(),
 	.ClkOut(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ));
-defparam clken_ctrl_X1_Y20_N0.coord_x = 3;
+defparam clken_ctrl_X1_Y20_N0.coord_x = 4;
 defparam clken_ctrl_X1_Y20_N0.coord_y = 3;
 defparam clken_ctrl_X1_Y20_N0.coord_z = 0;
 defparam clken_ctrl_X1_Y20_N0.ClkMux = 2'b11;
@@ -1258,7 +1258,7 @@ alta_clkenctrl clken_ctrl_X1_Y21_N0(
 	.ClkEn(),
 	.ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y21_SIG_VCC ));
 defparam clken_ctrl_X1_Y21_N0.coord_x = 5;
-defparam clken_ctrl_X1_Y21_N0.coord_y = 2;
+defparam clken_ctrl_X1_Y21_N0.coord_y = 3;
 defparam clken_ctrl_X1_Y21_N0.coord_z = 0;
 defparam clken_ctrl_X1_Y21_N0.ClkMux = 2'b10;
 defparam clken_ctrl_X1_Y21_N0.ClkEnMux = 2'b01;
@@ -1267,8 +1267,8 @@ alta_clkenctrl clken_ctrl_X1_Y24_N0(
 	.ClkIn(\MCU_LCD_RDX~inputclkctrl_outclk ),
 	.ClkEn(),
 	.ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y24_SIG_VCC ));
-defparam clken_ctrl_X1_Y24_N0.coord_x = 3;
-defparam clken_ctrl_X1_Y24_N0.coord_y = 1;
+defparam clken_ctrl_X1_Y24_N0.coord_x = 5;
+defparam clken_ctrl_X1_Y24_N0.coord_y = 2;
 defparam clken_ctrl_X1_Y24_N0.coord_z = 0;
 defparam clken_ctrl_X1_Y24_N0.ClkMux = 2'b10;
 defparam clken_ctrl_X1_Y24_N0.ClkEnMux = 2'b01;
@@ -1277,8 +1277,8 @@ alta_clkenctrl clken_ctrl_X1_Y26_N0(
 	.ClkIn(\MCU_LCD_RDX~inputclkctrl_outclk ),
 	.ClkEn(),
 	.ClkOut(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y26_SIG_VCC ));
-defparam clken_ctrl_X1_Y26_N0.coord_x = 4;
-defparam clken_ctrl_X1_Y26_N0.coord_y = 3;
+defparam clken_ctrl_X1_Y26_N0.coord_x = 3;
+defparam clken_ctrl_X1_Y26_N0.coord_y = 2;
 defparam clken_ctrl_X1_Y26_N0.coord_z = 0;
 defparam clken_ctrl_X1_Y26_N0.ClkMux = 2'b10;
 defparam clken_ctrl_X1_Y26_N0.ClkEnMux = 2'b01;
@@ -1287,8 +1287,8 @@ alta_clkenctrl clken_ctrl_X1_Y26_N1(
 	.ClkIn(\MCU_LCD_WRX~inputclkctrl_outclk ),
 	.ClkEn(),
 	.ClkOut(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y26_INV_VCC ));
-defparam clken_ctrl_X1_Y26_N1.coord_x = 4;
-defparam clken_ctrl_X1_Y26_N1.coord_y = 3;
+defparam clken_ctrl_X1_Y26_N1.coord_x = 3;
+defparam clken_ctrl_X1_Y26_N1.coord_y = 2;
 defparam clken_ctrl_X1_Y26_N1.coord_z = 1;
 defparam clken_ctrl_X1_Y26_N1.ClkMux = 2'b11;
 defparam clken_ctrl_X1_Y26_N1.ClkEnMux = 2'b01;
@@ -1308,9 +1308,9 @@ alta_slice lcd_backlight_q(
 	.LutOut(\lcd_backlight_q~feeder_combout ),
 	.Cout(),
 	.Q(\lcd_backlight_q~q ));
-defparam lcd_backlight_q.coord_x = 2;
+defparam lcd_backlight_q.coord_x = 3;
 defparam lcd_backlight_q.coord_y = 3;
-defparam lcd_backlight_q.coord_z = 12;
+defparam lcd_backlight_q.coord_z = 8;
 defparam lcd_backlight_q.mask = 16'hFF00;
 defparam lcd_backlight_q.modeMux = 1'b0;
 defparam lcd_backlight_q.FeedbackMux = 1'b0;
@@ -1334,7 +1334,7 @@ alta_slice \lcd_data_in_q[0] (
 	.Cout(),
 	.Q(lcd_data_in_q[0]));
 defparam \lcd_data_in_q[0] .coord_x = 3;
-defparam \lcd_data_in_q[0] .coord_y = 2;
+defparam \lcd_data_in_q[0] .coord_y = 1;
 defparam \lcd_data_in_q[0] .coord_z = 15;
 defparam \lcd_data_in_q[0] .mask = 16'hF0CC;
 defparam \lcd_data_in_q[0] .modeMux = 1'b0;
@@ -1359,8 +1359,8 @@ alta_slice \lcd_data_in_q[1] (
 	.Cout(),
 	.Q(lcd_data_in_q[1]));
 defparam \lcd_data_in_q[1] .coord_x = 5;
-defparam \lcd_data_in_q[1] .coord_y = 2;
-defparam \lcd_data_in_q[1] .coord_z = 3;
+defparam \lcd_data_in_q[1] .coord_y = 3;
+defparam \lcd_data_in_q[1] .coord_z = 5;
 defparam \lcd_data_in_q[1] .mask = 16'hF3C0;
 defparam \lcd_data_in_q[1] .modeMux = 1'b0;
 defparam \lcd_data_in_q[1] .FeedbackMux = 1'b1;
@@ -1383,8 +1383,8 @@ alta_slice \lcd_data_in_q[2] (
 	.LutOut(\mcu_data_out[2]~4_combout ),
 	.Cout(),
 	.Q(lcd_data_in_q[2]));
-defparam \lcd_data_in_q[2] .coord_x = 3;
-defparam \lcd_data_in_q[2] .coord_y = 1;
+defparam \lcd_data_in_q[2] .coord_x = 5;
+defparam \lcd_data_in_q[2] .coord_y = 2;
 defparam \lcd_data_in_q[2] .coord_z = 15;
 defparam \lcd_data_in_q[2] .mask = 16'hF0CC;
 defparam \lcd_data_in_q[2] .modeMux = 1'b0;
@@ -1394,8 +1394,8 @@ defparam \lcd_data_in_q[2] .BypassEn = 1'b1;
 defparam \lcd_data_in_q[2] .CarryEnb = 1'b1;
 
 alta_slice \lcd_data_in_q[3] (
-	.A(vcc),
-	.B(\LCD_DB[11]~input_o ),
+	.A(\LCD_DB[11]~input_o ),
+	.B(vcc),
 	.C(\LCD_DB[3]~input_o ),
 	.D(\MCU_LCD_RDX~input_o ),
 	.Cin(),
@@ -1408,10 +1408,10 @@ alta_slice \lcd_data_in_q[3] (
 	.LutOut(\mcu_data_out[3]~6_combout ),
 	.Cout(),
 	.Q(lcd_data_in_q[3]));
-defparam \lcd_data_in_q[3] .coord_x = 4;
-defparam \lcd_data_in_q[3] .coord_y = 3;
-defparam \lcd_data_in_q[3] .coord_z = 6;
-defparam \lcd_data_in_q[3] .mask = 16'hF0CC;
+defparam \lcd_data_in_q[3] .coord_x = 3;
+defparam \lcd_data_in_q[3] .coord_y = 2;
+defparam \lcd_data_in_q[3] .coord_z = 3;
+defparam \lcd_data_in_q[3] .mask = 16'hF0AA;
 defparam \lcd_data_in_q[3] .modeMux = 1'b0;
 defparam \lcd_data_in_q[3] .FeedbackMux = 1'b1;
 defparam \lcd_data_in_q[3] .ShiftMux = 1'b0;
@@ -1420,9 +1420,9 @@ defparam \lcd_data_in_q[3] .CarryEnb = 1'b1;
 
 alta_slice \lcd_data_in_q[4] (
 	.A(vcc),
-	.B(\LCD_DB[12]~input_o ),
+	.B(\MCU_LCD_RDX~input_o ),
 	.C(\LCD_DB[4]~input_o ),
-	.D(\MCU_LCD_RDX~input_o ),
+	.D(\LCD_DB[12]~input_o ),
 	.Cin(),
 	.Qin(lcd_data_in_q[4]),
 	.Clk(\MCU_LCD_RDX~inputclkctrl_outclk_X1_Y26_SIG_VCC ),
@@ -1433,10 +1433,10 @@ alta_slice \lcd_data_in_q[4] (
 	.LutOut(\mcu_data_out[4]~8_combout ),
 	.Cout(),
 	.Q(lcd_data_in_q[4]));
-defparam \lcd_data_in_q[4] .coord_x = 4;
-defparam \lcd_data_in_q[4] .coord_y = 3;
-defparam \lcd_data_in_q[4] .coord_z = 14;
-defparam \lcd_data_in_q[4] .mask = 16'hF0CC;
+defparam \lcd_data_in_q[4] .coord_x = 3;
+defparam \lcd_data_in_q[4] .coord_y = 2;
+defparam \lcd_data_in_q[4] .coord_z = 5;
+defparam \lcd_data_in_q[4] .mask = 16'hF3C0;
 defparam \lcd_data_in_q[4] .modeMux = 1'b0;
 defparam \lcd_data_in_q[4] .FeedbackMux = 1'b1;
 defparam \lcd_data_in_q[4] .ShiftMux = 1'b0;
@@ -1444,8 +1444,8 @@ defparam \lcd_data_in_q[4] .BypassEn = 1'b1;
 defparam \lcd_data_in_q[4] .CarryEnb = 1'b1;
 
 alta_slice \lcd_data_in_q[5] (
-	.A(vcc),
-	.B(\LCD_DB[13]~input_o ),
+	.A(\LCD_DB[13]~input_o ),
+	.B(vcc),
 	.C(\LCD_DB[5]~input_o ),
 	.D(\MCU_LCD_RDX~input_o ),
 	.Cin(),
@@ -1458,10 +1458,10 @@ alta_slice \lcd_data_in_q[5] (
 	.LutOut(\mcu_data_out[5]~10_combout ),
 	.Cout(),
 	.Q(lcd_data_in_q[5]));
-defparam \lcd_data_in_q[5] .coord_x = 4;
-defparam \lcd_data_in_q[5] .coord_y = 3;
+defparam \lcd_data_in_q[5] .coord_x = 3;
+defparam \lcd_data_in_q[5] .coord_y = 2;
 defparam \lcd_data_in_q[5] .coord_z = 4;
-defparam \lcd_data_in_q[5] .mask = 16'hF0CC;
+defparam \lcd_data_in_q[5] .mask = 16'hF0AA;
 defparam \lcd_data_in_q[5] .modeMux = 1'b0;
 defparam \lcd_data_in_q[5] .FeedbackMux = 1'b1;
 defparam \lcd_data_in_q[5] .ShiftMux = 1'b0;
@@ -1484,7 +1484,7 @@ alta_slice \lcd_data_in_q[6] (
 	.Cout(),
 	.Q(lcd_data_in_q[6]));
 defparam \lcd_data_in_q[6] .coord_x = 3;
-defparam \lcd_data_in_q[6] .coord_y = 2;
+defparam \lcd_data_in_q[6] .coord_y = 1;
 defparam \lcd_data_in_q[6] .coord_z = 2;
 defparam \lcd_data_in_q[6] .mask = 16'hF0CC;
 defparam \lcd_data_in_q[6] .modeMux = 1'b0;
@@ -1509,8 +1509,8 @@ alta_slice \lcd_data_in_q[7] (
 	.Cout(),
 	.Q(lcd_data_in_q[7]));
 defparam \lcd_data_in_q[7] .coord_x = 5;
-defparam \lcd_data_in_q[7] .coord_y = 2;
-defparam \lcd_data_in_q[7] .coord_z = 14;
+defparam \lcd_data_in_q[7] .coord_y = 3;
+defparam \lcd_data_in_q[7] .coord_z = 9;
 defparam \lcd_data_in_q[7] .mask = 16'hF0CC;
 defparam \lcd_data_in_q[7] .modeMux = 1'b0;
 defparam \lcd_data_in_q[7] .FeedbackMux = 1'b1;
@@ -1521,8 +1521,8 @@ defparam \lcd_data_in_q[7] .CarryEnb = 1'b1;
 alta_slice \lcd_data_out_q[0] (
 	.A(vcc),
 	.B(vcc),
-	.C(\MCU_D[0]~input_o ),
-	.D(vcc),
+	.C(vcc),
+	.D(\MCU_D[0]~input_o ),
 	.Cin(),
 	.Qin(lcd_data_out_q[0]),
 	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
@@ -1533,10 +1533,10 @@ alta_slice \lcd_data_out_q[0] (
 	.LutOut(\lcd_data_out_q[0]~feeder_combout ),
 	.Cout(),
 	.Q(lcd_data_out_q[0]));
-defparam \lcd_data_out_q[0] .coord_x = 3;
+defparam \lcd_data_out_q[0] .coord_x = 4;
 defparam \lcd_data_out_q[0] .coord_y = 3;
 defparam \lcd_data_out_q[0] .coord_z = 15;
-defparam \lcd_data_out_q[0] .mask = 16'hF0F0;
+defparam \lcd_data_out_q[0] .mask = 16'hFF00;
 defparam \lcd_data_out_q[0] .modeMux = 1'b0;
 defparam \lcd_data_out_q[0] .FeedbackMux = 1'b0;
 defparam \lcd_data_out_q[0] .ShiftMux = 1'b0;
@@ -1544,10 +1544,10 @@ defparam \lcd_data_out_q[0] .BypassEn = 1'b0;
 defparam \lcd_data_out_q[0] .CarryEnb = 1'b1;
 
 alta_slice \lcd_data_out_q[1] (
-	.A(\MCU_D[1]~input_o ),
+	.A(vcc),
 	.B(vcc),
 	.C(vcc),
-	.D(vcc),
+	.D(\MCU_D[1]~input_o ),
 	.Cin(),
 	.Qin(lcd_data_out_q[1]),
 	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
@@ -1558,10 +1558,10 @@ alta_slice \lcd_data_out_q[1] (
 	.LutOut(\lcd_data_out_q[1]~feeder_combout ),
 	.Cout(),
 	.Q(lcd_data_out_q[1]));
-defparam \lcd_data_out_q[1] .coord_x = 3;
+defparam \lcd_data_out_q[1] .coord_x = 4;
 defparam \lcd_data_out_q[1] .coord_y = 3;
 defparam \lcd_data_out_q[1] .coord_z = 0;
-defparam \lcd_data_out_q[1] .mask = 16'hAAAA;
+defparam \lcd_data_out_q[1] .mask = 16'hFF00;
 defparam \lcd_data_out_q[1] .modeMux = 1'b0;
 defparam \lcd_data_out_q[1] .FeedbackMux = 1'b0;
 defparam \lcd_data_out_q[1] .ShiftMux = 1'b0;
@@ -1569,10 +1569,10 @@ defparam \lcd_data_out_q[1] .BypassEn = 1'b0;
 defparam \lcd_data_out_q[1] .CarryEnb = 1'b1;
 
 alta_slice \lcd_data_out_q[2] (
-	.A(\MCU_D[2]~input_o ),
+	.A(vcc),
 	.B(vcc),
 	.C(vcc),
-	.D(vcc),
+	.D(\MCU_D[2]~input_o ),
 	.Cin(),
 	.Qin(lcd_data_out_q[2]),
 	.Clk(\MCU_LCD_WRX~inputclkctrl_outclk_X1_Y20_INV_VCC ),
@@ -1583,10 +1583,10 @@ alta_slice \lcd_data_out_q[2] (
 	.LutOut(\lcd_data_out_q[2]~feeder_combout ),
 	.Cout(),
 	.Q(lcd_data_out_q[2]));
-defparam \lcd_data_out_q[2] .coord_x = 3;
+defparam \lcd_data_out_q[2] .coord_x = 4;
 defparam \lcd_data_out_q[2] .coord_y = 3;
-defparam \lcd_data_out_q[2] .coord_z = 12;
-defparam \lcd_data_out_q[2] .mask = 16'hAAAA;
+defparam \lcd_data_out_q[2] .coord_z = 5;
+defparam \lcd_data_out_q[2] .mask = 16'hFF00;
 defparam \lcd_data_out_q[2] .modeMux = 1'b0;
 defparam \lcd_data_out_q[2] .FeedbackMux = 1'b0;
 defparam \lcd_data_out_q[2] .ShiftMux = 1'b0;
@@ -1608,8 +1608,8 @@ alta_slice \lcd_data_out_q[3] (
 	.LutOut(),
 	.Cout(),
 	.Q(lcd_data_out_q[3]));
-defparam \lcd_data_out_q[3] .coord_x = 4;
-defparam \lcd_data_out_q[3] .coord_y = 3;
+defparam \lcd_data_out_q[3] .coord_x = 3;
+defparam \lcd_data_out_q[3] .coord_y = 2;
 defparam \lcd_data_out_q[3] .coord_z = 7;
 defparam \lcd_data_out_q[3] .mask = 16'hFFFF;
 defparam \lcd_data_out_q[3] .modeMux = 1'b1;
@@ -1633,9 +1633,9 @@ alta_slice \lcd_data_out_q[4] (
 	.LutOut(\lcd_data_out_q[4]~feeder_combout ),
 	.Cout(),
 	.Q(lcd_data_out_q[4]));
-defparam \lcd_data_out_q[4] .coord_x = 4;
-defparam \lcd_data_out_q[4] .coord_y = 3;
-defparam \lcd_data_out_q[4] .coord_z = 3;
+defparam \lcd_data_out_q[4] .coord_x = 3;
+defparam \lcd_data_out_q[4] .coord_y = 2;
+defparam \lcd_data_out_q[4] .coord_z = 6;
 defparam \lcd_data_out_q[4] .mask = 16'hFF00;
 defparam \lcd_data_out_q[4] .modeMux = 1'b0;
 defparam \lcd_data_out_q[4] .FeedbackMux = 1'b0;
@@ -1658,8 +1658,8 @@ alta_slice \lcd_data_out_q[5] (
 	.LutOut(),
 	.Cout(),
 	.Q(lcd_data_out_q[5]));
-defparam \lcd_data_out_q[5] .coord_x = 4;
-defparam \lcd_data_out_q[5] .coord_y = 3;
+defparam \lcd_data_out_q[5] .coord_x = 3;
+defparam \lcd_data_out_q[5] .coord_y = 2;
 defparam \lcd_data_out_q[5] .coord_z = 2;
 defparam \lcd_data_out_q[5] .mask = 16'hFFFF;
 defparam \lcd_data_out_q[5] .modeMux = 1'b1;
@@ -1683,7 +1683,7 @@ alta_slice \lcd_data_out_q[6] (
 	.LutOut(),
 	.Cout(),
 	.Q(lcd_data_out_q[6]));
-defparam \lcd_data_out_q[6] .coord_x = 3;
+defparam \lcd_data_out_q[6] .coord_x = 4;
 defparam \lcd_data_out_q[6] .coord_y = 3;
 defparam \lcd_data_out_q[6] .coord_z = 6;
 defparam \lcd_data_out_q[6] .mask = 16'hFFFF;
@@ -1708,9 +1708,9 @@ alta_slice \lcd_data_out_q[7] (
 	.LutOut(\lcd_data_out_q[7]~feeder_combout ),
 	.Cout(),
 	.Q(lcd_data_out_q[7]));
-defparam \lcd_data_out_q[7] .coord_x = 3;
+defparam \lcd_data_out_q[7] .coord_x = 4;
 defparam \lcd_data_out_q[7] .coord_y = 3;
-defparam \lcd_data_out_q[7] .coord_z = 7;
+defparam \lcd_data_out_q[7] .coord_z = 10;
 defparam \lcd_data_out_q[7] .mask = 16'hFF00;
 defparam \lcd_data_out_q[7] .modeMux = 1'b0;
 defparam \lcd_data_out_q[7] .FeedbackMux = 1'b0;
@@ -1733,9 +1733,9 @@ alta_slice lcd_reset_q(
 	.LutOut(\lcd_reset_q~1_combout ),
 	.Cout(),
 	.Q(\lcd_reset_q~q ));
-defparam lcd_reset_q.coord_x = 2;
+defparam lcd_reset_q.coord_x = 3;
 defparam lcd_reset_q.coord_y = 3;
-defparam lcd_reset_q.coord_z = 7;
+defparam lcd_reset_q.coord_z = 1;
 defparam lcd_reset_q.mask = 16'h00FF;
 defparam lcd_reset_q.modeMux = 1'b0;
 defparam lcd_reset_q.FeedbackMux = 1'b0;
@@ -1746,8 +1746,8 @@ defparam lcd_reset_q.CarryEnb = 1'b1;
 alta_slice \lcd_reset_q~0 (
 	.A(vcc),
 	.B(vcc),
-	.C(\MCU_DIR~input_o ),
-	.D(\MCU_ADDR~input_o ),
+	.C(\MCU_ADDR~input_o ),
+	.D(\MCU_DIR~input_o ),
 	.Cin(),
 	.Qin(),
 	.Clk(),
@@ -1758,10 +1758,10 @@ alta_slice \lcd_reset_q~0 (
 	.LutOut(\lcd_reset_q~0_combout ),
 	.Cout(),
 	.Q());
-defparam \lcd_reset_q~0 .coord_x = 2;
+defparam \lcd_reset_q~0 .coord_x = 3;
 defparam \lcd_reset_q~0 .coord_y = 3;
-defparam \lcd_reset_q~0 .coord_z = 15;
-defparam \lcd_reset_q~0 .mask = 16'h0F00;
+defparam \lcd_reset_q~0 .coord_z = 7;
+defparam \lcd_reset_q~0 .mask = 16'h00F0;
 defparam \lcd_reset_q~0 .modeMux = 1'b0;
 defparam \lcd_reset_q~0 .FeedbackMux = 1'b0;
 defparam \lcd_reset_q~0 .ShiftMux = 1'b0;
@@ -1771,8 +1771,8 @@ defparam \lcd_reset_q~0 .CarryEnb = 1'b1;
 alta_slice \mcu_data_out[0]~1 (
 	.A(\mcu_data_out[0]~0_combout ),
 	.B(\SW_R~input_o ),
-	.C(\MCU_IO_STBX~input_o ),
-	.D(\MCU_DIR~input_o ),
+	.C(\MCU_DIR~input_o ),
+	.D(\MCU_IO_STBX~input_o ),
 	.Cin(),
 	.Qin(),
 	.Clk(),
@@ -1784,9 +1784,9 @@ alta_slice \mcu_data_out[0]~1 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[0]~1 .coord_x = 4;
-defparam \mcu_data_out[0]~1 .coord_y = 2;
-defparam \mcu_data_out[0]~1 .coord_z = 13;
-defparam \mcu_data_out[0]~1 .mask = 16'hA3AA;
+defparam \mcu_data_out[0]~1 .coord_y = 1;
+defparam \mcu_data_out[0]~1 .coord_z = 15;
+defparam \mcu_data_out[0]~1 .mask = 16'hAA3A;
 defparam \mcu_data_out[0]~1 .modeMux = 1'b0;
 defparam \mcu_data_out[0]~1 .FeedbackMux = 1'b0;
 defparam \mcu_data_out[0]~1 .ShiftMux = 1'b0;
@@ -1794,10 +1794,10 @@ defparam \mcu_data_out[0]~1 .BypassEn = 1'b0;
 defparam \mcu_data_out[0]~1 .CarryEnb = 1'b1;
 
 alta_slice \mcu_data_out[1]~3 (
-	.A(\mcu_data_out[1]~2_combout ),
-	.B(\SW_L~input_o ),
-	.C(\MCU_IO_STBX~input_o ),
-	.D(\MCU_DIR~input_o ),
+	.A(\SW_L~input_o ),
+	.B(\mcu_data_out[1]~2_combout ),
+	.C(\MCU_DIR~input_o ),
+	.D(\MCU_IO_STBX~input_o ),
 	.Cin(),
 	.Qin(),
 	.Clk(),
@@ -1809,9 +1809,9 @@ alta_slice \mcu_data_out[1]~3 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[1]~3 .coord_x = 4;
-defparam \mcu_data_out[1]~3 .coord_y = 2;
-defparam \mcu_data_out[1]~3 .coord_z = 7;
-defparam \mcu_data_out[1]~3 .mask = 16'hA3AA;
+defparam \mcu_data_out[1]~3 .coord_y = 1;
+defparam \mcu_data_out[1]~3 .coord_z = 14;
+defparam \mcu_data_out[1]~3 .mask = 16'hCC5C;
 defparam \mcu_data_out[1]~3 .modeMux = 1'b0;
 defparam \mcu_data_out[1]~3 .FeedbackMux = 1'b0;
 defparam \mcu_data_out[1]~3 .ShiftMux = 1'b0;
@@ -1819,10 +1819,10 @@ defparam \mcu_data_out[1]~3 .BypassEn = 1'b0;
 defparam \mcu_data_out[1]~3 .CarryEnb = 1'b1;
 
 alta_slice \mcu_data_out[2]~5 (
-	.A(\mcu_data_out[2]~4_combout ),
+	.A(\MCU_DIR~input_o ),
 	.B(\SW_D~input_o ),
-	.C(\MCU_DIR~input_o ),
-	.D(\MCU_IO_STBX~input_o ),
+	.C(\MCU_IO_STBX~input_o ),
+	.D(\mcu_data_out[2]~4_combout ),
 	.Cin(),
 	.Qin(),
 	.Clk(),
@@ -1834,9 +1834,9 @@ alta_slice \mcu_data_out[2]~5 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[2]~5 .coord_x = 4;
-defparam \mcu_data_out[2]~5 .coord_y = 1;
-defparam \mcu_data_out[2]~5 .coord_z = 8;
-defparam \mcu_data_out[2]~5 .mask = 16'hAA3A;
+defparam \mcu_data_out[2]~5 .coord_y = 2;
+defparam \mcu_data_out[2]~5 .coord_z = 7;
+defparam \mcu_data_out[2]~5 .mask = 16'hF702;
 defparam \mcu_data_out[2]~5 .modeMux = 1'b0;
 defparam \mcu_data_out[2]~5 .FeedbackMux = 1'b0;
 defparam \mcu_data_out[2]~5 .ShiftMux = 1'b0;
@@ -1859,7 +1859,7 @@ alta_slice \mcu_data_out[3]~7 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[3]~7 .coord_x = 4;
-defparam \mcu_data_out[3]~7 .coord_y = 1;
+defparam \mcu_data_out[3]~7 .coord_y = 2;
 defparam \mcu_data_out[3]~7 .coord_z = 6;
 defparam \mcu_data_out[3]~7 .mask = 16'hCC5C;
 defparam \mcu_data_out[3]~7 .modeMux = 1'b0;
@@ -1869,9 +1869,9 @@ defparam \mcu_data_out[3]~7 .BypassEn = 1'b0;
 defparam \mcu_data_out[3]~7 .CarryEnb = 1'b1;
 
 alta_slice \mcu_data_out[4]~9 (
-	.A(\mcu_data_out[4]~8_combout ),
-	.B(\SW_SEL~input_o ),
-	.C(\MCU_DIR~input_o ),
+	.A(\MCU_DIR~input_o ),
+	.B(\mcu_data_out[4]~8_combout ),
+	.C(\SW_SEL~input_o ),
 	.D(\MCU_IO_STBX~input_o ),
 	.Cin(),
 	.Qin(),
@@ -1884,9 +1884,9 @@ alta_slice \mcu_data_out[4]~9 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[4]~9 .coord_x = 4;
-defparam \mcu_data_out[4]~9 .coord_y = 1;
-defparam \mcu_data_out[4]~9 .coord_z = 7;
-defparam \mcu_data_out[4]~9 .mask = 16'hAA3A;
+defparam \mcu_data_out[4]~9 .coord_y = 2;
+defparam \mcu_data_out[4]~9 .coord_z = 14;
+defparam \mcu_data_out[4]~9 .mask = 16'hCC4E;
 defparam \mcu_data_out[4]~9 .modeMux = 1'b0;
 defparam \mcu_data_out[4]~9 .FeedbackMux = 1'b0;
 defparam \mcu_data_out[4]~9 .ShiftMux = 1'b0;
@@ -1909,7 +1909,7 @@ alta_slice \mcu_data_out[5]~11 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[5]~11 .coord_x = 4;
-defparam \mcu_data_out[5]~11 .coord_y = 1;
+defparam \mcu_data_out[5]~11 .coord_y = 2;
 defparam \mcu_data_out[5]~11 .coord_z = 15;
 defparam \mcu_data_out[5]~11 .mask = 16'hAA3A;
 defparam \mcu_data_out[5]~11 .modeMux = 1'b0;
@@ -1919,10 +1919,10 @@ defparam \mcu_data_out[5]~11 .BypassEn = 1'b0;
 defparam \mcu_data_out[5]~11 .CarryEnb = 1'b1;
 
 alta_slice \mcu_data_out[6]~13 (
-	.A(\SW_ROT_B~input_o ),
-	.B(\mcu_data_out[6]~12_combout ),
-	.C(\MCU_IO_STBX~input_o ),
-	.D(\MCU_DIR~input_o ),
+	.A(\mcu_data_out[6]~12_combout ),
+	.B(\SW_ROT_B~input_o ),
+	.C(\MCU_DIR~input_o ),
+	.D(\MCU_IO_STBX~input_o ),
 	.Cin(),
 	.Qin(),
 	.Clk(),
@@ -1934,9 +1934,9 @@ alta_slice \mcu_data_out[6]~13 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[6]~13 .coord_x = 4;
-defparam \mcu_data_out[6]~13 .coord_y = 2;
-defparam \mcu_data_out[6]~13 .coord_z = 15;
-defparam \mcu_data_out[6]~13 .mask = 16'hC5CC;
+defparam \mcu_data_out[6]~13 .coord_y = 1;
+defparam \mcu_data_out[6]~13 .coord_z = 8;
+defparam \mcu_data_out[6]~13 .mask = 16'hAA3A;
 defparam \mcu_data_out[6]~13 .modeMux = 1'b0;
 defparam \mcu_data_out[6]~13 .FeedbackMux = 1'b0;
 defparam \mcu_data_out[6]~13 .ShiftMux = 1'b0;
@@ -1945,8 +1945,8 @@ defparam \mcu_data_out[6]~13 .CarryEnb = 1'b1;
 
 alta_slice \mcu_data_out[7]~15 (
 	.A(\mcu_data_out[7]~14_combout ),
-	.B(\MCU_DIR~input_o ),
-	.C(\LCD_TE~input_o ),
+	.B(\LCD_TE~input_o ),
+	.C(\MCU_DIR~input_o ),
 	.D(\MCU_IO_STBX~input_o ),
 	.Cin(),
 	.Qin(),
@@ -1959,9 +1959,9 @@ alta_slice \mcu_data_out[7]~15 (
 	.Cout(),
 	.Q());
 defparam \mcu_data_out[7]~15 .coord_x = 4;
-defparam \mcu_data_out[7]~15 .coord_y = 2;
-defparam \mcu_data_out[7]~15 .coord_z = 14;
-defparam \mcu_data_out[7]~15 .mask = 16'hAAE2;
+defparam \mcu_data_out[7]~15 .coord_y = 1;
+defparam \mcu_data_out[7]~15 .coord_z = 7;
+defparam \mcu_data_out[7]~15 .mask = 16'hAACA;
 defparam \mcu_data_out[7]~15 .modeMux = 1'b0;
 defparam \mcu_data_out[7]~15 .FeedbackMux = 1'b0;
 defparam \mcu_data_out[7]~15 .ShiftMux = 1'b0;
@@ -1970,9 +1970,9 @@ defparam \mcu_data_out[7]~15 .CarryEnb = 1'b1;
 
 alta_slice ref_en_q(
 	.A(vcc),
-	.B(\MCU_D[6]~input_o ),
+	.B(vcc),
 	.C(vcc),
-	.D(vcc),
+	.D(\MCU_D[6]~input_o ),
 	.Cin(),
 	.Qin(\ref_en_q~q ),
 	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
@@ -1983,10 +1983,10 @@ alta_slice ref_en_q(
 	.LutOut(\ref_en_q~feeder_combout ),
 	.Cout(),
 	.Q(\ref_en_q~q ));
-defparam ref_en_q.coord_x = 2;
+defparam ref_en_q.coord_x = 3;
 defparam ref_en_q.coord_y = 3;
-defparam ref_en_q.coord_z = 4;
-defparam ref_en_q.mask = 16'hCCCC;
+defparam ref_en_q.coord_z = 13;
+defparam ref_en_q.mask = 16'hFF00;
 defparam ref_en_q.modeMux = 1'b0;
 defparam ref_en_q.FeedbackMux = 1'b0;
 defparam ref_en_q.ShiftMux = 1'b0;
@@ -1996,7 +1996,7 @@ defparam ref_en_q.CarryEnb = 1'b1;
 alta_syncctrl syncload_ctrl_X1_Y15(
 	.Din(),
 	.Dout(SyncLoad_X1_Y15_VCC));
-defparam syncload_ctrl_X1_Y15.coord_x = 2;
+defparam syncload_ctrl_X1_Y15.coord_x = 3;
 defparam syncload_ctrl_X1_Y15.coord_y = 3;
 defparam syncload_ctrl_X1_Y15.coord_z = 1;
 defparam syncload_ctrl_X1_Y15.SyncCtrlMux = 2'b01;
@@ -2005,14 +2005,14 @@ alta_syncctrl syncload_ctrl_X1_Y19(
 	.Din(),
 	.Dout(SyncLoad_X1_Y19_VCC));
 defparam syncload_ctrl_X1_Y19.coord_x = 3;
-defparam syncload_ctrl_X1_Y19.coord_y = 2;
+defparam syncload_ctrl_X1_Y19.coord_y = 1;
 defparam syncload_ctrl_X1_Y19.coord_z = 1;
 defparam syncload_ctrl_X1_Y19.SyncCtrlMux = 2'b01;
 
 alta_syncctrl syncload_ctrl_X1_Y20(
 	.Din(),
 	.Dout(SyncLoad_X1_Y20_VCC));
-defparam syncload_ctrl_X1_Y20.coord_x = 3;
+defparam syncload_ctrl_X1_Y20.coord_x = 4;
 defparam syncload_ctrl_X1_Y20.coord_y = 3;
 defparam syncload_ctrl_X1_Y20.coord_z = 1;
 defparam syncload_ctrl_X1_Y20.SyncCtrlMux = 2'b01;
@@ -2021,30 +2021,30 @@ alta_syncctrl syncload_ctrl_X1_Y21(
 	.Din(),
 	.Dout(SyncLoad_X1_Y21_VCC));
 defparam syncload_ctrl_X1_Y21.coord_x = 5;
-defparam syncload_ctrl_X1_Y21.coord_y = 2;
+defparam syncload_ctrl_X1_Y21.coord_y = 3;
 defparam syncload_ctrl_X1_Y21.coord_z = 1;
 defparam syncload_ctrl_X1_Y21.SyncCtrlMux = 2'b01;
 
 alta_syncctrl syncload_ctrl_X1_Y24(
 	.Din(),
 	.Dout(SyncLoad_X1_Y24_VCC));
-defparam syncload_ctrl_X1_Y24.coord_x = 3;
-defparam syncload_ctrl_X1_Y24.coord_y = 1;
+defparam syncload_ctrl_X1_Y24.coord_x = 5;
+defparam syncload_ctrl_X1_Y24.coord_y = 2;
 defparam syncload_ctrl_X1_Y24.coord_z = 1;
 defparam syncload_ctrl_X1_Y24.SyncCtrlMux = 2'b01;
 
 alta_syncctrl syncload_ctrl_X1_Y26(
 	.Din(),
 	.Dout(SyncLoad_X1_Y26_VCC));
-defparam syncload_ctrl_X1_Y26.coord_x = 4;
-defparam syncload_ctrl_X1_Y26.coord_y = 3;
+defparam syncload_ctrl_X1_Y26.coord_x = 3;
+defparam syncload_ctrl_X1_Y26.coord_y = 2;
 defparam syncload_ctrl_X1_Y26.coord_z = 1;
 defparam syncload_ctrl_X1_Y26.SyncCtrlMux = 2'b01;
 
 alta_syncctrl syncreset_ctrl_X1_Y15(
 	.Din(),
 	.Dout(SyncReset_X1_Y15_GND));
-defparam syncreset_ctrl_X1_Y15.coord_x = 2;
+defparam syncreset_ctrl_X1_Y15.coord_x = 3;
 defparam syncreset_ctrl_X1_Y15.coord_y = 3;
 defparam syncreset_ctrl_X1_Y15.coord_z = 0;
 defparam syncreset_ctrl_X1_Y15.SyncCtrlMux = 2'b00;
@@ -2053,14 +2053,14 @@ alta_syncctrl syncreset_ctrl_X1_Y19(
 	.Din(),
 	.Dout(SyncReset_X1_Y19_GND));
 defparam syncreset_ctrl_X1_Y19.coord_x = 3;
-defparam syncreset_ctrl_X1_Y19.coord_y = 2;
+defparam syncreset_ctrl_X1_Y19.coord_y = 1;
 defparam syncreset_ctrl_X1_Y19.coord_z = 0;
 defparam syncreset_ctrl_X1_Y19.SyncCtrlMux = 2'b00;
 
 alta_syncctrl syncreset_ctrl_X1_Y20(
 	.Din(),
 	.Dout(SyncReset_X1_Y20_GND));
-defparam syncreset_ctrl_X1_Y20.coord_x = 3;
+defparam syncreset_ctrl_X1_Y20.coord_x = 4;
 defparam syncreset_ctrl_X1_Y20.coord_y = 3;
 defparam syncreset_ctrl_X1_Y20.coord_z = 0;
 defparam syncreset_ctrl_X1_Y20.SyncCtrlMux = 2'b00;
@@ -2069,31 +2069,31 @@ alta_syncctrl syncreset_ctrl_X1_Y21(
 	.Din(),
 	.Dout(SyncReset_X1_Y21_GND));
 defparam syncreset_ctrl_X1_Y21.coord_x = 5;
-defparam syncreset_ctrl_X1_Y21.coord_y = 2;
+defparam syncreset_ctrl_X1_Y21.coord_y = 3;
 defparam syncreset_ctrl_X1_Y21.coord_z = 0;
 defparam syncreset_ctrl_X1_Y21.SyncCtrlMux = 2'b00;
 
 alta_syncctrl syncreset_ctrl_X1_Y24(
 	.Din(),
 	.Dout(SyncReset_X1_Y24_GND));
-defparam syncreset_ctrl_X1_Y24.coord_x = 3;
-defparam syncreset_ctrl_X1_Y24.coord_y = 1;
+defparam syncreset_ctrl_X1_Y24.coord_x = 5;
+defparam syncreset_ctrl_X1_Y24.coord_y = 2;
 defparam syncreset_ctrl_X1_Y24.coord_z = 0;
 defparam syncreset_ctrl_X1_Y24.SyncCtrlMux = 2'b00;
 
 alta_syncctrl syncreset_ctrl_X1_Y26(
 	.Din(),
 	.Dout(SyncReset_X1_Y26_GND));
-defparam syncreset_ctrl_X1_Y26.coord_x = 4;
-defparam syncreset_ctrl_X1_Y26.coord_y = 3;
+defparam syncreset_ctrl_X1_Y26.coord_x = 3;
+defparam syncreset_ctrl_X1_Y26.coord_y = 2;
 defparam syncreset_ctrl_X1_Y26.coord_z = 0;
 defparam syncreset_ctrl_X1_Y26.SyncCtrlMux = 2'b00;
 
 alta_slice sysoff_q(
-	.A(vcc),
+	.A(\MCU_D[2]~input_o ),
 	.B(vcc),
 	.C(vcc),
-	.D(\MCU_D[2]~input_o ),
+	.D(vcc),
 	.Cin(),
 	.Qin(\sysoff_q~q ),
 	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__lcd_reset_q~0_combout_X1_Y15_SIG_SIG ),
@@ -2104,10 +2104,10 @@ alta_slice sysoff_q(
 	.LutOut(\sysoff_q~feeder_combout ),
 	.Cout(),
 	.Q(\sysoff_q~q ));
-defparam sysoff_q.coord_x = 2;
+defparam sysoff_q.coord_x = 3;
 defparam sysoff_q.coord_y = 3;
-defparam sysoff_q.coord_z = 13;
-defparam sysoff_q.mask = 16'hFF00;
+defparam sysoff_q.coord_z = 2;
+defparam sysoff_q.mask = 16'hAAAA;
 defparam sysoff_q.modeMux = 1'b0;
 defparam sysoff_q.FeedbackMux = 1'b0;
 defparam sysoff_q.ShiftMux = 1'b0;
@@ -2129,7 +2129,7 @@ alta_slice \tp_q[0] (
 	.LutOut(),
 	.Cout(),
 	.Q(tp_q[0]));
-defparam \tp_q[0] .coord_x = 2;
+defparam \tp_q[0] .coord_x = 3;
 defparam \tp_q[0] .coord_y = 3;
 defparam \tp_q[0] .coord_z = 9;
 defparam \tp_q[0] .mask = 16'hFFFF;
@@ -2154,7 +2154,7 @@ alta_slice \tp_q[1] (
 	.LutOut(),
 	.Cout(),
 	.Q(tp_q[1]));
-defparam \tp_q[1] .coord_x = 2;
+defparam \tp_q[1] .coord_x = 3;
 defparam \tp_q[1] .coord_y = 3;
 defparam \tp_q[1] .coord_z = 10;
 defparam \tp_q[1] .mask = 16'hFFFF;
@@ -2165,10 +2165,10 @@ defparam \tp_q[1] .BypassEn = 1'b1;
 defparam \tp_q[1] .CarryEnb = 1'b1;
 
 alta_slice \tp_q[2] (
-	.A(vcc),
+	.A(\MCU_D[2]~input_o ),
 	.B(vcc),
 	.C(vcc),
-	.D(\MCU_D[2]~input_o ),
+	.D(vcc),
 	.Cin(),
 	.Qin(tp_q[2]),
 	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
@@ -2179,10 +2179,10 @@ alta_slice \tp_q[2] (
 	.LutOut(\tp_q[2]~feeder_combout ),
 	.Cout(),
 	.Q(tp_q[2]));
-defparam \tp_q[2] .coord_x = 2;
+defparam \tp_q[2] .coord_x = 3;
 defparam \tp_q[2] .coord_y = 3;
-defparam \tp_q[2] .coord_z = 3;
-defparam \tp_q[2] .mask = 16'hFF00;
+defparam \tp_q[2] .coord_z = 4;
+defparam \tp_q[2] .mask = 16'hAAAA;
 defparam \tp_q[2] .modeMux = 1'b0;
 defparam \tp_q[2] .FeedbackMux = 1'b0;
 defparam \tp_q[2] .ShiftMux = 1'b0;
@@ -2204,9 +2204,9 @@ alta_slice \tp_q[3] (
 	.LutOut(),
 	.Cout(),
 	.Q(tp_q[3]));
-defparam \tp_q[3] .coord_x = 2;
+defparam \tp_q[3] .coord_x = 3;
 defparam \tp_q[3] .coord_y = 3;
-defparam \tp_q[3] .coord_z = 2;
+defparam \tp_q[3] .coord_z = 14;
 defparam \tp_q[3] .mask = 16'hFFFF;
 defparam \tp_q[3] .modeMux = 1'b1;
 defparam \tp_q[3] .FeedbackMux = 1'b0;
@@ -2217,8 +2217,8 @@ defparam \tp_q[3] .CarryEnb = 1'b1;
 alta_slice \tp_q[3]~0 (
 	.A(vcc),
 	.B(vcc),
-	.C(\MCU_DIR~input_o ),
-	.D(\MCU_ADDR~input_o ),
+	.C(\MCU_ADDR~input_o ),
+	.D(\MCU_DIR~input_o ),
 	.Cin(),
 	.Qin(),
 	.Clk(),
@@ -2229,9 +2229,9 @@ alta_slice \tp_q[3]~0 (
 	.LutOut(\tp_q[3]~0_combout ),
 	.Cout(),
 	.Q());
-defparam \tp_q[3]~0 .coord_x = 2;
+defparam \tp_q[3]~0 .coord_x = 3;
 defparam \tp_q[3]~0 .coord_y = 3;
-defparam \tp_q[3]~0 .coord_z = 5;
+defparam \tp_q[3]~0 .coord_z = 3;
 defparam \tp_q[3]~0 .mask = 16'h000F;
 defparam \tp_q[3]~0 .modeMux = 1'b0;
 defparam \tp_q[3]~0 .FeedbackMux = 1'b0;
@@ -2254,9 +2254,9 @@ alta_slice \tp_q[4] (
 	.LutOut(\tp_q[4]~feeder_combout ),
 	.Cout(),
 	.Q(tp_q[4]));
-defparam \tp_q[4] .coord_x = 2;
+defparam \tp_q[4] .coord_x = 3;
 defparam \tp_q[4] .coord_y = 3;
-defparam \tp_q[4] .coord_z = 11;
+defparam \tp_q[4] .coord_z = 5;
 defparam \tp_q[4] .mask = 16'hFF00;
 defparam \tp_q[4] .modeMux = 1'b0;
 defparam \tp_q[4] .FeedbackMux = 1'b0;
@@ -2279,9 +2279,9 @@ alta_slice \tp_q[5] (
 	.LutOut(),
 	.Cout(),
 	.Q(tp_q[5]));
-defparam \tp_q[5] .coord_x = 2;
+defparam \tp_q[5] .coord_x = 3;
 defparam \tp_q[5] .coord_y = 3;
-defparam \tp_q[5] .coord_z = 14;
+defparam \tp_q[5] .coord_z = 6;
 defparam \tp_q[5] .mask = 16'hFFFF;
 defparam \tp_q[5] .modeMux = 1'b1;
 defparam \tp_q[5] .FeedbackMux = 1'b0;
@@ -2291,9 +2291,9 @@ defparam \tp_q[5] .CarryEnb = 1'b1;
 
 alta_slice \tp_q[6] (
 	.A(vcc),
-	.B(\MCU_D[6]~input_o ),
+	.B(vcc),
 	.C(vcc),
-	.D(vcc),
+	.D(\MCU_D[6]~input_o ),
 	.Cin(),
 	.Qin(tp_q[6]),
 	.Clk(\MCU_IO_STBX~inputclkctrl_outclk__tp_q[3]~0_combout_X1_Y15_SIG_SIG ),
@@ -2304,10 +2304,10 @@ alta_slice \tp_q[6] (
 	.LutOut(\tp_q[6]~feeder_combout ),
 	.Cout(),
 	.Q(tp_q[6]));
-defparam \tp_q[6] .coord_x = 2;
+defparam \tp_q[6] .coord_x = 3;
 defparam \tp_q[6] .coord_y = 3;
-defparam \tp_q[6] .coord_z = 0;
-defparam \tp_q[6] .mask = 16'hCCCC;
+defparam \tp_q[6] .coord_z = 15;
+defparam \tp_q[6] .mask = 16'hFF00;
 defparam \tp_q[6] .modeMux = 1'b0;
 defparam \tp_q[6] .FeedbackMux = 1'b0;
 defparam \tp_q[6] .ShiftMux = 1'b0;
@@ -2329,9 +2329,9 @@ alta_slice \tp_q[7] (
 	.LutOut(\tp_q[7]~feeder_combout ),
 	.Cout(),
 	.Q(tp_q[7]));
-defparam \tp_q[7] .coord_x = 2;
+defparam \tp_q[7] .coord_x = 3;
 defparam \tp_q[7] .coord_y = 3;
-defparam \tp_q[7] .coord_z = 8;
+defparam \tp_q[7] .coord_z = 11;
 defparam \tp_q[7] .mask = 16'hFF00;
 defparam \tp_q[7] .modeMux = 1'b0;
 defparam \tp_q[7] .FeedbackMux = 1'b0;

@@ -23,6 +23,7 @@
 - Launch Supra.exe
 - Navigate to: File → Project → Open Project
 - Select the H4M project when prompted
+- Select Tools → Migrate → Next
 
 4. **Additional Setup**
 

@@ -4,13 +4,12 @@ set_global_assignment -name DEVICE EP4CE75F29C8
 set_global_assignment -name FAMILY "Cyclone IV E"
 
 set_global_assignment -name TOP_LEVEL_ENTITY "top"
-set_global_assignment -name SEARCH_PATH "A:\\Users\\jLynx\\Documents\\Code\\CPLD\\PP_CPLD\\H4M\\AG256SL100\\."
+set_global_assignment -name SEARCH_PATH "A:\\Users\\jLynx\\Documents\\Code\\C\\portapack-mayhem\\hardware\\portapack_h4m\\CPLD\\AG256SL100\\."
 
 set_global_assignment -name VERILOG_FILE "A:\\Users\\jLynx\\Downloads\\Supra-2023.02.b0-7773ca8a-win64-all\\etc\\arch\\rodinia\\alta_sim.v"
-set_global_assignment -name VHDL_FILE "A:\\Users\\jLynx\\Documents\\Code\\CPLD\\PP_CPLD\\H4M\\AG256SL100\\top.vhd"
-set_global_assignment -name VHDL_FILE "A:\\Users\\jLynx\\Documents\\Code\\CPLD\\PP_CPLD\\H4M\\AG256SL100\\pwm.vhd"
+set_global_assignment -name VHDL_FILE "A:\\Users\\jLynx\\Documents\\Code\\C\\portapack-mayhem\\hardware\\portapack_h4m\\CPLD\\AG256SL100\\top.vhd"
 
-set_global_assignment -name SDC_FILE "A:\\Users\\jLynx\\Documents\\Code\\CPLD\\PP_CPLD\\H4M\\AG256SL100\\portapack_h4m_cpld.sdc"
+set_global_assignment -name SDC_FILE "A:\\Users\\jLynx\\Documents\\Code\\C\\portapack-mayhem\\hardware\\portapack_h4m\\CPLD\\AG256SL100\\portapack_h4m_cpld.sdc"
 
 set_global_assignment -name SDC_FILE .\\portapack_h4m_cpld_derate.sdc
 #set_global_assignment -name LOGICLOCK_INCREMENTAL_COMPILE_FILE "atom_netlists/__design_name__.vqm"

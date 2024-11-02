@@ -96,8 +96,8 @@ if { $FLOW == "LOAD" || $FLOW == "CHECK" || $FLOW == "PROBE" } {
   set LOAD_PLACE true
 }
 
-set ORIGINAL_QSF "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100/./portapack_h4m_cpld.qsf"
-set ORIGINAL_PIN "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100/output_files/portapack_h4m_cpld.pin"
+set ORIGINAL_QSF "A:/Users/jLynx/Documents/Code/C/portapack-mayhem/hardware/portapack_h4m/CPLD/AG256SL100/./portapack_h4m_cpld.qsf"
+set ORIGINAL_PIN "A:/Users/jLynx/Documents/Code/C/portapack-mayhem/hardware/portapack_h4m/CPLD/AG256SL100/output_files/portapack_h4m_cpld.pin"
 
 #################################################################################
 

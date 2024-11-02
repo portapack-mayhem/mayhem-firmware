@@ -7,7 +7,7 @@ Args : -X "set HOLDX default" -X "set MODE QUARTUS" -X "set FLOW ALL" -F ./af_ru
 > set ar_timing_derate ${TIMING_DERATE}
 > 
 > date_time
-Sat Jul 20 11:05:55 2024
+Sun Nov 03 11:19:12 2024
 > if { [file exists "./${DESIGN}.pre.asf"] } {
   alta::tcl_highlight "Using pre-ASF file ${DESIGN}.pre.asf.\n"
   source "./${DESIGN}.pre.asf"
@@ -26,8 +26,8 @@ Using pre-ASF file portapack_h4m_cpld.pre.asf.
   set LOAD_PLACE true
 }
 > 
-> set ORIGINAL_QSF "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100/./portapack_h4m_cpld.qsf"
-> set ORIGINAL_PIN "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100/output_files/portapack_h4m_cpld.pin"
+> set ORIGINAL_QSF "A:/Users/jLynx/Documents/Code/C/portapack-mayhem/hardware/portapack_h4m/CPLD/AG256SL100/./portapack_h4m_cpld.qsf"
+> set ORIGINAL_PIN "A:/Users/jLynx/Documents/Code/C/portapack-mayhem/hardware/portapack_h4m/CPLD/AG256SL100/output_files/portapack_h4m_cpld.pin"
 > 
 > #################################################################################
 > 
@@ -267,12 +267,12 @@ Loading architect libraries...
 ## CPU time: 0:0:0, REAL time: 0:0:0
 ## Memory Usage: 30MB (30MB)
 Loading route table...
-## CPU time: 0:0:0, REAL time: 0:0:0
-## Memory Usage: 48MB (48MB)
+## CPU time: 0:0:0, REAL time: 0:0:2
+## Memory Usage: 49MB (49MB)
 Using design verilog file ./simulation/modelsim/portapack_h4m_cpld.vo.
 Preparing design...
 ## CPU time: 0:0:0, REAL time: 0:0:0
-## Memory Usage: 51MB (51MB)
+## Memory Usage: 49MB (49MB)
 Pseudo pack design...
 Packing Statistics
  Total      Logics : 39/256 ( 15%)
@@ -291,13 +291,13 @@ Packing Statistics
  Registers with asynchronous   reset : 0
  Registers with sync and async reset : 0
 ## CPU time: 0:0:0, REAL time: 0:0:0
-## Memory Usage: 51MB (51MB)
+## Memory Usage: 49MB (49MB)
 Filter verilog...
 ## CPU time: 0:0:0, REAL time: 0:0:0
-## Memory Usage: 51MB (51MB)
+## Memory Usage: 49MB (49MB)
 Read DB design...
 ## CPU time: 0:0:0, REAL time: 0:0:0
-## Memory Usage: 52MB (52MB)
+## Memory Usage: 51MB (51MB)
 Process design...
 > set_instance_assignment -name ENABLE_OPEN_DRAIN -to TP_U~output false
 > set_instance_assignment -name ENABLE_OPEN_DRAIN -to TP_L~output false
@@ -340,34 +340,34 @@ Process design...
 Info: Found GCLK net MCU_IO_STBX~inputclkctrl_outclk (2).
 Info: Found GCLK net MCU_LCD_WRX~inputclkctrl_outclk (2).
 Info: Found GCLK net MCU_LCD_RDX~inputclkctrl_outclk (4).
-Info: Top level output port MCU_D[7] is identified as an inout.
 Info: Top level output port MCU_D[5] is identified as an inout.
-Info: Top level output port MCU_D[6] is identified as an inout.
-Info: Top level output port LCD_DB[14] is identified as an inout.
-Info: Top level output port LCD_DB[13] is identified as an inout.
-Info: Top level output port LCD_DB[9] is identified as an inout.
-Info: Top level output port LCD_DB[7] is identified as an inout.
-Info: Top level output port LCD_DB[5] is identified as an inout.
-Info: Top level output port LCD_DB[4] is identified as an inout.
-Info: Top level output port LCD_DB[1] is identified as an inout.
-Info: Top level output port LCD_DB[0] is identified as an inout.
-Info: Top level output port MCU_D[3] is identified as an inout.
-Info: Top level output port LCD_DB[10] is identified as an inout.
-Info: Top level output port MCU_D[0] is identified as an inout.
-Info: Top level output port LCD_DB[8] is identified as an inout.
-Info: Top level output port LCD_DB[2] is identified as an inout.
-Info: Top level output port MCU_D[1] is identified as an inout.
-Info: Top level output port LCD_DB[12] is identified as an inout.
-Info: Top level output port LCD_DB[11] is identified as an inout.
-Info: Top level output port LCD_DB[15] is identified as an inout.
-Info: Top level output port LCD_DB[6] is identified as an inout.
-Info: Top level output port LCD_DB[3] is identified as an inout.
 Info: Top level output port MCU_D[4] is identified as an inout.
 Info: Top level output port MCU_D[2] is identified as an inout.
+Info: Top level output port MCU_D[1] is identified as an inout.
+Info: Top level output port MCU_D[3] is identified as an inout.
+Info: Top level output port MCU_D[0] is identified as an inout.
+Info: Top level output port MCU_D[6] is identified as an inout.
+Info: Top level output port MCU_D[7] is identified as an inout.
+Info: Top level output port LCD_DB[14] is identified as an inout.
+Info: Top level output port LCD_DB[9] is identified as an inout.
+Info: Top level output port LCD_DB[8] is identified as an inout.
+Info: Top level output port LCD_DB[4] is identified as an inout.
+Info: Top level output port LCD_DB[2] is identified as an inout.
+Info: Top level output port LCD_DB[6] is identified as an inout.
+Info: Top level output port LCD_DB[7] is identified as an inout.
+Info: Top level output port LCD_DB[0] is identified as an inout.
+Info: Top level output port LCD_DB[5] is identified as an inout.
+Info: Top level output port LCD_DB[3] is identified as an inout.
+Info: Top level output port LCD_DB[10] is identified as an inout.
+Info: Top level output port LCD_DB[11] is identified as an inout.
+Info: Top level output port LCD_DB[12] is identified as an inout.
+Info: Top level output port LCD_DB[13] is identified as an inout.
+Info: Top level output port LCD_DB[15] is identified as an inout.
+Info: Top level output port LCD_DB[1] is identified as an inout.
 ## CPU time: 0:0:0, REAL time: 0:0:0
 ## Memory Usage: 52MB (52MB)
 Using design SDC file ./portapack_h4m_cpld.sdc.
-read_sdc -quiet "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100/portapack_h4m_cpld.sdc"
+read_sdc -quiet "A:/Users/jLynx/Documents/Code/C/portapack-mayhem/hardware/portapack_h4m/CPLD/AG256SL100/portapack_h4m_cpld.sdc"
 > ## Generated SDC file "portapack_hackrf_one_cpld.sdc"
 > 
 > ## Copyright (C) 1991-2014 Altera Corporation
@@ -802,7 +802,7 @@ Partitioning...
  step = 3, partition : 2,2
 ..........
 
-## CPU time: 0:0:0, REAL time: 0:0:1
+## CPU time: 0:0:0, REAL time: 0:0:0
 Pass 2 #1/1 ...
 Legalization and Swapping...
 ..........
@@ -819,7 +819,7 @@ Optimization...
 Finishing...
 
 ## CPU time: 0:0:0, REAL time: 0:0:0
-Total wire cost after placement: 0:0:0(0:0) 240.87(14.2428)+578(1)+119.667 253.334(44.1119)+114.5
+Total wire cost after placement: 0:0:0(0:0) 236.87(14.2428)+570(1)+122.333 258.683(45.1519)+115.25
 
 *** Post Placement Timing Report ***
 === User constraints ===
@@ -838,11 +838,11 @@ Route Design Statistics
 
 Routing...
 ## CPU time: 0:0:0, REAL time: 0:0:0
- iter = 1/1, route#: 105, violation# : 9, overflow# : 8, conflict# : 16, node#: 479
+ iter = 1/1, route#: 105, violation# : 11, overflow# : 11, conflict# : 19, node#: 472
 ## CPU time: 0:0:0, REAL time: 0:0:0
- iter = 2/2, route#: 105, violation# : 2, overflow# : 2, conflict# : 4, node#: 489
+ iter = 2/2, route#: 105, violation# : 1, overflow# : 1, conflict# : 2, node#: 487
 ## CPU time: 0:0:0, REAL time: 0:0:0
- iter = 3/3, route#: 105, violation# : 0, overflow# : 0, conflict# : 0, node#: 495
+ iter = 3/3, route#: 105, violation# : 0, overflow# : 0, conflict# : 0, node#: 488
 Optimizing...
 ..
 
@@ -856,7 +856,7 @@ Coverage report
   Auto constraints covered 40 connections out of 196 total, coverage: 20.4%
 *** End Timing Report ***
 
-Sat Jul 20 11:05:56 2024
+Sun Nov 03 11:19:14 2024
 Warn: User constraints coverage is too low at 5.6%.
 Info: Using config file ./portapack_h4m_cpld.bin to generate download file ./portapack_h4m_cpld_download.svf.
 > 
@@ -866,7 +866,7 @@ Info: Using config file ./portapack_h4m_cpld.bin to generate download file ./por
 }
 Using post-ASF file portapack_h4m_cpld.post.asf.
 > date_time
-Sat Jul 20 11:05:56 2024
+Sun Nov 03 11:19:14 2024
 > exit
 
 Total 0 fatals, 0 errors, 3 warnings, 28 infos.

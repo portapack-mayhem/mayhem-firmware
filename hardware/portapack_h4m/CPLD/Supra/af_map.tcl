@@ -12,7 +12,7 @@ if { ! [info exists TOP_MODULE] } {
 
 set verilogs { }
 if { [ llength $verilogs ] == 0 } {
-  set verilogs "A:/Users/jLynx/Documents/Code/CPLD/PP_CPLD/H4M/AG256SL100/${DESIGN}.v"
+  set verilogs "A:/Users/jLynx/Documents/Code/C/portapack-mayhem/hardware/portapack_h4m/CPLD/AG256SL100/${DESIGN}.v"
 }
 foreach verilog $verilogs {
   read_verilog "$verilog"
