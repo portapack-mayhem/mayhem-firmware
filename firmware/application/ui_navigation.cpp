@@ -724,31 +724,38 @@ void NavigationView::handle_autostart() {
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};
     if (!autostart_app.empty()) {
+        bool started = false;
         // inner app
         if (StartAppByName(autostart_app.c_str())) {
-            return;
+            started = true;
         }
 
-        // ppma
+        if (!started) {
+            // ppma
 
-        std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppma";
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-        std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
-        if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
-            return;
-        }
+            std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppma";
+            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+            std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
+            if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
+                started = true;
+            }
 
-        // ppmp / standalone
-        appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
-        pth = conv.from_bytes(appwithpath.c_str());
-        if (ui::ExternalItemsMenuLoader::run_standalone_app(*this, pth)) {
-            return;
+            if (!started) {
+                // ppmp / standalone
+                appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
+                pth = conv.from_bytes(appwithpath.c_str());
+                if (ui::ExternalItemsMenuLoader::run_standalone_app(*this, pth)) {
+                    started = true;
+                }
+            }
         }
-        display_modal(
-            "Notice", "Autostart failed:\n" +
-                          autostart_app +
-                          "\nupdate sdcard content\n" +
-                          "and check if .ppma exists");
+        if (!started) {
+            display_modal(
+                "Notice", "Autostart failed:\n" +
+                              autostart_app +
+                              "\nupdate sdcard content\n" +
+                              "and check if .ppma exists");
+        }
     }  // autostart end
     return;
 }
