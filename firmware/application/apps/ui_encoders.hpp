@@ -32,6 +32,8 @@
 #include <memory>
 #include <vector>
 
+#define WAVEFORM_BUFFER_SIZE 550
+
 using namespace encoders;
 
 namespace ui {
@@ -56,7 +58,7 @@ class EncodersConfigView : public View {
     std::string frame_fragments = "0";
 
    private:
-    int16_t waveform_buffer[550];
+    int16_t waveform_buffer[WAVEFORM_BUFFER_SIZE];
     const encoder_def_t* encoder_def{};
 
     void draw_waveform();

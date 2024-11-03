@@ -25,6 +25,9 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
+#define PADDING_LEFT 1
+#define PADDING_RIGHT 1
+
 using namespace portapack;
 
 namespace ui {
@@ -154,12 +157,34 @@ void EncodersConfigView::on_show() {
 }
 
 void EncodersConfigView::draw_waveform() {
+    // padding reason:
+    // in real world the signal would always start with low level and became low level again after yout turn off the radio;
+    // the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
+    // so just for out of looking things
+
     size_t length = frame_fragments.length();
 
-    for (size_t n = 0; n < length; n++)
-        waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
+    // currently not needed since all the supported OOK protocol wont exceed 550 yet
+    if (length + (PADDING_LEFT + PADDING_RIGHT) >= WAVEFORM_BUFFER_SIZE) {
+        length = WAVEFORM_BUFFER_SIZE - (PADDING_LEFT + PADDING_RIGHT);
+    }
 
-    waveform.set_length(length);
+    // padding l
+    for (size_t i = 0; i < PADDING_LEFT; i++) {
+        waveform_buffer[i] = 0;
+    }
+
+    // real wf
+    for (size_t n = 0; n < length; n++) {
+        waveform_buffer[n + PADDING_LEFT] = (frame_fragments[n] == '0') ? 0 : 1;
+    }
+
+    // padding r
+    for (size_t i = length + PADDING_LEFT; i < WAVEFORM_BUFFER_SIZE; i++) {
+        waveform_buffer[i] = 0;
+    }
+
+    waveform.set_length(length + PADDING_LEFT + PADDING_RIGHT);
     waveform.set_dirty();
 }
 
