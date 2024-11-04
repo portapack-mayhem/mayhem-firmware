@@ -43,7 +43,6 @@
 #include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
-#include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
