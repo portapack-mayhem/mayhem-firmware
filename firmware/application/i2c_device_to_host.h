@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2023 Bernd Herzog
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *

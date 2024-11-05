@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2023 Bernd Herzog
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -25,6 +26,7 @@
 
 I2CShellDriver I2CD1;
 
+// pp to i2c data tx
 static void onotify(GenericQueue* qp) {
     I2CShellDriver* sdp = chQGetLink(qp);
     uint8_t buff[I2CSHELL_BUFFERS_SIZE];
@@ -100,29 +102,20 @@ static msg_t qwait(GenericQueue* qp, systime_t time) {
     return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
 }
 
-void complete_i2chost_to_device_transfer() {
-    // todo htotoo, do it to handle input from i2c
-    /* for (; !usb_bulk_buffer_queue.empty(); usb_bulk_buffer_queue.pop()) {
-         usb_bulk_buffer_t* transfer_data = usb_bulk_buffer_queue.front();
+// i2c->pp data rx
+void complete_i2chost_to_device_transfer(uint8_t* data, size_t length) {
+    chSysLock();
+    for (unsigned int i = 0; i < length; i++) {
+        msg_t ret;
+        do {
+            ret = chIQPutI(&I2CD1.iqueue, data[i]);
+            if (ret == Q_FULL) {
+                chSysUnlock();
+                chThdSleepMilliseconds(1);  // wait for shell thread when buffer is full
+                chSysLock();
+            }
 
-         while (transfer_data->completed == false)
-             return;
-
-         chSysLock();
-         for (unsigned int i = 0; i < transfer_data->length; i++) {
-             msg_t ret;
-             do {
-                 ret = chIQPutI(&SUSBD1.iqueue, transfer_data->data[i]);
-
-                 if (ret == Q_FULL) {
-                     chSysUnlock();
-                     chThdSleepMilliseconds(1);  // wait for shell thread when buffer is full
-                     chSysLock();
-                 }
-
-             } while (ret == Q_FULL);
-         }
-         chSysUnlock();
-
-         usb_bulk_buffer_spare.push(transfer_data);*/
+        } while (ret == Q_FULL);
+    }
+    chSysUnlock();
 }
