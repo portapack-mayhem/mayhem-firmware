@@ -41,6 +41,7 @@ bool I2CDevManager::force_scan = false;
 Thread* I2CDevManager::thread;
 std::vector<I2DevListElement> I2CDevManager::devlist;
 Mutex I2CDevManager::mutex_list{};
+EventDispatcher* I2CDevManager::_eventDispatcher;
 
 /*
     DEAR DEVELOPERS!

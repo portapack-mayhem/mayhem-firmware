@@ -20,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __USB_SERIAL_DEVICE_TO_HOST_H
-#define __USB_SERIAL_DEVICE_TO_HOST_H
+#ifndef __I2C_DEVICE_TO_HOST_H
+#define __I2C_DEVICE_TO_HOST_H
 
 #include "ch.h"
 #include "hal.h"

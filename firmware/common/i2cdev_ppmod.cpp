@@ -25,7 +25,9 @@
 
 extern "C" {
 void complete_i2chost_to_device_transfer(uint8_t* data, size_t length);
+void create_shell_i2c(EventDispatcher* evtd);
 }
+
 namespace i2cdev {
 
 bool I2cDev_PPmod::init(uint8_t addr_) {
@@ -33,6 +35,11 @@ bool I2cDev_PPmod::init(uint8_t addr_) {
     addr = addr_;
     model = I2CDECMDL_PPMOD;
     query_interval = 10;
+    auto mask = get_features_mask();
+    if (mask & (uint64_t)SupportedFeatures::FEAT_SHELL) {
+        query_interval = 1;
+        create_shell_i2c(I2CDevManager::get_event_dispatcher());
+    }
 
     return true;
 }
