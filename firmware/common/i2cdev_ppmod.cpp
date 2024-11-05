@@ -23,6 +23,9 @@
 #include "portapack.hpp"
 #include <optional>
 
+extern "C" {
+void complete_i2chost_to_device_transfer(uint8_t* data, size_t length);
+}
 namespace i2cdev {
 
 bool I2cDev_PPmod::init(uint8_t addr_) {
@@ -64,6 +67,36 @@ void I2cDev_PPmod::update() {
             EventDispatcher::send_message(msg);
         }
     }
+    if (mask & (uint64_t)SupportedFeatures::FEAT_SHELL) {
+        auto commcnt = get_shell_buffer_bytes();
+        if (commcnt > 0) {
+            bool has_more = false;
+            uint8_t buff[65];  // 0 th byte is the has_more flag, and size sent
+            do {
+                if (get_shell_get_buffer_data(buff, 65)) {
+                    if (buff[0] == 0xff) {
+                        break;  // error
+                    }
+                    has_more = buff[0] & 0x80;
+                    size_t size = buff[0] & 0x7F;
+                    for (size_t i = 0; i < size; i++) {
+                        complete_i2chost_to_device_transfer(&buff[1], size);
+                    }
+                } else {
+                    has_more = false;
+                }
+            } while (has_more);
+        }
+    }
+}
+
+bool I2cDev_PPmod::get_shell_get_buffer_data(uint8_t* buff, size_t len) {
+    Command cmd = Command::COMMAND_SHELL_READ_DATA;
+    bool success = i2c_read((uint8_t*)&cmd, 2, buff, len);
+    if (success == false) {
+        return false;
+    }
+    return true;
 }
 
 std::optional<orientation_t> I2cDev_PPmod::get_orientation_data() {
@@ -102,6 +135,16 @@ std::optional<uint16_t> I2cDev_PPmod::get_light_data() {
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(uint16_t));
     if (success == false) {
         return std::nullopt;
+    }
+    return data;
+}
+
+uint16_t I2cDev_PPmod::get_shell_buffer_bytes() {
+    Command cmd = Command::COMMAND_SHELL_READ_DATA_SIZE;
+    uint16_t data;
+    bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(uint16_t));
+    if (success == false) {
+        return 0;
     }
     return data;
 }

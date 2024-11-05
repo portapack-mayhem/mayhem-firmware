@@ -40,7 +40,7 @@ static void onotify(GenericQueue* qp) {
         int ret;
         chSysUnlock();
         do {
-            ret = oNofityI2cFromShell(&buff[0], n);  // todo htotoo i2c_write!!!
+            ret = oNofityI2cFromShell(&buff[0], n);  // i2c_write
             if (ret == -1)
                 chThdSleepMilliseconds(1);
         } while (ret == -1);

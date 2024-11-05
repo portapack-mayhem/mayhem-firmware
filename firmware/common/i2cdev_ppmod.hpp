@@ -89,6 +89,8 @@ class I2cDev_PPmod : public I2cDev {
     std::optional<orientation_t> get_orientation_data();
     std::optional<environment_t> get_environment_data();
     std::optional<uint16_t> get_light_data();
+    uint16_t get_shell_buffer_bytes();
+    bool get_shell_get_buffer_data(uint8_t* buff, size_t len);
 };
 
 } /* namespace i2cdev */
