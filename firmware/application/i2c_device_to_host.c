@@ -126,4 +126,3 @@ void complete_i2chost_to_device_transfer() {
 
          usb_bulk_buffer_spare.push(transfer_data);*/
 }
-}
