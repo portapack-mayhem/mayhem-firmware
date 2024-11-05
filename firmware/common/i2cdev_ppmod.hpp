@@ -55,6 +55,10 @@ class I2cDev_PPmod : public I2cDev {
         COMMAND_GETFEAT_DATA_ORIENTATION,
         COMMAND_GETFEAT_DATA_ENVIRONMENT,
         COMMAND_GETFEAT_DATA_LIGHT,
+        // Shell specific communication
+        COMMAND_SHELL_WRITE_DATA,      // pp shell to esp. size not defined
+        COMMAND_SHELL_READ_DATA_SIZE,  // how many bytes the esp has to send to pp's shell
+        COMMAND_SHELL_READ_DATA,       // the actual bytes sent by esp. 1st byte's 1st bit is the "hasmore" flag, the remaining 7 bits are the size of the data. exactly 64 byte follows.
 
     };
 

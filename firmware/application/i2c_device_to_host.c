@@ -21,7 +21,7 @@
  */
 
 #include "i2c_device_to_host.h"
-
+#include "i2cdevmanager_c_api.h"
 #include <string.h>
 
 I2CShellDriver I2CD1;
@@ -40,10 +40,9 @@ static void onotify(GenericQueue* qp) {
         int ret;
         chSysUnlock();
         do {
-            ret = 0;  // todo htotoo i2c_write!!!
+            ret = oNofityI2cFromShell(&buff[0], n);  // todo htotoo i2c_write!!!
             if (ret == -1)
                 chThdSleepMilliseconds(1);
-
         } while (ret == -1);
         chSysLock();
     }
