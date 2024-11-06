@@ -1235,7 +1235,7 @@ void create_shell(EventDispatcher* evtd) {
 
 void create_shell_i2c(EventDispatcher* evtd) {
     if (shell_i2c_created) return;
+    shell_i2c_created = true;
     _eventDispatcherInstance = evtd;
     shellCreate(&shell_cfg2, SHELL_WA_SIZE, NORMALPRIO + 10);
-    shell_i2c_created = true;
 }

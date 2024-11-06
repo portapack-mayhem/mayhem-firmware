@@ -23,6 +23,8 @@
 #include "portapack.hpp"
 #include <optional>
 
+#define SENSORUPDATETIME 10
+
 extern "C" {
 void complete_i2chost_to_device_transfer(uint8_t* data, size_t length);
 void create_shell_i2c(EventDispatcher* evtd);
@@ -34,10 +36,9 @@ bool I2cDev_PPmod::init(uint8_t addr_) {
     if (addr_ != I2CDEV_PPMOD_ADDR_1) return false;
     addr = addr_;
     model = I2CDECMDL_PPMOD;
-    query_interval = 10;
+    query_interval = 1;  // self timer will handle the update interval per subdevice
     auto mask = get_features_mask();
     if (mask & (uint64_t)SupportedFeatures::FEAT_SHELL) {
-        query_interval = 1;
         create_shell_i2c(I2CDevManager::get_event_dispatcher());
     }
 
@@ -46,28 +47,28 @@ bool I2cDev_PPmod::init(uint8_t addr_) {
 
 void I2cDev_PPmod::update() {
     auto mask = get_features_mask();
-    if (mask & (uint64_t)SupportedFeatures::FEAT_GPS) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_GPS && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_gps_data();
         if (data.has_value()) {
             GPSPosDataMessage msg{data.value().latitude, data.value().longitude, (int32_t)data.value().altitude, (int32_t)data.value().speed, data.value().sats_in_use};
             EventDispatcher::send_message(msg);
         }
     }
-    if (mask & (uint64_t)SupportedFeatures::FEAT_ORIENTATION) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_ORIENTATION && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_orientation_data();
         if (data.has_value()) {
             OrientationDataMessage msg{(uint16_t)data.value().angle, (int16_t)data.value().tilt};
             EventDispatcher::send_message(msg);
         }
     }
-    if (mask & (uint64_t)SupportedFeatures::FEAT_ENVIRONMENT) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_ENVIRONMENT && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_environment_data();
         if (data.has_value()) {
             EnvironmentDataMessage msg{data.value().temperature, data.value().humidity, data.value().pressure};
             EventDispatcher::send_message(msg);
         }
     }
-    if (mask & (uint64_t)SupportedFeatures::FEAT_LIGHT) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_LIGHT && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_light_data();
         if (data.has_value()) {
             LightDataMessage msg{data.value()};
@@ -94,6 +95,10 @@ void I2cDev_PPmod::update() {
                 }
             } while (has_more);
         }
+    }
+    self_timer++;
+    if (self_timer >= 250) {
+        self_timer = 0;  // rounding bc of uint8_t overflow
     }
 }
 

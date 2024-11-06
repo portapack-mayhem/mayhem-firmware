@@ -91,6 +91,9 @@ class I2cDev_PPmod : public I2cDev {
     std::optional<uint16_t> get_light_data();
     uint16_t get_shell_buffer_bytes();
     bool get_shell_get_buffer_data(uint8_t* buff, size_t len);
+
+   private:
+    uint8_t self_timer = 0;
 };
 
 } /* namespace i2cdev */
