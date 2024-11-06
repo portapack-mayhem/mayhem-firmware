@@ -353,7 +353,7 @@ int oNofityI2cFromShell(uint8_t* buff, size_t len) {
     if (!dev) return 0;  // nothing to send to, so /dev/null
     uint16_t reg = 9;    // COMMAND_SHELL_WRITE_DATA;
     if (dev->i2c_write((uint8_t*)&reg, 2, buff, len)) return 0;
-    return 0;  // todo htotoo maybe error handle?!
+    return 0;  // shoud have an error handler
 }
 #ifdef __cplusplus
 }

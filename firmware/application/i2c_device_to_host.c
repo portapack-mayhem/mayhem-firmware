@@ -27,7 +27,7 @@
 I2CShellDriver I2CD1;
 
 // pp to i2c data tx
-static void onotify(GenericQueue* qp) {
+static void onotifyi2c(GenericQueue* qp) {
     I2CShellDriver* sdp = chQGetLink(qp);
     uint8_t buff[I2CSHELL_BUFFERS_SIZE];
     int n = chOQGetFullI(&sdp->oqueue);
@@ -36,7 +36,6 @@ static void onotify(GenericQueue* qp) {
         for (int i = 0; i < n; i++) {
             buff[i] = chOQGetI(&sdp->oqueue);
         }
-
         int ret;
         chSysUnlock();
         do {
@@ -89,16 +88,7 @@ static const struct I2CShellDriverVMT vmt = {
 void init_i2c_shell_driver(I2CShellDriver* sdp) {
     sdp->vmt = &vmt;
     chIQInit(&sdp->iqueue, sdp->ib, I2CSHELL_BUFFERS_SIZE, NULL, sdp);
-    chOQInit(&sdp->oqueue, sdp->ob, I2CSHELL_BUFFERS_SIZE, onotify, sdp);
-}
-
-// queue handler from ch
-static msg_t qwait(GenericQueue* qp, systime_t time) {
-    if (TIME_IMMEDIATE == time)
-        return Q_TIMEOUT;
-    currp->p_u.wtobjp = qp;
-    queue_insert(currp, &qp->q_waiting);
-    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
+    chOQInit(&sdp->oqueue, sdp->ob, I2CSHELL_BUFFERS_SIZE, onotifyi2c, sdp);
 }
 
 // i2c->pp data rx

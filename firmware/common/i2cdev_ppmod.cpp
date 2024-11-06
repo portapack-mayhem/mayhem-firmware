@@ -87,9 +87,7 @@ void I2cDev_PPmod::update() {
                     }
                     has_more = buff[0] & 0x80;
                     size_t size = buff[0] & 0x7F;
-                    for (size_t i = 0; i < size; i++) {
-                        complete_i2chost_to_device_transfer(&buff[1], size);
-                    }
+                    complete_i2chost_to_device_transfer(&buff[1], size);
                 } else {
                     has_more = false;
                 }

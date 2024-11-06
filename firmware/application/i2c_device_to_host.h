@@ -27,7 +27,7 @@
 #include "hal.h"
 
 #ifndef I2CSHELL_BUFFERS_SIZE
-#define I2CSHELL_BUFFERS_SIZE 128
+#define I2CSHELL_BUFFERS_SIZE 64
 #endif
 
 struct I2CShellDriverVMT {
@@ -47,7 +47,13 @@ typedef struct I2CShellDriver I2CShellDriver;
 
 extern I2CShellDriver I2CD1;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void init_i2c_shell_driver(I2CShellDriver* sdp);
+#ifdef __cplusplus
+}
+#endif
 
 size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
 
