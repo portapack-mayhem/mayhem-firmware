@@ -89,10 +89,10 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
 
         // Automatically switch default capture format to C8 when bandwidth setting is increased to >=1.5MHz anb back to C16 for <=1,25Mhz
         if ((bandwidth >= 1500000) && (previous_bandwidth < 1500000)) {
-            option_format.set_selected_index(1); // Default C8 format for REC, 1500K ... 5500k
+            option_format.set_selected_index(1);  // Default C8 format for REC, 1500K ... 5500k
         }
         if ((bandwidth <= 1250000) && (previous_bandwidth > 1250000)) {
-            option_format.set_selected_index(0); // Default C16 format for REC , 12k5 ... 1250K
+            option_format.set_selected_index(0);  // Default C16 format for REC , 12k5 ... 1250K
         }
         previous_bandwidth = bandwidth;
 
