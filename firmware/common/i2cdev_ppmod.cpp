@@ -37,7 +37,7 @@ bool I2cDev_PPmod::init(uint8_t addr_) {
     addr = addr_;
     model = I2CDECMDL_PPMOD;
     query_interval = 1;  // self timer will handle the update interval per subdevice
-    auto mask = get_features_mask();
+    mask = get_features_mask();
     if (mask & (uint64_t)SupportedFeatures::FEAT_SHELL) {
         create_shell_i2c(I2CDevManager::get_event_dispatcher());
     }
@@ -46,7 +46,7 @@ bool I2cDev_PPmod::init(uint8_t addr_) {
 }
 
 void I2cDev_PPmod::update() {
-    auto mask = get_features_mask();
+    // mask = get_features_mask(); //saved on init. replug device if something changed. //needs to revise when modules come out.
     if (mask & (uint64_t)SupportedFeatures::FEAT_GPS && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_gps_data();
         if (data.has_value()) {
