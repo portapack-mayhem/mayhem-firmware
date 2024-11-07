@@ -94,7 +94,7 @@ class I2cDev_PPmod : public I2cDev {
 
    private:
     uint8_t self_timer = 0;
-    uint64_t mask;  // feauture mask, that indicates what the device can do. this will determinate what we will query from the device
+    uint64_t mask = 0;  // feauture mask, that indicates what the device can do. this will determinate what we will query from the device
 };
 
 } /* namespace i2cdev */
