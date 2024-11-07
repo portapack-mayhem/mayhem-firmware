@@ -101,7 +101,7 @@ void I2cDev_PPmod::update() {
 }
 
 bool I2cDev_PPmod::get_shell_get_buffer_data(uint8_t* buff, size_t len) {
-    Command cmd = Command::COMMAND_SHELL_READ_DATA;
+    Command cmd = Command::COMMAND_SHELL_MODTOPP_DATA;
     return i2c_read((uint8_t*)&cmd, 2, buff, len);
 }
 
@@ -146,7 +146,7 @@ std::optional<uint16_t> I2cDev_PPmod::get_light_data() {
 }
 
 uint16_t I2cDev_PPmod::get_shell_buffer_bytes() {
-    Command cmd = Command::COMMAND_SHELL_READ_DATA_SIZE;
+    Command cmd = Command::COMMAND_SHELL_MODTOPP_DATA_SIZE;
     uint16_t data;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(uint16_t));
     if (success == false) {
