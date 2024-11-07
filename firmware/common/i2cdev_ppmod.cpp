@@ -102,11 +102,7 @@ void I2cDev_PPmod::update() {
 
 bool I2cDev_PPmod::get_shell_get_buffer_data(uint8_t* buff, size_t len) {
     Command cmd = Command::COMMAND_SHELL_READ_DATA;
-    bool success = i2c_read((uint8_t*)&cmd, 2, buff, len);
-    if (success == false) {
-        return false;
-    }
-    return true;
+    return i2c_read((uint8_t*)&cmd, 2, buff, len);
 }
 
 std::optional<orientation_t> I2cDev_PPmod::get_orientation_data() {
@@ -160,17 +156,17 @@ uint16_t I2cDev_PPmod::get_shell_buffer_bytes() {
 }
 
 uint64_t I2cDev_PPmod::get_features_mask() {
-    uint64_t mask = 0;
+    uint64_t mask_ = 0;
     Command cmd = Command::COMMAND_GETFEATURE_MASK;
-    bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&mask, sizeof(mask));
+    bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&mask_, sizeof(mask_));
     if (success == false) {
         return 0;
     }
     // sanity check
-    if (mask == UINT64_MAX) {
+    if (mask_ == UINT64_MAX) {
         return 0;
     }
-    return mask;
+    return mask_;
 }
 
 std::optional<I2cDev_PPmod::device_info> I2cDev_PPmod::readDeviceInfo() {
