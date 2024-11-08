@@ -55,6 +55,4 @@ void init_i2c_shell_driver(I2CShellDriver* sdp);
 }
 #endif
 
-size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
-
 #endif

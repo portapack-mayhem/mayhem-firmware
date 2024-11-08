@@ -1233,7 +1233,7 @@ void create_shell(EventDispatcher* evtd) {
     shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO + 10);
 }
 
-void create_shell_i2c(EventDispatcher* evtd) {
+extern "C" void create_shell_i2c(EventDispatcher* evtd) {
     if (shell_i2c_created) return;
     shell_i2c_created = true;
     init_i2c_shell_driver(&I2CD1);
