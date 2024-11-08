@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2023 Bernd Herzog
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -19,22 +20,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __USB_SERIAL_SHELL_H
-#define __USB_SERIAL_SHELL_H
+#ifndef __I2C_DEVICE_TO_HOST_H
+#define __I2C_DEVICE_TO_HOST_H
 
 #include "ch.h"
 #include "hal.h"
 
-#include "shell.h"
+#ifndef I2CSHELL_BUFFERS_SIZE
+#define I2CSHELL_BUFFERS_SIZE 64
+#endif
 
-class EventDispatcher;
+struct I2CShellDriverVMT {
+    _base_asynchronous_channel_methods
+};
 
-void create_shell(EventDispatcher* evtd);
+struct I2CShellDriver {
+    /** @brief Virtual Methods Table.*/
+    const struct I2CShellDriverVMT* vmt;
+    InputQueue iqueue;                 /* Output queue.*/
+    OutputQueue oqueue;                /* Input circular buffer.*/
+    uint8_t ib[I2CSHELL_BUFFERS_SIZE]; /* Output circular buffer.*/
+    uint8_t ob[I2CSHELL_BUFFERS_SIZE];
+};
+
+typedef struct I2CShellDriver I2CShellDriver;
+
+extern I2CShellDriver I2CD1;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-void create_shell_i2c(EventDispatcher* evtd);
+void init_i2c_shell_driver(I2CShellDriver* sdp);
 #ifdef __cplusplus
 }
 #endif

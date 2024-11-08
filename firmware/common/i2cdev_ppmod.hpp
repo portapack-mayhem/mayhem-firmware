@@ -55,6 +55,10 @@ class I2cDev_PPmod : public I2cDev {
         COMMAND_GETFEAT_DATA_ORIENTATION,
         COMMAND_GETFEAT_DATA_ENVIRONMENT,
         COMMAND_GETFEAT_DATA_LIGHT,
+        // Shell specific communication
+        COMMAND_SHELL_PPTOMOD_DATA,       // pp shell to esp. size not defined
+        COMMAND_SHELL_MODTOPP_DATA_SIZE,  // how many bytes the esp has to send to pp's shell
+        COMMAND_SHELL_MODTOPP_DATA,       // the actual bytes sent by esp. 1st byte's 1st bit is the "hasmore" flag, the remaining 7 bits are the size of the data. exactly 64 byte follows.
 
     };
 
@@ -85,6 +89,12 @@ class I2cDev_PPmod : public I2cDev {
     std::optional<orientation_t> get_orientation_data();
     std::optional<environment_t> get_environment_data();
     std::optional<uint16_t> get_light_data();
+    uint16_t get_shell_buffer_bytes();
+    bool get_shell_get_buffer_data(uint8_t* buff, size_t len);
+
+   private:
+    uint8_t self_timer = 0;
+    uint64_t mask = 0;  // feauture mask, that indicates what the device can do. this will determinate what we will query from the device
 };
 
 } /* namespace i2cdev */

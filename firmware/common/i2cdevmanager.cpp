@@ -41,6 +41,7 @@ bool I2CDevManager::force_scan = false;
 Thread* I2CDevManager::thread;
 std::vector<I2DevListElement> I2CDevManager::devlist;
 Mutex I2CDevManager::mutex_list{};
+EventDispatcher* I2CDevManager::_eventDispatcher;
 
 /*
     DEAR DEVELOPERS!
@@ -343,3 +344,11 @@ msg_t I2CDevManager::timer_fn(void* arg) {
 }
 
 };  // namespace i2cdev
+
+extern "C" int oNofityI2cFromShell(uint8_t* buff, size_t len) {
+    i2cdev::I2cDev* dev = i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+    if (!dev) return 0;  // nothing to send to, so /dev/null
+    uint16_t reg = 9;    // COMMAND_SHELL_PPTOMOD_DATA;
+    if (dev->i2c_write((uint8_t*)&reg, 2, buff, len)) return 0;
+    return 0;  // shoud have an error handler
+}

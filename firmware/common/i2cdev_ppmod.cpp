@@ -23,47 +23,86 @@
 #include "portapack.hpp"
 #include <optional>
 
+#define SENSORUPDATETIME 10
+
+extern "C" {
+void complete_i2chost_to_device_transfer(uint8_t* data, size_t length);
+void create_shell_i2c(EventDispatcher* evtd);
+}
+
 namespace i2cdev {
 
 bool I2cDev_PPmod::init(uint8_t addr_) {
     if (addr_ != I2CDEV_PPMOD_ADDR_1) return false;
     addr = addr_;
     model = I2CDECMDL_PPMOD;
-    query_interval = 10;
+    query_interval = 1;  // self timer will handle the update interval per subdevice
+    mask = get_features_mask();
+    if (mask & (uint64_t)SupportedFeatures::FEAT_SHELL) {
+        create_shell_i2c(I2CDevManager::get_event_dispatcher());
+    }
 
     return true;
 }
 
 void I2cDev_PPmod::update() {
-    auto mask = get_features_mask();
-    if (mask & (uint64_t)SupportedFeatures::FEAT_GPS) {
+    // mask = get_features_mask(); //saved on init. replug device if something changed. //needs to revise when modules come out.
+    if (mask & (uint64_t)SupportedFeatures::FEAT_GPS && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_gps_data();
         if (data.has_value()) {
             GPSPosDataMessage msg{data.value().latitude, data.value().longitude, (int32_t)data.value().altitude, (int32_t)data.value().speed, data.value().sats_in_use};
             EventDispatcher::send_message(msg);
         }
     }
-    if (mask & (uint64_t)SupportedFeatures::FEAT_ORIENTATION) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_ORIENTATION && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_orientation_data();
         if (data.has_value()) {
             OrientationDataMessage msg{(uint16_t)data.value().angle, (int16_t)data.value().tilt};
             EventDispatcher::send_message(msg);
         }
     }
-    if (mask & (uint64_t)SupportedFeatures::FEAT_ENVIRONMENT) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_ENVIRONMENT && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_environment_data();
         if (data.has_value()) {
             EnvironmentDataMessage msg{data.value().temperature, data.value().humidity, data.value().pressure};
             EventDispatcher::send_message(msg);
         }
     }
-    if (mask & (uint64_t)SupportedFeatures::FEAT_LIGHT) {
+    if (mask & (uint64_t)SupportedFeatures::FEAT_LIGHT && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_light_data();
         if (data.has_value()) {
             LightDataMessage msg{data.value()};
             EventDispatcher::send_message(msg);
         }
     }
+    if (mask & (uint64_t)SupportedFeatures::FEAT_SHELL) {
+        auto commcnt = get_shell_buffer_bytes();
+        if (commcnt > 0) {
+            bool has_more = false;
+            uint8_t buff[65];  // 0 th byte is the has_more flag, and size sent
+            do {
+                if (get_shell_get_buffer_data(buff, 65)) {
+                    if (buff[0] == 0xff) {
+                        break;  // error
+                    }
+                    has_more = buff[0] & 0x80;
+                    size_t size = buff[0] & 0x7F;
+                    complete_i2chost_to_device_transfer(&buff[1], size);
+                } else {
+                    has_more = false;
+                }
+            } while (has_more);
+        }
+    }
+    self_timer++;
+    if (self_timer >= 250) {
+        self_timer = 0;  // rounding bc of uint8_t overflow
+    }
+}
+
+bool I2cDev_PPmod::get_shell_get_buffer_data(uint8_t* buff, size_t len) {
+    Command cmd = Command::COMMAND_SHELL_MODTOPP_DATA;
+    return i2c_read((uint8_t*)&cmd, 2, buff, len);
 }
 
 std::optional<orientation_t> I2cDev_PPmod::get_orientation_data() {
@@ -106,18 +145,28 @@ std::optional<uint16_t> I2cDev_PPmod::get_light_data() {
     return data;
 }
 
+uint16_t I2cDev_PPmod::get_shell_buffer_bytes() {
+    Command cmd = Command::COMMAND_SHELL_MODTOPP_DATA_SIZE;
+    uint16_t data;
+    bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(uint16_t));
+    if (success == false) {
+        return 0;
+    }
+    return data;
+}
+
 uint64_t I2cDev_PPmod::get_features_mask() {
-    uint64_t mask = 0;
+    uint64_t mask_ = 0;
     Command cmd = Command::COMMAND_GETFEATURE_MASK;
-    bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&mask, sizeof(mask));
+    bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&mask_, sizeof(mask_));
     if (success == false) {
         return 0;
     }
     // sanity check
-    if (mask == UINT64_MAX) {
+    if (mask_ == UINT64_MAX) {
         return 0;
     }
-    return mask;
+    return mask_;
 }
 
 std::optional<I2cDev_PPmod::device_info> I2cDev_PPmod::readDeviceInfo() {

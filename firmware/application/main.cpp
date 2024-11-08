@@ -139,6 +139,7 @@ Continuous (Fox-oring)
 #include "sd_card.hpp"
 
 #include <string.h>
+#include "i2cdevmanager.hpp"
 
 #include "rffc507x.hpp" /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
 rffc507x::RFFC507x first_if;
@@ -159,6 +160,7 @@ static void event_loop() {
             event_dispatcher.set_display_sleep(true);
         }};
     portapack::setEventDispatcherToUSBSerial(&event_dispatcher);
+    i2cdev::I2CDevManager::setEventDispatcher(&event_dispatcher);
     system_view.get_navigation_view()->handle_autostart();
     event_dispatcher.run();
 }

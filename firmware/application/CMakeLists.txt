@@ -117,6 +117,7 @@ set(CSRC
 	usb_serial_descriptor.c
 	usb_serial_endpoints.c
 	usb_serial_device_to_host.c
+	i2c_device_to_host.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
