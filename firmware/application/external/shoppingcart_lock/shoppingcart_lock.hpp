@@ -29,6 +29,8 @@ class ShoppingCartLock : public View {
    private:
     static constexpr size_t BUFFER_SIZE = 8192;
     static constexpr size_t NUM_BUFFERS = 8;
+    const std::string shoppingcart_lock_file{"shopping_cart_lock.wav"};
+    const std::string shoppingcart_unlock_file{"shopping_cart_unlock.wav"};
 
     NavigationView& nav_;
     std::unique_ptr<ReplayThread> replay_thread{};

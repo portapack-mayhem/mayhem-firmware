@@ -67,19 +67,19 @@ std::string ShoppingCartLock::list_wav_files() {
             auto filename = entry.path().filename().string();
             std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
 
-            if (filename == "lock.wav" || filename == "unlock.wav") {
+            if (filename == shoppingcart_lock_file || filename == shoppingcart_unlock_file) {
                 std::string file_path = (wav_dir / filename).string();
                 if (reader->open(file_path)) {
-                    if (filename == "lock.wav") {
+                    if (filename == shoppingcart_lock_file) {
                         found_lock = true;
-                        log_event("... Found: lock.wav");
+                        log_event("... Found: " + shoppingcart_lock_file);
                         log_event("Sample Rate: " + std::to_string(reader->sample_rate()));
                         log_event("Channels: " + std::to_string(reader->channels()));
                         log_event("Bits/Sample: " + std::to_string(reader->bits_per_sample()));
                     }
-                    if (filename == "unlock.wav") {
+                    if (filename == shoppingcart_unlock_file) {
                         found_unlock = true;
-                        log_event("... Found: unlock.wav");
+                        log_event("... Found: " + shoppingcart_unlock_file);
                         log_event("Sample Rate: " + std::to_string(reader->sample_rate()));
                         log_event("Channels: " + std::to_string(reader->channels()));
                         log_event("Bits/Sample: " + std::to_string(reader->bits_per_sample()));
@@ -95,8 +95,8 @@ std::string ShoppingCartLock::list_wav_files() {
 
     if (!found_lock || !found_unlock) {
         log_event("!!! Missing Required Files:");
-        if (!found_lock) log_event("!!! Missing: lock.wav");
-        if (!found_unlock) log_event("!!! Missing: unlock.wav");
+        if (!found_lock) log_event("!!! Missing: " + shoppingcart_lock_file);
+        if (!found_unlock) log_event("!!! Missing: " + shoppingcart_unlock_file);
         menu_view.hidden(true);
         text_empty.hidden(false);
     } else {
@@ -172,17 +172,16 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
     const uint32_t decimation = bb_sample_rate / wav_sample_rate;
 
     baseband::set_audiotx_config(
-        bb_sample_rate / decimation, 
-        0.0f, 
-        5.0f,  
-        wav_bits_per_sample,  
-        wav_bits_per_sample,  
+        bb_sample_rate / decimation,
+        0.0f,
+        5.0f,
+        wav_bits_per_sample,
+        wav_bits_per_sample,
         0,
-        true,                           
-        false,                       
-        false,                        
-        false                        
-    );
+        true,
+        false,
+        false,
+        false);
 
     baseband::set_sample_rate(wav_sample_rate);
 
@@ -207,13 +206,13 @@ ShoppingCartLock::ShoppingCartLock(NavigationView& nav)
     button_lock.on_select = [this](Button&) {
         if (is_active()) stop();
         log_event(">>> LOCK_SEQUENCE_START");
-        play_audio("lock.wav", true);
+        play_audio(shoppingcart_lock_file, true);
     };
 
     button_unlock.on_select = [this](Button&) {
         if (is_active()) stop();
         log_event(">>> UNLOCK_SEQUENCE_START");
-        play_audio("unlock.wav", true);
+        play_audio(shoppingcart_unlock_file, true);
     };
 
     button_stop.on_select = [this](Button&) {
