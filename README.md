@@ -55,7 +55,7 @@ Consider that the hardware and firmware has been created and maintain by a [lot]
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
 ## What if I really want something specific?
-If what you need can be relevant in general, you can [request a feature](https://github.com/portapack-mayhem/mayhem-firmware/issues/new?labels=enhancement&template=feature_request.md). Alternatively, go to our Discord by clicking the chat badge on [top](#portapack-mayhem) and discuss there.
+If what you need can be relevant in general, you can [request a feature](https://github.com/portapack-mayhem/mayhem-firmware/issues/new?assignees=&labels=enhancement&projects=&template=02_feature_request.yml). Alternatively, go to our Discord by clicking the chat badge on [top](#portapack-mayhem) and discuss there.
 
 ## What if I need help?
 First, check the [documentation](https://github.com/portapack-mayhem/mayhem-firmware/wiki). If you find a bug or you think the problem is related to the current repository, please open an [issue](https://github.com/portapack-mayhem/mayhem-firmware/issues/new/choose).
