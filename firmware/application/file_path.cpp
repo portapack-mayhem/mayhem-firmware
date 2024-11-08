@@ -30,6 +30,7 @@ const std::filesystem::path audio_dir = u"AUDIO";
 const std::filesystem::path blerx_dir = u"BLERX";
 const std::filesystem::path bletx_dir = u"BLETX";
 const std::filesystem::path captures_dir = u"CAPTURES";
+const std::filesystem::path cvsfiles_dir = u"CVSFILES";
 const std::filesystem::path debug_dir = u"DEBUG";
 const std::filesystem::path firmware_dir = u"FIRMWARE";
 const std::filesystem::path freqman_dir = u"FREQMAN";

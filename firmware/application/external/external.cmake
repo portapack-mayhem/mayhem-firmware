@@ -110,6 +110,10 @@ set(EXTCPPSRC
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp	
+
+	#cvs_spam
+	external/cvs_spam/main.cpp
+	external/cvs_spam/cvs_spam.cpp		
 )
 
 set(EXTAPPLIST
@@ -131,6 +135,7 @@ set(EXTAPPLIST
 	foxhunt_rx
 	audio_test
 	wardrivemap
+	cvs_spam
 	tpmsrx
 	protoview
 	adsbtx
