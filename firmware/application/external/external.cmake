@@ -106,7 +106,10 @@ set(EXTCPPSRC
 	#acars
 	external/acars_rx/main.cpp
 	external/acars_rx/acars_app.cpp
-	
+
+	#shoppingcart_lock
+	external/shoppingcart_lock/main.cpp
+	external/shoppingcart_lock/shoppingcart_lock.cpp	
 )
 
 set(EXTAPPLIST
@@ -135,4 +138,5 @@ set(EXTAPPLIST
 	sstvtx
 	random_password
 	#acars_rx
+	shoppingcart_lock
 )
