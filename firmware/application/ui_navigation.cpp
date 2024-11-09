@@ -986,7 +986,7 @@ BMPView::BMPView(NavigationView& nav)
 
 void BMPView::paint(Painter&) {
     if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+        portapack::display.drawBMP({0, 16}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
 }
 
 bool BMPView::on_touch(const TouchEvent event) {
