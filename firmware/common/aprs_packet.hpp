@@ -276,7 +276,7 @@ class APRSPacket {
         if (!is_digits(sub)) {
             return 0;
         } else {
-            return std::stoi(sub);
+            return atoi(sub.c_str());
         }
     }
 

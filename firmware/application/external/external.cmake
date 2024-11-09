@@ -106,7 +106,14 @@ set(EXTCPPSRC
 	#acars
 	external/acars_rx/main.cpp
 	external/acars_rx/acars_app.cpp
-	
+
+	#shoppingcart_lock
+	external/shoppingcart_lock/main.cpp
+	external/shoppingcart_lock/shoppingcart_lock.cpp	
+
+	#cvs_spam
+	external/cvs_spam/main.cpp
+	external/cvs_spam/cvs_spam.cpp		
 )
 
 set(EXTAPPLIST
@@ -128,6 +135,7 @@ set(EXTAPPLIST
 	foxhunt_rx
 	audio_test
 	wardrivemap
+	cvs_spam
 	tpmsrx
 	protoview
 	adsbtx
@@ -135,4 +143,5 @@ set(EXTAPPLIST
 	sstvtx
 	random_password
 	#acars_rx
+	shoppingcart_lock
 )

@@ -190,6 +190,8 @@ class APRSRxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
     bool reset_console = false;
+    uint8_t options_region_id = 1;          // default to North America
+    rf::Frequency aprs_rx_freq{144390000};  // default to North America frequency
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -198,7 +200,10 @@ class APRSRxView : public View {
         3072000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "rx_aprs", app_settings::Mode::RX};
+        "rx_aprs",
+        app_settings::Mode::RX,
+        {{"options_region_id"sv, &options_region_id},
+         {"aprs_rx_freq"sv, &aprs_rx_freq}}};
 
     uint8_t console_color{0};
     std::string str_log{""};
@@ -220,15 +225,15 @@ class APRSRxView : public View {
     OptionsField options_region{
         {0 * 8, 0 * 8},
         3,
-        {{"NA ", 0},
-         {"EUR", 1},
-         {"AUS", 2},
-         {"NZ ", 3},
-         {"ISS", 4}}};
+        {{"MAN", 0},
+         {"NA ", 1},
+         {"EUR", 2},
+         {"AUS", 3},
+         {"NZ ", 4},
+         {"ISS", 5}}};
 
-    RxFrequencyField field_frequency{
-        {3 * 8, 0 * 16},
-        nav_};
+    FrequencyField field_frequency{
+        {3 * 8, 0 * 16}};
 
     // DEBUG
     RecordView record_view{

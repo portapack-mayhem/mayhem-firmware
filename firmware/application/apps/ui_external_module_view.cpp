@@ -80,7 +80,7 @@ void ExternalModuleView::on_tick_second() {
             continue;
         }
 
-        std::string btnText = (std::string) "App " + std::to_string(device_info->application_count) + ": " + (const char*)appInfo->app_name;
+        std::string btnText = (std::string) "App " + std::to_string(i + 1) + ": " + (const char*)appInfo->app_name;
 
         switch (appInfo->menu_location) {
             case app_location_t::UTILITIES:

@@ -4,14 +4,15 @@
 #include <cstdint>
 
 enum class SupportedFeatures : uint64_t {
-    FEAT_NONE = 0,
-    FEAT_EXT_APP = 1 << 0,
-    FEAT_UART = 1 << 1,
-    FEAT_GPS = 1 << 2,
-    FEAT_ORIENTATION = 1 << 3,
-    FEAT_ENVIRONMENT = 1 << 4,
-    FEAT_LIGHT = 1 << 5,
-    FEAT_DISPLAY = 1 << 6
+    FEAT_NONE = 0,              // no polling needed
+    FEAT_EXT_APP = 1 << 0,      // supplies external app
+    FEAT_UART = 1 << 1,         // supplies UART communication
+    FEAT_GPS = 1 << 2,          // can be queried for GPS info
+    FEAT_ORIENTATION = 1 << 3,  // can be queried for orientation info
+    FEAT_ENVIRONMENT = 1 << 4,  // can be queried for environment info
+    FEAT_LIGHT = 1 << 5,        // can be queried for light info
+    FEAT_DISPLAY = 1 << 6,      // can handle special display output
+    FEAT_SHELL = 1 << 7,        // can handle shell commands (polling needed for that)
 };
 
 typedef struct

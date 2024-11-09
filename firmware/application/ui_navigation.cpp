@@ -43,7 +43,6 @@
 #include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
-#include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
@@ -309,15 +308,6 @@ SystemStatusView::SystemStatusView(
     battery_icon.on_select = [this]() { on_battery_details(); };
     battery_text.on_select = [this]() { on_battery_details(); };
 
-    button_fake_brightness.on_select = [this](ImageButton&) {
-        set_dirty();
-        pmem::toggle_fake_brightness_level();
-        refresh();
-        if (nullptr != parent()) {
-            parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
-        }
-    };
-
     button_bias_tee.on_select = [this](ImageButton&) {
         this->on_bias_tee();
     };
@@ -384,7 +374,6 @@ void SystemStatusView::refresh() {
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
-    if (!pmem::ui_hide_fake_brightness() && !pmem::config_lcd_inverted_mode()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
         batt_was_inited = true;
         if (!pmem::ui_hide_battery_icon()) {
@@ -416,9 +405,6 @@ void SystemStatusView::refresh() {
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
     button_converter.set_foreground(pmem::config_converter() ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_light->foreground);
-
-    // Fake Brightness
-    button_fake_brightness.set_foreground((pmem::apply_fake_brightness() & (!pmem::config_lcd_inverted_mode())) ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
 
     set_dirty();
 }
@@ -724,31 +710,40 @@ void NavigationView::handle_autostart() {
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};
     if (!autostart_app.empty()) {
-        bool app_started = false;
-
-        // try innerapp
+        bool started = false;
+        // inner app
         if (StartAppByName(autostart_app.c_str())) {
-            app_started = true;
-        } else {
-            // try outside app
-            auto external_items = ExternalItemsMenuLoader::load_external_items(app_location_t::HOME, *this);
-            for (const auto& item : external_items) {
-                if (item.text == autostart_app) {
-                    item.on_select();
-                    app_started = true;
-                    break;
+            started = true;
+        }
+
+        if (!started) {
+            // ppma
+
+            std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppma";
+            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+            std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
+            if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
+                started = true;
+            }
+
+            if (!started) {
+                // ppmp / standalone
+                appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
+                pth = conv.from_bytes(appwithpath.c_str());
+                if (ui::ExternalItemsMenuLoader::run_standalone_app(*this, pth)) {
+                    started = true;
                 }
             }
         }
-
-        if (!app_started) {
+        if (!started) {
             display_modal(
                 "Notice", "Autostart failed:\n" +
                               autostart_app +
                               "\nupdate sdcard content\n" +
                               "and check if .ppma exists");
         }
-    }
+    }  // autostart end
+    return;
 }
 
 /* Helpers  **************************************************************/
@@ -991,7 +986,7 @@ BMPView::BMPView(NavigationView& nav)
 
 void BMPView::paint(Painter&) {
     if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+        portapack::display.drawBMP({0, 16}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
 }
 
 bool BMPView::on_touch(const TouchEvent event) {

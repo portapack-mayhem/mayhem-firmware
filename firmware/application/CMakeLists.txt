@@ -117,6 +117,7 @@ set(CSRC
 	usb_serial_descriptor.c
 	usb_serial_endpoints.c
 	usb_serial_device_to_host.c
+	i2c_device_to_host.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
@@ -291,7 +292,6 @@ set(CPPSRC
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp
-	apps/ui_fsk_rx.cpp
 	apps/ui_iq_trim.cpp
 	apps/ui_level.cpp
 	apps/ui_looking_glass_app.cpp

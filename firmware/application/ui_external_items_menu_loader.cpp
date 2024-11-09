@@ -11,9 +11,31 @@ namespace ui {
 
 /* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
 
-// iterates over all ppma-s, and if it is runnable on the current system, it'll call the callback, and pass info.
-/* static */ void ExternalItemsMenuLoader::load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback) {
+// iterates over all possible ext apps-s, and if it is runnable on the current system, it'll call the callback, and pass minimal info. used to print to console, and for autostart setting's app list. where the minimal info is enough
+// please keep in sync with load_external_items
+/* static */ void ExternalItemsMenuLoader::load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback, bool module_included) {
     if (!callback) return;
+
+    auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+
+    if (dev && module_included) {
+        auto device_info = dev->readDeviceInfo();
+
+        if (device_info.has_value()) {
+            for (uint32_t i = 0; i < device_info->application_count; i++) {
+                auto appInfo = dev->getStandaloneAppInfo(i);
+                if (appInfo.has_value() == false) {
+                    continue;
+                }
+
+                if (appInfo->header_version > CURRENT_STANDALONE_APPLICATION_API_VERSION)
+                    continue;
+
+                AppInfoConsole appInfoConsole = {reinterpret_cast<char*>(&appInfo->app_name[0]), reinterpret_cast<char*>(&appInfo->app_name[0]), appInfo->menu_location};
+                callback(appInfoConsole);
+            }
+        }
+    }
 
     if (sd_card::status() != sd_card::Status::Mounted)
         return;
@@ -36,18 +58,16 @@ namespace ui {
             continue;
 
         bool versionMatches = VERSION_MD5 == application_information.app_version;
-        if (!versionMatches) continue;
-        // here the app is startable and good.
-        std::string appshortname = filePath.filename().string();
-        if (appshortname.size() >= 5 && appshortname.substr(appshortname.size() - 5) == ".ppma") {
-            // Remove the ".ppma" suffix
-            appshortname = appshortname.substr(0, appshortname.size() - 5);
+
+        if (versionMatches) {
+            std::string appshortname = filePath.filename().string();
+            if (appshortname.size() >= 5 && appshortname.substr(appshortname.size() - 5) == ".ppma") {
+                // Remove the ".ppma" suffix
+                appshortname = appshortname.substr(0, appshortname.size() - 5);
+            }
+            AppInfoConsole appInfoConsole = {appshortname.c_str(), reinterpret_cast<char*>(&application_information.app_name[0]), application_information.menu_location};
+            callback(appInfoConsole);
         }
-        AppInfoConsole info{
-            .appCallName = appshortname.c_str(),
-            .appFriendlyName = reinterpret_cast<char*>(&application_information.app_name[0]),
-            .appLocation = application_information.menu_location};
-        callback(info);
     }
 
     for (const auto& entry : std::filesystem::directory_iterator(apps_dir, u"*.ppmp")) {
@@ -64,21 +84,16 @@ namespace ui {
         if (!readResult)
             continue;
 
-        if (application_information.header_version < CURRENT_STANDALONE_APPLICATION_API_VERSION)
+        if (application_information.header_version > CURRENT_STANDALONE_APPLICATION_API_VERSION)
             continue;
 
-        // here the app is startable and good.
         std::string appshortname = filePath.filename().string();
         if (appshortname.size() >= 5 && appshortname.substr(appshortname.size() - 5) == ".ppmp") {
             // Remove the ".ppmp" suffix
             appshortname = appshortname.substr(0, appshortname.size() - 5);
         }
-        AppInfoConsole info{
-            .appCallName = appshortname.c_str(),
-            .appFriendlyName = reinterpret_cast<char*>(&application_information.app_name[0]),
-            .appLocation = application_information.menu_location};
-
-        callback(info);
+        AppInfoConsole appInfoConsole = {appshortname.c_str(), reinterpret_cast<char*>(&application_information.app_name[0]), application_information.menu_location};
+        callback(appInfoConsole);
     }
 }
 

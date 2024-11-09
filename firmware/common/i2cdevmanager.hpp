@@ -87,6 +87,8 @@ class I2CDevManager {
     static I2cDev* get_dev_by_model(I2C_DEVMDL model);       // caller function needs to cast to the specific device!
     static std::vector<I2C_DEVMDL> get_dev_list_by_model();  // returns the currently discovered
     static std::vector<uint8_t> get_gev_list_by_addr();      // returns the currently discovered
+    static void setEventDispatcher(EventDispatcher* ed) { _eventDispatcher = ed; }
+    static EventDispatcher* get_event_dispatcher() { return _eventDispatcher; }
 
    private:
     static uint16_t scan_interval;
@@ -99,6 +101,8 @@ class I2CDevManager {
     static msg_t timer_fn(void* arg);
     static Thread* thread;
     static Mutex mutex_list;
+    static EventDispatcher* _eventDispatcher;
 };
 };  // namespace i2cdev
+
 #endif

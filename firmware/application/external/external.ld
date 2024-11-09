@@ -48,6 +48,8 @@ MEMORY
     ram_external_app_sstvtx(rwx) : org = 0xADC70000, len = 32k
     ram_external_app_random_password(rwx) : org = 0xADC80000, len = 32k
     ram_external_app_acars_rx(rwx) : org = 0xADC90000, len = 32k
+    ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k    
+    ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k 
 }
 
 SECTIONS
@@ -166,7 +168,6 @@ SECTIONS
         *(*ui*external_app*tpmsrx*);
     } > ram_external_app_tpmsrx
 
-
    .external_app_protoview : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_protoview.application_information));
@@ -204,7 +205,16 @@ SECTIONS
         *(*ui*external_app*acars_rx*);
     } > ram_external_app_acars_rx
 
+   .external_app_shoppingcart_lock : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_shoppingcart_lock.application_information));
+        *(*ui*external_app*shoppingcart_lock*);
+    } > ram_external_app_shoppingcart_lock
 
-
+   .external_app_cvs_spam : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_cvs_spam.application_information));
+        *(*ui*external_app*cvs_spam*);
+    } > ram_external_app_cvs_spam
 
 }

@@ -363,12 +363,8 @@ class SetUIView : public View {
         {19 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_batt_text};
 
-    ImageToggle toggle_fake_brightness{
-        {21 * 8, 14 * 16 + 2, 16, 16},
-        &bitmap_icon_brightness};
-
     ImageToggle toggle_sd_card{
-        {23 * 8, 14 * 16 + 2, 16, 16},
+        {21 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -710,8 +706,6 @@ class SetConfigModeView : public View {
     };
 };
 
-using portapack::persistent_memory::fake_brightness_level_options;
-
 class SetDisplayView : public View {
    public:
     SetDisplayView(NavigationView& nav);
@@ -721,27 +715,8 @@ class SetDisplayView : public View {
     std::string title() const override { return "Display"; };
 
    private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Limits screen brightness", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
-    };
-
-    OptionsField field_fake_brightness{
-        {20 * 8, 8 * 16},
-        6,
-        {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
-         {"25%", fake_brightness_level_options::BRIGHTNESS_25},
-         {"50%", fake_brightness_level_options::BRIGHTNESS_50}}};
-
-    Checkbox checkbox_brightness_switch{
-        {1 * 8, 5 * 16},
-        16,
-        "Enable brightness adjust"};
-
     Checkbox checkbox_invert_switch{
-        {1 * 8, 10 * 16},
+        {1 * 8, 2 * 16},
         23,
         "Invert colors (For IPS)"};
 
@@ -795,7 +770,7 @@ class SetTouchscreenThresholdView : public View {
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
     NumberField field_threshold{
-        {1 * 8 + sizeof("Threshold:") * 8 + 8, 11 * 16},
+        {1 * 8 + 11 * 8 + 8, 11 * 16},
         4,
         {1, 1023},
         1,
