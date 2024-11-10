@@ -657,6 +657,14 @@ set(MODE_CPPSRC
 DeclareTargets(PADT adsbtx)
 
 
+### WeFax Rx
+
+set(MODE_CPPSRC
+	proc_wefaxrx.cpp
+)
+DeclareTargets(PWFX wefaxrx)
+
+
 ### HackRF "factory" firmware
 
 add_custom_command(

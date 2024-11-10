@@ -304,6 +304,11 @@ void set_spectrum(const size_t sampling_rate, const size_t trigger) {
     send_message(&message);
 }
 
+void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
+    const WeFaxRxConfigureMessage message{lpm, ioc};
+    send_message(&message);
+}
+
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};

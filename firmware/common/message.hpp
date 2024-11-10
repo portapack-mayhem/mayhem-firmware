@@ -127,6 +127,10 @@ class Message {
         FreqChangeCommand = 70,
         I2CDevListChanged = 71,
         LightData = 72,
+        WeFaxRxConfigure = 73,
+        WeFaxRxStatusData = 74,
+        WeFaxRxImageData = 75,
+
         MAX
     };
 
@@ -1435,6 +1439,39 @@ class I2CDevListChangedMessage : public Message {
    public:
     constexpr I2CDevListChangedMessage()
         : Message{ID::I2CDevListChanged} {}
+};
+
+class WeFaxRxConfigureMessage : public Message {
+   public:
+    constexpr WeFaxRxConfigureMessage(uint8_t lpm, uint8_t ioc)
+        : Message{ID::WeFaxRxConfigure},
+          lpm{lpm},
+          ioc{ioc} {
+    }
+    uint8_t lpm = 120;
+    uint8_t ioc = 0;
+};
+
+class WeFaxRxStatusDataMessage : public Message {
+   public:
+    constexpr WeFaxRxStatusDataMessage(uint8_t state, int32_t freq)
+        : Message{ID::WeFaxRxStatusData},
+          state{state},
+          freq{freq} {
+    }
+    uint8_t state = 0;
+    int32_t freq = 0;
+    int32_t freqmin = 0;
+    int32_t freqmax = 0;
+    int32_t freqavg = 0;
+};
+
+class WeFaxRxImageDataMessage : public Message {
+   public:
+    constexpr WeFaxRxImageDataMessage()
+        : Message{ID::WeFaxRxImageData} {}
+    uint8_t image[480]{0};
+    uint32_t cnt = 0;
 };
 
 #endif /*__MESSAGE_H__*/
