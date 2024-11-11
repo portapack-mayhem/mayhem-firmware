@@ -56,8 +56,6 @@ OokBruteView::OokBruteView(NavigationView& nav)
         }
     };
 
-    field_frequency.set_value(433920000);  // todo
-
     options_atkmode.on_change = [this](size_t, int32_t i) {
         update_start_stop(i);
         validate_start_stop();
@@ -72,18 +70,25 @@ OokBruteView::OokBruteView(NavigationView& nav)
 }
 
 void OokBruteView::update_start_stop(uint32_t proto) {
-    if (proto == 0) {
-        field_start.set_range(0, 4095);
-        field_stop.set_range(0, 4095);
-        field_start.set_value(0);
-        field_stop.set_value(4095);
-    } else if (proto == 1) {
-        field_start.set_range(0, 4095);
-        field_stop.set_range(0, 4095);
-        field_start.set_value(0);
-        field_stop.set_value(4095);
+    uint8_t bits = 12;
+    switch (proto) {
+        default:
+        case 0:
+        case 2:
+        case 4:
+            bits = 12;
+            break;
+        case 1:
+        case 3:
+        case 5:
+            bits = 24;
+            break;
     }
-    // todo
+    uint32_t max = (1 << bits) - 1;
+    field_start.set_range(0, max);
+    field_stop.set_range(0, max);
+    field_start.set_value(0);
+    field_stop.set_value(max);
 }
 
 void OokBruteView::validate_start_stop() {
@@ -107,7 +112,6 @@ void OokBruteView::generate_packet() {
     uint16_t databits = 0;
     uint16_t repeat = 1;
     uint16_t pause_sym = 0;
-    // todo create struct from these
     if (protocol == 0) {  // came 12
         samples_per_bit = OOK_SAMPLERATE / ((3 * 1000) / 1);
         dataFormat = "0000000000000000000000000000000000001CCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
@@ -245,21 +249,5 @@ OokBruteView::~OokBruteView() {
 
 https://web.archive.org/web/20230331125843/https://phreakerclub.com/447
 
-CAME 12.
-for (1-4)
-{
-36 low, 1 high --> data (12 bit, where last 4 is button)
-    1 = 640 low, 320 high.
-    0 = 320 low 640 high
-}
 
-NICE 24
-
-NICE pulse widths:
-
-Log. "1" - 1400 µs low level (two intervals), 700 µs high (one interval)
-
-Log. "0" - 700 µs low level (one interval), 1400 µs high (two intervals).
-
-Pilot period – 25200 μs, starting pulse – 700 μs.
 */

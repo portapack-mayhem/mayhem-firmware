@@ -58,15 +58,15 @@ class OokBruteView : public View {
 
     NumberField field_start{
         {0 * 8, 1 * 16},
-        5,
+        8,
         {0, 2500},
         1,
         ' ',
         true};
 
     NumberField field_stop{
-        {9 * 8, 1 * 16},
-        5,
+        {11 * 8, 1 * 16},
+        9,
         {0, 2500},
         1,
         ' ',
@@ -74,7 +74,7 @@ class OokBruteView : public View {
 
     OptionsField options_atkmode{
         {0 * 8, 2 * 16},
-        10,
+        12,
         {{"Came12", 0},
          {"Came24", 1},
          {"Nice12", 2},
@@ -103,4 +103,4 @@ class OokBruteView : public View {
 };
 };  // namespace ui::external_app::ookbrute
 
-#endif /*__UI_BLESPAM_H__*/
+#endif /*__UI_OOKBRUTE_H__*/
