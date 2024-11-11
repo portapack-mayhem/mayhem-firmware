@@ -111,6 +111,10 @@ set(EXTCPPSRC
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp	
 
+	#ookbrute
+	external/ookbrute/main.cpp
+	external/ookbrute/ui_ookbrute.cpp
+
 	#cvs_spam
 	external/cvs_spam/main.cpp
 	external/cvs_spam/cvs_spam.cpp		
@@ -143,5 +147,6 @@ set(EXTAPPLIST
 	sstvtx
 	random_password
 	#acars_rx
+	ookbrute
 	shoppingcart_lock
 )
