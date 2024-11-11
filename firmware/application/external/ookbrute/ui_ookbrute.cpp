@@ -98,8 +98,8 @@ void OokBruteView::generate_packet() {
     uint32_t protocol = options_atkmode.selected_index_value();
     uint8_t byte = 0;
     size_t bitstream_length = 0;
-    uint8_t* bitstream = shared_memory.bb_data.data;
-    uint32_t samples_per_bit = 0;  // OOK_SAMPLERATE * bit_duration_in_sec
+    uint8_t* bitstream = shared_memory.bb_data.data;  // max 512 in size
+    uint32_t samples_per_bit = 0;                     // OOK_SAMPLERATE * bit_duration_in_sec
     std::string dataFormat = "";
     std::string zero = "";
     std::string one = "";
@@ -112,8 +112,8 @@ void OokBruteView::generate_packet() {
         databits = 12;
         zero = "011";
         one = "001";
-        repeat = 4;
-        pause_sym = 10;
+        repeat = 2;
+        pause_sym = 0;
     }
 
     if (protocol == 1) {  // came24
@@ -122,8 +122,26 @@ void OokBruteView::generate_packet() {
         databits = 24;
         zero = "011";
         one = "001";
-        repeat = 4;
-        pause_sym = 10;
+        repeat = 2;
+        pause_sym = 0;
+    }
+    if (protocol == 2) {  // nice12
+        samples_per_bit = OOK_SAMPLERATE * (670.0 / 1000000.0);
+        dataFormat = "000000000000000000000000000000000000000001CCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
+        databits = 12;
+        zero = "011";
+        one = "001";
+        repeat = 2;
+        pause_sym = 0;
+    }
+    if (protocol == 3) {  // nice24
+        samples_per_bit = OOK_SAMPLERATE * (670.0 / 1000000.0);
+        dataFormat = "000000000000000000000000000000000000000001CCCCCCCCCCCCCCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
+        databits = 24;
+        zero = "011";
+        one = "001";
+        repeat = 2;
+        pause_sym = 0;
     }
 
     std::string fragments = "";  // storage
