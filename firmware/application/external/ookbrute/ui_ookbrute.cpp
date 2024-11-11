@@ -83,6 +83,7 @@ void OokBruteView::update_start_stop(uint32_t proto) {
         field_start.set_value(0);
         field_stop.set_value(4095);
     }
+    // todo
 }
 
 void OokBruteView::validate_start_stop() {
@@ -106,6 +107,7 @@ void OokBruteView::generate_packet() {
     uint16_t databits = 0;
     uint16_t repeat = 1;
     uint16_t pause_sym = 0;
+    // todo create struct from these
     if (protocol == 0) {  // came 12
         samples_per_bit = OOK_SAMPLERATE / ((3 * 1000) / 1);
         dataFormat = "0000000000000000000000000000000000001CCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
@@ -126,7 +128,7 @@ void OokBruteView::generate_packet() {
         pause_sym = 0;
     }
     if (protocol == 2) {  // nice12
-        samples_per_bit = OOK_SAMPLERATE * (670.0 / 1000000.0);
+        samples_per_bit = OOK_SAMPLERATE * (680.0 / 1000000.0);
         dataFormat = "000000000000000000000000000000000000000001CCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
         databits = 12;
         zero = "011";
@@ -135,9 +137,18 @@ void OokBruteView::generate_packet() {
         pause_sym = 0;
     }
     if (protocol == 3) {  // nice24
-        samples_per_bit = OOK_SAMPLERATE * (670.0 / 1000000.0);
+        samples_per_bit = OOK_SAMPLERATE * (680.0 / 1000000.0);
         dataFormat = "000000000000000000000000000000000000000001CCCCCCCCCCCCCCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
         databits = 24;
+        zero = "011";
+        one = "001";
+        repeat = 2;
+        pause_sym = 0;
+    }
+    if (protocol == 4) {  // holtek_ht12
+        samples_per_bit = OOK_SAMPLERATE * (390.0 / 1000000.0);
+        dataFormat = "0000000000000000000000000000000000001CCCCCCCCCCCC00000000000";  // 36 0 preamble +start bit + data.
+        databits = 12;
         zero = "011";
         one = "001";
         repeat = 2;
@@ -152,9 +163,9 @@ void OokBruteView::generate_packet() {
         if (c == '1') fragments += '1';
         if (c == 'C') {
             if (counter & (1 << (databits - cdb - 1))) {
-                fragments += "001";
+                fragments += one;
             } else {
-                fragments += "011";
+                fragments += zero;
             }
             cdb++;
         }
