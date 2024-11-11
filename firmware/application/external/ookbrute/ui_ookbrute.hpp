@@ -76,7 +76,7 @@ class OokBruteView : public View {
         {0 * 8, 2 * 16},
         10,
         {{"Came12", 0},
-         {"Nice24", 1}}};
+         {"Came24", 1}}};
 
     bool is_running{false};
 
