@@ -50,6 +50,7 @@ MEMORY
     ram_external_app_acars_rx(rwx) : org = 0xADC90000, len = 32k
     ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k    
     ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k 
+    ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k 
 }
 
 SECTIONS
@@ -216,5 +217,11 @@ SECTIONS
         KEEP(*(.external_app.app_cvs_spam.application_information));
         *(*ui*external_app*cvs_spam*);
     } > ram_external_app_cvs_spam
+
+   .external_app_ookbrute : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ookbrute.application_information));
+        *(*ui*external_app*ookbrute*);
+    } > ram_external_app_ookbrute
 
 }
