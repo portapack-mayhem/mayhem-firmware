@@ -116,8 +116,8 @@ void OokBruteView::generate_packet() {
         pause_sym = 10;
     }
 
-    if (protocol == 1) {  // nice24
-        samples_per_bit = OOK_SAMPLERATE / 1428;
+    if (protocol == 1) {  // came24
+        samples_per_bit = OOK_SAMPLERATE / ((3 * 1000) / 1);
         dataFormat = "0000000000000000000000000000000000001CCCCCCCCCCCCCCCCCCCCCCCC0000";  // 36 0 preamble +start bit + data
         databits = 24;
         zero = "011";
