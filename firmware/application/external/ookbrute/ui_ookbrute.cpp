@@ -158,13 +158,13 @@ void OokBruteView::generate_packet() {
         repeat = 2;
         pause_sym = 0;
     }
-    if (protocol == 5) {                                                                          // princeton24
-        samples_per_bit = OOK_SAMPLERATE * (390.0 / 1000000.0);                                   // long = 3*
-        dataFormat = "000000000000000000000000000000000000CCCCCCCCCCCCCCCCCCCCCCCC100000000000";  //
+    if (protocol == 5) {                                                                      // princeton24
+        samples_per_bit = OOK_SAMPLERATE * (450.0 / 1000000.0);                               // long = 3*
+        dataFormat = "000000000000000000000000000000000000CCCCCCCCCCCCCCCCCCCCCCCC10000000";  //
         databits = 24;
         zero = "1000";
         one = "1110";
-        repeat = 4;
+        repeat = 6;
         pause_sym = 0;
     }
 
