@@ -160,7 +160,7 @@ bool seek_flipper_binraw_first_data(File& f, bool seekzero) {
     return false;
 }
 
-Optional<uint32_t> read_flipper_raw_next_data(File& f) {
+Optional<int32_t> read_flipper_raw_next_data(File& f) {
     // RAW_Data: 5832 -12188 130 -162
     std::string chs = "";
     char ch = 0;
@@ -198,6 +198,6 @@ Optional<uint8_t> read_flipper_binraw_next_data(File& f) {
     return static_cast<uint8_t>(std::stoul(chs, nullptr, 16));
 }
 
-bool get_flipper_binraw_bitvlue(uint8_t byte, uint8_t nthBit) {
+inline bool get_flipper_binraw_bitvalue(uint8_t byte, uint8_t nthBit) {
     return (byte & (1 << nthBit)) != 0;
 }

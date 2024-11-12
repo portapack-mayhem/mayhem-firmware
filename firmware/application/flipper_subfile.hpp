@@ -50,9 +50,9 @@ struct flippersub_metadata {
 Optional<flippersub_metadata> read_flippersub_file(const std::filesystem::path& path);
 bool seek_flipper_raw_first_data(File& f);
 bool seek_flipper_binraw_first_data(File& f, bool seekzero = true);
-Optional<uint32_t> read_flipper_raw_next_data(File& f);
+Optional<int32_t> read_flipper_raw_next_data(File& f);
 Optional<uint8_t> read_flipper_binraw_next_data(File& f);
-bool get_flipper_binraw_bitvlue(uint8_t byte, uint8_t nthBit);
+inline bool get_flipper_binraw_bitvalue(uint8_t byte, uint8_t nthBit);
 
 // Maybe sometime there will be a data part reader / converter
 

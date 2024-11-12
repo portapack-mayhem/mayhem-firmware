@@ -154,12 +154,22 @@ uint32_t FlipperPlayThread::run() {
     BufferExchange buffers{&config};
 
     StreamBuffer* prefill_buffer{nullptr};
-
+    int32_t read_result = 0;
     // read file base stuff
     auto fsub = read_flippersub_file(filename);
     if (!fsub.is_valid()) return READ_ERROR;
     // assume it is ok, since prev we checked it.
     auto proto = fsub.value().protocol;
+
+    // open the sub file
+    File f;
+    auto error = f.open(filename);
+    if (error) return READ_ERROR;
+    // seek to the first data
+    if (proto == FLIPPER_PROTO_RAW)
+        seek_flipper_raw_first_data(f);
+    else
+        seek_flipper_binraw_first_data(f);
 
     // Wait for FIFOs to be allocated in baseband
     // Wait for ui_replay_view to tell us that the buffers are ready (awful :( )
@@ -167,8 +177,8 @@ uint32_t FlipperPlayThread::run() {
         chThdSleep(100);
     };
 
-    constexpr size_t block_size = 512;
-
+    constexpr size_t block_size = 64;  // 64/4 = 16 data per block. must be abe to divide it with 8!
+    bool readall = false;
     // While empty buffers fifo is not empty...
     while (!buffers.empty()) {
         prefill_buffer = buffers.get_prefill();
@@ -176,36 +186,72 @@ uint32_t FlipperPlayThread::run() {
         if (prefill_buffer == nullptr) {
             buffers.put_app(prefill_buffer);
         } else {
-            size_t blocks = config.read_size / block_size;
+            size_t blocks = config.read_size / block_size;  //
 
             for (size_t c = 0; c < blocks; c++) {
-                int32_t read_result = 100;  // todo
-                //&((uint8_t*)prefill_buffer->data())[c * block_size], block_size
-            }
+                for (size_t d = 0; d < 512; d += 4) {
+                    read_result = 0;
+                    if (!readall) {
+                        if (proto == FLIPPER_PROTO_RAW) {
+                            auto data = read_flipper_raw_next_data(f);
+                            if (!data.is_valid())
+                                readall = true;
+                            else {
+                                read_result = data.value();
+                                ((int32_t*)prefill_buffer->data())[c * block_size + d] = read_result;
+                            }
 
+                        } else {
+                            auto data = read_flipper_binraw_next_data(f);
+                            if (!data.is_valid())
+                                readall = true;
+                            else {
+                                read_result = data.value();
+                                // add 8 data
+                                for (uint8_t bit = 0; bit < 8; bit++) {
+                                    ((int32_t*)prefill_buffer->data())[c * block_size + d + bit] = get_flipper_binraw_bitvalue(read_result, bit);
+                                }
+                            }
+                        }
+                    } else {
+                        ((int32_t*)prefill_buffer->data())[c * block_size + d] = 0;
+                    }
+                }
+            }
             prefill_buffer->set_size(config.read_size);
             buffers.put(prefill_buffer);
         }
     };
+    if (readall) return END_OF_FILE;
 
     baseband::set_fifo_data(nullptr);
 
     while (!chThdShouldTerminate()) {
         auto buffer = buffers.get();
-
-        int32_t read_result = 100;  // todo put to buffer
-        /*if (read_result.is_error()) {
-            return READ_ERROR;
-        } else {*/
-        // reader->read(buffer->data(), buffer->capacity());
-        if (read_result == 0) {
-            return END_OF_FILE;
+        readall = false;
+        int32_t read_result = 0;
+        for (size_t d = 0; d < buffer->capacity(); d += 4) {
+            read_result = 0;
+            if (!readall) {
+                if (proto == FLIPPER_PROTO_RAW) {
+                    auto data = read_flipper_raw_next_data(f);
+                    if (!data.is_valid())
+                        readall = true;
+                    else
+                        read_result = data.value();
+                } else {
+                    auto data = read_flipper_binraw_next_data(f);
+                    if (!data.is_valid())
+                        readall = true;
+                    else
+                        read_result = data.value();
+                }
+            }
+            ((int32_t*)buffer->data())[d] = read_result;
         }
-        //}
-
         buffer->set_size(buffer->capacity());
-
         buffers.put(buffer);
+        if (readall) return END_OF_FILE;
     }
 
     return TERMINATED;
