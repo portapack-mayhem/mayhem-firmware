@@ -224,4 +224,10 @@ SECTIONS
         *(*ui*external_app*ookbrute*);
     } > ram_external_app_ookbrute
 
+   .external_app_flippertx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_flippertx.application_information));
+        *(*ui*external_app*flippertx*);
+    } > ram_external_app_flippertx
+
 }
