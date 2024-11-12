@@ -13,10 +13,15 @@
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
 #include "ui_freq_field.hpp"
-#include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "utility.hpp"
+#include "string_format.hpp"
+#include "file_path.hpp"
+#include "metadata_file.hpp"
+#include "flipper_subfile.hpp"
+#include "ui_fileman.hpp"
+#include "baseband_api.hpp"
 
 using namespace ui;
 
@@ -49,20 +54,35 @@ class FlipperTxView : public View {
     TransmitterView2 tx_view{
         {11 * 8, 0 * 16},
         /*short_ui*/ true};
+
     app_settings::SettingsManager settings_{
         "tx_flippertx", app_settings::Mode::TX};
 
+    TextField field_filename{
+        {0, 2 * 16, 300, 1 * 8},
+        "File: -"};
+
     Button button_startstop{
-        {0, 3 * 16, 96, 24},
+        {0, 6 * 16, 96, 24},
         LanguageHelper::currentMessages[LANG_START]};
+
+    Button button_browse{
+        {0, 3 * 16, 8 * 7, 24},
+        LanguageHelper::currentMessages[LANG_BROWSE]};
 
     bool is_running{false};
 
-    void start();
+    bool start();
     void stop();
 
     void on_tx_progress(const bool done);
-    void generate_packet();
+    void on_file_changed(std::filesystem::path new_file_path);
+
+    std::filesystem::path filename = {};
+    FlipperProto proto = FLIPPER_PROTO_UNSUPPORTED;
+    FlipperPreset preset = FLIPPER_PRESET_UNK;
+    uint16_t te = 0;  // for binraw
+    uint32_t binraw_bit_count = 0;
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
@@ -71,6 +91,55 @@ class FlipperTxView : public View {
             this->on_tx_progress(message.done);
         }};
 };
+
+struct BasebandReplay {
+    BasebandReplay(ReplayConfig* const config) {
+        baseband::replay_start(config);
+    }
+
+    ~BasebandReplay() {
+        baseband::replay_stop();
+    }
+};
+
+class FlipperPlayThread {
+   public:
+    FlipperPlayThread(
+        std::filesystem::path,
+        size_t read_size,
+        size_t buffer_count,
+        bool* ready_signal,
+        std::function<void(uint32_t return_code)> terminate_callback);
+    ~FlipperPlayThread();
+
+    FlipperPlayThread(const FlipperPlayThread&) = delete;
+    FlipperPlayThread(FlipperPlayThread&&) = delete;
+    FlipperPlayThread& operator=(const FlipperPlayThread&) = delete;
+    FlipperPlayThread& operator=(FlipperPlayThread&&) = delete;
+
+    const ReplayConfig& state() const {
+        return config;
+    };
+
+    enum FlipperPlayThread_return {
+        READ_ERROR = 0,
+        END_OF_FILE,
+        TERMINATED
+    };
+
+   private:
+    ReplayConfig config;
+    // std::unique_ptr<stream::Reader> reader;
+    std::filesystem::path filename;
+    bool* ready_sig;
+    std::function<void(uint32_t return_code)> terminate_callback;
+    Thread* thread{nullptr};
+
+    static msg_t static_fn(void* arg);
+
+    uint32_t run();
+};
+
 };  // namespace ui::external_app::flippertx
 
 #endif /*__UI_flippertx_H__*/

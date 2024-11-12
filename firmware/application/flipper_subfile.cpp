@@ -37,7 +37,8 @@ const std::string_view latitude_name = "Lat"sv;
 const std::string_view longitude_name = "Lon"sv;
 const std::string_view protocol_name = "Protocol"sv;
 const std::string_view preset_name = "Preset"sv;
-const std::string_view te_name = "TE"sv;  // only in BinRAW
+const std::string_view te_name = "TE"sv;          // only in BinRAW
+const std::string_view bit_count_name = "Bit"sv;  // for us, only in BinRAW
 
 /*
 Filetype: Flipper SubGhz Key File
@@ -104,6 +105,8 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
             if (fixed == "BinRAW") metadata.protocol = FLIPPER_PROTO_BINRAW;
         } else if (cols[0] == te_name) {
             metadata.te = atoi(fixed.c_str());
+        } else if (cols[0] == bit_count_name) {
+            metadata.binraw_bit_count = atol(fixed.c_str());
         } else if (cols[0] == preset_name) {
             if (fixed.find("FSK") != std::string::npos) {
                 metadata.preset = FLIPPER_PRESET_2FSK;
@@ -120,4 +123,81 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
     if (metadata.center_frequency == 0) return {};  // Parse failed.
 
     return metadata;
+}
+
+bool seek_flipper_raw_first_data(File& f) {
+    f.seek(0);
+    std::string chs = "";
+    char ch;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;
+        if (ch == '\n') {
+            chs = "";
+            continue;
+        };
+        chs += ch;
+        if (chs == "RAW_Data: ") {
+            return true;
+        }
+    }
+    return false;
+}
+bool seek_flipper_binraw_first_data(File& f, bool seekzero) {
+    if (seekzero) f.seek(0);
+    std::string chs = "";
+    char ch;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;
+        if (ch == '\n') {
+            chs = "";
+            continue;
+        };
+        chs += ch;
+        if (chs == "Data_RAW: ") {
+            return true;
+        }
+    }
+    return false;
+}
+
+Optional<uint32_t> read_flipper_raw_next_data(File& f) {
+    // RAW_Data: 5832 -12188 130 -162
+    std::string chs = "";
+    char ch = 0;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;  // should not present
+        if ((ch == ' ') || ch == '\n') {
+            if (chs == "RAW_Data:") {
+                chs = "";
+                continue;
+            }
+            break;
+        };
+        chs += ch;
+    }
+    if (chs == "") return {};
+    return atol(chs.c_str());
+}
+
+Optional<uint8_t> read_flipper_binraw_next_data(File& f) {
+    // Data_RAW: 02 10 84 BUT THERE ARE  Bit_RAW lines to skip!
+    std::string chs = "";
+    char ch = 0;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;  // should not present
+        if ((ch == ' ') || ch == '\n') {
+            if (chs == "RAW_Data:") {
+                chs = "";
+                continue;
+            }
+            break;
+        };
+        chs += ch;
+    }
+    if (chs == "") return {};
+    return static_cast<uint8_t>(std::stoul(chs, nullptr, 16));
+}
+
+bool get_flipper_binraw_bitvlue(uint8_t byte, uint8_t nthBit) {
+    return (byte & (1 << nthBit)) != 0;
 }
