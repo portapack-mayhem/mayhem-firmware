@@ -62,8 +62,6 @@ class FlipperTxView : public View {
     void stop();
 
     void on_tx_progress(const bool done);
-    void validate_start_stop();
-    void update_start_stop(uint32_t proto);
     void generate_packet();
 
     MessageHandlerRegistration message_handler_tx_progress{

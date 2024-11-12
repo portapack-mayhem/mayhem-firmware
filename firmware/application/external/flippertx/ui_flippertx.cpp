@@ -53,8 +53,6 @@ FlipperTxView::FlipperTxView(NavigationView& nav)
             start();
         }
     };
-
-    update_start_stop(0);
 }
 
 void FlipperTxView::generate_packet() {
