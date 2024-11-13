@@ -52,10 +52,9 @@ FlipperTxView::FlipperTxView(NavigationView& nav)
 
     button_startstop.on_select = [this](Button&) {
         if (is_running) {
-            is_running = false;
             stop();
         } else {
-            if (start()) is_running = true;
+            start();
         }
     };
 
@@ -97,7 +96,10 @@ bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
 }
 
 void FlipperTxView::stop() {
-    replay_thread.reset();
+    if (is_running && replay_thread) replay_thread.reset();
+    is_running = false;
+    ready_signal = false;
+
     transmitter_model.disable();
     baseband::shutdown();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
@@ -117,6 +119,7 @@ bool FlipperTxView::start() {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
+    is_running = true;
     return true;
 }
 
@@ -149,7 +152,7 @@ FlipperPlayThread::FlipperPlayThread(
 FlipperPlayThread::~FlipperPlayThread() {
     if (thread) {
         chThdTerminate(thread);
-        chThdWait(thread);
+        if (thread->p_refs) chThdWait(thread);
         thread = nullptr;
     }
 }
@@ -160,6 +163,7 @@ msg_t FlipperPlayThread::static_fn(void* arg) {
     if (obj->terminate_callback) {
         obj->terminate_callback(return_code);
     }
+    chThdExit(0);
     return 0;
 }
 
@@ -187,14 +191,14 @@ uint32_t FlipperPlayThread::run() {
 
     // Wait for FIFOs to be allocated in baseband
     // Wait for ui_replay_view to tell us that the buffers are ready (awful :( )
-    while (!(*ready_sig)) {
+    while (!(*ready_sig) && !chThdShouldTerminate()) {
         chThdSleep(100);
     };
     return END_OF_FILE;
     constexpr size_t block_size = 64;  // 64/4 = 16 data per block. must be abe to divide it with 8!
     bool readall = false;
     // While empty buffers fifo is not empty...
-    while (!buffers.empty()) {
+    while (!buffers.empty() && !chThdShouldTerminate()) {
         prefill_buffer = buffers.get_prefill();
 
         if (prefill_buffer == nullptr) {

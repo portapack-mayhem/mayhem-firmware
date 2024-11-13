@@ -109,7 +109,7 @@ class FlipperTxView : public View {
     MessageHandlerRegistration message_handler_replay_thread_done{
         Message::ID::ReplayThreadDone,
         [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            // const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
             stop();
         }};
 };
