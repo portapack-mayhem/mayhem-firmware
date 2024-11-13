@@ -52,7 +52,7 @@ bool seek_flipper_raw_first_data(File& f);
 bool seek_flipper_binraw_first_data(File& f, bool seekzero = true);
 Optional<int32_t> read_flipper_raw_next_data(File& f);
 Optional<uint8_t> read_flipper_binraw_next_data(File& f);
-inline bool get_flipper_binraw_bitvalue(uint8_t byte, uint8_t nthBit);
+bool get_flipper_binraw_bitvalue(uint8_t byte, uint8_t nthBit);
 
 // Maybe sometime there will be a data part reader / converter
 

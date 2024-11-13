@@ -28,7 +28,7 @@ using namespace ui;
 namespace ui::external_app::flippertx {
 
 #define OOK_SAMPLERATE 2280000U
-
+class FlipperPlayThread;
 class FlipperTxView : public View {
    public:
     FlipperTxView(NavigationView& nav);
@@ -75,20 +75,42 @@ class FlipperTxView : public View {
     bool start();
     void stop();
 
+    void set_ready();
     void on_tx_progress(const bool done);
-    void on_file_changed(std::filesystem::path new_file_path);
+    bool on_file_changed(std::filesystem::path new_file_path);
 
     std::filesystem::path filename = {};
     FlipperProto proto = FLIPPER_PROTO_UNSUPPORTED;
     FlipperPreset preset = FLIPPER_PRESET_UNK;
     uint16_t te = 0;  // for binraw
     uint32_t binraw_bit_count = 0;
+    bool ready_signal = false;
+
+    std::unique_ptr<FlipperPlayThread> replay_thread{};
+
+    const std::filesystem::path subghz_dir = u"subghz";
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.done);
+        }};
+
+    MessageHandlerRegistration message_handler_fifo_signal{
+        Message::ID::RequestSignal,
+        [this](const Message* const p) {
+            const auto message = static_cast<const RequestSignalMessage*>(p);
+            if (message->signal == RequestSignalMessage::Signal::FillRequest) {
+                this->set_ready();
+            }
+        }};
+
+    MessageHandlerRegistration message_handler_replay_thread_done{
+        Message::ID::ReplayThreadDone,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            stop();
         }};
 };
 
@@ -139,7 +161,6 @@ class FlipperPlayThread {
 
     uint32_t run();
 };
-
 };  // namespace ui::external_app::flippertx
 
 #endif /*__UI_flippertx_H__*/

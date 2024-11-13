@@ -33,7 +33,11 @@ using namespace ui;
 namespace ui::external_app::flippertx {
 
 void FlipperTxView::focus() {
-    button_startstop.focus();
+    button_browse.focus();
+}
+
+void FlipperTxView::set_ready() {
+    ready_signal = true;
 }
 
 FlipperTxView::FlipperTxView(NavigationView& nav)
@@ -57,52 +61,63 @@ FlipperTxView::FlipperTxView(NavigationView& nav)
 
     button_browse.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".sub");
-        open_view->push_dir(playlist_dir);
+        open_view->push_dir(subghz_dir);
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
         };
     };
 }
 
-void FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
+bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
     auto ret = read_flippersub_file(new_file_path);
     filename = "";
     if (!ret.is_valid()) {
         field_filename.set_text("File: err, bad file");
-        return;
+        return false;
     }
     proto = ret.value().protocol;
     if (proto != FLIPPER_PROTO_BINRAW && proto != FLIPPER_PROTO_RAW) {
         field_filename.set_text("File: err, not supp. proto");
-        return;
+        return false;
     }
     preset = ret.value().preset;
     if (preset != FLIPPER_PRESET_OOK) {
         field_filename.set_text("File: err, not supp. preset");
-        return;
+        return false;
     }
     te = ret.value().te;
     binraw_bit_count = ret.value().binraw_bit_count;
     if (binraw_bit_count >= 512 * 8) {
         field_filename.set_text("File: err, too long");  // should stream, but not in this scope YET
-        return;
+        return false;
     }
     field_filename.set_text("File: " + new_file_path.string());
     filename = new_file_path;
+    return true;
 }
 
 void FlipperTxView::stop() {
+    replay_thread.reset();
     transmitter_model.disable();
     baseband::shutdown();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
 }
 
 bool FlipperTxView::start() {
-    if (filename == "") return false;
+    if (filename.empty()) return false;
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     transmitter_model.enable();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     // start thread
+    replay_thread = std::make_unique<FlipperPlayThread>(
+        filename,
+        512, 3,
+        &ready_signal,
+        [](uint32_t return_code) {
+            ReplayThreadDoneMessage message{return_code};
+            EventDispatcher::send_message(message);
+        });
+    return true;
 }
 
 void FlipperTxView::on_tx_progress(const bool done) {
@@ -128,8 +143,7 @@ FlipperPlayThread::FlipperPlayThread(
       filename{filename},
       ready_sig{ready_signal},
       terminate_callback{std::move(terminate_callback)} {
-    // Need significant stack for FATFS
-    thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, FlipperPlayThread::static_fn, this);
+    thread = chThdCreateFromHeap(NULL, 1 * 1024, NORMALPRIO + 10, FlipperPlayThread::static_fn, this);
 }
 
 FlipperPlayThread::~FlipperPlayThread() {
@@ -176,7 +190,7 @@ uint32_t FlipperPlayThread::run() {
     while (!(*ready_sig)) {
         chThdSleep(100);
     };
-
+    return END_OF_FILE;
     constexpr size_t block_size = 64;  // 64/4 = 16 data per block. must be abe to divide it with 8!
     bool readall = false;
     // While empty buffers fifo is not empty...
