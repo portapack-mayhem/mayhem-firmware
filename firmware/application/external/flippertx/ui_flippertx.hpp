@@ -22,7 +22,7 @@
 #include "flipper_subfile.hpp"
 #include "ui_fileman.hpp"
 #include "baseband_api.hpp"
-
+#include "usb_serial_asyncmsg.hpp"
 using namespace ui;
 
 namespace ui::external_app::flippertx {
@@ -110,6 +110,7 @@ class FlipperTxView : public View {
         Message::ID::ReplayThreadDone,
         [this](const Message* const p) {
             // const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            UsbSerialAsyncmsg::asyncmsg("FlipperTxView::ReplayThreadDonemsg");
             stop();
         }};
 };

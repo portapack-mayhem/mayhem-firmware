@@ -148,6 +148,7 @@ bool seek_flipper_raw_first_data(File& f) {
             continue;
         };
         chs += ch;
+        if (ch == 0) break;
         if (chs == "RAW_Data: ") {
             return true;
         }
@@ -164,6 +165,7 @@ bool seek_flipper_binraw_first_data(File& f, bool seekzero) {
             chs = "";
             continue;
         };
+        if (ch == 0) break;
         chs += ch;
         if (chs == "Data_RAW: ") {
             return true;
@@ -176,7 +178,7 @@ Optional<int32_t> read_flipper_raw_next_data(File& f) {
     // RAW_Data: 5832 -12188 130 -162
     std::string chs = "";
     char ch = 0;
-    while (f.read(&ch, 1)) {
+    while (f.read(&ch, 1).is_ok()) {
         if (ch == '\r') continue;  // should not present
         if ((ch == ' ') || ch == '\n') {
             if (chs == "RAW_Data:") {
@@ -185,6 +187,7 @@ Optional<int32_t> read_flipper_raw_next_data(File& f) {
             }
             break;
         };
+        if (ch == 0) break;
         chs += ch;
     }
     if (chs == "") return {};
@@ -204,6 +207,7 @@ Optional<uint8_t> read_flipper_binraw_next_data(File& f) {
             }
             break;
         };
+        if (ch == 0) break;
         chs += ch;
     }
     if (chs == "") return {};
