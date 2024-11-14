@@ -27,7 +27,7 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## What to buy?
 
-:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous [PortaPack H4M Mayhem](https://grabify.link/VPMPSL), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://grabify.link/99SAMT). Join their giveaways on discord (check the badge on top).
+:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous [PortaPack H4M Mayhem](https://grabify.link/YEWQR1), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://grabify.link/99SAMT). Join their giveaways on discord (check the badge on top).
 
 :heavy_check_mark: A recommended one is this [PortaPack H2](https://grabify.link/BKKTWY), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
 
