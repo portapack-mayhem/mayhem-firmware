@@ -124,6 +124,7 @@ bool AboutView::on_key(const KeyEvent) {
 
 bool AboutView::on_encoder(const EncoderEvent) {
     interacted = true;
+    menu_view.focus();
     return false;
 }
 
