@@ -69,13 +69,45 @@ AboutView::AboutView(NavigationView& nav) {
     }
 }
 
+void AboutView::on_frame_sync() {
+    if (interacted) return;
+
+    if (frame_sync_count++ % ROLL_SPEED_FRAME_PER_LINE == 0) {
+        const auto current = menu_view.highlighted_index();
+        const auto count = menu_view.item_count();
+
+        if (current < count - 1) {
+            menu_view.set_highlighted(current + 1);
+        } else {
+            menu_view.set_highlighted(0);
+            // ^ to go back to the REAL top instead of make the 2 at the top to make the title disappeares
+            menu_view.set_highlighted(2);  // the first line that has human name
+        }
+    }
+}
+
 void AboutView::focus() {
-    menu_view.focus();
-    // put focus on last text line to make it more obvious that list is scrollable
-    menu_view.set_highlighted(10);
+    button_ok.focus();
+    menu_view.set_highlighted(2);  // the first line that has human name
+}
+
+bool AboutView::on_touch(const TouchEvent) {
+    interacted = true;
+    return false;
+}
+
+bool AboutView::on_key(const KeyEvent) {
+    interacted = true;
+    return false;
+}
+
+bool AboutView::on_encoder(const EncoderEvent) {
+    interacted = true;
+    return false;
 }
 
 } /* namespace ui */
+
 """
 
 def get_contributors(url):
