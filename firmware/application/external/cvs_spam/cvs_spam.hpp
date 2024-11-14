@@ -11,7 +11,6 @@
 #include "baseband_api.hpp"
 #include "ui_language.hpp"
 #include "file_path.hpp"
-#include "audio.hpp"
 
 using namespace portapack;
 
@@ -29,6 +28,9 @@ class CVSSpamView : public View {
     static constexpr size_t read_size = 0x4000;
     static constexpr size_t buffer_count = 3;
 
+    lfsr_word_t lfsr_v = 1;
+    bool chaos_mode{false};
+
     NavigationView& nav_;
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
@@ -40,7 +42,7 @@ class CVSSpamView : public View {
     void file_error(const std::filesystem::path& path, const std::string& error_details);
     void refresh_list();
     void start_tx(const uint32_t id);
-    void start_chaos_tx();
+    void start_random_tx();
     void on_tx_progress(const uint32_t progress);
 
     uint32_t page = 1;
@@ -102,12 +104,31 @@ class CVSSpamView : public View {
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
             if (message.return_code == ReplayThread::END_OF_FILE) {
-                if (is_active()) {
+                if (chaos_mode) {
+                    replay_thread.reset();
+                    transmitter_model.disable();
+                    ready_signal = false;
+                    lfsr_v = lfsr_iterate(lfsr_v);
+                    size_t random_index = lfsr_v % file_list.size();
+                    menu_view.set_highlighted(random_index);
+                    chThdSleepMilliseconds(100);
+                    start_tx(random_index);
+                } else {
                     thread_sync_complete = true;
                     stop_tx();
                 }
             } else if (message.return_code == ReplayThread::READ_ERROR) {
                 file_error(file_list[menu_view.highlighted_index()], "Read error during playback");
+                if (chaos_mode) {
+                    replay_thread.reset();
+                    transmitter_model.disable();
+                    ready_signal = false;
+                    lfsr_v = lfsr_iterate(lfsr_v);
+                    size_t random_index = lfsr_v % file_list.size();
+                    menu_view.set_highlighted(random_index);
+                    chThdSleepMilliseconds(100);
+                    start_tx(random_index);
+                }
             }
         }};
 };
