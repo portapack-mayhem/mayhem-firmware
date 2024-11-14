@@ -1,13 +1,9 @@
-// CVS Spam app by RocketGod (@rocketgod-git) https://betaskynet.com
-// Original .cu8 files by @jimilinuxguy https://github.com/jimilinuxguy/customer-assistance-buttons-sdr
-// If you can read this, you're a nerd. :P
-// Come join us at https://discord.gg/thepiratesreborn
-
 #include "cvs_spam.hpp"
 #include "io_file.hpp"
 #include "metadata_file.hpp"
 #include "oversample.hpp"
 #include "io_convert.hpp"
+#include "lfsr_random.hpp"
 
 using namespace portapack;
 
@@ -80,7 +76,7 @@ void CVSSpamView::start_tx(const uint32_t id) {
         return;
     }
 
-    const uint32_t sample_rate = 500000;
+    const uint32_t sample_rate = 250000;
 
     current_file = cvsfiles_dir / file_list[id].filename();
 
@@ -149,36 +145,36 @@ void CVSSpamView::start_tx(const uint32_t id) {
         });
 }
 
-void CVSSpamView::start_chaos_tx() {
+void CVSSpamView::start_random_tx() {
     if (is_active()) {
         stop_tx();
         return;
     }
 
-    const std::filesystem::path chaos_file_path = cvsfiles_dir / "chaos.c16";
-    const uint32_t sample_rate = 500000;
-
-    File capture_file;
-    auto open_error = capture_file.open(chaos_file_path);
-    if (open_error) {
-        file_error(chaos_file_path,
-                   "Cannot open CHAOS.C16.\n"
-                   "Initial file check failed.\n"
-                   "Path: " +
-                       cvsfiles_dir.string() +
-                       "\n"
-                       "Error: " +
-                       std::to_string(static_cast<uint32_t>(open_error)));
+    if (file_list.empty()) {
+        nav_.display_modal("Error", "No files found!");
         return;
     }
 
-    auto metadata_path = get_metadata_path(chaos_file_path);
+    lfsr_v = lfsr_iterate(lfsr_v);
+    size_t random_index = lfsr_v % file_list.size();
+
+    const uint32_t sample_rate = 250000;
+    current_file = cvsfiles_dir / file_list[random_index].filename();
+
+    File capture_file;
+    auto open_error = capture_file.open(current_file);
+    if (open_error) {
+        file_error(current_file, "Cannot open file.\nInitial check failed.");
+        return;
+    }
+
+    auto metadata_path = get_metadata_path(current_file);
     auto metadata = read_metadata_file(metadata_path);
     if (!metadata) {
         metadata = capture_metadata{transmitter_model.target_frequency(), sample_rate};
     }
 
-    auto file_size = capture_file.size();
     capture_file.close();
 
     replay_thread.reset();
@@ -188,18 +184,8 @@ void CVSSpamView::start_chaos_tx() {
     baseband::set_sample_rate(metadata->sample_rate, get_oversample_rate(metadata->sample_rate));
 
     auto reader = std::make_unique<FileConvertReader>();
-    if (auto error = reader->open(chaos_file_path)) {
-        file_error(chaos_file_path,
-                   "Cannot read CHAOS.C16.\n"
-                   "Check file format/perms.\n"
-                   "Rate: " +
-                       to_string_dec_uint(metadata->sample_rate) +
-                       "\n"
-                       "Size: " +
-                       to_string_dec_uint(file_size) +
-                       "\n"
-                       "Error: " +
-                       std::to_string(static_cast<uint32_t>(error)));
+    if (auto error = reader->open(current_file)) {
+        file_error(current_file, "Cannot read file data.");
         return;
     }
 
@@ -241,9 +227,9 @@ bool CVSSpamView::is_active() const {
 void CVSSpamView::stop_tx() {
     replay_thread.reset();
     transmitter_model.disable();
-    audio::output::stop();
     ready_signal = false;
     thread_sync_complete = false;
+    chaos_mode = false;
     progressbar.set_value(0);
     chThdSleepMilliseconds(50);
 }
@@ -295,7 +281,13 @@ CVSSpamView::CVSSpamView(NavigationView& nav)
     };
 
     button_chaos.on_select = [this](Button&) {
-        start_chaos_tx();
+        if (is_active()) {
+            chaos_mode = false;
+            stop_tx();
+        } else {
+            chaos_mode = true;
+            start_random_tx();
+        }
     };
 
     button_stop.on_select = [this](Button&) {
