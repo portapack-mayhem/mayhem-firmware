@@ -38,6 +38,7 @@
 #include "performance_counter.hpp"
 
 #include "usb_serial_device_to_host.h"
+#include "i2c_device_to_host.h"
 #include "chprintf.h"
 #include "chqueues.h"
 #include "ui_external_items_menu_loader.hpp"
@@ -59,6 +60,7 @@
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
 static EventDispatcher* _eventDispatcherInstance = NULL;
+static bool shell_i2c_created = false;
 static EventDispatcher* getEventDispatcherInstance() {
     return _eventDispatcherInstance;
 }
@@ -1222,7 +1224,19 @@ static const ShellConfig shell_cfg1 = {
     (BaseSequentialStream*)&SUSBD1,
     commands};
 
+static const ShellConfig shell_cfg2 = {
+    (BaseSequentialStream*)&I2CD1,
+    commands};
+
 void create_shell(EventDispatcher* evtd) {
     _eventDispatcherInstance = evtd;
     shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO + 10);
+}
+
+extern "C" void create_shell_i2c(EventDispatcher* evtd) {
+    if (shell_i2c_created) return;
+    shell_i2c_created = true;
+    init_i2c_shell_driver(&I2CD1);
+    _eventDispatcherInstance = evtd;
+    shellCreate(&shell_cfg2, SHELL_WA_SIZE, NORMALPRIO + 10);
 }

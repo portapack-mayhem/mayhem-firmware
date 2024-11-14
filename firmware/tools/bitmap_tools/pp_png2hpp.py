@@ -2,7 +2,7 @@
 
 # Convert png icons to bitmap.hpp inspired by
 #  make_bitmap.py - Copyright (C) 2016 Furrtek
-# Convert bitmap.hpp to icons inspyred by
+# Convert bitmap.hpp to icons inspired by
 #  bitmap_arr_reverse_decode.py - Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
 #  bitmap_arr_reverse_decode.py - Copyleft (ɔ) 2024 zxkmm with the GPL license
 # Copysomething (c) 2024 LupusE with the license, needed by the PortaPack project
@@ -136,6 +136,8 @@ def pp_write_bitmaphpp(pngicons_path, hpp_outpath):
         fd.writelines(out_file)
     
     print("Find your bitmap.hpp at", hpp_outpath)
+
+
 
 
 ### Convert from a bitmap.hpp file one or all icons in png.

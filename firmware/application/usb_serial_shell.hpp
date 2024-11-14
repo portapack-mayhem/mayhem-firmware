@@ -31,4 +31,12 @@ class EventDispatcher;
 
 void create_shell(EventDispatcher* evtd);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void create_shell_i2c(EventDispatcher* evtd);
+#ifdef __cplusplus
+}
+#endif
+
 #endif
