@@ -73,7 +73,7 @@ bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
         return false;
     }
     proto = ret.value().protocol;
-    if (proto != FLIPPER_PROTO_BINRAW && proto != FLIPPER_PROTO_RAW) {
+    if (proto != FLIPPER_PROTO_RAW) {  // && proto != FLIPPER_PROTO_BINRAW) { //temp disabled
         field_filename.set_text("File: err, not supp. proto");
         return false;
     }
@@ -240,8 +240,8 @@ uint32_t FlipperPlayThread::run() {
             buffers.put(prefill_buffer);
         }
     };
-    if (readall) return END_OF_FILE;
     baseband::set_fifo_data(nullptr);
+    if (readall) return END_OF_FILE;
 
     while (!chThdShouldTerminate()) {
         auto buffer = buffers.get();
