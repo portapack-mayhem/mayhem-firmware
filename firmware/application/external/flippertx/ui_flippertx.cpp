@@ -37,7 +37,6 @@ void FlipperTxView::focus() {
 }
 
 void FlipperTxView::set_ready() {
-    // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::set_ready");
     ready_signal = true;
 }
 
@@ -47,9 +46,7 @@ FlipperTxView::FlipperTxView(NavigationView& nav)
                   &field_frequency,
                   &tx_view,
                   &field_filename,
-                  &button_browse
-
-    });
+                  &button_browse});
 
     button_startstop.on_select = [this](Button&) {
         if (is_running) {
@@ -87,43 +84,40 @@ bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
     }
     te = ret.value().te;
     binraw_bit_count = ret.value().binraw_bit_count;
-    if (binraw_bit_count >= 512 * 8) {
+    /*if (binraw_bit_count >= 512 * 800) {
         field_filename.set_text("File: err, too long");  // should stream, but not in this scope YET
         return false;
-    }
+    }*/
     field_filename.set_text("File: " + new_file_path.string());
     filename = new_file_path;
     return true;
 }
 
 void FlipperTxView::stop() {
-    // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop");
+    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop");
     if (is_running && replay_thread) replay_thread.reset();
-    // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop1");
+    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop1");
     is_running = false;
     ready_signal = false;
 
     transmitter_model.disable();
-    // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop2");
+    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop2");
     baseband::shutdown();
-    // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop3");
+    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop3");
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
 }
 
 bool FlipperTxView::start() {
     if (filename.empty()) return false;
-    // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::start");
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     transmitter_model.enable();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     // start thread
     replay_thread = std::make_unique<FlipperPlayThread>(
         filename,
-        512, 3,
+        1024, 4,
         &ready_signal,
         [](uint32_t return_code) {
-            // UsbSerialAsyncmsg::asyncmsg("FlipperTxView::returncode:");
-            // UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(return_code));
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
@@ -134,15 +128,13 @@ bool FlipperTxView::start() {
 void FlipperTxView::on_tx_progress(const bool done) {
     if (done) {
         if (is_running) {
-            // UsbSerialAsyncmsg::asyncmsg("on_tx_progress::done");
+            UsbSerialAsyncmsg::asyncmsg("on_tx_progress::done");
             stop();
         }
     }
 }
 
 FlipperTxView::~FlipperTxView() {
-    is_running = false;
-    // UsbSerialAsyncmsg::asyncmsg("~FlipperTxView");
     stop();
 }
 
@@ -156,7 +148,7 @@ FlipperPlayThread::FlipperPlayThread(
       filename{filename},
       ready_sig{ready_signal},
       terminate_callback{std::move(terminate_callback)} {
-    thread = chThdCreateFromHeap(NULL, 3 * 1024, NORMALPRIO + 10, FlipperPlayThread::static_fn, this);
+    thread = chThdCreateFromHeap(NULL, 6 * 1024, NORMALPRIO + 10, FlipperPlayThread::static_fn, this);
 }
 
 FlipperPlayThread::~FlipperPlayThread() {
@@ -169,34 +161,26 @@ FlipperPlayThread::~FlipperPlayThread() {
 
 msg_t FlipperPlayThread::static_fn(void* arg) {
     auto obj = static_cast<FlipperPlayThread*>(arg);
-    // UsbSerialAsyncmsg::asyncmsg("FlipperPlayThread::static_fn");
     const auto return_code = obj->run();
     if (obj->terminate_callback) {
         obj->terminate_callback(return_code);
     }
-    // UsbSerialAsyncmsg::asyncmsg("FlipperPlayThread::static_fn:runend");
     chThdExit(0);
     return 0;
 }
 
 uint32_t FlipperPlayThread::run() {
-    // UsbSerialAsyncmsg::asyncmsg("run::1");
     BasebandReplay replay{&config};
     BufferExchange buffers{&config};
-
     StreamBuffer* prefill_buffer{nullptr};
-    // UsbSerialAsyncmsg::asyncmsg("run::2");
     int32_t read_result = 0;
     // read file base stuff
 
     auto fsub = read_flippersub_file(filename);
-    // UsbSerialAsyncmsg::asyncmsg("run::fsub");
-
     if (!fsub.is_valid()) return READ_ERROR;
     // assume it is ok, since prev we checked it.
     auto proto = fsub.value().protocol;
-    // UsbSerialAsyncmsg::asyncmsg("run::gotproto");
-    //  open the sub file
+    // open the sub file
     File f;  // don't worry, destructor will close it.
     auto error = f.open(filename);
     if (error) return READ_ERROR;
@@ -205,15 +189,13 @@ uint32_t FlipperPlayThread::run() {
         seek_flipper_raw_first_data(f);
     else
         seek_flipper_binraw_first_data(f);
-    // UsbSerialAsyncmsg::asyncmsg("run::seekok");
-    //  Wait for FIFOs to be allocated in baseband
-    //  Wait for ui_replay_view to tell us that the buffers are ready (awful :( )
+    // Wait for FIFOs to be allocated in baseband
+    // Wait for _view to tell us that the buffers are ready
     while (!(*ready_sig) && !chThdShouldTerminate()) {
         chThdSleep(100);
     };
-    // UsbSerialAsyncmsg::asyncmsg("run::ready_sig");
-    constexpr size_t block_size = 64;  // 64/4 = 16 data per block. must be abe to divide it with 8!
-    bool readall = false;
+    uint8_t readall = 0;
+    int32_t endsignals[3] = {0, 42069, 613379};  // unlikely a valid data
     // While empty buffers fifo is not empty...
     while (!buffers.empty() && !chThdShouldTerminate()) {
         prefill_buffer = buffers.get_prefill();
@@ -221,82 +203,76 @@ uint32_t FlipperPlayThread::run() {
         if (prefill_buffer == nullptr) {
             buffers.put_app(prefill_buffer);
         } else {
-            size_t blocks = config.read_size / block_size;  //
+            size_t c = 0;
+            for (c = 0; c < config.read_size / 4;) {
+                read_result = 0;
+                if (0 == readall) {
+                    if (proto == FLIPPER_PROTO_RAW) {
+                        auto data = read_flipper_raw_next_data(f);
+                        if (!data.is_valid()) {
+                            ((int32_t*)prefill_buffer->data())[c] = endsignals[++readall];
+                        } else {
+                            read_result = data.value();
+                            ((int32_t*)prefill_buffer->data())[c] = read_result;
+                        }
+                        c++;
 
-            for (size_t c = 0; c < blocks; c++) {
-                for (size_t d = 0; d < 512; d += 4) {
-                    read_result = 0;
-                    if (!readall) {
-                        if (proto == FLIPPER_PROTO_RAW) {
-                            auto data = read_flipper_raw_next_data(f);
-                            // UsbSerialAsyncmsg::asyncmsg("run::afread:" + to_string_dec_int(data.value()));
-                            if (!data.is_valid()) {
-                                readall = true;
-                                // UsbSerialAsyncmsg::asyncmsg("!data.is_valid()");
-                            } else {
-                                read_result = data.value();
-                                ((int32_t*)prefill_buffer->data())[c * block_size + d] = read_result;
-                            }
-
-                        } else {  // BINRAW
-                            auto data = read_flipper_binraw_next_data(f);
-                            if (!data.is_valid())
-                                readall = true;
-                            else {
-                                read_result = data.value();
-                                // add 8 data
-                                for (uint8_t bit = 0; bit < 8; bit++) {
-                                    ((int32_t*)prefill_buffer->data())[c * block_size + d + bit] = get_flipper_binraw_bitvalue(read_result, bit);
-                                }
+                    } else {  // BINRAW
+                        auto data = read_flipper_binraw_next_data(f);
+                        if (!data.is_valid())
+                            readall = 1;
+                        else {
+                            read_result = data.value();
+                            // add 8 data
+                            for (uint8_t bit = 0; bit < 8; bit++) {
+                                ((int32_t*)prefill_buffer->data())[c + bit] = get_flipper_binraw_bitvalue(read_result, bit);
+                                c++;
                             }
                         }
-                    } else {
-                        ((int32_t*)prefill_buffer->data())[c * block_size + d] = 0;
                     }
+                } else {
+                    ((int32_t*)prefill_buffer->data())[c] = endsignals[readall];
+                    if (readall == 1) readall++;
+                    c++;
                 }
             }
             prefill_buffer->set_size(config.read_size);
             buffers.put(prefill_buffer);
         }
     };
-    // UsbSerialAsyncmsg::asyncmsg("run::prefilled");
     if (readall) return END_OF_FILE;
-    // UsbSerialAsyncmsg::asyncmsg("run::prefillafterreturn");
     baseband::set_fifo_data(nullptr);
 
     while (!chThdShouldTerminate()) {
         auto buffer = buffers.get();
-        readall = false;
         int32_t read_result = 0;
-        for (size_t d = 0; d < buffer->capacity(); d += 4) {
-            read_result = 0;
+        for (size_t d = 0; d < buffer->capacity() / 4; d++) {
+            read_result = -133469;
             if (!readall) {
-                // UsbSerialAsyncmsg::asyncmsg("!readall");
                 if (proto == FLIPPER_PROTO_RAW) {
                     auto data = read_flipper_raw_next_data(f);
-                    if (!data.is_valid())
-                        readall = true;
-                    else
+                    if (!data.is_valid()) {
+                        readall = 1;
+                    } else {
                         read_result = data.value();
+                    }
                 } else {
                     auto data = read_flipper_binraw_next_data(f);
                     if (!data.is_valid())
-                        readall = true;
+                        readall = 1;
                     else
                         read_result = data.value();
                 }
+            }
+            if (readall >= 1 && readall <= 2) {
+                read_result = endsignals[readall++];
             }
             ((int32_t*)buffer->data())[d] = read_result;
         }
         buffer->set_size(buffer->capacity());
         buffers.put(buffer);
-        if (readall) {
-            // UsbSerialAsyncmsg::asyncmsg("readallEND_OF_FILE");
-            return END_OF_FILE;
-        }
+        if (readall == 3) return END_OF_FILE;
     }
-    // UsbSerialAsyncmsg::asyncmsg("TERMINATED");
-
     return TERMINATED;
 }
 

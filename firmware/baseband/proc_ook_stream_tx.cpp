@@ -53,22 +53,34 @@ void OOKProcessorStreamed::execute(const buffer_c8_t& buffer) {
     for (size_t i = 0; i < buffer.count; i++) {
         if (rem_samples <= curr_samples) {
             // get a new sample from stream
-            int32_t sample = 0;
+            int32_t sample = -13346;
             rem_samples = 0;  // reset my pointer
             curr_samples = 0;
-            if (configured) stream->read(&sample, 4);  // read from stream // todo htotoo error handling?!
-            if (sample == 0) {                         // if no more samples, stop
-                configured = false;
-                txprogress_message.done = true;
-                curr_hilow = false;
-                shared_memory.application_queue.push(txprogress_message);
+            size_t readed = 0;
+            if (configured) readed = stream->read(&sample, 4);  // read from stream // todo htotoo error handling?!
+            if (readed == 0) {
+                txprogress_message.progress = -10;
+                shared_memory.application_queue.push(txprogress_message);  // debug
             } else {
-                if (sample < 0) {
-                    rem_samples = OOK_SAMPLERATE * ((-1 * sample) / 1000000.0);
-                    curr_hilow = false;
+                if (sample == endsignals[readerrs + 1]) {  // if no more samples, stop
+                    readerrs++;
+                    if (readerrs == 2) {
+                        configured = false;
+                        txprogress_message.done = true;
+                        txprogress_message.progress = 100;
+                        curr_hilow = false;
+                        shared_memory.application_queue.push(txprogress_message);
+                    }
                 } else {
-                    rem_samples = OOK_SAMPLERATE * (sample / 1000000.0);
-                    curr_hilow = true;
+                    // txprogress_message.progress = sample;
+                    // shared_memory.application_queue.push(txprogress_message);
+                    if (sample < 0) {
+                        rem_samples = OOK_SAMPLERATE * ((-1 * sample) / 1000000.0);
+                        curr_hilow = false;
+                    } else {
+                        rem_samples = OOK_SAMPLERATE * (sample / 1000000.0);
+                        curr_hilow = true;
+                    }
                 }
             }
         }
@@ -86,6 +98,8 @@ void OOKProcessorStreamed::on_message(const Message* const message) {
 
         case Message::ID::FIFOData:
             configured = true;
+            txprogress_message.progress = -4;
+            shared_memory.application_queue.push(txprogress_message);
             break;
 
         default:
@@ -95,11 +109,15 @@ void OOKProcessorStreamed::on_message(const Message* const message) {
 
 void OOKProcessorStreamed::replay_config(const ReplayConfigMessage& message) {
     if (message.config) {
+        txprogress_message.progress = -2;
+        shared_memory.application_queue.push(txprogress_message);
         stream = std::make_unique<StreamOutput>(message.config);
         // Tell application that the buffers and FIFO pointers are ready, prefill
         RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
         shared_memory.application_queue.push(sig_message);
     } else {
+        txprogress_message.progress = -3;
+        shared_memory.application_queue.push(txprogress_message);
         stream.reset();
     }
 }

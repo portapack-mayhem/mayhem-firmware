@@ -110,8 +110,8 @@ class FlipperTxView : public View {
         Message::ID::ReplayThreadDone,
         [this](const Message* const p) {
             // const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-            UsbSerialAsyncmsg::asyncmsg("FlipperTxView::ReplayThreadDonemsg");
-            stop();
+            (void)p;
+            // stop(); //don't stop for now, stop when i get the tx finished msg
         }};
 };
 
@@ -121,7 +121,8 @@ struct BasebandReplay {
     }
 
     ~BasebandReplay() {
-        baseband::replay_stop();
+        // UsbSerialAsyncmsg::asyncmsg("~BasebandReplay");
+        // baseband::replay_stop(); //todo rethink this
     }
 };
 
@@ -152,7 +153,6 @@ class FlipperPlayThread {
 
    private:
     ReplayConfig config;
-    // std::unique_ptr<stream::Reader> reader;
     std::filesystem::path filename;
     bool* ready_sig;
     std::function<void(uint32_t return_code)> terminate_callback;

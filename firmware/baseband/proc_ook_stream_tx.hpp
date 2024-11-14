@@ -49,9 +49,12 @@ class OOKProcessorStreamed : public BasebandProcessor {
     bool configured{false};
     void replay_config(const ReplayConfigMessage& message);
 
+    int32_t endsignals[3] = {0, 42069, 613379};  // 0 is skipped, count from 1, don't ask...
+    uint8_t readerrs = 0;                        // to count in the array
+
     TXProgressMessage txprogress_message{};
     /* NB: Threads should be the last members in the class definition. */
-    BasebandThread baseband_thread{2280000, this, baseband::Direction::Transmit};
+    BasebandThread baseband_thread{OOK_SAMPLERATE, this, baseband::Direction::Transmit};
 };
 
 #endif /*__PROC_OOKSTREAMTX_HPP__*/
