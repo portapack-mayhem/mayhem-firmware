@@ -27,6 +27,9 @@ import sys
 
 cppheader = """#include "ui_about_simple.hpp"
 
+#define ROLL_SPEED_FRAME_PER_LINE 60
+// cuz frame rate of pp screen is probably 60, scroll per sec
+
 namespace ui {
 
 // Information: a line starting with a '#' will be yellow coloured
