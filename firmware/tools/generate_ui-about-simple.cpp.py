@@ -107,7 +107,6 @@ bool AboutView::on_encoder(const EncoderEvent) {
 }
 
 } /* namespace ui */
-
 """
 
 def get_contributors(url):
