@@ -1,3 +1,8 @@
+// CVS Spam app by RocketGod (@rocketgod-git) https://betaskynet.com
+// Original .cu8 files by @jimilinuxguy https://github.com/jimilinuxguy/customer-assistance-buttons-sdr
+// If you can read this, you're a nerd. :P
+// Come join us at https://discord.gg/thepiratesreborn
+
 #include "cvs_spam.hpp"
 #include "io_file.hpp"
 #include "metadata_file.hpp"
