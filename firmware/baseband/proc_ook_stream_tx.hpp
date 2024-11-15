@@ -19,6 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*
+    For usage check the FlipperTX app. Don't forget to "close" the tx by sending 42069, 613379 values at the end of the stream.
+    Only close baseband when you get the TX done msg, not on replay thread done, because, there can still data in the buffer.
+*/
+
 #ifndef __PROC_OOKSTREAMTX_HPP__
 #define __PROC_OOKSTREAMTX_HPP__
 
