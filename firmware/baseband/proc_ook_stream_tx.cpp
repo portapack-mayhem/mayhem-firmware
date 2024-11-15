@@ -72,8 +72,6 @@ void OOKProcessorStreamed::execute(const buffer_c8_t& buffer) {
                         shared_memory.application_queue.push(txprogress_message);
                     }
                 } else {
-                    // txprogress_message.progress = sample;
-                    // shared_memory.application_queue.push(txprogress_message);
                     if (sample < 0) {
                         rem_samples = OOK_SAMPLERATE * ((-1 * sample) / 1000000.0);
                         curr_hilow = false;

@@ -22,7 +22,7 @@
 #include "flipper_subfile.hpp"
 #include "ui_fileman.hpp"
 #include "baseband_api.hpp"
-#include "usb_serial_asyncmsg.hpp"
+
 using namespace ui;
 
 namespace ui::external_app::flippertx {
@@ -63,11 +63,11 @@ class FlipperTxView : public View {
         "File: -"};
 
     Button button_startstop{
-        {0, 6 * 16, 96, 24},
+        {1, 6 * 16, 96, 24},
         LanguageHelper::currentMessages[LANG_START]};
 
     Button button_browse{
-        {0, 3 * 16, 8 * 7, 24},
+        {1, 3 * 16 + 3, 96, 24},
         LanguageHelper::currentMessages[LANG_BROWSE]};
 
     bool is_running{false};
@@ -87,6 +87,7 @@ class FlipperTxView : public View {
     bool ready_signal = false;
 
     std::unique_ptr<FlipperPlayThread> replay_thread{};
+    Optional<flippersub_metadata> submeta{};
 
     const std::filesystem::path subghz_dir = u"subghz";
 
@@ -121,8 +122,7 @@ struct BasebandReplay {
     }
 
     ~BasebandReplay() {
-        // UsbSerialAsyncmsg::asyncmsg("~BasebandReplay");
-        // baseband::replay_stop(); //todo rethink this
+        // baseband::replay_stop(); // wont, since we need to send out that is in the buffer
     }
 };
 
@@ -133,6 +133,8 @@ class FlipperPlayThread {
         size_t read_size,
         size_t buffer_count,
         bool* ready_signal,
+        FlipperProto proto,
+        uint16_t te,
         std::function<void(uint32_t return_code)> terminate_callback);
     ~FlipperPlayThread();
 
@@ -155,6 +157,8 @@ class FlipperPlayThread {
     ReplayConfig config;
     std::filesystem::path filename;
     bool* ready_sig;
+    FlipperProto proto;
+    uint16_t te;
     std::function<void(uint32_t return_code)> terminate_callback;
     Thread* thread{nullptr};
 

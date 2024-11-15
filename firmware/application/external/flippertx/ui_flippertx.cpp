@@ -60,30 +60,32 @@ FlipperTxView::FlipperTxView(NavigationView& nav)
         auto open_view = nav_.push<FileLoadView>(".sub");
         open_view->push_dir(subghz_dir);
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            on_file_changed(new_file_path);
+            if (on_file_changed(new_file_path)) {
+                ;  // tif (button_startstop.parent()) button_startstop.focus(); parent_ is null error.....
+            }
         };
     };
 }
 
 bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
-    auto ret = read_flippersub_file(new_file_path);
+    submeta = read_flippersub_file(new_file_path);
     filename = "";
-    if (!ret.is_valid()) {
+    if (!submeta.is_valid()) {
         field_filename.set_text("File: err, bad file");
         return false;
     }
-    proto = ret.value().protocol;
-    if (proto != FLIPPER_PROTO_RAW) {  // && proto != FLIPPER_PROTO_BINRAW) { //temp disabled
+    proto = submeta.value().protocol;
+    if (proto != FLIPPER_PROTO_RAW && proto != FLIPPER_PROTO_BINRAW) {  // temp disabled
         field_filename.set_text("File: err, not supp. proto");
         return false;
     }
-    preset = ret.value().preset;
+    preset = submeta.value().preset;
     if (preset != FLIPPER_PRESET_OOK) {
         field_filename.set_text("File: err, not supp. preset");
         return false;
     }
-    te = ret.value().te;
-    binraw_bit_count = ret.value().binraw_bit_count;
+    te = submeta.value().te;
+    binraw_bit_count = submeta.value().binraw_bit_count;
     /*if (binraw_bit_count >= 512 * 800) {
         field_filename.set_text("File: err, too long");  // should stream, but not in this scope YET
         return false;
@@ -94,16 +96,12 @@ bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
 }
 
 void FlipperTxView::stop() {
-    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop");
     if (is_running && replay_thread) replay_thread.reset();
-    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop1");
     is_running = false;
     ready_signal = false;
 
     transmitter_model.disable();
-    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop2");
     baseband::shutdown();
-    UsbSerialAsyncmsg::asyncmsg("FlipperTxView::stop3");
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
 }
 
@@ -117,6 +115,8 @@ bool FlipperTxView::start() {
         filename,
         1024, 4,
         &ready_signal,
+        submeta.value().protocol,
+        submeta.value().te,
         [](uint32_t return_code) {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
@@ -128,7 +128,6 @@ bool FlipperTxView::start() {
 void FlipperTxView::on_tx_progress(const bool done) {
     if (done) {
         if (is_running) {
-            UsbSerialAsyncmsg::asyncmsg("on_tx_progress::done");
             stop();
         }
     }
@@ -143,10 +142,14 @@ FlipperPlayThread::FlipperPlayThread(
     size_t read_size,
     size_t buffer_count,
     bool* ready_signal,
+    FlipperProto proto,
+    uint16_t te,
     std::function<void(uint32_t return_code)> terminate_callback)
     : config{read_size, buffer_count},
       filename{filename},
       ready_sig{ready_signal},
+      proto{proto},
+      te{te},
       terminate_callback{std::move(terminate_callback)} {
     thread = chThdCreateFromHeap(NULL, 6 * 1024, NORMALPRIO + 10, FlipperPlayThread::static_fn, this);
 }
@@ -174,12 +177,7 @@ uint32_t FlipperPlayThread::run() {
     BufferExchange buffers{&config};
     StreamBuffer* prefill_buffer{nullptr};
     int32_t read_result = 0;
-    // read file base stuff
-
-    auto fsub = read_flippersub_file(filename);
-    if (!fsub.is_valid()) return READ_ERROR;
     // assume it is ok, since prev we checked it.
-    auto proto = fsub.value().protocol;
     // open the sub file
     File f;  // don't worry, destructor will close it.
     auto error = f.open(filename);
@@ -187,8 +185,9 @@ uint32_t FlipperPlayThread::run() {
     // seek to the first data
     if (proto == FLIPPER_PROTO_RAW)
         seek_flipper_raw_first_data(f);
-    else
+    else {
         seek_flipper_binraw_first_data(f);
+    }
     // Wait for FIFOs to be allocated in baseband
     // Wait for _view to tell us that the buffers are ready
     while (!(*ready_sig) && !chThdShouldTerminate()) {
@@ -225,7 +224,7 @@ uint32_t FlipperPlayThread::run() {
                             read_result = data.value();
                             // add 8 data
                             for (uint8_t bit = 0; bit < 8; bit++) {
-                                ((int32_t*)prefill_buffer->data())[c + bit] = get_flipper_binraw_bitvalue(read_result, bit);
+                                ((int32_t*)prefill_buffer->data())[c + bit] = ((get_flipper_binraw_bitvalue(read_result, (7 - bit)) ? 1 : -1) * te);
                                 c++;
                             }
                         }
@@ -260,8 +259,15 @@ uint32_t FlipperPlayThread::run() {
                     auto data = read_flipper_binraw_next_data(f);
                     if (!data.is_valid())
                         readall = 1;
-                    else
+                    else {
                         read_result = data.value();
+                        // add 8 data
+                        for (uint8_t bit = 0; bit < 8; bit++) {
+                            ((int32_t*)prefill_buffer->data())[d + bit] = ((get_flipper_binraw_bitvalue(read_result, (7 - bit)) ? 1 : -1) * te);
+                        }
+                        d += 7;
+                        continue;
+                    }
                 }
             }
             if (readall >= 1 && readall <= 2) {
