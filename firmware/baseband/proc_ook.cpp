@@ -108,7 +108,8 @@ inline size_t OOKProcessor::duval_algo_step() {
         for (unsigned int j = 0; j < w - idx; j++)
             v[idx + j] = v[j];
 
-        for (idx = w; (idx > 0) && (v[idx - 1] >= duval_symbols - 1); idx--);
+        for (idx = w; (idx > 0) && (v[idx - 1] >= duval_symbols - 1); idx--)
+            ;
 
         if (idx)
             v[idx - 1]++;
