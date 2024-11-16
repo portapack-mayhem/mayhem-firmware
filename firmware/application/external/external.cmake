@@ -117,7 +117,12 @@ set(EXTCPPSRC
 
 	#cvs_spam
 	external/cvs_spam/main.cpp
-	external/cvs_spam/cvs_spam.cpp		
+	external/cvs_spam/cvs_spam.cpp	
+	
+	#flippertx
+	external/flippertx/main.cpp
+	external/flippertx/ui_flippertx.cpp
+	
 )
 
 set(EXTAPPLIST
@@ -149,4 +154,5 @@ set(EXTAPPLIST
 	#acars_rx
 	ookbrute
 	shoppingcart_lock
+	flippertx
 )
