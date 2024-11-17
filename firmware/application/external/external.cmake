@@ -115,9 +115,9 @@ set(EXTCPPSRC
 	external/ookbrute/main.cpp
 	external/ookbrute/ui_ookbrute.cpp
 
-	#rook
-	external/rook/main.cpp
-	external/rook/ui_rook.cpp
+	#ook_remote
+	external/ook_remote/main.cpp
+	external/ook_remote/ui_ook_remote.cpp
 
 	#cvs_spam
 	external/cvs_spam/main.cpp
@@ -157,7 +157,7 @@ set(EXTAPPLIST
 	random_password
 	#acars_rx
 	ookbrute
-	rook
+	ook_remote
 	shoppingcart_lock
 	flippertx
 )
