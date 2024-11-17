@@ -18,26 +18,26 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
- 
+
 #include "ui.hpp"
 #include "ui_rook.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
- 
+
 namespace ui::external_app::rook {
 void initialize_app(ui::NavigationView& nav) {
     nav.push<ROOKAppView>();
 }
 }  // namespace ui::external_app::rook
- 
+
 extern "C" {
- 
+
 __attribute__((section(".external_app.app_rook.application_information"), used)) application_information_t _application_information_rook = {
     /*.memory_location = */ (uint8_t*)0x00000000,
     /*.externalAppEntry = */ ui::external_app::rook::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
- 
+
     /*.app_name = */ "ROOK",
     /*.bitmap_data = */ {
         0x20,
@@ -75,7 +75,7 @@ __attribute__((section(".external_app.app_rook.application_information"), used))
     },
     /*.icon_color = */ ui::Color::orange().v,
     /*.menu_location = */ app_location_t::TX,
- 
+
     /*.m4_app_tag = portapack::spi_flash::image_tag_ook */ {'P', 'O', 'O', 'K'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
