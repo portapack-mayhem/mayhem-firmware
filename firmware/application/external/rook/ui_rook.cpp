@@ -73,6 +73,7 @@ namespace ui::external_app::rook {
     }
  
     // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
+    
     void ROOKAppView::on_file_changed(const fs::path& new_file_path) {
         payload.clear();  // Clear previous payload content
  
@@ -106,15 +107,21 @@ namespace ui::external_app::rook {
             transmitter_model.set_target_frequency(frequency);
  
             // Convert and assign symbols rate
-            unsigned int symbols_rate = std::stoi(symbols_rate_str);
+            //unsigned int symbols_rate = std::stoi(symbols_rate_str);
+            unsigned int symbols_rate = static_cast<unsigned int>(atoi(symbols_rate_str.c_str()));
+
             cant_symbol_rate.set_value(symbols_rate);
  
             // Convert and assign repeat count
-            unsigned int repeat = std::stoi(repeat_str);
+            //unsigned int repeat = std::stoi(repeat_str);
+            unsigned int repeat = static_cast<unsigned int>(atoi(repeat_str.c_str()));
+
             cant_repeat.set_value(repeat);
  
             // Convert and assign pause per symbol
-            unsigned int pause_symbol = std::stoi(pause_symbol_str);
+            //unsigned int pause_symbol = std::stoi(pause_symbol_str);
+            unsigned int pause_symbol = static_cast<unsigned int>(atoi(pause_symbol_str.c_str()));
+
             cant_pause_symbol.set_value(pause_symbol);
  
             // Select sample rate based on value read from file
@@ -150,7 +157,9 @@ namespace ui::external_app::rook {
             text_payload.set("parent not available");
         }
     }
- 
+    
+
+    
     // `on_tx_progress` method: Updates the progress bar based on transmission progress.
     void ROOKAppView::on_tx_progress(const uint32_t progress, const bool done) {
         progressBar_progress.set_value(progress);  // Update progress bar value
@@ -229,7 +238,9 @@ namespace ui::external_app::rook {
         cant_repeat.set_value(4);
  
         button_open.on_select = [this](Button&) {
-            auto open_view = nav_.push<FileLoadView>(".TXT");
+            auto open_view = nav_.push<FileLoadView>(".ROOK");
+            ensure_directory(rook_dir);
+            open_view->push_dir(rook_dir);
             open_view->on_changed = [this](std::filesystem::path new_file_path) {
                 // Postpone `on_file_changed` call until `FileLoadView` is closed
                 nav_.set_on_pop([this, new_file_path]() {

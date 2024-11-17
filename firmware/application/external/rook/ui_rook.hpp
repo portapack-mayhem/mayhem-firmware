@@ -77,27 +77,28 @@ class ROOKAppView : public View {
          
         // UI components for frequency and transmitter view.
         TxFrequencyField field_frequency{{0 * 8, 0 * 16}, nav_};
-        TransmitterView2 tx_view{{20 * 4, 0 * 16}, true};
+        TransmitterView2 tx_view{{20 * 7, 0 * 16}, true};
  
         // Labels for various fields such as sample rate and repeat count.
-        Labels sample_rate {{{0,30}, "S/Rate:     ",Theme::getInstance()->fg_light->foreground}};
-        Labels repeat {{{0,50}, "Repeat:     ",Theme::getInstance()->fg_light->foreground}};
-        Labels field_symbol_rate {{{111, 30}, "Symbols:     ",Theme::getInstance()->fg_light->foreground}};
-        Labels field_pause_symbol {{{111, 50}, "Pause/Sym:     ",Theme::getInstance()->fg_light->foreground}};
-        Labels field_symbol_us_rate {{{210, 30}, "us     ",Theme::getInstance()->fg_light->foreground}};
-        Labels step_symbol_rate {{{165, 0}, "Step:    ",Theme::getInstance()->fg_light->foreground}};
+        Labels sample_rate {{{0,40}, "S/Rate:     ",Theme::getInstance()->fg_light->foreground}};
+        //Labels step_symbol_rate {{{160, 0}, "Step/Sym:    ",Theme::getInstance()->fg_light->foreground}};
+        Labels step_symbol_rate {{{0, 18}, "Step/Symbols:    ",Theme::getInstance()->fg_light->foreground}};
+        Labels repeat {{{0,60}, "Repeat:     ",Theme::getInstance()->fg_light->foreground}};
+        Labels field_symbol_rate {{{111, 40}, "Symbols:     ",Theme::getInstance()->fg_light->foreground}};
+        Labels field_pause_symbol {{{111, 60}, "Pause/Sym:     ",Theme::getInstance()->fg_light->foreground}};
+        Labels field_symbol_us_rate {{{210, 40}, "us     ",Theme::getInstance()->fg_light->foreground}};
         Labels label_waveform{{{0, 140}, "Waveform:", Theme::getInstance()->fg_light->foreground}};
          
         // OptionsField for selectable sample rates.
-        OptionsField field_sample_rate{{55, 30},7,{{"250k", 250000U},{"1M", 1000000U},{"2M", 2000000U},{"5M", 5000000U},{"10M", 10000000U},{"20M", 20000000U}}};
+        OptionsField field_sample_rate{{55, 40},7,{{"250k", 250000U},{"1M", 1000000U},{"2M", 2000000U},{"5M", 5000000U},{"10M", 10000000U},{"20M", 20000000U}}};
          
         // OptionsField for step symbol rates.
-        OptionsField cant_step_symbol_rate{{210, 0},7,{{"1", 1},{"10", 10},{"100", 100}}};
+        OptionsField cant_step_symbol_rate{{105, 18},7,{{"1", 1},{"10", 10},{"100", 100}}};
          
         // Number fields for symbols, pause between symbols, and repeat count.
-        NumberField cant_symbol_rate{{176, 30},4,{0, 9999},1,'0',false};
-        NumberField cant_pause_symbol{{200, 50},4,{0, 200},1,'0',false};
-        NumberField cant_repeat{{55, 50},3,{0, 100},1,'0',false};
+        NumberField cant_symbol_rate{{176, 40},4,{0, 9999},1,'0',false};
+        NumberField cant_pause_symbol{{200, 60},4,{0, 200},1,'0',false};
+        NumberField cant_repeat{{55, 60},3,{0, 100},1,'0',false};
          
         // Text field to display the payload data.
         Text text_payload{{0 * 8, 90, 30 * 8, 16},"Payload:"};
