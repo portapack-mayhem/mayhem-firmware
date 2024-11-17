@@ -51,6 +51,7 @@ MEMORY
     ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k    
     ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k 
     ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k 
+    ram_external_app_flippertx(rwx) : org = 0xADCD0000, len = 32k 
     ram_external_app_rook(rwx) : org = 0xADCE0000, len = 32k 
 }
 
@@ -230,5 +231,11 @@ SECTIONS
         KEEP(*(.external_app.app_rook.application_information));
         *(*ui*external_app*rook*);
     } > ram_external_app_rook
+
+   .external_app_flippertx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_flippertx.application_information));
+        *(*ui*external_app*flippertx*);
+    } > ram_external_app_flippertx
 
 }
