@@ -200,6 +200,47 @@ void OOKRemoteAppView::draw_waveform() {
     waveform.set_dirty();
 }
 
+void OOKRemoteAppView::on_save_file(const std::string value) {
+    // check if there is a payload, else Error
+    if (payload.length() < 1) {
+        text_loaded_file.set("Error: no payload !!");
+        return;
+    }
+
+    ensure_directory(ook_remote_dir);
+    auto new_path = ook_remote_dir / value + ".OOK";
+    if (save_ook_to_file(new_path)) {
+        text_loaded_file.set("Saved to " + new_path.string());
+    } else {
+        text_loaded_file.set("Error saving " + new_path.string());
+    }
+}
+
+bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
+    // delete file if it exists
+    delete_file(path);
+
+    // Attempt to open, if it can't be opened. Create new.
+    auto src = std::make_unique<File>();
+    auto error = src->open(path, false, true);
+    if (error) {
+        return false;
+    }
+
+    // write informations
+    src->write_line(to_string_dec_uint(field_frequency.value()) + " " +
+                    field_sample_rate.selected_index_name() + " " +
+                    to_string_dec_uint(field_bit_duration.value()) + " " +
+                    to_string_dec_uint(field_repeat.value()) + " " +
+                    to_string_dec_uint(field_pause_symbol.value()) + " " +
+                    payload);
+
+    // Close files
+    src.reset();
+
+    return true;
+}
+
 // Destructor for `OOKRemoteAppView`: Disables the transmitter and shuts down the baseband
 OOKRemoteAppView::~OOKRemoteAppView() {
     transmitter_model.disable();
@@ -211,32 +252,29 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
-    add_children({
-        &field_frequency,
-        &tx_view,
-        &button_send_stop,
-        &label_bit_duration_step,
-        &field_bit_duration_step,
-        &label_sample_rate,
-        &field_sample_rate,
-        &label_bit_duration,
-        &field_bit_duration,
-        &label_bit_duration_unit,
-        &text_payload,
-        &button_set,
-        &progressbar,
-        &label_repeat,
-        &field_repeat,
-        &label_pause_symbol,
-        &field_pause_symbol,
-        &label_payload,
-        &text_loaded_file,
-        &label_waveform,
-        &waveform,
-        &button_open,
-        // TODO: save to file
-        // &button_save,
-    });
+    add_children({&field_frequency,
+                  &tx_view,
+                  &button_send_stop,
+                  &label_bit_duration_step,
+                  &field_bit_duration_step,
+                  &label_sample_rate,
+                  &field_sample_rate,
+                  &label_bit_duration,
+                  &field_bit_duration,
+                  &label_bit_duration_unit,
+                  &text_payload,
+                  &button_set,
+                  &progressbar,
+                  &label_repeat,
+                  &field_repeat,
+                  &label_pause_symbol,
+                  &field_pause_symbol,
+                  &label_payload,
+                  &text_loaded_file,
+                  &label_waveform,
+                  &waveform,
+                  &button_open,
+                  &button_save});
 
     // Initialize default values for controls
     field_pause_symbol.set_value(100);
@@ -254,6 +292,17 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
                 draw_waveform();
             });
         };
+    };
+
+    button_save.on_select = [this, &nav](const ui::Button&) {
+        outputFileBuffer = "";
+        text_prompt(
+            nav,
+            outputFileBuffer,
+            64,
+            [this](std::string& buffer) {
+                on_save_file(buffer);
+            });
     };
 
     // clean out loaded file name if field is changed

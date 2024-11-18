@@ -47,6 +47,7 @@ class OOKRemoteAppView : public View {
     int16_t waveform_buffer[WAVEFORM_BUFFER_SIZE];  // Buffer for waveform data.
     bool is_transmitting = false;                   // State of transmission.
     rf::Frequency ook_remote_tx_freq{24000000};     // last used transmit frequency
+    std::string outputFileBuffer{};                 // buffer for output file
 
     void update();
     void draw_waveform();
@@ -62,6 +63,12 @@ class OOKRemoteAppView : public View {
 
     // Updates data when a new file is loaded.
     void on_file_changed(const std::filesystem::path& new_file_path);
+
+    // Prepare a new std::filesystem::path from string value and call saveFile
+    void on_save_file(const std::string value);
+
+    // Called by on_save_file to save the current OOK parameters to the file
+    bool save_ook_to_file(const std::filesystem::path& path);
 
     // Registers a message handler for transmission progress updates.
     MessageHandlerRegistration message_handler_tx_progress{
@@ -114,8 +121,7 @@ class OOKRemoteAppView : public View {
     // Buttons for setting configurations, opening files, and starting transmission.
     Button button_set{{0, 110, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
     Button button_open{{68, 110, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
-    // TODO: save to file
-    // Button button_save{{154, 110, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
+    Button button_save{{154, 110, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
     Button button_send_stop{{80, 273, 80, 32}, LanguageHelper::currentMessages[LANG_SEND]};
 
     // Progress bar to display transmission progress.
