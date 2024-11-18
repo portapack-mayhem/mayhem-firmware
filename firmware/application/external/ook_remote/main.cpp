@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_ook_remote.application_information"), 
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "OOK Remote",
+    /*.app_name = */ "OOKRemote",
     /*.bitmap_data = */ {
         0x20,
         0x00,
