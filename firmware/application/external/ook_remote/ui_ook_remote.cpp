@@ -54,10 +54,10 @@ void OOKRemoteAppView::start_tx(const std::string& message) {
 
     // Configure OOK data and transmission characteristics
     baseband::set_ook_data(
-        bitstream_length,                                                       // Length of the bitstream to transmit
-        field_sample_rate.selected_index_value() / field_bit_duration.value(),  // Calculate symbol period based on repetition rate
-        field_repeat.value(),                                                   // Set the number of times the whole bitstream is repeated
-        field_pause_duration.value()                                            // Set the pause between symbols
+        bitstream_length,                                                      // Length of the bitstream to transmit
+        field_sample_rate.selected_index_value() / field_symbol_rate.value(),  // Calculate symbol period based on repetition rate
+        field_repeat.value(),                                                  // Set the number of times the whole bitstream is repeated
+        field_pause_symbol_duration.value()                                    // Set the pause_symbol between reps
     );
     progressbar.set_max(field_repeat.value());                              // Size the progress bar accordingly to the number of repeat
     is_transmitting = true;                                                 // set transmitting flag
@@ -85,9 +85,9 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
     }
     field_frequency.set_value(ook_data->frequency);
     transmitter_model.set_target_frequency(ook_data->frequency);
-    field_bit_duration.set_value(ook_data->bit_duration);
+    field_symbol_rate.set_value(ook_data->symbol_rate);
     field_repeat.set_value(ook_data->repeat);
-    field_pause_duration.set_value(ook_data->pause_duration);
+    field_pause_symbol_duration.set_value(ook_data->pause_symbol_duration);
     field_sample_rate.set_by_value(ook_data->samplerate);
     payload = std::move(ook_data->payload);
     text_payload.set(payload);
@@ -165,9 +165,9 @@ bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
     // write informations
     src->write_line(to_string_dec_uint(field_frequency.value()) + " " +
                     field_sample_rate.selected_index_name() + " " +
-                    to_string_dec_uint(field_bit_duration.value()) + " " +
+                    to_string_dec_uint(field_symbol_rate.value()) + " " +
                     to_string_dec_uint(field_repeat.value()) + " " +
-                    to_string_dec_uint(field_pause_duration.value()) + " " +
+                    to_string_dec_uint(field_pause_symbol_duration.value()) + " " +
                     payload);
 
     // Close files
@@ -190,21 +190,21 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     add_children({&field_frequency,
                   &tx_view,
                   &button_send_stop,
-                  &label_bit_duration_step,
-                  &field_bit_duration_step,
+                  &label_step,
+                  &field_step,
                   &label_sample_rate,
                   &field_sample_rate,
-                  &label_bit_duration,
-                  &field_bit_duration,
-                  &label_bit_duration_unit,
+                  &label_symbol_rate,
+                  &field_symbol_rate,
+                  &label_symbol_rate_unit,
                   &text_payload,
                   &button_set,
                   &progressbar,
                   &label_repeat,
                   &field_repeat,
-                  &label_pause_duration,
-                  &field_pause_duration,
-                  &label_pause_duration_unit,
+                  &label_pause_symbol_duration,
+                  &field_pause_symbol_duration,
+                  &label_pause_symbol_duration_unit,
                   &label_payload,
                   &text_loaded_file,
                   &label_waveform,
@@ -213,8 +213,8 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
                   &button_save});
 
     // Initialize default values for controls
-    field_bit_duration.set_value(100);
-    field_pause_duration.set_value(100);
+    field_symbol_rate.set_value(100);
+    field_pause_symbol_duration.set_value(100);
     field_repeat.set_value(4);
 
     button_open.on_select = [this](Button&) {
@@ -243,7 +243,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     };
 
     // clean out loaded file name if field is changed
-    field_bit_duration.on_change = [this](int32_t) {
+    field_symbol_rate.on_change = [this](int32_t) {
         text_loaded_file.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
@@ -251,7 +251,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         text_loaded_file.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
-    field_pause_duration.on_change = [this](int32_t) {
+    field_pause_symbol_duration.on_change = [this](int32_t) {
         text_loaded_file.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
@@ -277,10 +277,10 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         };
     };
 
-    field_bit_duration_step.on_change = [this](size_t, int32_t value) {
+    field_step.on_change = [this](size_t, int32_t value) {
         text_loaded_file.set("");  // Clear loaded file text field
-        field_bit_duration.set_step(value);
-        field_pause_duration.set_step(value);
+        field_symbol_rate.set_step(value);
+        field_pause_symbol_duration.set_step(value);
     };
 
     // Configure button to manually set payload through text input
