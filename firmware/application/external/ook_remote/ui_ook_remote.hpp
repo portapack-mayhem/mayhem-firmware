@@ -93,10 +93,10 @@ class OOKRemoteAppView : public View {
     TransmitterView2 tx_view{{20 * 7, 0 * 16}, true};
 
     // Labels for various fields such as sample rate and repeat count.
-    Labels label_bit_duration_step{{{111, 20}, "Field Step:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_bit_duration_step{{{111, 20}, "Fields Step:", Theme::getInstance()->fg_light->foreground}};
     Labels label_sample_rate{{{0, 20}, "S/Rate:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_high_bit_duration{{{111, 40}, "HighBit:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_high_bit_duration_unit{{{210, 40}, "us", Theme::getInstance()->fg_light->foreground}};
+    Labels label_bit_duration{{{111, 40}, "BitTime:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_bit_duration_unit{{{210, 40}, "us", Theme::getInstance()->fg_light->foreground}};
     Labels label_repeat{{{0, 40}, "Repeat:", Theme::getInstance()->fg_light->foreground}};
     Labels label_pause_duration{{{0, 60}, "Pause:", Theme::getInstance()->fg_light->foreground}};
     Labels label_pause_duration_unit{{{90, 60}, "us", Theme::getInstance()->fg_light->foreground}};
@@ -113,7 +113,7 @@ class OOKRemoteAppView : public View {
     OptionsField field_bit_duration_step{{210, 20}, 7, {{"1", 1}, {"10", 10}, {"100", 100}}};
 
     // Number fields for symbols, pause between symbols, and repeat count.
-    NumberField field_high_bit_duration{{176, 40}, 4, {0, 9999}, 1, '0', false};
+    NumberField field_bit_duration{{176, 40}, 4, {0, 9999}, 1, '0', false};
     NumberField field_pause_duration{{55, 60}, 4, {0, 9999}, 1, '0', false};
     NumberField field_repeat{{55, 40}, 3, {1, 100}, 1, '0', false};
 

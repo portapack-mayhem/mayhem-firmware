@@ -49,15 +49,15 @@ void OOKRemoteAppView::start_tx(const std::string& message) {
     size_t bitstream_length = encoders::make_bitstream(const_cast<std::string&>(message));  // Convert the message into a bitstream
 
     transmitter_model.set_sampling_rate(field_sample_rate.selected_index_value());  // Set the OOK sampling rate
-    transmitter_model.set_baseband_bandwidth(1750000);       // Set the baseband bandwidth
-    transmitter_model.enable();                              // Enable the transmitter
+    transmitter_model.set_baseband_bandwidth(1750000);                              // Set the baseband bandwidth
+    transmitter_model.enable();                                                     // Enable the transmitter
 
     // Configure OOK data and transmission characteristics
     baseband::set_ook_data(
-        bitstream_length,                                                    // Length of the bitstream to transmit
-        field_sample_rate.selected_index_value() / field_high_bit_duration.value(),  // Calculate symbol period based on repetition rate 
-        field_repeat.value(),                                                // Set the number of times the whole bitstream is repeated
-        field_pause_duration.value()                                         // Set the pause between symbols
+        bitstream_length,                                                       // Length of the bitstream to transmit
+        field_sample_rate.selected_index_value() / field_bit_duration.value(),  // Calculate symbol period based on repetition rate
+        field_repeat.value(),                                                   // Set the number of times the whole bitstream is repeated
+        field_pause_duration.value()                                            // Set the pause between symbols
     );
     progressbar.set_max(field_repeat.value());                              // Size the progress bar accordingly to the number of repeat
     is_transmitting = true;                                                 // set transmitting flag
@@ -74,20 +74,18 @@ void OOKRemoteAppView::stop_tx() {
 
 // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
 void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
-
     payload.clear();           // Clear previous payload content
     text_loaded_file.set("");  // Clear loaded file text field
 
-    ook_file_data *ook_data = read_ook_file( new_file_path );
-    
-    if( !ook_data )
-    {
+    ook_file_data* ook_data = read_ook_file(new_file_path);
+
+    if (!ook_data) {
         text_payload.set("error loading " + new_file_path.filename().string());
-        return ;
+        return;
     }
     field_frequency.set_value(ook_data->frequency);
     transmitter_model.set_target_frequency(ook_data->frequency);
-    field_high_bit_duration.set_value(ook_data->high_bit_duration);
+    field_bit_duration.set_value(ook_data->bit_duration);
     field_repeat.set_value(ook_data->repeat);
     field_pause_duration.set_value(ook_data->pause_duration);
     field_sample_rate.set_by_value(ook_data->samplerate);
@@ -167,7 +165,7 @@ bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
     // write informations
     src->write_line(to_string_dec_uint(field_frequency.value()) + " " +
                     field_sample_rate.selected_index_name() + " " +
-                    to_string_dec_uint(field_high_bit_duration.value()) + " " +
+                    to_string_dec_uint(field_bit_duration.value()) + " " +
                     to_string_dec_uint(field_repeat.value()) + " " +
                     to_string_dec_uint(field_pause_duration.value()) + " " +
                     payload);
@@ -196,9 +194,9 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
                   &field_bit_duration_step,
                   &label_sample_rate,
                   &field_sample_rate,
-                  &label_high_bit_duration,
-                  &field_high_bit_duration,
-                  &label_high_bit_duration_unit,
+                  &label_bit_duration,
+                  &field_bit_duration,
+                  &label_bit_duration_unit,
                   &text_payload,
                   &button_set,
                   &progressbar,
@@ -215,7 +213,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
                   &button_save});
 
     // Initialize default values for controls
-    field_high_bit_duration.set_value(100);
+    field_bit_duration.set_value(100);
     field_pause_duration.set_value(100);
     field_repeat.set_value(4);
 
@@ -245,7 +243,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     };
 
     // clean out loaded file name if field is changed
-    field_high_bit_duration.on_change = [this](int32_t) {
+    field_bit_duration.on_change = [this](int32_t) {
         text_loaded_file.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
@@ -281,7 +279,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
 
     field_bit_duration_step.on_change = [this](size_t, int32_t value) {
         text_loaded_file.set("");  // Clear loaded file text field
-        field_high_bit_duration.set_step(value);
+        field_bit_duration.set_step(value);
         field_pause_duration.set_step(value);
     };
 
