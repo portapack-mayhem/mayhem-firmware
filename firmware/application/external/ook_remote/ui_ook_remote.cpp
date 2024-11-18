@@ -64,12 +64,16 @@ void OOKRemoteAppView::start_tx(const std::string& message) {
         REPEAT,                                 // Set the number of repetitions per symbol
         PAUSE_SYMBOL                            // Set the pause between symbols
     );
+    is_transmitting = true;
+    button_start_stop.set_text(LanguageHelper::currentMessages[LANG_STOP]);  // set button back to initial "start" state
 }
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
 void OOKRemoteAppView::stop_tx() {
-    transmitter_model.disable();        // Disable the transmitter
-    progressBar_progress.set_value(0);  // Reset progress bar to 0
+    is_transmitting = false;
+    transmitter_model.disable();                                              // Disable the transmitter
+    progressBar_progress.set_value(0);                                        // Reset progress bar to 0
+    button_start_stop.set_text(LanguageHelper::currentMessages[LANG_START]);  // set button back to initial "start" state
 }
 
 // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
@@ -149,7 +153,7 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
     // Ensure UI elements are initialized before use
     if (parent()) {
         text_payload.set(payload);
-        button_start.focus();
+        button_start_stop.focus();
     } else {
         text_payload.set("parent not available");
     }
@@ -208,7 +212,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     add_children({
         &field_frequency,
         &tx_view,
-        &button_start,
+        &button_start_stop,
         &sample_rate,
         &step_symbol_rate,
         &cant_step_symbol_rate,
@@ -240,7 +244,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
             // Postpone `on_file_changed` call until `FileLoadView` is closed
             nav_.set_on_pop([this, new_file_path]() {
                 on_file_changed(new_file_path);
-                button_start.focus();
+                button_start_stop.focus();
                 draw_waveform();
             });
         };
@@ -268,8 +272,12 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
             });
     };
     draw_waveform();
-    button_start.on_select = [this](Button&) {
-        start_tx(payload);  // Begin transmission
+    button_start_stop.on_select = [this](Button&) {
+        if (!is_transmitting) {
+            start_tx(payload);  // Begin transmission
+        } else {
+            stop_tx();
+        }
     };
 }
 }  // namespace ui::external_app::ook_remote

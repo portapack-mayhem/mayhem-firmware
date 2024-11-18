@@ -9,6 +9,7 @@
 #define __UI_OOK_REMOTE_H__
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
@@ -44,6 +45,7 @@ class OOKRemoteAppView : public View {
     std::string payload{""};                        // Holds the data payload as a string.
     uint32_t progress = 0;                          // Stores the current transmission progress.
     int16_t waveform_buffer[WAVEFORM_BUFFER_SIZE];  // Buffer for waveform data.
+    bool is_transmitting = false;                   // State of transmission.
 
     void update();
     void draw_waveform();
@@ -103,9 +105,9 @@ class OOKRemoteAppView : public View {
     Text text_payload{{0 * 8, 90, 30 * 8, 16}, "Payload:"};
 
     // Buttons for setting configurations, opening files, and starting transmission.
-    Button button_set{{0, 110, 60, 28}, "Set"};
-    Button button_open{{100, 110, 80, 28}, "Open file"};
-    Button button_start{{80, 273, 80, 32}, "Start"};
+    Button button_set{{0, 110, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
+    Button button_open{{100, 110, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
+    Button button_start_stop{{80, 273, 80, 32}, LanguageHelper::currentMessages[LANG_START]};
 
     // Progress bar to display transmission progress.
     ProgressBar progressBar_progress{{2 * 8, 250, 208, 16}};
