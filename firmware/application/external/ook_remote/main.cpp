@@ -20,25 +20,25 @@
  */
 
 #include "ui.hpp"
-#include "ui_rook.hpp"
+#include "ui_ook_remote.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::rook {
+namespace ui::external_app::ook_remote {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<ROOKAppView>();
+    nav.push<OOKRemoteAppView>();
 }
-}  // namespace ui::external_app::rook
+}  // namespace ui::external_app::ook_remote
 
 extern "C" {
 
-__attribute__((section(".external_app.app_rook.application_information"), used)) application_information_t _application_information_rook = {
+__attribute__((section(".external_app.app_ook_remote.application_information"), used)) application_information_t _application_information_ook_remote = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::rook::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::ook_remote::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "ROOK",
+    /*.app_name = */ "OOKRemote",
     /*.bitmap_data = */ {
         0x20,
         0x00,
