@@ -61,7 +61,9 @@ enum LangConsts {
     LANG_SAVE,
     LANG_LOCK,
     LANG_UNLOCK,
-    LANG_BROWSE
+    LANG_BROWSE,
+    LANG_SET,
+    LANG_OPEN_FILE
 };
 
 class LanguageHelper {
