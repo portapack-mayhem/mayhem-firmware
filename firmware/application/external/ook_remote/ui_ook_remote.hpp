@@ -46,6 +46,7 @@ class OOKRemoteAppView : public View {
     uint32_t progress = 0;                          // Stores the current transmission progress.
     int16_t waveform_buffer[WAVEFORM_BUFFER_SIZE];  // Buffer for waveform data.
     bool is_transmitting = false;                   // State of transmission.
+    rf::Frequency ook_remote_tx_freq{24000000};     // last used transmit frequency
 
     void update();
     void draw_waveform();
@@ -74,10 +75,13 @@ class OOKRemoteAppView : public View {
     TxRadioState radio_state_{TRANSMISSION_FREQUENCY_DEFAULT, 1750000, OOK_SAMPLERATE_DEFAULT};
 
     // Settings manager for app configuration.
-    app_settings::SettingsManager settings_{"tx_ook_remote", app_settings::Mode::TX};
+    app_settings::SettingsManager settings_{
+        "ook_remote",
+        app_settings::Mode::TX,
+        {{"ook_remote_tx_freq"sv, &ook_remote_tx_freq}}};
 
     // UI components for frequency and transmitter view.
-    TxFrequencyField field_frequency{{0 * 8, 0 * 16}, nav_};
+    FrequencyField field_frequency{{0 * 8, 0 * 16}};
     TransmitterView2 tx_view{{20 * 7, 0 * 16}, true};
 
     // Labels for various fields such as sample rate and repeat count.
@@ -110,7 +114,8 @@ class OOKRemoteAppView : public View {
     // Buttons for setting configurations, opening files, and starting transmission.
     Button button_set{{0, 110, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
     Button button_open{{68, 110, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
-    Button button_save{{154, 110, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
+    // TODO: save to file
+    // Button button_save{{154, 110, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
     Button button_send_stop{{80, 273, 80, 32}, LanguageHelper::currentMessages[LANG_SEND]};
 
     // Progress bar to display transmission progress.

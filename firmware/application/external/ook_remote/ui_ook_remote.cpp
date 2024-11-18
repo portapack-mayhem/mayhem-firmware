@@ -107,7 +107,7 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
         std::string payload_data = line.substr(fifth_space + 1);  // Extract binary payload as final value
 
         // Convert and assign frequency
-        unsigned long long frequency = std::stoull(frequency_str);
+        rf::Frequency frequency = std::stoull(frequency_str);
         field_frequency.set_value(frequency);
         transmitter_model.set_target_frequency(frequency);
 
@@ -234,7 +234,8 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         &label_waveform,
         &waveform,
         &button_open,
-        &button_save,
+        // TODO: save to file
+        // &button_save,
     });
 
     // Initialize default values for controls
@@ -255,13 +256,39 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         };
     };
 
-    // Set up changes for symbol rate and step
-    field_bit_duration.on_change = [this](int32_t value) {
-        (void)value;
+    // clean out loaded file name if field is changed
+    field_bit_duration.on_change = [this](int32_t) {
         text_loaded_file.set("");  // Clear loaded file text field
-        // Not needed
-        // if (value != field_bit_duration.value())
-        //    field_bit_duration.set_value(value);
+    };
+    // clean out loaded file name if field is changed
+    field_repeat.on_change = [this](int32_t) {
+        text_loaded_file.set("");  // Clear loaded file text field
+    };
+    // clean out loaded file name if field is changed
+    field_pause_symbol.on_change = [this](int32_t) {
+        text_loaded_file.set("");  // Clear loaded file text field
+    };
+    // clean out loaded file name if field is changed
+    field_sample_rate.on_change = [this](size_t, int32_t) {
+        text_loaded_file.set("");  // Clear loaded file text field
+    };
+
+    // setting up FrequencyField
+    field_frequency.set_value(ook_remote_tx_freq);
+
+    // clean out loaded file name if field is changed, save ook_remote_tx_freq
+    field_frequency.on_change = [this](rf::Frequency f) {
+        ook_remote_tx_freq = f;
+        text_loaded_file.set("");  // Clear loaded file text field
+    };
+
+    // allow typing frequency number
+    field_frequency.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_frequency.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            field_frequency.set_value(f);
+            text_loaded_file.set("");  // Clear loaded file text field
+        };
     };
 
     field_bit_duration_step.on_change = [this](size_t, int32_t value) {
