@@ -31,13 +31,13 @@ namespace fs = std::filesystem;
 /*
     struct of an OOK file:
 
-    Frequency SampleRate BitDuration Repeat PauseDuration Payload
+    Frequency SampleRate BitDuration Repeat PauseSymbolDuration Payload
 
     -Frequency is in hertz
     -SampleRate is one of 250k, 1M, 2M, 5M , 10M ,20M
     -BitDuration is the duration of bits in usec
     -Repeat is the number of times we will repeat the payload
-    -PauseDuration is the duration of the pause between repeat, in usec
+    -PauseSymbolDuration is the duration of the pause between repeat, in usec
     -Payload is the payload in form of a string of 0 and 1
 */
 
@@ -63,19 +63,19 @@ ook_file_data* read_ook_file(const fs::path& path) {
         // Extract each component of the line
         std::string frequency_str = line.substr(0, first_space);
         std::string sample_rate_str = line.substr(first_space + 1, second_space - first_space - 1);
-        std::string bit_duration_str = line.substr(second_space + 1, third_space - second_space - 1);
+        std::string symbol_rate_str = line.substr(second_space + 1, third_space - second_space - 1);
         std::string repeat_str = line.substr(third_space + 1, fourth_space - third_space - 1);
-        std::string pause_duration_str = line.substr(fourth_space + 1, fifth_space - fourth_space - 1);
+        std::string pause_symbol_duration_str = line.substr(fourth_space + 1, fifth_space - fourth_space - 1);
         std::string payload_data = line.substr(fifth_space + 1);  // Extract binary payload as final value
 
         // Convert and assign frequency
         ook_data->frequency = std::stoull(frequency_str);
-        // Convert and assign bit_duration
-        ook_data->bit_duration = static_cast<unsigned int>(atoi(bit_duration_str.c_str()));
+        // Convert and assign symbol_rate
+        ook_data->symbol_rate = static_cast<unsigned int>(atoi(symbol_rate_str.c_str()));
         // Convert and assign repeat count
         ook_data->repeat = static_cast<unsigned int>(atoi(repeat_str.c_str()));
-        // Convert and assign pause_duration
-        ook_data->pause_duration = static_cast<unsigned int>(atoi(pause_duration_str.c_str()));
+        // Convert and assign pause_symbol_duration
+        ook_data->pause_symbol_duration = static_cast<unsigned int>(atoi(pause_symbol_duration_str.c_str()));
         // Select sample rate based on value read from file
         if (sample_rate_str == "250k") {
             ook_data->samplerate = 250000U;
@@ -132,9 +132,9 @@ bool save_ook_file(ook_file_data& ook_data, const std::filesystem::path& path) {
     // write informations
     src->write_line(to_string_dec_uint(ook_data.frequency) + " " +
                     sample_rate_str + " " +
-                    to_string_dec_uint(ook_data.bit_duration) + " " +
+                    to_string_dec_uint(ook_data.symbol_rate) + " " +
                     to_string_dec_uint(ook_data.repeat) + " " +
-                    to_string_dec_uint(ook_data.pause_duration) + " " +
+                    to_string_dec_uint(ook_data.pause_symbol_duration) + " " +
                     ook_data.payload);
 
     // Close files

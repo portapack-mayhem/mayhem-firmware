@@ -27,8 +27,8 @@
 struct ook_file_data {
     rf::Frequency frequency = rf::Frequency(0);  // Default frequency
     uint32_t samplerate = 0;                     // Default samplerate
-    uint16_t bit_duration = 0;                   // Default bit duration
-    uint16_t pause_duration = 0;                 // Default pause between repeat
+    uint16_t symbol_rate = 0;                    // Default bit duration
+    uint16_t pause_symbol_duration = 0;          // Default pause between repeat
     uint16_t repeat = 0;                         // Default repeat
     std::string payload = "";                    // Default payload
 };
