@@ -18,6 +18,7 @@
 #include "ui_transmitter.hpp"
 #include "app_settings.hpp"
 #include "transmitter_model.hpp"
+#include "ook_file.hpp"
 #include <string>
 
 using namespace ui;
@@ -92,36 +93,37 @@ class OOKRemoteAppView : public View {
     TransmitterView2 tx_view{{20 * 7, 0 * 16}, true};
 
     // Labels for various fields such as sample rate and repeat count.
-    Labels label_bit_duration_step{{{111, 18}, "BitTimeStep:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_sample_rate{{{0, 18}, "S/Rate:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_bit_duration{{{111, 40}, "BitTime:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_bit_duration_unit{{{210, 40}, "us", Theme::getInstance()->fg_light->foreground}};
+    Labels label_bit_duration_step{{{111, 20}, "Field Step:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_sample_rate{{{0, 20}, "S/Rate:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_high_bit_duration{{{111, 40}, "HighBit:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_high_bit_duration_unit{{{210, 40}, "us", Theme::getInstance()->fg_light->foreground}};
     Labels label_repeat{{{0, 40}, "Repeat:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_pause_symbol{{{0, 60}, "Pause/Sym:", Theme::getInstance()->fg_light->foreground}};
-    Labels label_payload{{{0, 76}, "Payload:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_pause_duration{{{0, 60}, "Pause:", Theme::getInstance()->fg_light->foreground}};
+    Labels label_pause_duration_unit{{{90, 60}, "us", Theme::getInstance()->fg_light->foreground}};
+    Labels label_payload{{{0, 80}, "Payload:", Theme::getInstance()->fg_light->foreground}};
     Labels label_waveform{{{0, 188}, "Waveform:", Theme::getInstance()->fg_light->foreground}};
 
     // Text field to display the loaded file if any
-    Text text_loaded_file{{0, 140, 30 * 8, 16}, ""};
+    Text text_loaded_file{{0, 160, 30 * 8, 16}, ""};
 
     // OptionsField for selectable sample rates.
-    OptionsField field_sample_rate{{55, 18}, 7, {{"250k", 250000U}, {"1M", 1000000U}, {"2M", 2000000U}, {"5M", 5000000U}, {"10M", 10000000U}, {"20M", 20000000U}}};
+    OptionsField field_sample_rate{{55, 20}, 7, {{"250k", 250000U}, {"1M", 1000000U}, {"2M", 2000000U}, {"5M", 5000000U}, {"10M", 10000000U}, {"20M", 20000000U}}};
 
     // OptionsField for step symbol rates.
-    OptionsField field_bit_duration_step{{210, 18}, 7, {{"1", 1}, {"10", 10}, {"100", 100}}};
+    OptionsField field_bit_duration_step{{210, 20}, 7, {{"1", 1}, {"10", 10}, {"100", 100}}};
 
     // Number fields for symbols, pause between symbols, and repeat count.
-    NumberField field_bit_duration{{176, 40}, 4, {0, 9999}, 1, '0', false};
-    NumberField field_pause_symbol{{78, 60}, 4, {0, 200}, 1, '0', false};
-    NumberField field_repeat{{55, 40}, 3, {0, 100}, 1, '0', false};
+    NumberField field_high_bit_duration{{176, 40}, 4, {0, 9999}, 1, '0', false};
+    NumberField field_pause_duration{{55, 60}, 4, {0, 9999}, 1, '0', false};
+    NumberField field_repeat{{55, 40}, 3, {1, 100}, 1, '0', false};
 
     // Text field to display the payload data.
-    Text text_payload{{0 * 8, 90, 30 * 8, 16}, ""};
+    Text text_payload{{0 * 8, 100, 30 * 8, 16}, ""};
 
     // Buttons for setting configurations, opening files, and starting transmission.
-    Button button_set{{0, 110, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
-    Button button_open{{68, 110, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
-    Button button_save{{154, 110, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
+    Button button_set{{0, 125, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
+    Button button_open{{68, 125, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
+    Button button_save{{154, 125, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
     Button button_send_stop{{80, 273, 80, 32}, LanguageHelper::currentMessages[LANG_SEND]};
 
     // Progress bar to display transmission progress.
