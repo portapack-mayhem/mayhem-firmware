@@ -49,9 +49,9 @@ void OOKRemoteAppView::start_tx(const std::string& message) {
     size_t bitstream_length = encoders::make_bitstream(const_cast<std::string&>(message));  // Convert the message into a bitstream
     // Retrieve selected sample rate using selected_index_value()
     int32_t SAMPLE_RATE_VALUE = field_sample_rate.selected_index_value();
-    int32_t SYMBOL_RATE_VALUE = cant_symbol_rate.value();
-    int32_t REPEAT = cant_repeat.value();
-    int32_t PAUSE_SYMBOL = cant_pause_symbol.value();
+    int32_t SYMBOL_DURATION_VALUE = field_bit_duration.value();
+    int32_t REPEAT = field_repeat.value();
+    int32_t PAUSE_SYMBOL = field_pause_symbol.value();
 
     transmitter_model.set_sampling_rate(SAMPLE_RATE_VALUE);  // Set the OOK sampling rate
     transmitter_model.set_baseband_bandwidth(1750000);       // Set the baseband bandwidth
@@ -59,27 +59,28 @@ void OOKRemoteAppView::start_tx(const std::string& message) {
 
     // Configure OOK data and transmission characteristics
     baseband::set_ook_data(
-        bitstream_length,                       // Length of the bitstream to transmit
-        SAMPLE_RATE_VALUE / SYMBOL_RATE_VALUE,  // Calculate symbol period based on repetition rate
-        REPEAT,                                 // Set the number of repetitions per symbol
-        PAUSE_SYMBOL                            // Set the pause between symbols
+        bitstream_length,                           // Length of the bitstream to transmit
+        SAMPLE_RATE_VALUE / SYMBOL_DURATION_VALUE,  // Calculate symbol period based on repetition rate
+        REPEAT,                                     // Set the number of times the whole bitstream is repeated
+        PAUSE_SYMBOL                                // Set the pause between symbols
     );
-    is_transmitting = true;
-    button_start_stop.set_text(LanguageHelper::currentMessages[LANG_STOP]);  // set button back to initial "start" state
+    progressbar.set_max(REPEAT);                                            // Size the progress bar accordingly to the number of repeat
+    is_transmitting = true;                                                 // set transmitting flag
+    button_send_stop.set_text(LanguageHelper::currentMessages[LANG_STOP]);  // set button back to initial "start" state
 }
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
 void OOKRemoteAppView::stop_tx() {
     is_transmitting = false;
-    transmitter_model.disable();                                              // Disable the transmitter
-    progressBar_progress.set_value(0);                                        // Reset progress bar to 0
-    button_start_stop.set_text(LanguageHelper::currentMessages[LANG_START]);  // set button back to initial "start" state
+    transmitter_model.disable();                                             // Disable the transmitter
+    progressbar.set_value(0);                                                // Reset progress bar to 0
+    button_send_stop.set_text(LanguageHelper::currentMessages[LANG_START]);  // set button back to initial "start" state
 }
 
 // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
-
 void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
-    payload.clear();  // Clear previous payload content
+    payload.clear();           // Clear previous payload content
+    text_loaded_file.set("");  // Clear loaded file text field
 
     File data_file;
     auto open_result = data_file.open(new_file_path);
@@ -111,19 +112,19 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
         transmitter_model.set_target_frequency(frequency);
 
         // Convert and assign symbols rate
-        unsigned int symbols_rate = static_cast<unsigned int>(atoi(symbols_rate_str.c_str()));
+        unsigned int bit_duration_value = static_cast<unsigned int>(atoi(symbols_rate_str.c_str()));
 
-        cant_symbol_rate.set_value(symbols_rate);
+        field_bit_duration.set_value(bit_duration_value);
 
         // Convert and assign repeat count
         unsigned int repeat = static_cast<unsigned int>(atoi(repeat_str.c_str()));
 
-        cant_repeat.set_value(repeat);
+        field_repeat.set_value(repeat);
 
         // Convert and assign pause per symbol
         unsigned int pause_symbol = static_cast<unsigned int>(atoi(pause_symbol_str.c_str()));
 
-        cant_pause_symbol.set_value(pause_symbol);
+        field_pause_symbol.set_value(pause_symbol);
 
         // Select sample rate based on value read from file
         if (sample_rate_str == "250k") {
@@ -153,15 +154,16 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
     // Ensure UI elements are initialized before use
     if (parent()) {
         text_payload.set(payload);
-        button_start_stop.focus();
+        button_send_stop.focus();
     } else {
         text_payload.set("parent not available");
     }
+    text_loaded_file.set("Loaded: " + new_file_path.filename().string());
 }
 
 // `on_tx_progress` method: Updates the progress bar based on transmission progress.
 void OOKRemoteAppView::on_tx_progress(const uint32_t progress, const bool done) {
-    progressBar_progress.set_value(progress);  // Update progress bar value
+    progressbar.set_value(progress);  // Update progress bar value
     if (done) {
         stop_tx();  // Stop transmission when progress reaches maximum
     }
@@ -212,29 +214,32 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     add_children({
         &field_frequency,
         &tx_view,
-        &button_start_stop,
-        &sample_rate,
-        &step_symbol_rate,
-        &cant_step_symbol_rate,
+        &button_send_stop,
+        &label_bit_duration_step,
+        &field_bit_duration_step,
+        &label_sample_rate,
         &field_sample_rate,
-        &field_symbol_rate,
-        &field_symbol_us_rate,
-        &cant_symbol_rate,
+        &label_bit_duration,
+        &field_bit_duration,
+        &label_bit_duration_unit,
         &text_payload,
         &button_set,
-        &progressBar_progress,
-        &repeat,
-        &cant_repeat,
+        &progressbar,
+        &label_repeat,
+        &field_repeat,
+        &label_pause_symbol,
         &field_pause_symbol,
-        &cant_pause_symbol,
+        &label_payload,
+        &text_loaded_file,
         &label_waveform,
         &waveform,
         &button_open,
+        &button_save,
     });
 
     // Initialize default values for controls
-    cant_pause_symbol.set_value(100);
-    cant_repeat.set_value(4);
+    field_pause_symbol.set_value(100);
+    field_repeat.set_value(4);
 
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".OOK");
@@ -244,20 +249,24 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
             // Postpone `on_file_changed` call until `FileLoadView` is closed
             nav_.set_on_pop([this, new_file_path]() {
                 on_file_changed(new_file_path);
-                button_start_stop.focus();
+                button_send_stop.focus();
                 draw_waveform();
             });
         };
     };
 
     // Set up changes for symbol rate and step
-    cant_symbol_rate.on_change = [this](int32_t value) {
-        if (value != cant_symbol_rate.value())
-            cant_symbol_rate.set_value(value);
+    field_bit_duration.on_change = [this](int32_t value) {
+        (void)value;
+        text_loaded_file.set("");  // Clear loaded file text field
+        // Not needed
+        // if (value != field_bit_duration.value())
+        //    field_bit_duration.set_value(value);
     };
 
-    cant_step_symbol_rate.on_change = [this](size_t, int32_t value) {
-        cant_symbol_rate.set_step(value);
+    field_bit_duration_step.on_change = [this](size_t, int32_t value) {
+        text_loaded_file.set("");  // Clear loaded file text field
+        field_bit_duration.set_step(value);
     };
 
     // Configure button to manually set payload through text input
@@ -269,10 +278,11 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
             [this](std::string& s) {
                 text_payload.set(s);
                 draw_waveform();
+                text_loaded_file.set("");  // Clear loaded file text field
             });
     };
     draw_waveform();
-    button_start_stop.on_select = [this](Button&) {
+    button_send_stop.on_select = [this](Button&) {
         if (!is_transmitting) {
             start_tx(payload);  // Begin transmission
         } else {
