@@ -120,17 +120,11 @@ static NavigationView::AppMap generate_app_map(const NavigationView::AppList& ap
 
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
-    /* HOME ******************************************************************/
+    /* All HOME items before the external app ones****************************/
     {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
-    {"scanner", "Scanner", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
-    {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
-    {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
-    {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
-    {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
-    {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     /* RX ********************************************************************/
     {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
     {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
@@ -850,6 +844,13 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
     addExternalItems(nav_, app_location_t::HOME, *this);
+    // All HOME items after the external ones
+    add_item({"Scanner", Color::green(), &bitmap_icon_scanner, [this]() { new ViewFactory<ScannerView>(); }});
+    add_item({"Microphone", Color::green(), &bitmap_icon_microphone, [this]() { new ViewFactory<MicTXView>(); }});
+    add_item({"Looking Glass", Color::green(), &bitmap_icon_looking, [this]() { new ViewFactory<GlassView>(); }});
+    add_item({"Utilities", Color::cyan(), &bitmap_icon_utilities, [this]() { new ViewFactory<UtilitiesMenuView>(); }});
+    add_item({"Settings", Color::cyan(), &bitmap_icon_setup, [this]() { new ViewFactory<SettingsMenuView>(); }});
+    add_item({"Debug", Color::light_grey(), &bitmap_icon_debug, [this]() { new ViewFactory<DebugMenuView>(); }});
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
