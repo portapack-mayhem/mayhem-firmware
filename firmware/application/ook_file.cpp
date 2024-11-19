@@ -139,9 +139,10 @@ bool save_ook_file(ook_file_data& ook_data, const std::filesystem::path& path) {
 void start_ook_file_tx(ook_file_data& ook_data) {
     size_t bitstream_length = encoders::make_bitstream(const_cast<std::string&>(ook_data.payload));  // Convert the message into a bitstream
 
-    transmitter_model.set_sampling_rate(ook_data.sample_rate);  // Set the OOK sampling rate
-    transmitter_model.set_baseband_bandwidth(1750000);          // Set the baseband bandwidth
-    transmitter_model.enable();                                 // Enable the transmitter
+    transmitter_model.set_target_frequency(ook_data.frequency);  // Set target frequency
+    transmitter_model.set_sampling_rate(ook_data.sample_rate);   // Set the OOK sampling rate
+    transmitter_model.set_baseband_bandwidth(1750000);           // Set the baseband bandwidth
+    transmitter_model.enable();                                  // Enable the transmitter
 
     // Configure OOK data and transmission characteristics
     baseband::set_ook_data(
