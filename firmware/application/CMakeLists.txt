@@ -244,7 +244,7 @@ set(CPPSRC
 	hw/si5351.cpp
 	hw/spi_pp.cpp
 	hw/touch_adc.cpp
-    ook_file.cpp
+	ook_file.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
 	ui_record_view.cpp
