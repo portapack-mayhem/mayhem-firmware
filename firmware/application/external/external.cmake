@@ -126,7 +126,10 @@ set(EXTCPPSRC
 	#flippertx
 	external/flippertx/main.cpp
 	external/flippertx/ui_flippertx.cpp
-	
+
+	#remote
+	external/remote/main.cpp
+	external/remote/ui_remote.cpp
 )
 
 set(EXTAPPLIST
@@ -160,4 +163,5 @@ set(EXTAPPLIST
 	ook_editor
 	shoppingcart_lock
 	flippertx
+    remote
 )

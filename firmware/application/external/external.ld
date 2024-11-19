@@ -53,6 +53,7 @@ MEMORY
     ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k 
     ram_external_app_flippertx(rwx) : org = 0xADCD0000, len = 32k 
     ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k 
+    ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k 
 }
 
 SECTIONS
@@ -238,4 +239,9 @@ SECTIONS
         *(*ui*external_app*flippertx*);
     } > ram_external_app_flippertx
 
+    .external_app_remote : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_remote.application_information));
+        *(*ui*external_app*remote*);
+    } > ram_external_app_remote
 }

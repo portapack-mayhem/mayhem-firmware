@@ -27,7 +27,6 @@
 #include <algorithm>
 #include "ui_fileman.hpp"
 #include "ui_playlist.hpp"
-#include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_bmp_file_viewer.hpp"
 #include "ui_text_editor.hpp"
@@ -704,10 +703,11 @@ bool FileManagerView::handle_file_open() {
 
         reload_current(false);
         return true;
-    } else if (path_iequal(rem_ext, ext)) {
+    }
+    /*else if (path_iequal(rem_ext, ext)) {
         nav_.push<RemoteView>(path);
         return true;
-    }
+    }*/
 
     return false;
 }

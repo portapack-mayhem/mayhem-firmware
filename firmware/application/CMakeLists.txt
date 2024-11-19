@@ -303,7 +303,6 @@ set(CPPSRC
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
 	apps/ui_sd_wipe.cpp
