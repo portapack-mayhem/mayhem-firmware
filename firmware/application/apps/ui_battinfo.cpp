@@ -50,7 +50,7 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
         text_current.set("-");
         text_charge.set("-");
-        text_cycles.set("-");
+        // text_cycles.set("-");
         text_ttef.set("-");
         text_method.set("-");
         text_warn.set("");
@@ -96,20 +96,20 @@ void BattinfoView::update_result() {
         labels_opt.hidden(true);
         text_current.hidden(true);
         text_charge.hidden(true);
-        text_cycles.hidden(true);
+        // text_cycles.hidden(true);
         text_ttef.hidden(true);
         text_warn.set("");
     }
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
-        text_cycles.hidden(false);
-        uint16_t cycles = battery::BatteryManagement::get_cycles();
+        // text_cycles.hidden(false);
+        uint16_t cycles = 0;  // battery::BatteryManagement::get_cycles();
         if (cycles < 2)
-            text_warn.set("SoC improves after 2 cycles");
+            text_warn.set("SoC improves after each cycles");
         else
             text_warn.set("");
-        text_cycles.set(to_string_dec_uint(cycles));
+        // text_cycles.set(to_string_dec_uint(cycles));
     } else {
-        text_cycles.hidden(true);
+        // text_cycles.hidden(true);
         text_warn.set("");
     }
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
@@ -160,7 +160,7 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &text_method,
                   &button_mode,
                   &button_exit,
-                  &text_cycles,
+                  // &text_cycles,
                   &text_warn,
                   &text_ttef});
 
