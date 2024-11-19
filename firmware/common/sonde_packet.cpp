@@ -170,6 +170,81 @@ temp_humid Packet::get_temp_humid() const {
     result.humid = 0;
     result.temp = 0;
 
+    if (type_ == Type::Meteomodem_M10) {
+        // https://github.com/projecthorus/radiosonde_auto_rx/blob/master/demod/mod/m10mod.c
+        //  temp:
+        uint16_t ADC_Ti_raw = (reader_bi_m.read(0x49 * 8, 8) << 8) | reader_bi_m.read(0x48 * 8, 8) << 8;  // int.temp.diode, ref: 4095->1.5V
+        if (ADC_Ti_raw != 0) {
+            // internal
+            float vti, ti;
+            // INCH1A (temp.diode), slau144
+            vti = ADC_Ti_raw / 4095.0 * 1.5;  // V_REF+ = 1.5V, no calibration
+            ti = (vti - 0.986) / 0.00355;     // 0.986/0.00355=277.75, 1.5/4095/0.00355=0.1032
+            result.temp = ti;
+        }
+        // NTC - Thermistor Shibaura PB5 - 41E
+        float p0 = 1.07303516e-03,
+              p1 = 2.41296733e-04,
+              p2 = 2.26744154e-06,
+              p3 = 6.52855181e-08;
+        // T/K = 1/( p0 + p1*ln(R) + p2*ln(R)^2 + p3*ln(R)^3 )
+
+        // range/scale 0, 1, 2:                        // M10-pcb
+        float Rs_T[3] = {12.1e3, 36.5e3, 475.0e3};  // bias/series
+        float Rp[3] = {1e20, 330.0e3, 2000.0e3};    // parallel, Rp[0]=inf
+
+        uint8_t scT;      // {0,1,2}, range/scale voltage divider
+        uint16_t ADC_RT;  // ADC12 P6.7(A7) , adr_0377h,adr_0376h
+        // uint16_t Tcal[2];  // adr_1000h[scT*4]
+
+        float adc_max = 4095.0;  // ADC12
+        float x, R;
+        float T = 0;  // T/Kelvin
+
+        scT = reader_bi_m.read(0x3E * 8, 8);  // adr_0455h
+        ADC_RT = (reader_bi_m.read(0x40 * 8, 8) << 8) | reader_bi_m.read(0x3F * 8, 8);
+        if (ADC_RT != 0) {
+            ADC_RT -= 0xA000;
+            // Tcal[0] = (reader_bi_m.read(0x42 * 8, 8) << 8) | reader_bi_m.read(0x41 * 8, 8);
+            // Tcal[1] = (reader_bi_m.read(0x44 * 8, 8) << 8) | reader_bi_m.read(0x43 * 8, 8);
+
+            x = (adc_max - ADC_RT) / ADC_RT;  // (Vcc-Vout)/Vout
+            if (scT < 3)
+                R = Rs_T[scT] / (x - Rs_T[scT] / Rp[scT]);
+            else
+                R = -1;
+
+            if (R > 0) T = 1 / (p0 + p1 * log(R) + p2 * log(R) * log(R) + p3 * log(R) * log(R) * log(R));
+            result.temp = T - 273.15;
+        }
+
+        // humidity:
+        // get count rh:
+        float TBCCR1 = (reader_bi_m.read(0x35 * 8, 8) | (reader_bi_m.read(0x36 * 8, 8) << 8) | (reader_bi_m.read(0x37 * 8, 8) << 16)) / 1000.0;
+        // get count 55:
+        float TBCREF = (reader_bi_m.read(0x32 * 8, 8) | (reader_bi_m.read(0x33 * 8, 8) << 8) | (reader_bi_m.read(0x34 * 8, 8) << 16)) / 1000.0;
+        if (TBCREF != 0) {
+            float cRHc55 = TBCCR1 / TBCREF;  //;get_count_RH(gpx) / get_count_55(gpx);  // CalRef 55%RH , T=20C ?
+            // get_Tntc2: --unused.
+            // float Rs = 22.1e3;  // P5.6=Vcc
+            // float R25 = 2.2e3;
+            // float b = 3650.0;           // B/Kelvin
+            // float T25 = 25.0 + 273.15;  // T0=25C, R0=R25=5k
+            // -> Steinhart-Hart coefficients (polyfit):
+
+            // cRHc55_RH:
+            // float TH = get_Tntc2(gpx); --unused
+            float rh = (cRHc55 - 0.8955) / 0.002;  // UPSI linear transfer function
+            // temperature compensation
+            float T0 = 0.0, T1 = -30.0;                                   // T/C
+            if (result.temp < T0) rh += T0 - result.temp / 5.5;           // approx/empirical
+            if (result.temp < T1) rh *= 1.0 + (T1 - result.temp) / 75.0;  // approx/empirical
+            if (rh < 0.0) rh = 0.0;
+            if (rh > 100.0) rh = 100.0;
+            result.humid = rh;
+        }
+    }
+
     if (type_ == Type::Vaisala_RS41_SG && crc_ok_RS41())  // Only process if packet is healthy
     {
         // memset(calfrchk, 0, 51); // is this necessary ? only if the sondeID changes (new sonde)
