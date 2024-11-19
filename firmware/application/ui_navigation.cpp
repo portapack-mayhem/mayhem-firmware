@@ -52,7 +52,6 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_recon.hpp"
-#include "ui_remote.hpp"
 #include "ui_scanner.hpp"
 #include "ui_sd_over_usb.hpp"
 #include "ui_sd_wipe.hpp"
@@ -126,7 +125,6 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
-    {"remote", "Remote", HOME, ui::Color::green(), &bitmap_icon_remote, new ViewFactory<RemoteView>()},
     {"scanner", "Scanner", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
     {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},

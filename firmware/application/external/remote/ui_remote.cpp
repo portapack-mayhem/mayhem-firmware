@@ -20,7 +20,6 @@
  */
 
 #include "ui_remote.hpp"
-
 #include "binder.hpp"
 #include "convert.hpp"
 #include "file_reader.hpp"
@@ -34,10 +33,11 @@
 #include "utility.hpp"
 #include "file_path.hpp"
 
+
+namespace ui::external_app::remote {
+
 using namespace portapack;
 namespace fs = std::filesystem;
-
-namespace ui {
 
 static constexpr uint8_t text_edit_max = 30;
 
@@ -309,9 +309,9 @@ void RemoteEntryEditView::load_path(std::filesystem::path&& path) {
         entry_.metadata = {transmitter_model.target_frequency(), 500'000};
 }
 
-/* RemoteView ********************************************/
+/* RemoteAppView ********************************************/
 
-RemoteView::RemoteView(
+RemoteAppView::RemoteAppView(
     NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_replay);
@@ -365,27 +365,27 @@ RemoteView::RemoteView(
     refresh_ui();
 }
 
-RemoteView::RemoteView(NavigationView& nav, fs::path path)
-    : RemoteView(nav) {
+RemoteAppView::RemoteAppView(NavigationView& nav, fs::path path)
+    : RemoteAppView(nav) {
     load_remote(std::move(path));
     refresh_ui();
 }
 
-RemoteView::~RemoteView() {
+RemoteAppView::~RemoteAppView() {
     stop();
     baseband::shutdown();
 
     save_remote(/*show_error*/ false);
 }
 
-void RemoteView::focus() {
+void RemoteAppView::focus() {
     if (model_.entries.empty())
         button_add.focus();
     else
         buttons_[0]->focus();
 }
 
-void RemoteView::create_buttons() {
+void RemoteAppView::create_buttons() {
     // Handler callbacks.
     auto handle_send = [this](RemoteButton& btn) {
         if (btn.entry()->path.empty())
@@ -420,7 +420,7 @@ void RemoteView::create_buttons() {
     }
 }
 
-void RemoteView::reset_buttons() {
+void RemoteAppView::reset_buttons() {
     // Whever the model's entries instance is invalidated,
     // all the pointers in the buttons will end up dangling.
     // TODO: This is pretty lame. Could maybe static alloc?
@@ -428,7 +428,7 @@ void RemoteView::reset_buttons() {
         btn->set_entry(nullptr);
 }
 
-void RemoteView::refresh_ui() {
+void RemoteAppView::refresh_ui() {
     field_title.set_text(model_.name);
     field_filename.set_text(remote_path_.stem().string());
 
@@ -441,7 +441,7 @@ void RemoteView::refresh_ui() {
     }
 }
 
-void RemoteView::add_button() {
+void RemoteAppView::add_button() {
     if (model_.entries.size() >= max_buttons)
         return;
 
@@ -454,7 +454,7 @@ void RemoteView::add_button() {
     set_needs_save();
 }
 
-void RemoteView::edit_button(RemoteButton& btn) {
+void RemoteAppView::edit_button(RemoteButton& btn) {
     // Don't let replay thread read the model while editing.
     stop();
 
@@ -471,7 +471,7 @@ void RemoteView::edit_button(RemoteButton& btn) {
     };
 }
 
-void RemoteView::send_button(RemoteButton& btn) {
+void RemoteAppView::send_button(RemoteButton& btn) {
     // TODO: If this is called while is_sending() == true,
     // it just stops and doesn't start the new button?
 
@@ -510,14 +510,14 @@ void RemoteView::send_button(RemoteButton& btn) {
         });
 }
 
-void RemoteView::stop() {
+void RemoteAppView::stop() {
     // This terminates the underlying chThread.
     replay_thread_.reset();
     transmitter_model.disable();
     ready_signal_ = false;
 }
 
-void RemoteView::new_remote() {
+void RemoteAppView::new_remote() {
     save_remote();
     init_remote();
     refresh_ui();
@@ -526,7 +526,7 @@ void RemoteView::new_remote() {
     set_dirty();
 }
 
-void RemoteView::open_remote() {
+void RemoteAppView::open_remote() {
     auto open_view = nav_.push<FileLoadView>(".REM");
     open_view->push_dir(remotes_dir);
     open_view->on_changed = [this](fs::path path) {
@@ -536,7 +536,7 @@ void RemoteView::open_remote() {
     };
 }
 
-void RemoteView::init_remote() {
+void RemoteAppView::init_remote() {
     model_ = {"<Unnamed Remote>", {}};
     reset_buttons();
     set_remote_path(next_filename_matching_pattern(remotes_dir / u"REMOTE_????.REM"));
@@ -546,14 +546,14 @@ void RemoteView::init_remote() {
         show_error("Couldn't make new remote file.");
 }
 
-bool RemoteView::load_remote(fs::path&& path) {
+bool RemoteAppView::load_remote(fs::path&& path) {
     set_remote_path(std::move(path));
     set_needs_save(false);
     reset_buttons();
     return model_.load(remote_path_);
 }
 
-void RemoteView::save_remote(bool show_errors) {
+void RemoteAppView::save_remote(bool show_errors) {
     if (!needs_save_)
         return;
 
@@ -564,7 +564,7 @@ void RemoteView::save_remote(bool show_errors) {
     set_needs_save(false);
 }
 
-void RemoteView::rename_remote(const std::string& new_name) {
+void RemoteAppView::rename_remote(const std::string& new_name) {
     auto folder = remote_path_.parent_path();
     auto ext = remote_path_.extension();
     auto new_path = folder / new_name + ext;
@@ -581,7 +581,7 @@ void RemoteView::rename_remote(const std::string& new_name) {
     set_remote_path(std::move(new_path));
 }
 
-void RemoteView::handle_replay_thread_done(uint32_t return_code) {
+void RemoteAppView::handle_replay_thread_done(uint32_t return_code) {
     if (return_code == ReplayThread::END_OF_FILE) {
         if (check_loop.value() && current_btn_) {
             send_button(*current_btn_);
@@ -598,14 +598,14 @@ void RemoteView::handle_replay_thread_done(uint32_t return_code) {
     stop();
 }
 
-void RemoteView::set_remote_path(fs::path&& path) {
+void RemoteAppView::set_remote_path(fs::path&& path) {
     // Unfortunately, have to keep these two in sync because
     // settings doesn't know about fs::path.
     remote_path_ = std::move(path);
     settings_.remote_path = remote_path_.string();
 }
 
-void RemoteView::show_error(const std::string& msg) const {
+void RemoteAppView::show_error(const std::string& msg) const {
     nav_.display_modal("Error", msg);
 }
 

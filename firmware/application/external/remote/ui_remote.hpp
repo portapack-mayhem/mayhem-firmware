@@ -41,7 +41,7 @@
 #include <string_view>
 #include <vector>
 
-namespace ui {
+namespace ui::external_app::remote {
 
 /* Maps icon index to bitmap. */
 class RemoteIcons {
@@ -257,14 +257,14 @@ class RemoteEntryEditView : public View {
 };
 
 /* App that allows for buttons to be bound to captures for playback. */
-class RemoteView : public View {
+class RemoteAppView : public View {
    public:
-    RemoteView(NavigationView& nav);
-    RemoteView(NavigationView& nav, std::filesystem::path path);
-    ~RemoteView();
+    RemoteAppView(NavigationView& nav);
+    RemoteAppView(NavigationView& nav, std::filesystem::path path);
+    ~RemoteAppView();
 
-    RemoteView(const RemoteView&) = delete;
-    RemoteView& operator=(const RemoteView&) = delete;
+    RemoteAppView(const RemoteAppView&) = delete;
+    RemoteAppView& operator=(const RemoteAppView&) = delete;
 
     std::string title() const override { return "Remote"; };
     void focus() override;
