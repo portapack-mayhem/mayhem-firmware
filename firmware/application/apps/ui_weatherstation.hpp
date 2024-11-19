@@ -30,6 +30,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "utility.hpp"
+#include "log_file.hpp"
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/weathertypes.hpp"
@@ -78,7 +79,22 @@ struct WeatherRecentEntry {
     void reset_age() {
         age = 0;
     }
+
+    std::string to_csv();
 };
+
+class WeatherLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(WeatherRecentEntry& data);
+
+   private:
+    LogFile log_file{};
+};
+
 using WeatherRecentEntries = RecentEntries<WeatherRecentEntry>;
 using WeatherRecentEntriesView = RecentEntriesView<WeatherRecentEntries>;
 
@@ -108,6 +124,7 @@ class WeatherView : public View {
         app_settings::Mode::RX,
         {
             {"units_fahr"sv, &weather_units_fahr},
+            {"log"sv, &logging},
         }};
 
     WeatherRecentEntries recent{};
@@ -140,7 +157,16 @@ class WeatherView : public View {
         {0, 16, 7 * 8, 32},
         "Clear"};
 
+    Checkbox check_log{
+        {10 * 8, 7 * 8 + 2},
+        3,
+        "Log",
+        true};
+
     static constexpr auto header_height = 3 * 16;
+
+    std::unique_ptr<WeatherLogger> logger{};
+    bool logging = false;
 
     const RecentEntriesColumns columns{{
         {"Type", 10},
