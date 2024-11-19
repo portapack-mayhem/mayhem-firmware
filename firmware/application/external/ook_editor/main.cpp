@@ -20,25 +20,25 @@
  */
 
 #include "ui.hpp"
-#include "ui_ook_remote.hpp"
+#include "ui_ook_editor.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::ook_remote {
+namespace ui::external_app::ook_editor {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<OOKRemoteAppView>();
+    nav.push<OOKEditorAppView>();
 }
-}  // namespace ui::external_app::ook_remote
+}  // namespace ui::external_app::ook_editor
 
 extern "C" {
 
-__attribute__((section(".external_app.app_ook_remote.application_information"), used)) application_information_t _application_information_ook_remote = {
+__attribute__((section(".external_app.app_ook_editor.application_information"), used)) application_information_t _application_information_ook_editor = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::ook_remote::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::ook_editor::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "OOKRemote",
+    /*.app_name = */ "OOKEditor",
     /*.bitmap_data = */ {
         0x20,
         0x00,
