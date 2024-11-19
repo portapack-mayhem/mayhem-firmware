@@ -21,34 +21,28 @@
 
 #include "ook_file.hpp"
 
-#include "convert.hpp"
-#include "file_reader.hpp"
-#include "string_format.hpp"
-#include <string_view>
-
+using namespace portapack;
 namespace fs = std::filesystem;
 
 /*
     struct of an OOK file:
 
-    Frequency SampleRate BitDuration Repeat PauseSymbolDuration Payload
+    Frequency SampleRate SymbolRate Repeat PauseSymbolDuration Payload
 
     -Frequency is in hertz
     -SampleRate is one of 250k, 1M, 2M, 5M , 10M ,20M
-    -BitDuration is the duration of bits in usec
+    -SymbolRate is the number of symbols /s
     -Repeat is the number of times we will repeat the payload
     -PauseSymbolDuration is the duration of the pause between repeat, in usec
     -Payload is the payload in form of a string of 0 and 1
 */
 
-ook_file_data* read_ook_file(const fs::path& path) {
+bool read_ook_file(const std::filesystem::path& path, ook_file_data& ook_data) {
     File data_file;
     auto open_result = data_file.open(path);
     if (open_result) {
-        return nullptr;
+        return false;
     }
-
-    ook_file_data* ook_data = new ook_file_data();
 
     FileLineReader reader(data_file);
 
@@ -69,36 +63,35 @@ ook_file_data* read_ook_file(const fs::path& path) {
         std::string payload_data = line.substr(fifth_space + 1);  // Extract binary payload as final value
 
         // Convert and assign frequency
-        ook_data->frequency = std::stoull(frequency_str);
+        ook_data.frequency = std::stoull(frequency_str);
         // Convert and assign symbol_rate
-        ook_data->symbol_rate = static_cast<unsigned int>(atoi(symbol_rate_str.c_str()));
+        ook_data.symbol_rate = static_cast<unsigned int>(atoi(symbol_rate_str.c_str()));
         // Convert and assign repeat count
-        ook_data->repeat = static_cast<unsigned int>(atoi(repeat_str.c_str()));
+        ook_data.repeat = static_cast<unsigned int>(atoi(repeat_str.c_str()));
         // Convert and assign pause_symbol_duration
-        ook_data->pause_symbol_duration = static_cast<unsigned int>(atoi(pause_symbol_duration_str.c_str()));
+        ook_data.pause_symbol_duration = static_cast<unsigned int>(atoi(pause_symbol_duration_str.c_str()));
         // Select sample rate based on value read from file
         if (sample_rate_str == "250k") {
-            ook_data->samplerate = 250000U;
+            ook_data.sample_rate = 250000U;
         } else if (sample_rate_str == "1M") {
-            ook_data->samplerate = 1000000U;
+            ook_data.sample_rate = 1000000U;
         } else if (sample_rate_str == "2M") {
-            ook_data->samplerate = 2000000U;
+            ook_data.sample_rate = 2000000U;
         } else if (sample_rate_str == "5M") {
-            ook_data->samplerate = 5000000U;
+            ook_data.sample_rate = 5000000U;
         } else if (sample_rate_str == "10M") {
-            ook_data->samplerate = 10000000U;
+            ook_data.sample_rate = 10000000U;
         } else if (sample_rate_str == "20M") {
-            ook_data->samplerate = 20000000U;
+            ook_data.sample_rate = 20000000U;
         } else {
-            delete ook_data;
-            return nullptr;
+            return false;
         }
         // Update payload with binary data
-        ook_data->payload = payload_data;
+        ook_data.payload = std::move(payload_data);
         // Process only the first line
         break;
     }
-    return ook_data;
+    return true;
 }
 
 bool save_ook_file(ook_file_data& ook_data, const std::filesystem::path& path) {
@@ -113,17 +106,17 @@ bool save_ook_file(ook_file_data& ook_data, const std::filesystem::path& path) {
     }
 
     std::string sample_rate_str;
-    if (ook_data.samplerate == 250000U) {
+    if (ook_data.sample_rate == 250000U) {
         sample_rate_str = "250k";
-    } else if (ook_data.samplerate == 1000000U) {
+    } else if (ook_data.sample_rate == 1000000U) {
         sample_rate_str = "1M";
-    } else if (ook_data.samplerate == 2000000U) {
+    } else if (ook_data.sample_rate == 2000000U) {
         sample_rate_str = "2M";
-    } else if (ook_data.samplerate == 5000000U) {
+    } else if (ook_data.sample_rate == 5000000U) {
         sample_rate_str = "5M";
-    } else if (ook_data.samplerate == 10000000U) {
+    } else if (ook_data.sample_rate == 10000000U) {
         sample_rate_str = "10M";
-    } else if (ook_data.samplerate == 20000000U) {
+    } else if (ook_data.sample_rate == 20000000U) {
         sample_rate_str = "20M";
     } else {
         return false;
@@ -141,4 +134,24 @@ bool save_ook_file(ook_file_data& ook_data, const std::filesystem::path& path) {
     src.reset();
 
     return true;
+}
+
+void start_ook_file_tx(ook_file_data& ook_data) {
+    size_t bitstream_length = encoders::make_bitstream(const_cast<std::string&>(ook_data.payload));  // Convert the message into a bitstream
+
+    transmitter_model.set_sampling_rate(ook_data.sample_rate);  // Set the OOK sampling rate
+    transmitter_model.set_baseband_bandwidth(1750000);          // Set the baseband bandwidth
+    transmitter_model.enable();                                 // Enable the transmitter
+
+    // Configure OOK data and transmission characteristics
+    baseband::set_ook_data(
+        bitstream_length,                             // Length of the bitstream to transmit
+        ook_data.sample_rate / ook_data.symbol_rate,  // Calculate symbol period based on repetition rate
+        ook_data.repeat,                              // Set the number of times the whole bitstream is repeated
+        ook_data.pause_symbol_duration                // Set the pause_symbol between reps
+    );
+}
+
+void stop_ook_file_tx() {
+    transmitter_model.disable();  // Disable the transmitter
 }
