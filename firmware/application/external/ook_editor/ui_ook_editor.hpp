@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __UI_OOK_REMOTE_H__
-#define __UI_OOK_REMOTE_H__
+#ifndef __UI_OOK_EDITOR_H__
+#define __UI_OOK_EDITOR_H__
 
 #include "ui.hpp"
 #include "ui_language.hpp"
@@ -21,7 +21,7 @@
 
 using namespace ui;
 
-namespace ui::external_app::ook_remote {
+namespace ui::external_app::ook_editor {
 
 #define PADDING_LEFT 1                             // waveform padding
 #define PADDING_RIGHT 1                            // waveform padding
@@ -29,15 +29,15 @@ namespace ui::external_app::ook_remote {
 #define TRANSMISSION_FREQUENCY_DEFAULT 433920000U  // Sets the default transmission frequency (27 MHz).
 #define WAVEFORM_BUFFER_SIZE 550
 
-class OOKRemoteAppView : public View {
+class OOKEditorAppView : public View {
    public:
     void focus() override;
-    OOKRemoteAppView(NavigationView& nav);
+    OOKEditorAppView(NavigationView& nav);
 
-    ~OOKRemoteAppView();
+    ~OOKEditorAppView();
 
     std::string title() const override {
-        return "OOKRemote";
+        return "OOKEditor";
     };
 
    private:
@@ -45,7 +45,7 @@ class OOKRemoteAppView : public View {
     uint32_t progress = 0;                          // Stores the current transmission progress.
     int16_t waveform_buffer[WAVEFORM_BUFFER_SIZE];  // Buffer for waveform data.
     bool is_transmitting = false;                   // State of transmission.
-    rf::Frequency ook_remote_tx_freq{24000000};     // last used transmit frequency
+    rf::Frequency ook_editor_tx_freq{24000000};     // last used transmit frequency
     std::string outputFileBuffer{};                 // buffer for output file
     ook_file_data ook_data = {0, 0, 0, 0, 0, ""};   // ook files handle
 
@@ -85,9 +85,9 @@ class OOKRemoteAppView : public View {
 
     // Settings manager for app configuration.
     app_settings::SettingsManager settings_{
-        "ook_remote",
+        "ook_editor",
         app_settings::Mode::TX,
-        {{"ook_remote_tx_freq"sv, &ook_remote_tx_freq}}};
+        {{"ook_editor_tx_freq"sv, &ook_editor_tx_freq}}};
 
     // UI components for frequency and transmitter view.
     FrequencyField field_frequency{{0 * 8, 0 * 16}};
@@ -132,6 +132,6 @@ class OOKRemoteAppView : public View {
     Waveform waveform{{0, 208, 240, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
 };
 
-};  // namespace ui::external_app::ook_remote
+};  // namespace ui::external_app::ook_editor
 
-#endif /*__UI_OOK_REMOTE_H__*/
+#endif /*__UI_OOK_EDITOR_H__*/

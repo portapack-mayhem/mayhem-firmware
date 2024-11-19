@@ -19,22 +19,22 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_ook_remote.hpp"
+#include "ui_ook_editor.hpp"
 
 using namespace portapack;
 using namespace ui;
 
 namespace fs = std::filesystem;
 
-namespace ui::external_app::ook_remote {
+namespace ui::external_app::ook_editor {
 
 // give focus to set button
-void OOKRemoteAppView::focus() {
+void OOKEditorAppView::focus() {
     button_set.focus();
 }
 
 // update internal ook_data with GUI values
-void OOKRemoteAppView::update_ook_data_from_app() {
+void OOKEditorAppView::update_ook_data_from_app() {
     ook_data.frequency = field_frequency.value();
     ook_data.sample_rate = field_sample_rate.selected_index_value();
     ook_data.symbol_rate = field_symbol_rate.value();
@@ -43,7 +43,7 @@ void OOKRemoteAppView::update_ook_data_from_app() {
 }
 
 // `start_tx` method: Configures and begins OOK data transmission with a specific message.
-void OOKRemoteAppView::start_tx() {
+void OOKEditorAppView::start_tx() {
     // check if there is a payload
     if (ook_data.payload.length() < 1) {
         text_app_status.set("Error: no payload to tx !!");
@@ -56,7 +56,7 @@ void OOKRemoteAppView::start_tx() {
 }
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
-void OOKRemoteAppView::stop_tx() {
+void OOKEditorAppView::stop_tx() {
     is_transmitting = false;                                                 // set transmitting flag
     stop_ook_file_tx();                                                      // stop transmission
     progressbar.set_value(0);                                                // Reset progress bar to 0
@@ -64,7 +64,7 @@ void OOKRemoteAppView::stop_tx() {
 }
 
 // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
-void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
+void OOKEditorAppView::on_file_changed(const fs::path& new_file_path) {
     ook_data.payload.clear();  // Clear previous payload content
     if (!read_ook_file(new_file_path, ook_data)) {
         text_app_status.set("Error loading " + new_file_path.filename().string());
@@ -81,7 +81,7 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
 }
 
 // `on_tx_progress` method: Updates the progress bar based on transmission progress.
-void OOKRemoteAppView::on_tx_progress(const uint32_t progress, const bool done) {
+void OOKEditorAppView::on_tx_progress(const uint32_t progress, const bool done) {
     progressbar.set_value(progress);  // Update progress bar value
     if (done) {
         stop_tx();  // Stop transmission when progress reaches maximum
@@ -89,7 +89,7 @@ void OOKRemoteAppView::on_tx_progress(const uint32_t progress, const bool done) 
 }
 
 // `draw_waveform` method: Draws the waveform on the UI based on the payload data
-void OOKRemoteAppView::draw_waveform() {
+void OOKEditorAppView::draw_waveform() {
     // Padding reason:
     // In real-world scenarios, the signal would always start low and return low after turning off the radio.
     // `waveform_buffer` only controls drawing; the actual send logic is handled by frame_fragments.
@@ -120,14 +120,14 @@ void OOKRemoteAppView::draw_waveform() {
 }
 
 // build a new path+file, make some tests, call save_ook_to_file
-void OOKRemoteAppView::on_save_file(const std::string value) {
+void OOKEditorAppView::on_save_file(const std::string value) {
     // check if there is a payload, else Error
     if (ook_data.payload.length() < 1) {
         text_app_status.set("Err: can't save, no payload !");
         return;
     }
-    ensure_directory(ook_remote_dir);
-    auto new_path = ook_remote_dir / value + ".OOK";
+    ensure_directory(ook_editor_dir);
+    auto new_path = ook_editor_dir / value + ".OOK";
     if (save_ook_to_file(new_path)) {
         text_app_status.set("Saved to " + new_path.string());
     } else {
@@ -136,19 +136,19 @@ void OOKRemoteAppView::on_save_file(const std::string value) {
 }
 
 // update ook_data from GUI and save
-bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
+bool OOKEditorAppView::save_ook_to_file(const std::filesystem::path& path) {
     update_ook_data_from_app();
     return save_ook_file(ook_data, path);
 }
 
-// Destructor for `OOKRemoteAppView`: Disables the transmitter and shuts down the baseband
-OOKRemoteAppView::~OOKRemoteAppView() {
+// Destructor for `OOKEditorAppView`: Disables the transmitter and shuts down the baseband
+OOKEditorAppView::~OOKEditorAppView() {
     stop_ook_file_tx();
     baseband::shutdown();
 }
 
-// Constructor for `OOKRemoteAppView`: Sets up the app view and initializes UI elements
-OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
+// Constructor for `OOKEditorAppView`: Sets up the app view and initializes UI elements
+OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
     : nav_{nav} {
     // load OOK baseband
     baseband::run_image(portapack::spi_flash::image_tag_ook);
@@ -187,8 +187,8 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     // Configure open ook file button
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".OOK");
-        ensure_directory(ook_remote_dir);
-        open_view->push_dir(ook_remote_dir);
+        ensure_directory(ook_editor_dir);
+        open_view->push_dir(ook_editor_dir);
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             // Postpone `on_file_changed` call until `FileLoadView` is closed
             nav_.set_on_pop([this, new_file_path]() {
@@ -229,11 +229,11 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     };
 
     // setting up FrequencyField
-    field_frequency.set_value(ook_remote_tx_freq);
+    field_frequency.set_value(ook_editor_tx_freq);
 
-    // clean out loaded file name if field is changed, save ook_remote_tx_freq
+    // clean out loaded file name if field is changed, save ook_editor_tx_freq
     field_frequency.on_change = [this](rf::Frequency f) {
-        ook_remote_tx_freq = f;
+        ook_editor_tx_freq = f;
         text_app_status.set("");  // Clear loaded file text field
     };
 
@@ -279,4 +279,4 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     // initial waveform drawing (should be a single line)
     draw_waveform();
 }
-}  // namespace ui::external_app::ook_remote
+}  // namespace ui::external_app::ook_editor
