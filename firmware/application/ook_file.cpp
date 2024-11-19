@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2024 gullradriel
  *
  * This file is part of PortaPack.
  *
