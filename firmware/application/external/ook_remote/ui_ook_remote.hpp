@@ -10,21 +10,30 @@
 
 #include "ui.hpp"
 #include "ui_language.hpp"
-#include "ui_widget.hpp"
-#include "ui_navigation.hpp"
-#include "string_format.hpp"
-#include "radio_state.hpp"
 #include "ui_freq_field.hpp"
+#include "ui_textentry.hpp"
+#include "ui_fileman.hpp"
 #include "ui_transmitter.hpp"
+#include "radio_state.hpp"
 #include "app_settings.hpp"
-#include "transmitter_model.hpp"
+#include "file_path.hpp"
 #include "ook_file.hpp"
-#include <string>
+
+//#include <string>
+//#include "io_file.hpp"
+//#include "ui_widget.hpp"
+//#include "ui_navigation.hpp"
+//#include "string_format.hpp"
+//#include "file_reader.hpp"
+//#include "baseband_api.hpp"  // Includes baseband API for handling transmission settings
+//#include <cstring>
 
 using namespace ui;
 
 namespace ui::external_app::ook_remote {
 
+#define PADDING_LEFT 1
+#define PADDING_RIGHT 1
 #define PROGRESS_MAX 100
 #define OOK_SAMPLERATE_DEFAULT 2280000U            // Set the default Sample Rate
 #define TRANSMISSION_FREQUENCY_DEFAULT 433920000U  // Sets the default transmission frequency (27 MHz).
@@ -43,20 +52,19 @@ class OOKRemoteAppView : public View {
 
    private:
     NavigationView& nav_;                           // Reference to the navigation system.
-    std::string payload{""};                        // Holds the data payload as a string.
     uint32_t progress = 0;                          // Stores the current transmission progress.
     int16_t waveform_buffer[WAVEFORM_BUFFER_SIZE];  // Buffer for waveform data.
     bool is_transmitting = false;                   // State of transmission.
     rf::Frequency ook_remote_tx_freq{24000000};     // last used transmit frequency
     std::string outputFileBuffer{};                 // buffer for output file
+    ook_file_data ook_data = {0, 0, 0, 0, 0, ""};   // ook files handle
 
     void update();
     void draw_waveform();
 
-    // Initiates data transmission with a specified message.
-    void start_tx(const std::string& message);
+    void update_ook_data_from_app();
 
-    // Stops data transmission.
+    void start_tx();
     void stop_tx();
 
     // Updates the transmission progress on the progress bar.

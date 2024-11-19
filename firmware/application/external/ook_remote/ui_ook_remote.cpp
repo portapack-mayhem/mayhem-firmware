@@ -20,19 +20,6 @@
  */
 
 #include "ui_ook_remote.hpp"
-#include "portapack.hpp"
-#include "io_file.hpp"
-#include "ui_fileman.hpp"
-#include "file_path.hpp"
-#include <cstring>
-#include "baseband_api.hpp"
-#include "ui_textentry.hpp"
-#include "encoders.hpp"      // Includes data encoding functions for transmission
-#include "baseband_api.hpp"  // Includes baseband API for handling transmission settings
-#include "file_reader.hpp"
-
-#define PADDING_LEFT 1
-#define PADDING_RIGHT 1
 
 using namespace portapack;
 using namespace ui;
@@ -44,21 +31,20 @@ void OOKRemoteAppView::focus() {
     button_set.focus();
 }
 
+void OOKRemoteAppView::update_ook_data_from_app() {
+    ook_data.frequency = field_frequency.value();
+    ook_data.sample_rate = field_sample_rate.selected_index_value();
+    ook_data.symbol_rate = field_symbol_rate.value();
+    ook_data.repeat = field_repeat.value();
+    ook_data.pause_symbol_duration = field_pause_symbol_duration.value();
+}
+
 // `start_tx` method: Configures and begins OOK data transmission with a specific message.
-void OOKRemoteAppView::start_tx(const std::string& message) {
-    size_t bitstream_length = encoders::make_bitstream(const_cast<std::string&>(message));  // Convert the message into a bitstream
-
-    transmitter_model.set_sampling_rate(field_sample_rate.selected_index_value());  // Set the OOK sampling rate
-    transmitter_model.set_baseband_bandwidth(1750000);                              // Set the baseband bandwidth
-    transmitter_model.enable();                                                     // Enable the transmitter
-
-    // Configure OOK data and transmission characteristics
-    baseband::set_ook_data(
-        bitstream_length,                                                      // Length of the bitstream to transmit
-        field_sample_rate.selected_index_value() / field_symbol_rate.value(),  // Calculate symbol period based on repetition rate
-        field_repeat.value(),                                                  // Set the number of times the whole bitstream is repeated
-        field_pause_symbol_duration.value()                                    // Set the pause_symbol between reps
-    );
+void OOKRemoteAppView::start_tx() {
+    if (ook_data.payload.length() < 1) {
+        return;
+    }
+    start_ook_file_tx(ook_data);
     progressbar.set_max(field_repeat.value());                              // Size the progress bar accordingly to the number of repeat
     is_transmitting = true;                                                 // set transmitting flag
     button_send_stop.set_text(LanguageHelper::currentMessages[LANG_STOP]);  // set button back to initial "start" state
@@ -67,6 +53,7 @@ void OOKRemoteAppView::start_tx(const std::string& message) {
 // `stop_tx` method: Stops the transmission and resets the progress bar.
 void OOKRemoteAppView::stop_tx() {
     is_transmitting = false;
+    stop_ook_file_tx();
     transmitter_model.disable();                                             // Disable the transmitter
     progressbar.set_value(0);                                                // Reset progress bar to 0
     button_send_stop.set_text(LanguageHelper::currentMessages[LANG_START]);  // set button back to initial "start" state
@@ -74,26 +61,21 @@ void OOKRemoteAppView::stop_tx() {
 
 // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
 void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
-    payload.clear();           // Clear previous payload content
+    ook_data.payload.clear();  // Clear previous payload content
     text_loaded_file.set("");  // Clear loaded file text field
-
-    ook_file_data* ook_data = read_ook_file(new_file_path);
-
-    if (!ook_data) {
+    if (!read_ook_file(new_file_path, ook_data)) {
         text_payload.set("error loading " + new_file_path.filename().string());
         return;
     }
-    field_frequency.set_value(ook_data->frequency);
-    transmitter_model.set_target_frequency(ook_data->frequency);
-    field_symbol_rate.set_value(ook_data->symbol_rate);
-    field_repeat.set_value(ook_data->repeat);
-    field_pause_symbol_duration.set_value(ook_data->pause_symbol_duration);
-    field_sample_rate.set_by_value(ook_data->samplerate);
-    payload = std::move(ook_data->payload);
-    text_payload.set(payload);
+    field_frequency.set_value(ook_data.frequency);
+    transmitter_model.set_target_frequency(ook_data.frequency);
+    field_symbol_rate.set_value(ook_data.symbol_rate);
+    field_repeat.set_value(ook_data.repeat);
+    field_pause_symbol_duration.set_value(ook_data.pause_symbol_duration);
+    field_sample_rate.set_by_value(ook_data.sample_rate);
+    text_payload.set(ook_data.payload);
     button_send_stop.focus();
     text_loaded_file.set("Loaded: " + new_file_path.filename().string());
-    delete ook_data;
 }
 
 // `on_tx_progress` method: Updates the progress bar based on transmission progress.
@@ -109,7 +91,7 @@ void OOKRemoteAppView::draw_waveform() {
     // Padding reason:
     // In real-world scenarios, the signal would always start low and return low after turning off the radio.
     // `waveform_buffer` only controls drawing; the actual send logic is handled by frame_fragments.
-    size_t length = payload.length();
+    size_t length = ook_data.payload.length();
 
     // Ensure waveform length does not exceed buffer size
     if (length + (PADDING_LEFT + PADDING_RIGHT) >= WAVEFORM_BUFFER_SIZE) {
@@ -123,7 +105,7 @@ void OOKRemoteAppView::draw_waveform() {
 
     // Draw the actual waveform
     for (size_t n = 0; n < length; n++) {
-        waveform_buffer[n + PADDING_LEFT] = (payload[n] == '0') ? 0 : 1;
+        waveform_buffer[n + PADDING_LEFT] = (ook_data.payload[n] == '0') ? 0 : 1;
     }
 
     // Right padding
@@ -137,11 +119,10 @@ void OOKRemoteAppView::draw_waveform() {
 
 void OOKRemoteAppView::on_save_file(const std::string value) {
     // check if there is a payload, else Error
-    if (payload.length() < 1) {
+    if (ook_data.payload.length() < 1) {
         text_loaded_file.set("Error: no payload !!");
         return;
     }
-
     ensure_directory(ook_remote_dir);
     auto new_path = ook_remote_dir / value + ".OOK";
     if (save_ook_to_file(new_path)) {
@@ -152,28 +133,8 @@ void OOKRemoteAppView::on_save_file(const std::string value) {
 }
 
 bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
-    // delete file if it exists
-    delete_file(path);
-
-    // Attempt to open, if it can't be opened. Create new.
-    auto src = std::make_unique<File>();
-    auto error = src->open(path, false, true);
-    if (error) {
-        return false;
-    }
-
-    // write informations
-    src->write_line(to_string_dec_uint(field_frequency.value()) + " " +
-                    field_sample_rate.selected_index_name() + " " +
-                    to_string_dec_uint(field_symbol_rate.value()) + " " +
-                    to_string_dec_uint(field_repeat.value()) + " " +
-                    to_string_dec_uint(field_pause_symbol_duration.value()) + " " +
-                    payload);
-
-    // Close files
-    src.reset();
-
-    return true;
+    update_ook_data_from_app();
+    return save_ook_file(ook_data, path);
 }
 
 // Destructor for `OOKRemoteAppView`: Disables the transmitter and shuts down the baseband
@@ -287,7 +248,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     button_set.on_select = [this, &nav](Button&) {
         text_prompt(
             nav,
-            payload,
+            ook_data.payload,
             100,
             [this](std::string& s) {
                 text_payload.set(s);
@@ -297,7 +258,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     };
     button_send_stop.on_select = [this](Button&) {
         if (!is_transmitting) {
-            start_tx(payload);  // Begin transmission
+            start_tx();  // Begin transmission
         } else {
             stop_tx();
         }
