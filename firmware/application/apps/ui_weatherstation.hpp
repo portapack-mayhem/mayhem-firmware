@@ -90,6 +90,9 @@ class WeatherLogger {
     }
 
     void log_data(WeatherRecentEntry& data);
+    void write_header() {
+        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt");
+    }
 
    private:
     LogFile log_file{};
@@ -119,6 +122,7 @@ class WeatherView : public View {
         1'750'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
+    bool logging = false;
     app_settings::SettingsManager settings_{
         "rx_weather",
         app_settings::Mode::RX,
@@ -158,7 +162,7 @@ class WeatherView : public View {
         "Clear"};
 
     Checkbox check_log{
-        {10 * 8, 7 * 8 + 2},
+        {10 * 8, 18},
         3,
         "Log",
         true};
@@ -166,7 +170,6 @@ class WeatherView : public View {
     static constexpr auto header_height = 3 * 16;
 
     std::unique_ptr<WeatherLogger> logger{};
-    bool logging = false;
 
     const RecentEntriesColumns columns{{
         {"Type", 10},

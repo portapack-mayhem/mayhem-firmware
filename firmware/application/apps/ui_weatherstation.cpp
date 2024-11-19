@@ -37,13 +37,13 @@ namespace pmem = portapack::persistent_memory;
 namespace ui {
 
 std::string WeatherRecentEntry::to_csv() {
-    std::string csv = ",";
+    std::string csv = ";";
     csv += WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)sensorType);
-    csv += "," + to_string_dec_uint(id) + ",";
-    csv += to_string_decimal(temp, 2) + ",";
-    csv += to_string_dec_uint(humidity) + ",";
-    csv += to_string_dec_uint(channel) + ",";
-    csv += to_string_dec_uint(battery_low) + ",";
+    csv += ";" + to_string_dec_uint(id) + ";";
+    csv += to_string_decimal(temp, 2) + ";";
+    csv += to_string_dec_uint(humidity) + ";";
+    csv += to_string_dec_uint(channel) + ";";
+    csv += to_string_dec_uint(battery_low);
     return csv;
 }
 
@@ -135,8 +135,10 @@ WeatherView::WeatherView(NavigationView& nav)
 
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;
-        if (logger && logging)
-            logger->append(logs_dir.string() + "/WEATHERLOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+        if (logger && logging) {
+            logger->append(logs_dir.string() + "/WEATHERLOG_" + to_string_timestamp(rtc_time::now()) + ".CSV");
+            logger->write_header();
+        }
     };
     check_log.set_value(logging);
 
