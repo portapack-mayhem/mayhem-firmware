@@ -127,7 +127,7 @@ set(EXTCPPSRC
 	external/flippertx/main.cpp
 	external/flippertx/ui_flippertx.cpp
 
-    #remote
+	#remote
 	external/remote/main.cpp
 	external/remote/ui_remote.cpp
 )
