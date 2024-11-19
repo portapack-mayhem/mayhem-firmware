@@ -849,6 +849,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
+    addExternalItems(nav_, app_location_t::HOME, *this);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
