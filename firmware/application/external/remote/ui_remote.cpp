@@ -33,7 +33,6 @@
 #include "utility.hpp"
 #include "file_path.hpp"
 
-
 namespace ui::external_app::remote {
 
 using namespace portapack;
@@ -609,4 +608,4 @@ void RemoteAppView::show_error(const std::string& msg) const {
     nav_.display_modal("Error", msg);
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::remote

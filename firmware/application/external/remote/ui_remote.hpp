@@ -385,4 +385,4 @@ class RemoteAppView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::remote

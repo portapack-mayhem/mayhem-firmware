@@ -703,7 +703,7 @@ bool FileManagerView::handle_file_open() {
 
         reload_current(false);
         return true;
-    } 
+    }
     /*else if (path_iequal(rem_ext, ext)) {
         nav_.push<RemoteView>(path);
         return true;
