@@ -23,9 +23,8 @@ using namespace ui;
 
 namespace ui::external_app::ook_remote {
 
-#define PADDING_LEFT 1
-#define PADDING_RIGHT 1
-#define PROGRESS_MAX 100
+#define PADDING_LEFT 1                             // waveform padding
+#define PADDING_RIGHT 1                            // waveform padding
 #define OOK_SAMPLERATE_DEFAULT 2280000U            // Set the default Sample Rate
 #define TRANSMISSION_FREQUENCY_DEFAULT 433920000U  // Sets the default transmission frequency (27 MHz).
 #define WAVEFORM_BUFFER_SIZE 550
@@ -50,12 +49,15 @@ class OOKRemoteAppView : public View {
     std::string outputFileBuffer{};                 // buffer for output file
     ook_file_data ook_data = {0, 0, 0, 0, 0, ""};   // ook files handle
 
-    void update();
+    // draw current payload waveform
     void draw_waveform();
 
+    // update ook_data from GUI selection
     void update_ook_data_from_app();
 
+    // start transmission
     void start_tx();
+    // stop transmission
     void stop_tx();
 
     // Updates the transmission progress on the progress bar.
@@ -102,7 +104,7 @@ class OOKRemoteAppView : public View {
     Labels label_payload{{{0, 80}, "Payload:", Theme::getInstance()->fg_light->foreground}};
     Labels label_waveform{{{0, 188}, "Waveform:", Theme::getInstance()->fg_light->foreground}};
 
-    // Text field to display the loaded file if any
+    // Text field to display the various status message of the app
     Text text_app_status{{0, 160, 30 * 8, 16}, ""};
 
     // OptionsField for selectable sample rates.

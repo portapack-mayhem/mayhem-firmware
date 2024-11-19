@@ -28,10 +28,12 @@ namespace fs = std::filesystem;
 
 namespace ui::external_app::ook_remote {
 
+// give focus to set button
 void OOKRemoteAppView::focus() {
     button_set.focus();
 }
 
+// update internal ook_data with GUI values
 void OOKRemoteAppView::update_ook_data_from_app() {
     ook_data.frequency = field_frequency.value();
     ook_data.sample_rate = field_sample_rate.selected_index_value();
@@ -42,6 +44,7 @@ void OOKRemoteAppView::update_ook_data_from_app() {
 
 // `start_tx` method: Configures and begins OOK data transmission with a specific message.
 void OOKRemoteAppView::start_tx() {
+    // check if there is a payload
     if (ook_data.payload.length() < 1) {
         text_app_status.set("Error: no payload to tx !!");
         return;
@@ -49,14 +52,13 @@ void OOKRemoteAppView::start_tx() {
     progressbar.set_max(field_repeat.value());                              // Size the progress bar accordingly to the number of repeat
     is_transmitting = true;                                                 // set transmitting flag
     button_send_stop.set_text(LanguageHelper::currentMessages[LANG_STOP]);  // set button back to initial "start" state
-    start_ook_file_tx(ook_data);
+    start_ook_file_tx(ook_data);                                            // start the transmission
 }
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
 void OOKRemoteAppView::stop_tx() {
-    is_transmitting = false;
-    stop_ook_file_tx();
-    transmitter_model.disable();                                             // Disable the transmitter
+    is_transmitting = false;                                                 // set transmitting flag
+    stop_ook_file_tx();                                                      // stop transmission
     progressbar.set_value(0);                                                // Reset progress bar to 0
     button_send_stop.set_text(LanguageHelper::currentMessages[LANG_START]);  // set button back to initial "start" state
 }
@@ -69,7 +71,6 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
         return;
     }
     field_frequency.set_value(ook_data.frequency);
-    transmitter_model.set_target_frequency(ook_data.frequency);
     field_symbol_rate.set_value(ook_data.symbol_rate);
     field_repeat.set_value(ook_data.repeat);
     field_pause_symbol_duration.set_value(ook_data.pause_symbol_duration);
@@ -118,6 +119,7 @@ void OOKRemoteAppView::draw_waveform() {
     waveform.set_dirty();
 }
 
+// build a new path+file, make some tests, call save_ook_to_file
 void OOKRemoteAppView::on_save_file(const std::string value) {
     // check if there is a payload, else Error
     if (ook_data.payload.length() < 1) {
@@ -133,6 +135,7 @@ void OOKRemoteAppView::on_save_file(const std::string value) {
     }
 }
 
+// update ook_data from GUI and save
 bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
     update_ook_data_from_app();
     return save_ook_file(ook_data, path);
@@ -140,15 +143,17 @@ bool OOKRemoteAppView::save_ook_to_file(const std::filesystem::path& path) {
 
 // Destructor for `OOKRemoteAppView`: Disables the transmitter and shuts down the baseband
 OOKRemoteAppView::~OOKRemoteAppView() {
-    transmitter_model.disable();
+    stop_ook_file_tx();
     baseband::shutdown();
 }
 
 // Constructor for `OOKRemoteAppView`: Sets up the app view and initializes UI elements
 OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     : nav_{nav} {
+    // load OOK baseband
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
+    // add all the widgets
     add_children({&field_frequency,
                   &tx_view,
                   &button_send_stop,
@@ -179,6 +184,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     field_pause_symbol_duration.set_value(100);
     field_repeat.set_value(4);
 
+    // Configure open ook file button
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".OOK");
         ensure_directory(ook_remote_dir);
@@ -193,6 +199,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         };
     };
 
+    // Configure save to ook file button
     button_save.on_select = [this, &nav](const ui::Button&) {
         outputFileBuffer = "";
         text_prompt(
@@ -239,6 +246,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         };
     };
 
+    // allow different steps on symbol_rate and pause_symbol_duration
     field_step.on_change = [this](size_t, int32_t value) {
         text_app_status.set("");  // Clear loaded file text field
         field_symbol_rate.set_step(value);
@@ -257,6 +265,8 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
                 text_app_status.set("");  // Clear loaded file text field
             });
     };
+
+    // Configure button to start or stop the transmission
     button_send_stop.on_select = [this](Button&) {
         if (!is_transmitting) {
             update_ook_data_from_app();
@@ -265,6 +275,8 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
             stop_tx();
         }
     };
+
+    // initial waveform drawing (should be a single line)
     draw_waveform();
 }
 }  // namespace ui::external_app::ook_remote
