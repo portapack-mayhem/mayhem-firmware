@@ -23,6 +23,7 @@
 
 using namespace portapack;
 using namespace ui;
+
 namespace fs = std::filesystem;
 
 namespace ui::external_app::ook_remote {
@@ -42,12 +43,13 @@ void OOKRemoteAppView::update_ook_data_from_app() {
 // `start_tx` method: Configures and begins OOK data transmission with a specific message.
 void OOKRemoteAppView::start_tx() {
     if (ook_data.payload.length() < 1) {
+        text_app_status.set("Error: no payload to tx !!");
         return;
     }
-    start_ook_file_tx(ook_data);
     progressbar.set_max(field_repeat.value());                              // Size the progress bar accordingly to the number of repeat
     is_transmitting = true;                                                 // set transmitting flag
     button_send_stop.set_text(LanguageHelper::currentMessages[LANG_STOP]);  // set button back to initial "start" state
+    start_ook_file_tx(ook_data);
 }
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
@@ -62,9 +64,8 @@ void OOKRemoteAppView::stop_tx() {
 // `on_file_changed` method: Called when a new file is loaded; parses file data into variables
 void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
     ook_data.payload.clear();  // Clear previous payload content
-    text_loaded_file.set("");  // Clear loaded file text field
     if (!read_ook_file(new_file_path, ook_data)) {
-        text_payload.set("error loading " + new_file_path.filename().string());
+        text_app_status.set("Error loading " + new_file_path.filename().string());
         return;
     }
     field_frequency.set_value(ook_data.frequency);
@@ -75,7 +76,7 @@ void OOKRemoteAppView::on_file_changed(const fs::path& new_file_path) {
     field_sample_rate.set_by_value(ook_data.sample_rate);
     text_payload.set(ook_data.payload);
     button_send_stop.focus();
-    text_loaded_file.set("Loaded: " + new_file_path.filename().string());
+    text_app_status.set("Loaded: " + new_file_path.filename().string());
 }
 
 // `on_tx_progress` method: Updates the progress bar based on transmission progress.
@@ -120,15 +121,15 @@ void OOKRemoteAppView::draw_waveform() {
 void OOKRemoteAppView::on_save_file(const std::string value) {
     // check if there is a payload, else Error
     if (ook_data.payload.length() < 1) {
-        text_loaded_file.set("Error: no payload !!");
+        text_app_status.set("Err: can't save, no payload !");
         return;
     }
     ensure_directory(ook_remote_dir);
     auto new_path = ook_remote_dir / value + ".OOK";
     if (save_ook_to_file(new_path)) {
-        text_loaded_file.set("Saved to " + new_path.string());
+        text_app_status.set("Saved to " + new_path.string());
     } else {
-        text_loaded_file.set("Error saving " + new_path.string());
+        text_app_status.set("Error saving " + new_path.string());
     }
 }
 
@@ -167,7 +168,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
                   &field_pause_symbol_duration,
                   &label_pause_symbol_duration_unit,
                   &label_payload,
-                  &text_loaded_file,
+                  &text_app_status,
                   &label_waveform,
                   &waveform,
                   &button_open,
@@ -205,19 +206,19 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
 
     // clean out loaded file name if field is changed
     field_symbol_rate.on_change = [this](int32_t) {
-        text_loaded_file.set("");  // Clear loaded file text field
+        text_app_status.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
     field_repeat.on_change = [this](int32_t) {
-        text_loaded_file.set("");  // Clear loaded file text field
+        text_app_status.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
     field_pause_symbol_duration.on_change = [this](int32_t) {
-        text_loaded_file.set("");  // Clear loaded file text field
+        text_app_status.set("");  // Clear loaded file text field
     };
     // clean out loaded file name if field is changed
     field_sample_rate.on_change = [this](size_t, int32_t) {
-        text_loaded_file.set("");  // Clear loaded file text field
+        text_app_status.set("");  // Clear loaded file text field
     };
 
     // setting up FrequencyField
@@ -226,7 +227,7 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
     // clean out loaded file name if field is changed, save ook_remote_tx_freq
     field_frequency.on_change = [this](rf::Frequency f) {
         ook_remote_tx_freq = f;
-        text_loaded_file.set("");  // Clear loaded file text field
+        text_app_status.set("");  // Clear loaded file text field
     };
 
     // allow typing frequency number
@@ -234,12 +235,12 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
         auto freq_view = nav_.push<FrequencyKeypadView>(field_frequency.value());
         freq_view->on_changed = [this](rf::Frequency f) {
             field_frequency.set_value(f);
-            text_loaded_file.set("");  // Clear loaded file text field
+            text_app_status.set("");  // Clear loaded file text field
         };
     };
 
     field_step.on_change = [this](size_t, int32_t value) {
-        text_loaded_file.set("");  // Clear loaded file text field
+        text_app_status.set("");  // Clear loaded file text field
         field_symbol_rate.set_step(value);
         field_pause_symbol_duration.set_step(value);
     };
@@ -253,11 +254,12 @@ OOKRemoteAppView::OOKRemoteAppView(NavigationView& nav)
             [this](std::string& s) {
                 text_payload.set(s);
                 draw_waveform();
-                text_loaded_file.set("");  // Clear loaded file text field
+                text_app_status.set("");  // Clear loaded file text field
             });
     };
     button_send_stop.on_select = [this](Button&) {
         if (!is_transmitting) {
+            update_ook_data_from_app();
             start_tx();  // Begin transmission
         } else {
             stop_tx();

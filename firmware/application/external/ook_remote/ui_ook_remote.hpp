@@ -19,15 +19,6 @@
 #include "file_path.hpp"
 #include "ook_file.hpp"
 
-//#include <string>
-//#include "io_file.hpp"
-//#include "ui_widget.hpp"
-//#include "ui_navigation.hpp"
-//#include "string_format.hpp"
-//#include "file_reader.hpp"
-//#include "baseband_api.hpp"  // Includes baseband API for handling transmission settings
-//#include <cstring>
-
 using namespace ui;
 
 namespace ui::external_app::ook_remote {
@@ -112,7 +103,7 @@ class OOKRemoteAppView : public View {
     Labels label_waveform{{{0, 188}, "Waveform:", Theme::getInstance()->fg_light->foreground}};
 
     // Text field to display the loaded file if any
-    Text text_loaded_file{{0, 160, 30 * 8, 16}, ""};
+    Text text_app_status{{0, 160, 30 * 8, 16}, ""};
 
     // OptionsField for selectable sample rates.
     OptionsField field_sample_rate{{96, 20}, 7, {{"250k", 250000U}, {"1M", 1000000U}, {"2M", 2000000U}, {"5M", 5000000U}, {"10M", 10000000U}, {"20M", 20000000U}}};
