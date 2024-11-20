@@ -119,7 +119,7 @@ bool SplashViewer::on_key(const KeyEvent key) {
 void SplashViewer::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
 
-    if (!portapack::display.drawBMP2({0, 0}, path_)) {
+    if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, path_)) {
         painter.draw_string({10, 160}, *Theme::getInstance()->bg_darkest, "Not a valid splash image.");
         return;
     }

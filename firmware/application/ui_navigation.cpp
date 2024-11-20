@@ -901,7 +901,7 @@ SystemView::SystemView(
     navigation_view.push<SystemMenuView>();
 
     if (pmem::config_splash()) {
-        navigation_view.push<BMPView>();
+        navigation_view.push<SplashScreenView>();
     }
     status_view.set_back_enabled(false);
     status_view.set_title_image_enabled(true);
@@ -970,11 +970,11 @@ void SystemView::set_app_fullscreen(bool fullscreen) {
 
 /* ***********************************************************************/
 
-void BMPView::focus() {
+void SplashScreenView::focus() {
     button_done.focus();
 }
 
-BMPView::BMPView(NavigationView& nav)
+SplashScreenView::SplashScreenView(NavigationView& nav)
     : nav_(nav) {
     add_children({&button_done});
 
@@ -983,12 +983,14 @@ BMPView::BMPView(NavigationView& nav)
     };
 }
 
-void BMPView::paint(Painter&) {
-    if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({0, 16}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+void SplashScreenView::paint(Painter&) {
+    if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
+        // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
+        portapack::display.draw_bmp_from_bmp_hex_arr({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+    // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
-bool BMPView::on_touch(const TouchEvent event) {
+bool SplashScreenView::on_touch(const TouchEvent event) {
     /* the event thing were resolved by HTotoo, talked here https://discord.com/channels/719669764804444213/956561375155589192/1287756910950486027
      * the touch screen policy can be better, talked here https://discord.com/channels/719669764804444213/956561375155589192/1198926225897443328
      * this workaround discussed here: https://discord.com/channels/719669764804444213/1170738202924044338/1295630640158478418
@@ -1010,7 +1012,7 @@ bool BMPView::on_touch(const TouchEvent event) {
     return false;
 }
 
-void BMPView::handle_pop() {
+void SplashScreenView::handle_pop() {
     if (nav_.is_valid()) {
         nav_.pop();
     }
@@ -1079,7 +1081,7 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, (const uint8_t[]){0, 0, 0});
+    if (!compact) portapack::display.draw_bmp_from_bmp_hex_arr({100, 48}, modal_warning_bmp, (const uint8_t[]){0, 0, 0});
 
     // Break lines.
     auto lines = split_string(message_, '\n');
