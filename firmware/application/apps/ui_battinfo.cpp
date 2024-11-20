@@ -53,7 +53,7 @@ void BattinfoView::update_result() {
         // text_cycles.set("-");
         text_ttef.set("-");
         text_method.set("-");
-        text_warn.set("");
+        // text_warn.set("");
         return;
     }
     bool uichg = false;
@@ -98,9 +98,9 @@ void BattinfoView::update_result() {
         text_charge.hidden(true);
         // text_cycles.hidden(true);
         text_ttef.hidden(true);
-        text_warn.set("");
+        // text_warn.set("");
     }
-    if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
+    /* if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
         // text_cycles.hidden(false);
         uint16_t cycles = 0;  // battery::BatteryManagement::get_cycles();
         if (cycles < 2)
@@ -111,7 +111,7 @@ void BattinfoView::update_result() {
     } else {
         // text_cycles.hidden(true);
         text_warn.set("");
-    }
+    } */
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
         text_ttef.hidden(false);
         float ttef = 0;
@@ -161,7 +161,7 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &button_mode,
                   &button_exit,
                   // &text_cycles,
-                  &text_warn,
+                  // &text_warn,
                   &text_ttef});
 
     button_exit.on_select = [this, &nav](Button&) {
