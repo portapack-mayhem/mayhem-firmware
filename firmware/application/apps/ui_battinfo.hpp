@@ -87,11 +87,11 @@ class BattinfoView : public View {
         "-"};
     /* Text text_cycles{
         {13 * 8, 7 * 16, 10 * 16, 16},
-        "-"}; */
+        "-"};
 
     Text text_warn{
         {1 * 8, 8 * 16, 30 * 8, 2 * 16},
-        ""};
+        ""}; */
 
     Button button_mode{
         {2 * 8, 11 * 16 + 5, 5 * 16, 32},
