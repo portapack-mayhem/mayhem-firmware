@@ -34,6 +34,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "utility.hpp"
+#include "log_file.hpp"
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/subghztypes.hpp"
@@ -68,6 +69,23 @@ struct SubGhzDRecentEntry {
     void reset_age() {
         age = 0;
     }
+
+    std::string to_csv();
+};
+
+class SubGhzDLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(SubGhzDRecentEntry& data);
+    void write_header() {
+        log_file.write_entry(";Type; Bits; Data;");
+    }
+
+   private:
+    LogFile log_file{};
 };
 using SubGhzDRecentEntries = RecentEntries<SubGhzDRecentEntry>;
 using SubGhzDRecentEntriesView = RecentEntriesView<SubGhzDRecentEntries>;
@@ -93,10 +111,13 @@ class SubGhzDView : public View {
         1'750'000 /* bandwidth */,
         4'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
+    bool logging = false;
     app_settings::SettingsManager settings_{
         "rx_subghzd",
         app_settings::Mode::RX,
-        {}};
+        {
+            {"log"sv, &logging},
+        }};
 
     SubGhzDRecentEntries recent{};
 
@@ -118,7 +139,15 @@ class SubGhzDView : public View {
         {0, 16, 7 * 8, 32},
         "Clear"};
 
+    Checkbox check_log{
+        {10 * 8, 18},
+        3,
+        "Log",
+        true};
+
     static constexpr auto header_height = 3 * 16;
+
+    std::unique_ptr<SubGhzDLogger> logger{};
 
     const RecentEntriesColumns columns{{
         {"Type", 19},
