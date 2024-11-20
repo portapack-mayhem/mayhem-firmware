@@ -463,7 +463,7 @@ void ILI9341::draw_bmp_from_bmp_hex_arr(const ui::Point p, const uint8_t* bitmap
  *     24bpp RGB
  *     32bpp ARGB
  */
-bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
+bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem::path& file) {
     File bmpimage;
     size_t file_pos = 0;
     uint16_t pointer = 0;

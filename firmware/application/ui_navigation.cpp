@@ -984,7 +984,7 @@ BMPView::BMPView(NavigationView& nav)
 }
 
 void BMPView::paint(Painter&) {
-    if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
+    if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
         portapack::display.draw_bmp_from_bmp_hex_arr({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
 }
 
