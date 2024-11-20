@@ -332,9 +332,9 @@ class InformationView : public View {
         {86, 0, 19 * 8, 16}};
 };
 
-class BMPView : public View {
+class SplashView : public View {
    public:
-    BMPView(NavigationView& nav);
+    SplashView(NavigationView& nav);
     void paint(Painter&) override;
     void focus() override;
 
