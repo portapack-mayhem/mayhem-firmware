@@ -513,8 +513,8 @@ bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem
     file_pos = bmp_header.image_data;
 
     py = height + 16 - 1;
-    /*                 ^ this is for to "start" AKA end draw at the 17th line,
-     *                   because the render_line logic below is start with p.y() + py until end*/
+    /*                 ^ this is for to "start" AKA image end draw at the 17th line,
+     *                   because the render_line logic below is start with p.y() + py until "end" AKA image start*/
 
     while (1) {
         while (px < width) {
