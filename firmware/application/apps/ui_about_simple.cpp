@@ -1,5 +1,7 @@
 #include "ui_about_simple.hpp"
 
+#include <string_view>
+
 #define ROLL_SPEED_FRAME_PER_LINE 60
 // cuz frame rate of pp screen is probably 60, scroll per sec
 
