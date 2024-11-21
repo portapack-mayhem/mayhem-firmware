@@ -31,11 +31,11 @@ using namespace ui;
 
 namespace ui::external_app::ookbrute {
 
-void OokBruteView::focus() {
+void OOKBruteView::focus() {
     button_startstop.focus();
 }
 
-OokBruteView::OokBruteView(NavigationView& nav)
+OOKBruteView::OOKBruteView(NavigationView& nav)
     : nav_{nav} {
     add_children({
         &button_startstop,
@@ -69,7 +69,7 @@ OokBruteView::OokBruteView(NavigationView& nav)
     update_start_stop(0);
 }
 
-void OokBruteView::update_start_stop(uint32_t proto) {
+void OOKBruteView::update_start_stop(uint32_t proto) {
     uint8_t bits = 12;
     switch (proto) {
         default:
@@ -91,7 +91,7 @@ void OokBruteView::update_start_stop(uint32_t proto) {
     field_stop.set_value(max);
 }
 
-void OokBruteView::validate_start_stop() {
+void OOKBruteView::validate_start_stop() {
     if (field_start.value() > field_stop.value()) {
         field_start.set_value(field_stop.value());
     }
@@ -100,7 +100,7 @@ void OokBruteView::validate_start_stop() {
     }
 }
 
-void OokBruteView::generate_packet() {
+void OOKBruteView::generate_packet() {
     uint32_t protocol = options_atkmode.selected_index_value();
     uint8_t byte = 0;
     size_t bitstream_length = 0;
@@ -210,13 +210,13 @@ void OokBruteView::generate_packet() {
         0);
 }
 
-void OokBruteView::stop() {
+void OOKBruteView::stop() {
     transmitter_model.disable();
     baseband::shutdown();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
 }
 
-void OokBruteView::start() {
+void OOKBruteView::start() {
     counter = field_start.value();
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     transmitter_model.enable();
@@ -224,7 +224,7 @@ void OokBruteView::start() {
     generate_packet();
 }
 
-void OokBruteView::on_tx_progress(const bool done) {
+void OOKBruteView::on_tx_progress(const bool done) {
     if (done) {
         if (is_running) {
             counter++;
@@ -238,7 +238,7 @@ void OokBruteView::on_tx_progress(const bool done) {
     }
 }
 
-OokBruteView::~OokBruteView() {
+OOKBruteView::~OOKBruteView() {
     is_running = false;
     stop();
 }

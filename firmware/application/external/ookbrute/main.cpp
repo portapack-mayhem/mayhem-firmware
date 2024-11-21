@@ -26,7 +26,7 @@
 
 namespace ui::external_app::ookbrute {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<OokBruteView>();
+    nav.push<OOKBruteView>();
 }
 }  // namespace ui::external_app::ookbrute
 
@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_ookbrute.application_information"), us
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "OokBrute",
+    /*.app_name = */ "OOKBrute",
     /*.bitmap_data = */ {
         0x20,
         0x00,
