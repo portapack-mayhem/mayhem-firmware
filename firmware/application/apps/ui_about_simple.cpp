@@ -7,7 +7,7 @@ namespace ui {
 
 // TODO: Generate this automatically from github
 // Information: a line starting with a '#' will be yellow coloured
-const std::string authors_list[] = {
+constexpr std::string_view authors_list[] = {
     "#   * List of contributors *  ",
     " ",
     "#Mayhem:",
@@ -70,18 +70,18 @@ AboutView::AboutView(NavigationView& nav) {
         button_ok.focus();
     };
 
-    for (const std::string& authors_line : authors_list) {
+    for (auto& authors_line : authors_list) {
         // if it's starting with #, it's a title and we have to substract the '#' and paint yellow
         if (authors_line.size() > 0) {
             if (authors_line[0] == '#') {
                 menu_view.add_item(
-                    {authors_line.substr(1, authors_line.size() - 1),
+                    {(std::string)authors_line.substr(1, authors_line.size() - 1),
                      ui::Theme::getInstance()->fg_yellow->foreground,
                      nullptr,
                      nullptr});
             } else {
                 menu_view.add_item(
-                    {authors_line,
+                    {(std::string)authors_line,
                      Theme::getInstance()->bg_darkest->foreground,
                      nullptr,
                      nullptr});
