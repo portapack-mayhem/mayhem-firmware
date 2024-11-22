@@ -104,6 +104,7 @@ constexpr image_tag_t image_tag_fskrx{'P', 'F', 'S', 'R'};
 constexpr image_tag_t image_tag_jammer{'P', 'J', 'A', 'M'};
 constexpr image_tag_t image_tag_mic_tx{'P', 'M', 'T', 'X'};
 constexpr image_tag_t image_tag_ook{'P', 'O', 'O', 'K'};
+constexpr image_tag_t image_tag_ookstream{'P', 'O', 'S', 'K'};
 constexpr image_tag_t image_tag_rds{'P', 'R', 'D', 'S'};
 constexpr image_tag_t image_tag_replay{'P', 'R', 'E', 'P'};
 constexpr image_tag_t image_tag_gps{'P', 'G', 'P', 'S'};

@@ -50,6 +50,10 @@ MEMORY
     ram_external_app_acars_rx(rwx) : org = 0xADC90000, len = 32k
     ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k    
     ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k 
+    ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k 
+    ram_external_app_flippertx(rwx) : org = 0xADCD0000, len = 32k 
+    ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k 
+    ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k 
 }
 
 SECTIONS
@@ -217,4 +221,27 @@ SECTIONS
         *(*ui*external_app*cvs_spam*);
     } > ram_external_app_cvs_spam
 
+   .external_app_ookbrute : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ookbrute.application_information));
+        *(*ui*external_app*ookbrute*);
+    } > ram_external_app_ookbrute
+
+    .external_app_ook_editor : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ook_editor.application_information));
+        *(*ui*external_app*ook_editor*);
+    } > ram_external_app_ook_editor
+
+   .external_app_flippertx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_flippertx.application_information));
+        *(*ui*external_app*flippertx*);
+    } > ram_external_app_flippertx
+
+    .external_app_remote : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_remote.application_information));
+        *(*ui*external_app*remote*);
+    } > ram_external_app_remote
 }

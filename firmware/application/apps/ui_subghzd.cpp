@@ -24,12 +24,25 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
 using namespace ui;
 
 namespace ui {
+
+std::string SubGhzDRecentEntry::to_csv() {
+    std::string csv = ";";
+    csv += SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)sensorType);
+    csv += ";" + to_string_dec_uint(bits) + ";";
+    csv += to_string_hex(data, 64 / 4);
+    return csv;
+}
+
+void SubGhzDLogger::log_data(SubGhzDRecentEntry& data) {
+    log_file.write_entry(data.to_csv());
+}
 
 void SubGhzDRecentEntryDetailView::update_data() {
     // process protocol data
@@ -76,16 +89,25 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
                   &field_vga,
                   &field_frequency,
                   &button_clear_list,
+                  &check_log,
                   &recent_entries_view});
 
     baseband::run_image(portapack::spi_flash::image_tag_subghzd);
+    logger = std::make_unique<SubGhzDLogger>();
 
     button_clear_list.on_select = [this](Button&) {
         recent.clear();
         recent_entries_view.set_dirty();
     };
     field_frequency.set_step(10000);
-
+    check_log.on_select = [this](Checkbox&, bool v) {
+        logging = v;
+        if (logger && logging) {
+            logger->append(logs_dir.string() + "/SUBGHZDLOG_" + to_string_timestamp(rtc_time::now()) + ".CSV");
+            logger->write_header();
+        }
+    };
+    check_log.set_value(logging);
     const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
     recent_entries_view.set_parent_rect(content_rect);
     recent_entries_view.on_select = [this](const SubGhzDRecentEntry& entry) {
@@ -107,6 +129,9 @@ void SubGhzDView::on_tick_second() {
 
 void SubGhzDView::on_data(const SubGhzDDataMessage* data) {
     SubGhzDRecentEntry key{data->sensorType, data->data, data->bits};
+    if (logger && logging) {
+        logger->log_data(key);
+    }
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
