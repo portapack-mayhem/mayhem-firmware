@@ -141,7 +141,7 @@ def get_contributors(url):
 
 def generate_content(projects):
     project_contrib = []
-    project_contrib.append("string authors_list[] = {\n")
+    project_contrib.append("string_view authors_list[] = {\n")
     project_contrib.append("    \"#   * List of contributors *  \",\n")
     for project in projects:
         project_contrib.append("    \" \",\n")
@@ -170,7 +170,7 @@ def pp_create_ui_about_simple_cpp(cpp_file, cppheader, cppcontent, cppfooter):
 
 def pp_change_ui_about_simple_cpp(cpp_file, cppcontent):
     content = []
-    content_pattern = re.compile(r"string:view authors_list\[\] = {\n(?:\s+(?:.*,\n)+\s+.*};\n)", re.MULTILINE)
+    content_pattern = re.compile(r"string_view authors_list\[\] = {\n(?:\s+(?:.*,\n)+\s+.*};\n)", re.MULTILINE)
 
     # Read original file
     with open(cpp_file, 'r') as file:
