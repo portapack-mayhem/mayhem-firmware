@@ -41,7 +41,7 @@ namespace fs = std::filesystem;
 const std::filesystem::path freqman_extension{u".TXT"};
 
 // NB: Don't include UI headers to keep this code unit testable.
-using option_t = std::pair<std::string, int32_t>;
+using option_t = std::pair<std::string_view, int32_t>;
 using options_t = std::vector<option_t>;
 
 options_t freqman_modulations = {
@@ -194,27 +194,27 @@ bool operator==(const freqman_entry& lhs, const freqman_entry& rhs) {
 
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
     if (auto opt = find_by_index(freqman_modulations, modulation))
-        return opt->first;
+        return (std::string)opt->first;
     return {};
 }
 
 std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth) {
     if (modulation < freqman_modulations.size()) {
         if (auto opt = find_by_index(freqman_bandwidths[modulation], bandwidth))
-            return opt->first;
+            return (std::string)opt->first;
     }
     return {};
 }
 
 std::string freqman_entry_get_step_string(freqman_index_t step) {
     if (auto opt = find_by_index(freqman_steps, step))
-        return opt->first;
+        return (std::string)opt->first;
     return {};
 }
 
 std::string freqman_entry_get_step_string_short(freqman_index_t step) {
     if (auto opt = find_by_index(freqman_steps_short, step))
-        return opt->first;
+        return (std::string)opt->first;
     return {};
 }
 
