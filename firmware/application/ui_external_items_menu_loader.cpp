@@ -97,10 +97,10 @@ namespace ui {
     }
 }
 
-/* static */ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
+/* static */ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
 
-    std::vector<GridItem> external_apps;
+    std::vector<GridItemEx> external_apps;
 
     auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
 
@@ -121,7 +121,7 @@ namespace ui {
                 if (appInfo->header_version > CURRENT_STANDALONE_APPLICATION_API_VERSION)
                     continue;
 
-                GridItem gridItem = {};
+                GridItemEx gridItem = {};
                 gridItem.text = reinterpret_cast<char*>(&appInfo->app_name[0]);
 
                 gridItem.color = Color((uint16_t)appInfo->icon_color);
@@ -149,6 +149,8 @@ namespace ui {
                     } else
                         nav.display_modal("Error", "Unable to download app.");
                 };
+
+                gridItem.desired_position = -1; // TODO: Where should we put the module's app icon? First? Last? Also configurable?
 
                 external_apps.push_back(gridItem);
             }
@@ -180,7 +182,7 @@ namespace ui {
 
         bool versionMatches = VERSION_MD5 == application_information.app_version;
 
-        GridItem gridItem = {};
+        GridItemEx gridItem = {};
         gridItem.text = reinterpret_cast<char*>(&application_information.app_name[0]);
 
         if (versionMatches) {
@@ -203,6 +205,8 @@ namespace ui {
             gridItem.on_select = [&nav]() {
                 nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder is outdated. Please\nupdate your SD Card content.");
             };
+
+            gridItem.desired_position = application_information.desired_menu_position;
         }
 
         external_apps.push_back(gridItem);
@@ -228,7 +232,7 @@ namespace ui {
         if (application_information.header_version > CURRENT_STANDALONE_APPLICATION_API_VERSION)
             continue;
 
-        GridItem gridItem = {};
+        GridItemEx gridItem = {};
         gridItem.text = reinterpret_cast<char*>(&application_information.app_name[0]);
 
         gridItem.color = Color((uint16_t)application_information.icon_color);
@@ -242,6 +246,8 @@ namespace ui {
                 nav.display_modal("Error", "The .ppmp file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
             }
         };
+
+        gridItem.desired_position = -1; // No desired position support for standalone apps yet
 
         external_apps.push_back(gridItem);
     }

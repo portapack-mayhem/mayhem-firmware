@@ -752,13 +752,15 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
             grid.add_item({app.displayName, app.iconColor, app.icon,
                            [&nav, &app]() { 
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
-                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
+                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }}, true);
         }
     };
+
+    grid.update_items();
 }
 
 // clang-format off
-void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t notice_pos) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
         grid.insert_item({"Notice!",
@@ -771,11 +773,13 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
                                   "see Mayhem wiki and copy apps\n"
                                   "to " + apps_dir.string() + " folder of SD card.");
                           }},
-                         0);
+                         notice_pos);
     } else {
         for (auto const& gridItem : externalItems) {
-            grid.add_item(gridItem);
+            grid.add_item(gridItem, true);
         }
+
+        grid.update_items();
     }
 }
 // clang-format on
@@ -786,13 +790,14 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
     : nav_(nav) {}
 
 void ReceiversMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
         add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
 
     add_apps(nav_, *this, RX);
 
-    addExternalItems(nav_, app_location_t::RX, *this);
+    add_external_items(nav_, app_location_t::RX, *this, return_icon ? 1 : 0);
 }
 
 /* TransmittersMenuView **************************************************/
@@ -801,13 +806,14 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
     : nav_(nav) {}
 
 void TransmittersMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, TX);
 
-    addExternalItems(nav_, app_location_t::TX, *this);
+    add_external_items(nav_, app_location_t::TX, *this, return_icon ? 1 : 0);
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -818,13 +824,14 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
 }
 
 void UtilitiesMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, UTILITIES);
 
-    addExternalItems(nav_, app_location_t::UTILITIES, *this);
+    add_external_items(nav_, app_location_t::UTILITIES, *this, return_icon ? 1 : 0);
 }
 
 /* SystemMenuView ********************************************************/
@@ -849,7 +856,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
-    addExternalItems(nav_, app_location_t::HOME, *this);
+    add_external_items(nav_, app_location_t::HOME, *this, 2);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 

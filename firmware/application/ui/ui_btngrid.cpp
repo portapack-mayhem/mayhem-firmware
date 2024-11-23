@@ -118,30 +118,36 @@ void BtnGridView::clear() {
     menu_item_views.clear();
 }
 
-void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
+void BtnGridView::add_items(std::initializer_list<GridItem> new_items, bool inhibit_update) {
     for (auto item : new_items) {
         if (!blacklisted_app(item))
             menu_items.push_back(item);
     }
 
-    update_items();
-}
-
-void BtnGridView::add_item(GridItem new_item) {
-    if (!blacklisted_app(new_item)) {
-        menu_items.push_back(new_item);
+    if (!inhibit_update) {
         update_items();
     }
 }
 
-void BtnGridView::insert_item(GridItem new_item, uint8_t position) {
+void BtnGridView::add_item(const GridItem &new_item, bool inhibit_update) {
+    if (!blacklisted_app(new_item)) {
+        menu_items.push_back(new_item);
+        if (!inhibit_update) {
+            update_items();
+        }
+    }
+}
+
+void BtnGridView::insert_item(const GridItem &new_item, uint8_t position, bool inhibit_update) {
     if (!blacklisted_app(new_item)) {
         if (position < menu_items.size()) {
             auto pos_iter = menu_items.begin() + position;
             menu_items.insert(pos_iter, new_item);
-            update_items();
         } else {
             menu_items.push_back(new_item);
+        }
+
+        if (!inhibit_update) {
             update_items();
         }
     }
