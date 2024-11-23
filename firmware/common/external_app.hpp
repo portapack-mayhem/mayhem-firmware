@@ -42,7 +42,7 @@ struct application_information_t {
     uint8_t bitmap_data[32];
     uint32_t icon_color;
     app_location_t menu_location;
-    int8_t desired_menu_position;
+    int32_t desired_menu_position;
 
     portapack::spi_flash::image_tag_t m4_app_tag;
     uint32_t m4_app_offset;

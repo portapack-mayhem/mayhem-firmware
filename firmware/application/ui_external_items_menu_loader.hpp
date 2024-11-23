@@ -56,7 +56,7 @@ class DynamicBitmap {
 class ExternalItemsMenuLoader {
    public:
     struct GridItemEx : GridItem {
-        int8_t desired_position;
+        int32_t desired_position;
     };
 
     static std::vector<GridItemEx> load_external_items(app_location_t, NavigationView&);

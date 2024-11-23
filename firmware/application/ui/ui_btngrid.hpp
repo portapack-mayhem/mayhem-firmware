@@ -61,7 +61,7 @@ class BtnGridView : public View {
 
     void add_items(std::initializer_list<GridItem> new_items, bool inhibit_update = false);
     void add_item(const GridItem& new_item, bool inhibit_update = false);
-    void insert_item(const GridItem& new_item, uint8_t position, bool inhibit_update = false);
+    void insert_item(const GridItem& new_item, size_t position, bool inhibit_update = false);
     void set_max_rows(int rows);
     int rows();
     void clear();
