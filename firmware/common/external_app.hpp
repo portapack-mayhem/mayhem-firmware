@@ -27,7 +27,7 @@
 #include "spi_image.hpp"
 #include "standalone_app.hpp"
 
-#define CURRENT_HEADER_VERSION 0x00000002
+#define CURRENT_HEADER_VERSION 0x00000003
 #define MIN_HEADER_VERSION_FOR_CHECKSUM 0x00000002
 
 typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
@@ -42,6 +42,7 @@ struct application_information_t {
     uint8_t bitmap_data[32];
     uint32_t icon_color;
     app_location_t menu_location;
+    int8_t desired_menu_position;
 
     portapack::spi_flash::image_tag_t m4_app_tag;
     uint32_t m4_app_offset;

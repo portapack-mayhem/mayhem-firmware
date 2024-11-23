@@ -75,6 +75,7 @@ __attribute__((section(".external_app.app_audio_test.application_information"), 
     },
     /*.icon_color = */ ui::Color::cyan().v,
     /*.menu_location = */ app_location_t::DEBUG,
+    /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'A', 'B', 'P'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

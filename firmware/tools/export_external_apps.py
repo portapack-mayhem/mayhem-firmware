@@ -91,8 +91,8 @@ cmake_objcopy = sys.argv[3]
 
 memory_location_header_position = 0
 externalAppEntry_header_position = 4
-m4_app_tag_header_position = 72
-m4_app_offset_header_position = 76
+m4_app_tag_header_position = 73
+m4_app_offset_header_position = 77
 
 for external_image_prefix in sys.argv[4:]:
 
