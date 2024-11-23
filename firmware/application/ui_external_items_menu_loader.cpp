@@ -150,7 +150,7 @@ namespace ui {
                         nav.display_modal("Error", "Unable to download app.");
                 };
 
-                gridItem.desired_position = -1; // TODO: Where should we put the module's app icon? First? Last? Also configurable?
+                gridItem.desired_position = -1;  // TODO: Where should we put the module's app icon? First? Last? Also configurable?
 
                 external_apps.push_back(gridItem);
             }
@@ -197,6 +197,8 @@ namespace ui {
                     nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
                 }
             };
+
+            gridItem.desired_position = application_information.desired_menu_position;
         } else {
             gridItem.color = Theme::getInstance()->fg_light->foreground;
 
@@ -247,7 +249,7 @@ namespace ui {
             }
         };
 
-        gridItem.desired_position = -1; // No desired position support for standalone apps yet
+        gridItem.desired_position = -1;  // No desired position support for standalone apps yet
 
         external_apps.push_back(gridItem);
     }

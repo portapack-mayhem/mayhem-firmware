@@ -129,7 +129,7 @@ void BtnGridView::add_items(std::initializer_list<GridItem> new_items, bool inhi
     }
 }
 
-void BtnGridView::add_item(const GridItem &new_item, bool inhibit_update) {
+void BtnGridView::add_item(const GridItem& new_item, bool inhibit_update) {
     if (!blacklisted_app(new_item)) {
         menu_items.push_back(new_item);
         if (!inhibit_update) {
@@ -138,7 +138,7 @@ void BtnGridView::add_item(const GridItem &new_item, bool inhibit_update) {
     }
 }
 
-void BtnGridView::insert_item(const GridItem &new_item, uint8_t position, bool inhibit_update) {
+void BtnGridView::insert_item(const GridItem& new_item, uint8_t position, bool inhibit_update) {
     if (!blacklisted_app(new_item)) {
         if (position < menu_items.size()) {
             auto pos_iter = menu_items.begin() + position;
