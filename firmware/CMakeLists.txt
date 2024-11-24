@@ -33,7 +33,7 @@ set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 set(LZ4 lz4)
 
-set(FIRMWARE_NAME portapack-h1_h2-mayhem)
+set(FIRMWARE_NAME portapack-mayhem-firmware)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 set(PPFW_FILENAME "portapack-mayhem_OCI.ppfw.tar")
 
