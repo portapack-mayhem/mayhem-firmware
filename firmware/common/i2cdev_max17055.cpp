@@ -208,7 +208,7 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
             return_status = full_reset_and_init();
         }
         partialInit();  // If you always want hibernation disabled
-        statusClear();  // Clear all bits in the Status register (0x00)
+        // statusClear();  // I am not sure if this should be here or not (Clear all bits in the Status register (0x00))
         return return_status;
     }
     return false;
