@@ -56,7 +56,7 @@ SIGFRXView::~SIGFRXView() {
 void SIGFRXView::paint(Painter& painter) {
     uint8_t i, xp;
 
-    // portapack::display.drawBMP({0, 302-160}, fox_bmp);
+    // portapack::display.draw_bmp_from_bmp_hex_arr({0, 302-160}, fox_bmp);
     portapack::display.fill_rectangle({0, 16, 240, 160 - 16}, Theme::getInstance()->bg_darkest->foreground);
     for (i = 0; i < 6; i++) {
         xp = sigfrx_marks[i * 3];

@@ -75,6 +75,7 @@ __attribute__((section(".external_app.app_foxhunt_rx.application_information"), 
     },
     /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::RX,
+    /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_am_audio */ {'P', 'A', 'M', 'A'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

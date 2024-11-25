@@ -26,7 +26,7 @@
 
 namespace ui::external_app::ookbrute {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<OokBruteView>();
+    nav.push<OOKBruteView>();
 }
 }  // namespace ui::external_app::ookbrute
 
@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_ookbrute.application_information"), us
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "OokBrute",
+    /*.app_name = */ "OOKBrute",
     /*.bitmap_data = */ {
         0x20,
         0x00,
@@ -75,6 +75,7 @@ __attribute__((section(".external_app.app_ookbrute.application_information"), us
     },
     /*.icon_color = */ ui::Color::orange().v,
     /*.menu_location = */ app_location_t::TX,
+    /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_ook */ {'P', 'O', 'O', 'K'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

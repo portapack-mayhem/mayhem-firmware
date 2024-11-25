@@ -202,16 +202,14 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
     model = I2CDEVMDL_MAX17055;
     query_interval = BATTERY_WIDGET_REFRESH_INTERVAL;
     if (detect()) {
+        bool return_status = true;
         if (needsInitialization()) {
             // First-time or POR initialization
-            full_reset_and_init();
-        } else {
-            // Subsequent boot
-            partialInit();
+            return_status = full_reset_and_init();
         }
-        partialInit();
-        // statusClear(); I am not sure if this should be here or not
-        return true;
+        partialInit();  // If you always want hibernation disabled
+        // statusClear();  // I am not sure if this should be here or not (Clear all bits in the Status register (0x00))
+        return return_status;
     }
     return false;
 }
@@ -220,19 +218,15 @@ bool I2cDev_MAX17055::full_reset_and_init() {
     if (!soft_reset()) {
         return false;
     }
-
     if (!initialize_custom_parameters()) {
         return false;
     }
-
     if (!load_custom_parameters()) {
         return false;
     }
-
     if (!clear_por()) {
         return false;
     }
-
     return true;
 }
 
@@ -298,8 +292,7 @@ void I2cDev_MAX17055::partialInit() {
 bool I2cDev_MAX17055::reset_learned() {
     // this if for reset all the learned parameters by ic
     // the full inis should do this
-    full_reset_and_init();
-    return true;
+    return full_reset_and_init();
 }
 
 bool I2cDev_MAX17055::detect() {

@@ -30,6 +30,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "utility.hpp"
+#include "log_file.hpp"
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/weathertypes.hpp"
@@ -78,7 +79,25 @@ struct WeatherRecentEntry {
     void reset_age() {
         age = 0;
     }
+
+    std::string to_csv();
 };
+
+class WeatherLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(WeatherRecentEntry& data);
+    void write_header() {
+        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt");
+    }
+
+   private:
+    LogFile log_file{};
+};
+
 using WeatherRecentEntries = RecentEntries<WeatherRecentEntry>;
 using WeatherRecentEntriesView = RecentEntriesView<WeatherRecentEntries>;
 
@@ -103,11 +122,13 @@ class WeatherView : public View {
         1'750'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
+    bool logging = false;
     app_settings::SettingsManager settings_{
         "rx_weather",
         app_settings::Mode::RX,
         {
             {"units_fahr"sv, &weather_units_fahr},
+            {"log"sv, &logging},
         }};
 
     WeatherRecentEntries recent{};
@@ -140,7 +161,15 @@ class WeatherView : public View {
         {0, 16, 7 * 8, 32},
         "Clear"};
 
+    Checkbox check_log{
+        {10 * 8, 18},
+        3,
+        "Log",
+        true};
+
     static constexpr auto header_height = 3 * 16;
+
+    std::unique_ptr<WeatherLogger> logger{};
 
     const RecentEntriesColumns columns{{
         {"Type", 10},

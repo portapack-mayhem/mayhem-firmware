@@ -244,6 +244,7 @@ set(CPPSRC
 	hw/si5351.cpp
 	hw/spi_pp.cpp
 	hw/touch_adc.cpp
+	ook_file.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
 	ui_record_view.cpp
@@ -302,7 +303,6 @@ set(CPPSRC
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
 	apps/ui_sd_wipe.cpp

@@ -75,6 +75,7 @@ __attribute__((section(".external_app.app_jammer.application_information"), used
     },
     /*.icon_color = */ ui::Color::green().v,
     /*.menu_location = */ app_location_t::TX,
+    /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_jammer */ {'P', 'J', 'A', 'M'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

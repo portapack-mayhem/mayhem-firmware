@@ -52,7 +52,6 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_recon.hpp"
-#include "ui_remote.hpp"
 #include "ui_scanner.hpp"
 #include "ui_sd_over_usb.hpp"
 #include "ui_sd_wipe.hpp"
@@ -126,7 +125,6 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
-    {"remote", "Remote", HOME, ui::Color::green(), &bitmap_icon_remote, new ViewFactory<RemoteView>()},
     {"scanner", "Scanner", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
     {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
@@ -754,13 +752,16 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
             grid.add_item({app.displayName, app.iconColor, app.icon,
                            [&nav, &app]() { 
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
-                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
+                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
+                          true);
         }
     };
+
+    grid.update_items();
 }
 
 // clang-format off
-void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t notice_pos) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
         grid.insert_item({"Notice!",
@@ -773,11 +774,23 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
                                   "see Mayhem wiki and copy apps\n"
                                   "to " + apps_dir.string() + " folder of SD card.");
                           }},
-                         pmem::show_gui_return_icon() ? 1 : 0);
+                         notice_pos);
     } else {
+        std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
+        { 
+            return a.desired_position < b.desired_position; 
+        });
+
         for (auto const& gridItem : externalItems) {
-            grid.add_item(gridItem);
+            if (gridItem.desired_position < 0) {
+                grid.add_item(gridItem, true);
+            } else {
+                grid.insert_item(gridItem, gridItem.desired_position, true);
+            }
+            
         }
+
+        grid.update_items();
     }
 }
 // clang-format on
@@ -788,13 +801,14 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
     : nav_(nav) {}
 
 void ReceiversMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
         add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
 
     add_apps(nav_, *this, RX);
 
-    addExternalItems(nav_, app_location_t::RX, *this);
+    add_external_items(nav_, app_location_t::RX, *this, return_icon ? 1 : 0);
 }
 
 /* TransmittersMenuView **************************************************/
@@ -803,13 +817,14 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
     : nav_(nav) {}
 
 void TransmittersMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, TX);
 
-    addExternalItems(nav_, app_location_t::TX, *this);
+    add_external_items(nav_, app_location_t::TX, *this, return_icon ? 1 : 0);
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -820,13 +835,14 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
 }
 
 void UtilitiesMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, UTILITIES);
 
-    addExternalItems(nav_, app_location_t::UTILITIES, *this);
+    add_external_items(nav_, app_location_t::UTILITIES, *this, return_icon ? 1 : 0);
 }
 
 /* SystemMenuView ********************************************************/
@@ -851,6 +867,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
+    add_external_items(nav_, app_location_t::HOME, *this, 2);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
@@ -902,7 +919,7 @@ SystemView::SystemView(
     navigation_view.push<SystemMenuView>();
 
     if (pmem::config_splash()) {
-        navigation_view.push<BMPView>();
+        navigation_view.push<SplashScreenView>();
     }
     status_view.set_back_enabled(false);
     status_view.set_title_image_enabled(true);
@@ -971,11 +988,11 @@ void SystemView::set_app_fullscreen(bool fullscreen) {
 
 /* ***********************************************************************/
 
-void BMPView::focus() {
+void SplashScreenView::focus() {
     button_done.focus();
 }
 
-BMPView::BMPView(NavigationView& nav)
+SplashScreenView::SplashScreenView(NavigationView& nav)
     : nav_(nav) {
     add_children({&button_done});
 
@@ -984,12 +1001,14 @@ BMPView::BMPView(NavigationView& nav)
     };
 }
 
-void BMPView::paint(Painter&) {
-    if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
-        portapack::display.drawBMP({0, 16}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+void SplashScreenView::paint(Painter&) {
+    if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
+        // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
+        portapack::display.draw_bmp_from_bmp_hex_arr({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+    // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
-bool BMPView::on_touch(const TouchEvent event) {
+bool SplashScreenView::on_touch(const TouchEvent event) {
     /* the event thing were resolved by HTotoo, talked here https://discord.com/channels/719669764804444213/956561375155589192/1287756910950486027
      * the touch screen policy can be better, talked here https://discord.com/channels/719669764804444213/956561375155589192/1198926225897443328
      * this workaround discussed here: https://discord.com/channels/719669764804444213/1170738202924044338/1295630640158478418
@@ -1011,7 +1030,7 @@ bool BMPView::on_touch(const TouchEvent event) {
     return false;
 }
 
-void BMPView::handle_pop() {
+void SplashScreenView::handle_pop() {
     if (nav_.is_valid()) {
         nav_.pop();
     }
@@ -1080,7 +1099,7 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, (const uint8_t[]){0, 0, 0});
+    if (!compact) portapack::display.draw_bmp_from_bmp_hex_arr({100, 48}, modal_warning_bmp, (const uint8_t[]){0, 0, 0});
 
     // Break lines.
     auto lines = split_string(message_, '\n');
