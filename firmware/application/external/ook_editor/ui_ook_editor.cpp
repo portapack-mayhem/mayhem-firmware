@@ -57,7 +57,7 @@ void OOKEditorAppView::start_tx() {
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
 void OOKEditorAppView::stop_tx() {
-    //TODO: mdel stopped but message still spamming.
+    //TODO: model stopped but message still spamming.
     is_transmitting = false;                                                 // set transmitting flag
     stop_ook_file_tx();                                                      // stop transmission
     progressbar.set_value(0);                                                // Reset progress bar to 0
