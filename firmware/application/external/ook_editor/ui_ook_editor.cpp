@@ -57,6 +57,7 @@ void OOKEditorAppView::start_tx() {
 
 // `stop_tx` method: Stops the transmission and resets the progress bar.
 void OOKEditorAppView::stop_tx() {
+    // TODO: model stopped but message still spamming.
     is_transmitting = false;                                                 // set transmitting flag
     stop_ook_file_tx();                                                      // stop transmission
     progressbar.set_value(0);                                                // Reset progress bar to 0
@@ -82,7 +83,7 @@ void OOKEditorAppView::on_file_changed(const fs::path& new_file_path) {
 
 // `on_tx_progress` method: Updates the progress bar based on transmission progress.
 void OOKEditorAppView::on_tx_progress(const uint32_t progress, const bool done) {
-    progressbar.set_value(progress);  // Update progress bar value
+    if (is_transmitting) progressbar.set_value(progress);  // Update progress bar value
     if (done) {
         stop_tx();  // Stop transmission when progress reaches maximum
     }
