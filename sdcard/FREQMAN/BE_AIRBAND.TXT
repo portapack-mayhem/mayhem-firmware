@@ -1,13 +1,13 @@
 f=132475000,m=AM,bw=DSB 6k,d=ATIS - Civil
 f=130550000,m=AM,bw=DSB 6k,d=AbelagUnicom - Civil
-f=118250000,m=AM,bw=DSB 6k,d=Approach- Civil
+f=118250000,m=AM,bw=DSB 6k,d=Approach - Civil
 f=120100000,m=AM,bw=DSB 6k,d=Approach - Civil
 f=122500000,m=AM,bw=DSB 6k,d=Approach Military Crossing
 f=121950000,m=AM,bw=DSB 6k,d=Clearance Delivery - Civil
 f=126625000,m=AM,bw=DSB 6k,d=Departure - Civil
 f=127575000,m=AM,bw=DSB 6k,d=Final 25L - Civil
 f=129725000,m=AM,bw=DSB 6k,d=Final 25R - Civil
-f=118050000,m=AM,bw=DSB 6k,d=Ground - Civik
+f=118050000,m=AM,bw=DSB 6k,d=Ground - Civil
 f=121700000,m=AM,bw=DSB 6k,d=Ground - Civil
 f=121875000,m=AM,bw=DSB 6k,d=Ground - Civil
 f=118600000,m=AM,bw=DSB 6k,d=Tower VHF - Civil
