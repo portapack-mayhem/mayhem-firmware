@@ -34,8 +34,8 @@ add_custom_command(
 )
 
 set(SRC_M4
-	${PATH_HACKRF_USB}/hackrf_usb.c
-	"${PATH_HACKRF_FIRMWARE_COMMON}/tuning.c"
+	hackrf_usb.c
+	tuning.c
 	"${PATH_HACKRF_FIRMWARE_COMMON}/streaming.c"
 	"${PATH_HACKRF_FIRMWARE_COMMON}/usb.c"
 	"${PATH_HACKRF_FIRMWARE_COMMON}/usb_request.c"
@@ -47,10 +47,10 @@ set(SRC_M4
 	${PATH_HACKRF_USB}/usb_api_m0_state.c
 	${PATH_HACKRF_USB}/usb_api_register.c
 	${PATH_HACKRF_USB}/usb_api_spiflash.c
-	${PATH_HACKRF_USB}/usb_api_transceiver.c
+	usb_api_transceiver.c
 	${PATH_HACKRF_USB}/usb_api_operacake.c
 	${PATH_HACKRF_USB}/usb_api_sweep.c
-	${PATH_HACKRF_USB}/usb_api_ui.c
+	usb_api_ui.c
 	"${PATH_HACKRF_FIRMWARE_COMMON}/usb_queue.c"
 	"${PATH_HACKRF_FIRMWARE_COMMON}/fault_handler.c"
 	"${PATH_HACKRF_FIRMWARE_COMMON}/cpld_jtag.c"
@@ -72,7 +72,7 @@ if(BOARD STREQUAL "HACKRF_ONE")
 		${SRC_M4}
 		usb_api_board_info.c
 		portapack.c
-		"${PATH_HACKRF_FIRMWARE_COMMON}/ui_portapack.c"
+		ui_portapack.c
 	)
 endif()
 
@@ -90,4 +90,7 @@ if(BOARD STREQUAL "RAD1O")
 	)
 endif()
 
+include_directories("${PATH_HACKRF_USB}")
+
 DeclareTargets()
+
