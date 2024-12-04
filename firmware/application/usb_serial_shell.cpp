@@ -973,7 +973,7 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
 
                 chprintf(chp, "Reading file...\r\n");
                 file->seek(0);
-                
+
                 while (!file->eof().value()) {
                     uint32_t remainingData = readData.size();
                     uint32_t bytesToRead = 512 - remainingData;
@@ -1008,9 +1008,9 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
                             if (prefix == 0 && suffix == line.size() - 4) {
                                 std::string dataString = line.substr(line.size() - 16, 16);
 
-                                uint32_t address = reverse(std::stoul(dataString.substr(8, 8), nullptr, 16) - 64)/4;
+                                uint32_t address = reverse(std::stoul(dataString.substr(8, 8), nullptr, 16) - 64) / 4;
                                 uint32_t value = std::stoul(dataString.substr(0, 8), nullptr, 16);
-                                
+
                                 if (expected_address == 299 && address == 0) {
                                     magic = value;
                                     magic_found = true;
@@ -1070,8 +1070,7 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
                                     break;
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             break;
                         }
                     } while (true);
@@ -1088,7 +1087,7 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
         } else {
             chprintf(chp, usage);
         }
-   } else {
+    } else {
         chprintf(chp, usage);
     }
 }
