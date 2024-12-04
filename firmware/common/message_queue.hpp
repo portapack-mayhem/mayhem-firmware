@@ -101,13 +101,11 @@ class MessageQueue {
     }
 
     bool push(const void* const buf, const size_t len) {
-
         bool lock_success = chMtxTryLock(&mutex_write);
         if (!lock_success) {
             return false;
         }
 
-        //chMtxLock(&mutex_write);
         const auto result = fifo.in_r(buf, len);
         chMtxUnlock();
 
