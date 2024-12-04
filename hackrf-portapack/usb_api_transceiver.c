@@ -27,6 +27,8 @@
 #include "operacake_sctimer.h"
 
 #include <libopencm3/cm3/vector.h>
+#include <libopencm3/cm3/systick.h>
+
 #include "usb_bulk_buffer.h"
 #include "usb_api_m0_state.h"
 
@@ -408,9 +410,14 @@ void transceiver_bulk_transfer_complete(void* user_data, unsigned int bytes_tran
 	m0_state.m4_count += bytes_transferred;
 }
 
-#define SATURATION_BUFFER_SIZE 32
-int8_t saturation_buffer[SATURATION_BUFFER_SIZE];
-uint32_t saturation_buffer_index = 0;
+int8_t saturation_buffer = 0;
+uint64_t saturation_buffer_time = 0;
+volatile uint64_t systick_counter = 0;
+
+void sys_tick_handler(void)
+{
+	systick_counter++;
+}
 
 void rx_mode(uint32_t seq)
 {
@@ -431,21 +438,18 @@ void rx_mode(uint32_t seq)
 			
 			usb_count += USB_TRANSFER_SIZE;
 
-			saturation_buffer[saturation_buffer_index++] = *(int8_t *)&usb_bulk_buffer[usb_count & USB_BULK_BUFFER_MASK];
-			if (saturation_buffer_index == SATURATION_BUFFER_SIZE) {
-				saturation_buffer_index = 0;
-
-				uint8_t saturation = 0;
-				for (uint32_t i = 0; i < SATURATION_BUFFER_SIZE; i++) {
-					if (saturation_buffer[i] > saturation) 
-						saturation = saturation_buffer[i];
-					
-					if (saturation_buffer[i] < -saturation) 
-						saturation = -saturation_buffer[i];
-				}
-
-				hackrf_ui()->set_saturation(saturation);
+			int8_t sample_value = *(int8_t *)&usb_bulk_buffer[usb_count & USB_BULK_BUFFER_MASK];
 			
+			if (sample_value > saturation_buffer)
+				saturation_buffer = sample_value;
+			
+			if (-sample_value > saturation_buffer) 
+				saturation_buffer = -sample_value;
+				
+			if (saturation_buffer_time + 4 < systick_counter) {
+				saturation_buffer_time = systick_counter;
+				hackrf_ui()->set_saturation(saturation_buffer);
+				saturation_buffer = 0;
 			}
 		}
 	}

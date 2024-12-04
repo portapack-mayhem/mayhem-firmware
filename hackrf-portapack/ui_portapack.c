@@ -732,7 +732,7 @@ static void portapack_ui_set_saturation(const uint8_t saturation)
 			portapack_draw_bitmap(
 				label_point,
 				bitmap_bar_8,
-				i < 100 ? color_green : (i < 115 ? color_orange : color_red ),
+				i < 100 ? color_green : (i < 115 ? color_orange : color_red),
 				color_background);
 		}
 		else
