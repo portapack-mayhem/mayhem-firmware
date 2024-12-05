@@ -100,7 +100,7 @@ void RSSI::paint(Painter& painter) {
             const Rect r5{r.left() + peak - 3, r.top(), 3, r.height()};
             painter.fill_rectangle(
                 r5,
-                Theme::getInstance()->fg_green->foreground);
+                Theme::getInstance()->fg_orange->foreground);
         }
     } else {
         // vertical bottom to top level meters
@@ -149,7 +149,7 @@ void RSSI::paint(Painter& painter) {
             const Rect r5{r.left(), r.bottom() - peak - 3, r.width(), 3};
             painter.fill_rectangle(
                 r5,
-                Color::green());
+                Color::orange());
         }
     }
     if (pitch_rssi_enabled) {
