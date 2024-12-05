@@ -524,6 +524,5 @@ bool RSSI::on_touch(const TouchEvent event) {
 
 void RSSI::set_db(int16_t db) {
     db_ = db;
-    set_dirty();
 }
 } /* namespace ui */
