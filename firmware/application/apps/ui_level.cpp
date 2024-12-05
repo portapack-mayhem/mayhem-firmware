@@ -184,11 +184,10 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     rssi_graph.add_values(rssi.get_min(), rssi.get_avg(), rssi.get_max(), statistics.max_db);
 
     // refresh db
-    rssi.set_db(statistics.max_db);
-
     if (last_max_db != statistics.max_db) {
         last_max_db = statistics.max_db;
         freq_stats_db.set("Power: " + to_string_dec_int(statistics.max_db) + " db");
+        rssi.set_db(statistics.max_db);
     }
     // refresh rssi
     if (last_min_rssi != rssi_graph.get_graph_min() || last_avg_rssi != rssi_graph.get_graph_avg() || last_max_rssi != rssi_graph.get_graph_max()) {

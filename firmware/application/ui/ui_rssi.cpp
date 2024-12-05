@@ -126,7 +126,7 @@ void RSSI::paint(Painter& painter) {
 
         // y_min
         const Rect r0{r.left(), r.bottom() - y_min, r.width(), y_min};
-        painter.fill_rectangle(  // TODO: the blue plot is broken in vertical bars, not from the dB PR
+        painter.fill_rectangle(  // TODO: the blue plot is broken in vertical bars, not from the dB PR (#2403)
             r0,
             Color::blue());
 
