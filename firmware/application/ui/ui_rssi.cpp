@@ -103,7 +103,7 @@ void RSSI::paint(Painter& painter) {
                 Theme::getInstance()->fg_orange->foreground);
         }
 
-        // dB - x 
+        // dB - x
         constexpr int db_min = -80;
         constexpr int db_max = 10;
         constexpr int db_delta = db_max - db_min;
@@ -126,7 +126,7 @@ void RSSI::paint(Painter& painter) {
 
         // y_min
         const Rect r0{r.left(), r.bottom() - y_min, r.width(), y_min};
-        painter.fill_rectangle( // TODO: the blue plot is broken in vertical bars, not from the dB PR
+        painter.fill_rectangle(  // TODO: the blue plot is broken in vertical bars, not from the dB PR
             r0,
             Color::blue());
 
@@ -180,7 +180,7 @@ void RSSI::paint(Painter& painter) {
         const Rect r6{r.left(), r.top(), r.width(), r.height()};
         painter.draw_rectangle(
             r6,
-            Color::white()); //TODO this and all the following Color struct call should satisfy the new "theme" system ref
+            Color::white());  // TODO this and all the following Color struct call should satisfy the new "theme" system ref
     }
 }
 
