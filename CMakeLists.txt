@@ -69,6 +69,7 @@ add_subdirectory(hackrf/firmware)
 
 set(HACKRF_FIRMWARE_DFU_FILENAME hackrf_usb.dfu)
 set(HACKRF_FIRMWARE_BIN_FILENAME hackrf_usb_ram.bin)
+set(HACKRF_FIRMWARE_FILENAME hackrf_usb.bin)
 set(HACKRF_CPLD_XSVF_FILENAME default.xsvf)
 
 set(HACKRF_PATH ${CMAKE_CURRENT_LIST_DIR}/hackrf)
