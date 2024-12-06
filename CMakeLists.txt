@@ -69,6 +69,7 @@ add_subdirectory(hackrf/firmware)
 
 set(HACKRF_FIRMWARE_DFU_FILENAME hackrf_usb.dfu)
 set(HACKRF_FIRMWARE_BIN_FILENAME hackrf_usb_ram.bin)
+set(HACKRF_FIRMWARE_FILENAME hackrf_usb.bin)
 set(HACKRF_CPLD_XSVF_FILENAME default.xsvf)
 
 set(HACKRF_PATH ${CMAKE_CURRENT_LIST_DIR}/hackrf)
@@ -77,6 +78,7 @@ set(HACKRF_CPLD_XSVF_PATH ${HACKRF_PATH}/firmware/cpld/sgpio_if/${HACKRF_CPLD_XS
 
 set(HACKRF_FIRMWARE_DFU_IMAGE ${hackrf_usb_BINARY_DIR}/${HACKRF_FIRMWARE_DFU_FILENAME})
 set(HACKRF_FIRMWARE_BIN_IMAGE ${hackrf_usb_BINARY_DIR}/${HACKRF_FIRMWARE_BIN_FILENAME})
+set(HACKRF_FIRMWARE_IMAGE ${hackrf_usb_BINARY_DIR}/${HACKRF_FIRMWARE_FILENAME})
 
 # this seems causing some issues (ref. in discord discussions), but it sometimes do helps, so you have your choice to use. it's default disabled,  unless you use such command:
 # cmake -DUSE_CCACHE=ON ..

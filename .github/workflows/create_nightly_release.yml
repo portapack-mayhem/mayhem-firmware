@@ -61,6 +61,9 @@ jobs:
       - name: Unzip world map
         run: |
           unzip world_map.zip -d sdcard/ADSB
+      - name: Prepare Firmware ZIP
+        run: |
+          cp build/hackrf/firmware/hackrf_usb/hackrf_usb.dfu flashing/utils/hackrf_one_usb.dfu && cp build/hackrf/firmware/hackrf_usb/hackrf_usb.bin flashing/utils/hackrf_one_usb.bin
       - name: Create Firmware ZIP
         run: |
           zip -j firmware.zip build/firmware/portapack-mayhem-firmware.bin && cd flashing && zip -r ../firmware.zip *
