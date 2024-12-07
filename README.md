@@ -1,8 +1,8 @@
+<!---
 > [!WARNING]
 > __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED VERSIONS, YOU'RE BEING SCAMMED.__ 
 >
-> The only legitimate link to our repositories is the [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware) organization on GitHub.
-
+> The only legitimate link to our repositories is the [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware) organization on GitHub.--->
 # PortaPack Mayhem
 
 [![Nightly Release](https://github.com/portapack-mayhem/mayhem-firmware/actions/workflows/create_nightly_release.yml/badge.svg?branch=next)](https://github.com/portapack-mayhem/mayhem-firmware/actions/workflows/create_nightly_release.yml) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![GitHub All Releases](https://img.shields.io/github/downloads/portapack-mayhem/mayhem-firmware/total)](https://github.com/portapack-mayhem/mayhem-firmware/releases) [![GitHub Releases](https://img.shields.io/github/downloads/portapack-mayhem/mayhem-firmware/latest/total)](https://github.com/portapack-mayhem/mayhem-firmware/releases/latest) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack) [![Discord Chat](https://dcbadge.vercel.app/api/server/tuwVMv3?style=flat)](https://discord.gg/tuwVMv3)
@@ -11,7 +11,7 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 [<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_front.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_inside.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview#portapack-internals)
 
-*[PortaPack H2+HackRF+battery](https://grabify.link/P9CO0J) (clone) with a custom [3d printed case](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure)*
+*[PortaPack H2+HackRF+battery](https://www.ebay.com/itm/116382397447) (clone) with a custom [3d printed case](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure)*
 
 # What is this?
 
@@ -30,7 +30,7 @@ This repository expands upon the previous work by many people and aims to consta
 <!---not direct to h4m but to opensourcesdrlab https://grabify.link/TUOLYI---> 
 :heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous [PortaPack H4M Mayhem](https://grabify.link/0STXCA), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://grabify.link/99SAMT). Join their giveaways on discord (check the badge on top).
 
-:heavy_check_mark: A recommended one is this [PortaPack H2](https://grabify.link/P9CO0J), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
+:heavy_check_mark: A recommended one is this [PortaPack H2](https://www.ebay.com/itm/116382397447), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
 
 :heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/LZPBH9), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
