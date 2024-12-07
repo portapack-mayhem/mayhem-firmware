@@ -2531,44 +2531,6 @@ static constexpr Bitmap bitmap_icon_batt_icon{
     {16, 16},
     bitmap_icon_batt_icon_data};
 
-static constexpr uint8_t bitmap_icon_temperature_data[] = {
-    0x00,
-    0x01,
-    0x80,
-    0x01,
-    0x80,
-    0x05,
-    0xC0,
-    0x0D,
-    0x40,
-    0x0D,
-    0xD0,
-    0x1F,
-    0x70,
-    0x15,
-    0xB0,
-    0x1A,
-    0x58,
-    0x35,
-    0xB8,
-    0x3A,
-    0x58,
-    0x34,
-    0x28,
-    0x28,
-    0x18,
-    0x30,
-    0x30,
-    0x18,
-    0x60,
-    0x0C,
-    0xC0,
-    0x07,
-};
-static constexpr Bitmap bitmap_icon_temperature{
-    {16, 16},
-    bitmap_icon_temperature_data};
-
 static constexpr uint8_t bitmap_tab_edge_data[] = {
     0x00,
     0x01,
