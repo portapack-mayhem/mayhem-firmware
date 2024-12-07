@@ -751,10 +751,17 @@ FileManagerView::FileManagerView(
             text_date.set("Too many files!");
         } else {
             text_date.set_style(Theme::getInstance()->fg_medium);
-            if (selected_is_valid())
-                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
-            else
+            if (selected_is_valid()) {
+                if (get_selected_entry().path == str_back) {
+                    text_date.set("Go page " + std::to_string(pagination + 1 - 1));  // for better explain, pagination start with 0 AKA real page - 1
+                } else if (get_selected_entry().path == str_next) {
+                    text_date.set("Go page " + std::to_string(pagination + 1 + 1));  // when show this, it should display current AKA (pagination + 1) + 1 AKA next page
+                } else {
+                    text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+                }
+            } else {
                 text_date.set("");
+            }
         }
     };
 
