@@ -86,53 +86,6 @@ class DebugMemoryView : public View {
         "Done"};
 };
 
-class TemperatureWidget : public Widget {
-   public:
-    explicit TemperatureWidget(
-        Rect parent_rect)
-        : Widget{parent_rect} {
-    }
-
-    void paint(Painter& painter) override;
-
-   private:
-    using sample_t = uint32_t;
-    using temperature_t = int32_t;
-
-    temperature_t temperature(const sample_t sensor_value) const;
-    Coord screen_y(const temperature_t temperature, const Rect& screen_rect) const;
-
-    std::string temperature_str(const temperature_t temperature) const;
-
-    static constexpr temperature_t display_temp_min = -10;  // Accomodate negative values, present in cold startup cases
-    static constexpr temperature_t display_temp_scale = 3;
-    static constexpr int bar_width = 1;
-    static constexpr int temp_len = 5;  // Now scale shows up to 5 chars ("-10ºC")
-};
-
-class TemperatureView : public View {
-   public:
-    explicit TemperatureView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "Temperature"; };
-
-   private:
-    Text text_title{
-        {76, 16, 240, 16},
-        "Temperature",
-    };
-
-    TemperatureWidget temperature_widget{
-        {0, 40, 240, 180},
-    };
-
-    Button button_done{
-        {72, 264, 96, 24},
-        "Done"};
-};
-
 typedef enum {
     CT_PMEM,
     CT_RFFC5072,

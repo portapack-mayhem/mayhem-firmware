@@ -84,7 +84,7 @@ class RemoteIcons {
         &bitmap_icon_sonde,
         &bitmap_icon_stealth,
         &bitmap_icon_tetra,
-        &bitmap_icon_temperature};
+        &bitmap_icon_peripherals_details};
 };
 
 // TODO: Use RGB colors instead?
