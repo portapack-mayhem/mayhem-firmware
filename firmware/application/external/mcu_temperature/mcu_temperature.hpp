@@ -36,6 +36,8 @@
 #include <functional>
 #include <utility>
 
+namespace ui::external_app::mcu_temperature {
+
 class McuTemperatureWidget : public Widget {
    public:
     explicit McuTemperatureWidget(
@@ -83,4 +85,6 @@ class McuTemperatureView : public View {
         "Done"};
 };
 
-#endif /*__UI_OOK_EDITOR_H__*/
+}  // namespace ui::external_app::mcu_temperature
+
+#endif /*__MCU_TEMPERATURE_H__*/

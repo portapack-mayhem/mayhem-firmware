@@ -4,6 +4,9 @@
 
 #include "portapack.hpp"
 
+using namespace portapack;
+namespace ui::external_app::mcu_temperature {
+
 void McuTemperatureWidget::paint(Painter& painter) {
     const auto logger = portapack::temperature_logger;
 
@@ -84,3 +87,5 @@ McuTemperatureView::McuTemperatureView(NavigationView& nav) {
 void McuTemperatureView::focus() {
     button_done.focus();
 }
+
+}  // namespace ui::external_app::mcu_temperature
