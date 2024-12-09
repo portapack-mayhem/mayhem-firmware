@@ -95,7 +95,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
 
             menu_view.add_item({filename.string().substr(0, max_filename_length),
                                 color,
-                                &bitmap_icon_temperature,
+                                &bitmap_icon_peripherals_details,
                                 [this, path](KeyEvent) {
                                     this->firmware_selected(path);
                                 }});

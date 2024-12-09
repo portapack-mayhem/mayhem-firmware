@@ -135,6 +135,10 @@ set(EXTCPPSRC
 	#remote
 	external/remote/main.cpp
 	external/remote/ui_remote.cpp
+
+	#mcu_temperature
+	external/mcu_temperature/main.cpp
+	external/mcu_temperature/mcu_temperature.cpp
 )
 
 set(EXTAPPLIST
@@ -170,4 +174,5 @@ set(EXTAPPLIST
 	shoppingcart_lock
 	flippertx
     remote
+	mcu_temperature
 )
