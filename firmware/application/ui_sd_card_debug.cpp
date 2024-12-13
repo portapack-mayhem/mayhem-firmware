@@ -370,7 +370,7 @@ void SDCardDebugView::on_status(const sd_card::Status) {
         text_csd_value_0.set(to_string_hex(csd[0], 8));
 
         text_format.set(fetch_sdcard_format());
-        if (fetch_sdcard_format().find("FAT32") != std::string::npos) { 
+        if (fetch_sdcard_format().find("FAT32") != std::string::npos) {
             // to satisfy the intendent style in this app, the text contains padding space, thus can't use ==
             text_format.set_style(Theme::getInstance()->fg_green);
         } else {
@@ -473,7 +473,7 @@ std::string SDCardDebugView::fetch_sdcard_format() {
         case FS_FAT32:
             resault = "FAT32";
             break;
-        case FS_EXFAT: // TODO: a bug from filesystem can't detect exfat, issue not from here
+        case FS_EXFAT:  // TODO: a bug from filesystem can't detect exfat, issue not from here
             resault = "ExFAT";
             break;
         default:
