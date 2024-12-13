@@ -798,7 +798,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
 
 bool verify_sdcard_format() {
     FATFS* fs = &sd_card::fs;
-    return (fs->fs_type == FS_FAT32) && (sd_card::status() == sd_card::Status::Mounted);
+    return (fs->fs_type == FS_FAT32) || !(sd_card::status() == sd_card::Status::Mounted);
     /*                                   ^ to satisfy those users that not use an sd*/
 }
 
