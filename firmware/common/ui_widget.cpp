@@ -1327,7 +1327,7 @@ void NewButton::paint(Painter& painter) {
         style.background);
 
     int y = r.top();
-    
+
     if (bitmap_) {
         int offset_y = vertical_center_ ? (r.height() / 2) - (bitmap_->size.height() / 2) : 6;
         Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + offset_y};
@@ -1345,16 +1345,16 @@ void NewButton::paint(Painter& painter) {
         std::vector<std::string> lines;
         size_t start = 0;
         size_t end = 0;
-        
+
         while ((end = text_.find('\n', start)) != std::string::npos) {
             lines.push_back(text_.substr(start, end - start));
             start = end + 1;
         }
         lines.push_back(text_.substr(start));
-        
+
         const int line_height = style.font.line_height();
         const int total_text_height = lines.size() * line_height;
-        
+
         // satisfy the situation that bitmap is nullptr
         if (bitmap_) {
             if (vertical_center_) {
