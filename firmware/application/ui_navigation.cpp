@@ -330,6 +330,7 @@ SystemStatusView::SystemStatusView(
 
     audio::output::stop();
     audio::output::update_audio_mute();
+
     refresh();
 }
 
@@ -761,10 +762,10 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
 }
 
 // clang-format off
-void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t notice_pos) {
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.insert_item({"Notice!",
+        grid.insert_item({"ExtApp\nError",
                           Theme::getInstance()->error_dark->foreground,
                           nullptr,
                           [&nav]() {
@@ -774,7 +775,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                                   "see Mayhem wiki and copy apps\n"
                                   "to " + apps_dir.string() + " folder of SD card.");
                           }},
-                         notice_pos);
+                         error_tile_pos);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
         { 
@@ -794,6 +795,12 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
     }
 }
 // clang-format on
+
+bool verify_sdcard_format() {
+    FATFS* fs = &sd_card::fs;
+    return (fs->fs_type == FS_FAT32) || !(sd_card::status() == sd_card::Status::Mounted);
+    /*                                   ^ to satisfy those users that not use an sd*/
+}
 
 /* ReceiversMenuView *****************************************************/
 
@@ -866,8 +873,13 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 }
 
 void SystemMenuView::on_populate() {
+    if (!verify_sdcard_format()) {
+        add_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
+                      nav_.display_modal("Error", "SD Card is not FAT32,\nformat to FAT32 on PC");
+                  }});
+    }
     add_apps(nav_, *this, HOME);
-    add_external_items(nav_, app_location_t::HOME, *this, 2);
+    add_external_items(nav_, app_location_t::HOME, *this, 0);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 

@@ -240,21 +240,16 @@ namespace ui {
 
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
     add_children({
-        &text_title,
-        &text_csd_title,
+        &labels,
+        &text_format,
         &text_csd_value_3,
         &text_csd_value_2,
         &text_csd_value_1,
         &text_csd_value_0,
-        &text_bus_width_title,
         &text_bus_width_value,
-        &text_card_type_title,
         &text_card_type_value,
-        &text_block_size_title,
         &text_block_size_value,
-        &text_block_count_title,
         &text_block_count_value,
-        &text_capacity_title,
         &text_capacity_value,
         &text_test_write_time_title,
         &text_test_write_time_value,
@@ -374,6 +369,14 @@ void SDCardDebugView::on_status(const sd_card::Status) {
         text_csd_value_1.set(to_string_hex(csd[1], 8));
         text_csd_value_0.set(to_string_hex(csd[0], 8));
 
+        text_format.set(fetch_sdcard_format());
+        if (fetch_sdcard_format().find("FAT32") != std::string::npos) {
+            // to satisfy the intendent style in this app, the text contains padding space, thus can't use ==
+            text_format.set_style(Theme::getInstance()->fg_green);
+        } else {
+            text_format.set_style(Theme::getInstance()->error_dark);
+        }
+
         BlockDeviceInfo block_device_info;
         if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
             text_block_size_value.set(to_string_dec_uint(block_device_info.blk_size, 5));
@@ -445,6 +448,40 @@ void SDCardDebugView::on_test() {
     } else {
         text_test_write_time_value.set("Fail: " + thread.ResultStr[thread.result() + 8]);
     }
+}
+
+std::string SDCardDebugView::fetch_sdcard_format() {
+    const size_t max_len = sizeof("Undefined: 255") + 1;
+
+    auto padding = [max_len](std::string s) {
+        if (s.length() < max_len) {
+            return std::string(max_len - s.length(), ' ') + s;
+        }
+        return s;
+    };
+
+    FATFS* fs = &sd_card::fs;
+    std::string resault;
+
+    switch (fs->fs_type) {
+        case FS_FAT12:
+            resault = "FAT12";
+            break;
+        case FS_FAT16:
+            resault = "FAT16";
+            break;
+        case FS_FAT32:
+            resault = "FAT32";
+            break;
+        case FS_EXFAT:  // TODO: a bug from filesystem can't detect exfat, issue not from here
+            resault = "ExFAT";
+            break;
+        default:
+            resault = "Undefined: " + to_string_dec_uint(fs->fs_type, 1);
+            break;
+    }
+
+    return padding(resault);
 }
 
 } /* namespace ui */
