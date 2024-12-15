@@ -765,7 +765,7 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
 void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.insert_item({"ExtApp\nError",
+        grid.insert_item({"ExtAppErr",
                           Theme::getInstance()->error_dark->foreground,
                           nullptr,
                           [&nav]() {
