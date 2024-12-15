@@ -323,7 +323,7 @@ class InformationView : public View {
 
     Rectangle backdrop{
         {0, 0 * 16, 240, 16},
-        {33, 33, 33}};
+        Theme::getInstance()->bg_darker->background};
 
     Text version{
         {2, 0, 11 * 8, 16},
