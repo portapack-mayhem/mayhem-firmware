@@ -134,6 +134,10 @@ set(EXTCPPSRC
 	#mcu_temperature
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
+
+	#tuner
+	external/tuner/main.cpp
+	external/tuner/ui_tuner.cpp
 )
 
 set(EXTAPPLIST
@@ -169,4 +173,5 @@ set(EXTAPPLIST
 	flippertx
     remote
 	mcu_temperature
+	tuner
 )
