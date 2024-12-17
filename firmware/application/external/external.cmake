@@ -134,6 +134,11 @@ set(EXTCPPSRC
 	#mcu_temperature
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
+
+	
+	#fmradio
+	external/fmradio/main.cpp
+	external/fmradio/ui_fmradio.cpp
 )
 
 set(EXTAPPLIST
@@ -169,4 +174,5 @@ set(EXTAPPLIST
 	flippertx
     remote
 	mcu_temperature
+	fmradio
 )
