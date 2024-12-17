@@ -55,6 +55,7 @@ MEMORY
     ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k 
     ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k 
     ram_external_app_mcu_temperature(rwx) : org = 0xADD00000, len = 32k 
+    ram_external_app_fmradio(rwx) : org = 0xADE00000, len = 32k 
 }
 
 SECTIONS
@@ -251,4 +252,11 @@ SECTIONS
         KEEP(*(.external_app.app_mcu_temperature.application_information));
         *(*ui*external_app*mcu_temperature*);
     } > ram_external_app_mcu_temperature
+
+    
+    .external_app_fmradio : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_fmradio.application_information));
+        *(*ui*external_app*fmradio*);
+    } > ram_external_app_fmradio
 }
