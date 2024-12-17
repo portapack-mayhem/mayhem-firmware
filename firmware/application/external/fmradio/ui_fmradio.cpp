@@ -41,26 +41,26 @@ FmRadioView::FmRadioView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
 
-    add_children({
-        &rssi,
-        &field_rf_amp,
-        &field_lna,
-        &field_vga,
-        &field_volume,
-        &field_frequency,
-        &btn_fav_save,
-        &txt_save_help,
-        &btn_fav_0,
-        &btn_fav_1,
-        &btn_fav_2,
-        &btn_fav_3,
-        &btn_fav_4,
-        &btn_fav_5,
-        &btn_fav_6,
-        &btn_fav_7,
-        &btn_fav_8,
-        &btn_fav_9,
-    });
+    add_children({&rssi,
+                  &field_rf_amp,
+                  &field_lna,
+                  &field_vga,
+                  &field_volume,
+                  &field_frequency,
+                  &btn_fav_save,
+                  &txt_save_help,
+                  &btn_fav_0,
+                  &btn_fav_1,
+                  &btn_fav_2,
+                  &btn_fav_3,
+                  &btn_fav_4,
+                  &btn_fav_5,
+                  &btn_fav_6,
+                  &btn_fav_7,
+                  &btn_fav_8,
+                  &btn_fav_9,
+                  &audio,
+                  &waveform});
 
     txt_save_help.visible(false);
     for (uint8_t i = 0; i < 12; ++i) {
@@ -157,6 +157,12 @@ FmRadioView::~FmRadioView() {
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
+}
+
+void FmRadioView::on_audio_spectrum() {
+    for (size_t i = 0; i < audio_spectrum_data->db.size(); i++)
+        audio_spectrum[i] = ((int16_t)audio_spectrum_data->db[i] - 127) * 256;
+    waveform.set_dirty();
 }
 
 }  // namespace ui::external_app::fmradio
