@@ -9,10 +9,6 @@
 
 This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork is a derivate, in this case one that has extra features and fixes when compared to the older versions.
 
-[<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_front.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_inside.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview#portapack-internals)
-
-*[PortaPack H2+HackRF+battery](https://www.ebay.com/itm/116382397447) (clone) with a custom [3d printed case](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure)*
-
 # What is this?
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
