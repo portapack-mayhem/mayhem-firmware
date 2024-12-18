@@ -38,9 +38,11 @@ MetronomeView::MetronomeView(NavigationView& nav)
         &button_play_stop,
         &field_rythm_unaccent_time,
         &field_rythm_accent_time,
-        &field_bpm,
         &field_accent_beep_tune,
         &field_unaccent_beep_tune,
+        &field_beep_flash_duration,
+        &field_bpm,
+        &progressbar,
     });
 
     audio::set_rate(audio::Rate::Hz_48000);
@@ -49,7 +51,7 @@ MetronomeView::MetronomeView(NavigationView& nav)
     field_rythm_unaccent_time.set_value(4);
     field_accent_beep_tune.set_value(880);
     field_unaccent_beep_tune.set_value(440);
-
+    field_beep_flash_duration.set_value(100);
     button_play_stop.on_select = [this]() {
         if (playing) {
             stop_play();
@@ -85,6 +87,8 @@ void MetronomeView::stop_play() {
         playing = false;
         button_play_stop.set_bitmap(&bitmap_icon_replay);
         baseband::request_beep_stop();
+        progressbar.set_value(0);
+        progressbar.set_style(Theme::getInstance()->fg_light);
     }
 }
 
@@ -101,32 +105,36 @@ void MetronomeView::play() {
 }
 
 void MetronomeView::beep_accent_beat() {
-    baseband::request_audio_beep(field_accent_beep_tune.value(), 48000, 100);
+    baseband::request_audio_beep(field_accent_beep_tune.value(), 48000, field_beep_flash_duration.value());
 }
 
 void MetronomeView::beep_unaccent_beat() {
-    baseband::request_audio_beep(field_unaccent_beep_tune.value(), 48000, 100);
+    baseband::request_audio_beep(field_unaccent_beep_tune.value(), 48000, field_beep_flash_duration.value());
 }
 
-void MetronomeView::paint(Painter& painter) {
-    View::paint(painter);
+// TODO: draw the beat
+// void MetronomeView::paint(Painter& painter) {
+//     View::paint(painter);
 
-    painter.fill_rectangle(
-        {screen_width / 4, 8 * 16, screen_width / 2, 6 * 16},
-        Theme::getInstance()->bg_darkest->background);
+// painter.fill_rectangle(
+//     {visual_x, visual_y, visual_width, visual_height},
+//     Theme::getInstance()->bg_darkest->background);
 
-    painter.fill_rectangle(
-        {screen_width / 4, 10 * 16, 2, 2 * 16},
-        Theme::getInstance()->fg_light->foreground);
+// if (playing) {
+//     const bool is_accent_beat = (current_beat_ % field_rythm_accent_time.value()) == 0;
 
-    painter.fill_rectangle(
-        {screen_width / 4, 12 * 16, screen_width / 4 * 2 + 2, 2},
-        Theme::getInstance()->fg_light->foreground);
+// const Color beat_color = is_accent_beat ?
+//     Theme::getInstance()->fg_red->foreground :
+//     Theme::getInstance()->fg_green->foreground;
 
-    painter.fill_rectangle(
-        {(screen_width / 4) * 3, 10 * 16, 2, 2 * 16},
-        Theme::getInstance()->fg_light->foreground);
-}
+// painter.fill_rectangle(
+//     {visual_x + visual_width/4,
+//      visual_y + visual_height/4,
+//      visual_width/2,
+//      visual_height/2},
+//     beat_color);
+// }
+// }
 
 msg_t MetronomeView::static_fn(void* arg) {
     auto obj = static_cast<MetronomeView*>(arg);
@@ -144,17 +152,21 @@ void MetronomeView::run() {
         uint32_t base_interval = (60 * 1000) / field_bpm.value();  // quarter note as 1 beat
 
         uint32_t beats_per_measure = field_rythm_unaccent_time.value();  // how many beates per bar
-        uint32_t beat_unit = field_rythm_accent_time.value();            // which note type (quarter, eighth, etc.) as 1 beat
+        progressbar.set_max(beats_per_measure);
+        uint32_t beat_unit = field_rythm_accent_time.value();  // which note type (quarter, eighth, etc.) as 1 beat
 
         uint32_t actual_interval = (base_interval * 4) / beat_unit;  // e.g. when beat_unit==8 it's 1/2 of base_interval AKA eighths notes
 
         uint32_t beat_in_measure = current_beat_ % beats_per_measure;  // current beat in this bar (need to decide accent or unaccent)
+        progressbar.set_value(beat_in_measure + 1);
 
         // accent beat is the first beat of this bar
         if (beat_in_measure == 0) {
             beep_accent_beat();
+            progressbar.set_style(Theme::getInstance()->fg_red);
         } else {
             beep_unaccent_beat();
+            progressbar.set_style(Theme::getInstance()->fg_green);
         }
 
         current_beat_++;

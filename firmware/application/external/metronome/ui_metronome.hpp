@@ -47,7 +47,7 @@ class MetronomeView : public View {
     void beep_unaccent_beat();  // e.g. 4 of 3/4 beat
     void stop_play();
     void play();
-    void paint(Painter& painter) override;
+    // void paint(Painter& painter) override;
 
     Thread* thread{nullptr};
     bool should_exit{false};
@@ -61,7 +61,7 @@ class MetronomeView : public View {
     Labels labels{
         {{0 * 8, 1 * 16}, "BPM:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "Accent Beep Tune:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Total Beep Tune:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Unaccent Beep Tune:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 4 * 16}, "Rhythm:", Theme::getInstance()->fg_light->foreground},
         {{(sizeof("Rhythm:") + 1) * 8 + 4 * 8, 4 * 16}, "/", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 5 * 16}, "Beep Flash Duration:", Theme::getInstance()->fg_light->foreground},
@@ -113,10 +113,13 @@ class MetronomeView : public View {
         {(sizeof("Volume:") + 1) * 8, 6 * 16}};
 
     NewButton button_play_stop{
-        {0 * 8, 16 * 16, screen_width, screen_height - 16 * 16},
+        {0 * 16, 16 * 16, screen_width, screen_height - 16 * 16},
         {},
         &bitmap_icon_replay,
         Theme::getInstance()->fg_red->foreground};
+
+    ProgressBar progressbar{
+        {0 * 16, 8 * 16, screen_width, screen_height - 14 * 16}};
 };
 
 }  // namespace ui::external_app::metronome
