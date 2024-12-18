@@ -102,21 +102,6 @@ include(external/external.cmake)
 # Define linker script file here
 set(LDSCRIPT ${PORTLD}/LPC43xx_M0.ld)
 
-# Special case for these two files:
-# Originally these are compiled for M4 support, but in Mayhem we use them with M0
-# As a result they are generating a lot of noise warnings
-# Since they are not really using the defines stated in the warnings
-# Since the only used one (NVIC_USB0_IRQ) is having the same value in both M0 and M4 mode
-# => We are faking M4 mode on them
-set(NO_WARNINGS_USBFILES
-	${HACKRF_PATH}/firmware/common/usb.c
-	${HACKRF_PATH}/firmware/common/usb_queue.c
-)
-
-# -DLPC43XX_M4 kills the 'warning: "NVIC_XXXX..." redefined'
-# -D__ARM_ARCH_7M__ kills the 'warning: implicit declaration of function __ldrex && __sdrex'
-set_source_files_properties(${NO_WARNINGS_USBFILES} PROPERTIES COMPILE_FLAGS "-DLPC43XX_M4 -D__ARM_ARCH_7M__")
-
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 set(CSRC
@@ -133,7 +118,8 @@ set(CSRC
 	usb_serial_endpoints.c
 	usb_serial_device_to_host.c
 	i2c_device_to_host.c
-	${NO_WARNINGS_USBFILES}
+	${HACKRF_PATH}/firmware/common/usb.c
+	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
