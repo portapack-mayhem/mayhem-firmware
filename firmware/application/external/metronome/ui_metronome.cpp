@@ -45,7 +45,6 @@ MetronomeView::MetronomeView(NavigationView& nav)
         &progressbar,
     });
 
-    audio::set_rate(audio::Rate::Hz_48000);
     field_bpm.set_value(120);
     field_rythm_accent_time.set_value(4);
     field_rythm_unaccent_time.set_value(4);
@@ -63,7 +62,8 @@ MetronomeView::MetronomeView(NavigationView& nav)
     field_volume.set_value(0);  // seems that a change is required to force update, so setting to 0 first
     field_volume.set_value(99);
 
-    audio::set_rate(audio::Rate::Hz_24000);
+    audio::set_rate(audio::Rate::Hz_48000);
+
     audio::output::start();
 }
 
