@@ -54,8 +54,8 @@ class MetronomeView : public View {
     static msg_t static_fn(void* arg);
     void run();
 
-    bool playing{false};
-    uint8_t beep_flash_duration{100};
+    bool playing_{false};
+    uint8_t beep_flash_duration_{100};
     uint32_t current_beat_{0};
 
     Labels labels{
