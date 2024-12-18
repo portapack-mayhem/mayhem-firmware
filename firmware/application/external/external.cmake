@@ -134,8 +134,12 @@ set(EXTCPPSRC
 	#mcu_temperature
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
-
-	#tuner
+	
+	#fmradio
+	external/fmradio/main.cpp
+	external/fmradio/ui_fmradio.cpp
+  
+  #tuner
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
 )
@@ -171,7 +175,8 @@ set(EXTAPPLIST
 	ook_editor
 	shoppingcart_lock
 	flippertx
-    remote
+  remote
 	mcu_temperature
-	tuner
+	fmradio
+  tuner
 )
