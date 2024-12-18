@@ -139,9 +139,13 @@ set(EXTCPPSRC
 	external/fmradio/main.cpp
 	external/fmradio/ui_fmradio.cpp
   
-  #tuner
+	#tuner
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
+  
+	#metronome
+	external/metronome/main.cpp
+	external/metronome/ui_metronome.cpp
 )
 
 set(EXTAPPLIST
@@ -175,8 +179,9 @@ set(EXTAPPLIST
 	ook_editor
 	shoppingcart_lock
 	flippertx
-  remote
+	remote
 	mcu_temperature
 	fmradio
-  tuner
+	tuner
+	metronome
 )
