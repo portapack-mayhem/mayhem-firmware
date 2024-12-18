@@ -53,7 +53,7 @@ MetronomeView::MetronomeView(NavigationView& nav)
     field_unaccent_beep_tune.set_value(440);
     field_beep_flash_duration.set_value(100);
     button_play_stop.on_select = [this]() {
-        if (playing) {
+        if (playing_) {
             stop_play();
         } else {
             play();
@@ -83,8 +83,8 @@ void MetronomeView::focus() {
 }
 
 void MetronomeView::stop_play() {
-    if (playing) {
-        playing = false;
+    if (playing_) {
+        playing_ = false;
         button_play_stop.set_bitmap(&bitmap_icon_replay);
         baseband::request_beep_stop();
         progressbar.set_value(0);
@@ -93,8 +93,8 @@ void MetronomeView::stop_play() {
 }
 
 void MetronomeView::play() {
-    if (!playing) {
-        playing = true;
+    if (!playing_) {
+        playing_ = true;
         current_beat_ = 0;
         button_play_stop.set_bitmap(&bitmap_icon_sleep);
 
@@ -120,7 +120,7 @@ void MetronomeView::beep_unaccent_beat() {
 //     {visual_x, visual_y, visual_width, visual_height},
 //     Theme::getInstance()->bg_darkest->background);
 
-// if (playing) {
+// if (playing_) {
 //     const bool is_accent_beat = (current_beat_ % field_rythm_accent_time.value()) == 0;
 
 // const Color beat_color = is_accent_beat ?
@@ -144,7 +144,7 @@ msg_t MetronomeView::static_fn(void* arg) {
 
 void MetronomeView::run() {
     while (!should_exit) {
-        if (!playing) {
+        if (!playing_) {
             chThdSleepMilliseconds(100);
             continue;
         }
