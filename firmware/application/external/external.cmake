@@ -134,6 +134,10 @@ set(EXTCPPSRC
 	#mcu_temperature
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
+
+	#metronome
+	external/metronome/main.cpp
+	external/metronome/ui_metronome.cpp
 )
 
 set(EXTAPPLIST
@@ -169,4 +173,5 @@ set(EXTAPPLIST
 	flippertx
     remote
 	mcu_temperature
+	metronome
 )
