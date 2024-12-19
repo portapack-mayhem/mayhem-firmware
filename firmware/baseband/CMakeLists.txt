@@ -271,6 +271,7 @@ macro(DeclareTargets chunk_tag name)
 	project("baseband_${name}")
 
 	include(${RULESPATH}/rules.cmake)
+	set_source_files_properties(${MODE_CPPSRC} PROPERTIES COMPILE_FLAGS "${MODE_FLAGS}")
 	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
 	set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 	add_definitions(${DEFS})
@@ -313,6 +314,7 @@ macro(DeclareTargets chunk_tag name)
 endmacro()
 
 set(add_to_firmware TRUE)
+set(MODE_FLAGS "-O3")
 
 
 ### ADS-B RX
@@ -498,6 +500,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWTH weather)
 
+set(MODE_FLAGS "-Os")
 
 ### Flash Utility
 
@@ -559,7 +562,7 @@ DeclareTargets(PUSB sd_over_usb)
 
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
-
+set(MODE_FLAGS "-O3")
 
 ### ACARS RX
 
