@@ -41,6 +41,11 @@ using namespace morse;
 
 namespace ui::external_app::morse_tx {
 
+enum Modulation {
+    FM = 0,
+    CW = 1
+};
+
 class MorseView : public View {
    public:
     MorseView(NavigationView& nav);
