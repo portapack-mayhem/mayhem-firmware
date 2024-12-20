@@ -84,6 +84,9 @@ class Widget {
     Widget* parent() const;
     void set_parent(Widget* const widget);
 
+    virtual void on_after_attach() { return; };
+    virtual void on_before_detach() { return; };
+
     bool hidden() const { return flags.hidden; }
     void hidden(bool hide);
 
@@ -97,8 +100,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show(){};
-    virtual void on_hide(){};
+    virtual void on_show() { return; };
+    virtual void on_hide() { return; };
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
@@ -156,6 +159,8 @@ class Widget {
 };
 
 class View : public Widget {
+    // unlike Paint class, our Y ignored the top bar;
+    // so when you draw some of us as Y = 0, it would be exact below the top bar, instead of overlapped with top bar
    public:
     View() {
     }
@@ -678,7 +683,7 @@ class OptionsField : public Widget {
     std::function<void(size_t, value_t)> on_change{};
     std::function<void(void)> on_show_options{};
 
-    OptionsField(Point parent_pos, size_t length, options_t options);
+    OptionsField(Point parent_pos, size_t length, options_t options, bool centered = false);
 
     options_t& options() { return options_; }
     const options_t& options() const { return options_; }
@@ -706,6 +711,7 @@ class OptionsField : public Widget {
     const size_t length_;
     options_t options_;
     size_t selected_index_{0};
+    bool centered_{false};  // e.g.: length as screen_width/8, x position as 0, it will be centered in x axis
 };
 
 // A TextEdit is bound to a string reference and allows the string

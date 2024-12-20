@@ -55,11 +55,16 @@ class DynamicBitmap {
 
 class ExternalItemsMenuLoader {
    public:
-    static std::vector<GridItem> load_external_items(app_location_t, NavigationView&);
+    struct GridItemEx : GridItem {
+        int32_t desired_position;
+    };
+
+    static std::vector<GridItemEx> load_external_items(app_location_t, NavigationView&);
     ExternalItemsMenuLoader() = delete;
     static bool run_external_app(ui::NavigationView&, std::filesystem::path);
     static bool run_standalone_app(ui::NavigationView&, std::filesystem::path);
-    static void load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback);
+    static bool run_module_app(ui::NavigationView&, uint8_t*, size_t);
+    static void load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback, bool module_included = false);
 
    private:
     static std::vector<DynamicBitmap<16, 16>> bitmaps;

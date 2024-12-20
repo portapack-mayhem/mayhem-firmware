@@ -5,6 +5,7 @@
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
  * Copyright (C) 2024 u-foka
+ * Copyright (C) 2024 HTotoo
  * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
@@ -49,6 +50,8 @@ namespace fs = std::filesystem;
 #include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 #include "config_mode.hpp"
+#include "i2cdevmanager.hpp"
+#include "i2cdev_max17055.hpp"
 
 extern ui::SystemView* system_view_ptr;
 
@@ -321,7 +324,6 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &toggle_bias_tee,
                   &toggle_clock,
                   &toggle_mute,
-                  &toggle_fake_brightness,
                   &toggle_sd_card,
                   &button_save,
                   &button_cancel});
@@ -359,7 +361,6 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_clock.set_value(!pmem::ui_hide_clock());
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
-    toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
     toggle_battery_icon.set_value(!pmem::ui_hide_battery_icon());
     toggle_battery_text.set_value(!pmem::ui_hide_numeric_battery());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
@@ -388,7 +389,6 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_clock(!toggle_clock.value());
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
         pmem::set_ui_hide_mute(!toggle_mute.value());
-        pmem::set_ui_hide_fake_brightness(!toggle_fake_brightness.value());
         pmem::set_ui_hide_battery_icon(!toggle_battery_icon.value());
         pmem::set_ui_hide_numeric_battery(!toggle_battery_text.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
@@ -777,33 +777,19 @@ void SetConfigModeView::focus() {
 /* SetDisplayView ************************************/
 
 SetDisplayView::SetDisplayView(NavigationView& nav) {
-    add_children({&labels,
-                  &field_fake_brightness,
-                  &button_save,
+    add_children({&button_save,
                   &button_cancel,
-                  &checkbox_invert_switch,
-                  &checkbox_brightness_switch});
+                  &checkbox_invert_switch});
 
-    field_fake_brightness.set_by_value(pmem::fake_brightness_level());
-    checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
     checkbox_invert_switch.set_value(pmem::config_lcd_inverted_mode());
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
-        pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
         if (checkbox_invert_switch.value() != pmem::config_lcd_inverted_mode()) {
             display.set_inverted(checkbox_invert_switch.value());
             pmem::set_lcd_inverted_mode(checkbox_invert_switch.value());
         }
         send_system_refresh();
         nav.pop();
-    };
-    // only enable invert OR fake brightness
-    checkbox_invert_switch.on_select = [this](Checkbox&, bool v) {
-        if (v) checkbox_brightness_switch.set_value(false);
-    };
-    checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        if (v) checkbox_invert_switch.set_value(false);
     };
 
     button_cancel.on_select = [&nav, this](Button&) {
@@ -813,6 +799,107 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
 
 void SetDisplayView::focus() {
     button_save.focus();
+}
+
+/* SetTouchscreenSensitivityView ************************************/
+/* sample max: 1023 sample_t AKA uint16_t
+ * touch_sensitivity: range: 1 to 128
+ * threshold = 1023 / sensitive
+ * threshold range: 1023/1 to 1023/128  =  1023 to 8
+ */
+SetTouchscreenThresholdView::SetTouchscreenThresholdView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_threshold,
+                  &button_autodetect,
+                  &button_reset,
+                  &button_save,
+                  &button_cancel,
+                  &text_hint,
+                  &text_wait_timer});
+
+    set_dirty();
+    org_threshold = portapack::touch_threshold;
+    field_threshold.set_value(pmem::touchscreen_threshold());
+    text_hint.set_style(Theme::getInstance()->error_dark);
+    text_hint.hidden(true);
+    text_wait_timer.set_style(Theme::getInstance()->error_dark);
+    text_wait_timer.hidden(true);
+    // clang-format off
+    button_autodetect.on_select = [this, &nav](Button&) {
+        nav.display_modal("NOTICE",
+                          "Now on don't touch screen;\n"
+                          "Use arrow keys to operate.\n"
+                          "Follow instructions.\n"
+                          "Press YES to continue",
+                          YESNO, [this, &nav](bool choice) {
+                if (choice){
+                        time_start_auto_detect = chTimeNow();
+                        text_hint.hidden(false);
+                        text_wait_timer.hidden(false);
+                        text_wait_timer.set("ETA " + to_string_dec_uint(10) + "s");
+                        in_auto_detect = true;
+                        field_threshold.set_value(1);
+                        portapack::touch_threshold = 1;
+                        set_dirty(); } }, TRUE);
+    };
+    // clang-format on
+
+    button_reset.on_select = [this](Button&) {
+        field_threshold.set_value(32);
+        portapack::touch_threshold = 32;
+    };
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_touchscreen_threshold(field_threshold.value());
+        portapack::touch_threshold = field_threshold.value();
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        portapack::touch_threshold = org_threshold;
+        nav.pop();
+    };
+}
+
+void SetTouchscreenThresholdView::focus() {
+    button_autodetect.focus();
+    set_dirty();
+}
+
+void SetTouchscreenThresholdView::on_frame_sync() {
+    if (!in_auto_detect) return;
+    uint32_t time_now = chTimeNow();
+    int32_t time_diff = time_now - time_start_auto_detect;
+    text_wait_timer.set("ETA " + to_string_dec_uint((10 - time_diff / 1000) <= 0 ? 0 : 10 - time_diff / 1000) + "s");
+    if (time_diff >= 10001 && !auto_detect_succeed_consumed) {  // 10s
+        in_auto_detect = false;
+        text_wait_timer.hidden(true);
+        text_hint.set("OK, press save and reboot");
+        portapack::touch_threshold = org_threshold;
+        pmem::set_touchscreen_threshold(org_threshold);
+        set_dirty();
+        auto_detect_succeed_consumed = true;
+        button_save.focus();
+        return;
+    }
+    if (get_touch_frame().touch) {
+        if (in_auto_detect) {
+            uint16_t sen = field_threshold.value();
+            sen++;
+            portapack::touch_threshold = sen;
+            field_threshold.set_value(sen);
+        }
+    }
+}
+
+SetTouchscreenThresholdView::~SetTouchscreenThresholdView() {
+    // it seems that sometimes in the msg handler func it would enter the condi that not possible to entered,
+    // so added this workaround.
+    // TODO: find out why
+    in_auto_detect = false;
+    auto_detect_succeed_consumed = false;
+    time_start_auto_detect = 0;
 }
 
 /* SetMenuColorView ************************************/
@@ -876,6 +963,7 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
+                  &button_reset,
                   &options});
 
     button_save.on_select = [&nav, this](Button&) {
@@ -890,6 +978,12 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
+    };
+
+    button_reset.on_select = [this](Button&) {
+        selected = 0;
+        options.set_selected_index(0);
+        autostart_app = "";
     };
 
     // options
@@ -969,7 +1063,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
                   &button_cancel,
                   &checkbox_overridebatt});
 
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BATT_MAX17055) add_children({&button_reset, &labels2});
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) add_children({&button_reset, &labels2});
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
@@ -979,7 +1073,8 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     };
 
     button_reset.on_select = [&nav, this](Button&) {
-        if (battery::BatteryManagement::reset_learned())
+        auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+        if (dev->reset_learned())
             nav.display_modal("Reset", "Battery parameters reset");
         else
             nav.display_modal("Error", "Error parameter reset");
@@ -1011,6 +1106,7 @@ void SettingsMenuView::on_populate() {
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<TouchCalibrationView>(); }},
+        {"TouchThreshold", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<SetTouchscreenThresholdView>(); }},
         {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [this]() { nav_.push<SetConfigModeView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},

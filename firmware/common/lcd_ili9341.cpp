@@ -344,7 +344,20 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
 }
 
 // RLE_4 BMP loader (delta not implemented)
-void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool transparency) {
+/* draw transparent, pass transparent color as arg, usage inline anonymous obj
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, (const uint8_t[]){41, 24, 22}); // dec, out of {255, 255, 255}
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, (const uint8_t[]){0x29, 0x18, 0x16}); //hex out of {0xFF, 0xFF, 0xFF}
+ *
+ * draw transparent, pass transparent color as arg, usage pass uint8_t[] obj
+ * const uint8_t c[] = {41, 24, 22}; or const uint8_t c[3] = {0x29, 0x18, 0x16};
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, c);
+ *
+ * don't draw transparent, pass nullptr as arg, usage
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, nullptr);
+ *
+ * if your image use RLE compress as transparency methods, pass any valid color as arg, it doesn't matter (like the modal bmp. TODO: write RLE transparency generator)
+ * */
+void ILI9341::draw_bmp_from_bmp_hex_arr(const ui::Point p, const uint8_t* bitmap, const uint8_t* transparency_color) {
     const bmp_header_t* bmp_header = (const bmp_header_t*)bitmap;
     uint32_t data_idx;
     uint8_t by, c, count, transp_idx = 0;
@@ -362,12 +375,13 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
     // Convert palette and find pure magenta index (alpha color key) rgb dec(41,24,22)
     for (c = 0; c < 16; c++) {
         palette[c] = ui::Color(bmp_palette->color[c].R, bmp_palette->color[c].G, bmp_palette->color[c].B);
-        if ((bmp_palette->color[c].R == 0x29) &&
-            (bmp_palette->color[c].G == 0x18) &&
-            (bmp_palette->color[c].B == 0x16)) transp_idx = c;
+        if (transparency_color &&
+            (bmp_palette->color[c].R == transparency_color[0]) &&
+            (bmp_palette->color[c].G == transparency_color[1]) &&
+            (bmp_palette->color[c].B == transparency_color[2])) transp_idx = c;
     }
 
-    if (!transparency) {
+    if (!transparency_color) {
         py = bmp_header->height + 16;
         do {
             by = bitmap[data_idx++];
@@ -449,7 +463,7 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
  *     24bpp RGB
  *     32bpp ARGB
  */
-bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
+bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem::path& file) {
     File bmpimage;
     size_t file_pos = 0;
     uint16_t pointer = 0;
@@ -498,7 +512,9 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
 
     file_pos = bmp_header.image_data;
 
-    py = height + 16;
+    py = height + 16 - 1;
+    /*                 ^ this is for to "start" AKA "image end" draw at the 17th line,
+     *                   because the render_line logic below is start with p.y() + py until "end" AKA "image start"*/
 
     while (1) {
         while (px < width) {

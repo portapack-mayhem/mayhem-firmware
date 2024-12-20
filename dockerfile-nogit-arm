@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:noble
 
 # Set location to download ARM toolkit from.
 # This will need to be changed over time or replaced with a static link to the latest release.
@@ -11,18 +11,9 @@ WORKDIR /havoc/firmware
 
 # Fetch dependencies from APT
 RUN apt-get update \
- && apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 liblz4-tool curl ninja-build \
+ && apt-get install -y git tar wget dfu-util cmake python3 python3-pip python3-yaml ccache bzip2 liblz4-tool curl ninja-build \
  && apt-get -qy autoremove \
  && rm -rf /var/lib/apt/lists/*
-
-#Install current pip from PyPa
-RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
-	python3 get-pip.py
-
-#Fetch additional dependencies from Python 3.x pip
-RUN pip install pyyaml \
- && ln -s /usr/bin/python3 /usr/bin/python \
- && ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8

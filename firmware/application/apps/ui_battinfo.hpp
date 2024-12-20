@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +28,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include "i2cdevmanager.hpp"
 
 namespace ui {
 class BattinfoView : public View {
@@ -61,7 +63,7 @@ class BattinfoView : public View {
         {{2 * 8, 4 * 16}, "Current:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 5 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 6 * 16}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 7 * 16}, "Cycles:", Theme::getInstance()->fg_light->foreground},
+        // {{2 * 8, 7 * 16}, "Cycles:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 16}, "Change method:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -83,13 +85,13 @@ class BattinfoView : public View {
     Text text_ttef{
         {13 * 8, 6 * 16, 10 * 16, 16},
         "-"};
-    Text text_cycles{
+    /* Text text_cycles{
         {13 * 8, 7 * 16, 10 * 16, 16},
         "-"};
 
     Text text_warn{
-        {2 * 8, 8 * 16, 30 * 8, 2 * 16},
-        ""};
+        {1 * 8, 8 * 16, 30 * 8, 2 * 16},
+        ""}; */
 
     Button button_mode{
         {2 * 8, 11 * 16 + 5, 5 * 16, 32},

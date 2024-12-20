@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_H
+#define __USB_SERIAL_H
 
 #include "ch.h"
 #include "hal.h"
@@ -37,6 +38,8 @@ class USBSerial {
     void on_channel_closed();
     void setEventDispatcher(EventDispatcher* ed) { _eventDispatcher = ed; }
 
+    bool serial_connected() { return connected; }
+
    private:
     void enable_xtal();
     void disable_pll0();
@@ -52,3 +55,5 @@ class USBSerial {
 };
 
 }  // namespace portapack
+
+#endif

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 HTotoo, zxkmm
  *
  * This file is part of PortaPack.
  *
@@ -49,10 +48,12 @@ ProtoView::ProtoView(NavigationView& nav)
                   &field_vga,
                   &field_volume,
                   &field_frequency,
-                  &labels,
+                  &label_zoom,
+                  &label_shift,
                   &options_zoom,
                   &number_shift,
                   &button_reset,
+                  &button_pause,
                   &waveform,
                   &waveform2,
                   &waveform3,
@@ -72,6 +73,10 @@ ProtoView::ProtoView(NavigationView& nav)
     button_reset.on_select = [this](Button&) {
         reset();
     };
+    button_pause.on_select = [this](Button&) {
+        set_pause(!paused);
+    };
+    set_pause(false);  // need to use this to default hide shift functionality
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -80,6 +85,7 @@ ProtoView::ProtoView(NavigationView& nav)
 
 void ProtoView::reset() {
     cnt = 0;
+    set_pause(false);
     number_shift.set_value(0);
     waveform_shift = 0;
     for (uint16_t i = 0; i < MAXSIGNALBUFFER; i++) time_buffer[i] = 0;
@@ -134,19 +140,20 @@ void ProtoView::draw() {
     drawcnt = 0;
     for (uint16_t i = 0; i < MAXDRAWCNT; i++) waveform_buffer[i] = 0;  // reset
 
-    // add empty data for padding (so you can shift left/nagetive)
-    for (int32_t i = 0;
-         i < ((waveform_shift > 0) ? 0 : -waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift nagetive (left side)
-         ++i) {
-        waveform_buffer[drawcnt++] = 0;
+    // add empty data for padding (so you can shift left/negative)
+    if (waveform_shift < 0) {
+        for (int32_t i = 0; (i < -1 * waveform_shift) && drawcnt < MAXDRAWCNT;  // this is for shift negative (move to right)
+             ++i) {
+            waveform_buffer[drawcnt++] = 0;
+        }
     }
-
-    for (uint16_t i = ((waveform_shift < 0) ? -waveform_shift : 0);  // this is for shift positive aka right side
-         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;                // prevent out of ranging
+    uint16_t skipped = 0;
+    uint16_t to_skip = ((waveform_shift > 0) ? waveform_shift : 0);  // when >0 it'll skip some to move left
+    for (uint16_t i = 0;
+         i < MAXSIGNALBUFFER && drawcnt < MAXDRAWCNT;  // prevent out of ranging
          ++i) {
-        uint16_t buffer_index = (i + waveform_shift + MAXSIGNALBUFFER) % MAXSIGNALBUFFER;
-        state = time_buffer[buffer_index] >= 0;
-        int32_t timeabs = state ? time_buffer[buffer_index] : -1 * time_buffer[buffer_index];
+        state = time_buffer[i] >= 0;
+        int32_t timeabs = state ? time_buffer[i] : -1 * time_buffer[i];
         int32_t timesize = timeabs / zoom;
         if (timesize == 0) {
             remain += timeabs;
@@ -164,7 +171,11 @@ void ProtoView::draw() {
         remain = 0;
         lmax = 0;
         for (int32_t ii = 0; ii < timesize && drawcnt < MAXDRAWCNT; ++ii) {
-            waveform_buffer[drawcnt++] = state;
+            if (skipped < to_skip) {
+                skipped++;
+            } else {
+                waveform_buffer[drawcnt++] = state;
+            }
         }
     }
 }
@@ -175,6 +186,7 @@ void ProtoView::add_time(int32_t time) {
 }
 
 void ProtoView::on_data(const ProtoViewDataMessage* message) {
+    if (paused) return;
     // filter out invalid ones.
     uint16_t start = 0;
     uint16_t stop = 0;
@@ -205,6 +217,20 @@ void ProtoView::on_data(const ProtoViewDataMessage* message) {
 
 void ProtoView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
+}
+
+void ProtoView::set_pause(bool pause) {
+    paused = pause;
+    if (pause) {
+        label_shift.hidden(false);
+        number_shift.hidden(false);
+        button_pause.set_text(LanguageHelper::currentMessages[LANG_RESUME]);
+    } else {
+        label_shift.hidden(true);
+        number_shift.hidden(true);
+        button_pause.set_text(LanguageHelper::currentMessages[LANG_PAUSE]);
+    }
+    set_dirty();
 }
 
 ProtoView::~ProtoView() {

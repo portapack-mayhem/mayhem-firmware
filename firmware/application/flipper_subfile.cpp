@@ -29,13 +29,16 @@
 namespace fs = std::filesystem;
 using namespace std::literals;
 
-const std::string_view filetype_name = "Filetype"sv;
-const std::string_view frequency_name = "Frequency"sv;
-const std::string_view latitude_name = "Latitute"sv;
-const std::string_view longitude_name = "Longitude"sv;
-const std::string_view protocol_name = "Protocol"sv;
-const std::string_view preset_name = "Preset"sv;
-const std::string_view te_name = "TE"sv;  // only in BinRAW
+const std::string filetype_name = "Filetype";
+const std::string frequency_name = "Frequency";
+const std::string latitude_name_old = "Latitute";
+const std::string longitude_name_old = "Longitude";
+const std::string latitude_name = "Lat";
+const std::string longitude_name = "Lon";
+const std::string protocol_name = "Protocol";
+const std::string preset_name = "Preset";
+const std::string te_name = "TE";          // only in BinRAW
+const std::string bit_count_name = "Bit";  // for us, only in BinRAW
 
 /*
 Filetype: Flipper SubGhz Key File
@@ -70,35 +73,54 @@ raw_data- positive: carrier for n time, negative: no carrier for n time. (us)
 Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
     File f;
     auto error = f.open(path);
-
     if (error)
         return {};
-
     flippersub_metadata metadata{};
 
-    auto reader = FileLineReader(f);
-    for (const auto& line : reader) {
-        auto cols = split_string(line, ':');
-
-        if (cols.size() != 2)
+    char ch = 0;
+    std::string line = "";
+    auto fr = f.read(&ch, 1);
+    while (!fr.is_error() && fr.value() > 0) {
+        if (line.length() < 130 && ch != '\n') line += ch;
+        if (ch != '\n') {
+            fr = f.read(&ch, 1);
+            continue;
+        }
+        auto it = line.find(':', 0);
+        if (it == std::string::npos) {
+            fr = f.read(&ch, 1);
             continue;  // Bad line.
-        if (cols[1].length() <= 1) continue;
-        std::string fixed = cols[1].data() + 1;
+        }
+        std::string fixed = line.data() + it + 1;
         fixed = trim(fixed);
-        if (cols[0] == filetype_name) {
+        std::string head = line.substr(0, it);
+        line = "";
+
+        if (fixed.length() <= 1) {
+            fr = f.read(&ch, 1);
+            continue;
+        }
+
+        if (head == filetype_name) {
             if (fixed != "Flipper SubGhz Key File" && fixed != "Flipper SubGhz RAW File") return {};  // not supported
-        } else if (cols[0] == frequency_name)
+        } else if (head == frequency_name)
             parse_int(fixed, metadata.center_frequency);
-        else if (cols[0] == latitude_name)
+        else if (head == latitude_name)
             parse_float_meta(fixed, metadata.latitude);
-        else if (cols[0] == longitude_name)
+        else if (head == longitude_name)
             parse_float_meta(fixed, metadata.longitude);
-        else if (cols[0] == protocol_name) {
+        else if (head == latitude_name_old)
+            parse_float_meta(fixed, metadata.latitude);
+        else if (head == longitude_name_old)
+            parse_float_meta(fixed, metadata.longitude);
+        else if (head == protocol_name) {
             if (fixed == "RAW") metadata.protocol = FLIPPER_PROTO_RAW;
             if (fixed == "BinRAW") metadata.protocol = FLIPPER_PROTO_BINRAW;
-        } else if (cols[0] == te_name) {
+        } else if (head == te_name) {
             metadata.te = atoi(fixed.c_str());
-        } else if (cols[0] == preset_name) {
+        } else if (head == bit_count_name) {
+            metadata.binraw_bit_count = atol(fixed.c_str());
+        } else if (head == preset_name) {
             if (fixed.find("FSK") != std::string::npos) {
                 metadata.preset = FLIPPER_PRESET_2FSK;
             } else if (fixed.find("Ook") != std::string::npos) {
@@ -106,12 +128,92 @@ Optional<flippersub_metadata> read_flippersub_file(const fs::path& path) {
             } else if (fixed.find("Custom") != std::string::npos) {
                 metadata.preset = FLIPPER_PRESET_CUSTOM;
             }
-
-        } else
-            continue;
+        }
+        fr = f.read(&ch, 1);
     }
-
+    f.close();
     if (metadata.center_frequency == 0) return {};  // Parse failed.
 
     return metadata;
+}
+
+bool seek_flipper_raw_first_data(File& f) {
+    f.seek(0);
+    std::string chs = "";
+    char ch;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;
+        if (ch == '\n') {
+            chs = "";
+            continue;
+        };
+        chs += ch;
+        if (ch == 0) break;
+        if (chs == "RAW_Data: ") {
+            return true;
+        }
+    }
+    return false;
+}
+bool seek_flipper_binraw_first_data(File& f, bool seekzero) {
+    if (seekzero) f.seek(0);
+    std::string chs = "";
+    char ch;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;
+        if (ch == '\n') {
+            chs = "";
+            continue;
+        };
+        if (ch == 0) break;
+        chs += ch;
+        if (chs == "Data_RAW: ") {
+            return true;
+        }
+    }
+    return false;
+}
+
+Optional<int32_t> read_flipper_raw_next_data(File& f) {
+    // RAW_Data: 5832 -12188 130 -162
+    std::string chs = "";
+    char ch = 0;
+    while (f.read(&ch, 1).is_ok()) {
+        if (ch == '\r') continue;  // should not present
+        if ((ch == ' ') || ch == '\n') {
+            if (chs == "RAW_Data:") {
+                chs = "";
+                continue;
+            }
+            break;
+        };
+        if (ch == 0) break;
+        chs += ch;
+    }
+    if (chs == "") return {};
+    return atol(chs.c_str());
+}
+
+Optional<uint8_t> read_flipper_binraw_next_data(File& f) {
+    // Data_RAW: 02 10 84 BUT THERE ARE  Bit_RAW lines to skip!
+    std::string chs = "";
+    char ch = 0;
+    while (f.read(&ch, 1)) {
+        if (ch == '\r') continue;  // should not present
+        if ((ch == ' ') || ch == '\n') {
+            if (chs == "RAW_Data:") {
+                chs = "";
+                continue;
+            }
+            break;
+        };
+        if (ch == 0) break;
+        chs += ch;
+    }
+    if (chs == "") return {};
+    return static_cast<uint8_t>(std::stoul(chs, nullptr, 16));
+}
+
+bool get_flipper_binraw_bitvalue(uint8_t byte, uint8_t nthBit) {
+    return (byte & (1 << nthBit)) != 0;
 }

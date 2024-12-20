@@ -33,6 +33,8 @@ using namespace pocsag;
 
 namespace ui {
 
+#define MAX_POCSAG_LENGTH 80
+
 void POCSAGTXView::focus() {
     field_address.focus();
 }
@@ -57,6 +59,7 @@ void POCSAGTXView::on_remote(const PocsagTosendMessage data) {
     options_phase.set_selected_index(data.phase == 'P' ? 0 : 1);
     field_address.set_value(data.addr);
     message = (char*)data.msg;
+    buffer = message;
     text_message.set(message);
     options_bitrate.dirty();
     options_type.dirty();
@@ -105,9 +108,9 @@ bool POCSAGTXView::start_tx() {
 
     progressbar.set_max(total_frames);
 
-    transmitter_model.set_rf_amp(true);
-    transmitter_model.set_tx_gain(40);
-    // We left exactly same TX LPF settings as previous fw 1.7.4,  TX LPF= 1M75 (min). It is fine even in max FM dev. 150khz and 2400 bauds.
+    // transmitter_model.set_rf_amp(true);
+    // transmitter_model.set_tx_gain(40);
+    //  We left exactly same TX LPF settings as previous fw 1.7.4,  TX LPF= 1M75 (min). It is fine even in max FM dev. 150khz and 2400 bauds.
     transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF . Pocsag is NBFM , using BW channel 25khz or 12khz
     transmitter_model.enable();
 
@@ -139,11 +142,18 @@ bool POCSAGTXView::start_tx() {
 
 void POCSAGTXView::paint(Painter&) {
     message = buffer;
-    text_message.set(message);
+    text_message.set(message);  // the whole message, but it may not fit.
+    if (message.length() > 30 && message.length() <= 60) {
+        text_message_l2.set(message.substr(29));  // remaining to 2nd line
+    } else if (message.length() > 60) {
+        text_message_l2.set(message.substr(29, 27) + "...");
+    } else {
+        text_message_l2.set("");
+    }
 }
 
 void POCSAGTXView::on_set_text(NavigationView& nav) {
-    text_prompt(nav, buffer, 30);
+    text_prompt(nav, buffer, MAX_POCSAG_LENGTH);
 }
 
 POCSAGTXView::POCSAGTXView(
@@ -158,6 +168,7 @@ POCSAGTXView::POCSAGTXView(
                   &options_function,
                   &options_phase,
                   &text_message,
+                  &text_message_l2,
                   &button_message,
                   &progressbar,
                   &tx_view});

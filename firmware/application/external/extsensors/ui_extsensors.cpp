@@ -22,6 +22,7 @@
 #include "rtc_time.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "i2cdevmanager.hpp"
 
 using namespace portapack;
 using namespace ui;
@@ -29,7 +30,7 @@ using namespace ui;
 namespace ui::external_app::extsensors {
 
 void ExtSensorsView::focus() {
-    text_info.focus();
+    console.focus();
 }
 
 ExtSensorsView::ExtSensorsView(NavigationView& nav)
@@ -39,10 +40,33 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_gps,
                   &text_orientation,
                   &text_envl1,
-                  &text_envl2});
+                  &text_envl2,
+                  &text_envl3,
+                  &console});
+
+    prev_scan_int = i2cdev::I2CDevManager::get_autoscan_interval();
+    refreshi2c();
+    i2cdev::I2CDevManager::set_autoscan_interval(3);  // scan each 3 sec for new i2c devices
+}
+
+void ExtSensorsView::on_new_dev() {
+    refreshi2c();
+}
+
+void ExtSensorsView::refreshi2c() {
+    console.clear(true);
+    console.writeln("Found I2C devices:");
+    auto addrlist = i2cdev::I2CDevManager::get_gev_list_by_addr();
+    for (size_t i = 0; i < addrlist.size(); ++i) {
+        console.write("0x");
+        console.write(to_string_hex(addrlist[i]));
+        console.write(", ");
+    }
+    if (addrlist.size() == 0) console.writeln("No I2C devs found.");
 }
 
 ExtSensorsView::~ExtSensorsView() {
+    i2cdev::I2CDevManager::set_autoscan_interval(prev_scan_int);
 }
 
 void ExtSensorsView::on_any() {
@@ -78,9 +102,14 @@ void ExtSensorsView::on_environment(const EnvironmentDataMessage* msg) {
     tmp += "C";
     tmp += "; H: " + to_string_decimal(msg->humidity, 1) + "%";  // humidity
     text_envl1.set(tmp);
-    tmp = "P: " + to_string_decimal(msg->pressure, 1) + " hPa; L:";  // pressure
-    tmp += to_string_dec_int(msg->light) + " LUX";                   // light
+    tmp = "P: " + to_string_decimal(msg->pressure, 1) + " hPa";  // pressure
     text_envl2.set(tmp);
+}
+
+void ExtSensorsView::on_light(const LightDataMessage* msg) {
+    on_any();
+    std::string tmp = "L: " + to_string_dec_int(msg->light) + " LUX";
+    text_envl3.set(tmp);
 }
 
 }  // namespace ui::external_app::extsensors

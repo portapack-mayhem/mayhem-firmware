@@ -36,14 +36,6 @@ namespace touch {
 
 using sample_t = uint16_t;
 
-constexpr sample_t sample_max = 1023;
-
-// If you have a dead bottom-left corner try to increase the sensitivity,
-// but look for flickering touch indicator in the Buttons test screen
-// in which case decrease sensitivity to avoid killing backlight timeout
-constexpr sample_t touch_sensitivity = 32;
-constexpr sample_t touch_threshold = sample_max / touch_sensitivity;
-
 struct Samples {
     sample_t xp;
     sample_t xn;

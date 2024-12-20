@@ -74,8 +74,11 @@ class ProtoView : public View {
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
-    Labels labels{
-        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground},
+
+    // need to seperate because label shift need to hide independently
+    Labels label_zoom{
+        {{0 * 8, 1 * 16}, "Zoom: ", Theme::getInstance()->fg_light->foreground}};
+    Labels label_shift{
         {{0 * 8, 2 * 16}, "Shift: ", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_zoom{
@@ -102,6 +105,10 @@ class ProtoView : public View {
     Button button_reset{
         {screen_width - 12 * 8, 1 * 16, 96, 24},
         LanguageHelper::currentMessages[LANG_RESET]};
+
+    Button button_pause{
+        {screen_width - 12 * 8, 1 * 16 + 24, 96, 24},
+        LanguageHelper::currentMessages[LANG_PAUSE]};
 
     Waveform waveform{
         {0, 8 * 8, 240, 50},
@@ -136,6 +143,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     bool needCntReset = false;
+    bool paused = false;
 
     int16_t zoom = 1;  // one value in ms
     int16_t waveform_shift = 0;
@@ -151,6 +159,7 @@ class ProtoView : public View {
     void on_data(const ProtoViewDataMessage* message);
     void draw();
     void draw2();
+    void set_pause(bool pause);
     void reset();
 
     MessageHandlerRegistration message_handler_packet{

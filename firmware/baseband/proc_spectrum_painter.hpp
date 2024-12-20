@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __PROC_SPECTRUM_PAINTER_H
+#define __PROC_SPECTRUM_PAINTER_H
 
 #include "portapack_shared_memory.hpp"
 #include "baseband_processor.hpp"
@@ -46,3 +47,5 @@ class SpectrumPainterProcessor : public BasebandProcessor {
         return 0;
     }
 };
+
+#endif

@@ -85,7 +85,7 @@ static bool touch_update() {
         case IO::TouchPinsConfig::SensePressure: {
             const auto z1 = samples.xp - samples.xn;
             const auto z2 = samples.yp - samples.yn;
-            const auto touch_raw = (z1 > touch::touch_threshold) || (z2 > touch::touch_threshold);
+            const auto touch_raw = (z1 > portapack::touch_threshold) || (z2 > portapack::touch_threshold);
             touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
             touch_detected = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
             if (!touch_detected && !touch_cycle) {

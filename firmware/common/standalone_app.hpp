@@ -26,9 +26,12 @@
 #include <cstdint>
 #include <stddef.h>
 
-#define CURRENT_STANDALONE_APPLICATION_API_VERSION 1
+#include "ui.hpp"
+
+#define CURRENT_STANDALONE_APPLICATION_API_VERSION 2
 
 struct standalone_application_api_t {
+    // Version 1
     void* (*malloc)(size_t size);
     void* (*calloc)(size_t num, size_t size);
     void* (*realloc)(void* p, size_t size);
@@ -37,6 +40,26 @@ struct standalone_application_api_t {
     void (*fill_rectangle)(int x, int y, int width, int height, uint16_t color);
     uint8_t (*swizzled_switches)();
     uint64_t (*get_switches_state)();
+
+    // Version 2
+    const uint8_t* fixed_5x8_glyph_data;
+    const uint8_t* fixed_8x16_glyph_data;
+
+    void (*fill_rectangle_unrolled8)(int x, int y, int width, int height, uint16_t color);
+    void (*draw_bitmap)(int x, int y, int width, int height, const uint8_t* pixels, uint16_t foreground, uint16_t background);
+
+    ui::Coord (*scroll_area_y)(const ui::Coord y);
+    void (*scroll_set_area)(const ui::Coord top_y, const ui::Coord bottom_y);
+    void (*scroll_disable)();
+    ui::Coord (*scroll_set_position)(const ui::Coord position);
+    ui::Coord (*scroll)(const int32_t delta);
+
+    bool (*i2c_read)(uint8_t* cmd, size_t cmd_len, uint8_t* data, size_t data_len);
+    void (*panic)(const char* msg);
+    void (*set_dirty)();
+
+    // TODO: add filesystem access functions
+    // TODO: add baseband access functions
 
     // HOW TO extend this interface:
     // to keep everything backward compatible: add new fields at the end
@@ -69,6 +92,13 @@ struct standalone_application_information_t {
 
     /// @brief gets called once at application shutdown
     void (*shutdown)();
+
+    void (*PaintViewMirror)();
+    void (*OnTouchEvent)(int x, int y, uint32_t type);
+    void (*OnFocus)();
+    bool (*OnKeyEvent)(uint8_t key);
+    bool (*OnEncoder)(int32_t delta);
+    bool (*OnKeyboard)(uint8_t key);
 };
 
 #endif /*__UI_STANDALONE_APP_H__*/

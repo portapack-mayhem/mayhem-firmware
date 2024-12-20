@@ -50,6 +50,7 @@
 #include "sd_card.hpp"
 #include "external_app.hpp"
 #include "view_factory.hpp"
+#include "battery.hpp"
 
 // for incrementing fake date when RTC battery is dead
 #define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
@@ -196,6 +197,7 @@ class SystemStatusView : public View {
     static constexpr auto default_title = "";
     bool batt_was_inited = false;  // if the battery was off on tart, but later turned on.
     bool batt_info_up = false;     // to prevent show multiple batt info dialog
+
     NavigationView& nav_;
 
     Rectangle backdrop{
@@ -278,12 +280,6 @@ class SystemStatusView : public View {
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
 
-    ImageButton button_fake_brightness{
-        {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_brightness,
-        *Theme::getInstance()->status_active,
-        Theme::getInstance()->bg_dark->background};
-
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
@@ -327,7 +323,7 @@ class InformationView : public View {
 
     Rectangle backdrop{
         {0, 0 * 16, 240, 16},
-        {33, 33, 33}};
+        Theme::getInstance()->bg_darker->background};
 
     Text version{
         {2, 0, 11 * 8, 16},
@@ -337,13 +333,17 @@ class InformationView : public View {
         {86, 0, 19 * 8, 16}};
 };
 
-class BMPView : public View {
+class SplashScreenView : public View {
    public:
-    BMPView(NavigationView& nav);
+    SplashScreenView(NavigationView& nav);
     void paint(Painter&) override;
     void focus() override;
 
+    bool on_touch(const TouchEvent event) override;
+    void handle_pop();
+
    private:
+    NavigationView& nav_;
     Button button_done{
         {240, 0, 1, 1},
         ""};

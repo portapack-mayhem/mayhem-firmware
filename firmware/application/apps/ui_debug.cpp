@@ -36,7 +36,8 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_painter.hpp"
 #include "ui_external_items_menu_loader.hpp"
-#include "ui_debug_battery.hpp"
+#include "ui_debug_max17055.hpp"
+#include "ui_external_module_view.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -70,91 +71,6 @@ DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 }
 
 void DebugMemoryView::focus() {
-    button_done.focus();
-}
-
-/* TemperatureWidget *****************************************************/
-
-void TemperatureWidget::paint(Painter& painter) {
-    const auto logger = portapack::temperature_logger;
-
-    const auto rect = screen_rect();
-    const Color color_background{0, 0, 64};
-    const Color color_foreground = Theme::getInstance()->fg_green->foreground;
-    const Color color_reticle{128, 128, 128};
-
-    const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
-    const Rect graph_rect{
-        rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
-        graph_width, rect.height()};
-    const Rect frame_rect{
-        graph_rect.left() - 1, graph_rect.top() - 1,
-        graph_rect.width() + 2, graph_rect.height() + 2};
-    painter.draw_rectangle(frame_rect, color_reticle);
-    painter.fill_rectangle(graph_rect, color_background);
-
-    const auto history = logger.history();
-    for (size_t i = 0; i < history.size(); i++) {
-        const Coord x = graph_rect.right() - (history.size() - i) * bar_width;
-        const auto sample = history[i];
-        const auto temp = temperature(sample);
-        const auto y = screen_y(temp, graph_rect);
-        const Dim bar_height = graph_rect.bottom() - y;
-        painter.fill_rectangle({x, y, bar_width, bar_height}, color_foreground);
-    }
-
-    if (!history.empty()) {
-        const auto sample = history.back();
-        const auto temp = temperature(sample);
-        const auto last_y = screen_y(temp, graph_rect);
-        const Coord x = graph_rect.right() + 8;
-        const Coord y = last_y - 8;
-
-        painter.draw_string({x, y}, style(), temperature_str(temp));
-    }
-
-    const auto display_temp_max = display_temp_min + (graph_rect.height() / display_temp_scale);
-    for (auto temp = display_temp_min; temp <= display_temp_max; temp += 10) {
-        const int32_t tick_length = 6;
-        const auto tick_x = graph_rect.left() - tick_length;
-        const auto tick_y = screen_y(temp, graph_rect);
-        painter.fill_rectangle({tick_x, tick_y, tick_length, 1}, color_reticle);
-        const auto text_x = graph_rect.left() - temp_len * 8 - 8;
-        const auto text_y = tick_y - 8;
-        painter.draw_string({text_x, text_y}, style(), temperature_str(temp));
-    }
-}
-
-TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t sensor_value) const {
-    // Scaling is different for MAX2837 vs MAX2839 so it's now done in the respective chip-specific module
-    return sensor_value;
-}
-
-std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
-    return to_string_dec_int(temperature, temp_len - 2) + STR_DEGREES_C;
-}
-
-Coord TemperatureWidget::screen_y(
-    const temperature_t temperature,
-    const Rect& rect) const {
-    int y_raw = rect.bottom() - ((temperature - display_temp_min) * display_temp_scale);
-    const auto y_limit = std::min(rect.bottom(), std::max(rect.top(), y_raw));
-    return y_limit;
-}
-
-/* TemperatureView *******************************************************/
-
-TemperatureView::TemperatureView(NavigationView& nav) {
-    add_children({
-        &text_title,
-        &temperature_widget,
-        &button_done,
-    });
-
-    button_done.on_select = [&nav](Button&) { nav.pop(); };
-}
-
-void TemperatureView::focus() {
     button_done.focus();
 }
 
@@ -226,8 +142,10 @@ uint32_t RegistersWidget::reg_read(const uint32_t register_number) {
                 return radio::debug::second_if::register_read(register_number);
             case CT_SI5351:
                 return portapack::clock_generator.read_register(register_number);
-            case CT_BATTERY:
-                return battery::BatteryManagement::read_register(register_number);
+            case CT_MAX17055: {
+                i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+                return dev->read_register(register_number);
+            }
             case CT_AUDIO:
                 return audio::debug::reg_read(register_number);
         }
@@ -249,9 +167,11 @@ void RegistersWidget::reg_write(const uint32_t register_number, const uint32_t v
             case CT_SI5351:
                 portapack::clock_generator.write_register(register_number, value);
                 break;
-            case CT_BATTERY:
-                battery::BatteryManagement::write_register(register_number, value);
+            case CT_MAX17055: {
+                i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+                dev->write_register(register_number, value);
                 break;
+            }
             case CT_AUDIO:
                 audio::debug::reg_write(register_number, value);
                 break;
@@ -465,9 +385,9 @@ void DebugPeripheralsMenuView::on_populate() {
         {si5351x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
         {audio::debug::codec_name(), Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BatteryModules::BATT_MAX17055) {
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) {
         add_item(
-            {"MAX17055", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("MAX17055", RegistersWidgetConfig{CT_BATTERY, 256, 16, 16}); }});
+            {"MAX17055", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("MAX17055", RegistersWidgetConfig{CT_MAX17055, 256, 16, 16}); }});
     }
     set_max_rows(2);  // allow wider buttons
 }
@@ -502,17 +422,15 @@ void DebugMenuView::on_populate() {
         {"Debug Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { portapack::persistent_memory::debug_dump(); }},
         {"M0 Stack Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { stack_dump(); }},
         {"Memory Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryDumpView>(); }},
-        //{"Memory Usage", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryView>(); }},
         {"Peripherals", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
         {"Pers. Memory", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
-        //{ "Radio State",	ui::Theme::getInstance()->bg_darkest->foreground,	nullptr,	[this](){ nav_.push<NotImplementedView>(); } },
         {"SD Card", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
-        {"Temperature", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
         {"Touch Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
         {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
+        {"Ext Module", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<ExternalModuleView>(); }},
     });
 
-    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BatteryModules::BATT_MAX17055) {
+    if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) {
         add_item(
             {"Battery", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_batt_icon, [this]() { nav_.push<BatteryCapacityView>(); }});
     }

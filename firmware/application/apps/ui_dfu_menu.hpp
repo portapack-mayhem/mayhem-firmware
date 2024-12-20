@@ -60,8 +60,6 @@ class DfuMenu : public View {
         {{6 * CHARACTER_WIDTH, 13 * LINE_HEIGHT}, "M4 miss:", Theme::getInstance()->fg_darkcyan->foreground},
         {{6 * CHARACTER_WIDTH, 14 * LINE_HEIGHT}, "Uptime:", Theme::getInstance()->fg_darkcyan->foreground}};
 
-    Labels voltage_label{{{6 * CHARACTER_WIDTH, 15 * LINE_HEIGHT}, "Voltage:", Theme::getInstance()->fg_darkcyan->foreground}};
-
     Text text_info_line_1{{15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_2{{15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_3{{15 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
@@ -72,7 +70,6 @@ class DfuMenu : public View {
     Text text_info_line_8{{15 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_9{{15 * CHARACTER_WIDTH, 13 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_10{{15 * CHARACTER_WIDTH, 14 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_11{{15 * CHARACTER_WIDTH, 15 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
 class DfuMenu2 : public View {

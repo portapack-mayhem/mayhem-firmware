@@ -25,6 +25,7 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "../baseband/fprotos/fprotogeneral.hpp"
 
@@ -34,6 +35,21 @@ using namespace ui;
 namespace pmem = portapack::persistent_memory;
 
 namespace ui {
+
+std::string WeatherRecentEntry::to_csv() {
+    std::string csv = ";";
+    csv += WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)sensorType);
+    csv += ";" + to_string_dec_uint(id) + ";";
+    csv += to_string_decimal(temp, 2) + ";";
+    csv += to_string_dec_uint(humidity) + ";";
+    csv += to_string_dec_uint(channel) + ";";
+    csv += to_string_dec_uint(battery_low);
+    return csv;
+}
+
+void WeatherLogger::log_data(WeatherRecentEntry& data) {
+    log_file.write_entry(data.to_csv());
+}
 
 void WeatherRecentEntryDetailView::update_data() {
     // set text elements
@@ -98,7 +114,10 @@ WeatherView::WeatherView(NavigationView& nav)
                   &field_frequency,
                   &options_temperature,
                   &button_clear_list,
+                  &check_log,
                   &recent_entries_view});
+
+    logger = std::make_unique<WeatherLogger>();
 
     baseband::run_image(portapack::spi_flash::image_tag_weather);
 
@@ -113,6 +132,15 @@ WeatherView::WeatherView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
     options_temperature.set_selected_index(weather_units_fahr, false);
+
+    check_log.on_select = [this](Checkbox&, bool v) {
+        logging = v;
+        if (logger && logging) {
+            logger->append(logs_dir.string() + "/WEATHERLOG_" + to_string_timestamp(rtc_time::now()) + ".CSV");
+            logger->write_header();
+        }
+    };
+    check_log.set_value(logging);
 
     const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
     recent_entries_view.set_parent_rect(content_rect);
@@ -140,6 +168,9 @@ void WeatherView::on_tick_second() {
 
 void WeatherView::on_data(const WeatherDataMessage* data) {
     WeatherRecentEntry key = process_data(data);
+    if (logger && logging) {
+        logger->log_data(key);
+    }
     // WeatherRecentEntry key{data->sensorType, data->id, data->temp, data->humidity, data->channel, data->battery_low};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
@@ -213,6 +244,11 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "EmosE601x";
         case FPW_SolightTE44:
             return "SolightTE44";
+        case FPW_Bresser3CH:
+        case FPW_Bresser3CH_V1:
+            return "Bresser3CH";
+        case FPW_Vauno_EN8822:
+            return "Vauno EN8822";
         case FPW_Invalid:
         default:
             return "Unknown";
@@ -532,6 +568,42 @@ WeatherRecentEntry WeatherView::process_data(const WeatherDataMessage* data) {
                 i16 |= 0xf000;
             }
             ret.temp = (float)i16 / 10.0;
+            break;
+        case FPW_Bresser3CH:
+            ret.id = (data->decode_data >> 28) & 0xff;
+            ret.channel = ((data->decode_data >> 27) & 0x01) | (((data->decode_data >> 26) & 0x01) << 1);
+            // ret.btn = ((data->decode_data >> 25) & 0x1);
+            ret.battery_low = ((data->decode_data >> 24) & 0x1);
+            i16 = (data->decode_data >> 12) & 0x0fff;
+            /* Handle signed data */
+            if (i16 & 0x0800) {
+                i16 |= 0xf000;
+            }
+            ret.temp = (float)i16 / 10.0;
+            ret.humidity = data->decode_data & 0xff;
+            break;
+        case FPW_Bresser3CH_V1:
+            ret.id = (data->decode_data >> 32) & 0xff;
+            ret.battery_low = ((data->decode_data >> 31) & 0x1);
+            // ret.btn = (data->decode_data >> 30) & 0x1;
+            ret.channel = (data->decode_data >> 28) & 0x3;
+            ret.temp = (data->decode_data >> 16) & 0xfff;
+            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius((float)(ret.temp - 900) / 10.0);
+            ret.humidity = (data->decode_data >> 8) & 0xff;
+            break;
+
+        case FPW_Vauno_EN8822:
+            ret.id = (data->decode_data >> 34) & 0xff;
+            ret.battery_low = (data->decode_data >> 33) & 0x01;
+            ret.channel = ((data->decode_data >> 30) & 0x03);
+            i16 = (data->decode_data >> 18) & 0x0fff;
+            /* Handle signed data */
+            if (i16 & 0x0800) {
+                i16 |= 0xf000;
+            }
+            ret.temp = (float)i16 / 10.0;
+            ret.humidity = (data->decode_data >> 11) & 0x7f;
+
             break;
         case FPW_Invalid:
         default:

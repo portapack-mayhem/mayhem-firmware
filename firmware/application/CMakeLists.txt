@@ -117,6 +117,7 @@ set(CSRC
 	usb_serial_descriptor.c
 	usb_serial_endpoints.c
 	usb_serial_device_to_host.c
+	i2c_device_to_host.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
@@ -125,12 +126,14 @@ set(CSRC
 	${CHIBIOS}/os/various/chprintf.c
 )
 
+#look for all i2cdev_ files
+file(GLOB I2CDEV_SOURCES ${COMMON}/i2cdev_*.cpp)
+
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 set(CPPSRC
 	main.cpp
 	shell.cpp
-	${COMMON}/acars_packet.cpp
 	${COMMON}/adsb.cpp
 	${COMMON}/adsb_frame.cpp
 	${COMMON}/ais_baseband.cpp
@@ -176,8 +179,8 @@ set(CPPSRC
 	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
-	${COMMON}/ads1110.cpp
-	${COMMON}/max17055.cpp
+	${COMMON}/i2cdevmanager.cpp
+	${I2CDEV_SOURCES}
 	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
@@ -189,7 +192,6 @@ set(CPPSRC
 	core_control.cpp
 	database.cpp
 	de_bruijn.cpp
-	#emu_cc1101.cpp
 	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
@@ -242,9 +244,9 @@ set(CPPSRC
 	hw/si5351.cpp
 	hw/spi_pp.cpp
 	hw/touch_adc.cpp
+	ook_file.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
-	ui_playdead.cpp
 	ui_record_view.cpp
 	ui_sd_card_status_view.cpp
 	ui/ui_alphanum.cpp
@@ -266,56 +268,41 @@ set(CPPSRC
 	ui/ui_tone_key.cpp
 	ui/ui_transmitter.cpp
 	ui/ui_bmpview.cpp
-	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
-	# apps/analog_tv_app.cpp
 	apps/ble_comm_app.cpp
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
-	# apps/gps_sim_app.cpp
-	# apps/lge_app.cpp
 	apps/pocsag_app.cpp
-	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
-	# apps/tpms_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp
-	# apps/ui_adsb_tx.cpp #moved to ext
 	apps/ui_aprs_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_battinfo.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_bmp_file_viewer.cpp
 	apps/ui_btle_rx.cpp
-	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
-	apps/ui_debug_battery.cpp
+	apps/ui_debug_max17055.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
+	apps/ui_external_module_view.cpp
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp
-	apps/ui_fsk_rx.cpp
 	apps/ui_iq_trim.cpp
-	# apps/ui_jammer.cpp
-    # apps/ui_keyfob.cpp
-	# apps/ui_lcr.cpp
 	apps/ui_level.cpp
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
-	# apps/ui_morse.cpp
-	# apps/ui_nrf_rx.cpp
-	# apps/ui_nuoptix.cpp
 	apps/ui_playlist.cpp
 	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
 	apps/ui_sd_wipe.cpp
@@ -323,16 +310,11 @@ set(CPPSRC
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
-	# apps/ui_spectrum_painter_image.cpp
-	# apps/ui_spectrum_painter_text.cpp
-	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
-	# apps/ui_sstvtx.cpp #moved to ext
 	apps/ui_standalone_view.cpp
 	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
-	apps/ui_tone_search.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
 	apps/ui_view_wav.cpp
@@ -343,14 +325,8 @@ set(CPPSRC
 	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/encoders.cpp
-	# protocols/lcr.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
-	# ui_handwrite.cpp
-	# ui_loadmodule.cpp
-	# ui_numbers.cpp
-	# ui_replay_view.cpp
-	# ui_script.cpp
 	ui_sd_card_debug.cpp
 	config_mode.cpp
 	${CPLD_20150901_DATA_CPP}

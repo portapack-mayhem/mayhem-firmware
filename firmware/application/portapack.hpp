@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __PORTAPACK_H
+#define __PORTAPACK_H
 
 #include "portapack_io.hpp"
 
@@ -33,13 +34,9 @@
 #include "backlight.hpp"
 #include "usb_serial.hpp"
 
-#include "ads1110.hpp"
-#include "max17055.hpp"
-
 #include "radio.hpp"
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
-#include "battery.hpp"
 #include "theme.hpp"
 
 /* TODO: This would be better as a class to add
@@ -71,6 +68,7 @@ extern TransmitterModel transmitter_model;
 
 extern uint32_t bl_tick_counter;
 extern bool antenna_bias;
+extern uint16_t touch_threshold;
 
 extern TemperatureLogger temperature_logger;
 
@@ -89,3 +87,5 @@ Backlight* backlight();
 extern bool async_tx_enabled;  // this is for serial tx things, globally
 
 } /* namespace portapack */
+
+#endif

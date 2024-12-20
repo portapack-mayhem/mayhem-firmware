@@ -32,6 +32,7 @@ extern const std::filesystem::path audio_dir;
 extern const std::filesystem::path blerx_dir;
 extern const std::filesystem::path bletx_dir;
 extern const std::filesystem::path captures_dir;
+extern const std::filesystem::path cvsfiles_dir;
 extern const std::filesystem::path debug_dir;
 extern const std::filesystem::path firmware_dir;
 extern const std::filesystem::path freqman_dir;
@@ -49,5 +50,6 @@ extern const std::filesystem::path splash_dir;
 extern const std::filesystem::path sstv_dir;
 extern const std::filesystem::path wav_dir;
 extern const std::filesystem::path whipcalc_dir;
+extern const std::filesystem::path ook_editor_dir;
 
 #endif /* __FILE_PATH_H__ */

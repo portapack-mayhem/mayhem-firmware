@@ -25,6 +25,9 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
+#define PADDING_LEFT 1
+#define PADDING_RIGHT 1
+
 using namespace portapack;
 
 namespace ui {
@@ -58,6 +61,7 @@ EncodersConfigView::EncodersConfigView(
 
     options_enctype.on_change = [this](size_t index, int32_t) {
         on_type_change(index);
+        set_dirty();
     };
 
     options_enctype.set_options(enc_options);
@@ -104,7 +108,18 @@ void EncodersConfigView::on_type_change(size_t index) {
 
     // Add new SymFields.
     Point pos{2 * 8, 9 * 8};
-    std::string format_string;
+    std::string format_string = encoder_def->word_format;
+
+    /*important notes of this format_String
+     * previously before PR#1444, this code using the for loop below to generate the format_string, which MAYBE to prevent showing the S symble.
+     * but after PR#1444, the entireh of symfield code not compatible with this design anymore.
+     * however the encoder_def struct itself has a field called word_format, which exactly be avle to use as the format_string,
+     * because itself is ONLY a hint text, not impact protocol things.
+     * When you find OOK protocol is broken and see this commit from git blame, please be aware that it's not from here.
+     * previously me and @cusspvz already found it broken, this commit is just to fix the broken that from PR#1444.
+     * @zxkmm
+     */
+
     uint8_t word_length = encoder_def->word_length;
     auto on_change_handler = [this](SymField&) {
         generate_frame();
@@ -119,11 +134,9 @@ void EncodersConfigView::on_type_change(size_t index) {
         switch (symbol_type) {
             case 'A':
                 symfield->set_symbol_list(encoder_def->address_symbols);
-                format_string += 'A';
                 break;
             case 'D':
                 symfield->set_symbol_list(encoder_def->data_symbols);
-                format_string += 'D';
                 break;
         }
 
@@ -131,8 +144,8 @@ void EncodersConfigView::on_type_change(size_t index) {
         pos += Point{8, 0};
     }
 
-    // Ugly :( Pad to erase
-    format_string.append(24 - format_string.size(), ' ');
+    // cut the S, cuz sync bit isn't in symfield for user to chage/edit.
+    format_string.erase(std::remove(format_string.begin(), format_string.end(), 'S'), format_string.end());
     text_format.set(format_string);
 
     generate_frame();
@@ -144,12 +157,34 @@ void EncodersConfigView::on_show() {
 }
 
 void EncodersConfigView::draw_waveform() {
+    // padding reason:
+    // in real world the signal would always start with low level and became low level again after yout turn off the radio;
+    // the waveform_buffer only controls drawing, the real send logic that been sent is controlled by frame_fragments
+    // so just for out of looking things
+
     size_t length = frame_fragments.length();
 
-    for (size_t n = 0; n < length; n++)
-        waveform_buffer[n] = (frame_fragments[n] == '0') ? 0 : 1;
+    // currently not needed since all the supported OOK protocol wont exceed 550 yet
+    if (length + (PADDING_LEFT + PADDING_RIGHT) >= WAVEFORM_BUFFER_SIZE) {
+        length = WAVEFORM_BUFFER_SIZE - (PADDING_LEFT + PADDING_RIGHT);
+    }
 
-    waveform.set_length(length);
+    // padding l
+    for (size_t i = 0; i < PADDING_LEFT; i++) {
+        waveform_buffer[i] = 0;
+    }
+
+    // real wf
+    for (size_t n = 0; n < length; n++) {
+        waveform_buffer[n + PADDING_LEFT] = (frame_fragments[n] == '0') ? 0 : 1;
+    }
+
+    // padding r
+    for (size_t i = length + PADDING_LEFT; i < WAVEFORM_BUFFER_SIZE; i++) {
+        waveform_buffer[i] = 0;
+    }
+
+    waveform.set_length(length + PADDING_LEFT + PADDING_RIGHT);
     waveform.set_dirty();
 }
 

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -49,10 +50,10 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
         text_current.set("-");
         text_charge.set("-");
-        text_cycles.set("-");
+        // text_cycles.set("-");
         text_ttef.set("-");
         text_method.set("-");
-        text_warn.set("");
+        // text_warn.set("");
         return;
     }
     bool uichg = false;
@@ -74,7 +75,19 @@ void BattinfoView::update_result() {
         text_current.hidden(false);
         text_charge.hidden(false);
         text_current.set(to_string_dec_int(current) + " mA");
-        text_charge.set(current >= 0 ? "Charging" : "Discharging");
+        if (current >= 25)  // when >25mA it is charging in any scenario
+            text_charge.set("Charging");
+        else {
+            if (current > -25) {                         // between -25 and 25
+                if (voltage > 4060 || percent == 100) {  // the voltage is high enough, so it is full, that's why no mA
+                    text_charge.set("Full");
+                } else {
+                    text_charge.set("Holding");  // not enough voltage, so should charge. maybe the batttery is off, or USB power is not enough
+                }
+            } else {
+                text_charge.set("Discharging");  // less then -25mA, so it is discharging
+            }
+        }
         labels_opt.hidden(false);
 
         text_ttef.hidden(false);
@@ -83,26 +96,26 @@ void BattinfoView::update_result() {
         labels_opt.hidden(true);
         text_current.hidden(true);
         text_charge.hidden(true);
-        text_cycles.hidden(true);
+        // text_cycles.hidden(true);
         text_ttef.hidden(true);
-        text_warn.set("");
+        // text_warn.set("");
     }
-    if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
-        text_cycles.hidden(false);
-        uint16_t cycles = battery::BatteryManagement::get_cycles();
+    /* if ((valid_mask & battery::BatteryManagement::BATT_VALID_CYCLES) == battery::BatteryManagement::BATT_VALID_CYCLES) {
+        // text_cycles.hidden(false);
+        uint16_t cycles = 0;  // battery::BatteryManagement::get_cycles();
         if (cycles < 2)
-            text_warn.set("SoC improves after 2 cycles");
+            text_warn.set("SoC improves after each cycles");
         else
             text_warn.set("");
-        text_cycles.set(to_string_dec_uint(cycles));
+        // text_cycles.set(to_string_dec_uint(cycles));
     } else {
-        text_cycles.hidden(true);
+        // text_cycles.hidden(true);
         text_warn.set("");
-    }
+    } */
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_TTEF) == battery::BatteryManagement::BATT_VALID_TTEF) {
         text_ttef.hidden(false);
         float ttef = 0;
-        if (current <= 0) {
+        if (current <= 0) {  // we keep this yet
             ttef = battery::BatteryManagement::get_tte();
         } else {
             ttef = battery::BatteryManagement::get_ttf();
@@ -132,7 +145,7 @@ void BattinfoView::update_result() {
     }
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
-    BatteryStateMessage msg{valid_mask, percent, current >= 0, voltage};
+    BatteryStateMessage msg{valid_mask, percent, current >= 25, voltage};
     EventDispatcher::send_message(msg);
 }
 
@@ -147,8 +160,8 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &text_method,
                   &button_mode,
                   &button_exit,
-                  &text_cycles,
-                  &text_warn,
+                  // &text_cycles,
+                  // &text_warn,
                   &text_ttef});
 
     button_exit.on_select = [this, &nav](Button&) {

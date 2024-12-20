@@ -96,6 +96,56 @@ set(EXTCPPSRC
 	#sstvtx
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
+
+	#random
+	external/random_password/main.cpp
+	external/random_password/ui_random_password.cpp
+	external/random_password/sha512.cpp
+	external/random_password/sha512.h
+
+	#acars
+	external/acars_rx/main.cpp
+	external/acars_rx/acars_app.cpp
+
+	#shoppingcart_lock
+	external/shoppingcart_lock/main.cpp
+	external/shoppingcart_lock/shoppingcart_lock.cpp	
+
+	#ookbrute
+	external/ookbrute/main.cpp
+	external/ookbrute/ui_ookbrute.cpp
+
+	#ook_editor
+	external/ook_editor/main.cpp
+	external/ook_editor/ui_ook_editor.cpp
+
+	#cvs_spam
+	external/cvs_spam/main.cpp
+	external/cvs_spam/cvs_spam.cpp	
+	
+	#flippertx
+	external/flippertx/main.cpp
+	external/flippertx/ui_flippertx.cpp
+
+	#remote
+	external/remote/main.cpp
+	external/remote/ui_remote.cpp
+
+	#mcu_temperature
+	external/mcu_temperature/main.cpp
+	external/mcu_temperature/mcu_temperature.cpp
+	
+	#fmradio
+	external/fmradio/main.cpp
+	external/fmradio/ui_fmradio.cpp
+  
+	#tuner
+	external/tuner/main.cpp
+	external/tuner/ui_tuner.cpp
+  
+	#metronome
+	external/metronome/main.cpp
+	external/metronome/ui_metronome.cpp
 )
 
 set(EXTAPPLIST
@@ -117,9 +167,21 @@ set(EXTAPPLIST
 	foxhunt_rx
 	audio_test
 	wardrivemap
+	cvs_spam
 	tpmsrx
 	protoview
 	adsbtx
 	morse_tx
 	sstvtx
+	random_password
+	#acars_rx
+	ookbrute
+	ook_editor
+	shoppingcart_lock
+	flippertx
+	remote
+	mcu_temperature
+	fmradio
+	tuner
+	metronome
 )
