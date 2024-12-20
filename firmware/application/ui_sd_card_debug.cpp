@@ -473,7 +473,7 @@ std::string SDCardDebugView::fetch_sdcard_format() {
         case FS_FAT32:
             resault = "FAT32";
             break;
-        case FS_EXFAT:  // TODO: a bug from filesystem can't detect exfat, issue not from here
+        case FS_EXFAT:
             resault = "ExFAT";
             break;
         default:
