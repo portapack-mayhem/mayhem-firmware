@@ -1007,23 +1007,22 @@ class AppManagerView : public View {
         "Highlight an app"};
 
     Button button_hide_unhide{
-        {0, 29 * 8, screen_width/2 - 1, 32},
+        {0, 29 * 8, screen_width / 2 - 1, 32},
         "Hide/Show"};
 
     Button button_clean_hide{
-        {screen_width/2 + 2, 29 * 8, screen_width/2 - 2, 32},
+        {screen_width / 2 + 2, 29 * 8, screen_width / 2 - 2, 32},
         "Clean Hidden"};
 
     Button button_set_cancel_autostart{
-        {0, screen_height - 32 - 16, screen_width/2 - 1, 32},
+        {0, screen_height - 32 - 16, screen_width / 2 - 1, 32},
         "Set Autostart"};
 
     Button button_clean_autostart{
-        {screen_width/2 + 2, screen_height - 32 - 16, screen_width/2 - 2, 32},
+        {screen_width / 2 + 2, screen_height - 32 - 16, screen_width / 2 - 2, 32},
         "Del Autostart"};
 
-    std::string get_app_id(uint16_t index);
-    std::string get_app_display_name(uint16_t index);
+    std::string get_app_info(uint16_t index, bool is_display_name);
     void get_blacklist(std::vector<std::string>& blacklist);
     void write_blacklist(const std::vector<std::string>& blacklist);
     bool is_blacklisted(const std::string& app_display_name);

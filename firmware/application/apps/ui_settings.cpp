@@ -1114,8 +1114,8 @@ AppManagerView::AppManagerView(NavigationView& nav)
         }
 
         std::string info;
-        auto app_name = get_app_display_name(menu_view.highlighted_index());
-        auto app_id = get_app_id(menu_view.highlighted_index());
+        auto app_name = get_app_info(menu_view.highlighted_index(), true);
+        auto app_id = get_app_info(menu_view.highlighted_index(), false);
 
         info += "Hidden:";
 
@@ -1170,7 +1170,7 @@ void AppManagerView::refresh_list() {
     size_t index = 0;
 
     auto padding = [](const std::string& str) {
-        return str.length() < 25 ? std::string(25 - str.length(), ' ') + '' : ""; 
+        return str.length() < 25 ? std::string(25 - str.length(), ' ') + '' : "";
         // that weird char is a icon in portapack's font base that looks like a switch, which i use to indicate the auto start
     };
 
@@ -1211,19 +1211,19 @@ void AppManagerView::hide_app() {
     std::vector<std::string> blacklist;
     get_blacklist(blacklist);
 
-    blacklist.push_back(get_app_display_name(menu_view.highlighted_index()));
+    blacklist.push_back(get_app_info(menu_view.highlighted_index(), true));
     write_blacklist(blacklist);
 }
 
 void AppManagerView::unhide_app() {
     std::vector<std::string> blacklist;
     get_blacklist(blacklist);
-    blacklist.erase(std::remove(blacklist.begin(), blacklist.end(), get_app_display_name(menu_view.highlighted_index())), blacklist.end());
+    blacklist.erase(std::remove(blacklist.begin(), blacklist.end(), get_app_info(menu_view.highlighted_index(), true)), blacklist.end());
     write_blacklist(blacklist);
 }
 
 void AppManagerView::hide_unhide_app() {
-    if (is_blacklisted(get_app_display_name(menu_view.highlighted_index())))
+    if (is_blacklisted(get_app_info(menu_view.highlighted_index(), true)))
         unhide_app();
     else
         hide_app();
@@ -1272,7 +1272,7 @@ void AppManagerView::set_auto_start() {
     auto app_index = menu_view.highlighted_index();
     if (app_index >= app_list_index) return;
 
-    auto id_aka_friendly_name = get_app_id(app_index);
+    auto id_aka_friendly_name = get_app_info(app_index, false);
 
     autostart_app = id_aka_friendly_name;
 
@@ -1288,7 +1288,7 @@ void AppManagerView::set_unset_autostart_app() {
     auto app_index = menu_view.highlighted_index();
     if (app_index >= app_list_index) return;
 
-    auto id_aka_friendly_name = get_app_id(app_index);
+    auto id_aka_friendly_name = get_app_info(app_index, false);
 
     if (is_autostart_app(id_aka_friendly_name))
         unset_auto_start();
@@ -1304,45 +1304,22 @@ bool AppManagerView::is_autostart_app(const std::string& id_aka_friendly_name) {
     return autostart_app == id_aka_friendly_name;
 }
 
-std::string AppManagerView::get_app_id(uint16_t index) {
+std::string AppManagerView::get_app_info(uint16_t index, bool is_display_name) {
     size_t current_index = 0;
     std::string result;
 
     for (auto& app : NavigationView::appList) {
         if (app.id == nullptr) continue;
         if (current_index == index) {
-            return std::string(app.id);
+            return is_display_name ? std::string(app.displayName) : std::string(app.id);
         }
         current_index++;
     }
 
-    ExternalItemsMenuLoader::load_all_external_items_callback([&current_index, index, &result](ui::AppInfoConsole& app) {
+    ExternalItemsMenuLoader::load_all_external_items_callback([&current_index, &index, &result, &is_display_name](ui::AppInfoConsole& app) {
         if (app.appCallName == nullptr) return;
         if (current_index == index) {
-            result = app.appCallName;
-        }
-        current_index++;
-    });
-
-    return result;
-}
-
-std::string AppManagerView::get_app_display_name(uint16_t index) {
-    size_t current_index = 0;
-    std::string result;
-
-    for (auto& app : NavigationView::appList) {
-        if (app.id == nullptr) continue;
-        if (current_index == index) {
-            return std::string(app.displayName);
-        }
-        current_index++;
-    }
-
-    ExternalItemsMenuLoader::load_all_external_items_callback([&current_index, index, &result](ui::AppInfoConsole& app) {
-        if (app.appCallName == nullptr) return;
-        if (current_index == index) {
-            result = app.appFriendlyName;
+            result = is_display_name ? app.appFriendlyName : app.appCallName;
         }
         current_index++;
     });
