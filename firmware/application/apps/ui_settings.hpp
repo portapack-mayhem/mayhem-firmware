@@ -981,6 +981,52 @@ class SetBatteryView : public View {
     };
 };
 
+class AppManagerView : public View {
+   public:
+    AppManagerView(NavigationView& nav);
+    std::string title() const override { return "AppMan"; };
+
+   private:
+    NavigationView& nav_;
+    std::string autostart_app{""};
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
+
+    void focus() override;
+    void refresh_list();
+    uint16_t app_list_index{0};
+
+    Labels labels{
+        {{0 * 8, 0 * 16}, "App Manager", Theme::getInstance()->fg_light->foreground}};
+
+    MenuView menu_view{};
+
+    Button button_hide_unhide{
+        {0, 29 * 8, 14 * 8, 32},
+        "Hide/Show"};
+
+    Button button_set_cancel_autostart{
+        {15 * 8, 29 * 8, 14 * 8, 32},
+        "Set Auto"};
+
+    Button button_uninstall{
+        {0, 33 * 8, 14 * 8, 32},
+        "Uninstall"};
+
+    std::string get_app_id(uint16_t index);
+    std::string get_app_display_name(uint16_t index);
+    void get_blacklist(std::vector<std::string>& blacklist);
+    void write_blacklist(const std::vector<std::string>& blacklist);
+    bool is_blacklisted(const std::string& app_display_name);
+    void hide_app();
+    void unhide_app();
+    void hide_unhide_app();
+    bool is_app_hidden(const char* display_name);
+    void set_auto_start();
+    bool is_autostart_app(const char* id_aka_friendly_name);
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);

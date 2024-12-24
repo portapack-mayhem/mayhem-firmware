@@ -53,6 +53,9 @@ namespace fs = std::filesystem;
 #include "i2cdevmanager.hpp"
 #include "i2cdev_max17055.hpp"
 
+#include "usb_serial_asyncmsg.hpp"
+#include "file_reader.hpp"
+
 extern ui::SystemView* system_view_ptr;
 
 namespace pmem = portapack::persistent_memory;
@@ -1091,6 +1094,191 @@ void SetBatteryView::focus() {
     button_cancel.focus();
 }
 
+/* AppManagerView **************************************/
+AppManagerView::AppManagerView(NavigationView& nav)
+    : nav_{nav} {
+    add_children({&labels,
+                  &menu_view,
+                  &button_hide_unhide,
+                  &button_set_cancel_autostart,
+                  &button_uninstall});
+
+    menu_view.set_parent_rect({0, 3 * 8, 240, 25 * 8});
+
+    refresh_list();
+
+    button_hide_unhide.on_select = [this](Button&) {
+        hide_unhide_app();
+        refresh_list();
+    };
+
+    button_set_cancel_autostart.on_select = [this](Button&) {
+        set_auto_start();
+        refresh_list();
+    };
+
+    button_uninstall.on_select = [this](Button&) {
+        refresh_list();
+    };
+}
+
+void AppManagerView::refresh_list() {
+    auto previous_cursor_index = menu_view.highlighted_index();
+    app_list_index = 0;
+    menu_view.clear();
+
+    size_t index = 0;
+
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+
+        app_list_index++;
+
+        menu_view.add_item({std::string(is_autostart_app(app.id) ? "*" : "") + app.displayName,
+                            app.iconColor,
+                            app.icon,
+                            [this, app_id = std::string(app.id)](KeyEvent) {
+                                button_hide_unhide.focus();
+                            }});
+    }
+
+    ExternalItemsMenuLoader::load_all_external_items_callback([this, &index](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+
+        app_list_index++;
+
+        menu_view.add_item({app.appFriendlyName,
+                            ui::Color::light_grey(),
+                            &bitmap_icon_sdcard,
+                            [this, app_id = std::string(app.appCallName)](KeyEvent) {
+                                button_hide_unhide.focus();
+                            }});
+    });
+
+    menu_view.set_highlighted(previous_cursor_index);
+}
+
+void AppManagerView::focus() {
+    menu_view.focus();
+}
+
+void AppManagerView::hide_app() {
+    std::vector<std::string> blacklist;
+    get_blacklist(blacklist);
+
+    blacklist.push_back(get_app_display_name(menu_view.highlighted_index()));
+    write_blacklist(blacklist);
+}
+
+void AppManagerView::unhide_app() {
+    std::vector<std::string> blacklist;
+    get_blacklist(blacklist);
+    blacklist.erase(std::remove(blacklist.begin(), blacklist.end(), get_app_display_name(menu_view.highlighted_index())), blacklist.end());
+    write_blacklist(blacklist);
+}
+
+void AppManagerView::hide_unhide_app() {
+    if (is_blacklisted(get_app_display_name(menu_view.highlighted_index())))
+        unhide_app();
+    else
+        hide_app();
+}
+
+void AppManagerView::get_blacklist(std::vector<std::string>& blacklist) {
+    File f;
+
+    auto error = f.open(u"SETTINGS/blacklist");
+    if (error)
+        return;
+
+    auto reader = FileLineReader(f);
+    for (const auto& line : reader) {
+        if (line.length() == 0 || line[0] == '#')
+            continue;
+
+        blacklist.push_back(trim(line));
+    }
+}
+
+void AppManagerView::write_blacklist(const std::vector<std::string>& blacklist) {
+    File f;
+    auto error = f.create(u"SETTINGS/blacklist");
+    if (error)
+        return;
+
+    for (const auto& app_name : blacklist) {
+        auto line = app_name + "\n";
+        f.write(line.c_str(), line.length());
+    }
+}
+
+bool AppManagerView::is_blacklisted(const std::string& app_name) {
+    std::vector<std::string> blacklist;
+    get_blacklist(blacklist);
+    return std::find(blacklist.begin(), blacklist.end(), app_name) != blacklist.end();
+}
+
+void AppManagerView::set_auto_start() {
+    auto app_index = menu_view.highlighted_index();
+    if (app_index >= app_list_index) return;
+
+    auto id_aka_friendly_name = get_app_id(app_index);
+
+    autostart_app = id_aka_friendly_name;
+
+    refresh_list();
+}
+
+bool AppManagerView::is_autostart_app(const char* id_aka_friendly_name) {
+    return autostart_app == std::string(id_aka_friendly_name);
+}
+
+std::string AppManagerView::get_app_id(uint16_t index) {
+    size_t current_index = 0;
+    std::string result;
+
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+        if (current_index == index) {
+            return std::string(app.id);
+        }
+        current_index++;
+    }
+
+    ExternalItemsMenuLoader::load_all_external_items_callback([&current_index, index, &result](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+        if (current_index == index) {
+            result = app.appCallName;
+        }
+        current_index++;
+    });
+
+    return result;
+}
+
+std::string AppManagerView::get_app_display_name(uint16_t index) {
+    size_t current_index = 0;
+    std::string result;
+
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+        if (current_index == index) {
+            return std::string(app.displayName);
+        }
+        current_index++;
+    }
+
+    ExternalItemsMenuLoader::load_all_external_items_callback([&current_index, index, &result](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+        if (current_index == index) {
+            result = app.appFriendlyName;
+        }
+        current_index++;
+    });
+
+    return result;
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -1103,6 +1291,7 @@ void SettingsMenuView::on_populate() {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
+        {"App Manager", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppManagerView>(); }},
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<TouchCalibrationView>(); }},
