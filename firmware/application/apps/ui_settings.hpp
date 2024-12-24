@@ -998,21 +998,29 @@ class AppManagerView : public View {
     uint16_t app_list_index{0};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "App Manager", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, 0 * 16}, "App list:", Theme::getInstance()->fg_light->foreground}};
 
     MenuView menu_view{};
 
+    Text text_app_info{
+        {0, 27 * 8, screen_width, 16},
+        "Highlight an app"};
+
     Button button_hide_unhide{
-        {0, 29 * 8, 14 * 8, 32},
+        {0, 29 * 8, screen_width/2 - 1, 32},
         "Hide/Show"};
 
-    Button button_set_cancel_autostart{
-        {15 * 8, 29 * 8, 14 * 8, 32},
-        "Set Auto"};
+    Button button_clean_hide{
+        {screen_width/2 + 2, 29 * 8, screen_width/2 - 2, 32},
+        "Clean Hidden"};
 
-    Button button_uninstall{
-        {0, 33 * 8, 14 * 8, 32},
-        "Uninstall"};
+    Button button_set_cancel_autostart{
+        {0, screen_height - 32 - 16, screen_width/2 - 1, 32},
+        "Set Autostart"};
+
+    Button button_clean_autostart{
+        {screen_width/2 + 2, screen_height - 32 - 16, screen_width/2 - 2, 32},
+        "Del Autostart"};
 
     std::string get_app_id(uint16_t index);
     std::string get_app_display_name(uint16_t index);
@@ -1022,6 +1030,7 @@ class AppManagerView : public View {
     void hide_app();
     void unhide_app();
     void hide_unhide_app();
+    void clean_blacklist();
     bool is_autostart_app(const std::string& display_name);
     void set_auto_start();
     void unset_auto_start();

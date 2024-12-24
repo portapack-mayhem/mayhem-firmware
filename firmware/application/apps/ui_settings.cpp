@@ -1099,16 +1099,53 @@ AppManagerView::AppManagerView(NavigationView& nav)
     : nav_{nav} {
     add_children({&labels,
                   &menu_view,
+                  &text_app_info,
                   &button_hide_unhide,
+                  &button_clean_hide,
                   &button_set_cancel_autostart,
-                  &button_uninstall});
+                  &button_clean_autostart});
 
-    menu_view.set_parent_rect({0, 3 * 8, 240, 25 * 8});
+    menu_view.set_parent_rect({0, 2 * 8, screen_width, 24 * 8});
 
-    refresh_list();
+    menu_view.on_highlight = [this]() {
+        if (menu_view.highlighted_index() >= app_list_index) {
+            text_app_info.set("");
+            return;
+        }
+
+        std::string info;
+        auto app_name = get_app_display_name(menu_view.highlighted_index());
+        auto app_id = get_app_id(menu_view.highlighted_index());
+
+        info += "Hidden:";
+
+        if (is_blacklisted(app_name)) {
+            info += "Yes ";
+        } else {
+            info += "No ";
+        }
+
+        info += "Autostart:";
+        if (is_autostart_app(app_id)) {
+            info += "Yes";
+        } else {
+            info += "No";
+        }
+
+        if (info.empty()) {
+            info = "Highlight an app";
+        }
+
+        text_app_info.set(info);
+    };
 
     button_hide_unhide.on_select = [this](Button&) {
         hide_unhide_app();
+        refresh_list();
+    };
+
+    button_clean_hide.on_select = [this](Button&) {
+        clean_blacklist();
         refresh_list();
     };
 
@@ -1117,9 +1154,12 @@ AppManagerView::AppManagerView(NavigationView& nav)
         refresh_list();
     };
 
-    button_uninstall.on_select = [this](Button&) {
+    button_clean_autostart.on_select = [this](Button&) {
+        unset_auto_start();
         refresh_list();
     };
+
+    refresh_list();
 }
 
 void AppManagerView::refresh_list() {
@@ -1129,12 +1169,17 @@ void AppManagerView::refresh_list() {
 
     size_t index = 0;
 
+    auto padding = [](const std::string& str) {
+        return str.length() < 25 ? std::string(25 - str.length(), ' ') + '' : ""; 
+        // that weird char is a icon in portapack's font base that looks like a switch, which i use to indicate the auto start
+    };
+
     for (auto& app : NavigationView::appList) {
         if (app.id == nullptr) continue;
 
         app_list_index++;
 
-        menu_view.add_item({std::string(is_autostart_app(app.id) ? "*" : "") + app.displayName,
+        menu_view.add_item({app.displayName + std::string(is_autostart_app(app.id) ? padding(app.displayName) : ""),
                             app.iconColor,
                             app.icon,
                             [this, app_id = std::string(app.id)](KeyEvent) {
@@ -1142,12 +1187,12 @@ void AppManagerView::refresh_list() {
                             }});
     }
 
-    ExternalItemsMenuLoader::load_all_external_items_callback([this, &index](ui::AppInfoConsole& app) {
+    ExternalItemsMenuLoader::load_all_external_items_callback([this, &index, &padding](ui::AppInfoConsole& app) {
         if (app.appCallName == nullptr) return;
 
         app_list_index++;
 
-        menu_view.add_item({app.appFriendlyName,
+        menu_view.add_item({app.appFriendlyName + std::string(is_autostart_app(app.appCallName) ? padding(app.appFriendlyName) : ""),
                             ui::Color::light_grey(),
                             &bitmap_icon_sdcard,
                             [this, app_id = std::string(app.appCallName)](KeyEvent) {
@@ -1210,6 +1255,11 @@ void AppManagerView::write_blacklist(const std::vector<std::string>& blacklist) 
         auto line = app_name + "\n";
         f.write(line.c_str(), line.length());
     }
+}
+
+void AppManagerView::clean_blacklist() {
+    std::vector<std::string> blacklist = {};
+    write_blacklist(blacklist);
 }
 
 bool AppManagerView::is_blacklisted(const std::string& app_name) {
