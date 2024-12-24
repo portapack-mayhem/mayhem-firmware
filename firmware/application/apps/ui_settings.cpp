@@ -1095,6 +1095,10 @@ void SetBatteryView::focus() {
 }
 
 /* AppManagerView **************************************/
+/* | inner apps | external apps |
+ * | id         | display name  |
+ * | callname   | friendly name |
+ */
 AppManagerView::AppManagerView(NavigationView& nav)
     : nav_{nav} {
     add_children({&labels,
