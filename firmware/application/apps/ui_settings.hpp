@@ -1022,8 +1022,10 @@ class AppManagerView : public View {
     void hide_app();
     void unhide_app();
     void hide_unhide_app();
-    bool is_app_hidden(const char* display_name);
+    bool is_autostart_app(const std::string& display_name);
     void set_auto_start();
+    void unset_auto_start();
+    void set_unset_autostart_app();
     bool is_autostart_app(const char* id_aka_friendly_name);
 };
 

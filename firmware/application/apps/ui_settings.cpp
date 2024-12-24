@@ -1113,7 +1113,7 @@ AppManagerView::AppManagerView(NavigationView& nav)
     };
 
     button_set_cancel_autostart.on_select = [this](Button&) {
-        set_auto_start();
+        set_unset_autostart_app();
         refresh_list();
     };
 
@@ -1229,8 +1229,29 @@ void AppManagerView::set_auto_start() {
     refresh_list();
 }
 
+void AppManagerView::unset_auto_start() {
+    autostart_app = "";
+    refresh_list();
+}
+
+void AppManagerView::set_unset_autostart_app() {
+    auto app_index = menu_view.highlighted_index();
+    if (app_index >= app_list_index) return;
+
+    auto id_aka_friendly_name = get_app_id(app_index);
+
+    if (is_autostart_app(id_aka_friendly_name))
+        unset_auto_start();
+    else
+        set_auto_start();
+}
+
 bool AppManagerView::is_autostart_app(const char* id_aka_friendly_name) {
     return autostart_app == std::string(id_aka_friendly_name);
+}
+
+bool AppManagerView::is_autostart_app(const std::string& id_aka_friendly_name) {
+    return autostart_app == id_aka_friendly_name;
 }
 
 std::string AppManagerView::get_app_id(uint16_t index) {
