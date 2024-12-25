@@ -1,42 +1,22 @@
 #include "ui_app_manager.hpp"
 #include "ui_navigation.hpp"
-#include "ui_receiver.hpp"
-#include "ui_touch_calibration.hpp"
-#include "ui_text_editor.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
-#include "portapack_persistent_memory.hpp"
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
-
-#include "audio.hpp"
-#include "portapack.hpp"
-using namespace portapack;
-
 #include "file.hpp"
-#include "file_path.hpp"
 namespace fs = std::filesystem;
 
 #include "string_format.hpp"
-#include "ui_font_fixed_8x16.hpp"
-#include "cpld_update.hpp"
-#include "config_mode.hpp"
-#include "i2cdevmanager.hpp"
-#include "i2cdev_max17055.hpp"
 
-#include "usb_serial_asyncmsg.hpp"
 #include "file_reader.hpp"
 
-
 using namespace portapack;
-
 
 namespace ui::external_app::app_manager {
 
 /* AppManagerView **************************************/
 /* | inner apps | external apps |
- * | id         | display name  |
- * | callname   | friendly name |
+ * | id         | appCallName   |
+ * | displayName|appFriendlyName|
  */
 AppManagerView::AppManagerView(NavigationView& nav)
     : nav_{nav} {
