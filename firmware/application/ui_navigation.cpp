@@ -417,7 +417,7 @@ void SystemStatusView::refresh() {
 
     // Fake Brightness
     button_fake_brightness.set_foreground((pmem::apply_fake_brightness() & (!pmem::config_lcd_inverted_mode())) ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
-    
+
     set_dirty();
 }
 

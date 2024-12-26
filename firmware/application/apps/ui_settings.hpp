@@ -365,7 +365,7 @@ class SetUIView : public View {
 
     ImageToggle toggle_fake_brightness{
         {21 * 8, 14 * 16 + 2, 16, 16},
-        &bitmap_icon_brightness};  
+        &bitmap_icon_brightness};
 
     ImageToggle toggle_sd_card{
         {23 * 8, 14 * 16 + 2, 16, 16},
@@ -738,7 +738,6 @@ class SetDisplayView : public View {
         {1 * 8, 5 * 16},
         16,
         "Enable brightness adjust"};
-
 
     Checkbox checkbox_invert_switch{
         {1 * 8, 10 * 16},

@@ -109,7 +109,7 @@ struct ui_config_t {
     bool hide_clock : 1;
     bool clock_show_date : 1;
     bool clkout_enabled : 1;
-    bool apply_fake_brightness : 1; // Fake brightness level, which eventually could be something along the lines of apply_pwm_brightness 
+    bool apply_fake_brightness : 1;  // Fake brightness level, which eventually could be something along the lines of apply_pwm_brightness
     bool stealth_mode : 1;
     bool config_login : 1;
     bool config_splash : 1;
