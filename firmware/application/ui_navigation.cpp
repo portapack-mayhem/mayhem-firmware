@@ -304,6 +304,15 @@ SystemStatusView::SystemStatusView(
         }
     };
 
+    button_fake_brightness.on_select = [this](ImageButton&) {
+        set_dirty();
+        pmem::toggle_fake_brightness_level();
+        refresh();
+        if (nullptr != parent()) {
+            parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
+        }
+    };
+
     button_camera.on_select = [this](ImageButton&) {
         this->on_camera();
     };
@@ -384,7 +393,7 @@ void SystemStatusView::refresh() {
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
-    if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
+    if (!pmem::ui_hide_fake_brightness() && !pmem::config_lcd_inverted_mode()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
         batt_was_inited = true;
         if (!pmem::ui_hide_battery_icon()) {
@@ -418,7 +427,7 @@ void SystemStatusView::refresh() {
     button_converter.set_foreground(pmem::config_converter() ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_light->foreground);
 
     // Fake Brightness
-    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
+    button_fake_brightness.set_foreground((pmem::apply_fake_brightness() & (!pmem::config_lcd_inverted_mode())) ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
 
     set_dirty();
 }
@@ -766,7 +775,7 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() { 
+                           [&nav, &app]() {
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
                             nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
                           true);
@@ -793,8 +802,8 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                          error_tile_pos);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
-        { 
-            return a.desired_position < b.desired_position; 
+        {
+            return a.desired_position < b.desired_position;
         });
 
         for (auto const& gridItem : externalItems) {
@@ -803,7 +812,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             } else {
                 grid.insert_item(gridItem, gridItem.desired_position, true);
             }
-            
+
         }
 
         grid.update_items();

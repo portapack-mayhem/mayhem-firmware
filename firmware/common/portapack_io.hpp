@@ -165,6 +165,9 @@ class IO {
         if (dark_cover_enabled) {
             pixel.v = DARKENED_PIXEL(pixel.v, brightness);
         }
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
+        }
         lcd_write_data(pixel.v);
     }
 
@@ -231,10 +234,10 @@ class IO {
 
         return switches_raw;
     }
-    bool lcd_normally_black = false;
+    bool inverted_enabled = false;
     bool dark_cover_enabled = false;
     uint8_t brightness = 0;
-    bool get_is_normally_black();
+    bool get_is_inverted();
     bool get_dark_cover();
     uint8_t get_brightness();
     void update_cached_values();
@@ -419,7 +422,7 @@ class IO {
         const auto value_low = data_read();
         uint32_t original_value = (value_high << 8) | value_low;
 
-        if (lcd_normally_black) return original_value;
+        if (inverted_enabled) return original_value;
 
         if (dark_cover_enabled) {
             // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,

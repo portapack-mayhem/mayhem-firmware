@@ -78,7 +78,13 @@ void IO::reference_oscillator(const bool enable) {
 }
 
 bool IO::get_dark_cover() {
-    return portapack::persistent_memory::apply_fake_brightness();
+    return portapack::persistent_memory::apply_fake_brightness() & (!portapack::persistent_memory::config_lcd_inverted_mode());
+}
+
+bool IO::get_dark_cover() {
+    return portapack::persistent_memory::apply_fake_brightness() & (!portapack::persistent_memory::config_lcd_inverted_mode());
+}
+
 }
 
 bool IO::get_is_normally_black() {
@@ -91,6 +97,26 @@ uint8_t IO::get_brightness() {
 
 void IO::update_cached_values() {
     lcd_normally_black = get_is_normally_black();
+    dark_cover_enabled = get_dark_cover();
+    brightness = get_brightness();
+}
+
+uint8_t IO::get_brightness() {
+    return portapack::persistent_memory::fake_brightness_level();
+}
+
+void IO::update_cached_values() {
+    inverted_enabled = get_is_inverted();
+    dark_cover_enabled = get_dark_cover();
+    brightness = get_brightness();
+}
+
+uint8_t IO::get_brightness() {
+    return portapack::persistent_memory::fake_brightness_level();
+}
+
+void IO::update_cached_values() {
+    inverted_enabled = get_is_inverted();
     dark_cover_enabled = get_dark_cover();
     brightness = get_brightness();
 }
