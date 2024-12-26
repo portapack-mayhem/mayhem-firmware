@@ -89,6 +89,12 @@ uint8_t IO::get_brightness() {
     return portapack::persistent_memory::fake_brightness_level();
 }
 
+void IO::update_cached_values() {
+    inverted_enabled = get_is_inverted();
+    dark_cover_enabled = get_dark_cover();
+    brightness = get_brightness();
+}
+
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
     /* Very touchy code to save context of PortaPack data bus while the
      * resistive touch pin drive is changed. Order of operations is

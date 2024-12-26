@@ -162,8 +162,8 @@ class IO {
     }
 
     void lcd_write_pixel(ui::Color pixel) {
-        if (get_dark_cover()) {
-            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
         }
         lcd_write_data(pixel.v);
     }
@@ -173,8 +173,8 @@ class IO {
     }
 
     void lcd_write_pixels(ui::Color pixel, size_t n) {
-        if (get_dark_cover()) {
-            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
         }
         while (n--) {
             lcd_write_data(pixel.v);
@@ -182,8 +182,8 @@ class IO {
     }
 
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
-        if (get_dark_cover()) {
-            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
         }
         auto v = pixel.v;
         n >>= 3;
@@ -231,10 +231,13 @@ class IO {
 
         return switches_raw;
     }
+    bool inverted_enabled = false;
+    bool dark_cover_enabled = false;
+    uint8_t brightness = 0;
     bool get_is_inverted();
     bool get_dark_cover();
     uint8_t get_brightness();
-    // TODO: cache the value ^^ & ^ to increaase performance, need a trigger cuz init doesn't work. And since the constructor is constexpr, we can't use with in class var to cache it. maybe cache from outside somewhere and pass it here as argument.
+    void update_cached_values();
 
     uint32_t io_update(const TouchPinsConfig write_value);
 
@@ -416,12 +419,12 @@ class IO {
         const auto value_low = data_read();
         uint32_t original_value = (value_high << 8) | value_low;
 
-        if (get_is_inverted()) return original_value;
+        if (inverted_enabled) return original_value;
 
-        if (get_dark_cover()) {
+        if (dark_cover_enabled) {
             // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,
             // then shift to back side AKA UNDARKENED_PIXEL, to prevent read shifted darkern info
-            original_value = UNDARKENED_PIXEL(original_value, get_brightness());
+            original_value = UNDARKENED_PIXEL(original_value, brightness);
         }
         return original_value;
     }
