@@ -231,6 +231,7 @@ void lcd_start_ram_write(
     lcd_caset(p.x(), p.x() + s.width() - 1);
     lcd_paset(p.y(), p.y() + s.height() - 1);
     lcd_ramwr_start();
+    io.update_cached_values();
 }
 
 void lcd_start_ram_read(

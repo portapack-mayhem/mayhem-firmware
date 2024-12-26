@@ -280,6 +280,12 @@ class SystemStatusView : public View {
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
 
+    ImageButton button_fake_brightness{
+        {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_brightness,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background};
+
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
