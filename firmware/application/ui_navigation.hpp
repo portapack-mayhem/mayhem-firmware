@@ -59,6 +59,10 @@ using namespace sd_card;
 
 namespace ui {
 
+void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos);
+bool verify_sdcard_format();
+
 enum modal_t {
     INFO = 0,
     YESNO,

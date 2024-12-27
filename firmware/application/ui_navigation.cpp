@@ -760,7 +760,7 @@ void NavigationView::handle_autostart() {
 
 /* Helpers  **************************************************************/
 
-static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
+void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
