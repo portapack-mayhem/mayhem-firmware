@@ -110,12 +110,12 @@ set(EXTCPPSRC
 	#wefax_rx
 	external/wefax_rx/main.cpp
 	external/wefax_rx/ui_wefax_rx.cpp
-	
+
 	#noaaapt_rx
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
-		
-	
+
+
 
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
@@ -160,78 +160,6 @@ set(EXTCPPSRC
 	#app_manager
 	external/app_manager/main.cpp
 	external/app_manager/ui_app_manager.cpp
-
-	#hopper
-	external/hopper/main.cpp
-	external/hopper/ui_hopper.cpp
-
-	# whip calculator
-	external/antenna_length/main.cpp
-	external/antenna_length/ui_whipcalc.cpp
-
-	# wav viewer
-	external/wav_view/main.cpp
-	external/wav_view/ui_view_wav.cpp
-
-	# wipe sdcard
-	external/sd_wipe/main.cpp
-	external/sd_wipe/ui_sd_wipe.cpp
-
-	# playlist editor
-	external/playlist_editor/main.cpp
-	external/playlist_editor/ui_playlist_editor.cpp
-
-	#snake
-	external/snake/main.cpp
-	external/snake/ui_snake.cpp
-
-	#stopwatch
-	external/stopwatch/main.cpp
-	external/stopwatch/ui_stopwatch.cpp
-
-	#breakout
-	external/breakout/main.cpp
-	external/breakout/ui_breakout.cpp
-
-	#dinogame
-	external/dinogame/main.cpp
-	external/dinogame/ui_dinogame.cpp
-
-	#doom
-	external/doom/main.cpp
-	external/doom/ui_doom.cpp
-
-	#debug_pmem
-	external/debug_pmem/main.cpp
-	external/debug_pmem/ui_debug_pmem.cpp
-
-	#scanner
-	external/scanner/main.cpp
-	external/scanner/ui_scanner.cpp
-
-	#level
-	external/level/main.cpp
-	external/level/ui_level.cpp
-
-	#gfxEQ
-	external/gfxeq/main.cpp
-	external/gfxeq/ui_gfxeq.cpp	
-
-	#detector_rx
-	external/detector_rx/main.cpp
-	external/detector_rx/ui_detector_rx.cpp		
-
-	#space_invaders
-	external/spaceinv/main.cpp
-	external/spaceinv/ui_spaceinv.cpp		
-
-	#blackjack
-	external/blackjack/main.cpp
-	external/blackjack/ui_blackjack.cpp
-
-	#battleship
-	external/battleship/main.cpp
-	external/battleship/ui_battleship.cpp		
 )
 
 set(EXTAPPLIST
@@ -273,22 +201,4 @@ set(EXTAPPLIST
 	tuner
 	metronome
 	app_manager
-	hopper
-	antenna_length
-	view_wav
-	sd_wipe
-	playlist_editor
-	snake
-	stopwatch
-	breakout
-	dinogame
-	doom
-	debug_pmem
-	scanner
-	level
-	gfxeq
-	detector_rx
-	spaceinv
-	blackjack
-	battleship
 )
