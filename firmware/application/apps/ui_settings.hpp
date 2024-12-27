@@ -638,20 +638,32 @@ class SetButtonsView : public View {
     OptionsField field_repeat_delay{
         {20 * 8, 5 * 16},
         6,
-        {{"NORMAL", false},
-         {"FAST", true}}};
+        {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
+         {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
+         {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
 
-    OptionsField field_repeat_speed{
-        {20 * 8, 7 * 16},
-        6,
-        {{"NORMAL", false},
-         {"FAST", true}}};
+    NumberField field_encoder_rate_multiplier{
+        {20 * 8, 12 * 16},
+        2,
+        {1, 15},
+        1,
+        ' '};
 
-    OptionsField field_long_press_delay{
-        {20 * 8, 9 * 16},
-        6,
-        {{"NORMAL", false},
-         {"FAST", true}}};
+    Button button_dial_sensitivity_plus{
+        {20 * 8, 4 * 16, 16, 16},
+        "+"};
+
+    Button button_dial_sensitivity_minus{
+        {20 * 8, 6 * 16, 16, 16},
+        "-"};
+
+    Button button_rate_multiplier_plus{
+        {20 * 8, 11 * 16, 16, 16},
+        "+"};
+
+    Button button_rate_multiplier_minus{
+        {20 * 8, 13 * 16, 16, 16},
+        "-"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
