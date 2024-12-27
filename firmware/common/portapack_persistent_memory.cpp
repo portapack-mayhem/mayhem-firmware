@@ -109,7 +109,7 @@ struct ui_config_t {
     bool hide_clock : 1;
     bool clock_show_date : 1;
     bool clkout_enabled : 1;
-    bool unused_FB : 1;  // apply_fake_brightness
+    bool apply_fake_brightness : 1;  // Fake brightness level, which eventually could be something along the lines of apply_pwm_brightness
     bool stealth_mode : 1;
     bool config_login : 1;
     bool config_splash : 1;
@@ -130,7 +130,7 @@ struct ui_config2_t {
     bool hide_sd_card : 1;
 
     bool hide_mute : 1;
-    bool UNUSED_3 : 1;
+    bool hide_fake_brightness : 1;
     bool hide_numeric_battery : 1;
     bool hide_battery_icon : 1;
     bool override_batt_calc : 1;
@@ -226,6 +226,9 @@ struct data_t {
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
     uint16_t encoder_dial_sensitivity : 4;
 
+    // fake brightness level (not switch, switch is in another place)
+    uint16_t fake_brightness_level : 4;
+
     // Encoder rotation rate multiplier for larger increments when rotated rapidly
     uint16_t encoder_rate_multiplier : 4;
 
@@ -297,6 +300,7 @@ struct data_t {
           frequency_tx_correction(0),
 
           encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
+          fake_brightness_level(BRIGHTNESS_50),
           encoder_rate_multiplier(1),
           UNUSED(0),
 
@@ -465,6 +469,7 @@ void init() {
     set_config_mode_storage_direct(config_mode_backup);
 
     // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
+    if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
     if (menu_color().v == 0) set_menu_color(Color::grey());
 }
 
@@ -645,6 +650,10 @@ bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
 
+bool apply_fake_brightness() {
+    return data->ui_config.apply_fake_brightness;
+}
+
 bool config_login() {
     return data->ui_config.config_login;
 }
@@ -746,6 +755,10 @@ void set_config_cpld(uint8_t i) {
 void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.backlight_timeout = static_cast<uint8_t>(new_value.timeout_enum());
     data->ui_config.enable_backlight_timeout = static_cast<uint8_t>(new_value.timeout_enabled());
+}
+
+void set_apply_fake_brightness(const bool v) {
+    data->ui_config.apply_fake_brightness = v;
 }
 
 uint32_t pocsag_last_address() {
@@ -934,7 +947,9 @@ bool ui_hide_clock() {
 bool ui_hide_sd_card() {
     return data->ui_config2.hide_sd_card;
 }
-
+bool ui_hide_fake_brightness() {
+    return data->ui_config2.hide_fake_brightness;
+}
 bool ui_hide_numeric_battery() {
     return data->ui_config2.hide_numeric_battery;
 }
@@ -976,6 +991,9 @@ void set_ui_hide_clock(bool v) {
 }
 void set_ui_hide_sd_card(bool v) {
     data->ui_config2.hide_sd_card = v;
+}
+void set_ui_hide_fake_brightness(bool v) {
+    data->ui_config2.hide_fake_brightness = v;
 }
 void set_ui_hide_numeric_battery(bool v) {
     data->ui_config2.hide_numeric_battery = v;
@@ -1092,6 +1110,26 @@ dst_config_t config_dst() {
 void set_config_dst(dst_config_t v) {
     data->dst_config = v;
     rtc_time::dst_init();
+}
+
+// Fake brightness level (switch is in another place)
+uint8_t fake_brightness_level() {
+    return data->fake_brightness_level;
+}
+void set_fake_brightness_level(uint8_t v) {
+    data->fake_brightness_level = v;
+}
+
+// Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
+void toggle_fake_brightness_level() {
+    bool fbe = apply_fake_brightness();
+    if (config_lcd_inverted_mode()) return;  // for now only inverted mode OR fake brightness
+    if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
+        set_apply_fake_brightness(!fbe);
+        data->fake_brightness_level = BRIGHTNESS_50;
+    } else {
+        data->fake_brightness_level++;
+    }
 }
 
 // Menu Color Scheme
@@ -1211,6 +1249,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
+    pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(data->fake_brightness_level));
     pmem_dump_file.write_line("menu_color: 0x" + to_string_hex(data->menu_color.v, 4));
     pmem_dump_file.write_line("touchscreen_threshold: " + to_string_dec_uint(data->touchscreen_threshold));
 
@@ -1227,6 +1266,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
     pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(data->ui_config.clkout_enabled));
+    pmem_dump_file.write_line("ui_config apply_fake_brightness: " + to_string_dec_uint(data->ui_config.apply_fake_brightness));
     pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode));
     pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login));
     pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash));
@@ -1241,6 +1281,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(data->ui_config2.hide_clock));
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
     pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(data->ui_config2.hide_mute));
+    pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(data->ui_config2.hide_fake_brightness));
     pmem_dump_file.write_line("ui_config2 hide_battery_icon: " + to_string_dec_uint(data->ui_config2.hide_battery_icon));
     pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(data->ui_config2.hide_numeric_battery));
     pmem_dump_file.write_line("ui_config2 theme_id: " + to_string_dec_uint(data->ui_config2.theme_id));

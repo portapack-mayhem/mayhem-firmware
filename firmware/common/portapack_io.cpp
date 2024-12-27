@@ -77,8 +77,22 @@ void IO::reference_oscillator(const bool enable) {
     io_write(1, io_reg);
 }
 
+bool IO::get_dark_cover() {
+    return portapack::persistent_memory::apply_fake_brightness() & (!portapack::persistent_memory::config_lcd_inverted_mode());
+}
+
 bool IO::get_is_inverted() {
     return portapack::persistent_memory::config_lcd_inverted_mode();
+}
+
+uint8_t IO::get_brightness() {
+    return portapack::persistent_memory::fake_brightness_level();
+}
+
+void IO::update_cached_values() {
+    inverted_enabled = get_is_inverted();
+    dark_cover_enabled = get_dark_cover();
+    brightness = get_brightness();
 }
 
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
