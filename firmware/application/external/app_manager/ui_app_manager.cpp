@@ -36,6 +36,7 @@ namespace ui::external_app::app_manager {
 
 /* AppManagerView **************************************/
 /* | inner apps | external apps |
+ * ------------------------------
  * | id         | appCallName   |
  * | displayName|appFriendlyName|
  */
@@ -216,9 +217,9 @@ void AppManagerView::set_auto_start() {
     auto app_index = menu_view.highlighted_index();
     if (app_index >= app_list_index) return;
 
-    auto id_aka_friendly_name = get_app_info(app_index, false);
+    auto id_aka_app_call_name = get_app_info(app_index, false);
 
-    autostart_app = id_aka_friendly_name;
+    autostart_app = id_aka_app_call_name;
 
     refresh_list();
 }

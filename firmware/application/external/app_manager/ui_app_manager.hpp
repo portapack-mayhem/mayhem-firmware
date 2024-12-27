@@ -79,7 +79,7 @@ class AppManagerView : public View {
     void set_auto_start();
     void unset_auto_start();
     void set_unset_autostart_app();
-    bool is_autostart_app(const char* id_aka_friendly_name);
+    bool is_autostart_app(const char* id_aka_app_call_name);
 };
 
 }  // namespace ui::external_app::app_manager

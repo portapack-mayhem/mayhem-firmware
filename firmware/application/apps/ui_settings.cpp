@@ -977,67 +977,6 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
-/* SetAutoStartView ************************************/
-
-SetAutostartView::SetAutostartView(NavigationView& nav) {
-    add_children({&labels,
-                  &button_save,
-                  &button_cancel,
-                  &button_reset,
-                  &options});
-
-    button_save.on_select = [&nav, this](Button&) {
-        autostart_app = "";
-        if (selected != 0) {
-            auto it = full_app_list.find(selected);
-            if (it != full_app_list.end())
-                autostart_app = it->second;
-        }
-        nav.pop();
-    };
-
-    button_cancel.on_select = [&nav, this](Button&) {
-        nav.pop();
-    };
-
-    button_reset.on_select = [this](Button&) {
-        selected = 0;
-        options.set_selected_index(0);
-        autostart_app = "";
-    };
-
-    // options
-    i = 0;
-    OptionsField::option_t o{"-none-", i};
-    opts.emplace_back(o);
-    for (auto& app : NavigationView::appList) {
-        if (app.id == nullptr) continue;
-        i++;
-        o = {app.displayName, i};
-        opts.emplace_back(o);
-        full_app_list.emplace(i, app.id);
-        if (autostart_app == app.id) selected = i;
-    }
-    ExternalItemsMenuLoader::load_all_external_items_callback([this](ui::AppInfoConsole& app) {
-        if (app.appCallName == nullptr) return;
-        i++;
-        OptionsField::option_t o = {app.appFriendlyName, i};
-        opts.emplace_back(o);
-        full_app_list.emplace(i, app.appCallName);
-        if (autostart_app == app.appCallName) selected = i;
-    });
-
-    options.set_options(opts);
-    options.on_change = [this](size_t, OptionsField::value_t v) {
-        selected = v;
-    };
-    options.set_selected_index(selected);
-}
-
-void SetAutostartView::focus() {
-    options.focus();
-}
-
 /* SetThemeView ************************************/
 
 SetThemeView::SetThemeView(NavigationView& nav) {
@@ -1143,7 +1082,6 @@ void SettingsMenuView::on_populate() {
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
-        {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
 
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});
