@@ -53,7 +53,6 @@ namespace fs = std::filesystem;
 #include "i2cdevmanager.hpp"
 #include "i2cdev_max17055.hpp"
 
-#include "usb_serial_asyncmsg.hpp"
 #include "file_reader.hpp"
 
 extern ui::SystemView* system_view_ptr;
