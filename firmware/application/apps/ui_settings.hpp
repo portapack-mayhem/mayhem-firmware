@@ -611,6 +611,22 @@ class SetEncoderDialView : public View {
         1,
         ' '};
 
+    Button button_dial_sensitivity_plus{
+        {20 * 8, 4 * 16, 16, 16},
+        "+"};
+
+    Button button_dial_sensitivity_minus{
+        {20 * 8, 6 * 16, 16, 16},
+        "-"};
+
+    Button button_rate_multiplier_plus{
+        {20 * 8, 11 * 16, 16, 16},
+        "+"};
+
+    Button button_rate_multiplier_minus{
+        {20 * 8, 13 * 16, 16, 16},
+        "-"};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
