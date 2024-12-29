@@ -48,12 +48,21 @@ class CaptureAppView : public View {
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;
+
     uint32_t previous_bandwidth{500000};
+    uint32_t previous_format{0};
+    bool previous_trim{false};
 
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
-        "rx_capture", app_settings::Mode::RX};
+        "rx_capture",
+        app_settings::Mode::RX,
+        {
+            {"previous_bandwidth"sv, &previous_bandwidth},
+            {"previous_format"sv, &previous_format},
+            {"previous_trim"sv, &previous_trim},
+        }};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
