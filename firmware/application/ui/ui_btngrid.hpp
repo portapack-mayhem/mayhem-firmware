@@ -80,6 +80,7 @@ class BtnGridView : public View {
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
     bool blacklisted_app(GridItem new_item);
+    bool on_touch(const TouchEvent event) override;
 
     void update_items();
 

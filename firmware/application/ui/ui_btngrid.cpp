@@ -281,6 +281,32 @@ bool BtnGridView::on_encoder(const EncoderEvent event) {
     return set_highlighted(highlighted_item + event);
 }
 
+bool BtnGridView::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        bool child_ever_hit = false;
+        for (auto& child : children_) {
+            if (child->screen_rect().contains(event.point)) {
+                child_ever_hit = true;
+                break;
+            }
+        }
+
+        if (!child_ever_hit) {
+            offset += 6;
+            // it would be nice to real paging but i think there's no way to detect how much tile on this screen currently
+            // (settings and homepage and debug has 2 row, while Tx and Rx has 3 row), this is just add 6 (the least common multiple of 2 and 3) item and it kinda works.
+            if (offset >= menu_items.size()) {
+                offset = 0;
+            }
+            update_items();
+            set_dirty();
+            return true;
+        }
+    }
+
+    return View::on_touch(event);
+}
+
 /* BlackList ******************************************************/
 
 std::unique_ptr<char> blacklist_ptr{};
