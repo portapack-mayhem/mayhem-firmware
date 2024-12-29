@@ -59,9 +59,9 @@ class CaptureAppView : public View {
         "rx_capture",
         app_settings::Mode::RX,
         {
-            {"previous_bandwidth"sv, &previous_bandwidth},
-            {"previous_format"sv, &previous_format},
-            {"previous_trim"sv, &previous_trim},
+            {"rate"sv, &previous_bandwidth},
+            {"format"sv, &previous_format},
+            {"trim"sv, &previous_trim},
         }};
 
     Labels labels{
