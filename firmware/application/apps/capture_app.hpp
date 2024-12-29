@@ -56,7 +56,8 @@ class CaptureAppView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
-        "rx_capture", app_settings::Mode::RX,
+        "rx_capture",
+        app_settings::Mode::RX,
         {
             {"previous_bandwidth"sv, &previous_bandwidth},
             {"previous_format"sv, &previous_format},
