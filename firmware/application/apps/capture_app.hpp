@@ -49,9 +49,9 @@ class CaptureAppView : public View {
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
-    uint32_t previous_bandwidth{500000};
-    uint32_t previous_format{0};
-    bool previous_trim{false};
+    uint32_t capture_rate{500000};
+    uint32_t file_format{0};
+    bool trim{false};
 
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
@@ -59,9 +59,9 @@ class CaptureAppView : public View {
         "rx_capture",
         app_settings::Mode::RX,
         {
-            {"previous_bandwidth"sv, &previous_bandwidth},
-            {"previous_format"sv, &previous_format},
-            {"previous_trim"sv, &previous_trim},
+            {"capture_rate"sv, &capture_rate},
+            {"file_format"sv, &file_format},
+            {"trim"sv, &trim},
         }};
 
     Labels labels{

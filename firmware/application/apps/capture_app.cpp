@@ -55,25 +55,24 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         this->field_frequency.set_step(v);
     };
 
-    option_format.set_selected_index(previous_format);
+    option_format.set_selected_index(file_format);
     option_format.on_change = [this](size_t, uint32_t file_type) {
-        previous_format = file_type;
+        file_format = file_type;
         record_view.set_file_type((RecordView::FileType)file_type);
     };
 
-    check_trim.set_value(previous_trim);
+    check_trim.set_value(trim);
     check_trim.on_select = [this](Checkbox&, bool v) {
-        previous_trim = v;
+        trim = v;
         record_view.set_auto_trim(v);
     };
 
     freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
-    option_bandwidth.on_change = [this](size_t, uint32_t bandwidth) {
+    option_bandwidth.on_change = [this](size_t, uint32_t new_capture_rate) {
         /* Nyquist would imply a sample rate of 2x bandwidth, but because the ADC
          * provides 2 values (I,Q), the sample_rate is equal to bandwidth here. */
-        auto sample_rate = bandwidth;
 
-        /* base_rate (bandwidth) is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
+        /* capture_rate (bandwidth) is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
         /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
         /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card. */
 
@@ -81,7 +80,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
 
         // record_view determines the correct oversampling to apply and returns the actual sample rate.
         // NB: record_view is what actually updates proc_capture baseband settings.
-        auto actual_sample_rate = record_view.set_sampling_rate(sample_rate);
+        auto actual_sample_rate = record_view.set_sampling_rate(new_capture_rate);
 
         // Update the radio model with the actual sampling rate.
         receiver_model.set_sampling_rate(actual_sample_rate);
@@ -91,19 +90,19 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         receiver_model.set_baseband_bandwidth(anti_alias_filter_bandwidth);
 
         // Automatically switch default capture format to C8 when bandwidth setting is increased to >=1.5MHz anb back to C16 for <=1,25Mhz
-        if ((bandwidth >= 1500000) && (previous_bandwidth < 1500000)) {
+        if ((new_capture_rate >= 1500000) && (capture_rate < 1500000)) {
             option_format.set_selected_index(1);  // Default C8 format for REC, 1500K ... 5500k
         }
-        if ((bandwidth <= 1250000) && (previous_bandwidth > 1250000)) {
+        if ((new_capture_rate <= 1250000) && (capture_rate > 1250000)) {
             option_format.set_selected_index(0);  // Default C16 format for REC , 12k5 ... 1250K
         }
-        previous_bandwidth = bandwidth;
+        capture_rate = new_capture_rate;
 
         waterfall.start();
     };
 
     receiver_model.enable();
-    option_bandwidth.set_by_value(previous_bandwidth);
+    option_bandwidth.set_by_value(capture_rate);
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
