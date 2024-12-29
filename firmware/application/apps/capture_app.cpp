@@ -55,15 +55,15 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         this->field_frequency.set_step(v);
     };
 
-    option_format.set_selected_index(previous_format);
+    option_format.set_selected_index(file_format);
     option_format.on_change = [this](size_t, uint32_t file_type) {
-        previous_format = file_type;
+        file_format = file_type;
         record_view.set_file_type((RecordView::FileType)file_type);
     };
 
-    check_trim.set_value(previous_trim);
+    check_trim.set_value(trim);
     check_trim.on_select = [this](Checkbox&, bool v) {
-        previous_trim = v;
+        trim = v;
         record_view.set_auto_trim(v);
     };
 
@@ -102,7 +102,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     receiver_model.enable();
-    option_bandwidth.set_by_value(previous_bandwidth);
+    option_bandwidth.set_by_value(capture_rate);
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
