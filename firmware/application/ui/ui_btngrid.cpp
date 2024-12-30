@@ -226,7 +226,7 @@ NewButton* BtnGridView::item_view(size_t index) const {
     return menu_item_views[index].get();
 }
 
-void BtnGridView::set_show_arrows(bool enabled) {
+void BtnGridView::show_arrows_enabled(bool enabled) {
     show_arrows = enabled;
 }
 

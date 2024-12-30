@@ -69,7 +69,7 @@ class BtnGridView : public View {
     NewButton* item_view(size_t index) const;
 
     bool show_arrows{true};  // flag used to hide arrows in main menu
-    void set_show_arrows(bool enabled);
+    void show_arrows_enabled(bool enabled);
 
     bool set_highlighted(int32_t new_value);
     uint32_t highlighted_index();

@@ -876,7 +876,7 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
-    set_show_arrows(false);
+    show_arrows_enabled(false);
 }
 
 void SystemMenuView::on_populate() {
