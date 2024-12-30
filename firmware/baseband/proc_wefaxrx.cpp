@@ -98,7 +98,7 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
             pxRoll += pxRem;
             status_message.freq = freqq;
             image_message.cnt++;  // saves the pixel
-            if (image_message.cnt < 480) {
+            if (image_message.cnt < 400) {
                 image_message.image[image_message.cnt] = status_message.freqavg < 2500 ? 0 : 255;  // todo remove limit, send in multiple
                 /*if (status_message.freqavg >= 3000)
                     image_message.image[image_message.cnt] = 255;
@@ -108,7 +108,7 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
                     image_message.image[image_message.cnt] = 256 - ((3000 - status_message.freqavg) / 3.1);
                 }*/
             }
-            if (image_message.cnt >= 840) {
+            if (image_message.cnt >= 399) {
                 shared_memory.application_queue.push(image_message);
                 image_message.cnt = 0;
                 shared_memory.application_queue.push(status_message);

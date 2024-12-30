@@ -1470,7 +1470,7 @@ class WeFaxRxImageDataMessage : public Message {
    public:
     constexpr WeFaxRxImageDataMessage()
         : Message{ID::WeFaxRxImageData} {}
-    uint8_t image[480]{0};
+    uint8_t image[400]{0};
     uint32_t cnt = 0;
 };
 

@@ -33,6 +33,9 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "ui_fileman.hpp"
+#include "bmpfile.hpp"
+#include "file_path.hpp"
 
 using namespace ui;
 
@@ -54,8 +57,13 @@ class WeFaxRxView : public View {
 
     uint8_t ioc_index{0};
     uint8_t lpm_index{0};
-    uint16_t line_num = 0;
-    uint8_t txtDec = 0;
+    uint16_t line_num = 0;      // nth line
+    uint16_t line_in_part = 0;  // got multiple parts of a line, so keep track of it
+    uint8_t delayer = 0;
+    ui::Color line_buffer[240];
+    std::filesystem::path filetohandle = "";
+
+    BMPFile bmp{};
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
@@ -110,6 +118,14 @@ class WeFaxRxView : public View {
     Text txt_status{
         {0 * 8, 2 * 16, 30 * 8, 16},
     };
+
+    Button button_test{
+        {20, 2 * 16, 5 * 8, 16},
+        "Test"};
+
+    Button button_ss{
+        {190, 2 * 16, 5 * 8, 16},
+        "Start"};
 
     MessageHandlerRegistration message_handler_stats{
         Message::ID::WeFaxRxStatusData,

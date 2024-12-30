@@ -41,7 +41,7 @@ void WeFaxRxView::focus() {
 WeFaxRxView::WeFaxRxView(NavigationView& nav)
     : nav_{nav} {
     // baseband::run_image(portapack::spi_flash::image_tag_wefaxrx);
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    // baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
                   &field_rf_amp,
@@ -52,7 +52,9 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
                   &txt_status,
                   &labels,
                   &options_lpm,
-                  &options_ioc});
+                  &options_ioc,
+                  &button_ss,
+                  &button_test});
 
     options_lpm.on_change = [this](size_t index, int32_t v) {
         lpm_index = (uint8_t)index;
@@ -69,20 +71,53 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     options_ioc.set_selected_index(ioc_index, true);
 
     field_frequency.set_step(10);
-    audio::set_rate(audio::Rate::Hz_24000);
-    audio::output::start();
-    receiver_model.enable();
+    // audio::set_rate(audio::Rate::Hz_24000);
+    // audio::output::start();
+    // receiver_model.enable();
     txt_status.set("Waiting for signal.");
+    button_test.on_select = [this](Button&) {
+        auto open_view = nav_.push<FileLoadView>(".wav");
+        open_view->push_dir(wav_dir);
+        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            delayer = 0;
+            filetohandle = new_file_path;
+            // replay wav file
+        };
+    };
+    button_ss.on_select = [this](Button&) {
+        if (filetohandle == "") return;
+        if (bmp.is_loaded()) bmp.close();
+        bmp.create("/bmptest.bmp", 3000, 1);
+        File f;
+        f.open(filetohandle);
+        filetohandle = "";
+        f.seek(44);
+        int16_t sample;
+        WeFaxRxImageDataMessage msg;
+        while (true) {
+            auto res = f.read(&sample, 2);
+            if (!res.is_ok()) break;
+            if (res.value() != 2) break;
+            msg.image[msg.cnt++] = (sample >> 8) + 128;
+            if (msg.cnt == 400) {
+                on_image(msg);
+                msg.cnt = 0;
+            }
+        }
+        on_image(msg);
+        f.close();
+        bmp.close();
+    };
 }
 
 WeFaxRxView::~WeFaxRxView() {
-    receiver_model.disable();
-    baseband::shutdown();
-    audio::output::stop();
+    // receiver_model.disable();
+    // baseband::shutdown();
+    // audio::output::stop();
 }
 
 void WeFaxRxView::on_settings_changed() {
-    baseband::set_wefax_config(options_lpm.selected_index_value(), options_ioc.selected_index_value());
+    // baseband::set_wefax_config(options_lpm.selected_index_value(), options_ioc.selected_index_value());
 }
 
 void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
@@ -91,14 +126,35 @@ void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
 }
 
 void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
-    line_num++;
-    if (line_num >= 320 - 4 * 16) line_num = 0;
-    ui::Color line_buffer[240];
-    for (uint16_t i = 0; i < 480; i += 2) {
-        uint8_t px = (msg.image[i] + msg.image[i + 1]) / 2;
-        line_buffer[i / 2] = {px, px, px};
+    // 400px at a message
+    line_in_part++;
+    if (line_in_part == 15) {
+        line_in_part = 0;
+        line_num++;
+        bmp.expand_y_delta(1);
     }
-    portapack::display.render_line({0, line_num + 4 * 16}, 240, line_buffer);
+    if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
+
+    for (uint16_t i = 0; i < 400; i += 1) {
+        uint8_t px = 0;
+        //(msg.image[i] + msg.image[i + 1]) / 2;
+        //> 76 = white 0,6 * 32k
+        //<31 black . 0.25 * 32k
+        // between gray
+        if (msg.image[i] > 152) {
+            px = 255;
+        } else if (msg.image[i] < 64) {
+            px = 0;
+        } else {
+            px = ((msg.image[i] - 64) * 742) >> 8;
+        }
+        Color pxl = {px, px, px};
+        if ((i % 2) == 0) bmp.write_next_px(pxl);
+        uint16_t xpos = i / 5 + line_in_part * 15;
+        if (xpos > 240) xpos = 240;
+        line_buffer[xpos] = pxl;
+    }
+    if ((line_in_part == 0)) portapack::display.render_line({0, line_num + 4 * 16}, 240, line_buffer);
 }
 
 }  // namespace ui::external_app::wefax_rx
