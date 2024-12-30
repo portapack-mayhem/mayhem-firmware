@@ -90,8 +90,6 @@ class BtnGridView : public View {
 
     void update_items();
 
-    ui::Painter painter{};
-
    protected:
     virtual void on_populate() = 0;
 
