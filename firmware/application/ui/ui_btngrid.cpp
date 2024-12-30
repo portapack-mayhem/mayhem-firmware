@@ -55,6 +55,9 @@ BtnGridView::BtnGridView(
         }
     };
 
+    button_pgup.set_style(Theme::getInstance()->bg_darkest_small);
+    button_pgdown.set_style(Theme::getInstance()->bg_darkest_small);
+
     add_child(&button_pgup);
     add_child(&button_pgdown);
 }
