@@ -363,8 +363,12 @@ class SetUIView : public View {
         {19 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_batt_text};
 
-    ImageToggle toggle_sd_card{
+    ImageToggle toggle_fake_brightness{
         {21 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_brightness};
+
+    ImageToggle toggle_sd_card{
+        {23 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -607,6 +611,22 @@ class SetEncoderDialView : public View {
         1,
         ' '};
 
+    Button button_dial_sensitivity_plus{
+        {20 * 8, 4 * 16, 16, 16},
+        "+"};
+
+    Button button_dial_sensitivity_minus{
+        {20 * 8, 6 * 16, 16, 16},
+        "-"};
+
+    Button button_rate_multiplier_plus{
+        {20 * 8, 11 * 16, 16, 16},
+        "+"};
+
+    Button button_rate_multiplier_minus{
+        {20 * 8, 13 * 16, 16, 16},
+        "-"};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
@@ -705,6 +725,7 @@ class SetConfigModeView : public View {
         "Cancel",
     };
 };
+using portapack::persistent_memory::fake_brightness_level_options;
 
 class SetDisplayView : public View {
    public:
@@ -715,8 +736,27 @@ class SetDisplayView : public View {
     std::string title() const override { return "Display"; };
 
    private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Limits screen brightness", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField field_fake_brightness{
+        {20 * 8, 8 * 16},
+        6,
+        {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
+         {"25%", fake_brightness_level_options::BRIGHTNESS_25},
+         {"50%", fake_brightness_level_options::BRIGHTNESS_50}}};
+
+    Checkbox checkbox_brightness_switch{
+        {1 * 8, 5 * 16},
+        16,
+        "Enable brightness adjust"};
+
     Checkbox checkbox_invert_switch{
-        {1 * 8, 2 * 16},
+        {1 * 8, 10 * 16},
         23,
         "Invert colors (For IPS)"};
 
@@ -864,47 +904,6 @@ class SetMenuColorView : public View {
     };
 };
 
-class SetAutostartView : public View {
-   public:
-    SetAutostartView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "Autostart"; };
-
-   private:
-    int32_t i = 0;
-    std::string autostart_app{""};
-    OptionsField::options_t opts{};
-    std::map<int32_t, std::string> full_app_list{};  // looking table
-    int32_t selected = 0;
-    SettingsStore nav_setting{
-        "nav"sv,
-        {{"autostart_app"sv, &autostart_app}}};
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Select app to start on boot", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 2 * 16}, "(an SD Card is required)", Theme::getInstance()->fg_light->foreground}};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    OptionsField options{
-        {0 * 8, 4 * 16},
-        screen_width / 8,
-        {},
-        true};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-
-    Button button_reset{
-        {2 * 8, 6 * 16, screen_width - 4 * 8, 32},
-        "Reset"};
-};
-
 class SetThemeView : public View {
    public:
     SetThemeView(NavigationView& nav);
@@ -988,6 +987,7 @@ class SettingsMenuView : public BtnGridView {
 
    private:
     NavigationView& nav_;
+
     void on_populate() override;
 };
 

@@ -53,6 +53,8 @@ namespace fs = std::filesystem;
 #include "i2cdevmanager.hpp"
 #include "i2cdev_max17055.hpp"
 
+#include "file_reader.hpp"
+
 extern ui::SystemView* system_view_ptr;
 
 namespace pmem = portapack::persistent_memory;
@@ -324,6 +326,7 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &toggle_bias_tee,
                   &toggle_clock,
                   &toggle_mute,
+                  &toggle_fake_brightness,
                   &toggle_sd_card,
                   &button_save,
                   &button_cancel});
@@ -361,6 +364,7 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_clock.set_value(!pmem::ui_hide_clock());
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
+    toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
     toggle_battery_icon.set_value(!pmem::ui_hide_battery_icon());
     toggle_battery_text.set_value(!pmem::ui_hide_numeric_battery());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
@@ -389,6 +393,7 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_clock(!toggle_clock.value());
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
         pmem::set_ui_hide_mute(!toggle_mute.value());
+        pmem::set_ui_hide_fake_brightness(!toggle_fake_brightness.value());
         pmem::set_ui_hide_battery_icon(!toggle_battery_icon.value());
         pmem::set_ui_hide_numeric_battery(!toggle_battery_text.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
@@ -702,10 +707,27 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
                   &field_encoder_dial_sensitivity,
                   &field_encoder_rate_multiplier,
                   &button_save,
-                  &button_cancel});
+                  &button_cancel,
+                  &button_dial_sensitivity_plus,
+                  &button_dial_sensitivity_minus,
+                  &button_rate_multiplier_plus,
+                  &button_rate_multiplier_minus});
 
     field_encoder_dial_sensitivity.set_by_value(pmem::encoder_dial_sensitivity());
     field_encoder_rate_multiplier.set_value(pmem::encoder_rate_multiplier());
+
+    button_dial_sensitivity_plus.on_select = [this](Button&) {
+        field_encoder_dial_sensitivity.on_encoder(1);
+    };
+    button_dial_sensitivity_minus.on_select = [this](Button&) {
+        field_encoder_dial_sensitivity.on_encoder(-1);
+    };
+    button_rate_multiplier_plus.on_select = [this](Button&) {
+        field_encoder_rate_multiplier.on_encoder(1);
+    };
+    button_rate_multiplier_minus.on_select = [this](Button&) {
+        field_encoder_rate_multiplier.on_encoder(-1);
+    };
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
@@ -777,19 +799,34 @@ void SetConfigModeView::focus() {
 /* SetDisplayView ************************************/
 
 SetDisplayView::SetDisplayView(NavigationView& nav) {
-    add_children({&button_save,
+    add_children({&labels,
+                  &field_fake_brightness,
+                  &button_save,
                   &button_cancel,
-                  &checkbox_invert_switch});
+                  &checkbox_invert_switch,
+                  &checkbox_brightness_switch});
 
+    field_fake_brightness.set_by_value(pmem::fake_brightness_level());
+    checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
     checkbox_invert_switch.set_value(pmem::config_lcd_inverted_mode());
 
     button_save.on_select = [&nav, this](Button&) {
+        pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
+        pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
         if (checkbox_invert_switch.value() != pmem::config_lcd_inverted_mode()) {
             display.set_inverted(checkbox_invert_switch.value());
             pmem::set_lcd_inverted_mode(checkbox_invert_switch.value());
         }
         send_system_refresh();
         nav.pop();
+    };
+
+    // only enable invert OR fake brightness
+    checkbox_invert_switch.on_select = [this](Checkbox&, bool v) {
+        if (v) checkbox_brightness_switch.set_value(false);
+    };
+    checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
+        if (v) checkbox_invert_switch.set_value(false);
     };
 
     button_cancel.on_select = [&nav, this](Button&) {
@@ -957,67 +994,6 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
-/* SetAutoStartView ************************************/
-
-SetAutostartView::SetAutostartView(NavigationView& nav) {
-    add_children({&labels,
-                  &button_save,
-                  &button_cancel,
-                  &button_reset,
-                  &options});
-
-    button_save.on_select = [&nav, this](Button&) {
-        autostart_app = "";
-        if (selected != 0) {
-            auto it = full_app_list.find(selected);
-            if (it != full_app_list.end())
-                autostart_app = it->second;
-        }
-        nav.pop();
-    };
-
-    button_cancel.on_select = [&nav, this](Button&) {
-        nav.pop();
-    };
-
-    button_reset.on_select = [this](Button&) {
-        selected = 0;
-        options.set_selected_index(0);
-        autostart_app = "";
-    };
-
-    // options
-    i = 0;
-    OptionsField::option_t o{"-none-", i};
-    opts.emplace_back(o);
-    for (auto& app : NavigationView::appList) {
-        if (app.id == nullptr) continue;
-        i++;
-        o = {app.displayName, i};
-        opts.emplace_back(o);
-        full_app_list.emplace(i, app.id);
-        if (autostart_app == app.id) selected = i;
-    }
-    ExternalItemsMenuLoader::load_all_external_items_callback([this](ui::AppInfoConsole& app) {
-        if (app.appCallName == nullptr) return;
-        i++;
-        OptionsField::option_t o = {app.appFriendlyName, i};
-        opts.emplace_back(o);
-        full_app_list.emplace(i, app.appCallName);
-        if (autostart_app == app.appCallName) selected = i;
-    });
-
-    options.set_options(opts);
-    options.on_change = [this](size_t, OptionsField::value_t v) {
-        selected = v;
-    };
-    options.set_selected_index(selected);
-}
-
-void SetAutostartView::focus() {
-    options.focus();
-}
-
 /* SetThemeView ************************************/
 
 SetThemeView::SetThemeView(NavigationView& nav) {
@@ -1099,9 +1075,12 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav)
 }
 
 void SettingsMenuView::on_populate() {
-    if (pmem::show_gui_return_icon()) {
+    const bool return_icon = pmem::show_gui_return_icon();
+
+    if (return_icon) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
+
     add_items({
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
@@ -1120,9 +1099,11 @@ void SettingsMenuView::on_populate() {
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
-        {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
+
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});
+
+    add_external_items(nav_, app_location_t::SETTINGS, *this, return_icon ? 1 : 0);
 }
 
 } /* namespace ui */

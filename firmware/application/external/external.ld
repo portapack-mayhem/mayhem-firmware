@@ -55,7 +55,11 @@ MEMORY
     ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k 
     ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k 
     ram_external_app_mcu_temperature(rwx) : org = 0xADD00000, len = 32k 
-    ram_external_app_wefax_rx(rwx) : org = 0xADD100000, len = 32k 
+    ram_external_app_fmradio(rwx) : org = 0xADD10000, len = 32k 
+    ram_external_app_tuner(rwx) : org = 0xADD20000, len = 32k
+    ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k 
+    ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k 
+    ram_external_app_wefax_rx(rwx) : org = 0xADD500000, len = 32k 
 }
 
 SECTIONS
@@ -252,6 +256,30 @@ SECTIONS
         KEEP(*(.external_app.app_mcu_temperature.application_information));
         *(*ui*external_app*mcu_temperature*);
     } > ram_external_app_mcu_temperature
+    
+    .external_app_fmradio : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_fmradio.application_information));
+        *(*ui*external_app*fmradio*);
+    } > ram_external_app_fmradio
+    
+    .external_app_tuner : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_tuner.application_information));
+        *(*ui*external_app*tuner*);
+    } > ram_external_app_tuner
+
+    .external_app_metronome : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_metronome.application_information));
+        *(*ui*external_app*metronome*);
+    } > ram_external_app_metronome
+
+    .external_app_app_manager : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_app_manager.application_information));
+        *(*ui*external_app*app_manager*);
+    } > ram_external_app_app_manager
    .external_app_wefax_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_wefax_rx.application_information));

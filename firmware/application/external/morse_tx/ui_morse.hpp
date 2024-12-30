@@ -41,6 +41,11 @@ using namespace morse;
 
 namespace ui::external_app::morse_tx {
 
+enum Modulation {
+    FM = 0,
+    CW = 1
+};
+
 class MorseView : public View {
    public:
     MorseView(NavigationView& nav);
@@ -137,8 +142,8 @@ class MorseView : public View {
     OptionsField options_modulation{
         {15 * 8, 10 * 8},
         2,
-        {{"CW", true},
-         {"FM", false}}};
+        {{"CW", Modulation::CW},
+         {"FM", Modulation::FM}}};
 
     OptionsField options_loop{
         {9 * 8, 12 * 8},

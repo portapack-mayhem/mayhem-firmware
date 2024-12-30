@@ -310,6 +310,15 @@ SystemStatusView::SystemStatusView(
         this->on_bias_tee();
     };
 
+    button_fake_brightness.on_select = [this](ImageButton&) {
+        set_dirty();
+        pmem::toggle_fake_brightness_level();
+        refresh();
+        if (nullptr != parent()) {
+            parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
+        }
+    };
+
     button_camera.on_select = [this](ImageButton&) {
         this->on_camera();
     };
@@ -330,6 +339,7 @@ SystemStatusView::SystemStatusView(
 
     audio::output::stop();
     audio::output::update_audio_mute();
+
     refresh();
 }
 
@@ -372,6 +382,7 @@ void SystemStatusView::refresh() {
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
+    if (!pmem::ui_hide_fake_brightness() && !pmem::config_lcd_inverted_mode()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
         batt_was_inited = true;
         if (!pmem::ui_hide_battery_icon()) {
@@ -403,6 +414,9 @@ void SystemStatusView::refresh() {
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
     button_converter.set_foreground(pmem::config_converter() ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_light->foreground);
+
+    // Fake Brightness
+    button_fake_brightness.set_foreground((pmem::apply_fake_brightness() & (!pmem::config_lcd_inverted_mode())) ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
 
     set_dirty();
 }
@@ -746,7 +760,7 @@ void NavigationView::handle_autostart() {
 
 /* Helpers  **************************************************************/
 
-static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
+void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
@@ -761,10 +775,10 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
 }
 
 // clang-format off
-void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t notice_pos) {
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.insert_item({"Notice!",
+        grid.insert_item({"ExtAppErr",
                           Theme::getInstance()->error_dark->foreground,
                           nullptr,
                           [&nav]() {
@@ -774,7 +788,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                                   "see Mayhem wiki and copy apps\n"
                                   "to " + apps_dir.string() + " folder of SD card.");
                           }},
-                         notice_pos);
+                         error_tile_pos);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
         { 
@@ -794,6 +808,12 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
     }
 }
 // clang-format on
+
+bool verify_sdcard_format() {
+    FATFS* fs = &sd_card::fs;
+    return (fs->fs_type == FS_FAT32 || fs->fs_type == FS_EXFAT) || !(sd_card::status() == sd_card::Status::Mounted);
+    /*                                   ^ to satisfy those users that not use an sd*/
+}
 
 /* ReceiversMenuView *****************************************************/
 
@@ -866,8 +886,13 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 }
 
 void SystemMenuView::on_populate() {
+    if (!verify_sdcard_format()) {
+        add_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
+                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32,\nformat to exFAT or FAT32 on PC");
+                  }});
+    }
     add_apps(nav_, *this, HOME);
-    add_external_items(nav_, app_location_t::HOME, *this, 2);
+    add_external_items(nav_, app_location_t::HOME, *this, 0);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 

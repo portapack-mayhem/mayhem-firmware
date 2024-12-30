@@ -45,15 +45,23 @@ class SDCardDebugView : public View {
 
     void on_status(const sd_card::Status status);
     void on_test();
+    std::string fetch_sdcard_format();
 
-    Text text_title{
-        {(240 - (7 * 8)) / 2, 1 * 16, (7 * 8), 16},
-        "SD Card",
+    Labels labels{
+        {{0 * 8, 1 * 16}, "Format", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "CSD", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Bus width", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Card type", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Block size", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 9 * 16}, "Block count", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 16}, "Capacity", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Bus width", Theme::getInstance()->fg_light->foreground},
+
     };
 
-    Text text_csd_title{
-        {0, 3 * 16, (8 * 8), 16},
-        "CSD",
+    Text text_format{
+        {240 - ((sizeof("Undefined: 255") + 1) * 8), 1 * 16, (sizeof("Undefined: 255") + 1) * 8, 16},
+        "Unknown",
     };
 
     Text text_csd_value_3{
@@ -78,22 +86,12 @@ class SDCardDebugView : public View {
 
     static constexpr size_t bus_width_characters = 1;
 
-    Text text_bus_width_title{
-        {0, 5 * 16, (9 * 8), 16},
-        "Bus width",
-    };
-
     Text text_bus_width_value{
         {240 - (bus_width_characters * 8), 5 * 16, (bus_width_characters * 8), 16},
         "",
     };
 
     static constexpr size_t card_type_characters = 13;
-
-    Text text_card_type_title{
-        {0, 6 * 16, (9 * 8), 16},
-        "Card type",
-    };
 
     Text text_card_type_value{
         {240 - (card_type_characters * 8), 6 * 16, (card_type_characters * 8), 16},
@@ -102,11 +100,6 @@ class SDCardDebugView : public View {
 
     static constexpr size_t block_size_characters = 5;
 
-    Text text_block_size_title{
-        {0, 8 * 16, (10 * 8), 16},
-        "Block size",
-    };
-
     Text text_block_size_value{
         {240 - (block_size_characters * 8), 8 * 16, (block_size_characters * 8), 16},
         "",
@@ -114,22 +107,12 @@ class SDCardDebugView : public View {
 
     static constexpr size_t block_count_characters = 9;
 
-    Text text_block_count_title{
-        {0, 9 * 16, (11 * 8), 16},
-        "Block count",
-    };
-
     Text text_block_count_value{
         {240 - (block_count_characters * 8), 9 * 16, (block_count_characters * 8), 16},
         "",
     };
 
     static constexpr size_t capacity_characters = 10;
-
-    Text text_capacity_title{
-        {0, 10 * 16, (8 * 8), 16},
-        "Capacity",
-    };
 
     Text text_capacity_value{
         {240 - (capacity_characters * 8), 10 * 16, (capacity_characters * 8), 16},
