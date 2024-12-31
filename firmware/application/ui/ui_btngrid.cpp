@@ -188,7 +188,7 @@ void BtnGridView::show_hide_arrows() {
     } else {
         set_arrow_up_enabled(true);
     }
-    if (highlighted_item == (menu_items.size() - 1)) {
+    if (highlighted_item == (menu_items.size() - 1) || menu_items.size() < displayed_max) {
         set_arrow_down_enabled(false);
     } else {
         set_arrow_down_enabled(true);
