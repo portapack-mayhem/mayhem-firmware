@@ -98,8 +98,13 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     */
     displayed_max = (parent_rect().size().height() / button_h);
 
+<<<<<<< HEAD
     button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), screen_width / 2, 16});
     button_pgdown.set_parent_rect({screen_width / 2, (Coord)(displayed_max * button_h), screen_width / 2, 16});
+=======
+    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), 120, 16});
+    button_pgdown.set_parent_rect({120, (Coord)(displayed_max * button_h), 120, 16});
+>>>>>>> 4c18b80e (Navigation buttons (#2458))
 
     displayed_max *= rows_;
 
@@ -130,12 +135,20 @@ void BtnGridView::set_arrow_up_enabled(bool enabled) {
     if (enabled) {
         if (!arrow_up_enabled) {
             arrow_up_enabled = true;
+<<<<<<< HEAD
             button_pgup.set_text("< PREV");
+=======
+            button_pgup.set_text("PAGE UP");
+>>>>>>> 4c18b80e (Navigation buttons (#2458))
         }
     } else if (!enabled) {
         if (arrow_up_enabled) {
             arrow_up_enabled = false;
+<<<<<<< HEAD
             button_pgup.set_text("      ");
+=======
+            button_pgup.set_text("       ");
+>>>>>>> 4c18b80e (Navigation buttons (#2458))
         }
     }
 };
@@ -146,12 +159,20 @@ void BtnGridView::set_arrow_down_enabled(bool enabled) {
     if (enabled) {
         if (!arrow_down_enabled) {
             arrow_down_enabled = true;
+<<<<<<< HEAD
             button_pgdown.set_text("NEXT >");
+=======
+            button_pgdown.set_text("PAGE DOWN");
+>>>>>>> 4c18b80e (Navigation buttons (#2458))
         }
     } else if (!enabled) {
         if (arrow_down_enabled) {
             arrow_down_enabled = false;
+<<<<<<< HEAD
             button_pgdown.set_text("      ");
+=======
+            button_pgdown.set_text("         ");
+>>>>>>> 4c18b80e (Navigation buttons (#2458))
         }
     }
 };
@@ -248,10 +269,13 @@ NewButton* BtnGridView::item_view(size_t index) const {
 
 void BtnGridView::show_arrows_enabled(bool enabled) {
     show_arrows = enabled;
+<<<<<<< HEAD
     if (!enabled) {
         remove_child(&button_pgup);
         remove_child(&button_pgdown);
     }
+=======
+>>>>>>> 4c18b80e (Navigation buttons (#2458))
 }
 
 bool BtnGridView::set_highlighted(int32_t new_value) {
