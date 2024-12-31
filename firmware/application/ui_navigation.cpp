@@ -825,9 +825,7 @@ void ReceiversMenuView::on_populate() {
     if (return_icon) {
         add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
-
     add_apps(nav_, *this, RX);
-
     add_external_items(nav_, app_location_t::RX, *this, return_icon ? 1 : 0);
 }
 
@@ -841,9 +839,7 @@ void TransmittersMenuView::on_populate() {
     if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
-
     add_apps(nav_, *this, TX);
-
     add_external_items(nav_, app_location_t::TX, *this, return_icon ? 1 : 0);
 }
 
@@ -859,9 +855,7 @@ void UtilitiesMenuView::on_populate() {
     if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
-
     add_apps(nav_, *this, UTILITIES);
-
     add_external_items(nav_, app_location_t::UTILITIES, *this, return_icon ? 1 : 0);
 }
 
@@ -882,7 +876,7 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
-    set_arrow_enabled(false);
+    show_arrows_enabled(false);
 }
 
 void SystemMenuView::on_populate() {
