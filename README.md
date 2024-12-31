@@ -30,7 +30,7 @@ This repository expands upon the previous work by many people and aims to consta
 
 :heavy_check_mark: A recommended one is this [PortaPack H2](https://www.ebay.com/itm/116382397447), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
 
-:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://share.hackrf.app/LZPBH9), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
+:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://share.hackrf.app/9FJFJE), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
