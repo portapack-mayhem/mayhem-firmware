@@ -26,6 +26,7 @@
 
 #include "ui_btngrid.hpp"
 #include "rtc_time.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 namespace ui {
 
@@ -60,6 +61,8 @@ BtnGridView::BtnGridView(
 
     add_child(&button_pgup);
     add_child(&button_pgdown);
+
+    show_hide_arrows();
 }
 
 BtnGridView::~BtnGridView() {
@@ -78,8 +81,15 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
 
     displayed_max = (parent_rect().size().height() / button_h);
 
-    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), 120, 16});
-    button_pgdown.set_parent_rect({120, (Coord)(displayed_max * button_h), 120, 16});
+    button_pgup.set_parent_rect({0,
+                                 (Coord)(displayed_max * button_h),
+                                 ((rows_ == 2) ? 120 : 80),
+                                 16});
+
+    button_pgdown.set_parent_rect({((rows_ == 2) ? 120 : 80),
+                                   (Coord)(displayed_max * button_h),
+                                   ((rows_ == 2) ? 120 : 160),
+                                   16});
 
     displayed_max *= rows_;
 
@@ -183,15 +193,25 @@ void BtnGridView::insert_item(const GridItem& new_item, size_t position, bool in
 }
 
 void BtnGridView::show_hide_arrows() {
+    portapack::async_tx_enabled = true;
     if (highlighted_item == 0) {
         set_arrow_up_enabled(false);
     } else {
         set_arrow_up_enabled(true);
     }
     if (highlighted_item == (menu_items.size() - 1) || menu_items.size() < displayed_max) {
+        /* ^ when at the last tile of this screen          ^ if the tiles isn't fullfilled this screen */
         set_arrow_down_enabled(false);
     } else {
         set_arrow_down_enabled(true);
+    }
+
+    if (menu_items.size() < displayed_max) {  // if the tiles isn't fullfilled this screen
+        button_pgup.hidden(true);
+        button_pgdown.hidden(true);
+    } else {
+        button_pgup.hidden(false);
+        button_pgdown.hidden(false);
     }
 }
 
