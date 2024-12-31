@@ -26,7 +26,6 @@
 
 #include "ui_btngrid.hpp"
 #include "rtc_time.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 namespace ui {
 
