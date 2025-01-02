@@ -145,6 +145,17 @@ void ReceiverModel::set_am_configuration(uint8_t n) {
     }
 }
 
+uint8_t ReceiverModel::amfm_configuration() const {
+    return settings_.amfm_config_index;
+}
+
+void ReceiverModel::set_amfm_configuration(uint8_t n) {
+    if (n < am_configs.size()) {
+        settings_.amfm_config_index = n;
+        update_modulation();
+    }
+}
+
 uint8_t ReceiverModel::nbfm_configuration() const {
     return settings_.nbfm_config_index;
 }
@@ -303,6 +314,10 @@ void ReceiverModel::update_modulation() {
             update_am_configuration();
             break;
 
+        case Mode::AMAudioFMApt:               // Wefax , first step , USB demodulation from the AMAudio group, index 2 (USB+3K), TODO +FM subcarrier demod ? 
+            update_amfm_configuration();
+            break;
+
         case Mode::NarrowbandFMAudio:
             update_nbfm_configuration();
             break;
@@ -319,6 +334,10 @@ void ReceiverModel::update_modulation() {
 
 void ReceiverModel::update_am_configuration() {
     am_configs[am_configuration()].apply();
+}
+
+void ReceiverModel::update_amfm_configuration() {
+    am_configs[amfm_configuration()].apply();           // update with different index for Wefax.
 }
 
 void ReceiverModel::update_nbfm_configuration() {

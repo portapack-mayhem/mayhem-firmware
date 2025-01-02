@@ -40,8 +40,9 @@ class ReceiverModel {
         AMAudio = 0,
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
-        SpectrumAnalysis = 3,
-        Capture = 4
+        AMAudioFMApt = 3,            // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        SpectrumAnalysis = 4,
+        Capture = 5      
     };
 
     struct settings_t {
@@ -54,6 +55,7 @@ class ReceiverModel {
         bool rf_amp = false;
         Mode mode = Mode::NarrowbandFMAudio;
         uint8_t am_config_index = 0;
+        uint8_t amfm_config_index = 0;
         uint8_t nbfm_config_index = 0;
         uint8_t wfm_config_index = 0;
         uint8_t squelch_level = 80;
@@ -86,6 +88,9 @@ class ReceiverModel {
 
     uint8_t am_configuration() const;
     void set_am_configuration(uint8_t n);
+
+    uint8_t amfm_configuration() const;
+    void set_amfm_configuration(uint8_t n);
 
     uint8_t nbfm_configuration() const;
     void set_nbfm_configuration(uint8_t n);
@@ -140,6 +145,7 @@ class ReceiverModel {
 
     void update_modulation();
     void update_am_configuration();
+    void update_amfm_configuration();
     void update_nbfm_configuration();
     void update_wfm_configuration();
 

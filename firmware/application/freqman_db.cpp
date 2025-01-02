@@ -51,7 +51,7 @@ options_t freqman_modulations = {
     {"SPEC", 3},
 };
 
-options_t freqman_bandwidths[4] = {
+options_t freqman_bandwidths[5] = {
     {
         // AM
         {"DSB 9k", 0},
@@ -71,6 +71,10 @@ options_t freqman_bandwidths[4] = {
         {"40k", 2},
         {"180k", 1},
         {"200k", 0},
+    },
+    {
+        // AMFM for Wefax-
+        {"USB+3k", 2},      // Fixed RX demodul AM config Index 2 : USB+3K for Audio Wefax tones.
     },
     {
         // SPEC -- TODO: these should be indexes.
@@ -99,7 +103,7 @@ options_t freqman_bandwidths[4] = {
         {"4500k", 4500000},
         {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
-    },
+    }
 };
 
 // TODO: these should be indexes.
