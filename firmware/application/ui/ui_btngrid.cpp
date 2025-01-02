@@ -38,17 +38,31 @@ BtnGridView::BtnGridView(
     set_parent_rect(new_parent_rect);
     set_focusable(true);
 
-    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-        this->on_tick_second();
+    button_pgup.set_focusable(false);
+    button_pgup.on_select = [this](Button&) {
+        if (arrow_up_enabled) {
+            if (((int64_t)highlighted_item - displayed_max) > 0)
+                set_highlighted(highlighted_item - displayed_max);
+            else
+                set_highlighted(0);
+        }
     };
 
-    add_child(&arrow_more);
-    arrow_more.set_focusable(false);
-    arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
+    button_pgdown.set_focusable(false);
+    button_pgdown.on_select = [this](Button&) {
+        if (arrow_down_enabled) {
+            set_highlighted(highlighted_item + displayed_max);
+        }
+    };
+
+    button_pgup.set_style(Theme::getInstance()->bg_darkest_small);
+    button_pgdown.set_style(Theme::getInstance()->bg_darkest_small);
+
+    add_child(&button_pgup);
+    add_child(&button_pgdown);
 }
 
 BtnGridView::~BtnGridView() {
-    rtc_time::signal_tick_second -= signal_token_tick_second;
 }
 
 void BtnGridView::set_max_rows(int rows) {
@@ -63,7 +77,10 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
     displayed_max = (parent_rect().size().height() / button_h);
-    arrow_more.set_parent_rect({228, (Coord)(displayed_max * button_h), 8, 8});
+
+    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), 120, 16});
+    button_pgdown.set_parent_rect({120, (Coord)(displayed_max * button_h), 120, 16});
+
     displayed_max *= rows_;
 
     // Delete any existing buttons.
@@ -84,28 +101,40 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
 
         menu_item_views.push_back(std::move(item));
     }
-
     update_items();
 }
 
-void BtnGridView::set_arrow_enabled(bool enabled) {
+void BtnGridView::set_arrow_up_enabled(bool enabled) {
+    if (!show_arrows)
+        return;
     if (enabled) {
-        add_child(&arrow_more);
-    } else {
-        remove_child(&arrow_more);
+        if (!arrow_up_enabled) {
+            arrow_up_enabled = true;
+            button_pgup.set_text("PAGE UP");
+        }
+    } else if (!enabled) {
+        if (arrow_up_enabled) {
+            arrow_up_enabled = false;
+            button_pgup.set_text("       ");
+        }
     }
 };
 
-void BtnGridView::on_tick_second() {
-    if (more && blink)
-        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->foreground);
-    else
-        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
-
-    blink = !blink;
-
-    arrow_more.set_dirty();
-}
+void BtnGridView::set_arrow_down_enabled(bool enabled) {
+    if (!show_arrows)
+        return;
+    if (enabled) {
+        if (!arrow_down_enabled) {
+            arrow_down_enabled = true;
+            button_pgdown.set_text("PAGE DOWN");
+        }
+    } else if (!enabled) {
+        if (arrow_down_enabled) {
+            arrow_down_enabled = false;
+            button_pgdown.set_text("         ");
+        }
+    }
+};
 
 void BtnGridView::clear() {
     // clear vector and release memory, not using swap since it's causing capture to glitch/fault
@@ -153,15 +182,23 @@ void BtnGridView::insert_item(const GridItem& new_item, size_t position, bool in
     }
 }
 
+void BtnGridView::show_hide_arrows() {
+    if (highlighted_item == 0) {
+        set_arrow_up_enabled(false);
+    } else {
+        set_arrow_up_enabled(true);
+    }
+    if (highlighted_item == (menu_items.size() - 1)) {
+        set_arrow_down_enabled(false);
+    } else {
+        set_arrow_down_enabled(true);
+    }
+}
+
 void BtnGridView::update_items() {
     size_t i = 0;
-    Color bg_color = portapack::persistent_memory::menu_color();
 
-    if ((menu_items.size()) > (displayed_max + offset)) {
-        more = true;
-        blink = true;
-    } else
-        more = false;
+    Color bg_color = portapack::persistent_memory::menu_color();
 
     for (auto& item : menu_item_views) {
         if ((i + offset) >= menu_items.size()) {
@@ -189,14 +226,19 @@ NewButton* BtnGridView::item_view(size_t index) const {
     return menu_item_views[index].get();
 }
 
+void BtnGridView::show_arrows_enabled(bool enabled) {
+    show_arrows = enabled;
+}
+
 bool BtnGridView::set_highlighted(int32_t new_value) {
     int32_t item_count = (int32_t)menu_items.size();
 
     if (new_value < 0)
         return false;
 
-    if (new_value >= item_count)
+    if (new_value >= item_count) {
         new_value = item_count - 1;
+    }
 
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
@@ -222,6 +264,8 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
     if (visible())
         item_view(highlighted_item - offset)->focus();
 
+    show_hide_arrows();
+
     return true;
 }
 
@@ -235,21 +279,22 @@ void BtnGridView::on_focus() {
 
 void BtnGridView::on_blur() {
 #if 0
-    if (!keep_highlight)
-        item_view(highlighted_item - offset)->unhighlight();
+        if (!keep_highlight)
+            item_view(highlighted_item - offset)->unhighlight();
 #endif
 }
 
 void BtnGridView::on_show() {
     on_populate();
-
     View::on_show();
+    set_highlighted(highlighted_item);
 }
 
 void BtnGridView::on_hide() {
     View::on_hide();
-
     clear();
+    set_arrow_up_enabled(false);
+    set_arrow_down_enabled(false);
 }
 
 bool BtnGridView::on_key(const KeyEvent key) {

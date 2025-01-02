@@ -2531,6 +2531,44 @@ static constexpr Bitmap bitmap_icon_batt_icon{
     {16, 16},
     bitmap_icon_batt_icon_data};
 
+static constexpr uint8_t bitmap_icon_temperature_data[] = {
+    0x00,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x05,
+    0xC0,
+    0x0D,
+    0x40,
+    0x0D,
+    0xD0,
+    0x1F,
+    0x70,
+    0x15,
+    0xB0,
+    0x1A,
+    0x58,
+    0x35,
+    0xB8,
+    0x3A,
+    0x58,
+    0x34,
+    0x28,
+    0x28,
+    0x18,
+    0x30,
+    0x30,
+    0x18,
+    0x60,
+    0x0C,
+    0xC0,
+    0x07,
+};
+static constexpr Bitmap bitmap_icon_temperature{
+    {16, 16},
+    bitmap_icon_temperature_data};
+
 static constexpr uint8_t bitmap_tab_edge_data[] = {
     0x00,
     0x01,
@@ -4789,6 +4827,44 @@ static constexpr Bitmap bitmap_icon_ais{
     {16, 16},
     bitmap_icon_ais_data};
 
+static constexpr uint8_t bitmap_temperature_data[] = {
+    0x00,
+    0x00,
+    0x20,
+    0x00,
+    0x70,
+    0x3E,
+    0x88,
+    0x00,
+    0x88,
+    0x00,
+    0x88,
+    0x3E,
+    0x88,
+    0x00,
+    0x88,
+    0x00,
+    0x88,
+    0x3E,
+    0x88,
+    0x00,
+    0x04,
+    0x01,
+    0x74,
+    0x01,
+    0x04,
+    0x01,
+    0x88,
+    0x00,
+    0x70,
+    0x00,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_temperature{
+    {16, 16},
+    bitmap_temperature_data};
+
 static constexpr uint8_t bitmap_titlebar_image_data[] = {
     0x00,
     0x00,
@@ -5700,6 +5776,44 @@ static constexpr uint8_t bitmap_icon_options_datetime_data[] = {
 static constexpr Bitmap bitmap_icon_options_datetime{
     {16, 16},
     bitmap_icon_options_datetime_data};
+
+static constexpr uint8_t bitmap_icon_tune_fork_data[] = {
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x22,
+    0x44,
+    0x21,
+    0x84,
+    0x2D,
+    0xB4,
+    0x25,
+    0xA4,
+    0x25,
+    0xA4,
+    0x2D,
+    0xB4,
+    0x61,
+    0x86,
+    0xC2,
+    0x43,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_tune_fork{
+    {16, 16},
+    bitmap_icon_tune_fork_data};
 
 static constexpr uint8_t bitmap_target_verify_data[] = {
     0x00,
