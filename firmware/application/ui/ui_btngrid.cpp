@@ -110,7 +110,7 @@ void BtnGridView::set_arrow_up_enabled(bool enabled) {
     if (enabled) {
         if (!arrow_up_enabled) {
             arrow_up_enabled = true;
-            button_pgup.set_text("NEXT >");
+            button_pgup.set_text("< PREV");
         }
     } else if (!enabled) {
         if (arrow_up_enabled) {
@@ -126,7 +126,7 @@ void BtnGridView::set_arrow_down_enabled(bool enabled) {
     if (enabled) {
         if (!arrow_down_enabled) {
             arrow_down_enabled = true;
-            button_pgdown.set_text("< PREV");
+            button_pgdown.set_text("NEXT >");
         }
     } else if (!enabled) {
         if (arrow_down_enabled) {
