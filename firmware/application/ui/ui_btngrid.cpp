@@ -136,19 +136,27 @@ void BtnGridView::set_arrow_up_enabled(bool enabled) {
         if (!arrow_up_enabled) {
             arrow_up_enabled = true;
 <<<<<<< HEAD
+<<<<<<< HEAD
             button_pgup.set_text("< PREV");
 =======
             button_pgup.set_text("PAGE UP");
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+            button_pgup.set_text("< PREV");
+>>>>>>> 65f30139 (disabling button on main menu, change labels and add 'icons' (#2466))
         }
     } else if (!enabled) {
         if (arrow_up_enabled) {
             arrow_up_enabled = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
             button_pgup.set_text("      ");
 =======
             button_pgup.set_text("       ");
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+            button_pgup.set_text("      ");
+>>>>>>> 65f30139 (disabling button on main menu, change labels and add 'icons' (#2466))
         }
     }
 };
@@ -160,19 +168,27 @@ void BtnGridView::set_arrow_down_enabled(bool enabled) {
         if (!arrow_down_enabled) {
             arrow_down_enabled = true;
 <<<<<<< HEAD
+<<<<<<< HEAD
             button_pgdown.set_text("NEXT >");
 =======
             button_pgdown.set_text("PAGE DOWN");
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+            button_pgdown.set_text("NEXT >");
+>>>>>>> 65f30139 (disabling button on main menu, change labels and add 'icons' (#2466))
         }
     } else if (!enabled) {
         if (arrow_down_enabled) {
             arrow_down_enabled = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
             button_pgdown.set_text("      ");
 =======
             button_pgdown.set_text("         ");
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+            button_pgdown.set_text("      ");
+>>>>>>> 65f30139 (disabling button on main menu, change labels and add 'icons' (#2466))
         }
     }
 };
@@ -270,12 +286,18 @@ NewButton* BtnGridView::item_view(size_t index) const {
 void BtnGridView::show_arrows_enabled(bool enabled) {
     show_arrows = enabled;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 65f30139 (disabling button on main menu, change labels and add 'icons' (#2466))
     if (!enabled) {
         remove_child(&button_pgup);
         remove_child(&button_pgdown);
     }
+<<<<<<< HEAD
 =======
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+>>>>>>> 65f30139 (disabling button on main menu, change labels and add 'icons' (#2466))
 }
 
 bool BtnGridView::set_highlighted(int32_t new_value) {
