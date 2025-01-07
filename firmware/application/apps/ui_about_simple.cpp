@@ -34,7 +34,10 @@ constexpr std::string_view mayhem_information_list[] = {
     "RedFox-Fr,nemanjan00,",
     "MichalLeonBorsuk,",
     "MatiasFernandez,Giorgiofox",
+<<<<<<< HEAD
     "TommasoVentafridda",
+=======
+>>>>>>> dfa35b42 (added discord server information (#2471))
     " ",
     "#Havoc:",
     "jboone,furrtek,eried,argilo,",
