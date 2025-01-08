@@ -711,10 +711,12 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
                   &button_dial_sensitivity_plus,
                   &button_dial_sensitivity_minus,
                   &button_rate_multiplier_plus,
-                  &button_rate_multiplier_minus});
+                  &button_rate_multiplier_minus,
+                  &field_encoder_dial_direction});
 
     field_encoder_dial_sensitivity.set_by_value(pmem::encoder_dial_sensitivity());
     field_encoder_rate_multiplier.set_value(pmem::encoder_rate_multiplier());
+    field_encoder_dial_direction.set_by_value(pmem::encoder_dial_direction());
 
     button_dial_sensitivity_plus.on_select = [this](Button&) {
         field_encoder_dial_sensitivity.on_encoder(1);
@@ -732,6 +734,7 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
         pmem::set_encoder_rate_multiplier(field_encoder_rate_multiplier.value());
+        pmem::set_encoder_dial_direction(field_encoder_dial_direction.selected_index_value());
         nav.pop();
     };
 
