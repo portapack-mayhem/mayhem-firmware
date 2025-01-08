@@ -212,7 +212,7 @@ struct data_t {
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
     bool lcd_inverted_mode : 1;
-    bool UNUSED_5 : 1;
+    bool encoder_dial_direction : 1;  // true = normal, false = reverse
     bool UNUSED_6 : 1;
     bool UNUSED_7 : 1;
 
@@ -290,7 +290,7 @@ struct data_t {
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
           lcd_inverted_mode(false),
-          UNUSED_5(false),
+          encoder_dial_direction(false),
           UNUSED_6(false),
           UNUSED_7(false),
 
@@ -417,6 +417,7 @@ void defaults() {
     set_config_splash(true);
     set_config_disable_external_tcxo(false);
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
+    set_encoder_dial_direction(true);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
     set_menu_color(Color::grey());
     set_ui_hide_numeric_battery(true);  // hide the numeric battery by default - no space to display it
@@ -1080,6 +1081,13 @@ void set_encoder_rate_multiplier(uint8_t v) {
     data->encoder_rate_multiplier = v;
 }
 
+bool encoder_dial_direction() {
+    return data->encoder_dial_direction;
+}
+void set_encoder_dial_direction(bool v) {
+    data->encoder_dial_direction = v;
+}
+
 // Recovery mode magic value storage
 static data_t* data_direct_access = reinterpret_cast<data_t*>(memory::map::backup_ram.base());
 
@@ -1246,6 +1254,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
     pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
     pmem_dump_file.write_line("encoder_rate_multiplier: " + to_string_dec_uint(data->encoder_rate_multiplier));
+    pmem_dump_file.write_line("encoder_dial_direction: " + to_string_dec_uint(data->encoder_dial_direction));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
