@@ -67,8 +67,13 @@ int_fast8_t Encoder::update(const uint_fast8_t phase_bits) {
         if ((sensitivity_map[portapack::persistent_memory::encoder_dial_sensitivity()] & (1 << state)) == 0)
             return 0;
 
+<<<<<<< HEAD
         // false: normal, true: reverse
         if (portapack::persistent_memory::encoder_dial_direction())
+=======
+        // true: normal, false: reverse
+        if (!portapack::persistent_memory::encoder_dial_direction())
+>>>>>>> 55db0e8c (Add the feature to decide rotate direction of encoder (#2472))
             direction = -direction;
 
         return direction;

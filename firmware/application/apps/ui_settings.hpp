@@ -550,6 +550,38 @@ class SetAudioView : public View {
     };
 };
 
+<<<<<<< HEAD
+=======
+class SetQRCodeView : public View {
+   public:
+    SetQRCodeView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "QR Code"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::getInstance()->fg_light->foreground},
+    };
+
+    Checkbox checkbox_bigger_qr{
+        {3 * 8, 4 * 16},
+        20,
+        "Show large QR code"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+>>>>>>> 55db0e8c (Add the feature to decide rotate direction of encoder (#2472))
 using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
@@ -576,6 +608,7 @@ class SetEncoderDialView : public View {
 
     OptionsField field_encoder_dial_sensitivity{
         {20 * 8, 3 * 16},
+<<<<<<< HEAD
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
@@ -637,32 +670,40 @@ class SetButtonsView : public View {
 
     OptionsField field_repeat_delay{
         {20 * 8, 5 * 16},
+=======
+>>>>>>> 55db0e8c (Add the feature to decide rotate direction of encoder (#2472))
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
 
     NumberField field_encoder_rate_multiplier{
-        {20 * 8, 12 * 16},
+        {20 * 8, 10 * 16},
         2,
         {1, 15},
         1,
         ' '};
 
+    OptionsField field_encoder_dial_direction{
+        {18 * 8, 14 * 16},
+        7,
+        {{"NORMAL", encoder_dial_direction::DIAL_DIRECTION_NORMAL},
+         {"REVERSE", encoder_dial_direction::DIAL_DIRECTION_REVERSE}}};
+
     Button button_dial_sensitivity_plus{
-        {20 * 8, 4 * 16, 16, 16},
+        {20 * 8, 2 * 16, 16, 16},
         "+"};
 
     Button button_dial_sensitivity_minus{
-        {20 * 8, 6 * 16, 16, 16},
+        {20 * 8, 4 * 16, 16, 16},
         "-"};
 
     Button button_rate_multiplier_plus{
-        {20 * 8, 11 * 16, 16, 16},
+        {20 * 8, 9 * 16, 16, 16},
         "+"};
 
     Button button_rate_multiplier_minus{
-        {20 * 8, 13 * 16, 16, 16},
+        {20 * 8, 11 * 16, 16, 16},
         "-"};
 
     Button button_save{
