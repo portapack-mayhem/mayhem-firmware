@@ -120,11 +120,6 @@ enum encoder_dial_sensitivity {
     NUM_DIAL_SENSITIVITY
 };
 
-enum encoder_dial_direction {
-    DIAL_DIRECTION_NORMAL = true,
-    DIAL_DIRECTION_REVERSE = false,
-};
-
 typedef union {
     uint32_t v;
     struct {
