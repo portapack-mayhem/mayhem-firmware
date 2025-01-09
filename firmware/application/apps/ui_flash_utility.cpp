@@ -23,7 +23,6 @@
 #include "ui_flash_utility.hpp"
 #include "portapack_shared_memory.hpp"
 #include "file_path.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 namespace ui {
 
@@ -82,10 +81,6 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
                   &menu_view});
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
-
-    portapack::async_tx_enabled = true;
-    uint32_t a = sizeof(bool);
-    UsbSerialAsyncmsg::asyncmsg(a);
 
     ensure_directory(apps_dir);
     ensure_directory(firmware_dir);
