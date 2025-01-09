@@ -26,7 +26,7 @@ This repository expands upon the previous work by many people and aims to consta
 ## What to buy?
 
 <!---not direct to h4m but to opensourcesdrlab https://share.hackrf.app/TUOLYI---> 
-:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous H4M [complete](https://share.hackrf.app/HR60Q4) or [upgrade](https://share.hackrf.app/FPLM1H), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://share.hackrf.app/99SAMT). Join their giveaways on discord (check the badge on top). _EU customers_ can purchase via [Lab401](https://lab401.com/products/portapack-h4m).
+:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous H4M [complete](https://share.hackrf.app/HR60Q4) or [upgrade](https://share.hackrf.app/FPLM1H), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://share.hackrf.app/99SAMT). Join their giveaways on discord (check the badge on top). _EU customers_ can purchase via [Lab401](https://share.hackrf.app/0CI2CR).
 
 :heavy_check_mark: A recommended one is this [PortaPack H2](https://www.ebay.com/itm/116382397447), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
 
