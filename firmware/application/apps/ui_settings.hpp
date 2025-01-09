@@ -615,8 +615,8 @@ class SetEncoderDialView : public View {
     OptionsField field_encoder_dial_direction{
         {18 * 8, 14 * 16},
         7,
-        {{"NORMAL", encoder_dial_direction::DIAL_DIRECTION_NORMAL},
-         {"REVERSE", encoder_dial_direction::DIAL_DIRECTION_REVERSE}}};
+        {{"NORMAL", false},
+         {"REVERSE", true}}};
 
     Button button_dial_sensitivity_plus{
         {20 * 8, 2 * 16, 16, 16},
