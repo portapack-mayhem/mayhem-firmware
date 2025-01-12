@@ -63,6 +63,23 @@ buffer_f32_t SSB::execute(
 
     return {dst.p, src.count, src.sampling_rate};
 }
+
+buffer_f32_t SSB_FM::execute(  // Added to handle WFAX-
+    const buffer_c16_t& src,
+    const buffer_f32_t& dst) {
+    const complex16_t* src_p = src.p;
+    const auto src_end = &src.p[src.count];
+    auto dst_p = dst.p;
+    while (src_p < src_end) {
+        *(dst_p++) = abs((src_p++)->real()) * k;  // "Digital full-wave rectify" of FM audio tone carrier mod. ,to detect AM envelope information = APT_signal.
+        *(dst_p++) = abs((src_p++)->real()) * k;
+        *(dst_p++) = abs((src_p++)->real()) * k;
+        *(dst_p++) = abs((src_p++)->real()) * k;
+    }
+    // chDbgPanic("SSB and FM demodulation");         // Debug.
+    return {dst.p, src.count, src.sampling_rate};
+}
+
 /*
 static inline float angle_approx_4deg0(const complex32_t t) {
         const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());

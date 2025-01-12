@@ -585,6 +585,7 @@ class AMConfigureMessage : public Message {
     enum class Modulation : int32_t {
         DSB = 0,
         SSB = 1,
+        SSB_FM = 2,  // Added new for RX Wefax mode,  to demodulate APT signal ,FM modulated inside audio subcarrier tones, and then up broadcasted in SSB USB .
     };
 
     constexpr AMConfigureMessage(

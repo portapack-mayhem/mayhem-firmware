@@ -47,6 +47,16 @@ class SSB {
     static constexpr float k = 1.0f / 32768.0f;
 };
 
+class SSB_FM {  // Added to handle WFAX-
+   public:
+    buffer_f32_t execute(
+        const buffer_c16_t& src,
+        const buffer_f32_t& dst);
+
+   private:
+    static constexpr float k = 1.0f / 32768.0f;
+};
+
 class FM {
    public:
     buffer_f32_t execute(

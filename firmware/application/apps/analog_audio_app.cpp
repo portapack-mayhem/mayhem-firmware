@@ -117,7 +117,7 @@ AMFMAptOptionsView::AMFMAptOptionsView(
 
     freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
     options_config.set_by_value(receiver_model.amfm_configuration());
-    receiver_model.set_amfm_configuration(2);     // Fix index 2,  set  RX to AM : USB+3K mode.  
+    receiver_model.set_amfm_configuration(5);  // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
 }
 
 /* SPECOptionsView *******************************************************/
@@ -194,8 +194,8 @@ AnalogAudioView::AnalogAudioView(
 
     auto modulation = receiver_model.modulation();
     // This app doesn't handle "Capture" mode.
-    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)         // This two should be together in the last index position : SpectrumAnalysis = 4, and  Capture = 5     
-        modulation = ReceiverModel::Mode::SpectrumAnalysis;         // For sw simplicity , Wefax_mode,  should NOT be added between. 
+    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)  // This two should be together in the last index position : SpectrumAnalysis = 4, and  Capture = 5
+        modulation = ReceiverModel::Mode::SpectrumAnalysis;  // For sw simplicity , Wefax_mode,  should NOT be added between.
 
     options_modulation.set_by_value(toUType(modulation));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
@@ -364,7 +364,7 @@ void AnalogAudioView::on_show_options_modulation() {
             text_ctcss.hidden(true);
             break;
 
-        case ReceiverModel::Mode::AMAudioFMApt:    // TODO
+        case ReceiverModel::Mode::AMAudioFMApt:  // TODO
             widget = std::make_unique<AMFMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
@@ -404,16 +404,16 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     switch (modulation) {
         case ReceiverModel::Mode::AMAudio:
             image_tag = portapack::spi_flash::image_tag_am_audio;
-            break;         
+            break;
         case ReceiverModel::Mode::NarrowbandFMAudio:
             image_tag = portapack::spi_flash::image_tag_nfm_audio;
             break;
         case ReceiverModel::Mode::WidebandFMAudio:
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
-        case ReceiverModel::Mode::AMAudioFMApt:                    // TODO pending to update it. 
+        case ReceiverModel::Mode::AMAudioFMApt:  // TODO pending to update it.
             image_tag = portapack::spi_flash::image_tag_am_audio;
-            break; 
+            break;
         case ReceiverModel::Mode::SpectrumAnalysis:
             image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
             break;
@@ -448,7 +448,7 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
         case ReceiverModel::Mode::WidebandFMAudio:
             sampling_rate = 48000;
             break;
-        case ReceiverModel::Mode::AMAudioFMApt:    //TODO  Wefax mode.
+        case ReceiverModel::Mode::AMAudioFMApt:  // TODO  Wefax mode.
             sampling_rate = 12000;
             break;
         default:
