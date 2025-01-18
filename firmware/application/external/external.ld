@@ -59,6 +59,7 @@ MEMORY
     ram_external_app_tuner(rwx) : org = 0xADD20000, len = 32k
     ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k 
     ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k 
+    ram_external_app_hopper(rwx) : org = 0xADD50000, len = 32k 
 }
 
 SECTIONS
@@ -279,4 +280,10 @@ SECTIONS
         KEEP(*(.external_app.app_app_manager.application_information));
         *(*ui*external_app*app_manager*);
     } > ram_external_app_app_manager
+
+    .external_app_hopper : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_hopper.application_information));
+        *(*ui*external_app*hopper*);
+    } > ram_external_app_hopper
 }

@@ -150,6 +150,10 @@ set(EXTCPPSRC
 	#app_manager
 	external/app_manager/main.cpp
 	external/app_manager/ui_app_manager.cpp
+
+	#hopper
+	external/hopper/main.cpp
+	external/hopper/ui_hopper.cpp
 )
 
 set(EXTAPPLIST
@@ -189,4 +193,5 @@ set(EXTAPPLIST
 	tuner
 	metronome
 	app_manager
+	hopper
 )
