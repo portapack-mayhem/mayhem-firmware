@@ -91,21 +91,19 @@ void HopperView::start_tx() {
     for (c = 0; c < JAMMER_MAX_CH; c++)
         hopper_channels[c].enabled = false;
 
-    if (true) {
-        uint8_t channel_count = freq_list.size();
+    uint8_t channel_count = freq_list.size();
 
-        if (channel_count <= JAMMER_MAX_CH) {
-            for (c = 0; c < channel_count; c++) {
-                if (i >= JAMMER_MAX_CH) {
-                    out_of_ranges = true;
-                    break;
-                }
-                set_hopper_channel(i, JAMMER_CH_WIDTH, freq_list[c], hop_value);
-                i++;
+    if (channel_count <= JAMMER_MAX_CH) {
+        for (c = 0; c < channel_count; c++) {
+            if (i >= JAMMER_MAX_CH) {
+                out_of_ranges = true;
+                break;
             }
-        } else {
-            // channel num out of 24
+            set_hopper_channel(i, JAMMER_CH_WIDTH, freq_list[c], hop_value);
+            i++;
         }
+    } else {
+        out_of_ranges = true;
     }
 
     if (!out_of_ranges && i) {
@@ -125,8 +123,6 @@ void HopperView::start_tx() {
     } else {
         if (out_of_ranges)
             nav_.display_modal("Error", "Jam freq too much.");
-        else
-            nav_.display_modal("Error", "No range enabled.");
     }
 }
 
