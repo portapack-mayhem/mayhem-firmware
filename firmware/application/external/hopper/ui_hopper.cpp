@@ -314,11 +314,13 @@ HopperView::HopperView(
     };
 
     button_clear.on_select = [this]() {
+        // clang-format off
         nav_.display_modal("Del:", "Clean all?\n", YESNO, [this](bool choice) {
                 if (choice){
-                                freq_list.clear();
-                                update_freq_list_menu_view(); 
+                    freq_list.clear();
+                    update_freq_list_menu_view(); 
         } }, TRUE);
+        // clang-format on
 
         update_freq_list_menu_view();
     };
