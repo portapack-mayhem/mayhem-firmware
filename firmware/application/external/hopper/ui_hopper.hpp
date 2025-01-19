@@ -65,13 +65,13 @@ class HopperView : public View {
     void start_tx();
     void on_timer();
     void stop_tx();
-    void set_jammer_channel(uint32_t i, uint32_t width, uint64_t center, uint32_t duration);
+    void set_hopper_channel(uint32_t i, uint32_t width, uint64_t center, uint32_t duration);
     void on_retune(const rf::Frequency freq, const uint32_t range);
     void load_list();
     void save_list();
     void on_file_save_write(const std::string& value);
 
-    JammerChannel* jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
+    HopperChannel* hopper_channels = (HopperChannel*)shared_memory.bb_data.data;
     bool jamming{false};
     bool cooling{false};     // euquiq: Indicates jammer in cooldown
     uint16_t seconds = 0;    // euquiq: seconds counter for toggling tx / cooldown

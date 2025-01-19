@@ -76,11 +76,11 @@ void HopperView::on_retune(const rf::Frequency freq, const uint32_t range) {
     }
 }
 
-void HopperView::set_jammer_channel(uint32_t i, uint32_t width, uint64_t center, uint32_t duration) {
-    jammer_channels[i].enabled = true;
-    jammer_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
-    jammer_channels[i].center = center;
-    jammer_channels[i].duration = 30720 * duration;
+void HopperView::set_hopper_channel(uint32_t i, uint32_t width, uint64_t center, uint32_t duration) {
+    hopper_channels[i].enabled = true;
+    hopper_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
+    hopper_channels[i].center = center;
+    hopper_channels[i].duration = 30720 * duration;
 }
 
 void HopperView::start_tx() {
@@ -91,7 +91,7 @@ void HopperView::start_tx() {
 
     // Disable all channels by default
     for (c = 0; c < JAMMER_MAX_CH; c++)
-        jammer_channels[c].enabled = false;
+        hopper_channels[c].enabled = false;
 
     if (true) {
         uint8_t channel_count = freq_list.size();
@@ -105,7 +105,7 @@ void HopperView::start_tx() {
                     out_of_ranges = true;
                     break;
                 }
-                set_jammer_channel(i, JAMMER_CH_WIDTH, freq_list[c], hop_value);
+                set_hopper_channel(i, JAMMER_CH_WIDTH, freq_list[c], hop_value);
                 i++;
             }
         } else {
