@@ -84,7 +84,7 @@ class HopperView : public View {
     const Style& style_cancel = *Theme::getInstance()->fg_red;
 
     MenuView menu_freq_list{
-        {0, 0, screen_width, 9 * 16},
+        {0, 0, screen_width, 8 * 16},
         false};
 
     NewButton button_load_list{
@@ -108,15 +108,22 @@ class HopperView : public View {
         Color::dark_green(),
         /*vcenter*/ true};
 
-    NewButton button_delete_freq{
+    NewButton button_add_freq_from_freqman{
         {12 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
+        {},
+        &bitmap_icon_add,
+        Color::dark_green(),
+        /*vcenter*/ true};
+
+    NewButton button_delete_freq{
+        {16 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
         {},
         &bitmap_icon_trash,
         Color::dark_red(),
         /*vcenter*/ true};
 
     NewButton button_clear{
-        {16 * 8 + 8, 9 * 16 + 4, 4 * 8, 32},
+        {screen_width - 4 * 8, 9 * 16 + 4, 4 * 8, 32},
         {},
         &bitmap_icon_tools_wipesd,
         Color::red(),

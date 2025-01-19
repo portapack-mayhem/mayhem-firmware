@@ -33,7 +33,6 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
-
 using namespace portapack;
 
 namespace ui::external_app::hopper {
@@ -47,7 +46,7 @@ HopperView::~HopperView() {
     baseband::shutdown();
 }
 
-void HopperView::update_freq_list_menu_view() { 
+void HopperView::update_freq_list_menu_view() {
     menu_freq_list.clear();
     uint8_t list_count = freq_list.size();
 
@@ -66,7 +65,6 @@ void HopperView::update_freq_list_menu_view() {
     }
 
     set_dirty();
-
 }
 
 void HopperView::on_retune(const rf::Frequency freq, const uint32_t range) {
@@ -96,10 +94,7 @@ void HopperView::start_tx() {
     if (true) {
         uint8_t channel_count = freq_list.size();
 
-
         if (channel_count <= JAMMER_MAX_CH) {
-
-
             for (c = 0; c < channel_count; c++) {
                 if (i >= JAMMER_MAX_CH) {
                     out_of_ranges = true;
@@ -266,6 +261,7 @@ HopperView::HopperView(
                   &button_add_freq,
                   &button_delete_freq,
                   &button_save_list,
+                  &button_add_freq_from_freqman,
                   &button_clear,
                   &labels,
                   &options_type,
@@ -323,7 +319,12 @@ HopperView::HopperView(
     };
 
     button_clear.on_select = [this]() {
-        freq_list.clear();
+        nav_.display_modal("Del:", "Clean all?\n", YESNO, [this](bool choice) {
+                if (choice){
+                                freq_list.clear();
+                                update_freq_list_menu_view(); 
+        } }, TRUE);
+
         update_freq_list_menu_view();
     };
 
@@ -332,6 +333,14 @@ HopperView::HopperView(
             stop_tx();
         else
             start_tx();
+    };
+
+    menu_freq_list.on_left = [this]() {
+        button_load_list.focus();
+    };
+
+    menu_freq_list.on_right = [this]() {
+        button_load_list.focus();
     };
 
     update_freq_list_menu_view();
