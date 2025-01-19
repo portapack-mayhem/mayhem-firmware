@@ -261,7 +261,6 @@ HopperView::HopperView(
                   &button_add_freq,
                   &button_delete_freq,
                   &button_save_list,
-                  &button_add_freq_from_freqman,
                   &button_clear,
                   &labels,
                   &options_type,
