@@ -108,15 +108,8 @@ class HopperView : public View {
         Color::dark_green(),
         /*vcenter*/ true};
 
-    NewButton button_add_freq_from_freqman{
-        {12 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
-        {},
-        &bitmap_icon_add,
-        Color::dark_green(),
-        /*vcenter*/ true};
-
     NewButton button_delete_freq{
-        {16 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
+        {12 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
         {},
         &bitmap_icon_trash,
         Color::dark_red(),
