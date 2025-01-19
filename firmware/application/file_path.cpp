@@ -50,4 +50,3 @@ const std::filesystem::path wav_dir = u"WAV";
 const std::filesystem::path whipcalc_dir = u"WHIPCALC";
 const std::filesystem::path ook_editor_dir = u"OOKFILES";
 const std::filesystem::path hopper_dir = u"HOPPER";
-
