@@ -137,12 +137,16 @@ def get_pp_device_linux():
             parts = clean_line.split()
             
             if len(parts) >= 2 and SDCARD_LABEL in parts[1]: # checker
+<<<<<<< HEAD
                 print("found pp sd:")
                 device_path = parts[0]
                 #remove `- in it
                 device_path = device_path.replace('-', '')
                 device_path = device_path.replace('`', '')
                 print(device_path)
+=======
+                device_path = parts[0]
+>>>>>>> c413f925 (Add fast flash script for sdcard switch hardware (#2480))
                 # if path valid
                 if not os.path.exists(device_path):
                     continue

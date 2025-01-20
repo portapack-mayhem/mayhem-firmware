@@ -265,8 +265,11 @@ percent_remaining = round(1000 * pad_size / spi_size) / 10;
 print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "%)")
 
 
+<<<<<<< HEAD
 #^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
 
+=======
+>>>>>>> c413f925 (Add fast flash script for sdcard switch hardware (#2480))
 # copy the fast flash script
 build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
 flash_py_path = os.path.join(build_dir, 'flash.py')
