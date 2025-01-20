@@ -16,12 +16,9 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-#
-# this tool allow you flash pp and copy the apps in fastest way. 
-# note that you need to have a sdcard switcher to switch sdcard to pc.
-# although, if you don't have one, 
-# you still can take out the sdcard and plug it into your pc, 
-# but i think it would not pretty fast.
+
+# this tool allow you flash pp and copy the apps in fastest way. note that you need to have a sdcard switcher to switch sdcard to pc.
+# although, if you don't have one, you still can take out the sdcard and plug it into your pc, but i think it would not pretty fast.
 
 #!/usr/bin/env python3
 
@@ -37,11 +34,10 @@ import tempfile
 
 # config
 SUDO_PASSWORD = ""
-SDCARD_LABEL = "PP"
+SDCARD_LABEL = "portapack"
 
 
 def write_command(ser, command, wait_response=None, remove_echo=False, dont_wait_ch=False):
-    print(f"you write: {command}")
     
     # clean buffer
     while True:
@@ -92,7 +88,6 @@ def get_serial_devices():
     portapack_device = None
     for port in ports:
         if port.product == "PortaPack Mayhem":
-            print("-" * 80)
             print(f"found your pp:")
             print(f"device: {port.device}")
             print(f"description: {port.description}")
@@ -101,7 +96,6 @@ def get_serial_devices():
                 print(f"manufacturer: {port.manufacturer}")
             if port.serial_number:
                 print(f"serial_number: {port.serial_number}")
-            print("-" * 80)
             portapack_device = port
             break
     
@@ -187,12 +181,14 @@ def run():
     try:
         # worker 2: open serial and send hackrf cmd
         ser = serial.Serial(device.device, baudrate=115200, timeout=1)
-        result = write_command(ser, "hackrf")
-        print(f"command result: {result}")
+        for i in range(2):
+            write_command(ser, "hackrf")
         ser.close()
 
         # worker 3: hint user to swtich sdcard to pc
-        print("\nswitch PP sdcard to PC...")
+        print("\033[92m\n\t+------------------------+")
+        print("\t| switch PP sdcard to PC |")
+        print("\t+------------------------+\033[0m")
         print("wait PP sdcard...")
         
         # worker 4: wait pp sd
@@ -241,7 +237,9 @@ def run():
             raise subprocess.CalledProcessError(process.returncode, "hackrf_spiflash")
 
         # worker 8: hint user to swtich sdcard switcher back to pp
-        print("\nnow: switch sdcard switcher back to pp, then reboot")
+        print("\033[92m\n\t+------------------------------------------------+")
+        print("\t| switch sdcard switcher back to pp, then reboot |")
+        print("\t+------------------------------------------------+\033[0m")
 
     except serial.SerialException as e:
         print(f"serial comm error: {str(e)}")
