@@ -42,12 +42,16 @@ __attribute__((section(".external_app.app_view_wav.application_information"), us
     /*.bitmap_data = */ {0xF0, 0x0F, 0x1C, 0x18, 0x17, 0x38, 0x15, 0x78, 0x15, 0xF8, 0x15, 0x82, 0x15, 0x8B, 0xD5, 0x83, 0xD5, 0xBB, 0xD5, 0x83, 0x15, 0x8B, 0x15, 0x92, 0x15, 0xA0, 0x17, 0x80, 0x1C, 0x80, 0xF0, 0xFF},
     /*.icon_color = */ ui::Color::green().v,
 <<<<<<< HEAD
+<<<<<<< HEAD
     /*.menu_location = */ app_location_t::UTILITIES,
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'A', 'T', 'X'},
 =======
     /*.menu_location = */ app_location_t::SETTINGS,
+=======
+    /*.menu_location = */ app_location_t::UTILITIES,
+>>>>>>> 4e38dc4d (put back app in 'Utilities' (#2500))
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
