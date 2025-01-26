@@ -123,8 +123,12 @@ class SigGenView : public View {
          {"QPSK", 3},
          {"DSB", 4},
          {"AM 100% dep.", 5},
+<<<<<<< HEAD
          {"AM 50% depth", 6},
          {"Pulse CW 25%", 7}}};
+=======
+         {"AM 50% depth", 6}}};
+>>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
 
     TransmitterView tx_view{
         16 * 16,
