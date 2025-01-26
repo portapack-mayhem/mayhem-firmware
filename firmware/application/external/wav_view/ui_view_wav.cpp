@@ -28,8 +28,9 @@
 #include "string_format.hpp"
 
 using namespace portapack;
+using namespace ui;
 
-namespace ui {
+namespace ui::external_app::view_wav {
 
 void ViewWavView::update_scale(int32_t new_scale) {
     scale = new_scale;
@@ -345,4 +346,4 @@ ViewWavView::~ViewWavView() {
     baseband::shutdown();
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::view_wav */

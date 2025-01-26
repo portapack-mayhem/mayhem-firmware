@@ -32,8 +32,9 @@
 #include <cstring>
 
 using namespace portapack;
+using namespace ui;
 
-namespace ui {
+namespace ui::external_app::antenna_length {
 
 void WhipCalcView::focus() {
     field_frequency.focus();
@@ -176,4 +177,4 @@ void WhipCalcView::load_antenna_db() {
 void WhipCalcView::add_default_antenna() {
     antenna_db.push_back({"ANT500", {185, 315, 450, 586, 724, 862}});  // store a default ant500
 }
-}  // namespace ui
+}  // namespace ui::external_app::antenna_length

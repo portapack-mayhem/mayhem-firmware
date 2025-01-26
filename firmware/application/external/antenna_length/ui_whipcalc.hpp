@@ -31,7 +31,10 @@
 #include "string_format.hpp"
 #include <vector>
 
-namespace ui {
+using namespace ui;
+
+namespace ui::external_app::antenna_length {
+
 class WhipCalcView : public View {
    public:
     WhipCalcView(NavigationView& nav);
@@ -90,6 +93,6 @@ class WhipCalcView : public View {
         "Back"};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::antenna_length
 
 #endif /*__UI_WHIPCALC__*/
