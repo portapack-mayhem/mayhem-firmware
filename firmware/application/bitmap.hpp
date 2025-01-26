@@ -987,7 +987,6 @@ static constexpr Bitmap bitmap_icon_previous{
     {16, 16},
     bitmap_icon_previous_data};
 
-
 static constexpr uint8_t bitmap_icon_batt_text_data[] = {
     0x00,
     0x00,
