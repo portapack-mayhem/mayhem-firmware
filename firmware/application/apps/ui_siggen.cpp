@@ -98,9 +98,9 @@ SigGenView::SigGenView(
             update_config();
 
         if (v == 5) {  // In Shape Pseudo Random Noise we are not using Tone modulation freq.
-            symfield_tone.hidden(1);
+            symfield_tone.hidden(true);
         } else {
-            symfield_tone.hidden(0);
+            symfield_tone.hidden(false);
         }
 
         set_dirty();
