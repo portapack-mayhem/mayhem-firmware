@@ -47,6 +47,7 @@ __attribute__((section(".external_app.app_view_wav.application_information"), us
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'A', 'T', 'X'},
+<<<<<<< HEAD
 =======
     /*.menu_location = */ app_location_t::SETTINGS,
 =======
@@ -56,6 +57,8 @@ __attribute__((section(".external_app.app_view_wav.application_information"), us
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
 >>>>>>> a65ef3ce (Externalize antenna calc and wav view (#2498))
+=======
+>>>>>>> aef7c2be (fix baseband (#2501))
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
