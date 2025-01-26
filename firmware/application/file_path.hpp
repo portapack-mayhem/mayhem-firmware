@@ -51,9 +51,13 @@ extern const std::filesystem::path sstv_dir;
 extern const std::filesystem::path wav_dir;
 extern const std::filesystem::path whipcalc_dir;
 extern const std::filesystem::path ook_editor_dir;
+<<<<<<< HEAD
 extern const std::filesystem::path hopper_dir;
 extern const std::filesystem::path subghz_dir;
 extern const std::filesystem::path waterfalls_dir;
 extern const std::filesystem::path macaddress_dir;
+=======
+extern const std::filesystem::path subghz_dir;
+>>>>>>> b2bb37af (Flipper tx: use file_path, example file (#2496))
 
 #endif /* __FILE_PATH_H__ */

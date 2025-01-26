@@ -49,7 +49,11 @@ const std::filesystem::path sstv_dir = u"SSTV";
 const std::filesystem::path wav_dir = u"WAV";
 const std::filesystem::path whipcalc_dir = u"WHIPCALC";
 const std::filesystem::path ook_editor_dir = u"OOKFILES";
+<<<<<<< HEAD
 const std::filesystem::path hopper_dir = u"HOPPER";
 const std::filesystem::path subghz_dir = u"SUBGHZ";
 const std::filesystem::path waterfalls_dir = u"WATERFALLS";
 const std::filesystem::path macaddress_dir = u"MACADDRESS";
+=======
+const std::filesystem::path subghz_dir = u"SUBGHZ";
+>>>>>>> b2bb37af (Flipper tx: use file_path, example file (#2496))
