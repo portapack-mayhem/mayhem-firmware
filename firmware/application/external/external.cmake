@@ -150,6 +150,14 @@ set(EXTCPPSRC
 	#app_manager
 	external/app_manager/main.cpp
 	external/app_manager/ui_app_manager.cpp
+
+    # whip calculator
+    external/antenna_length/main.cpp
+    external/antenna_length/ui_whipcalc.cpp
+
+    # wav viewer
+    external/wav_view/main.cpp
+    external/wav_view/ui_view_wav.cpp
 )
 
 set(EXTAPPLIST
@@ -189,4 +197,6 @@ set(EXTAPPLIST
 	tuner
 	metronome
 	app_manager
+    antenna_length
+    view_wav
 )

@@ -987,44 +987,6 @@ static constexpr Bitmap bitmap_icon_previous{
     {16, 16},
     bitmap_icon_previous_data};
 
-static constexpr uint8_t bitmap_icon_tools_antenna_data[] = {
-    0x38,
-    0x3E,
-    0x10,
-    0x22,
-    0x10,
-    0x26,
-    0x10,
-    0x22,
-    0x10,
-    0x2E,
-    0x10,
-    0x22,
-    0x10,
-    0x26,
-    0x10,
-    0x22,
-    0x38,
-    0x2E,
-    0x38,
-    0x22,
-    0x38,
-    0x26,
-    0x38,
-    0x22,
-    0x38,
-    0x2E,
-    0x38,
-    0x22,
-    0x38,
-    0x3E,
-    0x00,
-    0x00,
-};
-static constexpr Bitmap bitmap_icon_tools_antenna{
-    {16, 16},
-    bitmap_icon_tools_antenna_data};
-
 static constexpr uint8_t bitmap_icon_batt_text_data[] = {
     0x00,
     0x00,
@@ -1799,6 +1761,45 @@ static constexpr uint8_t bitmap_icon_lge_data[] = {
     0x00,
     0x00,
 };
+
+static constexpr uint8_t bitmap_icon_file_iq_data[] = {
+    0xFC,
+    0x03,
+    0x04,
+    0x06,
+    0x04,
+    0x0E,
+    0x04,
+    0x1E,
+    0x04,
+    0x3E,
+    0x04,
+    0x20,
+    0x04,
+    0x20,
+    0x04,
+    0x21,
+    0x44,
+    0x25,
+    0x54,
+    0x25,
+    0xF4,
+    0x2F,
+    0xA4,
+    0x2A,
+    0x84,
+    0x22,
+    0x04,
+    0x22,
+    0x04,
+    0x20,
+    0xFC,
+    0x3F,
+};
+static constexpr Bitmap bitmap_icon_file_iq{
+    {16, 16},
+    bitmap_icon_file_iq_data};
+
 static constexpr Bitmap bitmap_icon_lge{
     {16, 16},
     bitmap_icon_lge_data};
@@ -2712,44 +2713,6 @@ static constexpr uint8_t bitmap_icon_touchtunes_data[] = {
 static constexpr Bitmap bitmap_icon_touchtunes{
     {16, 16},
     bitmap_icon_touchtunes_data};
-
-static constexpr uint8_t bitmap_icon_file_iq_data[] = {
-    0xFC,
-    0x03,
-    0x04,
-    0x06,
-    0x04,
-    0x0E,
-    0x04,
-    0x1E,
-    0x04,
-    0x3E,
-    0x04,
-    0x20,
-    0x04,
-    0x20,
-    0x04,
-    0x21,
-    0x44,
-    0x25,
-    0x54,
-    0x25,
-    0xF4,
-    0x2F,
-    0xA4,
-    0x2A,
-    0x84,
-    0x22,
-    0x04,
-    0x22,
-    0x04,
-    0x20,
-    0xFC,
-    0x3F,
-};
-static constexpr Bitmap bitmap_icon_file_iq{
-    {16, 16},
-    bitmap_icon_file_iq_data};
 
 static constexpr uint8_t bitmap_icon_sd_data[] = {
     0x00,
