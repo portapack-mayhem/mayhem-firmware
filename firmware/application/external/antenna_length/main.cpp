@@ -41,7 +41,11 @@ __attribute__((section(".external_app.app_antenna_length.application_information
     /*.app_name = */ "Antenna Length",
     /*.bitmap_data = */ {0x38, 0x3E, 0x10, 0x22, 0x10, 0x26, 0x10, 0x22, 0x10, 0x2E, 0x10, 0x22, 0x10, 0x26, 0x10, 0x22, 0x38, 0x2E, 0x38, 0x22, 0x38, 0x26, 0x38, 0x22, 0x38, 0x2E, 0x38, 0x22, 0x38, 0x3E, 0x00, 0x00},
     /*.icon_color = */ ui::Color::cyan().v,
+<<<<<<< HEAD
     /*.menu_location = */ app_location_t::UTILITIES,
+=======
+    /*.menu_location = */ app_location_t::SETTINGS,
+>>>>>>> a65ef3ce (Externalize antenna calc and wav view (#2498))
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
