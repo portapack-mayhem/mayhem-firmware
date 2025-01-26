@@ -81,7 +81,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             }
             tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
 
-        } else { // Other modulations: FM, DSB, AM
+        } else {  // Other modulations: FM, DSB, AM
             if (tone_shape == 0) {
                 // Sine
                 sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
@@ -142,7 +142,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             } else if (modulation == 5) {
                 // Do AM modulation (100% mod index)
                 re = (127 >> 1) + (sample >> 1);
-                im = 0;                
+                im = 0;
 
             } else if (modulation == 6) {
                 // Do AM modulation (50% mod index)
