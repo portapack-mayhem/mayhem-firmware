@@ -317,9 +317,7 @@ set(CPPSRC
 	apps/ui_text_editor.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
-	apps/ui_view_wav.cpp
 	apps/ui_weatherstation.cpp
-	apps/ui_whipcalc.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/bht.cpp
