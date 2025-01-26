@@ -58,13 +58,13 @@ class SigGenView : public View {
     app_settings::SettingsManager settings_{
         "tx_siggen", app_settings::Mode::TX};
 
-    const std::string shape_strings[6] = {  // max 15 character text space.
-        "Sine",
-        "Triangle",
-        "Saw up",
-        "Saw down",
-        "Square",
-        "Pseudo Noise"};
+    const std::string shape_strings[6] = {// max 15 character text space.
+                                          "Sine",
+                                          "Triangle",
+                                          "Saw up",
+                                          "Saw down",
+                                          "Square",
+                                          "Pseudo Noise"};
 
     bool auto_update{false};
 
