@@ -105,7 +105,9 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
             field_frequency.set_value(145175000);
         } else if (i == 4) {  // NZ
             field_frequency.set_value(144575000);
-        } else if (i == 5) {  // ISS
+        } else if (i == 5) {  // BR
+            field_frequency.set_value(145570000);
+        } else if (i == 6) {  // ISS
             field_frequency.set_value(145825000);
         }
         options_region_id = i;
