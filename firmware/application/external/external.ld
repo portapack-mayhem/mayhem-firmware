@@ -65,7 +65,11 @@ MEMORY
     ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k 
     ram_external_app_antenna_length(rwx) : org = 0xADD50000, len = 32k 
     ram_external_app_view_wav(rwx) : org = 0xADD60000, len = 32k 
+<<<<<<< HEAD
 >>>>>>> a65ef3ce (Externalize antenna calc and wav view (#2498))
+=======
+    ram_external_app_sd_wipe(rwx) : org = 0xADD70000, len = 32k 
+>>>>>>> 8dc3851b (externalize wipe sdcard (#2502))
 }
 
 SECTIONS
@@ -298,4 +302,9 @@ SECTIONS
         *(*ui*external_app*view_wav*);
     } > ram_external_app_view_wav
 
+    .external_app_sd_wipe : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_sd_wipe.application_information));
+        *(*ui*external_app*sd_wipe*);
+    } > ram_external_app_sd_wipe
 }
