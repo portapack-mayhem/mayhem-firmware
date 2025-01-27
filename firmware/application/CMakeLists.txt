@@ -305,7 +305,6 @@ set(CPPSRC
 	apps/ui_recon.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
-	apps/ui_sd_wipe.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
