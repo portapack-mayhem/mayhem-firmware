@@ -158,6 +158,10 @@ set(EXTCPPSRC
     # wav viewer
     external/wav_view/main.cpp
     external/wav_view/ui_view_wav.cpp
+
+    # wipe sdcard
+    external/sd_wipe/main.cpp
+    external/sd_wipe/ui_sd_wipe.cpp
 )
 
 set(EXTAPPLIST
@@ -199,4 +203,5 @@ set(EXTAPPLIST
 	app_manager
     antenna_length
     view_wav
+    sd_wipe
 )
