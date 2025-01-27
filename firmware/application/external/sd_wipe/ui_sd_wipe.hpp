@@ -30,7 +30,9 @@
 
 #include <cstdint>
 
-namespace ui {
+using namespace ui;
+
+namespace ui::external_app::sd_wipe {
 
 class WipeSDView : public View {
    public:
@@ -87,6 +89,6 @@ class WipeSDView : public View {
         ""};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::sd_wipe
 
 #endif /*__UI_SD_WIPE_H__*/

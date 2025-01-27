@@ -28,7 +28,9 @@
 #include "ui_receiver.hpp"
 #include "replay_thread.hpp"
 
-namespace ui {
+using namespace ui;
+
+namespace ui::external_app::view_wav {
 
 class ViewWavView : public View {
    public:
@@ -202,4 +204,4 @@ class ViewWavView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::view_wav */

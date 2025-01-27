@@ -44,9 +44,9 @@ SigGenView::~SigGenView() {
 
 void SigGenView::update_config() {
     if (checkbox_stop.value())
-        baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), field_stop.value());
+        baseband::set_siggen_config(transmitter_model.channel_bandwidth(), (options_mod.selected_index_value() << 4) + options_shape.selected_index_value(), field_stop.value());
     else
-        baseband::set_siggen_config(transmitter_model.channel_bandwidth(), options_shape.selected_index_value(), 0);
+        baseband::set_siggen_config(transmitter_model.channel_bandwidth(), (options_mod.selected_index_value() << 4) + options_shape.selected_index_value(), 0);
 }
 
 void SigGenView::update_tone() {
@@ -78,6 +78,7 @@ SigGenView::SigGenView(
     baseband::run_image(portapack::spi_flash::image_tag_siggen);
 
     add_children({&labels,
+                  &options_mod,
                   &options_shape,
                   &text_shape,
                   &symfield_tone,
@@ -87,21 +88,47 @@ SigGenView::SigGenView(
                   &field_stop,
                   &tx_view});
 
-    symfield_tone.hidden(1);        // At first launch , by default we are in CW Shape has NO MOD , we are not using Tone modulation.
+    symfield_tone.hidden(true);  // At first launch , by default we are in CW: Shape ignored, we are not using Tone modulation.
+    options_shape.hidden(true);
+    text_shape.hidden(true);
     symfield_tone.set_value(1000);  // Default: 1000 Hz
     options_shape.on_change = [this](size_t, OptionsField::value_t v) {
         text_shape.set(shape_strings[v]);
         if (auto_update)
             update_config();
-        if ((v == 0) || (v == 6)) {  // In Shapes Options (CW & Pseudo Random Noise) we are not using Tone modulation freq.
-            symfield_tone.hidden(1);
+
+        if (v == 5) {  // In Shape Pseudo Random Noise we are not using Tone modulation freq.
+            symfield_tone.hidden(true);
         } else {
-            symfield_tone.hidden(0);
+            symfield_tone.hidden(false);
         }
+
         set_dirty();
     };
     options_shape.set_selected_index(0);
     text_shape.set(shape_strings[0]);
+
+    options_mod.on_change = [this](size_t, OptionsField::value_t v) {
+        if (auto_update)
+            update_config();
+
+        if (v == 0) {  // In Modulation Options CW we are not using Tone modulation freq.
+            symfield_tone.hidden(true);
+        } else {
+            symfield_tone.hidden(false);
+        }
+
+        if ((v == 0) || (v == 2) || (v == 3)) {  // In Modulation Options CW, QPSK, BPSK we are not using Shapes.
+            options_shape.hidden(true);
+            text_shape.hidden(true);
+        } else {
+            options_shape.hidden(false);
+            text_shape.hidden(false);
+        }
+
+        set_dirty();
+    };
+    options_mod.set_selected_index(0);
 
     field_stop.set_value(1);
 

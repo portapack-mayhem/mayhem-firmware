@@ -22,7 +22,9 @@
 
 #include "ui_sd_wipe.hpp"
 
-namespace ui {
+using namespace ui;
+
+namespace ui::external_app::sd_wipe {
 
 Thread* WipeSDView::thread{nullptr};
 
@@ -63,4 +65,4 @@ void WipeSDView::focus() {
     }
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::sd_wipe
