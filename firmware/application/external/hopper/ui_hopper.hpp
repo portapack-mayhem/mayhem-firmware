@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2020 euquiq
- * copyleft Whiterose from the Dark Army
+ * copyleft mr.r0b0t from the F society
  *
  * This file is part of PortaPack.
  *
