@@ -34,6 +34,7 @@ namespace fs = std::filesystem;
 #include "string_format.hpp"
 
 #include "file_reader.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 
@@ -69,7 +70,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     };
 
     button_save_playlist.on_select = [this](Button&) {
-
+        save_ppl();
     };
 }
 
@@ -81,6 +82,7 @@ void PlaylistEditorView::open_file() {
     auto open_view = nav_.push<FileLoadView>(".PPL");
     open_view->push_dir(playlist_dir);
     open_view->on_changed = [this](fs::path new_file_path) {
+        current_ppl_path = new_file_path;
         on_file_changed(new_file_path);
     };
 }
@@ -97,6 +99,13 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
     for (const auto& line : reader) {
         playlist.push_back(line);
     }
+
+    refresh_menu_view();
+}
+
+void PlaylistEditorView::refresh_menu_view(){
+
+    menu_view.clear();
 
     for (const auto& line : playlist) {
         if (line.length() == 0 || line[0] == '#') {
@@ -131,10 +140,12 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
 // }
 
 void PlaylistEditorView::on_edit_item() {
+    portapack::async_tx_enabled = true;
     auto edit_view = nav_.push<PlaylistItemEditView>(
         playlist[menu_view.highlighted_index()]);
 
     edit_view->on_save = [this](std::string new_item) {
+        UsbSerialAsyncmsg::asyncmsg(new_item);
         playlist[menu_view.highlighted_index()] = new_item;
         refresh_interface();
     };
@@ -147,9 +158,37 @@ void PlaylistEditorView::on_edit_item() {
 
 void PlaylistEditorView::refresh_interface() {
     const auto previous_index = menu_view.highlighted_index();
+    refresh_menu_view();
     set_dirty();
     menu_view.set_highlighted(previous_index);
 }
+
+void PlaylistEditorView::save_ppl() {
+    if (current_ppl_path.empty() || playlist.empty()) {
+        nav_.display_modal("Err", "No playlist file loaded");
+        return;
+    }
+
+    File playlist_file;
+    auto error = playlist_file.open(current_ppl_path.string(), false, false);
+
+    if (error) {
+        nav_.display_modal("Err", "open err");
+        return;
+    }
+
+    //clear file
+    playlist_file.seek(0);
+    playlist_file.truncate();
+
+    //write new data
+    for (const auto& entry : playlist) {
+        playlist_file.write_line(entry);
+    }
+
+    nav_.display_modal("Save", "Saved playlist\n" + current_ppl_path.string());
+}
+
 
 /*********edit**********/
 
@@ -172,6 +211,7 @@ PlaylistItemEditView::PlaylistItemEditView(
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](fs::path path) {
             field_path.set_text(path.string());
+            path_ = path.string();
         };
     };
 
@@ -211,6 +251,9 @@ void PlaylistItemEditView::parse_item(std::string item) {
 }
 
 std::string PlaylistItemEditView::build_item() const {
+
+    const auto v = path_ + "," + to_string_dec_uint(field_delay.value());
+    UsbSerialAsyncmsg::asyncmsg(v);
     return path_ + "," + to_string_dec_uint(field_delay.value()); 
 }
 

@@ -39,6 +39,7 @@ class PlaylistEditorView : public View {
     void focus() override;
 
     std::vector<std::string> playlist;
+    fs::path current_ppl_path = "";
 
     Labels labels{
         {{0 * 8, 0 * 16}, "App list:", Theme::getInstance()->fg_light->foreground}};
@@ -70,6 +71,8 @@ class PlaylistEditorView : public View {
     void on_edit_current_index();
     void refresh_interface();
     void on_edit_item();
+    void refresh_menu_view();
+    void save_ppl();
 };
 
 class PlaylistItemEditView : public View {
