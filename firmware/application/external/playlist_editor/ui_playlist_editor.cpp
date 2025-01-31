@@ -66,7 +66,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     };
 
     button_insert.on_select = [this](Button&) {
-
+        on_insert_item();
     };
 
     button_save_playlist.on_select = [this](Button&) {
@@ -98,6 +98,14 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
 
     for (const auto& line : reader) {
         playlist.push_back(line);
+    }
+
+    for (const auto& line : playlist){
+        //remove empty lines
+        if (line == "\n" || line == "\r\n" || line == "\r") {
+            playlist.erase(std::remove(playlist.begin(), playlist.end(), line), playlist.end());
+        }
+
     }
 
     refresh_menu_view();
@@ -156,6 +164,23 @@ void PlaylistEditorView::on_edit_item() {
     };
 }
 
+void PlaylistEditorView::on_insert_item() {
+    portapack::async_tx_enabled = true;
+    auto edit_view = nav_.push<PlaylistItemEditView>(
+        playlist[menu_view.highlighted_index()]);
+
+    edit_view->on_save = [this](std::string new_item) {
+        UsbSerialAsyncmsg::asyncmsg(new_item);
+        playlist.insert(playlist.begin() + menu_view.highlighted_index() + 1, new_item);
+        refresh_interface();
+    };
+
+    edit_view->on_delete = [this]() {
+        playlist.erase(playlist.begin() + menu_view.highlighted_index());
+        refresh_interface();
+    };
+}
+
 void PlaylistEditorView::refresh_interface() {
     const auto previous_index = menu_view.highlighted_index();
     refresh_menu_view();
@@ -186,6 +211,14 @@ void PlaylistEditorView::save_ppl() {
         playlist_file.write_line(entry);
     }
 
+    playlist_file.seek(0);
+    for (const auto& entry : playlist) {
+        if(entry == "\n" || entry == "\r\n" || entry == "\r" || entry.length() == 0) {
+            playlist_file.write_line(entry);
+        }
+    }
+
+
     nav_.display_modal("Save", "Saved playlist\n" + current_ppl_path.string());
 }
 
@@ -208,7 +241,7 @@ PlaylistItemEditView::PlaylistItemEditView(
     });
 
     button_browse.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".TXT");
+        auto open_view = nav.push<FileLoadView>(".C16");
         open_view->on_changed = [this](fs::path path) {
             field_path.set_text(path.string());
             path_ = path.string();

@@ -38,7 +38,7 @@ class PlaylistEditorView : public View {
 
     void focus() override;
 
-    std::vector<std::string> playlist;
+    std::vector<std::string> playlist = {};
     fs::path current_ppl_path = "";
 
     Labels labels{
@@ -71,6 +71,7 @@ class PlaylistEditorView : public View {
     void on_edit_current_index();
     void refresh_interface();
     void on_edit_item();
+    void on_insert_item();
     void refresh_menu_view();
     void save_ppl();
 };
@@ -87,8 +88,8 @@ class PlaylistItemEditView : public View {
 
    private:
     NavigationView& nav_;
-    std::string original_item_;
-    std::string path_;
+    std::string original_item_ = "";
+    std::string path_ = "";
     uint32_t delay_{0}; 
 
     void refresh_ui();
