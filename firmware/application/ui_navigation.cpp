@@ -350,12 +350,29 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
         batt_was_inited = true;
         refresh();
     }
+
+    // Check if charging state changed to charging
+    static bool was_charging = false;
+    if (msg->on_charger && !was_charging) {
+        // Only show charging modal when transitioning to charging state
+        nav_.display_modal(
+            "CHARGING",
+            "Screen on while charging?",
+            YESNO,
+            [this](bool keep_screen_on) {
+                if (!keep_screen_on) {
+                    EventDispatcher::set_display_sleep(true);
+                }
+            });
+    }
+    was_charging = msg->on_charger;
+
     if (!pmem::ui_hide_numeric_battery()) {
         battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
     }
     if (!pmem::ui_hide_battery_icon()) {
         battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
-    };
+    }
 }
 
 void SystemStatusView::refresh() {
