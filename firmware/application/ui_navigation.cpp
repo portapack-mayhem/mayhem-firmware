@@ -54,7 +54,6 @@
 #include "ui_recon.hpp"
 #include "ui_scanner.hpp"
 #include "ui_sd_over_usb.hpp"
-#include "ui_sd_wipe.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
@@ -63,10 +62,8 @@
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_touchtunes.hpp"
-#include "ui_view_wav.hpp"
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
-#include "ui_whipcalc.hpp"
 #include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
@@ -153,7 +150,6 @@ const NavigationView::AppList NavigationView::appList = {
     //{"sstv", "SSTV", RX, Color::dark_grey(), &bitmap_icon_sstv, new ViewFactory<NotImplementedView>()},
     //{"tetra", "TETRA", RX, Color::dark_grey(), &bitmap_icon_tetra, new ViewFactory<NotImplementedView>()},
     /* TX ********************************************************************/
-    //{"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
@@ -163,19 +159,15 @@ const NavigationView::AppList NavigationView::appList = {
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* UTILITIES *************************************************************/
-    {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
-    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
+    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
     {"signalgen", "Signal Gen", UTILITIES, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
-
-    {"wavview", "Wav View", UTILITIES, Color::yellow(), &bitmap_icon_soundboard, new ViewFactory<ViewWavView>()},
     // Dangerous apps.
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
-    {nullptr, "Wipe SD card", UTILITIES, Color::red(), &bitmap_icon_tools_wipesd, new ViewFactory<WipeSDView>()},
 };
 
 const NavigationView::AppMap NavigationView::appMap = generate_app_map(NavigationView::appList);
@@ -359,12 +351,29 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
         batt_was_inited = true;
         refresh();
     }
+
+    // Check if charging state changed to charging
+    static bool was_charging = false;
+    if (msg->on_charger && !was_charging) {
+        // Only show charging modal when transitioning to charging state
+        nav_.display_modal(
+            "CHARGING",
+            "Screen on while charging?",
+            YESNO,
+            [this](bool keep_screen_on) {
+                if (!keep_screen_on) {
+                    EventDispatcher::set_display_sleep(true);
+                }
+            });
+    }
+    was_charging = msg->on_charger;
+
     if (!pmem::ui_hide_numeric_battery()) {
         battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
     }
     if (!pmem::ui_hide_battery_icon()) {
         battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
-    };
+    }
 }
 
 void SystemStatusView::refresh() {
