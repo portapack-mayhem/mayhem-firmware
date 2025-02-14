@@ -42,13 +42,17 @@ class PlaylistEditorView : public View {
     fs::path current_ppl_path = "";
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "App list:", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, 0 * 16}, "Entries:", Theme::getInstance()->fg_light->foreground}};
 
     MenuView menu_view{};
 
-    Text text_app_info{
+    Text text_hint{
         {0, 27 * 8, screen_width, 16},
         "Highlight an app"};
+
+    Text text_ppl_name{
+    {0, 27 * 8, screen_width, 16},
+    "Highlight an app"};
 
     Button button_open_playlist{
         {0, 29 * 8, screen_width / 2 - 1, 32},

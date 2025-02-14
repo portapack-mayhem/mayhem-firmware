@@ -45,7 +45,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     : nav_{nav} {
     add_children({&labels,
                   &menu_view,
-                  &text_app_info,
+                  &text_hint,
                   &button_open_playlist,
                   &button_edit,
                   &button_insert,
@@ -54,7 +54,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     menu_view.set_parent_rect({0, 2 * 8, screen_width, 24 * 8});
 
     menu_view.on_highlight = [this]() {
-        text_app_info.set("Select an option:");
+        text_hint.set("Select an option:");
     };
 
     button_open_playlist.on_select = [this](Button&) {
@@ -106,6 +106,11 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
             playlist.erase(std::remove(playlist.begin(), playlist.end(), line), playlist.end());
         }
 
+        //remove line end \n etc
+        if (line.length() > 0 && (line[line.length() - 1] == '\n' || line[line.length() - 1] == '\r')) {
+            playlist.erase(std::remove(playlist.begin(), playlist.end(), line), playlist.end());
+        }
+
     }
 
     refresh_menu_view();
@@ -135,17 +140,6 @@ void PlaylistEditorView::refresh_menu_view(){
         }
     }
 }
-
-// void PlaylistEditorView::on_edit_current_index() {
-//     auto index = menu_view.highlighted_index();
-//     const auto line = playlist[index];
-//     if (index >= playlist.size()) return;
-//     if (line[0] == '#') {
-//         // edit comment
-//     } else {
-//         // edit item
-//     }
-// }
 
 void PlaylistEditorView::on_edit_item() {
     portapack::async_tx_enabled = true;
@@ -210,14 +204,6 @@ void PlaylistEditorView::save_ppl() {
     for (const auto& entry : playlist) {
         playlist_file.write_line(entry);
     }
-
-    playlist_file.seek(0);
-    for (const auto& entry : playlist) {
-        if(entry == "\n" || entry == "\r\n" || entry == "\r" || entry.length() == 0) {
-            playlist_file.write_line(entry);
-        }
-    }
-
 
     nav_.display_modal("Save", "Saved playlist\n" + current_ppl_path.string());
 }
