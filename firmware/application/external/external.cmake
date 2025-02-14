@@ -151,17 +151,21 @@ set(EXTCPPSRC
 	external/app_manager/main.cpp
 	external/app_manager/ui_app_manager.cpp
 
-    # whip calculator
-    external/antenna_length/main.cpp
-    external/antenna_length/ui_whipcalc.cpp
+	#hopper
+	external/hopper/main.cpp
+	external/hopper/ui_hopper.cpp
+ 	
+	# whip calculator	
+	external/antenna_length/main.cpp
+	external/antenna_length/ui_whipcalc.cpp
 
-    # wav viewer
-    external/wav_view/main.cpp
-    external/wav_view/ui_view_wav.cpp
+	# wav viewer
+	external/wav_view/main.cpp
+	external/wav_view/ui_view_wav.cpp
 
-    # wipe sdcard
-    external/sd_wipe/main.cpp
-    external/sd_wipe/ui_sd_wipe.cpp
+	# wipe sdcard
+	external/sd_wipe/main.cpp
+	external/sd_wipe/ui_sd_wipe.cpp
 )
 
 set(EXTAPPLIST
@@ -201,7 +205,8 @@ set(EXTAPPLIST
 	tuner
 	metronome
 	app_manager
-    antenna_length
-    view_wav
-    sd_wipe
+	hopper
+	antenna_length
+	view_wav
+	sd_wipe
 )
