@@ -52,6 +52,9 @@ extern const std::filesystem::path wav_dir;
 extern const std::filesystem::path whipcalc_dir;
 extern const std::filesystem::path ook_editor_dir;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
 extern const std::filesystem::path hopper_dir;
 extern const std::filesystem::path subghz_dir;
 extern const std::filesystem::path waterfalls_dir;

@@ -69,7 +69,11 @@ struct SharedMemory {
     union {
         ToneData tones_data;
         struct {
+<<<<<<< HEAD
             JammerChannel jammer_channels[80];
+=======
+            JammerChannel jammer_channels[24];
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
             HopperChannel hopper_channels[24];
         } dummy_seperate;
         uint8_t data[512];

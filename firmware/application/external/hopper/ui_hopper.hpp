@@ -143,6 +143,7 @@ class HopperView : public View {
             {"FM tone", 1},
             {"CW sweep", 2},
             {"Rand CW", 3},
+<<<<<<< HEAD
             {"Sine", 4},
             {"Square", 5},
             {"Sawtooth", 6},
@@ -150,6 +151,8 @@ class HopperView : public View {
             {"Chirp", 8},
             {"Gauss", 9},
             {"Brute", 10},
+=======
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
         }};
 
     Text text_range_number{
@@ -170,6 +173,7 @@ class HopperView : public View {
 
     OptionsField options_hop{
         {7 * 8, 27 * 8},
+<<<<<<< HEAD
         6,
         {{"0ms !!", 0},
          {"1ms  ", 1},
@@ -180,6 +184,16 @@ class HopperView : public View {
          {"2s   ", 2000},
          {"5s   ", 5000},
          {"10s  ", 10000}}};
+=======
+        5,
+        {{"10ms ", 1},
+         {"50ms ", 5},
+         {"100ms", 10},
+         {"1s   ", 100},
+         {"2s   ", 200},
+         {"5s   ", 500},
+         {"10s  ", 1000}}};
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
 
     NumberField field_timetx{
         {7 * 8, 29 * 8},

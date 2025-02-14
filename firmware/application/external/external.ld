@@ -63,6 +63,7 @@ MEMORY
 =======
     ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k 
     ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k 
+<<<<<<< HEAD
     ram_external_app_antenna_length(rwx) : org = 0xADD50000, len = 32k 
     ram_external_app_view_wav(rwx) : org = 0xADD60000, len = 32k 
 <<<<<<< HEAD
@@ -70,6 +71,12 @@ MEMORY
 =======
     ram_external_app_sd_wipe(rwx) : org = 0xADD70000, len = 32k 
 >>>>>>> 8dc3851b (externalize wipe sdcard (#2502))
+=======
+    ram_external_app_hopper(rwx) : org = 0xADD50000, len = 32k 
+    ram_external_app_antenna_length(rwx) : org = 0xADD60000, len = 32k 
+    ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k 
+    ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k 
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
 }
 
 SECTIONS
@@ -289,6 +296,12 @@ SECTIONS
         KEEP(*(.external_app.app_app_manager.application_information));
         *(*ui*external_app*app_manager*);
     } > ram_external_app_app_manager
+
+    .external_app_hopper : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_hopper.application_information));
+        *(*ui*external_app*hopper*);
+    } > ram_external_app_hopper
 
     .external_app_antenna_length : ALIGN(4) SUBALIGN(4)
     {

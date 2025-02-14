@@ -78,7 +78,11 @@ void HopperView::set_hopper_channel(uint32_t i, uint32_t width, uint64_t center,
     hopper_channels[i].enabled = true;
     hopper_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
     hopper_channels[i].center = center;
+<<<<<<< HEAD
     hopper_channels[i].duration = duration ? 3072 * duration : 10;
+=======
+    hopper_channels[i].duration = 30720 * duration;
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
 }
 
 void HopperView::start_tx() {
@@ -227,7 +231,10 @@ void HopperView::save_list() {
         nav_,
         filename_buffer,
         64,
+<<<<<<< HEAD
         ENTER_KEYBOARD_MODE_ALPHA,
+=======
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
         [this](std::string& value) {
             auto path = hopper_dir / (value + ".PHOP");
 
@@ -274,7 +281,11 @@ HopperView::HopperView(
 
     options_type.set_selected_index(3);   // Rand CW
     options_speed.set_selected_index(3);  // 10kHz
+<<<<<<< HEAD
     options_hop.set_selected_index(3);    // 50ms
+=======
+    options_hop.set_selected_index(1);    // 50ms
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
     button_transmit.set_style(&style_val);
 
     field_timetx.set_value(30);
@@ -327,6 +338,7 @@ HopperView::HopperView(
     };
 
     button_transmit.on_select = [this](Button&) {
+<<<<<<< HEAD
         if (jamming || cooling) {
             stop_tx();
         } else {
@@ -346,6 +358,12 @@ HopperView::HopperView(
                 start_tx();
             }
         }
+=======
+        if (jamming || cooling)
+            stop_tx();
+        else
+            start_tx();
+>>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
     };
 
     menu_freq_list.on_left = [this]() {
