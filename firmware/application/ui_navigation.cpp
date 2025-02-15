@@ -141,7 +141,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"scanner", "Scanner", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
-    // {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()}, //for JT
     //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
