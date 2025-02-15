@@ -48,11 +48,11 @@ class PlaylistEditorView : public View {
 
     Text text_hint{
         {0, 27 * 8, screen_width, 16},
-        "Highlight an app"};
+        "Open a PPL file"};
 
     Text text_ppl_name{
-    {0, 27 * 8, screen_width, 16},
-    "Highlight an app"};
+        {0, 27 * 8, screen_width, 16},
+        "Highlight an app"};
 
     Button button_open_playlist{
         {0, 29 * 8, screen_width / 2 - 1, 32},
@@ -94,7 +94,7 @@ class PlaylistItemEditView : public View {
     NavigationView& nav_;
     std::string original_item_ = "";
     std::string path_ = "";
-    uint32_t delay_{0}; 
+    uint32_t delay_{0};
 
     void refresh_ui();
     void parse_item(std::string item);
@@ -102,41 +102,30 @@ class PlaylistItemEditView : public View {
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 5 * 16}, "Delay(ms):", Theme::getInstance()->fg_light->foreground}
-    };
+        {{2 * 8, 5 * 16}, "Delay(ms):", Theme::getInstance()->fg_light->foreground}};
 
     TextField field_path{
-        {0 , 2 * 16, screen_width, 16},
-        "empty"
-    };
+        {0, 2 * 16, screen_width, 16},
+        "empty"};
 
     NumberField field_delay{
         {11 * 8, 5 * 16},
         5,
         {0, 99999},
-        1,
-        ' '
-    };
+        10,
+        ' '};
 
     Button button_browse{
         {2 * 8, 8 * 16, 8 * 8, 3 * 16},
-        "Browse"
-    };
-
-    Button button_input_delay{
-        {5 * 8, 8 * 16, 10 * 8, 3 * 16},
-        "Input Delay"
-    };
+        "Browse"};
 
     Button button_delete{
-        {1 , 16 * 16, screen_width/2-4, 2 * 16},
-        "Delete"
-    };
+        {1, 17 * 16, screen_width / 2 - 4, 2 * 16},
+        "Delete"};
 
     Button button_save{
-        {1 + screen_width / 2 + 1, 16 * 16, screen_width/2-4 , 2 * 16},
-        "Save"
-    };
+        {1 + screen_width / 2 + 1, 17 * 16, screen_width / 2 - 4, 2 * 16},
+        "Save"};
 };
 
 }  // namespace ui::external_app::playlist_editor
