@@ -13,8 +13,6 @@ widget compatible guide:
 2. add the widget type and also regex in the "parsers" table
 (note that your regex should apply all the possible constructor overload (re-impl))
 
-3. add the widget drawing logic in the "draw_widget" function
-
 """
 
 # pp hard coded vars
@@ -30,7 +28,7 @@ scale = 3
 widgets = {
     "Button": "lightgray",
     "NewButton": "lightyellow",
-    "Label": "lightblue",}
+    "Text": "lightblue",}
 
 @dataclass
 class Widget:
@@ -44,6 +42,7 @@ class Widget:
 
 class WidgetParser:
     def __init__(self):
+
         self.parsers: Dict[str, re.Pattern] = {
             'Button': re.compile(
                 r'Button\s+(\w+)\s*\{\s*\{([^}]+)\},\s*"([^"]+)"\s*\};',
@@ -51,6 +50,10 @@ class WidgetParser:
             ),
             'NewButton': re.compile(
                 r'NewButton\s+(\w+)\s*\{\s*(?:\{([^}]+)\}|{}),\s*(?:"([^"]*)"|\{\}),\s*(?:[^,}]+(?:,\s*[^}]+)*|\{\})\};',
+                re.MULTILINE
+            ),
+            'Text': re.compile(
+                r'Text\s+(\w+)\s*\{\s*\{([^}]+)\}(?:\s*,\s*"([^"]*)")?\s*\};',
                 re.MULTILINE
             ),
         }
@@ -94,6 +97,7 @@ class WidgetPreview(tk.Tk):
         self.canvas = tk.Canvas(self, width=screen_width * scale, height=screen_height * scale, bg='white')
         self.canvas.pack(padx=10, pady=10)
         
+        self.all_text_elements = []
         self.draw_widgets(widgets)
 
     def draw_widgets(self, widgets: List[Widget]):
@@ -111,36 +115,55 @@ class WidgetPreview(tk.Tk):
 
         print(f"Coordinates: ({x1}, {y1}), ({x2}, {y2})")
         
-        if widget.widget_type == "Button":
-            # button rectangle
-            self.canvas.create_rectangle(x1, y1, x2, y2, fill=widgets[widget.widget_type])
-            # button text
-            self.canvas.create_text(
-                (x1 + x2) // 2,
-                (y1 + y2) // 2,
-                text=widget.text
-            )
-        elif widget.widget_type == "NewButton":
-            # button rectangle
-            self.canvas.create_rectangle(x1, y1, x2, y2, fill=widgets[widget.widget_type])
-            # button text
-            self.canvas.create_text(
-                (x1 + x2) // 2,
-                (y1 + y2) // 2,
-                text=widget.text
-            )
-
-        # widget obj name in hpp code
-        self.canvas.create_text(
-            x1,
-            y1 - 10,
-            text=f"{widget.name} ({widget.widget_type})",
-            anchor='sw'
+        rect_id = self.canvas.create_rectangle(
+            x1, y1, x2, y2, 
+            fill=widgets[widget.widget_type]
         )
+        
+        type_text_id = self.canvas.create_text(
+            (x1 + x2) // 2,
+            (y1 + y2) // 2,
+            text=widget.widget_type
+        )
+        
+        detail_text_id = self.canvas.create_text(
+            (x1 + x2) // 2,
+            (y1 + y2) // 2,
+            text=f"{widget.widget_type}|{widget.name}|{widget.text}",
+            state='hidden'
+        )
+
+        widget_texts = {
+            'type': type_text_id,
+            'detail': detail_text_id
+        }
+        self.all_text_elements.append(widget_texts)
+
+        # hover ev handler
+        def on_enter(event):
+            # hide all text elements
+            for texts in self.all_text_elements:
+                self.canvas.itemconfig(texts['type'], state='hidden')
+                self.canvas.itemconfig(texts['detail'], state='hidden')
+            # show only this hovered widget's detail and lift it to top
+            self.canvas.itemconfig(detail_text_id, state='normal')
+            self.canvas.tag_raise(detail_text_id)  # lift onto top
+
+        def on_leave(event):
+            # show all type texts, hide all details
+            for texts in self.all_text_elements:
+                self.canvas.itemconfig(texts['type'], state='normal')
+                self.canvas.tag_raise(texts['type'])  # lift onto top
+                self.canvas.itemconfig(texts['detail'], state='hidden')
+
+        # bind mouse events
+        for item_id in [rect_id, type_text_id, detail_text_id]:
+            self.canvas.tag_bind(item_id, '<Enter>', on_enter)
+            self.canvas.tag_bind(item_id, '<Leave>', on_leave)
 
 def draw_top_bar(self):
     self.canvas.create_rectangle(0, 0, screen_width * scale, topbar_offset * scale, fill='lightblue')
-    self.canvas.create_text(screen_width * scale // 2, topbar_offset * scale // 2, text='Top Bar', fill='black')
+    self.canvas.create_text(screen_width * scale // 2, topbar_offset * scale // 2, text='I\'m Top Bar, hover mouse on items to check details', fill='black')
 
 def main():
     parser = argparse.ArgumentParser(description='Preview UI widgets from hpp files')
