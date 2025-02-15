@@ -101,17 +101,17 @@ class PlaylistItemEditView : public View {
     std::string build_item() const;
 
     Labels labels{
-        {{2 * 8, 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 3 * 16}, "Delay(ms):", Theme::getInstance()->fg_light->foreground}
+        {{0 * 8, 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Delay(ms):", Theme::getInstance()->fg_light->foreground}
     };
 
     TextField field_path{
-        {8 * 8, 1 * 16, 20 * 8, 16},
-        "path"
+        {0 , 2 * 16, screen_width, 16},
+        "empty"
     };
 
     NumberField field_delay{
-        {11 * 8, 3 * 16},
+        {11 * 8, 5 * 16},
         5,
         {0, 99999},
         1,
@@ -119,17 +119,22 @@ class PlaylistItemEditView : public View {
     };
 
     Button button_browse{
-        {2 * 8, 5 * 16, 8 * 8, 16},
+        {2 * 8, 8 * 16, 8 * 8, 3 * 16},
         "Browse"
     };
 
+    Button button_input_delay{
+        {5 * 8, 8 * 16, 10 * 8, 3 * 16},
+        "Input Delay"
+    };
+
     Button button_delete{
-        {2 * 8, 16 * 16, 8 * 8, 16},
+        {1 , 16 * 16, screen_width/2-4, 2 * 16},
         "Delete"
     };
 
     Button button_save{
-        {12 * 8, 16 * 16, 8 * 8, 16},
+        {1 + screen_width / 2 + 1, 16 * 16, screen_width/2-4 , 2 * 16},
         "Save"
     };
 };

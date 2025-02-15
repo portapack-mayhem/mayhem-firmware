@@ -97,31 +97,47 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
     auto reader = FileLineReader(playlist_file);
 
     for (const auto& line : reader) {
+        UsbSerialAsyncmsg::asyncmsg("on_file_changed::line:" + line);
         playlist.push_back(line);
     }
 
-    for (const auto& line : playlist){
-        //remove empty lines
+    UsbSerialAsyncmsg::asyncmsg("---current playlist---");
+    for (const auto& line : playlist) {
+        UsbSerialAsyncmsg::asyncmsg(line);
+    }
+    UsbSerialAsyncmsg::asyncmsg("---end---");
+    UsbSerialAsyncmsg::asyncmsg("now remove empty lines etc");
+
+    for (auto& line : playlist) {
+        // remove empty lines
         if (line == "\n" || line == "\r\n" || line == "\r") {
             playlist.erase(std::remove(playlist.begin(), playlist.end(), line), playlist.end());
+            UsbSerialAsyncmsg::asyncmsg("on_file_changed::empty line removed" + line);
         }
 
-        //remove line end \n etc
+        // remove line end \n etc
         if (line.length() > 0 && (line[line.length() - 1] == '\n' || line[line.length() - 1] == '\r')) {
-            playlist.erase(std::remove(playlist.begin(), playlist.end(), line), playlist.end());
-        }
+            line = line.substr(0, line.length() - 1);
 
+            UsbSerialAsyncmsg::asyncmsg("on_file_changed::line end removed" + line);
+        }
     }
+
+    UsbSerialAsyncmsg::asyncmsg("---current playlist---");
+    for (const auto& line : playlist) {
+        UsbSerialAsyncmsg::asyncmsg(line);
+    }
+    UsbSerialAsyncmsg::asyncmsg("---end---");
 
     refresh_menu_view();
 }
 
-void PlaylistEditorView::refresh_menu_view(){
-
+void PlaylistEditorView::refresh_menu_view() {
     menu_view.clear();
 
     for (const auto& line : playlist) {
         if (line.length() == 0 || line[0] == '#') {
+            UsbSerialAsyncmsg::asyncmsg("refresh_menu_view::add comment line:" + line);
             menu_view.add_item({line,
                                 ui::Color::grey(),
                                 &bitmap_icon_notepad,
@@ -130,7 +146,7 @@ void PlaylistEditorView::refresh_menu_view(){
                                 }});
         } else {
             const auto filename = line.substr(line.find_last_of('/') + 1, line.find(',') - line.find_last_of('/') - 1);
-
+            UsbSerialAsyncmsg::asyncmsg("refresh_menu_view::add file line:" + line);
             menu_view.add_item({filename,
                                 ui::Color::white(),
                                 &bitmap_icon_cwgen,
@@ -196,18 +212,17 @@ void PlaylistEditorView::save_ppl() {
         return;
     }
 
-    //clear file
+    // clear file
     playlist_file.seek(0);
     playlist_file.truncate();
 
-    //write new data
+    // write new data
     for (const auto& entry : playlist) {
         playlist_file.write_line(entry);
     }
 
     nav_.display_modal("Save", "Saved playlist\n" + current_ppl_path.string());
 }
-
 
 /*********edit**********/
 
@@ -216,15 +231,12 @@ PlaylistItemEditView::PlaylistItemEditView(
     std::string item)
     : nav_{nav},
       original_item_{item} {
-
-    add_children({
-        &labels,
-        &field_path,
-        &field_delay, 
-        &button_browse,
-        &button_delete,
-        &button_save
-    });
+    add_children({&labels,
+                  &field_path,
+                  &field_delay,
+                  &button_browse,
+                  &button_delete,
+                  &button_save});
 
     button_browse.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".C16");
@@ -241,7 +253,7 @@ PlaylistItemEditView::PlaylistItemEditView(
 
     button_save.on_select = [this](Button&) {
         if (on_save) on_save(build_item());
-        nav_.pop(); 
+        nav_.pop();
     };
 
     parse_item(item);
@@ -257,7 +269,6 @@ void PlaylistItemEditView::refresh_ui() {
     field_delay.set_value(delay_);
 }
 
-
 void PlaylistItemEditView::parse_item(std::string item) {
     // Parse format: path,delay
     auto parts = split_string(item, ',');
@@ -270,10 +281,9 @@ void PlaylistItemEditView::parse_item(std::string item) {
 }
 
 std::string PlaylistItemEditView::build_item() const {
-
     const auto v = path_ + "," + to_string_dec_uint(field_delay.value());
     UsbSerialAsyncmsg::asyncmsg(v);
-    return path_ + "," + to_string_dec_uint(field_delay.value()); 
+    return path_ + "," + to_string_dec_uint(field_delay.value());
 }
 
 }  // namespace ui::external_app::playlist_editor
