@@ -113,7 +113,7 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
             line = line.substr(0, line.length() - 1);
         }
     }
-    text_hint.set("Highlight an entrance");
+    text_hint.set("Highlight an entry");
 
     refresh_menu_view();
 }
