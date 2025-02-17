@@ -45,8 +45,7 @@ class PlaylistEditorView : public View {
 
     std::vector<std::string> playlist = {};
     fs::path current_ppl_path = "";
-    std::string current_ppl_name_buffer = ""; //this is because text_prompt needs it. TODO: this is so annoying, shoudl refactor that func
-
+    std::string current_ppl_name_buffer = "";  // this is because text_prompt needs it. TODO: this is so annoying, shoudl refactor that func
 
     Labels labels{
         {{0 * 8, 0 * 16}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
@@ -111,6 +110,7 @@ class PlaylistItemEditView : public View {
     std::string original_item_ = "";
     std::string path_ = "";
     uint32_t delay_{0};
+    std::string delay_str{""};  // needed by text_prompt
 
     void refresh_ui();
     void parse_item(std::string item);
@@ -134,6 +134,10 @@ class PlaylistItemEditView : public View {
     Button button_browse{
         {2 * 8, 8 * 16, 8 * 8, 3 * 16},
         "Browse"};
+
+    Button button_input_delay{
+        {12 * 8, 8 * 16, sizeof("Input Delay") * 8, 3 * 16},
+        "Input Delay"};
 
     Button button_delete{
         {1, 17 * 16, screen_width / 2 - 4, 2 * 16},

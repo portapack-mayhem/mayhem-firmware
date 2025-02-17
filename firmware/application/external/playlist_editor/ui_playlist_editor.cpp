@@ -35,8 +35,6 @@ namespace fs = std::filesystem;
 
 #include "file_reader.hpp"
 
-#include "usb_serial_asyncmsg.hpp"
-
 using namespace portapack;
 
 namespace ui::external_app::playlist_editor {
@@ -65,9 +63,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     };
 
     button_new.on_select = [this](Button&) {
-        UsbSerialAsyncmsg::asyncmsg("on btn click");
         if (on_create_ppl()) {
-            UsbSerialAsyncmsg::asyncmsg("on btn click succeed");
             swap_opened_file_or_new_button(DisplayFilenameOrNewButton::DISPLAY_FILENAME);
             refresh_interface();
         }
@@ -109,12 +105,10 @@ void PlaylistEditorView::swap_opened_file_or_new_button(DisplayFilenameOrNewButt
     if (d == DisplayFilenameOrNewButton::DISPLAY_NEW_BUTTON) {
         button_new.hidden(false);
         text_current_ppl_file.hidden(true);
-        UsbSerialAsyncmsg::asyncmsg("swap_opened_file_or_new_button DISPLAY_NEW_BUTTON");
     } else {
         button_new.hidden(true);
         text_current_ppl_file.hidden(false);
         text_current_ppl_file.set(current_ppl_name_buffer);
-        UsbSerialAsyncmsg::asyncmsg("swap_opened_file_or_new_button DISPLAY_FILENAME");
     }
     refresh_interface();
 }
@@ -123,14 +117,12 @@ void PlaylistEditorView::swap_opened_file_or_new_button(DisplayFilenameOrNewButt
 NB: same name would became as "open file"
 */
 bool PlaylistEditorView::on_create_ppl() {
-    UsbSerialAsyncmsg::asyncmsg("on create ppl");
     bool success = false;
     text_prompt(
         nav_,
         current_ppl_name_buffer,
         100,
         [&](std::string& s) {
-            UsbSerialAsyncmsg::asyncmsg("on create ppl lambda succeed");
             current_ppl_name_buffer = s;
             success = true;
             current_ppl_path = playlist_dir / current_ppl_name_buffer / u".PPL";
@@ -146,11 +138,8 @@ bool PlaylistEditorView::on_create_ppl() {
 void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
     File playlist_file;
     auto error = playlist_file.open(new_file_path.string());
-    UsbSerialAsyncmsg::asyncmsg("on file changed 1");
 
     if (error) return;
-
-    UsbSerialAsyncmsg::asyncmsg("on file changed 2");
 
     menu_view.clear();
     auto reader = FileLineReader(playlist_file);
@@ -292,6 +281,7 @@ PlaylistItemEditView::PlaylistItemEditView(
                   &field_path,
                   &field_delay,
                   &button_browse,
+                  &button_input_delay,
                   &button_delete,
                   &button_save});
 
@@ -302,6 +292,19 @@ PlaylistItemEditView::PlaylistItemEditView(
             field_path.set_text(path.string());
             path_ = path.string();
         };
+    };
+
+    button_input_delay.on_select = [this](Button&) {
+        delay_str = to_string_dec_uint(delay_);
+        text_prompt(
+            nav_,
+            delay_str,
+            100,
+            [&](std::string& s) {
+                delay_ = atoi(s.c_str());
+                field_delay.set_value(delay_);
+                refresh_ui();
+            });
     };
 
     button_delete.on_select = [this](Button&) {
