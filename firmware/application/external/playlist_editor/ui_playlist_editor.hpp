@@ -28,6 +28,11 @@ namespace fs = std::filesystem;
 
 namespace ui::external_app::playlist_editor {
 
+enum DisplayFilenameOrNewButton {
+    DISPLAY_FILENAME,
+    DISPLAY_NEW_BUTTON
+};
+
 class PlaylistEditorView : public View {
    public:
     PlaylistEditorView(NavigationView& nav);
@@ -40,9 +45,19 @@ class PlaylistEditorView : public View {
 
     std::vector<std::string> playlist = {};
     fs::path current_ppl_path = "";
+    std::string current_ppl_name_buffer = ""; //this is because text_prompt needs it. TODO: this is so annoying, shoudl refactor that func
+
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Entries:", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, 0 * 16}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
+
+    Button button_new{
+        {(sizeof("PPL file:") + 1) * 8, 0 * 16, 8 * 5, 16},
+        "New"};
+
+    Text text_current_ppl_file{
+        {sizeof("PPL file:") * 8, 0 * 16, screen_width - sizeof("PPL file:") * 8, 16},
+        ""};
 
     MenuView menu_view{};
 
@@ -71,8 +86,9 @@ class PlaylistEditorView : public View {
         "Save PPL"};
 
     void open_file();
+    void swap_opened_file_or_new_button(DisplayFilenameOrNewButton d);
     void on_file_changed(const fs::path& path);
-    void on_edit_current_index();
+    bool on_create_ppl();
     void refresh_interface();
     void on_edit_item();
     void on_insert_item();
