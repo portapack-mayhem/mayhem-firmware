@@ -333,34 +333,43 @@ OOKEditorBugKeyView::OOKEditorBugKeyView(NavigationView& nav, std::string payloa
         nav_.pop();
     };
 
-    field_short_step.on_change = [this](int32_t) {
-        std::string low_level_btn_str = "";
-        std::string high_level_btn_str = "";
-        for (auto i = 0; i < field_short_step.value(); i++) {
-            low_level_btn_str += ".";
-            high_level_btn_str += "_";
+    auto update_step_buttons = [this](int32_t value, Button& btnLow, Button& btnHigh) {
+        std::string low_level_btn_str;
+        std::string high_level_btn_str;
+        if (value <= 14) {  // the button width allow max 14 chars
+            for (int i = 0; i < value; i++) {
+                low_level_btn_str.push_back('.');
+                high_level_btn_str.push_back('_');
+            }
+        } else {
+            low_level_btn_str = to_string_dec_int(value) + " * .";
+            high_level_btn_str = to_string_dec_int(value) + " * _";
         }
-
-        button_insert_low_level_short.set_text(low_level_btn_str);
-        button_insert_high_level_short.set_text(high_level_btn_str);
-        set_dirty();
+        btnLow.set_text("              ");  // set_dirty broken console. this is work around
+        btnHigh.set_text("              ");
+        btnLow.set_text(low_level_btn_str);
+        btnHigh.set_text(high_level_btn_str);
     };
 
-    field_long_step.on_change = [this](int32_t) {
-        std::string low_level_btn_str = "";
-        std::string high_level_btn_str = "";
-        for (auto i = 0; i < field_long_step.value(); i++) {
-            low_level_btn_str += ".";
-            high_level_btn_str += "_";
-        }
+    field_short_step.on_change = [&](int32_t) {
+        update_step_buttons(field_short_step.value(),
+                            button_insert_low_level_short,
+                            button_insert_high_level_short);
+        update_console();
+    };
 
-        button_insert_low_level_long.set_text(low_level_btn_str);
-        button_insert_high_level_long.set_text(high_level_btn_str);
-        set_dirty();
+    field_long_step.on_change = [&](int32_t) {
+        update_step_buttons(field_long_step.value(),
+                            button_insert_low_level_long,
+                            button_insert_high_level_long);
+        update_console();
     };
 
     field_short_step.set_value(1);
     field_long_step.set_value(2);
+    update_step_buttons(field_short_step.value(),
+                        button_insert_low_level_short,
+                        button_insert_high_level_short);
     update_console();
 }
 
