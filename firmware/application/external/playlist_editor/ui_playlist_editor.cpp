@@ -86,6 +86,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     };
 
     swap_opened_file_or_new_button(DisplayFilenameOrNewButton::DISPLAY_NEW_BUTTON);
+    portapack::async_tx_enabled = true;
 }
 
 void PlaylistEditorView::focus() {
@@ -124,8 +125,11 @@ bool PlaylistEditorView::on_create_ppl() {
         100,
         [&](std::string& s) {
             current_ppl_name_buffer = s;
+
             success = true;
-            current_ppl_path = playlist_dir / current_ppl_name_buffer / u".PPL";
+            current_ppl_name_buffer += ".PPL";
+            current_ppl_path = playlist_dir / std::filesystem::path(current_ppl_name_buffer);
+
             File f;
             f.open(current_ppl_path, true, true);  // prob safer here as standalone obj as read only and then open again in process func
             f.close();
@@ -211,25 +215,21 @@ void PlaylistEditorView::on_edit_item() {
 }
 
 void PlaylistEditorView::on_insert_item() {
-    bool ppl_empty = playlist.empty();
     if (current_ppl_path.empty()) {
         nav_.display_modal("Err", "No playlist file loaded");
         return;
     }
+
     auto edit_view = nav_.push<PlaylistItemEditView>(
         "");
 
     edit_view->on_save = [&](std::string new_item) {
-        if (ppl_empty) {
+        if (playlist.empty()) {
             playlist.push_back(new_item);
+
         } else {
             playlist.insert(playlist.begin() + menu_view.highlighted_index() + 1, new_item);
         }
-        refresh_interface();
-    };
-
-    edit_view->on_delete = [this]() {
-        playlist.erase(playlist.begin() + menu_view.highlighted_index());
         refresh_interface();
     };
 }
@@ -316,6 +316,10 @@ PlaylistItemEditView::PlaylistItemEditView(
         if (on_save) on_save(build_item());
         nav_.pop();
     };
+
+    if (!on_delete) {
+        button_delete.hidden(true);
+    }
 
     parse_item(item);
     refresh_ui();
