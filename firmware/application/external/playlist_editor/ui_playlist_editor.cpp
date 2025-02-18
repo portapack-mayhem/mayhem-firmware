@@ -86,7 +86,6 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
     };
 
     swap_opened_file_or_new_button(DisplayFilenameOrNewButton::DISPLAY_NEW_BUTTON);
-    portapack::async_tx_enabled = true;
 }
 
 void PlaylistEditorView::focus() {
