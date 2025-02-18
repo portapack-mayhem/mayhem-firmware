@@ -152,7 +152,7 @@ class OOKEditorBugKeyView : public View {
 
     OOKEditorBugKeyView(NavigationView& nav, std::string payload);
 
-    std::string title() const override { return "Edit Item"; };
+    std::string title() const override { return "Bug.K"; };
     void focus() override;
 
    private:
