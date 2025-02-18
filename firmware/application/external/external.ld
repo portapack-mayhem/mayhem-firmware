@@ -63,6 +63,7 @@ MEMORY
     ram_external_app_antenna_length(rwx) : org = 0xADD60000, len = 32k 
     ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k 
     ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k 
+    ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k 
 }
 
 SECTIONS
@@ -307,4 +308,10 @@ SECTIONS
         KEEP(*(.external_app.app_sd_wipe.application_information));
         *(*ui*external_app*sd_wipe*);
     } > ram_external_app_sd_wipe
+
+    .external_app_playlist_editor : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_playlist_editor.application_information));
+        *(*ui*external_app*playlist_editor*);
+    } > ram_external_app_playlist_editor
 }
