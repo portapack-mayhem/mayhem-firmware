@@ -56,7 +56,11 @@ class PlaylistEditorView : public View {
         "New"};
 
     Text text_current_ppl_file{
+<<<<<<< HEAD
         {sizeof("PPL file:") * 8, 0 * 16, screen_width - (int)sizeof("PPL file:") * 8, 16},
+=======
+        {sizeof("PPL file:") * 8, 0 * 16, screen_width - sizeof("PPL file:") * 8, 16},
+>>>>>>> 73f7f847 (Playlist editor (#2506))
         ""};
 
     MenuView menu_view{};

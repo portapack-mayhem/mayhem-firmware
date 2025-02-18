@@ -122,7 +122,10 @@ bool PlaylistEditorView::on_create_ppl() {
         nav_,
         current_ppl_name_buffer,
         100,
+<<<<<<< HEAD
         ENTER_KEYBOARD_MODE_ALPHA,
+=======
+>>>>>>> 73f7f847 (Playlist editor (#2506))
         [&](std::string& s) {
             current_ppl_name_buffer = s;
 
@@ -308,7 +311,10 @@ PlaylistItemEditView::PlaylistItemEditView(
             nav_,
             delay_str,
             100,
+<<<<<<< HEAD
             ENTER_KEYBOARD_MODE_ALPHA,
+=======
+>>>>>>> 73f7f847 (Playlist editor (#2506))
             [&](std::string& s) {
                 delay_ = atoi(s.c_str());
                 field_delay.set_value(delay_);
