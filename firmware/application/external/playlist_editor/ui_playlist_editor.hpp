@@ -46,6 +46,7 @@ class PlaylistEditorView : public View {
     std::vector<std::string> playlist = {};
     fs::path current_ppl_path = "";
     std::string current_ppl_name_buffer = "";  // this is because text_prompt needs it. TODO: this is so annoying, shoudl refactor that func
+    bool ever_opened = false;
 
     Labels labels{
         {{0 * 8, 0 * 16}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
@@ -104,6 +105,11 @@ class PlaylistItemEditView : public View {
 
     std::string title() const override { return "Edit Item"; };
     void focus() override;
+
+    void set_on_delete(std::function<void()> callback) {
+        on_delete = callback;
+        button_delete.hidden(false);
+    }
 
    private:
     NavigationView& nav_;

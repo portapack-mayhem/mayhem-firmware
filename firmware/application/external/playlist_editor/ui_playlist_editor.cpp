@@ -166,6 +166,8 @@ void PlaylistEditorView::on_file_changed(const fs::path& new_file_path) {
 
     text_current_ppl_file.set(new_file_path.string());
 
+    ever_opened = true;
+
     swap_opened_file_or_new_button(DisplayFilenameOrNewButton::DISPLAY_FILENAME);
 
     refresh_menu_view();
@@ -195,26 +197,27 @@ void PlaylistEditorView::refresh_menu_view() {
 }
 
 void PlaylistEditorView::on_edit_item() {
-    if (current_ppl_path.empty() || playlist.empty()) {
+    if (!ever_opened || playlist.empty()) {
         nav_.display_modal("Err", "No entry");
         return;
     }
     auto edit_view = nav_.push<PlaylistItemEditView>(
         playlist[menu_view.highlighted_index()]);
 
+    edit_view->set_on_delete([this]() {
+        playlist.erase(playlist.begin() + menu_view.highlighted_index());
+        refresh_interface();
+    });
+
     edit_view->on_save = [this](std::string new_item) {
         playlist[menu_view.highlighted_index()] = new_item;
-        refresh_interface();
-    };
-
-    edit_view->on_delete = [this]() {
-        playlist.erase(playlist.begin() + menu_view.highlighted_index());
         refresh_interface();
     };
 }
 
 void PlaylistEditorView::on_insert_item() {
-    if (current_ppl_path.empty()) {
+    // if (current_ppl_path.empty() || current_ppl_path.string().find_first_not_of(" \t\n\r") == std::string::npos) {
+    if (!ever_opened) {  // TODO: this is a workaround because the above line is not working and I took one hour and didn't find the issue
         nav_.display_modal("Err", "No playlist file loaded");
         return;
     }
@@ -225,7 +228,6 @@ void PlaylistEditorView::on_insert_item() {
     edit_view->on_save = [&](std::string new_item) {
         if (playlist.empty()) {
             playlist.push_back(new_item);
-
         } else {
             playlist.insert(playlist.begin() + menu_view.highlighted_index() + 1, new_item);
         }
@@ -291,10 +293,16 @@ PlaylistItemEditView::PlaylistItemEditView(
             field_path.set_text(path.string());
             path_ = path.string();
         };
+        field_delay.on_change = [&](auto) {
+            delay_ = field_delay.value();
+        };
     };
 
     button_input_delay.on_select = [this](Button&) {
         delay_str = to_string_dec_uint(delay_);
+        if (delay_str == "0") {
+            delay_str = "";
+        }
         text_prompt(
             nav_,
             delay_str,
@@ -311,7 +319,11 @@ PlaylistItemEditView::PlaylistItemEditView(
         nav_.pop();
     };
 
-    button_save.on_select = [this](Button&) {
+    button_save.on_select = [&](Button&) {
+        if (path_.empty()) {
+            nav_.display_modal("Err", "Select a file\n or press back to cancel");
+            return;
+        }
         if (on_save) on_save(build_item());
         nav_.pop();
     };
