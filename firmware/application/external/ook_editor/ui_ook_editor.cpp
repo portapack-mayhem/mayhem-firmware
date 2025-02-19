@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2024 Samir Sánchez Garnica @sasaga92
+ * copyleft Elliot Alderson from F society
+ * copyleft Darlene Alderson from F society
  *
  * This file is part of PortaPack.
  *
@@ -178,7 +180,8 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
                   &label_waveform,
                   &waveform,
                   &button_open,
-                  &button_save});
+                  &button_save,
+                  &button_bug_key});
 
     // Initialize default values for controls
     field_symbol_rate.set_value(100);
@@ -267,6 +270,16 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
             });
     };
 
+    button_bug_key.on_select = [&](Button&) {
+        auto bug_key_input_view = nav_.push<OOKEditorBugKeyView>(ook_data.payload);
+
+        bug_key_input_view->on_save = [this](std::string p) {
+            ook_data.payload = p;
+            text_payload.set(ook_data.payload);
+            draw_waveform();
+        };
+    };
+
     // Configure button to start or stop the transmission
     button_send_stop.on_select = [this](Button&) {
         if (!is_transmitting) {
@@ -280,4 +293,145 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
     // initial waveform drawing (should be a single line)
     draw_waveform();
 }
+
+/*************** bug key view ****************/
+
+OOKEditorBugKeyView::OOKEditorBugKeyView(NavigationView& nav, std::string payload)
+    : nav_{nav},
+      payload_{payload} {
+    add_children({&labels,
+                  &field_primary_step,
+                  &field_secondary_step,
+                  &console,
+                  &button_insert_high_level_long,
+                  &button_insert_high_level_short,
+                  &button_insert_low_level_long,
+                  &button_insert_low_level_short,
+                  &button_delete,
+                  &button_save});
+
+    button_insert_low_level_short.on_select = [this](Button&) {
+        on_insert(InsertType::LOW_LEVEL_SHORT);
+    };
+
+    button_insert_low_level_long.on_select = [this](Button&) {
+        on_insert(InsertType::LOW_LEVEL_LONG);
+    };
+
+    button_insert_high_level_short.on_select = [this](Button&) {
+        on_insert(InsertType::HIGH_LEVEL_SHORT);
+    };
+
+    button_insert_high_level_long.on_select = [this](Button&) {
+        on_insert(InsertType::HIGH_LEVEL_LONG);
+    };
+
+    button_delete.on_select = [this](Button&) {
+        on_delete();
+    };
+
+    button_save.on_select = [this](Button&) {
+        if (on_save) on_save(build_payload());
+        nav_.pop();
+    };
+
+    auto update_step_buttons = [this](int32_t value, Button& btnLow, Button& btnHigh) {
+        std::string low_level_btn_str;
+        std::string high_level_btn_str;
+        if (value <= 14) {  // the button width allow max 14 chars
+            for (int i = 0; i < value; i++) {
+                low_level_btn_str.push_back('0');
+                high_level_btn_str.push_back('1');
+            }
+        } else {
+            low_level_btn_str = to_string_dec_int(value) + " * \"0\"";
+            high_level_btn_str = to_string_dec_int(value) + " * \"1\"";
+        }
+        btnLow.set_text("              ");  // set_dirty broken console. this is work around
+        btnHigh.set_text("              ");
+        btnLow.set_text(low_level_btn_str);
+        btnHigh.set_text(high_level_btn_str);
+    };
+
+    field_primary_step.on_change = [&](int32_t) {
+        update_step_buttons(field_primary_step.value(),
+                            button_insert_low_level_short,
+                            button_insert_high_level_short);
+        update_console();
+    };
+
+    field_secondary_step.on_change = [&](int32_t) {
+        update_step_buttons(field_secondary_step.value(),
+                            button_insert_low_level_long,
+                            button_insert_high_level_long);
+        update_console();
+    };
+
+    field_primary_step.set_value(1);
+    field_secondary_step.set_value(2);
+    update_step_buttons(field_primary_step.value(),
+                        button_insert_low_level_short,
+                        button_insert_high_level_short);
+    update_console();
+}
+
+void OOKEditorBugKeyView::on_insert(InsertType type) {
+    auto promise_length = 0;
+    std::string promose_level = "0";
+    switch (type) {
+        case InsertType::LOW_LEVEL_SHORT:
+            promise_length = field_primary_step.value();
+            promose_level = "0";
+            break;
+        case InsertType::LOW_LEVEL_LONG:
+            promise_length = field_secondary_step.value();
+            promose_level = "0";
+            break;
+        case InsertType::HIGH_LEVEL_SHORT:
+            promise_length = field_primary_step.value();
+            promose_level = "1";
+            break;
+        case InsertType::HIGH_LEVEL_LONG:
+            promise_length = field_secondary_step.value();
+            promose_level = "1";
+            break;
+    }
+
+    for (auto i = 0; i < promise_length; i++) {
+        payload_ += promose_level;
+    }
+
+    update_console();
+}
+
+void OOKEditorBugKeyView::on_delete() {
+    // I'm aware that if user inputted like: [long high][long high][short high], this will delete a pile of them
+    // but this doesnt matter because:
+    // 1. they should not do it, high or low shoudl cross each other, don't repeat
+    // 2. don't have too much RAM to trach the input trace
+    if (payload_.length() > 0) {
+        size_t len = payload_.length();
+        char last_char = payload_[len - 1];
+        size_t pos = len - 1;
+        while (pos > 0 && payload_[pos - 1] == last_char) {
+            pos--;
+        }
+        payload_.erase(pos);
+        update_console();
+    }
+}
+
+void OOKEditorBugKeyView::update_console() {
+    console.clear(true);
+    console.write(payload_);
+}
+
+std::string OOKEditorBugKeyView::build_payload() {
+    return payload_;
+}
+
+void OOKEditorBugKeyView::focus() {
+    button_save.focus();
+}
+
 }  // namespace ui::external_app::ook_editor
