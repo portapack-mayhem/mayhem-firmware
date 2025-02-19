@@ -294,12 +294,14 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
     draw_waveform();
 }
 
+/*************** bug key view ****************/
+
 OOKEditorBugKeyView::OOKEditorBugKeyView(NavigationView& nav, std::string payload)
     : nav_{nav},
       payload_{payload} {
     add_children({&labels,
-                  &field_short_step,
-                  &field_long_step,
+                  &field_primary_step,
+                  &field_secondary_step,
                   &console,
                   &button_insert_high_level_long,
                   &button_insert_high_level_short,
@@ -338,12 +340,12 @@ OOKEditorBugKeyView::OOKEditorBugKeyView(NavigationView& nav, std::string payloa
         std::string high_level_btn_str;
         if (value <= 14) {  // the button width allow max 14 chars
             for (int i = 0; i < value; i++) {
-                low_level_btn_str.push_back('.');
-                high_level_btn_str.push_back('_');
+                low_level_btn_str.push_back('0');
+                high_level_btn_str.push_back('1');
             }
         } else {
-            low_level_btn_str = to_string_dec_int(value) + " * .";
-            high_level_btn_str = to_string_dec_int(value) + " * _";
+            low_level_btn_str = to_string_dec_int(value) + " * \"0\"";
+            high_level_btn_str = to_string_dec_int(value) + " * \"1\"";
         }
         btnLow.set_text("              ");  // set_dirty broken console. this is work around
         btnHigh.set_text("              ");
@@ -351,23 +353,23 @@ OOKEditorBugKeyView::OOKEditorBugKeyView(NavigationView& nav, std::string payloa
         btnHigh.set_text(high_level_btn_str);
     };
 
-    field_short_step.on_change = [&](int32_t) {
-        update_step_buttons(field_short_step.value(),
+    field_primary_step.on_change = [&](int32_t) {
+        update_step_buttons(field_primary_step.value(),
                             button_insert_low_level_short,
                             button_insert_high_level_short);
         update_console();
     };
 
-    field_long_step.on_change = [&](int32_t) {
-        update_step_buttons(field_long_step.value(),
+    field_secondary_step.on_change = [&](int32_t) {
+        update_step_buttons(field_secondary_step.value(),
                             button_insert_low_level_long,
                             button_insert_high_level_long);
         update_console();
     };
 
-    field_short_step.set_value(1);
-    field_long_step.set_value(2);
-    update_step_buttons(field_short_step.value(),
+    field_primary_step.set_value(1);
+    field_secondary_step.set_value(2);
+    update_step_buttons(field_primary_step.value(),
                         button_insert_low_level_short,
                         button_insert_high_level_short);
     update_console();
@@ -378,19 +380,19 @@ void OOKEditorBugKeyView::on_insert(InsertType type) {
     std::string promose_level = "0";
     switch (type) {
         case InsertType::LOW_LEVEL_SHORT:
-            promise_length = field_short_step.value();
+            promise_length = field_primary_step.value();
             promose_level = "0";
             break;
         case InsertType::LOW_LEVEL_LONG:
-            promise_length = field_long_step.value();
+            promise_length = field_secondary_step.value();
             promose_level = "0";
             break;
         case InsertType::HIGH_LEVEL_SHORT:
-            promise_length = field_short_step.value();
+            promise_length = field_primary_step.value();
             promose_level = "1";
             break;
         case InsertType::HIGH_LEVEL_LONG:
-            promise_length = field_long_step.value();
+            promise_length = field_secondary_step.value();
             promose_level = "1";
             break;
     }

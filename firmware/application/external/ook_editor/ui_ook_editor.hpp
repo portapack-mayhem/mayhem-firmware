@@ -168,17 +168,17 @@ class OOKEditorBugKeyView : public View {
     std::string build_payload();
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "short step", Theme::getInstance()->fg_light->foreground},
-        {{(screen_width / 2), 0 * 16}, "long step", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, 0 * 16}, "Primary Step", Theme::getInstance()->fg_light->foreground},
+        {{(screen_width / 2), 0 * 16}, "Secondary Step", Theme::getInstance()->fg_light->foreground}};
 
-    NumberField field_short_step{
+    NumberField field_primary_step{
         {0 * 8, 1 * 16},
         3,
         {0, 550},
         1,
         ' '};
 
-    NumberField field_long_step{
+    NumberField field_secondary_step{
         {(screen_width / 2), 1 * 16},
         3,
         {0, 550},
@@ -190,19 +190,19 @@ class OOKEditorBugKeyView : public View {
 
     Button button_insert_low_level_long{
         {0 * 8, 13 * 16, screen_width / 2, 2 * 16},
-        ".."};
+        "00"};
 
     Button button_insert_low_level_short{
         {0 * 8, 15 * 16, screen_width / 2, 2 * 16},
-        "."};
+        "0"};
 
     Button button_insert_high_level_long{
         {(screen_width / 2), 13 * 16, screen_width / 2, 2 * 16},
-        "__"};
+        "11"};
 
     Button button_insert_high_level_short{
         {(screen_width / 2), 15 * 16, screen_width / 2, 2 * 16},
-        "_"};
+        "1"};
 
     Button button_delete{
         {1, 17 * 16, screen_width / 2 - 4, 2 * 16},
