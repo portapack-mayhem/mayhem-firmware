@@ -252,6 +252,8 @@ uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
 uint8_t encoder_rate_multiplier();
 void set_encoder_rate_multiplier(uint8_t v);
+bool encoder_dial_direction();
+void set_encoder_dial_direction(bool v);
 
 uint32_t config_mode_storage_direct();
 void set_config_mode_storage_direct(uint32_t v);

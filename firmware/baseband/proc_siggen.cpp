@@ -38,28 +38,67 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
         } else
             sample_count--;
 
-        if (tone_shape == 0) {
+        if (modulation == 0) {
             // CW
             re = 127;  // max. signed 8 bits value .   (-128 ...+127), max. amplitude ,  static phasor at 0º
             im = 0;
-        } else {
-            if (tone_shape == 1) {
+        } else if (modulation == 2) {
+            // Digital BPSK consecutive 0,1,0,...continuous cycle, 1 bit/symbol, at rate of 2 symbols / Freq Tone Periode... without any Pulse shape at the moment .
+            re = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;  // Sending 2 bits by Periode T of the GUI tone, alternative static phasor to 0, -180º , 0º
+            im = 0;
+            tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
+        } else if (modulation == 3) {
+            // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment .
+
+            switch (((tone_phase & 0xFF000000) >> 24)) {
+                case 0 ... 63:  // equivalent to 1/4 of total 360º degrees.
+                    /* "00" */
+                    re = (sine_table_i8[32]);       // we are sending symbol-phasor 45º during  1/4 of the total periode
+                    im = (sine_table_i8[32 + 64]);  // 32 index  = rounded (45º/360º * 255 total sin table steps) = 31,875
+                    break;
+
+                case 64 ... 127:
+                    /* "01" */
+                    re = (sine_table_i8[96]);       // symbol-phasor 135º
+                    im = (sine_table_i8[96 + 64]);  // 96 index   = 32 + 256/4
+                    break;
+                    break;
+
+                case 128 ... 191:
+                    /* "10" */
+                    re = (sine_table_i8[159]);       // symbol-phasor 225º
+                    im = (sine_table_i8[159 + 64]);  // 159 rounded index = 96 + 256/4 = 159.3
+                    break;
+
+                case 192 ... 255:
+                    /* "11" */
+                    re = (sine_table_i8[223]);                  // symbol-phasor 315º ; 223 rounded index = (315/360) * 255 =223.125
+                    im = (sine_table_i8[((223 + 64) & 0xFF)]);  // Max index 255, circular periodic conversion.
+                    break;
+
+                default:
+                    break;
+            }
+            tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
+
+        } else {  // Other modulations: FM, DSB, AM
+            if (tone_shape == 0) {
                 // Sine
                 sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
-            } else if (tone_shape == 2) {
+            } else if (tone_shape == 1) {
                 // Triangle
                 int8_t a = (tone_phase & 0xFF000000) >> 24;
                 sample = (a & 0x80) ? ((a << 1) ^ 0xFF) - 0x80 : (a << 1) + 0x80;
-            } else if (tone_shape == 3) {
+            } else if (tone_shape == 2) {
                 // Saw up
                 sample = ((tone_phase & 0xFF000000) >> 24);
-            } else if (tone_shape == 4) {
+            } else if (tone_shape == 3) {
                 // Saw down
                 sample = ((tone_phase & 0xFF000000) >> 24) ^ 0xFF;
-            } else if (tone_shape == 5) {
+            } else if (tone_shape == 4) {
                 // Square
                 sample = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;
-            } else if (tone_shape == 6) {
+            } else if (tone_shape == 5) {
                 // Noise generator, pseudo random noise generator, 16 bits linear-feedback shift register (LFSR) algorithm, variant Fibonacci.
                 // https://en.wikipedia.org/wiki/Linear-feedback_shift_register
                 // 16 bits LFSR .taps: 16, 15, 13, 4 ;feedback polynomial: x^16 + x^15 + x^13 + x^4 + 1
@@ -79,49 +118,13 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
                 if (counter == 15) {
                     counter = 0;
                 }
-            } else if (tone_shape == 7) {
-                // Digital BPSK consecutive 0,1,0,...continuous cycle, 1 bit/symbol, at rate of 2 symbols / Freq Tone Periode... without any Pulse shape at the moment .
-                re = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;  // Sending 2 bits by Periode T of the GUI tone, alternative static phasor to 0, -180º , 0º
-                im = 0;
-            } else if (tone_shape == 8) {
-                // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment .
-
-                switch (((tone_phase & 0xFF000000) >> 24)) {
-                    case 0 ... 63:  // equivalent to 1/4 of total 360º degrees.
-                        /* "00" */
-                        re = (sine_table_i8[32]);       // we are sending symbol-phasor 45º during  1/4 of the total periode
-                        im = (sine_table_i8[32 + 64]);  // 32 index  = rounded (45º/360º * 255 total sin table steps) = 31,875
-                        break;
-
-                    case 64 ... 127:
-                        /* "01" */
-                        re = (sine_table_i8[96]);       // symbol-phasor 135º
-                        im = (sine_table_i8[96 + 64]);  // 96 index   = 32 + 256/4
-                        break;
-                        break;
-
-                    case 128 ... 191:
-                        /* "10" */
-                        re = (sine_table_i8[159]);       // symbol-phasor 225º
-                        im = (sine_table_i8[159 + 64]);  // 159 rounded index = 96 + 256/4 = 159.3
-                        break;
-
-                    case 192 ... 255:
-                        /* "11" */
-                        re = (sine_table_i8[223]);                  // symbol-phasor 315º ; 223 rounded index = (315/360) * 255 =223.125
-                        im = (sine_table_i8[((223 + 64) & 0xFF)]);  // Max index 255, circular periodic conversion.
-                        break;
-
-                    default:
-                        break;
-                }
             }
 
-            if (tone_shape != 6) {         //(all except Pseudo Random White Noise). We are in (1):periodic signals or (2):BPSK/QPSK , in both cases ,we  need Tone updated acum sum phases to modulate in FM / or control phasor phase (BPSK & QPSK.)
-                tone_phase += tone_delta;  // In periodic signals(Sine/triangle/square) we are using to FM mod. in BPSK-QSPK we are using to calculate each 1/4 of the periode.
+            if (tone_shape != 5) {         // All periodic except Pseudo Random White Noise.
+                tone_phase += tone_delta;  // In periodic signals we are using phase to generate the tone to be modulated.
             }
 
-            if (tone_shape < 7) {  // All Option shape signals  except BPSK(7) & QPSK(8) we are modulating in FM. (Those two has phase shift modulation XPSK , not FM  )
+            if (modulation == 1) {
                 // Do FM modulation
                 delta = sample * fm_delta;
 
@@ -130,6 +133,21 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 
                 re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);  // sin LUT is not dealing with decimals , output range [-128 ,...127]
                 im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
+
+            } else if (modulation == 4) {
+                // Do Double Side Band modulation
+                re = sample;
+                im = 0;
+
+            } else if (modulation == 5) {
+                // Do AM modulation (100% mod index)
+                re = (127 >> 1) + (sample >> 1);
+                im = 0;
+
+            } else if (modulation == 6) {
+                // Do AM modulation (50% mod index)
+                re = 95 + (sample >> 2);
+                im = 0;
             }
         }
 
@@ -154,7 +172,8 @@ void SigGenProcessor::on_message(const Message* const msg) {
                 auto_off = false;
 
             fm_delta = message.bw * (0xFFFFFFULL / 1536000);
-            tone_shape = message.shape;
+            tone_shape = message.shape & 0xF;
+            modulation = (message.shape & 0xF0) >> 4;
 
             // lfsr = seed_value ;  		// Finally not used , init lfsr 8 bits.
             lfsr_16 = seed_value_16;  // init lfsr 16 bits.

@@ -574,6 +574,7 @@ class SetQRCodeView : public View {
     };
 };
 
+using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
 
@@ -587,44 +588,50 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "rotation position (number of", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 3 * 16}, "steps per full rotation):", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 5 * 16}, "Dial sensitivity:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 9 * 16}, "rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 10 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
-        {{3 * 8, 12 * 16}, "Rate multiplier:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 0 * 16}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "position (x steps per 360):", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "Sensitivity:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "Rate multiplier:", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 14 * 16}, "Direction:", Theme::getInstance()->fg_light->foreground},
+
     };
 
     OptionsField field_encoder_dial_sensitivity{
-        {20 * 8, 5 * 16},
+        {20 * 8, 3 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
 
     NumberField field_encoder_rate_multiplier{
-        {20 * 8, 12 * 16},
+        {20 * 8, 10 * 16},
         2,
         {1, 15},
         1,
         ' '};
 
+    OptionsField field_encoder_dial_direction{
+        {18 * 8, 14 * 16},
+        7,
+        {{"NORMAL", false},
+         {"REVERSE", true}}};
+
     Button button_dial_sensitivity_plus{
-        {20 * 8, 4 * 16, 16, 16},
+        {20 * 8, 2 * 16, 16, 16},
         "+"};
 
     Button button_dial_sensitivity_minus{
-        {20 * 8, 6 * 16, 16, 16},
+        {20 * 8, 4 * 16, 16, 16},
         "-"};
 
     Button button_rate_multiplier_plus{
-        {20 * 8, 11 * 16, 16, 16},
+        {20 * 8, 9 * 16, 16, 16},
         "+"};
 
     Button button_rate_multiplier_minus{
-        {20 * 8, 13 * 16, 16, 16},
+        {20 * 8, 11 * 16, 16, 16},
         "-"};
 
     Button button_save{

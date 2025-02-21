@@ -110,12 +110,12 @@ void BtnGridView::set_arrow_up_enabled(bool enabled) {
     if (enabled) {
         if (!arrow_up_enabled) {
             arrow_up_enabled = true;
-            button_pgup.set_text("PAGE UP");
+            button_pgup.set_text("< PREV");
         }
     } else if (!enabled) {
         if (arrow_up_enabled) {
             arrow_up_enabled = false;
-            button_pgup.set_text("       ");
+            button_pgup.set_text("      ");
         }
     }
 };
@@ -126,12 +126,12 @@ void BtnGridView::set_arrow_down_enabled(bool enabled) {
     if (enabled) {
         if (!arrow_down_enabled) {
             arrow_down_enabled = true;
-            button_pgdown.set_text("PAGE DOWN");
+            button_pgdown.set_text("NEXT >");
         }
     } else if (!enabled) {
         if (arrow_down_enabled) {
             arrow_down_enabled = false;
-            button_pgdown.set_text("         ");
+            button_pgdown.set_text("      ");
         }
     }
 };
@@ -228,6 +228,10 @@ NewButton* BtnGridView::item_view(size_t index) const {
 
 void BtnGridView::show_arrows_enabled(bool enabled) {
     show_arrows = enabled;
+    if (!enabled) {
+        remove_child(&button_pgup);
+        remove_child(&button_pgdown);
+    }
 }
 
 bool BtnGridView::set_highlighted(int32_t new_value) {
