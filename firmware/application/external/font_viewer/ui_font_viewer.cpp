@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2023 Mark Thompson
+ * copyleft Whiterose of the Dark Army
  *
  * This file is part of PortaPack.
  *
@@ -83,6 +84,10 @@ DebugFontsView::DebugFontsView(NavigationView& nav)
         update_address_text();
         set_dirty();
     };
+}
+
+void DebugFontsView::focus() {
+    field_cursor.focus();
 }
 
 } /* namespace ui::external_app::font_viewer */
