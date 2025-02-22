@@ -67,12 +67,16 @@ void DebugFontsView::paint(Painter& painter) {
 
     line_pos = display_font(painter, 32, Theme::getInstance()->bg_darkest, "Fixed 8x16", true);
     display_font(painter, line_pos + 16, Theme::getInstance()->bg_darkest_small, "Fixed 5x8", false);
+<<<<<<< HEAD
     paint_zoomed_text(painter);
+=======
+>>>>>>> fcdccdea (add cursor to font viewer app (#2528))
 }
 
 void DebugFontsView::update_address_text() {
     uint8_t ascii_value = field_cursor.value() + 0x20;
     text_address.set("0x" + to_string_hex(ascii_value, 2));
+<<<<<<< HEAD
 }
 
 void DebugFontsView::paint_zoomed_text(Painter& painter) {
@@ -81,23 +85,32 @@ void DebugFontsView::paint_zoomed_text(Painter& painter) {
     painter.draw_char({screen_width / 2, screen_height / 2},
                       *Theme::getInstance()->bg_darkest,
                       (char)(cursor_pos + 0x20), field_zoom_level.value());
+=======
+>>>>>>> fcdccdea (add cursor to font viewer app (#2528))
 }
 
 DebugFontsView::DebugFontsView(NavigationView& nav)
     : nav_{nav} {
     add_children({&field_cursor,
+<<<<<<< HEAD
                   &text_address,
                   &field_zoom_level});
+=======
+                  &text_address});
+>>>>>>> fcdccdea (add cursor to font viewer app (#2528))
     set_focusable(true);
 
     field_cursor.on_change = [&](int32_t) {
         update_address_text();
         set_dirty();
     };
+<<<<<<< HEAD
 
     field_zoom_level.on_change = [&](int32_t) {
         set_dirty();
     };
+=======
+>>>>>>> fcdccdea (add cursor to font viewer app (#2528))
 }
 
 void DebugFontsView::focus() {
