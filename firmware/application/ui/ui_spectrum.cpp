@@ -369,6 +369,7 @@ void WaterfallView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void WaterfallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
+
     waterfall_widget.on_channel_spectrum(spectrum);
     sampling_rate = spectrum.sampling_rate;
     frequency_scale.set_spectrum_sampling_rate(sampling_rate);
@@ -379,6 +380,10 @@ void WaterfallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 }
 
 void WaterfallView::on_audio_spectrum() {
+    skip_rate = (skip_rate + 1) % 32;
+    if(skip_rate != 0) {
+        return;
+    }
     audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
 }
 

@@ -295,7 +295,7 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
-    toggle_lite_mode.on_change = [this, &nav](bool v) {
+    toggle_lite_mode.on_change = [&](bool v) {
 
         portapack::lite_mode = v;
     };

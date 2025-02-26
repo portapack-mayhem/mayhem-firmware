@@ -148,6 +148,8 @@ class WaterfallView : public View {
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 
+    uint8_t skip_rate = 4;
+
     WaterfallWidget waterfall_widget{};
     FrequencyScale frequency_scale{};
     bool running_{false};
