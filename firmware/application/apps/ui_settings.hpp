@@ -371,6 +371,10 @@ class SetUIView : public View {
         {23 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
+    ImageToggle toggle_lite_mode{
+        {25 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_file_iq};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};

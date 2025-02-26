@@ -70,6 +70,12 @@ extern uint32_t bl_tick_counter;
 extern bool antenna_bias;
 extern uint16_t touch_threshold;
 
+// it seems those widget that kept rolling/refreshing/changing somehow would impact audio quality
+// it's either from screen interference or consuming performace and thus make decoding FM slower
+// this is to indicate if shoudl not display those widgets
+// it meant to set back to false when boot
+extern bool lite_mode;
+
 extern TemperatureLogger temperature_logger;
 
 /* Get or set the antenna_bias flag.

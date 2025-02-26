@@ -236,6 +236,15 @@ class SystemStatusView : public View {
         *Theme::getInstance()->status_active,
         Theme::getInstance()->bg_dark->background};
 
+    ImageToggle toggle_lite_mode{
+        {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_file_iq,
+        &bitmap_icon_file_iq,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background,
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background};
+
     ImageToggle toggle_mute{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_and_headphones_mute,

@@ -295,6 +295,11 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
+    toggle_lite_mode.on_change = [this, &nav](bool v) {
+
+        portapack::lite_mode = v;
+    };
+
     battery_icon.on_select = [this]() { on_battery_details(); };
     battery_text.on_select = [this]() { on_battery_details(); };
 
@@ -403,6 +408,7 @@ void SystemStatusView::refresh() {
     }
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
+    status_icons.add(&toggle_lite_mode);
 
     status_icons.update_layout();
 

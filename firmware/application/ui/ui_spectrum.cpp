@@ -54,6 +54,7 @@ AudioSpectrumView::AudioSpectrumView(
 }
 
 void AudioSpectrumView::paint(Painter& painter) {
+    if (portapack::lite_mode) return;
     const auto r = screen_rect();
 
     painter.fill_rectangle(r, Theme::getInstance()->bg_darkest->background);
@@ -103,6 +104,7 @@ void FrequencyScale::set_channel_filter(
 }
 
 void FrequencyScale::paint(Painter& painter) {
+    if (portapack::lite_mode) return;
     const auto r = screen_rect();
 
     clear_background(painter, r);
@@ -268,6 +270,8 @@ void WaterfallWidget::on_hide() {
 void WaterfallWidget::on_channel_spectrum(
     const ChannelSpectrum& spectrum) {
     /* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
+
+    if (portapack::lite_mode) return;
 
     std::array<Color, 240> pixel_row;
     for (size_t i = 0; i < 120; i++) {

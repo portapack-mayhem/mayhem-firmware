@@ -2642,6 +2642,7 @@ void Waveform::set_length(const uint32_t new_length) {
 }
 
 void Waveform::paint(Painter& painter) {
+    if (portapack::lite_mode) return;
     // previously it's upside down , low level is up and high level is down, which doesn't make sense,
     // if that was made for a reason, feel free to revert.
     size_t n;
