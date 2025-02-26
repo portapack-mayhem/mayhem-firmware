@@ -148,7 +148,7 @@ class WaterfallView : public View {
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 
-    uint8_t skip_rate = 4;
+    uint8_t skip_rate = 0;
 
     WaterfallWidget waterfall_widget{};
     FrequencyScale frequency_scale{};
@@ -175,7 +175,7 @@ class WaterfallView : public View {
         Message::ID::AudioSpectrum,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
-            this->audio_spectrum_data = message.data;
+            if(this->audio_spectrum_update != true) this->audio_spectrum_data = message.data;
             this->audio_spectrum_update = true;
         }};
     MessageHandlerRegistration message_handler_frame_sync{
