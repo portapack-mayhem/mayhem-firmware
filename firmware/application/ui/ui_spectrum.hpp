@@ -64,7 +64,8 @@ class AudioSpectrumView : public View {
         128,
         0,
         false,
-        Theme::getInstance()->bg_darkest->foreground};
+        Theme::getInstance()->bg_darkest->foreground,
+        true};
 };
 
 class FrequencyScale : public Widget {

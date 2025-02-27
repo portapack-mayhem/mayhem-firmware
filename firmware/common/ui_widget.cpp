@@ -2606,15 +2606,19 @@ Waveform::Waveform(
     uint32_t length,
     uint32_t offset,
     bool digital,
-    Color color)
+    Color color,
+    bool clickable)
     : Widget{parent_rect},
       data_{data},
       length_{length},
       offset_{offset},
       digital_{digital},
-      color_{color} {
-    // set_focusable(false);
-    // previous_data.resize(length_, 0);
+      color_{color},
+      clickable_{clickable} {
+    if (clickable) {
+        set_focusable(true);
+        // previous_data.resize(length_, 0);
+    }
 }
 
 void Waveform::set_cursor(const uint32_t i, const int16_t position) {
@@ -2641,9 +2645,107 @@ void Waveform::set_length(const uint32_t new_length) {
     }
 }
 
+bool Waveform::is_paused() const {
+    return paused_;
+}
+
+void Waveform::set_paused(bool paused) {
+    paused_ = paused;
+    set_dirty();
+}
+
+bool Waveform::is_clickable() const {
+    return clickable_;
+}
+
+void Waveform::getAccessibilityText(std::string& result) {
+    // no idea what this is in use in any places, but others have it
+    result = paused_ ? "paused waveform" : "waveform";
+}
+
+void Waveform::getWidgetName(std::string& result) {
+    result = "Waveform";
+}
+
+bool Waveform::on_key(const KeyEvent key) {
+    if (!clickable_) return false;
+
+    if (key == KeyEvent::Select) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Waveform::on_keyboard(const KeyboardEvent key) {
+    // no idea what this is for, but others have it
+    if (!clickable_) return false;
+
+    if (key == 32 || key == 10) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Waveform::on_touch(const TouchEvent event) {
+    if (!clickable_) return false;
+
+    switch (event.type) {
+        case TouchEvent::Type::Start:
+            focus();
+            return true;
+
+        case TouchEvent::Type::End:
+            set_paused(!paused_);
+            if (on_select) {
+                on_select(*this);
+            }
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 void Waveform::paint(Painter& painter) {
     // previously it's upside down , low level is up and high level is down, which doesn't make sense,
     // if that was made for a reason, feel free to revert.
+
+    if (paused_) {
+        // TODO: this is bad: that it still enter this func and still consume resources.
+        //  even do a if(paused_) return; comsume too, but not that much.
+
+        // if (dirty()) {
+        // clear
+        // painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
+
+        // // draw "PAUSED" text
+        // const auto r = screen_rect();
+        // painter.draw_string(
+        //     {r.center().x() - 24, r.center().y() - 8},
+        //     style(),
+        //     "PAUSED");
+
+        // if (show_cursors) {
+        //     for (uint32_t n = 0; n < 2; n++) {
+        //         painter.draw_vline(
+        //             Point(std::min(screen_rect().size().width(), (int)cursors[n]), screen_rect().location().y()),
+        //             screen_rect().size().height(),
+        //             cursor_colors[n]);
+        //     }
+        // }
+        // }
+        return;
+    }
+
+    // not paused
     size_t n;
     Coord y, y_offset = screen_rect().location().y();
     Coord prev_x = screen_rect().location().x(), prev_y;
@@ -2700,6 +2802,13 @@ void Waveform::paint(Painter& painter) {
                 screen_rect().size().height(),
                 cursor_colors[n]);
         }
+    }
+
+    // focused highlight border
+    if (clickable_ && has_focus()) {
+        painter.draw_rectangle(
+            screen_rect(),
+            Theme::getInstance()->fg_light->foreground);
     }
 }
 
