@@ -118,7 +118,7 @@ SigGenView::SigGenView(
             symfield_tone.hidden(false);
         }
 
-        if ((v == 0) || (v == 2) || (v == 3)) {  // In Modulation Options CW, QPSK, BPSK we are not using Shapes.
+        if ((v == 0) || (v == 2) || (v == 3) || (v == 7)) {  // In Modulation Options CW, QPSK, BPSK, Pulsed CW we are not using Shapes.
             options_shape.hidden(true);
             text_shape.hidden(true);
         } else {
