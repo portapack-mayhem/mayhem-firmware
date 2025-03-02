@@ -41,12 +41,12 @@ namespace {
 
 static constexpr std::array<baseband::AMConfig, 6> am_configs{{
     // we config here all the non COMMON parameters to each AM modulation type in RX.
-    {taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB},           // AM DSB-C  BW 9khz  (+-4k5)  commercial EU bandwidth .
-    {taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB},           // AM DSB-C  BW 6khz  (+-3k0)  narrow AM , ham equipments.
-    {taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB},           // SSB USB   BW 2K8   (+ 2K8)  SSB ham equipments.
-    {taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB},           // SSB LSB   BW 2K8   (- 2K8)  SSB ham equipments.
-    {taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB},           // SSB USB   BW 0K7   (+ 0K7)  To get audio tone from CW Morse, assuming tx shifted +700hz aprox
-    {taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM},  // SSB USB+FM  BW 2K6 to demod. FM Audio Tones to get APT Weather Fax.
+    {taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config},            // AM DSB-C  BW 9khz  (+-4k5)  commercial EU bandwidth .
+    {taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config},            // AM DSB-C  BW 6khz  (+-3k0)  narrow AM , ham equipments.
+    {taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config},            // SSB USB   BW 2K8   (+ 2K8)  SSB ham equipments.
+    {taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config},            // SSB LSB   BW 2K8   (- 2K8)  SSB ham equipments.
+    {taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config},            // SSB USB   BW 0K7   (+ 0K7)  To get audio tone from CW Morse, assuming tx shifted +700hz aprox
+    {taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, audio_12k_lpf_1500hz_config},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax.
 }};
 
 static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs{{

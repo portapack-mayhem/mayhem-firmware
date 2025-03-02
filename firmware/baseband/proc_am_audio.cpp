@@ -27,6 +27,7 @@
 #include "event_m4.hpp"
 
 #include <array>
+#include "dsp_hilbert.hpp"
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     if (!configured) {
@@ -111,8 +112,8 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
     channel_spectrum.set_decimation_factor(1.0f);
     // modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);  // originally we had just 2 AM types of demod. (DSB , SSB)
-    modulation_ssb = (int)message.modulation;  // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
-    audio_output.configure(message.audio_hpf_config);
+    modulation_ssb = (int)message.modulation;              // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
+    audio_output.configure(message.audio_hpf_lpf_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 
     configured = true;
 }
