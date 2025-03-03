@@ -48,8 +48,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             im = 0;
             tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
         } else if (modulation == 3) {
-            // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment .
-
+            // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment.
             switch (((tone_phase & 0xFF000000) >> 24)) {
                 case 0 ... 63:  // equivalent to 1/4 of total 360º degrees.
                     /* "00" */
@@ -61,7 +60,6 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
                     /* "01" */
                     re = (sine_table_i8[96]);       // symbol-phasor 135º
                     im = (sine_table_i8[96 + 64]);  // 96 index   = 32 + 256/4
-                    break;
                     break;
 
                 case 128 ... 191:
@@ -80,8 +78,15 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
                     break;
             }
             tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
-
-        } else {  // Other modulations: FM, DSB, AM
+        } else if (modulation == 7) {
+            // Pulsed CW, 25% duty cycle.
+            if (tone_phase < 1073741824)  // 1073741824 = 2^32*(25/100)
+                re = 127;
+            else
+                re = 0;
+            im = 0;
+            tone_phase += tone_delta;  // In Pulsed CW we are using to calculate each periode.
+        } else {                       // Other modulations: FM, DSB, AM
             if (tone_shape == 0) {
                 // Sine
                 sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
@@ -141,12 +146,12 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 
             } else if (modulation == 5) {
                 // Do AM modulation (100% mod index)
-                re = (127 >> 1) + (sample >> 1);
+                re = 64 + (sample >> 1);  // 64 = 127 - (127 >> 1): carrier level without modulating signal
                 im = 0;
 
             } else if (modulation == 6) {
                 // Do AM modulation (50% mod index)
-                re = 95 + (sample >> 2);
+                re = 96 + (sample >> 2);  // 96 = 127 - (127 >> 2): carrier level without modulating signal
                 im = 0;
             }
         }
