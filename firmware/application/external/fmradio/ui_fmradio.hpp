@@ -108,7 +108,8 @@ class FmRadioView : public View {
         128,
         0,
         false,
-        Theme::getInstance()->bg_darkest->foreground};
+        Theme::getInstance()->bg_darkest->foreground,
+        true};
 
     Button btn_fav_0{{2, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
     Button btn_fav_1{{2 + 15 * 8, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
