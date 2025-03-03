@@ -1014,6 +1014,7 @@ class Waveform : public Widget {
     bool show_cursors{false};
     bool paused_{false};
     bool clickable_{false};
+<<<<<<< HEAD
     bool if_ever_painted_pause{false};  // for prevent the "hidden" label keeps painting and being expensive
 };
 
@@ -1075,6 +1076,8 @@ class GraphEq : public Widget {
     };
 
     void calculate_params();  // re calculate some parameters based on parent_rect()
+=======
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
 };
 
 class VuMeter : public Widget {

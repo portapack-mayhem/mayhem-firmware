@@ -2658,9 +2658,12 @@ bool Waveform::is_paused() const {
 
 void Waveform::set_paused(bool paused) {
     paused_ = paused;
+<<<<<<< HEAD
     if (!paused) {
         if_ever_painted_pause = false;
     }
+=======
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
     set_dirty();
 }
 
@@ -2669,6 +2672,10 @@ bool Waveform::is_clickable() const {
 }
 
 void Waveform::getAccessibilityText(std::string& result) {
+<<<<<<< HEAD
+=======
+    // no idea what this is in use in any places, but others have it
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
     result = paused_ ? "paused waveform" : "waveform";
 }
 
@@ -2690,6 +2697,10 @@ bool Waveform::on_key(const KeyEvent key) {
 }
 
 bool Waveform::on_keyboard(const KeyboardEvent key) {
+<<<<<<< HEAD
+=======
+    // no idea what this is for, but others have it
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
     if (!clickable_) return false;
 
     if (key == 32 || key == 10) {
@@ -2730,6 +2741,7 @@ void Waveform::paint(Painter& painter) {
         // TODO: this is bad: that it still enter this func and still consume resources.
         //  even do a if(paused_) return; comsume too, but not that much.
 
+<<<<<<< HEAD
         if (dirty() && !if_ever_painted_pause) {
             // clear
             painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
@@ -2752,6 +2764,28 @@ void Waveform::paint(Painter& painter) {
             }
         }
 
+=======
+        // if (dirty()) {
+        // clear
+        // painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
+
+        // // draw "PAUSED" text
+        // const auto r = screen_rect();
+        // painter.draw_string(
+        //     {r.center().x() - 24, r.center().y() - 8},
+        //     style(),
+        //     "PAUSED");
+
+        // if (show_cursors) {
+        //     for (uint32_t n = 0; n < 2; n++) {
+        //         painter.draw_vline(
+        //             Point(std::min(screen_rect().size().width(), (int)cursors[n]), screen_rect().location().y()),
+        //             screen_rect().size().height(),
+        //             cursor_colors[n]);
+        //     }
+        // }
+        // }
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
         return;
     }
 
@@ -2820,6 +2854,7 @@ void Waveform::paint(Painter& painter) {
             screen_rect(),
             Theme::getInstance()->fg_light->foreground);
     }
+<<<<<<< HEAD
 }
 
 /* GraphEq  *************************************************************/
@@ -3018,6 +3053,8 @@ void GraphEq::paint(Painter& painter) {
         }
         prev_bar_heights[bar] = active_segments;
     }
+=======
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
 }
 
 /* VuMeter **************************************************************/

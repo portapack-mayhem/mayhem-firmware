@@ -168,8 +168,11 @@ class FmRadioView : public View {
         false,
         Theme::getInstance()->bg_darkest->foreground,
         true};
+<<<<<<< HEAD
 
     GraphEq gr{{2, FMR_BTNGRID_TOP, UI_POS_MAXWIDTH - 4, UI_POS_MAXHEIGHT - FMR_BTNGRID_TOP}, true};
+=======
+>>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
 
     Button btn_fav_0{{2, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
     Button btn_fav_1{{2 + 15 * 8, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
