@@ -49,11 +49,15 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
         } else if (modulation == 3) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment.
 =======
             // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment .
 
 >>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
+=======
+            // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment.
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
             switch (((tone_phase & 0xFF000000) >> 24)) {
                 case 0 ... 63:  // equivalent to 1/4 of total 360º degrees.
                     /* "00" */
@@ -67,9 +71,12 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
                     im = (sine_table_i8[96 + 64]);  // 96 index   = 32 + 256/4
                     break;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                     break;
 >>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
+=======
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
 
                 case 128 ... 191:
                     /* "10" */
@@ -88,6 +95,9 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             }
             tone_phase += tone_delta;  // In BPSK-QSPK we are using to calculate each 1/4 of the periode.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
         } else if (modulation == 7) {
             // Pulsed CW, 25% duty cycle.
             if (tone_phase < 1073741824)  // 1073741824 = 2^32*(25/100)
@@ -97,10 +107,13 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             im = 0;
             tone_phase += tone_delta;  // In Pulsed CW we are using to calculate each periode.
         } else {                       // Other modulations: FM, DSB, AM
+<<<<<<< HEAD
 =======
 
         } else {  // Other modulations: FM, DSB, AM
 >>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
+=======
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
             if (tone_shape == 0) {
                 // Sine
                 sample = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
@@ -161,19 +174,27 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
             } else if (modulation == 5) {
                 // Do AM modulation (100% mod index)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 re = 64 + (sample >> 1);  // 64 = 127 - (127 >> 1): carrier level without modulating signal
 =======
                 re = (127 >> 1) + (sample >> 1);
 >>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
+=======
+                re = 64 + (sample >> 1);  // 64 = 127 - (127 >> 1): carrier level without modulating signal
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
                 im = 0;
 
             } else if (modulation == 6) {
                 // Do AM modulation (50% mod index)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 re = 96 + (sample >> 2);  // 96 = 127 - (127 >> 2): carrier level without modulating signal
 =======
                 re = 95 + (sample >> 2);
 >>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
+=======
+                re = 96 + (sample >> 2);  // 96 = 127 - (127 >> 2): carrier level without modulating signal
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
                 im = 0;
             }
         }

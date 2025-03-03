@@ -119,10 +119,14 @@ SigGenView::SigGenView(
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         if ((v == 0) || (v == 2) || (v == 3) || (v == 7)) {  // In Modulation Options CW, QPSK, BPSK, Pulsed CW we are not using Shapes.
 =======
         if ((v == 0) || (v == 2) || (v == 3)) {  // In Modulation Options CW, QPSK, BPSK we are not using Shapes.
 >>>>>>> 520ad97f (Added different modulations in signal generator (#2492))
+=======
+        if ((v == 0) || (v == 2) || (v == 3) || (v == 7)) {  // In Modulation Options CW, QPSK, BPSK, Pulsed CW we are not using Shapes.
+>>>>>>> b6e498a6 (Added different modulations in signal generator)
             options_shape.hidden(true);
             text_shape.hidden(true);
         } else {
