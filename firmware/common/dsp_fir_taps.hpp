@@ -553,14 +553,14 @@ constexpr fir_taps_real<32> taps_6k0_decim_2{
     }},
 };
 
-// IFIR prototype filter fs=48000 ; pass=4500 (cutt off -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
+// IFIR prototype filter fs=48000 ; pass=4500 (cutoff -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
 // For Europe AM commercial  broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivated from taps_6k0_decim_2 )
-// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cut_off = 5150. sample_rate = 48000 # Hz,
-// Created with h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
+// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cutoff = 5150. sample_rate = 48000 # Hz,
+// Created with h = signal.firwin(num_taps, cutoff, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
 // post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15) and similar H(f)gain
 constexpr fir_taps_real<32> taps_9k0_decim_2{
-    .low_frequency_normalized = -4500.0f / 48000.0f,  // Negative -cutt off freq -3dB (real achieved data ,in the plot and measurements)
-    .high_frequency_normalized = 4500.0f / 48000.0f,  // Positive +cutt off freq -3dB (idem)
+    .low_frequency_normalized = -4500.0f / 48000.0f,  // Negative -cutoff freq -3dB (real achieved data ,in the plot and measurements)
+    .high_frequency_normalized = 4500.0f / 48000.0f,  // Positive +cutoff freq -3dB (idem)
     .transition_normalized = 3500.0f / 48000.0f,      // 3500 Hz = (8000 Hz - 4500 Hz) (both from plot H(f) curve plot)
     .taps = {{-53, -30, 47, 198, 355, 372, 89, -535,
               -1307, -1771, -1353, 370, 3384, 7109, 10535, 12591,
@@ -644,14 +644,14 @@ constexpr fir_taps_complex<64> taps_6k0_dsb_channel{
     }},
 };
 
-// Channel filter: fs=12000, pass=4500 (cutt off -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
+// Channel filter: fs=12000, pass=4500 (cutoff -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
 // For Europe AM commercial broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivative from  taps_6k0_dsb_channel)
-// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cut_off = 4575. sample_rate = 12000 # Hz,
-// Created with : h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
+// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cutoff = 4575. sample_rate = 12000 # Hz,
+// Created with : h = signal.firwin(num_taps, cutoff, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
 // post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15), (29625)  and similar H(f)gain
 constexpr fir_taps_complex<64> taps_9k0_dsb_channel{
-    .low_frequency_normalized = -4500.0f / 12000.0f,  // Negative -cutt off freq -3dB (in the H(f) curve plot)
-    .high_frequency_normalized = 4500.0f / 12000.0f,  // Positive +cutt off freq -3dB (in the H(f) curve plot)
+    .low_frequency_normalized = -4500.0f / 12000.0f,  // Negative -cutoff freq -3dB (in the H(f) curve plot)
+    .high_frequency_normalized = 4500.0f / 12000.0f,  // Positive +cutoff freq -3dB (in the H(f) curve plot)
     .transition_normalized = 440.0f / 12000.0f,       // 440Hz = (4940 Hz -4500 Hz)  cut-3dB's (both data comes from H(f) curve plot and confirmed by  measurements )
     .taps = {{
         {2, 0},

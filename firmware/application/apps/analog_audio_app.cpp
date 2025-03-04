@@ -364,7 +364,7 @@ void AnalogAudioView::on_show_options_modulation() {
             text_ctcss.hidden(true);
             break;
 
-        case ReceiverModel::Mode::AMAudioFMApt:  // TODO
+        case ReceiverModel::Mode::AMAudioFMApt:
             widget = std::make_unique<AMFMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
