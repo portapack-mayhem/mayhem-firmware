@@ -1011,6 +1011,7 @@ class Waveform : public Widget {
     bool show_cursors{false};
     bool paused_{false};
     bool clickable_{false};
+    bool if_ever_painted_pause{false};  // for prevent the "hidden" label keeps painting and being expensive
 };
 
 class VuMeter : public Widget {
