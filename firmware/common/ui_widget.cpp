@@ -2750,7 +2750,6 @@ void Waveform::paint(Painter& painter) {
         return;
     }
 
-
     // not paused
     size_t n;
     Coord y, y_offset = screen_rect().location().y();
