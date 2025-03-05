@@ -24,6 +24,8 @@
 #include "complex.hpp"
 #include "fxpt_atan2.hpp"
 #include "utility_m4.hpp"
+#include "dsp_hilbert.hpp"
+#include "dsp_modulate.hpp"
 
 #include <hal.h>
 
@@ -63,12 +65,7 @@ buffer_f32_t SSB::execute(
 
     return {dst.p, src.count, src.sampling_rate};
 }
-/*
-static inline float angle_approx_4deg0(const complex32_t t) {
-        const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
-        return 16384.0f * x;
-}
-*/
+
 static inline float angle_approx_0deg27(const complex32_t t) {
     if (t.real()) {
         const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
@@ -80,6 +77,32 @@ static inline float angle_approx_0deg27(const complex32_t t) {
 
 static inline float angle_precise(const complex32_t t) {
     return atan2f(t.imag(), t.real());
+}
+
+buffer_f32_t SSB_FM::execute(    // Added to handle WFAX (HF weather map )-
+    const buffer_c16_t& src,     // input arg , pointer Complex c16 i,q buffer.
+    const buffer_f32_t& dst) {   // input arg , pointer f32 buffer audio demodulated
+    complex16_t* src_p = src.p;  // removed const ; init src_p pointer with the mem address pointed by src.p.
+    const auto src_end = &src.p[src.count];
+    auto dst_p = dst.p;
+    float mag_sq_lpf_norm;
+
+    while (src_p < src_end) {
+        // FM APT audio tone demod: real part (USB-differentiator)  and AM tone demodulation + lpf (to remove the subcarrier.)
+        real_to_complex.execute((src_p++)->real(), mag_sq_lpf_norm);
+        *(dst_p++) = mag_sq_lpf_norm;  // already normalized/32.768f and clipped to +1.0f for the wav file.
+
+        real_to_complex.execute((src_p++)->real(), mag_sq_lpf_norm);
+        *(dst_p++) = mag_sq_lpf_norm;
+
+        real_to_complex.execute((src_p++)->real(), mag_sq_lpf_norm);
+        *(dst_p++) = mag_sq_lpf_norm;
+
+        real_to_complex.execute((src_p++)->real(), mag_sq_lpf_norm);
+        *(dst_p++) = mag_sq_lpf_norm;
+    }
+
+    return {dst.p, src.count, src.sampling_rate};
 }
 
 buffer_f32_t FM::execute(
