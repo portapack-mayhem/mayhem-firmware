@@ -61,7 +61,7 @@ __attribute__((section(".external_app.app_breakout.application_information"), us
         0x80,
     },
     /*.icon_color = */ ui::Color::green().v,
-    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.menu_location = */ app_location_t::GAMES,
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},

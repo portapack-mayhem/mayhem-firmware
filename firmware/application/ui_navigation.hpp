@@ -389,6 +389,16 @@ class UtilitiesMenuView : public BtnGridView {
     void on_populate() override;
 };
 
+class GamesMenuView : public BtnGridView {
+    public:
+     GamesMenuView(NavigationView& nav);
+     std::string title() const override { return "Games"; };
+ 
+    private:
+     NavigationView& nav_;
+     void on_populate() override;
+ };
+
 class SystemMenuView : public BtnGridView {
    public:
     SystemMenuView(NavigationView& nav);

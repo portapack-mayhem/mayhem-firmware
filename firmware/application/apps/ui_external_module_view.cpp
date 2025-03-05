@@ -101,6 +101,9 @@ void ExternalModuleView::on_tick_second() {
             case app_location_t::HOME:
                 btnText += " (Home)";
                 break;
+            case app_location_t::GAMES:  
+                btnText += " (Games)";
+                break;
         }
 
         switch (i) {
@@ -122,4 +125,5 @@ void ExternalModuleView::on_tick_second() {
         }
     }
 }
+
 }  // namespace ui
