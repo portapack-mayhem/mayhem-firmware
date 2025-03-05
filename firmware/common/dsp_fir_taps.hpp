@@ -553,14 +553,14 @@ constexpr fir_taps_real<32> taps_6k0_decim_2{
     }},
 };
 
-// IFIR prototype filter fs=48000 ; pass=4500 (cutt off -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
+// IFIR prototype filter fs=48000 ; pass=4500 (cutoff -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
 // For Europe AM commercial  broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivated from taps_6k0_decim_2 )
-// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cut_off = 5150. sample_rate = 48000 # Hz,
-// Created with h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
+// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cutoff = 5150. sample_rate = 48000 # Hz,
+// Created with h = signal.firwin(num_taps, cutoff, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
 // post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15) and similar H(f)gain
 constexpr fir_taps_real<32> taps_9k0_decim_2{
-    .low_frequency_normalized = -4500.0f / 48000.0f,  // Negative -cutt off freq -3dB (real achieved data ,in the plot and measurements)
-    .high_frequency_normalized = 4500.0f / 48000.0f,  // Positive +cutt off freq -3dB (idem)
+    .low_frequency_normalized = -4500.0f / 48000.0f,  // Negative -cutoff freq -3dB (real achieved data ,in the plot and measurements)
+    .high_frequency_normalized = 4500.0f / 48000.0f,  // Positive +cutoff freq -3dB (idem)
     .transition_normalized = 3500.0f / 48000.0f,      // 3500 Hz = (8000 Hz - 4500 Hz) (both from plot H(f) curve plot)
     .taps = {{-53, -30, 47, 198, 355, 372, 89, -535,
               -1307, -1771, -1353, 370, 3384, 7109, 10535, 12591,
@@ -644,14 +644,14 @@ constexpr fir_taps_complex<64> taps_6k0_dsb_channel{
     }},
 };
 
-// Channel filter: fs=12000, pass=4500 (cutt off -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
+// Channel filter: fs=12000, pass=4500 (cutoff -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
 // For Europe AM commercial broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivative from  taps_6k0_dsb_channel)
-// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cut_off = 4575. sample_rate = 12000 # Hz,
-// Created with : h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
+// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cutoff = 4575. sample_rate = 12000 # Hz,
+// Created with : h = signal.firwin(num_taps, cutoff, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
 // post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15), (29625)  and similar H(f)gain
 constexpr fir_taps_complex<64> taps_9k0_dsb_channel{
-    .low_frequency_normalized = -4500.0f / 12000.0f,  // Negative -cutt off freq -3dB (in the H(f) curve plot)
-    .high_frequency_normalized = 4500.0f / 12000.0f,  // Positive +cutt off freq -3dB (in the H(f) curve plot)
+    .low_frequency_normalized = -4500.0f / 12000.0f,  // Negative -cutoff freq -3dB (in the H(f) curve plot)
+    .high_frequency_normalized = 4500.0f / 12000.0f,  // Positive +cutoff freq -3dB (in the H(f) curve plot)
     .transition_normalized = 440.0f / 12000.0f,       // 440Hz = (4940 Hz -4500 Hz)  cut-3dB's (both data comes from H(f) curve plot and confirmed by  measurements )
     .taps = {{
         {2, 0},
@@ -943,6 +943,82 @@ constexpr fir_taps_complex<64> taps_0k7_usb_channel{
         {-153, -138},
         {-241, -473},
     }},
+};
+
+// USB AM+FM for Wefax (Weather fax RX) , based USB AM with truncated Differentiator band limmited cuttoff 2.400Hz for Audio Tones FM dem. ///////////////////
+
+// IFIR prototype filter: fs=12000, pass=2600, stop=3200, decim=1, fout=12000       // stop band minimum att < -48 dB's (+3300 Hz min atten peak) , rest <50 to -60dB's
+constexpr fir_taps_complex<64> taps_2k6_usb_wefax_channel{
+    .low_frequency_normalized = 0,
+    .high_frequency_normalized = 2600.0f / 12000.0f,
+    .transition_normalized = 600.0f / 12000.0f,
+    .taps = {{{-14 + 2},
+              {-11 - 5},
+              {-2 - 8},
+              {6 - 5},
+              {13 + 1},
+              {15 + 14},
+              {0 + 26},
+              {-22 + 13},
+              {-13 - 11},
+              {7 - 1},
+              {-20 + 17},
+              {-47 - 37},
+              {33 - 89},
+              {122 + 8},
+              {19 + 131},
+              {-124 + 26},
+              {1 - 123},
+              {158 + 52},
+              {-94 + 245},
+              {-363 - 91},
+              {36 - 468},
+              {524 - 37},
+              {67 + 531},
+              {-552 + 5},
+              {136 - 686},
+              {1013 + 258},
+              {-204 + 1527},
+              {-2104 + 168},
+              {-900 - 2529},
+              {2577 - 1881},
+              {2868 + 2122},
+              {-1209 + 3570},
+              {-3768 - 52},
+              {-1043 - 3412},
+              {2634 - 1801},
+              {2083 + 1693},
+              {-861 + 1927},
+              {-1507 - 318},
+              {95 - 1041},
+              {692 + 100},
+              {-189 + 519},
+              {-478 - 241},
+              {210 - 481},
+              {454 + 122},
+              {-35 + 372},
+              {-262 + 7},
+              {4 - 166},
+              {116 + 40},
+              {-66 + 108},
+              {-117 - 62},
+              {33 - 117},
+              {95 - 2},
+              {19 + 57},
+              {-23 + 13},
+              {3 - 7},
+              {6 + 16},
+              {-20 + 16},
+              {-25 - 9},
+              {-8 - 19},
+              {4 - 12},
+              {7 - 4},
+              {7 + 4},
+              {2 + 12},
+              {-7 + 13}
+
+    }}
+
 };
 
 // WFM 200KF8E emission type //////////////////////////////////////////////

@@ -41,6 +41,7 @@ enum freqman_entry_modulation : uint8_t {
     AM_MODULATION = 0,
     NFM_MODULATION,
     WFM_MODULATION,
+    AMFM_MODULATION,  // Added for Wefax.
     SPEC_MODULATION
 };
 

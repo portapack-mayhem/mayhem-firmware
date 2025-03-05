@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Belousov Oleg
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -19,39 +19,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __DSP_HILBERT_H__
-#define __DSP_HILBERT_H__
+// dummy include file to avoid changing original source
 
-#include "dsp_sos.hpp"
-#include "dsp_types.hpp"
+#ifndef __UI_Arial12x12_H__
+#define __UI_Arial12x12_H__
 
-namespace dsp {
+#define Arial12x12 (0)
 
-class HilbertTransform {
-   public:
-    HilbertTransform();
-    void execute(float in, float& out_i, float& out_q);
-
-   private:
-    uint8_t n = 0;
-    SOSFilter<5> sos_input = {};
-    SOSFilter<5> sos_i = {};
-    SOSFilter<5> sos_q = {};
-};
-
-class Real_to_Complex {
-   public:
-    Real_to_Complex();  // Additional initialization
-    void execute(float in, float& out_mag_sq_lpf);
-
-   private:
-    uint8_t n = 0;
-    SOSFilter<5> sos_input = {};
-    SOSFilter<5> sos_i = {};
-    SOSFilter<5> sos_q = {};
-    SOSFilter<5> sos_mag_sq = {};
-};
-
-} /* namespace dsp */
-
-#endif /*__DSP_HILBERT_H__*/
+#endif /*__UI_Arial12x12_H__*/

@@ -36,9 +36,10 @@
 namespace baseband {
 
 struct AMConfig {
-    const fir_taps_real<32> decim_2;  // added to handle two types decim_2 9k, 6k
+    const fir_taps_real<32> decim_2;  // added to handle two var types decim_2 9k, 6k
     const fir_taps_complex<64> channel;
     const AMConfigureMessage::Modulation modulation;
+    const iir_biquad_config_t audio_12k_iir_filter_config;  // added to handle two var IIR filter types : 300 hpf(as before) , 1500Hz lpf for Wefax.
 
     void apply() const;
 };

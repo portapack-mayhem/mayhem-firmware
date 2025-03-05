@@ -974,7 +974,9 @@ class SymField : public Widget {
 
 class Waveform : public Widget {
    public:
-    Waveform(Rect parent_rect, int16_t* data, uint32_t length, uint32_t offset, bool digital, Color color);
+    std::function<void(Waveform&)> on_select{};
+
+    Waveform(Rect parent_rect, int16_t* data, uint32_t length, uint32_t offset, bool digital, Color color, bool clickable = false);
 
     Waveform(const Waveform&) = delete;
     Waveform(Waveform&&) = delete;
@@ -985,7 +987,17 @@ class Waveform : public Widget {
     void set_length(const uint32_t new_length);
     void set_cursor(const uint32_t i, const int16_t position);
 
+    bool is_paused() const;
+    void set_paused(bool paused);
+    bool is_clickable() const;
+
     void paint(Painter& painter) override;
+    bool on_key(const KeyEvent key) override;
+    bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     const Color cursor_colors[2] = {Theme::getInstance()->fg_cyan->foreground, Theme::getInstance()->fg_magenta->foreground};
@@ -997,6 +1009,8 @@ class Waveform : public Widget {
     Color color_;
     int16_t cursors[2]{};
     bool show_cursors{false};
+    bool paused_{false};
+    bool clickable_{false};
 };
 
 class VuMeter : public Widget {
