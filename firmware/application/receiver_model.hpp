@@ -40,9 +40,9 @@ class ReceiverModel {
         AMAudio = 0,
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
-        AMAudioFMApt = 3,  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
-        SpectrumAnalysis = 4,
-        Capture = 5
+        SpectrumAnalysis = 3,
+        Capture = 4,
+        AMAudioFMApt = 5,  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
     };
 
     struct settings_t {
