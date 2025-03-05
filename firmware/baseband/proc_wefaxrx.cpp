@@ -52,39 +52,24 @@ void WeFaxRx::update_params() {
     pxRoll = 0;
 }
 
-double WeFaxRx::calculatePhaseAngle(int16_t i, int16_t q) {
-    // return std::atan2(static_cast<double>(q), static_cast<double>(i));
-    double ang = fxpt_atan2(q, i);
-    return ang / 32768.0 * M_PI;
-}
-
-double WeFaxRx::calculateFrequencyDeviation(complex16_t& iq, complex16_t& iqlast) {
-    // Calculate phase difference between successive samples
-    double phaseDiff = calculatePhaseAngle(iq.imag(), iq.real()) - calculatePhaseAngle(iqlast.imag(), iqlast.real());
-    // Ensure phase difference is within -pi to pi range
-    if (phaseDiff > M_PI) {
-        phaseDiff -= 2.0 * M_PI;
-    } else if (phaseDiff < -M_PI) {
-        phaseDiff += 2.0 * M_PI;
-    }
-    // Calculate frequency deviation
-    return (phaseDiff / (2.0 * M_PI)) * 12000.0;  // (sample rate)
-}
-
 void WeFaxRx::execute(const buffer_c8_t& buffer) {
     // This is called at 3072000 / 2048 = 1500Hz
     if (!configured) return;
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 
-    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);       // /8 = 256
-    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // /8 = 32
-    const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);  // /4 = 8
-    // const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);  // /1 = 8
+    channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
 
-    // feed_channel_stats(channel_out);
-    // auto audio = demod.execute(channel_out, audio_buffer);
-    // audio_output.write(audio);
+    const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);
+    const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
 
+    feed_channel_stats(channel_out);
+    auto audio = demodulate(channel_out);  // now 3 AM demodulation types : demod_am, demod_ssb, demod_ssb_fm (for Wefax)
+    audio_compressor.execute_in_place(audio);
+    audio_output.write(audio);
     // todo process
+
+    /*
     for (size_t c = 0; c < decim_2_out.count; c++) {
         cnt++;
         double freqq = calculateFrequencyDeviation(decim_2_out.p[c], iqlast);
@@ -106,7 +91,7 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
                     image_message.image[image_message.cnt] = 0;
                 else {
                     image_message.image[image_message.cnt] = 256 - ((3000 - status_message.freqavg) / 3.1);
-                }*/
+                }* /
             }
             if (image_message.cnt >= 399) {
                 shared_memory.application_queue.push(image_message);
@@ -117,20 +102,34 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
             }
             status_message.freqavg = 0;
         }
-    }
+    } */
+}
+
+buffer_f32_t WeFaxRx::demodulate(const buffer_c16_t& channel) {
+    return demod_ssb_fm.execute(channel, audio_buffer);  // Calling a derivative of demod_ssb (USB) , but with different FIR taps + FM audio tones demod.
 }
 
 void WeFaxRx::on_message(const Message* const message) {
     switch (message->id) {
+        case Message::ID::UpdateSpectrum:
+        case Message::ID::SpectrumStreamingConfig:
+            channel_spectrum.on_message(message);
+            break;
+
         case Message::ID::WeFaxRxConfigure:
-        default:
             configure(*reinterpret_cast<const WeFaxRxConfigureMessage*>(message));
+            break;
+
+        case Message::ID::CaptureConfig:
+            capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+            break;
+
+        default:
             break;
     }
 }
 
 void WeFaxRx::configure(const WeFaxRxConfigureMessage& message) {
-    update_params();
     constexpr size_t decim_0_input_fs = baseband_fs;
     constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
@@ -138,21 +137,36 @@ void WeFaxRx::configure(const WeFaxRxConfigureMessage& message) {
     constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
     constexpr size_t decim_2_input_fs = decim_1_output_fs;
-    constexpr size_t decim_2_output_fs = decim_2_input_fs / 4;
+    constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
     constexpr size_t channel_filter_input_fs = decim_2_output_fs;
-    const size_t channel_filter_output_fs = channel_filter_input_fs / 1;  // 12000ul
+    // const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+
+    decim_0.configure(taps_6k0_decim_0.taps);
+    decim_1.configure(taps_6k0_decim_1.taps);
+    decim_2.configure(taps_6k0_decim_2.taps, decim_2_decimation_factor);
+    channel_filter.configure(taps_2k6_usb_wefax_channel.taps, channel_filter_decimation_factor);
+    channel_filter_low_f = taps_2k6_usb_wefax_channel.low_frequency_normalized * channel_filter_input_fs;
+    channel_filter_high_f = taps_2k6_usb_wefax_channel.high_frequency_normalized * channel_filter_input_fs;
+    channel_filter_transition = taps_2k6_usb_wefax_channel.transition_normalized * channel_filter_input_fs;
+    channel_spectrum.set_decimation_factor(1.0f);
+    // modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);  // originally we had just 2 AM types of demod. (DSB , SSB)
+    modulation_ssb = (int)2;                              // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
+    audio_output.configure(audio_12k_lpf_1500hz_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 
     lpm = message.lpm;
     ioc_mode = message.ioc;
 
-    decim_0.configure(taps_6k0_decim_0.taps);
-    decim_1.configure(taps_6k0_decim_1.taps);
-    decim_2.configure(taps_6k0_decim_2.taps, 4);
-    channel_filter.configure(taps_2k8_usb_channel.taps, 1);
-    demod.configure(channel_filter_output_fs, 3600);
-    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config, 0);
+    update_params();
     configured = true;
+}
+
+void WeFaxRx::capture_config(const CaptureConfigMessage& message) {
+    if (message.config) {
+        audio_output.set_stream(std::make_unique<StreamInput>(message.config));
+    } else {
+        audio_output.set_stream(nullptr);
+    }
 }
 
 int main() {

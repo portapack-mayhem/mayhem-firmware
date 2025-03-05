@@ -29,6 +29,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "dsp_iir.hpp"
+#include "audio_compressor.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
@@ -41,10 +42,7 @@ class WeFaxRx : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    void configure(const WeFaxRxConfigureMessage& message);
     void update_params();
-    double calculateFrequencyDeviation(complex16_t& iq, complex16_t& iqlast);
-    double calculatePhaseAngle(int16_t i, int16_t q);
     // todo rethink
     uint8_t lpm = 120;     // 60, 90, 100, 120, 180, 240 lpm
     uint8_t ioc_mode = 0;  // 0 - ioc576, 1 - ioc 288, 2 - colour fax
@@ -65,18 +63,8 @@ class WeFaxRx : public BasebandProcessor {
     uint32_t cnt = 0;
 
     static constexpr size_t baseband_fs = 3072000;
-    size_t decim_0_input_fs = 0;
-    size_t decim_0_output_fs = 0;
-    size_t decim_1_input_fs = 0;
-    size_t decim_1_output_fs = 0;
-    size_t decim_2_input_fs = 0;
-    size_t decim_2_output_fs = 0;
-    size_t channel_filter_input_fs = 0;
-    size_t channel_filter_output_fs = 0;
-
-    bool configured{false};
-
-    complex16_t iqlast = 0;
+    static constexpr size_t decim_2_decimation_factor = 4;
+    static constexpr size_t channel_filter_decimation_factor = 1;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -87,20 +75,29 @@ class WeFaxRx : public BasebandProcessor {
         audio.data(),
         audio.size()};
 
-    dsp::demodulate::FM demod{};
-    AudioOutput audio_output{};
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
     dsp::decimate::FIRAndDecimateComplex decim_2{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    int32_t channel_filter_low_f = 0;
+    int32_t channel_filter_high_f = 0;
+    int32_t channel_filter_transition = 0;
+    bool configured{false};
 
-    enum State {
-        WAIT_FLAG,
-        START,
-        PHASING,
-        IMAGE,
-        WAIT_STOP
-    };
+    // bool modulation_ssb = false;  // Origianlly we only had 2 AM demod types {DSB = 0, SSB = 1} , and we could handle it with bool var , 1 bit.
+    int8_t modulation_ssb = 0;  // Now we have 3 AM demod types we will send now index integer  {DSB = 0, SSB = 1, SSB_FM = 2}
+    dsp::demodulate::AM demod_am{};
+    dsp::demodulate::SSB demod_ssb{};
+    dsp::demodulate::SSB_FM demod_ssb_fm{};  // added for Wfax mode.
+    FeedForwardCompressor audio_compressor{};
+    AudioOutput audio_output{};
+
+    SpectrumCollector channel_spectrum{};
+
+    void configure(const WeFaxRxConfigureMessage& message);
+    void capture_config(const CaptureConfigMessage& message);
+
+    inline buffer_f32_t demodulate(const buffer_c16_t& channel);
 
     WeFaxRxStatusDataMessage status_message{0, 0};
     WeFaxRxImageDataMessage image_message{};
