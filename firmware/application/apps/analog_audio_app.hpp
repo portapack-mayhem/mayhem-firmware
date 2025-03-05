@@ -202,6 +202,8 @@ class AnalogAudioView : public View {
     uint32_t spec_bw = 20000000;
     uint16_t spec_trigger = 63;
 
+    ReceiverModel::Mode previous_modulation{0};
+
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
 
@@ -224,11 +226,13 @@ class AnalogAudioView : public View {
     OptionsField options_modulation{
         {0 * 8, 0 * 16},
         4,
-        {{" AM ", toUType(ReceiverModel::Mode::AMAudio)},
-         {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
-         {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
-         {"WFAX", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
-         {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)}}};
+        {
+            {" AM ", toUType(ReceiverModel::Mode::AMAudio)},
+            {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
+            {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
+            {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
+            {"WFAX", toUType(ReceiverModel::Mode::AMAudioFMApt)}  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        }};
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
