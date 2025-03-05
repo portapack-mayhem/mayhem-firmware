@@ -66,6 +66,7 @@ static void send_message(const Message* const message) {
 
 void AMConfig::apply() const {
     const AMConfigureMessage message{
+<<<<<<< HEAD
         taps_6k0_decim_0,             // common FIR filter taps pre-decim_0 to all 6 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW, AMFM-WFAX)
         decim_1,                      // var decim_1 FIR taps filter , variable values , to handle two spectrum decim factor 1 and 2 (zoom) and more APT LPF filtered .
         decim_2,                      // var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k and all rest AM modes)
@@ -73,6 +74,14 @@ void AMConfig::apply() const {
         modulation,                   // var parameter . enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
         audio_12k_iir_filter_config,  // var parameter , 300 Hz hpf all except Wefax (1.500Hz lpf)
         spectrum_decimation_factor};  // var parameter , waterfall no zoom : 1 ,for zoom x 2 : 2
+=======
+        taps_6k0_decim_0,              // common FIR filter taps pre-decim_0 to all 6 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW, WFAX)
+        taps_6k0_decim_1,              // common FIR filter taps pre-decim_1 to all 6 x AM mod. types. (")
+        decim_2,                       // var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k and all rest AM modes)
+        channel,                       // var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW,WFAX)
+        modulation,                    // var parameter . enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
+        audio_12k_iir_filter_config};  // var parameter , 300 Hz hpf all except Wefax (1.500Hz lpf)
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     send_message(&message);
     audio::set_rate(audio::Rate::Hz_12000);
 }

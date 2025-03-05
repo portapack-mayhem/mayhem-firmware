@@ -654,10 +654,13 @@ class AMConfigureMessage : public Message {
         DSB = 0,
         SSB = 1,
         SSB_FM = 2,  // Added new for RX Wefax mode,  to demodulate APT signal ,FM modulated inside audio subcarrier tones, and then up broadcasted in SSB USB .
+<<<<<<< HEAD
     };
     enum class Zoom_waterfall : size_t {
         ZOOM_x_1 = 1,
         ZOOM_x_2 = 2,
+=======
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     };
 
     constexpr AMConfigureMessage(
@@ -666,17 +669,25 @@ class AMConfigureMessage : public Message {
         const fir_taps_real<32> decim_2_filter,
         const fir_taps_complex<64> channel_filter,
         const Modulation modulation,
+<<<<<<< HEAD
         const iir_biquad_config_t audio_hpf_lpf_config,
         const size_t channel_spectrum_decimation_factor)
 
+=======
+        const iir_biquad_config_t audio_hpf_lpf_config)
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
         : Message{ID::AMConfigure},
           decim_0_filter(decim_0_filter),
           decim_1_filter(decim_1_filter),
           decim_2_filter(decim_2_filter),
           channel_filter(channel_filter),
           modulation{modulation},
+<<<<<<< HEAD
           audio_hpf_lpf_config(audio_hpf_lpf_config),
           channel_spectrum_decimation_factor(channel_spectrum_decimation_factor) {
+=======
+          audio_hpf_lpf_config(audio_hpf_lpf_config) {
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     }
 
     const fir_taps_real<24> decim_0_filter;
@@ -685,7 +696,10 @@ class AMConfigureMessage : public Message {
     const fir_taps_complex<64> channel_filter;
     const Modulation modulation;
     const iir_biquad_config_t audio_hpf_lpf_config;
+<<<<<<< HEAD
     const size_t channel_spectrum_decimation_factor;
+=======
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 };
 
 // TODO: Put this somewhere else, or at least the implementation part.

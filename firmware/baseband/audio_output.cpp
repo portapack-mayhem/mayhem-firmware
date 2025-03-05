@@ -97,8 +97,13 @@ void AudioOutput::on_block(const buffer_f32_t& audio) {
     if (do_processing) {
         const auto audio_present_now = squelch.execute(audio);
 
+<<<<<<< HEAD
         hpf.execute_in_place(audio);     // IIRBiquadFilter name is "hpf", but we will call with "hpf-coef" for all  except AMFM (WFAX) with "lpf-coef" and notch for WFMAM (NOAA)
         deemph.execute_in_place(audio);  // IIRBiquadFilter name is "deemph", but we will call LPF de-emphasis or  other LPF for WFAM (NOAA).
+=======
+        hpf.execute_in_place(audio);  // IIRBiquadFilter name is "hpf", but we will call with "hpf-coef" for all  except WFAX with "lpf-coef".
+        deemph.execute_in_place(audio);
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 
         audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
         audio_present = (audio_present_history != 0);

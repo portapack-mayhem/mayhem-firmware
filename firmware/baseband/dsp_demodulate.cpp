@@ -79,7 +79,11 @@ static inline float angle_precise(const complex32_t t) {
     return atan2f(t.imag(), t.real());
 }
 
+<<<<<<< HEAD
 buffer_f32_t SSB_FM::execute(    // Added to handle AMFM (WFAX, HF weather map )
+=======
+buffer_f32_t SSB_FM::execute(    // Added to handle WFAX (HF weather map )-
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     const buffer_c16_t& src,     // input arg , pointer Complex c16 i,q buffer.
     const buffer_f32_t& dst) {   // input arg , pointer f32 buffer audio demodulated
     complex16_t* src_p = src.p;  // removed const ; init src_p pointer with the mem address pointed by src.p.

@@ -114,6 +114,7 @@ WFMOptionsView::WFMOptionsView(
     };
 }
 
+<<<<<<< HEAD
 /* WFMAMAptOptionsView *******************************************************/
 
 WFMAMAptOptionsView::WFMAMAptOptionsView(
@@ -138,6 +139,11 @@ WFMAMAptOptionsView::WFMAMAptOptionsView(
 
 AMFMAptOptionsView::AMFMAptOptionsView(
     AnalogAudioView* view,
+=======
+/* AMFMAptOptionsView *********************************************************/
+
+AMFMAptOptionsView::AMFMAptOptionsView(
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     Rect parent_rect,
     const Style* style)
     : View{parent_rect} {
@@ -146,6 +152,7 @@ AMFMAptOptionsView::AMFMAptOptionsView(
     add_children({
         &label_config,
         &options_config,
+<<<<<<< HEAD
         &zoom_config,
     });
 
@@ -160,6 +167,13 @@ AMFMAptOptionsView::AMFMAptOptionsView(
 
     // restore zoom selection
     zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
+=======
+    });
+
+    freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.amfm_configuration());
+    receiver_model.set_amfm_configuration(5);  // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 }
 
 /* SPECOptionsView *******************************************************/
@@ -237,8 +251,13 @@ AnalogAudioView::AnalogAudioView(
     auto modulation = receiver_model.modulation();
 
     // This app doesn't handle "Capture" mode.
+<<<<<<< HEAD
     if (modulation == ReceiverModel::Mode::Capture)
         modulation = ReceiverModel::Mode::SpectrumAnalysis;
+=======
+    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)  // This two should be together in the last index position : SpectrumAnalysis = 4, and  Capture = 5
+        modulation = ReceiverModel::Mode::SpectrumAnalysis;  // For sw simplicity , Wefax_mode,  should NOT be added between.
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 
     options_modulation.set_by_value(toUType(modulation));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
@@ -435,6 +454,7 @@ void AnalogAudioView::on_show_options_modulation() {
             text_ctcss.hidden(true);
             break;
 
+<<<<<<< HEAD
         case ReceiverModel::Mode::WFMAudioAMApt:
             widget = std::make_unique<WFMAMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(true);
@@ -443,6 +463,10 @@ void AnalogAudioView::on_show_options_modulation() {
 
         case ReceiverModel::Mode::AMAudioFMApt:
             widget = std::make_unique<AMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
+=======
+        case ReceiverModel::Mode::AMAudioFMApt:
+            widget = std::make_unique<AMFMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
@@ -488,10 +512,14 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
         case ReceiverModel::Mode::WidebandFMAudio:
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
+<<<<<<< HEAD
         case ReceiverModel::Mode::WFMAudioAMApt:
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
         case ReceiverModel::Mode::AMAudioFMApt:
+=======
+        case ReceiverModel::Mode::AMAudioFMApt:  // TODO pending to update it.
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
             image_tag = portapack::spi_flash::image_tag_am_audio;
             break;
         case ReceiverModel::Mode::SpectrumAnalysis:
@@ -530,10 +558,14 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
         case ReceiverModel::Mode::WidebandFMAudio:
             sampling_rate = 48000;
             break;
+<<<<<<< HEAD
         case ReceiverModel::Mode::WFMAudioAMApt:
             sampling_rate = 12000;
             break;
         case ReceiverModel::Mode::AMAudioFMApt:
+=======
+        case ReceiverModel::Mode::AMAudioFMApt:  // TODO  Wefax mode.
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
             sampling_rate = 12000;
             break;
         default:

@@ -53,7 +53,11 @@ options_t freqman_modulations = {
     {"FMAM", 5},  // To handle NOAA 137 Mhz Sat FM and AM demod inside Audio App.
 };
 
+<<<<<<< HEAD
 options_t freqman_bandwidths[6] = {
+=======
+options_t freqman_bandwidths[5] = {
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     {
         // AM
         {"DSB 9k", 0},
@@ -73,6 +77,10 @@ options_t freqman_bandwidths[6] = {
         {"80k", 2},
         {"180k", 1},
         {"200k", 0},
+    },
+    {
+        // AMFM for Wefax-
+        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (Wfax) tones.
     },
     {
         // SPEC -- TODO: these should be indexes.
@@ -101,6 +109,7 @@ options_t freqman_bandwidths[6] = {
         {"4500k", 4500000},
         {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
+<<<<<<< HEAD
     },
     {
         // AMFM for Wefax-
@@ -113,6 +122,9 @@ options_t freqman_bandwidths[6] = {
         {"38k-NOAA Apt BPF", 2},  // Captured RF IQ filtered BW 38K, APT baseband filtered BPF centred to the 2k4 AM subcarrier,  BW = 2KHz
     },
 };
+=======
+    }};
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 
 // TODO: these should be indexes.
 options_t freqman_steps = {

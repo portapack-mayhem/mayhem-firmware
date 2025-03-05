@@ -48,7 +48,11 @@ class SSB {
     static constexpr float k = 1.0f / 32768.0f;
 };
 
+<<<<<<< HEAD
 class SSB_FM {  // Added to handle AMFM for WFAX
+=======
+class SSB_FM {  // Added to handle WFAX-
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
    public:
     buffer_f32_t execute(
         const buffer_c16_t& src,
@@ -56,7 +60,11 @@ class SSB_FM {  // Added to handle AMFM for WFAX
 
    private:
     static constexpr float k = 1.0f / 32768.0f;
+<<<<<<< HEAD
     dsp::Real_to_Complex real_to_complex{};  // It is a member variable of SSB_FM.
+=======
+    dsp::Real_to_Complex real_to_complex;  // It is a member variable of SSB_FM.
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 };
 
 class FM {

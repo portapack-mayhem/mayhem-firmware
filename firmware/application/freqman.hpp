@@ -41,9 +41,14 @@ enum freqman_entry_modulation : uint8_t {
     AM_MODULATION = 0,
     NFM_MODULATION,
     WFM_MODULATION,
+<<<<<<< HEAD
     SPEC_MODULATION,
     AMFM_MODULATION,  // Added for HF Wefax.demod APT signal
     WFMAM_MODULATION  // Added for NOAA 137 Mhz satellite band,  demod APT signal.
+=======
+    AMFM_MODULATION,  // Added for Wefax.
+    SPEC_MODULATION
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 };
 
 // TODO: Can these be removed after Recon is migrated to FreqmanDB?

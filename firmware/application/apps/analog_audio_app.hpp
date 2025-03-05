@@ -87,6 +87,24 @@ class AMFMAptOptionsView : public View {
     };
 };
 
+class AMFMAptOptionsView : public View {
+   public:
+    AMFMAptOptionsView(Rect parent_rect, const Style* style);
+
+   private:
+    Text label_config{
+        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        "BW",
+    };
+
+    OptionsField options_config{
+        {3 * 8, 0 * 16},
+        6,  // Max option length
+        {
+            // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
+        }};
+};
+
 class NBFMOptionsView : public View {
    public:
     NBFMOptionsView(Rect parent_rect, const Style* style);
@@ -273,6 +291,7 @@ class AnalogAudioView : public View {
     OptionsField options_modulation{
         {0 * 8, 0 * 16},
         4,
+<<<<<<< HEAD
         {
             {" AM ", toUType(ReceiverModel::Mode::AMAudio)},
             {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
@@ -281,6 +300,13 @@ class AnalogAudioView : public View {
             {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
             {"FMAM", toUType(ReceiverModel::Mode::WFMAudioAMApt)}  // Added to handle  SAT NOAA APT
         }};
+=======
+        {{" AM ", toUType(ReceiverModel::Mode::AMAudio)},
+         {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
+         {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
+         {"WFAX", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+         {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)}}};
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 
     AudioVolumeField field_volume{
         {screen_width - 2 * 8, 0 * 16}};

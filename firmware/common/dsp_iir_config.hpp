@@ -56,8 +56,13 @@ constexpr iir_biquad_config_t audio_12k_hpf_300hz_config{
     {1.00000000f, -1.77863178f, 0.80080265f}};
 
 // scipy.signal.butter(2, 1500 / 6000.0, 'low', analog=False)
+<<<<<<< HEAD
 constexpr iir_biquad_config_t apt_audio_12k_lpf_1500hz_config{
     // Added to lpf the apt audio in wefax mode , before sending to SD card or spk.
+=======
+constexpr iir_biquad_config_t audio_12k_lpf_1500hz_config{
+    // Added to lpf the audio in wefax mode , before sending to SD card or spk.
+>>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     {0.09763107f, 0.19526215f, 0.09763107f},
     {1.00000000f, -0.94280904f, 0.33333333f}};
 
