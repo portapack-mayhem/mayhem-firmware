@@ -141,8 +141,8 @@ static constexpr uint8_t bitmap_icon_games_data[] = {
 };
 static constexpr Bitmap bitmap_icon_games{
     {16, 16},
-    bitmap_icon_games_data};    
-    
+    bitmap_icon_games_data};
+
 static constexpr uint8_t bitmap_stripes_data[] = {
     0xFF,
     0x03,
