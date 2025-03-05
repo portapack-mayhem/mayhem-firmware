@@ -157,16 +157,23 @@ const NavigationView::AppList NavigationView::appList = {
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
+<<<<<<< HEAD
     {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
+=======
+    {"signalgen", "Signal Gen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
+>>>>>>> ee472e1e (waveform fix 3 and trivial change (#2540))
     /* UTILITIES *************************************************************/
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
+<<<<<<< HEAD
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
+=======
+>>>>>>> ee472e1e (waveform fix 3 and trivial change (#2540))
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
