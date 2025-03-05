@@ -1,24 +1,3 @@
-/*
- * Copyright (C) 2024 Mark Thompson
- *
- * This file is part of PortaPack.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
- */
-
 #include "mbed.h"
 #include "SPI_TFT_ILI9341.h"
 #include "Arial12x12.h"
@@ -379,10 +358,10 @@ void show_menu() {
     auto style_red = *ui::Theme::getInstance()->fg_red;
 
     painter.draw_string({0, 40}, style_yellow, "* * * BREAKOUT * * *");
-    painter.draw_string({0, 70}, style_white, "====================");
-    painter.draw_string({0, 120}, style_green, "| ROTARY: MOVE PADDLE |");
+    painter.draw_string({0, 70}, style_white, "========================");
+    painter.draw_string({0, 120}, style_green, "| ROTARY: MOVE PADDLE  |");
     painter.draw_string({0, 150}, style_green, "| SELECT: START/LAUNCH |");
-    painter.draw_string({0, 190}, style_white, "====================");
+    painter.draw_string({0, 190}, style_white, "========================");
     painter.draw_string({24, 230}, style_red, "* PRESS SELECT *");
 }
 
@@ -405,6 +384,7 @@ void reset_game() {
     level = 1;
     score = 0;
     lives = 3;
+    game_state = STATE_PLAYING;
     init_level();
     draw_screen();
 }
