@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #ifndef __UI_mbed_H__
 #define __UI_mbed_H__
 

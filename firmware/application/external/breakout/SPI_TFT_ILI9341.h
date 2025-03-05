@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #ifndef __UI_SPI_TFT_ILI9341_H__
 #define __UI_SPI_TFT_ILI9341_H__
 

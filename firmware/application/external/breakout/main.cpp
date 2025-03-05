@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #include "ui.hpp"
 #include "ui_breakout.hpp"
 #include "ui_navigation.hpp"

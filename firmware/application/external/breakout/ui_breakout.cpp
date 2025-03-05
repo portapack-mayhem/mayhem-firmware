@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #include "ui_breakout.hpp"
 
 namespace ui::external_app::breakout {

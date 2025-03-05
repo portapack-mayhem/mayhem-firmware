@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #include "mbed.h"
 #include "SPI_TFT_ILI9341.h"
 #include "Arial12x12.h"
