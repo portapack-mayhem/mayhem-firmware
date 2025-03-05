@@ -20,6 +20,7 @@ void initialize_app(ui::NavigationView& nav) {
 extern "C" {
 
 __attribute__((section(".external_app.app_breakout.application_information"), used)) application_information_t _application_information_breakout = {
+<<<<<<< HEAD
     (uint8_t*)0x00000000,
     ui::external_app::breakout::initialize_app,
     CURRENT_HEADER_VERSION,
@@ -68,3 +69,53 @@ __attribute__((section(".external_app.app_breakout.application_information"), us
     0x00000000,
 };
 }  // namespace ui::external_app::breakout
+=======
+    /*.memory_location = */ (uint8_t*)0x00000000,  // will be filled at compile time
+    /*.externalAppEntry = */ ui::external_app::breakout::initialize_app,
+    /*.header_version = */ CURRENT_HEADER_VERSION,
+    /*.app_version = */ VERSION_MD5,
+
+    /*.app_name = */ "Breakout",
+    /*.bitmap_data = */ {
+        0xFF,
+        0xFF,
+        0x01,
+        0x01,
+        0x01,
+        0x01,
+        0x01,
+        0x01,
+        0xFF,
+        0xFF,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0xFF,
+        0xFF,
+        0x01,
+        0x01,
+        0x01,
+        0x01,
+        0x01,
+        0x01,
+        0xFF,
+        0xFF,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+    },
+    /*.icon_color = */ ui::Color::green().v,
+    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.desired_menu_position = */ -1,
+
+    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
+    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+};
+}
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))

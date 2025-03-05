@@ -9,17 +9,25 @@
 #ifndef __UI_BREAKOUT_H__
 #define __UI_BREAKOUT_H__
 
+<<<<<<< HEAD
 #include "ui.hpp"
+=======
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
 #include "ui_navigation.hpp"
 #include "event_m0.hpp"
 #include "message.hpp"
 #include "irq_controls.hpp"
 #include "random.hpp"
 #include "lpc43xx_cpp.hpp"
+<<<<<<< HEAD
+=======
+#include "limits.h"
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
 #include "ui_widget.hpp"
 
 namespace ui::external_app::breakout {
 
+<<<<<<< HEAD
 enum {
     White,
     Blue,
@@ -121,14 +129,22 @@ bool check_level_complete();
 void next_level();
 void reset_game();
 
+=======
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
 class BreakoutView : public View {
    public:
     BreakoutView(NavigationView& nav);
     void on_show() override;
 
+<<<<<<< HEAD
     std::string title() const override { return "Breakout"; }
 
     void focus() override { dummy.focus(); }
+=======
+    std::string title() const override { return "Breakout"; };
+
+    void focus() override { dummy.focus(); };
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
     void paint(Painter& painter) override;
     void frame_sync();
     bool on_encoder(const EncoderEvent event) override;
@@ -139,7 +155,11 @@ class BreakoutView : public View {
     NavigationView& nav_;
 
     Button dummy{
+<<<<<<< HEAD
         {screen_width, 0, 0, 0},
+=======
+        {240, 0, 0, 0},
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{
@@ -151,4 +171,8 @@ class BreakoutView : public View {
 
 }  // namespace ui::external_app::breakout
 
+<<<<<<< HEAD
 #endif /* __UI_BREAKOUT_H__ */
+=======
+#endif /*__UI_BREAKOUT_H__*/
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))

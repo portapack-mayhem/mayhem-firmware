@@ -26,6 +26,7 @@ MEMORY
     ram_external_app_afsk_rx    (rwx) : org = 0xADB10000, len = 32k
     ram_external_app_calculator (rwx) : org = 0xADB20000, len = 32k
     ram_external_app_font_viewer(rwx) : org = 0xADB30000, len = 32k
+<<<<<<< HEAD
     ram_external_app_blespam    (rwx) : org = 0xADB40000, len = 32k
     ram_external_app_analogtv   (rwx) : org = 0xADB50000, len = 32k
     ram_external_app_nrf_rx     (rwx) : org = 0xADB60000, len = 32k
@@ -40,6 +41,23 @@ MEMORY
     ram_external_app_extsensors (rwx) : org = 0xADBF0000, len = 32k
     ram_external_app_foxhunt_rx (rwx) : org = 0xADC00000, len = 32k
     ram_external_app_audio_test (rwx) : org = 0xADC10000, len = 32k
+=======
+    ram_external_app_blespam(rwx) : org = 0xADB40000, len = 32k
+    ram_external_app_analogtv(rwx) : org = 0xADB50000, len = 32k
+    ram_external_app_nrf_rx(rwx) : org = 0xADB60000, len = 32k
+    ram_external_app_coasterp(rwx) : org = 0xADB70000, len = 32k
+    ram_external_app_lge(rwx) : org = 0xADB80000, len = 32k
+    ram_external_app_lcr(rwx) : org = 0xADB90000, len = 32k
+    ram_external_app_jammer(rwx) : org = 0xADBA0000, len = 32k
+    ram_external_app_gpssim(rwx) : org = 0xADBB0000, len = 32k
+    ram_external_app_spainter(rwx) : org = 0xADBC0000, len = 32k
+    ram_external_app_keyfob(rwx) : org = 0xADBD0000, len = 32k
+    ram_external_app_tetris(rwx) : org = 0xADBE0000, len = 32k
+    ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
+    ram_external_app_breakout(rwx) : org = 0xADE00000, len = 32k
+    ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
+    ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
+>>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
     ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
     ram_external_app_tpmsrx(rwx) : org = 0xADC30000, len = 32k
     ram_external_app_protoview(rwx) : org = 0xADC40000, len = 32k
@@ -168,6 +186,12 @@ SECTIONS
         KEEP(*(.external_app.app_tetris.application_information));
         *(*ui*external_app*tetris*);
     } > ram_external_app_tetris
+
+    .external_app_breakout : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_breakout.application_information));
+        *(*ui*external_app*breakout*);
+    } > ram_external_app_breakout    
 
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {
