@@ -793,9 +793,9 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                           [&nav]() {
                               nav.display_modal(
                                   "Notice",
-                                  "External app directory empty;\n"
-                                  "see Mayhem wiki and copy apps\n"
-                                  "to " + apps_dir.string() + " folder of SD card.");
+                                  "Can't read external apps\n"
+                                  "Check SD card\n"
+                                  "Update SD card content\n");
                           }},
                          error_tile_pos);
     } else {
@@ -821,7 +821,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
 bool verify_sdcard_format() {
     FATFS* fs = &sd_card::fs;
     return (fs->fs_type == FS_FAT32 || fs->fs_type == FS_EXFAT) || !(sd_card::status() == sd_card::Status::Mounted);
-    /*                                   ^ to satisfy those users that not use an sd*/
+    /*                                                             ^ to satisfy those users that not use an sd*/
 }
 
 /* ReceiversMenuView *****************************************************/
@@ -891,7 +891,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 void SystemMenuView::on_populate() {
     if (!verify_sdcard_format()) {
         add_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
-                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32,\nformat to exFAT or FAT32 on PC");
+                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
                   }});
     }
     add_apps(nav_, *this, HOME);
