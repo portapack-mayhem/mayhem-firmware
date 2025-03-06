@@ -129,7 +129,11 @@ const NavigationView::AppList NavigationView::appList = {
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
+<<<<<<< HEAD
     {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
+=======
+    {nullptr, "Games", HOME, Color::purple(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
+>>>>>>> a17995fd (Moved games to new game menu (#2544))
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
     {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
