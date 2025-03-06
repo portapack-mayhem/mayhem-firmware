@@ -126,6 +126,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
+    {nullptr, "Games", HOME, Color::purple(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     /* RX ********************************************************************/
@@ -866,6 +867,22 @@ void UtilitiesMenuView::on_populate() {
     }
     add_apps(nav_, *this, UTILITIES);
     add_external_items(nav_, app_location_t::UTILITIES, *this, return_icon ? 1 : 0);
+}
+
+/* GamesMenuView ********************************************************/
+
+GamesMenuView::GamesMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);
+}
+
+void GamesMenuView::on_populate() {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
+        add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
+    }
+    add_apps(nav_, *this, GAMES);
+    add_external_items(nav_, app_location_t::GAMES, *this, return_icon ? 1 : 0);
 }
 
 /* SystemMenuView ********************************************************/

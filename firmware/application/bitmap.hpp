@@ -105,6 +105,44 @@ static constexpr Bitmap bitmap_icon_utilities{
     {16, 16},
     bitmap_icon_utilities_data};
 
+static constexpr uint8_t bitmap_icon_games_data[] = {
+    0x0C,
+    0x0C,
+    0x0C,
+    0x0C,
+    0x3F,
+    0x3C,
+    0xFF,
+    0x7E,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xCC,
+    0xCC,
+    0xCC,
+    0xCC,
+    0xFF,
+    0xFF,
+    0xE7,
+    0x73,
+    0xE7,
+    0x73,
+    0x33,
+    0x33,
+    0x03,
+    0x30,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_games{
+    {16, 16},
+    bitmap_icon_games_data};
+
 static constexpr uint8_t bitmap_stripes_data[] = {
     0xFF,
     0x03,
