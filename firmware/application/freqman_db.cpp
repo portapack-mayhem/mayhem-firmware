@@ -103,7 +103,7 @@ options_t freqman_bandwidths[5] = {
     },
     {
         // AMFM for Wefax-
-        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (Wfax) tones.
+        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
     },
 };
 

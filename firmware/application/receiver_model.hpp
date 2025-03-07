@@ -41,7 +41,7 @@ class ReceiverModel {
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
         SpectrumAnalysis = 3,
-        AMAudioFMApt = 4,       // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        AMAudioFMApt = 4,  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
         Capture = 5,
     };
 

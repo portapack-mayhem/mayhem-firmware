@@ -116,8 +116,8 @@ AMFMAptOptionsView::AMFMAptOptionsView(
     });
 
     freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    receiver_model.set_amfm_configuration(5);                       // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
     options_config.set_by_value(receiver_model.amfm_configuration());
-    receiver_model.set_amfm_configuration(5);  // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
 }
 
 /* SPECOptionsView *******************************************************/
