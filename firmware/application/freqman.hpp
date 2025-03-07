@@ -41,8 +41,8 @@ enum freqman_entry_modulation : uint8_t {
     AM_MODULATION = 0,
     NFM_MODULATION,
     WFM_MODULATION,
-    AMFM_MODULATION,  // Added for Wefax.
-    SPEC_MODULATION
+    SPEC_MODULATION,
+    AMFM_MODULATION  // Added for Wefax.
 };
 
 // TODO: Can these be removed after Recon is migrated to FreqmanDB?

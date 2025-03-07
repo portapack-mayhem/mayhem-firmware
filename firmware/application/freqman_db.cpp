@@ -49,6 +49,7 @@ options_t freqman_modulations = {
     {"NFM", 1},
     {"WFM", 2},
     {"SPEC", 3},
+    {"AMFM", 4},
 };
 
 options_t freqman_bandwidths[5] = {
@@ -71,10 +72,6 @@ options_t freqman_bandwidths[5] = {
         {"40k", 2},
         {"180k", 1},
         {"200k", 0},
-    },
-    {
-        // AMFM for Wefax-
-        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (Wfax) tones.
     },
     {
         // SPEC -- TODO: these should be indexes.
@@ -103,7 +100,12 @@ options_t freqman_bandwidths[5] = {
         {"4500k", 4500000},
         {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
-    }};
+    },
+    {
+        // AMFM for Wefax-
+        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
+    },
+};
 
 // TODO: these should be indexes.
 options_t freqman_steps = {

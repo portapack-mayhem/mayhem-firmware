@@ -1329,6 +1329,9 @@ bool debug_dump() {
         case ReceiverModel::Mode::Capture:
             pmem_dump_file.write_line("modulation: Mode::Capture");
             break;
+        case ReceiverModel::Mode::AMAudioFMApt:
+            pmem_dump_file.write_line("modulation: Mode::AMAudioFMApt");
+            break;
         default:
             pmem_dump_file.write_line("modulation: !!unknown mode!!");
             break;
