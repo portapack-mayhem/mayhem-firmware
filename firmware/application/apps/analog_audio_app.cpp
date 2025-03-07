@@ -198,8 +198,6 @@ AnalogAudioView::AnalogAudioView(
     if (modulation == ReceiverModel::Mode::Capture)
         modulation = ReceiverModel::Mode::SpectrumAnalysis;
 
-    previous_modulation = modulation;
-
     options_modulation.set_by_value(toUType(modulation));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
         this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
@@ -288,16 +286,6 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 }
 
 void AnalogAudioView::on_modulation_changed(ReceiverModel::Mode modulation) {
-    // This app doesn't know what to do with "Capture" mode.
-    if (modulation == ReceiverModel::Mode::Capture) {
-        if (modulation > previous_modulation)
-            modulation = ReceiverModel::Mode::SpectrumAnalysis;
-        else
-            modulation = ReceiverModel::Mode::AMAudioFMApt;
-    }
-
-    previous_modulation = modulation;
-
     baseband::spectrum_streaming_stop();
     update_modulation(modulation);
     on_show_options_modulation();
