@@ -175,7 +175,8 @@ void SoundBoardView::refresh_list() {
                 for (auto& c : entry_extension)
                     c = toupper(c);
 
-                if (entry_extension == ".WAV") {
+                if (entry_extension == ".WAV" && entry.path().string().find("shopping_cart") == std::string::npos) {
+                    /*                           ^ because the shopping cart lock app using the speaker to send the LF signal, it's meaningless to be here */
                     if (reader->open(wav_dir / entry.path())) {
                         if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                             // sounds[c].ms_duration = reader->ms_duration();

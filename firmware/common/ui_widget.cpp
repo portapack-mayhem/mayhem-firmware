@@ -2651,6 +2651,9 @@ bool Waveform::is_paused() const {
 
 void Waveform::set_paused(bool paused) {
     paused_ = paused;
+    if (!paused) {
+        if_ever_painted_pause = false;
+    }
     set_dirty();
 }
 
@@ -2722,26 +2725,28 @@ void Waveform::paint(Painter& painter) {
         // TODO: this is bad: that it still enter this func and still consume resources.
         //  even do a if(paused_) return; comsume too, but not that much.
 
-        // if (dirty()) {
-        // clear
-        // painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
+        if (dirty() && !if_ever_painted_pause) {
+            // clear
+            painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
 
-        // // draw "PAUSED" text
-        // const auto r = screen_rect();
-        // painter.draw_string(
-        //     {r.center().x() - 24, r.center().y() - 8},
-        //     style(),
-        //     "PAUSED");
+            // draw "WF HIDDEN" text
+            const auto r = screen_rect();
+            painter.draw_string(
+                {r.center().x() - 24, r.center().y() - 8},
+                style(),
+                "WF HIDDEN");
+            if_ever_painted_pause = true;
+        }
 
-        // if (show_cursors) {
-        //     for (uint32_t n = 0; n < 2; n++) {
-        //         painter.draw_vline(
-        //             Point(std::min(screen_rect().size().width(), (int)cursors[n]), screen_rect().location().y()),
-        //             screen_rect().size().height(),
-        //             cursor_colors[n]);
-        //     }
-        // }
-        // }
+        if (show_cursors) {
+            for (uint32_t n = 0; n < 2; n++) {
+                painter.draw_vline(
+                    Point(std::min(screen_rect().size().width(), (int)cursors[n]), screen_rect().location().y()),
+                    screen_rect().size().height(),
+                    cursor_colors[n]);
+            }
+        }
+
         return;
     }
 

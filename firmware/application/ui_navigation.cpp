@@ -126,6 +126,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
+    {nullptr, "Games", HOME, Color::purple(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     /* RX ********************************************************************/
@@ -158,13 +159,13 @@ const NavigationView::AppList NavigationView::appList = {
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
+    {"signalgen", "Signal Gen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     /* UTILITIES *************************************************************/
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
-    {"signalgen", "Signal Gen", UTILITIES, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
@@ -793,9 +794,9 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                           [&nav]() {
                               nav.display_modal(
                                   "Notice",
-                                  "External app directory empty;\n"
-                                  "see Mayhem wiki and copy apps\n"
-                                  "to " + apps_dir.string() + " folder of SD card.");
+                                  "Can't read external apps\n"
+                                  "Check SD card\n"
+                                  "Update SD card content\n");
                           }},
                          error_tile_pos);
     } else {
@@ -821,7 +822,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
 bool verify_sdcard_format() {
     FATFS* fs = &sd_card::fs;
     return (fs->fs_type == FS_FAT32 || fs->fs_type == FS_EXFAT) || !(sd_card::status() == sd_card::Status::Mounted);
-    /*                                   ^ to satisfy those users that not use an sd*/
+    /*                                                             ^ to satisfy those users that not use an sd*/
 }
 
 /* ReceiversMenuView *****************************************************/
@@ -868,6 +869,22 @@ void UtilitiesMenuView::on_populate() {
     add_external_items(nav_, app_location_t::UTILITIES, *this, return_icon ? 1 : 0);
 }
 
+/* GamesMenuView ********************************************************/
+
+GamesMenuView::GamesMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);
+}
+
+void GamesMenuView::on_populate() {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
+        add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
+    }
+    add_apps(nav_, *this, GAMES);
+    add_external_items(nav_, app_location_t::GAMES, *this, return_icon ? 1 : 0);
+}
+
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
@@ -891,7 +908,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 void SystemMenuView::on_populate() {
     if (!verify_sdcard_format()) {
         add_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
-                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32,\nformat to exFAT or FAT32 on PC");
+                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
                   }});
     }
     add_apps(nav_, *this, HOME);

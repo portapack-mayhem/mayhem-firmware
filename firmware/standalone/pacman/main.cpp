@@ -65,7 +65,7 @@ __attribute__((section(".standalone_application_information"), used)) standalone
         0x00,
     },
     /*.icon_color = 16 bit: 5R 6G 5B*/ 0x0000FFE0,
-    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.menu_location = */ app_location_t::GAMES,
 
     /*.initialize_app = */ initialize,
     /*.on_event = */ on_event,
