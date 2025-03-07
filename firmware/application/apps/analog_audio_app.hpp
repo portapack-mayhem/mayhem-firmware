@@ -292,11 +292,15 @@ class AnalogAudioView : public View {
         {0 * 8, 0 * 16},
         4,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
         {
             {" AM ", toUType(ReceiverModel::Mode::AMAudio)},
             {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
             {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
+<<<<<<< HEAD
             {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
             {"FMAM", toUType(ReceiverModel::Mode::WFMAudioAMApt)}  // Added to handle  SAT NOAA APT
         }};
@@ -307,6 +311,10 @@ class AnalogAudioView : public View {
          {"WFAX", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
          {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)}}};
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+            {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)}  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        }};
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
 
     AudioVolumeField field_volume{
         {screen_width - 2 * 8, 0 * 16}};

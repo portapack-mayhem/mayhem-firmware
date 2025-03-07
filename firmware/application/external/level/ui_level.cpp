@@ -284,6 +284,15 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             field_bw.set_by_value(0);
             field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_wfm_configuration(n); };
             break;
+        case AMFM_MODULATION:
+            audio_sampling_rate = audio::Rate::Hz_12000;
+            freqman_set_bandwidth_option(new_mod, field_bw);
+            baseband::run_image(portapack::spi_flash::image_tag_am_audio);
+            receiver_model.set_modulation(ReceiverModel::Mode::AMAudioFMApt);
+            receiver_model.set_amfm_configuration(5);  // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
+            field_bw.set_by_value(0);
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { (void)n; };
+            break;
         case SPEC_MODULATION:
             audio_sampling_rate = audio::Rate::Hz_24000;
             freqman_set_bandwidth_option(new_mod, field_bw);

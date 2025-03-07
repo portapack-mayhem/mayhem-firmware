@@ -66,12 +66,18 @@ buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
             break;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // return demod am as a default
         default:
             return demod_am.execute(channel, audio_buffer);
 =======
         default:
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+        // return demod am as a default
+        default:
+            return demod_am.execute(channel, audio_buffer);
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
             break;
     }
 }

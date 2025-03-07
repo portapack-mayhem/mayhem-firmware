@@ -45,8 +45,13 @@ using option_db_t = std::pair<std::string_view, int32_t>;
 using options_db_t = std::vector<option_db_t>;
 
 extern options_db_t freqman_modulations;
+<<<<<<< HEAD
 extern options_db_t freqman_bandwidths[6];
 // extern options_db_t freqman_steps; // now included via ui_receiver.hpp
+=======
+extern options_db_t freqman_bandwidths[5];
+extern options_db_t freqman_steps;
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
 extern options_db_t freqman_steps_short;
 
 options_t dboptions_to_options(const options_db_t& dboptions) {

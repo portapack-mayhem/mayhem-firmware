@@ -171,9 +171,13 @@ AMFMAptOptionsView::AMFMAptOptionsView(
     });
 
     freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    receiver_model.set_amfm_configuration(5);                       // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
     options_config.set_by_value(receiver_model.amfm_configuration());
+<<<<<<< HEAD
     receiver_model.set_amfm_configuration(5);  // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
 }
 
 /* SPECOptionsView *******************************************************/
@@ -252,12 +256,17 @@ AnalogAudioView::AnalogAudioView(
 
     // This app doesn't handle "Capture" mode.
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (modulation == ReceiverModel::Mode::Capture)
         modulation = ReceiverModel::Mode::SpectrumAnalysis;
 =======
     if (modulation > ReceiverModel::Mode::SpectrumAnalysis)  // This two should be together in the last index position : SpectrumAnalysis = 4, and  Capture = 5
         modulation = ReceiverModel::Mode::SpectrumAnalysis;  // For sw simplicity , Wefax_mode,  should NOT be added between.
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+    if (modulation == ReceiverModel::Mode::Capture)
+        modulation = ReceiverModel::Mode::SpectrumAnalysis;
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
 
     options_modulation.set_by_value(toUType(modulation));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {

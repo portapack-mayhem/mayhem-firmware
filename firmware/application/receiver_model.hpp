@@ -41,6 +41,7 @@ class ReceiverModel {
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
 <<<<<<< HEAD
+<<<<<<< HEAD
         SpectrumAnalysis = 3,
         AMAudioFMApt = 4,   // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
         WFMAudioAMApt = 5,  // Added to handle SAT Weather map , NOAA 137 Mhz.
@@ -50,6 +51,11 @@ class ReceiverModel {
         SpectrumAnalysis = 4,
         Capture = 5
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+        SpectrumAnalysis = 3,
+        AMAudioFMApt = 4,  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        Capture = 5,
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
     };
 
     struct settings_t {

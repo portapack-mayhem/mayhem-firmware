@@ -35,10 +35,14 @@ constexpr iir_biquad_df2_config_t half_band_lpf_config[5] = {
 
 // scipy.signal.iirfilter(ftype="ellip", N = 10, rp = 0.5, rs = 60.0, Wn = 0.99, btype = 'lowpass', output="sos")
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 6khz cutofff @fs:12Khz , used in AMFM demod for WFAX
 =======
 // 6khz cutofff @fs:12Khz , used in WFAX demod.
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+// 6khz cutofff @fs:12Khz , used in AMFM demod for WFAX
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
 constexpr iir_biquad_df2_config_t full_band_lpf_config[5] = {
     {0.88095275f, 1.76184993f, 0.88095275f, 1.0f, 1.89055677f, 0.89616378f},
     {1.0f, 1.99958798f, 1.0f, 1.0f, 1.9781807f, 0.98002549f},
@@ -48,10 +52,14 @@ constexpr iir_biquad_df2_config_t full_band_lpf_config[5] = {
 
 // scipy.signal.iirfilter(ftype="ellip", N = 10, rp = 0.5 , rs = 60.0, Wn = 0.25, btype = 'lowpass', output="sos")
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 1.5khz cutofff  @fs:12Khz, used in AMFM demod for WFAX
 =======
 // 1.5khz cutofff  @fs:12Khz, used in WFAX demod.
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+// 1.5khz cutofff  @fs:12Khz, used in AMFM demod for WFAX
+>>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
 constexpr iir_biquad_df2_config_t quarter_band_lpf_config[5] = {
     {0.00349312f, 0.00319397f, 0.00349312f, 1.0f, -1.53025211f, 0.6203438f},
     {1.0f, -0.83483341f, 1.0f, 1.0f, -1.47619047f, 0.77120659f},
