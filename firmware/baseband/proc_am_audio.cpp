@@ -65,7 +65,9 @@ buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
             return demod_ssb_fm.execute(channel, audio_buffer);  // Calling a derivative of demod_ssb (USB) , but with different FIR taps + FM audio tones demod.
             break;
 
+        // return demod am as a default
         default:
+            return demod_am.execute(channel, audio_buffer);
             break;
     }
 }
