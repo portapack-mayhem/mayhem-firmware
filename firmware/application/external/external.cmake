@@ -4,6 +4,10 @@ set(EXTCPPSRC
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
 
+	#tetris
+	external/breakout/main.cpp
+	external/breakout/ui_breakout.cpp
+
 	#afsk_rx
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -115,9 +119,61 @@ set(EXTCPPSRC
 	external/ookbrute/main.cpp
 	external/ookbrute/ui_ookbrute.cpp
 
+	#ook_editor
+	external/ook_editor/main.cpp
+	external/ook_editor/ui_ook_editor.cpp
+
 	#cvs_spam
 	external/cvs_spam/main.cpp
-	external/cvs_spam/cvs_spam.cpp		
+	external/cvs_spam/cvs_spam.cpp	
+	
+	#flippertx
+	external/flippertx/main.cpp
+	external/flippertx/ui_flippertx.cpp
+
+	#remote
+	external/remote/main.cpp
+	external/remote/ui_remote.cpp
+
+	#mcu_temperature
+	external/mcu_temperature/main.cpp
+	external/mcu_temperature/mcu_temperature.cpp
+	
+	#fmradio
+	external/fmradio/main.cpp
+	external/fmradio/ui_fmradio.cpp
+  
+	#tuner
+	external/tuner/main.cpp
+	external/tuner/ui_tuner.cpp
+  
+	#metronome
+	external/metronome/main.cpp
+	external/metronome/ui_metronome.cpp
+
+	#app_manager
+	external/app_manager/main.cpp
+	external/app_manager/ui_app_manager.cpp
+
+	#hopper
+	external/hopper/main.cpp
+	external/hopper/ui_hopper.cpp
+ 	
+	# whip calculator	
+	external/antenna_length/main.cpp
+	external/antenna_length/ui_whipcalc.cpp
+
+	# wav viewer
+	external/wav_view/main.cpp
+	external/wav_view/ui_view_wav.cpp
+
+	# wipe sdcard
+	external/sd_wipe/main.cpp
+	external/sd_wipe/ui_sd_wipe.cpp
+
+	# playlist editor
+	external/playlist_editor/main.cpp
+	external/playlist_editor/ui_playlist_editor.cpp
 )
 
 set(EXTAPPLIST
@@ -135,6 +191,7 @@ set(EXTAPPLIST
 	spainter
 	keyfob
 	tetris
+	breakout
 	extsensors
 	foxhunt_rx
 	audio_test
@@ -148,5 +205,18 @@ set(EXTAPPLIST
 	random_password
 	#acars_rx
 	ookbrute
+	ook_editor
 	shoppingcart_lock
+	flippertx
+	remote
+	mcu_temperature
+	fmradio
+	tuner
+	metronome
+	app_manager
+	hopper
+	antenna_length
+	view_wav
+	sd_wipe
+	playlist_editor
 )

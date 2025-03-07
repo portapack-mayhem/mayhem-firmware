@@ -23,6 +23,7 @@
 #define __JTAG_H__
 
 #include "jtag_target.hpp"
+#include "ch.h"
 
 #include <cstdint>
 #include <cstddef>
@@ -51,7 +52,16 @@ class JTAG {
     }
 
     void runtest_tck(const size_t count) {
-        target.delay(count);
+        for (size_t i = 0; i < count; i++) {
+            target.clock(0, 0);
+        }
+    }
+
+    void runtest_ms(const size_t count) {
+        auto starttime = chTimeNow();
+
+        while ((chTimeNow() - starttime) < (count + 1))
+            target.clock(0, 0);
     }
 
     uint32_t shift_ir(const size_t count, const uint32_t value) {

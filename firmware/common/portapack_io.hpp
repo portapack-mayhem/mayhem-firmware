@@ -162,6 +162,9 @@ class IO {
     }
 
     void lcd_write_pixel(ui::Color pixel) {
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
+        }
         lcd_write_data(pixel.v);
     }
 
@@ -170,12 +173,18 @@ class IO {
     }
 
     void lcd_write_pixels(ui::Color pixel, size_t n) {
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
+        }
         while (n--) {
             lcd_write_data(pixel.v);
         }
     }
 
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
+        if (dark_cover_enabled) {
+            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
+        }
         auto v = pixel.v;
         n >>= 3;
         while (n--) {
@@ -222,7 +231,13 @@ class IO {
 
         return switches_raw;
     }
+    bool inverted_enabled = false;
+    bool dark_cover_enabled = false;
+    uint8_t brightness = 0;
     bool get_is_inverted();
+    bool get_dark_cover();
+    uint8_t get_brightness();
+    void update_cached_values();
 
     uint32_t io_update(const TouchPinsConfig write_value);
 
@@ -404,6 +419,13 @@ class IO {
         const auto value_low = data_read();
         uint32_t original_value = (value_high << 8) | value_low;
 
+        if (inverted_enabled) return original_value;
+
+        if (dark_cover_enabled) {
+            // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,
+            // then shift to back side AKA UNDARKENED_PIXEL, to prevent read shifted darkern info
+            original_value = UNDARKENED_PIXEL(original_value, brightness);
+        }
         return original_value;
     }
 

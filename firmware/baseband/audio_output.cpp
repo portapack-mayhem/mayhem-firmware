@@ -72,7 +72,7 @@ void AudioOutput::on_block(const buffer_f32_t& audio) {
     if (do_processing) {
         const auto audio_present_now = squelch.execute(audio);
 
-        hpf.execute_in_place(audio);
+        hpf.execute_in_place(audio);  // IIRBiquadFilter name is "hpf", but we will call with "hpf-coef" for all  except WFAX with "lpf-coef".
         deemph.execute_in_place(audio);
 
         audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);

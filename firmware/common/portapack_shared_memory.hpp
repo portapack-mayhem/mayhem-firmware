@@ -35,6 +35,13 @@ struct JammerChannel {
     uint32_t duration;
 };
 
+struct HopperChannel {
+    bool enabled;
+    uint64_t center;
+    uint32_t width;
+    uint32_t duration;
+};
+
 struct ToneDef {
     uint32_t delta;
     uint32_t duration;
@@ -61,7 +68,10 @@ struct SharedMemory {
 
     union {
         ToneData tones_data;
-        JammerChannel jammer_channels[24];
+        struct {
+            JammerChannel jammer_channels[24];
+            HopperChannel hopper_channels[24];
+        } dummy_seperate;
         uint8_t data[512];
     } bb_data{{{{0, 0}}, 0, {0}}};
 

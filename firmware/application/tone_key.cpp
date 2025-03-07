@@ -96,7 +96,7 @@ float tone_key_frequency(tone_index index) {
 std::string tone_key_string(tone_index index) {
     if (index < 0 || (unsigned)index >= tone_keys.size())
         return std::string("");
-    return tone_keys[index].first;
+    return (std::string)tone_keys[index].first;
 }
 
 // Return string showing frequency only from specific table index

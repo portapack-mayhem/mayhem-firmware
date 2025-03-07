@@ -48,3 +48,6 @@ const std::filesystem::path splash_dir = u"SPLASH";
 const std::filesystem::path sstv_dir = u"SSTV";
 const std::filesystem::path wav_dir = u"WAV";
 const std::filesystem::path whipcalc_dir = u"WHIPCALC";
+const std::filesystem::path ook_editor_dir = u"OOKFILES";
+const std::filesystem::path hopper_dir = u"HOPPER";
+const std::filesystem::path subghz_dir = u"SUBGHZ";

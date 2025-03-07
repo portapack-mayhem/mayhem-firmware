@@ -135,6 +135,12 @@ typedef union {
 } dst_config_t;
 static_assert(sizeof(dst_config_t) == sizeof(uint32_t));
 
+enum fake_brightness_level_options {
+    BRIGHTNESS_50 = 1,
+    BRIGHTNESS_25 = 2,
+    BRIGHTNESS_12p5 = 3,  // 12p5 is 12.5
+};
+
 namespace cache {
 
 /* Set values in cache to sensible defaults. */
@@ -246,6 +252,8 @@ uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
 uint8_t encoder_rate_multiplier();
 void set_encoder_rate_multiplier(uint8_t v);
+bool encoder_dial_direction();
+void set_encoder_dial_direction(bool v);
 
 uint32_t config_mode_storage_direct();
 void set_config_mode_storage_direct(uint32_t v);
@@ -266,6 +274,15 @@ void set_dst_enabled(bool v);
 uint16_t clkout_freq();
 dst_config_t config_dst();
 void set_config_dst(dst_config_t v);
+
+/* Fake brightness */
+// switch (if do color change):
+bool apply_fake_brightness();
+void set_apply_fake_brightness(const bool v);
+// level (color change level):
+uint8_t fake_brightness_level();
+void set_fake_brightness_level(uint8_t v);
+void toggle_fake_brightness_level();
 
 /* Touchscreen threshold */
 uint16_t touchscreen_threshold();
@@ -319,6 +336,7 @@ bool ui_hide_camera();
 bool ui_hide_sleep();
 bool ui_hide_bias_tee();
 bool ui_hide_clock();
+bool ui_hide_fake_brightness();
 bool ui_hide_numeric_battery();
 bool ui_hide_battery_icon();
 bool ui_hide_sd_card();
@@ -332,6 +350,7 @@ void set_ui_hide_camera(bool v);
 void set_ui_hide_sleep(bool v);
 void set_ui_hide_bias_tee(bool v);
 void set_ui_hide_clock(bool v);
+void set_ui_hide_fake_brightness(bool v);
 void set_ui_hide_numeric_battery(bool v);
 void set_ui_hide_battery_icon(bool v);
 void set_ui_hide_sd_card(bool v);

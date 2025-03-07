@@ -59,6 +59,10 @@ using namespace sd_card;
 
 namespace ui {
 
+void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos);
+bool verify_sdcard_format();
+
 enum modal_t {
     INFO = 0,
     YESNO,
@@ -197,6 +201,7 @@ class SystemStatusView : public View {
     static constexpr auto default_title = "";
     bool batt_was_inited = false;  // if the battery was off on tart, but later turned on.
     bool batt_info_up = false;     // to prevent show multiple batt info dialog
+
     NavigationView& nav_;
 
     Rectangle backdrop{
@@ -279,6 +284,12 @@ class SystemStatusView : public View {
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
 
+    ImageButton button_fake_brightness{
+        {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_brightness,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background};
+
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
@@ -322,7 +333,7 @@ class InformationView : public View {
 
     Rectangle backdrop{
         {0, 0 * 16, 240, 16},
-        {33, 33, 33}};
+        Theme::getInstance()->bg_darker->background};
 
     Text version{
         {2, 0, 11 * 8, 16},
@@ -332,9 +343,9 @@ class InformationView : public View {
         {86, 0, 19 * 8, 16}};
 };
 
-class BMPView : public View {
+class SplashScreenView : public View {
    public:
-    BMPView(NavigationView& nav);
+    SplashScreenView(NavigationView& nav);
     void paint(Painter&) override;
     void focus() override;
 
@@ -372,6 +383,16 @@ class UtilitiesMenuView : public BtnGridView {
    public:
     UtilitiesMenuView(NavigationView& nav);
     std::string title() const override { return "Utilities"; };
+
+   private:
+    NavigationView& nav_;
+    void on_populate() override;
+};
+
+class GamesMenuView : public BtnGridView {
+   public:
+    GamesMenuView(NavigationView& nav);
+    std::string title() const override { return "Games"; };
 
    private:
     NavigationView& nav_;

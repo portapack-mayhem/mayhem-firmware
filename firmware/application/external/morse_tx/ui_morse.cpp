@@ -232,9 +232,8 @@ MorseView::MorseView(
             set_foxhunt(foxhunt_code);
     };
 
-    options_modulation.on_change = [this](size_t i, int32_t value) {
-        (void)i;  // avoid unused warning
-        mode_cw = (bool)value;
+    options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
+        mode_cw = (bool)v;
     };
 
     options_loop.on_change = [this](size_t i, uint32_t value) {

@@ -48,12 +48,21 @@ class CaptureAppView : public View {
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;
-    uint32_t previous_bandwidth{500000};
+
+    uint32_t capture_rate{500000};
+    uint32_t file_format{0};
+    bool trim{false};
 
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
-        "rx_capture", app_settings::Mode::RX};
+        "rx_capture",
+        app_settings::Mode::RX,
+        {
+            {"capture_rate"sv, &capture_rate},
+            {"file_format"sv, &file_format},
+            {"trim"sv, &trim},
+        }};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},

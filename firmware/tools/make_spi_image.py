@@ -161,3 +161,23 @@ write_image(spi_image, output_path)
 
 percent_remaining = round(1000 * pad_size / spi_size) / 10;
 print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "%)")
+
+
+# copy the fast flash script
+build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
+flash_py_path = os.path.join(build_dir, 'flash.py')
+
+if not os.path.exists(flash_py_path):
+
+    current_dir = os.path.dirname(__file__)
+    source_file = os.path.join(current_dir, 'fast_flash_pp_and_copy_apps.py')
+    
+    if not os.path.exists(build_dir):
+        os.makedirs(build_dir)
+        
+    # cp
+    import shutil
+    print(f"\ncopy {source_file} to {flash_py_path}\n")
+    shutil.copy2(source_file, flash_py_path)
+
+

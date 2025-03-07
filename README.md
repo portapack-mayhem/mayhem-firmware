@@ -1,25 +1,23 @@
+<!---
 > [!WARNING]
 > __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED VERSIONS, YOU'RE BEING SCAMMED.__ 
 >
-> The only legitimate link to our repositories is the [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware) organization on GitHub.
-
+> The only legitimate link to our repositories is the [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware) organization on GitHub.--->
 # PortaPack Mayhem
 
-[![Nightly Release](https://github.com/portapack-mayhem/mayhem-firmware/actions/workflows/create_nightly_release.yml/badge.svg?branch=next)](https://github.com/portapack-mayhem/mayhem-firmware/actions/workflows/create_nightly_release.yml) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![GitHub All Releases](https://img.shields.io/github/downloads/portapack-mayhem/mayhem-firmware/total)](https://github.com/portapack-mayhem/mayhem-firmware/releases) [![GitHub Releases](https://img.shields.io/github/downloads/portapack-mayhem/mayhem-firmware/latest/total)](https://github.com/portapack-mayhem/mayhem-firmware/releases/latest) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack) [![Discord Chat](https://dcbadge.vercel.app/api/server/tuwVMv3?style=flat)](https://discord.gg/tuwVMv3)
+[![Nightly Release](https://github.com/portapack-mayhem/mayhem-firmware/actions/workflows/create_nightly_release.yml/badge.svg?branch=next)](https://github.com/portapack-mayhem/mayhem-firmware/actions/workflows/create_nightly_release.yml) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![GitHub All Releases](https://img.shields.io/github/downloads/portapack-mayhem/mayhem-firmware/total)](https://github.com/portapack-mayhem/mayhem-firmware/releases) [![GitHub Releases](https://img.shields.io/github/downloads/portapack-mayhem/mayhem-firmware/latest/total)](https://github.com/portapack-mayhem/mayhem-firmware/releases/latest) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack) [![Discord Chat](https://img.shields.io/discord/719669764804444213?label=Discord)](https://discord.gg/tuwVMv3)
 
 This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). A fork is a derivate, in this case one that has extra features and fixes when compared to the older versions.
 
-[<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_front.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview) [<img src="https://raw.githubusercontent.com/wiki/portapack-mayhem/mayhem-firmware/img/hw_overview_h2_inside.png" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview#portapack-internals)
-
-*[PortaPack H2+HackRF+battery](https://grabify.link/BKKTWY) (clone) with a custom [3d printed case](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure)*
+[<img src="https://github.com/user-attachments/assets/dea337ab-fb64-4a2a-b419-69afd272e815" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/PortaPack-Versions#new-h4m-mayhem-edition) [<img src="https://camo.githubusercontent.com/5c1f1da0688240ac7b2ccca0c8dbfd1d73f2540741ad8b1828ba4d5ea68af248/68747470733a2f2f6769746875622d70726f64756374696f6e2d757365722d61737365742d3632313064662e73332e616d617a6f6e6177732e636f6d2f343339333937392f3239353533323731382d38653562363631632d663934362d346365652d386232642d3061363135663737313566342e706e67" height="400">](https://github.com/portapack-mayhem/mayhem-firmware/wiki/PortaPack-Versions#h2m-mayhem-edition)
 
 # What is this?
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-[<img alt="HackRF Portapack H4M - Getting Started Guide" src="https://img.youtube.com/vi/wzP0zWi85SI/maxresdefault.jpg" width="701">](https://grabify.link/F9MPOO)
+[<img alt="The Latest HackRF & Portapak Combo - H4M The Flipper Zero Killer?" src="https://img.youtube.com/vi/Ew2qDgm2hf0/maxresdefault.jpg" width="701">](https://share.hackrf.app/6HKX9A)
 
-[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">](https://grabify.link/X4D5TF) [<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="172">](https://grabify.link/9UZGEW) [<img alt="The new HackRF Portapack H4M" src="https://img.youtube.com/vi/onQRdCITmuk/maxresdefault.jpg" width="172">](https://grabify.link/0JUHZ6) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="172">](https://grabify.link/C0J6ZR)
+[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">](https://share.hackrf.app/X4D5TF) [<img alt="HackRF Portapack H4M - Getting Started Guide" src="https://img.youtube.com/vi/wzP0zWi85SI/maxresdefault.jpg" width="172">](https://share.hackrf.app/F9MPOO) [<img alt="The new HackRF Portapack H4M" src="https://img.youtube.com/vi/onQRdCITmuk/maxresdefault.jpg" width="172">](https://share.hackrf.app/0JUHZ6) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="172">](https://share.hackrf.app/C0J6ZR)
 
 # Frequently Asked Questions
 
@@ -27,11 +25,12 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## What to buy?
 
-:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous [PortaPack H4M Mayhem](https://grabify.link/VPMPSL), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://grabify.link/99SAMT). Join their giveaways on discord (check the badge on top).
+<!---not direct to h4m but to opensourcesdrlab https://share.hackrf.app/TUOLYI---> 
+:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous H4M [complete](https://share.hackrf.app/HR60Q4) or [upgrade](https://share.hackrf.app/FPLM1H), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://share.hackrf.app/99SAMT). Join their giveaways on discord (check the badge on top). _EU customers_ can purchase via [Lab401](https://share.hackrf.app/0CI2CR).
 
-:heavy_check_mark: A recommended one is this [PortaPack H2](https://grabify.link/BKKTWY), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
+:heavy_check_mark: A recommended one is this [PortaPack H2](https://www.ebay.com/itm/116382397447), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
 
-:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/CB3JC5), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
+:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://share.hackrf.app/9FJFJE), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 

@@ -24,15 +24,15 @@ namespace ui::external_app::ookbrute {
 
 #define OOK_SAMPLERATE 2280000U
 
-class OokBruteView : public View {
+class OOKBruteView : public View {
    public:
-    OokBruteView(NavigationView& nav);
-    ~OokBruteView();
+    OOKBruteView(NavigationView& nav);
+    ~OOKBruteView();
 
     void focus() override;
 
     std::string title() const override {
-        return "OokBrute";
+        return "OOKBrute";
     };
 
    private:

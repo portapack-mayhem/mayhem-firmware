@@ -91,8 +91,8 @@ cmake_objcopy = sys.argv[3]
 
 memory_location_header_position = 0
 externalAppEntry_header_position = 4
-m4_app_tag_header_position = 72
-m4_app_offset_header_position = 76
+m4_app_tag_header_position = 76
+m4_app_offset_header_position = 80
 
 for external_image_prefix in sys.argv[4:]:
 
@@ -123,7 +123,10 @@ for external_image_prefix in sys.argv[4:]:
 		write_image(external_application_image, "{}/{}.ppma".format(binary_dir, external_image_prefix))
 		continue
 
+	print(chunk_data)
 	chunk_tag = chunk_data.decode("utf-8")
+	print(chunk_tag)
+	print("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
 	m4_image = read_image("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
 	app_image_len = len(external_application_image)
 	external_application_image += m4_image

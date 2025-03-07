@@ -38,6 +38,7 @@ MEMORY
     ram_external_app_keyfob(rwx) : org = 0xADBD0000, len = 32k
     ram_external_app_tetris(rwx) : org = 0xADBE0000, len = 32k
     ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
+    ram_external_app_breakout(rwx) : org = 0xADE00000, len = 32k
     ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
     ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
     ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
@@ -51,6 +52,19 @@ MEMORY
     ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k    
     ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k 
     ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k 
+    ram_external_app_flippertx(rwx) : org = 0xADCD0000, len = 32k 
+    ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k 
+    ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k 
+    ram_external_app_mcu_temperature(rwx) : org = 0xADD00000, len = 32k 
+    ram_external_app_fmradio(rwx) : org = 0xADD10000, len = 32k 
+    ram_external_app_tuner(rwx) : org = 0xADD20000, len = 32k
+    ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k 
+    ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k 
+    ram_external_app_hopper(rwx) : org = 0xADD50000, len = 32k 
+    ram_external_app_antenna_length(rwx) : org = 0xADD60000, len = 32k 
+    ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k 
+    ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k 
+    ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k 
 }
 
 SECTIONS
@@ -139,6 +153,12 @@ SECTIONS
         *(*ui*external_app*tetris*);
     } > ram_external_app_tetris
 
+    .external_app_breakout : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_breakout.application_information));
+        *(*ui*external_app*breakout*);
+    } > ram_external_app_breakout    
+
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_extsensors.application_information));
@@ -224,4 +244,81 @@ SECTIONS
         *(*ui*external_app*ookbrute*);
     } > ram_external_app_ookbrute
 
+    .external_app_ook_editor : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ook_editor.application_information));
+        *(*ui*external_app*ook_editor*);
+    } > ram_external_app_ook_editor
+
+   .external_app_flippertx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_flippertx.application_information));
+        *(*ui*external_app*flippertx*);
+    } > ram_external_app_flippertx
+
+    .external_app_remote : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_remote.application_information));
+        *(*ui*external_app*remote*);
+    } > ram_external_app_remote
+
+    .external_app_mcu_temperature : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_mcu_temperature.application_information));
+        *(*ui*external_app*mcu_temperature*);
+    } > ram_external_app_mcu_temperature
+    
+    .external_app_fmradio : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_fmradio.application_information));
+        *(*ui*external_app*fmradio*);
+    } > ram_external_app_fmradio
+    
+    .external_app_tuner : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_tuner.application_information));
+        *(*ui*external_app*tuner*);
+    } > ram_external_app_tuner
+
+    .external_app_metronome : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_metronome.application_information));
+        *(*ui*external_app*metronome*);
+    } > ram_external_app_metronome
+
+    .external_app_app_manager : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_app_manager.application_information));
+        *(*ui*external_app*app_manager*);
+    } > ram_external_app_app_manager
+
+    .external_app_hopper : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_hopper.application_information));
+        *(*ui*external_app*hopper*);
+    } > ram_external_app_hopper
+
+    .external_app_antenna_length : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_antenna_length.application_information));
+        *(*ui*external_app*antenna_length*);
+    } > ram_external_app_antenna_length
+
+    .external_app_view_wav : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_view_wav.application_information));
+        *(*ui*external_app*view_wav*);
+    } > ram_external_app_view_wav
+
+    .external_app_sd_wipe : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_sd_wipe.application_information));
+        *(*ui*external_app*sd_wipe*);
+    } > ram_external_app_sd_wipe
+
+    .external_app_playlist_editor : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_playlist_editor.application_information));
+        *(*ui*external_app*playlist_editor*);
+    } > ram_external_app_playlist_editor
 }

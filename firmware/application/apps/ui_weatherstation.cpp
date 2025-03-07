@@ -25,6 +25,7 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "../baseband/fprotos/fprotogeneral.hpp"
 
@@ -34,6 +35,21 @@ using namespace ui;
 namespace pmem = portapack::persistent_memory;
 
 namespace ui {
+
+std::string WeatherRecentEntry::to_csv() {
+    std::string csv = ";";
+    csv += WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)sensorType);
+    csv += ";" + to_string_dec_uint(id) + ";";
+    csv += to_string_decimal(temp, 2) + ";";
+    csv += to_string_dec_uint(humidity) + ";";
+    csv += to_string_dec_uint(channel) + ";";
+    csv += to_string_dec_uint(battery_low);
+    return csv;
+}
+
+void WeatherLogger::log_data(WeatherRecentEntry& data) {
+    log_file.write_entry(data.to_csv());
+}
 
 void WeatherRecentEntryDetailView::update_data() {
     // set text elements
@@ -98,7 +114,10 @@ WeatherView::WeatherView(NavigationView& nav)
                   &field_frequency,
                   &options_temperature,
                   &button_clear_list,
+                  &check_log,
                   &recent_entries_view});
+
+    logger = std::make_unique<WeatherLogger>();
 
     baseband::run_image(portapack::spi_flash::image_tag_weather);
 
@@ -113,6 +132,15 @@ WeatherView::WeatherView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
     options_temperature.set_selected_index(weather_units_fahr, false);
+
+    check_log.on_select = [this](Checkbox&, bool v) {
+        logging = v;
+        if (logger && logging) {
+            logger->append(logs_dir.string() + "/WEATHERLOG_" + to_string_timestamp(rtc_time::now()) + ".CSV");
+            logger->write_header();
+        }
+    };
+    check_log.set_value(logging);
 
     const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
     recent_entries_view.set_parent_rect(content_rect);
@@ -140,6 +168,9 @@ void WeatherView::on_tick_second() {
 
 void WeatherView::on_data(const WeatherDataMessage* data) {
     WeatherRecentEntry key = process_data(data);
+    if (logger && logging) {
+        logger->log_data(key);
+    }
     // WeatherRecentEntry key{data->sensorType, data->id, data->temp, data->humidity, data->channel, data->battery_low};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {

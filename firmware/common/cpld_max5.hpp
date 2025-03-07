@@ -99,6 +99,7 @@ class CPLD {
     void AGM_enter_read_mode();
     uint32_t AGM_encode_address(uint32_t address, uint32_t trailer);
     uint32_t AGM_read(uint32_t address);
+    void AGM_write(const std::array<uint32_t, 1801>& block, uint32_t magic_value);
 
    private:
     using idcode_t = uint32_t;

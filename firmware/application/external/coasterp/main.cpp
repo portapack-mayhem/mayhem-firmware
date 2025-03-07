@@ -76,6 +76,7 @@ __attribute__((section(".external_app.app_coasterp.application_information"), us
     },
     /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::TX,
+    /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_fsktx */ {'P', 'F', 'S', 'K'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

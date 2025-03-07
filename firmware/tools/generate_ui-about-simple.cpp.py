@@ -26,6 +26,7 @@ import requests
 import sys
 
 cppheader = """#include "ui_about_simple.hpp"
+#include <string_view>
 
 #define ROLL_SPEED_FRAME_PER_LINE 60
 // cuz frame rate of pp screen is probably 60, scroll per sec
@@ -33,7 +34,7 @@ cppheader = """#include "ui_about_simple.hpp"
 namespace ui {
 
 // Information: a line starting with a '#' will be yellow coloured
-const std::"""
+constexpr std::"""
 
 cppfooter = """
 AboutView::AboutView(NavigationView& nav) {
@@ -52,18 +53,18 @@ AboutView::AboutView(NavigationView& nav) {
         button_ok.focus();
     };
 
-    for (const std::string& authors_line : authors_list) {
+    for (auto& authors_line : mayhem_information_list) {
         // if it's starting with #, it's a title and we have to substract the '#' and paint yellow
         if (authors_line.size() > 0) {
             if (authors_line[0] == '#') {
                 menu_view.add_item(
-                    {authors_line.substr(1, authors_line.size() - 1),
+                    {(std::string)authors_line.substr(1, authors_line.size() - 1),
                      ui::Theme::getInstance()->fg_yellow->foreground,
                      nullptr,
                      nullptr});
             } else {
                 menu_view.add_item(
-                    {authors_line,
+                    {(std::string)authors_line,
                      Theme::getInstance()->bg_darkest->foreground,
                      nullptr,
                      nullptr});
@@ -83,15 +84,13 @@ void AboutView::on_frame_sync() {
             menu_view.set_highlighted(current + 1);
         } else {
             menu_view.set_highlighted(0);
-            // ^ to go back to the REAL top instead of make the 2 at the top to make the title disappeares
-            menu_view.set_highlighted(2);  // the first line that has human name
         }
     }
 }
 
 void AboutView::focus() {
     button_ok.focus();
-    menu_view.set_highlighted(2);  // the first line that has human name
+    menu_view.set_highlighted(3);  // contributors block starting line
 }
 
 bool AboutView::on_touch(const TouchEvent) {
@@ -140,8 +139,12 @@ def get_contributors(url):
 
 def generate_content(projects):
     project_contrib = []
-    project_contrib.append("string authors_list[] = {\n")
-    project_contrib.append("    \"#   * List of contributors *  \",\n")
+    project_contrib.append("string_view mayhem_information_list[] = {\n")
+    project_contrib.append("    \"#****** Mayhem Community ******\",\n")
+    project_contrib.append("    \" \",\n")
+    project_contrib.append("    \"  https://discord.mayhem.app\",\n")
+    project_contrib.append("    \" \",\n")
+    project_contrib.append("    \"#**** List of contributors ****\",\n")
     for project in projects:
         project_contrib.append("    \" \",\n")
         project_contrib.append(f"    \"#{project[0]}:\",\n")
@@ -169,7 +172,7 @@ def pp_create_ui_about_simple_cpp(cpp_file, cppheader, cppcontent, cppfooter):
 
 def pp_change_ui_about_simple_cpp(cpp_file, cppcontent):
     content = []
-    content_pattern = re.compile(r"string authors_list\[\] = {\n(?:\s+(?:.*,\n)+\s+.*};\n)", re.MULTILINE)
+    content_pattern = re.compile(r"string_view mayhem_information_list\[\] = {\n(?:\s+(?:.*,\n)+\s+.*};\n)", re.MULTILINE)
 
     # Read original file
     with open(cpp_file, 'r') as file:

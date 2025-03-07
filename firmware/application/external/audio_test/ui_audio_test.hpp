@@ -25,7 +25,7 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 
-namespace ui {
+namespace ui::external_app::audio_test {
 
 class AudioTestView : public View {
    public:
@@ -96,6 +96,6 @@ class AudioTestView : public View {
         Theme::getInstance()->bg_dark->background};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::audio_test */
 
 #endif /*__UI_AUDIO_TEST_H__*/

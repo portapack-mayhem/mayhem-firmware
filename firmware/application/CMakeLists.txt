@@ -244,6 +244,7 @@ set(CPPSRC
 	hw/si5351.cpp
 	hw/spi_pp.cpp
 	hw/touch_adc.cpp
+	ook_file.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
 	ui_record_view.cpp
@@ -302,10 +303,8 @@ set(CPPSRC
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
-	apps/ui_sd_wipe.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
@@ -317,9 +316,7 @@ set(CPPSRC
 	apps/ui_text_editor.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
-	apps/ui_view_wav.cpp
 	apps/ui_weatherstation.cpp
-	apps/ui_whipcalc.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/bht.cpp
@@ -377,7 +374,7 @@ set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC
 	hw
 	apps
 	protocols
-	bitmaps
+	bmps
 )
 
 #

@@ -39,6 +39,14 @@ using namespace portapack;
 using namespace modems;
 namespace fs = std::filesystem;
 
+#define BLE_RX_NO_ERROR 0
+#define BLE_RX_LIST_FILENAME_EMPTY_ERROR 1
+#define BLE_RX_ENTRY_FILENAME_EMPTY_ERROR 2
+#define BLE_RX_LIST_SAVE_ERROR 3
+#define BLE_RX_ENTRY_SAVE_ERROR 4
+
+static uint8_t ble_rx_error = BLE_RX_NO_ERROR;
+
 void BLELogger::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
 }
@@ -202,19 +210,23 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 }
 
 void BleRecentEntryDetailView::on_save_file(const std::string value, BLETxPacket packetToSave) {
-    ensure_directory(packet_save_path);
-    auto folder = packet_save_path.parent_path();
-    auto ext = packet_save_path.extension();
-    auto new_path = folder / value + ext;
-
-    saveFile(new_path, packetToSave);
+    if (value.length() > 0) {
+        ensure_directory(packet_save_path);
+        auto folder = packet_save_path.parent_path();
+        auto ext = packet_save_path.extension();
+        auto new_path = folder / value + ext;
+        ble_rx_error = saveFile(new_path, packetToSave);
+    } else {
+        nav_.pop();
+        ble_rx_error = BLE_RX_ENTRY_FILENAME_EMPTY_ERROR;
+    }
 }
 
 bool BleRecentEntryDetailView::saveFile(const std::filesystem::path& path, BLETxPacket packetToSave) {
     File f;
     auto error = f.create(path);
     if (error)
-        return false;
+        return BLE_RX_ENTRY_SAVE_ERROR;
 
     std::string macAddressStr = packetToSave.macAddress;
     std::string advertisementDataStr = packetToSave.advertisementData;
@@ -224,7 +236,7 @@ bool BleRecentEntryDetailView::saveFile(const std::filesystem::path& path, BLETx
 
     f.write(packetString.c_str(), packetString.length());
 
-    return true;
+    return BLE_RX_NO_ERROR;
 }
 
 void BleRecentEntryDetailView::update_data() {
@@ -568,11 +580,14 @@ std::string BLERxView::build_line_str(BleRecentEntry entry) {
 }
 
 void BLERxView::on_save_file(const std::string value) {
-    auto folder = packet_save_path.parent_path();
-    auto ext = packet_save_path.extension();
-    auto new_path = folder / value + ext;
-
-    saveFile(new_path);
+    if (value.length() > 0) {
+        auto folder = packet_save_path.parent_path();
+        auto ext = packet_save_path.extension();
+        auto new_path = folder / value + ext;
+        ble_rx_error = saveFile(new_path);
+    } else {
+        ble_rx_error = BLE_RX_LIST_FILENAME_EMPTY_ERROR;
+    }
 }
 
 bool BLERxView::saveFile(const std::filesystem::path& path) {
@@ -584,7 +599,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
     auto error = src->open(path, false, true);
 
     if (error) {
-        return false;
+        return BLE_RX_LIST_SAVE_ERROR;
     }
 
     for (const auto& entry : recent) {
@@ -615,7 +630,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         auto error = dst->open(tempFilePath, false, true);
 
         if (error) {
-            return false;
+            return BLE_RX_LIST_SAVE_ERROR;
         }
 
         dst->write_line(headerStr.c_str());
@@ -695,7 +710,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 
     tempList.clear();
 
-    return true;
+    return BLE_RX_NO_ERROR;
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
@@ -830,6 +845,18 @@ void BLERxView::on_timer() {
             field_frequency.set_value(get_freq_by_channel_number(randomChannel));
             baseband::set_btlerx(randomChannel);
         }
+    }
+    if (ble_rx_error != BLE_RX_NO_ERROR) {
+        if (ble_rx_error == BLE_RX_LIST_FILENAME_EMPTY_ERROR) {
+            nav_.display_modal("Error", "List filename is empty !");
+        } else if (ble_rx_error == BLE_RX_ENTRY_FILENAME_EMPTY_ERROR) {
+            nav_.display_modal("Error", "Entry filename is empty !");
+        } else if (ble_rx_error == BLE_RX_LIST_SAVE_ERROR) {
+            nav_.display_modal("Error", "Couldn't save list !");
+        } else if (ble_rx_error == BLE_RX_ENTRY_SAVE_ERROR) {
+            nav_.display_modal("Error", "Couldn't save entry !");
+        }
+        ble_rx_error = BLE_RX_NO_ERROR;
     }
 }
 

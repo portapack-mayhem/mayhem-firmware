@@ -60,7 +60,13 @@ enum LangConsts {
     LANG_SHOWQR,
     LANG_SAVE,
     LANG_LOCK,
-    LANG_UNLOCK
+    LANG_UNLOCK,
+    LANG_BROWSE,
+    LANG_SET,
+    LANG_OPEN_FILE,
+    LANG_SAVE_FILE,
+    LANG_SEND,
+    LANG_RECV
 };
 
 class LanguageHelper {

@@ -66,12 +66,12 @@ static void send_message(const Message* const message) {
 
 void AMConfig::apply() const {
     const AMConfigureMessage message{
-        taps_6k0_decim_0,  // common FIR filter taps pre-decim_0 to all 5 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW)
-        taps_6k0_decim_1,  // common FIR filter taps pre-decim_1 to all 5 x AM mod. types.
-        decim_2,           // var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k all rest AM modes)
-        channel,           // var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW)
-        modulation,        // var parameter .
-        audio_12k_hpf_300hz_config};
+        taps_6k0_decim_0,              // common FIR filter taps pre-decim_0 to all 6 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW, WFAX)
+        taps_6k0_decim_1,              // common FIR filter taps pre-decim_1 to all 6 x AM mod. types. (")
+        decim_2,                       // var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k and all rest AM modes)
+        channel,                       // var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW,WFAX)
+        modulation,                    // var parameter . enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
+        audio_12k_iir_filter_config};  // var parameter , 300 Hz hpf all except Wefax (1.500Hz lpf)
     send_message(&message);
     audio::set_rate(audio::Rate::Hz_12000);
 }

@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace tonekey {
@@ -35,7 +36,7 @@ namespace tonekey {
 #define F2Ix100(x) (int32_t)(x * 100.0 + 0.5)  // add 0.5f to round vs truncate during FP->int conversion
 
 using tone_index = int32_t;
-using tone_key_t = std::vector<std::pair<std::string, uint32_t>>;
+using tone_key_t = std::vector<std::pair<std::string_view, uint32_t>>;
 
 extern const tone_key_t tone_keys;
 
