@@ -4,9 +4,13 @@ set(EXTCPPSRC
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
 
-	#tetris
+	#breakout
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
+
+	#snake
+	external/snake/main.cpp
+	external/snake/ui_snake.cpp
 
 	#afsk_rx
 	external/afsk_rx/main.cpp
@@ -192,6 +196,7 @@ set(EXTAPPLIST
 	keyfob
 	tetris
 	breakout
+	snake
 	extsensors
 	foxhunt_rx
 	audio_test
