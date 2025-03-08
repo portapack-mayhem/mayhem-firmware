@@ -9,17 +9,25 @@
 #ifndef __UI_SNAKE_H__
 #define __UI_SNAKE_H__
 
+<<<<<<< HEAD
 #include "ui.hpp"
+=======
+>>>>>>> eb50b790 (Snake (#2549))
 #include "ui_navigation.hpp"
 #include "event_m0.hpp"
 #include "message.hpp"
 #include "irq_controls.hpp"
 #include "random.hpp"
 #include "lpc43xx_cpp.hpp"
+<<<<<<< HEAD
+=======
+#include "limits.h"
+>>>>>>> eb50b790 (Snake (#2549))
 #include "ui_widget.hpp"
 
 namespace ui::external_app::snake {
 
+<<<<<<< HEAD
 enum {
     White,
     Blue,
@@ -46,18 +54,26 @@ enum {
 #define COLOR_FOOD Red
 #define COLOR_BORDER White
 
+=======
+>>>>>>> eb50b790 (Snake (#2549))
 class SnakeView : public View {
    public:
     SnakeView(NavigationView& nav);
     void on_show() override;
+<<<<<<< HEAD
 
     std::string title() const override { return "Snake"; }
 
     void focus() override { dummy.focus(); }
+=======
+    std::string title() const override { return "Snake"; };
+    void focus() override { dummy.focus(); };
+>>>>>>> eb50b790 (Snake (#2549))
     void paint(Painter& painter) override;
     void frame_sync();
     bool on_key(KeyEvent key) override;
 
+<<<<<<< HEAD
     void cls();
     void background(int color);
     void fillrect(int x1, int y1, int x2, int y2, int color);
@@ -121,6 +137,14 @@ class SnakeView : public View {
         {screen_width, 0, 0, 0},
         ""};
 
+=======
+   private:
+    bool initialized = false;
+    NavigationView& nav_;
+    Button dummy{
+        {240, 0, 0, 0},
+        ""};
+>>>>>>> eb50b790 (Snake (#2549))
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
@@ -130,4 +154,8 @@ class SnakeView : public View {
 
 }  // namespace ui::external_app::snake
 
+<<<<<<< HEAD
 #endif /* __UI_SNAKE_H__ */
+=======
+#endif /*__UI_SNAKE_H__*/
+>>>>>>> eb50b790 (Snake (#2549))

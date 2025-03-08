@@ -54,7 +54,6 @@ MEMORY
     ram_external_app_keyfob(rwx) : org = 0xADBD0000, len = 32k
     ram_external_app_tetris(rwx) : org = 0xADBE0000, len = 32k
     ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
-    ram_external_app_breakout(rwx) : org = 0xADE00000, len = 32k
     ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
     ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
@@ -98,7 +97,12 @@ MEMORY
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
 =======
     ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k 
+<<<<<<< HEAD
 >>>>>>> 73f7f847 (Playlist editor (#2506))
+=======
+    ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
+    ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k    
+>>>>>>> eb50b790 (Snake (#2549))
 }
 
 SECTIONS
@@ -192,6 +196,12 @@ SECTIONS
         KEEP(*(.external_app.app_breakout.application_information));
         *(*ui*external_app*breakout*);
     } > ram_external_app_breakout    
+
+    .external_app_snake : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_snake.application_information));
+        *(*ui*external_app*snake*);
+    } > ram_external_app_snake    
 
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {

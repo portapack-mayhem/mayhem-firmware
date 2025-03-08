@@ -6,11 +6,18 @@ set(EXTCPPSRC
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
 
-	#tetris
+	#breakout
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
 
+<<<<<<< HEAD
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+	#snake
+	external/snake/main.cpp
+	external/snake/ui_snake.cpp
+
+>>>>>>> eb50b790 (Snake (#2549))
 	#afsk_rx
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -209,6 +216,7 @@ set(EXTAPPLIST
 	keyfob
 	tetris
 	breakout
+	snake
 	extsensors
 	foxhunt_rx
 	audio_test

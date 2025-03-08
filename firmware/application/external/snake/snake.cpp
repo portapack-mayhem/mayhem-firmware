@@ -6,59 +6,69 @@
  * ------------------------------------------------------------
  */
 
-#include "ui_snake.hpp"
+#include "mbed.h"
+#include "SPI_TFT_ILI9341.h"
+#include "Arial12x12.h"
+#include "ui.hpp"
+#include "random.hpp"
 
-namespace ui::external_app::snake {
+extern int game_state;
 
-<<<<<<< HEAD
-void SnakeView::cls() {
-    painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
-}
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+#define SNAKE_SIZE 10
+#define INFO_BAR_HEIGHT 25
+#define GAME_AREA_TOP (INFO_BAR_HEIGHT + 1)
+#define GAME_AREA_HEIGHT (SCREEN_HEIGHT - INFO_BAR_HEIGHT - 2)
+#define GRID_WIDTH ((SCREEN_WIDTH - 2) / SNAKE_SIZE)
+#define GRID_HEIGHT (GAME_AREA_HEIGHT / SNAKE_SIZE)
+#define STATE_MENU 0
+#define STATE_PLAYING 1
+#define STATE_GAME_OVER 2
 
-void SnakeView::background(int color) {
-    (void)color;
-}
+#define COLOR_BACKGROUND Black
+#define COLOR_SNAKE Green
+#define COLOR_FOOD Red
+#define COLOR_BORDER White
 
-void SnakeView::fillrect(int x1, int y1, int x2, int y2, int color) {
-    painter.fill_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
-}
+Ticker game_timer;
 
-void SnakeView::rect(int x1, int y1, int x2, int y2, int color) {
-    painter.draw_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
-}
+int snake_x[GRID_WIDTH * GRID_HEIGHT];
+int snake_y[GRID_WIDTH * GRID_HEIGHT];
+int snake_length = 1;
+int snake_dx = 1, snake_dy = 0;
+int food_x, food_y;
+int score = 0;
+int game_state = STATE_MENU;
+bool initialized = false;
 
-void SnakeView::check_game_timer() {
-    if (game_update_callback) {
-        if (++game_update_counter >= game_update_timeout) {
-            game_update_counter = 0;
-            game_timer_check();
-        }
-    }
-}
+extern ui::Painter painter;
 
-void SnakeView::attach(double delay_sec) {
-    game_update_callback = true;
-    game_update_timeout = delay_sec * 60;
-}
+void init_game();
+void update_game();
+void draw_screen();
+void draw_snake();
+void draw_full_snake();
+void erase_tail(int x, int y);
+void draw_food();
+void erase_food();
+void draw_score();
+void draw_borders();
+void spawn_food();
+bool check_collision();
+void show_menu();
+void show_game_over();
 
-void SnakeView::detach() {
-    game_update_callback = false;
-}
-
-void SnakeView::game_timer_check() {
+void game_timer_check() {
     if (game_state == STATE_PLAYING) {
         update_game();
     }
 }
 
-void SnakeView::init_game() {
-    SCREEN_WIDTH = screen_width;
-    SCREEN_HEIGHT = screen_height;
-    GAME_AREA_HEIGHT = (SCREEN_HEIGHT - INFO_BAR_HEIGHT - 2);
-    GRID_WIDTH = ((SCREEN_WIDTH - 2) / SNAKE_SIZE);
-    GRID_HEIGHT = (GAME_AREA_HEIGHT / SNAKE_SIZE);
-    snake_x.resize(GRID_WIDTH * GRID_HEIGHT);
-    snake_y.resize(GRID_WIDTH * GRID_HEIGHT);
+void init_game() {
+    claim(stdout);
+    set_orientation(2);
+    set_font((unsigned char*)Arial12x12);
     snake_x[0] = GRID_WIDTH / 2;
     snake_y[0] = GRID_HEIGHT / 2;
     snake_length = 1;
@@ -73,7 +83,7 @@ void SnakeView::init_game() {
     }
 }
 
-void SnakeView::spawn_food() {
+void spawn_food() {
     bool valid;
     do {
         food_x = rand() % GRID_WIDTH;
@@ -88,7 +98,7 @@ void SnakeView::spawn_food() {
     } while (!valid);
 }
 
-void SnakeView::update_game() {
+void update_game() {
     int new_x = snake_x[0] + snake_dx;
     int new_y = snake_y[0] + snake_dy;
     bool ate_food = (new_x == food_x && new_y == food_y);
@@ -126,7 +136,7 @@ void SnakeView::update_game() {
     }
 }
 
-bool SnakeView::check_collision() {
+bool check_collision() {
     if (snake_x[0] < 0 || snake_x[0] >= GRID_WIDTH || snake_y[0] < 0 || snake_y[0] >= GRID_HEIGHT) {
         return true;
     }
@@ -138,7 +148,7 @@ bool SnakeView::check_collision() {
     return false;
 }
 
-void SnakeView::draw_screen() {
+void draw_screen() {
     cls();
     background(COLOR_BACKGROUND);
     draw_borders();
@@ -147,44 +157,44 @@ void SnakeView::draw_screen() {
     draw_score();
 }
 
-void SnakeView::draw_snake() {
+void draw_snake() {
     fillrect(1 + snake_x[0] * SNAKE_SIZE, GAME_AREA_TOP + snake_y[0] * SNAKE_SIZE,
              1 + snake_x[0] * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + snake_y[0] * SNAKE_SIZE + SNAKE_SIZE, COLOR_SNAKE);
 }
 
-void SnakeView::draw_full_snake() {
+void draw_full_snake() {
     for (int i = 0; i < snake_length; i++) {
         fillrect(1 + snake_x[i] * SNAKE_SIZE, GAME_AREA_TOP + snake_y[i] * SNAKE_SIZE,
                  1 + snake_x[i] * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + snake_y[i] * SNAKE_SIZE + SNAKE_SIZE, COLOR_SNAKE);
     }
 }
 
-void SnakeView::erase_tail(int x, int y) {
+void erase_tail(int x, int y) {
     fillrect(1 + x * SNAKE_SIZE, GAME_AREA_TOP + y * SNAKE_SIZE,
              1 + x * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + y * SNAKE_SIZE + SNAKE_SIZE, COLOR_BACKGROUND);
 }
 
-void SnakeView::draw_food() {
+void draw_food() {
     fillrect(1 + food_x * SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE,
              1 + food_x * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE + SNAKE_SIZE, COLOR_FOOD);
 }
 
-void SnakeView::erase_food() {
+void erase_food() {
     fillrect(1 + food_x * SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE,
              1 + food_x * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE + SNAKE_SIZE, COLOR_BACKGROUND);
 }
 
-void SnakeView::draw_score() {
+void draw_score() {
     auto style = *ui::Theme::getInstance()->fg_blue;
     painter.draw_string({5, 5}, style, "Score: " + std::to_string(score));
 }
 
-void SnakeView::draw_borders() {
+void draw_borders() {
     rect(0, GAME_AREA_TOP - 1, SCREEN_WIDTH, GAME_AREA_TOP, COLOR_BORDER);
     rect(0, GAME_AREA_TOP, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BORDER);
 }
 
-void SnakeView::show_menu() {
+void show_menu() {
     cls();
     background(COLOR_BACKGROUND);
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
@@ -197,7 +207,7 @@ void SnakeView::show_menu() {
     painter.draw_string({15, 240}, style_green, "** PRESS SELECT TO START **");
 }
 
-void SnakeView::show_game_over() {
+void show_game_over() {
     cls();
     background(COLOR_BACKGROUND);
     auto style_red = *ui::Theme::getInstance()->fg_red;
@@ -208,68 +218,17 @@ void SnakeView::show_game_over() {
     painter.draw_string({20, 220}, style_green, "PRESS SELECT TO RESTART");
     wait(1);
 }
-=======
-#include "snake.cpp"
->>>>>>> eb50b790 (Snake (#2549))
 
-SnakeView::SnakeView(NavigationView& nav)
-    : nav_{nav} {
-    add_children({&dummy});
-<<<<<<< HEAD
-    attach(1.0 / 5.0);
-=======
-    game_timer.attach(&game_timer_check, 1.0 / 5.0);
->>>>>>> eb50b790 (Snake (#2549))
-}
-
-void SnakeView::on_show() {
-}
-
-void SnakeView::paint(Painter& painter) {
-    (void)painter;
+int main() {
     if (!initialized) {
         initialized = true;
-        std::srand(LPC_RTC->CTIME0);
+        game_timer.attach(&game_timer_check, 1.0 / 5.0);
         init_game();
     }
-}
-
-void SnakeView::frame_sync() {
-    check_game_timer();
-    set_dirty();
-}
-
-bool SnakeView::on_key(const KeyEvent key) {
-    if (key == KeyEvent::Select) {
-        if (game_state == STATE_MENU || game_state == STATE_GAME_OVER) {
+    while (1) {
+        if (but_SELECT && (game_state == STATE_MENU || game_state == STATE_GAME_OVER)) {
             game_state = STATE_PLAYING;
             init_game();
         }
-    } else if (game_state == STATE_PLAYING) {
-        if (key == KeyEvent::Left) {
-            if (snake_dx == 0) {
-                snake_dx = -1;
-                snake_dy = 0;
-            }
-        } else if (key == KeyEvent::Right) {
-            if (snake_dx == 0) {
-                snake_dx = 1;
-                snake_dy = 0;
-            }
-        } else if (key == KeyEvent::Up) {
-            if (snake_dy == 0) {
-                snake_dx = 0;
-                snake_dy = -1;
-            }
-        } else if (key == KeyEvent::Down) {
-            if (snake_dy == 0) {
-                snake_dx = 0;
-                snake_dy = 1;
-            }
-        }
     }
-    set_dirty();
-    return true;
 }
-
-}  // namespace ui::external_app::snake

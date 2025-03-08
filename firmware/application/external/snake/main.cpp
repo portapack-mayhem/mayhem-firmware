@@ -28,6 +28,7 @@ __attribute__((section(".external_app.app_snake.application_information"), used)
     {
         0x00,
         0x00,
+<<<<<<< HEAD
         0x00,
         0x00,
         0xE0,
@@ -58,6 +59,37 @@ __attribute__((section(".external_app.app_snake.application_information"), used)
         0x80,
         0x80,
         0x7F,
+=======
+        0x7E,
+        0x42,
+        0x42,
+        0x42,
+        0x7E,
+        0x00,
+        0x00,
+        0x7E,
+        0x42,
+        0x42,
+        0x42,
+        0x7E,
+        0x00,
+        0x00,
+        0x00,
+        0x7E,
+        0x42,
+        0x42,
+        0x42,
+        0x7E,
+        0x00,
+        0x00,
+        0x7E,
+        0x42,
+        0x42,
+        0x42,
+        0x7E,
+        0x00,
+        0x00,
+>>>>>>> eb50b790 (Snake (#2549))
     },
     ui::Color::green().v,
     app_location_t::GAMES,
@@ -65,4 +97,8 @@ __attribute__((section(".external_app.app_snake.application_information"), used)
     {0, 0, 0, 0},
     0x00000000,
 };
+<<<<<<< HEAD
 }  // namespace ui::external_app::snake
+=======
+}
+>>>>>>> eb50b790 (Snake (#2549))
