@@ -64,8 +64,8 @@ MEMORY
     ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k 
     ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k 
     ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k 
-    ram_external_app_breakout(rwx) : org = 0xADE00000, len = 32k
-    ram_external_app_snake(rwx) : org = 0xADE10000, len = 32k    
+    ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
+    ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k    
 }
 
 SECTIONS
