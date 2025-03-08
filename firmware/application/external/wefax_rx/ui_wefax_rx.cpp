@@ -41,7 +41,7 @@ void WeFaxRxView::focus() {
 WeFaxRxView::WeFaxRxView(NavigationView& nav)
     : nav_{nav} {
     // baseband::run_image(portapack::spi_flash::image_tag_wefaxrx);
-    // baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
                   &field_rf_amp,
@@ -70,10 +70,10 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     options_lpm.set_selected_index(lpm_index, false);
     options_ioc.set_selected_index(ioc_index, true);
 
-    field_frequency.set_step(10);
+    field_frequency.set_step(100);
     // audio::set_rate(audio::Rate::Hz_24000);
-    // audio::output::start();
-    // receiver_model.enable();
+    audio::output::start();
+    receiver_model.enable();
     txt_status.set("Waiting for signal.");
     button_test.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".wav");
@@ -111,13 +111,13 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
 }
 
 WeFaxRxView::~WeFaxRxView() {
-    // receiver_model.disable();
-    // baseband::shutdown();
-    // audio::output::stop();
+    receiver_model.disable();
+    baseband::shutdown();
+    audio::output::stop();
 }
 
 void WeFaxRxView::on_settings_changed() {
-    // baseband::set_wefax_config(options_lpm.selected_index_value(), options_ioc.selected_index_value());
+    baseband::set_wefax_config(options_lpm.selected_index_value(), options_ioc.selected_index_value());
 }
 
 void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {

@@ -1455,16 +1455,16 @@ class WeFaxRxConfigureMessage : public Message {
 
 class WeFaxRxStatusDataMessage : public Message {
    public:
-    constexpr WeFaxRxStatusDataMessage(uint8_t state, int32_t freq)
+    constexpr WeFaxRxStatusDataMessage(uint8_t state, float freq)
         : Message{ID::WeFaxRxStatusData},
           state{state},
           freq{freq} {
     }
     uint8_t state = 0;
-    int32_t freq = 0;
-    int32_t freqmin = 0;
-    int32_t freqmax = 0;
-    int32_t freqavg = 0;
+    float freq = 0;
+    float freqmin = 0;
+    float freqmax = 0;
+    float freqavg = 0;
 };
 
 class WeFaxRxImageDataMessage : public Message {

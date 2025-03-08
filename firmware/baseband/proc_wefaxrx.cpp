@@ -47,7 +47,7 @@ void WeFaxRx::update_params() {
     // 840 px / line with line start
     time_per_pixel = 60000000 / lpm * 840;                              // micros (595,2380952 at 120 lpm)
     pxRem = (double)baseband_fs / 8.0 / 8.0 / 4.0 / ((int)lpm * 14.0);  // 840/60  = 228.57 sample / px
-    samples_per_pixel = pxRem;
+    samples_per_pixel = 4;                                              // pxRem;
     pxRem -= samples_per_pixel;
     pxRoll = 0;
 }
@@ -64,45 +64,33 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
     const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
 
     feed_channel_stats(channel_out);
-    auto audio = demodulate(channel_out);  // now 3 AM demodulation types : demod_am, demod_ssb, demod_ssb_fm (for Wefax)
+    auto audio = demodulate(channel_out);
+    // todo process, todo avg the values
+
+    for (size_t c = 0; c < audio.count; c++) {
+        cnt++;
+        // if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
+        cnt = 0;
+        if (pxRoll >= 1) pxRoll -= 1;
+        pxRoll += pxRem;
+        image_message.cnt++;  // saves the pixel
+        status_message.freq = audio.p[c];
+        if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
+        if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
+        if (image_message.cnt < 400) {
+            image_message.image[image_message.cnt] = audio.p[c] < 1 ? 127 : 255;  // todo remove limit, send in multiple
+        }
+        if (image_message.cnt >= 399) {
+            shared_memory.application_queue.push(image_message);
+            image_message.cnt = 0;
+            shared_memory.application_queue.push(status_message);
+            status_message.freqmin = INT32_MAX;
+            status_message.freqmax = INT32_MIN;
+        }
+        //}
+    }
     audio_compressor.execute_in_place(audio);
     audio_output.write(audio);
-    // todo process
-
-    /*
-    for (size_t c = 0; c < decim_2_out.count; c++) {
-        cnt++;
-        double freqq = calculateFrequencyDeviation(decim_2_out.p[c], iqlast);
-        if (status_message.freqmin > freqq) status_message.freqmin = freqq;
-        if (status_message.freqmax < freqq) status_message.freqmax = freqq;
-        status_message.freqavg += (freqq - status_message.freqavg) / cnt;
-        iqlast = decim_2_out.p[c];
-        if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
-            cnt = 0;
-            if (pxRoll >= 1) pxRoll -= 1;
-            pxRoll += pxRem;
-            status_message.freq = freqq;
-            image_message.cnt++;  // saves the pixel
-            if (image_message.cnt < 400) {
-                image_message.image[image_message.cnt] = status_message.freqavg < 2500 ? 0 : 255;  // todo remove limit, send in multiple
-                /*if (status_message.freqavg >= 3000)
-                    image_message.image[image_message.cnt] = 255;
-                else if (status_message.freqavg <= 2200)
-                    image_message.image[image_message.cnt] = 0;
-                else {
-                    image_message.image[image_message.cnt] = 256 - ((3000 - status_message.freqavg) / 3.1);
-                }* /
-            }
-            if (image_message.cnt >= 399) {
-                shared_memory.application_queue.push(image_message);
-                image_message.cnt = 0;
-                shared_memory.application_queue.push(status_message);
-                status_message.freqmin = INT32_MAX;
-                status_message.freqmax = INT32_MIN;
-            }
-            status_message.freqavg = 0;
-        }
-    } */
 }
 
 buffer_f32_t WeFaxRx::demodulate(const buffer_c16_t& channel) {
