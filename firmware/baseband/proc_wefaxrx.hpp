@@ -74,6 +74,7 @@ class WeFaxRx : public BasebandProcessor {
     const buffer_f32_t audio_buffer{
         audio.data(),
         audio.size()};
+    size_t channel_filter_input_fs = 0;
 
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};

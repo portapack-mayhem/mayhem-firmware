@@ -45,10 +45,11 @@ void WeFaxRx::update_params() {
             break;
     }
     // 840 px / line with line start
-    time_per_pixel = 60000000 / lpm * 840;                              // micros (595,2380952 at 120 lpm)
-    pxRem = (double)baseband_fs / 8.0 / 8.0 / 4.0 / ((int)lpm * 14.0);  // 840/60  = 228.57 sample / px
-    samples_per_pixel = 4;                                              // pxRem;
+    time_per_pixel = 60000000 / lpm * 840;                // micros (595,2380952 at 120 lpm)
+    pxRem = (double)channel_filter_input_fs / (2 * 840);  // 840/60  = 228.57 sample / px
+    samples_per_pixel = 7;                                //(double)channel_filter_input_fs / (2 * 840);  // todo remove hardcoded                                   // pxRem;
     pxRem -= samples_per_pixel;
+    pxRem = 0.14;  // todo remove hardcode
     pxRoll = 0;
 }
 
@@ -71,25 +72,25 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
 
     for (size_t c = 0; c < audio.count; c++) {
         cnt++;
-        // if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
-        cnt = 0;
-        if (pxRoll >= 1) pxRoll -= 1;
-        pxRoll += pxRem;
-        image_message.cnt++;  // saves the pixel
-        status_message.freq = audio.p[c];
-        if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
-        if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
-        if (image_message.cnt < 400) {
-            image_message.image[image_message.cnt] = audio.p[c] < 0.7 ? 0 : 255;  // todo remove limit, send in multiple
+        if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
+            cnt = 0;
+            if (pxRoll >= 1) pxRoll -= 1;
+            pxRoll += pxRem;
+            image_message.cnt++;  // saves the pixel
+            status_message.freq = audio.p[c];
+            if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
+            if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
+            if (image_message.cnt < 400) {
+                image_message.image[image_message.cnt] = audio.p[c] < 0.7 ? 0 : 255;  // todo remove limit, send in multiple
+            }
+            if (image_message.cnt >= 399) {
+                shared_memory.application_queue.push(image_message);
+                image_message.cnt = 0;
+                shared_memory.application_queue.push(status_message);
+                status_message.freqmin = INT32_MAX;
+                status_message.freqmax = INT32_MIN;
+            }
         }
-        if (image_message.cnt >= 399) {
-            shared_memory.application_queue.push(image_message);
-            image_message.cnt = 0;
-            shared_memory.application_queue.push(status_message);
-            status_message.freqmin = INT32_MAX;
-            status_message.freqmax = INT32_MIN;
-        }
-        //}
     }
 }
 
@@ -127,7 +128,7 @@ void WeFaxRx::configure(const WeFaxRxConfigureMessage& message) {
     constexpr size_t decim_2_input_fs = decim_1_output_fs;
     constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
-    constexpr size_t channel_filter_input_fs = decim_2_output_fs;
+    channel_filter_input_fs = decim_2_output_fs;
     // const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
     decim_0.configure(taps_6k0_decim_0.taps);

@@ -41,6 +41,8 @@ using namespace ui;
 
 namespace ui::external_app::wefax_rx {
 
+#define WEFAX_PX_SIZE 840
+
 class WeFaxRxView : public View {
    public:
     WeFaxRxView(NavigationView& nav);
