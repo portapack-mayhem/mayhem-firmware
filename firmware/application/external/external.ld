@@ -39,6 +39,7 @@ MEMORY
     ram_external_app_tetris(rwx) : org = 0xADBE0000, len = 32k
     ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
     ram_external_app_breakout(rwx) : org = 0xADE00000, len = 32k
+    ram_external_app_doom(rwx) : org = 0xADE20000, len = 32k
     ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
     ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
     ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
@@ -158,6 +159,12 @@ SECTIONS
         KEEP(*(.external_app.app_breakout.application_information));
         *(*ui*external_app*breakout*);
     } > ram_external_app_breakout    
+
+    .external_app_doom : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_doom.application_information));
+        *(*ui*external_app*doom*);
+    } > ram_external_app_doom    
 
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {

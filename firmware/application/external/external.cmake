@@ -8,6 +8,10 @@ set(EXTCPPSRC
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
 
+	#doom
+	external/doom/main.cpp
+	external/doom/ui_doom.cpp
+
 	#afsk_rx
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -192,6 +196,7 @@ set(EXTAPPLIST
 	keyfob
 	tetris
 	breakout
+	doom
 	extsensors
 	foxhunt_rx
 	audio_test
