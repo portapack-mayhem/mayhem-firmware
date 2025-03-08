@@ -42,10 +42,27 @@ bool SnakeView::on_key(const KeyEvent key) {
             init_game();
         }
     } else if (game_state == STATE_PLAYING) {
-        if (key == KeyEvent::Left) { if (snake_dx == 0) { snake_dx = -1; snake_dy = 0; } }
-        else if (key == KeyEvent::Right) { if (snake_dx == 0) { snake_dx = 1; snake_dy = 0; } }
-        else if (key == KeyEvent::Up) { if (snake_dy == 0) { snake_dx = 0; snake_dy = -1; } }
-        else if (key == KeyEvent::Down) { if (snake_dy == 0) { snake_dx = 0; snake_dy = 1; } }
+        if (key == KeyEvent::Left) {
+            if (snake_dx == 0) {
+                snake_dx = -1;
+                snake_dy = 0;
+            }
+        } else if (key == KeyEvent::Right) {
+            if (snake_dx == 0) {
+                snake_dx = 1;
+                snake_dy = 0;
+            }
+        } else if (key == KeyEvent::Up) {
+            if (snake_dy == 0) {
+                snake_dx = 0;
+                snake_dy = -1;
+            }
+        } else if (key == KeyEvent::Down) {
+            if (snake_dy == 0) {
+                snake_dx = 0;
+                snake_dy = 1;
+            }
+        }
     }
     set_dirty();
     return true;
