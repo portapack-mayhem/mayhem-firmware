@@ -53,8 +53,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
                   &labels,
                   &options_lpm,
                   &options_ioc,
-                  &button_ss,
-                  &button_test});
+                  &button_ss});
 
     options_lpm.on_change = [this](size_t index, int32_t v) {
         lpm_index = (uint8_t)index;
@@ -75,42 +74,20 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     audio::output::start();
     receiver_model.enable();
     txt_status.set("Waiting for signal.");
-    button_test.on_select = [this](Button&) {
-        auto open_view = nav_.push<FileLoadView>(".wav");
-        open_view->push_dir(wav_dir);
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            delayer = 0;
-            filetohandle = new_file_path;
-            // replay wav file
-        };
-    };
+
     button_ss.on_select = [this](Button&) {
-        if (filetohandle == "") return;
-        if (bmp.is_loaded()) bmp.close();
-        bmp.create("/bmptest.bmp", 3000, 1);
-        File f;
-        f.open(filetohandle);
-        filetohandle = "";
-        f.seek(44);
-        int16_t sample;
-        WeFaxRxImageDataMessage msg;
-        while (true) {
-            auto res = f.read(&sample, 2);
-            if (!res.is_ok()) break;
-            if (res.value() != 2) break;
-            msg.image[msg.cnt++] = (sample >> 8) + 128;
-            if (msg.cnt == 400) {
-                on_image(msg);
-                msg.cnt = 0;
-            }
+        if (bmp.is_loaded()) {
+            bmp.close();
+            button_ss.set_text("Start");
+            return;
         }
-        on_image(msg);
-        f.close();
-        bmp.close();
+        bmp.create("/bmptest.bmp", 3000, 1);
+        button_ss.set_text("Stop");
     };
 }
 
 WeFaxRxView::~WeFaxRxView() {
+    bmp.close();
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
@@ -136,18 +113,15 @@ void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
     if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
 
     for (uint16_t i = 0; i < 400; i += 1) {
-        uint8_t px = 0;
-        //(msg.image[i] + msg.image[i + 1]) / 2;
-        //> 76 = white 0,6 * 32k
-        //<31 black . 0.25 * 32k
-        // between gray
+        uint8_t px = msg.image[i];
+        /*
         if (msg.image[i] > 152) {
             px = 255;
         } else if (msg.image[i] < 64) {
             px = 0;
         } else {
             px = ((msg.image[i] - 64) * 742) >> 8;
-        }
+        }*/
         Color pxl = {px, px, px};
         if ((i % 2) == 0) bmp.write_next_px(pxl);
         uint16_t xpos = i / 5 + line_in_part * 15;

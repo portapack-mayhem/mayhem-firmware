@@ -116,7 +116,7 @@ class WeFaxRxView : public View {
         }};
 
     Text txt_status{
-        {0 * 8, 2 * 16, 30 * 8, 16},
+        {0 * 8, 2 * 16, 20 * 8, 16},
     };
 
     Button button_test{

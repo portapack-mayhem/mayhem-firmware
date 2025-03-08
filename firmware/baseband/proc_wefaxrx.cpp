@@ -65,6 +65,8 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
 
     feed_channel_stats(channel_out);
     auto audio = demodulate(channel_out);
+    audio_compressor.execute_in_place(audio);
+    audio_output.write(audio);
     // todo process, todo avg the values
 
     for (size_t c = 0; c < audio.count; c++) {
@@ -78,7 +80,7 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
         if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
         if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
         if (image_message.cnt < 400) {
-            image_message.image[image_message.cnt] = audio.p[c] < 1 ? 127 : 255;  // todo remove limit, send in multiple
+            image_message.image[image_message.cnt] = audio.p[c] < 0.7 ? 0 : 255;  // todo remove limit, send in multiple
         }
         if (image_message.cnt >= 399) {
             shared_memory.application_queue.push(image_message);
@@ -89,8 +91,6 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
         }
         //}
     }
-    audio_compressor.execute_in_place(audio);
-    audio_output.write(audio);
 }
 
 buffer_f32_t WeFaxRx::demodulate(const buffer_c16_t& channel) {
