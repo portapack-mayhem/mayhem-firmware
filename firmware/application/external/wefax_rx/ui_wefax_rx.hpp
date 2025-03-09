@@ -123,13 +123,9 @@ class WeFaxRxView : public View {
         {0 * 8, 2 * 16, 20 * 8, 16},
     };
 
-    Button button_test{
-        {20, 2 * 16, 5 * 8, 16},
-        "Test"};
-
     Button button_ss{
         {190, 2 * 16, 5 * 8, 16},
-        "Start"};
+        LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{
         Message::ID::WeFaxRxStatusData,

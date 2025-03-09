@@ -23,9 +23,8 @@
 TODOS LATER:
  - add load data from wav file (maybe to a separate app, not this)
  - AGC?!?
+ - fix and enable sync detection
  - auto start / stop bmp save
- - use language helper
-
 */
 
 #include "ui_wefax_rx.hpp"
@@ -83,12 +82,12 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     button_ss.on_select = [this](Button&) {
         if (bmp.is_loaded()) {
             bmp.close();
-            button_ss.set_text("Start");
+            button_ss.set_text(LanguageHelper::currentMessages[LANG_START]);
             return;
         }
         ensure_directory("/BMP");
         bmp.create("/BMP/wefax_" + to_string_timestamp(rtc_time::now()) + ".bmp", WEFAX_PX_SIZE, 1);
-        button_ss.set_text("Stop");
+        button_ss.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     };
 
     options_lpm.set_selected_index(lpm_index, false);
