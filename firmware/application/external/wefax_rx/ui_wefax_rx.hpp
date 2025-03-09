@@ -65,7 +65,6 @@ class WeFaxRxView : public View {
     uint16_t line_in_part = 0;  // got multiple parts of a line, so keep track of it
     uint8_t delayer = 0;
     ui::Color line_buffer[240];
-    ui::Color redline_buffer[240];
     std::filesystem::path filetohandle = "";
 
     BMPFile bmp{};

@@ -42,7 +42,6 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     : nav_{nav} {
     // baseband::run_image(portapack::spi_flash::image_tag_wefaxrx);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-    for (uint8_t i = 0; i < 240; i++) redline_buffer[i] = {255, 0, 0};
     add_children({&rssi,
                   &field_rf_amp,
                   &field_lna,
@@ -66,9 +65,6 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
         on_settings_changed();
     };
 
-    options_lpm.set_selected_index(lpm_index, false);
-    options_ioc.set_selected_index(ioc_index, true);
-
     field_frequency.set_step(100);
     // audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -76,7 +72,6 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     txt_status.set("Waiting for signal.");
 
     button_ss.on_select = [this](Button&) {
-        line_in_part = 0;
         if (bmp.is_loaded()) {
             bmp.close();
             button_ss.set_text("Start");
@@ -85,6 +80,9 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
         bmp.create("/bmptest.bmp", WEFAX_PX_SIZE, 1);
         button_ss.set_text("Stop");
     };
+
+    options_lpm.set_selected_index(lpm_index, false);
+    options_ioc.set_selected_index(ioc_index, true);
 }
 
 WeFaxRxView::~WeFaxRxView() {
@@ -107,11 +105,10 @@ void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
 void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
     if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
 
-    for (uint16_t i = 0; i < msg.cnt; ++i) {
+    for (uint16_t i = 0; i < msg.cnt; i += 1) {
         uint8_t px = msg.image[i];
 
         Color pxl = {px, px, px};
-        // if ((i % 2) == 0)
         bmp.write_next_px(pxl);
         line_in_part++;
         if (line_in_part == WEFAX_PX_SIZE) {
@@ -125,7 +122,6 @@ void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
         line_buffer[xpos] = pxl;
         if ((line_in_part == 0)) {
             portapack::display.render_line({0, line_num + 4 * 16}, 240, line_buffer);
-            portapack::display.render_line({0, line_num + 4 * 16 + 1}, 240, redline_buffer);
         }
     }
 }
