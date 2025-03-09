@@ -43,10 +43,9 @@ void WeFaxRx::update_params() {
             break;
     }
     // 840 px / line with line start
-    pxRem = (double)channel_filter_input_fs / (2 * 840);  // 840/60  = 228.57 sample / px
-    samples_per_pixel = 7;                                //(double)channel_filter_input_fs / (2 * 840);  // todo remove hardcoded                                   // pxRem;
+    pxRem = (double)channel_filter_input_fs / ((lpm / 60.0) * 840.0);
+    samples_per_pixel = pxRem;
     pxRem -= samples_per_pixel;
-    pxRem = 0.14;  // todo remove hardcode
     pxRoll = 0;
 }
 
@@ -70,15 +69,15 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
         cnt++;
         if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
             cnt = 0;
-            if (pxRoll >= 1) pxRoll -= 1;
             pxRoll += pxRem;
+            if (pxRoll >= 1) pxRoll -= 1;
             status_message.freq = audio.p[c];
             if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
             if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
             if (image_message.cnt < 400) {
                 image_message.image[image_message.cnt++] = audio.p[c] < 0.7 ? 0 : 255;  // todo grayscale?
             }
-            if (image_message.cnt >= 399) {
+            if (image_message.cnt >= 400) {
                 shared_memory.application_queue.push(image_message);
                 image_message.cnt = 0;
                 shared_memory.application_queue.push(status_message);
