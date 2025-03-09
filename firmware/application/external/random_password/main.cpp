@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_random_password.application_informatio
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Random passwd",
+    /*.app_name = */ "Rand Pwd",
     /*.bitmap_data = */ {
         0xC0,
         0x03,
