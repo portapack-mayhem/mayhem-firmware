@@ -1,6 +1,9 @@
 /*
  * Copyright 2025 Mark Thompson
+<<<<<<< HEAD
  * copyleft Mr. Robot of F.Society
+=======
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
  *
  * This file is part of PortaPack.
  *
@@ -40,6 +43,7 @@ class StopwatchView : public View {
     void stop();
     void reset();
     void lap();
+<<<<<<< HEAD
     void cover_display_area_with_0();
     void refresh_painting();
     void resume_last();
@@ -47,20 +51,28 @@ class StopwatchView : public View {
 
     bool running{false};
     bool paused{false};
+=======
+
+    bool running{false};
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
     long long start_time{0};
     long long end_time{0};
     long long lap_time{0};
     long long previously_elapsed{0};
+<<<<<<< HEAD
     uint8_t last_displayed[7] = {0, 0, 0, 0, 0, 0, 0};
     /*                           m  m  s  s  ms ms ms*/
     uint8_t lap_last_displayed[7] = {0, 0, 0, 0, 0, 0, 0};
     /*                       m     m     s      s     ms   ms    ms*/
+=======
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
 
     Labels labels{
         {{0 * 8, 1 * 16}, "TOTAL:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16}, "LAP:", Theme::getInstance()->fg_light->foreground},
     };
 
+<<<<<<< HEAD
     OptionsField options_ms_display_level{
         {4 * 8 * 4 + 7 * 8 + 4, 2 * 16},
         5,
@@ -69,17 +81,34 @@ class StopwatchView : public View {
          {"& & &", 2}}};
 
     Painter painter;
+=======
+    BigFrequency big_display{
+        {4, 2 * 16 + 4, 28 * 8, 52},
+        0};
+
+    BigFrequency lap_display{
+        {4, 8 * 16 + 4, 28 * 8, 52},
+        0};
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
 
     Button button_run_stop{
         {72, 210, 96, 24},
         "START"};
 
     Button button_reset_lap{
+<<<<<<< HEAD
         {72, screen_height - 80, 96, 24},
         "RESET"};
 
     Button button_done{
         {72, screen_height - 50, 96, 24},
+=======
+        {72, 240, 96, 24},
+        "RESET"};
+
+    Button button_done{
+        {72, 270, 96, 24},
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
         "EXIT"};
 
     MessageHandlerRegistration message_handler_frame_sync{

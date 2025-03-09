@@ -75,6 +75,7 @@ MEMORY
     ram_external_app_fmradio(rwx) : org = 0xADD10000, len = 32k
     ram_external_app_tuner(rwx) : org = 0xADD20000, len = 32k
 <<<<<<< HEAD
+<<<<<<< HEAD
     ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k
     ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k
 =======
@@ -103,6 +104,18 @@ MEMORY
     ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
     ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k    
 >>>>>>> eb50b790 (Snake (#2549))
+=======
+    ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k
+    ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k
+    ram_external_app_hopper(rwx) : org = 0xADD50000, len = 32k
+    ram_external_app_antenna_length(rwx) : org = 0xADD60000, len = 32k
+    ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k
+    ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k
+    ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k
+    ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
+    ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k
+    ram_external_app_stopwatch(rwx) : org = 0xADDC0000, len = 32k
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
 }
 
 SECTIONS
@@ -195,13 +208,13 @@ SECTIONS
     {
         KEEP(*(.external_app.app_breakout.application_information));
         *(*ui*external_app*breakout*);
-    } > ram_external_app_breakout    
+    } > ram_external_app_breakout
 
     .external_app_snake : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_snake.application_information));
         *(*ui*external_app*snake*);
-    } > ram_external_app_snake    
+    } > ram_external_app_snake
 
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {
@@ -364,4 +377,10 @@ SECTIONS
         KEEP(*(.external_app.app_playlist_editor.application_information));
         *(*ui*external_app*playlist_editor*);
     } > ram_external_app_playlist_editor
+
+    .external_app_stopwatch : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_stopwatch.application_information));
+        *(*ui*external_app*stopwatch*);
+    } > ram_external_app_stopwatch
 }

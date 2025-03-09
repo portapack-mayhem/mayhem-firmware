@@ -182,8 +182,8 @@ set(EXTCPPSRC
 	#hopper
 	external/hopper/main.cpp
 	external/hopper/ui_hopper.cpp
- 	
-	# whip calculator	
+
+	# whip calculator
 	external/antenna_length/main.cpp
 	external/antenna_length/ui_whipcalc.cpp
 
@@ -198,6 +198,10 @@ set(EXTCPPSRC
 	# playlist editor
 	external/playlist_editor/main.cpp
 	external/playlist_editor/ui_playlist_editor.cpp
+
+	#stopwatch
+	external/stopwatch/main.cpp
+	external/stopwatch/ui_stopwatch.cpp
 )
 
 set(EXTAPPLIST
@@ -246,4 +250,5 @@ set(EXTAPPLIST
 	view_wav
 	sd_wipe
 	playlist_editor
+	stopwatch
 )

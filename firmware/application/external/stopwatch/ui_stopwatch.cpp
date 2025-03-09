@@ -1,6 +1,9 @@
 /*
  * Copyright 2025 Mark Thompson
+<<<<<<< HEAD
  * copyleft Mr. Robot of F.Society
+=======
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
  *
  * This file is part of PortaPack.
  *
@@ -28,6 +31,7 @@ using namespace portapack;
 
 namespace ui::external_app::stopwatch {
 
+<<<<<<< HEAD
 // clang-format off
 // clang-format doesn't allow use as this way but it's not worth to have const var for this thing. too expensive
 
@@ -62,12 +66,20 @@ namespace ui::external_app::stopwatch {
 
 StopwatchView::StopwatchView(NavigationView& nav)
     : painter{} {
+=======
+StopwatchView::StopwatchView(NavigationView& nav) {
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
     add_children({
         &labels,
         &button_run_stop,
         &button_reset_lap,
         &button_done,
+<<<<<<< HEAD
         &options_ms_display_level,
+=======
+        &big_display,
+        &lap_display,
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
     });
 
     button_run_stop.on_select = [this](Button&) {
@@ -87,6 +99,7 @@ StopwatchView::StopwatchView(NavigationView& nav)
     button_done.on_select = [&nav](Button&) {
         nav.pop();
     };
+<<<<<<< HEAD
 
     options_ms_display_level.on_change = [&](size_t, ui::OptionsField::value_t) {
         clean_ms_display(options_ms_display_level.selected_index());
@@ -95,6 +108,8 @@ StopwatchView::StopwatchView(NavigationView& nav)
     options_ms_display_level.set_selected_index(0);
 
     refresh_painting();
+=======
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
 }
 
 void StopwatchView::focus() {
@@ -102,10 +117,13 @@ void StopwatchView::focus() {
 }
 
 void StopwatchView::run() {
+<<<<<<< HEAD
     options_ms_display_level.hidden(true);
     // ^ this won't take efferts if don't set_dirty, but needed to let user can't change during ticking
     if (!paused) refresh_painting();
     paused = false;
+=======
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
     running = true;
     start_time = chTimeNow() - previously_elapsed;
     button_run_stop.set_text("STOP");
@@ -113,9 +131,13 @@ void StopwatchView::run() {
 }
 
 void StopwatchView::stop() {
+<<<<<<< HEAD
     options_ms_display_level.hidden(false);
     running = false;
     paused = true;
+=======
+    running = false;
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
     end_time = chTimeNow();
     previously_elapsed = end_time - start_time;
     button_run_stop.set_text("START");
@@ -124,15 +146,21 @@ void StopwatchView::stop() {
 
 void StopwatchView::reset() {
     lap_time = end_time = start_time = previously_elapsed = 0;
+<<<<<<< HEAD
     for (uint8_t i = 0; i < 7; i++) {
         refresh_painting();
     }
     refresh_painting();
     set_dirty();
+=======
+    big_display.set(0);
+    lap_display.set(0);
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
 }
 
 void StopwatchView::lap() {
     lap_time = chTimeNow();
+<<<<<<< HEAD
 }
 
 void StopwatchView::paint(Painter&) {
@@ -304,6 +332,21 @@ void StopwatchView::frame_sync() {
         lap_last_displayed[5] = (lap_milliseconds / 10) % 10;
         lap_last_displayed[6] = lap_milliseconds % 10;
     }
+=======
+    lap_display.set((lap_time - start_time) * 1000);  // convert elapsed time in ms to MHz for BigFrequency widget
+}
+
+void StopwatchView::paint(Painter& painter) {
+    (void)painter;
+    if (running) {
+        end_time = chTimeNow();
+        big_display.set((end_time - start_time) * 1000);  // convert elapsed time in ms to MHz for BigFrequency widget
+    }
+}
+
+void StopwatchView::frame_sync() {
+    set_dirty();
+>>>>>>> 084b8856 (Stopwatch external app (#2553))
 }
 
 }  // namespace ui::external_app::stopwatch
