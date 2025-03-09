@@ -57,6 +57,8 @@ class WeFaxRxView : public View {
     void on_status(WeFaxRxStatusDataMessage msg);
     void on_image(WeFaxRxImageDataMessage msg);
 
+    bool stopping = false;
+
     uint8_t ioc_index{0};
     uint8_t lpm_index{0};
     uint16_t line_num = 0;      // nth line
@@ -132,6 +134,7 @@ class WeFaxRxView : public View {
     MessageHandlerRegistration message_handler_stats{
         Message::ID::WeFaxRxStatusData,
         [this](const Message* const p) {
+            if (stopping) return;
             const auto message = *reinterpret_cast<const WeFaxRxStatusDataMessage*>(p);
             on_status(message);
         }};
@@ -139,6 +142,7 @@ class WeFaxRxView : public View {
     MessageHandlerRegistration message_handler_image{
         Message::ID::WeFaxRxImageData,
         [this](const Message* const p) {
+            if (stopping) return;
             const auto message = *reinterpret_cast<const WeFaxRxImageDataMessage*>(p);
             on_image(message);
         }};

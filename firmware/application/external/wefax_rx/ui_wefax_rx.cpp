@@ -87,6 +87,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
 }
 
 WeFaxRxView::~WeFaxRxView() {
+    stopping = true;
     bmp.close();
     receiver_model.disable();
     baseband::shutdown();

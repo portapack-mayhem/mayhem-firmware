@@ -31,8 +31,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#define M_PI 3.14159265358979323846
-
 // updates the per pixel timers
 void WeFaxRx::update_params() {
     switch (ioc_mode) {
@@ -45,7 +43,6 @@ void WeFaxRx::update_params() {
             break;
     }
     // 840 px / line with line start
-    time_per_pixel = 60000000 / lpm * 840;                // micros (595,2380952 at 120 lpm)
     pxRem = (double)channel_filter_input_fs / (2 * 840);  // 840/60  = 228.57 sample / px
     samples_per_pixel = 7;                                //(double)channel_filter_input_fs / (2 * 840);  // todo remove hardcoded                                   // pxRem;
     pxRem -= samples_per_pixel;
@@ -65,10 +62,9 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
     const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
 
     feed_channel_stats(channel_out);
-    auto audio = demodulate(channel_out);
+    auto audio = demod_ssb_fm.execute(channel_out, audio_buffer);
     audio_compressor.execute_in_place(audio);
     audio_output.write(audio);
-    // todo process, todo avg the values
 
     for (size_t c = 0; c < audio.count; c++) {
         cnt++;
@@ -76,12 +72,11 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
             cnt = 0;
             if (pxRoll >= 1) pxRoll -= 1;
             pxRoll += pxRem;
-            image_message.cnt++;  // saves the pixel
             status_message.freq = audio.p[c];
             if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
             if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
             if (image_message.cnt < 400) {
-                image_message.image[image_message.cnt] = audio.p[c] < 0.7 ? 0 : 255;  // todo remove limit, send in multiple
+                image_message.image[image_message.cnt++] = audio.p[c] < 0.7 ? 0 : 255;  // todo grayscale?
             }
             if (image_message.cnt >= 399) {
                 shared_memory.application_queue.push(image_message);
@@ -92,10 +87,6 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
             }
         }
     }
-}
-
-buffer_f32_t WeFaxRx::demodulate(const buffer_c16_t& channel) {
-    return demod_ssb_fm.execute(channel, audio_buffer);  // Calling a derivative of demod_ssb (USB) , but with different FIR taps + FM audio tones demod.
 }
 
 void WeFaxRx::on_message(const Message* const message) {
@@ -139,8 +130,6 @@ void WeFaxRx::configure(const WeFaxRxConfigureMessage& message) {
     channel_filter_high_f = taps_2k6_usb_wefax_channel.high_frequency_normalized * channel_filter_input_fs;
     channel_filter_transition = taps_2k6_usb_wefax_channel.transition_normalized * channel_filter_input_fs;
     channel_spectrum.set_decimation_factor(1.0f);
-    // modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);  // originally we had just 2 AM types of demod. (DSB , SSB)
-    modulation_ssb = (int)2;                              // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
     audio_output.configure(audio_12k_lpf_1500hz_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 
     lpm = message.lpm;

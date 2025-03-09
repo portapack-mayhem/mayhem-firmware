@@ -46,21 +46,16 @@ class WeFaxRx : public BasebandProcessor {
     // todo rethink
     uint8_t lpm = 120;     // 60, 90, 100, 120, 180, 240 lpm
     uint8_t ioc_mode = 0;  // 0 - ioc576, 1 - ioc 288, 2 - colour fax
-    uint32_t time_per_pixel = 595;
+
     uint32_t samples_per_pixel = 0;
     uint32_t time_start_tone = 3000;  // 3s - 5s
     uint32_t freq_start_tone = 300;   // 300hz for ioc576 675hz for ioc288, 200hz for colour fax
     uint32_t freq_stop_tone = 450;    // 450hz for the 3-5s stop tone
-    uint16_t max_lines = 2500;        // to auto stop when too big
-    uint16_t curr_lines = 0;          // current line number
-    uint16_t freq_px_max = 2300;      // white
-    uint16_t freq_px_min = 1500;      // black
 
     double pxRem = 0;   // if has remainder, it'll store it
     double pxRoll = 0;  // summs remainders, so won't misalign
-    // float last_sig = 0;
-    uint32_t wcnt = 0;
-    uint32_t cnt = 0;
+
+    uint32_t cnt = 0;  // signal counter
 
     static constexpr size_t baseband_fs = 3072000;
     static constexpr size_t decim_2_decimation_factor = 4;
@@ -85,10 +80,6 @@ class WeFaxRx : public BasebandProcessor {
     int32_t channel_filter_transition = 0;
     bool configured{false};
 
-    // bool modulation_ssb = false;  // Origianlly we only had 2 AM demod types {DSB = 0, SSB = 1} , and we could handle it with bool var , 1 bit.
-    int8_t modulation_ssb = 0;  // Now we have 3 AM demod types we will send now index integer  {DSB = 0, SSB = 1, SSB_FM = 2}
-    dsp::demodulate::AM demod_am{};
-    dsp::demodulate::SSB demod_ssb{};
     dsp::demodulate::SSB_FM demod_ssb_fm{};  // added for Wfax mode.
     FeedForwardCompressor audio_compressor{};
     AudioOutput audio_output{};
@@ -97,8 +88,6 @@ class WeFaxRx : public BasebandProcessor {
 
     void configure(const WeFaxRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
-
-    inline buffer_f32_t demodulate(const buffer_c16_t& channel);
 
     WeFaxRxStatusDataMessage status_message{0, 0};
     WeFaxRxImageDataMessage image_message{};
