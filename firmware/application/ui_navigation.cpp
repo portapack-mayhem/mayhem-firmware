@@ -175,9 +175,13 @@ const NavigationView::AppList NavigationView::appList = {
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
 <<<<<<< HEAD
+<<<<<<< HEAD
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
 =======
 >>>>>>> ee472e1e (waveform fix 3 and trivial change (#2540))
+=======
+    {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
+>>>>>>> 2ca8ea63 (Nested Debug menu into Utilities menu to tidy Home screen (#2551))
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
