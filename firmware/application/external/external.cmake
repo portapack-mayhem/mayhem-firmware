@@ -117,7 +117,7 @@ set(EXTCPPSRC
 
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
-	external/shoppingcart_lock/shoppingcart_lock.cpp	
+	external/shoppingcart_lock/shoppingcart_lock.cpp
 
 	#ookbrute
 	external/ookbrute/main.cpp
@@ -129,8 +129,8 @@ set(EXTCPPSRC
 
 	#cvs_spam
 	external/cvs_spam/main.cpp
-	external/cvs_spam/cvs_spam.cpp	
-	
+	external/cvs_spam/cvs_spam.cpp
+
 	#flippertx
 	external/flippertx/main.cpp
 	external/flippertx/ui_flippertx.cpp
@@ -142,15 +142,15 @@ set(EXTCPPSRC
 	#mcu_temperature
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
-	
+
 	#fmradio
 	external/fmradio/main.cpp
 	external/fmradio/ui_fmradio.cpp
-  
+
 	#tuner
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
-  
+
 	#metronome
 	external/metronome/main.cpp
 	external/metronome/ui_metronome.cpp
@@ -162,8 +162,8 @@ set(EXTCPPSRC
 	#hopper
 	external/hopper/main.cpp
 	external/hopper/ui_hopper.cpp
- 	
-	# whip calculator	
+
+	# whip calculator
 	external/antenna_length/main.cpp
 	external/antenna_length/ui_whipcalc.cpp
 
@@ -178,6 +178,10 @@ set(EXTCPPSRC
 	# playlist editor
 	external/playlist_editor/main.cpp
 	external/playlist_editor/ui_playlist_editor.cpp
+
+	#stopwatch
+	external/stopwatch/main.cpp
+	external/stopwatch/ui_stopwatch.cpp
 )
 
 set(EXTAPPLIST
@@ -224,4 +228,5 @@ set(EXTAPPLIST
 	view_wav
 	sd_wipe
 	playlist_editor
+	stopwatch
 )

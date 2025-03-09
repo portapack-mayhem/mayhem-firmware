@@ -48,24 +48,25 @@ MEMORY
     ram_external_app_sstvtx(rwx) : org = 0xADC70000, len = 32k
     ram_external_app_random_password(rwx) : org = 0xADC80000, len = 32k
     ram_external_app_acars_rx(rwx) : org = 0xADC90000, len = 32k
-    ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k    
-    ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k 
-    ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k 
-    ram_external_app_flippertx(rwx) : org = 0xADCD0000, len = 32k 
-    ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k 
-    ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k 
-    ram_external_app_mcu_temperature(rwx) : org = 0xADD00000, len = 32k 
-    ram_external_app_fmradio(rwx) : org = 0xADD10000, len = 32k 
+    ram_external_app_shoppingcart_lock(rwx) : org = 0xADCA0000, len = 32k
+    ram_external_app_cvs_spam(rwx) : org = 0xADCB0000, len = 32k
+    ram_external_app_ookbrute(rwx) : org = 0xADCC0000, len = 32k
+    ram_external_app_flippertx(rwx) : org = 0xADCD0000, len = 32k
+    ram_external_app_ook_editor(rwx) : org = 0xADCE0000, len = 32k
+    ram_external_app_remote(rwx) : org = 0xADCF0000, len = 32k
+    ram_external_app_mcu_temperature(rwx) : org = 0xADD00000, len = 32k
+    ram_external_app_fmradio(rwx) : org = 0xADD10000, len = 32k
     ram_external_app_tuner(rwx) : org = 0xADD20000, len = 32k
-    ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k 
-    ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k 
-    ram_external_app_hopper(rwx) : org = 0xADD50000, len = 32k 
-    ram_external_app_antenna_length(rwx) : org = 0xADD60000, len = 32k 
-    ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k 
-    ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k 
-    ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k 
+    ram_external_app_metronome(rwx) : org = 0xADD30000, len = 32k
+    ram_external_app_app_manager(rwx) : org = 0xADD40000, len = 32k
+    ram_external_app_hopper(rwx) : org = 0xADD50000, len = 32k
+    ram_external_app_antenna_length(rwx) : org = 0xADD60000, len = 32k
+    ram_external_app_view_wav(rwx) : org = 0xADD70000, len = 32k
+    ram_external_app_sd_wipe(rwx) : org = 0xADD80000, len = 32k
+    ram_external_app_playlist_editor(rwx) : org = 0xADD90000, len = 32k
     ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
-    ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k    
+    ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k
+    ram_external_app_stopwatch(rwx) : org = 0xADDC0000, len = 32k
 }
 
 SECTIONS
@@ -158,13 +159,13 @@ SECTIONS
     {
         KEEP(*(.external_app.app_breakout.application_information));
         *(*ui*external_app*breakout*);
-    } > ram_external_app_breakout    
+    } > ram_external_app_breakout
 
     .external_app_snake : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_snake.application_information));
         *(*ui*external_app*snake*);
-    } > ram_external_app_snake    
+    } > ram_external_app_snake
 
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {
@@ -207,7 +208,6 @@ SECTIONS
         KEEP(*(.external_app.app_adsbtx.application_information));
         *(*ui*external_app*adsbtx*);
     } > ram_external_app_adsbtx
-
 
    .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
     {
@@ -274,13 +274,13 @@ SECTIONS
         KEEP(*(.external_app.app_mcu_temperature.application_information));
         *(*ui*external_app*mcu_temperature*);
     } > ram_external_app_mcu_temperature
-    
+
     .external_app_fmradio : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_fmradio.application_information));
         *(*ui*external_app*fmradio*);
     } > ram_external_app_fmradio
-    
+
     .external_app_tuner : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_tuner.application_information));
@@ -328,4 +328,10 @@ SECTIONS
         KEEP(*(.external_app.app_playlist_editor.application_information));
         *(*ui*external_app*playlist_editor*);
     } > ram_external_app_playlist_editor
+
+    .external_app_stopwatch : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_stopwatch.application_information));
+        *(*ui*external_app*stopwatch*);
+    } > ram_external_app_stopwatch
 }
