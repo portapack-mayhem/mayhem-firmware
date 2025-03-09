@@ -83,14 +83,14 @@ void StopwatchView::reset() {
 
 void StopwatchView::lap() {
     lap_time = chTimeNow();
-    lap_display.set((lap_time - start_time)*1000);
+    lap_display.set((lap_time - start_time) * 1000);  // convert elapsed time in ms to MHz for BigFrequency widget
 }
 
 void StopwatchView::paint(Painter& painter) {
     (void)painter;
     if (running) {
         end_time = chTimeNow();
-        big_display.set((end_time - start_time)*1000);
+        big_display.set((end_time - start_time) * 1000);  // convert elapsed time in ms to MHz for BigFrequency widget
     }
 }
 
