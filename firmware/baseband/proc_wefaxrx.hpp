@@ -93,7 +93,7 @@ class WeFaxRx : public BasebandProcessor {
     void configure(const WeFaxRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
-    WeFaxRxStatusDataMessage status_message{1};  // when the sync detection is fixed, set this to 0, so it'll be activated. while it is 1 or 2, it won't be activated.
+    WeFaxRxStatusDataMessage status_message{0};
     WeFaxRxImageDataMessage image_message{};
 
     /* NB: Threads should be the last members in the class definition. */

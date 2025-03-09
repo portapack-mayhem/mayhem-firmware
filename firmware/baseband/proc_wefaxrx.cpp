@@ -51,6 +51,8 @@ void WeFaxRx::update_params() {
     samples_per_pixel = pxRem;
     pxRem -= samples_per_pixel;
     pxRoll = 0;
+    status_message.state = 0;
+    shared_memory.application_queue.push(status_message);
 }
 
 void WeFaxRx::execute(const buffer_c8_t& buffer) {
@@ -70,7 +72,7 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
     audio_output.write(audio);
 
     for (size_t c = 0; c < audio.count; c++) {
-        if (status_message.state == 0) {
+        if (status_message.state == 0 && false) {  // disabled this due to so sensitive to noise
             // first look for the sync!
             if (audio.p[c] <= STARTSIGNAL_TH && audio.p[c] >= 0.0001) {
                 sync_cnt++;
@@ -106,7 +108,7 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
                 if (image_message.cnt >= 399) {
                     shared_memory.application_queue.push(image_message);
                     image_message.cnt = 0;
-                    if (status_message.state == 1) {
+                    if (status_message.state != 2) {
                         status_message.state = 2;
                         shared_memory.application_queue.push(status_message);
                     }
