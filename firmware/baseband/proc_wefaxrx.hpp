@@ -58,6 +58,8 @@ class WeFaxRx : public BasebandProcessor {
     double pxRoll = 0;  // summs remainders, so won't misalign
 
     uint32_t cnt = 0;  // signal counter
+    uint16_t sync_cnt = 0;
+    uint16_t syncnot_cnt = 0;
 
     static constexpr size_t baseband_fs = 3072000;
     static constexpr size_t decim_2_decimation_factor = 4;
@@ -91,7 +93,7 @@ class WeFaxRx : public BasebandProcessor {
     void configure(const WeFaxRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
-    // WeFaxRxStatusDataMessage status_message{0, 0}; //not yet used, later we'll need this to indicate if there is image or synced, ..
+    WeFaxRxStatusDataMessage status_message{1};  // when the sync detection is fixed, set this to 0, so it'll be activated. while it is 1 or 2, it won't be activated.
     WeFaxRxImageDataMessage image_message{};
 
     /* NB: Threads should be the last members in the class definition. */

@@ -21,10 +21,10 @@
 
 /*
 TODOS LATER:
- - add line sync per image ONCE on start, so the lines would start on left.
- - add status messages
  - add load data from wav file (maybe to a separate app, not this)
  - AGC?!?
+ - auto start / stop bmp save
+ - use language helper
 
 */
 
@@ -56,7 +56,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
                   &field_vga,
                   &field_volume,
                   &field_frequency,
-                  //&txt_status,  //not yet in use in baseband. but keep it
+                  &txt_status,
                   &labels,
                   &options_lpm,
                   &options_ioc,
@@ -110,7 +110,6 @@ void WeFaxRxView::on_settings_changed() {
 
 void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
     (void)msg;
-    /* not yet in use.
     std::string tmp = "";
     if (msg.state == 0) {
         tmp = "Waiting for signal.";
@@ -120,7 +119,6 @@ void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
         tmp = "Image arriving.";
     }
     txt_status.set(tmp);
-    */
 }
 
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync

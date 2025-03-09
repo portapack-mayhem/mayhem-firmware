@@ -31,6 +31,10 @@
 #include <cstdint>
 #include <cstddef>
 
+#define STARTSIGNAL_TH 0.33
+#define STARTSIGNAL_NEEDCNT 110
+#define STARTSIGNAL_MAXBAD 20
+
 // updates the per pixel timers
 void WeFaxRx::update_params() {
     switch (ioc_mode) {
@@ -66,25 +70,47 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
     audio_output.write(audio);
 
     for (size_t c = 0; c < audio.count; c++) {
-        cnt++;
-        if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
-            cnt = 0;
-            if (pxRoll >= 1) pxRoll -= 1.0;
-            pxRoll += pxRem;
-
-            if (image_message.cnt < 400) {
-                if (audio.p[c] >= 0.68) {
-                    image_message.image[image_message.cnt++] = 255;
-                } else if (audio.p[c] >= 0.45) {
-                    image_message.image[image_message.cnt++] = (uint8_t)(((audio.p[c] - 0.45f) * 1108));
-                } else {
-                    image_message.image[image_message.cnt++] = 0;
+        if (status_message.state == 0) {
+            // first look for the sync!
+            if (audio.p[c] <= STARTSIGNAL_TH && audio.p[c] >= 0.0001) {
+                sync_cnt++;
+                if (sync_cnt >= STARTSIGNAL_NEEDCNT) {
+                    status_message.state = 1;
+                    shared_memory.application_queue.push(status_message);
+                    sync_cnt = 0;
+                    syncnot_cnt = 0;
+                }
+            } else {
+                syncnot_cnt++;
+                if (syncnot_cnt >= STARTSIGNAL_MAXBAD) {
+                    sync_cnt = 0;
+                    syncnot_cnt = 0;
                 }
             }
-            if (image_message.cnt >= 399) {
-                shared_memory.application_queue.push(image_message);
-                image_message.cnt = 0;
-                // shared_memory.application_queue.push(status_message);
+        } else {
+            cnt++;
+            if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
+                cnt = 0;
+                if (pxRoll >= 1) pxRoll -= 1.0;
+                pxRoll += pxRem;
+
+                if (image_message.cnt < 400) {
+                    if (audio.p[c] >= 0.68) {
+                        image_message.image[image_message.cnt++] = 255;
+                    } else if (audio.p[c] >= 0.45) {
+                        image_message.image[image_message.cnt++] = (uint8_t)(((audio.p[c] - 0.45f) * 1108));
+                    } else {
+                        image_message.image[image_message.cnt++] = 0;
+                    }
+                }
+                if (image_message.cnt >= 399) {
+                    shared_memory.application_queue.push(image_message);
+                    image_message.cnt = 0;
+                    if (status_message.state == 1) {
+                        status_message.state = 2;
+                        shared_memory.application_queue.push(status_message);
+                    }
+                }
             }
         }
     }
