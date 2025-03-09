@@ -24,8 +24,6 @@ TODOS LATER:
  - add line sync per image ONCE on start, so the lines would start on left.
  - add status messages
  - add load data from wav file (maybe to a separate app, not this)
- - add grayscale to the image
- - some autotune for the frequency (maybe hidden, so auto substract the needed 300hz from the setted one)
  - AGC?!?
 
 */
@@ -77,7 +75,9 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
 
     field_frequency.set_step(100);
     audio::output::start();
+    receiver_model.set_hidden_offset(-300);
     receiver_model.enable();
+
     txt_status.set("Waiting for signal.");
 
     button_ss.on_select = [this](Button&) {
@@ -97,6 +97,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
 
 WeFaxRxView::~WeFaxRxView() {
     stopping = true;
+    receiver_model.set_hidden_offset(0);
     bmp.close();
     receiver_model.disable();
     baseband::shutdown();

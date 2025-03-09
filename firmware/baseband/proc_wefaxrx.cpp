@@ -73,7 +73,13 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
             pxRoll += pxRem;
 
             if (image_message.cnt < 400) {
-                image_message.image[image_message.cnt++] = audio.p[c] < 0.61 ? 0 : 255;  // todo grayscale?
+                if (audio.p[c] >= 0.68) {
+                    image_message.image[image_message.cnt++] = 255;
+                } else if (audio.p[c] >= 0.45) {
+                    image_message.image[image_message.cnt++] = (uint8_t)(((audio.p[c] - 0.45f) * 1108));
+                } else {
+                    image_message.image[image_message.cnt++] = 0;
+                }
             }
             if (image_message.cnt >= 399) {
                 shared_memory.application_queue.push(image_message);
