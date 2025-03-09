@@ -48,10 +48,12 @@ class WeFaxRx : public BasebandProcessor {
     uint8_t ioc_mode = 0;  // 0 - ioc576, 1 - ioc 288, 2 - colour fax
 
     uint32_t samples_per_pixel = 0;
+    // not yet used:
     uint32_t time_start_tone = 3000;  // 3s - 5s
     uint32_t freq_start_tone = 300;   // 300hz for ioc576 675hz for ioc288, 200hz for colour fax
     uint32_t freq_stop_tone = 450;    // 450hz for the 3-5s stop tone
 
+    // to exactly match the pixel / samples.
     double pxRem = 0;   // if has remainder, it'll store it
     double pxRoll = 0;  // summs remainders, so won't misalign
 
@@ -89,7 +91,7 @@ class WeFaxRx : public BasebandProcessor {
     void configure(const WeFaxRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
-    WeFaxRxStatusDataMessage status_message{0, 0};
+    // WeFaxRxStatusDataMessage status_message{0, 0}; //not yet used, later we'll need this to indicate if there is image or synced, ..
     WeFaxRxImageDataMessage image_message{};
 
     /* NB: Threads should be the last members in the class definition. */

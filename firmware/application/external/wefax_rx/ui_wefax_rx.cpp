@@ -40,7 +40,6 @@ void WeFaxRxView::focus() {
 
 WeFaxRxView::WeFaxRxView(NavigationView& nav)
     : nav_{nav} {
-    // baseband::run_image(portapack::spi_flash::image_tag_wefaxrx);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     add_children({&rssi,
                   &field_rf_amp,
@@ -48,7 +47,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
                   &field_vga,
                   &field_volume,
                   &field_frequency,
-                  //&txt_status,  //todo skip or implement
+                  //&txt_status,  //not yet in use in baseband. but keep it
                   &labels,
                   &options_lpm,
                   &options_ioc,
@@ -66,7 +65,6 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     };
 
     field_frequency.set_step(100);
-    // audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
     receiver_model.enable();
     txt_status.set("Waiting for signal.");
@@ -77,7 +75,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
             button_ss.set_text("Start");
             return;
         }
-        bmp.create("/bmptest.bmp", WEFAX_PX_SIZE, 1);
+        bmp.create("/bmptest.bmp", WEFAX_PX_SIZE, 1);  // todo add a new name for it!
         button_ss.set_text("Stop");
     };
 
@@ -98,17 +96,18 @@ void WeFaxRxView::on_settings_changed() {
 }
 
 void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
-    // std::string tmp = to_string_dec_int(msg.freq) + " " + to_string_dec_int(msg.freqavg) + " " + to_string_dec_int(msg.freqmin) + " " + to_string_dec_int(msg.freqmax);
+    (void)msg;
+    // not yet in use.
+    // std::string tmp = "";
     // txt_status.set(tmp);
 }
 
+// this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync
 void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
     if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
-        uint8_t px = msg.image[i];
-
-        Color pxl = {px, px, px};
+        Color pxl = {msg.image[i], msg.image[i], msg.image[i]};
         bmp.write_next_px(pxl);
         line_in_part++;
         if (line_in_part == WEFAX_PX_SIZE) {
