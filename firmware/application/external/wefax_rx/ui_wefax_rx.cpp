@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2025 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -18,6 +18,17 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
+
+/*
+TODOS LATER:
+ - add line sync per image ONCE on start, so the lines would start on left.
+ - add status messages
+ - add load data from wav file (maybe to a separate app, not this)
+ - add grayscale to the image
+ - some autotune for the frequency (maybe hidden, so auto substract the needed 300hz from the setted one)
+ - AGC?!?
+
+*/
 
 #include "ui_wefax_rx.hpp"
 
@@ -75,7 +86,8 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
             button_ss.set_text("Start");
             return;
         }
-        bmp.create("/bmptest.bmp", WEFAX_PX_SIZE, 1);  // todo add a new name for it!
+        ensure_directory("/BMP");
+        bmp.create("/BMP/wefax_" + to_string_timestamp(rtc_time::now()) + ".bmp", WEFAX_PX_SIZE, 1);
         button_ss.set_text("Stop");
     };
 
@@ -97,9 +109,17 @@ void WeFaxRxView::on_settings_changed() {
 
 void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
     (void)msg;
-    // not yet in use.
-    // std::string tmp = "";
-    // txt_status.set(tmp);
+    /* not yet in use.
+    std::string tmp = "";
+    if (msg.state == 0) {
+        tmp = "Waiting for signal.";
+    } else if (msg.state == 1) {
+        tmp = "Synced.";
+    } else if (msg.state == 2) {
+        tmp = "Image arriving.";
+    }
+    txt_status.set(tmp);
+    */
 }
 
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync

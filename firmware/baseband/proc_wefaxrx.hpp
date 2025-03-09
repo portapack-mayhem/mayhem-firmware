@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2025 Brumi, HTotoo
  *
  * This file is part of PortaPack.
  *

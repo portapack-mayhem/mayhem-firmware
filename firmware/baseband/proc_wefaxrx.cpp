@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2025 Brumi, HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -71,20 +71,14 @@ void WeFaxRx::execute(const buffer_c8_t& buffer) {
             cnt = 0;
             if (pxRoll >= 1) pxRoll -= 1.0;
             pxRoll += pxRem;
-            /* status_message.freq = audio.p[c];
-            if (status_message.freq < status_message.freqmin) status_message.freqmin = status_message.freq;
-            if (status_message.freq > status_message.freqmax) status_message.freqmax = status_message.freq;
-            */
+
             if (image_message.cnt < 400) {
                 image_message.image[image_message.cnt++] = audio.p[c] < 0.61 ? 0 : 255;  // todo grayscale?
             }
             if (image_message.cnt >= 399) {
                 shared_memory.application_queue.push(image_message);
                 image_message.cnt = 0;
-                /*  shared_memory.application_queue.push(status_message);
-                  status_message.freqmin = INT32_MAX;
-                  status_message.freqmax = INT32_MIN;
-                  */
+                // shared_memory.application_queue.push(status_message);
             }
         }
     }
