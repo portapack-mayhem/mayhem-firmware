@@ -6217,4 +6217,4 @@ static constexpr Bitmap bitmap_icon_protoview{
 
 } /* namespace ui */
 
-#endif/*__BITMAP_HPP__*/
+#endif /*__BITMAP_HPP__*/
