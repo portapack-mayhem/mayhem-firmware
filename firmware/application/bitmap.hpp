@@ -2607,44 +2607,6 @@ static constexpr Bitmap bitmap_icon_temperature{
     {16, 16},
     bitmap_icon_temperature_data};
 
-static constexpr uint8_t bitmap_icon_opera_cake_data[] = {
-    0xF8,
-    0x1F,
-    0x0F,
-    0xF0,
-    0x7F,
-    0xFE,
-    0x88,
-    0x11,
-    0x8F,
-    0xF1,
-    0x7F,
-    0xFE,
-    0x88,
-    0x11,
-    0x7F,
-    0xFE,
-    0x7F,
-    0xFE,
-    0x88,
-    0x11,
-    0x7F,
-    0xFE,
-    0x8F,
-    0xF1,
-    0x88,
-    0x11,
-    0x7F,
-    0xFE,
-    0x0F,
-    0xF0,
-    0xF8,
-    0x1F,
-};
-static constexpr Bitmap bitmap_icon_opera_cake{
-    {16, 16},
-    bitmap_icon_opera_cake_data};
-
 static constexpr uint8_t bitmap_tab_edge_data[] = {
     0x00,
     0x01,
