@@ -674,32 +674,6 @@ void SetAudioView::focus() {
     button_save.focus();
 }
 
-/* SetQRCodeView *****************************************/
-
-SetQRCodeView::SetQRCodeView(NavigationView& nav) {
-    add_children({
-        &labels,
-        &checkbox_bigger_qr,
-        &button_save,
-        &button_cancel,
-    });
-
-    checkbox_bigger_qr.set_value(pmem::show_bigger_qr_code());
-
-    button_save.on_select = [&nav, this](Button&) {
-        pmem::set_show_bigger_qr_code(checkbox_bigger_qr.value());
-        nav.pop();
-    };
-
-    button_cancel.on_select = [&nav, this](Button&) {
-        nav.pop();
-    };
-}
-
-void SetQRCodeView::focus() {
-    button_save.focus();
-}
-
 /* SetEncoderDialView ************************************/
 
 SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
@@ -1098,7 +1072,6 @@ void SettingsMenuView::on_populate() {
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
-        //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},

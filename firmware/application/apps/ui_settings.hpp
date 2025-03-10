@@ -545,35 +545,6 @@ class SetAudioView : public View {
     };
 };
 
-class SetQRCodeView : public View {
-   public:
-    SetQRCodeView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "QR Code"; };
-
-   private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::getInstance()->fg_light->foreground},
-    };
-
-    Checkbox checkbox_bigger_qr{
-        {3 * 8, 4 * 16},
-        20,
-        "Show large QR code"};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-};
-
 using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;

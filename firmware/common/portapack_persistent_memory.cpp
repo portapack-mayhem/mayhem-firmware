@@ -103,7 +103,7 @@ struct ui_config_t {
     uint8_t show_gui_return_icon : 1;
     uint8_t load_app_settings : 1;
     uint8_t save_app_settings : 1;
-    uint8_t show_large_qr_code : 1;
+    uint8_t UNUSED_1 : 1;  // Deprecated, but bit can be set by older firmware
 
     bool disable_touchscreen : 1;
     bool hide_clock : 1;
@@ -603,10 +603,6 @@ bool show_gui_return_icon() {  // add return icon in touchscreen menu
     return data->ui_config.show_gui_return_icon != 0;
 }
 
-bool show_bigger_qr_code() {  // show bigger QR code
-    return data->ui_config.show_large_qr_code != 0;
-}
-
 bool disable_touchscreen() {  // Option to disable touch screen
     return data->ui_config.disable_touchscreen;
 }
@@ -682,10 +678,6 @@ void set_load_app_settings(bool v) {
 
 void set_save_app_settings(bool v) {
     data->ui_config.save_app_settings = v ? 1 : 0;
-}
-
-void set_show_bigger_qr_code(bool v) {
-    data->ui_config.show_large_qr_code = v ? 1 : 0;
 }
 
 void set_disable_touchscreen(bool v) {
@@ -1270,7 +1262,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon));
     pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings));
     pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings));
-    pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_large_qr_code));
+    // pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_large_qr_code));
     pmem_dump_file.write_line("ui_config disable_touchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen));
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
