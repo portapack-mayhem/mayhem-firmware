@@ -1262,7 +1262,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon));
     pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings));
     pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings));
-    //pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_large_qr_code));
+    // pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_large_qr_code));
     pmem_dump_file.write_line("ui_config disable_touchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen));
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
