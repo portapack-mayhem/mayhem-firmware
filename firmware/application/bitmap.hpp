@@ -1955,6 +1955,44 @@ static constexpr Bitmap bitmap_icon_tetris{
     {16, 16},
     bitmap_icon_tetris_data};
 
+static constexpr uint8_t bitmap_icon_breakout_data[] = {
+    0x00,
+    0x00,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x00,
+    0x00,
+    0xF7,
+    0xF7,
+    0xF7,
+    0xF7,
+    0xF7,
+    0xF7,
+    0x00,
+    0x00,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x7F,
+    0x00,
+    0x00,
+    0xF7,
+    0xF7,
+    0xF7,
+    0xF7,
+    0xF7,
+    0xF7,
+};
+static constexpr Bitmap bitmap_icon_breakout{
+    {16, 16},
+    bitmap_icon_breakout_data};
+
 static constexpr uint8_t bitmap_icon_rename_data[] = {
     0x00,
     0x00,
