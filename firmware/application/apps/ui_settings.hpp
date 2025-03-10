@@ -551,6 +551,7 @@ class SetAudioView : public View {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 class SetQRCodeView : public View {
    public:
@@ -582,6 +583,8 @@ class SetQRCodeView : public View {
 };
 
 >>>>>>> 55db0e8c (Add the feature to decide rotate direction of encoder (#2472))
+=======
+>>>>>>> b4112f0c (Remove deprecated QR Code code (#2558))
 using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
