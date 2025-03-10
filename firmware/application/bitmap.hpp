@@ -105,44 +105,6 @@ static constexpr Bitmap bitmap_icon_utilities{
     {16, 16},
     bitmap_icon_utilities_data};
 
-static constexpr uint8_t bitmap_icon_games_data[] = {
-    0x0C,
-    0x0C,
-    0x0C,
-    0x0C,
-    0x3F,
-    0x3C,
-    0xFF,
-    0x7E,
-    0xFF,
-    0xFF,
-    0xFF,
-    0xFF,
-    0xCC,
-    0xCC,
-    0xCC,
-    0xCC,
-    0xFF,
-    0xFF,
-    0xE7,
-    0x73,
-    0xE7,
-    0x73,
-    0x33,
-    0x33,
-    0x03,
-    0x30,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-};
-static constexpr Bitmap bitmap_icon_games{
-    {16, 16},
-    bitmap_icon_games_data};
-
 static constexpr uint8_t bitmap_stripes_data[] = {
     0xFF,
     0x03,
@@ -287,6 +249,44 @@ static constexpr Bitmap bitmap_icon_file_wav{
     {16, 16},
     bitmap_icon_file_wav_data};
 
+static constexpr uint8_t bitmap_icon_games_data[] = {
+    0x00,
+    0x01,
+    0x00,
+    0x01,
+    0x80,
+    0x00,
+    0x80,
+    0x00,
+    0x80,
+    0x00,
+    0xFE,
+    0x7F,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xE7,
+    0xD7,
+    0xE7,
+    0x93,
+    0x81,
+    0xFF,
+    0x81,
+    0x93,
+    0xE7,
+    0xD7,
+    0xE7,
+    0xFF,
+    0x3F,
+    0xF9,
+    0xFE,
+    0x7F,
+};
+static constexpr Bitmap bitmap_icon_games{
+    {16, 16},
+    bitmap_icon_games_data};
+
 static constexpr uint8_t bitmap_icon_tetra_data[] = {
     0xE0,
     0x0F,
@@ -402,23 +402,23 @@ static constexpr Bitmap bitmap_icon_downconvert{
     bitmap_icon_downconvert_data};
 
 static constexpr uint8_t bitmap_icon_speaker_and_headphones_data[] = {
-    0x20,
+    0x40,
     0x10,
-    0x30,
+    0x60,
     0x20,
-    0x38,
+    0x70,
     0x44,
-    0x3E,
+    0x7C,
     0x48,
-    0x3E,
+    0x7C,
     0x91,
-    0x3E,
+    0x7C,
     0x92,
-    0x38,
+    0x70,
     0x92,
-    0x30,
+    0x60,
     0x92,
-    0x20,
+    0x40,
     0x92,
     0x00,
     0x92,
@@ -1024,6 +1024,44 @@ static constexpr uint8_t bitmap_icon_previous_data[] = {
 static constexpr Bitmap bitmap_icon_previous{
     {16, 16},
     bitmap_icon_previous_data};
+
+static constexpr uint8_t bitmap_icon_tools_antenna_data[] = {
+    0x38,
+    0x3E,
+    0x10,
+    0x22,
+    0x10,
+    0x26,
+    0x10,
+    0x22,
+    0x10,
+    0x2E,
+    0x10,
+    0x22,
+    0x10,
+    0x26,
+    0x10,
+    0x22,
+    0x38,
+    0x2E,
+    0x38,
+    0x22,
+    0x38,
+    0x26,
+    0x38,
+    0x22,
+    0x38,
+    0x2E,
+    0x38,
+    0x22,
+    0x38,
+    0x3E,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_tools_antenna{
+    {16, 16},
+    bitmap_icon_tools_antenna_data};
 
 static constexpr uint8_t bitmap_icon_batt_text_data[] = {
     0x00,
@@ -1651,6 +1689,44 @@ static constexpr Bitmap bitmap_icon_qr_code{
     {16, 16},
     bitmap_icon_qr_code_data};
 
+static constexpr uint8_t bitmap_stopwatch_data[] = {
+    0x00,
+    0x00,
+    0xC0,
+    0x01,
+    0x80,
+    0x00,
+    0x80,
+    0x20,
+    0x60,
+    0x13,
+    0x10,
+    0x0C,
+    0x88,
+    0x08,
+    0x84,
+    0x10,
+    0x84,
+    0x10,
+    0xC2,
+    0x21,
+    0x84,
+    0x10,
+    0x04,
+    0x10,
+    0x08,
+    0x08,
+    0x10,
+    0x04,
+    0x60,
+    0x03,
+    0x80,
+    0x00,
+};
+static constexpr Bitmap bitmap_stopwatch{
+    {16, 16},
+    bitmap_stopwatch_data};
+
 static constexpr uint8_t bitmap_icon_sonde_data[] = {
     0x80,
     0x03,
@@ -1799,45 +1875,6 @@ static constexpr uint8_t bitmap_icon_lge_data[] = {
     0x00,
     0x00,
 };
-
-static constexpr uint8_t bitmap_icon_file_iq_data[] = {
-    0xFC,
-    0x03,
-    0x04,
-    0x06,
-    0x04,
-    0x0E,
-    0x04,
-    0x1E,
-    0x04,
-    0x3E,
-    0x04,
-    0x20,
-    0x04,
-    0x20,
-    0x04,
-    0x21,
-    0x44,
-    0x25,
-    0x54,
-    0x25,
-    0xF4,
-    0x2F,
-    0xA4,
-    0x2A,
-    0x84,
-    0x22,
-    0x04,
-    0x22,
-    0x04,
-    0x20,
-    0xFC,
-    0x3F,
-};
-static constexpr Bitmap bitmap_icon_file_iq{
-    {16, 16},
-    bitmap_icon_file_iq_data};
-
 static constexpr Bitmap bitmap_icon_lge{
     {16, 16},
     bitmap_icon_lge_data};
@@ -2751,6 +2788,44 @@ static constexpr uint8_t bitmap_icon_touchtunes_data[] = {
 static constexpr Bitmap bitmap_icon_touchtunes{
     {16, 16},
     bitmap_icon_touchtunes_data};
+
+static constexpr uint8_t bitmap_icon_file_iq_data[] = {
+    0xFC,
+    0x03,
+    0x04,
+    0x06,
+    0x04,
+    0x0E,
+    0x04,
+    0x1E,
+    0x04,
+    0x3E,
+    0x04,
+    0x20,
+    0x04,
+    0x20,
+    0x04,
+    0x21,
+    0x44,
+    0x25,
+    0x54,
+    0x25,
+    0xF4,
+    0x2F,
+    0xA4,
+    0x2A,
+    0x84,
+    0x22,
+    0x04,
+    0x22,
+    0x04,
+    0x20,
+    0xFC,
+    0x3F,
+};
+static constexpr Bitmap bitmap_icon_file_iq{
+    {16, 16},
+    bitmap_icon_file_iq_data};
 
 static constexpr uint8_t bitmap_icon_sd_data[] = {
     0x00,
