@@ -74,10 +74,14 @@ __attribute__((section(".external_app.app_tetris.application_information"), used
         0xF1,
     },
 <<<<<<< HEAD
+<<<<<<< HEAD
     /*.icon_color = */ ui::Color::green().v,
 =======
     /*.icon_color = */ ui::Color::orange().v,
 >>>>>>> a17995fd (Moved games to new game menu (#2544))
+=======
+    /*.icon_color = */ ui::Color::green().v,
+>>>>>>> 081b11ad (Breakout icon change (#2556))
     /*.menu_location = */ app_location_t::GAMES,
     /*.desired_menu_position = */ -1,
 
