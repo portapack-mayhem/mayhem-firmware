@@ -5809,6 +5809,44 @@ static constexpr Bitmap bitmap_icon_breakout{
     {16, 16},
     bitmap_icon_breakout_data};
 
+static constexpr uint8_t bitmap_icon_snake_data[] = {
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0xE0,
+    0x09,
+    0x70,
+    0xC7,
+    0xFC,
+    0xC9,
+    0x06,
+    0x00,
+    0x06,
+    0x00,
+    0x0C,
+    0x00,
+    0xF0,
+    0x01,
+    0x00,
+    0x3E,
+    0x00,
+    0x40,
+    0xFC,
+    0x40,
+    0x02,
+    0x3F,
+    0x02,
+    0x00,
+    0x7C,
+    0x80,
+    0x80,
+    0x7F,
+};
+static constexpr Bitmap bitmap_icon_snake{
+    {16, 16},
+    bitmap_icon_snake_data};
+
 static constexpr uint8_t bitmap_icon_rename_data[] = {
     0x00,
     0x00,
