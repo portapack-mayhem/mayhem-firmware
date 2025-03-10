@@ -615,6 +615,47 @@ class SetEncoderDialView : public View {
     };
 };
 
+class SetButtonsView : public View {
+   public:
+    SetButtonsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Button Speed"; };
+
+   private:
+    Labels labels{
+        {{2 * 8, 4 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 6 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField field_repeat_delay{
+        {20 * 8, 4 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_repeat_speed{
+        {20 * 8, 6 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_long_press_delay{
+        {20 * 8, 8 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SetPersistentMemoryView : public View {
    public:
     SetPersistentMemoryView(NavigationView& nav);

@@ -84,7 +84,7 @@ bool Debounce::feed(const uint8_t bit) {
             // (by toggling reported state every 1/2 of the delay time)
             if (--repeat_ctr_ == 0) {
                 state_to_report_ = !state_to_report_;
-                repeat_ctr_ = REPEAT_SUBSEQUENT_DELAY / 2;
+                repeat_ctr_ = portapack::persistent_memory::ui_button_repeat_speed() ? REPEAT_SUBSEQUENT_DELAY_FAST / 2 : REPEAT_SUBSEQUENT_DELAY_NORMAL / 2;
                 return true;
             }
         }
@@ -96,7 +96,7 @@ bool Debounce::feed(const uint8_t bit) {
             // if LONG_PRESS_DELAY is reached then finally report that switch is pressed and set flag
             // indicating it was a LONG press
             // (note that repeat_support and long_press support are mutually exclusive)
-            if (held_time_ >= LONG_PRESS_DELAY) {
+            if (held_time_ >= (portapack::persistent_memory::ui_button_long_press_delay() ? LONG_PRESS_DELAY_FAST : LONG_PRESS_DELAY_NORMAL)) {
                 pulse_upon_release_ = false;
                 long_press_occurred_ = true;
                 state_to_report_ = 1;
@@ -104,7 +104,7 @@ bool Debounce::feed(const uint8_t bit) {
             }
         } else if (repeat_enabled_ && !long_press_enabled_) {
             // Repeat support -- 4 directional buttons only (unless long_press is enabled)
-            if (held_time_ >= REPEAT_INITIAL_DELAY) {
+            if (held_time_ >= (portapack::persistent_memory::ui_button_repeat_delay() ? REPEAT_INITIAL_DELAY_FAST : REPEAT_INITIAL_DELAY_NORMAL)) {
                 // Delay reached; trigger repeat code on NEXT tick
                 repeat_ctr_ = 1;
                 held_time_ = 0;
