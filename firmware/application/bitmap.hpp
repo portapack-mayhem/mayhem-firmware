@@ -249,6 +249,44 @@ static constexpr Bitmap bitmap_icon_file_wav{
     {16, 16},
     bitmap_icon_file_wav_data};
 
+static constexpr uint8_t bitmap_icon_games_data[] = {
+    0x00,
+    0x01,
+    0x00,
+    0x01,
+    0x80,
+    0x00,
+    0x80,
+    0x00,
+    0x80,
+    0x00,
+    0xFE,
+    0x7F,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xE7,
+    0xD7,
+    0xE7,
+    0x93,
+    0x81,
+    0xFF,
+    0x81,
+    0x93,
+    0xE7,
+    0xD7,
+    0xE7,
+    0xFF,
+    0x3F,
+    0xF9,
+    0xFE,
+    0x7F,
+};
+static constexpr Bitmap bitmap_icon_games{
+    {16, 16},
+    bitmap_icon_games_data};
+
 static constexpr uint8_t bitmap_icon_tetra_data[] = {
     0xE0,
     0x0F,
