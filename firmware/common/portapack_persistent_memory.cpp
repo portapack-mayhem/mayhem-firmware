@@ -103,7 +103,7 @@ struct ui_config_t {
     uint8_t show_gui_return_icon : 1;
     uint8_t load_app_settings : 1;
     uint8_t save_app_settings : 1;
-    uint8_t show_large_qr_code : 1;  // Deprecated, but bit can be set by older firmware
+    uint8_t UNUSED_1 : 1;  // Deprecated, but bit can be set by older firmware
 
     bool disable_touchscreen : 1;
     bool hide_clock : 1;
