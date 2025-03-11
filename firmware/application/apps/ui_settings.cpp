@@ -728,6 +728,7 @@ SetButtonsView::SetButtonsView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
+<<<<<<< HEAD
                   &button_dial_sensitivity_plus,
                   &button_dial_sensitivity_minus,
                   &button_rate_multiplier_plus,
@@ -761,6 +762,20 @@ SetButtonsView::SetButtonsView(NavigationView& nav) {
         pmem::set_encoder_rate_multiplier(field_encoder_rate_multiplier.value());
         pmem::set_encoder_dial_direction(field_encoder_dial_direction.selected_index_value());
 >>>>>>> 55db0e8c (Add the feature to decide rotate direction of encoder (#2472))
+=======
+                  &field_repeat_delay,
+                  &field_repeat_speed,
+                  &field_long_press_delay});
+
+    field_repeat_delay.set_by_value(pmem::ui_button_repeat_delay());
+    field_repeat_speed.set_by_value(pmem::ui_button_repeat_speed());
+    field_long_press_delay.set_by_value(pmem::ui_button_long_press_delay());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_ui_button_repeat_delay(field_repeat_delay.selected_index_value());
+        pmem::set_ui_button_repeat_speed(field_repeat_speed.selected_index_value());
+        pmem::set_ui_button_long_press_delay(field_long_press_delay.selected_index_value());
+>>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
         nav.pop();
     };
 

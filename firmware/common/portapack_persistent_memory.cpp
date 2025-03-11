@@ -104,10 +104,14 @@ struct ui_config_t {
     uint8_t load_app_settings : 1;
     uint8_t save_app_settings : 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint8_t UNUSED_7 : 1;  // Deprecated, but bit can be set by older firmware
 =======
     uint8_t UNUSED_1 : 1;  // Deprecated, but bit can be set by older firmware
 >>>>>>> b4112f0c (Remove deprecated QR Code code (#2558))
+=======
+    uint8_t UNUSED_7 : 1;  // Deprecated, but bit can be set by older firmware
+>>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
 
     bool disable_touchscreen : 1;
     bool hide_clock : 1;
@@ -142,7 +146,10 @@ struct ui_config2_t {
     bool button_repeat_delay : 1;
     bool button_repeat_speed : 1;
     bool button_long_press_delay : 1;
+<<<<<<< HEAD
     bool battery_charge_hint : 1;
+=======
+>>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
 
     uint8_t theme_id;
 };
@@ -1012,9 +1019,12 @@ bool ui_button_repeat_speed() {
 bool ui_button_long_press_delay() {
     return data->ui_config2.button_long_press_delay;
 }
+<<<<<<< HEAD
 bool ui_battery_charge_hint() {
     return data->ui_config2.battery_charge_hint;
 }
+=======
+>>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
@@ -1069,9 +1079,12 @@ void set_ui_button_repeat_speed(bool v) {
 void set_ui_button_long_press_delay(bool v) {
     data->ui_config2.button_long_press_delay = v;
 }
+<<<<<<< HEAD
 void set_ui_battery_charge_hint(bool v) {
     data->ui_config2.battery_charge_hint = v;
 }
+=======
+>>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
 
 /* Converter */
 bool config_converter() {
@@ -1334,7 +1347,6 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon));
     pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings));
     pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings));
-    // pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_large_qr_code));
     pmem_dump_file.write_line("ui_config disable_touchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen));
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
@@ -1359,6 +1371,9 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(data->ui_config2.hide_numeric_battery));
     pmem_dump_file.write_line("ui_config2 theme_id: " + to_string_dec_uint(data->ui_config2.theme_id));
     pmem_dump_file.write_line("ui_config2 override_batt_calc: " + to_string_dec_uint(data->ui_config2.override_batt_calc));
+    pmem_dump_file.write_line("ui_config2 button_repeat_delay: " + to_string_dec_uint(data->ui_config2.button_repeat_delay));
+    pmem_dump_file.write_line("ui_config2 button_repeat_speed: " + to_string_dec_uint(data->ui_config2.button_repeat_speed));
+    pmem_dump_file.write_line("ui_config2 button_long_press_delay: " + to_string_dec_uint(data->ui_config2.button_long_press_delay));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
