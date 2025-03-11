@@ -340,6 +340,9 @@ bool ui_hide_battery_icon();
 bool ui_hide_sd_card();
 uint8_t ui_theme_id();
 bool ui_override_batt_calc();
+bool ui_button_repeat_delay();
+bool ui_button_repeat_speed();
+bool ui_button_long_press_delay();
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
 void set_ui_hide_converter(bool v);
@@ -354,6 +357,9 @@ void set_ui_hide_battery_icon(bool v);
 void set_ui_hide_sd_card(bool v);
 void set_ui_theme_id(uint8_t v);
 void set_ui_override_batt_calc(bool v);
+void set_ui_button_repeat_delay(bool v);
+void set_ui_button_repeat_speed(bool v);
+void set_ui_button_long_press_delay(bool v);
 
 // sd persisting settings
 bool should_use_sdcard_for_pmem();
