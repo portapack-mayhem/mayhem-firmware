@@ -55,7 +55,7 @@ class OOKBruteView : public View {
 
     Labels labels{
         {{0 * 8, 2 * 16}, "Start Position:", Theme::getInstance()->fg_light->foreground},
-        {{11 * 8, 7 * 16}, "Stop Position:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Stop Position:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 13 * 16}, "Encoder Type:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_startstop{
