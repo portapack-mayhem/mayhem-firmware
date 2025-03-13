@@ -25,7 +25,7 @@
  #define RES_DIVIDER 2
  #define DISTANCE_MULTIPLIER 20
  #define ROT_SPEED 0.12
- #define MOV_SPEED 0.5
+ #define MOV_SPEED 0.6
  #define JOGGING_SPEED 0.005
  #define MAX_ENTITY_DISTANCE 200
  #define ITEM_COLLIDER_DIST 6
@@ -64,6 +64,7 @@
      double velocity;
      uint8_t health;
      uint8_t keys;
+     uint8_t ammo;
  };
  
  struct Entity {
@@ -145,8 +146,11 @@
  static bool up, down, left, right, fired;
  static double jogging, view_height;
  static bool needs_redraw = false;
+ static bool needs_gun_redraw = false;
  static uint8_t gun_pos = GUN_TARGET_POS;
  static bool gun_fired = false;
+ static int prev_gun_x = 0;
+ static int prev_gun_y = 0;
  
  Coords create_coords(double x, double y) {
      Coords c;
@@ -163,6 +167,7 @@
     p.velocity = 0;
     p.health = 100;
     p.keys = 0;
+    p.ammo = 50;
     return p;
 }
  
@@ -217,19 +222,22 @@
  }
  
  void fire() {
-     for (uint8_t i = 0; i < num_entities; i++) {
-         if (entities[i].state == 5) continue;
-         Coords transform = translate_into_view(entities[i].pos);
-         if (fabs(transform.x) < 20 && transform.y > 0) {
-             uint8_t damage = fmin(GUN_MAX_DAMAGE, GUN_MAX_DAMAGE / (fabs(transform.x) * entities[i].distance) / 5);
-             if (damage > 0) {
-                 entities[i].health = fmax(0, entities[i].health - damage);
-                 entities[i].state = 4;
-                 entities[i].timer = 4;
-             }
-         }
-     }
- }
+    if (player.ammo > 0) {
+        for (uint8_t i = 0; i < num_entities; i++) {
+            if (entities[i].state == 5) continue;
+            Coords transform = translate_into_view(entities[i].pos);
+            if (fabs(transform.x) < 20 && transform.y > 0) {
+                uint8_t damage = fmin(GUN_MAX_DAMAGE, GUN_MAX_DAMAGE / (fabs(transform.x) * entities[i].distance) / 5);
+                if (damage > 0) {
+                    entities[i].health = fmax(0, entities[i].health - damage);
+                    entities[i].state = 4;
+                    entities[i].timer = 4;
+                }
+            }
+        }
+        player.ammo--;
+    }
+}
  
  void update_entities() {
      uint8_t i = 0;
@@ -275,6 +283,7 @@
  
  void update_game() {
     bool state_changed = false;
+    bool gun_only_change = false;
 
     if (scene == 1) {
         if (player.health > 0) {
@@ -340,19 +349,20 @@
 
             if (gun_pos > GUN_TARGET_POS) {
                 gun_pos -= 1;
-                state_changed = true;
+                gun_only_change = true;
             } else if (gun_pos < GUN_TARGET_POS) {
                 gun_pos += 2;
-                state_changed = true;
+                gun_only_change = true;
             } else if (!gun_fired && fired) {
                 gun_pos = GUN_SHOT_POS;
                 gun_fired = true;
                 fired = false;
                 fire();
-                state_changed = true;
+                gun_only_change = true;
+                needs_gun_redraw = true; 
             } else if (gun_fired && !fired) {
                 gun_fired = false;
-                state_changed = true;
+                gun_only_change = true;
             }
         } else {
             if (view_height > -10) {
@@ -361,13 +371,14 @@
             }
             if (gun_pos > 1) {
                 gun_pos -= 2;
-                state_changed = true;
+                gun_only_change = true;
             }
         }
         update_entities();
     }
 
-    if (state_changed) needs_redraw = true;
+    if (state_changed && !gun_only_change) needs_redraw = true;
+    else if (gun_only_change) needs_gun_redraw = true;
 }
  
  static void game_timer_check() {
@@ -376,11 +387,15 @@
  
  void render_gun(Painter& painter, uint8_t gun_pos, double jogging) {
     int x = HALF_WIDTH - GUN_WIDTH / 2 + sin(LPC_RTC->CTIME0 * JOGGING_SPEED) * 10 * jogging;
-    int y = RENDER_HEIGHT - gun_pos + fabs(cos(LPC_RTC->CTIME0 * JOGGING_SPEED)) * 8 * jogging;
+    int y = RENDER_HEIGHT - gun_pos - 29 + fabs(cos(LPC_RTC->CTIME0 * JOGGING_SPEED)) * 8 * jogging; // Raise gun by 29
+
+    prev_gun_x = x;
+    prev_gun_y = y;
 
     painter.fill_rectangle({x + 8, y, 14, 18}, pp_colors[Blue]);
     painter.fill_rectangle({x + 10, y + 18, 12, 10}, pp_colors[Blue]);
     painter.fill_rectangle({x + 12, y + 28, 8, 12}, pp_colors[Blue]);
+    
     painter.fill_rectangle({x + 10, y - 2, 8, 2}, pp_colors[White]);
     painter.fill_rectangle({x + 8, y + 2, 2, 14}, pp_colors[White]);
     painter.fill_rectangle({x + 20, y + 2, 2, 14}, pp_colors[Black]);
@@ -392,7 +407,22 @@
     painter.fill_rectangle({x + 20, y + 14, 4, 4}, pp_colors[Black]);
 
     if (gun_pos > GUN_TARGET_POS) {
-        painter.fill_rectangle({x + 14, y - 6, 6, 4}, pp_colors[Yellow]);
+        int flash_size = 6 + (gun_pos - GUN_TARGET_POS);
+        int flash_offset = (gun_pos - GUN_TARGET_POS) / 2;
+        
+        painter.fill_rectangle({x + 12 - flash_offset, y - flash_size, flash_size + 4, flash_size}, pp_colors[Yellow]);
+        
+        painter.fill_rectangle({x + 14 - flash_offset/2, y - flash_size + 1, flash_size/2, flash_size - 2}, pp_colors[White]);
+        
+        if (flash_size > 8) {
+            painter.fill_rectangle({x + 9, y - 2, 2, 2}, pp_colors[Yellow]);
+            painter.fill_rectangle({x + 19, y - 3, 2, 2}, pp_colors[Yellow]);
+        }
+    }
+    
+    if (gun_pos > GUN_TARGET_POS) {
+        int recoil_offset = (gun_pos - GUN_TARGET_POS) / 2;
+        painter.fill_rectangle({x + 9 + recoil_offset, y + 10, 12, 2}, pp_colors[Black]);
     }
 }
  
@@ -422,6 +452,10 @@
         double camera_x = 2 * (double)x / SCREEN_WIDTH - 1;
         double ray_x = player.dir.x + player.plane.x * camera_x;
         double ray_y = player.dir.y + player.plane.y * camera_x;
+        
+        if (fabs(ray_x) < 0.00001) ray_x = 0.00001;
+        if (fabs(ray_y) < 0.00001) ray_y = 0.00001;
+        
         uint8_t map_x = (uint8_t)player.pos.x;
         uint8_t map_y = (uint8_t)player.pos.y;
         double delta_x = fabs(1 / ray_x);
@@ -447,62 +481,119 @@
 
         uint8_t depth = 0;
         bool hit = false;
-        bool side;
-        while (!hit && depth < MAX_RENDER_DEPTH) {
-            if (side_x < side_y) {
-                side_x += delta_x;
-                map_x += step_x;
-                side = false;
-            } else {
-                side_y += delta_y;
-                map_y += step_y;
-                side = true;
-            }
-            uint8_t block = get_block_at(map_x, map_y);
-            if (block == 0xF) {
-                hit = true;
-            } else if (block == 0x2) {
-                double distance = sqrt(pow(map_x - player.pos.x, 2) + pow(map_y - player.pos.y, 2)) * DISTANCE_MULTIPLIER;
-                if (distance < MAX_ENTITY_DISTANCE) {
-                    bool exists = false;
-                    for (uint8_t i = 0; i < num_entities; i++) {
-                        if (entities[i].uid == ((((uint8_t)map_y << 6) | (uint8_t)map_x) << 4 | 0x2)) {
-                            exists = true;
+        bool side = false;
+        double perpWallDist = 0.0;
+        
+        bool close_wall_handled = false;
+        uint8_t current_block = get_block_at(map_x, map_y);
+        if (current_block == 0xF) {
+            hit = true;
+            perpWallDist = 0.1;
+            close_wall_handled = true;
+        } else {
+            uint8_t check_blocks[4][3] = {
+                {(uint8_t)(map_x + 1), map_y, 0},
+                {(uint8_t)(map_x - 1), map_y, 0},
+                {map_x, (uint8_t)(map_y + 1), 1},
+                {map_x, (uint8_t)(map_y - 1), 1}
+            };
+            
+            for (int i = 0; i < 4; i++) {
+                if (get_block_at(check_blocks[i][0], check_blocks[i][1]) == 0xF) {
+                    double dist_to_wall;
+                    if (check_blocks[i][2] == 0) {
+                        dist_to_wall = (check_blocks[i][0] > map_x) ? 
+                            check_blocks[i][0] - player.pos.x : 
+                            player.pos.x - check_blocks[i][0];
+                    } else {
+                        dist_to_wall = (check_blocks[i][1] > map_y) ? 
+                            check_blocks[i][1] - player.pos.y : 
+                            player.pos.y - check_blocks[i][1];
+                    }
+                    
+                    if (dist_to_wall < 0.2) {
+                        double dot_product;
+                        if (check_blocks[i][2] == 0) {
+                            double wall_normal_x = (check_blocks[i][0] > map_x) ? -1.0 : 1.0;
+                            dot_product = ray_x * wall_normal_x;
+                        } else {
+                            double wall_normal_y = (check_blocks[i][1] > map_y) ? -1.0 : 1.0;
+                            dot_product = ray_y * wall_normal_y;
+                        }
+                        
+                        if (dot_product < 0) {
+                            hit = true;
+                            side = (check_blocks[i][2] == 1);
+                            perpWallDist = fmax(0.1, dist_to_wall);
+                            close_wall_handled = true;
                             break;
                         }
                     }
-                    if (!exists) spawn_entity(0x2, map_x, map_y);
                 }
             }
-            depth++;
         }
-
-        int start_y = 0;
-        int end_y = RENDER_HEIGHT;
-        double distance = 0;
-        if (hit) {
-            distance = side ? (map_y - player.pos.y + (1 - step_y) / 2) / ray_y : (map_x - player.pos.x + (1 - step_x) / 2) / ray_x;
-            distance = fmax(1, distance);
-        } else if (depth < 2) {
-            uint8_t check_x = (uint8_t)(player.pos.x + ray_x);
-            uint8_t check_y = (uint8_t)(player.pos.y + ray_y);
-            if (get_block_at(check_x, map_y) == 0xF || get_block_at(map_x, check_y) == 0xF) {
-                distance = sqrt(pow(check_x - player.pos.x, 2) + pow(check_y - player.pos.y, 2));
-                distance = fmax(1, distance);
-                hit = true;
+        
+        if (!close_wall_handled) {
+            while (!hit && depth < MAX_RENDER_DEPTH) {
+                if (side_x < side_y) {
+                    side_x += delta_x;
+                    map_x += step_x;
+                    side = false;
+                } else {
+                    side_y += delta_y;
+                    map_y += step_y;
+                    side = true;
+                }
+                
+                uint8_t block = get_block_at(map_x, map_y);
+                if (block == 0xF) {
+                    hit = true;
+                    if (side == false) {
+                        perpWallDist = (map_x - player.pos.x + (1 - step_x) / 2) / ray_x;
+                    } else {
+                        perpWallDist = (map_y - player.pos.y + (1 - step_y) / 2) / ray_y;
+                    }
+                } else if (block == 0x2) {
+                    double distance = sqrt(pow(map_x - player.pos.x, 2) + pow(map_y - player.pos.y, 2)) * DISTANCE_MULTIPLIER;
+                    if (distance < MAX_ENTITY_DISTANCE) {
+                        bool exists = false;
+                        for (uint8_t i = 0; i < num_entities; i++) {
+                            if (entities[i].uid == ((((uint8_t)map_y << 6) | (uint8_t)map_x) << 4 | 0x2)) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) spawn_entity(0x2, map_x, map_y);
+                    }
+                }
+                depth++;
             }
         }
 
+        if (perpWallDist <= 0) perpWallDist = 0.1;
+        
+        int start_y = 0;
+        int end_y = RENDER_HEIGHT;
+        
         if (hit) {
-            uint8_t line_height = RENDER_HEIGHT / distance;
-            start_y = view_height / distance - line_height / 2 + RENDER_HEIGHT / 2;
-            end_y = view_height / distance + line_height / 2 + RENDER_HEIGHT / 2;
+            uint8_t line_height = fmin(255, RENDER_HEIGHT / perpWallDist);
+            
+            start_y = view_height / perpWallDist - line_height / 2 + RENDER_HEIGHT / 2;
+            end_y = view_height / perpWallDist + line_height / 2 + RENDER_HEIGHT / 2;
+            
             if (start_y < 0) start_y = 0;
             if (end_y > RENDER_HEIGHT) end_y = RENDER_HEIGHT;
 
-            uint8_t brightness = fmax(64, 255 - (distance * 20));
+            uint8_t brightness = fmax(64, 255 - (perpWallDist * 20));
             uint8_t noise = ((map_x * 17 + map_y * 23) & 0x0F);
-            Color wall_color = Color(brightness / 4, brightness - noise, brightness / 4);
+            
+            Color wall_color;
+            if (!side) {
+                wall_color = Color(brightness / 4, brightness - noise, brightness / 4);
+            } else {
+                wall_color = Color(brightness / 5, (brightness - noise) * 0.8, brightness / 5);
+            }
+            
             painter.fill_rectangle({x, start_y, RES_DIVIDER, end_y - start_y}, wall_color);
         }
 
@@ -519,7 +610,7 @@
  
  DoomView::DoomView(NavigationView& nav) : nav_{nav} {
      add_children({&dummy});
-     game_timer.attach(&game_timer_check, 1.0 / 30.0);
+     game_timer.attach(&game_timer_check, 1.0 / 60.0);
  }
  
  void DoomView::on_show() {
@@ -527,93 +618,136 @@
  }
  
  void DoomView::paint(Painter& painter) {
-     if (!initialized) {
-         initialized = true;
-         std::srand(LPC_RTC->CTIME0);
-         scene = 0;
-         up = down = left = right = fired = false;
-         jogging = view_height = 0;
-         gun_pos = GUN_TARGET_POS;
-         gun_fired = false;
-         num_entities = 0;
-         painter.fill_rectangle({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
-         needs_redraw = true;
-     }
+    if (!initialized) {
+        initialized = true;
+        std::srand(LPC_RTC->CTIME0);
+        scene = 0;
+        up = down = left = right = fired = false;
+        jogging = view_height = 0;
+        gun_pos = GUN_TARGET_POS;
+        gun_fired = false;
+        num_entities = 0;
+        prev_gun_x = 0;
+        prev_gun_y = 0;
+        painter.fill_rectangle({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
+        needs_redraw = true;
+        needs_gun_redraw = false;
+    }
+
+    if (scene == 0) {
+        auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
+        painter.draw_string({50, 40}, style_yellow, "* * * DOOM * * *");
+        auto style_green = *ui::Theme::getInstance()->fg_green;
+        painter.draw_string({15, 240}, style_green, "** PRESS SELECT TO START **");
+    } else if (scene == 1) {
+        if (needs_redraw) {
+            bool full_clear = (player.velocity == 0 || !prev_velocity_moving);
+            render_map(painter, full_clear);
+            render_entities(painter);
+            render_gun(painter, gun_pos, jogging);
+            painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
+            auto style_green = *ui::Theme::getInstance()->fg_green;
+            painter.draw_string({5, RENDER_HEIGHT + 5}, style_green, "Health: " + std::to_string(player.health));
+            painter.draw_string({150, RENDER_HEIGHT + 5}, style_green, "Ammo: " + std::to_string(player.ammo));
+            prev_velocity_moving = (player.velocity != 0);
+            needs_redraw = false;
+            needs_gun_redraw = false;
+        } else if (needs_gun_redraw) {
+            int current_x = HALF_WIDTH - GUN_WIDTH / 2 + sin(LPC_RTC->CTIME0 * JOGGING_SPEED) * 10 * jogging;
+            int current_y = RENDER_HEIGHT - gun_pos - 29 + fabs(cos(LPC_RTC->CTIME0 * JOGGING_SPEED)) * 8 * jogging; // Raise gun by 29
+            
+            int flash_height = (gun_pos > GUN_TARGET_POS) ? (gun_pos - GUN_TARGET_POS) * 2 + 10 : 0;
+            int flash_width = (gun_pos > GUN_TARGET_POS) ? GUN_WIDTH + (gun_pos - GUN_TARGET_POS) * 2 : GUN_WIDTH;
+            
+            int min_x = fmin(current_x, prev_gun_x) - 10;
+            int min_y = fmin(current_y, prev_gun_y) - flash_height - 10;
+            int max_x = fmax(current_x, prev_gun_x) + flash_width + 10;
+            int max_y = fmax(current_y, prev_gun_y) + GUN_HEIGHT + 10;
+            
+            min_x = fmax(0, min_x);
+            min_y = fmax(0, min_y);
+            max_x = fmin(SCREEN_WIDTH, max_x);
+            max_y = fmin(RENDER_HEIGHT, max_y);
+            
+            int height = max_y - min_y;
+            
+            if (min_y < RENDER_HEIGHT / 2) {
+                int sky_height = fmin(height, RENDER_HEIGHT / 2 - min_y);
+                painter.fill_rectangle({min_x, min_y, max_x - min_x, sky_height}, Color(64, 64, 128));
+            }
+            
+            if (max_y > RENDER_HEIGHT / 2) {
+                int floor_y = fmax(min_y, RENDER_HEIGHT / 2);
+                int floor_height = max_y - floor_y;
+                painter.fill_rectangle({min_x, floor_y, max_x - min_x, floor_height}, Color(32, 32, 32));
+            }
+            
+            render_gun(painter, gun_pos, jogging);
+            painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
+            auto style_green = *ui::Theme::getInstance()->fg_green;
+            painter.draw_string({5, RENDER_HEIGHT + 5}, style_green, "Health: " + std::to_string(player.health));
+            painter.draw_string({150, RENDER_HEIGHT + 5}, style_green, "Ammo: " + std::to_string(player.ammo));
+            
+            needs_gun_redraw = false;
+        }
+    }
+}
  
-     if (scene == 0) {
-         auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
-         painter.draw_string({50, 40}, style_yellow, "* * * DOOM * * *");
-         auto style_green = *ui::Theme::getInstance()->fg_green;
-         painter.draw_string({15, 240}, style_green, "** PRESS SELECT TO START **");
-     } else if (scene == 1) {
-         bool full_clear = needs_redraw && (player.velocity == 0 || !prev_velocity_moving);
-         render_map(painter, full_clear);
-         render_entities(painter);
-         render_gun(painter, gun_pos, jogging);
-         painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
-         auto style_green = *ui::Theme::getInstance()->fg_green;
-         painter.draw_string({5, RENDER_HEIGHT + 5}, style_green, "Health: " + std::to_string(player.health));
-         prev_velocity_moving = (player.velocity != 0);
-         needs_redraw = false;
-     }
- }
+void DoomView::frame_sync() {
+    if (scene == 1) {
+        update_game();
+        if (needs_redraw || needs_gun_redraw) set_dirty();
+    }
+}
  
- void DoomView::frame_sync() {
-     if (scene == 1) {
-         update_game();
-         if (needs_redraw) set_dirty();
-     }
- }
- 
- bool DoomView::on_key(const KeyEvent key) {
-     if (key == KeyEvent::Select && scene == 0) {
-         scene = 1;
-         initialize_level();
-         needs_redraw = true;
-         set_dirty();
-         return true;
-     }
-     if (scene == 1) {
-         if (player.health > 0) {
-             if (key == KeyEvent::Up) {
-                 up = true;
-                 needs_redraw = true;
-                 set_dirty();
-                 return true;
-             }
-             if (key == KeyEvent::Down) {
-                 down = true;
-                 needs_redraw = true;
-                 set_dirty();
-                 return true;
-             }
-             if (key == KeyEvent::Left) {
-                 left = true;
-                 needs_redraw = true;
-                 set_dirty();
-                 return true;
-             }
-             if (key == KeyEvent::Right) {
-                 right = true;
-                 needs_redraw = true;
-                 set_dirty();
-                 return true;
-             }
-             if (key == KeyEvent::Select) {
-                 fired = true;
-                 needs_redraw = true;
-                 set_dirty();
-                 return true;
-             }
-         } else if (key == KeyEvent::Select) {
-             scene = 0;
-             initialized = false;
-             needs_redraw = true;
-             set_dirty();
-             return true;
-         }
-     }
-     return false;
- }
+bool DoomView::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Select && scene == 0) {
+        scene = 1;
+        initialize_level();
+        needs_redraw = true;
+        set_dirty();
+        return true;
+    }
+    if (scene == 1) {
+        if (player.health > 0) {
+            if (key == KeyEvent::Up) {
+                up = true;
+                needs_redraw = true;
+                set_dirty();
+                return true;
+            }
+            if (key == KeyEvent::Down) {
+                down = true;
+                needs_redraw = true;
+                set_dirty();
+                return true;
+            }
+            if (key == KeyEvent::Left) {
+                left = true;
+                needs_redraw = true;
+                set_dirty();
+                return true;
+            }
+            if (key == KeyEvent::Right) {
+                right = true;
+                needs_redraw = true;
+                set_dirty();
+                return true;
+            }
+            if (key == KeyEvent::Select) {
+                fired = true;
+                set_dirty();
+                return true;
+            }
+        } else if (key == KeyEvent::Select) {
+            scene = 0;
+            initialized = false;
+            needs_redraw = true;
+            set_dirty();
+            return true;
+        }
+    }
+    return false;
+}
  
  }  // namespace ui::external_app::doom
