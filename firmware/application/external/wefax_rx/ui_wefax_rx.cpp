@@ -24,7 +24,7 @@ TODOS LATER:
  - add load data from wav file (maybe to a separate app, not this)
  - AGC?!?
  - fix and enable sync detection
- - auto start / stop bmp save
+ - auto start / stop bmp save on each image
 */
 
 #include "ui_wefax_rx.hpp"
@@ -74,7 +74,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
 
     field_frequency.set_step(100);
     audio::output::start();
-    receiver_model.set_hidden_offset(-300);
+    receiver_model.set_hidden_offset(-2200);
     receiver_model.enable();
 
     txt_status.set("Waiting for signal.");
