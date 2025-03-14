@@ -300,12 +300,15 @@ void update_entities() {
                 double dx = player.pos.x - entities[i].pos.x;
                 double dy = player.pos.y - entities[i].pos.y;
                 double dist = sqrt(dx * dx + dy * dy);
-                double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
-                double new_x = entities[i].pos.x + (dx / dist) * move_dist;
-                double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
-                    entities[i].pos.x = new_x;
-                    entities[i].pos.y = new_y;
+                double dot = dx * player.dir.x + dy * player.dir.y;
+                if (dot > 0) {
+                    double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
+                    double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+                    double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+                    if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                        entities[i].pos.x = new_x;
+                        entities[i].pos.y = new_y;
+                    }
                 }
             }
             if (entities[i].state != 3) {
@@ -320,12 +323,15 @@ void update_entities() {
             double dx = player.pos.x - entities[i].pos.x;
             double dy = player.pos.y - entities[i].pos.y;
             double dist = sqrt(dx * dx + dy * dy);
-            double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
-            double new_x = entities[i].pos.x + (dx / dist) * move_dist;
-            double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-            if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF && dist > ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER) {
-                entities[i].pos.x = new_x;
-                entities[i].pos.y = new_y;
+            double dot = dx * player.dir.x + dy * player.dir.y;
+            if (dot > 0) {
+                double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
+                double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+                double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF && dist > ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER) {
+                    entities[i].pos.x = new_x;
+                    entities[i].pos.y = new_y;
+                }
             }
         }
         i++;
