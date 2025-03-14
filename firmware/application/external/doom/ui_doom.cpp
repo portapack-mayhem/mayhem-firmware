@@ -68,13 +68,14 @@
  };
  
  struct Entity {
-     uint16_t uid;
-     Coords pos;
-     uint8_t state;
-     uint8_t health;
-     uint8_t distance;
-     uint8_t timer;
- };
+    uint16_t uid;
+    Coords pos;
+    Coords death_pos;
+    uint8_t state;
+    uint8_t health;
+    uint8_t distance;
+    uint8_t timer;
+};
  
  static const uint8_t level[LEVEL_SIZE] = {
      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -142,6 +143,7 @@
  static Player player;
  static Entity entities[MAX_ENTITIES];
  static uint8_t num_entities = 0;
+ static uint16_t kills = 0;
  static uint8_t scene = 0;
  static bool up, down, left, right, fired;
  static double jogging, view_height;
@@ -171,16 +173,17 @@
     return p;
 }
  
- Entity create_entity(uint8_t type, uint8_t x, uint8_t y, uint8_t state, uint8_t health) {
-     Entity e;
-     e.uid = ((y << 6) | x) << 4 | type;
-     e.pos = create_coords(x + 0.5, y + 0.5);
-     e.state = state;
-     e.health = health;
-     e.distance = 0;
-     e.timer = 0;
-     return e;
- }
+Entity create_entity(uint8_t type, uint8_t x, uint8_t y, uint8_t state, uint8_t health) {
+    Entity e;
+    e.uid = ((y << 6) | x) << 4 | type;
+    e.pos = create_coords(x + 0.5, y + 0.5);
+    e.death_pos = create_coords(x + 0.5, y + 0.5);
+    e.state = state;
+    e.health = health;
+    e.distance = 0;
+    e.timer = 0;
+    return e;
+}
  
  uint8_t get_block_at(uint8_t x, uint8_t y) {
      if (x >= LEVEL_WIDTH || y >= LEVEL_HEIGHT) return 0xF;
@@ -200,38 +203,43 @@
  }
  
  Coords translate_into_view(Coords pos) {
-     double sprite_x = pos.x - player.pos.x;
-     double sprite_y = pos.y - player.pos.y;
-     double inv_det = 1.0 / (player.plane.x * player.dir.y - player.dir.x * player.plane.y);
-     double transform_x = inv_det * (player.dir.y * sprite_x - player.dir.x * sprite_y);
-     double transform_y = inv_det * (-player.plane.y * sprite_x + player.plane.x * sprite_y);
-     return create_coords(transform_x, transform_y);
- }
+    double sprite_x = pos.x - player.pos.x;
+    double sprite_y = pos.y - player.pos.y;
+    double inv_det = 1.0 / (player.plane.x * player.dir.y - player.dir.x * player.plane.y);
+    double transform_x = inv_det * (player.dir.y * sprite_x - player.dir.x * sprite_y);
+    double transform_y = inv_det * (-player.plane.y * sprite_x + player.plane.x * sprite_y);
+    return create_coords(transform_x, transform_y);
+}
  
- void spawn_entity(uint8_t type, uint8_t x, uint8_t y) {
-     if (num_entities >= MAX_ENTITIES) return;
-     entities[num_entities] = create_entity(type, x, y, 0, 50);
-     num_entities++;
- }
+void spawn_entity(uint8_t type, uint8_t x, uint8_t y) {
+    if (num_entities >= MAX_ENTITIES) return;
+    entities[num_entities] = create_entity(type, x, y, 0, 50);
+    num_entities++;
+}
  
- void remove_entity(uint8_t index) {
-     for (uint8_t i = index; i < num_entities - 1; i++) {
-         entities[i] = entities[i + 1];
-     }
-     num_entities--;
- }
+void remove_entity(uint8_t index) {
+    for (uint8_t i = index; i < num_entities - 1; i++) {
+        entities[i] = entities[i + 1];
+    }
+    num_entities--;
+}
  
  void fire() {
     if (player.ammo > 0) {
         for (uint8_t i = 0; i < num_entities; i++) {
             if (entities[i].state == 5) continue;
-            Coords transform = translate_into_view(entities[i].pos);
-            if (fabs(transform.x) < 20 && transform.y > 0) {
-                uint8_t damage = fmin(GUN_MAX_DAMAGE, GUN_MAX_DAMAGE / (fabs(transform.x) * entities[i].distance) / 5);
+            double dx = entities[i].pos.x - player.pos.x;
+            double dy = entities[i].pos.y - player.pos.y;
+            double dist = sqrt(dx * dx + dy * dy) * DISTANCE_MULTIPLIER;
+            double dot = dx * player.dir.x + dy * player.dir.y;
+            double angle = acos(dot / (dist / DISTANCE_MULTIPLIER));
+            if (dist < 100 && angle < 0.2 && dot > 0) {
+                uint8_t damage = fmin(GUN_MAX_DAMAGE, GUN_MAX_DAMAGE * (100 - dist) / 100);
                 if (damage > 0) {
                     entities[i].health = fmax(0, entities[i].health - damage);
                     entities[i].state = 4;
                     entities[i].timer = 4;
+                    needs_redraw = true;
                 }
             }
         }
@@ -239,49 +247,92 @@
     }
 }
  
- void update_entities() {
-     uint8_t i = 0;
-     while (i < num_entities) {
-         entities[i].distance = sqrt(pow(player.pos.x - entities[i].pos.x, 2) + pow(player.pos.y - entities[i].pos.y, 2)) * DISTANCE_MULTIPLIER;
-         if (entities[i].timer > 0) entities[i].timer--;
-         if (entities[i].distance > MAX_ENTITY_DISTANCE) {
-             remove_entity(i);
-             continue;
-         }
-         if (entities[i].health == 0) {
-             if (entities[i].state != 5) {
-                 entities[i].state = 5;
-                 entities[i].timer = 6;
-             }
-         } else if (entities[i].state == 4) {
-             if (entities[i].timer == 0) {
-                 entities[i].state = 0;
-             }
-         } else if (entities[i].distance <= ENEMY_MELEE_DIST) {
-             if (entities[i].state != 3) {
-                 entities[i].state = 3;
-                 entities[i].timer = 10;
-             } else if (entities[i].timer == 0) {
-                 player.health = fmax(0, player.health - ENEMY_MELEE_DAMAGE);
-                 entities[i].timer = 14;
-                 needs_redraw = true;
-             }
-         } else {
-             double dx = player.pos.x - entities[i].pos.x;
-             double dy = player.pos.y - entities[i].pos.y;
-             double dist = sqrt(dx * dx + dy * dy);
-             entities[i].pos.x += (dx / dist) * ENEMY_SPEED;
-             entities[i].pos.y += (dy / dist) * ENEMY_SPEED;
-             if (get_block_at((uint8_t)entities[i].pos.x, (uint8_t)entities[i].pos.y) == 0xF) {
-                 entities[i].pos.x -= (dx / dist) * ENEMY_SPEED;
-                 entities[i].pos.y -= (dy / dist) * ENEMY_SPEED;
-             }
-         }
-         i++;
-     }
- }
+void update_entities() {
+    uint8_t i = 0;
+    while (i < num_entities) {
+        entities[i].distance = sqrt(pow(player.pos.x - entities[i].pos.x, 2) + pow(player.pos.y - entities[i].pos.y, 2)) * DISTANCE_MULTIPLIER;
+        if (entities[i].timer > 0) entities[i].timer--;
+        if (entities[i].health == 0 && entities[i].state == 5 && entities[i].timer == 0) {
+            uint8_t old_x = (uint8_t)entities[i].death_pos.x;
+            uint8_t old_y = (uint8_t)entities[i].death_pos.y;
+            remove_entity(i);
+            if (num_entities == 0) {
+                uint8_t spawn_x, spawn_y;
+                if (kills == 0) {
+                    for (uint8_t y = LEVEL_HEIGHT - 1; y > 0; y--) {
+                        for (uint8_t x = 0; x < LEVEL_WIDTH; x++) {
+                            if (get_block_at(x, y) == 0x2) {
+                                spawn_x = x;
+                                spawn_y = y;
+                                spawn_entity(0x2, spawn_x, spawn_y);
+                                return;
+                            }
+                        }
+                    }
+                } else {
+                    spawn_x = std::rand() % LEVEL_WIDTH;
+                    spawn_y = std::rand() % LEVEL_HEIGHT;
+                    while (get_block_at(spawn_x, spawn_y) == 0xF || 
+                           (spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y) || 
+                           (spawn_x == old_x && spawn_y == old_y)) {
+                        spawn_x = std::rand() % LEVEL_WIDTH;
+                        spawn_y = std::rand() % LEVEL_HEIGHT;
+                    }
+                    spawn_entity(0x2, spawn_x, spawn_y);
+                }
+            }
+            continue;
+        }
+        if (entities[i].health == 0) {
+            if (entities[i].state != 5) {
+                entities[i].state = 5;
+                entities[i].timer = 6;
+                entities[i].death_pos = entities[i].pos;
+                kills++;
+                needs_redraw = true;
+            }
+        } else if (entities[i].state == 4) {
+            if (entities[i].timer == 0) {
+                entities[i].state = 0;
+            }
+        } else if (entities[i].distance <= ENEMY_MELEE_DIST + 1) {
+            if (entities[i].distance > ENEMY_MELEE_DIST) {
+                double dx = player.pos.x - entities[i].pos.x;
+                double dy = player.pos.y - entities[i].pos.y;
+                double dist = sqrt(dx * dx + dy * dy);
+                double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
+                double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+                double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                    entities[i].pos.x = new_x;
+                    entities[i].pos.y = new_y;
+                }
+            }
+            if (entities[i].state != 3) {
+                entities[i].state = 3;
+                entities[i].timer = 10;
+            } else if (entities[i].timer == 0) {
+                player.health = fmax(0, player.health - ENEMY_MELEE_DAMAGE);
+                entities[i].timer = 14;
+                needs_redraw = true;
+            }
+        } else if (entities[i].distance <= MAX_ENTITY_DISTANCE) {
+            double dx = player.pos.x - entities[i].pos.x;
+            double dy = player.pos.y - entities[i].pos.y;
+            double dist = sqrt(dx * dx + dy * dy);
+            double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
+            double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+            double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+            if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF && dist > ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER) {
+                entities[i].pos.x = new_x;
+                entities[i].pos.y = new_y;
+            }
+        }
+        i++;
+    }
+}
  
- void update_game() {
+void update_game() {
     bool state_changed = false;
     bool gun_only_change = false;
 
@@ -353,16 +404,12 @@
             } else if (gun_pos < GUN_TARGET_POS) {
                 gun_pos += 2;
                 gun_only_change = true;
-            } else if (!gun_fired && fired) {
+            } else if (fired) {
                 gun_pos = GUN_SHOT_POS;
-                gun_fired = true;
-                fired = false;
                 fire();
+                needs_gun_redraw = true;
                 gun_only_change = true;
-                needs_gun_redraw = true; 
-            } else if (gun_fired && !fired) {
-                gun_fired = false;
-                gun_only_change = true;
+                fired = false;  
             }
         } else {
             if (view_height > -10) {
@@ -426,29 +473,85 @@
     }
 }
  
- void render_entities(Painter& painter) {
-     for (uint8_t i = 0; i < num_entities; i++) {
-         Coords transform = translate_into_view(entities[i].pos);
-         if (transform.y <= 0.1 || transform.y > MAX_RENDER_DEPTH) continue;
-         int16_t sprite_x = HALF_WIDTH * (1.0 + transform.x / transform.y);
-         int16_t sprite_y = HALF_HEIGHT + view_height / transform.y;
-         uint8_t size = ENEMY_SIZE / transform.y;
-         if (sprite_x < -size || sprite_x > SCREEN_WIDTH + size) continue;
-         if (entities[i].state == 5 && entities[i].timer == 0) {
-             painter.fill_rectangle({sprite_x - size / 2, sprite_y, size, size / 2}, pp_colors[COLOR_ENTITY]);
-         } else {
-             painter.fill_rectangle({sprite_x - size / 2, sprite_y - size / 2, size, size}, pp_colors[COLOR_ENTITY]);
-         }
-     }
- }
+void render_entities(Painter& painter) {
+    for (uint8_t i = 0; i < num_entities; i++) {
+        Coords transform = translate_into_view(entities[i].state == 5 ? entities[i].death_pos : entities[i].pos);
+        if (transform.y <= 0.1 || transform.y > MAX_RENDER_DEPTH) continue;
+        
+        int16_t sprite_x = HALF_WIDTH * (1.0 + transform.x / transform.y);
+        int16_t sprite_y = HALF_HEIGHT + view_height / transform.y;
+        uint8_t base_size = ENEMY_SIZE / fmax(0.1, transform.y);
+        
+        if (sprite_x < -base_size || sprite_x > SCREEN_WIDTH + base_size || sprite_y < 0 || sprite_y > RENDER_HEIGHT) continue;
+
+        uint8_t size = base_size * 2;
+        int16_t half_size = size / 2;
+        int16_t x_start = sprite_x - half_size;
+        int16_t y_start = sprite_y - half_size;
+
+        Color body_color = Color(120, 60, 20);
+        Color spine_color = Color(100, 40, 10);
+        Color eye_color = Color(255, 0, 0);
+        Color pupil_color = Color(0, 0, 0);
+        Color claw_color = Color(200, 200, 200);
+        Color teeth_color = Color(180, 180, 180);
+        Color blood_color = Color(150, 0, 0);
+
+        if (entities[i].state == 5 && entities[i].timer == 0) {
+            painter.fill_rectangle({x_start + size / 5, sprite_y, size * 3 / 5, size / 3}, body_color);
+            painter.fill_rectangle({x_start + size * 2 / 5, sprite_y + size / 6, size / 5, size / 6}, spine_color);
+            painter.fill_rectangle({x_start + size / 3, sprite_y + size / 8, size / 12, size / 12}, blood_color);
+            painter.fill_rectangle({x_start + size / 2, sprite_y + size / 6, size / 12, size / 12}, blood_color);
+            painter.fill_rectangle({x_start + size / 4, sprite_y + size / 4, size / 6, size / 12}, claw_color);
+        } else {
+            painter.fill_rectangle({x_start + size / 3, y_start + size / 4, size / 3, size * 3 / 4}, body_color);
+            painter.fill_rectangle({x_start + size * 5 / 12, y_start + size / 6, size / 6, size / 2}, spine_color);
+            painter.fill_rectangle({x_start + size * 3 / 8, y_start, size * 5 / 16, size / 3}, body_color);
+            painter.fill_rectangle({x_start + size * 5 / 12, y_start + size / 12, size / 6, size / 6}, eye_color);
+            painter.fill_rectangle({x_start + size * 7 / 16, y_start + size / 8, size / 24, size / 24}, pupil_color);
+            if (entities[i].state != 4) {
+                painter.fill_rectangle({x_start + size * 7 / 16, y_start + size / 12, size / 6, size / 6}, eye_color);
+                painter.fill_rectangle({x_start + size * 17 / 32, y_start + size / 8, size / 24, size / 24}, pupil_color);
+            }
+            if (entities[i].state == 3) {
+                painter.fill_rectangle({x_start, y_start + size * 5 / 12, size / 4, size / 6}, claw_color);
+                painter.fill_rectangle({x_start + size / 12, y_start + size / 2, size / 6, size / 4}, claw_color);
+                painter.fill_rectangle({x_start + size * 3 / 4, y_start + size * 5 / 12, size / 4, size / 6}, claw_color);
+                painter.fill_rectangle({x_start + size * 2 / 3, y_start + size / 2, size / 6, size / 4}, claw_color);
+            } else {
+                painter.fill_rectangle({x_start + size / 6, y_start + size / 2, size / 6, size / 6}, claw_color);
+                painter.fill_rectangle({x_start + size * 2 / 3, y_start + size / 2, size / 6, size / 6}, claw_color);
+            }
+            painter.fill_rectangle({x_start + size * 7 / 16, y_start + size * 5 / 16, size / 24, size / 24}, teeth_color);
+            painter.fill_rectangle({x_start + size * 9 / 16, y_start + size * 5 / 16, size / 24, size / 24}, teeth_color);
+            if (entities[i].state == 0 && LPC_RTC->CTIME0 % 2 == 0) {
+                painter.fill_rectangle({x_start + size / 4, y_start + size * 5 / 6, size / 6, size / 6}, body_color);
+                painter.fill_rectangle({x_start + size / 3, y_start + size * 11 / 12, size / 12, size / 12}, spine_color);
+                painter.fill_rectangle({x_start + size * 7 / 12, y_start + size * 3 / 4, size / 6, size / 4}, body_color);
+                painter.fill_rectangle({x_start + size * 2 / 3, y_start + size * 5 / 6, size / 12, size / 6}, spine_color);
+            } else {
+                painter.fill_rectangle({x_start + size / 4, y_start + size * 3 / 4, size / 6, size / 4}, body_color);
+                painter.fill_rectangle({x_start + size / 3, y_start + size * 5 / 6, size / 12, size / 6}, spine_color);
+                painter.fill_rectangle({x_start + size * 7 / 12, y_start + size * 5 / 6, size / 6, size / 6}, body_color);
+                painter.fill_rectangle({x_start + size * 2 / 3, y_start + size * 11 / 12, size / 12, size / 12}, spine_color);
+            }
+            if (entities[i].state == 4) {
+                painter.fill_rectangle({x_start + size / 2, y_start + size / 3, size / 12, size / 12}, blood_color);
+                painter.fill_rectangle({x_start + size * 5 / 12, y_start + size * 7 / 12, size / 12, size / 12}, blood_color);
+            }
+        }
+    }
+}
+
+
  
- void render_map(Painter& painter, bool full_clear) {
+ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t x_end = SCREEN_WIDTH) {
     if (full_clear) {
         painter.fill_rectangle({0, 0, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(64, 64, 128));
         painter.fill_rectangle({0, RENDER_HEIGHT / 2, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(32, 32, 32));
     }
 
-    for (uint8_t x = 0; x < SCREEN_WIDTH; x += RES_DIVIDER) {
+    for (uint8_t x = x_start; x < x_end; x += RES_DIVIDER) {
         double camera_x = 2 * (double)x / SCREEN_WIDTH - 1;
         double ray_x = player.dir.x + player.plane.x * camera_x;
         double ray_y = player.dir.y + player.plane.y * camera_x;
@@ -627,6 +730,7 @@
         gun_pos = GUN_TARGET_POS;
         gun_fired = false;
         num_entities = 0;
+        kills = 0;
         prev_gun_x = 0;
         prev_gun_y = 0;
         painter.fill_rectangle({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
@@ -646,15 +750,18 @@
             render_entities(painter);
             render_gun(painter, gun_pos, jogging);
             painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
-            auto style_green = *ui::Theme::getInstance()->fg_green;
-            painter.draw_string({5, RENDER_HEIGHT + 5}, style_green, "Health: " + std::to_string(player.health));
-            painter.draw_string({150, RENDER_HEIGHT + 5}, style_green, "Ammo: " + std::to_string(player.ammo));
+            auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
+            auto style_red = *ui::Theme::getInstance()->fg_red;
+            auto style_blue = *ui::Theme::getInstance()->fg_blue;
+            painter.draw_string({5, RENDER_HEIGHT + 5}, style_yellow, "Health: " + std::to_string(player.health));
+            painter.draw_string({100, RENDER_HEIGHT + 5}, style_red, "Kills: " + std::to_string(kills));
+            painter.draw_string({170, RENDER_HEIGHT + 5}, style_blue, "Ammo: " + std::to_string(player.ammo));
             prev_velocity_moving = (player.velocity != 0);
             needs_redraw = false;
             needs_gun_redraw = false;
         } else if (needs_gun_redraw) {
             int current_x = HALF_WIDTH - GUN_WIDTH / 2 + sin(LPC_RTC->CTIME0 * JOGGING_SPEED) * 10 * jogging;
-            int current_y = RENDER_HEIGHT - gun_pos - 29 + fabs(cos(LPC_RTC->CTIME0 * JOGGING_SPEED)) * 8 * jogging; // Raise gun by 29
+            int current_y = RENDER_HEIGHT - gun_pos - 29 + fabs(cos(LPC_RTC->CTIME0 * JOGGING_SPEED)) * 8 * jogging;
             
             int flash_height = (gun_pos > GUN_TARGET_POS) ? (gun_pos - GUN_TARGET_POS) * 2 + 10 : 0;
             int flash_width = (gun_pos > GUN_TARGET_POS) ? GUN_WIDTH + (gun_pos - GUN_TARGET_POS) * 2 : GUN_WIDTH;
@@ -669,24 +776,17 @@
             max_x = fmin(SCREEN_WIDTH, max_x);
             max_y = fmin(RENDER_HEIGHT, max_y);
             
-            int height = max_y - min_y;
-            
-            if (min_y < RENDER_HEIGHT / 2) {
-                int sky_height = fmin(height, RENDER_HEIGHT / 2 - min_y);
-                painter.fill_rectangle({min_x, min_y, max_x - min_x, sky_height}, Color(64, 64, 128));
-            }
-            
-            if (max_y > RENDER_HEIGHT / 2) {
-                int floor_y = fmax(min_y, RENDER_HEIGHT / 2);
-                int floor_height = max_y - floor_y;
-                painter.fill_rectangle({min_x, floor_y, max_x - min_x, floor_height}, Color(32, 32, 32));
-            }
-            
+            render_map(painter, false, min_x, max_x);
+            render_entities(painter);
             render_gun(painter, gun_pos, jogging);
+            
             painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
-            auto style_green = *ui::Theme::getInstance()->fg_green;
-            painter.draw_string({5, RENDER_HEIGHT + 5}, style_green, "Health: " + std::to_string(player.health));
-            painter.draw_string({150, RENDER_HEIGHT + 5}, style_green, "Ammo: " + std::to_string(player.ammo));
+            auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
+            auto style_red = *ui::Theme::getInstance()->fg_red;
+            auto style_blue = *ui::Theme::getInstance()->fg_blue;
+            painter.draw_string({5, RENDER_HEIGHT + 5}, style_yellow, "Health: " + std::to_string(player.health));
+            painter.draw_string({100, RENDER_HEIGHT + 5}, style_red, "Kills: " + std::to_string(kills));
+            painter.draw_string({170, RENDER_HEIGHT + 5}, style_blue, "Ammo: " + std::to_string(player.ammo));
             
             needs_gun_redraw = false;
         }
