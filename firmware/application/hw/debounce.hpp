@@ -30,9 +30,13 @@
 #define DEBOUNCE_MASK ((1 << DEBOUNCE_COUNT) - 1)
 
 // # of timer0 ticks before a held button starts being counted as repeated presses
-#define REPEAT_INITIAL_DELAY 250
-#define REPEAT_SUBSEQUENT_DELAY 92
-#define LONG_PRESS_DELAY 800
+#define REPEAT_INITIAL_DELAY_NORMAL 250
+#define REPEAT_SUBSEQUENT_DELAY_NORMAL 92
+#define LONG_PRESS_DELAY_NORMAL 800
+
+#define REPEAT_INITIAL_DELAY_FAST 188
+#define REPEAT_SUBSEQUENT_DELAY_FAST 66
+#define LONG_PRESS_DELAY_FAST 555
 
 class Debounce {
    public:
