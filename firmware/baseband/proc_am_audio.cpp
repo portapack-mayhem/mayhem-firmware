@@ -123,6 +123,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     channel_filter_high_f = message.channel_filter.high_frequency_normalized * channel_filter_input_fs;
     channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     modulation_ssb = (int)message.modulation;  // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
     channel_spectrum.set_decimation_factor(message.channel_spectrum_decimation_factor);
@@ -131,6 +132,16 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     // modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);  // originally we had just 2 AM types of demod. (DSB , SSB)
     modulation_ssb = (int)message.modulation;              // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+
+    // modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);  // originally we had just 2 AM types of demod. (DSB , SSB)
+    modulation_ssb = (int)message.modulation;  // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
+    if (modulation_ssb == (int)(AMConfigureMessage::Modulation::SSB_FM)) {
+        channel_spectrum.set_decimation_factor(6.0f);  // zooming for better tuning {SSB_FM = 2}
+    } else {
+        channel_spectrum.set_decimation_factor(1.0f);  // no zooming .{DSB = 0, SSB = 1,}
+    }
+>>>>>>> dc2f3260 (zooming_spectrum_AMFM_mode (#2565))
     audio_output.configure(message.audio_hpf_lpf_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 
     configured = true;
