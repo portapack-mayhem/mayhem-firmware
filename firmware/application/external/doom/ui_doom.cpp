@@ -21,12 +21,13 @@
  #define LEVEL_HEIGHT 57
  #define LEVEL_SIZE (LEVEL_WIDTH / 2 * LEVEL_HEIGHT)
  #define MAX_RENDER_DEPTH 12
- #define MAX_ENTITIES 10
+ #define MIN_ENTITIES 10
+ #define MAX_ENTITIES 15
  #define RES_DIVIDER 2
  #define DISTANCE_MULTIPLIER 20
- #define ROT_SPEED 0.12
- #define MOV_SPEED 0.6
- #define JOGGING_SPEED 0.005
+ #define ROT_SPEED 0.3
+ #define MOV_SPEED 1.0
+ #define JOGGING_SPEED 1.2
  #define MAX_ENTITY_DISTANCE 200
  #define ITEM_COLLIDER_DIST 6
  #define PI 3.14159265358979323846
@@ -40,7 +41,6 @@
  #define ENEMY_MELEE_DAMAGE 8
  #define GUN_MAX_DAMAGE 15
 
- #define MIN_ENTITIES 3  
  #define ACTIVATION_RADIUS MAX_ENTITY_DISTANCE  
  #define STATE_INACTIVE 6  
  
@@ -240,18 +240,62 @@ void initialize_level() {
             uint8_t block = get_block_at(x, y);
             if (block == 0x1) {
                 player = create_player(x, y);
-                break;  
+                break;
             }
         }
     }
     num_entities = 0;
-    while (num_entities < MIN_ENTITIES) {
-        spawn_random_entity(0x2);
+    
+    uint8_t near_count = 0;
+    uint8_t attempts = 0;
+    while (near_count < 3 && num_entities < MAX_ENTITIES && attempts < 50) {
+        std::srand(LPC_RTC->CTIME0 + attempts);
+        uint8_t spawn_x = (uint8_t)player.pos.x + (std::rand() % 11 - 5);
+        uint8_t spawn_y = (uint8_t)player.pos.y + (std::rand() % 11 - 5);
+        if (spawn_x < LEVEL_WIDTH && spawn_y < LEVEL_HEIGHT && 
+            get_block_at(spawn_x, spawn_y) != 0xF && 
+            !(spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y)) {
+            entities[num_entities] = create_entity(0x2, spawn_x, spawn_y, STATE_INACTIVE, 50);
+            entities[num_entities].pos.x = (double)spawn_x + 0.5;
+            entities[num_entities].pos.y = (double)spawn_y + 0.5;
+            entities[num_entities].death_pos.x = (double)spawn_x + 0.5;
+            entities[num_entities].death_pos.y = (double)spawn_y + 0.5;
+            if (get_block_at((uint8_t)entities[num_entities].pos.x, (uint8_t)entities[num_entities].pos.y) == 0xF) {
+                attempts++;
+                continue;
+            }
+            num_entities++;
+            near_count++;
+        }
+        attempts++;
+    }
+    
+    attempts = 0;
+    while (num_entities < MIN_ENTITIES && attempts < 100) {
+        std::srand(LPC_RTC->CTIME0 + attempts);
+        uint8_t spawn_x = std::rand() % LEVEL_WIDTH;
+        uint8_t spawn_y = std::rand() % LEVEL_HEIGHT;
+        if (get_block_at(spawn_x, spawn_y) != 0xF && 
+            !(spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y)) {
+            entities[num_entities] = create_entity(0x2, spawn_x, spawn_y, STATE_INACTIVE, 50);
+            entities[num_entities].pos.x = (double)spawn_x + 0.5;
+            entities[num_entities].pos.y = (double)spawn_y + 0.5;
+            entities[num_entities].death_pos.x = (double)spawn_x + 0.5;
+            entities[num_entities].death_pos.y = (double)spawn_y + 0.5;
+            if (get_block_at((uint8_t)entities[num_entities].pos.x, (uint8_t)entities[num_entities].pos.y) == 0xF) {
+                attempts++;
+                continue;
+            }
+            num_entities++;
+        }
+        attempts++;
     }
 }
  
- void fire() {
+void fire() {
     if (player.ammo > 0) {
+        uint8_t closest_i = 255;
+        double min_dist = 1000.0;
         for (uint8_t i = 0; i < num_entities; i++) {
             if (entities[i].state == 5) continue;
             double dx = entities[i].pos.x - player.pos.x;
@@ -259,14 +303,18 @@ void initialize_level() {
             double dist = sqrt(dx * dx + dy * dy) * DISTANCE_MULTIPLIER;
             double dot = dx * player.dir.x + dy * player.dir.y;
             double angle = acos(dot / (dist / DISTANCE_MULTIPLIER));
-            if (dist < 100 && angle < 0.2 && dot > 0) {
-                uint8_t damage = fmin(GUN_MAX_DAMAGE, GUN_MAX_DAMAGE * (100 - dist) / 100);
-                if (damage > 0) {
-                    entities[i].health = fmax(0, entities[i].health - damage);
-                    entities[i].state = 4;
-                    entities[i].timer = 4;
-                    needs_redraw = true;
-                }
+            if (dist < 100 && angle < 0.2 && dot > 0 && dist < min_dist) {
+                closest_i = i;
+                min_dist = dist;
+            }
+        }
+        if (closest_i != 255) {
+            uint8_t damage = fmin(GUN_MAX_DAMAGE, GUN_MAX_DAMAGE * (100 - min_dist) / 100);
+            if (damage > 0) {
+                entities[closest_i].health = fmax(0, entities[closest_i].health - damage);
+                entities[closest_i].state = 4;
+                entities[closest_i].timer = 4;
+                needs_redraw = true;
             }
         }
         player.ammo--;
@@ -291,26 +339,25 @@ void update_entities() {
         if (entities[i].timer > 0) entities[i].timer--;
 
         if (entities[i].health == 0 && entities[i].state == 5 && entities[i].timer == 0) {
+            kills++;
             remove_entity(i);
             continue;
         }
-        if (entities[i].health == 0) {
-            if (entities[i].state != 5) {
-                entities[i].state = 5;
-                entities[i].timer = 6;
-                entities[i].death_pos = entities[i].pos;
-                kills++;
-                needs_redraw = true;
-            }
-        } else if (entities[i].state == 4) {
-            if (entities[i].timer == 0) {
-                entities[i].state = 0;
-            }
-        } else if (entities[i].state != STATE_INACTIVE) {
-            if (entities[i].distance <= ENEMY_MELEE_DIST + 1) {
-                double dx = entities[i].pos.x - player.pos.x;
-                double dy = entities[i].pos.y - player.pos.y;
-                double dist = sqrt(dx * dx + dy * dy);
+        if (entities[i].health == 0 && entities[i].state != 5) {
+            entities[i].state = 5;
+            entities[i].timer = 6;
+            entities[i].death_pos = entities[i].pos;
+            needs_redraw = true;
+        }
+        if (entities[i].state == 4 && entities[i].timer == 0) {
+            entities[i].state = 0;
+            needs_redraw = true;
+        }
+        if (entities[i].state != STATE_INACTIVE && entities[i].state != 4 && entities[i].state != 5) {
+            double dx = player.pos.x - entities[i].pos.x;
+            double dy = player.pos.y - entities[i].pos.y;
+            double dist = sqrt(dx * dx + dy * dy);
+            if (dist <= (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER)) {
                 double dot = dx * player.dir.x + dy * player.dir.y;
                 double angle = acos(dot / dist);
                 bool in_fov = (angle < 0.5 && dot > 0);
@@ -328,7 +375,7 @@ void update_entities() {
                 double side_y = (ray_y < 0) ? (player.pos.y - (uint8_t)map_y) * delta_y : ((uint8_t)map_y + 1.0 - player.pos.y) * delta_y;
                 uint8_t depth = 0;
                 bool hit = false;
-                while (!hit && depth < MAX_RENDER_DEPTH && dist > depth / DISTANCE_MULTIPLIER) {
+                while (!hit && depth < MAX_RENDER_DEPTH && dist > (depth / DISTANCE_MULTIPLIER)) {
                     if (side_x < side_y) {
                         side_x += delta_x;
                         map_x += step_x;
@@ -343,36 +390,23 @@ void update_entities() {
                     depth++;
                 }
 
-                if (entities[i].distance > ENEMY_MELEE_DIST) {
-                    double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
-                    double new_x = entities[i].pos.x + (dx / dist) * move_dist;
-                    double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-                    if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
-                        entities[i].pos.x = new_x;
-                        entities[i].pos.y = new_y;
-                    }
-                }
                 if (in_fov && visible) {
                     if (entities[i].state != 3) {
                         entities[i].state = 3;
-                        entities[i].timer = 10;
+                        entities[i].timer = 5;
                     } else if (entities[i].timer == 0) {
                         player.health = fmax(0, player.health - ENEMY_MELEE_DAMAGE);
-                        entities[i].timer = 14;
+                        entities[i].timer = 10;
                         needs_redraw = true;
                     }
                 }
-            } else if (entities[i].distance <= MAX_ENTITY_DISTANCE) {
-                double dx = player.pos.x - entities[i].pos.x;
-                double dy = player.pos.y - entities[i].pos.y;
-                double dist = sqrt(dx * dx + dy * dy);
-                double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
-                double new_x = entities[i].pos.x + (dx / dist) * move_dist;
-                double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF && dist > ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER) {
-                    entities[i].pos.x = new_x;
-                    entities[i].pos.y = new_y;
-                }
+            }
+            double move_dist = fmin(0.02, dist - 0.2);
+            double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+            double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+            if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                entities[i].pos.x = new_x;
+                entities[i].pos.y = new_y;
             }
         }
         i++;
