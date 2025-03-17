@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 HTotoo
+ * copyleft Whiterose of the Dark Army
  *
  * This file is part of PortaPack.
  *
@@ -25,6 +26,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "ui_textentry.hpp"
 
 using namespace portapack;
 using namespace ui;
@@ -39,6 +41,9 @@ OOKBruteView::OOKBruteView(NavigationView& nav)
     : nav_{nav} {
     add_children({
         &button_startstop,
+        &button_input_stop_position,
+        &button_input_start_position,
+        &labels,
         &field_frequency,
         &tx_view,
         &options_atkmode,
@@ -65,6 +70,40 @@ OOKBruteView::OOKBruteView(NavigationView& nav)
     };
     field_stop.on_change = [this](int32_t) {
         validate_start_stop();
+    };
+    button_input_start_position.on_select = [this](Button&) {
+        stop();  // prevent mess count var up
+
+        text_input_buffer = to_string_dec_uint(field_start.value());
+        if (text_input_buffer == "0") {
+            text_input_buffer = "";
+        }
+
+        text_prompt(
+            nav_,
+            text_input_buffer,
+            8,  // currently longest is princeton
+            [this](std::string& buffer) {
+                field_start.set_value(atoi(buffer.c_str()));
+                validate_start_stop();
+            });
+    };
+    button_input_stop_position.on_select = [this](Button&) {
+        stop();  // prevent mess count var up
+
+        text_input_buffer = to_string_dec_uint(field_stop.value());
+        if (text_input_buffer == "0") {
+            text_input_buffer = "";
+        }
+
+        text_prompt(
+            nav_,
+            text_input_buffer,
+            8,  // currently longest is princeton
+            [this](std::string& buffer) {
+                field_stop.set_value(atoi(buffer.c_str()));
+                validate_start_stop();
+            });
     };
     update_start_stop(0);
 }

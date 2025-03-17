@@ -545,35 +545,6 @@ class SetAudioView : public View {
     };
 };
 
-class SetQRCodeView : public View {
-   public:
-    SetQRCodeView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "QR Code"; };
-
-   private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::getInstance()->fg_light->foreground},
-    };
-
-    Checkbox checkbox_bigger_qr{
-        {3 * 8, 4 * 16},
-        20,
-        "Show large QR code"};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-};
-
 using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
@@ -633,6 +604,49 @@ class SetEncoderDialView : public View {
     Button button_rate_multiplier_minus{
         {20 * 8, 11 * 16, 16, 16},
         "-"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+class SetButtonsView : public View {
+   public:
+    SetButtonsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Button Speed"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Adjusts response time when a", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "button is held down.", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField field_repeat_delay{
+        {20 * 8, 5 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_repeat_speed{
+        {20 * 8, 7 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_long_press_delay{
+        {20 * 8, 9 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
