@@ -39,6 +39,10 @@
  #define ENEMY_MELEE_DIST 6
  #define ENEMY_MELEE_DAMAGE 8
  #define GUN_MAX_DAMAGE 15
+
+ #define MIN_ENTITIES 3  
+ #define ACTIVATION_RADIUS MAX_ENTITY_DISTANCE  
+ #define STATE_INACTIVE 6  
  
  #define COLOR_BACKGROUND Black
  #define COLOR_WALL Green
@@ -190,18 +194,6 @@ Entity create_entity(uint8_t type, uint8_t x, uint8_t y, uint8_t state, uint8_t 
      return level[((LEVEL_HEIGHT - 1 - y) * LEVEL_WIDTH + x) / 2] >> (!(x % 2) * 4) & 0b1111;
  }
  
- void initialize_level() {
-     for (uint8_t y = LEVEL_HEIGHT - 1; y > 0; y--) {
-         for (uint8_t x = 0; x < LEVEL_WIDTH; x++) {
-             uint8_t block = get_block_at(x, y);
-             if (block == 0x1) {
-                 player = create_player(x, y);
-                 return;
-             }
-         }
-     }
- }
- 
  Coords translate_into_view(Coords pos) {
     double sprite_x = pos.x - player.pos.x;
     double sprite_y = pos.y - player.pos.y;
@@ -213,7 +205,21 @@ Entity create_entity(uint8_t type, uint8_t x, uint8_t y, uint8_t state, uint8_t 
  
 void spawn_entity(uint8_t type, uint8_t x, uint8_t y) {
     if (num_entities >= MAX_ENTITIES) return;
-    entities[num_entities] = create_entity(type, x, y, 0, 50);
+    entities[num_entities] = create_entity(type, x, y, STATE_INACTIVE, 50);  
+    num_entities++;
+}
+
+void spawn_random_entity(uint8_t type) {
+    if (num_entities >= MAX_ENTITIES) return;
+    std::srand(LPC_RTC->CTIME0);
+    uint8_t spawn_x, spawn_y;
+    do {
+        spawn_x = std::rand() % LEVEL_WIDTH;
+        spawn_y = std::rand() % LEVEL_HEIGHT;
+    } while (get_block_at(spawn_x, spawn_y) == 0xF || 
+             (spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y));  
+    
+    entities[num_entities] = create_entity(type, spawn_x, spawn_y, STATE_INACTIVE, 50);  
     num_entities++;
 }
  
@@ -222,6 +228,26 @@ void remove_entity(uint8_t index) {
         entities[i] = entities[i + 1];
     }
     num_entities--;
+    
+    while (num_entities < MIN_ENTITIES) {
+        spawn_random_entity(0x2); 
+    }
+}
+
+void initialize_level() {
+    for (uint8_t y = LEVEL_HEIGHT - 1; y > 0; y--) {
+        for (uint8_t x = 0; x < LEVEL_WIDTH; x++) {
+            uint8_t block = get_block_at(x, y);
+            if (block == 0x1) {
+                player = create_player(x, y);
+                break;  
+            }
+        }
+    }
+    num_entities = 0;
+    while (num_entities < MIN_ENTITIES) {
+        spawn_random_entity(0x2);
+    }
 }
  
  void fire() {
@@ -251,36 +277,21 @@ void update_entities() {
     uint8_t i = 0;
     while (i < num_entities) {
         entities[i].distance = sqrt(pow(player.pos.x - entities[i].pos.x, 2) + pow(player.pos.y - entities[i].pos.y, 2)) * DISTANCE_MULTIPLIER;
-        if (entities[i].timer > 0) entities[i].timer--;
-        if (entities[i].health == 0 && entities[i].state == 5 && entities[i].timer == 0) {
-            uint8_t old_x = (uint8_t)entities[i].death_pos.x;
-            uint8_t old_y = (uint8_t)entities[i].death_pos.y;
-            remove_entity(i);
-            if (num_entities == 0) {
-                uint8_t spawn_x, spawn_y;
-                if (kills == 0) {
-                    for (uint8_t y = LEVEL_HEIGHT - 1; y > 0; y--) {
-                        for (uint8_t x = 0; x < LEVEL_WIDTH; x++) {
-                            if (get_block_at(x, y) == 0x2) {
-                                spawn_x = x;
-                                spawn_y = y;
-                                spawn_entity(0x2, spawn_x, spawn_y);
-                                return;
-                            }
-                        }
-                    }
-                } else {
-                    spawn_x = std::rand() % LEVEL_WIDTH;
-                    spawn_y = std::rand() % LEVEL_HEIGHT;
-                    while (get_block_at(spawn_x, spawn_y) == 0xF || 
-                           (spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y) || 
-                           (spawn_x == old_x && spawn_y == old_y)) {
-                        spawn_x = std::rand() % LEVEL_WIDTH;
-                        spawn_y = std::rand() % LEVEL_HEIGHT;
-                    }
-                    spawn_entity(0x2, spawn_x, spawn_y);
-                }
+        
+        if (entities[i].state != 5) {
+            if (entities[i].distance > ACTIVATION_RADIUS && entities[i].state != STATE_INACTIVE) {
+                entities[i].state = STATE_INACTIVE;
+                needs_redraw = true;
+            } else if (entities[i].distance <= ACTIVATION_RADIUS && entities[i].state == STATE_INACTIVE) {
+                entities[i].state = 0;
+                needs_redraw = true;
             }
+        }
+
+        if (entities[i].timer > 0) entities[i].timer--;
+
+        if (entities[i].health == 0 && entities[i].state == 5 && entities[i].timer == 0) {
+            remove_entity(i);
             continue;
         }
         if (entities[i].health == 0) {
@@ -295,37 +306,73 @@ void update_entities() {
             if (entities[i].timer == 0) {
                 entities[i].state = 0;
             }
-        } else if (entities[i].distance <= ENEMY_MELEE_DIST + 1) {
-            if (entities[i].distance > ENEMY_MELEE_DIST) {
+        } else if (entities[i].state != STATE_INACTIVE) {
+            if (entities[i].distance <= ENEMY_MELEE_DIST + 1) {
+                double dx = entities[i].pos.x - player.pos.x;
+                double dy = entities[i].pos.y - player.pos.y;
+                double dist = sqrt(dx * dx + dy * dy);
+                double dot = dx * player.dir.x + dy * player.dir.y;
+                double angle = acos(dot / dist);
+                bool in_fov = (angle < 0.5 && dot > 0);
+                
+                bool visible = true;
+                double ray_x = dx / dist;
+                double ray_y = dy / dist;
+                double map_x = player.pos.x;
+                double map_y = player.pos.y;
+                double delta_x = fabs(1 / ray_x);
+                double delta_y = fabs(1 / ray_y);
+                int8_t step_x = (ray_x < 0) ? -1 : 1;
+                int8_t step_y = (ray_y < 0) ? -1 : 1;
+                double side_x = (ray_x < 0) ? (player.pos.x - (uint8_t)map_x) * delta_x : ((uint8_t)map_x + 1.0 - player.pos.x) * delta_x;
+                double side_y = (ray_y < 0) ? (player.pos.y - (uint8_t)map_y) * delta_y : ((uint8_t)map_y + 1.0 - player.pos.y) * delta_y;
+                uint8_t depth = 0;
+                bool hit = false;
+                while (!hit && depth < MAX_RENDER_DEPTH && dist > depth / DISTANCE_MULTIPLIER) {
+                    if (side_x < side_y) {
+                        side_x += delta_x;
+                        map_x += step_x;
+                    } else {
+                        side_y += delta_y;
+                        map_y += step_y;
+                    }
+                    if (get_block_at((uint8_t)map_x, (uint8_t)map_y) == 0xF) {
+                        visible = false;
+                        hit = true;
+                    }
+                    depth++;
+                }
+
+                if (entities[i].distance > ENEMY_MELEE_DIST) {
+                    double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
+                    double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+                    double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+                    if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                        entities[i].pos.x = new_x;
+                        entities[i].pos.y = new_y;
+                    }
+                }
+                if (in_fov && visible) {
+                    if (entities[i].state != 3) {
+                        entities[i].state = 3;
+                        entities[i].timer = 10;
+                    } else if (entities[i].timer == 0) {
+                        player.health = fmax(0, player.health - ENEMY_MELEE_DAMAGE);
+                        entities[i].timer = 14;
+                        needs_redraw = true;
+                    }
+                }
+            } else if (entities[i].distance <= MAX_ENTITY_DISTANCE) {
                 double dx = player.pos.x - entities[i].pos.x;
                 double dy = player.pos.y - entities[i].pos.y;
                 double dist = sqrt(dx * dx + dy * dy);
                 double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
                 double new_x = entities[i].pos.x + (dx / dist) * move_dist;
                 double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF && dist > ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER) {
                     entities[i].pos.x = new_x;
                     entities[i].pos.y = new_y;
                 }
-            }
-            if (entities[i].state != 3) {
-                entities[i].state = 3;
-                entities[i].timer = 10;
-            } else if (entities[i].timer == 0) {
-                player.health = fmax(0, player.health - ENEMY_MELEE_DAMAGE);
-                entities[i].timer = 14;
-                needs_redraw = true;
-            }
-        } else if (entities[i].distance <= MAX_ENTITY_DISTANCE) {
-            double dx = player.pos.x - entities[i].pos.x;
-            double dy = player.pos.y - entities[i].pos.y;
-            double dist = sqrt(dx * dx + dy * dy);
-            double move_dist = fmin(ENEMY_SPEED, dist - (ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER));
-            double new_x = entities[i].pos.x + (dx / dist) * move_dist;
-            double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-            if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF && dist > ENEMY_MELEE_DIST / DISTANCE_MULTIPLIER) {
-                entities[i].pos.x = new_x;
-                entities[i].pos.y = new_y;
             }
         }
         i++;
@@ -385,11 +432,27 @@ void update_game() {
             if (fabs(player.velocity) > 0.003) {
                 double new_x = player.pos.x + player.dir.x * player.velocity;
                 double new_y = player.pos.y + player.dir.y * player.velocity;
-                if (get_block_at((uint8_t)new_x, (uint8_t)player.pos.y) != 0xF) {
+                bool can_move_x = get_block_at((uint8_t)new_x, (uint8_t)player.pos.y) != 0xF;
+                bool can_move_y = get_block_at((uint8_t)player.pos.x, (uint8_t)new_y) != 0xF;
+                for (uint8_t i = 0; i < num_entities; i++) {
+                    if (entities[i].state != 5 && entities[i].state != STATE_INACTIVE) {
+                        double dx = new_x - entities[i].pos.x;
+                        double dy = player.pos.y - entities[i].pos.y;
+                        if (sqrt(dx * dx + dy * dy) < 0.5) {
+                            can_move_x = false;
+                        }
+                        dx = player.pos.x - entities[i].pos.x;
+                        dy = new_y - entities[i].pos.y;
+                        if (sqrt(dx * dx + dy * dy) < 0.5) {
+                            can_move_y = false;
+                        }
+                    }
+                }
+                if (can_move_x) {
                     player.pos.x = new_x;
                     state_changed = true;
                 }
-                if (get_block_at((uint8_t)player.pos.x, (uint8_t)new_y) != 0xF) {
+                if (can_move_y) {
                     player.pos.y = new_y;
                     state_changed = true;
                 }
@@ -409,7 +472,7 @@ void update_game() {
                 fire();
                 needs_gun_redraw = true;
                 gun_only_change = true;
-                fired = false;  
+                fired = false;
             }
         } else {
             if (view_height > -10) {
@@ -475,6 +538,7 @@ void update_game() {
  
 void render_entities(Painter& painter) {
     for (uint8_t i = 0; i < num_entities; i++) {
+        if (entities[i].state == STATE_INACTIVE) continue; 
         Coords transform = translate_into_view(entities[i].state == 5 ? entities[i].death_pos : entities[i].pos);
         if (transform.y <= 0.1 || transform.y > MAX_RENDER_DEPTH) continue;
         
@@ -545,7 +609,7 @@ void render_entities(Painter& painter) {
 
 
  
- void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t x_end = SCREEN_WIDTH) {
+void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t x_end = SCREEN_WIDTH) {
     if (full_clear) {
         painter.fill_rectangle({0, 0, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(64, 64, 128));
         painter.fill_rectangle({0, RENDER_HEIGHT / 2, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(32, 32, 32));
@@ -655,18 +719,6 @@ void render_entities(Painter& painter) {
                         perpWallDist = (map_x - player.pos.x + (1 - step_x) / 2) / ray_x;
                     } else {
                         perpWallDist = (map_y - player.pos.y + (1 - step_y) / 2) / ray_y;
-                    }
-                } else if (block == 0x2) {
-                    double distance = sqrt(pow(map_x - player.pos.x, 2) + pow(map_y - player.pos.y, 2)) * DISTANCE_MULTIPLIER;
-                    if (distance < MAX_ENTITY_DISTANCE) {
-                        bool exists = false;
-                        for (uint8_t i = 0; i < num_entities; i++) {
-                            if (entities[i].uid == ((((uint8_t)map_y << 6) | (uint8_t)map_x) << 4 | 0x2)) {
-                                exists = true;
-                                break;
-                            }
-                        }
-                        if (!exists) spawn_entity(0x2, map_x, map_y);
                     }
                 }
                 depth++;
