@@ -73,6 +73,12 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     };
 
     field_frequency.set_step(100);
+    field_frequency.on_edit_shown = [this]() {
+        paused = true;
+    };
+    field_frequency.on_edit_hidden = [this]() {
+        paused = false;
+    };
     audio::output::start();
     receiver_model.set_hidden_offset(-2200);
     receiver_model.enable();

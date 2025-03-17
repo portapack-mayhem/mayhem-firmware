@@ -67,6 +67,8 @@ class WeFaxRxView : public View {
     ui::Color line_buffer[240];
     std::filesystem::path filetohandle = "";
 
+    bool paused = false;  // when freq field is shown for example, we need to pause
+
     BMPFile bmp{};
 
     NavigationView& nav_;
@@ -130,7 +132,7 @@ class WeFaxRxView : public View {
     MessageHandlerRegistration message_handler_stats{
         Message::ID::WeFaxRxStatusData,
         [this](const Message* const p) {
-            if (stopping) return;
+            if (stopping || paused) return;
             const auto message = *reinterpret_cast<const WeFaxRxStatusDataMessage*>(p);
             on_status(message);
         }};
@@ -138,7 +140,7 @@ class WeFaxRxView : public View {
     MessageHandlerRegistration message_handler_image{
         Message::ID::WeFaxRxImageData,
         [this](const Message* const p) {
-            if (stopping) return;
+            if (stopping || paused) return;
             const auto message = *reinterpret_cast<const WeFaxRxImageDataMessage*>(p);
             on_image(message);
         }};
