@@ -248,10 +248,10 @@ void initialize_level() {
     
     uint8_t near_count = 0;
     uint8_t attempts = 0;
-    while (near_count < 3 && num_entities < MAX_ENTITIES && attempts < 50) {
+    while (near_count < 5 && num_entities < MAX_ENTITIES && attempts < 50) {
         std::srand(LPC_RTC->CTIME0 + attempts);
-        uint8_t spawn_x = (uint8_t)player.pos.x + (std::rand() % 11 - 5);
-        uint8_t spawn_y = (uint8_t)player.pos.y + (std::rand() % 11 - 5);
+        uint8_t spawn_x = (uint8_t)player.pos.x + (std::rand() % 5 - 2);
+        uint8_t spawn_y = (uint8_t)player.pos.y + (std::rand() % 5 - 2);
         if (spawn_x < LEVEL_WIDTH && spawn_y < LEVEL_HEIGHT && 
             get_block_at(spawn_x, spawn_y) != 0xF && 
             !(spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y)) {
@@ -390,23 +390,31 @@ void update_entities() {
                     depth++;
                 }
 
+                double move_dist = fmin(0.02, dist - 0.2);
+                double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+                double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                    entities[i].pos.x = new_x;
+                    entities[i].pos.y = new_y;
+                }
                 if (in_fov && visible) {
                     if (entities[i].state != 3) {
                         entities[i].state = 3;
-                        entities[i].timer = 5;
+                        entities[i].timer = 10;
                     } else if (entities[i].timer == 0) {
                         player.health = fmax(0, player.health - ENEMY_MELEE_DAMAGE);
-                        entities[i].timer = 10;
+                        entities[i].timer = 14;
                         needs_redraw = true;
                     }
                 }
-            }
-            double move_dist = fmin(0.02, dist - 0.2);
-            double new_x = entities[i].pos.x + (dx / dist) * move_dist;
-            double new_y = entities[i].pos.y + (dy / dist) * move_dist;
-            if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
-                entities[i].pos.x = new_x;
-                entities[i].pos.y = new_y;
+            } else if (entities[i].distance <= MAX_ENTITY_DISTANCE) {
+                double move_dist = fmin(0.02, dist - 0.2);
+                double new_x = entities[i].pos.x + (dx / dist) * move_dist;
+                double new_y = entities[i].pos.y + (dy / dist) * move_dist;
+                if (get_block_at((uint8_t)new_x, (uint8_t)new_y) != 0xF) {
+                    entities[i].pos.x = new_x;
+                    entities[i].pos.y = new_y;
+                }
             }
         }
         i++;
