@@ -279,7 +279,7 @@ int32_t ReceiverModel::tuning_offset() {
 
 void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
-    radio::set_tuning_frequency(target_frequency() + tuning_offset());
+    radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
 }
 
 void ReceiverModel::update_baseband_bandwidth() {
