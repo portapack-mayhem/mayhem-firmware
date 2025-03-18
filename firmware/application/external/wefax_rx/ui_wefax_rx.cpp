@@ -80,7 +80,7 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
         paused = false;
     };
     audio::output::start();
-    receiver_model.set_hidden_offset(-2200);
+    receiver_model.set_hidden_offset(WEFAX_FREQ_OFFSET);
     receiver_model.enable();
 
     txt_status.set("Waiting for signal.");
@@ -141,7 +141,7 @@ void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
         }
 
         uint16_t xpos = line_in_part / (WEFAX_PX_SIZE / 240);
-        if (xpos > 240) xpos = 240;
+        if (xpos >= 240) xpos = 239;
         line_buffer[xpos] = pxl;
         if ((line_in_part == 0)) {
             portapack::display.render_line({0, line_num + 4 * 16}, 240, line_buffer);

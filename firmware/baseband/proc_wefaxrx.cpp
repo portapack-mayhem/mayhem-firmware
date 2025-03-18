@@ -35,6 +35,8 @@
 #define STARTSIGNAL_NEEDCNT 110
 #define STARTSIGNAL_MAXBAD 20
 
+#define WEFAX_PX_SIZE 840.0
+
 // updates the per pixel timers
 void WeFaxRx::update_params() {
     switch (ioc_mode) {
@@ -47,7 +49,7 @@ void WeFaxRx::update_params() {
             break;
     }
     // 840 px / line with line start
-    pxRem = (double)channel_filter_input_fs / ((lpm / 60.0) * 840.0);
+    pxRem = (double)channel_filter_input_fs / ((lpm / 60.0) * WEFAX_PX_SIZE);
     samples_per_pixel = pxRem;
     pxRem -= samples_per_pixel;
     pxRoll = 0;

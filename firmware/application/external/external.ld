@@ -67,7 +67,7 @@ MEMORY
     ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
     ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k
     ram_external_app_stopwatch(rwx) : org = 0xADDC0000, len = 32k
-    ram_external_app_wefax_rx(rwx) : org = 0xADDD00000, len = 32k 
+    ram_external_app_wefax_rx(rwx) : org = 0xADDD0000, len = 32k 
 }
 
 SECTIONS

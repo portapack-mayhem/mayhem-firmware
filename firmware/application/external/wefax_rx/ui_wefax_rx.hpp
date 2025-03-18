@@ -42,6 +42,8 @@ using namespace ui;
 namespace ui::external_app::wefax_rx {
 
 #define WEFAX_PX_SIZE 840
+// 1.900Hz is the usual center FM freq. , but as I added 300-Hz margin, + the truncated filter extended effect , in our case, we got better S/N if we use -2200 offset area. @Brumi
+#define WEFAX_FREQ_OFFSET -2200
 
 class WeFaxRxView : public View {
    public:
