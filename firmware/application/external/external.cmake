@@ -128,12 +128,16 @@ set(EXTCPPSRC
 	#wefax_rx
 	external/wefax_rx/main.cpp
 	external/wefax_rx/ui_wefax_rx.cpp
+<<<<<<< HEAD
 
 	#noaaapt_rx
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
 
+=======
+	
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
@@ -236,7 +240,10 @@ set(EXTAPPLIST
 	ookbrute
 	ook_editor
 	wefax_rx
+<<<<<<< HEAD
 	noaaapt_rx
+=======
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 	shoppingcart_lock
 	flippertx
 	remote

@@ -115,7 +115,11 @@ MEMORY
     ram_external_app_breakout(rwx) : org = 0xADDA0000, len = 32k
     ram_external_app_snake(rwx) : org = 0xADDB0000, len = 32k
     ram_external_app_stopwatch(rwx) : org = 0xADDC0000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 084b8856 (Stopwatch external app (#2553))
+=======
+    ram_external_app_wefax_rx(rwx) : org = 0xADDD0000, len = 32k 
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 }
 
 SECTIONS
@@ -383,4 +387,11 @@ SECTIONS
         KEEP(*(.external_app.app_stopwatch.application_information));
         *(*ui*external_app*stopwatch*);
     } > ram_external_app_stopwatch
+   .external_app_wefax_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_wefax_rx.application_information));
+        *(*ui*external_app*wefax_rx*);
+    } > ram_external_app_wefax_rx
+
+
 }

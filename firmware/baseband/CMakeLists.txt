@@ -682,6 +682,7 @@ set(MODE_CPPSRC
 DeclareTargets(PWFX wefaxrx)
 
 
+<<<<<<< HEAD
 ### NoaaApt Rx
 
 set(MODE_CPPSRC
@@ -690,6 +691,8 @@ set(MODE_CPPSRC
 DeclareTargets(PNOA noaaapt_rx)
 
 
+=======
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 ### HackRF "factory" firmware
 
 add_custom_command(

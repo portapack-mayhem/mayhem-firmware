@@ -120,7 +120,10 @@ constexpr image_tag_t image_tag_weather{'P', 'W', 'T', 'H'};
 constexpr image_tag_t image_tag_subghzd{'P', 'S', 'G', 'D'};
 constexpr image_tag_t image_tag_protoview{'P', 'P', 'V', 'W'};
 constexpr image_tag_t image_tag_wefaxrx{'P', 'W', 'F', 'X'};
+<<<<<<< HEAD
 constexpr image_tag_t image_tag_noaaapt_rx{'P', 'N', 'O', 'A'};
+=======
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 

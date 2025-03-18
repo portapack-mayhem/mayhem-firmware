@@ -130,7 +130,11 @@ class ReceiverModel {
     uint8_t normalized_headphone_volume() const;
     void set_normalized_headphone_volume(uint8_t v);
 
+<<<<<<< HEAD
     void set_hidden_offset(rf::Frequency offset);
+=======
+    void set_hidden_offset(rf::Frequency offset) { hidden_offset = offset; }
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 
     void enable();
     void disable();

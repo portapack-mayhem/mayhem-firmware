@@ -130,12 +130,16 @@ class Message {
         WeFaxRxConfigure = 73,
         WeFaxRxStatusData = 74,
         WeFaxRxImageData = 75,
+<<<<<<< HEAD
         WFMAMConfigure = 76,
         NoaaAptRxConfigure = 77,
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
         EPIRBPacket = 81,
+=======
+
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
         MAX
     };
 
@@ -1559,6 +1563,7 @@ class WeFaxRxImageDataMessage : public Message {
     uint32_t cnt = 0;
 };
 
+<<<<<<< HEAD
 class NoaaAptRxConfigureMessage : public Message {
    public:
     constexpr NoaaAptRxConfigureMessage()
@@ -1582,4 +1587,6 @@ class NoaaAptRxImageDataMessage : public Message {
     uint32_t cnt = 0;
 };
 
+=======
+>>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 #endif /*__MESSAGE_H__*/
