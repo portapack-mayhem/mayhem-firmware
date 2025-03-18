@@ -115,6 +115,11 @@ set(EXTCPPSRC
 	external/acars_rx/main.cpp
 	external/acars_rx/acars_app.cpp
 
+	#wefax_rx
+	external/wefax_rx/main.cpp
+	external/wefax_rx/ui_wefax_rx.cpp
+	
+
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp
@@ -215,6 +220,7 @@ set(EXTAPPLIST
 	#acars_rx
 	ookbrute
 	ook_editor
+	wefax_rx
 	shoppingcart_lock
 	flippertx
 	remote

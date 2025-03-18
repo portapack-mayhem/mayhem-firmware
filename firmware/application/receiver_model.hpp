@@ -110,6 +110,8 @@ class ReceiverModel {
     uint8_t normalized_headphone_volume() const;
     void set_normalized_headphone_volume(uint8_t v);
 
+    void set_hidden_offset(rf::Frequency offset) { hidden_offset = offset; }
+
     void enable();
     void disable();
 
@@ -133,6 +135,7 @@ class ReceiverModel {
    private:
     settings_t settings_{};
     bool enabled_ = false;
+    rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.
 
     int32_t tuning_offset();
 
