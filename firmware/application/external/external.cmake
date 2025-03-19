@@ -8,6 +8,9 @@ set(EXTCPPSRC
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
 
+	#doom
+	external/doom/main.cpp
+	external/doom/ui_doom.cpp
 	#snake
 	external/snake/main.cpp
 	external/snake/ui_snake.cpp
@@ -205,6 +208,7 @@ set(EXTAPPLIST
 	keyfob
 	tetris
 	breakout
+	doom
 	snake
 	extsensors
 	foxhunt_rx
