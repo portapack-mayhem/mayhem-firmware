@@ -165,7 +165,7 @@ Player create_player(double x, double y) {
     p.velocity = 0;
     p.health = 100;
     p.keys = 0;
-    p.ammo = 50;
+    p.ammo = 99;
     return p;
 }
 
