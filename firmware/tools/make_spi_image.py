@@ -30,6 +30,9 @@ from external_app_info import external_apps_address_start
 from external_app_info import external_apps_address_end
 import subprocess
 
+import re
+from pathlib import Path
+
 usage_message = """
 PortaPack SPI flash image generator
 
@@ -50,6 +53,80 @@ def write_image(data, path):
     f.write(data)
     f.close()
 
+########external app linker script address check########
+
+def parse_memory_regions(ld_file_path):
+    regions = []
+    
+    with open(ld_file_path, 'r') as f:
+        content = f.read()
+        
+    memory_section = re.search(r'MEMORY\s*\{(.*?)\}', content, re.DOTALL)
+    if not memory_section:
+        print("ERROR: Could not find MEMORY section in the linker script.")
+        return []
+    
+    memory_content = memory_section.group(1)
+    
+    pattern = r'ram_external_app_(\w+)\s*\(rwx\)\s*:\s*org\s*=\s*(0x[A-Fa-f0-9]+),\s*len\s*=\s*(\d+)k'
+    matches = re.finditer(pattern, memory_content)
+    
+    for match in matches:
+        app_name = match.group(1)
+        address = int(match.group(2), 16)  # string with hex -> int
+        length = int(match.group(3)) * 1024  # kb -> bytes
+        
+        regions.append({
+            'app_name': app_name,
+            'address': address,
+            'length': length
+        })
+        
+    return sorted(regions, key=lambda x: x['address'])
+
+def validate_memory_regions(regions):
+    if not regions:
+        return False
+    
+    expected_step = 0x10000  # 64k as step (not sure why)
+    expected_base = 0xADB10000 # the start (not sure why this one)
+    expected_size = 32 * 1024  # 32k
+    issues_found = False
+    
+    print("\n")
+    print(f"checking {len(regions)} external apps address memory regions")
+    
+    if regions[0]['address'] != expected_base:
+        print(f"WARNING: external app first region should start at {hex(expected_base)}, but starts at {hex(regions[0]['address'])}")
+        issues_found = True
+    
+    for i, region in enumerate(regions):
+        expected_address = expected_base + (i * expected_step)
+        
+        # address count
+        if region['address'] != expected_address:
+            print(f"WARNING: external app region '{region['app_name']}' has incorrect address")
+            print(f"want: {hex(expected_address)}, Found: {hex(region['address'])}")
+            issues_found = True
+        
+        # size
+        if region['length'] != expected_size:
+            print(f"WARNING: external app region '{region['app_name']}' has incorrect size")
+            print(f"want: {expected_size//1024}KB, Found: {region['length']//1024}KB")
+            issues_found = True
+        
+        # overlap
+        if i < len(regions) - 1:
+            next_region = regions[i + 1]
+            if region['address'] + region['length'] > next_region['address']:
+                print(f"WARNING: external app region '{region['app_name']}' overlapped with '{next_region['app_name']}'")
+                issues_found = True
+    
+    return not issues_found
+
+#^^^^^^^^external app linker script address check^^^^^^^^
+
+########gcc version check from elf file########
 
 def get_gcc_version_from_elf(elf_file):
     succeed = False
@@ -87,6 +164,7 @@ def get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(path):
             gcc_versions.append("gcc version of " + extract_elf_file_name + " is " + version_info)
     return gcc_versions
 
+#^^^^^^^^gcc version check from elf file^^^^^^^^
 
 if len(sys.argv) != 4:
     print(usage_message)
@@ -107,6 +185,28 @@ for itbb in baseband_gcc_versions:
     print(itbb)
 
 print("\n")
+
+########external app linker script address check worker########
+
+ld_file_path = Path("..") / ".." / "firmware" / "application" / "external" / "external.ld"
+
+try:
+    regions = parse_memory_regions(ld_file_path)
+    
+    if not regions:
+        print("some issue causing that we can't see external app's linker script's address list, pass")
+    
+    if validate_memory_regions(regions):
+        print("external app addr seems correct, pass")
+    else:
+        print("\nWARENING: It seems you are having incorrect external app addresses.")
+    
+except Exception as e:
+    print(f"err: {e}")
+
+#^^^^^^^^external app linker script address check worker^^^^^^^^
+
+
 spi_size = 1048576
 
 images = (
@@ -125,6 +225,8 @@ images = (
 spi_image = bytearray()
 spi_image_default_byte = bytearray((255,))
 
+
+#########check if the fw size ok and check external addr leak#########
 for image in images:
     if len(image['data']) > image['size']:
         raise RuntimeError(
@@ -162,6 +264,8 @@ write_image(spi_image, output_path)
 percent_remaining = round(1000 * pad_size / spi_size) / 10;
 print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "%)")
 
+
+#^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
 
 # copy the fast flash script
 build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
