@@ -9,14 +9,14 @@ f=7880000,m=AMFM,bw=USB+FM,d=DWD DDK3 Forecasts
 # Surface analysis & wave height (continuous)
 f=13882500,m=AMFM,bw=USB+FM,d=DWD DDK6 Waves
 
-# Royal Navy (Northwood) – United Kingdom
+# Royal Navy (Northwood) - United Kingdom
 # Surface/Wave charts every 6 hrs
 f=2618500,m=AMFM,bw=USB+FM,d=Northwood 2.6MHz WX
 f=4610000,m=AMFM,bw=USB+FM,d=Northwood 4.6MHz WX
 f=8040000,m=AMFM,bw=USB+FM,d=Northwood 8.0MHz WX
 f=11086500,m=AMFM,bw=USB+FM,d=Northwood 11MHz WX
 
-# United States Coast Guard (USCG) – Boston/NMF
+# United States Coast Guard (USCG) - Boston/NMF
 # Atlantic Analysis: 03:00,09:00,15:00,21:00 UTC
 f=6340500,m=AMFM,bw=USB+FM,d=USCG 6.3MHz Atlantic
 # Forecasts & Hurricane Warnings (continuous updates)
