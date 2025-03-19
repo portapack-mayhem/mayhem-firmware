@@ -57,7 +57,7 @@ __attribute__((section(".external_app.app_shoppingcart_lock.application_informat
         0x00,
     },
     /*.icon_color = */ ui::Color::red().v,
-    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.menu_location = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_afsk_rx */ {'P', 'A', 'T', 'X'},
