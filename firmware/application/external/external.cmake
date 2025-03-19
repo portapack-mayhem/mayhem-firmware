@@ -11,8 +11,14 @@ set(EXTCPPSRC
 	external/breakout/ui_breakout.cpp
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
 =======
+=======
+	#doom
+	external/doom/main.cpp
+	external/doom/ui_doom.cpp
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
 	#snake
 	external/snake/main.cpp
 	external/snake/ui_snake.cpp
@@ -224,6 +230,7 @@ set(EXTAPPLIST
 	keyfob
 	tetris
 	breakout
+	doom
 	snake
 	extsensors
 	foxhunt_rx

@@ -29,6 +29,7 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
         0x00,
         0x00,
         0x00,
+<<<<<<< HEAD
         0x77,
         0xDF,
         0xFF,
@@ -55,6 +56,34 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
         0xA0,
         0x01,
         0x80,
+=======
+        0x27,
+        0xDA,
+        0x59,
+        0xAD,
+        0x89,
+        0xA8,
+        0x89,
+        0xA8,
+        0x89,
+        0xA8,
+        0x89,
+        0x88,
+        0x89,
+        0x88,
+        0x89,
+        0x88,
+        0x59,
+        0x8D,
+        0x29,
+        0x8A,
+        0x05,
+        0x80,
+        0x03,
+        0x80,
+        0x00,
+        0x00,
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
         0x00,
         0x00,
     },
@@ -64,4 +93,8 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
     {0, 0, 0, 0},
     0x00000000,
 };
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))

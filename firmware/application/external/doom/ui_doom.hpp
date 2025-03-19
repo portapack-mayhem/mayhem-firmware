@@ -14,6 +14,7 @@
 #include "message.hpp"
 
 namespace ui::external_app::doom {
+<<<<<<< HEAD
 using Callback = void (*)();
 
 class Ticker {
@@ -57,6 +58,8 @@ static const Color pp_colors[] = {
     Color::orange(),
     Color::black(),
 };
+=======
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
 
 class DoomView : public View {
    public:
@@ -70,7 +73,11 @@ class DoomView : public View {
 
    private:
     NavigationView& nav_;
+<<<<<<< HEAD
     Button dummy{{screen_width, 0, 0, 0}, ""};
+=======
+    Button dummy{{240, 0, 0, 0}, ""};
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
     bool initialized{false};
     bool prev_velocity_moving{false};
     MessageHandlerRegistration message_handler_frame_sync{
@@ -79,6 +86,10 @@ class DoomView : public View {
             this->frame_sync();
         }};
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
 }  // namespace ui::external_app::doom
 
 #endif /*__UI_DOOM_H__*/

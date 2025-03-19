@@ -8,6 +8,7 @@
 
 #include "ui_doom.hpp"
 #include "ui.hpp"
+<<<<<<< HEAD
 
 namespace ui::external_app::doom {
 
@@ -17,6 +18,16 @@ int SCREEN_HEIGHT = 0;
 int RENDER_HEIGHT = 0;
 int HALF_WIDTH = 0;
 int HALF_HEIGHT = 0;
+=======
+#include "SPI_TFT_ILI9341.h"
+#include "mbed.h"
+
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+#define RENDER_HEIGHT 280
+#define HALF_WIDTH (SCREEN_WIDTH / 2)
+#define HALF_HEIGHT (RENDER_HEIGHT / 2)
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
 #define LEVEL_WIDTH_BASE 6
 #define LEVEL_WIDTH (1 << LEVEL_WIDTH_BASE)
 #define LEVEL_HEIGHT 57
@@ -49,7 +60,34 @@ int HALF_HEIGHT = 0;
 #define COLOR_WALL_LIGHT Green
 #define COLOR_WALL_DARK Maroon
 #define COLOR_FLOOR_DARK Black
+<<<<<<< HEAD
 //clang-format on
+=======
+
+struct Coords {
+    double x, y;
+};
+
+struct Player {
+    Coords pos;
+    Coords dir;
+    Coords plane;
+    double velocity;
+    uint8_t health;
+    uint8_t keys;
+    uint8_t ammo;
+};
+
+struct Entity {
+    uint16_t uid;
+    Coords pos;
+    Coords death_pos;
+    uint8_t state;
+    uint8_t health;
+    uint8_t distance;
+    uint8_t timer;
+};
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
 
 // Stole this level map from Flipper Zero Doom, but he stole it from a guy who stole it and that guy probably stole it too. Argh!
 static const uint8_t level[LEVEL_SIZE] = {
@@ -111,6 +149,7 @@ static const uint8_t level[LEVEL_SIZE] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+<<<<<<< HEAD
 struct Coords {
     double x, y;
 };
@@ -134,6 +173,9 @@ struct Entity {
     uint8_t distance;
     uint8_t timer;
 };
+=======
+namespace ui::external_app::doom {
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
 
 static Ticker game_timer;
 static Player player;
@@ -1001,11 +1043,14 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
 
 DoomView::DoomView(NavigationView& nav)
     : nav_{nav} {
+<<<<<<< HEAD
     SCREEN_WIDTH = screen_width;
     SCREEN_HEIGHT = screen_height;
     RENDER_HEIGHT = screen_height - 40;
     HALF_WIDTH = screen_width / 2;
     HALF_HEIGHT = RENDER_HEIGHT / 2;
+=======
+>>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
     add_children({&dummy});
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
 }
