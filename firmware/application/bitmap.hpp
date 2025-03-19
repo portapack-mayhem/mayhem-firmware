@@ -383,6 +383,44 @@ static constexpr Bitmap bitmap_icon_sleep{
     {16, 16},
     bitmap_icon_sleep_data};
 
+static constexpr uint8_t bitmap_icon_doom_data[] = {
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x77,
+    0xDF,
+    0xFF,
+    0xDF,
+    0xD9,
+    0xFD,
+    0x89,
+    0xF8,
+    0x89,
+    0xE8,
+    0x89,
+    0xA8,
+    0x89,
+    0xA8,
+    0xD9,
+    0xAD,
+    0x79,
+    0xAF,
+    0x2D,
+    0xAA,
+    0x07,
+    0xA8,
+    0x03,
+    0xA0,
+    0x01,
+    0x80,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_doom{
+    {16, 16},
+    bitmap_icon_doom_data};
+
 static constexpr uint8_t bitmap_icon_add_data[] = {
     0x00,
     0x00,
