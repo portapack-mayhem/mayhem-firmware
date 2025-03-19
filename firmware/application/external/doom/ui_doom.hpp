@@ -16,7 +16,7 @@
 namespace ui::external_app::doom {
 
 class DoomView : public View {
-public:
+   public:
     DoomView(NavigationView& nav);
     void on_show() override;
     std::string title() const override { return "Doom"; }
@@ -25,7 +25,7 @@ public:
     void frame_sync();
     bool on_key(const KeyEvent key) override;
 
-private:
+   private:
     NavigationView& nav_;
     Button dummy{{240, 0, 0, 0}, ""};
     bool initialized{false};
