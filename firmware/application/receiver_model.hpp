@@ -131,10 +131,14 @@ class ReceiverModel {
     void set_normalized_headphone_volume(uint8_t v);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     void set_hidden_offset(rf::Frequency offset);
 =======
     void set_hidden_offset(rf::Frequency offset) { hidden_offset = offset; }
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+    void set_hidden_offset(rf::Frequency offset);
+>>>>>>> d73db884 (Added wefax offset to audio app too. (#2572))
 
     void enable();
     void disable();

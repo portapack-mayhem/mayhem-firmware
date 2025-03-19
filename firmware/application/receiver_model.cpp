@@ -328,6 +328,11 @@ void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
 }
 
+void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
+    hidden_offset = offset;
+    update_tuning_frequency();
+}
+
 void ReceiverModel::update_baseband_bandwidth() {
     radio::set_baseband_filter_bandwidth_rx(baseband_bandwidth());
 }
