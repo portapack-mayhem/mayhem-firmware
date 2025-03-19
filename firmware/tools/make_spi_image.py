@@ -199,7 +199,11 @@ try:
     if validate_memory_regions(regions):
         print("external app addr seems correct, pass")
     else:
+<<<<<<< HEAD
         print("\nWARNING: It seems you are having incorrect external app addresses.")
+=======
+        print("\nWARENING: It seems you are having incorrect external app addresses.")
+>>>>>>> 403c3627 (fix external app address list (#2573))
     
 except Exception as e:
     print(f"err: {e}")
@@ -266,10 +270,15 @@ print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
 
 =======
 >>>>>>> c413f925 (Add fast flash script for sdcard switch hardware (#2480))
+=======
+#^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
+
+>>>>>>> 403c3627 (fix external app address list (#2573))
 # copy the fast flash script
 build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
 flash_py_path = os.path.join(build_dir, 'flash.py')

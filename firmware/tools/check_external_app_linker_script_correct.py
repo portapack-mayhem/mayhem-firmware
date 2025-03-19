@@ -120,10 +120,18 @@ def main():
         if validate_memory_regions(regions):
             print("external app addr seems correct, pass")
         else:
+<<<<<<< HEAD
             print("\nWARNING: It seems you are having incorrect external app addresses.")
+=======
+            print("\nWARENING: It seems you are having incorrect external app addresses.")
+>>>>>>> 403c3627 (fix external app address list (#2573))
             
     except Exception as e:
         print(f"err: {e}")
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     main()
+=======
+    main()
+>>>>>>> 403c3627 (fix external app address list (#2573))
