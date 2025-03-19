@@ -1,20 +1,5 @@
 set(EXTCPPSRC
 
-	#tetris
-	external/tetris/main.cpp
-	external/tetris/ui_tetris.cpp
-
-	#breakout
-	external/breakout/main.cpp
-	external/breakout/ui_breakout.cpp
-
-	#doom
-	external/doom/main.cpp
-	external/doom/ui_doom.cpp
-	#snake
-	external/snake/main.cpp
-	external/snake/ui_snake.cpp
-
 	#afsk_rx
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -69,6 +54,10 @@ set(EXTCPPSRC
 	external/keyfob/main.cpp
 	external/keyfob/ui_keyfob.cpp
 	external/keyfob/ui_keyfob.hpp
+
+	#tetris
+	external/tetris/main.cpp
+	external/tetris/ui_tetris.cpp
 
 	#extsensors
 	external/extsensors/main.cpp
@@ -187,9 +176,21 @@ set(EXTCPPSRC
 	external/playlist_editor/main.cpp
 	external/playlist_editor/ui_playlist_editor.cpp
 
+	#snake
+	external/snake/main.cpp
+	external/snake/ui_snake.cpp
+
 	#stopwatch
 	external/stopwatch/main.cpp
 	external/stopwatch/ui_stopwatch.cpp
+
+	#breakout
+	external/breakout/main.cpp
+	external/breakout/ui_breakout.cpp
+
+	#doom
+	external/doom/main.cpp
+	external/doom/ui_doom.cpp
 )
 
 set(EXTAPPLIST
@@ -207,9 +208,6 @@ set(EXTAPPLIST
 	spainter
 	keyfob
 	tetris
-	breakout
-	doom
-	snake
 	extsensors
 	foxhunt_rx
 	audio_test
@@ -238,5 +236,8 @@ set(EXTAPPLIST
 	view_wav
 	sd_wipe
 	playlist_editor
+	snake
 	stopwatch
+	breakout
+	doom
 )

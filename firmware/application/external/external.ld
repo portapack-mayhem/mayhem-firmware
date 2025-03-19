@@ -157,24 +157,6 @@ SECTIONS
         *(*ui*external_app*tetris*);
     } > ram_external_app_tetris
 
-    .external_app_breakout : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_breakout.application_information));
-        *(*ui*external_app*breakout*);
-    } > ram_external_app_breakout
-
-    .external_app_snake : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_snake.application_information));
-        *(*ui*external_app*snake*);
-    } > ram_external_app_snake
-
-    .external_app_doom : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_doom.application_information));
-        *(*ui*external_app*doom*);
-    } > ram_external_app_doom    
-
    .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_extsensors.application_information));
@@ -337,6 +319,12 @@ SECTIONS
         *(*ui*external_app*playlist_editor*);
     } > ram_external_app_playlist_editor
 
+    .external_app_snake : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_snake.application_information));
+        *(*ui*external_app*snake*);
+    } > ram_external_app_snake
+
     .external_app_stopwatch : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_stopwatch.application_information));
@@ -347,6 +335,18 @@ SECTIONS
         KEEP(*(.external_app.app_wefax_rx.application_information));
         *(*ui*external_app*wefax_rx*);
     } > ram_external_app_wefax_rx
+
+    .external_app_breakout : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_breakout.application_information));
+        *(*ui*external_app*breakout*);
+    } > ram_external_app_breakout
+
+    .external_app_doom : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_doom.application_information));
+        *(*ui*external_app*doom*);
+    } > ram_external_app_doom    
 
 
 }
