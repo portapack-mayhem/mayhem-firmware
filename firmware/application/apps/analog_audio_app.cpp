@@ -265,6 +265,7 @@ void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
 }
 
 AnalogAudioView::~AnalogAudioView() {
+    receiver_model.set_hidden_offset(0);
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -430,6 +431,8 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
 
     receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
     receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
+
+    receiver_model.set_hidden_offset(modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);  // wefax needs to be shifted, see wefax rx app.
 
     receiver_model.enable();
 
