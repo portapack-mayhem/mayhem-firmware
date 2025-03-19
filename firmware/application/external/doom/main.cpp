@@ -30,6 +30,9 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
         0x00,
         0x00,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6aa29e26 (Update Doom main.cpp for better icon (#2575))
         0x77,
         0xDF,
         0xFF,
@@ -45,6 +48,7 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
         0x89,
         0xA8,
         0xD9,
+<<<<<<< HEAD
         0xAD,
         0x79,
         0xAF,
@@ -60,32 +64,27 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
         0x27,
         0xDA,
         0x59,
+=======
+>>>>>>> 6aa29e26 (Update Doom main.cpp for better icon (#2575))
         0xAD,
-        0x89,
+        0x79,
+        0xAF,
+        0x2D,
+        0xAA,
+        0x07,
         0xA8,
-        0x89,
-        0xA8,
-        0x89,
-        0xA8,
-        0x89,
-        0x88,
-        0x89,
-        0x88,
-        0x89,
-        0x88,
-        0x59,
-        0x8D,
-        0x29,
-        0x8A,
-        0x05,
-        0x80,
         0x03,
+        0xA0,
+        0x01,
         0x80,
         0x00,
         0x00,
+<<<<<<< HEAD
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
         0x00,
         0x00,
+=======
+>>>>>>> 6aa29e26 (Update Doom main.cpp for better icon (#2575))
     },
     ui::Color::red().v,
     app_location_t::GAMES,
@@ -94,7 +93,11 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
     0x00000000,
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
 }
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+}
+>>>>>>> 6aa29e26 (Update Doom main.cpp for better icon (#2575))
