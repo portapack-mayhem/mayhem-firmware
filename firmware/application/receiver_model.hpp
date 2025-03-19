@@ -110,7 +110,7 @@ class ReceiverModel {
     uint8_t normalized_headphone_volume() const;
     void set_normalized_headphone_volume(uint8_t v);
 
-    void set_hidden_offset(rf::Frequency offset) { hidden_offset = offset; }
+    void set_hidden_offset(rf::Frequency offset);
 
     void enable();
     void disable();
