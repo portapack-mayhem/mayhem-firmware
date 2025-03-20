@@ -1,5 +1,6 @@
 /*
  * Copyright 2025 Mark Thompson
+ * copyleft Mr. Robot of F.Society
  *
  * This file is part of PortaPack.
  *
@@ -27,14 +28,45 @@ using namespace portapack;
 
 namespace ui::external_app::stopwatch {
 
-StopwatchView::StopwatchView(NavigationView& nav) {
+// clang-format off
+
+// minute
+#define TOTAL_M1_POS {0 * 8 * 4, 3 * 16}
+#define TOTAL_M2_POS {1 * 8 * 4, 3 * 16}
+
+// sec
+#define TOTAL_S1_POS {2 * 8 * 4 + 24, 3 * 16}
+#define TOTAL_S2_POS {3 * 8 * 4 + 24, 3 * 16}
+
+// ms
+#define TOTAL_MS1_POS {4 * 8 * 4 + 7 * 8, 3 * 16 + 24}
+#define TOTAL_MS2_POS {5 * 8 * 4 + 5 * 8, 3 * 16 + 24}
+#define TOTAL_MS3_POS {6 * 8 * 4 + 3 * 8, 3 * 16 + 24}
+
+#define LAP_Y 9 * 16
+
+//lap min
+#define LAP_M1_POS {0 * 8 * 4, LAP_Y}
+#define LAP_M2_POS {1 * 8 * 4, LAP_Y}
+
+//lap sec
+#define LAP_S1_POS {2 * 8 * 4 + 24, LAP_Y}
+#define LAP_S2_POS {3 * 8 * 4 + 24, LAP_Y}
+
+//lap ms
+#define LAP_MS1_POS {4 * 8 * 4 + 7 * 8, LAP_Y + 24}
+#define LAP_MS2_POS {5 * 8 * 4 + 5 * 8, LAP_Y + 24}
+#define LAP_MS3_POS {6 * 8 * 4 + 3 * 8, LAP_Y + 24}
+// clang-format on
+
+StopwatchView::StopwatchView(NavigationView& nav)
+    : painter{} {
     add_children({
         &labels,
         &button_run_stop,
         &button_reset_lap,
         &button_done,
-        &big_display,
-        &lap_display,
+        &options_ms_display_level,
     });
 
     button_run_stop.on_select = [this](Button&) {
@@ -54,6 +86,10 @@ StopwatchView::StopwatchView(NavigationView& nav) {
     button_done.on_select = [&nav](Button&) {
         nav.pop();
     };
+
+    options_ms_display_level.set_selected_index(0);
+
+    refresh_painting();
 }
 
 void StopwatchView::focus() {
@@ -61,6 +97,9 @@ void StopwatchView::focus() {
 }
 
 void StopwatchView::run() {
+    options_ms_display_level.hidden(true);
+    // ^ this won't take efferts if don't set_dirty, but needed to let user can't change during ticking
+    refresh_painting();
     running = true;
     start_time = chTimeNow() - previously_elapsed;
     button_run_stop.set_text("STOP");
@@ -68,6 +107,7 @@ void StopwatchView::run() {
 }
 
 void StopwatchView::stop() {
+    options_ms_display_level.hidden(false);
     running = false;
     end_time = chTimeNow();
     previously_elapsed = end_time - start_time;
@@ -77,25 +117,144 @@ void StopwatchView::stop() {
 
 void StopwatchView::reset() {
     lap_time = end_time = start_time = previously_elapsed = 0;
-    big_display.set(0);
-    lap_display.set(0);
+    for (uint8_t i = 0; i < 7; i++) {
+        refresh_painting();
+    }
+    refresh_painting();
+    set_dirty();
 }
 
 void StopwatchView::lap() {
     lap_time = chTimeNow();
-    lap_display.set((lap_time - start_time) * 1000);  // convert elapsed time in ms to MHz for BigFrequency widget
 }
 
-void StopwatchView::paint(Painter& painter) {
-    (void)painter;
-    if (running) {
-        end_time = chTimeNow();
-        big_display.set((end_time - start_time) * 1000);  // convert elapsed time in ms to MHz for BigFrequency widget
-    }
+void StopwatchView::paint(Painter&) {
+}
+
+void StopwatchView::refresh_painting() {
+    // minute
+    painter.draw_char(TOTAL_M1_POS, *Theme::getInstance()->fg_light, ' ', 4);
+    painter.draw_char(TOTAL_M2_POS, *Theme::getInstance()->fg_light, ' ', 4);
+
+    // sec
+    painter.draw_char(TOTAL_S1_POS, *Theme::getInstance()->fg_light, ' ', 4);
+    painter.draw_char(TOTAL_S2_POS, *Theme::getInstance()->fg_light, ' ', 4);
+
+    // ms
+    painter.draw_char(TOTAL_MS1_POS, *Theme::getInstance()->fg_light, ' ', 2);
+    painter.draw_char(TOTAL_MS2_POS, *Theme::getInstance()->fg_light, ' ', 2);
+    painter.draw_char(TOTAL_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
+
+    // lap min
+    painter.draw_char(LAP_M1_POS, *Theme::getInstance()->fg_light, ' ', 4);
+    painter.draw_char(LAP_M2_POS, *Theme::getInstance()->fg_light, ' ', 4);
+
+    // lap sec
+    painter.draw_char(LAP_S1_POS, *Theme::getInstance()->fg_light, ' ', 4);
+    painter.draw_char(LAP_S2_POS, *Theme::getInstance()->fg_light, ' ', 4);
+
+    // lap ms
+    painter.draw_char(LAP_MS1_POS, *Theme::getInstance()->fg_light, ' ', 2);
+    painter.draw_char(LAP_MS2_POS, *Theme::getInstance()->fg_light, ' ', 2);
+    painter.draw_char(LAP_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
 }
 
 void StopwatchView::frame_sync() {
-    set_dirty();
+    uint32_t elapsed_ticks = 0;
+
+    if (running) {
+        end_time = chTimeNow();
+        elapsed_ticks = end_time - start_time;
+    } else if (previously_elapsed > 0) {
+        elapsed_ticks = previously_elapsed;
+    }
+
+    constexpr uint32_t TICKS_PER_SECOND = CH_FREQUENCY;
+    constexpr uint32_t TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
+
+    uint32_t minutes = elapsed_ticks / TICKS_PER_MINUTE;
+    uint32_t seconds = (elapsed_ticks % TICKS_PER_MINUTE) / TICKS_PER_SECOND;
+    uint32_t milliseconds = ((elapsed_ticks % TICKS_PER_SECOND) * 1000) / TICKS_PER_SECOND;
+
+    // minute
+    if (last_displayed[0] != (minutes / 10) % 10)
+        painter.draw_char(TOTAL_M1_POS, *Theme::getInstance()->fg_red, '0' + (minutes / 10) % 10, 4);
+    if (last_displayed[1] != minutes % 10)
+        painter.draw_char(TOTAL_M2_POS, *Theme::getInstance()->fg_red, '0' + minutes % 10, 4);
+
+    // sec
+    if (last_displayed[2] != (seconds / 10) % 10)
+        painter.draw_char(TOTAL_S1_POS, *Theme::getInstance()->fg_green, '0' + (seconds / 10) % 10, 4);
+    if (last_displayed[3] != seconds % 10)
+        painter.draw_char(TOTAL_S2_POS, *Theme::getInstance()->fg_green, '0' + seconds % 10, 4);
+
+    // ms
+    /*   v place holder to aligh logic*/
+    if ((true) && last_displayed[4] != (milliseconds / 100) % 10)
+        painter.draw_char(TOTAL_MS1_POS, *Theme::getInstance()->fg_yellow, '0' + (milliseconds / 100) % 10, 2);
+    if ((options_ms_display_level.selected_index() >= 1) && last_displayed[5] != (milliseconds / 10) % 10)
+        painter.draw_char(TOTAL_MS2_POS, *Theme::getInstance()->fg_yellow, '0' + (milliseconds / 10) % 10, 2);
+    if ((options_ms_display_level.selected_index() >= 2) && last_displayed[6] != milliseconds % 10)
+        painter.draw_char(TOTAL_MS3_POS, *Theme::getInstance()->fg_yellow, '0' + milliseconds % 10, 2);
+
+    // min
+    last_displayed[0] = (minutes / 10) % 10;
+    last_displayed[1] = minutes % 10;
+    // sec
+    last_displayed[2] = (seconds / 10) % 10;
+    last_displayed[3] = seconds % 10;
+    // ms
+    last_displayed[4] = (milliseconds / 100) % 10;
+    last_displayed[5] = (milliseconds / 10) % 10;
+    last_displayed[6] = milliseconds % 10;
+
+    if (lap_time > 0) {
+        uint32_t lap_elapsed = lap_time - start_time;
+
+        uint32_t lap_minutes = lap_elapsed / TICKS_PER_MINUTE;
+        uint32_t lap_seconds = (lap_elapsed % TICKS_PER_MINUTE) / TICKS_PER_SECOND;
+        uint32_t lap_milliseconds = ((lap_elapsed % TICKS_PER_SECOND) * 1000) / TICKS_PER_SECOND;
+
+        // lap min
+        if (lap_last_displayed[0] == (lap_minutes / 10) % 10) {
+            painter.draw_char(LAP_M1_POS, *Theme::getInstance()->fg_light, '0' + (lap_minutes / 10) % 10, 4);
+        }
+        if (lap_last_displayed[1] == lap_minutes % 10) {
+            painter.draw_char(LAP_M2_POS, *Theme::getInstance()->fg_light, '0' + lap_minutes % 10, 4);
+        }
+
+        // lap sec
+        if (lap_last_displayed[2] == (lap_seconds / 10) % 10) {
+            painter.draw_char(LAP_S1_POS, *Theme::getInstance()->fg_light, '0' + (lap_seconds / 10) % 10, 4);
+        }
+        if (lap_last_displayed[3] == lap_seconds % 10) {
+            painter.draw_char(LAP_S2_POS, *Theme::getInstance()->fg_light, '0' + lap_seconds % 10, 4);
+        }
+
+        // lap ms
+        if (lap_last_displayed[4] == (lap_milliseconds / 100) % 10) {
+            painter.draw_char(LAP_MS1_POS, *Theme::getInstance()->fg_light, '0' + (lap_milliseconds / 100) % 10, 2);
+        }
+        if (lap_last_displayed[5] == (lap_milliseconds / 10) % 10) {
+            painter.draw_char(LAP_MS2_POS, *Theme::getInstance()->fg_light, '0' + (lap_milliseconds / 10) % 10, 2);
+        }
+        if (lap_last_displayed[6] == lap_milliseconds % 10) {
+            painter.draw_char(LAP_MS3_POS, *Theme::getInstance()->fg_light, '0' + lap_milliseconds % 10, 2);
+        }
+
+        // lp m
+        lap_last_displayed[0] = (lap_minutes / 10) % 10;
+        lap_last_displayed[1] = lap_minutes % 10;
+
+        // lp s
+        lap_last_displayed[2] = (lap_seconds / 10) % 10;
+        lap_last_displayed[3] = lap_seconds % 10;
+
+        // lp mss
+        lap_last_displayed[4] = (lap_milliseconds / 100) % 10;
+        lap_last_displayed[5] = (lap_milliseconds / 10) % 10;
+        lap_last_displayed[6] = lap_milliseconds % 10;
+    }
 }
 
 }  // namespace ui::external_app::stopwatch
