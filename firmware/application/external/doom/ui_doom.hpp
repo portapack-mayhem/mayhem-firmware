@@ -14,6 +14,49 @@
 #include "message.hpp"
 
 namespace ui::external_app::doom {
+using Callback = void (*)();
+
+class Ticker {
+   public:
+    Ticker() {}
+    void attach(Callback func, double delay_sec) {
+        game_update_callback = func;
+        game_update_timeout = delay_sec * 60;
+    }
+    void detach() {
+        game_update_callback = nullptr;
+    }
+
+   private:
+    Callback game_update_callback = nullptr;
+    uint32_t game_update_timeout = 0;
+};
+
+extern ui::Painter painter;
+
+enum {
+    White,
+    Blue,
+    Yellow,
+    Purple,
+    Green,
+    Red,
+    Maroon,
+    Orange,
+    Black,
+};
+
+static const Color pp_colors[] = {
+    Color::white(),
+    Color::blue(),
+    Color::yellow(),
+    Color::purple(),
+    Color::green(),
+    Color::red(),
+    Color::magenta(),
+    Color::orange(),
+    Color::black(),
+};
 
 class DoomView : public View {
    public:
@@ -36,7 +79,6 @@ class DoomView : public View {
             this->frame_sync();
         }};
 };
-
 }  // namespace ui::external_app::doom
 
 #endif /*__UI_DOOM_H__*/
