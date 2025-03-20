@@ -15,6 +15,9 @@
 
 namespace ui::external_app::doom {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4ecc9d04 (Put ticker class and pp_colors in hpp file in namespace and remove helper files (#2577))
 using Callback = void (*)();
 
 class Ticker {
@@ -58,8 +61,11 @@ static const Color pp_colors[] = {
     Color::orange(),
     Color::black(),
 };
+<<<<<<< HEAD
 =======
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+>>>>>>> 4ecc9d04 (Put ticker class and pp_colors in hpp file in namespace and remove helper files (#2577))
 
 class DoomView : public View {
    public:
@@ -87,9 +93,12 @@ class DoomView : public View {
         }};
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+>>>>>>> 4ecc9d04 (Put ticker class and pp_colors in hpp file in namespace and remove helper files (#2577))
 }  // namespace ui::external_app::doom
 
 #endif /*__UI_DOOM_H__*/

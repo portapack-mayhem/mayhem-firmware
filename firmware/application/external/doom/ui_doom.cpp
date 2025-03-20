@@ -9,6 +9,7 @@
 #include "ui_doom.hpp"
 #include "ui.hpp"
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 namespace ui::external_app::doom {
 
@@ -21,6 +22,8 @@ int HALF_HEIGHT = 0;
 =======
 #include "SPI_TFT_ILI9341.h"
 #include "mbed.h"
+=======
+>>>>>>> 4ecc9d04 (Put ticker class and pp_colors in hpp file in namespace and remove helper files (#2577))
 
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
