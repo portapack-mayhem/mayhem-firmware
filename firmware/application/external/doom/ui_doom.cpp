@@ -8,8 +8,6 @@
 
 #include "ui_doom.hpp"
 #include "ui.hpp"
-#include "SPI_TFT_ILI9341.h"
-#include "mbed.h"
 
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
