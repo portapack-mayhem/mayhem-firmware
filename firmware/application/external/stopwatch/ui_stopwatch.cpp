@@ -29,6 +29,7 @@ using namespace portapack;
 namespace ui::external_app::stopwatch {
 
 // clang-format off
+// clang-format doesn't allow use as this way but it's not worth to have const var for this thing. too expensive
 
 // minute
 #define TOTAL_M1_POS {0 * 8 * 4, 3 * 16}
@@ -159,6 +160,14 @@ void StopwatchView::refresh_painting() {
     painter.draw_char(LAP_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
 }
 
+/* NB:
+ * Due to the flaw of dirty management, it's using work around, to reduce screen flickering:
+ *
+ * for example when xx:15:xxx turn to xx:16:xxx, it actually only paint 6, the 1 is old,
+ * but not dirty, so we can see without flikering.
+ *
+ * So with these work around, it won't show false info, but bare in mind that it could be, if you add more things.
+ */
 void StopwatchView::frame_sync() {
     uint32_t elapsed_ticks = 0;
 
