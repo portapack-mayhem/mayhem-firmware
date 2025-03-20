@@ -42,8 +42,11 @@ class StopwatchView : public View {
     void lap();
     void cover_display_area_with_0();
     void refresh_painting();
+    void resume_last();
+    void clean_ms_display(uint8_t level = 0);
 
     bool running{false};
+    bool paused{false};
     long long start_time{0};
     long long end_time{0};
     long long lap_time{0};

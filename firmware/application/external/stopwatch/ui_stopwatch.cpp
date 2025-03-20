@@ -88,6 +88,10 @@ StopwatchView::StopwatchView(NavigationView& nav)
         nav.pop();
     };
 
+    options_ms_display_level.on_change = [&](size_t, ui::OptionsField::value_t) {
+        clean_ms_display(options_ms_display_level.selected_index());
+    };
+
     options_ms_display_level.set_selected_index(0);
 
     refresh_painting();
@@ -100,7 +104,8 @@ void StopwatchView::focus() {
 void StopwatchView::run() {
     options_ms_display_level.hidden(true);
     // ^ this won't take efferts if don't set_dirty, but needed to let user can't change during ticking
-    refresh_painting();
+    if (!paused) refresh_painting();
+    paused = false;
     running = true;
     start_time = chTimeNow() - previously_elapsed;
     button_run_stop.set_text("STOP");
@@ -110,6 +115,7 @@ void StopwatchView::run() {
 void StopwatchView::stop() {
     options_ms_display_level.hidden(false);
     running = false;
+    paused = true;
     end_time = chTimeNow();
     previously_elapsed = end_time - start_time;
     button_run_stop.set_text("START");
@@ -158,6 +164,40 @@ void StopwatchView::refresh_painting() {
     painter.draw_char(LAP_MS1_POS, *Theme::getInstance()->fg_light, ' ', 2);
     painter.draw_char(LAP_MS2_POS, *Theme::getInstance()->fg_light, ' ', 2);
     painter.draw_char(LAP_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
+}
+
+/*when user seted it to display more, then display less later, this prevent the remain value exist on screen*/
+void StopwatchView::clean_ms_display(uint8_t level) {
+    level++;
+    switch (level) {
+        case 0:
+            painter.draw_char(TOTAL_MS1_POS, *Theme::getInstance()->fg_light, ' ', 2);
+            painter.draw_char(TOTAL_MS2_POS, *Theme::getInstance()->fg_light, ' ', 2);
+            painter.draw_char(TOTAL_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
+            break;
+        case 1:
+            painter.draw_char(TOTAL_MS2_POS, *Theme::getInstance()->fg_light, ' ', 2);
+            painter.draw_char(TOTAL_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
+            break;
+        case 2:
+            painter.draw_char(TOTAL_MS3_POS, *Theme::getInstance()->fg_light, ' ', 2);
+            break;
+    }
+}
+
+void StopwatchView::resume_last() {
+    // minute
+    painter.draw_char(TOTAL_M1_POS, *Theme::getInstance()->fg_light, last_displayed[0], 4);
+    painter.draw_char(TOTAL_M2_POS, *Theme::getInstance()->fg_light, last_displayed[1], 4);
+
+    // sec
+    painter.draw_char(TOTAL_S1_POS, *Theme::getInstance()->fg_light, last_displayed[2], 4);
+    painter.draw_char(TOTAL_S2_POS, *Theme::getInstance()->fg_light, last_displayed[3], 4);
+
+    // ms
+    painter.draw_char(TOTAL_MS1_POS, *Theme::getInstance()->fg_light, last_displayed[4], 2);
+    painter.draw_char(TOTAL_MS2_POS, *Theme::getInstance()->fg_light, last_displayed[5], 2);
+    painter.draw_char(TOTAL_MS3_POS, *Theme::getInstance()->fg_light, last_displayed[6], 2);
 }
 
 /* NB:
