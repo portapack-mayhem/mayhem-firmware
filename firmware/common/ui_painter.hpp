@@ -65,7 +65,7 @@ class Widget;
 
 class Painter {
    public:
-    Painter() {};
+    Painter(){};
 
     Painter(const Painter&) = delete;
     Painter(Painter&&) = delete;
