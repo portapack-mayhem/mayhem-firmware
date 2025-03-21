@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * copyleft Mr. Robot
  *
  * This file is part of PortaPack.
  *
@@ -35,10 +36,34 @@ Style Style::invert() const {
         .foreground = background};
 }
 
-int Painter::draw_char(Point p, const Style& style, char c) {
+int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_factor) {
     const auto glyph = style.font.glyph(c);
-    display.draw_glyph(p, glyph, style.foreground, style.background);
-    return glyph.advance().x();
+
+    if (zoom_factor <= 1) {
+        display.draw_glyph(p, glyph, style.foreground, style.background);
+    } else {
+        // dot to square
+        const uint8_t* pixels = glyph.pixels();
+        for (int y = 0; y < glyph.h(); y++) {      // each line
+            for (int x = 0; x < glyph.w(); x++) {  // each clum
+                // pos
+                int byte_index = (y * glyph.w() + x) / 8;
+                int bit_pos = (y * glyph.w() + x) % 8;
+
+                // fill
+                Color pixel_color = ((pixels[byte_index] & (1 << bit_pos)) != 0) ? style.foreground : style.background;
+                /*                                       ^ true: fg, false: bg
+                                      ^ the byte_index-th bit AKA current bit
+                                                            ^ current px in current byte  */
+                display.fill_rectangle(
+                    {p.x() + x * zoom_factor, p.y() + y * zoom_factor,
+                     zoom_factor, zoom_factor},
+                    pixel_color);
+            }
+        }
+    }
+
+    return glyph.advance().x() * zoom_factor;
 }
 
 int Painter::draw_string(Point p, const Style& style, std::string_view text) {
