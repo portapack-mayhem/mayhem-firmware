@@ -1,9 +1,13 @@
 /*
  * Copyright 2025 Mark Thompson
 <<<<<<< HEAD
+<<<<<<< HEAD
  * copyleft Mr. Robot of F.Society
 =======
 >>>>>>> 084b8856 (Stopwatch external app (#2553))
+=======
+ * copyleft Mr. Robot of F.Society
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
  *
  * This file is part of PortaPack.
  *
@@ -44,6 +48,9 @@ class StopwatchView : public View {
     void reset();
     void lap();
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
     void cover_display_area_with_0();
     void refresh_painting();
     void resume_last();
@@ -51,21 +58,30 @@ class StopwatchView : public View {
 
     bool running{false};
     bool paused{false};
+<<<<<<< HEAD
 =======
 
     bool running{false};
 >>>>>>> 084b8856 (Stopwatch external app (#2553))
+=======
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
     long long start_time{0};
     long long end_time{0};
     long long lap_time{0};
     long long previously_elapsed{0};
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
     uint8_t last_displayed[7] = {0, 0, 0, 0, 0, 0, 0};
     /*                           m  m  s  s  ms ms ms*/
     uint8_t lap_last_displayed[7] = {0, 0, 0, 0, 0, 0, 0};
     /*                       m     m     s      s     ms   ms    ms*/
+<<<<<<< HEAD
 =======
 >>>>>>> 084b8856 (Stopwatch external app (#2553))
+=======
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
 
     Labels labels{
         {{0 * 8, 1 * 16}, "TOTAL:", Theme::getInstance()->fg_light->foreground},
@@ -73,12 +89,16 @@ class StopwatchView : public View {
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
     OptionsField options_ms_display_level{
         {4 * 8 * 4 + 7 * 8 + 4, 2 * 16},
         5,
         {{"& - -", 0},
          {"& & -", 1},
          {"& & &", 2}}};
+<<<<<<< HEAD
 
     Painter painter;
 =======
@@ -90,6 +110,10 @@ class StopwatchView : public View {
         {4, 8 * 16 + 4, 28 * 8, 52},
         0};
 >>>>>>> 084b8856 (Stopwatch external app (#2553))
+=======
+
+    Painter painter;
+>>>>>>> 0ce6ea83 (stopwatch opt (#2578))
 
     Button button_run_stop{
         {72, 210, 96, 24},
