@@ -1,0 +1,40 @@
+name: Hardware / QC / QA / selling
+description: Issues that related with hardware, quality control, quality assurance, selling, etc.
+labels:
+  - question
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for taking the time to fill out an issue. 
+
+      We would like to inform you that we can't provide much help regarding hardware/QC/QA/selling issues because we are not controlling various vendors/manufacturers, and also we are not profiting from you buying your device.
+  
+      You are still welcome to ask, but please be aware that for this kind of issue, ask the seller would be the best option.
+
+      > [!IMPORTANT]  
+      If you are a seller/vendor and your customer has directed you to this page as a reference/evidence of a "broken device" or similar issue, please be aware that we are not providing any "official guarantee of a faulty device." We are only offering suggestions based on what the submitter has stated. We do not guarantee that the device is broken or anything else.
+- type: textarea
+  id: description
+  attributes:
+    label: Describe the problem
+    description: "A clear and concise description of what the problem is."
+  validations:
+    required: true
+- type: textarea
+  id: hardware-info
+  attributes: 
+    label: Hardware information
+    description: "Please provide the hardware information here."
+    placeholder: |
+      1. HackrfRF revision
+      2. Portapack revision
+      3. (if it's audio/mic/display/touchscreen/buttons related) audio chip/ CPLD/ screen info...
+      4. (if hardware is visually damaged) please provide a photo
+  validations:
+    required: true
+- type: textarea
+  id: anything-else
+  attributes:
+    label: Anything else?
+    description: Let us know if you have anything else to share.
