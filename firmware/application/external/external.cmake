@@ -191,6 +191,10 @@ set(EXTCPPSRC
 	#doom
 	external/doom/main.cpp
 	external/doom/ui_doom.cpp
+
+	#screening
+	# external/screening/main.cpp
+	# external/screening/ui_screening.cpp
 )
 
 set(EXTAPPLIST
@@ -240,4 +244,5 @@ set(EXTAPPLIST
 	stopwatch
 	breakout
 	doom
+	# screening
 )
