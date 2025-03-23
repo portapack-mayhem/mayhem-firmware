@@ -9,6 +9,9 @@
 #include "ui_doom.hpp"
 #include "ui.hpp"
 
+namespace ui::external_app::doom {
+
+//clang-format off
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
 #define RENDER_HEIGHT 280
@@ -46,30 +49,7 @@
 #define COLOR_WALL_LIGHT Green
 #define COLOR_WALL_DARK Maroon
 #define COLOR_FLOOR_DARK Black
-
-struct Coords {
-    double x, y;
-};
-
-struct Player {
-    Coords pos;
-    Coords dir;
-    Coords plane;
-    double velocity;
-    uint8_t health;
-    uint8_t keys;
-    uint8_t ammo;
-};
-
-struct Entity {
-    uint16_t uid;
-    Coords pos;
-    Coords death_pos;
-    uint8_t state;
-    uint8_t health;
-    uint8_t distance;
-    uint8_t timer;
-};
+//clang-format on
 
 // Stole this level map from Flipper Zero Doom, but he stole it from a guy who stole it and that guy probably stole it too. Argh!
 static const uint8_t level[LEVEL_SIZE] = {
@@ -131,7 +111,29 @@ static const uint8_t level[LEVEL_SIZE] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-namespace ui::external_app::doom {
+struct Coords {
+    double x, y;
+};
+
+struct Player {
+    Coords pos;
+    Coords dir;
+    Coords plane;
+    double velocity;
+    uint8_t health;
+    uint8_t keys;
+    uint8_t ammo;
+};
+
+struct Entity {
+    uint16_t uid;
+    Coords pos;
+    Coords death_pos;
+    uint8_t state;
+    uint8_t health;
+    uint8_t distance;
+    uint8_t timer;
+};
 
 static Ticker game_timer;
 static Player player;
