@@ -62,9 +62,12 @@ bool but_SELECT = false;
 
 static int x_pos{0};
 static int y_pos{0};
+<<<<<<< HEAD
 
 static int rotation_state = 0;
 
+=======
+>>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
 static int fg_color;
 static int bg_color;
 
@@ -209,9 +212,15 @@ void StartGame() {
     cls();
     background(Black);
     foreground(White);
+<<<<<<< HEAD
     fillrect(0, 0, 162, screen_height, Black);
     rect(162, 0, 164, screen_height, White);
     fillrect(164, 0, screen_width, screen_height, Black);
+=======
+    fillrect(0, 0, 162, 320, Black);
+    rect(162, 0, 164, 320, White);
+    fillrect(164, 0, 240, 320, Black);
+>>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
     ShowScore();
     ShowNextFigure();
 }
@@ -259,6 +268,7 @@ void Tetromino(unsigned char c) {
 
 void Initialize(unsigned char c) {
     colorIndex = c;
+<<<<<<< HEAD
     boardY = 4;
     if (c == 1) {     // I-tetromino
         boardX = -1;  // Spawn higher
@@ -324,6 +334,30 @@ void Rotate() {
     next_test:
         continue;
     }
+=======
+    boardX = 0;
+    boardY = 4;
+    copyCoordinates(X, Y, c - 1);
+}
+
+void Rotate() {
+    short pivotX = X[1];
+    short pivotY = Y[1];
+    short newX[4];
+    short newY[4];
+    for (int i = 0; i < 4; i++) {
+        short tmp = X[i], tmp2 = Y[i];
+        newX[i] = pivotX + pivotY - tmp2;
+        newY[i] = tmp + pivotX - pivotY;
+        if (OutOfBounds(boardY + newY[i], boardX + newX[i]) || board[boardX + newX[i]][boardY + newY[i]] != 0) return;
+    }
+    DeleteFigure();
+    for (int i = 0; i < 4; i++) {
+        X[i] = newX[i];
+        Y[i] = newY[i];
+    }
+    DrawFigure();
+>>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
 }
 
 void DrawFigure() {
@@ -483,7 +517,11 @@ void UpdateBoard() {
                 board[i - numberOfLines][j] = 0;
             }
         }
+<<<<<<< HEAD
         fillrect(0, 0, 162, screen_height, Black);
+=======
+        fillrect(0, 0, 162, 320, Black);
+>>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 10; j++) {
                 if (board[i][j] != 0) {
@@ -499,9 +537,13 @@ void UpdateBoard() {
 
 bool IsOver() {
     for (int i = 0; i < 10; i++) {
+<<<<<<< HEAD
         if (board[0][i] != 0) {
             return true;
         }
+=======
+        if (board[0][i] != 0) return true;
+>>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
     }
     return false;
 }
