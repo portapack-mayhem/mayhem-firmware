@@ -35,9 +35,12 @@
 
 namespace ui {
 
+class AnalogAudioView;
+
 class AMOptionsView : public View {
    public:
-    AMOptionsView(Rect parent_rect, const Style* style);
+    AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
+    int16_t previous_filter_array_index = 0;
 
    private:
     Text label_config{
@@ -51,11 +54,18 @@ class AMOptionsView : public View {
         {
             // Using common messages from freqman_ui.cpp
         }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index array filters.
+    };
 };
 
 class AMFMAptOptionsView : public View {
    public:
-    AMFMAptOptionsView(Rect parent_rect, const Style* style);
+    AMFMAptOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -65,10 +75,17 @@ class AMFMAptOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // Max option length
+        6,  // Max option length chars
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index array filters.
+    };
 };
 
 class NBFMOptionsView : public View {
@@ -115,8 +132,6 @@ class WFMOptionsView : public View {
             // Using common messages from freqman_ui.cpp
         }};
 };
-
-class AnalogAudioView;
 
 class SPECOptionsView : public View {
    public:
@@ -182,17 +197,24 @@ class AnalogAudioView : public View {
     uint8_t get_spec_iq_phase_calibration_value();
     void set_spec_iq_phase_calibration_value(uint8_t cal_value);
 
+    uint8_t get_zoom_factor(uint8_t mode);
+    void set_zoom_factor(uint8_t mode, uint8_t zoom);
+
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
+    uint8_t zoom_factor_am{0};               // initial zoom factor in AM mode
+    uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
         {
             {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
+            {"zoom_factor_am"sv, &zoom_factor_am},                    // we are saving and restoring AM ZOOM factor from Settings.
+            {"zoom_factor_amfm"sv, &zoom_factor_amfm},                // we are saving and restoring AMFM ZOOM factor from Settings.
         }};
 
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
