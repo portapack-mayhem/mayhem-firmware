@@ -512,6 +512,51 @@ constexpr fir_taps_real<32> taps_6k0_decim_1{
     }},
 };
 
+// IFIR prototype filter: fs=384000, pass=3000, stop=33000, decim=8, fout=48000
+// Narrower taps_6k0_decim_1IFIR version to avoid LCD waterfall  aliasing in AMFM Wefax in ZOOM X 2 (means spectrum decimation factor x2)
+// It has BW -3dB's of +-9Khz, Stop band from 33khz onwards -60 dB's , then we can use in all AM modes (DSB, SSB,CW )
+constexpr fir_taps_real<32> taps_6k0_narrow_decim_1{
+    .low_frequency_normalized = -3000.0f / 384000.0f,
+    .high_frequency_normalized = 3000.0f / 384000.0f,
+    .transition_normalized = 30000.0f / 384000.0f,
+    .taps = {{
+
+        58,
+        80,
+        138,
+        219,
+        326,
+        461,
+        622,
+        807,
+        1011,
+        1224,
+        1438,
+        1640,
+        1820,
+        1966,
+        2069,
+        2122,
+        2122,
+        2069,
+        1966,
+        1820,
+        1640,
+        1438,
+        1224,
+        1011,
+        807,
+        622,
+        461,
+        326,
+        219,
+        138,
+        80,
+        58,
+
+    }},
+};
+
 // IFIR prototype filter: fs=48000, pass=3000, stop=6700, decim=4, fout=12000
 constexpr fir_taps_real<32> taps_6k0_decim_2{
     .low_frequency_normalized = -3000.0f / 48000.0f,
