@@ -52,9 +52,6 @@ AMOptionsView::AMOptionsView(
         &zoom_config,
     });
 
-    // restore zoom selection
-    zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
-
     freqman_set_bandwidth_option(AM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
     options_config.set_by_value(receiver_model.am_configuration());
     options_config.on_change = [this](size_t, OptionsField::value_t n) {
@@ -66,6 +63,9 @@ AMOptionsView::AMOptionsView(
         receiver_model.set_am_configuration(previous_filter_array_index + n);
         view->set_zoom_factor(AM_MODULATION, n);
     };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
 }
 
 /* NBFMOptionsView *******************************************************/
@@ -128,9 +128,6 @@ AMFMAptOptionsView::AMFMAptOptionsView(
         &zoom_config,
     });
 
-    // restore zoom selection
-    zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
-
     freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
     receiver_model.set_amfm_configuration(5);                       // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
     options_config.set_by_value(receiver_model.amfm_configuration());
@@ -139,6 +136,9 @@ AMFMAptOptionsView::AMFMAptOptionsView(
         receiver_model.set_amfm_configuration(5 + n);
         view->set_zoom_factor(AMFM_MODULATION, n);
     };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
 }
 
 /* SPECOptionsView *******************************************************/
