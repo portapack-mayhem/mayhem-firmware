@@ -666,6 +666,10 @@ class AMConfigureMessage : public Message {
 =======
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
     };
+    enum class Zoom_waterfall : size_t {
+        ZOOM_x_1 = 1,
+        ZOOM_x_2 = 2,
+    };
 
     constexpr AMConfigureMessage(
         const fir_taps_real<24> decim_0_filter,
@@ -674,12 +678,18 @@ class AMConfigureMessage : public Message {
         const fir_taps_complex<64> channel_filter,
         const Modulation modulation,
 <<<<<<< HEAD
+<<<<<<< HEAD
         const iir_biquad_config_t audio_hpf_lpf_config,
         const size_t channel_spectrum_decimation_factor)
 
 =======
         const iir_biquad_config_t audio_hpf_lpf_config)
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+        const iir_biquad_config_t audio_hpf_lpf_config,
+        const size_t channel_spectrum_decimation_factor)
+
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
         : Message{ID::AMConfigure},
           decim_0_filter(decim_0_filter),
           decim_1_filter(decim_1_filter),
@@ -687,11 +697,16 @@ class AMConfigureMessage : public Message {
           channel_filter(channel_filter),
           modulation{modulation},
 <<<<<<< HEAD
+<<<<<<< HEAD
           audio_hpf_lpf_config(audio_hpf_lpf_config),
           channel_spectrum_decimation_factor(channel_spectrum_decimation_factor) {
 =======
           audio_hpf_lpf_config(audio_hpf_lpf_config) {
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+          audio_hpf_lpf_config(audio_hpf_lpf_config),
+          channel_spectrum_decimation_factor(channel_spectrum_decimation_factor) {
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
     }
 
     const fir_taps_real<24> decim_0_filter;
@@ -701,9 +716,13 @@ class AMConfigureMessage : public Message {
     const Modulation modulation;
     const iir_biquad_config_t audio_hpf_lpf_config;
 <<<<<<< HEAD
+<<<<<<< HEAD
     const size_t channel_spectrum_decimation_factor;
 =======
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+    const size_t channel_spectrum_decimation_factor;
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
 };
 
 // TODO: Put this somewhere else, or at least the implementation part.

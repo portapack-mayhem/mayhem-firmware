@@ -40,6 +40,10 @@ class AnalogAudioView;
 class AMOptionsView : public View {
    public:
     AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
+<<<<<<< HEAD
+=======
+    int16_t previous_filter_array_index = 0;
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
 
    private:
     Text label_config{
@@ -58,6 +62,7 @@ class AMOptionsView : public View {
         {23 * 8, 0 * 16},
         7,
         {{"ZOOM x1", 0},
+<<<<<<< HEAD
          {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
     };
 };
@@ -83,13 +88,15 @@ class AMFMAptOptionsView : public View {
         {23 * 8, 0 * 16},
         7,
         {{"ZOOM x1", 0},
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
          {"ZOOM x2", 6}}  // offset index array filters.
     };
 };
 
 class AMFMAptOptionsView : public View {
    public:
-    AMFMAptOptionsView(Rect parent_rect, const Style* style);
+    AMFMAptOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -99,10 +106,17 @@ class AMFMAptOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // Max option length
+        6,  // Max option length chars
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index array filters.
+    };
 };
 
 class NBFMOptionsView : public View {
@@ -150,6 +164,7 @@ class WFMOptionsView : public View {
         }};
 };
 
+<<<<<<< HEAD
 class WFMAMAptOptionsView : public View {
    public:
     WFMAMAptOptionsView(Rect parent_rect, const Style* style);
@@ -167,6 +182,8 @@ class WFMAMAptOptionsView : public View {
         }};
 };
 
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
 class SPECOptionsView : public View {
    public:
     SPECOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
@@ -234,12 +251,15 @@ class AnalogAudioView : public View {
     uint8_t get_zoom_factor(uint8_t mode);
     void set_zoom_factor(uint8_t mode, uint8_t zoom);
 
+<<<<<<< HEAD
     uint8_t get_previous_AM_mode_option();
     void set_previous_AM_mode_option(uint8_t mode);
 
     uint8_t get_previous_zoom_option();
     void set_previous_zoom_option(uint8_t zoom);
 
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
@@ -248,9 +268,12 @@ class AnalogAudioView : public View {
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
     uint8_t zoom_factor_am{0};               // initial zoom factor in AM mode
     uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
+<<<<<<< HEAD
     uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
     uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
 
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
@@ -258,8 +281,11 @@ class AnalogAudioView : public View {
             {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
             {"zoom_factor_am"sv, &zoom_factor_am},                    // we are saving and restoring AM ZOOM factor from Settings.
             {"zoom_factor_amfm"sv, &zoom_factor_amfm},                // we are saving and restoring AMFM ZOOM factor from Settings.
+<<<<<<< HEAD
             {"previous_AM_mode_option"sv, &previous_AM_mode_option},  // we are saving and restoring AMFM ZOOM factor from Settings.
             {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
         }};
 
     const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};

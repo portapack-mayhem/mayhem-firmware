@@ -52,20 +52,35 @@ AMOptionsView::AMOptionsView(
         &zoom_config,
     });
 
+<<<<<<< HEAD
     zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {            // n , has two option values. when GUI =zoom+1 => (0), when GUI=zoom+2 (6)
         receiver_model.set_am_configuration(view->get_previous_AM_mode_option() + n);  // n (0 or 6)
         view->set_zoom_factor(AM_MODULATION, n);
         view->set_previous_zoom_option(n);
+=======
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(previous_filter_array_index + n);
+        view->set_zoom_factor(AM_MODULATION, n);
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
     };
 
     // restore zoom selection
     zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
 
+<<<<<<< HEAD
     freqman_set_bandwidth_option(AM_MODULATION, options_config);                                        // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
     options_config.set_by_value(receiver_model.am_configuration() - view->get_previous_zoom_option());  // restore AM GUI option mode ,   AM FIR index filters (0..11) values ,  <baseband::AMConfig, 12> am_configs has 12 fir  index elements.
     options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
         receiver_model.set_am_configuration(n + view->get_previous_zoom_option());  // we select proper FIR AM filter (0..11), = 0..4 GUI AM modes + offset +6 (if zoom+2)
         view->set_previous_AM_mode_option(n);                                       // (0..4) allowing 5 AM modes (DSB9K, DSB6K, USB,LSB, CW)
+=======
+    freqman_set_bandwidth_option(AM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.am_configuration());
+    options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(n);
+        previous_filter_array_index = n;
+        zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
     };
 }
 
@@ -117,7 +132,12 @@ WFMOptionsView::WFMOptionsView(
 <<<<<<< HEAD
 /* WFMAMAptOptionsView *******************************************************/
 
+<<<<<<< HEAD
 WFMAMAptOptionsView::WFMAMAptOptionsView(
+=======
+AMFMAptOptionsView::AMFMAptOptionsView(
+    AnalogAudioView* view,
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
     Rect parent_rect,
     const Style* style)
     : View{parent_rect} {
@@ -126,6 +146,7 @@ WFMAMAptOptionsView::WFMAMAptOptionsView(
     add_children({
         &label_config,
         &options_config,
+        &zoom_config,
     });
 
     freqman_set_bandwidth_option(WFMAM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
@@ -167,6 +188,7 @@ AMFMAptOptionsView::AMFMAptOptionsView(
 
     // restore zoom selection
     zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
+<<<<<<< HEAD
 =======
     });
 
@@ -178,6 +200,8 @@ AMFMAptOptionsView::AMFMAptOptionsView(
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 =======
 >>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
 }
 
 /* SPECOptionsView *******************************************************/
@@ -330,6 +354,7 @@ void AnalogAudioView::set_zoom_factor(uint8_t mode, uint8_t zoom) {  // define a
         zoom_factor_amfm = zoom;
 }
 
+<<<<<<< HEAD
 uint8_t AnalogAudioView::get_previous_AM_mode_option() {
     return previous_AM_mode_option;
 }
@@ -346,6 +371,8 @@ void AnalogAudioView::set_previous_zoom_option(uint8_t zoom) {
     previous_zoom = zoom;
 }
 
+=======
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
 uint8_t AnalogAudioView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read iq_phase_calibration_value
     return iq_phase_calibration_value;
 }
@@ -474,8 +501,12 @@ void AnalogAudioView::on_show_options_modulation() {
             widget = std::make_unique<AMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
 =======
         case ReceiverModel::Mode::AMAudioFMApt:
+<<<<<<< HEAD
             widget = std::make_unique<AMFMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+            widget = std::make_unique<AMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
+>>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
