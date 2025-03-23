@@ -36,10 +36,12 @@
 namespace baseband {
 
 struct AMConfig {
+    const fir_taps_real<32> decim_1;  // added to handle two var LPF in AMFM to avoid aliasing when spectrum zoom factor 2.
     const fir_taps_real<32> decim_2;  // added to handle two var types decim_2 9k, 6k
     const fir_taps_complex<64> channel;
     const AMConfigureMessage::Modulation modulation;
     const iir_biquad_config_t audio_12k_iir_filter_config;  // added to handle two var IIR filter types : 300 hpf(as before) , 1500Hz lpf for Wefax.
+    const size_t spectrum_decimation_factor;                // used to handle LCD AM waterfall zoom x1 / zoom x2.
 
     void apply() const;
 };

@@ -38,6 +38,7 @@ namespace ui {
 class AMOptionsView : public View {
    public:
     AMOptionsView(Rect parent_rect, const Style* style);
+    int16_t previous_filter_array_index = 0;
 
    private:
     Text label_config{
@@ -51,6 +52,13 @@ class AMOptionsView : public View {
         {
             // Using common messages from freqman_ui.cpp
         }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index array filters.
+    };
 };
 
 class AMFMAptOptionsView : public View {
@@ -65,10 +73,17 @@ class AMFMAptOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // Max option length
+        6,  // Max option length chars
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index array filters.
+    };
 };
 
 class NBFMOptionsView : public View {
