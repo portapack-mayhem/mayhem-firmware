@@ -110,7 +110,11 @@ __attribute__((section(".external_app.app_snake.application_information"), used)
     0x00000000,
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 }  // namespace ui::external_app::snake
 =======
 }
 >>>>>>> eb50b790 (Snake (#2549))
+=======
+}  // namespace ui::external_app::snake
+>>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
