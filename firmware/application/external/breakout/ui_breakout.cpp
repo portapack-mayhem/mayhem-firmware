@@ -11,10 +11,17 @@
 namespace ui::external_app::breakout {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Ticker game_timer;
 
 int paddle_x = 0;
 float ball_x = 0;
+=======
+Ticker game_timer;
+
+int paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) / 2;
+float ball_x = SCREEN_WIDTH / 2;
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 float ball_y = GAME_AREA_BOTTOM - PADDLE_HEIGHT - BALL_SIZE - 1;
 float ball_dx = 1.5f;
 float ball_dy = -2.0f;
@@ -106,7 +113,11 @@ void game_timer_check() {
 }
 
 void init_game() {
+<<<<<<< HEAD
     paddle_x = (screen_width - PADDLE_WIDTH) / 2;
+=======
+    paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) / 2;
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     score = 0;
     lives = 3;
     level = 1;
@@ -158,7 +169,11 @@ void draw_screen() {
 }
 
 void draw_borders() {
+<<<<<<< HEAD
     rect(0, GAME_AREA_TOP - 1, screen_width, GAME_AREA_TOP, COLOR_BORDER);
+=======
+    rect(0, GAME_AREA_TOP - 1, SCREEN_WIDTH, GAME_AREA_TOP, COLOR_BORDER);
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 }
 
 void draw_bricks() {
@@ -219,14 +234,22 @@ void move_paddle_left() {
 }
 
 void move_paddle_right() {
+<<<<<<< HEAD
     if (paddle_x < screen_width - PADDLE_WIDTH) {
+=======
+    if (paddle_x < SCREEN_WIDTH - PADDLE_WIDTH) {
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
         fillrect(paddle_x, PADDLE_Y, paddle_x + PADDLE_WIDTH, PADDLE_Y + PADDLE_HEIGHT, COLOR_BACKGROUND);
         if (ball_attached) {
             fillrect(ball_x, ball_y, ball_x + BALL_SIZE, ball_y + BALL_SIZE, COLOR_BACKGROUND);
         }
 
         paddle_x += 10;
+<<<<<<< HEAD
         if (paddle_x > screen_width - PADDLE_WIDTH) paddle_x = screen_width - PADDLE_WIDTH;
+=======
+        if (paddle_x > SCREEN_WIDTH - PADDLE_WIDTH) paddle_x = SCREEN_WIDTH - PADDLE_WIDTH;
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 
         if (ball_attached) {
             ball_x = paddle_x + (PADDLE_WIDTH / 2) - (BALL_SIZE / 2);
@@ -278,8 +301,13 @@ void update_game() {
     if (ball_x < 0) {
         ball_x = 0;
         ball_dx = -ball_dx;
+<<<<<<< HEAD
     } else if (ball_x > screen_width - BALL_SIZE) {
         ball_x = screen_width - BALL_SIZE;
+=======
+    } else if (ball_x > SCREEN_WIDTH - BALL_SIZE) {
+        ball_x = SCREEN_WIDTH - BALL_SIZE;
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
         ball_dx = -ball_dx;
     }
 
@@ -382,7 +410,11 @@ void init_menu() {
     auto style_blue = *ui::Theme::getInstance()->fg_blue;
     auto style_cyan = *ui::Theme::getInstance()->fg_cyan;
 
+<<<<<<< HEAD
     int16_t screen_width = ui::screen_width;
+=======
+    int16_t screen_width = 240;
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     int16_t title_x = (screen_width - 17 * 8) / 2;
     int16_t divider_width = 24 * 8;
     int16_t divider_x = (screen_width - divider_width) / 2;
@@ -429,7 +461,11 @@ void init_game_over() {
     auto style_red = *ui::Theme::getInstance()->fg_red;
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
 
+<<<<<<< HEAD
     // int16_t screen_width = screen_width;
+=======
+    int16_t screen_width = 240;
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     int16_t title_width = 9 * 8;
     int16_t title_x = (screen_width - title_width) / 2;
     int16_t score_text_width = (16 + std::to_string(score).length()) * 8;
@@ -482,6 +518,7 @@ void reset_game() {
     gameover_blink_state = true;
     gameover_blink_counter = 0;
 }
+<<<<<<< HEAD
 
 BreakoutView::BreakoutView(NavigationView& nav)
     : nav_{nav} {
@@ -492,6 +529,8 @@ BreakoutView::BreakoutView(NavigationView& nav)
 #pragma GCC diagnostic ignored "-Weffc++"
 #include "breakout.cpp"
 #pragma GCC diagnostic pop
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 
 BreakoutView::BreakoutView(NavigationView& nav)
     : nav_{nav} {
@@ -533,12 +572,18 @@ bool BreakoutView::on_encoder(const EncoderEvent delta) {
 
 bool BreakoutView::on_key(const KeyEvent key) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     but_SELECT = (key == KeyEvent::Select);
     but_LEFT = (key == KeyEvent::Left);
     but_RIGHT = (key == KeyEvent::Right);
 
+<<<<<<< HEAD
 =======
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     if (key == KeyEvent::Select) {
         if (game_state == STATE_MENU) {
             game_state = STATE_PLAYING;

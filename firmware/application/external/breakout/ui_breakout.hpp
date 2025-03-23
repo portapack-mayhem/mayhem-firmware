@@ -10,9 +10,13 @@
 #define __UI_BREAKOUT_H__
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "ui.hpp"
 =======
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+#include "ui.hpp"
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 #include "ui_navigation.hpp"
 #include "event_m0.hpp"
 #include "message.hpp"
@@ -20,14 +24,20 @@
 #include "random.hpp"
 #include "lpc43xx_cpp.hpp"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #include "limits.h"
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 #include "ui_widget.hpp"
 
 namespace ui::external_app::breakout {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 enum {
     White,
     Blue,
@@ -64,6 +74,11 @@ class Ticker {
     void detach();
 };
 
+<<<<<<< HEAD
+=======
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 #define PADDLE_WIDTH 40
 #define PADDLE_HEIGHT 10
 #define BALL_SIZE 8
@@ -129,13 +144,17 @@ bool check_level_complete();
 void next_level();
 void reset_game();
 
+<<<<<<< HEAD
 =======
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 class BreakoutView : public View {
    public:
     BreakoutView(NavigationView& nav);
     void on_show() override;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     std::string title() const override { return "Breakout"; }
 
@@ -145,6 +164,11 @@ class BreakoutView : public View {
 
     void focus() override { dummy.focus(); };
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+    std::string title() const override { return "Breakout"; }
+
+    void focus() override { dummy.focus(); }
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     void paint(Painter& painter) override;
     void frame_sync();
     bool on_encoder(const EncoderEvent event) override;
@@ -172,7 +196,11 @@ class BreakoutView : public View {
 }  // namespace ui::external_app::breakout
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #endif /* __UI_BREAKOUT_H__ */
 =======
 #endif /*__UI_BREAKOUT_H__*/
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+#endif /* __UI_BREAKOUT_H__ */
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))

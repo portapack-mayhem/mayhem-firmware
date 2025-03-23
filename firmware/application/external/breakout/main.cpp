@@ -21,10 +21,14 @@ extern "C" {
 
 __attribute__((section(".external_app.app_breakout.application_information"), used)) application_information_t _application_information_breakout = {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
     (uint8_t*)0x00000000,
     ui::external_app::breakout::initialize_app,
     CURRENT_HEADER_VERSION,
     VERSION_MD5,
+<<<<<<< HEAD
 
     "Breakout",
     {
@@ -74,9 +78,11 @@ __attribute__((section(".external_app.app_breakout.application_information"), us
     /*.externalAppEntry = */ ui::external_app::breakout::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
+=======
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
 
-    /*.app_name = */ "Breakout",
-    /*.bitmap_data = */ {
+    "Breakout",
+    {
         0x00,
         0x00,
         0x7F,
@@ -110,12 +116,16 @@ __attribute__((section(".external_app.app_breakout.application_information"), us
         0xF7,
         0xF7,
     },
-    /*.icon_color = */ ui::Color::green().v,
-    /*.menu_location = */ app_location_t::GAMES,
-    /*.desired_menu_position = */ -1,
+    ui::Color::green().v,
+    app_location_t::GAMES,
+    -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
-    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+    {0, 0, 0, 0},
+    0x00000000,
 };
+<<<<<<< HEAD
 }
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+}  // namespace ui::external_app::breakout
+>>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
