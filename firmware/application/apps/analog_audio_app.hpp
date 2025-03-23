@@ -197,8 +197,8 @@ class AnalogAudioView : public View {
     uint8_t get_spec_iq_phase_calibration_value();
     void set_spec_iq_phase_calibration_value(uint8_t cal_value);
 
-    uint8_t get_zoom_factor();
-    void set_zoom_factor(uint8_t zoom);
+    uint8_t get_zoom_factor(uint8_t mode);
+    void set_zoom_factor(uint8_t mode, uint8_t zoom);
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;
@@ -206,13 +206,15 @@ class AnalogAudioView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{};
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
-    uint8_t zoom_factor{0};                  // initial zoom factor in AM modes
+    uint8_t zoom_factor_am{0};               // initial zoom factor in AM mode
+    uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
         {
             {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
-            {"zoom_factor"sv, &zoom_factor},                          // we are saving and restoring ZOOM factor from Settings.
+            {"zoom_factor_am"sv, &zoom_factor_am},                    // we are saving and restoring AM ZOOM factor from Settings.
+            {"zoom_factor_amfm"sv, &zoom_factor_amfm},                // we are saving and restoring AMFM ZOOM factor from Settings.
         }};
 
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
