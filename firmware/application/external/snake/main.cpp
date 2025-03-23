@@ -65,4 +65,4 @@ __attribute__((section(".external_app.app_snake.application_information"), used)
     {0, 0, 0, 0},
     0x00000000,
 };
-}
+}  // namespace ui::external_app::snake
