@@ -25,6 +25,9 @@ int HALF_HEIGHT = 0;
 =======
 >>>>>>> 4ecc9d04 (Put ticker class and pp_colors in hpp file in namespace and remove helper files (#2577))
 
+namespace ui::external_app::doom {
+
+//clang-format off
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
 #define RENDER_HEIGHT 280
@@ -64,6 +67,7 @@ int HALF_HEIGHT = 0;
 #define COLOR_WALL_DARK Maroon
 #define COLOR_FLOOR_DARK Black
 <<<<<<< HEAD
+<<<<<<< HEAD
 //clang-format on
 =======
 
@@ -91,6 +95,9 @@ struct Entity {
     uint8_t timer;
 };
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+//clang-format on
+>>>>>>> 20c64c98 (naming space (#2585))
 
 // Stole this level map from Flipper Zero Doom, but he stole it from a guy who stole it and that guy probably stole it too. Argh!
 static const uint8_t level[LEVEL_SIZE] = {
@@ -153,6 +160,9 @@ static const uint8_t level[LEVEL_SIZE] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 20c64c98 (naming space (#2585))
 struct Coords {
     double x, y;
 };
@@ -176,9 +186,12 @@ struct Entity {
     uint8_t distance;
     uint8_t timer;
 };
+<<<<<<< HEAD
 =======
 namespace ui::external_app::doom {
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+>>>>>>> 20c64c98 (naming space (#2585))
 
 static Ticker game_timer;
 static Player player;
