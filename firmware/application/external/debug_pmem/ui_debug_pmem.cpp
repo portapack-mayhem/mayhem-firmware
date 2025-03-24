@@ -20,22 +20,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "baseband_api.hpp"
-#include "portapack_persistent_memory.hpp"
-#include "file_path.hpp"
-#include "audio.hpp"
-#include "string_format.hpp"
-#include "utility.hpp"
 #include "ui_debug_pmem.hpp"
-
-using namespace portapack;
-using namespace portapack::persistent_memory;
 
 namespace ui::external_app::debug_pmem {
 
 // Dump pmem, receiver and transmitter models internals in human readable format
 bool DebugDumpView::debug_dump_func() {
-    ui::Painter painter{};
     std::string debug_dir = "DEBUG";
     std::filesystem::path filename{};
     File pmem_dump_file{};
@@ -43,13 +33,15 @@ bool DebugDumpView::debug_dump_func() {
     ensure_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
     if (filename.empty()) {
-        painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_red, "COULD NOT GET DUMP NAME !");
+        dump_output.set("COULD NOT GET DUMP NAME !");
+        dump_output.set_style(ui::Theme::getInstance()->fg_red);
         return false;
     }
     // dump data fo filename
     auto error = pmem_dump_file.create(filename);
     if (error) {
-        painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_red, "ERROR DUMPING " + filename.filename().string() + " !");
+        dump_output.set("ERROR DUMPING " + filename.filename().string() + " !");
+        dump_output.set_style(ui::Theme::getInstance()->fg_red);
         return false;
     }
     pmem_dump_file.write_line("FW version: " VERSION_STRING);
@@ -63,10 +55,10 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("\n[Persistent Memory]");
 
     // full variables
-    // pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(data->structure_version, 8));
+    pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(get_data_structure_version(), 8));
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(target_frequency()));
     pmem_dump_file.write_line("correction_ppb: " + to_string_dec_int(correction_ppb()));
-    // pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
+    pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(get_modem_def_index()));
     pmem_dump_file.write_line("serial_format.data_bit: " + to_string_dec_uint(serial_format().data_bits));
     pmem_dump_file.write_line("serial_format.parity: " + to_string_dec_uint(serial_format().parity));
     pmem_dump_file.write_line("serial_format.stop_bits: " + to_string_dec_uint(serial_format().stop_bits));
@@ -192,19 +184,26 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("tx_gain: " + to_string_dec_int(transmitter_model.tx_gain()));
     pmem_dump_file.write_line("channel_bandwidth: " + to_string_dec_uint(transmitter_model.channel_bandwidth()));
     // on screen information
-    painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_green, filename.filename().string() + " DUMPED !");
+    dump_output.set(filename.filename().string() + " DUMPED !");
+    dump_output.set_style(ui::Theme::getInstance()->fg_green);
 
-    chThdSleepMilliseconds(10 * 1000);
     return true;
 }
 
 DebugDumpView::DebugDumpView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-
-    add_children({&label});
+    add_children({&dump_output,
+                  &button_exit});
 
     debug_dump_func();
-};
+
+    button_exit.on_select = [this](Button&) {
+        nav_.pop();
+    };
+}
+
+void DebugDumpView::focus() {
+    button_exit.focus();
+}
 
 }  // namespace ui::external_app::debug_pmem

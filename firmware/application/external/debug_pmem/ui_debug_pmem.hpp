@@ -21,19 +21,19 @@
  */
 
 #ifndef __UI_DEBUG_PMEM_APP_H__
-#define ____UI_DEBUG_PMEM_APP_H__
+#define __UI_DEBUG_PMEM_APP_H__
 
-#include "app_settings.hpp"
-#include "radio_state.hpp"
-#include "ui_receiver.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "ui_flash_utility.hpp"
+
+using namespace portapack;
+using namespace portapack::persistent_memory;
 
 namespace ui::external_app::debug_pmem {
 
 class DebugDumpView : public View {
    public:
     DebugDumpView(NavigationView& nav);
-    ~DebugDumpView();
 
     void focus() override;
 
@@ -42,8 +42,14 @@ class DebugDumpView : public View {
 
    private:
     NavigationView& nav_;
-    Labels label{
-        {{3 * 8, 2 * 16}, "Dump Pmem", Theme::getInstance()->fg_light->foreground}};
+
+    Text dump_output{
+        {0 * 8, 19 * 8, 30 * 8, 16},
+        ""};
+
+    Button button_exit{
+        {22 * 8, 34 * 8, 8 * 8, 32},
+        "Exit"};
 };
 
 }  // namespace ui::external_app::debug_pmem
