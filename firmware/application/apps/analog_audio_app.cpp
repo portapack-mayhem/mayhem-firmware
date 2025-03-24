@@ -40,6 +40,7 @@ namespace ui {
 /* AMOptionsView *********************************************************/
 
 AMOptionsView::AMOptionsView(
+    AnalogAudioView* view,
     Rect parent_rect,
     const Style* style)
     : View{parent_rect} {
@@ -48,12 +49,23 @@ AMOptionsView::AMOptionsView(
     add_children({
         &label_config,
         &options_config,
+        &zoom_config,
     });
+
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(previous_filter_array_index + n);
+        view->set_zoom_factor(AM_MODULATION, n);
+    };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
 
     freqman_set_bandwidth_option(AM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
     options_config.set_by_value(receiver_model.am_configuration());
-    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+    options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
         receiver_model.set_am_configuration(n);
+        previous_filter_array_index = n;
+        zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
     };
 }
 
@@ -105,6 +117,7 @@ WFMOptionsView::WFMOptionsView(
 /* AMFMAptOptionsView *********************************************************/
 
 AMFMAptOptionsView::AMFMAptOptionsView(
+    AnalogAudioView* view,
     Rect parent_rect,
     const Style* style)
     : View{parent_rect} {
@@ -113,11 +126,20 @@ AMFMAptOptionsView::AMFMAptOptionsView(
     add_children({
         &label_config,
         &options_config,
+        &zoom_config,
     });
 
     freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
     receiver_model.set_amfm_configuration(5);                       // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
     options_config.set_by_value(receiver_model.amfm_configuration());
+
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_amfm_configuration(5 + n);
+        view->set_zoom_factor(AMFM_MODULATION, n);
+    };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
 }
 
 /* SPECOptionsView *******************************************************/
@@ -245,11 +267,26 @@ void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
     receiver_model.set_baseband_bandwidth(bw / 2);
 }
 
-uint8_t AnalogAudioView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
+uint8_t AnalogAudioView::get_zoom_factor(uint8_t mode) {  // define accessor functions inside AnalogAudioView to read zoom value
+    if (mode == AM_MODULATION)
+        return zoom_factor_am;
+    else if (mode == AMFM_MODULATION)
+        return zoom_factor_amfm;
+    return 0;  // default if unsupported mode
+}
+
+void AnalogAudioView::set_zoom_factor(uint8_t mode, uint8_t zoom) {  // define accessor functions inside AnalogAudioView to write zoom value
+    if (mode == AM_MODULATION)
+        zoom_factor_am = zoom;
+    else if (mode == AMFM_MODULATION)
+        zoom_factor_amfm = zoom;
+}
+
+uint8_t AnalogAudioView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read iq_phase_calibration_value
     return iq_phase_calibration_value;
 }
 
-void AnalogAudioView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions
+void AnalogAudioView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions inside AnalogAudioView to write iq_phase_calibration_value
     iq_phase_calibration_value = cal_value;
     radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
 }
@@ -345,7 +382,7 @@ void AnalogAudioView::on_show_options_modulation() {
     const auto modulation = receiver_model.modulation();
     switch (modulation) {
         case ReceiverModel::Mode::AMAudio:
-            widget = std::make_unique<AMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            widget = std::make_unique<AMOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
@@ -363,7 +400,7 @@ void AnalogAudioView::on_show_options_modulation() {
             break;
 
         case ReceiverModel::Mode::AMAudioFMApt:
-            widget = std::make_unique<AMFMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            widget = std::make_unique<AMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
