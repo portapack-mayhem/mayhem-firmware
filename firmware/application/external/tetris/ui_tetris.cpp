@@ -63,7 +63,7 @@ bool but_SELECT = false;
 static int x_pos{0};
 static int y_pos{0};
 
-static int rotation_state = 0; 
+static int rotation_state = 0;
 
 static int fg_color;
 static int bg_color;
@@ -269,7 +269,7 @@ void Rotate() {
     short newX[4], newY[4];
     int next_state = (rotation_state + 1) % 4;
 
-    if (colorIndex == 2) {  
+    if (colorIndex == 2) {
         return;
     }
 
@@ -277,17 +277,15 @@ void Rotate() {
         {{0, 0}, {-2, 0}, {1, 0}, {-2, -1}, {1, 2}},
         {{0, 0}, {-1, 0}, {2, 0}, {-1, 2}, {2, -1}},
         {{0, 0}, {2, 0}, {-1, 0}, {2, 1}, {-1, -2}},
-        {{0, 0}, {1, 0}, {-2, 0}, {1, -2}, {-2, 1}}
-    };
+        {{0, 0}, {1, 0}, {-2, 0}, {1, -2}, {-2, 1}}};
     const short kick_tests_other[4][5][2] = {
         {{0, 0}, {-1, 0}, {-1, 1}, {0, -2}, {-1, -2}},
         {{0, 0}, {1, 0}, {1, -1}, {0, 2}, {1, 2}},
         {{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}},
-        {{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}}
-    };
+        {{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}}};
 
     bool is_I_tetromino = (colorIndex == 1);
-    const short (*kick_tests)[5][2] = is_I_tetromino ? kick_tests_I : kick_tests_other;
+    const short(*kick_tests)[5][2] = is_I_tetromino ? kick_tests_I : kick_tests_other;
 
     for (int test = 0; test < 5; test++) {
         short kickX = kick_tests[rotation_state][test][0];
