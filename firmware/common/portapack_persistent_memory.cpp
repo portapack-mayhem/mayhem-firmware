@@ -480,6 +480,10 @@ void persist() {
 
 } /* namespace cache */
 
+uint32_t get_data_structure_version() {
+    return data->structure_version;
+}
+
 uint32_t pmem_data_word(uint32_t index) {
     return backup_ram->pmem_data_word(index);
 }
@@ -560,6 +564,10 @@ int32_t afsk_space_freq() {
 
 void set_afsk_space(const int32_t new_value) {
     data->afsk_space_freq = afsk_freq_range.clip(new_value);
+}
+
+uint32_t get_modem_def_index() {
+    return data->modem_def_index;
 }
 
 int32_t modem_baudrate() {

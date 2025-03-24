@@ -183,6 +183,8 @@ void set_afsk_mark(const int32_t new_value);
 int32_t afsk_space_freq();
 void set_afsk_space(const int32_t new_value);
 
+uint32_t get_modem_def_index();
+
 int32_t modem_baudrate();
 void set_modem_baudrate(const int32_t new_value);
 
@@ -371,6 +373,7 @@ bool should_use_sdcard_for_pmem();
 int save_persistent_settings_to_file();
 int load_persistent_settings_from_file();
 
+uint32_t get_data_structure_version();
 uint32_t pmem_data_word(uint32_t index);
 uint32_t pmem_stored_checksum(void);
 uint32_t pmem_calculated_checksum(void);
