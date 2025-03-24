@@ -63,11 +63,17 @@ bool but_SELECT = false;
 static int x_pos{0};
 static int y_pos{0};
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 static int rotation_state = 0;
 
 =======
 >>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
+=======
+
+static int rotation_state = 0;
+
+>>>>>>> 4a63bdd7 (Fixed the I Tetromino rotation using SRS (Super Rotation System) (#2588))
 static int fg_color;
 static int bg_color;
 
@@ -338,26 +344,66 @@ void Rotate() {
     boardX = 0;
     boardY = 4;
     copyCoordinates(X, Y, c - 1);
+    rotation_state = 0;
 }
 
 void Rotate() {
-    short pivotX = X[1];
-    short pivotY = Y[1];
-    short newX[4];
-    short newY[4];
-    for (int i = 0; i < 4; i++) {
-        short tmp = X[i], tmp2 = Y[i];
-        newX[i] = pivotX + pivotY - tmp2;
-        newY[i] = tmp + pivotX - pivotY;
-        if (OutOfBounds(boardY + newY[i], boardX + newX[i]) || board[boardX + newX[i]][boardY + newY[i]] != 0) return;
+    short newX[4], newY[4];
+    int next_state = (rotation_state + 1) % 4;
+
+    if (colorIndex == 2) {
+        return;
     }
-    DeleteFigure();
-    for (int i = 0; i < 4; i++) {
-        X[i] = newX[i];
-        Y[i] = newY[i];
+
+    const short kick_tests_I[4][5][2] = {
+        {{0, 0}, {-2, 0}, {1, 0}, {-2, -1}, {1, 2}},
+        {{0, 0}, {-1, 0}, {2, 0}, {-1, 2}, {2, -1}},
+        {{0, 0}, {2, 0}, {-1, 0}, {2, 1}, {-1, -2}},
+        {{0, 0}, {1, 0}, {-2, 0}, {1, -2}, {-2, 1}}};
+    const short kick_tests_other[4][5][2] = {
+        {{0, 0}, {-1, 0}, {-1, 1}, {0, -2}, {-1, -2}},
+        {{0, 0}, {1, 0}, {1, -1}, {0, 2}, {1, 2}},
+        {{0, 0}, {1, 0}, {1, 1}, {0, -2}, {1, -2}},
+        {{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}}};
+
+    bool is_I_tetromino = (colorIndex == 1);
+    const short(*kick_tests)[5][2] = is_I_tetromino ? kick_tests_I : kick_tests_other;
+
+    for (int test = 0; test < 5; test++) {
+        short kickX = kick_tests[rotation_state][test][0];
+        short kickY = kick_tests[rotation_state][test][1];
+
+        for (int i = 0; i < 4; i++) {
+            short tmpX = X[i] - X[1];
+            short tmpY = Y[i] - Y[1];
+            newX[i] = X[1] - tmpY;
+            newY[i] = Y[1] + tmpX;
+            int testX = boardX + newX[i] + kickX;
+            int testY = boardY + newY[i] + kickY;
+            if (OutOfBounds(testY, testX) || (testX >= 0 && board[testX][testY] != 0)) {
+                goto next_test;
+            }
+        }
+
+        DeleteFigure();
+        for (int i = 0; i < 4; i++) {
+            X[i] = newX[i];
+            Y[i] = newY[i];
+        }
+        boardX += kickX;
+        boardY += kickY;
+        rotation_state = next_state;
+        DrawFigure();
+        return;
+
+    next_test:
+        continue;
     }
+<<<<<<< HEAD
     DrawFigure();
 >>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
+=======
+>>>>>>> 4a63bdd7 (Fixed the I Tetromino rotation using SRS (Super Rotation System) (#2588))
 }
 
 void DrawFigure() {
