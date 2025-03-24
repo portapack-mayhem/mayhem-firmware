@@ -28,10 +28,11 @@
 #include "ui_freqman.hpp"
 #include "file_path.hpp"
 
+using namespace ui;
 using namespace portapack;
 namespace fs = std::filesystem;
 
-namespace ui {
+namespace ui::external_app::scanner {
 
 ScannerThread::ScannerThread(std::vector<rf::Frequency> frequency_list)
     : frequency_list_{std::move(frequency_list)} {
@@ -773,5 +774,4 @@ void ScannerView::restart_scan() {
 
     start_scan_thread();  // RESTART SCANNER THREAD in selected mode
 }
-
-} /* namespace ui */
+} /* namespace scanner */
