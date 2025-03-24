@@ -80,7 +80,11 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(config_updown_converter()));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(config_freq_rx_correction_updown()));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(config_freq_tx_correction_updown()));
+<<<<<<< HEAD
     pmem_dump_file.write_line("lcd_normally_black: " + to_string_dec_uint(config_lcd_normally_black()));
+=======
+    pmem_dump_file.write_line("lcd_inverted_mode: " + to_string_dec_uint(config_lcd_inverted_mode()));
+>>>>>>> 2229381c (Externalize dump pmem (#2590))
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(config_converter_freq()));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(config_freq_rx_correction()));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(config_freq_tx_correction()));
@@ -128,7 +132,10 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("ui_config2 button_repeat_delay: " + to_string_dec_uint(ui_button_repeat_delay()));
     pmem_dump_file.write_line("ui_config2 button_repeat_speed: " + to_string_dec_uint(ui_button_repeat_speed()));
     pmem_dump_file.write_line("ui_config2 button_long_press_delay: " + to_string_dec_uint(ui_button_long_press_delay()));
+<<<<<<< HEAD
     pmem_dump_file.write_line("ui_config2 battery_charge_hint: " + to_string_dec_uint(ui_battery_charge_hint()));
+=======
+>>>>>>> 2229381c (Externalize dump pmem (#2590))
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
@@ -157,9 +164,12 @@ bool DebugDumpView::debug_dump_func() {
         case ReceiverModel::Mode::WidebandFMAudio:
             pmem_dump_file.write_line("modulation: Mode::WidebandFMAudio");
             break;
+<<<<<<< HEAD
         case ReceiverModel::Mode::WFMAudioAMApt:
             pmem_dump_file.write_line("modulation: Mode::WFMAudioAMApt");
             break;
+=======
+>>>>>>> 2229381c (Externalize dump pmem (#2590))
         case ReceiverModel::Mode::SpectrumAnalysis:
             pmem_dump_file.write_line("modulation: Mode::SpectrumAnalysis");
             break;

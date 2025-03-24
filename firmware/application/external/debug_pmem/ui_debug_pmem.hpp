@@ -44,7 +44,11 @@ class DebugDumpView : public View {
     NavigationView& nav_;
 
     Text dump_output{
+<<<<<<< HEAD
         {0 * 8, 19 * 8, screen_width, 16},
+=======
+        {0 * 8, 19 * 8, 30 * 8, 16},
+>>>>>>> 2229381c (Externalize dump pmem (#2590))
         ""};
 
     Button button_exit{
