@@ -774,4 +774,4 @@ void ScannerView::restart_scan() {
 
     start_scan_thread();  // RESTART SCANNER THREAD in selected mode
 }
-} /* namespace scanner */
+}  // namespace ui::external_app::scanner

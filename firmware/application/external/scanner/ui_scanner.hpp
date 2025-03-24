@@ -316,4 +316,4 @@ class ScannerView : public View {
             this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
 };
-} /* namespace scanner */
+}  // namespace ui::external_app::scanner
