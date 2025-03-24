@@ -63,10 +63,10 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("\n[Persistent Memory]");
 
     // full variables
-//    pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(data->structure_version, 8));
+    // pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(data->structure_version, 8));
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(target_frequency()));
     pmem_dump_file.write_line("correction_ppb: " + to_string_dec_int(correction_ppb()));
-//    pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
+    // pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
     pmem_dump_file.write_line("serial_format.data_bit: " + to_string_dec_uint(serial_format().data_bits));
     pmem_dump_file.write_line("serial_format.parity: " + to_string_dec_uint(serial_format().parity));
     pmem_dump_file.write_line("serial_format.stop_bits: " + to_string_dec_uint(serial_format().stop_bits));
@@ -194,7 +194,7 @@ bool DebugDumpView::debug_dump_func() {
     // on screen information
     painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_green, filename.filename().string() + " DUMPED !");
 
-    chThdSleepMilliseconds( 10 * 1000 );
+    chThdSleepMilliseconds(10 * 1000);
     return true;
 }
 

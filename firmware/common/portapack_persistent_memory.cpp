@@ -571,7 +571,6 @@ void set_modem_baudrate(const int32_t new_value) {
     data->modem_baudrate = modem_baudrate_range.clip(new_value);
 }
 
-
 int32_t modem_bw() {
     return data->modem_bw;
 }
@@ -671,8 +670,7 @@ void set_gui_return_icon(bool v) {
     data->ui_config.show_gui_return_icon = v ? 1 : 0;
 }
 
-bool load_app_settings()
-{
+bool load_app_settings() {
     return data->ui_config.load_app_settings;
 }
 
@@ -680,8 +678,7 @@ void set_load_app_settings(bool v) {
     data->ui_config.load_app_settings = v ? 1 : 0;
 }
 
-bool save_app_settings()
-{
+bool save_app_settings() {
     return data->ui_config.save_app_settings;
 }
 
@@ -818,9 +815,8 @@ void set_recon_config_bit(uint8_t rc_bit, bool v) {
     auto bit_mask = 1LL << rc_bit;
     data->recon_config = v ? (data->recon_config | bit_mask) : (data->recon_config & ~bit_mask);
 }
-uint64_t get_recon_config()
-{
-    return data->recon_config ;
+uint64_t get_recon_config() {
+    return data->recon_config;
 }
 bool recon_autosave_freqs() {
     return check_recon_config_bit(RC_AUTOSAVE_FREQS);

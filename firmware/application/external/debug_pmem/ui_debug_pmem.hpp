@@ -43,8 +43,7 @@ class DebugDumpView : public View {
    private:
     NavigationView& nav_;
     Labels label{
-        {{3 * 8, 2 * 16},"Dump Pmem",Theme::getInstance()->fg_light->foreground}};
-
+        {{3 * 8, 2 * 16}, "Dump Pmem", Theme::getInstance()->fg_light->foreground}};
 };
 
 }  // namespace ui::external_app::debug_pmem
