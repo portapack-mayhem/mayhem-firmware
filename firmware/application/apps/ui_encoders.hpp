@@ -25,7 +25,6 @@
 #include "ui_transmitter.hpp"
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
-#include "de_bruijn.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
