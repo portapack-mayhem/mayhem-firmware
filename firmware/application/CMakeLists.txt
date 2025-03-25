@@ -191,7 +191,6 @@ set(CPPSRC
 	clock_manager.cpp
 	core_control.cpp
 	database.cpp
-	de_bruijn.cpp
 	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
