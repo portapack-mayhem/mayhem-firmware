@@ -183,8 +183,12 @@ void set_afsk_mark(const int32_t new_value);
 int32_t afsk_space_freq();
 void set_afsk_space(const int32_t new_value);
 
+uint32_t get_modem_def_index();
+
 int32_t modem_baudrate();
 void set_modem_baudrate(const int32_t new_value);
+
+int32_t modem_bw();
 
 uint8_t modem_repeat();
 void set_modem_repeat(const uint32_t new_value);
@@ -214,7 +218,9 @@ backlight_config_t config_backlight_timer();
 bool disable_touchscreen();
 
 void set_gui_return_icon(bool v);
+bool load_app_settings();
 void set_load_app_settings(bool v);
+bool save_app_settings();
 void set_save_app_settings(bool v);
 void set_config_disable_external_tcxo(bool v);
 void set_config_sdcard_high_speed_io(bool v, bool save);
@@ -290,6 +296,7 @@ Color menu_color();
 void set_menu_color(Color v);
 
 /* Recon app */
+uint64_t get_recon_config();
 bool recon_autosave_freqs();
 bool recon_autostart_recon();
 bool recon_continuous();
@@ -366,13 +373,12 @@ bool should_use_sdcard_for_pmem();
 int save_persistent_settings_to_file();
 int load_persistent_settings_from_file();
 
+uint32_t get_data_structure_version();
 uint32_t pmem_data_word(uint32_t index);
 uint32_t pmem_stored_checksum(void);
 uint32_t pmem_calculated_checksum(void);
 
 size_t data_size();
-
-bool debug_dump();
 
 } /* namespace persistent_memory */
 
