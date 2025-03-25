@@ -70,8 +70,6 @@ MEMORY
     ram_external_app_breakout   (rwx) : org = 0xADDD0000, len = 32k
     ram_external_app_doom       (rwx) : org = 0xADDE0000, len = 32k
     ram_external_app_debug_pmem (rwx) : org = 0xADDF0000, len = 32k
-    /*ram_external_app_screening  (rwx) : org = 0xADEA0000, len = 32k*/
-
 }
 
 SECTIONS
@@ -356,15 +354,4 @@ SECTIONS
         KEEP(*(.external_app.app_debug_pmem.application_information));
         *(*ui*external_app*debug_pmem*);
     } > ram_external_app_debug_pmem    
-
-/*
-    .external_app_screening : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_screening.application_information));
-        *(*ui*external_app*screening*);
-    } > ram_external_app_screening   
-
-*/
-
-
 }
