@@ -191,7 +191,10 @@ set(CPPSRC
 	clock_manager.cpp
 	core_control.cpp
 	database.cpp
+<<<<<<< HEAD
 	gradient.cpp
+=======
+>>>>>>> 22d6e34c (remove dead code (#2593))
 	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
