@@ -163,10 +163,13 @@ MEMORY
     /*ram_external_app_screening  (rwx) : org = 0xADDF0000, len = 32k*/
 =======
     ram_external_app_debug_pmem (rwx) : org = 0xADDF0000, len = 32k
+<<<<<<< HEAD
     /*ram_external_app_screening  (rwx) : org = 0xADEA0000, len = 32k*/
 >>>>>>> 2229381c (Externalize dump pmem (#2590))
 
 >>>>>>> 0ce6ea83 (stopwatch opt (#2578))
+=======
+>>>>>>> 8a7aa9c0 (remove not yet enabled screening app (#2594))
 }
 
 SECTIONS
@@ -451,15 +454,4 @@ SECTIONS
         KEEP(*(.external_app.app_debug_pmem.application_information));
         *(*ui*external_app*debug_pmem*);
     } > ram_external_app_debug_pmem    
-
-/*
-    .external_app_screening : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_screening.application_information));
-        *(*ui*external_app*screening*);
-    } > ram_external_app_screening   
-
-*/
-
-
 }

@@ -232,9 +232,6 @@ set(EXTCPPSRC
 	external/debug_pmem/main.cpp
 	external/debug_pmem/ui_debug_pmem.cpp
 
-	#screening
-	# external/screening/main.cpp
-	# external/screening/ui_screening.cpp
 )
 
 set(EXTAPPLIST
@@ -289,5 +286,4 @@ set(EXTAPPLIST
 	breakout
 	doom
     debug_pmem
-	# screening
 )

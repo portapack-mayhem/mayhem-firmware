@@ -121,17 +121,25 @@ def main():
             print("external app addr seems correct, pass")
         else:
 <<<<<<< HEAD
+<<<<<<< HEAD
             print("\nWARNING: It seems you are having incorrect external app addresses.")
 =======
             print("\nWARENING: It seems you are having incorrect external app addresses.")
 >>>>>>> 403c3627 (fix external app address list (#2573))
+=======
+            print("\nWARNING: It seems you are having incorrect external app addresses.")
+>>>>>>> 8a7aa9c0 (remove not yet enabled screening app (#2594))
             
     except Exception as e:
         print(f"err: {e}")
 
 if __name__ == "__main__":
 <<<<<<< HEAD
+<<<<<<< HEAD
     main()
 =======
     main()
 >>>>>>> 403c3627 (fix external app address list (#2573))
+=======
+    main()
+>>>>>>> 8a7aa9c0 (remove not yet enabled screening app (#2594))
