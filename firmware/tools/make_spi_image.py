@@ -199,7 +199,7 @@ try:
     if validate_memory_regions(regions):
         print("external app addr seems correct, pass")
     else:
-        print("\nWARENING: It seems you are having incorrect external app addresses.")
+        print("\nWARNING: It seems you are having incorrect external app addresses.")
     
 except Exception as e:
     print(f"err: {e}")
