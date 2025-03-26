@@ -455,9 +455,15 @@ ScannerView::ScannerView(
         // initialize to a value under SPEC
         static freqman_index_t last_mode = WFM_MODULATION;
         // unsupported SPEC mode fix
+<<<<<<< HEAD
         if (v >= SPEC_MODULATION) {
             if (last_mode == WFM_MODULATION)
                 v = AM_MODULATION;
+=======
+        if (v == SPEC_MODULATION) {
+            if (last_mode == WFM_MODULATION)
+                v = AMFM_MODULATION;
+>>>>>>> 7754c0f3 (Externalize scanner (#2589))
             else
                 v = WFM_MODULATION;
             field_mode.set_selected_index(v);
