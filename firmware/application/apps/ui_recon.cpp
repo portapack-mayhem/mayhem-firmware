@@ -1223,16 +1223,6 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             text_ctcss.set("        ");
             recording_sampling_rate = 48000;
             break;
-        case AMFM_MODULATION:
-            freqman_set_bandwidth_option(new_mod, field_bw);
-            baseband::run_image(portapack::spi_flash::image_tag_am_audio);
-            receiver_model.set_modulation(ReceiverModel::Mode::AMAudioFMApt);
-            receiver_model.set_amfm_configuration(5);  // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { (void)n; };
-            field_bw.set_by_value(0);
-            text_ctcss.set("        ");
-            recording_sampling_rate = 12000;
-            break;
         case SPEC_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_capture);
@@ -1263,9 +1253,17 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        if (v != -1) {
-            change_mode(v);
+        // initialize to a value under SPEC
+        static freqman_index_t last_mode = WFM_MODULATION;
+        if (v > SPEC_MODULATION) {
+            if (last_mode == SPEC_MODULATION)
+                v = AM_MODULATION;
+            else
+                v = SPEC_MODULATION;
+            field_mode.set_selected_index(v);
         }
+        last_mode = v;
+        change_mode(v);
     };
     // for some motive, audio output gets stopped.
     if (!recon && field_mode.selected_index_value() != SPEC_MODULATION)

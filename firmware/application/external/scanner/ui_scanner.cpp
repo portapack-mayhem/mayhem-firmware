@@ -455,9 +455,9 @@ ScannerView::ScannerView(
         // initialize to a value under SPEC
         static freqman_index_t last_mode = WFM_MODULATION;
         // unsupported SPEC mode fix
-        if (v == SPEC_MODULATION) {
+        if (v >= SPEC_MODULATION) {
             if (last_mode == WFM_MODULATION)
-                v = AMFM_MODULATION;
+                v = AM_MODULATION;
             else
                 v = WFM_MODULATION;
             field_mode.set_selected_index(v);
@@ -726,14 +726,6 @@ void ScannerView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             field_bw.set_by_value(receiver_model.wfm_configuration());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
-            break;
-        case AMFM_MODULATION:
-            freqman_set_bandwidth_option(new_mod, field_bw);
-            baseband::run_image(portapack::spi_flash::image_tag_am_audio);
-            receiver_model.set_modulation(ReceiverModel::Mode::AMAudioFMApt);
-            receiver_model.set_amfm_configuration(5);
-            field_bw.set_by_value(0);
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { (void)n; };
             break;
         default:
             break;
