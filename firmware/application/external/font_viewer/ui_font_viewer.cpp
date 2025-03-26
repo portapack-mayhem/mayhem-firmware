@@ -67,6 +67,7 @@ void DebugFontsView::paint(Painter& painter) {
 
     line_pos = display_font(painter, 32, Theme::getInstance()->bg_darkest, "Fixed 8x16", true);
     display_font(painter, line_pos + 16, Theme::getInstance()->bg_darkest_small, "Fixed 5x8", false);
+    paint_zoomed_text(painter);
 }
 
 void DebugFontsView::update_address_text() {
@@ -74,14 +75,27 @@ void DebugFontsView::update_address_text() {
     text_address.set("0x" + to_string_hex(ascii_value, 2));
 }
 
+void DebugFontsView::paint_zoomed_text(Painter& painter) {
+    if (field_zoom_level.value() == 0) return;
+    uint8_t cursor_pos = field_cursor.value();
+    painter.draw_char({screen_width / 2, screen_height / 2},
+                      *Theme::getInstance()->bg_darkest,
+                      (char)(cursor_pos + 0x20), field_zoom_level.value());
+}
+
 DebugFontsView::DebugFontsView(NavigationView& nav)
     : nav_{nav} {
     add_children({&field_cursor,
-                  &text_address});
+                  &text_address,
+                  &field_zoom_level});
     set_focusable(true);
 
     field_cursor.on_change = [&](int32_t) {
         update_address_text();
+        set_dirty();
+    };
+
+    field_zoom_level.on_change = [&](int32_t) {
         set_dirty();
     };
 }
