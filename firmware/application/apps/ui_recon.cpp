@@ -517,11 +517,7 @@ ReconView::ReconView(NavigationView& nav)
     };
     set_loop_config(continuous);
 
-    rssi.set_focusable(true);
     rssi.set_peak(true, 500);
-    rssi.on_select = [this](RSSI&) {
-        nav_.replace<LevelView>();
-    };
 
     // TODO: *BUG* Both transmitter_model and receiver_model share the same pmem setting for target_frequency.
     button_mic_app.on_select = [this](Button&) {
