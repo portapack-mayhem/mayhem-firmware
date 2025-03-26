@@ -28,10 +28,11 @@
 #include "ui_freqman.hpp"
 #include "file_path.hpp"
 
+using namespace ui;
 using namespace portapack;
 namespace fs = std::filesystem;
 
-namespace ui {
+namespace ui::external_app::scanner {
 
 ScannerThread::ScannerThread(std::vector<rf::Frequency> frequency_list)
     : frequency_list_{std::move(frequency_list)} {
@@ -451,13 +452,14 @@ ScannerView::ScannerView(
 
     // Mode field was changed (AM/NFM/WFM)
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        static freqman_index_t last_mode = AM_MODULATION;
+        // initialize to a value under SPEC
+        static freqman_index_t last_mode = WFM_MODULATION;
         // unsupported SPEC mode fix
         if (v == SPEC_MODULATION) {
-            if (last_mode == AM_MODULATION)
-                v = WFM_MODULATION;
+            if (last_mode == WFM_MODULATION)
+                v = AMFM_MODULATION;
             else
-                v = AM_MODULATION;
+                v = WFM_MODULATION;
             field_mode.set_selected_index(v);
         }
         last_mode = v;
@@ -773,5 +775,4 @@ void ScannerView::restart_scan() {
 
     start_scan_thread();  // RESTART SCANNER THREAD in selected mode
 }
-
-} /* namespace ui */
+}  // namespace ui::external_app::scanner
