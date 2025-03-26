@@ -82,6 +82,7 @@ void CVSSpamView::start_tx(const uint32_t id) {
     }
 
     const uint32_t sample_rate = 250000;
+    const uint64_t target_frequency = 433920000;
 
     current_file = cvsfiles_dir / file_list[id].filename();
 
@@ -99,20 +100,13 @@ void CVSSpamView::start_tx(const uint32_t id) {
         return;
     }
 
-    auto metadata_path = get_metadata_path(current_file);
-    auto metadata = read_metadata_file(metadata_path);
-    if (!metadata) {
-        metadata = capture_metadata{transmitter_model.target_frequency(), sample_rate};
-    }
-
-    auto file_size = capture_file.size();
     capture_file.close();
 
     replay_thread.reset();
     transmitter_model.disable();
     ready_signal = false;
 
-    baseband::set_sample_rate(metadata->sample_rate, get_oversample_rate(metadata->sample_rate));
+    baseband::set_sample_rate(sample_rate, get_oversample_rate(sample_rate));
 
     auto reader = std::make_unique<FileConvertReader>();
     if (auto error = reader->open(current_file)) {
@@ -120,10 +114,7 @@ void CVSSpamView::start_tx(const uint32_t id) {
                    "Cannot read C16 data.\n"
                    "Check file format/perms.\n"
                    "Rate: " +
-                       to_string_dec_uint(metadata->sample_rate) +
-                       "\n"
-                       "Size: " +
-                       to_string_dec_uint(file_size) +
+                       to_string_dec_uint(sample_rate) +
                        "\n"
                        "Error: " +
                        std::to_string(static_cast<uint32_t>(error)));
@@ -132,9 +123,9 @@ void CVSSpamView::start_tx(const uint32_t id) {
 
     progressbar.set_value(0);
 
-    transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
-    transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500000 ? 1750000 : 2500000);
-    transmitter_model.set_target_frequency(metadata->center_frequency);
+    transmitter_model.set_sampling_rate(get_actual_sample_rate(sample_rate));
+    transmitter_model.set_baseband_bandwidth(sample_rate <= 500000 ? 1750000 : 2500000);
+    transmitter_model.set_target_frequency(target_frequency);
     transmitter_model.enable();
 
     chThdSleepMilliseconds(100);
@@ -165,6 +156,8 @@ void CVSSpamView::start_random_tx() {
     size_t random_index = lfsr_v % file_list.size();
 
     const uint32_t sample_rate = 250000;
+    const uint64_t target_frequency = 433920000;
+
     current_file = cvsfiles_dir / file_list[random_index].filename();
 
     File capture_file;
@@ -174,19 +167,13 @@ void CVSSpamView::start_random_tx() {
         return;
     }
 
-    auto metadata_path = get_metadata_path(current_file);
-    auto metadata = read_metadata_file(metadata_path);
-    if (!metadata) {
-        metadata = capture_metadata{transmitter_model.target_frequency(), sample_rate};
-    }
-
     capture_file.close();
 
     replay_thread.reset();
     transmitter_model.disable();
     ready_signal = false;
 
-    baseband::set_sample_rate(metadata->sample_rate, get_oversample_rate(metadata->sample_rate));
+    baseband::set_sample_rate(sample_rate, get_oversample_rate(sample_rate));
 
     auto reader = std::make_unique<FileConvertReader>();
     if (auto error = reader->open(current_file)) {
@@ -196,9 +183,9 @@ void CVSSpamView::start_random_tx() {
 
     progressbar.set_value(0);
 
-    transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
-    transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500000 ? 1750000 : 2500000);
-    transmitter_model.set_target_frequency(metadata->center_frequency);
+    transmitter_model.set_sampling_rate(get_actual_sample_rate(sample_rate));
+    transmitter_model.set_baseband_bandwidth(sample_rate <= 500000 ? 1750000 : 2500000);
+    transmitter_model.set_target_frequency(target_frequency);
     transmitter_model.enable();
 
     chThdSleepMilliseconds(100);
