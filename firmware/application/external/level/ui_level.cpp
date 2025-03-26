@@ -33,7 +33,7 @@ using namespace portapack;
 using namespace tonekey;
 using portapack::memory::map::backup_ram;
 
-namespace ui {
+namespace ui::external_app::level {
 
 // Function to map the value from one range to another
 int32_t LevelView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
@@ -338,4 +338,4 @@ void LevelView::on_freqchg(int64_t freq) {
     button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::level
