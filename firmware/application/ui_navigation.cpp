@@ -42,7 +42,6 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
 #include "ui_iq_trim.hpp"
-#include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
 
@@ -131,22 +130,13 @@ const NavigationView::AppList NavigationView::appList = {
     {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
-    //{"blecomm", "BLE Comm", RX, ui::Color::orange(), &bitmap_icon_btle, new ViewFactory<BLECommView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
-    {"level", "Level", RX, Color::green(), &bitmap_icon_options_radio, new ViewFactory<LevelView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
-    // {"scanner", "Scanner", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
-    //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()}, //for JT
-    //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
-    //{"sigfox", "SIGFOX", RX, Color::dark_grey(), &bitmap_icon_fox, new ViewFactory<NotImplementedView>()},
-    //{"lora", "LoRa", RX, Color::dark_grey(), &bitmap_icon_lora, new ViewFactory<NotImplementedView>()},
-    //{"sstv", "SSTV", RX, Color::dark_grey(), &bitmap_icon_sstv, new ViewFactory<NotImplementedView>()},
-    //{"tetra", "TETRA", RX, Color::dark_grey(), &bitmap_icon_tetra, new ViewFactory<NotImplementedView>()},
     /* TX ********************************************************************/
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},

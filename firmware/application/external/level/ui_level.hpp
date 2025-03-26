@@ -39,7 +39,7 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 
-namespace ui {
+namespace ui::external_app::level {
 
 class LevelView : public View {
    public:
@@ -211,6 +211,6 @@ class LevelView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::level
 
 #endif
