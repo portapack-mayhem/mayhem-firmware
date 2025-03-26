@@ -46,10 +46,17 @@ class DebugFontsView : public View {
    private:
     uint16_t display_font(Painter& painter, uint16_t y_offset, const Style* font_style, std::string_view font_name, bool is_big_font);
     void update_address_text();
+    void paint_zoomed_text(Painter& painter);
 
     NumberField field_cursor{
         {0 * 8, 0 * 8},
+        4,
+        {0, 1000},
         1,
+        ' '};
+    NumberField field_zoom_level{
+        {6 * 8, 0 * 8},
+        4,
         {0, 1000},
         1,
         ' '};

@@ -24,8 +24,6 @@
 
 #include "ui_navigation.hpp"
 
-#include "bmp_modal_warning.hpp"
-#include "bmp_splash.hpp"
 #include "event_m0.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "portapack_shared_memory.hpp"
@@ -52,7 +50,7 @@
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_recon.hpp"
-//#include "ui_scanner.hpp"
+// #include "ui_scanner.hpp"
 #include "ui_sd_over_usb.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
@@ -1049,7 +1047,12 @@ SplashScreenView::SplashScreenView(NavigationView& nav)
 void SplashScreenView::paint(Painter&) {
     if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
         // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
-        portapack::display.draw_bmp_from_bmp_hex_arr({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, (const uint8_t[]){0x29, 0x18, 0x16});
+        portapack::display.draw_bitmap({screen_width / 2 - 120,
+                                        screen_height / 2},
+                                       bitmap_titlebar_image.size,
+                                       bitmap_titlebar_image.data,
+                                       Theme::getInstance()->bg_darkest->foreground,
+                                       Theme::getInstance()->bg_darkest->background, 3);
     // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
@@ -1144,7 +1147,12 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.draw_bmp_from_bmp_hex_arr({100, 48}, modal_warning_bmp, (const uint8_t[]){0, 0, 0});
+    if (!compact) portapack::display.draw_bitmap({screen_width / 2 - 3 * 16 / 2,
+                                                  screen_height / 2 - 3 * 16 / 2 - 100},
+                                                 bitmap_icon_utilities.size,
+                                                 bitmap_icon_utilities.data,
+                                                 Theme::getInstance()->bg_darkest->foreground,
+                                                 Theme::getInstance()->bg_darkest->background, 3);
 
     // Break lines.
     auto lines = split_string(message_, '\n');

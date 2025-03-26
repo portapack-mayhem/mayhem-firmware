@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * copyleft 2025 Whiterose of the Dark Army
  *
  * This file is part of PortaPack.
  *
@@ -646,31 +647,58 @@ void ILI9341::draw_bitmap(
     const ui::Size size,
     const uint8_t* const pixels,
     const ui::Color foreground,
-    const ui::Color background) {
-    // Not a transparent background
-    if (ui::Color::magenta().v != background.v) {
-        lcd_start_ram_write(p, size);
+    const ui::Color background,
+    uint8_t zoom_level) {
+    if (zoom_level <= 1) {
+        // Not a transparent background
+        if (ui::Color::magenta().v != background.v) {
+            lcd_start_ram_write(p, size);
 
-        const size_t count = size.width() * size.height();
-        for (size_t i = 0; i < count; i++) {
-            const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
-            io.lcd_write_pixel(pixel ? foreground : background);
-        }
-    } else {
-        int x = p.x();
-        int y = p.y();
-        int maxX = x + size.width();
-        const size_t count = size.width() * size.height();
-        for (size_t i = 0; i < count; i++) {
-            const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
-            if (pixel) {
-                draw_pixel(ui::Point(x, y), foreground);
+            const size_t count = size.width() * size.height();
+            for (size_t i = 0; i < count; i++) {
+                const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+                io.lcd_write_pixel(pixel ? foreground : background);
             }
-            // Move to the next pixel
-            x++;
-            if (x >= maxX) {
-                x = p.x();
-                y++;
+        } else {
+            // transparent bg
+            int x = p.x();
+            int y = p.y();
+            int maxX = x + size.width();
+            const size_t count = size.width() * size.height();
+            for (size_t i = 0; i < count; i++) {
+                const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+                if (pixel) {
+                    draw_pixel(ui::Point(x, y), foreground);
+                }
+                // move to next px
+                x++;
+                if (x >= maxX) {
+                    x = p.x();
+                    y++;
+                }
+            }
+        }
+    } else {  // zoom
+
+        // dot to square
+        for (int y = 0; y < size.height(); y++) {
+            for (int x = 0; x < size.width(); x++) {
+                // pos
+                size_t bit_index = y * size.width() + x;
+                int byte_index = bit_index >> 3;
+                int bit_pos = bit_index & 0x7;
+
+                // val
+                const auto pixel = pixels[byte_index] & (1U << bit_pos);
+                /*                 ^ the byte_index-th bit AKA current bit
+                                                         ^ current px in current byte*/
+
+                if (pixel || background.v != ui::Color::magenta().v) {
+                    fill_rectangle(
+                        {p.x() + x * zoom_level, p.y() + y * zoom_level,
+                         zoom_level, zoom_level},
+                        pixel ? foreground : background);
+                }
             }
         }
     }
@@ -680,8 +708,9 @@ void ILI9341::draw_glyph(
     const ui::Point p,
     const ui::Glyph& glyph,
     const ui::Color foreground,
-    const ui::Color background) {
-    draw_bitmap(p, glyph.size(), glyph.pixels(), foreground, background);
+    const ui::Color background,
+    uint8_t zoom_level) {
+    draw_bitmap(p, glyph.size(), glyph.pixels(), foreground, background, zoom_level);
 }
 
 void ILI9341::scroll_set_area(
