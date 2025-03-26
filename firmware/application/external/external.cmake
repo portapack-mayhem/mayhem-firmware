@@ -192,6 +192,10 @@ set(EXTCPPSRC
 	external/doom/main.cpp
 	external/doom/ui_doom.cpp
 
+    #scanner 
+	external/scanner/main.cpp
+	external/scanner/ui_scanner.cpp
+
 	#debug_pmem
 	external/debug_pmem/main.cpp
 	external/debug_pmem/ui_debug_pmem.cpp
@@ -246,4 +250,5 @@ set(EXTAPPLIST
 	breakout
 	doom
     debug_pmem
+	scanner
 )

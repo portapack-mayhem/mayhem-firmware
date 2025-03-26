@@ -35,11 +35,13 @@
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
 
+using namespace ui;
+
+namespace ui::external_app::scanner {
+
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
 #define MAX_FREQ_LOCK 10  // # of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
-
-namespace ui {
 
 // TODO: There is too much duplicated data in these classes.
 // ScannerThread should just use more from the View.
@@ -314,5 +316,4 @@ class ScannerView : public View {
             this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
 };
-
-} /* namespace ui */
+}  // namespace ui::external_app::scanner
