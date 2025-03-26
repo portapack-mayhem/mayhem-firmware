@@ -47,6 +47,7 @@ class DebugFontsView : public View {
     uint16_t display_font(Painter& painter, uint16_t y_offset, const Style* font_style, std::string_view font_name, bool is_big_font);
     void update_address_text();
 <<<<<<< HEAD
+<<<<<<< HEAD
     void paint_zoomed_text(Painter& painter);
 
     NumberField field_cursor{
@@ -59,11 +60,23 @@ class DebugFontsView : public View {
         {6 * 8, 0 * 8},
         4,
 =======
+=======
+    void paint_zoomed_text(Painter& painter);
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
 
     NumberField field_cursor{
         {0 * 8, 0 * 8},
+        4,
+        {0, 1000},
         1,
+<<<<<<< HEAD
 >>>>>>> fcdccdea (add cursor to font viewer app (#2528))
+=======
+        ' '};
+    NumberField field_zoom_level{
+        {6 * 8, 0 * 8},
+        4,
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
         {0, 1000},
         1,
         ' '};

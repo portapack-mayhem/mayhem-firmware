@@ -37,6 +37,7 @@ Style Style::invert() const {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_level) {
     const auto glyph = style.font.glyph(c);
 
@@ -45,19 +46,14 @@ int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_level) 
     return glyph.advance().x() * zoom_level;
 =======
 int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_factor) {
+=======
+int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_level) {
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
     const auto glyph = style.font.glyph(c);
 
-    if (zoom_factor <= 1) {
-        display.draw_glyph(p, glyph, style.foreground, style.background);
-    } else {
-        // dot to square
-        const uint8_t* pixels = glyph.pixels();
-        for (int y = 0; y < glyph.h(); y++) {      // each line
-            for (int x = 0; x < glyph.w(); x++) {  // each clum
-                // pos
-                int byte_index = (y * glyph.w() + x) / 8;
-                int bit_pos = (y * glyph.w() + x) % 8;
+    display.draw_glyph(p, glyph, style.foreground, style.background, zoom_level);
 
+<<<<<<< HEAD
                 // fill
                 Color pixel_color = ((pixels[byte_index] & (1 << bit_pos)) != 0) ? style.foreground : style.background;
                 /*                                       ^ true: fg, false: bg
@@ -73,6 +69,9 @@ int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_factor)
 
     return glyph.advance().x() * zoom_factor;
 >>>>>>> 0ce6ea83 (stopwatch opt (#2578))
+=======
+    return glyph.advance().x() * zoom_level;
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
 }
 
 int Painter::draw_string(Point p, const Style& style, std::string_view text) {

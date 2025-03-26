@@ -50,10 +50,14 @@
 #include "ui_rds.hpp"
 #include "ui_recon.hpp"
 <<<<<<< HEAD
+<<<<<<< HEAD
 // #include "ui_scanner.hpp"
 =======
 //#include "ui_scanner.hpp"
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+// #include "ui_scanner.hpp"
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
 #include "ui_sd_over_usb.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
@@ -1106,7 +1110,11 @@ SplashScreenView::SplashScreenView(NavigationView& nav)
 void SplashScreenView::paint(Painter&) {
     if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
         // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
+<<<<<<< HEAD
         portapack::display.draw_bitmap({0,
+=======
+        portapack::display.draw_bitmap({screen_width / 2 - 120,
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
                                         screen_height / 2},
                                        bitmap_titlebar_image.size,
                                        bitmap_titlebar_image.data,

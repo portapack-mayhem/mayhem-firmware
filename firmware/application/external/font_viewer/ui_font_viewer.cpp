@@ -68,9 +68,13 @@ void DebugFontsView::paint(Painter& painter) {
     line_pos = display_font(painter, 32, Theme::getInstance()->bg_darkest, "Fixed 8x16", true);
     display_font(painter, line_pos + 16, Theme::getInstance()->bg_darkest_small, "Fixed 5x8", false);
 <<<<<<< HEAD
+<<<<<<< HEAD
     paint_zoomed_text(painter);
 =======
 >>>>>>> fcdccdea (add cursor to font viewer app (#2528))
+=======
+    paint_zoomed_text(painter);
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
 }
 
 void DebugFontsView::update_address_text() {
@@ -89,15 +93,28 @@ void DebugFontsView::paint_zoomed_text(Painter& painter) {
 >>>>>>> fcdccdea (add cursor to font viewer app (#2528))
 }
 
+void DebugFontsView::paint_zoomed_text(Painter& painter) {
+    if (field_zoom_level.value() == 0) return;
+    uint8_t cursor_pos = field_cursor.value();
+    painter.draw_char({screen_width / 2, screen_height / 2},
+                      *Theme::getInstance()->bg_darkest,
+                      (char)(cursor_pos + 0x20), field_zoom_level.value());
+}
+
 DebugFontsView::DebugFontsView(NavigationView& nav)
     : nav_{nav} {
     add_children({&field_cursor,
+<<<<<<< HEAD
 <<<<<<< HEAD
                   &text_address,
                   &field_zoom_level});
 =======
                   &text_address});
 >>>>>>> fcdccdea (add cursor to font viewer app (#2528))
+=======
+                  &text_address,
+                  &field_zoom_level});
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
     set_focusable(true);
 
     field_cursor.on_change = [&](int32_t) {
@@ -105,12 +122,18 @@ DebugFontsView::DebugFontsView(NavigationView& nav)
         set_dirty();
     };
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
 
     field_zoom_level.on_change = [&](int32_t) {
         set_dirty();
     };
+<<<<<<< HEAD
 =======
 >>>>>>> fcdccdea (add cursor to font viewer app (#2528))
+=======
+>>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
 }
 
 void DebugFontsView::focus() {
