@@ -307,9 +307,12 @@ set(CPPSRC
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #	apps/ui_scanner.cpp
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+>>>>>>> 75c34747 (Externalize level (#2596))
 	apps/ui_sd_over_usb.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp

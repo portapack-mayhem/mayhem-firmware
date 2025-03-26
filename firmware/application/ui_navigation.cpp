@@ -159,12 +159,15 @@ const NavigationView::AppList NavigationView::appList = {
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     {"scanner", "Scanner", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
 =======
     // {"scanner", "Scanner", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+>>>>>>> 75c34747 (Externalize level (#2596))
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},

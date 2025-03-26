@@ -173,7 +173,11 @@ MEMORY
 >>>>>>> 8a7aa9c0 (remove not yet enabled screening app (#2594))
 =======
     ram_external_app_scanner    (rwx) : org = 0xADE00000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 7754c0f3 (Externalize scanner (#2589))
+=======
+    ram_external_app_level      (rwx) : org = 0xADE10000, len = 32k
+>>>>>>> 75c34747 (Externalize level (#2596))
 }
 
 SECTIONS
@@ -465,4 +469,9 @@ SECTIONS
         *(*ui*external_app*scanner*);
     } > ram_external_app_scanner    
 
+    .external_app_level : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_level.application_information));
+        *(*ui*external_app*level*);
+    } > ram_external_app_level
 }
