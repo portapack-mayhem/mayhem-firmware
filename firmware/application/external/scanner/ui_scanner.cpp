@@ -456,6 +456,7 @@ ScannerView::ScannerView(
         static freqman_index_t last_mode = WFM_MODULATION;
         // unsupported SPEC mode fix
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (v >= SPEC_MODULATION) {
             if (last_mode == WFM_MODULATION)
                 v = AM_MODULATION;
@@ -464,6 +465,11 @@ ScannerView::ScannerView(
             if (last_mode == WFM_MODULATION)
                 v = AMFM_MODULATION;
 >>>>>>> 7754c0f3 (Externalize scanner (#2589))
+=======
+        if (v >= SPEC_MODULATION) {
+            if (last_mode == WFM_MODULATION)
+                v = AM_MODULATION;
+>>>>>>> 2c118ae5 (Remove unneeded AMFM support in those apps (#2597))
             else
                 v = WFM_MODULATION;
             field_mode.set_selected_index(v);
@@ -732,14 +738,6 @@ void ScannerView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             field_bw.set_by_value(receiver_model.wfm_configuration());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
-            break;
-        case AMFM_MODULATION:
-            freqman_set_bandwidth_option(new_mod, field_bw);
-            baseband::run_image(portapack::spi_flash::image_tag_am_audio);
-            receiver_model.set_modulation(ReceiverModel::Mode::AMAudioFMApt);
-            receiver_model.set_amfm_configuration(5);
-            field_bw.set_by_value(0);
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { (void)n; };
             break;
         default:
             break;
