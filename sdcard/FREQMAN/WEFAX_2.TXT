@@ -1,0 +1,58 @@
+# Description: WEather FAX list, part 2
+# See https://weatherfax.com/stations
+
+# Japan
+f=3622500,m=AMFM,bw=USB+FM,d=JMH Tokyo
+f=7795000,m=AMFM,bw=USB+FM,d=JMH Tokyo
+f=13988500,m=AMFM,bw=USB+FM,d=JMH Tokyo
+f=16971000,m=AMFM,bw=USB+FM,d=JJC Tokyo
+f=4274000,m=AMFM,bw=USB+FM,d=JFX Kagoshima
+f=8658000,m=AMFM,bw=USB+FM,d=JFX Kagoshima
+f=13074000,m=AMFM,bw=USB+FM,d=JFX Kagoshima
+f=16907500,m=AMFM,bw=USB+FM,d=JFX Kagoshima
+f=22559600,m=AMFM,bw=USB+FM,d=JFX Kagoshima
+
+# Korea
+f=3585000,m=AMFM,bw=USB+FM,d=HLL2 Seoul
+f=5857500,m=AMFM,bw=USB+FM,d=HLL2 Seoul
+f=7433500,m=AMFM,bw=USB+FM,d=HLL2 Seoul
+f=9165000,m=AMFM,bw=USB+FM,d=HLL2 Seoul
+f=13570000,m=AMFM,bw=USB+FM,d=HLL2 Seoul
+
+# Russia
+f=6328500,m=AMFM,bw=USB+FM,d=UDK2 Murmansk
+f=8444000,m=AMFM,bw=USB+FM,d=UDK2 Murmansk
+f=2640000,m=AMFM,bw=USB+FM,d=St Petersburg RU
+f=4212000,m=AMFM,bw=USB+FM,d=St Petersburg RU
+f=6456900,m=AMFM,bw=USB+FM,d=Vanino RU
+
+# Thailand
+f=7396900,m=AMFM,bw=USB+FM,d=HSW64 Bangkok
+
+# United Kingdom - Royal Navy
+# Surface/Wave charts every 6 hrs
+f=2618500,m=AMFM,bw=USB+FM,d=GYA Northwood
+f=4610000,m=AMFM,bw=USB+FM,d=GYA Northwood
+f=8040000,m=AMFM,bw=USB+FM,d=GYA Northwood
+f=11086500,m=AMFM,bw=USB+FM,d=GYA Northwood
+
+# United States - Coast Guard (USCG)
+f=4346000,m=AMFM,bw=USB+FM,d=NMC Point Reyes
+f=8682000,m=AMFM,bw=USB+FM,d=NMC Point Reyes
+f=12786000,m=AMFM,bw=USB+FM,d=NMC Point Reyes
+f=17151200,m=AMFM,bw=USB+FM,d=NMC Point Reyes
+f=22527000,m=AMFM,bw=USB+FM,d=NMC Point Reyes
+f=4235000,m=AMFM,bw=USB+FM,d=NMF Boston
+f=6340500,m=AMFM,bw=USB+FM,d=NMF Boston Atlantic
+f=9110000,m=AMFM,bw=USB+FM,d=NMF Boston WX Warn
+f=12750000,m=AMFM,bw=USB+FM,d=NMF Boston Marine
+f=4317900,m=AMFM,bw=USB+FM,d=NMG New Orleans
+f=8503900,m=AMFM,bw=USB+FM,d=NMG New Orleans
+f=12789900,m=AMFM,bw=USB+FM,d=NMG New Orleans
+f=17146400,m=AMFM,bw=USB+FM,d=NMG New Orleans
+f=4298000,m=AMFM,bw=USB+FM,d=NOJ Kodiak
+f=8459000,m=AMFM,bw=USB+FM,d=NOJ Kodiak
+f=12412500,m=AMFM,bw=USB+FM,d=NOJ Kodiak
+f=9982500,m=AMFM,bw=USB+FM,d=KVM70 Honolulu
+f=11090000,m=AMFM,bw=USB+FM,d=KVM70 Honolulu
+f=16135000,m=AMFM,bw=USB+FM,d=KVM70 Honolulu
