@@ -1,3 +1,6 @@
+# Description: WEather FAX list, part 2
+# See https://weatherfax.com/stations
+
 # Japan
 f=3622500,m=AMFM,bw=USB+FM,d=JMH Tokyo
 f=7795000,m=AMFM,bw=USB+FM,d=JMH Tokyo

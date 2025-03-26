@@ -1,6 +1,5 @@
-# Description: WEather FAX list
+# Description: WEather FAX list, part 1
 # See https://weatherfax.com/stations
-# Author: gullradriel
 
 # Australia
 f=2628000,m=AMFM,bw=USB+FM,d=VMC Charleville
