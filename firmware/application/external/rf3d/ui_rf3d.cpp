@@ -61,12 +61,14 @@ void RF3DView::stop() {
 }
 
 void RF3DView::update_spectrum(const ChannelSpectrum& spectrum) {
-    for (int x = 0; x < SCREEN_WIDTH; x++) {
-        for (int z = MAX_RENDER_DEPTH - 1; z > 0; z--) {
-            spectrum_data[x][z] = spectrum_data[x][z - 1];
+    for (int x = SCREEN_WIDTH - 1; x > 0; x--) {
+        for (int z = 0; z < MAX_RENDER_DEPTH; z++) {
+            spectrum_data[x][z] = spectrum_data[x - 1][z];
         }
-        int index = (x < 120) ? (256 - 120 + x) : (x - 120);
-        spectrum_data[x][0] = spectrum.db[index];
+    }
+    for (int z = 0; z < MAX_RENDER_DEPTH; z++) {
+        int index = z * SCREEN_WIDTH / MAX_RENDER_DEPTH;
+        spectrum_data[0][z] = spectrum.db[index];
     }
     sampling_rate = spectrum.sampling_rate;
 }
@@ -74,42 +76,19 @@ void RF3DView::update_spectrum(const ChannelSpectrum& spectrum) {
 void RF3DView::render_3d_waterfall(Painter& painter) {
     painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color::black());
 
-    float camera_x = 0.0f;
-    float plane_x = 0.66f;
-    float dir_x = 1.0f;
-
     for (int x = 0; x < SCREEN_WIDTH; x++) {
-        float ray_x = dir_x + plane_x * (2.0f * x / SCREEN_WIDTH - 1);
+        for (int z = 0; z < MAX_RENDER_DEPTH; z++) {
+            int screen_x = x;
+            int height = spectrum_data[x][z] * RENDER_HEIGHT / 255;
+            int screen_y = SCREEN_HEIGHT - height;
 
-        float delta_x = fabs(1.0f / ray_x);
-        int map_x = 0;
-        int step_x = (ray_x < 0) ? -1 : 1;
-        float side_x = (ray_x < 0) ? (1.0f - camera_x) * delta_x : camera_x * delta_x;
-
-        int depth = 0;
-        while (depth < MAX_RENDER_DEPTH) {
-            map_x += step_x;
-            side_x += delta_x;
-
-            if (map_x >= SCREEN_WIDTH) break;
-
-            float perp_dist = side_x - delta_x;
-            if (perp_dist < 0.1f) perp_dist = 0.1f;
-
-            int line_height = RENDER_HEIGHT / perp_dist;
-            int start_y = -line_height / 2 + HALF_HEIGHT + header_height;
-            int end_y = line_height / 2 + HALF_HEIGHT + header_height;
-
-            if (start_y < header_height) start_y = header_height;
-            if (end_y > SCREEN_HEIGHT) end_y = SCREEN_HEIGHT;
-
-            uint8_t amplitude = spectrum_data[map_x][depth];
-            uint8_t r = amplitude;
-            uint8_t g = 255 - amplitude;
+            uint8_t r = spectrum_data[x][z];
+            uint8_t g = 255 - spectrum_data[x][z];
             uint8_t b = 0;
 
-            painter.fill_rectangle({x, start_y, 1, end_y - start_y}, Color(r, g, b));
-            depth++;
+            if (screen_y < SCREEN_HEIGHT) {
+                painter.fill_rectangle({screen_x, screen_y, 1, height}, Color(r, g, b));
+            }
         }
     }
 }
