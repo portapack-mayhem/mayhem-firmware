@@ -2,6 +2,7 @@ name: Hardware / QC / QA / selling
 description: Issues that related with hardware, quality control, quality assurance, selling, etc.
 labels:
   - question
+  - hardware problem
 body:
 - type: markdown
   attributes:
