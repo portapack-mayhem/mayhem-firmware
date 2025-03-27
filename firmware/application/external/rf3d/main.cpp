@@ -9,7 +9,7 @@ void initialize_app(ui::NavigationView& nav) {
 }
 
 extern "C" {
-__attribute__((section(".external_app.app_3drf.application_information"), used)) application_information_t _application_information_3drf = {
+__attribute__((section(".external_app.app_rf3d.application_information"), used)) application_information_t _application_information_3drf = {
     (uint8_t*)0x00000000,
     ui::external_app::rf3d::initialize_app,
     CURRENT_HEADER_VERSION,
@@ -24,7 +24,7 @@ __attribute__((section(".external_app.app_3drf.application_information"), used))
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_wfm_audio */ {'P', 'N', 'F', 'M'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_nfm_audio */ {'P', 'N', 'F', 'M'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

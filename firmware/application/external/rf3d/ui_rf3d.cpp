@@ -1,21 +1,49 @@
 #include "ui_rf3d.hpp"
-#include <cmath>
-#include <cstdlib>
+#include "ui.hpp"
+#include "ui_freqman.hpp"
+#include "tone_key.hpp"
+#include "analog_audio_app.hpp"
+#include "portapack.hpp"
+#include "audio.hpp"
+
+using namespace portapack;
 
 namespace ui::external_app::rf3d {
 
 RF3DView::RF3DView(NavigationView& nav)
-    : nav_{nav} {
-    add_children({&dummy});
-    spectrum_data.resize(240, std::vector<uint8_t>(64, 0));
+    : nav_{nav}, spectrum_data(SCREEN_WIDTH, std::vector<uint8_t>(MAX_RENDER_DEPTH, 0)) {
+    baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+    add_children({&rssi, &channel, &audio, &field_frequency, &field_lna, &field_vga, 
+                  &options_modulation, &field_volume, &text_ctcss, &record_view, &dummy});
+
+    field_frequency.on_show_options = [this]() { this->on_show_options_frequency(); };
+    field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
+    field_vga.on_show_options = [this]() { this->on_show_options_rf_gain(); };
+
+    auto modulation = receiver_model.modulation();
+    options_modulation.set_by_value(toUType(modulation));
+    options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
+        this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
+    };
+    options_modulation.on_show_options = [this]() { this->on_show_options_modulation(); };
+
+    record_view.set_filename_date_frequency(true);
+    record_view.on_error = [&nav](std::string message) {
+        nav.display_modal("Error", message);
+    };
+
+    audio::output::start();
+    on_modulation_changed(modulation);
 }
 
-void RF3DView::on_show() {
-    if (!initialized) {
-        initialized = true;
-        baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
-        start();
-    }
+RF3DView::~RF3DView() {
+    audio::output::stop();
+    receiver_model.disable();
+    baseband::shutdown();
+}
+
+void RF3DView::focus() {
+    field_frequency.focus();
 }
 
 void RF3DView::start() {
@@ -32,48 +60,56 @@ void RF3DView::stop() {
     }
 }
 
-void RF3DView::update_spectrum() {
-    for (int x = 0; x < 240; x++) {
-        for (int z = 63; z > 0; z--) {
+void RF3DView::update_spectrum(const ChannelSpectrum& spectrum) {
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        for (int z = MAX_RENDER_DEPTH - 1; z > 0; z--) {
             spectrum_data[x][z] = spectrum_data[x][z - 1];
         }
-        spectrum_data[x][0] = rand() % 256;
+        int index = (x < 120) ? (256 - 120 + x) : (x - 120);
+        spectrum_data[x][0] = spectrum.db[index];
     }
+    sampling_rate = spectrum.sampling_rate;
 }
 
 void RF3DView::render_3d_waterfall(Painter& painter) {
-    painter.fill_rectangle({0, 0, 240, 320}, Color::black());
-    
-    float fov = 60.0f;
-    float half_fov = fov * 0.5f * 3.14159f / 180.0f;
-    float aspect = 240.0f / 320.0f;
-    float near = 1.0f;
-    float far = 64.0f;
+    painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color::black());
 
-    angle += 0.01f;
-    if (angle > 6.28f) angle -= 6.28f;
+    float camera_x = 0.0f;
+    float plane_x = 0.66f;
+    float dir_x = 1.0f;
 
-    for (int x = 0; x < 240; x++) {
-        float ray_angle = (x - 120) * (half_fov / 120.0f) + angle;
-        for (int z = 0; z < 64; z++) {
-            float depth = z + near;
-            float proj_x = (x - 120) * aspect / (depth * tan(half_fov));
-            float proj_y = spectrum_data[x][z] / 255.0f * 100.0f / (depth * tan(half_fov));
-            int screen_x = (proj_x + 1.0f) * 120;
-            int screen_y = (1.0f - proj_y) * 160;
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        float ray_x = dir_x + plane_x * (2.0f * x / SCREEN_WIDTH - 1);
 
-            if (screen_x >= 0 && screen_x < 240 && screen_y >= 0 && screen_y < 320) {
-                int height = spectrum_data[x][z] * 200 / (z + 1);
-                int top = 160 - height / 2;
-                int bottom = 160 + height / 2;
-                if (top < 0) top = 0;
-                if (bottom > 320) bottom = 320;
-                
-                uint8_t r = spectrum_data[x][z];
-                uint8_t g = 255 - spectrum_data[x][z];
-                uint8_t b = 0;
-                painter.fill_rectangle({screen_x, top, 1, bottom - top}, Color(r, g, b));
-            }
+        float delta_x = fabs(1.0f / ray_x);
+        int map_x = 0;
+        int step_x = (ray_x < 0) ? -1 : 1;
+        float side_x = (ray_x < 0) ? (1.0f - camera_x) * delta_x : camera_x * delta_x;
+
+        int depth = 0;
+        while (depth < MAX_RENDER_DEPTH) {
+            map_x += step_x;
+            side_x += delta_x;
+
+            if (map_x >= SCREEN_WIDTH) break;
+
+            float perp_dist = side_x - delta_x;
+            if (perp_dist < 0.1f) perp_dist = 0.1f;
+
+            int line_height = RENDER_HEIGHT / perp_dist;
+            int start_y = -line_height / 2 + HALF_HEIGHT + header_height;
+            int end_y = line_height / 2 + HALF_HEIGHT + header_height;
+
+            if (start_y < header_height) start_y = header_height;
+            if (end_y > SCREEN_HEIGHT) end_y = SCREEN_HEIGHT;
+
+            uint8_t amplitude = spectrum_data[map_x][depth];
+            uint8_t r = amplitude;
+            uint8_t g = 255 - amplitude;
+            uint8_t b = 0;
+
+            painter.fill_rectangle({x, start_y, 1, end_y - start_y}, Color(r, g, b));
+            depth++;
         }
     }
 }
@@ -81,17 +117,157 @@ void RF3DView::render_3d_waterfall(Painter& painter) {
 void RF3DView::paint(Painter& painter) {
     if (!initialized) {
         initialized = true;
-        baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
         start();
     }
     render_3d_waterfall(painter);
 }
 
 void RF3DView::frame_sync() {
-    if (running) {
-        update_spectrum();
+    if (running && channel_fifo) {
+        ChannelSpectrum channel_spectrum;
+        while (channel_fifo->out(channel_spectrum)) {
+            update_spectrum(channel_spectrum);
+        }
         set_dirty();
     }
+}
+
+void RF3DView::on_modulation_changed(ReceiverModel::Mode modulation) {
+    baseband::spectrum_streaming_stop();
+    update_modulation(modulation);
+    on_show_options_modulation();
+    baseband::spectrum_streaming_start();
+}
+
+void RF3DView::on_show_options_frequency() {
+    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+    widget->set_step(receiver_model.frequency_step());
+    widget->on_change_step = [this](rf::Frequency f) { this->on_frequency_step_changed(f); };
+    widget->set_reference_ppm_correction(persistent_memory::correction_ppb() / 1000);
+    widget->on_change_reference_ppm_correction = [this](int32_t v) { this->on_reference_ppm_correction_changed(v); };
+    set_options_widget(std::move(widget));
+    field_frequency.set_style(Theme::getInstance()->option_active);
+}
+
+void RF3DView::on_show_options_rf_gain() {
+    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+    set_options_widget(std::move(widget));
+    field_lna.set_style(Theme::getInstance()->option_active);
+}
+
+void RF3DView::on_show_options_modulation() {
+    std::unique_ptr<Widget> widget;
+    const auto modulation = receiver_model.modulation();
+    switch (modulation) {
+        case ReceiverModel::Mode::AMAudio:
+            widget = std::make_unique<ui::AMOptionsView>(nullptr, options_view_rect, Theme::getInstance()->option_active);
+            text_ctcss.hidden(true);
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            widget = std::make_unique<ui::NBFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            text_ctcss.hidden(false);
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            widget = std::make_unique<ui::WFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            text_ctcss.hidden(true);
+            break;
+        case ReceiverModel::Mode::SpectrumAnalysis:
+            widget = std::make_unique<ui::SPECOptionsView>(nullptr, options_view_rect, Theme::getInstance()->option_active);
+            text_ctcss.hidden(true);
+            break;
+        default:
+            break;
+    }
+    set_options_widget(std::move(widget));
+    options_modulation.set_style(Theme::getInstance()->option_active);
+}
+
+void RF3DView::on_frequency_step_changed(rf::Frequency f) {
+    receiver_model.set_frequency_step(f);
+    field_frequency.set_step(f);
+}
+
+void RF3DView::on_reference_ppm_correction_changed(int32_t v) {
+    persistent_memory::set_correction_ppb(v * 1000);
+}
+
+void RF3DView::remove_options_widget() {
+    if (options_widget) {
+        remove_child(options_widget.get());
+        options_widget.reset();
+    }
+    field_lna.set_style(nullptr);
+    options_modulation.set_style(nullptr);
+    field_frequency.set_style(nullptr);
+}
+
+void RF3DView::set_options_widget(std::unique_ptr<Widget> new_widget) {
+    remove_options_widget();
+    if (new_widget) {
+        options_widget = std::move(new_widget);
+    } else {
+        options_widget = std::make_unique<Rectangle>(options_view_rect, Theme::getInstance()->option_active->background);
+    }
+    add_child(options_widget.get());
+}
+
+void RF3DView::update_modulation(ReceiverModel::Mode modulation) {
+    audio::output::mute();
+    record_view.stop();
+    baseband::shutdown();
+
+    portapack::spi_flash::image_tag_t image_tag;
+    switch (modulation) {
+        case ReceiverModel::Mode::AMAudio:
+            image_tag = portapack::spi_flash::image_tag_am_audio;
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            image_tag = portapack::spi_flash::image_tag_nfm_audio;
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            image_tag = portapack::spi_flash::image_tag_wfm_audio;
+            break;
+        case ReceiverModel::Mode::SpectrumAnalysis:
+            image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
+            break;
+        default:
+            image_tag = portapack::spi_flash::image_tag_nfm_audio;
+            break;
+    }
+
+    baseband::run_image(image_tag);
+    if (modulation == ReceiverModel::Mode::SpectrumAnalysis) {
+        baseband::set_spectrum(sampling_rate, 63);
+    }
+
+    receiver_model.set_modulation(modulation);
+    receiver_model.set_sampling_rate(modulation == ReceiverModel::Mode::SpectrumAnalysis ? sampling_rate : 3072000);
+    receiver_model.set_baseband_bandwidth(modulation == ReceiverModel::Mode::SpectrumAnalysis ? sampling_rate / 2 : 1750000);
+    receiver_model.enable();
+
+    size_t record_sampling_rate = 0;
+    switch (modulation) {
+        case ReceiverModel::Mode::AMAudio:
+            record_sampling_rate = 12000;
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            record_sampling_rate = 24000;
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            record_sampling_rate = 48000;
+            break;
+        default:
+            break;
+    }
+    record_view.set_sampling_rate(record_sampling_rate);
+
+    if (modulation != ReceiverModel::Mode::SpectrumAnalysis) {
+        audio::output::unmute();
+    }
+}
+
+void RF3DView::handle_coded_squelch(uint32_t value) {
+    text_ctcss.set(tonekey::tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
 }
 
 } // namespace ui::external_app::rf3d
