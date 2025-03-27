@@ -1,5 +1,8 @@
-// RocketGod's Shopping Cart Lock app
-// https://betaskynet.com
+// CVS Spam app by RocketGod (@rocketgod-git) https://betaskynet.com
+// Original .cu8 files by @jimilinuxguy https://github.com/jimilinuxguy/customer-assistance-buttons-sdr
+// If you can read this, you're a nerd. :P
+// Come join us at https://discord.gg/thepiratesreborn
+
 #include "shoppingcart_lock.hpp"
 
 using namespace portapack;
@@ -48,7 +51,6 @@ void ShoppingCartLock::stop() {
     audio::output::stop();
 
     log_event("... Resetting State Variables");
-    transmitter_model.disable();
     ready_signal = false;
     thread_sync_complete = false;
     looping = false;
@@ -110,10 +112,13 @@ std::string ShoppingCartLock::list_wav_files() {
 }
 
 void ShoppingCartLock::wait_for_thread() {
-    uint32_t timeout = 100;
+    uint32_t timeout = 1000;
     while (!ready_signal && timeout > 0) {
         chThdYield();
         timeout--;
+    }
+    if (!ready_signal) {
+        log_event("!!! Timeout waiting for ReplayThread");
     }
 }
 
@@ -121,7 +126,10 @@ void ShoppingCartLock::restart_playback() {
     auto reader = std::make_unique<WAVFileReader>();
     std::string file_path = (wav_dir / current_file).string();
 
-    if (!reader->open(file_path)) return;
+    if (!reader->open(file_path)) {
+        log_event("!!! Failed to reopen " + current_file + " for restart");
+        return;
+    }
 
     replay_thread = std::make_unique<ReplayThread>(
         std::move(reader),
@@ -133,9 +141,8 @@ void ShoppingCartLock::restart_playback() {
             EventDispatcher::send_message(message);
         });
 
-    log_event(">> SENDING <<");
+    log_event(">> RESTARTING AUDIO <<");
     audio::output::start();
-    transmitter_model.enable();
 }
 
 void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
@@ -166,33 +173,24 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
 
     wait_for_thread();
 
-    log_event("... Configuring Baseband");
-
-    const uint32_t bb_sample_rate = 1536000;
-    const uint32_t decimation = bb_sample_rate / wav_sample_rate;
-
+    baseband::set_sample_rate(wav_sample_rate);
+    audio::set_rate(wav_sample_rate <= 12000 ? audio::Rate::Hz_12000 : wav_sample_rate <= 24000 ? audio::Rate::Hz_24000
+                                                                                                : audio::Rate::Hz_48000);
     baseband::set_audiotx_config(
-        bb_sample_rate / decimation,
+        wav_sample_rate,
         0.0f,
-        5.0f,
+        0.0f,
         wav_bits_per_sample,
         wav_bits_per_sample,
         0,
-        true,
+        false,
         false,
         false,
         false);
 
-    baseband::set_sample_rate(wav_sample_rate);
-
-    log_event("... Starting Audio Output");
     audio::output::start();
-    log_event("... Setting Max Volume");
-    audio::headphone::set_volume(audio::headphone::volume_range().max);
-
-    transmitter_model.enable();
-
-    log_event(">>> Playback Started <<<");
+    volume_t max_volume = audio::headphone::volume_range().max;
+    audio::headphone::set_volume(max_volume);
 }
 
 ShoppingCartLock::ShoppingCartLock(NavigationView& nav)
@@ -225,9 +223,6 @@ ShoppingCartLock::ShoppingCartLock(NavigationView& nav)
     log_event("[+] INITIALIZATION COMPLETE");
     log_event("[+] PORTAPACK ARMED");
     log_event("[*] STATUS: READY");
-    log_event("This app use speaker to");
-    log_event("produce LF signal, but");
-    log_event("also trigger radio TX");
 }
 
 ShoppingCartLock::~ShoppingCartLock() {
