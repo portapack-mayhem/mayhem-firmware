@@ -3,9 +3,13 @@ description: Issues that related with hardware, quality control, quality assuran
 labels:
   - question
 <<<<<<< HEAD
+<<<<<<< HEAD
   - hardware problem
 =======
 >>>>>>> a60169c7 (issue template fine tune (#2579))
+=======
+  - hardware problem
+>>>>>>> ecd1a217 (Issue template again (#2602))
 body:
 - type: markdown
   attributes:
@@ -16,11 +20,14 @@ body:
   
       You are still welcome to ask, but please be aware that for this kind of issue, ask the seller would be the best option.
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
       > [!IMPORTANT]  
       If you are a seller/vendor and your customer has directed you to this page as a reference/evidence of a "broken device" or similar issue, please be aware that we are not providing any "official guarantee of a faulty device." We are only offering suggestions based on what the submitter has stated. We do not guarantee that the device is broken or anything else.
 >>>>>>> a60169c7 (issue template fine tune (#2579))
+=======
+>>>>>>> ecd1a217 (Issue template again (#2602))
 - type: textarea
   id: description
   attributes:
