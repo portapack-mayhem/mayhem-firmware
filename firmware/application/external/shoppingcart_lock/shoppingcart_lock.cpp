@@ -223,9 +223,6 @@ ShoppingCartLock::ShoppingCartLock(NavigationView& nav)
     log_event("[+] INITIALIZATION COMPLETE");
     log_event("[+] PORTAPACK ARMED");
     log_event("[*] STATUS: READY");
-    log_event("This app use speaker to");
-    log_event("produce LF signal, but");
-    log_event("also trigger radio TX");
 }
 
 ShoppingCartLock::~ShoppingCartLock() {
