@@ -2,6 +2,7 @@ name: Hardware / QC / QA / selling
 description: Issues that related with hardware, quality control, quality assurance, selling, etc.
 labels:
   - question
+  - hardware problem
 body:
 - type: markdown
   attributes:
@@ -11,9 +12,6 @@ body:
       We would like to inform you that we can't provide much help regarding hardware/QC/QA/selling issues because we are not controlling various vendors/manufacturers, and also we are not profiting from you buying your device.
   
       You are still welcome to ask, but please be aware that for this kind of issue, ask the seller would be the best option.
-
-      > [!IMPORTANT]  
-      If you are a seller/vendor and your customer has directed you to this page as a reference/evidence of a "broken device" or similar issue, please be aware that we are not providing any "official guarantee of a faulty device." We are only offering suggestions based on what the submitter has stated. We do not guarantee that the device is broken or anything else.
 - type: textarea
   id: description
   attributes:
