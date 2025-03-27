@@ -72,6 +72,7 @@ MEMORY
     ram_external_app_debug_pmem (rwx) : org = 0xADDF0000, len = 32k
     ram_external_app_scanner    (rwx) : org = 0xADE00000, len = 32k
     ram_external_app_level      (rwx) : org = 0xADE10000, len = 32k
+    ram_external_app_rf3d      (rwx) : org = 0xADE20000, len = 32k
 }
 
 SECTIONS
@@ -368,4 +369,10 @@ SECTIONS
         KEEP(*(.external_app.app_level.application_information));
         *(*ui*external_app*level*);
     } > ram_external_app_level
+
+    .external_app_rf3d : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_rf3d.application_information));
+        *(*ui*external_app*rf3d*);
+    } > ram_external_app_rf3d
 }
