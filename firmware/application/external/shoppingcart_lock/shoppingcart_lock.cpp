@@ -174,8 +174,8 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
     wait_for_thread();
 
     baseband::set_sample_rate(wav_sample_rate);
-    audio::set_rate(wav_sample_rate <= 12000 ? audio::Rate::Hz_12000 :
-                    wav_sample_rate <= 24000 ? audio::Rate::Hz_24000 : audio::Rate::Hz_48000);
+    audio::set_rate(wav_sample_rate <= 12000 ? audio::Rate::Hz_12000 : wav_sample_rate <= 24000 ? audio::Rate::Hz_24000
+                                                                                                : audio::Rate::Hz_48000);
     baseband::set_audiotx_config(
         wav_sample_rate,
         0.0f,
@@ -186,8 +186,7 @@ void ShoppingCartLock::play_audio(const std::string& filename, bool loop) {
         false,
         false,
         false,
-        false
-    );
+        false);
 
     audio::output::start();
     volume_t max_volume = audio::headphone::volume_range().max;
