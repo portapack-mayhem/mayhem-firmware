@@ -12,7 +12,7 @@ namespace ui::external_app::rf3d {
 
 RF3DView::RF3DView(NavigationView& nav)
     : nav_{nav}, spectrum_data(SCREEN_WIDTH, std::vector<uint8_t>(MAX_RENDER_DEPTH, 0)) {
-    baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+    baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
     add_children({&rssi, &channel, &audio, &field_frequency, &field_lna, &field_vga, 
                   &options_modulation, &field_volume, &text_ctcss, &record_view, &dummy});
 
@@ -20,20 +20,30 @@ RF3DView::RF3DView(NavigationView& nav)
     field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
     field_vga.on_show_options = [this]() { this->on_show_options_rf_gain(); };
 
-    auto modulation = receiver_model.modulation();
-    options_modulation.set_by_value(toUType(modulation));
+    receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+    receiver_model.set_sampling_rate(3072000);
+    receiver_model.set_baseband_bandwidth(40000);
+    receiver_model.set_target_frequency(93100000);
+    receiver_model.enable();
+
+    field_lna.set_value(32);
+    field_vga.set_value(40);
+
+    options_modulation.set_by_value(toUType(ReceiverModel::Mode::WidebandFMAudio));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
         this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
     };
     options_modulation.on_show_options = [this]() { this->on_show_options_modulation(); };
+
+    field_frequency.set_value(93100000);
 
     record_view.set_filename_date_frequency(true);
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
     };
 
+    record_view.set_sampling_rate(48000);
     audio::output::start();
-    on_modulation_changed(modulation);
 }
 
 RF3DView::~RF3DView() {
@@ -61,39 +71,59 @@ void RF3DView::stop() {
 }
 
 void RF3DView::update_spectrum(const ChannelSpectrum& spectrum) {
-    for (int x = SCREEN_WIDTH - 1; x > 0; x--) {
-        for (int z = 0; z < MAX_RENDER_DEPTH; z++) {
-            spectrum_data[x][z] = spectrum_data[x - 1][z];
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        int index = x * 256 / SCREEN_WIDTH;
+        uint8_t new_value = spectrum.db[index];
+        if (new_value > 50) {
+            spectrum_data[x][0] = new_value;
+        } else {
+            spectrum_data[x][0] = 0;
         }
-    }
-    for (int z = 0; z < MAX_RENDER_DEPTH; z++) {
-        int index = z * 256 / MAX_RENDER_DEPTH;
-        spectrum_data[0][z] = spectrum.db[index];
     }
     sampling_rate = spectrum.sampling_rate;
 }
 
 void RF3DView::render_3d_waterfall(Painter& painter) {
-    painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color(50, 0, 100));
+    static bool background_drawn = false;
+    static std::vector<int> prev_segments(SCREEN_WIDTH / (12 + 2), 0);
 
-    for (int x = 0; x < SCREEN_WIDTH; x++) {
-        for (int z = 0; z < MAX_RENDER_DEPTH; z++) {
-            int screen_x = x + z * 2;
-            int height = spectrum_data[x][z] * RENDER_HEIGHT / 255;
-            int screen_y = SCREEN_HEIGHT - height - (z * 10);
-
-            uint8_t r = spectrum_data[x][z] > 128 ? 255 : spectrum_data[x][z] * 2;
-            uint8_t g = spectrum_data[x][z] > 128 ? 255 : spectrum_data[x][z] * 2;
-            uint8_t b = spectrum_data[x][z] > 128 ? 255 : spectrum_data[x][z] * 2;
-
-            if (screen_x < SCREEN_WIDTH && screen_y >= header_height) {
-                int draw_height = height;
-                if (screen_y + draw_height > SCREEN_HEIGHT) draw_height = SCREEN_HEIGHT - screen_y;
-                if (draw_height > 0) {
-                    painter.fill_rectangle({screen_x, screen_y, 1, draw_height}, Color(r, g, b));
-                }
-            }
+    if (!background_drawn) {
+        painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color(20, 0, 40));
+        for (int x = 0; x < SCREEN_WIDTH; x += 20) {
+            painter.fill_rectangle({x, header_height, 1, RENDER_HEIGHT}, Color(80, 0, 160));
         }
+        for (int y = header_height; y < SCREEN_HEIGHT; y += 20) {
+            painter.fill_rectangle({0, y, SCREEN_WIDTH, 1}, Color(80, 0, 160));
+        }
+        background_drawn = true;
+    }
+
+    const int bar_width = 12;
+    const int bar_spacing = 2;
+    const int num_bars = SCREEN_WIDTH / (bar_width + bar_spacing);
+    const int segment_height = 10;
+    const int num_segments = RENDER_HEIGHT / segment_height;
+
+    for (int bar = 0; bar < num_bars; bar++) {
+        int x = bar * (bar_width + bar_spacing);
+        uint8_t intensity = spectrum_data[bar * SCREEN_WIDTH / num_bars][0];
+        int active_segments = (intensity * num_segments) / 255;
+
+        if (prev_segments[bar] > active_segments) {
+            int clear_height = (prev_segments[bar] - active_segments) * segment_height;
+            int clear_y = SCREEN_HEIGHT - prev_segments[bar] * segment_height;
+            painter.fill_rectangle({x, clear_y, bar_width, clear_height}, Color(20, 0, 40));
+        }
+
+        for (int seg = 0; seg < active_segments; seg++) {
+            int y = SCREEN_HEIGHT - (seg + 1) * segment_height;
+            if (y < header_height) break;
+
+            Color segment_color = (seg >= active_segments - 2 && seg < active_segments) ? Color(255, 255, 255) : Color(255, 0, 255);
+            painter.fill_rectangle({x, y, bar_width, segment_height - 1}, segment_color);
+        }
+
+        prev_segments[bar] = active_segments;
     }
 }
 
@@ -214,7 +244,7 @@ void RF3DView::update_modulation(ReceiverModel::Mode modulation) {
             image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
             break;
         default:
-            image_tag = portapack::spi_flash::image_tag_nfm_audio;
+            image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
     }
 
@@ -225,7 +255,6 @@ void RF3DView::update_modulation(ReceiverModel::Mode modulation) {
 
     receiver_model.set_modulation(modulation);
     receiver_model.set_sampling_rate(modulation == ReceiverModel::Mode::SpectrumAnalysis ? sampling_rate : 3072000);
-    receiver_model.set_baseband_bandwidth(modulation == ReceiverModel::Mode::SpectrumAnalysis ? sampling_rate / 2 : 1750000);
     receiver_model.enable();
 
     size_t record_sampling_rate = 0;
