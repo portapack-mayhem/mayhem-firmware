@@ -9,6 +9,7 @@
 #include "portapack.hpp"
 #include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
+#include "ui_freq_field.hpp"
 
 namespace ui::external_app::rf3d {
 
@@ -44,7 +45,7 @@ private:
     RSSI rssi{{21 * 8, 0, 6 * 8, 4}};
     Channel channel{{21 * 8, 5, 6 * 8, 4}};
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
-    FrequencyField field_frequency{Point{5 * 8, 0 * 16}};
+    RxFrequencyField field_frequency{{5 * 8, 0 * 16}, nav_};
     LNAGainField field_lna{Point{15 * 8, 0 * 16}};
     VGAGainField field_vga{Point{18 * 8, 0 * 16}};
     OptionsField options_modulation{
@@ -76,7 +77,6 @@ private:
     void update_spectrum(const AudioSpectrum& spectrum);
     void render_equalizer(Painter& painter);
     void on_modulation_changed(ReceiverModel::Mode modulation);
-    void on_show_options_frequency();
     void on_show_options_rf_gain();
     void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);

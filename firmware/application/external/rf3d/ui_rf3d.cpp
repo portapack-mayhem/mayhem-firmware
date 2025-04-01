@@ -16,7 +16,6 @@ RF3DView::RF3DView(NavigationView& nav)
     add_children({&rssi, &channel, &audio, &field_frequency, &field_lna, &field_vga, 
                   &options_modulation, &field_volume, &text_ctcss, &record_view, &dummy});
 
-    field_frequency.on_show_options = [this]() { this->on_show_options_frequency(); };
     field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
     field_vga.on_show_options = [this]() { this->on_show_options_rf_gain(); };
 
@@ -70,7 +69,7 @@ void RF3DView::stop() {
 }
 
 void RF3DView::update_spectrum(const AudioSpectrum& spectrum) {
-    const int bins_per_bar = 128 / NUM_BARS;  // Simple linear grouping
+    const int bins_per_bar = 128 / NUM_BARS;
     for (int bar = 0; bar < NUM_BARS; bar++) {
         int start_bin = bar * bins_per_bar;
         uint8_t max_db = 0;
@@ -124,16 +123,6 @@ void RF3DView::on_modulation_changed(ReceiverModel::Mode modulation) {
     update_modulation(modulation);
     on_show_options_modulation();
     start();
-}
-
-void RF3DView::on_show_options_frequency() {
-    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, Theme::getInstance()->option_active);
-    widget->set_step(receiver_model.frequency_step());
-    widget->on_change_step = [this](rf::Frequency f) { this->on_frequency_step_changed(f); };
-    widget->set_reference_ppm_correction(persistent_memory::correction_ppb() / 1000);
-    widget->on_change_reference_ppm_correction = [this](int32_t v) { this->on_reference_ppm_correction_changed(v); };
-    set_options_widget(std::move(widget));
-    field_frequency.set_style(Theme::getInstance()->option_active);
 }
 
 void RF3DView::on_show_options_rf_gain() {
