@@ -8,6 +8,7 @@
 #include "baseband_api.hpp"
 #include "portapack.hpp"
 #include "ui_record_view.hpp"
+#include "ui_spectrum.hpp"
 
 namespace ui::external_app::rf3d {
 
@@ -23,41 +24,40 @@ public:
     std::string title() const override { return "RF3D"; }
 
     void paint(Painter& painter) override;
-    void frame_sync();
 
 private:
     static constexpr ui::Dim header_height = 3 * 16;
     static constexpr int SCREEN_WIDTH = 240;
     static constexpr int SCREEN_HEIGHT = 320;
     static constexpr int RENDER_HEIGHT = 280;
-    static constexpr int HALF_WIDTH = SCREEN_WIDTH / 2;
-    static constexpr int HALF_HEIGHT = RENDER_HEIGHT / 2;
-    static constexpr int MAX_RENDER_DEPTH = 12;
+    static constexpr int NUM_BARS = 16;
+    static constexpr int BAR_WIDTH = SCREEN_WIDTH / NUM_BARS;
+    static constexpr int BAR_SPACING = 2;
+    static constexpr int SEGMENT_HEIGHT = 10;
 
     NavigationView& nav_;
     bool initialized{false};
-    std::vector<std::vector<uint8_t>> spectrum_data;
-    uint32_t sampling_rate{3072000};
-    double angle{0.0};
+    std::vector<int> bar_heights;
+    std::vector<int> prev_bar_heights;
     bool running{false};
 
     RSSI rssi{{21 * 8, 0, 6 * 8, 4}};
     Channel channel{{21 * 8, 5, 6 * 8, 4}};
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
-    FrequencyField field_frequency{{5 * 8, 0 * 16}};
-    LNAGainField field_lna{{15 * 8, 0 * 16}};
-    VGAGainField field_vga{{18 * 8, 0 * 16}};
+    FrequencyField field_frequency{Point{5 * 8, 0 * 16}};
+    LNAGainField field_lna{Point{15 * 8, 0 * 16}};
+    VGAGainField field_vga{Point{18 * 8, 0 * 16}};
     OptionsField options_modulation{
         {0 * 8, 0 * 16},
         4,
         {
-            {"AM", toUType(ReceiverModel::Mode::AMAudio)},
-            {"NFM", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
-            {"WFM", toUType(ReceiverModel::Mode::WidebandFMAudio)},
+            {"AM  ", toUType(ReceiverModel::Mode::AMAudio)},
+            {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
+            {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)}
         }
     };
-    AudioVolumeField field_volume{{28 * 8, 0 * 16}};
+    AudioVolumeField field_volume{Point{28 * 8, 0 * 16}};
     Text text_ctcss{{16 * 8, 1 * 16, 14 * 8, 1 * 16}, ""};
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
@@ -73,8 +73,8 @@ private:
 
     void start();
     void stop();
-    void update_spectrum(const ChannelSpectrum& spectrum);
-    void render_3d_waterfall(Painter& painter);
+    void update_spectrum(const AudioSpectrum& spectrum);
+    void render_equalizer(Painter& painter);
     void on_modulation_changed(ReceiverModel::Mode modulation);
     void on_show_options_frequency();
     void on_show_options_rf_gain();
@@ -88,13 +88,14 @@ private:
 
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
-        [this](const Message* const) { this->frame_sync(); }
+        [this](const Message* const) { }
     };
-    MessageHandlerRegistration message_handler_channel_spectrum{
-        Message::ID::ChannelSpectrumConfig,
+    MessageHandlerRegistration message_handler_audio_spectrum{
+        Message::ID::AudioSpectrum,
         [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-            this->channel_fifo = message.fifo;
+            const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
+            this->update_spectrum(*message.data);
+            this->set_dirty();
         }
     };
     MessageHandlerRegistration message_handler_coded_squelch{
@@ -104,7 +105,6 @@ private:
             this->handle_coded_squelch(message.value);
         }
     };
-    ChannelSpectrumFIFO* channel_fifo{nullptr};
 };
 
 } // namespace ui::external_app::rf3d
