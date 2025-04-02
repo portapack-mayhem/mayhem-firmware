@@ -204,9 +204,9 @@ set(EXTCPPSRC
 	external/level/main.cpp
 	external/level/ui_level.cpp
 
-	#rf3d
-	external/rf3d/main.cpp
-	external/rf3d/ui_rf3d.cpp	
+	#gfxEQ
+	external/gfxeq/main.cpp
+	external/gfxeq/ui_gfxeq.cpp	
 )
 
 set(EXTAPPLIST
@@ -259,5 +259,5 @@ set(EXTAPPLIST
 	debug_pmem
 	scanner
 	level
-	rf3d
+	gfxeq
 )

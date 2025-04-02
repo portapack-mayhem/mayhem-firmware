@@ -1,4 +1,4 @@
-#include "ui_rf3d.hpp"
+#include "ui_gfxeq.hpp"
 #include "ui.hpp"
 #include "ui_freqman.hpp"
 #include "tone_key.hpp"
@@ -8,9 +8,9 @@
 
 using namespace portapack;
 
-namespace ui::external_app::rf3d {
+namespace ui::external_app::gfxeq {
 
-RF3DView::RF3DView(NavigationView& nav)
+gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
     baseband::run_image(spi_flash::image_tag_wfm_audio);
     add_children({&rssi, &channel, &audio, &field_frequency, &field_lna, &field_vga, 
@@ -46,29 +46,29 @@ RF3DView::RF3DView(NavigationView& nav)
     audio::output::start();
 }
 
-RF3DView::~RF3DView() {
+gfxEQView::~gfxEQView() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
 
-void RF3DView::focus() {
+void gfxEQView::focus() {
     field_frequency.focus();
 }
 
-void RF3DView::start() {
+void gfxEQView::start() {
     if (!running) {
         running = true;
     }
 }
 
-void RF3DView::stop() {
+void gfxEQView::stop() {
     if (running) {
         running = false;
     }
 }
 
-void RF3DView::update_spectrum(const AudioSpectrum& spectrum) {
+void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
     const int bins_per_bar = 128 / NUM_BARS;
     for (int bar = 0; bar < NUM_BARS; bar++) {
         int start_bin = bar * bins_per_bar;
@@ -83,7 +83,7 @@ void RF3DView::update_spectrum(const AudioSpectrum& spectrum) {
     }
 }
 
-void RF3DView::render_equalizer(Painter& painter) {
+void gfxEQView::render_equalizer(Painter& painter) {
     const int num_bars = SCREEN_WIDTH / (BAR_WIDTH + BAR_SPACING);
     const int num_segments = RENDER_HEIGHT / SEGMENT_HEIGHT;
 
@@ -109,7 +109,7 @@ void RF3DView::render_equalizer(Painter& painter) {
     }
 }
 
-void RF3DView::paint(Painter& painter) {
+void gfxEQView::paint(Painter& painter) {
     if (!initialized) {
         initialized = true;
         start();
@@ -118,20 +118,20 @@ void RF3DView::paint(Painter& painter) {
     render_equalizer(painter);
 }
 
-void RF3DView::on_modulation_changed(ReceiverModel::Mode modulation) {
+void gfxEQView::on_modulation_changed(ReceiverModel::Mode modulation) {
     stop();
     update_modulation(modulation);
     on_show_options_modulation();
     start();
 }
 
-void RF3DView::on_show_options_rf_gain() {
+void gfxEQView::on_show_options_rf_gain() {
     auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, Theme::getInstance()->option_active);
     set_options_widget(std::move(widget));
     field_lna.set_style(Theme::getInstance()->option_active);
 }
 
-void RF3DView::on_show_options_modulation() {
+void gfxEQView::on_show_options_modulation() {
     std::unique_ptr<Widget> widget;
     const auto modulation = receiver_model.modulation();
     switch (modulation) {
@@ -158,16 +158,16 @@ void RF3DView::on_show_options_modulation() {
     options_modulation.set_style(Theme::getInstance()->option_active);
 }
 
-void RF3DView::on_frequency_step_changed(rf::Frequency f) {
+void gfxEQView::on_frequency_step_changed(rf::Frequency f) {
     receiver_model.set_frequency_step(f);
     field_frequency.set_step(f);
 }
 
-void RF3DView::on_reference_ppm_correction_changed(int32_t v) {
+void gfxEQView::on_reference_ppm_correction_changed(int32_t v) {
     persistent_memory::set_correction_ppb(v * 1000);
 }
 
-void RF3DView::remove_options_widget() {
+void gfxEQView::remove_options_widget() {
     if (options_widget) {
         remove_child(options_widget.get());
         options_widget.reset();
@@ -177,7 +177,7 @@ void RF3DView::remove_options_widget() {
     field_frequency.set_style(nullptr);
 }
 
-void RF3DView::set_options_widget(std::unique_ptr<Widget> new_widget) {
+void gfxEQView::set_options_widget(std::unique_ptr<Widget> new_widget) {
     remove_options_widget();
     if (new_widget) {
         options_widget = std::move(new_widget);
@@ -187,7 +187,7 @@ void RF3DView::set_options_widget(std::unique_ptr<Widget> new_widget) {
     add_child(options_widget.get());
 }
 
-void RF3DView::update_modulation(ReceiverModel::Mode modulation) {
+void gfxEQView::update_modulation(ReceiverModel::Mode modulation) {
     audio::output::mute();
     record_view.stop();
     baseband::shutdown();
@@ -242,8 +242,8 @@ void RF3DView::update_modulation(ReceiverModel::Mode modulation) {
     }
 }
 
-void RF3DView::handle_coded_squelch(uint32_t value) {
+void gfxEQView::handle_coded_squelch(uint32_t value) {
     text_ctcss.set(tonekey::tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
 }
 
-} // namespace ui::external_app::rf3d
+} // namespace ui::external_app::gfxeq

@@ -1,5 +1,5 @@
-#ifndef __UI_RF3D_HPP__
-#define __UI_RF3D_HPP__
+#ifndef __UI_GFXEQ_HPP__
+#define __UI_GFXEQ_HPP__
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -11,18 +11,18 @@
 #include "ui_spectrum.hpp"
 #include "ui_freq_field.hpp"
 
-namespace ui::external_app::rf3d {
+namespace ui::external_app::gfxeq {
 
-class RF3DView : public View {
+class gfxEQView : public View {
 public:
-    RF3DView(NavigationView& nav);
-    ~RF3DView();
+    gfxEQView(NavigationView& nav);
+    ~gfxEQView();
 
-    RF3DView(const RF3DView&) = delete;
-    RF3DView& operator=(const RF3DView&) = delete;
+    gfxEQView(const gfxEQView&) = delete;
+    gfxEQView& operator=(const gfxEQView&) = delete;
 
     void focus() override;
-    std::string title() const override { return "RF3D"; }
+    std::string title() const override { return "gfxEQ"; }
 
     void paint(Painter& painter) override;
 
@@ -74,7 +74,7 @@ private:
 
     void start();
     void stop();
-    void update_spectrum(const AudioSpectrum& spectrum);
+    void update_audio_spectrum(const AudioSpectrum& spectrum);
     void render_equalizer(Painter& painter);
     void on_modulation_changed(ReceiverModel::Mode modulation);
     void on_show_options_rf_gain();
@@ -94,7 +94,7 @@ private:
         Message::ID::AudioSpectrum,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
-            this->update_spectrum(*message.data);
+            this->update_audio_spectrum(*message.data);
             this->set_dirty();
         }
     };
@@ -107,6 +107,6 @@ private:
     };
 };
 
-} // namespace ui::external_app::rf3d
+} // namespace ui::external_app::gfxeq
 
 #endif
