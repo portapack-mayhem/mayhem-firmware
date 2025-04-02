@@ -255,7 +255,7 @@ void MetronomeTapTempoView::paint(Painter& painter) {
 }
 
 /*
-NB: i don't really know if the cpu clock is 1000MHz AKA 1ms per tick for chTimeNow()
+NB: i don't really know if the cpu clock is 1000Hz AKA 1ms per tick for chTimeNow()
     but it should be, refering to the stop watch app.
     and also i compared with my real metronome and it's very close
     so I assume it's 1ms per tick
