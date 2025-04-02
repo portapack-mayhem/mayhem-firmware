@@ -212,7 +212,10 @@ MetronomeTapTempoView::MetronomeTapTempoView(NavigationView& nav, uint16_t bpm)
             nav_,
             input_buffer,
             3,
+<<<<<<< HEAD
             ENTER_KEYBOARD_MODE_DIGITS,
+=======
+>>>>>>> 4bbe1175 (add tap tempo to metronomic app (#2605))
             [this](std::string& buffer) {
                 if (buffer.empty()) {
                     return;
