@@ -13,18 +13,18 @@ namespace ui::external_app::gfxeq {
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
     baseband::run_image(spi_flash::image_tag_wfm_audio);
-    add_children({&rssi, &channel, &audio, &field_frequency, &field_lna, &field_vga, 
-                  &options_modulation, &field_volume, &text_ctcss, &record_view, &dummy});
+    add_children({&field_frequency, &field_lna, &field_vga, &options_modulation, 
+                  &field_volume, &text_ctcss, &record_view, &button_mood, &dummy});
 
     field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
     field_vga.on_show_options = [this]() { this->on_show_options_rf_gain(); };
 
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_baseband_bandwidth(40000);
     receiver_model.set_target_frequency(93100000);
     receiver_model.set_rf_amp(true);
     receiver_model.enable();
+    receiver_model.set_baseband_bandwidth(40000);
 
     field_lna.set_value(40);
     field_vga.set_value(62);
@@ -44,6 +44,8 @@ gfxEQView::gfxEQView(NavigationView& nav)
 
     record_view.set_sampling_rate(48000);
     audio::output::start();
+
+    button_mood.on_select = [this](Button&) { this->cycle_theme(); };
 }
 
 gfxEQView::~gfxEQView() {
@@ -86,6 +88,7 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
 void gfxEQView::render_equalizer(Painter& painter) {
     const int num_bars = SCREEN_WIDTH / (BAR_WIDTH + BAR_SPACING);
     const int num_segments = RENDER_HEIGHT / SEGMENT_HEIGHT;
+    const ColorTheme& theme = themes[current_theme];
 
     for (int bar = 0; bar < num_bars; bar++) {
         int x = bar * (BAR_WIDTH + BAR_SPACING);
@@ -101,7 +104,7 @@ void gfxEQView::render_equalizer(Painter& painter) {
             int y = SCREEN_HEIGHT - (seg + 1) * SEGMENT_HEIGHT;
             if (y < header_height) break;
 
-            Color segment_color = (seg >= active_segments - 2 && seg < active_segments) ? Color(255, 255, 255) : Color(255, 0, 255);
+            Color segment_color = (seg >= active_segments - 2 && seg < active_segments) ? theme.peak_color : theme.base_color;
             painter.fill_rectangle({x, y, BAR_WIDTH, SEGMENT_HEIGHT - 1}, segment_color);
         }
 
@@ -244,6 +247,11 @@ void gfxEQView::update_modulation(ReceiverModel::Mode modulation) {
 
 void gfxEQView::handle_coded_squelch(uint32_t value) {
     text_ctcss.set(tonekey::tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
+}
+
+void gfxEQView::cycle_theme() {
+    current_theme = (current_theme + 1) % themes.size();
+    set_dirty();
 }
 
 } // namespace ui::external_app::gfxeq
