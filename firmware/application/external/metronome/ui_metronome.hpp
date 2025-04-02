@@ -138,7 +138,6 @@ class MetronomeTapTempoView : public View {
     void focus() override;
     void paint(Painter& painter) override;
 
-
    private:
     void on_tap(Painter& painter);
 
