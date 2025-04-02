@@ -137,7 +137,12 @@ def get_pp_device_linux():
             parts = clean_line.split()
             
             if len(parts) >= 2 and SDCARD_LABEL in parts[1]: # checker
+                print("found pp sd:")
                 device_path = parts[0]
+                #remove `- in it
+                device_path = device_path.replace('-', '')
+                device_path = device_path.replace('`', '')
+                print(device_path)
                 # if path valid
                 if not os.path.exists(device_path):
                     continue
