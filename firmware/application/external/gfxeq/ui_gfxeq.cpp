@@ -14,7 +14,12 @@ namespace ui::external_app::gfxeq {
 
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
+    std::vector<BoundSetting> bindings;
+    bindings.push_back(BoundSetting{"current_theme"sv, &current_theme});
+    ui_settings = SettingsStore{"gfx_eq"sv, bindings};
+
     baseband::run_image(spi_flash::image_tag_wfm_audio);
+
     add_children({&field_frequency, &field_lna, &field_vga, &options_modulation,
                   &field_volume, &text_ctcss, &record_view, &button_mood, &dummy});
 
@@ -24,14 +29,7 @@ gfxEQView::gfxEQView(NavigationView& nav)
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_target_frequency(93100000);
-    receiver_model.set_rf_amp(true);
     receiver_model.enable();
-
-    const baseband::WFMConfig wfm_40k_config{taps_40k_wfm_decim_0, taps_40k_wfm_decim_1};
-    wfm_40k_config.apply();
-
-    field_lna.set_value(40);
-    field_vga.set_value(62);
 
     options_modulation.set_by_value(toUType(ReceiverModel::Mode::WidebandFMAudio));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
@@ -41,12 +39,6 @@ gfxEQView::gfxEQView(NavigationView& nav)
 
     field_frequency.set_value(93100000);
 
-    record_view.set_filename_date_frequency(true);
-    record_view.on_error = [&nav](std::string message) {
-        nav.display_modal("Error", message);
-    };
-
-    record_view.set_sampling_rate(48000);
     audio::output::start();
 
     button_mood.on_select = [this](Button&) { this->cycle_theme(); };
@@ -220,18 +212,11 @@ void gfxEQView::update_modulation(ReceiverModel::Mode modulation) {
 
     baseband::run_image(image_tag);
     if (modulation == ReceiverModel::Mode::SpectrumAnalysis) {
-        baseband::set_spectrum(receiver_model.sampling_rate(), 63);
+        baseband::set_spectrum(receiver_model.sampling_rate(), 40);
     }
 
     receiver_model.set_modulation(modulation);
     receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_rf_amp(true);
-
-    if (modulation == ReceiverModel::Mode::WidebandFMAudio) {
-        const baseband::WFMConfig wfm_40k_config{taps_40k_wfm_decim_0, taps_40k_wfm_decim_1};
-        wfm_40k_config.apply();
-    }
-
     receiver_model.enable();
 
     size_t record_sampling_rate = 0;

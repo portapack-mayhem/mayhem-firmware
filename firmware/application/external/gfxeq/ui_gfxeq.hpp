@@ -10,6 +10,8 @@
 #include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_freq_field.hpp"
+#include "app_settings.hpp"
+#include "radio_state.hpp"
 
 namespace ui::external_app::gfxeq {
 
@@ -46,29 +48,28 @@ class gfxEQView : public View {
     std::vector<int> bar_heights;
     std::vector<int> prev_bar_heights;
     bool running{false};
-    size_t current_theme{0};
+    uint32_t current_theme{0};
     const std::array<ColorTheme, 20> themes{
-        ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},    // Neon Fury
-        ColorTheme{Color(0, 255, 0), Color(255, 0, 0)},          // Toxic Blaze
-        ColorTheme{Color(0, 0, 255), Color(255, 255, 0)},        // Midnight Venom
-        ColorTheme{Color(255, 128, 0), Color(255, 0, 128)},      // Inferno Pulse
-        ColorTheme{Color(128, 0, 255), Color(0, 255, 255)},      // Cyber Vortex
-        ColorTheme{Color(255, 255, 0), Color(0, 255, 128)},      // Solar Flare
-        ColorTheme{Color(255, 0, 0), Color(0, 128, 255)},        // Blood Eclipse
-        ColorTheme{Color(0, 255, 128), Color(255, 128, 255)},    // Acid Horizon
-        ColorTheme{Color(128, 128, 128), Color(255, 255, 255)},  // Steel Phantom
-        ColorTheme{Color(255, 64, 0), Color(0, 255, 64)},        // Ember Storm
-        ColorTheme{Color(0, 128, 128), Color(255, 192, 0)},      // Teal Abyss
-        ColorTheme{Color(0, 255, 0), Color(0, 128, 0)},          // Matrix Rain
-        ColorTheme{Color(32, 64, 32), Color(0, 255, 0)},         // Hacker Terminal
-        ColorTheme{Color(64, 0, 128), Color(255, 0, 255)},       // BBS Neon
-        ColorTheme{Color(0, 64, 0), Color(0, 255, 128)},         // CRT Glow
-        ColorTheme{Color(255, 255, 255), Color(0, 0, 255)},      // Digital Grid
-        ColorTheme{Color(128, 0, 0), Color(255, 128, 0)},        // Redline Hack
-        ColorTheme{Color(0, 128, 255), Color(255, 255, 128)},    // Cybernet Blue
-        ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},         // Shadow Net
-        ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}        // Amber Code
-    };
+        ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},
+        ColorTheme{Color(0, 255, 0), Color(255, 0, 0)},
+        ColorTheme{Color(0, 0, 255), Color(255, 255, 0)},
+        ColorTheme{Color(255, 128, 0), Color(255, 0, 128)},
+        ColorTheme{Color(128, 0, 255), Color(0, 255, 255)},
+        ColorTheme{Color(255, 255, 0), Color(0, 255, 128)},
+        ColorTheme{Color(255, 0, 0), Color(0, 128, 255)},
+        ColorTheme{Color(0, 255, 128), Color(255, 128, 255)},
+        ColorTheme{Color(128, 128, 128), Color(255, 255, 255)},
+        ColorTheme{Color(255, 64, 0), Color(0, 255, 64)},
+        ColorTheme{Color(0, 128, 128), Color(255, 192, 0)},
+        ColorTheme{Color(0, 255, 0), Color(0, 128, 0)},
+        ColorTheme{Color(32, 64, 32), Color(0, 255, 0)},
+        ColorTheme{Color(64, 0, 128), Color(255, 0, 255)},
+        ColorTheme{Color(0, 64, 0), Color(0, 255, 128)},
+        ColorTheme{Color(255, 255, 255), Color(0, 0, 255)},
+        ColorTheme{Color(128, 0, 0), Color(255, 128, 0)},
+        ColorTheme{Color(0, 128, 255), Color(255, 255, 128)},
+        ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
+        ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
     RxFrequencyField field_frequency{{5 * 8, 0 * 16}, nav_};
     LNAGainField field_lna{Point{15 * 8, 0 * 16}};
@@ -93,6 +94,13 @@ class gfxEQView : public View {
     std::unique_ptr<Widget> options_widget{};
     Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
     Button dummy{{240, 0, 0, 0}, ""};
+
+    RxRadioState rx_radio_state_{};
+
+    app_settings::SettingsManager settings_{
+        "rx_gfx_eq"sv, app_settings::Mode::RX};
+
+    SettingsStore ui_settings{"gfx_eq"sv, {}};
 
     void start();
     void stop();
