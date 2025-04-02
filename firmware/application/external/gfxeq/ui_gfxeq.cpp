@@ -5,8 +5,8 @@
 #include "analog_audio_app.hpp"
 #include "portapack.hpp"
 #include "audio.hpp"
-#include "baseband_api.hpp" 
-#include "dsp_fir_taps.hpp" 
+#include "baseband_api.hpp"
+#include "dsp_fir_taps.hpp"
 
 using namespace portapack;
 
@@ -15,7 +15,7 @@ namespace ui::external_app::gfxeq {
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
     baseband::run_image(spi_flash::image_tag_wfm_audio);
-    add_children({&field_frequency, &field_lna, &field_vga, &options_modulation, 
+    add_children({&field_frequency, &field_lna, &field_vga, &options_modulation,
                   &field_volume, &text_ctcss, &record_view, &button_mood, &dummy});
 
     field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
@@ -264,4 +264,4 @@ void gfxEQView::cycle_theme() {
     set_dirty();
 }
 
-} // namespace ui::external_app::gfxeq
+}  // namespace ui::external_app::gfxeq
