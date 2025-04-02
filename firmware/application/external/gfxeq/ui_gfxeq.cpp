@@ -5,6 +5,8 @@
 #include "analog_audio_app.hpp"
 #include "portapack.hpp"
 #include "audio.hpp"
+#include "baseband_api.hpp" 
+#include "dsp_fir_taps.hpp" 
 
 using namespace portapack;
 
@@ -24,7 +26,9 @@ gfxEQView::gfxEQView(NavigationView& nav)
     receiver_model.set_target_frequency(93100000);
     receiver_model.set_rf_amp(true);
     receiver_model.enable();
-    receiver_model.set_baseband_bandwidth(40000);
+
+    const baseband::WFMConfig wfm_40k_config{taps_40k_wfm_decim_0, taps_40k_wfm_decim_1};
+    wfm_40k_config.apply();
 
     field_lna.set_value(40);
     field_vga.set_value(62);
@@ -222,6 +226,12 @@ void gfxEQView::update_modulation(ReceiverModel::Mode modulation) {
     receiver_model.set_modulation(modulation);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_rf_amp(true);
+
+    if (modulation == ReceiverModel::Mode::WidebandFMAudio) {
+        const baseband::WFMConfig wfm_40k_config{taps_40k_wfm_decim_0, taps_40k_wfm_decim_1};
+        wfm_40k_config.apply();
+    }
+
     receiver_model.enable();
 
     size_t record_sampling_rate = 0;
