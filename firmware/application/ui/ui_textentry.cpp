@@ -33,7 +33,7 @@ void text_prompt(
     size_t max_length,
     uint8_t mode,
     std::function<void(std::string&)> on_done) {
-    text_prompt(nav, str, str.length(), max_length, mode,on_done);
+    text_prompt(nav, str, str.length(), max_length, mode, on_done);
 }
 
 void text_prompt(
@@ -43,7 +43,7 @@ void text_prompt(
     size_t max_length,
     uint8_t mode,
     std::function<void(std::string&)> on_done) {
-    auto te_view = nav.push<AlphanumView>(str, max_length,mode);
+    auto te_view = nav.push<AlphanumView>(str, max_length, mode);
     te_view->set_cursor(cursor_pos);
     te_view->on_changed = [on_done](std::string& value) {
         if (on_done)

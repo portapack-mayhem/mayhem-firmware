@@ -264,7 +264,7 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
             nav,
             ook_data.payload,
             100,
-            1,
+            1, /* enter number */
             [this](std::string& s) {
                 text_payload.set(s);
                 draw_waveform();

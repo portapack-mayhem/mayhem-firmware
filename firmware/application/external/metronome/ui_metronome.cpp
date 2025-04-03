@@ -212,7 +212,7 @@ MetronomeTapTempoView::MetronomeTapTempoView(NavigationView& nav, uint16_t bpm)
             nav_,
             input_buffer,
             3,
-            1,
+            1, /*enter number*/
             [this](std::string& buffer) {
                 if (buffer.empty()) {
                     return;

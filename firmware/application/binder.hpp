@@ -105,7 +105,7 @@ void bind(TextField& field, T& value, NavigationView& nav, Fn fn = Fn{}) {
     // Capture a new string and make the lambda mutable so it can be modified.
     field.on_select = [&nav, buf = std::string{}](TextField& tf) mutable {
         buf = tf.get_text();
-        text_prompt(nav, buf, /*max_length*/ 255,0,
+        text_prompt(nav, buf, /*max_length*/ 255, 0,
                     [&tf](std::string& str) {
                         tf.set_text(str);
                     });
