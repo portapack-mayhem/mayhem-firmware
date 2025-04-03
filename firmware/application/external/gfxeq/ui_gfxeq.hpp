@@ -32,6 +32,8 @@ class gfxEQView : public View {
 
     void focus() override;
     std::string title() const override { return "gfxEQ"; }
+    void on_show() override;
+    void on_hide() override;
 
     void paint(Painter& painter) override;
 
@@ -52,6 +54,7 @@ class gfxEQView : public View {
 
     NavigationView& nav_;
     bool initialized{false};
+    bool needs_background_redraw{false};
     std::vector<int> bar_heights;
     std::vector<int> prev_bar_heights;
     bool running{false};

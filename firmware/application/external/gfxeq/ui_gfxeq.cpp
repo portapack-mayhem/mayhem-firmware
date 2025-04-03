@@ -69,6 +69,15 @@ void gfxEQView::focus() {
     field_frequency.focus();
 }
 
+void gfxEQView::on_show() {
+    needs_background_redraw = true;
+    set_dirty();
+}
+
+void gfxEQView::on_hide() {
+    needs_background_redraw = true;
+}
+
 void gfxEQView::start() {
     if (!running) {
         running = true;
@@ -128,6 +137,9 @@ void gfxEQView::paint(Painter& painter) {
         initialized = true;
         start();
         painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color(0, 0, 0));
+    } else if (needs_background_redraw) {
+        painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color(0, 0, 0));
+        needs_background_redraw = false;
     }
     render_equalizer(painter);
 }
