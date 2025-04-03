@@ -46,6 +46,9 @@ class gfxEQView : public View {
     static constexpr int BAR_WIDTH = SCREEN_WIDTH / NUM_BARS;
     static constexpr int BAR_SPACING = 2;
     static constexpr int SEGMENT_HEIGHT = 10;
+    static constexpr std::array<int, NUM_BARS + 1> FREQUENCY_BANDS = {
+        20, 40, 80, 160, 315, 630, 1250, 2500, 5000, 10000,
+        12000, 14000, 16000, 18000, 20000, 22000, 24000};
 
     struct ColorTheme {
         Color base_color;

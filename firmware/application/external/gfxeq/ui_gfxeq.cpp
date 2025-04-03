@@ -90,15 +90,24 @@ void gfxEQView::on_hide() {
 }
 
 void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
-    const int bins_per_bar = 128 / NUM_BARS;
+    const float bin_frequency_size = 48000.0f / 128;
+
     for (int bar = 0; bar < NUM_BARS; bar++) {
-        int start_bin = bar * bins_per_bar;
+        int start_bin = FREQUENCY_BANDS[bar] / bin_frequency_size;
+        int end_bin = FREQUENCY_BANDS[bar + 1] / bin_frequency_size;
+
+        if (start_bin < 0) start_bin = 0;
+        if (start_bin > 127) start_bin = 127;
+        if (end_bin < 0) end_bin = 0;
+        if (end_bin > 127) end_bin = 127;
+
         uint8_t max_db = 0;
-        for (int bin = start_bin; bin < start_bin + bins_per_bar; bin++) {
+        for (int bin = start_bin; bin <= end_bin; bin++) {
             if (spectrum.db[bin] > max_db) {
                 max_db = spectrum.db[bin];
             }
         }
+
         int height = (max_db * RENDER_HEIGHT) / 255;
         bar_heights[bar] = height;
     }
