@@ -15,12 +15,6 @@
 
 namespace ui::external_app::gfxeq {
 
-class RainbowButton : public Button {
-public:
-    RainbowButton(Rect parent_rect, std::string text) : Button{parent_rect, text} {}
-    void paint(Painter& painter) override;
-};
-
 class gfxEQView : public View {
    public:
     gfxEQView(NavigationView& nav);
@@ -98,7 +92,7 @@ class gfxEQView : public View {
         4};
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
     std::unique_ptr<Widget> options_widget{};
-    RainbowButton button_mood{{21 * 8, 0, 6 * 8, 16}, ""};
+    Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
     Button dummy{{240, 0, 0, 0}, ""};
 
     RxRadioState rx_radio_state_{};

@@ -12,30 +12,6 @@ using namespace portapack;
 
 namespace ui::external_app::gfxeq {
 
-void RainbowButton::paint(Painter& painter) {
-    Rect button_rect = screen_rect();
-    int width = button_rect.width();
-
-    for (int x = 0; x < width; x++) {
-        float hue = static_cast<float>(x) / width * 360.0f;
-        uint8_t r, g, b;
-        if (hue < 120) {
-            r = hue < 60 ? 255 : (120 - hue) * 4.25;
-            g = hue < 60 ? hue * 4.25 : 255;
-            b = 0;
-        } else if (hue < 240) {
-            r = 0;
-            g = hue < 180 ? (hue - 120) * 4.25 : (240 - hue) * 4.25;
-            b = hue < 180 ? 255 : (240 - hue) * 4.25;
-        } else {
-            r = (hue - 240) * 4.25;
-            g = 0;
-            b = hue < 300 ? 255 : (360 - hue) * 4.25;
-        }
-        painter.fill_rectangle({button_rect.left() + x, button_rect.top(), 1, button_rect.height()}, Color(r, g, b));
-    }
-}
-
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
     std::vector<BoundSetting> bindings;
@@ -44,8 +20,8 @@ gfxEQView::gfxEQView(NavigationView& nav)
 
     baseband::run_image(spi_flash::image_tag_wfm_audio);
 
-    add_children({&options_modulation, &field_frequency, &field_lna, &field_vga,
-                  &field_volume, &button_mood, &text_ctcss, &dummy});
+    add_children({&field_frequency, &field_lna, &field_vga, &options_modulation,
+                  &field_volume, &text_ctcss, &button_mood, &dummy});
 
     field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
     field_vga.on_show_options = [this]() { this->on_show_options_rf_gain(); };
@@ -75,7 +51,7 @@ gfxEQView::~gfxEQView() {
 }
 
 void gfxEQView::focus() {
-    options_modulation.focus();
+    field_frequency.focus();
 }
 
 void gfxEQView::start() {
@@ -146,8 +122,6 @@ void gfxEQView::on_modulation_changed(ReceiverModel::Mode modulation) {
     update_modulation(modulation);
     on_show_options_modulation();
     start();
-    remove_options_widget();
-    options_modulation.focus();
 }
 
 void gfxEQView::on_show_options_rf_gain() {
@@ -200,7 +174,6 @@ void gfxEQView::remove_options_widget() {
     field_lna.set_style(nullptr);
     options_modulation.set_style(nullptr);
     field_frequency.set_style(nullptr);
-    nav_.set_dirty();
 }
 
 void gfxEQView::set_options_widget(std::unique_ptr<Widget> new_widget) {
