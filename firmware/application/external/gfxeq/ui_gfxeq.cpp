@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #include "ui_gfxeq.hpp"
 #include "ui.hpp"
 #include "ui_freqman.hpp"
@@ -14,33 +22,40 @@ namespace ui::external_app::gfxeq {
 
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
-    std::vector<BoundSetting> bindings;
-    bindings.push_back(BoundSetting{"current_theme"sv, &current_theme});
-    ui_settings = SettingsStore{"gfx_eq"sv, bindings};
-
     baseband::run_image(spi_flash::image_tag_wfm_audio);
 
-    add_children({&field_frequency, &field_lna, &field_vga, &options_modulation,
-                  &field_volume, &text_ctcss, &button_mood, &dummy});
+    add_children({&field_frequency, &field_rf_amp, &field_lna, &field_vga,
+                  &button_mood, &field_volume, &text_ctcss});
 
-    field_lna.on_show_options = [this]() { this->on_show_options_rf_gain(); };
-    field_vga.on_show_options = [this]() { this->on_show_options_rf_gain(); };
+    field_frequency.set_step(25000);
+    field_frequency.set_value(frequency_value);
+    field_rf_amp.set_value(rf_amp_value);
+    field_lna.set_value(lna_gain_value);
+    field_vga.set_value(vga_gain_value);
+    field_volume.set_value(volume_value);
 
+    receiver_model.set_rf_amp(rf_amp_value);
+    receiver_model.set_lna(lna_gain_value);
+    receiver_model.set_vga(vga_gain_value);
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_target_frequency(93100000);
+    receiver_model.set_target_frequency(frequency_value);
     receiver_model.enable();
-
-    options_modulation.set_by_value(toUType(ReceiverModel::Mode::WidebandFMAudio));
-    options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
-        this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
-    };
-    options_modulation.on_show_options = [this]() { this->on_show_options_modulation(); };
-
-    field_frequency.set_value(93100000);
 
     audio::output::start();
 
+    field_rf_amp.on_change = [this](bool v) {
+        rf_amp_value = v;
+        receiver_model.set_rf_amp(v);
+    };
+    field_lna.on_change = [this](int32_t v) {
+        lna_gain_value = v;
+        receiver_model.set_lna(v);
+    };
+    field_vga.on_change = [this](int32_t v) {
+        vga_gain_value = v;
+        receiver_model.set_vga(v);
+    };
     button_mood.on_select = [this](Button&) { this->cycle_theme(); };
 }
 
@@ -117,46 +132,6 @@ void gfxEQView::paint(Painter& painter) {
     render_equalizer(painter);
 }
 
-void gfxEQView::on_modulation_changed(ReceiverModel::Mode modulation) {
-    stop();
-    update_modulation(modulation);
-    on_show_options_modulation();
-    start();
-}
-
-void gfxEQView::on_show_options_rf_gain() {
-    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, Theme::getInstance()->option_active);
-    set_options_widget(std::move(widget));
-    field_lna.set_style(Theme::getInstance()->option_active);
-}
-
-void gfxEQView::on_show_options_modulation() {
-    std::unique_ptr<Widget> widget;
-    const auto modulation = receiver_model.modulation();
-    switch (modulation) {
-        case ReceiverModel::Mode::AMAudio:
-            widget = std::make_unique<ui::AMOptionsView>(nullptr, options_view_rect, Theme::getInstance()->option_active);
-            text_ctcss.hidden(true);
-            break;
-        case ReceiverModel::Mode::NarrowbandFMAudio:
-            widget = std::make_unique<ui::NBFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
-            text_ctcss.hidden(false);
-            break;
-        case ReceiverModel::Mode::WidebandFMAudio:
-            widget = std::make_unique<ui::WFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
-            text_ctcss.hidden(true);
-            break;
-        case ReceiverModel::Mode::SpectrumAnalysis:
-            widget = std::make_unique<ui::SPECOptionsView>(nullptr, options_view_rect, Theme::getInstance()->option_active);
-            text_ctcss.hidden(true);
-            break;
-        default:
-            break;
-    }
-    set_options_widget(std::move(widget));
-    options_modulation.set_style(Theme::getInstance()->option_active);
-}
-
 void gfxEQView::on_frequency_step_changed(rf::Frequency f) {
     receiver_model.set_frequency_step(f);
     field_frequency.set_step(f);
@@ -171,8 +146,9 @@ void gfxEQView::remove_options_widget() {
         remove_child(options_widget.get());
         options_widget.reset();
     }
+    field_rf_amp.set_style(nullptr);
     field_lna.set_style(nullptr);
-    options_modulation.set_style(nullptr);
+    field_vga.set_style(nullptr);
     field_frequency.set_style(nullptr);
 }
 
@@ -188,7 +164,6 @@ void gfxEQView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 
 void gfxEQView::update_modulation(ReceiverModel::Mode modulation) {
     audio::output::mute();
-    record_view.stop();
     baseband::shutdown();
 
     spi_flash::image_tag_t image_tag;
@@ -218,22 +193,6 @@ void gfxEQView::update_modulation(ReceiverModel::Mode modulation) {
     receiver_model.set_modulation(modulation);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.enable();
-
-    size_t record_sampling_rate = 0;
-    switch (modulation) {
-        case ReceiverModel::Mode::AMAudio:
-            record_sampling_rate = 12000;
-            break;
-        case ReceiverModel::Mode::NarrowbandFMAudio:
-            record_sampling_rate = 24000;
-            break;
-        case ReceiverModel::Mode::WidebandFMAudio:
-            record_sampling_rate = 48000;
-            break;
-        default:
-            break;
-    }
-    record_view.set_sampling_rate(record_sampling_rate);
 
     if (modulation != ReceiverModel::Mode::SpectrumAnalysis) {
         audio::output::unmute();

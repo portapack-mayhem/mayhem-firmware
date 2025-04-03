@@ -1,3 +1,11 @@
+/*
+ * ------------------------------------------------------------
+ * |  Made by RocketGod                                       |
+ * |  Find me at https://betaskynet.com                       |
+ * |  Argh matey!                                             |
+ * ------------------------------------------------------------
+ */
+
 #ifndef __UI_GFXEQ_HPP__
 #define __UI_GFXEQ_HPP__
 
@@ -7,7 +15,6 @@
 #include "message.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
-#include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_freq_field.hpp"
 #include "app_settings.hpp"
@@ -29,10 +36,10 @@ class gfxEQView : public View {
     void paint(Painter& painter) override;
 
    private:
-    static constexpr ui::Dim header_height = 3 * 16;
+    static constexpr ui::Dim header_height = 2 * 16;
     static constexpr int SCREEN_WIDTH = 240;
     static constexpr int SCREEN_HEIGHT = 320;
-    static constexpr int RENDER_HEIGHT = 280;
+    static constexpr int RENDER_HEIGHT = 288;
     static constexpr int NUM_BARS = 16;
     static constexpr int BAR_WIDTH = SCREEN_WIDTH / NUM_BARS;
     static constexpr int BAR_SPACING = 2;
@@ -71,44 +78,38 @@ class gfxEQView : public View {
         ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
         ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
-    RxFrequencyField field_frequency{{5 * 8, 0 * 16}, nav_};
-    LNAGainField field_lna{Point{15 * 8, 0 * 16}};
-    VGAGainField field_vga{Point{18 * 8, 0 * 16}};
-    OptionsField options_modulation{
-        {0 * 8, 0 * 16},
-        4,
-        {{"AM  ", toUType(ReceiverModel::Mode::AMAudio)},
-         {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
-         {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
-         {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)}}};
-    AudioVolumeField field_volume{Point{28 * 8, 0 * 16}};
+    RxFrequencyField field_frequency{{0 * 8, 0 * 16}, nav_};
+    RFAmpField field_rf_amp{{13 * 8, 0 * 16}};
+    LNAGainField field_lna{{15 * 8, 0 * 16}};
+    VGAGainField field_vga{{18 * 8, 0 * 16}};
+    Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
+    AudioVolumeField field_volume{{28 * 8, 0 * 16}};
     Text text_ctcss{{16 * 8, 1 * 16, 14 * 8, 1 * 16}, ""};
-    RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
-        u"AUD",
-        u"AUDIO",
-        RecordView::FileType::WAV,
-        4096,
-        4};
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
     std::unique_ptr<Widget> options_widget{};
-    Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
-    Button dummy{{240, 0, 0, 0}, ""};
 
     RxRadioState rx_radio_state_{};
 
-    app_settings::SettingsManager settings_{
-        "rx_gfx_eq"sv, app_settings::Mode::RX};
+    bool rf_amp_value{false};
+    int32_t lna_gain_value{0};
+    int32_t vga_gain_value{0};
+    rf::Frequency frequency_value{93100000};
+    int32_t volume_value{50};
 
-    SettingsStore ui_settings{"gfx_eq"sv, {}};
+    app_settings::SettingsManager settings_{
+        "rx_gfx_eq",
+        app_settings::Mode::RX,
+        {{"theme", &current_theme},
+         {"rf_amp", &rf_amp_value},
+         {"lna_gain", &lna_gain_value},
+         {"vga_gain", &vga_gain_value},
+         {"frequency", &frequency_value},
+         {"volume", &volume_value}}};
 
     void start();
     void stop();
     void update_audio_spectrum(const AudioSpectrum& spectrum);
     void render_equalizer(Painter& painter);
-    void on_modulation_changed(ReceiverModel::Mode modulation);
-    void on_show_options_rf_gain();
-    void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);
     void on_reference_ppm_correction_changed(int32_t v);
     void remove_options_widget();
