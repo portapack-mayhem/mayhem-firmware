@@ -131,6 +131,7 @@ ADSBCallsignView::ADSBCallsignView(
             nav,
             callsign,
             8,
+            0,
             [this](std::string& s) {
                 button_callsign.set_text(s);
             });

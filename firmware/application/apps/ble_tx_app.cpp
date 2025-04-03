@@ -399,6 +399,7 @@ BLETxView::BLETxView(NavigationView& nav)
             nav,
             packetFileBuffer,
             64,
+            0,
             [this](std::string& buffer) {
                 on_save_file(buffer);
             });

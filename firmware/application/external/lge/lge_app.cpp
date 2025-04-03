@@ -311,6 +311,7 @@ LGEView::LGEView(NavigationView& nav) {
             nav,
             nickname,
             15,
+            0,
             [this](std::string& buffer) {
                 button_text.set_text(buffer);
             });

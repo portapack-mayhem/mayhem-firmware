@@ -499,7 +499,7 @@ FileSaveView::FileSaveView(
 
         button_edit_path.on_select = [this](Button&) {
                 buffer_ = path_.string();
-                text_prompt(nav_, buffer_, max_filename_length,
+                text_prompt(nav_, buffer_, max_filename_length,0,
                         [this](std::string&) {
                                 path_ = buffer_;
                                 refresh_widgets();
@@ -508,7 +508,7 @@ FileSaveView::FileSaveView(
 
         button_edit_name.on_select = [this](Button&) {
                 buffer_ = file_.string();
-                text_prompt(nav_, buffer_, max_filename_length,
+                text_prompt(nav_, buffer_, max_filename_length,0,
                         [this](std::string&) {
                                 file_ = buffer_;
                                 refresh_widgets();
@@ -566,7 +566,7 @@ void FileManagerView::on_rename(std::string_view hint) {
         cursor_pos = pos;
 
     text_prompt(
-        nav_, name_buffer, cursor_pos, max_filename_length,
+        nav_, name_buffer, cursor_pos, max_filename_length,0,
         [this](std::string& renamed) {
             auto renamed_path = fs::path{renamed};
             rename_file(get_selected_full_path(), current_path / renamed_path);
@@ -640,7 +640,7 @@ void FileManagerView::on_clean() {
 
 void FileManagerView::on_new_dir() {
     name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& dir_name) {
+    text_prompt(nav_, name_buffer, max_filename_length,0, [this](std::string& dir_name) {
         make_new_directory(current_path / dir_name);
         reload_current(true);
     });
@@ -671,7 +671,7 @@ void FileManagerView::on_paste() {
 
 void FileManagerView::on_new_file() {
     name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
+    text_prompt(nav_, name_buffer, max_filename_length,0, [this](std::string& file_name) {
         make_new_file(current_path / file_name);
         reload_current(true);
     });

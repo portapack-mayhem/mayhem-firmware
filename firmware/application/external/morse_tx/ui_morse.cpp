@@ -99,7 +99,7 @@ static msg_t loopthread_fn(void* arg) {
 }
 
 void MorseView::on_set_text(NavigationView& nav) {
-    text_prompt(nav, buffer, 28);
+    text_prompt(nav, buffer, 28,0);
 }
 
 void MorseView::focus() {

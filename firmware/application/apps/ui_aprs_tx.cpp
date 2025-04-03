@@ -94,6 +94,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
             nav,
             payload,
             30,
+            0,
             [this](std::string& s) {
                 text_payload.set(s);
             });

@@ -227,6 +227,7 @@ void HopperView::save_list() {
         nav_,
         filename_buffer,
         64,
+        0,
         [this](std::string& value) {
             auto path = hopper_dir / (value + ".PHOP");
 

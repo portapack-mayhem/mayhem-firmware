@@ -617,6 +617,7 @@ void TextEditorView::show_edit_line() {
         edit_line_buffer_,
         viewer.col(),
         max_edit_length,
+        0,
         [this](std::string& buffer) {
             auto range = file_->line_range(viewer.line());
             if (!range)

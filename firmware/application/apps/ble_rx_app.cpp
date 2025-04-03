@@ -203,6 +203,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
             nav,
             packetFileBuffer,
             64,
+            0,
             [this, packetToSave](std::string& buffer) {
                 on_save_file(buffer, packetToSave);
             });
@@ -471,6 +472,7 @@ BLERxView::BLERxView(NavigationView& nav)
             nav_,
             filterBuffer,
             64,
+            0,
             [this](std::string& buffer) {
                 on_filter_change(buffer);
             });
@@ -493,6 +495,7 @@ BLERxView::BLERxView(NavigationView& nav)
             nav,
             listFileBuffer,
             64,
+            0,
             [this](std::string& buffer) {
                 on_save_file(buffer);
             });

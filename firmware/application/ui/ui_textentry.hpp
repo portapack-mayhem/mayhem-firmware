@@ -62,6 +62,7 @@ void text_prompt(
     NavigationView& nav,
     std::string& str,
     size_t max_length,
+    uint8_t mode,
     std::function<void(std::string&)> on_done = nullptr);
 
 void text_prompt(
@@ -69,6 +70,7 @@ void text_prompt(
     std::string& str,
     uint32_t cursor_pos,
     size_t max_length,
+    uint8_t mode, // enter mode: 123 abc etc
     std::function<void(std::string&)> on_done = nullptr);
 
 } /* namespace ui */

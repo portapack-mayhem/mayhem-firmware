@@ -65,6 +65,7 @@ RDSPSNView::RDSPSNView(
             nav,
             PSN,
             8,
+            0,
             [this](std::string& s) {
                 text_psn.set(s);
             });
@@ -86,6 +87,7 @@ RDSRadioTextView::RDSRadioTextView(
             nav,
             radiotext,
             28,
+            0,
             [this](std::string& s) {
                 text_radiotext.set(s);
             });
