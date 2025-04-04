@@ -36,6 +36,7 @@ class gfxEQView : public View {
     void on_hide() override;
 
     void paint(Painter& painter) override;
+    void on_freqchg(int64_t freq);
 
    private:
     static constexpr ui::Dim header_height = 2 * 16;
@@ -109,6 +110,13 @@ class gfxEQView : public View {
             const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
             this->update_audio_spectrum(*message.data);
             this->set_dirty();
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
         }};
 };
 

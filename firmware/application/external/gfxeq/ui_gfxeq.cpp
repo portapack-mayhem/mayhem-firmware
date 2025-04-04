@@ -71,6 +71,12 @@ gfxEQView::gfxEQView(NavigationView& nav)
     button_mood.on_select = [this](Button&) { this->cycle_theme(); };
 }
 
+// needed to answer usb serial frequency set
+void gfxEQView::on_freqchg(int64_t freq) {
+    receiver_model.set_target_frequency(freq);  // Retune to actual freq
+    button_frequency.set_text("<" + to_string_short_freq(freq) + ">");
+}
+
 gfxEQView::~gfxEQView() {
     audio::output::stop();
     receiver_model.disable();
