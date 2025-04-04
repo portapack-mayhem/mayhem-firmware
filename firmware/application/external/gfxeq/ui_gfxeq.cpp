@@ -113,26 +113,32 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
         float total_energy = 0;
         int bin_count = 0;
 
+        // Improved energy calculation with weighted frequency response
         for (int bin = start_bin; bin <= end_bin; bin++) {
-            total_energy += spectrum.db[bin];
+            // Apply slight emphasis to mid-range frequencies (human ear is more sensitive)
+            float weight = 1.0f;
+            if (bin > 20 && bin < 80) {  // Roughly corresponds to 375-1500Hz
+                weight = 1.2f;
+            }
+            total_energy += spectrum.db[bin] * weight;
             bin_count++;
         }
 
         uint8_t avg_db = bin_count > 0 ? total_energy / bin_count : 0;
 
-        const float response_speed = 0.7f;
+        // Slightly faster response for low frequencies, slower for high frequencies
+        float response_speed = bar < 5 ? 0.75f : (bar > 10 ? 0.65f : 0.7f);
         int target_height = (avg_db * RENDER_HEIGHT) / 255;
         bar_heights[bar] = bar_heights[bar] * (1.0f - response_speed) + target_height * response_speed;
     }
 }
 
 void gfxEQView::render_equalizer(Painter& painter) {
-    const int num_bars = SCREEN_WIDTH / (BAR_WIDTH + BAR_SPACING);
     const int num_segments = RENDER_HEIGHT / SEGMENT_HEIGHT;
     const ColorTheme& theme = themes[current_theme];
 
-    for (int bar = 0; bar < num_bars; bar++) {
-        int x = bar * (BAR_WIDTH + BAR_SPACING);
+    for (int bar = 0; bar < NUM_BARS; bar++) {
+        int x = HORIZONTAL_OFFSET + bar * (BAR_WIDTH + BAR_SPACING);
         int active_segments = (bar_heights[bar] * num_segments) / RENDER_HEIGHT;
 
         if (prev_bar_heights[bar] > active_segments) {

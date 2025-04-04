@@ -43,13 +43,16 @@ class gfxEQView : public View {
     static constexpr int SCREEN_WIDTH = 240;
     static constexpr int SCREEN_HEIGHT = 320;
     static constexpr int RENDER_HEIGHT = 288;
-    static constexpr int NUM_BARS = 16;
-    static constexpr int BAR_WIDTH = SCREEN_WIDTH / NUM_BARS;
+    static constexpr int NUM_BARS = 14;
     static constexpr int BAR_SPACING = 2;
+    static constexpr int BAR_WIDTH = (SCREEN_WIDTH - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
+    static constexpr int HORIZONTAL_OFFSET = 2;  // Adjust for centering
     static constexpr int SEGMENT_HEIGHT = 10;
+    
+    // Improved frequency bands with better low-frequency separation
     static constexpr std::array<int, NUM_BARS + 1> FREQUENCY_BANDS = {
-        20, 50, 100, 200, 400, 630, 1000, 1600, 2500, 4000,
-        6300, 8000, 10000, 12500, 16000, 20000, 24000};
+        20, 50, 100, 200, 400, 800, 1200, 1800, 2600, 4000, 
+        6000, 9000, 12000, 16000, 24000};
 
     struct ColorTheme {
         Color base_color;
