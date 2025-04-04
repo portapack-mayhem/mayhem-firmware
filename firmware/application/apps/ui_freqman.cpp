@@ -240,7 +240,7 @@ void FrequencyManagerView::on_edit_freq() {
 
 void FrequencyManagerView::on_edit_desc() {
     temp_buffer_ = current_entry().description;
-    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, [this](std::string& new_desc) {
+    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_desc) {
         auto entry = current_entry();
         entry.description = std::move(new_desc);
         db_.replace_entry(current_index(), entry);
@@ -250,7 +250,7 @@ void FrequencyManagerView::on_edit_desc() {
 
 void FrequencyManagerView::on_add_category() {
     temp_buffer_.clear();
-    text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
+    text_prompt(nav_, temp_buffer_, 20, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
         if (!new_name.empty()) {
             create_freqman_file(new_name);
             refresh_categories();
