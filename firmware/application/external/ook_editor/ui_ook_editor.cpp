@@ -210,6 +210,7 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
             nav,
             outputFileBuffer,
             64,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
                 on_save_file(buffer);
             });
@@ -263,6 +264,7 @@ OOKEditorAppView::OOKEditorAppView(NavigationView& nav)
             nav,
             ook_data.payload,
             100,
+            ENTER_KEYBOARD_MODE_DIGITS,
             [this](std::string& s) {
                 text_payload.set(s);
                 draw_waveform();
