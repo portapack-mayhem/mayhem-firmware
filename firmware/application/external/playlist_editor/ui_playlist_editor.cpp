@@ -123,9 +123,13 @@ bool PlaylistEditorView::on_create_ppl() {
         current_ppl_name_buffer,
         100,
 <<<<<<< HEAD
+<<<<<<< HEAD
         ENTER_KEYBOARD_MODE_ALPHA,
 =======
 >>>>>>> 73f7f847 (Playlist editor (#2506))
+=======
+        ENTER_KEYBOARD_MODE_ALPHA,
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
         [&](std::string& s) {
             current_ppl_name_buffer = s;
 
@@ -312,9 +316,13 @@ PlaylistItemEditView::PlaylistItemEditView(
             delay_str,
             100,
 <<<<<<< HEAD
+<<<<<<< HEAD
             ENTER_KEYBOARD_MODE_ALPHA,
 =======
 >>>>>>> 73f7f847 (Playlist editor (#2506))
+=======
+            ENTER_KEYBOARD_MODE_ALPHA,
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
             [&](std::string& s) {
                 delay_ = atoi(s.c_str());
                 field_delay.set_value(delay_);

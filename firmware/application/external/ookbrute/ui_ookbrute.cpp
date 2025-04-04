@@ -84,9 +84,13 @@ OOKBruteView::OOKBruteView(NavigationView& nav)
             text_input_buffer,
             8,  // currently longest is princeton
 <<<<<<< HEAD
+<<<<<<< HEAD
             ENTER_KEYBOARD_MODE_DIGITS,
 =======
 >>>>>>> 2d85e73f (OokBrute app opt (#2561))
+=======
+            ENTER_KEYBOARD_MODE_DIGITS,
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
             [this](std::string& buffer) {
                 field_start.set_value(atoi(buffer.c_str()));
                 validate_start_stop();
@@ -105,9 +109,13 @@ OOKBruteView::OOKBruteView(NavigationView& nav)
             text_input_buffer,
             8,  // currently longest is princeton
 <<<<<<< HEAD
+<<<<<<< HEAD
             ENTER_KEYBOARD_MODE_DIGITS,
 =======
 >>>>>>> 2d85e73f (OokBrute app opt (#2561))
+=======
+            ENTER_KEYBOARD_MODE_DIGITS,
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
             [this](std::string& buffer) {
                 field_stop.set_value(atoi(buffer.c_str()));
                 validate_start_stop();

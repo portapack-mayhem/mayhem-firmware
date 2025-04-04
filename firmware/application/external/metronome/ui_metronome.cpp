@@ -213,9 +213,13 @@ MetronomeTapTempoView::MetronomeTapTempoView(NavigationView& nav, uint16_t bpm)
             input_buffer,
             3,
 <<<<<<< HEAD
+<<<<<<< HEAD
             ENTER_KEYBOARD_MODE_DIGITS,
 =======
 >>>>>>> 4bbe1175 (add tap tempo to metronomic app (#2605))
+=======
+            ENTER_KEYBOARD_MODE_DIGITS,
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
             [this](std::string& buffer) {
                 if (buffer.empty()) {
                     return;

@@ -520,6 +520,66 @@ void FileLoadView::refresh_widgets(const bool) {
     set_dirty();
 }
 
+<<<<<<< HEAD
+=======
+/* FileSaveView **************************************************************/
+/*
+FileSaveView::FileSaveView(
+        NavigationView& nav,
+        const fs::path& path,
+        const fs::path& file
+) : nav_{ nav },
+        path_{ path },
+        file_{ file }
+{
+        add_children({
+                &text_path,
+                &button_edit_path,
+                &text_name,
+                &button_edit_name,
+                &button_save,
+                &button_cancel,
+        });
+
+        button_edit_path.on_select = [this](Button&) {
+                buffer_ = path_.string();
+                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
+                        [this](std::string&) {
+                                path_ = buffer_;
+                                refresh_widgets();
+                        });
+        };
+
+        button_edit_name.on_select = [this](Button&) {
+                buffer_ = file_.string();
+                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
+                        [this](std::string&) {
+                                file_ = buffer_;
+                                refresh_widgets();
+                        });
+        };
+
+        button_save.on_select = [this](Button&) {
+                if (on_save)
+                        on_save(path_ / file_);
+                else
+                        nav_.pop();
+        };
+
+        button_cancel.on_select = [this](Button&) {
+                nav_.pop();
+        };
+
+        refresh_widgets();
+}
+
+void FileSaveView::refresh_widgets() {
+        text_path.set(truncate(path_, 30));
+        text_name.set(truncate(file_, 30));
+        set_dirty();
+}
+*/
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
 /* FileManagerView ***********************************************************/
 
 void FileManagerView::refresh_widgets(const bool v) {

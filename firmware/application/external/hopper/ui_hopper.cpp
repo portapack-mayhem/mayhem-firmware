@@ -232,9 +232,13 @@ void HopperView::save_list() {
         filename_buffer,
         64,
 <<<<<<< HEAD
+<<<<<<< HEAD
         ENTER_KEYBOARD_MODE_ALPHA,
 =======
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+        ENTER_KEYBOARD_MODE_ALPHA,
+>>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
         [this](std::string& value) {
             auto path = hopper_dir / (value + ".PHOP");
 
