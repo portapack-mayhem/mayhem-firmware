@@ -93,23 +93,30 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
     const float bin_frequency_size = 48000.0f / 128;
 
     for (int bar = 0; bar < NUM_BARS; bar++) {
-        int start_bin = FREQUENCY_BANDS[bar] / bin_frequency_size;
-        int end_bin = FREQUENCY_BANDS[bar + 1] / bin_frequency_size;
+        float start_freq = FREQUENCY_BANDS[bar];
+        float end_freq = FREQUENCY_BANDS[bar + 1];
+
+        int start_bin = std::round(start_freq / bin_frequency_size);
+        int end_bin = std::round(end_freq / bin_frequency_size);
 
         if (start_bin < 0) start_bin = 0;
         if (start_bin > 127) start_bin = 127;
         if (end_bin < 0) end_bin = 0;
         if (end_bin > 127) end_bin = 127;
 
-        uint8_t max_db = 0;
+        float total_energy = 0;
+        int bin_count = 0;
+
         for (int bin = start_bin; bin <= end_bin; bin++) {
-            if (spectrum.db[bin] > max_db) {
-                max_db = spectrum.db[bin];
-            }
+            total_energy += spectrum.db[bin];
+            bin_count++;
         }
 
-        int height = (max_db * RENDER_HEIGHT) / 255;
-        bar_heights[bar] = height;
+        uint8_t avg_db = bin_count > 0 ? total_energy / bin_count : 0;
+
+        const float response_speed = 0.7f;
+        int target_height = (avg_db * RENDER_HEIGHT) / 255;
+        bar_heights[bar] = bar_heights[bar] * (1.0f - response_speed) + target_height * response_speed;
     }
 }
 
