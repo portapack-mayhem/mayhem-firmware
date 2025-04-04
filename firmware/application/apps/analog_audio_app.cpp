@@ -37,9 +37,6 @@ using namespace tonekey;
 
 namespace ui {
 
-int16_t previous_AM_mode_option = 0;  // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
-int16_t previous_zoom = 0;            // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
-
 /* AMOptionsView *********************************************************/
 
 AMOptionsView::AMOptionsView(
@@ -57,6 +54,7 @@ AMOptionsView::AMOptionsView(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {            // n , has two option values. when GUI =zoom+1 => (0), when GUI=zoom+2 (6)
         receiver_model.set_am_configuration(view->get_previous_AM_mode_option() + n);  // n (0 or 6)
         view->set_zoom_factor(AM_MODULATION, n);
@@ -72,12 +70,18 @@ AMOptionsView::AMOptionsView(
         view->set_zoom_factor(AM_MODULATION, n);
         previous_zoom = n;
 >>>>>>> 41628204 (solving_Audio_App_AM_GUI_Problem_issue_2604 (#2609))
+=======
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {            // n , has two option values. when GUI =zoom+1 => (0), when GUI=zoom+2 (6)
+        receiver_model.set_am_configuration(view->get_previous_AM_mode_option() + n);  // n (0 or 6)
+        view->set_zoom_factor(AM_MODULATION, n);
+        view->set_previous_zoom_option(n);
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
     };
 
     // restore zoom selection
     zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
-    view->get_zoom_factor(AM_MODULATION);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     freqman_set_bandwidth_option(AM_MODULATION, options_config);                                        // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
@@ -100,6 +104,13 @@ AMOptionsView::AMOptionsView(
         receiver_model.set_am_configuration(n + previous_zoom);  // we select proper FIR AM filter (0..11), = 0..4 GUI AM modes + offset +6 (if zoom+2)
         previous_AM_mode_option = n;                             // (0..4) allowing 5 AM modes (DSB9K, DSB6K, USB,LSB, CW)
 >>>>>>> 41628204 (solving_Audio_App_AM_GUI_Problem_issue_2604 (#2609))
+=======
+    freqman_set_bandwidth_option(AM_MODULATION, options_config);                                        // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
+    options_config.set_by_value(receiver_model.am_configuration() - view->get_previous_zoom_option());  // restore AM GUI option mode ,   AM FIR index filters (0..11) values ,  <baseband::AMConfig, 12> am_configs has 12 fir  index elements.
+    options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(n + view->get_previous_zoom_option());  // we select proper FIR AM filter (0..11), = 0..4 GUI AM modes + offset +6 (if zoom+2)
+        view->set_previous_AM_mode_option(n);                                       // (0..4) allowing 5 AM modes (DSB9K, DSB6K, USB,LSB, CW)
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
     };
 }
 
@@ -374,6 +385,9 @@ void AnalogAudioView::set_zoom_factor(uint8_t mode, uint8_t zoom) {  // define a
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
 uint8_t AnalogAudioView::get_previous_AM_mode_option() {
     return previous_AM_mode_option;
 }
@@ -390,8 +404,11 @@ void AnalogAudioView::set_previous_zoom_option(uint8_t zoom) {
     previous_zoom = zoom;
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
 uint8_t AnalogAudioView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read iq_phase_calibration_value
     return iq_phase_calibration_value;
 }

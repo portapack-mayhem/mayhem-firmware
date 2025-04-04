@@ -259,14 +259,20 @@ class AnalogAudioView : public View {
     void set_zoom_factor(uint8_t mode, uint8_t zoom);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
     uint8_t get_previous_AM_mode_option();
     void set_previous_AM_mode_option(uint8_t mode);
 
     uint8_t get_previous_zoom_option();
     void set_previous_zoom_option(uint8_t zoom);
 
+<<<<<<< HEAD
 =======
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
@@ -276,11 +282,17 @@ class AnalogAudioView : public View {
     uint8_t zoom_factor_am{0};               // initial zoom factor in AM mode
     uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
     uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
 
 =======
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+    uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
+    uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
+                                             //
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
@@ -289,10 +301,15 @@ class AnalogAudioView : public View {
             {"zoom_factor_am"sv, &zoom_factor_am},                    // we are saving and restoring AM ZOOM factor from Settings.
             {"zoom_factor_amfm"sv, &zoom_factor_amfm},                // we are saving and restoring AMFM ZOOM factor from Settings.
 <<<<<<< HEAD
+<<<<<<< HEAD
             {"previous_AM_mode_option"sv, &previous_AM_mode_option},  // we are saving and restoring AMFM ZOOM factor from Settings.
             {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
 =======
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+            {"previous_AM_mode_option"sv, &previous_AM_mode_option},  // we are saving and restoring AMFM ZOOM factor from Settings.
+            {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
+>>>>>>> ff14008b (prevent long life var for audio app - AM (#2610))
         }};
 
     const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
