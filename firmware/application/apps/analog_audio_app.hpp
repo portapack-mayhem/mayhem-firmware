@@ -40,7 +40,6 @@ class AnalogAudioView;
 class AMOptionsView : public View {
    public:
     AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
-    int16_t previous_filter_array_index = 0;
 
    private:
     Text label_config{
@@ -59,7 +58,7 @@ class AMOptionsView : public View {
         {23 * 8, 0 * 16},
         7,
         {{"ZOOM x1", 0},
-         {"ZOOM x2", 6}}  // offset index array filters.
+         {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
     };
 };
 
