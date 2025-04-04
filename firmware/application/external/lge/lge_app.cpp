@@ -311,7 +311,7 @@ LGEView::LGEView(NavigationView& nav) {
             nav,
             nickname,
             15,
-            0,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
                 button_text.set_text(buffer);
             });

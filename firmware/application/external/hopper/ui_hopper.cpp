@@ -227,7 +227,7 @@ void HopperView::save_list() {
         nav_,
         filename_buffer,
         64,
-        0,
+        ENTER_KEYBOARD_MODE_ALPHA,
         [this](std::string& value) {
             auto path = hopper_dir / (value + ".PHOP");
 

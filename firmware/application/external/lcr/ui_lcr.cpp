@@ -189,7 +189,7 @@ void LCRView::on_button_set_am(NavigationView& nav, int16_t button_id) {
         nav,
         litteral[button_id],
         7,
-        0,
+        ENTER_KEYBOARD_MODE_ALPHA,
         [this, button_id](std::string& buffer) {
             texts[button_id].set(buffer);
         });
@@ -258,7 +258,7 @@ LCRView::LCRView(NavigationView& nav) {
             nav,
             rgsb,
             4,
-            0,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
                 button_set_rgsb.set_text(buffer);
             });

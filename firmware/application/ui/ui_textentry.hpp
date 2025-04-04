@@ -26,6 +26,11 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 
+#define ENTER_KEYBOARD_MODE_ALPHA 0
+#define ENTER_KEYBOARD_MODE_DIGITS 1
+#define ENTER_KEYBOARD_MODE_SYMBOLS 2
+#define ENTER_KEYBOARD_MODE_HEX 3
+
 namespace ui {
 
 class TextEntryView : public View {

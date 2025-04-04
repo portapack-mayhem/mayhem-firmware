@@ -83,7 +83,7 @@ OOKBruteView::OOKBruteView(NavigationView& nav)
             nav_,
             text_input_buffer,
             8,  // currently longest is princeton
-            1,  /*enter number*/
+            ENTER_KEYBOARD_MODE_DIGITS,
             [this](std::string& buffer) {
                 field_start.set_value(atoi(buffer.c_str()));
                 validate_start_stop();
@@ -101,7 +101,7 @@ OOKBruteView::OOKBruteView(NavigationView& nav)
             nav_,
             text_input_buffer,
             8,  // currently longest is princeton
-            0,  /*enter number*/
+            ENTER_KEYBOARD_MODE_DIGITS,
             [this](std::string& buffer) {
                 field_stop.set_value(atoi(buffer.c_str()));
                 validate_start_stop();
