@@ -41,9 +41,12 @@ class AMOptionsView : public View {
    public:
     AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     int16_t previous_filter_array_index = 0;
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
+=======
+>>>>>>> 41628204 (solving_Audio_App_AM_GUI_Problem_issue_2604 (#2609))
 
    private:
     Text label_config{
@@ -62,6 +65,7 @@ class AMOptionsView : public View {
         {23 * 8, 0 * 16},
         7,
         {{"ZOOM x1", 0},
+<<<<<<< HEAD
 <<<<<<< HEAD
          {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
     };
@@ -91,6 +95,9 @@ class AMFMAptOptionsView : public View {
 =======
 >>>>>>> 21773cc3 (Adding_Waterfall_ZOOM_x2_in_AM_modes_Audio_App (#2586))
          {"ZOOM x2", 6}}  // offset index array filters.
+=======
+         {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
+>>>>>>> 41628204 (solving_Audio_App_AM_GUI_Problem_issue_2604 (#2609))
     };
 };
 
