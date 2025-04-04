@@ -37,8 +37,8 @@ using namespace tonekey;
 
 namespace ui {
 
-int16_t previous_AM_mode_option = 0;  // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
-int16_t previous_zoom = 0;            // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
+static int16_t previous_AM_mode_option = 0;  // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
+static int16_t previous_zoom = 0;            // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
 
 /* AMOptionsView *********************************************************/
 
