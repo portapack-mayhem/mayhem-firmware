@@ -128,6 +128,7 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("ui_config2 button_repeat_delay: " + to_string_dec_uint(ui_button_repeat_delay()));
     pmem_dump_file.write_line("ui_config2 button_repeat_speed: " + to_string_dec_uint(ui_button_repeat_speed()));
     pmem_dump_file.write_line("ui_config2 button_long_press_delay: " + to_string_dec_uint(ui_button_long_press_delay()));
+    pmem_dump_file.write_line("ui_config2 battery_charge_hint: " + to_string_dec_uint(ui_battery_charge_hint()));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));

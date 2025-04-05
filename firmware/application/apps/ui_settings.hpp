@@ -978,9 +978,13 @@ class SetBatteryView : public View {
     int32_t selected = 0;
     Labels labels{
         {{1 * 8, 1 * 16}, "Override batt calculation", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground}};
-    Labels labels2{
-        {{1 * 8, 6 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground},
+        /**/
+        {{1 * 8, 6 * 16}, "Display a hint to remind you", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 7 * 16}, "when you charge", Theme::getInstance()->fg_light->foreground}};
+
+    Labels labels2{{{1 * 8, 11 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
@@ -990,13 +994,18 @@ class SetBatteryView : public View {
         23,
         "Override"};
 
+    Checkbox checkbox_battery_charge_hint{
+        {2 * 8, 9 * 16},
+        23,
+        "Charge hint"};
+
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
 
     Button button_reset{
-        {2 * 8, 8 * 16, 12 * 8, 32},
+        {2 * 8, 13 * 16, 12 * 8, 32},
         "Reset",
     };
 };
