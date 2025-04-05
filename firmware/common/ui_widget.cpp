@@ -1136,7 +1136,7 @@ void ButtonWithEncoder::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->bg_light->background);
     painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Theme::getInstance()->bg_dark->background);
     painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Theme::getInstance()->bg_dark->background);
 

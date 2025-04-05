@@ -146,7 +146,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
-    {"signalgen", "Signal Gen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
+    {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     /* UTILITIES *************************************************************/
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
