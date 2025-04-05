@@ -181,12 +181,16 @@ const NavigationView::AppList NavigationView::appList = {
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
 <<<<<<< HEAD
+<<<<<<< HEAD
     {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
 =======
     {"signalgen", "Signal Gen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
 >>>>>>> ee472e1e (waveform fix 3 and trivial change (#2540))
+=======
+    {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
+>>>>>>> 31082c63 (theme fix again (#2611))
     /* UTILITIES *************************************************************/
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
