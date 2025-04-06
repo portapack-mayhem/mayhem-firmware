@@ -343,7 +343,7 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
 
     // Check if charging state changed to charging
     static bool was_charging = false;
-    if (msg->on_charger && !was_charging) {
+    if (msg->on_charger && !was_charging && pmem::ui_battery_charge_hint()) {
         // Only show charging modal when transitioning to charging state
         nav_.display_modal(
             "CHARGING",
