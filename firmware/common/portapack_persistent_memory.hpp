@@ -351,10 +351,15 @@ bool ui_button_repeat_delay();
 bool ui_button_repeat_speed();
 bool ui_button_long_press_delay();
 <<<<<<< HEAD
+<<<<<<< HEAD
 bool ui_battery_charge_hint();
 
 =======
 >>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
+=======
+bool ui_battery_charge_hint();
+
+>>>>>>> 809abb68 (user can disable battery change hint (#2612))
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
 void set_ui_hide_converter(bool v);
@@ -373,9 +378,13 @@ void set_ui_button_repeat_delay(bool v);
 void set_ui_button_repeat_speed(bool v);
 void set_ui_button_long_press_delay(bool v);
 <<<<<<< HEAD
+<<<<<<< HEAD
 void set_ui_battery_charge_hint(bool v);
 =======
 >>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
+=======
+void set_ui_battery_charge_hint(bool v);
+>>>>>>> 809abb68 (user can disable battery change hint (#2612))
 
 // sd persisting settings
 bool should_use_sdcard_for_pmem();

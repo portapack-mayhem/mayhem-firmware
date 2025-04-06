@@ -147,9 +147,13 @@ struct ui_config2_t {
     bool button_repeat_speed : 1;
     bool button_long_press_delay : 1;
 <<<<<<< HEAD
+<<<<<<< HEAD
     bool battery_charge_hint : 1;
 =======
 >>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
+=======
+    bool battery_charge_hint : 1;
+>>>>>>> 809abb68 (user can disable battery change hint (#2612))
 
     uint8_t theme_id;
 };
@@ -1023,11 +1027,17 @@ bool ui_button_long_press_delay() {
     return data->ui_config2.button_long_press_delay;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 bool ui_battery_charge_hint() {
     return data->ui_config2.battery_charge_hint;
 }
 =======
 >>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
+=======
+bool ui_battery_charge_hint() {
+    return data->ui_config2.battery_charge_hint;
+}
+>>>>>>> 809abb68 (user can disable battery change hint (#2612))
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
@@ -1083,11 +1093,17 @@ void set_ui_button_long_press_delay(bool v) {
     data->ui_config2.button_long_press_delay = v;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 void set_ui_battery_charge_hint(bool v) {
     data->ui_config2.battery_charge_hint = v;
 }
 =======
 >>>>>>> 6ee7270d (Setting for faster Button Repeat delays (#2559))
+=======
+void set_ui_battery_charge_hint(bool v) {
+    data->ui_config2.battery_charge_hint = v;
+}
+>>>>>>> 809abb68 (user can disable battery change hint (#2612))
 
 /* Converter */
 bool config_converter() {
