@@ -102,34 +102,61 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
         float start_freq = FREQUENCY_BANDS[bar];
         float end_freq = FREQUENCY_BANDS[bar + 1];
 
-        int start_bin = std::round(start_freq / bin_frequency_size);
-        int end_bin = std::round(end_freq / bin_frequency_size);
+        int start_bin = std::max(1, (int)(start_freq / bin_frequency_size));
+        int end_bin = std::min(127, (int)(end_freq / bin_frequency_size));
 
-        if (start_bin < 0) start_bin = 0;
-        if (start_bin > 127) start_bin = 127;
-        if (end_bin < 0) end_bin = 0;
-        if (end_bin > 127) end_bin = 127;
+        if (start_bin >= end_bin) {
+            end_bin = start_bin + 1;
+        }
 
         float total_energy = 0;
         int bin_count = 0;
 
-        // Improved energy calculation with weighted frequency response
+        // Apply standard EQ frequency response curve (inverted V shape)
         for (int bin = start_bin; bin <= end_bin; bin++) {
-            // Apply slight emphasis to mid-range frequencies (human ear is more sensitive)
             float weight = 1.0f;
-            if (bin > 20 && bin < 80) {  // Roughly corresponds to 375-1500Hz
-                weight = 1.2f;
+            float normalized_bin = bin / 127.0f;  // 0.0 to 1.0
+
+            // Boosting mid frequencies per standard graphic EQ curve
+            if (normalized_bin >= 0.2f && normalized_bin <= 0.7f) {
+                // Create an inverted V shape with peak at 0.45 (middle frequencies)
+                float distance_from_mid = fabs(normalized_bin - 0.45f);
+                weight = 2.2f - (distance_from_mid * 2.0f);  // Max 2.2x boost at center
             }
+
+            // Add extra low-frequency sensitivity
+            if (bar < 5) {
+                weight *= (1.8f - (bar * 0.15f));
+            }
+
             total_energy += spectrum.db[bin] * weight;
             bin_count++;
         }
 
-        uint8_t avg_db = bin_count > 0 ? total_energy / bin_count : 0;
+        uint8_t avg_db = bin_count > 0 ? (total_energy / bin_count) : 0;
 
-        // Slightly faster response for low frequencies, slower for high frequencies
-        float response_speed = bar < 5 ? 0.75f : (bar > 10 ? 0.65f : 0.7f);
-        int target_height = (avg_db * RENDER_HEIGHT) / 255;
-        bar_heights[bar] = bar_heights[bar] * (1.0f - response_speed) + target_height * response_speed;
+        // Scale all bands to reasonable levels
+        float band_scale = 0.85f;
+
+        // Get the height in display units
+        int target_height = (avg_db * RENDER_HEIGHT * band_scale) / 255;
+
+        // Cap maximum height to prevent overshoot
+        if (target_height > RENDER_HEIGHT) {
+            target_height = RENDER_HEIGHT;
+        }
+
+        // Apply different speeds for rise and fall
+        float rise_speed = 0.7f;
+        float fall_speed = 0.12f;
+
+        if (target_height > bar_heights[bar]) {
+            // Fast rise response
+            bar_heights[bar] = bar_heights[bar] * (1.0f - rise_speed) + target_height * rise_speed;
+        } else {
+            // Slow fall response
+            bar_heights[bar] = bar_heights[bar] * (1.0f - fall_speed) + target_height * fall_speed;
+        }
     }
 }
 
