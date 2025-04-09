@@ -112,49 +112,41 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
         float total_energy = 0;
         int bin_count = 0;
 
-        // Apply standard EQ frequency response curve (inverted V shape)
         for (int bin = start_bin; bin <= end_bin; bin++) {
-            float weight = 1.0f;
-            float normalized_bin = bin / 127.0f;  // 0.0 to 1.0
-
-            // Boosting mid frequencies per standard graphic EQ curve
-            if (normalized_bin >= 0.2f && normalized_bin <= 0.7f) {
-                // Create an inverted V shape with peak at 0.45 (middle frequencies)
-                float distance_from_mid = fabs(normalized_bin - 0.45f);
-                weight = 2.2f - (distance_from_mid * 2.0f);  // Max 2.2x boost at center
-            }
-
-            // Add extra low-frequency sensitivity
-            if (bar < 5) {
-                weight *= (1.8f - (bar * 0.15f));
-            }
-
-            total_energy += spectrum.db[bin] * weight;
+            total_energy += spectrum.db[bin];
             bin_count++;
         }
 
-        uint8_t avg_db = bin_count > 0 ? (total_energy / bin_count) : 0;
+        float avg_db = bin_count > 0 ? (total_energy / bin_count) : 0;
 
-        // Scale all bands to reasonable levels
-        float band_scale = 0.85f;
+        // Manually boost highs for better visual balance
+        float treble_boost = 1.0f;
+        if (bar == 10) treble_boost = 1.7f;     
+        else if (bar >= 9) treble_boost = 1.5f; 
+        else if (bar >= 7) treble_boost = 1.3f;
 
-        // Get the height in display units
-        int target_height = (avg_db * RENDER_HEIGHT * band_scale) / 255;
+        // Mid emphasis for a V-shape effect
+        float mid_boost = 1.0f;
+        if (bar == 4 || bar == 5 || bar == 6) mid_boost = 1.2f;
 
-        // Cap maximum height to prevent overshoot
+        float amplified_db = avg_db * treble_boost * mid_boost;
+
+        if (amplified_db > 255) amplified_db = 255;
+
+        float band_scale = 1.0f;
+        int target_height = (amplified_db * RENDER_HEIGHT * band_scale) / 255;
+
         if (target_height > RENDER_HEIGHT) {
             target_height = RENDER_HEIGHT;
         }
 
-        // Apply different speeds for rise and fall
-        float rise_speed = 0.7f;
-        float fall_speed = 0.12f;
+        // Adjusted to look nice to my eyes
+        float rise_speed = 0.8f;
+        float fall_speed = 1.0f;
 
         if (target_height > bar_heights[bar]) {
-            // Fast rise response
             bar_heights[bar] = bar_heights[bar] * (1.0f - rise_speed) + target_height * rise_speed;
         } else {
-            // Slow fall response
             bar_heights[bar] = bar_heights[bar] * (1.0f - fall_speed) + target_height * fall_speed;
         }
     }
