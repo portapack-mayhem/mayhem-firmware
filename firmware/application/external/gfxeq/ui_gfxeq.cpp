@@ -124,7 +124,7 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
         if (bar == 10)
             treble_boost = 1.7f;
         else if (bar >= 9)
-            treble_boost = 1.5f;
+            treble_boost = 1.3f;
         else if (bar >= 7)
             treble_boost = 1.3f;
 
