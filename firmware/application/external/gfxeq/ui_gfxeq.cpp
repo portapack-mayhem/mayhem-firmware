@@ -121,9 +121,12 @@ void gfxEQView::update_audio_spectrum(const AudioSpectrum& spectrum) {
 
         // Manually boost highs for better visual balance
         float treble_boost = 1.0f;
-        if (bar == 10) treble_boost = 1.7f;     
-        else if (bar >= 9) treble_boost = 1.5f; 
-        else if (bar >= 7) treble_boost = 1.3f;
+        if (bar == 10)
+            treble_boost = 1.7f;
+        else if (bar >= 9)
+            treble_boost = 1.5f;
+        else if (bar >= 7)
+            treble_boost = 1.3f;
 
         // Mid emphasis for a V-shape effect
         float mid_boost = 1.0f;
