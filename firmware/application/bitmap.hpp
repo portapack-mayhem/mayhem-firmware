@@ -6331,4 +6331,4 @@ static constexpr Bitmap bitmap_titlebar_image{
 
 } /* namespace ui */
 
-#endif/*__BITMAP_HPP__*/
+#endif /*__BITMAP_HPP__*/

@@ -104,6 +104,6 @@ for file in sorted(listdir(graphics_path)):
         count += 1
 
 f.write("} /* namespace ui */\n\n")
-f.write("#endif/*__BITMAP_HPP__*/\n")
+f.write("#endif /*__BITMAP_HPP__*/\n")
 
 print(("Converted " + str(count) + " files"))
