@@ -22,8 +22,11 @@
 
 namespace ui::external_app::gfxeq {
 
+<<<<<<< HEAD
 #include "external/ui_grapheq.hpp"
 
+=======
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
 class gfxEQView : public View {
    public:
     gfxEQView(NavigationView& nav);
@@ -34,17 +37,47 @@ class gfxEQView : public View {
 
     void focus() override;
     std::string title() const override { return "gfxEQ"; }
+<<<<<<< HEAD
 
     void on_freqchg(int64_t freq);
 
    private:
+=======
+    void on_show() override;
+    void on_hide() override;
+
+    void paint(Painter& painter) override;
+    void on_freqchg(int64_t freq);
+
+   private:
+    static constexpr ui::Dim header_height = 2 * 16;
+    static constexpr int SCREEN_WIDTH = 240;
+    static constexpr int SCREEN_HEIGHT = 320;
+    static constexpr int RENDER_HEIGHT = 288;
+    static constexpr int NUM_BARS = 14;
+    static constexpr int BAR_SPACING = 2;
+    static constexpr int BAR_WIDTH = (SCREEN_WIDTH - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
+    static constexpr int HORIZONTAL_OFFSET = 2;
+    static constexpr int SEGMENT_HEIGHT = 10;
+
+    static constexpr std::array<int, NUM_BARS + 1> FREQUENCY_BANDS = {
+        20, 40, 80, 160, 320, 640, 1000, 1600, 2500, 4000,
+        6000, 9000, 12000, 16000, 24000};
+
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
     struct ColorTheme {
         Color base_color;
         Color peak_color;
     };
 
     NavigationView& nav_;
+<<<<<<< HEAD
 
+=======
+    bool needs_background_redraw{false};
+    std::vector<int> bar_heights;
+    std::vector<int> prev_bar_heights;
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
     uint32_t current_theme{0};
     const std::array<ColorTheme, 20> themes{
         ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},
@@ -73,8 +106,12 @@ class gfxEQView : public View {
     LNAGainField field_lna{{15 * 8, 0 * 16}};
     VGAGainField field_vga{{18 * 8, 0 * 16}};
     Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
+<<<<<<< HEAD
     AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
     GraphEq gr{{2, UI_POS_DEFAULT_HEIGHT, UI_POS_MAXWIDTH - 4, UI_POS_HEIGHT_REMAINING(2)}, false};
+=======
+    AudioVolumeField field_volume{{28 * 8, 0 * 16}};
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
 
     rf::Frequency frequency_value{93100000};
 
@@ -86,13 +123,23 @@ class gfxEQView : public View {
         {{"theme", &current_theme},
          {"frequency", &frequency_value}}};
 
+<<<<<<< HEAD
+=======
+    void update_audio_spectrum(const AudioSpectrum& spectrum);
+    void render_equalizer(Painter& painter);
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
     void cycle_theme();
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
+<<<<<<< HEAD
             this->gr.update_audio_spectrum(*message.data);
+=======
+            this->update_audio_spectrum(*message.data);
+            this->set_dirty();
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
         }};
 
     MessageHandlerRegistration message_handler_freqchg{

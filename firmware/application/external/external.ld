@@ -177,7 +177,11 @@ MEMORY
 >>>>>>> 7754c0f3 (Externalize scanner (#2589))
 =======
     ram_external_app_level      (rwx) : org = 0xADE10000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 75c34747 (Externalize level (#2596))
+=======
+    ram_external_app_gfxeq      (rwx) : org = 0xADE20000, len = 32k
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
 }
 
 SECTIONS
@@ -474,4 +478,10 @@ SECTIONS
         KEEP(*(.external_app.app_level.application_information));
         *(*ui*external_app*level*);
     } > ram_external_app_level
+
+    .external_app_gfxeq : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_gfxeq.application_information));
+        *(*ui*external_app*gfxeq*);
+    } > ram_external_app_gfxeq
 }

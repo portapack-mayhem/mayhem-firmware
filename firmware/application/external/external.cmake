@@ -239,6 +239,10 @@ set(EXTCPPSRC
 	#level
 	external/level/main.cpp
 	external/level/ui_level.cpp
+
+	#gfxEQ
+	external/gfxeq/main.cpp
+	external/gfxeq/ui_gfxeq.cpp	
 )
 
 set(EXTAPPLIST
@@ -295,4 +299,5 @@ set(EXTAPPLIST
 	debug_pmem
 	scanner
 	level
+	gfxeq
 )

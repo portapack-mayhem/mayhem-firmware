@@ -29,8 +29,16 @@ __attribute__((section(".external_app.app_gfxeq.application_information"), used)
     ui::Color::green().v,
     app_location_t::RX,
     -1,
+<<<<<<< HEAD
     {'P', 'W', 'F', 'M'},
     0x00000000,
 };
 
 }  // namespace ui::external_app::gfxeq
+=======
+    {'P', 'N', 'F', 'M'},
+    0x00000000,
+};
+
+}  // namespace ui::external_app::gfxeq
+>>>>>>> 288f6bd5 (GFX EQ App (#2607))
