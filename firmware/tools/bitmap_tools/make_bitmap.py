@@ -98,7 +98,7 @@ f.write("/*\n"
 	"#include \"ui.hpp\"\n\n"
 	"namespace ui {\n\n")
 
-for file in listdir(graphics_path):
+for file in sorted(listdir(graphics_path)):
     if file.endswith(".png") and path.isfile(graphics_path + file):
         convert_png(graphics_path + file)
         count += 1
