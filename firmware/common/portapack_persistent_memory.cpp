@@ -137,9 +137,9 @@ struct ui_config2_t {
     bool button_repeat_delay : 1;
     bool button_repeat_speed : 1;
     bool button_long_press_delay : 1;
+    bool battery_charge_hint : 1;
 
     uint8_t theme_id;
-    uint8_t PLACEHOLDER_3;
 };
 static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
 
@@ -981,6 +981,9 @@ bool ui_button_repeat_speed() {
 bool ui_button_long_press_delay() {
     return data->ui_config2.button_long_press_delay;
 }
+bool ui_battery_charge_hint() {
+    return data->ui_config2.battery_charge_hint;
+}
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
@@ -1034,6 +1037,9 @@ void set_ui_button_repeat_speed(bool v) {
 }
 void set_ui_button_long_press_delay(bool v) {
     data->ui_config2.button_long_press_delay = v;
+}
+void set_ui_battery_charge_hint(bool v) {
+    data->ui_config2.battery_charge_hint = v;
 }
 
 /* Converter */
