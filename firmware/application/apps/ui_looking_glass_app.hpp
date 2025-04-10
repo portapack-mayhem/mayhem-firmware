@@ -35,7 +35,7 @@
 #include "ui_receiver.hpp"
 #include "string_format.hpp"
 #include "analog_audio_app.hpp"
-#include "spectrum_color_lut.hpp"
+#include "gradient.hpp"
 
 namespace ui {
 
@@ -74,6 +74,7 @@ class GlassView : public View {
 
    private:
     NavigationView& nav_;
+    Gradient gradient{};
     RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
     // Settings
     rf::Frequency f_min = 260 * MHZ_DIV;  // Default to 315/433 remote range.

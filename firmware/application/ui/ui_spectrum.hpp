@@ -24,6 +24,7 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
+#include "gradient.hpp"
 
 #include "event_m0.hpp"
 
@@ -111,6 +112,8 @@ class FrequencyScale : public Widget {
 
 class WaterfallWidget : public Widget {
    public:
+    Gradient gradient{};
+
     void on_show() override;
     void on_hide() override;
     void paint(Painter&) override {}
