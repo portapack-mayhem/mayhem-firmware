@@ -59,7 +59,8 @@ class FlexBitQueue {
 
 class FlexBitExtractor {
    public:
-    FlexBitExtractor(FlexBitQueue& bits) : bits_{bits} {}
+    FlexBitExtractor(FlexBitQueue& bits)
+        : bits_{bits} {}
     void extract_bits(const buffer_f32_t& audio);
     void configure(uint32_t sample_rate);
     void reset();
@@ -67,7 +68,7 @@ class FlexBitExtractor {
 
    private:
     static constexpr uint32_t sync1_pattern = 0xA6C6AAAA;
-    
+
     struct RateInfo {
         enum class State : uint8_t {
             WaitForSample,
@@ -93,7 +94,8 @@ class FlexCodewordExtractor {
    public:
     using batch_t = flex_batch_t;
     using batch_handler_t = std::function<void(FlexCodewordExtractor&)>;
-    FlexCodewordExtractor(FlexBitQueue& bits, batch_handler_t on_batch) : bits_{bits}, on_batch_{on_batch} {}
+    FlexCodewordExtractor(FlexBitQueue& bits, batch_handler_t on_batch)
+        : bits_{bits}, on_batch_{on_batch} {}
     void process_bits();
     void flush();
     void reset();
@@ -162,14 +164,14 @@ class FlexProcessor : public BasebandProcessor {
     FlexBitQueue bits{};
     FlexBitExtractor bit_extractor{bits};
     FlexCodewordExtractor word_extractor{bits, [this](FlexCodewordExtractor&) { send_packet(); }};
-    
+
     State state = State::Idle;
     uint32_t sync_buffer = 0;
     std::vector<uint32_t> frame_buffer;
     uint32_t current_word = 0;
     uint8_t bit_count = 0;
     uint16_t current_baud_rate = 1600;
-    
+
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 };

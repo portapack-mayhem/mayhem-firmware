@@ -75,7 +75,7 @@ void FlexRxView::on_packet(const FlexPacketMessage& message) {
     auto bitrate = packet.bitrate();
     std::string str_log = timestamp + " " + to_string_dec_uint(bitrate) + " ";
 
-    if (batch.size() < 8) return; // Ensure full block
+    if (batch.size() < 8) return;  // Ensure full block
 
     uint32_t frame_info = batch[0];
     size_t vsa = (frame_info >> 10) & 0x3F;
@@ -174,7 +174,7 @@ void FlexRxView::on_packet(const FlexPacketMessage& message) {
         console.writeln(display_text);
         if (logger && logging) logger->log_decoded(packet.timestamp(), str_log + display_text);
 
-        if (vector_type == 5) { // Alpha message
+        if (vector_type == 5) {  // Alpha message
             int w1 = (vector_data >> 7) & 0x7F;
             int w2 = ((vector_data >> 14) & 0x7F) + w1 - 1;
             if (w1 < 0 || w2 < 0 || static_cast<size_t>(w1) >= batch.size() || static_cast<size_t>(w2) >= batch.size()) continue;
@@ -233,20 +233,19 @@ void FlexRxView::on_stats(const FlexStatsMessage& stats) {
             str_console += "SYNC LOST";
         }
         console.writeln(str_console);
-        
+
         sync_status.set_color(stats.has_sync ? Color::green() : Color::red());
     }
-    
-    if (stats.baud_rate != last_baud_rate || 
+
+    if (stats.baud_rate != last_baud_rate ||
         stats.has_sync != last_has_sync ||
         stats.current_frames != last_frames ||
         stats.current_bits != last_bits) {
-        
         std::string debug_text = "BR:" + to_string_dec_uint(stats.baud_rate) +
-                                " Sync:" + (stats.has_sync ? "Y" : "N") +
-                                " Fr:" + to_string_dec_uint(stats.current_frames);
+                                 " Sync:" + (stats.has_sync ? "Y" : "N") +
+                                 " Fr:" + to_string_dec_uint(stats.current_frames);
         text_debug.set(debug_text);
-        
+
         last_baud_rate = stats.baud_rate;
         last_has_sync = stats.has_sync;
         last_frames = stats.current_frames;

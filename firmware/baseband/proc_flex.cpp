@@ -248,7 +248,7 @@ void FlexCodewordExtractor::handle_sync() {
 void FlexCodewordExtractor::save_current_codeword() {
     batch_[word_count_++] = data_;
     clear_data_bits();
-    
+
     if (word_count_ >= flex_batch_size) {
         handle_batch_complete();
     }
@@ -291,7 +291,7 @@ void FlexProcessor::execute(const buffer_c8_t& buffer) {
 
     for (size_t i = 0; i < audio.count; ++i) {
         float sample = audio.p[i];
-        
+
         sync_buffer64 = (sync_buffer64 << 2);
         if (sample >= 0.66f)
             sync_buffer64 |= 0x0;
@@ -340,9 +340,9 @@ void FlexProcessor::execute(const buffer_c8_t& buffer) {
                     block_buffer[word_count] |= 0x2;
                 else
                     block_buffer[word_count] |= 0x3;
-                
+
                 bit_count += 2;
-                
+
                 if (bit_count >= 32) {
                     word_count++;
                     bit_count = 0;
@@ -358,7 +358,7 @@ void FlexProcessor::execute(const buffer_c8_t& buffer) {
                         FlexPacketMessage message(packet);
                         shared_memory.application_queue.push(message);
                         word_count = 0;
-                        state = State::Idle; // Reset to find next sync
+                        state = State::Idle;  // Reset to find next sync
                     }
                 }
                 break;
@@ -408,7 +408,7 @@ void FlexProcessor::configure() {
     decim_0.configure(taps_200k_decim_0.taps);
     decim_1.configure(taps_16k0_decim_1.taps);
     channel_filter.configure(taps_16k0_channel.taps, 2);
-    
+
     demod.configure(demod_input_fs, 4800);
 
     audio_output.configure(false);
@@ -427,7 +427,7 @@ void FlexProcessor::reset() {
     frame_buffer.clear();
     current_word = 0;
     bit_count = 0;
-    
+
     bits.reset();
     bit_extractor.reset();
     word_extractor.reset();

@@ -51,7 +51,7 @@ class FlexRxView : public View {
     bool logging{false};
     std::string current_message{};
     uint32_t last_address{0};
-    
+
     uint16_t last_baud_rate{0};
     bool last_has_sync{false};
     uint8_t last_frames{0};
