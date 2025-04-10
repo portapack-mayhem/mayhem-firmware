@@ -441,6 +441,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PPO2 pocsag2)
 
+### FLEX RX
+
+set(MODE_CPPSRC
+	proc_flex.cpp
+)
+DeclareTargets(PFLX flex_rx)
+
 ### RDS
 
 set(MODE_CPPSRC

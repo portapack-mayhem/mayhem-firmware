@@ -130,6 +130,9 @@ class Message {
         WeFaxRxConfigure = 73,
         WeFaxRxStatusData = 74,
         WeFaxRxImageData = 75,
+        FlexConfigure = 76,
+        FlexPacket = 77,
+        FlexStats = 78,
 
         MAX
     };
@@ -140,6 +143,60 @@ class Message {
     }
 
     const ID id;
+};
+
+// FlexPacketFlag and FlexPacket definitions
+enum FlexPacketFlag : uint8_t {
+    FLEX_NORMAL = 0,
+    CRC_ERROR = 1,
+    SYNC_ERROR = 2
+};
+
+constexpr size_t flex_batch_size = 88;
+using flex_batch_t = std::array<uint32_t, flex_batch_size>;
+
+class FlexPacket {
+   public:
+    void set(const flex_batch_t& batch) { batch_ = batch; }
+    void set_flag(FlexPacketFlag flag) { flag_ = flag; }
+    void set_timestamp(Timestamp timestamp) { timestamp_ = timestamp; }
+    void set_bitrate(uint16_t bitrate) { bitrate_ = bitrate; }
+
+    const flex_batch_t& batch() const { return batch_; }
+    FlexPacketFlag flag() const { return flag_; }
+    Timestamp timestamp() const { return timestamp_; }
+    uint16_t bitrate() const { return bitrate_; }
+    uint32_t operator[](size_t index) const { return batch_[index]; }
+
+   private:
+    flex_batch_t batch_{};
+    FlexPacketFlag flag_ = FLEX_NORMAL;
+    Timestamp timestamp_{};
+    uint16_t bitrate_ = 0;
+};
+
+class FlexConfigureMessage : public Message {
+   public:
+    constexpr FlexConfigureMessage()
+        : Message{ID::FlexConfigure} {}
+    // Add configuration fields if needed in the future
+};
+
+class FlexPacketMessage : public Message {
+   public:
+    constexpr FlexPacketMessage(const FlexPacket& p)
+        : Message{ID::FlexPacket}, packet{p} {}
+    const FlexPacket& packet;
+};
+
+class FlexStatsMessage : public Message {
+   public:
+    constexpr FlexStatsMessage(uint32_t cb, uint8_t cf, bool hs, uint16_t br)
+        : Message{ID::FlexStats}, current_bits{cb}, current_frames{cf}, has_sync{hs}, baud_rate{br} {}
+    uint32_t current_bits;
+    uint8_t current_frames;
+    bool has_sync;
+    uint16_t baud_rate;
 };
 
 struct RSSIStatistics {

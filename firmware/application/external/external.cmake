@@ -207,6 +207,11 @@ set(EXTCPPSRC
 	#gfxEQ
 	external/gfxeq/main.cpp
 	external/gfxeq/ui_gfxeq.cpp	
+
+	#flex_RX
+	external/flex/main.cpp
+	external/flex/ui_flex_rx.cpp	
+
 )
 
 set(EXTAPPLIST
@@ -260,4 +265,5 @@ set(EXTAPPLIST
 	scanner
 	level
 	gfxeq
+	flex_rx
 )

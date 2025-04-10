@@ -280,6 +280,11 @@ void set_pocsag() {
     send_message(&message);
 }
 
+void set_flex() {
+    const FlexConfigureMessage message{};
+    send_message(&message);
+}
+
 void set_adsb() {
     const ADSBConfigureMessage message{};
     send_message(&message);
