@@ -24,7 +24,7 @@
 #include "receiver_model.hpp"
 #include "recent_entries.hpp"
 #include "radio_state.hpp"
-#include "spectrum_color_lut.hpp"
+#include "gradient.hpp"
 #include "ui_receiver.hpp"
 
 namespace ui {
@@ -88,6 +88,7 @@ class SearchView : public View {
 
    private:
     NavigationView& nav_;
+    Gradient gradient{};
     RxRadioState radio_state_{
         100'000'000 /* frequency */,
         2500000 /* bandwidth */,

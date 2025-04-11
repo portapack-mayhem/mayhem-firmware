@@ -53,5 +53,6 @@ extern const std::filesystem::path whipcalc_dir;
 extern const std::filesystem::path ook_editor_dir;
 extern const std::filesystem::path hopper_dir;
 extern const std::filesystem::path subghz_dir;
+extern const std::filesystem::path waterfalls_dir;
 
 #endif /* __FILE_PATH_H__ */
