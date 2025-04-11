@@ -1,14 +1,8 @@
-# 0% black
-0,0,0,0
-
 # dark red
 86,0,0,255
 
-#transparent purple
+# bright purple
 171,0,255,0
 
-#transparent red
+# pure yellow
 255,255,0,0
-
-# 100% white
-255,255,255,255
