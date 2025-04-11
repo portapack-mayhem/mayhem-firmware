@@ -117,10 +117,10 @@ const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
     {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
+    {nullptr, "Tranceiver", HOME, Color::cyan(), &bitmap_icon_tranceivers, new ViewFactory<TranceiversMenuView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
     {"recon", "Recon", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
-    {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
     {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
@@ -147,6 +147,8 @@ const NavigationView::AppList NavigationView::appList = {
     {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
+    /* TRX ********************************************************************/
+    {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     /* UTILITIES *************************************************************/
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
@@ -839,6 +841,20 @@ void TransmittersMenuView::on_populate() {
     }
     add_apps(nav_, *this, TX);
     add_external_items(nav_, app_location_t::TX, *this, return_icon ? 1 : 0);
+}
+
+/* TranceiversMenuView **************************************************/
+
+TranceiversMenuView::TranceiversMenuView(NavigationView& nav)
+    : nav_(nav) {}
+
+void TranceiversMenuView::on_populate() {
+    bool return_icon = pmem::show_gui_return_icon();
+    if (return_icon) {
+        add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+    }
+    add_apps(nav_, *this, TRX);
+    add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
 }
 
 /* UtilitiesMenuView *****************************************************/
