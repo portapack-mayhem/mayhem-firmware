@@ -58,9 +58,12 @@ extern const std::filesystem::path ook_editor_dir;
 extern const std::filesystem::path hopper_dir;
 extern const std::filesystem::path subghz_dir;
 extern const std::filesystem::path waterfalls_dir;
+<<<<<<< HEAD
 extern const std::filesystem::path macaddress_dir;
 =======
 extern const std::filesystem::path subghz_dir;
 >>>>>>> b2bb37af (Flipper tx: use file_path, example file (#2496))
+=======
+>>>>>>> f941ae87 (Custom waterfall colors (#2617))
 
 #endif /* __FILE_PATH_H__ */

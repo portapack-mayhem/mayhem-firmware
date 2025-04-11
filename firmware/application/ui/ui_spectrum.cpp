@@ -320,6 +320,7 @@ WaterfallView::WaterfallView(const bool cursor) {
         if (on_select) on_select(offset);
     };
 
+<<<<<<< HEAD
     waterfall_widget.on_touch_select = [this](int32_t x, int32_t y) {
         if (y > screen_height - screen_height * 0.1) return;  // prevent ghost touch
 
@@ -332,6 +333,8 @@ WaterfallView::WaterfallView(const bool cursor) {
         }
     };
 
+=======
+>>>>>>> f941ae87 (Custom waterfall colors (#2617))
     if (!waterfall_widget.gradient.load_file(default_gradient_file)) {
         waterfall_widget.gradient.set_default();
     }

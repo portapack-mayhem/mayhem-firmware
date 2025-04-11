@@ -364,6 +364,10 @@ GlassView::GlassView(
         gradient.set_default();
     }
 
+    if (!gradient.load_file(default_gradient_file)) {
+        gradient.set_default();
+    }
+
     add_children({&labels,
                   &field_frequency_min,
                   &field_frequency_max,

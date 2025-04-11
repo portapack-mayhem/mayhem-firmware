@@ -56,7 +56,10 @@ const std::filesystem::path ook_editor_dir = u"OOKFILES";
 const std::filesystem::path hopper_dir = u"HOPPER";
 const std::filesystem::path subghz_dir = u"SUBGHZ";
 const std::filesystem::path waterfalls_dir = u"WATERFALLS";
+<<<<<<< HEAD
 const std::filesystem::path macaddress_dir = u"MACADDRESS";
 =======
 const std::filesystem::path subghz_dir = u"SUBGHZ";
 >>>>>>> b2bb37af (Flipper tx: use file_path, example file (#2496))
+=======
+>>>>>>> f941ae87 (Custom waterfall colors (#2617))

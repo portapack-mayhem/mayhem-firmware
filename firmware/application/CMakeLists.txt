@@ -192,9 +192,13 @@ set(CPPSRC
 	core_control.cpp
 	database.cpp
 <<<<<<< HEAD
+<<<<<<< HEAD
 	gradient.cpp
 =======
 >>>>>>> 22d6e34c (remove dead code (#2593))
+=======
+	gradient.cpp
+>>>>>>> f941ae87 (Custom waterfall colors (#2617))
 	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
