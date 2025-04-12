@@ -114,7 +114,7 @@ class FrequencyScale : public Widget {
 
 class WaterfallWidget : public Widget {
    public:
-    std::function<void(int32_t offset)> on_touch_select{};
+    std::function<void(int32_t offset, int32_t y)> on_touch_select{};
 
     Gradient gradient{};
 

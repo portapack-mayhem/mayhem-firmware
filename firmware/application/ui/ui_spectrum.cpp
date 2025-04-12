@@ -306,7 +306,7 @@ void WaterfallWidget::on_channel_spectrum(
 bool WaterfallWidget::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         if (on_touch_select) {
-            on_touch_select(event.point.x());
+            on_touch_select(event.point.x(), event.point.y());
         }
     }
     return true;
@@ -331,7 +331,11 @@ WaterfallView::WaterfallView(const bool cursor) {
         if (on_select) on_select(offset);
     };
 
-    waterfall_widget.on_touch_select = [this](int32_t x) {
+    waterfall_widget.on_touch_select = [this](int32_t x, int32_t y) {
+        if (y > screen_height - screen_height * 0.1) return;  // prevent ghost touch
+
+        frequency_scale.focus();  // focus on frequency scale to show cursor
+
         if (sampling_rate) {
             // screen x to frequency scale x, NB we need two widgets align
             int32_t cursor_position = x - (screen_width / 2);
