@@ -419,6 +419,17 @@ void FileManBaseView::reload_current(bool reset_pagination) {
     refresh_list();
 }
 
+void FileManBaseView::copy_waterfall(std::filesystem::path path) {
+    nav_.push<ModalMessageView>(
+        "Install", " Use this gradient file\n for all waterfalls?", YESNO,
+        [this, path](bool choice) {
+            if (choice) {
+                delete_file(default_gradient_file);
+                copy_file(path, default_gradient_file);
+            }
+        });
+}
+
 const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
     const fs::path& ext) const {
     size_t index = 0;
@@ -685,7 +696,11 @@ bool FileManagerView::handle_file_open() {
     auto ext = path.extension();
 
     if (path_iequal(txt_ext, ext)) {
-        nav_.push<TextEditorView>(path);
+        if (path_iequal(current_path, u"/" + waterfalls_dir)) {
+            copy_waterfall(path);
+        } else {
+            nav_.push<TextEditorView>(path);
+        }
         return true;
     } else if (is_cxx_capture_file(path) || path_iequal(ppl_ext, ext)) {
         // TODO: Enough memory to push?

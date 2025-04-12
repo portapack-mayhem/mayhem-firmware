@@ -21,8 +21,6 @@
 
 #include "ui_spectrum.hpp"
 
-#include "spectrum_color_lut.hpp"
-
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -289,12 +287,12 @@ void WaterfallWidget::on_channel_spectrum(
 
     std::array<Color, 240> pixel_row;
     for (size_t i = 0; i < 120; i++) {
-        const auto pixel_color = spectrum_rgb3_lut[spectrum.db[256 - 120 + i]];
+        const auto pixel_color = gradient.lut[spectrum.db[256 - 120 + i]];
         pixel_row[i] = pixel_color;
     }
 
     for (size_t i = 120; i < 240; i++) {
-        const auto pixel_color = spectrum_rgb3_lut[spectrum.db[i - 120]];
+        const auto pixel_color = gradient.lut[spectrum.db[i - 120]];
         pixel_row[i] = pixel_color;
     }
 
@@ -333,7 +331,6 @@ WaterfallView::WaterfallView(const bool cursor) {
         if (on_select) on_select(offset);
     };
 
-    // Add touch event handler for waterfall widget
     waterfall_widget.on_touch_select = [this](int32_t x) {
         if (sampling_rate) {
             // screen x to frequency scale x, NB we need two widgets aligh
@@ -341,6 +338,10 @@ WaterfallView::WaterfallView(const bool cursor) {
             frequency_scale.set_cursor_position(cursor_position);
         }
     };
+
+    if (!waterfall_widget.gradient.load_file(default_gradient_file)) {
+        waterfall_widget.gradient.set_default();
+    }
 }
 
 void WaterfallView::on_show() {

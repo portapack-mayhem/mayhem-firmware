@@ -22,7 +22,6 @@
  */
 
 #include "ble_rx_app.hpp"
-#include "ble_rx_app.hpp"
 #include "ui_modemsetup.hpp"
 
 #include "modems.hpp"
