@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft Mr. Robot 2025
  *
  * This file is part of PortaPack.
  *
