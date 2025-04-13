@@ -70,9 +70,6 @@ class WaterfallDesignerView : public View {
     };
 
 
-    // Channel channel{
-    //     {24 * 8, 5, 6 * 8, 4}};
-
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
