@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_waterfall_designer.application_informa
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Wtf Design",
+    /*.app_name = */ "Wt Design",
     /*.bitmap_data = */ {
         0x00,
         0x00,

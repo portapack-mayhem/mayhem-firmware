@@ -43,8 +43,6 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         &field_lna,
         &field_vga,
         &option_bandwidth,
-        &option_format,
-        &check_trim,
         &record_view,
         &waterfall,
     });
@@ -55,17 +53,6 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         this->field_frequency.set_step(v);
     };
 
-    option_format.set_selected_index(file_format);
-    option_format.on_change = [this](size_t, uint32_t file_type) {
-        file_format = file_type;
-        record_view.set_file_type((RecordView::FileType)file_type);
-    };
-
-    check_trim.set_value(trim);
-    check_trim.on_select = [this](Checkbox&, bool v) {
-        trim = v;
-        record_view.set_auto_trim(v);
-    };
 
     freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     option_bandwidth.on_change = [this](size_t, uint32_t new_capture_rate) {
@@ -89,13 +76,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         auto anti_alias_filter_bandwidth = filter_bandwidth_for_sampling_rate(actual_sample_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_filter_bandwidth);
 
-        // Automatically switch default capture format to C8 when bandwidth setting is increased to >=1.5MHz anb back to C16 for <=1,25Mhz
-        if ((new_capture_rate >= 1500000) && (capture_rate < 1500000)) {
-            option_format.set_selected_index(1);  // Default C8 format for REC, 1500K ... 5500k
-        }
-        if ((new_capture_rate <= 1250000) && (capture_rate > 1250000)) {
-            option_format.set_selected_index(0);  // Default C16 format for REC , 12k5 ... 1250K
-        }
+
         capture_rate = new_capture_rate;
 
         waterfall.start();
