@@ -47,12 +47,10 @@ class WaterfallDesignerView : public View {
     std::string title() const override { return "Wtf Design"; };
 
    private:
-    static constexpr ui::Dim header_height = 3 * 16;
-
     uint32_t capture_rate{500000};
     uint32_t file_format{0};
     bool trim{false};
-
+    std::filesystem::path current_profile_path = "";
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
@@ -68,7 +66,6 @@ class WaterfallDesignerView : public View {
         {{0 * 8, 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 1 * 16}, "Format:", Theme::getInstance()->fg_light->foreground},
     };
-
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
@@ -87,20 +84,81 @@ class WaterfallDesignerView : public View {
         {21 * 8, 0 * 16}};
 
     OptionsField option_bandwidth{
-        {5 * 8, 1 * 16},
+        {24 * 8, 0 * 16},
         5,
         {}};
 
+    MenuView menu_view{};
 
-    RecordView record_view{ // we still need it cuz it make waterfall correct
-        {screen_width, screen_height, 30 * 8, 1 * 16},
-        u"BBD_????.*",
-        captures_dir,
-        RecordView::FileType::RawS16,
-        16384,
-        3};
+    NewButton button_new{
+        {0 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_file,
+        Theme::getInstance()->fg_blue->foreground};
 
-    spectrum::WaterfallView waterfall{};
+    NewButton button_open{
+        {4 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_load,
+        Theme::getInstance()->fg_blue->foreground};
+
+    NewButton button_save{
+        {8 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_save,
+        Theme::getInstance()->fg_blue->foreground};
+
+    NewButton button_add_level{
+        {16 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_add,
+        Theme::getInstance()->fg_blue->foreground};
+
+    NewButton button_remove_level{
+        {20 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_delete,
+        Theme::getInstance()->fg_blue->foreground};
+
+    NewButton button_apply_setting{
+        {screen_width - 4 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_replay,
+        Theme::getInstance()->fg_blue->foreground};
+
+    void backup_current_profile();
+    void restore_current_profile();
+    void on_open_profile();
+    void on_profile_changed(std::filesystem::path new_profile_path);
+    void on_save_profile();
+    void on_add_level();
+    void on_remove_level();
+
+    void refresh_menu_view();
+
+    void on_apply_current_to_wtf(); // will restore if didn't apple, when distruct
+    void on_apply_setting(); // apply set
+
+    bool if_apply_setting{false};
+    /*NB:
+    this works as:
+    each time you change color, it apply as file realtime
+    however if you don't push the apply (play) btn, it would resotore in distructor, 
+    if you push apply, it would apply and exit*/
+
+    std::vector<std::string> profile_levels{"0,0,0,0", "86,0,0,255", "171,0,255,0", "255,255,0,0", "255,255,255,255"};
+
+    static constexpr ui::Dim header_height = 10 * 16;
+
+    RecordView record_view{// we still need it cuz it make waterfall correct
+                           {screen_width, screen_height, 30 * 8, 1 * 16},
+                           u"BBD_????.*",
+                           captures_dir,
+                           RecordView::FileType::RawS16,
+                           16384,
+                           3};
+
+    std::unique_ptr<spectrum::WaterfallView> waterfall{};
 
     MessageHandlerRegistration message_handler_freqchg{
         Message::ID::FreqChangeCommand,

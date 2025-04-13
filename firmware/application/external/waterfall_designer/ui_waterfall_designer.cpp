@@ -24,6 +24,9 @@
 #include "baseband_api.hpp"
 #include "portapack.hpp"
 #include "ui_freqman.hpp"
+#include "file_path.hpp"
+#include "ui_fileman.hpp"
+#include "file_reader.hpp"
 
 using namespace portapack;
 
@@ -42,15 +45,25 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         &field_vga,
         &option_bandwidth,
         &record_view,
-        &waterfall,
+        &menu_view,
+        &button_new,
+        &button_open,
+        &button_save,
+        &button_add_level,
+        &button_remove_level,
+        &button_apply_setting,
     });
+
+    waterfall = std::make_unique<spectrum::WaterfallView>();
+    add_child(waterfall.get());
+
+    menu_view.set_parent_rect({0, 1 * 16, screen_width, 7 * 16});
 
     field_frequency_step.set_by_value(receiver_model.frequency_step());
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
         receiver_model.set_frequency_step(v);
         this->field_frequency.set_step(v);
     };
-
 
     freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     option_bandwidth.on_change = [this](size_t, uint32_t new_capture_rate) {
@@ -61,7 +74,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
         /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card. */
 
-        waterfall.stop();
+        waterfall->stop();
 
         // record_view determines the correct oversampling to apply and returns the actual sample rate.
         // NB: record_view is what actually updates proc_capture baseband settings.
@@ -74,10 +87,37 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         auto anti_alias_filter_bandwidth = filter_bandwidth_for_sampling_rate(actual_sample_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_filter_bandwidth);
 
-
         capture_rate = new_capture_rate;
 
-        waterfall.start();
+        waterfall->start();
+    };
+
+    button_new.on_select = [this]() {
+        profile_levels.clear();
+        current_profile_path = "";
+        refresh_menu_view();
+    };
+
+    button_open.on_select = [this]() {
+        on_open_profile();
+    };
+
+    button_save.on_select = [this]() {
+        on_save_profile();
+    };
+
+    button_add_level.on_select = [this]() {
+        on_add_level();
+    };
+
+    button_remove_level.on_select = [this]() {
+        on_remove_level();
+    };
+
+    button_apply_setting.on_select = [this]() {
+        if_apply_setting = true;
+        on_apply_current_to_wtf();
+        nav_.pop();
     };
 
     receiver_model.enable();
@@ -86,6 +126,8 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
     };
+
+    refresh_menu_view();
 }
 
 WaterfallDesignerView::WaterfallDesignerView(
@@ -97,6 +139,7 @@ WaterfallDesignerView::WaterfallDesignerView(
 }
 
 WaterfallDesignerView::~WaterfallDesignerView() {
+    if(!if_apply_setting) restore_current_profile();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -105,15 +148,175 @@ void WaterfallDesignerView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
     ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
-    waterfall.set_parent_rect(waterfall_rect);
+    waterfall->set_parent_rect(waterfall_rect);
 }
 
 void WaterfallDesignerView::focus() {
-    record_view.focus();
+    button_open.focus();
 }
 
 void WaterfallDesignerView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
 }
+
+void WaterfallDesignerView::on_open_profile() {
+    auto open_view = nav_.push<FileLoadView>(".txt");
+    open_view->push_dir(waterfalls_dir);
+    open_view->on_changed = [this](std::filesystem::path new_file_path) {
+        on_profile_changed(new_file_path);
+    };
+}
+
+void WaterfallDesignerView::on_profile_changed(std::filesystem::path new_profile_path) {
+    current_profile_path = new_profile_path;
+    profile_levels.clear();
+
+    File playlist_file;
+    auto error = playlist_file.open(new_profile_path.string());
+
+    if (error) return;
+
+    menu_view.clear();
+    auto reader = FileLineReader(playlist_file);
+
+    for (const auto& line : reader) {
+        profile_levels.push_back(line);
+    }
+
+    for (auto& line : profile_levels) {
+        // remove empty lines
+        if (line == "\n" || line == "\r\n" || line == "\r") {
+            profile_levels.erase(std::remove(profile_levels.begin(), profile_levels.end(), line), profile_levels.end());
+        }
+
+        // remove line end \n etc
+        if (line.length() > 0 && (line[line.length() - 1] == '\n' || line[line.length() - 1] == '\r')) {
+            line = line.substr(0, line.length() - 1);
+        }
+    }
+
+    refresh_menu_view();
+}
+
+void WaterfallDesignerView::refresh_menu_view() {
+    menu_view.clear();
+
+    for (const auto& line : profile_levels) {
+        if (line.length() == 0 || line[0] == '#') {
+            menu_view.add_item({line,
+                                ui::Color::grey(),
+                                &bitmap_icon_notepad,
+                                [this](KeyEvent) {
+                                    button_add_level.focus();
+                                }});
+        } else {
+            // index,R,G,B
+            size_t pos = 0;
+            size_t next_pos = 0;
+
+            // pass index
+            next_pos = line.find(',', pos);
+            if (next_pos == std::string::npos) continue;
+            pos = next_pos + 1;
+
+            // r
+            next_pos = line.find(',', pos);
+            if (next_pos == std::string::npos) continue;
+            uint8_t r = static_cast<uint8_t>(std::stoi(line.substr(pos, next_pos - pos)));
+            pos = next_pos + 1;
+
+            // g
+            next_pos = line.find(',', pos);
+            if (next_pos == std::string::npos) continue;
+            uint8_t g = static_cast<uint8_t>(std::stoi(line.substr(pos, next_pos - pos)));
+            pos = next_pos + 1;
+
+            // b
+            uint8_t b = static_cast<uint8_t>(std::stoi(line.substr(pos)));
+
+            ui::Color color = ui::Color(r, g, b);
+            menu_view.add_item({line,
+                                color,
+                                &bitmap_icon_cwgen,
+                                [this](KeyEvent) {
+                                    button_remove_level.focus();
+                                }});
+        }
+    }
+    set_dirty();
+}
+
+void WaterfallDesignerView::on_apply_current_to_wtf() {
+    std::filesystem::path current_path = "waterfall.txt";
+    copy_file(current_profile_path, current_path);
+
+    remove_child(waterfall.get());
+    waterfall.reset();
+    waterfall = std::make_unique<spectrum::WaterfallView>();
+    add_child(waterfall.get());
+    
+    ui::Rect waterfall_rect{0, header_height, screen_rect().width(), screen_rect().height() - header_height};
+    waterfall->set_parent_rect(waterfall_rect);
+    
+    set_dirty();
+}
+
+void WaterfallDesignerView::on_save_profile() {
+    if (current_profile_path.empty()) {
+        nav_.display_modal("Err", "No profile file loaded");
+        return;
+    } else if (profile_levels.empty()) {
+        nav_.display_modal("Err", "List is empty");
+        return;
+    }
+
+    File profile_file;
+    auto error = profile_file.open(current_profile_path.string(), false, false);
+
+    if (error) {
+        nav_.display_modal("Err", "open err");
+        return;
+    }
+
+    // clear file
+    profile_file.seek(0);
+    profile_file.truncate();
+
+    // write new data
+    for (const auto& entry : profile_levels) {
+        profile_file.write_line(entry);
+    }
+
+    nav_.display_modal("Save", "Saved profile\n" + current_profile_path.string());
+}
+
+void WaterfallDesignerView::on_add_level() {
+    // new view to let user add
+}
+
+void WaterfallDesignerView::on_remove_level() {
+    // remove entrance from vec
+    profile_levels.erase(profile_levels.begin() + menu_view.highlighted_index());
+    refresh_menu_view();
+}
+
+void WaterfallDesignerView::backup_current_profile() {
+    std::filesystem::path curren_wtf_path = "waterfall.txt";
+    std::filesystem::path backup_path = waterfalls_dir / "wtf_des_bk.bk";
+    copy_file(curren_wtf_path, backup_path);
+}
+
+void WaterfallDesignerView::restore_current_profile() {
+    std::filesystem::path backup_path = waterfalls_dir / "wtf_des_bk.bk";
+    std::filesystem::path put_back_path = "waterfall.txt";
+    copy_file(backup_path, put_back_path);
+    delete_file(backup_path);
+}
+
+void WaterfallDesignerView::on_apply_setting() {
+
+}
+
+
 
 } /* namespace ui::external_app::waterfall_designer */
