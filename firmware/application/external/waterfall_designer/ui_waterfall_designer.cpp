@@ -35,8 +35,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
 
     add_children({
         &labels,
-        &rssi,
-        &channel,
+        // &channel,
         &field_frequency,
         &field_frequency_step,
         &field_rf_amp,

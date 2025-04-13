@@ -69,11 +69,9 @@ class WaterfallDesignerView : public View {
         {{11 * 8, 1 * 16}, "Format:", Theme::getInstance()->fg_light->foreground},
     };
 
-    RSSI rssi{
-        {24 * 8, 0, 6 * 8, 4}};
 
-    Channel channel{
-        {24 * 8, 5, 6 * 8, 4}};
+    // Channel channel{
+    //     {24 * 8, 5, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
