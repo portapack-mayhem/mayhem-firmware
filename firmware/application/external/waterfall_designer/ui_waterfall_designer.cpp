@@ -51,6 +51,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         &button_save,
         &button_add_level,
         &button_remove_level,
+        &button_edit_color,
         &button_apply_setting,
     });
 
@@ -112,6 +113,10 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
 
     button_remove_level.on_select = [this]() {
         on_remove_level();
+    };
+
+    button_edit_color.on_select = [this]() {
+        on_edit_color();
     };
 
     button_apply_setting.on_select = [this]() {
@@ -300,6 +305,16 @@ void WaterfallDesignerView::on_remove_level() {
     refresh_menu_view();
 }
 
+void WaterfallDesignerView::on_edit_color() {
+    if (menu_view.highlighted_index() >= profile_levels.size()) return;
+    
+    auto color_picker_view = nav_.push<WaterfallDesignerColorPickerView>(profile_levels[menu_view.highlighted_index()]);
+    color_picker_view->on_save = [this](std::string new_color) {
+        profile_levels[menu_view.highlighted_index()] = new_color;
+        refresh_menu_view();
+    };
+}
+
 void WaterfallDesignerView::backup_current_profile() {
     std::filesystem::path curren_wtf_path = "waterfall.txt";
     std::filesystem::path backup_path = waterfalls_dir / "wtf_des_bk.bk";
@@ -317,6 +332,96 @@ void WaterfallDesignerView::on_apply_setting() {
 
 }
 
+WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationView& nav, std::string color_str)
+    : nav_{nav},
+      color_str_{color_str} {
+    add_children({&labels,
+                  &field_red,
+                  &field_green,
+                  &field_blue,
+                  &button_save});
 
+    size_t pos = 0;
+    size_t next_pos = 0;
+
+    // index
+    next_pos = color_str.find(',', pos);
+    if (next_pos != std::string::npos) {
+        pos = next_pos + 1;
+    }
+
+    // r
+    next_pos = color_str.find(',', pos);
+    if (next_pos != std::string::npos) {
+        red_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos, next_pos - pos)));
+        pos = next_pos + 1;
+    }
+
+    // g
+    next_pos = color_str.find(',', pos);
+    if (next_pos != std::string::npos) {
+        green_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos, next_pos - pos)));
+        pos = next_pos + 1;
+    }
+
+    // b
+    blue_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos)));
+
+    field_red.set_value(red_);
+    field_green.set_value(green_);
+    field_blue.set_value(blue_);
+
+    // cb
+    field_red.on_change = [this](int32_t) {
+        update_color();
+    };
+
+    field_green.on_change = [this](int32_t) {
+        update_color();
+    };
+
+    field_blue.on_change = [this](int32_t) {
+        update_color();
+    };
+
+    button_save.on_select = [this](Button&) {
+        if (on_save) on_save(build_color_str());
+        nav_.pop();
+    };
+
+    update_color();
+}
+
+void WaterfallDesignerColorPickerView::focus() {
+    button_save.focus();
+}
+
+void WaterfallDesignerColorPickerView::update_color() {
+    red_ = static_cast<uint8_t>(field_red.value());
+    green_ = static_cast<uint8_t>(field_green.value());
+    blue_ = static_cast<uint8_t>(field_blue.value());
+
+    const Rect preview_rect{screen_width - 48, 1 * 16, 40, 40};
+    
+
+    painter.fill_rectangle(
+        {preview_rect.left() , preview_rect.top() , preview_rect.width() , preview_rect.height() },
+        ui::Color(red_, green_, blue_));
+}
+
+void WaterfallDesignerColorPickerView::paint(Painter& painter) {
+
+}
+
+std::string WaterfallDesignerColorPickerView::build_color_str() {
+    size_t index_pos = color_str_.find(',');
+    if (index_pos != std::string::npos) {
+        return color_str_.substr(0, index_pos + 1) + 
+               std::to_string(red_) + "," +
+               std::to_string(green_) + "," +
+               std::to_string(blue_);
+    }
+    return "0," + std::to_string(red_) + "," + std::to_string(green_) + "," + std::to_string(blue_);
+}
 
 } /* namespace ui::external_app::waterfall_designer */

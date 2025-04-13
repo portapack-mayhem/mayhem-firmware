@@ -35,6 +35,64 @@
 
 namespace ui::external_app::waterfall_designer {
 
+enum class ColorComponent {
+    RED,
+    GREEN,
+    BLUE
+};
+
+class WaterfallDesignerColorPickerView : public View {
+   public:
+    std::function<void(std::string)> on_save{};
+
+    WaterfallDesignerColorPickerView(NavigationView& nav, std::string color_str);
+
+    std::string title() const override { return "Color Picker"; };
+    void focus() override;
+    void paint(Painter& painter) override;
+
+   private:
+    NavigationView& nav_;
+    std::string color_str_;
+    uint8_t red_{0};
+    uint8_t green_{0};
+    uint8_t blue_{0};
+
+    void update_color();
+    std::string build_color_str();
+    Painter painter;
+
+    Labels labels{
+        {{0 * 8, 0 * 16}, "Red", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Green", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Blue", Theme::getInstance()->fg_light->foreground}};
+
+    NumberField field_red{
+        {0 * 8, 1 * 16},
+        3,
+        {0, 255},
+        1,
+        ' '};
+
+    NumberField field_green{
+        {0 * 8, 3 * 16},
+        3,
+        {0, 255},
+        1,
+        ' '};
+
+    NumberField field_blue{
+        {0 * 8, 5 * 16},
+        3,
+        {0, 255},
+        1,
+        ' '};
+
+    Button button_save{
+        {0, 7 * 16, screen_width, 2 * 16},
+        "Save"};
+};
+
 class WaterfallDesignerView : public View {
    public:
     WaterfallDesignerView(NavigationView& nav);
@@ -109,19 +167,25 @@ class WaterfallDesignerView : public View {
         Theme::getInstance()->fg_blue->foreground};
 
     NewButton button_add_level{
-        {16 * 8, 8 * 16, 4 * 8, 32},
+        {12 * 8, 8 * 16, 4 * 8, 32},
         {},
         &bitmap_icon_add,
         Theme::getInstance()->fg_blue->foreground};
 
     NewButton button_remove_level{
-        {20 * 8, 8 * 16, 4 * 8, 32},
+        {16 * 8, 8 * 16, 4 * 8, 32},
         {},
         &bitmap_icon_delete,
         Theme::getInstance()->fg_blue->foreground};
 
+    NewButton button_edit_color{
+        {20 * 8, 8 * 16, 4 * 8, 32},
+        {},
+        &bitmap_icon_paint,
+        Theme::getInstance()->fg_blue->foreground};
+
     NewButton button_apply_setting{
-        {screen_width - 4 * 8, 8 * 16, 4 * 8, 32},
+        {24 * 8, 8 * 16, 4 * 8, 32},
         {},
         &bitmap_icon_replay,
         Theme::getInstance()->fg_blue->foreground};
@@ -133,17 +197,18 @@ class WaterfallDesignerView : public View {
     void on_save_profile();
     void on_add_level();
     void on_remove_level();
+    void on_edit_color();
 
     void refresh_menu_view();
 
-    void on_apply_current_to_wtf(); // will restore if didn't apple, when distruct
-    void on_apply_setting(); // apply set
+    void on_apply_current_to_wtf();  // will restore if didn't apple, when distruct
+    void on_apply_setting();         // apply set
 
     bool if_apply_setting{false};
     /*NB:
     this works as:
     each time you change color, it apply as file realtime
-    however if you don't push the apply (play) btn, it would resotore in distructor, 
+    however if you don't push the apply (play) btn, it would resotore in distructor,
     if you push apply, it would apply and exit*/
 
     std::vector<std::string> profile_levels{"0,0,0,0", "86,0,0,255", "171,0,255,0", "255,255,0,0", "255,255,255,255"};
