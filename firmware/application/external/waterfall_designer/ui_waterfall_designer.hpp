@@ -97,8 +97,8 @@ class WaterfallDesignerView : public View {
         {}};
 
 
-    RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+    RecordView record_view{ // we still need it cuz it make waterfall correct
+        {screen_width, screen_height, 30 * 8, 1 * 16},
         u"BBD_????.*",
         captures_dir,
         RecordView::FileType::RawS16,
