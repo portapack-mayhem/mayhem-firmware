@@ -201,6 +201,7 @@ void WaterfallDesignerView::on_profile_changed(std::filesystem::path new_profile
     }
 
     refresh_menu_view();
+    on_apply_current_to_wtf();
 }
 
 void WaterfallDesignerView::refresh_menu_view() {
@@ -312,6 +313,7 @@ void WaterfallDesignerView::on_edit_color() {
     color_picker_view->on_save = [this](std::string new_color) {
         profile_levels[menu_view.highlighted_index()] = new_color;
         refresh_menu_view();
+        on_apply_current_to_wtf();
     };
 }
 
