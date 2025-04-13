@@ -54,42 +54,64 @@ class WaterfallDesignerColorPickerView : public View {
    private:
     NavigationView& nav_;
     std::string color_str_;
+    uint8_t index_{0};
     uint8_t red_{0};
     uint8_t green_{0};
     uint8_t blue_{0};
 
-    void update_color();
+    void update_color_index();
     std::string build_color_str();
-    Painter painter;
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Red", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Green", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Blue", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, 0 * 16}, "Index", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Red", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Green", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Blue", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Step", Theme::getInstance()->fg_light->foreground}};
 
-    NumberField field_red{
+    NumberField field_index{
         {0 * 8, 1 * 16},
         3,
         {0, 255},
         1,
         ' '};
 
-    NumberField field_green{
+    NumberField field_red{
         {0 * 8, 3 * 16},
         3,
         {0, 255},
         1,
         ' '};
 
-    NumberField field_blue{
+    NumberField field_green{
         {0 * 8, 5 * 16},
         3,
         {0, 255},
         1,
         ' '};
 
+    NumberField field_blue{
+        {0 * 8, 7 * 16},
+        3,
+        {0, 255},
+        1,
+        ' '};
+
+    NumberField field_step{
+        {0 * 8, 9 * 16},
+        3,
+        {0, 255},
+        1,
+        ' '};
+
+    ProgressBar progressbar{
+        {0 * 8,
+         screen_height - 4 * 16 - 2 * 16 - 1 * 16,
+         screen_width,
+         2 * 16}};
+
     Button button_save{
-        {0, 7 * 16, screen_width, 2 * 16},
+        {0, screen_height - 4 * 16, screen_width, 4 * 16},
         "Save"};
 };
 
@@ -181,7 +203,7 @@ class WaterfallDesignerView : public View {
     NewButton button_edit_color{
         {20 * 8, 8 * 16, 4 * 8, 32},
         {},
-        &bitmap_icon_paint,
+        &bitmap_icon_notepad,
         Theme::getInstance()->fg_blue->foreground};
 
     NewButton button_apply_setting{
@@ -192,6 +214,7 @@ class WaterfallDesignerView : public View {
 
     void backup_current_profile();
     void restore_current_profile();
+    void on_create_new_profile();
     void on_open_profile();
     void on_profile_changed(std::filesystem::path new_profile_path);
     void on_save_profile();
@@ -211,7 +234,7 @@ class WaterfallDesignerView : public View {
     however if you don't push the apply (play) btn, it would resotore in distructor,
     if you push apply, it would apply and exit*/
 
-    std::vector<std::string> profile_levels{"0,0,0,0", "86,0,0,255", "171,0,255,0", "255,255,0,0", "255,255,255,255"};
+    std::vector<std::string> profile_levels{};
 
     static constexpr ui::Dim header_height = 10 * 16;
 
@@ -224,6 +247,7 @@ class WaterfallDesignerView : public View {
                            3};
 
     std::unique_ptr<spectrum::WaterfallView> waterfall{};
+    std::string file_name_buffer{};  // needed by text_prompy
 
     MessageHandlerRegistration message_handler_freqchg{
         Message::ID::FreqChangeCommand,

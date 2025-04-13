@@ -27,6 +27,8 @@
 #include "file_path.hpp"
 #include "ui_fileman.hpp"
 #include "file_reader.hpp"
+#include "ui_textentry.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 
@@ -94,9 +96,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     };
 
     button_new.on_select = [this]() {
-        profile_levels.clear();
-        current_profile_path = "";
-        refresh_menu_view();
+        on_create_new_profile();
     };
 
     button_open.on_select = [this]() {
@@ -108,10 +108,39 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     };
 
     button_add_level.on_select = [this]() {
+        portapack::async_tx_enabled = true;
+        UsbSerialAsyncmsg::asyncmsg("-------- pl");
+
+        for (auto& line : profile_levels) {
+            UsbSerialAsyncmsg::asyncmsg(line);
+        }
+
+        UsbSerialAsyncmsg::asyncmsg("-------- pl end");
+
+        UsbSerialAsyncmsg::asyncmsg("-------- index");
+        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(menu_view.highlighted_index()));
+
+        UsbSerialAsyncmsg::asyncmsg("-------- index end");
+        UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
         on_add_level();
     };
 
     button_remove_level.on_select = [this]() {
+                portapack::async_tx_enabled = true;
+        UsbSerialAsyncmsg::asyncmsg("-------- pl");
+
+        for (auto& line : profile_levels) {
+            UsbSerialAsyncmsg::asyncmsg(line);
+        }
+
+        UsbSerialAsyncmsg::asyncmsg("-------- pl end");
+
+        UsbSerialAsyncmsg::asyncmsg("-------- index");
+        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(menu_view.highlighted_index()));
+
+        UsbSerialAsyncmsg::asyncmsg("-------- index end");
+        UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
+
         on_remove_level();
     };
 
@@ -125,12 +154,35 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         nav_.pop();
     };
 
+    menu_view.on_highlight = [this]() {
+        portapack::async_tx_enabled = true;
+        UsbSerialAsyncmsg::asyncmsg("-------- pl");
+
+        for (auto& line : profile_levels) {
+            UsbSerialAsyncmsg::asyncmsg(line);
+        }
+
+        UsbSerialAsyncmsg::asyncmsg("-------- pl end");
+
+        UsbSerialAsyncmsg::asyncmsg("-------- index");
+        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(menu_view.highlighted_index()));
+
+        UsbSerialAsyncmsg::asyncmsg("-------- index end");
+        UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
+    };
+
     receiver_model.enable();
     option_bandwidth.set_by_value(capture_rate);
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
     };
+
+    button_save.hidden(true);
+    button_add_level.hidden(true);
+    button_remove_level.hidden(true);
+    button_edit_color.hidden(true);
+    button_apply_setting.hidden(true);
 
     refresh_menu_view();
 }
@@ -144,7 +196,7 @@ WaterfallDesignerView::WaterfallDesignerView(
 }
 
 WaterfallDesignerView::~WaterfallDesignerView() {
-    if(!if_apply_setting) restore_current_profile();
+    if (!if_apply_setting) restore_current_profile();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -200,6 +252,12 @@ void WaterfallDesignerView::on_profile_changed(std::filesystem::path new_profile
         }
     }
 
+    button_save.hidden(false);
+    button_add_level.hidden(false);
+    button_remove_level.hidden(false);
+    button_edit_color.hidden(false);
+    button_apply_setting.hidden(false);
+
     refresh_menu_view();
     on_apply_current_to_wtf();
 }
@@ -253,17 +311,17 @@ void WaterfallDesignerView::refresh_menu_view() {
 }
 
 void WaterfallDesignerView::on_apply_current_to_wtf() {
-    std::filesystem::path current_path = "waterfall.txt";
-    copy_file(current_profile_path, current_path);
+    std::filesystem::path system_read_path = "waterfall.txt";
+    copy_file(current_profile_path, system_read_path);
 
     remove_child(waterfall.get());
     waterfall.reset();
     waterfall = std::make_unique<spectrum::WaterfallView>();
     add_child(waterfall.get());
-    
+
     ui::Rect waterfall_rect{0, header_height, screen_rect().width(), screen_rect().height() - header_height};
     waterfall->set_parent_rect(waterfall_rect);
-    
+
     set_dirty();
 }
 
@@ -297,18 +355,32 @@ void WaterfallDesignerView::on_save_profile() {
 }
 
 void WaterfallDesignerView::on_add_level() {
-    // new view to let user add
+    if (menu_view.highlighted_index() >= profile_levels.size()) return;
+    if (profile_levels[menu_view.highlighted_index()].empty()) return;
+    if (profile_levels[menu_view.highlighted_index()][0] == '#') return;
+    if (profile_levels[menu_view.highlighted_index()].find(',') == std::string::npos) return;
+    size_t insert_pos = menu_view.highlighted_index();
+    std::string new_entry = "0,128,128,128";
+    profile_levels.insert(profile_levels.begin() + insert_pos, new_entry);
+    refresh_menu_view();
+    on_edit_color();
 }
 
 void WaterfallDesignerView::on_remove_level() {
-    // remove entrance from vec
+    if (menu_view.highlighted_index() >= profile_levels.size()) return;
+    if (profile_levels[menu_view.highlighted_index()].empty()) return;
+    if (profile_levels[menu_view.highlighted_index()][0] == '#') return;
+    if (profile_levels[menu_view.highlighted_index()].find(',') == std::string::npos) return;
     profile_levels.erase(profile_levels.begin() + menu_view.highlighted_index());
     refresh_menu_view();
 }
 
 void WaterfallDesignerView::on_edit_color() {
     if (menu_view.highlighted_index() >= profile_levels.size()) return;
-    
+    if (profile_levels[menu_view.highlighted_index()].empty()) return;
+    if (profile_levels[menu_view.highlighted_index()][0] == '#') return;
+    if (profile_levels[menu_view.highlighted_index()].find(',') == std::string::npos) return;
+
     auto color_picker_view = nav_.push<WaterfallDesignerColorPickerView>(profile_levels[menu_view.highlighted_index()]);
     color_picker_view->on_save = [this](std::string new_color) {
         profile_levels[menu_view.highlighted_index()] = new_color;
@@ -331,7 +403,32 @@ void WaterfallDesignerView::restore_current_profile() {
 }
 
 void WaterfallDesignerView::on_apply_setting() {
+}
 
+void WaterfallDesignerView::on_create_new_profile() {
+    text_prompt(
+        nav_,
+        file_name_buffer,
+        32 - 4,  // fat32
+        ENTER_KEYBOARD_MODE_ALPHA,
+        [this](std::string& buffer) {
+            if (buffer.empty()) return;
+
+            if (buffer.length() < 4 || buffer.substr(buffer.length() - 4) != ".txt") {
+                buffer += ".txt";
+            }
+
+            File new_file;
+            auto error = new_file.create(waterfalls_dir / buffer);
+            if (error) {
+                nav_.display_modal("Err", "create file err");
+                return;
+            }
+
+            profile_levels.clear();
+            current_profile_path = waterfalls_dir / buffer;
+            on_profile_changed(current_profile_path);
+        });
 }
 
 WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationView& nav, std::string color_str)
@@ -341,7 +438,12 @@ WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationVie
                   &field_red,
                   &field_green,
                   &field_blue,
+                  &field_step,
+                  &field_index,
+                  &progressbar,
                   &button_save});
+
+    progressbar.set_max(UINT8_MAX);
 
     size_t pos = 0;
     size_t next_pos = 0;
@@ -349,6 +451,7 @@ WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationVie
     // index
     next_pos = color_str.find(',', pos);
     if (next_pos != std::string::npos) {
+        index_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos, next_pos - pos)));
         pos = next_pos + 1;
     }
 
@@ -372,18 +475,19 @@ WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationVie
     field_red.set_value(red_);
     field_green.set_value(green_);
     field_blue.set_value(blue_);
+    field_index.set_value(index_);
 
     // cb
     field_red.on_change = [this](int32_t) {
-        update_color();
+        update_color_index();
     };
 
     field_green.on_change = [this](int32_t) {
-        update_color();
+        update_color_index();
     };
 
     field_blue.on_change = [this](int32_t) {
-        update_color();
+        update_color_index();
     };
 
     button_save.on_select = [this](Button&) {
@@ -391,39 +495,59 @@ WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationVie
         nav_.pop();
     };
 
-    update_color();
+    field_index.on_change = [this](int32_t) {
+        update_color_index();
+    };
+
+    field_step.on_change = [this](int32_t) {
+        field_red.set_step(field_step.value());
+        field_green.set_step(field_step.value());
+        field_blue.set_step(field_step.value());
+        field_index.set_step(field_step.value());
+    };
+
+    update_color_index();
 }
 
 void WaterfallDesignerColorPickerView::focus() {
     button_save.focus();
 }
 
-void WaterfallDesignerColorPickerView::update_color() {
+void WaterfallDesignerColorPickerView::update_color_index() {
+    index_ = static_cast<uint8_t>(field_index.value()); 
     red_ = static_cast<uint8_t>(field_red.value());
     green_ = static_cast<uint8_t>(field_green.value());
     blue_ = static_cast<uint8_t>(field_blue.value());
 
     const Rect preview_rect{screen_width - 48, 1 * 16, 40, 40};
-    
 
-    painter.fill_rectangle(
-        {preview_rect.left() , preview_rect.top() , preview_rect.width() , preview_rect.height() },
+    Painter painter_instance_2;
+    painter_instance_2.fill_rectangle(
+        {preview_rect.left(), preview_rect.top(), preview_rect.width(), preview_rect.height()},
         ui::Color(red_, green_, blue_));
 }
 
 void WaterfallDesignerColorPickerView::paint(Painter& painter) {
+    // this is not duplicated code.
+    // because need to display color when enter,
+    // but it is too early to call update_color() in the constructor.
 
+    const Rect preview_rect{screen_width - 48, 1 * 16, 40, 40};
+
+    painter.fill_rectangle(
+        {preview_rect.left(), preview_rect.top(), preview_rect.width(), preview_rect.height()},
+        ui::Color(red_, green_, blue_));
 }
 
 std::string WaterfallDesignerColorPickerView::build_color_str() {
     size_t index_pos = color_str_.find(',');
     if (index_pos != std::string::npos) {
-        return color_str_.substr(0, index_pos + 1) + 
-               std::to_string(red_) + "," +
-               std::to_string(green_) + "," +
-               std::to_string(blue_);
+        return color_str_.substr(0, index_pos + 1) +
+               to_string_dec_uint(red_) + "," +
+               to_string_dec_uint(green_) + "," +
+               to_string_dec_uint(blue_);
     }
-    return "0," + std::to_string(red_) + "," + std::to_string(green_) + "," + std::to_string(blue_);
+    return to_string_dec_uint(index_) + "," + to_string_dec_uint(red_) + "," + to_string_dec_uint(green_) + "," + to_string_dec_uint(blue_);
 }
 
 } /* namespace ui::external_app::waterfall_designer */
