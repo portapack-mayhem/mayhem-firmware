@@ -46,7 +46,7 @@ using options_db_t = std::vector<option_db_t>;
 
 extern options_db_t freqman_modulations;
 extern options_db_t freqman_bandwidths[5];
-extern options_db_t freqman_steps;
+// extern options_db_t freqman_steps; // now included via ui_receiver.hpp
 extern options_db_t freqman_steps_short;
 
 options_t dboptions_to_options(const options_db_t& dboptions) {
