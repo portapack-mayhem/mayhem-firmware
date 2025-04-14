@@ -50,8 +50,12 @@ extern options_db_t freqman_bandwidths[6];
 // extern options_db_t freqman_steps; // now included via ui_receiver.hpp
 =======
 extern options_db_t freqman_bandwidths[5];
+<<<<<<< HEAD
 extern options_db_t freqman_steps;
 >>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
+=======
+// extern options_db_t freqman_steps; // now included via ui_receiver.hpp
+>>>>>>> a153cbf3 (Adding 8.33KHz spacing (#2628))
 extern options_db_t freqman_steps_short;
 
 options_t dboptions_to_options(const options_db_t& dboptions) {
