@@ -271,6 +271,7 @@ class FrequencyStepView : public OptionsField {
                   {"  3k ", 3000}, /* Approximate SSB bandwidth */
                   {"  5k ", 5000},
                   {"  6k3", 6250},
+                  {"  8k3", 8330}, /* New air band spacing */
                   {"  9k ", 9000}, /* channel spacing for LF, MF in some regions */
                   {" 10k ", 10000},
                   {" 12k5", 12500},
