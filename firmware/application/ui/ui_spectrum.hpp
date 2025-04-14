@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft Mr. Robot 2025
  *
  * This file is part of PortaPack.
  *
@@ -79,9 +80,11 @@ class FrequencyScale : public Widget {
 
     bool on_encoder(const EncoderEvent delta) override;
     bool on_key(const KeyEvent key) override;
+    bool on_touch(const TouchEvent touch) override;
 
     void set_spectrum_sampling_rate(const int new_sampling_rate);
     void set_channel_filter(const int low_frequency, const int high_frequency, const int transition);
+    void set_cursor_position(const int32_t position);
 
     void paint(Painter& painter) override;
 
@@ -112,11 +115,14 @@ class FrequencyScale : public Widget {
 
 class WaterfallWidget : public Widget {
    public:
+    std::function<void(int32_t offset, int32_t y)> on_touch_select{};
+
     Gradient gradient{};
 
     void on_show() override;
     void on_hide() override;
     void paint(Painter&) override {}
+    bool on_touch(const TouchEvent event) override;
 
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
 

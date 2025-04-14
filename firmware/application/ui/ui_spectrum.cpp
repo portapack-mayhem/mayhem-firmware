@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft Mr. Robot 2025
  *
  * This file is part of PortaPack.
  *
@@ -98,6 +99,15 @@ void FrequencyScale::set_channel_filter(
         channel_filter_transition = transition;
         set_dirty();
     }
+}
+
+void FrequencyScale::set_cursor_position(const int32_t position) {
+    cursor_position = position;
+
+    cursor_position = std::min<int32_t>(cursor_position, 119);
+    cursor_position = std::max<int32_t>(cursor_position, -120);
+
+    set_dirty();
 }
 
 void FrequencyScale::paint(Painter& painter) {
@@ -240,6 +250,15 @@ bool FrequencyScale::on_key(const KeyEvent key) {
     return false;
 }
 
+bool FrequencyScale::on_touch(const TouchEvent touch) {
+    if (touch.type == TouchEvent::Type::Start) {
+        if (on_select) {
+            on_select((touch.point.x() * spectrum_sampling_rate) / 240);
+        }
+    }
+    return true;
+}
+
 void FrequencyScale::on_tick_second() {
     set_dirty();
     _blink = !_blink;
@@ -285,6 +304,15 @@ void WaterfallWidget::on_channel_spectrum(
         pixel_row);
 }
 
+bool WaterfallWidget::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        if (on_touch_select) {
+            on_touch_select(event.point.x(), event.point.y());
+        }
+    }
+    return true;
+}
+
 void WaterfallWidget::clear() {
     display.fill_rectangle(
         screen_rect(),
@@ -302,6 +330,18 @@ WaterfallView::WaterfallView(const bool cursor) {
     // Making the event climb up all the way up to here kinda sucks
     frequency_scale.on_select = [this](int32_t offset) {
         if (on_select) on_select(offset);
+    };
+
+    waterfall_widget.on_touch_select = [this](int32_t x, int32_t y) {
+        if (y > screen_height - screen_height * 0.1) return;  // prevent ghost touch
+
+        frequency_scale.focus();  // focus on frequency scale to show cursor
+
+        if (sampling_rate) {
+            // screen x to frequency scale x, NB we need two widgets align
+            int32_t cursor_position = x - (screen_width / 2);
+            frequency_scale.set_cursor_position(cursor_position);
+        }
     };
 
     if (!waterfall_widget.gradient.load_file(default_gradient_file)) {
