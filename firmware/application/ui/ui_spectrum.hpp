@@ -112,10 +112,15 @@ class FrequencyScale : public Widget {
 class WaterfallWidget : public Widget {
    public:
 <<<<<<< HEAD
+<<<<<<< HEAD
     std::function<void(int32_t offset, int32_t y)> on_touch_select{};
 
 =======
 >>>>>>> f941ae87 (Custom waterfall colors (#2617))
+=======
+    std::function<void(int32_t offset, int32_t y)> on_touch_select{};
+
+>>>>>>> 584af02d (Touch on waterfall to set cursor pos (#2624))
     Gradient gradient{};
 
     void on_show() override;

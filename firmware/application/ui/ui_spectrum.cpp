@@ -250,6 +250,14 @@ bool FrequencyScale::on_touch(const TouchEvent touch) {
         }
     }
     return true;
+<<<<<<< HEAD
+=======
+}
+
+void FrequencyScale::on_tick_second() {
+    set_dirty();
+    _blink = !_blink;
+>>>>>>> 584af02d (Touch on waterfall to set cursor pos (#2624))
 }
 
 /* WaterfallWidget *********************************************************/
@@ -321,6 +329,9 @@ WaterfallView::WaterfallView(const bool cursor) {
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 584af02d (Touch on waterfall to set cursor pos (#2624))
     waterfall_widget.on_touch_select = [this](int32_t x, int32_t y) {
         if (y > screen_height - screen_height * 0.1) return;  // prevent ghost touch
 
@@ -333,8 +344,11 @@ WaterfallView::WaterfallView(const bool cursor) {
         }
     };
 
+<<<<<<< HEAD
 =======
 >>>>>>> f941ae87 (Custom waterfall colors (#2617))
+=======
+>>>>>>> 584af02d (Touch on waterfall to set cursor pos (#2624))
     if (!waterfall_widget.gradient.load_file(default_gradient_file)) {
         waterfall_widget.gradient.set_default();
     }
