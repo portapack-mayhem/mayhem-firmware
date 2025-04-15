@@ -11959,6 +11959,44 @@ static constexpr Bitmap bitmap_icon_tpms{
     {16, 16},
     bitmap_icon_tpms_data};
 
+static constexpr uint8_t bitmap_icon_tranceivers_data[] = {
+    0x80,
+    0x01,
+    0xC0,
+    0x03,
+    0xE0,
+    0x07,
+    0xB0,
+    0x0D,
+    0x98,
+    0x19,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x98,
+    0x19,
+    0xB0,
+    0x0D,
+    0xE0,
+    0x07,
+    0xC0,
+    0x03,
+    0x83,
+    0xC1,
+    0x03,
+    0xC0,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xFF,
+};
+static constexpr Bitmap bitmap_icon_tranceivers{
+    {16, 16},
+    bitmap_icon_tranceivers_data};
+
 static constexpr uint8_t bitmap_icon_transmit_data[] = {
     0x80,
     0x01,

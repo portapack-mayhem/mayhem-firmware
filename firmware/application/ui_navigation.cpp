@@ -131,10 +131,13 @@ const NavigationView::AppList NavigationView::appList = {
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     {"recon", "Recon", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+>>>>>>> 806219f4 (Added menu group for transceivers (#2623))
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
 <<<<<<< HEAD
@@ -185,12 +188,15 @@ const NavigationView::AppList NavigationView::appList = {
     {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
+<<<<<<< HEAD
 =======
     {"signalgen", "Signal Gen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
 >>>>>>> ee472e1e (waveform fix 3 and trivial change (#2540))
 =======
     {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
 >>>>>>> 31082c63 (theme fix again (#2611))
+=======
+>>>>>>> 806219f4 (Added menu group for transceivers (#2623))
     /* UTILITIES *************************************************************/
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
@@ -920,9 +926,13 @@ void TranceiversMenuView::on_populate() {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_apps(nav_, *this, TRX);
+<<<<<<< HEAD
     // add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
     // this folder doesn't have external apps, comment to prevent pop the err msg.
     // NB: when has external app someday, uncomment this.
+=======
+    add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
+>>>>>>> 806219f4 (Added menu group for transceivers (#2623))
 }
 
 /* UtilitiesMenuView *****************************************************/
