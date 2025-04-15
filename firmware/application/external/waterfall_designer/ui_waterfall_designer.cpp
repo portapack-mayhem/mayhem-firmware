@@ -36,7 +36,7 @@ namespace ui::external_app::waterfall_designer {
 
 WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_image(portapack::spi_flash::image_tag_capture);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({
         &labels,
