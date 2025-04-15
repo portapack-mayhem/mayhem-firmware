@@ -379,6 +379,16 @@ class TransmittersMenuView : public BtnGridView {
     void on_populate() override;
 };
 
+class TranceiversMenuView : public BtnGridView {
+   public:
+    TranceiversMenuView(NavigationView& nav);
+    std::string title() const override { return "Tranceiver"; };
+
+   private:
+    NavigationView& nav_;
+    void on_populate() override;
+};
+
 class UtilitiesMenuView : public BtnGridView {
    public:
     UtilitiesMenuView(NavigationView& nav);
