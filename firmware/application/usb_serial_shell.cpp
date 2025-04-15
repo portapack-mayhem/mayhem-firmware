@@ -691,6 +691,9 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
         case TX:
             chprintf(chp, "[TX]\r\n");
             break;
+        case TRX:
+            chprintf(chp, "[TRX]\r\n");
+            break;
         case UTILITIES:
             chprintf(chp, "[UTIL]\r\n");
             break;
@@ -714,6 +717,9 @@ static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) 
             break;
         case TX:
             chprintf(chp, "[TX]\r\n");
+            break;
+        case TRX:
+            chprintf(chp, "[TRX]\r\n");
             break;
         case UTILITIES:
             chprintf(chp, "[UTIL]\r\n");
