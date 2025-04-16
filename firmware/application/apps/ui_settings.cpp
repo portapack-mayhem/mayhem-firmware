@@ -810,30 +810,29 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
                   &field_fake_brightness,
                   &button_save,
                   &button_cancel,
-                  &checkbox_invert_switch,
+                  &checkbox_ips_screen_switch,
                   &checkbox_brightness_switch});
 
     field_fake_brightness.set_by_value(pmem::fake_brightness_level());
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
-    checkbox_invert_switch.set_value(pmem::config_lcd_inverted_mode());
+    checkbox_ips_screen_switch.set_value(pmem::config_lcd_normally_black());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
         pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
-        if (checkbox_invert_switch.value() != pmem::config_lcd_inverted_mode()) {
-            display.set_inverted(checkbox_invert_switch.value());
-            pmem::set_lcd_inverted_mode(checkbox_invert_switch.value());
+        if (checkbox_ips_screen_switch.value() != pmem::config_lcd_normally_black()) {
+            pmem::set_lcd_normally_black(checkbox_ips_screen_switch.value());
         }
         send_system_refresh();
         nav.pop();
     };
 
     // only enable invert OR fake brightness
-    checkbox_invert_switch.on_select = [this](Checkbox&, bool v) {
+    checkbox_ips_screen_switch.on_select = [this](Checkbox&, bool v) {
         if (v) checkbox_brightness_switch.set_value(false);
     };
     checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        if (v) checkbox_invert_switch.set_value(false);
+        if (v) checkbox_ips_screen_switch.set_value(false);
     };
 
     button_cancel.on_select = [&nav, this](Button&) {
