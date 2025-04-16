@@ -414,7 +414,7 @@ void SystemStatusView::refresh() {
     button_converter.set_foreground(pmem::config_converter() ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_light->foreground);
 
     // Fake Brightness
-    button_fake_brightness.set_foreground(pmem::apply_fake_brightness()  ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
+    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? *Theme::getInstance()->status_active : Theme::getInstance()->fg_light->foreground);
 
     set_dirty();
 }
