@@ -764,7 +764,6 @@ class SetDisplayView : public View {
         {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 16}, "REBOOT TO APPLY SCREEN TYPE", Theme::getInstance()->fg_light->foreground},
 
-
     };
 
     OptionsField field_fake_brightness{
