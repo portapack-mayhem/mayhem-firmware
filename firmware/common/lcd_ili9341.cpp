@@ -33,6 +33,8 @@ using namespace portapack;
 
 #include "file.hpp"
 
+#include "portapack_persistent_memory.hpp"
+
 #include <complex>
 
 #include <cstring>
@@ -143,7 +145,13 @@ void lcd_init() {
     // REV = 1 (normally white)
     // NL = 0b100111 (default)
     // PCDIV = 0b000000 (default?)
-    io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});
+
+    /*as per the datasheet chapter 8.3.7, addr B6h,
+    data "REV" bit, liquid crystal type:*/
+    if (portapack::persistent_memory::config_lcd_normally_black())
+        io.lcd_data_write_command_and_data(0xB6, {0x0A, 0x22, 0x27, 0x00});  // IPS : normally black : 0
+    else
+        io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});  // TFT : normally white : 1
 
     // Power Control 1
     // VRH[5:0]
@@ -307,14 +315,6 @@ void ILI9341::sleep() {
 
 void ILI9341::wake() {
     lcd_wake();
-}
-
-void ILI9341::set_inverted(bool invert) {
-    if (invert) {
-        io.lcd_data_write_command_and_data(0x21, {});
-    } else {
-        io.lcd_data_write_command_and_data(0x20, {});
-    }
 }
 
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {

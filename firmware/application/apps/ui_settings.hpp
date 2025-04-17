@@ -762,6 +762,8 @@ class SetDisplayView : public View {
         {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "REBOOT TO APPLY SCREEN TYPE", Theme::getInstance()->fg_light->foreground},
+
     };
 
     OptionsField field_fake_brightness{
@@ -776,10 +778,10 @@ class SetDisplayView : public View {
         16,
         "Enable brightness adjust"};
 
-    Checkbox checkbox_invert_switch{
-        {1 * 8, 10 * 16},
+    Checkbox checkbox_ips_screen_switch{
+        {1 * 8, 12 * 16},
         23,
-        "Invert colors (For IPS)"};
+        "IPS Screen"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},

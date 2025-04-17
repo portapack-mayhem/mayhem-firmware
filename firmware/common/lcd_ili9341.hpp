@@ -50,8 +50,6 @@ class ILI9341 {
     void sleep();
     void wake();
 
-    void set_inverted(bool invert);
-
     void fill_rectangle(ui::Rect r, const ui::Color c);
     void fill_rectangle_unrolled8(ui::Rect r, const ui::Color c);
     void draw_line(const ui::Point start, const ui::Point end, const ui::Color color);

@@ -249,8 +249,8 @@ void set_config_audio_mute(bool v);
 void set_config_speaker_disable(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
-bool config_lcd_inverted_mode();
-void set_lcd_inverted_mode(bool v);
+bool config_lcd_normally_black();
+void set_lcd_normally_black(bool v);
 
 uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
