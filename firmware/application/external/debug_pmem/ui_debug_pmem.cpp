@@ -81,10 +81,14 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(config_freq_rx_correction_updown()));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(config_freq_tx_correction_updown()));
 <<<<<<< HEAD
+<<<<<<< HEAD
     pmem_dump_file.write_line("lcd_normally_black: " + to_string_dec_uint(config_lcd_normally_black()));
 =======
     pmem_dump_file.write_line("lcd_inverted_mode: " + to_string_dec_uint(config_lcd_inverted_mode()));
 >>>>>>> 2229381c (Externalize dump pmem (#2590))
+=======
+    pmem_dump_file.write_line("lcd_normally_black: " + to_string_dec_uint(config_lcd_normally_black()));
+>>>>>>> 6b6a00d5 (Support IPS screen & brightness set for IPS screen (#2629))
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(config_converter_freq()));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(config_freq_rx_correction()));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(config_freq_tx_correction()));

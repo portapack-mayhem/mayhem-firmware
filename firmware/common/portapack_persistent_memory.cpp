@@ -228,6 +228,9 @@ struct data_t {
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6b6a00d5 (Support IPS screen & brightness set for IPS screen (#2629))
     bool lcd_normally_black : 1;
     bool encoder_dial_direction : 1;  // false = normal, true = reverse
 =======
@@ -315,10 +318,14 @@ struct data_t {
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
 <<<<<<< HEAD
+<<<<<<< HEAD
           lcd_normally_black(false),
 =======
           lcd_inverted_mode(false),
 >>>>>>> 55db0e8c (Add the feature to decide rotate direction of encoder (#2472))
+=======
+          lcd_normally_black(false),
+>>>>>>> 6b6a00d5 (Support IPS screen & brightness set for IPS screen (#2629))
           encoder_dial_direction(false),
           UNUSED_6(false),
           UNUSED_7(false),
@@ -1227,7 +1234,6 @@ void set_fake_brightness_level(uint8_t v) {
 // Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
 void toggle_fake_brightness_level() {
     bool fbe = apply_fake_brightness();
-    if (config_lcd_inverted_mode()) return;  // for now only inverted mode OR fake brightness
     if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
         set_apply_fake_brightness(!fbe);
         data->fake_brightness_level = BRIGHTNESS_50;
