@@ -211,7 +211,7 @@ struct data_t {
     bool updown_converter;
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
-    bool lcd_inverted_mode : 1;
+    bool lcd_normally_black : 1;
     bool encoder_dial_direction : 1;  // false = normal, true = reverse
     bool UNUSED_6 : 1;
     bool UNUSED_7 : 1;
@@ -289,7 +289,7 @@ struct data_t {
           updown_converter(false),
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
-          lcd_inverted_mode(false),
+          lcd_normally_black(false),
           encoder_dial_direction(false),
           UNUSED_6(false),
           UNUSED_7(false),
@@ -1090,12 +1090,12 @@ void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
-// LCD invert
-bool config_lcd_inverted_mode() {
-    return data->lcd_inverted_mode;
+// IPS vs TFT
+bool config_lcd_normally_black() {
+    return data->lcd_normally_black;
 }
-void set_lcd_inverted_mode(bool v) {
-    data->lcd_inverted_mode = v;
+void set_lcd_normally_black(bool v) {
+    data->lcd_normally_black = v;
 }
 
 // Rotary encoder dial settings
@@ -1164,7 +1164,6 @@ void set_fake_brightness_level(uint8_t v) {
 // Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
 void toggle_fake_brightness_level() {
     bool fbe = apply_fake_brightness();
-    if (config_lcd_inverted_mode()) return;  // for now only inverted mode OR fake brightness
     if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
         set_apply_fake_brightness(!fbe);
         data->fake_brightness_level = BRIGHTNESS_50;
