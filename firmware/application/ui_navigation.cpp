@@ -927,12 +927,18 @@ void TranceiversMenuView::on_populate() {
     }
     add_apps(nav_, *this, TRX);
 <<<<<<< HEAD
+<<<<<<< HEAD
     // add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
     // this folder doesn't have external apps, comment to prevent pop the err msg.
     // NB: when has external app someday, uncomment this.
 =======
     add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
 >>>>>>> 806219f4 (Added menu group for transceivers (#2623))
+=======
+    // add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
+    // this folder doesn't have external apps, comment to prevent pop the err msg.
+    // NB: when has external app someday, uncomment this.
+>>>>>>> 9aff3f41 (Fix bug that created by PR "Added menu group for transceivers" (#2630))
 }
 
 /* UtilitiesMenuView *****************************************************/
