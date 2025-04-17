@@ -854,7 +854,9 @@ void TranceiversMenuView::on_populate() {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_apps(nav_, *this, TRX);
-    add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
+    // add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
+    // this folder doesn't have external apps, comment to prevent pop the err msg.
+    // NB: when has external app someday, uncomment this.
 }
 
 /* UtilitiesMenuView *****************************************************/
