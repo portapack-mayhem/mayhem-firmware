@@ -1,4 +1,0 @@
-f=92500000,m=WFM,bw=200k,d=NRK Oslo
-f=94800000,m=WFM,bw=200k,d=NRK Bergen
-f=97200000,m=WFM,bw=200k,d=NRK Melhus
-f=98600000,m=WFM,bw=200k,d=NRK Arendal

@@ -50,6 +50,10 @@ Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BY
     }
 }
 
+/*
+ * @param read_only: open in readonly mode
+ * @param create: create if it doesnt exist
+ */
 Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only, bool create) {
     BYTE mode = read_only ? FA_READ : FA_READ | FA_WRITE;
     if (create)

@@ -18,7 +18,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 cmake_policy(SET CMP0005 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex-m.cmake)

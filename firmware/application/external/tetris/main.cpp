@@ -73,8 +73,8 @@ __attribute__((section(".external_app.app_tetris.application_information"), used
         0xFF,
         0xF1,
     },
-    /*.icon_color = */ ui::Color::orange().v,
-    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.icon_color = */ ui::Color::green().v,
+    /*.menu_location = */ app_location_t::GAMES,
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},

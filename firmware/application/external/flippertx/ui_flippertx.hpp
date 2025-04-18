@@ -89,8 +89,6 @@ class FlipperTxView : public View {
     std::unique_ptr<FlipperPlayThread> replay_thread{};
     Optional<flippersub_metadata> submeta{};
 
-    const std::filesystem::path subghz_dir = u"subghz";
-
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
         [this](const Message* const p) {

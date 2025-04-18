@@ -49,9 +49,10 @@ options_t freqman_modulations = {
     {"NFM", 1},
     {"WFM", 2},
     {"SPEC", 3},
+    {"AMFM", 4},
 };
 
-options_t freqman_bandwidths[4] = {
+options_t freqman_bandwidths[5] = {
     {
         // AM
         {"DSB 9k", 0},
@@ -99,6 +100,10 @@ options_t freqman_bandwidths[4] = {
         {"4500k", 4500000},
         {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
+    },
+    {
+        // AMFM for Wefax-
+        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
     },
 };
 

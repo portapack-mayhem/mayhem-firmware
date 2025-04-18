@@ -330,7 +330,7 @@ RemoteAppView::RemoteAppView(
 
     field_title.on_select = [this, &nav](TextField&) {
         temp_buffer_ = model_.name;
-        text_prompt(nav_, temp_buffer_, text_edit_max, [this](std::string& new_name) {
+        text_prompt(nav_, temp_buffer_, text_edit_max, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
             model_.name = new_name;
             refresh_ui();
             set_needs_save();
@@ -339,7 +339,7 @@ RemoteAppView::RemoteAppView(
 
     field_filename.on_select = [this, &nav](TextField&) {
         temp_buffer_ = remote_path_.stem().string();
-        text_prompt(nav_, temp_buffer_, text_edit_max, [this](std::string& new_name) {
+        text_prompt(nav_, temp_buffer_, text_edit_max, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
             rename_remote(new_name);
             refresh_ui();
         });

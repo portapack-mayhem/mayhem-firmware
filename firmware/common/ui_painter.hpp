@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * copyleft Mr. Robot
  *
  * This file is part of PortaPack.
  *
@@ -69,7 +70,7 @@ class Painter {
     Painter(const Painter&) = delete;
     Painter(Painter&&) = delete;
 
-    int draw_char(Point p, const Style& style, char c);
+    int draw_char(Point p, const Style& style, char c, uint8_t zoom_factor = 1);
 
     int draw_string(Point p, const Style& style, std::string_view text);
     int draw_string(Point p, const Font& font, Color foreground, Color background, std::string_view text);

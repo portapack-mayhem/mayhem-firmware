@@ -50,8 +50,6 @@ class ILI9341 {
     void sleep();
     void wake();
 
-    void set_inverted(bool invert);
-
     void fill_rectangle(ui::Rect r, const ui::Color c);
     void fill_rectangle_unrolled8(ui::Rect r, const ui::Color c);
     void draw_line(const ui::Point start, const ui::Point end, const ui::Color color);
@@ -86,13 +84,15 @@ class ILI9341 {
         const ui::Size size,
         const uint8_t* const data,
         const ui::Color foreground,
-        const ui::Color background);
+        const ui::Color background,
+        uint8_t zoom_level = 1);
 
     void draw_glyph(
         const ui::Point p,
         const ui::Glyph& glyph,
         const ui::Color foreground,
-        const ui::Color background);
+        const ui::Color background,
+        uint8_t zoom_level = 1);
 
     /*** Scrolling ***
      * Scrolling support is implemented in the ILI9341 driver. Basically a region

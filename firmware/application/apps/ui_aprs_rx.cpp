@@ -99,13 +99,21 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
             field_frequency.set_value(aprs_rx_freq);
         } else if (i == 1) {  // NA - North America - is also the default
             field_frequency.set_value(144390000);
-        } else if (i == 2) {  // EUR
-            field_frequency.set_value(144800000);
-        } else if (i == 3) {  // AUS
-            field_frequency.set_value(145175000);
-        } else if (i == 4) {  // NZ
+        } else if (i == 2) {  // NZ
             field_frequency.set_value(144575000);
-        } else if (i == 5) {  // ISS
+        } else if (i == 3) {  // JAP
+            field_frequency.set_value(144640000);
+        } else if (i == 4) {  // PHI
+            field_frequency.set_value(144740000);
+        } else if (i == 5) {  // EUR
+            field_frequency.set_value(144800000);
+        } else if (i == 6) {  // THA
+            field_frequency.set_value(144900000);
+        } else if (i == 7) {  // AUS
+            field_frequency.set_value(145175000);
+        } else if (i == 8) {  // BR
+            field_frequency.set_value(145570000);
+        } else if (i == 9) {  // ISS
             field_frequency.set_value(145825000);
         }
         options_region_id = i;

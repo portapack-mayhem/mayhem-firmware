@@ -1,5 +1,8 @@
-// RocketGod's Shopping Cart Lock app
-// https://betaskynet.com
+// CVS Spam app by RocketGod (@rocketgod-git) https://betaskynet.com
+// Original .cu8 files by @jimilinuxguy https://github.com/jimilinuxguy/customer-assistance-buttons-sdr
+// If you can read this, you're a nerd. :P
+// Come join us at https://discord.gg/thepiratesreborn
+
 #pragma once
 
 #include "ui_widget.hpp"
@@ -27,8 +30,8 @@ class ShoppingCartLock : public View {
     void focus() override;
 
    private:
-    static constexpr size_t BUFFER_SIZE = 8192;
-    static constexpr size_t NUM_BUFFERS = 8;
+    static constexpr size_t BUFFER_SIZE = 512;
+    static constexpr size_t NUM_BUFFERS = 2;
     const std::string shoppingcart_lock_file{"shopping_cart_lock.wav"};
     const std::string shoppingcart_unlock_file{"shopping_cart_unlock.wav"};
 

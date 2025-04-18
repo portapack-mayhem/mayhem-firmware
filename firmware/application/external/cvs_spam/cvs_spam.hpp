@@ -16,6 +16,9 @@ using namespace portapack;
 
 namespace ui::external_app::cvs_spam {
 
+constexpr uint32_t SAMPLE_RATE = 250000;
+constexpr uint64_t TARGET_FREQUENCY = 433920000;
+
 class CVSSpamView : public View {
    public:
     explicit CVSSpamView(NavigationView& nav);

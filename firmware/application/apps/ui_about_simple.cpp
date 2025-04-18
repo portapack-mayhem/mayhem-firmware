@@ -7,30 +7,33 @@
 namespace ui {
 
 // Information: a line starting with a '#' will be yellow coloured
-constexpr std::string_view authors_list[] = {
-    "#   * List of contributors *  ",
+constexpr std::string_view mayhem_information_list[] = {
+    "#****** Mayhem Community ******",
+    " ",
+    "  https://discord.mayhem.app",
+    " ",
+    "#**** List of contributors ****",
     " ",
     "#Mayhem-Firmware:",
     "jboone,eried,furrtek,",
     "NotherNgineer,gullradriel,",
     "jLynx,kallanreed,Brumi-2021,",
-    "htotoo,bernd-herzog,zxkmm,",
+    "htotoo,zxkmm,bernd-herzog,",
     "ArjanOnwezen,euquiq,u-foka,",
     "iNetro,heurist1,dqs105,",
     "teixeluis,jwetzell,",
     "jimilinuxguy,gregoryfenton,",
     "notpike,strijar,BehleZebub,",
-    "arneluehrs,rascafr,joyel24,",
-    "ImDroided,zigad,johnelder,",
-    "klockee,nnesetto,LupusE,",
-    "argilo,dc2dc,formtapez,",
+    "arneluehrs,mcules,rascafr,",
+    "joyel24,ImDroided,zigad,",
+    "johnelder,klockee,nnesetto,",
+    "LupusE,argilo,dc2dc,formtapez,",
     "RocketGod-git,mrmookie,",
     "ITAxReal,F33RNI,F4GEV,",
     "rusty-labs,mjwaxios,andrej-mk,",
     "RedFox-Fr,nemanjan00,",
     "MichalLeonBorsuk,",
-    "MatiasFernandez,Giorgiofox,",
-    "ckuethe",
+    "MatiasFernandez,Giorgiofox",
     " ",
     "#Havoc:",
     "jboone,furrtek,eried,argilo,",
@@ -72,7 +75,7 @@ AboutView::AboutView(NavigationView& nav) {
         button_ok.focus();
     };
 
-    for (auto& authors_line : authors_list) {
+    for (auto& authors_line : mayhem_information_list) {
         // if it's starting with #, it's a title and we have to substract the '#' and paint yellow
         if (authors_line.size() > 0) {
             if (authors_line[0] == '#') {
@@ -103,15 +106,13 @@ void AboutView::on_frame_sync() {
             menu_view.set_highlighted(current + 1);
         } else {
             menu_view.set_highlighted(0);
-            // ^ to go back to the REAL top instead of make the 2 at the top to make the title disappeares
-            menu_view.set_highlighted(2);  // the first line that has human name
         }
     }
 }
 
 void AboutView::focus() {
     button_ok.focus();
-    menu_view.set_highlighted(2);  // the first line that has human name
+    menu_view.set_highlighted(3);  // contributors block starting line
 }
 
 bool AboutView::on_touch(const TouchEvent) {

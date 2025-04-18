@@ -1,0 +1,20 @@
+name: Hardware Issue Warning
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  add-comment:
+    if: github.event.label.name == 'hardware problem'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add warning comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            > [!IMPORTANT]  
+            If you are a seller/vendor and your customer has directed you to this page as a reference/evidence of a "broken device" or similar issue, please be aware that we are not providing any "official guarantee of a faulty device." We are only offering suggestions based on what the submitter has stated. We do not guarantee that the device is broken or anything else.

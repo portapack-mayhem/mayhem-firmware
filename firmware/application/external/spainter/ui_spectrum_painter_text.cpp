@@ -56,7 +56,7 @@ SpectrumInputTextView::~SpectrumInputTextView() {
 }
 
 void SpectrumInputTextView::on_set_text(NavigationView& nav) {
-    text_prompt(nav, buffer, 300);
+    text_prompt(nav, buffer, 300, ENTER_KEYBOARD_MODE_DIGITS);
 }
 
 void SpectrumInputTextView::focus() {

@@ -55,6 +55,12 @@ constexpr iir_biquad_config_t audio_12k_hpf_300hz_config{
     {0.89485861f, -1.78971721f, 0.89485861f},
     {1.00000000f, -1.77863178f, 0.80080265f}};
 
+// scipy.signal.butter(2, 1500 / 6000.0, 'low', analog=False)
+constexpr iir_biquad_config_t audio_12k_lpf_1500hz_config{
+    // Added to lpf the audio in wefax mode , before sending to SD card or spk.
+    {0.09763107f, 0.19526215f, 0.09763107f},
+    {1.00000000f, -0.94280904f, 0.33333333f}};
+
 // scipy.signal.butter(2, 300 / 4000.0, 'highpass', analog=False)
 constexpr iir_biquad_config_t audio_8k_hpf_300hz_config{
     {0.84645925f, -1.69291851f, 0.84645925f},

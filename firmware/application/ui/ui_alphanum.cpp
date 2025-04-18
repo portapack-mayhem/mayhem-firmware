@@ -32,7 +32,8 @@ namespace ui {
 AlphanumView::AlphanumView(
     NavigationView& nav,
     std::string& str,
-    size_t max_length)
+    size_t max_length,
+    uint8_t enter_mode)
     : TextEntryView(nav, str, max_length) {
     size_t n;
 
@@ -76,7 +77,7 @@ AlphanumView::AlphanumView(
         n++;
     }
 
-    set_mode(mode);
+    set_mode(enter_mode);
 
     button_mode.on_select = [this](Button&) {
         set_mode(mode + 1);

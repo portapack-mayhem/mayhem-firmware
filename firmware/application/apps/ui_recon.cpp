@@ -517,11 +517,7 @@ ReconView::ReconView(NavigationView& nav)
     };
     set_loop_config(continuous);
 
-    rssi.set_focusable(true);
     rssi.set_peak(true, 500);
-    rssi.on_select = [this](RSSI&) {
-        nav_.replace<LevelView>();
-    };
 
     // TODO: *BUG* Both transmitter_model and receiver_model share the same pmem setting for target_frequency.
     button_mic_app.on_select = [this](Button&) {
@@ -1257,9 +1253,17 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        if (v != -1) {
-            change_mode(v);
+        // initialize to a value under SPEC
+        static freqman_index_t last_mode = WFM_MODULATION;
+        if (v > SPEC_MODULATION) {
+            if (last_mode == SPEC_MODULATION)
+                v = AM_MODULATION;
+            else
+                v = SPEC_MODULATION;
+            field_mode.set_selected_index(v);
         }
+        last_mode = v;
+        change_mode(v);
     };
     // for some motive, audio output gets stopped.
     if (!recon && field_mode.selected_index_value() != SPEC_MODULATION)

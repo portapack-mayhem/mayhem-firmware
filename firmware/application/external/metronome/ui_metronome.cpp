@@ -23,6 +23,7 @@
 #include "baseband_api.hpp"
 #include "audio.hpp"
 #include "portapack.hpp"
+#include "ui_textentry.hpp"
 
 using namespace portapack;
 
@@ -42,6 +43,7 @@ MetronomeView::MetronomeView(NavigationView& nav)
         &field_unaccent_beep_tune,
         &field_beep_flash_duration,
         &field_bpm,
+        &button_enter_tap_tempo,
         &progressbar,
     });
 
@@ -57,6 +59,14 @@ MetronomeView::MetronomeView(NavigationView& nav)
         } else {
             play();
         }
+    };
+
+    button_enter_tap_tempo.on_select = [this](Button&) {
+        auto tap_tempo_view = nav_.push<MetronomeTapTempoView>(field_bpm.value());
+
+        tap_tempo_view->on_apply = [this](uint16_t bpm) {
+            field_bpm.set_value(bpm);
+        };
     };
 
     field_volume.set_value(0);  // seems that a change is required to force update, so setting to 0 first
@@ -172,6 +182,118 @@ void MetronomeView::run() {
         current_beat_++;
         chThdSleepMilliseconds(actual_interval);
     }
+}
+
+MetronomeTapTempoView::MetronomeTapTempoView(NavigationView& nav, uint16_t bpm)
+    : nav_{nav},
+      bpm_{bpm} {
+    add_children({
+        &button_input,
+        &button_tap,
+        &button_cancel,
+        &button_apply,
+    });
+
+    bpm_when_entered_ = bpm;  // save for if user cancel
+
+    // im aware that we have duplicated painter which means in this app, weo have two painter instances
+    // here is the reason why this is necessary:
+    // We need to draw the bpm big font once when enter, which would be at bad timing in constructor,
+    // cuz it happened before the view is pushed to nav, which casued it actually didn't draw
+    // which leads me have to override the paint func from father and draw inside of it.
+    //
+    // BUT I can't completely package the draw logic inside of the paint func,
+    // cuz set_dirty has flaw and cause screen flicker during the char changes, if i just package there and use set_dirty()
+    Painter painter_instance_2;
+
+    button_input.on_select = [this](Button&) {
+        input_buffer = to_string_dec_uint(bpm_);
+        text_prompt(
+            nav_,
+            input_buffer,
+            3,
+            ENTER_KEYBOARD_MODE_DIGITS,
+            [this](std::string& buffer) {
+                if (buffer.empty()) {
+                    return;
+                }
+                bpm_ = atoi(buffer.c_str());
+
+                if (on_apply) {
+                    on_apply(bpm_);
+                }
+            });
+    };
+
+    button_tap.on_select = [&](Button&) {
+        on_tap(painter_instance_2);
+    };
+
+    button_apply.on_select = [this](Button&) {
+        // it's dynamically applied in tap handler
+        // the design allow user to hear changes before apply
+        nav_.pop();
+    };
+
+    button_cancel.on_select = [this](Button&) {
+        bpm_ = bpm_when_entered_;
+        if (on_apply) {
+            on_apply(bpm_);
+        }
+        nav_.pop();
+    };
+}
+
+void MetronomeTapTempoView::focus() {
+    button_tap.focus();
+}
+
+void MetronomeTapTempoView::paint(Painter& painter) {
+    View::paint(painter);
+    painter.draw_char({(0 * 16) * 4 + 2 * 16, 3 * 16}, *Theme::getInstance()->fg_light, '0' + bpm_ / 100, 4);
+    painter.draw_char({(1 * 16) * 4 + 2 * 16, 3 * 16}, *Theme::getInstance()->fg_light, '0' + (bpm_ / 10) % 10, 4);
+    painter.draw_char({(2 * 16) * 4 + 2 * 16, 3 * 16}, *Theme::getInstance()->fg_light, '0' + bpm_ % 10, 4);
+}
+
+/*
+NB: i don't really know if the cpu clock is 1000Hz AKA 1ms per tick for chTimeNow()
+    but it should be, refering to the stop watch app.
+    and also i compared with my real metronome and it's very close
+    so I assume it's 1ms per tick
+*/
+void MetronomeTapTempoView::on_tap(Painter& painter) {
+    /*                                      ^ NB: this painter accepted from painter_instance_2*/
+    systime_t current_time = chTimeNow();
+    if (last_tap_time > 0) {
+        uint32_t interval_ms = current_time - last_tap_time;
+
+        if (interval_ms > 100) {
+            uint16_t this_time_bpm = 60000 / interval_ms;
+
+            if (this_time_bpm > 0 && this_time_bpm < 400) {
+                bpms_deque.push_back(this_time_bpm);
+                if (bpms_deque.size() > 4) {  // one bar length cuz most music tempo is quarter note as 1 beat
+                    bpms_deque.pop_front();
+                }
+
+                // avg
+                uint32_t sum = 0;
+                for (auto& bpm : bpms_deque) {
+                    sum += bpm;
+                }
+                bpm_ = sum / bpms_deque.size();
+
+                if (on_apply) {
+                    on_apply(bpm_);
+                }
+
+                painter.draw_char({(0 * 16) * 4 + 2 * 16, 3 * 16}, *Theme::getInstance()->fg_light, '0' + bpm_ / 100, 4);
+                painter.draw_char({(1 * 16) * 4 + 2 * 16, 3 * 16}, *Theme::getInstance()->fg_light, '0' + (bpm_ / 10) % 10, 4);
+                painter.draw_char({(2 * 16) * 4 + 2 * 16, 3 * 16}, *Theme::getInstance()->fg_light, '0' + bpm_ % 10, 4);
+            }
+        }
+    }
+    last_tap_time = current_time;
 }
 
 }  // namespace ui::external_app::metronome

@@ -75,7 +75,7 @@ __attribute__((section(".external_app.app_remote.application_information"), used
     },
     /*.icon_color = */ ui::Color::green().v,
     /*.menu_location = */ app_location_t::HOME,
-    /*.desired_menu_position = */ 4,
+    /*.desired_menu_position = */ 6,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_replay */ {'P', 'R', 'E', 'P'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

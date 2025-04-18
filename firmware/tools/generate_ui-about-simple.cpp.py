@@ -53,7 +53,7 @@ AboutView::AboutView(NavigationView& nav) {
         button_ok.focus();
     };
 
-    for (auto& authors_line : authors_list) {
+    for (auto& authors_line : mayhem_information_list) {
         // if it's starting with #, it's a title and we have to substract the '#' and paint yellow
         if (authors_line.size() > 0) {
             if (authors_line[0] == '#') {
@@ -84,15 +84,13 @@ void AboutView::on_frame_sync() {
             menu_view.set_highlighted(current + 1);
         } else {
             menu_view.set_highlighted(0);
-            // ^ to go back to the REAL top instead of make the 2 at the top to make the title disappeares
-            menu_view.set_highlighted(2);  // the first line that has human name
         }
     }
 }
 
 void AboutView::focus() {
     button_ok.focus();
-    menu_view.set_highlighted(2);  // the first line that has human name
+    menu_view.set_highlighted(3);  // contributors block starting line
 }
 
 bool AboutView::on_touch(const TouchEvent) {
@@ -141,8 +139,12 @@ def get_contributors(url):
 
 def generate_content(projects):
     project_contrib = []
-    project_contrib.append("string_view authors_list[] = {\n")
-    project_contrib.append("    \"#   * List of contributors *  \",\n")
+    project_contrib.append("string_view mayhem_information_list[] = {\n")
+    project_contrib.append("    \"#****** Mayhem Community ******\",\n")
+    project_contrib.append("    \" \",\n")
+    project_contrib.append("    \"  https://discord.mayhem.app\",\n")
+    project_contrib.append("    \" \",\n")
+    project_contrib.append("    \"#**** List of contributors ****\",\n")
     for project in projects:
         project_contrib.append("    \" \",\n")
         project_contrib.append(f"    \"#{project[0]}:\",\n")
@@ -170,7 +172,7 @@ def pp_create_ui_about_simple_cpp(cpp_file, cppheader, cppcontent, cppfooter):
 
 def pp_change_ui_about_simple_cpp(cpp_file, cppcontent):
     content = []
-    content_pattern = re.compile(r"string_view authors_list\[\] = {\n(?:\s+(?:.*,\n)+\s+.*};\n)", re.MULTILINE)
+    content_pattern = re.compile(r"string_view mayhem_information_list\[\] = {\n(?:\s+(?:.*,\n)+\s+.*};\n)", re.MULTILINE)
 
     # Read original file
     with open(cpp_file, 'r') as file:

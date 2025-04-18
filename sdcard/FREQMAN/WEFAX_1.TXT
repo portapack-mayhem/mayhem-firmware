@@ -1,0 +1,51 @@
+# Description: WEather FAX list, part 1
+# See https://weatherfax.com/stations
+
+# Australia
+f=2628000,m=AMFM,bw=USB+FM,d=VMC Charleville
+f=5100000,m=AMFM,bw=USB+FM,d=VMC Charleville
+f=11030000,m=AMFM,bw=USB+FM,d=VMC Charleville
+f=13920000,m=AMFM,bw=USB+FM,d=VMC Charleville
+f=20469000,m=AMFM,bw=USB+FM,d=VMC Charleville
+f=5755000,m=AMFM,bw=USB+FM,d=VMW Wiluna
+f=7535000,m=AMFM,bw=USB+FM,d=VMW Wiluna
+f=10555000,m=AMFM,bw=USB+FM,d=VMW Wiluna
+f=15615000,m=AMFM,bw=USB+FM,d=VMW Wiluna
+f=18060000,m=AMFM,bw=USB+FM,d=VMW Wiluna
+
+# Canada
+f=4416000,m=AMFM,bw=USB+FM,d=VCO Sydney NS
+f=6915100,m=AMFM,bw=USB+FM,d=VCO Sydney NS
+f=4292000,m=AMFM,bw=USB+FM,d=VFA Inuvik
+f=8456000,m=AMFM,bw=USB+FM,d=VFA Inuvik
+f=3253000,m=AMFM,bw=USB+FM,d=VFF Iqaluit/VFR Resolute
+f=7710000,m=AMFM,bw=USB+FM,d=VFF Iqaluit/VFR Resolute
+
+# Chile
+f=4322000,m=AMFM,bw=USB+FM,d=CBM Punta Arenas
+f=8696000,m=AMFM,bw=USB+FM,d=CBM Punta Arenas
+f=4228000,m=AMFM,bw=USB+FM,d=CBV Vaparaiso
+f=8677000,m=AMFM,bw=USB+FM,d=CBV Vaparaiso
+f=17146400,m=AMFM,bw=USB+FM,d=CBV Vaparaiso
+
+# China
+f=4170000,m=AMFM,bw=USB+FM,d=XSG Shanghai
+f=8302000,m=AMFM,bw=USB+FM,d=XSG Shanghai
+f=12382000,m=AMFM,bw=USB+FM,d=XSG Shanghai
+f=16559000,m=AMFM,bw=USB+FM,d=XSG Shanghai
+f=4199800,m=AMFM,bw=USB+FM,d=XSQ Guangzhou
+f=8412500,m=AMFM,bw=USB+FM,d=XSQ Guangzhou
+f=12629300,m=AMFM,bw=USB+FM,d=XSQ Guangzhou
+f=16826300,m=AMFM,bw=USB+FM,d=XSQ Guangzhou
+
+# Germany - Deutscher Wetterdienst (DWD) - Offenbach
+# Surface analysis: 04:30,10:50,16:36,22:00 UTC
+f=3855000,m=AMFM,bw=USB+FM,d=DWD DDH3 Analysis
+# Surface analysis, forecasts, warnings (continuous)
+f=7880000,m=AMFM,bw=USB+FM,d=DWD DDK3 Forecasts
+# Surface analysis & wave height (continuous)
+f=13882500,m=AMFM,bw=USB+FM,d=DWD DDK6 Waves
+
+# Greece
+f=4482900,m=AMFM,bw=USB+FM,d=SVJ4 Athens
+f=8106900,m=AMFM,bw=USB+FM,d=SVJ4 Athens

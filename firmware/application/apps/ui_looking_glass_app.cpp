@@ -126,7 +126,7 @@ void GlassView::reset_live_view() {
 }
 
 void GlassView::add_spectrum_pixel(uint8_t power) {
-    spectrum_row[pixel_index] = spectrum_rgb3_lut[power];                                                                           // row of colors
+    spectrum_row[pixel_index] = gradient.lut[power];                                                                                // row of colors
     spectrum_data[pixel_index] = (live_frequency_integrate * spectrum_data[pixel_index] + power) / (live_frequency_integrate + 1);  // smoothing
     pixel_index++;
 
@@ -358,6 +358,10 @@ GlassView::GlassView(
     NavigationView& nav)
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+
+    if (!gradient.load_file(default_gradient_file)) {
+        gradient.set_default();
+    }
 
     add_children({&labels,
                   &field_frequency_min,

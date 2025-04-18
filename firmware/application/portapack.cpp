@@ -538,7 +538,6 @@ init_status_t init() {
 
     set_cpu_clock_speed();
 
-    if (persistent_memory::config_lcd_inverted_mode()) display.set_inverted(true);
     /* sample max: 1023 sample_t AKA uint16_t
      * touch_sensitivity: range: 1 to 128
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
