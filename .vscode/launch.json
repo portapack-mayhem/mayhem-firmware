@@ -5,6 +5,30 @@
    "version": "0.2.0",
    "configurations": [
       {
+         "name": "Launch Edge",
+         "request": "launch",
+         "type": "msedge",
+         "url": "http://localhost:8080",
+         "webRoot": "${workspaceFolder}"
+      },
+      {
+         "name": ".NET Core Launch (console)",
+         "type": "coreclr",
+         "request": "launch",
+         "preLaunchTask": "build",
+         "program": "${workspaceFolder}/bin/Debug/<target-framework>/<project-name.dll>",
+         "args": [],
+         "cwd": "${workspaceFolder}",
+         "stopAtEntry": false,
+         "console": "internalConsole",
+         "pipeTransport": {
+            "pipeCwd": "${workspaceFolder}",
+            "pipeProgram": "enter the fully qualified path for the pipe program name, for example '/usr/bin/ssh'",
+            "pipeArgs": [],
+            "debuggerPath": "enter the path for the debugger on the target machine, for example ~/vsdbg/vsdbg"
+         }
+      },
+      {
          "name": "(gdb) JTAG probe",
          "type": "cppdbg",
          "request": "launch",
