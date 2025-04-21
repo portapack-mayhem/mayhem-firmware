@@ -163,6 +163,13 @@ SigGenView::SigGenView(
         transmitter_model.disable();
         tx_view.set_transmitting(false);
     };
+
+    tx_view.on_bandwidth_changed = [this](uint32_t bw) {
+        transmitter_model.set_channel_bandwidth(bw); // Use the model's setter
+        if (auto_update) {
+            update_config();
+        }
+    };
 }
 
 } /* namespace ui */
