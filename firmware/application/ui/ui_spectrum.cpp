@@ -107,6 +107,10 @@ void FrequencyScale::set_cursor_position(const int32_t position) {
     cursor_position = std::min<int32_t>(cursor_position, 119);
     cursor_position = std::max<int32_t>(cursor_position, -120);
 
+    // show cursor immediately
+    _blink = true;
+    on_tick_second();
+
     set_dirty();
 }
 
@@ -305,8 +309,9 @@ void WaterfallWidget::on_channel_spectrum(
 }
 
 bool WaterfallWidget::on_touch(const TouchEvent event) {
-    if (event.type == TouchEvent::Type::Start) {
-        if (on_touch_select) {
+    if (event.type == TouchEvent::Type::Start ||
+        event.type == TouchEvent::Type::End) {
+                if (on_touch_select) {
             on_touch_select(event.point.x(), event.point.y());
         }
     }
