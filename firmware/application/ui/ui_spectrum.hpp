@@ -91,9 +91,6 @@ class FrequencyScale : public Widget {
    private:
     static constexpr int filter_band_height = 4;
 
-    void on_tick_second();
-
-    bool _blink{false};
     int32_t cursor_position{0};
     SignalToken signal_token_tick_second{};
     int spectrum_sampling_rate{0};
