@@ -254,12 +254,15 @@ bool FrequencyScale::on_touch(const TouchEvent touch) {
 =======
 }
 
+<<<<<<< HEAD
 void FrequencyScale::on_tick_second() {
     set_dirty();
     _blink = !_blink;
 >>>>>>> 584af02d (Touch on waterfall to set cursor pos (#2624))
 }
 
+=======
+>>>>>>> de3212cb (spectrum cursor opt again (#2634))
 /* WaterfallWidget *********************************************************/
 // TODO: buffer and use "paint" instead of immediate drawing would help with
 // preventing flicker from drawing. Would use more RAM however.
