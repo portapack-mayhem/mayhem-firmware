@@ -252,11 +252,6 @@ bool FrequencyScale::on_touch(const TouchEvent touch) {
     return true;
 }
 
-void FrequencyScale::on_tick_second() {
-    set_dirty();
-    _blink = !_blink;
-}
-
 /* WaterfallWidget *********************************************************/
 // TODO: buffer and use "paint" instead of immediate drawing would help with
 // preventing flicker from drawing. Would use more RAM however.
