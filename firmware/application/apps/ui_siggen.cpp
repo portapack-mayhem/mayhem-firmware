@@ -165,7 +165,7 @@ SigGenView::SigGenView(
     };
 
     tx_view.on_bandwidth_changed = [this](uint32_t bw) {
-        transmitter_model.set_channel_bandwidth(bw); // Use the model's setter
+        transmitter_model.set_channel_bandwidth(bw);
         if (auto_update) {
             update_config();
         }
