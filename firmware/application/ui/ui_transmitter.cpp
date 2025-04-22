@@ -157,6 +157,7 @@ TransmitterView::TransmitterView(
                 on_channel_bandwidth_changed(v * 1000);
                 if (on_bandwidth_changed) {
                     on_bandwidth_changed(v * 1000);
+                }
             };
             field_bw.set_value(channel_bandwidth);
         }
