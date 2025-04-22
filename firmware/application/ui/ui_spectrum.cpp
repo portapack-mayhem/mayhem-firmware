@@ -107,10 +107,6 @@ void FrequencyScale::set_cursor_position(const int32_t position) {
     cursor_position = std::min<int32_t>(cursor_position, 119);
     cursor_position = std::max<int32_t>(cursor_position, -120);
 
-    // show cursor immediately
-    _blink = true;
-    on_tick_second();
-
     set_dirty();
 }
 
@@ -127,14 +123,12 @@ void FrequencyScale::paint(Painter& painter) {
     draw_filter_ranges(painter, r);
     draw_frequency_ticks(painter, r);
 
-    if (_blink) {
-        const Rect r_cursor{
-            118 + cursor_position, r.bottom() - filter_band_height,
-            5, filter_band_height};
-        painter.fill_rectangle(
-            r_cursor,
-            Color::red());
-    }
+    const Rect r_cursor{
+        118 + cursor_position, r.bottom() - filter_band_height,
+        5, filter_band_height};
+    painter.fill_rectangle(
+        r_cursor,
+        Color::red());
 }
 
 void FrequencyScale::clear() {
@@ -218,16 +212,10 @@ void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
 }
 
 void FrequencyScale::on_focus() {
-    _blink = true;
-    on_tick_second();
-    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-        this->on_tick_second();
-    };
+    set_dirty();
 }
 
 void FrequencyScale::on_blur() {
-    rtc_time::signal_tick_second -= signal_token_tick_second;
-    _blink = false;
     set_dirty();
 }
 
@@ -247,6 +235,7 @@ bool FrequencyScale::on_key(const KeyEvent key) {
         if (on_select) {
             on_select((cursor_position * spectrum_sampling_rate) / 240);
             cursor_position = 0;
+            set_dirty();
             return true;
         }
     }
