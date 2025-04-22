@@ -298,8 +298,7 @@ void WaterfallWidget::on_channel_spectrum(
 }
 
 bool WaterfallWidget::on_touch(const TouchEvent event) {
-    if (event.type == TouchEvent::Type::Start ||
-        event.type == TouchEvent::Type::End) {
+    if (event.type == TouchEvent::Type::Start) {
         if (on_touch_select) {
             on_touch_select(event.point.x(), event.point.y());
         }
