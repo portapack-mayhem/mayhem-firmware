@@ -50,8 +50,8 @@ class TransmitterView : public View {
     std::function<void(void)> on_edit_frequency{};
     std::function<void(void)> on_start{};
     std::function<void(void)> on_stop{};
-    std::function<void(uint32_t)> on_bandwidth_changed{};
-
+    std::function<void(void)> on_bandwidth_changed{};
+	
     TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock);
     TransmitterView(
         const Coord y,

@@ -154,6 +154,11 @@ SigGenView::SigGenView(
         };
     };
 
+    tx_view.on_bandwidth_changed = [this]() {
+        // No check for auto_update to keep bw consistent with frequency, gain and amplitude.
+        update_config();
+    };
+
     tx_view.on_start = [this]() {
         start_tx();
         tx_view.set_transmitting(true);
@@ -162,13 +167,6 @@ SigGenView::SigGenView(
     tx_view.on_stop = [this]() {
         transmitter_model.disable();
         tx_view.set_transmitting(false);
-    };
-
-    tx_view.on_bandwidth_changed = [this](uint32_t bw) {
-        transmitter_model.set_channel_bandwidth(bw);
-        if (auto_update) {
-            update_config();
-        }
     };
 }
 
