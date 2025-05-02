@@ -155,7 +155,9 @@ SigGenView::SigGenView(
     };
 
     tx_view.on_bandwidth_changed = [this]() {
-        // No check for auto_update to keep bw consistent with frequency, gain and amplitude.
+        // we don't protect here with auto_update because other field of tx_view obj isn't protected too
+        // to remains the design logic same
+
         update_config();
     };
 
