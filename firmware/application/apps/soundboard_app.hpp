@@ -70,6 +70,8 @@ class SoundBoardView : public View {
     uint32_t playing_id{};
     uint32_t page = 1;
     uint32_t c_page = 1;
+    uint32_t tone_key_index = 1;
+    uint8_t bits_per_sample = 1;
 
     std::vector<std::filesystem::path> file_list{};
 
@@ -90,6 +92,7 @@ class SoundBoardView : public View {
     void on_tx_progress(const uint32_t progress);
     void refresh_list();
     void on_select_entry();
+    void update_config();
 
     Labels labels{
         {{24 * 8, 180}, "Vol:", Theme::getInstance()->fg_light->foreground},
