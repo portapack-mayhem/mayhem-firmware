@@ -103,7 +103,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
     progressbar.set_max(reader->sample_count());
 
     // button_play.set_bitmap(&bitmap_stop);
-	
+
     uint32_t sample_rate = reader->sample_rate();
 
     tone_key_index = options_tone_key.selected_index();
@@ -154,6 +154,8 @@ void SoundBoardView::on_tx_progress(const uint32_t progress) {
 }
 
 void SoundBoardView::update_config() {
+    // NB: this were called by the on_bandwidth_changed() callback,
+    // so other val would be updated too when bw changed. currently it's safe but be careful.
     baseband::set_audiotx_config(
         1536000 / 20,  // Update vu-meter at 20Hz
         transmitter_model.channel_bandwidth(),
@@ -167,7 +169,7 @@ void SoundBoardView::update_config() {
         false   // LSB
     );
 }
-	
+
 void SoundBoardView::on_select_entry() {
     tx_view.focus();
 }
