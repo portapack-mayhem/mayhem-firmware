@@ -50,6 +50,10 @@ class TransmitterView : public View {
     std::function<void(void)> on_edit_frequency{};
     std::function<void(void)> on_start{};
     std::function<void(void)> on_stop{};
+    std::function<void(void)> on_bandwidth_changed{};
+    // TODO: this is a workaround because in the message system,
+    // we change bw by different message for different m4 bb, so have to callback
+    // and change in the instance(for instance SigGen app) with calling the instance's bb opration func
 
     TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock);
     TransmitterView(
