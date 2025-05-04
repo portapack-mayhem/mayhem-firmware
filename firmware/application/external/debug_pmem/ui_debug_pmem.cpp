@@ -156,6 +156,9 @@ bool DebugDumpView::debug_dump_func() {
         case ReceiverModel::Mode::WidebandFMAudio:
             pmem_dump_file.write_line("modulation: Mode::WidebandFMAudio");
             break;
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            pmem_dump_file.write_line("modulation: Mode::WFMAudioAMApt");
+            break;
         case ReceiverModel::Mode::SpectrumAnalysis:
             pmem_dump_file.write_line("modulation: Mode::SpectrumAnalysis");
             break;

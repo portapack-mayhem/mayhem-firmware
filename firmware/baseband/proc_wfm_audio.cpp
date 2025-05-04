@@ -47,23 +47,37 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
         channel_spectrum.feed(channel, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
     }
 
-    /* 384kHz complex<int16_t>[256]
+    /* 384kHz complex<int16_t>[256]  for wfm
      * -> FM demodulation
      * -> 384kHz int16_t[256] */
     /* TODO: To improve adjacent channel rejection, implement complex channel filter:
      *		pass < +/- 100kHz, stop > +/- 200kHz
      */
 
-    auto audio_oversampled = demod.execute(channel, work_audio_buffer);
+    /* 96kHz complex<int16_t>[64]  for wfmam NOAA
+     * -> FM demodulation
+     * -> 96kHz int16_t[64] */
 
-    /* 384kHz int16_t[256]
+    auto audio_oversampled = demod.execute(channel, work_audio_buffer);  // fs 384khz wfm , 96khz wfmam for NOAA
+
+    /* 384kHz int16_t[256]     for wfm
      * -> 4th order CIC decimation by 2, gain of 1
      * -> 192kHz int16_t[128] */
+
+    /* 96kHz int16_t[64]     for wfam
+     * -> 4th order CIC decimation by 2, gain of 1
+     * -> 48kHz int16_t[32] */
+
     auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
 
-    /* 192kHz int16_t[128]
+    /* 192kHz int16_t[128]   for wfm
      * -> 4th order CIC decimation by 2, gain of 1
      * -> 96kHz int16_t[64] */
+
+    /* 48kHz int16_t[32]     for wfman
+     * -> 4th order CIC decimation by 2, gain of 1
+     * -> 24kHz int16_t[16] */
+
     auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
 
     // Input: 96kHz int16_t[64]
@@ -118,13 +132,24 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
             break;
     }
 
-    /* 96kHz int16_t[64]
+    /* 96kHz int16_t[64]         for wfm
      * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
      * -> 48kHz int16_t[32] */
+
+    /* 24kHz int16_t[16]          for wfmam
+     * -> FIR filter, <4.5kHz (0.1875fs) pass, >5.2kHz (0.2166fs) stop, gain of 1
+     * -> 12kHz int16_t[8] */
+
     auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
 
-    /* -> 48kHz int16_t[32] */
-    audio_output.write(audio);
+    /* -> 48kHz int16_t[32]  for wfm  ,   */
+    /* -> 12kHz int16_t[8]   for wfmam ,  */
+
+    if (decim_1.decimation_factor() == 2) {
+        audio_output.write(audio);  // we are in original wfm , decim_1.decimation_factor == 2
+    } else {
+        audio_output.apt_write(audio);  // we are in added wfmam (noaa), decim_1.decimation_factor == 8
+    }
 }
 
 void WidebandFMAudio::post_message(const buffer_c16_t& data) {
@@ -142,7 +167,11 @@ void WidebandFMAudio::on_message(const Message* const message) {
             break;
 
         case Message::ID::WFMConfigure:
-            configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
+            configure_wfm(*reinterpret_cast<const WFMConfigureMessage*>(message));
+            break;
+
+        case Message::ID::WFMAMConfigure:
+            configure_wfmam(*reinterpret_cast<const WFMAMConfigureMessage*>(message));
             break;
 
         case Message::ID::CaptureConfig:
@@ -154,20 +183,56 @@ void WidebandFMAudio::on_message(const Message* const message) {
     }
 }
 
-void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
+void WidebandFMAudio::configure_wfm(const WFMConfigureMessage& message) {
     constexpr size_t decim_0_input_fs = baseband_fs;
     constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
-
     constexpr size_t decim_1_input_fs = decim_0_output_fs;
-    constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
-    constexpr size_t demod_input_fs = decim_1_output_fs;
+    decim_0.configure(message.decim_0_filter.taps);
+    // decim_1.configure(message.decim_1_filter.taps);  // Original .
+
+    // TODO dynamic decim1 ,  with decimation 2 / 8 and  16 x taps , / 32 taps .
+    // Temptatively , I splitted, in two WidebandFMAudio::configure_wfm / WidebandFMAudio::configure_wfmam and dynamically /2, /8  (here /2)
+    // decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);   // for wfm
+    // decim_1.set<dsp::decimate::FIRC16xR16x32Decim8>().configure(taps_84k_wfmam_decim_1.taps); // for wfmam
+    decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);  // for wfm
+    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();                 // wfm , decim_1.decimation_factor() = /2 , if applied after the line : decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);
+    size_t demod_input_fs = decim_1_output_fs;
 
     spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
     spectrum_samples = 0;
 
+    channel_filter_low_f = message.decim_1_filter.low_frequency_normalized * decim_1_input_fs;
+    channel_filter_high_f = message.decim_1_filter.high_frequency_normalized * decim_1_input_fs;
+    channel_filter_transition = message.decim_1_filter.transition_normalized * decim_1_input_fs;
+    demod.configure(demod_input_fs, message.deviation);
+    audio_filter.configure(message.audio_filter.taps);
+    audio_output.configure(message.audio_hpf_config, message.audio_deemph_config);
+
+    channel_spectrum.set_decimation_factor(1);
+
+    configured = true;
+}
+
+void WidebandFMAudio::configure_wfmam(const WFMAMConfigureMessage& message) {
+    constexpr size_t decim_0_input_fs = baseband_fs;
+    constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+    constexpr size_t decim_1_input_fs = decim_0_output_fs;
+
     decim_0.configure(message.decim_0_filter.taps);
-    decim_1.configure(message.decim_1_filter.taps);
+
+    // decim_1.configure(message.decim_1_filter.taps);  // Original .
+    // TODO dynamic decim1 ,  with decimation 2 / 8 and  16 x taps , / 32 taps .
+    // Temptatively , I splitted, in two WidebandFMAudio::configure_wfm / WidebandFMAudio::configure_wfmam  and dynamically /2, /8 . (here /8)
+    // decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);  // for wfm
+    // decim_1.set<dsp::decimate::FIRC16xR16x32Decim8>().configure(message.decim_1_filter.taps);    // for wfmam
+    decim_1.set<dsp::decimate::FIRC16xR16x32Decim8>().configure(message.decim_1_filter.taps);  // for wfmam
+    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();                 // wfmam,  decim_1.decimation_factor() = /8 ,if applied after the line, decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);
+    size_t demod_input_fs = decim_1_output_fs;
+
+    spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
+    spectrum_samples = 0;
+
     channel_filter_low_f = message.decim_1_filter.low_frequency_normalized * decim_1_input_fs;
     channel_filter_high_f = message.decim_1_filter.high_frequency_normalized * decim_1_input_fs;
     channel_filter_transition = message.decim_1_filter.transition_normalized * decim_1_input_fs;
