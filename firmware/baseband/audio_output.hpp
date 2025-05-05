@@ -59,8 +59,9 @@ class AudioOutput {
    private:
     static constexpr float k = 32768.0f;
     static constexpr float ki = 1.0f / k;
-    static constexpr float cos_theta = 0.3090169944f;
-    static constexpr float sen_theta = 0.9510565163f;
+    static constexpr float cos_theta = 0.30901699437494742410f;
+    static constexpr float sin_theta = 0.95105651629515357212f;
+
     float cur = 0.0f, cur2 = 0.0f, prev = 0.0f, prev2 = 0.0f, mag_am = 0.0f;
 
     BlockDecimator<int16_t, 32> block_buffer_s16{1};
