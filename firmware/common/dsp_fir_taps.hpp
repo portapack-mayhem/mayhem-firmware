@@ -1327,6 +1327,7 @@ constexpr fir_taps_real<16> taps_80k_wfm_decim_1 = {
 
 // WFMAM decimation filters  ////////////////////////////////////////////////
 // Used for NOAA 137 Mhz APT sat demod.
+<<<<<<< HEAD
 // IFIR prototype filter: fs=768000, pass=40000, stop=95000, decim=8, fout=96000
 constexpr fir_taps_real<32> taps_80k_wfmam_decim_1 = {
     .low_frequency_normalized = -40000.0f / 768000.0f,
@@ -1409,6 +1410,46 @@ constexpr fir_taps_real<32> taps_38k_wfmam_decim_1 = {
         175,
         91,
         49,
+=======
+// IFIR prototype filter: fs=768000, pass=42000, stop=95000, decim=8, fout=96000
+constexpr fir_taps_real<32> taps_84k_wfmam_decim_1 = {
+    .low_frequency_normalized = -42000.0f / 768000.0f,
+    .high_frequency_normalized = 42000.0f / 768000.0f,
+    .transition_normalized = 53000.0f / 768000.0f,
+    .taps = {{
+        13,
+        -6,
+        -47,
+        -116,
+        -207,
+        -294,
+        -332,
+        -266,
+        -39,
+        386,
+        1012,
+        1795,
+        2648,
+        3452,
+        4079,
+        4423,
+        4423,
+        4079,
+        3452,
+        2648,
+        1795,
+        1012,
+        386,
+        -39,
+        -266,
+        -332,
+        -294,
+        -207,
+        -116,
+        -47,
+        -6,
+        13,
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
     }},
 };
 
@@ -1491,6 +1532,7 @@ constexpr fir_taps_real<64> taps_64_lp_1875_2166{
     }},
 };
 
+<<<<<<< HEAD
 /* 1st Wideband FM demod baseband filter of audio AM tones ,
    to pass all DSB band of  AM  fsubcarrier 2.4Khz mod. with APT */
 /* 24kHz int16_t input
@@ -1511,6 +1553,8 @@ constexpr fir_taps_real<64> taps_64_bpf_2k4_bw_2k{
               -45}},
 };
 
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
 // TPMS decimation filters ////////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400

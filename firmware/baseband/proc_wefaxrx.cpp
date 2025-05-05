@@ -162,10 +162,14 @@ void WeFaxRx::configure(const WeFaxRxConfigureMessage& message) {
     channel_filter_transition = taps_2k6_usb_wefax_channel.transition_normalized * channel_filter_input_fs;
     channel_spectrum.set_decimation_factor(1.0f);
 <<<<<<< HEAD
+<<<<<<< HEAD
     audio_output.configure(apt_audio_12k_lpf_1500hz_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 =======
     audio_output.configure(audio_12k_lpf_1500hz_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+    audio_output.configure(apt_audio_12k_lpf_1500hz_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
 
     lpm = message.lpm;
     ioc_mode = message.ioc;

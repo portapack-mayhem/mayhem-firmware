@@ -173,11 +173,17 @@ bool DebugDumpView::debug_dump_func() {
             pmem_dump_file.write_line("modulation: Mode::WidebandFMAudio");
             break;
 <<<<<<< HEAD
+<<<<<<< HEAD
         case ReceiverModel::Mode::WFMAudioAMApt:
             pmem_dump_file.write_line("modulation: Mode::WFMAudioAMApt");
             break;
 =======
 >>>>>>> 2229381c (Externalize dump pmem (#2590))
+=======
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            pmem_dump_file.write_line("modulation: Mode::WFMAudioAMApt");
+            break;
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         case ReceiverModel::Mode::SpectrumAnalysis:
             pmem_dump_file.write_line("modulation: Mode::SpectrumAnalysis");
             break;

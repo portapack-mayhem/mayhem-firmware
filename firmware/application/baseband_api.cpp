@@ -112,8 +112,13 @@ void NBFMConfig::apply(const uint8_t squelch_level) const {
 
 void WFMConfig::apply() const {
     const WFMConfigureMessage message{
+<<<<<<< HEAD
         decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_80k_wfm_decim_0
         decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_80k_wfm_decim_1
+=======
+        decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_40k_wfm_decim_0
+        decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_40k_wfm_decim_1
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         taps_64_lp_156_198,  // Fixed channel audio filter 15khz
         75000,
         audio_48k_hpf_30hz_config,
@@ -124,10 +129,17 @@ void WFMConfig::apply() const {
 
 void WFMAMConfig::apply() const {
     const WFMAMConfigureMessage message{
+<<<<<<< HEAD
         decim_0,         // 	Fixed 24 taps array : taps_16k0_decim_0
         decim_1,         // Dynamic  32 taps array : taps_80k_wfmam_decim_1, 38k_wfmam
         taps_64_lp_bpf,  // Dynamic 64 taps array , to filter modulated DSB AM 2k4 carrier before demod. AM .(LPF / BPF)
         17000,           // NOAA satellite tx , FM deviation = +-17Khz.
+=======
+        decim_0,               // 	Fixed 24 taps array : taps_16k0_decim_0
+        decim_1,               // 	Fixed 32 taps array : taps_84k_wfm_decim_1
+        taps_64_lp_1875_2166,  // Fixed channel audio filter , 64 taps array , to filter DSB AM 2k4 carrier before demod. AM .
+        17000,                 // NOAA satellite tx , FM deviation = +-17Khz.
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         apt_audio_12k_notch_2k4_config,
         apt_audio_12k_lpf_2000hz_config};
     send_message(&message);

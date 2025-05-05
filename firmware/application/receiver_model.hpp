@@ -53,9 +53,15 @@ class ReceiverModel {
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
 =======
         SpectrumAnalysis = 3,
+<<<<<<< HEAD
         AMAudioFMApt = 4,  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
         Capture = 5,
 >>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
+=======
+        AMAudioFMApt = 4,   // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        WFMAudioAMApt = 5,  // Added to handle SAT Weather map , NOAA 137 Mhz.
+        Capture = 6,
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
     };
 
     struct settings_t {
@@ -70,9 +76,13 @@ class ReceiverModel {
         uint8_t am_config_index = 0;
         uint8_t amfm_config_index = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
         uint8_t wfmam_config_index = 0;
 =======
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+        uint8_t wfmam_config_index = 0;
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         uint8_t nbfm_config_index = 0;
         uint8_t wfm_config_index = 0;
         uint8_t squelch_level = 80;

@@ -160,7 +160,31 @@ WFMOptionsView::WFMOptionsView(
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* WFMAMAptOptionsView *******************************************************/
+=======
+/* WFMAMAptOptionsView *******************************************************/
+
+WFMAMAptOptionsView::WFMAMAptOptionsView(
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+    });
+
+    freqman_set_bandwidth_option(WFMAM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.wfmam_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+        receiver_model.set_wfmam_configuration(n);
+    };
+}
+
+/* AMFMAptOptionsView *********************************************************/
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
 
 <<<<<<< HEAD
 WFMAMAptOptionsView::WFMAMAptOptionsView(
@@ -527,6 +551,9 @@ void AnalogAudioView::on_show_options_modulation() {
             break;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         case ReceiverModel::Mode::WFMAudioAMApt:
             widget = std::make_unique<WFMAMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(true);
@@ -589,13 +616,19 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         case ReceiverModel::Mode::WFMAudioAMApt:
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
         case ReceiverModel::Mode::AMAudioFMApt:
+<<<<<<< HEAD
 =======
         case ReceiverModel::Mode::AMAudioFMApt:  // TODO pending to update it.
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
             image_tag = portapack::spi_flash::image_tag_am_audio;
             break;
         case ReceiverModel::Mode::SpectrumAnalysis:
@@ -635,13 +668,19 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
             sampling_rate = 48000;
             break;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         case ReceiverModel::Mode::WFMAudioAMApt:
             sampling_rate = 12000;
             break;
         case ReceiverModel::Mode::AMAudioFMApt:
+<<<<<<< HEAD
 =======
         case ReceiverModel::Mode::AMAudioFMApt:  // TODO  Wefax mode.
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
             sampling_rate = 12000;
             break;
         default:

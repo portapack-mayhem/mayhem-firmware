@@ -70,7 +70,11 @@ struct NBFMConfig {
 };
 
 struct WFMConfig {
+<<<<<<< HEAD
     const fir_taps_real<24> decim_0;  // To handle all 3 WFM filters , 200k, 180k and 80K-
+=======
+    const fir_taps_real<24> decim_0;  // To handle all 3 WFM filters , 200k, 180k and 40K-
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
     const fir_taps_real<16> decim_1;
 
     void apply() const;
@@ -79,7 +83,10 @@ struct WFMConfig {
 struct WFMAMConfig {
     const fir_taps_real<24> decim_0;  // To handle WFM filter   BW=40K for NOAA APT
     const fir_taps_real<32> decim_1;
+<<<<<<< HEAD
     const fir_taps_real<64> taps_64_lp_bpf;  // to handle dynamically  LPF / BPF .
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
 
     void apply() const;
 };

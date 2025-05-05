@@ -50,6 +50,7 @@ options_t freqman_modulations = {
     {"WFM", 2},
     {"SPEC", 3},
 <<<<<<< HEAD
+<<<<<<< HEAD
     {"AMFM", 4},  // To handle HF Wefax AM and FM demod. inside Audio App.
     {"FMAM", 5},  // To handle NOAA 137 Mhz Sat FM and AM demod inside Audio App.
 =======
@@ -62,6 +63,13 @@ options_t freqman_bandwidths[6] = {
 =======
 options_t freqman_bandwidths[5] = {
 >>>>>>> 52c3760e (Adding Wefax demodulation mode inside Audio App (#2539))
+=======
+    {"AMFM", 4},  // To handle HF Wefax AM and FM demod. inside Audio App.
+    {"FMAM", 5},  // To handle NOAA 137 Mhz Sat FM and AM demod inside Audio App.
+};
+
+options_t freqman_bandwidths[6] = {
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
     {
         // AM
         {"DSB 9k", 0},
@@ -130,7 +138,11 @@ options_t freqman_bandwidths[5] = {
     },
     {
         // AMFM for Wefax-
-        {"USB+FM", 5},  // Fixed RX demodul AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
+        {"USB+FM", 5},  // Fixed RX demod. AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
+    },
+    {
+        // WFMAM for NOAA satellites,  137 Mhz band
+        {"FM+AM(DSB)", 1},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
     },
 };
 >>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))

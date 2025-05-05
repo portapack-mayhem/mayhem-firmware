@@ -46,6 +46,9 @@ using options_db_t = std::vector<option_db_t>;
 
 extern options_db_t freqman_modulations;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
 extern options_db_t freqman_bandwidths[6];
 // extern options_db_t freqman_steps; // now included via ui_receiver.hpp
 =======

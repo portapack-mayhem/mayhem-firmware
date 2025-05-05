@@ -131,6 +131,7 @@ class Message {
         WeFaxRxStatusData = 74,
         WeFaxRxImageData = 75,
 <<<<<<< HEAD
+<<<<<<< HEAD
         WFMAMConfigure = 76,
         NoaaAptRxConfigure = 77,
         NoaaAptRxStatusData = 78,
@@ -140,6 +141,9 @@ class Message {
 =======
 
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+        WFMAMConfigure = 76,
+>>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
         MAX
     };
 
