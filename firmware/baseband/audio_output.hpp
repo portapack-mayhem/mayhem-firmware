@@ -46,6 +46,7 @@ class AudioOutput {
         const float squelch_threshold = 0.0f);
 
     void write_unprocessed(const buffer_s16_t& audio);
+    void apt_write(const buffer_s16_t& audio);
     void write(const buffer_s16_t& audio);
     void write(const buffer_f32_t& audio);
 
@@ -58,6 +59,10 @@ class AudioOutput {
    private:
     static constexpr float k = 32768.0f;
     static constexpr float ki = 1.0f / k;
+    static constexpr float cos_theta = 0.30901699437494742410f;
+    static constexpr float sin_theta = 0.95105651629515357212f;
+
+    float cur = 0.0f, cur2 = 0.0f, prev = 0.0f, prev2 = 0.0f, mag_am = 0.0f;
 
     BlockDecimator<int16_t, 32> block_buffer_s16{1};
     BlockDecimator<float, 32> block_buffer{1};
