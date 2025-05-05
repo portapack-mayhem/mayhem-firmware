@@ -57,7 +57,7 @@ void AudioOutput::apt_write(const buffer_s16_t& audio) {
     for (size_t i = 0; i < audio.count; i++) {
         cur = audio.p[i];
         cur2 = cur * cur;
-        mag_am = sqrtf(prev2 + cur2 - (2 * prev * cur * cos_theta)) / sen_theta;
+        mag_am = sqrtf(prev2 + cur2 - (2 * prev * cur * cos_theta)) / sin_theta;
         audio_f[i] = mag_am * ki;  // normalize.
         prev = cur;
         prev2 = cur2;
