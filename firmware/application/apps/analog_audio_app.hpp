@@ -74,7 +74,7 @@ class AMFMAptOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // Max option length chars
+        6,  // Max option length chars  "USB+FM"
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
@@ -127,6 +127,23 @@ class WFMOptionsView : public View {
     OptionsField options_config{
         {3 * 8, 0 * 16},
         4,  // Max option length
+        {
+            // Using common messages from freqman_ui.cpp
+        }};
+};
+
+class WFMAMAptOptionsView : public View {
+   public:
+    WFMAMAptOptionsView(Rect parent_rect, const Style* style);
+
+   private:
+    Text label_config{
+        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        "BW",
+    };
+    OptionsField options_config{
+        {3 * 8, 0 * 16},
+        10,  // Max option char length  "FM+AM(DSB)"
         {
             // Using common messages from freqman_ui.cpp
         }};
@@ -215,7 +232,7 @@ class AnalogAudioView : public View {
     uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
     uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
     uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
-                                             //
+
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
@@ -261,7 +278,8 @@ class AnalogAudioView : public View {
             {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
             {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
-            {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)}  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+            {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+            {"FMAM", toUType(ReceiverModel::Mode::WFMAudioAMApt)}  // Added to handle  SAT NOAA APT
         }};
 
     AudioVolumeField field_volume{

@@ -56,8 +56,15 @@ struct NBFMConfig {
 };
 
 struct WFMConfig {
-    const fir_taps_real<24> decim_0;  // To handle both WFM filters , 200k and 40K for NOAA APT
+    const fir_taps_real<24> decim_0;  // To handle all 3 WFM filters , 200k, 180k and 40K-
     const fir_taps_real<16> decim_1;
+
+    void apply() const;
+};
+
+struct WFMAMConfig {
+    const fir_taps_real<24> decim_0;  // To handle WFM filter   BW=40K for NOAA APT
+    const fir_taps_real<32> decim_1;
 
     void apply() const;
 };

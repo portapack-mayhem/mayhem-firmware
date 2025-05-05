@@ -52,6 +52,19 @@ void AudioOutput::write_unprocessed(const buffer_s16_t& audio) {
         });
 }
 
+void AudioOutput::apt_write(const buffer_s16_t& audio) {
+    std::array<float, 32> audio_f;
+    for (size_t i = 0; i < audio.count; i++) {
+        cur = audio.p[i];
+        cur2 = cur * cur;
+        mag_am = sqrtf(prev2 + cur2 - (2 * prev * cur * cos_theta)) / sin_theta;
+        audio_f[i] = mag_am * ki;  // normalize.
+        prev = cur;
+        prev2 = cur2;
+    }
+    write(buffer_f32_t{audio_f.data(), audio.count, audio.sampling_rate});
+}
+
 void AudioOutput::write(const buffer_s16_t& audio) {
     std::array<float, 32> audio_f;
     for (size_t i = 0; i < audio.count; i++) {
@@ -72,8 +85,8 @@ void AudioOutput::on_block(const buffer_f32_t& audio) {
     if (do_processing) {
         const auto audio_present_now = squelch.execute(audio);
 
-        hpf.execute_in_place(audio);  // IIRBiquadFilter name is "hpf", but we will call with "hpf-coef" for all  except AMFM (WFAX) with "lpf-coef"
-        deemph.execute_in_place(audio);
+        hpf.execute_in_place(audio);     // IIRBiquadFilter name is "hpf", but we will call with "hpf-coef" for all  except AMFM (WFAX) with "lpf-coef" and notch for WFMAM (NOAA)
+        deemph.execute_in_place(audio);  // IIRBiquadFilter name is "deemph", but we will call LPF de-emphasis or  other LPF for WFAM (NOAA).
 
         audio_present_history = (audio_present_history << 1) | (audio_present_now ? 1 : 0);
         audio_present = (audio_present_history != 0);
