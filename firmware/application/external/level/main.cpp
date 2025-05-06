@@ -78,12 +78,17 @@ __attribute__((section(".external_app.app_level.application_information"), used)
     /*.desired_menu_position = */ -1,
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // this has to be the biggest baseband used by the app. Level is using AM,WFM,NFM,AMFM,SPEC and WFM is the biggest
     /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'W', 'F', 'M'},
 =======
     // this has to be the biggest baseband used by the app. Level is using AM,WFM,NFM,AMFM,SPEC and NFM is the biggest
     /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'N', 'F', 'M'},
 >>>>>>> 75c34747 (Externalize level (#2596))
+=======
+    // this has to be the biggest baseband used by the app. Level is using AM,WFM,NFM,AMFM,SPEC and WFM is the biggest
+    /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'W', 'F', 'M'},
+>>>>>>> d4342e01 (going back to WFM as main baseband in main.cpp as NFM is now making the apps crashing. Looks like last additions to WFM made it bigger. (#2646))
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

@@ -45,12 +45,17 @@ __attribute__((section(".external_app.app_scanner.application_information"), use
     /*.desired_menu_position = */ -1,
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // this has to be the biggest baseband used by the app. Scanner is using AM,WFM,NFM and WFM is the biggest
     /*.m4_app_tag = portapack::spi_flash::image_tag_scanner */ {'P', 'W', 'F', 'M'},
 =======
     // this has to be the biggest baseband used by the app. Scanner is using AM,WFM,NFM and NFM is the biggest
     /*.m4_app_tag = portapack::spi_flash::image_tag_scanner */ {'P', 'N', 'F', 'M'},
 >>>>>>> 7754c0f3 (Externalize scanner (#2589))
+=======
+    // this has to be the biggest baseband used by the app. Scanner is using AM,WFM,NFM and WFM is the biggest
+    /*.m4_app_tag = portapack::spi_flash::image_tag_scanner */ {'P', 'W', 'F', 'M'},
+>>>>>>> d4342e01 (going back to WFM as main baseband in main.cpp as NFM is now making the apps crashing. Looks like last additions to WFM made it bigger. (#2646))
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

@@ -30,6 +30,7 @@ __attribute__((section(".external_app.app_gfxeq.application_information"), used)
     app_location_t::RX,
     -1,
 <<<<<<< HEAD
+<<<<<<< HEAD
     {'P', 'W', 'F', 'M'},
     0x00000000,
 };
@@ -37,8 +38,14 @@ __attribute__((section(".external_app.app_gfxeq.application_information"), used)
 }  // namespace ui::external_app::gfxeq
 =======
     {'P', 'N', 'F', 'M'},
+=======
+    {'P', 'W', 'F', 'M'},
+>>>>>>> d4342e01 (going back to WFM as main baseband in main.cpp as NFM is now making the apps crashing. Looks like last additions to WFM made it bigger. (#2646))
     0x00000000,
 };
 
 }  // namespace ui::external_app::gfxeq
+<<<<<<< HEAD
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+>>>>>>> d4342e01 (going back to WFM as main baseband in main.cpp as NFM is now making the apps crashing. Looks like last additions to WFM made it bigger. (#2646))
