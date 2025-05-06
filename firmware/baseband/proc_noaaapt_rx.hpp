@@ -33,6 +33,7 @@
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
+#include "proc_wfm_audio.hpp"
 
 #include <cstdint>
 
@@ -56,33 +57,62 @@ class NoaaAptRx : public BasebandProcessor {
     uint16_t syncnot_cnt = 0;
 
     static constexpr size_t baseband_fs = 3072000;
-    static constexpr size_t decim_2_decimation_factor = 4;
-    static constexpr size_t channel_filter_decimation_factor = 1;
+    static constexpr auto spectrum_rate_hz = 50.0f;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
         dst.size()};
-    std::array<float, 32> audio{};
-    const buffer_f32_t audio_buffer{
-        audio.data(),
-        audio.size()};
-    size_t channel_filter_input_fs = 0;
+    // work_audio_buffer and dst_buffer use the same data pointer
+    const buffer_s16_t work_audio_buffer{
+        (int16_t*)dst.data(),
+        sizeof(dst) / sizeof(int16_t)};
 
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-    dsp::decimate::FIRAndDecimateComplex decim_2{};
-    dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    std::array<complex16_t, 64> complex_audio{};
+    const buffer_c16_t complex_audio_buffer{
+        complex_audio.data(),
+        complex_audio.size()};
+
+    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+    // dsp::decimate::FIRC16xR16x16Decim2 decim_1{};   //original condition , before adding wfmam
+
+    // decim_1 will handle different types of FIR filters depending on selection.
+    MultiDecimator<
+        dsp::decimate::FIRC16xR16x16Decim2,
+        dsp::decimate::FIRC16xR16x32Decim8>
+        decim_1{};
+
+    // dsp::decimate::FIRC16xR16x32Decim8 decim_1{}; // For FMAM
+
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
-    bool configured{false};
 
-    dsp::demodulate::SSB_FM demod_ssb_fm{};  // added for Wfax mode.
-    FeedForwardCompressor audio_compressor{};
+    dsp::demodulate::FM demod{};
+    dsp::decimate::DecimateBy2CIC4Real audio_dec_1{};
+    dsp::decimate::DecimateBy2CIC4Real audio_dec_2{};
+    dsp::decimate::FIR64AndDecimateBy2Real audio_filter{};
+
     AudioOutput audio_output{};
 
-    SpectrumCollector channel_spectrum{};
+    // For fs=96kHz FFT streaming
+    BlockDecimator<complex16_t, 256> audio_spectrum_decimator{1};
+    std::array<std::complex<float>, 256> audio_spectrum{};
+    uint32_t audio_spectrum_timer{0};
+    enum AudioSpectrumState {
+        IDLE = 0,
+        FEED,
+        FFT
+    };
+    AudioSpectrumState audio_spectrum_state{IDLE};
+    AudioSpectrum spectrum{};
+    uint32_t fft_step{0};
+
+    // SpectrumCollector channel_spectrum{};
+    // size_t spectrum_interval_samples = 0;
+    // size_t spectrum_samples = 0;
+
+    bool configured{false};
 
     void configure(const NoaaAptRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
