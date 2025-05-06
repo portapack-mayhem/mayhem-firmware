@@ -77,8 +77,8 @@ __attribute__((section(".external_app.app_level.application_information"), used)
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    // this has to be the biggest baseband used by the app. Level is using AM,WFM,NFM,AMFM,SPEC and NFM is the biggest
-    /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'N', 'F', 'M'},
+    // this has to be the biggest baseband used by the app. Level is using AM,WFM,NFM,AMFM,SPEC and WFM is the biggest
+    /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'W', 'F', 'M'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
