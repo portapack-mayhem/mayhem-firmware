@@ -41,7 +41,7 @@ using namespace ui;
 
 namespace ui::external_app::noaaapt_rx {
 
-#define NOAAAPT_PX_SIZE 840
+#define NOAAAPT_PX_SIZE 2080
 
 #define NOAAAPT_FREQ_OFFSET 0
 

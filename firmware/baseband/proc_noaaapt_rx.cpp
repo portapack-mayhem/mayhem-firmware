@@ -31,17 +31,13 @@
 #include <cstdint>
 #include <cstddef>
 
-#define STARTSIGNAL_TH 0.33
-#define STARTSIGNAL_NEEDCNT 110
-#define STARTSIGNAL_MAXBAD 20
-
-#define NOAAAPT_PX_SIZE 840.0
+#define NOAAAPT_PX_SIZE 2080.0
 
 // updates the per pixel timers
 void NoaaAptRx::update_params() {
     // TODO HTOTOO
-    //  840 px / line with line start
-    pxRem = (double)12000.0 / ((120 / 60.0) * NOAAAPT_PX_SIZE);  // todo
+    //  2080 px / line with chan a,b + sync + telemetry
+    pxRem = (double)12000.0 / NOAAAPT_PX_SIZE;
     samples_per_pixel = pxRem;
     pxRem -= samples_per_pixel;
     pxRoll = 0;
@@ -83,53 +79,37 @@ void NoaaAptRx::execute(const buffer_c8_t& buffer) {
     /* -> 12kHz int16_t[8]   for wfmam ,  */
     audio_output.apt_write(audio);  // we are in added wfmam (noaa), decim_1.decimation_factor == 8
 
-    /*
+    for (size_t c = 0; c < audio.count; c++) {
+        if (status_message.state == 0 && false) {  // disabled this due to NIY
+            // first look for the sync!
 
-        for (size_t c = 0; c < audio.count; c++) {
-            if (status_message.state == 0 && false) {  // disabled this due to so sensitive to noise
-                // first look for the sync!
-                if (audio.p[c] <= STARTSIGNAL_TH && audio.p[c] >= 0.0001) {
-                    sync_cnt++;
-                    if (sync_cnt >= STARTSIGNAL_NEEDCNT) {
-                        status_message.state = 1;
-                        shared_memory.application_queue.push(status_message);
-                        sync_cnt = 0;
-                        syncnot_cnt = 0;
-                    }
-                } else {
-                    syncnot_cnt++;
-                    if (syncnot_cnt >= STARTSIGNAL_MAXBAD) {
-                        sync_cnt = 0;
-                        syncnot_cnt = 0;
+        } else {
+            cnt++;
+            if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
+                cnt = 0;
+                if (pxRoll >= 1) pxRoll -= 1.0;
+                pxRoll += pxRem;
+
+                if (image_message.cnt < 400) {
+                    if (audio.p[c] >= 1) {
+                        image_message.image[image_message.cnt++] = 255;
+                    } else if (audio.p[c] <= 0) {
+                        image_message.image[image_message.cnt++] = 0;
+                    } else {
+                        image_message.image[image_message.cnt++] = audio.p[c] * 255;
                     }
                 }
-            } else {
-                cnt++;
-                if (cnt >= (samples_per_pixel + (uint32_t)pxRoll)) {  // got a pixel
-                    cnt = 0;
-                    if (pxRoll >= 1) pxRoll -= 1.0;
-                    pxRoll += pxRem;
-
-                    if (image_message.cnt < 400) {
-                        if (audio.p[c] >= 0.68) {
-                            image_message.image[image_message.cnt++] = 255;
-                        } else if (audio.p[c] >= 0.45) {
-                            image_message.image[image_message.cnt++] = (uint8_t)(((audio.p[c] - 0.45f) * 1108));
-                        } else {
-                            image_message.image[image_message.cnt++] = 0;
-                        }
-                    }
-                    if (image_message.cnt >= 399) {
-                        shared_memory.application_queue.push(image_message);
-                        image_message.cnt = 0;
-                        if (status_message.state != 2) {
-                            status_message.state = 2;
-                            shared_memory.application_queue.push(status_message);
-                        }
+                if (image_message.cnt >= 399) {
+                    shared_memory.application_queue.push(image_message);
+                    image_message.cnt = 0;
+                    if (status_message.state != 2) {
+                        status_message.state = 2;
+                        shared_memory.application_queue.push(status_message);
                     }
                 }
             }
-        }*/
+        }
+    }
 }
 
 void NoaaAptRx::on_message(const Message* const message) {
