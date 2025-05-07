@@ -37,7 +37,7 @@
 void NoaaAptRx::update_params() {
     // TODO HTOTOO
     //  2080 px / line with chan a,b + sync + telemetry
-    pxRem = (double)12000.0 / NOAAAPT_PX_SIZE;
+    pxRem = (double)12000.0 / NOAAAPT_PX_SIZE / 2.0;
     samples_per_pixel = pxRem;
     pxRem -= samples_per_pixel;
     pxRoll = 0;

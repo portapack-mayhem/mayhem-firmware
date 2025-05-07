@@ -45,6 +45,8 @@ namespace ui::external_app::noaaapt_rx {
 
 #define NOAAAPT_FREQ_OFFSET 0
 
+#define NOAA_IMG_START_ROW 3
+
 class NoaaAptRxView : public View {
    public:
     NoaaAptRxView(NavigationView& nav);
@@ -99,11 +101,11 @@ class NoaaAptRxView : public View {
     };*/
 
     Text txt_status{
-        {0 * 8, 2 * 16, 20 * 8, 16},
+        {0 * 8, 1 * 16, 20 * 8, 16},
     };
 
     Button button_ss{
-        {190, 2 * 16, 5 * 8, 16},
+        {190, 1 * 16, 5 * 8, 16},
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{

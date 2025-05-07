@@ -114,7 +114,7 @@ void NoaaAptRxView::on_status(NoaaAptRxStatusDataMessage msg) {
 
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync
 void NoaaAptRxView::on_image(NoaaAptRxImageDataMessage msg) {
-    if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
+    if ((line_num) >= 320 - NOAA_IMG_START_ROW * 16) line_num = 0;  // for draw reset
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
         Color pxl = {msg.image[i], msg.image[i], msg.image[i]};
@@ -130,7 +130,7 @@ void NoaaAptRxView::on_image(NoaaAptRxImageDataMessage msg) {
         if (xpos >= 240) xpos = 239;
         line_buffer[xpos] = pxl;
         if ((line_in_part == 0)) {
-            portapack::display.render_line({0, line_num + 4 * 16}, 240, line_buffer);
+            portapack::display.render_line({0, line_num + NOAA_IMG_START_ROW * 16}, 240, line_buffer);
         }
     }
 }
