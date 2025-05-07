@@ -83,6 +83,7 @@ NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
         bmp.create("/BMP/noaa_" + to_string_timestamp(rtc_time::now()) + ".bmp", NOAAAPT_PX_SIZE, 1);
         button_ss.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     };
+    on_settings_changed();
 }
 
 NoaaAptRxView::~NoaaAptRxView() {
