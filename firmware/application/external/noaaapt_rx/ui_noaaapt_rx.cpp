@@ -67,10 +67,10 @@ NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
     field_frequency.on_edit_hidden = [this]() {
         paused = false;
     };
+    audio::set_rate(audio::Rate::Hz_12000);
     audio::output::start();
     receiver_model.set_hidden_offset(NOAAAPT_FREQ_OFFSET);
     receiver_model.enable();
-
     txt_status.set("Waiting for signal.");
 
     button_ss.on_select = [this](Button&) {
