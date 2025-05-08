@@ -51,14 +51,16 @@ enum data_selector {
 };
 
 struct adsb_pos {
-    bool valid;
+    bool pos_valid;
     float latitude;
     float longitude;
+    bool alt_valid;
     int32_t altitude;
 };
 
 struct adsb_vel {
     bool valid;
+    bool gnd;          // ground speed / air speed
     int32_t speed;     // knot
     uint16_t heading;  // degree
     int32_t v_rate;    // ft/min

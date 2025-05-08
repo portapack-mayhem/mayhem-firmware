@@ -73,6 +73,9 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 
                     // Perform additional check on the first byte.
                     if (bit_count == 8) {
+                        // try to receive all frames instead
+                        msg_len = (byte & 0x80) ? 112 : 56;	// determine message len by type
+/*
                         // Abandon all frames that aren't DF17 or DF18 extended squitters.
                         uint8_t df = (byte >> 3);
                         if (df != 17 && df != 18) {
@@ -80,6 +83,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
                             bit = (prev_mag > mag) ? 1 : 0;
                             frame.clear();
                         }
+*/
                     }
                 }
             }

@@ -40,7 +40,7 @@ class ADSBRXProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 2'000'000;
-    static constexpr size_t msg_len = 112;
+    size_t msg_len{112};
 
     ADSBFrame frame{};
     bool configured{false};
