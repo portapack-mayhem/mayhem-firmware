@@ -77,7 +77,8 @@ void NoaaAptRx::execute(const buffer_c8_t& buffer) {
      * -> 12kHz int16_t[8] */
     auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
     /* -> 12kHz int16_t[8]   for wfmam ,  */
-    audio_output.apt_write(audio);  // we are in added wfmam (noaa), decim_1.decimation_factor == 8
+    std::array<float, 32> audio_f;
+    audio_output.apt_write(audio, audio_f);  // we are in added wfmam (noaa), decim_1.decimation_factor == 8
 
     for (size_t c = 0; c < audio.count; c++) {
         if (status_message.state == 0 && false) {  // disabled this due to NIY
@@ -91,12 +92,12 @@ void NoaaAptRx::execute(const buffer_c8_t& buffer) {
                 pxRoll += pxRem;
 
                 if (image_message.cnt < 400) {
-                    if (audio.p[c] >= 1) {
+                    if (audio_f[c] >= 1) {
                         image_message.image[image_message.cnt++] = 0;
-                    } else if (audio.p[c] <= 0) {
+                    } else if (audio_f[c] <= 0) {
                         image_message.image[image_message.cnt++] = 255;
                     } else {
-                        image_message.image[image_message.cnt++] = (1 - audio.p[c]) * 255;
+                        image_message.image[image_message.cnt++] = (1 - audio_f[c]) * 255;
                     }
                 }
                 if (image_message.cnt >= 399) {
