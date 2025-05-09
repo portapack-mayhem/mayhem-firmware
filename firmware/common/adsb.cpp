@@ -282,7 +282,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
     uint32_t latcprE, latcprO, loncprE, loncprO;
     float latE, latO, m, Dlon, cpr_lon_odd, cpr_lon_even, cpr_lat_odd, cpr_lat_even;
     int ni;
-    adsb_pos position{false, 0, 0, false, 0};
+    adsb_pos position{false, false, 0, 0, 0};
 
     uint32_t time_even = frame_even.get_rx_timestamp();
     uint32_t time_odd = frame_odd.get_rx_timestamp();
@@ -407,14 +407,14 @@ adsb_vel decode_frame_velo(ADSBFrame& frame) {
 
         velo.v_rate = ((((frame_data[8] & 0x07) << 6) | (frame_data[9] >> 2)) - 1) * 64;
 
-        if (frame_data[8] & 0x8)  velo.v_rate *= -1;  // check v_rate sign
+        if (frame_data[8] & 0x8) velo.v_rate *= -1;  // check v_rate sign
     }
 
     if (velo_type == 1 || velo_type == 2) {  // Ground Speed
         int32_t raw_ew = ((frame_data[5] & 0x03) << 8) | frame_data[6];
         int32_t raw_ns = ((frame_data[7] & 0x7f) << 3) | (frame_data[8] >> 5);
 
-        if (raw_ew && raw_ns) {  // check data available
+        if (raw_ew && raw_ns) {            // check data available
             int32_t velo_ew = raw_ew - 1;  // velocities are all offset by one (this is part of the spec)
             int32_t velo_ns = raw_ns - 1;
 
@@ -444,12 +444,12 @@ adsb_vel decode_frame_velo(ADSBFrame& frame) {
         velo.heading = ((((frame_data[5] & 0x03) << 8) | frame_data[6]) * 45) >> 7;
 
         int32_t raw = ((frame_data[7] & 0x7F) << 3) | (frame_data[8] >> 5);
-        if (raw) {   // check speed available
+        if (raw) {  // check speed available
             velo.speed = raw - 1;
             velo.gnd = false;
 
-          // supersonic indicator so multiply by 4
-          if (velo_type == 4)  velo.speed *= 4;
+            // supersonic indicator so multiply by 4
+            if (velo_type == 4) velo.speed *= 4;
         }
     }
 

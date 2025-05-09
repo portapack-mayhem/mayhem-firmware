@@ -52,9 +52,9 @@ enum data_selector {
 
 struct adsb_pos {
     bool pos_valid;
+    bool alt_valid;
     float latitude;
     float longitude;
-    bool alt_valid;
     int32_t altitude;
 };
 

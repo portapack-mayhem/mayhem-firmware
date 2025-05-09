@@ -440,11 +440,11 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
         if (find(recent, crc) != recent.end())
             ICAO_address = crc;
         else
-            return;                 // Bad frame, skip it.
+            return;  // Bad frame, skip it.
     } else {
         ICAO_address = frame.get_ICAO_address();
         if (ICAO_address == 0)
-            return;                 // Bad frame, skip it.
+            return;  // Bad frame, skip it.
     }
 
     status_good_frame.toggle();
@@ -469,15 +469,15 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
 
     uint8_t df = frame.get_DF();
 
-    if (df == 11)		// do not log DF11, because messages arrive too frequently
+    if (df == 11)  // do not log DF11, because messages arrive too frequently
         return;
 
     ADSBLogEntry log_entry;
     uint8_t* raw_data = frame.get_raw_data();
 
-    if (df & 0x10)      // 112 bits
+    if (df & 0x10)  // 112 bits
         log_entry.raw_data = to_string_hex_array(raw_data, 14);
-    else {              // 56 bits
+    else {  // 56 bits
         log_entry.raw_data = to_string_hex_array(raw_data, 7);
         log_entry.raw_data.append(14, ' ');
     }
@@ -496,7 +496,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
             if (raw_data[5] & 1) {
                 int altitude = ((((raw_data[5] & 0xFE) << 3) | ((raw_data[6] & 0xF0) >> 4)) * 25) - 1000;
 
-                log_entry.pos.altitude  = entry.pos.altitude  = altitude;
+                log_entry.pos.altitude = entry.pos.altitude = altitude;
                 log_entry.pos.alt_valid = entry.pos.alt_valid = true;
             }
         }
@@ -505,7 +505,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
             entry.set_callsign(decode_frame_id(frame));
             log_entry.callsign = entry.callsign;
         }
-        //  9-18: Airborne position (w/Baro Altitude)
+        // 9-18: Airborne position (w/Baro Altitude)
         // 20–22: Airborne position (w/GNSS Height)
         else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) ||
                  ((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
@@ -519,7 +519,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
                     " Lon:" + to_string_decimal(entry.pos.longitude, 2);
                 entry.set_info_string(std::move(str_info));
             }
-        // 19: Airborne velocities
+            // 19: Airborne velocities
         } else if (msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC) {
             entry.set_frame_velo(frame);
             log_entry.vel = entry.velo;
@@ -532,49 +532,49 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     // 4: // surveillance, altitude reply
     // 20: // Comm-B, altitude reply
     // 21: // Comm-B, identity reply
-    if (df == 0 || df == 4 || df == 20) {             // Decode the 13 bit AC altitude field
+    if (df == 0 || df == 4 || df == 20) {  // Decode the 13 bit AC altitude field
         uint8_t m_bit = raw_data[3] & (1 << 6);
         uint8_t q_bit = raw_data[3] & (1 << 4);
         int altitude = 0;
 
         if (!m_bit) {     // units -> FEET
             if (q_bit) {  // N is the 11 bit integer resulting from the removal of bit Q and M
-                int n = ((raw_data[2] & 31) << 6)   |
+                int n = ((raw_data[2] & 31) << 6) |
                         ((raw_data[3] & 0x80) >> 2) |
                         ((raw_data[3] & 0x20) >> 1) |
-                         (raw_data[3] & 15);
+                        (raw_data[3] & 15);
 
                 // The final altitude is due to the resulting number multiplied by 25, minus 1000.
                 altitude = 25 * n - 1000;
                 if (altitude < 0)
                     altitude = 0;
-            }   // else N is an 11 bit Gillham coded altitude
+            }  // else N is an 11 bit Gillham coded altitude
         }
 
-        log_entry.pos.altitude  = entry.pos.altitude  = altitude;
+        log_entry.pos.altitude = entry.pos.altitude = altitude;
         log_entry.pos.alt_valid = entry.pos.alt_valid = true;
     }
 
     if (df == 5 || df == 21 ||
-       (df == 17 && frame.get_msg_type() == 28 && frame.get_msg_sub() == 1)) {  // Decode the squawk code
-        uint8_t *s = (df == 17) ? raw_data+5 : raw_data+2;    // calc start of the code
+        (df == 17 && frame.get_msg_type() == 28 && frame.get_msg_sub() == 1)) {  // Decode the squawk code
+        uint8_t* s = (df == 17) ? raw_data + 5 : raw_data + 2;                   // calc start of the code
         uint16_t sqwk{0};
 
-        sqwk  = ((s[1] & 0x80) >> 5) | ((s[0] & 0x02) >> 0) | ((s[0] & 0x08) >> 3);    // A
+        sqwk = ((s[1] & 0x80) >> 5) | ((s[0] & 0x02) >> 0) | ((s[0] & 0x08) >> 3);  // A
         sqwk *= 10;
-        sqwk += ((s[1] & 0x02) << 1) | ((s[1] & 0x08) >> 2) | ((s[1] & 0x20) >> 5);    // B
+        sqwk += ((s[1] & 0x02) << 1) | ((s[1] & 0x08) >> 2) | ((s[1] & 0x20) >> 5);  // B
         sqwk *= 10;
-        sqwk += ((s[0] & 0x01) << 2) | ((s[0] & 0x04) >> 1) | ((s[0] & 0x10) >> 4);    // C
+        sqwk += ((s[0] & 0x01) << 2) | ((s[0] & 0x04) >> 1) | ((s[0] & 0x10) >> 4);  // C
         sqwk *= 10;
-        sqwk += ((s[1] & 0x01) << 2) | ((s[1] & 0x04) >> 1) | ((s[1] & 0x10) >> 4);    // D
+        sqwk += ((s[1] & 0x01) << 2) | ((s[1] & 0x04) >> 1) | ((s[1] & 0x10) >> 4);  // D
 
         log_entry.sqwk = entry.sqwk = sqwk;
     }
 
     if (df == 20 || df == 21) {
-        if (raw_data[4] == 0x20) {   // try decode as BDS20
+        if (raw_data[4] == 0x20) {  // try decode as BDS20
             std::string callsign = decode_frame_id(frame);
-            if (callsign.find('#') == std::string::npos) {    // all chars OK
+            if (callsign.find('#') == std::string::npos) {  // all chars OK
                 entry.set_callsign(callsign);
                 log_entry.callsign = callsign;
             }

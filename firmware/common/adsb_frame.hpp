@@ -83,9 +83,9 @@ class ADSBFrame {
         uint8_t crc_pos = (raw_data[0] & 0x80) ? 11 : 4;
 
         // Insert CRC in frame
-        raw_data[crc_pos]   = (computed_CRC >> 16) & 0xFF;
-        raw_data[crc_pos+1] = (computed_CRC >> 8) & 0xFF;
-        raw_data[crc_pos+2] = computed_CRC & 0xFF;
+        raw_data[crc_pos] = (computed_CRC >> 16) & 0xFF;
+        raw_data[crc_pos + 1] = (computed_CRC >> 8) & 0xFF;
+        raw_data[crc_pos + 2] = computed_CRC & 0xFF;
     }
 
     uint32_t check_CRC() {
@@ -94,8 +94,8 @@ class ADSBFrame {
         uint8_t crc_pos = (raw_data[0] & 0x80) ? 11 : 4;
 
         uint32_t received_CRC = (raw_data[crc_pos] << 16) |
-                                (raw_data[crc_pos+1] << 8) |
-                                 raw_data[crc_pos+2];
+                                (raw_data[crc_pos + 1] << 8) |
+                                raw_data[crc_pos + 2];
 
         return (received_CRC ^ computed_CRC) & 0xFFFFFF;
     }
@@ -132,7 +132,7 @@ class ADSBFrame {
             }
         }
 
-        return (adsb_crc[data_len] << 16) + (adsb_crc[data_len+1] << 8) + adsb_crc[data_len+2];
+        return (adsb_crc[data_len] << 16) + (adsb_crc[data_len + 1] << 8) + adsb_crc[data_len + 2];
     }
 };
 
