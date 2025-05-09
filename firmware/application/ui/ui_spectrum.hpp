@@ -92,7 +92,6 @@ class FrequencyScale : public Widget {
     static constexpr int filter_band_height = 4;
 
     int32_t cursor_position{0};
-    SignalToken signal_token_tick_second{};
     int spectrum_sampling_rate{0};
     const int spectrum_bins = std::tuple_size<decltype(ChannelSpectrum::db)>::value;
     int channel_filter_low_frequency{0};
