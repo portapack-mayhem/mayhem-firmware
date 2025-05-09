@@ -22,7 +22,6 @@
  */
 
 #include "ble_rx_app.hpp"
-#include "ble_rx_app.hpp"
 #include "ui_modemsetup.hpp"
 
 #include "modems.hpp"
@@ -203,6 +202,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
             nav,
             packetFileBuffer,
             64,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this, packetToSave](std::string& buffer) {
                 on_save_file(buffer, packetToSave);
             });
@@ -471,6 +471,7 @@ BLERxView::BLERxView(NavigationView& nav)
             nav_,
             filterBuffer,
             64,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
                 on_filter_change(buffer);
             });
@@ -493,6 +494,7 @@ BLERxView::BLERxView(NavigationView& nav)
             nav,
             listFileBuffer,
             64,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
                 on_save_file(buffer);
             });

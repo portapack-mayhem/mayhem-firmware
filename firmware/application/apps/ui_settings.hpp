@@ -545,35 +545,6 @@ class SetAudioView : public View {
     };
 };
 
-class SetQRCodeView : public View {
-   public:
-    SetQRCodeView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "QR Code"; };
-
-   private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::getInstance()->fg_light->foreground},
-    };
-
-    Checkbox checkbox_bigger_qr{
-        {3 * 8, 4 * 16},
-        20,
-        "Show large QR code"};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-};
-
 using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
@@ -633,6 +604,49 @@ class SetEncoderDialView : public View {
     Button button_rate_multiplier_minus{
         {20 * 8, 11 * 16, 16, 16},
         "-"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+class SetButtonsView : public View {
+   public:
+    SetButtonsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Button Speed"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Adjusts response time when a", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "button is held down.", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField field_repeat_delay{
+        {20 * 8, 5 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_repeat_speed{
+        {20 * 8, 7 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_long_press_delay{
+        {20 * 8, 9 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -748,6 +762,8 @@ class SetDisplayView : public View {
         {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "REBOOT TO APPLY SCREEN TYPE", Theme::getInstance()->fg_light->foreground},
+
     };
 
     OptionsField field_fake_brightness{
@@ -762,10 +778,10 @@ class SetDisplayView : public View {
         16,
         "Enable brightness adjust"};
 
-    Checkbox checkbox_invert_switch{
-        {1 * 8, 10 * 16},
+    Checkbox checkbox_ips_screen_switch{
+        {1 * 8, 12 * 16},
         23,
-        "Invert colors (For IPS)"};
+        "IPS Screen"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -964,9 +980,13 @@ class SetBatteryView : public View {
     int32_t selected = 0;
     Labels labels{
         {{1 * 8, 1 * 16}, "Override batt calculation", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground}};
-    Labels labels2{
-        {{1 * 8, 6 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground},
+        /**/
+        {{1 * 8, 6 * 16}, "Display a hint to remind you", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 7 * 16}, "when you charge", Theme::getInstance()->fg_light->foreground}};
+
+    Labels labels2{{{1 * 8, 11 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
@@ -976,13 +996,18 @@ class SetBatteryView : public View {
         23,
         "Override"};
 
+    Checkbox checkbox_battery_charge_hint{
+        {2 * 8, 9 * 16},
+        23,
+        "Charge hint"};
+
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
 
     Button button_reset{
-        {2 * 8, 8 * 16, 12 * 8, 32},
+        {2 * 8, 13 * 16, 12 * 8, 32},
         "Reset",
     };
 };

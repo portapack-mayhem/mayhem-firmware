@@ -39,14 +39,22 @@ using namespace portapack;
 
 namespace {
 
-static constexpr std::array<baseband::AMConfig, 6> am_configs{{
+static constexpr std::array<baseband::AMConfig, 12> am_configs{{
     // we config here all the non COMMON parameters to each AM modulation type in RX.
-    {taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config},            // AM DSB-C  BW 9khz  (+-4k5)  commercial EU bandwidth .
-    {taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config},            // AM DSB-C  BW 6khz  (+-3k0)  narrow AM , ham equipments.
-    {taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config},            // SSB USB   BW 2K8   (+ 2K8)  SSB ham equipments.
-    {taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config},            // SSB LSB   BW 2K8   (- 2K8)  SSB ham equipments.
-    {taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config},            // SSB USB   BW 0K7   (+ 0K7)  To get audio tone from CW Morse, assuming tx shifted +700hz aprox
-    {taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, audio_12k_lpf_1500hz_config},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax.
+    {taps_6k0_decim_1, taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_1},                // AM DSB-C  BW 9khz  (+-4k5)  commercial EU bandwidth .
+    {taps_6k0_decim_1, taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_1},                // AM DSB-C  BW 6khz  (+-3k0)  narrow AM , ham equipments.
+    {taps_6k0_decim_1, taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_1},                // SSB USB   BW 2K8   (+ 2K8)  SSB ham equipments.
+    {taps_6k0_decim_1, taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_1},                // SSB LSB   BW 2K8   (- 2K8)  SSB ham equipments.
+    {taps_6k0_decim_1, taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_1},                // SSB USB   BW 0K7   (+ 0K7)  To get audio tone from CW Morse, assuming tx shifted +700hz aprox
+    {taps_6k0_decim_1, taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, apt_audio_12k_lpf_1500hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_1},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax.
+
+    // below options for Waterfall zoom x 2
+    {taps_6k0_narrow_decim_1, taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},                // AM DSB-C  BW 9khz  (+-4k5)  commercial EU bandwidth .
+    {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},                // AM DSB-C  BW 6khz  (+-3k0)  narrow AM , ham equipments.
+    {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},                // SSB USB   BW 2K8   (+ 2K8)  SSB ham equipments.
+    {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},                // SSB LSB   BW 2K8   (- 2K8)  SSB ham equipments.
+    {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB, audio_12k_hpf_300hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},                // SSB USB   BW 0K7   (+ 0K7)  To get audio tone from CW Morse, assuming tx shifted +700hz aprox
+    {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, apt_audio_12k_lpf_1500hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax with waterfall zoom x 2 (we need taps_6k0_narrow_decim_1 to minimize aliasing)
 }};
 
 static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs{{
@@ -59,6 +67,10 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
     {taps_200k_wfm_decim_0, taps_200k_wfm_decim_1},
     {taps_180k_wfm_decim_0, taps_180k_wfm_decim_1},
     {taps_40k_wfm_decim_0, taps_40k_wfm_decim_1},
+}};
+
+static constexpr std::array<baseband::WFMAMConfig, 1> wfmam_configs{{
+    {taps_16k0_decim_0, taps_84k_wfmam_decim_1},
 }};
 
 } /* namespace */
@@ -179,6 +191,17 @@ void ReceiverModel::set_wfm_configuration(uint8_t n) {
     }
 }
 
+uint8_t ReceiverModel::wfmam_configuration() const {
+    return settings_.wfmam_config_index;
+}
+
+void ReceiverModel::set_wfmam_configuration(uint8_t n) {
+    if (n < wfmam_configs.size()) {
+        settings_.wfmam_config_index = n;
+        update_modulation();
+    }
+}
+
 uint8_t ReceiverModel::squelch_level() const {
     return settings_.squelch_level;
 }
@@ -279,7 +302,12 @@ int32_t ReceiverModel::tuning_offset() {
 
 void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
-    radio::set_tuning_frequency(target_frequency() + tuning_offset());
+    radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
+}
+
+void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
+    hidden_offset = offset;
+    update_tuning_frequency();
 }
 
 void ReceiverModel::update_baseband_bandwidth() {
@@ -327,6 +355,10 @@ void ReceiverModel::update_modulation() {
             update_wfm_configuration();
             break;
 
+        case Mode::WFMAudioAMApt:
+            update_wfmam_configuration();
+            break;
+
         case Mode::SpectrumAnalysis:
         case Mode::Capture:
             break;
@@ -347,6 +379,10 @@ void ReceiverModel::update_nbfm_configuration() {
 
 void ReceiverModel::update_wfm_configuration() {
     wfm_configs[wfm_configuration()].apply();
+}
+
+void ReceiverModel::update_wfmam_configuration() {
+    wfmam_configs[wfmam_configuration()].apply();  // update with different index for Wefax.
 }
 
 void ReceiverModel::update_antenna_bias() {

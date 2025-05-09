@@ -73,7 +73,8 @@ enum app_location_t : uint32_t {
     DEBUG,
     HOME,
     SETTINGS,
-    GAMES
+    GAMES,
+    TRX
 };
 
 struct standalone_application_information_t {

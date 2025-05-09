@@ -419,6 +419,17 @@ void FileManBaseView::reload_current(bool reset_pagination) {
     refresh_list();
 }
 
+void FileManBaseView::copy_waterfall(std::filesystem::path path) {
+    nav_.push<ModalMessageView>(
+        "Install", " Use this gradient file\n for all waterfalls?", YESNO,
+        [this, path](bool choice) {
+            if (choice) {
+                delete_file(default_gradient_file);
+                copy_file(path, default_gradient_file);
+            }
+        });
+}
+
 const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
     const fs::path& ext) const {
     size_t index = 0;
@@ -499,7 +510,7 @@ FileSaveView::FileSaveView(
 
         button_edit_path.on_select = [this](Button&) {
                 buffer_ = path_.string();
-                text_prompt(nav_, buffer_, max_filename_length,
+                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
                         [this](std::string&) {
                                 path_ = buffer_;
                                 refresh_widgets();
@@ -508,7 +519,7 @@ FileSaveView::FileSaveView(
 
         button_edit_name.on_select = [this](Button&) {
                 buffer_ = file_.string();
-                text_prompt(nav_, buffer_, max_filename_length,
+                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
                         [this](std::string&) {
                                 file_ = buffer_;
                                 refresh_widgets();
@@ -566,7 +577,7 @@ void FileManagerView::on_rename(std::string_view hint) {
         cursor_pos = pos;
 
     text_prompt(
-        nav_, name_buffer, cursor_pos, max_filename_length,
+        nav_, name_buffer, cursor_pos, max_filename_length, ENTER_KEYBOARD_MODE_ALPHA,
         [this](std::string& renamed) {
             auto renamed_path = fs::path{renamed};
             rename_file(get_selected_full_path(), current_path / renamed_path);
@@ -640,7 +651,7 @@ void FileManagerView::on_clean() {
 
 void FileManagerView::on_new_dir() {
     name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& dir_name) {
+    text_prompt(nav_, name_buffer, max_filename_length, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& dir_name) {
         make_new_directory(current_path / dir_name);
         reload_current(true);
     });
@@ -671,7 +682,7 @@ void FileManagerView::on_paste() {
 
 void FileManagerView::on_new_file() {
     name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
+    text_prompt(nav_, name_buffer, max_filename_length, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& file_name) {
         make_new_file(current_path / file_name);
         reload_current(true);
     });
@@ -685,7 +696,11 @@ bool FileManagerView::handle_file_open() {
     auto ext = path.extension();
 
     if (path_iequal(txt_ext, ext)) {
-        nav_.push<TextEditorView>(path);
+        if (path_iequal(current_path, u"/" + waterfalls_dir)) {
+            copy_waterfall(path);
+        } else {
+            nav_.push<TextEditorView>(path);
+        }
         return true;
     } else if (is_cxx_capture_file(path) || path_iequal(ppl_ext, ext)) {
         // TODO: Enough memory to push?

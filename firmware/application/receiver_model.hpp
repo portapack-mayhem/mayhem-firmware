@@ -40,9 +40,10 @@ class ReceiverModel {
         AMAudio = 0,
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
-        AMAudioFMApt = 3,  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
-        SpectrumAnalysis = 4,
-        Capture = 5
+        SpectrumAnalysis = 3,
+        AMAudioFMApt = 4,   // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        WFMAudioAMApt = 5,  // Added to handle SAT Weather map , NOAA 137 Mhz.
+        Capture = 6,
     };
 
     struct settings_t {
@@ -56,6 +57,7 @@ class ReceiverModel {
         Mode mode = Mode::NarrowbandFMAudio;
         uint8_t am_config_index = 0;
         uint8_t amfm_config_index = 0;
+        uint8_t wfmam_config_index = 0;
         uint8_t nbfm_config_index = 0;
         uint8_t wfm_config_index = 0;
         uint8_t squelch_level = 80;
@@ -98,6 +100,9 @@ class ReceiverModel {
     uint8_t wfm_configuration() const;
     void set_wfm_configuration(uint8_t n);
 
+    uint8_t wfmam_configuration() const;
+    void set_wfmam_configuration(uint8_t n);
+
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
 
@@ -109,6 +114,8 @@ class ReceiverModel {
     /* Volume range 0-99, normalized for audio HW. */
     uint8_t normalized_headphone_volume() const;
     void set_normalized_headphone_volume(uint8_t v);
+
+    void set_hidden_offset(rf::Frequency offset);
 
     void enable();
     void disable();
@@ -133,6 +140,7 @@ class ReceiverModel {
    private:
     settings_t settings_{};
     bool enabled_ = false;
+    rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.
 
     int32_t tuning_offset();
 
@@ -148,6 +156,7 @@ class ReceiverModel {
     void update_amfm_configuration();
     void update_nbfm_configuration();
     void update_wfm_configuration();
+    void update_wfmam_configuration();
 
     void update_antenna_bias();
     void update_headphone_volume();

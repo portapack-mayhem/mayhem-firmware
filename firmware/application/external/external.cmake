@@ -1,13 +1,5 @@
 set(EXTCPPSRC
 
-	#tetris
-	external/tetris/main.cpp
-	external/tetris/ui_tetris.cpp
-
-	#tetris
-	external/breakout/main.cpp
-	external/breakout/ui_breakout.cpp
-
 	#afsk_rx
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -63,6 +55,10 @@ set(EXTCPPSRC
 	external/keyfob/ui_keyfob.cpp
 	external/keyfob/ui_keyfob.hpp
 
+	#tetris
+	external/tetris/main.cpp
+	external/tetris/ui_tetris.cpp
+
 	#extsensors
 	external/extsensors/main.cpp
 	external/extsensors/ui_extsensors.cpp
@@ -111,9 +107,14 @@ set(EXTCPPSRC
 	external/acars_rx/main.cpp
 	external/acars_rx/acars_app.cpp
 
+	#wefax_rx
+	external/wefax_rx/main.cpp
+	external/wefax_rx/ui_wefax_rx.cpp
+	
+
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
-	external/shoppingcart_lock/shoppingcart_lock.cpp	
+	external/shoppingcart_lock/shoppingcart_lock.cpp
 
 	#ookbrute
 	external/ookbrute/main.cpp
@@ -125,8 +126,8 @@ set(EXTCPPSRC
 
 	#cvs_spam
 	external/cvs_spam/main.cpp
-	external/cvs_spam/cvs_spam.cpp	
-	
+	external/cvs_spam/cvs_spam.cpp
+
 	#flippertx
 	external/flippertx/main.cpp
 	external/flippertx/ui_flippertx.cpp
@@ -138,15 +139,15 @@ set(EXTCPPSRC
 	#mcu_temperature
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
-	
+
 	#fmradio
 	external/fmradio/main.cpp
 	external/fmradio/ui_fmradio.cpp
-  
+
 	#tuner
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
-  
+
 	#metronome
 	external/metronome/main.cpp
 	external/metronome/ui_metronome.cpp
@@ -158,8 +159,8 @@ set(EXTCPPSRC
 	#hopper
 	external/hopper/main.cpp
 	external/hopper/ui_hopper.cpp
- 	
-	# whip calculator	
+
+	# whip calculator
 	external/antenna_length/main.cpp
 	external/antenna_length/ui_whipcalc.cpp
 
@@ -174,6 +175,38 @@ set(EXTCPPSRC
 	# playlist editor
 	external/playlist_editor/main.cpp
 	external/playlist_editor/ui_playlist_editor.cpp
+
+	#snake
+	external/snake/main.cpp
+	external/snake/ui_snake.cpp
+
+	#stopwatch
+	external/stopwatch/main.cpp
+	external/stopwatch/ui_stopwatch.cpp
+
+	#breakout
+	external/breakout/main.cpp
+	external/breakout/ui_breakout.cpp
+
+	#doom
+	external/doom/main.cpp
+	external/doom/ui_doom.cpp
+
+	#debug_pmem
+	external/debug_pmem/main.cpp
+	external/debug_pmem/ui_debug_pmem.cpp
+
+	#scanner
+	external/scanner/main.cpp
+	external/scanner/ui_scanner.cpp
+
+	#level
+	external/level/main.cpp
+	external/level/ui_level.cpp
+
+	#gfxEQ
+	external/gfxeq/main.cpp
+	external/gfxeq/ui_gfxeq.cpp	
 )
 
 set(EXTAPPLIST
@@ -191,7 +224,6 @@ set(EXTAPPLIST
 	spainter
 	keyfob
 	tetris
-	breakout
 	extsensors
 	foxhunt_rx
 	audio_test
@@ -206,6 +238,7 @@ set(EXTAPPLIST
 	#acars_rx
 	ookbrute
 	ook_editor
+	wefax_rx
 	shoppingcart_lock
 	flippertx
 	remote
@@ -219,4 +252,12 @@ set(EXTAPPLIST
 	view_wav
 	sd_wipe
 	playlist_editor
+	snake
+	stopwatch
+	breakout
+	doom
+	debug_pmem
+	scanner
+	level
+	gfxeq
 )

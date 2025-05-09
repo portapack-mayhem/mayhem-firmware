@@ -48,7 +48,7 @@ class SSB {
     static constexpr float k = 1.0f / 32768.0f;
 };
 
-class SSB_FM {  // Added to handle WFAX-
+class SSB_FM {  // Added to handle AMFM for WFAX
    public:
     buffer_f32_t execute(
         const buffer_c16_t& src,
@@ -56,7 +56,7 @@ class SSB_FM {  // Added to handle WFAX-
 
    private:
     static constexpr float k = 1.0f / 32768.0f;
-    dsp::Real_to_Complex real_to_complex;  // It is a member variable of SSB_FM.
+    dsp::Real_to_Complex real_to_complex{};  // It is a member variable of SSB_FM.
 };
 
 class FM {

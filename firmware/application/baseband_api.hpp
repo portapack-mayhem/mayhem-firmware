@@ -36,10 +36,12 @@
 namespace baseband {
 
 struct AMConfig {
+    const fir_taps_real<32> decim_1;  // added to handle two var LPF in AMFM to avoid aliasing when spectrum zoom factor 2.
     const fir_taps_real<32> decim_2;  // added to handle two var types decim_2 9k, 6k
     const fir_taps_complex<64> channel;
     const AMConfigureMessage::Modulation modulation;
     const iir_biquad_config_t audio_12k_iir_filter_config;  // added to handle two var IIR filter types : 300 hpf(as before) , 1500Hz lpf for Wefax.
+    const size_t spectrum_decimation_factor;                // used to handle LCD AM waterfall zoom x1 / zoom x2.
 
     void apply() const;
 };
@@ -54,8 +56,15 @@ struct NBFMConfig {
 };
 
 struct WFMConfig {
-    const fir_taps_real<24> decim_0;  // To handle both WFM filters , 200k and 40K for NOAA APT
+    const fir_taps_real<24> decim_0;  // To handle all 3 WFM filters , 200k, 180k and 40K-
     const fir_taps_real<16> decim_1;
+
+    void apply() const;
+};
+
+struct WFMAMConfig {
+    const fir_taps_real<24> decim_0;  // To handle WFM filter   BW=40K for NOAA APT
+    const fir_taps_real<32> decim_1;
 
     void apply() const;
 };
@@ -90,6 +99,7 @@ void set_siggen_tone(const uint32_t tone);
 void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t duration);
 void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw);
 void set_subghzd_config(uint8_t modulation, uint32_t sampling_rate);
+void set_wefax_config(uint8_t lpm, uint8_t ioc);
 
 void request_roger_beep();
 void request_rssi_beep();

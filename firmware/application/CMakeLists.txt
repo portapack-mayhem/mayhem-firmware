@@ -191,7 +191,7 @@ set(CPPSRC
 	clock_manager.cpp
 	core_control.cpp
 	database.cpp
-	de_bruijn.cpp
+	gradient.cpp
 	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
@@ -294,7 +294,6 @@ set(CPPSRC
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp
 	apps/ui_iq_trim.cpp
-	apps/ui_level.cpp
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
@@ -303,7 +302,6 @@ set(CPPSRC
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
