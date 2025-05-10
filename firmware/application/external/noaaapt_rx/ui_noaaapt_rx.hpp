@@ -45,7 +45,7 @@ namespace ui::external_app::noaaapt_rx {
 
 #define NOAAAPT_FREQ_OFFSET 0
 
-#define NOAA_IMG_START_ROW 3
+#define NOAA_IMG_START_ROW 4
 
 class NoaaAptRxView : public View {
    public:
