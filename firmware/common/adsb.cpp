@@ -398,7 +398,7 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 
 // Decoding method from dump1090
 adsb_vel decode_frame_velo(ADSBFrame& frame) {
-    adsb_vel velo{false, false, 0, 0, 0};
+    adsb_vel velo{false, SPD_GND, 0, 0, 0};
 
     uint8_t* frame_data = frame.get_raw_data();
     uint8_t velo_type = frame.get_msg_sub();
@@ -436,7 +436,7 @@ adsb_vel decode_frame_velo(ADSBFrame& frame) {
                 velo.heading = (uint16_t)heading_temp;
 
                 velo.valid = true;
-                velo.gnd = true;
+                velo.type = SPD_GND;
             }
         }
     } else if (velo_type == 3 || velo_type == 4) {  // Airspeed
@@ -446,7 +446,7 @@ adsb_vel decode_frame_velo(ADSBFrame& frame) {
         int32_t raw = ((frame_data[7] & 0x7F) << 3) | (frame_data[8] >> 5);
         if (raw) {  // check speed available
             velo.speed = raw - 1;
-            velo.gnd = false;
+            velo.type = (frame_data[7] & 0x80) ? SPD_TAS : SPD_IAS;  // set AirSpeed type
 
             // supersonic indicator so multiply by 4
             if (velo_type == 4) velo.speed *= 4;

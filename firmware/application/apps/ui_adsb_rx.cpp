@@ -40,6 +40,8 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
+static const char speed_type_msg[][6] = {" Spd:", " IAS:", " TAS:"};
+
 static std::string get_map_tag(const AircraftRecentEntry& entry) {
     return trimr(entry.callsign.empty() ? entry.icao_str : entry.callsign);
 }
@@ -70,11 +72,27 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 
     entry_string +=
         (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
-        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +
-        to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
-        to_string_dec_uint((unsigned int)(entry.amp >> 9), 4) + " " +
-        (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
-        to_string_dec_uint(entry.age, 4);
+        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+
+    if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
+        // It is generally accepted that for every thousand feet of altitude,
+        // true airspeed is approximately 2% higher than indicated airspeed.
+
+        unsigned int tas = entry.velo.speed;
+        tas += (float)entry.pos.altitude / 1000.0 * 0.02 * entry.velo.speed;
+
+        entry_string +=
+            to_string_dec_uint(tas, 4) + '*' +
+            to_string_dec_uint((unsigned int)(entry.amp >> 9), 3);
+    } else {
+        entry_string +=
+            to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
+            to_string_dec_uint((unsigned int)(entry.amp >> 9), 4);
+    }
+
+    entry_string += " " +
+                    (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
+                    to_string_dec_uint(entry.age, 4);
 
     painter.draw_string(
         target_rect.location(),
@@ -111,8 +129,8 @@ void ADSBLogger::log(const ADSBLogEntry& log_entry) {
     if (log_entry.vel.valid)
         log_line += " Type:" + to_string_dec_uint(log_entry.vel_type) +
                     " Hdg:" + to_string_dec_uint(log_entry.vel.heading) +
-                    (log_entry.vel.gnd ? " Gnd" : " Air") +
-                    "Spd:" + to_string_dec_int(log_entry.vel.speed) +
+                    speed_type_msg[log_entry.vel.type] +
+                    to_string_dec_int(log_entry.vel.speed) +
                     " Vrate:" + to_string_dec_int(log_entry.vel.v_rate);
 
     if (log_entry.sil != 0)
@@ -267,7 +285,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
-            GeoPos::spd_unit::MPH,
+            GeoPos::spd_unit::HIDDEN,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
@@ -368,7 +386,7 @@ void ADSBRxDetailsView::refresh_ui() {
     std::string str_sqw = (entry_.sqwk > 0) ? " Sqw:" + to_string_dec_uint(entry_.sqwk) : "";
     if (entry_.velo.heading < 360 && entry_.velo.speed >= 0)
         text_info2.set("Hdg:" + to_string_dec_uint(entry_.velo.heading) +
-                       " Spd:" + to_string_dec_int(entry_.velo.speed) + str_sil + str_sqw);
+                       speed_type_msg[entry_.velo.type] + to_string_dec_int(entry_.velo.speed) + str_sil + str_sqw);
     else
         text_info2.set(str_sil + str_sqw);
 
@@ -506,7 +524,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
             log_entry.callsign = entry.callsign;
         }
         // 9-18: Airborne position (w/Baro Altitude)
-        // 20–22: Airborne position (w/GNSS Height)
+        // 20-22: Airborne position (w/GNSS Height)
         else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) ||
                  ((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
             entry.set_frame_pos(frame, raw_data[6] & 4);
