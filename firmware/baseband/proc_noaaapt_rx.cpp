@@ -146,8 +146,8 @@ void NoaaAptRx::configure(const NoaaAptRxConfigureMessage& message) {
     // Temptatively , I splitted, in two WidebandFMAudio::configure_wfm / WidebandFMAudio::configure_wfmam  and dynamically /2, /8 . (here /8)
     // decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);  // for wfm
     // decim_1.set<dsp::decimate::FIRC16xR16x32Decim8>().configure(message.decim_1_filter.taps);    // for wfmam
-    decim_1.set<dsp::decimate::FIRC16xR16x32Decim8>().configure(taps_84k_wfmam_decim_1.taps);  // for wfmam
-    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();                 // wfmam,  decim_1.decimation_factor() = /8 ,if applied after the line, decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);
+    decim_1.configure(taps_84k_wfmam_decim_1.taps);                           // for wfmam
+    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;  // wfmam,  decim_1.decimation_factor() = /8 ,if applied after the line, decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);
     size_t demod_input_fs = decim_1_output_fs;
 
     // spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;

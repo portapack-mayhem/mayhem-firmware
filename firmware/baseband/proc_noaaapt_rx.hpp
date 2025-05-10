@@ -33,7 +33,6 @@
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
-#include "proc_wfm_audio.hpp"
 
 #include <cstdint>
 
@@ -77,10 +76,7 @@ class NoaaAptRx : public BasebandProcessor {
     // dsp::decimate::FIRC16xR16x16Decim2 decim_1{};   //original condition , before adding wfmam
 
     // decim_1 will handle different types of FIR filters depending on selection.
-    MultiDecimator<
-        dsp::decimate::FIRC16xR16x16Decim2,
-        dsp::decimate::FIRC16xR16x32Decim8>
-        decim_1{};
+    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
 
     // dsp::decimate::FIRC16xR16x32Decim8 decim_1{}; // For FMAM
 
