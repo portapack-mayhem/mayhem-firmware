@@ -95,6 +95,14 @@ class NoaaAptRxView : public View {
         {0 * 8, 0 * 16},
         nav_};
 
+    RecordView record_view{
+        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        u"AUD",
+        u"AUDIO",
+        RecordView::FileType::WAV,
+        4096,
+        4};
+
     /*Labels labels{
         {{1 * 8, 1 * 16}, "LPM:", Theme::getInstance()->fg_light->foreground},
         {{13 * 8, 1 * 16}, "IOC:", Theme::getInstance()->fg_light->foreground},

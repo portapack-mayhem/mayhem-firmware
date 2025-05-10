@@ -58,7 +58,14 @@ NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
                   &field_frequency,
                   &txt_status,
                   // &labels,
+                  &record_view,
                   &button_ss});
+
+    record_view.set_filename_date_frequency(true);
+    record_view.on_error = [&nav](std::string message) {
+        nav.display_modal("Error", message);
+    };
+    record_view.set_sampling_rate(12000);
 
     field_frequency.set_step(100);
     field_frequency.on_edit_shown = [this]() {
@@ -93,6 +100,7 @@ NoaaAptRxView::~NoaaAptRxView() {
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
+    record_view.stop();
 }
 
 void NoaaAptRxView::on_settings_changed() {
