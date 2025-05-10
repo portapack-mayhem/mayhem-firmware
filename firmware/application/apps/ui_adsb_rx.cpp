@@ -77,9 +77,9 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
         // It is generally accepted that for every thousand feet of altitude,
         // true airspeed is approximately 2% higher than indicated airspeed.
-
-        unsigned int tas = entry.velo.speed;
-        tas += (float)entry.pos.altitude / 1000.0 * 0.02 * entry.velo.speed;
+        // Since the application CPU has no floating point unit, we avoid floating point here
+        // tas = entry.velo.speed + (float)entry.pos.altitude / 1000.0 * 0.02 * entry.velo.speed;
+        unsigned int tas = entry.velo.speed + entry.pos.altitude * 2 * entry.velo.speed / 100000;
 
         entry_string +=
             to_string_dec_uint(tas, 4) + '*' +
