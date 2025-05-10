@@ -93,11 +93,11 @@ void NoaaAptRx::execute(const buffer_c8_t& buffer) {
 
                 if (image_message.cnt < 400) {
                     if (audio_f[c] >= 1) {
-                        image_message.image[image_message.cnt++] = 0;
-                    } else if (audio_f[c] <= 0) {
                         image_message.image[image_message.cnt++] = 255;
+                    } else if (audio_f[c] <= 0) {
+                        image_message.image[image_message.cnt++] = 0;
                     } else {
-                        image_message.image[image_message.cnt++] = (1 - audio_f[c]) * 255;
+                        image_message.image[image_message.cnt++] = (audio_f[c]) * 255;
                     }
                 }
                 if (image_message.cnt >= 399) {
