@@ -322,6 +322,11 @@ void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
     send_message(&message);
 }
 
+void set_noaaapt_config() {
+    const NoaaAptRxConfigureMessage message{};
+    send_message(&message);
+}
+
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};
