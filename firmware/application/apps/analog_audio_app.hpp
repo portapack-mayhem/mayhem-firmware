@@ -74,7 +74,7 @@ class AMFMAptOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // Max option length chars  "USB+FM"
+        17,  // Max option length chars   "USB+FM(Wefax Apt)"
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
@@ -143,7 +143,7 @@ class WFMAMAptOptionsView : public View {
     };
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        10,  // Max option char length  "FM+AM(DSB)"
+        15,  // Max option char length "FM+AM(NOAA Apt)"
         {
             // Using common messages from freqman_ui.cpp
         }};

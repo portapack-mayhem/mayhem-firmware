@@ -81,6 +81,8 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     };
     audio::output::start();
     receiver_model.set_hidden_offset(WEFAX_FREQ_OFFSET);
+    receiver_model.set_sampling_rate(3072000);       // set the needed baseband SR.
+    receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
     receiver_model.enable();
 
     txt_status.set("Waiting for signal.");
