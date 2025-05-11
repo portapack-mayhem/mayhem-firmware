@@ -104,11 +104,11 @@ options_t freqman_bandwidths[6] = {
     },
     {
         // AMFM for Wefax-
-        {"USB+FM", 5},  // Fixed RX demod. AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
+        {"USB+FM(Wefax Apt)", 5},  // Fixed RX demod. AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
     },
     {
         // WFMAM for NOAA satellites,  137 Mhz band
-        {"FM+AM(DSB)", 1},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
+        {"FM+AM(NOAA Apt)", 1},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
     },
 };
 
