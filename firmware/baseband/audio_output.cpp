@@ -65,6 +65,18 @@ void AudioOutput::apt_write(const buffer_s16_t& audio) {
     write(buffer_f32_t{audio_f.data(), audio.count, audio.sampling_rate});
 }
 
+void AudioOutput::apt_write(const buffer_s16_t& audio, std::array<float, 32>& audio_f) {
+    for (size_t i = 0; i < audio.count; i++) {
+        cur = audio.p[i];
+        cur2 = cur * cur;
+        mag_am = sqrtf(prev2 + cur2 - (2 * prev * cur * cos_theta)) / sin_theta;
+        audio_f[i] = mag_am * ki;  // normalize.
+        prev = cur;
+        prev2 = cur2;
+    }
+    write(buffer_f32_t{audio_f.data(), audio.count, audio.sampling_rate});
+}
+
 void AudioOutput::write(const buffer_s16_t& audio) {
     std::array<float, 32> audio_f;
     for (size_t i = 0; i < audio.count; i++) {

@@ -47,6 +47,7 @@ class AudioOutput {
 
     void write_unprocessed(const buffer_s16_t& audio);
     void apt_write(const buffer_s16_t& audio);
+    void apt_write(const buffer_s16_t& audio, std::array<float, 32>& audio_f);
     void write(const buffer_s16_t& audio);
     void write(const buffer_f32_t& audio);
 

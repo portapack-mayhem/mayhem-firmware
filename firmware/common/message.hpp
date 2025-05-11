@@ -131,6 +131,9 @@ class Message {
         WeFaxRxStatusData = 74,
         WeFaxRxImageData = 75,
         WFMAMConfigure = 76,
+        NoaaAptRxConfigure = 77,
+        NoaaAptRxStatusData = 78,
+        NoaaAptRxImageData = 79,
         MAX
     };
 
@@ -1500,6 +1503,29 @@ class WeFaxRxImageDataMessage : public Message {
    public:
     constexpr WeFaxRxImageDataMessage()
         : Message{ID::WeFaxRxImageData} {}
+    uint8_t image[400]{0};
+    uint32_t cnt = 0;
+};
+
+class NoaaAptRxConfigureMessage : public Message {
+   public:
+    constexpr NoaaAptRxConfigureMessage()
+        : Message{ID::NoaaAptRxConfigure} {}
+};
+
+class NoaaAptRxStatusDataMessage : public Message {
+   public:
+    constexpr NoaaAptRxStatusDataMessage(uint8_t state)
+        : Message{ID::NoaaAptRxStatusData},
+          state{state} {
+    }
+    uint8_t state = 0;
+};
+
+class NoaaAptRxImageDataMessage : public Message {
+   public:
+    constexpr NoaaAptRxImageDataMessage()
+        : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
 };
