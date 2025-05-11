@@ -57,8 +57,8 @@ NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
                   &field_volume,
                   &field_frequency,
                   &txt_status,
-                  // &labels,
-                  &record_view,
+                  //&check_wav,  // enable this or the record view, but not both. yet it has some error, says "Invalid object" a lot. so disabled it
+                  //&record_view,  //
                   &button_ss});
 
     record_view.set_filename_date_frequency(true);
@@ -77,6 +77,8 @@ NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
     audio::set_rate(audio::Rate::Hz_12000);
     audio::output::start();
     receiver_model.set_hidden_offset(NOAAAPT_FREQ_OFFSET);
+    receiver_model.set_baseband_bandwidth(1750000);
+    receiver_model.set_sampling_rate(3072000);
     receiver_model.enable();
     txt_status.set("Waiting for signal.");
 
@@ -84,10 +86,17 @@ NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
         if (bmp.is_loaded()) {
             bmp.close();
             button_ss.set_text(LanguageHelper::currentMessages[LANG_START]);
+            if (check_wav.value()) {
+                record_view.stop();
+            }
             return;
+        }
+        if (check_wav.value()) {
+            record_view.start();
         }
         ensure_directory("/BMP");
         bmp.create("/BMP/noaa_" + to_string_timestamp(rtc_time::now()) + ".bmp", NOAAAPT_PX_SIZE, 1);
+
         button_ss.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     };
     on_settings_changed();

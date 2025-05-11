@@ -103,6 +103,12 @@ class NoaaAptRxView : public View {
         4096,
         4};
 
+    Checkbox check_wav{
+        {0 * 8, 2 * 16},
+        12,
+        "Save WAV too",
+        true};
+
     /*Labels labels{
         {{1 * 8, 1 * 16}, "LPM:", Theme::getInstance()->fg_light->foreground},
         {{13 * 8, 1 * 16}, "IOC:", Theme::getInstance()->fg_light->foreground},
