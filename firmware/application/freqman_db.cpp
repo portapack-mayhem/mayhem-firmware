@@ -114,6 +114,8 @@ options_t freqman_bandwidths[6] = {
 
 // TODO: these should be indexes.
 options_t freqman_steps = {
+    {"10Hz        ", 10},
+    {"50Hz        ", 50},
     {"0.1kHz      ", 100},
     {"1kHz        ", 1000},
     {"5kHz (SA AM)", 5000},
@@ -134,6 +136,8 @@ options_t freqman_steps = {
 
 // TODO: these should be indexes.
 options_t freqman_steps_short = {
+    {"10Hz", 10},
+    {"50Hz", 50},
     {"0.1kHz", 100},
     {"1kHz", 1000},
     {"5kHz", 5000},
