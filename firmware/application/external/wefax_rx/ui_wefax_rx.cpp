@@ -82,10 +82,15 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     audio::output::start();
     receiver_model.set_hidden_offset(WEFAX_FREQ_OFFSET);
 <<<<<<< HEAD
+<<<<<<< HEAD
     receiver_model.set_sampling_rate(3072000);       // set the needed baseband SR.
     receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
 =======
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+    receiver_model.set_sampling_rate(3072000);       // set the needed baseband SR.
+    receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
+>>>>>>> 61bd696b (Explicit_naming_wefax_NOAA_and_small_addition (#2651))
     receiver_model.enable();
 
     txt_status.set("Waiting for signal.");

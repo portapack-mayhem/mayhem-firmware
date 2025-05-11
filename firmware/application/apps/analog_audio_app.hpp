@@ -84,6 +84,7 @@ class AMFMAptOptionsView : public View {
     OptionsField options_config{
         {3 * 8, 0 * 16},
 <<<<<<< HEAD
+<<<<<<< HEAD
         17,  // Max option length chars   "USB+FM(Wefax Apt)"
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
@@ -118,6 +119,9 @@ class AMFMAptOptionsView : public View {
 =======
         6,  // Max option length chars  "USB+FM"
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+        17,  // Max option length chars   "USB+FM(Wefax Apt)"
+>>>>>>> 61bd696b (Explicit_naming_wefax_NOAA_and_small_addition (#2651))
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
@@ -191,10 +195,14 @@ class WFMAMAptOptionsView : public View {
     OptionsField options_config{
         {3 * 8, 0 * 16},
 <<<<<<< HEAD
+<<<<<<< HEAD
         16,  // Max option char length "80k-NOAA Apt LPF" , example.
 =======
         10,  // Max option char length  "FM+AM(DSB)"
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+        15,  // Max option char length "FM+AM(NOAA Apt)"
+>>>>>>> 61bd696b (Explicit_naming_wefax_NOAA_and_small_addition (#2651))
         {
             // Using common messages from freqman_ui.cpp
         }};
