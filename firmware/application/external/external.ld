@@ -181,7 +181,11 @@ MEMORY
 >>>>>>> 75c34747 (Externalize level (#2596))
 =======
     ram_external_app_gfxeq      (rwx) : org = 0xADE20000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+    ram_external_app_noaaapt_rx   (rwx) : org = 0xADE30000, len = 32k
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 }
 
 SECTIONS
@@ -443,11 +447,18 @@ SECTIONS
         KEEP(*(.external_app.app_stopwatch.application_information));
         *(*ui*external_app*stopwatch*);
     } > ram_external_app_stopwatch
+    
    .external_app_wefax_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_wefax_rx.application_information));
         *(*ui*external_app*wefax_rx*);
     } > ram_external_app_wefax_rx
+
+   .external_app_noaaapt_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_noaaapt_rx.application_information));
+        *(*ui*external_app*noaaapt_rx*);
+    } > ram_external_app_noaaapt_rx
 
     .external_app_breakout : ALIGN(4) SUBALIGN(4)
     {

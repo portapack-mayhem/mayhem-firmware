@@ -355,13 +355,19 @@ void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 void set_noaaapt_config() {
     const NoaaAptRxConfigureMessage message{};
     send_message(&message);
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};

@@ -683,6 +683,9 @@ DeclareTargets(PWFX wefaxrx)
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 ### NoaaApt Rx
 
 set(MODE_CPPSRC
@@ -691,8 +694,11 @@ set(MODE_CPPSRC
 DeclareTargets(PNOA noaaapt_rx)
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 ### HackRF "factory" firmware
 
 add_custom_command(

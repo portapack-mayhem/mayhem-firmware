@@ -146,7 +146,15 @@ set(EXTCPPSRC
 
 =======
 	
+<<<<<<< HEAD
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+	#noaaapt_rx
+	external/noaaapt_rx/main.cpp
+	external/noaaapt_rx/ui_noaaapt_rx.cpp
+		
+	
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
@@ -276,9 +284,13 @@ set(EXTAPPLIST
 	ook_editor
 	wefax_rx
 <<<<<<< HEAD
+<<<<<<< HEAD
 	noaaapt_rx
 =======
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+	noaaapt_rx
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 	shoppingcart_lock
 	flippertx
 	remote

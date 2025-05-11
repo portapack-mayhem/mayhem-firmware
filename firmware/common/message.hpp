@@ -136,6 +136,7 @@ class Message {
         NoaaAptRxConfigure = 77,
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
+<<<<<<< HEAD
         FSKPacket = 80,
         EPIRBPacket = 81,
 =======
@@ -144,6 +145,8 @@ class Message {
 =======
         WFMAMConfigure = 76,
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
         MAX
     };
 
@@ -1587,6 +1590,9 @@ class WeFaxRxImageDataMessage : public Message {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 class NoaaAptRxConfigureMessage : public Message {
    public:
     constexpr NoaaAptRxConfigureMessage()
@@ -1610,6 +1616,9 @@ class NoaaAptRxImageDataMessage : public Message {
     uint32_t cnt = 0;
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 #endif /*__MESSAGE_H__*/

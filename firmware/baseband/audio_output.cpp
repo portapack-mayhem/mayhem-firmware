@@ -66,6 +66,9 @@ void AudioOutput::apt_write(const buffer_s16_t& audio) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 void AudioOutput::apt_write(const buffer_s16_t& audio, std::array<float, 32>& audio_f) {
     for (size_t i = 0; i < audio.count; i++) {
         cur = audio.p[i];
@@ -78,8 +81,11 @@ void AudioOutput::apt_write(const buffer_s16_t& audio, std::array<float, 32>& au
     write(buffer_f32_t{audio_f.data(), audio.count, audio.sampling_rate});
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
 void AudioOutput::write(const buffer_s16_t& audio) {
     std::array<float, 32> audio_f;
     for (size_t i = 0; i < audio.count; i++) {

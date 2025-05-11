@@ -48,9 +48,13 @@ class AudioOutput {
     void write_unprocessed(const buffer_s16_t& audio);
     void apt_write(const buffer_s16_t& audio);
 <<<<<<< HEAD
+<<<<<<< HEAD
     void apt_write(const buffer_s16_t& audio, std::array<float, 32>& audio_f);
 =======
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+    void apt_write(const buffer_s16_t& audio, std::array<float, 32>& audio_f);
+>>>>>>> db65ae19 (Noaa apt decoder (#2648))
     void write(const buffer_s16_t& audio);
     void write(const buffer_f32_t& audio);
 
