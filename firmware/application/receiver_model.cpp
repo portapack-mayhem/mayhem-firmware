@@ -69,8 +69,9 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
     {taps_40k_wfm_decim_0, taps_40k_wfm_decim_1},
 }};
 
-static constexpr std::array<baseband::WFMAMConfig, 1> wfmam_configs{{
-    {taps_16k0_decim_0, taps_84k_wfmam_decim_1},
+static constexpr std::array<baseband::WFMAMConfig, 2> wfmam_configs{{
+    {taps_16k0_decim_0, taps_80k_wfmam_decim_1},
+    {taps_16k0_decim_0, taps_38k_wfmam_decim_1},
 }};
 
 } /* namespace */
