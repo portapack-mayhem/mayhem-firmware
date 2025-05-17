@@ -74,8 +74,8 @@ __attribute__((section(".external_app.app_waterfall_designer.application_informa
         0x00,
     },
     /*.icon_color = */ ui::Color::cyan().v,
-    /*.menu_location = */ app_location_t::RX,
-    /*.desired_menu_position = */ 0,
+    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'C', 'A', 'P'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time

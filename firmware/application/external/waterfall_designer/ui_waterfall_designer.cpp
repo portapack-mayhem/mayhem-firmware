@@ -28,7 +28,6 @@
 #include "ui_fileman.hpp"
 #include "file_reader.hpp"
 #include "ui_textentry.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 
@@ -109,39 +108,10 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     };
 
     button_add_level.on_select = [this]() {
-        portapack::async_tx_enabled = true;
-        UsbSerialAsyncmsg::asyncmsg("-------- pl");
-
-        for (auto& line : profile_levels) {
-            UsbSerialAsyncmsg::asyncmsg(line);
-        }
-
-        UsbSerialAsyncmsg::asyncmsg("-------- pl end");
-
-        UsbSerialAsyncmsg::asyncmsg("-------- index");
-        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(highlighted_index_));
-
-        UsbSerialAsyncmsg::asyncmsg("-------- index end");
-        UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
         on_add_level();
     };
 
     button_remove_level.on_select = [this]() {
-        portapack::async_tx_enabled = true;
-        UsbSerialAsyncmsg::asyncmsg("-------- pl");
-
-        for (auto& line : profile_levels) {
-            UsbSerialAsyncmsg::asyncmsg(line);
-        }
-
-        UsbSerialAsyncmsg::asyncmsg("-------- pl end");
-
-        UsbSerialAsyncmsg::asyncmsg("-------- index");
-        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(highlighted_index_));
-
-        UsbSerialAsyncmsg::asyncmsg("-------- index end");
-        UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
-
         on_remove_level();
     };
 
@@ -157,20 +127,6 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
 
     menu_view.on_highlight = [this]() {
         highlighted_index_ = menu_view.highlighted_index();
-        portapack::async_tx_enabled = true;
-        UsbSerialAsyncmsg::asyncmsg("-------- pl");
-
-        for (auto& line : profile_levels) {
-            UsbSerialAsyncmsg::asyncmsg(line);
-        }
-
-        UsbSerialAsyncmsg::asyncmsg("-------- pl end");
-
-        UsbSerialAsyncmsg::asyncmsg("-------- index");
-        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(highlighted_index_));
-
-        UsbSerialAsyncmsg::asyncmsg("-------- index end");
-        UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
     };
 
     receiver_model.enable();

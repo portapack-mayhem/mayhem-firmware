@@ -135,7 +135,7 @@ class WaterfallDesignerView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
-        "rx_capture",
+        "rx_wtf_designer",
         app_settings::Mode::RX,
         {
             {"capture_rate"sv, &capture_rate},
