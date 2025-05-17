@@ -29,7 +29,7 @@ __attribute__((section(".external_app.app_gfxeq.application_information"), used)
     ui::Color::green().v,
     app_location_t::RX,
     -1,
-    {'P', 'N', 'F', 'M'},
+    {'P', 'W', 'F', 'M'},
     0x00000000,
 };
 

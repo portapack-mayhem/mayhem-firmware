@@ -23,11 +23,12 @@
 TODOS LATER:
  - add load data from wav file (maybe to a separate app, not this)
  - AGC?!?
+ - Auto doppler correction
  - fix and enable sync detection
  - auto start / stop bmp save on each image
 */
 
-#include "ui_wefax_rx.hpp"
+#include "ui_noaaapt_rx.hpp"
 
 #include "audio.hpp"
 #include "rtc_time.hpp"
@@ -40,13 +41,13 @@ using namespace portapack;
 using namespace modems;
 using namespace ui;
 
-namespace ui::external_app::wefax_rx {
+namespace ui::external_app::noaaapt_rx {
 
-void WeFaxRxView::focus() {
+void NoaaAptRxView::focus() {
     field_frequency.focus();
 }
 
-WeFaxRxView::WeFaxRxView(NavigationView& nav)
+NoaaAptRxView::NoaaAptRxView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     add_children({&rssi,
@@ -56,21 +57,15 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
                   &field_volume,
                   &field_frequency,
                   &txt_status,
-                  &labels,
-                  &options_lpm,
-                  &options_ioc,
+                  //&check_wav,  // enable this or the record view, but not both. yet it has some error, says "Invalid object" a lot. so disabled it
+                  //&record_view,  //
                   &button_ss});
 
-    options_lpm.on_change = [this](size_t index, int32_t v) {
-        lpm_index = (uint8_t)index;
-        (void)v;
-        on_settings_changed();
+    record_view.set_filename_date_frequency(true);
+    record_view.on_error = [&nav](std::string message) {
+        nav.display_modal("Error", message);
     };
-    options_ioc.on_change = [this](size_t index, int32_t v) {
-        ioc_index = (uint8_t)index;
-        (void)v;
-        on_settings_changed();
-    };
+    record_view.set_sampling_rate(12000);
 
     field_frequency.set_step(100);
     field_frequency.on_edit_shown = [this]() {
@@ -79,43 +74,49 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     field_frequency.on_edit_hidden = [this]() {
         paused = false;
     };
+    audio::set_rate(audio::Rate::Hz_12000);
     audio::output::start();
-    receiver_model.set_hidden_offset(WEFAX_FREQ_OFFSET);
-    receiver_model.set_sampling_rate(3072000);       // set the needed baseband SR.
-    receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
+    receiver_model.set_hidden_offset(NOAAAPT_FREQ_OFFSET);
+    receiver_model.set_baseband_bandwidth(1750000);
+    receiver_model.set_sampling_rate(3072000);
     receiver_model.enable();
-
     txt_status.set("Waiting for signal.");
 
     button_ss.on_select = [this](Button&) {
         if (bmp.is_loaded()) {
             bmp.close();
             button_ss.set_text(LanguageHelper::currentMessages[LANG_START]);
+            if (check_wav.value()) {
+                record_view.stop();
+            }
             return;
         }
+        if (check_wav.value()) {
+            record_view.start();
+        }
         ensure_directory("/BMP");
-        bmp.create("/BMP/wefax_" + to_string_timestamp(rtc_time::now()) + ".bmp", WEFAX_PX_SIZE, 1);
+        bmp.create("/BMP/noaa_" + to_string_timestamp(rtc_time::now()) + ".bmp", NOAAAPT_PX_SIZE, 1);
+
         button_ss.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     };
-
-    options_lpm.set_selected_index(lpm_index, false);
-    options_ioc.set_selected_index(ioc_index, true);
+    on_settings_changed();
 }
 
-WeFaxRxView::~WeFaxRxView() {
+NoaaAptRxView::~NoaaAptRxView() {
     stopping = true;
     receiver_model.set_hidden_offset(0);
     bmp.close();
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
+    record_view.stop();
 }
 
-void WeFaxRxView::on_settings_changed() {
-    baseband::set_wefax_config(options_lpm.selected_index_value(), options_ioc.selected_index_value());
+void NoaaAptRxView::on_settings_changed() {
+    baseband::set_noaaapt_config();
 }
 
-void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
+void NoaaAptRxView::on_status(NoaaAptRxStatusDataMessage msg) {
     (void)msg;
     std::string tmp = "";
     if (msg.state == 0) {
@@ -129,26 +130,26 @@ void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
 }
 
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync
-void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
-    if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
+void NoaaAptRxView::on_image(NoaaAptRxImageDataMessage msg) {
+    if ((line_num) >= 320 - NOAA_IMG_START_ROW * 16) line_num = 0;  // for draw reset
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
         Color pxl = {msg.image[i], msg.image[i], msg.image[i]};
         bmp.write_next_px(pxl);
         line_in_part++;
-        if (line_in_part == WEFAX_PX_SIZE) {
+        if (line_in_part == NOAAAPT_PX_SIZE) {
             line_in_part = 0;
             line_num++;
             bmp.expand_y_delta(1);
         }
 
-        uint16_t xpos = line_in_part / (WEFAX_PX_SIZE / 240);
+        uint16_t xpos = line_in_part / (NOAAAPT_PX_SIZE / 240);
         if (xpos >= 240) xpos = 239;
         line_buffer[xpos] = pxl;
         if ((line_in_part == 0)) {
-            portapack::display.render_line({0, line_num + 4 * 16}, 240, line_buffer);
+            portapack::display.render_line({0, line_num + NOAA_IMG_START_ROW * 16}, 240, line_buffer);
         }
     }
 }
 
-}  // namespace ui::external_app::wefax_rx
+}  // namespace ui::external_app::noaaapt_rx

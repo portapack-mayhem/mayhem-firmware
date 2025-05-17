@@ -80,7 +80,7 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(config_updown_converter()));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(config_freq_rx_correction_updown()));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(config_freq_tx_correction_updown()));
-    pmem_dump_file.write_line("lcd_inverted_mode: " + to_string_dec_uint(config_lcd_inverted_mode()));
+    pmem_dump_file.write_line("lcd_normally_black: " + to_string_dec_uint(config_lcd_normally_black()));
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(config_converter_freq()));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(config_freq_rx_correction()));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(config_freq_tx_correction()));
@@ -156,6 +156,9 @@ bool DebugDumpView::debug_dump_func() {
             break;
         case ReceiverModel::Mode::WidebandFMAudio:
             pmem_dump_file.write_line("modulation: Mode::WidebandFMAudio");
+            break;
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            pmem_dump_file.write_line("modulation: Mode::WFMAudioAMApt");
             break;
         case ReceiverModel::Mode::SpectrumAnalysis:
             pmem_dump_file.write_line("modulation: Mode::SpectrumAnalysis");

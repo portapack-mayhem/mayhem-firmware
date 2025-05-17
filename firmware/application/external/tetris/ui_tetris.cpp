@@ -259,8 +259,12 @@ void Tetromino(unsigned char c) {
 
 void Initialize(unsigned char c) {
     colorIndex = c;
-    boardX = 0;
     boardY = 4;
+    if (c == 1) {     // I-tetromino
+        boardX = -1;  // Spawn higher
+    } else {
+        boardX = 0;  // Other tetrominos spawn at top
+    }
     copyCoordinates(X, Y, c - 1);
     rotation_state = 0;
 }
@@ -269,7 +273,7 @@ void Rotate() {
     short newX[4], newY[4];
     int next_state = (rotation_state + 1) % 4;
 
-    if (colorIndex == 2) {
+    if (colorIndex == 2) {  // O-tetromino doesn't rotate
         return;
     }
 
@@ -291,6 +295,7 @@ void Rotate() {
         short kickX = kick_tests[rotation_state][test][0];
         short kickY = kick_tests[rotation_state][test][1];
 
+        // Calculate new positions
         for (int i = 0; i < 4; i++) {
             short tmpX = X[i] - X[1];
             short tmpY = Y[i] - Y[1];
@@ -298,11 +303,13 @@ void Rotate() {
             newY[i] = Y[1] + tmpX;
             int testX = boardX + newX[i] + kickX;
             int testY = boardY + newY[i] + kickY;
-            if (OutOfBounds(testY, testX) || (testX >= 0 && board[testX][testY] != 0)) {
+            // Explicitly block rotations that place blocks above the board
+            if (testX < 0 || OutOfBounds(testY, testX) || (testX >= 0 && board[testX][testY] != 0)) {
                 goto next_test;
             }
         }
 
+        // Valid rotation found, apply it
         DeleteFigure();
         for (int i = 0; i < 4; i++) {
             X[i] = newX[i];
@@ -492,7 +499,9 @@ void UpdateBoard() {
 
 bool IsOver() {
     for (int i = 0; i < 10; i++) {
-        if (board[0][i] != 0) return true;
+        if (board[0][i] != 0) {
+            return true;
+        }
     }
     return false;
 }

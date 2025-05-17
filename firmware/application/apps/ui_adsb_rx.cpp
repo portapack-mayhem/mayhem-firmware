@@ -40,6 +40,8 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
+static const char speed_type_msg[][6] = {" Spd:", " IAS:", " TAS:"};
+
 static std::string get_map_tag(const AircraftRecentEntry& entry) {
     return trimr(entry.callsign.empty() ? entry.icao_str : entry.callsign);
 }
@@ -70,18 +72,34 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 
     entry_string +=
         (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
-        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +
-        to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
-        to_string_dec_uint((unsigned int)(entry.amp >> 9), 4) + " " +
-        (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
-        to_string_dec_uint(entry.age, 4);
+        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+
+    if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
+        // It is generally accepted that for every thousand feet of altitude,
+        // true airspeed is approximately 2% higher than indicated airspeed.
+        // Since the application CPU has no floating point unit, we avoid floating point here
+        // tas = entry.velo.speed + (float)entry.pos.altitude / 1000.0 * 0.02 * entry.velo.speed;
+        unsigned int tas = entry.velo.speed + entry.pos.altitude * 2 * entry.velo.speed / 100000;
+
+        entry_string +=
+            to_string_dec_uint(tas, 4) + '*' +
+            to_string_dec_uint((unsigned int)(entry.amp >> 9), 3);
+    } else {
+        entry_string +=
+            to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
+            to_string_dec_uint((unsigned int)(entry.amp >> 9), 4);
+    }
+
+    entry_string += " " +
+                    (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
+                    to_string_dec_uint(entry.age, 4);
 
     painter.draw_string(
         target_rect.location(),
         style,
         entry_string);
 
-    if (entry.pos.valid)
+    if (entry.pos.pos_valid)
         painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0),
                             bitmap_target, target_color, style.background);
 }
@@ -93,22 +111,31 @@ void ADSBLogger::log(const ADSBLogEntry& log_entry) {
     log_line.reserve(100);
 
     log_line = log_entry.raw_data;
-    log_line += "ICAO:" + log_entry.icao;
+    log_line += " ICAO:" + log_entry.icao;
+
+    if (log_entry.sqwk)
+        log_line += " Squawk:" + to_string_dec_uint(log_entry.sqwk, 4, '0');
 
     if (!log_entry.callsign.empty())
         log_line += " " + log_entry.callsign;
 
-    if (log_entry.pos.valid)
-        log_line += " Alt:" + to_string_dec_int(log_entry.pos.altitude) +
-                    " Lat:" + to_string_decimal(log_entry.pos.latitude, 7) +
+    if (log_entry.pos.alt_valid)
+        log_line += " Alt:" + to_string_dec_int(log_entry.pos.altitude);
+
+    if (log_entry.pos.pos_valid)
+        log_line += " Lat:" + to_string_decimal(log_entry.pos.latitude, 7) +
                     " Lon:" + to_string_decimal(log_entry.pos.longitude, 7);
 
     if (log_entry.vel.valid)
         log_line += " Type:" + to_string_dec_uint(log_entry.vel_type) +
                     " Hdg:" + to_string_dec_uint(log_entry.vel.heading) +
-                    " Spd: " + to_string_dec_int(log_entry.vel.speed);
+                    speed_type_msg[log_entry.vel.type] +
+                    to_string_dec_int(log_entry.vel.speed) +
+                    " Vrate:" + to_string_dec_int(log_entry.vel.v_rate);
+
     if (log_entry.sil != 0)
         log_line += " Sil:" + to_string_dec_uint(log_entry.sil);
+
     log_file.write_entry(log_line);
 }
 
@@ -258,7 +285,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
-            GeoPos::spd_unit::MPH,
+            GeoPos::spd_unit::HIDDEN,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
@@ -356,11 +383,12 @@ void ADSBRxDetailsView::refresh_ui() {
     text_callsign.set(entry_.callsign);
     text_infos.set(entry_.info_string);
     std::string str_sil = (entry_.sil > 0) ? " Sil:" + to_string_dec_uint(entry_.sil) : "";
+    std::string str_sqw = (entry_.sqwk > 0) ? " Sqw:" + to_string_dec_uint(entry_.sqwk) : "";
     if (entry_.velo.heading < 360 && entry_.velo.speed >= 0)
         text_info2.set("Hdg:" + to_string_dec_uint(entry_.velo.heading) +
-                       " Spd:" + to_string_dec_int(entry_.velo.speed) + str_sil);
+                       speed_type_msg[entry_.velo.type] + to_string_dec_int(entry_.velo.speed) + str_sil + str_sqw);
     else
-        text_info2.set(str_sil);
+        text_info2.set(str_sil + str_sqw);
 
     text_frame_pos_even.set(to_string_hex_array(entry_.frame_pos_even.get_raw_data(), 14));
     text_frame_pos_odd.set(to_string_hex_array(entry_.frame_pos_odd.get_raw_data(), 14));
@@ -421,14 +449,22 @@ void ADSBRxView::focus() {
 
 void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     auto frame = message->frame;
-    uint32_t ICAO_address = frame.get_ICAO_address();
     status_frame.toggle();
 
-    // Bad frame, skip it.
-    if (!frame.check_CRC() || ICAO_address == 0)
-        return;
+    uint32_t ICAO_address;
+    uint32_t crc = frame.check_CRC();
 
-    ADSBLogEntry log_entry;
+    if (crc != 0) {
+        if (find(recent, crc) != recent.end())
+            ICAO_address = crc;
+        else
+            return;  // Bad frame, skip it.
+    } else {
+        ICAO_address = frame.get_ICAO_address();
+        if (ICAO_address == 0)
+            return;  // Bad frame, skip it.
+    }
+
     status_good_frame.toggle();
 
     rtc::RTC datetime;
@@ -440,42 +476,68 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     entry.inc_hit();
     entry.reset_age();
 
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
+
     // Store smoothed amplitude on updates.
     entry.amp = entry.hits == 0
                     ? message->amp
                     : ((entry.amp * 15) + message->amp) >> 4;
 
-    log_entry.raw_data = to_string_hex_array(frame.get_raw_data(), 14);
+    uint8_t df = frame.get_DF();
+
+    if (df == 11)  // do not log DF11, because messages arrive too frequently
+        return;
+
+    ADSBLogEntry log_entry;
+    uint8_t* raw_data = frame.get_raw_data();
+
+    if (df & 0x10)  // 112 bits
+        log_entry.raw_data = to_string_hex_array(raw_data, 14);
+    else {  // 56 bits
+        log_entry.raw_data = to_string_hex_array(raw_data, 7);
+        log_entry.raw_data.append(14, ' ');
+    }
+
     log_entry.icao = entry.icao_str;
 
-    if (frame.get_DF() == DF_ADSB) {
+    // 17: // Extended squitter
+    // 18: // Extended squitter/non-transponder
+    if (df == DF_ADSB) {
         uint8_t msg_type = frame.get_msg_type();
         uint8_t msg_sub = frame.get_msg_sub();
-        uint8_t* raw_data = frame.get_raw_data();
 
-        // 4: // surveillance, altitude reply
-        if ((msg_type >= AIRCRAFT_ID_L) && (msg_type <= AIRCRAFT_ID_H)) {
+        // transmitted when horizontal position information is not available but altitude information is available
+        if (msg_type == 0) {
+            // Q-bit must be present
+            if (raw_data[5] & 1) {
+                int altitude = ((((raw_data[5] & 0xFE) << 3) | ((raw_data[6] & 0xF0) >> 4)) * 25) - 1000;
+
+                log_entry.pos.altitude = entry.pos.altitude = altitude;
+                log_entry.pos.alt_valid = entry.pos.alt_valid = true;
+            }
+        }
+        // 1-4: Aircraft identification
+        else if ((msg_type >= AIRCRAFT_ID_L) && (msg_type <= AIRCRAFT_ID_H)) {
             entry.set_callsign(decode_frame_id(frame));
             log_entry.callsign = entry.callsign;
         }
-
-        // 9:
-        // 18: // Extended squitter/non-transponder
-        // 21: // Comm-B, identity reply
-        // 20: // Comm-B, altitude reply
+        // 9-18: Airborne position (w/Baro Altitude)
+        // 20-22: Airborne position (w/GNSS Height)
         else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) ||
                  ((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
             entry.set_frame_pos(frame, raw_data[6] & 4);
             log_entry.pos = entry.pos;
 
-            if (entry.pos.valid) {
+            if (entry.pos.pos_valid) {
                 std::string str_info =
                     "Alt:" + to_string_dec_int(entry.pos.altitude) +
                     " Lat:" + to_string_decimal(entry.pos.latitude, 2) +
                     " Lon:" + to_string_decimal(entry.pos.longitude, 2);
                 entry.set_info_string(std::move(str_info));
             }
-
+            // 19: Airborne velocities
         } else if (msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC) {
             entry.set_frame_velo(frame);
             log_entry.vel = entry.velo;
@@ -485,11 +547,59 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
         }
     }
 
-    logger->log(log_entry);
+    // 4: // surveillance, altitude reply
+    // 20: // Comm-B, altitude reply
+    // 21: // Comm-B, identity reply
+    if (df == 0 || df == 4 || df == 20) {  // Decode the 13 bit AC altitude field
+        uint8_t m_bit = raw_data[3] & (1 << 6);
+        uint8_t q_bit = raw_data[3] & (1 << 4);
+        int altitude = 0;
 
-    if (pmem::beep_on_packets()) {
-        baseband::request_audio_beep(1000, 24000, 60);
+        if (!m_bit) {     // units -> FEET
+            if (q_bit) {  // N is the 11 bit integer resulting from the removal of bit Q and M
+                int n = ((raw_data[2] & 31) << 6) |
+                        ((raw_data[3] & 0x80) >> 2) |
+                        ((raw_data[3] & 0x20) >> 1) |
+                        (raw_data[3] & 15);
+
+                // The final altitude is due to the resulting number multiplied by 25, minus 1000.
+                altitude = 25 * n - 1000;
+                if (altitude < 0)
+                    altitude = 0;
+            }  // else N is an 11 bit Gillham coded altitude
+        }
+
+        log_entry.pos.altitude = entry.pos.altitude = altitude;
+        log_entry.pos.alt_valid = entry.pos.alt_valid = true;
     }
+
+    if (df == 5 || df == 21 ||
+        (df == 17 && frame.get_msg_type() == 28 && frame.get_msg_sub() == 1)) {  // Decode the squawk code
+        uint8_t* s = (df == 17) ? raw_data + 5 : raw_data + 2;                   // calc start of the code
+        uint16_t sqwk{0};
+
+        sqwk = ((s[1] & 0x80) >> 5) | ((s[0] & 0x02) >> 0) | ((s[0] & 0x08) >> 3);  // A
+        sqwk *= 10;
+        sqwk += ((s[1] & 0x02) << 1) | ((s[1] & 0x08) >> 2) | ((s[1] & 0x20) >> 5);  // B
+        sqwk *= 10;
+        sqwk += ((s[0] & 0x01) << 2) | ((s[0] & 0x04) >> 1) | ((s[0] & 0x10) >> 4);  // C
+        sqwk *= 10;
+        sqwk += ((s[1] & 0x01) << 2) | ((s[1] & 0x04) >> 1) | ((s[1] & 0x10) >> 4);  // D
+
+        log_entry.sqwk = entry.sqwk = sqwk;
+    }
+
+    if (df == 20 || df == 21) {
+        if (raw_data[4] == 0x20) {  // try decode as BDS20
+            std::string callsign = decode_frame_id(frame);
+            if (callsign.find('#') == std::string::npos) {  // all chars OK
+                entry.set_callsign(callsign);
+                log_entry.callsign = callsign;
+            }
+        }
+    }
+
+    logger->log(log_entry);
 }
 
 void ADSBRxView::on_tick_second() {
@@ -544,7 +654,7 @@ void ADSBRxView::refresh_ui() {
             }
 
             // NB: current entry also gets a marker so it shows up if map is panned.
-            if (map_needs_update && entry.pos.valid && entry.state <= ADSBAgeState::Recent) {
+            if (map_needs_update && entry.pos.pos_valid && entry.state <= ADSBAgeState::Recent) {
                 map_needs_update = details_view->add_map_marker(entry);
             }
 

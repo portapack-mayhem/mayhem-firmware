@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2025 Brumi, HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -20,67 +19,42 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_WFM_AUDIO_H__
-#define __PROC_WFM_AUDIO_H__
+#ifndef __PROC_NOAAAPTRX_H__
+#define __PROC_NOAAAPTRX_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
 
-#include "dsp_types.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "block_decimator.hpp"
+#include "dsp_iir.hpp"
+#include "audio_compressor.hpp"
 
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
 
-#include <array>
-#include <memory>
-#include <tuple>
-#include <variant>
+#include <cstdint>
 
-template <typename... Args>
-class MultiDecimator {
-   public:
-    /* Dispatches to the underlying type's execute. */
-    template <typename Source, typename Destination>
-    Destination execute(
-        const Source& src,
-        const Destination& dst) {
-        return std::visit(
-            [&src, &dst](auto&& arg) -> Destination {
-                return arg.execute(src, dst);
-            },
-            decimator_);
-    }
-
-    size_t decimation_factor() const {
-        return std::visit(
-            [](auto&& arg) -> size_t {
-                return arg.decimation_factor;
-            },
-            decimator_);
-    }
-
-    /* Sets this decimator to a new instance of the specified decimator type.
-     * NB: The instance is returned by-ref so 'configure' can easily be called. */
-    template <typename Decimator>
-    Decimator& set() {
-        decimator_ = Decimator{};
-        return std::get<Decimator>(decimator_);
-    }
-
-   private:
-    std::variant<Args...> decimator_{};
-};
-
-class WidebandFMAudio : public BasebandProcessor {
+class NoaaAptRx : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
    private:
+    void update_params();
+    // todo rethink
+
+    uint32_t samples_per_pixel = 0;
+
+    // to exactly match the pixel / samples.
+    double pxRem = 0;   // if has remainder, it'll store it
+    double pxRoll = 0;  // summs remainders, so won't misalign
+
+    uint32_t cnt = 0;  // signal counter
+    uint16_t sync_cnt = 0;
+    uint16_t syncnot_cnt = 0;
+
     static constexpr size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
 
@@ -102,10 +76,7 @@ class WidebandFMAudio : public BasebandProcessor {
     // dsp::decimate::FIRC16xR16x16Decim2 decim_1{};   //original condition , before adding wfmam
 
     // decim_1 will handle different types of FIR filters depending on selection.
-    MultiDecimator<
-        dsp::decimate::FIRC16xR16x16Decim2,
-        dsp::decimate::FIRC16xR16x32Decim8>
-        decim_1{};
+    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
 
     // dsp::decimate::FIRC16xR16x32Decim8 decim_1{}; // For FMAM
 
@@ -133,20 +104,21 @@ class WidebandFMAudio : public BasebandProcessor {
     AudioSpectrum spectrum{};
     uint32_t fft_step{0};
 
-    SpectrumCollector channel_spectrum{};
-    size_t spectrum_interval_samples = 0;
-    size_t spectrum_samples = 0;
+    // SpectrumCollector channel_spectrum{};
+    // size_t spectrum_interval_samples = 0;
+    // size_t spectrum_samples = 0;
 
     bool configured{false};
+
+    void configure(const NoaaAptRxConfigureMessage& message);
+    void capture_config(const CaptureConfigMessage& message);
+
+    NoaaAptRxStatusDataMessage status_message{0};
+    NoaaAptRxImageDataMessage image_message{};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
-
-    void configure_wfm(const WFMConfigureMessage& message);
-    void configure_wfmam(const WFMAMConfigureMessage& message);
-    void capture_config(const CaptureConfigMessage& message);
-    void post_message(const buffer_c16_t& data);
 };
 
-#endif /*__PROC_WFM_AUDIO_H__*/
+#endif /*__PROC_NOAAAPTRX_H__*/
