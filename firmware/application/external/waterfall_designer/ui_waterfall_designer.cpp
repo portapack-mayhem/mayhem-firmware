@@ -152,7 +152,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     button_apply_setting.on_select = [this]() {
         if_apply_setting = true;
         on_apply_current_to_wtf();
-        nav_.pop();
+        // nav_.pop();
     };
 
     menu_view.on_highlight = [this]() {
