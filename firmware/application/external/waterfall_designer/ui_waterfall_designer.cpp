@@ -56,6 +56,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         &button_edit_color,
         &button_apply_setting,
     });
+    ensure_directory(waterfalls_dir);
 
     waterfall = std::make_unique<spectrum::WaterfallView>();
     add_child(waterfall.get());
@@ -118,7 +119,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         UsbSerialAsyncmsg::asyncmsg("-------- pl end");
 
         UsbSerialAsyncmsg::asyncmsg("-------- index");
-        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(menu_view.highlighted_index()));
+        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(highlighted_index_));
 
         UsbSerialAsyncmsg::asyncmsg("-------- index end");
         UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
@@ -126,7 +127,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     };
 
     button_remove_level.on_select = [this]() {
-                portapack::async_tx_enabled = true;
+        portapack::async_tx_enabled = true;
         UsbSerialAsyncmsg::asyncmsg("-------- pl");
 
         for (auto& line : profile_levels) {
@@ -136,7 +137,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         UsbSerialAsyncmsg::asyncmsg("-------- pl end");
 
         UsbSerialAsyncmsg::asyncmsg("-------- index");
-        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(menu_view.highlighted_index()));
+        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(highlighted_index_));
 
         UsbSerialAsyncmsg::asyncmsg("-------- index end");
         UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
@@ -155,6 +156,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     };
 
     menu_view.on_highlight = [this]() {
+        highlighted_index_ = menu_view.highlighted_index();
         portapack::async_tx_enabled = true;
         UsbSerialAsyncmsg::asyncmsg("-------- pl");
 
@@ -165,7 +167,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         UsbSerialAsyncmsg::asyncmsg("-------- pl end");
 
         UsbSerialAsyncmsg::asyncmsg("-------- index");
-        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(menu_view.highlighted_index()));
+        UsbSerialAsyncmsg::asyncmsg(to_string_dec_uint(highlighted_index_));
 
         UsbSerialAsyncmsg::asyncmsg("-------- index end");
         UsbSerialAsyncmsg::asyncmsg("\n\n\n\n\n");
@@ -355,11 +357,11 @@ void WaterfallDesignerView::on_save_profile() {
 }
 
 void WaterfallDesignerView::on_add_level() {
-    if (menu_view.highlighted_index() >= profile_levels.size()) return;
-    if (profile_levels[menu_view.highlighted_index()].empty()) return;
-    if (profile_levels[menu_view.highlighted_index()][0] == '#') return;
-    if (profile_levels[menu_view.highlighted_index()].find(',') == std::string::npos) return;
-    size_t insert_pos = menu_view.highlighted_index();
+    if (highlighted_index_ >= profile_levels.size()) return;
+    if (profile_levels[highlighted_index_].empty()) return;
+    if (profile_levels[highlighted_index_][0] == '#') return;
+    if (profile_levels[highlighted_index_].find(',') == std::string::npos) return;
+    size_t insert_pos = highlighted_index_;
     std::string new_entry = "0,128,128,128";
     profile_levels.insert(profile_levels.begin() + insert_pos, new_entry);
     refresh_menu_view();
@@ -367,23 +369,23 @@ void WaterfallDesignerView::on_add_level() {
 }
 
 void WaterfallDesignerView::on_remove_level() {
-    if (menu_view.highlighted_index() >= profile_levels.size()) return;
-    if (profile_levels[menu_view.highlighted_index()].empty()) return;
-    if (profile_levels[menu_view.highlighted_index()][0] == '#') return;
-    if (profile_levels[menu_view.highlighted_index()].find(',') == std::string::npos) return;
-    profile_levels.erase(profile_levels.begin() + menu_view.highlighted_index());
+    if (highlighted_index_ >= profile_levels.size()) return;
+    if (profile_levels[highlighted_index_].empty()) return;
+    if (profile_levels[highlighted_index_][0] == '#') return;
+    if (profile_levels[highlighted_index_].find(',') == std::string::npos) return;
+    profile_levels.erase(profile_levels.begin() + highlighted_index_);
     refresh_menu_view();
 }
 
 void WaterfallDesignerView::on_edit_color() {
-    if (menu_view.highlighted_index() >= profile_levels.size()) return;
-    if (profile_levels[menu_view.highlighted_index()].empty()) return;
-    if (profile_levels[menu_view.highlighted_index()][0] == '#') return;
-    if (profile_levels[menu_view.highlighted_index()].find(',') == std::string::npos) return;
+    if (highlighted_index_ >= profile_levels.size()) return;
+    if (profile_levels[highlighted_index_].empty()) return;
+    if (profile_levels[highlighted_index_][0] == '#') return;
+    if (profile_levels[highlighted_index_].find(',') == std::string::npos) return;
 
-    auto color_picker_view = nav_.push<WaterfallDesignerColorPickerView>(profile_levels[menu_view.highlighted_index()]);
+    auto color_picker_view = nav_.push<WaterfallDesignerColorPickerView>(profile_levels[highlighted_index_]);
     color_picker_view->on_save = [this](std::string new_color) {
-        profile_levels[menu_view.highlighted_index()] = new_color;
+        profile_levels[highlighted_index_] = new_color;
         refresh_menu_view();
         on_apply_current_to_wtf();
     };
@@ -514,7 +516,7 @@ void WaterfallDesignerColorPickerView::focus() {
 }
 
 void WaterfallDesignerColorPickerView::update_color_index() {
-    index_ = static_cast<uint8_t>(field_index.value()); 
+    index_ = static_cast<uint8_t>(field_index.value());
     red_ = static_cast<uint8_t>(field_red.value());
     green_ = static_cast<uint8_t>(field_green.value());
     blue_ = static_cast<uint8_t>(field_blue.value());
