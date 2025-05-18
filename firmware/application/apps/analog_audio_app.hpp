@@ -196,6 +196,7 @@ class WFMAMAptOptionsView : public View {
         {3 * 8, 0 * 16},
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         16,  // Max option char length "80k-NOAA Apt LPF" , example.
 =======
         10,  // Max option char length  "FM+AM(DSB)"
@@ -203,6 +204,9 @@ class WFMAMAptOptionsView : public View {
 =======
         15,  // Max option char length "FM+AM(NOAA Apt)"
 >>>>>>> 61bd696b (Explicit_naming_wefax_NOAA_and_small_addition (#2651))
+=======
+        16,  // Max option char length "80khz (NOAA Apt)" example.
+>>>>>>> 322b06d6 (Improve_RF_sensitivity_NOAA_signal (#2654))
         {
             // Using common messages from freqman_ui.cpp
         }};

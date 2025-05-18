@@ -147,16 +147,21 @@ void NoaaAptRx::configure(const NoaaAptRxConfigureMessage& message) {
     // decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);  // for wfm
     // decim_1.set<dsp::decimate::FIRC16xR16x32Decim8>().configure(message.decim_1_filter.taps);    // for wfmam
 <<<<<<< HEAD
+<<<<<<< HEAD
     decim_1.configure(taps_38k_wfmam_decim_1.taps);                           // for wfmam
 =======
     decim_1.configure(taps_84k_wfmam_decim_1.taps);                           // for wfmam
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+    decim_1.configure(taps_38k_wfmam_decim_1.taps);                           // for wfmam
+>>>>>>> 322b06d6 (Improve_RF_sensitivity_NOAA_signal (#2654))
     size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;  // wfmam,  decim_1.decimation_factor() = /8 ,if applied after the line, decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(message.decim_1_filter.taps);
     size_t demod_input_fs = decim_1_output_fs;
 
     // spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
     // spectrum_samples = 0;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     channel_filter_low_f = taps_38k_wfmam_decim_1.low_frequency_normalized * decim_1_input_fs;
     channel_filter_high_f = taps_38k_wfmam_decim_1.high_frequency_normalized * decim_1_input_fs;
@@ -167,6 +172,11 @@ void NoaaAptRx::configure(const NoaaAptRxConfigureMessage& message) {
     channel_filter_low_f = taps_84k_wfmam_decim_1.low_frequency_normalized * decim_1_input_fs;
     channel_filter_high_f = taps_84k_wfmam_decim_1.high_frequency_normalized * decim_1_input_fs;
     channel_filter_transition = taps_84k_wfmam_decim_1.transition_normalized * decim_1_input_fs;
+=======
+    channel_filter_low_f = taps_38k_wfmam_decim_1.low_frequency_normalized * decim_1_input_fs;
+    channel_filter_high_f = taps_38k_wfmam_decim_1.high_frequency_normalized * decim_1_input_fs;
+    channel_filter_transition = taps_38k_wfmam_decim_1.transition_normalized * decim_1_input_fs;
+>>>>>>> 322b06d6 (Improve_RF_sensitivity_NOAA_signal (#2654))
     demod.configure(demod_input_fs, 17000);
     audio_filter.configure(taps_64_lp_1875_2166.taps);
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
