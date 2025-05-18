@@ -37,28 +37,26 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
-    add_children({
-        &labels,
-        &field_frequency,
-        &field_frequency_step,
-        &field_rf_amp,
-        &field_lna,
-        &field_vga,
-        &option_bandwidth,
-        &record_view,
-        &menu_view,
-        &button_new,
-        &button_open,
-        &button_save,
-        &button_add_level,
-        &button_remove_level,
-        &button_edit_color,
-        &button_apply_setting,
-    });
+    add_children({&labels,
+                  &field_frequency,
+                  &field_frequency_step,
+                  &field_rf_amp,
+                  &field_lna,
+                  &field_vga,
+                  &option_bandwidth,
+                  &record_view,
+                  &menu_view,
+                  &button_new,
+                  &button_open,
+                  &button_save,
+                  &button_add_level,
+                  &button_remove_level,
+                  &button_edit_color,
+                  &button_apply_setting,
+                  &waterfall});
     ensure_directory(waterfalls_dir);
-
-    waterfall = std::make_unique<spectrum::WaterfallView>();
-    add_child(waterfall.get());
+    ui::Rect waterfall_rect{0, header_height, screen_rect().width(), screen_rect().height() - header_height};
+    waterfall.set_parent_rect(waterfall_rect);
 
     menu_view.set_parent_rect({0, 1 * 16, screen_width, 7 * 16});
 
@@ -77,7 +75,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
         /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
         /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card. */
 
-        waterfall->stop();
+        waterfall.stop();
 
         // record_view determines the correct oversampling to apply and returns the actual sample rate.
         // NB: record_view is what actually updates proc_capture baseband settings.
@@ -92,7 +90,7 @@ WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
 
         capture_rate = new_capture_rate;
 
-        waterfall->start();
+        waterfall.start();
     };
 
     button_new.on_select = [this]() {
@@ -163,7 +161,7 @@ void WaterfallDesignerView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
     ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
-    waterfall->set_parent_rect(waterfall_rect);
+    waterfall.set_parent_rect(waterfall_rect);
 }
 
 void WaterfallDesignerView::focus() {
@@ -272,13 +270,7 @@ void WaterfallDesignerView::on_apply_current_to_wtf() {
     std::filesystem::path system_read_path = "waterfall.txt";
     copy_file(current_profile_path, system_read_path);
 
-    remove_child(waterfall.get());
-    waterfall.reset();
-    waterfall = std::make_unique<spectrum::WaterfallView>();
-    add_child(waterfall.get());
-
-    ui::Rect waterfall_rect{0, header_height, screen_rect().width(), screen_rect().height() - header_height};
-    waterfall->set_parent_rect(waterfall_rect);
+    waterfall.load_gradient();
 
     set_dirty();
 }

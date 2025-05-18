@@ -247,7 +247,7 @@ class WaterfallDesignerView : public View {
                            16384,
                            3};
 
-    std::unique_ptr<spectrum::WaterfallView> waterfall{};
+    spectrum::WaterfallView waterfall{};
     std::string file_name_buffer{};  // needed by text_prompy
 
     MessageHandlerRegistration message_handler_freqchg{
