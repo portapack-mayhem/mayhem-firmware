@@ -108,7 +108,8 @@ options_t freqman_bandwidths[6] = {
     },
     {
         // WFMAM for NOAA satellites,  137 Mhz band
-        {"FM+AM(NOAA Apt)", 1},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
+        {"80kHz (NOAA Apt)", 0},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
+        {"38kHz (NOAA Apt)", 1},
     },
 };
 
