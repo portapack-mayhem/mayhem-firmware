@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Mark Thompson
+ * Copyright (C) 2025 Bernd Herzog
  *
  * This file is part of PortaPack.
  *

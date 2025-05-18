@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2018 Furrtek
+ * Copyleft Mr. Robot
+ * Copyright HTotoo
  *
  * This file is part of PortaPack.
  *
