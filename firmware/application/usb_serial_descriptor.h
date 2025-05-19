@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_DESCRIPTOR_H
+#define __USB_SERIAL_DESCRIPTOR_H
 
 #include "ch.h"
 #include "hal.h"
@@ -42,3 +43,5 @@ extern uint8_t* usb_descriptor_strings[];
 #define USB_WCID_VENDOR_REQ 0x19
 extern uint8_t wcid_string_descriptor[];
 extern uint8_t wcid_feature_descriptor[];
+
+#endif

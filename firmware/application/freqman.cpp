@@ -28,8 +28,11 @@
 using option_t = ui::OptionsField::option_t;
 using options_t = ui::OptionsField::options_t;
 
-extern options_t freqman_steps;
-extern const option_t* find_by_index(const options_t& options, freqman_index_t index);
+using option_db_t = std::pair<std::string_view, int32_t>;
+using options_db_t = std::vector<option_db_t>;
+
+extern options_db_t freqman_steps;
+extern const option_db_t* find_by_index(const options_db_t& options, freqman_index_t index);
 
 /* Option value lookup. */
 int32_t freqman_entry_get_step_value(freqman_index_t step) {

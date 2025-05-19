@@ -81,6 +81,20 @@ SSB::SSB()
     mode = Mode::LSB;
 }
 
+void SSB::set_fs_div_factor(float new_bw_ssb) {
+    switch ((int)new_bw_ssb / 1000) {
+        case 2:
+            fs_div_factor = 192;  // TXBW_ssb = 2khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (4khz=fs/2) ==> (8k=fs) Hilbert_fs = 1.536.000/8000= 192
+            break;
+        case 3:
+            fs_div_factor = 128;  // TXBW_ssb = 3khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (6khz=fs/2) ==> (12k=fs) Hilbert_fs = 1.536.000/12000= 128
+            break;
+        default:
+            fs_div_factor = 128;  // TXBW_ssb = 3khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (6khz=fs/2) ==> (12k=fs) Hilbert_fs = 1.536.000/12000= 128
+            break;
+    }
+}
+
 void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider) {
     // unused
     (void)configured_in;
@@ -93,9 +107,10 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
     int8_t re = 0, im = 0;
 
     for (size_t counter = 0; counter < buffer.count; counter++) {
-        if (counter % 128 == 0) {
+        if (counter % fs_div_factor == 0) {  // Ex. TX bw_ssb 3khz =fs/4 Hilbert Transform sample rate,  128 =  1.536.000 hz  / 12.000 hz (fs H.T.)
             float i = 0.0, q = 0.0;
 
+            // over = 1.536.000/24khz = 64 . (Mic audio has fixed SR in audio_p buffer[]  = 24khz), but in tx mode , we are running Transceiver fs @tx = 1.536.000 Hz.
             sample = audio.p[counter / over] >> audio_shift_bits_s16_AM_DSB_SSB;  // originally fixed   >> 2, now >>2 for AK,   0,1,2,3 for WM (boost off)
             sample *= audio_gain;                                                 // Apply GAIN  Scale factor to the audio TX modulation.
 

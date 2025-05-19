@@ -69,13 +69,13 @@ void RSSI::paint(Painter& painter) {
         const Rect r0{r.left(), r.top(), x_min, r.height()};
         painter.fill_rectangle(
             r0,
-            Color::blue());
+            Theme::getInstance()->fg_blue->foreground);
 
         // x_avg
         const Rect r1{r.left() + x_min, r.top(), x_avg - x_min, r.height()};
         painter.fill_rectangle(
             r1,
-            Color::red());
+            Theme::getInstance()->fg_red->foreground);
 
         // x_avg middle marker
         const Rect r2{r.left() + x_avg, r.top(), 1, r.height()};
@@ -87,21 +87,32 @@ void RSSI::paint(Painter& painter) {
         const Rect r3{r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height()};
         painter.fill_rectangle(
             r3,
-            Color::red());
+            Theme::getInstance()->fg_red->foreground);
 
         // filling last part in black
         const Rect r4{r.left() + x_max, r.top(), r.width() - x_max, r.height()};
         painter.fill_rectangle(
             r4,
-            Color::black());
+            Theme::getInstance()->bg_darkest->background);
 
         // show green peak value
         if (peak_enabled) {
             const Rect r5{r.left() + peak - 3, r.top(), 3, r.height()};
             painter.fill_rectangle(
                 r5,
-                Color::green());
+                Theme::getInstance()->fg_orange->foreground);
         }
+
+        // dB - x
+        constexpr int db_min = -80;
+        constexpr int db_max = 10;
+        constexpr int db_delta = db_max - db_min;
+        const range_t<int> x_db_range{0, r.width() - 1};
+        const int16_t x_db = x_db_range.clip((db_ - db_min) * r.width() / db_delta);
+
+        const Rect r_db{r.left() + x_db, r.top(), 1, r.height()};
+
+        if (db_) painter.fill_rectangle(r_db, Color::green());
     } else {
         // vertical bottom to top level meters
         const range_t<int> y_avg_range{0, r.height() - 1};
@@ -115,7 +126,7 @@ void RSSI::paint(Painter& painter) {
 
         // y_min
         const Rect r0{r.left(), r.bottom() - y_min, r.width(), y_min};
-        painter.fill_rectangle(
+        painter.fill_rectangle(  // TODO: the blue plot is broken in vertical bars, not from the dB PR (#2403)
             r0,
             Color::blue());
 
@@ -149,8 +160,18 @@ void RSSI::paint(Painter& painter) {
             const Rect r5{r.left(), r.bottom() - peak - 3, r.width(), 3};
             painter.fill_rectangle(
                 r5,
-                Color::green());
+                Color::orange());
         }
+
+        // dB - y
+        constexpr int db_min = -80;
+        constexpr int db_max = 10;
+        constexpr int db_delta = db_max - db_min;
+        const range_t<int> y_db_range{0, r.height() - 1};
+        const int16_t y_db = y_db_range.clip((db_ - db_min) * r.height() / db_delta);
+
+        const Rect r_db{r.left(), r.bottom() - y_db, r.width(), 3};
+        if (db_) painter.fill_rectangle(r_db, Color::green());
     }
     if (pitch_rssi_enabled) {
         baseband::set_pitch_rssi((avg_ - raw_min) * 2000 / raw_delta, true);
@@ -159,7 +180,7 @@ void RSSI::paint(Painter& painter) {
         const Rect r6{r.left(), r.top(), r.width(), r.height()};
         painter.draw_rectangle(
             r6,
-            Color::white());
+            Color::white());  // TODO this and all the following Color struct call should satisfy the new "theme" system ref
     }
 }
 
@@ -499,5 +520,9 @@ bool RSSI::on_touch(const TouchEvent event) {
         default:
             return false;
     }
+}
+
+void RSSI::set_db(int16_t db) {
+    db_ = db;
 }
 } /* namespace ui */

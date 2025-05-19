@@ -62,13 +62,7 @@ class FProtoSubGhzDClemsa : public FProtoSubGhzDBase {
 
                         if (decode_count_bit ==
                             min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
-
-                            // controller
-                            serial = (data >> 2) & 0xFFFF;
-                            btn = (data & 0x03);
-
                             if (callback) callback(this);
                         }
                         parser_step = ClemsaDecoderStepSaveDuration;

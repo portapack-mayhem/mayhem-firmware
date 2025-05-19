@@ -61,7 +61,7 @@ class FreqManBaseView : public View {
 
     /* The top section (category) is 20px tall. */
     Labels label_category{
-        {{0, 2}, "F:", Color::light_grey()}};
+        {{0, 2}, "F:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_category{
         {3 * 8, 2},
@@ -97,7 +97,7 @@ class FrequencySaveView : public FreqManBaseView {
         0};
 
     Labels labels{
-        {{0 * 8, 6 * 16}, "Description:", Color::white()}};
+        {{0 * 8, 6 * 16}, "Description:", Theme::getInstance()->bg_darkest->foreground}};
 
     TextField field_description{
         {0 * 8, 7 * 16, 30 * 8, 1 * 16},
@@ -137,14 +137,14 @@ class FrequencyManagerView : public FreqManBaseView {
         {23 * 8, 0 * 16, 7 * 4, 20},
         {},
         &bitmap_icon_new_file,
-        Color::white(),
+        Theme::getInstance()->bg_darkest->foreground,
         true};
 
     NewButton button_del_category{
         {26 * 8 + 4, 0 * 16, 7 * 4, 20},
         {},
         &bitmap_icon_trash,
-        Color::red(),
+        Theme::getInstance()->fg_red->foreground,
         true};
 
     Button button_edit_entry{
@@ -153,7 +153,7 @@ class FrequencyManagerView : public FreqManBaseView {
 
     Rectangle rect_padding{
         {15 * 8, 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
-        Color::grey()};
+        Theme::getInstance()->fg_medium->background};
 
     Button button_edit_freq{
         {0 * 8, 15 * 16, 15 * 8, 2 * 16},
@@ -167,14 +167,14 @@ class FrequencyManagerView : public FreqManBaseView {
         {15 * 8, 15 * 16, 7 * 8 + 4, 2 * 16},
         {},
         &bitmap_icon_add,
-        Color::white(),
+        Theme::getInstance()->bg_darkest->foreground,
         true};
 
     NewButton button_del_entry{
         {22 * 8 + 4, 15 * 16, 7 * 8 + 4, 2 * 16},
         {},
         &bitmap_icon_delete,
-        Color::red(),
+        Theme::getInstance()->fg_red->foreground,
         true};
 };
 
@@ -200,15 +200,15 @@ class FrequencyEditView : public View {
     void populate_tone_options();
 
     Labels labels{
-        {{5 * 8, 1 * 16}, "Edit Frequency Entry", Color::white()},
-        {{0 * 8, 3 * 16}, "Entry Type :", Color::light_grey()},
-        {{0 * 8, 4 * 16}, "Frequency A:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "Frequency B:", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Modulation :", Color::light_grey()},
-        {{0 * 8, 7 * 16}, "Bandwidth  :", Color::light_grey()},
-        {{0 * 8, 8 * 16}, "Step       :", Color::light_grey()},
-        {{0 * 8, 9 * 16}, "Tone Freq  :", Color::light_grey()},
-        {{0 * 8, 10 * 16}, "Description:", Color::light_grey()},
+        {{5 * 8, 1 * 16}, "Edit Frequency Entry", Theme::getInstance()->bg_darkest->foreground},
+        {{0 * 8, 3 * 16}, "Entry Type :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Frequency A:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Frequency B:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Modulation :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Bandwidth  :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Step       :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 9 * 16}, "Tone Freq  :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 16}, "Description:", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField field_type{

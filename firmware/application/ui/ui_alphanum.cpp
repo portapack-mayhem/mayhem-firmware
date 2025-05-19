@@ -32,7 +32,8 @@ namespace ui {
 AlphanumView::AlphanumView(
     NavigationView& nav,
     std::string& str,
-    size_t max_length)
+    size_t max_length,
+    uint8_t enter_mode)
     : TextEntryView(nav, str, max_length) {
     size_t n;
 
@@ -76,7 +77,7 @@ AlphanumView::AlphanumView(
         n++;
     }
 
-    set_mode(mode);
+    set_mode(enter_mode);
 
     button_mode.on_select = [this](Button&) {
         set_mode(mode + 1);
@@ -129,13 +130,13 @@ void AlphanumView::refresh_keys() {
 
     switch (shift_mode) {
         case ShiftMode::None:
-            button_shift.set_color(Color::dark_grey());
+            button_shift.set_color(Theme::getInstance()->bg_dark->background);
             break;
         case ShiftMode::Shift:
-            button_shift.set_color(Color::black());
+            button_shift.set_color(Theme::getInstance()->bg_darkest->background);
             break;
         case ShiftMode::ShiftLock:
-            button_shift.set_color(Color::dark_blue());
+            button_shift.set_color(Theme::getInstance()->fg_blue->foreground);
             break;
     }
 }

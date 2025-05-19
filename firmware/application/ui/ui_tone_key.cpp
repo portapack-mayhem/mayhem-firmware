@@ -34,7 +34,7 @@ void tone_keys_populate(OptionsField& field) {
     for (size_t c = 0; c < tone_keys.size(); c++) {
         auto f = tone_keys[c].second;
         if ((c != 0) && (f < 1000 * 100))
-            tone_name = "CTCSS " + fx100_string(f) + " #" + tone_keys[c].first;
+            tone_name = "CTCSS " + fx100_string(f) + " #" + (std::string)tone_keys[c].first;
         else
             tone_name = tone_keys[c].first;
 

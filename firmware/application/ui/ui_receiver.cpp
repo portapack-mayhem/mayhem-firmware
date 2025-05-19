@@ -113,7 +113,7 @@ void FrequencyField::paint(Painter& painter) {
     if (digit_mode_) {
         auto p = screen_pos();
         p += {digit_ * char_width, 0};
-        painter.draw_char(p, Styles::bg_blue, str_value[digit_]);
+        painter.draw_char(p, *Theme::getInstance()->option_active, str_value[digit_]);
     }
 }
 

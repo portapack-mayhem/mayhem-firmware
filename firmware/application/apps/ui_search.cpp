@@ -56,6 +56,10 @@ SearchView::SearchView(
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
+    if (!gradient.load_file(default_gradient_file)) {
+        gradient.set_default();
+    }
+
     add_children({&labels,
                   &field_frequency_min,
                   &field_frequency_max,
@@ -80,11 +84,11 @@ SearchView::SearchView(
         nav.push<FrequencySaveView>(entry.frequency);
     };
 
-    text_mean.set_style(&Styles::grey);
-    text_slices.set_style(&Styles::grey);
-    text_rate.set_style(&Styles::grey);
-    progress_timers.set_style(&Styles::grey);
-    big_display.set_style(&Styles::grey);
+    text_mean.set_style(Theme::getInstance()->fg_medium);
+    text_slices.set_style(Theme::getInstance()->fg_medium);
+    text_rate.set_style(Theme::getInstance()->fg_medium);
+    progress_timers.set_style(Theme::getInstance()->fg_medium);
+    big_display.set_style(Theme::getInstance()->fg_medium);
 
     field_frequency_min.set_step(100'000);
     bind(field_frequency_min, settings_.freq_min, nav, [this](auto) {
@@ -184,7 +188,7 @@ void SearchView::do_detection() {
                         recent_entries_view.set_dirty();
 
                         text_infos.set("Locked ! ");
-                        big_display.set_style(&Styles::green);
+                        big_display.set_style(Theme::getInstance()->fg_green);
 
                         locked = true;
                         locked_bin = bin_max;
@@ -209,7 +213,7 @@ void SearchView::do_detection() {
                 recent_entries_view.set_dirty();
 
                 text_infos.set("Listening");
-                big_display.set_style(&Styles::grey);
+                big_display.set_style(Theme::getInstance()->fg_medium);
             }
         }
     }
@@ -219,10 +223,10 @@ void SearchView::do_detection() {
     search_counter++;
 
     // Refresh red tick
-    portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::black());
+    portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->background);
     if (bin_max > -1) {
         last_tick_pos = (Coord)(bin_max / slices_nb);
-        portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::red());
+        portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->foreground);
     }
 }
 
@@ -290,7 +294,7 @@ void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
                 power = spectrum.db[bin - 128];
         }
 
-        add_spectrum_pixel(spectrum_rgb3_lut[power]);
+        add_spectrum_pixel(gradient.lut[power]);
 
         mean_acc += power;
         if (power > max_power) {

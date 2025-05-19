@@ -27,7 +27,6 @@
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
 #include "rf_path.hpp"
@@ -51,6 +50,10 @@ class TransmitterView : public View {
     std::function<void(void)> on_edit_frequency{};
     std::function<void(void)> on_start{};
     std::function<void(void)> on_stop{};
+    std::function<void(void)> on_bandwidth_changed{};
+    // TODO: this is a workaround because in the message system,
+    // we change bw by different message for different m4 bb, so have to callback
+    // and change in the instance(for instance SigGen app) with calling the instance's bb opration func
 
     TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock);
     TransmitterView(
@@ -69,9 +72,9 @@ class TransmitterView : public View {
     void set_transmitting(const bool transmitting);
 
    private:
-    const Style& style_start = Styles::green;
-    const Style& style_stop = Styles::red;
-    const Style& style_locked = Styles::dark_grey;
+    const Style& style_start = *Theme::getInstance()->fg_green;
+    const Style& style_stop = *Theme::getInstance()->fg_red;
+    const Style& style_locked = *Theme::getInstance()->fg_dark;
 
     bool lock_{false};
     bool transmitting_{false};

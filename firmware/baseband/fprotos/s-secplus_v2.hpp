@@ -50,7 +50,6 @@ class FProtoSubGhzDSecPlusV2 : public FProtoSubGhzDBase {
                     } else if (
                         duration >= (te_long * 2UL + te_delta)) {
                         if (decode_count_bit == min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             if (subghz_protocol_secplus_v2_check_packet()) {
                                 // controller too big

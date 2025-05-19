@@ -23,6 +23,10 @@
 #ifndef __UI_SUBGHZD_H__
 #define __UI_SUBGHZD_H__
 
+#define SD_NO_SERIAL 0xFFFFFFFF
+#define SD_NO_BTN 0xFF
+#define SD_NO_CNT 0xFF
+
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -30,9 +34,11 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "utility.hpp"
+#include "log_file.hpp"
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/subghztypes.hpp"
+#include "../baseband/fprotos/fprotogeneral.hpp"
 
 using namespace ui;
 
@@ -42,29 +48,20 @@ struct SubGhzDRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;
     uint8_t sensorType = FPS_Invalid;
-    uint8_t btn = SD_NO_BTN;
-    uint32_t serial = SD_NO_SERIAL;
     uint16_t bits = 0;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
-    uint32_t cnt = SD_NO_CNT;
     uint64_t data = 0;
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
-        uint32_t serial,
-        uint16_t bits = 0,
         uint64_t data = 0,
-        uint8_t btn = SD_NO_BTN,
-        uint32_t cnt = SD_NO_CNT)
+        uint16_t bits = 0)
         : sensorType{sensorType},
-          btn{btn},
-          serial{serial},
           bits{bits},
-          cnt{cnt},
           data{data} {
     }
     Key key() const {
-        return (data ^ ((static_cast<uint64_t>(serial) << 32) | (static_cast<uint64_t>(sensorType) & 0xFF) << 0));
+        return (data ^ ((static_cast<uint64_t>(sensorType) & 0xFF) << 0));
     }
     void inc_age(int delta) {
         if (UINT16_MAX - delta > age) age += delta;
@@ -72,6 +69,23 @@ struct SubGhzDRecentEntry {
     void reset_age() {
         age = 0;
     }
+
+    std::string to_csv();
+};
+
+class SubGhzDLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(SubGhzDRecentEntry& data);
+    void write_header() {
+        log_file.write_entry(";Type; Bits; Data;");
+    }
+
+   private:
+    LogFile log_file{};
 };
 using SubGhzDRecentEntries = RecentEntries<SubGhzDRecentEntry>;
 using SubGhzDRecentEntriesView = RecentEntriesView<SubGhzDRecentEntries>;
@@ -97,10 +111,13 @@ class SubGhzDView : public View {
         1'750'000 /* bandwidth */,
         4'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
+    bool logging = false;
     app_settings::SettingsManager settings_{
         "rx_subghzd",
         app_settings::Mode::RX,
-        {}};
+        {
+            {"log"sv, &logging},
+        }};
 
     SubGhzDRecentEntries recent{};
 
@@ -122,7 +139,15 @@ class SubGhzDView : public View {
         {0, 16, 7 * 8, 32},
         "Clear"};
 
+    Checkbox check_log{
+        {10 * 8, 18},
+        3,
+        "Log",
+        true};
+
     static constexpr auto header_height = 3 * 16;
+
+    std::unique_ptr<SubGhzDLogger> logger{};
 
     const RecentEntriesColumns columns{{
         {"Type", 19},
@@ -130,6 +155,14 @@ class SubGhzDView : public View {
         {"Age", 3},
     }};
     SubGhzDRecentEntriesView recent_entries_view{columns, recent};
+
+    void on_freqchg(int64_t freq);
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::SubGhzDData,
@@ -149,6 +182,12 @@ class SubGhzDRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     SubGhzDRecentEntry entry_{};
+
+    uint32_t serial = 0;
+    uint8_t btn = SD_NO_BTN;
+    uint32_t cnt = SD_NO_CNT;
+    uint32_t seed = 0;
+
     Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
 
@@ -156,14 +195,16 @@ class SubGhzDRecentEntryDetailView : public View {
         {0, 4 * 16, 240, screen_height - (4 * 16) - 36}};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Type:", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Serial: ", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Data:", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Serial: ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Data:", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_done{
         {screen_width - 96 - 4, screen_height - 32 - 12, 96, 32},
         "Done"};
+
+    void parseProtocol();
 };
 
 }  // namespace ui

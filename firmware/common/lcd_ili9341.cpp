@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * copyleft 2025 Whiterose of the Dark Army
  *
  * This file is part of PortaPack.
  *
@@ -31,6 +32,8 @@ using namespace portapack;
 #include "ch.h"
 
 #include "file.hpp"
+
+#include "portapack_persistent_memory.hpp"
 
 #include <complex>
 
@@ -142,7 +145,13 @@ void lcd_init() {
     // REV = 1 (normally white)
     // NL = 0b100111 (default)
     // PCDIV = 0b000000 (default?)
-    io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});
+
+    /*as per the datasheet chapter 8.3.7, addr B6h,
+    data "REV" bit, liquid crystal type:*/
+    if (portapack::persistent_memory::config_lcd_normally_black())
+        io.lcd_data_write_command_and_data(0xB6, {0x0A, 0x22, 0x27, 0x00});  // IPS : normally black : 0
+    else
+        io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});  // TFT : normally white : 1
 
     // Power Control 1
     // VRH[5:0]
@@ -231,6 +240,7 @@ void lcd_start_ram_write(
     lcd_caset(p.x(), p.x() + s.width() - 1);
     lcd_paset(p.y(), p.y() + s.height() - 1);
     lcd_ramwr_start();
+    io.update_cached_values();
 }
 
 void lcd_start_ram_read(
@@ -336,7 +346,20 @@ void ILI9341::render_box(const ui::Point p, const ui::Size s, const ui::Color* l
 }
 
 // RLE_4 BMP loader (delta not implemented)
-void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool transparency) {
+/* draw transparent, pass transparent color as arg, usage inline anonymous obj
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, (const uint8_t[]){41, 24, 22}); // dec, out of {255, 255, 255}
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, (const uint8_t[]){0x29, 0x18, 0x16}); //hex out of {0xFF, 0xFF, 0xFF}
+ *
+ * draw transparent, pass transparent color as arg, usage pass uint8_t[] obj
+ * const uint8_t c[] = {41, 24, 22}; or const uint8_t c[3] = {0x29, 0x18, 0x16};
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, c);
+ *
+ * don't draw transparent, pass nullptr as arg, usage
+ * portapack::display.draw_bmp_from_bmp_hex_arr({100, 100}, foo_bmp, nullptr);
+ *
+ * if your image use RLE compress as transparency methods, pass any valid color as arg, it doesn't matter (like the modal bmp. TODO: write RLE transparency generator)
+ * */
+void ILI9341::draw_bmp_from_bmp_hex_arr(const ui::Point p, const uint8_t* bitmap, const uint8_t* transparency_color) {
     const bmp_header_t* bmp_header = (const bmp_header_t*)bitmap;
     uint32_t data_idx;
     uint8_t by, c, count, transp_idx = 0;
@@ -351,15 +374,16 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
     data_idx = bmp_header->image_data;
     const bmp_palette_t* bmp_palette = (const bmp_palette_t*)&bitmap[bmp_header->BIH_size + 14];
 
-    // Convert palette and find pure magenta index (alpha color key)
+    // Convert palette and find pure magenta index (alpha color key) rgb dec(41,24,22)
     for (c = 0; c < 16; c++) {
         palette[c] = ui::Color(bmp_palette->color[c].R, bmp_palette->color[c].G, bmp_palette->color[c].B);
-        if ((bmp_palette->color[c].R == 0xFF) &&
-            (bmp_palette->color[c].G == 0x00) &&
-            (bmp_palette->color[c].B == 0xFF)) transp_idx = c;
+        if (transparency_color &&
+            (bmp_palette->color[c].R == transparency_color[0]) &&
+            (bmp_palette->color[c].G == transparency_color[1]) &&
+            (bmp_palette->color[c].B == transparency_color[2])) transp_idx = c;
     }
 
-    if (!transparency) {
+    if (!transparency_color) {
         py = bmp_header->height + 16;
         do {
             by = bitmap[data_idx++];
@@ -441,7 +465,7 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
  *     24bpp RGB
  *     32bpp ARGB
  */
-bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
+bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem::path& file) {
     File bmpimage;
     size_t file_pos = 0;
     uint16_t pointer = 0;
@@ -490,7 +514,9 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
 
     file_pos = bmp_header.image_data;
 
-    py = height + 16;
+    py = height + 16 - 1;
+    /*                 ^ this is for to "start" AKA "image end" draw at the 17th line,
+     *                   because the render_line logic below is start with p.y() + py until "end" AKA "image start"*/
 
     while (1) {
         while (px < width) {
@@ -621,31 +647,58 @@ void ILI9341::draw_bitmap(
     const ui::Size size,
     const uint8_t* const pixels,
     const ui::Color foreground,
-    const ui::Color background) {
-    // Not a transparent background
-    if (ui::Color::magenta().v != background.v) {
-        lcd_start_ram_write(p, size);
+    const ui::Color background,
+    uint8_t zoom_level) {
+    if (zoom_level <= 1) {
+        // Not a transparent background
+        if (ui::Color::magenta().v != background.v) {
+            lcd_start_ram_write(p, size);
 
-        const size_t count = size.width() * size.height();
-        for (size_t i = 0; i < count; i++) {
-            const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
-            io.lcd_write_pixel(pixel ? foreground : background);
-        }
-    } else {
-        int x = p.x();
-        int y = p.y();
-        int maxX = x + size.width();
-        const size_t count = size.width() * size.height();
-        for (size_t i = 0; i < count; i++) {
-            const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
-            if (pixel) {
-                draw_pixel(ui::Point(x, y), foreground);
+            const size_t count = size.width() * size.height();
+            for (size_t i = 0; i < count; i++) {
+                const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+                io.lcd_write_pixel(pixel ? foreground : background);
             }
-            // Move to the next pixel
-            x++;
-            if (x >= maxX) {
-                x = p.x();
-                y++;
+        } else {
+            // transparent bg
+            int x = p.x();
+            int y = p.y();
+            int maxX = x + size.width();
+            const size_t count = size.width() * size.height();
+            for (size_t i = 0; i < count; i++) {
+                const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
+                if (pixel) {
+                    draw_pixel(ui::Point(x, y), foreground);
+                }
+                // move to next px
+                x++;
+                if (x >= maxX) {
+                    x = p.x();
+                    y++;
+                }
+            }
+        }
+    } else {  // zoom
+
+        // dot to square
+        for (int y = 0; y < size.height(); y++) {
+            for (int x = 0; x < size.width(); x++) {
+                // pos
+                size_t bit_index = y * size.width() + x;
+                int byte_index = bit_index >> 3;
+                int bit_pos = bit_index & 0x7;
+
+                // val
+                const auto pixel = pixels[byte_index] & (1U << bit_pos);
+                /*                 ^ the byte_index-th bit AKA current bit
+                                                         ^ current px in current byte*/
+
+                if (pixel || background.v != ui::Color::magenta().v) {
+                    fill_rectangle(
+                        {p.x() + x * zoom_level, p.y() + y * zoom_level,
+                         zoom_level, zoom_level},
+                        pixel ? foreground : background);
+                }
             }
         }
     }
@@ -655,8 +708,9 @@ void ILI9341::draw_glyph(
     const ui::Point p,
     const ui::Glyph& glyph,
     const ui::Color foreground,
-    const ui::Color background) {
-    draw_bitmap(p, glyph.size(), glyph.pixels(), foreground, background);
+    const ui::Color background,
+    uint8_t zoom_level) {
+    draw_bitmap(p, glyph.size(), glyph.pixels(), foreground, background, zoom_level);
 }
 
 void ILI9341::scroll_set_area(

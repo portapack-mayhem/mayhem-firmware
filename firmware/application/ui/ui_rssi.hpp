@@ -61,6 +61,7 @@ class RSSI : public Widget {
     void on_focus() override;
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
+    void set_db(int16_t db);
 
    private:
     int8_t min_ = 0;
@@ -68,6 +69,7 @@ class RSSI : public Widget {
     int8_t max_ = 0;
     int8_t peak_ = 0;
     size_t peak_duration_ = 0;
+    int16_t db_ = 0;
     bool instant_exec_{false};
 
     bool pitch_rssi_enabled = false;

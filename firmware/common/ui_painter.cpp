@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * copyleft Mr. Robot
  *
  * This file is part of PortaPack.
  *
@@ -35,10 +36,12 @@ Style Style::invert() const {
         .foreground = background};
 }
 
-int Painter::draw_char(Point p, const Style& style, char c) {
+int Painter::draw_char(Point p, const Style& style, char c, uint8_t zoom_level) {
     const auto glyph = style.font.glyph(c);
-    display.draw_glyph(p, glyph, style.foreground, style.background);
-    return glyph.advance().x();
+
+    display.draw_glyph(p, glyph, style.foreground, style.background, zoom_level);
+
+    return glyph.advance().x() * zoom_level;
 }
 
 int Painter::draw_string(Point p, const Style& style, std::string_view text) {

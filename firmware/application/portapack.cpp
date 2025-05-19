@@ -53,6 +53,8 @@ using asahi_kasei::ak4951::AK4951;
 #include "string_format.hpp"
 #include "bitmap.hpp"
 #include "ui_widget.hpp"
+#include "i2cdevmanager.hpp"
+#include "battery.hpp"
 
 namespace portapack {
 
@@ -85,7 +87,6 @@ ClockManager clock_manager{
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 AK4951 audio_codec_ak4951{i2c0, 0x12};
-ads1110::ADS1110 battery_ads1110{i2c0, 0x48};
 
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;
@@ -94,6 +95,7 @@ TemperatureLogger temperature_logger;
 
 bool antenna_bias{false};
 uint32_t bl_tick_counter{0};
+uint16_t touch_threshold{32};
 
 void set_antenna_bias(const bool v) {
     antenna_bias = v;
@@ -381,8 +383,8 @@ static void draw_splash_screen_icon(int16_t n, const ui::Bitmap& bitmap) {
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 8 - 40 + (n * 20), portapack::display.height() / 2 - 8 + 40},
         bitmap,
-        ui::Color::white(),
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background);
 }
 
 static bool is_portapack_present() {
@@ -441,7 +443,7 @@ static void initialize_boot_splash_screen() {
 
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     chThdSleepMilliseconds(17);
     portapack::backlight()->on();
@@ -449,8 +451,8 @@ static void initialize_boot_splash_screen() {
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
         ui::bitmap_titlebar_image,
-        ui::Color::white(),
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background);
 }
 
 /* Clock scheme after exiting bootloader in SPIFI mode:
@@ -536,6 +538,12 @@ init_status_t init() {
 
     set_cpu_clock_speed();
 
+    /* sample max: 1023 sample_t AKA uint16_t
+     * touch_sensitivity: range: 1 to 128
+     * threshold range: 1023/1 to 1023/128  =  1023 to 8
+     */
+    touch_threshold = portapack::persistent_memory::touchscreen_threshold();
+
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);
 
@@ -587,7 +595,8 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
-    battery_ads1110.init();
+    battery::BatteryManagement::set_calc_override(persistent_memory::ui_override_batt_calc());
+    i2cdev::I2CDevManager::init();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);

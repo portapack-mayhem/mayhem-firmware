@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_CDC_H
+#define __USB_SERIAL_CDC_H
 
 #include "ch.h"
 #include "hal.h"
@@ -44,3 +45,5 @@ usb_request_status_t usb_set_line_coding_request(usb_endpoint_t* const endpoint,
 #endif
 
 void setup_usb_serial_controller(void);
+
+#endif

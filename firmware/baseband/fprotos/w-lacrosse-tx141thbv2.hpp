@@ -67,9 +67,9 @@ class FProtoWeatherLaCrosseTx141thbv2 : public FProtoWeatherBase {
                         if ((decode_count_bit == min_count_bit_for_found) ||
                             (decode_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT)) {
                             if (ws_protocol_lacrosse_tx141thbv2_check_crc()) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                ws_protocol_lacrosse_tx141thbv2_remote_controller();
+                                if (decode_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT) {
+                                    decode_data >>= 1;
+                                }
                                 if (callback) callback(this);
                             }
                             decode_data = 0;
@@ -107,17 +107,7 @@ class FProtoWeatherLaCrosseTx141thbv2 : public FProtoWeatherBase {
         uint8_t crc = FProtoGeneral::subghz_protocol_blocks_lfsr_digest8_reflect(msg, 4, 0x31, 0xF4);
         return (crc == (data & 0xFF));
     }
-    void ws_protocol_lacrosse_tx141thbv2_remote_controller() {
-        if (data_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT) {
-            data >>= 1;
-        }
-        id = data >> 32;
-        battery_low = (data >> 31) & 1;
-        btn = (data >> 30) & 1;
-        channel = ((data >> 28) & 0x03) + 1;
-        temp = ((float)((data >> 16) & 0x0FFF) - 500.0f) / 10.0f;
-        humidity = (data >> 8) & 0xFF;
-    }
+
     bool ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(uint32_t te_last, uint32_t te_current) {
         bool ret = false;
         if (DURATION_DIFF(te_last + te_current, te_short + te_long) < te_delta * 2) {

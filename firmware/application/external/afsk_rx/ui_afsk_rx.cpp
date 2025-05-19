@@ -143,6 +143,10 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
     }
 }
 
+void AFSKRxView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+}
+
 AFSKRxView::~AFSKRxView() {
     audio::output::stop();
     receiver_model.disable();

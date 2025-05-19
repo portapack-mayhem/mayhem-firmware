@@ -104,6 +104,7 @@ constexpr image_tag_t image_tag_fskrx{'P', 'F', 'S', 'R'};
 constexpr image_tag_t image_tag_jammer{'P', 'J', 'A', 'M'};
 constexpr image_tag_t image_tag_mic_tx{'P', 'M', 'T', 'X'};
 constexpr image_tag_t image_tag_ook{'P', 'O', 'O', 'K'};
+constexpr image_tag_t image_tag_ookstream{'P', 'O', 'S', 'K'};
 constexpr image_tag_t image_tag_rds{'P', 'R', 'D', 'S'};
 constexpr image_tag_t image_tag_replay{'P', 'R', 'E', 'P'};
 constexpr image_tag_t image_tag_gps{'P', 'G', 'P', 'S'};
@@ -116,6 +117,8 @@ constexpr image_tag_t image_tag_usb_sd{'P', 'U', 'S', 'B'};
 
 constexpr image_tag_t image_tag_weather{'P', 'W', 'T', 'H'};
 constexpr image_tag_t image_tag_subghzd{'P', 'S', 'G', 'D'};
+constexpr image_tag_t image_tag_protoview{'P', 'P', 'V', 'W'};
+constexpr image_tag_t image_tag_wefaxrx{'P', 'W', 'F', 'X'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 

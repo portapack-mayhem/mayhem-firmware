@@ -185,10 +185,13 @@ class APRSRxView : public View {
 
     std::string title() const override { return "APRS RX"; };
     void on_packet(const APRSPacketMessage* message);
+    void on_freqchg(int64_t freq);
 
    private:
     void on_data(uint32_t value, bool is_data);
     bool reset_console = false;
+    uint8_t options_region_id = 1;          // default to North America
+    rf::Frequency aprs_rx_freq{144390000};  // default to North America frequency
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -197,7 +200,10 @@ class APRSRxView : public View {
         3072000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "rx_aprs", app_settings::Mode::RX};
+        "rx_aprs",
+        app_settings::Mode::RX,
+        {{"options_region_id"sv, &options_region_id},
+         {"aprs_rx_freq"sv, &aprs_rx_freq}}};
 
     uint8_t console_color{0};
     std::string str_log{""};
@@ -219,15 +225,19 @@ class APRSRxView : public View {
     OptionsField options_region{
         {0 * 8, 0 * 8},
         3,
-        {{"NA ", 0},
-         {"EUR", 1},
-         {"AUS", 2},
-         {"NZ ", 3},
-         {"ISS", 4}}};
+        {{"MAN", 0},
+         {"NA ", 1},
+         {"NZ ", 2},
+         {"JAP", 3},
+         {"PHI", 4},
+         {"EUR", 5},
+         {"THA", 6},
+         {"AUS", 7},
+         {"BR ", 8},
+         {"ISS", 9}}};
 
-    RxFrequencyField field_frequency{
-        {3 * 8, 0 * 16},
-        nav_};
+    FrequencyField field_frequency{
+        {3 * 8, 0 * 16}};
 
     // DEBUG
     RecordView record_view{
@@ -261,8 +271,8 @@ class APRSRXView : public View {
     APRSTableView view_table{nav_, view_rect};
 
     TabView tab_view{
-        {"Stream", Color::cyan(), &view_stream},
-        {"List", Color::yellow(), &view_table}};
+        {"Stream", Theme::getInstance()->fg_cyan->foreground, &view_stream},
+        {"List", Theme::getInstance()->fg_yellow->foreground, &view_table}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::APRSPacket,
@@ -270,6 +280,13 @@ class APRSRXView : public View {
             const auto message = static_cast<const APRSPacketMessage*>(p);
             this->view_stream.on_packet(message);
             this->view_table.on_pkt(message);
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->view_stream.on_freqchg(message->freq);
         }};
 };
 

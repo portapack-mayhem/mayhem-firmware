@@ -39,7 +39,7 @@ void RecentEntriesHeader::paint(Painter& painter) {
 
     const Style style{
         .font = parent_style.font,
-        .background = Color::blue(),
+        .background = *Theme::getInstance()->bg_table_header,
         .foreground = parent_style.foreground,
     };
 

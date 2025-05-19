@@ -189,6 +189,7 @@ void LCRView::on_button_set_am(NavigationView& nav, int16_t button_id) {
         nav,
         litteral[button_id],
         7,
+        ENTER_KEYBOARD_MODE_ALPHA,
         [this, button_id](std::string& buffer) {
             texts[button_id].set(buffer);
         });
@@ -237,7 +238,7 @@ LCRView::LCRView(NavigationView& nav) {
         rectangle->set_parent_rect({static_cast<Coord>(98),
                                     static_cast<Coord>(n * 32 + 66),
                                     68, 20});
-        rectangle->set_color(ui::Color::grey());
+        rectangle->set_color(Theme::getInstance()->fg_medium->foreground);
         rectangle->set_outline(true);
         add_child(rectangle);
 
@@ -257,6 +258,7 @@ LCRView::LCRView(NavigationView& nav) {
             nav,
             rgsb,
             4,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
                 button_set_rgsb.set_text(buffer);
             });

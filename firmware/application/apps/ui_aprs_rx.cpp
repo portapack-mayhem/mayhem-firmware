@@ -46,7 +46,7 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
     Color target_color;
     // auto entry_age = entry.age;
 
-    target_color = Color::green();
+    target_color = Theme::getInstance()->fg_green->foreground;
 
     std::string entry_string = "";
 
@@ -94,21 +94,47 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
     record_view.set_sampling_rate(24000);
 
     options_region.on_change = [this](size_t, int32_t i) {
-        if (i == 0) {
+        field_frequency.on_change = [this](rf::Frequency f) { (void)f; };
+        if (i == 0) {  // MAN Manual setting
+            field_frequency.set_value(aprs_rx_freq);
+        } else if (i == 1) {  // NA - North America - is also the default
             field_frequency.set_value(144390000);
-        } else if (i == 1) {
-            field_frequency.set_value(144800000);
-        } else if (i == 2) {
-            field_frequency.set_value(145175000);
-        } else if (i == 3) {
+        } else if (i == 2) {  // NZ
             field_frequency.set_value(144575000);
-        } else if (i == 4) {
+        } else if (i == 3) {  // JAP
+            field_frequency.set_value(144640000);
+        } else if (i == 4) {  // PHI
+            field_frequency.set_value(144740000);
+        } else if (i == 5) {  // EUR
+            field_frequency.set_value(144800000);
+        } else if (i == 6) {  // THA
+            field_frequency.set_value(144900000);
+        } else if (i == 7) {  // AUS
+            field_frequency.set_value(145175000);
+        } else if (i == 8) {  // BR
+            field_frequency.set_value(145570000);
+        } else if (i == 9) {  // ISS
             field_frequency.set_value(145825000);
         }
+        options_region_id = i;
+        receiver_model.set_target_frequency(field_frequency.value());  // Retune
+        field_frequency.on_change = [this](rf::Frequency f) {
+            aprs_rx_freq = f;
+            options_region.set_selected_index(0, true);
+        };
     };
 
     field_frequency.set_step(100);
-    options_region.set_selected_index(0, true);
+    field_frequency.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_frequency.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            aprs_rx_freq = f;
+            field_frequency.set_value(f);
+        };
+    };
+
+    // Note: setting the region is also going to sef field_frequency.on_change
+    options_region.set_selected_index(options_region_id, true);
 
     logger = std::make_unique<APRSLogger>();
     if (logger)
@@ -120,6 +146,12 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
     audio::output::start();
 
     receiver_model.enable();
+}
+
+void APRSRxView::on_freqchg(int64_t freq) {
+    field_frequency.set_value(freq);
+    aprs_rx_freq = freq;
+    options_region.set_selected_index(0, true);
 }
 
 void APRSRxView::on_packet(const APRSPacketMessage* message) {

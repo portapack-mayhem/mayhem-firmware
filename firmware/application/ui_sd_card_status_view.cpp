@@ -54,9 +54,9 @@ const Bitmap& bitmap_sd_card(const sd_card::Status status) {
     }
 }
 
-static constexpr Color color_sd_card_error = Color::red();
-static constexpr Color color_sd_card_unknown = Color::yellow();
-static constexpr Color color_sd_card_ok = Color::green();
+static Color color_sd_card_error = Theme::getInstance()->error_dark->foreground;
+static Color color_sd_card_unknown = Theme::getInstance()->warning_dark->foreground;
+static Color color_sd_card_ok = Theme::getInstance()->ok_dark->foreground;
 
 const Color color_sd_card(const sd_card::Status status) {
     switch (status) {
@@ -83,7 +83,7 @@ const Color color_sd_card(const sd_card::Status status) {
 
 SDCardStatusView::SDCardStatusView(
     const Rect parent_rect)
-    : Image{parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::dark_grey()} {
+    : Image{parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Theme::getInstance()->bg_dark->background} {
 }
 
 void SDCardStatusView::on_show() {

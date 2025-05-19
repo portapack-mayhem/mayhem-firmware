@@ -23,6 +23,7 @@
 #include "string_format.hpp"
 #include "file_path.hpp"
 #include "metadata_file.hpp"
+#include "flipper_subfile.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -36,14 +37,14 @@ void WardriveMapView::focus() {
 
 // needs to load on every map change, because won't store or draw all while marker is not in the current view.
 // todo optimize this somehow
-bool WardriveMapView::load_markers() {
-    uint16_t cnt = 0;
+void WardriveMapView::load_markers() {
     uint16_t displayed_cnt = 0;
+    uint16_t cnt = 0;
     geomap.clear_markers();
     // serach for files with geotag, and add it to geomap as marker with tag. limit to N bc of mem limit.
     for (const auto& entry : std::filesystem::directory_iterator(captures_dir, u"*.txt")) {
         if (std::filesystem::is_regular_file(entry.status())) {
-            if (displayed_cnt > 30) break;
+            if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return;  // only if not fist iteration, since then not counted all elements
             std::filesystem::path pth = captures_dir;
             pth += u"/" + entry.path();
             auto metadata_path = get_metadata_path(pth);
@@ -51,23 +52,65 @@ bool WardriveMapView::load_markers() {
 
             if (metadata) {
                 if (metadata.value().latitude != 0 && metadata.value().longitude != 0 && metadata.value().latitude < 400 && metadata.value().longitude < 400) {
-                    if (first_init == false) {
-                        // move map there before add, so will display this.
-                        geopos.set_report_change(false);
-                        geopos.set_lat(metadata.value().latitude);
-                        geopos.set_lon(metadata.value().longitude);
-                        geopos.set_report_change(true);
-                        geomap.move(metadata.value().longitude, metadata.value().latitude);
-                        first_init = true;
+                    // skip nth
+                    if (marker_start <= cnt) {
+                        if (first_init == false) {
+                            // move map there before add, so will display this.
+                            geopos.set_report_change(false);
+                            geopos.set_lat(metadata.value().latitude);
+                            geopos.set_lon(metadata.value().longitude);
+                            geopos.set_report_change(true);
+                            geomap.move(metadata.value().longitude, metadata.value().latitude);
+                            first_init = true;
+                        }
+                        GeoMarker tmp{metadata.value().latitude, metadata.value().longitude, 400, entry.path().filename().string()};
+                        if (geomap.store_marker(tmp) == MapMarkerStored::MARKER_STORED) displayed_cnt++;
+                        if (!markers_counted) marker_cntall++;
                     }
-                    GeoMarker tmp{metadata.value().latitude, metadata.value().longitude, 400, entry.path().filename().string()};
-                    if (geomap.store_marker(tmp) == MapMarkerStored::MARKER_STORED) displayed_cnt++;
                     cnt++;
                 }
             }
         }
     }
-    return (cnt > 0);
+    // load flipper files too
+    for (const auto& entry : std::filesystem::directory_iterator(flippersub_dir, u"*.sub")) {
+        if (std::filesystem::is_regular_file(entry.status())) {
+            if (markers_counted && displayed_cnt > ui::GeoMap::NumMarkerListElements) return;  // only if not fist iteration, since then not counted all elements
+            std::filesystem::path pth = flippersub_dir;
+            pth += u"/" + entry.path();
+            auto metadata = read_flippersub_file(pth);
+
+            if (metadata) {
+                if (metadata.value().latitude != 0 && metadata.value().longitude != 0 && metadata.value().latitude < 400 && metadata.value().longitude < 400) {
+                    // skip nth
+                    if (marker_start <= cnt) {
+                        if (first_init == false) {
+                            // move map there before add, so will display this.
+                            geopos.set_report_change(false);
+                            geopos.set_lat(metadata.value().latitude);
+                            geopos.set_lon(metadata.value().longitude);
+                            geopos.set_report_change(true);
+                            geomap.move(metadata.value().longitude, metadata.value().latitude);
+                            first_init = true;
+                        }
+                        GeoMarker tmp{metadata.value().latitude, metadata.value().longitude, 400, entry.path().filename().string()};
+                        if (geomap.store_marker(tmp) == MapMarkerStored::MARKER_STORED) displayed_cnt++;
+                        if (!markers_counted) marker_cntall++;
+                    }
+                    cnt++;
+                }
+            }
+        }
+    }
+
+    markers_counted = true;
+    // show / hide paginator buttons
+    btn_back.hidden((marker_start == 0) || (marker_cntall == 0));
+    btn_next.hidden(((marker_start + ui::GeoMap::NumMarkerListElements) >= marker_cntall) || (marker_cntall == 0));
+    // update text
+    text_info.set(to_string_dec_uint(marker_start + 1) + " - " + to_string_dec_uint(displayed_cnt + marker_start) + " / " + to_string_dec_uint(marker_cntall));
+    set_dirty();
+    return;
 }
 
 WardriveMapView::WardriveMapView(NavigationView& nav)
@@ -75,7 +118,9 @@ WardriveMapView::WardriveMapView(NavigationView& nav)
     add_children({&text_info,
                   &geomap,
                   &geopos,
-                  &text_notfound});
+                  &text_notfound,
+                  &btn_back,
+                  &btn_next});
 
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
@@ -100,19 +145,36 @@ WardriveMapView::WardriveMapView(NavigationView& nav)
         load_markers();
         geomap.set_dirty();
     };
-    text_notfound.hidden(true);
     geomap.init();
-    // load markers
-    if (load_markers()) {
+    load_markers();
+    if (marker_cntall > 0) {
         text_notfound.hidden(true);
         geomap.set_dirty();
     } else {
         geomap.hidden(true);
         geopos.hidden(true);
+        text_notfound.hidden(false);
+        text_info.hidden(true);
     }
+
+    // never move this before the first load() bc that will mess load up
     geomap.on_move = [this](float lon, float lat) {
         (void)lon;
         (void)lat;
+        load_markers();
+    };
+    btn_back.on_select = [this, &nav](Button&) {
+        if (marker_start - ui::GeoMap::NumMarkerListElements >= 0)
+            marker_start = marker_start - ui::GeoMap::NumMarkerListElements;
+        else
+            marker_start = 0;
+        load_markers();
+    };
+    btn_next.on_select = [this, &nav](Button&) {
+        if (marker_start + ui::GeoMap::NumMarkerListElements <= marker_cntall)
+            marker_start = marker_start + ui::GeoMap::NumMarkerListElements;
+        else
+            marker_start = marker_cntall - ui::GeoMap::NumMarkerListElements;
         load_markers();
     };
 }

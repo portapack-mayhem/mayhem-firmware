@@ -27,12 +27,10 @@
 #include "ui.hpp"
 #include "receiver_model.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "freqman.hpp"
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
 #include "ui_mictx.hpp"
-#include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "baseband_api.hpp"
@@ -219,11 +217,11 @@ class ReconView : public View {
     std::unique_ptr<RecordView> record_view{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
-        {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
-        {{0 * 8, (22 * 8)}, "                S:          ", Color::light_grey()},
-        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Color::light_grey()},
-        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Color::light_grey()}};
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 8 * 16}, "START       END", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};

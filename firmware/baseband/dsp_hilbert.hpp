@@ -34,8 +34,22 @@ class HilbertTransform {
 
    private:
     uint8_t n = 0;
+    SOSFilter<5> sos_input = {};
     SOSFilter<5> sos_i = {};
     SOSFilter<5> sos_q = {};
+};
+
+class Real_to_Complex {
+   public:
+    Real_to_Complex();  // Additional initialization
+    void execute(float in, float& out_mag_sq_lpf);
+
+   private:
+    uint8_t n = 0;
+    SOSFilter<5> sos_input = {};
+    SOSFilter<5> sos_i = {};
+    SOSFilter<5> sos_q = {};
+    SOSFilter<5> sos_mag_sq = {};
 };
 
 } /* namespace dsp */

@@ -60,8 +60,8 @@ class ILI9341 {
         const ui::Color background);
 
     void draw_pixel(const ui::Point p, const ui::Color color);
-    void drawBMP(const ui::Point p, const uint8_t* bitmap, const bool transparency);
-    bool drawBMP2(const ui::Point p, const std::filesystem::path& file);
+    void draw_bmp_from_bmp_hex_arr(const ui::Point p, const uint8_t* bitmap, const uint8_t* transparency_color);
+    bool draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem::path& file);
     void render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer);
     void render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer);
 
@@ -84,13 +84,15 @@ class ILI9341 {
         const ui::Size size,
         const uint8_t* const data,
         const ui::Color foreground,
-        const ui::Color background);
+        const ui::Color background,
+        uint8_t zoom_level = 1);
 
     void draw_glyph(
         const ui::Point p,
         const ui::Glyph& glyph,
         const ui::Color foreground,
-        const ui::Color background);
+        const ui::Color background,
+        uint8_t zoom_level = 1);
 
     /*** Scrolling ***
      * Scrolling support is implemented in the ILI9341 driver. Basically a region

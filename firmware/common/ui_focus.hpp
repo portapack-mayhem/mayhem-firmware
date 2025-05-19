@@ -36,8 +36,12 @@ class FocusManager {
     void update(Widget* const top_widget, const KeyEvent event);
     // void update(Widget* const top_widget, const TouchEvent event);
 
+    void setMirror(Widget* const mirror_widget);
+    void clearMirror();
+
    private:
     Widget* focus_widget_{nullptr};
+    Widget* mirror_widget_{nullptr};
 };
 
 } /* namespace ui */

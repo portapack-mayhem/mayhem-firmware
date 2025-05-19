@@ -59,20 +59,27 @@ class BtnGridView : public View {
 
     ~BtnGridView();
 
-    void add_items(std::initializer_list<GridItem> new_items);
-    void add_item(GridItem new_item);
-    void insert_item(GridItem new_item, uint8_t position);
+    void add_items(std::initializer_list<GridItem> new_items, bool inhibit_update = false);
+    void add_item(const GridItem& new_item, bool inhibit_update = false);
+    void insert_item(const GridItem& new_item, size_t position, bool inhibit_update = false);
     void set_max_rows(int rows);
     int rows();
     void clear();
 
     NewButton* item_view(size_t index) const;
 
+    bool show_arrows{true};  // flag used to hide arrows in main menu
+    void show_arrows_enabled(bool enabled);
+
     bool set_highlighted(int32_t new_value);
     uint32_t highlighted_index();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void set_arrow_enabled(bool enabled);
+    bool arrow_up_enabled{false};
+    bool arrow_down_enabled{false};
+    void set_arrow_up_enabled(bool enabled);
+    void set_arrow_down_enabled(bool enabled);
+    void show_hide_arrows();
     void on_focus() override;
     void on_blur() override;
     void on_show() override;
@@ -81,30 +88,28 @@ class BtnGridView : public View {
     bool on_encoder(const EncoderEvent event) override;
     bool blacklisted_app(GridItem new_item);
 
+    void update_items();
+
    protected:
     virtual void on_populate() = 0;
 
    private:
     int rows_{3};
-    void update_items();
-    void on_tick_second();
-
     bool keep_highlight{false};
 
-    SignalToken signal_token_tick_second{};
     std::vector<GridItem> menu_items{};
     std::vector<std::unique_ptr<NewButton>> menu_item_views{};
 
-    Image arrow_more{
-        {228, 320 - 8, 8, 8},
-        &bitmap_more,
-        Color::white(),
-        Color::black()};
+    Button button_pgup{
+        {0, 324, 120, 16},
+        "       "};
+
+    Button button_pgdown{
+        {121, 324, 119, 16},
+        "         "};
 
     int button_w = 240 / rows_;
     static constexpr int button_h = 48;
-    bool blink = false;
-    bool more = false;
     size_t displayed_max{0};
     size_t highlighted_item{0};
     size_t offset{0};

@@ -18,7 +18,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 project(firmware)
 
@@ -33,7 +33,7 @@ set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 set(LZ4 lz4)
 
-set(FIRMWARE_NAME portapack-h1_h2-mayhem)
+set(FIRMWARE_NAME portapack-mayhem-firmware)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 set(PPFW_FILENAME "portapack-mayhem_OCI.ppfw.tar")
 
@@ -50,6 +50,7 @@ endif()
 
 add_subdirectory(application)
 add_subdirectory(baseband)
+add_subdirectory(standalone)
 add_subdirectory(test)
 
 # NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
@@ -63,7 +64,7 @@ add_custom_command(
 
 add_custom_target(
 	firmware
-	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
+	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} ${HACKRF_FIRMWARE_FILENAME}
 )
 
 if(${GCC_VERSION_MISMATCH})
@@ -88,7 +89,7 @@ add_custom_target(
 	program-external-apps
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMAND ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
-	DEPENDS program
+	DEPENDS program standalone_apps
 )
 
 add_custom_command(
@@ -100,8 +101,9 @@ add_custom_command(
 	COMMAND cp ${FIRMWARE_FILENAME} firmware_tar/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
 	COMMAND mkdir -p firmware_tar/APPS
 	COMMAND cp application/*.ppma firmware_tar/APPS
+	COMMAND cp standalone/*/*.ppmp firmware_tar/APPS
 	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
-	DEPENDS firmware ${FIRMWARE_FILENAME}
+	DEPENDS firmware ${FIRMWARE_FILENAME} standalone_apps
 	# Dont use VERBATIM here as it prevents usage of globbing (*)
 	# There shouldnt be any funny business in the filenames above :)
 )

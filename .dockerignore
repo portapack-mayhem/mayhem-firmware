@@ -1,1 +1,2 @@
-build
+*
+!firmware/tools/docker-entrypoint.sh

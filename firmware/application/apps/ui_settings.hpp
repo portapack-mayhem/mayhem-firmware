@@ -35,6 +35,7 @@
 #include "bitmap.hpp"
 #include "ff.h"
 #include "portapack_persistent_memory.hpp"
+#include "irq_controls.hpp"
 
 #include <cstdint>
 
@@ -65,14 +66,14 @@ class SetDateTimeView : public View {
     std::vector<option_t> month_options = {{"Jan", 1}, {"Feb", 2}, {"Mar", 3}, {"Apr", 4}, {"May", 5}, {"Jun", 6}, {"Jul", 7}, {"Aug", 8}, {"Sep", 9}, {"Oct", 10}, {"Nov", 11}, {"Dec", 12}};
 
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "time. If clock resets after", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Color::light_grey()},
-        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Color::grey()},
-        {{5 * 8, 6 * 16}, "-  -     :  :", Color::light_grey()},
-        {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Color::light_grey()},
-        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Color::light_grey()},
-        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Color::light_grey()}};
+        {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "time. If clock resets after", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Theme::getInstance()->fg_medium->foreground},
+        {{5 * 8, 6 * 16}, "-  -     :  :", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_year{
         {1 * 8, 6 * 16},
@@ -210,8 +211,8 @@ class SetRadioView : public View {
         ""};
 
     Labels labels_correction{
-        {{2 * 8, 3 * 16}, "Frequency correction:", Color::light_grey()},
-        {{6 * 8, 4 * 16}, "PPM", Color::light_grey()},
+        {{2 * 8, 3 * 16}, "Frequency correction:", Theme::getInstance()->fg_light->foreground},
+        {{6 * 8, 4 * 16}, "PPM", Theme::getInstance()->fg_light->foreground},
     };
 
     NumberField field_ppm{
@@ -233,13 +234,13 @@ class SetRadioView : public View {
         SymField::Type::Dec};
 
     Labels labels_clkout_khz{
-        {{26 * 8, 6 * 16}, "kHz", Color::light_grey()}};
+        {{26 * 8, 6 * 16}, "kHz", Theme::getInstance()->fg_light->foreground}};
 
     Labels labels_bias{
-        {{4 * 8 + 4, 8 * 16}, "CAUTION: Ensure that all", Color::red()},
-        {{5 * 8 + 0, 9 * 16}, "devices attached to the", Color::red()},
-        {{6 * 8 + 0, 10 * 16}, "antenna connector can", Color::red()},
-        {{6 * 8 + 4, 11 * 16}, "accept a DC voltage!", Color::red()}};
+        {{4 * 8 + 4, 8 * 16}, "CAUTION: Ensure that all", Theme::getInstance()->error_dark->foreground},
+        {{5 * 8 + 0, 9 * 16}, "devices attached to the", Theme::getInstance()->error_dark->foreground},
+        {{6 * 8 + 0, 10 * 16}, "antenna connector can", Theme::getInstance()->error_dark->foreground},
+        {{6 * 8 + 4, 11 * 16}, "accept a DC voltage!", Theme::getInstance()->error_dark->foreground}};
 
     Checkbox check_bias{
         {18, 12 * 16},
@@ -319,40 +320,48 @@ class SetUIView : public View {
         "Back button in menu"};
 
     Labels labels{
-        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Color::light_grey()},
+        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Theme::getInstance()->fg_light->foreground},
     };
 
     ImageToggle toggle_camera{
-        {6 * 8, 14 * 16 + 2, 16, 16},
+        {2 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_camera};
 
     ImageToggle toggle_sleep{
-        {8 * 8, 14 * 16 + 2, 16, 16},
+        {4 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {10 * 8, 14 * 16 + 2, 16, 16},
+        {6 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {12 * 8, 14 * 16 + 2, 16, 16},
+        {8 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {14 * 8, 14 * 16 + 2, 16, 16},
+        {10 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {16 * 8, 14 * 16 + 2, 8, 16},
+        {12 * 8, 14 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {17 * 8, 14 * 16 + 2, 16, 16},
+        {13 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {19 * 8, 14 * 16 + 2, 16, 16},
+        {15 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
+
+    ImageToggle toggle_battery_icon{
+        {17 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_batt_icon};
+
+    ImageToggle toggle_battery_text{
+        {19 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_batt_text};
 
     ImageToggle toggle_fake_brightness{
         {21 * 8, 14 * 16 + 2, 16, 16},
@@ -382,8 +391,8 @@ class SetSDCardView : public View {
    private:
     Labels labels{
         // 01234567890123456789012345678
-        {{1 * 8, 120 - 48}, "    HIGH SPEED SDCARD IO     ", Color::light_grey()},
-        {{1 * 8, 120 - 32}, "   May or may not work !!    ", Color::light_grey()}};
+        {{1 * 8, 120 - 48}, "    HIGH SPEED SDCARD IO     ", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 120 - 32}, "   May or may not work !!    ", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox checkbox_sdcard_speed{
         {2 * 8, 120},
@@ -417,11 +426,11 @@ class SetConverterSettingsView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Options for working with", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "up/down converter hardware", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "like a Ham It Up.", Color::light_grey()},
-        {{2 * 8, 9 * 16 - 2}, "Conversion frequency:", Color::light_grey()},
-        {{18 * 8, 10 * 16}, "MHz", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Options for working with", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "up/down converter hardware", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "like a Ham It Up.", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16 - 2}, "Conversion frequency:", Theme::getInstance()->fg_light->foreground},
+        {{18 * 8, 10 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
     };
 
     Checkbox check_show_converter{
@@ -461,13 +470,13 @@ class SetFrequencyCorrectionView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Frequency correction allows", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "RX and TX frequencies to be", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "adjusted for all apps.", Color::light_grey()},
-        {{2 * 8, 6 * 16}, "RX Adjustment Frequency", Color::light_grey()},
-        {{18 * 8, 7 * 16}, "MHz", Color::light_grey()},
-        {{2 * 8, 9 * 16}, "TX Adjustment Frequency", Color::light_grey()},
-        {{18 * 8, 10 * 16}, "MHz", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Frequency correction allows", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "RX and TX frequencies to be", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "adjusted for all apps.", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 6 * 16}, "RX Adjustment Frequency", Theme::getInstance()->fg_light->foreground},
+        {{18 * 8, 7 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16}, "TX Adjustment Frequency", Theme::getInstance()->fg_light->foreground},
+        {{18 * 8, 10 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField opt_rx_correction_mode{
@@ -504,14 +513,14 @@ class SetAudioView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Controls the volume of the", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "tone when transmitting in", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "Soundboard or Mic apps:", Color::light_grey()},
-        {{2 * 8, 5 * 16}, "Tone key mix:   %", Color::light_grey()},
-        {{1 * 8, 8 * 16}, "Controls whether apps should", Color::light_grey()},
-        {{1 * 8, 9 * 16}, "beep on speaker & headphone", Color::light_grey()},
-        {{1 * 8, 10 * 16}, "when a packet is received", Color::light_grey()},
-        {{1 * 8, 11 * 16}, "(not all apps support this):", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Controls the volume of the", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "tone when transmitting in", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "Soundboard or Mic apps:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Tone key mix:   %", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 8 * 16}, "Controls whether apps should", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 9 * 16}, "beep on speaker & headphone", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 10 * 16}, "when a packet is received", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "(not all apps support this):", Theme::getInstance()->fg_light->foreground},
     };
 
     NumberField field_tone_mix{
@@ -536,35 +545,7 @@ class SetAudioView : public View {
     };
 };
 
-class SetQRCodeView : public View {
-   public:
-    SetQRCodeView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "QR Code"; };
-
-   private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Change the size of the QR", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Color::light_grey()},
-    };
-
-    Checkbox checkbox_bigger_qr{
-        {3 * 8, 4 * 16},
-        20,
-        "Show large QR code"};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-};
-
+using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
 
@@ -578,29 +559,94 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "rotation position (number of", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "steps per full rotation):", Color::light_grey()},
-        {{2 * 8, 5 * 16}, "Dial sensitivity:", Color::light_grey()},
-        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Color::light_grey()},
-        {{1 * 8, 9 * 16}, "rotation rate (default 1", Color::light_grey()},
-        {{1 * 8, 10 * 16}, "means no rate dependency):", Color::light_grey()},
-        {{3 * 8, 12 * 16}, "Rate multiplier:", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "position (x steps per 360):", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "Sensitivity:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "Rate multiplier:", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 14 * 16}, "Direction:", Theme::getInstance()->fg_light->foreground},
+
     };
 
     OptionsField field_encoder_dial_sensitivity{
-        {20 * 8, 5 * 16},
+        {20 * 8, 3 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
 
     NumberField field_encoder_rate_multiplier{
-        {20 * 8, 12 * 16},
+        {20 * 8, 10 * 16},
         2,
         {1, 15},
         1,
         ' '};
+
+    OptionsField field_encoder_dial_direction{
+        {18 * 8, 14 * 16},
+        7,
+        {{"NORMAL", false},
+         {"REVERSE", true}}};
+
+    Button button_dial_sensitivity_plus{
+        {20 * 8, 2 * 16, 16, 16},
+        "+"};
+
+    Button button_dial_sensitivity_minus{
+        {20 * 8, 4 * 16, 16, 16},
+        "-"};
+
+    Button button_rate_multiplier_plus{
+        {20 * 8, 9 * 16, 16, 16},
+        "+"};
+
+    Button button_rate_multiplier_minus{
+        {20 * 8, 11 * 16, 16, 16},
+        "-"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+class SetButtonsView : public View {
+   public:
+    SetButtonsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Button Speed"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Adjusts response time when a", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "button is held down.", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField field_repeat_delay{
+        {20 * 8, 5 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_repeat_speed{
+        {20 * 8, 7 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_long_press_delay{
+        {20 * 8, 9 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -622,9 +668,9 @@ class SetPersistentMemoryView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Save persistent memory on SD", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "card. Needed when device has", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "dead/missing coin battery.", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Save persistent memory on SD", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "card. Needed when device has", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "dead/missing coin battery.", Theme::getInstance()->fg_light->foreground},
     };
 
     Text text_pmem_status{
@@ -664,7 +710,7 @@ class AppSettingsView : public View {
     NavigationView& nav_;
 
     Labels labels{
-        {{0, 4}, "Select file to edit:", Color::white()}};
+        {{0, 4}, "Select file to edit:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
         {0, 2 * 8, 240, 26 * 8},
@@ -681,9 +727,9 @@ class SetConfigModeView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Controls whether firmware", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "will enter Config Mode", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "after a boot failure.", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Controls whether firmware", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "will enter Config Mode", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "after a boot failure.", Theme::getInstance()->fg_light->foreground},
     };
 
     Checkbox checkbox_config_mode_enabled{
@@ -700,23 +746,24 @@ class SetConfigModeView : public View {
         "Cancel",
     };
 };
-
 using portapack::persistent_memory::fake_brightness_level_options;
 
-class SetFakeBrightnessView : public View {
+class SetDisplayView : public View {
    public:
-    SetFakeBrightnessView(NavigationView& nav);
+    SetDisplayView(NavigationView& nav);
 
     void focus() override;
 
-    std::string title() const override { return "Brightness"; };
+    std::string title() const override { return "Display"; };
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Limits screen brightness", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "(has a small performance", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "impact when enabled).", Color::light_grey()},
-        {{2 * 8, 8 * 16}, "Brightness:", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Limits screen brightness", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "REBOOT TO APPLY SCREEN TYPE", Theme::getInstance()->fg_light->foreground},
+
     };
 
     OptionsField field_fake_brightness{
@@ -731,6 +778,11 @@ class SetFakeBrightnessView : public View {
         16,
         "Enable brightness adjust"};
 
+    Checkbox checkbox_ips_screen_switch{
+        {1 * 8, 12 * 16},
+        23,
+        "IPS Screen"};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
@@ -739,6 +791,77 @@ class SetFakeBrightnessView : public View {
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
+};
+
+using portapack::persistent_memory::touchscreen_threshold;
+
+class SetTouchscreenThresholdView : public View {
+   public:
+    SetTouchscreenThresholdView(NavigationView& nav);
+    ~SetTouchscreenThresholdView();
+
+    void focus() override;
+
+    std::string title() const override { return "Touch S"; };
+
+   private:
+    bool in_auto_detect = false;
+    uint16_t org_threshold = 0;
+    uint8_t auto_detect_succeed_consumed = false;  // prevent screen flash but can still change text content
+    uint32_t time_start_auto_detect = 0;
+
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Set touchscreen sensitivity", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Or press auto detect button", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "FOLLOW INSTRUCTIONS", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 4 * 16}, "REBOOT TO APPLY", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "Threshold:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    Text text_hint{
+        {1 * 8, 7 * 16, screen_width - 2 * 8, 1 * 16},
+        "DON'T TOUCH SCREEN"};
+
+    Text text_wait_timer{
+        {1 * 8, 8 * 16, screen_width - 2 * 8, 1 * 16},
+        "ETA 00:00"};
+
+    void on_frame_sync();
+
+    /* sample max: 1023 sample_t AKA uint16_t
+     * touch_sensitivity: range: 1 to 128
+     * threshold range: 1023/1 to 1023/128  =  1023 to 8
+     */
+    NumberField field_threshold{
+        {1 * 8 + 11 * 8 + 8, 11 * 16},
+        4,
+        {1, 1023},
+        1,
+        ' ',
+    };
+
+    Button button_autodetect{
+        {2 * 8, 13 * 16, 12 * 8, 32},
+        "Auto Detect"};
+    Button button_reset{
+        {16 * 8, 13 * 16, 12 * 8, 32},
+        "Reset",
+    };
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_frame_sync();
+        }};
 };
 
 class SetMenuColorView : public View {
@@ -753,10 +876,10 @@ class SetMenuColorView : public View {
     void paint_sample();
 
     Labels labels{
-        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Color::light_grey()},
-        {{2 * 8, 8 * 16}, "Red Level:", Color::light_grey()},
-        {{2 * 8, 9 * 16}, "Green Level:", Color::light_grey()},
-        {{2 * 8, 10 * 16}, "Blue Level:", Color::light_grey()},
+        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "Red Level:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16}, "Green Level:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "Blue Level:", Theme::getInstance()->fg_light->foreground},
     };
 
     NewButton button_sample{
@@ -789,6 +912,11 @@ class SetMenuColorView : public View {
         ' ',
     };
 
+    Button button_reset{
+        {2 * 8, 13 * 16, 12 * 8, 32},
+        "Reset",
+    };
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
@@ -799,39 +927,88 @@ class SetMenuColorView : public View {
     };
 };
 
-class SetAutostartView : public View {
+class SetThemeView : public View {
    public:
-    SetAutostartView(NavigationView& nav);
+    SetThemeView(NavigationView& nav);
 
     void focus() override;
 
-    std::string title() const override { return "Autostart"; };
+    std::string title() const override { return "Theme"; };
 
    private:
-    int32_t i = 0;
-    std::string autostart_app{""};
-    OptionsField::options_t opts{};
-    std::map<int32_t, std::string> full_app_list{};  // looking table
     int32_t selected = 0;
-    SettingsStore nav_setting{
-        "nav"sv,
-        {{"autostart_app"sv, &autostart_app}}};
     Labels labels{
-        {{1 * 8, 1 * 16}, "Select app to start on boot", Color::light_grey()},
-        {{2 * 8, 2 * 16}, "(an SD Card is required)", Color::light_grey()}};
+        {{1 * 8, 1 * 16}, "Select a theme.", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Restart PP to fully apply!", Theme::getInstance()->fg_light->foreground}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
 
     OptionsField options{
-        {8 * 8, 4 * 16},
-        30,
-        {}};
+        {0 * 8, 4 * 16},
+        screen_width / 8,
+        {
+            {"Default - Grey", 0},
+            {"Yellow", 1},
+            {"Aqua", 2},
+            {"Green", 3},
+            {"Red", 4},
+        },
+        true};
+
+    Checkbox checkbox_menuset{
+        {2 * 8, 6 * 16},
+        23,
+        "Set Menu color too"};
 
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
+    };
+};
+
+class SetBatteryView : public View {
+   public:
+    SetBatteryView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Battery"; };
+
+   private:
+    int32_t selected = 0;
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Override batt calculation", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground},
+        /**/
+        {{1 * 8, 6 * 16}, "Display a hint to remind you", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 7 * 16}, "when you charge", Theme::getInstance()->fg_light->foreground}};
+
+    Labels labels2{{{1 * 8, 11 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Checkbox checkbox_overridebatt{
+        {2 * 8, 4 * 16},
+        23,
+        "Override"};
+
+    Checkbox checkbox_battery_charge_hint{
+        {2 * 8, 9 * 16},
+        23,
+        "Charge hint"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+
+    Button button_reset{
+        {2 * 8, 13 * 16, 12 * 8, 32},
+        "Reset",
     };
 };
 
@@ -842,6 +1019,7 @@ class SettingsMenuView : public BtnGridView {
 
    private:
     NavigationView& nav_;
+
     void on_populate() override;
 };
 

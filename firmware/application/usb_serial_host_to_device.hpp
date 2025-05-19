@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __USB_SERIAL_HOST_TO_DEVICE_H
+#define __USB_SERIAL_HOST_TO_DEVICE_H
 
 #include "ch.h"
 #include "hal.h"
@@ -27,6 +28,9 @@
 #define USB_BULK_BUFFER_SIZE 64
 
 void init_host_to_device();
+void reset_transfer_queues();
 void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
 void schedule_host_to_device_transfer();
 void complete_host_to_device_transfer();
+
+#endif

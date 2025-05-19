@@ -26,7 +26,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::audio_test {
 
 AudioTestView::AudioTestView(NavigationView& nav)
     : nav_{nav} {
@@ -103,4 +103,4 @@ void AudioTestView::update_audio_beep() {
         baseband::request_beep_stop();
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::audio_test */

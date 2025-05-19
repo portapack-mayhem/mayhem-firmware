@@ -332,5 +332,40 @@ uint32_t CPLD::AGM_read(uint32_t address) {
     return jtag.shift_dr(32, encoded_address, 0x0);
 }
 
+void CPLD::AGM_write(const std::array<uint32_t, 1801>& block, uint32_t magic_value) {
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0xf0);
+    jtag.runtest_tck(100);
+
+    shift_ir(instruction_t::AGM_ERASE);
+    jtag.runtest_tck(100);
+    jtag.runtest_ms(500);
+
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0xf0);
+    jtag.runtest_tck(100);
+
+    shift_ir(instruction_t::AGM_PROGRAM);
+    jtag.runtest_tck(100);
+
+    auto data = block.data();
+    for (size_t i = 0; i < 0x12B; i++) {
+        auto address = AGM_encode_address(i * 4, 0x40);
+        jtag.shift_dr(32, address, data[i]);
+        jtag.runtest_ms(2);
+    }
+
+    jtag.shift_dr(32, 0x00000040, magic_value);
+    jtag.runtest_ms(2);
+
+    for (size_t i = 0x12B; i < block.size(); i++) {
+        auto address = AGM_encode_address(i * 4, 0x40);
+        jtag.shift_dr(32, address, data[i]);
+        jtag.runtest_ms(2);
+    }
+}
+
 } /* namespace max5 */
 } /* namespace cpld */

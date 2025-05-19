@@ -48,9 +48,6 @@ class FProtoWeatherAcurite606TX : public FProtoWeatherBase {
                             if ((decode_count_bit ==
                                  min_count_bit_for_found) &&
                                 ws_protocol_acurite_606tx_check()) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                ws_protocol_acurite_606tx_remote_controller();
                                 if (callback) callback(this);
                             }
                             decode_data = 0;
@@ -83,18 +80,6 @@ class FProtoWeatherAcurite606TX : public FProtoWeatherBase {
     uint32_t te_delta = 150;
     uint32_t min_count_bit_for_found = 32;
 
-    void ws_protocol_acurite_606tx_remote_controller() {
-        id = (data >> 24) & 0xFF;
-        battery_low = (data >> 23) & 1;
-        channel = WS_NO_CHANNEL;
-        if (!((data >> 19) & 1)) {
-            temp = (float)((data >> 8) & 0x07FF) / 10.0f;
-        } else {
-            temp = (float)((~(data >> 8) & 0x07FF) + 1) / -10.0f;
-        }
-        btn = WS_NO_BTN;
-        humidity = WS_NO_HUMIDITY;
-    }
     bool ws_protocol_acurite_606tx_check() {
         if (!decode_data) return false;
         uint8_t msg[] = {

@@ -102,9 +102,6 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
                                 decode_data = ~decode_data | (1 << 31);
                             }
                             if (ws_protocol_oregon_v1_check()) {
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                ws_protocol_oregon_v1_remote_controller();
                                 if (callback) callback(this);
                             }
                         }
@@ -137,30 +134,13 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
     uint32_t min_count_bit_for_found = 32;
 
     uint8_t first_bit{0};
-
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
     bool ws_protocol_oregon_v1_check() {
         if (!decode_data) return false;
         uint64_t data = FProtoGeneral::subghz_protocol_blocks_reverse_key(decode_data, 32);
         uint16_t crc = (data & 0xff) + ((data >> 8) & 0xff) + ((data >> 16) & 0xff);
         crc = (crc & 0xff) + ((crc >> 8) & 0xff);
         return (crc == ((data >> 24) & 0xFF));
-    }
-    void ws_protocol_oregon_v1_remote_controller() {
-        uint64_t data2 = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, 32);
-
-        id = data2 & 0xFF;
-        channel = ((data2 >> 6) & 0x03) + 1;
-
-        float temp_raw =
-            ((data2 >> 8) & 0x0F) * 0.1f + ((data2 >> 12) & 0x0F) + ((data2 >> 16) & 0x0F) * 10.0f;
-        if (!((data2 >> 21) & 1)) {
-            temp = temp_raw;
-        } else {
-            temp = -temp_raw;
-        }
-        battery_low = !((data2 >> 23) & 1ULL);
-        btn = WS_NO_BTN;
-        humidity = WS_NO_HUMIDITY;
     }
 };
 

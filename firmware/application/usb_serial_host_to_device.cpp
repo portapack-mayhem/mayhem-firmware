@@ -54,6 +54,14 @@ void init_host_to_device() {
     thread_usb_event = chThdSelf();
 }
 
+void reset_transfer_queues() {
+    while (usb_bulk_buffer_queue.empty() == false)
+        usb_bulk_buffer_queue.pop();
+
+    while (usb_bulk_buffer_spare.empty() == false)
+        usb_bulk_buffer_spare.pop();
+}
+
 void schedule_host_to_device_transfer() {
     if (usb_bulk_buffer_queue.size() >= 8)
         return;

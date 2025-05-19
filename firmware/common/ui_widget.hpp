@@ -33,6 +33,8 @@
 #include "portapack.hpp"
 #include "utility.hpp"
 
+#include "ui/ui_font_fixed_5x8.hpp"
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -82,6 +84,9 @@ class Widget {
     Widget* parent() const;
     void set_parent(Widget* const widget);
 
+    virtual void on_after_attach() { return; };
+    virtual void on_before_detach() { return; };
+
     bool hidden() const { return flags.hidden; }
     void hidden(bool hide);
 
@@ -95,8 +100,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show(){};
-    virtual void on_hide(){};
+    virtual void on_show() { return; };
+    virtual void on_hide() { return; };
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
@@ -154,6 +159,8 @@ class Widget {
 };
 
 class View : public Widget {
+    // unlike Paint class, our Y ignored the top bar;
+    // so when you draw some of us as Y = 0, it would be exact below the top bar, instead of overlapped with top bar
    public:
     View() {
     }
@@ -284,6 +291,7 @@ class BigFrequency : public Widget {
 
    private:
     rf::Frequency _frequency;
+    rf::Frequency _previous_frequency{~0LL};
 
     static constexpr Dim digit_width = 32;
 
@@ -523,7 +531,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
-    Color bg_color_{Color::grey()};
+    Color bg_color_{Theme::getInstance()->bg_medium->background};
 
    private:
     std::string text_;
@@ -639,7 +647,7 @@ class ImageOptionsField : public Widget {
         options_t options);
 
     ImageOptionsField()
-        : ImageOptionsField{{}, Color::white(), Color::black(), {}} {
+        : ImageOptionsField{{}, Theme::getInstance()->bg_darkest->foreground, Theme::getInstance()->bg_darkest->background, {}} {
     }
 
     void set_options(options_t new_options);
@@ -676,7 +684,7 @@ class OptionsField : public Widget {
     std::function<void(size_t, value_t)> on_change{};
     std::function<void(void)> on_show_options{};
 
-    OptionsField(Point parent_pos, size_t length, options_t options);
+    OptionsField(Point parent_pos, size_t length, options_t options, bool centered = false);
 
     options_t& options() { return options_; }
     const options_t& options() const { return options_; }
@@ -704,6 +712,7 @@ class OptionsField : public Widget {
     const size_t length_;
     options_t options_;
     size_t selected_index_{0};
+    bool centered_{false};  // e.g.: length as screen_width/8, x position as 0, it will be centered in x axis
 };
 
 // A TextEdit is bound to a string reference and allows the string
@@ -779,6 +788,54 @@ class TextField : public Text {
 
    private:
     using Text::set;
+};
+
+class BatteryTextField : public Widget {
+   public:
+    std::function<void()> on_select{};
+
+    BatteryTextField(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
+
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
+    void set_text(std::string_view value);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    uint8_t percent_{102};
+    uint8_t valid_{0};
+    bool charge_{false};
+
+    Style style{
+        .font = font::fixed_5x8,
+        .background = Theme::getInstance()->bg_dark->background,
+        .foreground = Theme::getInstance()->bg_dark->foreground,
+    };
+};
+
+class BatteryIcon : public Widget {
+   public:
+    std::function<void()> on_select{};
+
+    BatteryIcon(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    uint8_t percent_{102};
+    uint8_t valid_{0};
+    bool charge_{false};
 };
 
 class NumberField : public Widget {
@@ -918,7 +975,9 @@ class SymField : public Widget {
 
 class Waveform : public Widget {
    public:
-    Waveform(Rect parent_rect, int16_t* data, uint32_t length, uint32_t offset, bool digital, Color color);
+    std::function<void(Waveform&)> on_select{};
+
+    Waveform(Rect parent_rect, int16_t* data, uint32_t length, uint32_t offset, bool digital, Color color, bool clickable = false);
 
     Waveform(const Waveform&) = delete;
     Waveform(Waveform&&) = delete;
@@ -929,10 +988,20 @@ class Waveform : public Widget {
     void set_length(const uint32_t new_length);
     void set_cursor(const uint32_t i, const int16_t position);
 
+    bool is_paused() const;
+    void set_paused(bool paused);
+    bool is_clickable() const;
+
     void paint(Painter& painter) override;
+    bool on_key(const KeyEvent key) override;
+    bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
-    const Color cursor_colors[2] = {Color::cyan(), Color::magenta()};
+    const Color cursor_colors[2] = {Theme::getInstance()->fg_cyan->foreground, Theme::getInstance()->fg_magenta->foreground};
 
     int16_t* data_;
     uint32_t length_;
@@ -941,6 +1010,9 @@ class Waveform : public Widget {
     Color color_;
     int16_t cursors[2]{};
     bool show_cursors{false};
+    bool paused_{false};
+    bool clickable_{false};
+    bool if_ever_painted_pause{false};  // for prevent the "hidden" label keeps painting and being expensive
 };
 
 class VuMeter : public Widget {

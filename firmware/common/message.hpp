@@ -32,7 +32,6 @@
 
 #include "baseband_packet.hpp"
 
-#include "acars_packet.hpp"
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
@@ -123,6 +122,15 @@ class Message {
         EnvironmentData = 65,
         AudioBeep = 66,
         PocsagTosend = 67,
+        BatteryStateData = 68,
+        ProtoViewData = 69,
+        FreqChangeCommand = 70,
+        I2CDevListChanged = 71,
+        LightData = 72,
+        WeFaxRxConfigure = 73,
+        WeFaxRxStatusData = 74,
+        WeFaxRxImageData = 75,
+        WFMAMConfigure = 76,
         MAX
     };
 
@@ -374,13 +382,12 @@ class POCSAGStatsMessage : public Message {
 
 class ACARSPacketMessage : public Message {
    public:
-    constexpr ACARSPacketMessage(
-        const baseband::Packet& packet)
-        : Message{ID::ACARSPacket},
-          packet{packet} {
-    }
-
-    baseband::Packet packet;
+    constexpr ACARSPacketMessage()
+        : Message{ID::ACARSPacket} {}
+    uint8_t msg_len = 0;
+    char message[250] = {0};  // contains the whole packet
+    uint8_t crc[2] = {0};
+    uint8_t state = 0;  // for debug
 };
 
 class ADSBFrameMessage : public Message {
@@ -577,11 +584,42 @@ class WFMConfigureMessage : public Message {
     const iir_biquad_config_t audio_deemph_config;
 };
 
+class WFMAMConfigureMessage : public Message {
+   public:
+    constexpr WFMAMConfigureMessage(
+        const fir_taps_real<24> decim_0_filter,
+        const fir_taps_real<32> decim_1_filter,
+        const fir_taps_real<64> audio_filter,
+        const size_t deviation,
+        const iir_biquad_config_t audio_hpf_config,
+        const iir_biquad_config_t audio_deemph_config)
+        : Message{ID::WFMAMConfigure},
+          decim_0_filter(decim_0_filter),
+          decim_1_filter(decim_1_filter),
+          audio_filter(audio_filter),
+          deviation{deviation},
+          audio_hpf_config(audio_hpf_config),
+          audio_deemph_config(audio_deemph_config) {
+    }
+
+    const fir_taps_real<24> decim_0_filter;
+    const fir_taps_real<32> decim_1_filter;
+    const fir_taps_real<64> audio_filter;
+    const size_t deviation;
+    const iir_biquad_config_t audio_hpf_config;
+    const iir_biquad_config_t audio_deemph_config;
+};
+
 class AMConfigureMessage : public Message {
    public:
     enum class Modulation : int32_t {
         DSB = 0,
         SSB = 1,
+        SSB_FM = 2,  // Added new for RX Wefax mode,  to demodulate APT signal ,FM modulated inside audio subcarrier tones, and then up broadcasted in SSB USB .
+    };
+    enum class Zoom_waterfall : size_t {
+        ZOOM_x_1 = 1,
+        ZOOM_x_2 = 2,
     };
 
     constexpr AMConfigureMessage(
@@ -590,14 +628,17 @@ class AMConfigureMessage : public Message {
         const fir_taps_real<32> decim_2_filter,
         const fir_taps_complex<64> channel_filter,
         const Modulation modulation,
-        const iir_biquad_config_t audio_hpf_config)
+        const iir_biquad_config_t audio_hpf_lpf_config,
+        const size_t channel_spectrum_decimation_factor)
+
         : Message{ID::AMConfigure},
           decim_0_filter(decim_0_filter),
           decim_1_filter(decim_1_filter),
           decim_2_filter(decim_2_filter),
           channel_filter(channel_filter),
           modulation{modulation},
-          audio_hpf_config(audio_hpf_config) {
+          audio_hpf_lpf_config(audio_hpf_lpf_config),
+          channel_spectrum_decimation_factor(channel_spectrum_decimation_factor) {
     }
 
     const fir_taps_real<24> decim_0_filter;
@@ -605,7 +646,8 @@ class AMConfigureMessage : public Message {
     const fir_taps_real<32> decim_2_filter;
     const fir_taps_complex<64> channel_filter;
     const Modulation modulation;
-    const iir_biquad_config_t audio_hpf_config;
+    const iir_biquad_config_t audio_hpf_lpf_config;
+    const size_t channel_spectrum_decimation_factor;
 };
 
 // TODO: Put this somewhere else, or at least the implementation part.
@@ -1262,52 +1304,28 @@ class WeatherDataMessage : public Message {
    public:
     constexpr WeatherDataMessage(
         uint8_t sensorType = 0,
-        uint32_t id = 0xFFFFFFFF,
-        float temp = -273.0f,
-        uint8_t humidity = 0xFF,
-        uint8_t battery_low = 0xFF,
-        uint8_t channel = 0xFF,
-        uint8_t btn = 0xFF)
+        uint64_t decode_data = 0xFFFFFFFF)
         : Message{ID::WeatherData},
           sensorType{sensorType},
-          id{id},
-          temp{temp},
-          humidity{humidity},
-          battery_low{battery_low},
-          channel{channel},
-          btn{btn} {
+          decode_data{decode_data} {
     }
     uint8_t sensorType = 0;
-    uint32_t id = 0xFFFFFFFF;
-    float temp = -273.0f;
-    uint8_t humidity = 0xFF;
-    uint8_t battery_low = 0xFF;
-    uint8_t channel = 0xFF;
-    uint8_t btn = 0xFF;
+    uint64_t decode_data = 0;
 };
 
 class SubGhzDDataMessage : public Message {
    public:
     constexpr SubGhzDDataMessage(
         uint8_t sensorType = 0,
-        uint8_t btn = 0xFF,
         uint16_t bits = 0,
-        uint32_t serial = 0xFFFFFFFF,
-        uint64_t data = 0,
-        uint32_t cnt = 0xFF)
+        uint64_t data = 0)
         : Message{ID::SubGhzDData},
           sensorType{sensorType},
-          btn{btn},
           bits{bits},
-          serial{serial},
-          cnt{cnt},
           data{data} {
     }
     uint8_t sensorType = 0;
-    uint8_t btn = 0xFF;
     uint16_t bits = 0;
-    uint32_t serial = 0xFFFFFFFF;
-    uint32_t cnt = 0xFF;
     uint64_t data = 0;
 };
 
@@ -1351,18 +1369,26 @@ class EnvironmentDataMessage : public Message {
     constexpr EnvironmentDataMessage(
         float temperature = 0,
         float humidity = 0,
-        float pressure = 0,
-        uint16_t light = 0)
+        float pressure = 0)
         : Message{ID::EnvironmentData},
           temperature{temperature},
           humidity{humidity},
-          pressure{pressure},
-          light{light} {
+          pressure{pressure} {
     }
     float temperature = 0;  // celsius
     float humidity = 0;     // percent (rh)
     float pressure = 0;     // hpa
-    uint16_t light = 0;     // lux
+};
+
+class LightDataMessage : public Message {
+   public:
+    constexpr LightDataMessage(
+
+        uint16_t light = 0)
+        : Message{ID::LightData},
+          light{light} {
+    }
+    uint16_t light = 0;  // lux
 };
 
 class AudioBeepMessage : public Message {
@@ -1407,6 +1433,75 @@ class PocsagTosendMessage : public Message {
     uint8_t msglen = 0;
     uint8_t msg[31] = {0};
     uint64_t addr = 0;
+};
+
+class BatteryStateMessage : public Message {
+   public:
+    constexpr BatteryStateMessage(
+        uint8_t valid_mask,
+        uint8_t percent,
+        bool on_charger,
+        uint16_t voltage)
+        : Message{ID::BatteryStateData},
+          valid_mask{valid_mask},
+          percent{percent},
+          on_charger{on_charger},
+          voltage{voltage} {
+    }
+    uint8_t valid_mask = 0;
+    uint8_t percent = 0;
+    bool on_charger = false;
+    uint16_t voltage = 0;  // mV
+};
+
+class ProtoViewDataMessage : public Message {
+   public:
+    constexpr ProtoViewDataMessage()
+        : Message{ID::ProtoViewData} {}
+    int32_t times[100] = {0};  // positive: high, negative: low
+    uint16_t timeptr = 0;
+    const uint16_t maxptr = 99;
+};
+
+class FreqChangeCommandMessage : public Message {
+   public:
+    constexpr FreqChangeCommandMessage(int64_t freq)
+        : Message{ID::FreqChangeCommand}, freq{freq} {}
+    int64_t freq = 0;
+};
+
+class I2CDevListChangedMessage : public Message {
+   public:
+    constexpr I2CDevListChangedMessage()
+        : Message{ID::I2CDevListChanged} {}
+};
+
+class WeFaxRxConfigureMessage : public Message {
+   public:
+    constexpr WeFaxRxConfigureMessage(uint8_t lpm, uint8_t ioc)
+        : Message{ID::WeFaxRxConfigure},
+          lpm{lpm},
+          ioc{ioc} {
+    }
+    uint8_t lpm = 120;
+    uint8_t ioc = 0;
+};
+
+class WeFaxRxStatusDataMessage : public Message {
+   public:
+    constexpr WeFaxRxStatusDataMessage(uint8_t state)
+        : Message{ID::WeFaxRxStatusData},
+          state{state} {
+    }
+    uint8_t state = 0;
+};
+
+class WeFaxRxImageDataMessage : public Message {
+   public:
+    constexpr WeFaxRxImageDataMessage()
+        : Message{ID::WeFaxRxImageData} {}
+    uint8_t image[400]{0};
+    uint32_t cnt = 0;
 };
 
 #endif /*__MESSAGE_H__*/

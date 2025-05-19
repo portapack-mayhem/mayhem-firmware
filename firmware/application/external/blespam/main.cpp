@@ -75,8 +75,9 @@ __attribute__((section(".external_app.app_blespam.application_information"), use
     },
     /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::TX,
+    /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_afsk_rx */ {'P', 'B', 'T', 'T'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_btle_tx */ {'P', 'B', 'T', 'T'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

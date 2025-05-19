@@ -66,7 +66,6 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
                 // waiting for fixed oregon3 data
                 if (decode_count_bit == OREGON3_FIXED_PART_BITS) {
                     data = decode_data;
-                    data_count_bit = decode_count_bit;
                     decode_data = 0UL;
                     decode_count_bit = 0;
 
@@ -76,9 +75,8 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
                     data = (data & 0x33333333) << 2 |
                            (data & 0xCCCCCCCC) >> 2;
 
-                    ws_oregon3_decode_const_data();
-                    var_bits =
-                        oregon3_sensor_id_var_bits(OREGON3_SENSOR_ID(data));
+                    // ws_oregon3_decode_const_data(); //todo fix somehow in the future
+                    var_bits = oregon3_sensor_id_var_bits(OREGON3_SENSOR_ID(data));
 
                     if (!var_bits) {
                         // sensor is not supported, stop decoding
@@ -98,8 +96,8 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
                                (var_data & 0xAAAAAAAAAAAAAAAA) >> 1;
                     var_data = (var_data & 0x3333333333333333) << 2 |
                                (var_data & 0xCCCCCCCCCCCCCCCC) >> 2;
-
-                    ws_oregon3_decode_var_data(OREGON3_SENSOR_ID(data), var_data >> OREGON3_CHECKSUM_BITS);
+                    decode_data = var_data;
+                    // ws_oregon3_decode_var_data(OREGON3_SENSOR_ID(data), var_data >> OREGON3_CHECKSUM_BITS);
                     parser_step = Oregon3DecoderStepReset;
                     if (callback) callback(this);
                 }
@@ -113,11 +111,12 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
     uint32_t te_long = 1100;
     uint32_t te_delta = 300;
     uint32_t min_count_bit_for_found = 32;
+    uint64_t data = 0;
 
     bool prev_bit = false;
     uint8_t var_bits{0};
     uint64_t var_data{0};
-
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
     ManchesterEvent level_and_duration_to_event(bool level, uint32_t duration) {
         bool is_long = false;
 
@@ -143,31 +142,31 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
                 return 0;
         }
     }
-    void ws_oregon3_decode_const_data() {
-        id = OREGON3_SENSOR_ID(data);
-        channel = (data >> 12) & 0xF;
-        battery_low = (data & OREGON3_FLAG_BAT_LOW) ? 1 : 0;
-    }
-    uint16_t ws_oregon3_bcd_decode_short(uint32_t data) {
-        return (data & 0xF) * 10 + ((data >> 4) & 0xF);
-    }
-    float ws_oregon3_decode_temp(uint32_t data) {
-        int32_t temp_val;
-        temp_val = ws_oregon3_bcd_decode_short(data >> 4);
-        temp_val *= 10;
-        temp_val += (data >> 12) & 0xF;
-        if (data & 0xF) temp_val = -temp_val;
-        return (float)temp_val / 10.0;
-    }
-    void ws_oregon3_decode_var_data(uint16_t sensor_id, uint32_t data) {
-        switch (sensor_id) {
-            case ID_THGR221:
-            default:
-                humidity = ws_oregon3_bcd_decode_short(data >> 4);
-                temp = ws_oregon3_decode_temp(data >> 12);
-                break;
-        }
-    }
+    /* void ws_oregon3_decode_const_data() {
+         id = OREGON3_SENSOR_ID(data);
+         channel = (data >> 12) & 0xF;
+         battery_low = (data & OREGON3_FLAG_BAT_LOW) ? 1 : 0;
+     }
+     uint16_t ws_oregon3_bcd_decode_short(uint32_t data) {
+         return (data & 0xF) * 10 + ((data >> 4) & 0xF);
+     }
+     float ws_oregon3_decode_temp(uint32_t data) {
+         int32_t temp_val;
+         temp_val = ws_oregon3_bcd_decode_short(data >> 4);
+         temp_val *= 10;
+         temp_val += (data >> 12) & 0xF;
+         if (data & 0xF) temp_val = -temp_val;
+         return (float)temp_val / 10.0;
+     }
+     void ws_oregon3_decode_var_data(uint16_t sensor_id, uint32_t data) {
+         switch (sensor_id) {
+             case ID_THGR221:
+             default:
+                 humidity = ws_oregon3_bcd_decode_short(data >> 4);
+                 temp = ws_oregon3_decode_temp(data >> 12);
+                 break;
+         }
+     }*/
 };
 
 #endif

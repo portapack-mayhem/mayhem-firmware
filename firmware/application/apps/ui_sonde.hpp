@@ -94,14 +94,14 @@ class SondeView : public View {
     // AudioOutput audio_output { };
 
     Labels labels{
-        {{4 * 8, 2 * 16}, "Type:", Color::light_grey()},
-        {{6 * 8, 3 * 16}, "ID:", Color::light_grey()},
-        {{0 * 8, 4 * 16}, "DateTime:", Color::light_grey()},
+        {{4 * 8, 2 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{6 * 8, 3 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "DateTime:", Theme::getInstance()->fg_light->foreground},
 
-        {{3 * 8, 5 * 16}, "Vbatt:", Color::light_grey()},
-        {{3 * 8, 6 * 16}, "Frame:", Color::light_grey()},
-        {{4 * 8, 7 * 16}, "Temp:", Color::light_grey()},
-        {{0 * 8, 8 * 16}, "Humidity:", Color::light_grey()}};
+        {{3 * 8, 5 * 16}, "Vbatt:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 6 * 16}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 7 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
@@ -195,6 +195,14 @@ class SondeView : public View {
             const auto message = static_cast<const OrientationDataMessage*>(p);
             this->on_orientation(message);
         }};
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
 
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);

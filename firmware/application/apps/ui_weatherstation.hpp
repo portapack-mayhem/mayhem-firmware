@@ -30,6 +30,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "utility.hpp"
+#include "log_file.hpp"
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/weathertypes.hpp"
@@ -78,7 +79,25 @@ struct WeatherRecentEntry {
     void reset_age() {
         age = 0;
     }
+
+    std::string to_csv();
 };
+
+class WeatherLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(WeatherRecentEntry& data);
+    void write_header() {
+        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt");
+    }
+
+   private:
+    LogFile log_file{};
+};
+
 using WeatherRecentEntries = RecentEntries<WeatherRecentEntry>;
 using WeatherRecentEntriesView = RecentEntriesView<WeatherRecentEntries>;
 
@@ -96,18 +115,20 @@ class WeatherView : public View {
    private:
     void on_tick_second();
     void on_data(const WeatherDataMessage* data);
-
+    WeatherRecentEntry process_data(const WeatherDataMessage* data);
     NavigationView& nav_;
     RxRadioState radio_state_{
         433'920'000 /* frequency */,
         1'750'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
+    bool logging = false;
     app_settings::SettingsManager settings_{
         "rx_weather",
         app_settings::Mode::RX,
         {
             {"units_fahr"sv, &weather_units_fahr},
+            {"log"sv, &logging},
         }};
 
     WeatherRecentEntries recent{};
@@ -140,7 +161,15 @@ class WeatherView : public View {
         {0, 16, 7 * 8, 32},
         "Clear"};
 
+    Checkbox check_log{
+        {10 * 8, 18},
+        3,
+        "Log",
+        true};
+
     static constexpr auto header_height = 3 * 16;
+
+    std::unique_ptr<WeatherLogger> logger{};
 
     const RecentEntriesColumns columns{{
         {"Type", 10},
@@ -150,6 +179,14 @@ class WeatherView : public View {
         {"Age", 4},
     }};
     WeatherRecentEntriesView recent_entries_view{columns, recent};
+
+    void on_freqchg(int64_t freq);
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::WeatherData,
@@ -178,14 +215,14 @@ class WeatherRecentEntryDetailView : public View {
     Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Weather Station", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "Type:", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Id: ", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Temp:", Color::light_grey()},
-        {{0 * 8, 4 * 16}, "Humidity:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "Channel:", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Battery:", Color::light_grey()},
-        {{0 * 8, 7 * 16}, "Age:", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Weather Station", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Id: ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Channel:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Battery:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Age:", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_done{

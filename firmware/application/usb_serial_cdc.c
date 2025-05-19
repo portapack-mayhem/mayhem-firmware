@@ -42,6 +42,10 @@ CH_IRQ_HANDLER(USB0_IRQHandler) {
         chSysUnlockFromIsr();
     }
 
+    if (status & USB0_USBSTS_D_SLI) {
+        on_channel_closed();
+    }
+
     CH_IRQ_EPILOGUE();
 }
 
@@ -131,11 +135,7 @@ usb_request_status_t usb_get_line_coding_request(usb_endpoint_t* const endpoint,
 }
 usb_request_status_t usb_set_control_line_state_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
     if (stage == USB_TRANSFER_STAGE_SETUP) {
-        // if (endpoint->setup.value == 3) {
         on_channel_opened();
-        //} else {
-        //    on_channel_closed();
-        //}
 
         usb_transfer_schedule_ack(endpoint->in);
     }

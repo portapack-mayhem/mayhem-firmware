@@ -1,5 +1,4 @@
 #include "ui_bmpview.hpp"
-#include "usb_serial_asyncmsg.hpp"
 #include "portapack.hpp"
 
 bool BMPViewer::load_bmp(const std::filesystem::path& file) {
@@ -107,7 +106,7 @@ void BMPViewer::get_line(ui::Color* line, uint32_t bx, uint32_t by, uint32_t cnt
 
 void BMPViewer::paint(Painter& painter) {
     if (!bmp.is_loaded()) {
-        painter.draw_string({48, 24}, ui::Styles::white, "Can't load BMP");
+        painter.draw_string({48, 24}, *ui::Theme::getInstance()->bg_darkest, "Can't load BMP");
         return;
     }
     // get where i can paint

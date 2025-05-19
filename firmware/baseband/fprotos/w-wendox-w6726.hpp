@@ -82,9 +82,6 @@ class FProtoWeatherWendoxW6726 : public FProtoWeatherBase {
                         if ((decode_count_bit ==
                              min_count_bit_for_found) &&
                             ws_protocol_wendox_w6726_check()) {
-                            data = decode_data;
-                            data_count_bit = decode_count_bit;
-                            ws_protocol_wendox_w6726_remote_controller();
                             if (callback) callback(this);
                         }
 
@@ -130,26 +127,6 @@ class FProtoWeatherWendoxW6726 : public FProtoWeatherBase {
 
         uint8_t crc = FProtoGeneral::subghz_protocol_blocks_crc4(msg, 4, 0x9, 0xD);
         return (crc == (decode_data & 0x0F));
-    }
-    void ws_protocol_wendox_w6726_remote_controller() {
-        id = (data >> 24) & 0xFF;
-        battery_low = (data >> 6) & 1;
-        channel = WS_NO_CHANNEL;
-
-        if (((data >> 23) & 1)) {
-            temp = (float)(((data >> 14) & 0x1FF) + 12) / 10.0f;
-        } else {
-            temp = (float)((~(data >> 14) & 0x1FF) + 1 - 12) / -10.0f;
-        }
-
-        if (temp < -50.0f) {
-            temp = -50.0f;
-        } else if (temp > 70.0f) {
-            temp = 70.0f;
-        }
-
-        btn = WS_NO_BTN;
-        humidity = WS_NO_HUMIDITY;
     }
 };
 

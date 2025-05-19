@@ -67,7 +67,6 @@ class FProtoSubGhzDNeroSketch : public FProtoSubGhzDBase {
                         // Found stop bit
                         parser_step = NeroSketchDecoderStepReset;
                         if (decode_count_bit == min_count_bit_for_found) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             if (callback) callback(this);
                         }
@@ -103,6 +102,7 @@ class FProtoSubGhzDNeroSketch : public FProtoSubGhzDBase {
                 break;
         }
     }
+    uint16_t header_count = 0;
 };
 
 #endif

@@ -29,7 +29,6 @@
 #include "rtc_time.hpp"
 #include "tone_key.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "utility.hpp"
 #include "file_path.hpp"
 
@@ -41,27 +40,39 @@ namespace fs = std::filesystem;
 
 // TODO: Clean up after moving to better lookup tables.
 using options_t = OptionsField::options_t;
-extern options_t freqman_modulations;
-extern options_t freqman_bandwidths[4];
-extern options_t freqman_steps;
-extern options_t freqman_steps_short;
+
+using option_db_t = std::pair<std::string_view, int32_t>;
+using options_db_t = std::vector<option_db_t>;
+
+extern options_db_t freqman_modulations;
+extern options_db_t freqman_bandwidths[6];
+// extern options_db_t freqman_steps; // now included via ui_receiver.hpp
+extern options_db_t freqman_steps_short;
+
+options_t dboptions_to_options(const options_db_t& dboptions) {
+    options_t options;
+    for (const auto& dboption : dboptions) {
+        options.emplace_back(dboption.first, dboption.second);
+    }
+    return options;
+}
 
 /* Set options. */
 void freqman_set_modulation_option(OptionsField& option) {
-    option.set_options(freqman_modulations);
+    option.set_options(dboptions_to_options(freqman_modulations));
 }
 
 void freqman_set_bandwidth_option(freqman_index_t modulation, OptionsField& option) {
     if (is_valid(modulation))
-        option.set_options(freqman_bandwidths[modulation]);
+        option.set_options(dboptions_to_options(freqman_bandwidths[modulation]));
 }
 
 void freqman_set_step_option(OptionsField& option) {
-    option.set_options(freqman_steps);
+    option.set_options(dboptions_to_options(freqman_steps));
 }
 
 void freqman_set_step_option_short(OptionsField& option) {
-    option.set_options(freqman_steps_short);
+    option.set_options(dboptions_to_options(freqman_steps_short));
 }
 
 namespace ui {
@@ -229,7 +240,7 @@ void FrequencyManagerView::on_edit_freq() {
 
 void FrequencyManagerView::on_edit_desc() {
     temp_buffer_ = current_entry().description;
-    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, [this](std::string& new_desc) {
+    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_desc) {
         auto entry = current_entry();
         entry.description = std::move(new_desc);
         db_.replace_entry(current_index(), entry);
@@ -239,7 +250,7 @@ void FrequencyManagerView::on_edit_desc() {
 
 void FrequencyManagerView::on_add_category() {
     temp_buffer_.clear();
-    text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
+    text_prompt(nav_, temp_buffer_, 20, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
         if (!new_name.empty()) {
             create_freqman_file(new_name);
             refresh_categories();
@@ -416,16 +427,16 @@ void FrequencyEditView::refresh_ui() {
     auto is_repeater = entry_.type == freqman_type::Repeater;
     auto has_freq_b = is_range || is_ham || is_repeater;
 
-    field_freq_b.set_style(has_freq_b ? &Styles::white : &Styles::grey);
-    field_step.set_style(is_range ? &Styles::white : &Styles::grey);
-    field_tone.set_style(is_ham ? &Styles::white : &Styles::grey);
+    field_freq_b.set_style(has_freq_b ? Theme::getInstance()->bg_darkest : Theme::getInstance()->fg_medium);
+    field_step.set_style(is_range ? Theme::getInstance()->bg_darkest : Theme::getInstance()->fg_medium);
+    field_tone.set_style(is_ham ? Theme::getInstance()->bg_darkest : Theme::getInstance()->fg_medium);
 
     if (is_valid(entry_)) {
         text_validation.set("Valid");
-        text_validation.set_style(&Styles::green);
+        text_validation.set_style(Theme::getInstance()->fg_green);
     } else {
         text_validation.set("Error");
-        text_validation.set_style(&Styles::red);
+        text_validation.set_style(Theme::getInstance()->fg_red);
     }
 }
 
@@ -439,7 +450,7 @@ void FrequencyEditView::populate_bandwidth_options() {
         auto& bandwidths = freqman_bandwidths[entry_.modulation];
         for (auto i = 0u; i < bandwidths.size(); ++i) {
             auto& item = bandwidths[i];
-            options.push_back({item.first, (OptionsField::value_t)i});
+            options.push_back({(std::string)item.first, (OptionsField::value_t)i});
         }
     }
 
@@ -452,7 +463,7 @@ void FrequencyEditView::populate_step_options() {
 
     for (auto i = 0u; i < freqman_steps.size(); ++i) {
         auto& item = freqman_steps[i];
-        options.push_back({item.first, (OptionsField::value_t)i});
+        options.push_back({(std::string)item.first, (OptionsField::value_t)i});
     }
 
     field_step.set_options(std::move(options));

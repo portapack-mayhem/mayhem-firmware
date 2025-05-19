@@ -43,8 +43,8 @@ class RDSPSNView : public OptionTabView {
 
    private:
     Labels labels{
-        {{1 * 8, 3 * 8}, "Program Service Name", Color::light_grey()},
-        {{2 * 8, 7 * 8}, "PSN:", Color::light_grey()}};
+        {{1 * 8, 3 * 8}, "Program Service Name", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 8}, "PSN:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_set{
         {18 * 8, 3 * 16, 80, 32},
@@ -75,8 +75,8 @@ class RDSRadioTextView : public OptionTabView {
 
    private:
     Labels labels{
-        {{2 * 8, 3 * 8}, "Radiotext", Color::light_grey()},
-        {{1 * 8, 6 * 8}, "Text:", Color::light_grey()}};
+        {{2 * 8, 3 * 8}, "Radiotext", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 6 * 8}, "Text:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_radiotext{
         {1 * 8, 4 * 16, 28 * 8, 16},
@@ -92,7 +92,7 @@ class RDSDateTimeView : public OptionTabView {
 
    private:
     Labels labels{
-        {{44, 5 * 16}, "Not yet implemented", Color::red()}};
+        {{44, 5 * 16}, "Not yet implemented", Theme::getInstance()->error_dark->foreground}};
 };
 
 class RDSAudioView : public OptionTabView {
@@ -101,7 +101,7 @@ class RDSAudioView : public OptionTabView {
 
    private:
     Labels labels{
-        {{44, 5 * 16}, "Not yet implemented", Color::red()}};
+        {{44, 5 * 16}, "Not yet implemented", Theme::getInstance()->error_dark->foreground}};
 };
 
 class RDSThread {
@@ -168,16 +168,16 @@ class RDSView : public View {
     RDSAudioView view_audio{view_rect};
 
     TabView tab_view{
-        {"Name", Color::cyan(), &view_PSN},
-        {"Text", Color::green(), &view_radiotext},
-        {"Time", Color::yellow(), &view_datetime},
-        {"Audio", Color::orange(), &view_audio}};
+        {"Name", Theme::getInstance()->fg_cyan->foreground, &view_PSN},
+        {"Text", Theme::getInstance()->fg_green->foreground, &view_radiotext},
+        {"Time", Theme::getInstance()->fg_yellow->foreground, &view_datetime},
+        {"Audio", Theme::getInstance()->fg_orange->foreground, &view_audio}};
 
     Labels labels{
-        {{0 * 8, 28}, "Program type:", Color::light_grey()},
-        //{ { 14 * 8, 16 + 8 }, "CC:", Color::light_grey() },
-        {{2 * 8, 28 + 16}, "Program ID:", Color::light_grey()},
-        //{ { 13 * 8, 32 + 8 }, "Cov:", Color::light_grey() },
+        {{0 * 8, 28}, "Program type:", Theme::getInstance()->fg_light->foreground},
+        //{ { 14 * 8, 16 + 8 }, "CC:", Theme::getInstance()->fg_light->foreground },
+        {{2 * 8, 28 + 16}, "Program ID:", Theme::getInstance()->fg_light->foreground},
+        //{ { 13 * 8, 32 + 8 }, "Cov:",Theme::getInstance()->fg_light->foreground },
     };
 
     OptionsField options_pty{

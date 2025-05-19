@@ -37,7 +37,7 @@ namespace ui {
 
 class AlphanumView : public TextEntryView {
    public:
-    AlphanumView(NavigationView& nav, std::string& str, size_t max_length);
+    AlphanumView(NavigationView& nav, std::string& str, size_t max_length, uint8_t enter_mode);
 
     AlphanumView(const AlphanumView&) = delete;
     AlphanumView(AlphanumView&&) = delete;
@@ -84,12 +84,12 @@ class AlphanumView : public TextEntryView {
         {192, 214, screen_width / 5, 38},
         {},
         &bitmap_icon_shift,
-        Color::dark_grey(),
+        Theme::getInstance()->bg_dark->background,
         /*vcenter*/ true};
 
     Labels labels{
-        {{1 * 8, 33 * 8}, "Raw:", Color::light_grey()},
-        {{1 * 8, 35 * 8}, "AKA:", Color::light_grey()}};
+        {{1 * 8, 33 * 8}, "Raw:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 35 * 8}, "AKA:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_raw{
         {5 * 8, 33 * 8},

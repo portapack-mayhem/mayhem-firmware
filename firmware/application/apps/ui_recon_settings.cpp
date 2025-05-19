@@ -82,7 +82,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
     };
 
     button_choose_output_name.on_select = [this, &nav](Button&) {
-        text_prompt(nav, _output_file, 28, [this](std::string& buffer) {
+        text_prompt(nav, _output_file, 28, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& buffer) {
             _output_file = buffer;
             button_choose_output_name.set_text(_output_file);
         });
@@ -137,15 +137,15 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
                   &field_repeat_delay});
 
     // tx options have to be in yellow to inform the users that activating them will make the device transmit
-    checkbox_repeat_recorded.set_style(&Styles::yellow);
-    field_repeat_file_mode.set_style(&Styles::yellow);
-    text_repeat_nb.set_style(&Styles::yellow);
-    field_repeat_nb.set_style(&Styles::yellow);
-    checkbox_repeat_amp.set_style(&Styles::yellow);
-    text_repeat_gain.set_style(&Styles::yellow);
-    field_repeat_gain.set_style(&Styles::yellow);
-    text_repeat_delay.set_style(&Styles::yellow);
-    field_repeat_delay.set_style(&Styles::yellow);
+    checkbox_repeat_recorded.set_style(Theme::getInstance()->fg_yellow);
+    field_repeat_file_mode.set_style(Theme::getInstance()->fg_yellow);
+    text_repeat_nb.set_style(Theme::getInstance()->fg_yellow);
+    field_repeat_nb.set_style(Theme::getInstance()->fg_yellow);
+    checkbox_repeat_amp.set_style(Theme::getInstance()->fg_yellow);
+    text_repeat_gain.set_style(Theme::getInstance()->fg_yellow);
+    field_repeat_gain.set_style(Theme::getInstance()->fg_yellow);
+    text_repeat_delay.set_style(Theme::getInstance()->fg_yellow);
+    field_repeat_delay.set_style(Theme::getInstance()->fg_yellow);
 
     checkbox_load_freqs.set_value(persistent_memory::recon_load_freqs());
     checkbox_load_repeaters.set_value(persistent_memory::recon_load_repeaters());

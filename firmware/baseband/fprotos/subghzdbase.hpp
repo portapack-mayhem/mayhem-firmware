@@ -25,11 +25,8 @@ class FProtoSubGhzDBase {
 
     // General data holder, these will be passed
     uint8_t sensorType = FPS_Invalid;
-    uint8_t btn = SD_NO_BTN;
     uint16_t data_count_bit = 0;
-    uint32_t cnt = SD_NO_CNT;
-    uint32_t serial = SD_NO_SERIAL;
-    uint64_t data = 0;
+    uint64_t decode_data = 0;
 
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.
@@ -45,11 +42,11 @@ class FProtoSubGhzDBase {
     uint32_t min_count_bit_for_found = UINT32_MAX;
 
     SubGhzDProtocolDecoderBaseRxCallback callback = NULL;
-    uint16_t header_count = 0;
+
     uint8_t parser_step = 0;
     uint32_t te_last = 0;
     uint32_t decode_count_bit = 0;
-    uint64_t decode_data = 0;
+
     //
 };
 

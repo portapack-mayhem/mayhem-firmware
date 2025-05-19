@@ -27,7 +27,6 @@
 #include <algorithm>
 #include "ui_fileman.hpp"
 #include "ui_playlist.hpp"
-#include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_bmp_file_viewer.hpp"
 #include "ui_text_editor.hpp"
@@ -389,7 +388,7 @@ void FileManBaseView::refresh_list() {
 
             menu_view.add_item(
                 {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
-                 ui::Color::yellow(),
+                 Theme::getInstance()->fg_yellow->foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
                      if (on_select_entry)
@@ -418,6 +417,17 @@ void FileManBaseView::reload_current(bool reset_pagination) {
     if (reset_pagination) pagination = 0;
     load_directory_contents(current_path);
     refresh_list();
+}
+
+void FileManBaseView::copy_waterfall(std::filesystem::path path) {
+    nav_.push<ModalMessageView>(
+        "Install", " Use this gradient file\n for all waterfalls?", YESNO,
+        [this, path](bool choice) {
+            if (choice) {
+                delete_file(default_gradient_file);
+                copy_file(path, default_gradient_file);
+            }
+        });
 }
 
 const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
@@ -500,7 +510,7 @@ FileSaveView::FileSaveView(
 
         button_edit_path.on_select = [this](Button&) {
                 buffer_ = path_.string();
-                text_prompt(nav_, buffer_, max_filename_length,
+                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
                         [this](std::string&) {
                                 path_ = buffer_;
                                 refresh_widgets();
@@ -509,7 +519,7 @@ FileSaveView::FileSaveView(
 
         button_edit_name.on_select = [this](Button&) {
                 buffer_ = file_.string();
-                text_prompt(nav_, buffer_, max_filename_length,
+                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
                         [this](std::string&) {
                                 file_ = buffer_;
                                 refresh_widgets();
@@ -567,7 +577,7 @@ void FileManagerView::on_rename(std::string_view hint) {
         cursor_pos = pos;
 
     text_prompt(
-        nav_, name_buffer, cursor_pos, max_filename_length,
+        nav_, name_buffer, cursor_pos, max_filename_length, ENTER_KEYBOARD_MODE_ALPHA,
         [this](std::string& renamed) {
             auto renamed_path = fs::path{renamed};
             rename_file(get_selected_full_path(), current_path / renamed_path);
@@ -641,7 +651,7 @@ void FileManagerView::on_clean() {
 
 void FileManagerView::on_new_dir() {
     name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& dir_name) {
+    text_prompt(nav_, name_buffer, max_filename_length, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& dir_name) {
         make_new_directory(current_path / dir_name);
         reload_current(true);
     });
@@ -672,7 +682,7 @@ void FileManagerView::on_paste() {
 
 void FileManagerView::on_new_file() {
     name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
+    text_prompt(nav_, name_buffer, max_filename_length, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& file_name) {
         make_new_file(current_path / file_name);
         reload_current(true);
     });
@@ -686,7 +696,11 @@ bool FileManagerView::handle_file_open() {
     auto ext = path.extension();
 
     if (path_iequal(txt_ext, ext)) {
-        nav_.push<TextEditorView>(path);
+        if (path_iequal(current_path, u"/" + waterfalls_dir)) {
+            copy_waterfall(path);
+        } else {
+            nav_.push<TextEditorView>(path);
+        }
         return true;
     } else if (is_cxx_capture_file(path) || path_iequal(ppl_ext, ext)) {
         // TODO: Enough memory to push?
@@ -704,10 +718,11 @@ bool FileManagerView::handle_file_open() {
 
         reload_current(false);
         return true;
-    } else if (path_iequal(rem_ext, ext)) {
+    }
+    /*else if (path_iequal(rem_ext, ext)) {
         nav_.push<RemoteView>(path);
         return true;
-    }
+    }*/
 
     return false;
 }
@@ -747,14 +762,21 @@ FileManagerView::FileManagerView(
 
     menu_view.on_highlight = [this]() {
         if (menu_view.highlighted_index() >= max_items_loaded - 1) {  // todo check this if correct
-            text_date.set_style(&Styles::red);
+            text_date.set_style(Theme::getInstance()->fg_red);
             text_date.set("Too many files!");
         } else {
-            text_date.set_style(&Styles::grey);
-            if (selected_is_valid())
-                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
-            else
+            text_date.set_style(Theme::getInstance()->fg_medium);
+            if (selected_is_valid()) {
+                if (get_selected_entry().path == str_back) {
+                    text_date.set("Go page " + std::to_string(pagination + 1 - 1));  // for better explain, pagination start with 0 AKA real page - 1
+                } else if (get_selected_entry().path == str_next) {
+                    text_date.set("Go page " + std::to_string(pagination + 1 + 1));  // when show this, it should display current AKA (pagination + 1) + 1 AKA next page
+                } else {
+                    text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+                }
+            } else {
                 text_date.set("");
+            }
         }
     };
 
@@ -858,7 +880,7 @@ FileManagerView::FileManagerView(
 
     button_show_hidden_files.on_select = [this]() {
         show_hidden_files = !show_hidden_files;
-        button_show_hidden_files.set_color(show_hidden_files ? Color::green() : Color::dark_grey());
+        button_show_hidden_files.set_color(show_hidden_files ? *Theme::getInstance()->status_active : Theme::getInstance()->bg_dark->background);
         reload_current();
     };
 }

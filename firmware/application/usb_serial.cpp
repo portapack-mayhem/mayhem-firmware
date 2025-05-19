@@ -49,6 +49,7 @@ void USBSerial::on_channel_opened() {
 }
 
 void USBSerial::on_channel_closed() {
+    reset_transfer_queues();
     connected = false;
 }
 

@@ -29,16 +29,17 @@
 #include "ui_freq_field.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
-#include "ui_styles.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "tone_key.hpp"
 
 namespace ui {
 
+class AnalogAudioView;
+
 class AMOptionsView : public View {
    public:
-    AMOptionsView(Rect parent_rect, const Style* style);
+    AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -52,6 +53,38 @@ class AMOptionsView : public View {
         {
             // Using common messages from freqman_ui.cpp
         }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
+    };
+};
+
+class AMFMAptOptionsView : public View {
+   public:
+    AMFMAptOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
+
+   private:
+    Text label_config{
+        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        "BW",
+    };
+
+    OptionsField options_config{
+        {3 * 8, 0 * 16},
+        6,  // Max option length chars  "USB+FM"
+        {
+            // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
+        }};
+
+    OptionsField zoom_config{
+        {23 * 8, 0 * 16},
+        7,
+        {{"ZOOM x1", 0},
+         {"ZOOM x2", 6}}  // offset index array filters.
+    };
 };
 
 class NBFMOptionsView : public View {
@@ -99,7 +132,22 @@ class WFMOptionsView : public View {
         }};
 };
 
-class AnalogAudioView;
+class WFMAMAptOptionsView : public View {
+   public:
+    WFMAMAptOptionsView(Rect parent_rect, const Style* style);
+
+   private:
+    Text label_config{
+        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        "BW",
+    };
+    OptionsField options_config{
+        {3 * 8, 0 * 16},
+        10,  // Max option char length  "FM+AM(DSB)"
+        {
+            // Using common messages from freqman_ui.cpp
+        }};
+};
 
 class SPECOptionsView : public View {
    public:
@@ -165,17 +213,35 @@ class AnalogAudioView : public View {
     uint8_t get_spec_iq_phase_calibration_value();
     void set_spec_iq_phase_calibration_value(uint8_t cal_value);
 
+    uint8_t get_zoom_factor(uint8_t mode);
+    void set_zoom_factor(uint8_t mode, uint8_t zoom);
+
+    uint8_t get_previous_AM_mode_option();
+    void set_previous_AM_mode_option(uint8_t mode);
+
+    uint8_t get_previous_zoom_option();
+    void set_previous_zoom_option(uint8_t zoom);
+
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
+    uint8_t zoom_factor_am{0};               // initial zoom factor in AM mode
+    uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
+    uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
+    uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
+
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
         {
             {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
+            {"zoom_factor_am"sv, &zoom_factor_am},                    // we are saving and restoring AM ZOOM factor from Settings.
+            {"zoom_factor_amfm"sv, &zoom_factor_amfm},                // we are saving and restoring AMFM ZOOM factor from Settings.
+            {"previous_AM_mode_option"sv, &previous_AM_mode_option},  // we are saving and restoring AMFM ZOOM factor from Settings.
+            {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
         }};
 
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
@@ -212,6 +278,8 @@ class AnalogAudioView : public View {
             {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
             {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
+            {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+            {"FMAM", toUType(ReceiverModel::Mode::WFMAudioAMApt)}  // Added to handle  SAT NOAA APT
         }};
 
     AudioVolumeField field_volume{
@@ -248,11 +316,20 @@ class AnalogAudioView : public View {
 
     void handle_coded_squelch(uint32_t value);
 
+    void on_freqchg(int64_t freq);
+
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* p) {
             const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
             this->handle_coded_squelch(message.value);
+        }};
+
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
         }};
 };
 

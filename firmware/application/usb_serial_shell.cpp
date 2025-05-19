@@ -38,6 +38,7 @@
 #include "performance_counter.hpp"
 
 #include "usb_serial_device_to_host.h"
+#include "i2c_device_to_host.h"
 #include "chprintf.h"
 #include "chqueues.h"
 #include "ui_external_items_menu_loader.hpp"
@@ -59,6 +60,7 @@
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
 static EventDispatcher* _eventDispatcherInstance = NULL;
+static bool shell_i2c_created = false;
 static EventDispatcher* getEventDispatcherInstance() {
     return _eventDispatcherInstance;
 }
@@ -107,13 +109,13 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->fg_yellow->background);
 
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
         ui::bitmap_icon_hackrf,
-        ui::Color::yellow(),
-        ui::Color::black());
+        Theme::getInstance()->fg_yellow->foreground,
+        Theme::getInstance()->fg_yellow->background);
 
     sdcDisconnect(&SDCD1);
     sdcStop(&SDCD1);
@@ -136,7 +138,7 @@ bool strEndsWith(const std::u16string& str, const std::u16string& suffix) {
 
 static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
-        chprintf(chp, "Usage: flash /FIRMWARE/portapack-h1_h2-mayhem.bin\r\n");
+        chprintf(chp, "Usage: flash /FIRMWARE/portapack-mayhem-firmware.bin\r\n");
         return;
     }
 
@@ -689,6 +691,9 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
         case TX:
             chprintf(chp, "[TX]\r\n");
             break;
+        case TRX:
+            chprintf(chp, "[TRX]\r\n");
+            break;
         case UTILITIES:
             chprintf(chp, "[UTIL]\r\n");
             break;
@@ -712,6 +717,9 @@ static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) 
             break;
         case TX:
             chprintf(chp, "[TX]\r\n");
+            break;
+        case TRX:
+            chprintf(chp, "[TRX]\r\n");
             break;
         case UTILITIES:
             chprintf(chp, "[UTIL]\r\n");
@@ -905,6 +913,191 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 }
 
+static uint32_t reverse(uint32_t x) {
+    x = ((x >> 1) & 0x55555555u) | ((x & 0x55555555u) << 1);
+    x = ((x >> 2) & 0x33333333u) | ((x & 0x33333333u) << 2);
+    x = ((x >> 4) & 0x0f0f0f0fu) | ((x & 0x0f0f0f0fu) << 4);
+    x = ((x >> 8) & 0x00ff00ffu) | ((x & 0x00ff00ffu) << 8);
+    x = ((x >> 16) & 0xffffu) | ((x & 0xffffu) << 16);
+    return x;
+}
+
+static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage =
+        "usage: cpld_write <device> <target> <file>\r\n"
+        "  device can be: hackrf, portapack\r\n"
+        "  target can be: sram (hackrf only), eeprom\r\n"
+        "  currently only \"cpld_write portapack eeprom <file>\" is supported\r\n";
+
+    if (argc != 3) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    if (strncmp(argv[0], "hackrf", 5) == 0) {
+        chprintf(chp, usage);
+    } else if (strncmp(argv[0], "portapack", 5) == 0) {
+        if (strncmp(argv[1], "eeprom", 5) == 0) {
+            jtag::GPIOTarget target{
+                portapack::gpio_cpld_tck,
+                portapack::gpio_cpld_tms,
+                portapack::gpio_cpld_tdi,
+                portapack::gpio_cpld_tdo};
+            jtag::JTAG jtag{target};
+            portapack::cpld::CPLD cpld{jtag};
+
+            cpld.reset();
+            cpld.run_test_idle();
+            uint32_t idcode = cpld.get_idcode();
+
+            chprintf(chp, "CPLD IDCODE: 0x%08X\r\n", idcode);
+
+            if (idcode == 0x00025610) {
+                chprintf(chp, "CPLD Model: AGM AG256SL100\r\n");
+
+                if (cpld.AGM_enter_maintenance_mode() == false) {
+                    return;
+                }
+
+                File* file = new File();
+                auto path = path_from_string8(argv[2]);
+                auto error = file->open(path);
+
+                if (error.is_valid()) {
+                    chprintf(chp, "Error opening file: %s %d %s\r\n", argv[2], error.value().code(), error.value().what().c_str());
+                    delete file;
+                    cpld.AGM_exit_maintenance_mode();
+                    return;
+                }
+
+                auto data = std::make_unique<std::array<uint32_t, 1801>>();
+                uint32_t magic = 0;
+                bool magic_found = false;
+                uint32_t expected_address = 0;
+
+                auto readData = std::vector<uint8_t>();
+
+                chprintf(chp, "Reading file...\r\n");
+                file->seek(0);
+
+                while (!file->eof().value()) {
+                    uint32_t remainingData = readData.size();
+                    uint32_t bytesToRead = 512 - remainingData;
+
+                    readData.resize(512);
+
+                    auto result = file->read(readData.data() + remainingData, bytesToRead);
+
+                    if (result.is_error()) {
+                        chprintf(chp, "Error reading file: %d %s\r\n", result.error().code(), result.error().what().c_str());
+                        cpld.AGM_exit_maintenance_mode();
+                        file->close();
+                        delete file;
+                        return;
+                    }
+
+                    if (result.value() != 512)
+                        readData.resize(remainingData + result.value());
+
+                    do {
+                        auto it = std::find(readData.begin(), readData.end(), '\n');
+                        if (it != readData.end()) {
+                            std::string line(readData.begin(), it);
+                            readData.erase(readData.begin(), it + 1);
+
+                            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+                            line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+
+                            auto prefix = line.find("sdr 64 -tdi ", 0);
+                            auto suffix = line.find("0040", line.size() - 4);
+
+                            if (prefix == 0 && suffix == line.size() - 4) {
+                                std::string dataString = line.substr(line.size() - 16, 16);
+
+                                uint32_t address = reverse(std::stoul(dataString.substr(8, 8), nullptr, 16) - 64) / 4;
+                                uint32_t value = std::stoul(dataString.substr(0, 8), nullptr, 16);
+
+                                if (expected_address == 299 && address == 0) {
+                                    magic = value;
+                                    magic_found = true;
+                                    chprintf(chp, "Magic found: %08X\r\n", magic);
+                                    continue;
+                                }
+
+                                if (expected_address != address) {
+                                    chprintf(chp, "Error: expected address %d, got %d\r\n", expected_address, address);
+                                    cpld.AGM_exit_maintenance_mode();
+                                    file->close();
+                                    delete file;
+                                    return;
+                                }
+
+                                (*data)[expected_address] = value;
+                                expected_address++;
+
+                                if (expected_address == 1801) {
+                                    if (!magic_found) {
+                                        chprintf(chp, "Error: magic not found\r\n");
+                                        cpld.AGM_exit_maintenance_mode();
+                                        file->close();
+                                        delete file;
+                                        return;
+                                    }
+
+                                    chprintf(chp, "Writing data to CPLD...\r\n");
+                                    file->close();
+                                    delete file;
+
+                                    cpld.AGM_write(*data, magic);
+
+                                    cpld.AGM_enter_read_mode();
+
+                                    CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+                                    for (size_t i = 0; i < 2048; i++) {
+                                        uint32_t data = cpld.AGM_read(i);
+                                        crc.process_byte((data >> 0) & 0xff);
+                                        crc.process_byte((data >> 8) & 0xff);
+                                        crc.process_byte((data >> 16) & 0xff);
+                                        crc.process_byte((data >> 24) & 0xff);
+                                    }
+
+                                    cpld.AGM_exit_maintenance_mode();
+
+                                    chprintf(chp, "New CPLD firmware checksum: 0x%08X\r\n", crc.checksum());
+
+                                    m4_request_shutdown();
+                                    chThdSleepMilliseconds(1000);
+
+                                    WWDT_MOD = WWDT_MOD_WDEN | WWDT_MOD_WDRESET;
+                                    WWDT_TC = 100000 & 0xFFFFFF;
+                                    WWDT_FEED_SEQUENCE;
+
+                                    return;
+                                    break;
+                                }
+                            }
+                        } else {
+                            break;
+                        }
+                    } while (true);
+                }
+
+                file->close();
+                delete file;
+
+                cpld.AGM_exit_maintenance_mode();
+
+            } else {
+                chprintf(chp, "CPLD Model: unknown\r\n");
+            }
+        } else {
+            chprintf(chp, usage);
+        }
+    } else {
+        chprintf(chp, usage);
+    }
+}
+
 static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage = "usage: gotgps <lat> <lon> [altitude] [speed] [satinuse]\r\n";
     if (argc < 2 || argc > 5) {
@@ -939,7 +1132,7 @@ static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]
 }
 
 static void cmd_gotenv(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: gotenv <temperature> [humidity] [pressure]  [light]\r\n";
+    const char* usage = "usage: gotenv <temperature> [humidity] [pressure] [light]\r\n";  // keeping light here too for compatibility
     if (argc < 1 || argc > 4) {
         chprintf(chp, usage);
         return;
@@ -950,8 +1143,25 @@ static void cmd_gotenv(BaseSequentialStream* chp, int argc, char* argv[]) {
     uint16_t light = 0;
     if (argc > 1) humi = atof(argv[1]);
     if (argc > 2) pressure = atof(argv[2]);
-    if (argc > 3) light = strtol(argv[3], NULL, 10);
-    EnvironmentDataMessage msg{temp, humi, pressure, light};
+    if (argc > 3) light = strtol(argv[0], NULL, 10);
+    EnvironmentDataMessage msg{temp, humi, pressure};
+    EventDispatcher::send_message(msg);
+    // compatibility:
+    if (argc > 3) {
+        LightDataMessage msg{light};
+        EventDispatcher::send_message(msg);
+    }
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_gotlight(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: gotlight <light_lux>\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    uint16_t light = strtol(argv[0], NULL, 10);
+    LightDataMessage msg{light};
     EventDispatcher::send_message(msg);
     chprintf(chp, "ok\r\n");
 }
@@ -1062,8 +1272,8 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
     uint64_t addr = atol(argv[0]);
     int msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
-    if (msglen > 30 || msglen < 0) {
-        chprintf(chp, "error, msglen max is 30\r\n");
+    if (msglen > 80 || msglen < 0) {
+        chprintf(chp, "error, msglen max is 80\r\n");
         return;
     }
 
@@ -1103,7 +1313,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         }
     }
 
-    uint8_t msg[31] = {0};
+    uint8_t msg[81] = {0};
     if (msglen > 0) {
         chprintf(chp, "send %d bytes\r\n", msglen);
         do {
@@ -1147,6 +1357,23 @@ static void cmd_asyncmsg(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
     }
 }
+static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: setfreq freq_in_hz\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    int64_t freq = atol(argv[0]);
+
+    if (freq <= 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    // radio::set_tuning_frequency(freq); // sadly this doesn't update any widget, just change the frequency.
+    FreqChangeCommandMessage message{freq};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
 
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
@@ -1167,6 +1394,7 @@ static const ShellCommand commands[] = {
     {"rtcset", cmd_rtcset},
     {"cpld_info", cpld_info},
     {"cpld_read", cmd_cpld_read},
+    {"cpld_write", cmd_cpld_write},
     {"accessibility_readall", cmd_accessibility_readall},
     {"accessibility_readcurr", cmd_accessibility_readcurr},
     {"applist", cmd_applist},
@@ -1174,19 +1402,33 @@ static const ShellCommand commands[] = {
     {"gotgps", cmd_gotgps},
     {"gotorientation", cmd_gotorientation},
     {"gotenv", cmd_gotenv},
+    {"gotlight", cmd_gotlight},
     {"sysinfo", cmd_sysinfo},
     {"radioinfo", cmd_radioinfo},
     {"pmemreset", cmd_pmemreset},
     {"settingsreset", cmd_settingsreset},
     {"sendpocsag", cmd_sendpocsag},
     {"asyncmsg", cmd_asyncmsg},
+    {"setfreq", cmd_setfreq},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
     (BaseSequentialStream*)&SUSBD1,
     commands};
 
+static const ShellConfig shell_cfg2 = {
+    (BaseSequentialStream*)&I2CD1,
+    commands};
+
 void create_shell(EventDispatcher* evtd) {
     _eventDispatcherInstance = evtd;
     shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO + 10);
+}
+
+extern "C" void create_shell_i2c(EventDispatcher* evtd) {
+    if (shell_i2c_created) return;
+    shell_i2c_created = true;
+    init_i2c_shell_driver(&I2CD1);
+    _eventDispatcherInstance = evtd;
+    shellCreate(&shell_cfg2, SHELL_WA_SIZE, NORMALPRIO + 10);
 }

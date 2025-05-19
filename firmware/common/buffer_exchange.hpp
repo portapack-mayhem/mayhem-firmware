@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __BUFFER_EXCHANGE_H
+#define __BUFFER_EXCHANGE_H
 
 #include "ch.h"
 
@@ -110,3 +111,5 @@ class BufferExchange {
 
     StreamBuffer* get_prefill(FIFO<StreamBuffer*>* fifo);
 };
+
+#endif

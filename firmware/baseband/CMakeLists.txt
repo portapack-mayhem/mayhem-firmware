@@ -271,6 +271,7 @@ macro(DeclareTargets chunk_tag name)
 	project("baseband_${name}")
 
 	include(${RULESPATH}/rules.cmake)
+	set_source_files_properties(${MODE_CPPSRC} PROPERTIES COMPILE_FLAGS "${MODE_FLAGS}")
 	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
 	set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 	add_definitions(${DEFS})
@@ -278,7 +279,9 @@ macro(DeclareTargets chunk_tag name)
 	include_directories(. ${INCDIR} ${MODE_INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+	
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+	target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
 
 	if(add_to_firmware)
 
@@ -311,13 +314,8 @@ macro(DeclareTargets chunk_tag name)
 endmacro()
 
 set(add_to_firmware TRUE)
+set(MODE_FLAGS "-O3")
 
-### ACARS RX
-
-set(MODE_CPPSRC
-	proc_acars.cpp
-)
-DeclareTargets(PACA acars)
 
 ### ADS-B RX
 
@@ -326,12 +324,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADR adsbrx)
 
-### ADS-B TX
-
-set(MODE_CPPSRC
-	proc_adsbtx.cpp
-)
-DeclareTargets(PADT adsbtx)
 
 ### AFSK TX
 
@@ -434,13 +426,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNFM nfm_audio)
 
-#### No op
-#
-#set(MODE_CPPSRC
-#	proc_noop.cpp
-#)
-#DeclareTargets(PNOP no_operation)
-
 ### OOK
 
 set(MODE_CPPSRC
@@ -448,12 +433,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(POOK ook)
 
-#### POCSAG RX
-#
-#set(MODE_CPPSRC
-#	proc_pocsag.cpp
-#)
-#DeclareTargets(PPOC pocsag)
 
 ### POCSAG2 RX
 
@@ -484,12 +463,6 @@ set(MODE_CPPSRC
 DeclareTargets(PSIG siggen)
 
 
-### SSTV TX
-
-set(MODE_CPPSRC
-	proc_sstvtx.cpp
-)
-DeclareTargets(PSTX sstvtx)
 
 ### Tones
 
@@ -498,12 +471,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTON tones)
 
-### TPMS
-
-set(MODE_CPPSRC
-	proc_tpms.cpp
-)
-DeclareTargets(PTPM tpms)
 
 ### Wideband Spectrum
 
@@ -533,6 +500,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWTH weather)
 
+set(MODE_FLAGS "-Os")
 
 ### Flash Utility
 
@@ -594,6 +562,15 @@ DeclareTargets(PUSB sd_over_usb)
 
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
+set(MODE_FLAGS "-O3")
+
+### ACARS RX
+
+set(MODE_CPPSRC
+	proc_acars.cpp
+)
+DeclareTargets(PACA acars)
+
 
 ### AFSK RX
 
@@ -650,6 +627,54 @@ set(MODE_CPPSRC
 	proc_audio_beep.cpp
 )
 DeclareTargets(PABP audio_beep)
+
+
+### ProtoView
+
+set(MODE_CPPSRC
+	proc_protoview.cpp
+)
+DeclareTargets(PPVW protoview)
+
+
+### SSTV TX
+
+set(MODE_CPPSRC
+	proc_sstvtx.cpp
+)
+DeclareTargets(PSTX sstvtx)
+
+### TPMS
+
+set(MODE_CPPSRC
+	proc_tpms.cpp
+)
+DeclareTargets(PTPM tpms)
+
+
+### ADS-B TX
+
+set(MODE_CPPSRC
+	proc_adsbtx.cpp
+)
+DeclareTargets(PADT adsbtx)
+
+### OOKStream
+
+set(MODE_CPPSRC
+	proc_ook_stream_tx.cpp
+)
+DeclareTargets(POSK ookstream)
+
+
+
+### WeFax Rx
+
+set(MODE_CPPSRC
+	proc_wefaxrx.cpp
+)
+DeclareTargets(PWFX wefaxrx)
+
 
 ### HackRF "factory" firmware
 

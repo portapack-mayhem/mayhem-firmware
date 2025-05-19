@@ -86,59 +86,13 @@ class DebugMemoryView : public View {
         "Done"};
 };
 
-class TemperatureWidget : public Widget {
-   public:
-    explicit TemperatureWidget(
-        Rect parent_rect)
-        : Widget{parent_rect} {
-    }
-
-    void paint(Painter& painter) override;
-
-   private:
-    using sample_t = uint32_t;
-    using temperature_t = int32_t;
-
-    temperature_t temperature(const sample_t sensor_value) const;
-    Coord screen_y(const temperature_t temperature, const Rect& screen_rect) const;
-
-    std::string temperature_str(const temperature_t temperature) const;
-
-    static constexpr temperature_t display_temp_min = -10;  // Accomodate negative values, present in cold startup cases
-    static constexpr temperature_t display_temp_scale = 3;
-    static constexpr int bar_width = 1;
-    static constexpr int temp_len = 5;  // Now scale shows up to 5 chars ("-10ºC")
-};
-
-class TemperatureView : public View {
-   public:
-    explicit TemperatureView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "Temperature"; };
-
-   private:
-    Text text_title{
-        {76, 16, 240, 16},
-        "Temperature",
-    };
-
-    TemperatureWidget temperature_widget{
-        {0, 40, 240, 180},
-    };
-
-    Button button_done{
-        {72, 264, 96, 24},
-        "Done"};
-};
-
 typedef enum {
     CT_PMEM,
     CT_RFFC5072,
     CT_MAX283X,
     CT_SI5351,
     CT_AUDIO,
+    CT_MAX17055,
 } chip_type_t;
 
 struct RegistersWidgetConfig {
@@ -233,8 +187,8 @@ class RegistersView : public View {
         "Write"};
 
     Labels labels{
-        {{1 * 8, 248}, "Reg:", Color::light_grey()},
-        {{8 * 8, 248}, "Data:", Color::light_grey()}};
+        {{1 * 8, 248}, "Reg:", Theme::getInstance()->fg_light->foreground},
+        {{8 * 8, 248}, "Data:", Theme::getInstance()->fg_light->foreground}};
 
     SymField field_write_reg_num{
         {5 * 8, 248},
@@ -288,9 +242,9 @@ class DebugControlsView : public View {
 
    private:
     Labels labels{
-        {{8 * 8, 1 * 16}, "Controls State", Color::white()},
-        {{0 * 8, 11 * 16}, "Dial:", Color::grey()},
-        {{0 * 8, 14 * 16}, "Long-Press Mode:", Color::grey()}};
+        {{8 * 8, 1 * 16}, "Controls State", Theme::getInstance()->bg_darkest->foreground},
+        {{0 * 8, 11 * 16}, "Dial:", Theme::getInstance()->fg_medium->foreground},
+        {{0 * 8, 14 * 16}, "Long-Press Mode:", Theme::getInstance()->fg_medium->foreground}};
 
     ControlsSwitchesWidget switches_widget{
         {80, 80, 80, 112},
@@ -333,12 +287,12 @@ class DebugMemoryDumpView : public View {
         "Done"};
 
     Labels labels{
-        {{5 * 8, 1 * 16}, "Dump Range to File", Color::yellow()},
-        {{0 * 8, 2 * 16}, "Starting Address: 0x", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Byte Count:       0x", Color::light_grey()},
-        {{3 * 8, 8 * 16}, "Read/Write Single Word", Color::yellow()},
-        {{0 * 8, 9 * 16}, "Memory Address:   0x", Color::light_grey()},
-        {{0 * 8, 10 * 16}, "Data Value:       0x", Color::light_grey()}};
+        {{5 * 8, 1 * 16}, "Dump Range to File", Theme::getInstance()->fg_yellow->foreground},
+        {{0 * 8, 2 * 16}, "Starting Address: 0x", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Byte Count:       0x", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 8 * 16}, "Read/Write Single Word", Theme::getInstance()->fg_yellow->foreground},
+        {{0 * 8, 9 * 16}, "Memory Address:   0x", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 16}, "Data Value:       0x", Theme::getInstance()->fg_light->foreground}};
 
     SymField field_starting_address{
         {20 * 8, 2 * 16},

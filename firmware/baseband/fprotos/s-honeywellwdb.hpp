@@ -36,7 +36,6 @@ class FProtoSubGhzDHoneywellWdb : public FProtoSubGhzDBase {
                     if (DURATION_DIFF(duration, te_short * 3) < te_delta) {
                         if ((decode_count_bit == min_count_bit_for_found) &&
                             ((decode_data & 0x01) == FProtoGeneral::subghz_protocol_blocks_get_parity(decode_data >> 1, min_count_bit_for_found - 1))) {
-                            data = decode_data;
                             data_count_bit = decode_count_bit;
                             // controller has too much, should be done on ui side
                             if (callback) callback(this);

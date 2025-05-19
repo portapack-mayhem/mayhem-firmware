@@ -1,0 +1,12 @@
+#lines are index,r,g,b
+#if index 0 is not set, it's starting at 0,0,0,0
+#all values are ranging from 0 to 255
+
+#pure blue
+86,0,0,255
+
+#bright green
+171,0,255,0
+
+#pure red 
+255,255,0,0

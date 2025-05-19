@@ -176,6 +176,14 @@ class ERTAppView : public View {
             this->on_packet(packet);
         }};
 
+    MessageHandlerRegistration message_handler_freqchg{
+        Message::ID::FreqChangeCommand,
+        [this](Message* const p) {
+            const auto message = static_cast<const FreqChangeCommandMessage*>(p);
+            this->on_freqchg(message->freq);
+        }};
+
+    void on_freqchg(int64_t freq);
     void on_packet(const ert::Packet& packet);
     void on_show_list();
 };
