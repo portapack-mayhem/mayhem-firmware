@@ -528,58 +528,63 @@ void BigFrequency::paint(Painter& painter) {
     Point digit_pos;
     ui::Color segment_color;
 
-    const auto rect = screen_rect();
+    if (_frequency != _previous_frequency) {
+        _previous_frequency = _frequency;
 
-    // Erase
-    painter.fill_rectangle(
-        {{0, rect.location().y()}, {screen_width, 52}},
-        Theme::getInstance()->bg_darkest->background);
+        rf::Frequency frequency{_frequency};
+        const auto rect = screen_rect();
 
-    // Prepare digits
-    if (!_frequency) {
-        digits.fill(10);  // ----.---
-        digit_pos = {0, rect.location().y()};
-    } else {
-        _frequency /= 1000;  // GMMM.KKK(uuu)
+        // Erase
+        painter.fill_rectangle(
+            {{0, rect.location().y()}, {screen_width, 52}},
+            Theme::getInstance()->bg_darkest->background);
 
-        for (i = 0; i < 7; i++) {
-            digits[6 - i] = _frequency % 10;
-            _frequency /= 10;
-        }
-
-        // Remove leading zeros
-        for (i = 0; i < 3; i++) {
-            if (!digits[i])
-                digits[i] = 16;  // "Don't draw" code
-            else
-                break;
-        }
-
-        digit_pos = {(Coord)(240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
-    }
-
-    segment_color = style().foreground;
-
-    // Draw
-    for (i = 0; i < 7; i++) {
-        digit = digits[i];
-
-        if (digit < 16) {
-            digit_def = segment_font[(uint8_t)digit];
-
-            for (size_t s = 0; s < 7; s++) {
-                if (digit_def & 1)
-                    painter.fill_rectangle({digit_pos + segments[s].location(), segments[s].size()}, segment_color);
-                digit_def >>= 1;
-            }
-        }
-
-        if (i == 3) {
-            // Dot
-            painter.fill_rectangle({digit_pos + Point(34, 48), {4, 4}}, segment_color);
-            digit_pos += {(digit_width + 8), 0};
+        // Prepare digits
+        if (!frequency) {
+            digits.fill(10);  // ----.---
+            digit_pos = {0, rect.location().y()};
         } else {
-            digit_pos += {digit_width, 0};
+            frequency /= 1000;  // GMMM.KKK(uuu)
+
+            for (i = 0; i < 7; i++) {
+                digits[6 - i] = frequency % 10;
+                frequency /= 10;
+            }
+
+            // Remove leading zeros
+            for (i = 0; i < 3; i++) {
+                if (!digits[i])
+                    digits[i] = 16;  // "Don't draw" code
+                else
+                    break;
+            }
+
+            digit_pos = {(Coord)(240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
+        }
+
+        segment_color = style().foreground;
+
+        // Draw
+        for (i = 0; i < 7; i++) {
+            digit = digits[i];
+
+            if (digit < 16) {
+                digit_def = segment_font[(uint8_t)digit];
+
+                for (size_t s = 0; s < 7; s++) {
+                    if (digit_def & 1)
+                        painter.fill_rectangle({digit_pos + segments[s].location(), segments[s].size()}, segment_color);
+                    digit_def >>= 1;
+                }
+            }
+
+            if (i == 3) {
+                // Dot
+                painter.fill_rectangle({digit_pos + Point(34, 48), {4, 4}}, segment_color);
+                digit_pos += {(digit_width + 8), 0};
+            } else {
+                digit_pos += {digit_width, 0};
+            }
         }
     }
 }
@@ -1131,7 +1136,7 @@ void ButtonWithEncoder::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->bg_light->background);
     painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Theme::getInstance()->bg_dark->background);
     painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Theme::getInstance()->bg_dark->background);
 
@@ -2606,15 +2611,19 @@ Waveform::Waveform(
     uint32_t length,
     uint32_t offset,
     bool digital,
-    Color color)
+    Color color,
+    bool clickable)
     : Widget{parent_rect},
       data_{data},
       length_{length},
       offset_{offset},
       digital_{digital},
-      color_{color} {
-    // set_focusable(false);
-    // previous_data.resize(length_, 0);
+      color_{color},
+      clickable_{clickable} {
+    if (clickable) {
+        set_focusable(true);
+        // previous_data.resize(length_, 0);
+    }
 }
 
 void Waveform::set_cursor(const uint32_t i, const int16_t position) {
@@ -2641,9 +2650,112 @@ void Waveform::set_length(const uint32_t new_length) {
     }
 }
 
+bool Waveform::is_paused() const {
+    return paused_;
+}
+
+void Waveform::set_paused(bool paused) {
+    paused_ = paused;
+    if (!paused) {
+        if_ever_painted_pause = false;
+    }
+    set_dirty();
+}
+
+bool Waveform::is_clickable() const {
+    return clickable_;
+}
+
+void Waveform::getAccessibilityText(std::string& result) {
+    // no idea what this is in use in any places, but others have it
+    result = paused_ ? "paused waveform" : "waveform";
+}
+
+void Waveform::getWidgetName(std::string& result) {
+    result = "Waveform";
+}
+
+bool Waveform::on_key(const KeyEvent key) {
+    if (!clickable_) return false;
+
+    if (key == KeyEvent::Select) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Waveform::on_keyboard(const KeyboardEvent key) {
+    // no idea what this is for, but others have it
+    if (!clickable_) return false;
+
+    if (key == 32 || key == 10) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Waveform::on_touch(const TouchEvent event) {
+    if (!clickable_) return false;
+
+    switch (event.type) {
+        case TouchEvent::Type::Start:
+            focus();
+            return true;
+
+        case TouchEvent::Type::End:
+            set_paused(!paused_);
+            if (on_select) {
+                on_select(*this);
+            }
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 void Waveform::paint(Painter& painter) {
     // previously it's upside down , low level is up and high level is down, which doesn't make sense,
     // if that was made for a reason, feel free to revert.
+
+    if (paused_) {
+        // TODO: this is bad: that it still enter this func and still consume resources.
+        //  even do a if(paused_) return; comsume too, but not that much.
+
+        if (dirty() && !if_ever_painted_pause) {
+            // clear
+            painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
+
+            // draw "WF HIDDEN" text
+            const auto r = screen_rect();
+            painter.draw_string(
+                {r.center().x() - 24, r.center().y() - 8},
+                style(),
+                "WF HIDDEN");
+            if_ever_painted_pause = true;
+        }
+
+        if (show_cursors) {
+            for (uint32_t n = 0; n < 2; n++) {
+                painter.draw_vline(
+                    Point(std::min(screen_rect().size().width(), (int)cursors[n]), screen_rect().location().y()),
+                    screen_rect().size().height(),
+                    cursor_colors[n]);
+            }
+        }
+
+        return;
+    }
+
+    // not paused
     size_t n;
     Coord y, y_offset = screen_rect().location().y();
     Coord prev_x = screen_rect().location().x(), prev_y;
@@ -2700,6 +2812,13 @@ void Waveform::paint(Painter& painter) {
                 screen_rect().size().height(),
                 cursor_colors[n]);
         }
+    }
+
+    // focused highlight border
+    if (clickable_ && has_focus()) {
+        painter.draw_rectangle(
+            screen_rect(),
+            Theme::getInstance()->fg_light->foreground);
     }
 }
 

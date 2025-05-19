@@ -40,6 +40,7 @@ namespace ui {
 /* AMOptionsView *********************************************************/
 
 AMOptionsView::AMOptionsView(
+    AnalogAudioView* view,
     Rect parent_rect,
     const Style* style)
     : View{parent_rect} {
@@ -48,12 +49,23 @@ AMOptionsView::AMOptionsView(
     add_children({
         &label_config,
         &options_config,
+        &zoom_config,
     });
 
-    freqman_set_bandwidth_option(AM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
-    options_config.set_by_value(receiver_model.am_configuration());
-    options_config.on_change = [this](size_t, OptionsField::value_t n) {
-        receiver_model.set_am_configuration(n);
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {            // n , has two option values. when GUI =zoom+1 => (0), when GUI=zoom+2 (6)
+        receiver_model.set_am_configuration(view->get_previous_AM_mode_option() + n);  // n (0 or 6)
+        view->set_zoom_factor(AM_MODULATION, n);
+        view->set_previous_zoom_option(n);
+    };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
+
+    freqman_set_bandwidth_option(AM_MODULATION, options_config);                                        // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
+    options_config.set_by_value(receiver_model.am_configuration() - view->get_previous_zoom_option());  // restore AM GUI option mode ,   AM FIR index filters (0..11) values ,  <baseband::AMConfig, 12> am_configs has 12 fir  index elements.
+    options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(n + view->get_previous_zoom_option());  // we select proper FIR AM filter (0..11), = 0..4 GUI AM modes + offset +6 (if zoom+2)
+        view->set_previous_AM_mode_option(n);                                       // (0..4) allowing 5 AM modes (DSB9K, DSB6K, USB,LSB, CW)
     };
 }
 
@@ -100,6 +112,54 @@ WFMOptionsView::WFMOptionsView(
     options_config.on_change = [this](size_t, OptionsField::value_t n) {
         receiver_model.set_wfm_configuration(n);
     };
+}
+
+/* WFMAMAptOptionsView *******************************************************/
+
+WFMAMAptOptionsView::WFMAMAptOptionsView(
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+    });
+
+    freqman_set_bandwidth_option(WFMAM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.wfmam_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+        receiver_model.set_wfmam_configuration(n);
+    };
+}
+
+/* AMFMAptOptionsView *********************************************************/
+
+AMFMAptOptionsView::AMFMAptOptionsView(
+    AnalogAudioView* view,
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+        &zoom_config,
+    });
+
+    freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    receiver_model.set_amfm_configuration(5);                       // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
+    options_config.set_by_value(receiver_model.amfm_configuration());
+
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_amfm_configuration(5 + n);
+        view->set_zoom_factor(AMFM_MODULATION, n);
+    };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
 }
 
 /* SPECOptionsView *******************************************************/
@@ -175,8 +235,9 @@ AnalogAudioView::AnalogAudioView(
     };
 
     auto modulation = receiver_model.modulation();
+
     // This app doesn't handle "Capture" mode.
-    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)
+    if (modulation == ReceiverModel::Mode::Capture)
         modulation = ReceiverModel::Mode::SpectrumAnalysis;
 
     options_modulation.set_by_value(toUType(modulation));
@@ -226,11 +287,42 @@ void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
     receiver_model.set_baseband_bandwidth(bw / 2);
 }
 
-uint8_t AnalogAudioView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
+uint8_t AnalogAudioView::get_zoom_factor(uint8_t mode) {  // define accessor functions inside AnalogAudioView to read zoom value
+    if (mode == AM_MODULATION)
+        return zoom_factor_am;
+    else if (mode == AMFM_MODULATION)
+        return zoom_factor_amfm;
+    return 0;  // default if unsupported mode
+}
+
+void AnalogAudioView::set_zoom_factor(uint8_t mode, uint8_t zoom) {  // define accessor functions inside AnalogAudioView to write zoom value
+    if (mode == AM_MODULATION)
+        zoom_factor_am = zoom;
+    else if (mode == AMFM_MODULATION)
+        zoom_factor_amfm = zoom;
+}
+
+uint8_t AnalogAudioView::get_previous_AM_mode_option() {
+    return previous_AM_mode_option;
+}
+
+void AnalogAudioView::set_previous_AM_mode_option(uint8_t mode) {
+    previous_AM_mode_option = mode;
+}
+
+uint8_t AnalogAudioView::get_previous_zoom_option() {
+    return previous_zoom;
+}
+
+void AnalogAudioView::set_previous_zoom_option(uint8_t zoom) {
+    previous_zoom = zoom;
+}
+
+uint8_t AnalogAudioView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read iq_phase_calibration_value
     return iq_phase_calibration_value;
 }
 
-void AnalogAudioView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions
+void AnalogAudioView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions inside AnalogAudioView to write iq_phase_calibration_value
     iq_phase_calibration_value = cal_value;
     radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
 }
@@ -246,6 +338,7 @@ void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
 }
 
 AnalogAudioView::~AnalogAudioView() {
+    receiver_model.set_hidden_offset(0);
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -267,10 +360,6 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 }
 
 void AnalogAudioView::on_modulation_changed(ReceiverModel::Mode modulation) {
-    // This app doesn't know what to do with "Capture" mode.
-    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)
-        modulation = ReceiverModel::Mode::SpectrumAnalysis;
-
     baseband::spectrum_streaming_stop();
     update_modulation(modulation);
     on_show_options_modulation();
@@ -329,7 +418,7 @@ void AnalogAudioView::on_show_options_modulation() {
     const auto modulation = receiver_model.modulation();
     switch (modulation) {
         case ReceiverModel::Mode::AMAudio:
-            widget = std::make_unique<AMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            widget = std::make_unique<AMOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
@@ -343,6 +432,18 @@ void AnalogAudioView::on_show_options_modulation() {
         case ReceiverModel::Mode::WidebandFMAudio:
             widget = std::make_unique<WFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(true);
+            text_ctcss.hidden(true);
+            break;
+
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            widget = std::make_unique<WFMAMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(true);
+            text_ctcss.hidden(true);
+            break;
+
+        case ReceiverModel::Mode::AMAudioFMApt:
+            widget = std::make_unique<AMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
 
@@ -387,6 +488,12 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
         case ReceiverModel::Mode::WidebandFMAudio:
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            image_tag = portapack::spi_flash::image_tag_wfm_audio;
+            break;
+        case ReceiverModel::Mode::AMAudioFMApt:
+            image_tag = portapack::spi_flash::image_tag_am_audio;
+            break;
         case ReceiverModel::Mode::SpectrumAnalysis:
             image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
             break;
@@ -407,6 +514,8 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
     receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
 
+    receiver_model.set_hidden_offset(modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);  // wefax needs to be shifted, see wefax rx app.
+
     receiver_model.enable();
 
     // TODO: This doesn't belong here! There's a better way.
@@ -420,6 +529,12 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
             break;
         case ReceiverModel::Mode::WidebandFMAudio:
             sampling_rate = 48000;
+            break;
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            sampling_rate = 12000;
+            break;
+        case ReceiverModel::Mode::AMAudioFMApt:
+            sampling_rate = 12000;
             break;
         default:
             break;

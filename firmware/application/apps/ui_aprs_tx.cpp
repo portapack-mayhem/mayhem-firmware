@@ -94,6 +94,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
             nav,
             payload,
             30,
+            ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& s) {
                 text_payload.set(s);
             });

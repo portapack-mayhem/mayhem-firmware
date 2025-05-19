@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2024 Samir Sánchez Garnica @sasaga92
+ * copyleft Elliot Alderson from F society
+ * copyleft Darlene Alderson from F society
  *
  * This file is part of PortaPack.
  *
@@ -28,6 +30,8 @@ namespace ui::external_app::ook_editor {
 #define OOK_SAMPLERATE_DEFAULT 2280000U            // Set the default Sample Rate
 #define TRANSMISSION_FREQUENCY_DEFAULT 433920000U  // Sets the default transmission frequency (27 MHz).
 #define WAVEFORM_BUFFER_SIZE 550
+
+/*****************Editor View ******************/
 
 class OOKEditorAppView : public View {
    public:
@@ -123,6 +127,7 @@ class OOKEditorAppView : public View {
     Button button_set{{0, 125, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
     Button button_open{{68, 125, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
     Button button_save{{154, 125, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
+    Button button_bug_key{{0, 125 + 28 + 3, screen_width, 28}, "Bug Key"};
     Button button_send_stop{{80, 273, 80, 32}, LanguageHelper::currentMessages[LANG_SEND]};
 
     // Progress bar to display transmission progress.
@@ -130,6 +135,82 @@ class OOKEditorAppView : public View {
 
     // Waveform display using waveform buffer and yellow theme color.
     Waveform waveform{{0, 208, 240, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
+};
+
+/******** bug key input view **********/
+
+enum InsertType {
+    LOW_LEVEL_SHORT,
+    LOW_LEVEL_LONG,
+    HIGH_LEVEL_SHORT,
+    HIGH_LEVEL_LONG
+};
+
+class OOKEditorBugKeyView : public View {
+   public:
+    std::function<void(std::string)> on_save{};
+
+    OOKEditorBugKeyView(NavigationView& nav, std::string payload);
+
+    std::string title() const override { return "Bug.K"; };
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+    std::string payload_ = "";
+    std::string path_ = "";
+    uint32_t delay_{0};
+    std::string delay_str{""};  // needed by text_prompt
+
+    void on_insert(InsertType type);
+    void on_delete();
+    void update_console();
+    std::string build_payload();
+
+    Labels labels{
+        {{0 * 8, 0 * 16}, "Primary Step", Theme::getInstance()->fg_light->foreground},
+        {{(screen_width / 2), 0 * 16}, "Secondary Step", Theme::getInstance()->fg_light->foreground}};
+
+    NumberField field_primary_step{
+        {0 * 8, 1 * 16},
+        3,
+        {0, 550},
+        1,
+        ' '};
+
+    NumberField field_secondary_step{
+        {(screen_width / 2), 1 * 16},
+        3,
+        {0, 550},
+        1,
+        ' '};
+
+    Console console{
+        {0, 3 * 16, screen_width, screen_height - 10 * 16}};
+
+    Button button_insert_low_level_long{
+        {0 * 8, 13 * 16, screen_width / 2, 2 * 16},
+        "00"};
+
+    Button button_insert_low_level_short{
+        {0 * 8, 15 * 16, screen_width / 2, 2 * 16},
+        "0"};
+
+    Button button_insert_high_level_long{
+        {(screen_width / 2), 13 * 16, screen_width / 2, 2 * 16},
+        "11"};
+
+    Button button_insert_high_level_short{
+        {(screen_width / 2), 15 * 16, screen_width / 2, 2 * 16},
+        "1"};
+
+    Button button_delete{
+        {1, 17 * 16, screen_width / 2 - 4, 2 * 16},
+        "<Backspace"};
+
+    Button button_save{
+        {1 + screen_width / 2 + 1, 17 * 16, screen_width / 2 - 4, 2 * 16},
+        "Save"};
 };
 
 };  // namespace ui::external_app::ook_editor

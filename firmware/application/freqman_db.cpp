@@ -49,9 +49,11 @@ options_t freqman_modulations = {
     {"NFM", 1},
     {"WFM", 2},
     {"SPEC", 3},
+    {"AMFM", 4},  // To handle HF Wefax AM and FM demod. inside Audio App.
+    {"FMAM", 5},  // To handle NOAA 137 Mhz Sat FM and AM demod inside Audio App.
 };
 
-options_t freqman_bandwidths[4] = {
+options_t freqman_bandwidths[6] = {
     {
         // AM
         {"DSB 9k", 0},
@@ -100,10 +102,21 @@ options_t freqman_bandwidths[4] = {
         {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
     },
+    {
+        // AMFM for Wefax-
+        {"USB+FM(Wefax Apt)", 5},  // Fixed RX demod. AM config Index 5 : USB+FM for Audio Weather fax (WFAX) tones.
+    },
+    {
+        // WFMAM for NOAA satellites,  137 Mhz band
+        {"80kHz (NOAA Apt)", 0},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
+        {"38kHz (NOAA Apt)", 1},
+    },
 };
 
 // TODO: these should be indexes.
 options_t freqman_steps = {
+    {"10Hz        ", 10},
+    {"50Hz        ", 50},
     {"0.1kHz      ", 100},
     {"1kHz        ", 1000},
     {"5kHz (SA AM)", 5000},
@@ -124,6 +137,8 @@ options_t freqman_steps = {
 
 // TODO: these should be indexes.
 options_t freqman_steps_short = {
+    {"10Hz", 10},
+    {"50Hz", 50},
     {"0.1kHz", 100},
     {"1kHz", 1000},
     {"5kHz", 5000},

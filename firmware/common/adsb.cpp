@@ -282,7 +282,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
     uint32_t latcprE, latcprO, loncprE, loncprO;
     float latE, latO, m, Dlon, cpr_lon_odd, cpr_lon_even, cpr_lat_odd, cpr_lat_even;
     int ni;
-    adsb_pos position{false, 0, 0, 0};
+    adsb_pos position{false, false, 0, 0, 0};
 
     uint32_t time_even = frame_even.get_rx_timestamp();
     uint32_t time_odd = frame_odd.get_rx_timestamp();
@@ -296,8 +296,10 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
         raw_data = frame_data_odd;
 
     // Q-bit must be present
-    if (raw_data[5] & 1)
+    if (raw_data[5] & 1) {
         position.altitude = ((((raw_data[5] & 0xFE) << 3) | ((raw_data[6] & 0xF0) >> 4)) * 25) - 1000;
+        position.alt_valid = true;
+    }
 
     // Position
     latcprE = ((frame_data_even[6] & 3) << 15) | (frame_data_even[7] << 7) | (frame_data_even[8] >> 1);
@@ -350,7 +352,7 @@ adsb_pos decode_frame_pos(ADSBFrame& frame_even, ADSBFrame& frame_odd) {
 
     if (position.longitude >= 180) position.longitude -= 360;
 
-    position.valid = true;
+    position.pos_valid = true;
 
     return position;
 }
@@ -396,46 +398,59 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
 
 // Decoding method from dump1090
 adsb_vel decode_frame_velo(ADSBFrame& frame) {
-    adsb_vel velo{false, 0, 0, 0};
+    adsb_vel velo{false, SPD_GND, 0, 0, 0};
 
     uint8_t* frame_data = frame.get_raw_data();
     uint8_t velo_type = frame.get_msg_sub();
 
     if (velo_type >= 1 && velo_type <= 4) {  // vertical rate is always present
 
-        velo.v_rate = (((frame_data[8] & 0x07) << 6) | ((frame_data[9] >> 2) - 1)) * 64;
+        velo.v_rate = ((((frame_data[8] & 0x07) << 6) | (frame_data[9] >> 2)) - 1) * 64;
 
-        if ((frame_data[8] & 0x8) >> 3) velo.v_rate *= -1;  // check v_rate sign
+        if (frame_data[8] & 0x8) velo.v_rate *= -1;  // check v_rate sign
     }
 
     if (velo_type == 1 || velo_type == 2) {  // Ground Speed
         int32_t raw_ew = ((frame_data[5] & 0x03) << 8) | frame_data[6];
-        int32_t velo_ew = raw_ew - 1;  // velocities are all offset by one (this is part of the spec)
-
         int32_t raw_ns = ((frame_data[7] & 0x7f) << 3) | (frame_data[8] >> 5);
-        int32_t velo_ns = raw_ns - 1;
 
-        if (velo_type == 2) {  // supersonic indicator so multiply by 4
-            velo_ew = velo_ew << 2;
-            velo_ns = velo_ns << 2;
+        if (raw_ew && raw_ns) {            // check data available
+            int32_t velo_ew = raw_ew - 1;  // velocities are all offset by one (this is part of the spec)
+            int32_t velo_ns = raw_ns - 1;
+
+            if (velo_type == 2) {  // supersonic indicator so multiply by 4
+                velo_ew = velo_ew << 2;
+                velo_ns = velo_ns << 2;
+            }
+
+            if (frame_data[5] & 0x04) velo_ew *= -1;  // check ew direction sign
+            if (frame_data[7] & 0x80) velo_ns *= -1;  // check ns direction sign
+
+            velo.speed = fast_int_magnitude(velo_ns, velo_ew);
+
+            if (velo.speed) {
+                // calculate heading in degrees from ew/ns velocities
+                int16_t heading_temp = (int16_t)(int_atan2(velo_ew, velo_ns));  // Nearest degree
+                // We don't want negative values but a 0-360 scale.
+                if (heading_temp < 0) heading_temp += 360.0;
+                velo.heading = (uint16_t)heading_temp;
+
+                velo.valid = true;
+                velo.type = SPD_GND;
+            }
         }
-
-        if (frame_data[5] & 0x04) velo_ew *= -1;  // check ew direction sign
-        if (frame_data[7] & 0x80) velo_ns *= -1;  // check ns direction sign
-
-        velo.speed = fast_int_magnitude(velo_ns, velo_ew);
-
-        if (velo.speed) {
-            // calculate heading in degrees from ew/ns velocities
-            int16_t heading_temp = (int16_t)(int_atan2(velo_ew, velo_ns));  // Nearest degree
-            // We don't want negative values but a 0-360 scale.
-            if (heading_temp < 0) heading_temp += 360.0;
-            velo.heading = (uint16_t)heading_temp;
-        }
-
     } else if (velo_type == 3 || velo_type == 4) {  // Airspeed
         velo.valid = frame_data[5] & (1 << 2);
-        velo.heading = ((((frame_data[5] & 0x03) << 8) | frame_data[6]) * 45) << 7;
+        velo.heading = ((((frame_data[5] & 0x03) << 8) | frame_data[6]) * 45) >> 7;
+
+        int32_t raw = ((frame_data[7] & 0x7F) << 3) | (frame_data[8] >> 5);
+        if (raw) {  // check speed available
+            velo.speed = raw - 1;
+            velo.type = (frame_data[7] & 0x80) ? SPD_TAS : SPD_IAS;  // set AirSpeed type
+
+            // supersonic indicator so multiply by 4
+            if (velo_type == 4) velo.speed *= 4;
+        }
     }
 
     return velo;

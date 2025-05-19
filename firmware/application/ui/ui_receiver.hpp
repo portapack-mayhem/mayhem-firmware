@@ -29,6 +29,7 @@
 
 #include "irq_controls.hpp"
 #include "rf_path.hpp"
+#include "freqman_db.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -36,6 +37,10 @@
 #include <functional>
 
 #define MAX_UFREQ 7200000000  // maximum usable frequency
+
+using option_db_t = std::pair<std::string_view, int32_t>;
+using options_db_t = std::vector<option_db_t>;
+extern options_db_t freqman_steps;
 
 namespace ui {
 
@@ -263,22 +268,12 @@ class FrequencyStepView : public OptionsField {
         : OptionsField{
               parent_pos,
               5,
-              {
-                  {"   10", 10}, /* Fine tuning SSB voice pitch,in HF and QO-100 sat #669 */
-                  {"   50", 50}, /* added 50Hz/10Hz,but we do not increase GUI digit decimal */
-                  {"  100", 100},
-                  {"  1k ", 1000},
-                  {"  3k ", 3000}, /* Approximate SSB bandwidth */
-                  {"  5k ", 5000},
-                  {"  6k3", 6250},
-                  {"  9k ", 9000}, /* channel spacing for LF, MF in some regions */
-                  {" 10k ", 10000},
-                  {" 12k5", 12500},
-                  {" 25k ", 25000},
-                  {"100k ", 100000},
-                  {"  1M ", 1000000},
-                  {" 10M ", 10000000},
-              }} {
+              {}} {
+        options_t options;
+        for (const auto& step : freqman_steps) {
+            options.emplace_back(step.first, step.second);
+        }
+        set_options(options);
     }
 };
 

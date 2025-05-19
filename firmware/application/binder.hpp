@@ -25,6 +25,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_widget.hpp"
+#include "ui_textentry.hpp"
 
 namespace ui {
 
@@ -105,7 +106,7 @@ void bind(TextField& field, T& value, NavigationView& nav, Fn fn = Fn{}) {
     // Capture a new string and make the lambda mutable so it can be modified.
     field.on_select = [&nav, buf = std::string{}](TextField& tf) mutable {
         buf = tf.get_text();
-        text_prompt(nav, buf, /*max_length*/ 255,
+        text_prompt(nav, buf, /*max_length*/ 255, ENTER_KEYBOARD_MODE_ALPHA,
                     [&tf](std::string& str) {
                         tf.set_text(str);
                     });

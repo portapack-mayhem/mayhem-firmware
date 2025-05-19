@@ -91,10 +91,6 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     auto reader = std::make_unique<WAVFileReader>();
 
-    uint32_t tone_key_index = options_tone_key.selected_index();
-    uint32_t sample_rate;
-    uint8_t bits_per_sample;
-
     stop();
 
     if (!reader->open(u"/WAV/" + file_list[id].native())) {
@@ -108,7 +104,9 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     // button_play.set_bitmap(&bitmap_stop);
 
-    sample_rate = reader->sample_rate();
+    uint32_t sample_rate = reader->sample_rate();
+
+    tone_key_index = options_tone_key.selected_index();
     bits_per_sample = reader->bits_per_sample();
 
     replay_thread = std::make_unique<ReplayThread>(
@@ -155,6 +153,23 @@ void SoundBoardView::on_tx_progress(const uint32_t progress) {
     progressbar.set_value(progress);
 }
 
+void SoundBoardView::update_config() {
+    // NB: this were called by the on_bandwidth_changed() callback,
+    // so other val would be updated too when bw changed. currently it's safe but be careful.
+    baseband::set_audiotx_config(
+        1536000 / 20,  // Update vu-meter at 20Hz
+        transmitter_model.channel_bandwidth(),
+        0,  // Gain is unused
+        8,  // shift_bits_s16, default 8 bits, but also unused
+        bits_per_sample,
+        TONES_F2D(tone_key_frequency(tone_key_index), TONES_SAMPLERATE),
+        false,  // AM
+        false,  // DSB
+        false,  // USB
+        false   // LSB
+    );
+}
+
 void SoundBoardView::on_select_entry() {
     tx_view.focus();
 }
@@ -175,7 +190,8 @@ void SoundBoardView::refresh_list() {
                 for (auto& c : entry_extension)
                     c = toupper(c);
 
-                if (entry_extension == ".WAV") {
+                if (entry_extension == ".WAV" && entry.path().string().find("shopping_cart") == std::string::npos) {
+                    /*                           ^ because the shopping cart lock app using the speaker to send the LF signal, it's meaningless to be here */
                     if (reader->open(wav_dir / entry.path())) {
                         if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                             // sounds[c].ms_duration = reader->ms_duration();
@@ -286,6 +302,10 @@ SoundBoardView::SoundBoardView(
         new_view->on_changed = [this](rf::Frequency f) {
             transmitter_model.set_target_frequency(f);
         };
+    };
+
+    tx_view.on_bandwidth_changed = [this]() {
+        update_config();
     };
 
     tx_view.on_start = [this]() {

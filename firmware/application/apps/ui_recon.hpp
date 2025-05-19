@@ -31,7 +31,6 @@
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
 #include "ui_mictx.hpp"
-#include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "baseband_api.hpp"

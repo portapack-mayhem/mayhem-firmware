@@ -8,6 +8,12 @@ body:
     value: |
       Thank you for taking the time to fill out an issue, this template is meant for any issues related to the Mayhem firmware.
       Please try the latest nightly release before submitting this. You can find the latest nightly version here: https://github.com/portapack-mayhem/mayhem-firmware/releases
+      > [!NOTE]  
+      For hardware related issue, please open as a hardware issue instead.
+      For feature requests, please open as a feature request instead.
+      If you have questions, please join our Discord server to ask.
+      For your information, they are options you can choose when you open an issue.
+      Unrelated issues will be closed without notice.
 - type: textarea
   id: description
   attributes:

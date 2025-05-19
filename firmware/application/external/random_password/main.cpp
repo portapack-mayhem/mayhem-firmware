@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_random_password.application_informatio
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Random passwd",
+    /*.app_name = */ "Rand Pwd",
     /*.bitmap_data = */ {
         0xC0,
         0x03,
@@ -74,7 +74,7 @@ __attribute__((section(".external_app.app_random_password.application_informatio
         0x01,
     },
     /*.icon_color = */ ui::Color::yellow().v,
-    /*.menu_location = */ app_location_t::UTILITIES,
+    /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_afsk_rx */ {'P', 'A', 'F', 'R'},

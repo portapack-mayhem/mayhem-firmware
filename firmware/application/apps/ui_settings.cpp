@@ -674,32 +674,6 @@ void SetAudioView::focus() {
     button_save.focus();
 }
 
-/* SetQRCodeView *****************************************/
-
-SetQRCodeView::SetQRCodeView(NavigationView& nav) {
-    add_children({
-        &labels,
-        &checkbox_bigger_qr,
-        &button_save,
-        &button_cancel,
-    });
-
-    checkbox_bigger_qr.set_value(pmem::show_bigger_qr_code());
-
-    button_save.on_select = [&nav, this](Button&) {
-        pmem::set_show_bigger_qr_code(checkbox_bigger_qr.value());
-        nav.pop();
-    };
-
-    button_cancel.on_select = [&nav, this](Button&) {
-        nav.pop();
-    };
-}
-
-void SetQRCodeView::focus() {
-    button_save.focus();
-}
-
 /* SetEncoderDialView ************************************/
 
 SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
@@ -711,10 +685,12 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
                   &button_dial_sensitivity_plus,
                   &button_dial_sensitivity_minus,
                   &button_rate_multiplier_plus,
-                  &button_rate_multiplier_minus});
+                  &button_rate_multiplier_minus,
+                  &field_encoder_dial_direction});
 
     field_encoder_dial_sensitivity.set_by_value(pmem::encoder_dial_sensitivity());
     field_encoder_rate_multiplier.set_value(pmem::encoder_rate_multiplier());
+    field_encoder_dial_direction.set_by_value(pmem::encoder_dial_direction());
 
     button_dial_sensitivity_plus.on_select = [this](Button&) {
         field_encoder_dial_sensitivity.on_encoder(1);
@@ -732,6 +708,7 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
         pmem::set_encoder_rate_multiplier(field_encoder_rate_multiplier.value());
+        pmem::set_encoder_dial_direction(field_encoder_dial_direction.selected_index_value());
         nav.pop();
     };
 
@@ -741,6 +718,36 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
 }
 
 void SetEncoderDialView::focus() {
+    button_save.focus();
+}
+
+/* SetButtonsView ************************************/
+
+SetButtonsView::SetButtonsView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel,
+                  &field_repeat_delay,
+                  &field_repeat_speed,
+                  &field_long_press_delay});
+
+    field_repeat_delay.set_by_value(pmem::ui_button_repeat_delay());
+    field_repeat_speed.set_by_value(pmem::ui_button_repeat_speed());
+    field_long_press_delay.set_by_value(pmem::ui_button_long_press_delay());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_ui_button_repeat_delay(field_repeat_delay.selected_index_value());
+        pmem::set_ui_button_repeat_speed(field_repeat_speed.selected_index_value());
+        pmem::set_ui_button_long_press_delay(field_long_press_delay.selected_index_value());
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetButtonsView::focus() {
     button_save.focus();
 }
 
@@ -803,30 +810,29 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
                   &field_fake_brightness,
                   &button_save,
                   &button_cancel,
-                  &checkbox_invert_switch,
+                  &checkbox_ips_screen_switch,
                   &checkbox_brightness_switch});
 
     field_fake_brightness.set_by_value(pmem::fake_brightness_level());
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
-    checkbox_invert_switch.set_value(pmem::config_lcd_inverted_mode());
+    checkbox_ips_screen_switch.set_value(pmem::config_lcd_normally_black());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
         pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
-        if (checkbox_invert_switch.value() != pmem::config_lcd_inverted_mode()) {
-            display.set_inverted(checkbox_invert_switch.value());
-            pmem::set_lcd_inverted_mode(checkbox_invert_switch.value());
+        if (checkbox_ips_screen_switch.value() != pmem::config_lcd_normally_black()) {
+            pmem::set_lcd_normally_black(checkbox_ips_screen_switch.value());
         }
         send_system_refresh();
         nav.pop();
     };
 
     // only enable invert OR fake brightness
-    checkbox_invert_switch.on_select = [this](Checkbox&, bool v) {
+    checkbox_ips_screen_switch.on_select = [this](Checkbox&, bool v) {
         if (v) checkbox_brightness_switch.set_value(false);
     };
     checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        if (v) checkbox_invert_switch.set_value(false);
+        if (v) checkbox_ips_screen_switch.set_value(false);
     };
 
     button_cancel.on_select = [&nav, this](Button&) {
@@ -1037,12 +1043,14 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
-                  &checkbox_overridebatt});
+                  &checkbox_overridebatt,
+                  &checkbox_battery_charge_hint});
 
     if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) add_children({&button_reset, &labels2});
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
+        pmem::set_ui_battery_charge_hint(checkbox_battery_charge_hint.value());
         battery::BatteryManagement::set_calc_override(checkbox_overridebatt.value());
         send_system_refresh();
         nav.pop();
@@ -1057,6 +1065,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     };
 
     checkbox_overridebatt.set_value(pmem::ui_override_batt_calc());
+    checkbox_battery_charge_hint.set_value(pmem::ui_battery_charge_hint());
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
@@ -1090,12 +1099,12 @@ void SettingsMenuView::on_populate() {
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
         {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetEncoderDialView>(); }},
+        {"Button Speed", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<SetButtonsView>(); }},
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
-        //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},

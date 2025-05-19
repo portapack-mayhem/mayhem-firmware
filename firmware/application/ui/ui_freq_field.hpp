@@ -53,13 +53,21 @@ class BoundFrequencyField : public FrequencyField {
         };
 
         on_edit = [this, &nav]() {
+            if (on_edit_shown)
+                on_edit_shown();
             auto freq_view = nav.push<FrequencyKeypadView>(model->target_frequency());
             freq_view->on_changed = [this](rf::Frequency f) {
                 set_value(f);
             };
+            nav.set_on_pop([this]() {
+                if (on_edit_hidden)
+                    on_edit_hidden();
+            });
         };
     }
 
+    std::function<void(void)> on_edit_shown{};   // fired, when the FrequencyKeypadView pops up
+    std::function<void(void)> on_edit_hidden{};  // fired, when the FrequencyKeypadView ended
     // TODO: override set_step and update the rx model then call base.
 };
 

@@ -183,8 +183,12 @@ void set_afsk_mark(const int32_t new_value);
 int32_t afsk_space_freq();
 void set_afsk_space(const int32_t new_value);
 
+uint32_t get_modem_def_index();
+
 int32_t modem_baudrate();
 void set_modem_baudrate(const int32_t new_value);
+
+int32_t modem_bw();
 
 uint8_t modem_repeat();
 void set_modem_repeat(const uint32_t new_value);
@@ -205,7 +209,6 @@ bool config_converter();
 bool config_updown_converter();
 int64_t config_converter_freq();
 bool show_gui_return_icon();
-bool show_bigger_qr_code();
 bool hide_clock();
 bool clock_with_date();
 bool config_login();
@@ -215,9 +218,10 @@ backlight_config_t config_backlight_timer();
 bool disable_touchscreen();
 
 void set_gui_return_icon(bool v);
+bool load_app_settings();
 void set_load_app_settings(bool v);
+bool save_app_settings();
 void set_save_app_settings(bool v);
-void set_show_bigger_qr_code(bool v);
 void set_config_disable_external_tcxo(bool v);
 void set_config_sdcard_high_speed_io(bool v, bool save);
 void set_config_disable_config_mode(bool v);
@@ -245,13 +249,15 @@ void set_config_audio_mute(bool v);
 void set_config_speaker_disable(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
-bool config_lcd_inverted_mode();
-void set_lcd_inverted_mode(bool v);
+bool config_lcd_normally_black();
+void set_lcd_normally_black(bool v);
 
 uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
 uint8_t encoder_rate_multiplier();
 void set_encoder_rate_multiplier(uint8_t v);
+bool encoder_dial_direction();
+void set_encoder_dial_direction(bool v);
 
 uint32_t config_mode_storage_direct();
 void set_config_mode_storage_direct(uint32_t v);
@@ -290,6 +296,7 @@ Color menu_color();
 void set_menu_color(Color v);
 
 /* Recon app */
+uint64_t get_recon_config();
 bool recon_autosave_freqs();
 bool recon_autostart_recon();
 bool recon_continuous();
@@ -340,6 +347,11 @@ bool ui_hide_battery_icon();
 bool ui_hide_sd_card();
 uint8_t ui_theme_id();
 bool ui_override_batt_calc();
+bool ui_button_repeat_delay();
+bool ui_button_repeat_speed();
+bool ui_button_long_press_delay();
+bool ui_battery_charge_hint();
+
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
 void set_ui_hide_converter(bool v);
@@ -354,19 +366,22 @@ void set_ui_hide_battery_icon(bool v);
 void set_ui_hide_sd_card(bool v);
 void set_ui_theme_id(uint8_t v);
 void set_ui_override_batt_calc(bool v);
+void set_ui_button_repeat_delay(bool v);
+void set_ui_button_repeat_speed(bool v);
+void set_ui_button_long_press_delay(bool v);
+void set_ui_battery_charge_hint(bool v);
 
 // sd persisting settings
 bool should_use_sdcard_for_pmem();
 int save_persistent_settings_to_file();
 int load_persistent_settings_from_file();
 
+uint32_t get_data_structure_version();
 uint32_t pmem_data_word(uint32_t index);
 uint32_t pmem_stored_checksum(void);
 uint32_t pmem_calculated_checksum(void);
 
 size_t data_size();
-
-bool debug_dump();
 
 } /* namespace persistent_memory */
 
