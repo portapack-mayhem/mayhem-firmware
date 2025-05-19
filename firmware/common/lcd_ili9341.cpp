@@ -102,9 +102,7 @@ void lcd_init() {
     // LCDs are configured for IM[2:0] = 001
     // 8080-I system, 16-bit parallel bus
 
-    // The reset sequence is already handled by lcd_reset() before this function is called
 
-    // Start Initial Sequence based on provided example code
     io.lcd_data_write_command_and_data(0xE0, {0x00, 0x09, 0x0C, 0x03, 0x10, 0x06, 0x34, 0x68,
                                               0x49, 0x02, 0x0A, 0x07, 0x2C, 0x31, 0x0F});
 
