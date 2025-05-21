@@ -59,7 +59,7 @@ class BLECommView : public View {
     ~BLECommView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -170,7 +170,7 @@ class BLECommView : public View {
         "-"};
 
     Console console{
-        {0, 4 * 16, 240, 240}};
+        {0, 4 * 16, ui::screen_width, ui::screen_height - 80}};
 
     std::string str_log{""};
     bool logging{false};

@@ -244,7 +244,7 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
     for (int y = 0; y < ui::screen_height; y++) {
         std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
-        for (int i = 0; i < 240; ++i) {
+        for (int i = 0; i < ui::screen_width; ++i) {
             screenbuffer_helper_add(chp, buffer, wp, getChrFromRgb(row[i].r, row[i].g, row[i].b));
         }
         screenbuffer_helper_add(chp, buffer, wp, '\r');
