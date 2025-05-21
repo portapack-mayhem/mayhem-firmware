@@ -860,6 +860,28 @@ void BLERxView::log_ble_packet(BlePacketData* packet) {
 
     if (serial_logging) {
         UsbSerialAsyncmsg::asyncmsg(str_console);  // new line handled there, no need here.
+<<<<<<< HEAD
+=======
+    }
+    str_console = "";
+
+    if (!searchList.empty()) {
+        auto it = searchList.begin();
+
+        while (it != searchList.end()) {
+            std::string searchStr = (std::string)*it;
+
+            if (entry.dataString.find(searchStr) != std::string::npos) {
+                searchList.erase(it);
+                found_count++;
+                break;
+            }
+
+            it++;
+        }
+
+        text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
+>>>>>>> 6f6d863a (refactor the serial log logic of BLE Rx (#2660))
     }
 }
 
