@@ -447,6 +447,8 @@ BLERxView::BLERxView(NavigationView& nav)
                   &button_switch,
                   &recent_entries_view});
 
+    async_tx_states_when_entered = portapack::async_tx_enabled;
+
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
         nav_.push<BleRecentEntryDetailView>(entry);
     };
@@ -916,7 +918,7 @@ void BLERxView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 BLERxView::~BLERxView() {
-    portapack::async_tx_enabled = false;
+    portapack::async_tx_enabled = async_tx_states_when_entered;
     receiver_model.disable();
     baseband::shutdown();
 }
