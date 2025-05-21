@@ -143,7 +143,7 @@ class WFMAMAptOptionsView : public View {
     };
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        15,  // Max option char length "FM+AM(NOAA Apt)"
+        16,  // Max option char length "80khz (NOAA Apt)" example.
         {
             // Using common messages from freqman_ui.cpp
         }};

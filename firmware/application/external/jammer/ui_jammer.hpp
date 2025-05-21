@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
  *
@@ -150,12 +151,17 @@ class JammerView : public View {
     OptionsField options_type{
         {7 * 8, 23 * 8},
         8,
-        {
-            {"Rand FSK", 0},
-            {"FM tone", 1},
-            {"CW sweep", 2},
-            {"Rand CW", 3},
-        }};
+        {{"Rand FSK", 0},
+         {"FM tone", 1},
+         {"CW sweep", 2},
+         {"Noise", 3},
+         {"Sine", 4},
+         {"Square", 5},
+         {"Sawtooth", 6},
+         {"Triangle", 7},
+         {"Chirp", 8},
+         {"Gauss", 9},
+         {"Brute", 10}}};
 
     Text text_range_number{
         {16 * 8, 23 * 8, 2 * 8, 16},

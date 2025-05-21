@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +28,8 @@
 #include "baseband_thread.hpp"
 #include "portapack_shared_memory.hpp"
 #include "jammer.hpp"
+#include <random>
+#include <cmath>
 
 using namespace jammer;
 
@@ -50,9 +53,11 @@ class JammerProcessor : public BasebandProcessor {
     uint32_t aphase{0}, phase{0}, delta{0}, sphase{0};
     int8_t sample{0};
     int8_t re{0}, im{0};
+    uint32_t wave_phase{0};
+    uint32_t wave_index{0};
+    float chirp_freq{0.0f};
     RetuneMessage message{};
 
-    /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{3072000, this, baseband::Direction::Transmit};
 };
 
