@@ -503,7 +503,7 @@ void SystemStatusView::on_camera() {
     for (int i = 0; i < screen_height; i++) {
         std::vector<ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, screen_width, 1}, row);
-        // png.write_scanline(row); //TODO HTOTOO
+        png.write_scanline(row);
     }
 }
 

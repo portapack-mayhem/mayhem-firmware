@@ -184,7 +184,7 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
     for (int i = 0; i < ui::screen_height; i++) {
         std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
-        // png.write_scanline(row);  //TODO HTOTOO
+        png.write_scanline(row);
     }
 
     chprintf(chp, "generated %s\r\n", path.string().c_str());
