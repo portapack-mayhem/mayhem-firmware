@@ -80,7 +80,7 @@ class Ticker {
 #define COLOR_BALL White
 #define COLOR_BORDER White
 #define COLOR_BRICK_COLORS \
-    { Red, Orange, Yellow, Green, Purple }
+    {Red, Orange, Yellow, Green, Purple}
 
 extern Ticker game_timer;
 
@@ -141,7 +141,7 @@ class BreakoutView : public View {
     NavigationView& nav_;
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

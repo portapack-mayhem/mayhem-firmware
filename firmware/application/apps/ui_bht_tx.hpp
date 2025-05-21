@@ -189,7 +189,7 @@ class BHTView : public View {
 
     tx_modes tx_mode = IDLE;
 
-    Rect view_rect = {0, 3 * 8, 240, 176};
+    Rect view_rect = {0, 3 * 8, screen_width, 176};
 
     XylosView view_xylos{view_rect};
     EPARView view_EPAR{view_rect};

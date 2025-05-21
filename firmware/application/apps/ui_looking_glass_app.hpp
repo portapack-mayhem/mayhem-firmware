@@ -222,7 +222,7 @@ class GlassView : public View {
         {}};
 
     ButtonWithEncoder button_beep_squelch{
-        {240 - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
+        {screen_width - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
         ""};
 
     TextField field_marker{

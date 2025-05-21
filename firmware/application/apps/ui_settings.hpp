@@ -713,7 +713,7 @@ class AppSettingsView : public View {
         {{0, 4}, "Select file to edit:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
-        {0, 2 * 8, 240, 26 * 8},
+        {0, 2 * 8, screen_width, 26 * 8},
         true};
 };
 

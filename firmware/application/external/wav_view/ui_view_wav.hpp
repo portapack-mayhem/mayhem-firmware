@@ -121,7 +121,7 @@ class ViewWavView : public View {
         {28 * 8, 18 * 16}};
 
     Waveform waveform{
-        {0, 5 * 16, 240, 64},
+        {0, 5 * 16, screen_width, 64},
         waveform_buffer,
         240,
         0,

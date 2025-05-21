@@ -72,16 +72,16 @@ class McuTemperatureView : public View {
 
    private:
     Text text_title{
-        {76, 16, 240, 16},
+        {76, 16, screen_width, 16},
         "Temperature",
     };
 
     McuTemperatureWidget temperature_widget{
-        {0, 40, 240, 180},
+        {0, 40, screen_width, 180},
     };
 
     Button button_done{
-        {72, 264, 96, 24},
+        {72, screen_height - 56, 96, 24},
         "Done"};
 };
 

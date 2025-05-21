@@ -134,7 +134,7 @@ class OOKEditorAppView : public View {
     ProgressBar progressbar{{2 * 8, 250, 208, 16}};
 
     // Waveform display using waveform buffer and yellow theme color.
-    Waveform waveform{{0, 208, 240, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
+    Waveform waveform{{0, 208, screen_width, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
 };
 
 /******** bug key input view **********/

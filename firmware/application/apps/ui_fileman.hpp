@@ -125,7 +125,7 @@ class FileManBaseView : public View {
     };
 
     MenuView menu_view{
-        {0, 2 * 8, 240, 26 * 8},
+        {0, 2 * 8, screen_width, 26 * 8},
         true};
 
     Button button_exit{

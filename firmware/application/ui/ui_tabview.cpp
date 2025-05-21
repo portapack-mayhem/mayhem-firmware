@@ -135,7 +135,7 @@ TabView::TabView(std::initializer_list<TabDef> tab_definitions) {
     if (n_tabs > MAX_TABS)
         n_tabs = MAX_TABS;
 
-    size_t tab_width = 240 / n_tabs;
+    size_t tab_width = screen_width / n_tabs;
 
     set_parent_rect({0, 0, 30 * 8, 3 * 8});
 

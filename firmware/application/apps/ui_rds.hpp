@@ -160,7 +160,7 @@ class RDSView : public View {
 
     void start_tx();
 
-    Rect view_rect = {0, 8 * 8, 240, 192};
+    Rect view_rect = {0, 8 * 8, screen_width, 192};
 
     RDSPSNView view_PSN{nav_, view_rect};
     RDSRadioTextView view_radiotext{nav_, view_rect};

@@ -117,7 +117,7 @@ class SnakeView : public View {
     NavigationView& nav_;
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

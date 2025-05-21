@@ -381,7 +381,7 @@ void init_menu() {
     auto style_blue = *ui::Theme::getInstance()->fg_blue;
     auto style_cyan = *ui::Theme::getInstance()->fg_cyan;
 
-    int16_t screen_width = 240;
+    int16_t screen_width = ui::screen_width;
     int16_t title_x = (screen_width - 17 * 8) / 2;
     int16_t divider_width = 24 * 8;
     int16_t divider_x = (screen_width - divider_width) / 2;
@@ -428,7 +428,7 @@ void init_game_over() {
     auto style_red = *ui::Theme::getInstance()->fg_red;
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
 
-    int16_t screen_width = 240;
+    int16_t screen_width = screen_width;
     int16_t title_width = 9 * 8;
     int16_t title_x = (screen_width - title_width) / 2;
     int16_t score_text_width = (16 + std::to_string(score).length()) * 8;
