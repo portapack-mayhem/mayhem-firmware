@@ -182,9 +182,9 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
 
     for (int i = 0; i < ui::screen_height; i++) {
-        std::array<ui::ColorRGB888, ui::screen_width> row;
+        std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
-        png.write_scanline(row);
+        // png.write_scanline(row);  //TODO HTOTOO
     }
 
     chprintf(chp, "generated %s\r\n", path.string().c_str());
@@ -199,7 +199,7 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
     evtd->enter_shell_working_mode();
 
     for (int i = 0; i < ui::screen_height; i++) {
-        std::array<ui::ColorRGB888, ui::screen_width> row;
+        std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
         for (int px = 0; px < ui::screen_width; px += 5) {
             char buffer[5 * 3 * 2 + 1];
@@ -242,7 +242,7 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
     char buffer[USBSERIAL_BUFFERS_SIZE];
     size_t wp = 0;
     for (int y = 0; y < ui::screen_height; y++) {
-        std::array<ui::ColorRGB888, ui::screen_width> row;
+        std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
         for (int i = 0; i < 240; ++i) {
             screenbuffer_helper_add(chp, buffer, wp, getChrFromRgb(row[i].r, row[i].g, row[i].b));

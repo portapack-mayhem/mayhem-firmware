@@ -947,7 +947,7 @@ class SetThemeView : public View {
 
     OptionsField options{
         {0 * 8, 4 * 16},
-        screen_width / 8,
+        (size_t)(screen_width / 8),
         {
             {"Default - Grey", 0},
             {"Yellow", 1},

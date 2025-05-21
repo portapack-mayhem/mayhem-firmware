@@ -501,9 +501,9 @@ void SystemStatusView::on_camera() {
         return;
 
     for (int i = 0; i < screen_height; i++) {
-        std::array<ColorRGB888, screen_width> row;
+        std::vector<ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, screen_width, 1}, row);
-        png.write_scanline(row);
+        // png.write_scanline(row); //TODO HTOTOO
     }
 }
 

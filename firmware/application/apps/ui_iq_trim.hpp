@@ -96,7 +96,7 @@ class IQTrimView : public View {
 
     std::filesystem::path path_{};
     Optional<iq::CaptureInfo> info_{};
-    std::array<iq::PowerBuckets::Bucket, screen_width> power_buckets_{};
+    std::vector<iq::PowerBuckets::Bucket> power_buckets_{};
     TrimProgressUI progress_ui{};
 
     Labels labels{
