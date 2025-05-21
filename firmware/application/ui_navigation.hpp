@@ -332,7 +332,7 @@ class InformationView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0, 0 * 16, 240, 16},
+        {0, 0, screen_width, 16},
         Theme::getInstance()->bg_darker->background};
 
     Text version{
@@ -340,7 +340,7 @@ class InformationView : public View {
         VERSION_STRING};
 
     LiveDateTime ltime{
-        {86, 0, 19 * 8, 16}};
+        {screen_width - 19 * 8, 0, 19 * 8, 16}};
 };
 
 class SplashScreenView : public View {
@@ -355,7 +355,7 @@ class SplashScreenView : public View {
    private:
     NavigationView& nav_;
     Button button_done{
-        {240, 0, 1, 1},
+        {screen_width, 0, 1, 1},
         ""};
 };
 

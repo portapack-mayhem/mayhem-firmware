@@ -28,8 +28,8 @@
 
 namespace ui {
 
-uint16_t screen_width = 240;
-uint16_t screen_height = 320;
+uint16_t screen_width = 200;
+uint16_t screen_height = 300;
 
 // CGA palette
 // Index into this table should match STR_COLOR_ escape string in ui.hpp
