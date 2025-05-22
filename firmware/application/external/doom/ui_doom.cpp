@@ -12,11 +12,11 @@
 namespace ui::external_app::doom {
 
 //clang-format off
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
-#define RENDER_HEIGHT 280
-#define HALF_WIDTH (SCREEN_WIDTH / 2)
-#define HALF_HEIGHT (RENDER_HEIGHT / 2)
+int SCREEN_WIDTH = 0;
+int SCREEN_HEIGHT = 0;
+int RENDER_HEIGHT = 0;
+int HALF_WIDTH = 0;
+int HALF_HEIGHT = 0;
 #define LEVEL_WIDTH_BASE 6
 #define LEVEL_WIDTH (1 << LEVEL_WIDTH_BASE)
 #define LEVEL_HEIGHT 57
@@ -1001,6 +1001,11 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
 
 DoomView::DoomView(NavigationView& nav)
     : nav_{nav} {
+    SCREEN_WIDTH = screen_width;
+    SCREEN_HEIGHT = screen_height;
+    RENDER_HEIGHT = screen_height - 40;
+    HALF_WIDTH = screen_width / 2;
+    HALF_HEIGHT = RENDER_HEIGHT / 2;
     add_children({&dummy});
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
 }
