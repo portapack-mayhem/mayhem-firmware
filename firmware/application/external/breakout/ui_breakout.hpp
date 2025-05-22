@@ -78,7 +78,7 @@ class Ticker {
 #define COLOR_BALL White
 #define COLOR_BORDER White
 #define COLOR_BRICK_COLORS \
-    {Red, Orange, Yellow, Green, Purple}
+    { Red, Orange, Yellow, Green, Purple }
 
 extern Ticker game_timer;
 
