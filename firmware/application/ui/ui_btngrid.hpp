@@ -100,16 +100,22 @@ class BtnGridView : public View {
    private:
     int rows_{3};
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint8_t btn_h_min{40};
     uint8_t btn_h_max{60};
 =======
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+    uint8_t btn_h_min{40};
+    uint8_t btn_h_max{60};
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     bool keep_highlight{false};
 
     std::vector<GridItem> menu_items{};
     std::vector<std::unique_ptr<NewButton>> menu_item_views{};
 
     Button button_pgup{
+<<<<<<< HEAD
 <<<<<<< HEAD
         {0, 1324, 120, 16},
         "       "};
@@ -122,15 +128,23 @@ class BtnGridView : public View {
     int button_h = 48;
 =======
         {0, 324, 120, 16},
+=======
+        {0, 1324, 120, 16},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         "       "};
 
     Button button_pgdown{
-        {121, 324, 119, 16},
+        {121, 1324, 119, 16},
         "         "};
 
+<<<<<<< HEAD
     int button_w = 240 / rows_;
     static constexpr int button_h = 48;
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+    int button_w = screen_width / rows_;
+    int button_h = 48;
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     size_t displayed_max{0};
     size_t highlighted_item{0};
     size_t offset{0};

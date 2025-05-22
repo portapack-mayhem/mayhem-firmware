@@ -135,6 +135,7 @@ class OOKEditorAppView : public View {
 
     // Waveform display using waveform buffer and yellow theme color.
     Waveform waveform{{0, 208, screen_width, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
+<<<<<<< HEAD
 };
 
 /******** bug key input view **********/
@@ -211,6 +212,8 @@ class OOKEditorBugKeyView : public View {
     Button button_save{
         {1 + screen_width / 2 + 1, 17 * 16, screen_width / 2 - 4, 2 * 16},
         "Save"};
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 };
 
 /******** bug key input view **********/

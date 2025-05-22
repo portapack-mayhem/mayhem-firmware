@@ -12,6 +12,7 @@ namespace ui::external_app::snake {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::cls() {
     painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
 }
@@ -69,31 +70,39 @@ static uint32_t game_update_timeout = 0;
 static uint32_t game_update_counter = 0;
 
 void cls() {
+=======
+void SnakeView::cls() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
 }
 
-void background(int color) {
+void SnakeView::background(int color) {
     (void)color;
 }
 
-void fillrect(int x1, int y1, int x2, int y2, int color) {
+void SnakeView::fillrect(int x1, int y1, int x2, int y2, int color) {
     painter.fill_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
 }
 
-void rect(int x1, int y1, int x2, int y2, int color) {
+void SnakeView::rect(int x1, int y1, int x2, int y2, int color) {
     painter.draw_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
 }
 
-void check_game_timer() {
+void SnakeView::check_game_timer() {
     if (game_update_callback) {
         if (++game_update_counter >= game_update_timeout) {
             game_update_counter = 0;
+<<<<<<< HEAD
             game_update_callback();
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+            game_timer_check();
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         }
     }
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 void SnakeView::attach(double delay_sec) {
     game_update_callback = true;
@@ -108,21 +117,32 @@ void SnakeView::game_timer_check() {
 =======
 void Ticker::attach(Callback func, double delay_sec) {
     game_update_callback = func;
+=======
+void SnakeView::attach(double delay_sec) {
+    game_update_callback = true;
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     game_update_timeout = delay_sec * 60;
 }
 
-void Ticker::detach() {
-    game_update_callback = nullptr;
+void SnakeView::detach() {
+    game_update_callback = false;
 }
 
+<<<<<<< HEAD
 void game_timer_check() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::game_timer_check() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     if (game_state == STATE_PLAYING) {
         update_game();
     }
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 void SnakeView::init_game() {
     SCREEN_WIDTH = screen_width;
     SCREEN_HEIGHT = screen_height;
@@ -131,9 +151,12 @@ void SnakeView::init_game() {
     GRID_HEIGHT = (GAME_AREA_HEIGHT / SNAKE_SIZE);
     snake_x.resize(GRID_WIDTH * GRID_HEIGHT);
     snake_y.resize(GRID_WIDTH * GRID_HEIGHT);
+<<<<<<< HEAD
 =======
 void init_game() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     snake_x[0] = GRID_WIDTH / 2;
     snake_y[0] = GRID_HEIGHT / 2;
     snake_length = 1;
@@ -149,10 +172,14 @@ void init_game() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::spawn_food() {
 =======
 void spawn_food() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::spawn_food() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     bool valid;
     do {
         food_x = rand() % GRID_WIDTH;
@@ -168,10 +195,14 @@ void spawn_food() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::update_game() {
 =======
 void update_game() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::update_game() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     int new_x = snake_x[0] + snake_dx;
     int new_y = snake_y[0] + snake_dy;
     bool ate_food = (new_x == food_x && new_y == food_y);
@@ -210,10 +241,14 @@ void update_game() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 bool SnakeView::check_collision() {
 =======
 bool check_collision() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+bool SnakeView::check_collision() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     if (snake_x[0] < 0 || snake_x[0] >= GRID_WIDTH || snake_y[0] < 0 || snake_y[0] >= GRID_HEIGHT) {
         return true;
     }
@@ -226,10 +261,14 @@ bool check_collision() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::draw_screen() {
 =======
 void draw_screen() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::draw_screen() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     cls();
     background(COLOR_BACKGROUND);
     draw_borders();
@@ -239,19 +278,27 @@ void draw_screen() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::draw_snake() {
 =======
 void draw_snake() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::draw_snake() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     fillrect(1 + snake_x[0] * SNAKE_SIZE, GAME_AREA_TOP + snake_y[0] * SNAKE_SIZE,
              1 + snake_x[0] * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + snake_y[0] * SNAKE_SIZE + SNAKE_SIZE, COLOR_SNAKE);
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::draw_full_snake() {
 =======
 void draw_full_snake() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::draw_full_snake() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     for (int i = 0; i < snake_length; i++) {
         fillrect(1 + snake_x[i] * SNAKE_SIZE, GAME_AREA_TOP + snake_y[i] * SNAKE_SIZE,
                  1 + snake_x[i] * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + snake_y[i] * SNAKE_SIZE + SNAKE_SIZE, COLOR_SNAKE);
@@ -259,55 +306,79 @@ void draw_full_snake() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::erase_tail(int x, int y) {
 =======
 void erase_tail(int x, int y) {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::erase_tail(int x, int y) {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     fillrect(1 + x * SNAKE_SIZE, GAME_AREA_TOP + y * SNAKE_SIZE,
              1 + x * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + y * SNAKE_SIZE + SNAKE_SIZE, COLOR_BACKGROUND);
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::draw_food() {
 =======
 void draw_food() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::draw_food() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     fillrect(1 + food_x * SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE,
              1 + food_x * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE + SNAKE_SIZE, COLOR_FOOD);
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::erase_food() {
 =======
 void erase_food() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::erase_food() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     fillrect(1 + food_x * SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE,
              1 + food_x * SNAKE_SIZE + SNAKE_SIZE, GAME_AREA_TOP + food_y * SNAKE_SIZE + SNAKE_SIZE, COLOR_BACKGROUND);
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::draw_score() {
 =======
 void draw_score() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::draw_score() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     auto style = *ui::Theme::getInstance()->fg_blue;
     painter.draw_string({5, 5}, style, "Score: " + std::to_string(score));
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::draw_borders() {
 =======
 void draw_borders() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::draw_borders() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     rect(0, GAME_AREA_TOP - 1, SCREEN_WIDTH, GAME_AREA_TOP, COLOR_BORDER);
     rect(0, GAME_AREA_TOP, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BORDER);
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::show_menu() {
 =======
 void show_menu() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::show_menu() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     cls();
     background(COLOR_BACKGROUND);
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
@@ -321,10 +392,14 @@ void show_menu() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 void SnakeView::show_game_over() {
 =======
 void show_game_over() {
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+void SnakeView::show_game_over() {
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     cls();
     background(COLOR_BACKGROUND);
     auto style_red = *ui::Theme::getInstance()->fg_red;
@@ -346,10 +421,14 @@ SnakeView::SnakeView(NavigationView& nav)
     : nav_{nav} {
     add_children({&dummy});
 <<<<<<< HEAD
+<<<<<<< HEAD
     attach(1.0 / 5.0);
 =======
     game_timer.attach(&game_timer_check, 1.0 / 5.0);
 >>>>>>> eb50b790 (Snake (#2549))
+=======
+    attach(1.0 / 5.0);
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 }
 
 void SnakeView::on_show() {

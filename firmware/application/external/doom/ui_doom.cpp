@@ -28,12 +28,20 @@ int HALF_HEIGHT = 0;
 namespace ui::external_app::doom {
 
 //clang-format off
+<<<<<<< HEAD
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
 #define RENDER_HEIGHT 280
 #define HALF_WIDTH (SCREEN_WIDTH / 2)
 #define HALF_HEIGHT (RENDER_HEIGHT / 2)
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+int SCREEN_WIDTH = 0;
+int SCREEN_HEIGHT = 0;
+int RENDER_HEIGHT = 0;
+int HALF_WIDTH = 0;
+int HALF_HEIGHT = 0;
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 #define LEVEL_WIDTH_BASE 6
 #define LEVEL_WIDTH (1 << LEVEL_WIDTH_BASE)
 #define LEVEL_HEIGHT 57
@@ -1060,13 +1068,19 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
 DoomView::DoomView(NavigationView& nav)
     : nav_{nav} {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     SCREEN_WIDTH = screen_width;
     SCREEN_HEIGHT = screen_height;
     RENDER_HEIGHT = screen_height - 40;
     HALF_WIDTH = screen_width / 2;
     HALF_HEIGHT = RENDER_HEIGHT / 2;
+<<<<<<< HEAD
 =======
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     add_children({&dummy});
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
 }

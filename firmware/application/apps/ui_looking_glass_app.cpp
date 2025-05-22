@@ -360,10 +360,13 @@ GlassView::GlassView(
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
     spectrum_row.resize(screen_width);
     spectrum_data.resize(screen_width);
+<<<<<<< HEAD
     if (!gradient.load_file(default_gradient_file)) {
         gradient.set_default();
     }
 
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     if (!gradient.load_file(default_gradient_file)) {
         gradient.set_default();
     }

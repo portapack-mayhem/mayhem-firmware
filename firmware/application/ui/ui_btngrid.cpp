@@ -99,12 +99,17 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     displayed_max = (parent_rect().size().height() / button_h);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), screen_width / 2, 16});
     button_pgdown.set_parent_rect({screen_width / 2, (Coord)(displayed_max * button_h), screen_width / 2, 16});
 =======
     button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), 120, 16});
     button_pgdown.set_parent_rect({120, (Coord)(displayed_max * button_h), 120, 16});
 >>>>>>> 4c18b80e (Navigation buttons (#2458))
+=======
+    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), screen_width / 2, 16});
+    button_pgdown.set_parent_rect({screen_width / 2, (Coord)(displayed_max * button_h), screen_width / 2, 16});
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 
     displayed_max *= rows_;
 

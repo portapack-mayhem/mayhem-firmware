@@ -1138,10 +1138,14 @@ void SplashScreenView::paint(Painter&) {
     if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
         // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
 <<<<<<< HEAD
+<<<<<<< HEAD
         portapack::display.draw_bitmap({0,
 =======
         portapack::display.draw_bitmap({screen_width / 2 - 120,
 >>>>>>> 37cc35d3 (move default splash into sdcard (#2595))
+=======
+        portapack::display.draw_bitmap({0,
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
                                         screen_height / 2},
                                        bitmap_titlebar_image.size,
                                        bitmap_titlebar_image.data,

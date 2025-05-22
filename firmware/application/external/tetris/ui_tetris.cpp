@@ -219,6 +219,7 @@ void StartGame() {
     background(Black);
     foreground(White);
 <<<<<<< HEAD
+<<<<<<< HEAD
     fillrect(0, 0, 162, screen_height, Black);
     rect(162, 0, 164, screen_height, White);
     fillrect(164, 0, screen_width, screen_height, Black);
@@ -227,6 +228,11 @@ void StartGame() {
     rect(162, 0, 164, 320, White);
     fillrect(164, 0, 240, 320, Black);
 >>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
+=======
+    fillrect(0, 0, 162, screen_height, Black);
+    rect(162, 0, 164, screen_height, White);
+    fillrect(164, 0, screen_width, screen_height, Black);
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     ShowScore();
     ShowNextFigure();
 }
@@ -575,10 +581,14 @@ void UpdateBoard() {
             }
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
         fillrect(0, 0, 162, screen_height, Black);
 =======
         fillrect(0, 0, 162, 320, Black);
 >>>>>>> 4b000c8d (Tetris: Combined cpp files. Helper files into hpp. Dark mode. Encoder on. (#2587))
+=======
+        fillrect(0, 0, 162, screen_height, Black);
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 10; j++) {
                 if (board[i][j] != 0) {

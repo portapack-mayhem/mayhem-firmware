@@ -75,10 +75,13 @@ class Ticker {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 320
 >>>>>>> c5b7326d (Combined cpp files, stuffed helper files in hpp, updates start and game over screens (#2583))
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 #define PADDLE_WIDTH 40
 #define PADDLE_HEIGHT 10
 #define BALL_SIZE 8
@@ -180,10 +183,14 @@ class BreakoutView : public View {
 
     Button dummy{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {screen_width, 0, 0, 0},
 =======
         {240, 0, 0, 0},
 >>>>>>> 18bebbfb (Breakout - The Portapack remake game rises from the pirate's lair (#2541))
+=======
+        {screen_width, 0, 0, 0},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

@@ -57,10 +57,14 @@ class PlaylistEditorView : public View {
 
     Text text_current_ppl_file{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {sizeof("PPL file:") * 8, 0 * 16, screen_width - (int)sizeof("PPL file:") * 8, 16},
 =======
         {sizeof("PPL file:") * 8, 0 * 16, screen_width - sizeof("PPL file:") * 8, 16},
 >>>>>>> 73f7f847 (Playlist editor (#2506))
+=======
+        {sizeof("PPL file:") * 8, 0 * 16, screen_width - (int)sizeof("PPL file:") * 8, 16},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         ""};
 
     MenuView menu_view{};

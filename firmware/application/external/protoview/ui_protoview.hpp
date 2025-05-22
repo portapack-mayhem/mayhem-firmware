@@ -111,7 +111,11 @@ class ProtoView : public View {
         LanguageHelper::currentMessages[LANG_PAUSE]};
 
     Waveform waveform{
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+=======
+        {0, 8 * 8, screen_width, 50},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         waveform_buffer,
         0,
         0,
@@ -119,7 +123,11 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform2{
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4) + (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+=======
+        {0, 8 * 8 + 55, screen_width, 50},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         &waveform_buffer[MAXDRAWCNTPERWF],
         0,
         0,
@@ -127,7 +135,11 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform3{
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4) + 2 * (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+=======
+        {0, 8 * 8 + 110, screen_width, 50},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         &waveform_buffer[MAXDRAWCNTPERWF * 2],
         0,
         0,
@@ -135,7 +147,11 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform4{
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4) + 3 * (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+=======
+        {0, 8 * 8 + 165, screen_width, 50},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         &waveform_buffer[MAXDRAWCNTPERWF * 3],
         0,
         0,

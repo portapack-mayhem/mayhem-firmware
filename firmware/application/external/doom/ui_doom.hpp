@@ -80,10 +80,14 @@ class DoomView : public View {
    private:
     NavigationView& nav_;
 <<<<<<< HEAD
+<<<<<<< HEAD
     Button dummy{{screen_width, 0, 0, 0}, ""};
 =======
     Button dummy{{240, 0, 0, 0}, ""};
 >>>>>>> 40cf2b3f (Doom - Mayhem Edition (#2570))
+=======
+    Button dummy{{screen_width, 0, 0, 0}, ""};
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     bool initialized{false};
     bool prev_velocity_moving{false};
     MessageHandlerRegistration message_handler_frame_sync{

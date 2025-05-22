@@ -51,12 +51,10 @@ class gfxEQView : public View {
 
    private:
     static constexpr ui::Dim header_height = 2 * 16;
-    static constexpr int SCREEN_WIDTH = 240;
-    static constexpr int SCREEN_HEIGHT = 320;
     static constexpr int RENDER_HEIGHT = 288;
     static constexpr int NUM_BARS = 11;
     static constexpr int BAR_SPACING = 2;
-    static constexpr int BAR_WIDTH = (SCREEN_WIDTH - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
+    int BAR_WIDTH = (screen_width - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
     static constexpr int HORIZONTAL_OFFSET = 2;
     static constexpr int SEGMENT_HEIGHT = 10;
 

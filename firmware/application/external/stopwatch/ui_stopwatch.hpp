@@ -121,6 +121,7 @@ class StopwatchView : public View {
 
     Button button_reset_lap{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {72, screen_height - 80, 96, 24},
         "RESET"};
 
@@ -133,6 +134,13 @@ class StopwatchView : public View {
     Button button_done{
         {72, 270, 96, 24},
 >>>>>>> 084b8856 (Stopwatch external app (#2553))
+=======
+        {72, screen_height - 80, 96, 24},
+        "RESET"};
+
+    Button button_done{
+        {72, screen_height - 50, 96, 24},
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
         "EXIT"};
 
     MessageHandlerRegistration message_handler_frame_sync{

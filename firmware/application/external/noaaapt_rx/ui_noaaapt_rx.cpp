@@ -132,10 +132,14 @@ void NoaaAptRxView::on_status(NoaaAptRxStatusDataMessage msg) {
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync
 void NoaaAptRxView::on_image(NoaaAptRxImageDataMessage msg) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     if ((line_num) >= UI_POS_HEIGHT_REMAINING(NOAA_IMG_START_ROW)) line_num = 0;  // for draw reset
 =======
     if ((line_num) >= 320 - NOAA_IMG_START_ROW * 16) line_num = 0;  // for draw reset
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+    if ((line_num) >= screen_height - NOAA_IMG_START_ROW * 16) line_num = 0;  // for draw reset
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
         Color pxl = {msg.image[i], msg.image[i], msg.image[i]};

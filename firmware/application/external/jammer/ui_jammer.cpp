@@ -327,6 +327,10 @@ void JammerView::on_timer() {
 JammerView::JammerView(NavigationView& nav)
     : nav_{nav} {
     Rect view_rect = {0, 3 * 8, screen_width, 80};
+<<<<<<< HEAD
+=======
+    // baseband::run_image(portapack::spi_flash::image_tag_jammer);
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&tab_view,

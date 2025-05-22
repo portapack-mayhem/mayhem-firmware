@@ -51,6 +51,7 @@ enum {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define wait(x) chThdSleepMilliseconds(x * 1000)
 
 #define SNAKE_SIZE 10
@@ -68,26 +69,20 @@ void background(int color);
 void fillrect(int x1, int y1, int x2, int y2, int color);
 void rect(int x1, int y1, int x2, int y2, int color);
 
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 #define wait(x) chThdSleepMilliseconds(x * 1000)
 
-using Callback = void (*)(void);
-
-class Ticker {
-   public:
-    Ticker() = default;
-    void attach(Callback func, double delay_sec);
-    void detach();
-};
-
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
 #define SNAKE_SIZE 10
 #define INFO_BAR_HEIGHT 25
 #define GAME_AREA_TOP (INFO_BAR_HEIGHT + 1)
+<<<<<<< HEAD
 #define GAME_AREA_HEIGHT (SCREEN_HEIGHT - INFO_BAR_HEIGHT - 2)
 #define GRID_WIDTH ((SCREEN_WIDTH - 2) / SNAKE_SIZE)
 #define GRID_HEIGHT (GAME_AREA_HEIGHT / SNAKE_SIZE)
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 #define STATE_MENU 0
 #define STATE_PLAYING 1
 #define STATE_GAME_OVER 2
@@ -97,6 +92,7 @@ class Ticker {
 #define COLOR_FOOD Red
 #define COLOR_BORDER White
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> eb50b790 (Snake (#2549))
@@ -131,6 +127,8 @@ void show_menu();
 void show_game_over();
 
 >>>>>>> 139ade06 (Combine cpp, move helpers to hpp (#2584))
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 class SnakeView : public View {
    public:
     SnakeView(NavigationView& nav);
@@ -155,6 +153,9 @@ class SnakeView : public View {
     bool on_key(KeyEvent key) override;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
     void cls();
     void background(int color);
     void fillrect(int x1, int y1, int x2, int y2, int color);
@@ -179,6 +180,7 @@ class SnakeView : public View {
     void attach(double delay_sec);
     void detach();
 
+<<<<<<< HEAD
    private:
     const Color pp_colors[9] = {
         Color::white(),
@@ -219,12 +221,45 @@ class SnakeView : public View {
         ""};
 
 =======
+=======
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
    private:
-    bool initialized = false;
+    const Color pp_colors[9] = {
+        Color::white(),
+        Color::blue(),
+        Color::yellow(),
+        Color::purple(),
+        Color::green(),
+        Color::red(),
+        Color::magenta(),
+        Color::orange(),
+        Color::black(),
+    };
     NavigationView& nav_;
+    Painter painter{};
+
+    std::vector<int> snake_x{};  //[GRID_WIDTH * GRID_HEIGHT];
+    std::vector<int> snake_y{};  //[GRID_WIDTH * GRID_HEIGHT];
+    int snake_length = 1;
+    int snake_dx = 1;
+    int snake_dy = 0;
+    int food_x = 0, food_y = 0;
+    int score = 0;
+    int game_state = STATE_MENU;
+    bool initialized = false;
+
+    int SCREEN_WIDTH = 0;
+    int SCREEN_HEIGHT = 0;
+    int GAME_AREA_HEIGHT = 0;  //(SCREEN_HEIGHT - INFO_BAR_HEIGHT - 2);
+    int GRID_WIDTH = 0;        // ((SCREEN_WIDTH - 2) / SNAKE_SIZE);
+    int GRID_HEIGHT = 0;       //(GAME_AREA_HEIGHT / SNAKE_SIZE);
+
+    bool game_update_callback = false;
+    double game_update_timeout = 0;
+    uint32_t game_update_counter = 0;
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 <<<<<<< HEAD
 >>>>>>> eb50b790 (Snake (#2549))

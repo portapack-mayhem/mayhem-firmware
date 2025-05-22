@@ -139,10 +139,14 @@ void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync
 void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     if ((line_num) >= screen_height - 4 * 16) line_num = 0;  // for draw reset
 =======
     if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+    if ((line_num) >= screen_height - 4 * 16) line_num = 0;  // for draw reset
+>>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
         Color pxl = {msg.image[i], msg.image[i], msg.image[i]};
