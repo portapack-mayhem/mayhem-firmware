@@ -80,7 +80,8 @@ Optional<File::Error> PNGWriter::create(
     png_ihdr_dyn[14] = (height >> 8) & 0xFF;
     png_ihdr_dyn[15] = height & 0xFF;
     crc.reset();
-    crc.process_bytes(png_ihdr_dyn.data(), 25);
+    crc.process_bytes(&png_ihdr_dyn[4], 4);   // Process chunk type "IHDR"
+    crc.process_bytes(&png_ihdr_dyn[8], 13);  // Process chunk data
     uint32_t crci = crc.checksum();
 
     png_ihdr_dyn[21] = (crci >> 24) & 0xFF;
