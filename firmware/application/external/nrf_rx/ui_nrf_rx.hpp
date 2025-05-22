@@ -77,11 +77,11 @@ class NRFRxView : public View {
         nav_};
 
     Button button_modem_setup{
-        {240 - 12 * 8, 1 * 16, 96, 24},
+        {screen_width - 12 * 8, 1 * 16, 96, 24},
         LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Console console{
-        {0, 4 * 16, 240, 240}};
+        {0, 4 * 16, screen_width, screen_height - 80}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::AFSKData,

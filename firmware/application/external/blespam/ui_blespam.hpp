@@ -119,7 +119,7 @@ class BLESpamView : public View {
 
 #ifdef BLESPMUSECONSOLE
     Console console{
-        {0, 70, 240, 220}};
+        {0, 70, screen_width, 220}};
 #endif
     OptionsField options_atkmode{
         {0 * 8, 2 * 8},

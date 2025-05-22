@@ -66,7 +66,7 @@ void ScreenshotViewer::paint(Painter& painter) {
     constexpr size_t read_chunk = 80;  // NB: must be a factor of pixel_width.
     constexpr size_t buffer_size = sizeof(ColorRGB888) * read_chunk;
     uint8_t buffer[buffer_size];
-    std::array<Color, screen_width> pixel_data;
+    std::vector<Color> pixel_data(screen_width);
 
     // Seek past all the headers.
     file.seek(43);

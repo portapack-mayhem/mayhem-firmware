@@ -76,12 +76,12 @@ class TunerView : public View {
         {{0 * 8, 5 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_note_frequency{
-        {(sizeof("Note Frequency:") + 1) * 8, 3 * 16, screen_width - (sizeof("Note Frequency:") + 1) * 8, 16},
+        {(sizeof("Note Frequency:") + 1) * 8, 3 * 16, (int)screen_width - (int)(sizeof("Note Frequency:") + 1) * 8, 16},
         "",
     };
 
     Text text_note_octave_shift{
-        {(sizeof("Note Octave Shift:") + 1) * 8, 4 * 16, screen_width - (sizeof("Note Octave Shift:") + 1) * 8, 16},
+        {(sizeof("Note Octave Shift:") + 1) * 8, 4 * 16, (int)screen_width - (int)(sizeof("Note Octave Shift:") + 1) * 8, 16},
         "",
     };
 

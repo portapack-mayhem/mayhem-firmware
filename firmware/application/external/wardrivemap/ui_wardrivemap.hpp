@@ -54,7 +54,7 @@ class WardriveMapView : public View {
         {0, 20},
         GeoPos::alt_unit::METERS,
         GeoPos::spd_unit::HIDDEN};
-    GeoMap geomap{{0, 75, 240, 320 - 75}};
+    GeoMap geomap{{0, 75, screen_width, screen_height - 75}};
 
     Button btn_back{{22 * 8, 0 * 8, 3 * 8, 16}, "<-"};
     Button btn_next{{26 * 8, 0 * 8, 3 * 8, 16}, "->"};

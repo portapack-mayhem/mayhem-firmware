@@ -238,7 +238,7 @@ class ScannerView : public View {
     };
 
     Text text_current_desc{
-        {0, 4 * 16, 240 - 6 * 8, 16},
+        {0, 4 * 16, screen_width - 6 * 8, 16},
     };
 
     BigFrequency big_display{

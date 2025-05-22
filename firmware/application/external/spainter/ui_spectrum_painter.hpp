@@ -89,7 +89,7 @@ class SpectrumPainterView : public View {
 
     static constexpr int32_t footer_location = 15 * 16 + 8;
     ProgressBar progressbar{
-        {4, footer_location - 16, 240 - 8, 16}};
+        {4, footer_location - 16, screen_width - 8, 16}};
 
     Labels labels{
         {{10 * 8, footer_location + 1 * 16}, "GAIN   A:", Theme::getInstance()->fg_light->foreground},

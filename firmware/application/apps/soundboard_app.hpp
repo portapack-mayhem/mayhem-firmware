@@ -110,7 +110,7 @@ class SoundBoardView : public View {
         {0, 29 * 8, 30 * 8, 16}};
 
     MenuView menu_view{
-        {0, 0, 240, 175},
+        {0, 0, screen_width, 175},
         true};
     Text text_empty{
         {7 * 8, 12 * 8, 16 * 8, 16},

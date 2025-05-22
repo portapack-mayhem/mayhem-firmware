@@ -288,10 +288,10 @@ class BLETxView : public View {
         {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
     Console console{
-        {0, 9 * 18, 240, 240}};
+        {0, 9 * 18, screen_width, screen_height - 80}};
 
     TextViewer dataEditView{
-        {0, 9 * 18, 240, 240}};
+        {0, 9 * 18, screen_width, screen_height - 80}};
 
     Button button_clear_marked{
         {1 * 8, 14 * 16, 13 * 8, 3 * 8},

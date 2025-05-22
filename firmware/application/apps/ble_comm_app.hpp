@@ -170,7 +170,7 @@ class BLECommView : public View {
         "-"};
 
     Console console{
-        {0, 4 * 16, 240, 240}};
+        {0, 4 * 16, ui::screen_width, ui::screen_height - 80}};
 
     std::string str_log{""};
     bool logging{false};

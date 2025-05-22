@@ -105,7 +105,7 @@ class AFSKRxView : public View {
         LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Console console{
-        {0, 4 * 16, 240, screen_width}};
+        {0, 4 * 16, screen_width, screen_width}};
 
     void on_data_afsk(const AFSKDataMessage& message);
 

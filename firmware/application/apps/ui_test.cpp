@@ -99,8 +99,8 @@ void TestView::on_packet(const testapp::Packet& packet) {
     display.draw_pixel(Point(cur_x, 4 * 16 + (256 - ((raw_alt - cal_value) / 4))), Color::white());
 
     cur_x++;
-    if (cur_x >= 240) {
-        display.fill_rectangle(Rect(0, 5 * 16, 240, 256), Color::black());
+    if (cur_x >= screen_width) {
+        display.fill_rectangle(Rect(0, 5 * 16, screen_width, 256), Color::black());
         cur_x = 0;
     }
 
