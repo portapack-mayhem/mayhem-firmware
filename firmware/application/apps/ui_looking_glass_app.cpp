@@ -358,7 +358,8 @@ GlassView::GlassView(
     NavigationView& nav)
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-
+    spectrum_row.resize(screen_width);
+    spectrum_data.resize(screen_width);
     if (!gradient.load_file(default_gradient_file)) {
         gradient.set_default();
     }

@@ -51,9 +51,6 @@ namespace ui {
 #define LOOKING_GLASS_SINGLEPASS 2
 // one spectrum line number of bins
 #define SPEC_NB_BINS 256
-// screen dimensions
-#define SCREEN_W 240
-#define SCREEN_H 320
 
 class GlassView : public View {
    public:
@@ -155,8 +152,8 @@ class GlassView : public View {
     uint8_t min_color_power{0};  // Filter cutoff level.
     uint32_t pixel_index{0};
 
-    std::array<Color, SCREEN_W> spectrum_row{};
-    std::array<uint8_t, SCREEN_W> spectrum_data{};
+    std::vector<Color> spectrum_row{};
+    std::vector<uint8_t> spectrum_data{};
     ChannelSpectrumFIFO* fifo{};
 
     int32_t steps = 1;
@@ -168,7 +165,7 @@ class GlassView : public View {
     rf::Frequency max_freq_hold = 0;
     rf::Frequency last_max_freq = 0;
     int16_t max_freq_power = -1000;
-    uint8_t bin_length = SCREEN_W;
+    uint8_t bin_length = screen_width;
     uint8_t offset = 0;
     uint8_t ignore_dc = 0;
 
