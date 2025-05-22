@@ -56,8 +56,6 @@ class Ticker {
     void detach();
 };
 
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
 #define PADDLE_WIDTH 40
 #define PADDLE_HEIGHT 10
 #define BALL_SIZE 8
@@ -80,7 +78,7 @@ class Ticker {
 #define COLOR_BALL White
 #define COLOR_BORDER White
 #define COLOR_BRICK_COLORS \
-    { Red, Orange, Yellow, Green, Purple }
+    {Red, Orange, Yellow, Green, Purple}
 
 extern Ticker game_timer;
 
