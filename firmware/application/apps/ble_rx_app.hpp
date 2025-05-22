@@ -219,6 +219,7 @@ class BLERxView : public View {
     std::string filter{};
     bool logging{false};
     bool serial_logging{false};
+    bool async_tx_states_when_entered{false};
 
     bool name_enable{true};
     app_settings::SettingsManager settings_{
