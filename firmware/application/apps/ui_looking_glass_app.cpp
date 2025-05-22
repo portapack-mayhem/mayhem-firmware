@@ -140,7 +140,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
             constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
             constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
             constexpr int raw_delta = raw_max - raw_min;
-            const range_t<int> y_max_range{0, 320 - (108 + 16)};
+            const range_t<int> y_max_range{0, screen_height - (108 + 16)};
 
             // drawing and keeping track of max freq
             for (uint16_t xpos = 0; xpos < screen_width; xpos++) {
@@ -149,7 +149,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                     max_freq_power = spectrum_data[xpos];
                     max_freq_hold = get_freq_from_bin_pos(xpos);
                 }
-                int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (320 - (108 + 16))) / raw_delta);
+                int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (screen_height - (108 + 16))) / raw_delta);
                 uint8_t color_gradient = (point * 255) / 212;
                 // clear if not in peak view
                 if (live_frequency_view != 2) {
@@ -238,7 +238,7 @@ void GlassView::on_hide() {
 }
 
 void GlassView::on_show() {
-    display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates
+    display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
     baseband::spectrum_streaming_start();
 }
 
@@ -438,7 +438,7 @@ GlassView::GlassView(
                 freq_stats.hidden(true);
                 button_jump.hidden(true);
                 button_rst.hidden(true);
-                display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates.
+                display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates.
                 break;
 
             case 1:  // LEVEL
@@ -532,7 +532,7 @@ GlassView::GlassView(
     };
     set_spec_iq_phase_calibration_value(get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
 
-    display.scroll_set_area(109, 319);
+    display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
 
     // trigger:
     // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute,
