@@ -428,7 +428,7 @@ void init_game_over() {
     auto style_red = *ui::Theme::getInstance()->fg_red;
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
 
-    int16_t screen_width = screen_width;
+    // int16_t screen_width = screen_width;
     int16_t title_width = 9 * 8;
     int16_t title_x = (screen_width - title_width) / 2;
     int16_t score_text_width = (16 + std::to_string(score).length()) * 8;

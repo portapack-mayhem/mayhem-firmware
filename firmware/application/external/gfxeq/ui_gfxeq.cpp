@@ -165,12 +165,12 @@ void gfxEQView::render_equalizer(Painter& painter) {
 
         if (prev_bar_heights[bar] > active_segments) {
             int clear_height = (prev_bar_heights[bar] - active_segments) * SEGMENT_HEIGHT;
-            int clear_y = SCREEN_HEIGHT - prev_bar_heights[bar] * SEGMENT_HEIGHT;
+            int clear_y = screen_height - prev_bar_heights[bar] * SEGMENT_HEIGHT;
             painter.fill_rectangle({x, clear_y, BAR_WIDTH, clear_height}, Color(0, 0, 0));
         }
 
         for (int seg = 0; seg < active_segments; seg++) {
-            int y = SCREEN_HEIGHT - (seg + 1) * SEGMENT_HEIGHT;
+            int y = screen_height - (seg + 1) * SEGMENT_HEIGHT;
             if (y < header_height) break;
 
             Color segment_color = (seg >= active_segments - 2 && seg < active_segments) ? theme.peak_color : theme.base_color;
@@ -183,7 +183,7 @@ void gfxEQView::render_equalizer(Painter& painter) {
 
 void gfxEQView::paint(Painter& painter) {
     if (needs_background_redraw) {
-        painter.fill_rectangle({0, header_height, SCREEN_WIDTH, RENDER_HEIGHT}, Color(0, 0, 0));
+        painter.fill_rectangle({0, header_height, screen_width, RENDER_HEIGHT}, Color(0, 0, 0));
         needs_background_redraw = false;
     }
     render_equalizer(painter);

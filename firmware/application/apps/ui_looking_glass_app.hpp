@@ -293,15 +293,15 @@ class GlassView : public View {
         }};
 
     Button button_jump{
-        {SCREEN_W - 4 * 8, 5 * 16, 4 * 8, 16},
+        {screen_width - 4 * 8, 5 * 16, 4 * 8, 16},
         "JMP"};
 
     Button button_rst{
-        {SCREEN_W - 9 * 8, 5 * 16, 4 * 8, 16},
+        {screen_width - 9 * 8, 5 * 16, 4 * 8, 16},
         "RST"};
 
     Text freq_stats{
-        {0 * 8, 5 * 16, SCREEN_W - 10 * 8, 8},
+        {0 * 8, 5 * 16, screen_width - 10 * 8, 8},
         ""};
 
     MessageHandlerRegistration message_handler_spectrum_config{

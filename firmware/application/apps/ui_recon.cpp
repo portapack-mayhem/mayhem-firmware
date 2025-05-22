@@ -1086,8 +1086,8 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (stepper < 0) stepper++;
                     if (stepper > 0) stepper--;
                 }  // if( recon || stepper != 0 || index_stepper != 0 )
-            }      // if (frequency_list.size() > 0 )
-        }          /* on_statistics_updates */
+            }  // if (frequency_list.size() > 0 )
+        } /* on_statistics_updates */
     }
     handle_retune();
     recon_redraw();
@@ -1404,8 +1404,8 @@ void ReconView::start_repeat() {
             std::string delay_message = "TX DELAY: " + to_string_dec_uint(delay) + "s";
 
             // update display information
-            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Theme::getInstance()->fg_light->foreground);
-            p.draw_string({(SCREEN_W / 2) - 7 * 8, SCREEN_H / 2}, *Theme::getInstance()->fg_red, delay_message);
+            p.fill_rectangle({0, (screen_height / 2) - 16, screen_width, 64}, Theme::getInstance()->fg_light->foreground);
+            p.draw_string({(screen_width / 2) - 7 * 8, screen_height / 2}, *Theme::getInstance()->fg_red, delay_message);
 
             // sleep 1 second
             chThdSleepMilliseconds(1000);
