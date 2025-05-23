@@ -69,7 +69,11 @@ class ProtoView : public View {
         {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH(6), 4}};
 
     AudioVolumeField field_volume{
+<<<<<<< HEAD
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
+=======
+        {screen_width - 2 * 8, 0 * 16}};
+>>>>>>> 3c8335c9 (Audio to right (#2664))
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},

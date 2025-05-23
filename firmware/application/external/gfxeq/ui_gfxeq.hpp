@@ -116,11 +116,15 @@ class gfxEQView : public View {
     VGAGainField field_vga{{18 * 8, 0 * 16}};
     Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
 <<<<<<< HEAD
+<<<<<<< HEAD
     AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
     GraphEq gr{{2, UI_POS_DEFAULT_HEIGHT, UI_POS_MAXWIDTH - 4, UI_POS_HEIGHT_REMAINING(2)}, false};
 =======
     AudioVolumeField field_volume{{28 * 8, 0 * 16}};
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+    AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
+>>>>>>> 3c8335c9 (Audio to right (#2664))
 
     rf::Frequency frequency_value{93100000};
 

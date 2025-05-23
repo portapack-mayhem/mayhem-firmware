@@ -93,10 +93,14 @@ class WeFaxRxView : public View {
         {21 * 8, 0, 6 * 8, 4}};
     AudioVolumeField field_volume{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {screen_width - 2 * 8, 0 * 16}};
 =======
         {28 * 8, 0 * 16}};
 >>>>>>> 4aa5fc1f (WeFax rx ext app (#2566))
+=======
+        {screen_width - 2 * 8, 0 * 16}};
+>>>>>>> 3c8335c9 (Audio to right (#2664))
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
