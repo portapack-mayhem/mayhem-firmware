@@ -131,9 +131,9 @@ class SoundBoardView : public View {
         {}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 180}};
+        {screen_width - 2 * 8, 180}};
     Text text_volume_disabled{
-        {28 * 8, 180, 3 * 8, 16},
+        {screen_width - 2 * 8, 180, 3 * 8, 16},
         "--"};
 
     Checkbox check_loop{

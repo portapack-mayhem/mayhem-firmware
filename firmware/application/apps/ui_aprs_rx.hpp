@@ -220,7 +220,7 @@ class APRSRxView : public View {
         {21 * 8, 5, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     OptionsField options_region{
         {0 * 8, 0 * 8},

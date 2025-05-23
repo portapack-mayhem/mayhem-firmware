@@ -216,7 +216,7 @@ class BLETxView : public View {
         true};
 
     ImageButton button_play{
-        {28 * 8, 2 * 16, 2 * 8, 1 * 16},
+        {screen_width - 2 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
