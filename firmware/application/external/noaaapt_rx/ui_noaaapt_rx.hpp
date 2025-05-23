@@ -114,8 +114,12 @@ class NoaaAptRxView : public View {
         nav_};
 
     RecordView record_view{
+<<<<<<< HEAD
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+        {0 * 8, 2 * 16, screen_width, 1 * 16},
+>>>>>>> ac31f478 (screen max width fixes (#2663))
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,

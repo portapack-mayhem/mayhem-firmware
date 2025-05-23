@@ -161,7 +161,11 @@ class FmRadioView : public View {
         {21 * 8, 10, 6 * 8, 4}};
 
     Waveform waveform{
+<<<<<<< HEAD
         {0, 20, UI_POS_MAXWIDTH, 2 * 16},
+=======
+        {0, 20, screen_width, 2 * 16},
+>>>>>>> ac31f478 (screen max width fixes (#2663))
         audio_spectrum,
         128,
         0,
