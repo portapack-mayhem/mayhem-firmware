@@ -185,7 +185,7 @@ class SPECOptionsView : public View {
         {19 * 8, 0 * 16, 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
         "Rx_IQ_CAL  "};
     NumberField field_rx_iq_phase_cal{
-        {28 * 8, 0 * 16},
+        {screen_width - 2 * 8, 0 * 16},
         2,
         {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
@@ -283,7 +283,7 @@ class AnalogAudioView : public View {
         }};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Text text_ctcss{
         {16 * 8, 1 * 16, 14 * 8, 1 * 16},

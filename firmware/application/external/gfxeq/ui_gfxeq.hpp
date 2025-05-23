@@ -99,7 +99,7 @@ class gfxEQView : public View {
     LNAGainField field_lna{{15 * 8, 0 * 16}};
     VGAGainField field_vga{{18 * 8, 0 * 16}};
     Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
-    AudioVolumeField field_volume{{28 * 8, 0 * 16}};
+    AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
 
     rf::Frequency frequency_value{93100000};
 

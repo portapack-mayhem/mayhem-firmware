@@ -102,7 +102,7 @@ class BLETxView : public View {
     ~BLETxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -216,7 +216,7 @@ class BLETxView : public View {
         true};
 
     ImageButton button_play{
-        {28 * 8, 2 * 16, 2 * 8, 1 * 16},
+        {screen_width - 2 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};

@@ -118,7 +118,7 @@ class ViewWavView : public View {
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
     AudioVolumeField field_volume{
-        {28 * 8, 18 * 16}};
+        {screen_width - 2 * 8, 18 * 16}};
 
     Waveform waveform{
         {0, 5 * 16, screen_width, 64},

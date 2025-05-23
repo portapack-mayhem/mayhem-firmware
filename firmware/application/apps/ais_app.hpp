@@ -155,7 +155,7 @@ class AISAppView : public View {
     ~AISAppView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -210,7 +210,7 @@ class AISAppView : public View {
     };
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Channel channel{
         {21 * 8, 5, 6 * 8, 4},

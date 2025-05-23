@@ -99,7 +99,7 @@ class TPMSAppView : public View {
 
     // Prevent painting of region covered entirely by a child.
     // TODO: Add flag to View that specifies view does not need to be cleared before painting.
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -138,7 +138,7 @@ class TPMSAppView : public View {
     };
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Channel channel{
         {21 * 8, 5, 6 * 8, 4},
