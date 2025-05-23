@@ -211,7 +211,7 @@ class GlassView : public View {
         }};
 
     RFAmpField field_rf_amp{
-        {screen_width - 2 * 8, 1 * 16}};
+        {28 * 8, 1 * 16}};
 
     OptionsField range_presets{
         {2 * 8, 2 * 16},
@@ -227,7 +227,7 @@ class GlassView : public View {
         ""};
 
     NumberField field_rx_iq_phase_cal{
-        {screen_width - 2 * 8, 3 * 16},
+        {28 * 8, 3 * 16},
         2,
         {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
