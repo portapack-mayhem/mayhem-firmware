@@ -107,7 +107,7 @@ class PlaylistView : public View {
     void handle_replay_thread_done(uint32_t return_code);
 
     Text text_filename{
-        {0 * 8, 0 * 16, 30 * 8, 16}};
+        {0 * 8, 0 * 16, screen_width, 16}};
 
     FrequencyField field_frequency{
         {0 * 8, 1 * 16}};
@@ -145,7 +145,7 @@ class PlaylistView : public View {
         Theme::getInstance()->fg_green->background};
 
     Text text_track{
-        {0 * 8, 3 * 16, 30 * 8, 16}};
+        {0 * 8, 3 * 16, screen_width, 16}};
 
     NewButton button_prev{
         {2 * 8, 4 * 16, 4 * 8, 2 * 16},

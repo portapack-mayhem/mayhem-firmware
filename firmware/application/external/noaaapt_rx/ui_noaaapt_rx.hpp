@@ -96,7 +96,7 @@ class NoaaAptRxView : public View {
         nav_};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 2 * 16, screen_width, 1 * 16},
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,

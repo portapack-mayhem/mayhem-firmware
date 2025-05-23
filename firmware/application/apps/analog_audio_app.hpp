@@ -244,7 +244,7 @@ class AnalogAudioView : public View {
             {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
         }};
 
-    const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
+    const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
 
     size_t spec_bw_index = 0;
@@ -292,7 +292,7 @@ class AnalogAudioView : public View {
     std::unique_ptr<Widget> options_widget{};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 2 * 16, screen_width, 1 * 16},
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,

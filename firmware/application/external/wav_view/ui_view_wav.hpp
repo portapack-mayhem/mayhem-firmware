@@ -129,7 +129,7 @@ class ViewWavView : public View {
         Theme::getInstance()->bg_darkest->foreground};
 
     ProgressBar progressbar{
-        {0 * 8, 11 * 16, 30 * 8, 4}};
+        {0 * 8, 11 * 16, screen_width, 4}};
 
     NumberField field_pos_seconds{
         {9 * 8, 12 * 16},
@@ -177,7 +177,7 @@ class ViewWavView : public View {
         true};
 
     Text text_delta{
-        {7 * 8, 16 * 16, 30 * 8, 16},
+        {7 * 8, 16 * 16, screen_width, 16},
         "-"};
 
     MessageHandlerRegistration message_handler_replay_thread_error{

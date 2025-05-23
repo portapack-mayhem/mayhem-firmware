@@ -172,7 +172,7 @@ private:
         };
 
         Text text_path {
-                { 0 * 8, 2 * 16, 30 * 8, 16 },
+                { 0 * 8, 2 * 16, screen_width, 16 },
                 "",
         };
 
@@ -182,7 +182,7 @@ private:
         };
 
         Text text_name {
-                { 0 * 8, 7 * 16, 30 * 8, 16 },
+                { 0 * 8, 7 * 16, screen_width, 16 },
                 "",
         };
 
