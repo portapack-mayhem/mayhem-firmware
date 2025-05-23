@@ -137,7 +137,7 @@ TabView::TabView(std::initializer_list<TabDef> tab_definitions) {
 
     size_t tab_width = screen_width / n_tabs;
 
-    set_parent_rect({0, 0, 30 * 8, 3 * 8});
+    set_parent_rect({0, 0, screen_width, 3 * 8});
 
     for (auto& tab_definition : tab_definitions) {
         tabs[i].set(i, tab_width, tab_definition.text, tab_definition.color);

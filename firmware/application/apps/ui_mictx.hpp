@@ -350,7 +350,7 @@ class MicTXView : public View {
     };
 
     Button tx_button{
-        {10 * 8, 30 * 8, 10 * 8, 5 * 8},
+        {10 * 8, screen_width, 10 * 8, 5 * 8},
         "PTT TX",
         true};
 

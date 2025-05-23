@@ -103,7 +103,7 @@ class FmRadioView : public View {
         {21 * 8, 10, 6 * 8, 4}};
 
     Waveform waveform{
-        {0, 20, 30 * 8, 2 * 16},
+        {0, 20, screen_width, 2 * 16},
         audio_spectrum,
         128,
         0,

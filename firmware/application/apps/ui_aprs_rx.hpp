@@ -241,7 +241,7 @@ class APRSRxView : public View {
 
     // DEBUG
     RecordView record_view{
-        {0 * 8, 1 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 1 * 16, screen_width, 1 * 16},
         u"AFS_????.WAV",
         aprs_dir,
         RecordView::FileType::WAV,

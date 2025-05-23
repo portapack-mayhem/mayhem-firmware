@@ -218,7 +218,7 @@ class BHTView : public View {
         ' '};
 
     ProgressBar progressbar{
-        {0 * 8, 29 * 8, 30 * 8, 16},
+        {0 * 8, 29 * 8, screen_width, 16},
     };
 
     TransmitterView tx_view{
