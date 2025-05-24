@@ -274,12 +274,14 @@ void ReceiverModel::set_configuration_without_update(
     size_t new_am_config_index,
     size_t new_nbfm_config_index,
     size_t new_wfm_config_index,
+    size_t new_wfmam_config_index,
     uint8_t new_squelch_level) {
     settings_.mode = new_mode;
     settings_.frequency_step = new_frequency_step;
     settings_.am_config_index = new_am_config_index;
     settings_.nbfm_config_index = new_nbfm_config_index;
     settings_.wfm_config_index = new_wfm_config_index;
+    settings_.wfmam_config_index = new_wfmam_config_index;
     settings_.squelch_level = new_squelch_level;
 }
 
