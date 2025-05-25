@@ -70,7 +70,7 @@ options_t freqman_bandwidths[6] = {
     },
     {
         // WFM
-        {"40k", 2},
+        {"80k", 2},
         {"180k", 1},
         {"200k", 0},
     },

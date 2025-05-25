@@ -1240,11 +1240,11 @@ constexpr fir_taps_real<24> taps_180k_wfm_decim_0 = {
     }},
 };
 
-// IFIR prototype filter: fs=768000, pass=90000, stop=110000, decim=2, fout=384000
+// IFIR prototype filter: fs=768000, pass=90000, stop=170000, decim=2, fout=384000
 constexpr fir_taps_real<16> taps_180k_wfm_decim_1 = {
     .low_frequency_normalized = -90000.0f / 768000.0f,
     .high_frequency_normalized = 90000.0f / 768000.0f,
-    .transition_normalized = 20000.0f / 768000.0f,
+    .transition_normalized = 80000.0f / 768000.0f,
     .taps = {{
         55,
         19,
@@ -1265,13 +1265,13 @@ constexpr fir_taps_real<16> taps_180k_wfm_decim_1 = {
     }},
 };
 
-// WFM 40kHZ filter for NOAA APT reception in 137Mhz band with sharp transition  //////////////////////////////////////////////
+// WFM 80kHZ filter with sharp transition  //////////////////////////////////////////////
 
-// IFIR image-reject filter: fs=3072000, pass=20000, stop=97000, decim=4, fout=768000
-constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
-    .low_frequency_normalized = -20000.0f / 3072000.0f,
-    .high_frequency_normalized = 20000.0f / 3072000.0f,
-    .transition_normalized = 67000.0f / 3072000.0f,
+// IFIR image-reject filter: fs=3072000, pass=97000, stop=300000, decim=4, fout=768000
+constexpr fir_taps_real<24> taps_80k_wfm_decim_0 = {
+    .low_frequency_normalized = -97000.0f / 3072000.0f,
+    .high_frequency_normalized = 97000.0f / 3072000.0f,
+    .transition_normalized = 203000.0f / 3072000.0f,
     .taps = {{
         46,
         112,
@@ -1300,11 +1300,11 @@ constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
     }},
 };
 
-// IFIR prototype filter: fs=768000, pass=20000, stop=55000, decim=2, fout=384000
-constexpr fir_taps_real<16> taps_40k_wfm_decim_1 = {
-    .low_frequency_normalized = -20000.0f / 768000.0f,
-    .high_frequency_normalized = 20000.0f / 768000.0f,
-    .transition_normalized = 35000.0f / 768000.0f,
+// IFIR prototype filter: fs=768000, pass=37500, stop=112500, decim=2, fout=384000
+constexpr fir_taps_real<16> taps_80k_wfm_decim_1 = {
+    .low_frequency_normalized = -37500.0f / 768000.0f,
+    .high_frequency_normalized = 37500.0f / 768000.0f,
+    .transition_normalized = 75000.0f / 768000.0f,
     .taps = {{
         83,
         299,
