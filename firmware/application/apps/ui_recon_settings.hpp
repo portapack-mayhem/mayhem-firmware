@@ -57,10 +57,6 @@
 #define RECON_MIN_LOCK_DURATION 100   // have to be >= and a multiple of STATS_UPDATE_INTERVAL
 #define RECON_DEF_WAIT_DURATION 1000  // will be incremented/decremented by STATS_UPDATE_INTERVAL steps
 
-// screen size helper
-#define SCREEN_W 240
-// #define SCREEN_H 320
-
 // recon settings nb params
 #define RECON_SETTINGS_NB_PARAMS 7
 
@@ -219,7 +215,7 @@ class ReconSetupView : public View {
     std::string input_file{"RECON"};
     std::string output_file{"RECON_RESULTS"};
 
-    Rect view_rect{0, 3 * 8, SCREEN_W, 230};
+    Rect view_rect{0, 3 * 8, screen_width, 230};
 
     ReconSetupViewMain viewMain{nav_, view_rect, input_file, output_file};
     ReconSetupViewMore viewMore{nav_, view_rect};

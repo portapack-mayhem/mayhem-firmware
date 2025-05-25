@@ -57,7 +57,7 @@ void SIGFRXView::paint(Painter& painter) {
     uint8_t i, xp;
 
     // portapack::display.draw_bmp_from_bmp_hex_arr({0, 302-160}, fox_bmp);
-    portapack::display.fill_rectangle({0, 16, 240, 160 - 16}, Theme::getInstance()->bg_darkest->foreground);
+    portapack::display.fill_rectangle({0, 16, screen_width, 160 - 16}, Theme::getInstance()->bg_darkest->foreground);
     for (i = 0; i < 6; i++) {
         xp = sigfrx_marks[i * 3];
         painter.draw_string({(ui::Coord)sigfrx_marks[(i * 3) + 1], 144 - 20}, style_white, to_string_dec_uint(sigfrx_marks[(i * 3) + 2]));
@@ -66,7 +66,7 @@ void SIGFRXView::paint(Painter& painter) {
 }
 
 void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    portapack::display.fill_rectangle({0, 144, 240, 4}, Theme::getInstance()->bg_darkest->foreground);
+    portapack::display.fill_rectangle({0, 144, screen_width, 4}, Theme::getInstance()->bg_darkest->foreground);
 
     uint8_t xmax = 0, imax = 0;
     size_t i;

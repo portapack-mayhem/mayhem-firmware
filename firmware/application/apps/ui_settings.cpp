@@ -759,7 +759,7 @@ AppSettingsView::AppSettingsView(
     add_children({&labels,
                   &menu_view});
 
-    menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
+    menu_view.set_parent_rect({0, 3 * 8, screen_width, 33 * 8});
 
     ensure_directory(settings_dir);
 

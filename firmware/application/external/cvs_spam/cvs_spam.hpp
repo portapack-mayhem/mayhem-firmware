@@ -53,7 +53,7 @@ class CVSSpamView : public View {
     std::vector<std::filesystem::path> file_list{};
 
     MenuView menu_view{
-        {0, 0, 240, 180},
+        {0, 0, screen_width, 180},
         true};
 
     Text text_empty{
@@ -84,7 +84,7 @@ class CVSSpamView : public View {
         LanguageHelper::currentMessages[LANG_STOP]};
 
     ProgressBar progressbar{
-        {0, 256, 240, 44}};
+        {0, 256, screen_width, 44}};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,

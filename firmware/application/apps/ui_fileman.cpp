@@ -455,7 +455,7 @@ FileLoadView::FileLoadView(
     add_children({&menu_view});
 
     // Resize menu view to fill screen
-    menu_view.set_parent_rect({0, 3 * 8, 240, 29 * 8});
+    menu_view.set_parent_rect({0, 3 * 8, screen_width, 29 * 8});
 
     refresh_list();
 

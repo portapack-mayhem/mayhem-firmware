@@ -69,7 +69,7 @@ class ProtoView : public View {
         {21 * 8, 0, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
@@ -111,7 +111,7 @@ class ProtoView : public View {
         LanguageHelper::currentMessages[LANG_PAUSE]};
 
     Waveform waveform{
-        {0, 8 * 8, 240, 50},
+        {0, 8 * 8, screen_width, 50},
         waveform_buffer,
         0,
         0,
@@ -119,7 +119,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform2{
-        {0, 8 * 8 + 55, 240, 50},
+        {0, 8 * 8 + 55, screen_width, 50},
         &waveform_buffer[MAXDRAWCNTPERWF],
         0,
         0,
@@ -127,7 +127,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform3{
-        {0, 8 * 8 + 110, 240, 50},
+        {0, 8 * 8 + 110, screen_width, 50},
         &waveform_buffer[MAXDRAWCNTPERWF * 2],
         0,
         0,
@@ -135,7 +135,7 @@ class ProtoView : public View {
         Theme::getInstance()->fg_yellow->foreground};
 
     Waveform waveform4{
-        {0, 8 * 8 + 165, 240, 50},
+        {0, 8 * 8 + 165, screen_width, 50},
         &waveform_buffer[MAXDRAWCNTPERWF * 3],
         0,
         0,

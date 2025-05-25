@@ -130,7 +130,7 @@ TransmitterView::TransmitterView(
     const uint32_t channel_bandwidth,
     const bool lock)
     : lock_{lock} {
-    set_parent_rect({0, y, 30 * 8, 6 * 8});
+    set_parent_rect({0, y, screen_width, 6 * 8});
 
     add_children({
         &field_frequency,

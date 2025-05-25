@@ -69,8 +69,9 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
     {taps_40k_wfm_decim_0, taps_40k_wfm_decim_1},
 }};
 
-static constexpr std::array<baseband::WFMAMConfig, 1> wfmam_configs{{
-    {taps_16k0_decim_0, taps_84k_wfmam_decim_1},
+static constexpr std::array<baseband::WFMAMConfig, 2> wfmam_configs{{
+    {taps_16k0_decim_0, taps_80k_wfmam_decim_1},
+    {taps_16k0_decim_0, taps_38k_wfmam_decim_1},
 }};
 
 } /* namespace */
@@ -273,12 +274,14 @@ void ReceiverModel::set_configuration_without_update(
     size_t new_am_config_index,
     size_t new_nbfm_config_index,
     size_t new_wfm_config_index,
+    size_t new_wfmam_config_index,
     uint8_t new_squelch_level) {
     settings_.mode = new_mode;
     settings_.frequency_step = new_frequency_step;
     settings_.am_config_index = new_am_config_index;
     settings_.nbfm_config_index = new_nbfm_config_index;
     settings_.wfm_config_index = new_wfm_config_index;
+    settings_.wfmam_config_index = new_wfmam_config_index;
     settings_.squelch_level = new_squelch_level;
 }
 

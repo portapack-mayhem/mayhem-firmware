@@ -118,10 +118,10 @@ class ViewWavView : public View {
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
     AudioVolumeField field_volume{
-        {28 * 8, 18 * 16}};
+        {screen_width - 2 * 8, 18 * 16}};
 
     Waveform waveform{
-        {0, 5 * 16, 240, 64},
+        {0, 5 * 16, screen_width, 64},
         waveform_buffer,
         240,
         0,
@@ -129,7 +129,7 @@ class ViewWavView : public View {
         Theme::getInstance()->bg_darkest->foreground};
 
     ProgressBar progressbar{
-        {0 * 8, 11 * 16, 30 * 8, 4}};
+        {0 * 8, 11 * 16, screen_width, 4}};
 
     NumberField field_pos_seconds{
         {9 * 8, 12 * 16},
@@ -177,7 +177,7 @@ class ViewWavView : public View {
         true};
 
     Text text_delta{
-        {7 * 8, 16 * 16, 30 * 8, 16},
+        {7 * 8, 16 * 16, screen_width, 16},
         "-"};
 
     MessageHandlerRegistration message_handler_replay_thread_error{

@@ -42,7 +42,7 @@ GeoPos::GeoPos(
     const alt_unit altitude_unit,
     const spd_unit speed_unit)
     : altitude_unit_(altitude_unit), speed_unit_(speed_unit) {
-    set_parent_rect({pos, {30 * 8, 3 * 16}});
+    set_parent_rect({pos, {screen_width, 3 * 16}});
 
     add_children({&labels_position,
                   &label_spd_position,

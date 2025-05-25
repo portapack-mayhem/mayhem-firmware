@@ -62,7 +62,7 @@ class FoxhuntRxView : public View {
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
@@ -73,7 +73,7 @@ class FoxhuntRxView : public View {
         {0 * 8, 2 * 16 + 4, 14 * 8, 14},
     };
     RSSIGraph rssi_graph{
-        {0, 50, 240, 30},
+        {0, 50, screen_width, 30},
     };
 
     Button clear_markers{
@@ -84,7 +84,7 @@ class FoxhuntRxView : public View {
         {2, 18, 7 * 8, 16},
         "Mark"};
 
-    GeoMap geomap{{0, 80, 240, 240}};
+    GeoMap geomap{{0, 80, screen_width, screen_height - 80}};
 
     MessageHandlerRegistration message_handler_gps{
         Message::ID::GPSPosData,

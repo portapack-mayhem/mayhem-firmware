@@ -50,8 +50,8 @@ namespace ui {
 using Coord = int16_t;
 using Dim = int16_t;
 
-constexpr uint16_t screen_width = 240;
-constexpr uint16_t screen_height = 320;
+extern uint16_t screen_width;
+extern uint16_t screen_height;
 
 /* Dimensions for the default font character. */
 constexpr uint16_t char_width = 8;

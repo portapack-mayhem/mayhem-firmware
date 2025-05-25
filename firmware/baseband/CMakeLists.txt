@@ -676,6 +676,14 @@ set(MODE_CPPSRC
 DeclareTargets(PWFX wefaxrx)
 
 
+### NoaaApt Rx
+
+set(MODE_CPPSRC
+	proc_noaaapt_rx.cpp
+)
+DeclareTargets(PNOA noaaapt_rx)
+
+
 ### HackRF "factory" firmware
 
 add_custom_command(

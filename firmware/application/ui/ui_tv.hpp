@@ -62,7 +62,7 @@ class TimeScopeView : public View {
         };*/
 
     Waveform waveform{
-        {0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16},
+        {0, 1 * 16 + cursor_band_height, screen_width, 2 * 16},
         audio_spectrum,
         128,
         0,
@@ -117,7 +117,7 @@ class TVWidget : public View {
    private:
     void update_widgets_rect();
 
-    const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, 30 * 8, 2 * 16 + 20};
+    const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, screen_width, 2 * 16 + 20};
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 

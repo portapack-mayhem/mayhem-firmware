@@ -91,7 +91,7 @@ class APRSTXView : public View {
         ' '};
 
     Text text_payload{
-        {0 * 8, 5 * 16, 30 * 8, 16},
+        {0 * 8, 5 * 16, screen_width, 16},
         "-"};
     Button button_set{
         {0 * 8, 6 * 16, 80, 32},

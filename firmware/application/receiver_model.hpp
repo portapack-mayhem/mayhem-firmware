@@ -129,6 +129,7 @@ class ReceiverModel {
         size_t new_am_config_index,
         size_t new_nbfm_config_index,
         size_t new_wfm_config_index,
+        size_t new_wfmam_config_index,
         uint8_t new_squelch_level);
 
     void configure_from_app_settings(const app_settings::AppSettings& settings);
