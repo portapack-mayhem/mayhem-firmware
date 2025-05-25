@@ -106,12 +106,15 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
     {taps_200k_wfm_decim_0, taps_200k_wfm_decim_1},
     {taps_180k_wfm_decim_0, taps_180k_wfm_decim_1},
     {taps_80k_wfm_decim_0, taps_80k_wfm_decim_1},
+<<<<<<< HEAD
 }};
 
 static constexpr std::array<baseband::WFMAMConfig, 3> wfmam_configs{{
     {taps_16k0_decim_0, taps_80k_wfmam_decim_1, taps_64_lp_1875_2166},
     {taps_16k0_decim_0, taps_38k_wfmam_decim_1, taps_64_lp_1875_2166},
     {taps_16k0_decim_0, taps_38k_wfmam_decim_1, taps_64_bpf_2k4_bw_2k},
+=======
+>>>>>>> c79abccf (wfm_filters_GUI_name_std (#2668))
 }};
 
 static constexpr std::array<baseband::WFMAMConfig, 2> wfmam_configs{{

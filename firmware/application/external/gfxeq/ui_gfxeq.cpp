@@ -42,10 +42,14 @@ gfxEQView::gfxEQView(NavigationView& nav)
 
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
 <<<<<<< HEAD
+<<<<<<< HEAD
     receiver_model.set_wfm_configuration(1);  // 200k => 0 , 180k => 1 , 80k => 2. Set to 1 or 2 for better reception
 =======
     receiver_model.set_wfm_configuration(1);  // 200k => 0 , 180k => 1 , 40k => 2. Set to 1 or 2 for better reception
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+    receiver_model.set_wfm_configuration(1);  // 200k => 0 , 180k => 1 , 80k => 2. Set to 1 or 2 for better reception
+>>>>>>> c79abccf (wfm_filters_GUI_name_std (#2668))
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
 
