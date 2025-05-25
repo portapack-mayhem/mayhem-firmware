@@ -32,7 +32,7 @@ gfxEQView::gfxEQView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
 
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
-    receiver_model.set_wfm_configuration(1);  // 200k => 0 , 180k => 1 , 40k => 2. Set to 1 or 2 for better reception
+    receiver_model.set_wfm_configuration(1);  // 200k => 0 , 180k => 1 , 80k => 2. Set to 1 or 2 for better reception
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
 

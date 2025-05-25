@@ -56,7 +56,7 @@ struct NBFMConfig {
 };
 
 struct WFMConfig {
-    const fir_taps_real<24> decim_0;  // To handle all 3 WFM filters , 200k, 180k and 40K-
+    const fir_taps_real<24> decim_0;  // To handle all 3 WFM filters , 200k, 180k and 80K-
     const fir_taps_real<16> decim_1;
 
     void apply() const;
