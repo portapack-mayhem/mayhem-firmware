@@ -109,14 +109,14 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         freq_index = 0;
         switch (value) {
             case 1:  // Lora
-                text_frequency.set("433, 868, 915 Mhz");
+                text_frequency.set("   433, 868, 915 Mhz");
                 break;
             case 2:  // Remotes
-                text_frequency.set("     433, 315 Mhz");
+                text_frequency.set("        433, 315 Mhz");
                 break;
             default:
             case 0:  // TETRA UP
-                text_frequency.set("      380-390 Mhz");
+                text_frequency.set("         380-390 Mhz");
                 break;
         }
     };
