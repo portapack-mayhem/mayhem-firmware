@@ -70,10 +70,14 @@ class ProtoView : public View {
 
     AudioVolumeField field_volume{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 =======
         {screen_width - 2 * 8, 0 * 16}};
 >>>>>>> 3c8335c9 (Audio to right (#2664))
+=======
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -116,10 +120,14 @@ class ProtoView : public View {
 
     Waveform waveform{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
 =======
         {0, 8 * 8, screen_width, 50},
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+        {UI_POS_X(0), UI_POS_Y(4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         waveform_buffer,
         0,
         0,
@@ -128,10 +136,14 @@ class ProtoView : public View {
 
     Waveform waveform2{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4) + (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
 =======
         {0, 8 * 8 + 55, screen_width, 50},
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+        {UI_POS_X(0), UI_POS_Y(4) + (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         &waveform_buffer[MAXDRAWCNTPERWF],
         0,
         0,
@@ -140,10 +152,14 @@ class ProtoView : public View {
 
     Waveform waveform3{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4) + 2 * (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
 =======
         {0, 8 * 8 + 110, screen_width, 50},
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+        {UI_POS_X(0), UI_POS_Y(4) + 2 * (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         &waveform_buffer[MAXDRAWCNTPERWF * 2],
         0,
         0,
@@ -152,10 +168,14 @@ class ProtoView : public View {
 
     Waveform waveform4{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(4) + 3 * (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
 =======
         {0, 8 * 8 + 165, screen_width, 50},
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+        {UI_POS_X(0), UI_POS_Y(4) + 3 * (UI_POS_HEIGHT_REMAINING(5) / 4), UI_POS_MAXWIDTH, (UI_POS_HEIGHT_REMAINING(5) / 4) - 4},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         &waveform_buffer[MAXDRAWCNTPERWF * 3],
         0,
         0,

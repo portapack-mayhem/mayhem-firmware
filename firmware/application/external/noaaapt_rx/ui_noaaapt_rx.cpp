@@ -133,6 +133,7 @@ void NoaaAptRxView::on_status(NoaaAptRxStatusDataMessage msg) {
 void NoaaAptRxView::on_image(NoaaAptRxImageDataMessage msg) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if ((line_num) >= UI_POS_HEIGHT_REMAINING(NOAA_IMG_START_ROW)) line_num = 0;  // for draw reset
 =======
     if ((line_num) >= 320 - NOAA_IMG_START_ROW * 16) line_num = 0;  // for draw reset
@@ -140,6 +141,9 @@ void NoaaAptRxView::on_image(NoaaAptRxImageDataMessage msg) {
 =======
     if ((line_num) >= screen_height - NOAA_IMG_START_ROW * 16) line_num = 0;  // for draw reset
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+    if ((line_num) >= UI_POS_HEIGHT_REMAINING(NOAA_IMG_START_ROW)) line_num = 0;  // for draw reset
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
         Color pxl = {msg.image[i], msg.image[i], msg.image[i]};

@@ -82,6 +82,7 @@ class NoaaAptRxView : public View {
 
     RFAmpField field_rf_amp{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
         {UI_POS_X(15), UI_POS_Y(0)}};
@@ -100,26 +101,33 @@ class NoaaAptRxView : public View {
         {UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_DEFAULT_HEIGHT},
 =======
         {13 * 8, 0 * 16}};
+=======
+        {UI_POS_X(13), UI_POS_Y(0)}};
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH(6), 4}};
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     RecordView record_view{
+<<<<<<< HEAD
 <<<<<<< HEAD
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
 =======
         {0 * 8, 2 * 16, screen_width, 1 * 16},
 >>>>>>> ac31f478 (screen max width fixes (#2663))
+=======
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_DEFAULT_HEIGHT},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,
@@ -128,14 +136,19 @@ class NoaaAptRxView : public View {
 
     Checkbox check_wav{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {UI_POS_X(0), UI_POS_Y(2)},
 =======
         {0 * 8, 2 * 16},
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+        {UI_POS_X(0), UI_POS_Y(2)},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         12,
         "Save WAV too",
         true};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     Text txt_status{
         {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
@@ -149,13 +162,19 @@ class NoaaAptRxView : public View {
         {{13 * 8, 1 * 16}, "IOC:", Theme::getInstance()->fg_light->foreground},
     };*/
 
+=======
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
     Text txt_status{
-        {0 * 8, 1 * 16, 20 * 8, 16},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
     };
 
     Button button_ss{
+<<<<<<< HEAD
         {190, 1 * 16, 5 * 8, 16},
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+        {UI_POS_X_RIGHT(6), UI_POS_Y(1), UI_POS_WIDTH(5), UI_POS_DEFAULT_HEIGHT},
+>>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{
