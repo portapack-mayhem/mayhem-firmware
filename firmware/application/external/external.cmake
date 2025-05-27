@@ -212,6 +212,10 @@ set(EXTCPPSRC
 	#gfxEQ
 	external/gfxeq/main.cpp
 	external/gfxeq/ui_gfxeq.cpp	
+
+	#waterfall designer
+	external/waterfall_designer/main.cpp
+	external/waterfall_designer/ui_waterfall_designer.cpp
 )
 
 set(EXTAPPLIST
@@ -266,4 +270,5 @@ set(EXTAPPLIST
 	scanner
 	level
 	gfxeq
+	waterfall_designer
 )
