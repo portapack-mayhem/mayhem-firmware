@@ -31,6 +31,8 @@ namespace ui {
 
 // default font height
 #define UI_POS_DEFAULT_HEIGHT 16
+// small height
+#define UI_POS_DEFAULT_HEIGHT_SMALL 8
 // default font width
 #define UI_POS_DEFAULT_WIDTH 8
 // px position of the linenum-th character (Y)
