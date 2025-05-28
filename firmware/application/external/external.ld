@@ -185,7 +185,11 @@ MEMORY
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
 =======
     ram_external_app_noaaapt_rx   (rwx) : org = 0xADE30000, len = 32k
+<<<<<<< HEAD
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+    ram_external_app_detector_rx   (rwx) : org = 0xADE40000, len = 32k
+>>>>>>> f90bd446 (Detector RX ext app (#2673))
 }
 
 SECTIONS
@@ -495,4 +499,13 @@ SECTIONS
         KEEP(*(.external_app.app_gfxeq.application_information));
         *(*ui*external_app*gfxeq*);
     } > ram_external_app_gfxeq
+
+    .external_app_detector_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_detector_rx.application_information));
+        *(*ui*external_app*detector_rx*);
+    } > ram_external_app_detector_rx
+
+
 }
+

@@ -32,10 +32,15 @@ namespace ui {
 // default font height
 #define UI_POS_DEFAULT_HEIGHT 16
 <<<<<<< HEAD
+<<<<<<< HEAD
 // small height
 #define UI_POS_DEFAULT_HEIGHT_SMALL 8
 =======
 >>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
+=======
+// small height
+#define UI_POS_DEFAULT_HEIGHT_SMALL 8
+>>>>>>> f90bd446 (Detector RX ext app (#2673))
 // default font width
 #define UI_POS_DEFAULT_WIDTH 8
 // px position of the linenum-th character (Y)
