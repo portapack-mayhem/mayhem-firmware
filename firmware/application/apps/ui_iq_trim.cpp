@@ -34,6 +34,7 @@ namespace ui {
 
 IQTrimView::IQTrimView(NavigationView& nav)
     : nav_{nav} {
+    power_buckets_.resize(screen_width);
     add_children({
         &labels,
         &field_path,

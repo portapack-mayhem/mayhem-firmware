@@ -90,7 +90,7 @@ class BattinfoView : public View {
         "-"};
 
     Text text_warn{
-        {1 * 8, 8 * 16, 30 * 8, 2 * 16},
+        {1 * 8, 8 * 16, screen_width, 2 * 16},
         ""}; */
 
     Button button_mode{

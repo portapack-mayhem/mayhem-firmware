@@ -76,10 +76,30 @@ int BtnGridView::rows() {
 void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
+    button_h = 48;  // btn_h_min;
+    /*
+    // DISABLED FOR NOW. TODO fix next, prev button pos
+    int min_remainder = parent_rect().size().height();
+    uint8_t max_button_count = 0;
+
+    for (int h = btn_h_min; h <= btn_h_max; ++h) {
+        int count = parent_rect().size().height() / h;
+        int remainder = parent_rect().size().height() % h;
+
+        // Prefer smaller remainder, then more buttons, then larger height
+        if (remainder < min_remainder ||
+            (remainder == min_remainder && count > max_button_count) ||
+            (remainder == min_remainder && count == max_button_count && h > button_h)) {
+            button_h = h;
+            min_remainder = remainder;
+            max_button_count = count;
+        }
+    }
+    */
     displayed_max = (parent_rect().size().height() / button_h);
 
-    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), 120, 16});
-    button_pgdown.set_parent_rect({120, (Coord)(displayed_max * button_h), 120, 16});
+    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), screen_width / 2, 16});
+    button_pgdown.set_parent_rect({screen_width / 2, (Coord)(displayed_max * button_h), screen_width / 2, 16});
 
     displayed_max *= rows_;
 

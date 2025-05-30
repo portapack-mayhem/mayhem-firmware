@@ -210,7 +210,7 @@ class AISAppView : public View {
     };
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Channel channel{
         {21 * 8, 5, 6 * 8, 4},

@@ -124,7 +124,7 @@ class EncodersConfigView : public View {
         ""};
 
     Waveform waveform{
-        {0, 17 * 8, 240, 32},
+        {0, 17 * 8, screen_width, 32},
         waveform_buffer,
         0,
         0,
@@ -201,7 +201,7 @@ class EncodersView : public View {
     void start_tx(const bool scan);
     void on_tx_progress(const uint32_t progress, const bool done);
 
-    Rect view_rect = {0, 4 * 8, 240, 168};
+    Rect view_rect = {0, 4 * 8, screen_width, 168};
 
     EncodersConfigView view_config{nav_, view_rect};
     EncodersScanView view_scan{nav_, view_rect};

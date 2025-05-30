@@ -209,9 +209,9 @@ void StartGame() {
     cls();
     background(Black);
     foreground(White);
-    fillrect(0, 0, 162, 320, Black);
-    rect(162, 0, 164, 320, White);
-    fillrect(164, 0, 240, 320, Black);
+    fillrect(0, 0, 162, screen_height, Black);
+    rect(162, 0, 164, screen_height, White);
+    fillrect(164, 0, screen_width, screen_height, Black);
     ShowScore();
     ShowNextFigure();
 }
@@ -483,7 +483,7 @@ void UpdateBoard() {
                 board[i - numberOfLines][j] = 0;
             }
         }
-        fillrect(0, 0, 162, 320, Black);
+        fillrect(0, 0, 162, screen_height, Black);
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 10; j++) {
                 if (board[i][j] != 0) {

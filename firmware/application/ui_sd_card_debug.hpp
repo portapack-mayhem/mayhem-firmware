@@ -60,62 +60,62 @@ class SDCardDebugView : public View {
     };
 
     Text text_format{
-        {240 - ((sizeof("Undefined: 255") + 1) * 8), 1 * 16, (sizeof("Undefined: 255") + 1) * 8, 16},
+        {screen_width - (int)((sizeof("Undefined: 255") + 1) * 8), 1 * 16, (sizeof("Undefined: 255") + 1) * 8, 16},
         "Unknown",
     };
 
     Text text_csd_value_3{
-        {240 - ((8 + 1 + 8) * 8), 3 * 16, (8 * 8), 16},
+        {screen_width - ((8 + 1 + 8) * 8), 3 * 16, (8 * 8), 16},
         "",
     };
 
     Text text_csd_value_2{
-        {240 - (8 * 8), 3 * 16, (8 * 8), 16},
+        {screen_width - (8 * 8), 3 * 16, (8 * 8), 16},
         "",
     };
 
     Text text_csd_value_1{
-        {240 - ((8 + 1 + 8) * 8), 4 * 16, (8 * 8), 16},
+        {screen_width - ((8 + 1 + 8) * 8), 4 * 16, (8 * 8), 16},
         "",
     };
 
     Text text_csd_value_0{
-        {240 - (8 * 8), 4 * 16, (8 * 8), 16},
+        {screen_width - (8 * 8), 4 * 16, (8 * 8), 16},
         "",
     };
 
     static constexpr size_t bus_width_characters = 1;
 
     Text text_bus_width_value{
-        {240 - (bus_width_characters * 8), 5 * 16, (bus_width_characters * 8), 16},
+        {screen_width - (int)(bus_width_characters * 8), 5 * 16, (bus_width_characters * 8), 16},
         "",
     };
 
     static constexpr size_t card_type_characters = 13;
 
     Text text_card_type_value{
-        {240 - (card_type_characters * 8), 6 * 16, (card_type_characters * 8), 16},
+        {screen_width - (int)(card_type_characters * 8), 6 * 16, (card_type_characters * 8), 16},
         "",
     };
 
     static constexpr size_t block_size_characters = 5;
 
     Text text_block_size_value{
-        {240 - (block_size_characters * 8), 8 * 16, (block_size_characters * 8), 16},
+        {screen_width - (int)(block_size_characters * 8), 8 * 16, (block_size_characters * 8), 16},
         "",
     };
 
     static constexpr size_t block_count_characters = 9;
 
     Text text_block_count_value{
-        {240 - (block_count_characters * 8), 9 * 16, (block_count_characters * 8), 16},
+        {screen_width - (int)(block_count_characters * 8), 9 * 16, (block_count_characters * 8), 16},
         "",
     };
 
     static constexpr size_t capacity_characters = 10;
 
     Text text_capacity_value{
-        {240 - (capacity_characters * 8), 10 * 16, (capacity_characters * 8), 16},
+        {screen_width - (int)(capacity_characters * 8), 10 * 16, (capacity_characters * 8), 16},
         "",
     };
 
@@ -129,7 +129,7 @@ class SDCardDebugView : public View {
     };
 
     Text text_test_write_time_value{
-        {240 - (test_write_time_characters * 8), 12 * 16, (test_write_time_characters * 8), 16},
+        {screen_width - (int)(test_write_time_characters * 8), 12 * 16, (test_write_time_characters * 8), 16},
         "",
     };
 
@@ -141,7 +141,7 @@ class SDCardDebugView : public View {
     };
 
     Text text_test_write_rate_value{
-        {240 - (test_write_rate_characters * 8), 13 * 16, (test_write_rate_characters * 8), 16},
+        {screen_width - (int)(test_write_rate_characters * 8), 13 * 16, (test_write_rate_characters * 8), 16},
         "",
     };
 
@@ -155,7 +155,7 @@ class SDCardDebugView : public View {
     };
 
     Text text_test_read_time_value{
-        {240 - (test_read_time_characters * 8), 14 * 16, (test_read_time_characters * 8), 16},
+        {screen_width - (int)(test_read_time_characters * 8), 14 * 16, (test_read_time_characters * 8), 16},
         "",
     };
 
@@ -167,7 +167,7 @@ class SDCardDebugView : public View {
     };
 
     Text text_test_read_rate_value{
-        {240 - (test_read_rate_characters * 8), 15 * 16, (test_read_rate_characters * 8), 16},
+        {screen_width - (int)(test_read_rate_characters * 8), 15 * 16, (test_read_rate_characters * 8), 16},
         "",
     };
 
@@ -178,7 +178,7 @@ class SDCardDebugView : public View {
         "Test"};
 
     Button button_ok{
-        {240 - 96 - 16, 17 * 16, 96, 24},
+        {screen_width - 96 - 16, 17 * 16, 96, 24},
         "OK"};
 };
 

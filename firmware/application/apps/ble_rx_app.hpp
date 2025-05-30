@@ -219,6 +219,7 @@ class BLERxView : public View {
     std::string filter{};
     bool logging{false};
     bool serial_logging{false};
+    bool async_tx_states_when_entered{false};
 
     bool name_enable{true};
     app_settings::SettingsManager settings_{
@@ -340,18 +341,18 @@ class BLERxView : public View {
         true};
 
     // Console console{
-    //     {0, 10 * 8, 240, 240}};
+    //     {0, 10 * 8, screen_height, screen_height-80}};
 
     Button button_clear_list{
-        {2 * 8, 320 - (16 + 32), 7 * 8, 32},
+        {2 * 8, screen_height - (16 + 32), 7 * 8, 32},
         "Clear"};
 
     Button button_save_list{
-        {11 * 8, 320 - (16 + 32), 11 * 8, 32},
+        {11 * 8, screen_height - (16 + 32), 11 * 8, 32},
         "Export CSV"};
 
     Button button_switch{
-        {240 - 6 * 8, 320 - (16 + 32), 4 * 8, 32},
+        {screen_width - 6 * 8, screen_height - (16 + 32), 4 * 8, 32},
         "Tx"};
 
     std::string str_log{""};

@@ -93,8 +93,8 @@ void NBFMConfig::apply(const uint8_t squelch_level) const {
 
 void WFMConfig::apply() const {
     const WFMConfigureMessage message{
-        decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_40k_wfm_decim_0
-        decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_40k_wfm_decim_1
+        decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_80k_wfm_decim_0
+        decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_80k_wfm_decim_1
         taps_64_lp_156_198,  // Fixed channel audio filter 15khz
         75000,
         audio_48k_hpf_30hz_config,

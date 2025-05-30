@@ -81,22 +81,22 @@ class NoaaAptRxView : public View {
         {}};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH(6), 4}};
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_DEFAULT_HEIGHT},
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,
@@ -104,22 +104,17 @@ class NoaaAptRxView : public View {
         4};
 
     Checkbox check_wav{
-        {0 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y(2)},
         12,
         "Save WAV too",
         true};
 
-    /*Labels labels{
-        {{1 * 8, 1 * 16}, "LPM:", Theme::getInstance()->fg_light->foreground},
-        {{13 * 8, 1 * 16}, "IOC:", Theme::getInstance()->fg_light->foreground},
-    };*/
-
     Text txt_status{
-        {0 * 8, 1 * 16, 20 * 8, 16},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
     };
 
     Button button_ss{
-        {190, 1 * 16, 5 * 8, 16},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(1), UI_POS_WIDTH(5), UI_POS_DEFAULT_HEIGHT},
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{

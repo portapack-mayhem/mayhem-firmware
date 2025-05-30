@@ -230,7 +230,7 @@ class ADSBRxAircraftDetailsView : public View {
         "-"};
 
     Text text_model{
-        {0 * 8, 6 * 16, 30 * 8, 16},
+        {0 * 8, 6 * 16, screen_width, 16},
         "-"};
 
     Text text_type{
@@ -238,19 +238,19 @@ class ADSBRxAircraftDetailsView : public View {
         "-"};
 
     Text text_number_of_engines{
-        {18 * 8, 8 * 16, 30 * 8, 16},
+        {18 * 8, 8 * 16, screen_width, 16},
         "-"};
 
     Text text_engine_type{
-        {0 * 8, 10 * 16, 30 * 8, 16},
+        {0 * 8, 10 * 16, screen_width, 16},
         "-"};
 
     Text text_owner{
-        {0 * 8, 12 * 16, 30 * 8, 16},
+        {0 * 8, 12 * 16, screen_width, 16},
         "-"};
 
     Text text_operator{
-        {0 * 8, 14 * 16, 30 * 8, 16},
+        {0 * 8, 14 * 16, screen_width, 16},
         "-"};
 
     Button button_close{
@@ -312,7 +312,7 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Text text_airline{
-        {0 * 8, 4 * 16, 30 * 8, 16},
+        {0 * 8, 4 * 16, screen_width, 16},
         "-"};
 
     Text text_country{
@@ -320,18 +320,18 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Text text_infos{
-        {0 * 8, 6 * 16, 30 * 8, 16},
+        {0 * 8, 6 * 16, screen_width, 16},
         "-"};
 
     Text text_info2{
-        {0 * 8, 7 * 16, 30 * 8, 16},
+        {0 * 8, 7 * 16, screen_width, 16},
         "-"};
 
     Text text_frame_pos_even{
-        {0 * 8, 14 * 16, 30 * 8, 16},
+        {0 * 8, 14 * 16, screen_width, 16},
         "-"};
     Text text_frame_pos_odd{
-        {0 * 8, 16 * 16, 30 * 8, 16},
+        {0 * 8, 16 * 16, screen_width, 16},
         "-"};
 
     Button button_aircraft_details{
@@ -442,7 +442,7 @@ class ADSBRxView : public View {
     };
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     MessageHandlerRegistration message_handler_frame{
         Message::ID::ADSBFrame,

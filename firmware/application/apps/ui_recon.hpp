@@ -237,15 +237,15 @@ class ReconView : public View {
 
     Text file_name{
         // show file used
-        {0, 1 * 16, SCREEN_W, 16},
+        {0, 1 * 16, screen_width, 16},
     };
 
     Text desc_cycle{
-        {0, 2 * 16, SCREEN_W, 16},
+        {0, 2 * 16, screen_width, 16},
     };
 
     RSSI rssi{
-        {0 * 16, 3 * 16 + 2, SCREEN_W - 8 * 8 + 4, 12},
+        {0 * 16, 3 * 16 + 2, screen_width - 8 * 8 + 4, 12},
     };
 
     ButtonWithEncoder text_cycle{
@@ -285,15 +285,15 @@ class ReconView : public View {
 
     // Button can be RECON or SCANNER
     Button button_scanner_mode{
-        {SCREEN_W - 7 * 8, 3 * 16, 7 * 8, 28},
+        {screen_width - 7 * 8, 3 * 16, 7 * 8, 28},
         "RECON"};
 
     Button button_loop_config{
-        {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
+        {screen_width - 7 * 8, 5 * 16, 7 * 8, 28},
         "[LOOP]"};
 
     Button button_config{
-        {SCREEN_W - 7 * 8, 7 * 16, 7 * 8, 28},
+        {screen_width - 7 * 8, 7 * 16, 7 * 8, 28},
         "CONFIG"};
 
     ButtonWithEncoder button_manual_start{
@@ -391,7 +391,7 @@ class ReconView : public View {
         "<REMOVE>"};
 
     ProgressBar progressbar{
-        {0 * 8, SCREEN_H / 2 - 16, SCREEN_W, 32}};
+        {0 * 8, screen_height / 2 - 16, screen_width, 32}};
 
     TransmitterView2 tx_view{
         {11 * 8, 2 * 16},

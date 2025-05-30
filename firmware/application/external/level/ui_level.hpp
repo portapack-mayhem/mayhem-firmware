@@ -178,12 +178,12 @@ class LevelView : public View {
 
     RSSIGraph rssi_graph{
         // 240x320  =>
-        {0, 6 * 16 + 8, 240 - 5 * 8, 320 - (6 * 16)},
+        {0, 6 * 16 + 8, screen_width - 5 * 8, screen_height - (6 * 16)},
     };
 
     RSSI rssi{
         // 240x320  =>
-        {240 - 5 * 8, 6 * 16 + 8, 5 * 8, 320 - (6 * 16)},
+        {screen_width - 5 * 8, 6 * 16 + 8, 5 * 8, screen_height - (6 * 16)},
     };
 
     void handle_coded_squelch(const uint32_t value);

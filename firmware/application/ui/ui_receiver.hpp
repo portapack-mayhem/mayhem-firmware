@@ -226,7 +226,7 @@ class FrequencyKeypadView : public View {
     static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
 
     Text text_value{
-        {0, 4, 240, 16}};
+        {0, 4, screen_width, 16}};
 
     std::array<Button, 12> buttons{};
 

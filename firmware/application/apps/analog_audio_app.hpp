@@ -185,7 +185,7 @@ class SPECOptionsView : public View {
         {19 * 8, 0 * 16, 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
         "Rx_IQ_CAL  "};
     NumberField field_rx_iq_phase_cal{
-        {28 * 8, 0 * 16},
+        {screen_width - 2 * 8, 0 * 16},
         2,
         {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
@@ -244,7 +244,7 @@ class AnalogAudioView : public View {
             {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
         }};
 
-    const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
+    const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
 
     size_t spec_bw_index = 0;
@@ -283,7 +283,7 @@ class AnalogAudioView : public View {
         }};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Text text_ctcss{
         {16 * 8, 1 * 16, 14 * 8, 1 * 16},
@@ -292,7 +292,7 @@ class AnalogAudioView : public View {
     std::unique_ptr<Widget> options_widget{};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 2 * 16, screen_width, 1 * 16},
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,

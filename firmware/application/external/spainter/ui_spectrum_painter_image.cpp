@@ -244,12 +244,12 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 
 void SpectrumInputImageView::paint(Painter& painter) {
     painter.fill_rectangle(
-        {{0, 40}, {240, 204}},
+        {{0, 40}, {screen_width, 204}},
         style().background);
 
     if (!painted) {
         // This is very slow for big pictures. Do only once.
-        this->drawBMP_scaled({{0, 40}, {240, 160}}, this->file);
+        this->drawBMP_scaled({{0, 40}, {screen_width, 160}}, this->file);
         painted = true;
     }
 }

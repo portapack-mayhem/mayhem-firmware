@@ -70,7 +70,7 @@ class DoomView : public View {
 
    private:
     NavigationView& nav_;
-    Button dummy{{240, 0, 0, 0}, ""};
+    Button dummy{{screen_width, 0, 0, 0}, ""};
     bool initialized{false};
     bool prev_velocity_moving{false};
     MessageHandlerRegistration message_handler_frame_sync{

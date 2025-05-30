@@ -87,10 +87,10 @@ class ACARSAppView : public View {
         true};
 
     Console console{
-        {0, 3 * 16, 240, 256}};
+        {0, 3 * 16, screen_width, 256}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 1 * 16}};
+        {screen_width - 2 * 8, 1 * 16}};
 
     std::unique_ptr<ACARSLogger> logger{};
 

@@ -74,6 +74,7 @@ MEMORY
     ram_external_app_level      (rwx) : org = 0xADE10000, len = 32k
     ram_external_app_gfxeq      (rwx) : org = 0xADE20000, len = 32k
     ram_external_app_noaaapt_rx   (rwx) : org = 0xADE30000, len = 32k
+    ram_external_app_detector_rx   (rwx) : org = 0xADE40000, len = 32k
 }
 
 SECTIONS
@@ -383,4 +384,13 @@ SECTIONS
         KEEP(*(.external_app.app_gfxeq.application_information));
         *(*ui*external_app*gfxeq*);
     } > ram_external_app_gfxeq
+
+    .external_app_detector_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_detector_rx.application_information));
+        *(*ui*external_app*detector_rx*);
+    } > ram_external_app_detector_rx
+
+
 }
+

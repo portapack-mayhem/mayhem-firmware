@@ -107,10 +107,10 @@ class SoundBoardView : public View {
         "<="};
 
     Text page_info{
-        {0, 29 * 8, 30 * 8, 16}};
+        {0, 29 * 8, screen_width, 16}};
 
     MenuView menu_view{
-        {0, 0, 240, 175},
+        {0, 0, screen_width, 175},
         true};
     Text text_empty{
         {7 * 8, 12 * 8, 16 * 8, 16},
@@ -131,9 +131,9 @@ class SoundBoardView : public View {
         {}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 180}};
+        {screen_width - 2 * 8, 180}};
     Text text_volume_disabled{
-        {28 * 8, 180, 3 * 8, 16},
+        {screen_width - 2 * 8, 180, 3 * 8, 16},
         "--"};
 
     Checkbox check_loop{
@@ -147,7 +147,7 @@ class SoundBoardView : public View {
         "Random"};
 
     ProgressBar progressbar{
-        {0 * 8, 31 * 8 + 2, 30 * 8, 4}};
+        {0 * 8, 31 * 8 + 2, screen_width, 4}};
 
     TransmitterView tx_view{
         16 * 16,

@@ -40,12 +40,10 @@ class gfxEQView : public View {
 
    private:
     static constexpr ui::Dim header_height = 2 * 16;
-    static constexpr int SCREEN_WIDTH = 240;
-    static constexpr int SCREEN_HEIGHT = 320;
     static constexpr int RENDER_HEIGHT = 288;
     static constexpr int NUM_BARS = 11;
     static constexpr int BAR_SPACING = 2;
-    static constexpr int BAR_WIDTH = (SCREEN_WIDTH - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
+    int BAR_WIDTH = (screen_width - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
     static constexpr int HORIZONTAL_OFFSET = 2;
     static constexpr int SEGMENT_HEIGHT = 10;
 
@@ -101,7 +99,7 @@ class gfxEQView : public View {
     LNAGainField field_lna{{15 * 8, 0 * 16}};
     VGAGainField field_vga{{18 * 8, 0 * 16}};
     Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
-    AudioVolumeField field_volume{{28 * 8, 0 * 16}};
+    AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
 
     rf::Frequency frequency_value{93100000};
 
