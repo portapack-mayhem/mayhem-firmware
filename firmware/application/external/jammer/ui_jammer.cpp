@@ -189,7 +189,11 @@ void JammerView::set_jammer_channel(uint32_t i, uint32_t width, uint64_t center,
     jammer_channels[i].enabled = true;
     jammer_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
     jammer_channels[i].center = center;
+<<<<<<< HEAD
     jammer_channels[i].duration = duration ? 30720 * duration : 3000;
+=======
+    jammer_channels[i].duration = duration ? 30720 * duration : 0xFFFFFFFF;
+>>>>>>> fd158e87 (Jammer improvements (#2674))
 }
 
 void JammerView::start_tx() {
@@ -328,9 +332,12 @@ JammerView::JammerView(NavigationView& nav)
     : nav_{nav} {
     Rect view_rect = {0, 3 * 8, screen_width, 80};
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // baseband::run_image(portapack::spi_flash::image_tag_jammer);
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+>>>>>>> fd158e87 (Jammer improvements (#2674))
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&tab_view,
