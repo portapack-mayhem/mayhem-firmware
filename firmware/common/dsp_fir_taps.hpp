@@ -1494,7 +1494,7 @@ constexpr fir_taps_real<64> taps_64_lp_1875_2166{
 /* 1st Wideband FM demod baseband filter of audio AM tones ,
    to pass all DSB band of  AM  fsubcarrier 2.4Khz mod. with APT */
 /* 24kHz int16_t input
- * -> FIR filter, HPF center 2k4 carrier ,APT  BW 2kHz
+ * -> FIR filter, BPF center 2k4 carrier ,APT  BW 2kHz
  * -> 12kHz int16_t output, gain of 1.0 (I think).
  */
 constexpr fir_taps_real<64> taps_64_bpf_2k4_bw_2k{
