@@ -190,10 +190,14 @@ void JammerView::set_jammer_channel(uint32_t i, uint32_t width, uint64_t center,
     jammer_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
     jammer_channels[i].center = center;
 <<<<<<< HEAD
+<<<<<<< HEAD
     jammer_channels[i].duration = duration ? 30720 * duration : 3000;
 =======
     jammer_channels[i].duration = duration ? 30720 * duration : 0xFFFFFFFF;
 >>>>>>> fd158e87 (Jammer improvements (#2674))
+=======
+    jammer_channels[i].duration = duration ? 30720 * duration : 3000;
+>>>>>>> 6e9ecf8e (jammer fix (#2676))
 }
 
 void JammerView::start_tx() {
