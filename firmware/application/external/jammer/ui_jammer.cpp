@@ -189,7 +189,7 @@ void JammerView::set_jammer_channel(uint32_t i, uint32_t width, uint64_t center,
     jammer_channels[i].enabled = true;
     jammer_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
     jammer_channels[i].center = center;
-    jammer_channels[i].duration = duration ? 30720 * duration : 2500;
+    jammer_channels[i].duration = duration ? 30720 * duration : 3000;
 }
 
 void JammerView::start_tx() {
