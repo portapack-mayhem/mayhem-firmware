@@ -135,16 +135,22 @@ void WFMConfig::apply() const {
 void WFMAMConfig::apply() const {
     const WFMAMConfigureMessage message{
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 695e6d19 (Adding_BPF_selection_to_the_NOAA_APT_signal (#2675))
         decim_0,         // 	Fixed 24 taps array : taps_16k0_decim_0
         decim_1,         // Dynamic  32 taps array : taps_80k_wfmam_decim_1, 38k_wfmam
         taps_64_lp_bpf,  // Dynamic 64 taps array , to filter modulated DSB AM 2k4 carrier before demod. AM .(LPF / BPF)
         17000,           // NOAA satellite tx , FM deviation = +-17Khz.
+<<<<<<< HEAD
 =======
         decim_0,               // 	Fixed 24 taps array : taps_16k0_decim_0
         decim_1,               // 	Fixed 32 taps array : taps_84k_wfm_decim_1
         taps_64_lp_1875_2166,  // Fixed channel audio filter , 64 taps array , to filter DSB AM 2k4 carrier before demod. AM .
         17000,                 // NOAA satellite tx , FM deviation = +-17Khz.
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+>>>>>>> 695e6d19 (Adding_BPF_selection_to_the_NOAA_APT_signal (#2675))
         apt_audio_12k_notch_2k4_config,
         apt_audio_12k_lpf_2000hz_config};
     send_message(&message);

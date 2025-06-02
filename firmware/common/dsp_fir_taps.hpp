@@ -1617,6 +1617,9 @@ constexpr fir_taps_real<64> taps_64_lp_1875_2166{
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 695e6d19 (Adding_BPF_selection_to_the_NOAA_APT_signal (#2675))
 /* 1st Wideband FM demod baseband filter of audio AM tones ,
    to pass all DSB band of  AM  fsubcarrier 2.4Khz mod. with APT */
 /* 24kHz int16_t input
@@ -1624,7 +1627,11 @@ constexpr fir_taps_real<64> taps_64_lp_1875_2166{
  * -> 12kHz int16_t output, gain of 1.0 (I think).
  */
 constexpr fir_taps_real<64> taps_64_bpf_2k4_bw_2k{
+<<<<<<< HEAD
     .low_frequency_normalized = -0.1875f,  // not updated, this is just for LPF , waterfall GUI,  we are not using in BPF NOAA app.
+=======
+    .low_frequency_normalized = -0.1875f,  // not updated, this is just for LPF , waterfall GUI,  we are not using in HPF NOAA app.
+>>>>>>> 695e6d19 (Adding_BPF_selection_to_the_NOAA_APT_signal (#2675))
     .high_frequency_normalized = 0.1875f,  // not used GUI in NOAA App.
     .transition_normalized = 0.03f,        // not used GUI in NOAA app.
     .taps = {{-45, -29, 32, 63, 0, -125, -181, -81, 61,
@@ -1637,8 +1644,11 @@ constexpr fir_taps_real<64> taps_64_bpf_2k4_bw_2k{
               -45}},
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
+=======
+>>>>>>> 695e6d19 (Adding_BPF_selection_to_the_NOAA_APT_signal (#2675))
 // TPMS decimation filters ////////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=2457600, pass=100000, stop=407200, decim=4, fout=614400

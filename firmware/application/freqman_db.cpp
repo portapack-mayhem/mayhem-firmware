@@ -142,8 +142,9 @@ options_t freqman_bandwidths[6] = {
     },
     {
         // WFMAM for NOAA satellites,  137 Mhz band
-        {"80kHz (NOAA Apt)", 0},  // Fixed RX demod- WFM config Index 1 : FM+AM  for Audio NOAA APT ones.
-        {"38kHz (NOAA Apt)", 1},
+        {"80k-NOAA Apt LPF-2K", 0},
+        {"38k-NOAA Apt LPF-2K", 1},
+        {"38k-NOAA Apt BPF-2K", 2},  // Symetrical BPF centred to the 2k4 AM subcarrier,  BW = 2KHz
     },
 };
 >>>>>>> 1df31835 (Wefax warning fix modulation fix (#2543))
