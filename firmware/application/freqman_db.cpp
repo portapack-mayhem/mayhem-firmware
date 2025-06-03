@@ -108,9 +108,9 @@ options_t freqman_bandwidths[6] = {
     },
     {
         // WFMAM for NOAA satellites,  137 Mhz band
-        {"80k-NOAA Apt LPF-2K", 0},
-        {"38k-NOAA Apt LPF-2K", 1},
-        {"38k-NOAA Apt BPF-2K", 2},  // Symetrical BPF centred to the 2k4 AM subcarrier,  BW = 2KHz
+        {"80k-NOAA Apt LPF", 0},  // Captured RF IQ filtered BW 80K, APT baseband filtered with Low Pass Filter 4k5 fc -3dB
+        {"38k-NOAA Apt LPF", 1},  // Captured RF IQ filtered BW 38K, APT baseband filtered with Low Pass Filter 4k5 fc -3dB
+        {"38k-NOAA Apt BPF", 2},  // Captured RF IQ filtered BW 38K, APT baseband filtered BPF centred to the 2k4 AM subcarrier,  BW = 2KHz
     },
 };
 
