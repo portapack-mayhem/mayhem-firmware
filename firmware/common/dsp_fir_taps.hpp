@@ -1498,7 +1498,7 @@ constexpr fir_taps_real<64> taps_64_lp_1875_2166{
  * -> 12kHz int16_t output, gain of 1.0 (I think).
  */
 constexpr fir_taps_real<64> taps_64_bpf_2k4_bw_2k{
-    .low_frequency_normalized = -0.1875f,  // not updated, this is just for LPF , waterfall GUI,  we are not using in HPF NOAA app.
+    .low_frequency_normalized = -0.1875f,  // not updated, this is just for LPF , waterfall GUI,  we are not using in BPF NOAA app.
     .high_frequency_normalized = 0.1875f,  // not used GUI in NOAA App.
     .transition_normalized = 0.03f,        // not used GUI in NOAA app.
     .taps = {{-45, -29, 32, 63, 0, -125, -181, -81, 61,
