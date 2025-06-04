@@ -37,6 +37,18 @@ void FmRadioView::focus() {
     field_frequency.focus();
 }
 
+void FmRadioView::update_baseband(ReceiverModel::Mode mod) {
+    receiver_model.disable();
+    baseband::shutdown();
+    if (mod == ReceiverModel::Mode::WidebandFMAudio) {
+        baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
+    } else if (mod == ReceiverModel::Mode::AMAudio) {
+        baseband::run_image(portapack::spi_flash::image_tag_am_audio);
+    }
+    receiver_model.set_modulation(mod);
+    receiver_model.enable();
+}
+
 FmRadioView::FmRadioView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
@@ -60,12 +72,14 @@ FmRadioView::FmRadioView(NavigationView& nav)
                   &btn_fav_8,
                   &btn_fav_9,
                   &audio,
-                  &waveform});
+                  &waveform,
+                  &field_modulation});
 
     txt_save_help.visible(false);
     for (uint8_t i = 0; i < 12; ++i) {
-        if (freq_fav_list[i] == 0) {
-            freq_fav_list[i] = 87000000;
+        if (freq_fav_list[i].frequency == 0) {
+            freq_fav_list[i].frequency = 87000000;
+            freq_fav_list[i].modulation = static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio);
         }
     }
 
@@ -74,6 +88,7 @@ FmRadioView::FmRadioView(NavigationView& nav)
     }
 
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+    field_modulation.set_by_value(static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio));
 
     field_frequency.set_step(25000);
     receiver_model.enable();
@@ -117,20 +132,27 @@ FmRadioView::FmRadioView(NavigationView& nav)
         txt_save_help.set_dirty();
     };
 
+    field_modulation.on_change = [this](size_t, int32_t mod) {
+        update_baseband(static_cast<ReceiverModel::Mode>(mod));
+    };
+
     update_fav_btn_texts();
 }
 
 void FmRadioView::on_btn_clicked(uint8_t i) {
     if (save_fav) {
         save_fav = false;
-        freq_fav_list[i] = field_frequency.value();
+        freq_fav_list[i].frequency = field_frequency.value();
+        freq_fav_list[i].modulation = static_cast<int32_t>(receiver_model.modulation());
         update_fav_btn_texts();
         txt_save_help.visible(save_fav);
         txt_save_help.set_text("");
         txt_save_help.set_dirty();
         return;
     }
-    field_frequency.set_value(freq_fav_list[i]);
+    field_frequency.set_value(freq_fav_list[i].frequency);
+    update_baseband(static_cast<ReceiverModel::Mode>(freq_fav_list[i].modulation));
+    field_modulation.set_by_value(freq_fav_list[i].modulation);
 }
 
 std::string FmRadioView::to_nice_freq(rf::Frequency freq) {
@@ -141,16 +163,16 @@ std::string FmRadioView::to_nice_freq(rf::Frequency freq) {
 }
 
 void FmRadioView::update_fav_btn_texts() {
-    btn_fav_0.set_text(to_nice_freq(freq_fav_list[0]));
-    btn_fav_1.set_text(to_nice_freq(freq_fav_list[1]));
-    btn_fav_2.set_text(to_nice_freq(freq_fav_list[2]));
-    btn_fav_3.set_text(to_nice_freq(freq_fav_list[3]));
-    btn_fav_4.set_text(to_nice_freq(freq_fav_list[4]));
-    btn_fav_5.set_text(to_nice_freq(freq_fav_list[5]));
-    btn_fav_6.set_text(to_nice_freq(freq_fav_list[6]));
-    btn_fav_7.set_text(to_nice_freq(freq_fav_list[7]));
-    btn_fav_8.set_text(to_nice_freq(freq_fav_list[8]));
-    btn_fav_9.set_text(to_nice_freq(freq_fav_list[9]));
+    btn_fav_0.set_text(to_nice_freq(freq_fav_list[0].frequency));
+    btn_fav_1.set_text(to_nice_freq(freq_fav_list[1].frequency));
+    btn_fav_2.set_text(to_nice_freq(freq_fav_list[2].frequency));
+    btn_fav_3.set_text(to_nice_freq(freq_fav_list[3].frequency));
+    btn_fav_4.set_text(to_nice_freq(freq_fav_list[4].frequency));
+    btn_fav_5.set_text(to_nice_freq(freq_fav_list[5].frequency));
+    btn_fav_6.set_text(to_nice_freq(freq_fav_list[6].frequency));
+    btn_fav_7.set_text(to_nice_freq(freq_fav_list[7].frequency));
+    btn_fav_8.set_text(to_nice_freq(freq_fav_list[8].frequency));
+    btn_fav_9.set_text(to_nice_freq(freq_fav_list[9].frequency));
 }
 
 FmRadioView::~FmRadioView() {
