@@ -99,7 +99,7 @@ static msg_t loopthread_fn(void* arg) {
 }
 
 void MorseView::on_set_tone(NavigationView& nav) {
-    tone_input_buffer = std::to_string(tone);
+    tone_input_buffer = to_string_dec_uint(tone);
 
     text_prompt(nav, tone_input_buffer, 4, ENTER_KEYBOARD_MODE_DIGITS, [this](std::string& buffer) {
         if (!buffer.empty() && std::all_of(buffer.begin(), buffer.end(), ::isdigit)) {
