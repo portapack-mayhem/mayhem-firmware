@@ -41,26 +41,11 @@ class RangeView : public View {
     RangeView(NavigationView& nav);
 
     void focus() override;
-    void paint(Painter&) override;
+    void paint(Painter& painter) override;
 
     jammer_range_t frequency_range{false, 0, 0};
-
-   private:
-    void update_start(rf::Frequency f);
-    void update_stop(rf::Frequency f);
-    void update_center(rf::Frequency f);
-    void update_width(uint32_t w);
-
     uint32_t width{};
     rf::Frequency center{};
-
-    const Style& style_info = *Theme::getInstance()->fg_medium;
-
-    Labels labels{
-        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Theme::getInstance()->fg_light->foreground},
-        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Theme::getInstance()->fg_light->foreground},
-        {{12 * 8, 5 * 8 - 4}, "Center", Theme::getInstance()->fg_light->foreground},
-        {{12 * 8 + 4, 13 * 8}, "Width", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox check_enabled{
         {1 * 8, 4},
@@ -74,15 +59,32 @@ class RangeView : public View {
     Button button_start{
         {0 * 8, 11 * 8, 11 * 8, 28},
         ""};
+
     Button button_stop{
         {19 * 8, 11 * 8, 11 * 8, 28},
         ""};
+
     Button button_center{
         {76, 4 * 15 - 4, 11 * 8, 28},
         ""};
+
     Button button_width{
         {76, 8 * 15, 11 * 8, 28},
         ""};
+
+    void update_start(rf::Frequency f);
+    void update_stop(rf::Frequency f);
+    void update_center(rf::Frequency f);
+    void update_width(uint32_t w);
+
+   private:
+    const Style& style_info = *Theme::getInstance()->fg_medium;
+
+    Labels labels{
+        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Theme::getInstance()->fg_light->foreground},
+        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, 5 * 8 - 4}, "Center", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8 + 4, 13 * 8}, "Width", Theme::getInstance()->fg_light->foreground}};
 };
 
 class JammerView : public View {
@@ -110,15 +112,16 @@ class JammerView : public View {
     void start_tx();
     void on_timer();
     void stop_tx();
+    bool update_config();
     void set_jammer_channel(uint32_t i, uint32_t width, uint64_t center, uint32_t duration);
     void on_retune(const rf::Frequency freq, const uint32_t range);
 
     JammerChannel* jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
     bool jamming{false};
-    bool cooling{false};     // euquiq: Indicates jammer in cooldown
-    uint16_t seconds = 0;    // euquiq: seconds counter for toggling tx / cooldown
-    int16_t mscounter = 0;   // euquiq: Internal ms counter for do_timer()
-    lfsr_word_t lfsr_v = 1;  // euquiq: Used to generate "random" Jitter
+    bool cooling{false};
+    uint16_t seconds{0};
+    int16_t mscounter{0};
+    lfsr_word_t lfsr_v{1};
 
     const Style& style_val = *Theme::getInstance()->fg_green;
     const Style& style_cancel = *Theme::getInstance()->fg_red;
@@ -140,8 +143,8 @@ class JammerView : public View {
         {{1 * 8, 25 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 27 * 8}, "Hop:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 29 * 8}, "TX:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 31 * 8}, "Sle3p:", Theme::getInstance()->fg_light->foreground},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
-        {{0 * 8, 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
+        {{1 * 8, 31 * 8}, "Sleep:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 29 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 31 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 33 * 8}, "/60", Theme::getInstance()->fg_light->foreground},
@@ -182,7 +185,8 @@ class JammerView : public View {
     OptionsField options_hop{
         {7 * 8, 27 * 8},
         5,
-        {{"10ms ", 1},
+        {{"Off   ", 0},
+         {"10ms ", 1},
          {"50ms ", 5},
          {"100ms", 10},
          {"1s   ", 100},
@@ -201,7 +205,7 @@ class JammerView : public View {
     NumberField field_timepause{
         {8 * 8, 31 * 8},
         2,
-        {1, 60},
+        {0, 60},
         1,
         ' ',
     };
@@ -209,7 +213,7 @@ class JammerView : public View {
     NumberField field_jitter{
         {8 * 8, 33 * 8},
         2,
-        {1, 60},
+        {0, 60},
         1,
         ' ',
     };
