@@ -98,6 +98,25 @@ static msg_t loopthread_fn(void* arg) {
     return 0;
 }
 
+void MorseView::on_set_tone(NavigationView& nav) {
+    tone_input_buffer = std::to_string(tone);
+
+    text_prompt(nav, tone_input_buffer, 4, ENTER_KEYBOARD_MODE_DIGITS, [this](std::string& buffer) {
+        if (!buffer.empty() && std::all_of(buffer.begin(), buffer.end(), ::isdigit)) {
+            int new_tone = std::stoi(buffer);
+            if (new_tone >= 100 && new_tone <= 9999) {
+                tone = new_tone;
+                field_tone.set_value(tone);
+                update_tx_duration();
+            } else {
+                nav_.display_modal("Out of range", "Tone must be between 100 and 9999 Hz");
+            }
+        } else {
+            nav_.display_modal("Invalid input", "Please enter digits only");
+        }
+    });
+}
+
 void MorseView::on_set_text(NavigationView& nav) {
     text_prompt(nav, buffer, 28, ENTER_KEYBOARD_MODE_ALPHA);
 }
@@ -193,7 +212,7 @@ void MorseView::set_foxhunt(size_t i) {
 
 MorseView::MorseView(
     NavigationView& nav)
-    : nav_(nav) {
+    : nav_(nav), tone_input_buffer{} {
     // baseband::run_image(portapack::spi_flash::image_tag_tones);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
@@ -248,6 +267,10 @@ MorseView::MorseView(
 
     field_tone.on_change = [this](int32_t value) {
         tone = value;
+    };
+
+    field_tone.on_select = [this, &nav](NumberField&) {
+        this->on_set_tone(nav);
     };
 
     button_message.on_select = [this, &nav](Button&) {
