@@ -26,10 +26,14 @@
 
 #define JAMMER_CH_WIDTH 1000000
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define JAMMER_MAX_CH 80
 =======
 #define JAMMER_MAX_CH 24
 >>>>>>> 43a1bc04 (Jammer app add modes (#2659))
+=======
+#define JAMMER_MAX_CH 80
+>>>>>>> 1070d951 (80mhz jammer range (#2682))
 
 namespace jammer {
 

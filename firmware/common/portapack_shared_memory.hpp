@@ -70,10 +70,14 @@ struct SharedMemory {
         ToneData tones_data;
         struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
             JammerChannel jammer_channels[80];
 =======
             JammerChannel jammer_channels[24];
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+            JammerChannel jammer_channels[80];
+>>>>>>> 1070d951 (80mhz jammer range (#2682))
             HopperChannel hopper_channels[24];
         } dummy_seperate;
         uint8_t data[512];
