@@ -69,7 +69,7 @@ struct SharedMemory {
     union {
         ToneData tones_data;
         struct {
-            JammerChannel jammer_channels[24];
+            JammerChannel jammer_channels[80];
             HopperChannel hopper_channels[24];
         } dummy_seperate;
         uint8_t data[512];
