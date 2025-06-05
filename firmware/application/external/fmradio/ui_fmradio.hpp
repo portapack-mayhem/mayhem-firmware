@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
  *
@@ -38,6 +39,9 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "audio.hpp"
+#include "freqman_db.hpp"
+#include "ui_freqman.hpp"
 
 using namespace ui;
 
@@ -62,23 +66,55 @@ class FmRadioView : public View {
     int16_t audio_spectrum[128]{0};
     bool audio_spectrum_update = false;
     AudioSpectrum* audio_spectrum_data{nullptr};
-    rf::Frequency freq_fav_list[12] = {0};
+    struct Favorite {
+        rf::Frequency frequency = 0;
+        int32_t modulation = static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio);
+        uint8_t bandwidth = 0;
+    };
+    Favorite freq_fav_list[12];
+    audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
+    uint8_t radio_bw = 0;
 
     app_settings::SettingsManager settings_{
         "rx_fmradio",
         app_settings::Mode::RX,
-        {{"favlist0"sv, &freq_fav_list[0]},
-         {"favlist1"sv, &freq_fav_list[1]},
-         {"favlist2"sv, &freq_fav_list[2]},
-         {"favlist3"sv, &freq_fav_list[3]},
-         {"favlist4"sv, &freq_fav_list[4]},
-         {"favlist5"sv, &freq_fav_list[5]},
-         {"favlist6"sv, &freq_fav_list[6]},
-         {"favlist7"sv, &freq_fav_list[7]},
-         {"favlist8"sv, &freq_fav_list[8]},
-         {"favlist9"sv, &freq_fav_list[9]},
-         {"favlist10"sv, &freq_fav_list[10]},
-         {"favlist11"sv, &freq_fav_list[11]}}};
+        {{"favlist0_freq"sv, &freq_fav_list[0].frequency},
+         {"favlist1_freq"sv, &freq_fav_list[1].frequency},
+         {"favlist2_freq"sv, &freq_fav_list[2].frequency},
+         {"favlist3_freq"sv, &freq_fav_list[3].frequency},
+         {"favlist4_freq"sv, &freq_fav_list[4].frequency},
+         {"favlist5_freq"sv, &freq_fav_list[5].frequency},
+         {"favlist6_freq"sv, &freq_fav_list[6].frequency},
+         {"favlist7_freq"sv, &freq_fav_list[7].frequency},
+         {"favlist8_freq"sv, &freq_fav_list[8].frequency},
+         {"favlist9_freq"sv, &freq_fav_list[9].frequency},
+         {"favlist10_freq"sv, &freq_fav_list[10].frequency},
+         {"favlist11_freq"sv, &freq_fav_list[11].frequency},
+         {"favlist0_mod"sv, &freq_fav_list[0].modulation},
+         {"favlist1_mod"sv, &freq_fav_list[1].modulation},
+         {"favlist2_mod"sv, &freq_fav_list[2].modulation},
+         {"favlist3_mod"sv, &freq_fav_list[3].modulation},
+         {"favlist4_mod"sv, &freq_fav_list[4].modulation},
+         {"favlist5_mod"sv, &freq_fav_list[5].modulation},
+         {"favlist6_mod"sv, &freq_fav_list[6].modulation},
+         {"favlist7_mod"sv, &freq_fav_list[7].modulation},
+         {"favlist8_mod"sv, &freq_fav_list[8].modulation},
+         {"favlist9_mod"sv, &freq_fav_list[9].modulation},
+         {"favlist10_mod"sv, &freq_fav_list[10].modulation},
+         {"favlist11_mod"sv, &freq_fav_list[11].modulation},
+         {"favlist0_bw"sv, &freq_fav_list[0].bandwidth},
+         {"favlist1_bw"sv, &freq_fav_list[1].bandwidth},
+         {"favlist2_bw"sv, &freq_fav_list[2].bandwidth},
+         {"favlist3_bw"sv, &freq_fav_list[3].bandwidth},
+         {"favlist4_bw"sv, &freq_fav_list[4].bandwidth},
+         {"favlist5_bw"sv, &freq_fav_list[5].bandwidth},
+         {"favlist6_bw"sv, &freq_fav_list[6].bandwidth},
+         {"favlist7_bw"sv, &freq_fav_list[7].bandwidth},
+         {"favlist8_bw"sv, &freq_fav_list[8].bandwidth},
+         {"favlist9_bw"sv, &freq_fav_list[9].bandwidth},
+         {"favlist10_bw"sv, &freq_fav_list[10].bandwidth},
+         {"favlist11_bw"sv, &freq_fav_list[11].bandwidth},
+         {"radio_bw"sv, &radio_bw}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -94,6 +130,24 @@ class FmRadioView : public View {
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
+
+    OptionsField field_bw{
+        {10 * 8, FMR_BTNGRID_TOP + 6 * 34},
+        6,
+        {}};
+
+    Text text_mode_label{
+        {20 * 8, FMR_BTNGRID_TOP + 6 * 34, 5 * 8, 1 * 28},
+        "MODE:"};
+
+    OptionsField field_modulation{
+        {26 * 8, FMR_BTNGRID_TOP + 6 * 34},
+        4,
+        {{"AM", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)},
+         {"NFM", static_cast<int32_t>(ReceiverModel::Mode::NarrowbandFMAudio)},
+         {"WFM", static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio)},
+         {"USB", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)},
+         {"LSB", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)}}};
 
     TextField txt_save_help{
         {2, FMR_BTNGRID_TOP + 6 * 34 - 20, 12 * 8, 16},
@@ -124,10 +178,12 @@ class FmRadioView : public View {
 
     Button btn_fav_save{{2, FMR_BTNGRID_TOP + 6 * 34, 7 * 8, 1 * 28}, "Save"};
     bool save_fav = false;
+
     void on_btn_clicked(uint8_t i);
     void update_fav_btn_texts();
     std::string to_nice_freq(rf::Frequency freq);
     void on_audio_spectrum();
+    void change_mode(int32_t mod);
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,
