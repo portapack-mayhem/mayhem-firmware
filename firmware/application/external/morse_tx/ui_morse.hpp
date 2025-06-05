@@ -72,7 +72,7 @@ class MorseView : public View {
     NavigationView& nav_;
     std::string message{};
     uint32_t time_units{0};
-    std::string tone_input_buffer;  // Holds the tone value while the text prompt is open
+    std::string tone_input_buffer{};  // Holds the tone value while the text prompt is open
 
     TxRadioState radio_state_{
         0 /* frequency */,
