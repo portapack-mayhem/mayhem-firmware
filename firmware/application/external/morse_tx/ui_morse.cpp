@@ -103,6 +103,9 @@ void MorseView::on_set_tone(NavigationView& nav) {
 
     text_prompt(nav, tone_input_buffer, 4, ENTER_KEYBOARD_MODE_DIGITS, [this](std::string& buffer) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a980fe21 (removed some std stuff only used here (#2681))
         bool is_digit_only = true;
         for (size_t i = 0; i < tone_input_buffer.size(); ++i) {
             if (tone_input_buffer[i] < '0' || tone_input_buffer[i] > '9') {
@@ -112,10 +115,13 @@ void MorseView::on_set_tone(NavigationView& nav) {
         }
         if (!buffer.empty() && is_digit_only) {
             int new_tone = atoi(buffer.c_str());
+<<<<<<< HEAD
 =======
         if (!buffer.empty() && std::all_of(buffer.begin(), buffer.end(), ::isdigit)) {
             int new_tone = std::stoi(buffer);
 >>>>>>> 9e967151 (Added ability to enter custom tone values in Morse app (#2679))
+=======
+>>>>>>> a980fe21 (removed some std stuff only used here (#2681))
             if (new_tone >= 100 && new_tone <= 9999) {
                 tone = new_tone;
                 field_tone.set_value(tone);
@@ -129,9 +135,12 @@ void MorseView::on_set_tone(NavigationView& nav) {
     });
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 9e967151 (Added ability to enter custom tone values in Morse app (#2679))
+=======
+>>>>>>> a980fe21 (removed some std stuff only used here (#2681))
 void MorseView::on_set_text(NavigationView& nav) {
     text_prompt(nav, buffer, 28, ENTER_KEYBOARD_MODE_ALPHA);
 }
