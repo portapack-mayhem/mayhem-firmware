@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
  *
@@ -38,6 +39,9 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "audio.hpp"
+#include "freqman_db.hpp"
+#include "ui_freqman.hpp"
 
 using namespace ui;
 
@@ -67,6 +71,8 @@ class FmRadioView : public View {
         int32_t modulation = static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio);
     };
     Favorite freq_fav_list[12];
+    audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
+    uint8_t radio_bw = 0;
 
     app_settings::SettingsManager settings_{
         "rx_fmradio",
@@ -94,7 +100,8 @@ class FmRadioView : public View {
          {"favlist8_mod"sv, &freq_fav_list[8].modulation},
          {"favlist9_mod"sv, &freq_fav_list[9].modulation},
          {"favlist10_mod"sv, &freq_fav_list[10].modulation},
-         {"favlist11_mod"sv, &freq_fav_list[11].modulation}}};
+         {"favlist11_mod"sv, &freq_fav_list[11].modulation},
+         {"radio_bw"sv, &radio_bw}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -110,6 +117,25 @@ class FmRadioView : public View {
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
+
+    OptionsField field_bw{
+        {10 * 8, FMR_BTNGRID_TOP + 6 * 34},
+        6,
+        {}};
+
+    Text text_mode_label{
+        {20 * 8, FMR_BTNGRID_TOP + 6 * 34, 5 * 8, 1 * 28},
+        "MODE:"};
+
+    OptionsField field_modulation{
+        {26 * 8, FMR_BTNGRID_TOP + 6 * 34},
+        4,
+        {{"AM", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)},
+         {"NFM", static_cast<int32_t>(ReceiverModel::Mode::NarrowbandFMAudio)},
+         {"WFM", static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio)},
+         {"SPEC", static_cast<int32_t>(ReceiverModel::Mode::Capture)},
+         {"USB", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)},
+         {"LSB", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)}}};
 
     TextField txt_save_help{
         {2, FMR_BTNGRID_TOP + 6 * 34 - 20, 12 * 8, 16},
@@ -139,17 +165,13 @@ class FmRadioView : public View {
     Button btn_fav_9{{2 + 15 * 8, FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
 
     Button btn_fav_save{{2, FMR_BTNGRID_TOP + 6 * 34, 7 * 8, 1 * 28}, "Save"};
-    OptionsField field_modulation{
-        {10 * 8, FMR_BTNGRID_TOP + 6 * 34},
-        4,
-        {{"WFM", static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio)},
-         {"AM", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)}}};
     bool save_fav = false;
+
     void on_btn_clicked(uint8_t i);
     void update_fav_btn_texts();
     std::string to_nice_freq(rf::Frequency freq);
     void on_audio_spectrum();
-    void update_baseband(ReceiverModel::Mode mod);
+    void change_mode(int32_t mod);
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,
