@@ -1,6 +1,10 @@
 /*
  * Copyright (C) 2024 HTotoo
+<<<<<<< HEAD
  * Copyright (C) 2025 RocketGod
+=======
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
+>>>>>>> b50d18ea (Radio app improvements (#2680))
  *
  * This file is part of PortaPack.
  *
@@ -77,7 +81,11 @@ class FmRadioView : public View {
     Favorite freq_fav_list[12];
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
     uint8_t radio_bw = 0;
+<<<<<<< HEAD
     uint32_t current_theme{0};
+=======
+
+>>>>>>> b50d18ea (Radio app improvements (#2680))
     app_settings::SettingsManager settings_{
         "rx_fmradio",
         app_settings::Mode::RX,
@@ -117,8 +125,12 @@ class FmRadioView : public View {
          {"favlist9_bw"sv, &freq_fav_list[9].bandwidth},
          {"favlist10_bw"sv, &freq_fav_list[10].bandwidth},
          {"favlist11_bw"sv, &freq_fav_list[11].bandwidth},
+<<<<<<< HEAD
          {"radio_bw"sv, &radio_bw},
          {"theme"sv, &current_theme}}};
+=======
+         {"radio_bw"sv, &radio_bw}}};
+>>>>>>> b50d18ea (Radio app improvements (#2680))
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -197,6 +209,7 @@ class FmRadioView : public View {
     std::string to_nice_freq(rf::Frequency freq);
     void on_audio_spectrum();
     void change_mode(int32_t mod);
+<<<<<<< HEAD
 
     void show_hide_gfx(bool show);
 
@@ -226,6 +239,8 @@ class FmRadioView : public View {
         ColorTheme{Color(0, 128, 255), Color(255, 255, 128)},
         ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
         ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
+=======
+>>>>>>> b50d18ea (Radio app improvements (#2680))
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,

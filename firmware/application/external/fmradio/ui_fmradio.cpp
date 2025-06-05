@@ -1,6 +1,11 @@
 /*
+<<<<<<< HEAD
  * Copyright (C) 2024 HTotoo
  * Copyright (C) 2025 RocketGod
+=======
+ * Copyright (C) 2024 HT Otto
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
+>>>>>>> b50d18ea (Radio app improvements (#2680))
  *
  * This file is part of PortaPack.
  *
@@ -41,6 +46,7 @@ void FmRadioView::focus() {
     field_frequency.focus();
 }
 
+<<<<<<< HEAD
 void FmRadioView::show_hide_gfx(bool show) {
     gr.hidden(!show);
     gr.set_paused(!show);
@@ -63,6 +69,8 @@ void FmRadioView::show_hide_gfx(bool show) {
     set_dirty();
 }
 
+=======
+>>>>>>> b50d18ea (Radio app improvements (#2680))
 void FmRadioView::change_mode(int32_t mod) {
     field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n; };
 
@@ -72,8 +80,13 @@ void FmRadioView::change_mode(int32_t mod) {
 
     audio_spectrum_update = false;                       // Reset spectrum update flag
     std::fill(audio_spectrum, audio_spectrum + 128, 0);  // Clear spectrum buffer
+<<<<<<< HEAD
     waveform.set_dirty();
     receiver_mode = static_cast<ReceiverModel::Mode>(mod);
+=======
+
+    ReceiverModel::Mode receiver_mode = static_cast<ReceiverModel::Mode>(mod);
+>>>>>>> b50d18ea (Radio app improvements (#2680))
     bool is_ssb = (mod == static_cast<int32_t>(ReceiverModel::Mode::AMAudio) &&
                    (field_modulation.selected_index() == 3 || field_modulation.selected_index() == 4));
 
@@ -94,7 +107,10 @@ void FmRadioView::change_mode(int32_t mod) {
                 radio_bw = index;
                 receiver_model.set_am_configuration(n);
             };
+<<<<<<< HEAD
             show_hide_gfx(false);
+=======
+>>>>>>> b50d18ea (Radio app improvements (#2680))
             break;
         case static_cast<int32_t>(ReceiverModel::Mode::NarrowbandFMAudio):
             audio_sampling_rate = audio::Rate::Hz_24000;
@@ -107,7 +123,10 @@ void FmRadioView::change_mode(int32_t mod) {
                 radio_bw = index;
                 receiver_model.set_nbfm_configuration(n);
             };
+<<<<<<< HEAD
             show_hide_gfx(false);
+=======
+>>>>>>> b50d18ea (Radio app improvements (#2680))
             break;
         case static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio):
             audio_sampling_rate = audio::Rate::Hz_48000;
@@ -132,6 +151,10 @@ void FmRadioView::change_mode(int32_t mod) {
     audio::set_rate(audio_sampling_rate);
     audio::output::start();
     receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
+<<<<<<< HEAD
+=======
+
+>>>>>>> b50d18ea (Radio app improvements (#2680))
     receiver_model.enable();
 }
 
@@ -161,8 +184,12 @@ FmRadioView::FmRadioView(NavigationView& nav)
                   &btn_fav_9,
                   &audio,
                   &waveform,
+<<<<<<< HEAD
                   &rssi,
                   &gr});
+=======
+                  &rssi});
+>>>>>>> b50d18ea (Radio app improvements (#2680))
 
     txt_save_help.set_focusable(false);
     txt_save_help.visible(false);
@@ -206,6 +233,7 @@ FmRadioView::FmRadioView(NavigationView& nav)
         }
     };
 
+<<<<<<< HEAD
     waveform.on_select = [this](Waveform&) {
         if (receiver_mode != ReceiverModel::Mode::WidebandFMAudio) {  // only there is spectrum message
             return;
@@ -218,6 +246,8 @@ FmRadioView::FmRadioView(NavigationView& nav)
         gr.set_theme(themes[current_theme].base_color, themes[current_theme].peak_color);
         gr.set_paused(false);
     };
+=======
+>>>>>>> b50d18ea (Radio app improvements (#2680))
     update_fav_btn_texts();
     show_hide_gfx(false);
 }
@@ -266,9 +296,14 @@ FmRadioView::~FmRadioView() {
 }
 
 void FmRadioView::on_audio_spectrum() {
+<<<<<<< HEAD
     if (gr.visible() && audio_spectrum_data) gr.update_audio_spectrum(*audio_spectrum_data);
     if (audio_spectrum_data && audio_spectrum_data->db.size() <= 128) {
         for (size_t i = 0; i < audio_spectrum_data->db.size(); ++i) {
+=======
+    if (audio_spectrum_data && audio_spectrum_data->db.size() <= 128) {
+        for (size_t i = 0; i < audio_spectrum_data->db.size(); i++) {
+>>>>>>> b50d18ea (Radio app improvements (#2680))
             audio_spectrum[i] = ((int16_t)audio_spectrum_data->db[i] - 127) * 256;
         }
         waveform.set_dirty();
