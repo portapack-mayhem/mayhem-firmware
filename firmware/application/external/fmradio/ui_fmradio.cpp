@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HTotoo
+ * Copyright (C) 2024 HT Otto
  * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
@@ -51,7 +51,7 @@ void FmRadioView::change_mode(int32_t mod) {
 
     ReceiverModel::Mode receiver_mode = static_cast<ReceiverModel::Mode>(mod);
     bool is_ssb = (mod == static_cast<int32_t>(ReceiverModel::Mode::AMAudio) &&
-                   (field_modulation.selected_index() == 4 || field_modulation.selected_index() == 5));
+                   (field_modulation.selected_index() == 3 || field_modulation.selected_index() == 4));
 
     switch (mod) {
         case static_cast<int32_t>(ReceiverModel::Mode::AMAudio):
@@ -62,7 +62,7 @@ void FmRadioView::change_mode(int32_t mod) {
             field_bw.set_by_value(0);  // DSB default
             receiver_model.set_modulation(receiver_mode);
             if (is_ssb) {
-                receiver_model.set_am_configuration(field_modulation.selected_index() == 4 ? 1 : 2);  // 1=USB, 2=LSB
+                receiver_model.set_am_configuration(field_modulation.selected_index() == 3 ? 1 : 2);  // 1=USB, 2=LSB
             } else {
                 receiver_model.set_am_configuration(0);  // DSB
             }
@@ -95,38 +95,17 @@ void FmRadioView::change_mode(int32_t mod) {
                 receiver_model.set_wfm_configuration(n);
             };
             break;
-        case static_cast<int32_t>(ReceiverModel::Mode::Capture):
-            audio_sampling_rate = audio::Rate::Hz_24000;
-            freqman_set_bandwidth_option(3, field_bw);  // SPEC_MODULATION
-            baseband::run_image(portapack::spi_flash::image_tag_capture);
-            receiver_mode = ReceiverModel::Mode::Capture;
-            field_bw.set_by_value(0);  // 12k5 default
-            field_bw.on_change = [this](size_t index, OptionsField::value_t sampling_rate) {
-                radio_bw = index;
-                baseband::set_sample_rate(sampling_rate, get_oversample_rate(sampling_rate));
-                auto actual_sampling_rate = get_actual_sample_rate(sampling_rate);
-                receiver_model.set_sampling_rate(actual_sampling_rate);
-                receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(actual_sampling_rate));
-            };
-            break;
         default:
             break;
     }
 
     receiver_model.set_modulation(receiver_mode);
 
-    if (mod != static_cast<int32_t>(ReceiverModel::Mode::Capture)) {
-        receiver_model.set_sampling_rate(3072000);
-        receiver_model.set_baseband_bandwidth(1750000);
-        audio::set_rate(audio_sampling_rate);
-        audio::output::start();
-        receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
-    } else {
-        // Enable spectrum processing for SPEC mode
-        baseband::set_sample_rate(3072000, get_oversample_rate(3072000));
-        receiver_model.set_sampling_rate(3072000);
-        receiver_model.set_baseband_bandwidth(1750000);
-    }
+    receiver_model.set_sampling_rate(3072000);
+    receiver_model.set_baseband_bandwidth(1750000);
+    audio::set_rate(audio_sampling_rate);
+    audio::output::start();
+    receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
 
     receiver_model.enable();
 }
@@ -195,8 +174,8 @@ FmRadioView::FmRadioView(NavigationView& nav)
 
     field_modulation.on_change = [this](size_t index, int32_t mod) {
         change_mode(mod);
-        if (index == 4 || index == 5) {                               // USB or LSB
-            receiver_model.set_am_configuration(index == 4 ? 1 : 2);  // 1=USB, 2=LSB
+        if (index == 3 || index == 4) {                               // USB or LSB
+            receiver_model.set_am_configuration(index == 3 ? 1 : 2);  // 1=USB, 2=LSB
         }
     };
 
@@ -208,6 +187,7 @@ void FmRadioView::on_btn_clicked(uint8_t i) {
         save_fav = false;
         freq_fav_list[i].frequency = field_frequency.value();
         freq_fav_list[i].modulation = field_modulation.selected_index_value();
+        freq_fav_list[i].bandwidth = radio_bw;
         update_fav_btn_texts();
         txt_save_help.visible(save_fav);
         txt_save_help.set_text("");

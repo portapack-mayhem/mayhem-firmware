@@ -69,6 +69,7 @@ class FmRadioView : public View {
     struct Favorite {
         rf::Frequency frequency = 0;
         int32_t modulation = static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio);
+        uint8_t bandwidth = 0;
     };
     Favorite freq_fav_list[12];
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
@@ -101,6 +102,18 @@ class FmRadioView : public View {
          {"favlist9_mod"sv, &freq_fav_list[9].modulation},
          {"favlist10_mod"sv, &freq_fav_list[10].modulation},
          {"favlist11_mod"sv, &freq_fav_list[11].modulation},
+         {"favlist0_bw"sv, &freq_fav_list[0].bandwidth},
+         {"favlist1_bw"sv, &freq_fav_list[1].bandwidth},
+         {"favlist2_bw"sv, &freq_fav_list[2].bandwidth},
+         {"favlist3_bw"sv, &freq_fav_list[3].bandwidth},
+         {"favlist4_bw"sv, &freq_fav_list[4].bandwidth},
+         {"favlist5_bw"sv, &freq_fav_list[5].bandwidth},
+         {"favlist6_bw"sv, &freq_fav_list[6].bandwidth},
+         {"favlist7_bw"sv, &freq_fav_list[7].bandwidth},
+         {"favlist8_bw"sv, &freq_fav_list[8].bandwidth},
+         {"favlist9_bw"sv, &freq_fav_list[9].bandwidth},
+         {"favlist10_bw"sv, &freq_fav_list[10].bandwidth},
+         {"favlist11_bw"sv, &freq_fav_list[11].bandwidth},
          {"radio_bw"sv, &radio_bw}}};
 
     RFAmpField field_rf_amp{
@@ -133,7 +146,6 @@ class FmRadioView : public View {
         {{"AM", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)},
          {"NFM", static_cast<int32_t>(ReceiverModel::Mode::NarrowbandFMAudio)},
          {"WFM", static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio)},
-         {"SPEC", static_cast<int32_t>(ReceiverModel::Mode::Capture)},
          {"USB", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)},
          {"LSB", static_cast<int32_t>(ReceiverModel::Mode::AMAudio)}}};
 
