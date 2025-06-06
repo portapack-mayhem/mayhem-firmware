@@ -69,8 +69,8 @@ void FmRadioView::change_mode(int32_t mod) {
 
     audio_spectrum_update = false;                       // Reset spectrum update flag
     std::fill(audio_spectrum, audio_spectrum + 128, 0);  // Clear spectrum buffer
-
-    ReceiverModel::Mode receiver_mode = static_cast<ReceiverModel::Mode>(mod);
+    waveform.set_dirty();
+    receiver_mode = static_cast<ReceiverModel::Mode>(mod);
     bool is_ssb = (mod == static_cast<int32_t>(ReceiverModel::Mode::AMAudio) &&
                    (field_modulation.selected_index() == 3 || field_modulation.selected_index() == 4));
 
@@ -91,6 +91,7 @@ void FmRadioView::change_mode(int32_t mod) {
                 radio_bw = index;
                 receiver_model.set_am_configuration(n);
             };
+            show_hide_gfx(false);
             break;
         case static_cast<int32_t>(ReceiverModel::Mode::NarrowbandFMAudio):
             audio_sampling_rate = audio::Rate::Hz_24000;
@@ -103,6 +104,7 @@ void FmRadioView::change_mode(int32_t mod) {
                 radio_bw = index;
                 receiver_model.set_nbfm_configuration(n);
             };
+            show_hide_gfx(false);
             break;
         case static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio):
             audio_sampling_rate = audio::Rate::Hz_48000;
@@ -203,8 +205,11 @@ FmRadioView::FmRadioView(NavigationView& nav)
     };
 
     waveform.on_select = [this](Waveform&) {
-        show_hide_gfx(!btn_fav_0.hidden());
         waveform.set_paused(false);
+        if (receiver_mode != ReceiverModel::Mode::WidebandFMAudio) {  // only there is spectrum message
+            return;
+        }
+        show_hide_gfx(!btn_fav_0.hidden());
     };
     gr.set_theme(themes[current_theme].base_color, themes[current_theme].peak_color);
     gr.on_select = [this](GraphEq&) {

@@ -65,6 +65,7 @@ class FmRadioView : public View {
     RxRadioState radio_state_{};
     int16_t audio_spectrum[128]{0};
     bool audio_spectrum_update = false;
+    ReceiverModel::Mode receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     AudioSpectrum* audio_spectrum_data{nullptr};
     struct Favorite {
         rf::Frequency frequency = 0;
