@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HT Otto
+ * Copyright (C) 2024 HTotoo
  * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
