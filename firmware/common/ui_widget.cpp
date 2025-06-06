@@ -2829,6 +2829,10 @@ GraphEq::GraphEq(
       clickable_{clickable},
       bar_heights(NUM_BARS, 0),
       prev_bar_heights(NUM_BARS, 0) {
+    if (clickable) {
+        set_focusable(true);
+        // previous_data.resize(length_, 0);
+    }
 }
 
 void GraphEq::set_parent_rect(const Rect new_parent_rect) {
@@ -2979,6 +2983,7 @@ void GraphEq::update_audio_spectrum(const AudioSpectrum& spectrum) {
 }
 
 void GraphEq::paint(Painter& painter) {
+    if (!visible()) return;
     if (!is_calculated) {  // calc positions first
         calculate_params();
         is_calculated = true;

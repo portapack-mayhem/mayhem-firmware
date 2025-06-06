@@ -72,7 +72,7 @@ class gfxEQView : public View {
     VGAGainField field_vga{{18 * 8, 0 * 16}};
     Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
     AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
-    GraphEq gr{{2, UI_POS_DEFAULT_HEIGHT, UI_POS_MAXWIDTH - 4, UI_POS_HEIGHT_REMAINING(2)}, true};
+    GraphEq gr{{2, UI_POS_DEFAULT_HEIGHT, UI_POS_MAXWIDTH - 4, UI_POS_HEIGHT_REMAINING(2)}, false};
 
     rf::Frequency frequency_value{93100000};
 
