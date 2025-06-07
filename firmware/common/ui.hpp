@@ -57,6 +57,8 @@ namespace ui {
 #define UI_POS_HEIGHT_REMAINING(linenum) ((int)(screen_height - ((linenum)*UI_POS_DEFAULT_HEIGHT)))
 // remaining px from the charnum-th character to the right of the screen
 #define UI_POS_WIDTH_REMAINING(charnum) ((int)(screen_width - ((charnum)*UI_POS_DEFAULT_WIDTH)))
+// px width of the screen
+#define UI_POS_MAXHEIGHT (screen_height)
 
 // Escape sequences for colored text; second character is index into term_colors[]
 #define STR_COLOR_BLACK "\x1B\x00"

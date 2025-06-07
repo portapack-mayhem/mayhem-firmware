@@ -58,13 +58,14 @@ class FmRadioView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "FM radio"; };
+    std::string title() const override { return "Radio"; };
 
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{};
     int16_t audio_spectrum[128]{0};
     bool audio_spectrum_update = false;
+    ReceiverModel::Mode receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     AudioSpectrum* audio_spectrum_data{nullptr};
     struct Favorite {
         rf::Frequency frequency = 0;
@@ -74,7 +75,7 @@ class FmRadioView : public View {
     Favorite freq_fav_list[12];
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
     uint8_t radio_bw = 0;
-
+    uint32_t current_theme{0};
     app_settings::SettingsManager settings_{
         "rx_fmradio",
         app_settings::Mode::RX,
@@ -114,7 +115,8 @@ class FmRadioView : public View {
          {"favlist9_bw"sv, &freq_fav_list[9].bandwidth},
          {"favlist10_bw"sv, &freq_fav_list[10].bandwidth},
          {"favlist11_bw"sv, &freq_fav_list[11].bandwidth},
-         {"radio_bw"sv, &radio_bw}}};
+         {"radio_bw"sv, &radio_bw},
+         {"theme"sv, &current_theme}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -157,13 +159,15 @@ class FmRadioView : public View {
         {21 * 8, 10, 6 * 8, 4}};
 
     Waveform waveform{
-        {0, 20, screen_width, 2 * 16},
+        {0, 20, UI_POS_MAXWIDTH, 2 * 16},
         audio_spectrum,
         128,
         0,
         false,
         Theme::getInstance()->bg_darkest->foreground,
         true};
+
+    GraphEq gr{{2, FMR_BTNGRID_TOP, UI_POS_MAXWIDTH - 4, UI_POS_MAXHEIGHT - FMR_BTNGRID_TOP}, true};
 
     Button btn_fav_0{{2, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
     Button btn_fav_1{{2 + 15 * 8, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
@@ -184,6 +188,35 @@ class FmRadioView : public View {
     std::string to_nice_freq(rf::Frequency freq);
     void on_audio_spectrum();
     void change_mode(int32_t mod);
+
+    void show_hide_gfx(bool show);
+
+    struct ColorTheme {
+        Color base_color;
+        Color peak_color;
+    };
+
+    const std::array<ColorTheme, 20> themes{
+        ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},
+        ColorTheme{Color(0, 255, 0), Color(255, 0, 0)},
+        ColorTheme{Color(0, 0, 255), Color(255, 255, 0)},
+        ColorTheme{Color(255, 128, 0), Color(255, 0, 128)},
+        ColorTheme{Color(128, 0, 255), Color(0, 255, 255)},
+        ColorTheme{Color(255, 255, 0), Color(0, 255, 128)},
+        ColorTheme{Color(255, 0, 0), Color(0, 128, 255)},
+        ColorTheme{Color(0, 255, 128), Color(255, 128, 255)},
+        ColorTheme{Color(128, 128, 128), Color(255, 255, 255)},
+        ColorTheme{Color(255, 64, 0), Color(0, 255, 64)},
+        ColorTheme{Color(0, 128, 128), Color(255, 192, 0)},
+        ColorTheme{Color(0, 255, 0), Color(0, 128, 0)},
+        ColorTheme{Color(32, 64, 32), Color(0, 255, 0)},
+        ColorTheme{Color(64, 0, 128), Color(255, 0, 255)},
+        ColorTheme{Color(0, 64, 0), Color(0, 255, 128)},
+        ColorTheme{Color(255, 255, 255), Color(0, 0, 255)},
+        ColorTheme{Color(128, 0, 0), Color(255, 128, 0)},
+        ColorTheme{Color(0, 128, 255), Color(255, 255, 128)},
+        ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
+        ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,
