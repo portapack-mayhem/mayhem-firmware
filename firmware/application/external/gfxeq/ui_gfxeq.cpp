@@ -29,10 +29,14 @@ gfxEQView::gfxEQView(NavigationView& nav)
                   &button_mood, &field_volume, &gr});
 =======
 gfxEQView::gfxEQView(NavigationView& nav)
-    : nav_{nav}, bar_heights(NUM_BARS, 0), prev_bar_heights(NUM_BARS, 0) {
+    : nav_{nav} {
     add_children({&button_frequency, &field_rf_amp, &field_lna, &field_vga,
+<<<<<<< HEAD
                   &button_mood, &field_volume});
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+                  &button_mood, &field_volume, &gr});
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 
     audio::output::stop();
     receiver_model.disable();
@@ -87,9 +91,13 @@ gfxEQView::gfxEQView(NavigationView& nav)
 
     button_mood.on_select = [this](Button&) { this->cycle_theme(); };
 <<<<<<< HEAD
+<<<<<<< HEAD
     gr.set_theme(themes[current_theme].base_color, themes[current_theme].peak_color);
 =======
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+    gr.set_theme(themes[current_theme].base_color, themes[current_theme].peak_color);
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 }
 
 // needed to answer usb serial frequency set
@@ -108,6 +116,7 @@ void gfxEQView::focus() {
     button_frequency.focus();
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 void gfxEQView::cycle_theme() {
     current_theme = (current_theme + 1) % themes.size();
@@ -218,6 +227,11 @@ void gfxEQView::paint(Painter& painter) {
 void gfxEQView::cycle_theme() {
     current_theme = (current_theme + 1) % themes.size();
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+void gfxEQView::cycle_theme() {
+    current_theme = (current_theme + 1) % themes.size();
+    gr.set_theme(themes[current_theme].base_color, themes[current_theme].peak_color);
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 }
 
 }  // namespace ui::external_app::gfxeq

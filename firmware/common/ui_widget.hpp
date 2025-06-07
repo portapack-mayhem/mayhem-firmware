@@ -1077,11 +1077,14 @@ class GraphEq : public Widget {
     };
 
     void calculate_params();  // re calculate some parameters based on parent_rect()
+<<<<<<< HEAD
 =======
 >>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
 =======
     bool if_ever_painted_pause{false};  // for prevent the "hidden" label keeps painting and being expensive
 >>>>>>> ee472e1e (waveform fix 3 and trivial change (#2540))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 };
 
 class VuMeter : public Widget {

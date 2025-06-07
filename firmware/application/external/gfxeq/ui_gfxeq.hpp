@@ -38,6 +38,7 @@ class gfxEQView : public View {
     void focus() override;
     std::string title() const override { return "gfxEQ"; }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     void on_freqchg(int64_t freq);
 
@@ -45,11 +46,13 @@ class gfxEQView : public View {
 =======
     void on_show() override;
     void on_hide() override;
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 
-    void paint(Painter& painter) override;
     void on_freqchg(int64_t freq);
 
    private:
+<<<<<<< HEAD
     static constexpr ui::Dim header_height = 2 * 16;
     static constexpr int RENDER_HEIGHT = 288;
     static constexpr int NUM_BARS = 11;
@@ -74,6 +77,8 @@ class gfxEQView : public View {
     };
 
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     struct ColorTheme {
         Color base_color;
         Color peak_color;
@@ -81,12 +86,16 @@ class gfxEQView : public View {
 
     NavigationView& nav_;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
     bool needs_background_redraw{false};
     std::vector<int> bar_heights;
     std::vector<int> prev_bar_heights;
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     uint32_t current_theme{0};
     const std::array<ColorTheme, 20> themes{
         ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},
@@ -119,12 +128,15 @@ class gfxEQView : public View {
 <<<<<<< HEAD
     AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
     GraphEq gr{{2, UI_POS_DEFAULT_HEIGHT, UI_POS_MAXWIDTH - 4, UI_POS_HEIGHT_REMAINING(2)}, false};
+<<<<<<< HEAD
 =======
     AudioVolumeField field_volume{{28 * 8, 0 * 16}};
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
 =======
     AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
 >>>>>>> 3c8335c9 (Audio to right (#2664))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 
     rf::Frequency frequency_value{93100000};
 
@@ -137,10 +149,13 @@ class gfxEQView : public View {
          {"frequency", &frequency_value}}};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     void update_audio_spectrum(const AudioSpectrum& spectrum);
     void render_equalizer(Painter& painter);
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     void cycle_theme();
 
     MessageHandlerRegistration message_handler_audio_spectrum{
@@ -148,11 +163,15 @@ class gfxEQView : public View {
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
 <<<<<<< HEAD
+<<<<<<< HEAD
             this->gr.update_audio_spectrum(*message.data);
 =======
             this->update_audio_spectrum(*message.data);
             this->set_dirty();
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+            this->gr.update_audio_spectrum(*message.data);
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
         }};
 
     MessageHandlerRegistration message_handler_freqchg{

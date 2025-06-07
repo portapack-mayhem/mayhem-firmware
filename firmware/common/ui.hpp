@@ -66,10 +66,15 @@ namespace ui {
 // remaining px from the charnum-th character to the right of the screen
 #define UI_POS_WIDTH_REMAINING(charnum) ((int)(screen_width - ((charnum)*UI_POS_DEFAULT_WIDTH)))
 <<<<<<< HEAD
+<<<<<<< HEAD
 // px width of the screen
 #define UI_POS_MAXHEIGHT (screen_height)
 =======
 >>>>>>> 2602c417 (ui new coord system examples and macros (#2672))
+=======
+// px width of the screen
+#define UI_POS_MAXHEIGHT (screen_height)
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 
 // Escape sequences for colored text; second character is index into term_colors[]
 #define STR_COLOR_BLACK "\x1B\x00"

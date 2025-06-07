@@ -82,10 +82,14 @@ class FmRadioView : public View {
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
     uint8_t radio_bw = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint32_t current_theme{0};
 =======
 
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+    uint32_t current_theme{0};
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     app_settings::SettingsManager settings_{
         "rx_fmradio",
         app_settings::Mode::RX,
@@ -126,11 +130,16 @@ class FmRadioView : public View {
          {"favlist10_bw"sv, &freq_fav_list[10].bandwidth},
          {"favlist11_bw"sv, &freq_fav_list[11].bandwidth},
 <<<<<<< HEAD
+<<<<<<< HEAD
          {"radio_bw"sv, &radio_bw},
          {"theme"sv, &current_theme}}};
 =======
          {"radio_bw"sv, &radio_bw}}};
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+         {"radio_bw"sv, &radio_bw},
+         {"theme"sv, &current_theme}}};
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -174,10 +183,14 @@ class FmRadioView : public View {
 
     Waveform waveform{
 <<<<<<< HEAD
+<<<<<<< HEAD
         {0, 20, UI_POS_MAXWIDTH, 2 * 16},
 =======
         {0, 20, screen_width, 2 * 16},
 >>>>>>> ac31f478 (screen max width fixes (#2663))
+=======
+        {0, 20, UI_POS_MAXWIDTH, 2 * 16},
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
         audio_spectrum,
         128,
         0,
@@ -189,6 +202,8 @@ class FmRadioView : public View {
     GraphEq gr{{2, FMR_BTNGRID_TOP, UI_POS_MAXWIDTH - 4, UI_POS_MAXHEIGHT - FMR_BTNGRID_TOP}, true};
 =======
 >>>>>>> ddf7f7cc (Allow disable/enable waveform in Audio app to remove decoding problem on some frequencies)
+
+    GraphEq gr{{2, FMR_BTNGRID_TOP, UI_POS_MAXWIDTH - 4, UI_POS_MAXHEIGHT - FMR_BTNGRID_TOP}, true};
 
     Button btn_fav_0{{2, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
     Button btn_fav_1{{2 + 15 * 8, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
@@ -241,6 +256,35 @@ class FmRadioView : public View {
         ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 =======
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+
+    void show_hide_gfx(bool show);
+
+    struct ColorTheme {
+        Color base_color;
+        Color peak_color;
+    };
+
+    const std::array<ColorTheme, 20> themes{
+        ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},
+        ColorTheme{Color(0, 255, 0), Color(255, 0, 0)},
+        ColorTheme{Color(0, 0, 255), Color(255, 255, 0)},
+        ColorTheme{Color(255, 128, 0), Color(255, 0, 128)},
+        ColorTheme{Color(128, 0, 255), Color(0, 255, 255)},
+        ColorTheme{Color(255, 255, 0), Color(0, 255, 128)},
+        ColorTheme{Color(255, 0, 0), Color(0, 128, 255)},
+        ColorTheme{Color(0, 255, 128), Color(255, 128, 255)},
+        ColorTheme{Color(128, 128, 128), Color(255, 255, 255)},
+        ColorTheme{Color(255, 64, 0), Color(0, 255, 64)},
+        ColorTheme{Color(0, 128, 128), Color(255, 192, 0)},
+        ColorTheme{Color(0, 255, 0), Color(0, 128, 0)},
+        ColorTheme{Color(32, 64, 32), Color(0, 255, 0)},
+        ColorTheme{Color(64, 0, 128), Color(255, 0, 255)},
+        ColorTheme{Color(0, 64, 0), Color(0, 255, 128)},
+        ColorTheme{Color(255, 255, 255), Color(0, 0, 255)},
+        ColorTheme{Color(128, 0, 0), Color(255, 128, 0)},
+        ColorTheme{Color(0, 128, 255), Color(255, 255, 128)},
+        ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
+        ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,

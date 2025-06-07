@@ -1,9 +1,13 @@
 /*
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (C) 2024 HTotoo
  * Copyright (C) 2025 RocketGod
 =======
  * Copyright (C) 2024 HT Otto
+=======
+ * Copyright (C) 2024 HTotoo
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
  * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
 >>>>>>> b50d18ea (Radio app improvements (#2680))
  *
@@ -47,6 +51,9 @@ void FmRadioView::focus() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 void FmRadioView::show_hide_gfx(bool show) {
     gr.hidden(!show);
     gr.set_paused(!show);
@@ -69,8 +76,11 @@ void FmRadioView::show_hide_gfx(bool show) {
     set_dirty();
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 void FmRadioView::change_mode(int32_t mod) {
     field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n; };
 
@@ -81,12 +91,17 @@ void FmRadioView::change_mode(int32_t mod) {
     audio_spectrum_update = false;                       // Reset spectrum update flag
     std::fill(audio_spectrum, audio_spectrum + 128, 0);  // Clear spectrum buffer
 <<<<<<< HEAD
+<<<<<<< HEAD
     waveform.set_dirty();
     receiver_mode = static_cast<ReceiverModel::Mode>(mod);
 =======
 
     ReceiverModel::Mode receiver_mode = static_cast<ReceiverModel::Mode>(mod);
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+    waveform.set_dirty();
+    receiver_mode = static_cast<ReceiverModel::Mode>(mod);
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     bool is_ssb = (mod == static_cast<int32_t>(ReceiverModel::Mode::AMAudio) &&
                    (field_modulation.selected_index() == 3 || field_modulation.selected_index() == 4));
 
@@ -108,9 +123,13 @@ void FmRadioView::change_mode(int32_t mod) {
                 receiver_model.set_am_configuration(n);
             };
 <<<<<<< HEAD
+<<<<<<< HEAD
             show_hide_gfx(false);
 =======
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+            show_hide_gfx(false);
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
             break;
         case static_cast<int32_t>(ReceiverModel::Mode::NarrowbandFMAudio):
             audio_sampling_rate = audio::Rate::Hz_24000;
@@ -124,9 +143,13 @@ void FmRadioView::change_mode(int32_t mod) {
                 receiver_model.set_nbfm_configuration(n);
             };
 <<<<<<< HEAD
+<<<<<<< HEAD
             show_hide_gfx(false);
 =======
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+            show_hide_gfx(false);
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
             break;
         case static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio):
             audio_sampling_rate = audio::Rate::Hz_48000;
@@ -152,9 +175,12 @@ void FmRadioView::change_mode(int32_t mod) {
     audio::output::start();
     receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     receiver_model.enable();
 }
 
@@ -185,11 +211,16 @@ FmRadioView::FmRadioView(NavigationView& nav)
                   &audio,
                   &waveform,
 <<<<<<< HEAD
+<<<<<<< HEAD
                   &rssi,
                   &gr});
 =======
                   &rssi});
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+                  &rssi,
+                  &gr});
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
 
     txt_save_help.set_focusable(false);
     txt_save_help.visible(false);
@@ -234,6 +265,9 @@ FmRadioView::FmRadioView(NavigationView& nav)
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     waveform.on_select = [this](Waveform&) {
         if (receiver_mode != ReceiverModel::Mode::WidebandFMAudio) {  // only there is spectrum message
             return;
@@ -246,8 +280,11 @@ FmRadioView::FmRadioView(NavigationView& nav)
         gr.set_theme(themes[current_theme].base_color, themes[current_theme].peak_color);
         gr.set_paused(false);
     };
+<<<<<<< HEAD
 =======
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
     update_fav_btn_texts();
     show_hide_gfx(false);
 }
@@ -297,6 +334,7 @@ FmRadioView::~FmRadioView() {
 
 void FmRadioView::on_audio_spectrum() {
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (gr.visible() && audio_spectrum_data) gr.update_audio_spectrum(*audio_spectrum_data);
     if (audio_spectrum_data && audio_spectrum_data->db.size() <= 128) {
         for (size_t i = 0; i < audio_spectrum_data->db.size(); ++i) {
@@ -304,6 +342,11 @@ void FmRadioView::on_audio_spectrum() {
     if (audio_spectrum_data && audio_spectrum_data->db.size() <= 128) {
         for (size_t i = 0; i < audio_spectrum_data->db.size(); i++) {
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+    if (gr.visible() && audio_spectrum_data) gr.update_audio_spectrum(*audio_spectrum_data);
+    if (audio_spectrum_data && audio_spectrum_data->db.size() <= 128) {
+        for (size_t i = 0; i < audio_spectrum_data->db.size(); ++i) {
+>>>>>>> 00853f52 (Gfx widget and Radio (#2685))
             audio_spectrum[i] = ((int16_t)audio_spectrum_data->db[i] - 127) * 256;
         }
         waveform.set_dirty();
