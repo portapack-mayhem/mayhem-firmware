@@ -42,6 +42,7 @@ void FmRadioView::focus() {
 void FmRadioView::show_hide_gfx(bool show) {
     gr.hidden(!show);
     gr.set_paused(!show);
+    waveform.set_paused(show);
     btn_fav_0.hidden(show);
     btn_fav_1.hidden(show);
     btn_fav_2.hidden(show);
@@ -129,7 +130,6 @@ void FmRadioView::change_mode(int32_t mod) {
     audio::set_rate(audio_sampling_rate);
     audio::output::start();
     receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
-
     receiver_model.enable();
 }
 
@@ -205,7 +205,6 @@ FmRadioView::FmRadioView(NavigationView& nav)
     };
 
     waveform.on_select = [this](Waveform&) {
-        waveform.set_paused(false);
         if (receiver_mode != ReceiverModel::Mode::WidebandFMAudio) {  // only there is spectrum message
             return;
         }
@@ -267,7 +266,7 @@ FmRadioView::~FmRadioView() {
 void FmRadioView::on_audio_spectrum() {
     if (gr.visible() && audio_spectrum_data) gr.update_audio_spectrum(*audio_spectrum_data);
     if (audio_spectrum_data && audio_spectrum_data->db.size() <= 128) {
-        for (size_t i = 0; i < audio_spectrum_data->db.size(); i++) {
+        for (size_t i = 0; i < audio_spectrum_data->db.size(); ++i) {
             audio_spectrum[i] = ((int16_t)audio_spectrum_data->db[i] - 127) * 256;
         }
         waveform.set_dirty();
