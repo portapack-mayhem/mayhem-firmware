@@ -22,6 +22,8 @@
 
 namespace ui::external_app::gfxeq {
 
+#include "external/ui_grapheq.hpp"
+
 class gfxEQView : public View {
    public:
     gfxEQView(NavigationView& nav);

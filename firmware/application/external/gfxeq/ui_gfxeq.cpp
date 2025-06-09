@@ -20,6 +20,8 @@ using namespace portapack;
 
 namespace ui::external_app::gfxeq {
 
+#include "external/ui_grapheq.cpi"
+
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav} {
     add_children({&button_frequency, &field_rf_amp, &field_lna, &field_vga,
