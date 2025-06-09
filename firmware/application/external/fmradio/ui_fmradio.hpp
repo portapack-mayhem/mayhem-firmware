@@ -47,6 +47,8 @@ using namespace ui;
 
 namespace ui::external_app::fmradio {
 
+#include "external/ui_grapheq.hpp"
+
 #define FMR_BTNGRID_TOP 60
 
 class FmRadioView : public View {

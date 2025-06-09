@@ -35,6 +35,8 @@ using namespace ui;
 
 namespace ui::external_app::fmradio {
 
+#include "external/ui_grapheq.cpi"
+
 void FmRadioView::focus() {
     field_frequency.focus();
 }
