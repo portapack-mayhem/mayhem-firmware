@@ -23,10 +23,15 @@
 namespace ui::external_app::gfxeq {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "external/ui_grapheq.hpp"
 
 =======
 >>>>>>> 288f6bd5 (GFX EQ App (#2607))
+=======
+#include "external/ui_grapheq.hpp"
+
+>>>>>>> be372e12 (Externalize widget (#2688))
 class gfxEQView : public View {
    public:
     gfxEQView(NavigationView& nav);

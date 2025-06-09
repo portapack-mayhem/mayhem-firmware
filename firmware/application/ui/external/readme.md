@@ -1,7 +1,10 @@
 
+<<<<<<< HEAD
 Copyright (C) 2025 HTotoo
 
 
+=======
+>>>>>>> be372e12 (Externalize widget (#2688))
 # External UI elements
 
   

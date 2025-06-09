@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2025 RocketGod
  * Copyright (C) 2025 HTotoo
@@ -19,6 +20,8 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
+=======
+>>>>>>> be372e12 (Externalize widget (#2688))
 
 #include "ui_grapheq.hpp"
 

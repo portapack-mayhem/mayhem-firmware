@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
  * Copyright (C) 2025 RocketGod
  * Copyright (C) 2025 HTotoo
@@ -20,6 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+=======
+>>>>>>> be372e12 (Externalize widget (#2688))
 #ifndef __UI_GRAPHEQ_H__
 #define __UI_GRAPHEQ_H__
 

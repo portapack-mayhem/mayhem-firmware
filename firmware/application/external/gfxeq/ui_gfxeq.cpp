@@ -21,6 +21,9 @@ using namespace portapack;
 namespace ui::external_app::gfxeq {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> be372e12 (Externalize widget (#2688))
 #include "external/ui_grapheq.cpi"
 
 gfxEQView::gfxEQView(NavigationView& nav)
