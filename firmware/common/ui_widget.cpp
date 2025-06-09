@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2025 RocketGod
+ * Copyright (C) 2025 HTotoo
  *
  * This file is part of PortaPack.
  *
