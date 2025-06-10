@@ -1,10 +1,14 @@
 /*
  * Copyright (C) 2024 HTotoo
 <<<<<<< HEAD
+<<<<<<< HEAD
  * Copyright (C) 2025 RocketGod
 =======
  * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+ * Copyright (C) 2025 RocketGod
+>>>>>>> fb2e576b (Super secret dont look (#2690))
  *
  * This file is part of PortaPack.
  *

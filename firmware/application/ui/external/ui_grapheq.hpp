@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb2e576b (Super secret dont look (#2690))
 /*
  * Copyright (C) 2025 RocketGod
  * Copyright (C) 2025 HTotoo
@@ -21,8 +24,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
+<<<<<<< HEAD
 =======
 >>>>>>> be372e12 (Externalize widget (#2688))
+=======
+>>>>>>> fb2e576b (Super secret dont look (#2690))
 #ifndef __UI_GRAPHEQ_H__
 #define __UI_GRAPHEQ_H__
 

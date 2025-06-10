@@ -1,10 +1,16 @@
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Copyright (C) 2025 HTotoo
 
 
 =======
 >>>>>>> be372e12 (Externalize widget (#2688))
+=======
+Copyright (C) 2025 HTotoo
+
+
+>>>>>>> fb2e576b (Super secret dont look (#2690))
 # External UI elements
 
   

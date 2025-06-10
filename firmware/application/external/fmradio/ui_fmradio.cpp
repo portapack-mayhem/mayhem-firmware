@@ -3,6 +3,7 @@
 <<<<<<< HEAD
  * Copyright (C) 2024 HTotoo
  * Copyright (C) 2025 RocketGod
+<<<<<<< HEAD
 =======
  * Copyright (C) 2024 HT Otto
 =======
@@ -10,6 +11,8 @@
 >>>>>>> 00853f52 (Gfx widget and Radio (#2685))
  * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
 >>>>>>> b50d18ea (Radio app improvements (#2680))
+=======
+>>>>>>> fb2e576b (Super secret dont look (#2690))
  *
  * This file is part of PortaPack.
  *

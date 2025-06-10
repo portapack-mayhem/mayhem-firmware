@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb2e576b (Super secret dont look (#2690))
 /*
  * Copyright (C) 2025 RocketGod
  * Copyright (C) 2025 HTotoo
@@ -20,8 +23,11 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
+<<<<<<< HEAD
 =======
 >>>>>>> be372e12 (Externalize widget (#2688))
+=======
+>>>>>>> fb2e576b (Super secret dont look (#2690))
 
 #include "ui_grapheq.hpp"
 
