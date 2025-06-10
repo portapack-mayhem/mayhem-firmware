@@ -78,7 +78,7 @@ void HopperView::set_hopper_channel(uint32_t i, uint32_t width, uint64_t center,
     hopper_channels[i].enabled = true;
     hopper_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
     hopper_channels[i].center = center;
-    hopper_channels[i].duration = 30720 * duration;
+    hopper_channels[i].duration = 3072 * duration;
 }
 
 void HopperView::start_tx() {
@@ -274,7 +274,7 @@ HopperView::HopperView(
 
     options_type.set_selected_index(3);   // Rand CW
     options_speed.set_selected_index(3);  // 10kHz
-    options_hop.set_selected_index(1);    // 50ms
+    options_hop.set_selected_index(2);    // 50ms
     button_transmit.set_style(&style_val);
 
     field_timetx.set_value(30);
