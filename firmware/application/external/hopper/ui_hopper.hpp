@@ -144,6 +144,9 @@ class HopperView : public View {
             {"CW sweep", 2},
             {"Rand CW", 3},
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1d79e30d (Add all jammer modes in hopper app (#2691))
             {"Sine", 4},
             {"Square", 5},
             {"Sawtooth", 6},
@@ -151,8 +154,11 @@ class HopperView : public View {
             {"Chirp", 8},
             {"Gauss", 9},
             {"Brute", 10},
+<<<<<<< HEAD
 =======
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+>>>>>>> 1d79e30d (Add all jammer modes in hopper app (#2691))
         }};
 
     Text text_range_number{
