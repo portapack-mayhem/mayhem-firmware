@@ -143,6 +143,13 @@ class HopperView : public View {
             {"FM tone", 1},
             {"CW sweep", 2},
             {"Rand CW", 3},
+            {"Sine", 4},
+            {"Square", 5},
+            {"Sawtooth", 6},
+            {"Triangle", 7},
+            {"Chirp", 8},
+            {"Gauss", 9},
+            {"Brute", 10},
         }};
 
     Text text_range_number{
