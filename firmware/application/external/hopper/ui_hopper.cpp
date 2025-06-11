@@ -327,15 +327,15 @@ HopperView::HopperView(
     };
 
     button_transmit.on_select = [this](Button&) {
-        if (jamming || cooling){
+        if (jamming || cooling) {
             stop_tx();
         } else {
             // if hop speed is 0, alert the user that this will cause a freeze on UI
             if (options_hop.selected_index_value() == 0) {
                 nav_.display_modal("Warning", "Hopping set to 0ms (fastest).\n\nTHIS WILL FREEZE THE HACKRF,\npress RESET button to stop\n\nAre you sure?", YESNO, [this](bool choice) {
                     if (choice) {
-                        // Wait for UI to update before freezing it...
-                        chThdSleepMilliseconds(500);
+                        // Wait for UI update before the freeze
+                        chThdSleepMilliseconds(50);
                         start_tx();
                     }
                 }, TRUE);
