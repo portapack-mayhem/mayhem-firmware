@@ -170,8 +170,8 @@ class HopperView : public View {
 
     OptionsField options_hop{
         {7 * 8, 27 * 8},
-        5,
-        {{"0ms !", 0},
+        6,
+        {{"0ms !!", 0},
          {"1ms  ", 1},
          {"10ms ", 10},
          {"50ms ", 50},
