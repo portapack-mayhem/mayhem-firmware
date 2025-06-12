@@ -180,6 +180,9 @@ class HopperView : public View {
     OptionsField options_hop{
         {7 * 8, 27 * 8},
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ea38a0fe (Add 1ms hop option to hopper app + 0ms (freeze UI) (#2692))
         6,
         {{"0ms !!", 0},
          {"1ms  ", 1},
@@ -190,6 +193,7 @@ class HopperView : public View {
          {"2s   ", 2000},
          {"5s   ", 5000},
          {"10s  ", 10000}}};
+<<<<<<< HEAD
 =======
         5,
         {{"10ms ", 1},
@@ -200,6 +204,8 @@ class HopperView : public View {
          {"5s   ", 500},
          {"10s  ", 1000}}};
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+>>>>>>> ea38a0fe (Add 1ms hop option to hopper app + 0ms (freeze UI) (#2692))
 
     NumberField field_timetx{
         {7 * 8, 29 * 8},

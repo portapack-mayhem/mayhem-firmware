@@ -79,10 +79,14 @@ void HopperView::set_hopper_channel(uint32_t i, uint32_t width, uint64_t center,
     hopper_channels[i].width = (width * 0xFFFFFFULL) / 1536000;
     hopper_channels[i].center = center;
 <<<<<<< HEAD
+<<<<<<< HEAD
     hopper_channels[i].duration = duration ? 3072 * duration : 10;
 =======
     hopper_channels[i].duration = 30720 * duration;
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+    hopper_channels[i].duration = duration ? 3072 * duration : 10;
+>>>>>>> ea38a0fe (Add 1ms hop option to hopper app + 0ms (freeze UI) (#2692))
 }
 
 void HopperView::start_tx() {
@@ -286,10 +290,14 @@ HopperView::HopperView(
     options_type.set_selected_index(3);   // Rand CW
     options_speed.set_selected_index(3);  // 10kHz
 <<<<<<< HEAD
+<<<<<<< HEAD
     options_hop.set_selected_index(3);    // 50ms
 =======
     options_hop.set_selected_index(1);    // 50ms
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+    options_hop.set_selected_index(3);    // 50ms
+>>>>>>> ea38a0fe (Add 1ms hop option to hopper app + 0ms (freeze UI) (#2692))
     button_transmit.set_style(&style_val);
 
     field_timetx.set_value(30);
@@ -343,6 +351,7 @@ HopperView::HopperView(
 
     button_transmit.on_select = [this](Button&) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (jamming || cooling) {
             stop_tx();
         } else {
@@ -368,6 +377,27 @@ HopperView::HopperView(
         else
             start_tx();
 >>>>>>> 200f1039 (Add new app "hopper" app. (#2482))
+=======
+        if (jamming || cooling) {
+            stop_tx();
+        } else {
+            // if hop speed is 0, alert the user that this will cause a freeze on UI
+            if (options_hop.selected_index_value() == 0) {
+                nav_.display_modal(
+                    "Warning", "Hopping set to 0ms (fastest).\n\nTHIS WILL FREEZE THE HACKRF,\npress RESET button to stop\n\nAre you sure?", YESNO, [this](bool choice) {
+                        if (choice) {
+                            // Wait for UI update before the freeze
+                            chThdSleepMilliseconds(50);
+                            start_tx();
+                        }
+                    },
+                    TRUE);
+            } else {
+                // if hop speed is not 0, just start the transmission
+                start_tx();
+            }
+        }
+>>>>>>> ea38a0fe (Add 1ms hop option to hopper app + 0ms (freeze UI) (#2692))
     };
 
     menu_freq_list.on_left = [this]() {
