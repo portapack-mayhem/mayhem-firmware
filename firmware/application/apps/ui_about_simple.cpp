@@ -34,6 +34,7 @@ constexpr std::string_view mayhem_information_list[] = {
     "RedFox-Fr,nemanjan00,",
     "MichalLeonBorsuk,",
     "MatiasFernandez,Giorgiofox",
+    "TommasoVentafridda",
     " ",
     "#Havoc:",
     "jboone,furrtek,eried,argilo,",
