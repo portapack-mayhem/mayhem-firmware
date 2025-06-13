@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 TJ Baginski
+ * Copyright (C) 2025 Tommaso Ventafridda
  *
  * This file is part of PortaPack.
  *
@@ -33,6 +34,7 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "database.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "usb_serial_thread.hpp"
@@ -152,10 +154,17 @@ class BleRecentEntryDetailView : public View {
         {9 * 8, 1 * 16, 17 * 8, 16},
         "-"};
 
+    Labels label_vendor{
+        {{0 * 8, 2 * 16}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_vendor{
+        {7 * 8, 2 * 16, 23 * 8, 16},
+        "-"};
+
     Labels labels{
-        {{0 * 8, 3 * 16}, "Len", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 3 * 16}, "Type", Theme::getInstance()->fg_light->foreground},
-        {{10 * 8, 3 * 16}, "Value", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Len", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, 4 * 16}, "Type", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, 4 * 16}, "Value", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_send{

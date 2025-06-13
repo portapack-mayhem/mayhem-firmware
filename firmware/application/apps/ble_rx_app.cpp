@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 TJ Baginski
+ * Copyright (C) 2025 Tommaso Ventafridda
  *
  * This file is part of PortaPack.
  *
@@ -80,6 +81,26 @@ void reverse_byte_array(uint8_t* arr, int length) {
         // Move the indices towards the center
         start++;
         end--;
+    }
+}
+
+std::string lookup_mac_vendor(const uint8_t* mac_address) {
+    database db;
+    database::MacAddressDBRecord record;
+
+    // Convert MAC address to hex string
+    std::string mac_hex = "";
+    for (int i = 0; i < 3; i++) {
+        // Only need first 3 bytes for OUI
+        mac_hex += to_string_hex(mac_address[i], 2);
+    }
+
+    int result = db.retrieve_macaddress_record(&record, mac_hex);
+
+    if (result == DATABASE_RECORD_FOUND) {
+        return std::string(record.vendor_name);
+    } else {
+        return "Unknown";
     }
 }
 
@@ -178,10 +199,14 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
                   &text_mac_address,
                   &label_pdu_type,
                   &text_pdu_type,
+                  &label_vendor,
+                  &text_vendor,
                   &labels});
 
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
     text_pdu_type.set(pdu_type_to_string(entry.pduType));
+    std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
+    text_vendor.set(vendor_name);
 
     button_done.on_select = [&nav](const ui::Button&) {
         nav.pop();
@@ -370,6 +395,10 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
 
 void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     entry_ = entry;
+    text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
+    text_pdu_type.set(pdu_type_to_string(entry.pduType));
+    std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
+    text_vendor.set(vendor_name);
     set_dirty();
 }
 
