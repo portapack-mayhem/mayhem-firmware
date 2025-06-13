@@ -35,9 +35,13 @@ constexpr std::string_view mayhem_information_list[] = {
     "MichalLeonBorsuk,",
     "MatiasFernandez,Giorgiofox",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "TommasoVentafridda",
 =======
 >>>>>>> dfa35b42 (added discord server information (#2471))
+=======
+    "TommasoVentafridda",
+>>>>>>> 20f28c83 (add dark theme (#2695))
     " ",
     "#Havoc:",
     "jboone,furrtek,eried,argilo,",
