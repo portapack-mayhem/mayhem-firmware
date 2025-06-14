@@ -75,6 +75,7 @@ MEMORY
     ram_external_app_gfxeq      (rwx) : org = 0xADE20000, len = 32k
     ram_external_app_noaaapt_rx   (rwx) : org = 0xADE30000, len = 32k
     ram_external_app_detector_rx   (rwx) : org = 0xADE40000, len = 32k
+    ram_external_app_dinogame   (rwx) : org = 0xADE50000, len = 32k
 }
 
 SECTIONS
@@ -391,6 +392,11 @@ SECTIONS
         *(*ui*external_app*detector_rx*);
     } > ram_external_app_detector_rx
 
+    .external_app_dinogame : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_dinogame.application_information));
+        *(*ui*external_app*dinogame*);
+    } > ram_external_app_dinogame
 
 }
 
