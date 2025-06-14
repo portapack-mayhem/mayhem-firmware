@@ -99,6 +99,8 @@ std::string lookup_mac_vendor(const uint8_t* mac_address) {
 
     if (result == DATABASE_RECORD_FOUND) {
         return std::string(record.vendor_name);
+    } else if (result == DATABASE_NOT_FOUND) {
+        return "missing macaddress.db";
     } else {
         return "Unknown";
     }
