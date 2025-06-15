@@ -74,6 +74,13 @@ typedef enum {
     RESERVED8 = 15
 } ADV_PDU_TYPE;
 
+typedef enum {
+    MAC_VENDOR_UNKNOWN = 0,
+    MAC_VENDOR_FOUND = 1,
+    MAC_VENDOR_NOT_FOUND = 2,
+    MAC_DB_NOT_FOUND = 3
+} MAC_VENDOR_STATUS;
+
 struct BleRecentEntry {
     using Key = uint64_t;
 
@@ -89,6 +96,7 @@ struct BleRecentEntry {
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
+    MAC_VENDOR_STATUS vendor_status;
     bool entryFound;
 
     BleRecentEntry()
@@ -107,6 +115,7 @@ struct BleRecentEntry {
           numHits{},
           pduType{},
           channelNumber{},
+          vendor_status{MAC_VENDOR_UNKNOWN},
           entryFound{} {
     }
 
