@@ -171,9 +171,9 @@ class BleRecentEntryDetailView : public View {
         "-"};
 
     Labels labels{
-        {{0 * 8, 4 * 16}, "Len", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 4 * 16}, "Type", Theme::getInstance()->fg_light->foreground},
-        {{10 * 8, 4 * 16}, "Value", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Len", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, 3 * 16}, "Type", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, 3 * 16}, "Value", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_send{
