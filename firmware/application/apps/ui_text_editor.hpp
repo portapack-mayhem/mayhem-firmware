@@ -78,7 +78,7 @@ class TextViewer : public Widget {
     void cursor_mark_selected();
     void cursor_clear_marked();
     void enable_long_press();
-    
+
     typedef std::pair<uint16_t, uint16_t> LineColPair;
     std::vector<LineColPair> lineColPair{};
 
