@@ -102,7 +102,7 @@ class BLETxView : public View {
     ~BLETxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -216,7 +216,7 @@ class BLETxView : public View {
         true};
 
     ImageButton button_play{
-        {screen_width - 2 * 8, 2 * 16, 2 * 8, 1 * 16},
+        {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
@@ -287,11 +287,8 @@ class BLETxView : public View {
     Labels label_data_packet{
         {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
-    Console console{
-        {0, 9 * 18, screen_width, screen_height - 80}};
-
     TextViewer dataEditView{
-        {0, 9 * 18, screen_width, screen_height - 80}};
+        {0, 9 * 18, 240, 240}};
 
     Button button_clear_marked{
         {1 * 8, 14 * 16, 13 * 8, 3 * 8},
