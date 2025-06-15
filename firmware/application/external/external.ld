@@ -189,7 +189,11 @@ MEMORY
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
 =======
     ram_external_app_detector_rx   (rwx) : org = 0xADE40000, len = 32k
+<<<<<<< HEAD
 >>>>>>> f90bd446 (Detector RX ext app (#2673))
+=======
+    ram_external_app_dinogame   (rwx) : org = 0xADE50000, len = 32k
+>>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
 }
 
 SECTIONS
@@ -506,6 +510,11 @@ SECTIONS
         *(*ui*external_app*detector_rx*);
     } > ram_external_app_detector_rx
 
+    .external_app_dinogame : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_dinogame.application_information));
+        *(*ui*external_app*dinogame*);
+    } > ram_external_app_dinogame
 
 }
 

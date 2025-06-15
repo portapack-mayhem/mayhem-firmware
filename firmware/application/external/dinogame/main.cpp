@@ -4,7 +4,13 @@
  * |  Find me at https://betaskynet.com                       |
  * |  Argh matey!                                             |
  * ------------------------------------------------------------
+<<<<<<< HEAD
  *
+=======
+ */
+
+/*
+>>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
  * Chrome Dino Game for Portapack Mayhem
  * Based on the original DinoGame by various contributors
  */
@@ -30,6 +36,7 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
 
     "Dino Game",
     {
+<<<<<<< HEAD
         // Cactus icon 16x16
         0x00, 0x00,  // ................
         0x80, 0x01,  // .......##.......
@@ -47,6 +54,40 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
         0x80, 0x01,  // .......##.......
         0x80, 0x01,  // .......##.......
         0x00, 0x00,  // ................
+=======
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xF0,
+        0xF8,
+        0xFC,
+        0xFE,
+        0xFF,
+        0xFF,
+        0x7F,
+        0x7F,
+        0x3F,
+        0x3F,
+        0x3E,
+        0x3C,
+        0x38,
+        0x30,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+>>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
     },
     ui::Color::green().v,
     app_location_t::GAMES,
@@ -55,4 +96,8 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
     {0, 0, 0, 0},
     0x00000000,
 };
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 18bc2cf1 (Made the Dino Game (#2697))

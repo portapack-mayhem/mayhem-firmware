@@ -232,6 +232,10 @@ set(EXTCPPSRC
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
 
+	#dinogame
+	external/dinogame/main.cpp
+	external/dinogame/ui_dinogame.cpp
+
 	#doom
 	external/doom/main.cpp
 	external/doom/ui_doom.cpp
@@ -311,6 +315,7 @@ set(EXTAPPLIST
 	snake
 	stopwatch
 	breakout
+	dinogame
 	doom
 	debug_pmem
 	scanner
