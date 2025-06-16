@@ -48,7 +48,7 @@ f=5533000000,d=FPV Ch L-6
 f=5573000000,d=FPV Ch L-7
 f=5613000000,d=FPV Ch L-8
 
-# 1.2/1.3 GHz Analog Channels
+# 1.2-1.3GHz Analog Channels
 f=1240000000,d=Ch 1 (1240 MHz)
 f=1258000000,d=Ch 2 (1258 MHz)
 f=1280000000,d=Ch 3 (1280 MHz)
