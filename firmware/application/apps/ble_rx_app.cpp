@@ -128,6 +128,50 @@ void reverse_byte_array(uint8_t* arr, int length) {
     }
 }
 
+MAC_VENDOR_STATUS lookup_mac_vendor_status(const uint8_t* mac_address, std::string& vendor_name) {
+    static bool db_checked = false;
+    static bool db_exists = false;
+
+    if (!db_checked) {
+        database db;
+        database::MacAddressDBRecord dummy_record;
+        int test_result = db.retrieve_macaddress_record(&dummy_record, "000000");
+        db_exists = (test_result != DATABASE_NOT_FOUND);
+        db_checked = true;
+    }
+
+    if (!db_exists) {
+        vendor_name = "macaddress.db not found";
+        return MAC_DB_NOT_FOUND;
+    }
+
+    database db;
+    database::MacAddressDBRecord record;
+
+    // Convert MAC address to hex string
+    std::string mac_hex = "";
+    for (int i = 0; i < 3; i++) {
+        // Only need first 3 bytes for OUI
+        mac_hex += to_string_hex(mac_address[i], 2);
+    }
+
+    int result = db.retrieve_macaddress_record(&record, mac_hex);
+
+    if (result == DATABASE_RECORD_FOUND) {
+        vendor_name = std::string(record.vendor_name);
+        return MAC_VENDOR_FOUND;
+    } else {
+        vendor_name = "Unknown";
+        return MAC_VENDOR_NOT_FOUND;
+    }
+}
+
+std::string lookup_mac_vendor(const uint8_t* mac_address) {
+    std::string vendor_name;
+    lookup_mac_vendor_status(mac_address, vendor_name);
+    return vendor_name;
+}
+
 namespace ui {
 
 std::string pdu_type_to_string(ADV_PDU_TYPE type) {
@@ -1054,6 +1098,11 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.pduType = pdu_type;
     entry.channelNumber = channel_number;
     entry.numHits++;
+
+    if (entry.vendor_status == MAC_VENDOR_UNKNOWN) {
+        std::string vendor_name;
+        entry.vendor_status = lookup_mac_vendor_status(entry.packetData.macAddress, vendor_name);
+    }
 
     if (entry.vendor_status == MAC_VENDOR_UNKNOWN) {
         std::string vendor_name;

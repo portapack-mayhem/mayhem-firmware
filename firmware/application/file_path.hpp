@@ -59,11 +59,15 @@ extern const std::filesystem::path hopper_dir;
 extern const std::filesystem::path subghz_dir;
 extern const std::filesystem::path waterfalls_dir;
 <<<<<<< HEAD
+<<<<<<< HEAD
 extern const std::filesystem::path macaddress_dir;
 =======
 extern const std::filesystem::path subghz_dir;
 >>>>>>> b2bb37af (Flipper tx: use file_path, example file (#2496))
 =======
 >>>>>>> f941ae87 (Custom waterfall colors (#2617))
+=======
+extern const std::filesystem::path macaddress_dir;
+>>>>>>> fa4b74fd (Add vendor name in bluetooth rx app (#2696))
 
 #endif /* __FILE_PATH_H__ */
