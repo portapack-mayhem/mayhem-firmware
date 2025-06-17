@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 TJ Baginski
+ * Copyright (C) 2025 Tommaso Ventafridda
  *
  * This file is part of PortaPack.
  *
@@ -33,6 +34,7 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "database.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "usb_serial_thread.hpp"
@@ -72,6 +74,13 @@ typedef enum {
     RESERVED8 = 15
 } ADV_PDU_TYPE;
 
+typedef enum {
+    MAC_VENDOR_UNKNOWN = 0,
+    MAC_VENDOR_FOUND = 1,
+    MAC_VENDOR_NOT_FOUND = 2,
+    MAC_DB_NOT_FOUND = 3
+} MAC_VENDOR_STATUS;
+
 struct BleRecentEntry {
     using Key = uint64_t;
 
@@ -87,6 +96,7 @@ struct BleRecentEntry {
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
+    MAC_VENDOR_STATUS vendor_status;
     bool entryFound;
 
     BleRecentEntry()
@@ -105,6 +115,7 @@ struct BleRecentEntry {
           numHits{},
           pduType{},
           channelNumber{},
+          vendor_status{MAC_VENDOR_UNKNOWN},
           entryFound{} {
     }
 
@@ -150,6 +161,13 @@ class BleRecentEntryDetailView : public View {
 
     Text text_pdu_type{
         {9 * 8, 1 * 16, 17 * 8, 16},
+        "-"};
+
+    Labels label_vendor{
+        {{0 * 8, 2 * 16}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_vendor{
+        {7 * 8, 2 * 16, 23 * 8, 16},
         "-"};
 
     Labels labels{
