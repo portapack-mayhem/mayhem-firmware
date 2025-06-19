@@ -97,7 +97,7 @@ class FileManBaseView : public View {
     void load_directory_contents(const std::filesystem::path& dir_path);
     void load_directory_contents_unordered(const std::filesystem::path& dir_path, size_t file_cnt);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
-    std::string get_extension(std::string t);
+    std::string get_extension(const std::string& t) const;
     void copy_waterfall(std::filesystem::path path);
 
     NavigationView& nav_;

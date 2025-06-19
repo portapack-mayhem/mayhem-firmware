@@ -368,7 +368,7 @@ void FileManBaseView::pop_dir() {
     reload_current(false);  // Important: don't reset pagination
 }
 
-std::string FileManBaseView::get_extension(std::string t) {
+std::string FileManBaseView::get_extension(const std::string& t) const {
     const auto index = t.find_last_of(u'.');
     if (index == t.npos) {
         return {};
