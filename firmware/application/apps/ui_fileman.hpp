@@ -98,9 +98,13 @@ class FileManBaseView : public View {
     void load_directory_contents_unordered(const std::filesystem::path& dir_path, size_t file_cnt);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 <<<<<<< HEAD
+<<<<<<< HEAD
     std::string get_extension(const std::string& t) const;
 =======
 >>>>>>> f941ae87 (Custom waterfall colors (#2617))
+=======
+    std::string get_extension(const std::string& t) const;
+>>>>>>> e26f77ee (Filemanager: go to parent directory keep track of the right selected … (#2702))
     void copy_waterfall(std::filesystem::path path);
 
     NavigationView& nav_;

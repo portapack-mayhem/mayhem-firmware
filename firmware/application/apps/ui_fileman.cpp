@@ -521,6 +521,7 @@ void FileLoadView::refresh_widgets(const bool) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /* FileSaveView **************************************************************/
 /*
@@ -580,6 +581,8 @@ void FileSaveView::refresh_widgets() {
 }
 */
 >>>>>>> 1377516d (make the ptext_prompt func can define which keyboard to enter (#2608))
+=======
+>>>>>>> e26f77ee (Filemanager: go to parent directory keep track of the right selected … (#2702))
 /* FileManagerView ***********************************************************/
 
 void FileManagerView::refresh_widgets(const bool v) {
