@@ -288,11 +288,14 @@ class BLETxView : public View {
         {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     Console console{
         {0, 9 * 18, screen_width, screen_height - 80}};
 
 >>>>>>> a1d7cf2b (Prepare for display orientation part 1 (#2661))
+=======
+>>>>>>> b456c180 (Modified Text Editor to handle long presses. (#2698))
     TextViewer dataEditView{
         {0, 9 * 18, screen_width, screen_height - 80}};
 
