@@ -76,6 +76,7 @@ MEMORY
     ram_external_app_noaaapt_rx   (rwx) : org = 0xADE30000, len = 32k
     ram_external_app_detector_rx   (rwx) : org = 0xADE40000, len = 32k
     ram_external_app_dinogame   (rwx) : org = 0xADE50000, len = 32k
+    ram_external_app_spaceinv   (rwx) : org = 0xADE60000, len = 32k
 }
 
 SECTIONS
@@ -397,6 +398,12 @@ SECTIONS
         KEEP(*(.external_app.app_dinogame.application_information));
         *(*ui*external_app*dinogame*);
     } > ram_external_app_dinogame
+
+    .external_app_spaceinv : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_spaceinv.application_information));
+        *(*ui*external_app*spaceinv*);
+    } > ram_external_app_spaceinv
 
 }
 
