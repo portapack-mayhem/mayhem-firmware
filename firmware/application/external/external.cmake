@@ -259,6 +259,10 @@ set(EXTCPPSRC
 	#detector_rx
 	external/detector_rx/main.cpp
 	external/detector_rx/ui_detector_rx.cpp		
+
+	#space_invaders
+	external/spaceinv/main.cpp
+	external/spaceinv/ui_spaceinv.cpp		
 )
 
 set(EXTAPPLIST
@@ -322,4 +326,5 @@ set(EXTAPPLIST
 	level
 	gfxeq
 	detector_rx
+	spaceinv
 )

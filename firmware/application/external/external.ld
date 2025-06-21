@@ -193,7 +193,11 @@ MEMORY
 >>>>>>> f90bd446 (Detector RX ext app (#2673))
 =======
     ram_external_app_dinogame   (rwx) : org = 0xADE50000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
+=======
+    ram_external_app_spaceinv   (rwx) : org = 0xADE60000, len = 32k
+>>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
 }
 
 SECTIONS
@@ -515,6 +519,12 @@ SECTIONS
         KEEP(*(.external_app.app_dinogame.application_information));
         *(*ui*external_app*dinogame*);
     } > ram_external_app_dinogame
+
+    .external_app_spaceinv : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_spaceinv.application_information));
+        *(*ui*external_app*spaceinv*);
+    } > ram_external_app_spaceinv
 
 }
 

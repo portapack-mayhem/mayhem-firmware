@@ -27,6 +27,7 @@ __attribute__((section(".external_app.app_spaceinv.application_information"), us
 
     "Space Invaders",
     {
+<<<<<<< HEAD
         // Space Invader alien icon 16x16
         0x00, 0x18,  // .......##.......
         0x00, 0x3C,  // ......####......
@@ -46,10 +47,49 @@ __attribute__((section(".external_app.app_spaceinv.application_information"), us
         0x00, 0x00,  // ................
     },
     ui::Color::magenta().v,
+=======
+        0x18,
+        0x3C,
+        0x7E,
+        0xDB,
+        0xFF,
+        0xFF,
+        0x24,
+        0x66,
+        0x42,
+        0x00,
+        0x24,
+        0x18,
+        0x24,
+        0x42,
+        0x81,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+    },
+    ui::Color::yellow().v,
+>>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
     app_location_t::GAMES,
     -1,
 
     {0, 0, 0, 0},
     0x00000000,
 };
+<<<<<<< HEAD
 }  // namespace ui::external_app::spaceinv
+=======
+}  // namespace ui::external_app::spaceinv
+>>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
