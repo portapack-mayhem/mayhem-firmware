@@ -33,6 +33,7 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "database.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "usb_serial_thread.hpp"
@@ -72,6 +73,13 @@ typedef enum {
     RESERVED8 = 15
 } ADV_PDU_TYPE;
 
+typedef enum {
+    MAC_VENDOR_UNKNOWN = 0,
+    MAC_VENDOR_FOUND = 1,
+    MAC_VENDOR_NOT_FOUND = 2,
+    MAC_DB_NOT_FOUND = 3
+} MAC_VENDOR_STATUS;
+
 struct BleRecentEntry {
     using Key = uint64_t;
 
@@ -88,6 +96,7 @@ struct BleRecentEntry {
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
+    MAC_VENDOR_STATUS vendor_status;
     bool entryFound;
 
     BleRecentEntry()
@@ -107,6 +116,7 @@ struct BleRecentEntry {
           numHits{},
           pduType{},
           channelNumber{},
+          vendor_status{MAC_VENDOR_UNKNOWN},
           entryFound{} {
     }
 
@@ -128,11 +138,11 @@ class BleRecentEntryDetailView : public View {
     void update_data();
     void focus() override;
     void paint(Painter&) override;
-    static BLETxPacket build_packet(BleRecentEntry entry_);
 
    private:
     NavigationView& nav_;
     BleRecentEntry entry_{};
+    BLETxPacket build_packet();
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
@@ -152,6 +162,13 @@ class BleRecentEntryDetailView : public View {
 
     Text text_pdu_type{
         {9 * 8, 1 * 16, 17 * 8, 16},
+        "-"};
+
+    Labels label_vendor{
+        {{0 * 8, 2 * 16}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_vendor{
+        {7 * 8, 2 * 16, 23 * 8, 16},
         "-"};
 
     Labels labels{
@@ -347,18 +364,18 @@ class BLERxView : public View {
         true};
 
     // Console console{
-    //     {0, 10 * 8, 240, 240}};
+    //     {0, 10 * 8, screen_height, screen_height-80}};
 
     Button button_clear_list{
-        {2 * 8, 320 - (16 + 32), 7 * 8, 32},
+        {2 * 8, screen_height - (16 + 32), 7 * 8, 32},
         "Clear"};
 
     Button button_save_list{
-        {11 * 8, 320 - (16 + 32), 11 * 8, 32},
+        {11 * 8, screen_height - (16 + 32), 11 * 8, 32},
         "Export CSV"};
 
     Button button_switch{
-        {240 - 6 * 8, 320 - (16 + 32), 4 * 8, 32},
+        {screen_width - 6 * 8, screen_height - (16 + 32), 4 * 8, 32},
         "Tx"};
 
     std::string str_log{""};

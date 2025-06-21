@@ -156,6 +156,50 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     return result;
 }
 
+MAC_VENDOR_STATUS lookup_mac_vendor_status(const uint8_t* mac_address, std::string& vendor_name) {
+    static bool db_checked = false;
+    static bool db_exists = false;
+
+    if (!db_checked) {
+        database db;
+        database::MacAddressDBRecord dummy_record;
+        int test_result = db.retrieve_macaddress_record(&dummy_record, "000000");
+        db_exists = (test_result != DATABASE_NOT_FOUND);
+        db_checked = true;
+    }
+
+    if (!db_exists) {
+        vendor_name = "macaddress.db not found";
+        return MAC_DB_NOT_FOUND;
+    }
+
+    database db;
+    database::MacAddressDBRecord record;
+
+    // Convert MAC address to hex string
+    std::string mac_hex = "";
+    for (int i = 0; i < 3; i++) {
+        // Only need first 3 bytes for OUI
+        mac_hex += to_string_hex(mac_address[i], 2);
+    }
+
+    int result = db.retrieve_macaddress_record(&record, mac_hex);
+
+    if (result == DATABASE_RECORD_FOUND) {
+        vendor_name = std::string(record.vendor_name);
+        return MAC_VENDOR_FOUND;
+    } else {
+        vendor_name = "Unknown";
+        return MAC_VENDOR_NOT_FOUND;
+    }
+}
+
+std::string lookup_mac_vendor(const uint8_t* mac_address) {
+    std::string vendor_name;
+    lookup_mac_vendor_status(mac_address, vendor_name);
+    return vendor_name;
+}
+
 void reverse_byte_array(uint8_t* arr, int length) {
     int start = 0;
     int end = length - 1;
@@ -261,7 +305,10 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     line += pad_string_with_spaces(db_spacing) + dbStr;
 
     line.resize(target_rect.width() / 8, ' ');
-    painter.draw_string(target_rect.location(), style, line);
+
+    Style row_style = (entry.vendor_status == MAC_VENDOR_FOUND) ? style : Style{style.font, style.background, Color::grey()};
+
+    painter.draw_string(target_rect.location(), row_style, line);
 }
 
 BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const BleRecentEntry& entry)
@@ -274,17 +321,21 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
                   &text_mac_address,
                   &label_pdu_type,
                   &text_pdu_type,
+                  &label_vendor,
+                  &text_vendor,
                   &labels});
 
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
     text_pdu_type.set(pdu_type_to_string(entry.pduType));
+    std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
+    text_vendor.set(vendor_name);
 
     button_done.on_select = [&nav](const ui::Button&) {
         nav.pop();
     };
 
     button_send.on_select = [this, &nav](const ui::Button&) {
-        auto packetToSend = build_packet(entry_);
+        auto packetToSend = build_packet();
         nav.set_on_pop([packetToSend, &nav]() {
             nav.replace<BLETxView>(packetToSend);
         });
@@ -292,7 +343,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     };
 
     button_save.on_select = [this, &nav](const ui::Button&) {
-        auto packetToSave = build_packet(entry_);
+        auto packetToSave = build_packet();
 
         packetFileBuffer = "";
         text_prompt(
@@ -466,10 +517,14 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
 
 void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     entry_ = entry;
+    text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
+    text_pdu_type.set(pdu_type_to_string(entry.pduType));
+    std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
+    text_vendor.set(vendor_name);
     set_dirty();
 }
 
-BLETxPacket BleRecentEntryDetailView::build_packet(BleRecentEntry entry_) {
+BLETxPacket BleRecentEntryDetailView::build_packet() {
     BLETxPacket bleTxPacket;
     memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
@@ -477,8 +532,8 @@ BLETxPacket BleRecentEntryDetailView::build_packet(BleRecentEntry entry_) {
 
     strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 12);
     strncpy(bleTxPacket.advertisementData, entry_.dataString.c_str(), entry_.packetData.dataLen * 2);
-    strncpy(bleTxPacket.packetCount, "10", 3);
-    bleTxPacket.packet_count = 10;
+    strncpy(bleTxPacket.packetCount, "50", 3);
+    bleTxPacket.packet_count = 50;
 
     return bleTxPacket;
 }
@@ -583,7 +638,7 @@ BLERxView::BLERxView(NavigationView& nav)
         logging = v;
 
         if (logger && logging)
-            logger->append(bletx_dir.string() + "/Packets/BLETx_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+            logger->append(blerx_dir.string() + "/Logs/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
     check_log.set_value(logging);
 
@@ -823,6 +878,19 @@ void BLERxView::on_data(BlePacketData* packet) {
         str_log = "";
     }
 
+    str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
+    str_console += " Len:";
+    str_console += to_string_dec_uint(packet->size);
+    str_console += " Mac:";
+    str_console += to_string_mac_address(packet->macAddress, 6, false);
+    str_console += " Data:";
+
+    int i;
+
+    for (i = 0; i < packet->dataLen; i++) {
+        str_console += to_string_hex(packet->data[i], 2);
+    }
+
     uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
     // Start of Packet stuffing.
@@ -844,15 +912,7 @@ void BLERxView::on_data(BlePacketData* packet) {
 
         // Log at End of Packet.
         if (logger && logging) {
-            auto packetData = BleRecentEntryDetailView::build_packet(entry);
-
-            std::string macAddressStr = packetData.macAddress;
-            std::string advertisementDataStr = packetData.advertisementData;
-            std::string packetCountStr = packetData.packetCount;
-
-            std::string packetString = macAddressStr + ' ' + advertisementDataStr + ' ' + packetCountStr;
-
-            logger->log_raw_data(packetString);
+            logger->log_raw_data(str_console + "\r\n");
         }
 
         if (serial_logging) {
@@ -1052,6 +1112,11 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
 
     entry.pduType = pdu_type;
     entry.channelNumber = channel_number;
+
+    if (entry.vendor_status == MAC_VENDOR_UNKNOWN) {
+        std::string vendor_name;
+        entry.vendor_status = lookup_mac_vendor_status(entry.packetData.macAddress, vendor_name);
+    }
 
     // Parse Data Section into buffer to be interpretted later.
     for (int i = 0; i < packet->dataLen; i++) {
