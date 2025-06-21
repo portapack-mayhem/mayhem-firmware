@@ -2,7 +2,6 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 TJ Baginski
- * Copyright (C) 2025 Tommaso Ventafridda
  *
  * This file is part of PortaPack.
  *
@@ -34,7 +33,6 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
-#include "database.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "usb_serial_thread.hpp"
@@ -74,17 +72,10 @@ typedef enum {
     RESERVED8 = 15
 } ADV_PDU_TYPE;
 
-typedef enum {
-    MAC_VENDOR_UNKNOWN = 0,
-    MAC_VENDOR_FOUND = 1,
-    MAC_VENDOR_NOT_FOUND = 2,
-    MAC_DB_NOT_FOUND = 3
-} MAC_VENDOR_STATUS;
-
 struct BleRecentEntry {
     using Key = uint64_t;
 
-    static constexpr Key invalid_key = 0xffffffff;
+    static constexpr Key invalid_key = 0xFFFFFFFFFFFF;
 
     uint64_t macAddress;
     int dbValue;
@@ -92,11 +83,11 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
+    std::string versionString;
     bool include_name;
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
-    MAC_VENDOR_STATUS vendor_status;
     bool entryFound;
 
     BleRecentEntry()
@@ -111,11 +102,11 @@ struct BleRecentEntry {
           timestamp{},
           dataString{},
           nameString{},
+          versionString{},
           include_name{},
           numHits{},
           pduType{},
           channelNumber{},
-          vendor_status{MAC_VENDOR_UNKNOWN},
           entryFound{} {
     }
 
@@ -137,11 +128,11 @@ class BleRecentEntryDetailView : public View {
     void update_data();
     void focus() override;
     void paint(Painter&) override;
+    static BLETxPacket build_packet(BleRecentEntry entry_);
 
    private:
     NavigationView& nav_;
     BleRecentEntry entry_{};
-    BLETxPacket build_packet();
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
@@ -161,13 +152,6 @@ class BleRecentEntryDetailView : public View {
 
     Text text_pdu_type{
         {9 * 8, 1 * 16, 17 * 8, 16},
-        "-"};
-
-    Labels label_vendor{
-        {{0 * 8, 2 * 16}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
-
-    Text text_vendor{
-        {7 * 8, 2 * 16, 23 * 8, 16},
         "-"};
 
     Labels labels{
@@ -222,9 +206,11 @@ class BLERxView : public View {
     void on_timer();
     void handle_entries_sort(uint8_t index);
     void handle_filter_options(uint8_t index);
-    void updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
+    bool updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
+    bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& versionString);
 
     NavigationView& nav_;
+
     RxRadioState radio_state_{
         2402000000 /* frequency */,
         4000000 /* bandwidth */,
@@ -234,6 +220,7 @@ class BLERxView : public View {
     uint8_t channel_index{0};
     uint8_t sort_index{0};
     uint8_t filter_index{0};
+    bool uniqueParsing = false;
     std::string filter{};
     bool logging{false};
     bool serial_logging{false};
@@ -325,9 +312,10 @@ class BLERxView : public View {
 
     OptionsField options_filter{
         {18 * 8 + 2, 2 * 8},
-        4,
+        7,
         {{"Data", 0},
-         {"MAC", 1}}};
+         {"MAC", 1},
+         {"Unique", 2}}};
 
     Checkbox check_log{
         {10 * 8, 4 * 8 + 2},
@@ -359,18 +347,18 @@ class BLERxView : public View {
         true};
 
     // Console console{
-    //     {0, 10 * 8, screen_height, screen_height-80}};
+    //     {0, 10 * 8, 240, 240}};
 
     Button button_clear_list{
-        {2 * 8, screen_height - (16 + 32), 7 * 8, 32},
+        {2 * 8, 320 - (16 + 32), 7 * 8, 32},
         "Clear"};
 
     Button button_save_list{
-        {11 * 8, screen_height - (16 + 32), 11 * 8, 32},
+        {11 * 8, 320 - (16 + 32), 11 * 8, 32},
         "Export CSV"};
 
     Button button_switch{
-        {screen_width - 6 * 8, screen_height - (16 + 32), 4 * 8, 32},
+        {240 - 6 * 8, 320 - (16 + 32), 4 * 8, 32},
         "Tx"};
 
     std::string str_log{""};
@@ -380,9 +368,9 @@ class BLERxView : public View {
     BleRecentEntries tempList{};
 
     const RecentEntriesColumns columns{{
-        {"Mac Address", 17},
-        {"Hits", 7},
-        {"dB", 4},
+        {"Name", 10},
+        {"Information", 13},
+        {"dBm", 4},
     }};
 
     BleRecentEntriesView recent_entries_view{columns, recent};
