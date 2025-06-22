@@ -91,7 +91,7 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
-    std::string versionString;
+    std::string informationString;
     bool include_name;
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
@@ -111,7 +111,7 @@ struct BleRecentEntry {
           timestamp{},
           dataString{},
           nameString{},
-          versionString{},
+          informationString{},
           include_name{},
           numHits{},
           pduType{},
@@ -217,6 +217,7 @@ class BLERxView : public View {
     bool saveFile(const std::filesystem::path& path);
     std::unique_ptr<UsbSerialThread> usb_serial_thread{};
     void on_data(BlePacketData* packetData);
+    void log_ble_packet(BlePacketData* packet);
     void on_filter_change(std::string value);
     void on_file_changed(const std::filesystem::path& new_file_path);
     void file_error();
@@ -224,7 +225,7 @@ class BLERxView : public View {
     void handle_entries_sort(uint8_t index);
     void handle_filter_options(uint8_t index);
     bool updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
-    bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& versionString);
+    bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
 
     NavigationView& nav_;
 

@@ -48,7 +48,7 @@ namespace fs = std::filesystem;
 static uint8_t ble_rx_error = BLE_RX_NO_ERROR;
 
 void BLELogger::log_raw_data(const std::string& data) {
-    log_file.write_line(data);
+    log_file.write_entry(data);
 }
 
 std::string pad_string_with_spaces(int snakes) {
@@ -285,8 +285,8 @@ void RecentEntriesTable<BleRecentEntries>::draw(
 
     std::string hitsStr;
 
-    if (!entry.versionString.empty()) {
-        hitsStr = entry.versionString;
+    if (!entry.informationString.empty()) {
+        hitsStr = entry.informationString;
     } else {
         hitsStr = to_string_dec_int(entry.numHits);
     }
@@ -634,7 +634,6 @@ BLERxView::BLERxView(NavigationView& nav)
     logger = std::make_unique<BLELogger>();
 
     check_log.on_select = [this](Checkbox&, bool v) {
-        str_log = "";
         logging = v;
 
         if (logger && logging)
@@ -874,23 +873,6 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
-    if (!logging) {
-        str_log = "";
-    }
-
-    str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
-    str_console += " Len:";
-    str_console += to_string_dec_uint(packet->size);
-    str_console += " Mac:";
-    str_console += to_string_mac_address(packet->macAddress, 6, false);
-    str_console += " Data:";
-
-    int i;
-
-    for (i = 0; i < packet->dataLen; i++) {
-        str_console += to_string_hex(packet->data[i], 2);
-    }
-
     uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
     // Start of Packet stuffing.
@@ -910,17 +892,6 @@ void BLERxView::on_data(BlePacketData* packet) {
         handle_filter_options(options_filter.selected_index());
         handle_entries_sort(options_sort.selected_index());
 
-        // Log at End of Packet.
-        if (logger && logging) {
-            logger->log_raw_data(str_console + "\r\n");
-        }
-
-        if (serial_logging) {
-            UsbSerialAsyncmsg::asyncmsg(str_console);  // new line handled there, no need here.
-        }
-
-        str_console = "";
-
         if (!searchList.empty()) {
             auto it = searchList.begin();
 
@@ -938,6 +909,34 @@ void BLERxView::on_data(BlePacketData* packet) {
 
             text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
         }
+    }
+
+    log_ble_packet(packet);
+}
+
+void BLERxView::log_ble_packet(BlePacketData* packet)
+{
+    str_console = "";
+    str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
+    str_console += " Len:";
+    str_console += to_string_dec_uint(packet->size);
+    str_console += " Mac:";
+    str_console += to_string_mac_address(packet->macAddress, 6, false);
+    str_console += " Data:";
+
+    int i;
+
+    for (i = 0; i < packet->dataLen; i++) {
+        str_console += to_string_hex(packet->data[i], 2);
+    }
+
+    // Log at End of Packet.
+    if (logger && logging) {
+        logger->log_raw_data(str_console);
+    }
+
+    if (serial_logging) {
+        UsbSerialAsyncmsg::asyncmsg(str_console);  // new line handled there, no need here.
     }
 }
 
@@ -1133,10 +1132,8 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         }
 
         if (!success && !uniqueParsing) {
-            success = parse_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.versionString);
+            success = parse_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.informationString);
         }
-
-        str_console = "Name: " + entry.nameString + "\t" + "Information: " + entry.versionString + "\t" + "RSSI: " + to_string_dec_int(entry.dbValue) + "dBm" + "\r\n";
 
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
@@ -1146,7 +1143,7 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     return success;
 }
 
-bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& versionString) {
+bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString) {
     uint8_t currentByte, currentLength, currentType = 0;
 
     for (currentByte = 0; currentByte < length;) {
@@ -1167,7 +1164,7 @@ bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::stri
         nameString = "None";
     }
 
-    versionString = "";
+    informationString = "";
 
     return true;
 }
