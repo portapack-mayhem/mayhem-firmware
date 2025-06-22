@@ -914,8 +914,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     log_ble_packet(packet);
 }
 
-void BLERxView::log_ble_packet(BlePacketData* packet)
-{
+void BLERxView::log_ble_packet(BlePacketData* packet) {
     str_console = "";
     str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
     str_console += " Len:";
