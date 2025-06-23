@@ -1128,7 +1128,7 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND)  // || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND)
     {
         if (uniqueParsing) {
-            // Add your unqiue beacon parsing function here.
+            // Add your unique beacon parsing function here.
         }
 
         if (!success && !uniqueParsing) {
