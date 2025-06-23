@@ -289,7 +289,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     if (!entry.informationString.empty()) {
         hitsStr = entry.informationString;
     } else {
-        hitsStr = to_string_dec_int(entry.numHits);
+        hitsStr = "Hits: " + to_string_dec_int(entry.numHits);
     }
 
     // Pushing single digit values down right justified.
