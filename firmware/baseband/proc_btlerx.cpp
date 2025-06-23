@@ -316,13 +316,13 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     while (ptr < end) {
         float dbm = mag2_to_dbm_8bit_normalized(ptr->real(), ptr->imag(), 1.0f, 50.0f);
 
-        ptr++;
-
         if (dbm > max_dB) {
             max_dB = dbm;
             real = ptr->real();
             imag = ptr->imag();
         }
+
+        ptr++;
     }
 
     // 4Mhz 2048 samples
