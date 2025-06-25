@@ -397,6 +397,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSON sonde)
 
+### FSK RX
+
+set(MODE_CPPSRC
+	proc_fsk_rx.cpp
+)
+DeclareTargets(PFSR fskrx)
+
 ### FSK TX
 
 set(MODE_CPPSRC
