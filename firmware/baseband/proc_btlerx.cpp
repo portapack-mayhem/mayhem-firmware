@@ -131,7 +131,6 @@ int BTLERxProcessor::verify_payload_byte(int num_payload_byte, ADV_PDU_TYPE pdu_
     return 0;
 }
 
-
 void BTLERxProcessor::resetOffsetTracking() {
     frequency_offset = 0.0f;
     frequency_offset_estimate = 0.0f;
@@ -171,7 +170,7 @@ void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
 
             bool bitDecision = (phaseSum > 0.0f);
             rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << bit_index);
-        
+
             samples_eaten += SAMPLE_PER_SYMBOL;
         }
 
@@ -179,8 +178,7 @@ void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
     }
 }
 
-void BTLERxProcessor::handleBeginState() 
-{
+void BTLERxProcessor::handleBeginState() {
     uint32_t validAccessAddress = DEFAULT_ACCESS_ADDR;
     uint32_t accesssAddress = 0;
 
@@ -255,7 +253,7 @@ void BTLERxProcessor::handlePDUHeaderState() {
 
 void BTLERxProcessor::handlePDUPayloadState() {
     const int num_demod_byte = (payload_len + 3);
- 
+
     if (samples_eaten > (int)dst_buffer.count) {
         return;
     }
