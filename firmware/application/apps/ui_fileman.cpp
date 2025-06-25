@@ -228,6 +228,8 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
     text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path, 24));
 
+    // Collect all entries first
+    std::list<fileman_entry> all_entries;
     for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
         // Hide files starting with '.' (hidden / tmp).
         if (!show_hidden_files && is_hidden_file(entry.path()))
@@ -235,36 +237,40 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
         if (fs::is_regular_file(entry.status())) {
             if (!filtering || path_iequal(entry.path().extension(), extension_filter) || (cxx_file && is_cxx_capture_file(entry.path())))
-                insert_sorted(entry_list, {entry.path().string(), (uint32_t)entry.size(), false});
+                insert_sorted(all_entries, {entry.path().string(), (uint32_t)entry.size(), false});
         } else if (fs::is_directory(entry.status())) {
-            insert_sorted(entry_list, {entry.path().string(), 0, true});
+            insert_sorted(all_entries, {entry.path().string(), 0, true});
         }
     }
 
-    // paginating
-    auto list_size = entry_list.size();
-    nb_pages = 1 + (list_size / items_per_page);
-    size_t start = pagination * items_per_page;
-    size_t stop = start + items_per_page;
-    if (list_size > start) {
-        if (list_size < stop)
-            stop = list_size;
-        entry_list.erase(std::next(entry_list.begin(), stop), entry_list.end());
-        entry_list.erase(entry_list.begin(), std::next(entry_list.begin(), start));
+    // Calculate pagination
+    nb_pages = (all_entries.size() + items_per_page - 1) / items_per_page;
+    if (nb_pages == 0) nb_pages = 1;
+
+    size_t start_idx = pagination * items_per_page;
+    size_t end_idx = std::min(start_idx + items_per_page, all_entries.size());
+
+    // Add "parent" directory if not at the root and on first page
+    if (!dir_path.empty() && pagination == 0) {
+        entry_list.push_back({parent_dir_path.string(), 0, true});
     }
 
-    // Add "parent" directory if not at the root.
-    if (!dir_path.empty() && pagination == 0)
-        entry_list.insert(entry_list.begin(), {parent_dir_path.string(), 0, true});
-
-    // add next page
-    if (list_size > start + items_per_page) {
-        entry_list.push_back({str_next, (uint32_t)pagination + 1, true});
-    }
-
-    // add prev page
+    // Add prev page navigation if not on first page
     if (pagination > 0) {
-        entry_list.insert(entry_list.begin(), {str_back, (uint32_t)pagination - 1, true});
+        entry_list.push_back({str_back, (uint32_t)pagination - 1, true});
+    }
+
+    // Add entries for current page
+    auto it = all_entries.begin();
+    std::advance(it, start_idx);
+
+    for (size_t i = start_idx; i < end_idx && it != all_entries.end(); i++, ++it) {
+        entry_list.push_back(*it);
+    }
+
+    // Add next page navigation if not on last page
+    if (end_idx < all_entries.size()) {
+        entry_list.push_back({str_next, (uint32_t)pagination + 1, true});
     }
 }
 
@@ -320,30 +326,49 @@ void FileManBaseView::focus() {
     } else {
         menu_view.focus();
     }
+
+    // Set menu to the correct page and select the correct item
+    menu_view.set_highlighted(prev_highlight % items_per_page);
 }
 
+// Push directory - store the global index (page * items_per_page + local_index)
 void FileManBaseView::push_dir(const fs::path& path) {
     if (path == parent_dir_path) {
         pop_dir();
     } else {
+        // Save global index (combines page number and item position)
+        saved_index_stack.push_back(menu_view.highlighted_index() + (pagination * items_per_page));
+
         current_path /= path;
-        saved_index_stack.push_back(menu_view.highlighted_index());
-        menu_view.set_highlighted(0);
-        reload_current(true);
+        reload_current(true);  // Reset pagination when entering new directory
     }
 }
 
 void FileManBaseView::pop_dir() {
-    if (saved_index_stack.empty())
+    if (current_path.empty()) {
         return;
+    }
 
+    // Move to parent directory
     current_path = current_path.parent_path();
-    reload_current(true);
-    menu_view.set_highlighted(saved_index_stack.back());
-    saved_index_stack.pop_back();
+
+    // Restore the previous global index if available
+    if (!saved_index_stack.empty()) {
+        uint32_t global_index = saved_index_stack.back();
+        saved_index_stack.pop_back();
+
+        // Calculate pagination from global index
+        pagination = global_index / items_per_page;
+
+        // Calculate local index within the page
+        prev_highlight = global_index % items_per_page;
+        restoring_navigation = true;
+    }
+
+    reload_current(false);  // Important: don't reset pagination
 }
 
-std::string get_extension(std::string t) {
+std::string FileManBaseView::get_extension(const std::string& t) const {
     const auto index = t.find_last_of(u'.');
     if (index == t.npos) {
         return {};
@@ -372,7 +397,9 @@ void FileManBaseView::refresh_list() {
     if (on_refresh_widgets)
         on_refresh_widgets(false);
 
-    prev_highlight = menu_view.highlighted_index();
+    if (!restoring_navigation) {
+        prev_highlight = menu_view.highlighted_index();
+    }
     menu_view.clear();
 
     for (const auto& entry : entry_list) {
@@ -411,10 +438,14 @@ void FileManBaseView::refresh_list() {
     }
 
     menu_view.set_highlighted(prev_highlight);
+    restoring_navigation = false;
 }
 
 void FileManBaseView::reload_current(bool reset_pagination) {
-    if (reset_pagination) pagination = 0;
+    // Only reset pagination if explicitly requested
+    if (reset_pagination) {
+        pagination = 0;
+    }
     load_directory_contents(current_path);
     refresh_list();
 }
@@ -489,63 +520,6 @@ void FileLoadView::refresh_widgets(const bool) {
     set_dirty();
 }
 
-/* FileSaveView **************************************************************/
-/*
-FileSaveView::FileSaveView(
-        NavigationView& nav,
-        const fs::path& path,
-        const fs::path& file
-) : nav_{ nav },
-        path_{ path },
-        file_{ file }
-{
-        add_children({
-                &text_path,
-                &button_edit_path,
-                &text_name,
-                &button_edit_name,
-                &button_save,
-                &button_cancel,
-        });
-
-        button_edit_path.on_select = [this](Button&) {
-                buffer_ = path_.string();
-                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
-                        [this](std::string&) {
-                                path_ = buffer_;
-                                refresh_widgets();
-                        });
-        };
-
-        button_edit_name.on_select = [this](Button&) {
-                buffer_ = file_.string();
-                text_prompt(nav_, buffer_, max_filename_length,ENTER_KEYBOARD_MODE_ALPHA,
-                        [this](std::string&) {
-                                file_ = buffer_;
-                                refresh_widgets();
-                        });
-        };
-
-        button_save.on_select = [this](Button&) {
-                if (on_save)
-                        on_save(path_ / file_);
-                else
-                        nav_.pop();
-        };
-
-        button_cancel.on_select = [this](Button&) {
-                nav_.pop();
-        };
-
-        refresh_widgets();
-}
-
-void FileSaveView::refresh_widgets() {
-        text_path.set(truncate(path_, 30));
-        text_name.set(truncate(file_, 30));
-        set_dirty();
-}
-*/
 /* FileManagerView ***********************************************************/
 
 void FileManagerView::refresh_widgets(const bool v) {

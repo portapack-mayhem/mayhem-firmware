@@ -287,9 +287,6 @@ class BLETxView : public View {
     Labels label_data_packet{
         {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
-    Console console{
-        {0, 9 * 18, screen_width, screen_height - 80}};
-
     TextViewer dataEditView{
         {0, 9 * 18, screen_width, screen_height - 80}};
 

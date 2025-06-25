@@ -54,10 +54,13 @@ class TextViewer : public Widget {
 
     std::function<void()> on_select{};
     std::function<void()> on_cursor_moved{};
+    std::function<void(uint8_t)> on_change{};
 
     void paint(Painter& painter) override;
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
+    void set_value(uint8_t new_value);
+    void on_focus() override;
 
     void redraw(bool redraw_text = false, bool redraw_marked = false);
 
@@ -74,6 +77,7 @@ class TextViewer : public Widget {
     void cursor_set(uint16_t line, uint16_t col);
     void cursor_mark_selected();
     void cursor_clear_marked();
+    void enable_long_press();
 
     typedef std::pair<uint16_t, uint16_t> LineColPair;
     std::vector<LineColPair> lineColPair{};
@@ -95,6 +99,9 @@ class TextViewer : public Widget {
     int8_t char_height{};
     uint8_t max_line{};
     uint8_t max_col{};
+    bool digit_mode_{false};
+    uint8_t value_{0};
+    bool allow_digit_mode_{true};
 
     /* Returns true if the cursor was updated. */
     bool apply_scrolling_constraints(
