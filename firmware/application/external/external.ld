@@ -77,6 +77,7 @@ MEMORY
     ram_external_app_detector_rx   (rwx) : org = 0xADE40000, len = 32k
     ram_external_app_dinogame   (rwx) : org = 0xADE50000, len = 32k
     ram_external_app_spaceinv   (rwx) : org = 0xADE60000, len = 32k
+    ram_external_app_blackjack  (rwx) : org = 0xADE70000, len = 32k
 }
 
 SECTIONS
@@ -404,6 +405,12 @@ SECTIONS
         KEEP(*(.external_app.app_spaceinv.application_information));
         *(*ui*external_app*spaceinv*);
     } > ram_external_app_spaceinv
+
+        .external_app_blackjack : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_blackjack.application_information));
+        *(*ui*external_app*blackjack*);
+    } > ram_external_app_blackjack
 
 }
 
