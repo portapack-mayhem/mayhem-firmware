@@ -131,22 +131,70 @@ int BTLERxProcessor::verify_payload_byte(int num_payload_byte, ADV_PDU_TYPE pdu_
     return 0;
 }
 
-void BTLERxProcessor::handleBeginState() {
-    int num_samples_left = dst_buffer.count - samples_eaten;  // One buffer sample consist of I and Q.
 
+void BTLERxProcessor::resetOffsetTracking() {
+    frequency_offset = 0.0f;
+    frequency_offset_estimate = 0.0f;
+    phase_buffer_index = 0;
+    memset(phase_buffer, 0, sizeof(phase_buffer));
+}
+
+void BTLERxProcessor::resetBitPacketIndex() {
+    memset(rb_buf, 0, sizeof(rb_buf));
+    packet_index = 0;
+    bit_index = 0;
+}
+
+void BTLERxProcessor::resetToDefaultState() {
+    parseState = Parse_State_Begin;
+    resetOffsetTracking();
+    resetBitPacketIndex();
+}
+
+void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
+    for (; packet_index < num_demod_byte; packet_index++) {
+        for (; bit_index < 8; bit_index++) {
+            if (samples_eaten >= (int)dst_buffer.count) {
+                return;
+            }
+
+            float phaseSum = 0.0f;
+            for (int k = 0; k < SAMPLE_PER_SYMBOL; ++k) {
+                float phase = get_phase_diff(
+                    dst_buffer.p[samples_eaten + k],
+                    dst_buffer.p[samples_eaten + k + 1]);
+                phaseSum += phase;
+            }
+
+            // phaseSum /= (SAMPLE_PER_SYMBOL);
+            // phaseSum -= frequency_offset;
+
+            bool bitDecision = (phaseSum > 0.0f);
+            rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << bit_index);
+        
+            samples_eaten += SAMPLE_PER_SYMBOL;
+        }
+
+        bit_index = 0;
+    }
+}
+
+void BTLERxProcessor::handleBeginState() 
+{
     uint32_t validAccessAddress = DEFAULT_ACCESS_ADDR;
-    const int demod_buf_len = LEN_DEMOD_BUF_ACCESS;
     uint32_t accesssAddress = 0;
 
     int hit_idx = (-1);
-    bool foundAccessAddress = false;
 
-    for (int i = samples_eaten; i < num_samples_left; i += SAMPLE_PER_SYMBOL) {
+    for (int i = samples_eaten; i < (int)dst_buffer.count; i += SAMPLE_PER_SYMBOL) {
         float phaseDiff = 0;
 
         for (int j = 0; j < SAMPLE_PER_SYMBOL; j++) {
             phaseDiff += get_phase_diff(dst_buffer.p[i + j], dst_buffer.p[i + j + 1]);
         }
+
+        phase_buffer[phase_buffer_index] = phaseDiff / (SAMPLE_PER_SYMBOL);
+        phase_buffer_index = (phase_buffer_index + 1) % ROLLING_WINDOW;
 
         bool bitDecision = (phaseDiff > 0);
 
@@ -154,13 +202,15 @@ void BTLERxProcessor::handleBeginState() {
 
         int errors = __builtin_popcount(accesssAddress ^ validAccessAddress) & 0xFFFFFFFF;
 
-        if (!errors) {
-            hit_idx = (i - (demod_buf_len - 1) * SAMPLE_PER_SYMBOL);
-            foundAccessAddress = true;
-            break;
-        }
+        if (errors <= 4) {
+            hit_idx = i + SAMPLE_PER_SYMBOL;
 
-        if (foundAccessAddress) {
+            for (int k = 0; k < ROLLING_WINDOW; k++) {
+                frequency_offset_estimate += phase_buffer[k];
+            }
+
+            frequency_offset = frequency_offset_estimate / ROLLING_WINDOW;
+
             break;
         }
     }
@@ -173,44 +223,21 @@ void BTLERxProcessor::handleBeginState() {
 
     samples_eaten += hit_idx;
 
-    samples_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL);  // move to the beginning of PDU header
-
-    num_samples_left = -samples_eaten;
-
     parseState = Parse_State_PDU_Header;
 }
 
 void BTLERxProcessor::handlePDUHeaderState() {
-    int num_demod_byte = 2;  // PDU header has 2 octets
-
     if (samples_eaten > (int)dst_buffer.count) {
         return;
     }
 
-    packet_index = 0;
+    demodulateFSKBits(NUM_PDU_HEADER_BYTE);
 
-    for (int i = 0; i < num_demod_byte; i++) {
-        rb_buf[packet_index] = 0;
-
-        for (int j = 0; j < 8; j++) {
-            float phaseDiff = 0;
-            int k = 0;
-
-            for (k = 0; k < SAMPLE_PER_SYMBOL; k++) {
-                phaseDiff += get_phase_diff(dst_buffer.p[samples_eaten + k], dst_buffer.p[samples_eaten + k + 1]);
-            }
-
-            bool bitDecision = (phaseDiff > 0);
-
-            rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << j);
-
-            samples_eaten += SAMPLE_PER_SYMBOL;
-        }
-
-        packet_index++;
+    if (packet_index < NUM_PDU_HEADER_BYTE || bit_index != 0) {
+        return;
     }
 
-    scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
+    scramble_byte(rb_buf, 2, scramble_table[channel_number], rb_buf);
 
     pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
     // uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
@@ -227,32 +254,16 @@ void BTLERxProcessor::handlePDUHeaderState() {
 }
 
 void BTLERxProcessor::handlePDUPayloadState() {
-    int i;
-    int num_demod_byte = (payload_len + 3);
-
+    const int num_demod_byte = (payload_len + 3);
+ 
     if (samples_eaten > (int)dst_buffer.count) {
         return;
     }
 
-    for (i = 0; i < num_demod_byte; i++) {
-        rb_buf[packet_index] = 0;
+    demodulateFSKBits(num_demod_byte + NUM_PDU_HEADER_BYTE);
 
-        for (int j = 0; j < 8; j++) {
-            float phaseDiff = 0;
-            int k = 0;
-
-            for (k = 0; k < SAMPLE_PER_SYMBOL; k++) {
-                phaseDiff += get_phase_diff(dst_buffer.p[samples_eaten + k], dst_buffer.p[samples_eaten + k + 1]);
-            }
-
-            bool bitDecision = (phaseDiff > 0);
-
-            rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << j);
-
-            samples_eaten += SAMPLE_PER_SYMBOL;
-        }
-
-        packet_index++;
+    if (packet_index < (num_demod_byte + NUM_PDU_HEADER_BYTE) || bit_index != 0) {
+        return;
     }
 
     scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
@@ -287,6 +298,8 @@ void BTLERxProcessor::handlePDUPayloadState() {
             // Skip Header Byte and MAC Address
             uint8_t startIndex = 8;
 
+            int i;
+
             for (i = 0; i < payload_len - 6; i++) {
                 blePacketData.data[i] = rb_buf[startIndex++];
             }
@@ -299,7 +312,7 @@ void BTLERxProcessor::handlePDUPayloadState() {
         }
     }
 
-    parseState = Parse_State_Begin;
+    resetToDefaultState();
 }
 
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
