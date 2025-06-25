@@ -57,6 +57,95 @@ std::string pad_string_with_spaces(int snakes) {
     return paddedStr;
 }
 
+struct GainEntry {
+    uint8_t lna;
+    uint8_t vga;
+    uint8_t gain;
+};
+
+// Only LNA with VGA 0-4 is tested to be accurate. Max zeroized gain tested to be 16dBm.
+// Beyond that it is hard to tell distance to transmitting device.
+// Test was conducted within a few inches of the device.
+// Device was transmitting at 0dBm.
+constexpr GainEntry gain_table[] =
+    {
+        {40, 0, 19},
+        {32, 0, 18},
+        {24, 0, 15},
+        {16, 0, 8},
+        {8, 0, 2},
+        {0, 0, 0},
+        {40, 2, 20},
+        {32, 2, 22},
+        {24, 2, 14},
+        {16, 2, 8},
+        {8, 2, 2},
+        {0, 2, 0},
+        {40, 4, 21},
+        {32, 4, 22},
+        {24, 4, 15},
+        {16, 4, 10},
+        {8, 4, 3},
+        {0, 4, 0},
+        {40, 6, 26},
+        {32, 6, 22},
+        {24, 6, 15},
+        {16, 6, 10},
+        {8, 6, 4},
+        {0, 6, 0},
+        {40, 8, 26},
+        {32, 8, 26},
+        {24, 8, 18},
+        {16, 8, 12},
+        {8, 8, 6},
+        {0, 8, 1},
+        {40, 10, 26},
+        {32, 10, 26},
+        {24, 10, 20},
+        {16, 10, 15},
+        {8, 10, 8},
+        {0, 10, 3},
+        {40, 12, 26},
+        {32, 12, 26},
+        {24, 12, 23},
+        {16, 12, 17},
+        {8, 12, 10},
+        {0, 12, 4},
+        {40, 14, 26},
+        {32, 14, 26},
+        {24, 14, 25},
+        {16, 14, 19},
+        {8, 14, 12},
+        {0, 14, 6},
+        {40, 16, 26},
+        {32, 16, 26},
+        {24, 16, 26},
+        {16, 16, 20},
+        {8, 16, 13},
+        {0, 16, 7},
+        {40, 18, 26},
+        {32, 18, 26},
+        {24, 18, 26},
+        {16, 18, 21},
+        {8, 18, 14},
+        {0, 18, 8},
+        {40, 20, 26},
+        {32, 20, 26},
+        {24, 20, 26},
+        {16, 20, 23},
+        {8, 20, 16},
+        {0, 20, 10},
+};
+
+uint8_t get_total_gain(uint8_t lna, uint8_t vga) {
+    for (const auto& entry : gain_table) {
+        if (entry.lna == lna && entry.vga == vga)
+            return entry.gain;
+    }
+
+    return 0;
+}
+
 uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     uint64_t result = 0;
 
@@ -66,22 +155,6 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     }
 
     return result;
-}
-
-void reverse_byte_array(uint8_t* arr, int length) {
-    int start = 0;
-    int end = length - 1;
-
-    while (start < end) {
-        // Swap elements at start and end
-        uint8_t temp = arr[start];
-        arr[start] = arr[end];
-        arr[end] = temp;
-
-        // Move the indices towards the center
-        start++;
-        end--;
-    }
 }
 
 MAC_VENDOR_STATUS lookup_mac_vendor_status(const uint8_t* mac_address, std::string& vendor_name) {
@@ -126,6 +199,22 @@ std::string lookup_mac_vendor(const uint8_t* mac_address) {
     std::string vendor_name;
     lookup_mac_vendor_status(mac_address, vendor_name);
     return vendor_name;
+}
+
+void reverse_byte_array(uint8_t* arr, int length) {
+    int start = 0;
+    int end = length - 1;
+
+    while (start < end) {
+        // Swap elements at start and end
+        uint8_t temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move the indices towards the center
+        start++;
+        end--;
+    }
 }
 
 namespace ui {
@@ -186,19 +275,26 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     if (!entry.nameString.empty() && entry.include_name) {
         line = entry.nameString;
 
-        if (line.length() < 17) {
-            line += pad_string_with_spaces(17 - line.length());
+        if (line.length() < 10) {
+            line += pad_string_with_spaces(10 - line.length());
         } else {
-            line = truncate(line, 17);
+            line = truncate(line, 10);
         }
     } else {
         line = to_string_mac_address(entry.packetData.macAddress, 6, false);
     }
 
+    std::string hitsStr;
+
+    if (!entry.informationString.empty()) {
+        hitsStr = entry.informationString;
+    } else {
+        hitsStr = "Hits: " + to_string_dec_int(entry.numHits);
+    }
+
     // Pushing single digit values down right justified.
-    std::string hitsStr = to_string_dec_int(entry.numHits);
     int hitsDigits = hitsStr.length();
-    uint8_t hits_spacing = 8 - hitsDigits;
+    uint8_t hits_spacing = 14 - hitsDigits;
 
     // Pushing single digit values down right justified.
     std::string dbStr = to_string_dec_int(entry.dbValue);
@@ -539,7 +635,6 @@ BLERxView::BLERxView(NavigationView& nav)
     logger = std::make_unique<BLELogger>();
 
     check_log.on_select = [this](Checkbox&, bool v) {
-        str_log = "";
         logging = v;
 
         if (logger && logging)
@@ -561,6 +656,7 @@ BLERxView::BLERxView(NavigationView& nav)
 
     button_clear_list.on_select = [this](Button&) {
         recent.clear();
+        recent_entries_view.set_dirty();
     };
 
     button_switch.on_select = [&nav](Button&) {
@@ -602,7 +698,10 @@ BLERxView::BLERxView(NavigationView& nav)
 
     options_filter.on_change = [this](size_t index, int32_t v) {
         filter_index = (uint8_t)index;
+        recent.clear();
         handle_filter_options(v);
+        uniqueParsing = filter_index == 2 ? true : false;
+        recent_entries_view.set_dirty();
     };
 
     options_channel.set_selected_index(channel_index, true);
@@ -775,10 +874,49 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
-    if (!logging) {
-        str_log = "";
+    uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
+
+    // Start of Packet stuffing.
+    // Masking off the top 2 bytes to avoid invalid keys.
+
+    BleRecentEntry tempEntry;
+
+    if (updateEntry(packet, tempEntry, (ADV_PDU_TYPE)packet->type)) {
+        auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+
+        // Preserve exisisting data from entry.
+        tempEntry.macAddress = macAddressEncoded;
+        tempEntry.numHits = ++entry.numHits;
+
+        entry = tempEntry;
+
+        handle_filter_options(options_filter.selected_index());
+        handle_entries_sort(options_sort.selected_index());
+
+        if (!searchList.empty()) {
+            auto it = searchList.begin();
+
+            while (it != searchList.end()) {
+                std::string searchStr = (std::string)*it;
+
+                if (entry.dataString.find(searchStr) != std::string::npos) {
+                    searchList.erase(it);
+                    found_count++;
+                    break;
+                }
+
+                it++;
+            }
+
+            text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
+        }
     }
 
+    log_ble_packet(packet);
+}
+
+void BLERxView::log_ble_packet(BlePacketData* packet) {
+    str_console = "";
     str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
     str_console += " Len:";
     str_console += to_string_dec_uint(packet->size);
@@ -792,48 +930,13 @@ void BLERxView::on_data(BlePacketData* packet) {
         str_console += to_string_hex(packet->data[i], 2);
     }
 
-    uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
-
-    // Start of Packet stuffing.
-    // Masking off the top 2 bytes to avoid invalid keys.
-    auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
-    updateEntry(packet, entry, (ADV_PDU_TYPE)packet->type);
-
-    // Add entries if they meet the criteria.
-    // auto value = filter;
-    // resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-    //     return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
-    // });
-    handle_filter_options(options_filter.selected_index());
-
-    handle_entries_sort(options_sort.selected_index());
-
     // Log at End of Packet.
     if (logger && logging) {
-        logger->log_raw_data(str_console + "\r\n");
+        logger->log_raw_data(str_console);
     }
 
     if (serial_logging) {
         UsbSerialAsyncmsg::asyncmsg(str_console);  // new line handled there, no need here.
-    }
-    str_console = "";
-
-    if (!searchList.empty()) {
-        auto it = searchList.begin();
-
-        while (it != searchList.end()) {
-            std::string searchStr = (std::string)*it;
-
-            if (entry.dataString.find(searchStr) != std::string::npos) {
-                searchList.erase(it);
-                found_count++;
-                break;
-            }
-
-            it++;
-        }
-
-        text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
     }
 }
 
@@ -979,8 +1082,10 @@ BLERxView::~BLERxView() {
     baseband::shutdown();
 }
 
-void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type) {
+bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type) {
     std::string data_string;
+
+    bool success = false;
 
     int i;
 
@@ -988,7 +1093,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         data_string += to_string_hex(packet->data[i], 2);
     }
 
-    entry.dbValue = packet->max_dB;
+    entry.dbValue = 2 * (packet->max_dB - get_total_gain(receiver_model.lna(), receiver_model.vga()));
     entry.timestamp = to_string_timestamp(rtc_time::now());
     entry.dataString = data_string;
 
@@ -1004,7 +1109,6 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.packetData.macAddress[4] = packet->macAddress[4];
     entry.packetData.macAddress[5] = packet->macAddress[5];
 
-    entry.numHits++;
     entry.pduType = pdu_type;
     entry.channelNumber = channel_number;
 
@@ -1021,35 +1125,48 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.include_name = check_name.value();
 
     // Only parse name for advertisment packets and empty name entries
-    if ((pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) && entry.nameString.empty()) {
-        ADV_PDU_PAYLOAD_TYPE_0_2_4_6* advertiseData = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6*)entry.packetData.data;
-
-        uint8_t currentByte = 0;
-        uint8_t length = 0;
-        uint8_t type = 0;
-
-        std::string decoded_data;
-        for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
-            length = advertiseData->Data[currentByte++];
-            type = advertiseData->Data[currentByte++];
-
-            // Subtract 1 because type is part of the length.
-            for (int i = 0; i < length - 1; i++) {
-                // parse the name of bluetooth device: 0x08->Shortened Local Name; 0x09->Complete Local Name
-                if (type == 0x08 || type == 0x09) {
-                    decoded_data += (char)advertiseData->Data[currentByte];
-                }
-                currentByte++;
-            }
-            if (!decoded_data.empty()) {
-                entry.nameString = std::move(decoded_data);
-                break;
-            }
+    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND)  // || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND)
+    {
+        if (uniqueParsing) {
+            // Add your unique beacon parsing function here.
         }
+
+        if (!success && !uniqueParsing) {
+            success = parse_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.informationString);
+        }
+
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
         reverse_byte_array(directed_mac_data->A1, 6);
     }
+
+    return success;
+}
+
+bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString) {
+    uint8_t currentByte, currentLength, currentType = 0;
+
+    for (currentByte = 0; currentByte < length;) {
+        currentLength = data[currentByte++];
+        currentType = data[currentByte++];
+
+        // Subtract 1 because type is part of the length.
+        for (int i = 0; ((i < currentLength - 1) && (currentByte < length)); i++) {
+            // parse the name of bluetooth device: 0x08->Shortened Local Name; 0x09->Complete Local Name
+            if (currentType == 0x08 || currentType == 0x09) {
+                nameString += (char)data[currentByte];
+            }
+            currentByte++;
+        }
+    }
+
+    if (nameString.empty()) {
+        nameString = "None";
+    }
+
+    informationString = "";
+
+    return true;
 }
 
 } /* namespace ui */

@@ -84,7 +84,7 @@ typedef enum {
 struct BleRecentEntry {
     using Key = uint64_t;
 
-    static constexpr Key invalid_key = 0xffffffff;
+    static constexpr Key invalid_key = 0xFFFFFFFFFFFF;
 
     uint64_t macAddress;
     int dbValue;
@@ -92,6 +92,7 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
+    std::string informationString;
     bool include_name;
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
@@ -111,6 +112,7 @@ struct BleRecentEntry {
           timestamp{},
           dataString{},
           nameString{},
+          informationString{},
           include_name{},
           numHits{},
           pduType{},
@@ -216,15 +218,18 @@ class BLERxView : public View {
     bool saveFile(const std::filesystem::path& path);
     std::unique_ptr<UsbSerialThread> usb_serial_thread{};
     void on_data(BlePacketData* packetData);
+    void log_ble_packet(BlePacketData* packet);
     void on_filter_change(std::string value);
     void on_file_changed(const std::filesystem::path& new_file_path);
     void file_error();
     void on_timer();
     void handle_entries_sort(uint8_t index);
     void handle_filter_options(uint8_t index);
-    void updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
+    bool updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
+    bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
 
     NavigationView& nav_;
+
     RxRadioState radio_state_{
         2402000000 /* frequency */,
         4000000 /* bandwidth */,
@@ -234,6 +239,7 @@ class BLERxView : public View {
     uint8_t channel_index{0};
     uint8_t sort_index{0};
     uint8_t filter_index{0};
+    bool uniqueParsing = false;
     std::string filter{};
     bool logging{false};
     bool serial_logging{false};
@@ -325,9 +331,10 @@ class BLERxView : public View {
 
     OptionsField options_filter{
         {18 * 8 + 2, 2 * 8},
-        4,
+        7,
         {{"Data", 0},
-         {"MAC", 1}}};
+         {"MAC", 1},
+         {"Unique", 2}}};
 
     Checkbox check_log{
         {10 * 8, 4 * 8 + 2},
@@ -380,9 +387,9 @@ class BLERxView : public View {
     BleRecentEntries tempList{};
 
     const RecentEntriesColumns columns{{
-        {"Mac Address", 17},
-        {"Hits", 7},
-        {"dB", 4},
+        {"Name", 10},
+        {"Information", 13},
+        {"dBm", 4},
     }};
 
     BleRecentEntriesView recent_entries_view{columns, recent};
