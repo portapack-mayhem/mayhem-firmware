@@ -197,7 +197,11 @@ MEMORY
 >>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
 =======
     ram_external_app_spaceinv   (rwx) : org = 0xADE60000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
+=======
+    ram_external_app_blackjack  (rwx) : org = 0xADE70000, len = 32k
+>>>>>>> 4fbba205 (Made the Blackjack game (#2712))
 }
 
 SECTIONS
@@ -525,6 +529,12 @@ SECTIONS
         KEEP(*(.external_app.app_spaceinv.application_information));
         *(*ui*external_app*spaceinv*);
     } > ram_external_app_spaceinv
+
+        .external_app_blackjack : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_blackjack.application_information));
+        *(*ui*external_app*blackjack*);
+    } > ram_external_app_blackjack
 
 }
 
