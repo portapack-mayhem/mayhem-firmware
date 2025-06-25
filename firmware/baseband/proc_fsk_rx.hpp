@@ -113,7 +113,7 @@ class FSKRxProcessor : public BasebandProcessor {
     size_t baseband_fs = 960000;
     uint8_t stat_update_interval = 10;
     uint32_t stat_update_threshold = baseband_fs / stat_update_interval;
-  
+
     float detect_peak_power(const buffer_c8_t& buffer, int N);
     void agc_correct_iq(const buffer_c8_t& buffer, int N, float measured_power);
     float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);

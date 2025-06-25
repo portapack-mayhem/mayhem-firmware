@@ -170,8 +170,7 @@ void FSKRxProcessor::handlePreambleState(const buffer_c16_t& decimator_out) {
         }
     }
 
-    if (hit_idx == -1) 
-    {
+    if (hit_idx == -1) {
         samples_eaten = samples_eaten;
         return;
     }
@@ -224,8 +223,7 @@ void FSKRxProcessor::handlePDUPayloadState(const buffer_c16_t& decimator_out) {
     fskPacketData.dataLen = NUM_DATA_BYTE;
 
     // Copy the decoded bits to the packet data
-    for (int i = 0; i < NUM_DATA_BYTE; i++) 
-    {
+    for (int i = 0; i < NUM_DATA_BYTE; i++) {
         fskPacketData.data[i] |= rb_buf[i];
     }
 
@@ -247,19 +245,15 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
 
     samples_eaten = 0;
 
-    while ((int)decim_1_out.count - samples_eaten > 0)
-    {
-        if ((parseState == Parse_State_Wait_For_Peak) || (parseState == Parse_State_Preamble))
-        {
+    while ((int)decim_1_out.count - samples_eaten > 0) {
+        if ((parseState == Parse_State_Wait_For_Peak) || (parseState == Parse_State_Preamble)) {
             float power = detect_peak_power(buffer, buffer.count);
 
             if (power) {
                 parseState = Parse_State_Preamble;
                 agc_power = power;
                 fskPacketData.power = power;
-            }
-            else
-            {
+            } else {
                 break;
             }
         }
@@ -269,15 +263,12 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
         }
 
         if (parseState == Parse_State_Preamble) {
-
             peak_timeout++;
 
             // 960,000 fs / 2048 samples = 468.75 Hz, so 55 calls is about 0.053 seconds before timeout.
             if (peak_timeout == 4) {
                 resetToDefaultState();
-            }
-            else
-            {
+            } else {
                 handlePreambleState(decim_1_out);
             }
         }
@@ -299,7 +290,7 @@ void FSKRxProcessor::on_message(const Message* const message) {
             break;
         case Message::ID::UpdateSpectrum:
         case Message::ID::SpectrumStreamingConfig:
-            //channel_spectrum.on_message(message);
+            // channel_spectrum.on_message(message);
             break;
 
         case Message::ID::SampleRateConfig:
@@ -307,7 +298,7 @@ void FSKRxProcessor::on_message(const Message* const message) {
             break;
 
         case Message::ID::CaptureConfig:
-            //capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+            // capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
             break;
 
         default:
