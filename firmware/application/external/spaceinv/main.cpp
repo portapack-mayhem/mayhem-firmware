@@ -28,6 +28,9 @@ __attribute__((section(".external_app.app_spaceinv.application_information"), us
     "Space Invaders",
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))
         // Space Invader alien icon 16x16
         0x00, 0x18,  // .......##.......
         0x00, 0x3C,  // ......####......
@@ -45,6 +48,7 @@ __attribute__((section(".external_app.app_spaceinv.application_information"), us
         0x00, 0x42,  // .....#....#.....
         0x00, 0x81,  // ....#......#....
         0x00, 0x00,  // ................
+<<<<<<< HEAD
     },
     ui::Color::magenta().v,
 =======
@@ -82,6 +86,10 @@ __attribute__((section(".external_app.app_spaceinv.application_information"), us
     },
     ui::Color::yellow().v,
 >>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
+=======
+    },
+    ui::Color::magenta().v,
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))
     app_location_t::GAMES,
     -1,
 
@@ -89,7 +97,11 @@ __attribute__((section(".external_app.app_spaceinv.application_information"), us
     0x00000000,
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 }  // namespace ui::external_app::spaceinv
 =======
 }  // namespace ui::external_app::spaceinv
 >>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
+=======
+}  // namespace ui::external_app::spaceinv
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))

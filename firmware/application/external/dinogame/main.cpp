@@ -5,12 +5,16 @@
  * |  Argh matey!                                             |
  * ------------------------------------------------------------
 <<<<<<< HEAD
+<<<<<<< HEAD
  *
 =======
  */
 
 /*
 >>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
+=======
+ *
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))
  * Chrome Dino Game for Portapack Mayhem
  * Based on the original DinoGame by various contributors
  */
@@ -37,6 +41,9 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
     "Dino Game",
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))
         // Cactus icon 16x16
         0x00, 0x00,  // ................
         0x80, 0x01,  // .......##.......
@@ -54,6 +61,7 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
         0x80, 0x01,  // .......##.......
         0x80, 0x01,  // .......##.......
         0x00, 0x00,  // ................
+<<<<<<< HEAD
 =======
         0x00,
         0x00,
@@ -88,6 +96,8 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
         0x00,
         0x00,
 >>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
+=======
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))
     },
     ui::Color::green().v,
     app_location_t::GAMES,
@@ -97,7 +107,11 @@ __attribute__((section(".external_app.app_dinogame.application_information"), us
     0x00000000,
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
 }
 >>>>>>> 18bc2cf1 (Made the Dino Game (#2697))
+=======
+}
+>>>>>>> 22cc3114 (Update app icons for Space Invaders and Dino Game (#2713))
