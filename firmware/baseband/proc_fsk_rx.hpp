@@ -100,6 +100,7 @@ class FSKRxProcessor : public BasebandProcessor {
 
    private:
     static constexpr int ROLLING_WINDOW{32};
+    static constexpr uint16_t MAX_BUFFER_SIZE{512};
 
     enum Parse_State {
         Parse_State_Wait_For_Peak = 0,
@@ -128,12 +129,12 @@ class FSKRxProcessor : public BasebandProcessor {
     void configure(const FSKRxConfigureMessage& message);
     void sample_rate_config(const SampleRateConfigMessage& message);
 
-    std::array<complex16_t, 512> dst{};
+    std::array<complex16_t, MAX_BUFFER_SIZE> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
         dst.size()};
 
-    uint8_t rb_buf[512];
+    uint8_t rb_buf[MAX_BUFFER_SIZE];
 
     dsp::demodulate::FM demod{};
     int rb_head{-1};
@@ -173,7 +174,7 @@ class FSKRxProcessor : public BasebandProcessor {
     uint32_t DEFAULT_SYNC_WORD{0xFFFFFFFF};
     uint8_t NUM_SYNC_WORD_BYTE{4};
     uint8_t NUM_PREAMBLE_BYTE{4};
-    uint16_t NUM_DATA_BYTE{360};
+    uint16_t NUM_DATA_BYTE{MAX_BUFFER_SIZE - NUM_SYNC_WORD_BYTE - NUM_PREAMBLE_BYTE};
 
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
