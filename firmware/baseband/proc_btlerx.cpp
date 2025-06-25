@@ -27,7 +27,11 @@
 
 #include "event_m4.hpp"
 
+<<<<<<< HEAD
 inline float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
+=======
+float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     // Calculate the phase difference between two samples.
     float dI = sample1.real() * sample0.real() + sample1.imag() * sample0.imag();
     float dQ = sample1.imag() * sample0.real() - sample1.real() * sample0.imag();
@@ -36,7 +40,11 @@ inline float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const c
     return phase_diff;
 }
 
+<<<<<<< HEAD
 inline uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) {
+=======
+uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     int i;
     uint32_t crc_init_tmp, crc_init_input, crc_init_input_tmp;
 
@@ -131,19 +139,28 @@ inline int BTLERxProcessor::verify_payload_byte(int num_payload_byte, ADV_PDU_TY
     return 0;
 }
 
+<<<<<<< HEAD
 inline void BTLERxProcessor::resetOffsetTracking() {
+=======
+void BTLERxProcessor::resetOffsetTracking() {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     frequency_offset = 0.0f;
     frequency_offset_estimate = 0.0f;
     phase_buffer_index = 0;
     memset(phase_buffer, 0, sizeof(phase_buffer));
 }
 
+<<<<<<< HEAD
 inline void BTLERxProcessor::resetBitPacketIndex() {
+=======
+void BTLERxProcessor::resetBitPacketIndex() {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     memset(rb_buf, 0, sizeof(rb_buf));
     packet_index = 0;
     bit_index = 0;
 }
 
+<<<<<<< HEAD
 inline void BTLERxProcessor::resetToDefaultState() {
     parseState = Parse_State_Begin;
     resetOffsetTracking();
@@ -152,11 +169,21 @@ inline void BTLERxProcessor::resetToDefaultState() {
 }
 
 inline void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
+=======
+void BTLERxProcessor::resetToDefaultState() {
+    parseState = Parse_State_Begin;
+    resetOffsetTracking();
+    resetBitPacketIndex();
+}
+
+void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     for (; packet_index < num_demod_byte; packet_index++) {
         for (; bit_index < 8; bit_index++) {
             if (samples_eaten >= (int)dst_buffer.count) {
                 return;
             }
+<<<<<<< HEAD
 
             float phaseSum = 0.0f;
             for (int k = 0; k < SAMPLE_PER_SYMBOL; ++k) {
@@ -192,6 +219,34 @@ inline void BTLERxProcessor::handleBeginState() {
     uint32_t validAccessAddress = DEFAULT_ACCESS_ADDR;
     static uint32_t accesssAddress = 0;
 
+=======
+
+            float phaseSum = 0.0f;
+            for (int k = 0; k < SAMPLE_PER_SYMBOL; ++k) {
+                float phase = get_phase_diff(
+                    dst_buffer.p[samples_eaten + k],
+                    dst_buffer.p[samples_eaten + k + 1]);
+                phaseSum += phase;
+            }
+
+            // phaseSum /= (SAMPLE_PER_SYMBOL);
+            // phaseSum -= frequency_offset;
+
+            bool bitDecision = (phaseSum > 0.0f);
+            rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << bit_index);
+
+            samples_eaten += SAMPLE_PER_SYMBOL;
+        }
+
+        bit_index = 0;
+    }
+}
+
+void BTLERxProcessor::handleBeginState() {
+    uint32_t validAccessAddress = DEFAULT_ACCESS_ADDR;
+    uint32_t accesssAddress = 0;
+
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     int hit_idx = (-1);
 
     for (int i = samples_eaten; i < (int)dst_buffer.count; i += SAMPLE_PER_SYMBOL) {
@@ -201,10 +256,15 @@ inline void BTLERxProcessor::handleBeginState() {
             phaseDiff += get_phase_diff(dst_buffer.p[i + j], dst_buffer.p[i + j + 1]);
         }
 
+<<<<<<< HEAD
         // disabled, due to not used anywhere
         /* phase_buffer[phase_buffer_index] = phaseDiff / (SAMPLE_PER_SYMBOL);
         phase_buffer_index = (phase_buffer_index + 1) % ROLLING_WINDOW;
         */
+=======
+        phase_buffer[phase_buffer_index] = phaseDiff / (SAMPLE_PER_SYMBOL);
+        phase_buffer_index = (phase_buffer_index + 1) % ROLLING_WINDOW;
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 
         bool bitDecision = (phaseDiff > 0);
 
@@ -212,6 +272,7 @@ inline void BTLERxProcessor::handleBeginState() {
 
         int errors = __builtin_popcount(accesssAddress ^ validAccessAddress) & 0xFFFFFFFF;
 
+<<<<<<< HEAD
         if (!errors) {
             hit_idx = i + SAMPLE_PER_SYMBOL;
 
@@ -221,6 +282,16 @@ inline void BTLERxProcessor::handleBeginState() {
             }
             frequency_offset = frequency_offset_estimate / ROLLING_WINDOW;
             */
+=======
+        if (errors <= 4) {
+            hit_idx = i + SAMPLE_PER_SYMBOL;
+
+            for (int k = 0; k < ROLLING_WINDOW; k++) {
+                frequency_offset_estimate += phase_buffer[k];
+            }
+
+            frequency_offset = frequency_offset_estimate / ROLLING_WINDOW;
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 
             break;
         }
@@ -228,7 +299,11 @@ inline void BTLERxProcessor::handleBeginState() {
 
     if (hit_idx == -1) {
         // Process more samples.
+<<<<<<< HEAD
         samples_eaten = (int)dst_buffer.count + 1;
+=======
+        samples_eaten = dst_buffer.count + 1;
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
         return;
     }
 
@@ -237,7 +312,11 @@ inline void BTLERxProcessor::handleBeginState() {
     parseState = Parse_State_PDU_Header;
 }
 
+<<<<<<< HEAD
 inline void BTLERxProcessor::handlePDUHeaderState() {
+=======
+void BTLERxProcessor::handlePDUHeaderState() {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     if (samples_eaten > (int)dst_buffer.count) {
         return;
     }
@@ -245,7 +324,10 @@ inline void BTLERxProcessor::handlePDUHeaderState() {
     demodulateFSKBits(NUM_PDU_HEADER_BYTE);
 
     if (packet_index < NUM_PDU_HEADER_BYTE || bit_index != 0) {
+<<<<<<< HEAD
         resetToDefaultState();
+=======
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
         return;
     }
 
@@ -265,7 +347,11 @@ inline void BTLERxProcessor::handlePDUHeaderState() {
     }
 }
 
+<<<<<<< HEAD
 inline void BTLERxProcessor::handlePDUPayloadState() {
+=======
+void BTLERxProcessor::handlePDUPayloadState() {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     const int num_demod_byte = (payload_len + 3);
 
     if (samples_eaten > (int)dst_buffer.count) {
@@ -275,7 +361,10 @@ inline void BTLERxProcessor::handlePDUPayloadState() {
     demodulateFSKBits(num_demod_byte + NUM_PDU_HEADER_BYTE);
 
     if (packet_index < (num_demod_byte + NUM_PDU_HEADER_BYTE) || bit_index != 0) {
+<<<<<<< HEAD
         resetToDefaultState();
+=======
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
         return;
     }
 
@@ -331,6 +420,7 @@ inline void BTLERxProcessor::handlePDUPayloadState() {
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
+<<<<<<< HEAD
     // a less computationally expensive method
     max_dB = -128;
     uint32_t max_squared = 0;
@@ -344,10 +434,31 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             max_squared = mag_sq;
             imag = ((complex8_t*)src_p)->imag();
             real = ((complex8_t*)src_p)->real();
-        }
-    }
+=======
+    max_dB = -128;
 
+    real = -128;
+    imag = -128;
+
+    auto* ptr = buffer.p;
+    auto* end = &buffer.p[buffer.count];
+
+    while (ptr < end) {
+        float dbm = mag2_to_dbm_8bit_normalized(ptr->real(), ptr->imag(), 1.0f, 50.0f);
+
+        if (dbm > max_dB) {
+            max_dB = dbm;
+            real = ptr->real();
+            imag = ptr->imag();
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+        }
+
+<<<<<<< HEAD
     max_dB = mag2_to_dbm_8bit_normalized(real, imag, 1.0f, 50.0f);
+=======
+        ptr++;
+    }
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 
     // 4Mhz 2048 samples
     // Decimated by 4 to achieve 2048/4 = 512 samples at 1 sample per symbol.
@@ -379,7 +490,11 @@ void BTLERxProcessor::on_message(const Message* const message) {
 
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
     channel_number = message.channel_number;
+<<<<<<< HEAD
     decim_0.configure(taps_BTLE_Dual_PHY.taps);
+=======
+    decim_0.configure(taps_BTLE_2M_PHY_decim_0.taps);
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 
     configured = true;
 }

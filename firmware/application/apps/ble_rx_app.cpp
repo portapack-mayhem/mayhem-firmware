@@ -57,6 +57,95 @@ std::string pad_string_with_spaces(int snakes) {
     return paddedStr;
 }
 
+struct GainEntry {
+    uint8_t lna;
+    uint8_t vga;
+    uint8_t gain;
+};
+
+// Only LNA with VGA 0-4 is tested to be accurate. Max zeroized gain tested to be 16dBm.
+// Beyond that it is hard to tell distance to transmitting device.
+// Test was conducted within a few inches of the device.
+// Device was transmitting at 0dBm.
+constexpr GainEntry gain_table[] =
+    {
+        {40, 0, 19},
+        {32, 0, 18},
+        {24, 0, 15},
+        {16, 0, 8},
+        {8, 0, 2},
+        {0, 0, 0},
+        {40, 2, 20},
+        {32, 2, 22},
+        {24, 2, 14},
+        {16, 2, 8},
+        {8, 2, 2},
+        {0, 2, 0},
+        {40, 4, 21},
+        {32, 4, 22},
+        {24, 4, 15},
+        {16, 4, 10},
+        {8, 4, 3},
+        {0, 4, 0},
+        {40, 6, 26},
+        {32, 6, 22},
+        {24, 6, 15},
+        {16, 6, 10},
+        {8, 6, 4},
+        {0, 6, 0},
+        {40, 8, 26},
+        {32, 8, 26},
+        {24, 8, 18},
+        {16, 8, 12},
+        {8, 8, 6},
+        {0, 8, 1},
+        {40, 10, 26},
+        {32, 10, 26},
+        {24, 10, 20},
+        {16, 10, 15},
+        {8, 10, 8},
+        {0, 10, 3},
+        {40, 12, 26},
+        {32, 12, 26},
+        {24, 12, 23},
+        {16, 12, 17},
+        {8, 12, 10},
+        {0, 12, 4},
+        {40, 14, 26},
+        {32, 14, 26},
+        {24, 14, 25},
+        {16, 14, 19},
+        {8, 14, 12},
+        {0, 14, 6},
+        {40, 16, 26},
+        {32, 16, 26},
+        {24, 16, 26},
+        {16, 16, 20},
+        {8, 16, 13},
+        {0, 16, 7},
+        {40, 18, 26},
+        {32, 18, 26},
+        {24, 18, 26},
+        {16, 18, 21},
+        {8, 18, 14},
+        {0, 18, 8},
+        {40, 20, 26},
+        {32, 20, 26},
+        {24, 20, 26},
+        {16, 20, 23},
+        {8, 20, 16},
+        {0, 20, 10},
+};
+
+uint8_t get_total_gain(uint8_t lna, uint8_t vga) {
+    for (const auto& entry : gain_table) {
+        if (entry.lna == lna && entry.vga == vga)
+            return entry.gain;
+    }
+
+    return 0;
+}
+
 uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     uint64_t result = 0;
 
@@ -68,6 +157,7 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     return result;
 }
 
+<<<<<<< HEAD
 MAC_VENDOR_STATUS lookup_mac_vendor_status(const uint8_t* mac_address, std::string& vendor_name) {
     static bool db_checked = false;
     static bool db_exists = false;
@@ -128,6 +218,8 @@ void reverse_byte_array(uint8_t* arr, int length) {
     }
 }
 
+=======
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 MAC_VENDOR_STATUS lookup_mac_vendor_status(const uint8_t* mac_address, std::string& vendor_name) {
     static bool db_checked = false;
     static bool db_exists = false;
@@ -170,6 +262,22 @@ std::string lookup_mac_vendor(const uint8_t* mac_address) {
     std::string vendor_name;
     lookup_mac_vendor_status(mac_address, vendor_name);
     return vendor_name;
+}
+
+void reverse_byte_array(uint8_t* arr, int length) {
+    int start = 0;
+    int end = length - 1;
+
+    while (start < end) {
+        // Swap elements at start and end
+        uint8_t temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move the indices towards the center
+        start++;
+        end--;
+    }
 }
 
 namespace ui {
@@ -230,10 +338,10 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     if (!entry.nameString.empty() && entry.include_name) {
         line = entry.nameString;
 
-        if (line.length() < 17) {
-            line += pad_string_with_spaces(17 - line.length());
+        if (line.length() < 10) {
+            line += pad_string_with_spaces(10 - line.length());
         } else {
-            line = truncate(line, 17);
+            line = truncate(line, 10);
         }
     } else {
         line = to_string_mac_address(entry.packetData.macAddress, 6, false);
@@ -244,12 +352,16 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     if (!entry.informationString.empty()) {
         hitsStr = entry.informationString;
     } else {
+<<<<<<< HEAD
         hitsStr = to_string_dec_int(entry.numHits);
+=======
+        hitsStr = "Hits: " + to_string_dec_int(entry.numHits);
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     }
 
     // Pushing single digit values down right justified.
     int hitsDigits = hitsStr.length();
-    uint8_t hits_spacing = 8 - hitsDigits;
+    uint8_t hits_spacing = 14 - hitsDigits;
 
     // Pushing single digit values down right justified.
     std::string dbStr = to_string_dec_int(entry.dbValue);
@@ -834,6 +946,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
 
+<<<<<<< HEAD
     uint64_t key = macAddressEncoded & 0xFFFFFFFFFFFF;
     bool packetExists = false;
 
@@ -879,6 +992,41 @@ void BLERxView::on_data(BlePacketData* packet) {
         }
     }
 
+=======
+    BleRecentEntry tempEntry;
+
+    if (updateEntry(packet, tempEntry, (ADV_PDU_TYPE)packet->type)) {
+        auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+
+        // Preserve exisisting data from entry.
+        tempEntry.macAddress = macAddressEncoded;
+        tempEntry.numHits = ++entry.numHits;
+
+        entry = tempEntry;
+
+        handle_filter_options(options_filter.selected_index());
+        handle_entries_sort(options_sort.selected_index());
+
+        if (!searchList.empty()) {
+            auto it = searchList.begin();
+
+            while (it != searchList.end()) {
+                std::string searchStr = (std::string)*it;
+
+                if (entry.dataString.find(searchStr) != std::string::npos) {
+                    searchList.erase(it);
+                    found_count++;
+                    break;
+                }
+
+                it++;
+            }
+
+            text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
+        }
+    }
+
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     log_ble_packet(packet);
 }
 
@@ -907,6 +1055,7 @@ void BLERxView::log_ble_packet(BlePacketData* packet) {
 <<<<<<< HEAD
 =======
     }
+<<<<<<< HEAD
     str_console = "";
 
     if (!searchList.empty()) {
@@ -927,6 +1076,8 @@ void BLERxView::log_ble_packet(BlePacketData* packet) {
         text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
 >>>>>>> 6f6d863a (refactor the serial log logic of BLE Rx (#2660))
     }
+=======
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 }
 
 void BLERxView::on_filter_change(std::string value) {
@@ -1079,7 +1230,11 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         data_string += to_string_hex(packet->data[i], 2);
     }
 
+<<<<<<< HEAD
     entry.dbValue = packet->max_dB - (receiver_model.lna() + receiver_model.vga() + (receiver_model.rf_amp() ? 14 : 0));
+=======
+    entry.dbValue = 2 * (packet->max_dB - get_total_gain(receiver_model.lna(), receiver_model.vga()));
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     entry.timestamp = to_string_timestamp(rtc_time::now());
     entry.dataString = data_string;
 
@@ -1117,7 +1272,12 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.include_name = check_name.value();
 
     // Only parse name for advertisment packets and empty name entries
+<<<<<<< HEAD
     if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
+=======
+    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND)  // || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND)
+    {
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
         if (uniqueParsing) {
             // Add your unique beacon parsing function here.
         }
@@ -1136,7 +1296,10 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
 
 bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString) {
     uint8_t currentByte, currentLength, currentType = 0;
+<<<<<<< HEAD
     std::string tempName = "";
+=======
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
 
     for (currentByte = 0; currentByte < length;) {
         currentLength = data[currentByte++];
@@ -1146,6 +1309,7 @@ bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::stri
         for (int i = 0; ((i < currentLength - 1) && (currentByte < length)); i++) {
             // parse the name of bluetooth device: 0x08->Shortened Local Name; 0x09->Complete Local Name
             if (currentType == 0x08 || currentType == 0x09) {
+<<<<<<< HEAD
                 tempName += (char)data[currentByte];
             }
             currentByte++;
@@ -1155,16 +1319,29 @@ bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::stri
             nameString = tempName;
             break;
         }
+=======
+                nameString += (char)data[currentByte];
+            }
+            currentByte++;
+        }
+    }
+
+    if (nameString.empty()) {
+        nameString = "None";
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     }
 
     informationString = "";
 
+<<<<<<< HEAD
     if (!informationString.empty()) {
         // Option to change title of Hits Column.
         // Setting to default for now.
         columns.set(1, "Hits", 7);
     }
 
+=======
+>>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     return true;
 }
 
