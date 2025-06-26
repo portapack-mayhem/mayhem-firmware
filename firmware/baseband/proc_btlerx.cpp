@@ -234,6 +234,7 @@ void BTLERxProcessor::handlePDUHeaderState() {
     demodulateFSKBits(NUM_PDU_HEADER_BYTE);
 
     if (packet_index < NUM_PDU_HEADER_BYTE || bit_index != 0) {
+        resetToDefaultState();
         return;
     }
 
@@ -263,6 +264,7 @@ void BTLERxProcessor::handlePDUPayloadState() {
     demodulateFSKBits(num_demod_byte + NUM_PDU_HEADER_BYTE);
 
     if (packet_index < (num_demod_byte + NUM_PDU_HEADER_BYTE) || bit_index != 0) {
+        resetToDefaultState();
         return;
     }
 
