@@ -227,7 +227,11 @@ set(EXTCPPSRC
 
 	#blackjack
 	external/blackjack/main.cpp
-	external/blackjack/ui_blackjack.cpp	
+	external/blackjack/ui_blackjack.cpp
+
+	#battleship
+	external/battleship/main.cpp
+	external/battleship/ui_battleship.cpp		
 )
 
 set(EXTAPPLIST
@@ -286,4 +290,5 @@ set(EXTAPPLIST
 	detector_rx
 	spaceinv
 	blackjack
+	battleship
 )
