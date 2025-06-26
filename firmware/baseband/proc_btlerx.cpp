@@ -217,7 +217,7 @@ void BTLERxProcessor::handleBeginState() {
 
     if (hit_idx == -1) {
         // Process more samples.
-        samples_eaten = dst_buffer.count + 1;
+        samples_eaten = (int)dst_buffer.count + 1;
         return;
     }
 
@@ -247,7 +247,7 @@ void BTLERxProcessor::handlePDUHeaderState() {
 
     // Not a valid Advertise Payload.
     if ((payload_len < 6) || (payload_len > 37)) {
-        parseState = Parse_State_Begin;
+        resetToDefaultState();
         return;
     } else {
         parseState = Parse_State_PDU_Payload;
