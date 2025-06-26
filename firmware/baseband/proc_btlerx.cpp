@@ -148,6 +148,7 @@ void BTLERxProcessor::resetToDefaultState() {
     parseState = Parse_State_Begin;
     resetOffsetTracking();
     resetBitPacketIndex();
+    crc_init_internal = crc_init_reorder(crc_initalVale);
 }
 
 void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
@@ -180,7 +181,7 @@ void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
 
 void BTLERxProcessor::handleBeginState() {
     uint32_t validAccessAddress = DEFAULT_ACCESS_ADDR;
-    uint32_t accesssAddress = 0;
+    static uint32_t accesssAddress = 0;
 
     int hit_idx = (-1);
 
@@ -200,7 +201,7 @@ void BTLERxProcessor::handleBeginState() {
 
         int errors = __builtin_popcount(accesssAddress ^ validAccessAddress) & 0xFFFFFFFF;
 
-        if (errors <= 4) {
+        if (!errors) {
             hit_idx = i + SAMPLE_PER_SYMBOL;
 
             for (int k = 0; k < ROLLING_WINDOW; k++) {
@@ -208,6 +209,7 @@ void BTLERxProcessor::handleBeginState() {
             }
 
             frequency_offset = frequency_offset_estimate / ROLLING_WINDOW;
+            accesssAddress = 0;
 
             break;
         }
@@ -369,8 +371,6 @@ void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
     decim_0.configure(taps_BTLE_2M_PHY_decim_0.taps);
 
     configured = true;
-
-    crc_init_internal = crc_init_reorder(crc_initalVale);
 }
 
 int main() {
