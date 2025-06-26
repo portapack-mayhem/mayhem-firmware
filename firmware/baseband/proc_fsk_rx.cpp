@@ -69,7 +69,7 @@ void FSKRxProcessor::agc_correct_iq(const buffer_c8_t& buffer, int N, float meas
     float gain_scalar = powf(10.0f, error_db / 20.0f);
 
     for (int i = 0; i < N; i++) {
-        buffer.p[i] = {buffer.p[i].real() * (int8_t)gain_scalar, buffer.p[i].imag() * (int8_t)gain_scalar};
+        buffer.p[i] = {(int8_t)(buffer.p[i].real() * gain_scalar), (int8_t)(buffer.p[i].imag() * gain_scalar)};
     }
 }
 
@@ -82,7 +82,7 @@ float FSKRxProcessor::get_phase_diff(const complex16_t& sample0, const complex16
     return phase_diff;
 }
 
-void FSKRxProcessor::demodulateFSKBits(const buffer_c16_t& decimator_out, int num_demod_byte, bool handle_sync) {
+void FSKRxProcessor::demodulateFSKBits(const buffer_c16_t& decimator_out, int num_demod_byte) {
     for (; packet_index < num_demod_byte; packet_index++) {
         for (; bit_index < 8; bit_index++) {
             if (samples_eaten >= (int)decimator_out.count) {
@@ -187,7 +187,7 @@ void FSKRxProcessor::handleSyncWordState(const buffer_c16_t& decimator_out) {
         return;
     }
 
-    demodulateFSKBits(decimator_out, syncword_bytes, true);
+    demodulateFSKBits(decimator_out, syncword_bytes);
 
     if (packet_index < syncword_bytes || bit_index != 0) {
         return;
@@ -214,7 +214,7 @@ void FSKRxProcessor::handlePDUPayloadState(const buffer_c16_t& decimator_out) {
         return;
     }
 
-    demodulateFSKBits(decimator_out, NUM_DATA_BYTE, false);
+    demodulateFSKBits(decimator_out, NUM_DATA_BYTE);
 
     if (packet_index < NUM_DATA_BYTE || bit_index != 0) {
         return;

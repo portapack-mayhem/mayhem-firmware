@@ -134,6 +134,7 @@ class Message {
         NoaaAptRxConfigure = 77,
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
+        FSKPacket = 80,
         MAX
     };
 
@@ -472,6 +473,17 @@ class BLEPacketMessage : public Message {
     }
 
     BlePacketData* packet{nullptr};
+};
+
+class FSKRxPacketMessage : public Message {
+   public:
+    constexpr FSKRxPacketMessage(
+        FskPacketData* packet)
+        : Message{ID::FSKPacket},
+          packet{packet} {
+    }
+
+    FskPacketData* packet{nullptr};
 };
 
 class CodedSquelchMessage : public Message {

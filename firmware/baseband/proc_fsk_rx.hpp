@@ -117,7 +117,7 @@ class FSKRxProcessor : public BasebandProcessor {
     float detect_peak_power(const buffer_c8_t& buffer, int N);
     void agc_correct_iq(const buffer_c8_t& buffer, int N, float measured_power);
     float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);
-    void demodulateFSKBits(const buffer_c16_t& decimator_out, int num_demod_byte, bool hande);
+    void demodulateFSKBits(const buffer_c16_t& decimator_out, int num_demod_byte);
     void resetPreambleTracking();
     void resetBitPacketIndex();
     void resetToDefaultState();
@@ -174,7 +174,7 @@ class FSKRxProcessor : public BasebandProcessor {
     uint32_t DEFAULT_SYNC_WORD{0xFFFFFFFF};
     uint8_t NUM_SYNC_WORD_BYTE{4};
     uint8_t NUM_PREAMBLE_BYTE{4};
-    uint16_t NUM_DATA_BYTE{MAX_BUFFER_SIZE - NUM_SYNC_WORD_BYTE - NUM_PREAMBLE_BYTE};
+    uint16_t NUM_DATA_BYTE = MAX_BUFFER_SIZE - NUM_SYNC_WORD_BYTE - NUM_PREAMBLE_BYTE;
 
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;

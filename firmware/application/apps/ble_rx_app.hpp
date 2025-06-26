@@ -386,9 +386,9 @@ class BLERxView : public View {
     BleRecentEntries recent{};
     BleRecentEntries tempList{};
 
-    const RecentEntriesColumns columns{{
-        {"Name", 10},
-        {"Information", 13},
+    RecentEntriesColumns columns{{
+        {"Name", 17},
+        {"Hits", 7},
         {"dBm", 4},
     }};
 
