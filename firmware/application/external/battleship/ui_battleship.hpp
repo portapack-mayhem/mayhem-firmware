@@ -20,6 +20,8 @@
 #include "audio.hpp"
 #include "portapack.hpp"
 #include "message.hpp"
+#include "pocsag.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include <string>
 #include <array>
@@ -35,8 +37,6 @@ constexpr uint8_t GRID_OFFSET_X = 0;
 constexpr uint8_t GRID_OFFSET_Y = 32;
 constexpr uint16_t BUTTON_Y = 280;
 constexpr uint32_t DEFAULT_FREQUENCY = 433920000;
-constexpr uint32_t FSK_BAUDRATE = 1200;
-constexpr uint32_t FSK_DEVIATION = 3750;
 
 enum class ShipType : uint8_t {
     CARRIER = 5,
@@ -111,8 +111,17 @@ class BattleshipView : public View {
    private:
     NavigationView& nav_;
 
-    RxRadioState rx_radio_state_{};
-    TxRadioState tx_radio_state_{};
+    RxRadioState rx_radio_state_{
+        DEFAULT_FREQUENCY /* frequency */,
+        1750000 /* bandwidth */,
+        2280000 /* sampling rate */
+    };
+
+    TxRadioState tx_radio_state_{
+        DEFAULT_FREQUENCY /* frequency */,
+        1750000 /* bandwidth */,
+        2280000 /* sampling rate */
+    };
 
     app_settings::SettingsManager settings_{
         "battleship",
@@ -148,11 +157,12 @@ class BattleshipView : public View {
 
     uint32_t tx_frequency{DEFAULT_FREQUENCY};
     uint32_t rx_frequency{DEFAULT_FREQUENCY};
-    std::string rx_buffer{};
     bool is_transmitting{false};
 
-    bool in_message{false};
-    std::string current_message{};
+    // POCSAG decoding state
+    pocsag::EccContainer ecc{};
+    pocsag::POCSAGState pocsag_state{&ecc};
+    uint32_t last_address{0};
 
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
@@ -208,34 +218,28 @@ class BattleshipView : public View {
 
     void send_message(const GameMessage& msg);
     void process_message(const std::string& message);
-    void parse_fsk_data(const FskPacketData& packet);
     bool parse_coords(const std::string& coords, uint8_t& x, uint8_t& y);
     void mark_ship_sunk(uint8_t x, uint8_t y, std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid);
 
-    void configure_radio(bool tx);
+    void configure_radio_tx();
+    void configure_radio_rx();
 
     MessageHandlerRegistration message_handler_packet{
-        Message::ID::FskPacket,
+        Message::ID::POCSAGPacket,
         [this](Message* const p) {
-            const auto message = static_cast<const FskPacketMessage*>(p);
-            parse_fsk_data(message->packet);
+            const auto message = static_cast<const POCSAGPacketMessage*>(p);
+            on_pocsag_packet(message);
         }};
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
         [this](const Message* const p) {
             const auto message = static_cast<const TXProgressMessage*>(p);
-            if (message->done) {
-                transmitter_model.disable();
-                chThdSleepMilliseconds(200);
-                configure_radio(false);
-
-                if (game_state == GameState::MY_TURN) {
-                    current_status = "Waiting for response";
-                    set_dirty();
-                }
-            }
+            on_tx_progress(message->progress, message->done);
         }};
+
+    void on_pocsag_packet(const POCSAGPacketMessage* message);
+    void on_tx_progress(const uint32_t progress, const bool done);
 };
 
 }  // namespace ui::external_app::battleship

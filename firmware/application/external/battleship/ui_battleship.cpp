@@ -10,15 +10,21 @@
 #include "portapack_shared_memory.hpp"
 #include "utility.hpp"
 #include "modems.hpp"
+#include "bch_code.hpp"
 
 using namespace portapack;
 using namespace modems;
 
 namespace ui::external_app::battleship {
 
+// POCSAG address for battleship game messages
+constexpr uint32_t BATTLESHIP_BASE_ADDRESS = 1000000;
+constexpr uint32_t RED_TEAM_ADDRESS = BATTLESHIP_BASE_ADDRESS + 1;
+constexpr uint32_t BLUE_TEAM_ADDRESS = BATTLESHIP_BASE_ADDRESS + 2;
+
 BattleshipView::BattleshipView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
     add_children({&rssi,
                   &field_frequency,
@@ -114,14 +120,12 @@ void BattleshipView::reset_game() {
     placing_horizontal = true;
     ships_remaining = 5;
     enemy_ships_remaining = 5;
-    rx_buffer.clear();
     cursor_x = 0;
     cursor_y = 0;
     target_x = 0;
     target_y = 0;
     is_transmitting = false;
-    in_message = false;
-    current_message.clear();
+    last_address = 0;
 
     init_game();
 
@@ -173,56 +177,65 @@ void BattleshipView::start_team(bool red) {
     button_menu.set_focusable(false);
 
     focus();
-    configure_radio(false);
+
+    is_transmitting = true;
+    configure_radio_rx();
+
     set_dirty();
 }
 
-void BattleshipView::configure_radio(bool tx) {
-    if (tx) {
-        receiver_model.disable();
-        audio::output::stop();
+void BattleshipView::configure_radio_tx() {
+    if (is_transmitting) return;
 
+    audio::output::stop();
+    receiver_model.disable();
+    baseband::shutdown();
+
+    chThdSleepMilliseconds(100);
+
+    baseband::run_image(portapack::spi_flash::image_tag_fsktx);
+
+    chThdSleepMilliseconds(100);
+
+    transmitter_model.set_target_frequency(tx_frequency);
+    transmitter_model.set_sampling_rate(2280000);
+    transmitter_model.set_baseband_bandwidth(1750000);
+    transmitter_model.set_rf_amp(false);
+    transmitter_model.set_tx_gain(35);
+
+    is_transmitting = true;
+}
+
+void BattleshipView::configure_radio_rx() {
+    if (is_transmitting) {
+        transmitter_model.disable();
         baseband::shutdown();
+
         chThdSleepMilliseconds(100);
-
-        baseband::run_image(portapack::spi_flash::image_tag_t{'P', 'F', 'S', 'K'});
-        chThdSleepMilliseconds(100);
-
-        transmitter_model.set_target_frequency(tx_frequency);
-        transmitter_model.set_sampling_rate(2280000);
-        transmitter_model.set_baseband_bandwidth(1750000);
-        transmitter_model.set_rf_amp(false);
-        transmitter_model.set_tx_gain(35);
-
-        is_transmitting = true;
-    } else {
-        if (is_transmitting) {
-            transmitter_model.disable();
-            baseband::shutdown();
-            chThdSleepMilliseconds(100);
-
-            baseband::run_image(portapack::spi_flash::image_tag_t{'P', 'F', 'S', 'R'});
-            chThdSleepMilliseconds(100);
-        }
-
-        receiver_model.set_target_frequency(rx_frequency);
-        receiver_model.set_sampling_rate(2280000);
-        receiver_model.set_baseband_bandwidth(1750000);
-        receiver_model.set_rf_amp(false);
-        receiver_model.set_lna(24);
-        receiver_model.set_vga(24);
-        receiver_model.enable();
-
-        baseband::set_fsk(
-            FSK_BAUDRATE, FSK_DEVIATION, 0x7E7E7E7E, 4, 0xAAAAAAAA, 8, 64);
-
-        audio::set_rate(audio::Rate::Hz_24000);
-        audio::output::start();
-        is_transmitting = false;
-
-        current_status = is_transmitting ? "Switched to RX" : "RX Ready";
-        set_dirty();
     }
+
+    baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
+
+    chThdSleepMilliseconds(100);
+
+    receiver_model.set_target_frequency(rx_frequency);
+    receiver_model.set_sampling_rate(3072000);
+    receiver_model.set_baseband_bandwidth(1750000);
+    receiver_model.set_rf_amp(false);
+    receiver_model.set_lna(24);
+    receiver_model.set_vga(24);
+
+    baseband::set_pocsag();
+
+    receiver_model.enable();
+
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+
+    is_transmitting = false;
+
+    current_status = "RX Ready";
+    set_dirty();
 }
 
 void BattleshipView::paint(Painter& painter) {
@@ -482,70 +495,74 @@ void BattleshipView::send_message(const GameMessage& msg) {
         message += to_string_dec_uint(msg.x) + "," + to_string_dec_uint(msg.y);
     }
 
-    configure_radio(true);
+    configure_radio_tx();
 
-    std::vector<uint8_t> tx_data;
-    tx_data.reserve(32);  // Pre-allocate
+    // Use POCSAG encoding
+    uint32_t target_address = is_red_team ? BLUE_TEAM_ADDRESS : RED_TEAM_ADDRESS;
 
-    // Preamble
-    for (int i = 0; i < 8; i++) {
-        tx_data.push_back(0xAA);
+    std::vector<uint32_t> codewords;
+    BCHCode BCH_code{{1, 0, 1, 0, 0, 1}, 5, 31, 21, 2};
+
+    // Use the pocsag namespace to access ALPHANUMERIC
+    pocsag::pocsag_encode(pocsag::MessageType::ALPHANUMERIC, BCH_code, 0, message, target_address, codewords);
+
+    // Copy codewords to shared memory
+    uint8_t* data_ptr = shared_memory.bb_data.data;
+    size_t bi = 0;
+
+    for (size_t i = 0; i < codewords.size(); i++) {
+        uint32_t codeword = codewords[i];
+        data_ptr[bi++] = (codeword >> 24) & 0xFF;
+        data_ptr[bi++] = (codeword >> 16) & 0xFF;
+        data_ptr[bi++] = (codeword >> 8) & 0xFF;
+        data_ptr[bi++] = codeword & 0xFF;
     }
 
-    // Sync word
-    tx_data.push_back(0x7E);
-    tx_data.push_back(0x7E);
-    tx_data.push_back(0x7E);
-    tx_data.push_back(0x7E);
-
-    // Message with markers
-    tx_data.push_back(0x02);  // STX
-    for (char c : message) {
-        tx_data.push_back(static_cast<uint8_t>(c));
-    }
-    tx_data.push_back(0x03);  // ETX
-
-    // Copy to shared memory
-    size_t len = tx_data.size();
-    for (size_t i = 0; i < len && i < 256; i++) {
-        shared_memory.bb_data.data[i] = tx_data[i];
-    }
-
+    // Set baseband FSK data
     baseband::set_fsk_data(
-        len * 8,
-        2280000 / FSK_BAUDRATE,
-        FSK_DEVIATION,
-        32);
+        codewords.size() * 32,  // Total bits
+        2280000 / 1200,         // Bit duration (1200 baud)
+        4500,                   // Deviation
+        64);                    // Packet repeat
 
+    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     current_status = "TX: " + message;
     set_dirty();
 }
 
-void BattleshipView::parse_fsk_data(const FskPacketData& packet) {
-    if (packet.dataLen > 0) {
-        current_status = "RX " + to_string_dec_uint(packet.dataLen) + "b @ " +
-                         to_string_dec_int(packet.max_dB) + "dB";
-        set_dirty();
+void BattleshipView::on_pocsag_packet(const POCSAGPacketMessage* message) {
+    if (message->packet.flag() != pocsag::NORMAL) {
+        return;
     }
 
-    for (uint16_t i = 0; i < packet.dataLen; i++) {
-        uint8_t byte = packet.data[i];
+    // Decode POCSAG message
+    pocsag_state.codeword_index = 0;
+    pocsag_state.errors = 0;
 
-        if (byte == 0x02) {  // STX
-            in_message = true;
-            current_message.clear();
-        } else if (byte == 0x03 && in_message) {  // ETX
-            in_message = false;
-            if (!current_message.empty()) {
-                process_message(current_message);
-                current_message.clear();
+    while (pocsag::pocsag_decode_batch(message->packet, pocsag_state)) {
+        if (pocsag_state.out_type == pocsag::MESSAGE) {
+            // Check if message is for our team
+            uint32_t expected_address = is_red_team ? RED_TEAM_ADDRESS : BLUE_TEAM_ADDRESS;
+            if (pocsag_state.address == expected_address) {
+                process_message(pocsag_state.output);
             }
-        } else if (in_message && current_message.length() < 50) {
-            if ((byte >= 32 && byte < 127) || byte == '\n' || byte == '\r') {
-                current_message += static_cast<char>(byte);
-            }
+        }
+    }
+}
+
+void BattleshipView::on_tx_progress(const uint32_t progress, const bool done) {
+    (void)progress;
+
+    if (done) {
+        transmitter_model.disable();
+        chThdSleepMilliseconds(200);
+        configure_radio_rx();
+
+        if (game_state == GameState::MY_TURN) {
+            current_status = "Waiting for response";
+            set_dirty();
         }
     }
 }

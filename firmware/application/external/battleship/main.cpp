@@ -65,7 +65,7 @@ __attribute__((section(".external_app.app_battleship.application_information"), 
     /*.menu_location = */ app_location_t::GAMES,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = */ {'P', 'F', 'S', 'R'},  // Use FSK RX baseband
+    /*.m4_app_tag = */ {'P', 'P', 'O', '2'},  // Use POCSAG2 baseband (larger than FSKTX)
     /*.m4_app_offset = */ 0x00000000,         // will be filled at compile time
 };
 }
