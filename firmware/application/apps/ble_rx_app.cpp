@@ -1013,7 +1013,7 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         data_string += to_string_hex(packet->data[i], 2);
     }
 
-    entry.dbValue = packet->max_dB - (receiver_model.lna() + receiver_model.vga() + (receiver_model.rf_amp() ? 14: 0));
+    entry.dbValue = packet->max_dB - (receiver_model.lna() + receiver_model.vga() + (receiver_model.rf_amp() ? 14 : 0));
     entry.timestamp = to_string_timestamp(rtc_time::now());
     entry.dataString = data_string;
 
