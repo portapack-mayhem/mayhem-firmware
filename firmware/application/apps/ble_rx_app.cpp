@@ -1012,13 +1012,10 @@ void BLERxView::on_timer() {
         timer_count = 0;
 
         if (auto_channel) {
-            int min = 37;
-            int max = 39;
+            field_frequency.set_value(get_freq_by_channel_number(channel_number));
+            baseband::set_btlerx(channel_number);
 
-            int randomChannel = min + std::rand() % (max - min + 1);
-
-            field_frequency.set_value(get_freq_by_channel_number(randomChannel));
-            baseband::set_btlerx(randomChannel);
+            channel_number = (channel_number < 39) ? channel_number + 1 : 37;
         }
     }
     if (ble_rx_error != BLE_RX_NO_ERROR) {

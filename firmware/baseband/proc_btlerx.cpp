@@ -379,7 +379,7 @@ void BTLERxProcessor::on_message(const Message* const message) {
 
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
     channel_number = message.channel_number;
-    decim_0.configure(taps_BTLE_2M_PHY_decim_0.taps);
+    decim_0.configure(taps_BTLE_Dual_PHY.taps);
 
     configured = true;
 }
