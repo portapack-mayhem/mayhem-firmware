@@ -147,11 +147,11 @@ inline void BTLERxProcessor::resetToDefaultState() {
 inline void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
     for (; packet_index < num_demod_byte; packet_index++) {
         for (; bit_index < 8; bit_index++) {
-            if (samples_eaten >= (int)dst_buffer.count) {
+            if (samples_eaten >= (int)dst_buffer.count + SAMPLE_PER_SYMBOL) {
                 return;
             }
 
-            float phaseSum = 0.0f;
+            /*float phaseSum = 0.0f;
             for (int k = 0; k < SAMPLE_PER_SYMBOL; ++k) {
                 float phase = get_phase_diff(
                     dst_buffer.p[samples_eaten + k],
@@ -161,8 +161,14 @@ inline void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
 
             // phaseSum /= (SAMPLE_PER_SYMBOL);
             // phaseSum -= frequency_offset;
+*/
 
-            bool bitDecision = (phaseSum > 0.0f);
+            int I0 = dst_buffer.p[samples_eaten].real();
+            int Q0 = dst_buffer.p[samples_eaten].imag();
+            int I1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].real();
+            int Q1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].imag();
+
+            bool bitDecision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
             rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << bit_index);
 
             samples_eaten += SAMPLE_PER_SYMBOL;
@@ -197,11 +203,11 @@ inline void BTLERxProcessor::handleBeginState() {
         if (errors <= 4) {
             hit_idx = i + SAMPLE_PER_SYMBOL;
 
-            for (int k = 0; k < ROLLING_WINDOW; k++) {
+            /* for (int k = 0; k < ROLLING_WINDOW; k++) {
                 frequency_offset_estimate += phase_buffer[k];
             }
-
             frequency_offset = frequency_offset_estimate / ROLLING_WINDOW;
+            */
 
             break;
         }
@@ -311,23 +317,18 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
     max_dB = -128;
-
-    auto* ptr = buffer.p;
-    auto* end = &buffer.p[buffer.count];
-
-    uint32_t maxMag = 0;
-    int8_t maxMaxReal = 0;
-    int8_t maxMaxImag = 0;
-    while (ptr < end) {
-        uint32_t mag = (uint32_t)(ptr->real() * ptr->real() + ptr->imag() * ptr->imag());
-        if (mag > maxMag) {
-            maxMag = mag;
-            maxMaxReal = ptr->real();
-            maxMaxImag = ptr->imag();
+    uint32_t max_squared = 0;
+    void* src_p = buffer.p;
+    while (src_p < &buffer.p[buffer.count]) {
+        const uint32_t sample = *__SIMD32(src_p)++;
+        const uint32_t mag_sq = __SMUAD(sample, sample);
+        if (mag_sq > max_squared) {
+            max_squared = mag_sq;
         }
-        ptr++;
     }
-    max_dB = mag2_to_dbm_8bit_normalized(maxMaxReal, maxMaxImag, 1.0f, 50.0f);
+
+    const float max_squared_f = max_squared;
+    max_dB = mag2_to_dbv_norm(max_squared_f * (1.0f / (32768.0f * 32768.0f)));
 
     // 4Mhz 2048 samples
     // Decimated by 4 to achieve 2048/4 = 512 samples at 1 sample per symbol.
