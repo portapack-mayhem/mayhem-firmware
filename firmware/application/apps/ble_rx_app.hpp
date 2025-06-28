@@ -387,6 +387,7 @@ class BLERxView : public View {
     BleRecentEntries tempList{};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     RecentEntriesColumns columns{{
         {"Name", 17},
         {"Hits", 7},
@@ -395,6 +396,11 @@ class BLERxView : public View {
         {"Name", 10},
         {"Information", 13},
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+    RecentEntriesColumns columns{{
+        {"Name", 17},
+        {"Hits", 7},
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
         {"dBm", 4},
     }};
 

@@ -134,10 +134,13 @@ class BTLERxProcessor : public BasebandProcessor {
     uint8_t pdu_type{0};
     int32_t max_dB{0};
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     int8_t real{0};
     int8_t imag{0};
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     uint16_t packet_index{0};
     uint8_t bit_index{0};
 

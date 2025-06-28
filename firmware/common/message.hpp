@@ -137,6 +137,7 @@ class Message {
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
 <<<<<<< HEAD
+<<<<<<< HEAD
         FSKPacket = 80,
         EPIRBPacket = 81,
 =======
@@ -147,6 +148,9 @@ class Message {
 >>>>>>> 4342f5c0 (Adding_WFM_AM_mode_to_Audio_App (#2644))
 =======
 >>>>>>> db65ae19 (Noaa apt decoder (#2648))
+=======
+        FSKPacket = 80,
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
         MAX
     };
 

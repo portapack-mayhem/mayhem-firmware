@@ -28,10 +28,14 @@
 #include "event_m4.hpp"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 inline float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
 =======
 float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     // Calculate the phase difference between two samples.
     float dI = sample1.real() * sample0.real() + sample1.imag() * sample0.imag();
     float dQ = sample1.imag() * sample0.real() - sample1.real() * sample0.imag();
@@ -41,10 +45,14 @@ float BTLERxProcessor::get_phase_diff(const complex16_t& sample0, const complex1
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 inline uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) {
 =======
 uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     int i;
     uint32_t crc_init_tmp, crc_init_input, crc_init_input_tmp;
 
@@ -140,10 +148,14 @@ inline int BTLERxProcessor::verify_payload_byte(int num_payload_byte, ADV_PDU_TY
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 inline void BTLERxProcessor::resetOffsetTracking() {
 =======
 void BTLERxProcessor::resetOffsetTracking() {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline void BTLERxProcessor::resetOffsetTracking() {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     frequency_offset = 0.0f;
     frequency_offset_estimate = 0.0f;
     phase_buffer_index = 0;
@@ -151,15 +163,20 @@ void BTLERxProcessor::resetOffsetTracking() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 inline void BTLERxProcessor::resetBitPacketIndex() {
 =======
 void BTLERxProcessor::resetBitPacketIndex() {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline void BTLERxProcessor::resetBitPacketIndex() {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     memset(rb_buf, 0, sizeof(rb_buf));
     packet_index = 0;
     bit_index = 0;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 inline void BTLERxProcessor::resetToDefaultState() {
     parseState = Parse_State_Begin;
@@ -171,13 +188,21 @@ inline void BTLERxProcessor::resetToDefaultState() {
 inline void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
 =======
 void BTLERxProcessor::resetToDefaultState() {
+=======
+inline void BTLERxProcessor::resetToDefaultState() {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     parseState = Parse_State_Begin;
     resetOffsetTracking();
     resetBitPacketIndex();
+    crc_init_internal = crc_init_reorder(crc_initalVale);
 }
 
+<<<<<<< HEAD
 void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     for (; packet_index < num_demod_byte; packet_index++) {
         for (; bit_index < 8; bit_index++) {
             if (samples_eaten >= (int)dst_buffer.count) {
@@ -232,6 +257,15 @@ inline void BTLERxProcessor::handleBeginState() {
             // phaseSum /= (SAMPLE_PER_SYMBOL);
             // phaseSum -= frequency_offset;
 
+            /*
+            alternate method. faster, but less precise. with this, you need to check against this: if (samples_eaten >= (int)dst_buffer.count + SAMPLE_PER_SYMBOL)  (not so good...)
+                        int I0 = dst_buffer.p[samples_eaten].real();
+                        int Q0 = dst_buffer.p[samples_eaten].imag();
+                        int I1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].real();
+                        int Q1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].imag();
+                        bool bitDecision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            */
+
             bool bitDecision = (phaseSum > 0.0f);
             rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << bit_index);
 
@@ -242,9 +276,9 @@ inline void BTLERxProcessor::handleBeginState() {
     }
 }
 
-void BTLERxProcessor::handleBeginState() {
+inline void BTLERxProcessor::handleBeginState() {
     uint32_t validAccessAddress = DEFAULT_ACCESS_ADDR;
-    uint32_t accesssAddress = 0;
+    static uint32_t accesssAddress = 0;
 
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
     int hit_idx = (-1);
@@ -257,6 +291,7 @@ void BTLERxProcessor::handleBeginState() {
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // disabled, due to not used anywhere
         /* phase_buffer[phase_buffer_index] = phaseDiff / (SAMPLE_PER_SYMBOL);
         phase_buffer_index = (phase_buffer_index + 1) % ROLLING_WINDOW;
@@ -265,6 +300,12 @@ void BTLERxProcessor::handleBeginState() {
         phase_buffer[phase_buffer_index] = phaseDiff / (SAMPLE_PER_SYMBOL);
         phase_buffer_index = (phase_buffer_index + 1) % ROLLING_WINDOW;
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+        // disabled, due to not used anywhere
+        /* phase_buffer[phase_buffer_index] = phaseDiff / (SAMPLE_PER_SYMBOL);
+        phase_buffer_index = (phase_buffer_index + 1) % ROLLING_WINDOW;
+        */
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
 
         bool bitDecision = (phaseDiff > 0);
 
@@ -272,6 +313,7 @@ void BTLERxProcessor::handleBeginState() {
 
         int errors = __builtin_popcount(accesssAddress ^ validAccessAddress) & 0xFFFFFFFF;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         if (!errors) {
             hit_idx = i + SAMPLE_PER_SYMBOL;
@@ -284,14 +326,21 @@ void BTLERxProcessor::handleBeginState() {
             */
 =======
         if (errors <= 4) {
+=======
+        if (!errors) {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
             hit_idx = i + SAMPLE_PER_SYMBOL;
 
-            for (int k = 0; k < ROLLING_WINDOW; k++) {
+            // disabled, due to not used anywhere
+            /* for (int k = 0; k < ROLLING_WINDOW; k++) {
                 frequency_offset_estimate += phase_buffer[k];
             }
-
             frequency_offset = frequency_offset_estimate / ROLLING_WINDOW;
+<<<<<<< HEAD
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+            */
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
 
             break;
         }
@@ -300,10 +349,14 @@ void BTLERxProcessor::handleBeginState() {
     if (hit_idx == -1) {
         // Process more samples.
 <<<<<<< HEAD
+<<<<<<< HEAD
         samples_eaten = (int)dst_buffer.count + 1;
 =======
         samples_eaten = dst_buffer.count + 1;
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+        samples_eaten = (int)dst_buffer.count + 1;
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
         return;
     }
 
@@ -313,10 +366,14 @@ void BTLERxProcessor::handleBeginState() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 inline void BTLERxProcessor::handlePDUHeaderState() {
 =======
 void BTLERxProcessor::handlePDUHeaderState() {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline void BTLERxProcessor::handlePDUHeaderState() {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     if (samples_eaten > (int)dst_buffer.count) {
         return;
     }
@@ -325,9 +382,13 @@ void BTLERxProcessor::handlePDUHeaderState() {
 
     if (packet_index < NUM_PDU_HEADER_BYTE || bit_index != 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         resetToDefaultState();
 =======
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+        resetToDefaultState();
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
         return;
     }
 
@@ -348,10 +409,14 @@ void BTLERxProcessor::handlePDUHeaderState() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 inline void BTLERxProcessor::handlePDUPayloadState() {
 =======
 void BTLERxProcessor::handlePDUPayloadState() {
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+inline void BTLERxProcessor::handlePDUPayloadState() {
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     const int num_demod_byte = (payload_len + 3);
 
     if (samples_eaten > (int)dst_buffer.count) {
@@ -362,9 +427,13 @@ void BTLERxProcessor::handlePDUPayloadState() {
 
     if (packet_index < (num_demod_byte + NUM_PDU_HEADER_BYTE) || bit_index != 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         resetToDefaultState();
 =======
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+        resetToDefaultState();
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
         return;
     }
 
@@ -421,6 +490,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // a less computationally expensive method
     max_dB = -128;
     uint32_t max_squared = 0;
@@ -457,8 +527,26 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     max_dB = mag2_to_dbm_8bit_normalized(real, imag, 1.0f, 50.0f);
 =======
         ptr++;
+=======
+    // a less computationally expensive method
+    max_dB = -128;
+    uint32_t max_squared = 0;
+    int8_t imag = 0;
+    int8_t real = 0;
+    void* src_p = buffer.p;
+    while (src_p < &buffer.p[buffer.count]) {
+        const uint32_t sample = *__SIMD32(src_p)++;
+        const uint32_t mag_sq = __SMUAD(sample, sample);
+        if (mag_sq > max_squared) {
+            max_squared = mag_sq;
+            imag = ((complex8_t*)src_p)->imag();
+            real = ((complex8_t*)src_p)->real();
+        }
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
     }
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+
+    max_dB = mag2_to_dbm_8bit_normalized(real, imag, 1.0f, 50.0f);
 
     // 4Mhz 2048 samples
     // Decimated by 4 to achieve 2048/4 = 512 samples at 1 sample per symbol.
@@ -491,10 +579,14 @@ void BTLERxProcessor::on_message(const Message* const message) {
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
     channel_number = message.channel_number;
 <<<<<<< HEAD
+<<<<<<< HEAD
     decim_0.configure(taps_BTLE_Dual_PHY.taps);
 =======
     decim_0.configure(taps_BTLE_2M_PHY_decim_0.taps);
 >>>>>>> d5ea0f03 (BLE Rx Improvements (#2710))
+=======
+    decim_0.configure(taps_BTLE_Dual_PHY.taps);
+>>>>>>> f90d3fab (Adding simple FSK Rx Processor. Can be used with New Apps. (#2716))
 
     configured = true;
 }
