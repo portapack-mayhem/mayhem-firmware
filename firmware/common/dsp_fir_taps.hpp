@@ -1649,4 +1649,36 @@ static constexpr fir_taps_real<24> taps_BTLE_2M_PHY_decim_0 = {
 
     }},
 };
+
+// Tested to be better at capturing both 4.0 and 5.0 device. Better attenuation at channel end.
+static constexpr fir_taps_real<24> taps_BTLE_Dual_PHY = {
+    .low_frequency_normalized = -750000.0f / 4000000.0f,
+    .high_frequency_normalized = 750000.0f / 4000000.0f,
+    .transition_normalized = 250000.0f / 4000000.0f,
+    .taps = {{3,
+              -5,
+              -97,
+              -144,
+              317,
+              1099,
+              396,
+              -2887,
+              -4814,
+              1912,
+              18134,
+              32767,
+              32767,
+              18134,
+              1912,
+              -4814,
+              -2887,
+              396,
+              1099,
+              317,
+              -144,
+              -97,
+              -5,
+              3}},
+};
+
 #endif /*__DSP_FIR_TAPS_H__*/

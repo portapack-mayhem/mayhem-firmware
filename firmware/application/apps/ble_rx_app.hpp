@@ -267,7 +267,7 @@ class BLERxView : public View {
     bool auto_channel = false;
 
     int16_t timer_count{0};
-    int16_t timer_period{6};  // 100ms
+    int16_t timer_period{2};  // 25ms
 
     std::string filterBuffer{};
     std::string listFileBuffer{};
@@ -386,9 +386,9 @@ class BLERxView : public View {
     BleRecentEntries recent{};
     BleRecentEntries tempList{};
 
-    const RecentEntriesColumns columns{{
-        {"Name", 10},
-        {"Information", 13},
+    RecentEntriesColumns columns{{
+        {"Name", 17},
+        {"Hits", 7},
         {"dBm", 4},
     }};
 

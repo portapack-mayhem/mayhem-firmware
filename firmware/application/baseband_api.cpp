@@ -186,13 +186,14 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
     send_message(&message);
 }
 
-void set_fsk(const size_t deviation) {
+void set_fsk(const uint8_t samplesPerSymbol, const uint32_t syncWord, const uint8_t syncWordLength, const uint32_t preamble, const uint8_t preambleLength, uint16_t numDataBytes) {
     const FSKRxConfigureMessage message{
-        taps_200k_decim_0,
-        taps_16k0_decim_1,
-        taps_11k0_channel,
-        2,
-        deviation};
+        samplesPerSymbol,
+        syncWord,
+        syncWordLength,
+        preamble,
+        preambleLength,
+        numDataBytes};
 
     send_message(&message);
 }

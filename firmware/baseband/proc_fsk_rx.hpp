@@ -30,7 +30,6 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
-#include "dsp_iir_config.hpp"
 #include "dsp_fir_taps.hpp"
 
 #include "spectrum_collector.hpp"
@@ -45,21 +44,6 @@
 #include <variant>
 #include <cstdint>
 #include <functional>
-
-/* Normalizes audio stream to +/-1.0f */
-class AudioNormalizer {
-   public:
-    void execute_in_place(const buffer_f32_t& audio);
-
-   private:
-    void calculate_thresholds();
-
-    uint32_t counter_ = 0;
-    float min_ = 99.0f;
-    float max_ = -99.0f;
-    float t_hi_ = 1.0;
-    float t_lo_ = 1.0;
-};
 
 /* A decimator that just returns the source buffer. */
 class NoopDecim {
@@ -111,44 +95,92 @@ class MultiDecimator {
 
 class FSKRxProcessor : public BasebandProcessor {
    public:
-    FSKRxProcessor();
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
    private:
-    size_t baseband_fs = 1024000;  // aka: sample_rate
+    static constexpr int ROLLING_WINDOW{32};
+    static constexpr uint16_t MAX_BUFFER_SIZE{512};
+
+    enum Parse_State {
+        Parse_State_Wait_For_Peak = 0,
+        Parse_State_Preamble,
+        Parse_State_Sync,
+        Parse_State_PDU_Payload,
+        Parse_State_Parsing_Data
+    };
+
+    size_t baseband_fs = 960000;
     uint8_t stat_update_interval = 10;
     uint32_t stat_update_threshold = baseband_fs / stat_update_interval;
-    static constexpr auto spectrum_rate_hz = 50.0f;
+
+    float detect_peak_power(const buffer_c8_t& buffer, int N);
+    void agc_correct_iq(const buffer_c8_t& buffer, int N, float measured_power);
+    float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);
+    void demodulateFSKBits(const buffer_c16_t& decimator_out, int num_demod_byte);
+    void resetPreambleTracking();
+    void resetBitPacketIndex();
+    void resetToDefaultState();
+
+    void handlePreambleState(const buffer_c16_t& decimator_out);
+    void handleSyncWordState(const buffer_c16_t& decimator_out);
+    void handlePDUPayloadState(const buffer_c16_t& decimator_out);
 
     void configure(const FSKRxConfigureMessage& message);
-    void capture_config(const CaptureConfigMessage& message);
     void sample_rate_config(const SampleRateConfigMessage& message);
-    void flush();
-    void reset();
-    void send_packet(uint32_t data);
-    void process_bits(const buffer_c8_t& buffer);
 
-    void clear_data_bits();
-    void handle_sync(bool inverted);
-
-    /* Returns true if the batch has as sync frame. */
-    bool has_sync() const { return has_sync_; }
-
-    /* Set once app is ready to receive messages. */
-    bool configured = false;
-
-    /* Buffer for decimated IQ data. */
-    std::array<complex16_t, 512> dst{};
+    std::array<complex16_t, MAX_BUFFER_SIZE> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
         dst.size()};
 
-    /* Buffer for demodulated audio. */
-    std::array<float, 16> audio{};
-    const buffer_f32_t audio_buffer{audio.data(), audio.size()};
+    uint8_t rb_buf[MAX_BUFFER_SIZE];
 
-    /* The actual type will be configured depending on the sample rate. */
+    dsp::demodulate::FM demod{};
+    int rb_head{-1};
+    int32_t g_threshold{0};
+    uint8_t channel_number{0};
+
+    uint16_t process = 0;
+
+    bool configured{false};
+    FskPacketData fskPacketData{};
+
+    Parse_State parseState{Parse_State_Wait_For_Peak};
+
+    int sample_idx{0};
+    int samples_eaten{0};
+
+    int32_t max_dB{0};
+    int8_t real{0};
+    int8_t imag{0};
+
+    uint16_t peak_timeout{0};
+    float noise_floor{12.0};  // Using LNA 40 and VGA 20. 10.0 was 40/0 ratio.
+    float target_power_db{5.0};
+    float agc_power{0.0f};
+
+    float frequency_offset_estimate{0.0f};
+    float frequency_offset{0.0f};
+    float phase_buffer[ROLLING_WINDOW] = {0.0f};
+    int phase_buffer_index = 0;
+
+    uint16_t packet_index{0};
+    uint8_t bit_index{0};
+    size_t demod_input_fs{0};
+
+    uint8_t SAMPLE_PER_SYMBOL{1};
+    uint32_t DEFAULT_PREAMBLE{0xAAAAAAAA};
+    uint32_t DEFAULT_SYNC_WORD{0xFFFFFFFF};
+    uint8_t NUM_SYNC_WORD_BYTE{4};
+    uint8_t NUM_PREAMBLE_BYTE{4};
+    uint16_t NUM_DATA_BYTE = MAX_BUFFER_SIZE - NUM_SYNC_WORD_BYTE - NUM_PREAMBLE_BYTE;
+
+    SpectrumCollector channel_spectrum{};
+    size_t spectrum_interval_samples = 0;
+    size_t spectrum_samples = 0;
+    static constexpr auto spectrum_rate_hz = 50.0f;
+
     MultiDecimator<
         dsp::decimate::FIRC8xR16x24FS4Decim4,
         dsp::decimate::FIRC8xR16x24FS4Decim8>
@@ -159,9 +191,7 @@ class FSKRxProcessor : public BasebandProcessor {
         NoopDecim>
         decim_1{};
 
-    /* Filter to 24kHz and demodulate. */
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    size_t deviation = 3750;
     // fir_taps_real<32> channel_filter_taps = 0;
     size_t channel_decimation = 2;
     int32_t channel_filter_low_f = 0;
@@ -171,51 +201,6 @@ class FSKRxProcessor : public BasebandProcessor {
     /* Squelch to ignore noise. */
     FMSquelch squelch{};
     uint64_t squelch_history = 0;
-
-    // /* LPF to reduce noise. POCSAG supports 2400 baud, but that falls
-    //  * nicely into the transition band of this 1800Hz filter.
-    //  * scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False) */
-    // IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
-    //                      {1.00000000f, -1.34896775f, 0.51398189f}}};
-
-    /* Attempts to de-noise and normalize signal. */
-    AudioNormalizer normalizer{};
-
-    /* Handles writing audio stream to hardware. */
-    AudioOutput audio_output{};
-
-    /* Holds the data sent to the app. */
-    AFSKDataMessage data_message{false, 0};
-
-    /* Used to keep track of how many samples were processed
-     * between status update messages. */
-    uint32_t samples_processed = 0;
-
-    /* Number of bits in 'data_' member. */
-    static constexpr uint8_t data_bit_count = sizeof(uint32_t) * 8;
-
-    /* Sync frame codeword. */
-    static constexpr uint32_t sync_codeword = 0x12345678;
-
-    /* When true, sync frame has been received. */
-    bool has_sync_ = false;
-
-    /* When true, bit vales are flipped in the codewords. */
-    bool inverted = false;
-
-    uint32_t data = 0;
-    uint8_t bit_count = 0;
-    uint8_t word_count = 0;
-
-    /* LPF to reduce noise. POCSAG supports 2400 baud, but that falls
-     * nicely into the transition band of this 1800Hz filter.
-     * scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False) */
-    IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
-                         {1.00000000f, -1.34896775f, 0.51398189f}}};
-
-    SpectrumCollector channel_spectrum{};
-    size_t spectrum_interval_samples = 0;
-    size_t spectrum_samples = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
