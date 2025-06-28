@@ -201,7 +201,11 @@ MEMORY
 >>>>>>> 7b911031 (Made the Space Invaders game. Argh matey! (#2709))
 =======
     ram_external_app_blackjack  (rwx) : org = 0xADE70000, len = 32k
+<<<<<<< HEAD
 >>>>>>> 4fbba205 (Made the Blackjack game (#2712))
+=======
+    ram_external_app_battleship   (rwx) : org = 0xADE80000, len = 32k
+>>>>>>> 4e276cdc (Battleship (#2720))
 }
 
 SECTIONS
@@ -535,6 +539,12 @@ SECTIONS
         KEEP(*(.external_app.app_blackjack.application_information));
         *(*ui*external_app*blackjack*);
     } > ram_external_app_blackjack
+
+        .external_app_battleship : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_battleship.application_information));
+        *(*ui*external_app*battleship*);
+    } > ram_external_app_battleship
 
 }
 

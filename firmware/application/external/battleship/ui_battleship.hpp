@@ -18,6 +18,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "audio.hpp"
+<<<<<<< HEAD
 #include "message.hpp"
 #include "pocsag.hpp"
 
@@ -25,10 +26,30 @@
 
 namespace ui::external_app::battleship {
 
+=======
+#include "portapack.hpp"
+#include "message.hpp"
+#include "pocsag.hpp"
+#include "portapack_shared_memory.hpp"
+
+#include <string>
+#include <array>
+#include <cstdint>
+
+namespace ui::external_app::battleship {
+
+using namespace portapack;
+
+>>>>>>> 4e276cdc (Battleship (#2720))
 constexpr uint8_t GRID_SIZE = 10;
 constexpr uint8_t CELL_SIZE = 24;
 constexpr uint8_t GRID_OFFSET_X = 0;
 constexpr uint8_t GRID_OFFSET_Y = 32;
+<<<<<<< HEAD
+=======
+constexpr uint16_t BUTTON_Y = 280;
+constexpr uint32_t DEFAULT_FREQUENCY = 433920000;
+>>>>>>> 4e276cdc (Battleship (#2720))
 
 enum class ShipType : uint8_t {
     CARRIER = 5,
@@ -104,17 +125,26 @@ class BattleshipView : public View {
     NavigationView& nav_;
 
     RxRadioState rx_radio_state_{
+<<<<<<< HEAD
         433920000 /* frequency */,
+=======
+        DEFAULT_FREQUENCY /* frequency */,
+>>>>>>> 4e276cdc (Battleship (#2720))
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
 
     TxRadioState tx_radio_state_{
+<<<<<<< HEAD
         433920000 /* frequency */,
+=======
+        DEFAULT_FREQUENCY /* frequency */,
+>>>>>>> 4e276cdc (Battleship (#2720))
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
 
+<<<<<<< HEAD
     // Settings
     bool sound_enabled{true};
     bool rf_amp_enabled{false};
@@ -122,18 +152,30 @@ class BattleshipView : public View {
     uint8_t vga_gain{24};
     uint8_t tx_gain{35};
 
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     app_settings::SettingsManager settings_{
         "battleship",
         app_settings::Mode::RX_TX,
         {{"rx_freq"sv, &rx_frequency},
          {"tx_freq"sv, &tx_frequency},
+<<<<<<< HEAD
          {"rf_amp"sv, &rf_amp_enabled}}};
+=======
+         {"wins"sv, &wins},
+         {"losses"sv, &losses}}};
+>>>>>>> 4e276cdc (Battleship (#2720))
 
     GameState game_state{GameState::MENU};
     bool is_red_team{false};
     bool opponent_ready{false};
+<<<<<<< HEAD
     uint8_t wins{0};
     uint8_t losses{0};
+=======
+    uint32_t wins{0};
+    uint32_t losses{0};
+>>>>>>> 4e276cdc (Battleship (#2720))
 
     std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE> my_grid{};
     std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE> enemy_grid{};
@@ -153,8 +195,13 @@ class BattleshipView : public View {
     uint8_t target_y{0};
     bool touch_enabled{true};
 
+<<<<<<< HEAD
     uint32_t tx_frequency{433920000};
     uint32_t rx_frequency{433920000};
+=======
+    uint32_t tx_frequency{DEFAULT_FREQUENCY};
+    uint32_t rx_frequency{DEFAULT_FREQUENCY};
+>>>>>>> 4e276cdc (Battleship (#2720))
     bool is_transmitting{false};
 
     // POCSAG decoding state
@@ -162,6 +209,7 @@ class BattleshipView : public View {
     pocsag::POCSAGState pocsag_state{&ecc};
     uint32_t last_address{0};
 
+<<<<<<< HEAD
     // UI Elements - Menu/Settings Screen
     Text text_title{{60, 2, 120, 24}, "BATTLESHIP"};
     Text text_subtitle{{40, 20, 160, 16}, "Naval Combat Game"};
@@ -204,11 +252,54 @@ class BattleshipView : public View {
     Button button_menu{{155, 265, 65, 32}, "Menu"};
 
     // Methods
+=======
+    RSSI rssi{
+        {21 * 8, 0, 6 * 8, 4}};
+
+    FrequencyField field_frequency{
+        {10, 50}};
+
+    Text text_status{
+        {10, 16, 220, 16},
+        "Choose your team!"};
+
+    Text text_score{
+        {170, 16, 60, 16},
+        "W:0 L:0"};
+
+    Button button_red_team{
+        {20, 100, 90, 40},
+        "RED TEAM"};
+
+    Button button_blue_team{
+        {130, 100, 90, 40},
+        "BLUE TEAM"};
+
+    Button button_rotate{
+        {10, BUTTON_Y, 60, 32},
+        "Rotate"};
+
+    Button button_place{
+        {80, BUTTON_Y, 60, 32},
+        "Place"};
+
+    Button button_fire{
+        {80, BUTTON_Y, 60, 32},
+        "Fire!"};
+
+    Button button_menu{
+        {150, BUTTON_Y, 60, 32},
+        "Menu"};
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     void init_game();
     void reset_game();
     void start_team(bool red);
     void setup_ships();
+<<<<<<< HEAD
     void draw_menu_screen(Painter& painter);
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     void draw_grid(Painter& painter, uint8_t grid_x, uint8_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid = false);
     void draw_cell(Painter& painter, uint8_t cell_x, uint8_t cell_y, CellState state, bool show_ships, bool is_offense_grid, bool is_cursor);
     void draw_ship_preview(Painter& painter);

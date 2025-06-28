@@ -26,6 +26,7 @@ BattleshipView::BattleshipView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
+<<<<<<< HEAD
     add_children({&text_title, &text_subtitle,
                   &rect_radio_settings, &label_radio, &button_frequency,
                   &label_rf_amp, &checkbox_rf_amp,
@@ -42,12 +43,26 @@ BattleshipView::BattleshipView(NavigationView& nav)
     // Hide in-game elements
     rssi.hidden(true);
     text_status.hidden(true);
+=======
+    add_children({&rssi,
+                  &field_frequency,
+                  &text_status,
+                  &text_score,
+                  &button_red_team,
+                  &button_blue_team,
+                  &button_rotate,
+                  &button_place,
+                  &button_fire,
+                  &button_menu});
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     text_score.hidden(true);
     button_rotate.hidden(true);
     button_place.hidden(true);
     button_fire.hidden(true);
     button_menu.hidden(true);
 
+<<<<<<< HEAD
     // Configure frequency button
     button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
 
@@ -74,11 +89,18 @@ BattleshipView::BattleshipView(NavigationView& nav)
         rx_frequency = tx_frequency;
         button_frequency.set_encoder_delta(0);
         button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
+=======
+    field_frequency.set_value(DEFAULT_FREQUENCY);
+    field_frequency.on_change = [this](rf::Frequency freq) {
+        tx_frequency = freq;
+        rx_frequency = freq;
+>>>>>>> 4e276cdc (Battleship (#2720))
         if (!is_transmitting) {
             receiver_model.set_target_frequency(rx_frequency);
         }
     };
 
+<<<<<<< HEAD
     // Radio controls
     checkbox_rf_amp.set_value(rf_amp_enabled);
     checkbox_rf_amp.on_select = [this](Checkbox&, bool v) {
@@ -117,6 +139,8 @@ BattleshipView::BattleshipView(NavigationView& nav)
     };
 
     // Team selection
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     button_red_team.on_select = [this](Button&) {
         start_team(true);
     };
@@ -125,7 +149,10 @@ BattleshipView::BattleshipView(NavigationView& nav)
         start_team(false);
     };
 
+<<<<<<< HEAD
     // In-game controls
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     button_rotate.on_select = [this](Button&) {
         placing_horizontal = !placing_horizontal;
         set_dirty();
@@ -143,6 +170,7 @@ BattleshipView::BattleshipView(NavigationView& nav)
         reset_game();
     };
 
+<<<<<<< HEAD
     // Set proper rectangles for layout
     button_frequency.set_parent_rect({17, 65, 11 * 8, 20});
     checkbox_rf_amp.set_parent_rect({55, 90, 24, 24});
@@ -165,6 +193,8 @@ BattleshipView::BattleshipView(NavigationView& nav)
     button_red_team.set_focusable(true);
     button_blue_team.set_focusable(true);
 
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     set_focusable(true);
     init_game();
 }
@@ -178,7 +208,11 @@ BattleshipView::~BattleshipView() {
 
 void BattleshipView::focus() {
     if (game_state == GameState::MENU) {
+<<<<<<< HEAD
         button_frequency.focus();
+=======
+        button_red_team.focus();
+>>>>>>> 4e276cdc (Battleship (#2720))
     } else {
         View::focus();
     }
@@ -219,6 +253,7 @@ void BattleshipView::reset_game() {
 
     current_status = "Choose your team!";
     update_score();
+<<<<<<< HEAD
 
     // Toggle visibility
     bool menu_vis = true;
@@ -267,6 +302,22 @@ void BattleshipView::reset_game() {
     button_blue_team.set_focusable(menu_vis);
 
     button_frequency.focus();
+=======
+    text_status.hidden(false);
+    text_score.hidden(true);
+    field_frequency.hidden(false);
+    button_red_team.hidden(false);
+    button_blue_team.hidden(false);
+    button_rotate.hidden(true);
+    button_place.hidden(true);
+    button_fire.hidden(true);
+    button_menu.hidden(true);
+
+    button_red_team.set_focusable(true);
+    button_blue_team.set_focusable(true);
+    button_red_team.focus();
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     set_dirty();
 }
 
@@ -282,6 +333,7 @@ void BattleshipView::start_team(bool red) {
     is_red_team = red;
     game_state = GameState::PLACING_SHIPS;
 
+<<<<<<< HEAD
     // Toggle visibility
     bool menu_vis = false;
     bool game_vis = true;
@@ -312,10 +364,21 @@ void BattleshipView::start_team(bool red) {
     rssi.hidden(!game_vis);
     text_status.hidden(true);
     text_score.hidden(true);
+=======
+    field_frequency.hidden(true);
+    button_red_team.hidden(true);
+    button_blue_team.hidden(true);
+>>>>>>> 4e276cdc (Battleship (#2720))
     button_rotate.hidden(false);
     button_place.hidden(false);
     button_menu.hidden(false);
 
+<<<<<<< HEAD
+=======
+    text_status.hidden(true);
+    text_score.hidden(true);
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     current_status = "Place carrier (5)";
 
     button_rotate.set_focusable(false);
@@ -323,8 +386,15 @@ void BattleshipView::start_team(bool red) {
     button_menu.set_focusable(false);
 
     focus();
+<<<<<<< HEAD
     is_transmitting = true;
     configure_radio_rx();
+=======
+
+    is_transmitting = true;
+    configure_radio_rx();
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     set_dirty();
 }
 
@@ -344,8 +414,13 @@ void BattleshipView::configure_radio_tx() {
     transmitter_model.set_target_frequency(tx_frequency);
     transmitter_model.set_sampling_rate(2280000);
     transmitter_model.set_baseband_bandwidth(1750000);
+<<<<<<< HEAD
     transmitter_model.set_rf_amp(rf_amp_enabled);
     transmitter_model.set_tx_gain(tx_gain);
+=======
+    transmitter_model.set_rf_amp(false);
+    transmitter_model.set_tx_gain(35);
+>>>>>>> 4e276cdc (Battleship (#2720))
 
     is_transmitting = true;
 }
@@ -354,15 +429,24 @@ void BattleshipView::configure_radio_rx() {
     if (is_transmitting) {
         transmitter_model.disable();
         baseband::shutdown();
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4e276cdc (Battleship (#2720))
         chThdSleepMilliseconds(100);
     }
 
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     chThdSleepMilliseconds(100);
 
     receiver_model.set_target_frequency(rx_frequency);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
+<<<<<<< HEAD
     receiver_model.set_rf_amp(rf_amp_enabled);
     receiver_model.set_lna(lna_gain);
     receiver_model.set_vga(vga_gain);
@@ -377,6 +461,21 @@ void BattleshipView::configure_radio_rx() {
     }
 
     is_transmitting = false;
+=======
+    receiver_model.set_rf_amp(false);
+    receiver_model.set_lna(24);
+    receiver_model.set_vga(24);
+
+    baseband::set_pocsag();
+
+    receiver_model.enable();
+
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+
+    is_transmitting = false;
+
+>>>>>>> 4e276cdc (Battleship (#2720))
     current_status = "RX Ready";
     set_dirty();
 }
@@ -385,6 +484,7 @@ void BattleshipView::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, 240, 320}, Color::black());
 
     if (game_state == GameState::MENU) {
+<<<<<<< HEAD
         draw_menu_screen(painter);
 
         // Custom paint team buttons
@@ -422,22 +522,35 @@ void BattleshipView::paint(Painter& painter) {
             painter.draw_string(r.center() - Point(24, 0), style_white, "TEAM");
         }
 
+=======
+        auto style_title = *ui::Theme::getInstance()->fg_light;
+        painter.draw_string({60, 20}, style_title, "BATTLESHIP");
+        painter.draw_string({40, 80}, style_title, "Choose your team:");
+        painter.draw_string({10, 180}, *ui::Theme::getInstance()->fg_medium, "Set same freq on both!");
+>>>>>>> 4e276cdc (Battleship (#2720))
         return;
     }
 
     Color team_color = is_red_team ? Color::red() : Color::blue();
     painter.fill_rectangle({0, 5, 240, 16}, team_color);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     auto style_white = Style{
         .font = ui::font::fixed_8x16,
         .background = team_color,
         .foreground = Color::white()};
     painter.draw_string({85, 5}, style_white, is_red_team ? "RED TEAM" : "BLUE TEAM");
 
+<<<<<<< HEAD
     auto style_status = Style{
         .font = ui::font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::white()};
+=======
+    auto style_status = *ui::Theme::getInstance()->fg_light;
+>>>>>>> 4e276cdc (Battleship (#2720))
     painter.fill_rectangle({0, 21, 240, 16}, Color::black());
     painter.draw_string({10, 21}, style_status, current_status);
 
@@ -464,6 +577,7 @@ void BattleshipView::paint(Painter& painter) {
     }
 }
 
+<<<<<<< HEAD
 void BattleshipView::draw_menu_screen(Painter& painter) {
     painter.draw_hline({12, 38}, 216, Color::dark_cyan());
 
@@ -490,6 +604,8 @@ void BattleshipView::draw_menu_screen(Painter& painter) {
     }
 }
 
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
 void BattleshipView::draw_grid(Painter& painter, uint8_t grid_x, uint8_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid) {
     painter.fill_rectangle({grid_x, grid_y, GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE},
                            Color::dark_blue());
@@ -703,13 +819,24 @@ void BattleshipView::send_message(const GameMessage& msg) {
 
     configure_radio_tx();
 
+<<<<<<< HEAD
+=======
+    // Use POCSAG encoding
+>>>>>>> 4e276cdc (Battleship (#2720))
     uint32_t target_address = is_red_team ? BLUE_TEAM_ADDRESS : RED_TEAM_ADDRESS;
 
     std::vector<uint32_t> codewords;
     BCHCode BCH_code{{1, 0, 1, 0, 0, 1}, 5, 31, 21, 2};
 
+<<<<<<< HEAD
     pocsag::pocsag_encode(pocsag::MessageType::ALPHANUMERIC, BCH_code, 0, message, target_address, codewords);
 
+=======
+    // Use the pocsag namespace to access ALPHANUMERIC
+    pocsag::pocsag_encode(pocsag::MessageType::ALPHANUMERIC, BCH_code, 0, message, target_address, codewords);
+
+    // Copy codewords to shared memory
+>>>>>>> 4e276cdc (Battleship (#2720))
     uint8_t* data_ptr = shared_memory.bb_data.data;
     size_t bi = 0;
 
@@ -721,11 +848,20 @@ void BattleshipView::send_message(const GameMessage& msg) {
         data_ptr[bi++] = codeword & 0xFF;
     }
 
+<<<<<<< HEAD
     baseband::set_fsk_data(
         codewords.size() * 32,
         2280000 / 1200,
         4500,
         64);
+=======
+    // Set baseband FSK data
+    baseband::set_fsk_data(
+        codewords.size() * 32,  // Total bits
+        2280000 / 1200,         // Bit duration (1200 baud)
+        4500,                   // Deviation
+        64);                    // Packet repeat
+>>>>>>> 4e276cdc (Battleship (#2720))
 
     transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
@@ -739,11 +875,19 @@ void BattleshipView::on_pocsag_packet(const POCSAGPacketMessage* message) {
         return;
     }
 
+<<<<<<< HEAD
+=======
+    // Decode POCSAG message
+>>>>>>> 4e276cdc (Battleship (#2720))
     pocsag_state.codeword_index = 0;
     pocsag_state.errors = 0;
 
     while (pocsag::pocsag_decode_batch(message->packet, pocsag_state)) {
         if (pocsag_state.out_type == pocsag::MESSAGE) {
+<<<<<<< HEAD
+=======
+            // Check if message is for our team
+>>>>>>> 4e276cdc (Battleship (#2720))
             uint32_t expected_address = is_red_team ? RED_TEAM_ADDRESS : BLUE_TEAM_ADDRESS;
             if (pocsag_state.address == expected_address) {
                 process_message(pocsag_state.output);
@@ -983,6 +1127,7 @@ bool BattleshipView::on_encoder(const EncoderEvent delta) {
 }
 
 bool BattleshipView::on_key(const KeyEvent key) {
+<<<<<<< HEAD
     if (game_state == GameState::MENU) {
         if (key == KeyEvent::Up || key == KeyEvent::Down ||
             key == KeyEvent::Left || key == KeyEvent::Right) {
@@ -995,6 +1140,8 @@ bool BattleshipView::on_key(const KeyEvent key) {
     }
 
     // Game state key handling
+=======
+>>>>>>> 4e276cdc (Battleship (#2720))
     if (key == KeyEvent::Select) {
         if (game_state == GameState::PLACING_SHIPS) {
             place_ship();
