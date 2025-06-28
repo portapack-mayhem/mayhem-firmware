@@ -316,8 +316,8 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     auto* end = &buffer.p[buffer.count];
 
     uint32_t maxMag = 0;
-    uint8_t maxMaxReal = 0;
-    uint8_t maxMaxImag = 0;
+    int8_t maxMaxReal = 0;
+    int8_t maxMaxImag = 0;
     while (ptr < end) {
         uint32_t mag = (uint32_t)(ptr->real() * ptr->real() + ptr->imag() * ptr->imag());
         if (mag > maxMag) {
