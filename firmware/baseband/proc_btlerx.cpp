@@ -147,28 +147,32 @@ inline void BTLERxProcessor::resetToDefaultState() {
 inline void BTLERxProcessor::demodulateFSKBits(int num_demod_byte) {
     for (; packet_index < num_demod_byte; packet_index++) {
         for (; bit_index < 8; bit_index++) {
-            if (samples_eaten >= (int)dst_buffer.count + SAMPLE_PER_SYMBOL) {
+            if (samples_eaten >= (int)dst_buffer.count) {
                 return;
             }
 
-            /*float phaseSum = 0.0f;
+            float phaseSum = 0.0f;
             for (int k = 0; k < SAMPLE_PER_SYMBOL; ++k) {
                 float phase = get_phase_diff(
                     dst_buffer.p[samples_eaten + k],
                     dst_buffer.p[samples_eaten + k + 1]);
                 phaseSum += phase;
             }
+            bool bitDecision = (phaseSum > 0.0f);
 
             // phaseSum /= (SAMPLE_PER_SYMBOL);
             // phaseSum -= frequency_offset;
-*/
 
-            int I0 = dst_buffer.p[samples_eaten].real();
-            int Q0 = dst_buffer.p[samples_eaten].imag();
-            int I1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].real();
-            int Q1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].imag();
+            /*
+            alternate method. faster, but less precise. with this, you need to check against this: if (samples_eaten >= (int)dst_buffer.count + SAMPLE_PER_SYMBOL)  (not so good...)
+                        int I0 = dst_buffer.p[samples_eaten].real();
+                        int Q0 = dst_buffer.p[samples_eaten].imag();
+                        int I1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].real();
+                        int Q1 = dst_buffer.p[samples_eaten + 1 * SAMPLE_PER_SYMBOL].imag();
 
-            bool bitDecision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+                        bool bitDecision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+
+            */
             rb_buf[packet_index] = rb_buf[packet_index] | (bitDecision << bit_index);
 
             samples_eaten += SAMPLE_PER_SYMBOL;
@@ -202,7 +206,7 @@ inline void BTLERxProcessor::handleBeginState() {
 
         if (errors <= 4) {
             hit_idx = i + SAMPLE_PER_SYMBOL;
-
+            // disabled, due to not used anywhere
             /* for (int k = 0; k < ROLLING_WINDOW; k++) {
                 frequency_offset_estimate += phase_buffer[k];
             }
@@ -316,20 +320,22 @@ inline void BTLERxProcessor::handlePDUPayloadState() {
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
+    // a less computationally expensive method
     max_dB = -128;
     uint32_t max_squared = 0;
+    int8_t imag = 0;
+    int8_t real = 0;
     void* src_p = buffer.p;
     while (src_p < &buffer.p[buffer.count]) {
         const uint32_t sample = *__SIMD32(src_p)++;
         const uint32_t mag_sq = __SMUAD(sample, sample);
         if (mag_sq > max_squared) {
             max_squared = mag_sq;
+            imag = ((complex8_t*)src_p)->imag();
+            real = ((complex8_t*)src_p)->real();
         }
     }
-
-    const float max_squared_f = max_squared;
-    max_dB = mag2_to_dbv_norm(max_squared_f * (1.0f / (32768.0f * 32768.0f)));
-
+    max_dB = mag2_to_dbm_8bit_normalized(real, imag, 1.0f, 50.0f);
     // 4Mhz 2048 samples
     // Decimated by 4 to achieve 2048/4 = 512 samples at 1 sample per symbol.
     decim_0.execute(buffer, dst_buffer);
