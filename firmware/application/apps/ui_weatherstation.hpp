@@ -147,6 +147,9 @@ class WeatherView : public View {
         {18 * 8, 0 * 16}};
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
+    Channel channel{
+        {21 * 8, 5, 6 * 8, 4},
+    };
 
     AudioVolumeField field_volume{
         {screen_width - 2 * 8, 0 * 16}};
