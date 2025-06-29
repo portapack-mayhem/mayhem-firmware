@@ -81,6 +81,7 @@ class GeoPos : public View {
         NONE = 0,
         MPH,
         KMPH,
+        KNOTS,
         HIDDEN = 255
     };
 
@@ -134,7 +135,7 @@ class GeoPos : public View {
         {12 * 8, 0 * 16, 2 * 8, 16},
         ""};
     Text text_speed_unit{
-        {25 * 8, 0 * 16, 4 * 8, 16},
+        {25 * 8, 0 * 16, 5 * 8, 16},
         ""};
 
     NumberField field_lat_degrees{

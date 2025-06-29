@@ -110,6 +110,7 @@ GeoPos::GeoPos(
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
     if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
     if (speed_unit_ == MPH) text_speed_unit.set("mph");
+    if (speed_unit_ == KNOTS) text_speed_unit.set("knots");
     if (speed_unit_ == HIDDEN) {
         text_speed_unit.hidden(true);
         label_spd_position.hidden(true);

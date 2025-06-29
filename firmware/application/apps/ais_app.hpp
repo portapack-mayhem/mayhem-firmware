@@ -125,9 +125,13 @@ class AISRecentEntryDetailView : public View {
     void update_position();
     void focus() override;
     void paint(Painter&) override;
+    bool add_map_marker(const AISRecentEntry& entry);
+    void update_map_markers(AISRecentEntries& entries);
 
     AISRecentEntryDetailView(const AISRecentEntryDetailView& Entry);
     AISRecentEntryDetailView& operator=(const AISRecentEntryDetailView& Entry);
+
+    GeoMapView* get_geomap_view() { return geomap_view; }
 
    private:
     AISRecentEntry entry_{};
@@ -215,6 +219,8 @@ class AISAppView : public View {
     Channel channel{
         {21 * 8, 5, 6 * 8, 4},
     };
+    SignalToken signal_token_tick_second{};
+    uint8_t timer_seconds = 0;
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::AISPacket,
@@ -229,6 +235,7 @@ class AISAppView : public View {
     void on_packet(const ais::Packet& packet);
     void on_show_list();
     void on_show_detail(const AISRecentEntry& entry);
+    void on_tick_second();
 };
 
 } /* namespace ui */
