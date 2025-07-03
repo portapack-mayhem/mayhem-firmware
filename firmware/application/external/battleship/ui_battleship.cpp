@@ -26,32 +26,97 @@ BattleshipView::BattleshipView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
-    add_children({&rssi,
-                  &field_frequency,
-                  &text_status,
-                  &text_score,
-                  &button_red_team,
-                  &button_blue_team,
-                  &button_rotate,
-                  &button_place,
-                  &button_fire,
-                  &button_menu});
+    add_children({&text_title, &text_subtitle,
+                  &rect_radio_settings, &label_radio, &button_frequency,
+                  &label_rf_amp, &checkbox_rf_amp,
+                  &label_lna, &field_lna,
+                  &label_vga, &field_vga,
+                  &label_tx_gain, &field_tx_gain,
+                  &rect_audio_settings, &label_audio,
+                  &checkbox_sound, &label_volume, &field_volume,
+                  &rect_team_selection, &label_team,
+                  &button_red_team, &button_blue_team,
+                  &rssi, &text_status, &text_score,
+                  &button_rotate, &button_place, &button_fire, &button_menu});
 
+    // Hide in-game elements
+    rssi.hidden(true);
+    text_status.hidden(true);
     text_score.hidden(true);
     button_rotate.hidden(true);
     button_place.hidden(true);
     button_fire.hidden(true);
     button_menu.hidden(true);
 
-    field_frequency.set_value(DEFAULT_FREQUENCY);
-    field_frequency.on_change = [this](rf::Frequency freq) {
-        tx_frequency = freq;
-        rx_frequency = freq;
+    // Configure frequency button
+    button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
+
+    button_frequency.on_select = [this, &nav](ButtonWithEncoder& button) {
+        auto new_view = nav_.push<FrequencyKeypadView>(tx_frequency);
+        new_view->on_changed = [this, &button](rf::Frequency f) {
+            tx_frequency = f;
+            rx_frequency = f;
+            button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
+            if (!is_transmitting) {
+                receiver_model.set_target_frequency(rx_frequency);
+            }
+        };
+    };
+
+    button_frequency.on_change = [this]() {
+        int64_t def_step = 25000;
+        int64_t new_freq = static_cast<int64_t>(tx_frequency) + (button_frequency.get_encoder_delta() * def_step);
+
+        if (new_freq < 1) new_freq = 1;
+        if (new_freq > 7200000000LL) new_freq = 7200000000LL;
+
+        tx_frequency = static_cast<uint32_t>(new_freq);
+        rx_frequency = tx_frequency;
+        button_frequency.set_encoder_delta(0);
+        button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
         if (!is_transmitting) {
             receiver_model.set_target_frequency(rx_frequency);
         }
     };
 
+    // Radio controls
+    checkbox_rf_amp.set_value(rf_amp_enabled);
+    checkbox_rf_amp.on_select = [this](Checkbox&, bool v) {
+        rf_amp_enabled = v;
+        transmitter_model.set_rf_amp(v);
+        receiver_model.set_rf_amp(v);
+    };
+
+    field_lna.set_value(lna_gain);
+    field_lna.on_change = [this](int32_t v) {
+        lna_gain = v;
+        receiver_model.set_lna(v);
+    };
+
+    field_vga.set_value(vga_gain);
+    field_vga.on_change = [this](int32_t v) {
+        vga_gain = v;
+        receiver_model.set_vga(v);
+    };
+
+    field_tx_gain.set_value(tx_gain);
+    field_tx_gain.on_change = [this](int32_t v) {
+        tx_gain = v;
+        transmitter_model.set_tx_gain(v);
+    };
+
+    // Audio controls
+    checkbox_sound.set_value(sound_enabled);
+    checkbox_sound.on_select = [this](Checkbox&, bool v) {
+        sound_enabled = v;
+        if (sound_enabled) {
+            audio::output::unmute();
+        } else {
+            audio::output::mute();
+        }
+    };
+
+    // Team selection
     button_red_team.on_select = [this](Button&) {
         start_team(true);
     };
@@ -60,6 +125,7 @@ BattleshipView::BattleshipView(NavigationView& nav)
         start_team(false);
     };
 
+    // In-game controls
     button_rotate.on_select = [this](Button&) {
         placing_horizontal = !placing_horizontal;
         set_dirty();
@@ -77,6 +143,28 @@ BattleshipView::BattleshipView(NavigationView& nav)
         reset_game();
     };
 
+    // Set proper rectangles for layout
+    button_frequency.set_parent_rect({17, 65, 11 * 8, 20});
+    checkbox_rf_amp.set_parent_rect({55, 90, 24, 24});
+    field_lna.set_parent_rect({50, 118, 32, 16});
+    field_vga.set_parent_rect({125, 118, 32, 16});
+    field_tx_gain.set_parent_rect({185, 118, 32, 16});
+    checkbox_sound.set_parent_rect({17, 187, 80, 24});
+    field_volume.set_parent_rect({165, 187, 32, 16});
+    button_red_team.set_parent_rect({25, 242, 85, 45});
+    button_blue_team.set_parent_rect({130, 242, 85, 45});
+
+    // Make menu elements focusable
+    button_frequency.set_focusable(true);
+    checkbox_rf_amp.set_focusable(true);
+    field_lna.set_focusable(true);
+    field_vga.set_focusable(true);
+    field_tx_gain.set_focusable(true);
+    checkbox_sound.set_focusable(true);
+    field_volume.set_focusable(true);
+    button_red_team.set_focusable(true);
+    button_blue_team.set_focusable(true);
+
     set_focusable(true);
     init_game();
 }
@@ -90,7 +178,7 @@ BattleshipView::~BattleshipView() {
 
 void BattleshipView::focus() {
     if (game_state == GameState::MENU) {
-        button_red_team.focus();
+        button_frequency.focus();
     } else {
         View::focus();
     }
@@ -131,20 +219,54 @@ void BattleshipView::reset_game() {
 
     current_status = "Choose your team!";
     update_score();
-    text_status.hidden(false);
-    text_score.hidden(true);
-    field_frequency.hidden(false);
-    button_red_team.hidden(false);
-    button_blue_team.hidden(false);
-    button_rotate.hidden(true);
-    button_place.hidden(true);
-    button_fire.hidden(true);
-    button_menu.hidden(true);
 
-    button_red_team.set_focusable(true);
-    button_blue_team.set_focusable(true);
-    button_red_team.focus();
+    // Toggle visibility
+    bool menu_vis = true;
+    bool game_vis = false;
 
+    text_title.hidden(!menu_vis);
+    text_subtitle.hidden(!menu_vis);
+    rect_radio_settings.hidden(!menu_vis);
+    label_radio.hidden(!menu_vis);
+    button_frequency.hidden(!menu_vis);
+    label_rf_amp.hidden(!menu_vis);
+    checkbox_rf_amp.hidden(!menu_vis);
+    label_lna.hidden(!menu_vis);
+    field_lna.hidden(!menu_vis);
+    label_vga.hidden(!menu_vis);
+    field_vga.hidden(!menu_vis);
+    label_tx_gain.hidden(!menu_vis);
+    field_tx_gain.hidden(!menu_vis);
+    rect_audio_settings.hidden(!menu_vis);
+    label_audio.hidden(!menu_vis);
+    checkbox_sound.hidden(!menu_vis);
+    label_volume.hidden(!menu_vis);
+    field_volume.hidden(!menu_vis);
+    rect_team_selection.hidden(!menu_vis);
+    label_team.hidden(!menu_vis);
+    button_red_team.hidden(!menu_vis);
+    button_blue_team.hidden(!menu_vis);
+
+    rssi.hidden(!game_vis);
+    text_status.hidden(!game_vis);
+    text_score.hidden(!game_vis);
+    button_rotate.hidden(!game_vis);
+    button_place.hidden(!game_vis);
+    button_fire.hidden(!game_vis);
+    button_menu.hidden(!game_vis);
+
+    // Restore focusability
+    button_frequency.set_focusable(menu_vis);
+    checkbox_rf_amp.set_focusable(menu_vis);
+    field_lna.set_focusable(menu_vis);
+    field_vga.set_focusable(menu_vis);
+    field_tx_gain.set_focusable(menu_vis);
+    checkbox_sound.set_focusable(menu_vis);
+    field_volume.set_focusable(menu_vis);
+    button_red_team.set_focusable(menu_vis);
+    button_blue_team.set_focusable(menu_vis);
+
+    button_frequency.focus();
     set_dirty();
 }
 
@@ -160,15 +282,39 @@ void BattleshipView::start_team(bool red) {
     is_red_team = red;
     game_state = GameState::PLACING_SHIPS;
 
-    field_frequency.hidden(true);
-    button_red_team.hidden(true);
-    button_blue_team.hidden(true);
+    // Toggle visibility
+    bool menu_vis = false;
+    bool game_vis = true;
+
+    text_title.hidden(!menu_vis);
+    text_subtitle.hidden(!menu_vis);
+    rect_radio_settings.hidden(!menu_vis);
+    label_radio.hidden(!menu_vis);
+    button_frequency.hidden(!menu_vis);
+    label_rf_amp.hidden(!menu_vis);
+    checkbox_rf_amp.hidden(!menu_vis);
+    label_lna.hidden(!menu_vis);
+    field_lna.hidden(!menu_vis);
+    label_vga.hidden(!menu_vis);
+    field_vga.hidden(!menu_vis);
+    label_tx_gain.hidden(!menu_vis);
+    field_tx_gain.hidden(!menu_vis);
+    rect_audio_settings.hidden(!menu_vis);
+    label_audio.hidden(!menu_vis);
+    checkbox_sound.hidden(!menu_vis);
+    label_volume.hidden(!menu_vis);
+    field_volume.hidden(!menu_vis);
+    rect_team_selection.hidden(!menu_vis);
+    label_team.hidden(!menu_vis);
+    button_red_team.hidden(!menu_vis);
+    button_blue_team.hidden(!menu_vis);
+
+    rssi.hidden(!game_vis);
+    text_status.hidden(true);
+    text_score.hidden(true);
     button_rotate.hidden(false);
     button_place.hidden(false);
     button_menu.hidden(false);
-
-    text_status.hidden(true);
-    text_score.hidden(true);
 
     current_status = "Place carrier (5)";
 
@@ -177,10 +323,8 @@ void BattleshipView::start_team(bool red) {
     button_menu.set_focusable(false);
 
     focus();
-
     is_transmitting = true;
     configure_radio_rx();
-
     set_dirty();
 }
 
@@ -200,8 +344,8 @@ void BattleshipView::configure_radio_tx() {
     transmitter_model.set_target_frequency(tx_frequency);
     transmitter_model.set_sampling_rate(2280000);
     transmitter_model.set_baseband_bandwidth(1750000);
-    transmitter_model.set_rf_amp(false);
-    transmitter_model.set_tx_gain(35);
+    transmitter_model.set_rf_amp(rf_amp_enabled);
+    transmitter_model.set_tx_gain(tx_gain);
 
     is_transmitting = true;
 }
@@ -210,30 +354,29 @@ void BattleshipView::configure_radio_rx() {
     if (is_transmitting) {
         transmitter_model.disable();
         baseband::shutdown();
-
         chThdSleepMilliseconds(100);
     }
 
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
-
     chThdSleepMilliseconds(100);
 
     receiver_model.set_target_frequency(rx_frequency);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
-    receiver_model.set_rf_amp(false);
-    receiver_model.set_lna(24);
-    receiver_model.set_vga(24);
+    receiver_model.set_rf_amp(rf_amp_enabled);
+    receiver_model.set_lna(lna_gain);
+    receiver_model.set_vga(vga_gain);
 
     baseband::set_pocsag();
-
     receiver_model.enable();
 
     audio::set_rate(audio::Rate::Hz_24000);
-    audio::output::start();
+
+    if (sound_enabled) {
+        audio::output::start();
+    }
 
     is_transmitting = false;
-
     current_status = "RX Ready";
     set_dirty();
 }
@@ -242,22 +385,59 @@ void BattleshipView::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, 240, 320}, Color::black());
 
     if (game_state == GameState::MENU) {
-        auto style_title = *ui::Theme::getInstance()->fg_light;
-        painter.draw_string({60, 20}, style_title, "BATTLESHIP");
-        painter.draw_string({40, 80}, style_title, "Choose your team:");
-        painter.draw_string({10, 180}, *ui::Theme::getInstance()->fg_medium, "Set same freq on both!");
+        draw_menu_screen(painter);
+
+        // Custom paint team buttons
+        if (!button_red_team.hidden()) {
+            Rect r = button_red_team.screen_rect();
+            painter.fill_rectangle(r, Color::dark_red());
+            painter.draw_rectangle(r, Color::red());
+
+            if (button_red_team.has_focus()) {
+                painter.draw_rectangle({r.location().x() - 1, r.location().y() - 1, r.size().width() + 2, r.size().height() + 2}, Color::yellow());
+            }
+
+            auto style_white = Style{
+                .font = ui::font::fixed_8x16,
+                .background = Color::dark_red(),
+                .foreground = Color::white()};
+            painter.draw_string(r.center() - Point(24, 16), style_white, "RED");
+            painter.draw_string(r.center() - Point(24, 0), style_white, "TEAM");
+        }
+
+        if (!button_blue_team.hidden()) {
+            Rect r = button_blue_team.screen_rect();
+            painter.fill_rectangle(r, Color::dark_blue());
+            painter.draw_rectangle(r, Color::blue());
+
+            if (button_blue_team.has_focus()) {
+                painter.draw_rectangle({r.location().x() - 1, r.location().y() - 1, r.size().width() + 2, r.size().height() + 2}, Color::yellow());
+            }
+
+            auto style_white = Style{
+                .font = ui::font::fixed_8x16,
+                .background = Color::dark_blue(),
+                .foreground = Color::white()};
+            painter.draw_string(r.center() - Point(24, 16), style_white, "BLUE");
+            painter.draw_string(r.center() - Point(24, 0), style_white, "TEAM");
+        }
+
         return;
     }
 
     Color team_color = is_red_team ? Color::red() : Color::blue();
     painter.fill_rectangle({0, 5, 240, 16}, team_color);
+
     auto style_white = Style{
         .font = ui::font::fixed_8x16,
         .background = team_color,
         .foreground = Color::white()};
     painter.draw_string({85, 5}, style_white, is_red_team ? "RED TEAM" : "BLUE TEAM");
 
-    auto style_status = *ui::Theme::getInstance()->fg_light;
+    auto style_status = Style{
+        .font = ui::font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::white()};
     painter.fill_rectangle({0, 21, 240, 16}, Color::black());
     painter.draw_string({10, 21}, style_status, current_status);
 
@@ -281,6 +461,32 @@ void BattleshipView::paint(Painter& painter) {
     } else if (game_state == GameState::GAME_OVER) {
         painter.draw_string({50, 150}, style_status, "Game Over!");
         painter.draw_string({30, 170}, style_status, current_status);
+    }
+}
+
+void BattleshipView::draw_menu_screen(Painter& painter) {
+    painter.draw_hline({12, 38}, 216, Color::dark_cyan());
+
+    painter.fill_rectangle({13, 41, 214, 116}, Color::dark_grey());
+    painter.draw_hline({12, 40}, 216, Color::cyan());
+    painter.draw_hline({12, 157}, 216, Color::cyan());
+
+    painter.fill_rectangle({13, 165, 214, 43}, Color::dark_grey());
+    painter.draw_hline({12, 164}, 216, Color::cyan());
+    painter.draw_hline({12, 208}, 216, Color::cyan());
+
+    painter.fill_rectangle({13, 218, 214, 73}, Color::dark_grey());
+    painter.draw_hline({12, 217}, 216, Color::cyan());
+    painter.draw_hline({12, 291}, 216, Color::cyan());
+
+    // Radio status indicator
+    Point indicator_pos{220, 53};
+    if (is_transmitting) {
+        painter.fill_rectangle({indicator_pos, {6, 6}}, Color::red());
+        painter.draw_rectangle({indicator_pos.x() - 1, indicator_pos.y() - 1, 8, 8}, Color::light_grey());
+    } else {
+        painter.fill_rectangle({indicator_pos, {6, 6}}, Color::green());
+        painter.draw_rectangle({indicator_pos.x() - 1, indicator_pos.y() - 1, 8, 8}, Color::light_grey());
     }
 }
 
@@ -497,16 +703,13 @@ void BattleshipView::send_message(const GameMessage& msg) {
 
     configure_radio_tx();
 
-    // Use POCSAG encoding
     uint32_t target_address = is_red_team ? BLUE_TEAM_ADDRESS : RED_TEAM_ADDRESS;
 
     std::vector<uint32_t> codewords;
     BCHCode BCH_code{{1, 0, 1, 0, 0, 1}, 5, 31, 21, 2};
 
-    // Use the pocsag namespace to access ALPHANUMERIC
     pocsag::pocsag_encode(pocsag::MessageType::ALPHANUMERIC, BCH_code, 0, message, target_address, codewords);
 
-    // Copy codewords to shared memory
     uint8_t* data_ptr = shared_memory.bb_data.data;
     size_t bi = 0;
 
@@ -518,12 +721,11 @@ void BattleshipView::send_message(const GameMessage& msg) {
         data_ptr[bi++] = codeword & 0xFF;
     }
 
-    // Set baseband FSK data
     baseband::set_fsk_data(
-        codewords.size() * 32,  // Total bits
-        2280000 / 1200,         // Bit duration (1200 baud)
-        4500,                   // Deviation
-        64);                    // Packet repeat
+        codewords.size() * 32,
+        2280000 / 1200,
+        4500,
+        64);
 
     transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
@@ -537,13 +739,11 @@ void BattleshipView::on_pocsag_packet(const POCSAGPacketMessage* message) {
         return;
     }
 
-    // Decode POCSAG message
     pocsag_state.codeword_index = 0;
     pocsag_state.errors = 0;
 
     while (pocsag::pocsag_decode_batch(message->packet, pocsag_state)) {
         if (pocsag_state.out_type == pocsag::MESSAGE) {
-            // Check if message is for our team
             uint32_t expected_address = is_red_team ? RED_TEAM_ADDRESS : BLUE_TEAM_ADDRESS;
             if (pocsag_state.address == expected_address) {
                 process_message(pocsag_state.output);
@@ -783,6 +983,18 @@ bool BattleshipView::on_encoder(const EncoderEvent delta) {
 }
 
 bool BattleshipView::on_key(const KeyEvent key) {
+    if (game_state == GameState::MENU) {
+        if (key == KeyEvent::Up || key == KeyEvent::Down ||
+            key == KeyEvent::Left || key == KeyEvent::Right) {
+            return false;
+        }
+        if (key == KeyEvent::Select || key == KeyEvent::Back) {
+            return false;
+        }
+        return false;
+    }
+
+    // Game state key handling
     if (key == KeyEvent::Select) {
         if (game_state == GameState::PLACING_SHIPS) {
             place_ship();
