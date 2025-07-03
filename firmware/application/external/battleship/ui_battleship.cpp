@@ -27,6 +27,9 @@ BattleshipView::BattleshipView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     add_children({&text_title, &text_subtitle,
                   &rect_radio_settings, &label_radio, &button_frequency,
                   &label_rf_amp, &checkbox_rf_amp,
@@ -39,6 +42,7 @@ BattleshipView::BattleshipView(NavigationView& nav)
                   &button_red_team, &button_blue_team,
                   &rssi, &text_status, &text_score,
                   &button_rotate, &button_place, &button_fire, &button_menu});
+<<<<<<< HEAD
 
     // Hide in-game elements
     rssi.hidden(true);
@@ -56,6 +60,12 @@ BattleshipView::BattleshipView(NavigationView& nav)
                   &button_menu});
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+
+    // Hide in-game elements
+    rssi.hidden(true);
+    text_status.hidden(true);
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     text_score.hidden(true);
     button_rotate.hidden(true);
     button_place.hidden(true);
@@ -63,6 +73,9 @@ BattleshipView::BattleshipView(NavigationView& nav)
     button_menu.hidden(true);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     // Configure frequency button
     button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
 
@@ -89,18 +102,24 @@ BattleshipView::BattleshipView(NavigationView& nav)
         rx_frequency = tx_frequency;
         button_frequency.set_encoder_delta(0);
         button_frequency.set_text("<" + to_string_short_freq(tx_frequency) + ">");
+<<<<<<< HEAD
 =======
     field_frequency.set_value(DEFAULT_FREQUENCY);
     field_frequency.on_change = [this](rf::Frequency freq) {
         tx_frequency = freq;
         rx_frequency = freq;
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         if (!is_transmitting) {
             receiver_model.set_target_frequency(rx_frequency);
         }
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     // Radio controls
     checkbox_rf_amp.set_value(rf_amp_enabled);
     checkbox_rf_amp.on_select = [this](Checkbox&, bool v) {
@@ -139,8 +158,11 @@ BattleshipView::BattleshipView(NavigationView& nav)
     };
 
     // Team selection
+<<<<<<< HEAD
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     button_red_team.on_select = [this](Button&) {
         start_team(true);
     };
@@ -150,9 +172,13 @@ BattleshipView::BattleshipView(NavigationView& nav)
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // In-game controls
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    // In-game controls
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     button_rotate.on_select = [this](Button&) {
         placing_horizontal = !placing_horizontal;
         set_dirty();
@@ -171,6 +197,9 @@ BattleshipView::BattleshipView(NavigationView& nav)
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     // Set proper rectangles for layout
     button_frequency.set_parent_rect({17, 65, 11 * 8, 20});
     checkbox_rf_amp.set_parent_rect({55, 90, 24, 24});
@@ -193,8 +222,11 @@ BattleshipView::BattleshipView(NavigationView& nav)
     button_red_team.set_focusable(true);
     button_blue_team.set_focusable(true);
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     set_focusable(true);
     init_game();
 }
@@ -209,10 +241,14 @@ BattleshipView::~BattleshipView() {
 void BattleshipView::focus() {
     if (game_state == GameState::MENU) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         button_frequency.focus();
 =======
         button_red_team.focus();
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+        button_frequency.focus();
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     } else {
         View::focus();
     }
@@ -253,6 +289,7 @@ void BattleshipView::reset_game() {
 
     current_status = "Choose your team!";
     update_score();
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     // Toggle visibility
@@ -312,12 +349,60 @@ void BattleshipView::reset_game() {
     button_place.hidden(true);
     button_fire.hidden(true);
     button_menu.hidden(true);
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
-    button_red_team.set_focusable(true);
-    button_blue_team.set_focusable(true);
-    button_red_team.focus();
+    // Toggle visibility
+    bool menu_vis = true;
+    bool game_vis = false;
 
+<<<<<<< HEAD
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    text_title.hidden(!menu_vis);
+    text_subtitle.hidden(!menu_vis);
+    rect_radio_settings.hidden(!menu_vis);
+    label_radio.hidden(!menu_vis);
+    button_frequency.hidden(!menu_vis);
+    label_rf_amp.hidden(!menu_vis);
+    checkbox_rf_amp.hidden(!menu_vis);
+    label_lna.hidden(!menu_vis);
+    field_lna.hidden(!menu_vis);
+    label_vga.hidden(!menu_vis);
+    field_vga.hidden(!menu_vis);
+    label_tx_gain.hidden(!menu_vis);
+    field_tx_gain.hidden(!menu_vis);
+    rect_audio_settings.hidden(!menu_vis);
+    label_audio.hidden(!menu_vis);
+    checkbox_sound.hidden(!menu_vis);
+    label_volume.hidden(!menu_vis);
+    field_volume.hidden(!menu_vis);
+    rect_team_selection.hidden(!menu_vis);
+    label_team.hidden(!menu_vis);
+    button_red_team.hidden(!menu_vis);
+    button_blue_team.hidden(!menu_vis);
+
+    rssi.hidden(!game_vis);
+    text_status.hidden(!game_vis);
+    text_score.hidden(!game_vis);
+    button_rotate.hidden(!game_vis);
+    button_place.hidden(!game_vis);
+    button_fire.hidden(!game_vis);
+    button_menu.hidden(!game_vis);
+
+    // Restore focusability
+    button_frequency.set_focusable(menu_vis);
+    checkbox_rf_amp.set_focusable(menu_vis);
+    field_lna.set_focusable(menu_vis);
+    field_vga.set_focusable(menu_vis);
+    field_tx_gain.set_focusable(menu_vis);
+    checkbox_sound.set_focusable(menu_vis);
+    field_volume.set_focusable(menu_vis);
+    button_red_team.set_focusable(menu_vis);
+    button_blue_team.set_focusable(menu_vis);
+
+    button_frequency.focus();
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     set_dirty();
 }
 
@@ -334,6 +419,9 @@ void BattleshipView::start_team(bool red) {
     game_state = GameState::PLACING_SHIPS;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     // Toggle visibility
     bool menu_vis = false;
     bool game_vis = true;
@@ -364,21 +452,27 @@ void BattleshipView::start_team(bool red) {
     rssi.hidden(!game_vis);
     text_status.hidden(true);
     text_score.hidden(true);
+<<<<<<< HEAD
 =======
     field_frequency.hidden(true);
     button_red_team.hidden(true);
     button_blue_team.hidden(true);
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     button_rotate.hidden(false);
     button_place.hidden(false);
     button_menu.hidden(false);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     text_status.hidden(true);
     text_score.hidden(true);
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     current_status = "Place carrier (5)";
 
     button_rotate.set_focusable(false);
@@ -387,6 +481,7 @@ void BattleshipView::start_team(bool red) {
 
     focus();
 <<<<<<< HEAD
+<<<<<<< HEAD
     is_transmitting = true;
     configure_radio_rx();
 =======
@@ -395,6 +490,10 @@ void BattleshipView::start_team(bool red) {
     configure_radio_rx();
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    is_transmitting = true;
+    configure_radio_rx();
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     set_dirty();
 }
 
@@ -415,12 +514,17 @@ void BattleshipView::configure_radio_tx() {
     transmitter_model.set_sampling_rate(2280000);
     transmitter_model.set_baseband_bandwidth(1750000);
 <<<<<<< HEAD
+<<<<<<< HEAD
     transmitter_model.set_rf_amp(rf_amp_enabled);
     transmitter_model.set_tx_gain(tx_gain);
 =======
     transmitter_model.set_rf_amp(false);
     transmitter_model.set_tx_gain(35);
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    transmitter_model.set_rf_amp(rf_amp_enabled);
+    transmitter_model.set_tx_gain(tx_gain);
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
     is_transmitting = true;
 }
@@ -430,22 +534,29 @@ void BattleshipView::configure_radio_rx() {
         transmitter_model.disable();
         baseband::shutdown();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         chThdSleepMilliseconds(100);
     }
 
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     chThdSleepMilliseconds(100);
 
     receiver_model.set_target_frequency(rx_frequency);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
+<<<<<<< HEAD
 <<<<<<< HEAD
     receiver_model.set_rf_amp(rf_amp_enabled);
     receiver_model.set_lna(lna_gain);
@@ -465,17 +576,27 @@ void BattleshipView::configure_radio_rx() {
     receiver_model.set_rf_amp(false);
     receiver_model.set_lna(24);
     receiver_model.set_vga(24);
+=======
+    receiver_model.set_rf_amp(rf_amp_enabled);
+    receiver_model.set_lna(lna_gain);
+    receiver_model.set_vga(vga_gain);
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
     baseband::set_pocsag();
-
     receiver_model.enable();
 
     audio::set_rate(audio::Rate::Hz_24000);
-    audio::output::start();
+
+    if (sound_enabled) {
+        audio::output::start();
+    }
 
     is_transmitting = false;
+<<<<<<< HEAD
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     current_status = "RX Ready";
     set_dirty();
 }
@@ -485,6 +606,9 @@ void BattleshipView::paint(Painter& painter) {
 
     if (game_state == GameState::MENU) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         draw_menu_screen(painter);
 
         // Custom paint team buttons
@@ -522,21 +646,28 @@ void BattleshipView::paint(Painter& painter) {
             painter.draw_string(r.center() - Point(24, 0), style_white, "TEAM");
         }
 
+<<<<<<< HEAD
 =======
         auto style_title = *ui::Theme::getInstance()->fg_light;
         painter.draw_string({60, 20}, style_title, "BATTLESHIP");
         painter.draw_string({40, 80}, style_title, "Choose your team:");
         painter.draw_string({10, 180}, *ui::Theme::getInstance()->fg_medium, "Set same freq on both!");
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         return;
     }
 
     Color team_color = is_red_team ? Color::red() : Color::blue();
     painter.fill_rectangle({0, 5, 240, 16}, team_color);
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     auto style_white = Style{
         .font = ui::font::fixed_8x16,
         .background = team_color,
@@ -544,13 +675,19 @@ void BattleshipView::paint(Painter& painter) {
     painter.draw_string({85, 5}, style_white, is_red_team ? "RED TEAM" : "BLUE TEAM");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     auto style_status = Style{
         .font = ui::font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::white()};
+<<<<<<< HEAD
 =======
     auto style_status = *ui::Theme::getInstance()->fg_light;
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     painter.fill_rectangle({0, 21, 240, 16}, Color::black());
     painter.draw_string({10, 21}, style_status, current_status);
 
@@ -578,6 +715,9 @@ void BattleshipView::paint(Painter& painter) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 void BattleshipView::draw_menu_screen(Painter& painter) {
     painter.draw_hline({12, 38}, 216, Color::dark_cyan());
 
@@ -604,8 +744,11 @@ void BattleshipView::draw_menu_screen(Painter& painter) {
     }
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 void BattleshipView::draw_grid(Painter& painter, uint8_t grid_x, uint8_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid) {
     painter.fill_rectangle({grid_x, grid_y, GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE},
                            Color::dark_blue());
@@ -820,14 +963,18 @@ void BattleshipView::send_message(const GameMessage& msg) {
     configure_radio_tx();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // Use POCSAG encoding
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     uint32_t target_address = is_red_team ? BLUE_TEAM_ADDRESS : RED_TEAM_ADDRESS;
 
     std::vector<uint32_t> codewords;
     BCHCode BCH_code{{1, 0, 1, 0, 0, 1}, 5, 31, 21, 2};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     pocsag::pocsag_encode(pocsag::MessageType::ALPHANUMERIC, BCH_code, 0, message, target_address, codewords);
 
@@ -837,6 +984,10 @@ void BattleshipView::send_message(const GameMessage& msg) {
 
     // Copy codewords to shared memory
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    pocsag::pocsag_encode(pocsag::MessageType::ALPHANUMERIC, BCH_code, 0, message, target_address, codewords);
+
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     uint8_t* data_ptr = shared_memory.bb_data.data;
     size_t bi = 0;
 
@@ -848,6 +999,7 @@ void BattleshipView::send_message(const GameMessage& msg) {
         data_ptr[bi++] = codeword & 0xFF;
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     baseband::set_fsk_data(
         codewords.size() * 32,
@@ -862,6 +1014,13 @@ void BattleshipView::send_message(const GameMessage& msg) {
         4500,                   // Deviation
         64);                    // Packet repeat
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    baseband::set_fsk_data(
+        codewords.size() * 32,
+        2280000 / 1200,
+        4500,
+        64);
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
     transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
@@ -876,18 +1035,24 @@ void BattleshipView::on_pocsag_packet(const POCSAGPacketMessage* message) {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     // Decode POCSAG message
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     pocsag_state.codeword_index = 0;
     pocsag_state.errors = 0;
 
     while (pocsag::pocsag_decode_batch(message->packet, pocsag_state)) {
         if (pocsag_state.out_type == pocsag::MESSAGE) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             // Check if message is for our team
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
             uint32_t expected_address = is_red_team ? RED_TEAM_ADDRESS : BLUE_TEAM_ADDRESS;
             if (pocsag_state.address == expected_address) {
                 process_message(pocsag_state.output);
@@ -1128,6 +1293,9 @@ bool BattleshipView::on_encoder(const EncoderEvent delta) {
 
 bool BattleshipView::on_key(const KeyEvent key) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     if (game_state == GameState::MENU) {
         if (key == KeyEvent::Up || key == KeyEvent::Down ||
             key == KeyEvent::Left || key == KeyEvent::Right) {
@@ -1140,8 +1308,11 @@ bool BattleshipView::on_key(const KeyEvent key) {
     }
 
     // Game state key handling
+<<<<<<< HEAD
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     if (key == KeyEvent::Select) {
         if (game_state == GameState::PLACING_SHIPS) {
             place_ship();

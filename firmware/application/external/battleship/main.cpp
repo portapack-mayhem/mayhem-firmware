@@ -28,6 +28,9 @@ __attribute__((section(".external_app.app_battleship.application_information"), 
     /*.app_name = */ "Battleship",
     /*.bitmap_data = */ {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         // Pirate galleon - 16x16
         0x80, 0x00,  // ........#.......
         0x80, 0x00,  // ........#.......
@@ -45,6 +48,7 @@ __attribute__((section(".external_app.app_battleship.application_information"), 
         0xFE, 0x7F,  // .##############.
         0xFF, 0xFF,  // ################
         0xFC, 0x3F,  // ..############..
+<<<<<<< HEAD
 =======
         // Ship icon
         0x00,
@@ -80,6 +84,8 @@ __attribute__((section(".external_app.app_battleship.application_information"), 
         0x01,
         0x80,
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     },
     /*.icon_color = */ ui::Color::blue().v,
     /*.menu_location = */ app_location_t::GAMES,

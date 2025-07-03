@@ -19,6 +19,7 @@
 #include "string_format.hpp"
 #include "audio.hpp"
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "message.hpp"
 #include "pocsag.hpp"
 
@@ -28,28 +29,33 @@ namespace ui::external_app::battleship {
 
 =======
 #include "portapack.hpp"
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 #include "message.hpp"
 #include "pocsag.hpp"
-#include "portapack_shared_memory.hpp"
 
-#include <string>
 #include <array>
-#include <cstdint>
 
 namespace ui::external_app::battleship {
 
+<<<<<<< HEAD
 using namespace portapack;
 
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 constexpr uint8_t GRID_SIZE = 10;
 constexpr uint8_t CELL_SIZE = 24;
 constexpr uint8_t GRID_OFFSET_X = 0;
 constexpr uint8_t GRID_OFFSET_Y = 32;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 constexpr uint16_t BUTTON_Y = 280;
 constexpr uint32_t DEFAULT_FREQUENCY = 433920000;
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
 enum class ShipType : uint8_t {
     CARRIER = 5,
@@ -126,25 +132,36 @@ class BattleshipView : public View {
 
     RxRadioState rx_radio_state_{
 <<<<<<< HEAD
+<<<<<<< HEAD
         433920000 /* frequency */,
 =======
         DEFAULT_FREQUENCY /* frequency */,
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+        433920000 /* frequency */,
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
 
     TxRadioState tx_radio_state_{
 <<<<<<< HEAD
+<<<<<<< HEAD
         433920000 /* frequency */,
 =======
         DEFAULT_FREQUENCY /* frequency */,
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+        433920000 /* frequency */,
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     // Settings
     bool sound_enabled{true};
     bool rf_amp_enabled{false};
@@ -152,23 +169,31 @@ class BattleshipView : public View {
     uint8_t vga_gain{24};
     uint8_t tx_gain{35};
 
+<<<<<<< HEAD
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     app_settings::SettingsManager settings_{
         "battleship",
         app_settings::Mode::RX_TX,
         {{"rx_freq"sv, &rx_frequency},
          {"tx_freq"sv, &tx_frequency},
 <<<<<<< HEAD
+<<<<<<< HEAD
          {"rf_amp"sv, &rf_amp_enabled}}};
 =======
          {"wins"sv, &wins},
          {"losses"sv, &losses}}};
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+         {"rf_amp"sv, &rf_amp_enabled}}};
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
     GameState game_state{GameState::MENU};
     bool is_red_team{false};
     bool opponent_ready{false};
+<<<<<<< HEAD
 <<<<<<< HEAD
     uint8_t wins{0};
     uint8_t losses{0};
@@ -176,6 +201,10 @@ class BattleshipView : public View {
     uint32_t wins{0};
     uint32_t losses{0};
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    uint8_t wins{0};
+    uint8_t losses{0};
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
     std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE> my_grid{};
     std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE> enemy_grid{};
@@ -196,12 +225,17 @@ class BattleshipView : public View {
     bool touch_enabled{true};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     uint32_t tx_frequency{433920000};
     uint32_t rx_frequency{433920000};
 =======
     uint32_t tx_frequency{DEFAULT_FREQUENCY};
     uint32_t rx_frequency{DEFAULT_FREQUENCY};
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    uint32_t tx_frequency{433920000};
+    uint32_t rx_frequency{433920000};
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     bool is_transmitting{false};
 
     // POCSAG decoding state
@@ -209,6 +243,7 @@ class BattleshipView : public View {
     pocsag::POCSAGState pocsag_state{&ecc};
     uint32_t last_address{0};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     // UI Elements - Menu/Settings Screen
     Text text_title{{60, 2, 120, 24}, "BATTLESHIP"};
@@ -255,51 +290,66 @@ class BattleshipView : public View {
 =======
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
+=======
+    // UI Elements - Menu/Settings Screen
+    Text text_title{{60, 2, 120, 24}, "BATTLESHIP"};
+    Text text_subtitle{{40, 20, 160, 16}, "Naval Combat Game"};
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
 
-    FrequencyField field_frequency{
-        {10, 50}};
+    Rectangle rect_radio_settings{{12, 40, 216, 118}, Color::dark_grey()};
+    Text label_radio{{17, 45, 100, 16}, "RADIO SETUP"};
+    ButtonWithEncoder button_frequency{{17, 65, 11 * 8, 20}, ""};
 
-    Text text_status{
-        {10, 16, 220, 16},
-        "Choose your team!"};
+    // Radio controls
+    Text label_rf_amp{{17, 90, 35, 16}, "AMP:"};
+    Checkbox checkbox_rf_amp{{55, 90}, 3, "", false};
 
-    Text text_score{
-        {170, 16, 60, 16},
-        "W:0 L:0"};
+    Text label_lna{{17, 118, 30, 16}, "LNA:"};
+    NumberField field_lna{{50, 118}, 2, {0, 40}, 8, ' '};
 
-    Button button_red_team{
-        {20, 100, 90, 40},
-        "RED TEAM"};
+    Text label_vga{{90, 118, 30, 16}, "VGA:"};
+    NumberField field_vga{{125, 118}, 2, {0, 62}, 8, ' '};
 
-    Button button_blue_team{
-        {130, 100, 90, 40},
-        "BLUE TEAM"};
+    Text label_tx_gain{{155, 118, 25, 16}, "TX:"};
+    NumberField field_tx_gain{{185, 118}, 2, {0, 47}, 8, ' '};
 
-    Button button_rotate{
-        {10, BUTTON_Y, 60, 32},
-        "Rotate"};
+    Rectangle rect_audio_settings{{12, 164, 216, 45}, Color::dark_grey()};
+    Text label_audio{{17, 169, 80, 16}, "AUDIO"};
+    Checkbox checkbox_sound{{17, 187}, 8, "Sound On", true};
+    Text label_volume{{110, 187, 50, 16}, "Volume:"};
+    AudioVolumeField field_volume{{165, 187}};
 
-    Button button_place{
-        {80, BUTTON_Y, 60, 32},
-        "Place"};
+    Rectangle rect_team_selection{{12, 217, 216, 75}, Color::dark_grey()};
+    Text label_team{{17, 222, 110, 16}, "SELECT TEAM"};
+    Button button_red_team{{25, 242, 85, 45}, "RED\nTEAM"};
+    Button button_blue_team{{130, 242, 85, 45}, "BLUE\nTEAM"};
 
-    Button button_fire{
-        {80, BUTTON_Y, 60, 32},
-        "Fire!"};
+    // In-game UI elements
+    RSSI rssi{{21 * 8, 0, 6 * 8, 4}};
+    Text text_status{{10, 16, 220, 16}, ""};
+    Text text_score{{170, 16, 60, 16}, ""};
+    Button button_rotate{{10, 265, 65, 32}, "Rotate"};
+    Button button_place{{82, 265, 65, 32}, "Place"};
+    Button button_fire{{82, 265, 65, 32}, "Fire!"};
+    Button button_menu{{155, 265, 65, 32}, "Menu"};
 
-    Button button_menu{
-        {150, BUTTON_Y, 60, 32},
-        "Menu"};
-
+<<<<<<< HEAD
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    // Methods
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     void init_game();
     void reset_game();
     void start_team(bool red);
     void setup_ships();
 <<<<<<< HEAD
+<<<<<<< HEAD
     void draw_menu_screen(Painter& painter);
 =======
 >>>>>>> 4e276cdc (Battleship (#2720))
+=======
+    void draw_menu_screen(Painter& painter);
+>>>>>>> 2500df31 (Add radio settings, new app icon, and other UI improvements (#2732))
     void draw_grid(Painter& painter, uint8_t grid_x, uint8_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid = false);
     void draw_cell(Painter& painter, uint8_t cell_x, uint8_t cell_y, CellState state, bool show_ships, bool is_offense_grid, bool is_cursor);
     void draw_ship_preview(Painter& painter);
