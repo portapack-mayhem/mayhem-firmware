@@ -182,7 +182,7 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
 
     for (int i = 0; i < ui::screen_height; i++) {
-        std::array<ui::ColorRGB888, ui::screen_width> row;
+        std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
         png.write_scanline(row);
     }
@@ -199,7 +199,7 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
     evtd->enter_shell_working_mode();
 
     for (int i = 0; i < ui::screen_height; i++) {
-        std::array<ui::ColorRGB888, ui::screen_width> row;
+        std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
         for (int px = 0; px < ui::screen_width; px += 5) {
             char buffer[5 * 3 * 2 + 1];
@@ -242,9 +242,9 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
     char buffer[USBSERIAL_BUFFERS_SIZE];
     size_t wp = 0;
     for (int y = 0; y < ui::screen_height; y++) {
-        std::array<ui::ColorRGB888, ui::screen_width> row;
+        std::vector<ui::ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
-        for (int i = 0; i < 240; ++i) {
+        for (int i = 0; i < ui::screen_width; ++i) {
             screenbuffer_helper_add(chp, buffer, wp, getChrFromRgb(row[i].r, row[i].g, row[i].b));
         }
         screenbuffer_helper_add(chp, buffer, wp, '\r');
@@ -1375,6 +1375,13 @@ static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_getres(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    std::string res = to_string_dec_uint(screen_width) + "x" + to_string_dec_uint(screen_height) + "\r\nok\r\n";
+    chprintf(chp, res.c_str());
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1410,6 +1417,7 @@ static const ShellCommand commands[] = {
     {"sendpocsag", cmd_sendpocsag},
     {"asyncmsg", cmd_asyncmsg},
     {"setfreq", cmd_setfreq},
+    {"getres", cmd_getres},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

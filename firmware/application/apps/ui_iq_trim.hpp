@@ -96,7 +96,7 @@ class IQTrimView : public View {
 
     std::filesystem::path path_{};
     Optional<iq::CaptureInfo> info_{};
-    std::array<iq::PowerBuckets::Bucket, screen_width> power_buckets_{};
+    std::vector<iq::PowerBuckets::Bucket> power_buckets_{};
     TrimProgressUI progress_ui{};
 
     Labels labels{
@@ -112,7 +112,7 @@ class IQTrimView : public View {
     };
 
     TextField field_path{
-        {0 * 8, 1 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 1 * 16, screen_width, 1 * 16},
         "Open File..."};
 
     Point pos_lines{0 * 8, 4 * 16};

@@ -188,6 +188,7 @@ void copy_to_radio_model(const AppSettings& settings) {
             settings.am_config_index,
             settings.nbfm_config_index,
             settings.wfm_config_index,
+            settings.wfmam_config_index,
             settings.squelch);
     }
 
@@ -218,6 +219,7 @@ void copy_from_radio_model(AppSettings& settings) {
         settings.am_config_index = receiver_model.am_configuration();
         settings.nbfm_config_index = receiver_model.nbfm_configuration();
         settings.wfm_config_index = receiver_model.wfm_configuration();
+        settings.wfmam_config_index = receiver_model.wfmam_configuration();
     }
 
     settings.step = receiver_model.frequency_step();
@@ -271,6 +273,7 @@ SettingsManager::SettingsManager(
         bindings_.emplace_back("am_config_index"sv, &settings_.am_config_index);
         bindings_.emplace_back("nbfm_config_index"sv, &settings_.nbfm_config_index);
         bindings_.emplace_back("wfm_config_index"sv, &settings_.wfm_config_index);
+        bindings_.emplace_back("wfmam_config_index"sv, &settings_.wfmam_config_index);
         bindings_.emplace_back("squelch"sv, &settings_.squelch);
     }
 

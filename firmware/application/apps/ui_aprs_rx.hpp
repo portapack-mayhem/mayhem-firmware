@@ -134,7 +134,7 @@ class APRSDetailsView : public View {
     bool send_updates{false};
 
     Console console{
-        {0, 0 * 16, 240, 224}};
+        {0, 0 * 16, screen_width, 224}};
 
     Button button_done{
         {160, 14 * 16, 8 * 8, 3 * 16},
@@ -220,7 +220,7 @@ class APRSRxView : public View {
         {21 * 8, 5, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     OptionsField options_region{
         {0 * 8, 0 * 8},
@@ -241,7 +241,7 @@ class APRSRxView : public View {
 
     // DEBUG
     RecordView record_view{
-        {0 * 8, 1 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 1 * 16, screen_width, 1 * 16},
         u"AFS_????.WAV",
         aprs_dir,
         RecordView::FileType::WAV,
@@ -249,7 +249,7 @@ class APRSRxView : public View {
         4};
 
     Console console{
-        {0, 2 * 16, 240, 240}};
+        {0, 2 * 16, screen_width, screen_height - 80}};
 
     std::unique_ptr<APRSLogger> logger{};
 };
@@ -265,7 +265,7 @@ class APRSRXView : public View {
 
    private:
     NavigationView& nav_;
-    Rect view_rect = {0, 3 * 8, 240, 280};
+    Rect view_rect = {0, 3 * 8, screen_width, screen_height - 40};
 
     APRSRxView view_stream{nav_, view_rect};
     APRSTableView view_table{nav_, view_rect};

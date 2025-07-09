@@ -35,6 +35,46 @@
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
 
+#include <array>
+#include <memory>
+#include <tuple>
+#include <variant>
+
+template <typename... Args>
+class MultiDecimator {
+   public:
+    /* Dispatches to the underlying type's execute. */
+    template <typename Source, typename Destination>
+    Destination execute(
+        const Source& src,
+        const Destination& dst) {
+        return std::visit(
+            [&src, &dst](auto&& arg) -> Destination {
+                return arg.execute(src, dst);
+            },
+            decimator_);
+    }
+
+    size_t decimation_factor() const {
+        return std::visit(
+            [](auto&& arg) -> size_t {
+                return arg.decimation_factor;
+            },
+            decimator_);
+    }
+
+    /* Sets this decimator to a new instance of the specified decimator type.
+     * NB: The instance is returned by-ref so 'configure' can easily be called. */
+    template <typename Decimator>
+    Decimator& set() {
+        decimator_ = Decimator{};
+        return std::get<Decimator>(decimator_);
+    }
+
+   private:
+    std::variant<Args...> decimator_{};
+};
+
 class WidebandFMAudio : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
@@ -59,7 +99,16 @@ class WidebandFMAudio : public BasebandProcessor {
         complex_audio.size()};
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
-    dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
+    // dsp::decimate::FIRC16xR16x16Decim2 decim_1{};   //original condition , before adding wfmam
+
+    // decim_1 will handle different types of FIR filters depending on selection.
+    MultiDecimator<
+        dsp::decimate::FIRC16xR16x16Decim2,
+        dsp::decimate::FIRC16xR16x32Decim8>
+        decim_1{};
+
+    // dsp::decimate::FIRC16xR16x32Decim8 decim_1{}; // For FMAM
+
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
@@ -94,7 +143,8 @@ class WidebandFMAudio : public BasebandProcessor {
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 
-    void configure(const WFMConfigureMessage& message);
+    void configure_wfm(const WFMConfigureMessage& message);
+    void configure_wfmam(const WFMAMConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
     void post_message(const buffer_c16_t& data);
 };

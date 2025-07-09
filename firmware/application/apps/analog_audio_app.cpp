@@ -114,6 +114,26 @@ WFMOptionsView::WFMOptionsView(
     };
 }
 
+/* WFMAMAptOptionsView *******************************************************/
+
+WFMAMAptOptionsView::WFMAMAptOptionsView(
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+    });
+
+    freqman_set_bandwidth_option(WFMAM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.wfmam_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+        receiver_model.set_wfmam_configuration(n);
+    };
+}
+
 /* AMFMAptOptionsView *********************************************************/
 
 AMFMAptOptionsView::AMFMAptOptionsView(
@@ -415,6 +435,12 @@ void AnalogAudioView::on_show_options_modulation() {
             text_ctcss.hidden(true);
             break;
 
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            widget = std::make_unique<WFMAMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(true);
+            text_ctcss.hidden(true);
+            break;
+
         case ReceiverModel::Mode::AMAudioFMApt:
             widget = std::make_unique<AMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
@@ -462,7 +488,10 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
         case ReceiverModel::Mode::WidebandFMAudio:
             image_tag = portapack::spi_flash::image_tag_wfm_audio;
             break;
-        case ReceiverModel::Mode::AMAudioFMApt:  // TODO pending to update it.
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            image_tag = portapack::spi_flash::image_tag_wfm_audio;
+            break;
+        case ReceiverModel::Mode::AMAudioFMApt:
             image_tag = portapack::spi_flash::image_tag_am_audio;
             break;
         case ReceiverModel::Mode::SpectrumAnalysis:
@@ -501,7 +530,10 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
         case ReceiverModel::Mode::WidebandFMAudio:
             sampling_rate = 48000;
             break;
-        case ReceiverModel::Mode::AMAudioFMApt:  // TODO  Wefax mode.
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            sampling_rate = 12000;
+            break;
+        case ReceiverModel::Mode::AMAudioFMApt:
             sampling_rate = 12000;
             break;
         default:

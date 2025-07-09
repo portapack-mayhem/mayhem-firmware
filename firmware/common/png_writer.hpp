@@ -38,11 +38,12 @@ class PNGWriter {
     Optional<File::Error> create(const std::filesystem::path& filename);
 
     void write_scanline(const std::array<ui::ColorRGB888, 240>& scanline);
+    void write_scanline(const std::vector<ui::ColorRGB888>& scanline);
 
    private:
     // TODO: These constants are baked in a few places, do not change blithely.
-    static constexpr int width{240};
-    static constexpr int height{320};
+    int width{ui::screen_width};
+    int height{ui::screen_height};
 
     File file{};
     int scanline_count{0};

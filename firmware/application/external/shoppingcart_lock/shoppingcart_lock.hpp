@@ -58,7 +58,7 @@ class ShoppingCartLock : public View {
     void restart_playback();
 
     MenuView menu_view{
-        {0, 0, 240, 150},
+        {0, 0, screen_width, 150},
         true};
 
     Text text_empty{

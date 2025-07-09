@@ -2435,6 +2435,44 @@ static constexpr Bitmap bitmap_icon_new_file{
     {16, 16},
     bitmap_icon_new_file_data};
 
+static constexpr uint8_t bitmap_icon_noaa_data[] = {
+    0x1C,
+    0x80,
+    0x3C,
+    0x40,
+    0x78,
+    0x18,
+    0xF0,
+    0x20,
+    0xE0,
+    0x26,
+    0x00,
+    0x0F,
+    0x80,
+    0x0F,
+    0xC0,
+    0x07,
+    0xE1,
+    0x1B,
+    0xC5,
+    0x39,
+    0x95,
+    0x78,
+    0x35,
+    0xF0,
+    0x09,
+    0xE0,
+    0x72,
+    0xC0,
+    0x04,
+    0x00,
+    0x78,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_noaa{
+    {16, 16},
+    bitmap_icon_noaa_data};
+
 static constexpr uint8_t bitmap_icon_notepad_data[] = {
     0x0C,
     0x00,

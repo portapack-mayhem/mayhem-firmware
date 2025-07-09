@@ -80,20 +80,24 @@ class ADSBFrame {
     void make_CRC() {
         uint32_t computed_CRC = compute_CRC();
 
+        uint8_t crc_pos = (raw_data[0] & 0x80) ? 11 : 4;
+
         // Insert CRC in frame
-        raw_data[11] = (computed_CRC >> 16) & 0xFF;
-        raw_data[12] = (computed_CRC >> 8) & 0xFF;
-        raw_data[13] = computed_CRC & 0xFF;
+        raw_data[crc_pos] = (computed_CRC >> 16) & 0xFF;
+        raw_data[crc_pos + 1] = (computed_CRC >> 8) & 0xFF;
+        raw_data[crc_pos + 2] = computed_CRC & 0xFF;
     }
 
-    bool check_CRC() {
+    uint32_t check_CRC() {
         uint32_t computed_CRC = compute_CRC();
 
-        if ((raw_data[11] != ((computed_CRC >> 16) & 0xFF)) ||
-            (raw_data[12] != ((computed_CRC >> 8) & 0xFF)) ||
-            (raw_data[13] != (computed_CRC & 0xFF))) return false;
+        uint8_t crc_pos = (raw_data[0] & 0x80) ? 11 : 4;
 
-        return true;
+        uint32_t received_CRC = (raw_data[crc_pos] << 16) |
+                                (raw_data[crc_pos + 1] << 8) |
+                                raw_data[crc_pos + 2];
+
+        return (received_CRC ^ computed_CRC) & 0xFFFFFF;
     }
 
     bool empty() {
@@ -111,12 +115,13 @@ class ADSBFrame {
         uint8_t adsb_crc[14] = {0};  // Temp buffer
         uint8_t b, c, s, bitn;
         const uint32_t crc_poly = 0x1205FFF;
+        uint8_t data_len = (raw_data[0] & 0x80) ? 11 : 4;
 
         // Copy frame data
-        memcpy(adsb_crc, raw_data, 11);
+        memcpy(adsb_crc, raw_data, data_len);
 
         // Compute CRC
-        for (c = 0; c < 11; c++) {
+        for (c = 0; c < data_len; c++) {
             for (b = 0; b < 8; b++) {
                 if ((adsb_crc[c] << b) & 0x80) {
                     for (s = 0; s < 25; s++) {
@@ -127,7 +132,7 @@ class ADSBFrame {
             }
         }
 
-        return (adsb_crc[11] << 16) + (adsb_crc[12] << 8) + adsb_crc[13];
+        return (adsb_crc[data_len] << 16) + (adsb_crc[data_len + 1] << 8) + adsb_crc[data_len + 2];
     }
 };
 

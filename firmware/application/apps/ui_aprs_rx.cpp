@@ -247,8 +247,8 @@ APRSTableView::APRSTableView(NavigationView& nav, Rect parent_rec)
 
     details_view.hidden(true);
 
-    recent_entries_view.set_parent_rect({0, 0, 240, 280});
-    details_view.set_parent_rect({0, 0, 240, 280});
+    recent_entries_view.set_parent_rect({0, 0, screen_width, screen_width - 40});
+    details_view.set_parent_rect({0, 0, screen_width, screen_width - 40});
 
     recent_entries_view.on_select = [this](const APRSRecentEntry& entry) {
         this->on_show_detail(entry);

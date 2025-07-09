@@ -84,6 +84,7 @@ void SubGhzDView::focus() {
 SubGhzDView::SubGhzDView(NavigationView& nav)
     : nav_{nav} {
     add_children({&rssi,
+                  &channel,
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,

@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_fmradio.application_information"), use
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "FM Radio",
+    /*.app_name = */ "Radio",
     /*.bitmap_data = */ {
         0x00,
         0x00,

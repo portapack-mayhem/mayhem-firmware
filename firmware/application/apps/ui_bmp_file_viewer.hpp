@@ -42,7 +42,7 @@ class BMPFileViewer : public View {
    private:
     NavigationView& nav_;
     std::filesystem::path path_{};
-    BMPViewer bmp{{0, 0, 240, 320}};
+    BMPViewer bmp{{0, 0, screen_width, screen_height}};
 };
 
 }  // namespace ui

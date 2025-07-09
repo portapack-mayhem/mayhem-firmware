@@ -60,7 +60,7 @@ class ExtSensorsView : public View {
         {{0 * 8, 5 * 16}, "ORI:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16}, "ENV:", Theme::getInstance()->fg_light->foreground}};
 
-    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "Connect a compatible module..."};
+    Text text_info{{0 * 8, 0 * 8, screen_width, 16 * 1}, "Connect a compatible module..."};
     Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};

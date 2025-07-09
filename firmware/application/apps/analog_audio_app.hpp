@@ -74,7 +74,7 @@ class AMFMAptOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // Max option length chars
+        17,  // Max option length chars   "USB+FM(Wefax Apt)"
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
@@ -132,6 +132,23 @@ class WFMOptionsView : public View {
         }};
 };
 
+class WFMAMAptOptionsView : public View {
+   public:
+    WFMAMAptOptionsView(Rect parent_rect, const Style* style);
+
+   private:
+    Text label_config{
+        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        "BW",
+    };
+    OptionsField options_config{
+        {3 * 8, 0 * 16},
+        16,  // Max option char length "80k-NOAA Apt LPF" , example.
+        {
+            // Using common messages from freqman_ui.cpp
+        }};
+};
+
 class SPECOptionsView : public View {
    public:
     SPECOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
@@ -168,7 +185,7 @@ class SPECOptionsView : public View {
         {19 * 8, 0 * 16, 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
         "Rx_IQ_CAL  "};
     NumberField field_rx_iq_phase_cal{
-        {28 * 8, 0 * 16},
+        {screen_width - 2 * 8, 0 * 16},
         2,
         {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
@@ -215,7 +232,7 @@ class AnalogAudioView : public View {
     uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
     uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
     uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
-                                             //
+
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
@@ -227,7 +244,7 @@ class AnalogAudioView : public View {
             {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
         }};
 
-    const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
+    const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
 
     size_t spec_bw_index = 0;
@@ -261,11 +278,12 @@ class AnalogAudioView : public View {
             {"NFM ", toUType(ReceiverModel::Mode::NarrowbandFMAudio)},
             {"WFM ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
-            {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)}  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+            {"AMFM", toUType(ReceiverModel::Mode::AMAudioFMApt)},  // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+            {"FMAM", toUType(ReceiverModel::Mode::WFMAudioAMApt)}  // Added to handle  SAT NOAA APT
         }};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Text text_ctcss{
         {16 * 8, 1 * 16, 14 * 8, 1 * 16},
@@ -274,7 +292,7 @@ class AnalogAudioView : public View {
     std::unique_ptr<Widget> options_widget{};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 2 * 16, screen_width, 1 * 16},
         u"AUD",
         u"AUDIO",
         RecordView::FileType::WAV,

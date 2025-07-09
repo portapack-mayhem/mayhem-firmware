@@ -397,13 +397,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSON sonde)
 
-### FSK TX
-
-set(MODE_CPPSRC
-	proc_fsk.cpp
-)
-DeclareTargets(PFSK fsktx)
-
 ### FSK RX
 
 set(MODE_CPPSRC
@@ -411,6 +404,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSR fskrx)
 
+### FSK TX
+
+set(MODE_CPPSRC
+	proc_fsk.cpp
+)
+DeclareTargets(PFSK fsktx)
 
 ### Microphone transmit
 
@@ -674,6 +673,14 @@ set(MODE_CPPSRC
 	proc_wefaxrx.cpp
 )
 DeclareTargets(PWFX wefaxrx)
+
+
+### NoaaApt Rx
+
+set(MODE_CPPSRC
+	proc_noaaapt_rx.cpp
+)
+DeclareTargets(PNOA noaaapt_rx)
 
 
 ### HackRF "factory" firmware

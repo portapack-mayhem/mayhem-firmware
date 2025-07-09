@@ -55,7 +55,7 @@ SpectrumPainterView::SpectrumPainterView(
         &field_pause,
     });
 
-    Rect view_rect = {0, 3 * 8, 240, 80};
+    Rect view_rect = {0, 3 * 8, screen_width, 80};
     input_image.set_parent_rect(view_rect);
     input_text.set_parent_rect(view_rect);
 

@@ -85,7 +85,7 @@ class WipeSDView : public View {
         {2 * 8, 19 * 8, 26 * 8, 24}};
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 };
 

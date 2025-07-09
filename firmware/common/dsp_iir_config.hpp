@@ -56,8 +56,8 @@ constexpr iir_biquad_config_t audio_12k_hpf_300hz_config{
     {1.00000000f, -1.77863178f, 0.80080265f}};
 
 // scipy.signal.butter(2, 1500 / 6000.0, 'low', analog=False)
-constexpr iir_biquad_config_t audio_12k_lpf_1500hz_config{
-    // Added to lpf the audio in wefax mode , before sending to SD card or spk.
+constexpr iir_biquad_config_t apt_audio_12k_lpf_1500hz_config{
+    // Added to lpf the apt audio in wefax mode , before sending to SD card or spk.
     {0.09763107f, 0.19526215f, 0.09763107f},
     {1.00000000f, -0.94280904f, 0.33333333f}};
 
@@ -107,5 +107,16 @@ constexpr iir_biquad_config_t audio_8k_deemph_300_6_config{
 constexpr iir_biquad_config_t audio_48k_deemph_2122_6_config{
     {0.12264116f, 0.12264116f, 0.00000000f},
     {1.00000000f, -0.75471767f, 0.00000000f}};
+
+// scipy.signal.iirnotch(f0, Q, fs) = signal.iirnotch(2400, 15, 12000)
+constexpr iir_biquad_config_t apt_audio_12k_notch_2k4_config{
+    {0.95977357f, -0.59317269f, 0.95977357f},
+    {1.00000000f, -0.59317269f, 0.91954714f}};
+
+// scipy.signal.butter(2, 2000 / 6000.0, 'low', analog=False)
+constexpr iir_biquad_config_t apt_audio_12k_lpf_2000hz_config{
+    // Added to lpf the apt audio in NOAA mode , before sending to SD card or spk.
+    {0.15505103f, 0.31010205f, 0.15505103f},
+    {1.00000000f, -0.6202041f, 0.24040821f}};
 
 #endif /*__DSP_IIR_CONFIG_H__*/

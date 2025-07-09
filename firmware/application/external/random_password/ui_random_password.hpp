@@ -203,7 +203,7 @@ class RandomPasswordView : public View {
         ' '};
 
     OptionsField field_method{
-        {(screen_width / 2) + (sizeof("method:") - 1) * 8, 7 * 16 - 2},
+        {(screen_width / 2) + (int)(sizeof("method:") - 1) * 8, 7 * 16 - 2},
         sizeof("R+L+R+H"),
         {{"R+L+R", Method::RADIO_LCG_ROLL},
          {"R+L+R+H", Method::RADIO_LCG_ROLL_HASH}}};

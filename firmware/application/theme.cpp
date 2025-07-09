@@ -1,4 +1,3 @@
-
 #include "theme.hpp"
 
 namespace ui {
@@ -24,6 +23,9 @@ void Theme::SetTheme(ThemeId theme) {
             break;
         case Red:
             current = new ThemeRed();
+            break;
+        case Dark:
+            current = new ThemeDark();
             break;
         case DefaultGrey:
         default:
@@ -723,6 +725,139 @@ ThemeRed::ThemeRed() {
     status_active = new Color{0, 255, 0};  // green, the status bar icons when active
 
     bg_table_header = new Color{205, 30, 0};
+}
+
+ThemeDark::ThemeDark() {
+    bg_lightest = new Style{
+        .font = font::fixed_8x16,
+        .background = {32, 32, 32},
+        .foreground = Color::white(),
+    };
+    bg_lightest_small = new Style{
+        .font = font::fixed_5x8,
+        .background = {32, 32, 32},
+        .foreground = Color::white(),
+    };
+    bg_light = new Style{
+        .font = font::fixed_8x16,
+        .background = {24, 24, 24},
+        .foreground = Color::white(),
+    };
+    bg_medium = new Style{
+        .font = font::fixed_8x16,
+        .background = {16, 16, 16},
+        .foreground = Color::white(),
+    };
+    bg_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = {8, 8, 8},
+        .foreground = Color::white(),
+    };
+    bg_darker = new Style{
+        .font = font::fixed_8x16,
+        .background = {4, 4, 4},
+        .foreground = Color::white(),
+    };
+
+    bg_darkest = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+    bg_darkest_small = new Style{
+        .font = font::fixed_5x8,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+
+    bg_important_small = new Style{
+        .font = font::fixed_5x8,
+        .background = {64, 64, 64},
+        .foreground = Color::white(),
+    };
+
+    error_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    warning_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    ok_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+
+    fg_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = {96, 96, 96},
+    };
+    fg_medium = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = {128, 128, 128},
+    };
+    fg_light = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+
+    fg_red = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    fg_green = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+    fg_yellow = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    fg_orange = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::orange(),
+    };
+    fg_blue = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::blue(),
+    };
+    fg_cyan = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::cyan(),
+    };
+    fg_darkcyan = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::dark_cyan(),
+    };
+    fg_magenta = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::magenta(),
+    };
+
+    option_active = new Style{
+        .font = font::fixed_8x16,
+        .background = {64, 64, 64},
+        .foreground = Color::white(),
+    };
+
+    status_active = new Color{0, 255, 0};
+
+    bg_table_header = new Color{48, 48, 48};
 }
 
 }  // namespace ui

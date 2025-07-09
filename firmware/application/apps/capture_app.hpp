@@ -109,7 +109,7 @@ class CaptureAppView : public View {
         /*small*/ true};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 2 * 16, screen_width, 1 * 16},
         u"BBD_????.*",
         captures_dir,
         RecordView::FileType::RawS16,

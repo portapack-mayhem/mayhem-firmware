@@ -92,7 +92,7 @@ class WeFaxRxView : public View {
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},

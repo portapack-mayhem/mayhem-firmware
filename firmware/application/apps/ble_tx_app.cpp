@@ -319,7 +319,8 @@ void BLETxView::on_tx_progress(const bool done) {
 
 BLETxView::BLETxView(NavigationView& nav)
     : nav_{nav} {
-    add_children({&button_open,
+    add_children({&dataEditView,
+                  &button_open,
                   &text_filename,
                   &progressbar,
                   &check_rand_mac,
@@ -340,7 +341,6 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_mac_address,
                   &text_mac_address,
                   &label_data_packet,
-                  &dataEditView,
                   &button_clear_marked,
                   &button_save_packet,
                   &button_switch});
@@ -428,6 +428,23 @@ BLETxView::BLETxView(NavigationView& nav)
 
             dataEditView.cursor_mark_selected();
         }
+    };
+
+    dataEditView.on_change = [this](uint8_t value) {
+        // Reject setting newline at index 29.
+        if (cursor_pos.col != 29) {
+            uint16_t dataBytePos = (cursor_pos.line * 29) + cursor_pos.col;
+
+            packets[current_packet].advertisementData[dataBytePos] = uint_to_char(value, 16);
+
+            update_current_packet(packets[current_packet], current_packet);
+        }
+    };
+
+    dataEditView.on_cursor_moved = [this]() {
+        // Save last selected cursor.
+        cursor_pos.line = dataEditView.line();
+        cursor_pos.col = dataEditView.col();
     };
 
     button_clear_marked.on_select = [this](Button&) {
@@ -531,7 +548,6 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
     for (const std::string& str : strings) {
         dataFile.write(str.c_str(), str.size());
         dataFile.write("\n", 1);
-        ;
     }
 
     dataFile.~File();
@@ -546,6 +562,7 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
     dataEditView.set_font_zoom(true);
     dataEditView.set_file(*dataFileWrapper);
     dataEditView.redraw(true, true);
+    dataEditView.cursor_set(cursor_pos.line, cursor_pos.col);
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {

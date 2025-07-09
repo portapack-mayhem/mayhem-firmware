@@ -26,6 +26,7 @@
 
 #include "log_file.hpp"
 #include "string_format.hpp"
+#include "irq_controls.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -81,21 +82,75 @@ void TextViewer::paint(Painter& painter) {
     paint_cursor(painter);
 }
 
+void TextViewer::enable_long_press() {
+    // Enable long press on "Select".
+    SwitchesState config;
+    config[toUType(Switch::Sel)] = true;
+    set_switches_long_press_config(config);
+}
+
+void TextViewer::on_focus() {
+    enable_long_press();
+}
+
 bool TextViewer::on_key(const KeyEvent key) {
     int16_t delta_col = 0;
     int16_t delta_line = 0;
 
-    if (key == KeyEvent::Left)
-        delta_col = -1;
-    else if (key == KeyEvent::Right)
-        delta_col = 1;
-    else if (key == KeyEvent::Up)
-        delta_line = -1;
-    else if (key == KeyEvent::Down)
-        delta_line = 1;
-    else if (key == KeyEvent::Select && on_select) {
-        on_select();
-        return true;
+    if (key == KeyEvent::Select) {
+        // Toggle 'digit' mode with long-press.
+        if (digit_mode_ || key_is_long_pressed(key)) {
+            digit_mode_ = !digit_mode_;
+            set_dirty();
+            return true;
+        }
+    }
+
+    if (digit_mode_) {
+        switch (key) {
+            case KeyEvent::Left:
+                delta_col = -1;
+                break;
+            case KeyEvent::Right:
+                delta_col = 1;
+                break;
+            case KeyEvent::Up:
+                set_value(value_ == 0x0F ? 0x00 : value_ + 1);
+                break;
+            case KeyEvent::Down:
+                set_value(value_ == 0x00 ? 0x0F : value_ - 1);
+                break;
+            default:
+                return false;
+        }
+
+        if (delta_col == 0 && delta_line == 0) {
+            return true;
+        }
+    } else {
+        switch (key) {
+            case KeyEvent::Left:
+                delta_col = -1;
+                break;
+            case KeyEvent::Right:
+                delta_col = 1;
+                break;
+            case KeyEvent::Up:
+                delta_line = -1;
+                break;
+            case KeyEvent::Down:
+                delta_line = 1;
+                break;
+            case KeyEvent::Select: {
+                if (on_select) {
+                    on_select();
+                    return true;
+                }
+                break;
+            }
+            default:
+                return false;
+        }
     }
 
     // Always allow cursor direction to be updated.
@@ -111,17 +166,40 @@ bool TextViewer::on_key(const KeyEvent key) {
 bool TextViewer::on_encoder(EncoderEvent delta) {
     bool updated = false;
 
-    if (cursor_.dir == ScrollDirection::Horizontal)
-        updated = apply_scrolling_constraints(0, delta);
-    else {
-        delta *= 16;
-        updated = apply_scrolling_constraints(delta, 0);
+    if (digit_mode_) {
+        if (delta > 0) {
+            set_value(value_ == 0x0F ? 0x00 : value_ + 1);
+        } else if (delta < 0) {
+            set_value(value_ == 0x00 ? 0x0F : value_ - 1);
+        }
+
+        updated = true;
+    } else {
+        if (cursor_.dir == ScrollDirection::Horizontal) {
+            updated = apply_scrolling_constraints(0, delta);
+        } else {
+            delta *= 16;
+            updated = apply_scrolling_constraints(delta, 0);
+        }
+
+        if (updated) {
+            redraw();
+        }
     }
 
-    if (updated)
-        redraw();
-
     return updated;
+}
+
+void TextViewer::set_value(uint8_t new_value) {
+    if (new_value != value_) {
+        value_ = new_value;
+
+        if (on_change) {
+            on_change(value_);
+        }
+
+        set_dirty();
+    }
 }
 
 void TextViewer::redraw(bool redraw_text, bool redraw_marked) {

@@ -75,11 +75,11 @@ class StopwatchView : public View {
         "START"};
 
     Button button_reset_lap{
-        {72, 240, 96, 24},
+        {72, screen_height - 80, 96, 24},
         "RESET"};
 
     Button button_done{
-        {72, 270, 96, 24},
+        {72, screen_height - 50, 96, 24},
         "EXIT"};
 
     MessageHandlerRegistration message_handler_frame_sync{

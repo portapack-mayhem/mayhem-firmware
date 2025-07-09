@@ -133,14 +133,27 @@ class RecentEntriesColumns {
    public:
     using ContainerType = std::vector<RecentEntriesColumn>;
 
-    RecentEntriesColumns(
-        const std::initializer_list<RecentEntriesColumn> columns);
+    RecentEntriesColumns(std::initializer_list<RecentEntriesColumn> columns);
 
-    ContainerType::const_iterator begin() const { return std::begin(_columns); }
-    ContainerType::const_iterator end() const { return std::end(_columns); }
+    ContainerType::iterator begin() { return _columns.begin(); }
+    ContainerType::iterator end() { return _columns.end(); }
+    ContainerType::const_iterator begin() const { return _columns.begin(); }
+    ContainerType::const_iterator end() const { return _columns.end(); }
+
+    void set(size_t index, const std::string& name, size_t width) {
+        if (index < _columns.size()) {
+            _columns[index] = {name, width};
+        }
+    }
+
+    const RecentEntriesColumn& at(size_t index) const {
+        return _columns.at(index);
+    }
+
+    size_t size() const { return _columns.size(); }
 
    private:
-    const ContainerType _columns;
+    ContainerType _columns;
 };
 
 class RecentEntriesHeader : public Widget {

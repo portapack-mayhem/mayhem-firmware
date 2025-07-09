@@ -109,7 +109,7 @@ class OOKEditorAppView : public View {
     Labels label_waveform{{{0, 188}, "Waveform:", Theme::getInstance()->fg_light->foreground}};
 
     // Text field to display the various status message of the app
-    Text text_app_status{{0, 160, 30 * 8, 16}, ""};
+    Text text_app_status{{0, 160, screen_width, 16}, ""};
 
     // OptionsField for selectable sample rates.
     OptionsField field_sample_rate{{96, 20}, 7, {{"250k", 250000U}, {"1M", 1000000U}, {"2M", 2000000U}, {"5M", 5000000U}, {"10M", 10000000U}, {"20M", 20000000U}}};
@@ -121,7 +121,7 @@ class OOKEditorAppView : public View {
     NumberField field_repeat{{210, 40}, 3, {1, 999}, 1, '0', false};
 
     // Text field to display the payload data.
-    Text text_payload{{0 * 8, 100, 30 * 8, 16}, ""};
+    Text text_payload{{0 * 8, 100, screen_width, 16}, ""};
 
     // Buttons for setting configurations, opening files, and starting transmission.
     Button button_set{{0, 125, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
@@ -134,7 +134,7 @@ class OOKEditorAppView : public View {
     ProgressBar progressbar{{2 * 8, 250, 208, 16}};
 
     // Waveform display using waveform buffer and yellow theme color.
-    Waveform waveform{{0, 208, 240, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
+    Waveform waveform{{0, 208, screen_width, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
 };
 
 /******** bug key input view **********/

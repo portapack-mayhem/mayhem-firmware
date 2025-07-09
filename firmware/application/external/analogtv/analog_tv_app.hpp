@@ -58,7 +58,7 @@ class AnalogTvView : public View {
     app_settings::SettingsManager settings_{
         "rx_tv", app_settings::Mode::RX};
 
-    const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
+    const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
 
     RSSI rssi{

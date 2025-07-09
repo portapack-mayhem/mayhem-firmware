@@ -39,11 +39,10 @@ class LogFile {
 
     Optional<File::Error> write_entry(const std::string& entry);
     Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
+    Optional<File::Error> write_raw(const std::string& message);
 
    private:
     File file{};
-
-    Optional<File::Error> write_line(const std::string& message);
 };
 
 #endif /*__LOG_FILE_H__*/

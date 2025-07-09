@@ -81,6 +81,8 @@ WeFaxRxView::WeFaxRxView(NavigationView& nav)
     };
     audio::output::start();
     receiver_model.set_hidden_offset(WEFAX_FREQ_OFFSET);
+    receiver_model.set_sampling_rate(3072000);       // set the needed baseband SR.
+    receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
     receiver_model.enable();
 
     txt_status.set("Waiting for signal.");
@@ -128,7 +130,7 @@ void WeFaxRxView::on_status(WeFaxRxStatusDataMessage msg) {
 
 // this stores and displays the image. keep it as simple as you can. a bit more complexity will kill the sync
 void WeFaxRxView::on_image(WeFaxRxImageDataMessage msg) {
-    if ((line_num) >= 320 - 4 * 16) line_num = 0;  // for draw reset
+    if ((line_num) >= screen_height - 4 * 16) line_num = 0;  // for draw reset
 
     for (uint16_t i = 0; i < msg.cnt; i += 1) {
         Color pxl = {msg.image[i], msg.image[i], msg.image[i]};

@@ -120,7 +120,7 @@ class SondeView : public View {
         {21 * 8, 0, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Checkbox check_log{
         {22 * 8, 8 * 16},

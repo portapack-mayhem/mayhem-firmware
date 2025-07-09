@@ -259,7 +259,7 @@ class POCSAGAppView : public View {
         ' ',
         true /*wrap*/};
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     Image image_status{
         {0 * 8 + 4, 1 * 16 + 2, 16, 16},

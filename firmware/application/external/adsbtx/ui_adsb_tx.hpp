@@ -218,7 +218,7 @@ class ADSBTxView : public View {
     void start_tx();
     void generate_frames();
 
-    Rect view_rect = {0, 7 * 8, 240, 192};
+    Rect view_rect = {0, 7 * 8, screen_width, 192};
 
     ADSBPositionView view_position{nav_, view_rect};
     ADSBCallsignView view_callsign{nav_, view_rect};

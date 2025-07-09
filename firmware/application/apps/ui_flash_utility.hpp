@@ -60,7 +60,7 @@ class FlashUtilityView : public View {
         {{4, 4}, "Select firmware to flash:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
-        {0, 2 * 8, 240, 26 * 8},
+        {0, 2 * 8, screen_width, 26 * 8},
         true};
 
     std::filesystem::path extract_tar(std::filesystem::path::string_type path, ui::Painter& painter);  // extracts the tar file, and returns the firmware.bin path from it. empty string if no fw

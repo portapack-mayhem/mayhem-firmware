@@ -130,7 +130,11 @@ class Message {
         WeFaxRxConfigure = 73,
         WeFaxRxStatusData = 74,
         WeFaxRxImageData = 75,
-
+        WFMAMConfigure = 76,
+        NoaaAptRxConfigure = 77,
+        NoaaAptRxStatusData = 78,
+        NoaaAptRxImageData = 79,
+        FSKPacket = 80,
         MAX
     };
 
@@ -449,6 +453,17 @@ struct BlePacketData {
     uint8_t dataLen;
 };
 
+struct FskPacketData {
+    int8_t real;
+    int8_t imag;
+    int max_dB;
+    uint8_t data[512];
+    uint16_t dataLen;
+    uint64_t syncWord;
+    float power;
+    float frequency_offset_hz;
+};
+
 class BLEPacketMessage : public Message {
    public:
     constexpr BLEPacketMessage(
@@ -458,6 +473,17 @@ class BLEPacketMessage : public Message {
     }
 
     BlePacketData* packet{nullptr};
+};
+
+class FSKRxPacketMessage : public Message {
+   public:
+    constexpr FSKRxPacketMessage(
+        FskPacketData* packet)
+        : Message{ID::FSKPacket},
+          packet{packet} {
+    }
+
+    FskPacketData* packet{nullptr};
 };
 
 class CodedSquelchMessage : public Message {
@@ -578,6 +604,32 @@ class WFMConfigureMessage : public Message {
 
     const fir_taps_real<24> decim_0_filter;
     const fir_taps_real<16> decim_1_filter;
+    const fir_taps_real<64> audio_filter;
+    const size_t deviation;
+    const iir_biquad_config_t audio_hpf_config;
+    const iir_biquad_config_t audio_deemph_config;
+};
+
+class WFMAMConfigureMessage : public Message {
+   public:
+    constexpr WFMAMConfigureMessage(
+        const fir_taps_real<24> decim_0_filter,
+        const fir_taps_real<32> decim_1_filter,
+        const fir_taps_real<64> audio_filter,
+        const size_t deviation,
+        const iir_biquad_config_t audio_hpf_config,
+        const iir_biquad_config_t audio_deemph_config)
+        : Message{ID::WFMAMConfigure},
+          decim_0_filter(decim_0_filter),
+          decim_1_filter(decim_1_filter),
+          audio_filter(audio_filter),
+          deviation{deviation},
+          audio_hpf_config(audio_hpf_config),
+          audio_deemph_config(audio_deemph_config) {
+    }
+
+    const fir_taps_real<24> decim_0_filter;
+    const fir_taps_real<32> decim_1_filter;
     const fir_taps_real<64> audio_filter;
     const size_t deviation;
     const iir_biquad_config_t audio_hpf_config;
@@ -1098,24 +1150,27 @@ class FSKConfigureMessage : public Message {
 class FSKRxConfigureMessage : public Message {
    public:
     constexpr FSKRxConfigureMessage(
-        const fir_taps_real<24> decim_0_filter,
-        const fir_taps_real<32> decim_1_filter,
-        const fir_taps_real<32> channel_filter,
-        const size_t channel_decimation,
-        const size_t deviation)
+        const uint8_t samplesPerSymbol,
+        const uint32_t syncWord,
+        const uint8_t syncWordLength,
+        const uint32_t preamble,
+        const uint8_t preambleLength,
+        const uint16_t numDataBytes)
         : Message{ID::FSKRxConfigure},
-          decim_0_filter(decim_0_filter),
-          decim_1_filter(decim_1_filter),
-          channel_filter(channel_filter),
-          channel_decimation{channel_decimation},
-          deviation{deviation} {
+          samplesPerSymbol(samplesPerSymbol),
+          syncWord(syncWord),
+          syncWordLength(syncWordLength),
+          preamble(preamble),
+          preambleLength(preambleLength),
+          numDataBytes(numDataBytes) {
     }
 
-    const fir_taps_real<24> decim_0_filter;
-    const fir_taps_real<32> decim_1_filter;
-    const fir_taps_real<32> channel_filter;
-    const size_t channel_decimation;
-    const size_t deviation;
+    const uint8_t samplesPerSymbol;
+    const uint32_t syncWord;
+    const uint8_t syncWordLength;
+    const uint32_t preamble;
+    const uint8_t preambleLength;
+    const uint16_t numDataBytes;
 };
 
 class POCSAGConfigureMessage : public Message {
@@ -1474,6 +1529,29 @@ class WeFaxRxImageDataMessage : public Message {
    public:
     constexpr WeFaxRxImageDataMessage()
         : Message{ID::WeFaxRxImageData} {}
+    uint8_t image[400]{0};
+    uint32_t cnt = 0;
+};
+
+class NoaaAptRxConfigureMessage : public Message {
+   public:
+    constexpr NoaaAptRxConfigureMessage()
+        : Message{ID::NoaaAptRxConfigure} {}
+};
+
+class NoaaAptRxStatusDataMessage : public Message {
+   public:
+    constexpr NoaaAptRxStatusDataMessage(uint8_t state)
+        : Message{ID::NoaaAptRxStatusData},
+          state{state} {
+    }
+    uint8_t state = 0;
+};
+
+class NoaaAptRxImageDataMessage : public Message {
+   public:
+    constexpr NoaaAptRxImageDataMessage()
+        : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
 };

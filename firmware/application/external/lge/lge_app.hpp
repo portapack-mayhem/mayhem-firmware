@@ -171,7 +171,7 @@ class LGEView : public View {
         '0'};
 
     Console console{
-        {0, 18 * 8, 30 * 8, 7 * 16}};
+        {0, 18 * 8, screen_width, 7 * 16}};
 
     TransmitterView tx_view{
         16 * 16,

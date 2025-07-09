@@ -70,6 +70,8 @@ class SoundBoardView : public View {
     uint32_t playing_id{};
     uint32_t page = 1;
     uint32_t c_page = 1;
+    uint32_t tone_key_index = 1;
+    uint8_t bits_per_sample = 1;
 
     std::vector<std::filesystem::path> file_list{};
 
@@ -90,6 +92,7 @@ class SoundBoardView : public View {
     void on_tx_progress(const uint32_t progress);
     void refresh_list();
     void on_select_entry();
+    void update_config();
 
     Labels labels{
         {{24 * 8, 180}, "Vol:", Theme::getInstance()->fg_light->foreground},
@@ -104,10 +107,10 @@ class SoundBoardView : public View {
         "<="};
 
     Text page_info{
-        {0, 29 * 8, 30 * 8, 16}};
+        {0, 29 * 8, screen_width, 16}};
 
     MenuView menu_view{
-        {0, 0, 240, 175},
+        {0, 0, screen_width, 175},
         true};
     Text text_empty{
         {7 * 8, 12 * 8, 16 * 8, 16},
@@ -128,9 +131,9 @@ class SoundBoardView : public View {
         {}};
 
     AudioVolumeField field_volume{
-        {28 * 8, 180}};
+        {screen_width - 2 * 8, 180}};
     Text text_volume_disabled{
-        {28 * 8, 180, 3 * 8, 16},
+        {screen_width - 2 * 8, 180, 3 * 8, 16},
         "--"};
 
     Checkbox check_loop{
@@ -144,7 +147,7 @@ class SoundBoardView : public View {
         "Random"};
 
     ProgressBar progressbar{
-        {0 * 8, 31 * 8 + 2, 30 * 8, 4}};
+        {0 * 8, 31 * 8 + 2, screen_width, 4}};
 
     TransmitterView tx_view{
         16 * 16,

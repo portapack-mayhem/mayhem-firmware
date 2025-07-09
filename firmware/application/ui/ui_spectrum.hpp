@@ -61,7 +61,7 @@ class AudioSpectrumView : public View {
         ' '};
 
     Waveform waveform{
-        {0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16},
+        {0, 1 * 16 + cursor_band_height, screen_width, 2 * 16},
         audio_spectrum,
         128,
         0,
@@ -91,11 +91,7 @@ class FrequencyScale : public Widget {
    private:
     static constexpr int filter_band_height = 4;
 
-    void on_tick_second();
-
-    bool _blink{false};
     int32_t cursor_position{0};
-    SignalToken signal_token_tick_second{};
     int spectrum_sampling_rate{0};
     const int spectrum_bins = std::tuple_size<decltype(ChannelSpectrum::db)>::value;
     int channel_filter_low_frequency{0};
@@ -154,7 +150,7 @@ class WaterfallView : public View {
    private:
     void update_widgets_rect();
 
-    const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, 30 * 8, 2 * 16 + 20};
+    const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, screen_width, 2 * 16 + 20};
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 

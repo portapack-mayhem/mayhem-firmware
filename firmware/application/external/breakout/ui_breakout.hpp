@@ -56,8 +56,6 @@ class Ticker {
     void detach();
 };
 
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 320
 #define PADDLE_WIDTH 40
 #define PADDLE_HEIGHT 10
 #define BALL_SIZE 8
@@ -141,7 +139,7 @@ class BreakoutView : public View {
     NavigationView& nav_;
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

@@ -283,7 +283,7 @@ class DebugMemoryDumpView : public View {
         "Write"};
 
     Button button_done{
-        {128, 240, 96, 24},
+        {128, screen_height - 80, 96, 24},
         "Done"};
 
     Labels labels{
@@ -332,7 +332,7 @@ class DebugPmemView : public View {
     Text text_checksum2{{16, 248, 208, 16}};
 
     Button button_ok{
-        {240 / 3, 270, 240 / 3, 24},
+        {screen_width / 3, 270, screen_width / 3, 24},
         "OK",
     };
 
@@ -364,7 +364,7 @@ public:
 
 private:
         Console console {
-                { 8, 16, 224, 240 }
+                { 8, 16, 224, screen_height-80 }
         };
 
         Button button_exit {
