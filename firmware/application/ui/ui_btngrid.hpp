@@ -55,7 +55,7 @@ void load_blacklist();
 
 class BtnGridView : public View {
    public:
-    BtnGridView(Rect new_parent_rect = {0, 0, 240, 304}, bool keep_highlight = false);
+    BtnGridView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16}, bool keep_highlight = false);
 
     ~BtnGridView();
 
@@ -68,11 +68,18 @@ class BtnGridView : public View {
 
     NewButton* item_view(size_t index) const;
 
+    bool show_arrows{true};  // flag used to hide arrows in main menu
+    void show_arrows_enabled(bool enabled);
+
     bool set_highlighted(int32_t new_value);
     uint32_t highlighted_index();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void set_arrow_enabled(bool enabled);
+    bool arrow_up_enabled{false};
+    bool arrow_down_enabled{false};
+    void set_arrow_up_enabled(bool enabled);
+    void set_arrow_down_enabled(bool enabled);
+    void show_hide_arrows();
     void on_focus() override;
     void on_blur() override;
     void on_show() override;
@@ -82,30 +89,33 @@ class BtnGridView : public View {
     bool blacklisted_app(GridItem new_item);
 
     void update_items();
+    void set_btn_min_max_height(uint8_t min, uint8_t max) {
+        btn_h_min = min;
+        btn_h_max = max;
+    }
 
    protected:
     virtual void on_populate() = 0;
 
    private:
     int rows_{3};
-    void on_tick_second();
-
+    uint8_t btn_h_min{40};
+    uint8_t btn_h_max{60};
     bool keep_highlight{false};
 
-    SignalToken signal_token_tick_second{};
     std::vector<GridItem> menu_items{};
     std::vector<std::unique_ptr<NewButton>> menu_item_views{};
 
-    Image arrow_more{
-        {228, 320 - 8, 8, 8},
-        &bitmap_more,
-        Theme::getInstance()->bg_darkest->foreground,
-        Theme::getInstance()->bg_darkest->background};
+    Button button_pgup{
+        {0, 1324, 120, 16},
+        "       "};
 
-    int button_w = 240 / rows_;
-    static constexpr int button_h = 48;
-    bool blink = false;
-    bool more = false;
+    Button button_pgdown{
+        {121, 1324, 119, 16},
+        "         "};
+
+    int button_w = screen_width / rows_;
+    int button_h = 48;
     size_t displayed_max{0};
     size_t highlighted_item{0};
     size_t offset{0};

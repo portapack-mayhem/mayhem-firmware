@@ -45,8 +45,8 @@ using option_db_t = std::pair<std::string_view, int32_t>;
 using options_db_t = std::vector<option_db_t>;
 
 extern options_db_t freqman_modulations;
-extern options_db_t freqman_bandwidths[4];
-extern options_db_t freqman_steps;
+extern options_db_t freqman_bandwidths[6];
+// extern options_db_t freqman_steps; // now included via ui_receiver.hpp
 extern options_db_t freqman_steps_short;
 
 options_t dboptions_to_options(const options_db_t& dboptions) {
@@ -240,7 +240,7 @@ void FrequencyManagerView::on_edit_freq() {
 
 void FrequencyManagerView::on_edit_desc() {
     temp_buffer_ = current_entry().description;
-    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, [this](std::string& new_desc) {
+    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_desc) {
         auto entry = current_entry();
         entry.description = std::move(new_desc);
         db_.replace_entry(current_index(), entry);
@@ -250,7 +250,7 @@ void FrequencyManagerView::on_edit_desc() {
 
 void FrequencyManagerView::on_add_category() {
     temp_buffer_.clear();
-    text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
+    text_prompt(nav_, temp_buffer_, 20, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
         if (!new_name.empty()) {
             create_freqman_file(new_name);
             refresh_categories();

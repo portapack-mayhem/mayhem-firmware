@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2025 RocketGod
+ * Copyright (C) 2025 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -528,58 +530,63 @@ void BigFrequency::paint(Painter& painter) {
     Point digit_pos;
     ui::Color segment_color;
 
-    const auto rect = screen_rect();
+    if (_frequency != _previous_frequency) {
+        _previous_frequency = _frequency;
 
-    // Erase
-    painter.fill_rectangle(
-        {{0, rect.location().y()}, {screen_width, 52}},
-        Theme::getInstance()->bg_darkest->background);
+        rf::Frequency frequency{_frequency};
+        const auto rect = screen_rect();
 
-    // Prepare digits
-    if (!_frequency) {
-        digits.fill(10);  // ----.---
-        digit_pos = {0, rect.location().y()};
-    } else {
-        _frequency /= 1000;  // GMMM.KKK(uuu)
+        // Erase
+        painter.fill_rectangle(
+            {{0, rect.location().y()}, {screen_width, 52}},
+            Theme::getInstance()->bg_darkest->background);
 
-        for (i = 0; i < 7; i++) {
-            digits[6 - i] = _frequency % 10;
-            _frequency /= 10;
-        }
-
-        // Remove leading zeros
-        for (i = 0; i < 3; i++) {
-            if (!digits[i])
-                digits[i] = 16;  // "Don't draw" code
-            else
-                break;
-        }
-
-        digit_pos = {(Coord)(240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
-    }
-
-    segment_color = style().foreground;
-
-    // Draw
-    for (i = 0; i < 7; i++) {
-        digit = digits[i];
-
-        if (digit < 16) {
-            digit_def = segment_font[(uint8_t)digit];
-
-            for (size_t s = 0; s < 7; s++) {
-                if (digit_def & 1)
-                    painter.fill_rectangle({digit_pos + segments[s].location(), segments[s].size()}, segment_color);
-                digit_def >>= 1;
-            }
-        }
-
-        if (i == 3) {
-            // Dot
-            painter.fill_rectangle({digit_pos + Point(34, 48), {4, 4}}, segment_color);
-            digit_pos += {(digit_width + 8), 0};
+        // Prepare digits
+        if (!frequency) {
+            digits.fill(10);  // ----.---
+            digit_pos = {0, rect.location().y()};
         } else {
-            digit_pos += {digit_width, 0};
+            frequency /= 1000;  // GMMM.KKK(uuu)
+
+            for (i = 0; i < 7; i++) {
+                digits[6 - i] = frequency % 10;
+                frequency /= 10;
+            }
+
+            // Remove leading zeros
+            for (i = 0; i < 3; i++) {
+                if (!digits[i])
+                    digits[i] = 16;  // "Don't draw" code
+                else
+                    break;
+            }
+
+            digit_pos = {(Coord)(240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
+        }
+
+        segment_color = style().foreground;
+
+        // Draw
+        for (i = 0; i < 7; i++) {
+            digit = digits[i];
+
+            if (digit < 16) {
+                digit_def = segment_font[(uint8_t)digit];
+
+                for (size_t s = 0; s < 7; s++) {
+                    if (digit_def & 1)
+                        painter.fill_rectangle({digit_pos + segments[s].location(), segments[s].size()}, segment_color);
+                    digit_def >>= 1;
+                }
+            }
+
+            if (i == 3) {
+                // Dot
+                painter.fill_rectangle({digit_pos + Point(34, 48), {4, 4}}, segment_color);
+                digit_pos += {(digit_width + 8), 0};
+            } else {
+                digit_pos += {digit_width, 0};
+            }
         }
     }
 }
@@ -1131,7 +1138,7 @@ void ButtonWithEncoder::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->bg_light->background);
     painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Theme::getInstance()->bg_dark->background);
     painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Theme::getInstance()->bg_dark->background);
 
@@ -2606,15 +2613,19 @@ Waveform::Waveform(
     uint32_t length,
     uint32_t offset,
     bool digital,
-    Color color)
+    Color color,
+    bool clickable)
     : Widget{parent_rect},
       data_{data},
       length_{length},
       offset_{offset},
       digital_{digital},
-      color_{color} {
-    // set_focusable(false);
-    // previous_data.resize(length_, 0);
+      color_{color},
+      clickable_{clickable} {
+    if (clickable) {
+        set_focusable(true);
+        // previous_data.resize(length_, 0);
+    }
 }
 
 void Waveform::set_cursor(const uint32_t i, const int16_t position) {
@@ -2641,9 +2652,110 @@ void Waveform::set_length(const uint32_t new_length) {
     }
 }
 
+bool Waveform::is_paused() const {
+    return paused_;
+}
+
+void Waveform::set_paused(bool paused) {
+    paused_ = paused;
+    if (!paused) {
+        if_ever_painted_pause = false;
+    }
+    set_dirty();
+}
+
+bool Waveform::is_clickable() const {
+    return clickable_;
+}
+
+void Waveform::getAccessibilityText(std::string& result) {
+    result = paused_ ? "paused waveform" : "waveform";
+}
+
+void Waveform::getWidgetName(std::string& result) {
+    result = "Waveform";
+}
+
+bool Waveform::on_key(const KeyEvent key) {
+    if (!clickable_) return false;
+
+    if (key == KeyEvent::Select) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Waveform::on_keyboard(const KeyboardEvent key) {
+    if (!clickable_) return false;
+
+    if (key == 32 || key == 10) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Waveform::on_touch(const TouchEvent event) {
+    if (!clickable_) return false;
+
+    switch (event.type) {
+        case TouchEvent::Type::Start:
+            focus();
+            return true;
+
+        case TouchEvent::Type::End:
+            set_paused(!paused_);
+            if (on_select) {
+                on_select(*this);
+            }
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 void Waveform::paint(Painter& painter) {
     // previously it's upside down , low level is up and high level is down, which doesn't make sense,
     // if that was made for a reason, feel free to revert.
+
+    if (paused_) {
+        // TODO: this is bad: that it still enter this func and still consume resources.
+        //  even do a if(paused_) return; comsume too, but not that much.
+
+        if (dirty() && !if_ever_painted_pause) {
+            // clear
+            painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
+
+            // draw "WF HIDDEN" text
+            const auto r = screen_rect();
+            painter.draw_string(
+                {r.center().x() - 24, r.center().y() - 8},
+                style(),
+                "WF HIDDEN");
+            if_ever_painted_pause = true;
+        }
+
+        if (show_cursors) {
+            for (uint32_t n = 0; n < 2; n++) {
+                painter.draw_vline(
+                    Point(std::min(screen_rect().size().width(), (int)cursors[n]), screen_rect().location().y()),
+                    screen_rect().size().height(),
+                    cursor_colors[n]);
+            }
+        }
+
+        return;
+    }
+
+    // not paused
     size_t n;
     Coord y, y_offset = screen_rect().location().y();
     Coord prev_x = screen_rect().location().x(), prev_y;
@@ -2700,6 +2812,211 @@ void Waveform::paint(Painter& painter) {
                 screen_rect().size().height(),
                 cursor_colors[n]);
         }
+    }
+
+    // focused highlight border
+    if (clickable_ && has_focus()) {
+        painter.draw_rectangle(
+            screen_rect(),
+            Theme::getInstance()->fg_light->foreground);
+    }
+}
+
+/* GraphEq  *************************************************************/
+
+GraphEq::GraphEq(
+    Rect parent_rect,
+    bool clickable)
+    : Widget{parent_rect},
+      clickable_{clickable},
+      bar_heights(NUM_BARS, 0),
+      prev_bar_heights(NUM_BARS, 0) {
+    if (clickable) {
+        set_focusable(true);
+        // previous_data.resize(length_, 0);
+    }
+}
+
+void GraphEq::set_parent_rect(const Rect new_parent_rect) {
+    Widget::set_parent_rect(new_parent_rect);
+    calculate_params();
+}
+
+void GraphEq::calculate_params() {
+    y_top = screen_rect().top();
+    RENDER_HEIGHT = parent_rect().height();
+    BAR_WIDTH = (parent_rect().width() - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
+    HORIZONTAL_OFFSET = screen_rect().left();
+}
+
+bool GraphEq::is_paused() const {
+    return paused_;
+}
+
+void GraphEq::set_paused(bool paused) {
+    paused_ = paused;
+    needs_background_redraw = true;
+    set_dirty();
+}
+
+bool GraphEq::is_clickable() const {
+    return clickable_;
+}
+
+void GraphEq::getAccessibilityText(std::string& result) {
+    result = paused_ ? "paused GraphEq" : "GraphEq";
+}
+
+void GraphEq::getWidgetName(std::string& result) {
+    result = "GraphEq";
+}
+
+bool GraphEq::on_key(const KeyEvent key) {
+    if (!clickable_) return false;
+
+    if (key == KeyEvent::Select) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool GraphEq::on_keyboard(const KeyboardEvent key) {
+    if (!clickable_) return false;
+
+    if (key == 32 || key == 10) {
+        set_paused(!paused_);
+        if (on_select) {
+            on_select(*this);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool GraphEq::on_touch(const TouchEvent event) {
+    if (!clickable_) return false;
+
+    switch (event.type) {
+        case TouchEvent::Type::Start:
+            focus();
+            return true;
+
+        case TouchEvent::Type::End:
+            set_paused(!paused_);
+            if (on_select) {
+                on_select(*this);
+            }
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+void GraphEq::set_theme(Color base_color_, Color peak_color_) {
+    base_color = base_color_;
+    peak_color = peak_color_;
+    set_dirty();
+}
+
+void GraphEq::update_audio_spectrum(const AudioSpectrum& spectrum) {
+    const float bin_frequency_size = 48000.0f / 128;
+
+    for (int bar = 0; bar < NUM_BARS; bar++) {
+        float start_freq = FREQUENCY_BANDS[bar];
+        float end_freq = FREQUENCY_BANDS[bar + 1];
+
+        int start_bin = std::max(1, (int)(start_freq / bin_frequency_size));
+        int end_bin = std::min(127, (int)(end_freq / bin_frequency_size));
+
+        if (start_bin >= end_bin) {
+            end_bin = start_bin + 1;
+        }
+
+        float total_energy = 0;
+        int bin_count = 0;
+
+        for (int bin = start_bin; bin <= end_bin; bin++) {
+            total_energy += spectrum.db[bin];
+            bin_count++;
+        }
+
+        float avg_db = bin_count > 0 ? (total_energy / bin_count) : 0;
+
+        // Manually boost highs for better visual balance
+        float treble_boost = 1.0f;
+        if (bar == 10)
+            treble_boost = 1.7f;
+        else if (bar >= 9)
+            treble_boost = 1.3f;
+        else if (bar >= 7)
+            treble_boost = 1.3f;
+
+        // Mid emphasis for a V-shape effect
+        float mid_boost = 1.0f;
+        if (bar == 4 || bar == 5 || bar == 6) mid_boost = 1.2f;
+
+        float amplified_db = avg_db * treble_boost * mid_boost;
+
+        if (amplified_db > 255) amplified_db = 255;
+
+        float band_scale = 1.0f;
+        int target_height = (amplified_db * RENDER_HEIGHT * band_scale) / 255;
+
+        if (target_height > RENDER_HEIGHT) {
+            target_height = RENDER_HEIGHT;
+        }
+
+        // Adjusted to look nice to my eyes
+        float rise_speed = 0.8f;
+        float fall_speed = 1.0f;
+
+        if (target_height > bar_heights[bar]) {
+            bar_heights[bar] = bar_heights[bar] * (1.0f - rise_speed) + target_height * rise_speed;
+        } else {
+            bar_heights[bar] = bar_heights[bar] * (1.0f - fall_speed) + target_height * fall_speed;
+        }
+    }
+    set_dirty();
+}
+
+void GraphEq::paint(Painter& painter) {
+    if (!visible()) return;
+    if (!is_calculated) {  // calc positions first
+        calculate_params();
+        is_calculated = true;
+    }
+    if (needs_background_redraw) {
+        painter.fill_rectangle(screen_rect(), Theme::getInstance()->bg_darkest->background);
+        needs_background_redraw = false;
+    }
+    if (paused_) {
+        return;
+    }
+    const int num_segments = RENDER_HEIGHT / SEGMENT_HEIGHT;
+    uint16_t bottom = screen_rect().bottom();
+    for (int bar = 0; bar < NUM_BARS; bar++) {
+        int x = HORIZONTAL_OFFSET + bar * (BAR_WIDTH + BAR_SPACING);
+        int active_segments = (bar_heights[bar] * num_segments) / RENDER_HEIGHT;
+
+        if (prev_bar_heights[bar] > active_segments) {
+            int clear_height = (prev_bar_heights[bar] - active_segments) * SEGMENT_HEIGHT;
+            int clear_y = bottom - prev_bar_heights[bar] * SEGMENT_HEIGHT;
+            painter.fill_rectangle({x, clear_y, BAR_WIDTH, clear_height}, Theme::getInstance()->bg_darkest->background);
+        }
+
+        for (int seg = 0; seg < active_segments; seg++) {
+            int y = bottom - (seg + 1) * SEGMENT_HEIGHT;
+            if (y < y_top) break;
+
+            Color segment_color = (seg >= active_segments - 2 && seg < active_segments) ? peak_color : base_color;
+            painter.fill_rectangle({x, y, BAR_WIDTH, SEGMENT_HEIGHT - 1}, segment_color);
+        }
+        prev_bar_heights[bar] = active_segments;
     }
 }
 

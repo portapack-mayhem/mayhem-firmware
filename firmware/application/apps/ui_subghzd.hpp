@@ -129,6 +129,9 @@ class SubGhzDView : public View {
         {18 * 8, 0 * 16}};
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
+    Channel channel{
+        {21 * 8, 5, 6 * 8, 4},
+    };
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
         nav_};
@@ -192,7 +195,7 @@ class SubGhzDRecentEntryDetailView : public View {
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
 
     Console console{
-        {0, 4 * 16, 240, screen_height - (4 * 16) - 36}};
+        {0, 4 * 16, screen_width, screen_height - (4 * 16) - 36}};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},

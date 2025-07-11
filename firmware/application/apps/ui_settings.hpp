@@ -363,8 +363,12 @@ class SetUIView : public View {
         {19 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_batt_text};
 
-    ImageToggle toggle_sd_card{
+    ImageToggle toggle_fake_brightness{
         {21 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_brightness};
+
+    ImageToggle toggle_sd_card{
+        {23 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -541,35 +545,7 @@ class SetAudioView : public View {
     };
 };
 
-class SetQRCodeView : public View {
-   public:
-    SetQRCodeView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "QR Code"; };
-
-   private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::getInstance()->fg_light->foreground},
-    };
-
-    Checkbox checkbox_bigger_qr{
-        {3 * 8, 4 * 16},
-        20,
-        "Show large QR code"};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-};
-
+using portapack::persistent_memory::encoder_dial_direction;
 using portapack::persistent_memory::encoder_dial_sensitivity;
 using portapack::persistent_memory::encoder_rate_multiplier;
 
@@ -583,29 +559,94 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "rotation position (number of", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 3 * 16}, "steps per full rotation):", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 5 * 16}, "Dial sensitivity:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 9 * 16}, "rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 10 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
-        {{3 * 8, 12 * 16}, "Rate multiplier:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 0 * 16}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "position (x steps per 360):", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "Sensitivity:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "Rate multiplier:", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 14 * 16}, "Direction:", Theme::getInstance()->fg_light->foreground},
+
     };
 
     OptionsField field_encoder_dial_sensitivity{
-        {20 * 8, 5 * 16},
+        {20 * 8, 3 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
 
     NumberField field_encoder_rate_multiplier{
-        {20 * 8, 12 * 16},
+        {20 * 8, 10 * 16},
         2,
         {1, 15},
         1,
         ' '};
+
+    OptionsField field_encoder_dial_direction{
+        {18 * 8, 14 * 16},
+        7,
+        {{"NORMAL", false},
+         {"REVERSE", true}}};
+
+    Button button_dial_sensitivity_plus{
+        {20 * 8, 2 * 16, 16, 16},
+        "+"};
+
+    Button button_dial_sensitivity_minus{
+        {20 * 8, 4 * 16, 16, 16},
+        "-"};
+
+    Button button_rate_multiplier_plus{
+        {20 * 8, 9 * 16, 16, 16},
+        "+"};
+
+    Button button_rate_multiplier_minus{
+        {20 * 8, 11 * 16, 16, 16},
+        "-"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+class SetButtonsView : public View {
+   public:
+    SetButtonsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Button Speed"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Adjusts response time when a", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "button is held down.", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 9 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField field_repeat_delay{
+        {20 * 8, 5 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_repeat_speed{
+        {20 * 8, 7 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
+
+    OptionsField field_long_press_delay{
+        {20 * 8, 9 * 16},
+        6,
+        {{"NORMAL", false},
+         {"FAST", true}}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -672,7 +713,7 @@ class AppSettingsView : public View {
         {{0, 4}, "Select file to edit:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
-        {0, 2 * 8, 240, 26 * 8},
+        {0, 2 * 8, screen_width, 26 * 8},
         true};
 };
 
@@ -705,6 +746,7 @@ class SetConfigModeView : public View {
         "Cancel",
     };
 };
+using portapack::persistent_memory::fake_brightness_level_options;
 
 class SetDisplayView : public View {
    public:
@@ -715,10 +757,31 @@ class SetDisplayView : public View {
     std::string title() const override { return "Display"; };
 
    private:
-    Checkbox checkbox_invert_switch{
-        {1 * 8, 2 * 16},
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Limits screen brightness", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "REBOOT TO APPLY SCREEN TYPE", Theme::getInstance()->fg_light->foreground},
+
+    };
+
+    OptionsField field_fake_brightness{
+        {20 * 8, 8 * 16},
+        6,
+        {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
+         {"25%", fake_brightness_level_options::BRIGHTNESS_25},
+         {"50%", fake_brightness_level_options::BRIGHTNESS_50}}};
+
+    Checkbox checkbox_brightness_switch{
+        {1 * 8, 5 * 16},
+        16,
+        "Enable brightness adjust"};
+
+    Checkbox checkbox_ips_screen_switch{
+        {1 * 8, 12 * 16},
         23,
-        "Invert colors (For IPS)"};
+        "IPS Screen"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -864,47 +927,6 @@ class SetMenuColorView : public View {
     };
 };
 
-class SetAutostartView : public View {
-   public:
-    SetAutostartView(NavigationView& nav);
-
-    void focus() override;
-
-    std::string title() const override { return "Autostart"; };
-
-   private:
-    int32_t i = 0;
-    std::string autostart_app{""};
-    OptionsField::options_t opts{};
-    std::map<int32_t, std::string> full_app_list{};  // looking table
-    int32_t selected = 0;
-    SettingsStore nav_setting{
-        "nav"sv,
-        {{"autostart_app"sv, &autostart_app}}};
-    Labels labels{
-        {{1 * 8, 1 * 16}, "Select app to start on boot", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 2 * 16}, "(an SD Card is required)", Theme::getInstance()->fg_light->foreground}};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    OptionsField options{
-        {0 * 8, 4 * 16},
-        screen_width / 8,
-        {},
-        true};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-
-    Button button_reset{
-        {2 * 8, 6 * 16, screen_width - 4 * 8, 32},
-        "Reset"};
-};
-
 class SetThemeView : public View {
    public:
     SetThemeView(NavigationView& nav);
@@ -925,13 +947,14 @@ class SetThemeView : public View {
 
     OptionsField options{
         {0 * 8, 4 * 16},
-        screen_width / 8,
+        (size_t)(screen_width / 8),
         {
             {"Default - Grey", 0},
             {"Yellow", 1},
             {"Aqua", 2},
             {"Green", 3},
             {"Red", 4},
+            {"Dark", 5},
         },
         true};
 
@@ -958,9 +981,13 @@ class SetBatteryView : public View {
     int32_t selected = 0;
     Labels labels{
         {{1 * 8, 1 * 16}, "Override batt calculation", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground}};
-    Labels labels2{
-        {{1 * 8, 6 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+        {{1 * 8, 2 * 16}, "method to voltage based", Theme::getInstance()->fg_light->foreground},
+        /**/
+        {{1 * 8, 6 * 16}, "Display a hint to remind you", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 7 * 16}, "when you charge", Theme::getInstance()->fg_light->foreground}};
+
+    Labels labels2{{{1 * 8, 11 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
@@ -970,13 +997,18 @@ class SetBatteryView : public View {
         23,
         "Override"};
 
+    Checkbox checkbox_battery_charge_hint{
+        {2 * 8, 9 * 16},
+        23,
+        "Charge hint"};
+
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Cancel",
     };
 
     Button button_reset{
-        {2 * 8, 8 * 16, 12 * 8, 32},
+        {2 * 8, 13 * 16, 12 * 8, 32},
         "Reset",
     };
 };
@@ -988,6 +1020,7 @@ class SettingsMenuView : public BtnGridView {
 
    private:
     NavigationView& nav_;
+
     void on_populate() override;
 };
 

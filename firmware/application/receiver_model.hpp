@@ -41,7 +41,9 @@ class ReceiverModel {
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
         SpectrumAnalysis = 3,
-        Capture = 4
+        AMAudioFMApt = 4,   // Added to handle  HF  WeatherFax , SSB (USB demod) + Tone_Subcarrier FM demod
+        WFMAudioAMApt = 5,  // Added to handle SAT Weather map , NOAA 137 Mhz.
+        Capture = 6,
     };
 
     struct settings_t {
@@ -54,6 +56,8 @@ class ReceiverModel {
         bool rf_amp = false;
         Mode mode = Mode::NarrowbandFMAudio;
         uint8_t am_config_index = 0;
+        uint8_t amfm_config_index = 0;
+        uint8_t wfmam_config_index = 0;
         uint8_t nbfm_config_index = 0;
         uint8_t wfm_config_index = 0;
         uint8_t squelch_level = 80;
@@ -87,11 +91,17 @@ class ReceiverModel {
     uint8_t am_configuration() const;
     void set_am_configuration(uint8_t n);
 
+    uint8_t amfm_configuration() const;
+    void set_amfm_configuration(uint8_t n);
+
     uint8_t nbfm_configuration() const;
     void set_nbfm_configuration(uint8_t n);
 
     uint8_t wfm_configuration() const;
     void set_wfm_configuration(uint8_t n);
+
+    uint8_t wfmam_configuration() const;
+    void set_wfmam_configuration(uint8_t n);
 
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
@@ -105,6 +115,8 @@ class ReceiverModel {
     uint8_t normalized_headphone_volume() const;
     void set_normalized_headphone_volume(uint8_t v);
 
+    void set_hidden_offset(rf::Frequency offset);
+
     void enable();
     void disable();
 
@@ -117,6 +129,7 @@ class ReceiverModel {
         size_t new_am_config_index,
         size_t new_nbfm_config_index,
         size_t new_wfm_config_index,
+        size_t new_wfmam_config_index,
         uint8_t new_squelch_level);
 
     void configure_from_app_settings(const app_settings::AppSettings& settings);
@@ -128,6 +141,7 @@ class ReceiverModel {
    private:
     settings_t settings_{};
     bool enabled_ = false;
+    rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.
 
     int32_t tuning_offset();
 
@@ -140,8 +154,10 @@ class ReceiverModel {
 
     void update_modulation();
     void update_am_configuration();
+    void update_amfm_configuration();
     void update_nbfm_configuration();
     void update_wfm_configuration();
+    void update_wfmam_configuration();
 
     void update_antenna_bias();
     void update_headphone_volume();

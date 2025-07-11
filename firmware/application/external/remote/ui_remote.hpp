@@ -292,12 +292,12 @@ class RemoteAppView : public View {
     bool is_sending() const { return replay_thread_ != nullptr; }
     void show_error(const std::string& msg) const;
 
-    static constexpr Dim button_rows = 4;
-    static constexpr Dim button_cols = 3;
-    static constexpr uint8_t max_buttons = button_rows * button_cols;
-    static constexpr Dim button_area_height = 200;
-    static constexpr Dim button_width = screen_width / button_cols;
-    static constexpr Dim button_height = button_area_height / button_rows;
+    Dim button_rows = 4;
+    Dim button_cols = 3;
+    uint8_t max_buttons = button_rows * button_cols;
+    Dim button_area_height = 200;
+    Dim button_width = screen_width / button_cols;
+    Dim button_height = button_area_height / button_rows;
 
     // This value is mysterious... why?
     static constexpr uint32_t baseband_bandwidth = 2'500'000;
@@ -328,7 +328,7 @@ class RemoteAppView : public View {
     bool ready_signal_{};  // Used to signal ReplayThread ready.
 
     TextField field_title{
-        {0 * 8, 0 * 16 + 2, 30 * 8, 1 * 16},
+        {0 * 8, 0 * 16 + 2, screen_width, 1 * 16},
         {}};
 
     TransmitterView2 tx_view{

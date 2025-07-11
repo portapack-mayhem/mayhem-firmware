@@ -24,7 +24,7 @@
 namespace ui {
 
 RecentEntriesColumns::RecentEntriesColumns(
-    const std::initializer_list<RecentEntriesColumn> columns)
+    std::initializer_list<RecentEntriesColumn> columns)
     : _columns{columns} {
 }
 

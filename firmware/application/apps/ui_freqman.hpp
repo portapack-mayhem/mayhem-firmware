@@ -100,7 +100,7 @@ class FrequencySaveView : public FreqManBaseView {
         {{0 * 8, 6 * 16}, "Description:", Theme::getInstance()->bg_darkest->foreground}};
 
     TextField field_description{
-        {0 * 8, 7 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 7 * 16, screen_width, 1 * 16},
         ""};
 
     Button button_save{

@@ -26,6 +26,11 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 
+#define ENTER_KEYBOARD_MODE_ALPHA 0
+#define ENTER_KEYBOARD_MODE_DIGITS 1
+#define ENTER_KEYBOARD_MODE_SYMBOLS 2
+#define ENTER_KEYBOARD_MODE_HEX 3
+
 namespace ui {
 
 class TextEntryView : public View {
@@ -62,6 +67,7 @@ void text_prompt(
     NavigationView& nav,
     std::string& str,
     size_t max_length,
+    uint8_t mode,
     std::function<void(std::string&)> on_done = nullptr);
 
 void text_prompt(
@@ -69,6 +75,7 @@ void text_prompt(
     std::string& str,
     uint32_t cursor_pos,
     size_t max_length,
+    uint8_t mode,  // enter mode: 123 abc etc
     std::function<void(std::string&)> on_done = nullptr);
 
 } /* namespace ui */

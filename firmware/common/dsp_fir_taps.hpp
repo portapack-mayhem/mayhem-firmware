@@ -512,6 +512,51 @@ constexpr fir_taps_real<32> taps_6k0_decim_1{
     }},
 };
 
+// IFIR prototype filter: fs=384000, pass=3000, stop=33000, decim=8, fout=48000
+// Narrower taps_6k0_decim_1IFIR version to avoid LCD waterfall  aliasing in AMFM Wefax in ZOOM X 2 (means spectrum decimation factor x2)
+// It has BW -3dB's of +-9Khz, Stop band from 33khz onwards -60 dB's , then we can use in all AM modes (DSB, SSB,CW )
+constexpr fir_taps_real<32> taps_6k0_narrow_decim_1{
+    .low_frequency_normalized = -3000.0f / 384000.0f,
+    .high_frequency_normalized = 3000.0f / 384000.0f,
+    .transition_normalized = 30000.0f / 384000.0f,
+    .taps = {{
+
+        58,
+        80,
+        138,
+        219,
+        326,
+        461,
+        622,
+        807,
+        1011,
+        1224,
+        1438,
+        1640,
+        1820,
+        1966,
+        2069,
+        2122,
+        2122,
+        2069,
+        1966,
+        1820,
+        1640,
+        1438,
+        1224,
+        1011,
+        807,
+        622,
+        461,
+        326,
+        219,
+        138,
+        80,
+        58,
+
+    }},
+};
+
 // IFIR prototype filter: fs=48000, pass=3000, stop=6700, decim=4, fout=12000
 constexpr fir_taps_real<32> taps_6k0_decim_2{
     .low_frequency_normalized = -3000.0f / 48000.0f,
@@ -553,14 +598,14 @@ constexpr fir_taps_real<32> taps_6k0_decim_2{
     }},
 };
 
-// IFIR prototype filter fs=48000 ; pass=4500 (cutt off -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
+// IFIR prototype filter fs=48000 ; pass=4500 (cutoff -3dBs) , stop=8000 (<-60dBs), decim=4, fout=12000
 // For Europe AM commercial  broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivated from taps_6k0_decim_2 )
-// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cut_off = 5150. sample_rate = 48000 # Hz,
-// Created with h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
+// Pre-decimate LPF FIR filter design Created with SciPy Python with the "window method", num_taps = 32, cutoff = 5150. sample_rate = 48000 # Hz,
+// Created with h = signal.firwin(num_taps, cutoff, nyq=sample_rate/2, window=('chebwin',50)) , achieving good  STOP band plot < -60 dB's with some ripple.
 // post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15) and similar H(f)gain
 constexpr fir_taps_real<32> taps_9k0_decim_2{
-    .low_frequency_normalized = -4500.0f / 48000.0f,  // Negative -cutt off freq -3dB (real achieved data ,in the plot and measurements)
-    .high_frequency_normalized = 4500.0f / 48000.0f,  // Positive +cutt off freq -3dB (idem)
+    .low_frequency_normalized = -4500.0f / 48000.0f,  // Negative -cutoff freq -3dB (real achieved data ,in the plot and measurements)
+    .high_frequency_normalized = 4500.0f / 48000.0f,  // Positive +cutoff freq -3dB (idem)
     .transition_normalized = 3500.0f / 48000.0f,      // 3500 Hz = (8000 Hz - 4500 Hz) (both from plot H(f) curve plot)
     .taps = {{-53, -30, 47, 198, 355, 372, 89, -535,
               -1307, -1771, -1353, 370, 3384, 7109, 10535, 12591,
@@ -644,14 +689,14 @@ constexpr fir_taps_complex<64> taps_6k0_dsb_channel{
     }},
 };
 
-// Channel filter: fs=12000, pass=4500 (cutt off -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
+// Channel filter: fs=12000, pass=4500 (cutoff -3dBs), stop=4940 (<-60dBs), decim=1, fout=12000   (*1) real frec pass / stop , based on plotted  H(f) curve)
 // For Europe AM commercial broadcasting stations in LF/MF/HF, Emissions Designator 9K00A3E Bandwidth: 9.00 kHz (derivative from  taps_6k0_dsb_channel)
-// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cut_off = 4575. sample_rate = 12000 # Hz,
-// Created with : h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
+// FIR filter design created with SciPy Python using "window method"; selected design parameters: num_taps = 64, cutoff = 4575. sample_rate = 12000 # Hz,
+// Created with : h = signal.firwin(num_taps, cutoff, nyq=sample_rate/2, window=('chebwin',50)) , achieving real plot curve (*1) with peak stop band ripple -60dBs.
 // post-scaled h taps to avoid decimals , targeting <= similar int values as previous taps_6k0_dsb_channel peak < 32.767 (2 exp 15), (29625)  and similar H(f)gain
 constexpr fir_taps_complex<64> taps_9k0_dsb_channel{
-    .low_frequency_normalized = -4500.0f / 12000.0f,  // Negative -cutt off freq -3dB (in the H(f) curve plot)
-    .high_frequency_normalized = 4500.0f / 12000.0f,  // Positive +cutt off freq -3dB (in the H(f) curve plot)
+    .low_frequency_normalized = -4500.0f / 12000.0f,  // Negative -cutoff freq -3dB (in the H(f) curve plot)
+    .high_frequency_normalized = 4500.0f / 12000.0f,  // Positive +cutoff freq -3dB (in the H(f) curve plot)
     .transition_normalized = 440.0f / 12000.0f,       // 440Hz = (4940 Hz -4500 Hz)  cut-3dB's (both data comes from H(f) curve plot and confirmed by  measurements )
     .taps = {{
         {2, 0},
@@ -945,6 +990,82 @@ constexpr fir_taps_complex<64> taps_0k7_usb_channel{
     }},
 };
 
+// USB AM+FM for Wefax (Weather fax RX) , based USB AM with truncated Differentiator band limmited cuttoff 2.400Hz for Audio Tones FM dem. ///////////////////
+
+// IFIR prototype filter: fs=12000, pass=2600, stop=3200, decim=1, fout=12000       // stop band minimum att < -48 dB's (+3300 Hz min atten peak) , rest <50 to -60dB's
+constexpr fir_taps_complex<64> taps_2k6_usb_wefax_channel{
+    .low_frequency_normalized = 0,
+    .high_frequency_normalized = 2600.0f / 12000.0f,
+    .transition_normalized = 600.0f / 12000.0f,
+    .taps = {{{-14 + 2},
+              {-11 - 5},
+              {-2 - 8},
+              {6 - 5},
+              {13 + 1},
+              {15 + 14},
+              {0 + 26},
+              {-22 + 13},
+              {-13 - 11},
+              {7 - 1},
+              {-20 + 17},
+              {-47 - 37},
+              {33 - 89},
+              {122 + 8},
+              {19 + 131},
+              {-124 + 26},
+              {1 - 123},
+              {158 + 52},
+              {-94 + 245},
+              {-363 - 91},
+              {36 - 468},
+              {524 - 37},
+              {67 + 531},
+              {-552 + 5},
+              {136 - 686},
+              {1013 + 258},
+              {-204 + 1527},
+              {-2104 + 168},
+              {-900 - 2529},
+              {2577 - 1881},
+              {2868 + 2122},
+              {-1209 + 3570},
+              {-3768 - 52},
+              {-1043 - 3412},
+              {2634 - 1801},
+              {2083 + 1693},
+              {-861 + 1927},
+              {-1507 - 318},
+              {95 - 1041},
+              {692 + 100},
+              {-189 + 519},
+              {-478 - 241},
+              {210 - 481},
+              {454 + 122},
+              {-35 + 372},
+              {-262 + 7},
+              {4 - 166},
+              {116 + 40},
+              {-66 + 108},
+              {-117 - 62},
+              {33 - 117},
+              {95 - 2},
+              {19 + 57},
+              {-23 + 13},
+              {3 - 7},
+              {6 + 16},
+              {-20 + 16},
+              {-25 - 9},
+              {-8 - 19},
+              {4 - 12},
+              {7 - 4},
+              {7 + 4},
+              {2 + 12},
+              {-7 + 13}
+
+    }}
+
+};
+
 // WFM 200KF8E emission type //////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=3072000, pass=100000, stop=484000, decim=4, fout=768000
@@ -1119,11 +1240,11 @@ constexpr fir_taps_real<24> taps_180k_wfm_decim_0 = {
     }},
 };
 
-// IFIR prototype filter: fs=768000, pass=90000, stop=110000, decim=2, fout=384000
+// IFIR prototype filter: fs=768000, pass=90000, stop=170000, decim=2, fout=384000
 constexpr fir_taps_real<16> taps_180k_wfm_decim_1 = {
     .low_frequency_normalized = -90000.0f / 768000.0f,
     .high_frequency_normalized = 90000.0f / 768000.0f,
-    .transition_normalized = 20000.0f / 768000.0f,
+    .transition_normalized = 80000.0f / 768000.0f,
     .taps = {{
         55,
         19,
@@ -1144,13 +1265,13 @@ constexpr fir_taps_real<16> taps_180k_wfm_decim_1 = {
     }},
 };
 
-// WFM 40kHZ filter for NOAA APT reception in 137Mhz band with sharp transition  //////////////////////////////////////////////
+// WFM 80kHZ filter with sharp transition  //////////////////////////////////////////////
 
-// IFIR image-reject filter: fs=3072000, pass=20000, stop=97000, decim=4, fout=768000
-constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
-    .low_frequency_normalized = -20000.0f / 3072000.0f,
-    .high_frequency_normalized = 20000.0f / 3072000.0f,
-    .transition_normalized = 67000.0f / 3072000.0f,
+// IFIR image-reject filter: fs=3072000, pass=97000, stop=300000, decim=4, fout=768000
+constexpr fir_taps_real<24> taps_80k_wfm_decim_0 = {
+    .low_frequency_normalized = -97000.0f / 3072000.0f,
+    .high_frequency_normalized = 97000.0f / 3072000.0f,
+    .transition_normalized = 203000.0f / 3072000.0f,
     .taps = {{
         46,
         112,
@@ -1179,11 +1300,11 @@ constexpr fir_taps_real<24> taps_40k_wfm_decim_0 = {
     }},
 };
 
-// IFIR prototype filter: fs=768000, pass=20000, stop=55000, decim=2, fout=384000
-constexpr fir_taps_real<16> taps_40k_wfm_decim_1 = {
-    .low_frequency_normalized = -20000.0f / 768000.0f,
-    .high_frequency_normalized = 20000.0f / 768000.0f,
-    .transition_normalized = 35000.0f / 768000.0f,
+// IFIR prototype filter: fs=768000, pass=37500, stop=112500, decim=2, fout=384000
+constexpr fir_taps_real<16> taps_80k_wfm_decim_1 = {
+    .low_frequency_normalized = -37500.0f / 768000.0f,
+    .high_frequency_normalized = 37500.0f / 768000.0f,
+    .transition_normalized = 75000.0f / 768000.0f,
     .taps = {{
         83,
         299,
@@ -1202,6 +1323,192 @@ constexpr fir_taps_real<16> taps_40k_wfm_decim_1 = {
         299,
         83,
     }},
+};
+
+// WFMAM decimation filters  ////////////////////////////////////////////////
+// Used for NOAA 137 Mhz APT sat demod.
+// IFIR prototype filter: fs=768000, pass=40000, stop=95000, decim=8, fout=96000
+constexpr fir_taps_real<32> taps_80k_wfmam_decim_1 = {
+    .low_frequency_normalized = -40000.0f / 768000.0f,
+    .high_frequency_normalized = 40000.0f / 768000.0f,
+    .transition_normalized = 53000.0f / 768000.0f,
+    .taps = {{
+        5,
+        -37,
+        -120,
+        -248,
+        -397,
+        -519,
+        -535,
+        -354,
+        106,
+        896,
+        2006,
+        3355,
+        4797,
+        6136,
+        7171,
+        7736,
+        7736,
+        7171,
+        6136,
+        4797,
+        3355,
+        2006,
+        896,
+        106,
+        -354,
+        -535,
+        -519,
+        -397,
+        -248,
+        -120,
+        -37,
+        5,
+
+    }},
+};
+
+// WFMAM decimation filters  ////////////////////////////////////////////////
+// Used for NOAA 137 Mhz APT sat demod.
+// IFIR prototype filter: fs=768000, pass=19000, stop=68000, decim=8, fout=96000
+constexpr fir_taps_real<32> taps_38k_wfmam_decim_1 = {
+    .low_frequency_normalized = -19000.0f / 768000.0f,
+    .high_frequency_normalized = 19000.0f / 768000.0f,
+    .transition_normalized = 49000.0f / 768000.0f,
+    .taps = {{
+        49,
+        91,
+        175,
+        303,
+        483,
+        724,
+        1028,
+        1391,
+        1805,
+        2253,
+        2712,
+        3158,
+        3560,
+        3891,
+        4127,
+        4250,
+        4250,
+        4127,
+        3891,
+        3560,
+        3158,
+        2712,
+        2253,
+        1805,
+        1391,
+        1028,
+        724,
+        483,
+        303,
+        175,
+        91,
+        49,
+    }},
+};
+
+/* 1st Wideband FM demod baseband filter of audio AM tones ,
+   to pass all DSB band of  AM  fsubcarrier 2.4Khz mod. with APT */
+/* 24kHz int16_t input
+ * -> FIR filter, <4.5kHz (0.1875fs) pass, >5.2kHz (0.2166fs) stop
+ * -> 12kHz int16_t output, gain of 1.0 (I think).
+ * sum(abs(taps)): 125152         , before <125270>, very similar.
+ */
+constexpr fir_taps_real<64> taps_64_lp_1875_2166{
+    .low_frequency_normalized = -0.1875f,
+    .high_frequency_normalized = 0.1875f,
+    .transition_normalized = 0.03f,
+    .taps = {{
+        38,
+        -21,
+        -51,
+        -9,
+        77,
+        82,
+        -50,
+        -168,
+        -67,
+        190,
+        253,
+        -61,
+        -403,
+        -243,
+        356,
+        616,
+        15,
+        -814,
+        -671,
+        550,
+        1335,
+        334,
+        -1527,
+        -1689,
+        725,
+        2978,
+        1455,
+        -3277,
+        -5361,
+        830,
+        13781,
+        24549,
+        24549,
+        13781,
+        830,
+        -5361,
+        -3277,
+        1455,
+        2978,
+        725,
+        -1689,
+        -1527,
+        334,
+        1335,
+        550,
+        -671,
+        -814,
+        15,
+        616,
+        356,
+        -243,
+        -403,
+        -61,
+        253,
+        190,
+        -67,
+        -168,
+        -50,
+        82,
+        77,
+        -9,
+        -51,
+        -21,
+        38,
+    }},
+};
+
+/* 1st Wideband FM demod baseband filter of audio AM tones ,
+   to pass all DSB band of  AM  fsubcarrier 2.4Khz mod. with APT */
+/* 24kHz int16_t input
+ * -> FIR filter, BPF center 2k4 carrier ,APT  BW 2kHz
+ * -> 12kHz int16_t output, gain of 1.0 (I think).
+ */
+constexpr fir_taps_real<64> taps_64_bpf_2k4_bw_2k{
+    .low_frequency_normalized = -0.1875f,  // not updated, this is just for LPF , waterfall GUI,  we are not using in BPF NOAA app.
+    .high_frequency_normalized = 0.1875f,  // not used GUI in NOAA App.
+    .transition_normalized = 0.03f,        // not used GUI in NOAA app.
+    .taps = {{-45, -29, 32, 63, 0, -125, -181, -81, 61,
+              0, -329, -635, -551, -147, 0, -547, -1404, -1625,
+              -849, 0, -414, -2118, -3358, -2422, 0, 911, -1792,
+              -6126, -6773, 0, 11839, 21131, 21131, 11839, 0, -6773,
+              -6126, -1792, 911, 0, -2422, -3358, -2118, -414, 0,
+              -849, -1625, -1404, -547, 0, -147, -551, -635, -329,
+              0, 61, -81, -181, -125, 0, 63, 32, -29,
+              -45}},
 };
 
 // TPMS decimation filters ////////////////////////////////////////////////
@@ -1342,4 +1649,36 @@ static constexpr fir_taps_real<24> taps_BTLE_2M_PHY_decim_0 = {
 
     }},
 };
+
+// Tested to be better at capturing both 4.0 and 5.0 device. Better attenuation at channel end.
+static constexpr fir_taps_real<24> taps_BTLE_Dual_PHY = {
+    .low_frequency_normalized = -750000.0f / 4000000.0f,
+    .high_frequency_normalized = 750000.0f / 4000000.0f,
+    .transition_normalized = 250000.0f / 4000000.0f,
+    .taps = {{3,
+              -5,
+              -97,
+              -144,
+              317,
+              1099,
+              396,
+              -2887,
+              -4814,
+              1912,
+              18134,
+              32767,
+              32767,
+              18134,
+              1912,
+              -4814,
+              -2887,
+              396,
+              1099,
+              317,
+              -144,
+              -97,
+              -5,
+              3}},
+};
+
 #endif /*__DSP_FIR_TAPS_H__*/

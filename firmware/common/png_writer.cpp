@@ -63,7 +63,33 @@ Optional<File::Error> PNGWriter::create(
     }
 
     file.write(png_file_header);
-    file.write(png_ihdr_screen_capture);
+    // ihdr dynamic
+    std::array<uint8_t, 25> png_ihdr_dyn;
+    for (uint8_t i = 0; i < 25; i++) {
+        png_ihdr_dyn[i] = png_ihdr_screen_capture[i];
+    }
+    // Write width (4 bytes big-endian)
+    png_ihdr_dyn[8] = (width >> 24) & 0xFF;
+    png_ihdr_dyn[9] = (width >> 16) & 0xFF;
+    png_ihdr_dyn[10] = (width >> 8) & 0xFF;
+    png_ihdr_dyn[11] = width & 0xFF;
+
+    // Write height (4 bytes big-endian)
+    png_ihdr_dyn[12] = (height >> 24) & 0xFF;
+    png_ihdr_dyn[13] = (height >> 16) & 0xFF;
+    png_ihdr_dyn[14] = (height >> 8) & 0xFF;
+    png_ihdr_dyn[15] = height & 0xFF;
+    crc.reset();
+    crc.process_bytes(&png_ihdr_dyn[4], 4);   // Process chunk type "IHDR"
+    crc.process_bytes(&png_ihdr_dyn[8], 13);  // Process chunk data
+    uint32_t crci = crc.checksum();
+
+    png_ihdr_dyn[21] = (crci >> 24) & 0xFF;
+    png_ihdr_dyn[22] = (crci >> 16) & 0xFF;
+    png_ihdr_dyn[23] = (crci >> 8) & 0xFF;
+    png_ihdr_dyn[24] = crci & 0xFF;
+
+    file.write(png_ihdr_dyn);
 
     write_chunk_header(
         2 + height * (5 + 1 + width * 3) + 4,
@@ -104,6 +130,35 @@ void PNGWriter::write_scanline(const std::array<ui::ColorRGB888, 240>& scanline)
     write_chunk_content(&scanline[0], 80 * sizeof(ui::ColorRGB888));
     write_chunk_content(&scanline[80], 80 * sizeof(ui::ColorRGB888));
     write_chunk_content(&scanline[160], 80 * sizeof(ui::ColorRGB888));
+
+    scanline_count++;
+}
+
+void PNGWriter::write_scanline(const std::vector<ui::ColorRGB888>& scanline) {
+    constexpr uint8_t scanline_filter_type = 0;
+
+    // Total block length = 1 filter byte + scanline byte length
+    const uint32_t deflate_block_length = 1 + static_cast<uint32_t>(scanline.size() * sizeof(ui::ColorRGB888));
+
+    const std::array<uint8_t, 6> deflate_and_scanline_header{
+        static_cast<uint8_t>((scanline_count == (height - 1)) ? 0x01 : 0x00),  // Final block?
+        static_cast<uint8_t>(deflate_block_length & 0xff),                     // Length LSB
+        static_cast<uint8_t>((deflate_block_length >> 8) & 0xff),              // Length MSB
+        static_cast<uint8_t>((deflate_block_length & 0xff) ^ 0xff),            // ~Length LSB
+        static_cast<uint8_t>(((deflate_block_length >> 8) & 0xff) ^ 0xff),     // ~Length MSB
+        scanline_filter_type};
+    write_chunk_content(deflate_and_scanline_header);
+
+    adler_32.feed(scanline_filter_type);
+    adler_32.feed(scanline);
+
+    // Chunked writing to avoid large single writes
+    constexpr size_t CHUNK_SIZE = 80;  // Tune for your hardware/filesystem
+
+    for (size_t i = 0; i < scanline.size(); i += CHUNK_SIZE) {
+        size_t chunk_len = std::min(CHUNK_SIZE, scanline.size() - i);
+        write_chunk_content(&scanline[i], chunk_len * sizeof(ui::ColorRGB888));
+    }
 
     scanline_count++;
 }

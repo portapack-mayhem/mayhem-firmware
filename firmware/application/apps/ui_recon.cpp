@@ -335,7 +335,7 @@ ReconView::ReconView(NavigationView& nav)
     tx_view.hidden(true);
 
     // set record View
-    record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+    record_view = std::make_unique<RecordView>(Rect{0, 0, screen_width, 1 * 16},
                                                u"AUTO_AUDIO", audio_dir,
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
@@ -517,11 +517,7 @@ ReconView::ReconView(NavigationView& nav)
     };
     set_loop_config(continuous);
 
-    rssi.set_focusable(true);
     rssi.set_peak(true, 500);
-    rssi.on_select = [this](RSSI&) {
-        nav_.replace<LevelView>();
-    };
 
     // TODO: *BUG* Both transmitter_model and receiver_model share the same pmem setting for target_frequency.
     button_mic_app.on_select = [this](Button&) {
@@ -1168,18 +1164,18 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     }
     if (new_mod == SPEC_MODULATION) {
         if (persistent_memory::recon_repeat_recorded()) {
-            record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+            record_view = std::make_unique<RecordView>(Rect{0, 0, screen_width, 1 * 16},
                                                        u"RECON_REPEAT.C16", captures_dir,
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_as_is(true);
         } else {
-            record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+            record_view = std::make_unique<RecordView>(Rect{0, 0, screen_width, 1 * 16},
                                                        u"AUTO_RAW", captures_dir,
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_date_frequency(true);
         }
     } else {
-        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+        record_view = std::make_unique<RecordView>(Rect{0, 0, screen_width, 1 * 16},
                                                    u"AUTO_AUDIO", audio_dir,
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
@@ -1257,9 +1253,17 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        if (v != -1) {
-            change_mode(v);
+        // initialize to a value under SPEC
+        static freqman_index_t last_mode = WFM_MODULATION;
+        if (v > SPEC_MODULATION) {
+            if (last_mode == SPEC_MODULATION)
+                v = AM_MODULATION;
+            else
+                v = SPEC_MODULATION;
+            field_mode.set_selected_index(v);
         }
+        last_mode = v;
+        change_mode(v);
     };
     // for some motive, audio output gets stopped.
     if (!recon && field_mode.selected_index_value() != SPEC_MODULATION)
@@ -1400,8 +1404,8 @@ void ReconView::start_repeat() {
             std::string delay_message = "TX DELAY: " + to_string_dec_uint(delay) + "s";
 
             // update display information
-            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Theme::getInstance()->fg_light->foreground);
-            p.draw_string({(SCREEN_W / 2) - 7 * 8, SCREEN_H / 2}, *Theme::getInstance()->fg_red, delay_message);
+            p.fill_rectangle({0, (screen_height / 2) - 16, screen_width, 64}, Theme::getInstance()->fg_light->foreground);
+            p.draw_string({(screen_width / 2) - 7 * 8, screen_height / 2}, *Theme::getInstance()->fg_red, delay_message);
 
             // sleep 1 second
             chThdSleepMilliseconds(1000);

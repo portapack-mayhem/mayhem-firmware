@@ -95,8 +95,8 @@ struct AircraftRecentEntry {
     ADSBAgeState state{ADSBAgeState::Invalid};
     uint32_t age{0};  // In seconds
     uint32_t amp{0};
-    adsb_pos pos{false, 0, 0, 0};
-    adsb_vel velo{false, 0, 999, 0};
+    adsb_pos pos{false, false, 0, 0, 0};
+    adsb_vel velo{false, SPD_GND, 0, 999, 0};
     ADSBFrame frame_pos_even{};
     ADSBFrame frame_pos_odd{};
 
@@ -105,6 +105,7 @@ struct AircraftRecentEntry {
     std::string info_string{};
 
     uint8_t sil{0};  // Surveillance integrity level
+    uint16_t sqwk{0};
 
     AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {
@@ -152,8 +153,8 @@ struct AircraftRecentEntry {
         age += delta;
 
         if (age < ADSBAgeLimit::Current)
-            state = pos.valid ? ADSBAgeState::Invalid
-                              : ADSBAgeState::Current;
+            state = pos.pos_valid ? ADSBAgeState::Current
+                                  : ADSBAgeState::Invalid;
 
         else if (age < ADSBAgeLimit::Recent)
             state = ADSBAgeState::Recent;
@@ -178,6 +179,7 @@ struct ADSBLogEntry {
     adsb_vel vel{};
     uint8_t vel_type{};
     uint8_t sil{};
+    uint16_t sqwk{};
 };
 
 // TODO: Make logging optional.
@@ -228,7 +230,7 @@ class ADSBRxAircraftDetailsView : public View {
         "-"};
 
     Text text_model{
-        {0 * 8, 6 * 16, 30 * 8, 16},
+        {0 * 8, 6 * 16, screen_width, 16},
         "-"};
 
     Text text_type{
@@ -236,19 +238,19 @@ class ADSBRxAircraftDetailsView : public View {
         "-"};
 
     Text text_number_of_engines{
-        {18 * 8, 8 * 16, 30 * 8, 16},
+        {18 * 8, 8 * 16, screen_width, 16},
         "-"};
 
     Text text_engine_type{
-        {0 * 8, 10 * 16, 30 * 8, 16},
+        {0 * 8, 10 * 16, screen_width, 16},
         "-"};
 
     Text text_owner{
-        {0 * 8, 12 * 16, 30 * 8, 16},
+        {0 * 8, 12 * 16, screen_width, 16},
         "-"};
 
     Text text_operator{
-        {0 * 8, 14 * 16, 30 * 8, 16},
+        {0 * 8, 14 * 16, screen_width, 16},
         "-"};
 
     Button button_close{
@@ -310,7 +312,7 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Text text_airline{
-        {0 * 8, 4 * 16, 30 * 8, 16},
+        {0 * 8, 4 * 16, screen_width, 16},
         "-"};
 
     Text text_country{
@@ -318,18 +320,18 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Text text_infos{
-        {0 * 8, 6 * 16, 30 * 8, 16},
+        {0 * 8, 6 * 16, screen_width, 16},
         "-"};
 
     Text text_info2{
-        {0 * 8, 7 * 16, 30 * 8, 16},
+        {0 * 8, 7 * 16, screen_width, 16},
         "-"};
 
     Text text_frame_pos_even{
-        {0 * 8, 14 * 16, 30 * 8, 16},
+        {0 * 8, 14 * 16, screen_width, 16},
         "-"};
     Text text_frame_pos_odd{
-        {0 * 8, 16 * 16, 30 * 8, 16},
+        {0 * 8, 16 * 16, screen_width, 16},
         "-"};
 
     Button button_aircraft_details{
@@ -440,7 +442,7 @@ class ADSBRxView : public View {
     };
 
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {screen_width - 2 * 8, 0 * 16}};
 
     MessageHandlerRegistration message_handler_frame{
         Message::ID::ADSBFrame,

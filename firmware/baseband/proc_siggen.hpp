@@ -36,7 +36,7 @@ class SigGenProcessor : public BasebandProcessor {
     bool configured{false};
 
     uint32_t tone_delta{0}, fm_delta{}, tone_phase{0};
-    uint8_t tone_shape{};
+    uint8_t tone_shape{}, modulation{};
     uint32_t sample_count{0};
     bool auto_off{};
     int32_t phase{0}, sphase{0}, delta{0};  // they may have sign in the pseudo random sample generation.

@@ -92,11 +92,20 @@ void ExternalModuleView::on_tick_second() {
             case app_location_t::TX:
                 btnText += " (TX)";
                 break;
+            case app_location_t::TRX:
+                btnText += " (TRX)";
+                break;
+            case app_location_t::SETTINGS:
+                btnText += " (Settings)";
+                break;
             case app_location_t::DEBUG:
                 btnText += " (Debug)";
                 break;
             case app_location_t::HOME:
                 btnText += " (Home)";
+                break;
+            case app_location_t::GAMES:
+                btnText += " (Games)";
                 break;
         }
 
@@ -119,4 +128,5 @@ void ExternalModuleView::on_tick_second() {
         }
     }
 }
+
 }  // namespace ui

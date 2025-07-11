@@ -59,6 +59,10 @@ using namespace sd_card;
 
 namespace ui {
 
+void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos);
+bool verify_sdcard_format();
+
 enum modal_t {
     INFO = 0,
     YESNO,
@@ -280,6 +284,12 @@ class SystemStatusView : public View {
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
 
+    ImageButton button_fake_brightness{
+        {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_brightness,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background};
+
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
@@ -322,7 +332,7 @@ class InformationView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0, 0 * 16, 240, 16},
+        {0, 0, screen_width, 16},
         Theme::getInstance()->bg_darker->background};
 
     Text version{
@@ -330,7 +340,7 @@ class InformationView : public View {
         VERSION_STRING};
 
     LiveDateTime ltime{
-        {86, 0, 19 * 8, 16}};
+        {screen_width - 19 * 8, 0, 19 * 8, 16}};
 };
 
 class SplashScreenView : public View {
@@ -345,7 +355,7 @@ class SplashScreenView : public View {
    private:
     NavigationView& nav_;
     Button button_done{
-        {240, 0, 1, 1},
+        {screen_width, 0, 1, 1},
         ""};
 };
 
@@ -369,10 +379,30 @@ class TransmittersMenuView : public BtnGridView {
     void on_populate() override;
 };
 
+class TranceiversMenuView : public BtnGridView {
+   public:
+    TranceiversMenuView(NavigationView& nav);
+    std::string title() const override { return "Tranceiver"; };
+
+   private:
+    NavigationView& nav_;
+    void on_populate() override;
+};
+
 class UtilitiesMenuView : public BtnGridView {
    public:
     UtilitiesMenuView(NavigationView& nav);
     std::string title() const override { return "Utilities"; };
+
+   private:
+    NavigationView& nav_;
+    void on_populate() override;
+};
+
+class GamesMenuView : public BtnGridView {
+   public:
+    GamesMenuView(NavigationView& nav);
+    std::string title() const override { return "Games"; };
 
    private:
     NavigationView& nav_;

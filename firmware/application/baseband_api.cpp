@@ -66,12 +66,13 @@ static void send_message(const Message* const message) {
 
 void AMConfig::apply() const {
     const AMConfigureMessage message{
-        taps_6k0_decim_0,  // common FIR filter taps pre-decim_0 to all 5 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW)
-        taps_6k0_decim_1,  // common FIR filter taps pre-decim_1 to all 5 x AM mod. types.
-        decim_2,           // var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k all rest AM modes)
-        channel,           // var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW)
-        modulation,        // var parameter .
-        audio_12k_hpf_300hz_config};
+        taps_6k0_decim_0,             // common FIR filter taps pre-decim_0 to all 6 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW, AMFM-WFAX)
+        decim_1,                      // var decim_1 FIR taps filter , variable values , to handle two spectrum decim factor 1 and 2 (zoom) and more APT LPF filtered .
+        decim_2,                      // var decim_2 FIR taps filter , variable values, depending selected  AM mod(AM  9k / 6k and all rest AM modes)
+        channel,                      // var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW,AMFM-WFAX)
+        modulation,                   // var parameter . enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
+        audio_12k_iir_filter_config,  // var parameter , 300 Hz hpf all except Wefax (1.500Hz lpf)
+        spectrum_decimation_factor};  // var parameter , waterfall no zoom : 1 ,for zoom x 2 : 2
     send_message(&message);
     audio::set_rate(audio::Rate::Hz_12000);
 }
@@ -92,14 +93,26 @@ void NBFMConfig::apply(const uint8_t squelch_level) const {
 
 void WFMConfig::apply() const {
     const WFMConfigureMessage message{
-        decim_0,  // 	taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_40k_wfm_decim_0
-        decim_1,  // 	taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_40k_wfm_decim_1
-        taps_64_lp_156_198,
+        decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_80k_wfm_decim_0
+        decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_80k_wfm_decim_1
+        taps_64_lp_156_198,  // Fixed channel audio filter 15khz
         75000,
         audio_48k_hpf_30hz_config,
         audio_48k_deemph_2122_6_config};
     send_message(&message);
     audio::set_rate(audio::Rate::Hz_48000);
+}
+
+void WFMAMConfig::apply() const {
+    const WFMAMConfigureMessage message{
+        decim_0,         // 	Fixed 24 taps array : taps_16k0_decim_0
+        decim_1,         // Dynamic  32 taps array : taps_80k_wfmam_decim_1, 38k_wfmam
+        taps_64_lp_bpf,  // Dynamic 64 taps array , to filter modulated DSB AM 2k4 carrier before demod. AM .(LPF / BPF)
+        17000,           // NOAA satellite tx , FM deviation = +-17Khz.
+        apt_audio_12k_notch_2k4_config,
+        apt_audio_12k_lpf_2000hz_config};
+    send_message(&message);
+    audio::set_rate(audio::Rate::Hz_12000);
 }
 
 void set_tone(const uint32_t index, const uint32_t delta, const uint32_t duration) {
@@ -173,13 +186,14 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
     send_message(&message);
 }
 
-void set_fsk(const size_t deviation) {
+void set_fsk(const uint8_t samplesPerSymbol, const uint32_t syncWord, const uint8_t syncWordLength, const uint32_t preamble, const uint8_t preambleLength, uint16_t numDataBytes) {
     const FSKRxConfigureMessage message{
-        taps_200k_decim_0,
-        taps_16k0_decim_1,
-        taps_11k0_channel,
-        2,
-        deviation};
+        samplesPerSymbol,
+        syncWord,
+        syncWordLength,
+        preamble,
+        preambleLength,
+        numDataBytes};
 
     send_message(&message);
 }
@@ -301,6 +315,16 @@ void set_rds_data(const uint16_t message_length) {
 void set_spectrum(const size_t sampling_rate, const size_t trigger) {
     const WidebandSpectrumConfigMessage message{
         sampling_rate, trigger};
+    send_message(&message);
+}
+
+void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
+    const WeFaxRxConfigureMessage message{lpm, ioc};
+    send_message(&message);
+}
+
+void set_noaaapt_config() {
+    const NoaaAptRxConfigureMessage message{};
     send_message(&message);
 }
 
