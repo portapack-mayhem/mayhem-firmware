@@ -32,6 +32,8 @@
 #include "chprintf.h"
 #include "portapack.hpp"
 
+#include "platform_detect.h"
+
 /**
  * @brief   Shell termination event source.
  */
@@ -65,6 +67,39 @@ static void list_commands(BaseSequentialStream* chp, const ShellCommand* scp) {
     }
 }
 
+static const char* get_board_revision_string(board_rev_t rev) {
+    switch (rev) {
+        case BOARD_REV_HACKRF1_OLD:
+            return "HackRF R1-R5";
+        case BOARD_REV_HACKRF1_R6:
+            return "HackRF R6";
+        case BOARD_REV_HACKRF1_R7:
+            return "HackRF R7";
+        case BOARD_REV_HACKRF1_R8:
+            return "HackRF R8";
+        case BOARD_REV_HACKRF1_R9:
+            return "HackRF R9";
+        case BOARD_REV_HACKRF1_R10:
+            return "HackRF R10";
+        case BOARD_REV_GSG_HACKRF1_R6:
+            return "GSG HackRF R6";
+        case BOARD_REV_GSG_HACKRF1_R7:
+            return "GSG HackRF R7";
+        case BOARD_REV_GSG_HACKRF1_R8:
+            return "GSG HackRF R8";
+        case BOARD_REV_GSG_HACKRF1_R9:
+            return "GSG HackRF R9";
+        case BOARD_REV_GSG_HACKRF1_R10:
+            return "GSG HackRF R10";
+        case BOARD_REV_UNRECOGNIZED:
+            return "Unrecognized";
+        case BOARD_REV_UNDETECTED:
+            return "Undetected";
+        default:
+            return "Unknown";
+    }
+}
+
 static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
     if (argc > 0) {
@@ -92,7 +127,11 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
 #ifdef VERSION_STRING
     chprintf(chp, "Mayhem Version:   %s\r\n", VERSION_STRING);
 #endif
-    chprintf(chp, "HackRF Board Rev: %s\r\n", hackrf_r9 ? "R9" : "R1-R8");
+
+    // Usage
+    board_rev_t revision = detected_revision();
+    const char* revision_string = get_board_revision_string(revision);
+    chprintf(chp, "HackRF Board Rev: %s\r\n", revision_string);
     chprintf(chp, "Reference Source: %s\r\n", portapack::clock_manager.get_source().c_str());
     chprintf(chp, "Reference Freq:   %s\r\n", portapack::clock_manager.get_freq().c_str());
 #ifdef __DATE__
