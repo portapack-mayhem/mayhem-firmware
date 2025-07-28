@@ -68,6 +68,7 @@
 #include "analog_audio_app.hpp"
 // #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
+#include "ui_epirb_rx.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "pocsag_app.hpp"
@@ -130,6 +131,8 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
+    {"epirb", "EPIRB", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<EPIRBAppView>()},
+    {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
@@ -762,7 +765,7 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() { 
+                           [&nav, &app]() {
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
                             nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
                           true);
@@ -789,8 +792,8 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                          error_tile_pos);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
-        { 
-            return a.desired_position < b.desired_position; 
+        {
+            return a.desired_position < b.desired_position;
         });
 
         for (auto const& gridItem : externalItems) {
@@ -799,7 +802,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             } else {
                 grid.insert_item(gridItem, gridItem.desired_position, true);
             }
-            
+
         }
 
         grid.update_items();

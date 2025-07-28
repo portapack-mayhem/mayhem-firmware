@@ -135,6 +135,7 @@ class Message {
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
+        EPIRBPacket = 81,
         MAX
     };
 
@@ -333,6 +334,17 @@ class AISPacketMessage : public Message {
     constexpr AISPacketMessage(
         const baseband::Packet& packet)
         : Message{ID::AISPacket},
+          packet{packet} {
+    }
+
+    baseband::Packet packet;
+};
+
+class EPIRBPacketMessage : public Message {
+   public:
+    constexpr EPIRBPacketMessage(
+        const baseband::Packet& packet)
+        : Message{ID::EPIRBPacket},
           packet{packet} {
     }
 
