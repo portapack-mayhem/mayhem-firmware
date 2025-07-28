@@ -79,7 +79,7 @@ void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
     // EPIRB packet received - validate and process
     if (packet.size() >= 112) {  // Minimum EPIRB data payload size (112 bits)
         packets_received++;
-        last_packet_timestamp = chVTGetSystemTimeX();
+        last_packet_timestamp = Timestamp::now();
 
         // Create and send EPIRB packet message to application layer
         const EPIRBPacketMessage message{packet};

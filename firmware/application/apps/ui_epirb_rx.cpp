@@ -138,7 +138,7 @@ uint32_t EPIRBDecoder::decode_country_code(const std::array<uint8_t, 16>& data) 
     return ((data[0] & 0x03) << 8) | data[1];
 }
 
-std::string EPIRBDecoder::decode_vessel_name(const std::array<uint8_t, 16>& data) {
+std::string EPIRBDecoder::decode_vessel_name(const std::array<uint8_t, 16>& /* data */) {
     // Vessel name extraction depends on beacon type and protocol
     // This is a placeholder - actual implementation would be more complex
     return "";
@@ -165,6 +165,32 @@ void EPIRBLogger::on_packet(const epirb::EPIRBBeacon& beacon) {
 }
 
 namespace ui {
+
+std::string format_beacon_type(epirb::BeaconType type) {
+    switch (type) {
+        case epirb::BeaconType::OrbitingLocationBeacon: return "OLB";
+        case epirb::BeaconType::PersonalLocatorBeacon: return "PLB";
+        case epirb::BeaconType::EmergencyLocatorTransmitter: return "ELT";
+        case epirb::BeaconType::SerialELT: return "S-ELT";
+        case epirb::BeaconType::NationalELT: return "N-ELT";
+        default: return "Other";
+    }
+}
+
+std::string format_emergency_type(epirb::EmergencyType type) {
+    switch (type) {
+        case epirb::EmergencyType::Fire: return "Fire";
+        case epirb::EmergencyType::Flooding: return "Flooding";
+        case epirb::EmergencyType::Collision: return "Collision";
+        case epirb::EmergencyType::Grounding: return "Grounding";
+        case epirb::EmergencyType::Sinking: return "Sinking";
+        case epirb::EmergencyType::Disabled: return "Disabled";
+        case epirb::EmergencyType::Abandoning: return "Abandoning";
+        case epirb::EmergencyType::Piracy: return "Piracy";
+        case epirb::EmergencyType::Man_Overboard: return "MOB";
+        default: return "Other";
+    }
+}
 
 EPIRBBeaconDetailView::EPIRBBeaconDetailView(NavigationView& nav) {
     add_children({
@@ -213,30 +239,30 @@ void EPIRBBeaconDetailView::paint(Painter& painter) {
     draw_cursor += {8, 8};
     
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                           "Beacon ID", to_string_hex(beacon_.beacon_id, 15));
+                           "Beacon ID", to_string_hex(beacon_.beacon_id, 15)).location();
     
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                           "Type", format_beacon_type(beacon_.beacon_type));
+                           "Type", format_beacon_type(beacon_.beacon_type)).location();
     
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                           "Emergency", format_emergency_type(beacon_.emergency_type));
+                           "Emergency", format_emergency_type(beacon_.emergency_type)).location();
     
     if (beacon_.location.valid) {
         draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                               "Latitude", to_string_decimal(beacon_.location.latitude, 6) + "°");
+                               "Latitude", to_string_decimal(beacon_.location.latitude, 6) + "°").location();
         
         draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                               "Longitude", to_string_decimal(beacon_.location.longitude, 6) + "°");
+                               "Longitude", to_string_decimal(beacon_.location.longitude, 6) + "°").location();
     } else {
         draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                               "Location", "Unknown");
+                               "Location", "Unknown").location();
     }
     
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                           "Country", to_string_dec_uint(beacon_.country_code));
+                           "Country", to_string_dec_uint(beacon_.country_code)).location();
     
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                           "Time", to_string_datetime(beacon_.timestamp, SS));
+                           "Time", to_string_datetime(beacon_.timestamp, HMS)).location();
 }
 
 Rect EPIRBBeaconDetailView::draw_field(
@@ -287,13 +313,17 @@ EPIRBAppView::EPIRBAppView(NavigationView& nav) : nav_(nav) {
         this->on_toggle_log();
     };
     
-    signal_token_tick_second = rtc_time::signal_tick_second.connect([this]() {
+    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
-    });
+    };
     
-    radio_state_.configure_receiver();
-    radio_state_.set_sampling_rate(2457600);
-    radio_state_.set_decimation_factor(1);
+    // Configure receiver for 406.028 MHz EPIRB frequency
+    receiver_model.set_target_frequency(406028000);
+    receiver_model.set_rf_amp(true);
+    receiver_model.set_lna(32);
+    receiver_model.set_vga(32);
+    receiver_model.set_sampling_rate(2457600);
+    receiver_model.enable();
     
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -307,7 +337,7 @@ EPIRBAppView::EPIRBAppView(NavigationView& nav) : nav_(nav) {
 EPIRBAppView::~EPIRBAppView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
     
-    radio_state_.disable();
+    receiver_model.disable();
     baseband::shutdown();
     
     audio::output::stop();
@@ -316,13 +346,16 @@ EPIRBAppView::~EPIRBAppView() {
 void EPIRBAppView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     
-    const auto control_bar_rect = new_parent_rect.take_from_top(header_height);
-    
-    const auto console_rect = new_parent_rect.take_from_top(new_parent_rect.height() - 32);
+    const auto console_rect = Rect{
+        new_parent_rect.left(),
+        new_parent_rect.top() + header_height,
+        new_parent_rect.width(),
+        new_parent_rect.height() - header_height - 32
+    };
     console.set_parent_rect(console_rect);
 }
 
-void EPIRBAppView::paint(Painter& painter) {
+void EPIRBAppView::paint(Painter& /* painter */) {
     // Custom painting if needed
 }
 
@@ -407,7 +440,7 @@ void EPIRBAppView::on_show_map() {
 void EPIRBAppView::on_clear_beacons() {
     recent_beacons.clear();
     beacons_received = 0;
-    console.clear();
+    console.clear(true);
     update_display();
 }
 
@@ -456,30 +489,5 @@ std::string EPIRBAppView::format_location(const epirb::EPIRBLocation& location) 
            to_string_decimal(location.longitude, 4) + "°";
 }
 
-std::string EPIRBAppView::format_beacon_type(epirb::BeaconType type) {
-    switch (type) {
-        case epirb::BeaconType::OrbitingLocationBeacon: return "OLB";
-        case epirb::BeaconType::PersonalLocatorBeacon: return "PLB";
-        case epirb::BeaconType::EmergencyLocatorTransmitter: return "ELT";
-        case epirb::BeaconType::SerialELT: return "S-ELT";
-        case epirb::BeaconType::NationalELT: return "N-ELT";
-        default: return "Other";
-    }
-}
-
-std::string EPIRBAppView::format_emergency_type(epirb::EmergencyType type) {
-    switch (type) {
-        case epirb::EmergencyType::Fire: return "Fire";
-        case epirb::EmergencyType::Flooding: return "Flooding";
-        case epirb::EmergencyType::Collision: return "Collision";
-        case epirb::EmergencyType::Grounding: return "Grounding";
-        case epirb::EmergencyType::Sinking: return "Sinking";
-        case epirb::EmergencyType::Disabled: return "Disabled";
-        case epirb::EmergencyType::Abandoning: return "Abandoning";
-        case epirb::EmergencyType::Piracy: return "Piracy";
-        case epirb::EmergencyType::Man_Overboard: return "MOB";
-        default: return "Other";
-    }
-}
 
 } // namespace ui

@@ -35,6 +35,7 @@
 #include "baseband_packet.hpp"
 
 #include "message.hpp"
+#include "buffer.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -76,7 +77,7 @@ class EPIRBProcessor : public BasebandProcessor {
 
     // Matched filter for BPSK demodulation at 400 bps
     // Using raised cosine filter taps optimized for 400 bps BPSK
-    static constexpr std::array<int16_t, 64> bpsk_taps = {{
+    static constexpr std::array<std::complex<float>, 64> bpsk_taps = {{
         // Raised cosine filter coefficients for BPSK 400 bps
         -5, -8, -12, -15, -17, -17, -15, -11,
         -5, 2, 11, 20, 29, 37, 43, 47,
@@ -122,7 +123,7 @@ class EPIRBProcessor : public BasebandProcessor {
 
     // Statistics
     uint32_t packets_received = 0;
-    uint32_t last_packet_timestamp = 0;
+    Timestamp last_packet_timestamp{};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{

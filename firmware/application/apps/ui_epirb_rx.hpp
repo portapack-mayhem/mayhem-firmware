@@ -86,7 +86,8 @@ struct EPIRBBeacon {
     uint32_t sequence_number;
     
     EPIRBBeacon() : beacon_id(0), beacon_type(BeaconType::Other), 
-                   emergency_type(EmergencyType::Other), country_code(0), 
+                   emergency_type(EmergencyType::Other), location(), 
+                   country_code(0), vessel_name(), timestamp(), 
                    sequence_number(0) {}
 };
 
@@ -118,11 +119,17 @@ private:
 
 namespace ui {
 
+// Forward declarations of formatting functions
+std::string format_beacon_type(epirb::BeaconType type);
+std::string format_emergency_type(epirb::EmergencyType type);
+
 class EPIRBBeaconDetailView : public View {
 public:
     std::function<void(void)> on_close{};
     
     EPIRBBeaconDetailView(NavigationView& nav);
+    EPIRBBeaconDetailView(const EPIRBBeaconDetailView&) = delete;
+    EPIRBBeaconDetailView& operator=(const EPIRBBeaconDetailView&) = delete;
     
     void set_beacon(const epirb::EPIRBBeacon& beacon);
     const epirb::EPIRBBeacon& beacon() const { return beacon_; }
@@ -167,11 +174,6 @@ public:
     std::string title() const override { return "EPIRB RX"; }
     
 private:
-    RxRadioState radio_state_{
-        406028000 /* 406.028 MHz center frequency */,
-        25000 /* 25 kHz bandwidth */,
-        2457600 /* 2.4576 MHz sampling rate */
-    };
     app_settings::SettingsManager settings_{
         "rx_epirb", app_settings::Mode::RX
     };
@@ -277,8 +279,6 @@ private:
     void update_display();
     std::string format_beacon_summary(const epirb::EPIRBBeacon& beacon);
     std::string format_location(const epirb::EPIRBLocation& location);
-    std::string format_beacon_type(epirb::BeaconType type);
-    std::string format_emergency_type(epirb::EmergencyType type);
 };
 
 } // namespace ui
