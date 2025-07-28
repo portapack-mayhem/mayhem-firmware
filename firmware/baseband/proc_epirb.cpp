@@ -27,13 +27,14 @@
 #include "dsp_fir_taps.hpp"
 
 #include "event_m4.hpp"
+#include <ch.h>
 
 EPIRBProcessor::EPIRBProcessor() {
     // Configure the decimation filters for narrowband EPIRB signal
     // Target: Reduce 2.457600 MHz to ~38.4 kHz for 400 bps processing
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
-    
+
     baseband_thread.start();
 }
 
@@ -42,7 +43,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
     // First decimation stage: 2.4576 MHz -> 307.2 kHz
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-    
+
     // Second decimation stage: 307.2 kHz -> 38.4 kHz
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto decimator_out = decim_1_out;
@@ -63,7 +64,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 void EPIRBProcessor::consume_symbol(const float raw_symbol) {
     // BPSK demodulation: positive = 1, negative = 0
     const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-    
+
     // Decode bi-phase L encoding manually
     // In bi-phase L: 0 = no transition, 1 = transition
     // This is a simple edge detector
@@ -79,7 +80,7 @@ void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
     if (packet.size() >= 112) {  // Minimum EPIRB data payload size (112 bits)
         packets_received++;
         last_packet_timestamp = chVTGetSystemTimeX();
-        
+
         // Create and send EPIRB packet message to application layer
         const EPIRBPacketMessage message{packet};
         shared_memory.application_queue.push(message);
