@@ -1568,15 +1568,4 @@ class NoaaAptRxImageDataMessage : public Message {
     uint32_t cnt = 0;
 };
 
-class EPIRBPacketMessage : public Message {
-   public:
-    constexpr EPIRBPacketMessage(
-        const baseband::Packet& packet)
-        : Message{ID::EPIRBPacket},
-          packet{packet} {
-    }
-
-    baseband::Packet packet;
-};
-
 #endif /*__MESSAGE_H__*/
