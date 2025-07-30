@@ -274,7 +274,7 @@ bool JammerView::update_config() {
         return true;
     } else {
         if (out_of_ranges)
-            nav_.display_modal("Error", "Jamming bandwidth too large.\nMust be less than 24MHz.");
+            nav_.display_modal("Error", "Jamming bandwidth too large.\nMust be 80MHz or less.");
         else
             nav_.display_modal("Error", "No range enabled.");
         return false;
