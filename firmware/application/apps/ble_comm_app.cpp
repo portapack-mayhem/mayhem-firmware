@@ -145,27 +145,25 @@ void BLECommView::startTx(BLETxPacket packetToSend) {
     currentPacket = packetToSend;
     packet_counter = currentPacket.packet_count;
 
-    
-                switch (advCount) {
-                case 0:
-                    channel_number_tx = 37;
-                    break;
-                case 1:
-                    channel_number_tx = 38;
-                    break;
-                case 2:
-                    channel_number_tx = 39;
-                    break;
-            }
+    switch (advCount) {
+        case 0:
+            channel_number_tx = 37;
+            break;
+        case 1:
+            channel_number_tx = 38;
+            break;
+        case 2:
+            channel_number_tx = 39;
+            break;
+    }
 
-            field_frequency.set_value(get_freq_by_channel_number(37));
+    field_frequency.set_value(get_freq_by_channel_number(37));
 
-            advCount++;
+    advCount++;
 
-            if (advCount == 3) 
-            {
-                advCount = 0;
-            } 
+    if (advCount == 3) {
+        advCount = 0;
+    }
 
     baseband::set_btletx(37, deviceMAC, currentPacket.advertisementData, currentPacket.pduType);
     transmitter_model.set_tx_gain(47);
@@ -217,15 +215,14 @@ void BLECommView::on_timer() {
 void BLECommView::on_tx_progress(const bool done) {
     if (done) {
         if (in_tx_mode()) {
+            ble_state = Ble_State_Receiving;
 
-                ble_state = Ble_State_Receiving;
+            timer_counter = 0;
+            timer_period = 12;
 
-                timer_counter = 0;
-                timer_period = 12;
+            stopTx();
 
-                stopTx();
-
-            // else 
+            // else
             // {
             //     startTx(advertisePacket);
             //     advCount++;
@@ -265,8 +262,7 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
     }
 
     if (pdu_type == SCAN_REQ || pdu_type == CONNECT_REQ) {
-        if (pdu_type == SCAN_REQ) 
-        {
+        if (pdu_type == SCAN_REQ) {
             ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
 
             std::reverse(directed_mac_data->A1, directed_mac_data->A1 + 6);
@@ -278,9 +274,7 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
                 // console.clear(true);
                 // console.writeln(str_console);
             }
-        } 
-        else if (pdu_type == CONNECT_REQ) 
-        {
+        } else if (pdu_type == CONNECT_REQ) {
             ADV_PDU_PAYLOAD_TYPE_5* connectReq = (ADV_PDU_PAYLOAD_TYPE_5*)packet->data;
 
             std::reverse(connectReq->AdvA, connectReq->AdvA + 6);

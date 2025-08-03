@@ -995,7 +995,7 @@ void BLERxView::handle_filter_options(uint8_t index) {
                 return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
             });
             break;
-        //MAC address (All caps: e.g. AA:BB:CC:DD:EE:FF)
+        // MAC address (All caps: e.g. AA:BB:CC:DD:EE:FF)
         case 1:
             resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
                 return (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos);
@@ -1009,21 +1009,21 @@ void BLERxView::handle_filter_options(uint8_t index) {
             break;
         // Info
         case 3:
-        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-            return (entry.informationString.find(value) == std::string::npos);
+            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+                return (entry.informationString.find(value) == std::string::npos);
             });
             break;
         // Vendor
         case 4:
-        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-            std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
-            return (vendor_name.find(value) == std::string::npos);
+            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+                std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
+                return (vendor_name.find(value) == std::string::npos);
             });
             break;
         // Channel
         case 5:
-        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-            return (to_string_dec_int(entry.channelNumber).find(value) == std::string::npos);
+            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+                return (to_string_dec_int(entry.channelNumber).find(value) == std::string::npos);
             });
             break;
         default:
@@ -1100,8 +1100,7 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
         reverse_byte_array(directed_mac_data->A1, 6);
         success = true;
-    }
-    else if (pdu_type == CONNECT_REQ) {
+    } else if (pdu_type == CONNECT_REQ) {
         ADV_PDU_PAYLOAD_TYPE_5* connectReq = (ADV_PDU_PAYLOAD_TYPE_5*)entry.packetData.data;
         reverse_byte_array(connectReq->AdvA, 6);
         success = true;

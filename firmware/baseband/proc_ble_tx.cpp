@@ -331,65 +331,50 @@ int BTLETxProcessor::calculate_pkt_info(PKT_INFO* pkt) {
 void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
     int8_t re, im;
 
-    if (!configured)
-    {
-        for (size_t i = 0; i < buffer.count; i++) 
-        {
-            buffer.p[i] = {0, 0}; // Fill the buffer with zeros if not configured
+    if (!configured) {
+        for (size_t i = 0; i < buffer.count; i++) {
+            buffer.p[i] = {0, 0};  // Fill the buffer with zeros if not configured
         }
         return;
     }
 
-    if (configured)
-    {
-        switch (txprogress_message.progress)
-        {
+    if (configured) {
+        switch (txprogress_message.progress) {
             case 0:
             case 1:
             case 2:
             case 3:
             case 5:
             case 6:
-            case 7:
-            {
-                for (size_t i = 0; i < buffer.count; i++) 
-                {
-                    buffer.p[i] = {0, 0}; // Pre and Post pad BLE Packet.
-                }  
-            }
-            break;
+            case 7: {
+                for (size_t i = 0; i < buffer.count; i++) {
+                    buffer.p[i] = {0, 0};  // Pre and Post pad BLE Packet.
+                }
+            } break;
 
-            case 4:
-            {
+            case 4: {
                 size_t i = 0;
-                for (i = 0; (i < buffer.count) && (sample_count < length); i++) 
-                {
+                for (i = 0; (i < buffer.count) && (sample_count < length); i++) {
                     re = packets.phy_sample[sample_count++];
                     im = packets.phy_sample[sample_count++];
 
                     buffer.p[i] = {re, im};
                 }
 
-                if (sample_count >= length && i < buffer.count) 
-                {
+                if (sample_count >= length && i < buffer.count) {
                     // Fill the rest of the buffer with zeros if we reach the end of the packet
-                    for (; i < buffer.count; i++) 
-                    {
+                    for (; i < buffer.count; i++) {
                         buffer.p[i] = {0, 0};
                     }
-                } 
-            }
-            break;
+                }
+            } break;
 
-            case 8:
-            {
-                for (size_t i = 0; i < buffer.count; i++) 
-                {
-                    buffer.p[i] = {0, 0}; // Pre and Post pad BLE Packet.
-                }  
+            case 8: {
+                for (size_t i = 0; i < buffer.count; i++) {
+                    buffer.p[i] = {0, 0};  // Pre and Post pad BLE Packet.
+                }
 
-                if (sample_count >= length) 
-                {
+                if (sample_count >= length) {
                     sample_count = 0;
                     configured = false;
 
@@ -397,8 +382,7 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
                     txprogress_message.done = true;
                     shared_memory.application_queue.push(txprogress_message);
                 }
-            }
-            break;
+            } break;
         }
 
         txprogress_message.progress++;

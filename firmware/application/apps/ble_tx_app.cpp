@@ -135,7 +135,7 @@ PKT_TYPE get_pkt_type_from_string(const std::string& type_str) {
         return PKT_TYPE_ADV_IND;
     } else if (type_str == "ADV_DIRECT_IND") {
         return PKT_TYPE_ADV_DIRECT_IND;
-    } else if (type_str == "ADV_NONCONN_IND") { 
+    } else if (type_str == "ADV_NONCONN_IND") {
         return PKT_TYPE_ADV_NONCONN_IND;
     } else if (type_str == "ADV_SCAN_IND") {
         return PKT_TYPE_ADV_SCAN_IND;
@@ -246,14 +246,13 @@ void BLETxView::send_packet() {
 
     progressbar.set_value(packets[current_packet].packet_count - packet_counter);
     text_packets_sent.set(to_string_dec_uint(packet_counter));
-    
+
     baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, advertisementData, packets[current_packet].pduType);
 
     packetDone = false;
 }
 
 void BLETxView::start() {
-
     if (file_path.empty()) {
         file_error();
         check_loop.set_value(false);
@@ -262,7 +261,7 @@ void BLETxView::start() {
 
     baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
     transmitter_model.enable();
-    
+
     button_play.set_bitmap(&bitmap_stop);
     is_running = true;
 
@@ -312,20 +311,16 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
 
                 field_frequency.set_value(get_freq_by_channel_number(channel_number));
 
-                 if (advCount == 3) {
+                if (advCount == 3) {
                     channel_number = 37;
                     packet_counter--;
                     packetDone = true;
                     advCount = 0;
-                 }
-                 else
-                 {
+                } else {
                     send_packet();
                     advCount++;
-                 }
-            }
-            else
-            {
+                }
+            } else {
                 packet_counter--;
                 packetDone = true;
             }
@@ -523,13 +518,12 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
 
             // Verify Data.
             if ((macAddressSize == mac_address_size_str) &&
-                    (advertisementDataSize < max_packet_size_str) &&
-                    (packetCountSize < max_packet_repeat_str) &&
-                    hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) &&
-                    hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) &&
-                    (packets[num_packets].packet_count >= 1) && (packets[num_packets].packet_count < max_packet_repeat_count) &&
-                    (packetTypeSize <= max_packet_type_str)) {
-
+                (advertisementDataSize < max_packet_size_str) &&
+                (packetCountSize < max_packet_repeat_str) &&
+                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) &&
+                hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) &&
+                (packets[num_packets].packet_count >= 1) && (packets[num_packets].packet_count < max_packet_repeat_count) &&
+                (packetTypeSize <= max_packet_type_str)) {
                 text_filename.set(truncate(file_path.filename().string(), 12));
 
             } else {

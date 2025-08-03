@@ -335,11 +335,11 @@ class BLERxView : public View {
         {18 * 8 + 2, 2 * 8},
         7,
         {{"Data", 0},
-        {"MAC", 1},
-        {"Name", 2},
-        {"Info", 3},
-        {"Vendor", 4},
-        {"Channel", 5}}};
+         {"MAC", 1},
+         {"Name", 2},
+         {"Info", 3},
+         {"Vendor", 4},
+         {"Channel", 5}}};
 
     Checkbox check_log{
         {10 * 8, 4 * 8 + 2},

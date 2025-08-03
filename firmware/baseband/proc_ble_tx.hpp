@@ -84,7 +84,7 @@ class BTLETxProcessor : public BasebandProcessor {
         char phy_bit[MAX_NUM_PHY_BYTE * 8];  // all bits which will be fed to GFSK modulator
 
         int num_phy_sample;
-        int8_t phy_sample[2 * MAX_NUM_PHY_SAMPLE];     // GFSK output to D/A (hackrf board)
+        int8_t phy_sample[2 * MAX_NUM_PHY_SAMPLE];  // GFSK output to D/A (hackrf board)
 
         int space;  // how many millisecond null signal shouwl be padded after this packet
     };
