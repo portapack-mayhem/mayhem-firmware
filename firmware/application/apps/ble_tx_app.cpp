@@ -145,36 +145,6 @@ PKT_TYPE get_pkt_type_from_string(const std::string& type_str) {
         return PKT_TYPE_SCAN_RSP;
     } else if (type_str == "CONNECT_REQ") {
         return PKT_TYPE_CONNECT_REQ;
-    } else if (type_str == "LL_DATA") {
-        return PKT_TYPE_LL_DATA;
-    } else if (type_str == "LL_CONNECTION_UPDATE_REQ") {
-        return PKT_TYPE_LL_CONNECTION_UPDATE_REQ;
-    } else if (type_str == "LL_CHANNEL_MAP_REQ") {
-        return PKT_TYPE_LL_CHANNEL_MAP_REQ;
-    } else if (type_str == "LL_TERMINATE_IND") {
-        return PKT_TYPE_LL_TERMINATE_IND;
-    } else if (type_str == "LL_ENC_REQ") {
-        return PKT_TYPE_LL_ENC_REQ;
-    } else if (type_str == "LL_ENC_RSP") {
-        return PKT_TYPE_LL_ENC_RSP;
-    } else if (type_str == "LL_START_ENC_REQ") {
-        return PKT_TYPE_LL_START_ENC_REQ;
-    } else if (type_str == "LL_START_ENC_RSP") {
-        return PKT_TYPE_LL_START_ENC_RSP;
-    } else if (type_str == "LL_UNKNOWN_RSP") {
-        return PKT_TYPE_LL_UNKNOWN_RSP;
-    } else if (type_str == "LL_FEATURE_REQ") {
-        return PKT_TYPE_LL_FEATURE_REQ;
-    } else if (type_str == "LL_FEATURE_RSP") {
-        return PKT_TYPE_LL_FEATURE_RSP;
-    } else if (type_str == "LL_PAUSE_ENC_REQ") {
-        return PKT_TYPE_LL_PAUSE_ENC_REQ;
-    } else if (type_str == "LL_PAUSE_ENC_RSP") {
-        return PKT_TYPE_LL_PAUSE_ENC_RSP;
-    } else if (type_str == "LL_VERSION_IND") {
-        return PKT_TYPE_LL_VERSION_IND;
-    } else if (type_str == "LL_REJECT_IND") {
-        return PKT_TYPE_LL_REJECT_IND;
     }
     return PKT_TYPE_INVALID_TYPE;
 }
