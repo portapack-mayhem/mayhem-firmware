@@ -76,7 +76,16 @@ class BLECommView : public View {
     void on_data(BlePacketData* packetData);
     void on_tx_progress(const bool done);
     void parse_received_packet(const BlePacketData* packet, ADV_PDU_TYPE pdu_type);
-    void sendAdvertisement(bool enable);
+    void sendAdvertisement(void);
+
+    typedef enum {
+        Ble_State_Idle = 0,
+        Ble_State_Advertising = 1,
+        Ble_State_Receiving = 2,
+        Ble_State_Sending = 3
+    } BleState;
+
+    BleState ble_state{Ble_State_Idle};
 
     NavigationView& nav_;
 
@@ -101,8 +110,9 @@ class BLECommView : public View {
     uint8_t channel_number_tx = 37;
     uint8_t channel_number_rx = 37;
     bool auto_channel = false;
+    uint8_t advCount = 0;
 
-    char randomMac[13] = "010203040506";
+    char deviceMAC[13] = "C23456789ABC";
 
     bool is_running_tx = false;
     bool is_sending = false;
@@ -111,7 +121,7 @@ class BLECommView : public View {
     int16_t timer_period{6};  // Delay each packet by 16ms.
     int16_t timer_counter = 0;
     int16_t timer_rx_counter = 0;
-    int16_t timer_rx_period{12};  // Poll Rx for at least 200ms. (TBD)
+    int16_t timer_rx_period{12};  // Poll Rx for at least 150ms. (TBD)
 
     uint32_t packet_counter{0};
     BLETxPacket advertisePacket{};
@@ -146,15 +156,6 @@ class BLECommView : public View {
 
     Channel channel{
         {24 * 8, 5, 6 * 8, 4}};
-
-    Labels label_send_adv{
-        {{0 * 8, 2 * 8}, "Send Advertisement:", Theme::getInstance()->fg_light->foreground}};
-
-    ImageButton button_send_adv{
-        {21 * 8, 1 * 16, 10 * 8, 2 * 16},
-        &bitmap_play,
-        Theme::getInstance()->fg_green->foreground,
-        Theme::getInstance()->fg_green->background};
 
     Checkbox check_log{
         {24 * 8, 2 * 8},

@@ -270,7 +270,6 @@ set(CPPSRC
 	ui/ui_bmpview.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
-	apps/ble_comm_app.cpp
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp

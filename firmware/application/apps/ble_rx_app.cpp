@@ -880,10 +880,6 @@ void BLERxView::log_ble_packet(BlePacketData* packet) {
 void BLERxView::on_filter_change(std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
-        // resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-        //     // return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
-        //     return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos) && (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos);
-        // });
         filter = value;
         handle_filter_options(options_filter.selected_index());
     }

@@ -53,7 +53,7 @@ int BTLETxProcessor::gen_sample_from_phy_bit(char* bit, int8_t* sample, int num_
 
     int16_t tmp = 0;
     sample[0] = cos_table_int8[tmp];
-    sample[1] = sin_table_int8_2[tmp];
+    sample[1] = sin_table_int8[tmp];
 
     int len_conv_result = num_sample - 1;
     for (i = 0; i < len_conv_result; i++) {
@@ -64,7 +64,7 @@ int BTLETxProcessor::gen_sample_from_phy_bit(char* bit, int8_t* sample, int num_
 
         tmp = (tmp + acc) & 1023;
         sample[(i + 1) * 2 + 0] = cos_table_int8[tmp];
-        sample[(i + 1) * 2 + 1] = sin_table_int8_2[tmp];
+        sample[(i + 1) * 2 + 1] = sin_table_int8[tmp];
     }
 
     return (num_sample);
