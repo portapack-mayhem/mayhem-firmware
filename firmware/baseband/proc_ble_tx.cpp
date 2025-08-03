@@ -30,10 +30,10 @@
 
 #define new_way
 
-int BTLETxProcessor::gen_sample_from_phy_bit(char* bit, char* sample, int num_bit) {
+int BTLETxProcessor::gen_sample_from_phy_bit(char* bit, int8_t* sample, int num_bit) {
     int num_sample = (num_bit * SAMPLE_PER_SYMBOL) + (LEN_GAUSS_FILTER * SAMPLE_PER_SYMBOL);
 
-    int8_t* tmp_phy_bit_over_sampling_int8 = (int8_t*)tmp_phy_bit_over_sampling;
+    memset(tmp_phy_bit_over_sampling_int8, 0, sizeof(tmp_phy_bit_over_sampling_int8));
 
     int i, j;
 
@@ -53,7 +53,7 @@ int BTLETxProcessor::gen_sample_from_phy_bit(char* bit, char* sample, int num_bi
 
     int16_t tmp = 0;
     sample[0] = cos_table_int8[tmp];
-    sample[1] = sin_table_int8[tmp];
+    sample[1] = sin_table_int8_2[tmp];
 
     int len_conv_result = num_sample - 1;
     for (i = 0; i < len_conv_result; i++) {
@@ -64,7 +64,7 @@ int BTLETxProcessor::gen_sample_from_phy_bit(char* bit, char* sample, int num_bi
 
         tmp = (tmp + acc) & 1023;
         sample[(i + 1) * 2 + 0] = cos_table_int8[tmp];
-        sample[(i + 1) * 2 + 1] = sin_table_int8[tmp];
+        sample[(i + 1) * 2 + 1] = sin_table_int8_2[tmp];
     }
 
     return (num_sample);
@@ -242,6 +242,7 @@ void BTLETxProcessor::fill_adv_pdu_header(PKT_INFO* pkt, int txadd, int rxadd, i
         bit_out[2] = 1;
         bit_out[1] = 0;
         bit_out[0] = 0;
+        rxadd = 1;  // Scan response assumed to be with random address.
     } else if (pkt->pkt_type == CONNECT_REQ) {
         bit_out[3] = 0;
         bit_out[2] = 1;
@@ -279,14 +280,12 @@ void BTLETxProcessor::fill_adv_pdu_header(PKT_INFO* pkt, int txadd, int rxadd, i
 int BTLETxProcessor::calculate_sample_for_ADV(PKT_INFO* pkt) {
     pkt->num_info_bit = 0;
 
-    // gen preamble and access address
-    const char* AA = "AA";
-    const char* AAValue = "D6BE898E";
-    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit((char*)AA, pkt->info_bit, 0, 1);
-    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit((char*)AAValue, pkt->info_bit + pkt->num_info_bit, 0, 4);
+    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit(AA, pkt->info_bit, 0, 1);
+    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit(AAValue, pkt->info_bit + pkt->num_info_bit, 0, 4);
 
     // get txadd and rxadd
-    int txadd = 0, rxadd = 0;
+    // Tx assumed to be random address.
+    int txadd = 1, rxadd = 0;
 
     pkt->num_info_bit = pkt->num_info_bit + 16;  // 16 is header length
 
@@ -332,39 +331,77 @@ int BTLETxProcessor::calculate_pkt_info(PKT_INFO* pkt) {
 void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
     int8_t re, im;
 
-    // This is called at 4M/2048 = 1953Hz
-    for (size_t i = 0; i < buffer.count; i++) {
-        if (configured) {
-            // This is going to loop through each sample bit and push it to the output buffer.
-            if (sample_count > length) {
-                configured = false;
-                sample_count = 0;
+    if (!configured)
+    {
+        for (size_t i = 0; i < buffer.count; i++) 
+        {
+            buffer.p[i] = {0, 0}; // Fill the buffer with zeros if not configured
+        }
+        return;
+    }
 
-                txprogress_message.done = true;
-                shared_memory.application_queue.push(txprogress_message);
-            } else {
-                // Real and imaginary was already calculated in gen_sample_from_phy_bit.
-                // It was processed from each data bit, run through a Gaussian Filter, and then ran through sin and cos table to get each IQ bit.
-                re = (int8_t)packets.phy_sample[sample_count++];
-                im = (int8_t)packets.phy_sample[sample_count++];
+    if (configured)
+    {
+        switch (txprogress_message.progress)
+        {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 5:
+            case 6:
+            case 7:
+            {
+                for (size_t i = 0; i < buffer.count; i++) 
+                {
+                    buffer.p[i] = {0, 0}; // Pre and Post pad BLE Packet.
+                }  
+            }
+            break;
 
-                buffer.p[i] = {re, im};
+            case 4:
+            {
+                size_t i = 0;
+                for (i = 0; (i < buffer.count) && (sample_count < length); i++) 
+                {
+                    re = packets.phy_sample[sample_count++];
+                    im = packets.phy_sample[sample_count++];
 
-                if (progress_count >= progress_notice) {
-                    progress_count = 0;
-                    txprogress_message.progress++;
-                    txprogress_message.done = false;
+                    buffer.p[i] = {re, im};
+                }
+
+                if (sample_count >= length && i < buffer.count) 
+                {
+                    // Fill the rest of the buffer with zeros if we reach the end of the packet
+                    for (; i < buffer.count; i++) 
+                    {
+                        buffer.p[i] = {0, 0};
+                    }
+                } 
+            }
+            break;
+
+            case 8:
+            {
+                for (size_t i = 0; i < buffer.count; i++) 
+                {
+                    buffer.p[i] = {0, 0}; // Pre and Post pad BLE Packet.
+                }  
+
+                if (sample_count >= length) 
+                {
+                    sample_count = 0;
+                    configured = false;
+
+                    doneSending = true;
+                    txprogress_message.done = true;
                     shared_memory.application_queue.push(txprogress_message);
-                } else {
-                    progress_count++;
                 }
             }
-        } else {
-            re = 0;
-            im = 0;
-
-            buffer.p[i] = {re, im};
+            break;
         }
+
+        txprogress_message.progress++;
     }
 }
 
@@ -397,11 +434,13 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     // Starting at sample_count 0 since packets.num_phy_sample contains every sample needed to be sent out.
     sample_count = 0;
     progress_count = 0;
+    repeatCount = 0;
     progress_notice = 64;
 
     txprogress_message.progress = 0;
     txprogress_message.done = false;
     configured = true;
+    doneSending = false;
 }
 
 int main() {

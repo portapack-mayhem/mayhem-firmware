@@ -247,7 +247,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     };
 
     button_send.on_select = [this, &nav](const ui::Button&) {
-        auto packetToSend = build_packet();
+        auto packetToSend = build_packet(entry_);
         nav.set_on_pop([packetToSend, &nav]() {
             nav.replace<BLETxView>(packetToSend);
         });
@@ -255,7 +255,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     };
 
     button_save.on_select = [this, &nav](const ui::Button&) {
-        auto packetToSave = build_packet();
+        auto packetToSave = build_packet(entry_);
 
         packetFileBuffer = "";
         text_prompt(
@@ -436,7 +436,7 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     set_dirty();
 }
 
-BLETxPacket BleRecentEntryDetailView::build_packet() {
+BLETxPacket BleRecentEntryDetailView::build_packet(BleRecentEntry entry_) {
     BLETxPacket bleTxPacket;
     memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
@@ -444,8 +444,8 @@ BLETxPacket BleRecentEntryDetailView::build_packet() {
 
     strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 12);
     strncpy(bleTxPacket.advertisementData, entry_.dataString.c_str(), entry_.packetData.dataLen * 2);
-    strncpy(bleTxPacket.packetCount, "50", 3);
-    bleTxPacket.packet_count = 50;
+    strncpy(bleTxPacket.packetCount, "10", 3);
+    bleTxPacket.packet_count = 10;
 
     return bleTxPacket;
 }
@@ -495,16 +495,17 @@ BLERxView::BLERxView(NavigationView& nav)
                   &field_vga,
                   &options_channel,
                   &field_frequency,
-                  &check_log,
-                  &button_find,
-                  &check_name,
                   &label_sort,
                   &options_sort,
-                  &label_found,
-                  &text_found_count,
-                  &check_serial_log,
                   &button_filter,
                   &options_filter,
+                  &check_name,
+                  &check_log,
+                  &check_serial_log,
+                  &check_unique,
+                  &button_find,
+                  &label_found,
+                  &text_found_count,
                   &button_save_list,
                   &button_clear_list,
                   &button_switch,
@@ -516,6 +517,29 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
+    ensure_directory(find_packet_path);
+    ensure_directory(log_packets_path);
+    ensure_directory(packet_save_path);
+
+    // ------------------------------------------------------------------------------
+    // Handle Check Boxes
+    // ------------------------------------------------------------------------------
+    logger = std::make_unique<BLELogger>();
+
+    check_name.on_select = [this](Checkbox&, bool v) {
+        name_enable = v;
+        // update the include_name instance variable value of each entry in recent entries
+        setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
+        recent_entries_view.set_dirty();
+    };
+
+    check_log.on_select = [this](Checkbox&, bool v) {
+        logging = v;
+
+        if (logger && logging)
+            logger->append(bletx_dir.string() + "/Packets/BLETx_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+    };
+
     check_serial_log.on_select = [this](Checkbox&, bool v) {
         serial_logging = v;
         if (v) {
@@ -524,12 +548,21 @@ BLERxView::BLERxView(NavigationView& nav)
             portapack::async_tx_enabled = false;
         }
     };
+
+    check_unique.on_select = [this](Checkbox&, bool v) {
+        uniqueParsing = v;
+        recent.clear();
+        recent_entries_view.set_dirty();
+    };
+
+    check_name.set_value(name_enable);
+    check_log.set_value(logging);
     check_serial_log.set_value(serial_logging);
+    check_unique.set_value(uniqueParsing);
 
-    ensure_directory(find_packet_path);
-    ensure_directory(log_packets_path);
-    ensure_directory(packet_save_path);
-
+    // ------------------------------------------------------------------------------
+    // Handle Buttons
+    // ------------------------------------------------------------------------------
     filterBuffer = filter;
 
     button_filter.on_select = [this](Button&) {
@@ -542,16 +575,6 @@ BLERxView::BLERxView(NavigationView& nav)
                 on_filter_change(buffer);
             });
     };
-
-    logger = std::make_unique<BLELogger>();
-
-    check_log.on_select = [this](Checkbox&, bool v) {
-        logging = v;
-
-        if (logger && logging)
-            logger->append(blerx_dir.string() + "/Logs/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
-    };
-    check_log.set_value(logging);
 
     button_save_list.on_select = [this, &nav](const ui::Button&) {
         listFileBuffer = "";
@@ -574,16 +597,17 @@ BLERxView::BLERxView(NavigationView& nav)
         nav.replace<BLETxView>();
     };
 
-    field_frequency.set_step(0);
-
-    check_name.set_value(name_enable);
-
-    check_name.on_select = [this](Checkbox&, bool v) {
-        name_enable = v;
-        // update the include_name instance variable value of each entry in recent entries
-        setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
-        recent_entries_view.set_dirty();
+    button_find.on_select = [this](Button&) {
+        auto open_view = nav_.push<FileLoadView>(".TXT");
+        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            on_file_changed(new_file_path);
+        };
     };
+
+    // ------------------------------------------------------------------------------
+    // Handle Options
+    // ------------------------------------------------------------------------------
+    field_frequency.set_step(0);
 
     options_channel.on_change = [this](size_t index, int32_t v) {
         channel_index = (uint8_t)index;
@@ -611,22 +635,12 @@ BLERxView::BLERxView(NavigationView& nav)
         filter_index = (uint8_t)index;
         recent.clear();
         handle_filter_options(v);
-        uniqueParsing = filter_index == 2 ? true : false;
         recent_entries_view.set_dirty();
     };
 
     options_channel.set_selected_index(channel_index, true);
     options_sort.set_selected_index(sort_index, true);
     options_filter.set_selected_index(filter_index, true);
-
-    button_find.on_select = [this](Button&) {
-        auto open_view = nav_.push<FileLoadView>(".TXT");
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            on_file_changed(new_file_path);
-
-            // nav_.set_on_pop([this]() { button_play.focus(); });
-        };
-    };
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_btlerx(channel_number);
@@ -785,12 +799,12 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
-    uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
+    uint64_t uniqueKeyEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
 
-    uint64_t key = macAddressEncoded & 0xFFFFFFFFFFFF;
+    uint64_t key = (uniqueKeyEncoded & 0xFFFFFFFFFFFF) | (((uint64_t)packet->type) << 48);
     bool packetExists = false;
 
     // If found store into tempEntry to modify.
@@ -947,7 +961,7 @@ void BLERxView::handle_entries_sort(uint8_t index) {
     switch (index) {
         case 0:
             sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+                recent, [](const BleRecentEntry& entry) { return entry.uniqueKey & 0xFFFFFFFFFFFF; }, true);
             break;
         case 1:
             sortEntriesBy(
@@ -965,6 +979,10 @@ void BLERxView::handle_entries_sort(uint8_t index) {
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
             break;
+        case 5:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.informationString; }, true);
+            break;
         default:
             break;
     }
@@ -975,14 +993,41 @@ void BLERxView::handle_entries_sort(uint8_t index) {
 void BLERxView::handle_filter_options(uint8_t index) {
     auto value = filter;
     switch (index) {
-        case 0:  // filter by Data
+        // Data
+        case 0:
             resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
                 return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
             });
             break;
-        case 1:  // filter by MAC address (All caps: e.g. AA:BB:CC:DD:EE:FF)
+        //MAC address (All caps: e.g. AA:BB:CC:DD:EE:FF)
+        case 1:
             resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
                 return (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos);
+            });
+            break;
+        // Name
+        case 2:
+            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+                return (entry.nameString.find(value) == std::string::npos);
+            });
+            break;
+        // Info
+        case 3:
+        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+            return (entry.informationString.find(value) == std::string::npos);
+            });
+            break;
+        // Vendor
+        case 4:
+        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+            std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
+            return (vendor_name.find(value) == std::string::npos);
+            });
+            break;
+        // Channel
+        case 5:
+        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+            return (to_string_dec_int(entry.channelNumber).find(value) == std::string::npos);
             });
             break;
         default:
@@ -1058,6 +1103,12 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
         reverse_byte_array(directed_mac_data->A1, 6);
+        success = true;
+    }
+    else if (pdu_type == CONNECT_REQ) {
+        ADV_PDU_PAYLOAD_TYPE_5* connectReq = (ADV_PDU_PAYLOAD_TYPE_5*)entry.packetData.data;
+        reverse_byte_array(connectReq->AdvA, 6);
+        success = true;
     }
 
     return success;

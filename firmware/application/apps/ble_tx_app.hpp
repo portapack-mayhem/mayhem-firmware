@@ -38,6 +38,8 @@
 #include "utility.hpp"
 #include "file_path.hpp"
 
+#include "ble_tx_app.hpp"
+
 #include "recent_entries.hpp"
 
 #include <string>
@@ -91,8 +93,9 @@ struct BLETxPacket {
     char macAddress[13];
     char advertisementData[63];
     char packetCount[11];
+    char packetType[17];
     uint32_t packet_count;
-    PKT_TYPE packetType;
+    PKT_TYPE pduType;
 };
 
 class BLETxView : public View {
@@ -109,8 +112,8 @@ class BLETxView : public View {
     bool is_active() const;
     void toggle();
     void start();
+    void send_packet();
     void stop();
-    void reset();
     void handle_replay_thread_done(const uint32_t return_code);
     void file_error();
     bool saveFile(const std::filesystem::path& path);
@@ -122,7 +125,7 @@ class BLETxView : public View {
     void on_data(uint32_t value, bool is_data);
     void on_file_changed(const std::filesystem::path& new_file_path);
     void on_save_file(const std::string value);
-    void on_tx_progress(const bool done);
+    void on_tx_progress(const bool done, uint32_t progress);
     void on_random_data_change(std::string value);
     void update_current_packet(BLETxPacket packet, uint32_t currentIndex);
 
@@ -156,6 +159,8 @@ class BLETxView : public View {
     uint32_t packet_counter{0};
     uint32_t num_packets{0};
     uint32_t current_packet{0};
+    uint8_t packetTxCount{0};
+    bool packetDone = false;
     bool random_mac = false;
     bool file_override = false;
 
@@ -170,16 +175,16 @@ class BLETxView : public View {
     std::vector<uint16_t> markedBytes{};
     CursorPos cursor_pos{};
     uint8_t marked_counter = 0;
+    uint8_t advCount = 0;
 
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
     static constexpr uint8_t max_packet_repeat_str{10};
+    static constexpr uint8_t max_packet_type_str{16};
     static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
     static constexpr uint32_t max_num_packets{32};
 
     BLETxPacket packets[max_num_packets];
-
-    PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
     static constexpr auto header_height = 10 * 16;
     static constexpr auto switch_button_height = 6 * 16;
@@ -216,7 +221,7 @@ class BLETxView : public View {
         true};
 
     ImageButton button_play{
-        {screen_width - 2 * 8, 2 * 16, 2 * 8, 1 * 16},
+        {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
@@ -227,11 +232,11 @@ class BLETxView : public View {
     OptionsField options_speed{
         {7 * 8, 6 * 8},
         3,
-        {{"1 ", 1},     // 16ms
-         {"2 ", 2},     // 32ms
-         {"3 ", 3},     // 48ms
-         {"4 ", 6},     // 100ms
-         {"5 ", 12}}};  // 200ms
+        {{"1 ", 2},     // 25ms
+         {"2 ", 4},     // 50ms
+         {"3 ", 6},     // 75ms
+         {"4 ", 8},     // 100ms
+         {"5 ", 12}}};  // 150ms
 
     OptionsField options_channel{
         {11 * 8, 6 * 8},
@@ -288,7 +293,7 @@ class BLETxView : public View {
         {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
     TextViewer dataEditView{
-        {0, 9 * 18, screen_width, screen_height - 80}};
+        {0, 9 * 18, 240, 240}};
 
     Button button_clear_marked{
         {1 * 8, 14 * 16, 13 * 8, 3 * 8},
@@ -320,7 +325,7 @@ class BLETxView : public View {
         Message::ID::TXProgress,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-            this->on_tx_progress(message.done);
+            this->on_tx_progress(message.done, message.progress);
         }};
 
     MessageHandlerRegistration message_handler_frame_sync{
