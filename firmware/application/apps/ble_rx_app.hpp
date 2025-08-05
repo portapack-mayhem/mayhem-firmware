@@ -241,6 +241,7 @@ class BLERxView : public View {
     uint8_t sort_index{0};
     uint8_t filter_index{0};
     bool uniqueParsing = false;
+    bool duplicatePackets = false;
     std::string filter{};
     bool logging{false};
     bool serial_logging{false};
@@ -259,6 +260,8 @@ class BLERxView : public View {
             // disabled to always start without USB serial activated until we can make it non blocking if not connected
             // {"serial_log"sv, &serial_logging},
             {"name"sv, &name_enable},
+            {"unique_parsing"sv, &uniqueParsing},
+            {"duplicate_packets"sv, &duplicatePackets},
         }};
 
     std::string str_console = "";
@@ -363,6 +366,12 @@ class BLERxView : public View {
         {0 * 8 + 2, 7 * 8 + 2},
         7,
         "Unique",
+        true};
+
+    Checkbox check_duplicate_packets{
+        {10 * 8 + 2, 7 * 8 + 2},
+        7,
+        "Duplicate",
         true};
 
     Button button_find{

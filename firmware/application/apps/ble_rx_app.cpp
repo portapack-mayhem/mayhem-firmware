@@ -503,6 +503,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &check_log,
                   &check_serial_log,
                   &check_unique,
+                  &check_duplicate_packets,
                   &button_find,
                   &label_found,
                   &text_found_count,
@@ -555,10 +556,17 @@ BLERxView::BLERxView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
 
+    check_duplicate_packets.on_select = [this](Checkbox&, bool v) {
+        duplicatePackets = v;
+        recent.clear();
+        recent_entries_view.set_dirty();
+    };
+
     check_name.set_value(name_enable);
     check_log.set_value(logging);
     check_serial_log.set_value(serial_logging);
     check_unique.set_value(uniqueParsing);
+    check_duplicate_packets.set_value(duplicatePackets);
 
     // ------------------------------------------------------------------------------
     // Handle Buttons
@@ -804,7 +812,13 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
 
-    uint64_t key = (uniqueKeyEncoded & 0xFFFFFFFFFFFF) | (((uint64_t)packet->type) << 48);
+    uint64_t key = (uniqueKeyEncoded & 0xFFFFFFFFFFFF);
+
+    if (duplicatePackets)
+    {
+        key |= ((uint64_t)packet->type) << 48;
+    }
+
     bool packetExists = false;
 
     // If found store into tempEntry to modify.
@@ -1095,15 +1109,12 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         if (!success && !uniqueParsing) {
             success = parse_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.informationString);
         }
-
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
-        ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
-        reverse_byte_array(directed_mac_data->A1, 6);
-        success = true;
-    } else if (pdu_type == CONNECT_REQ) {
-        ADV_PDU_PAYLOAD_TYPE_5* connectReq = (ADV_PDU_PAYLOAD_TYPE_5*)entry.packetData.data;
-        reverse_byte_array(connectReq->AdvA, 6);
-        success = true;
+        if (!uniqueParsing) {
+            ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
+            reverse_byte_array(directed_mac_data->A1, 6);
+            success = true;
+        }
     }
 
     return success;
