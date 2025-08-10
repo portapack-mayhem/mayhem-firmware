@@ -340,19 +340,14 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
 
     if (configured) {
         switch (txprogress_message.progress) {
-            case 0:
             case 1:
-            case 2:
-            case 3:
-            case 5:
-            case 6:
-            case 7: {
+            case 2: {
                 for (size_t i = 0; i < buffer.count; i++) {
                     buffer.p[i] = {0, 0};  // Pre and Post pad BLE Packet.
                 }
             } break;
 
-            case 4: {
+            case 0: {
                 size_t i = 0;
                 for (i = 0; (i < buffer.count) && (sample_count < length); i++) {
                     re = packets.phy_sample[sample_count++];
@@ -369,7 +364,7 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
                 }
             } break;
 
-            case 8: {
+            case 3: {
                 for (size_t i = 0; i < buffer.count; i++) {
                     buffer.p[i] = {0, 0};  // Pre and Post pad BLE Packet.
                 }

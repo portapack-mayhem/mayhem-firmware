@@ -228,6 +228,7 @@ class BLERxView : public View {
     void handle_filter_options(uint8_t index);
     bool updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
     bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
+    bool parse_tracking_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
 
     NavigationView& nav_;
 

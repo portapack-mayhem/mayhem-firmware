@@ -814,8 +814,7 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     uint64_t key = (uniqueKeyEncoded & 0xFFFFFFFFFFFF);
 
-    if (duplicatePackets)
-    {
+    if (duplicatePackets) {
         key |= ((uint64_t)packet->type) << 48;
     }
 
@@ -1062,48 +1061,10 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
 
     bool success = false;
 
-    int i;
-
-    for (i = 0; i < packet->dataLen; i++) {
-        data_string += to_string_hex(packet->data[i], 2);
-    }
-
-    entry.dbValue = packet->max_dB - (receiver_model.lna() + receiver_model.vga() + (receiver_model.rf_amp() ? 14 : 0));
-    entry.timestamp = to_string_timestamp(rtc_time::now());
-    entry.dataString = data_string;
-
-    entry.packetData.type = packet->type;
-    entry.packetData.size = packet->size;
-    entry.packetData.dataLen = packet->dataLen;
-
-    // Mac Address of sender.
-    entry.packetData.macAddress[0] = packet->macAddress[0];
-    entry.packetData.macAddress[1] = packet->macAddress[1];
-    entry.packetData.macAddress[2] = packet->macAddress[2];
-    entry.packetData.macAddress[3] = packet->macAddress[3];
-    entry.packetData.macAddress[4] = packet->macAddress[4];
-    entry.packetData.macAddress[5] = packet->macAddress[5];
-
-    entry.pduType = pdu_type;
-    entry.channelNumber = channel_number;
-    entry.numHits++;
-
-    if (entry.vendor_status == MAC_VENDOR_UNKNOWN) {
-        std::string vendor_name;
-        entry.vendor_status = lookup_mac_vendor_status(entry.packetData.macAddress, vendor_name);
-    }
-
-    // Parse Data Section into buffer to be interpretted later.
-    for (int i = 0; i < packet->dataLen; i++) {
-        entry.packetData.data[i] = packet->data[i];
-    }
-
-    entry.include_name = check_name.value();
-
     // Only parse name for advertisment packets and empty name entries
     if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
         if (uniqueParsing) {
-            // Add your unique beacon parsing function here.
+            success = parse_tracking_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.informationString);
         }
 
         if (!success && !uniqueParsing) {
@@ -1111,13 +1072,179 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         }
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         if (!uniqueParsing) {
-            ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
+            ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
             reverse_byte_array(directed_mac_data->A1, 6);
             success = true;
         }
     }
 
+    if (success) {
+        int i;
+
+        for (i = 0; i < packet->dataLen; i++) {
+            data_string += to_string_hex(packet->data[i], 2);
+        }
+
+        entry.dbValue = packet->max_dB - (receiver_model.lna() + receiver_model.vga() + (receiver_model.rf_amp() ? 14 : 0));
+        entry.timestamp = to_string_timestamp(rtc_time::now());
+        entry.dataString = data_string;
+
+        entry.packetData.type = packet->type;
+        entry.packetData.size = packet->size;
+        entry.packetData.dataLen = packet->dataLen;
+
+        // Mac Address of sender.
+        entry.packetData.macAddress[0] = packet->macAddress[0];
+        entry.packetData.macAddress[1] = packet->macAddress[1];
+        entry.packetData.macAddress[2] = packet->macAddress[2];
+        entry.packetData.macAddress[3] = packet->macAddress[3];
+        entry.packetData.macAddress[4] = packet->macAddress[4];
+        entry.packetData.macAddress[5] = packet->macAddress[5];
+
+        entry.pduType = pdu_type;
+        entry.channelNumber = channel_number;
+        entry.numHits++;
+
+        if (entry.vendor_status == MAC_VENDOR_UNKNOWN) {
+            std::string vendor_name;
+            entry.vendor_status = lookup_mac_vendor_status(entry.packetData.macAddress, vendor_name);
+        }
+
+        // Parse Data Section into buffer to be interpretted later.
+        for (int i = 0; i < packet->dataLen; i++) {
+            entry.packetData.data[i] = packet->data[i];
+        }
+
+        entry.include_name = check_name.value();
+    }
+
     return success;
+}
+
+bool BLERxView::parse_tracking_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString) {
+    uint8_t currentByte, currentLength, currentType = 0;
+
+    for (currentByte = 0; currentByte < length;) {
+        currentLength = data[currentByte++];
+        currentType = data[currentByte++];
+
+        // Manufacturer Specific Data (0xFF)
+        if (currentType == 0xFF && currentLength >= 4) {
+            uint16_t companyID = data[currentByte] | (data[currentByte + 1] << 8);
+
+            // Apple AirTag / Find My
+            if (companyID == 0x004C && currentLength >= 6) {
+                uint8_t appleType = data[currentByte + 2];
+                uint8_t appleLen = data[currentByte + 3];
+                if (appleType == 0x12 && appleLen == 0x19 && currentLength >= 4 + appleLen) {
+                    nameString = "Apple AirTag";
+                    informationString = "Find My";
+                    return true;
+                } else if (appleType == 0x02 && appleLen == 0x15) {
+                    uint16_t major = (data[currentByte + 20] << 8) | data[currentByte + 21];
+                    uint16_t minor = (data[currentByte + 22] << 8) | data[currentByte + 23];
+
+                    nameString = "iBeacon";
+
+                    informationString = to_string_hex(major) + to_string_hex(minor);
+
+                    return true;
+                }
+            }
+        }
+        // Services
+        else if ((currentType == 0x02 || currentType == 0x03) && currentLength >= 3) {
+            // Read UUID list in little endian
+            for (int u = 0; u < currentLength - 1; u += 2) {
+                uint16_t uuid16 = data[currentByte + u] | (data[currentByte + u + 1] << 8);
+
+                if (uuid16 == 0x1802) {  // Immediate Alert Service = Find Me Profile
+                    nameString = "FindMe";
+                    informationString = "IAS";  // ≤9 chars, could also say "AlertSvc"
+                    return true;
+                }
+            }
+        }
+        // Service Data
+        else if (currentType == 0x16 && currentLength >= 3) {
+            uint16_t uuid16 = data[currentByte] | (data[currentByte + 1] << 8);
+
+            std::string debug = to_string_hex(uuid16) + " ";
+
+            switch (uuid16) {
+                case 0xFD59: {  // Samsung SmartTag - Unregistered
+                    nameString = "Samsung SmartTag";
+                    informationString = "Unreg";  // <= 9 chars
+                    return true;
+                }
+
+                case 0xFD5A: {  // Samsung SmartTag - Registered
+                    nameString = "Samsung SmartTag";
+                    informationString = "Reg";  // <= 9 chars
+                    return true;
+                }
+
+                case 0xFD84: {
+                    std::string shortInfo = "FD84";  // default
+
+                    if (currentByte + 2 < length) {
+                        uint8_t model = data[currentByte + 2];  // usually model ID
+                        switch (model) {
+                            case 0x01:
+                                shortInfo = "Mate";
+                                break;
+                            case 0x02:
+                                shortInfo = "Pro";
+                                break;
+                            case 0x03:
+                                shortInfo = "Slim";
+                                break;
+                            case 0x04:
+                                shortInfo = "Sticker";
+                                break;
+                            default:
+                                shortInfo = "Model?" + to_string_hex(model);
+                                break;
+                        }
+                    }
+
+                    nameString = "Tile";
+                    informationString = shortInfo;  // <= 9 chars
+                    return true;
+                } break;
+
+                case 0xFEAA: {
+                    std::string frameStr = "Unknown";
+
+                    if (currentByte + 2 < length) {
+                        uint8_t frameType = data[currentByte + 2];
+                        switch (frameType) {
+                            case 0x00:
+                                frameStr = "UID";
+                                break;
+                            case 0x10:
+                                frameStr = "URL";
+                                break;
+                            case 0x20:
+                                frameStr = "TLM";
+                                break;
+                            case 0x30:
+                                frameStr = "EID";
+                                break;
+                        }
+                    }
+
+                    nameString = "Eddystone";
+                    informationString = frameStr;
+                    return true;
+                } break;
+            }
+        }
+
+        currentByte += (currentLength - 1);
+    }
+
+    return false;
 }
 
 bool BLERxView::parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString) {
