@@ -104,10 +104,9 @@ class ERTLogger {
     LogFile log_file{};
 };
 
+namespace ui::external_app::ert_app {
+
 using ERTRecentEntries = RecentEntries<ERTRecentEntry>;
-
-namespace ui {
-
 using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
 
 class ERTAppView : public View {
@@ -188,6 +187,6 @@ class ERTAppView : public View {
     void on_show_list();
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::ert_app */
 
 #endif /*__ERT_APP_H__*/

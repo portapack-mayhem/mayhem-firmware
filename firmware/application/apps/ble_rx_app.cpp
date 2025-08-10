@@ -1137,30 +1137,26 @@ bool BLERxView::parse_tracking_beacon_data(const uint8_t* data, uint8_t length, 
                 uint8_t appleType = data[currentByte + 2];
                 uint8_t appleLen = data[currentByte + 3];
                 if (appleType == 0x12 && appleLen == 0x19 && currentLength >= 4 + appleLen) {
-                    nameString = "Apple AirTag";
-                    informationString = "Find My";
+                    nameString.assign("Apple AirTag");
+                    informationString.assign("Find My");
                     return true;
                 } else if (appleType == 0x02 && appleLen == 0x15) {
                     uint16_t major = (data[currentByte + 20] << 8) | data[currentByte + 21];
                     uint16_t minor = (data[currentByte + 22] << 8) | data[currentByte + 23];
 
-                    nameString = "iBeacon";
-
-                    informationString = to_string_hex(major) + to_string_hex(minor);
-
+                    nameString.assign("iBeacon");
+                    informationString.assign(to_string_hex(major) + to_string_hex(minor));
                     return true;
                 }
             }
         }
         // Services
         else if ((currentType == 0x02 || currentType == 0x03) && currentLength >= 3) {
-            // Read UUID list in little endian
             for (int u = 0; u < currentLength - 1; u += 2) {
                 uint16_t uuid16 = data[currentByte + u] | (data[currentByte + u + 1] << 8);
-
                 if (uuid16 == 0x1802) {  // Immediate Alert Service = Find Me Profile
-                    nameString = "FindMe";
-                    informationString = "IAS";  // ≤9 chars, could also say "AlertSvc"
+                    nameString.assign("FindMe");
+                    informationString.assign("IAS");
                     return true;
                 }
             }
@@ -1169,75 +1165,65 @@ bool BLERxView::parse_tracking_beacon_data(const uint8_t* data, uint8_t length, 
         else if (currentType == 0x16 && currentLength >= 3) {
             uint16_t uuid16 = data[currentByte] | (data[currentByte + 1] << 8);
 
-            std::string debug = to_string_hex(uuid16) + " ";
-
             switch (uuid16) {
                 case 0xFD59: {  // Samsung SmartTag - Unregistered
-                    nameString = "Samsung SmartTag";
-                    informationString = "Unreg";  // <= 9 chars
+                    nameString.assign("Samsung SmartTag");
+                    informationString.assign("Unreg");
                     return true;
                 }
-
                 case 0xFD5A: {  // Samsung SmartTag - Registered
-                    nameString = "Samsung SmartTag";
-                    informationString = "Reg";  // <= 9 chars
+                    nameString.assign("Samsung SmartTag");
+                    informationString.assign("Reg");
                     return true;
                 }
-
                 case 0xFD84: {
-                    std::string shortInfo = "FD84";  // default
-
                     if (currentByte + 2 < length) {
-                        uint8_t model = data[currentByte + 2];  // usually model ID
+                        uint8_t model = data[currentByte + 2];
                         switch (model) {
                             case 0x01:
-                                shortInfo = "Mate";
+                                informationString.assign("Mate");
                                 break;
                             case 0x02:
-                                shortInfo = "Pro";
+                                informationString.assign("Pro");
                                 break;
                             case 0x03:
-                                shortInfo = "Slim";
+                                informationString.assign("Slim");
                                 break;
                             case 0x04:
-                                shortInfo = "Sticker";
+                                informationString.assign("Sticker");
                                 break;
                             default:
-                                shortInfo = "Model?" + to_string_hex(model);
+                                informationString.assign("Unknown");
                                 break;
                         }
                     }
-
-                    nameString = "Tile";
-                    informationString = shortInfo;  // <= 9 chars
+                    nameString.assign("Tile");
                     return true;
-                } break;
-
+                }
                 case 0xFEAA: {
-                    std::string frameStr = "Unknown";
-
                     if (currentByte + 2 < length) {
                         uint8_t frameType = data[currentByte + 2];
                         switch (frameType) {
                             case 0x00:
-                                frameStr = "UID";
+                                informationString.assign("UID");
                                 break;
                             case 0x10:
-                                frameStr = "URL";
+                                informationString.assign("URL");
                                 break;
                             case 0x20:
-                                frameStr = "TLM";
+                                informationString.assign("TLM");
                                 break;
                             case 0x30:
-                                frameStr = "EID";
+                                informationString.assign("EID");
+                                break;
+                            default:
+                                informationString.assign("Unknown");
                                 break;
                         }
                     }
-
-                    nameString = "Eddystone";
-                    informationString = frameStr;
+                    nameString.assign("Eddystone");
                     return true;
-                } break;
+                }
             }
         }
 
