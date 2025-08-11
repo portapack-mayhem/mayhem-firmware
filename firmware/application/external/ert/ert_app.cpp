@@ -96,22 +96,7 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
     packet_type = packet.type();
 }
 
-namespace ui {
-
-template <>
-void RecentEntriesTable<ERTRecentEntries>::draw(
-    const Entry& entry,
-    const Rect& target_rect,
-    Painter& painter,
-    const Style& style) {
-    std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
-
-    line += (entry.packet_type == ert::Packet::Type::SCM) ? ert::format::tamper_flags_scm(entry.last_tamper_flags) : ert::format::tamper_flags(entry.last_tamper_flags);
-    line += (entry.received_count > 99) ? " ++" : to_string_dec_uint(entry.received_count, 3);
-
-    line.resize(target_rect.width() / 8, ' ');
-    painter.draw_string(target_rect.location(), style, line);
-}
+namespace ui::external_app::ert_app {
 
 ERTAppView::ERTAppView(NavigationView& nav)
     : nav_{nav} {
@@ -182,4 +167,21 @@ void ERTAppView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::ert_app */
+
+namespace ui {
+template <>
+void RecentEntriesTable<ui::external_app::ert_app::ERTRecentEntries>::draw(
+    const Entry& entry,
+    const Rect& target_rect,
+    Painter& painter,
+    const Style& style) {
+    std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
+
+    line += (entry.packet_type == ert::Packet::Type::SCM) ? ert::format::tamper_flags_scm(entry.last_tamper_flags) : ert::format::tamper_flags(entry.last_tamper_flags);
+    line += (entry.received_count > 99) ? " ++" : to_string_dec_uint(entry.received_count, 3);
+
+    line.resize(target_rect.width() / 8, ' ');
+    painter.draw_string(target_rect.location(), style, line);
+}
+}  // namespace ui

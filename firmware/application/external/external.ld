@@ -79,6 +79,7 @@ MEMORY
     ram_external_app_spaceinv   (rwx) : org = 0xADE60000, len = 32k
     ram_external_app_blackjack  (rwx) : org = 0xADE70000, len = 32k
     ram_external_app_battleship   (rwx) : org = 0xADE80000, len = 32k
+    ram_external_app_ert        (rwx) : org = 0xADE90000, len = 32k
 }
 
 SECTIONS
@@ -419,5 +420,10 @@ SECTIONS
         *(*ui*external_app*battleship*);
     } > ram_external_app_battleship
 
+        .external_app_ert : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ert.application_information));
+        *(*ui*external_app*ert*);
+    } > ram_external_app_ert
 }
 

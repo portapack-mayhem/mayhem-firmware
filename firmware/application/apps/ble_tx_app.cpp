@@ -35,6 +35,7 @@
 #include "rtc_time.hpp"
 #include "string_format.hpp"
 #include "file_path.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -123,6 +124,31 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
 
 namespace ui {
 
+PKT_TYPE get_pkt_type_from_string(const std::string& type_str) {
+    if (type_str == "RAW") {
+        return PKT_TYPE_RAW;
+    } else if (type_str == "DISCOVERY") {
+        return PKT_TYPE_DISCOVERY;
+    } else if (type_str == "IBEACON") {
+        return PKT_TYPE_IBEACON;
+    } else if (type_str == "ADV_IND") {
+        return PKT_TYPE_ADV_IND;
+    } else if (type_str == "ADV_DIRECT_IND") {
+        return PKT_TYPE_ADV_DIRECT_IND;
+    } else if (type_str == "ADV_NONCONN_IND") {
+        return PKT_TYPE_ADV_NONCONN_IND;
+    } else if (type_str == "ADV_SCAN_IND") {
+        return PKT_TYPE_ADV_SCAN_IND;
+    } else if (type_str == "SCAN_REQ") {
+        return PKT_TYPE_SCAN_REQ;
+    } else if (type_str == "SCAN_RSP") {
+        return PKT_TYPE_SCAN_RSP;
+    } else if (type_str == "CONNECT_REQ") {
+        return PKT_TYPE_CONNECT_REQ;
+    }
+    return PKT_TYPE_INVALID_TYPE;
+}
+
 void BLETxView::focus() {
     button_open.focus();
 }
@@ -167,27 +193,10 @@ void BLETxView::toggle() {
     }
 }
 
-void BLETxView::start() {
-    baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
-    transmitter_model.enable();
-
+void BLETxView::send_packet() {
     // Generate new random Mac Address.
+    transmitter_model.enable();
     generateRandomMacAddress(randomMac);
-
-    // If this is our first run, check file.
-    if (!is_active()) {
-        File data_file;
-
-        auto error = data_file.open(file_path);
-        if (error && !file_override) {
-            file_error();
-            check_loop.set_value(false);
-            return;
-        }
-
-        button_play.set_bitmap(&bitmap_stop);
-        is_running = true;
-    }
 
     char advertisementData[63] = {0};
     strcpy(advertisementData, packets[current_packet].advertisementData);
@@ -235,9 +244,28 @@ void BLETxView::start() {
         }
     }
 
-    // Setup next packet configuration.
-    progressbar.set_max(packets[current_packet].packet_count);
-    baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, advertisementData, pduType);
+    progressbar.set_value(packets[current_packet].packet_count - packet_counter);
+    text_packets_sent.set(to_string_dec_uint(packet_counter));
+
+    baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, advertisementData, packets[current_packet].pduType);
+
+    packetDone = false;
+}
+
+void BLETxView::start() {
+    if (file_path.empty()) {
+        file_error();
+        check_loop.set_value(false);
+        return;
+    }
+
+    baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
+    transmitter_model.enable();
+
+    button_play.set_bitmap(&bitmap_stop);
+    is_running = true;
+
+    send_packet();
 }
 
 void BLETxView::stop() {
@@ -253,66 +281,67 @@ void BLETxView::stop() {
     is_running = false;
 }
 
-void BLETxView::reset() {
-    transmitter_model.disable();
-    baseband::shutdown();
-
-    start();
-}
-
 // called each 1/60th of second, so 6 = 100ms
 void BLETxView::on_timer() {
     if (++timer_count == timer_period) {
         timer_count = 0;
 
-        if (is_active()) {
-            // Reached end of current packet repeats.
-            if (packet_counter == 0) {
-                // Done sending all packets.
-                if (current_packet == (num_packets - 1)) {
-                    current_packet = 0;
-
-                    // If looping, restart from beginning.
-                    if (check_loop.value()) {
-                        update_current_packet(packets[current_packet], current_packet);
-                        reset();
-                    } else {
-                        stop();
-                    }
-                } else {
-                    current_packet++;
-                    update_current_packet(packets[current_packet], current_packet);
-                    reset();
-                }
-            } else {
-                reset();
-            }
-        }
-    }
-
-    if (++auto_channel_counter == auto_channel_period) {
-        auto_channel_counter = 0;
-
-        if (auto_channel) {
-            int min = 37;
-            int max = 39;
-
-            channel_number = min + std::rand() % (max - min + 1);
-
-            field_frequency.set_value(get_freq_by_channel_number(channel_number));
+        if (is_active() && packetDone) {
+            send_packet();
         }
     }
 }
 
-void BLETxView::on_tx_progress(const bool done) {
+void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
     if (done) {
         if (is_active()) {
-            if ((packet_counter % 10) == 0) {
-                text_packets_sent.set(to_string_dec_uint(packet_counter));
-            }
+            transmitter_model.disable();
+            if (auto_channel) {
+                switch (advCount) {
+                    case 0:
+                        channel_number = 37;
+                        break;
+                    case 1:
+                        channel_number = 38;
+                        break;
+                    case 2:
+                        channel_number = 39;
+                        break;
+                }
 
-            packet_counter--;
-            progressbar.set_value(packets[current_packet].packet_count - packet_counter);
+                field_frequency.set_value(get_freq_by_channel_number(channel_number));
+
+                if (advCount == 3) {
+                    channel_number = 37;
+                    packet_counter--;
+                    packetDone = true;
+                    advCount = 0;
+                } else {
+                    send_packet();
+                    advCount++;
+                }
+            } else {
+                packet_counter--;
+                packetDone = true;
+            }
+        }
+
+        // Reached end of current packet repeats.
+        if (packet_counter == 0) {
+            // Done sending all packets.
+            if (current_packet == (num_packets - 1)) {
+                current_packet = 0;
+
+                // If looping, restart from beginning.
+                if (check_loop.value()) {
+                    update_current_packet(packets[current_packet], current_packet);
+                } else {
+                    stop();
+                }
+            } else {
+                current_packet++;
+                update_current_packet(packets[current_packet], current_packet);
+            }
         }
     }
 }
@@ -331,7 +360,6 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_speed,
                   &options_speed,
                   &options_channel,
-                  &options_adv_type,
                   &label_marked_data,
                   &marked_data_sequence,
                   &label_packet_index,
@@ -371,13 +399,8 @@ BLETxView::BLETxView(NavigationView& nav)
         timer_count = 0;
     };
 
-    options_adv_type.on_change = [this](size_t, int32_t i) {
-        pduType = (PKT_TYPE)i;
-    };
-
     options_speed.set_selected_index(0);
-    options_channel.set_selected_index(0);
-    options_adv_type.set_selected_index(0);
+    options_channel.set_selected_index(3);
 
     check_rand_mac.set_value(false);
     check_rand_mac.on_select = [this](Checkbox&, bool v) {
@@ -482,17 +505,25 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         do {
             readUntil(data_file, packets[num_packets].macAddress, mac_address_size_str, ' ');
             readUntil(data_file, packets[num_packets].advertisementData, max_packet_size_str, ' ');
+            readUntil(data_file, packets[num_packets].packetType, max_packet_type_str, ' ');
             readUntil(data_file, packets[num_packets].packetCount, max_packet_repeat_str, '\n');
 
             uint64_t macAddressSize = strlen(packets[num_packets].macAddress);
             uint64_t advertisementDataSize = strlen(packets[num_packets].advertisementData);
             uint64_t packetCountSize = strlen(packets[num_packets].packetCount);
+            uint64_t packetTypeSize = strlen(packets[num_packets].packetType);
 
             packets[num_packets].packet_count = stringToUint32(packets[num_packets].packetCount);
+            packets[num_packets].pduType = (PKT_TYPE)get_pkt_type_from_string(packets[num_packets].packetType);
 
             // Verify Data.
-            if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_repeat_str) &&
-                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count >= 1) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
+            if ((macAddressSize == mac_address_size_str) &&
+                (advertisementDataSize < max_packet_size_str) &&
+                (packetCountSize < max_packet_repeat_str) &&
+                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) &&
+                hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) &&
+                (packets[num_packets].packet_count >= 1) && (packets[num_packets].packet_count < max_packet_repeat_count) &&
+                (packetTypeSize <= max_packet_type_str)) {
                 text_filename.set(truncate(file_path.filename().string(), 12));
 
             } else {
@@ -510,6 +541,8 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         } while (num_packets < max_num_packets);
 
         update_current_packet(packets[0], 0);
+
+        data_file.close();
     }
 }
 
@@ -540,6 +573,8 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     text_mac_address.set(formattedMacAddress);
 
+    progressbar.set_max(packet.packet_count);
+
     packet_counter = packet.packet_count;
     current_packet = currentIndex;
 
@@ -550,7 +585,7 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
         dataFile.write("\n", 1);
     }
 
-    dataFile.~File();
+    dataFile.close();
 
     auto result = FileWrapper::open(dataTempFilePath);
 

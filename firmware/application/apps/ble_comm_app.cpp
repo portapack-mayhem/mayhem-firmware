@@ -69,7 +69,7 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
 }
 
 void BLECommView::focus() {
-    options_channel.focus();
+    field_frequency.focus();
 }
 
 BLECommView::BLECommView(NavigationView& nav)
@@ -79,20 +79,13 @@ BLECommView::BLECommView(NavigationView& nav)
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
-                  &options_channel,
                   &field_frequency,
-                  &label_send_adv,
-                  &button_send_adv,
                   &check_log,
                   &label_packets_sent,
                   &text_packets_sent,
                   &console});
 
     field_frequency.set_step(0);
-
-    button_send_adv.on_select = [this](ImageButton&) {
-        this->toggle();
-    };
 
     check_log.set_value(logging);
 
@@ -104,26 +97,7 @@ BLECommView::BLECommView(NavigationView& nav)
             logger->append(logs_dir.string() + "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
-    options_channel.on_change = [this](size_t, int32_t i) {
-        // If we selected Auto don't do anything and Auto will handle changing.
-        if (i == 40) {
-            auto_channel = true;
-            return;
-        } else {
-            auto_channel = false;
-        }
-
-        field_frequency.set_value(get_freq_by_channel_number(i));
-        channel_number_rx = i;
-        channel_number_tx = i;
-    };
-
-    options_channel.set_selected_index(3, true);
-
     logger = std::make_unique<BLECommLogger>();
-
-    // Generate new random Mac Address upon each new startup.
-    generateRandomMacAddress(randomMac);
 
     // Setup Initial Advertise Packet.
     advertisePacket = build_adv_packet();
@@ -145,86 +119,66 @@ bool BLECommView::in_tx_mode() const {
     return (bool)is_running_tx;
 }
 
-void BLECommView::toggle() {
-    if (in_tx_mode()) {
-        sendAdvertisement(false);
-    } else {
-        sendAdvertisement(true);
-    }
-}
-
 BLETxPacket BLECommView::build_adv_packet() {
     BLETxPacket bleTxPacket;
     memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
-    std::string dataString = "11094861636b524620506f7274617061636b";
-
-    strncpy(bleTxPacket.macAddress, randomMac, 12);
+    std::string dataString = "02010603030F1807084861636B5246";
     strncpy(bleTxPacket.advertisementData, dataString.c_str(), dataString.length());
 
-    // Duty cycle of 40% per 100ms advertisment periods.
-    strncpy(bleTxPacket.packetCount, "80", 3);
-    bleTxPacket.packet_count = 80;
+    strncpy(bleTxPacket.packetCount, "1", 2);
+    bleTxPacket.packet_count = 1;
 
-    bleTxPacket.packetType = PKT_TYPE_DISCOVERY;
+    bleTxPacket.pduType = PKT_TYPE_ADV_IND;
 
     return bleTxPacket;
 }
 
-void BLECommView::sendAdvertisement(bool enable) {
-    if (enable) {
-        startTx(advertisePacket);
-        is_adv = true;
-    } else {
-        is_adv = false;
-        stopTx();
-    }
+void BLECommView::sendAdvertisement(void) {
+    startTx(advertisePacket);
+    ble_state = Ble_State_Advertising;
 }
 
 void BLECommView::startTx(BLETxPacket packetToSend) {
-    int randomChannel = channel_number_tx;
+    switch_rx_tx(false);
 
-    if (auto_channel) {
-        int min = 37;
-        int max = 39;
+    currentPacket = packetToSend;
+    packet_counter = currentPacket.packet_count;
 
-        randomChannel = min + std::rand() % (max - min + 1);
-
-        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+    switch (advCount) {
+        case 0:
+            channel_number_tx = 37;
+            break;
+        case 1:
+            channel_number_tx = 38;
+            break;
+        case 2:
+            channel_number_tx = 39;
+            break;
     }
 
-    if (!in_tx_mode()) {
-        switch_rx_tx(false);
+    field_frequency.set_value(get_freq_by_channel_number(37));
 
-        currentPacket = packetToSend;
-        packet_counter = currentPacket.packet_count;
+    advCount++;
 
-        button_send_adv.set_bitmap(&bitmap_stop);
-        baseband::set_btletx(randomChannel, currentPacket.macAddress, currentPacket.advertisementData, currentPacket.packetType);
-        transmitter_model.set_tx_gain(47);
-        transmitter_model.enable();
-
-        is_running_tx = true;
-    } else {
-        baseband::set_btletx(randomChannel, currentPacket.macAddress, currentPacket.advertisementData, currentPacket.packetType);
+    if (advCount == 3) {
+        advCount = 0;
     }
 
-    if ((packet_counter % 10) == 0) {
-        text_packets_sent.set(to_string_dec_uint(packet_counter));
-    }
+    baseband::set_btletx(37, deviceMAC, currentPacket.advertisementData, currentPacket.pduType);
+    transmitter_model.set_tx_gain(47);
+    transmitter_model.enable();
 
-    is_sending = true;
-
-    packet_counter--;
+    is_running_tx = true;
 }
 
 void BLECommView::stopTx() {
-    button_send_adv.set_bitmap(&bitmap_play);
     text_packets_sent.set(to_string_dec_uint(packet_counter));
 
     switch_rx_tx(true);
 
     baseband::set_btlerx(channel_number_rx);
+    field_frequency.set_value(get_freq_by_channel_number(channel_number_rx));
     receiver_model.enable();
 
     is_running_tx = false;
@@ -248,14 +202,12 @@ void BLECommView::on_data(BlePacketData* packet) {
     parse_received_packet(packet, (ADV_PDU_TYPE)packet->type);
 }
 
-// called each 1/60th of second, so 6 = 100ms
 void BLECommView::on_timer() {
-    // Send advertise burst only once every 100ms
     if (++timer_counter == timer_period) {
         timer_counter = 0;
 
-        if (!is_adv) {
-            sendAdvertisement(true);
+        if (ble_state == Ble_State_Receiving || ble_state == Ble_State_Idle) {
+            sendAdvertisement();
         }
     }
 }
@@ -263,17 +215,18 @@ void BLECommView::on_timer() {
 void BLECommView::on_tx_progress(const bool done) {
     if (done) {
         if (in_tx_mode()) {
-            is_sending = false;
+            ble_state = Ble_State_Receiving;
 
-            if (packet_counter == 0) {
-                if (is_adv) {
-                    sendAdvertisement(false);
-                } else {
-                    stopTx();
-                }
-            } else {
-                startTx(currentPacket);
-            }
+            timer_counter = 0;
+            timer_period = 12;
+
+            stopTx();
+
+            // else
+            // {
+            //     startTx(advertisePacket);
+            //     advCount++;
+            // }
         }
     }
 }
@@ -309,23 +262,28 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
     }
 
     if (pdu_type == SCAN_REQ || pdu_type == CONNECT_REQ) {
-        ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
-
-        std::reverse(directed_mac_data->A1, directed_mac_data->A1 + 6);
-        console.clear(true);
-        std::string str_console = "";
-        std::string pduTypeStr = "";
-
         if (pdu_type == SCAN_REQ) {
-            pduTypeStr += "SCAN_REQ";
-        } else if (pdu_type == CONNECT_REQ) {
-            pduTypeStr += "CONNECT_REQ";
-        }
+            ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
 
-        str_console += "PACKET TYPE:" + pduTypeStr + "\n";
-        str_console += "MY MAC:" + to_string_formatted_mac_address(randomMac) + "\n";
-        str_console += "SCAN MAC:" + to_string_mac_address(directed_mac_data->A1, 6, false) + "\n";
-        console.write(str_console);
+            std::reverse(directed_mac_data->A1, directed_mac_data->A1 + 6);
+            std::string directedMAC = to_string_mac_address(directed_mac_data->A1, 6, false);
+
+            // Compare directed MAC Hex with the device MAC.
+            if (1) {
+                // std::string str_console = "Received SCAN_REQ from directed MAC: " + directedMAC + "\n";
+                // console.clear(true);
+                // console.writeln(str_console);
+            }
+        } else if (pdu_type == CONNECT_REQ) {
+            ADV_PDU_PAYLOAD_TYPE_5* connectReq = (ADV_PDU_PAYLOAD_TYPE_5*)packet->data;
+
+            std::reverse(connectReq->AdvA, connectReq->AdvA + 6);
+            std::string directedMAC = to_string_mac_address(connectReq->AdvA, 6, false);
+
+            std::string str_console = "Received CONNECT_REQ from directed MAC: " + directedMAC + "\n";
+            console.clear(true);
+            console.writeln(str_console);
+        }
     }
 }
 
