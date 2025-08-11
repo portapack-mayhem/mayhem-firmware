@@ -68,7 +68,6 @@
 #include "analog_audio_app.hpp"
 // #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
-#include "ui_epirb_rx.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "pocsag_app.hpp"
@@ -131,8 +130,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
-    {"epirb", "EPIRB", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<EPIRBAppView>()},
-    {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},

@@ -98,6 +98,7 @@ for external_image_prefix in sys.argv[4:]:
 
 	# COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
 	himg = "{}/external_app_{}.himg".format(binary_dir, external_image_prefix)
+	print("Creating external application image for {}".format(external_image_prefix))
 	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)])
 
 	external_application_image = read_image(himg)

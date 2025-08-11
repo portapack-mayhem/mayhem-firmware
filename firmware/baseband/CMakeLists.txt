@@ -279,7 +279,7 @@ macro(DeclareTargets chunk_tag name)
 	include_directories(. ${INCDIR} ${MODE_INCDIR})
 	link_directories(${LLIBDIR})
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
-	
+
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
 
@@ -360,13 +360,6 @@ set(MODE_CPPSRC
 	proc_ais.cpp
 )
 DeclareTargets(PAIS ais)
-
-### EPIRB
-
-set(MODE_CPPSRC
-	proc_epirb.cpp
-)
-DeclareTargets(PEPI epirb)
 
 ### AM Audio
 
@@ -584,6 +577,14 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+
+### EPIRB
+
+set(MODE_CPPSRC
+	proc_epirb.cpp
+)
+DeclareTargets(PEPI epirb_rx)
+
 
 ### NRF RX
 

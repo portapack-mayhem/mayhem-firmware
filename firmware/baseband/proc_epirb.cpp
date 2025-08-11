@@ -20,7 +20,6 @@
  */
 
 #include "proc_epirb.hpp"
-#include "audio_dma.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -34,7 +33,6 @@ EPIRBProcessor::EPIRBProcessor() {
     // Target: Reduce 2.457600 MHz to ~38.4 kHz for 400 bps processing
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
-
     baseband_thread.start();
 }
 
@@ -88,17 +86,9 @@ void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
 }
 
 void EPIRBProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::AudioBeep)
-        on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
-}
-
-void EPIRBProcessor::on_beep_message(const AudioBeepMessage& message) {
-    // Audio beep feedback for received EPIRB signals
-    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
 }
 
 int main() {
-    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<EPIRBProcessor>()};
     event_dispatcher.run();
     return 0;

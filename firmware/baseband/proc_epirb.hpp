@@ -22,24 +22,28 @@
 #ifndef __PROC_EPIRB_H__
 #define __PROC_EPIRB_H__
 
+#include <cstdint>
+#include <cstddef>
+#include <array>
+#include <complex>
+
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
-
 #include "channel_decimator.hpp"
 #include "matched_filter.hpp"
-
 #include "clock_recovery.hpp"
 #include "symbol_coding.hpp"
 #include "packet_builder.hpp"
 #include "baseband_packet.hpp"
-
 #include "message.hpp"
 #include "buffer.hpp"
 
-#include <cstdint>
-#include <cstddef>
-#include <bitset>
+// Forward declarations for types only used as pointers/references
+class Message;
+namespace baseband {
+class Packet;
+}
 
 // EPIRB 406 MHz Emergency Position Indicating Radio Beacon
 // Signal characteristics:
@@ -50,6 +54,18 @@
 // - Transmission: Every 50 seconds ± 2.5 seconds
 // - Power: 5W ± 2dB
 // - Message length: 144 bits (including sync pattern)
+
+// Matched filter for BPSK demodulation at 400 bps
+// Using raised cosine filter taps optimized for 400 bps BPSK
+static constexpr std::array<std::complex<float>, 64> bpsk_taps = {{// Raised cosine filter coefficients for BPSK 400 bps
+                                                                   -5, -8, -12, -15, -17, -17, -15, -11,
+                                                                   -5, 2, 11, 20, 29, 37, 43, 47,
+                                                                   48, 46, 42, 35, 26, 16, 4, -8,
+                                                                   -21, -33, -44, -53, -59, -62, -62, -58,
+                                                                   -51, -41, -28, -13, 3, 19, 36, 51,
+                                                                   64, 74, 80, 82, 80, 74, 64, 51,
+                                                                   36, 19, 3, -13, -28, -41, -51, -58,
+                                                                   -62, -62, -59, -53, -44, -33, -21, -8}};
 
 class EPIRBProcessor : public BasebandProcessor {
    public:
@@ -63,8 +79,8 @@ class EPIRBProcessor : public BasebandProcessor {
     // EPIRB operates at 406 MHz with narrow bandwidth
     static constexpr size_t baseband_fs = 2457600;
     static constexpr uint32_t epirb_center_freq = 406028000;  // 406.028 MHz
-    static constexpr uint32_t symbol_rate = 400;  // 400 bps
-    static constexpr size_t decimation_factor = 64;  // Decimate to ~38.4kHz
+    static constexpr uint32_t symbol_rate = 400;              // 400 bps
+    static constexpr size_t decimation_factor = 64;           // Decimate to ~38.4kHz
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -75,29 +91,15 @@ class EPIRBProcessor : public BasebandProcessor {
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
 
-    // Matched filter for BPSK demodulation at 400 bps
-    // Using raised cosine filter taps optimized for 400 bps BPSK
-    static constexpr std::array<std::complex<float>, 64> bpsk_taps = {{
-        // Raised cosine filter coefficients for BPSK 400 bps
-        -5, -8, -12, -15, -17, -17, -15, -11,
-        -5, 2, 11, 20, 29, 37, 43, 47,
-        48, 46, 42, 35, 26, 16, 4, -8,
-        -21, -33, -44, -53, -59, -62, -62, -58,
-        -51, -41, -28, -13, 3, 19, 36, 51,
-        64, 74, 80, 82, 80, 74, 64, 51,
-        36, 19, 3, -13, -28, -41, -51, -58,
-        -62, -62, -59, -53, -44, -33, -21, -8
-    }};
-
     dsp::matched_filter::MatchedFilter mf{bpsk_taps, 2};
 
     // Clock recovery for 400 bps symbol rate
     // Sampling rate after decimation: ~38.4kHz
     // Symbols per sample: 38400 / 400 = 96 samples per symbol
     clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery{
-        38400,    // sampling_rate
-        400,      // symbol_rate (400 bps)
-        {0.0555f}, // error_filter coefficient
+        38400,      // sampling_rate
+        400,        // symbol_rate (400 bps)
+        {0.0555f},  // error_filter coefficient
         [this](const float symbol) { this->consume_symbol(symbol); }};
 
     // Simple bi-phase L decoder state
@@ -119,7 +121,6 @@ class EPIRBProcessor : public BasebandProcessor {
 
     void consume_symbol(const float symbol);
     void payload_handler(const baseband::Packet& packet);
-    void on_beep_message(const AudioBeepMessage& message);
 
     // Statistics
     uint32_t packets_received = 0;
