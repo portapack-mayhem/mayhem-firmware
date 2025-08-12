@@ -21,12 +21,12 @@
 							<builder id="org.eclipse.cdt.build.core.settings.default.builder.681215945" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1913618182" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1359024970" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.648690541" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.648690541" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" FrequencyUnit="includePath">
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/arm-none-eabi/include"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/lib/gcc/arm-none-eabi/4.8.4/include"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/lib/gcc/arm-none-eabi/4.8.4/include-fixed"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.undef.incpaths.1530801237" name="Undefined Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.undef.incpaths" valueType="undefIncludePath">
+								<option id="org.eclipse.cdt.build.core.settings.holder.undef.incpaths.1530801237" name="Undefined Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.undef.incpaths" FrequencyUnit="undefIncludePath">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-pc-linux-gnu/4.8.3/include"/>
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-pc-linux-gnu/4.8.3/include-fixed"/>
 									<listOptionValue builtIn="false" value="/usr/include"/>
@@ -34,13 +34,13 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.865562104" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.321395526" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.76286563" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.76286563" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" FrequencyUnit="includePath">
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/arm-none-eabi/include"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/lib/gcc/arm-none-eabi/4.8.4/include"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/lib/gcc/arm-none-eabi/4.8.4/include-fixed"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/arm-none-eabi/include/c++/4.8.4"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.undef.incpaths.1772031118" name="Undefined Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.undef.incpaths" valueType="undefIncludePath">
+								<option id="org.eclipse.cdt.build.core.settings.holder.undef.incpaths.1772031118" name="Undefined Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.undef.incpaths" FrequencyUnit="undefIncludePath">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-pc-linux-gnu/4.8.3/include"/>
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-pc-linux-gnu/4.8.3/include-fixed"/>
 									<listOptionValue builtIn="false" value="/usr/include"/>
@@ -48,12 +48,12 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1168908150" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1390938668" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.684710851" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.684710851" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" FrequencyUnit="includePath">
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/arm-none-eabi/include"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/lib/gcc/arm-none-eabi/4.8.4/include"/>
 									<listOptionValue builtIn="false" value="/opt/arm-none-eabi/lib/gcc/arm-none-eabi/4.8.4/include-fixed"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.undef.incpaths.1457542840" name="Undefined Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.undef.incpaths" valueType="undefIncludePath">
+								<option id="org.eclipse.cdt.build.core.settings.holder.undef.incpaths.1457542840" name="Undefined Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.undef.incpaths" FrequencyUnit="undefIncludePath">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-pc-linux-gnu/4.8.3/include"/>
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-pc-linux-gnu/4.8.3/include-fixed"/>
 									<listOptionValue builtIn="false" value="/usr/include"/>
