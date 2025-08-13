@@ -44,6 +44,12 @@ extern options_db_t freqman_steps;
 
 namespace ui {
 
+enum FrequencyUnit {
+    GHZ = 0,
+    MHZ,
+    KHZ,
+};
+
 class FrequencyField : public Widget {
    public:
     std::function<void(rf::Frequency)> on_change{};
@@ -207,8 +213,9 @@ class FrequencyKeypadView : public View {
         const rf::Frequency value);
 
     void focus() override;
+    void paint(Painter& painter) override;
 
-    rf::Frequency value() const;
+    rf::Frequency value(FrequencyUnit frequency_uni) const;
     void set_value(const rf::Frequency new_value);
     bool on_encoder(const EncoderEvent delta) override;
     bool on_keyboard(const KeyboardEvent key) override;
@@ -220,7 +227,6 @@ class FrequencyKeypadView : public View {
 
     static constexpr int mhz_digits = 4;
     static constexpr int submhz_digits = 4;
-
     static constexpr int mhz_mod = pow(10, mhz_digits);
     static constexpr int submhz_base = pow(10, 6 - submhz_digits);
     static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
@@ -230,15 +236,30 @@ class FrequencyKeypadView : public View {
 
     std::array<Button, 12> buttons{};
 
-    Button button_save{
-        {0, button_h * 5, 60, button_h},
-        "Save"};
+    Button button_save_ghz{
+        {0, 14 * 16, 80 / 2 - 1, 2 * 16},
+        "GHz"};
+    Button button_save_khz{
+        {0 + 40 - 1, 14 * 16, 80 / 2, 2 * 16},
+        "kHz"};
+    Button button_save_mhz{
+        {0, 16 * 16, 80 - 1, 3 * 16},
+        "Save MHz"};
     Button button_load{
-        {60, button_h * 5, 60, button_h},
+        {80 + 1, 14 * 16, 80 - 2, 40},
         "Load"};
-    Button button_close{
-        {128, button_h * 5, 112, button_h},
-        "Done"};
+    Button button_clear{
+        {80 + 1, 264, 80 - 2, 40},
+        "Clear"};
+    Button button_done_ghz{
+        {160 + 1, 14 * 16, 80 / 2 - 1, 2 * 16},
+        "GHz"};
+    Button button_done_khz{
+        {160 + 40, 14 * 16, 80 / 2 - 1, 2 * 16},
+        "kHz"};
+    Button button_done_mhz{
+        {160 + 1, 16 * 16, 80 - 2, 3 * 16},
+        "Done MHz"};
 
     /* TODO: Template arg required in enum?! */
     FieldString<mhz_digits> mhz{FieldString<4>::Justify::Right};
@@ -253,6 +274,8 @@ class FrequencyKeypadView : public View {
     bool clear_field_if_digits_entered{true};
 
     void on_button(Button& button);
+
+    void draw_input_hint();
 
     void digit_add(const char c);
     void digit_delete();
