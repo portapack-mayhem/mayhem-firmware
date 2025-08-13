@@ -213,6 +213,7 @@ class FrequencyKeypadView : public View {
         const rf::Frequency value);
 
     void focus() override;
+    void paint(Painter& painter) override;
 
     rf::Frequency value(FrequencyUnit frequency_uni) const;
     void set_value(const rf::Frequency new_value);
@@ -226,7 +227,6 @@ class FrequencyKeypadView : public View {
 
     static constexpr int mhz_digits = 4;
     static constexpr int submhz_digits = 4;
-
     static constexpr int mhz_mod = pow(10, mhz_digits);
     static constexpr int submhz_base = pow(10, 6 - submhz_digits);
     static constexpr int text_digits = mhz_digits + 1 + submhz_digits;

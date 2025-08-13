@@ -428,8 +428,12 @@ void FrequencyKeypadView::field_toggle() {
 }
 
 void FrequencyKeypadView::draw_input_hint() {
-    // TODO: the timing that paint this thing at scene entrance is bad. but it is currently ok cuz user always write mhz at beginning anyway.
-    Painter painter;  // the painter obj here would kill by end of func so wont cost much i guess
+    set_dirty();
+}
+
+void FrequencyKeypadView::paint(Painter& painter) {
+    View::paint(painter);
+
     const bool s = state == State::DigitMHz;
     painter.draw_hline(
         {0, 36},
