@@ -310,6 +310,10 @@ FrequencyKeypadView::FrequencyKeypadView(
         mhz.clear();
         submhz.clear();
         clear_field_if_digits_entered = true;
+        if (state == State::DigitSubMHz) {
+            state = State::DigitMHz;
+        }
+        draw_input_hint();
         update_text();
     };
 
