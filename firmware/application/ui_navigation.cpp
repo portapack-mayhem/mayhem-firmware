@@ -762,7 +762,7 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() { 
+                           [&nav, &app]() {
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
                             nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
                           true);
@@ -789,8 +789,8 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                          error_tile_pos);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
-        { 
-            return a.desired_position < b.desired_position; 
+        {
+            return a.desired_position < b.desired_position;
         });
 
         for (auto const& gridItem : externalItems) {
@@ -799,7 +799,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             } else {
                 grid.insert_item(gridItem, gridItem.desired_position, true);
             }
-            
+
         }
 
         grid.update_items();

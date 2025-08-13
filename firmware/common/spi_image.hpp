@@ -87,6 +87,7 @@ constexpr image_tag_t image_tag_am_audio{'P', 'A', 'M', 'A'};
 constexpr image_tag_t image_tag_am_tv{'P', 'A', 'M', 'T'};
 constexpr image_tag_t image_tag_capture{'P', 'C', 'A', 'P'};
 constexpr image_tag_t image_tag_ert{'P', 'E', 'R', 'T'};
+constexpr image_tag_t image_tag_epirb_rx{'P', 'E', 'P', 'I'};
 constexpr image_tag_t image_tag_nfm_audio{'P', 'N', 'F', 'M'};
 constexpr image_tag_t image_tag_pocsag{'P', 'P', 'O', 'C'};
 constexpr image_tag_t image_tag_pocsag2{'P', 'P', 'O', '2'};
