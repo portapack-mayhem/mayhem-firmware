@@ -110,7 +110,7 @@ GPS_data Packet::get_GPS_data() const {
         result.alt = reader_bi_m.read(8 * 8, 24) / 100.0;       // <|
         result.lat = reader_bi_m.read(28 * 8, 32) / 1000000.0;  // <| Inspired by https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
         result.lon = reader_bi_m.read(32 * 8, 32) / 1000000.0;  // <|
-    } else if (type_ == Type::Vaisala_RS41_SG) {
+    } else if (type_ == Type::Vaisala_RS41_SG && crc16rs41(block_gpspos)) {
         uint8_t XYZ_bytes[4];
         int32_t XYZ;  // 32bit
         double_t X[3];
@@ -245,7 +245,7 @@ temp_humid Packet::get_temp_humid() const {
         }
     }
 
-    if (type_ == Type::Vaisala_RS41_SG && crc_ok_RS41())  // Only process if packet is healthy
+    if (type_ == Type::Vaisala_RS41_SG && crc16rs41(block_meas))  // Only process if packet is healthy
     {
         // memset(calfrchk, 0, 51); // is this necessary ? only if the sondeID changes (new sonde)
         // original code from https://github.com/rs1729/RS/blob/master/rs41/rs41ptu.c
@@ -371,9 +371,11 @@ std::string Packet::serial_number() const {
         uint8_t achar;
         for (uint8_t i = 0; i < 8; i++) {  // euquiq: Serial ID is 8 bytes long, each byte a char
             achar = vaisala_descramble(pos_SondeID + i);
-            if (achar < 32 || achar > 126)
-                return "?";  // Maybe there are ids with less than 8 bytes and this is not OK.
-            serial_id += (char)achar;
+            if (achar < 32 || achar > 126) {
+                serial_id += "?";  // Maybe there are ids with less than 8 bytes and this is not OK.
+            } else {
+                serial_id += (char)achar;
+            }
         }
         return serial_id;
     } else {
@@ -414,15 +416,9 @@ bool Packet::crc_ok() const {
 //  2 bytes CRC16 over the data.
 bool Packet::crc_ok_RS41() const  // check CRC for the data blocks we need
 {
-    if (!crc16rs41(block_status))
-        return false;
-
-    if (!crc16rs41(block_gpspos))
-        return false;
-
-    if (!crc16rs41(block_meas))
-        return false;
-
+    if (!crc16rs41(block_status)) return false;
+    if (!crc16rs41(block_gpspos)) return false;
+    if (!crc16rs41(block_meas)) return false;
     return true;
 }
 
@@ -451,8 +447,7 @@ bool Packet::crc16rs41(uint32_t field_start) const {
         }
     }
     // Check calculated CRC against packet's one
-    pos++;
-    int crcok = vaisala_descramble(pos) | (vaisala_descramble(pos + 1) << 8);
+    int crcok = vaisala_descramble(field_start + 2 + length) | (vaisala_descramble(field_start + 2 + length + 1) << 8);
     if (crcok != rem)
         return false;
     return true;
