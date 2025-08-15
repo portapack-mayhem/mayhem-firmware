@@ -241,6 +241,10 @@ set(EXTCPPSRC
 	#epirb_rx
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
+
+	#soundboard
+	external/soundboard/main.cpp
+	external/soundboard/soundboard_app.cpp
 )
 
 set(EXTAPPLIST
@@ -302,4 +306,5 @@ set(EXTAPPLIST
 	battleship
 	ert
 	epirb_rx
+	soundboard
 )

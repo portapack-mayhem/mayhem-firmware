@@ -33,7 +33,7 @@
 using namespace tonekey;
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::soundboard {
 
 #define FILE_PER_PAGE 50
 
@@ -323,4 +323,4 @@ SoundBoardView::~SoundBoardView() {
     baseband::shutdown();
 }
 
-}  // namespace ui
+}  // namespace ui::external_app::soundboard
