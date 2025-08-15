@@ -19,66 +19,65 @@
  * Boston, MA 02110-1301, USA.
  */
 
- #include "ui.hpp"
- #include "soundboard_app.hpp"
- #include "ui_navigation.hpp"
- #include "external_app.hpp"
- 
- namespace ui::external_app::soundboard {
- void initialize_app(ui::NavigationView& nav) {
-     nav.push<SoundBoardView>();
- }
- }  // namespace ui::external_app::soundboard
- 
- extern "C" {
- 
- __attribute__((section(".external_app.app_soundboard.application_information"), used)) application_information_t _application_information_soundboard = {
-     /*.memory_location = */ (uint8_t*)0x00000000,
-     /*.externalAppEntry = */ ui::external_app::soundboard::initialize_app,
-     /*.header_version = */ CURRENT_HEADER_VERSION,
-     /*.app_version = */ VERSION_MD5,
- 
-     /*.app_name = */ "Soundbrd",
-     /*.bitmap_data = */ {
-         0xFE,
-         0x3F,
-         0xFF,
-         0x3F,
-         0xFF,
-         0xFF,
-         0xFF,
-         0xBF,
-         0xFE,
-         0xBF,
-         0x00,
-         0x80,
-         0x80,
-         0xFF,
-         0x80,
-         0x00,
-         0x80,
-         0x00,
-         0xC0,
-         0x01,
-         0xC0,
-         0x01,
-         0xC0,
-         0x01,
-         0xC0,
-         0x01,
-         0xC0,
-         0x01,
-         0xC0,
-         0x01,
-         0xC0,
-         0x01,
-     },
-     /*.icon_color = */ ui::Color::orange().v,
-     /*.menu_location = */ app_location_t::TX,
-     /*.desired_menu_position = */ -1,
- 
-     /*.m4_app_tag = portapack::spi_flash::image_tag_soundboard */ {'P', 'A', 'T', 'X'},
-     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
- };
- }
- 
+#include "ui.hpp"
+#include "soundboard_app.hpp"
+#include "ui_navigation.hpp"
+#include "external_app.hpp"
+
+namespace ui::external_app::soundboard {
+void initialize_app(ui::NavigationView& nav) {
+    nav.push<SoundBoardView>();
+}
+}  // namespace ui::external_app::soundboard
+
+extern "C" {
+
+__attribute__((section(".external_app.app_soundboard.application_information"), used)) application_information_t _application_information_soundboard = {
+    /*.memory_location = */ (uint8_t*)0x00000000,
+    /*.externalAppEntry = */ ui::external_app::soundboard::initialize_app,
+    /*.header_version = */ CURRENT_HEADER_VERSION,
+    /*.app_version = */ VERSION_MD5,
+
+    /*.app_name = */ "Soundbrd",
+    /*.bitmap_data = */ {
+        0xF0,
+        0x0F,
+        0x1C,
+        0x18,
+        0x17,
+        0x38,
+        0x15,
+        0x78,
+        0x15,
+        0xF8,
+        0x15,
+        0x82,
+        0x15,
+        0x8B,
+        0xD5,
+        0x83,
+        0xD5,
+        0xBB,
+        0xD5,
+        0x83,
+        0x15,
+        0x8B,
+        0x15,
+        0x92,
+        0x15,
+        0xA0,
+        0x17,
+        0x80,
+        0x1C,
+        0x80,
+        0xF0,
+        0xFF,
+    },
+    /*.icon_color = */ ui::Color::orange().v,
+    /*.menu_location = */ app_location_t::TX,
+    /*.desired_menu_position = */ -1,
+
+    /*.m4_app_tag = portapack::spi_flash::image_tag_soundboard */ {'P', 'A', 'T', 'X'},
+    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+};
+}
