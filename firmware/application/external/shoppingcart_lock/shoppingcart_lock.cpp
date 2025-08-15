@@ -201,8 +201,6 @@ ShoppingCartLock::ShoppingCartLock(NavigationView& nav)
                   &button_unlock,
                   &button_stop});
 
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-
     button_lock.on_select = [this](Button&) {
         if (is_active()) stop();
         log_event(">>> LOCK_SEQUENCE_START");
