@@ -81,6 +81,8 @@ MEMORY
     ram_external_app_battleship   (rwx) : org = 0xADE80000, len = 32k
     ram_external_app_ert        (rwx) : org = 0xADE90000, len = 32k
     ram_external_app_epirb_rx   (rwx) : org = 0xADEA0000, len = 32k
+    ram_external_app_soundboard   (rwx) : org = 0xADEB0000, len = 32k
+
 }
 
 SECTIONS
@@ -409,29 +411,35 @@ SECTIONS
         *(*ui*external_app*spaceinv*);
     } > ram_external_app_spaceinv
 
-        .external_app_blackjack : ALIGN(4) SUBALIGN(4)
+    .external_app_blackjack : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_blackjack.application_information));
         *(*ui*external_app*blackjack*);
     } > ram_external_app_blackjack
 
-        .external_app_battleship : ALIGN(4) SUBALIGN(4)
+    .external_app_battleship : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_battleship.application_information));
         *(*ui*external_app*battleship*);
     } > ram_external_app_battleship
 
-        .external_app_ert : ALIGN(4) SUBALIGN(4)
+    .external_app_ert : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_ert.application_information));
         *(*ui*external_app*ert*);
     } > ram_external_app_ert
 
-        .external_app_epirb_rx : ALIGN(4) SUBALIGN(4)
+    .external_app_epirb_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_epirb_rx.application_information));
         *(*ui*external_app*epirb_rx*);
     } > ram_external_app_epirb_rx
+
+    .external_app_soundboard : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_soundboard.application_information));
+        *(*ui*external_app*soundboard*);
+    } > ram_external_app_soundboard
 
 }
 

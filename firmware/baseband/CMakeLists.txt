@@ -369,13 +369,6 @@ set(MODE_CPPSRC
 DeclareTargets(PAMA am_audio)
 
 
-### Audio transmit
-
-set(MODE_CPPSRC
-	proc_audiotx.cpp
-)
-DeclareTargets(PATX audio_tx)
-
 ### Capture
 
 set(MODE_CPPSRC
@@ -689,6 +682,13 @@ set(MODE_CPPSRC
 	proc_noaaapt_rx.cpp
 )
 DeclareTargets(PNOA noaaapt_rx)
+
+### Audio transmit
+
+set(MODE_CPPSRC
+	proc_audiotx.cpp
+)
+DeclareTargets(PATX audio_tx)
 
 
 ### HackRF "factory" firmware
