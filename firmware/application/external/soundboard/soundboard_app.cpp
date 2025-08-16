@@ -251,7 +251,7 @@ void SoundBoardView::refresh_list() {
 SoundBoardView::SoundBoardView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &menu_view,
