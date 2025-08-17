@@ -110,7 +110,7 @@ class EPIRBDecoder {
     static EmergencyType decode_emergency_type(uint8_t emergency_bits);
     static uint32_t decode_country_code(const std::array<uint8_t, 16>& data);
     static std::string decode_vessel_name(const std::array<uint8_t, 16>& data);
-    
+
     // BCH error correction methods
     static PacketStatus perform_bch_check(std::array<uint8_t, 16>& data, uint8_t& error_count);
     static uint32_t calculate_bch_syndrome(const std::array<uint8_t, 16>& data);
