@@ -181,8 +181,19 @@ class EPIRBAppView : public ui::View {
     static constexpr auto header_height = 3 * 16;
 
     ui::Text label_frequency{
-        {0 * 8, 0 * 16, 10 * 8, 1 * 16},
-        "406.028 MHz"};
+        {0 * 8, 0 * 16, 4 * 8, 1 * 16},
+        "Freq"};
+
+    ui::OptionsField options_frequency{
+        {5 * 8, 0 * 16},
+        7,
+        {
+            {"406.028", 406028000},
+            {"406.025", 406025000},
+            {"406.037", 406037000},
+            {"433.025", 433025000},
+            {"144.875", 144875000},
+        }};
 
     ui::RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};

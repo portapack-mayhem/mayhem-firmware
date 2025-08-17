@@ -318,6 +318,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&label_frequency,
+                  &options_frequency,
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
@@ -345,11 +346,16 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         this->on_toggle_log();
     };
 
+    options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
+        receiver_model.set_target_frequency(v);
+    };
+    options_frequency.set_by_value(receiver_model.target_frequency());
+
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
 
-    // Configure receiver for 406.028 MHz EPIRB frequency
+    // Configure receiver for default EPIRB frequency (406.028 MHz)
     receiver_model.set_target_frequency(406028000);
     receiver_model.set_rf_amp(true);
     receiver_model.set_lna(32);
@@ -386,7 +392,7 @@ void EPIRBAppView::paint(ui::Painter& /* painter */) {
 }
 
 void EPIRBAppView::focus() {
-    field_rf_amp.focus();
+    options_frequency.focus();
 }
 
 void EPIRBAppView::on_packet(const baseband::Packet& packet) {
