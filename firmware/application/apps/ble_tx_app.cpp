@@ -293,6 +293,8 @@ void BLETxView::on_timer() {
 }
 
 void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
+    // TODO: make use of progress variable
+    (void)progress;
     if (done) {
         if (is_active()) {
             transmitter_model.disable();
