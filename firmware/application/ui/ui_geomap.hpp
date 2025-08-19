@@ -27,6 +27,8 @@
 #include "ui.hpp"
 #include "file.hpp"
 #include "ui_navigation.hpp"
+#include "bmpfile.hpp"
+#define M_PI 3.14159265358979323846
 
 #include "portapack.hpp"
 
@@ -42,6 +44,8 @@ namespace ui {
 #define GEOMAP_BANNER_HEIGHT (3 * 16)
 #define GEOMAP_RECT_WIDTH 240
 #define GEOMAP_RECT_HEIGHT (320 - 16 - GEOMAP_BANNER_HEIGHT)
+
+#define TILE_SIZE 256
 
 enum GeoMapMode {
     DISPLAY,
@@ -247,7 +251,13 @@ class GeoMap : public Widget {
     void draw_mypos(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_map_grid();
+    bool draw_osm_file(int zoom, int tile_x, int tile_y, int screen_x, int screen_y);
     void map_read_line(ui::Color* buffer, uint16_t pixels);
+    uint8_t find_osm_file_tile_zoom();
+    int lon2tile(double lon, int zoom);
+    int lat2tile(double lat, int zoom);
+    double lon_to_pixel_x_tile(double lon, int zoom);
+    double lat_to_pixel_y_tile(double lat, int zoom);
 
     bool manual_panning_{false};
     bool hide_center_marker_{false};
@@ -279,6 +289,7 @@ class GeoMap : public Widget {
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
     bool redraw_map{false};
+    bool use_osm{true};
 };
 
 class GeoMapView : public View {

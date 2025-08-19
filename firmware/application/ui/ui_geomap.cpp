@@ -277,23 +277,62 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
     const auto r = screen_rect();
     const auto geomap_rect_half_width = r.width() / 2;
     const auto geomap_rect_half_height = r.height() / 2;
+    if (!use_osm) {
+        GeoPoint mapPoint = lat_lon_to_map_pixel(item.lat, item.lon);
+        float x = mapPoint.x - x_pos;
+        float y = mapPoint.y - y_pos;
 
-    GeoPoint mapPoint = lat_lon_to_map_pixel(item.lat, item.lon);
-    float x = mapPoint.x - x_pos;
-    float y = mapPoint.y - y_pos;
+        if (map_zoom > 1) {
+            x = x * map_zoom + zoom_pixel_offset;
+            y = y * map_zoom + zoom_pixel_offset;
+        } else if (map_zoom < 0) {
+            x = x / (-map_zoom);
+            y = y / (-map_zoom);
+        }
 
-    if (map_zoom > 1) {
-        x = x * map_zoom + zoom_pixel_offset;
-        y = y * map_zoom + zoom_pixel_offset;
-    } else if (map_zoom < 0) {
-        x = x / (-map_zoom);
-        y = y / (-map_zoom);
+        x += geomap_rect_half_width;
+        y += geomap_rect_half_height;
+
+        return {(int16_t)x, (int16_t)y};
     }
+    // osm calculation
+    return {0, 0};  // todo htotoo
+}
 
-    x += geomap_rect_half_width;
-    y += geomap_rect_half_height;
+/**
+ * @brief Converts longitude to a map tile's X-coordinate.
+ * @param lon The longitude in degrees.
+ * @param zoom The zoom level.
+ * @return The X-coordinate of the tile.
+ */
+int GeoMap::lon2tile(double lon, int zoom) {
+    return (int)floor((lon + 180.0) / 360.0 * pow(2.0, zoom));
+}
 
-    return {(int16_t)x, (int16_t)y};
+/**
+ * @brief Converts latitude to a map tile's Y-coordinate.
+ * @param lat The latitude in degrees.
+ * @param zoom The zoom level.
+ * @return The Y-coordinate of the tile.
+ */
+int GeoMap::lat2tile(double lat, int zoom) {
+    // Convert latitude from degrees to radians for trigonometric functions
+    double lat_rad = lat * M_PI / 180.0;
+
+    // Perform the Mercator projection calculation
+    return (int)floor((1.0 - log(tan(lat_rad) + 1.0 / cos(lat_rad)) / M_PI) / 2.0 * pow(2.0, zoom));
+}
+
+uint8_t GeoMap::find_osm_file_tile_zoom() {
+    // todo htotoo map our zoom to osm zoom
+    for (int czoom = map_zoom; czoom > 0; czoom--) {
+        int tile_x = lon2tile(lon_, czoom);
+        int tile_y = lat2tile(lat_, czoom);
+        std::string filename = "/OSM/" + to_string_dec_int(czoom) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp";  // todo htotoo path literal
+        std::filesystem::path file_path(filename);
+        if (file_exists(file_path)) return czoom;
+    }
+    return 0;  // not found
 }
 
 // Converts latitude/longitude to pixel coordinates in map file.
@@ -330,6 +369,45 @@ void GeoMap::draw_map_grid() {
     for (uint16_t column = x; column < r.width(); column += grid_spacing) {
         display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Theme::getInstance()->bg_darker->background);
     }
+}
+
+double GeoMap::lon_to_pixel_x_tile(double lon, int zoom) {
+    return ((lon + 180.0) / 360.0) * pow(2.0, zoom) * TILE_SIZE;
+}
+
+double GeoMap::lat_to_pixel_y_tile(double lat, int zoom) {
+    double lat_rad = lat * M_PI / 180.0;
+    double sin_lat = sin(lat_rad);
+    return ((1.0 - log((1.0 + sin_lat) / (1.0 - sin_lat)) / (2.0 * M_PI)) / 2.0) * pow(2.0, zoom) * TILE_SIZE;
+}
+
+bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int screen_x, int screen_y) {
+    BMPFile bmp{};
+    bmp.open("/OSM/" + to_string_dec_int(zoom) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp", true);
+    if (!bmp.is_loaded()) {
+        display.fill_rectangle({{screen_x, screen_y}, {TILE_SIZE, TILE_SIZE}}, Theme::getInstance()->bg_darkest->background);  // error
+        return false;
+    }
+    for (int y = screen_y; y < TILE_SIZE; y++) {
+        if (y < 0) continue;
+        int xnum = TILE_SIZE;
+        int startx = 0;
+        if (screen_x < 0) {
+            xnum += screen_x;    // if screen_x is negative, we need to adjust the width
+            startx = -screen_x;  // and start drawing from the left edge
+        }
+        if (screen_x + TILE_SIZE > screen_width) {
+            xnum -= (screen_x + TILE_SIZE - screen_width);
+        }
+        if (xnum <= 0) continue;
+        bmp.seek(startx, y);
+        std::vector<ui::Color> line(xnum);
+        for (int x = 0; x < xnum; x++) {
+            bmp.read_next_px(line[x], true);
+        }
+        display.draw_pixels({screen_x + startx, screen_y + y, xnum, 1}, line);
+    }
+    return true;
 }
 
 void GeoMap::paint(Painter& painter) {
@@ -370,17 +448,66 @@ void GeoMap::paint(Painter& painter) {
         }
 
         if (map_visible) {
-            // Read from map file and display to zoomed scale
-            int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
-            for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
-                uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
-                map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
-                map_read_line(map_line_buffer.data(), r.width());
+            bool osm_ok = use_osm;
+            uint8_t osmzoom = 0;
+            if (osm_ok) {
+                osmzoom = find_osm_file_tile_zoom();
+                if (osmzoom == 0)
+                    osm_ok = false;
+                else
+                    map_zoom = osmzoom;  // max zoom supported
+            }
+            if (!use_osm || !osm_ok) {
+                // Read from map file and display to zoomed scale
+                int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
+                for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
+                    uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
+                    map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
+                    map_read_line(map_line_buffer.data(), r.width());
 
-                for (uint16_t j = 0; j < duplicate_lines; j++) {
-                    display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
+                    for (uint16_t j = 0; j < duplicate_lines; j++) {
+                        display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
+                    }
+                }
+            } else {
+                // Convert center GPS to a global pixel coordinate
+                double global_center_px = lon_to_pixel_x_tile(lon_, map_zoom);
+                double global_center_py = lat_to_pixel_y_tile(lat_, map_zoom);
+
+                // Find the top-left corner of the screen (viewport) in global pixel coordinates
+                double viewport_top_left_px = global_center_px - (screen_width / 2.0);
+                double viewport_top_left_py = global_center_py - (screen_height / 2.0);
+
+                // Find the tile ID that contains the top-left corner of the viewport
+                int start_tile_x = floor(viewport_top_left_px / TILE_SIZE);
+                int start_tile_y = floor(viewport_top_left_py / TILE_SIZE);
+
+                // Calculate the crucial render offset.
+                // This determines how much the first tile is shifted to align the map correctly.
+                // This value will almost always be negative or zero.
+                double render_offset_x = -(viewport_top_left_px - (start_tile_x * TILE_SIZE));
+                double render_offset_y = -(viewport_top_left_py - (start_tile_y * TILE_SIZE));
+
+                // Determine how many tiles we need to draw to fill the screen
+                int tiles_needed_x = (screen_width / TILE_SIZE) + 2;
+                int tiles_needed_y = (screen_height / TILE_SIZE) + 2;
+
+                for (int y = 0; y < tiles_needed_y; ++y) {
+                    for (int x = 0; x < tiles_needed_x; ++x) {
+                        int current_tile_x = start_tile_x + x;
+                        int current_tile_y = start_tile_y + y;
+
+                        // Calculate the final on-screen drawing position for this tile.
+                        // For the first tile (x=0, y=0), this will be the negative offset.
+                        int draw_pos_x = round(render_offset_x + x * TILE_SIZE);
+                        int draw_pos_y = round(render_offset_y + y * TILE_SIZE);
+                        if (!draw_osm_file(map_zoom, current_tile_x, current_tile_y, draw_pos_x, draw_pos_y)) {
+                            // todo debug message to screen, that the file is not found
+                        }
+                    }
                 }
             }
+
         } else {
             // No map data or excessive zoom; just draw a grid
             draw_map_grid();
@@ -394,7 +521,7 @@ void GeoMap::paint(Painter& painter) {
 
         // Draw the other markers
         draw_markers(painter);
-        draw_scale(painter);
+        if (!use_osm) draw_scale(painter);
         draw_mypos(painter);
         set_clean();
     }
