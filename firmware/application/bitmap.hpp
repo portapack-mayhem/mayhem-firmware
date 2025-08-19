@@ -3689,6 +3689,44 @@ static constexpr Bitmap bitmap_icon_sonde{
     {16, 16},
     bitmap_icon_sonde_data};
 
+static constexpr uint8_t bitmap_icon_soundboard_data[] = {
+    0xF0,
+    0x0F,
+    0x1C,
+    0x18,
+    0x17,
+    0x38,
+    0x15,
+    0x78,
+    0x15,
+    0xF8,
+    0x15,
+    0x82,
+    0x15,
+    0x8B,
+    0xD5,
+    0x83,
+    0xD5,
+    0xBB,
+    0xD5,
+    0x83,
+    0x15,
+    0x8B,
+    0x15,
+    0x92,
+    0x15,
+    0xA0,
+    0x17,
+    0x80,
+    0x1C,
+    0x80,
+    0xF0,
+    0xFF,
+};
+static constexpr Bitmap bitmap_icon_soundboard{
+    {16, 16},
+    bitmap_icon_soundboard_data};
+
 static constexpr uint8_t bitmap_icon_speaker_data[] = {
     0x00,
     0x00,
