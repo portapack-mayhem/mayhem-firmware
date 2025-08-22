@@ -9,7 +9,7 @@
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT ANY WARRANTY; without even the implied warranty ofs
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -20,7 +20,6 @@
  */
 
 #include "bmpfile.hpp"
-#include "usb_serial_asyncmsg.hpp"
 
 bool BMPFile::is_loaded() {
     return is_opened;
@@ -144,8 +143,6 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
     is_read_only = readonly;
     currx = 0;
     curry = 0;
-    UsbSerialAsyncmsg::asyncmsg("Opened BMP: " + file.string());
-    UsbSerialAsyncmsg::asyncmsg(type);
     return true;
 }
 

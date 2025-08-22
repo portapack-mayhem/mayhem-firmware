@@ -22,18 +22,16 @@
  */
 
 #include "ui_geomap.hpp"
-
 #include "portapack.hpp"
-
 #include <cstring>
 #include <stdio.h>
-
 using namespace portapack;
-
 #include "string_format.hpp"
 #include "complex.hpp"
 #include "ui_font_fixed_5x8.hpp"
 #include "file_path.hpp"
+
+#include "usb_serial_asyncmsg.hpp"  // For debug messages
 
 namespace ui {
 GeoPos::GeoPos(
@@ -187,7 +185,6 @@ int32_t GeoPos::speed() {
 GeoMap::GeoMap(
     Rect parent_rect)
     : Widget{parent_rect}, markerListLen(0) {
-    use_osm = find_osm_file_tile();
 }
 
 bool GeoMap::on_encoder(const EncoderEvent delta) {
@@ -231,6 +228,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
 
     // Trigger map redraw
     redraw_map = true;
+    UsbSerialAsyncmsg::asyncmsg("Redraw OSM  on_encoder");
     set_dirty();
     return true;
 }
@@ -441,8 +439,6 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         return true;
     }
 
-    // --- End of Corrected Clipping Logic ---
-
     if (!bmp.is_loaded()) {
         // Draw an error rectangle using the calculated clipped dimensions
         ui::Rect error_rect{{dest_x + r.left(), dest_y + r.top()}, {clip_w, clip_h}};
@@ -486,6 +482,7 @@ void GeoMap::paint(Painter& painter) {
     } else {
         // using osm; needs to be stricter with the redraws
         if (!is_on_screen_osm_xy(x_pos, y_pos, 5)) {
+            UsbSerialAsyncmsg::asyncmsg("Redraw OSM  is_on_screen_osm_xy");
             redraw_map = true;
         }
     }
@@ -519,7 +516,8 @@ void GeoMap::paint(Painter& painter) {
                 }
 
             } else {
-                // Convert center GPS to a global pixel coordinate
+                // display osm tiles
+                //  Convert center GPS to a global pixel coordinate
                 double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_zoom);
                 double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_zoom);
 
@@ -645,6 +643,7 @@ bool GeoMap::init() {
     map_world_lon = map_width / (2 * pi);
     map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
 
+    use_osm = find_osm_file_tile();
     return map_opened;
 }
 
@@ -762,6 +761,7 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
         markerList[markerListLen] = marker;
         markerListLen++;
         redraw_map = true;
+        UsbSerialAsyncmsg::asyncmsg("Redraw OSM  store_marker");
         ret = MARKER_STORED;
     } else {
         ret = MARKER_LIST_FULL;
@@ -775,6 +775,7 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     my_pos.lon = lon;
     my_altitude = altitude;
     redraw_map = is_changed;  // todo check if changed a lot
+    UsbSerialAsyncmsg::asyncmsg("Redraw OSM  update_my_position");
     set_dirty();
 }
 
@@ -783,6 +784,7 @@ void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     my_pos.angle = angle;
     if (refresh && is_changed) {
         redraw_map = true;
+        UsbSerialAsyncmsg::asyncmsg("Redraw OSM  update_my_orientation");
         set_dirty();
     }
 }
@@ -805,7 +807,7 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
         geomap.set_dirty();
         return;
     }
-
+    bool is_changed = lat_ != lat || lon_ != lon || altitude_ != altitude || speed_ != speed || angle_ != angle;
     lat_ = lat;
     lon_ = lon;
     altitude_ = altitude;
@@ -820,7 +822,7 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
     geopos.set_report_change(true);
 
     geomap.set_angle(angle);
-    geomap.move(lon_, lat_);
+    if (is_changed) geomap.move(lon_, lat_);
     geomap.set_dirty();
 }
 
@@ -836,13 +838,14 @@ void GeoMapView::setup() {
     geopos.set_lon(lon_);
 
     geopos.on_change = [this](int32_t altitude, float lat, float lon, int32_t speed) {
+        bool is_changed = (altitude_ != altitude) || (lat_ != lat) || (lon_ != lon) || (speed_ != speed);
         altitude_ = altitude;
         lat_ = lat;
         lon_ = lon;
         speed_ = speed;
         geopos.hide_altandspeed();
         geomap.set_manual_panning(true);
-        geomap.move(lon_, lat_);
+        if (is_changed) geomap.move(lon_, lat_);
         geomap.set_dirty();
     };
 

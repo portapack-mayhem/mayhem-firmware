@@ -456,7 +456,10 @@ void AISAppView::on_tick_second() {
     ++timer_seconds;
     if (timer_seconds % 10 == 0) {
         if (recent_entry_detail_view.hidden()) return;
-        recent_entry_detail_view.update_map_markers(recent);
+        if (got_new_packet) {
+            got_new_packet = false;
+            recent_entry_detail_view.update_map_markers(recent);
+        }
     }
 }
 
@@ -475,7 +478,7 @@ void AISAppView::on_packet(const ais::Packet& packet) {
     if (logger) {
         logger->on_packet(packet);
     }
-
+    got_new_packet = true;
     auto& entry = ::on_packet(recent, packet.source_id());
     entry.update(packet);
     recent_entries_view.set_dirty();

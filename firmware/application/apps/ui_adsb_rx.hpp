@@ -64,8 +64,8 @@ namespace ui {
 #define VEL_AIR_SUBSONIC 3
 #define VEL_AIR_SUPERSONIC 4
 
-#define O_E_FRAME_TIMEOUT 20     // timeout between odd and even frames
-#define MARKER_UPDATE_SECONDS 5  // "other" map marker redraw interval
+#define O_E_FRAME_TIMEOUT 20      // timeout between odd and even frames
+#define MARKER_UPDATE_SECONDS 10  // "other" map marker redraw interval
 
 /* Thresholds (in seconds) that define the transition between ages. */
 struct ADSBAgeLimit {
