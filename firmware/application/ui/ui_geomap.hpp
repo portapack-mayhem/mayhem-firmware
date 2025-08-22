@@ -250,14 +250,16 @@ class GeoMap : public Widget {
     void draw_markers(Painter& painter);
     void draw_mypos(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
-    void draw_map_grid();
-    bool draw_osm_file(int zoom, int tile_x, int tile_y, int screen_x, int screen_y);
+    void draw_map_grid(ui::Rect r);
     void map_read_line(ui::Color* buffer, uint16_t pixels);
+    // open street map related
     uint8_t find_osm_file_tile_zoom();
+    bool draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y);
     int lon2tile(double lon, int zoom);
     int lat2tile(double lat, int zoom);
     double lon_to_pixel_x_tile(double lon, int zoom);
     double lat_to_pixel_y_tile(double lat, int zoom);
+    uint8_t map_osm_zoom{0};
 
     bool manual_panning_{false};
     bool hide_center_marker_{false};
@@ -268,6 +270,7 @@ class GeoMap : public Widget {
     uint16_t map_width{}, map_height{};
     int32_t map_center_x{}, map_center_y{};
     int16_t map_zoom{1};
+
     float lon_ratio{}, lat_ratio{};
     double map_bottom{};
     double map_world_lon{};
