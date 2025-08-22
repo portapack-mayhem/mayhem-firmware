@@ -27,19 +27,19 @@ bool BMPFile::is_loaded() {
 }
 
 // fix height info
-uint32_t BMPFile::get_real_height() {
+inline uint32_t BMPFile::get_real_height() {
     if (!is_opened) return 0;
     return bmp_header.height >= 0 ? (uint32_t)bmp_header.height : (uint32_t)(-1 * bmp_header.height);
 }
 
 // get bmp width
-uint32_t BMPFile::get_width() {
+inline uint32_t BMPFile::get_width() {
     if (!is_opened) return 0;
     return bmp_header.width;
 }
 
 // get if the rows are bottom up (for most bmp), or up to bottom (negative height, we use it for write)
-bool BMPFile::is_bottomup() {
+inline bool BMPFile::is_bottomup() {
     return (bmp_header.height >= 0);
 }
 
@@ -113,7 +113,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
         case 8:
             type = 4;
             byte_per_px = 1;
-            bmpimage.seek(sizeof(bmp_header));
+            bmpimage.seek(sizeof(bmp_header_t));
             // bmpimage.read(color_palette, 1024);
             return false;  // niy
             break;
@@ -121,70 +121,10 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
         case 16:
             byte_per_px = 2;
             type = 5;
-            if (bmp_header.compression == 3) {  // BI_BITFIELDS
-                bmpimage.seek(sizeof(bmp_header_t));
-                bmpimage.read(&red_mask, 4);
-                bmpimage.read(&green_mask, 4);
-                bmpimage.read(&blue_mask, 4);
-            } else {  // If no masks, assume the most common 16-bit format: R5G6B5
-                red_mask = 0xF800;
-                green_mask = 0x07E0;
-                blue_mask = 0x001F;
-            }
+            if (bmp_header.compression == 3) {
+                return false;
+            }  // niy
 
-            // --- Inlined mask calculation for Red ---
-            if (red_mask == 0) {
-                red_shift = 0;
-                red_bits = 0;
-            } else {
-                uint32_t temp = red_mask;
-                red_shift = 0;
-                while ((temp & 1) == 0) {
-                    temp >>= 1;
-                    red_shift++;
-                }
-                red_bits = 0;
-                while (temp > 0) {
-                    temp >>= 1;
-                    red_bits++;
-                }
-            }
-
-            // --- Inlined mask calculation for Green ---
-            if (green_mask == 0) {
-                green_shift = 0;
-                green_bits = 0;
-            } else {
-                uint32_t temp = green_mask;
-                green_shift = 0;
-                while ((temp & 1) == 0) {
-                    temp >>= 1;
-                    green_shift++;
-                }
-                green_bits = 0;
-                while (temp > 0) {
-                    temp >>= 1;
-                    green_bits++;
-                }
-            }
-
-            // --- Inlined mask calculation for Blue ---
-            if (blue_mask == 0) {
-                blue_shift = 0;
-                blue_bits = 0;
-            } else {
-                uint32_t temp = blue_mask;
-                blue_shift = 0;
-                while ((temp & 1) == 0) {
-                    temp >>= 1;
-                    blue_shift++;
-                }
-                blue_bits = 0;
-                while (temp > 0) {
-                    temp >>= 1;
-                    blue_bits++;
-                }
-            }
             break;
         case 24:
             type = 1;
@@ -198,7 +138,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
             // not supported
             return false;
     }
-    byte_per_row = (bmp_header.width * byte_per_px % 4 == 0) ? bmp_header.width * byte_per_px : (bmp_header.width * byte_per_px + (4 - ((bmp_header.width * byte_per_px) % 4)));
+    byte_per_row = (bmp_header.width * byte_per_px + 3) & ~3;
     file_pos = bmp_header.image_data;
     is_opened = true;
     is_read_only = readonly;
@@ -229,46 +169,9 @@ bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
     auto res = bmpimage.read(buffer, byte_per_px);
     if (res.is_error()) return false;
     switch (type) {
-        case 5:
-        case 0:  // R5G6B5 (usually stored as B5G6R5)
-        case 3:  // A1R5G5B5 (usually stored as A1B5G5R5)
-        {
+        case 5: {
             uint16_t color16 = (uint16_t)buffer[0] | ((uint16_t)buffer[1] << 8);
-
-            uint8_t r_val = (color16 & red_mask) >> red_shift;
-            uint8_t g_val = (color16 & green_mask) >> green_shift;
-            uint8_t b_val = (color16 & blue_mask) >> blue_shift;
-
-            uint8_t r8, g8, b8;
-
-            // --- Inlined scaling for Red ---
-            if (red_bits >= 8) {
-                r8 = r_val;
-            } else if (red_bits == 0) {
-                r8 = 0;
-            } else {
-                r8 = (r_val << (8 - red_bits)) | (r_val >> (red_bits - (8 - red_bits)));
-            }
-
-            // --- Inlined scaling for Green ---
-            if (green_bits >= 8) {
-                g8 = g_val;
-            } else if (green_bits == 0) {
-                g8 = 0;
-            } else {
-                g8 = (g_val << (8 - green_bits)) | (g_val >> (green_bits - (8 - green_bits)));
-            }
-
-            // --- Inlined scaling for Blue ---
-            if (blue_bits >= 8) {
-                b8 = b_val;
-            } else if (blue_bits == 0) {
-                b8 = 0;
-            } else {
-                b8 = (b_val << (8 - blue_bits)) | (b_val >> (blue_bits - (8 - blue_bits)));
-            }
-
-            px = ui::Color(r8, g8, b8);
+            px = ui::Color(color16);  // has glitches!
             break;
         }
         case 2:  // 32
@@ -278,7 +181,7 @@ bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
         case 4: {  // 8-bit
             // uint8_t index = buffer[0];
             //  px = ui::Color(color_palette[index][2], color_palette[index][1], color_palette[index][0]);  // Palette is BGR
-            px = ui::Color(255, 0, 0);  // niy, since needs a lot of ram for the palette
+            px = ui::Color(buffer[0]);  // niy, since needs a lot of ram for the palette
             break;
         }
         case 1:  // 24

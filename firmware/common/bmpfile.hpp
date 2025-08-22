@@ -65,9 +65,6 @@ class BMPFile {
     uint32_t curry = 0;
     ui::Color bg{};
     // uint8_t color_palette[256][4];
-    uint32_t red_mask = 0, green_mask = 0, blue_mask = 0;
-    uint8_t red_shift = 0, green_shift = 0, blue_shift = 0;
-    uint8_t red_bits = 0, green_bits = 0, blue_bits = 0;
     bool use_bg = false;
 };
 
