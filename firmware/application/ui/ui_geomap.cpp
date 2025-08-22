@@ -31,8 +31,6 @@ using namespace portapack;
 #include "ui_font_fixed_5x8.hpp"
 #include "file_path.hpp"
 
-#include "usb_serial_asyncmsg.hpp"  // For debug messages
-
 namespace ui {
 GeoPos::GeoPos(
     const Point pos,
@@ -228,7 +226,6 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
 
     // Trigger map redraw
     redraw_map = true;
-    UsbSerialAsyncmsg::asyncmsg("Redraw OSM  on_encoder");
     set_dirty();
     return true;
 }
@@ -387,6 +384,17 @@ void GeoMap::draw_map_grid(ui::Rect r) {
     }
 }
 
+double GeoMap::tile_pixel_x_to_lon(int x, int zoom) {
+    double map_width = pow(2.0, zoom) * TILE_SIZE;
+    return (x / map_width * 360.0) - 180.0;
+}
+
+double GeoMap::tile_pixel_y_to_lat(int y, int zoom) {
+    double map_height = pow(2.0, zoom) * TILE_SIZE;
+    double n = M_PI * (1.0 - 2.0 * y / map_height);
+    return atan(sinh(n)) * 180.0 / M_PI;
+}
+
 double GeoMap::lon_to_pixel_x_tile(double lon, int zoom) {
     return ((lon + 180.0) / 360.0) * pow(2.0, zoom) * TILE_SIZE;
 }
@@ -480,20 +488,15 @@ void GeoMap::paint(Painter& painter) {
                 redraw_map = true;
         }
     } else {
-        // using osm; needs to be stricter with the redraws
-        if (!is_on_screen_osm_xy(x_pos, y_pos, 5)) {
-            UsbSerialAsyncmsg::asyncmsg("Redraw OSM  is_on_screen_osm_xy");
-            redraw_map = true;
-        }
+        // using osm; needs to be stricter with the redraws, it'll be checked on move
     }
 
     if (redraw_map) {
-        prev_x_pos = x_pos;  // Note x_pos/y_pos pixel position in map file now correspond to screen rect CENTER pixel
-        prev_y_pos = y_pos;
         redraw_map = false;
-
         if (map_visible) {
             if (!use_osm) {
+                prev_x_pos = x_pos;  // Note x_pos/y_pos pixel position in map file now correspond to screen rect CENTER pixel
+                prev_y_pos = y_pos;
                 // Adjust starting corner position of map per zoom setting;
                 // When zooming in the map should technically by shifted left & up by another map_zoom/2 pixels but
                 // the map_read_line_bin() function doesn't handle that yet so we're adjusting markers instead (see zoom_pixel_offset).
@@ -589,8 +592,14 @@ bool GeoMap::on_touch(const TouchEvent event) {
     if ((event.type == TouchEvent::Type::Start) && (mode_ == PROMPT)) {
         set_highlighted(true);
         if (on_move) {
-            Point p = event.point - screen_rect().center();
-            on_move(p.x() / 2.0 * lon_ratio, p.y() / 2.0 * lat_ratio);
+            Point p;
+            if (!use_osm) {
+                p = event.point - screen_rect().center();
+                on_move(p.x() / 2.0 * lon_ratio, p.y() / 2.0 * lat_ratio, false);
+            } else {
+                p = event.point - screen_rect().location();
+                on_move(tile_pixel_x_to_lon(p.x() + viewport_top_left_px, map_osm_zoom), tile_pixel_y_to_lat(p.y() + viewport_top_left_py, map_osm_zoom), true);
+            }
             return true;
         }
     }
@@ -599,25 +608,29 @@ bool GeoMap::on_touch(const TouchEvent event) {
 
 void GeoMap::move(const float lon, const float lat) {
     const auto r = screen_rect();
-
+    bool is_changed = (lon_ != lon || lat_ != lat);
     lon_ = lon;
     lat_ = lat;
 
-    // Calculate x_pos/y_pos in map file corresponding to CENTER pixel of screen rect
-    // (Note there is a 1:1 correspondence between map file pixels and screen pixels when map_zoom=1)
-    GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
-    x_pos = mapPoint.x;
-    y_pos = mapPoint.y;
+    if (!use_osm) {
+        // Calculate x_pos/y_pos in map file corresponding to CENTER pixel of screen rect
+        // (Note there is a 1:1 correspondence between map file pixels and screen pixels when map_zoom=1)
+        GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
+        x_pos = mapPoint.x;
+        y_pos = mapPoint.y;
 
-    // Cap position
-    if (x_pos > (map_width - r.width() / 2))
-        x_pos = map_width - r.width() / 2;
-    if (y_pos > (map_height + r.height() / 2))
-        y_pos = map_height - r.height() / 2;
+        // Cap position
+        if (x_pos > (map_width - r.width() / 2))
+            x_pos = map_width - r.width() / 2;
+        if (y_pos > (map_height + r.height() / 2))
+            y_pos = map_height - r.height() / 2;
 
-    // Scale calculation
-    float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
-    pixels_per_km = (r.width() / 2) / km_per_deg_lon;
+        // Scale calculation
+        float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
+        pixels_per_km = (r.width() / 2) / km_per_deg_lon;
+    } else {
+        if (is_changed) redraw_map = true;  // todo check if changed
+    }
 }
 
 bool GeoMap::init() {
@@ -761,7 +774,6 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
         markerList[markerListLen] = marker;
         markerListLen++;
         redraw_map = true;
-        UsbSerialAsyncmsg::asyncmsg("Redraw OSM  store_marker");
         ret = MARKER_STORED;
     } else {
         ret = MARKER_LIST_FULL;
@@ -775,7 +787,6 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     my_pos.lon = lon;
     my_altitude = altitude;
     redraw_map = is_changed;  // todo check if changed a lot
-    UsbSerialAsyncmsg::asyncmsg("Redraw OSM  update_my_position");
     set_dirty();
 }
 
@@ -784,7 +795,6 @@ void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     my_pos.angle = angle;
     if (refresh && is_changed) {
         redraw_map = true;
-        UsbSerialAsyncmsg::asyncmsg("Redraw OSM  update_my_orientation");
         set_dirty();
     }
 }
@@ -849,9 +859,14 @@ void GeoMapView::setup() {
         geomap.set_dirty();
     };
 
-    geomap.on_move = [this](float move_x, float move_y) {
-        lon_ += move_x;
-        lat_ += move_y;
+    geomap.on_move = [this](float move_x, float move_y, bool absolute) {
+        if (absolute) {
+            lon_ = move_x;
+            lat_ = move_y;
+        } else {
+            lon_ += move_x;
+            lat_ += move_y;
+        }
 
         // Stupid hack to avoid an event loop
         geopos.set_report_change(false);

@@ -199,7 +199,7 @@ enum MapMarkerStored {
 
 class GeoMap : public Widget {
    public:
-    std::function<void(float, float)> on_move{};
+    std::function<void(float, float, bool)> on_move{};
 
     GeoMap(Rect parent_rect);
 
@@ -259,6 +259,8 @@ class GeoMap : public Widget {
     int lat2tile(double lat, int zoom);
     double lon_to_pixel_x_tile(double lon, int zoom);
     double lat_to_pixel_y_tile(double lat, int zoom);
+    double tile_pixel_x_to_lon(int x, int zoom);
+    double tile_pixel_y_to_lat(int y, int zoom);
     bool is_on_screen_osm(double lon, double lat);
     bool is_on_screen_osm_xy(int16_t x, int16_t y, int16_t margin);
     uint8_t map_osm_zoom{4};
