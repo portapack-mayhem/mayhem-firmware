@@ -281,7 +281,7 @@ class GeoMap : public Widget {
     double map_bottom{};
     double map_world_lon{};
     double map_offset{};
-
+    Button btn_switcher{{0, 0, 3 * 9, 16}, "OSM"};
     float x_pos{}, y_pos{};
     float prev_x_pos{32767.0f}, prev_y_pos{32767.0f};
     float lat_{};
@@ -299,6 +299,7 @@ class GeoMap : public Widget {
     GeoMarker markerList[NumMarkerListElements];
     bool redraw_map{false};
     bool use_osm{false};
+    bool has_osm{false};
 };
 
 class GeoMapView : public View {

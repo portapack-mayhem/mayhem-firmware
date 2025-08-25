@@ -183,6 +183,20 @@ int32_t GeoPos::speed() {
 GeoMap::GeoMap(
     Rect parent_rect)
     : Widget{parent_rect}, markerListLen(0) {
+    has_osm = use_osm = find_osm_file_tile();
+    if (has_osm) {
+        btn_switcher.set_parent(this);
+        btn_switcher.on_select = [this](Button&) {
+            if (has_osm) use_osm = !use_osm;
+            if (use_osm)
+                btn_switcher.set_text("BIN");
+            else
+                btn_switcher.set_text("OSM");
+            move(lon_, lat_);  // to re calculate the center for each map type
+            redraw_map = true;
+            set_dirty();
+        };
+    }
 }
 
 bool GeoMap::on_encoder(const EncoderEvent delta) {
@@ -572,6 +586,7 @@ void GeoMap::paint(Painter& painter) {
         draw_markers(painter);
         if (!use_osm) draw_scale(painter);
         draw_mypos(painter);
+        if (has_osm) btn_switcher.paint(painter);  // don't show if we don't have osm
         set_clean();
     }
 
@@ -589,15 +604,15 @@ bool GeoMap::on_keyboard(KeyboardEvent key) {
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
+    Point p = event.point - screen_rect().location();
+    if ((p.y() < 18) && (p.x() < (3 * 19 + 2)) && btn_switcher.on_touch(event)) return true;
     if ((event.type == TouchEvent::Type::Start) && (mode_ == PROMPT)) {
         set_highlighted(true);
         if (on_move) {
-            Point p;
             if (!use_osm) {
                 p = event.point - screen_rect().center();
                 on_move(p.x() / 2.0 * lon_ratio, p.y() / 2.0 * lat_ratio, false);
             } else {
-                p = event.point - screen_rect().location();
                 on_move(tile_pixel_x_to_lon(p.x() + viewport_top_left_px, map_osm_zoom), tile_pixel_y_to_lat(p.y() + viewport_top_left_py, map_osm_zoom), true);
             }
             return true;
@@ -656,7 +671,6 @@ bool GeoMap::init() {
     map_world_lon = map_width / (2 * pi);
     map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
 
-    use_osm = find_osm_file_tile();
     return map_opened;
 }
 
