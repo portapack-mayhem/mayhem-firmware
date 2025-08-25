@@ -251,9 +251,11 @@ class GeoMap : public Widget {
     void draw_mypos(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_map_grid(ui::Rect r);
+    void draw_switcher(Painter& painter);
     void map_read_line_bin(ui::Color* buffer, uint16_t pixels);
     // open street map related
     uint8_t find_osm_file_tile();
+    void set_osm_max_zoom();
     bool draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y);
     int lon2tile(double lon, int zoom);
     int lat2tile(double lat, int zoom);
@@ -261,9 +263,7 @@ class GeoMap : public Widget {
     double lat_to_pixel_y_tile(double lat, int zoom);
     double tile_pixel_x_to_lon(int x, int zoom);
     double tile_pixel_y_to_lat(int y, int zoom);
-    bool is_on_screen_osm(double lon, double lat);
-    bool is_on_screen_osm_xy(int16_t x, int16_t y, int16_t margin);
-    uint8_t map_osm_zoom{4};
+    uint8_t map_osm_zoom{3};
     double viewport_top_left_px = 0;
     double viewport_top_left_py = 0;
 
@@ -281,7 +281,6 @@ class GeoMap : public Widget {
     double map_bottom{};
     double map_world_lon{};
     double map_offset{};
-    Button btn_switcher{{0, 0, 3 * 9, 16}, "OSM"};
     float x_pos{}, y_pos{};
     float prev_x_pos{32767.0f}, prev_y_pos{32767.0f};
     float lat_{};
