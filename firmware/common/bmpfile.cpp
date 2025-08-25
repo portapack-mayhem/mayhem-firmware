@@ -9,7 +9,7 @@
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty ofs
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -112,7 +112,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
         case 8:
             type = 4;
             byte_per_px = 1;
-            bmpimage.seek(sizeof(bmp_header_t));
+            // bmpimage.seek(sizeof(bmp_header_t));
             // bmpimage.read(color_palette, 1024);
             return false;  // niy
             break;
@@ -178,7 +178,7 @@ bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
         case 4: {  // 8-bit
             // uint8_t index = buffer[0];
             //  px = ui::Color(color_palette[index][2], color_palette[index][1], color_palette[index][0]);  // Palette is BGR
-            px = ui::Color(buffer[0]);  // niy, since needs a lot of ram for the palette
+            // px = ui::Color(buffer[0]);  // niy, since needs a lot of ram for the palette
             break;
         }
         case 1:  // 24

@@ -558,7 +558,7 @@ void GeoMap::paint(Painter& painter) {
 
         } else {
             // No map data or excessive zoom; just draw a grid
-            draw_map_grid(screen_rect());
+            draw_map_grid(r);
         }
         // Draw crosshairs in center in manual panning mode
         if (manual_panning_) {
@@ -582,8 +582,8 @@ void GeoMap::paint(Painter& painter) {
 
 void GeoMap::draw_switcher(Painter& painter) {
     painter.fill_rectangle({screen_rect().left(), screen_rect().top(), 3 * 20, 20}, Theme::getInstance()->bg_darker->background);
-    std::string_view txt = (use_osm) ? "BIN" : "OSM";
-    painter.draw_string({screen_rect().left() + 1, screen_rect().top() + 1}, *Theme::getInstance()->fg_light, txt);
+    std::string_view txt = (use_osm) ? "B I N" : "O S M";
+    painter.draw_string({screen_rect().left() + 5, screen_rect().top() + 2}, *Theme::getInstance()->fg_light, txt);
 }
 
 bool GeoMap::on_keyboard(KeyboardEvent key) {
@@ -597,19 +597,21 @@ bool GeoMap::on_touch(const TouchEvent event) {
     if (has_osm && event.type == TouchEvent::Type::Start && event.point.x() < screen_rect().left() + 3 * 20 && event.point.y() < screen_rect().top() + 20) {
         use_osm = !use_osm;
         move(lon_, lat_);  // to re calculate the center for each map type
+        if (use_osm) set_osm_max_zoom();
         redraw_map = true;
         set_dirty();
-        return false;
+        return false;  // false, because with true this hits 2 times
     }
 
     if ((event.type == TouchEvent::Type::Start) && (mode_ == PROMPT)) {
+        Point p;
         set_highlighted(true);
         if (on_move) {
             if (!use_osm) {
-                Point p = event.point - screen_rect().center();
+                p = event.point - screen_rect().center();
                 on_move(p.x() / 2.0 * lon_ratio, p.y() / 2.0 * lat_ratio, false);
             } else {
-                Point p = event.point - screen_rect().location();
+                p = event.point - screen_rect().location();
                 on_move(tile_pixel_x_to_lon(p.x() + viewport_top_left_px, map_osm_zoom), tile_pixel_y_to_lat(p.y() + viewport_top_left_py, map_osm_zoom), true);
             }
             return true;

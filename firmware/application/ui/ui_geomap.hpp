@@ -296,7 +296,7 @@ class GeoMap : public Widget {
 
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
-    bool redraw_map{false};
+    bool redraw_map{true};
     bool use_osm{false};
     bool has_osm{false};
 };
