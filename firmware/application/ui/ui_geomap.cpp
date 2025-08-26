@@ -451,11 +451,11 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         display.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);
         return false;
     }
+    std::vector<ui::Color> line(clip_w);
     for (int y = 0; y < clip_h; ++y) {
         int source_row = src_y + y;
         int dest_row = dest_y + y;
         bmp.seek(src_x, source_row);
-        std::vector<ui::Color> line(clip_w);
         for (int x = 0; x < clip_w; ++x) {
             bmp.read_next_px(line[x], true);
         }
