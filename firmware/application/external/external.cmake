@@ -245,6 +245,10 @@ set(EXTCPPSRC
 	#soundboard
 	external/soundboard/main.cpp
 	external/soundboard/soundboard_app.cpp
+
+	#game2048
+	external/game2048/main.cpp
+	external/game2048/ui_game2048.cpp
 )
 
 set(EXTAPPLIST
@@ -307,4 +311,5 @@ set(EXTAPPLIST
 	ert
 	epirb_rx
 	soundboard
+	game2048
 )
