@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Samir Sánchez Garnica @sasaga92
- * copyleft Elliot Alderson from F society
- * copyleft Darlene Alderson from F society
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
+
  *
  * This file is part of PortaPack.
  *

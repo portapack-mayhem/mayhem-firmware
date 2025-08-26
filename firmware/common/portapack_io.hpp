@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  * Copyright (C) 2024 u-foka
  * Copyright (C) 2024 Mark Thompson
  *

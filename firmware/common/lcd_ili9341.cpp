@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * copyleft 2025 Whiterose of the Dark Army
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *

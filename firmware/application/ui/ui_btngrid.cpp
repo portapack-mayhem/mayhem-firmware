@@ -4,7 +4,7 @@
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
  * Copyright (C) 2023 Mark Thompson
  * Copyright (C) 2024 u-foka
- * Copyleft (ↄ) 2024 zxkmm with the GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
