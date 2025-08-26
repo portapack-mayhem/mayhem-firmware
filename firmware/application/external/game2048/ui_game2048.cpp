@@ -1,5 +1,5 @@
 /*
- * copyleft 2025 zxkmm AKA zik aka sommermorgentraum
+ * copyleft 2025 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
