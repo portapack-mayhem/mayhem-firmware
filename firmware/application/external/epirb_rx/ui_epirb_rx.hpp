@@ -78,6 +78,12 @@ struct EPIRBLocation {
         : latitude(lat), longitude(lon), valid(true) {}
 };
 
+enum class PacketStatus : uint8_t {
+    Valid = 0,
+    Corrected = 1,
+    Error = 2
+};
+
 struct EPIRBBeacon {
     uint32_t beacon_id;
     BeaconType beacon_type;
@@ -87,9 +93,11 @@ struct EPIRBBeacon {
     std::string vessel_name;
     rtc::RTC timestamp;
     uint32_t sequence_number;
+    PacketStatus packet_status;
+    uint8_t error_count;
 
     EPIRBBeacon()
-        : beacon_id(0), beacon_type(BeaconType::Other), emergency_type(EmergencyType::Other), location(), country_code(0), vessel_name(), timestamp(), sequence_number(0) {}
+        : beacon_id(0), beacon_type(BeaconType::Other), emergency_type(EmergencyType::Other), location(), country_code(0), vessel_name(), timestamp(), sequence_number(0), packet_status(PacketStatus::Error), error_count(0) {}
 };
 
 class EPIRBDecoder {
@@ -102,6 +110,12 @@ class EPIRBDecoder {
     static EmergencyType decode_emergency_type(uint8_t emergency_bits);
     static uint32_t decode_country_code(const std::array<uint8_t, 16>& data);
     static std::string decode_vessel_name(const std::array<uint8_t, 16>& data);
+
+    // BCH error correction methods
+    static PacketStatus perform_bch_check(std::array<uint8_t, 16>& data, uint8_t& error_count);
+    static uint32_t calculate_bch_syndrome(const std::array<uint8_t, 16>& data);
+    static bool correct_single_error(std::array<uint8_t, 16>& data, uint32_t syndrome);
+    static uint8_t count_bit_errors(const std::array<uint8_t, 16>& original, const std::array<uint8_t, 16>& corrected);
 };
 
 class EPIRBLogger {
@@ -119,6 +133,8 @@ class EPIRBLogger {
 // Forward declarations of formatting functions
 std::string format_beacon_type(BeaconType type);
 std::string format_emergency_type(EmergencyType type);
+std::string format_packet_status(PacketStatus status);
+ui::Color get_packet_status_color(PacketStatus status);
 
 class EPIRBBeaconDetailView : public ui::View {
    public:
@@ -178,11 +194,22 @@ class EPIRBAppView : public ui::View {
 
     EPIRBBeaconDetailView beacon_detail_view{nav_};
 
-    static constexpr auto header_height = 3 * 16;
+    static constexpr auto header_height = 4 * 16;
 
     ui::Text label_frequency{
-        {0 * 8, 0 * 16, 10 * 8, 1 * 16},
-        "406.028 MHz"};
+        {0 * 8, 0 * 16, 4 * 8, 1 * 16},
+        "Freq"};
+
+    ui::OptionsField options_frequency{
+        {5 * 8, 0 * 16},
+        7,
+        {
+            {"406.028", 406028000},
+            {"406.025", 406025000},
+            {"406.037", 406037000},
+            {"433.025", 433025000},
+            {"144.875", 144875000},
+        }};
 
     ui::RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -211,6 +238,10 @@ class EPIRBAppView : public ui::View {
         {16 * 8, 1 * 16, 14 * 8, 1 * 16},
         "Beacons: 0"};
 
+    ui::Text label_packet_stats{
+        {0 * 8, 3 * 16, 29 * 8, 1 * 16},
+        ""};
+
     // Latest beacon info display
     ui::Text label_latest{
         {0 * 8, 2 * 16, 8 * 8, 1 * 16},
@@ -222,7 +253,7 @@ class EPIRBAppView : public ui::View {
 
     // Beacon list
     ui::Console console{
-        {0, 3 * 16, 240, 168}};
+        {0, 4 * 16, 240, 152}};
 
     ui::Button button_map{
         {0, 224, 60, 24},
@@ -238,6 +269,9 @@ class EPIRBAppView : public ui::View {
 
     SignalToken signal_token_tick_second{};
     uint32_t beacons_received = 0;
+    uint32_t packets_valid = 0;
+    uint32_t packets_corrected = 0;
+    uint32_t packets_error = 0;
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::EPIRBPacket,

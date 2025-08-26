@@ -273,7 +273,7 @@ set(EXTAPPLIST
 	morse_tx
 	sstvtx
 	random_password
-	acars_rx
+	# acars_rx
 	ookbrute
 	ook_editor
 	wefax_rx
