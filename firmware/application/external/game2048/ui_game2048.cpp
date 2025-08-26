@@ -250,7 +250,6 @@ void Game2048View::draw_tile(int x, int y, int value) {
     int tile_y = BOARD_START_Y + y * (TILE_SIZE + TILE_MARGIN);
 
     Color tile_color = get_tile_color(value);
-    Color text_color = get_text_color(value);
 
     painter.fill_rectangle({tile_x, tile_y, TILE_SIZE, TILE_SIZE}, tile_color);
     painter.draw_rectangle({tile_x, tile_y, TILE_SIZE, TILE_SIZE}, Color::dark_grey());
@@ -396,7 +395,7 @@ bool Game2048View::on_key(KeyEvent key) {
     return true;
 }
 
-bool Game2048View::on_encoder(const EncoderEvent event) {
+bool Game2048View::on_encoder(const EncoderEvent) {
     if (game_state != STATE_PLAYING) {
         return false;
     }
