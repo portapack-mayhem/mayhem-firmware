@@ -402,12 +402,6 @@ bool Game2048View::on_encoder(const EncoderEvent) {
 
     bool moved = false;
 
-    // if (event == EncoderEvent::Right) {
-    //     moved = move_right();
-    // } else if (event == EncoderEvent::Left) {
-    //     moved = move_left();
-    // }
-
     if (moved) {
         add_random_tile();
 
