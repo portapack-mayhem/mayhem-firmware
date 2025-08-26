@@ -64,8 +64,9 @@ namespace ui {
 #define VEL_AIR_SUBSONIC 3
 #define VEL_AIR_SUPERSONIC 4
 
-#define O_E_FRAME_TIMEOUT 20      // timeout between odd and even frames
-#define MARKER_UPDATE_SECONDS 10  // "other" map marker redraw interval
+#define O_E_FRAME_TIMEOUT 20          // timeout between odd and even frames
+#define MARKER_UPDATE_SECONDS_OSM 10  // "other" map marker redraw interval for osm
+#define MARKER_UPDATE_SECONDS_BIN 5   // "other" map marker redraw interval for bin map
 
 /* Thresholds (in seconds) that define the transition between ages. */
 struct ADSBAgeLimit {
@@ -277,6 +278,13 @@ class ADSBRxDetailsView : public View {
 
     std::string title() const override { return "Details"; }
 
+    MapType get_map_type() {
+        if (geomap_view_)
+            return geomap_view_->get_map_type();
+        else
+            return MapType::MAP_TYPE_BIN;  // default
+    }
+
    private:
     void refresh_ui();
     void on_gps(const GPSPosDataMessage* msg);
@@ -388,7 +396,7 @@ class ADSBRxView : public View {
 
     SignalToken signal_token_tick_second{};
     uint8_t tick_count = 0;
-    uint16_t ticks_since_marker_refresh{MARKER_UPDATE_SECONDS};
+    uint16_t ticks_since_marker_refresh{MARKER_UPDATE_SECONDS_OSM};
 
     /* Max number of entries that can be updated in a single pass.
      * 16 is one screen of recent entries. */

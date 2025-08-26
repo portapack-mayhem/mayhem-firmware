@@ -440,7 +440,7 @@ static void _sumlr(void);
 #undef __O
 #undef __P
 
-#define PI 3.141592653589793
+#include "mathdef.hpp"
 
 static void _numinput(byte k);
 static double dpush(double d);

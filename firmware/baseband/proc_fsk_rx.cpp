@@ -33,9 +33,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#include "mathdef.hpp"
 
 float FSKRxProcessor::detect_peak_power(const buffer_c8_t& buffer, int N) {
     int32_t power = 0;

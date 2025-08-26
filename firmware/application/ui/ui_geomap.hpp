@@ -28,7 +28,7 @@
 #include "file.hpp"
 #include "ui_navigation.hpp"
 #include "bmpfile.hpp"
-#define M_PI 3.14159265358979323846
+#include "mathdef.hpp"
 
 #include "portapack.hpp"
 
@@ -197,6 +197,11 @@ enum MapMarkerStored {
     MARKER_LIST_FULL
 };
 
+enum MapType {
+    MAP_TYPE_OSM,
+    MAP_TYPE_BIN
+};
+
 class GeoMap : public Widget {
    public:
     std::function<void(float, float, bool)> on_move{};
@@ -220,6 +225,7 @@ class GeoMap : public Widget {
     void set_tag(std::string new_tag) {
         tag_ = new_tag;
     }
+    MapType get_map_type();
 
     void set_angle(uint16_t new_angle) {
         angle_ = new_angle;
@@ -332,6 +338,8 @@ class GeoMapView : public View {
     void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed = 0);
     void update_my_position(float lat, float lon, int32_t altitude);
     void update_my_orientation(uint16_t angle, bool refresh = false);
+
+    MapType get_map_type();
 
     std::string title() const override { return "Map view"; };
 

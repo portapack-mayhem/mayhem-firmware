@@ -812,6 +812,10 @@ void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     }
 }
 
+MapType GeoMap::get_map_type() {
+    return use_osm ? MAP_TYPE_OSM : MAP_TYPE_BIN;
+}
+
 void GeoMapView::focus() {
     geopos.focus();
     if (!geomap.map_file_opened())
@@ -974,6 +978,10 @@ void GeoMapView::clear_markers() {
 
 MapMarkerStored GeoMapView::store_marker(GeoMarker& marker) {
     return geomap.store_marker(marker);
+}
+
+MapType GeoMapView::get_map_type() {
+    return geomap.get_map_type();
 }
 
 } /* namespace ui */
