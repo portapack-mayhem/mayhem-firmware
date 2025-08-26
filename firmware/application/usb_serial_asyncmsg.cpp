@@ -1,6 +1,4 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
  * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  * Copyright (C) 2024 HTotoo
  *
