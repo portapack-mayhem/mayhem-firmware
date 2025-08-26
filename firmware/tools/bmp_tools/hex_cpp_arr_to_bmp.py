@@ -1,4 +1,4 @@
-# copyleft zxkmm 2024
+# copyleft 2024 zxkmm AKA zix aka sommermorgentraum
 
 import sys
 import re
