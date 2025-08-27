@@ -99,6 +99,7 @@ struct BleRecentEntry {
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
     MAC_VENDOR_STATUS vendor_status;
+    std::string vendor_name;
     bool entryFound;
 
     BleRecentEntry()
@@ -119,6 +120,7 @@ struct BleRecentEntry {
           pduType{},
           channelNumber{},
           vendor_status{MAC_VENDOR_UNKNOWN},
+          vendor_name{},
           entryFound{} {
     }
 
@@ -225,7 +227,7 @@ class BLERxView : public View {
     void file_error();
     void on_timer();
     void handle_entries_sort(uint8_t index);
-    void handle_filter_options(uint8_t index);
+    bool handle_filter_options(uint8_t index, const BleRecentEntry& entry);
     bool updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
     bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
     bool parse_tracking_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);

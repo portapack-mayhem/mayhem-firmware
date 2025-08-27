@@ -36,6 +36,8 @@
 #include "ui_textentry.hpp"
 #include "usb_serial_asyncmsg.hpp"
 
+#include <string_view>
+
 using namespace portapack;
 using namespace modems;
 namespace fs = std::filesystem;
@@ -239,8 +241,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
     text_pdu_type.set(pdu_type_to_string(entry.pduType));
-    std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
-    text_vendor.set(vendor_name);
+    text_vendor.set(entry.vendor_name.empty() ? lookup_mac_vendor(entry.packetData.macAddress) : entry.vendor_name);
 
     button_done.on_select = [&nav](const ui::Button&) {
         nav.pop();
@@ -431,8 +432,7 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     entry_ = entry;
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
     text_pdu_type.set(pdu_type_to_string(entry.pduType));
-    std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
-    text_vendor.set(vendor_name);
+    text_vendor.set(entry.vendor_name.empty() ? lookup_mac_vendor(entry.packetData.macAddress) : entry.vendor_name);
     set_dirty();
 }
 
@@ -642,7 +642,6 @@ BLERxView::BLERxView(NavigationView& nav)
     options_filter.on_change = [this](size_t index, int32_t v) {
         filter_index = (uint8_t)index;
         recent.clear();
-        handle_filter_options(v);
         recent_entries_view.set_dirty();
     };
 
@@ -818,31 +817,17 @@ void BLERxView::on_data(BlePacketData* packet) {
         key |= ((uint64_t)packet->type) << 48;
     }
 
-    bool packetExists = false;
-
     // If found store into tempEntry to modify.
     auto it = find(recent, key);
     if (it != recent.end()) {
         recent.push_front(*it);
         recent.erase(it);
-        updateEntry(packet, recent.front(), (ADV_PDU_TYPE)packet->type);
-        packetExists = true;
     } else {
         recent.emplace_front(key);
         truncate_entries(recent);
-
-        packetExists = updateEntry(packet, recent.front(), (ADV_PDU_TYPE)packet->type);
-
-        // If parsing failed, remove entry.
-        if (!packetExists) {
-            recent.erase(recent.begin());
-        }
     }
 
-    if (packetExists) {
-        handle_filter_options(options_filter.selected_index());
-        handle_entries_sort(options_sort.selected_index());
-
+    if (updateEntry(packet, recent.front(), (ADV_PDU_TYPE)packet->type)) {
         if (!searchList.empty()) {
             auto it = searchList.begin();
 
@@ -860,24 +845,31 @@ void BLERxView::on_data(BlePacketData* packet) {
 
             text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
         }
+
+        // Packets were updated, resort the list.
+        handle_entries_sort(options_sort.selected_index());
+    } else {
+        recent.pop_front();
     }
 
     log_ble_packet(packet);
 }
 
 void BLERxView::log_ble_packet(BlePacketData* packet) {
-    str_console = "";
-    str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
-    str_console += " Len:";
-    str_console += to_string_dec_uint(packet->size);
-    str_console += " Mac:";
-    str_console += to_string_mac_address(packet->macAddress, 6, false);
-    str_console += " Data:";
+    if ((logger && logging) || serial_logging) {
+        str_console = "";
+        str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
+        str_console += " Len:";
+        str_console += to_string_dec_uint(packet->size);
+        str_console += " Mac:";
+        str_console += to_string_mac_address(packet->macAddress, 6, false);
+        str_console += " Data:";
 
-    int i;
+        int i;
 
-    for (i = 0; i < packet->dataLen; i++) {
-        str_console += to_string_hex(packet->data[i], 2);
+        for (i = 0; i < packet->dataLen; i++) {
+            str_console += to_string_hex(packet->data[i], 2);
+        }
     }
 
     // Log at End of Packet.
@@ -894,7 +886,7 @@ void BLERxView::on_filter_change(std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
         filter = value;
-        handle_filter_options(options_filter.selected_index());
+        recent.clear();
     }
 }
 
@@ -999,48 +991,31 @@ void BLERxView::handle_entries_sort(uint8_t index) {
     recent_entries_view.set_dirty();
 }
 
-void BLERxView::handle_filter_options(uint8_t index) {
-    auto value = filter;
+bool BLERxView::handle_filter_options(uint8_t index, const BleRecentEntry& entry) {
+    const std::string& value = filter;  // no copy
+    if (value.empty()) return true;
+
     switch (index) {
-        // Data
-        case 0:
-            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-                return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
-            });
-            break;
-        // MAC address (All caps: e.g. AA:BB:CC:DD:EE:FF)
-        case 1:
-            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-                return (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos);
-            });
-            break;
-        // Name
-        case 2:
-            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-                return (entry.nameString.find(value) == std::string::npos);
-            });
-            break;
-        // Info
-        case 3:
-            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-                return (entry.informationString.find(value) == std::string::npos);
-            });
-            break;
-        // Vendor
-        case 4:
-            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-                std::string vendor_name = lookup_mac_vendor(entry.packetData.macAddress);
-                return (vendor_name.find(value) == std::string::npos);
-            });
-            break;
-        // Channel
-        case 5:
-            resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-                return (to_string_dec_int(entry.channelNumber).find(value) == std::string::npos);
-            });
-            break;
+        case 0:  // Data OR Name
+            return std::string_view(entry.dataString).find(value) != std::string_view::npos || std::string_view(entry.nameString).find(value) != std::string_view::npos;
+
+        case 1:  // MAC
+            return std::string_view(to_string_mac_address(entry.packetData.macAddress, 6, false)).find(value) != std::string_view::npos;
+
+        case 2:  // Name
+            return std::string_view(entry.nameString).find(value) != std::string_view::npos;
+
+        case 3:  // Info
+            return std::string_view(entry.informationString).find(value) != std::string_view::npos;
+
+        case 4:  // Vendor
+            return std::string_view(entry.vendor_name).find(value) != std::string_view::npos;
+
+        case 5:  // Channel (string once, not per call)
+            return std::string_view(to_string_dec_int(entry.channelNumber)).find(value) != std::string_view::npos;
+
         default:
-            break;
+            return true;
     }
 }
 
@@ -1106,8 +1081,7 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         entry.numHits++;
 
         if (entry.vendor_status == MAC_VENDOR_UNKNOWN) {
-            std::string vendor_name;
-            entry.vendor_status = lookup_mac_vendor_status(entry.packetData.macAddress, vendor_name);
+            entry.vendor_status = lookup_mac_vendor_status(entry.packetData.macAddress, entry.vendor_name);
         }
 
         // Parse Data Section into buffer to be interpretted later.
@@ -1118,7 +1092,7 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         entry.include_name = check_name.value();
     }
 
-    return success;
+    return handle_filter_options(options_filter.selected_index(), entry) && success;
 }
 
 bool BLERxView::parse_tracking_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString) {
