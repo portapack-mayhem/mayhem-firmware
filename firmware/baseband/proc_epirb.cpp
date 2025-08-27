@@ -85,7 +85,6 @@ void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
     }
 }
 
-
 void EPIRBProcessor::on_message(const Message* const message) {
     (void)message;  // Unused in this processor
 }
