@@ -635,14 +635,14 @@ void ADSBRxView::refresh_ui() {
 
         if (details_view->map_active()) {
             // Is it time to clear and refresh the map's markers?
-            if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {
+            if (ticks_since_marker_refresh >= (details_view->get_map_type() == MAP_TYPE_OSM ? MARKER_UPDATE_SECONDS_OSM : MARKER_UPDATE_SECONDS_BIN)) {
                 map_needs_update = true;
                 ticks_since_marker_refresh = 0;
                 details_view->clear_map_markers();
             }
         } else {
             // Refresh map immediately once active.
-            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS;
+            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS_OSM;  // this is the bigger, so set it to force
         }
 
         // Process the entries list.

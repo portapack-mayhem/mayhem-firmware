@@ -47,7 +47,7 @@ static uint8_t calfrchk[51];        // so subframes are preserved while populate
 #define pos_GPSecefY 0x114  // 0x118  // 4 byte (not actually used since Y and Z are following X, and grabbed in that same loop)
 #define pos_GPSecefZ 0x118  // 0x11C  // 4 byte (same as Y)
 
-#define PI 3.1415926535897932384626433832795  // 3.1416 //(3.1415926535897932384626433832795)
+#include "mathdef.hpp"
 
 Packet::Packet(
     const baseband::Packet& packet,

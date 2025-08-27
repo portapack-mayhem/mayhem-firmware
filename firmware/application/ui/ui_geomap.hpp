@@ -27,6 +27,8 @@
 #include "ui.hpp"
 #include "file.hpp"
 #include "ui_navigation.hpp"
+#include "bmpfile.hpp"
+#include "mathdef.hpp"
 
 #include "portapack.hpp"
 
@@ -42,6 +44,8 @@ namespace ui {
 #define GEOMAP_BANNER_HEIGHT (3 * 16)
 #define GEOMAP_RECT_WIDTH 240
 #define GEOMAP_RECT_HEIGHT (320 - 16 - GEOMAP_BANNER_HEIGHT)
+
+#define TILE_SIZE 256
 
 enum GeoMapMode {
     DISPLAY,
@@ -193,9 +197,14 @@ enum MapMarkerStored {
     MARKER_LIST_FULL
 };
 
+enum MapType {
+    MAP_TYPE_OSM,
+    MAP_TYPE_BIN
+};
+
 class GeoMap : public Widget {
    public:
-    std::function<void(float, float)> on_move{};
+    std::function<void(float, float, bool)> on_move{};
 
     GeoMap(Rect parent_rect);
 
@@ -216,6 +225,7 @@ class GeoMap : public Widget {
     void set_tag(std::string new_tag) {
         tag_ = new_tag;
     }
+    MapType get_map_type();
 
     void set_angle(uint16_t new_angle) {
         angle_ = new_angle;
@@ -246,8 +256,22 @@ class GeoMap : public Widget {
     void draw_markers(Painter& painter);
     void draw_mypos(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
-    void draw_map_grid();
-    void map_read_line(ui::Color* buffer, uint16_t pixels);
+    void draw_map_grid(ui::Rect r);
+    void draw_switcher(Painter& painter);
+    void map_read_line_bin(ui::Color* buffer, uint16_t pixels);
+    // open street map related
+    uint8_t find_osm_file_tile();
+    void set_osm_max_zoom();
+    bool draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y);
+    int lon2tile(double lon, int zoom);
+    int lat2tile(double lat, int zoom);
+    double lon_to_pixel_x_tile(double lon, int zoom);
+    double lat_to_pixel_y_tile(double lat, int zoom);
+    double tile_pixel_x_to_lon(int x, int zoom);
+    double tile_pixel_y_to_lat(int y, int zoom);
+    uint8_t map_osm_zoom{3};
+    double viewport_top_left_px = 0;
+    double viewport_top_left_py = 0;
 
     bool manual_panning_{false};
     bool hide_center_marker_{false};
@@ -258,11 +282,11 @@ class GeoMap : public Widget {
     uint16_t map_width{}, map_height{};
     int32_t map_center_x{}, map_center_y{};
     int16_t map_zoom{1};
+
     float lon_ratio{}, lat_ratio{};
     double map_bottom{};
     double map_world_lon{};
     double map_offset{};
-
     float x_pos{}, y_pos{};
     float prev_x_pos{32767.0f}, prev_y_pos{32767.0f};
     float lat_{};
@@ -278,7 +302,9 @@ class GeoMap : public Widget {
 
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
-    bool redraw_map{false};
+    bool redraw_map{true};
+    bool use_osm{false};
+    bool has_osm{false};
 };
 
 class GeoMapView : public View {
@@ -312,6 +338,8 @@ class GeoMapView : public View {
     void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed = 0);
     void update_my_position(float lat, float lon, int32_t altitude);
     void update_my_orientation(uint16_t angle, bool refresh = false);
+
+    MapType get_map_type();
 
     std::string title() const override { return "Map view"; };
 

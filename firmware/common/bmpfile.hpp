@@ -47,12 +47,12 @@ class BMPFile {
     uint32_t get_width();
     bool is_bottomup();
     void set_bg_color(ui::Color background);
-    void delete_db_color();
+    void delete_bg_color();
 
    private:
     bool advance_curr_px(uint32_t num);
     bool is_opened = false;
-    bool is_read_ony = true;
+    bool is_read_only = true;
 
     File bmpimage{};
     size_t file_pos = 0;
@@ -64,6 +64,7 @@ class BMPFile {
     uint32_t currx = 0;
     uint32_t curry = 0;
     ui::Color bg{};
+    // uint8_t color_palette[256][4];
     bool use_bg = false;
 };
 

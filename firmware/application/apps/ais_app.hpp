@@ -221,6 +221,7 @@ class AISAppView : public View {
     };
     SignalToken signal_token_tick_second{};
     uint8_t timer_seconds = 0;
+    bool got_new_packet{false};  // got any new packet since latest screen update?
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::AISPacket,
