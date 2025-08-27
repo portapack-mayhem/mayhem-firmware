@@ -848,9 +848,7 @@ void BLERxView::on_data(BlePacketData* packet) {
 
         // Packets were updated, resort the list.
         handle_entries_sort(options_sort.selected_index());
-    }
-    else
-    {
+    } else {
         recent.pop_front();
     }
 
@@ -858,9 +856,7 @@ void BLERxView::on_data(BlePacketData* packet) {
 }
 
 void BLERxView::log_ble_packet(BlePacketData* packet) {
-
-    if ((logger && logging) || serial_logging)
-    {
+    if ((logger && logging) || serial_logging) {
         str_console = "";
         str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
         str_console += " Len:";
@@ -996,26 +992,26 @@ void BLERxView::handle_entries_sort(uint8_t index) {
 }
 
 bool BLERxView::handle_filter_options(uint8_t index, const BleRecentEntry& entry) {
-    const std::string& value = filter;          // no copy
+    const std::string& value = filter;  // no copy
     if (value.empty()) return true;
 
     switch (index) {
-        case 0: // Data OR Name
+        case 0:  // Data OR Name
             return std::string_view(entry.dataString).find(value) != std::string_view::npos || std::string_view(entry.nameString).find(value) != std::string_view::npos;
 
-        case 1: // MAC
+        case 1:  // MAC
             return std::string_view(to_string_mac_address(entry.packetData.macAddress, 6, false)).find(value) != std::string_view::npos;
 
-        case 2: // Name
+        case 2:  // Name
             return std::string_view(entry.nameString).find(value) != std::string_view::npos;
 
-        case 3: // Info
+        case 3:  // Info
             return std::string_view(entry.informationString).find(value) != std::string_view::npos;
 
-        case 4: // Vendor
+        case 4:  // Vendor
             return std::string_view(entry.vendor_name).find(value) != std::string_view::npos;
 
-        case 5: // Channel (string once, not per call)
+        case 5:  // Channel (string once, not per call)
             return std::string_view(to_string_dec_int(entry.channelNumber)).find(value) != std::string_view::npos;
 
         default:
