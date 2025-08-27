@@ -262,7 +262,7 @@ void ViewWavView::on_playback_progress(const uint32_t progress) {
 ViewWavView::ViewWavView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     wav_reader = std::make_unique<WAVFileReader>();
 
     add_children({&labels,

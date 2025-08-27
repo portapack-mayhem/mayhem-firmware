@@ -1,5 +1,5 @@
 /*
- * copyleft spammingdramaqueen
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *

@@ -31,7 +31,7 @@ int HALF_HEIGHT = 0;
 #define JOGGING_SPEED 1.2
 #define MAX_ENTITY_DISTANCE 200
 #define ITEM_COLLIDER_DIST 6
-#define PI 3.14159265358979323846
+#include "mathdef.hpp"
 #define GUN_WIDTH 30
 #define GUN_HEIGHT 40
 #define GUN_TARGET_POS 24

@@ -33,7 +33,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
-namespace ui {
+namespace ui::external_app::soundboard {
 
 class SoundBoardView : public View {
    public:
@@ -178,6 +178,6 @@ class SoundBoardView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::soundboard */
 
 #endif /*__UI_SOUNDBOARD_H__*/

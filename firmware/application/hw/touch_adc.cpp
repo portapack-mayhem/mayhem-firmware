@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * copyleft (ɔ) 2023 zxkmm under GPL license
+ * copyleft 2023 zxkmm AKA zix aka sommermorgentraum
  * Copyright (C) 2023 u-foka
  *
  * This file is part of PortaPack.

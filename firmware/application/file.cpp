@@ -113,7 +113,7 @@ File::Result<bool> File::eof() {
 File::Result<File::Offset> File::seek(Offset new_position) {
     /* NOTE: Returns *old* position, not new position */
     const auto old_position = tell();
-    const auto result = f_lseek(&f, new_position);
+    const auto result = (old_position == new_position) ? FR_OK : f_lseek(&f, new_position);
     if (result != FR_OK) {
         return {static_cast<Error>(result)};
     }

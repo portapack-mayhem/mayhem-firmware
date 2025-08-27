@@ -33,7 +33,7 @@
 using namespace tonekey;
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::soundboard {
 
 #define FILE_PER_PAGE 50
 
@@ -251,7 +251,7 @@ void SoundBoardView::refresh_list() {
 SoundBoardView::SoundBoardView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &menu_view,
@@ -323,4 +323,4 @@ SoundBoardView::~SoundBoardView() {
     baseband::shutdown();
 }
 
-}  // namespace ui
+}  // namespace ui::external_app::soundboard

@@ -6,7 +6,7 @@
  * Copyright (C) 2024 Mark Thompson
  * Copyright (C) 2024 u-foka
  * Copyright (C) 2024 HTotoo
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *

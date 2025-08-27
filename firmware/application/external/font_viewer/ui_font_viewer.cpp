@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2023 Mark Thompson
- * copyleft Whiterose of the Dark Army
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
