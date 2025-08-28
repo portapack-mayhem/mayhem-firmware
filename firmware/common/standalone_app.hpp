@@ -60,43 +60,43 @@ struct standalone_application_api_t {
     void (*set_dirty)();
 
     // Version 3
-    FRESULT (*f_open)
+    FRESULT(*f_open)
     (FIL* fp, const TCHAR* path, BYTE mode);
-    FRESULT (*f_close)
+    FRESULT(*f_close)
     (FIL* fp);
-    FRESULT (*f_read)
+    FRESULT(*f_read)
     (FIL* fp, void* buff, UINT btr, UINT* br);
-    FRESULT (*f_write)
+    FRESULT(*f_write)
     (FIL* fp, const void* buff, UINT btw, UINT* bw);
-    FRESULT (*f_lseek)
+    FRESULT(*f_lseek)
     (FIL* fp, FSIZE_t ofs);
-    FRESULT (*f_truncate)
+    FRESULT(*f_truncate)
     (FIL* fp);
-    FRESULT (*f_sync)
+    FRESULT(*f_sync)
     (FIL* fp);
-    FRESULT (*f_opendir)
+    FRESULT(*f_opendir)
     (DIR* dp, const TCHAR* path);
-    FRESULT (*f_closedir)
+    FRESULT(*f_closedir)
     (DIR* dp);
-    FRESULT (*f_readdir)
+    FRESULT(*f_readdir)
     (DIR* dp, FILINFO* fno);
-    FRESULT (*f_findfirst)
+    FRESULT(*f_findfirst)
     (DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern);
-    FRESULT (*f_findnext)
+    FRESULT(*f_findnext)
     (DIR* dp, FILINFO* fno);
-    FRESULT (*f_mkdir)
+    FRESULT(*f_mkdir)
     (const TCHAR* path);
-    FRESULT (*f_unlink)
+    FRESULT(*f_unlink)
     (const TCHAR* path);
-    FRESULT (*f_rename)
+    FRESULT(*f_rename)
     (const TCHAR* path_old, const TCHAR* path_new);
-    FRESULT (*f_stat)
+    FRESULT(*f_stat)
     (const TCHAR* path, FILINFO* fno);
-    FRESULT (*f_utime)
+    FRESULT(*f_utime)
     (const TCHAR* path, const FILINFO* fno);
-    FRESULT (*f_getfree)
+    FRESULT(*f_getfree)
     (const TCHAR* path, DWORD* nclst, FATFS** fatfs);
-    FRESULT (*f_mount)
+    FRESULT(*f_mount)
     (FATFS* fs, const TCHAR* path, BYTE opt);
     int (*f_putc)(TCHAR c, FIL* fp);
     int (*f_puts)(const TCHAR* str, FIL* cp);
