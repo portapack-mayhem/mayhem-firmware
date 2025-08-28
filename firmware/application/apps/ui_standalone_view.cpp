@@ -176,6 +176,10 @@ void ext_draw_pixel(const ui::Point p, const ui::Color color) {
 
 StandaloneView* standaloneView = nullptr;
 
+void exit_app() {
+    if (standaloneView) standaloneView->exit();
+}
+
 void set_dirty() {
     if (standaloneView != nullptr)
         standaloneView->set_dirty();
@@ -228,7 +232,7 @@ standalone_application_api_t api = {
     .f_gets = &ext_f_gets,
     .draw_pixels = &ext_draw_pixels,
     .draw_pixel = &ext_draw_pixel,
-
+    .exit_app = &exit_app,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)
@@ -308,6 +312,11 @@ void StandaloneView::on_after_attach() {
 void StandaloneView::on_before_detach() {
     get_application_information()->shutdown();
     context().focus_manager().clearMirror();
+}
+
+void StandaloneView::exit() {
+    nav_.pop();
+    standaloneView = nullptr;
 }
 
 }  // namespace ui
