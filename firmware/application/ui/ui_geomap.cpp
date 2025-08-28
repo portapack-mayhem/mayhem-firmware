@@ -256,7 +256,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
         for (int i = 0; i < geomap_rect_width; i++) {
             buffer[i] = zoom_out_buffer[i * (-map_zoom)];
         }
-        delete zoom_out_buffer;
+        delete[] zoom_out_buffer;
     }
 }
 
