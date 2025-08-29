@@ -193,7 +193,9 @@ class StandaloneViewMirror : public ui::View {
         : View{parent_rect}, context_(context) {
         set_style(ui::Theme::getInstance()->bg_darkest);
     }
-
+    ~StandaloneViewMirror() {
+        ui::Theme::destroy();
+    }
     ui::Context& context() const override {
         return context_;
     }

@@ -4,6 +4,11 @@ namespace ui {
 
 ThemeTemplate* Theme::current = nullptr;
 
+void Theme::destroy() {
+    if (current != nullptr)
+        delete current;
+}
+
 ThemeTemplate* Theme::getInstance() {
     if (current == nullptr) SetTheme(DefaultGrey);
     return Theme::current;

@@ -315,7 +315,6 @@ void StandaloneView::on_before_detach() {
 
 void StandaloneView::exit() {
     nav_.pop();
-    standaloneView = nullptr;
 }
 
 }  // namespace ui
