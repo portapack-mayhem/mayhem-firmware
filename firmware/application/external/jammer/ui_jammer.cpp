@@ -112,6 +112,7 @@ void RangeView::paint(Painter&) {
 }
 
 RangeView::RangeView(NavigationView& nav) {
+    (void)nav;
     hidden(true);
 
     add_children({&labels,
@@ -121,50 +122,6 @@ RangeView::RangeView(NavigationView& nav) {
                   &button_stop,
                   &button_center,
                   &button_width});
-
-    check_enabled.on_select = [this](Checkbox&, bool v) {
-        frequency_range.enabled = v;
-    };
-
-    button_start.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(frequency_range.min);
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            update_start(f);
-        };
-    };
-
-    button_stop.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            update_stop(f);
-        };
-    };
-
-    button_center.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(center);
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            update_center(f);
-        };
-    };
-
-    button_width.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(width);
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            update_width(f);
-        };
-    };
-
-    button_load_range.on_select = [this, &nav](Button&) {
-        auto load_view = nav.push<FrequencyLoadView>();
-        load_view->on_frequency_loaded = [this](rf::Frequency value) {
-            update_center(value);
-            update_width(100000);
-        };
-        load_view->on_range_loaded = [this](rf::Frequency start, rf::Frequency stop) {
-            update_start(start);
-            update_stop(stop);
-        };
-    };
 
     check_enabled.set_value(false);
 }
@@ -400,7 +357,8 @@ JammerView::JammerView(NavigationView& nav)
     };
 
     for (auto range_view : range_views) {
-        range_view->check_enabled.on_select = [this](Checkbox&, bool) {
+        range_view->check_enabled.on_select = [this, range_view](Checkbox&, bool v) {
+            range_view->frequency_range.enabled = v;
             if (jamming) update_config();
         };
         range_view->button_start.on_select = [this, range_view](Button&) {
