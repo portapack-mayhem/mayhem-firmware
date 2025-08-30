@@ -324,7 +324,7 @@ AISRecentEntryDetailView& AISRecentEntryDetailView::operator=(const AISRecentEnt
 
 void AISRecentEntryDetailView::update_position() {
     if (send_updates)
-        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground);
+        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground / 10);
 }
 
 bool AISRecentEntryDetailView::add_map_marker(const AISRecentEntry& entry) {
