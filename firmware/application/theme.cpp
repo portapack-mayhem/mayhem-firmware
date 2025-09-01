@@ -7,6 +7,7 @@ ThemeTemplate* Theme::current = nullptr;
 void Theme::destroy() {
     if (current != nullptr)
         delete current;
+    current = nullptr;
 }
 
 ThemeTemplate* Theme::getInstance() {
