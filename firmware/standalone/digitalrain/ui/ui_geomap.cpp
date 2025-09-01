@@ -403,7 +403,7 @@ double GeoMap::lat_to_pixel_y_tile(double lat, int zoom) {
 }
 
 bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y, Painter& painter) {
-    const auto r = screen_rect();
+    const ui::Rect r = screen_rect();
     // Early exit if the tile is completely outside the viewport
     if (relative_x >= r.width() || relative_y >= r.height() ||
         relative_x + TILE_SIZE <= 0 || relative_y + TILE_SIZE <= 0) {
@@ -447,7 +447,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
     if (!bmp.is_loaded()) {
         // Draw an error rectangle using the calculated clipped dimensions
         ui::Rect error_rect{{dest_x + r.left(), dest_y + r.top()}, {clip_w, clip_h}};
-        painter.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);
+        painter.fill_rectangle(error_rect, Theme::getInstance()->bg_lightest->background);
         return false;
     }
     std::vector<ui::Color> line(clip_w);
@@ -659,7 +659,7 @@ bool GeoMap::init() {
         map_height = 32768;
     }
 
-    map_visible = map_opened;
+    map_visible = map_opened || has_osm;
     map_center_x = map_width >> 1;
     map_center_y = map_height >> 1;
 
@@ -669,7 +669,7 @@ bool GeoMap::init() {
     map_bottom = sin(-85.05 * pi / 180);  // Map bitmap only goes from about -85 to 85 lat
     map_world_lon = map_width / (2 * pi);
     map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
-    return map_opened || has_osm;
+    return map_opened;
 }
 
 void GeoMap::set_mode(GeoMapMode mode) {
