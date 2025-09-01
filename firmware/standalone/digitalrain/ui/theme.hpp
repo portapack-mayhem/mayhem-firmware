@@ -93,6 +93,11 @@ class ThemeRed : public ThemeTemplate {
     ThemeRed();
 };
 
+class ThemeDark : public ThemeTemplate {
+   public:
+    ThemeDark();
+};
+
 class Theme {
    public:
     enum ThemeId {
@@ -101,13 +106,15 @@ class Theme {
         Aqua = 2,
         Green = 3,
         Red = 4,
+        Dark = 5,
         MAX
     };
     static ThemeTemplate* getInstance();
 
     static void SetTheme(ThemeId theme);
     static ThemeTemplate* current;
-    static void destroy();  // used from standalone app, to prevent memleak
+    static void destroy();
+
    private:
 };
 
