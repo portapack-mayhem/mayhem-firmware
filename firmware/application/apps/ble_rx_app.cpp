@@ -639,7 +639,7 @@ BLERxView::BLERxView(NavigationView& nav)
         handle_entries_sort(v);
     };
 
-    options_filter.on_change = [this](size_t index, int32_t v) {
+    options_filter.on_change = [this](size_t index, int32_t) {
         filter_index = (uint8_t)index;
         recent.clear();
         recent_entries_view.set_dirty();
