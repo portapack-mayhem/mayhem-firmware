@@ -27,6 +27,9 @@
 
 #include "ui_font_fixed_5x8.hpp"
 #include "ui_font_fixed_8x16.hpp"
+#include "portapack.hpp"
+
+#include "file.hpp"
 
 namespace ui {
 
@@ -93,7 +96,89 @@ bool i2c_read(uint8_t* cmd, size_t cmd_len, uint8_t* data, size_t data_len) {
     return dev->i2c_read(cmd, cmd_len, data, data_len);
 }
 
+// v3
+//  Version 3
+FRESULT ext_f_open(FIL* fp, const TCHAR* path, BYTE mode) {
+    return f_open(fp, path, mode);
+}
+FRESULT ext_f_close(FIL* fp) {
+    return f_close(fp);
+}
+FRESULT ext_f_read(FIL* fp, void* buff, UINT btr, UINT* br) {
+    return f_read(fp, buff, btr, br);
+}
+FRESULT ext_f_write(FIL* fp, const void* buff, UINT btw, UINT* bw) {
+    return f_write(fp, buff, btw, bw);
+}
+FRESULT ext_f_lseek(FIL* fp, FSIZE_t ofs) {
+    return f_lseek(fp, ofs);
+}
+FRESULT ext_f_truncate(FIL* fp) {
+    return f_truncate(fp);
+}
+FRESULT ext_f_sync(FIL* fp) {
+    return f_sync(fp);
+}
+FRESULT ext_f_opendir(DIR* dp, const TCHAR* path) {
+    return f_opendir(dp, path);
+}
+FRESULT ext_f_closedir(DIR* dp) {
+    return f_closedir(dp);
+}
+FRESULT ext_f_readdir(DIR* dp, FILINFO* fno) {
+    return f_readdir(dp, fno);
+}
+FRESULT ext_f_findfirst(DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern) {
+    return f_findfirst(dp, fno, path, pattern);
+}
+FRESULT ext_f_findnext(DIR* dp, FILINFO* fno) {
+    return f_findnext(dp, fno);
+}
+FRESULT ext_f_mkdir(const TCHAR* path) {
+    return f_mkdir(path);
+}
+FRESULT ext_f_unlink(const TCHAR* path) {
+    return f_unlink(path);
+}
+FRESULT ext_f_rename(const TCHAR* path_old, const TCHAR* path_new) {
+    return f_rename(path_old, path_new);
+}
+FRESULT ext_f_stat(const TCHAR* path, FILINFO* fno) {
+    return f_stat(path, fno);
+}
+FRESULT ext_f_utime(const TCHAR* path, const FILINFO* fno) {
+    return f_utime(path, fno);
+}
+FRESULT ext_f_getfree(const TCHAR* path, DWORD* nclst, FATFS** fatfs) {
+    return f_getfree(path, nclst, fatfs);
+}
+FRESULT ext_f_mount(FATFS* fs, const TCHAR* path, BYTE opt) {
+    return f_mount(fs, path, opt);
+}
+int ext_f_putc(TCHAR c, FIL* fp) {
+    return f_putc(c, fp);
+}
+int ext_f_puts(const TCHAR* str, FIL* cp) {
+    return f_puts(str, cp);
+}
+int ext_f_printf(FIL* fp, const TCHAR* str, ...) {
+    return f_printf(fp, str);
+}
+TCHAR* ext_f_gets(TCHAR* buff, int len, FIL* fp) {
+    return f_gets(buff, len, fp);
+}
+void ext_draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count) {
+    portapack::display.draw_pixels(r, colors, count);
+}
+void ext_draw_pixel(const ui::Point p, const ui::Color color) {
+    portapack::display.draw_pixel(p, color);
+}
+
 StandaloneView* standaloneView = nullptr;
+
+void exit_app() {
+    if (standaloneView) standaloneView->exit();
+}
 
 void set_dirty() {
     if (standaloneView != nullptr)
@@ -121,6 +206,33 @@ standalone_application_api_t api = {
     /* .i2c_read = */ &i2c_read,
     /* .panic = */ &chDbgPanic,
     /* .set_dirty = */ &set_dirty,
+    // Version 3
+    .f_open = &ext_f_open,
+    .f_close = &ext_f_close,
+    .f_read = &ext_f_read,
+    .f_write = &ext_f_write,
+    .f_lseek = &ext_f_lseek,
+    .f_truncate = &ext_f_truncate,
+    .f_sync = &ext_f_sync,
+    .f_opendir = &ext_f_opendir,
+    .f_closedir = &ext_f_closedir,
+    .f_readdir = &ext_f_readdir,
+    .f_findfirst = &ext_f_findfirst,
+    .f_findnext = &ext_f_findnext,
+    .f_mkdir = &ext_f_mkdir,
+    .f_unlink = &ext_f_unlink,
+    .f_rename = &ext_f_rename,
+    .f_stat = &ext_f_stat,
+    .f_utime = &ext_f_utime,
+    .f_getfree = &ext_f_getfree,
+    .f_mount = &ext_f_mount,
+    .f_putc = &ext_f_putc,
+    .f_puts = &ext_f_puts,
+    .f_printf = &ext_f_printf,
+    .f_gets = &ext_f_gets,
+    .draw_pixels = &ext_draw_pixels,
+    .draw_pixel = &ext_draw_pixel,
+    .exit_app = &exit_app,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)
@@ -158,22 +270,21 @@ bool StandaloneView::on_key(const KeyEvent key) {
     if (get_application_information()->header_version > 1) {
         return get_application_information()->OnKeyEvent((uint8_t)key);
     }
-
-    return false;
+    return true;
 }
 
 bool StandaloneView::on_encoder(const EncoderEvent event) {
     if (get_application_information()->header_version > 1) {
         return get_application_information()->OnEncoder((int32_t)event);
     }
-    return false;
+    return true;
 }
 
 bool StandaloneView::on_touch(const TouchEvent event) {
     if (get_application_information()->header_version > 1) {
         get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
     }
-    return true;
+    return false;
 }
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {
@@ -200,6 +311,10 @@ void StandaloneView::on_after_attach() {
 void StandaloneView::on_before_detach() {
     get_application_information()->shutdown();
     context().focus_manager().clearMirror();
+}
+
+void StandaloneView::exit() {
+    nav_.pop();
 }
 
 }  // namespace ui

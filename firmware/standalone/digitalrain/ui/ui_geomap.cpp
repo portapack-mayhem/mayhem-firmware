@@ -22,11 +22,10 @@
  */
 
 #include "ui_geomap.hpp"
-#include "portapack.hpp"
 #include <cstring>
 #include <stdio.h>
 #include <string_view>
-using namespace portapack;
+
 #include "string_format.hpp"
 #include "complex.hpp"
 #include "ui_font_fixed_5x8.hpp"
@@ -362,7 +361,7 @@ GeoPoint GeoMap::lat_lon_to_map_pixel(float lat, float lon) {
 }
 
 // Draw grid in place of map (when zoom-in level is too high).
-void GeoMap::draw_map_grid(ui::Rect r) {
+void GeoMap::draw_map_grid(ui::Rect r, Painter& painter) {
     // Grid spacing is just based on zoom at the moment, and centered on screen.
     // TODO: Maybe align with latitude/longitude seconds instead?
     int grid_spacing = map_zoom * 2;
@@ -372,13 +371,13 @@ void GeoMap::draw_map_grid(ui::Rect r) {
     if (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT)
         return;
 
-    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Theme::getInstance()->bg_darkest->background);
+    painter.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Theme::getInstance()->bg_darkest->background);
 
     for (uint16_t line = y; line < r.height(); line += grid_spacing) {
-        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Theme::getInstance()->bg_darker->background);
+        painter.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Theme::getInstance()->bg_darker->background);
     }
     for (uint16_t column = x; column < r.width(); column += grid_spacing) {
-        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Theme::getInstance()->bg_darker->background);
+        painter.fill_rectangle({{column, r.top()}, {1, r.height()}}, Theme::getInstance()->bg_darker->background);
     }
 }
 
@@ -403,8 +402,8 @@ double GeoMap::lat_to_pixel_y_tile(double lat, int zoom) {
     return ((1.0 - log((1.0 + sin_lat) / (1.0 - sin_lat)) / (2.0 * M_PI)) / 2.0) * pow(2.0, zoom) * TILE_SIZE;
 }
 
-bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y) {
-    const auto r = screen_rect();
+bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y, Painter& painter) {
+    const ui::Rect r = screen_rect();
     // Early exit if the tile is completely outside the viewport
     if (relative_x >= r.width() || relative_y >= r.height() ||
         relative_x + TILE_SIZE <= 0 || relative_y + TILE_SIZE <= 0) {
@@ -448,7 +447,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
     if (!bmp.is_loaded()) {
         // Draw an error rectangle using the calculated clipped dimensions
         ui::Rect error_rect{{dest_x + r.left(), dest_y + r.top()}, {clip_w, clip_h}};
-        display.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);
+        painter.fill_rectangle(error_rect, Theme::getInstance()->bg_lightest->background);
         return false;
     }
     std::vector<ui::Color> line(clip_w);
@@ -459,7 +458,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         for (int x = 0; x < clip_w; ++x) {
             bmp.read_next_px(line[x], true);
         }
-        display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
+        painter.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
     }
     return true;
 }
@@ -512,7 +511,7 @@ void GeoMap::paint(Painter& painter) {
                     map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
                     map_read_line_bin(map_line_buffer.data(), r.width());
                     for (uint16_t j = 0; j < duplicate_lines; j++) {
-                        display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
+                        painter.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
                     }
                 }
 
@@ -549,7 +548,7 @@ void GeoMap::paint(Painter& painter) {
                         // For the first tile (x=0, y=0), this will be the negative offset.
                         int draw_pos_x = round(render_offset_x + x * TILE_SIZE);
                         int draw_pos_y = round(render_offset_y + y * TILE_SIZE);
-                        if (!draw_osm_file(map_osm_zoom, current_tile_x, current_tile_y, draw_pos_x, draw_pos_y)) {
+                        if (!draw_osm_file(map_osm_zoom, current_tile_x, current_tile_y, draw_pos_x, draw_pos_y, painter)) {
                             // already blanked it.
                         }
                     }
@@ -558,12 +557,12 @@ void GeoMap::paint(Painter& painter) {
 
         } else {
             // No map data or excessive zoom; just draw a grid
-            draw_map_grid(r);
+            draw_map_grid(r, painter);
         }
         // Draw crosshairs in center in manual panning mode
         if (manual_panning_) {
-            display.fill_rectangle({r.center() - Point(16, 1) + Point(zoom_pixel_offset, zoom_pixel_offset), {32, 2}}, Color::red());
-            display.fill_rectangle({r.center() - Point(1, 16) + Point(zoom_pixel_offset, zoom_pixel_offset), {2, 32}}, Color::red());
+            painter.fill_rectangle({r.center() - Point(16, 1) + Point(zoom_pixel_offset, zoom_pixel_offset), {32, 2}}, Color::red());
+            painter.fill_rectangle({r.center() - Point(1, 16) + Point(zoom_pixel_offset, zoom_pixel_offset), {2, 32}}, Color::red());
         }
 
         // Draw the other markers
@@ -710,14 +709,15 @@ void GeoMap::draw_scale(Painter& painter) {
         }
     }
 
-    display.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 4}, {(uint16_t)scale_width, 2}}, scale_color);
-    display.fill_rectangle({{r.right() - 5, r.bottom() - 8}, {2, 6}}, scale_color);
-    display.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 8}, {2, 6}}, scale_color);
-
-    painter.draw_string({(uint16_t)(r.right() - 25 - scale_width - km_string.length() * 5 / 2), r.bottom() - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
+    painter.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 4}, {(uint16_t)scale_width, 2}}, scale_color);
+    painter.fill_rectangle({{r.right() - 5, r.bottom() - 8}, {2, 6}}, scale_color);
+    painter.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 8}, {2, 6}}, scale_color);
+    std::string_view sw = km_string;
+    ui::Point pos = {(uint16_t)(r.right() - 25 - scale_width - sw.length() * 5 / 2), r.bottom() - 10};
+    painter.draw_string(pos, *Theme::getInstance()->fg_light, sw);
 }
 
-void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
+void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color, Painter& painter) {
     Point arrow_a, arrow_b, arrow_c;
 
     for (size_t thickness = 0; thickness < 3; thickness++) {
@@ -725,14 +725,14 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
         arrow_b = fast_polar_to_point((int)(angle + 180 - 35), size) + origin;
         arrow_c = fast_polar_to_point((int)(angle + 180 + 35), size) + origin;
 
-        display.draw_line(arrow_a, arrow_b, color);
-        display.draw_line(arrow_b, arrow_c, color);
-        display.draw_line(arrow_c, arrow_a, color);
+        painter.draw_line(arrow_a, arrow_b, color);
+        painter.draw_line(arrow_b, arrow_c, color);
+        painter.draw_line(arrow_c, arrow_a, color);
 
         size--;
     }
 
-    display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
+    painter.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
 void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
@@ -741,17 +741,17 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
     int tagOffset = 10;
     if (mode_ == PROMPT) {
         // Cross
-        display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
-        display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
+        painter.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
+        painter.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
         tagOffset = 16;
     } else if (angle_ < 360) {
         // if we have a valid angle draw bearing
-        draw_bearing(itemPoint, itemAngle, 10, color);
+        draw_bearing(itemPoint, itemAngle, 10, color, painter);
         tagOffset = 10;
     } else {
         // draw a small cross
-        display.fill_rectangle({itemPoint - Point(8, 1), {16, 2}}, color);
-        display.fill_rectangle({itemPoint - Point(1, 8), {2, 16}}, color);
+        painter.fill_rectangle({itemPoint - Point(8, 1), {16, 2}}, color);
+        painter.fill_rectangle({itemPoint - Point(1, 8), {2, 16}}, color);
         tagOffset = 8;
     }
     // center tag above point
@@ -818,8 +818,10 @@ MapType GeoMap::get_map_type() {
 
 void GeoMapView::focus() {
     geopos.focus();
-    if (!geomap.map_file_opened())
-        nav_.display_modal("No map", "No world_map.bin file in\n/" + adsb_dir.string() + "/ directory", ABORT);
+    if (!geomap.map_file_opened()) {
+        // nav_.display_modal("No map", "No world_map.bin file in\n/" + adsb_dir.string() + "/ directory", ABORT);
+        // TODO crate an error display
+    }
 }
 
 void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {
@@ -903,7 +905,6 @@ GeoMapView::~GeoMapView() {
 
 // Display mode
 GeoMapView::GeoMapView(
-    NavigationView& nav,
     const std::string& tag,
     int32_t altitude,
     GeoPos::alt_unit altitude_unit,
@@ -912,8 +913,7 @@ GeoMapView::GeoMapView(
     float lon,
     uint16_t angle,
     const std::function<void(void)> on_close)
-    : nav_(nav),
-      altitude_(altitude),
+    : altitude_(altitude),
       altitude_unit_(altitude_unit),
       speed_unit_(speed_unit),
       lat_(lat),
@@ -939,15 +939,13 @@ GeoMapView::GeoMapView(
 
 // Prompt mode
 GeoMapView::GeoMapView(
-    NavigationView& nav,
     int32_t altitude,
     GeoPos::alt_unit altitude_unit,
     GeoPos::spd_unit speed_unit,
     float lat,
     float lon,
     const std::function<void(int32_t, float, float, int32_t)> on_done)
-    : nav_(nav),
-      altitude_(altitude),
+    : altitude_(altitude),
       altitude_unit_(altitude_unit),
       speed_unit_(speed_unit),
       lat_(lat),
@@ -965,10 +963,10 @@ GeoMapView::GeoMapView(
     geomap.move(lon_, lat_);
     geomap.set_focusable(true);
 
-    button_ok.on_select = [this, on_done, &nav](Button&) {
+    button_ok.on_select = [this, on_done](Button&) {
         if (on_done)
             on_done(altitude_, lat_, lon_, speed_);
-        nav.pop();
+        // exit handled on caller side
     };
 }
 

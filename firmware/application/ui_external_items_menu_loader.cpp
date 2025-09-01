@@ -347,7 +347,7 @@ namespace ui {
         return false;
 
     // TODO: move this to m4 memory space
-    auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - app.size());
+    auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::local_sram_0.base());
 
     // read file in 512 byte chunks
     for (size_t file_read_index = 0; file_read_index < app.size(); file_read_index += std::filesystem::max_file_block_size) {

@@ -27,8 +27,9 @@
 #include <stddef.h>
 
 #include "ui.hpp"
+#include "file.hpp"
 
-#define CURRENT_STANDALONE_APPLICATION_API_VERSION 2
+#define CURRENT_STANDALONE_APPLICATION_API_VERSION 3
 
 struct standalone_application_api_t {
     // Version 1
@@ -58,7 +59,52 @@ struct standalone_application_api_t {
     void (*panic)(const char* msg);
     void (*set_dirty)();
 
-    // TODO: add filesystem access functions
+    // Version 3
+    FRESULT(*f_open)
+    (FIL* fp, const TCHAR* path, BYTE mode);
+    FRESULT(*f_close)
+    (FIL* fp);
+    FRESULT(*f_read)
+    (FIL* fp, void* buff, UINT btr, UINT* br);
+    FRESULT(*f_write)
+    (FIL* fp, const void* buff, UINT btw, UINT* bw);
+    FRESULT(*f_lseek)
+    (FIL* fp, FSIZE_t ofs);
+    FRESULT(*f_truncate)
+    (FIL* fp);
+    FRESULT(*f_sync)
+    (FIL* fp);
+    FRESULT(*f_opendir)
+    (DIR* dp, const TCHAR* path);
+    FRESULT(*f_closedir)
+    (DIR* dp);
+    FRESULT(*f_readdir)
+    (DIR* dp, FILINFO* fno);
+    FRESULT(*f_findfirst)
+    (DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern);
+    FRESULT(*f_findnext)
+    (DIR* dp, FILINFO* fno);
+    FRESULT(*f_mkdir)
+    (const TCHAR* path);
+    FRESULT(*f_unlink)
+    (const TCHAR* path);
+    FRESULT(*f_rename)
+    (const TCHAR* path_old, const TCHAR* path_new);
+    FRESULT(*f_stat)
+    (const TCHAR* path, FILINFO* fno);
+    FRESULT(*f_utime)
+    (const TCHAR* path, const FILINFO* fno);
+    FRESULT(*f_getfree)
+    (const TCHAR* path, DWORD* nclst, FATFS** fatfs);
+    FRESULT(*f_mount)
+    (FATFS* fs, const TCHAR* path, BYTE opt);
+    int (*f_putc)(TCHAR c, FIL* fp);
+    int (*f_puts)(const TCHAR* str, FIL* cp);
+    int (*f_printf)(FIL* fp, const TCHAR* str, ...);
+    TCHAR* (*f_gets)(TCHAR* buff, int len, FIL* fp);
+    void (*draw_pixels)(const ui::Rect r, const ui::Color* const colors, const size_t count);
+    void (*draw_pixel)(const ui::Point p, const ui::Color color);
+    void (*exit_app)();
     // TODO: add baseband access functions
 
     // HOW TO extend this interface:
