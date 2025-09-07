@@ -26,6 +26,8 @@
 #include "radio_state.hpp"
 #include "gradient.hpp"
 #include "ui_receiver.hpp"
+#include "log_file.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
@@ -69,6 +71,21 @@ struct SearchRecentEntry {
 };
 
 using SearchRecentEntries = RecentEntries<SearchRecentEntry>;
+
+class SearchLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(SearchRecentEntry& data);
+    void write_header() {
+        log_file.write_raw("Time;Freq;Duration;");
+    }
+
+   private:
+    LogFile log_file{};
+};
 
 class SearchView : public View {
    public:
@@ -148,6 +165,8 @@ class SearchView : public View {
     uint16_t locked_bin = 0;
     uint8_t search_counter = 0;
     bool locked = false;
+    bool logging = false;
+    SearchLogger logger{};
 
     void do_detection();
     void do_timers();
@@ -168,6 +187,12 @@ class SearchView : public View {
         {{6 * 8, 10 * 8}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
         {{26 * 8, 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
+
+    Checkbox check_log{
+        {24 * 8, 10 * 8},
+        3,
+        "LOG",
+        true};
 
     FrequencyField field_frequency_min{
         {1 * 8, 1 * 16}};
