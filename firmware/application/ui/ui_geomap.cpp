@@ -773,15 +773,22 @@ void GeoMap::clear_markers() {
 MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     const auto r = screen_rect();
     MapMarkerStored ret;
-
     // Check if it could be on screen
     // (Shows more distant planes when zoomed out)
-    GeoPoint mapPoint = lat_lon_to_map_pixel(marker.lat, marker.lon);
-    int x_dist = abs((int)mapPoint.x - (int)x_pos);
-    int y_dist = abs((int)mapPoint.y - (int)y_pos);
-    int zoom_out = (map_zoom < 0) ? -map_zoom : 1;
+    bool can_see_on_map = true;
+    if (!use_osm) {
+        GeoPoint mapPoint = lat_lon_to_map_pixel(marker.lat, marker.lon);
+        int x_dist = abs((int)mapPoint.x - (int)x_pos);
+        int y_dist = abs((int)mapPoint.y - (int)y_pos);
+        int zoom_out = (map_zoom < 0) ? -map_zoom : 1;
+        if ((x_dist >= (zoom_out * r.width() / 2)) || (y_dist >= (zoom_out * r.height() / 2))) {
+            can_see_on_map = false;
+        }
+    } else {
+        // osm is so zoomable, we try to store all possible. maybe need to refine it a bit more later
+    }
 
-    if ((x_dist >= (zoom_out * r.width() / 2)) || (y_dist >= (zoom_out * r.height() / 2))) {
+    if (!can_see_on_map) {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
         markerList[markerListLen] = marker;
