@@ -54,6 +54,7 @@ SondeView::SondeView(NavigationView& nav)
                   &field_lna,
                   &field_vga,
                   &rssi,
+                  &channel,
                   &field_volume,
                   &check_log,
                   &check_crc,
