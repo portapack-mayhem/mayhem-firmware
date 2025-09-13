@@ -446,6 +446,8 @@ MicTXView::MicTXView(
     field_frequency.set_value(tx_frequency);
 
     // TODO: would be nice if frequency step was configurable in this app
+    // but now, make it a bit lower
+    receiver_model.set_frequency_step(12'500);  // set freq step to 12.5kHz
     field_frequency.set_step(receiver_model.frequency_step());
 
     // WARNING: transmitter_model.set_target_frequency() and receiver_model.set_target_frequency() both update the same tuning freq, but one has an offset!
