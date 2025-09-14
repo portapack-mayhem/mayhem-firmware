@@ -26,8 +26,10 @@
 #include "binder.hpp"
 #include "string_format.hpp"
 #include "ui_freqman.hpp"
+#include "audio.hpp"
 
 using namespace portapack;
+namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
@@ -121,9 +123,15 @@ SearchView::SearchView(
 
     on_range_changed();
     receiver_model.enable();
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 SearchView::~SearchView() {
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -205,6 +213,9 @@ void SearchView::do_detection() {
 
                         locked = true;
                         locked_bin = bin_max;
+                        if (pmem::beep_on_packets()) {
+                            baseband::request_audio_beep(1000, 24000, 60);
+                        }
                         // TODO: open Audio.
                     } else
                         text_infos.set("Out of range");
