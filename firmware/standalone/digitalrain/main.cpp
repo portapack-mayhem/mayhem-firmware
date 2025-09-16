@@ -176,3 +176,6 @@ extern "C" int f_printf(FIL* fp, const TCHAR* str, ...) {
 extern "C" TCHAR* f_gets(TCHAR* buff, int len, FIL* fp) {
     return _api->f_gets(buff, len, fp);
 }
+
+uint16_t screen_height = 320;
+uint16_t screen_width = 240;

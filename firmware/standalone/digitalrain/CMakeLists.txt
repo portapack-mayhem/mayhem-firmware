@@ -86,15 +86,17 @@ set(LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/external.ld)
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 FILE(GLOB_RECURSE Sources_C ${CMAKE_CURRENT_LIST_DIR}/*.c)
+FILE(GLOB_RECURSE Sources_C_COMMON ${CMAKE_CURRENT_LIST_DIR}/../common/*.c)
 set(CSRC
-	${Sources_C}
+	${Sources_C} ${Sources_C_COMMON}
 )
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 FILE(GLOB_RECURSE Sources_CPP ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
+FILE(GLOB_RECURSE Sources_CPP_COMMON ${CMAKE_CURRENT_LIST_DIR}/../common/*.cpp)
 set(CPPSRC
-	${Sources_CPP}
+	${Sources_CPP} ${Sources_CPP_COMMON}
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -122,6 +124,8 @@ set(ASMSRC)
 
 set(INCDIR
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../common
+	${CMAKE_CURRENT_SOURCE_DIR}/../common/ui
 	${COMMON}
 	${COMMON}/../application
 	${COMMON}/../application/hw
