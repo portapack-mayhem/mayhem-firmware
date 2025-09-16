@@ -31,8 +31,8 @@ void initialize(const standalone_application_api_t& api) {
     _api = &api;
 
     context = new ui::Context();
-    screen_height = _api->screen_height;
-    screen_width = _api->screen_width;
+    screen_height = *(_api->screen_height);
+    screen_width = *(_api->screen_width);
     standaloneViewMirror = new StandaloneViewMirror(*context, {0, 16, screen_width, screen_height - 16});
 }
 

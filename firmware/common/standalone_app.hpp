@@ -107,8 +107,8 @@ struct standalone_application_api_t {
     void (*exit_app)();
 
     // Version 4
-    uint16_t screen_height;
-    uint16_t screen_width;
+    uint16_t* screen_height;
+    uint16_t* screen_width;
 
     // TODO: add baseband access functions
 

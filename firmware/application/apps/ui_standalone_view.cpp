@@ -234,8 +234,8 @@ standalone_application_api_t api = {
     .draw_pixel = &ext_draw_pixel,
     .exit_app = &exit_app,
     // version 4
-    .screen_height = screen_height,
-    .screen_width = screen_width,
+    .screen_height = &screen_height,
+    .screen_width = &screen_width,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)
