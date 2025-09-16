@@ -29,7 +29,7 @@
 #include "ui.hpp"
 #include "file.hpp"
 
-#define CURRENT_STANDALONE_APPLICATION_API_VERSION 3
+#define CURRENT_STANDALONE_APPLICATION_API_VERSION 4
 
 struct standalone_application_api_t {
     // Version 1
@@ -105,6 +105,11 @@ struct standalone_application_api_t {
     void (*draw_pixels)(const ui::Rect r, const ui::Color* const colors, const size_t count);
     void (*draw_pixel)(const ui::Point p, const ui::Color color);
     void (*exit_app)();
+
+    // Version 4
+    uint16_t screen_height;
+    uint16_t screen_width;
+
     // TODO: add baseband access functions
 
     // HOW TO extend this interface:

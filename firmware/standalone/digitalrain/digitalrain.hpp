@@ -45,17 +45,19 @@ bool OnKeyboad(uint8_t);
 void PaintViewMirror();
 
 extern const standalone_application_api_t* _api;
+extern uint16_t screen_height;
+extern uint16_t screen_width;
 
 class DigitalRain {
    private:
     ui::Painter painter{};
-    static const int WIDTH = 240;
-    static const int HEIGHT = 325;
-    static const int MARGIN_TOP = 20;
-    static const int CHAR_WIDTH = 5;
-    static const int CHAR_HEIGHT = 8;
-    static const int COLS = WIDTH / CHAR_WIDTH;
-    static const int ROWS = (HEIGHT - MARGIN_TOP) / CHAR_HEIGHT;
+    int WIDTH = 0;   // 240;
+    int HEIGHT = 0;  // 325;
+    int MARGIN_TOP = 20;
+    int CHAR_WIDTH = 5;
+    int CHAR_HEIGHT = 8;
+    int COLS = 0;  // WIDTH / CHAR_WIDTH;
+    int ROWS = 0;  //(HEIGHT - MARGIN_TOP) / CHAR_HEIGHT;
     static const int MAX_DROPS = 36;
 
     const ui::Font& font = ui::font::fixed_5x8();
@@ -124,7 +126,10 @@ class DigitalRain {
    public:
     DigitalRain() {
         std::srand(0);
-
+        WIDTH = screen_width;
+        HEIGHT = screen_height + 5;
+        COLS = WIDTH / CHAR_WIDTH;
+        ROWS = (HEIGHT - MARGIN_TOP) / CHAR_HEIGHT;
         for (uint8_t i = 0; i < MAX_DROPS; ++i) {
             init_drop(i, true);
         }
