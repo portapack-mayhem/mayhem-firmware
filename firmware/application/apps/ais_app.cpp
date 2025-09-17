@@ -223,9 +223,9 @@ void AISRecentEntry::update(const ais::Packet& packet) {
             break;
 
         case 5:
-            call_sign = packet.text(70, 7);
-            name = packet.text(112, 20);
-            destination = packet.text(302, 20);
+            call_sign = trim(packet.text(70, 7));
+            name = trim(packet.text(112, 20));
+            destination = trim(packet.text(302, 20));
             break;
 
         case 18:
@@ -238,7 +238,7 @@ void AISRecentEntry::update(const ais::Packet& packet) {
             break;
 
         case 21:
-            name = packet.text(43, 20);
+            name = trim(packet.text(43, 20));
             last_position.timestamp = packet.received_at();
             last_position.latitude = packet.latitude(192);
             last_position.longitude = packet.longitude(164);
@@ -247,11 +247,11 @@ void AISRecentEntry::update(const ais::Packet& packet) {
         case 24:
             switch (packet.read(38, 2)) {
                 case 0:
-                    name = packet.text(40, 20);
+                    name = trim(packet.text(40, 20));
                     break;
 
                 case 1:
-                    call_sign = packet.text(90, 7);
+                    call_sign = trim(packet.text(90, 7));
                     break;
 
                 default:
