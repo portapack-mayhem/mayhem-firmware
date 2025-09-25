@@ -102,6 +102,58 @@ void lcd_init() {
     // LCDs are configured for IM[2:0] = 001
     // 8080-I system, 16-bit parallel bus
 
+    io.lcd_data_write_command_and_data(0xE0, {0x00, 0x09, 0x0C, 0x03, 0x10, 0x06, 0x34, 0x68,
+                                              0x49, 0x02, 0x0A, 0x07, 0x2C, 0x31, 0x0F});
+
+    io.lcd_data_write_command_and_data(0xE1, {0x00, 0x12, 0x15, 0x02, 0x10, 0x06, 0x35, 0x35,
+                                              0x4A, 0x05, 0x10, 0x0C, 0x2F, 0x33, 0x0F});
+
+    io.lcd_data_write_command_and_data(0xC0, {0x0F, 0x0F});  // Vreg1out=4.5 Vreg2out=-4.5
+
+    io.lcd_data_write_command_and_data(0xC1, {0x44});  // VGH = 5*VCI VGL = -4*VCI
+
+    io.lcd_data_write_command_and_data(0xC5, {0x00, 0x66, 0x80});  // VCOM
+
+    io.lcd_data_write_command_and_data(0x36, {
+                                                 (1 << 7) |  // MY=1
+                                                 (0 << 6) |  // MX=0
+                                                 (0 << 5) |  // MV=0
+                                                 (1 << 4) |  // ML=1: reverse vertical refresh to simplify scrolling logic
+                                                 (1 << 3)    // BGR=1: For Kingtech LCD, BGR filter.
+                                             });
+
+    // io.lcd_data_write_command_and_data(0x36, {0x48});
+
+    io.lcd_data_write_command_and_data(0x3A, {0x55});
+
+    // 这里的刷新率过低？
+    // io.lcd_data_write_command_and_data(0xB1, {0x40, 0x1F});  // fix 60 fps
+    io.lcd_data_write_command_and_data(0xB1, {0xA0, 0x11});  // Frame rate source is 11fps
+
+    io.lcd_data_write_command_and_data(0xB4, {0x02});  // 2 dot inversion
+
+    io.lcd_data_write_command_and_data(0xEE, {0x00, 0x04});
+
+    io.lcd_data_write_command_and_data(0xE9, {0x00});
+
+    io.lcd_data_write_command_and_data(0xF7, {0xA9, 0x51, 0x2C, 0x82});
+
+    io.lcd_data_write_command_and_data(0x21, {});  // Display Inversion On
+
+    io.lcd_data_write_command_and_data(0x11, {});  // Sleep Out
+    chThdSleepMilliseconds(120);                   // Delay 120ms
+
+    io.lcd_data_write_command_and_data(0x29, {});  // Display On
+    chThdSleepMilliseconds(50);                    // Delay 50ms
+
+    // Turn on Tearing Effect Line (TE) output signal.
+    io.lcd_data_write_command_and_data(0x35, {0b00000000});
+}
+
+void lcd_init_pp() {
+    // LCDs are configured for IM[2:0] = 001
+    // 8080-I system, 16-bit parallel bus
+
     //
     // 0x3a: DBI[2:0] = 101
     // MDT[1:0] = XX (if not in 18-bit mode, right?)
@@ -281,6 +333,16 @@ void lcd_vertical_scrolling_start_address(
 
 }  // namespace
 
+uint32_t ILI9341::lcd_read_display_id() {
+    io.lcd_data_write_command_and_data(0x04, {});
+    io.lcd_read_data_raw();
+
+    uint32_t value3 = io.lcd_read_data_raw();
+    uint32_t value4 = io.lcd_read_data_raw();
+    uint32_t value5 = io.lcd_read_data_raw();
+    return value5 + (value4 << 8) + (value3 << 16);
+}
+
 bool ILI9341::read_display_status() {
     lcd_reset();
     uint32_t display_status = lcd_read_display_status();
@@ -302,7 +364,16 @@ bool ILI9341::read_display_status() {
 
 void ILI9341::init() {
     lcd_reset();
-    lcd_init();
+    uint32_t id = lcd_read_display_id();
+    if (id == 5537894) {
+        lcd_init();
+        screen_width = 320;
+        screen_height = 480;
+    } else {
+        lcd_init_pp();
+        screen_width = 240;
+        screen_height = 320;
+    }
 }
 
 void ILI9341::shutdown() {

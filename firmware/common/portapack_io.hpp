@@ -140,6 +140,28 @@ class IO {
             lcd_write_data(d);
         }
     }
+    uint32_t lcd_read_data_raw() {
+        // NOTE: Assumes ADDR=1 from command phase.
+        dir_read();
+
+        /* Start read operation */
+        lcd_rd_assert();
+        /* Wait for passthrough data(15:8) to settle -- ~16ns (3 cycles) typical */
+        /* Wait for read control L duration (355ns) */
+        halPolledDelay(71);  // 355ns
+        const auto value_high = data_read();
+
+        /* Latch data[7:0] */
+        lcd_rd_deassert();
+        /* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
+        /* Wait for read control H duration (90ns) */
+        halPolledDelay(18);  // 90ns
+
+        const auto value_low = data_read();
+        uint32_t original_value = (value_high << 8) | value_low;
+
+        return original_value;
+    }
 
     void lcd_data_read_command_and_data(
         const uint_fast8_t command,

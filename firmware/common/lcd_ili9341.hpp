@@ -43,6 +43,7 @@ class ILI9341 {
     void operator=(const ILI9341&) = delete;
 
     bool read_display_status();
+    uint32_t lcd_read_display_id();
 
     void init();
     void shutdown();

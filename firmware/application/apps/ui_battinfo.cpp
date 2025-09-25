@@ -45,6 +45,8 @@ void BattinfoView::on_timer() {
 }
 
 void BattinfoView::update_result() {
+    text_percent.set(to_string_dec_uint(display.lcd_read_display_id()));
+    return;
     if (!battery::BatteryManagement::isDetected()) {
         text_percent.set("UNKNOWN");
         text_voltage.set("UNKNOWN");
