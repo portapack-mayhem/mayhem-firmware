@@ -164,7 +164,6 @@ class ILI9341 {
         ui::Dim height;
         ui::Coord current_position;
     };
-
     scroll_t scroll_state;
 };
 

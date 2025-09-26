@@ -123,14 +123,13 @@ void lcd_init() {
                                              });
 
     // io.lcd_data_write_command_and_data(0x36, {0x48});
-
     io.lcd_data_write_command_and_data(0x3A, {0x55});
 
     // 这里的刷新率过低？
     // io.lcd_data_write_command_and_data(0xB1, {0x40, 0x1F});  // fix 60 fps
     io.lcd_data_write_command_and_data(0xB1, {0xA0, 0x11});  // Frame rate source is 11fps
 
-    io.lcd_data_write_command_and_data(0xB4, {0x02});  // 2 dot inversion
+    io.lcd_data_write_command_and_data(0xB4, {0x00});  // 2 dot inversion
 
     io.lcd_data_write_command_and_data(0xEE, {0x00, 0x04});
 
@@ -380,10 +379,12 @@ void ILI9341::init() {
     }
     // init screen
     if (hpp) {
+        device_type = DEV_HACKPP;
         lcd_init();
         screen_width = 320;
         screen_height = 480;
     } else {
+        device_type = DEV_PORTAPACK;
         lcd_init_pp();
         screen_width = 240;
         screen_height = 320;

@@ -34,6 +34,8 @@ using namespace lpc43xx;
 
 namespace portapack {
 
+DeviceType device_type = DEV_PORTAPACK;
+
 void IO::init() {
     data_mask_set();
     data_write_high(0);
