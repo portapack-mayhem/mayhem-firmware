@@ -137,11 +137,11 @@ class APRSDetailsView : public View {
         {UI_POS_X(0), UI_POS_Y(0), screen_width, screen_height - 80}};
 
     Button button_done{
-        {UI_POS_X_CENTER(4) - UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(4), UI_POS_HEIGHT(3)},
+        {UI_POS_X_CENTER(4) - UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "Close"};
 
     Button button_see_map{
-        {UI_POS_X_CENTER(4) + UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(4), UI_POS_HEIGHT(3)},
+        {UI_POS_X_CENTER(4) + UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "Map"};
 };
 
@@ -265,7 +265,7 @@ class APRSRXView : public View {
 
    private:
     NavigationView& nav_;
-    Rect view_rect = {UI_POS_X(0), UI_POS_Y(3), UI_POS_MAXWIDTH, screen_height - 40};
+    Rect view_rect = {UI_POS_X(0), 3 * 8, UI_POS_MAXWIDTH, screen_height - 40};
 
     APRSRxView view_stream{nav_, view_rect};
     APRSTableView view_table{nav_, view_rect};
