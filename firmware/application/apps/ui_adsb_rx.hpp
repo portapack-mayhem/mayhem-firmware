@@ -343,11 +343,11 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Button button_aircraft_details{
-        {UI_POS_X_CENTER(12) - UI_POS_X(12), UI_POS_Y(9), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
+        {UI_POS_X_CENTER(12) - UI_POS_X(8), UI_POS_Y(9), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "A/C details"};
 
     Button button_see_map{
-        {UI_POS_X_CENTER(12) + UI_POS_X(12), UI_POS_Y(9), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
+        {UI_POS_X_CENTER(12) + UI_POS_X(8), UI_POS_Y(9), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "See on map"};
 
     MessageHandlerRegistration message_handler_gps{

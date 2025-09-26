@@ -137,10 +137,10 @@ class AISRecentEntryDetailView : public View {
     AISRecentEntry entry_{};
 
     Button button_done{
-        {125, 224, 96, 24},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(6), UI_POS_Y(14), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Done"};
     Button button_see_map{
-        {19, 224, 96, 24},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "See on map"};
     GeoMapView* geomap_view{nullptr};
     bool send_updates{false};
