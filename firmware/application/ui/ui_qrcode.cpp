@@ -55,7 +55,7 @@ QRCodeImage& QRCodeImage::operator=(const QRCodeImage& Image) {
 
 void QRCodeImage::paint(Painter& painter) {
     (void)painter;
-
+    auto r = screen_rect();
     // The structure to manage the QR code
     QRCode qrcode;
 
@@ -66,12 +66,12 @@ void QRCodeImage::paint(Painter& painter) {
 
     qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
-    display.fill_rectangle(Rect(57, 65, 126, 127), Color::white());
+    display.fill_rectangle(Rect(r.left(), r.top(), 126, 127), Color::white());  // 57,63
 
     for (uint8_t y = 0; y < qrcode.size; y++) {
         for (uint8_t x = 0; x < qrcode.size; x++) {
             if (qrcode_getModule(&qrcode, x, y)) {
-                display.fill_rectangle(Rect(63 + (x * 2), 71 + (y * 2), 2, 2), Color::black());
+                display.fill_rectangle(Rect((r.left() + 6) + (x * 2), (r.top() + 8) + (y * 2), 2, 2), Color::black());
             }
         }
     }

@@ -117,21 +117,21 @@ class SondeView : public View {
         {18 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {21 * 8, 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, UI_POS_Y(0)}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Checkbox check_log{
-        {22 * 8, 8 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(8)},
         3,
         "Log"};
 
     Checkbox check_crc{
-        {22 * 8, 10 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(10)},
         3,
         "CRC"};
 
@@ -169,11 +169,11 @@ class SondeView : public View {
         GeoPos::spd_unit::HIDDEN};
 
     Button button_see_qr{
-        {2 * 8, 15 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), 15 * 16, 12 * 8, 3 * 16},
         "See QR"};
 
     Button button_see_map{
-        {16 * 8, 15 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), 15 * 16, 12 * 8, 3 * 16},
         "See on map"};
 
     GeoMapView* geomap_view_{nullptr};
