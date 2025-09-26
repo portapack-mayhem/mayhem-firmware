@@ -143,7 +143,7 @@ class SearchView : public View {
     uint32_t bin_skip_acc = 0;
     uint32_t bin_skip_frac = 0;
     uint32_t pixel_index = 0;
-    std::array<Color, 240> spectrum_row{};
+    std::vector<Color> spectrum_row{};
     ChannelSpectrumFIFO* fifo = nullptr;
 
     uint8_t detect_timer = 0;
@@ -189,7 +189,7 @@ class SearchView : public View {
         {{26 * 8, 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox check_log{
-        {24 * 8, 10 * 8},
+        {UI_POS_X_RIGHT(5), UI_POS_Y(10)},
         3,
         "LOG",
         true};
@@ -247,7 +247,7 @@ class SearchView : public View {
          {"500Hz", 500}}};
 
     BigFrequency big_display{
-        {4, 9 * 16, 28 * 8, 52},
+        {UI_POS_X_CENTER(28), UI_POS_Y(9), UI_POS_WIDTH(28), 52},
         0};
 
     MessageHandlerRegistration message_handler_spectrum_config{

@@ -60,6 +60,7 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
 SearchView::SearchView(
     NavigationView& nav)
     : nav_(nav) {
+    spectrum_row.resize(screen_width);
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
     if (!gradient.load_file(default_gradient_file)) {
