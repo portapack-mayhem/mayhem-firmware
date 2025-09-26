@@ -189,7 +189,7 @@ class SearchView : public View {
         {{26 * 8, 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox check_log{
-        {UI_POS_X_RIGHT(5), UI_POS_Y(10)},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(5)},
         3,
         "LOG",
         true};

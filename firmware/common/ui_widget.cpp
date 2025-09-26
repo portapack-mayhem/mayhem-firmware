@@ -561,7 +561,7 @@ void BigFrequency::paint(Painter& painter) {
                     break;
             }
 
-            digit_pos = {(Coord)(240 - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
+            digit_pos = {(Coord)(screen_width - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
         }
 
         segment_color = style().foreground;

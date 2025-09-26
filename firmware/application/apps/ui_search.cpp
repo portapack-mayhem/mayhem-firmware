@@ -87,7 +87,7 @@ SearchView::SearchView(
 
     baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
 
-    recent_entries_view.set_parent_rect({0, 28 * 8, screen_width, 12 * 8});
+    recent_entries_view.set_parent_rect({0, 28 * 8, screen_width, screen_height - 28 * 8});
     recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
         nav.push<FrequencySaveView>(entry.frequency);
     };
