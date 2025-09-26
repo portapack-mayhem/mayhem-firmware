@@ -273,28 +273,20 @@ void WaterfallWidget::on_hide() {
 void WaterfallWidget::on_channel_spectrum(
     const ChannelSpectrum& spectrum) {
     /* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
-
     std::vector<Color> pixel_row(screen_width);
-    const size_t half_width = screen_width / 2;
-    const size_t bins_per_side = 120;
-
-    // --- Left half of the screen ---
-    // This loop has no 'if' statements and uses fast integer math.
-    for (size_t i = 0; i < half_width; ++i) {
-        // Map screen pixel [0..half_width-1] to spectrum bin [136..255]
-        size_t spectrum_index = 136 + (i * bins_per_side) / half_width;
-        pixel_row[i] = gradient.lut[spectrum.db[spectrum_index]];
+    for (size_t i = 0; i < screen_width / 2; i++) {
+        const auto pixel_color = gradient.lut[spectrum.db[256 - screen_width / 2 + i]];
+        pixel_row[i] = pixel_color;
     }
 
-    // --- Right half of the screen ---
-    for (size_t i = half_width; i < screen_width; ++i) {
-        // Map screen pixel [half_width..screen_width-1] to spectrum bin [0..119]
-        size_t spectrum_index = ((i - half_width) * bins_per_side) / half_width;
-        pixel_row[i] = gradient.lut[spectrum.db[spectrum_index]];
+    for (size_t i = screen_width / 2; i < screen_width; i++) {
+        const auto pixel_color = gradient.lut[spectrum.db[i - screen_width / 2]];
+        pixel_row[i] = pixel_color;
     }
-
     const auto draw_y = display.scroll(1);
-    display.draw_pixels({{0, draw_y}, {(int)pixel_row.size(), 1}}, pixel_row);
+    display.draw_pixels(
+        {{0, draw_y}, {(int)pixel_row.size(), 1}},
+        pixel_row);
 }
 
 bool WaterfallWidget::on_touch(const TouchEvent event) {
