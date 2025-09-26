@@ -150,7 +150,7 @@ class WaterfallView : public View {
    private:
     void update_widgets_rect();
 
-    const Rect audio_spectrum_view_rect{0 * 8, UI_POS_Y(0), screen_width, 2 * 16 + 20};
+    const Rect audio_spectrum_view_rect{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, 2 * 16 + 20};
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 
