@@ -364,8 +364,22 @@ bool ILI9341::read_display_status() {
 
 void ILI9341::init() {
     lcd_reset();
+    bool hpp = false;
+    // detect method 1
     uint32_t id = lcd_read_display_id();
-    if (id == 5537894) {
+    if (id == 5537894) hpp = true;
+
+    // detect method 2 - not working!
+    if (!hpp) {
+        draw_pixel({318, 418}, ui::Color::red());
+        fill_rectangle_unrolled8({0, 0, 240, 320}, ui::Color::black());
+        std::vector<ui::ColorRGB888> checker(1);
+        read_pixels({318, 418, 1, 1}, checker.data(), 1);
+        if (checker[0].b <= 10 && checker[0].g <= 10 && checker[0].r >= 100)
+            hpp = true;
+    }
+    // init screen
+    if (hpp) {
         lcd_init();
         screen_width = 320;
         screen_height = 480;
@@ -544,7 +558,7 @@ bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem
     bmp_header_t bmp_header;
     uint8_t type = 0;
     char buffer[257];
-    ui::Color line_buffer[240];
+    ui::Color line_buffer[320];
 
     auto result = bmpimage.open(file);
     if (result.is_valid())
@@ -580,7 +594,7 @@ bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem
     width = bmp_header.width;
     height = bmp_header.height;
 
-    if (width != 240)
+    if (width != screen_width)
         return false;
 
     file_pos = bmp_header.image_data;

@@ -1049,14 +1049,15 @@ SplashScreenView::SplashScreenView(NavigationView& nav)
 }
 
 void SplashScreenView::paint(Painter&) {
+    constexpr const uint8_t zoom = 3;
     if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
         // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
-        portapack::display.draw_bitmap({0,
+        portapack::display.draw_bitmap({screen_width / 2 - ((bitmap_titlebar_image.size.width() * zoom) / 2),
                                         screen_height / 2},
                                        bitmap_titlebar_image.size,
                                        bitmap_titlebar_image.data,
                                        Theme::getInstance()->bg_darkest->foreground,
-                                       Theme::getInstance()->bg_darkest->background, 3);
+                                       Theme::getInstance()->bg_darkest->background, zoom);
     // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
