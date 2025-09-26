@@ -146,13 +146,13 @@ class WeatherView : public View {
     VGAGainField field_vga{
         {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {21 * 8, 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, UI_POS_Y(0)}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
