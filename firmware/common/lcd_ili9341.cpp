@@ -371,10 +371,10 @@ void ILI9341::init() {
 
     // detect method 2 - not working!
     if (!hpp) {
-        draw_pixel({318, 418}, ui::Color::red());
+        draw_pixel({318, 478}, ui::Color::red());
         fill_rectangle_unrolled8({0, 0, 240, 320}, ui::Color::black());
         std::vector<ui::ColorRGB888> checker(1);
-        read_pixels({318, 418, 1, 1}, checker.data(), 1);
+        read_pixels({318, 478, 1, 1}, checker.data(), 1);
         if (checker[0].b <= 10 && checker[0].g <= 10 && checker[0].r >= 100)
             hpp = true;
     }

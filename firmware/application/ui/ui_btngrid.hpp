@@ -100,7 +100,7 @@ class BtnGridView : public View {
    private:
     int rows_{3};
     uint8_t btn_h_min{40};
-    uint8_t btn_h_max{60};
+    uint8_t btn_h_max{90};
     bool keep_highlight{false};
 
     std::vector<GridItem> menu_items{};

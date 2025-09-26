@@ -76,10 +76,14 @@ int BtnGridView::rows() {
 void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
-    button_h = 48;  // btn_h_min;
+    button_h = 48;
+    if (screen_height == 480) {
+        button_h = 64;
+    }
+    // btn_h_min;
+    int space_available = parent_rect().size().height() - 16;  // leave space for arrows
     /*
-    // DISABLED FOR NOW. TODO fix next, prev button pos
-    int min_remainder = parent_rect().size().height();
+    int min_remainder = space_available;
     uint8_t max_button_count = 0;
 
     for (int h = btn_h_min; h <= btn_h_max; ++h) {
@@ -95,11 +99,11 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
             max_button_count = count;
         }
     }
-    */
-    displayed_max = (parent_rect().size().height() / button_h);
+*/
+    displayed_max = (space_available / button_h);
 
-    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), screen_width / 2, 16});
-    button_pgdown.set_parent_rect({screen_width / 2, (Coord)(displayed_max * button_h), screen_width / 2, 16});
+    button_pgup.set_parent_rect({0, (Coord)(space_available), screen_width / 2, 16});
+    button_pgdown.set_parent_rect({screen_width / 2, (Coord)(space_available), screen_width / 2, 16});
 
     displayed_max *= rows_;
 
