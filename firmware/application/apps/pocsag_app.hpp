@@ -183,7 +183,7 @@ class POCSAGSettingsView : public View {
         true /*explicit_edit*/};
 
     Button button_save{
-        {11 * 8, 16 * 16, 10 * 8, 2 * 16},
+        {UI_POS_X_CENTER(10), UI_POS_Y(16), 10 * 8, 2 * 16},
         "Save"};
 };
 
@@ -247,19 +247,19 @@ class POCSAGAppView : public View {
         {16 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
-        {19 * 8 - 4, 3, 6 * 8, 4}};
+        {19 * 8 - 4, 3, UI_POS_WIDTH_REMAINING(26), 4}};
     Audio audio{
-        {19 * 8 - 4, 8, 6 * 8, 4}};
+        {19 * 8 - 4, 8, UI_POS_WIDTH_REMAINING(26), 4}};
 
     NumberField field_squelch{
-        {25 * 8, UI_POS_Y(0)},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(0)},
         2,
         {0, 99},
         1,
         ' ',
         true /*wrap*/};
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, UI_POS_Y(0)}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Image image_status{
         {0 * 8 + 4, 1 * 16 + 2, 16, 16},
