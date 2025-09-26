@@ -100,7 +100,7 @@ class IQTrimView : public View {
     TrimProgressUI progress_ui{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Capture File:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "Capture File:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 6 * 16}, "Start  :", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16}, "End    :", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 8 * 16}, "Samples:", Theme::getInstance()->fg_light->foreground},

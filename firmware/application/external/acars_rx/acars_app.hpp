@@ -67,11 +67,11 @@ class ACARSAppView : public View {
     uint32_t packet_counter{0};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
     Channel channel{

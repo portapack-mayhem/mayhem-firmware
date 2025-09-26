@@ -43,19 +43,19 @@ class AMOptionsView : public View {
 
    private:
     Text label_config{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "BW",
     };
 
     OptionsField options_config{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         6,  // Max option length
         {
             // Using common messages from freqman_ui.cpp
         }};
 
     OptionsField zoom_config{
-        {23 * 8, 0 * 16},
+        {23 * 8, UI_POS_Y(0)},
         7,
         {{"ZOOM x1", 0},
          {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
@@ -68,19 +68,19 @@ class AMFMAptOptionsView : public View {
 
    private:
     Text label_config{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "BW",
     };
 
     OptionsField options_config{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         17,  // Max option length chars   "USB+FM(Wefax Apt)"
         {
             // Using common messages from freqman_ui.cpp In HF USB , Here  we only need USB Audio demod, + post-FM demod fsubcarrier FM tone to get APT signal.
         }};
 
     OptionsField zoom_config{
-        {23 * 8, 0 * 16},
+        {23 * 8, UI_POS_Y(0)},
         7,
         {{"ZOOM x1", 0},
          {"ZOOM x2", 6}}  // offset index array filters.
@@ -93,21 +93,21 @@ class NBFMOptionsView : public View {
 
    private:
     Text label_config{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "BW",
     };
     OptionsField options_config{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         3,  // Max option length
         {
             // Using common messages from freqman_ui.cpp
         }};
 
     Text text_squelch{
-        {7 * 8, 0 * 16, 8 * 8, 1 * 16},
+        {7 * 8, UI_POS_Y(0), 8 * 8, 1 * 16},
         "SQ   /99"};
     NumberField field_squelch{
-        {10 * 8, 0 * 16},
+        {10 * 8, UI_POS_Y(0)},
         2,
         {0, 99},
         1,
@@ -121,11 +121,11 @@ class WFMOptionsView : public View {
 
    private:
     Text label_config{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "BW",
     };
     OptionsField options_config{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         4,  // Max option length
         {
             // Using common messages from freqman_ui.cpp
@@ -138,11 +138,11 @@ class WFMAMAptOptionsView : public View {
 
    private:
     Text label_config{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "BW",
     };
     OptionsField options_config{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         16,  // Max option char length "80k-NOAA Apt LPF" , example.
         {
             // Using common messages from freqman_ui.cpp
@@ -155,11 +155,11 @@ class SPECOptionsView : public View {
 
    private:
     Text label_config{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "BW",
     };
     OptionsField options_config{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         4,
         {
             {"20m ", 20000000},
@@ -172,20 +172,20 @@ class SPECOptionsView : public View {
         }};
 
     Text text_speed{
-        {9 * 8, 0 * 16, 8 * 8, 1 * 16},
+        {9 * 8, UI_POS_Y(0), 8 * 8, 1 * 16},
         "SP   /63"};
     NumberField field_speed{
-        {12 * 8, 0 * 16},
+        {12 * 8, UI_POS_Y(0)},
         2,
         {0, 63},
         1,
         ' ',
     };
     Text text_rx_cal{
-        {19 * 8, 0 * 16, 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
+        {19 * 8, UI_POS_Y(0), 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
         "Rx_IQ_CAL  "};
     NumberField field_rx_iq_phase_cal{
-        {screen_width - 2 * 8, 0 * 16},
+        {screen_width - 2 * 8, UI_POS_Y(0)},
         2,
         {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
@@ -261,17 +261,17 @@ class AnalogAudioView : public View {
         {21 * 8, 10, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {5 * 8, 0 * 16},
+        {5 * 8, UI_POS_Y(0)},
         nav_};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     OptionsField options_modulation{
-        {0 * 8, 0 * 16},
+        {0 * 8, UI_POS_Y(0)},
         4,
         {
             {" AM ", toUType(ReceiverModel::Mode::AMAudio)},
@@ -283,7 +283,7 @@ class AnalogAudioView : public View {
         }};
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     Text text_ctcss{
         {16 * 8, 1 * 16, 14 * 8, 1 * 16},

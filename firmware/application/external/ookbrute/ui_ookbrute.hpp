@@ -45,10 +45,10 @@ class OOKBruteView : public View {
     };
 
     TxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {0 * 8, UI_POS_Y(0)},
         nav_};
     TransmitterView2 tx_view{
-        {11 * 8, 0 * 16},
+        {11 * 8, UI_POS_Y(0)},
         /*short_ui*/ true};
     app_settings::SettingsManager settings_{
         "tx_ookbrute", app_settings::Mode::TX};

@@ -83,7 +83,7 @@ class ViewWavView : public View {
     bool waveform_update_needed{false};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "File:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "File:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 1 * 16}, "-bit mono", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "Title:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Duration:", Theme::getInstance()->fg_light->foreground},
@@ -95,7 +95,7 @@ class ViewWavView : public View {
         {{24 * 8, 18 * 16}, "Vol:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_filename{
-        {5 * 8, 0 * 16, 18 * 8, 16},
+        {5 * 8, UI_POS_Y(0), 18 * 8, 16},
         ""};
     Text text_samplerate{
         {12 * 8, 1 * 16, 10 * 8, 16},

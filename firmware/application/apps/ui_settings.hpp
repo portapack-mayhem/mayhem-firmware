@@ -559,7 +559,7 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{0 * 8, 0 * 16}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 1 * 16}, "position (x steps per 360):", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 16}, "Sensitivity:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16}, "Rotation rate (default 1", Theme::getInstance()->fg_light->foreground},

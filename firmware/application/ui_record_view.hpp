@@ -116,36 +116,36 @@ class RecordView : public View {
         Theme::getInstance()->bg_darkest->background};
 
     /*ImageButton button_pitch_rssi {
-                { 2, 0 * 16, 3 * 8, 1 * 16 },
+                { 2, UI_POS_Y(0), 3 * 8, 1 * 16 },
                 &bitmap_rssipwm,
                 Theme::getInstance()->fg_orange->foreground,
                 Theme::getInstance()->fg_orange->background
         };*/
 
     ImageButton button_record{
-        //{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        //{ 4 * 8, UI_POS_Y(0), 2 * 8, 1 * 16 },
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         &bitmap_record,
         Theme::getInstance()->fg_red->foreground,
         Theme::getInstance()->fg_red->background};
 
     Text text_record_filename{
-        {7 * 8, 0 * 16, 8 * 8, 16},
+        {7 * 8, UI_POS_Y(0), 8 * 8, 16},
         "",
     };
 
     Text text_record_dropped{
-        {16 * 8, 0 * 16, 3 * 8, 16},
+        {16 * 8, UI_POS_Y(0), 3 * 8, 16},
         "",
     };
 
     Text text_time_available{
-        {21 * 8, 0 * 16, 9 * 8, 16},
+        {21 * 8, UI_POS_Y(0), 9 * 8, 16},
         "",
     };
 
     Image gps_icon{
-        {2 * 8 + 1, 0 * 16, 2 * 8, 1 * 16},
+        {2 * 8 + 1, UI_POS_Y(0), 2 * 8, 1 * 16},
         &bitmap_target,
         Theme::getInstance()->bg_darkest->foreground,
         Theme::getInstance()->bg_darkest->background};

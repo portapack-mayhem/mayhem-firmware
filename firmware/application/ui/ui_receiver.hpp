@@ -312,29 +312,29 @@ class FrequencyOptionsView : public View {
 
    private:
     Text text_step{
-        {0 * 8, 0 * 16, 4 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 4 * 8, 1 * 16},
         "Step"};
 
     FrequencyStepView field_step{
-        {5 * 8, 0 * 16},
+        {5 * 8, UI_POS_Y(0)},
     };
 
     void on_step_changed(rf::Frequency v);
     void on_reference_ppm_correction_changed(int32_t v);
 
     NumberField field_ppm{
-        {23 * 8, 0 * 16},
+        {23 * 8, UI_POS_Y(0)},
         3,
         {-99, 99},
         1,
         '0',
     };
     Text text_ext{
-        {23 * 8, 0 * 16, 3 * 8, 1 * 16},
+        {23 * 8, UI_POS_Y(0), 3 * 8, 1 * 16},
         "EXT",
     };
     Text text_ppm{
-        {27 * 8, 0 * 16, 3 * 8, 16},
+        {27 * 8, UI_POS_Y(0), 3 * 8, 16},
         "PPM",
     };
 };
@@ -350,11 +350,11 @@ class RadioGainOptionsView : public View {
 
    private:
     Text label_rf_amp{
-        {0 * 8, 0 * 16, 3 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 3 * 8, 1 * 16},
         "Amp"};
 
     RFAmpField field_rf_amp{
-        {4 * 8, 0 * 16},
+        {4 * 8, UI_POS_Y(0)},
     };
 };
 

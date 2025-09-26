@@ -76,20 +76,20 @@ class CaptureAppView : public View {
         {24 * 8, 5, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {0 * 8, UI_POS_Y(0)},
         nav_};
 
     FrequencyStepView field_frequency_step{
-        {10 * 8, 0 * 16}};
+        {10 * 8, UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     OptionsField option_bandwidth{
         {5 * 8, 1 * 16},

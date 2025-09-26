@@ -134,17 +134,17 @@ class WeatherView : public View {
     WeatherRecentEntries recent{};
 
     OptionsField options_temperature{
-        {10 * 8, 0 * 16},
+        {10 * 8, UI_POS_Y(0)},
         2,
         {{STR_DEGREES_C, 0},
          {STR_DEGREES_F, 1}}};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
@@ -152,10 +152,10 @@ class WeatherView : public View {
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {0 * 8, UI_POS_Y(0)},
         nav_};
 
     SignalToken signal_token_tick_second{};
@@ -218,7 +218,7 @@ class WeatherRecentEntryDetailView : public View {
     Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Weather Station", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "Weather Station", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "Id: ", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},

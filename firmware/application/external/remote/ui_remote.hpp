@@ -328,7 +328,7 @@ class RemoteAppView : public View {
     bool ready_signal_{};  // Used to signal ReplayThread ready.
 
     TextField field_title{
-        {0 * 8, 0 * 16 + 2, screen_width, 1 * 16},
+        {0 * 8, UI_POS_Y(0) + 2, screen_width, 1 * 16},
         {}};
 
     TransmitterView2 tx_view{

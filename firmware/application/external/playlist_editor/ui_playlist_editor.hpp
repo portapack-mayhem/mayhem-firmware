@@ -48,14 +48,14 @@ class PlaylistEditorView : public View {
     bool ever_opened = false;
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, UI_POS_Y(0)}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_new{
-        {(sizeof("PPL file:") + 1) * 8, 0 * 16, 8 * 5, 16},
+        {(sizeof("PPL file:") + 1) * 8, UI_POS_Y(0), 8 * 5, 16},
         "New"};
 
     Text text_current_ppl_file{
-        {sizeof("PPL file:") * 8, 0 * 16, screen_width - (int)sizeof("PPL file:") * 8, 16},
+        {sizeof("PPL file:") * 8, UI_POS_Y(0), screen_width - (int)sizeof("PPL file:") * 8, 16},
         ""};
 
     MenuView menu_view{};

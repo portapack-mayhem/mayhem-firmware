@@ -99,7 +99,7 @@ class TPMSAppView : public View {
 
     // Prevent painting of region covered entirely by a child.
     // TODO: Add flag to View that specifies view does not need to be cleared before painting.
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -138,7 +138,7 @@ class TPMSAppView : public View {
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     Channel channel{
         {21 * 8, 5, 6 * 8, 4},
@@ -146,7 +146,7 @@ class TPMSAppView : public View {
 
     // "315 MHz" TPMS sensors transmit at either 314.9 or 315 MHz but we should pick up either
     OptionsField options_band{
-        {0 * 8, 0 * 16},
+        {0 * 8, UI_POS_Y(0)},
         5,
         {
             {"314.9", 314900000},
@@ -155,25 +155,25 @@ class TPMSAppView : public View {
         }};
 
     OptionsField options_pressure{
-        {6 * 8, 0 * 16},
+        {6 * 8, UI_POS_Y(0)},
         3,
         {{"kPa", 0},
          {"PSI", 1}}};
 
     OptionsField options_temperature{
-        {10 * 8, 0 * 16},
+        {10 * 8, UI_POS_Y(0)},
         2,
         {{STR_DEGREES_C, 0},
          {STR_DEGREES_F, 1}}};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     TPMSRecentEntries recent{};
     std::unique_ptr<TPMSLogger> logger{};

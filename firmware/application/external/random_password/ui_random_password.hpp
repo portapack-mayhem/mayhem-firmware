@@ -98,7 +98,7 @@ class RandomPasswordView : public View {
         "rx_passgen", app_settings::Mode::RX};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
         {{screen_width / 2, 7 * 16 - 2}, "method:", Theme::getInstance()->fg_light->foreground},

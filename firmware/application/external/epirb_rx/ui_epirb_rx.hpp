@@ -197,11 +197,11 @@ class EPIRBAppView : public ui::View {
     static constexpr auto header_height = 4 * 16;
 
     ui::Text label_frequency{
-        {0 * 8, 0 * 16, 4 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 4 * 8, 1 * 16},
         "Freq"};
 
     ui::OptionsField options_frequency{
-        {5 * 8, 0 * 16},
+        {5 * 8, UI_POS_Y(0)},
         7,
         {
             {"406.028", 406028000},
@@ -212,19 +212,19 @@ class EPIRBAppView : public ui::View {
         }};
 
     ui::RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     ui::LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     ui::VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     ui::RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
 
     ui::AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     ui::Channel channel{
         {21 * 8, 5, 6 * 8, 4}};

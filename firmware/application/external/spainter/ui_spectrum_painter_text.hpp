@@ -53,7 +53,7 @@ class SpectrumInputTextView : public View {
     void on_set_text(NavigationView& nav);
 
     Text text_message_0{
-        {0 * 8, 0 * 16, screen_width, 16},
+        {0 * 8, UI_POS_Y(0), screen_width, 16},
         ""};
 
     Text text_message_1{

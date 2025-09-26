@@ -107,7 +107,7 @@ class PlaylistView : public View {
     void handle_replay_thread_done(uint32_t return_code);
 
     Text text_filename{
-        {0 * 8, 0 * 16, screen_width, 16}};
+        {0 * 8, UI_POS_Y(0), screen_width, 16}};
 
     FrequencyField field_frequency{
         {0 * 8, 1 * 16}};

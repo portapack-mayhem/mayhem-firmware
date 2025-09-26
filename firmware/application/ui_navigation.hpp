@@ -205,11 +205,11 @@ class SystemStatusView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0 * 8, 0 * 16, ui::screen_width, 16},
+        {0 * 8, UI_POS_Y(0), ui::screen_width, 16},
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_back{
-        {0, 0 * 16, 12 * 8, 16},  // Back button also covers the title for easier touch.
+        {0, UI_POS_Y(0), 12 * 8, 16},  // Back button also covers the title for easier touch.
         &bitmap_icon_previous,
         Theme::getInstance()->bg_dark->foreground,
         Theme::getInstance()->bg_dark->background};
@@ -279,7 +279,7 @@ class SystemStatusView : public View {
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_clock_status{
-        {0, 0 * 16, 8, 1 * 16},
+        {0, UI_POS_Y(0), 8, 1 * 16},
         &bitmap_icon_clk_int,
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
@@ -291,7 +291,7 @@ class SystemStatusView : public View {
         Theme::getInstance()->bg_dark->background};
 
     SDCardStatusView sd_card_status_view{
-        {0, 0 * 16, 2 * 8, 1 * 16}};
+        {0, UI_POS_Y(0), 2 * 8, 1 * 16}};
 
     BatteryTextField battery_text{{0, 0, 2 * 8, 1 * 16}, 102};
     BatteryIcon battery_icon{{0, 0, 10, 1 * 16}, 102};

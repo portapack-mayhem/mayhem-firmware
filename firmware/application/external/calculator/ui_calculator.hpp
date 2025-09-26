@@ -66,7 +66,7 @@ class CalculatorView : public View {
     Button button_D{{24 * 8, 17 * 16, 6 * 8, 16 + 8}, "D"};
 
     Console console{
-        {0 * 8, 0 * 16, screen_width, 10 * 16}};
+        {0 * 8, UI_POS_Y(0), screen_width, 10 * 16}};
 
     void on_button_press(uint8_t button);
     void update_button_labels();

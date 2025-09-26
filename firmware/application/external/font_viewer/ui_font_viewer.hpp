@@ -61,7 +61,7 @@ class DebugFontsView : public View {
         1,
         ' '};
     Text text_address{
-        {screen_width / 2, 0 * 16, screen_width / 2, 16},
+        {screen_width / 2, UI_POS_Y(0), screen_width / 2, 16},
         "0x20",
     };
     NavigationView& nav_;

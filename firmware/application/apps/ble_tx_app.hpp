@@ -105,7 +105,7 @@ class BLETxView : public View {
     ~BLETxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -190,11 +190,11 @@ class BLETxView : public View {
     static constexpr auto switch_button_height = 6 * 16;
 
     Button button_open{
-        {0 * 8, 0 * 16, 10 * 8, 2 * 16},
+        {0 * 8, UI_POS_Y(0), 10 * 8, 2 * 16},
         "Open file"};
 
     Text text_filename{
-        {11 * 8, 0 * 16, 12 * 8, 16},
+        {11 * 8, UI_POS_Y(0), 12 * 8, 16},
         "-"};
 
     ProgressBar progressbar{

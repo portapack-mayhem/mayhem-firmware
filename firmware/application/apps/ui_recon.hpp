@@ -217,23 +217,23 @@ class ReconView : public View {
     std::unique_ptr<RecordView> record_view{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 8 * 16}, "START       END", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {4 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {11 * 8, UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {24 * 8, 0 * 16}};
+        {24 * 8, UI_POS_Y(0)}};
 
     Text file_name{
         // show file used

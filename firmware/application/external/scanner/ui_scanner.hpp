@@ -173,7 +173,7 @@ class ScannerView : public View {
     };
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Theme::getInstance()->fg_light->foreground},
 
@@ -182,16 +182,16 @@ class ScannerView : public View {
     };
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {4 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {11 * 8, UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {24 * 8, 0 * 16}};
+        {24 * 8, UI_POS_Y(0)}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},

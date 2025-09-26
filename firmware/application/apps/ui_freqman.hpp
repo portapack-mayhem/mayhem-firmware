@@ -134,14 +134,14 @@ class FrequencyManagerView : public FreqManBaseView {
     void on_del_entry();
 
     NewButton button_add_category{
-        {23 * 8, 0 * 16, 7 * 4, 20},
+        {23 * 8, UI_POS_Y(0), 7 * 4, 20},
         {},
         &bitmap_icon_new_file,
         Theme::getInstance()->bg_darkest->foreground,
         true};
 
     NewButton button_del_category{
-        {26 * 8 + 4, 0 * 16, 7 * 4, 20},
+        {26 * 8 + 4, UI_POS_Y(0), 7 * 4, 20},
         {},
         &bitmap_icon_trash,
         Theme::getInstance()->fg_red->foreground,

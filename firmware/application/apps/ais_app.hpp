@@ -159,7 +159,7 @@ class AISAppView : public View {
     ~AISAppView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -189,11 +189,11 @@ class AISAppView : public View {
     static constexpr auto header_height = 1 * 16;
 
     Text label_channel{
-        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
         "Ch"};
 
     OptionsField options_channel{
-        {3 * 8, 0 * 16},
+        {3 * 8, UI_POS_Y(0)},
         3,
         {
             {"87B", 161975000},
@@ -201,23 +201,23 @@ class AISAppView : public View {
         }};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(23), 4},
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(23), 4},
     };
     SignalToken signal_token_tick_second{};
     uint8_t timer_seconds = 0;

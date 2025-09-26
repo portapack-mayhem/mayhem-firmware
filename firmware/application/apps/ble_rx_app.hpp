@@ -155,10 +155,10 @@ class BleRecentEntryDetailView : public View {
     static constexpr uint8_t total_data_lines{5};
 
     Labels label_mac_address{
-        {{0 * 8, 0 * 16}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, UI_POS_Y(0)}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_mac_address{
-        {12 * 8, 0 * 16, 17 * 8, 16},
+        {12 * 8, UI_POS_Y(0), 17 * 8, 16},
         "-"};
 
     Labels label_pdu_type{
@@ -209,7 +209,7 @@ class BLERxView : public View {
     ~BLERxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -302,17 +302,17 @@ class BLERxView : public View {
          {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
-        {6 * 8, 0 * 16},
+        {6 * 8, UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
         {24 * 8, 0, 6 * 8, 4}};

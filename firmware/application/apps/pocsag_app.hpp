@@ -240,11 +240,11 @@ class POCSAGAppView : public View {
         nav_};
 
     RFAmpField field_rf_amp{
-        {11 * 8, 0 * 16}};
+        {11 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
         {19 * 8 - 4, 3, 6 * 8, 4}};
@@ -252,14 +252,14 @@ class POCSAGAppView : public View {
         {19 * 8 - 4, 8, 6 * 8, 4}};
 
     NumberField field_squelch{
-        {25 * 8, 0 * 16},
+        {25 * 8, UI_POS_Y(0)},
         2,
         {0, 99},
         1,
         ' ',
         true /*wrap*/};
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     Image image_status{
         {0 * 8 + 4, 1 * 16 + 2, 16, 16},

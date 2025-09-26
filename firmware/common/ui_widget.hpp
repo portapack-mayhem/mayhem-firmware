@@ -1110,7 +1110,7 @@ class OptionTabView : public View {
 
    private:
     Checkbox check_enable{
-        {2 * 8, 0 * 16},
+        {2 * 8, UI_POS_Y(0)},
         20,
         "",
         false};

@@ -93,8 +93,8 @@ class OOKEditorAppView : public View {
         {{"ook_editor_tx_freq"sv, &ook_editor_tx_freq}}};
 
     // UI components for frequency and transmitter view.
-    FrequencyField field_frequency{{0 * 8, 0 * 16}};
-    TransmitterView2 tx_view{{20 * 7, 0 * 16}, true};
+    FrequencyField field_frequency{{0 * 8, UI_POS_Y(0)}};
+    TransmitterView2 tx_view{{20 * 7, UI_POS_Y(0)}, true};
 
     // Labels for various fields such as sample rate and repeat count.
     Labels label_step{{{170, 20}, "Step:", Theme::getInstance()->fg_light->foreground}};
@@ -167,8 +167,8 @@ class OOKEditorBugKeyView : public View {
     std::string build_payload();
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Primary Step", Theme::getInstance()->fg_light->foreground},
-        {{(screen_width / 2), 0 * 16}, "Secondary Step", Theme::getInstance()->fg_light->foreground}};
+        {{0 * 8, UI_POS_Y(0)}, "Primary Step", Theme::getInstance()->fg_light->foreground},
+        {{(screen_width / 2), UI_POS_Y(0)}, "Secondary Step", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_primary_step{
         {0 * 8, 1 * 16},

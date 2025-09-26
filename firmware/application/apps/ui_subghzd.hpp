@@ -122,18 +122,18 @@ class SubGhzDView : public View {
     SubGhzDRecentEntries recent{};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
         {21 * 8, 5, 6 * 8, 4},
     };
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {0 * 8, UI_POS_Y(0)},
         nav_};
 
     SignalToken signal_token_tick_second{};
@@ -198,7 +198,7 @@ class SubGhzDRecentEntryDetailView : public View {
         {0, 4 * 16, screen_width, screen_height - (4 * 16) - 36}};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, UI_POS_Y(0)}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "Serial: ", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Data:", Theme::getInstance()->fg_light->foreground},
     };

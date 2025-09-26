@@ -59,7 +59,7 @@ class BLECommView : public View {
     ~BLECommView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -139,17 +139,17 @@ class BLECommView : public View {
          {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
-        {6 * 8, 0 * 16},
+        {6 * 8, UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
         {24 * 8, 0, 6 * 8, 4}};

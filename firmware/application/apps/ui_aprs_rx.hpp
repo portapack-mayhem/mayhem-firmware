@@ -134,7 +134,7 @@ class APRSDetailsView : public View {
     bool send_updates{false};
 
     Console console{
-        {0, 0 * 16, screen_width, 224}};
+        {0, UI_POS_Y(0), screen_width, 224}};
 
     Button button_done{
         {160, 14 * 16, 8 * 8, 3 * 16},
@@ -209,18 +209,18 @@ class APRSRxView : public View {
     std::string str_log{""};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
         {21 * 8, 5, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     OptionsField options_region{
         {0 * 8, 0 * 8},
@@ -237,7 +237,7 @@ class APRSRxView : public View {
          {"ISS", 9}}};
 
     FrequencyField field_frequency{
-        {3 * 8, 0 * 16}};
+        {3 * 8, UI_POS_Y(0)}};
 
     // DEBUG
     RecordView record_view{
