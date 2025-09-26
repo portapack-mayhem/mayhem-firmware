@@ -236,7 +236,7 @@ class POCSAGAppView : public View {
     uint16_t packet_count = 0;
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
 
     RFAmpField field_rf_amp{

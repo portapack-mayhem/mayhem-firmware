@@ -56,11 +56,11 @@ class ExtSensorsView : public View {
     uint16_t prev_scan_int = 0;
 
     Labels labels{
-        {{0 * 8, 3 * 16}, "GPS:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "ORI:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "ENV:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 3 * 16}, "GPS:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "ORI:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "ENV:", Theme::getInstance()->fg_light->foreground}};
 
-    Text text_info{{0 * 8, 0 * 8, screen_width, 16 * 1}, "Connect a compatible module..."};
+    Text text_info{{UI_POS_X(0), 0 * 8, screen_width, 16 * 1}, "Connect a compatible module..."};
     Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};

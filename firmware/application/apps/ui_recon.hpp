@@ -217,11 +217,11 @@ class ReconView : public View {
     std::unique_ptr<RecordView> record_view{};
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 8 * 16}, "START       END", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
         {4 * 8, UI_POS_Y(0)}};
@@ -297,7 +297,7 @@ class ReconView : public View {
         "CONFIG"};
 
     ButtonWithEncoder button_manual_start{
-        {0 * 8, 9 * 16, 11 * 8, 28},
+        {UI_POS_X(0), 9 * 16, 11 * 8, 28},
         ""};
 
     ButtonWithEncoder button_manual_end{
@@ -305,7 +305,7 @@ class ReconView : public View {
         ""};
 
     OptionsField field_recon_match_mode{
-        {0 * 8, 11 * 16},
+        {UI_POS_X(0), 11 * 16},
         16,  // CONTINUOUS MATCH MODE / SPARSE TIMED MATCH MODE
         {
             {"MATCH:CONTINOUS", 0},
@@ -391,7 +391,7 @@ class ReconView : public View {
         "<REMOVE>"};
 
     ProgressBar progressbar{
-        {0 * 8, screen_height / 2 - 16, screen_width, 32}};
+        {UI_POS_X(0), screen_height / 2 - 16, screen_width, 32}};
 
     TransmitterView2 tx_view{
         {11 * 8, 2 * 16},

@@ -312,7 +312,7 @@ class FrequencyOptionsView : public View {
 
    private:
     Text text_step{
-        {0 * 8, UI_POS_Y(0), 4 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 4 * 8, 1 * 16},
         "Step"};
 
     FrequencyStepView field_step{
@@ -350,7 +350,7 @@ class RadioGainOptionsView : public View {
 
    private:
     Text label_rf_amp{
-        {0 * 8, UI_POS_Y(0), 3 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 3 * 8, 1 * 16},
         "Amp"};
 
     RFAmpField field_rf_amp{

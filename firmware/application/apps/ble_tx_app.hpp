@@ -190,7 +190,7 @@ class BLETxView : public View {
     static constexpr auto switch_button_height = 6 * 16;
 
     Button button_open{
-        {0 * 8, UI_POS_Y(0), 10 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 10 * 8, 2 * 16},
         "Open file"};
 
     Text text_filename{
@@ -207,7 +207,7 @@ class BLETxView : public View {
         true};
 
     TxFrequencyField field_frequency{
-        {0 * 8, 2 * 16},
+        {UI_POS_X(0), 2 * 16},
         nav_};
 
     TransmitterView2 tx_view{
@@ -227,7 +227,7 @@ class BLETxView : public View {
         Theme::getInstance()->fg_green->background};
 
     Labels label_speed{
-        {{0 * 8, 6 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 6 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_speed{
         {7 * 8, 6 * 8},
@@ -259,7 +259,7 @@ class BLETxView : public View {
          {"CONNECT_REQ", PKT_TYPE_CONNECT_REQ}}};
 
     Labels label_marked_data{
-        {{0 * 8, 4 * 16}, "Marked Data:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 4 * 16}, "Marked Data:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField marked_data_sequence{
         {12 * 8, 8 * 8},
@@ -269,28 +269,28 @@ class BLETxView : public View {
          {"Random", 2}}};
 
     Labels label_packet_index{
-        {{0 * 8, 12 * 8}, "Packet Index:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 12 * 8}, "Packet Index:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_packet_index{
         {13 * 8, 6 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_packets_sent{
-        {{0 * 8, 14 * 8}, "Repeat Count:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 14 * 8}, "Repeat Count:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_packets_sent{
         {13 * 8, 7 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_mac_address{
-        {{0 * 8, 16 * 8}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 16 * 8}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_mac_address{
         {12 * 8, 8 * 16, 20 * 8, 16},
         "-"};
 
     Labels label_data_packet{
-        {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
     TextViewer dataEditView{
         {0, 9 * 18, 240, 240}};

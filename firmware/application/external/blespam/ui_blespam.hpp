@@ -104,7 +104,7 @@ class BLESpamView : public View {
         4'000'000 /* sampling rate */
     };
     TxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
     TransmitterView2 tx_view{
         {11 * 8, UI_POS_Y(0)},
@@ -122,7 +122,7 @@ class BLESpamView : public View {
         {0, 70, screen_width, 220}};
 #endif
     OptionsField options_atkmode{
-        {0 * 8, 2 * 8},
+        {UI_POS_X(0), 2 * 8},
         10,
         {{"Android", 0},
          {"iOs", 1},

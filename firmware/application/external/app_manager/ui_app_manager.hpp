@@ -43,7 +43,7 @@ class AppManagerView : public View {
     uint16_t app_list_index{0};
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "App list:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "App list:", Theme::getInstance()->fg_light->foreground}};
 
     MenuView menu_view{};
 

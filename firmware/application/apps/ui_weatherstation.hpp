@@ -155,7 +155,7 @@ class WeatherView : public View {
         {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     SignalToken signal_token_tick_second{};
@@ -218,14 +218,14 @@ class WeatherRecentEntryDetailView : public View {
     Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "Weather Station", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Id: ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Channel:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Battery:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Age:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Weather Station", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 2 * 16}, "Id: ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Channel:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Battery:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "Age:", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_done{

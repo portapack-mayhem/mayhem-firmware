@@ -97,14 +97,14 @@ class FrequencySaveView : public FreqManBaseView {
         0};
 
     Labels labels{
-        {{0 * 8, 6 * 16}, "Description:", Theme::getInstance()->bg_darkest->foreground}};
+        {{UI_POS_X(0), 6 * 16}, "Description:", Theme::getInstance()->bg_darkest->foreground}};
 
     TextField field_description{
-        {0 * 8, 7 * 16, screen_width, 1 * 16},
+        {UI_POS_X(0), 7 * 16, screen_width, 1 * 16},
         ""};
 
     Button button_save{
-        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), 17 * 16, 15 * 8, 2 * 16},
         "Save"};
 };
 
@@ -148,7 +148,7 @@ class FrequencyManagerView : public FreqManBaseView {
         true};
 
     Button button_edit_entry{
-        {0 * 8, 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
+        {UI_POS_X(0), 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
         "Edit"};
 
     Rectangle rect_padding{
@@ -156,11 +156,11 @@ class FrequencyManagerView : public FreqManBaseView {
         Theme::getInstance()->fg_medium->background};
 
     Button button_edit_freq{
-        {0 * 8, 15 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), 15 * 16, 15 * 8, 2 * 16},
         "Frequency"};
 
     Button button_edit_desc{
-        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), 17 * 16, 15 * 8, 2 * 16},
         "Description"};
 
     NewButton button_add_entry{
@@ -201,14 +201,14 @@ class FrequencyEditView : public View {
 
     Labels labels{
         {{5 * 8, 1 * 16}, "Edit Frequency Entry", Theme::getInstance()->bg_darkest->foreground},
-        {{0 * 8, 3 * 16}, "Entry Type :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Frequency A:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Frequency B:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Modulation :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Bandwidth  :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Step       :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 9 * 16}, "Tone Freq  :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 16}, "Description:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Entry Type :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "Frequency A:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Frequency B:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Modulation :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "Bandwidth  :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 8 * 16}, "Step       :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 9 * 16}, "Tone Freq  :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 10 * 16}, "Description:", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField field_type{
@@ -243,7 +243,7 @@ class FrequencyEditView : public View {
         {}};
 
     Button button_save{
-        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), 17 * 16, 15 * 8, 2 * 16},
         "Save"};
 
     Button button_cancel{

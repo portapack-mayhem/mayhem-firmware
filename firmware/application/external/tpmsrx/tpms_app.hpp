@@ -146,7 +146,7 @@ class TPMSAppView : public View {
 
     // "315 MHz" TPMS sensors transmit at either 314.9 or 315 MHz but we should pick up either
     OptionsField options_band{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {
             {"314.9", 314900000},

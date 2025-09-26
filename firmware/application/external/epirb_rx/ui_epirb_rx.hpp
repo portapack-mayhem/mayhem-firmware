@@ -197,7 +197,7 @@ class EPIRBAppView : public ui::View {
     static constexpr auto header_height = 4 * 16;
 
     ui::Text label_frequency{
-        {0 * 8, UI_POS_Y(0), 4 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 4 * 8, 1 * 16},
         "Freq"};
 
     ui::OptionsField options_frequency{
@@ -231,7 +231,7 @@ class EPIRBAppView : public ui::View {
 
     // Status display
     ui::Text label_status{
-        {0 * 8, 1 * 16, 15 * 8, 1 * 16},
+        {UI_POS_X(0), 1 * 16, 15 * 8, 1 * 16},
         "Listening..."};
 
     ui::Text label_beacons_count{
@@ -239,12 +239,12 @@ class EPIRBAppView : public ui::View {
         "Beacons: 0"};
 
     ui::Text label_packet_stats{
-        {0 * 8, 3 * 16, 29 * 8, 1 * 16},
+        {UI_POS_X(0), 3 * 16, 29 * 8, 1 * 16},
         ""};
 
     // Latest beacon info display
     ui::Text label_latest{
-        {0 * 8, 2 * 16, 8 * 8, 1 * 16},
+        {UI_POS_X(0), 2 * 16, 8 * 8, 1 * 16},
         "Latest:"};
 
     ui::Text text_latest_info{

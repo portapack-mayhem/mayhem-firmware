@@ -88,7 +88,7 @@ class HopperView : public View {
         false};
 
     NewButton button_load_list{
-        {0 * 8, 9 * 16 + 4, 4 * 8, 32},
+        {UI_POS_X(0), 9 * 16 + 4, 4 * 8, 32},
         {},
         &bitmap_icon_load,
         Color::dark_blue(),
@@ -127,8 +127,8 @@ class HopperView : public View {
         {{1 * 8, 25 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 27 * 8}, "Hop:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 29 * 8}, "TX:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 31 * 8}, "Sle3p:", Theme::getInstance()->fg_light->foreground},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
-        {{0 * 8, 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
+        {{1 * 8, 31 * 8}, "Sle3p:", Theme::getInstance()->fg_light->foreground},         // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
+        {{UI_POS_X(0), 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
         {{11 * 8, 29 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 31 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 33 * 8}, "/60", Theme::getInstance()->fg_light->foreground},

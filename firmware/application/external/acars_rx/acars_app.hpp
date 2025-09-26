@@ -78,7 +78,7 @@ class ACARSAppView : public View {
         {21 * 8, 5, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
     Checkbox check_log{
         {16 * 8, 1 * 16},

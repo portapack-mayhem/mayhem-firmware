@@ -230,11 +230,11 @@ class FileManagerView : public FileManBaseView {
     bool selected_is_valid() const;
 
     Text text_date{
-        {0 * 8, 26 * 8, 28 * 8, 16},
+        {UI_POS_X(0), 26 * 8, 28 * 8, 16},
         ""};
 
     NewButton button_rename{
-        {0 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(0), 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_rename,
         Theme::getInstance()->fg_blue->foreground};
@@ -282,7 +282,7 @@ class FileManagerView : public FileManBaseView {
         Theme::getInstance()->fg_green->foreground};
 
     NewButton button_open_notepad{
-        {0 * 8, 34 * 8, 4 * 8, 32},
+        {UI_POS_X(0), 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_notepad,
         Theme::getInstance()->fg_orange->foreground};

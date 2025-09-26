@@ -45,7 +45,7 @@ class OOKBruteView : public View {
     };
 
     TxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
     TransmitterView2 tx_view{
         {11 * 8, UI_POS_Y(0)},
@@ -54,9 +54,9 @@ class OOKBruteView : public View {
         "tx_ookbrute", app_settings::Mode::TX};
 
     Labels labels{
-        {{0 * 8, 2 * 16}, "Start Position:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Stop Position:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "Encoder Type:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 2 * 16}, "Start Position:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "Stop Position:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 13 * 16}, "Encoder Type:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_startstop{
         {8, screen_height - 48 - 16, screen_width - 2 * 8, 48},
@@ -71,7 +71,7 @@ class OOKBruteView : public View {
         "Input Stop Pos"};
 
     NumberField field_start{
-        {0 * 8, 3 * 16},
+        {UI_POS_X(0), 3 * 16},
         8,
         {0, 2500},
         1,

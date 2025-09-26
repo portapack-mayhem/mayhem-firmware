@@ -54,7 +54,7 @@ class AudioSpectrumView : public View {
         {{6 * 8, UI_POS_Y(0)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {0, 48000},
         48000 / 240,

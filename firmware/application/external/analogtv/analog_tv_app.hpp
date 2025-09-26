@@ -58,8 +58,8 @@ class AnalogTvView : public View {
     app_settings::SettingsManager settings_{
         "rx_tv", app_settings::Mode::RX};
 
-    const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
-    const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
+    const Rect options_view_rect{UI_POS_X(0), 1 * 16, screen_width, 1 * 16};
+    const Rect nbfm_view_rect{UI_POS_X(0), 1 * 16, 18 * 8, 1 * 16};
 
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
@@ -81,7 +81,7 @@ class AnalogTvView : public View {
         {18 * 8, UI_POS_Y(0)}};
 
     OptionsField options_modulation{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         4,
         {
             {"TV ", toUType(ReceiverModel::Mode::WidebandFMAudio)},

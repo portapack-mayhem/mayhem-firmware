@@ -87,17 +87,17 @@ class AFSKRxView : public View {
         {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     Checkbox check_log{
-        {0 * 8, 1 * 16},
+        {UI_POS_X(0), 1 * 16},
         3,
         LanguageHelper::currentMessages[LANG_LOG],
         false};
 
     Text text_debug{
-        {0 * 8, 12 + 2 * 16, screen_width, 16},
+        {UI_POS_X(0), 12 + 2 * 16, screen_width, 16},
         LanguageHelper::currentMessages[LANG_DEBUG]};
 
     Button button_modem_setup{

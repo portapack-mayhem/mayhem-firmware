@@ -148,7 +148,7 @@ class ERTAppView : public View {
     static constexpr auto header_height = 1 * 16;
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{

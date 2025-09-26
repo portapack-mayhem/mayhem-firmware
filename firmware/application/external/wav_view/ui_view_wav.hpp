@@ -83,15 +83,15 @@ class ViewWavView : public View {
     bool waveform_update_needed{false};
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "File:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "File:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 1 * 16}, "-bit mono", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Title:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Duration:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "  Sample:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 14 * 16}, "Cursor A:", Theme::getInstance()->fg_darkcyan->foreground},
-        {{0 * 8, 15 * 16}, "Cursor B:", Theme::getInstance()->fg_magenta->foreground},
-        {{0 * 8, 16 * 16}, "Delta:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 2 * 16}, "Title:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Duration:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 12 * 16}, "Position:    .   s Scale:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 13 * 16}, "  Sample:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 14 * 16}, "Cursor A:", Theme::getInstance()->fg_darkcyan->foreground},
+        {{UI_POS_X(0), 15 * 16}, "Cursor B:", Theme::getInstance()->fg_magenta->foreground},
+        {{UI_POS_X(0), 16 * 16}, "Delta:", Theme::getInstance()->fg_light->foreground},
         {{24 * 8, 18 * 16}, "Vol:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_filename{
@@ -107,7 +107,7 @@ class ViewWavView : public View {
         {9 * 8, 3 * 16, 20 * 8, 16},
         ""};
     Text text_bits_per_sample{
-        {0 * 8, 1 * 16, 2 * 8, 16},
+        {UI_POS_X(0), 1 * 16, 2 * 8, 16},
         "16"};
     Button button_open{
         {24 * 8, 8, 6 * 8, 2 * 16},
@@ -129,7 +129,7 @@ class ViewWavView : public View {
         Theme::getInstance()->bg_darkest->foreground};
 
     ProgressBar progressbar{
-        {0 * 8, 11 * 16, screen_width, 4}};
+        {UI_POS_X(0), 11 * 16, screen_width, 4}};
 
     NumberField field_pos_seconds{
         {9 * 8, 12 * 16},

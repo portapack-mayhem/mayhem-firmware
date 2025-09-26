@@ -82,7 +82,7 @@ class GpsSimAppView : public View {
     bool ready_signal{false};
 
     Button button_open{
-        {0 * 8, UI_POS_Y(0), 10 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 10 * 8, 2 * 16},
         "Open file"};
 
     Text text_filename{
@@ -99,7 +99,7 @@ class GpsSimAppView : public View {
         {18 * 8, 1 * 16, 12 * 8, 16}};
 
     TxFrequencyField field_frequency{
-        {0 * 8, 2 * 16},
+        {UI_POS_X(0), 2 * 16},
         nav_};
 
     TransmitterView2 tx_view{

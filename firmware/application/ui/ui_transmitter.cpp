@@ -225,8 +225,8 @@ TransmitterView2::TransmitterView2(Point pos, bool short_ui) {
     text_labels.set(short_ui ? "G:   A:" : "Gain:   Amp:");
     text_labels.set_parent_rect(
         short_ui
-            ? Rect{0 * 8, UI_POS_Y(0), 7 * 8, 1 * 16}
-            : Rect{0 * 8, UI_POS_Y(0), 12 * 8, 1 * 16});
+            ? Rect{UI_POS_X(0), UI_POS_Y(0), 7 * 8, 1 * 16}
+            : Rect{UI_POS_X(0), UI_POS_Y(0), 12 * 8, 1 * 16});
     field_gain.set_parent_rect(
         short_ui
             ? Rect{2 * 8, UI_POS_Y(0), 2 * 8, 1 * 16}

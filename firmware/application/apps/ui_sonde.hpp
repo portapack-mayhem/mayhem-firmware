@@ -96,15 +96,15 @@ class SondeView : public View {
     Labels labels{
         {{4 * 8, 2 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{6 * 8, 3 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "DateTime:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "DateTime:", Theme::getInstance()->fg_light->foreground},
 
         {{3 * 8, 5 * 16}, "Vbatt:", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 6 * 16}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 7 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 8 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
 
     RFAmpField field_rf_amp{

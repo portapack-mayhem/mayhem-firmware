@@ -147,7 +147,7 @@ class SoundBoardView : public View {
         "Random"};
 
     ProgressBar progressbar{
-        {0 * 8, 31 * 8 + 2, screen_width, 4}};
+        {UI_POS_X(0), 31 * 8 + 2, screen_width, 4}};
 
     TransmitterView tx_view{
         16 * 16,

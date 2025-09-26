@@ -24,7 +24,7 @@ class BatteryCapacityView : public View {
     static RegisterEntry get_entry(size_t index);
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "Reg", Theme::getInstance()->fg_yellow->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Reg", Theme::getInstance()->fg_yellow->foreground},
         {{9 * 8, UI_POS_Y(0)}, "Addr", Theme::getInstance()->fg_yellow->foreground},
         {{14 * 8, UI_POS_Y(0)}, "Hex", Theme::getInstance()->fg_yellow->foreground},
         {{21 * 8, UI_POS_Y(0)}, "Value", Theme::getInstance()->fg_yellow->foreground},

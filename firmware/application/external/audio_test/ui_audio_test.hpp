@@ -45,12 +45,12 @@ class AudioTestView : public View {
 
     Labels labels{
         {{7 * 8, 3 * 16}, "Audio Beep Test", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Sample Rate (Hz):", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Sample Rate (Hz):", Theme::getInstance()->fg_light->foreground},
         {{25 * 8, 7 * 16}, "Step:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Frequency (Hz):", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 16}, "Duration (ms):", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 8 * 16}, "Frequency (Hz):", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 10 * 16}, "Duration (ms):", Theme::getInstance()->fg_light->foreground},
         {{25 * 8, 10 * 16}, "0=con", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 12 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 12 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_sample_rate{
         {18 * 8, 6 * 16},

@@ -48,7 +48,7 @@ class PlaylistEditorView : public View {
     bool ever_opened = false;
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_new{
         {(sizeof("PPL file:") + 1) * 8, UI_POS_Y(0), 8 * 5, 16},
@@ -122,7 +122,7 @@ class PlaylistItemEditView : public View {
     std::string build_item() const;
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 5 * 16}, "Delay(ms):", Theme::getInstance()->fg_light->foreground}};
 
     TextField field_path{

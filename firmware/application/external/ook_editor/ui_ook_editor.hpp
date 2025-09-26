@@ -93,7 +93,7 @@ class OOKEditorAppView : public View {
         {{"ook_editor_tx_freq"sv, &ook_editor_tx_freq}}};
 
     // UI components for frequency and transmitter view.
-    FrequencyField field_frequency{{0 * 8, UI_POS_Y(0)}};
+    FrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}};
     TransmitterView2 tx_view{{20 * 7, UI_POS_Y(0)}, true};
 
     // Labels for various fields such as sample rate and repeat count.
@@ -120,7 +120,7 @@ class OOKEditorAppView : public View {
     NumberField field_repeat{{210, 40}, 3, {1, 999}, 1, '0', false};
 
     // Text field to display the payload data.
-    Text text_payload{{0 * 8, 100, screen_width, 16}, ""};
+    Text text_payload{{UI_POS_X(0), 100, screen_width, 16}, ""};
 
     // Buttons for setting configurations, opening files, and starting transmission.
     Button button_set{{0, 125, 60, 28}, LanguageHelper::currentMessages[LANG_SET]};
@@ -167,11 +167,11 @@ class OOKEditorBugKeyView : public View {
     std::string build_payload();
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "Primary Step", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Primary Step", Theme::getInstance()->fg_light->foreground},
         {{(screen_width / 2), UI_POS_Y(0)}, "Secondary Step", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_primary_step{
-        {0 * 8, 1 * 16},
+        {UI_POS_X(0), 1 * 16},
         3,
         {0, 550},
         1,
@@ -188,11 +188,11 @@ class OOKEditorBugKeyView : public View {
         {0, 3 * 16, screen_width, screen_height - 10 * 16}};
 
     Button button_insert_low_level_long{
-        {0 * 8, 13 * 16, screen_width / 2, 2 * 16},
+        {UI_POS_X(0), 13 * 16, screen_width / 2, 2 * 16},
         "00"};
 
     Button button_insert_low_level_short{
-        {0 * 8, 15 * 16, screen_width / 2, 2 * 16},
+        {UI_POS_X(0), 15 * 16, screen_width / 2, 2 * 16},
         "0"};
 
     Button button_insert_high_level_long{

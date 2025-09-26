@@ -132,7 +132,7 @@ class FmRadioView : public View {
         {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     OptionsField field_bw{

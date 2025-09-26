@@ -65,12 +65,12 @@ class FoxhuntRxView : public View {
         {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     // Power: -XXX db
     Text freq_stats_db{
-        {0 * 8, 2 * 16 + 4, 14 * 8, 14},
+        {UI_POS_X(0), 2 * 16 + 4, 14 * 8, 14},
     };
     RSSIGraph rssi_graph{
         {0, 50, screen_width, 30},

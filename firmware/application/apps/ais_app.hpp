@@ -189,7 +189,7 @@ class AISAppView : public View {
     static constexpr auto header_height = 1 * 16;
 
     Text label_channel{
-        {0 * 8, UI_POS_Y(0), 2 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 2 * 8, 1 * 16},
         "Ch"};
 
     OptionsField options_channel{

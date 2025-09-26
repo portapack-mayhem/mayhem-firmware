@@ -65,7 +65,7 @@ class CaptureAppView : public View {
         }};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 1 * 16}, "Format:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -76,7 +76,7 @@ class CaptureAppView : public View {
         {24 * 8, 5, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     FrequencyStepView field_frequency_step{
@@ -109,7 +109,7 @@ class CaptureAppView : public View {
         /*small*/ true};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, screen_width, 1 * 16},
+        {UI_POS_X(0), 2 * 16, screen_width, 1 * 16},
         u"BBD_????.*",
         captures_dir,
         RecordView::FileType::RawS16,

@@ -208,15 +208,15 @@ class ADSBRxAircraftDetailsView : public View {
 
    private:
     Labels labels{
-        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Registration:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Model:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Number of engines:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 9 * 16}, "Engine type:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 11 * 16}, "Owner:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "Operator:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 2 * 16}, "Registration:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Model:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 8 * 16}, "Number of engines:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 9 * 16}, "Engine type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 11 * 16}, "Owner:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 13 * 16}, "Operator:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
         {5 * 8, 1 * 16, 6 * 8, UI_POS_HEIGHT(1)},
@@ -227,11 +227,11 @@ class ADSBRxAircraftDetailsView : public View {
         "-"};
 
     Text text_manufacturer{
-        {0 * 8, 4 * 16, 19 * 8, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 4 * 16, 19 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_model{
-        {0 * 8, 6 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 6 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_type{
@@ -243,15 +243,15 @@ class ADSBRxAircraftDetailsView : public View {
         "-"};
 
     Text text_engine_type{
-        {0 * 8, 10 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 10 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_owner{
-        {0 * 8, 12 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 12 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_operator{
-        {0 * 8, 14 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 14 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Button button_close{
@@ -299,13 +299,13 @@ class ADSBRxDetailsView : public View {
     bool airline_checked{false};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
         {{13 * 8, 1 * 16}, "Callsign:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Last seen:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Airline:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Country:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "Even position frame:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 15 * 16}, "Odd position frame:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 2 * 16}, "Last seen:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Airline:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Country:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 13 * 16}, "Even position frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 15 * 16}, "Odd position frame:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
         {5 * 8, 1 * 16, 6 * 8, UI_POS_HEIGHT(1)},
@@ -320,7 +320,7 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Text text_airline{
-        {0 * 8, 4 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 4 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_country{
@@ -328,18 +328,18 @@ class ADSBRxDetailsView : public View {
         "-"};
 
     Text text_infos{
-        {0 * 8, 6 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 6 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_info2{
-        {0 * 8, 7 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 7 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_frame_pos_even{
-        {0 * 8, 14 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 14 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
     Text text_frame_pos_odd{
-        {0 * 8, 16 * 16, screen_width, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), 16 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Button button_aircraft_details{

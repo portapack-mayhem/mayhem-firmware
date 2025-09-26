@@ -97,7 +97,7 @@ class SpectrumPainterView : public View {
     };
 
     TxFrequencyField field_frequency{
-        {0 * 8, footer_location + 1 * 16},
+        {UI_POS_X(0), footer_location + 1 * 16},
         nav_};
 
     NumberField field_rfgain{

@@ -328,11 +328,11 @@ class RemoteAppView : public View {
     bool ready_signal_{};  // Used to signal ReplayThread ready.
 
     TextField field_title{
-        {0 * 8, UI_POS_Y(0) + 2, screen_width, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0) + 2, screen_width, 1 * 16},
         {}};
 
     TransmitterView2 tx_view{
-        {0 * 8, 17 * 16},
+        {UI_POS_X(0), 17 * 16},
         /*short_ui*/ true};
 
     Checkbox check_loop{
@@ -342,7 +342,7 @@ class RemoteAppView : public View {
         /*small*/ true};
 
     TextField field_filename{
-        {0 * 8, 18 * 16, 17 * 8, 1 * 16},
+        {UI_POS_X(0), 18 * 16, 17 * 8, 1 * 16},
         {}};
 
     NewButton button_add{

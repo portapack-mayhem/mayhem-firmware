@@ -174,7 +174,7 @@ class RDSView : public View {
         {"Audio", Theme::getInstance()->fg_orange->foreground, &view_audio}};
 
     Labels labels{
-        {{0 * 8, 28}, "Program type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 28}, "Program type:", Theme::getInstance()->fg_light->foreground},
         //{ { 14 * 8, 16 + 8 }, "CC:", Theme::getInstance()->fg_light->foreground },
         {{2 * 8, 28 + 16}, "Program ID:", Theme::getInstance()->fg_light->foreground},
         //{ { 13 * 8, 32 + 8 }, "Cov:",Theme::getInstance()->fg_light->foreground },

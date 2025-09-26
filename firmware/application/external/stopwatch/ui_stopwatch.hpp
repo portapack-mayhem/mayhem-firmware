@@ -57,8 +57,8 @@ class StopwatchView : public View {
     /*                       m     m     s      s     ms   ms    ms*/
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "TOTAL:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "LAP:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "TOTAL:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "LAP:", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField options_ms_display_level{

@@ -68,7 +68,7 @@ class gfxEQView : public View {
         ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
         ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
-    ButtonWithEncoder button_frequency{{0 * 8, UI_POS_Y(0) + 4, 11 * 8, 1 * 8}, ""};
+    ButtonWithEncoder button_frequency{{UI_POS_X(0), UI_POS_Y(0) + 4, 11 * 8, 1 * 8}, ""};
     RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{{15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{{18 * 8, UI_POS_Y(0)}};

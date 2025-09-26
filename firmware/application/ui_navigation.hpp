@@ -205,7 +205,7 @@ class SystemStatusView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0 * 8, UI_POS_Y(0), ui::screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(0), ui::screen_width, 16},
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_back{

@@ -107,10 +107,10 @@ class PlaylistView : public View {
     void handle_replay_thread_done(uint32_t return_code);
 
     Text text_filename{
-        {0 * 8, UI_POS_Y(0), screen_width, 16}};
+        {UI_POS_X(0), UI_POS_Y(0), screen_width, 16}};
 
     FrequencyField field_frequency{
-        {0 * 8, 1 * 16}};
+        {UI_POS_X(0), 1 * 16}};
 
     Text text_sample_rate{
         {10 * 8, 1 * 16, 7 * 8, 16}};
@@ -124,7 +124,7 @@ class PlaylistView : public View {
         {18 * 8, 3 * 8 - 1, 12 * 8, 8}};
 
     Text text_duration{
-        {0 * 8, 2 * 16, 5 * 8, 16}};
+        {UI_POS_X(0), 2 * 16, 5 * 8, 16}};
 
     // TODO: delay duration field.
 
@@ -145,7 +145,7 @@ class PlaylistView : public View {
         Theme::getInstance()->fg_green->background};
 
     Text text_track{
-        {0 * 8, 3 * 16, screen_width, 16}};
+        {UI_POS_X(0), 3 * 16, screen_width, 16}};
 
     NewButton button_prev{
         {2 * 8, 4 * 16, 4 * 8, 2 * 16},

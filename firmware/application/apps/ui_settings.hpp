@@ -72,8 +72,8 @@ class SetDateTimeView : public View {
         {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Theme::getInstance()->fg_medium->foreground},
         {{5 * 8, 6 * 16}, "-  -     :  :", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 12 * 16}, "Start: 0:00 on Nth  DDD in", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 13 * 16}, "End:   1:00 on Nth  DDD in", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_year{
         {1 * 8, 6 * 16},
@@ -559,11 +559,11 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "position (x steps per 360):", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Sensitivity to dial rotation", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "position (x steps per 360):", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 16}, "Sensitivity:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "Rotation rate (default 1", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 8 * 16}, "means no rate dependency):", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 16}, "Rate multiplier:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 14 * 16}, "Direction:", Theme::getInstance()->fg_light->foreground},
 
@@ -946,7 +946,7 @@ class SetThemeView : public View {
         "Save"};
 
     OptionsField options{
-        {0 * 8, 4 * 16},
+        {UI_POS_X(0), 4 * 16},
         (size_t)(screen_width / 8),
         {
             {"Default - Grey", 0},

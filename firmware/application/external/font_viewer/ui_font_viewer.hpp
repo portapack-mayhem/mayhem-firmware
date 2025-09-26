@@ -49,7 +49,7 @@ class DebugFontsView : public View {
     void paint_zoomed_text(Painter& painter);
 
     NumberField field_cursor{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         4,
         {0, 1000},
         1,

@@ -298,7 +298,7 @@ class GlassView : public View {
         "RST"};
 
     Text freq_stats{
-        {0 * 8, 5 * 16, screen_width - 10 * 8, 8},
+        {UI_POS_X(0), 5 * 16, screen_width - 10 * 8, 8},
         ""};
 
     MessageHandlerRegistration message_handler_spectrum_config{

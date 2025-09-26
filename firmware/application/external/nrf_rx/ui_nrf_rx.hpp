@@ -73,7 +73,7 @@ class NRFRxView : public View {
         {21 * 8, 5, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     Button button_modem_setup{

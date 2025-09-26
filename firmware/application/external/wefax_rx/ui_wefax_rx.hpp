@@ -95,7 +95,7 @@ class WeFaxRxView : public View {
         {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, UI_POS_Y(0)},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     Labels labels{
@@ -124,7 +124,7 @@ class WeFaxRxView : public View {
         }};
 
     Text txt_status{
-        {0 * 8, 2 * 16, 20 * 8, 16},
+        {UI_POS_X(0), 2 * 16, 20 * 8, 16},
     };
 
     Button button_ss{

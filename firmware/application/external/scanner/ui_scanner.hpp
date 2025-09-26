@@ -173,11 +173,11 @@ class ScannerView : public View {
     };
 
     Labels labels{
-        {{0 * 8, UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 10 * 16}, "SRCH START  SEARCH END  SWITCH", Theme::getInstance()->fg_light->foreground},
 
-        {{0 * 8, (26 * 8) + 4}, "MODE:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), (26 * 8) + 4}, "MODE:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, (26 * 8) + 4}, "STEP:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -246,7 +246,7 @@ class ScannerView : public View {
         0};
 
     Button button_manual_start{
-        {0 * 8, 11 * 16, 11 * 8, 28},
+        {UI_POS_X(0), 11 * 16, 11 * 8, 28},
         ""};
 
     Button button_manual_end{

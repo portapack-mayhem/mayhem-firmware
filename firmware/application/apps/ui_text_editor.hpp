@@ -164,7 +164,7 @@ class TextEditorMenu : public View {
     void hide_children(bool hidden);
 
     Rectangle rect_frame{
-        {0 * 8, 0 * 8, 23 * 8, 23 * 8},
+        {UI_POS_X(0), 0 * 8, 23 * 8, 23 * 8},
         Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_home{
@@ -279,11 +279,11 @@ class TextEditorView : public View {
         /*vcenter*/ true};
 
     Text text_position{
-        {0 * 8, 34 * 8, 26 * 8, 2 * 8},
+        {UI_POS_X(0), 34 * 8, 26 * 8, 2 * 8},
         ""};
 
     Text text_size{
-        {0 * 8, 36 * 8, 26 * 8, 2 * 8},
+        {UI_POS_X(0), 36 * 8, 26 * 8, 2 * 8},
         ""};
 };
 
