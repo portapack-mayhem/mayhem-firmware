@@ -100,7 +100,7 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
         }
     }
 */
-    displayed_max = (space_available / button_h);
+    displayed_max = (parent_rect().size().height() / button_h);
 
     button_pgup.set_parent_rect({0, (Coord)(space_available), screen_width / 2, 16});
     button_pgdown.set_parent_rect({screen_width / 2, (Coord)(space_available), screen_width / 2, 16});
