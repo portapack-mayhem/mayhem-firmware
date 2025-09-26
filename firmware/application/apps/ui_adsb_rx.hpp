@@ -219,43 +219,43 @@ class ADSBRxAircraftDetailsView : public View {
         {{0 * 8, 13 * 16}, "Operator:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
-        {5 * 8, 1 * 16, 6 * 8, 16},
+        {5 * 8, 1 * 16, 6 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_registration{
-        {13 * 8, 2 * 16, 8 * 8, 16},
+        {13 * 8, 2 * 16, 8 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_manufacturer{
-        {0 * 8, 4 * 16, 19 * 8, 16},
+        {0 * 8, 4 * 16, 19 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_model{
-        {0 * 8, 6 * 16, screen_width, 16},
+        {0 * 8, 6 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_type{
-        {5 * 8, 7 * 16, 22 * 8, 16},
+        {5 * 8, 7 * 16, 22 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_number_of_engines{
-        {18 * 8, 8 * 16, screen_width, 16},
+        {18 * 8, 8 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_engine_type{
-        {0 * 8, 10 * 16, screen_width, 16},
+        {0 * 8, 10 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_owner{
-        {0 * 8, 12 * 16, screen_width, 16},
+        {0 * 8, 12 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_operator{
-        {0 * 8, 14 * 16, screen_width, 16},
+        {0 * 8, 14 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Button button_close{
-        {9 * 8, 16 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12), UI_POS_Y(16), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "Back"};
 };
 
@@ -308,46 +308,46 @@ class ADSBRxDetailsView : public View {
         {{0 * 8, 15 * 16}, "Odd position frame:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
-        {5 * 8, 1 * 16, 6 * 8, 16},
+        {5 * 8, 1 * 16, 6 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_callsign{
-        {22 * 8, 1 * 16, 8 * 8, 16},
+        {22 * 8, 1 * 16, 8 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_last_seen{
-        {11 * 8, 2 * 16, 19 * 8, 16},
+        {11 * 8, 2 * 16, 19 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_airline{
-        {0 * 8, 4 * 16, screen_width, 16},
+        {0 * 8, 4 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_country{
-        {8 * 8, 5 * 16, 22 * 8, 16},
+        {8 * 8, 5 * 16, 22 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_infos{
-        {0 * 8, 6 * 16, screen_width, 16},
+        {0 * 8, 6 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_info2{
-        {0 * 8, 7 * 16, screen_width, 16},
+        {0 * 8, 7 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_frame_pos_even{
-        {0 * 8, 14 * 16, screen_width, 16},
+        {0 * 8, 14 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
     Text text_frame_pos_odd{
-        {0 * 8, 16 * 16, screen_width, 16},
+        {0 * 8, 16 * 16, screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Button button_aircraft_details{
-        {2 * 8, 9 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) - UI_POS_X(12), UI_POS_Y(9), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "A/C details"};
 
     Button button_see_map{
-        {16 * 8, 9 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) + UI_POS_X(12), UI_POS_Y(9), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "See on map"};
 
     MessageHandlerRegistration message_handler_gps{
@@ -424,33 +424,33 @@ class ADSBRxView : public View {
     ADSBRxDetailsView* details_view{nullptr};
 
     Labels labels{
-        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {UI_POS_X(4), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {UI_POS_X(11), UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {20 * 8, 4, 7 * 8, 8},
+        {UI_POS_X(20), 4, UI_POS_WIDTH_REMAINING(23), 8},
     };
 
     ActivityDot status_frame{
-        {27 * 8 + 2, 5, 2, 2},
+        {UI_POS_X_RIGHT(3) + 2, 5, 2, 2},
         Theme::getInstance()->bg_darkest->foreground,
     };
 
     ActivityDot status_good_frame{
-        {27 * 8 + 2, 9, 2, 2},
+        {UI_POS_X_RIGHT(3) + 2, 9, 2, 2},
         Theme::getInstance()->fg_green->foreground,
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     MessageHandlerRegistration message_handler_frame{
         Message::ID::ADSBFrame,

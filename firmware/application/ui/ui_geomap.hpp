@@ -42,8 +42,6 @@ namespace ui {
 #define INVALID_ANGLE 400
 
 #define GEOMAP_BANNER_HEIGHT (3 * 16)
-#define GEOMAP_RECT_WIDTH 240
-#define GEOMAP_RECT_HEIGHT (320 - 16 - GEOMAP_BANNER_HEIGHT)
 
 #define TILE_SIZE 256
 
@@ -243,10 +241,6 @@ class GeoMap : public Widget {
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
-    static const Dim banner_height = GEOMAP_BANNER_HEIGHT;
-    static const Dim geomap_rect_width = GEOMAP_RECT_WIDTH;
-    static const Dim geomap_rect_height = GEOMAP_RECT_HEIGHT;
-
    private:
     void draw_scale(Painter& painter);
     ui::Point item_rect_pixel(GeoMarker& item);
@@ -370,7 +364,7 @@ class GeoMapView : public View {
         speed_unit_};
 
     GeoMap geomap{
-        {0, GeoMap::banner_height, GeoMap::geomap_rect_width, GeoMap::geomap_rect_height}};
+        {0, GEOMAP_BANNER_HEIGHT, screen_width, screen_height - 16 - GEOMAP_BANNER_HEIGHT}};
 
     Button button_ok{
         {screen_width - 15 * 8, 0, 15 * 8, 1 * 16},

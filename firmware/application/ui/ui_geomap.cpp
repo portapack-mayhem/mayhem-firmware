@@ -38,7 +38,7 @@ GeoPos::GeoPos(
     const alt_unit altitude_unit,
     const spd_unit speed_unit)
     : altitude_unit_(altitude_unit), speed_unit_(speed_unit) {
-    set_parent_rect({pos, {screen_width, 3 * 16}});
+    set_parent_rect({pos, {screen_width, UI_POS_HEIGHT(3)}});
 
     add_children({&labels_position,
                   &label_spd_position,
@@ -231,6 +231,8 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
 }
 
 void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
+    const auto r = screen_rect();
+    ui::Dim width = r.width();
     if (map_zoom == 1) {
         map_file.read(buffer, pixels << 1);
     } else if (map_zoom > 1) {
@@ -242,7 +244,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
         // For 240 width, than means no check is needed for map_zoom values up to 6.
         // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
         // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
-        for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
+        for (int i = (width / map_zoom) - 1; i >= 0; i--) {
             for (int j = 0; j < map_zoom; j++) {
                 buffer[(i * map_zoom) + j] = buffer[i];
             }
@@ -253,7 +255,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
 
         // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
         // Future TODO: Average each group of pixels (in both X & Y directions if possible).
-        for (int i = 0; i < geomap_rect_width; i++) {
+        for (int i = 0; i < width; i++) {
             buffer[i] = zoom_out_buffer[i * (-map_zoom)];
         }
         delete[] zoom_out_buffer;
@@ -466,7 +468,8 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
 
 void GeoMap::paint(Painter& painter) {
     const auto r = screen_rect();
-    std::array<ui::Color, geomap_rect_width> map_line_buffer;
+    std::vector<ui::Color> map_line_buffer;
+    map_line_buffer.resize(r.width());
     int16_t zoom_seek_x, zoom_seek_y;
 
     if (!use_osm) {
