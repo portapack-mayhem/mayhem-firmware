@@ -129,7 +129,7 @@ void lcd_init() {
     // io.lcd_data_write_command_and_data(0xB1, {0x40, 0x1F});  // fix 60 fps
     io.lcd_data_write_command_and_data(0xB1, {0xA0, 0x11});  // Frame rate source is 11fps
 
-    io.lcd_data_write_command_and_data(0xB4, {0x00});  // 2 dot inversion
+    io.lcd_data_write_command_and_data(0xB4, {0x02});  // 2 dot inversion
 
     io.lcd_data_write_command_and_data(0xEE, {0x00, 0x04});
 
