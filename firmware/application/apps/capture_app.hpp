@@ -70,10 +70,10 @@ class CaptureAppView : public View {
     };
 
     RSSI rssi{
-        {24 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(24), 0, UI_POS_WIDTH_REMAINING(24), 4}};
 
     Channel channel{
-        {24 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(24), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},

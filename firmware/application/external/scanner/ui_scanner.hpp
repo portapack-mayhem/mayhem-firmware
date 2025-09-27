@@ -229,7 +229,7 @@ class ScannerView : public View {
     };
 
     RSSI rssi{
-        {UI_POS_X(0), UI_POS_Y(2), 15 * 16, 8},
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(6), 8},
     };
 
     TextField field_current_index{

@@ -112,9 +112,9 @@ class RandomPasswordView : public View {
         {18 * 8, 1 * 16}};
 
     RSSI rssi{
-        {21 * 8, 1 * 16 + 0, 6 * 8, 4}};
+        {UI_POS_X(21), 1 * 16 + 0, UI_POS_WIDTH_REMAINING(21), 4}};
     Channel channel{
-        {21 * 8, 1 * 16 + 5, 6 * 8, 4}};
+        {UI_POS_X(21), 1 * 16 + 5, UI_POS_WIDTH_REMAINING(21), 4}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), 1 * 16},

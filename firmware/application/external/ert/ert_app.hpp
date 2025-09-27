@@ -161,7 +161,7 @@ class ERTAppView : public View {
         {18 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{

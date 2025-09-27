@@ -221,13 +221,13 @@ class EPIRBAppView : public ui::View {
         {18 * 8, UI_POS_Y(0)}};
 
     ui::RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
+
+    ui::Channel channel{
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
     ui::AudioVolumeField field_volume{
         {screen_width - 2 * 8, UI_POS_Y(0)}};
-
-    ui::Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
 
     // Status display
     ui::Text label_status{
