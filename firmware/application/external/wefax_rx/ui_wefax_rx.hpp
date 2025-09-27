@@ -128,7 +128,7 @@ class WeFaxRxView : public View {
     };
 
     Button button_ss{
-        {190, 2 * 16, 5 * 8, 16},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)},
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{
