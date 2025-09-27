@@ -161,10 +161,10 @@ class APRSTableView : public View {
 
    private:
     NavigationView& nav_;
-    const RecentEntriesColumns columns{{{"Source", 9},
-                                        {"Loc", 6},
-                                        {"Hits", 4},
-                                        {"Time", 8}}};
+    RecentEntriesColumns columns{{{"Source", 0},
+                                  {"Loc", 6},
+                                  {"Hits", 4},
+                                  {"Time", 8}}};
     APRSRecentEntries recent{};
     RecentEntriesView<RecentEntries<APRSRecentEntry>> recent_entries_view{columns, recent};
     APRSDetailsView details_view{nav_};

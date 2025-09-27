@@ -42,7 +42,8 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string str_duration = "";
 
     if (entry.duration < 600)

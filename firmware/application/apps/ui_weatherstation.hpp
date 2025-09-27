@@ -174,8 +174,8 @@ class WeatherView : public View {
 
     std::unique_ptr<WeatherLogger> logger{};
 
-    const RecentEntriesColumns columns{{
-        {"Type", 10},
+    RecentEntriesColumns columns{{
+        {"Type", 0},
         {"Temp", 5},
         {"Hum", 4},
         {"Ch", 3},

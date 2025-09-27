@@ -403,8 +403,8 @@ class ADSBRxView : public View {
     static constexpr uint8_t max_update_entries = 16;
 
     /* Recent Entries */
-    const RecentEntriesColumns columns{
-        {{"ICAO/Call", 9},
+    RecentEntriesColumns columns{
+        {{"ICAO/Call", 0},
          {"Lvl", 3},
          {"Spd", 3},
          {"Amp", 3},

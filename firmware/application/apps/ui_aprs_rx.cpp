@@ -42,7 +42,8 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     Color target_color;
     // auto entry_age = entry.age;
 

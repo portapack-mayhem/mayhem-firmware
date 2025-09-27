@@ -198,7 +198,8 @@ void RecentEntriesTable<ui::external_app::tpmsrx::TPMSRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string line = ui::external_app::tpmsrx::format::type(entry.type) + " " + ui::external_app::tpmsrx::format::id(entry.id);
 
     if (entry.last_pressure.is_valid()) {

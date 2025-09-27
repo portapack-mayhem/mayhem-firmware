@@ -51,7 +51,8 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     Color target_color;
     std::string entry_string;
 
@@ -70,9 +71,11 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
             target_color = Theme::getInstance()->fg_medium->foreground;
     };
 
-    entry_string +=
-        (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
-        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+    std::string ipc = (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ");
+    uint8_t firstcolwidth = columns.at(0).second;
+    ipc.resize(firstcolwidth, ' ');  // Make sure this is always match the first column's width that is dynamic.
+
+    entry_string += ipc + to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
 
     if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
         // It is generally accepted that for every thousand feet of altitude,
@@ -100,7 +103,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         entry_string);
 
     if (entry.pos.pos_valid)
-        painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0),
+        painter.draw_bitmap(target_rect.location() + Point(firstcolwidth * 8, 0),
                             bitmap_target, target_color, style.background);
 }
 

@@ -174,9 +174,9 @@ class SearchView : public View {
     void on_range_changed();
     void add_spectrum_pixel(Color color);
 
-    const RecentEntriesColumns columns{{{"Frequency", 9},
-                                        {"Time", 8},
-                                        {"Duration", 11}}};
+    RecentEntriesColumns columns{{{"Frequency", 0},
+                                  {"Time", 8},
+                                  {"Duration", 11}}};
     SearchRecentEntries recent{};
     RecentEntriesView<RecentEntries<SearchRecentEntry>> recent_entries_view{columns, recent};
 

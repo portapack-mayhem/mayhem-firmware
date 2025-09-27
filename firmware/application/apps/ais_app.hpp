@@ -179,9 +179,9 @@ class AISAppView : public View {
     AISRecentEntries recent{};
     std::unique_ptr<AISLogger> logger{};
 
-    const RecentEntriesColumns columns{{
+    RecentEntriesColumns columns{{
         {"MMSI", 9},
-        {"Name/Call", 20},
+        {"Name/Call", 0},
     }};
     AISRecentEntriesView recent_entries_view{columns, recent};
     AISRecentEntryDetailView recent_entry_detail_view{nav_};

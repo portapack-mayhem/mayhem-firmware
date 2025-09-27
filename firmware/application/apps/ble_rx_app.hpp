@@ -407,7 +407,7 @@ class BLERxView : public View {
     BleRecentEntries tempList{};
 
     RecentEntriesColumns columns{{
-        {"Name", 17},
+        {"Name", 0},
         {"Hits", 7},
         {"dBm", 4},
     }};

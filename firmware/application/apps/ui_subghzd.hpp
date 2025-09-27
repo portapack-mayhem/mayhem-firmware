@@ -152,8 +152,8 @@ class SubGhzDView : public View {
 
     std::unique_ptr<SubGhzDLogger> logger{};
 
-    const RecentEntriesColumns columns{{
-        {"Type", 19},
+    RecentEntriesColumns columns{{
+        {"Type", 0},
         {"Bits", 4},
         {"Age", 3},
     }};

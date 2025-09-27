@@ -175,7 +175,8 @@ void RecentEntriesTable<ui::external_app::ert_app::ERTRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
 
     line += (entry.packet_type == ert::Packet::Type::SCM) ? ert::format::tamper_flags_scm(entry.last_tamper_flags) : ert::format::tamper_flags(entry.last_tamper_flags);

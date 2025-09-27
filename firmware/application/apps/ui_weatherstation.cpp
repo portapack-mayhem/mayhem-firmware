@@ -270,7 +270,8 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string line{};
     line.reserve(30);
 

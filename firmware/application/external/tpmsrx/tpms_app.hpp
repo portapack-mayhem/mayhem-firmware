@@ -176,9 +176,9 @@ class TPMSAppView : public View {
     TPMSRecentEntries recent{};
     std::unique_ptr<TPMSLogger> logger{};
 
-    const RecentEntriesColumns columns{{
+    RecentEntriesColumns columns{{
         {"Tp", 2},
-        {"ID", 8},
+        {"ID", 0},
         {"Pres", 4},
         {"Temp", 4},
         {"Cnt", 3},

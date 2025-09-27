@@ -136,8 +136,8 @@ class ERTAppView : public View {
     app_settings::SettingsManager settings_{
         "rx_ert", app_settings::Mode::RX};
 
-    const RecentEntriesColumns columns{{
-        {"ID", 10},
+    RecentEntriesColumns columns{{
+        {"ID", 0},
         {"Ty", 2},
         {"Consumpt", 8},
         {"Tamp", 4},
