@@ -200,7 +200,10 @@ void RecentEntriesTable<ui::external_app::tpmsrx::TPMSRecentEntries>::draw(
     Painter& painter,
     const Style& style,
     RecentEntriesColumns& columns) {
-    std::string line = ui::external_app::tpmsrx::format::type(entry.type) + " " + ui::external_app::tpmsrx::format::id(entry.id);
+    std::string line = ui::external_app::tpmsrx::format::type(entry.type) + " ";
+    std::string lid = ui::external_app::tpmsrx::format::id(entry.id);
+    lid.resize(columns.at(1).second, ' ');
+    line += lid;
 
     if (entry.last_pressure.is_valid()) {
         line += "  " + ui::external_app::tpmsrx::format::pressure(entry.last_pressure.value());

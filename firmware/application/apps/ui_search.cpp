@@ -51,9 +51,10 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
     else
         str_duration = to_string_dec_uint(entry.duration / 600) + "m" + to_string_dec_uint((entry.duration / 10) % 60) + "s";
 
-    str_duration.resize(target_rect.width() / 8, ' ');
-
-    painter.draw_string(target_rect.location(), style, to_string_short_freq(entry.frequency) + " " + entry.time + " " + str_duration);
+    str_duration.resize(11, ' ');
+    std::string freq = to_string_short_freq(entry.frequency);
+    freq.resize(columns.at(0).second, ' ');
+    painter.draw_string(target_rect.location(), style, freq + " " + entry.time + " " + str_duration);
 }
 
 /* SearchView ********************************************/

@@ -103,7 +103,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         entry_string);
 
     if (entry.pos.pos_valid)
-        painter.draw_bitmap(target_rect.location() + Point(firstcolwidth * 8, 0),
+        painter.draw_bitmap(target_rect.location() + Point(firstcolwidth * 8 - 8, 0),
                             bitmap_target, target_color, style.background);
 }
 

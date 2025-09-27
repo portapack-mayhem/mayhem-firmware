@@ -52,8 +52,8 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
     std::string entry_string = "";
 
     entry_string += entry.source_formatted;
-    entry_string.append(10 - entry.source_formatted.size(), ' ');
-    entry_string += "       ";
+    entry_string.resize(columns.at(0).second, ' ');
+    entry_string += "        ";
     entry_string += (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 4) : "999+");
     entry_string += " ";
     entry_string += entry.time_string;

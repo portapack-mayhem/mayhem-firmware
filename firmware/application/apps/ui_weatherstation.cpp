@@ -276,11 +276,7 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     line.reserve(30);
 
     line = WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry.sensorType);
-    if (line.length() < 10) {
-        line += WeatherView::pad_string_with_spaces(10 - line.length());
-    } else {
-        line = truncate(line, 10);
-    }
+    line.resize(columns.at(0).second, ' ');
 
     std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
     std::string humStr = (entry.humidity != WS_NO_HUMIDITY) ? to_string_dec_uint(entry.humidity) + "%" : "-";

@@ -269,11 +269,7 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
     line = line + " " + to_string_hex(entry.data << 32);
-    if (line.length() < 19) {
-        line += SubGhzDView::pad_string_with_spaces(19 - line.length());
-    } else {
-        line = truncate(line, 19);
-    }
+    line.resize(columns.at(0).second, ' ');
     std::string ageStr = to_string_dec_uint(entry.age);
     std::string bitsStr = to_string_dec_uint(entry.bits);
     line += SubGhzDView::pad_string_with_spaces(5 - bitsStr.length()) + bitsStr;

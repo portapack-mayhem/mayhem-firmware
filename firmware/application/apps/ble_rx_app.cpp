@@ -184,19 +184,13 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     const Style& style,
     RecentEntriesColumns& columns) {
     std::string line{};
-    line.reserve(30);
-
+    line.reserve(40);
     if (!entry.nameString.empty() && entry.include_name) {
         line = entry.nameString;
-
-        if (line.length() < 17) {
-            line += pad_string_with_spaces(17 - line.length());
-        } else {
-            line = truncate(line, 17);
-        }
     } else {
         line = to_string_mac_address(entry.packetData.macAddress, 6, false);
     }
+    line.resize(columns.at(0).second, ' ');
 
     std::string hitsStr;
 

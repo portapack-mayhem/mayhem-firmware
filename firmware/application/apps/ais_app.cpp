@@ -273,14 +273,13 @@ void RecentEntriesTable<AISRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style,
-    RecentEntriesColumns& columns) {
+    RecentEntriesColumns&) {
     std::string line = ais::format::mmsi(entry.mmsi) + " ";
     if (!entry.name.empty()) {
         line += ais::format::text(entry.name);
     } else {
         line += ais::format::text(entry.call_sign);
     }
-
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
 }
