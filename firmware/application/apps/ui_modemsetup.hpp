@@ -104,7 +104,7 @@ class ModemSetupView : public View {
         "SET"};
 
     Button button_save{
-        {9 * 8, 250, 96, 40},
+        {UI_POS_X_CENTER(12), 250, UI_POS_WIDTH(12), 40},
         "Save"};
 };
 

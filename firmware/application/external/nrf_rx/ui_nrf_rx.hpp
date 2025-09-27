@@ -68,9 +68,9 @@ class NRFRxView : public View {
     VGAGainField field_vga{
         {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 0, UI_POS_WIDTH_REMAINING(22), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {21 * 8, 5, UI_POS_WIDTH_REMAINING(22), 4}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
