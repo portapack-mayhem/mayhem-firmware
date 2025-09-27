@@ -217,7 +217,8 @@ class ReconView : public View {
     std::unique_ptr<RecordView> record_view{};
 
     Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(6), UI_POS_Y(0)}, "VOL:  ", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 8 * 16}, "START       END", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
@@ -233,7 +234,7 @@ class ReconView : public View {
         {18 * 8, UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {24 * 8, UI_POS_Y(0)}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Text file_name{
         // show file used
@@ -363,15 +364,15 @@ class ReconView : public View {
     };
 
     ButtonWithEncoder button_pause{
-        {0, (15 * 16) - 4, 72, 28},
+        {0, (15 * 16) - 4, UI_POS_WIDTH(9), 28},
         "PAUSE"};
 
     Button button_audio_app{
-        {84, (15 * 16) - 4, 72, 28},
+        {UI_POS_X_CENTER(9), (15 * 16) - 4, UI_POS_WIDTH(9), 28},
         "AUDIO"};
 
     ButtonWithEncoder button_add{
-        {168, (15 * 16) - 4, 72, 28},
+        {UI_POS_X_RIGHT(9), (15 * 16) - 4, UI_POS_WIDTH(9), 28},
         "<STORE>"};
 
     Button button_dir{
@@ -383,11 +384,11 @@ class ReconView : public View {
         "RST"};
 
     Button button_mic_app{
-        {84, (35 * 8) - 4, 72, 28},
+        {UI_POS_X_CENTER(9), (35 * 8) - 4, UI_POS_WIDTH(9), 28},
         "MIC TX"};
 
     ButtonWithEncoder button_remove{
-        {168, (35 * 8) - 4, 72, 28},
+        {UI_POS_X_RIGHT(9), (35 * 8) - 4, UI_POS_WIDTH(9), 28},
         "<REMOVE>"};
 
     ProgressBar progressbar{
