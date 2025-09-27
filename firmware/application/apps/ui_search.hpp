@@ -181,12 +181,15 @@ class SearchView : public View {
     RecentEntriesView<RecentEntries<SearchRecentEntry>> recent_entries_view{columns, recent};
 
     Labels labels{
-        {{1 * 8, 0}, "Min:      Max:       LNA VGA", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 4 * 8}, "Trig:   /255    Mean:   /255", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 6 * 8}, "Slices:  /32      Rate:   Hz", Theme::getInstance()->fg_light->foreground},
-        {{6 * 8, 10 * 8}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
-        {{26 * 8, 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(1), UI_POS_Y(0)}, "Min:      Max:       ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(7), UI_POS_Y(0)}, "LNA VGA", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "Trig:   /255", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(12), UI_POS_Y(2)}, "Mean:   /255", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(3)}, "Slices:  /32", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(10), UI_POS_Y(3)}, "Rate:   Hz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(6), UI_POS_Y(5)}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(4), 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox check_log{
         {UI_POS_X_RIGHT(6), UI_POS_Y(5)},
@@ -195,60 +198,58 @@ class SearchView : public View {
         true};
 
     FrequencyField field_frequency_min{
-        {1 * 8, 1 * 16}};
+        {UI_POS_X(1), UI_POS_Y(1)}};
     FrequencyField field_frequency_max{
-        {11 * 8, 1 * 16}};
+        {UI_POS_X(11), UI_POS_Y(1)}};
 
     LNAGainField field_lna{
-        {22 * 8, 1 * 16}};
+        {UI_POS_X_RIGHT(7), UI_POS_Y(1)}};
     VGAGainField field_vga{
-        {26 * 8, 1 * 16}};
+        {UI_POS_X_RIGHT(3), UI_POS_Y(1)}};
 
     NumberField field_threshold{
-        {6 * 8, 2 * 16},
+        {UI_POS_X(6), UI_POS_Y(2)},
         3,
         {5, 255},
         5,
         ' '};
     Text text_mean{
-        {22 * 8, 2 * 16, 3 * 8, 16},
+        {UI_POS_X_RIGHT(7), UI_POS_Y(2), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
     Text text_slices{
-        {8 * 8, 3 * 16, 2 * 8, 16},
+        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
         "--"};
     Text text_rate{
-        {24 * 8, 3 * 16, 3 * 8, 16},
+        {UI_POS_X_RIGHT(5), UI_POS_Y(3), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
 
     VuMeter vu_max{
-        {1 * 8, 11 * 8 - 4, 3 * 8, 48},
+        {UI_POS_X(1), 11 * 8 - 4, 3 * 8, 48},
         18,
         false};
 
     ProgressBar progress_timers{
-        {6 * 8, 12 * 8, 6 * 8, 16}};
+        {UI_POS_X(6), UI_POS_Y(6), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}};
     Text text_infos{
-        {13 * 8, 12 * 8, 15 * 8, 16},
+        {UI_POS_X(13), UI_POS_Y(6), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)},
         "Listening"};
 
     Checkbox check_snap{
-        {6 * 8, 15 * 8},
+        {UI_POS_X(6), 15 * 8},
         7,
         "Snap to:",
         true};
     OptionsField options_snap{
-        {17 * 8, 15 * 8},  // Position
-        7,                 // Length
-        {                  // Options
+        {UI_POS_X(17), 15 * 8},  // Position
+        7,                       // Length
+        {                        // Options
          {"25kHz  ", 25'000},
          {"12.5kHz", 12'500},
          {"8.33kHz", 8'333},
          {"2.5kHz", 2'500},
          {"500Hz", 500}}};
 
-    BigFrequency big_display{
-        {UI_POS_X_CENTER(28), UI_POS_Y(9), UI_POS_WIDTH(28), 52},
-        0};
+    BigFrequency big_display{{UI_POS_X_CENTER(28), UI_POS_Y(9), UI_POS_WIDTH(28), 52}, 0};
 
     MessageHandlerRegistration message_handler_spectrum_config{
         Message::ID::ChannelSpectrumConfig,

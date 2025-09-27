@@ -72,7 +72,7 @@ class FreqManBaseView : public View {
         {0, 3 * 8, screen_width, 12 * 16 + 2 /* 2 Keeps text out of border. */}};
 
     Button button_exit{
-        {15 * 8, 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(14), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(14), UI_POS_HEIGHT(2)},
         "Exit"};
 
    protected:
@@ -104,7 +104,7 @@ class FrequencySaveView : public FreqManBaseView {
         ""};
 
     Button button_save{
-        {UI_POS_X(0), 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(14), UI_POS_HEIGHT(2)},
         "Save"};
 };
 

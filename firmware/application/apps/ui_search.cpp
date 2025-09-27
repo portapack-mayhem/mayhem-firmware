@@ -60,7 +60,7 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
 SearchView::SearchView(
     NavigationView& nav)
     : nav_(nav) {
-    spectrum_row.resize(screen_width);
+    spectrum_row.resize(240);
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
     if (!gradient.load_file(default_gradient_file)) {
@@ -161,9 +161,8 @@ void SearchView::do_detection() {
     // Display spectrum
     bin_skip_acc = 0;
     pixel_index = 0;
-    display.draw_pixels(
-        {{0, 88}, {(Dim)spectrum_row.size(), 1}},
-        spectrum_row);
+    uint16_t center_align_start = (screen_width - spectrum_row.size()) / 2;
+    display.draw_pixels({{center_align_start, 88}, {(Dim)spectrum_row.size(), 1}}, spectrum_row);
 
     mean_power = mean_acc / (SEARCH_BIN_NB_NO_DC * slices_nb);
     mean_acc = 0;
@@ -250,7 +249,7 @@ void SearchView::do_detection() {
     // Refresh red tick
     portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->background);
     if (bin_max > -1) {
-        last_tick_pos = (Coord)(bin_max / slices_nb);
+        last_tick_pos = (Coord)(bin_max / slices_nb) + center_align_start;
         portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->foreground);
     }
 }
@@ -399,7 +398,7 @@ void SearchView::add_spectrum_pixel(Color color) {
 
     bin_skip_acc -= 0x10000;
 
-    if (pixel_index < screen_width)
+    if (pixel_index < spectrum_row.size())
         spectrum_row[pixel_index++] = color;
 }
 

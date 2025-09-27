@@ -534,7 +534,7 @@ void BigFrequency::paint(Painter& painter) {
         _previous_frequency = _frequency;
 
         rf::Frequency frequency{_frequency};
-        const auto rect = screen_rect();
+        const auto rect = screen_rect();  // why not use screen_rect() directly for width, ...? it may be too small, but ...
 
         // Erase
         painter.fill_rectangle(
@@ -544,7 +544,7 @@ void BigFrequency::paint(Painter& painter) {
         // Prepare digits
         if (!frequency) {
             digits.fill(10);  // ----.---
-            digit_pos = {0, rect.location().y()};
+            digit_pos = {(screen_width - ((7 * digit_width) + 8)) / 2, rect.location().y()};
         } else {
             frequency /= 1000;  // GMMM.KKK(uuu)
 
