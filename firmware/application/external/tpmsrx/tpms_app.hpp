@@ -134,15 +134,13 @@ class TPMSAppView : public View {
     ui::Rect view_normal_rect{};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4},
     };
-
-    AudioVolumeField field_volume{
-        {screen_width - 2 * 8, UI_POS_Y(0)}};
-
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
+    AudioVolumeField field_volume{
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     // "315 MHz" TPMS sensors transmit at either 314.9 or 315 MHz but we should pick up either
     OptionsField options_band{
