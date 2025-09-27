@@ -222,7 +222,7 @@ class FrequencyKeypadView : public View {
 
    private:
     int16_t focused_button = 0;
-    static constexpr int button_w = 240 / 3;
+    int button_w = 240 / 3;
     static constexpr int button_h = 48;
 
     static constexpr int mhz_digits = 4;
@@ -232,33 +232,33 @@ class FrequencyKeypadView : public View {
     static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
 
     Text text_value{
-        {0, 4, screen_width, 16}};
+        {UI_POS_X(0), 4, screen_width, 16}};
 
     std::array<Button, 12> buttons{};
 
     Button button_save_ghz{
-        {0, 14 * 16, 80 / 2 - 1, 2 * 16},
+        {UI_POS_X(0), 14 * 16, UI_POS_WIDTH_PERCENT(16) + 1, UI_POS_HEIGHT(2)},
         "GHz"};
     Button button_save_khz{
-        {0 + 40 - 1, 14 * 16, 80 / 2, 2 * 16},
+        {UI_POS_X(0) + UI_POS_WIDTH_PERCENT(16) + 1, 14 * 16, UI_POS_WIDTH_PERCENT(16) + 2, UI_POS_HEIGHT(2)},
         "kHz"};
     Button button_save_mhz{
-        {0, 16 * 16, 80 - 1, 3 * 16},
+        {UI_POS_X(0), 16 * 16, UI_POS_WIDTH_PERCENT(33), UI_POS_HEIGHT(3)},
         "Save MHz"};
     Button button_load{
-        {80 + 1, 14 * 16, 80 - 2, 40},
+        {UI_POS_WIDTH_PERCENT(33) + 1, 14 * 16, UI_POS_WIDTH_PERCENT(33), 40},
         "Load"};
     Button button_clear{
-        {80 + 1, 264, 80 - 2, 40},
+        {UI_POS_WIDTH_PERCENT(33) + 1, 264, UI_POS_WIDTH_PERCENT(33), 40},
         "Clear"};
     Button button_done_ghz{
-        {160 + 1, 14 * 16, 80 / 2 - 1, 2 * 16},
+        {UI_POS_WIDTH_PERCENT(66) + 1, 14 * 16, UI_POS_WIDTH_PERCENT(16) + 1, UI_POS_HEIGHT(2)},
         "GHz"};
     Button button_done_khz{
-        {160 + 40, 14 * 16, 80 / 2 - 1, 2 * 16},
+        {UI_POS_WIDTH_PERCENT(82) + 2, 14 * 16, UI_POS_WIDTH_PERCENT(16) + 2, UI_POS_HEIGHT(2)},
         "kHz"};
     Button button_done_mhz{
-        {160 + 1, 16 * 16, 80 - 2, 3 * 16},
+        {UI_POS_WIDTH_PERCENT(66) + 1, 16 * 16, UI_POS_WIDTH_PERCENT(33), UI_POS_HEIGHT(3)},
         "Done MHz"};
 
     /* TODO: Template arg required in enum?! */
