@@ -171,16 +171,16 @@ class FmRadioView : public View {
 
     GraphEq gr{{2, FMR_BTNGRID_TOP, UI_POS_MAXWIDTH - 4, UI_POS_MAXHEIGHT - FMR_BTNGRID_TOP}, true};
 
-    Button btn_fav_0{{2, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_1{{2 + 15 * 8, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_2{{2, FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_3{{2 + 15 * 8, FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_4{{2, FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_5{{2 + 15 * 8, FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_6{{2, FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_7{{2 + 15 * 8, FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_8{{2, FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_9{{2 + 15 * 8, FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_0{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_1{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_2{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_3{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_4{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_5{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_6{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_7{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_8{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_9{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
 
     Button btn_fav_save{{2, FMR_BTNGRID_TOP + 6 * 34, 7 * 8, 1 * 28}, "Save"};
     bool save_fav = false;
