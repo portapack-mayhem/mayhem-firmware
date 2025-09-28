@@ -261,9 +261,10 @@ class IO {
         size_t word_count = byte_count / 3;
         for (size_t i = 0; i < word_count; i++) {
             uint32_t word = lcd_read_data();  // reads 3 byte of data
-            uint8_t r = ((word >> 16) & 0xff) << 2;
-            uint8_t g = ((word >> 8) & 0xff) << 2;
-            uint8_t b = (word & 0xff) << 2;
+            // donno the format, but this is bad.
+            uint8_t r = ((word >> 16) & 0xff);
+            uint8_t g = ((word >> 8) & 0xff);
+            uint8_t b = ((word >> 0) & 0xff);
             *(byte++) = r;
             *(byte++) = g;
             *(byte++) = b;

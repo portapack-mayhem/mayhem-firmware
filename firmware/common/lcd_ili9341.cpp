@@ -123,7 +123,7 @@ void lcd_init() {
                                              });
 
     // io.lcd_data_write_command_and_data(0x36, {0x48});
-    io.lcd_data_write_command_and_data(0x3A, {0x65});  // 0x55 was the original
+    io.lcd_data_write_command_and_data(0x3A, {0x55});  // 0x55 was the original
     // 这里的刷新率过低？
     // io.lcd_data_write_command_and_data(0xB1, {0x40, 0x1F});  // fix 60 fps
     io.lcd_data_write_command_and_data(0xB1, {0xA0, 0x11});  // Frame rate source is 11fps
