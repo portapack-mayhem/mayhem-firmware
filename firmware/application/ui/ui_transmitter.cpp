@@ -56,17 +56,21 @@ static const Style* get_style_for_gain(uint8_t tot_gain) {
 void TransmitterView::paint(Painter& painter) {
     size_t c;
     Point pos = {0, screen_pos().y()};
-
-    for (c = 0; c < 20; c++) {
+    Point pos2 = {0, screen_pos().y() + 32 + 8};
+    // 24*8 pxstripes
+    for (c = 0; c < screen_width / 24 + 1; c++) {
         painter.draw_bitmap(
             pos,
             bitmap_stripes,
             Theme::getInstance()->fg_yellow->foreground,
             Theme::getInstance()->fg_yellow->background);
-        if (c != 9)
-            pos += {24, 0};
-        else
-            pos = {0, screen_pos().y() + 32 + 8};
+        painter.draw_bitmap(
+            pos2,
+            bitmap_stripes,
+            Theme::getInstance()->fg_yellow->foreground,
+            Theme::getInstance()->fg_yellow->background);
+        pos += {24, 0};
+        pos2 += {24, 0};
     }
 }
 

@@ -171,10 +171,10 @@ class LGEView : public View {
         '0'};
 
     Console console{
-        {0, 18 * 8, screen_width, 7 * 16}};
+        {0, 18 * 8, screen_width, UI_POS_Y_BOTTOM(4) - 18 * 8}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 

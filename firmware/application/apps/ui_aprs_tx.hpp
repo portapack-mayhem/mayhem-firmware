@@ -98,7 +98,7 @@ class APRSTXView : public View {
         "Set"};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         5000,
         0  // disable setting bandwith, since APRS used fixed 10k bandwidth
     };

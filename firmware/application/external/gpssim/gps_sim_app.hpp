@@ -96,7 +96,7 @@ class GpsSimAppView : public View {
         {11 * 8, 1 * 16, 6 * 8, 16},
         "-"};
     ProgressBar progressbar{
-        {18 * 8, 1 * 16, 12 * 8, 16}};
+        {18 * 8, 1 * 16, UI_POS_WIDTH_REMAINING(18), 16}};
 
     TxFrequencyField field_frequency{
         {UI_POS_X(0), 2 * 16},

@@ -218,11 +218,11 @@ class BHTView : public View {
         ' '};
 
     ProgressBar progressbar{
-        {UI_POS_X(0), 29 * 8, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(5), screen_width, 16},
     };
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 

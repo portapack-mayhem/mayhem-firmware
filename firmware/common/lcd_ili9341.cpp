@@ -753,7 +753,7 @@ void ILI9341::draw_bitmap(
             for (size_t i = 0; i < count; i++) {
                 const auto pixel = pixels[i >> 3] & (1U << (i & 0x7));
                 if (pixel) {
-                    draw_pixel(ui::Point(x, y), foreground);
+                    if (x <= screen_width && y <= screen_height) draw_pixel(ui::Point(x, y), foreground);
                 }
                 // move to next px
                 x++;
