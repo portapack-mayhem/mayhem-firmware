@@ -261,6 +261,7 @@ void WaterfallWidget::on_show() {
 
     const auto screen_r = screen_rect();
     display.scroll_set_area(screen_r.top(), screen_r.bottom());
+
     clear();
 }
 
@@ -269,6 +270,7 @@ void WaterfallWidget::on_hide() {
      * position?
      */
     display.scroll_disable();
+    clear();
 }
 
 void WaterfallWidget::on_channel_spectrum(

@@ -174,6 +174,15 @@ class IO {
         uint16_t* const data,
         const size_t data_count) {
         lcd_command(command);
+        if (device_type == DEV_HACKPP) {
+            // dummy read
+            dir_read();
+            lcd_rd_assert();
+            halPolledDelay(71);
+            data_read();
+            lcd_rd_deassert();
+            halPolledDelay(71);
+        }
         for (size_t i = 0; i < data_count; i++) {
             data[i] = lcd_read_data();
         }
@@ -251,10 +260,10 @@ class IO {
         // hpp
         size_t word_count = byte_count / 3;
         for (size_t i = 0; i < word_count; i++) {
-            uint32_t word = lcd_read_data();
-            uint8_t r = (word >> 16);  // 高5位
-            uint8_t g = (word >> 8);   // 中6位
-            uint8_t b = word;
+            uint32_t word = lcd_read_data();  // reads 3 byte of data
+            uint8_t r = ((word >> 16) & 0xff) << 2;
+            uint8_t g = ((word >> 8) & 0xff) << 2;
+            uint8_t b = (word & 0xff) << 2;
             *(byte++) = r;
             *(byte++) = g;
             *(byte++) = b;
@@ -470,10 +479,10 @@ class IO {
         const auto value_high = data_read();
         /* Latch data[7:0] */
         lcd_rd_deassert();
-        halPolledDelay(71);  // 90ns
+        halPolledDelay(71);
         const auto value_low = data_read();
         lcd_rd_deassert();
-        halPolledDelay(71);  // 90ns
+        halPolledDelay(71);
         const auto value_last_low = data_read();
         uint32_t original_value = (value_high << 16) | value_low << 8 | value_last_low;
         return original_value;

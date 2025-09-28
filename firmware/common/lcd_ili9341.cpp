@@ -123,8 +123,7 @@ void lcd_init() {
                                              });
 
     // io.lcd_data_write_command_and_data(0x36, {0x48});
-    io.lcd_data_write_command_and_data(0x3A, {0x55});
-
+    io.lcd_data_write_command_and_data(0x3A, {0x65});  // 0x55 was the original
     // 这里的刷新率过低？
     // io.lcd_data_write_command_and_data(0xB1, {0x40, 0x1F});  // fix 60 fps
     io.lcd_data_write_command_and_data(0xB1, {0xA0, 0x11});  // Frame rate source is 11fps
@@ -826,8 +825,12 @@ ui::Coord ILI9341::scroll_area_y(const ui::Coord y) const {
 }
 
 void ILI9341::scroll_disable() {
-    lcd_vertical_scrolling_definition(0, height(), 0);
-    lcd_vertical_scrolling_start_address(0);
+    if (device_type == DEV_PORTAPACK) {
+        lcd_vertical_scrolling_definition(0, height(), 0);
+        lcd_vertical_scrolling_start_address(0);
+    } else {
+        io.lcd_data_write_command_and_data(0x13, {});  // normal mode
+    }
 }
 
 } /* namespace lcd */

@@ -116,12 +116,12 @@ class PlaylistView : public View {
         {10 * 8, 1 * 16, 7 * 8, 16}};
 
     ProgressBar progressbar_track{
-        {18 * 8, 1 * 16, 12 * 8, 8 + 1}};
+        {18 * 8, 1 * 16, UI_POS_WIDTH_REMAINING(19), 8 + 1}};
 
     // (-1) to overlap with progressbar_track so there's
     // only 1 pixel between them instead of 2.
     ProgressBar progressbar_transmit{
-        {18 * 8, 3 * 8 - 1, 12 * 8, 8}};
+        {18 * 8, 3 * 8 - 1, UI_POS_WIDTH_REMAINING(19), 8}};
 
     Text text_duration{
         {UI_POS_X(0), 2 * 16, 5 * 8, 16}};
@@ -133,7 +133,7 @@ class PlaylistView : public View {
         /*short_ui*/ true};
 
     Checkbox check_loop{
-        {21 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(9), 2 * 16},
         4,
         "Loop",
         true};
