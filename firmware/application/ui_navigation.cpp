@@ -1152,8 +1152,8 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.draw_bitmap({screen_width / 2 - 3 * 16 / 2,
-                                                  screen_height / 2 - 3 * 16 / 2 - 100},
+    if (!compact) portapack::display.draw_bitmap({UI_POS_X_CENTER(6),
+                                                  UI_POS_Y(4)},
                                                  bitmap_icon_utilities.size,
                                                  bitmap_icon_utilities.data,
                                                  Theme::getInstance()->bg_darkest->foreground,

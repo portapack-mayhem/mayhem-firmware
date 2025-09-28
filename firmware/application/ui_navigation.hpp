@@ -485,17 +485,17 @@ class ModalMessageView : public View {
     const bool compact;
 
     Button button_ok{
-        {10 * 8, 14 * 16, 10 * 8, 48},
+        {UI_POS_X_CENTER(10), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(3)},
         "OK",
     };
 
     Button button_yes{
-        {5 * 8, 14 * 16, 8 * 8, 48},
+        {UI_POS_X_CENTER(8) - UI_POS_WIDTH(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "YES",
     };
 
     Button button_no{
-        {17 * 8, 14 * 16, 8 * 8, 48},
+        {UI_POS_X_CENTER(8) + UI_POS_WIDTH(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "NO",
     };
 };
