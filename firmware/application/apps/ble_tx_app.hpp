@@ -194,14 +194,14 @@ class BLETxView : public View {
         "Open file"};
 
     Text text_filename{
-        {11 * 8, UI_POS_Y(0), 12 * 8, 16},
+        {11 * 8, UI_POS_Y(0), UI_POS_WIDTH_REMAINING(11), 16},
         "-"};
 
     ProgressBar progressbar{
-        {11 * 8, 1 * 16, 9 * 8, 16}};
+        {11 * 8, 1 * 16, UI_POS_WIDTH_REMAINING(11 + 10), 16}};
 
     Checkbox check_rand_mac{
-        {21 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(9), 1 * 16},
         6,
         "?? Mac",
         true};
@@ -215,13 +215,13 @@ class BLETxView : public View {
         /*short_ui*/ true};
 
     Checkbox check_loop{
-        {21 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(9), 2 * 16},
         4,
         "Loop",
         true};
 
     ImageButton button_play{
-        {28 * 8, 2 * 16, 2 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(2), 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
@@ -296,15 +296,15 @@ class BLETxView : public View {
         {0, 9 * 18, 240, 240}};
 
     Button button_clear_marked{
-        {1 * 8, 14 * 16, 13 * 8, 3 * 8},
+        {UI_POS_X(1), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(13), UI_POS_HEIGHT(1.5)},
         "Clear Marked"};
 
     Button button_save_packet{
-        {1 * 8, 16 * 16, 13 * 8, 2 * 16},
+        {UI_POS_X(1), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(13), UI_POS_HEIGHT(2)},
         "Save Packet"};
 
     Button button_switch{
-        {16 * 8, 16 * 16, 13 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(14), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(13), UI_POS_HEIGHT(2)},
         "Switch to Rx"};
 
     std::string str_log{""};
