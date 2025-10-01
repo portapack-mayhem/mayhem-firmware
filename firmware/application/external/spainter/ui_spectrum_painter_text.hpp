@@ -106,7 +106,7 @@ class SpectrumInputTextView : public View {
     }};
 
     Button button_message{
-        {UI_POS_X(0), 11 * 16 - 4, screen_width, 28},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(10), screen_width, 28},
         "Set message"};
 };
 

@@ -183,20 +183,23 @@ void SpectrumPainterView::focus() {
 void SpectrumPainterView::paint(Painter& painter) {
     View::paint(painter);
 
-    size_t c;
-    Point pos = {0, screen_pos().y() + 8 + footer_location};
-
-    for (c = 0; c < 20; c++) {
+    uint16_t c;
+    Point pos = {0, UI_POS_Y_BOTTOM(1)};
+    Point pos2 = {0, UI_POS_Y_BOTTOM(4)};
+    // 24*8 pxstripes
+    for (c = 0; c < screen_width / 24 + 1; c++) {
         painter.draw_bitmap(
             pos,
             bitmap_stripes,
             Theme::getInstance()->fg_yellow->foreground,
             Theme::getInstance()->fg_yellow->background);
-        if (c != 9)
-            pos += {24, 0};
-        else
-            pos = {0, screen_pos().y() + 8 + footer_location + 32 + 8};
+        painter.draw_bitmap(
+            pos2,
+            bitmap_stripes,
+            Theme::getInstance()->fg_yellow->foreground,
+            Theme::getInstance()->fg_yellow->background);
+        pos += {24, 0};
+        pos2 += {24, 0};
     }
 }
-
 }  // namespace ui::external_app::spainter
