@@ -62,7 +62,7 @@ class FreqManUIList : public Widget {
 
     static constexpr int8_t char_height = 16;
     static constexpr int8_t char_width = 8;
-    static constexpr int8_t line_max_length = 29;
+    uint8_t line_max_length = 29;
     size_t visible_lines_{0};
 
     FreqmanDB* db_{nullptr};

@@ -134,44 +134,44 @@ class FrequencyManagerView : public FreqManBaseView {
     void on_del_entry();
 
     NewButton button_add_category{
-        {23 * 8, UI_POS_Y(0), 7 * 4, 20},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(0), 7 * 4, 20},
         {},
         &bitmap_icon_new_file,
         Theme::getInstance()->bg_darkest->foreground,
         true};
 
     NewButton button_del_category{
-        {26 * 8 + 4, UI_POS_Y(0), 7 * 4, 20},
+        {UI_POS_X_RIGHT(4), UI_POS_Y(0), 7 * 4, 20},
         {},
         &bitmap_icon_trash,
         Theme::getInstance()->fg_red->foreground,
         true};
 
     Button button_edit_entry{
-        {UI_POS_X(0), 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(6.5) + 4, 15 * 8, 1 * 16 + 4},
         "Edit"};
 
     Rectangle rect_padding{
-        {15 * 8, 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
+        {15 * 8, UI_POS_Y_BOTTOM(6.5), 15 * 8, 1 * 16 + 4},
         Theme::getInstance()->fg_medium->background};
 
     Button button_edit_freq{
-        {UI_POS_X(0), 15 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(5), 15 * 8, 2 * 16},
         "Frequency"};
 
     Button button_edit_desc{
-        {UI_POS_X(0), 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3), 15 * 8, 2 * 16},
         "Description"};
 
     NewButton button_add_entry{
-        {15 * 8, 15 * 16, 7 * 8 + 4, 2 * 16},
+        {15 * 8, UI_POS_Y_BOTTOM(5), 7 * 8 + 4, 2 * 16},
         {},
         &bitmap_icon_add,
         Theme::getInstance()->bg_darkest->foreground,
         true};
 
     NewButton button_del_entry{
-        {22 * 8 + 4, 15 * 16, 7 * 8 + 4, 2 * 16},
+        {22 * 8 + 4, UI_POS_Y_BOTTOM(5), 7 * 8 + 4, 2 * 16},
         {},
         &bitmap_icon_delete,
         Theme::getInstance()->fg_red->foreground,
@@ -243,11 +243,11 @@ class FrequencyEditView : public View {
         {}};
 
     Button button_save{
-        {UI_POS_X(0), 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3), 15 * 8, 2 * 16},
         "Save"};
 
     Button button_cancel{
-        {15 * 8, 17 * 16, 15 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(15), UI_POS_Y_BOTTOM(3), 15 * 8, 2 * 16},
         "Cancel"};
 };
 
