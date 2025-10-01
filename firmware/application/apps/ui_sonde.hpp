@@ -169,11 +169,11 @@ class SondeView : public View {
         GeoPos::spd_unit::HIDDEN};
 
     Button button_see_qr{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), 15 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 3 * 16},
         "See QR"};
 
     Button button_see_map{
-        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), 15 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 3 * 16},
         "See on map"};
 
     GeoMapView* geomap_view_{nullptr};

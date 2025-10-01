@@ -94,7 +94,7 @@ class OOKEditorAppView : public View {
 
     // UI components for frequency and transmitter view.
     FrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}};
-    TransmitterView2 tx_view{{20 * 7, UI_POS_Y(0)}, true};
+    TransmitterView2 tx_view{{UI_POS_X_RIGHT(9), UI_POS_Y(0)}, true};
 
     // Labels for various fields such as sample rate and repeat count.
     Labels label_step{{{170, 20}, "Step:", Theme::getInstance()->fg_light->foreground}};
@@ -127,10 +127,10 @@ class OOKEditorAppView : public View {
     Button button_open{{68, 125, 80, 28}, LanguageHelper::currentMessages[LANG_OPEN_FILE]};
     Button button_save{{154, 125, 80, 28}, LanguageHelper::currentMessages[LANG_SAVE_FILE]};
     Button button_bug_key{{0, 125 + 28 + 3, screen_width, 28}, "Bug Key"};
-    Button button_send_stop{{80, 273, 80, 32}, LanguageHelper::currentMessages[LANG_SEND]};
+    Button button_send_stop{{UI_POS_X_CENTER(10), 273, UI_POS_WIDTH(10), 32}, LanguageHelper::currentMessages[LANG_SEND]};
 
     // Progress bar to display transmission progress.
-    ProgressBar progressbar{{2 * 8, 250, 208, 16}};
+    ProgressBar progressbar{{2 * 8, 250, UI_POS_WIDTH_REMAINING(4), 16}};
 
     // Waveform display using waveform buffer and yellow theme color.
     Waveform waveform{{0, 208, screen_width, 32}, waveform_buffer, 0, 0, true, Theme::getInstance()->fg_yellow->foreground};
@@ -185,30 +185,30 @@ class OOKEditorBugKeyView : public View {
         ' '};
 
     Console console{
-        {0, 3 * 16, screen_width, screen_height - 10 * 16}};
+        {0, UI_POS_Y(3), screen_width, UI_POS_HEIGHT_REMAINING(10)}};
 
     Button button_insert_low_level_long{
-        {UI_POS_X(0), 13 * 16, screen_width / 2, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(7), screen_width / 2, UI_POS_HEIGHT(2)},
         "00"};
 
     Button button_insert_low_level_short{
-        {UI_POS_X(0), 15 * 16, screen_width / 2, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(5), screen_width / 2, UI_POS_HEIGHT(2)},
         "0"};
 
     Button button_insert_high_level_long{
-        {(screen_width / 2), 13 * 16, screen_width / 2, 2 * 16},
+        {(screen_width / 2), UI_POS_Y_BOTTOM(7), screen_width / 2, UI_POS_HEIGHT(2)},
         "11"};
 
     Button button_insert_high_level_short{
-        {(screen_width / 2), 15 * 16, screen_width / 2, 2 * 16},
+        {(screen_width / 2), UI_POS_Y_BOTTOM(5), screen_width / 2, UI_POS_HEIGHT(2)},
         "1"};
 
     Button button_delete{
-        {1, 17 * 16, screen_width / 2 - 4, 2 * 16},
+        {1, UI_POS_Y_BOTTOM(3), screen_width / 2 - 4, UI_POS_HEIGHT(2)},
         "<Backspace"};
 
     Button button_save{
-        {1 + screen_width / 2 + 1, 17 * 16, screen_width / 2 - 4, 2 * 16},
+        {1 + screen_width / 2 + 1, UI_POS_Y_BOTTOM(3), screen_width / 2 - 4, UI_POS_HEIGHT(2)},
         "Save"};
 };
 
