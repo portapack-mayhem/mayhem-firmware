@@ -45,6 +45,8 @@ namespace ui {
 #define UI_POS_X_RIGHT(charnum) ((int)(screen_width - ((charnum) * UI_POS_DEFAULT_WIDTH)))
 // px position of the left character from the center of the screen (X)  (for N character wide string)
 #define UI_POS_X_CENTER(charnum) ((int)((screen_width / 2) - ((charnum) * UI_POS_DEFAULT_WIDTH / 2)))
+// px position of the currcol in a table with colnum number of columns, where one coloumn is charnum characters wide maximum
+#define UI_POS_X_TABLE(colnum, currcol) ((currcol) * (screen_width / (colnum)))
 // px width of N characters
 #define UI_POS_WIDTH(charnum) ((int)((charnum) * UI_POS_DEFAULT_WIDTH))
 // px width of the screen

@@ -48,22 +48,22 @@ class CalculatorView : public View {
    private:
     NavigationView& nav_;
 
-    Button button_F{{UI_POS_X(0), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "F"};
-    Button button_7{{UI_POS_WIDTH_PERCENT(30), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "7"};
-    Button button_8{{UI_POS_WIDTH_PERCENT(60), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "8"};
-    Button button_9{{UI_POS_X_RIGHT(6), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "9"};
-    Button button_E{{UI_POS_X(0), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "E"};
-    Button button_4{{UI_POS_WIDTH_PERCENT(30), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "4"};
-    Button button_5{{UI_POS_WIDTH_PERCENT(60), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "5"};
-    Button button_6{{UI_POS_X_RIGHT(6), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "6"};
-    Button button_N{{UI_POS_X(0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "N"};
-    Button button_1{{UI_POS_WIDTH_PERCENT(30), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "1"};
-    Button button_2{{UI_POS_WIDTH_PERCENT(60), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "2"};
-    Button button_3{{UI_POS_X_RIGHT(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "3"};
-    Button button_C{{UI_POS_X(0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "C"};
-    Button button_0{{UI_POS_WIDTH_PERCENT(30), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "0"};
-    Button button_P{{UI_POS_WIDTH_PERCENT(60), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "."};
-    Button button_D{{UI_POS_X_RIGHT(6), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "D"};
+    Button button_F{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "F"};
+    Button button_7{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "7"};
+    Button button_8{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "8"};
+    Button button_9{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "9"};
+    Button button_E{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "E"};
+    Button button_4{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "4"};
+    Button button_5{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "5"};
+    Button button_6{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "6"};
+    Button button_N{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "N"};
+    Button button_1{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "1"};
+    Button button_2{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "2"};
+    Button button_3{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "3"};
+    Button button_C{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "C"};
+    Button button_0{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "0"};
+    Button button_P{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "."};
+    Button button_D{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "D"};
 
     Console console{
         {UI_POS_X(0), UI_POS_Y(0), screen_width, UI_POS_HEIGHT_REMAINING(10)}};
