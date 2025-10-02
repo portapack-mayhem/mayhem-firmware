@@ -170,10 +170,10 @@ class SetDateTimeView : public View {
         {}};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel"};
 
     void form_init(const SetDateTimeModel& model);
@@ -253,10 +253,10 @@ class SetRadioView : public View {
         "Disable external TCXO"};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel",
     };
 
@@ -372,11 +372,11 @@ class SetUIView : public View {
         &bitmap_sd_card_ok};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel"};
 };
 
@@ -391,28 +391,28 @@ class SetSDCardView : public View {
    private:
     Labels labels{
         // 01234567890123456789012345678
-        {{1 * 8, 120 - 48}, "    HIGH SPEED SDCARD IO     ", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 120 - 32}, "   May or may not work !!    ", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X_CENTER(26), 120 - 48}, "  HIGH SPEED SDCARD IO   ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(26), 120 - 32}, " May or may not work !!  ", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox checkbox_sdcard_speed{
-        {2 * 8, 120},
+        {UI_POS_X_CENTER(26), 120},
         20,
         "enable high speed IO"};
 
     Button button_test_sdcard_high_speed{
-        {2 * 8, 152, 27 * 8, 32},
+        {UI_POS_X_CENTER(27), 152, UI_POS_WIDTH(27), UI_POS_HEIGHT(2)},
         "TEST BUTTON (NO PMEM SAVE)"};
 
     Text text_sdcard_test_status{
-        {2 * 8, 198, 28 * 8, 16},
+        {UI_POS_X_CENTER(28), 198, UI_POS_WIDTH(28), UI_POS_HEIGHT(1)},
         ""};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel"};
 };
 
@@ -455,7 +455,7 @@ class SetConverterSettingsView : public View {
         {8 * 8, 10 * 16}};
 
     Button button_return{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Return",
     };
 };
@@ -498,7 +498,7 @@ class SetFrequencyCorrectionView : public View {
         {8 * 8, 10 * 16}};
 
     Button button_return{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), 12 * 8, UI_POS_HEIGHT(2)},
         "Return",
     };
 };
@@ -536,11 +536,11 @@ class SetAudioView : public View {
         "Beep on RX packets"};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel",
     };
 };
@@ -606,11 +606,11 @@ class SetEncoderDialView : public View {
         "-"};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel",
     };
 };
@@ -649,11 +649,11 @@ class SetButtonsView : public View {
          {"FAST", true}}};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel",
     };
 };
@@ -674,7 +674,7 @@ class SetPersistentMemoryView : public View {
     };
 
     Text text_pmem_status{
-        {1 * 8, 4 * 16 + 8, 28 * 8, 16},
+        {UI_POS_X_CENTER(28), 4 * 16 + 8, 28 * 8, 16},
         ""};
 
     Checkbox check_use_sdcard_for_pmem{
@@ -683,19 +683,19 @@ class SetPersistentMemoryView : public View {
         "Use SD card for P.Mem"};
 
     Button button_save_mem_to_file{
-        {1 * 8, 8 * 16, 28 * 8, 2 * 16},
+        {UI_POS_X_CENTER(28), 8 * 16, 28 * 8, 2 * 16},
         "Save P.Mem to SD card"};
 
     Button button_load_mem_from_file{
-        {1 * 8, 10 * 16 + 2, 28 * 8, 2 * 16},
+        {UI_POS_X_CENTER(28), 10 * 16 + 2, 28 * 8, 2 * 16},
         "Load P.Mem from SD Card"};
 
     Button button_load_mem_defaults{
-        {1 * 8, 12 * 16 + 4, 28 * 8, 2 * 16},
+        {UI_POS_X_CENTER(28), 12 * 16 + 4, 28 * 8, 2 * 16},
         "Reset P.Mem to defaults"};
 
     Button button_return{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Return",
     };
 };
@@ -713,7 +713,7 @@ class AppSettingsView : public View {
         {{0, 4}, "Select file to edit:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
-        {0, 2 * 8, screen_width, 26 * 8},
+        {0, 2 * 8, screen_width, UI_POS_HEIGHT_REMAINING(3)},
         true};
 };
 
@@ -738,11 +738,11 @@ class SetConfigModeView : public View {
         "Config Mode enable"};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel",
     };
 };
@@ -784,11 +784,11 @@ class SetDisplayView : public View {
         "IPS Screen"};
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel",
     };
 };
@@ -841,19 +841,19 @@ class SetTouchscreenThresholdView : public View {
     };
 
     Button button_autodetect{
-        {2 * 8, 13 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), 13 * 16, 12 * 8, 32},
         "Auto Detect"};
     Button button_reset{
-        {16 * 8, 13 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), 13 * 16, 12 * 8, 32},
         "Reset",
     };
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), 16 * 16, 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), 16 * 16, 12 * 8, 32},
         "Cancel",
     };
 
@@ -876,14 +876,14 @@ class SetMenuColorView : public View {
     void paint_sample();
 
     Labels labels{
-        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(25), 1 * 16}, "Menu Button Color Scheme", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 8 * 16}, "Red Level:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 9 * 16}, "Green Level:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 16}, "Blue Level:", Theme::getInstance()->fg_light->foreground},
     };
 
     NewButton button_sample{
-        {8 * 8, 4 * 16, 14 * 8, 3 * 16},
+        {UI_POS_X_CENTER(14), 4 * 16, 14 * 8, 3 * 16},
         "New Color",
         &bitmap_icon_brightness,
     };
@@ -913,16 +913,16 @@ class SetMenuColorView : public View {
     };
 
     Button button_reset{
-        {2 * 8, 13 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Reset",
     };
 
     Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Save"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel",
     };
 };
@@ -940,10 +940,6 @@ class SetThemeView : public View {
     Labels labels{
         {{1 * 8, 1 * 16}, "Select a theme.", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 2 * 16}, "Restart PP to fully apply!", Theme::getInstance()->fg_light->foreground}};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
 
     OptionsField options{
         {UI_POS_X(0), 4 * 16},
@@ -963,8 +959,12 @@ class SetThemeView : public View {
         23,
         "Set Menu color too"};
 
+    Button button_save{
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Save"};
+
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel",
     };
 };
@@ -988,10 +988,6 @@ class SetBatteryView : public View {
 
     Labels labels2{{{1 * 8, 11 * 16}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
 
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
     Checkbox checkbox_overridebatt{
         {2 * 8, 4 * 16},
         23,
@@ -1003,12 +999,16 @@ class SetBatteryView : public View {
         "Charge hint"};
 
     Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel",
     };
 
+    Button button_save{
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Save"};
+
     Button button_reset{
-        {2 * 8, 13 * 16, 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Reset",
     };
 };

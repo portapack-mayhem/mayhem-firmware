@@ -48,23 +48,23 @@ class AppManagerView : public View {
     MenuView menu_view{};
 
     Text text_app_info{
-        {0, 27 * 8, screen_width, 16},
+        {0, UI_POS_Y_BOTTOM(6), screen_width, UI_POS_HEIGHT(1)},
         "Highlight an app"};
 
     Button button_hide_unhide{
-        {0, 29 * 8, screen_width / 2 - 1, 32},
+        {0, UI_POS_Y_BOTTOM(5), screen_width / 2 - 1, UI_POS_HEIGHT(2)},
         "Hide/Show"};
 
     Button button_clean_hide{
-        {screen_width / 2 + 2, 29 * 8, screen_width / 2 - 2, 32},
+        {screen_width / 2 + 2, UI_POS_Y_BOTTOM(5), screen_width / 2 - 2, UI_POS_HEIGHT(2)},
         "Clean Hidden"};
 
     Button button_set_cancel_autostart{
-        {0, screen_height - 32 - 16, screen_width / 2 - 1, 32},
+        {0, screen_height - 32 - 16, screen_width / 2 - 1, UI_POS_HEIGHT(2)},
         "Set Autostart"};
 
     Button button_clean_autostart{
-        {screen_width / 2 + 2, screen_height - 32 - 16, screen_width / 2 - 2, 32},
+        {screen_width / 2 + 2, screen_height - 32 - 16, screen_width / 2 - 2, UI_POS_HEIGHT(2)},
         "Del Autostart"};
 
     std::string get_app_info(uint16_t index, bool is_display_name);
