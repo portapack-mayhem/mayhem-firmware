@@ -105,7 +105,7 @@ class BLETxView : public View {
     ~BLETxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override {};
+    void paint(Painter&) override{};
 
     void focus() override;
 

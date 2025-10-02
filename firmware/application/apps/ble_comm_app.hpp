@@ -59,7 +59,7 @@ class BLECommView : public View {
     ~BLECommView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override {};
+    void paint(Painter&) override{};
 
     void focus() override;
 
