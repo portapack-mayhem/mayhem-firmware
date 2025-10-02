@@ -343,8 +343,8 @@ class WM8731 : public audio::Codec {
         headphone_mute();
     }
 
-    void speaker_enable(){};
-    void speaker_disable(){};
+    void speaker_enable() {};
+    void speaker_disable() {};
     bool speaker_disable_supported() const override {
         return false;
     }

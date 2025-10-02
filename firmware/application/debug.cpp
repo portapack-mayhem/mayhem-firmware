@@ -139,13 +139,11 @@ void runtime_error(uint8_t source) {
     led.off();
 
     // wait for DFU button release if pressed, so we don't immediately jump into stack dump
-    while (swizzled_switches() & (1 << (int)Switch::Dfu))
-        ;
+    while (swizzled_switches() & (1 << (int)Switch::Dfu));
 
     while (true) {
         volatile size_t n = 1000000U;
-        while (n--)
-            ;
+        while (n--);
         led.toggle();
 
         // Stack dump will cover entire screen, so wait for DFU button press to attempt it
@@ -225,8 +223,7 @@ void draw_stack_dump() {
         // Out of room on the screen or end of stack - allow Up/Down paging.
         // First wait for button release from previous press.
         // NOTE: can't call swizzle_switches() with interrupted enabled!
-        while (swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu)))
-            ;
+        while (swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu)));
 
         painter.draw_string({border, portapack::display.height() - border - 8}, *Theme::getInstance()->bg_darkest_small, "Use UP/DOWN key");
 
