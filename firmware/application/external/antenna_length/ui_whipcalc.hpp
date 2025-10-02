@@ -89,7 +89,7 @@ class WhipCalcView : public View {
         {0, 6 * 16, screen_width, 160}};
 
     Button button_exit{
-        {72, 17 * 16, 96, 32},
+        {UI_POS_X_RIGHT(12), UI_POS_Y_BOTTOM(3), 96, 32},
         "Back"};
 };
 

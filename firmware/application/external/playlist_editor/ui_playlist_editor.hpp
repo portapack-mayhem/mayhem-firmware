@@ -61,27 +61,27 @@ class PlaylistEditorView : public View {
     MenuView menu_view{};
 
     Text text_hint{
-        {0, 27 * 8, screen_width, 16},
+        {0, UI_POS_Y_BOTTOM(6), screen_width, 16},
         "Open a PPL file"};
 
     Text text_ppl_name{
-        {0, 27 * 8, screen_width, 16},
+        {0, UI_POS_Y_BOTTOM(6), screen_width, 16},
         "Highlight an app"};
 
     Button button_open_playlist{
-        {0, 29 * 8, screen_width / 2 - 1, 32},
+        {0, UI_POS_Y_BOTTOM(5), screen_width / 2 - 1, 32},
         "Open PPL"};
 
     Button button_edit{
-        {screen_width / 2 + 2, 29 * 8, screen_width / 2 - 2, 32},
+        {screen_width / 2 + 2, UI_POS_Y_BOTTOM(5), screen_width / 2 - 2, 32},
         "Edit Item"};
 
     Button button_insert{
-        {0, screen_height - 32 - 16, screen_width / 2 - 1, 32},
+        {0, UI_POS_Y_BOTTOM(3), screen_width / 2 - 1, 32},
         "Ins. After"};
 
     Button button_save_playlist{
-        {screen_width / 2 + 2, screen_height - 32 - 16, screen_width / 2 - 2, 32},
+        {screen_width / 2 + 2, UI_POS_Y_BOTTOM(3), screen_width / 2 - 2, 32},
         "Save PPL"};
 
     void open_file();

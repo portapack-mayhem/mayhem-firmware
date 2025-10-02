@@ -71,15 +71,15 @@ class StopwatchView : public View {
     Painter painter;
 
     Button button_run_stop{
-        {72, 210, 96, 24},
+        {UI_POS_X_CENTER(12), 210, 96, 24},
         "START"};
 
     Button button_reset_lap{
-        {72, screen_height - 80, 96, 24},
+        {UI_POS_X_CENTER(12), screen_height - 80, 96, 24},
         "RESET"};
 
     Button button_done{
-        {72, screen_height - 50, 96, 24},
+        {UI_POS_X_CENTER(12), screen_height - 50, 96, 24},
         "EXIT"};
 
     MessageHandlerRegistration message_handler_frame_sync{

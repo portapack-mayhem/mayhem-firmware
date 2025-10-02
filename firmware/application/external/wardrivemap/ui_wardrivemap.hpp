@@ -56,8 +56,8 @@ class WardriveMapView : public View {
         GeoPos::spd_unit::HIDDEN};
     GeoMap geomap{{0, 75, screen_width, screen_height - 75}};
 
-    Button btn_back{{22 * 8, 0 * 8, 3 * 8, 16}, "<-"};
-    Button btn_next{{26 * 8, 0 * 8, 3 * 8, 16}, "->"};
+    Button btn_back{{UI_POS_X_RIGHT(8), 0 * 8, 3 * 8, 16}, "<-"};
+    Button btn_next{{UI_POS_X_RIGHT(4), 0 * 8, 3 * 8, 16}, "->"};
 
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
