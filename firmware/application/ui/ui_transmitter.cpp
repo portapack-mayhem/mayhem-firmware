@@ -58,7 +58,7 @@ void TransmitterView::paint(Painter& painter) {
     Point pos = {0, screen_pos().y()};
     Point pos2 = {0, screen_pos().y() + 32 + 8};
     // 24*8 pxstripes
-    for (c = 0; c < screen_width / 24 + 1; c++) {
+    for (c = 0; c < (size_t)(screen_width / 24 + 1); c++) {
         painter.draw_bitmap(
             pos,
             bitmap_stripes,

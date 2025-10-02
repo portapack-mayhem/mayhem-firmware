@@ -49,26 +49,26 @@ void ViewWavView::refresh_waveform() {
 
     uint8_t bits_per_sample = wav_reader->bits_per_sample();
 
-    for (size_t i = 0; i < 240; i++) {
+    for (size_t i = 0; i < screen_width; i++) {
         wav_reader->data_seek(position + (i * scale));
         if (bits_per_sample == 8) {
             uint8_t sample;
             wav_reader->read(&sample, 1);
             waveform_buffer[i] = (sample - 0x80) * 256;
         } else {
-            wav_reader->read(&waveform_buffer[i], 2);
+            wav_reader->read(&waveform_buffer.data()[i], 2);
         }
     }
 
     waveform.set_dirty();
 
     // Window
-    uint64_t w_start = (position * 240) / wav_reader->sample_count();
-    uint64_t w_width = (scale * 240) / (wav_reader->sample_count() / 240);
-    display.fill_rectangle({0, 10 * 16 + 1, 240, 16}, Theme::getInstance()->bg_darkest->background);
+    uint64_t w_start = (position * screen_width) / wav_reader->sample_count();
+    uint64_t w_width = (scale * screen_width) / (wav_reader->sample_count() / screen_width);
+    display.fill_rectangle({0, 10 * 16 + 1, screen_width, 16}, Theme::getInstance()->bg_darkest->background);
     display.fill_rectangle({(Coord)w_start, 21 * 8, (Dim)w_width + 1, 8}, Theme::getInstance()->bg_darkest->foreground);
     display.draw_line({0, 10 * 16 + 1}, {(Coord)w_start, 21 * 8}, Theme::getInstance()->bg_darkest->foreground);
-    display.draw_line({239, 10 * 16 + 1}, {(Coord)(w_start + w_width), 21 * 8}, Theme::getInstance()->bg_darkest->foreground);
+    display.draw_line({screen_width - 1, 10 * 16 + 1}, {(Coord)(w_start + w_width), 21 * 8}, Theme::getInstance()->bg_darkest->foreground);
 }
 
 void ViewWavView::refresh_measurements() {
@@ -82,11 +82,11 @@ void ViewWavView::refresh_measurements() {
 
 void ViewWavView::paint(Painter& painter) {
     // Waveform limits
-    painter.draw_hline({0, 6 * 16 - 1}, 240, Theme::getInstance()->bg_medium->background);
-    painter.draw_hline({0, 10 * 16}, 240, Theme::getInstance()->bg_medium->background);
+    painter.draw_hline({0, 6 * 16 - 1}, screen_width, Theme::getInstance()->bg_medium->background);
+    painter.draw_hline({0, 10 * 16}, screen_width, Theme::getInstance()->bg_medium->background);
 
     // Overall amplitude view, 0~127 to 0~255 color index
-    for (size_t i = 0; i < 240; i++)
+    for (size_t i = 0; i < screen_width; i++)
         painter.draw_vline({(Coord)i, 11 * 16}, 8, spectrum_rgb2_lut[amplitude_buffer[i] << 1]);
 }
 
@@ -128,10 +128,10 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
     text_title.set(wav_reader->title());
 
     // Fill amplitude buffer, world's worst downsampling
-    uint64_t skip = wav_reader->sample_count() / (240 * subsampling_factor);
+    uint64_t skip = wav_reader->sample_count() / (screen_width * subsampling_factor);
     uint8_t bits_per_sample = wav_reader->bits_per_sample();
 
-    for (size_t i = 0; i < 240; i++) {
+    for (size_t i = 0; i < screen_width; i++) {
         average = 0;
 
         for (size_t s = 0; s < subsampling_factor; s++) {
@@ -163,7 +163,7 @@ void ViewWavView::reset_controls() {
     field_pos_seconds.set_range(0, wav_reader->ms_duration() / 1000);
     field_pos_milliseconds.set_range(0, (wav_reader->ms_duration() < 1000) ? wav_reader->ms_duration() % 1000 : 999);
     field_pos_samples.set_range(0, wav_reader->sample_count() - 1);
-    field_scale.set_range(1, std::min(99999ul, wav_reader->sample_count() / 240));
+    field_scale.set_range(1, std::min(99999ul, wav_reader->sample_count() / screen_width));
 }
 
 bool ViewWavView::is_active() {
@@ -262,6 +262,12 @@ void ViewWavView::on_playback_progress(const uint32_t progress) {
 ViewWavView::ViewWavView(
     NavigationView& nav)
     : nav_(nav) {
+    waveform_buffer.resize(screen_width);
+    amplitude_buffer.resize(screen_width);
+    waveform.set_length(screen_width);
+    waveform.set_data((int16_t*)waveform_buffer.data());
+    for (auto& v : waveform_buffer) v = 0;
+    for (auto& v : amplitude_buffer) v = 0;
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     wav_reader = std::make_unique<WAVFileReader>();
 

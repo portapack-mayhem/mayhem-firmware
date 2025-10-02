@@ -49,6 +49,7 @@ class FlashUtilityView : public View {
 
     std::string title() const override { return "Flash Utility"; };
     bool flash_firmware(std::filesystem::path::string_type path);
+    void wait_till_loaded();
 
    private:
     NavigationView& nav_;
@@ -67,6 +68,14 @@ class FlashUtilityView : public View {
     void firmware_selected(std::filesystem::path::string_type path);
 
     bool endsWith(const std::u16string& str, const std::u16string& suffix);
+    bool isLoaded = false;
+    uint8_t refreshcnt = 0;
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            refreshcnt++;
+            if (refreshcnt > 2) isLoaded = true;
+        }};
 };
 
 } /* namespace ui */

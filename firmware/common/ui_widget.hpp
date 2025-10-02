@@ -989,7 +989,7 @@ class Waveform : public Widget {
     void set_offset(const uint32_t new_offset);
     void set_length(const uint32_t new_length);
     void set_cursor(const uint32_t i, const int16_t position);
-
+    void set_data(int16_t* new_data);
     bool is_paused() const;
     void set_paused(bool paused);
     bool is_clickable() const;

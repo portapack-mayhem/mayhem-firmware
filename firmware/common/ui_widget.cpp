@@ -2722,6 +2722,13 @@ bool Waveform::on_touch(const TouchEvent event) {
     }
 }
 
+void Waveform::set_data(int16_t* new_data) {
+    if (new_data != data_) {
+        data_ = new_data;
+        set_dirty();
+    }
+}
+
 void Waveform::paint(Painter& painter) {
     // previously it's upside down , low level is up and high level is down, which doesn't make sense,
     // if that was made for a reason, feel free to revert.
