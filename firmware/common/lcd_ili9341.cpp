@@ -420,7 +420,7 @@ void ILI9341::fill_rectangle_unrolled8(ui::Rect r, const ui::Color c) {
     }
 }
 
-void ILI9341::render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer) {
+void ILI9341::render_line(const ui::Point p, const uint16_t count, const ui::Color* line_buffer) {
     lcd_start_ram_write(p, {count, 1});
     io.lcd_write_pixels(line_buffer, count);
 }
