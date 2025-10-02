@@ -130,10 +130,11 @@ bool FlashUtilityView::endsWith(const std::u16string& str, const std::u16string&
     }
 }
 
-void FlashUtilityView::wait_till_loaded() {
-    while (!isLoaded) {
-        chThdSleepMilliseconds(50);
+void FlashUtilityView::paint(Painter& painter) {
+    if (is_in_progress) {
+        return;
     }
+    View::paint(painter);
 }
 
 std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::string_type path, ui::Painter& painter) {
@@ -152,6 +153,7 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
 }
 
 bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
+    is_in_progress = true;
     ui::Painter painter;
     if (endsWith(path, u".tar")) {
         // extract, then update

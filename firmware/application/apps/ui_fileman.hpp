@@ -65,7 +65,7 @@ class FileManBaseView : public View {
     uint8_t pagination = 0;
     uint8_t nb_pages = 1;
     bool restoring_navigation = false;
-    static constexpr size_t max_filename_length = 20;
+    size_t max_filename_length = 20;
     static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't sort it
     static constexpr size_t items_per_page = 20;
 
