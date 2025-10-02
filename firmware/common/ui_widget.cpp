@@ -1334,24 +1334,57 @@ void NewButton::paint(Painter& painter) {
         style.background);
 
     int y = r.top();
-    if (bitmap_) {
-        int offset_y = vertical_center_ ? (r.height() / 2) - (bitmap_->size.height() / 2) : 6;
-        Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + offset_y};
-        y += bitmap_->size.height() - offset_y;
+    if (vertical_center_) {
+        const int bmp_h = bitmap_ ? bitmap_->size.height() : 0;
+        const int txt_h = !text_.empty() ? style.font.line_height() : 0;
+        int spacing = 0;
+        if (bmp_h > 0 && txt_h > 0) {
+            const int content_height = bmp_h + txt_h;
+            const int remaining_space = r.height() - content_height;
+            spacing = std::max(4, remaining_space / 3);
+        }
+        const int total_height = bmp_h + txt_h + spacing;
+        y += (r.height() - total_height) / 2;
 
-        painter.draw_bitmap(
-            bmp_pos,
-            *bitmap_,
-            color_,
-            style.background);
-    }
+        if (bitmap_) {
+            Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), y};
+            y += bitmap_->size.height();
 
-    if (!text_.empty()) {
-        const auto label_r = style.font.size_of(text_);
-        painter.draw_string(
-            {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-            style,
-            text_);
+            painter.draw_bitmap(
+                bmp_pos,
+                *bitmap_,
+                color_,
+                style.background);
+        }
+
+        if (!text_.empty()) {
+            const auto label_r = style.font.size_of(text_);
+            if (bitmap_) {
+                y += spacing;
+            }
+            painter.draw_string(
+                {r.left() + (r.width() - label_r.width()) / 2, y},
+                style,
+                text_);
+        }
+    } else {  // no valign
+        if (bitmap_) {
+            Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + 6};
+            y += bitmap_->size.height() - 6;
+            painter.draw_bitmap(
+                bmp_pos,
+                *bitmap_,
+                color_,
+                style.background);
+        }
+
+        if (!text_.empty()) {
+            const auto label_r = style.font.size_of(text_);
+            painter.draw_string(
+                {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
+                style,
+                text_);
+        }
     }
 }
 

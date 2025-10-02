@@ -903,7 +903,8 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
-    set_max_rows(2);  // allow wider buttons
+    set_btn_height_fixed((screen_height - 16 - 16) / 6);  // this is for main menu height, to fill the screen
+    set_max_rows(2);                                      // allow wider buttons
     show_arrows_enabled(false);
 }
 
