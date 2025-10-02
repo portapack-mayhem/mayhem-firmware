@@ -48,7 +48,7 @@ class DebugDumpView : public View {
         ""};
 
     Button button_exit{
-        {22 * 8, 34 * 8, 8 * 8, 32},
+        {UI_POS_X_CENTER(8), UI_POS_Y_BOTTOM(4), 8 * 8, 32},
         "Exit"};
 };
 

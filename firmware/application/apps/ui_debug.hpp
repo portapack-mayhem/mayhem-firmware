@@ -242,7 +242,7 @@ class DebugControlsView : public View {
 
    private:
     Labels labels{
-        {{8 * 8, 1 * 16}, "Controls State", Theme::getInstance()->bg_darkest->foreground},
+        {{UI_POS_X_CENTER(14), 1 * 16}, "Controls State", Theme::getInstance()->bg_darkest->foreground},
         {{UI_POS_X(0), 11 * 16}, "Dial:", Theme::getInstance()->fg_medium->foreground},
         {{UI_POS_X(0), 14 * 16}, "Long-Press Mode:", Theme::getInstance()->fg_medium->foreground}};
 
@@ -259,7 +259,7 @@ class DebugControlsView : public View {
         }};
 
     Button button_done{
-        {72, 264, 96, 24},
+        {UI_POS_X_CENTER(12), 264, 96, 24},
         "Done"};
 };
 
@@ -271,19 +271,19 @@ class DebugMemoryDumpView : public View {
 
    private:
     Button button_dump{
-        {72, 4 * 16, 96, 24},
+        {UI_POS_X_CENTER(12), 4 * 16, 96, 24},
         "Dump"};
 
     Button button_read{
-        {16, 11 * 16, 96, 24},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(10), 11 * 16, 96, 24},
         "Read"};
 
     Button button_write{
-        {128, 11 * 16, 96, 24},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(10), 11 * 16, 96, 24},
         "Write"};
 
     Button button_done{
-        {128, screen_height - 80, 96, 24},
+        {UI_POS_X_RIGHT(12), UI_POS_Y_BOTTOM(3), 96, 24},
         "Done"};
 
     Labels labels{

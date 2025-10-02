@@ -44,7 +44,7 @@ class AudioTestView : public View {
     bool beep{false};
 
     Labels labels{
-        {{7 * 8, 3 * 16}, "Audio Beep Test", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(16), 3 * 16}, "Audio Beep Test", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), 6 * 16}, "Sample Rate (Hz):", Theme::getInstance()->fg_light->foreground},
         {{25 * 8, 7 * 16}, "Step:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), 8 * 16}, "Frequency (Hz):", Theme::getInstance()->fg_light->foreground},

@@ -61,11 +61,11 @@ class ExtSensorsView : public View {
         {{UI_POS_X(0), 7 * 16}, "ENV:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_info{{UI_POS_X(0), 0 * 8, screen_width, 16 * 1}, "Connect a compatible module..."};
-    Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
-    Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
-    Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
-    Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
-    Text text_envl3{{1 * 8, 11 * 16, 24 * 8, 16}, "-"};
+    Text text_gps{{5 * 8, 3 * 16, UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)}, "-"};
+    Text text_orientation{{5 * 8, 5 * 16, UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)}, "-"};
+    Text text_envl1{{5 * 8, 7 * 16, UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)}, "-"};
+    Text text_envl2{{1 * 8, 9 * 16, UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)}, "-"};
+    Text text_envl3{{1 * 8, 11 * 16, UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)}, "-"};
     Console console{
         {1, 13 * 16, screen_width - 1, screen_height - 13 * 16}};
 
