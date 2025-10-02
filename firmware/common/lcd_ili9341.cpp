@@ -559,7 +559,7 @@ bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem
     uint8_t type = 0;
     char buffer[257];
     ui::Color line_buffer[320];
-
+    int16_t start_x = p.x();
     auto result = bmpimage.open(file);
     if (result.is_valid())
         return false;
@@ -593,8 +593,8 @@ bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem
 
     width = bmp_header.width;
     height = bmp_header.height;
-
-    if (width != screen_width)
+    start_x = (screen_width - start_x - width) / 2 + start_x;  // center horizontally
+    if (width > screen_width || width > 320)
         return false;
 
     file_pos = bmp_header.image_data;
@@ -645,7 +645,7 @@ bool ILI9341::draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem
             if (read_size.value() != 256)
                 break;
         }
-        render_line({p.x(), p.y() + py}, px, line_buffer);
+        render_line({start_x, p.y() + py}, px, line_buffer);
         px = 0;
         py--;
 

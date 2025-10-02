@@ -44,6 +44,7 @@
 #include "ui_dfu_menu.hpp"
 
 #include "bitmap.hpp"
+#include "ui_bmpview.hpp"
 #include "ff.h"
 #include "diskio.h"
 #include "lfsr_random.hpp"
@@ -357,6 +358,7 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
+    // BMPViewer bmp_view{ {0, 0, screen_width, screen_height - 16}};
 };
 
 class ReceiversMenuView : public BtnGridView {
