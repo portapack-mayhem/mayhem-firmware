@@ -267,23 +267,23 @@ class TextEditorView : public View {
 
     TextViewer viewer{
         /* 272 = screen_height - 16 (top bar) - 32 (bottom controls) */
-        {0, 0, screen_width, 272}};
+        {0, 0, screen_width, UI_POS_HEIGHT_REMAINING(4)}};
 
     TextEditorMenu menu{};
 
     NewButton button_menu{
-        {26 * 8, 34 * 8, 4 * 8, 4 * 8},
+        {UI_POS_X_RIGHT(4), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_controls,
         Theme::getInstance()->bg_dark->background,
         /*vcenter*/ true};
 
     Text text_position{
-        {UI_POS_X(0), 34 * 8, 26 * 8, 2 * 8},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT(1)},
         ""};
 
     Text text_size{
-        {UI_POS_X(0), 36 * 8, 26 * 8, 2 * 8},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT(1)},
         ""};
 };
 

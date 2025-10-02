@@ -155,7 +155,7 @@ class IQTrimView : public View {
         ' '};
 
     Button button_trim{
-        {20 * 8, 16 * 16, 8 * 8, 2 * 16},
+        {UI_POS_X_CENTER(8), UI_POS_Y_BOTTOM(3), 8 * 8, 2 * 16},
         "Trim"};
 };
 
