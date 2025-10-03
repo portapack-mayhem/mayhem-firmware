@@ -298,7 +298,7 @@ class RecentEntriesView : public View {
         Entries& recent)
         : _header{columns},
           _table{recent, columns} {
-        // Re calculate the widths if we got any zero-width columns (max 1). That meand 'fill all the remaining space'. Only 1 col can have that
+        // Re calculate the widths if we got any zero-width columns (max 1). That means 'fill all the remaining space'. Only 1 col can have that
         uint16_t total_width = 0;
         uint8_t zero_width_count = 0;
         for (const auto& column : columns) {
