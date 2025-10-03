@@ -31,7 +31,6 @@ namespace encoders {
 
 #define ENC_TYPES_COUNT 14
 #define OOK_SAMPLERATE 2280000U
-
 #define ENCODER_UM3750 8
 
 size_t make_bitstream(std::string& fragments);

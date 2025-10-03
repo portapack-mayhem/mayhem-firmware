@@ -35,7 +35,7 @@
 #include "radio_state.hpp"
 #include "portapack.hpp"
 
-namespace ui {
+namespace ui::external_app::bht_tx {
 
 class XylosView : public View {
    public:
@@ -234,4 +234,4 @@ class BHTView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::bht_tx
