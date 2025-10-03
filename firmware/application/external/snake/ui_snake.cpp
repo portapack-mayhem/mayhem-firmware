@@ -175,7 +175,7 @@ void SnakeView::erase_food() {
 
 void SnakeView::draw_score() {
     auto style = *ui::Theme::getInstance()->fg_blue;
-    painter.draw_string({5, 5}, style, "Score: " + std::to_string(score));
+    painter.draw_string({UI_POS_X_CENTER(11), 5}, style, "Score: " + std::to_string(score));
 }
 
 void SnakeView::draw_borders() {
@@ -189,11 +189,11 @@ void SnakeView::show_menu() {
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
     auto style_green = *ui::Theme::getInstance()->fg_green;
     auto style_blue = *ui::Theme::getInstance()->fg_blue;
-    painter.draw_string({50, 40}, style_yellow, "* * * SNAKE * * *");
-    painter.draw_string({0, 120}, style_blue, "USE THE D-PAD TO MOVE");
-    painter.draw_string({0, 150}, style_blue, "EAT THE RED SQUARES TO GROW");
-    painter.draw_string({0, 180}, style_blue, "DON'T HIT THE WALLS OR SELF");
-    painter.draw_string({15, 240}, style_green, "** PRESS SELECT TO START **");
+    painter.draw_string({UI_POS_X_CENTER(18), 40}, style_yellow, "* * * SNAKE * * *");
+    painter.draw_string({UI_POS_X_CENTER(22), 120}, style_blue, "USE THE D-PAD TO MOVE");
+    painter.draw_string({UI_POS_X_CENTER(28), 150}, style_blue, "EAT THE RED SQUARES TO GROW");
+    painter.draw_string({UI_POS_X_CENTER(28), 180}, style_blue, "DON'T HIT THE WALLS OR SELF");
+    painter.draw_string({UI_POS_X_CENTER(28), 240}, style_green, "** PRESS SELECT TO START **");
 }
 
 void SnakeView::show_game_over() {
@@ -202,9 +202,9 @@ void SnakeView::show_game_over() {
     auto style_red = *ui::Theme::getInstance()->fg_red;
     auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
     auto style_green = *ui::Theme::getInstance()->fg_green;
-    painter.draw_string({75, 90}, style_red, "GAME OVER");
-    painter.draw_string({74, 150}, style_yellow, "SCORE: " + std::to_string(score));
-    painter.draw_string({20, 220}, style_green, "PRESS SELECT TO RESTART");
+    painter.draw_string({UI_POS_X_CENTER(10), 90}, style_red, "GAME OVER");
+    painter.draw_string({UI_POS_X_CENTER(11), 150}, style_yellow, "SCORE: " + std::to_string(score));
+    painter.draw_string({UI_POS_X_CENTER(24), 220}, style_green, "PRESS SELECT TO RESTART");
     wait(1);
 }
 
