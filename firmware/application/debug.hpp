@@ -41,7 +41,8 @@ extern uint32_t __process_stack_end__;
 
 inline uint32_t get_free_stack_space() {
     uint32_t* p;
-    for (p = &__process_stack_base__; *p == CRT0_STACKS_FILL_PATTERN && p < &__process_stack_end__; p++);
+    for (p = &__process_stack_base__; *p == CRT0_STACKS_FILL_PATTERN && p < &__process_stack_end__; p++)
+        ;
     auto stack_space_left = p - &__process_stack_base__;
 
     return stack_space_left;

@@ -118,7 +118,8 @@ void usb_transfer(void) {
             scsi_bulk_transfer_complete,
             NULL);
 
-        while (!transfer_complete);
+        while (!transfer_complete)
+            ;
 
         msd_cbw_t* msd_cbw_data = (msd_cbw_t*)&usb_bulk_buffer[0x4000];
 

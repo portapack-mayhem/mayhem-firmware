@@ -567,7 +567,8 @@ void pause_game() {
     joystick.detach();
     locate(180, 200);
     printf("PAUSED");
-    while ((get_switches_state().to_ulong() & 0x10) == 0);
+    while ((get_switches_state().to_ulong() & 0x10) == 0)
+        ;
     printf("      ");
     joystick.attach(&ReadJoystickForFigure, 0.3);
     game.attach(&PlayGame, delays[level]);

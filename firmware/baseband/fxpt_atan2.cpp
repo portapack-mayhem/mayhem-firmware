@@ -76,7 +76,7 @@ static inline int16_t q15_mul(const int16_t j, const int16_t k) {
 	return intermediate >> 15;
 #elif 0  // biased rounding
     return (intermediate + 0x4000) >> 15;
-#else  // unbiased rounding
+#else    // unbiased rounding
     return (intermediate + ((intermediate & 0x7FFF) == 0x4000 ? 0 : 0x4000)) >> 15;
 #endif
 }

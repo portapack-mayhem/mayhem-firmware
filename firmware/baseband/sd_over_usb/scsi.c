@@ -45,7 +45,8 @@ void usb_send_bulk(void* const data, const uint32_t maximum_length) {
         usb_bulk_block_cb,
         NULL);
 
-    while (!usb_bulk_block_done);
+    while (!usb_bulk_block_done)
+        ;
 }
 
 void usb_receive_bulk(void* const data, const uint32_t maximum_length) {
@@ -58,7 +59,8 @@ void usb_receive_bulk(void* const data, const uint32_t maximum_length) {
         usb_bulk_block_cb,
         NULL);
 
-    while (!usb_bulk_block_done);
+    while (!usb_bulk_block_done)
+        ;
 }
 
 void usb_send_csw(msd_cbw_t* msd_cbw_data, uint8_t status) {

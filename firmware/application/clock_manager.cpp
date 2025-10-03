@@ -244,7 +244,8 @@ static void portapack_tcxo_enable() {
     /* Delay >10ms at 96MHz clock speed for reference oscillator to start. */
     /* Delay an additional 1ms (arbitrary) for the clock generator to detect a signal. */
     volatile uint32_t delay = 240000 + 24000;
-    while (delay--);
+    while (delay--)
+        ;
 }
 
 static void portapack_tcxo_disable() {
@@ -328,7 +329,8 @@ void ClockManager::init_clock_generator() {
                                  : (ref_pll == ClockControl::MultiSynthSource::PLLB)
                                      ? 0x40
                                      : 0x20;
-    while ((clock_generator.device_status() & device_status_mask) != 0);
+    while ((clock_generator.device_status() & device_status_mask) != 0)
+        ;
 
     clock_generator.set_clock_control(
         clock_generator_output_mcu_clkin,
@@ -375,7 +377,8 @@ ClockManager::Reference ClockManager::choose_reference() {
     if (hackrf_r9) {
         gpio_r9_clkin_en.write(1);
         volatile uint32_t delay = 240000 + 24000;
-        while (delay--);
+        while (delay--)
+            ;
     }
     const auto detected_reference = detect_reference_source();
 
@@ -510,7 +513,8 @@ void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_se
 
 void ClockManager::wait_For_frequency_monitor_measurement_done() {
     // FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
-    while (LPC_CGU->FREQ_MON.MEAS == 1);
+    while (LPC_CGU->FREQ_MON.MEAS == 1)
+        ;
 }
 
 uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
@@ -555,7 +559,8 @@ void ClockManager::start_audio_pll() {
     });
 
     cgu::pll0audio::power_up();
-    while (!cgu::pll0audio::is_locked());
+    while (!cgu::pll0audio::is_locked())
+        ;
     cgu::pll0audio::clock_enable();
 
     set_base_audio_clock_divider(1);
@@ -572,7 +577,8 @@ void ClockManager::set_base_audio_clock_divider(const size_t divisor) {
 void ClockManager::stop_audio_pll() {
     cgu::pll0audio::clock_disable();
     cgu::pll0audio::power_down();
-    while (cgu::pll0audio::is_locked());
+    while (cgu::pll0audio::is_locked())
+        ;
 }
 
 void ClockManager::enable_clock_output(bool enable) {

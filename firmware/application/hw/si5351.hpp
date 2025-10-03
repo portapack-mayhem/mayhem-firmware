@@ -361,7 +361,8 @@ class Si5351 {
     }
 
     void wait_for_device_ready() {
-        while (device_status() & 0x80);
+        while (device_status() & 0x80)
+            ;
     }
 
     bool plla_loss_of_signal() {
