@@ -54,7 +54,7 @@ namespace portapack {
 
 enum DeviceType {
     DEV_PORTAPACK,
-    DEV_HACKPP
+    DEV_PORTARF
 };
 extern DeviceType device_type;
 
@@ -174,7 +174,7 @@ class IO {
         uint16_t* const data,
         const size_t data_count) {
         lcd_command(command);
-        if (device_type == DEV_HACKPP) {
+        if (device_type == DEV_PORTARF) {
             // dummy read
             dir_read();
             lcd_rd_assert();
@@ -242,34 +242,7 @@ class IO {
         }
     }
 
-    void lcd_read_bytes(uint8_t* byte, size_t byte_count) {
-        if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
-            size_t word_count = byte_count / 2;
-            while (word_count) {
-                const auto word = lcd_read_data();
-                *(byte++) = word >> 8;
-                *(byte++) = word >> 0;
-                word_count--;
-            }
-            if (byte_count & 1) {
-                const auto word = lcd_read_data();
-                *(byte++) = word >> 8;
-            }
-            return;
-        }
-        // hpp
-        size_t word_count = byte_count / 3;
-        for (size_t i = 0; i < word_count; i++) {
-            uint32_t word = lcd_read_data();  // reads 3 byte of data
-            // donno the format, but this is bad.
-            uint8_t r = ((word >> 16) & 0xff);
-            uint8_t g = ((word >> 8) & 0xff);
-            uint8_t b = ((word >> 0) & 0xff);
-            *(byte++) = r;
-            *(byte++) = g;
-            *(byte++) = b;
-        }
-    }
+    void lcd_read_bytes(uint8_t* byte, size_t byte_count);
 
     uint32_t io_read() {
         io_stb_assert();
