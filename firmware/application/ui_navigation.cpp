@@ -33,7 +33,6 @@
 #include "ui_adsb_rx.hpp"
 #include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
-#include "ui_bht_tx.hpp"
 #include "ui_btle_rx.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
@@ -136,7 +135,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     /* TX ********************************************************************/
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
-    {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
@@ -903,7 +901,8 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
-    set_max_rows(2);  // allow wider buttons
+    set_btn_height_fixed((screen_height - 16 - 16) / 6);  // this is for main menu height, to fill the screen
+    set_max_rows(2);                                      // allow wider buttons
     show_arrows_enabled(false);
 }
 
@@ -1041,22 +1040,26 @@ void SplashScreenView::focus() {
 
 SplashScreenView::SplashScreenView(NavigationView& nav)
     : nav_(nav) {
-    add_children({&button_done});
-
+    add_children({
+        &button_done,
+        // &bmp_view
+    });
     button_done.on_select = [this](Button&) {
         handle_pop();
     };
 }
 
 void SplashScreenView::paint(Painter&) {
+    constexpr const uint8_t zoom = 3;
+    // if (!bmp_view.load_bmp(splash_dot_bmp)) { //--too slow drawing, bc of the more bmp format support, and up-> down drawing
     if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
         // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
-        portapack::display.draw_bitmap({0,
+        portapack::display.draw_bitmap({screen_width / 2 - ((bitmap_titlebar_image.size.width() * zoom) / 2),
                                         screen_height / 2},
                                        bitmap_titlebar_image.size,
                                        bitmap_titlebar_image.data,
                                        Theme::getInstance()->bg_darkest->foreground,
-                                       Theme::getInstance()->bg_darkest->background, 3);
+                                       Theme::getInstance()->bg_darkest->background, zoom);
     // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
@@ -1151,8 +1154,8 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.draw_bitmap({screen_width / 2 - 3 * 16 / 2,
-                                                  screen_height / 2 - 3 * 16 / 2 - 100},
+    if (!compact) portapack::display.draw_bitmap({UI_POS_X_CENTER(6),
+                                                  UI_POS_Y(4)},
                                                  bitmap_icon_utilities.size,
                                                  bitmap_icon_utilities.data,
                                                  Theme::getInstance()->bg_darkest->foreground,

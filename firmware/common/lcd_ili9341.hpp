@@ -43,6 +43,7 @@ class ILI9341 {
     void operator=(const ILI9341&) = delete;
 
     bool read_display_status();
+    uint32_t lcd_read_display_id();
 
     void init();
     void shutdown();
@@ -62,7 +63,7 @@ class ILI9341 {
     void draw_pixel(const ui::Point p, const ui::Color color);
     void draw_bmp_from_bmp_hex_arr(const ui::Point p, const uint8_t* bitmap, const uint8_t* transparency_color);
     bool draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem::path& file);
-    void render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer);
+    void render_line(const ui::Point p, const uint16_t count, const ui::Color* line_buffer);
     void render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer);
 
     template <size_t N>
@@ -163,7 +164,6 @@ class ILI9341 {
         ui::Dim height;
         ui::Coord current_position;
     };
-
     scroll_t scroll_state;
 };
 

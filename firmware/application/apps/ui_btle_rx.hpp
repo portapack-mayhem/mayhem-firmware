@@ -63,22 +63,22 @@ class BTLERxView : public View {
     static constexpr uint8_t channel_number = 37;
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(21), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(21), 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     Button button_modem_setup{
-        {screen_width - 12 * 8, 1 * 16, 96, 24},
+        {screen_width - 12 * 8, UI_POS_Y(1), 96, 24},
         "Modem setup"};
 
     Console console{

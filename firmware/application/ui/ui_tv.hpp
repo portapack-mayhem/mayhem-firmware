@@ -50,11 +50,11 @@ class TimeScopeView : public View {
     int16_t audio_spectrum[128]{0};
 
     /*Labels labels {
-                { { 6 * 8, 0 * 16 }, "Hz", Theme::getInstance()->fg_light->foreground }
+                { { 6 * 8,UI_POS_Y(0) }, "Hz", Theme::getInstance()->fg_light->foreground }
         };*/
     /*
         NumberField field_frequency {
-                { 0 * 8, 0 * 16 },
+                { 0 * 8,UI_POS_Y(0) },
                 5,
                 { 0, 48000 },
                 48000 / 240,
@@ -108,7 +108,7 @@ class TVWidget : public View {
 
     void paint(Painter& painter) override;
     NumberField field_xcorr{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {0, 128},
         1,
@@ -117,7 +117,7 @@ class TVWidget : public View {
    private:
     void update_widgets_rect();
 
-    const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, screen_width, 2 * 16 + 20};
+    const Rect audio_spectrum_view_rect{UI_POS_X(0), UI_POS_Y(0), screen_width, 2 * 16 + 20};
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 

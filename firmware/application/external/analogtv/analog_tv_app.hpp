@@ -58,8 +58,8 @@ class AnalogTvView : public View {
     app_settings::SettingsManager settings_{
         "rx_tv", app_settings::Mode::RX};
 
-    const Rect options_view_rect{0 * 8, 1 * 16, screen_width, 1 * 16};
-    const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
+    const Rect options_view_rect{UI_POS_X(0), 1 * 16, screen_width, 1 * 16};
+    const Rect nbfm_view_rect{UI_POS_X(0), 1 * 16, 18 * 8, 1 * 16};
 
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
@@ -71,17 +71,17 @@ class AnalogTvView : public View {
         {21 * 8, 10, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
-        {5 * 8, 0 * 16},
+        {5 * 8, UI_POS_Y(0)},
         nav_};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     OptionsField options_modulation{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         4,
         {
             {"TV ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
@@ -90,7 +90,7 @@ class AnalogTvView : public View {
         }};
 
     AudioVolumeField field_volume{
-        {27 * 8, 0 * 16}};
+        {27 * 8, UI_POS_Y(0)}};
 
     std::unique_ptr<Widget> options_widget{};
 

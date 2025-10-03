@@ -35,7 +35,7 @@
 #include "radio_state.hpp"
 #include "portapack.hpp"
 
-namespace ui {
+namespace ui::external_app::bht_tx {
 
 class XylosView : public View {
    public:
@@ -218,11 +218,11 @@ class BHTView : public View {
         ' '};
 
     ProgressBar progressbar{
-        {0 * 8, 29 * 8, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(5), screen_width, 16},
     };
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 
@@ -234,4 +234,4 @@ class BHTView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::bht_tx

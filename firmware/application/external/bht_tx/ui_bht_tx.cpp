@@ -28,7 +28,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::bht_tx {
 
 void BHTView::focus() {
     tx_view.focus();
@@ -40,8 +40,7 @@ void BHTView::start_tx() {
     transmitter_model.set_baseband_bandwidth(1750000);
 
     if (target_system == XYLOS) {
-        baseband::run_image(portapack::spi_flash::image_tag_tones);
-
+        baseband::run_prepared_image(portapack::memory::map::m4_code.base());
         view_xylos.generate_message();
 
         // if (tx_mode == SINGLE) {
@@ -339,4 +338,4 @@ void XylosView::focus() {
     field_city.focus();
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::bht_tx

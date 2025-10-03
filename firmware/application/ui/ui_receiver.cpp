@@ -256,6 +256,7 @@ bool FrequencyKeypadView::on_encoder(const EncoderEvent delta) {
 FrequencyKeypadView::FrequencyKeypadView(
     NavigationView& nav,
     const rf::Frequency value) {
+    button_w = screen_width / 3;
     add_child(&text_value);
 
     const auto button_fn = [this](Button& button) {

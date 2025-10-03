@@ -70,7 +70,7 @@ void BlackjackView::frame_sync() {
 }
 
 void BlackjackView::clear_screen() {
-    painter.fill_rectangle({0, 0, 240, 320}, Color::black());
+    painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
 }
 
 void BlackjackView::init_deck() {
@@ -265,24 +265,24 @@ void BlackjackView::draw_menu_static() {
     auto style_text = *ui::Theme::getInstance()->fg_light;
     auto style_rules = *ui::Theme::getInstance()->fg_cyan;
 
-    painter.draw_string({84, 20}, style_title, "BLACKJACK");
+    painter.draw_string({UI_POS_X_CENTER(10), 20}, style_title, "BLACKJACK");
 
     // Draw rules
-    painter.draw_string({70, 55}, style_rules, "-- RULES --");
-    painter.draw_string({61, 75}, style_text, "Get close to 21");
-    painter.draw_string({61, 90}, style_text, "without going over");
-    painter.draw_string({61, 110}, style_text, "Dealer hits on 16");
-    painter.draw_string({61, 125}, style_text, "Dealer stays on 17");
-    painter.draw_string({61, 145}, style_text, "Blackjack pays 1:1");
+    painter.draw_string({UI_POS_X_CENTER(12), 55}, style_rules, "-- RULES --");
+    painter.draw_string({UI_POS_X_CENTER(16), 75}, style_text, "Get close to 21");
+    painter.draw_string({UI_POS_X_CENTER(19), 90}, style_text, "without going over");
+    painter.draw_string({UI_POS_X_CENTER(18), 110}, style_text, "Dealer hits on 16");
+    painter.draw_string({UI_POS_X_CENTER(19), 125}, style_text, "Dealer stays on 17");
+    painter.draw_string({UI_POS_X_CENTER(19), 145}, style_text, "Blackjack pays 1:1");
 
     // Controls
-    painter.draw_string({65, 175}, style_rules, "-- CONTROLS --");
-    painter.draw_string({61, 195}, style_text, "SELECT: Start/Hit");
-    painter.draw_string({61, 210}, style_text, "LEFT: Stats");
-    painter.draw_string({61, 225}, style_text, "RIGHT: Exit/Stay");
+    painter.draw_string({UI_POS_X_CENTER(15), 175}, style_rules, "-- CONTROLS --");
+    painter.draw_string({UI_POS_X_CENTER(18), 195}, style_text, "SELECT: Start/Hit");
+    painter.draw_string({UI_POS_X_CENTER(12), 210}, style_text, "LEFT: Stats");
+    painter.draw_string({UI_POS_X_CENTER(17), 225}, style_text, "RIGHT: Exit/Stay");
 
     // Draw high score
-    painter.draw_string({61, 250}, style_text, "High Score: $" + std::to_string(high_score));
+    painter.draw_string({UI_POS_X_CENTER(17), 250}, style_text, "High Score: $" + std::to_string(high_score));
 }
 
 void BlackjackView::draw_menu() {
@@ -293,10 +293,10 @@ void BlackjackView::draw_menu() {
 
         if (blink_state) {
             auto style = *ui::Theme::getInstance()->fg_yellow;
-            painter.draw_string({55, 280}, style, "* PRESS SELECT *");
+            painter.draw_string({UI_POS_X_CENTER(17), 280}, style, "* PRESS SELECT *");
         } else {
             // Clear just the text area
-            painter.fill_rectangle({55, 278, 130, 20}, Color::black());
+            painter.fill_rectangle({UI_POS_X_CENTER(17), 278, 130, 20}, Color::black());
         }
     }
 }
@@ -308,27 +308,27 @@ void BlackjackView::draw_stats() {
     auto style_text = *ui::Theme::getInstance()->fg_light;
     auto style_value = *ui::Theme::getInstance()->fg_yellow;
 
-    painter.draw_string({75, 30}, style_title, "STATISTICS");
+    painter.draw_string({UI_POS_X_CENTER(11), 30}, style_title, "STATISTICS");
 
     painter.draw_string({30, 80}, style_text, "Wins:");
-    painter.draw_string({150, 80}, style_value, std::to_string(wins));
+    painter.draw_string({UI_POS_X_CENTER(5), 80}, style_value, std::to_string(wins));
 
     painter.draw_string({30, 100}, style_text, "Losses:");
-    painter.draw_string({150, 100}, style_value, std::to_string(losses));
+    painter.draw_string({UI_POS_X_CENTER(5), 100}, style_value, std::to_string(losses));
 
     // Win percentage
     uint32_t total = wins + losses;
     if (total > 0) {
         uint32_t win_pct = (wins * 100) / total;
         painter.draw_string({30, 120}, style_text, "Win %:");
-        painter.draw_string({150, 120}, style_value, std::to_string(win_pct) + "%");
+        painter.draw_string({UI_POS_X_CENTER(5), 120}, style_value, std::to_string(win_pct) + "%");
     }
 
     painter.draw_string({30, 160}, style_text, "High Score:");
-    painter.draw_string({150, 160}, style_value, "$" + std::to_string(high_score));
+    painter.draw_string({UI_POS_X_CENTER(5), 160}, style_value, "$" + std::to_string(high_score));
 
     painter.draw_string({30, 180}, style_text, "Cash:");
-    painter.draw_string({150, 180}, style_value, "$" + std::to_string(cash));
+    painter.draw_string({UI_POS_X_CENTER(5), 180}, style_value, "$" + std::to_string(cash));
 
     painter.draw_string({40, 250}, style_text, "SELECT: Back");
 }
@@ -416,7 +416,7 @@ void BlackjackView::draw_game() {
             }
 
             // Draw result
-            painter.draw_string({60, 270}, *style_result, result);
+            painter.draw_string({UI_POS_X_CENTER(result.length()), 270}, *style_result, result);
 
             // Draw compact bet selector in top right area
             auto style_bet = *ui::Theme::getInstance()->fg_cyan;
@@ -620,8 +620,8 @@ void BlackjackView::draw_card(int x, int y, uint8_t card, bool hidden) {
 void BlackjackView::draw_hand(int x, int y, uint8_t* cards, uint8_t count, bool is_dealer) {
     // Calculate total width needed
     const int card_width = 60;
-    const int overlap = 40;         // Amount of overlap when cards need to fit
-    const int max_width = 230 - x;  // Available width on screen
+    const int overlap = 40;                       // Amount of overlap when cards need to fit
+    const int max_width = screen_width - 10 - x;  // Available width on screen
 
     int spacing;
     if (count == 1) {

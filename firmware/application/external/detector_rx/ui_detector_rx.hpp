@@ -77,7 +77,9 @@ class DetectorRxView : public View {
         }};
 
     Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(6), UI_POS_Y(0)}, "VOL:  ", Theme::getInstance()->fg_light->foreground},
+    };
 
     LNAGainField field_lna{
         {UI_POS_X(4), UI_POS_Y(0)}};
@@ -89,7 +91,7 @@ class DetectorRxView : public View {
         {UI_POS_X(18), UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {UI_POS_X(24), UI_POS_Y(0)}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     OptionsField field_mode{
         {UI_POS_X(0), UI_POS_Y(1)},

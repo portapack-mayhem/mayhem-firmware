@@ -197,11 +197,11 @@ class EPIRBAppView : public ui::View {
     static constexpr auto header_height = 4 * 16;
 
     ui::Text label_frequency{
-        {0 * 8, 0 * 16, 4 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 4 * 8, 1 * 16},
         "Freq"};
 
     ui::OptionsField options_frequency{
-        {5 * 8, 0 * 16},
+        {5 * 8, UI_POS_Y(0)},
         7,
         {
             {"406.028", 406028000},
@@ -212,26 +212,26 @@ class EPIRBAppView : public ui::View {
         }};
 
     ui::RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     ui::LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     ui::VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     ui::RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
-
-    ui::AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
 
     ui::Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
+
+    ui::AudioVolumeField field_volume{
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     // Status display
     ui::Text label_status{
-        {0 * 8, 1 * 16, 15 * 8, 1 * 16},
+        {UI_POS_X(0), 1 * 16, 15 * 8, 1 * 16},
         "Listening..."};
 
     ui::Text label_beacons_count{
@@ -239,12 +239,12 @@ class EPIRBAppView : public ui::View {
         "Beacons: 0"};
 
     ui::Text label_packet_stats{
-        {0 * 8, 3 * 16, 29 * 8, 1 * 16},
+        {UI_POS_X(0), 3 * 16, 29 * 8, 1 * 16},
         ""};
 
     // Latest beacon info display
     ui::Text label_latest{
-        {0 * 8, 2 * 16, 8 * 8, 1 * 16},
+        {UI_POS_X(0), 2 * 16, 8 * 8, 1 * 16},
         "Latest:"};
 
     ui::Text text_latest_info{

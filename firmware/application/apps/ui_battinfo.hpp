@@ -98,7 +98,7 @@ class BattinfoView : public View {
         "Volt"};
 
     Button button_exit{
-        {72, 17 * 16, 96, 32},
+        {UI_POS_X_CENTER(12), 17 * 16, UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "Back"};
     static msg_t static_fn(void* arg);
     Thread* thread{nullptr};

@@ -33,7 +33,6 @@
 namespace ui::external_app::game2048 {
 
 #define GRID_SIZE 4
-#define TILE_SIZE 50
 #define TILE_MARGIN 5
 #define BOARD_START_X 15
 #define BOARD_START_Y 35
@@ -63,6 +62,7 @@ class Game2048View : public View {
     Painter painter{};
 
     int grid[GRID_SIZE][GRID_SIZE];
+    int TILE_SIZE = 50;
     int score;
     int best_score;
     GameState game_state;

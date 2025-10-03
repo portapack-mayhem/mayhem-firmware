@@ -52,7 +52,7 @@ PlaylistEditorView::PlaylistEditorView(NavigationView& nav)
                   &button_insert,
                   &button_save_playlist});
 
-    menu_view.set_parent_rect({0, 2 * 8, screen_width, 24 * 8});
+    menu_view.set_parent_rect({0, 2 * 8, screen_width, UI_POS_HEIGHT_REMAINING(9)});
 
     menu_view.on_highlight = [this]() {
         text_hint.set("Edit:" +

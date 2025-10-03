@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
-
+#pragma once
 #pragma pack(push, 1)
 struct bmp_header_t {
     uint16_t signature;

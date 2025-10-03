@@ -98,9 +98,9 @@ class RandomPasswordView : public View {
         "rx_passgen", app_settings::Mode::RX};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(30), UI_POS_Y(0)}, "------------seeds-------------", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(30), 3 * 16}, "-----------password-----------", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16 - 2}, "digits:", Theme::getInstance()->fg_light->foreground},
         {{screen_width / 2, 7 * 16 - 2}, "method:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -112,12 +112,12 @@ class RandomPasswordView : public View {
         {18 * 8, 1 * 16}};
 
     RSSI rssi{
-        {21 * 8, 1 * 16 + 0, 6 * 8, 4}};
+        {UI_POS_X(21), 1 * 16 + 0, UI_POS_WIDTH_REMAINING(21), 4}};
     Channel channel{
-        {21 * 8, 1 * 16 + 5, 6 * 8, 4}};
+        {UI_POS_X(21), 1 * 16 + 5, UI_POS_WIDTH_REMAINING(21), 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 1 * 16},
+        {UI_POS_X(0), 1 * 16},
         nav_};
 
     Button button_modem_setup{
@@ -180,7 +180,7 @@ class RandomPasswordView : public View {
         LanguageHelper::currentMessages[LANG_SAVE]};
 
     Button button_flood{
-        {0 * 8, 15 * 16 + 18, screen_width / 2, 22},
+        {UI_POS_X(0), 15 * 16 + 18, screen_width / 2, 22},
         LanguageHelper::currentMessages[LANG_FLOOD]};
 
     Button button_send{
@@ -188,7 +188,7 @@ class RandomPasswordView : public View {
         "Send pwd"};
 
     Button button_refresh{
-        {0 * 8, 17 * 16 + 10, screen_width / 2, 22},
+        {UI_POS_X(0), 17 * 16 + 10, screen_width / 2, 22},
         "Generate"};
 
     Button button_show_qr{

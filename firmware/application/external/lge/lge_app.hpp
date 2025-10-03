@@ -93,8 +93,8 @@ class LGEView : public View {
         {{2 * 8, 3 * 8}, "Room:", Theme::getInstance()->fg_light->foreground},
         {{14 * 8, 3 * 8}, "Text:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 5 * 8}, "Team:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 8}, "Player:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 8}, "Vest:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 8}, "Player:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 10 * 8}, "Vest:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 12 * 8}, "ID:", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 14 * 8}, "Pow:  /10", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 16 * 8}, "Time:  x100ms", Theme::getInstance()->fg_light->foreground}};
@@ -171,10 +171,10 @@ class LGEView : public View {
         '0'};
 
     Console console{
-        {0, 18 * 8, screen_width, 7 * 16}};
+        {0, 18 * 8, screen_width, UI_POS_Y_BOTTOM(4) - 18 * 8}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 

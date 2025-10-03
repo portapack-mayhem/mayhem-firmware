@@ -96,42 +96,42 @@ class SondeView : public View {
     Labels labels{
         {{4 * 8, 2 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{6 * 8, 3 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "DateTime:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "DateTime:", Theme::getInstance()->fg_light->foreground},
 
         {{3 * 8, 5 * 16}, "Vbatt:", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 6 * 16}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 7 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 8 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {21 * 8, 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Checkbox check_log{
-        {22 * 8, 8 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(8)},
         3,
         "Log"};
 
     Checkbox check_crc{
-        {22 * 8, 10 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(10)},
         3,
         "CRC"};
 
@@ -169,11 +169,11 @@ class SondeView : public View {
         GeoPos::spd_unit::HIDDEN};
 
     Button button_see_qr{
-        {2 * 8, 15 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 3 * 16},
         "See QR"};
 
     Button button_see_map{
-        {16 * 8, 15 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 3 * 16},
         "See on map"};
 
     GeoMapView* geomap_view_{nullptr};

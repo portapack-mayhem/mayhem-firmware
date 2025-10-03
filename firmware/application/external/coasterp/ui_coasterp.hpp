@@ -88,7 +88,7 @@ class CoasterPagerView : public View {
         ""};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 

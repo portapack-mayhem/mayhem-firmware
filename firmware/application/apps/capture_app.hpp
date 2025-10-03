@@ -65,31 +65,31 @@ class CaptureAppView : public View {
         }};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Rate:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 1 * 16}, "Format:", Theme::getInstance()->fg_light->foreground},
     };
 
     RSSI rssi{
-        {24 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(24), 0, UI_POS_WIDTH_REMAINING(24), 4}};
 
     Channel channel{
-        {24 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(24), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     FrequencyStepView field_frequency_step{
-        {10 * 8, 0 * 16}};
+        {10 * 8, UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     OptionsField option_bandwidth{
         {5 * 8, 1 * 16},
@@ -109,7 +109,7 @@ class CaptureAppView : public View {
         /*small*/ true};
 
     RecordView record_view{
-        {0 * 8, 2 * 16, screen_width, 1 * 16},
+        {UI_POS_X(0), 2 * 16, screen_width, 1 * 16},
         u"BBD_????.*",
         captures_dir,
         RecordView::FileType::RawS16,

@@ -155,42 +155,42 @@ class BleRecentEntryDetailView : public View {
     static constexpr uint8_t total_data_lines{5};
 
     Labels label_mac_address{
-        {{0 * 8, 0 * 16}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_mac_address{
-        {12 * 8, 0 * 16, 17 * 8, 16},
+        {UI_POS_X(12), UI_POS_Y(0), UI_POS_WIDTH(17), UI_POS_HEIGHT(1)},
         "-"};
 
     Labels label_pdu_type{
-        {{0 * 8, 1 * 16}, "PDU Type:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "PDU Type:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_pdu_type{
-        {9 * 8, 1 * 16, 17 * 8, 16},
+        {9 * 8, UI_POS_Y(1), 17 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Labels label_vendor{
-        {{0 * 8, 2 * 16}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_vendor{
-        {7 * 8, 2 * 16, 23 * 8, 16},
+        {7 * 8, UI_POS_Y(2), 23 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Labels labels{
-        {{0 * 8, 3 * 16}, "Len", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 3 * 16}, "Type", Theme::getInstance()->fg_light->foreground},
-        {{10 * 8, 3 * 16}, "Value", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(3)}, "Len", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, UI_POS_Y(3)}, "Type", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, UI_POS_Y(3)}, "Value", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_send{
-        {19, 224, 96, 24},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), 224, 96, 24},
         "Send"};
 
     Button button_done{
-        {125, 224, 96, 24},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), 224, 96, 24},
         "Done"};
 
     Button button_save{
-        {72, 264, 96, 24},
+        {UI_POS_X_CENTER(12), 264, 96, 24},
         "Save"};
 
     bool send_updates{false};
@@ -294,7 +294,7 @@ class BLERxView : public View {
     static constexpr auto switch_button_height = 3 * 16;
 
     OptionsField options_channel{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {{"Ch.37", 37},
          {"Ch.38", 38},
@@ -302,29 +302,29 @@ class BLERxView : public View {
          {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
-        {6 * 8, 0 * 16},
+        {UI_POS_X(6), UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {UI_POS_X(16), UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {UI_POS_X(21), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {24 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(24), 0, UI_POS_WIDTH_REMAINING(6), 4}};
 
     Channel channel{
-        {24 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(24), 5, UI_POS_WIDTH_REMAINING(6), 4}};
 
     Labels label_sort{
-        {{0 * 8, 2 * 8}, "Sort:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Sort:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_sort{
-        {5 * 8, 2 * 8},
+        {5 * 8, UI_POS_Y(1)},
         4,
         {{"MAC", 0},
          {"Hits", 1},
@@ -334,11 +334,11 @@ class BLERxView : public View {
          {"Info", 5}}};
 
     Button button_filter{
-        {11 * 8, 2 * 8, 7 * 8, 16},
+        {11 * 8, UI_POS_Y(1), 7 * 8, 16},
         "Filter:"};
 
     OptionsField options_filter{
-        {18 * 8 + 2, 2 * 8},
+        {18 * 8 + 2, UI_POS_Y(1)},
         7,
         {{"Data", 0},
          {"MAC", 1},
@@ -354,7 +354,7 @@ class BLERxView : public View {
         true};
 
     Checkbox check_name{
-        {0 * 8, 4 * 8 + 2},
+        {UI_POS_X(0), 4 * 8 + 2},
         3,
         "Name",
         true};
@@ -378,7 +378,7 @@ class BLERxView : public View {
         true};
 
     Button button_find{
-        {0 * 8, 10 * 8 - 2, 4 * 8, 16},
+        {UI_POS_X(0), 10 * 8 - 2, 4 * 8, 16},
         "Find"};
 
     Labels label_found{
@@ -389,15 +389,15 @@ class BLERxView : public View {
         "0/0"};
 
     Button button_clear_list{
-        {2 * 8, 320 - (16 + 32), 7 * 8, 32},
+        {2 * 8, screen_height - (16 + 32), 7 * 8, 32},
         "Clear"};
 
     Button button_save_list{
-        {11 * 8, 320 - (16 + 32), 11 * 8, 32},
+        {UI_POS_X_CENTER(11), screen_height - (16 + 32), 11 * 8, 32},
         "Export CSV"};
 
     Button button_switch{
-        {240 - 6 * 8, 320 - (16 + 32), 4 * 8, 32},
+        {UI_POS_X_RIGHT(6), screen_height - (16 + 32), 4 * 8, 32},
         "Tx"};
 
     std::string str_log{""};
@@ -407,7 +407,7 @@ class BLERxView : public View {
     BleRecentEntries tempList{};
 
     RecentEntriesColumns columns{{
-        {"Name", 17},
+        {"Name", 0},
         {"Hits", 7},
         {"dBm", 4},
     }};

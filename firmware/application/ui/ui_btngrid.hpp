@@ -89,9 +89,8 @@ class BtnGridView : public View {
     bool blacklisted_app(GridItem new_item);
 
     void update_items();
-    void set_btn_min_max_height(uint8_t min, uint8_t max) {
-        btn_h_min = min;
-        btn_h_max = max;
+    void set_btn_height_fixed(uint8_t h) {
+        button_h = h;
     }
 
    protected:
@@ -99,8 +98,6 @@ class BtnGridView : public View {
 
    private:
     int rows_{3};
-    uint8_t btn_h_min{40};
-    uint8_t btn_h_max{60};
     bool keep_highlight{false};
 
     std::vector<GridItem> menu_items{};

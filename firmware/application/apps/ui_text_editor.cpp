@@ -427,7 +427,7 @@ void TextViewer::set_font_zoom(bool zoom) {
 /* TextEditorMenu ***************************************************/
 
 TextEditorMenu::TextEditorMenu()
-    : View{{7 * 4, 9 * 4, 25 * 8, 25 * 8}} {
+    : View{{UI_POS_X_CENTER(25), 9 * 4, 25 * 8, 25 * 8}} {
     add_children(
         {
             &rect_frame,

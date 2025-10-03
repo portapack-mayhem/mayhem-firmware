@@ -106,14 +106,14 @@ class KeyfobView : public View {
         SymField::Type::Hex};
 
     Text text_status{
-        {2 * 8, 13 * 16, 128, 16},
+        {2 * 8, UI_POS_Y_BOTTOM(7), 128, 16},
         "Ready"};
 
     ProgressBar progressbar{
-        {2 * 8, 13 * 16 + 20, 208, 16}};
+        {2 * 8, UI_POS_Y_BOTTOM(6), UI_POS_WIDTH_REMAINING(4), 16}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         0,
         15,
         true};

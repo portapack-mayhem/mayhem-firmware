@@ -31,6 +31,7 @@ namespace ui {
 FreqManUIList::FreqManUIList(Rect parent_rect)
     : Widget{parent_rect},
       visible_lines_{(unsigned)parent_rect.height() / char_height} {
+    line_max_length = (parent_rect.width() - 8) / char_width;
     this->set_focusable(true);
 }
 

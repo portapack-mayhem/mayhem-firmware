@@ -175,8 +175,11 @@ void RecentEntriesTable<ui::external_app::ert_app::ERTRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
-    std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
+    const Style& style,
+    RecentEntriesColumns& columns) {
+    std::string lid = ert::format::id(entry.id);
+    lid.resize(columns.at(0).second, ' ');
+    std::string line = lid + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
 
     line += (entry.packet_type == ert::Packet::Type::SCM) ? ert::format::tamper_flags_scm(entry.last_tamper_flags) : ert::format::tamper_flags(entry.last_tamper_flags);
     line += (entry.received_count > 99) ? " ++" : to_string_dec_uint(entry.received_count, 3);

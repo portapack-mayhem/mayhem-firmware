@@ -130,6 +130,12 @@ bool FlashUtilityView::endsWith(const std::u16string& str, const std::u16string&
     }
 }
 
+void FlashUtilityView::wait_till_loaded() {
+    while (!isLoaded) {
+        chThdSleepMilliseconds(50);
+    }
+}
+
 std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::string_type path, ui::Painter& painter) {
     //
     painter.fill_rectangle(

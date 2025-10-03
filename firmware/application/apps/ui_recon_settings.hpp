@@ -225,7 +225,7 @@ class ReconSetupView : public View {
         {"More", Theme::getInstance()->fg_green->foreground, &viewMore}};
 
     Button button_save{
-        {9 * 8, 255, 14 * 8, 40},
+        {UI_POS_X_CENTER(18), 255, UI_POS_WIDTH(18), 40},
         "SAVE"};
 };
 

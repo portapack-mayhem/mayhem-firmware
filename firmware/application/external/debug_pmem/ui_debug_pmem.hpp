@@ -44,11 +44,11 @@ class DebugDumpView : public View {
     NavigationView& nav_;
 
     Text dump_output{
-        {0 * 8, 19 * 8, screen_width, 16},
+        {UI_POS_X(0), 19 * 8, screen_width, 16},
         ""};
 
     Button button_exit{
-        {22 * 8, 34 * 8, 8 * 8, 32},
+        {UI_POS_X_CENTER(8), UI_POS_Y_BOTTOM(4), 8 * 8, 32},
         "Exit"};
 };
 

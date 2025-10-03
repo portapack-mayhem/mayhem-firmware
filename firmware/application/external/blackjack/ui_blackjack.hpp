@@ -141,7 +141,7 @@ class BlackjackView : public View {
          {"highscore"sv, &high_score}}};
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

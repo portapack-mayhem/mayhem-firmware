@@ -69,7 +69,7 @@ class QRCodeView : public View {
     std::function<void(void)> on_close_{nullptr};
 
     QRCodeImage qr_code{
-        {50, 100, 100, 100}};
+        {UI_POS_X_CENTER(16), 63, 100, 100}};
 
     // Text text_qr {
     //	{ 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
@@ -77,7 +77,7 @@ class QRCodeView : public View {
     // };
 
     Button button_close{
-        {9 * 8, 31 * 8, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12), 31 * 8, 12 * 8, 3 * 16},
         "Back"};
 };
 

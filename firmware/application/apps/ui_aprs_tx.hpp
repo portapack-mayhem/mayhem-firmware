@@ -61,9 +61,9 @@ class APRSTXView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Source:       SSID:", Theme::getInstance()->fg_light->foreground},  // 6 alphanum + SSID
-        {{0 * 8, 2 * 16}, " Dest.:       SSID:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Info field:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Source:       SSID:", Theme::getInstance()->fg_light->foreground},  // 6 alphanum + SSID
+        {{UI_POS_X(0), 2 * 16}, " Dest.:       SSID:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "Info field:", Theme::getInstance()->fg_light->foreground},
     };
 
     SymField sym_source{
@@ -91,14 +91,14 @@ class APRSTXView : public View {
         ' '};
 
     Text text_payload{
-        {0 * 8, 5 * 16, screen_width, 16},
+        {UI_POS_X(0), 5 * 16, screen_width, 16},
         "-"};
     Button button_set{
-        {0 * 8, 6 * 16, 80, 32},
+        {UI_POS_X(0), 6 * 16, 80, 32},
         "Set"};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         5000,
         0  // disable setting bandwith, since APRS used fixed 10k bandwidth
     };

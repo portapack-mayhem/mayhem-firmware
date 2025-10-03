@@ -217,23 +217,24 @@ class ReconView : public View {
     std::unique_ptr<RecordView> record_view{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(6), UI_POS_Y(0)}, "VOL:  ", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, 8 * 16}, "START       END", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), (22 * 8)}, "                S:          ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {4 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {11 * 8, UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {24 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Text file_name{
         // show file used
@@ -297,7 +298,7 @@ class ReconView : public View {
         "CONFIG"};
 
     ButtonWithEncoder button_manual_start{
-        {0 * 8, 9 * 16, 11 * 8, 28},
+        {UI_POS_X(0), 9 * 16, 11 * 8, 28},
         ""};
 
     ButtonWithEncoder button_manual_end{
@@ -305,7 +306,7 @@ class ReconView : public View {
         ""};
 
     OptionsField field_recon_match_mode{
-        {0 * 8, 11 * 16},
+        {UI_POS_X(0), 11 * 16},
         16,  // CONTINUOUS MATCH MODE / SPARSE TIMED MATCH MODE
         {
             {"MATCH:CONTINOUS", 0},
@@ -363,15 +364,15 @@ class ReconView : public View {
     };
 
     ButtonWithEncoder button_pause{
-        {0, (15 * 16) - 4, 72, 28},
+        {0, (15 * 16) - 4, UI_POS_WIDTH(9), 28},
         "PAUSE"};
 
     Button button_audio_app{
-        {84, (15 * 16) - 4, 72, 28},
+        {UI_POS_X_CENTER(9), (15 * 16) - 4, UI_POS_WIDTH(9), 28},
         "AUDIO"};
 
     ButtonWithEncoder button_add{
-        {168, (15 * 16) - 4, 72, 28},
+        {UI_POS_X_RIGHT(9), (15 * 16) - 4, UI_POS_WIDTH(9), 28},
         "<STORE>"};
 
     Button button_dir{
@@ -383,15 +384,15 @@ class ReconView : public View {
         "RST"};
 
     Button button_mic_app{
-        {84, (35 * 8) - 4, 72, 28},
+        {UI_POS_X_CENTER(9), (35 * 8) - 4, UI_POS_WIDTH(9), 28},
         "MIC TX"};
 
     ButtonWithEncoder button_remove{
-        {168, (35 * 8) - 4, 72, 28},
+        {UI_POS_X_RIGHT(9), (35 * 8) - 4, UI_POS_WIDTH(9), 28},
         "<REMOVE>"};
 
     ProgressBar progressbar{
-        {0 * 8, screen_height / 2 - 16, screen_width, 32}};
+        {UI_POS_X(0), screen_height / 2 - 16, screen_width, 32}};
 
     TransmitterView2 tx_view{
         {11 * 8, 2 * 16},

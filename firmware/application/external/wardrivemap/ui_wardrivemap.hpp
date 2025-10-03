@@ -48,16 +48,16 @@ class WardriveMapView : public View {
     const std::filesystem::path flippersub_dir = u"subghz";
     NavigationView& nav_;
 
-    Text text_info{{0 * 8, 0 * 8, 20 * 8, 16 * 1}, "0 / 30"};
-    Text text_notfound{{0 * 8, 0 * 8, screen_width, 16 * 1}, "No GeoTagged captures found"};
+    Text text_info{{UI_POS_X(0), 0 * 8, 20 * 8, 16 * 1}, "0 / 30"};
+    Text text_notfound{{UI_POS_X(0), 0 * 8, screen_width, 16 * 1}, "No GeoTagged captures found"};
     GeoPos geopos{
         {0, 20},
         GeoPos::alt_unit::METERS,
         GeoPos::spd_unit::HIDDEN};
     GeoMap geomap{{0, 75, screen_width, screen_height - 75}};
 
-    Button btn_back{{22 * 8, 0 * 8, 3 * 8, 16}, "<-"};
-    Button btn_next{{26 * 8, 0 * 8, 3 * 8, 16}, "->"};
+    Button btn_back{{UI_POS_X_RIGHT(8), 0 * 8, 3 * 8, 16}, "<-"};
+    Button btn_next{{UI_POS_X_RIGHT(4), 0 * 8, 3 * 8, 16}, "->"};
 
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);

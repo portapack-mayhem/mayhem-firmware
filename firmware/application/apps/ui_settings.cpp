@@ -40,6 +40,7 @@ using namespace lpc43xx;
 
 #include "audio.hpp"
 #include "portapack.hpp"
+#include "portapack_io.hpp"
 using namespace portapack;
 
 #include "file.hpp"
@@ -759,7 +760,7 @@ AppSettingsView::AppSettingsView(
     add_children({&labels,
                   &menu_view});
 
-    menu_view.set_parent_rect({0, 3 * 8, screen_width, 33 * 8});
+    menu_view.set_parent_rect({0, 3 * 8, screen_width, UI_POS_HEIGHT_REMAINING(3)});
 
     ensure_directory(settings_dir);
 
@@ -810,8 +811,11 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
                   &field_fake_brightness,
                   &button_save,
                   &button_cancel,
-                  &checkbox_ips_screen_switch,
                   &checkbox_brightness_switch});
+
+    if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+        add_child(&checkbox_ips_screen_switch);
+    }
 
     field_fake_brightness.set_by_value(pmem::fake_brightness_level());
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());

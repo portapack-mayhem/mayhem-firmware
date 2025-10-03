@@ -62,18 +62,18 @@ class NRFRxView : public View {
     uint32_t prev_value{0};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 0, UI_POS_WIDTH_REMAINING(22), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {21 * 8, 5, UI_POS_WIDTH_REMAINING(22), 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     Button button_modem_setup{

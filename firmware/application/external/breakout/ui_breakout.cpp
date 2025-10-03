@@ -333,11 +333,11 @@ void BreakoutView::show_menu() {
         auto style_blue = *ui::Theme::getInstance()->fg_blue;
         auto style_cyan = *ui::Theme::getInstance()->fg_cyan;
 
-        painter.draw_string({50, 40}, style_yellow, "*** BREAKOUT ***");
-        painter.draw_string({20, 100}, style_blue, "========================");
-        painter.draw_string({30, 130}, style_cyan, "ROTARY: MOVE PADDLE");
-        painter.draw_string({30, 160}, style_cyan, "SELECT: START/LAUNCH");
-        painter.draw_string({20, 190}, style_blue, "========================");
+        painter.draw_string({UI_POS_X_CENTER(17), 40}, style_yellow, "*** BREAKOUT ***");
+        painter.draw_string({UI_POS_X_CENTER(25), 100}, style_blue, "========================");
+        painter.draw_string({UI_POS_X_CENTER(20), 130}, style_cyan, "ROTARY: MOVE PADDLE");
+        painter.draw_string({UI_POS_X_CENTER(21), 160}, style_cyan, "SELECT: START/LAUNCH");
+        painter.draw_string({UI_POS_X_CENTER(25), 190}, style_blue, "========================");
     }
 
     auto style_red = *ui::Theme::getInstance()->fg_red;
@@ -346,10 +346,10 @@ void BreakoutView::show_menu() {
         menu_blink_counter = 0;
         menu_blink_state = !menu_blink_state;
 
-        painter.fill_rectangle({56, 228, 128, 20}, Color::black());
+        painter.fill_rectangle({UI_POS_X_CENTER(17), 228, 128, 20}, Color::black());
 
         if (menu_blink_state) {
-            painter.draw_string({56, 230}, style_red, "* PRESS SELECT *");
+            painter.draw_string({UI_POS_X_CENTER(17), 230}, style_red, "* PRESS SELECT *");
         }
     }
 }
@@ -362,8 +362,8 @@ void BreakoutView::show_game_over() {
         auto style_red = *ui::Theme::getInstance()->fg_red;
         auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
 
-        painter.draw_string({90, 100}, style_red, "GAME OVER");
-        painter.draw_string({50, 150}, style_yellow, "SCORE: " + std::to_string(score));
+        painter.draw_string({UI_POS_X_CENTER(10), 100}, style_red, "GAME OVER");
+        painter.draw_string({UI_POS_X_CENTER(11), 150}, style_yellow, "SCORE: " + std::to_string(score));
     }
 
     auto style_green = *ui::Theme::getInstance()->fg_green;
@@ -372,10 +372,10 @@ void BreakoutView::show_game_over() {
         gameover_blink_counter = 0;
         gameover_blink_state = !gameover_blink_state;
 
-        painter.fill_rectangle({72, 198, 96, 20}, Color::black());
+        painter.fill_rectangle({UI_POS_X_CENTER(13), 198, 96, 20}, Color::black());
 
         if (gameover_blink_state) {
-            painter.draw_string({72, 200}, style_green, "PRESS SELECT");
+            painter.draw_string({UI_POS_X_CENTER(13), 200}, style_green, "PRESS SELECT");
         }
     }
 }

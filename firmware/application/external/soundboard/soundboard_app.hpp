@@ -95,25 +95,25 @@ class SoundBoardView : public View {
     void update_config();
 
     Labels labels{
-        {{24 * 8, 180}, "Vol:", Theme::getInstance()->fg_light->foreground},
-        {{0, 180}, "Key:", Theme::getInstance()->fg_light->foreground}};
+        {{24 * 8, UI_POS_Y_BOTTOM(9)}, "Vol:", Theme::getInstance()->fg_light->foreground},
+        {{0, UI_POS_Y_BOTTOM(9)}, "Key:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_next_page{
-        {30 * 7, 25 * 8, 10 * 3, 2 * 14},
+        {UI_POS_X_RIGHT(4), UI_POS_Y_BOTTOM(8), 10 * 3, 2 * 14},
         "=>"};
 
     Button button_prev_page{
-        {17 * 10, 25 * 8, 10 * 3, 2 * 14},
+        {UI_POS_X_RIGHT(8), UI_POS_Y_BOTTOM(8), 10 * 3, 2 * 14},
         "<="};
 
     Text page_info{
-        {0, 29 * 8, screen_width, 16}};
+        {0, UI_POS_Y_BOTTOM(6), screen_width, 16}};
 
     MenuView menu_view{
-        {0, 0, screen_width, 175},
+        {0, 0, screen_width, UI_POS_Y_BOTTOM(9)},
         true};
     Text text_empty{
-        {7 * 8, 12 * 8, 16 * 8, 16},
+        {UI_POS_X_CENTER(16), 12 * 8, 16 * 8, 16},
         "Empty directory !",
     };
 
@@ -126,31 +126,31 @@ class SoundBoardView : public View {
         };*/
 
     OptionsField options_tone_key{
-        {4 * 8, 180},
+        {4 * 8, UI_POS_Y_BOTTOM(9)},
         18,
         {}};
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 180}};
+        {screen_width - 2 * 8, UI_POS_Y_BOTTOM(9)}};
     Text text_volume_disabled{
-        {screen_width - 2 * 8, 180, 3 * 8, 16},
+        {screen_width - 2 * 8, UI_POS_Y_BOTTOM(9), 3 * 8, 16},
         "--"};
 
     Checkbox check_loop{
-        {0, 25 * 8 + 4},
+        {0, UI_POS_Y_BOTTOM(8)},
         4,
         "Loop"};
 
     Checkbox check_random{
-        {10 * 7, 25 * 8 + 4},
+        {10 * 7, UI_POS_Y_BOTTOM(8)},
         6,
         "Random"};
 
     ProgressBar progressbar{
-        {0 * 8, 31 * 8 + 2, screen_width, 4}};
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(4.5) + 2, screen_width, 4}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         5000,
         12};
 

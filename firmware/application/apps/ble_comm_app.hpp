@@ -131,7 +131,7 @@ class BLECommView : public View {
     static constexpr auto header_height = 5 * 16;
 
     OptionsField options_channel{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         5,
         {{"Ch.37 ", 37},
          {"Ch.38", 38},
@@ -139,17 +139,17 @@ class BLECommView : public View {
          {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
-        {6 * 8, 0 * 16},
+        {6 * 8, UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
         {24 * 8, 0, 6 * 8, 4}};
@@ -164,7 +164,7 @@ class BLECommView : public View {
         true};
 
     Labels label_packets_sent{
-        {{0 * 8, 4 * 8}, "Packets Left:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 4 * 8}, "Packets Left:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_packets_sent{
         {13 * 8, 2 * 16, 12 * 8, 16},

@@ -36,9 +36,9 @@
  * DMA driver system settings.
  */
 
-//#define LPC_ADC0_IRQ_PRIORITY               2
+// #define LPC_ADC0_IRQ_PRIORITY               2
 #define LPC_DMA_IRQ_PRIORITY 3
-//#define LPC_ADC1_IRQ_PRIORITY               4
+// #define LPC_ADC1_IRQ_PRIORITY               4
 
 #define LPC43XX_M0APPTXEVENT_IRQ_PRIORITY 4
 

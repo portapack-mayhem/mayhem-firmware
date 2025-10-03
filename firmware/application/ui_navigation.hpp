@@ -44,6 +44,7 @@
 #include "ui_dfu_menu.hpp"
 
 #include "bitmap.hpp"
+#include "ui_bmpview.hpp"
 #include "ff.h"
 #include "diskio.h"
 #include "lfsr_random.hpp"
@@ -205,11 +206,11 @@ class SystemStatusView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0 * 8, 0 * 16, ui::screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(0), ui::screen_width, 16},
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_back{
-        {0, 0 * 16, 12 * 8, 16},  // Back button also covers the title for easier touch.
+        {0, UI_POS_Y(0), 12 * 8, 16},  // Back button also covers the title for easier touch.
         &bitmap_icon_previous,
         Theme::getInstance()->bg_dark->foreground,
         Theme::getInstance()->bg_dark->background};
@@ -279,7 +280,7 @@ class SystemStatusView : public View {
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_clock_status{
-        {0, 0 * 16, 8, 1 * 16},
+        {0, UI_POS_Y(0), 8, 1 * 16},
         &bitmap_icon_clk_int,
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
@@ -291,7 +292,7 @@ class SystemStatusView : public View {
         Theme::getInstance()->bg_dark->background};
 
     SDCardStatusView sd_card_status_view{
-        {0, 0 * 16, 2 * 8, 1 * 16}};
+        {0, UI_POS_Y(0), 2 * 8, 1 * 16}};
 
     BatteryTextField battery_text{{0, 0, 2 * 8, 1 * 16}, 102};
     BatteryIcon battery_icon{{0, 0, 10, 1 * 16}, 102};
@@ -357,6 +358,7 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
+    // BMPViewer bmp_view{ {0, 0, screen_width, screen_height - 16}};
 };
 
 class ReceiversMenuView : public BtnGridView {
@@ -485,17 +487,17 @@ class ModalMessageView : public View {
     const bool compact;
 
     Button button_ok{
-        {10 * 8, 14 * 16, 10 * 8, 48},
+        {UI_POS_X_CENTER(10), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(3)},
         "OK",
     };
 
     Button button_yes{
-        {5 * 8, 14 * 16, 8 * 8, 48},
+        {UI_POS_X_CENTER(8) - UI_POS_WIDTH(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "YES",
     };
 
     Button button_no{
-        {17 * 8, 14 * 16, 8 * 8, 48},
+        {UI_POS_X_CENTER(8) + UI_POS_WIDTH(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "NO",
     };
 };

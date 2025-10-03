@@ -170,7 +170,7 @@ class MicTXView : public View {
         {{17 * 8, 1 * 8}, "ALC", Theme::getInstance()->fg_light->foreground}};
 
     VuMeter vumeter{
-        {0 * 8, 1 * 8, 2 * 8, 33 * 8},
+        {UI_POS_X(0), 1 * 8, 2 * 8, 33 * 8},
         12,
         true};
 

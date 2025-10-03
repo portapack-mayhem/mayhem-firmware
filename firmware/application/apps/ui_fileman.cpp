@@ -294,6 +294,7 @@ FileManBaseView::FileManBaseView(
     std::string filter)
     : nav_{nav},
       extension_filter{filter} {
+    max_filename_length = screen_width / 8 - 10;
     add_children({&labels,
                   &text_current,
                   &button_exit});
@@ -403,7 +404,7 @@ void FileManBaseView::refresh_list() {
     menu_view.clear();
 
     for (const auto& entry : entry_list) {
-        auto entry_name = std::string{entry.path.length() <= 20 ? entry.path : entry.path.substr(0, 20)};
+        auto entry_name = std::string{entry.path.length() <= max_filename_length ? entry.path : entry.path.substr(0, max_filename_length)};
 
         if (entry.is_directory) {
             std::string size_str{};
@@ -414,7 +415,7 @@ void FileManBaseView::refresh_list() {
             }
 
             menu_view.add_item(
-                {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
+                {entry_name.substr(0, max_filename_length) + std::string((max_filename_length + 1) - entry_name.length(), ' ') + size_str,
                  Theme::getInstance()->fg_yellow->foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -427,7 +428,7 @@ void FileManBaseView::refresh_list() {
             auto size_str = to_string_file_size(entry.size);
 
             menu_view.add_item(
-                {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
+                {entry_name.substr(0, max_filename_length) + std::string((max_filename_length + 1) - entry_name.length(), ' ') + size_str,
                  assoc.color,
                  assoc.icon,
                  [this](KeyEvent key) {
@@ -486,7 +487,7 @@ FileLoadView::FileLoadView(
     add_children({&menu_view});
 
     // Resize menu view to fill screen
-    menu_view.set_parent_rect({0, 3 * 8, screen_width, 29 * 8});
+    menu_view.set_parent_rect({0, 3 * 8, screen_width, UI_POS_HEIGHT_REMAINING(4.5)});
 
     refresh_list();
 

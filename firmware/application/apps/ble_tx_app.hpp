@@ -190,24 +190,24 @@ class BLETxView : public View {
     static constexpr auto switch_button_height = 6 * 16;
 
     Button button_open{
-        {0 * 8, 0 * 16, 10 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 10 * 8, 2 * 16},
         "Open file"};
 
     Text text_filename{
-        {11 * 8, 0 * 16, 12 * 8, 16},
+        {11 * 8, UI_POS_Y(0), UI_POS_WIDTH_REMAINING(11), 16},
         "-"};
 
     ProgressBar progressbar{
-        {11 * 8, 1 * 16, 9 * 8, 16}};
+        {11 * 8, 1 * 16, UI_POS_WIDTH_REMAINING(11 + 10), 16}};
 
     Checkbox check_rand_mac{
-        {21 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(9), 1 * 16},
         6,
         "?? Mac",
         true};
 
     TxFrequencyField field_frequency{
-        {0 * 8, 2 * 16},
+        {UI_POS_X(0), 2 * 16},
         nav_};
 
     TransmitterView2 tx_view{
@@ -215,19 +215,19 @@ class BLETxView : public View {
         /*short_ui*/ true};
 
     Checkbox check_loop{
-        {21 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(9), 2 * 16},
         4,
         "Loop",
         true};
 
     ImageButton button_play{
-        {28 * 8, 2 * 16, 2 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(2), 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
 
     Labels label_speed{
-        {{0 * 8, 6 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 6 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_speed{
         {7 * 8, 6 * 8},
@@ -259,7 +259,7 @@ class BLETxView : public View {
          {"CONNECT_REQ", PKT_TYPE_CONNECT_REQ}}};
 
     Labels label_marked_data{
-        {{0 * 8, 4 * 16}, "Marked Data:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 4 * 16}, "Marked Data:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField marked_data_sequence{
         {12 * 8, 8 * 8},
@@ -269,42 +269,42 @@ class BLETxView : public View {
          {"Random", 2}}};
 
     Labels label_packet_index{
-        {{0 * 8, 12 * 8}, "Packet Index:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 12 * 8}, "Packet Index:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_packet_index{
         {13 * 8, 6 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_packets_sent{
-        {{0 * 8, 14 * 8}, "Repeat Count:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 14 * 8}, "Repeat Count:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_packets_sent{
         {13 * 8, 7 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_mac_address{
-        {{0 * 8, 16 * 8}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 16 * 8}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_mac_address{
         {12 * 8, 8 * 16, 20 * 8, 16},
         "-"};
 
     Labels label_data_packet{
-        {{0 * 8, 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
     TextViewer dataEditView{
         {0, 9 * 18, 240, 240}};
 
     Button button_clear_marked{
-        {1 * 8, 14 * 16, 13 * 8, 3 * 8},
+        {UI_POS_X(1), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(13), UI_POS_HEIGHT(1.5)},
         "Clear Marked"};
 
     Button button_save_packet{
-        {1 * 8, 16 * 16, 13 * 8, 2 * 16},
+        {UI_POS_X(1), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(13), UI_POS_HEIGHT(2)},
         "Save Packet"};
 
     Button button_switch{
-        {16 * 8, 16 * 16, 13 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(14), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(13), UI_POS_HEIGHT(2)},
         "Switch to Rx"};
 
     std::string str_log{""};

@@ -42,8 +42,6 @@ namespace ui {
 #define INVALID_ANGLE 400
 
 #define GEOMAP_BANNER_HEIGHT (3 * 16)
-#define GEOMAP_RECT_WIDTH 240
-#define GEOMAP_RECT_HEIGHT (320 - 16 - GEOMAP_BANNER_HEIGHT)
 
 #define TILE_SIZE 256
 
@@ -115,31 +113,31 @@ class GeoPos : public View {
     spd_unit speed_unit_{};
 
     Labels labels_position{
-        {{1 * 8, 0 * 16}, "Alt:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, UI_POS_Y(0)}, "Alt:", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},  // 0xB0 is degree ° symbol in our 8x16 font
         {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},
     };
     Labels label_spd_position{
-        {{15 * 8, 0 * 16}, "Spd:", Theme::getInstance()->fg_light->foreground},
+        {{15 * 8, UI_POS_Y(0)}, "Spd:", Theme::getInstance()->fg_light->foreground},
     };
     NumberField field_altitude{
-        {6 * 8, 0 * 16},
+        {6 * 8, UI_POS_Y(0)},
         5,
         {-1000, 50000},
         250,
         ' '};
 
     NumberField field_speed{
-        {19 * 8, 0 * 16},
+        {19 * 8, UI_POS_Y(0)},
         4,
         {0, 5000},
         1,
         ' '};
     Text text_alt_unit{
-        {12 * 8, 0 * 16, 2 * 8, 16},
+        {12 * 8, UI_POS_Y(0), 2 * 8, 16},
         ""};
     Text text_speed_unit{
-        {25 * 8, 0 * 16, 5 * 8, 16},
+        {25 * 8, UI_POS_Y(0), 5 * 8, 16},
         ""};
 
     NumberField field_lat_degrees{
@@ -242,10 +240,6 @@ class GeoMap : public Widget {
 
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
-
-    static const Dim banner_height = GEOMAP_BANNER_HEIGHT;
-    static const Dim geomap_rect_width = GEOMAP_RECT_WIDTH;
-    static const Dim geomap_rect_height = GEOMAP_RECT_HEIGHT;
 
    private:
     void draw_scale(Painter& painter);
@@ -370,7 +364,7 @@ class GeoMapView : public View {
         speed_unit_};
 
     GeoMap geomap{
-        {0, GeoMap::banner_height, GeoMap::geomap_rect_width, GeoMap::geomap_rect_height}};
+        {0, GEOMAP_BANNER_HEIGHT, screen_width, screen_height - 16 - GEOMAP_BANNER_HEIGHT}};
 
     Button button_ok{
         {screen_width - 15 * 8, 0, 15 * 8, 1 * 16},

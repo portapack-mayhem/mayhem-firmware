@@ -53,38 +53,38 @@ class CVSSpamView : public View {
     std::vector<std::filesystem::path> file_list{};
 
     MenuView menu_view{
-        {0, 0, screen_width, 180},
+        {0, 0, screen_width, UI_POS_HEIGHT_REMAINING(12)},
         true};
 
     Text text_empty{
-        {7 * 8, 12 * 8, 16 * 8, 16},
+        {UI_POS_X_CENTER(16), 12 * 8, UI_POS_WIDTH(16), UI_POS_HEIGHT(1)},
         "Empty directory!"};
 
     Button button_prev_page{
-        {0, 180, 50, 32},
+        {0, UI_POS_Y_BOTTOM(10), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         "<"};
 
     Button button_next_page{
-        {190, 180, 50, 32},
+        {UI_POS_X_RIGHT(3), UI_POS_Y_BOTTOM(10), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         ">"};
 
     Text page_info{
-        {95, 188, 50, 16}};
+        {UI_POS_X_CENTER(7), UI_POS_Y_BOTTOM(9.5), UI_POS_WIDTH(7), UI_POS_HEIGHT(1)}};
 
     Button button_send{
-        {0, 212, 75, 36},
+        {0, UI_POS_Y_BOTTOM(8), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
         "CALL"};
 
     Button button_chaos{
-        {82, 212, 75, 36},
+        {UI_POS_X_CENTER(9), UI_POS_Y_BOTTOM(8), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
         "CHAOS"};
 
     Button button_stop{
-        {165, 212, 75, 36},
+        {UI_POS_X_RIGHT(9), UI_POS_Y_BOTTOM(8), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
         LanguageHelper::currentMessages[LANG_STOP]};
 
     ProgressBar progressbar{
-        {0, 256, screen_width, 44}};
+        {0, UI_POS_Y_BOTTOM(6), screen_width, UI_POS_HEIGHT(5)}};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,

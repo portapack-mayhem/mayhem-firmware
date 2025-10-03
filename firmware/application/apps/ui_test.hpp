@@ -76,29 +76,29 @@ class TestView : public View {
     bool logging{false};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Data:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 1 * 16}, "Data:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4},
     };
 
     Text text_debug_a{
-        {0 * 8, 4 * 16, screen_width, 16},
+        {UI_POS_X(0), 4 * 16, screen_width, 16},
         "..."};
     Text text_debug_b{
-        {0 * 8, 5 * 16, screen_width, 16},
+        {UI_POS_X(0), 5 * 16, screen_width, 16},
         "..."};
 
     Button button_cal{

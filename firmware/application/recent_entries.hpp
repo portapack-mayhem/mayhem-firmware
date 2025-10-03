@@ -159,12 +159,12 @@ class RecentEntriesColumns {
 class RecentEntriesHeader : public Widget {
    public:
     RecentEntriesHeader(
-        const RecentEntriesColumns& columns);
+        RecentEntriesColumns& columns);
 
     void paint(Painter& painter) override;
 
    private:
-    const RecentEntriesColumns& _columns;
+    RecentEntriesColumns& _columns;
 };
 
 template <class Entries>
@@ -175,8 +175,10 @@ class RecentEntriesTable : public Widget {
     std::function<void(const Entry& entry)> on_select{};
 
     RecentEntriesTable(
-        Entries& recent)
-        : recent{recent} {
+        Entries& recent,
+        RecentEntriesColumns& columns)
+        : recent{recent},
+          columns{columns} {
     }
 
     void paint(Painter& painter) override {
@@ -199,7 +201,7 @@ class RecentEntriesTable : public Widget {
             const auto& entry = *p;
             const auto is_selected_key = (selected_key == entry.key());
             const auto item_style = (has_focus() && is_selected_key) ? s.invert() : s;
-            draw(entry, target_rect, painter, item_style);
+            draw(entry, target_rect, painter, item_style, columns);
             target_rect += {0, target_rect.height()};
         }
 
@@ -246,7 +248,7 @@ class RecentEntriesTable : public Widget {
 
    private:
     Entries& recent;
-
+    RecentEntriesColumns& columns;
     using EntryKey = typename Entry::Key;
     EntryKey selected_key = Entry::invalid_key;
 
@@ -280,7 +282,8 @@ class RecentEntriesTable : public Widget {
         const Entry& entry,
         const Rect& target_rect,
         Painter& painter,
-        const Style& style);
+        const Style& style,
+        RecentEntriesColumns& columns);
 };
 
 template <class Entries>
@@ -291,10 +294,34 @@ class RecentEntriesView : public View {
     std::function<void(const Entry& entry)> on_select{};
 
     RecentEntriesView(
-        const RecentEntriesColumns& columns,
+        RecentEntriesColumns& columns,
         Entries& recent)
         : _header{columns},
-          _table{recent} {
+          _table{recent, columns} {
+        // Re calculate the widths if we got any zero-width columns (max 1). That means 'fill all the remaining space'. Only 1 col can have that
+        uint16_t total_width = 0;
+        uint8_t zero_width_count = 0;
+        for (const auto& column : columns) {
+            if (column.second == 0) {
+                zero_width_count++;
+            } else {
+                total_width += column.second;  // char count
+            }
+        }
+        total_width += (columns.size() - 1);  // spaces between columns
+        if (zero_width_count >= 1) {          // we do only for the first, other 0-s will be ignored
+            const auto screen_width_chars = screen_width / UI_POS_DEFAULT_WIDTH;
+            const auto remaining_width = screen_width_chars > total_width ? screen_width_chars - total_width : 0;
+            uint8_t i = 0;
+            for (const auto& column : columns) {
+                if (column.second == 0) {
+                    columns.set(i, column.first, remaining_width);
+                    break;  // only the first 0-width column gets the remaining space
+                }
+                i++;
+            }
+        }
+
         add_children({
             &_header,
             &_table,

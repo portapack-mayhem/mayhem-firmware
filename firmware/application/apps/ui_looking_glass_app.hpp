@@ -170,7 +170,7 @@ class GlassView : public View {
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
+        {{0, UI_POS_Y(0)}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
         {{0, 2 * 16}, "P:", Theme::getInstance()->fg_light->foreground},
         {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::getInstance()->fg_light->foreground},
@@ -178,24 +178,24 @@ class GlassView : public View {
         {{0, 4 * 16}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency_min{
-        {4 * 8, 0 * 16},
+        {4 * 8, UI_POS_Y(0)},
         4,
         {0, 7199},
         1,  // number of steps by encoder delta
         ' '};
 
     NumberField field_frequency_max{
-        {13 * 8, 0 * 16},
+        {13 * 8, UI_POS_Y(0)},
         4,
         {1, 7200},
         1,  // number of steps by encoder delta
         ' '};
 
     LNAGainField field_lna{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {27 * 8, 0 * 16}};
+        {27 * 8, UI_POS_Y(0)}};
 
     TextField field_range{
         {6 * 8, 1 * 16, 6 * 8, 16},
@@ -298,7 +298,7 @@ class GlassView : public View {
         "RST"};
 
     Text freq_stats{
-        {0 * 8, 5 * 16, screen_width - 10 * 8, 8},
+        {UI_POS_X(0), 5 * 16, screen_width - 10 * 8, 8},
         ""};
 
     MessageHandlerRegistration message_handler_spectrum_config{
