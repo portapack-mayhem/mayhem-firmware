@@ -229,7 +229,7 @@ class DinoGameView : public View {
     bool easy_mode = false;
 
     Button button_difficulty{
-        {70, 195, 100, 20},
+        {UI_POS_X_CENTER(13), 195, 13 * 8, 20},
         "Mode: HARD"};
 
     app_settings::SettingsManager settings_{

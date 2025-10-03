@@ -178,12 +178,12 @@ void DinoGameView::show_menu() {
         auto style_title = *ui::Theme::getInstance()->fg_light;
 
         // Draw title
-        painter.draw_string({80, 60}, style_title, "DINO GAME");
+        painter.draw_string({UI_POS_X_CENTER(10), 60}, style_title, "DINO GAME");
 
         // Draw instructions
-        painter.draw_string({45, 130}, style, "SELECT: Jump/Start");
-        painter.draw_string({65, 150}, style, "DOWN: Duck");
-        painter.draw_string({50, 170}, style, "Avoid obstacles!");
+        painter.draw_string({UI_POS_X_CENTER(19), 130}, style, "SELECT: Jump/Start");
+        painter.draw_string({UI_POS_X_CENTER(11), 150}, style, "DOWN: Duck");
+        painter.draw_string({UI_POS_X_CENTER(17), 170}, style, "Avoid obstacles!");
 
         // Draw high score
         draw_high_score();
@@ -209,9 +209,9 @@ void DinoGameView::show_menu() {
         blink_counter = 0;
         blink_state = !blink_state;
 
-        painter.fill_rectangle({55, 258, 130, 20}, Color::black());
+        painter.fill_rectangle({UI_POS_X_CENTER(17), 258, 130, 20}, Color::black());
         if (blink_state) {
-            painter.draw_string({55, 260}, style_prompt, "* PRESS SELECT *");
+            painter.draw_string({UI_POS_X_CENTER(17), 260}, style_prompt, "* PRESS SELECT *");
         }
     }
 }
@@ -234,19 +234,19 @@ void DinoGameView::show_game_over() {
         auto style_score = *ui::Theme::getInstance()->fg_medium;
 
         // Game over text
-        painter.draw_string({85, 70}, style, "GAME OVER");
+        painter.draw_string({UI_POS_X_CENTER(10), 70}, style, "GAME OVER");
 
         // Show final score
         std::string score_text = "SCORE: " + score_to_string(score);
-        int score_x = (240 - score_text.length() * 8) / 2;
+        int score_x = (screen_width - score_text.length() * 8) / 2;
         painter.draw_string({score_x, 90}, style_score, score_text);
 
-        painter.draw_string({65, 110}, style, "SELECT TO RETRY");
+        painter.draw_string({UI_POS_X_CENTER(16), 110}, style, "SELECT TO RETRY");
 
         // Update high score
         if (score > highScore) {
             highScore = score;
-            painter.draw_string({55, 130}, style, "NEW HIGH SCORE!");
+            painter.draw_string({UI_POS_X_CENTER(16), 130}, style, "NEW HIGH SCORE!");
         }
     }
 }
@@ -743,8 +743,8 @@ void DinoGameView::draw_current_score() {
 
 void DinoGameView::draw_high_score() {
     auto style = *ui::Theme::getInstance()->fg_light;
-    painter.fill_rectangle({152, 28, 100, 14}, Color::black());
-    painter.draw_string({152, 30}, style, "HI " + score_to_string(highScore));
+    painter.fill_rectangle({UI_POS_X_RIGHT(9), 28, UI_POS_WIDTH(9), 18}, Color::black());
+    painter.draw_string({UI_POS_X_RIGHT(9), 30}, style, "HI " + score_to_string(highScore));
 }
 
 void DinoGameView::jump() {
