@@ -147,7 +147,7 @@ void Init() {
     // Initialize dynamic screen dimensions
     SCREEN_WIDTH = ui::screen_width;
     SCREEN_HEIGHT = ui::screen_height;
-    
+
     // For original screen size, use original dimensions
     if (SCREEN_WIDTH == 240 && SCREEN_HEIGHT == 320) {
         DIMENSION = 16;
@@ -158,13 +158,13 @@ void Init() {
         // Calculate dimensions for other screen sizes
         int available_width = (SCREEN_WIDTH * 3 / 4);
         int available_height = SCREEN_HEIGHT - 10;
-        
+
         int max_dimension_width = available_width / 10;
         int max_dimension_height = available_height / 20;
         DIMENSION = std::min(max_dimension_width, max_dimension_height);
-        
+
         if (DIMENSION < 8) DIMENSION = 8;
-        
+
         DIMENSION_NEXT = DIMENSION * 3 / 4;
         BOARD_RIGHT = 10 * DIMENSION + 2;
         INFO_LEFT = BOARD_RIGHT + 3;
