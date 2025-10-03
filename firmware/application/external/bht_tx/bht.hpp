@@ -24,7 +24,7 @@
 #include "ui_navigation.hpp"
 
 #include "tonesets.hpp"
-// #include "encoders.hpp"
+#include "encoders.hpp"
 
 using namespace encoders;
 
