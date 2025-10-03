@@ -27,6 +27,7 @@ namespace ui::external_app::game2048 {
 Game2048View::Game2048View(NavigationView& nav)
     : nav_(nav), score(0), best_score(0), game_state(STATE_PLAYING) {
     add_children({&dummy});
+    TILE_SIZE = (screen_width - 2 * BOARD_START_X - (GRID_SIZE + 1) * TILE_MARGIN) / GRID_SIZE;
     init_game();
 }
 
@@ -301,11 +302,11 @@ void Game2048View::draw_game() {
 void Game2048View::show_game_over() {
     if (show_you_won_you_lost_slow_down_cunter++ % 1000 != 0) return;
     // slow down otherwies it repaint even faster than it finished paint full stuff
-    painter.fill_rectangle({40, 100, 160, 100}, Color::black());
-    painter.draw_rectangle({40, 100, 160, 100}, Color::white());
-    painter.draw_string({80, 115}, *Theme::getInstance()->bg_darkest, "GAME OVER");
-    painter.draw_string({70, 135}, *Theme::getInstance()->bg_darkest, "Press SELECT");
-    painter.draw_string({75, 155}, *Theme::getInstance()->bg_darkest, "to restart");
+    painter.fill_rectangle({UI_POS_X_CENTER(20), 100, 160, 100}, Color::black());
+    painter.draw_rectangle({UI_POS_X_CENTER(20), 100, 160, 100}, Color::white());
+    painter.draw_string({UI_POS_X_CENTER(10), 115}, *Theme::getInstance()->bg_darkest, "GAME OVER");
+    painter.draw_string({UI_POS_X_CENTER(13), 135}, *Theme::getInstance()->bg_darkest, "Press SELECT");
+    painter.draw_string({UI_POS_X_CENTER(11), 155}, *Theme::getInstance()->bg_darkest, "to restart");
     need_repaint = false;
     need_repaint_bg_frame = true;
 }
@@ -313,11 +314,11 @@ void Game2048View::show_game_over() {
 void Game2048View::show_you_won() {
     if (show_you_won_you_lost_slow_down_cunter++ % 1000 != 0) return;
     // slow down otherwies it repaint even faster than it finished paint full stuff
-    painter.fill_rectangle({40, 100, 160, 100}, Color::black());
-    painter.draw_rectangle({40, 100, 160, 100}, Color::white());
-    painter.draw_string({80, 115}, *Theme::getInstance()->bg_darkest, "YOU WON!");
-    painter.draw_string({70, 135}, *Theme::getInstance()->bg_darkest, "Press SELECT");
-    painter.draw_string({75, 155}, *Theme::getInstance()->bg_darkest, "to restart");
+    painter.fill_rectangle({UI_POS_X_CENTER(20), 100, 160, 100}, Color::black());
+    painter.draw_rectangle({UI_POS_X_CENTER(20), 100, 160, 100}, Color::white());
+    painter.draw_string({UI_POS_X_CENTER(9), 115}, *Theme::getInstance()->bg_darkest, "YOU WON!");
+    painter.draw_string({UI_POS_X_CENTER(13), 135}, *Theme::getInstance()->bg_darkest, "Press SELECT");
+    painter.draw_string({UI_POS_X_CENTER(11), 155}, *Theme::getInstance()->bg_darkest, "to restart");
     need_repaint = false;
     need_repaint_bg_frame = true;
 }
