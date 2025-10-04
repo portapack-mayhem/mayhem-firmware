@@ -35,10 +35,16 @@ bool gameStarted = false;
 unsigned char nextFigure = 1;
 short board[20][10] = {0};
 const int colors[8] = {White, Blue, Yellow, Purple, Green, Red, Maroon, Orange};
-const short DIMENSION = 16;
-const short DIMENSION_NEXT = 12;
+short DIMENSION = 16;
+short DIMENSION_NEXT = 12;
 short figuresX[7][4] = {{0, 0, 0, 0}, {0, 0, 1, 1}, {0, 1, 1, 1}, {1, 1, 0, 0}, {0, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 0}};
 short figuresY[7][4] = {{0, 1, 2, 3}, {1, 0, 0, 1}, {1, 1, 2, 0}, {0, 1, 1, 2}, {0, 1, 1, 2}, {2, 1, 0, 0}, {0, 1, 2, 2}};
+
+// Dynamic screen values
+int SCREEN_WIDTH = 240;
+int SCREEN_HEIGHT = 320;
+int BOARD_RIGHT = 162;
+int INFO_LEFT = 165;
 
 const Color pp_colors[] = {
     Color::white(),
@@ -138,19 +144,44 @@ unsigned int GenerateRandomSeed() {
 }
 
 void Init() {
+    // Initialize dynamic screen dimensions
+    SCREEN_WIDTH = ui::screen_width;
+    SCREEN_HEIGHT = ui::screen_height;
+
+    // For original screen size, use original dimensions
+    if (SCREEN_WIDTH == 240 && SCREEN_HEIGHT == 320) {
+        DIMENSION = 16;
+        DIMENSION_NEXT = 12;
+        BOARD_RIGHT = 162;
+        INFO_LEFT = 165;
+    } else {
+        // Calculate dimensions for other screen sizes
+        int available_width = (SCREEN_WIDTH * 3 / 4);
+        int available_height = SCREEN_HEIGHT - 10;
+
+        int max_dimension_width = available_width / 10;
+        int max_dimension_height = available_height / 20;
+        DIMENSION = std::min(max_dimension_width, max_dimension_height);
+
+        if (DIMENSION < 8) DIMENSION = 8;
+
+        DIMENSION_NEXT = DIMENSION * 3 / 4;
+        BOARD_RIGHT = 10 * DIMENSION + 2;
+        INFO_LEFT = BOARD_RIGHT + 3;
+    }
 }
 
 void ShowScore() {
-    fillrect(165, 10, 235, 60, Black);
-    rect(165, 10, 235, 60, White);
-    locate(200, 35);
+    fillrect(INFO_LEFT, 10, SCREEN_WIDTH - 5, 60, Black);
+    rect(INFO_LEFT, 10, SCREEN_WIDTH - 5, 60, White);
+    locate((INFO_LEFT + SCREEN_WIDTH - 5) / 2 - 10, 35);
     printf("%d", score);
 }
 
 void ShowNextFigure() {
-    fillrect(165, 70, 235, 130, Black);
-    rect(165, 70, 235, 130, White);
-    int upperLeftX = 176, upperLeftY = 83;
+    fillrect(INFO_LEFT, 70, SCREEN_WIDTH - 5, 130, Black);
+    rect(INFO_LEFT, 70, SCREEN_WIDTH - 5, 130, White);
+    int upperLeftX = INFO_LEFT + 11, upperLeftY = 83;
     for (int i = 0; i < 4; i++) {
         int x = upperLeftX + DIMENSION_NEXT * figuresY[nextFigure - 1][i], y = upperLeftY + DIMENSION_NEXT * figuresX[nextFigure - 1][i];
         fillrect(x, y, x + DIMENSION_NEXT, y + DIMENSION_NEXT, colors[nextFigure]);
@@ -159,20 +190,20 @@ void ShowNextFigure() {
 }
 
 void DrawCursor(int color, unsigned char lev) {
-    fillrect(60, lev * 70 + 50, 72, lev * 70 + 50 + 12, color);
+    fillrect(UI_POS_X_CENTER(10) - 20, lev * 70 + 50, UI_POS_X_CENTER(10) - 8, lev * 70 + 50 + 12, color);
 }
 
 void ShowLevelMenu() {
     cls();
     background(Black);
     foreground(White);
-    locate(80, 50);
+    locate(UI_POS_X_CENTER(8), 50);
     printf("LEVEL 1");
-    locate(80, 120);
+    locate(UI_POS_X_CENTER(8), 120);
     printf("LEVEL 2");
-    locate(80, 190);
+    locate(UI_POS_X_CENTER(8), 190);
     printf("LEVEL 3");
-    locate(80, 260);
+    locate(UI_POS_X_CENTER(8), 260);
     printf("LEVEL 4");
     DrawCursor(White, level);
 }
@@ -209,9 +240,9 @@ void StartGame() {
     cls();
     background(Black);
     foreground(White);
-    fillrect(0, 0, 162, screen_height, Black);
-    rect(162, 0, 164, screen_height, White);
-    fillrect(164, 0, screen_width, screen_height, Black);
+    fillrect(0, 0, BOARD_RIGHT, SCREEN_HEIGHT, Black);
+    rect(BOARD_RIGHT, 0, BOARD_RIGHT + 2, SCREEN_HEIGHT, White);
+    fillrect(BOARD_RIGHT + 2, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Black);
     ShowScore();
     ShowNextFigure();
 }
@@ -483,7 +514,7 @@ void UpdateBoard() {
                 board[i - numberOfLines][j] = 0;
             }
         }
-        fillrect(0, 0, 162, screen_height, Black);
+        fillrect(0, 0, BOARD_RIGHT, SCREEN_HEIGHT, Black);
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 10; j++) {
                 if (board[i][j] != 0) {
@@ -509,9 +540,9 @@ bool IsOver() {
 void ShowGameOverScreen() {
     background(Black);
     foreground(White);
-    locate(60, 120);
+    locate(UI_POS_X_CENTER(10), 120);
     printf("GAME OVER");
-    locate(40, 150);
+    locate(UI_POS_X_CENTER(21), 150);
     printf("YOUR SCORE IS %d", score);
     wait(5);
 }
@@ -565,11 +596,11 @@ void OnTasterPressed() {
 void pause_game() {
     game.detach();
     joystick.detach();
-    locate(180, 200);
+    locate((INFO_LEFT + SCREEN_WIDTH) / 2 - 25, 200);
     printf("PAUSED");
     while ((get_switches_state().to_ulong() & 0x10) == 0)
         ;
-    printf("      ");
+    fillrect(INFO_LEFT, 195, SCREEN_WIDTH, 210, Black);
     joystick.attach(&ReadJoystickForFigure, 0.3);
     game.attach(&PlayGame, delays[level]);
 }
