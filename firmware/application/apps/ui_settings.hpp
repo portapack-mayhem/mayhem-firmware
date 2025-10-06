@@ -1008,7 +1008,7 @@ class SetBatteryView : public View {
         "Save"};
 
     Button button_reset{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y(13), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Reset",
     };
 };
