@@ -51,6 +51,10 @@
 #define __MAX17055_Design_Capacity__ BATTERY_DESIGN_CAP  // Battery Capacity
 #endif
 
+#ifndef __MAX17055_Design_Capacity_PRF__
+#define __MAX17055_Design_Capacity_PRF__ BATTERY_DESIGN_CAP_PRF  // Battery Capacity for PortaRF
+#endif
+
 // Define Gauge Resistor
 #ifndef __MAX17055_Resistor__
 #define __MAX17055_Resistor__ 0.01  // Shunt Resistor
