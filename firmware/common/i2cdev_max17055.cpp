@@ -246,7 +246,7 @@ bool I2cDev_MAX17055::initialize_custom_parameters() {
     if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty
     if (!write_register(0x60, 0x0090)) return false;                                  // Unknown register
     if (!write_register(0x46, ((designcap / 32) * 44138) * designcap)) return false;  // dPAcc
-    if (!write_register(0xDB, 0x8000)) return false;                                  // ModelCfg  --we should wait till it loads. While (ReadRegister(0xDB)&0x8000) Wait(10)；//do not continue until ModelCFG.Refresh == 0
+    if (!write_register(0xDB, 0x8000)) return false;                                  // ModelCfg  --we should wait till it loads here. While (ReadRegister(0xDB)&0x8000) Wait(10)；//do not continue until ModelCFG.Refresh == 0
     if (!write_register(0x40, 0x0001)) return false;                                  // Set user mem to 1
     return true;
 }
