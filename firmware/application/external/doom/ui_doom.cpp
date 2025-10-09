@@ -17,6 +17,7 @@ int SCREEN_HEIGHT = 0;
 int RENDER_HEIGHT = 0;
 int HALF_WIDTH = 0;
 int HALF_HEIGHT = 0;
+int HUD_HEIGHT = 40;
 #define LEVEL_WIDTH_BASE 6
 #define LEVEL_WIDTH (1 << LEVEL_WIDTH_BASE)
 #define LEVEL_HEIGHT 57
@@ -24,7 +25,7 @@ int HALF_HEIGHT = 0;
 #define MAX_RENDER_DEPTH 12
 #define MIN_ENTITIES 15
 #define MAX_ENTITIES 25
-#define RES_DIVIDER 2
+int RES_DIVIDER = 2;
 #define DISTANCE_MULTIPLIER 20
 #define ROT_SPEED 0.25
 #define MOV_SPEED 1.0
@@ -32,10 +33,10 @@ int HALF_HEIGHT = 0;
 #define MAX_ENTITY_DISTANCE 200
 #define ITEM_COLLIDER_DIST 6
 #include "mathdef.hpp"
-#define GUN_WIDTH 30
-#define GUN_HEIGHT 40
-#define GUN_TARGET_POS 24
-#define GUN_SHOT_POS (GUN_TARGET_POS + 6)
+int GUN_WIDTH = 30;
+int GUN_HEIGHT = 40;
+int GUN_TARGET_POS = 24;
+int GUN_SHOT_POS = 30;
 #define ENEMY_SIZE 16
 #define ENEMY_SPEED 0.03
 #define ENEMY_MELEE_DIST 20
@@ -145,7 +146,7 @@ static bool up, down, left, right, fired;
 static double jogging, view_height;
 static bool needs_redraw = false;
 static bool needs_gun_redraw = false;
-static uint8_t gun_pos = GUN_TARGET_POS;
+static uint8_t gun_pos = 24;
 static bool gun_fired = false;
 static int prev_gun_x = 0;
 static int prev_gun_y = 0;
@@ -850,7 +851,9 @@ void render_entities(Painter& painter) {
     }
 }
 
-void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t x_end = SCREEN_WIDTH) {
+void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t x_end = -1) {
+    if (x_end == -1) x_end = SCREEN_WIDTH;
+    
     if (full_clear) {
         painter.fill_rectangle({0, 0, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(64, 64, 128));
         painter.fill_rectangle({0, RENDER_HEIGHT / 2, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(32, 32, 32));
@@ -1001,11 +1004,21 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
 
 DoomView::DoomView(NavigationView& nav)
     : nav_{nav} {
-    SCREEN_WIDTH = screen_width;
-    SCREEN_HEIGHT = screen_height;
-    RENDER_HEIGHT = screen_height - 40;
-    HALF_WIDTH = screen_width / 2;
+    // Initialize screen dimensions
+    SCREEN_WIDTH = ui::screen_width;
+    SCREEN_HEIGHT = ui::screen_height;
+    HUD_HEIGHT = 40;
+    RENDER_HEIGHT = SCREEN_HEIGHT - HUD_HEIGHT;
+    HALF_WIDTH = SCREEN_WIDTH / 2;
     HALF_HEIGHT = RENDER_HEIGHT / 2;
+    
+    // Scale game elements based on screen size
+    RES_DIVIDER = (SCREEN_WIDTH > 300) ? 3 : 2;  // Higher res divider for larger screens
+    GUN_WIDTH = SCREEN_WIDTH / 8;
+    GUN_HEIGHT = SCREEN_HEIGHT / 8;
+    GUN_TARGET_POS = RENDER_HEIGHT / 13;
+    GUN_SHOT_POS = GUN_TARGET_POS + 6;
+    
     add_children({&dummy});
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
 }
@@ -1034,26 +1047,32 @@ void DoomView::paint(Painter& painter) {
 
     if (scene == 0) {
         auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
-        painter.draw_string({50, 40}, style_yellow, "* * * DOOM * * *");
+        painter.draw_string({UI_POS_X_CENTER(15), 40}, style_yellow, "* * * DOOM * * *");
         auto style_green = *ui::Theme::getInstance()->fg_green;
-        painter.draw_string({15, 240}, style_green, "** PRESS SELECT TO START **");
+        painter.draw_string({UI_POS_X_CENTER(26), SCREEN_HEIGHT - 80}, style_green, "** PRESS SELECT TO START **");
     } else if (scene == 1) {
         if (needs_redraw || (needs_gun_redraw && jogging > 0)) {
             bool full_clear = (player.velocity == 0 || !prev_velocity_moving);
             render_map(painter, full_clear);
             render_entities(painter);
             render_gun(painter, gun_pos, jogging);
+            
+            // Draw HUD
             painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
             auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
             auto style_red = *ui::Theme::getInstance()->fg_red;
             auto style_blue = *ui::Theme::getInstance()->fg_blue;
-            painter.draw_string({5, RENDER_HEIGHT + 5}, style_yellow, "Health: " + std::to_string(player.health));
-            painter.draw_string({100, RENDER_HEIGHT + 5}, style_red, "Kills: " + std::to_string(kills));
-            painter.draw_string({170, RENDER_HEIGHT + 5}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            
+            int hud_y = RENDER_HEIGHT + 5;
+            painter.draw_string({5, hud_y}, style_yellow, "Health: " + std::to_string(player.health));
+            painter.draw_string({UI_POS_X_CENTER(15), hud_y}, style_red, "Kills: " + std::to_string(kills));
+            painter.draw_string({UI_POS_X_RIGHT(80), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            
             prev_velocity_moving = (player.velocity != 0);
             needs_redraw = false;
             needs_gun_redraw = false;
         } else if (needs_gun_redraw) {
+            // Partial redraw for gun only
             int current_x = HALF_WIDTH - GUN_WIDTH / 2 + sin(LPC_RTC->CTIME0 * JOGGING_SPEED) * 10 * jogging;
             int current_y = RENDER_HEIGHT - gun_pos - 29 + fabs(cos(LPC_RTC->CTIME0 * JOGGING_SPEED)) * 8 * jogging;
             int flash_height = (gun_pos > GUN_TARGET_POS) ? (gun_pos - GUN_TARGET_POS) * 2 + 10 : 0;
@@ -1069,13 +1088,18 @@ void DoomView::paint(Painter& painter) {
             render_map(painter, false, min_x, max_x);
             render_entities(painter);
             render_gun(painter, gun_pos, jogging);
+            
+            // Redraw HUD
             painter.fill_rectangle({0, RENDER_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - RENDER_HEIGHT}, pp_colors[COLOR_BACKGROUND]);
             auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
             auto style_red = *ui::Theme::getInstance()->fg_red;
             auto style_blue = *ui::Theme::getInstance()->fg_blue;
-            painter.draw_string({5, RENDER_HEIGHT + 5}, style_yellow, "Health: " + std::to_string(player.health));
-            painter.draw_string({100, RENDER_HEIGHT + 5}, style_red, "Kills: " + std::to_string(kills));
-            painter.draw_string({170, RENDER_HEIGHT + 5}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            
+            int hud_y = RENDER_HEIGHT + 5;
+            painter.draw_string({5, hud_y}, style_yellow, "Health: " + std::to_string(player.health));
+            painter.draw_string({UI_POS_X_CENTER(15), hud_y}, style_red, "Kills: " + std::to_string(kills));
+            painter.draw_string({UI_POS_X_RIGHT(80), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            
             needs_gun_redraw = false;
         }
     }
