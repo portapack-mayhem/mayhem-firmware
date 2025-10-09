@@ -2167,12 +2167,14 @@ void BatteryIcon::paint(Painter& painter) {
     int8_t ptd = (int8_t)((static_cast<float>(percent_) / 100.0f) * (float)ppx + 0.5);  // pixels to draw
     int8_t pp = ppx - ptd;                                                              // pixels to start from
 
-    if (percent_ >= 70)
-        battColor = Theme::getInstance()->fg_green->foreground;
-    else if (percent_ >= 40)
-        battColor = Theme::getInstance()->fg_orange->foreground;
-    else
-        battColor = Theme::getInstance()->fg_red->foreground;
+    if (!charge_) {
+        if (percent_ >= 70)
+            battColor = Theme::getInstance()->fg_green->foreground;
+        else if (percent_ >= 40)
+            battColor = Theme::getInstance()->fg_orange->foreground;
+        else
+            battColor = Theme::getInstance()->fg_red->foreground;
+    }
     // fill the bars
     for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
