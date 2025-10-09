@@ -854,12 +854,19 @@ void render_entities(Painter& painter) {
 void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t x_end = -1) {
     if (x_end == -1) x_end = SCREEN_WIDTH;
     
+    // Add safety bounds
+    x_start = fmax(0, x_start);
+    x_end = fmin(SCREEN_WIDTH, x_end);
+    
+    // Dynamically adjust RES_DIVIDER based on screen size
+    int dynamic_res = (SCREEN_WIDTH > 400) ? 4 : (SCREEN_WIDTH > 300) ? 3 : RES_DIVIDER;
+    
     if (full_clear) {
         painter.fill_rectangle({0, 0, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(64, 64, 128));
         painter.fill_rectangle({0, RENDER_HEIGHT / 2, SCREEN_WIDTH, RENDER_HEIGHT / 2}, Color(32, 32, 32));
     }
 
-    for (uint8_t x = x_start; x < x_end; x += RES_DIVIDER) {
+    for (uint16_t x = x_start; x < x_end; x += dynamic_res) {
         double camera_x = 2 * (double)x / SCREEN_WIDTH - 1;
         double ray_x = player.dir.x + player.plane.x * camera_x;
         double ray_y = player.dir.y + player.plane.y * camera_x;
@@ -988,15 +995,15 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
                 wall_color = Color(brightness / 5, (brightness - noise) * 0.8, brightness / 5);
             }
 
-            painter.fill_rectangle({x, start_y, RES_DIVIDER, end_y - start_y}, wall_color);
+            painter.fill_rectangle({x, start_y, dynamic_res, end_y - start_y}, wall_color);
         }
 
         if (!full_clear && hit) {
             if (start_y > 0) {
-                painter.fill_rectangle({x, 0, RES_DIVIDER, start_y}, Color(64, 64, 128));
+                painter.fill_rectangle({x, 0, dynamic_res, start_y}, Color(64, 64, 128));
             }
             if (end_y < RENDER_HEIGHT) {
-                painter.fill_rectangle({x, end_y, RES_DIVIDER, RENDER_HEIGHT - end_y}, Color(32, 32, 32));
+                painter.fill_rectangle({x, end_y, dynamic_res, RENDER_HEIGHT - end_y}, Color(32, 32, 32));
             }
         }
     }
@@ -1004,7 +1011,6 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
 
 DoomView::DoomView(NavigationView& nav)
     : nav_{nav} {
-    // Initialize screen dimensions
     SCREEN_WIDTH = ui::screen_width;
     SCREEN_HEIGHT = ui::screen_height;
     HUD_HEIGHT = 40;
@@ -1012,11 +1018,19 @@ DoomView::DoomView(NavigationView& nav)
     HALF_WIDTH = SCREEN_WIDTH / 2;
     HALF_HEIGHT = RENDER_HEIGHT / 2;
     
-    // Scale game elements based on screen size
-    RES_DIVIDER = (SCREEN_WIDTH > 300) ? 3 : 2;  // Higher res divider for larger screens
-    GUN_WIDTH = SCREEN_WIDTH / 8;
-    GUN_HEIGHT = SCREEN_HEIGHT / 8;
-    GUN_TARGET_POS = RENDER_HEIGHT / 13;
+    // More aggressive resolution reduction for larger screens
+    if (SCREEN_WIDTH > 400) {
+        RES_DIVIDER = 4;
+    } else if (SCREEN_WIDTH > 300) {
+        RES_DIVIDER = 3;
+    } else {
+        RES_DIVIDER = 2;
+    }
+    
+    // Cap gun size to prevent overflow
+    GUN_WIDTH = fmin(60, SCREEN_WIDTH / 8);
+    GUN_HEIGHT = fmin(50, SCREEN_HEIGHT / 8);
+    GUN_TARGET_POS = fmin(40, RENDER_HEIGHT / 13);
     GUN_SHOT_POS = GUN_TARGET_POS + 6;
     
     add_children({&dummy});
