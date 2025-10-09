@@ -43,7 +43,7 @@ const Color pp_colors[] = {
 
 // Drawing functions
 void cls() {
-    painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
+    painter.fill_rectangle({0, 0, ui::screen_width, ui::screen_height}, Color::black());
 }
 
 void fillrect(int x1, int y1, int x2, int y2, int color) {
@@ -100,6 +100,15 @@ DinoGameView::DinoGameView(NavigationView& nav)
     : nav_{nav}, bird_info{}, game_timer{} {
     add_children({&dummy, &button_difficulty});
     current_instance = this;
+    
+    // Initialize dimensions first
+    init_dimensions();
+    
+    // Now reposition button with proper centering
+    int button_y = SCREEN_HEIGHT - 100;  
+    int button_x = (SCREEN_WIDTH - 100) / 2;
+    button_difficulty.set_parent_rect({button_x, button_y, 100, 20});
+    
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
 
     button_difficulty.on_select = [this](Button&) {
@@ -126,6 +135,33 @@ void DinoGameView::frame_sync() {
     set_dirty();
 }
 
+void DinoGameView::init_dimensions() {
+    SCREEN_WIDTH = ui::screen_width;
+    SCREEN_HEIGHT = ui::screen_height;
+    
+    // Scale game area based on screen size
+    GAME_AREA_HEIGHT = (SCREEN_HEIGHT * 160) / 320;  // Scale proportionally
+    GAME_AREA_TOP = SCREEN_HEIGHT / 4;
+    
+    // Calculate positions
+    DINO_Y = GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT - DINO_HEIGHT;
+    DINO_DUCK_Y = GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT - DINO_DUCK_HEIGHT;
+    BIRD_Y_UP = GAME_AREA_TOP + 20;
+    BIRD_Y_DOWN = GAME_AREA_TOP + (GAME_AREA_HEIGHT * 60) / 160;
+    
+    // Scale jump height
+    JUMP_MAX_HEIGHT = (GAME_AREA_HEIGHT * 70) / 160;
+    
+    // Scale distances based on screen width
+    MIN_OBSTACLE_DISTANCE = (SCREEN_WIDTH * 300) / 240;
+    MAX_OBSTACLE_DISTANCE = (SCREEN_WIDTH * 600) / 240;
+    
+    // Scale horizontal position
+    DINO_X = SCREEN_WIDTH / 8;
+    
+    last_dino_y = DINO_Y;
+}
+
 void DinoGameView::init_game() {
     game_state = GameState::MENU;
     menu_initialized = false;
@@ -142,7 +178,7 @@ void DinoGameView::new_game() {
     duck_timer = 0;
     displayedGameOver = false;
     bird_info.inGame = false;
-    bird_info.x_offset = 320;
+    bird_info.x_offset = SCREEN_WIDTH;
     bird_info.y_offset = 0;
     bird_info.y_velocity = 0;
     jumping = false;
@@ -181,9 +217,9 @@ void DinoGameView::show_menu() {
         painter.draw_string({UI_POS_X_CENTER(10), 60}, style_title, "DINO GAME");
 
         // Draw instructions
-        painter.draw_string({UI_POS_X_CENTER(19), 130}, style, "SELECT: Jump/Start");
-        painter.draw_string({UI_POS_X_CENTER(11), 150}, style, "DOWN: Duck");
-        painter.draw_string({UI_POS_X_CENTER(17), 170}, style, "Avoid obstacles!");
+        painter.draw_string({UI_POS_X_CENTER(19), 120}, style, "SELECT: Jump/Start");
+        painter.draw_string({UI_POS_X_CENTER(11), 140}, style, "DOWN: Duck");
+        painter.draw_string({UI_POS_X_CENTER(17), 160}, style, "Avoid obstacles!");
 
         // Draw high score
         draw_high_score();
@@ -194,14 +230,21 @@ void DinoGameView::show_menu() {
     // Show difficulty button
     button_difficulty.hidden(false);
 
-    // Animate the menu dino
-    bool menu_run_frame = (blink_counter / 15) % 2;
+    // Animate the menu dino - use frame counter for smooth animation
+    bool menu_run_frame = (blink_counter / 10) % 2;
 
-    // Clear previous dino position
-    fillrect(103, 90, 103 + DINO_WIDTH, 90 + DINO_HEIGHT, Black);
+    int menu_dino_x = UI_POS_X_CENTER(DINO_WIDTH);
+    int menu_dino_y = 90;
+
+    // Clear previous dino position - clear a bit extra to handle any artifacts
+    static bool last_menu_frame = false;
+    if (last_menu_frame != menu_run_frame || blink_counter == 0) {
+        fillrect(menu_dino_x - 5, menu_dino_y - 5, menu_dino_x + DINO_WIDTH + 5, menu_dino_y + DINO_HEIGHT + 5, Black);
+        last_menu_frame = menu_run_frame;
+    }
 
     // Draw animated dino
-    draw_dino_at(103, 90, false, menu_run_frame);
+    draw_dino_at(menu_dino_x, menu_dino_y, false, menu_run_frame);
 
     // Blinking start prompt
     auto style_prompt = *ui::Theme::getInstance()->fg_light;
@@ -209,9 +252,10 @@ void DinoGameView::show_menu() {
         blink_counter = 0;
         blink_state = !blink_state;
 
-        painter.fill_rectangle({UI_POS_X_CENTER(17), 258, 130, 20}, Color::black());
+        int prompt_y = SCREEN_HEIGHT - 60;
+        painter.fill_rectangle({UI_POS_X_CENTER(17), prompt_y - 2, 130, 20}, Color::black());
         if (blink_state) {
-            painter.draw_string({UI_POS_X_CENTER(17), 260}, style_prompt, "* PRESS SELECT *");
+            painter.draw_string({UI_POS_X_CENTER(17), prompt_y}, style_prompt, "* PRESS SELECT *");
         }
     }
 }
@@ -220,33 +264,30 @@ void DinoGameView::show_game_over() {
     if (!displayedGameOver) {
         displayedGameOver = true;
 
-        // Clear the last normal dino position
-        if (last_ducking) {
-            fillrect(DINO_X, last_dino_y, DINO_X + DINO_DUCK_WIDTH, last_dino_y + DINO_DUCK_HEIGHT, Black);
-        } else {
-            fillrect(DINO_X, last_dino_y, DINO_X + DINO_WIDTH, last_dino_y + DINO_HEIGHT, Black);
-        }
+        // Clear the entire play area to ensure clean display
+        fillrect(0, GAME_AREA_TOP, SCREEN_WIDTH, GAME_AREA_HEIGHT + 20, Black);
 
-        // Draw the game over dino sprite
-        draw_dino_sprite(DINO_X, DINO_Y, dino_gameover);
+        // Draw the game over dino sprite in the center
+        int gameover_dino_x = UI_POS_X_CENTER(DINO_WIDTH);
+        int gameover_dino_y = GAME_AREA_TOP + 40;
+        draw_dino_sprite(gameover_dino_x, gameover_dino_y, dino_gameover);
 
         auto style = *ui::Theme::getInstance()->fg_light;
         auto style_score = *ui::Theme::getInstance()->fg_medium;
 
         // Game over text
-        painter.draw_string({UI_POS_X_CENTER(10), 70}, style, "GAME OVER");
+        painter.draw_string({UI_POS_X_CENTER(10), GAME_AREA_TOP + 90}, style, "GAME OVER");
 
         // Show final score
         std::string score_text = "SCORE: " + score_to_string(score);
-        int score_x = (screen_width - score_text.length() * 8) / 2;
-        painter.draw_string({score_x, 90}, style_score, score_text);
+        painter.draw_string({UI_POS_X_CENTER(score_text.length()), GAME_AREA_TOP + 110}, style_score, score_text);
 
-        painter.draw_string({UI_POS_X_CENTER(16), 110}, style, "SELECT TO RETRY");
+        painter.draw_string({UI_POS_X_CENTER(16), GAME_AREA_TOP + 130}, style, "SELECT TO RETRY");
 
         // Update high score
         if (score > highScore) {
             highScore = score;
-            painter.draw_string({UI_POS_X_CENTER(16), 130}, style, "NEW HIGH SCORE!");
+            painter.draw_string({UI_POS_X_CENTER(16), GAME_AREA_TOP + 150}, style, "NEW HIGH SCORE!");
         }
     }
 }
@@ -263,7 +304,7 @@ void DinoGameView::game_loop() {
     // Update ground animation
     ground_offset = (ground_offset + GAME_SPEED_BASE + speed_modifier) % 20;
 
-    // Clear only the game area (not the whole screen to reduce flicker)
+    // Draw ground
     draw_ground();
 
     // Update and draw obstacles
@@ -295,38 +336,38 @@ void DinoGameView::game_loop() {
     // Update run animation
     if (get_steps() % (10 - speed_modifier) == 0) runstate = !runstate;
 
-    // Draw dino with minimal redraw
+    // Draw dino with proper clearing
     int current_dino_y = jumping ? (DINO_Y - jumpHeight) : (ducking ? DINO_DUCK_Y : DINO_Y);
 
-    // Clear old dino position more precisely
+    // Only clear and redraw if something changed
     if (current_dino_y != last_dino_y || runstate != last_runstate || ducking != last_ducking) {
-        // Clear based on last state
+        // Clear old position with extra margin to prevent artifacts
         if (last_ducking) {
-            fillrect(DINO_X, last_dino_y, DINO_X + DINO_DUCK_WIDTH, last_dino_y + DINO_DUCK_HEIGHT, Black);
+            fillrect(DINO_X - 2, last_dino_y - 2, DINO_X + DINO_DUCK_WIDTH + 2, last_dino_y + DINO_DUCK_HEIGHT + 2, Black);
         } else {
-            fillrect(DINO_X, last_dino_y, DINO_X + DINO_WIDTH, last_dino_y + DINO_HEIGHT, Black);
+            fillrect(DINO_X - 2, last_dino_y - 2, DINO_X + DINO_WIDTH + 2, last_dino_y + DINO_HEIGHT + 2, Black);
         }
-    }
 
-    // Draw dino at new position
-    if (jumping) {
-        draw_dino_sprite(DINO_X, current_dino_y, dino_default);
-    } else if (ducking) {
-        if (runstate)
-            draw_dino_sprite(DINO_X, current_dino_y, dino_ducking_leftstep);
-        else
-            draw_dino_sprite(DINO_X, current_dino_y, dino_ducking_rightstep);
-    } else {
-        if (runstate)
-            draw_dino_sprite(DINO_X, current_dino_y, dino_leftstep);
-        else
-            draw_dino_sprite(DINO_X, current_dino_y, dino_rightstep);
-    }
+        // Draw dino at new position
+        if (jumping) {
+            draw_dino_sprite(DINO_X, current_dino_y, dino_default);
+        } else if (ducking) {
+            if (runstate)
+                draw_dino_sprite(DINO_X, current_dino_y, dino_ducking_leftstep);
+            else
+                draw_dino_sprite(DINO_X, current_dino_y, dino_ducking_rightstep);
+        } else {
+            if (runstate)
+                draw_dino_sprite(DINO_X, current_dino_y, dino_leftstep);
+            else
+                draw_dino_sprite(DINO_X, current_dino_y, dino_rightstep);
+        }
 
-    // Update last state
-    last_dino_y = current_dino_y;
-    last_ducking = ducking;
-    last_runstate = runstate;
+        // Update last state
+        last_dino_y = current_dino_y;
+        last_ducking = ducking;
+        last_runstate = runstate;
+    }
 
     // Check collisions
     check_collision();
@@ -346,14 +387,14 @@ void DinoGameView::draw_ground() {
     int ground_y = GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT;
 
     // Clear ground area
-    fillrect(0, ground_y, 320, ground_y + GROUND_HEIGHT, Black);
+    fillrect(0, ground_y, SCREEN_WIDTH, ground_y + GROUND_HEIGHT, Black);
 
     // Draw ground line
-    painter.draw_hline({0, ground_y}, 320, Color::white());
-    painter.draw_hline({0, ground_y + 1}, 320, Color::dark_grey());
+    painter.draw_hline({0, ground_y}, SCREEN_WIDTH, Color::white());
+    painter.draw_hline({0, ground_y + 1}, SCREEN_WIDTH, Color::dark_grey());
 
     // Draw ground texture
-    for (int x = -ground_offset; x < 320; x += 20) {
+    for (int x = -ground_offset; x < SCREEN_WIDTH; x += 20) {
         painter.draw_hline({x, ground_y + 3}, 10, Color::dark_grey());
         painter.draw_hline({x + 5, ground_y + 5}, 5, Color::dark_grey());
     }
@@ -364,7 +405,7 @@ void DinoGameView::update_obstacles() {
     for (int i = 0; i < MAX_OBSTACLES; i++) {
         if (obstacles[i].active) {
             // Clear old position
-            if (obstacles[i].last_x != obstacles[i].x && obstacles[i].last_x < 320) {
+            if (obstacles[i].last_x != obstacles[i].x && obstacles[i].last_x < SCREEN_WIDTH) {
                 clear_obstacle_area(obstacles[i].last_x, obstacles[i].width + 10, obstacles[i].height + 10);
             }
 
@@ -394,8 +435,8 @@ void DinoGameView::update_obstacles() {
         for (int i = 0; i < MAX_OBSTACLES; i++) {
             if (!obstacles[i].active) {
                 obstacles[i].active = true;
-                obstacles[i].x = 320;
-                obstacles[i].last_x = 320;
+                obstacles[i].x = SCREEN_WIDTH;
+                obstacles[i].last_x = SCREEN_WIDTH;
                 obstacles[i].type = rand() % 4;
 
                 // Set obstacle dimensions based on type
@@ -495,7 +536,7 @@ void DinoGameView::manage_bird() {
         // Only spawn bird if no obstacles are too close
         bool obstacle_nearby = false;
         for (int i = 0; i < MAX_OBSTACLES; i++) {
-            if (obstacles[i].active && obstacles[i].x > 200) {
+            if (obstacles[i].active && obstacles[i].x > SCREEN_WIDTH * 0.8) {
                 obstacle_nearby = true;
                 break;
             }
@@ -504,7 +545,7 @@ void DinoGameView::manage_bird() {
         // Randomly spawn bird if no nearby obstacles
         if (!obstacle_nearby && rand() % 400 == 0 && get_steps() > 100) {
             bird_info.inGame = true;
-            bird_info.x_offset = 320;
+            bird_info.x_offset = SCREEN_WIDTH;
             bird_info.y_offset = 0;
             bird_info.y_velocity = easy_mode ? 0 : (rand() % 3) - 1;  // No vertical movement in easy mode
             bird_info.y_position = BirdPosition::DOWN;                // Always spawn at standing height in easy mode
@@ -514,16 +555,16 @@ void DinoGameView::manage_bird() {
         int base_y = (bird_info.y_position == BirdPosition::UP) ? BIRD_Y_UP : BIRD_Y_DOWN;
         int current_y = base_y + bird_info.y_offset;
 
-        // Clear previous bird position
-        if (last_bird_x < 320 && last_bird_x >= -BIRD_WIDTH) {
-            int clear_start_x = last_bird_x;
-            int clear_end_x = last_bird_x + BIRD_WIDTH;
+        // Clear previous bird position with extra margin
+        if (last_bird_x < SCREEN_WIDTH && last_bird_x >= -BIRD_WIDTH) {
+            int clear_start_x = last_bird_x - 2;
+            int clear_end_x = last_bird_x + BIRD_WIDTH + 2;
 
             if (clear_start_x < 0) clear_start_x = 0;
-            if (clear_end_x > 320) clear_end_x = 320;
+            if (clear_end_x > SCREEN_WIDTH) clear_end_x = SCREEN_WIDTH;
 
             if (clear_end_x > clear_start_x) {
-                fillrect(clear_start_x, last_bird_y, clear_end_x, last_bird_y + BIRD_HEIGHT, Black);
+                fillrect(clear_start_x, last_bird_y - 2, clear_end_x, last_bird_y + BIRD_HEIGHT + 2, Black);
             }
         }
 
@@ -549,7 +590,6 @@ void DinoGameView::manage_bird() {
             }
         } else {
             // In easy mode, keep bird at perfect ducking height
-            // Bird should hit standing dino but miss ducking dino
             current_y = DINO_Y - 10;  // Position bird just above ducking height
         }
 
@@ -557,7 +597,7 @@ void DinoGameView::manage_bird() {
         if (get_steps() % 15 == 0) bird_info.flop = !bird_info.flop;
 
         // Draw bird only if any part is visible
-        if (bird_info.x_offset > -BIRD_WIDTH && bird_info.x_offset < 320) {
+        if (bird_info.x_offset > -BIRD_WIDTH && bird_info.x_offset < SCREEN_WIDTH) {
             if (bird_info.flop) {
                 draw_bird_sprite(bird_info.x_offset, current_y, pterodactyl_upflop);
             } else {
@@ -590,6 +630,7 @@ void DinoGameView::draw_dino_sprite(int x, int y, const uint16_t* sprite) {
         width = DINO_WIDTH;
     }
 
+    // Draw sprite efficiently with run-length optimization
     for (int dy = 0; dy < height; dy++) {
         int run_start = -1;
         uint16_t run_color = 0;
@@ -623,16 +664,21 @@ void DinoGameView::draw_dino_sprite(int x, int y, const uint16_t* sprite) {
 }
 
 void DinoGameView::draw_bird_sprite(int x, int y, const uint16_t* sprite) {
+    // Draw sprite efficiently with clipping
     for (int dy = 0; dy < BIRD_HEIGHT; dy++) {
         int run_start = -1;
         uint16_t run_color = 0;
 
         for (int dx = 0; dx < BIRD_WIDTH; dx++) {
             // Skip pixels that would be off-screen
-            if (x + dx < 0 || x + dx >= 320) {
+            if (x + dx < 0 || x + dx >= SCREEN_WIDTH) {
                 // End any current run
-                if (run_start != -1) {
-                    painter.fill_rectangle({x + run_start, y + dy, dx - run_start, 1}, Color(run_color));
+                if (run_start != -1 && x + run_start < SCREEN_WIDTH) {
+                    int run_width = dx - run_start;
+                    if (x + run_start + run_width > SCREEN_WIDTH) {
+                        run_width = SCREEN_WIDTH - (x + run_start);
+                    }
+                    painter.fill_rectangle({x + run_start, y + dy, run_width, 1}, Color(run_color));
                     run_start = -1;
                 }
                 continue;
@@ -660,10 +706,10 @@ void DinoGameView::draw_bird_sprite(int x, int y, const uint16_t* sprite) {
             }
         }
 
-        if (run_start != -1 && x + run_start < 320) {
+        if (run_start != -1 && x + run_start < SCREEN_WIDTH) {
             int width = BIRD_WIDTH - run_start;
-            if (x + run_start + width > 320) {
-                width = 320 - (x + run_start);
+            if (x + run_start + width > SCREEN_WIDTH) {
+                width = SCREEN_WIDTH - (x + run_start);
             }
             if (width > 0) {
                 painter.fill_rectangle({x + run_start, y + dy, width, 1}, Color(run_color));
@@ -683,7 +729,7 @@ void DinoGameView::draw_dino_at(int x, int y, bool is_ducking, bool run_frame) {
         if (run_frame) {
             draw_dino_sprite(x, y, dino_leftstep);
         } else {
-            draw_dino_sprite(x, y, dino_default);
+            draw_dino_sprite(x, y, dino_rightstep);
         }
     }
 }
@@ -743,8 +789,8 @@ void DinoGameView::draw_current_score() {
 
 void DinoGameView::draw_high_score() {
     auto style = *ui::Theme::getInstance()->fg_light;
-    painter.fill_rectangle({UI_POS_X_RIGHT(9), 28, UI_POS_WIDTH(9), 18}, Color::black());
-    painter.draw_string({UI_POS_X_RIGHT(9), 30}, style, "HI " + score_to_string(highScore));
+    painter.fill_rectangle({UI_POS_X_RIGHT(90), 28, 90, 18}, Color::black());
+    painter.draw_string({UI_POS_X_RIGHT(90), 30}, style, "HI " + score_to_string(highScore));
 }
 
 void DinoGameView::jump() {
