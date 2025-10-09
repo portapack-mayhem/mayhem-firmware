@@ -235,18 +235,19 @@ bool I2cDev_MAX17055::soft_reset() {
 }
 
 bool I2cDev_MAX17055::initialize_custom_parameters() {
-    if (!write_register(0xD0, 0x03E8)) return false;  // Unknown register, possibly related to battery profile
-    if (!write_register(0xDB, 0x0000)) return false;  // ModelCfg
-    if (!write_register(0x05, 0x0000)) return false;  // RepCap
-    if (!write_register(0x18, 0x1388)) return false;  // DesignCap
-    if (!write_register(0x45, 0x009C)) return false;  // dQAcc
-    if (!write_register(0x1E, 0x03C0)) return false;  // IChgTerm
-    if (!write_register(0x3A, 0x9661)) return false;  // VEmpty
-    if (!write_register(0x60, 0x0090)) return false;  // Unknown register
-    if (!write_register(0x46, 0x0561)) return false;  // dPAcc
-    if (!write_register(0xDB, 0x8000)) return false;  // ModelCfg
+    if (!write_register(0xD0, 0x03E8)) return false;                                                                                                  // Unknown register, possibly related to battery profile
+    if (!write_register(0xDB, 0x0000)) return false;                                                                                                  // ModelCfg
+    if (!write_register(0x05, 0x0000)) return false;                                                                                                  // RepCap
+    uint32_t designcap = portapack::device_type == portapack::DEV_PORTARF ? __MAX17055_Design_Capacity_PRF__ * 2 : __MAX17055_Design_Capacity__ * 2;  // the original design has a 2x multiplier here, so i keep it
+    if (!write_register(0x18, designcap)) return false;                                                                                               // DesignCap
+    if (!write_register(0x45, designcap / 32)) return false;                                                                                          // dQAcc  =  DesignCap / 32
 
-    if (!write_register(0x40, 0x0001)) return false;  // Set user mem to 1
+    if (!write_register(0x1E, 0x03C0)) return false;                                  // IChgTerm
+    if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty
+    if (!write_register(0x60, 0x0090)) return false;                                  // Unknown register
+    if (!write_register(0x46, ((designcap / 32) * 44138) * designcap)) return false;  // dPAcc
+    if (!write_register(0xDB, 0x8000)) return false;                                  // ModelCfg  --we should wait till it loads here. While (ReadRegister(0xDB)&0x8000) Wait(10)；//do not continue until ModelCFG.Refresh == 0
+    if (!write_register(0x40, 0x0001)) return false;                                  // Set user mem to 1
     return true;
 }
 
