@@ -149,16 +149,16 @@ class DinoGameView : public View {
     int GAME_AREA_TOP = 78;
     int GAME_AREA_HEIGHT = 160;
     int DINO_X = 30;
-    int DINO_Y = 0;  // Will be calculated
+    int DINO_Y = 0;       // Will be calculated
     int DINO_DUCK_Y = 0;  // Will be calculated
-    int BIRD_Y_UP = 0;  // Will be calculated
+    int BIRD_Y_UP = 0;    // Will be calculated
     int BIRD_Y_DOWN = 0;  // Will be calculated
     int JUMP_MAX_HEIGHT = 70;
     int JUMP_SPEED = 3;
     int GAME_SPEED_BASE = 3;
     int MIN_OBSTACLE_DISTANCE = 300;
     int MAX_OBSTACLE_DISTANCE = 600;
-    
+
     // Sprite constants
     static constexpr uint16_t SPRITE_COLOR = 0x528A;
     static constexpr uint16_t TRANSPARENT_COLOR = 0xFFFF;

@@ -100,15 +100,15 @@ DinoGameView::DinoGameView(NavigationView& nav)
     : nav_{nav}, bird_info{}, game_timer{} {
     add_children({&dummy, &button_difficulty});
     current_instance = this;
-    
+
     // Initialize dimensions first
     init_dimensions();
-    
+
     // Now reposition button with proper centering
-    int button_y = SCREEN_HEIGHT - 100;  
+    int button_y = SCREEN_HEIGHT - 100;
     int button_x = (SCREEN_WIDTH - 100) / 2;
     button_difficulty.set_parent_rect({button_x, button_y, 100, 20});
-    
+
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
 
     button_difficulty.on_select = [this](Button&) {
@@ -138,27 +138,27 @@ void DinoGameView::frame_sync() {
 void DinoGameView::init_dimensions() {
     SCREEN_WIDTH = ui::screen_width;
     SCREEN_HEIGHT = ui::screen_height;
-    
+
     // Scale game area based on screen size
     GAME_AREA_HEIGHT = (SCREEN_HEIGHT * 160) / 320;  // Scale proportionally
     GAME_AREA_TOP = SCREEN_HEIGHT / 4;
-    
+
     // Calculate positions
     DINO_Y = GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT - DINO_HEIGHT;
     DINO_DUCK_Y = GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT - DINO_DUCK_HEIGHT;
     BIRD_Y_UP = GAME_AREA_TOP + 20;
     BIRD_Y_DOWN = GAME_AREA_TOP + (GAME_AREA_HEIGHT * 60) / 160;
-    
+
     // Scale jump height
     JUMP_MAX_HEIGHT = (GAME_AREA_HEIGHT * 70) / 160;
-    
+
     // Scale distances based on screen width
     MIN_OBSTACLE_DISTANCE = (SCREEN_WIDTH * 300) / 240;
     MAX_OBSTACLE_DISTANCE = (SCREEN_WIDTH * 600) / 240;
-    
+
     // Scale horizontal position
     DINO_X = SCREEN_WIDTH / 8;
-    
+
     last_dino_y = DINO_Y;
 }
 
