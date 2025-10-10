@@ -41,6 +41,19 @@ void game_timer_check() {
 
 BlackjackView::BlackjackView(NavigationView& nav)
     : nav_{nav}, game_timer{} {
+    // Initialize screen dimensions dynamically
+    screen_w = ui::screen_width;
+    screen_h = ui::screen_height;
+
+    // Scale card size based on screen
+    if (screen_w <= 240) {
+        card_width = 50;
+        card_height = 65;
+    } else if (screen_w >= 400) {
+        card_width = 70;
+        card_height = 90;
+    }
+
     add_children({&dummy});
     current_instance = this;
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
@@ -70,7 +83,7 @@ void BlackjackView::frame_sync() {
 }
 
 void BlackjackView::clear_screen() {
-    painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
+    painter.fill_rectangle({0, 0, screen_w, screen_h}, Color::black());
 }
 
 void BlackjackView::init_deck() {
@@ -267,22 +280,24 @@ void BlackjackView::draw_menu_static() {
 
     painter.draw_string({UI_POS_X_CENTER(10), 20}, style_title, "BLACKJACK");
 
-    // Draw rules
-    painter.draw_string({UI_POS_X_CENTER(12), 55}, style_rules, "-- RULES --");
-    painter.draw_string({UI_POS_X_CENTER(16), 75}, style_text, "Get close to 21");
-    painter.draw_string({UI_POS_X_CENTER(19), 90}, style_text, "without going over");
-    painter.draw_string({UI_POS_X_CENTER(18), 110}, style_text, "Dealer hits on 16");
-    painter.draw_string({UI_POS_X_CENTER(19), 125}, style_text, "Dealer stays on 17");
-    painter.draw_string({UI_POS_X_CENTER(19), 145}, style_text, "Blackjack pays 1:1");
+    // Draw rules - adjust Y positions for smaller screens
+    int rules_y = (screen_h > 300) ? 55 : 45;
+    painter.draw_string({UI_POS_X_CENTER(12), rules_y}, style_rules, "-- RULES --");
+    painter.draw_string({UI_POS_X_CENTER(16), rules_y + 20}, style_text, "Get close to 21");
+    painter.draw_string({UI_POS_X_CENTER(19), rules_y + 35}, style_text, "without going over");
+    painter.draw_string({UI_POS_X_CENTER(18), rules_y + 55}, style_text, "Dealer hits on 16");
+    painter.draw_string({UI_POS_X_CENTER(19), rules_y + 70}, style_text, "Dealer stays on 17");
+    painter.draw_string({UI_POS_X_CENTER(19), rules_y + 90}, style_text, "Blackjack pays 1:1");
 
     // Controls
-    painter.draw_string({UI_POS_X_CENTER(15), 175}, style_rules, "-- CONTROLS --");
-    painter.draw_string({UI_POS_X_CENTER(18), 195}, style_text, "SELECT: Start/Hit");
-    painter.draw_string({UI_POS_X_CENTER(12), 210}, style_text, "LEFT: Stats");
-    painter.draw_string({UI_POS_X_CENTER(17), 225}, style_text, "RIGHT: Exit/Stay");
+    int controls_y = (screen_h > 300) ? 175 : 155;
+    painter.draw_string({UI_POS_X_CENTER(15), controls_y}, style_rules, "-- CONTROLS --");
+    painter.draw_string({UI_POS_X_CENTER(18), controls_y + 20}, style_text, "SELECT: Start/Hit");
+    painter.draw_string({UI_POS_X_CENTER(12), controls_y + 35}, style_text, "LEFT: Stats");
+    painter.draw_string({UI_POS_X_CENTER(17), controls_y + 50}, style_text, "RIGHT: Exit/Stay");
 
-    // Draw high score
-    painter.draw_string({UI_POS_X_CENTER(17), 250}, style_text, "High Score: $" + std::to_string(high_score));
+    // Draw high score at bottom
+    painter.draw_string({UI_POS_X_CENTER(17), screen_h - 70}, style_text, "High Score: $" + std::to_string(high_score));
 }
 
 void BlackjackView::draw_menu() {
@@ -293,10 +308,10 @@ void BlackjackView::draw_menu() {
 
         if (blink_state) {
             auto style = *ui::Theme::getInstance()->fg_yellow;
-            painter.draw_string({UI_POS_X_CENTER(17), 280}, style, "* PRESS SELECT *");
+            painter.draw_string({UI_POS_X_CENTER(17), screen_h - 40}, style, "* PRESS SELECT *");
         } else {
             // Clear just the text area
-            painter.fill_rectangle({UI_POS_X_CENTER(17), 278, 130, 20}, Color::black());
+            painter.fill_rectangle({UI_POS_X_CENTER(17), screen_h - 42, 130, 20}, Color::black());
         }
     }
 }
@@ -310,27 +325,29 @@ void BlackjackView::draw_stats() {
 
     painter.draw_string({UI_POS_X_CENTER(11), 30}, style_title, "STATISTICS");
 
-    painter.draw_string({30, 80}, style_text, "Wins:");
+    int stats_x = (screen_w > 300) ? 50 : 30;
+
+    painter.draw_string({stats_x, 80}, style_text, "Wins:");
     painter.draw_string({UI_POS_X_CENTER(5), 80}, style_value, std::to_string(wins));
 
-    painter.draw_string({30, 100}, style_text, "Losses:");
+    painter.draw_string({stats_x, 100}, style_text, "Losses:");
     painter.draw_string({UI_POS_X_CENTER(5), 100}, style_value, std::to_string(losses));
 
     // Win percentage
     uint32_t total = wins + losses;
     if (total > 0) {
         uint32_t win_pct = (wins * 100) / total;
-        painter.draw_string({30, 120}, style_text, "Win %:");
+        painter.draw_string({stats_x, 120}, style_text, "Win %:");
         painter.draw_string({UI_POS_X_CENTER(5), 120}, style_value, std::to_string(win_pct) + "%");
     }
 
-    painter.draw_string({30, 160}, style_text, "High Score:");
+    painter.draw_string({stats_x, 160}, style_text, "High Score:");
     painter.draw_string({UI_POS_X_CENTER(5), 160}, style_value, "$" + std::to_string(high_score));
 
-    painter.draw_string({30, 180}, style_text, "Cash:");
+    painter.draw_string({stats_x, 180}, style_text, "Cash:");
     painter.draw_string({UI_POS_X_CENTER(5), 180}, style_value, "$" + std::to_string(cash));
 
-    painter.draw_string({40, 250}, style_text, "SELECT: Back");
+    painter.draw_string({UI_POS_X_CENTER(12), screen_h - 70}, style_text, "SELECT: Back");
 }
 
 void BlackjackView::draw_betting() {
@@ -343,7 +360,7 @@ void BlackjackView::draw_betting() {
         auto style_title = *ui::Theme::getInstance()->fg_green;
         auto style_text = *ui::Theme::getInstance()->fg_light;
 
-        painter.draw_string({70, 40}, style_title, "PLACE BET");
+        painter.draw_string({UI_POS_X_CENTER(10), 40}, style_title, "PLACE BET");
         painter.draw_string({30, 80}, style_text, "Cash: $" + std::to_string(cash));
 
         painter.draw_string({30, 140}, style_text, "ENCODER: +/- $10");
@@ -373,7 +390,7 @@ void BlackjackView::draw_game() {
 
         auto style = *ui::Theme::getInstance()->fg_green;
         painter.draw_string({10, 10}, style, "Cash: $" + std::to_string(cash));
-        painter.draw_string({140, 10}, style, "Bet: $" + std::to_string(bet));
+        painter.draw_string({screen_w - 80, 10}, style, "Bet: $" + std::to_string(bet));
 
         // Draw dealer hand with value next to label
         auto style_value = *ui::Theme::getInstance()->fg_yellow;
@@ -385,16 +402,18 @@ void BlackjackView::draw_game() {
         draw_hand(10, 65, dealer_cards, dealer_card_count, true);
 
         // Draw player hand with value next to label
-        painter.draw_string({10, 165}, *ui::Theme::getInstance()->fg_light, "You:");
+        int player_y = (screen_h > 300) ? 165 : 145;
+        painter.draw_string({10, player_y}, *ui::Theme::getInstance()->fg_light, "You:");
         int player_value = calculate_hand_value(player_cards, player_card_count);
-        painter.draw_string({50, 165}, style_value, "(" + std::to_string(player_value) + ")");
-        draw_hand(10, 185, player_cards, player_card_count, false);
+        painter.draw_string({50, player_y}, style_value, "(" + std::to_string(player_value) + ")");
+        draw_hand(10, player_y + 20, player_cards, player_card_count, false);
 
         // Draw controls or result
+        int controls_y = screen_h - 50;
         if (game_state == GameState::PLAYING) {
             auto style_text = *ui::Theme::getInstance()->fg_light;
-            painter.draw_string({30, 290}, style_text, "SELECT: Hit");
-            painter.draw_string({130, 290}, style_text, "RIGHT: Stay");
+            painter.draw_string({30, controls_y}, style_text, "SELECT: Hit");
+            painter.draw_string({screen_w - 100, controls_y}, style_text, "RIGHT: Stay");
         } else if (game_state == GameState::GAME_OVER) {
             const Style* style_result = ui::Theme::getInstance()->fg_yellow;
             std::string result;
@@ -416,14 +435,14 @@ void BlackjackView::draw_game() {
             }
 
             // Draw result
-            painter.draw_string({UI_POS_X_CENTER(result.length()), 270}, *style_result, result);
+            painter.draw_string({UI_POS_X_CENTER(result.length()), controls_y - 20}, *style_result, result);
 
-            // Draw compact bet selector in top right area
+            // Draw compact bet selector
             auto style_bet = *ui::Theme::getInstance()->fg_cyan;
-            painter.draw_string({140, 25}, style_bet, "Next: $" + std::to_string(bet));
+            painter.draw_string({screen_w - 100, 25}, style_bet, "Next: $" + std::to_string(bet));
 
             // Show controls
-            painter.draw_string({10, 290}, *ui::Theme::getInstance()->fg_light, "SELECT: Deal  ENC: +/-");
+            painter.draw_string({10, controls_y}, *ui::Theme::getInstance()->fg_light, "SELECT: Deal  ENC: +/-");
         }
 
         last_player_count = player_card_count;
@@ -432,109 +451,106 @@ void BlackjackView::draw_game() {
         last_bet = bet;
     } else if (game_state == GameState::GAME_OVER && bet != last_bet) {
         // Only update the bet display when it changes
-        painter.fill_rectangle({140, 25, 90, 16}, Color::black());
-        painter.draw_string({140, 25}, *ui::Theme::getInstance()->fg_cyan, "Next: $" + std::to_string(bet));
+        painter.fill_rectangle({screen_w - 100, 25, 90, 16}, Color::black());
+        painter.draw_string({screen_w - 100, 25}, *ui::Theme::getInstance()->fg_cyan, "Next: $" + std::to_string(bet));
         last_bet = bet;
     }
 }
 
 void BlackjackView::draw_suit_symbol(int x, int y, uint8_t suit, Color color, bool large) {
     if (large) {
-        // Large suit symbols for center of card
+        // Scale large symbols based on card size
+        int scale = card_width / 60;
+
         switch (suit) {
             case 0:  // Spades
-                // Top curve
-                painter.fill_rectangle({x + 9, y + 4, 2, 2}, color);
-                painter.fill_rectangle({x + 8, y + 5, 4, 2}, color);
-                painter.fill_rectangle({x + 7, y + 6, 6, 2}, color);
-                painter.fill_rectangle({x + 6, y + 7, 8, 2}, color);
-                painter.fill_rectangle({x + 5, y + 8, 10, 2}, color);
-                painter.fill_rectangle({x + 4, y + 9, 12, 2}, color);
-                painter.fill_rectangle({x + 3, y + 10, 14, 2}, color);
-                painter.fill_rectangle({x + 2, y + 11, 16, 2}, color);
-                painter.fill_rectangle({x + 1, y + 12, 18, 2}, color);
-                painter.fill_rectangle({x + 0, y + 13, 20, 3}, color);
-                painter.fill_rectangle({x + 1, y + 16, 18, 2}, color);
-                painter.fill_rectangle({x + 2, y + 17, 16, 1}, color);
-                painter.fill_rectangle({x + 3, y + 18, 14, 1}, color);
+                // Draw using scaled rectangles
+                painter.fill_rectangle({x + 9 * scale, y + 4 * scale, 2 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 5 * scale, 4 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 6 * scale, 6 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 7 * scale, 8 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 5 * scale, y + 8 * scale, 10 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 4 * scale, y + 9 * scale, 12 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 10 * scale, 14 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 11 * scale, 16 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 1 * scale, y + 12 * scale, 18 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 0 * scale, y + 13 * scale, 20 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 1 * scale, y + 16 * scale, 18 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 17 * scale, 16 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 18 * scale, 14 * scale, 1 * scale}, color);
                 // Stem
-                painter.fill_rectangle({x + 9, y + 19, 2, 4}, color);
-                painter.fill_rectangle({x + 8, y + 22, 4, 1}, color);
-                painter.fill_rectangle({x + 7, y + 23, 6, 1}, color);
-                painter.fill_rectangle({x + 6, y + 24, 8, 1}, color);
+                painter.fill_rectangle({x + 9 * scale, y + 19 * scale, 2 * scale, 4 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 22 * scale, 4 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 23 * scale, 6 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 24 * scale, 8 * scale, 1 * scale}, color);
                 break;
 
             case 1:  // Hearts
-                // Left bump
-                painter.fill_rectangle({x + 3, y + 5, 4, 2}, color);
-                painter.fill_rectangle({x + 2, y + 6, 6, 2}, color);
-                painter.fill_rectangle({x + 1, y + 7, 8, 3}, color);
-                painter.fill_rectangle({x + 0, y + 9, 9, 3}, color);
-                // Right bump
-                painter.fill_rectangle({x + 13, y + 5, 4, 2}, color);
-                painter.fill_rectangle({x + 12, y + 6, 6, 2}, color);
-                painter.fill_rectangle({x + 11, y + 7, 8, 3}, color);
-                painter.fill_rectangle({x + 11, y + 9, 9, 3}, color);
-                // Body
-                painter.fill_rectangle({x + 1, y + 11, 18, 3}, color);
-                painter.fill_rectangle({x + 2, y + 14, 16, 2}, color);
-                painter.fill_rectangle({x + 3, y + 16, 14, 2}, color);
-                painter.fill_rectangle({x + 4, y + 18, 12, 1}, color);
-                painter.fill_rectangle({x + 5, y + 19, 10, 1}, color);
-                painter.fill_rectangle({x + 6, y + 20, 8, 1}, color);
-                painter.fill_rectangle({x + 7, y + 21, 6, 1}, color);
-                painter.fill_rectangle({x + 8, y + 22, 4, 1}, color);
-                painter.fill_rectangle({x + 9, y + 23, 2, 1}, color);
+                // Draw using scaled rectangles
+                painter.fill_rectangle({x + 3 * scale, y + 5 * scale, 4 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 6 * scale, 6 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 1 * scale, y + 7 * scale, 8 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 0 * scale, y + 9 * scale, 9 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 13 * scale, y + 5 * scale, 4 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 12 * scale, y + 6 * scale, 6 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 11 * scale, y + 7 * scale, 8 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 11 * scale, y + 9 * scale, 9 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 1 * scale, y + 11 * scale, 18 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 14 * scale, 16 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 16 * scale, 14 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 4 * scale, y + 18 * scale, 12 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 5 * scale, y + 19 * scale, 10 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 20 * scale, 8 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 21 * scale, 6 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 22 * scale, 4 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 9 * scale, y + 23 * scale, 2 * scale, 1 * scale}, color);
                 break;
 
             case 2:  // Diamonds
-                painter.fill_rectangle({x + 10, y + 3, 1, 1}, color);
-                painter.fill_rectangle({x + 9, y + 4, 3, 1}, color);
-                painter.fill_rectangle({x + 8, y + 5, 5, 1}, color);
-                painter.fill_rectangle({x + 7, y + 6, 7, 1}, color);
-                painter.fill_rectangle({x + 6, y + 7, 9, 1}, color);
-                painter.fill_rectangle({x + 5, y + 8, 11, 1}, color);
-                painter.fill_rectangle({x + 4, y + 9, 13, 1}, color);
-                painter.fill_rectangle({x + 3, y + 10, 15, 1}, color);
-                painter.fill_rectangle({x + 2, y + 11, 17, 1}, color);
-                painter.fill_rectangle({x + 1, y + 12, 19, 1}, color);
-                painter.fill_rectangle({x + 0, y + 13, 21, 1}, color);
-                painter.fill_rectangle({x + 1, y + 14, 19, 1}, color);
-                painter.fill_rectangle({x + 2, y + 15, 17, 1}, color);
-                painter.fill_rectangle({x + 3, y + 16, 15, 1}, color);
-                painter.fill_rectangle({x + 4, y + 17, 13, 1}, color);
-                painter.fill_rectangle({x + 5, y + 18, 11, 1}, color);
-                painter.fill_rectangle({x + 6, y + 19, 9, 1}, color);
-                painter.fill_rectangle({x + 7, y + 20, 7, 1}, color);
-                painter.fill_rectangle({x + 8, y + 21, 5, 1}, color);
-                painter.fill_rectangle({x + 9, y + 22, 3, 1}, color);
-                painter.fill_rectangle({x + 10, y + 23, 1, 1}, color);
+                // Draw using scaled rectangles
+                painter.fill_rectangle({x + 10 * scale, y + 3 * scale, 1 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 9 * scale, y + 4 * scale, 3 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 5 * scale, 5 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 6 * scale, 7 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 7 * scale, 9 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 5 * scale, y + 8 * scale, 11 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 4 * scale, y + 9 * scale, 13 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 10 * scale, 15 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 11 * scale, 17 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 1 * scale, y + 12 * scale, 19 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 0 * scale, y + 13 * scale, 21 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 1 * scale, y + 14 * scale, 19 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 15 * scale, 17 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 16 * scale, 15 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 4 * scale, y + 17 * scale, 13 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 5 * scale, y + 18 * scale, 11 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 19 * scale, 9 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 20 * scale, 7 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 21 * scale, 5 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 9 * scale, y + 22 * scale, 3 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 10 * scale, y + 23 * scale, 1 * scale, 1 * scale}, color);
                 break;
 
             case 3:  // Clubs
-                // Center circle
-                painter.fill_rectangle({x + 8, y + 8, 5, 1}, color);
-                painter.fill_rectangle({x + 7, y + 9, 7, 3}, color);
-                painter.fill_rectangle({x + 8, y + 12, 5, 1}, color);
-                // Left circle
-                painter.fill_rectangle({x + 3, y + 11, 4, 1}, color);
-                painter.fill_rectangle({x + 2, y + 12, 6, 3}, color);
-                painter.fill_rectangle({x + 3, y + 15, 4, 1}, color);
-                // Right circle
-                painter.fill_rectangle({x + 14, y + 11, 4, 1}, color);
-                painter.fill_rectangle({x + 13, y + 12, 6, 3}, color);
-                painter.fill_rectangle({x + 14, y + 15, 4, 1}, color);
-                // Connect circles
-                painter.fill_rectangle({x + 6, y + 13, 9, 2}, color);
-                // Stem
-                painter.fill_rectangle({x + 9, y + 16, 3, 4}, color);
-                painter.fill_rectangle({x + 8, y + 19, 5, 1}, color);
-                painter.fill_rectangle({x + 7, y + 20, 7, 1}, color);
-                painter.fill_rectangle({x + 6, y + 21, 9, 1}, color);
+                // Draw using scaled rectangles
+                painter.fill_rectangle({x + 8 * scale, y + 8 * scale, 5 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 9 * scale, 7 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 12 * scale, 5 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 11 * scale, 4 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 2 * scale, y + 12 * scale, 6 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 3 * scale, y + 15 * scale, 4 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 14 * scale, y + 11 * scale, 4 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 13 * scale, y + 12 * scale, 6 * scale, 3 * scale}, color);
+                painter.fill_rectangle({x + 14 * scale, y + 15 * scale, 4 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 13 * scale, 9 * scale, 2 * scale}, color);
+                painter.fill_rectangle({x + 9 * scale, y + 16 * scale, 3 * scale, 4 * scale}, color);
+                painter.fill_rectangle({x + 8 * scale, y + 19 * scale, 5 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 7 * scale, y + 20 * scale, 7 * scale, 1 * scale}, color);
+                painter.fill_rectangle({x + 6 * scale, y + 21 * scale, 9 * scale, 1 * scale}, color);
                 break;
         }
     } else {
-        // Small suit symbols
+        // Small suit symbols remain the same
         switch (suit) {
             case 0:  // Spades - small
                 painter.fill_rectangle({x + 2, y + 1, 3, 3}, color);
@@ -569,18 +585,15 @@ void BlackjackView::draw_suit_symbol(int x, int y, uint8_t suit, Color color, bo
 }
 
 void BlackjackView::draw_card(int x, int y, uint8_t card, bool hidden) {
-    const int width = 60;
-    const int height = 80;
-
     // Draw card background
-    painter.fill_rectangle({x, y, width, height}, Color::white());
-    painter.draw_rectangle({x, y, width, height}, Color::black());
-    painter.draw_rectangle({x + 1, y + 1, width - 2, height - 2}, Color::grey());  // Inner border
+    painter.fill_rectangle({x, y, card_width, card_height}, Color::white());
+    painter.draw_rectangle({x, y, card_width, card_height}, Color::black());
+    painter.draw_rectangle({x + 1, y + 1, card_width - 2, card_height - 2}, Color::grey());
 
     if (hidden) {
         // Draw card back pattern - diagonal lines
-        for (int i = 4; i < width - 4; i += 6) {
-            for (int j = 4; j < height - 4; j += 6) {
+        for (int i = 4; i < card_width - 4; i += 6) {
+            for (int j = 4; j < card_height - 4; j += 6) {
                 painter.fill_rectangle({x + i, y + j, 3, 3}, Color::blue());
                 painter.fill_rectangle({x + i + 3, y + j + 3, 3, 3}, Color::red());
             }
@@ -606,22 +619,23 @@ void BlackjackView::draw_card(int x, int y, uint8_t card, bool hidden) {
         draw_suit_symbol(suit_x, y + 4, suit, suit_color, false);
 
         // Draw value in bottom-right corner
-        int bottom_x = (value_str == "10") ? x + width - 24 : x + width - 16;
-        painter.draw_string({bottom_x, y + height - 18}, card_style, value_str);
+        int bottom_x = (value_str == "10") ? x + card_width - 24 : x + card_width - 16;
+        painter.draw_string({bottom_x, y + card_height - 18}, card_style, value_str);
 
         // Draw small suit symbol in bottom-right
-        draw_suit_symbol(x + width - 10, y + height - 16, suit, suit_color, false);
+        draw_suit_symbol(x + card_width - 10, y + card_height - 16, suit, suit_color, false);
 
         // Draw large suit symbol in center
-        draw_suit_symbol(x + 20, y + 28, suit, suit_color, true);
+        int center_x = x + (card_width - 20) / 2;
+        int center_y = y + (card_height - 25) / 2;
+        draw_suit_symbol(center_x, center_y, suit, suit_color, true);
     }
 }
 
 void BlackjackView::draw_hand(int x, int y, uint8_t* cards, uint8_t count, bool is_dealer) {
     // Calculate total width needed
-    const int card_width = 60;
-    const int overlap = 40;                       // Amount of overlap when cards need to fit
-    const int max_width = screen_width - 10 - x;  // Available width on screen
+    const int overlap = card_width * 2 / 3;   // Amount of overlap when cards need to fit
+    const int max_width = screen_w - 10 - x;  // Available width on screen
 
     int spacing;
     if (count == 1) {
@@ -651,7 +665,7 @@ bool BlackjackView::on_key(const KeyEvent key) {
         switch (game_state) {
             case GameState::MENU:
                 if (cash < 10) {
-                    cash = 100;  // Reset if broke - maybe should provide https://gamblersanonymous.org/ link if they also lost their wife and house
+                    cash = 100;  // Reset if broke
                     wins = 0;
                     losses = 0;
                 }
