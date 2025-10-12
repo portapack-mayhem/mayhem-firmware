@@ -133,7 +133,8 @@ namespace ui {
                 gridItem.on_select = [&nav, appInfo, i]() {
                     auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
                     if (dev2) {
-                        auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - appInfo->binary_size);
+                        // auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - appInfo->binary_size);
+                        auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::local_sram_0.base());
                         for (size_t j = 0; j < appInfo->binary_size; j += 128) {
                             auto segment = dev2->downloadStandaloneApp(i, j);
                             if (segment.size() != 128) {
