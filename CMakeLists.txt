@@ -31,7 +31,7 @@ option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes i
 
 project(portapack-h1)
 
-set(EXPECTED_GCC_VERSION "9.2.1")
+set(EXPECTED_GCC_VERSION "10.3.1")
 
 set(VERSION "$ENV{VERSION_STRING}")
 if ("${VERSION}" STREQUAL "")
