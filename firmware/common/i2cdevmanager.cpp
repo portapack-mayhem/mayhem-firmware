@@ -108,6 +108,19 @@ FROM HERE YOU SHOULDN'T WRITE ANYTHING IF YOU JUST IMPLEMENT A NEW DRIVER
 
 */
 
+void I2cDev::unlockDevice() {
+    mtx = 0;
+}
+
+// when device is locked, all not important queries will return 0 or nullopt, so no communication broken.
+bool I2cDev::lockDevice() {
+    if (mtx == 0) {
+        mtx = 1;
+        return true;
+    }
+    return false;
+}
+
 void I2cDev::set_update_interval(uint8_t interval) {
     query_interval = interval;
 }
