@@ -1,15 +1,15 @@
 // enhanced_drone_analyzer_main.cpp
 // Main entry point for Enhanced Drone Analyzer external app
-// Minimal version for modular refactoring
 
-#include "ui_minimal_drone_analyzer.hpp"  // Enhanced version with database
+#include "ui.hpp"
+#include "ui_enhanced_drone_analyzer.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<EnhancedDroneSpectrumAnalyzerView>();  // Step 4: Full integration
+    nav.push<EnhancedDroneSpectrumAnalyzerView>();
 }
 
 }  // namespace ui::external_app::enhanced_drone_analyzer
