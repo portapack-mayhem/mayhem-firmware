@@ -3,6 +3,7 @@
 // Step 4 of modular refactoring: Real spectrum analysis + database integration
 
 #include "ui_minimal_drone_analyzer.hpp"
+#include "ui_drone_database.hpp"
 
 // PHASE 1: Simplified includes - will add spectrum integration incrementally
 #include "radio.hpp"
@@ -12,6 +13,11 @@
 // Audio beep integration
 #include "baseband_api.hpp"
 #include "portapack_shared_memory.hpp"
+
+// Math for trend analysis
+#include <algorithm>
+#include <numeric>
+#include <cmath>
 
 // ENHANCED VIEW IMPLEMENTATION (Step 4) - Real Database + Scanner Integration
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
@@ -24,18 +30,19 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     initialize_database_and_scanner();
     initialize_spectrum_painter();
 
-    // ШАГ 1.2: Receiver model setup ПЕРЕД baseband (как в looking_glass)
-    receiver_model.set_sampling_rate(20000000);      // 20MHz sampling rate
-    receiver_model.set_baseband_bandwidth(20000000); // 20MHz bandwidth for UAV spectrum
+    // ШАГ 1: Исправить sampling rate (сейчас 20MHz слишком много для Portapack)
+    // Максимум ~12MHz по другим приложениям, как в looking_glass и recon
+    receiver_model.set_sampling_rate(12000000);      // Корректный sampling rate <= 12MHz
+    receiver_model.set_baseband_bandwidth(6000000);  // 6MHz bandwidth, половина от sampling
     receiver_model.set_squelch_level(0);             // No squelch for spectrum analysis
     receiver_model.enable();                          // ВКЛЮЧИТЬ ПЕРЕД baseband
 
-    // ШАГ 1.3: Radio direction setup ПОСЛЕ receiver_model (как в looking_glass)
-    radio::set_direction(rf::Direction::Receive);    // ДОБАВЛЕНО: Критически важно
+    // ШАГ 2: Radio direction setup ПОСЛЕ receiver_model (как в looking_glass)
+    radio::set_direction(rf::Direction::Receive);    // Критически важно
 
-    // ШАГ 1.4: Baseband после hardware setup (правильная последовательность)
+    // ШАГ 3: Baseband после hardware setup (правильная последовательность)
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-    baseband::set_spectrum(20000000, 31);  // 20MHz bandwidth, trigger=31 (like search app)
+    baseband::set_spectrum(6000000, 31);  // 6MHz bandwidth, trigger=31 как в других spectrum apps
 
     // Setup button handlers
     button_start_.on_select = [this](Button&) { on_start_scan(); };
@@ -43,11 +50,18 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     button_settings_.on_select = [this](Button&) { on_open_settings(); };
     button_mode_.on_select = [this](Button&) { on_toggle_mode(); };
 
+    // ШАГ 4: НЕ ИНИЦИАЛИЗИРУЕМ spectrum streaming в конструкторе
+    // Looking Glass НЕ делает этого! spectrum streaming стартует только в on_show()
+    spectrum_streaming_active_ = false;
+
+    // ШАГ 5: Правильная инициализация tracked_drones как в заголовке (std::vector)
+    // FIXED: tracked_drones_ остается пустым до первого использования
+    approaching_count_ = 0;
+    receding_count_ = 0;
+    static_count_ = 0;
+
     // Initialize UI state
     button_stop_.set_enabled(false);
-
-    // Initialize spectrum streaming state - message handlers already set up in header
-    spectrum_streaming_active_ = false;
 }
 
 // Constructor for backward compatibility (old class name)
@@ -145,12 +159,14 @@ msg_t EnhancedDroneSpectrumAnalyzerView::scanning_thread() {
     for (size_t channel_idx = 0; channel_idx < active_channels_count_; ++channel_idx) {
         auto& channel = channels_[channel_idx];
 
-        // PHASE 3: Tune radio with hardware settling time (matching ui_looking_glass_app)
-        if (channel.frequency > 0) {
-            // Set baseband filter BEFORE frequency tuning (critical for Portapack)
-            radio::set_baseband_filter_bandwidth_rx(20000000);  // 20MHz for UAV spectrum
-            radio::set_tuning_frequency(channel.frequency);
-            chThdSleepMilliseconds(5);  // Hardware settling time (same as looking glass)
+    // PHASE 6: Исправить radio::set_baseband_filter_bandwidth_rx call
+    // В коде НЕТ такого API! Исправить на правильный
+    if (channel.frequency > 0) {
+        // Set baseband filter BEFORE frequency tuning (critical for Portapack)
+        // FIXED: НЕТ radio::set_baseband_filter_bandwidth_rx - использовать receiver_model
+        // receiver_model.set_baseband_bandwidth(6000000); // УЖЕ установлено в конструкторе
+        radio::set_tuning_frequency(channel.frequency);
+        chThdSleepMilliseconds(5);  // Hardware settling time (same as looking glass)
 
             // ШАГ 1.2 ДОБАВЛЕНО: Radio direction уже установлен в конструкторе, но проверяем
             // radio::set_direction(rf::Direction::Receive); // УБРАНО - уже в конструкторе
@@ -297,6 +313,9 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data(size_t channel_id
 
         // 8. LOG DETECTION (would use V0's detection logger here)
         // Note: V0 implementation would create DetectionLogger entry
+
+        // PHASE 7: INTEGRATION - Update drone tracking with detection
+        update_tracked_drone(db_entry->drone_type, scanned_frequency, rssi, db_entry->threat_level);
 
     } else {
         // Frequency not in database - treat as unknown
@@ -524,6 +543,9 @@ void EnhancedDroneSpectrumAnalyzerView::on_stop_scan() {
     text_status_.set("Status: Stopped");
     text_scanning_info_.set("Scanning: Idle");
 
+    // PHASE 7: Clean up stale drones when stopping scan
+    remove_stale_drones();
+
     update_detection_display();
 }
 
@@ -728,6 +750,475 @@ bool EnhancedDroneSpectrumAnalyzerView::validate_detector_input(const BasicFrequ
 
     return true; // Input is valid for detector processing
 }
+
+// PHASE 7: Drone movement tracking method implementations
+
+// PHASE 7: Analyze RSSI trend to determine drone movement direction
+MovementTrend EnhancedDroneSpectrumAnalyzerView::analyze_rssi_trend(const std::deque<int32_t>& history) {
+    // PHASE 7: Implement trend analysis algorithm
+    // Need minimum 3 measurements for reliable analysis
+    if (history.size() < 3) {
+        return MovementTrend::STATIC;
+    }
+
+    // Calculate linear regression slope to determine trend
+    // Positive slope = APPROACHING (signal getting stronger)
+    // Negative slope = RECEDING (signal getting weaker)
+
+    // Calculate mean values for linear regression
+    double sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x2 = 0.0;
+    size_t n = history.size();
+
+    for (size_t i = 0; i < n; ++i) {
+        double x = static_cast<double>(i);  // Time index
+        double y = static_cast<double>(history[i]);  // RSSI value
+
+        sum_x += x;
+        sum_y += y;
+        sum_xy += x * y;
+        sum_x2 += x * x;
+    }
+
+    // Linear regression slope formula: m = (n*sum_xy - sum_x*sum_y) / (n*sum_x2 - sum_x^2)
+    double denominator = (n * sum_x2 - sum_x * sum_x);
+    double slope = 0.0;
+
+    if (denominator != 0.0) {  // Avoid division by zero
+        slope = (n * sum_xy - sum_x * sum_y) / denominator;
+    }
+
+    // Define thresholds for movement detection
+    // These can be tuned based on empirical testing
+    const double APPROACHING_THRESHOLD = 0.5;  // dB per measurement
+    const double RECEDING_THRESHOLD = -0.5;    // dB per measurement
+
+    if (slope >= APPROACHING_THRESHOLD) {
+        return MovementTrend::APPROACHING;
+    } else if (slope <= RECEDING_THRESHOLD) {
+        return MovementTrend::RECEDING;
+    }
+
+    return MovementTrend::STATIC;
+}
+
+// PHASE 7: Update tracked drone with new RSSI measurement
+void EnhancedDroneSpectrumAnalyzerView::update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level) {
+    // Find existing drone or create new tracking entry
+    auto it = std::find_if(tracked_drones_.begin(), tracked_drones_.end(),
+                          [frequency](const TrackedDrone& drone) {
+                              return drone.frequency == frequency;
+                          });
+
+    systime_t current_time = chTimeNow();
+
+    if (it != tracked_drones_.end()) {
+        // Update existing drone tracking
+        TrackedDrone& drone = *it;
+
+        // Add RSSI to history (maintain last 10 measurements)
+        if (drone.rssi_history.size() >= 10) {
+            drone.rssi_history.pop_front();  // Remove oldest measurement
+        }
+        drone.rssi_history.push_back(rssi);
+
+        // Analyze trend if we have enough measurements
+        if (drone.rssi_history.size() >= 3) {
+            MovementTrend new_trend = analyze_rssi_trend(drone.rssi_history);
+
+            // Only update trend if confidence is high enough
+            float confidence = calculate_trend_confidence(drone.rssi_history, new_trend);
+            if (confidence >= 0.7f) {  // 70% confidence threshold
+                if (drone.trend != new_trend) {
+                    // Trend changed - log the event
+                    log_movement_event(drone, "trend_changed");
+                    drone.trend = new_trend;
+                }
+            }
+            drone.confidence = confidence;
+        }
+
+        drone.last_seen = current_time;
+        drone.detection_count++;
+
+        // Update threat level (in case it changed)
+        drone.threat_level = threat_level;
+
+    } else {
+        // Create new drone tracking entry
+        if (tracked_drones_.size() >= MAX_TRACKED_DRONES) {
+            // Remove oldest inactive drone if we're at capacity
+            remove_stale_drones();
+        }
+
+        TrackedDrone new_drone;
+        new_drone.type = type;
+        new_drone.frequency = frequency;
+        new_drone.trend = MovementTrend::STATIC;  // Start as static
+        new_drone.rssi_history.push_back(rssi);
+        new_drone.first_seen = current_time;
+        new_drone.last_seen = current_time;
+        new_drone.detection_count = 1;
+        new_drone.confidence = 0.0f;
+        new_drone.threat_level = threat_level;
+
+        tracked_drones_.push_back(new_drone);
+        log_movement_event(new_drone, "new_detection");
+    }
+
+    // Update trend counts
+    update_tracking_counts();
+
+    // PHASE 8: Update advanced tracking periodically (every 5 detections)
+    static uint32_t advanced_update_counter = 0;
+    if (++advanced_update_counter >= 5) {
+        update_advanced_tracking();
+        advanced_update_counter = 0;
+    }
+}
+
+// PHASE 7: Remove drones that haven't been seen for a while
+void EnhancedDroneSpectrumAnalyzerView::remove_stale_drones() {
+    // Remove drones not seen for more than 30 seconds (30 * 1000ms)
+    const systime_t STALE_TIMEOUT = 30000;
+
+    systime_t current_time = chTimeNow();
+
+    // Use erase-remove idiom to remove stale drones
+    tracked_drones_.erase(
+        std::remove_if(tracked_drones_.begin(), tracked_drones_.end(),
+                      [current_time, STALE_TIMEOUT](const TrackedDrone& drone) {
+                          return (current_time - drone.last_seen) > STALE_TIMEOUT;
+                      }),
+        tracked_drones_.end()
+    );
+
+    // Update counts after cleanup
+    update_tracking_counts();
+}
+
+// PHASE 7: Update the trend counters based on current drones
+void EnhancedDroneSpectrumAnalyzerView::update_tracking_counts() {
+    approaching_count_ = 0;
+    receding_count_ = 0;
+    static_count_ = 0;
+
+    for (const auto& drone : tracked_drones_) {
+        switch (drone.trend) {
+            case MovementTrend::APPROACHING:
+                approaching_count_++;
+                break;
+            case MovementTrend::RECEDING:
+                receding_count_++;
+                break;
+            case MovementTrend::STATIC:
+                static_count_++;
+                break;
+        }
+    }
+
+    // Update UI with new counts
+    update_trend_display();
+}
+
+// PHASE 7: Calculate confidence in trend analysis
+float EnhancedDroneSpectrumAnalyzerView::calculate_trend_confidence(const std::deque<int32_t>& history, MovementTrend trend) {
+    if (history.size() < 3) return 0.0f;
+
+    // For confidence, we check how well the measurements fit the expected trend
+    // This is a simplified approach - could be enhanced with statistical analysis
+
+    size_t consistent_count = 0;
+    size_t total_count = history.size() - 1;  // Compare adjacent pairs
+
+    for (size_t i = 1; i < history.size(); ++i) {
+        int32_t diff = history[i] - history[i-1];
+
+        bool consistent_with_trend = false;
+        switch (trend) {
+            case MovementTrend::APPROACHING:
+                consistent_with_trend = (diff > 0);  // Signal should be increasing
+                break;
+            case MovementTrend::RECEDING:
+                consistent_with_trend = (diff < 0);  // Signal should be decreasing
+                break;
+            case MovementTrend::STATIC:
+                consistent_with_trend = (std::abs(diff) < 2);  // Small changes
+                break;
+        }
+
+        if (consistent_with_trend) {
+            consistent_count++;
+        }
+    }
+
+    return static_cast<float>(consistent_count) / static_cast<float>(total_count);
+}
+
+// PHASE 7: Log movement events for debugging/analysis
+void EnhancedDroneSpectrumAnalyzerView::log_movement_event(const TrackedDrone& drone, const char* event) {
+    // PHASE 7: Log event to console/serial for debugging
+    // Could be extended to save to file or send via radio
+
+    char log_buffer[128];
+    const char* trend_str = "UNKNOWN";
+    switch (drone.trend) {
+        case MovementTrend::APPROACHING: trend_str = "APPROACHING"; break;
+        case MovementTrend::RECEDING: trend_str = "RECEDING"; break;
+        case MovementTrend::STATIC: trend_str = "STATIC"; break;
+    }
+
+    snprintf(log_buffer, sizeof(log_buffer),
+             "[DRONE] %s: Freq=%luHz, Trend=%s, Conf=%.2f",
+             event, drone.frequency, trend_str, drone.confidence);
+
+    // In production, this could send to serial console or save to log file
+    // For now, we update a status message that gets displayed
+    text_scanning_info_.set(log_buffer);
+}
+
+// PHASE 7: Update trend display in UI
+void EnhancedDroneSpectrumAnalyzerView::update_trend_display() {
+    // Update approaching drones text
+    if (approaching_count_ > 0) {
+        char approaching_buf[64];
+        snprintf(approaching_buf, sizeof(approaching_buf), "Приближается: %lu дронов", approaching_count_);
+        text_approaching_.set(approaching_buf);
+    } else {
+        text_approaching_.set("Приближается: -");
+    }
+
+    // Update receding drones text
+    if (receding_count_ > 0) {
+        char receding_buf[64];
+        snprintf(receding_buf, sizeof(receding_buf), "Удаляется: %lu дронов", receding_count_);
+        text_receding_.set(receding_buf);
+    } else {
+        text_receding_.set("Удаляется: -");
+    }
+
+    // Update summary
+    char summary_buf[64];
+    snprintf(summary_buf, sizeof(summary_buf),
+             "Тренды: ▲%lu ●%lu ▼%lu",
+             approaching_count_, static_count_, receding_count_);
+    text_trend_summary_.set(summary_buf);
+}
+
+// PHASE 7: Add trend UI elements to display (called from constructor)
+void EnhancedDroneSpectrumAnalyzerView::add_trend_ui_elements() {
+    // UI elements are already added in the header declarations
+    // This method could be used to add them to parent view if needed
+    update_trend_display();  // Initialize with current state
+}
+
+// PHASE 8: Advanced tracking features implementation
+
+// PHASE 8: Update advanced tracking calculations for all drones
+void EnhancedDroneSpectrumAnalyzerView::update_advanced_tracking() {
+    for (auto& drone : tracked_drones_) {
+        if (drone.rssi_history.size() >= 5) {  // Need enough data points
+            // Calculate and update speed estimate
+            float speed = calculate_movement_speed(drone);
+            drone_speeds_[drone.frequency] = speed;
+
+            // Calculate predicted position
+            rf::Frequency predicted_freq = predict_next_position(drone);
+            predicted_positions_[drone.frequency] = predicted_freq;
+        }
+    }
+
+    // Check for swarm patterns
+    check_swarm_patterns();
+
+    // Escalate threat levels based on patterns
+    escalate_threat_levels();
+
+    // Update UI with advanced information
+    update_speed_display();
+    update_prediction_info();
+}
+
+// PHASE 8: Calculate movement speed based on RSSI changes over time
+float EnhancedDroneSpectrumAnalyzerView::calculate_movement_speed(const TrackedDrone& drone) {
+    if (drone.rssi_history.size() < 5) {
+        return 0.0f;  // Not enough data
+    }
+
+    // Calculate rate of RSSI change (dB per second)
+    // This gives us a relative speed measure
+    int32_t rssi_start = drone.rssi_history[drone.rssi_history.size() - 5];  // 5 measurements ago
+    int32_t rssi_end = drone.rssi_history.back();  // Latest measurement
+
+    int32_t rssi_change = rssi_end - rssi_start;
+    systime_t time_span_ms = 750 * 5;  // 750ms per measurement, 5 measurements = ~3.75 seconds
+
+    float change_rate_per_second = static_cast<float>(rssi_change) / (time_span_ms / 1000.0f);
+
+    // Convert to relative speed (positive = getting closer, negative = moving away)
+    // Scale for display purposes (can be calibrated for actual m/s if needed)
+    return change_rate_per_second * 10.0f;  // Scale factor for readability
+}
+
+// PHASE 8: Predict next position based on current trend
+rf::Frequency EnhancedDroneSpectrumAnalyzerView::predict_next_position(const TrackedDrone& drone) {
+    if (drone.rssi_history.size() < 3) {
+        return drone.frequency;  // No prediction possible
+    }
+
+    // Simple linear extrapolation based on RSSI trend
+    // In a real implementation, this would use more sophisticated modeling
+    double slope = calculate_slope_for_prediction(drone.rssi_history);
+
+    // Extrapolate frequency based on RSSI slope
+    // This is a simplified model - real prediction would be more complex
+    double frequency_adjustment = slope * 100.0;  // Scale factor for prediction
+
+    // Frequency shift prediction (simplified - real model would use physics)
+    rf::Frequency predicted_freq = drone.frequency + static_cast<rf::Frequency>(frequency_adjustment);
+
+    // Clamp to reasonable bounds to prevent runaway predictions
+    predicted_freq = std::max(static_cast<rf::Frequency>(433000000), predicted_freq);
+    predicted_freq = std::min(static_cast<rf::Frequency>(6000000000), predicted_freq);
+
+    return predicted_freq;
+}
+
+// Helper function for prediction calculation
+double EnhancedDroneSpectrumAnalyzerView::calculate_slope_for_prediction(const std::deque<int32_t>& history) {
+    if (history.size() < 2) return 0.0;
+
+    // Calculate slope using linear regression on recent measurements
+    double sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x2 = 0.0;
+    size_t n = history.size();
+
+    for (size_t i = 0; i < n; ++i) {
+        double x = static_cast<double>(i);
+        double y = static_cast<double>(history[i]);
+
+        sum_x += x;
+        sum_y += y;
+        sum_xy += x * y;
+        sum_x2 += x * x;
+    }
+
+    double denominator = (n * sum_x2 - sum_x * sum_x);
+    if (denominator == 0.0) return 0.0;
+
+    return (n * sum_xy - sum_x * sum_y) / denominator;
+}
+
+// PHASE 8: Check for swarm/coordinated drone patterns
+void EnhancedDroneSpectrumAnalyzerView::check_swarm_patterns() {
+    // Check for patterns that indicate coordinated drone activity
+    size_t approaching_drones = 0;
+    size_t receding_drones = 0;
+    bool has_high_threat = false;
+
+    for (const auto& drone : tracked_drones_) {
+        switch (drone.trend) {
+            case MovementTrend::APPROACHING:
+                approaching_drones++;
+                break;
+            case MovementTrend::RECEDING:
+                receding_drones++;
+                break;
+            default:
+                break;
+        }
+
+        if (drone.threat_level >= ThreatLevel::HIGH) {
+            has_high_threat = true;
+        }
+    }
+
+    // Swarm detection logic
+    bool swarm_detected = false;
+    if (approaching_drones >= 3 || receding_drones >= 3) {
+        swarm_detected = true;
+    }
+
+    // Update status if swarm pattern detected
+    if (swarm_detected && has_high_threat) {
+        text_scanning_info_.set("[SWARM ALERT] Coordinated drone activity detected!");
+    } else if (swarm_detected) {
+        text_scanning_info_.set("[INFO] Multiple drones detected in formation");
+    }
+}
+
+// PHASE 8: Escalate threat levels based on observed patterns
+void EnhancedDroneSpectrumAnalyzerView::escalate_threat_levels() {
+    for (auto& drone : tracked_drones_) {
+        ThreatLevel new_level = drone.threat_level;
+
+        // Escalate based on movement patterns
+        if (drone.trend == MovementTrend::APPROACHING && drone.confidence > 0.8f) {
+            // Approaching with high confidence - potential threat
+            switch (drone.threat_level) {
+                case ThreatLevel::LOW:
+                    new_level = ThreatLevel::MEDIUM;
+                    break;
+                case ThreatLevel::MEDIUM:
+                    new_level = ThreatLevel::HIGH;
+                    break;
+                case ThreatLevel::HIGH:
+                    if (static_cast<uint32_t>(DroneType::SVO) <= static_cast<uint32_t>(drone.type) &&
+                        static_cast<uint32_t>(drone.type) <= static_cast<uint32_t>(DroneType::CODE_300)) {
+                        new_level = ThreatLevel::CRITICAL;  // Military codes + approaching = critical
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Update if escalated and log the event
+        if (new_level != drone.threat_level) {
+            drone.threat_level = new_level;
+            log_movement_event(drone, "threat_escalation");
+        }
+    }
+}
+
+// PHASE 8: Update speed information display
+void EnhancedDroneSpectrumAnalyzerView::update_speed_display() {
+    if (!tracked_drones_.empty()) {
+        // Show speed information in database info area (repurposed)
+        if (!drone_speeds_.empty()) {
+            char speed_buf[64];
+            size_t active_speeds = 0;
+            float total_speed = 0.0f;
+            float max_speed = 0.0f;
+
+            for (const auto& speed_pair : drone_speeds_) {
+                total_speed += std::abs(speed_pair.second);
+                max_speed = std::max(max_speed, std::abs(speed_pair.second));
+                active_speeds++;
+            }
+
+            if (active_speeds > 0) {
+                float avg_speed = total_speed / active_speeds;
+                snprintf(speed_buf, sizeof(speed_buf), "Avg speed: %.1f | Peak: %.1f",
+                        avg_speed, max_speed);
+                text_database_info_.set(speed_buf);
+            }
+        }
+    }
+}
+
+// PHASE 8: Update prediction information display
+void EnhancedDroneSpectrumAnalyzerView::update_prediction_info() {
+    // Show prediction info in the info area near trend display
+    // This could be enhanced with more detailed predictions in future
+    if (!predicted_positions_.empty()) {
+        size_t predictions = predicted_positions_.size();
+        char pred_buf[64];
+        snprintf(pred_buf, sizeof(pred_buf), "Tracking: %zu_positions", predictions);
+        // Could show this in a dedicated UI element if more space available
+    }
+}
+
+// Integration with scanning cycle - call advanced tracking after regular updates
+// This would be called from perform_scan_cycle() or update_tracking_counts()
 
 // Enhanced View UI Methods
 void EnhancedDroneSpectrumAnalyzerView::focus() {

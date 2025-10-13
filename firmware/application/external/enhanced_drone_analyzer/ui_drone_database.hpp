@@ -68,18 +68,42 @@ struct DroneFrequencyEntry {
     }
 };
 
-// FREQUENCY DATABASE CLASS
+// FREQUENCY DATABASE CLASS WITH CRUD OPERATIONS
 class DroneFrequencyDatabase {
 public:
     static constexpr size_t MAX_ENTRIES = 64;  // Enough for common drone frequencies
 
+    // Iterator support for easier usage
+    class iterator {
+    public:
+        iterator(DroneFrequencyDatabase& db, size_t index = 0) : db_{db}, index_{index} {}
+        iterator& operator++() { ++index_; return *this; }
+        bool operator==(const iterator& other) const { return index_ == other.index_; }
+        bool operator!=(const iterator& other) const { return !(*this == other); }
+        const DroneFrequencyEntry& operator*() const { return db_.entries_[index_]; }
+
+    private:
+        DroneFrequencyDatabase& db_;
+        size_t index_;
+    };
+
     DroneFrequencyDatabase();
+
+    // CRUD OPERATIONS - Full support for adding/removing/modifying frequencies
+    bool add_entry(const DroneFrequencyEntry& entry);        // Add new frequency entry
+    bool update_entry(size_t index, const DroneFrequencyEntry& entry); // Update existing entry
+    bool remove_entry(size_t index);                              // Remove entry by index
+    bool remove_entry_by_frequency(uint32_t frequency_hz);       // Remove entry by frequency
+    void clear_database();                                     // Remove all entries
 
     // Get frequency by index
     const DroneFrequencyEntry* get_entry(size_t index) const;
 
     // Number of active entries
     size_t size() const { return active_entries_; }
+    size_t max_size() const { return MAX_ENTRIES; }
+    bool is_empty() const { return active_entries_ == 0; }
+    bool is_full() const { return active_entries_ == MAX_ENTRIES; }
 
     // Lookup frequency in database
     const DroneFrequencyEntry* lookup_frequency(uint32_t frequency_hz) const;
@@ -87,15 +111,25 @@ public:
     // Check if frequency contains known threats
     ThreatLevel get_threat_level(uint32_t frequency_hz) const;
 
+    // Iterator support
+    iterator begin() { return iterator(*this, 0); }
+    iterator end() { return iterator(*this, active_entries_); }
+
+    // Validation
+    bool validate_entry(const DroneFrequencyEntry& entry) const;
+    bool entry_exists(uint32_t frequency_hz) const;
+
+    // Database management
+    void initialize_database();  // Load default entries
+    void reset_to_defaults();     // Reset to initial default database
+
 private:
     std::array<DroneFrequencyEntry, MAX_ENTRIES> entries_;
     size_t active_entries_;
 
-    // Initialize with known UAV frequencies
-    void initialize_database();
-
-    // Helper to add entry safely
-    void add_entry(const DroneFrequencyEntry& entry);
+    // Helper methods
+    void compact_entries();  // Remove gaps after deletion
+    size_t find_entry_index(uint32_t frequency_hz) const;
 };
 
 // CONSTEXPR DATABASE (compile-time initialization for embedded systems)

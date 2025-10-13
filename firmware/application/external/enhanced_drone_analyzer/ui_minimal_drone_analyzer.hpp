@@ -27,6 +27,7 @@ class DetectionLogger;
 #include <cstdint>
 #include <array>
 #include <string>
+#include <map>
 
 // INLINE DEFINITIONS for compatibility
 // RENUMBERED ENUM from V0: matches military threat levels exactly
@@ -53,6 +54,36 @@ enum class ThreatLevel {
     MEDIUM = 2,
     HIGH = 3,
     CRITICAL = 4
+};
+
+enum class MovementTrend {
+    STATIC = 0,
+    APPROACHING = 1,  // Приближается (RSSI растет)
+    RECEDING = 2      // Удаляется (RSSI падает)
+};
+
+// PHASE 7: Drone movement tracking structures
+struct TrackedDrone {
+    DroneType type;
+    rf::Frequency frequency;
+    MovementTrend trend;
+    std::deque<int32_t> rssi_history;  // Последние 10 измерений RSSI
+    systime_t first_seen;
+    systime_t last_seen;
+    uint32_t detection_count;
+    float confidence;  // 0.0 - 1.0 уверенность в определении тренда
+    ThreatLevel threat_level;
+
+    TrackedDrone() :
+        type(DroneType::UNKNOWN),
+        frequency(0),
+        trend(MovementTrend::STATIC),
+        first_seen(0),
+        last_seen(0),
+        detection_count(0),
+        confidence(0.0f),
+        threat_level(ThreatLevel::NONE) {
+    }
 };
 
 // CLEAN TEXT-BASED UI - NO GRAPHICS, MINIMALIST V0 STYLE
@@ -135,37 +166,27 @@ private:
     uint32_t current_channel_idx_ = 0;
     int32_t last_valid_rssi_ = -120;  // For RSSI smoothing
 
+    // PHASE 7: Drone movement tracking system
+    std::vector<TrackedDrone> tracked_drones_;
+    static constexpr size_t MAX_TRACKED_DRONES = 16;
+    uint32_t approaching_count_ = 0;  // Количество приближающихся дронов
+    uint32_t receding_count_ = 0;     // Количество удаляющихся дронов
+    uint32_t static_count_ = 0;       // Количество статичных дронов
+
     // SIMULATION STATE (to be removed in Phase 2)
     ThreatLevel current_threat_level_for_simulation_ = ThreatLevel::NONE;
 
     // PHASE 3: Complete Message system integration (following Looking Glass pattern)
     bool spectrum_streaming_active_ = false;
 
-    // ChannelSpectrum FIFO and message handlers - EXACTLY like Looking Glass
-    ChannelSpectrumFIFO* channel_fifo{nullptr};
-
-    MessageHandlerRegistration message_handler_spectrum_config{
-        Message::ID::ChannelSpectrumConfig,
-        [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-            this->channel_fifo = message.fifo;
-        }};
-
-    MessageHandlerRegistration message_handler_frame_sync{
-        Message::ID::DisplayFrameSync,
-        [this](const Message* const) {
-            if (this->channel_fifo) {
-                ChannelSpectrum channel_spectrum;
-                while (channel_fifo->out(channel_spectrum)) {
-                    this->on_channel_spectrum(channel_spectrum);
-                }
-            }
-        }};
+    // УБРАНЫ MessageHandlerRegistration - Looking Glass работает без них!
+    // Прямые вызовы baseband::spectrum_streaming_start/stop() как в других spectrum apps
 
     // Event handlers
     void on_start_scan();
     void on_stop_scan();
     void on_open_settings();
+    void on_open_database_manager();
     void on_toggle_mode();
     void on_show() override;
     void on_hide() override;
@@ -224,6 +245,36 @@ private:
     void handle_minor_error(const char* context, int count);
     void handle_moderate_error(const char* context, int count);
     void handle_critical_error(const char* context);
+
+    // PHASE 7: Drone movement tracking methods
+    MovementTrend analyze_rssi_trend(const std::deque<int32_t>& history);
+    void update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level);
+    void remove_stale_drones();
+    void update_tracking_counts();
+    float calculate_trend_confidence(const std::deque<int32_t>& history, MovementTrend trend);
+    void log_movement_event(const TrackedDrone& drone, const char* event);
+
+    // PHASE 7: UI elements for trend display
+    void update_trend_display();
+    void add_trend_ui_elements();
+
+    // PHASE 8: Advanced tracking features
+    void update_advanced_tracking();
+    float calculate_movement_speed(const TrackedDrone& drone);
+    rf::Frequency predict_next_position(const TrackedDrone& drone);
+    void check_swarm_patterns();
+    void escalate_threat_levels();
+    void update_speed_display();
+    void update_prediction_info();
+
+    // PHASE 8: Speed and prediction data - using std::map as fallback for embedded systems
+    std::map<rf::Frequency, float> drone_speeds_;  // Hz -> speed estimate (m/s or relative)
+    std::map<rf::Frequency, rf::Frequency> predicted_positions_;  // Current freq -> predicted freq
+
+    // PHASE 7: UI fields for movement tracking
+    Text text_approaching_{ {0, 208, 240, 16}, "Приближается: -" };
+    Text text_receding_{ {0, 224, 240, 16}, "Удаляется: -" };
+    Text text_trend_summary_{ {0, 240, 240, 16}, "Тренды: ▲0 ●0 ▼0" };
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer
