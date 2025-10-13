@@ -153,6 +153,7 @@ namespace ui {
                             } while (1);  // when ok, break. when errorcnt > 5, break
                             if (errorcnt > 5) {
                                 nav.display_modal("Error", "Unable to download app.");
+                                dev2->unlockDevice();
                                 return;
                             }
                         }
