@@ -156,10 +156,6 @@ namespace ui {
                                 return;
                             }
                         }
-                        File tmp;
-                        tmp.open("tmp.ppmp", false, true);
-                        tmp.write(app_image, appInfo->binary_size);
-                        tmp.close();
 
                         if (!run_module_app(nav, app_image, appInfo->binary_size)) {
                             nav.display_modal("Error", "Unable to run downloaded app.");
