@@ -16,31 +16,32 @@
 
 #include <algorithm>
 
-// ENHANCED VIEW IMPLEMENTATION (Step 4) - Real Database + Scanner Integration
+// ENHANCED VIEW IMPLEMENTATION - PHASE 5: Optimized Hardware Initialization Order
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
     : nav_(nav),
-    radio_state_() {  // Добавлена инициализация RxRadioState
+    radio_state_(ReceiverModel::Mode::SpectrumAnalysis) {  // CORRECTED: Proper initialization
 
-    // CORRECTED: Baseband image for spectrum analysis like Looking Glass and SpectrumAnalysisView
-    // SpectrumAnalysisView uses baseband configuration, Looking Glass uses spi_flash::image_tag_wideband_spectrum
-    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);  // Correct pattern from Looking Glass
+    // PHASE 5: Optimized hardware initialization sequence following Looking Glass pattern
+    // Baseband image FIRST - sets up DSP processing capabilities
+    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
-    // Step 2: Initialize modules early (safe to do before hardware setup)
+    // Initialize application components early (before hardware setup)
     initialize_database_and_scanner();
 
-    // Step 3: Setup modulation and radio parameters - following SpectrumAnalysisView pattern
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);  // Same as Looking Glass
-    receiver_model.set_sampling_rate(20000000);                            // 20MHz rate (Looking Glass pattern)
-    receiver_model.set_baseband_bandwidth(12000000);                      // 12MHz bandwidth (Looking Glass pattern)
-    receiver_model.set_squelch_level(0);                                  // No squelch for spectrum
+    // Radio radio state setup (RxRadioState handles proper initialization)
+    // Radio parameters MUST be configured before receiver_model.enable()
+    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
+    receiver_model.set_sampling_rate(20000000);        // 20MHz spectrum analysis rate
+    receiver_model.set_baseband_bandwidth(12000000);   // 12MHz bandwidth
+    receiver_model.set_squelch_level(0);               // No squelch for spectrum
 
-    // Step 4: Setup radio direction BEFORE receiver enable - critical order
+    // Radio hardware setup - direction BEFORE baseband configuration
     radio::set_direction(rf::Direction::Receive);
 
-    // Step 5: Setup spectrum streaming - following Looking Glass/SpectrumAnalysisView pattern
-    baseband::set_spectrum(12000000, 32);  // 12MHz bandwidth, trigger=32 (Looking Glass default)
+    // Baseband spectrum configuration - AFTER receiver parameters set
+    baseband::set_spectrum(12000000, 32);  // Match bandwidth and trigger settings
 
-    // Step 6: Receiver enable LAST - following all Mayhem apps pattern
+    // Receiver enable LAST - critical since baseband must be ready first
     receiver_model.enable();
 
     // Setup button handlers - following Recon app pattern with lambda captures
