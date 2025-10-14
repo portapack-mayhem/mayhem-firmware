@@ -182,6 +182,10 @@ private:
     FreqmanDB freq_db_;  // DIRECT FreqmanDB usage like Recon/Scanner
     size_t current_db_index_ = 0;  // Track current frequency index
 
+    // CORRECTED: Spectrum streaming state management like Looking Glass
+    // Spectrum streaming must be started/stopped properly via on_show/on_hide
+    bool spectrum_streaming_active_ = false;  // Track spectrum streaming state
+
     // Variable declarations for tracking counts (needed by implementation)
     size_t approaching_count_ = 0;
     size_t receding_count_ = 0;
