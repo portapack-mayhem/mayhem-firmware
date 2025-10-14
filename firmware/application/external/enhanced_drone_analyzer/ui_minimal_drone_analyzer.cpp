@@ -21,25 +21,24 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     : nav_(nav),
     radio_state_() {  // Добавлена инициализация RxRadioState
 
-    // ИСПРАВЛЕНО ПО ОБРАЗЦУ LEVEL/SCANNER:
-    // 1. Проверить baseband image tag (некорректно использует wideband_spectrum)
-    // 2. Использовать правильный image tag для spectrum analysis как в Level (nfm)
-    baseband::run_image(portapack::spi_flash::image_tag_nfm);  // ПО Level паттерну
+    // CORRECTED: Baseband image for spectrum analysis like Looking Glass and SpectrumAnalysisView
+    // SpectrumAnalysisView uses baseband configuration, Looking Glass uses spi_flash::image_tag_wideband_spectrum
+    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);  // Correct pattern from Looking Glass
 
     // Step 2: Initialize modules early (safe to do before hardware setup)
     initialize_database_and_scanner();
 
-    // Step 3: Setup modulation and radio parameters - following AnalogAudioView pattern
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-    receiver_model.set_sampling_rate(12000000);      // 12MHz rate (spectrum mode)
-    receiver_model.set_baseband_bandwidth(6000000);  // 6MHz bandwidth
-    receiver_model.set_squelch_level(0);             // No squelch for spectrum
+    // Step 3: Setup modulation and radio parameters - following SpectrumAnalysisView pattern
+    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);  // Same as Looking Glass
+    receiver_model.set_sampling_rate(20000000);                            // 20MHz rate (Looking Glass pattern)
+    receiver_model.set_baseband_bandwidth(12000000);                      // 12MHz bandwidth (Looking Glass pattern)
+    receiver_model.set_squelch_level(0);                                  // No squelch for spectrum
 
     // Step 4: Setup radio direction BEFORE receiver enable - critical order
     radio::set_direction(rf::Direction::Receive);
 
-    // Step 5: Setup spectrum streaming - following Looking Glass pattern
-    baseband::set_spectrum(6000000, 0);  // 6MHz bandwidth, trigger=0 for continuous
+    // Step 5: Setup spectrum streaming - following Looking Glass/SpectrumAnalysisView pattern
+    baseband::set_spectrum(12000000, 32);  // 12MHz bandwidth, trigger=32 (Looking Glass default)
 
     // Step 6: Receiver enable LAST - following all Mayhem apps pattern
     receiver_model.enable();
@@ -58,7 +57,7 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
     // Setup progress bar and text elements properly
 
-    // ИСПРАВЛЕНО: Spectrum streaming НЕ инициализировать в конструкторе по образцу Looking Glass
+    // CORRECTED: Spectrum streaming НЕ инициализировать в конструкторе по образцу Looking Glass
     // spectrum streaming стартует только в on_show() для корректной работы hardware
     spectrum_streaming_active_ = false;
 
