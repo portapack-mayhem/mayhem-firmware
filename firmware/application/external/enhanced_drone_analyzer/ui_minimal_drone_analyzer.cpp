@@ -1027,9 +1027,25 @@ void EnhancedDroneSpectrumAnalyzerView::on_save_frequency() {
     nav_.display_modal("Success", "Drone frequency saved\nto DETECTED_DRONES.TXT");
 }
 
-// AUDIO TOGGLE HANDLER - Enable/disable audio alerts
+// AUDIO SETTINGS HANDLER - Opens audio settings view
 void EnhancedDroneSpectrumAnalyzerView::on_audio_toggle() {
-    nav_.display_modal("Audio Toggle", "Audio alerts functionality\nwill be implemented in\nfuture versions.");
+    // Create audio settings view instance
+    DroneAudioSettings audio_settings;
+    audio_settings.audio_enabled = audio_alert_.is_audio_enabled();
+    audio_settings.test_threat_level = ThreatLevel::MEDIUM;
+
+    // Create and navigate to audio settings view with callback
+    auto audio_view = nav_.push<DroneAudioSettingsView>(
+        nav_,
+        audio_settings,
+        audio_alert_
+    );
+
+    // Set callback to update settings when view closes
+    audio_view->set_on_settings_changed([this]() {
+        // Audio settings are updated directly in the view
+        // through DroneAudioAlert instance, so no additional work needed
+    });
 }
 
 // ADVANCED SETTINGS HANDLER - Show advanced settings (placeholder)
