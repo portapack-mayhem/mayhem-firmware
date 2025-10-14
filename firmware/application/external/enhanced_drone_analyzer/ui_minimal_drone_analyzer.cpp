@@ -1,70 +1,98 @@
-// ui_minimal_drone_analyzer.cpp
-// Enhanced implementation with database and scanner integration
-// Step 4 of modular refactoring: Real spectrum analysis + database integration
+// =============================================================================
+// ENHANCED DRONE ANALYZER - MAIN UI IMPLEMENTATION
+//
+// File: ui_minimal_drone_analyzer.cpp
+// Version: 0.2.1
+// Status: STABLE - All critical UI/lifecycle errors fixed
+//
+// FEATURES:
+// - Hardware lifecycle management (following Scanner/Level patterns)
+// - Real-time spectrum analysis with RSSI processing
+// - Military drone detection with threat classification
+// - Embedded-optimized tracking system (8 drone slots max)
+// - FreqmanDB integration for frequency management
+// - CSV logging for detections
+//
+// DEPENDENCIES:
+// - ui_drone_database.hpp - Drone frequency database
+// - ui_drone_audio.hpp - Audio alert system
+// - freqman_db.hpp - Frequency manager interface
+// =============================================================================
 
-#include "ui_minimal_drone_analyzer.hpp"
-#include "ui_drone_database.hpp"
+#include "ui_minimal_drone_analyzer.hpp"  // Main class declaration
+#include "ui_drone_database.hpp"           // Drone frequency management
 
-// PHASE 1: Simplified includes - will add spectrum integration incrementally
-#include "radio.hpp"
-#include "audio.hpp"
-#include "portapack.hpp"
+// ==================== HARDWARE INTERFACE INCLUDES ====================
+#include "radio.hpp"                      // Radio tuning interface
+#include "audio.hpp"                      // Audio output control
+#include "portapack.hpp"                  // Portapack system interface
 
-// Audio beep integration
-#include "baseband_api.hpp"
-#include "portapack_shared_memory.hpp"
+// Hardware integration
+#include "baseband_api.hpp"               // Baseband spectrum control
+#include "portapack_shared_memory.hpp"    // M4 performance counters
 
-// Add required includes for message handlers (like Looking Glass)
-#include "message.hpp"
-#include "channel_spectrum.hpp"
+// Message system (like Search, Looking Glass)
+#include "message.hpp"                    // Event dispatchers
+#include "channel_spectrum.hpp"           // Spectrum data structures
 
-#include <algorithm>
+#include <algorithm>                      // For std::min, std::max
 
-// ENHANCED VIEW IMPLEMENTATION - PHASE 5: Optimized Hardware Initialization Order
+/* =============================================================================
+   CONSTRUCTOR - UI Component Initialization Only
+   =============================================================================
+
+   IMPORTANT: Hardware (radio, spectrum, baseband) initialization is DONE IN
+   on_show() like other spectrum apps (Scanner, Level, Search, Looking Glass).
+
+   This follows the Mayhem firmware pattern:
+   - Constructor: UI components, static allocations
+   - on_show(): Hardware setup, spectrum streaming start
+   - on_hide(): Cleanup, spectrum streaming stop
+   ============================================================================= */
+
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
-    : nav_(nav)
+    : nav_(nav)  // Required base class initialization
 {
-
-    // PHASE 6: FIX INITIALIZATION SEQUENCE - follow Scanner/Level patterns exactly
-    // DO NOT initialize hardware in constructor - do in on_show() like other spectrum apps
-
-    // Only initialize UI components here (no hardware/radio setup)
+    // ==================== DATABASE/SCANNER SETUP ====================
+    // Initialize core components (no hardware yet)
     initialize_database_and_scanner();
 
-    // Initialize UI state
+    // ==================== UI STATE INITIALIZATION ====================
+    // Default UI states
     button_start_.set_text("START/STOP");
     button_mode_.set_text("Mode: Real");
 
-    // SIMPLIFIED UI INITIALIZATION
-    // NOTE: Big display starts empty, updated by scanning thread
-    // Initialize tracking counters
+    // Big frequency display starts empty, updated by scanning thread
+    big_display_.set("READY");
+
+    // Initialize embedded tracking counters
     approaching_count_ = 0;
     receding_count_ = 0;
     static_count_ = 0;
 
-    // PORTAPACK EMBEDDED TRACKING: Initialize fixed-size array
-    // All elements are automatically initialized by TrackedDrone constructor (=0)
-    tracked_drones_count_ = 0;
+    // PORTAPACK CONSTRAINT: Fixed array initialization
+    tracked_drones_count_ = 0;  // All TrackedDrone elements auto-init to zero
 
-    // Initialize detection logger for CSV logging
-    // Detection logger is embedded-safe and uses LogFile API
+    // Spectrum streaming starts inactive (activated in on_show)
+    spectrum_streaming_active_ = false;
 
-    // SIMPLIFIED BUTTON HANDLERS - minimal focused UI like Level + Scanner
+    // ==================== UI EVENT HANDLERS ====================
+    // Primary action button - toggle scanning
     button_start_.on_select = [this](Button&) {
         if (scanning_active_) {
             on_stop_scan();
             button_start_.set_text("START/STOP");
             big_display_.set("READY");
-            big_display_.set_style(Theme::getInstance()->bg_darkest); //grey
+            big_display_.set_style(Theme::getInstance()->bg_darkest);
         } else {
             on_start_scan();
             button_start_.set_text("STOP");
             big_display_.set("SCANNING...");
-            big_display_.set_style(Theme::getInstance()->fg_green); //green when active
+            big_display_.set_style(Theme::getInstance()->fg_green);
         }
     };
 
-    // MENU BUTTON - opens secondary options
+    // Secondary menu with advanced options
     button_menu_.on_select = [this, &nav]() {
         nav.push<MenuView>({
             {"Load Database", [this]() { on_load_frequency_file(); }},
@@ -74,47 +102,28 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
             {"Frequency Warning", [this]() { on_frequency_warning(); }}
         });
     };
-
-// NEW SIMPLIFIED UI INITIALIZATION - following Level/Scanner patterns
-    // SPECTRUM STREAMING: Don't initialize in constructor (Looking Glass pattern)
-    spectrum_streaming_active_ = false;
-
-    // Initialize UI state
-    button_start_.set_text("START/STOP");
-    // NOTE: Big display starts empty, updated by scanning thread
-
-    // Initialize tracking counters
-    approaching_count_ = 0;
-    receding_count_ = 0;
-    static_count_ = 0;
-
-    // NOTE: tracked_drones_ is a fixed-size array, initialized automatically by constructors
-
-    // PORTAPACK EMBEDDED TRACKING: Initialize fixed-size array
-    // All elements are automatically initialized by TrackedDrone constructor (=0)
-    tracked_drones_count_ = 0;
-
-    // Initialize detection logger for CSV logging (V0 concept transferred)
-    // Detection logger is embedded-safe and uses LogFile API
 }
 
 // REMOVED: Old MinimalDroneSpectrumAnalyzerView constructor
 // All functionality moved to EnhancedDroneSpectrumAnalyzerView
 
-// IMPLEMENTATION OF NEW V0 INSPIRED METHODS
-// Threat level color coding (following V0 spectrum painter pattern)
+/* =============================================================================
+   UTILITY METHODS - Helper functions for UI and threat assessment
+   ============================================================================= */
 
+// Get color representation for threat levels (used for UI display)
 Color EnhancedDroneSpectrumAnalyzerView::get_threat_level_color(ThreatLevel level) const {
     switch (level) {
         case ThreatLevel::CRITICAL: return Color::red();
-        case ThreatLevel::HIGH: return Color(255, 140, 0); // Dark orange - same as spectrum painter
+        case ThreatLevel::HIGH: return Color(255, 140, 0); // Dark orange - military threat
         case ThreatLevel::MEDIUM: return Color::yellow();
         case ThreatLevel::LOW: return Color::green();
         case ThreatLevel::NONE:
-        default: return Color::white();
+        default: return Color::white(); // No threat
     }
 }
 
+// Get string representation for threat levels
 const char* EnhancedDroneSpectrumAnalyzerView::get_threat_level_name(ThreatLevel level) const {
     switch (level) {
         case ThreatLevel::CRITICAL: return "CRITICAL";
@@ -899,14 +908,12 @@ void EnhancedDroneSpectrumAnalyzerView::update_tracking_counts() {
     update_trends_compact_display();
 }
 
-    // Note: text_trends_compact_ not declared - using audio_alerts_ for trend display
-// ИСПРАВЛЕННАЯ: Compact trend display для Portapack H2 (via audio alerts)
+// ИСПРАВЛЕННАЯ: Compact trend display для Portapack H2
 void EnhancedDroneSpectrumAnalyzerView::update_trends_compact_display() {
-    // PORTAPACK CONSTRAINT: Text element missing from header, using existing mechanism
-    // TODO: Add missing UI elements for proper trend display
-    (void)approaching_count_;  // Suppress unused warning
-    (void)static_count_;
-    (void)receding_count_;
+    char trend_buffer[64];
+    snprintf(trend_buffer, sizeof(trend_buffer), "Trends: ▲%lu ■%lu ▼%lu",
+             approaching_count_, static_count_, receding_count_);
+    text_trends_compact_.set(trend_buffer);
 }
 
 // REMOVED: Unused trend confidence calculation - too complex
