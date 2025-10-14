@@ -9,20 +9,18 @@
 #include "ui.hpp"
 #include "ui/ui_button.hpp"
 #include "ui/ui_text.hpp"
+#include "ui/ui_progress_bar.hpp"  // V0 PROGRESS BAR INTEGRATION
 #include "ui/navigation.hpp"
 #include "external_app.hpp"
 #include "radio_state.hpp"  // RxRadioState for proper hardware management
 #include "app_settings.hpp"
 #include "baseband_api.hpp"
 #include "message.hpp"            // Message system with ChannelSpectrum
-// For frequency database - requires proper freqman_db integration later
-// #include "freqman_db.hpp"
 
-// FORWARD DECLARATIONS to avoid circular deps - proper includes in .cpp
-class DroneFrequencyDatabase;
-class BasicFrequencyScanner;
-class BasicDroneDetector;
-class DetectionLogger;
+// PORTA PACK ADDITIONAL INCLUDES for frequency management - following Recon pattern
+#include "freqman_db.hpp"
+#include "freqman.hpp"
+#include <vector>
 
 #include <cstdint>
 #include <array>
@@ -56,33 +54,80 @@ enum class ThreatLevel {
     CRITICAL = 4
 };
 
-enum class MovementTrend {
-    STATIC = 0,
-    APPROACHING = 1,  // Приближается (RSSI растет)
-    RECEDING = 2      // Удаляется (RSSI падает)
+// PORTAPACK EMBEDDED TRACKING SYSTEM - Hardware-compatible implementation
+// Optimized for Cortex-M4 constraints (16KB RAM, no heap allocation)
+enum class MovementTrend : uint8_t {
+    STATIC = 0,      // RSSI стабилен (+/- 3dB)
+    APPROACHING = 1, // RSSI растет (дрон приближается)
+    RECEDING = 2,    // RSSI падает (дрон удаляется)
+    UNKNOWN = 3      // Недостаточно данных для анализа
 };
 
-// PHASE 7: Drone movement tracking structures
+// EMBEDDED-FRIENDLY: Fixed-size structure (15 bytes), no dynamic allocation
 struct TrackedDrone {
-    DroneType type;
-    rf::Frequency frequency;
-    MovementTrend trend;
-    std::deque<int32_t> rssi_history;  // Последние 10 измерений RSSI
-    systime_t first_seen;
-    systime_t last_seen;
-    uint32_t detection_count;
-    float confidence;  // 0.0 - 1.0 уверенность в определении тренда
-    ThreatLevel threat_level;
+    uint32_t frequency;       // 4 bytes: Частота в Hz (433MHz = 433000000)
+    int16_t last_rssi;        // 2 bytes: Последний RSSI (-120 to -20 dB)
+    int16_t prev_rssi;        // 2 bytes: Предыдущий RSSI для тренда
+    systime_t last_seen;      // 4 bytes: ChibiOS system time
+    uint8_t drone_type;       // 1 byte: DroneType enum as uint8_t
+    uint8_t trend_history;    // 1 byte: Битовая маска последних 4 трендов
+    uint8_t update_count;     // 1 byte: Количество обновлений (0 = free slot)
 
-    TrackedDrone() :
-        type(DroneType::UNKNOWN),
-        frequency(0),
-        trend(MovementTrend::STATIC),
-        first_seen(0),
-        last_seen(0),
-        detection_count(0),
-        confidence(0.0f),
-        threat_level(ThreatLevel::NONE) {
+    // EMBEDDED CONSTRUCTOR: Initialize to zero (free slot)
+    TrackedDrone() : frequency(0), last_rssi(-120), prev_rssi(-120),
+                     last_seen(0), drone_type(0), trend_history(0), update_count(0) {}
+
+    // ADD RSSI WITH TREND CALCULATION - Embedded optimized
+    void add_rssi(int16_t rssi, systime_t time) {
+        prev_rssi = last_rssi;
+        last_rssi = rssi;
+        last_seen = time;
+
+        if (update_count < 255) update_count++; // Prevent overflow
+
+        // MINIMUM 2 measurements for trend calculation
+        if (update_count >= 2) {
+            calculate_simple_trend();
+        }
+    }
+
+    // GET CURRENT TREND - Extract from bit mask
+    MovementTrend get_trend() const {
+        return static_cast<MovementTrend>(trend_history & 0x03); // Last 2 bits
+    }
+
+private:
+    // CALCULATE TREND BASED ON RSSI CHANGE - Hardware optimized
+    void calculate_simple_trend() {
+        const int16_t TREND_THRESHOLD_DB = 3; // 3dB minimum change
+        int16_t diff = last_rssi - prev_rssi;
+
+        // PORTAPACK CONSTRAINT: Gradual trend accumulation
+        // Store last 4 trends in 8-bit mask (2 bits per trend)
+        MovementTrend new_trend = MovementTrend::STATIC;
+
+        if (diff > TREND_THRESHOLD_DB) {
+            new_trend = MovementTrend::APPROACHING;  // Signal stronger = closer
+        } else if (diff < -TREND_THRESHOLD_DB) {
+            new_trend = MovementTrend::RECEDING;     // Signal weaker = farther
+        }
+
+        // BIT SHIFT: Rotate history mask left by 2, add new trend
+        trend_history = (trend_history << 2) | static_cast<uint8_t>(new_trend);
+    }
+};
+
+// INTEGRATED: Direct Level/Recon pattern validation
+// Using embedded-friendly structures like in Scanner/Recon/Recon
+struct SimpleDroneValidation {
+    // EMBEDDED PATTERN: Direct RSSI validation like Level app
+    static bool validate_rssi_signal(int32_t rssi_db, ThreatLevel threat) {
+        // DIRECT from Level/Recon pattern: Simple threshold checks
+        if (rssi_db < -100 || rssi_db > -20) return false;  // Like Level hardware limits
+
+        // EMBEDDED: Simple threat-based threshold like in Scanner
+        int8_t min_rssi = (threat >= ThreatLevel::HIGH) ? -85 : -90;
+        return rssi_db > min_rssi;
     }
 };
 
@@ -128,26 +173,45 @@ private:
     BasicDroneDetector* detector_ = nullptr;
     // NO spectrum_painter - clean text interface only
 
-    // FIXED: Add missing spectrum_collector_fifo_ declaration
-    // ChannelSpectrumFIFO* channel_fifo_ = nullptr; // REMOVED - conflict with message handler FIFO
+    // PHASE 3: Add proper spectrum collector infrastructure following Looking Glass pattern
+    // ChannelSpectrumFIFO* channel_fifo_ = nullptr;  // FIXME: Remove this - doesn't exist in Mayhem firmware
+    bool spectrum_streaming_initialized_ = false;  // Use direct spectrum streaming like Looking Glass
 
-    // FIXED: Add missing channels_ array with size matching scanner
-    std::array<ScanningChannel, 64> channels_;
-    size_t active_channels_count_ = 0;
+    // FIXED: Replace ScanningChannel with FreqmanDB following Recon pattern
+    FreqmanDB freq_db_;  // DIRECT FreqmanDB usage like Recon/Scanner
+    size_t current_db_index_ = 0;  // Track current frequency index
 
     bool is_real_mode_ = false; // False = demo mode, True = real scanning
 
-    // UI CONTROLS - expanded layout
-    Button button_start_{ {0, 0}, "Start Scan" };
-    Button button_stop_{ {0, 32}, "Stop Scan" };
-    Button button_settings_{ {120, 0}, "Settings" };
-    Button button_mode_{ {0, 284}, "Mode: Demo" }; // Toggle demo/real mode
+    // PORTAPACK EMBEDDED TRACKING - Hardware constraints optimized
+    // FIXED-SIZE ARRAY: No dynamic allocation, fits in 16KB RAM
+    static constexpr size_t MAX_TRACKED_DRONES = 8;  // 8 drones * 15 bytes = 120 bytes total
+    TrackedDrone tracked_drones_[MAX_TRACKED_DRONES]; // Static array, no heap
+    size_t tracked_drones_count_ = 0;  // Current count of active drones
 
-    // STATUS DISPLAY
-    Text text_status_{ {0, 64, 240, 16}, "Status: Ready" };
-    Text text_detection_info_{ {0, 84, 240, 48}, "No detections" };
-    Text text_database_info_{ {0, 136, 240, 32}, "Database: Not loaded" };
-    Text text_scanning_info_{ {0, 172, 240, 32}, "Scanning: Idle" };
+    // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
+    Button button_start_{ {0, 0}, "START" };      // Scan start/stop
+    Button button_stop_{ {48, 0}, "STOP" };       // Scan start/stop
+    Button button_save_freq_{ {96, 0}, "SAVE" };  // Save detected drone frequency
+
+    // SECOND ROW - File management and advanced controls
+    Button button_load_file_{ {0, 32}, "LOAD" };   // Load frequency file
+    Button button_advanced_{ {48, 32}, "ADV" };   // Advanced settings
+    Button button_mode_{ {96, 32}, "MODE" };      // Demo/Real mode toggle
+
+    // SECOND ROW: AUDIO + ADVANCED buttons (like V0)
+    Button button_audio_{ {0, 32}, "AUDIO" };
+    Button button_advanced_{ {80, 32}, "ADV" };
+    Button button_mode_{ {160, 32}, "MODE" };     // Move here, changed from "Mode: Demo"
+
+    // PROGRESS BAR (V0 Inspired) - positioned where spectrum bars would be in V0
+    ProgressBar scanning_progress_bar_{ {0, 64, 240, 16} };
+
+    // STATUS DISPLAY (moved down below progress)
+    Text text_status_{ {0, 84, 240, 16}, "Status: Ready" };
+    Text text_detection_info_{ {0, 104, 240, 48}, "No detections" };
+    Text text_database_info_{ {0, 156, 240, 32}, "Database: Not loaded" };
+    Text text_scanning_info_{ {0, 192, 240, 32}, "Scanning: Idle" };
 
     // INFO MESSAGES WITH RUSSIAN TEXT
     Text text_info_{ {0, 208, 240, 32}, "Enhanced Drone Analyzer\nv0.2 Step 4" };
@@ -166,27 +230,34 @@ private:
     uint32_t current_channel_idx_ = 0;
     int32_t last_valid_rssi_ = -120;  // For RSSI smoothing
 
-    // PHASE 7: Drone movement tracking system
-    std::vector<TrackedDrone> tracked_drones_;
-    static constexpr size_t MAX_TRACKED_DRONES = 16;
-    uint32_t approaching_count_ = 0;  // Количество приближающихся дронов
-    uint32_t receding_count_ = 0;     // Количество удаляющихся дронов
-    uint32_t static_count_ = 0;       // Количество статичных дронов
-
     // SIMULATION STATE (to be removed in Phase 2)
-    ThreatLevel current_threat_level_for_simulation_ = ThreatLevel::NONE;
+    ThreatLevel max_detected_threat_ = ThreatLevel::NONE;
 
-    // PHASE 3: Complete Message system integration (following Looking Glass pattern)
+    // PHASE 3: MessageHandlerRegistration для spectrum streaming (по образцу Looking Glass!)
+    bool spectrum_streaming_initialized_ = false;
     bool spectrum_streaming_active_ = false;
 
-    // УБРАНЫ MessageHandlerRegistration - Looking Glass работает без них!
-    // Прямые вызовы baseband::spectrum_streaming_start/stop() как в других spectrum apps
+    // Message handlers для spectrum data (following Looking Glass pattern)
+    MessageHandlerRegistration message_handler_spectrum_config{
+        Message::ID::ChannelSpectrumConfig,
+        [this](Message* const p) {
+            const auto message = static_cast<const ChannelSpectrumConfigMessage*>(p);
+            this->on_channel_spectrum_config(message);
+        }
+    };
+
+    MessageHandlerRegistration message_handler_spectrum{
+        Message::ID::ChannelSpectrum,
+        [this](Message* const p) {
+            const auto message = static_cast<const ChannelSpectrumMessage*>(p);
+            this->on_channel_spectrum(*message);
+        }
+    };
 
     // Event handlers
     void on_start_scan();
     void on_stop_scan();
     void on_open_settings();
-    void on_open_database_manager();
     void on_toggle_mode();
     void on_show() override;
     void on_hide() override;
@@ -221,110 +292,30 @@ private:
     void switch_to_demo_mode();
     void switch_to_real_mode();
 
-    // Neural network style error concealment implementation fields
-    bool error_recovery_mode_ = false;  // Track if system is in error recovery state
-
-    // Test hook methods for neural network style robustness testing
-    void process_noisy_input(int32_t frequency) {}  // For testing invalid frequency handling
-    void simulate_scan_cycle_with_noise() {}       // For testing thread safety
-    void process_spectrum_noise(int32_t rssi_value) {} // For testing noise tolerance
-    void perform_memory_intensive_operation() {}     // For testing memory constraints
-    void apply_configuration_change(const std::string& key, int32_t value) {} // For testing config robustness
-    void trigger_artificial_error() {}              // For testing error propagation
-    void perform_normal_operation() {}               // For testing normal operation sequencing
-    bool interpret_signal_in_context(const std::vector<int32_t>& pattern) { return false; } // For testing contextual interpretation
-    void perform_operation_with_noise(int noise_level) {} // For testing noise resilience benchmarks
-
-    // Neural network inspired error handling methods - bounded recovery
+    // Handling errors and validation
     void handle_scan_error(const char* error_msg);
-    int validate_simulated_input(int raw_input);
-    bool validate_detector_input(const BasicFrequencyScanner& scanner);
 
-    // Step 3: Temporal error isolation methods - similar to LSTM/GRU for error containment
-    void perform_robust_scan_cycle();  // Enhanced scan cycle with error classification
-    void handle_minor_error(const char* context, int count);
-    void handle_moderate_error(const char* context, int count);
-    void handle_critical_error(const char* context);
-
-    // PHASE 7: Drone movement tracking methods
-    MovementTrend analyze_rssi_trend(const std::deque<int32_t>& history);
+    // Tracking detected drones
     void update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level);
-    void remove_stale_drones();
-    void update_tracking_counts();
-    float calculate_trend_confidence(const std::deque<int32_t>& history, MovementTrend trend);
-    void log_movement_event(const TrackedDrone& drone, const char* event);
 
-    // PHASE 7: UI elements for trend display
-    void update_trend_display();
-    void add_trend_ui_elements();
+    // REMOVED: Advanced tracking data - too complex for embedded system
 
-    // PHASE 8: Advanced tracking features
-    void update_advanced_tracking();
-    float calculate_movement_speed(const TrackedDrone& drone);
-    rf::Frequency predict_next_position(const TrackedDrone& drone);
-    void check_swarm_patterns();
-    void escalate_threat_levels();
-    void update_speed_display();
-    void update_prediction_info();
+    // TEXT DISPLAYS - Portapack H2 optimized layout
+    Text text_threat_level_{ {0, 210, 240, 16}, "THREAT: NONE" };
+    Text text_info_{ {0, 226, 240, 16}, "Enhanced Drone Analyzer v0.2" };
+    Text text_copyright_{ {0, 242, 240, 16}, "© 2025 M.S. Kuznetsov" };
 
-    // PHASE 8: Speed and prediction data - using std::map as fallback for embedded systems
-    std::map<rf::Frequency, float> drone_speeds_;  // Hz -> speed estimate (m/s or relative)
-    std::map<rf::Frequency, rf::Frequency> predicted_positions_;  // Current freq -> predicted freq
+    // Add threat color methods (following V0 spectrum painter pattern)
+    Color get_threat_level_color(ThreatLevel level) const;
+    const char* get_threat_level_name(ThreatLevel level) const;
 
-    // PHASE 7: UI fields for movement tracking
-    Text text_approaching_{ {0, 208, 240, 16}, "Приближается: -" };
-    Text text_receding_{ {0, 224, 240, 16}, "Удаляется: -" };
-    Text text_trend_summary_{ {0, 240, 240, 16}, "Тренды: ▲0 ●0 ▼0" };
-};
+    // FREQUENCY MANAGEMENT METHODS - IMPLEMENTED VIA FREQMANDB DIRECT ACCESS
+    // Direct FreqmanDB access (like Recon) - no separate file management needed
+    // All frequency management handled through FreqmanDB instance freq_db_
 
-} // namespace ui::external_app::enhanced_drone_analyzer
-
-namespace ui::external_app::enhanced_drone_analyzer {
-
-class MinimalDroneSpectrumAnalyzerView : public View {
-public:
-    MinimalDroneSpectrumAnalyzerView(NavigationView& nav);
-    ~MinimalDroneSpectrumAnalyzerView() override = default;
-
-    void focus() override;
-    std::string title() const override { return "Enhanced Drone Analyzer"; }
-    void paint(Painter& painter) override;
-    bool on_key(const KeyEvent key) override;
-    bool on_touch(const TouchEvent event) override;
-
-private:
-    NavigationView& nav_;
-
-    // UI CONTROLS - simplified layout
-    Button button_start_{ {0, 0}, "Start Scan" };
-    Button button_stop_{ {0, 32}, "Stop Scan" };
-    Button button_settings_{ {120, 0}, "Settings" };
-
-    // STATUS DISPLAY
-    Text text_status_{ {0, 70, 240, 16}, "Status: Ready" };
-
-    // INFO MESSAGES WITH RUSSIAN TEXT
-    // (Compatible with Mayhem firmware's text rendering)
-    Text text_info_{ {0, 90, 240, 48}, "Enhanced Drone Analyzer\nпроект Кузнецова М.С.\n\nГотов к работе" };
-
-    // VERSION INFO
-    Text text_version_{ {0, 220, 240, 16}, "Version: MVP 0.1 (Step 2)" };
-
-    // SCANNING STATE
-    bool is_scanning_ = false;
-    systime_t scan_start_time_ = 0;
-    static constexpr uint32_t SCAN_TEST_DURATION_MS = 5000; // 5 seconds for demo
-
-    // SCANNING THREAD (minimal implementation)
-    static msg_t scanning_thread_function(void* arg);
-    msg_t scanning_thread();
-    Thread* scan_thread_ = nullptr;
-    static constexpr uint32_t SCAN_THREAD_STACK_SIZE = 512;
-
-    // Event handlers
-    void on_start_scan();
-    void on_stop_scan();
-    void on_open_settings();
+    // IMPLEMENTED: Frequency range warning system (using number of entries in freq_db_)
+    void on_frequency_warning();
+    void show_frequency_warning_dialog();
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer
