@@ -427,17 +427,11 @@ void EnhancedDroneSpectrumAnalyzerView::initialize_spectrum_collector() {
 }
 
 // CLEANUP SPECTRUM COLLECTOR RESOURCES
+// CORRECTED: Simplified spectrum collector cleanup following Looking Glass pattern
+// Looking Glass only resets last_valid_rssi and doesn's use complex message handling
 void EnhancedDroneSpectrumAnalyzerView::cleanup_spectrum_collector() {
-    // Stop spectrum streaming to conserve power
-    SpectrumStreamingConfigMessage stop_config{
-        SpectrumStreamingConfigMessage::Mode::Stopped
-    };
-    shared_memory.application_queue.push(stop_config);
-
-    // FIXED: Remove references to non-existent spectrum_collector_fifo_
-    // FIFO is managed by message handlers, not direct member access
-
-    // Clear cached RSSI
+    // Following Looking Glass pattern: only reset cached RSSI values
+    // Spectrum streaming is managed by on_hide(), not here
     last_valid_rssi_ = -120;
 }
 
