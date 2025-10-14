@@ -98,6 +98,7 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
             {"Load Database", [this]() { on_load_frequency_file(); }},
             {"Save Frequency", [this]() { on_save_frequency(); }},
             {"Audio Settings", [this]() { on_audio_toggle(); }},
+            {"Create Database", [this]() { on_create_new_database(); }},
             {"Advanced", [this]() { on_advanced_settings(); }},
             {"Frequency Warning", [this]() { on_frequency_warning(); }}
         });
@@ -1046,6 +1047,40 @@ void EnhancedDroneSpectrumAnalyzerView::on_audio_toggle() {
         // Audio settings are updated directly in the view
         // through DroneAudioAlert instance, so no additional work needed
     });
+}
+
+// CREATE NEW DATABASE FUNCTION - Creates empty frequency database file
+void EnhancedDroneSpectrumAnalyzerView::on_create_new_database() {
+    // Use Freqman pattern: push TextEntryView to get filename, then create file
+    auto text_entry = nav_.push<TextEntryView>(
+        "New Database Name",
+        12,
+        [] (std::string name) { /* Default validation */ return true; }
+    );
+
+    text_entry->on_changed = [this](std::string filename) {
+        if (filename.empty()) {
+            nav_.display_modal("Error", "Filename cannot be empty");
+            return;
+        }
+
+        // Ensure .TXT extension
+        if (filename.find(".TXT") == std::string::npos) {
+            filename += ".TXT";
+        }
+
+        // Try to open/create the database file
+        if (freq_db_.open(filename, true)) {  // true = create if not exists
+            // Successfully created/openend empty database
+            nav_.display_modal("Success",
+                std::string("Created database:\n") + filename + "\n\nReady for scanning.");
+
+            // Update database display to show new empty database
+            update_database_display();
+        } else {
+            nav_.display_modal("Error", "Cannot create database file\nCheck SD card permissions");
+        }
+    };
 }
 
 // ADVANCED SETTINGS HANDLER - Show advanced settings (placeholder)

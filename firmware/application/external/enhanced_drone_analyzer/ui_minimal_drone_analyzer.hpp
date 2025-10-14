@@ -91,7 +91,7 @@ private:
 
     // PRIMARY CONTROLS (Like Level app - minimal, focused)
     Button button_start_{ {0, 0}, "START/STOP" };  // Toggle scan on/off (primary action)
-    Button button_menu_{ {120, 0}, "..." };       // Menu for secondary functions
+    Button button_menu_{ {120, 0}, "settings" };  // Menu for secondary functions
 
     // BIG DISPLAY & STATUS (Like Scanner - large frequency + color coding)
     BigFrequencyDisplay big_display_{ {0, 24, 240, 32} };
@@ -174,6 +174,9 @@ private:
     // IMPLEMENTED: Frequency range warning system (using number of entries in freq_db_)
     void on_frequency_warning();
     void show_frequency_warning_dialog();
+
+    // IMPLEMENTED: Create empty database functionality (for creating new frequency files)
+    void on_create_new_database();
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer
