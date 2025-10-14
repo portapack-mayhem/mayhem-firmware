@@ -5,37 +5,11 @@
 #define __UI_DRONE_SPECTRUM_SCANNER_HPP__
 
 #include "ui.hpp"
+#include "ui_drone_types.hpp"  // Unified types
 #include "baseband_api.hpp"
 #include "freqman_db.hpp"
 #include <vector>
 #include <string>
-
-namespace ui::external_app::enhanced_drone_analyzer {
-
-enum class ThreatLevel {
-    NONE = 0,
-    LOW = 1,
-    MEDIUM = 2,
-    HIGH = 3,
-    CRITICAL = 4
-};
-
-enum class DroneType {
-    UNKNOWN = 0,
-    DJI_MAVIC,
-    DJI_MINI,
-    FPV_RACING,
-    ORLAN_10 = 200,
-    LANCET = 210,
-    SHAHED_136 = 220,
-    BAYRAKTAR_TB2 = 230,
-    MILITARY_UAV = 240,
-    SVO = 250,
-    CHUZHOY = 251,
-    HUYLO = 252,
-    VSU = 253,
-    CODE_300 = 300
-};
 
 struct DroneFrequencyEntry {
     rf::Frequency frequency;

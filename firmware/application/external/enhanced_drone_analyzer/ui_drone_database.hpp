@@ -6,52 +6,9 @@
 #define __UI_DRONE_DATABASE_HPP__
 
 // INCLUDES (minimal for embedded compatibility)
-#include <cstdint>
+#include "ui_drone_types.hpp"  // Unified types
 #include <array>
 #include <string>
-
-// DRONE TYPE ENUMERATION
-enum class DroneType {
-    UNKNOWN = 0,
-    DJI_MAVIC,
-    DJI_MINI,
-    DJI_AIR,
-    DJI_PHANTOM,
-    DJI_AVATA,
-    FPV_RACING,
-    FPV_FREESTYLE,
-    ORLAN_10,
-    LANCET,
-    SHAHED_136,
-    BAYRAKTAR_TB2,
-    MILITARY_UAV,
-    RUSSIAN_EW_STATION,
-    FIBER_OPTIC_DRONE,
-    SVOY,        // Claims to be friendly
-    CHUZHOY,     // Enemy
-    PIDR,
-    HUYLO,
-    HUYLINA,
-    PVD,
-    VSU,
-    BRAT,
-    KROT,
-    PLENNYY,
-    NE_PLENNYY,
-    CODE_300,
-    CODE_200,
-    CODE_500,
-    MAX_TYPES
-};
-
-enum class ThreatLevel {
-    NONE = 0,
-    LOW,
-    MEDIUM,
-    HIGH,
-    CRITICAL,
-    MAX_LEVELS
-};
 
 // FREQUENCY DATABASE ENTRY
 struct DroneFrequencyEntry {
