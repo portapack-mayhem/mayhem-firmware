@@ -255,12 +255,20 @@ set(EXTCPPSRC
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-	#enhanced_drone_analyzer - MODULAR VERSION WITH SPECTRUM
+	#enhanced_drone_analyzer - REFACTORED MODULAR VERSION
 	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
 	external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.cpp
 	external/enhanced_drone_analyzer/ui_drone_database.cpp
 	external/enhanced_drone_analyzer/ui_basic_scanner.cpp
 	external/enhanced_drone_analyzer/ui_spectrum_painter.cpp
+	external/enhanced_drone_analyzer/ui_frequency_manager.cpp
+	external/enhanced_drone_analyzer/ui_audio_manager.cpp
+	# NEW COMPONENT FILES (MODULAR REFACTORING)
+	external/enhanced_drone_analyzer/ui_drone_analyzer_lifecycle.cpp
+	external/enhanced_drone_analyzer/ui_drone_spectrum_scanner.cpp
+	external/enhanced_drone_analyzer/ui_drone_tracking.cpp
+	external/enhanced_drone_analyzer/ui_drone_audio.cpp
+	external/enhanced_drone_analyzer/ui_refactored_drone_analyzer.cpp
 )
 
 set(EXTAPPLIST

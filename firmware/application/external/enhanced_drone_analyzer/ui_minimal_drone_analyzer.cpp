@@ -20,35 +20,28 @@
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
     : nav_(nav) {
 
-    // FIXED: Use wideband_spectrum baseband like Looking Glass for proper spectrum analysis
-    // Pattern: Looking Glass uses wideband_spectrum for hardware spectrum streaming
-
-    // Step 1: Baseband setup first - USE WIDEBAND SPECTRUM like Looking Glass
+    // Step 1: Baseband setup FIRST - following Looking Glass and AnalogAudioView pattern
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
-    // Initialize modules (database/scanner - safe to do early)
+    // Step 2: Initialize modules early (safe to do before hardware setup)
     initialize_database_and_scanner();
-    initialize_spectrum_painter();
 
-    // CORRECTED: Add proper modulation mode for spectrum monitoring like other spectrum apps
-    // Pattern: AnalogAudioView sets modulation first
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);  // CRITICAL: Set modulation first!
-    receiver_model.set_sampling_rate(12000000);      // Максимум 12MHz как в других спектральных apps
-    receiver_model.set_baseband_bandwidth(6000000);  // 6MHz bandwidth (половина sampling rate)
-    receiver_model.set_squelch_level(0);             // No squelch for spectrum analysis
+    // Step 3: Setup modulation and radio parameters - following AnalogAudioView pattern
+    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
+    receiver_model.set_sampling_rate(12000000);      // 12MHz rate (spectrum mode)
+    receiver_model.set_baseband_bandwidth(6000000);  // 6MHz bandwidth
+    receiver_model.set_squelch_level(0);             // No squelch for spectrum
 
-    // CORRECTED: Radio direction ORDER FIXED - must be before receiver_model.enable()
-    // Pattern: All other Mayhem apps set radio direction BEFORE receiver enable
+    // Step 4: Setup radio direction BEFORE receiver enable - critical order
     radio::set_direction(rf::Direction::Receive);
 
-    // FIXED: Set spectrum parameters like Looking Glass for wideband spectrum analysis
-    // Pattern: Looking Glass uses wideband parameters for spectrum streaming
-    baseband::set_spectrum(20000000, 0);  // Looking Glass: 20MHz bandwidth, trigger=0 for continuous
+    // Step 5: Setup spectrum streaming - following Looking Glass pattern
+    baseband::set_spectrum(6000000, 0);  // 6MHz bandwidth, trigger=0 for continuous
 
-    // ШАГ 5: Receiver enable в самом конце как в Looking Glass
+    // Step 6: Receiver enable LAST - following all Mayhem apps pattern
     receiver_model.enable();
 
-    // Setup button handlers - ПО ОБРАЗЦУ ReconView С ДОСТАТОЧНЫМИ on_change
+    // Setup button handlers - ПО ОБРАЗЦУ других Mayhem приложений
     button_start_.on_select = [this](Button&) { on_start_scan(); };
     button_stop_.on_select = [this](Button&) { on_stop_scan(); };
     button_save_freq_.on_select = [this](Button&) { on_save_frequency(); };
@@ -56,92 +49,51 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     button_mode_.on_select = [this](Button&) { on_toggle_mode(); };
     button_frequency_warning_.on_select = [this](Button&) { on_frequency_warning(); };
 
-// ДОБАВЛЕНО: on_change handlers для энкодеров - ПО ОБРАЗЦУ ReconView
-// button_start - управление индексом частотной базы данных
-button_start_.on_change = [this]() {
-    int32_t delta = button_start_.get_encoder_delta();
-    if (delta > 0) {
-        // Переход к следующей частоте в базе данных
-        if (freq_db_.entry_count() > 0) {
-            current_db_index_ = (current_db_index_ + 1) % freq_db_.entry_count();
-            update_database_display();  // UI обновление при изменении индекса
-        }
-    } else if (delta < 0) {
-        // Переход к предыдущей частоте
-        if (freq_db_.entry_count() > 0) {
-            current_db_index_ = (current_db_index_ - 1 + freq_db_.entry_count()) % freq_db_.entry_count();
-            update_database_display();  // UI обновление при изменении индекса
-        }
-    }
-    button_start_.set_encoder_delta(0);
-};
+    // ADD MISSING METHOD IMPLEMENTATION - copied from clean.cpp
+    on_open_settings = [this]() {
+        nav_.display_modal("Settings",
+                          "Enhanced Drone Analyzer Settings\n"
+                          "================================\n\n"
+                          "This is a minimal working version.\n"
+                          "More settings will be added in future\n"
+                          "versions as we modularly refactor\n"
+                          "the complex features.\n\n"
+                          "Current features:\n"
+                          "- Basic UI interface\n"
+                          "- Threaded scanning simulation\n"
+                          "- Status updates\n\n"
+                          "Roadmap: Frequency database, real\n"
+                          "spectrum analysis, AI detection,\n"
+                          "and threat tracking coming soon.");
+    };
 
-// button_stop - управление паузой/резюме и навигацией по листе частот
-button_stop_.on_change = [this]() {
-    int32_t delta = button_stop_.get_encoder_delta();
-    if (delta != 0) {
-        // Навигация по индексам вне зависимости от состояния сканирования
-        // (похоже на ReconView где энкодер работает всегда)
-        if (delta > 0) {
-            current_db_index_ = (current_db_index_ + 1) % (freq_db_.entry_count() ? freq_db_.entry_count() : 1);
-        } else {
-            current_db_index_ = (current_db_index_ - 1 + (freq_db_.entry_count() ? freq_db_.entry_count() : 1))
-                              % (freq_db_.entry_count() ? freq_db_.entry_count() : 1);
-        }
-        update_database_display();  // Всегда обновляем UI при навигации
-    }
-    button_stop_.set_encoder_delta(0);
-};
+    // Add the missing on_open_settings button handler
+    button_settings_.on_select = [this](Button&) { on_open_settings(); };
 
-// button_settings - управление настройками (расширенная функциональность)
-button_settings_.on_change = [this]() {
-    int32_t delta = button_settings_.get_encoder_delta();
-    if (delta != 0) {
-        // Управление режимом работы: Demo ↔ Real (похоже на активный переключатель в Recon)
-        if (delta > 0) {
-            is_real_mode_ = true;  // Вправо - реальный режим
-            button_mode_.set_text("Mode: Real");
-            switch_to_real_mode();
-        } else {
-            is_real_mode_ = false;  // Влево - демо режим
-            button_mode_.set_text("Mode: Demo");
-            switch_to_demo_mode();
-        }
-        update_database_display();  // Обновление UI при смене режима
-    }
-    button_settings_.set_encoder_delta(0);
-};
+    // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
+    // Setup progress bar and text elements properly
 
     // ШАГ 4: НЕ ИНИЦИАЛИЗИРУЕМ spectrum streaming в конструкторе
     // Looking Glass НЕ делает этого! spectrum streaming стартует только в on_show()
     spectrum_streaming_active_ = false;
 
-    // ШАГ 5: Правильная инициализация tracked_drones как в заголовке (std::vector)
-    // FIXED: tracked_drones_ остается пустым до первого использования
+    // Initialize UI state
+    button_stop_.set_enabled(false);
+
+    // Initialize tracking counters
     approaching_count_ = 0;
     receding_count_ = 0;
     static_count_ = 0;
 
-    // Initialize UI state
-    button_stop_.set_enabled(false);
+    // NOTE: tracked_drones_ is a fixed-size array, initialized automatically by constructors
 
     // PORTAPACK EMBEDDED TRACKING: Initialize fixed-size array
     // All elements are automatically initialized by TrackedDrone constructor (=0)
     tracked_drones_count_ = 0;
 }
 
-// Constructor for backward compatibility (old class name)
-MinimalDroneSpectrumAnalyzerView::MinimalDroneSpectrumAnalyzerView(NavigationView& nav)
-    : nav_(nav) {
-
-    // Setup button handlers with explicit lambda captures
-    button_start_.on_select = [this](Button&) { on_start_scan(); };
-    button_stop_.on_select = [this](Button&) { on_stop_scan(); };
-    button_settings_.on_select = [this](Button&) { on_open_settings(); };
-
-    // Initialize stop button as disabled
-    button_stop_.set_enabled(false);
-}
+// REMOVED: Old MinimalDroneSpectrumAnalyzerView constructor
+// All functionality moved to EnhancedDroneSpectrumAnalyzerView
 
 // IMPLEMENTATION OF NEW V0 INSPIRED METHODS
 // Threat level color coding (following V0 spectrum painter pattern)
@@ -377,12 +329,53 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(co
     }
 }
 
-    // LEGACY METHOD - kept for compatibility but properly implemented
-void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data(size_t channel_idx, int32_t rssi) {
-    if (freq_db_.entry_count() > 0 && channel_idx < freq_db_.entry_count()) {
-        process_real_rssi_data_for_freq_entry(freq_db_[channel_idx], rssi);
+    // Spectrum callback handlers (following Search and Looking Glass patterns)
+    void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message) {
+        // Following Search and Looking Glass pattern for spectrum configuration
+        // Unused in this simplified version - spectrum streaming is handled directly
+        (void)message;
     }
-}
+
+    void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
+        // Following Search and Looking Glass pattern for spectrum data processing
+        // Extract RSSI from spectrum data for scanning
+        if (!scanning_active_ || !is_real_mode_) return;
+
+        // Find peak RSSI in spectrum data (simplified approach)
+        int32_t peak_rssi = -120;
+        for (size_t i = 0; i < spectrum.db.size(); ++i) {
+            if (spectrum.db[i] > peak_rssi) {
+                peak_rssi = spectrum.db[i];
+            }
+        }
+
+        // Validate and cache RSSI for scanning thread
+        if (peak_rssi >= -120 && peak_rssi <= -20) {
+            last_valid_rssi_ = peak_rssi;
+        }
+
+        // Call the actual spectrum data processing
+        on_channel_spectrum_data_processed(spectrum);
+    }
+
+    // Process spectrum data for scanning (internal method)
+    void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_data_processed(const ChannelSpectrum& spectrum) {
+        // Store spectrum data for scanning thread to use
+        // In a full implementation, this would be more sophisticated
+
+        // Trigger spectrum streaming stop/start cycle like Search does
+        baseband::spectrum_streaming_stop();
+
+        // Continue with scanning logic if active
+        if (scanning_active_ && scanning_thread_) {
+            // Process real spectrum data in scanning thread
+            // This is called from message handler, so it's thread-safe
+        }
+
+        if (is_real_mode_ && spectrum_streaming_active_) {
+            baseband::spectrum_streaming_start();
+        }
+    }
 
 // HELPERS FOR REAL DATABASE SCAN
 rf::Frequency EnhancedDroneSpectrumAnalyzerView::get_current_radio_frequency() const {

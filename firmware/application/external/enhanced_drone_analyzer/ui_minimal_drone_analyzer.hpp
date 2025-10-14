@@ -167,19 +167,21 @@ public:
 private:
     NavigationView& nav_;
 
-    // MINIMALIST V0 STYLE - NO GRAPHICS
-    DroneFrequencyDatabase* database_ = nullptr;
-    BasicFrequencyScanner* scanner_ = nullptr;
-    BasicDroneDetector* detector_ = nullptr;
-    // NO spectrum_painter - clean text interface only
-
-    // PHASE 3: Add proper spectrum collector infrastructure following Looking Glass pattern
-    // ChannelSpectrumFIFO* channel_fifo_ = nullptr;  // FIXME: Remove this - doesn't exist in Mayhem firmware
-    bool spectrum_streaming_initialized_ = false;  // Use direct spectrum streaming like Looking Glass
+    // Spectrum streaming state (following Looking Glass pattern)
+    bool spectrum_streaming_active_ = false;
 
     // FIXED: Replace ScanningChannel with FreqmanDB following Recon pattern
     FreqmanDB freq_db_;  // DIRECT FreqmanDB usage like Recon/Scanner
     size_t current_db_index_ = 0;  // Track current frequency index
+
+    // Variable declarations for tracking counts (needed by implementation)
+    size_t approaching_count_ = 0;
+    size_t receding_count_ = 0;
+    size_t static_count_ = 0;
+    size_t active_channels_count_ = 0;  // For progress calculation
+
+    // Legacy variables for compatibility
+    DroneFrequencyDatabase* database_ = nullptr;  // Will be removed in final cleanup
 
     bool is_real_mode_ = false; // False = demo mode, True = real scanning
 
@@ -233,12 +235,8 @@ private:
     // SIMULATION STATE (to be removed in Phase 2)
     ThreatLevel max_detected_threat_ = ThreatLevel::NONE;
 
-    // PHASE 3: MessageHandlerRegistration для spectrum streaming (по образцу Looking Glass!)
-    bool spectrum_streaming_initialized_ = false;
-    bool spectrum_streaming_active_ = false;
-
-    // Message handlers для spectrum data (following Looking Glass pattern)
-    MessageHandlerRegistration message_handler_spectrum_config{
+    // Фиксированные message handlers по образцу Looking Glass и Search (Phase 1 исправления)
+    MessageHandlerRegistration message_handler_spectrum_config_{
         Message::ID::ChannelSpectrumConfig,
         [this](Message* const p) {
             const auto message = static_cast<const ChannelSpectrumConfigMessage*>(p);
@@ -246,7 +244,7 @@ private:
         }
     };
 
-    MessageHandlerRegistration message_handler_spectrum{
+    MessageHandlerRegistration message_handler_spectrum_{
         Message::ID::ChannelSpectrum,
         [this](Message* const p) {
             const auto message = static_cast<const ChannelSpectrumMessage*>(p);
@@ -262,13 +260,9 @@ private:
     void on_show() override;
     void on_hide() override;
 
-    // PHASE 1: Real RSSI using baseband spectrum streaming (interim solution)
-    int32_t get_real_rssi_from_baseband_spectrum(rf::Frequency target_frequency);
-    void process_real_rssi_data(size_t channel_idx, int32_t rssi);
-
-    // PHASE 2: Spectrum streaming callbacks (fully integrated)
-    int32_t get_real_rssi_from_spectrum_collector(rf::Frequency target_frequency);
-    void on_spectrum_update(const Message* const message);
+    // Spectrum handling methods (following Search and Glass patterns)
+    void on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
+    void on_channel_spectrum(const ChannelSpectrum& spectrum);
 
     //
 
