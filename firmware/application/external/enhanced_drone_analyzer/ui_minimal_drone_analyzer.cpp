@@ -775,12 +775,13 @@ void EnhancedDroneSpectrumAnalyzerView::update_database_stats() {
 
 // Handle scanning errors
 void EnhancedDroneSpectrumAnalyzerView::handle_scan_error(const char* error_msg) {
-    if (scan_cycles_ % 10 == 0) { // Prevent UI spam - log every 10th error
-        char error_buffer[64];
-        snprintf(error_buffer, sizeof(error_buffer), "Error: %s", error_msg);
-        text_scanning_info_.set(error_buffer);
-        audio_alerts_.play_detection_beep(ThreatLevel::MEDIUM);
-    }
+        if (scan_cycles_ % 10 == 0) { // Prevent UI spam - log every 10th error
+            char error_buffer[64];
+            snprintf(error_buffer, sizeof(error_buffer), "Error: %s", error_msg);
+            text_scanning_info_.set(error_buffer);
+            // PK: Audio alerts disabled - requires AudioAlert implementation
+            // audio_alerts_.play_detection_beep(ThreatLevel::MEDIUM);
+        }
 
     // Continue with fallback behavior in demo mode
     if (is_demo_mode() && rand() % 100 < 20) {
