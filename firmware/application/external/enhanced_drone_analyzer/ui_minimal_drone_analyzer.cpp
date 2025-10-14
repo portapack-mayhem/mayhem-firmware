@@ -21,27 +21,26 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     : nav_(nav),
     radio_state_(ReceiverModel::Mode::SpectrumAnalysis) {  // CORRECTED: Proper initialization
 
-    // PHASE 5: Optimized hardware initialization sequence following Looking Glass pattern
-    // Baseband image FIRST - sets up DSP processing capabilities
+    // PHASE 6: FIX INITIALIZATION SEQUENCE - follow Looking Glass pattern exactly
+    // 1. Baseband image FIRST (DSP setup)
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
-    // Initialize application components early (before hardware setup)
+    // 2. Initialize UI components
     initialize_database_and_scanner();
 
-    // Radio radio state setup (RxRadioState handles proper initialization)
-    // Radio parameters MUST be configured before receiver_model.enable()
+    // 3. Configure receiver parameters (MUST be before enable)
     receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.set_sampling_rate(20000000);        // 20MHz spectrum analysis rate
     receiver_model.set_baseband_bandwidth(12000000);   // 12MHz bandwidth
     receiver_model.set_squelch_level(0);               // No squelch for spectrum
 
-    // Radio hardware setup - direction BEFORE baseband configuration
+    // 4. Set radio direction BEFORE enabling receiver
     radio::set_direction(rf::Direction::Receive);
 
-    // Baseband spectrum configuration - AFTER receiver parameters set
+    // 5. Configure baseband AFTER receiver parameters
     baseband::set_spectrum(12000000, 32);  // Match bandwidth and trigger settings
 
-    // Receiver enable LAST - critical since baseband must be ready first
+    // 6. Enable receiver LAST
     receiver_model.enable();
 
     // Setup button handlers - following Recon app pattern with lambda captures

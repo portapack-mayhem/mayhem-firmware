@@ -248,21 +248,19 @@ private:
     // SIMULATION STATE (to be removed in Phase 2)
     ThreatLevel max_detected_threat_ = ThreatLevel::NONE;
 
-    // Фиксированные message handlers по образцу Looking Glass и Search (Phase 1 исправления)
-    // CORRECTED: Full spectrum FIFO message handling (Looking Glass pattern)
+    // SPECTRUM MESSAGE HANDLERS (Looking Glass pattern)
     MessageHandlerRegistration message_handler_spectrum_config_{
         Message::ID::ChannelSpectrumConfig,
         [this](Message* const p) {
             const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-            fifo_ = message.fifo;  // Store FIFO reference for frame sync
-            on_channel_spectrum_config(&message);  // Handle config
+            fifo_ = message.fifo;
+            on_channel_spectrum_config(&message);
         }
     };
 
     MessageHandlerRegistration message_handler_frame_sync_{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
-            // Process spectrum data from FIFO (Looking Glass pattern)
             if (fifo_) {
                 ChannelSpectrum channel_spectrum;
                 while (fifo_->out(channel_spectrum)) {
@@ -272,34 +270,12 @@ private:
         }
     };
 
-    // Event handlers
-    void on_start_scan();
-    void on_stop_scan();
-    void on_open_settings();
-    void on_toggle_mode();
-    void on_show() override;
-    void on_hide() override;
-
-    // Spectrum handling methods (following Search and Glass patterns)
-    void on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
-    void on_channel_spectrum(const ChannelSpectrum& spectrum);
-
-    //
-
-// FIXED: Remove unimplemented method declarations that are causing link errors
-// These can be added back when actually implemented
-
     // Initialize database and scanner in proper order
     void initialize_database_and_scanner();
     void cleanup_database_and_scanner();
-
-    // Enhanced scanning logic
     void perform_scan_cycle();
     void update_detection_display();
     void update_database_stats();
-
-    // Thread safe UI updates
-    void request_ui_update();
 
     // Real vs Demo mode handling
     bool is_demo_mode() const { return !is_real_mode_; }
@@ -311,8 +287,6 @@ private:
 
     // Tracking detected drones
     void update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level);
-
-    // REMOVED: Advanced tracking data - too complex for embedded system
 
     // TEXT DISPLAYS - Portapack H2 optimized layout
     Text text_threat_level_{ {0, 210, 240, 16}, "THREAT: NONE" };
