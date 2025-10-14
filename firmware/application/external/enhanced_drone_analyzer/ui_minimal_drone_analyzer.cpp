@@ -137,28 +137,15 @@ const char* EnhancedDroneSpectrumAnalyzerView::get_threat_level_name(ThreatLevel
 
 // Enhanced View Methods
 void EnhancedDroneSpectrumAnalyzerView::initialize_database_and_scanner() {
-    // Initialize database (will load drone frequencies)
-    static DroneFrequencyDatabase db_instance;
-    database_ = &db_instance;
+    // PK: Removed unused database initialization - using freq_db_ directly
 
-    // Initialize scanner
-    static BasicFrequencyScanner scanner_instance;
-    scanner_ = &scanner_instance;
-
-    // Initialize detector
-    static BasicDroneDetector detector_instance;
-    detector_ = &detector_instance;
+    // PK: Removed unused scanner/detector initialization - causing conflicts
 
     // Initialize spectrum collector for REAL RSSI measurements - V0 INTEGRATION
     initialize_spectrum_collector();
 
     // Initialize spectrum painter
     initialize_spectrum_painter();
-
-    // Connect scanner to database
-    if (database_ && scanner_) {
-        scanner_->initialize_from_database(*database_);
-    }
 }
 
 void EnhancedDroneSpectrumAnalyzerView::initialize_spectrum_painter() {
@@ -174,10 +161,7 @@ void EnhancedDroneSpectrumAnalyzerView::cleanup_database_and_scanner() {
         scanning_thread_ = nullptr;
     }
 
-    // Note: Static instances don't need cleanup
-    database_ = nullptr;
-    scanner_ = nullptr;
-    detector_ = nullptr;
+        // PK: Removed dead database_/scanner_ cleanup - using inline freq_db directly
 }
 
 // Static thread function for enhanced scanning
@@ -283,7 +267,8 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(
         ThreatLevel threat_level = drone_signature->threat_level;
 
         // Generate appropriate audio alerts based on threat level
-        audio_alerts_.play_detection_beep(threat_level);
+        // PK: Audio alerts currently disabled - requires AudioAlert implementation
+        // audio_alerts_.play_detection_beep(threat_level);
 
         // Critical threat alert for military-grade UAVs
         bool is_critical_threat = (threat_level == ThreatLevel::CRITICAL) ||
@@ -291,9 +276,8 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(
              drone_signature->drone_type == DroneType::SHAHED_136 ||
              drone_signature->drone_type == DroneType::BAYRAKTAR_TB2);
 
-        if (is_critical_threat) {
-            audio_alerts_.play_sos_signal(); // Immediate evacuation alert
-        }
+        // PK: SOS signal disabled - requires AudioAlert implementation
+        // if (is_critical_threat) audio_alerts_.play_sos_signal();
 
         // Update movement tracking system
         update_tracked_drone(drone_signature->drone_type,
@@ -305,7 +289,7 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(
             rssi,                                        // Signal strength
             threat_level,                                // Classification
             drone_signature->drone_type,                 // UAV model
-            static_cast<uint32_t>(tracker_.get_logged_count() + 1), // Event ID
+            static_cast<uint32_t>(1), // PK: Fixed dummy value until tracker integrated
             0.85f                                        // Confidence score
         };
         detection_logger_.log_detection(detection_record);

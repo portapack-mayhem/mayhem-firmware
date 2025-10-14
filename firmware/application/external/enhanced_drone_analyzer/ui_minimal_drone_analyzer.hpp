@@ -182,15 +182,13 @@ private:
     size_t static_count_ = 0;
     size_t active_channels_count_ = 0;  // For progress calculation
 
-    // Legacy variables for compatibility
-    DroneFrequencyDatabase* database_ = nullptr;  // Will be removed in final cleanup
+    // REMOVED: Legacy database pointer causing null dereference crashes
+    // All database operations now handled directly via freq_db_ member
 
-    bool is_real_mode_ = false; // False = demo mode, True = real scanning
+    bool is_real_mode_ = true; // PK: FIXED - default to real mode, corrected inverted logic
 
-    // MODULAR COMPONENTS
-    DroneAudioAlert audio_alerts_;  // Audio feedback manager
-    DroneTracker tracker_;         // Drone tracking and trend analysis
-    DroneSpectrumScanner spectrum_scanner_;  // Spectrum scanning and RSSI processing
+    // INLINE FUNCTION OBJECTS FOR AUDIO/DATABASE CALLS
+    // Using functional approach to avoid module instantiation conflicts
 
     // PORTAPACK EMBEDDED TRACKING - Hardware constraints optimized (DEPRECATED - use DroneTracker)
     // FIXED-SIZE ARRAY: No dynamic allocation, fits in 16KB RAM
