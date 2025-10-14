@@ -137,7 +137,7 @@ void EnhancedDroneSpectrumAnalyzerView::initialize_spectrum_painter() {
 }
 
 void EnhancedDroneSpectrumAnalyzerView::cleanup_database_and_scanner() {
-    // PHASE 3: Proper thread cleanup with synchronization
+    // PHASE 3: Proper thread cleanup with synchronization (FIXED - removed duplicate chThdWait)
     if (scanning_thread_) {
         scanning_active_ = false;  // Signal thread to stop first
         chThdWait(scanning_thread_);  // Wait for thread to actually exit
@@ -454,10 +454,19 @@ void EnhancedDroneSpectrumAnalyzerView::on_start_scan() {
     text_status_.set("Status: Scanning Active");
     text_scanning_info_.set("Scanning: Starting...");
 
-    // INTEGRATION: Start spectrum streaming before scanning (Looking Glass pattern)
+    // PHASE 2: Add hardware validation before spectrum operations
     if (is_real_mode_) {
-        baseband::spectrum_streaming_start();
-        spectrum_streaming_active_ = true;
+        // Validate receiver state before starting spectrum streaming
+        if (receiver_model.modulation() != ReceiverModel::Mode::SpectrumAnalysis) {
+            handle_scan_error("Invalid receiver mode for spectrum analysis");
+            return;
+        }
+
+        // Validate baseband image compatibility
+        if (!spectrum_streaming_active_) {
+            baseband::spectrum_streaming_start();
+            spectrum_streaming_active_ = true;
+        }
     }
 
     // Start real scanner if in real mode
@@ -538,6 +547,13 @@ void EnhancedDroneSpectrumAnalyzerView::on_hide() {
 }
 
 void EnhancedDroneSpectrumAnalyzerView::switch_to_demo_mode() {
+    // PHASE 2: Clean up spectrum streaming when switching to demo mode
+    if (spectrum_streaming_active_) {
+        baseband::spectrum_streaming_stop();
+        spectrum_streaming_active_ = false;
+        text_scanning_info_.set("Spectrum streaming: OFF");
+    }
+
     button_mode_.set_text("Mode: Demo");
     text_status_.set("Status: Demo Mode");
     text_info_.set("Demonstration mode\nShows simulated detections");
