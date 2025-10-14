@@ -98,6 +98,7 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
             {"Load Database", [this]() { on_load_frequency_file(); }},
             {"Save Frequency", [this]() { on_save_frequency(); }},
             {"Audio Settings", [this]() { on_audio_toggle(); }},
+            {"Manage Frequencies", [this]() { on_manage_frequencies(); }},
             {"Create Database", [this]() { on_create_new_database(); }},
             {"Advanced", [this]() { on_advanced_settings(); }},
             {"Frequency Warning", [this]() { on_frequency_warning(); }}
@@ -1047,6 +1048,11 @@ void EnhancedDroneSpectrumAnalyzerView::on_audio_toggle() {
         // Audio settings are updated directly in the view
         // through DroneAudioAlert instance, so no additional work needed
     });
+}
+
+// MANAGE FREQUENCIES FUNCTION - Opens full frequency management UI
+void EnhancedDroneSpectrumAnalyzerView::on_manage_frequencies() {
+    nav_.push<DroneFrequencyManagerView>(nav_);
 }
 
 // CREATE NEW DATABASE FUNCTION - Creates empty frequency database file

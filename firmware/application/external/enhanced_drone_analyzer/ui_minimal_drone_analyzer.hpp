@@ -175,6 +175,9 @@ private:
     void on_frequency_warning();
     void show_frequency_warning_dialog();
 
+    // IMPLEMENTED: Full frequency management UI (advanced database editor)
+    void on_manage_frequencies();
+
     // IMPLEMENTED: Create empty database functionality (for creating new frequency files)
     void on_create_new_database();
 };
