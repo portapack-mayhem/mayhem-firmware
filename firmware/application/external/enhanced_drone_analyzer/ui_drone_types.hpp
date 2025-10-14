@@ -57,6 +57,10 @@ enum class MovementTrend : uint8_t {
     UNKNOWN = 3      // Недостаточно данных для анализа
 };
 
+    // BANDWIDTH OFFSET SETTINGS - New feature for ±MHz from center
+    int32_t center_bandwidth_offset_hz;  // ± offset from center (negative = -, positive = +)
+    uint32_t scan_bandwidth_hz;         // Total scan width (±6MHz max, 3MHz default)
+
 // FREQUENCY DATABASE ENTRY
 struct DroneFrequencyEntry {
     uint32_t frequency_hz;

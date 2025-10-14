@@ -191,28 +191,40 @@ msg_t EnhancedDroneSpectrumAnalyzerView::scanning_thread() {
      * Performs a single complete scan cycle through all configured frequencies.
      * For each frequency: tune hardware, capture signal strength, analyze for threats.
      */
-    void EnhancedDroneSpectrumAnalyzerView::perform_scan_cycle() {
+void EnhancedDroneSpectrumAnalyzerView::perform_scan_cycle() {
         // Early exit conditions
-        if (!database_) {
-            handle_scan_error("Database unavailable - cannot scan");
-            return;
-        }
         if (!scanning_active_) return;
 
-        // Process frequency database scanning (real mode only)
-        if (is_real_mode_ && freq_db_.open("DRONES.TXT", true)) {
-            size_t total_entries = freq_db_.entry_count();
+        // BANDWIDTH OFFSET SCANNING: ±6MHz from center frequency (default 3MHz)
+        // Process frequency database with center ± offset scanning
+        if (global_frequency_db && global_frequency_db->size() > 0) {
+            const size_t total_entries = global_frequency_db->size();
             if (total_entries > 0 && current_db_index_ < total_entries) {
-                const auto& entry = freq_db_[current_db_index_];
+                const auto* entry = global_frequency_db->get_entry(current_db_index_);
 
-                // Validate and tune to frequency
-                if (entry.frequency_a > 0) {
-                    // Hardware tuning: FreqmanDB stores primary frequency in Hz
-                    radio::set_tuning_frequency(entry.frequency_a);
-                    chThdSleepMilliseconds(10); // Allow tuning to settle
+                // Validate frequency entry exists and has valid frequency
+                if (entry && entry->frequency_hz > 0) {
+                    // NEW: Bandwidth offset implementation ±6MHz from center
+                    // Each frequency entry now defines center + offset scanning range
 
-                    // Analyze received signal strength for drone detection
-                    process_real_rssi_data_for_freq_entry(entry, last_valid_rssi_);
+                    int32_t center_offset_hz = 3000000;  // Default +3MHz offset from center
+                    uint32_t scan_width_hz = 6000000;    // ±6MHz total scan width
+
+                    // Calculate actual scanning frequency range: center ± offset
+                    rf::Frequency center_freq_hz = entry->frequency_hz;
+                    rf::Frequency scan_start_hz = center_freq_hz - (scan_width_hz / 2);
+                    rf::Frequency scan_end_hz = center_freq_hz + (scan_width_hz / 2);
+                    rf::Frequency current_scan_freq = center_freq_hz + center_offset_hz;
+
+                    // Validate scan range is within hardware limits
+                    if (scan_start_hz >= 50000000 && scan_end_hz <= 6000000000) {
+                        // Hardware tuning to center + offset frequency
+                        radio::set_tuning_frequency(current_scan_freq);
+                        chThdSleepMilliseconds(10); // Allow tuning to settle
+
+                        // Analyze received signal strength for drone detection
+                        process_real_rssi_data_for_freq_entry(*entry, last_valid_rssi_);
+                    }
 
                     // Advance to next frequency (wrap around when reaching end)
                     current_db_index_ = (current_db_index_ + 1) % total_entries;

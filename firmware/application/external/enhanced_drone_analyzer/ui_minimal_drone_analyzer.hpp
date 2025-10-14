@@ -21,12 +21,13 @@
 #include "freqman_db.hpp"
 #include "freqman.hpp"
 
-// MODULAR COMPONENTS - unified types
+    // MODULAR COMPONENTS - unified types
 #include "ui_drone_types.hpp"
 #include "ui_drone_audio.hpp"
 #include "ui_drone_audio_settings.hpp"
 #include "ui_drone_tracking.hpp"
 #include "ui_drone_spectrum_scanner.hpp"
+#include "ui_drone_frequency_manager.hpp"
 #include <vector>
 
 // CLEAN TEXT-BASED UI - NO GRAPHICS, MINIMALIST V0 STYLE
@@ -83,11 +84,8 @@ private:
     // INLINE FUNCTION OBJECTS FOR AUDIO/DATABASE CALLS
     // Using functional approach to avoid module instantiation conflicts
 
-    // PORTAPACK EMBEDDED TRACKING - Hardware constraints optimized (DEPRECATED - use DroneTracker)
-    // FIXED-SIZE ARRAY: No dynamic allocation, fits in 16KB RAM
-    static constexpr size_t MAX_TRACKED_DRONES = 8;  // 8 drones * 15 bytes = 120 bytes total
-    TrackedDrone tracked_drones_[MAX_TRACKED_DRONES]; // Static array, no heap (transitional)
-    size_t tracked_drones_count_ = 0;  // Current count of active drones (transitional)
+    // BANDWIDTH OFFSET SCANNING: New implementation ±6MHz from center (default 3MHz)
+    // Hardware-optimized for Portapack real-time spectrum analysis
 
     // PRIMARY CONTROLS (Like Level app - minimal, focused)
     Button button_start_{ {0, 0}, "START/STOP" };  // Toggle scan on/off (primary action)

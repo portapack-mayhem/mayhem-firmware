@@ -54,7 +54,11 @@ private:
     NumberField rssi_field_{ {201, 70}, 7, {-120}, -10, -80 };
     TextEntry text_name_{ {201, 90}, 24 };
     NumberField bandwidth_field_{ {201, 110}, 9, {0}, 100000000, 5000000 };
-    Checkbox enabled_checkbox_{ {201, 130}, "" };
+
+    // NEW: Bandwidth offset controls for ±6MHz from center (default 3MHz)
+    NumberField bandwidth_offset_field_{ {201, 120}, 8, {-6000000}, 6000000, 3000000 };  // ±6MHz, default +3MHz
+    OptionsField offset_direction_field_{ {220, 135}, 4 };
+    Checkbox enabled_checkbox_{ {201, 145}, "" };
 
     // Action buttons (bottom row)
     Button button_add_{ {0, 220}, "Add Frequency" };

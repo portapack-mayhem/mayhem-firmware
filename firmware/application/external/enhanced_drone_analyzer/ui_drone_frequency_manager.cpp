@@ -92,6 +92,12 @@ DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
     add_child(&button_clear_);
     add_child(&text_status_);
 
+    // NEW: Initialize bandwidth offset controls
+    bandwidth_offset_field_.set_style(Theme::getInstance()->bg_darkest);
+    // Direction options: signs are handled by the field value (±)
+    offset_direction_field_.add_option(0, "Offset");
+    offset_direction_field_.set_selected_index(0);  // Always "Offset"
+
     // Set initial values
     update_status_text("Select frequency to edit...");
     enabled_checkbox_.set_text("Enabled");
@@ -310,6 +316,7 @@ void DroneFrequencyManagerView::paint(Painter& painter) {
     painter.draw_string({202, 75}, Theme::getInstance()->fg_light->foreground, "RSSI (dB)");
     painter.draw_string({202, 95}, Theme::getInstance()->fg_light->foreground, "Name");
     painter.draw_string({202, 115}, Theme::getInstance()->fg_light->foreground, "Bandwidth (Hz)");
+    painter.draw_string({202, 125}, Theme::getInstance()->fg_light->foreground, "Offset ±6MHz");
 }
 
 bool DroneFrequencyManagerView::on_key(const KeyEvent key) {
