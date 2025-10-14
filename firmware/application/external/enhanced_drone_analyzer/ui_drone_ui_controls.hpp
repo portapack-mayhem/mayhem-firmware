@@ -29,6 +29,9 @@ public:
     // Button event handler setup
     void setup_button_handlers();
 
+    // Add pointer to main view for event delegation
+    void set_view_reference(class EnhancedDroneSpectrumAnalyzerView* view) { view_ = view; }
+
     // Individual button handlers
     void on_start_scan_handler(Button& button);
     void on_stop_scan_handler(Button& button);
@@ -39,6 +42,9 @@ public:
     void on_open_settings_handler(Button& button);
     void on_advanced_settings_handler(Button& button);
     void on_frequency_warning_handler(Button& button);
+
+private:
+    class EnhancedDroneSpectrumAnalyzerView* view_;
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer

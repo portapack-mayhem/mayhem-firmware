@@ -559,15 +559,18 @@ void EnhancedDroneSpectrumAnalyzerView::on_toggle_mode() {
     }
 }
 
+// CORRECTED: Following Looking Glass pattern - start streaming when view is shown
+// Looking Glass always starts spectrum streaming in on_show(), regardless of demo mode
 void EnhancedDroneSpectrumAnalyzerView::on_show() {
     View::on_show();
-    display.scroll_set_area(109, 239);  // Set scroll area like Looking Glass pattern
+    display.scroll_set_area(109, screen_height - 1);  // Set scroll area like Looking Glass pattern
 
-    // CORRECTED: Start spectrum streaming only when view becomes visible AND in real mode
-    // Following Looking Glass pattern: on_show starts streaming, on_hide stops it
-    if (!spectrum_streaming_active_ && !is_demo_mode()) {
-        baseband::spectrum_streaming_start();
-        spectrum_streaming_active_ = true;
+    // FOLLOWING LOOKING GLASS PATTERN: Always start spectrum streaming when view shown
+    // Spectrum streaming is always started in on_show() and stopped in on_hide()
+    baseband::spectrum_streaming_start();
+    spectrum_streaming_active_ = true;
+
+    if (!is_demo_mode()) {
         text_scanning_info_.set("Spectrum streaming: ACTIVE");
     }
 }
