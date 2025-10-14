@@ -260,11 +260,12 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(co
 }
 
     // Spectrum callback handlers (following Search and Looking Glass patterns)
-    void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message) {
-        // Following Search and Looking Glass pattern for spectrum configuration
-        // Unused in this simplified version - spectrum streaming is handled directly
-        (void)message;
-    }
+void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message) {
+    // Following Search and Looking Glass pattern for spectrum configuration
+    // FIFO reference is already set in the message handler above
+    // Here we can handle any additional config if needed
+    (void)message;  // Suppress unused parameter warning
+}
 
     void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         // Following Search and Looking Glass pattern for spectrum data processing
@@ -453,32 +454,62 @@ void EnhancedDroneSpectrumAnalyzerView::on_start_scan() {
     text_status_.set("Status: Scanning Active");
     text_scanning_info_.set("Scanning: Starting...");
 
-    // PHASE 2: Add hardware validation before spectrum operations
-    if (is_real_mode_) {
-        // Validate receiver state before starting spectrum streaming
-        if (receiver_model.modulation() != ReceiverModel::Mode::SpectrumAnalysis) {
-            handle_scan_error("Invalid receiver mode for spectrum analysis");
+    // PHASE 4: Enhanced hardware validation before spectrum operations
+    if (!is_demo_mode()) {
+        // Validate FIFO availability for spectrum data processing
+        if (!fifo_) {
+            handle_scan_error("Spectrum FIFO unavailable - cannot start real scanning");
+            scanning_active_ = false;
+            button_start_.set_enabled(true);
+            button_stop_.set_enabled(false);
             return;
         }
 
-        // Validate baseband image compatibility
+        // Validate receiver state matches spectrum analysis requirements
+        if (receiver_model.modulation() != ReceiverModel::Mode::SpectrumAnalysis ||
+            receiver_model.sampling_rate() != 20000000 ||
+            receiver_model.baseband_bandwidth() != 12000000) {
+            handle_scan_error("Receiver not properly configured for spectrum analysis");
+            scanning_active_ = false;
+            button_start_.set_enabled(true);
+            button_stop_.set_enabled(false);
+            return;
+        }
+
+        // Validate spectrum streaming state and start if needed
         if (!spectrum_streaming_active_) {
             baseband::spectrum_streaming_start();
             spectrum_streaming_active_ = true;
+            text_scanning_info_.set("Spectrum streaming: STARTED");
         }
     }
 
-    // Start real scanner if in real mode
+    // Start real scanner if in real mode (with validation)
     if (!is_demo_mode() && scanner_) {
-        scanner_->start_scanning(*database_);
+        try {
+            scanner_->start_scanning(*database_);
+        } catch (...) {
+            handle_scan_error("Failed to start scanner module");
+            scanning_active_ = false;
+            button_start_.set_enabled(true);
+            button_stop_.set_enabled(false);
+            return;
+        }
     }
 
-    // Start scanning thread (now with real spectrum integration)
+    // Start scanning thread with enhanced error checking
     // CORRECTED: Increase thread stack size for spectrum processing like other spectrum apps
     // Pattern: Looking Glass and other spectrum apps use larger stacks for complex processing
     scanning_thread_ = chThdCreateFromHeap(NULL, 2048,  // INCREASED from SCAN_THREAD_STACK_SIZE=1024 to 2048
                                           "enhanced_drone_scan", NORMALPRIO,
                                           scanning_thread_function, this);
+
+    if (!scanning_thread_) {
+        handle_scan_error("Failed to create scanning thread");
+        scanning_active_ = false;
+        button_start_.set_enabled(true);
+        button_stop_.set_enabled(false);
+    }
 }
 
 void EnhancedDroneSpectrumAnalyzerView::on_stop_scan() {
@@ -529,10 +560,14 @@ void EnhancedDroneSpectrumAnalyzerView::on_toggle_mode() {
 
 void EnhancedDroneSpectrumAnalyzerView::on_show() {
     View::on_show();
-    // PHASE 2: Start spectrum streaming when view becomes visible (like other spectrum apps)
-    if (!spectrum_streaming_active_ && is_real_mode_) {
+    display.scroll_set_area(109, 239);  // Set scroll area like Looking Glass pattern
+
+    // CORRECTED: Start spectrum streaming only when view becomes visible AND in real mode
+    // Following Looking Glass pattern: on_show starts streaming, on_hide stops it
+    if (!spectrum_streaming_active_ && !is_demo_mode()) {
         baseband::spectrum_streaming_start();
         spectrum_streaming_active_ = true;
+        text_scanning_info_.set("Spectrum streaming: ACTIVE");
     }
 }
 
