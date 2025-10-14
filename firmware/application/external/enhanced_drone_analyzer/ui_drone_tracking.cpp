@@ -6,38 +6,7 @@
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
-// TrackedDrone implementation
-void TrackedDrone::add_rssi(int16_t rssi, systime_t time) {
-    prev_rssi = last_rssi;
-    last_rssi = rssi;
-    last_seen = time;
-
-    if (update_count < 255) update_count++;
-
-    if (update_count >= 2) {
-        calculate_simple_trend();
-    }
-}
-
-MovementTrend TrackedDrone::get_trend() const {
-    return static_cast<MovementTrend>(trend_history & 0x03);
-}
-
-private:
-void TrackedDrone::calculate_simple_trend() {
-    const int16_t TREND_THRESHOLD_DB = 3;
-    int16_t diff = last_rssi - prev_rssi;
-
-    MovementTrend new_trend = MovementTrend::STATIC;
-
-    if (diff > TREND_THRESHOLD_DB) {
-        new_trend = MovementTrend::APPROACHING;
-    } else if (diff < -TREND_THRESHOLD_DB) {
-        new_trend = MovementTrend::RECEDING;
-    }
-
-    trend_history = (trend_history << 2) | static_cast<uint8_t>(new_trend);
-}
+    // PRIVATE METHOD should be private - fixed in header
 
 // DroneTracker implementation
 DroneTracker::DroneTracker()
@@ -99,6 +68,7 @@ void DroneTracker::update_tracked_drone(DroneType type, rf::Frequency frequency,
 
 void DroneTracker::remove_stale_drones() {
     const systime_t STALE_TIMEOUT = 30000; // 30 seconds
+    const int32_t CLEANUP_THRESHOLD = -90;  // dBm threshold for cleanup
     systime_t current_time = chTimeNow();
 
     size_t write_idx = 0;
@@ -108,9 +78,11 @@ void DroneTracker::remove_stale_drones() {
 
         if (drone.update_count == 0) continue;
 
+        // ENHANCED: Use ring buffer-based cleanup check (V0 concept)
         bool is_stale = (current_time - drone.last_seen) > STALE_TIMEOUT;
+        bool should_cleanup = drone.should_cleanup(CLEANUP_THRESHOLD);
 
-        if (!is_stale) {
+        if (!is_stale && !should_cleanup) {
             if (write_idx != read_idx) {
                 tracked_drones_[write_idx] = drone;
             }
