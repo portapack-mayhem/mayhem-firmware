@@ -172,8 +172,11 @@ public:
 private:
     NavigationView& nav_;
 
-    // Добавлена RxRadioState для правильного hardware управления (по образцу Level/Scanner)
-    RxRadioState radio_state_{};
+    // Исправлено: RxRadioState с корректным SpectrumAnalysis mode (как в Looking Glass)
+    RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
+
+    // CRITICAL FIX: Add FIFO for proper spectrum data handling (Looking Glass pattern)
+    ChannelSpectrumFIFO* fifo_ = nullptr;
 
     // Spectrum streaming state (following Looking Glass pattern)
     bool spectrum_streaming_active_ = false;
@@ -181,10 +184,6 @@ private:
     // FIXED: Replace ScanningChannel with FreqmanDB following Recon pattern
     FreqmanDB freq_db_;  // DIRECT FreqmanDB usage like Recon/Scanner
     size_t current_db_index_ = 0;  // Track current frequency index
-
-    // CORRECTED: Spectrum streaming state management like Looking Glass
-    // Spectrum streaming must be started/stopped properly via on_show/on_hide
-    bool spectrum_streaming_active_ = false;  // Track spectrum streaming state
 
     // Variable declarations for tracking counts (needed by implementation)
     size_t approaching_count_ = 0;
@@ -250,19 +249,26 @@ private:
     ThreatLevel max_detected_threat_ = ThreatLevel::NONE;
 
     // Фиксированные message handlers по образцу Looking Glass и Search (Phase 1 исправления)
+    // CORRECTED: Full spectrum FIFO message handling (Looking Glass pattern)
     MessageHandlerRegistration message_handler_spectrum_config_{
         Message::ID::ChannelSpectrumConfig,
         [this](Message* const p) {
-            const auto message = static_cast<const ChannelSpectrumConfigMessage*>(p);
-            this->on_channel_spectrum_config(message);
+            const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+            fifo_ = message.fifo;  // Store FIFO reference for frame sync
+            on_channel_spectrum_config(&message);  // Handle config
         }
     };
 
-    MessageHandlerRegistration message_handler_spectrum_{
-        Message::ID::ChannelSpectrum,
-        [this](Message* const p) {
-            const auto message = static_cast<const ChannelSpectrumMessage*>(p);
-            this->on_channel_spectrum(*message);
+    MessageHandlerRegistration message_handler_frame_sync_{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            // Process spectrum data from FIFO (Looking Glass pattern)
+            if (fifo_) {
+                ChannelSpectrum channel_spectrum;
+                while (fifo_->out(channel_spectrum)) {
+                    on_channel_spectrum(channel_spectrum);
+                }
+            }
         }
     };
 
