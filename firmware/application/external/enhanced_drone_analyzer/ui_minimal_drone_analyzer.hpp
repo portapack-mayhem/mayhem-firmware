@@ -23,6 +23,7 @@
 
 // MODULAR COMPONENTS
 #include "ui_drone_audio.hpp"
+#include "ui_drone_audio_settings.hpp"
 #include "ui_drone_tracking.hpp"
 #include "ui_drone_spectrum_scanner.hpp"
 #include <vector>
