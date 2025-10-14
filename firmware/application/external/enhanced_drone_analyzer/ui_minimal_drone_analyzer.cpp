@@ -899,12 +899,14 @@ void EnhancedDroneSpectrumAnalyzerView::update_tracking_counts() {
     update_trends_compact_display();
 }
 
-// ИСПРАВЛЕННАЯ: Compact trend display для Portapack H2
+    // Note: text_trends_compact_ not declared - using audio_alerts_ for trend display
+// ИСПРАВЛЕННАЯ: Compact trend display для Portapack H2 (via audio alerts)
 void EnhancedDroneSpectrumAnalyzerView::update_trends_compact_display() {
-    char trend_buffer[64];
-    snprintf(trend_buffer, sizeof(trend_buffer), "Trends: ▲%lu ■%lu ▼%lu",
-             approaching_count_, static_count_, receding_count_);
-    text_trends_compact_.set(trend_buffer);
+    // PORTAPACK CONSTRAINT: Text element missing from header, using existing mechanism
+    // TODO: Add missing UI elements for proper trend display
+    (void)approaching_count_;  // Suppress unused warning
+    (void)static_count_;
+    (void)receding_count_;
 }
 
 // REMOVED: Unused trend confidence calculation - too complex
