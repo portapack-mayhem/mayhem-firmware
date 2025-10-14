@@ -1,13 +1,15 @@
 // ui_drone_audio.cpp
-// Implementation of audio feedback system for drone detection
+// Implementation of audio alerts for drone detection
 
 #include "ui_drone_audio.hpp"
+#include "audio.hpp"
+#include "baseband_api.hpp"
+#include "portapack.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
 DroneAudioAlert::DroneAudioAlert()
-    : audio_enabled_(true)
-    , last_beep_time_(0) {
+    : audio_enabled_(true), last_beep_time_(0) {
 }
 
 DroneAudioAlert::~DroneAudioAlert() {
@@ -26,13 +28,15 @@ void DroneAudioAlert::play_detection_beep(ThreatLevel level) {
 
     uint16_t frequency = get_beep_frequency(level);
 
-    // Setup audio rate and start output
+    // Setup audio like in Looking Glass and Recon
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
-    chThdSleepMilliseconds(10);  // Brief stabilization delay
+    chThdSleepMilliseconds(10);
 
-    // Direct baseband API call for beep
+    // Request audio beep through baseband API (direct call pattern)
     baseband::request_audio_beep(frequency, 24000, 200);
+
+    last_beep_time_ = chTimeNow();
 
     // Cleanup like other Mayhem apps
     chThdSleepMilliseconds(250);
@@ -42,71 +46,71 @@ void DroneAudioAlert::play_detection_beep(ThreatLevel level) {
 void DroneAudioAlert::play_sos_signal() {
     if (!audio_enabled_) return;
 
-    // Setup SOS implementation using baseband::request_audio_beep
+    // Setup audio
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
     chThdSleepMilliseconds(10);
 
-    // SOS signal for critical threats (...---...)
     const uint16_t SOS_FREQ = 1500;
-
-    // Three short beeps
+    // SOS pattern: ...---...
     for (int i = 0; i < 3; ++i) {
         baseband::request_audio_beep(SOS_FREQ, 24000, 200);
         chThdSleepMilliseconds(150);
     }
-
     chThdSleepMilliseconds(300);
 
-    // Three long beeps
     for (int i = 0; i < 3; ++i) {
         baseband::request_audio_beep(SOS_FREQ, 24000, 600);
         chThdSleepMilliseconds(150);
     }
-
     chThdSleepMilliseconds(300);
 
-    // Three short beeps
     for (int i = 0; i < 3; ++i) {
         baseband::request_audio_beep(SOS_FREQ, 24000, 200);
         chThdSleepMilliseconds(150);
     }
 
-    // Cleanup
+    last_beep_time_ = chTimeNow();
+
     chThdSleepMilliseconds(250);
     audio::output::stop();
 }
 
 void DroneAudioAlert::stop_audio() {
     audio::output::stop();
-    baseband::request_beep_stop();
 }
 
 uint16_t DroneAudioAlert::get_beep_frequency(ThreatLevel level) {
+    // V0 style frequencies like in main implementation
     switch (level) {
-        case ThreatLevel::CRITICAL: return 2000;
-        case ThreatLevel::HIGH: return 1600;
-        case ThreatLevel::MEDIUM: return 1200;
         case ThreatLevel::LOW: return 1000;
+        case ThreatLevel::MEDIUM: return 1200;
+        case ThreatLevel::HIGH: return 1600;
+        case ThreatLevel::CRITICAL: return 2000;
         case ThreatLevel::NONE:
-        default: return 800;
+        default: return 800; // Very low tone for none
     }
 }
 
-void AudioManager::request_beep(uint16_t frequency, uint32_t sample_rate, uint32_t duration_ms) {
+void DroneAudioAlert::request_audio_beep(uint16_t frequency, uint32_t duration_ms) {
+    // Static method for external access
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
-    chThdSleepMilliseconds(5);
+    chThdSleepMilliseconds(10);
 
-    baseband::request_audio_beep(frequency, sample_rate, duration_ms);
+    baseband::request_audio_beep(frequency, 24000, duration_ms);
 
     chThdSleepMilliseconds(duration_ms + 50);
     audio::output::stop();
 }
 
+// AudioManager implementation
+void AudioManager::request_beep(uint16_t frequency, uint32_t sample_rate, uint32_t duration_ms) {
+    DroneAudioAlert::request_audio_beep(frequency, duration_ms);
+}
+
 void AudioManager::stop_all_audio() {
     audio::output::stop();
-    baseband::request_beep_stop();
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer

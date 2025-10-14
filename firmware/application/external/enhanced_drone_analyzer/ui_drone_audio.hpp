@@ -28,6 +28,9 @@ public:
     void play_sos_signal();
     void stop_audio();
 
+    // Static beep request (audio manager integration)
+    static void request_audio_beep(uint16_t frequency, uint32_t duration_ms);
+
     // Frequency mapping for threat levels
     static uint16_t get_beep_frequency(ThreatLevel level);
 };

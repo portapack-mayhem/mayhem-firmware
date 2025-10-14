@@ -41,34 +41,16 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     // Step 6: Receiver enable LAST - following all Mayhem apps pattern
     receiver_model.enable();
 
-    // Setup button handlers - ПО ОБРАЗЦУ других Mayhem приложений
+    // Setup button handlers - following Recon app pattern with lambda captures
     button_start_.on_select = [this](Button&) { on_start_scan(); };
     button_stop_.on_select = [this](Button&) { on_stop_scan(); };
     button_save_freq_.on_select = [this](Button&) { on_save_frequency(); };
     button_load_file_.on_select = [this](Button&) { on_load_frequency_file(); };
     button_mode_.on_select = [this](Button&) { on_toggle_mode(); };
-    button_frequency_warning_.on_select = [this](Button&) { on_frequency_warning(); };
-
-    // ADD MISSING METHOD IMPLEMENTATION - copied from clean.cpp
-    on_open_settings = [this]() {
-        nav_.display_modal("Settings",
-                          "Enhanced Drone Analyzer Settings\n"
-                          "================================\n\n"
-                          "This is a minimal working version.\n"
-                          "More settings will be added in future\n"
-                          "versions as we modularly refactor\n"
-                          "the complex features.\n\n"
-                          "Current features:\n"
-                          "- Basic UI interface\n"
-                          "- Threaded scanning simulation\n"
-                          "- Status updates\n\n"
-                          "Roadmap: Frequency database, real\n"
-                          "spectrum analysis, AI detection,\n"
-                          "and threat tracking coming soon.");
-    };
-
-    // Add the missing on_open_settings button handler
+    button_audio_.on_select = [this](Button&) { on_audio_toggle(); };
     button_settings_.on_select = [this](Button&) { on_open_settings(); };
+    button_advanced_.on_select = [this](Button&) { on_advanced_settings(); };
+    button_frequency_warning_.on_select = [this](Button&) { on_frequency_warning(); };
 
     // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
     // Setup progress bar and text elements properly
@@ -227,62 +209,8 @@ msg_t EnhancedDroneSpectrumAnalyzerView::scanning_thread() {
         update_detection_display();
     }
 
-// AUDIO ALERTS (V0 Style - Baseband Compatible)
-void EnhancedDroneSpectrumAnalyzerView::play_detection_beep(ThreatLevel level) {
-    // FIXED: Remove global_audio_manager dependency
-    // Use direct baseband beep API like in Looking Glass and Recon
-    audio::set_rate(audio::Rate::Hz_24000);        // Setup rate before output
-    audio::output::start();                         // Start audio output
-    chThdSleepMilliseconds(10);                      // Brief stabilization delay
-
-    // V0 style frequencies: CRITICAL(2000Hz), HIGH(1600Hz), MEDIUM(1200Hz), LOW(1000Hz)
-    uint16_t beep_freq = 1000;
-    switch (level) {
-        case ThreatLevel::LOW: beep_freq = 1000; break;
-        case ThreatLevel::MEDIUM: beep_freq = 1200; break;
-        case ThreatLevel::HIGH: beep_freq = 1600; break;
-        case ThreatLevel::CRITICAL: beep_freq = 2000; break;
-        default: break;
-    }
-
-    // Direct baseband API call (same as Looking Glass pattern)
-    baseband::request_audio_beep(beep_freq, 24000, 200);
-
-    // Cleanup like other Mayhem apps
-    chThdSleepMilliseconds(250);
-    audio::output::stop();
-}
-
-void EnhancedDroneSpectrumAnalyzerView::play_sos_signal() {
-    // FIXED: Remove global_audio_manager dependency
-    // Direct SOS implementation using baseband::request_audio_beep like play_detection_beep
-    audio::set_rate(audio::Rate::Hz_24000);
-    audio::output::start();
-    chThdSleepMilliseconds(10);
-
-    // SOS signal for critical threats - V0 style pattern (...---...)
-    const uint16_t SOS_FREQ = 1500;
-    for (int i = 0; i < 3; ++i) {
-        baseband::request_audio_beep(SOS_FREQ, 24000, 200);
-        chThdSleepMilliseconds(150);
-    }
-    chThdSleepMilliseconds(300);
-
-    for (int i = 0; i < 3; ++i) {
-        baseband::request_audio_beep(SOS_FREQ, 24000, 600);
-        chThdSleepMilliseconds(150);
-    }
-    chThdSleepMilliseconds(300);
-
-    for (int i = 0; i < 3; ++i) {
-        baseband::request_audio_beep(SOS_FREQ, 24000, 200);
-        chThdSleepMilliseconds(150);
-    }
-
-    // Cleanup
-    chThdSleepMilliseconds(250);
-    audio::output::stop();
-}
+// AUDIO ALERTS DELEGATED TO DRONE AUDIO MODULE
+// Original implementations moved to ui_drone_audio.cpp
 
 // PROCESS RSSI DATA FOR FREQMAN ENTRY - following Recon pattern
 void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(const freqman_entry& current_entry, int32_t rssi) {
@@ -306,8 +234,8 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(co
 
     if (db_entry) {
         // 4. DETECTION! - Known drone frequency found
-        // AUDIO ALERT based on threat level (V0 style)
-        play_detection_beep(db_entry->threat_level);
+        // AUDIO ALERT using modular audio system
+        audio_alerts_.play_detection_beep(db_entry->threat_level);
 
         // SOS ALERT for critical military drones
         if (db_entry->threat_level == ThreatLevel::CRITICAL ||
@@ -315,7 +243,7 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(co
             db_entry->drone_type == DroneType::SHAHED_136 ||
             db_entry->drone_type == DroneType::BAYRAKTAR_TB2) {
 
-            play_sos_signal(); // Critical alert
+            audio_alerts_.play_sos_signal(); // Critical alert
         }
 
         // UPDATE DRONE TRACKING SYSTEM
@@ -690,7 +618,7 @@ void EnhancedDroneSpectrumAnalyzerView::handle_scan_error(const char* error_msg)
         char error_buffer[64];
         snprintf(error_buffer, sizeof(error_buffer), "Error: %s", error_msg);
         text_scanning_info_.set(error_buffer);
-        play_detection_beep(ThreatLevel::MEDIUM);
+        audio_alerts_.play_detection_beep(ThreatLevel::MEDIUM);
     }
 
     // Continue with fallback behavior in demo mode
@@ -935,6 +863,16 @@ void EnhancedDroneSpectrumAnalyzerView::on_save_frequency() {
     freq_db_.close();
 
     nav_.display_modal("Success", "Drone frequency saved\nto DETECTED_DRONES.TXT");
+}
+
+// AUDIO TOGGLE HANDLER - Enable/disable audio alerts
+void EnhancedDroneSpectrumAnalyzerView::on_audio_toggle() {
+    nav_.display_modal("Audio Toggle", "Audio alerts functionality\nwill be implemented in\nfuture versions.");
+}
+
+// ADVANCED SETTINGS HANDLER - Show advanced settings (placeholder)
+void EnhancedDroneSpectrumAnalyzerView::on_advanced_settings() {
+    nav_.display_modal("Advanced Settings", "Advanced scan settings will be\nimplemented in future versions.");
 }
 
 // LOAD FREQUENCY FILE FROM SD CARD

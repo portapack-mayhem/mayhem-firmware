@@ -20,6 +20,11 @@
 // PORTA PACK ADDITIONAL INCLUDES for frequency management - following Recon pattern
 #include "freqman_db.hpp"
 #include "freqman.hpp"
+
+// MODULAR COMPONENTS
+#include "ui_drone_audio.hpp"
+#include "ui_drone_tracking.hpp"
+#include "ui_drone_spectrum_scanner.hpp"
 #include <vector>
 
 #include <cstdint>
@@ -185,11 +190,16 @@ private:
 
     bool is_real_mode_ = false; // False = demo mode, True = real scanning
 
-    // PORTAPACK EMBEDDED TRACKING - Hardware constraints optimized
+    // MODULAR COMPONENTS
+    DroneAudioAlert audio_alerts_;  // Audio feedback manager
+    DroneTracker tracker_;         // Drone tracking and trend analysis
+    DroneSpectrumScanner spectrum_scanner_;  // Spectrum scanning and RSSI processing
+
+    // PORTAPACK EMBEDDED TRACKING - Hardware constraints optimized (DEPRECATED - use DroneTracker)
     // FIXED-SIZE ARRAY: No dynamic allocation, fits in 16KB RAM
     static constexpr size_t MAX_TRACKED_DRONES = 8;  // 8 drones * 15 bytes = 120 bytes total
-    TrackedDrone tracked_drones_[MAX_TRACKED_DRONES]; // Static array, no heap
-    size_t tracked_drones_count_ = 0;  // Current count of active drones
+    TrackedDrone tracked_drones_[MAX_TRACKED_DRONES]; // Static array, no heap (transitional)
+    size_t tracked_drones_count_ = 0;  // Current count of active drones (transitional)
 
     // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
     Button button_start_{ {0, 0}, "START" };      // Scan start/stop
@@ -199,12 +209,9 @@ private:
     // SECOND ROW - File management and advanced controls
     Button button_load_file_{ {0, 32}, "LOAD" };   // Load frequency file
     Button button_advanced_{ {48, 32}, "ADV" };   // Advanced settings
-    Button button_mode_{ {96, 32}, "MODE" };      // Demo/Real mode toggle
-
-    // SECOND ROW: AUDIO + ADVANCED buttons (like V0)
-    Button button_audio_{ {0, 32}, "AUDIO" };
-    Button button_advanced_{ {80, 32}, "ADV" };
-    Button button_mode_{ {160, 32}, "MODE" };     // Move here, changed from "Mode: Demo"
+    Button button_mode_{ {96, 32}, "INFO" };      // Always shows info (no toggle)
+    Button button_audio_{ {0, 32}, "AUDIO" };     // Audio beacon control
+    Button button_settings_{ {96, 32}, "SETTINGS" }; // Settings modal
 
     // PROGRESS BAR (V0 Inspired) - positioned where spectrum bars would be in V0
     ProgressBar scanning_progress_bar_{ {0, 64, 240, 16} };
