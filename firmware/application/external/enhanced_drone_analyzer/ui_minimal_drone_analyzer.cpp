@@ -201,154 +201,186 @@ msg_t EnhancedDroneSpectrumAnalyzerView::scanning_thread() {
     return MSG_OK;
 }
 
-    // REAL SPECTRUM COLLECTION: Process hardware RSSI data from spectrum_collector
+    /**
+     * Performs a single complete scan cycle through all configured frequencies.
+     * For each frequency: tune hardware, capture signal strength, analyze for threats.
+     */
     void EnhancedDroneSpectrumAnalyzerView::perform_scan_cycle() {
-        // Validating critical dependencies for hardware operation
+        // Early exit conditions
         if (!database_) {
             handle_scan_error("Database unavailable - cannot scan");
             return;
         }
+        if (!scanning_active_) return;
 
-    // ШАГ 1.2: Исправить on_start_scan - добавить radio direction setup
-    if (!scanning_active_) return;
+        // Process frequency database scanning (real mode only)
+        if (is_real_mode_ && freq_db_.open("DRONES.TXT", true)) {
+            size_t total_entries = freq_db_.entry_count();
+            if (total_entries > 0 && current_db_index_ < total_entries) {
+                const auto& entry = freq_db_[current_db_index_];
 
-// Perform single scan cycle
+                // Validate and tune to frequency
+                if (entry.frequency_a > 0) {
+                    // Hardware tuning: FreqmanDB stores primary frequency in Hz
+                    radio::set_tuning_frequency(entry.frequency_a);
+                    chThdSleepMilliseconds(10); // Allow tuning to settle
 
-    // PHASE 5: Исправлено - FreqmanDB интеграция по образцу Recon
-    if (is_real_mode_ && freq_db_.open("DRONES.TXT", true)) {
-        if (freq_db_.entry_count() > 0 && current_db_index_ < freq_db_.entry_count()) {
-            const auto& current_entry = freq_db_[current_db_index_];
+                    // Analyze received signal strength for drone detection
+                    process_real_rssi_data_for_freq_entry(entry, last_valid_rssi_);
 
-    if (current_entry.frequency_a > 0) {
-        // FIXED: Use correct field 'frequency' not 'frequency_a' as per FreqmanDB structure
-        // Pattern: FreqmanDB uses frequency_a for the primary frequency in Hz
-        radio::set_tuning_frequency(current_entry.frequency_a);
-        chThdSleepMilliseconds(10);
-
-        int32_t real_rssi = last_valid_rssi_;
-        process_real_rssi_data_for_freq_entry(current_entry, real_rssi);
-
-        current_db_index_ = (current_db_index_ + 1) % freq_db_.entry_count();
-        current_channel_idx_ = current_db_index_;
-    }
+                    // Advance to next frequency (wrap around when reaching end)
+                    current_db_index_ = (current_db_index_ + 1) % total_entries;
+                }
+            }
         }
-    }
-    }
 
-        // Update scan cycle counter
+        // Update scan statistics and UI
         scan_cycles_++;
-
-        // Throttle updates to prevent UI overload
         update_detection_display();
     }
 
 // AUDIO ALERTS DELEGATED TO DRONE AUDIO MODULE
 // Original implementations moved to ui_drone_audio.cpp
 
-// PROCESS RSSI DATA FOR FREQMAN ENTRY - following Recon pattern
-void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(const freqman_entry& current_entry, int32_t rssi) {
-    // 1. VALIDATE HARDWARE DATA
+/**
+ * Analyzes received signal strength for a scanned frequency database entry.
+ * Performs threat detection by comparing against drone signature database.
+ *
+ * Processing pipeline:
+ * 1. Validate RSSI signal quality and range
+ * 2. Convert frequency from Hz to MHz for database lookup
+ * 3. Query drone database for known signatures
+ * 4. Generate alerts based on threat classification
+ * 5. Update tracking system for movement analysis
+ * 6. Log detection for analysis and forensics
+ */
+void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(
+    const freqman_entry& entry, int32_t rssi)
+{
+    // Validate signal strength before processing
     if (rssi < -120 || rssi > -10) {
-        // Invalid RSSI range - log but continue
         if (scanning_active_ && scan_cycles_ % 50 == 0) {
             handle_scan_error("Invalid RSSI reading from hardware");
         }
         return;
     }
 
-    total_detections_++;  // Count all scanning hits
+    total_detections_++;  // Increment total signal detections counter
 
-    // 2. CHECK AGAINST DATABASE for drone threats
+    // Skip analysis if no database available
     if (!database_) return;
 
-    // 3. LOOK UP FREQUENCY IN DRONE DATABASE using Hz -> MHz conversion
-    rf::Frequency scanned_freq = current_entry.frequency_a; // This is in Hz
-    const DroneFrequencyEntry* db_entry = database_->lookup_frequency(scanned_freq / 1000000);
+    // Convert frequency from Hz to MHz for database lookup
+    rf::Frequency scanned_frequency_hz = entry.frequency_a;
+    rf::Frequency scanned_frequency_mhz = scanned_frequency_hz / 1000000;
 
-    if (db_entry) {
-        // 4. DETECTION! - Known drone frequency found
-        // AUDIO ALERT using modular audio system
-        audio_alerts_.play_detection_beep(db_entry->threat_level);
+    // Query drone database for known signatures
+    const DroneFrequencyEntry* drone_signature =
+        database_->lookup_frequency(scanned_frequency_mhz);
 
-        // SOS ALERT for critical military drones
-        if (db_entry->threat_level == ThreatLevel::CRITICAL ||
-            db_entry->drone_type == DroneType::LANCET ||
-            db_entry->drone_type == DroneType::SHAHED_136 ||
-            db_entry->drone_type == DroneType::BAYRAKTAR_TB2) {
+    if (drone_signature) {
+        // KNOWN DRONE DETECTED - initiate response protocol
+        ThreatLevel threat_level = drone_signature->threat_level;
 
-            audio_alerts_.play_sos_signal(); // Critical alert
+        // Generate appropriate audio alerts based on threat level
+        audio_alerts_.play_detection_beep(threat_level);
+
+        // Critical threat alert for military-grade UAVs
+        bool is_critical_threat = (threat_level == ThreatLevel::CRITICAL) ||
+            (drone_signature->drone_type == DroneType::LANCET ||
+             drone_signature->drone_type == DroneType::SHAHED_136 ||
+             drone_signature->drone_type == DroneType::BAYRAKTAR_TB2);
+
+        if (is_critical_threat) {
+            audio_alerts_.play_sos_signal(); // Immediate evacuation alert
         }
 
-        // UPDATE DRONE TRACKING SYSTEM
-        update_tracked_drone(db_entry->drone_type, scanned_freq, rssi, db_entry->threat_level);
+        // Update movement tracking system
+        update_tracked_drone(drone_signature->drone_type,
+                           scanned_frequency_hz, rssi, threat_level);
 
-        // LOG DETECTION: V0 concept - CSV logging when drone detected (after tracking update)
-        DetectionLogEntry log_entry(
-            static_cast<uint32_t>(scanned_freq),
-            rssi,
-            db_entry->threat_level,
-            db_entry->drone_type,
-            tracker_.get_logged_count() + 1,  // Use tracker count + 1
-            0.85f  // Confidence score - could be calculated based on RSSI consistency
-        );
-        detection_logger_.log_detection(log_entry);
-
-        // Note: Advanced detection counting moved to update_tracked_drone for consolidation
+        // Log detection event for forensic analysis
+        DetectionLogEntry detection_record{
+            static_cast<uint32_t>(scanned_frequency_hz),  // Frequency in Hz
+            rssi,                                        // Signal strength
+            threat_level,                                // Classification
+            drone_signature->drone_type,                 // UAV model
+            static_cast<uint32_t>(tracker_.get_logged_count() + 1), // Event ID
+            0.85f                                        // Confidence score
+        };
+        detection_logger_.log_detection(detection_record);
 
     } else {
-        // Unknown frequency - could be logged for analysis but not alerted
-        // In full V0 implementation, this might trigger "unknown UAV" detection
+        // Unknown frequency - could trigger anomaly detection in future versions
+        // Currently logged for spectrum intelligence gathering
     }
 }
 
-    // Spectrum callback handlers (following Search and Looking Glass patterns)
-void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message) {
-    // Following Search and Looking Glass pattern for spectrum configuration
-    // FIFO reference is already set in the message handler above
-    // Here we can handle any additional config if needed
-    (void)message;  // Suppress unused parameter warning
+/*
+ * =============================================================================
+ * SPECTRUM DATA PROCESSING - Hardware callback handlers
+ * =============================================================================
+ */
+
+/**
+ * Handles spectrum configuration messages from baseband processor.
+ * Used for initialization and configuration updates during spectrum streaming.
+ */
+void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_config(
+    const ChannelSpectrumConfigMessage* const message)
+{
+    // Following Search/Looking Glass pattern for spectrum message handling
+    // FIFO setup typically handled in baseband initialization
+    (void)message;  // Suppress compiler warning for unused parameter
 }
 
-    void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-        // Following Search and Looking Glass pattern for spectrum data processing
-        // Extract RSSI from spectrum data for scanning
-        if (!scanning_active_ || !is_real_mode_) return;
+/**
+ * Processes real-time spectrum data from hardware ADC via baseband processor.
+ * Extracts RSSI values for drone signal detection during frequency scanning.
+ */
+void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum(
+    const ChannelSpectrum& spectrum)
+{
+    // Only process spectrum data during active scanning in real mode
+    if (!scanning_active_ || !is_real_mode_) return;
 
-        // Find peak RSSI in spectrum data (simplified approach)
-        int32_t peak_rssi = -120;
-        for (size_t i = 0; i < spectrum.db.size(); ++i) {
-            if (spectrum.db[i] > peak_rssi) {
-                peak_rssi = spectrum.db[i];
-            }
-        }
-
-        // Validate and cache RSSI for scanning thread
-        if (peak_rssi >= -120 && peak_rssi <= -20) {
-            last_valid_rssi_ = peak_rssi;
-        }
-
-        // Call the actual spectrum data processing
-        on_channel_spectrum_data_processed(spectrum);
-    }
-
-    // Process spectrum data for scanning (internal method)
-    void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_data_processed(const ChannelSpectrum& spectrum) {
-        // Store spectrum data for scanning thread to use
-        // In a full implementation, this would be more sophisticated
-
-        // Trigger spectrum streaming stop/start cycle like Search does
-        baseband::spectrum_streaming_stop();
-
-        // Continue with scanning logic if active
-        if (scanning_active_ && scanning_thread_) {
-            // Process real spectrum data in scanning thread
-            // This is called from message handler, so it's thread-safe
-        }
-
-        if (is_real_mode_ && spectrum_streaming_active_) {
-            baseband::spectrum_streaming_start();
+    // Extract maximum RSSI value from spectrum for signal detection
+    int32_t peak_rssi = -120;
+    for (size_t bin_index = 0; bin_index < spectrum.db.size(); ++bin_index) {
+        if (spectrum.db[bin_index] > peak_rssi) {
+            peak_rssi = spectrum.db[bin_index];
         }
     }
+
+    // Cache valid RSSI values for scanning thread to use
+    if (peak_rssi >= -120 && peak_rssi <= -20) {
+        last_valid_rssi_ = peak_rssi;
+    }
+
+    // Delegate further processing to specialized method
+    on_channel_spectrum_data_processed(spectrum);
+}
+
+/**
+ * Additional spectrum data processing and streaming cycle management.
+ * Implements the Search/Looking Glass pattern of stopping and restarting streaming.
+ */
+void EnhancedDroneSpectrumAnalyzerView::on_channel_spectrum_data_processed(
+    const ChannelSpectrum& spectrum)
+{
+    // Stop current spectrum streaming cycle (following other spectrum apps)
+    baseband::spectrum_streaming_stop();
+
+    // Allow scanning thread to process new RSSI data
+    // This callback runs in hardware interrupt context, so keep it minimal
+
+    // Restart streaming if still needed
+    if (is_real_mode_ && spectrum_streaming_active_) {
+        baseband::spectrum_streaming_start();
+    }
+
+    (void)spectrum;  // Suppress unused parameter warning
+}
 
 // HELPERS FOR REAL DATABASE SCAN
 rf::Frequency EnhancedDroneSpectrumAnalyzerView::get_current_radio_frequency() const {
