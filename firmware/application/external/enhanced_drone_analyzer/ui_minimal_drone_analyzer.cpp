@@ -75,6 +75,9 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     // PORTAPACK EMBEDDED TRACKING: Initialize fixed-size array
     // All elements are automatically initialized by TrackedDrone constructor (=0)
     tracked_drones_count_ = 0;
+
+    // Initialize detection logger for CSV logging (V0 concept transferred)
+    // Detection logger is embedded-safe and uses LogFile API
 }
 
 // REMOVED: Old MinimalDroneSpectrumAnalyzerView constructor
@@ -251,6 +254,17 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(co
 
         // UPDATE DRONE TRACKING SYSTEM
         update_tracked_drone(db_entry->drone_type, scanned_freq, rssi, db_entry->threat_level);
+
+        // LOG DETECTION: V0 concept - CSV logging when drone detected (after tracking update)
+        DetectionLogEntry log_entry(
+            static_cast<uint32_t>(scanned_freq),
+            rssi,
+            db_entry->threat_level,
+            db_entry->drone_type,
+            tracker_.get_logged_count() + 1,  // Use tracker count + 1
+            0.85f  // Confidence score - could be calculated based on RSSI consistency
+        );
+        detection_logger_.log_detection(log_entry);
 
         // Note: Advanced detection counting moved to update_tracked_drone for consolidation
 
