@@ -41,8 +41,8 @@ namespace i2cdev {
 class I2cDev {
    public:
     virtual ~I2cDev(){};
-    virtual bool init(uint8_t addr);  // returns true if it is that that device we are looking for.
-    virtual void update() = 0;        // override this, and you'll be able to query your device and broadcast the result to the system
+    virtual bool init(uint8_t addr) = 0;  // returns true if it is that that device we are looking for.
+    virtual void update() = 0;            // override this, and you'll be able to query your device and broadcast the result to the system
 
     void set_update_interval(uint8_t interval);  // sets the device's update interval in sec. if you change it, don't forget to change back to it's original value after you finished!
     uint8_t get_update_interval();               // gets the device's update interval in sec
@@ -59,6 +59,10 @@ class I2cDev {
     int16_t readS16_LE_1(uint8_t reg);
     uint32_t read24_1(uint8_t reg);
 
+    bool lockDevice();    // locks the device's "mutex". returns true on success. guard important communication with this
+    void unlockDevice();  // unlocks the device's "mutex"
+    inline bool isLocked() { return mtx != 0; }
+
     bool need_del = false;                // device can self destruct, and re-init when new scan discovers it
     I2C_DEVMDL model = I2CDEVMDL_NOTSET;  // overwrite it in the init()!!!
     uint8_t query_interval = 5;           // in seconds. can be overriden in init() if necessary
@@ -68,6 +72,7 @@ class I2cDev {
 
     uint8_t addr = 0;    // some devices can have different addresses, so we store what was it wound with
     uint8_t errcnt = 0;  // error count during communication. if it reaches a threshold set need_del to remove itself from the device list
+    uint8_t mtx = 0;     // internal lock, so important client code can be skipped when lock is on. check PPMod for an example
 };
 
 // store for the devices. may not have a driver if not supported

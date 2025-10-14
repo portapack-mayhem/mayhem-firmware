@@ -46,6 +46,7 @@ bool I2cDev_PPmod::init(uint8_t addr_) {
 }
 
 void I2cDev_PPmod::update() {
+    if (isLocked()) return;  // device is busy
     // mask = get_features_mask(); //saved on init. replug device if something changed. //needs to revise when modules come out.
     if (mask & (uint64_t)SupportedFeatures::FEAT_GPS && self_timer % SENSORUPDATETIME == 0) {
         auto data = get_gps_data();
@@ -101,11 +102,13 @@ void I2cDev_PPmod::update() {
 }
 
 bool I2cDev_PPmod::get_shell_get_buffer_data(uint8_t* buff, size_t len) {
+    if (isLocked()) return false;  // device is busy
     Command cmd = Command::COMMAND_SHELL_MODTOPP_DATA;
     return i2c_read((uint8_t*)&cmd, 2, buff, len);
 }
 
 std::optional<orientation_t> I2cDev_PPmod::get_orientation_data() {
+    if (isLocked()) return std::nullopt;  // device is busy
     Command cmd = Command::COMMAND_GETFEAT_DATA_ORIENTATION;
     orientation_t data;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(orientation_t));
@@ -116,6 +119,7 @@ std::optional<orientation_t> I2cDev_PPmod::get_orientation_data() {
 }
 
 std::optional<gpssmall_t> I2cDev_PPmod::get_gps_data() {
+    if (isLocked()) return std::nullopt;  // device is busy
     Command cmd = Command::COMMAND_GETFEAT_DATA_GPS;
     gpssmall_t data;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(gpssmall_t));
@@ -126,6 +130,7 @@ std::optional<gpssmall_t> I2cDev_PPmod::get_gps_data() {
 }
 
 std::optional<environment_t> I2cDev_PPmod::get_environment_data() {
+    if (isLocked()) return std::nullopt;  // device is busy
     Command cmd = Command::COMMAND_GETFEAT_DATA_ENVIRONMENT;
     environment_t data;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(environment_t));
@@ -136,6 +141,7 @@ std::optional<environment_t> I2cDev_PPmod::get_environment_data() {
 }
 
 std::optional<uint16_t> I2cDev_PPmod::get_light_data() {
+    if (isLocked()) return std::nullopt;  // device is busy
     Command cmd = Command::COMMAND_GETFEAT_DATA_LIGHT;
     uint16_t data;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(uint16_t));
@@ -146,6 +152,7 @@ std::optional<uint16_t> I2cDev_PPmod::get_light_data() {
 }
 
 uint16_t I2cDev_PPmod::get_shell_buffer_bytes() {
+    if (isLocked()) return 0;  // device is busy
     Command cmd = Command::COMMAND_SHELL_MODTOPP_DATA_SIZE;
     uint16_t data;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&data, sizeof(uint16_t));
@@ -156,6 +163,7 @@ uint16_t I2cDev_PPmod::get_shell_buffer_bytes() {
 }
 
 uint64_t I2cDev_PPmod::get_features_mask() {
+    if (isLocked()) return 0;  // device is busy
     uint64_t mask_ = 0;
     Command cmd = Command::COMMAND_GETFEATURE_MASK;
     bool success = i2c_read((uint8_t*)&cmd, 2, (uint8_t*)&mask_, sizeof(mask_));
@@ -170,6 +178,7 @@ uint64_t I2cDev_PPmod::get_features_mask() {
 }
 
 std::optional<I2cDev_PPmod::device_info> I2cDev_PPmod::readDeviceInfo() {
+    if (isLocked()) return std::nullopt;  // device is busy
     Command cmd = Command::COMMAND_INFO;
     I2cDev_PPmod::device_info info;
 
