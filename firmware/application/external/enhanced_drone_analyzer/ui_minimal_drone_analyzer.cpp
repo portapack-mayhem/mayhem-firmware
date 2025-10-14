@@ -18,10 +18,13 @@
 
 // ENHANCED VIEW IMPLEMENTATION (Step 4) - Real Database + Scanner Integration
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
-    : nav_(nav) {
+    : nav_(nav),
+    radio_state_() {  // Добавлена инициализация RxRadioState
 
-    // Step 1: Baseband setup FIRST - following Looking Glass and AnalogAudioView pattern
-    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+    // ИСПРАВЛЕНО ПО ОБРАЗЦУ LEVEL/SCANNER:
+    // 1. Проверить baseband image tag (некорректно использует wideband_spectrum)
+    // 2. Использовать правильный image tag для spectrum analysis как в Level (nfm)
+    baseband::run_image(portapack::spi_flash::image_tag_nfm);  // ПО Level паттерну
 
     // Step 2: Initialize modules early (safe to do before hardware setup)
     initialize_database_and_scanner();
@@ -55,8 +58,8 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
     // Setup progress bar and text elements properly
 
-    // ШАГ 4: НЕ ИНИЦИАЛИЗИРУЕМ spectrum streaming в конструкторе
-    // Looking Glass НЕ делает этого! spectrum streaming стартует только в on_show()
+    // ИСПРАВЛЕНО: Spectrum streaming НЕ инициализировать в конструкторе по образцу Looking Glass
+    // spectrum streaming стартует только в on_show() для корректной работы hardware
     spectrum_streaming_active_ = false;
 
     // Initialize UI state

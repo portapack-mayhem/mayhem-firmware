@@ -143,22 +143,22 @@ class EnhancedDroneSpectrumAnalyzerView : public View {
 public:
     EnhancedDroneSpectrumAnalyzerView(NavigationView& nav);
 
-    // ШАГ 2.1: Исправить порядок остановки в деструкторе по образцу looking_glass
-    ~EnhancedDroneSpectrumAnalyzerView() override {
-        // Останавливаем все в правильной последовательности: thread -> receiver -> baseband
+    // Исправлено по образцу Level/Scanner: деструктор с RxRadioState cleanup
+    ~EnhancedDroneSpectrumAnalyzerView() {
+        // Останавливаем все в правильной последовательности: thread -> spectrum -> receiver -> baseband
         if (scanning_thread_) {
             scanning_active_ = false;
             chThdWait(scanning_thread_);
             scanning_thread_ = nullptr;
         }
 
-        // FIX в деструкторе: Стоп spectrum streaming ДО disable receiver
+        // Стоп spectrum streaming ДО disable receiver (Looking Glass pattern)
         if (spectrum_streaming_active_) {
             baseband::spectrum_streaming_stop();
             spectrum_streaming_active_ = false;
         }
 
-        // Теперь receiver disable и baseband shutdown
+        // Теперь receiver disable и baseband shutdown (Level pattern)
         receiver_model.disable();
         baseband::shutdown();
     }
@@ -171,6 +171,9 @@ public:
 
 private:
     NavigationView& nav_;
+
+    // Добавлена RxRadioState для правильного hardware управления (по образцу Level/Scanner)
+    RxRadioState radio_state_{};
 
     // Spectrum streaming state (following Looking Glass pattern)
     bool spectrum_streaming_active_ = false;
