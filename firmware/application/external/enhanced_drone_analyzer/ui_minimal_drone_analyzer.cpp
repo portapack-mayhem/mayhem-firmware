@@ -14,55 +14,74 @@
 #include "baseband_api.hpp"
 #include "portapack_shared_memory.hpp"
 
+// Add required includes for message handlers (like Looking Glass)
+#include "message.hpp"
+#include "channel_spectrum.hpp"
+
 #include <algorithm>
 
 // ENHANCED VIEW IMPLEMENTATION - PHASE 5: Optimized Hardware Initialization Order
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
-    : nav_(nav),
-    radio_state_(ReceiverModel::Mode::SpectrumAnalysis) {  // CORRECTED: Proper initialization
+    : nav_(nav)
+{
 
-    // PHASE 6: FIX INITIALIZATION SEQUENCE - follow Looking Glass pattern exactly
-    // 1. Baseband image FIRST (DSP setup)
-    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+    // PHASE 6: FIX INITIALIZATION SEQUENCE - follow Scanner/Level patterns exactly
+    // DO NOT initialize hardware in constructor - do in on_show() like other spectrum apps
 
-    // 2. Initialize UI components
+    // Only initialize UI components here (no hardware/radio setup)
     initialize_database_and_scanner();
 
-    // 3. Configure receiver parameters (MUST be before enable)
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-    receiver_model.set_sampling_rate(20000000);        // 20MHz spectrum analysis rate
-    receiver_model.set_baseband_bandwidth(12000000);   // 12MHz bandwidth
-    receiver_model.set_squelch_level(0);               // No squelch for spectrum
+    // Initialize UI state
+    button_start_.set_text("START/STOP");
+    button_mode_.set_text("Mode: Real");
 
-    // 4. Set radio direction BEFORE enabling receiver
-    radio::set_direction(rf::Direction::Receive);
+    // SIMPLIFIED UI INITIALIZATION
+    // NOTE: Big display starts empty, updated by scanning thread
+    // Initialize tracking counters
+    approaching_count_ = 0;
+    receding_count_ = 0;
+    static_count_ = 0;
 
-    // 5. Configure baseband AFTER receiver parameters
-    baseband::set_spectrum(12000000, 32);  // Match bandwidth and trigger settings
+    // PORTAPACK EMBEDDED TRACKING: Initialize fixed-size array
+    // All elements are automatically initialized by TrackedDrone constructor (=0)
+    tracked_drones_count_ = 0;
 
-    // 6. Enable receiver LAST
-    receiver_model.enable();
+    // Initialize detection logger for CSV logging
+    // Detection logger is embedded-safe and uses LogFile API
 
-    // Setup button handlers - following Recon app pattern with lambda captures
-    button_start_.on_select = [this](Button&) { on_start_scan(); };
-    button_stop_.on_select = [this](Button&) { on_stop_scan(); };
-    button_save_freq_.on_select = [this](Button&) { on_save_frequency(); };
-    button_load_file_.on_select = [this](Button&) { on_load_frequency_file(); };
-    button_mode_.on_select = [this](Button&) { on_toggle_mode(); };
-    button_audio_.on_select = [this](Button&) { on_audio_toggle(); };
-    button_settings_.on_select = [this](Button&) { on_open_settings(); };
-    button_advanced_.on_select = [this](Button&) { on_advanced_settings(); };
-    button_frequency_warning_.on_select = [this](Button&) { on_frequency_warning(); };
+    // SIMPLIFIED BUTTON HANDLERS - minimal focused UI like Level + Scanner
+    button_start_.on_select = [this](Button&) {
+        if (scanning_active_) {
+            on_stop_scan();
+            button_start_.set_text("START/STOP");
+            big_display_.set("READY");
+            big_display_.set_style(Theme::getInstance()->bg_darkest); //grey
+        } else {
+            on_start_scan();
+            button_start_.set_text("STOP");
+            big_display_.set("SCANNING...");
+            big_display_.set_style(Theme::getInstance()->fg_green); //green when active
+        }
+    };
 
-    // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
-    // Setup progress bar and text elements properly
+    // MENU BUTTON - opens secondary options
+    button_menu_.on_select = [this, &nav]() {
+        nav.push<MenuView>({
+            {"Load Database", [this]() { on_load_frequency_file(); }},
+            {"Save Frequency", [this]() { on_save_frequency(); }},
+            {"Audio Settings", [this]() { on_audio_toggle(); }},
+            {"Advanced", [this]() { on_advanced_settings(); }},
+            {"Frequency Warning", [this]() { on_frequency_warning(); }}
+        });
+    };
 
-    // CORRECTED: Spectrum streaming НЕ инициализировать в конструкторе по образцу Looking Glass
-    // spectrum streaming стартует только в on_show() для корректной работы hardware
+// NEW SIMPLIFIED UI INITIALIZATION - following Level/Scanner patterns
+    // SPECTRUM STREAMING: Don't initialize in constructor (Looking Glass pattern)
     spectrum_streaming_active_ = false;
 
     // Initialize UI state
-    button_stop_.set_enabled(false);
+    button_start_.set_text("START/STOP");
+    // NOTE: Big display starts empty, updated by scanning thread
 
     // Initialize tracking counters
     approaching_count_ = 0;
@@ -583,11 +602,19 @@ void EnhancedDroneSpectrumAnalyzerView::on_show() {
 }
 
 void EnhancedDroneSpectrumAnalyzerView::on_hide() {
-    // PHASE 2: Stop spectrum streaming when view becomes hidden (like other spectrum apps)
+    // Stop spectrum streaming when view becomes hidden (like other spectrum apps)
     if (spectrum_streaming_active_) {
         baseband::spectrum_streaming_stop();
         spectrum_streaming_active_ = false;
     }
+
+    // Stop scanning if active like Destroyed by Specan Waterfall
+    if (scanning_active_ && scanning_thread_) {
+        scanning_active_ = false;
+        chThdWait(scanning_thread_);
+        scanning_thread_ = nullptr;
+    }
+
     View::on_hide();
 }
 
@@ -614,26 +641,41 @@ void EnhancedDroneSpectrumAnalyzerView::switch_to_real_mode() {
 }
 
 void EnhancedDroneSpectrumAnalyzerView::update_detection_display() {
-    // UPDATE PROGRESS BAR BASED ON CURRENT SCANNING PROGRESS
-    if (active_channels_count_ > 0 && scanning_active_) {
-        // Calculate percentage: (current + 1) / total * 100
-        size_t current_idx = current_channel_idx_ >= 0 ? current_channel_idx_ : 0;
-        uint32_t progress_percent = (current_idx * 100) / active_channels_count_;
-        progress_percent = std::min(progress_percent, (uint32_t)100);
+    // NEW COMPACT UI DISPLAY - following Scanner/Recon pattern
 
-        // UPDATE PROGRESS BAR VALUE (using set_value method like other apps)
-        scanning_progress_bar_.set_value(progress_percent);
+    // UPDATE BIG DISPLAY WITH CURRENT STATUS
+    if (scanning_active_) {
+        rf::Frequency current_freq = get_current_radio_frequency();
+        char freq_buffer[32];
+        if (current_freq > 0) {
+            snprintf(freq_buffer, sizeof(freq_buffer), "%.3f MHz",
+                    static_cast<float>(current_freq) / 1000000.0f);
+            big_display_.set(freq_buffer);
+        } else {
+            big_display_.set("SCANNING...");
+        }
     } else {
-        scanning_progress_bar_.set_value(0);
+        big_display_.set("READY");
     }
 
-    // UPDATE THREAT LEVEL DISPLAY WITH COLOR CODING
+    // UPDATE PROGRESS BAR - calculate based on database entries
+    size_t total_freqs = freq_db_.is_open() ? freq_db_.entry_count() : 0;
+    if (total_freqs > 0 && scanning_active_) {
+        uint32_t progress_percent = (current_db_index_ * 100) / total_freqs;
+        scanning_progress_.set_value(std::min(progress_percent, (uint32_t)100));
+    } else {
+        scanning_progress_.set_value(0);
+    }
+
+    // UPDATE COMPACT STATUS LINES - essential info only
     ThreatLevel max_threat = ThreatLevel::NONE;
-    // EMBEDDED: Search through fixed array for maximum threat
+    bool has_detections = false;
+
+    // Find max threat among active drones
     for (size_t i = 0; i < MAX_TRACKED_DRONES; i++) {
         const TrackedDrone& drone = tracked_drones_[i];
-        // Check active drones only (update_count > 0)
         if (drone.update_count > 0) {
+            has_detections = true;
             ThreatLevel drone_threat = static_cast<ThreatLevel>(drone.threat_level);
             if (drone_threat > max_threat) {
                 max_threat = drone_threat;
@@ -641,24 +683,54 @@ void EnhancedDroneSpectrumAnalyzerView::update_detection_display() {
         }
     }
 
-    // Update threat display with proper text and color
-    char threat_buffer[64];
-    snprintf(threat_buffer, sizeof(threat_buffer), "THREAT: %s\nTrends: ▲%lu ■%lu ▼%lu",
-             get_threat_level_name(max_threat),
-             approaching_count_, static_count_, receding_count_);
-    text_threat_level_.set(threat_buffer);
-    text_threat_level_.set_foreground(get_threat_level_color(max_threat));
-
-    // ORIGINAL DETECTION DISPLAY LOGIC
-    if (total_detections_ == 0) {
-        text_detection_info_.set("No detections\nMonitoring active");
+    // COMPACT THREAT SUMMARY LINE
+    if (has_detections) {
+        char summary_buffer[64];
+        snprintf(summary_buffer, sizeof(summary_buffer), "THREAT: %s | ▲%lu ■%lu ▼%lu",
+                get_threat_level_name(max_threat),
+                approaching_count_, static_count_, receding_count_);
+        text_threat_summary_.set(summary_buffer);
+        text_threat_summary_.set_style(Theme::getInstance()->fg_red); // Threat = red
     } else {
-        char buffer[128];
-        snprintf(buffer, sizeof(buffer),
-                "Detections: %u\nScan cycles: %u\nCurrent channel: %u",
-                total_detections_, scan_cycles_, current_channel_idx_);
+        text_threat_summary_.set("THREAT: NONE | All clear");
+        text_threat_summary_.set_style(Theme::getInstance()->fg_green); // No threat = green
+    }
 
-        text_detection_info_.set(buffer);
+    // STATUS INFO LINE
+    char status_buffer[64];
+    if (scanning_active_) {
+        snprintf(status_buffer, sizeof(status_buffer), "Scanning - Detections: %u",
+                total_detections_);
+    } else {
+        snprintf(status_buffer, sizeof(status_buffer), "Ready - Enhanced Drone Analyzer");
+    }
+    text_status_info_.set(status_buffer);
+
+    // SCANNER STATS LINE
+    size_t loaded_freqs = freq_db_.is_open() ? freq_db_.entry_count() : 0;
+    char stats_buffer[64];
+    if (scanning_active_ && loaded_freqs > 0) {
+        size_t current_idx = current_db_index_ >= 0 ? current_db_index_ : 0;
+        snprintf(stats_buffer, sizeof(stats_buffer), "Freq: %zu/%zu | Cycle: %u",
+                current_idx + 1, loaded_freqs, scan_cycles_);
+    } else if (loaded_freqs > 0) {
+        snprintf(stats_buffer, sizeof(stats_buffer), "Loaded: %zu frequencies", loaded_freqs);
+    } else {
+        snprintf(stats_buffer, sizeof(stats_buffer), "No database loaded");
+    }
+    text_scanner_stats_.set(stats_buffer);
+
+    // UPDATE BIG DISPLAY COLOR BASED ON THREAT
+    if (max_threat >= ThreatLevel::HIGH) {
+        big_display_.set_style(Theme::getInstance()->fg_red);      // Critical threat
+    } else if (max_threat >= ThreatLevel::MEDIUM) {
+        big_display_.set_style(Theme::getInstance()->fg_yellow);   // Medium threat
+    } else if (has_detections) {
+        big_display_.set_style(Theme::getInstance()->fg_orange);   // Low threat
+    } else if (scanning_active_) {
+        big_display_.set_style(Theme::getInstance()->fg_green);    // Scanning but no threat
+    } else {
+        big_display_.set_style(Theme::getInstance()->bg_darkest);  // Not scanning
     }
 }
 

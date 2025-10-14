@@ -143,24 +143,15 @@ class EnhancedDroneSpectrumAnalyzerView : public View {
 public:
     EnhancedDroneSpectrumAnalyzerView(NavigationView& nav);
 
-    // Исправлено по образцу Level/Scanner: деструктор с RxRadioState cleanup
+    // Fixed destructor with proper cleanup order like other spectrum apps
     ~EnhancedDroneSpectrumAnalyzerView() {
-        // Останавливаем все в правильной последовательности: thread -> spectrum -> receiver -> baseband
+        // Stop thread first to avoid resource conflicts
         if (scanning_thread_) {
             scanning_active_ = false;
             chThdWait(scanning_thread_);
             scanning_thread_ = nullptr;
         }
-
-        // Стоп spectrum streaming ДО disable receiver (Looking Glass pattern)
-        if (spectrum_streaming_active_) {
-            baseband::spectrum_streaming_stop();
-            spectrum_streaming_active_ = false;
-        }
-
-        // Теперь receiver disable и baseband shutdown (Level pattern)
-        receiver_model.disable();
-        baseband::shutdown();
+        // Note: No spectrum/receiver cleanup here - hardware init done in on_show()/on_hide()
     }
 
     void focus() override;
@@ -207,30 +198,18 @@ private:
     TrackedDrone tracked_drones_[MAX_TRACKED_DRONES]; // Static array, no heap (transitional)
     size_t tracked_drones_count_ = 0;  // Current count of active drones (transitional)
 
-    // UI CONTROLS - FREQUENCY MANAGEMENT ENABLED LAYOUT
-    Button button_start_{ {0, 0}, "START" };      // Scan start/stop
-    Button button_stop_{ {48, 0}, "STOP" };       // Scan start/stop
-    Button button_save_freq_{ {96, 0}, "SAVE" };  // Save detected drone frequency
+    // PRIMARY CONTROLS (Like Level app - minimal, focused)
+    Button button_start_{ {0, 0}, "START/STOP" };  // Toggle scan on/off (primary action)
+    Button button_menu_{ {120, 0}, "..." };       // Menu for secondary functions
 
-    // SECOND ROW - File management and advanced controls
-    Button button_load_file_{ {0, 32}, "LOAD" };   // Load frequency file
-    Button button_advanced_{ {48, 32}, "ADV" };   // Advanced settings
-    Button button_mode_{ {96, 32}, "INFO" };      // Always shows info (no toggle)
-    Button button_audio_{ {0, 32}, "AUDIO" };     // Audio beacon control
-    Button button_settings_{ {96, 32}, "SETTINGS" }; // Settings modal
+    // BIG DISPLAY & STATUS (Like Scanner - large frequency + color coding)
+    BigFrequencyDisplay big_display_{ {0, 24, 240, 32} };
+    ProgressBar scanning_progress_{ {0, 64, 240, 16} };
 
-    // PROGRESS BAR (V0 Inspired) - positioned where spectrum bars would be in V0
-    ProgressBar scanning_progress_bar_{ {0, 64, 240, 16} };
-
-    // STATUS DISPLAY (moved down below progress)
-    Text text_status_{ {0, 84, 240, 16}, "Status: Ready" };
-    Text text_detection_info_{ {0, 104, 240, 48}, "No detections" };
-    Text text_database_info_{ {0, 156, 240, 32}, "Database: Not loaded" };
-    Text text_scanning_info_{ {0, 192, 240, 32}, "Scanning: Idle" };
-
-    // INFO MESSAGES WITH RUSSIAN TEXT
-    Text text_info_{ {0, 208, 240, 32}, "Enhanced Drone Analyzer\nv0.2 Step 4" };
-    Text text_version_{ {0, 244, 240, 16}, "© 2025 M.S. Kuznetsov" };
+    // COMPACT STATUS DISPLAY (Like Recon - essential info only)
+    Text text_threat_summary_{ {0, 84, 240, 16}, "THREAT: NONE | ▲0 ■0 ▼0" };
+    Text text_status_info_{ {0, 100, 240, 16}, "Ready - Enhanced Drone Analyzer" };
+    Text text_scanner_stats_{ {0, 116, 240, 16}, "Detections: 0 | Scan Freq: N/A" };
 
     // SCANNING THREADING
     static msg_t scanning_thread_function(void* arg);
