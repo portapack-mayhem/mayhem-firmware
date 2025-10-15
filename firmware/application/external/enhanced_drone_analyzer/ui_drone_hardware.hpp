@@ -11,6 +11,7 @@
 #include "radio.hpp"                // Radio tuning interface
 #include "message.hpp"              // Message system with ChannelSpectrum
 #include "channel_spectrum.hpp"     // Spectrum data structures
+#include "irq_controls.hpp"         // HardwareGuard for mutex protection
 
 #include <memory>
 
