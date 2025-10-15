@@ -57,4 +57,7 @@ private:
 
 } // namespace ui::external_app::enhanced_drone_analyzer
 
+// FIX: Add typedef for DroneAudioAlert used in constructor
+using DroneAudioAlert = DroneAudioController;
+
 #endif // __UI_DRONE_AUDIO_SETTINGS_HPP__
