@@ -1,15 +1,15 @@
 // enhanced_drone_analyzer_main.cpp
-// Main entry point for Enhanced Drone Analyzer external app
-// COMPLETE HARDWARE INTEGRATION VERSION
+// Entry point for the modular Enhanced Drone Analyzer application
+// This file creates and connects all the modular components
 
-#include "ui_minimal_drone_analyzer.hpp"  // Enhanced version with database
+#include "ui_minimal_drone_analyzer.hpp"  // Now references the modular version
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<EnhancedDroneSpectrumAnalyzerView>();  // Step 6: Hardware-enabled version
+    nav.push<EnhancedDroneSpectrumAnalyzerView>();  // Uses the new modular version
 }
 
 }  // namespace ui::external_app::enhanced_drone_analyzer
@@ -23,7 +23,7 @@ application_information_t _application_information_enhanced_drone_analyzer = {
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Enhanced Drone Analyzer",
+    /*.app_name = */ "Enhanced Drone Analyzer v0.3",
     /*.bitmap_data = */ {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

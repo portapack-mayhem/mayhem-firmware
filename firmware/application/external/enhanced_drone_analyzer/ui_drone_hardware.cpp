@@ -1,0 +1,176 @@
+// ui_drone_hardware.cpp
+// Hardware management implementation for Enhanced Drone Analyzer
+
+#include "ui_drone_hardware.hpp"
+#include "receiver_model.hpp"
+#include <algorithm>
+
+namespace ui::external_app::enhanced_drone_analyzer {
+
+DroneHardwareController::DroneHardwareController()
+    : message_handler_spectrum_config_{
+          Message::ID::ChannelSpectrumConfig,
+          [this](Message* const p) {
+              const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+              fifo_ = message.fifo;
+              handle_channel_spectrum_config(&message);
+          }
+      },
+      message_handler_frame_sync_{
+          Message::ID::DisplayFrameSync,
+          [this](const Message* const) {
+              if (fifo_) {
+                  ChannelSpectrum channel_spectrum;
+                  while (fifo_->out(channel_spectrum)) {
+                      handle_channel_spectrum(channel_spectrum);
+                  }
+              }
+          }
+      }
+{
+    initialize_hardware();
+}
+
+DroneHardwareController::~DroneHardwareController() {
+    shutdown_hardware();
+}
+
+void DroneHardwareController::initialize_hardware() {
+    initialize_radio_state();
+    initialize_spectrum_collector();
+}
+
+void DroneHardwareController::initialize_radio_state() {
+    // CRITICAL BUGFIX: Move RxRadioState init HERE to avoid constructor timing issues
+    radio_state_ = RxRadioState{ReceiverModel::Mode::SpectrumAnalysis};
+
+    // SETUP RECEIVER LIKE SpectrumAnalysisModel
+    receiver_model.set_baseband_configuration({
+        .mode = 4,                    // Spectrum mode = 4
+        .sampling_rate = 20000000,     // 20 МГц как в Looking Glass
+        .decimation_factor = 1,
+    });
+    receiver_model.set_baseband_bandwidth(12000000);  // 12 МГц bandwidth
+
+    // CONFIGURE SQUELCH FOR SPECTRUM ANALYSIS
+    receiver_model.set_squelch_level(0);  // No squelch for spectrum
+
+    // VALIDATION - set target frequency to safe ISM band center
+    radio::set_tuning_frequency(433000000);  // 433 MHz ISM band center
+}
+
+void DroneHardwareController::initialize_spectrum_collector() {
+    // PHASE 2: Initialize baseband spectrum streaming instead of custom FIFO
+    // The message handler setup in constructor handles the spectrum data flow
+
+    // Reset collection state
+    last_valid_rssi_ = -120;
+    spectrum_streaming_active_ = false;
+}
+
+void DroneHardwareController::cleanup_spectrum_collector() {
+    // Following Looking Glass pattern: only reset cached RSSI values
+    // Spectrum streaming is managed by on_hide(), not here
+    last_valid_rssi_ = -120;
+}
+
+void DroneHardwareController::on_hardware_show() {
+    // FOLLOWING LOOKING GLASS PATTERN: Hardware setup in on_show()
+    // 1. Enable receiver first
+    receiver_model.enable();
+    // radio_state_ reset not needed here as it's managed by the class
+
+    // 2. Set spectrum parameters BEFORE starting streaming
+    baseband::set_spectrum(receiver_model.baseband_bandwidth(), 0);  // 0 trigger level
+
+    // 3. Start spectrum streaming (ALWAYS do this in on_show())
+    start_spectrum_streaming();
+}
+
+void DroneHardwareController::on_hardware_hide() {
+    // FOLLOWING LOOKING GLASS PATTERN: Cleanup in on_hide()
+    // 1. Stop spectrum streaming FIRST
+    stop_spectrum_streaming();
+
+    // 2. Disable receiver
+    receiver_model.disable();
+}
+
+void DroneHardwareController::shutdown_hardware() {
+    stop_spectrum_streaming();
+    cleanup_spectrum_collector();
+}
+
+void DroneHardwareController::start_spectrum_streaming() {
+    baseband::spectrum_streaming_start();
+    spectrum_streaming_active_ = true;
+}
+
+void DroneHardwareController::stop_spectrum_streaming() {
+    if (spectrum_streaming_active_) {
+        baseband::spectrum_streaming_stop();
+        spectrum_streaming_active_ = false;
+    }
+}
+
+bool DroneHardwareController::tune_to_frequency(rf::Frequency frequency_hz) {
+    // Validate frequency range for Portapack hardware
+    if (frequency_hz < 50000000 || frequency_hz > 6000000000) {
+        return false; // Out of range
+    }
+
+    // Hardware tuning
+    radio::set_tuning_frequency(frequency_hz);
+    chThdSleepMilliseconds(10); // Allow PLL to settle
+
+    return true;
+}
+
+// Spectrum data processing - these were moved from the main UI class
+void DroneHardwareController::handle_channel_spectrum_config(
+    const ChannelSpectrumConfigMessage* const message)
+{
+    // Following Search/Looking Glass pattern for spectrum message handling
+    // FIFO setup typically handled in baseband initialization
+    (void)message;  // Suppress compiler warning for unused parameter
+}
+
+void DroneHardwareController::handle_channel_spectrum(const ChannelSpectrum& spectrum) {
+    // Extract maximum RSSI value from spectrum for signal detection
+    int32_t peak_rssi = -120;
+    for (size_t bin_index = 0; bin_index < spectrum.db.size(); ++bin_index) {
+        if (spectrum.db[bin_index] > peak_rssi) {
+            peak_rssi = spectrum.db[bin_index];
+        }
+    }
+
+    // Cache valid RSSI values for scanning thread to use
+    if (peak_rssi >= -120 && peak_rssi <= -20) {
+        last_valid_rssi_ = peak_rssi;
+    }
+
+    // Delegate further processing to specialized method
+    process_channel_spectrum_data(spectrum);
+}
+
+void DroneHardwareController::process_channel_spectrum_data(const ChannelSpectrum& spectrum) {
+    // Stop current spectrum streaming cycle (following other spectrum apps)
+    baseband::spectrum_streaming_stop();
+
+    // Allow scanning thread to process new RSSI data
+    // This callback runs in hardware interrupt context, so keep it minimal
+
+    // Restart streaming if still needed
+    if (spectrum_streaming_active_) {
+        baseband::spectrum_streaming_start();
+    }
+
+    (void)spectrum;  // Suppress unused parameter warning
+}
+
+int32_t DroneHardwareController::get_real_rssi_from_hardware(rf::Frequency target_frequency) {
+    // PHASE 3: Now uses real spectrum data from spectrum callbacks
+    return last_valid_rssi_;  // Real hardware RSSI from spectrum analysis
+}
+
+} // namespace ui::external_app::enhanced_drone_analyzer
