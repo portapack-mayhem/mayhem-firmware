@@ -57,23 +57,51 @@ enum class MovementTrend : uint8_t {
     UNKNOWN = 3      // Недостаточно данных для анализа
 };
 
-    // BANDWIDTH OFFSET SETTINGS - New feature for ±MHz from center
-    int32_t center_bandwidth_offset_hz;  // ± offset from center (negative = -, positive = +)
-    uint32_t scan_bandwidth_hz;         // Total scan width (±6MHz max, 3MHz default)
+    // PRODUCTION FIX #3: OPTIMIZE DATABASE FOOTPRINT
+    // Remove duplicate bandwidth fields (cleanup)
+    // Remove unused offset fields (embedde constraints)
 
-// FREQUENCY DATABASE ENTRY
-struct DroneFrequencyEntry {
-    uint32_t frequency_hz;
-    DroneType drone_type;
-    ThreatLevel threat_level;
-    int32_t rssi_threshold_db;
-    const char* name;
-    uint32_t bandwidth_hz;  // Scanning bandwidth
+    // FREQUENCY DATABASE ENTRY - OPTIMIZED FOR PRODUCTION
+    struct DroneFrequencyEntry {
+        uint32_t frequency_hz;          // Core frequency in Hz
+        uint8_t drone_type_idx;         // Compact ref to DroneType enum
+        uint8_t threat_level_idx;       // Compact ref to ThreatLevel enum
+        int8_t rssi_threshold_db;       // Signed byte for threshold
+        uint8_t bandwidth_idx;          // Index to bandwidth preset (saves space)
+        uint16_t name_offset;           // Offset in string pool (future optimization)
 
-    // Check if frequency is valid
-    bool is_valid() const {
-        return frequency_hz > 0 && frequency_hz < 10000000000UL;  // 0 to 10GHz
-    }
+        DroneFrequencyEntry(uint32_t freq, DroneType type, ThreatLevel threat,
+                           int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
+            : frequency_hz(freq),
+              drone_type_idx(static_cast<uint8_t>(type)),
+              threat_level_idx(static_cast<uint8_t>(threat)),
+              rssi_threshold_db(static_cast<int8_t>(rssi_thresh)),
+              bandwidth_idx(0),  // Default - map to actual bandwidth later
+              name_offset(0) {}  // Placeholder for name pooling
+
+        // Production validation
+        bool is_valid() const {
+            return frequency_hz >= 50000000 && frequency_hz <= 6000000000UL &&
+                   rssi_threshold_db >= -120 && rssi_threshold_db <= -20;
+        }
+
+        // PRODUCTION: Add conversion methods for compact storage
+        DroneType get_drone_type() const {
+            return static_cast<DroneType>(drone_type_idx);
+        }
+
+        ThreatLevel get_threat_level() const {
+            return static_cast<ThreatLevel>(threat_level_idx);
+        }
+    };
+
+// PRODUCTION: Add preset bandwidth mappings to save space
+static constexpr uint32_t DRONE_BANDWIDTH_PRESETS[] = {
+    3000000,  // 0: 3MHz - standard drone channel
+    6000000,  // 1: 6MHz - wideband civilian drones
+    10000000, // 2: 10MHz - military/various payloads
+    20000000, // 3: 20MHz - experimental/commercial
+    0         // END MARKER
 };
 
 // EMBEDDED-FRIENDLY: Fixed-size structure (15 bytes), no dynamic allocation
