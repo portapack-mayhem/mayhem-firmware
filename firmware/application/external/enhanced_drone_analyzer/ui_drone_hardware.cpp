@@ -190,16 +190,14 @@ void DroneHardwareController::handle_channel_spectrum(const ChannelSpectrum& spe
 }
 
 void DroneHardwareController::process_channel_spectrum_data(const ChannelSpectrum& spectrum) {
-    // Stop current spectrum streaming cycle (following other spectrum apps)
-    baseband::spectrum_streaming_stop();
+    // FIX: Remove unnecessary spectrum streaming stop/start cycle
+    // Looking Glass pattern: Keep streaming continuous unless reconfiguration needed
+
+    // Spectrum data processing without interrupting streaming flow
+    // Streaming continues automatically - no manual stop/start needed
 
     // Allow scanning thread to process new RSSI data
     // This callback runs in hardware interrupt context, so keep it minimal
-
-    // Restart streaming if still needed
-    if (spectrum_streaming_active_) {
-        baseband::spectrum_streaming_start();
-    }
 
     (void)spectrum;  // Suppress unused parameter warning
 }
