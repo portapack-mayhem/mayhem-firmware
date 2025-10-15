@@ -254,6 +254,10 @@ set(EXTCPPSRC
 	external/bht_tx/main.cpp
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
+
+	#morse_practice
+	external/morse_practice/main.cpp
+	external/morse_practice/ui_morse_practice.cpp
 )
 
 set(EXTAPPLIST
@@ -318,4 +322,5 @@ set(EXTAPPLIST
 	soundboard
 	game2048
 	bht_tx
+	morse_practice
 )
