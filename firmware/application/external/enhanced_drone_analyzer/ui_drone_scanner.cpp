@@ -317,10 +317,19 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
         }
     }
 
-    // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY)
-    // Require multiple consecutive detections for stability
-    static std::array<uint8_t, 1024> detection_counts = {};  // Per-frequency counter
+    // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY) + HYSTERESIS
+    // Require multiple consecutive detections for stability + RSSI hysteresis
+    static std::array<uint8_t, 512> detection_counts = {};  // EMBEDDED OPTIMIZATION: Reduced from 1024 to save memory
+    static std::array<int32_t, 512> prev_rssi_values = {};  // Remember previous RSSI for hysteresis
     size_t freq_hash = entry.frequency_a % detection_counts.size();
+
+    // HYSTERESIS PROTECTION: Require RSSI to be consistently above threshold by margin
+    const int32_t HYSTERESIS_MARGIN = 5;  // dB - prevent false triggers from noise fluctuations
+    int32_t effective_threshold = detection_threshold;
+    if (prev_rssi_values[freq_hash] < detection_threshold) {
+        effective_threshold = detection_threshold + HYSTERESIS_MARGIN;  // Higher threshold for initially weak signals
+    }
+    prev_rssi_values[freq_hash] = rssi;  // Update for next cycle
 
     if (rssi >= detection_threshold) {
         detection_counts[freq_hash] = std::min((uint8_t)(detection_counts[freq_hash] + 1), (uint8_t)255);
