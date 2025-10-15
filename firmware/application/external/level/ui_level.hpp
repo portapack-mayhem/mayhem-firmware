@@ -38,8 +38,18 @@
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
+#include <mutex>  // Priority 1.2: Add hardware access mutex
 
 namespace ui::external_app::level {
+
+// Priority 1.2: Hardware access mutex to prevent race conditions
+static std::mutex g_hardware_mutex;
+
+class HardwareGuard {
+    std::unique_lock<std::mutex> lock;
+public:
+    HardwareGuard() : lock(g_hardware_mutex) {}
+};
 
 class LevelView : public View {
    public:
