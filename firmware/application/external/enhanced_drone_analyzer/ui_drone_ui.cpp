@@ -508,7 +508,8 @@ void DroneUIController::show_menu() {
         {"Manage Frequencies", [this]() { on_manage_frequencies(); }},
         {"Create Database", [this]() { on_create_new_database(); }},
         {"Advanced", [this]() { on_advanced_settings(); }},
-        {"Frequency Warning", [this]() { on_frequency_warning(); }}
+        {"Frequency Warning", [this]() { on_frequency_warning(); }},
+        {"About", [this]() { on_about(); }}  // Add About button
     });
 }
 
@@ -618,6 +619,10 @@ void DroneUIController::on_frequency_warning() {
     }
 
     nav_.display_modal("Frequency Scan Warning", warning_text);
+}
+
+void DroneUIController::on_about() {
+    nav_.push<AuthorContactView>();
 }
 
 // EnhancedDroneSpectrumAnalyzerView implementation
