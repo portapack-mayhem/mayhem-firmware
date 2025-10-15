@@ -579,8 +579,8 @@ void DroneUIController::on_advanced_settings() {
 }
 
 void DroneUIController::on_manage_frequencies() {
-    // Placeholder - frequency management UI
-    nav_.display_modal("Info", "Frequency Manager\nComing soon...");
+    // REAL FREQUENCY MANAGEMENT UI - now activated
+    nav_.push<DroneFrequencyManagerView>();
 }
 
 void DroneUIController::on_create_new_database() {
