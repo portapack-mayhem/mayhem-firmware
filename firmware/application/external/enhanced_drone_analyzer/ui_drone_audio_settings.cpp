@@ -2,6 +2,7 @@
 // Audio settings UI implementation for Enhanced Drone Analyzer
 
 #include "ui_drone_audio_settings.hpp"
+#include "ui_drone_audio_settings_about.hpp"
 #include "ui/ui_text_entry.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
@@ -18,7 +19,8 @@ DroneAudioSettingsView::DroneAudioSettingsView(
         &checkbox_audio_enabled_,
         &field_test_threat_level_,
         &text_test_instructions_,
-        &button_test_audio_
+        &button_test_audio_,
+        &button_about_  // Add about button
     });
 
     // Initialize checkboxes and fields
@@ -31,6 +33,10 @@ DroneAudioSettingsView::DroneAudioSettingsView(
 
     button_test_audio_.on_select = [this]() {
         on_test_audio();
+    };
+
+    button_about_.on_select = [this]() {
+        nav_.push<AuthorContactView>();
     };
 
     field_test_threat_level_.set_value(static_cast<int>(settings.test_threat_level));

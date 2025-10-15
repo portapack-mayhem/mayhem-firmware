@@ -45,6 +45,7 @@ private:
     NumberField field_test_threat_level_{ {130, 60}, 1, {0, 4, 1, 1}, "Threat" };
     Text text_test_instructions_{ {10, 85, 240, 16},
         "Select threat level to test" };
+    Button button_about_{ {180, 135}, "ABOUT", 14 };  // Right bottom corner
 
     // Button handlers
     void on_audio_enabled_changed();
