@@ -1,14 +1,55 @@
 // ui_drone_frequency_manager.cpp
-// Full frequency management implementation for Enhanced Drone Analyzer
+// Redesigned frequency management with Mayhem patterns
+// Base class + specialized views (following Freqman/Recon architecture)
 
 #include "ui_drone_frequency_manager.hpp"
 #include "ui_drone_database.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
-// Static global instance for accessing database (following Mayhem pattern)
-static DroneFrequencyDatabase* global_frequency_db = nullptr;
+// BASE CLASS IMPLEMENTATION
+DroneFrequencyManagerBaseView::DroneFrequencyManagerBaseView(NavigationView& nav)
+    : nav_(nav), error_(ERROR_NONE)
+{
+    add_child(&button_exit);
+    button_exit.on_select = [this, &nav](Button&) {
+        nav.pop();
+    };
 
+    ensure_database_initialized();
+}
+
+void DroneFrequencyManagerBaseView::focus() {
+    if (error_ == ERROR_ACCESS) {
+        nav_.display_modal("Error", "Database access error", ABORT);
+    } else if (error_ == ERROR_NOFILES) {
+        nav_.display_modal("Error", "No database available", ABORT);
+    }
+    button_exit.focus();
+}
+
+void DroneFrequencyManagerBaseView::paint(Painter& painter) {
+    View::paint(painter);
+    // Base paint implementation - subclasses override
+}
+
+bool DroneFrequencyManagerBaseView::on_key(const KeyEvent key) {
+    switch (key) {
+        case KeyEvent::Back:
+            nav_.pop();
+            return true;
+        default:
+            return View::on_key(key);
+    }
+}
+
+void DroneFrequencyManagerBaseView::ensure_database_initialized() {
+    if (!global_frequency_db) {
+        global_frequency_db = new DroneFrequencyDatabase();
+    }
+}
+
+// HELPER FUNCTIONS
 static const char* get_drone_type_name(DroneType type) {
     switch (type) {
         case DroneType::UNKNOWN: return "UNKNOWN";
@@ -43,10 +84,8 @@ static const char* get_threat_level_name(ThreatLevel level) {
 
 static std::vector<std::string> get_drone_type_options() {
     return {
-        "UNKNOWN",
-        "DJI MAVIC", "DJI MINI", "DJI AIR", "DJI PHANTOM", "DJI AVATA",
-        "FPV RACING", "FPV FREESTYLE",
-        "ORLAN-10", "LANCET", "SHAHED-136", "BAYRAKTAR TB2",
+        "UNKNOWN", "DJI MAVIC", "DJI MINI", "DJI AIR", "DJI PHANTOM", "DJI AVATA",
+        "FPV RACING", "FPV FREESTYLE", "ORLAN-10", "LANCET", "SHAHED-136", "BAYRAKTAR TB2",
         "MILITARY UAV", "EW STATION", "FIBER OPTIC"
     };
 }
@@ -332,6 +371,179 @@ bool DroneFrequencyManagerView::on_key(const KeyEvent key) {
 
 bool DroneFrequencyManagerView::on_touch(const TouchEvent event) {
     return View::on_touch(event);
+}
+
+// DRONE FREQUENCY EDIT VIEW IMPLEMENTATION (Modal editing dialog)
+DroneFrequencyEditView::DroneFrequencyEditView(
+    NavigationView& nav, size_t edit_index)
+    : nav_(nav), edit_index_(edit_index), error_(ERROR_NONE)
+{
+    add_children({&labels_,
+                 &frequency_field_,
+                 &drone_type_field_,
+                 &threat_level_field_,
+                 &rssi_field_,
+                 &text_name_,
+                 &bandwidth_field_,
+                 &offset_field_,
+                 &enabled_checkbox_,
+                 &button_save_,
+                 &button_cancel_,
+                 &text_validation_});
+
+    // Initialize form fields
+    initialize_fields();
+
+    // Populate dropdown options
+    populate_options();
+
+    // Load data if editing existing entry
+    if (edit_index_ < (size_t)-1 && global_frequency_db) {
+        auto* entry = global_frequency_db->get_entry(edit_index_);
+        if (entry) {
+            set_form_data(*entry);
+        }
+    }
+
+    // Set up button callbacks
+    button_save_.on_select = [this](Button&) {
+        if (validate_form() && save_frequency()) {
+            if (on_frequency_saved) on_frequency_saved();
+            nav_.pop();
+        }
+    };
+
+    button_cancel_.on_select = [this](Button&) {
+        nav_.pop();
+    };
+
+    update_validation_text(true);
+}
+
+void DroneFrequencyEditView::initialize_fields() {
+    frequency_field_.set_decimals(3);
+    rssi_field_.set_range(-120, -10);
+
+    enabled_checkbox_.set_text("Enabled");
+    enabled_checkbox_.set_value(true);
+
+    // Set default values for new entries
+    frequency_field_.set_value(433000000);  // 433 MHz ISM
+    rssi_field_.set_value(-80);
+    bandwidth_field_.set_value(5000000);    // 5 MHz
+    offset_field_.set_value(3000000);       // +3 MHz offset
+
+    update_validation_text(true);
+}
+
+void DroneFrequencyEditView::populate_options() {
+    // Populate drone types
+    auto drone_types = get_drone_type_options();
+    for (size_t i = 0; i < drone_types.size(); ++i) {
+        drone_type_field_.add_option(i, drone_types[i]);
+    }
+
+    // Populate threat levels
+    auto threat_levels = get_threat_level_options();
+    for (size_t i = 0; i < threat_levels.size(); ++i) {
+        threat_level_field_.add_option(i, threat_levels[i]);
+    }
+}
+
+void DroneFrequencyEditView::focus() {
+    button_cancel_.focus();
+}
+
+void DroneFrequencyEditView::paint(Painter& painter) {
+    View::paint(painter);
+}
+
+bool DroneFrequencyEditView::on_key(const KeyEvent key) {
+    switch (key) {
+        case KeyEvent::Back:
+            nav_.pop();
+            return true;
+        default:
+            return View::on_key(key);
+    }
+}
+
+bool DroneFrequencyEditView::validate_form() {
+    uint64_t freq = frequency_field_.get_value();
+    if (freq < 50000000 || freq > 6000000000) {
+        update_validation_text(false);
+        return false;
+    }
+
+    std::string name = text_name_.get_value();
+    if (name.empty() || name.length() > 24) {
+        update_validation_text(false);
+        return false;
+    }
+
+    update_validation_text(true);
+    return true;
+}
+
+bool DroneFrequencyEditView::save_frequency() {
+    if (!global_frequency_db) return false;
+
+    auto form_data = get_form_data();
+
+    // Check database limits
+    if (edit_index_ == (size_t)-1 &&
+        global_frequency_db->size() >= global_frequency_db->max_size()) {
+        return false;
+    }
+
+    DroneFrequencyEntry entry{
+        form_data.frequency_hz,
+        form_data.drone_type,
+        form_data.threat_level,
+        form_data.rssi_threshold_db,
+        form_data.name.c_str(),
+        form_data.bandwidth_hz
+    };
+
+    if (edit_index_ == (size_t)-1) {
+        // Add new entry
+        return global_frequency_db->add_entry(entry);
+    } else {
+        // Update existing entry
+        return global_frequency_db->update_entry(edit_index_, entry);
+    }
+}
+
+FrequencyEntryForm DroneFrequencyEditView::get_form_data() const {
+    return FrequencyEntryForm{
+        static_cast<uint32_t>(frequency_field_.get_value()),
+        static_cast<DroneType>(drone_type_field_.get_selected_index()),
+        static_cast<ThreatLevel>(threat_level_field_.get_selected_index()),
+        static_cast<int32_t>(rssi_field_.get_value()),
+        text_name_.get_value(),
+        static_cast<uint32_t>(bandwidth_field_.get_value()),
+        enabled_checkbox_.value()
+    };
+}
+
+void DroneFrequencyEditView::set_form_data(const FrequencyEntryForm& data) {
+    frequency_field_.set_value(data.frequency_hz);
+    drone_type_field_.set_selected_index(static_cast<size_t>(data.drone_type));
+    threat_level_field_.set_selected_index(static_cast<size_t>(data.threat_level));
+    rssi_field_.set_value(data.rssi_threshold_db);
+    text_name_.set(data.name);
+    bandwidth_field_.set_value(data.bandwidth_hz);
+    enabled_checkbox_.set_value(data.enabled);
+}
+
+void DroneFrequencyEditView::update_validation_text(bool valid) {
+    if (valid) {
+        text_validation_.set("Form is valid");
+        text_validation_.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_validation_.set("Please check required fields");
+        text_validation_.set_style(Theme::getInstance()->fg_red);
+    }
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer
