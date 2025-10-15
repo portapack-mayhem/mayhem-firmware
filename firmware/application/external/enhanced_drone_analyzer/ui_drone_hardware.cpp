@@ -7,8 +7,10 @@
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
-DroneHardwareController::DroneHardwareController()
-    : message_handler_spectrum_config_{
+DroneHardwareController::DroneHardwareController(SpectrumMode mode)
+    : spectrum_mode_(mode),
+      radio_state_(ReceiverModel::Mode::SpectrumAnalysis), // RAII initialization, not moved
+      message_handler_spectrum_config_{
           Message::ID::ChannelSpectrumConfig,
           [this](Message* const p) {
               const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
@@ -40,22 +42,39 @@ void DroneHardwareController::initialize_hardware() {
     initialize_spectrum_collector();
 }
 
-void DroneHardwareController::initialize_radio_state() {
-    // CRITICAL BUGFIX: Move RxRadioState init HERE to avoid constructor timing issues
-    radio_state_ = RxRadioState{ReceiverModel::Mode::SpectrumAnalysis};
+void DroneHardwareController::set_spectrum_mode(SpectrumMode mode) {
+    spectrum_mode_ = mode;
+    // Apply new configuration
+    initialize_radio_state();
+}
 
-    // SETUP RECEIVER LIKE SpectrumAnalysisModel
+int32_t DroneHardwareController::get_configured_sampling_rate() const {
+    return SPECTRUM_SAMPLING_RATES[static_cast<size_t>(spectrum_mode_)];
+}
+
+int32_t DroneHardwareController::get_configured_bandwidth() const {
+    return SPECTRUM_BANDWIDTHS[static_cast<size_t>(spectrum_mode_)];
+}
+
+void DroneHardwareController::initialize_radio_state() {
+    // FIX: Remove double RxRadioState initialization - RAII in constructor handles it
+    // radio_state_ is already initialized with ReceiverModel::Mode::SpectrumAnalysis
+
+    // SETUP RECEIVER LIKE SpectrumAnalysisModel, but configurable
     receiver_model.set_baseband_configuration({
-        .mode = 4,                    // Spectrum mode = 4
-        .sampling_rate = 20000000,     // 20 МГц как в Looking Glass
+        .mode = 4,                              // Spectrum mode = 4
+        .sampling_rate = get_configured_sampling_rate(),
         .decimation_factor = 1,
     });
-    receiver_model.set_baseband_bandwidth(12000000);  // 12 МГц bandwidth
+    receiver_model.set_baseband_bandwidth(get_configured_bandwidth());
 
-    // CONFIGURE SQUELCH FOR SPECTRUM ANALYSIS
-    receiver_model.set_squelch_level(0);  // No squelch for spectrum
+    // CONFIGURE SQUELCH FOR SPECTRUM ANALYSIS (Following all spectrum apps)
+    receiver_model.set_squelch_level(0);  // No squelch for spectrum analysis
 
-    // VALIDATION - set target frequency to safe ISM band center
+    // FIX: Enable receiver FIRST, then tune (Looking Glass pattern)
+    receiver_model.enable();
+
+    // Now safe to tune frequency
     radio::set_tuning_frequency(433000000);  // 433 MHz ISM band center
 }
 
@@ -75,15 +94,13 @@ void DroneHardwareController::cleanup_spectrum_collector() {
 }
 
 void DroneHardwareController::on_hardware_show() {
-    // FOLLOWING LOOKING GLASS PATTERN: Hardware setup in on_show()
-    // 1. Enable receiver first
-    receiver_model.enable();
-    // radio_state_ reset not needed here as it's managed by the class
+    // FIX: Follow Looking Glass/SpectrumAnalysis EXACT pattern
+    // Receiver is already enabled in initialize_radio_state()
 
-    // 2. Set spectrum parameters BEFORE starting streaming
-    baseband::set_spectrum(receiver_model.baseband_bandwidth(), 0);  // 0 trigger level
+    // 1. Configure spectrum parameters BEFORE starting streaming (Looking Glass)
+    baseband::set_spectrum(get_configured_bandwidth(), 0);  // 0 trigger for spectrum analysis
 
-    // 3. Start spectrum streaming (ALWAYS do this in on_show())
+    // 2. Start spectrum streaming (ALWAYS do this in on_show())
     start_spectrum_streaming();
 }
 

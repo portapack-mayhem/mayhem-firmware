@@ -16,9 +16,22 @@
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
+// Configurable spectrum settings matching other spectrum apps
+enum class SpectrumMode {
+    ULTRA_NARROW = 0,    // 4MHz bandwidth
+    NARROW = 1,          // 8MHz bandwidth
+    MEDIUM = 2,          // 12MHz bandwidth (default for drone analysis)
+    WIDE = 3,            // 20MHz bandwidth
+    ULTRA_WIDE = 4       // 24MHz bandwidth (Looking Glass max)
+};
+
+// Bandwidth/sampling rate mapping following DetectorRx/Level patterns
+static constexpr int32_t SPECTRUM_BANDWIDTHS[] = {4000000, 8000000, 12000000, 20000000, 24000000};
+static constexpr int32_t SPECTRUM_SAMPLING_RATES[] = {4000000, 8000000, 12000000, 20000000, 24000000};
+
 class DroneHardwareController {
 public:
-    DroneHardwareController();
+    DroneHardwareController(SpectrumMode mode = SpectrumMode::MEDIUM);
     ~DroneHardwareController();
 
     // Hardware lifecycle management (Following Looking Glass pattern)
@@ -26,6 +39,10 @@ public:
     void on_hardware_show();           // Called in View::on_show()
     void on_hardware_hide();           // Called in View::on_hide()
     void shutdown_hardware();
+
+    // Spectrum configuration management
+    void set_spectrum_mode(SpectrumMode mode);
+    SpectrumMode get_spectrum_mode() const { return spectrum_mode_; }
 
     // Frequency tuning hardware control
     bool tune_to_frequency(rf::Frequency frequency_hz);
@@ -51,6 +68,13 @@ public:
     RxRadioState& get_radio_state() { return radio_state_; }
 
 private:
+    // Spectrum configuration
+    SpectrumMode spectrum_mode_;                    // Current spectrum settings
+
+    // Helper methods for spectrum configuration
+    int32_t get_configured_sampling_rate() const;
+    int32_t get_configured_bandwidth() const;
+
     // Hardware components
     RxRadioState radio_state_;                     // Radio state management
     ChannelSpectrumFIFO* fifo_ = nullptr;         // Spectrum data FIFO
