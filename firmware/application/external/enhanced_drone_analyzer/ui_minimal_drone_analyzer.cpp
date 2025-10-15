@@ -53,9 +53,20 @@
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
     : nav_(nav)  // Required base class initialization
 {
+    // ==================== HARDWARE INITIALIZATION ====================
+    // Initialize radio state like SpectrumAnalysisModel pattern
+    initialize_radio_state();
+
+    // NOT IMPLEMENTED YET: Spectrum collector initialization would go here
+    // initialize_spectrum_collector();
+
     // ==================== DATABASE/SCANNER SETUP ====================
     // Initialize core components (no hardware yet)
     initialize_database_and_scanner();
+
+    // ==================== UI CALLBACKS SETUP ====================
+    // Following Recon/Level pattern for on_frequency_saved callback
+    // When manager saves data, notify main scanner to reload database
 
     // ==================== UI STATE INITIALIZATION ====================
     // Default UI states
@@ -109,6 +120,86 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
 
 // REMOVED: Old MinimalDroneSpectrumAnalyzerView constructor
 // All functionality moved to EnhancedDroneSpectrumAnalyzerView
+
+/* =============================================================================
+   HW INIT METHODS - PREDATESTING STEP 2: Radio state initialization
+   ============================================================================= */
+
+// Following SpectrumAnalysis.cpp pattern - initialize radio state FIRST
+void EnhancedDroneSpectrumAnalyzerView::initialize_radio_state() {
+    // CRITICAL BUGFIX: Move RxRadioState init HERE to avoid constructor timing issues
+    radio_state_ = RxRadioState{ReceiverModel::Mode::SpectrumAnalysis};
+
+    // SETUP RECEIVER LIKE SpectrumAnalysisModel
+    receiver_model.set_baseband_configuration({
+        .mode = 4,                    // Spectrum mode = 4
+        .sampling_rate = 20000000,     // 20 МГц как в Looking Glass
+        .decimation_factor = 1,
+    });
+    receiver_model.set_baseband_bandwidth(12000000);  // 12 МГц bandwidth
+
+    // CONFIGURE SQUELCH FOR SPECTRUM ANALYSIS
+    receiver_model.set_squelch_level(0);  // No squelch for spectrum
+
+    // VALIDATION - set target frequency to safe ISM band center
+    radio::set_tuning_frequency(433000000);  // 433 MHz ISM band center
+
+    // STATUS INDICATION
+    spectrum_streaming_active_ = false;  // Will be activated in on_show()
+}
+
+/* =============================================================================
+   HARDWARE LIFECYCLE METHODS (Following Looking Glass Pattern)
+   ============================================================================= */
+
+void EnhancedDroneSpectrumAnalyzerView::on_show() {
+    View::on_show();
+
+    // FOLLOWING LOOKING GLASS PATTERN: Hardware setup in on_show()
+    // 1. Enable receiver first
+    if (!scanning_active_) {
+        receiver_model.enable();
+        radio_state_ = RxRadioState{};  // Reset radio state on show
+    }
+
+    // 2. Set spectrum parameters BEFORE starting streaming
+    baseband::set_spectrum(receiver_model.baseband_bandwidth(), 0);  // 0 trigger level
+
+    // 3. Start spectrum streaming (ALWAYS do this in on_show())
+    baseband::spectrum_streaming_start();
+    spectrum_streaming_active_ = true;
+
+    // 4. Setup display like other spectrum apps
+    display.scroll_set_area(109, screen_height - 1);
+
+    // 5. UI status update
+    if (!is_demo_mode()) {
+        text_scanning_info_.set("Hardware: ACTIVE");
+    }
+}
+
+void EnhancedDroneSpectrumAnalyzerView::on_hide() {
+    // FOLLOWING LOOKING GLASS PATTERN: Cleanup in on_hide()
+    // 1. Stop spectrum streaming FIRST
+    if (spectrum_streaming_active_) {
+        baseband::spectrum_streaming_stop();
+        spectrum_streaming_active_ = false;
+    }
+
+    // 2. Stop scanning thread if running
+    if (scanning_active_ && scanning_thread_) {
+        scanning_active_ = false;
+        chThdWait(scanning_thread_);
+        scanning_thread_ = nullptr;
+    }
+
+    // 3. Disable receiver (but keep RxRadioState for next on_show)
+    if (!scanning_active_) {
+        receiver_model.disable();
+    }
+
+    View::on_hide();
+}
 
 /* =============================================================================
    UTILITY METHODS - Helper functions for UI and threat assessment

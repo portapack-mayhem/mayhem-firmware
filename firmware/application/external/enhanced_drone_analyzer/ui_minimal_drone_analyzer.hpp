@@ -48,6 +48,10 @@ public:
         // Note: No spectrum/receiver cleanup here - hardware init done in on_show()/on_hide()
     }
 
+    // HARDWARE LIFECYCLE METHODS - Following Looking Glass pattern
+    void on_show() override;  // Enable receiver, start spectrum streaming
+    void on_hide() override;  // Stop spectrum streaming, disable receiver
+
     void focus() override;
     std::string title() const override { return "Enhanced Drone Analyzer"; }
     void paint(Painter& painter) override;
@@ -206,6 +210,43 @@ private:
 
     // IMPLEMENTED: Create empty database functionality (for creating new frequency files)
     void on_create_new_database();
+
+    // HARDWARE INITIALIZATION METHODS
+    void initialize_radio_state();  // Radio hardware setup (SpectrumAnalysis pattern)
+
+    // SPECTRUM HANDLERS - Following Looking Glass pattern
+    void on_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
+    void on_channel_spectrum(const ChannelSpectrum& spectrum);
+
+    // ADDITIONAL SPECTRUM PROCESSING
+    void on_channel_spectrum_data_processed(const ChannelSpectrum& spectrum);
+    int32_t get_real_rssi_from_baseband_spectrum(rf::Frequency target_frequency);
+
+    // SPECTRUM COLLECTOR MANAGEMENT (Looking Glass pattern)
+    void initialize_spectrum_collector();
+    void cleanup_spectrum_collector();
+
+    // FREQUENCY VALIDATION
+    bool validate_detection_simple(int32_t rssi_db, ThreatLevel threat);
+
+    // DATABASE UI UPDATE METHODS
+    void update_database_display();
+    void update_trends_compact_display();
+
+    // SCAN CONTROL METHODS
+    void on_load_frequency_file();   // Load SD card database
+    void on_save_frequency();        // Save detected frequency
+    void on_audio_toggle();          // Toggle audio alerts
+    void on_advanced_settings();     // Show advanced settings
+    void on_start_scan();            // Start scanning loop
+    void on_stop_scan();             // Stop scanning loop
+    void on_toggle_mode();           // Switch real/demo modes
+
+    // SCAN INTEGRATION
+    void scan_init_from_loaded_frequencies();
+
+    // PROTECTION CONSTANTS
+    static constexpr size_t MAX_TRACKED_DRONES = 8;  // Portapack constraint
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer
