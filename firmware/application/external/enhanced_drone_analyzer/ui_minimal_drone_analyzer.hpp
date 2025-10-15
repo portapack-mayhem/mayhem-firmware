@@ -25,8 +25,6 @@
 #include "ui_drone_types.hpp"
 #include "ui_drone_audio.hpp"
 #include "ui_drone_audio_settings.hpp"
-#include "ui_drone_tracking.hpp"
-#include "ui_drone_spectrum_scanner.hpp"
 #include "ui_drone_frequency_manager.hpp"
 #include <vector>
 
@@ -91,9 +89,8 @@ private:
     Button button_start_{ {0, 0}, "START/STOP" };  // Toggle scan on/off (primary action)
     Button button_menu_{ {120, 0}, "settings" };  // Menu for secondary functions
 
-    // FIXED: Database and scanner pointers for proper integration
-    DroneFrequencyDatabase* database_ = nullptr;
-    DroneSpectrumScanner* scanner_ = nullptr;
+    // FIXED: Direct FreqmanDB usage (like Recon) - no separate wrapper needed
+    // DroneFrequencyDatabase* database_ = nullptr; // REMOVED - using freq_db_ member directly
 
     // BIG DISPLAY & STATUS (Like Scanner - large frequency + color coding)
     BigFrequencyDisplay big_display_{ {0, 24, 240, 32} };
