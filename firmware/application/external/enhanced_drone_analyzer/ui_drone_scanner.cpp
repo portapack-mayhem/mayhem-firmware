@@ -152,61 +152,132 @@ void DroneScanner::switch_to_demo_mode() {
     is_real_mode_ = false;
 }
 
+void DroneScanner::set_scanning_mode(ScanningMode mode) {
+    scanning_mode_ = mode;
+
+    // Reset scanning state when changing modes
+    stop_scanning();
+    reset_scan_cycles();
+
+    // Reinitialize based on new mode
+    if (scanning_mode_ == ScanningMode::WIDEBAND_CONTINUOUS) {
+        // Wideband mode doesn't need frequency database
+        // Will rely solely on spectrum monitoring
+    } else if (scanning_mode_ == ScanningMode::DATABASE || scanning_mode_ == ScanningMode::HYBRID) {
+        // Database modes need frequency database loaded
+        load_frequency_database();
+    }
+}
+
+std::string DroneScanner::scanning_mode_name() const {
+    switch (scanning_mode_) {
+        case ScanningMode::DATABASE:
+            return "Database Scan";
+        case ScanningMode::WIDEBAND_CONTINUOUS:
+            return "Wideband Monitor";
+        case ScanningMode::HYBRID:
+            return "Hybrid Discovery";
+        default:
+            return "Unknown";
+    }
+}
+
 void DroneScanner::perform_scan_cycle(DroneHardwareController& hardware) {
     // Early exit conditions
     if (!scanning_active_) return;
 
-    // **PHASE 4: RECON PATTERN - SCAN THROUGH FREQUENCY DATABASE**
+    // **PHASE 5: MULTI-MODE SCANNING IMPLEMENTATION**
+    // Different scanning logic based on selected mode
+
+    switch (scanning_mode_) {
+        case ScanningMode::DATABASE:
+            perform_database_scan_cycle(hardware);  // Original EDA approach
+            break;
+        case ScanningMode::WIDEBAND_CONTINUOUS:
+            perform_wideband_scan_cycle(hardware);  // Search-style approach
+            break;
+        case ScanningMode::HYBRID:
+            perform_hybrid_scan_cycle(hardware);    // Recon-style hybrid
+            break;
+    }
+
+    // UPDATE SCAN STATISTICS
+    scan_cycles_++;
+}
+
+void DroneScanner::perform_database_scan_cycle(DroneHardwareController& hardware) {
+    // DATABASE MODE: Scan through frequency database (EDA original approach)
     // Following Recon's frequency_file_load() and on_statistics_update() patterns
-    // Load and iterate through freqman_db entries like Recon does with frequency_list
-    if (freq_db_.is_open() && freq_db_.entry_count() > 0) {
-        const size_t total_entries = freq_db_.entry_count();
 
-        // Validate current index is within database bounds
-        if (current_db_index_ >= total_entries) {
-            current_db_index_ = 0;  // Wrap around (Recon pattern)
-        }
-
-        const auto& entry_opt = freq_db_.get_entry(current_db_index_);
-
-        // Validate entry exists and contains valid frequency (Recon safety checks)
-        if (entry_opt && entry_opt->frequency_hz > 0) {
-            // RECON PATTERN: Tune radio to the specific database frequency
-            // This mimics Recon's handle_retune() → receiver_model.set_target_frequency()
-            rf::Frequency target_freq_hz = entry_opt->frequency_hz;
-
-            // SAFETY: Validate frequency range like Recon does
-            if (target_freq_hz >= 50000000 && target_freq_hz <= 6000000000) {
-                // RECON PATTERN: Hardware tuning
-                if (hardware.tune_to_frequency(target_freq_hz)) {
-                    // GET REAL RSSI: Now using hardware RSSI from spectrum callbacks
-                    // This replaces simulated RSSI - now connected to real spectrum data
-                    int32_t real_rssi = hardware.get_real_rssi_from_hardware(target_freq_hz);
-
-                    // PROCESS DETECTION: Using actual database entry for drone detection
-                    process_rssi_detection(*entry_opt, real_rssi);
-
-                    last_scanned_frequency_ = target_freq_hz;
-                }
-            }
-
-            // RECON PATTERN: Advance to next frequency (circular scanning)
-            current_db_index_ = (current_db_index_ + 1) % total_entries;
-        } else {
-            // Handle corrupted/invalid entry (Recon error handling pattern)
-            // Skip and advance to avoid infinite loops
-            current_db_index_ = (current_db_index_ + 1) % total_entries;
-        }
-
-        // UPDATE SCAN STATISTICS
-        scan_cycles_++;
-    } else {
+    if (!freq_db_.is_open() || freq_db_.entry_count() == 0) {
         // DATABASE NOT LOADED: Try to load default database on the fly
-        // Following Recon pattern of loading frequency files
         if (scanning_active_ && scan_cycles_ % 50 == 0) {
             handle_scan_error("No frequency database loaded - scanning paused");
             scanning_active_ = false; // Pause scanning until database loaded
         }
+        return;
+    }
+
+    const size_t total_entries = freq_db_.entry_count();
+
+    // Validate current index is within database bounds
+    if (current_db_index_ >= total_entries) {
+        current_db_index_ = 0;  // Wrap around (Recon pattern)
+    }
+
+    const auto& entry_opt = freq_db_.get_entry(current_db_index_);
+
+    // Validate entry exists and contains valid frequency (Recon safety checks)
+    if (entry_opt && entry_opt->frequency_hz > 0) {
+        // RECON PATTERN: Tune radio to the specific database frequency
+        rf::Frequency target_freq_hz = entry_opt->frequency_hz;
+
+        // SAFETY: Validate frequency range like Recon does
+        if (target_freq_hz >= 50000000 && target_freq_hz <= 6000000000) {
+            // RECON PATTERN: Hardware tuning
+            if (hardware.tune_to_frequency(target_freq_hz)) {
+                // GET REAL RSSI: Now using hardware RSSI from spectrum callbacks
+                int32_t real_rssi = hardware.get_real_rssi_from_hardware(target_freq_hz);
+
+                // PROCESS DETECTION: Using actual database entry for drone detection
+                process_rssi_detection(*entry_opt, real_rssi);
+
+                last_scanned_frequency_ = target_freq_hz;
+            }
+        }
+
+        // RECON PATTERN: Advance to next frequency (circular scanning)
+        current_db_index_ = (current_db_index_ + 1) % total_entries;
+    } else {
+        // Handle corrupted/invalid entry (Recon error handling pattern)
+        current_db_index_ = (current_db_index_ + 1) % total_entries;
+    }
+}
+
+void DroneScanner::perform_wideband_scan_cycle(DroneHardwareController& hardware) {
+    // WIDEBAND MODE: Continuous spectrum monitoring (Search-style approach)
+    // This mode relies on spectrum callbacks for continuous monitoring
+    // RSSI processed in handle_channel_spectrum() callbacks
+
+    // In wideband mode, no active tuning needed - spectrum monitoring is continuous
+    // Just ensure hardware is set up for wide frequency range
+    if (scan_cycles_ % 100 == 0) {  // Less frequent checks
+        hardware.tune_to_frequency(433000000);  // Default center frequency
+    }
+}
+
+void DroneScanner::perform_hybrid_scan_cycle(DroneHardwareController& hardware) {
+    // HYBRID MODE: Discovery + Database validation (Recon-style hybrid)
+    // Combine wideband monitoring with database validation
+
+    // First phase: Wideband discovery (every 10 cycles)
+    if (scan_cycles_ % 10 == 0) {
+        perform_wideband_scan_cycle(hardware);
+    }
+
+    // Second phase: Database validation scanning (normal database scan)
+    else {
+        perform_database_scan_cycle(hardware);
     }
 }
 

@@ -34,6 +34,18 @@ public:
     void set_scanning_parameters(uint32_t scan_cycles, uint32_t total_detections);
     void reset_scan_cycles() { scan_cycles_ = 0; }
 
+    // Multiple scanning modes - Recon pattern with extensions
+    enum class ScanningMode {
+        DATABASE,              // Scan through frequency database (EDA original)
+        WIDEBAND_CONTINUOUS,   // Continuous spectrum monitoring (Search pattern)
+        HYBRID                 // Hybrid: discovery + database validation (Recon-like)
+    };
+
+    // Scanning mode management
+    ScanningMode get_scanning_mode() const { return scanning_mode_; }
+    void set_scanning_mode(ScanningMode mode);
+    std::string scanning_mode_name() const;
+
     // Real vs Demo mode handling
     bool is_real_mode() const { return is_real_mode_; }
     void switch_to_real_mode();
@@ -82,6 +94,9 @@ private:
     uint32_t scan_cycles_ = 0;
     uint32_t total_detections_ = 0;
 
+    // Scanning mode management
+    ScanningMode scanning_mode_ = ScanningMode::DATABASE;
+
     // Mode handling
     bool is_real_mode_ = true;
 
@@ -106,6 +121,11 @@ private:
     void initialize_database_and_scanner();
     void cleanup_database_and_scanner();
     void scan_init_from_loaded_frequencies();
+
+    // Multi-mode scanning implementations
+    void perform_database_scan_cycle(DroneHardwareController& hardware);
+    void perform_wideband_scan_cycle(DroneHardwareController& hardware);
+    void perform_hybrid_scan_cycle(DroneHardwareController& hardware);
 
     // Database dependency injection
     const DroneFrequencyDatabase* database_ = nullptr;
