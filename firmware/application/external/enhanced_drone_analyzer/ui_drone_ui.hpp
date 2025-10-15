@@ -49,6 +49,14 @@ public:
 
     // UI: Detected drones list with RSSI sorting (Search pattern)
     static constexpr size_t MAX_DISPLAYED_DRONES = 3;
+
+    // Text fields for displaying detected drones (Recon text pattern)
+    Text text_drone_1{{0, MINI_SPECTRUM_Y_START + 8, screen_width/2, 16}, ""};
+    Text text_drone_2{{screen_width/2, MINI_SPECTRUM_Y_START + 8, screen_width/2, 16}, ""};
+    Text text_drone_3{{0, MINI_SPECTRUM_Y_START + 24, screen_width/2, 16}, ""};
+
+    // Display format constants
+    static constexpr const char* DRONE_DISPLAY_FORMAT = "%s %s %-4ddB %c";
     struct DisplayDroneEntry {
         rf::Frequency frequency;
         DroneType type;

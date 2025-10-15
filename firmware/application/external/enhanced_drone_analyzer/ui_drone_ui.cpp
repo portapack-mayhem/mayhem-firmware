@@ -277,8 +277,61 @@ void DroneDisplayController::update_drones_display() {
         displayed_drones_.push_back(detected_drones_[i]);
     }
 
-    // Update mini spectrum with threat zones
+    // Update mini spectrum with threat zones and render text
     highlight_threat_zones_in_spectrum(displayed_drones_);
+    render_drone_text_display();
+}
+
+// Render the top 3 drones as text overlay (Recon text pattern)
+void DroneDisplayController::render_drone_text_display() {
+    // Clear all displays first
+    text_drone_1.set("");
+    text_drone_2.set("");
+    text_drone_3.set("");
+
+    for (size_t i = 0; i < std::min(displayed_drones_.size(), size_t(3)); ++i) {
+        const auto& drone = displayed_drones_[i];
+
+        // Format: "TYPE FREQ RSSI TREND"
+        char buffer[32];
+        char trend_symbol = '■'; // Default static, would need trend analysis
+
+        // Create frequency abbreviation (Radio app pattern)
+        std::string freq_str;
+        if (drone.frequency >= 1000000000) {  // GHz
+            freq_str = to_string_dec_uint(drone.frequency / 1000000000, 1) + "G";
+        } else if (drone.frequency >= 1000000) { // MHz
+            freq_str = to_string_dec_uint(drone.frequency / 1000000, 1) + "M";
+        } else { // kHz
+            freq_str = to_string_dec_uint(drone.frequency / 1000, 1) + "k";
+        }
+
+        // Format display string
+        snprintf(buffer, sizeof(buffer), DRONE_DISPLAY_FORMAT,
+                drone.type_name.c_str(),
+                freq_str.c_str(),
+                drone.rssi,
+                trend_symbol);
+
+        // Apply threat level color
+        Color threat_color = get_threat_level_color(drone.threat);
+
+        // Update appropriate text field
+        switch(i) {
+            case 0:
+                text_drone_1.set(buffer);
+                text_drone_1.set_style(threat_color);
+                break;
+            case 1:
+                text_drone_2.set(buffer);
+                text_drone_2.set_style(threat_color);
+                break;
+            case 2:
+                text_drone_3.set(buffer);
+                text_drone_3.set_style(threat_color);
+                break;
+        }
+    }
 }
 
 // Mini waterfall spectrum implementation (Search/Looking Glass pattern)
