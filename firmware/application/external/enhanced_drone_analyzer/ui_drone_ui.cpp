@@ -523,11 +523,13 @@ void DroneUIController::on_save_frequency() {
 }
 
 void DroneUIController::on_audio_toggle() {
-    // Toggle audio state
-    audio_.toggle_audio();
+    // REAL AUDIO SETTINGS UI - create settings object and open full UI
+    static DroneAudioSettings audio_settings = {
+        .audio_enabled = audio_.is_audio_enabled(),
+        .test_threat_level = ThreatLevel::HIGH
+    };
 
-    std::string status = audio_.is_audio_enabled() ? "Audio: ENABLED" : "Audio: DISABLED";
-    nav_.display_modal("Audio Settings", status.c_str());
+    nav_.push<DroneAudioSettingsView>(audio_settings, audio_);
 }
 
 void DroneUIController::on_advanced_settings() {
