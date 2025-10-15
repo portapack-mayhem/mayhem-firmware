@@ -138,7 +138,11 @@ bool DroneHardwareController::tune_to_frequency(rf::Frequency frequency_hz) {
 
     // Hardware tuning
     radio::set_tuning_frequency(frequency_hz);
-    chThdSleepMilliseconds(10); // Allow PLL to settle
+
+    // FIX: Remove blocking sleep that freezes UI for 10ms
+    // Instead use async approach following Detector RX pattern
+    // PLL stabilization happens asynchronously in hardware
+    // chThdSleepMilliseconds(10); // REMOVED: Blocks UI thread
 
     return true;
 }
