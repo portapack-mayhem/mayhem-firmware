@@ -353,8 +353,8 @@ void DroneDisplayController::initialize_mini_spectrum() {
 void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& spectrum) {
     // Similar to Search app's spectrum processing but mini version
     // Convert ChannelSpectrum to mini waterfall line
-
-    baseband::spectrum_streaming_stop();
+    // FIX: Remove spectrum_streaming_stop/start - follow Looking Glass pattern
+    // Looking Glass: Keep streaming continuous, manage in on_show/on_hide only
 
     // Clear current power levels (Looking Glass bin reset pattern)
     std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
@@ -390,7 +390,8 @@ void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& s
 
     spectrum_line_index_ = (spectrum_line_index_ + 1) % MINI_SPECTRUM_HEIGHT;
 
-    baseband::spectrum_streaming_start();
+    // FIX: Remove spectrum_streaming_start() - following Looking Glass pattern
+    // Spectrum streaming is managed in main view's on_show/on_hide methods
 }
 
 // Render mini spectrum display (Search app pixel drawing)
