@@ -23,10 +23,12 @@
 
     // MODULAR COMPONENTS - unified types
 #include "ui_drone_types.hpp"
-#include "ui_drone_audio.hpp"
 #include "ui_drone_audio_settings.hpp"
 #include "ui_drone_frequency_manager.hpp"
 #include <vector>
+
+// AUDIO INLINE METHODS - directly in main class following Search pattern
+// Removed separate audio classes to simplify architecture like other Mayhem apps
 
 // CLEAN TEXT-BASED UI - NO GRAPHICS, MINIMALIST V0 STYLE
 namespace ui::external_app::enhanced_drone_analyzer {
@@ -157,8 +159,18 @@ private:
     // Handling errors and validation
     void handle_scan_error(const char* error_msg);
 
-    // Tracking detected drones
+    // Tracking detected drones - inline implementation (moved from ui_drone_tracking.*)
     void update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level);
+
+    // INLINE AUDIO METHODS - moved from ui_drone_audio.* following Search pattern
+    bool audio_enabled_ = true;      // Audio state like in Search class
+    uint32_t last_beep_time_ = 0;    // Last beep tracking
+
+    void play_detection_beep(ThreatLevel level);
+    void play_sos_signal();
+    void stop_audio();
+    uint16_t get_beep_frequency(ThreatLevel level) const;
+    void request_audio_beep(uint16_t frequency, uint32_t duration_ms);
 
     // Detection logger for recording drone detections
     DetectionLogger detection_logger_;

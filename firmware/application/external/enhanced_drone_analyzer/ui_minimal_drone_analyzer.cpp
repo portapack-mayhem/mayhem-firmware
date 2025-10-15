@@ -365,8 +365,87 @@ void EnhancedDroneSpectrumAnalyzerView::perform_scan_cycle() {
         update_detection_display();
     }
 
-// AUDIO ALERTS DELEGATED TO DRONE AUDIO MODULE
-// Original implementations moved to ui_drone_audio.cpp
+// INLINE AUDIO METHODS IMPLEMENTATION - moved from ui_drone_audio.* following Search pattern
+void EnhancedDroneSpectrumAnalyzerView::play_detection_beep(ThreatLevel level) {
+    if (!audio_enabled_) return;
+
+    uint16_t frequency = get_beep_frequency(level);
+
+    // Setup audio like in Looking Glass and Recon
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+    chThdSleepMilliseconds(10);
+
+    // Request audio beep through baseband API (direct call pattern)
+    baseband::request_audio_beep(frequency, 24000, 200);
+
+    last_beep_time_ = chTimeNow();
+
+    // Cleanup like other Mayhem apps
+    chThdSleepMilliseconds(250);
+    audio::output::stop();
+}
+
+void EnhancedDroneSpectrumAnalyzerView::play_sos_signal() {
+    if (!audio_enabled_) return;
+
+    // Setup audio
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+    chThdSleepMilliseconds(10);
+
+    const uint16_t SOS_FREQ = 1500;
+    // SOS pattern: ...---...
+    for (int i = 0; i < 3; ++i) {
+        baseband::request_audio_beep(SOS_FREQ, 24000, 200);
+        chThdSleepMilliseconds(150);
+    }
+    chThdSleepMilliseconds(300);
+
+    for (int i = 0; i < 3; ++i) {
+        baseband::request_audio_beep(SOS_FREQ, 24000, 600);
+        chThdSleepMilliseconds(150);
+    }
+    chThdSleepMilliseconds(300);
+
+    for (int i = 0; i < 3; ++i) {
+        baseband::request_audio_beep(SOS_FREQ, 24000, 200);
+        chThdSleepMilliseconds(150);
+    }
+
+    last_beep_time_ = chTimeNow();
+
+    chThdSleepMilliseconds(250);
+    audio::output::stop();
+}
+
+void EnhancedDroneSpectrumAnalyzerView::stop_audio() {
+    audio::output::stop();
+}
+
+uint16_t EnhancedDroneSpectrumAnalyzerView::get_beep_frequency(ThreatLevel level) const {
+    // V0 style frequencies like in main implementation
+    switch (level) {
+        case ThreatLevel::LOW: return 1000;
+        case ThreatLevel::MEDIUM: return 1200;
+        case ThreatLevel::HIGH: return 1600;
+        case ThreatLevel::CRITICAL: return 2000;
+        case ThreatLevel::NONE:
+        default: return 800; // Very low tone for none
+    }
+}
+
+void EnhancedDroneSpectrumAnalyzerView::request_audio_beep(uint16_t frequency, uint32_t duration_ms) {
+    // Static method for external access
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+    chThdSleepMilliseconds(10);
+
+    baseband::request_audio_beep(frequency, 24000, duration_ms);
+
+    chThdSleepMilliseconds(duration_ms + 50);
+    audio::output::stop();
+}
 
 /**
  * Analyzes received signal strength for a scanned frequency database entry.
