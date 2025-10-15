@@ -28,6 +28,34 @@ Color DroneDisplayController::get_threat_level_color(ThreatLevel level) const {
     }
 }
 
+Color DroneDisplayController::get_drone_type_color(DroneType type) const {
+    switch (type) {
+        case DroneType::MAVIC: return Color(0, 0, 255);    // DJI Mavic series - blue
+        case DroneType::PHANTOM: return Color(255, 255, 0); // DJI Phantom - yellow
+        case DroneType::DJI_MINI: return Color(0, 128, 255); // DJI Mini series - light blue
+        case DroneType::PARROT_ANAFI: return Color(255, 0, 255); // Parrot Anafi - magenta
+        case DroneType::PARROT_BEBOP: return Color(255, 165, 0); // Parrot Bebop - orange
+        case DroneType::PX4_DRONE: return Color(128, 0, 128); // PX4-based - purple
+        case DroneType::MILITARY_DRONE: return Color(255, 0, 0); // Military - red
+        case DroneType::UNKNOWN:
+        default: return Color(64, 64, 64); // Gray for unknown
+    }
+}
+
+std::string DroneDisplayController::get_drone_type_name(DroneType type) const {
+    switch (type) {
+        case DroneType::MAVIC: return "Mavic";
+        case DroneType::PHANTOM: return "Phantom";
+        case DroneType::DJI_MINI: return "DJI Mini";
+        case DroneType::PARROT_ANAFI: return "Anafi";
+        case DroneType::PARROT_BEBOP: return "Bebop";
+        case DroneType::PX4_DRONE: return "PX4";
+        case DroneType::MILITARY_DRONE: return "Military";
+        case DroneType::UNKNOWN:
+        default: return "Unknown";
+    }
+}
+
 const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) const {
     switch (level) {
         case ThreatLevel::CRITICAL: return "CRITICAL";
@@ -162,6 +190,80 @@ void DroneDisplayController::set_frequency_display(rf::Frequency freq) {
         big_display_.set(freq_buffer);
     } else {
         big_display_.set("READY");
+    }
+}
+
+// UI: Detected drones list implementation (Search pattern)
+// Add or update detected drone entry with RSSI sorting
+void DroneDisplayController::add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi) {
+    systime_t now = chTimeNow();
+
+    // Check if this frequency already exists (Search pattern: maintain recent entries)
+    auto it = std::find_if(detected_drones_.begin(), detected_drones_.end(),
+                          [freq](const DisplayDroneEntry& entry) {
+                              return entry.frequency == freq;
+                          });
+
+    if (it != detected_drones_.end()) {
+        // Update existing entry
+        it->rssi = rssi;
+        it->threat = threat;
+        it->type = type;
+        it->last_seen = now;
+        it->type_name = get_drone_type_name(type);
+        it->display_color = get_drone_type_color(type);
+    } else {
+        // Add new entry (portapack limitation: fixed array size)
+        if (detected_drones_.size() < 8) { // Maximum tracked drones
+            DisplayDroneEntry entry;
+            entry.frequency = freq;
+            entry.rssi = rssi;
+            entry.threat = threat;
+            entry.type = type;
+            entry.last_seen = now;
+            entry.type_name = get_drone_type_name(type);
+            entry.display_color = get_drone_type_color(type);
+            detected_drones_.push_back(entry);
+        }
+    }
+
+    // Update display with sorted list
+    update_drones_display();
+}
+
+// Sort drones by RSSI (Level pattern: strongest signals first)
+void DroneDisplayController::sort_drones_by_rssi() {
+    std::sort(detected_drones_.begin(), detected_drones_.end(),
+              [](const DisplayDroneEntry& a, const DisplayDroneEntry& b) {
+                  // Sort by RSSI descending (stronger signals first)
+                  // If RSSI equal, sort by threat level, then by recency
+                  if (a.rssi != b.rssi) return a.rssi > b.rssi;
+                  if (a.threat != b.threat) return static_cast<int>(a.threat) > static_cast<int>(b.threat);
+                  return a.last_seen > b.last_seen;
+              });
+}
+
+// Update UI with top 3 drones by RSSI (Search pattern: display recent entries)
+void DroneDisplayController::update_drones_display() {
+    // Remove stale entries (older than 30 seconds)
+    const systime_t STALE_TIMEOUT = 30000; // 30 seconds in ChibiOS ticks
+    systime_t now = chTimeNow();
+
+    detected_drones_.erase(
+        std::remove_if(detected_drones_.begin(), detected_drones_.end(),
+                      [now, STALE_TIMEOUT](const DisplayDroneEntry& entry) {
+                          return (now - entry.last_seen) > STALE_TIMEOUT;
+                      }),
+        detected_drones_.end());
+
+    // Sort remaining drones by RSSI
+    sort_drones_by_rssi();
+
+    // Take top 3 for display
+    displayed_drones_.clear();
+    size_t count = std::min(detected_drones_.size(), MAX_DISPLAYED_DRONES);
+    for (size_t i = 0; i < count; ++i) {
+        displayed_drones_.push_back(detected_drones_[i]);
     }
 }
 

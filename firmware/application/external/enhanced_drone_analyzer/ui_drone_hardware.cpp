@@ -136,17 +136,30 @@ void DroneHardwareController::handle_channel_spectrum_config(
 }
 
 void DroneHardwareController::handle_channel_spectrum(const ChannelSpectrum& spectrum) {
-    // Extract maximum RSSI value from spectrum for signal detection
+    // STEP 2: IMPROVED RSSI CALCULATION (Search/Recon pattern)
     int32_t peak_rssi = -120;
+    int32_t avg_rssi = 0;
+    size_t valid_bins = 0;
+
+    // Calculate both peak and average RSSI (Search app pattern)
     for (size_t bin_index = 0; bin_index < spectrum.db.size(); ++bin_index) {
-        if (spectrum.db[bin_index] > peak_rssi) {
-            peak_rssi = spectrum.db[bin_index];
+        int32_t bin_rssi = spectrum.db[bin_index];
+        if (bin_rssi >= -120 && bin_rssi <= -20) {  // Valid range
+            if (bin_rssi > peak_rssi) {
+                peak_rssi = bin_rssi;
+            }
+            avg_rssi += bin_rssi;
+            valid_bins++;
         }
     }
 
-    // Cache valid RSSI values for scanning thread to use
-    if (peak_rssi >= -120 && peak_rssi <= -20) {
-        last_valid_rssi_ = peak_rssi;
+    // Calculate average if we have valid bins (Level pattern)
+    if (valid_bins > 0) {
+        avg_rssi /= valid_bins;
+
+        // STEP 3: RSSI FILTERING (Recon pattern for stability)
+        // Use average RSSI with minimal filtering to prevent noise fluctuations
+        last_valid_rssi_ = avg_rssi;  // Start with simple average
     }
 
     // Delegate further processing to specialized method

@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -46,7 +47,29 @@ public:
     DroneDisplayController(const DroneDisplayController&) = delete;
     DroneDisplayController& operator=(const DroneDisplayController&) = delete;
 
+    // UI: Detected drones list with RSSI sorting (Search pattern)
+    static constexpr size_t MAX_DISPLAYED_DRONES = 3;
+    struct DisplayDroneEntry {
+        rf::Frequency frequency;
+        DroneType type;
+        ThreatLevel threat;
+        int32_t rssi;
+        systime_t last_seen;
+        std::string type_name;
+        Color display_color;
+    };
+
+    void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
+    void update_drones_display();
+    void sort_drones_by_rssi();
+    const std::vector<DisplayDroneEntry>& get_current_drones() const { return displayed_drones_; }
+
 private:
+    // UI state for drone display
+    std::vector<DisplayDroneEntry> detected_drones_;
+    std::vector<DisplayDroneEntry> displayed_drones_;  // Top 3 by RSSI
+
+    // UI: Detected drones list with RSSI sorting (Search pattern)
     NavigationView& nav_;
 
     // Core UI components (moved from main class)

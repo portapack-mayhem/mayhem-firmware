@@ -99,10 +99,16 @@ private:
     ThreatLevel max_detected_threat_ = ThreatLevel::NONE;
     int32_t last_valid_rssi_ = -120;
 
+    // STEP 4: MINIMUM DETECTION DELAY (Search pattern)
+    static const uint8_t DETECTION_DELAY = 3;  // Minimum 3 consecutive detections
+
     // Private scanning methods
     void initialize_database_and_scanner();
     void cleanup_database_and_scanner();
     void scan_init_from_loaded_frequencies();
+
+    // Database dependency injection
+    const DroneFrequencyDatabase* database_ = nullptr;
 
     // Embedded trend counting for Portapack constraints
     void update_tracking_counts();

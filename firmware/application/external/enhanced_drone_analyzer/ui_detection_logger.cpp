@@ -1,71 +1,43 @@
 // ui_detection_logger.cpp
-// Implementation of clean CSV detection logging
+// Clean CSV logging implementation for Enhanced Drone Analyzer
 
 #include "ui_detection_logger.hpp"
 #include <cstring>
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
-// Directory for log files (matches V0 concept)
-static const char* logs_dir = "SDRPP";
-
-DetectionLogger::DetectionLogger()
-    : session_active_(false), session_start_(0),
-      logged_count_(0), header_written_(false) {
+DroneDetectionLogger::DroneDetectionLogger()
+    : session_active_(false),
+      session_start_(0),
+      logged_count_(0),
+      header_written_(false) {
     // Auto-start session
     start_session();
 }
 
-DetectionLogger::~DetectionLogger() {
+DroneDetectionLogger::~DroneDetectionLogger() {
     end_session();
 }
 
-void DetectionLogger::start_session() {
+void DroneDetectionLogger::start_session() {
     if (session_active_) return;
+
     session_active_ = true;
     session_start_ = chTimeNow();
     logged_count_ = 0;
     header_written_ = false;
 }
 
-void DetectionLogger::end_session() {
+void DroneDetectionLogger::end_session() {
     if (!session_active_) return;
 
-    // Write session summary (V0 concept but simplified)
-    std::string summary = format_session_summary();
-    // END SESSION: Write summary to separate log file (following V0 session summaries)
-    auto summary_result = csv_log_.append(generate_log_filename());
-    if (summary_result.is_error()) return;
-
-    // Session summary format (V0 concept)
-    std::string summary = format_session_summary();
-    auto write_result = csv_log_.write_raw(summary);
-    if (write_result.is_error()) {
-        // Audio feedback for logging failure
-        if (global_audio_enabled) {
-            baseband::request_audio_beep(200, 24000, 100);  // Long low beep = write error
-        }
-    }
-
-    session_active_ = false;
-    session_start_ = 0;
-
-    // Session end beep (two short beeps)
-    if (global_audio_enabled) {
-        baseband::request_audio_beep(800, 24000, 50);
-        chThdSleepMilliseconds(50);
-        baseband::request_audio_beep(800, 24000, 50);
-    }
+    end_session();
 }
 
-bool DetectionLogger::log_detection(const DetectionLogEntry& entry) {
+bool DroneDetectionLogger::log_detection(const DetectionLogEntry& entry) {
     if (!session_active_) return false;
 
     if (!ensure_csv_header()) {
-        // Audio feedback for logging failure (V0 concept)
-        if (global_audio_enabled) {
-            baseband::request_audio_beep(200, 24000, 50);  // Low beep = error
-        }
         return false;
     }
 
@@ -73,10 +45,6 @@ bool DetectionLogger::log_detection(const DetectionLogEntry& entry) {
     auto error = csv_log_.append(generate_log_filename());
 
     if (error.is_error()) {
-        // Audio feedback for failure
-        if (global_audio_enabled) {
-            baseband::request_audio_beep(300, 24000, 50);  // Medium beep = write error
-        }
         return false;
     }
 
@@ -84,19 +52,14 @@ bool DetectionLogger::log_detection(const DetectionLogEntry& entry) {
     if (!error.is_error()) {
         logged_count_++;
         return true;
-    } else {
-        // Audio feedback for failure
-        if (global_audio_enabled) {
-            baseband::request_audio_beep(150, 24000, 50);  // Different tone = failure
-        }
-        return false;
     }
+
+    return false;
 }
 
-bool DetectionLogger::ensure_csv_header() {
+bool DroneDetectionLogger::ensure_csv_header() {
     if (header_written_) return true;
 
-    // Simplified header (no complex path operations)
     const char* header = "timestamp_ms,frequency_hz,rssi_db,threat_level,drone_type,detection_count,confidence\n";
 
     auto error = csv_log_.append(generate_log_filename());
@@ -111,30 +74,25 @@ bool DetectionLogger::ensure_csv_header() {
     return false;
 }
 
-std::string DetectionLogger::format_csv_entry(const DetectionLogEntry& entry) {
+std::string DroneDetectionLogger::format_csv_entry(const DetectionLogEntry& entry) {
     char buffer[128];
     memset(buffer, 0, sizeof(buffer));
 
-    // Use V0 format but simplified
+    // Simple CSV format
     snprintf(buffer, sizeof(buffer) - 1,
              "%u,%u,%d,%u,%u,%u,%.2f\n",
              entry.timestamp,
              entry.frequency_hz,
              entry.rssi_db,
-             entry.threat_level,
-             entry.drone_type,
+             static_cast<uint8_t>(entry.threat_level),
+             static_cast<uint8_t>(entry.drone_type),
              entry.detection_count,
              entry.confidence_score);
 
     return std::string(buffer);
 }
 
-std::filesystem::path DetectionLogger::generate_log_filename() const {
-    // Simplified filename generation (ERT style)
-    return std::filesystem::path("EDA_LOG.CSV");
-}
-
-std::string DetectionLogger::format_session_summary() const {
+std::string DroneDetectionLogger::format_session_summary() const {
     char buffer[256];
     uint32_t duration = session_active_ ? (chTimeNow() - session_start_) : 0;
 
@@ -144,6 +102,10 @@ std::string DetectionLogger::format_session_summary() const {
              duration, logged_count_);
 
     return std::string(buffer);
+}
+
+std::filesystem::path DroneDetectionLogger::generate_log_filename() const {
+    return std::filesystem::path("EDA_LOG.CSV");
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer

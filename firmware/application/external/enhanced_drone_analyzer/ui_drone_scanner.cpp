@@ -211,25 +211,55 @@ void DroneScanner::perform_scan_cycle(DroneHardwareController& hardware) {
 }
 
 void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rssi) {
-    // Validate signal strength before processing
+    // STEP 1: Validate signal strength before processing
     if (rssi < -120 || rssi > -10) {
         return; // Invalid RSSI reading
     }
 
+    // STEP 2: CHECK DATABASE THRESHOLD (fixed from Recon pattern)
+    // Database has RSSI threshold per frequency - check against it
+    int32_t detection_threshold = -90; // Default if no database entry
+
+    if (database_) {
+        const auto* db_entry = database_->lookup_frequency(entry.frequency_a);
+        if (db_entry) {
+            detection_threshold = db_entry->rssi_threshold_db;
+        }
+    }
+
+    // Only count as detection if RSSI exceeds threshold (Recon pattern: if (db > squelch))
+    if (rssi < detection_threshold) {
+        return; // Below detection threshold
+    }
+
     total_detections_++;  // Increment total signal detections counter
 
-    // Convert frequency from Hz to MHz for database lookup
-    rf::Frequency scanned_frequency_mhz = entry.frequency_a / 1000000;
+    // STEP 3: GET DRONE INFO FROM DATABASE (Search app pattern)
+    DroneType detected_type = DroneType::UNKNOWN;
+    ThreatLevel threat_level = ThreatLevel::LOW;
 
-    // Look up in drone database - this needs to be implemented in UI layer
-    // For now, simulate detection for known drone frequencies
+    if (database_) {
+        const auto* db_entry = database_->lookup_frequency(entry.frequency_a);
+        if (db_entry) {
+            detected_type = db_entry->drone_type;
+            threat_level = db_entry->threat_level;
+        }
+    }
 
-    // Placeholder for actual drone signature lookup
-    // This will be implemented when we refactor the main UI class
-    // For now, we don't do the database lookup here
+    // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY)
+    // Require multiple consecutive detections for stability
+    static std::array<uint8_t, 1024> detection_counts = {};  // Per-frequency counter
+    size_t freq_hash = entry.frequency_a % detection_counts.size();
 
-    // Track detected drones if needed
-    // This logic moved to UI layer
+    if (rssi >= detection_threshold) {
+        detection_counts[freq_hash] = std::min((uint8_t)(detection_counts[freq_hash] + 1), (uint8_t)255);
+        if (detection_counts[freq_hash] >= DETECTION_DELAY) {
+            // STEP 4: UPDATE DRONE TRACKING (Search/Looking Glass pattern)
+            update_tracked_drone(detected_type, entry.frequency_a, rssi, threat_level);
+        }
+    } else {
+        detection_counts[freq_hash] = 0;  // Reset on signal loss
+    }
 }
 
 void DroneScanner::update_tracked_drone(DroneType type, rf::Frequency frequency,
