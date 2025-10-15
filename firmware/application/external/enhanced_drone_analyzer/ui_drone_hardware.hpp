@@ -69,6 +69,9 @@ public:
     RxRadioState& get_radio_state() { return radio_state_; }
 
 private:
+    // ADD: Hardware guard for mutex protection following Detector RX pattern
+    HardwareGuard hardware_guard_;                // RAII mutex protection for hardware access
+
     // Spectrum configuration
     SpectrumMode spectrum_mode_;                    // Current spectrum settings
 

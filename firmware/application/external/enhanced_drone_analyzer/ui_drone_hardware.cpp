@@ -9,7 +9,8 @@ namespace ui::external_app::enhanced_drone_analyzer {
 
 DroneHardwareController::DroneHardwareController(SpectrumMode mode)
     : spectrum_mode_(mode),
-      radio_state_(ReceiverModel::Mode::SpectrumAnalysis), // RAII initialization, not moved
+      radio_state_(ReceiverModel::Mode::SpectrumAnalysis), // RAII initialization
+      hardware_guard_{}  // ADD: Hardware mutex protection following Detector RX pattern
       message_handler_spectrum_config_{
           Message::ID::ChannelSpectrumConfig,
           [this](Message* const p) {
