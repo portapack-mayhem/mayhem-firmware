@@ -15,8 +15,8 @@
 //
 // DEPENDENCIES:
 // - ui_drone_database.hpp - Drone frequency database
-// - ui_drone_audio.hpp - Audio alert system
 // - freqman_db.hpp - Frequency manager interface
+// - Audio functionality inline (moved from ui_drone_audio.*)
 // =============================================================================
 
 #include "ui_minimal_drone_analyzer.hpp"  // Main class declaration
@@ -282,8 +282,8 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(
         ThreatLevel threat_level = drone_signature->threat_level;
 
         // Generate appropriate audio alerts based on threat level
-        // PK: Audio alerts currently disabled - requires AudioAlert implementation
-        audio::beep(audio::beep_type::detection, threat_level);
+        // NOW: Audio alerts implemented inline (Search pattern)
+        play_detection_beep(threat_level);
 
         // Critical threat alert for military-grade UAVs
         bool is_critical_threat = (threat_level == ThreatLevel::CRITICAL) ||
@@ -291,8 +291,8 @@ void EnhancedDroneSpectrumAnalyzerView::process_real_rssi_data_for_freq_entry(
              drone_signature->drone_type == DroneType::SHAHED_136 ||
              drone_signature->drone_type == DroneType::BAYRAKTAR_TB2);
 
-        // PK: SOS signal disabled - requires AudioAlert implementation
-        // if (is_critical_threat) audio::sos_signal();
+        // NOW: SOS signal available inline
+        if (is_critical_threat) play_sos_signal();
 
         // Update movement tracking system
         update_tracked_drone(drone_signature->drone_type,
