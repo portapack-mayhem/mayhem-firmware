@@ -64,13 +64,51 @@ public:
     void sort_drones_by_rssi();
     const std::vector<DisplayDroneEntry>& get_current_drones() const { return displayed_drones_; }
 
+    // Mini waterfall spectrum (Search/Looking Glass pattern)
+    static constexpr size_t MINI_SPECTRUM_WIDTH = 120;   // Half screen width
+    static constexpr size_t MINI_SPECTRUM_HEIGHT = 8;    // 8 lines height
+    static constexpr uint32_t MINI_SPECTRUM_Y_START = 180; // Below text status
+
+    void initialize_mini_spectrum();
+    void process_mini_spectrum_data(const ChannelSpectrum& spectrum);
+    void render_mini_spectrum();
+    void highlight_threat_zones_in_spectrum(const std::vector<DisplayDroneEntry>& drones);
+    size_t frequency_to_spectrum_bin(rf::Frequency freq_hz) const;
+
 private:
     // UI state for drone display
     std::vector<DisplayDroneEntry> detected_drones_;
     std::vector<DisplayDroneEntry> displayed_drones_;  // Top 3 by RSSI
 
+    // Mini waterfall spectrum data (Search pattern)
+    std::vector<std::vector<Color>> mini_spectrum_data_;   // MINI_SPECTRUM_HEIGHT x MINI_SPECTRUM_WIDTH
+    std::vector<uint8_t> spectrum_power_levels_;           // Raw power for color mapping
+    Gradient spectrum_gradient_;                            // Color gradient for spectrum (Search style)
+    ChannelSpectrumFIFO* spectrum_fifo_ = nullptr;          // FIFO for spectrum data
+    uint32_t spectrum_line_index_ = 0;                      // Current line in waterfall
+
     // UI: Detected drones list with RSSI sorting (Search pattern)
     NavigationView& nav_;
+
+    // Spectrum message handlers (Search pattern)
+    MessageHandlerRegistration message_handler_spectrum_config_{
+        Message::ID::ChannelSpectrumConfig,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+            this->spectrum_fifo_ = message.fifo;
+        }};
+
+    MessageHandlerRegistration message_handler_spectrum_frame_sync_{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            if (this->spectrum_fifo_) {
+                ChannelSpectrum channel_spectrum;
+                while (spectrum_fifo_->out(channel_spectrum)) {
+                    this->process_mini_spectrum_data(channel_spectrum);
+                }
+                this->render_mini_spectrum();
+            }
+        }};
 
     // Core UI components (moved from main class)
     BigFrequencyDisplay big_display_{{0, 24, 240, 32}};

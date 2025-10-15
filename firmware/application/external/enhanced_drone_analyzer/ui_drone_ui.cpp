@@ -12,9 +12,20 @@ namespace ui::external_app::enhanced_drone_analyzer {
 
 // DroneDisplayController implementation
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
-    : nav_(nav)
+    : nav_(nav),
+      mini_spectrum_data_(MINI_SPECTRUM_HEIGHT, std::vector<Color>(MINI_SPECTRUM_WIDTH, Color::black())),
+      spectrum_power_levels_(MINI_SPECTRUM_WIDTH, 0),
+      spectrum_gradient_{},
+      spectrum_fifo_(nullptr),
+      spectrum_line_index_(0)
 {
+    // Initialize mini spectrum gradient (Search app pattern)
+    if (!spectrum_gradient_.load_file(default_gradient_file)) {
+        spectrum_gradient_.set_default();
+    }
+
     // UI components initialized in constructor initializer list
+    initialize_mini_spectrum();
 }
 
 Color DroneDisplayController::get_threat_level_color(ThreatLevel level) const {
@@ -265,6 +276,118 @@ void DroneDisplayController::update_drones_display() {
     for (size_t i = 0; i < count; ++i) {
         displayed_drones_.push_back(detected_drones_[i]);
     }
+
+    // Update mini spectrum with threat zones
+    highlight_threat_zones_in_spectrum(displayed_drones_);
+}
+
+// Mini waterfall spectrum implementation (Search/Looking Glass pattern)
+void DroneDisplayController::initialize_mini_spectrum() {
+    // Pre-allocate spectrum data (Search pattern memory management)
+    mini_spectrum_data_ = std::vector<std::vector<Color>>(
+        MINI_SPECTRUM_HEIGHT, std::vector<Color>(MINI_SPECTRUM_WIDTH, Color::black()));
+
+    spectrum_power_levels_ = std::vector<uint8_t>(MINI_SPECTRUM_WIDTH, 0);
+    spectrum_line_index_ = 0;
+
+    // Initialize gradient for color mapping
+    if (!spectrum_gradient_.load_file(default_gradient_file)) {
+        spectrum_gradient_.set_default();
+    }
+}
+
+// Process incoming spectrum data (Search app on_channel_spectrum pattern)
+void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& spectrum) {
+    // Similar to Search app's spectrum processing but mini version
+    // Convert ChannelSpectrum to mini waterfall line
+
+    baseband::spectrum_streaming_stop();
+
+    // Clear current power levels (Looking Glass bin reset pattern)
+    std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
+
+    // Process spectrum bins into power levels (Search FFT processing)
+    for (size_t bin = 0; bin < 256; bin++) {
+        // Skip DC spike and edges (Search pattern bin filtering)
+        if (bin >= 2 && bin <= 253 && !(bin >= 122 && bin <= 134)) {
+            uint8_t power;
+            if (bin < 128) {
+                power = spectrum.db[128 + bin];
+            } else {
+                power = spectrum.db[bin - 128];
+            }
+
+            // Map bin to mini spectrum coordinate
+            if (bin < MINI_SPECTRUM_WIDTH) {
+                spectrum_power_levels_[bin] = power;
+            }
+        }
+    }
+
+    // Shift existing spectrum lines (waterfall effect - Search pattern)
+    for (int32_t line = MINI_SPECTRUM_HEIGHT - 1; line > 0; line--) {
+        mini_spectrum_data_[line] = mini_spectrum_data_[line - 1];
+    }
+
+    // Create new spectrum line with gradient coloring
+    for (size_t x = 0; x < MINI_SPECTRUM_WIDTH; x++) {
+        uint8_t power = spectrum_power_levels_[x];
+        mini_spectrum_data_[0][x] = spectrum_gradient_.lut[power];
+    }
+
+    spectrum_line_index_ = (spectrum_line_index_ + 1) % MINI_SPECTRUM_HEIGHT;
+
+    baseband::spectrum_streaming_start();
+}
+
+// Render mini spectrum display (Search app pixel drawing)
+void DroneDisplayController::render_mini_spectrum() {
+    // Count from bottom to top (waterfall effect)
+    for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT; y++) {
+        // Spectrum display area coordinates
+        int display_y = MINI_SPECTRUM_Y_START + (MINI_SPECTRUM_HEIGHT - 1 - y);
+
+        // Draw horizontal line of spectrum data (Search draw_pixels pattern)
+        display.draw_pixels(
+            {0, static_cast<int>(display_y)},  // Start position (x=0)
+            {mini_spectrum_data_[y].size(), 1}, // Width x height
+            mini_spectrum_data_[y].data()       // Color data pointer
+        );
+    }
+}
+
+// Highlight threat zones in spectrum (custom enhancement to Search pattern)
+void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::vector<DisplayDroneEntry>& drones) {
+    // For each detected drone, highlight its frequency bin in spectrum
+    for (const auto& drone : drones) {
+        size_t bin_x = frequency_to_spectrum_bin(drone.frequency);
+
+        if (bin_x < MINI_SPECTRUM_WIDTH) {
+            // Override normal gradient colors with threat colors
+            Color threat_color = get_threat_level_color(drone.threat);
+
+            for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT; y++) {
+                mini_spectrum_data_[y][bin_x] = threat_color;
+            }
+        }
+    }
+}
+
+// Convert frequency to spectrum bin position
+size_t DroneDisplayController::frequency_to_spectrum_bin(rf::Frequency freq_hz) const {
+    // Simple linear mapping for mini spectrum
+    // This is a simplified version - real implementation would use spectrum range
+    const rf::Frequency MIN_FREQ = 2400000000; // 2.4GHz
+    const rf::Frequency MAX_FREQ = 2500000000; // 2.5GHz (WiFi/ISM spectrum)
+    const rf::Frequency FREQ_RANGE = MAX_FREQ - MIN_FREQ;
+
+    if (freq_hz < MIN_FREQ || freq_hz > MAX_FREQ) {
+        return MINI_SPECTRUM_WIDTH; // Out of range
+    }
+
+    // Linear interpolation to bin position
+    size_t bin = ((freq_hz - MIN_FREQ) * MINI_SPECTRUM_WIDTH) / FREQ_RANGE;
+    return std::min(bin, MINI_SPECTRUM_WIDTH - 1);
 }
 
 // DroneUIController implementation
