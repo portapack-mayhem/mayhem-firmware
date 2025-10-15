@@ -45,6 +45,10 @@ void DetectorRxView::focus() {
 }
 
 DetectorRxView::~DetectorRxView() {
+    // Priority 1.2: Add hardware access mutex protection
+    // Prevent race conditions during hardware cleanup - MUST lock first
+    HardwareGuard guard;  // RAII mutex lock
+
     // reset performance counters request to default
     shared_memory.request_m4_performance_counter = 0;
     receiver_model.disable();
