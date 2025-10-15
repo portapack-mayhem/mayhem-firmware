@@ -64,7 +64,7 @@ class MorsePracticeView : public ui::View {
     int64_t start_time = 0;
     int64_t end_time = 0;
 
-    ui::Button btn_tt{{UI_POS_X(5), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "KEY"};
+    ui::Button btn_tt{{UI_POS_X_CENTER(12), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "KEY"};
     ui::Text txt_last{{UI_POS_X(0), UI_POS_Y(6), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(10)}};

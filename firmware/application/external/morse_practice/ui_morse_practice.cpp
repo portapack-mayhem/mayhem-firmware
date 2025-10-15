@@ -34,6 +34,7 @@ MorsePracticeView::MorsePracticeView(ui::NavigationView& nav)
     };
     btn_clear.on_select = [this](Button&) {
         console_text.clear(true);
+        txt_last.set("");
     };
     audio::output::start();
     auto vol = field_volume.value();

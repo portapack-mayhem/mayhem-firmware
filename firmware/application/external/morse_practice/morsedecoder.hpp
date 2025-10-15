@@ -31,7 +31,8 @@ namespace ui::external_app::morse_practice {
 
 class MorseRingBuffer {
    public:
-    MorseRingBuffer() : head_(0), tail_(0), count_(0) {}
+    MorseRingBuffer()
+        : head_(0), tail_(0), count_(0) {}
 
     void push_back(const uint32_t& value) {
         data_[head_] = value;
