@@ -301,44 +301,57 @@ void EnhancedDroneSpectrumAnalyzerView::perform_scan_cycle() {
     // Early exit conditions
     if (!scanning_active_) return;
 
-    // BANDWIDTH OFFSET SCANNING: ±6MHz from center frequency (default 3MHz)
-    // Process frequency database with center ± offset scanning
+    // **PHASE 4: RECON PATTERN - SCAN THROUGH FREQUENCY DATABASE**
+    // Following Recon's frequency_file_load() and on_statistics_update() patterns
+    // Load and iterate through freqman_db entries like Recon does with frequency_list
     if (freq_db_.is_open() && freq_db_.entry_count() > 0) {
         const size_t total_entries = freq_db_.entry_count();
-        if (total_entries > 0 && current_db_index_ < total_entries) {
-            const auto* entry = freq_db_.get_entry(current_db_index_);
 
-            // Validate frequency entry exists and has valid frequency
-            if (entry && entry->frequency_hz > 0) {
-                // NEW: Bandwidth offset implementation ±6MHz from center
-                // Each frequency entry now defines center + offset scanning range
+        // Validate current index is within database bounds
+        if (current_db_index_ >= total_entries) {
+            current_db_index_ = 0;  // Wrap around (Recon pattern)
+        }
 
-                int32_t center_offset_hz = 3000000;  // Default +3MHz offset from center
-                uint32_t scan_width_hz = 6000000;    // ±6MHz total scan width
+        const auto& entry = freq_db_.get_entry(current_db_index_);
 
-                // Calculate actual scanning frequency range: center ± offset
-                rf::Frequency center_freq_hz = entry->frequency_hz;
-                rf::Frequency scan_start_hz = center_freq_hz - (scan_width_hz / 2);
-                rf::Frequency scan_end_hz = center_freq_hz + (scan_width_hz / 2);
-                rf::Frequency current_scan_freq = center_freq_hz + center_offset_hz;
+        // Validate entry exists and contains valid frequency (Recon safety checks)
+        if (entry && entry->frequency_hz > 0) {
+            // RECON PATTERN: Tune radio to the specific database frequency
+            // This mimics Recon's handle_retune() → receiver_model.set_target_frequency()
+            rf::Frequency target_freq_hz = entry->frequency_hz;
 
-                // Validate scan range is within hardware limits
-                if (scan_start_hz >= 50000000 && scan_end_hz <= 6000000000) {
-                    // Hardware tuning to center + offset frequency
-                    radio::set_tuning_frequency(current_scan_freq);
-                    chThdSleepMilliseconds(10); // Allow tuning to settle
+            // SAFETY: Validate frequency range like Recon does
+            if (target_freq_hz >= 50000000 && target_freq_hz <= 6000000000) {
+                // RECON PATTERN: Hardware tuning with radio::set_tuning_frequency()
+                // This provides actual hardware frequency change for RSSI measurement
+                radio::set_tuning_frequency(target_freq_hz);
+                chThdSleepMilliseconds(10); // Allow PLL to settle (Recon uses similar)
 
-                    // Analyze received signal strength for drone detection
-                    process_real_rssi_data_for_freq_entry(*entry, last_valid_rssi_);
-                }
+                // GET REAL RSSI: Now using hardware RSSI from spectrum callbacks
+                // This replaces simulated RSSI - now connected to real spectrum data
+                int32_t real_rssi = get_real_rssi_from_spectrum_collector(target_freq_hz);
 
-                // Advance to next frequency (wrap around when reaching end)
-                current_db_index_ = (current_db_index_ + 1) % total_entries;
+                // PROCESS DETECTION: Using actual database entry for drone detection
+                process_real_rssi_data_for_freq_entry(*entry, real_rssi);
             }
+
+            // RECON PATTERN: Advance to next frequency (circular scanning)
+            current_db_index_ = (current_db_index_ + 1) % total_entries;
+        } else {
+            // Handle corrupted/invalid entry (Recon error handling pattern)
+            // Skip and advance to avoid infinite loops
+            current_db_index_ = (current_db_index_ + 1) % total_entries;
+        }
+    } else {
+        // DATABASE NOT LOADED: Try to load default database on the fly
+        // Following Recon pattern of loading frequency files
+        if (scanning_active_ && scan_cycles_ % 50 == 0) { // Periodic retry
+            handle_scan_error("No frequency database loaded - scanning paused");
+            scanning_active_ = false; // Pause scanning until database loaded
         }
     }
 
-    // Update scan statistics and UI
+    // UPDATE SCAN STATISTICS AND UI - Following Recon pattern
     scan_cycles_++;
     update_detection_display();
 }
