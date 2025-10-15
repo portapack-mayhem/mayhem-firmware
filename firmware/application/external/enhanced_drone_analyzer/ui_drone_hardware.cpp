@@ -157,9 +157,10 @@ void DroneHardwareController::handle_channel_spectrum(const ChannelSpectrum& spe
     if (valid_bins > 0) {
         avg_rssi /= valid_bins;
 
-        // STEP 3: RSSI FILTERING (Recon pattern for stability)
-        // Use average RSSI with minimal filtering to prevent noise fluctuations
-        last_valid_rssi_ = avg_rssi;  // Start with simple average
+        // STEP 3: RSSI FILTERING WITH WEIGHTED AVERAGE (Enhanced stability)
+        // Use weighted average to smooth noise while maintaining responsiveness
+        const float ALPHA = 0.3f;  // New reading weight - balance between stability and responsiveness
+        last_valid_rssi_ = static_cast<int32_t>((ALPHA * avg_rssi) + ((1.0f - ALPHA) * last_valid_rssi_));
     }
 
     // Delegate further processing to specialized method
