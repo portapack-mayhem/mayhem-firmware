@@ -91,6 +91,10 @@ private:
     Button button_start_{ {0, 0}, "START/STOP" };  // Toggle scan on/off (primary action)
     Button button_menu_{ {120, 0}, "settings" };  // Menu for secondary functions
 
+    // FIXED: Database and scanner pointers for proper integration
+    DroneFrequencyDatabase* database_ = nullptr;
+    DroneSpectrumScanner* scanner_ = nullptr;
+
     // BIG DISPLAY & STATUS (Like Scanner - large frequency + color coding)
     BigFrequencyDisplay big_display_{ {0, 24, 240, 32} };
     ProgressBar scanning_progress_{ {0, 64, 240, 16} };
@@ -100,11 +104,14 @@ private:
     Text text_status_info_{ {0, 100, 240, 16}, "Ready - Enhanced Drone Analyzer" };
     Text text_scanner_stats_{ {0, 116, 240, 16}, "Detections: 0 | Scan Freq: N/A" };
 
+    // ADDITIONAL TEXT DISPLAYS for missing UI functionality
+    Text text_status_{ {0, 164, 240, 16}, "Status: Ready" };  // General status display
+
     // SCANNING THREADING
     static msg_t scanning_thread_function(void* arg);
     msg_t scanning_thread();
     Thread* scanning_thread_ = nullptr;
-    static constexpr uint32_t SCAN_THREAD_STACK_SIZE = 1024;
+    static constexpr uint32_t SCAN_THREAD_STACK_SIZE = 2048;  // FIXED: Synchronized with actual usage
     bool scanning_active_ = false;
 
     // PHASE 2: REAL SPECTRUM STREAMING STATE (integrated with baseband)
@@ -156,14 +163,26 @@ private:
     // Tracking detected drones
     void update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level);
 
+    // Detection logger for recording drone detections
+    DetectionLogger detection_logger_;
+
     // TEXT DISPLAYS - Portapack H2 optimized layout
     Text text_threat_level_{ {0, 210, 240, 16}, "THREAT: NONE" };
     Text text_info_{ {0, 226, 240, 16}, "Enhanced Drone Analyzer v0.2" };
     Text text_copyright_{ {0, 242, 240, 16}, "© 2025 M.S. Kuznetsov" };
 
+    // ADDITIONAL TEXT DISPLAYS for complete functionality (following Recon/Looking Glass patterns)
+    Text text_database_info_{ {0, 132, 240, 16}, "Database: Ready" };
+    Text text_trends_compact_{ {0, 148, 240, 16}, "Trends: ▲0 ■0 ▼0" };
+
     // Add threat color methods (following V0 spectrum painter pattern)
     Color get_threat_level_color(ThreatLevel level) const;
     const char* get_threat_level_name(ThreatLevel level) const;
+
+private:
+    // PRIVATE: Prevent copying/assignment - singleton pattern for UI safety
+    EnhancedDroneSpectrumAnalyzerView(const EnhancedDroneSpectrumAnalyzerView&) = delete;
+    EnhancedDroneSpectrumAnalyzerView& operator=(const EnhancedDroneSpectrumAnalyzerView&) = delete;
 
     // FREQUENCY MANAGEMENT METHODS - IMPLEMENTED VIA FREQMANDB DIRECT ACCESS
     // Direct FreqmanDB access (like Recon) - no separate file management needed
