@@ -12,6 +12,7 @@
 #include "ui_navigation.hpp"            // Navigation system
 #include "ui_drone_types.hpp"           // DroneType enum
 #include "ui_drone_audio_settings_about.hpp" // About modal
+#include "ui_territory_blocker.hpp"     // Territory blocking
 
 #include "freqman_db.hpp"               // Frequency database
 #include "ui_drone_hardware.hpp"        // Hardware controller
