@@ -721,11 +721,17 @@ void DroneUIController::on_about() {
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
     : nav_(nav)
 {
-    // Initialize controllers
+    // Initialize controllers - UPDATED WITH SCANNING COORDINATOR
     hardware_ = std::make_unique<DroneHardwareController>();
     scanner_ = std::make_unique<DroneScanner>();
     audio_ = std::make_unique<DroneAudioController>();
     ui_controller_ = std::make_unique<DroneUIController>(nav, *hardware_, *scanner_, *audio_);
+
+    // FIX: Separate display controller for coordinator
+    display_controller_ = std::make_unique<DroneDisplayController>(nav);
+
+    // FIX: Create scanning coordinator that fixes the broken architecture
+    scanning_coordinator_ = std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_);
 
     // Setup button callbacks
     button_start_.on_select = [this](Button&) {
@@ -794,19 +800,17 @@ void EnhancedDroneSpectrumAnalyzerView::on_hide() {
 }
 
 void EnhancedDroneSpectrumAnalyzerView::start_scanning_thread() {
-    if (scanner_->is_scanning_active()) return;
+    if (scanning_coordinator_->is_scanning_active()) return;
 
-    // Create scanning thread
-    scanner_->start_scanning();
-
-    // TODO: Implement actual scanning coordination between hardware and scanner
-    // For now, this is a simplified version
+    // FIX: Use scanning coordinator instead of broken direct scanner startup
+    scanning_coordinator_->start_coordinated_scanning();
 }
 
 void EnhancedDroneSpectrumAnalyzerView::stop_scanning_thread() {
-    if (!scanner_->is_scanning_active()) return;
+    if (!scanning_coordinator_->is_scanning_active()) return;
 
-    scanner_->stop_scanning();
+    // FIX: Use scanning coordinator for proper cleanup
+    scanning_coordinator_->stop_coordinated_scanning();
 }
 
 bool EnhancedDroneSpectrumAnalyzerView::handle_start_stop_button() {

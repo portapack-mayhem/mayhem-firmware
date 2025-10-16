@@ -44,6 +44,9 @@ public:
     void stop_spectrum_streaming();
     bool is_spectrum_streaming_active() const { return spectrum_streaming_active_; }
 
+    // COORDINATOR SUPPORT: Check for new spectrum data
+    bool has_new_spectrum_data() const { return spectrum_streaming_active_; }
+
     // RSSI data retrieval from hardware
     int32_t get_real_rssi_from_hardware(rf::Frequency target_frequency);
 

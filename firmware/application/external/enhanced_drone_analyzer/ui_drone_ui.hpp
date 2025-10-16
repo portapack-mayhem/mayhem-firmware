@@ -263,11 +263,15 @@ public:
 private:
     NavigationView& nav_;
 
-    // Controller instances
+    // Controller instances - UPDATED WITH SCANNING COORDINATOR
     std::unique_ptr<DroneHardwareController> hardware_;
     std::unique_ptr<DroneScanner> scanner_;
     std::unique_ptr<DroneAudioController> audio_;
     std::unique_ptr<DroneUIController> ui_controller_;
+
+    // SCANNING COORDINATOR: Fixes the broken scanning architecture
+    std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
+    std::unique_ptr<DroneDisplayController> display_controller_; // Now separate
 
     // Main UI buttons (simplified)
     Button button_start_{{0, 0}, "START/STOP"};
