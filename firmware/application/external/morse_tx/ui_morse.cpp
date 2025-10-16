@@ -45,12 +45,9 @@ static msg_t ookthread_fn(void* arg) {
     uint8_t* message_symbols = shared_memory.bb_data.tones_data.message;
     uint8_t symbol;
     MorseView* arg_c = (MorseView*)arg;
-
     chRegSetThreadName("ookthread");
-
     for (uint32_t i = 0; i < arg_c->symbol_count; i++) {
         if (chThdShouldTerminate()) break;
-
         symbol = message_symbols[i];
 
         v = (symbol < 2) ? 1 : 0;  // TX on for dot or dash, off for pause
@@ -61,9 +58,7 @@ static msg_t ookthread_fn(void* arg) {
         } else {
             gpio_og_tx.write(v);  // in hackrf <=r6, "1" means tx , "0" no tx.
         }
-
         arg_c->on_tx_progress(i, false);
-
         chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
     }
 
@@ -82,19 +77,14 @@ static msg_t ookthread_fn(void* arg) {
 static msg_t loopthread_fn(void* arg) {
     MorseView* arg_c = (MorseView*)arg;
     uint32_t wait = arg_c->loop;
-
     chRegSetThreadName("loopthread");
-
     for (uint32_t i = 0; i < wait; i++) {
         if (chThdShouldTerminate()) break;
-
         arg_c->on_loop_progress(i, false);
         chThdSleepMilliseconds(1000);
     }
-
     arg_c->on_loop_progress(0, true);
     chThdExit(0);
-
     return 0;
 }
 
@@ -132,6 +122,18 @@ void MorseView::focus() {
 }
 
 MorseView::~MorseView() {
+    if (ookthread) {
+        chThdTerminate(ookthread);
+        chThdWait(ookthread);
+        chThdRelease(ookthread);
+        ookthread = nullptr;
+    }
+    if (loopthread) {
+        chThdTerminate(loopthread);
+        chThdWait(loopthread);
+        // chThdRelease(loopthread);
+        loopthread = nullptr;
+    }
     transmitter_model.disable();
     baseband::shutdown();
 }
@@ -160,6 +162,7 @@ bool MorseView::start_tx() {
 
     if (mode_cw) {
         ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
+        // ookthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ookthread_fn, this);
     }
 
     return true;
@@ -181,6 +184,10 @@ void MorseView::update_tx_duration() {
 
 void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
+        if (ookthread) {
+            chThdRelease(ookthread);
+            ookthread = nullptr;
+        }
         transmitter_model.disable();
         progressbar.set_value(0);
 
@@ -190,10 +197,11 @@ void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
             progressbar.set_value(0);
 
             if (loopthread) {
-                chThdRelease(loopthread);
+                chThdTerminate(loopthread);
+                chThdWait(loopthread);
+                // chThdRelease(loopthread);
                 loopthread = nullptr;
             }
-
             loopthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO, loopthread_fn, this);
         } else {
             tx_view.set_transmitting(false);
@@ -304,6 +312,7 @@ MorseView::MorseView(
         if (loopthread) {
             chThdTerminate(loopthread);
             chThdWait(loopthread);
+            // chThdRelease(loopthread);
             loopthread = nullptr;
         }
 
