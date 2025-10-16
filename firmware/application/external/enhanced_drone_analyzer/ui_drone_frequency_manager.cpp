@@ -199,20 +199,23 @@ void DroneFrequencyManagerView::on_add_preset() {
 }
 
 void DroneFrequencyManagerView::fill_form_from_preset(const DronePreset& preset) {
-    // Populate UI fields with preset data
+    // Populate UI fields with preset data (fully editable after selection)
     frequency_field_.set_value(preset.frequency_hz);
     drone_type_field_.set_selected_index(static_cast<size_t>(preset.drone_type));
     threat_level_field_.set_selected_index(static_cast<size_t>(preset.threat_level));
     rssi_field_.set_value(preset.rssi_threshold_db);
     text_name_.set(preset.name_template);
 
-    // Auto-generate unique name by appending timestamp or number
-    std::string unique_name = preset.name_template + " " +
+    // Generate unique name with customizable suffix (allows user to modify)
+    std::string unique_name = preset.name_template + " #" +
                              std::to_string(freqman_db_.entry_count() + 1);
     if (unique_name.length() > 20) {
         unique_name = unique_name.substr(0, 20);  // Truncate if too long
     }
     text_name_.set(unique_name);
+
+    // Update status to indicate preset loaded (user can now edit any field)
+    update_status_text(("Preset '" + preset.display_name + "' loaded - edit as needed").c_str());
 }
 
 void DroneFrequencyManagerView::on_remove_frequency() {
