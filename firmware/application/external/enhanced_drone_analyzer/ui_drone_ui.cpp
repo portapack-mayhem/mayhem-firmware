@@ -407,28 +407,27 @@ void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& s
     // Spectrum streaming is managed in main view's on_show/on_hide methods
 }
 
-// Render mini spectrum display (Search app pixel drawing)
+// Render mini spectrum display (PHASE 1 FIX: Following Looking Glass pattern)
 void DroneDisplayController::render_mini_spectrum() {
-    // EMBEDDED SAFETY: Validate before rendering
+    // PHASE 1 FIX: Use scroll area rendering instead of Y coordinate calculation
+    // This matches Looking Glass waterfall implementation for proper display
+
     if (!validate_spectrum_data()) {
         clear_spectrum_buffers();
         return;
     }
 
-    // Count from bottom to top (waterfall effect)
-    for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT; y++) {
-        // Spectrum display area coordinates - WORKAROUND: Manual bounds checking
-        int display_y = MINI_SPECTRUM_Y_START + (MINI_SPECTRUM_HEIGHT - 1 - y);
-        if (display_y < 0 || display_y >= screen_height) continue;
-
-        // Draw horizontal line of spectrum data (Search draw_pixels pattern)
-        // FIX: Array-based data access for embedded safety
-        size_t safe_index = get_safe_spectrum_index(0, y);
+    // PHASE 1 FIX: Check if we got a full line ready (pixel_index == screen_width)
+    // Looking Glass only renders when a complete line is available
+    if (pixel_index == screen_width) {
+        // Scroll area rendering (Looking Glass pattern, not Y coordinate calculation)
         display.draw_pixels(
-            {0, display_y},                                    // Start position (x=0)
-            {MINI_SPECTRUM_WIDTH, 1},                         // Width x height
-            &mini_spectrum_data_[safe_index / MINI_SPECTRUM_WIDTH][safe_index % MINI_SPECTRUM_WIDTH]
+            {{0, display.scroll(1)}, {screen_width, 1}},  // Scroll and draw at top
+            spectrum_row                                  // Render the completed line
         );
+
+        // Reset for next line
+        pixel_index = 0;
     }
 }
 
@@ -782,11 +781,12 @@ bool EnhancedDroneSpectrumAnalyzerView::on_touch(const TouchEvent event) {
 void EnhancedDroneSpectrumAnalyzerView::on_show() {
     View::on_show();
 
-    // FOLLOWING LOOKING GLASS PATTERN: Hardware setup in on_show()
-    hardware_->on_hardware_show();
-
-    // 4. Setup display like other spectrum apps
+    // PHASE 1 FIX: Follow Looking Glass pattern for scroll area setup
+    // This enables proper waterfall rendering instead of Y coordinate calculation
     display.scroll_set_area(109, screen_height - 1);
+
+    // Hardware initialization after display setup
+    hardware_->on_hardware_show();
 }
 
 void EnhancedDroneSpectrumAnalyzerView::on_hide() {

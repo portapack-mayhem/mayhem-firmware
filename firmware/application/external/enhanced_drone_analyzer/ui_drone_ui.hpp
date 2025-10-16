@@ -76,10 +76,10 @@ public:
     void sort_drones_by_rssi();
     const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& get_current_drones() const { return displayed_drones_; }
 
-    // Mini waterfall spectrum (Search/Looking Glass pattern)
-    static constexpr size_t MINI_SPECTRUM_WIDTH = 120;   // Half screen width
-    static constexpr size_t MINI_SPECTRUM_HEIGHT = 8;    // 8 lines height
-    static constexpr uint32_t MINI_SPECTRUM_Y_START = 180; // Below text status
+    // Mini waterfall spectrum (PHASE 1 FIX: Looking Glass scroll area pattern)
+    static constexpr size_t MINI_SPECTRUM_WIDTH = 240;   // Full screen width for Looking Glass compatibility
+    static constexpr size_t MINI_SPECTRUM_HEIGHT = 8;    // 8 lines height (unchanged)
+    static constexpr uint32_t SPECTRUM_Y_TOP = 109;      // Looking Glass scroll area start
 
     void initialize_mini_spectrum();
     void process_mini_spectrum_data(const ChannelSpectrum& spectrum);
