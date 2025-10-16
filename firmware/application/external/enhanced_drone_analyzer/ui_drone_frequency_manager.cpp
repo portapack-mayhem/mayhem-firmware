@@ -26,6 +26,7 @@ DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
         &bandwidth_offset_field_,
         &offset_direction_field_,
         &enabled_checkbox_,
+        &button_preset_,  // NEW: Add preset button to child components
         &button_add_,
         &button_update_,
         &button_remove_,
@@ -37,6 +38,7 @@ DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
     initialize_menu_options();
 
     // Set up button handlers (pattern from FreqMan)
+    button_preset_.on_select = [this]() { on_add_preset(); };  // NEW: Preset button handler
     button_add_.on_select = [this]() { on_add_frequency(); };
     button_update_.on_select = [this]() { on_update_frequency(); };
     button_remove_.on_select = [this]() { on_remove_frequency(); };
@@ -184,6 +186,33 @@ void DroneFrequencyManagerView::on_update_frequency() {
     refresh_frequency_list();
     update_frequency_details();
     update_status_text("Frequency updated successfully");
+}
+
+void DroneFrequencyManagerView::on_add_preset() {
+    // NEW: Show preset selection menu for quick setup
+    DronePresetSelector::show_preset_menu(nav_,
+        [this](const DronePreset& selected_preset) {
+            // Auto-populate form with preset data
+            fill_form_from_preset(selected_preset);
+            update_status_text(("Preset '" + selected_preset.display_name + "' loaded").c_str());
+        });
+}
+
+void DroneFrequencyManagerView::fill_form_from_preset(const DronePreset& preset) {
+    // Populate UI fields with preset data
+    frequency_field_.set_value(preset.frequency_hz);
+    drone_type_field_.set_selected_index(static_cast<size_t>(preset.drone_type));
+    threat_level_field_.set_selected_index(static_cast<size_t>(preset.threat_level));
+    rssi_field_.set_value(preset.rssi_threshold_db);
+    text_name_.set(preset.name_template);
+
+    // Auto-generate unique name by appending timestamp or number
+    std::string unique_name = preset.name_template + " " +
+                             std::to_string(freqman_db_.entry_count() + 1);
+    if (unique_name.length() > 20) {
+        unique_name = unique_name.substr(0, 20);  // Truncate if too long
+    }
+    text_name_.set(unique_name);
 }
 
 void DroneFrequencyManagerView::on_remove_frequency() {

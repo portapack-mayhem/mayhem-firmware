@@ -18,6 +18,7 @@
 #include "freqman.hpp"
 #include "file_path.hpp"
 #include "ui_drone_database.hpp"  // ADD: Drone frequency database
+#include "ui_drone_presets.hpp"  // ADD: Drone presets for quick setup
 
 #include <string>
 #include <vector>
@@ -71,6 +72,7 @@ private:
     Checkbox enabled_checkbox_{ {201, 145}, "" };
 
     // Action buttons (bottom row)
+    Button button_preset_{ {0, 210}, "Add Preset" };     // NEW: Preset button above others
     Button button_add_{ {0, 220}, "Add Frequency" };
     Button button_update_{ {80, 220}, "Update" };
     Button button_remove_{ {136, 220}, "Remove" };
