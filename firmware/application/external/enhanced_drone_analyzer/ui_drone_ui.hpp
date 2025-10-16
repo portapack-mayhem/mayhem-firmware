@@ -71,7 +71,7 @@ public:
     void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     void update_drones_display();
     void sort_drones_by_rssi();
-    const std::vector<DisplayDroneEntry>& get_current_drones() const { return displayed_drones_; }
+    const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& get_current_drones() const { return displayed_drones_; }
 
     // Mini waterfall spectrum (Search/Looking Glass pattern)
     static constexpr size_t MINI_SPECTRUM_WIDTH = 120;   // Half screen width
@@ -81,17 +81,17 @@ public:
     void initialize_mini_spectrum();
     void process_mini_spectrum_data(const ChannelSpectrum& spectrum);
     void render_mini_spectrum();
-    void highlight_threat_zones_in_spectrum(const std::vector<DisplayDroneEntry>& drones);
+    void highlight_threat_zones_in_spectrum(const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& drones);
     size_t frequency_to_spectrum_bin(rf::Frequency freq_hz) const;
 
 private:
-    // UI state for drone display
-    std::vector<DisplayDroneEntry> detected_drones_;
-    std::vector<DisplayDroneEntry> displayed_drones_;  // Top 3 by RSSI
+    // UI state for drone display (EMBEDDED FIX: Fixed arrays instead of vectors)
+    std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> detected_drones_;
+    std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;  // Top 3 by RSSI
 
-    // Mini waterfall spectrum data (Search pattern)
-    std::vector<std::vector<Color>> mini_spectrum_data_;   // MINI_SPECTRUM_HEIGHT x MINI_SPECTRUM_WIDTH
-    std::vector<uint8_t> spectrum_power_levels_;           // Raw power for color mapping
+    // Mini waterfall spectrum data (EMBEDDED FIX: Fixed arrays optimized for embedded)
+    std::array<std::array<Color, MINI_SPECTRUM_WIDTH>, MINI_SPECTRUM_HEIGHT> mini_spectrum_data_;   // MINI_SPECTRUM_HEIGHT x MINI_SPECTRUM_WIDTH
+    std::array<uint8_t, MINI_SPECTRUM_WIDTH> spectrum_power_levels_;         // Raw power for color mapping
     Gradient spectrum_gradient_;                            // Color gradient for spectrum (Search style)
     ChannelSpectrumFIFO* spectrum_fifo_ = nullptr;          // FIFO for spectrum data
     uint32_t spectrum_line_index_ = 0;                      // Current line in waterfall

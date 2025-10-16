@@ -10,11 +10,10 @@
 namespace ui::external_app::enhanced_drone_analyzer {
 
 void initialize_app(ui::NavigationView& nav) {
-    // TERRITORY BLOCKING COMMENTED OUT - blocked files deleted
-    // Original territory check removed due to deleted ui_territory_blocker.hpp/.cpp files
-    // TODO: Reimplement territory checking if needed
+    // FIXED: Removed references to deleted territory blocking files
+    // Territory checking functionality removed in cleanup process
 
-    nav.push<EnhancedDroneSpectrumAnalyzerView>();  // Uses the new modular version
+    nav.push<EnhancedDroneSpectrumAnalyzerView>();  // Main modular view
 }
 
 }  // namespace ui::external_app::enhanced_drone_analyzer
