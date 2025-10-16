@@ -8,6 +8,8 @@
 #include "freqman_db.hpp"            // FreqmanDB for frequency management
 #include "freqman.hpp"               // Frequency entry types
 #include "ui_drone_types.hpp"        // DroneType, ThreatLevel, MovementTrend
+#include "ui_drone_validation.hpp"   // ADD: SimpleDroneValidation class
+#include "ui_drone_frequency_db.hpp" // ADD: DroneFrequencyDatabase class
 #include "ui_drone_hardware.hpp"     // Hardware controller for scanning
 
 #include <vector>

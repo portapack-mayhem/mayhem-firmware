@@ -3,25 +3,16 @@
 // This file creates and connects all the modular components
 
 #include "ui_minimal_drone_analyzer.hpp"  // Now references the modular version
-#include "ui_navigation.hpp"
-#include "ui_territory_blocker.hpp"
+// #include "ui_navigation.hpp"  // REMOVED: Portapack UI framework doesn't use this
+// #include "ui_territory_blocker.hpp"  // REMOVED: Files deleted, functionality removed
 #include "external_app.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
 void initialize_app(ui::NavigationView& nav) {
-    // TERRITORY BLOCKING CHECK - blocks Ukraine and EU access
-    if (global_territory_blocker.is_territory_restricted()) {
-        // Show blocking modal message
-        const char* block_reason = global_territory_blocker.get_block_reason();
-        nav.display_modal("ACCESS DENIED",
-                         "Enhanced Drone Analyzer\n"
-                         "TERRITORY RESTRICTION\n\n"
-                         "This application is not available\n"
-                         "in Ukraine and EU countries.\n\n"
-                         "Reason: National security regulations");
-        return;
-    }
+    // TERRITORY BLOCKING COMMENTED OUT - blocked files deleted
+    // Original territory check removed due to deleted ui_territory_blocker.hpp/.cpp files
+    // TODO: Reimplement territory checking if needed
 
     nav.push<EnhancedDroneSpectrumAnalyzerView>();  // Uses the new modular version
 }

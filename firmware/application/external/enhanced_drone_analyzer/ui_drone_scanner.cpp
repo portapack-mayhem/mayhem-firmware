@@ -3,6 +3,7 @@
 
 #include "ui_drone_scanner.hpp"
 #include "ui_drone_hardware.hpp"
+#include "ui_drone_validation.hpp"  // ADD: Include for SimpleDroneValidation
 
 #include <algorithm>
 
@@ -470,6 +471,7 @@ void DroneScanner::update_trends_compact_display() {
 
 bool DroneScanner::validate_detection_simple(int32_t rssi_db, ThreatLevel threat) {
     // DIRECT EMBEDDED PATTERN: Like Level app, simple direct RSSI check
+    // Now using our implemented validation class
     return SimpleDroneValidation::validate_rssi_signal(rssi_db, threat);
 }
 
