@@ -47,13 +47,13 @@ private:
     MenuView menu_view_{ {0, 0, 200, screen_height}, true };
     uint32_t selected_frequency_index_ = 0;
 
-    // Right panel controls (frequency 201-240)
-    NumberField frequency_field_{ {201, 20}, 9, {0}, 6000000000, 500000000 };
-    OptionsField drone_type_field_{ {201, 40}, 20 };
-    OptionsField threat_level_field_{ {201, 50}, 20 };
-    NumberField rssi_field_{ {201, 70}, 7, {-120}, -10, -80 };
-    TextEntry text_name_{ {201, 90}, 24 };
-    NumberField bandwidth_field_{ {201, 110}, 9, {0}, 100000000, 5000000 };
+    // Right panel controls (corrected layout for screen width 240px)
+    NumberField frequency_field_{ {205, 20}, 8, {50000000}, 6000000000, 500000000 };
+    OptionsField drone_type_field_{ {205, 40}, 15 };
+    OptionsField threat_level_field_{ {205, 55}, 12 };
+    NumberField rssi_field_{ {205, 70}, 6, {-120}, -10, -80 };
+    TextEntry text_name_{ {205, 85}, 20 };
+    NumberField bandwidth_field_{ {205, 100}, 7, {0}, 100000000, 5000000 };
 
     // NEW: Bandwidth offset controls for ±6MHz from center (default 3MHz)
     NumberField bandwidth_offset_field_{ {201, 120}, 8, {-6000000}, 6000000, 3000000 };  // ±6MHz, default +3MHz
