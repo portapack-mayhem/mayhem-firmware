@@ -13,10 +13,13 @@
 #include "ui_drone_types.hpp"           // DroneType enum
 #include "ui_drone_audio.hpp"           // Audio controller
 #include "ui_drone_audio_settings_about.hpp" // About modal
+#include "ui_drone_settings.hpp"             // Settings structures
 
 #include "freqman_db.hpp"               // Frequency database (standard pattern)
 #include "ui_drone_hardware.hpp"        // Hardware controller
 #include "ui_drone_scanner.hpp"         // Scanner controller
+
+#include <app_settings.hpp>             // SettingsManager
 
 #include <memory>
 #include <string>
@@ -163,9 +166,14 @@ public:
     void on_save_frequency();
     void on_audio_toggle();
     void on_advanced_settings();
+    void on_open_settings();  // New: Open settings dialog
 
     // UI state management
     bool is_scanning() const { return scanning_active_; }
+
+    // Settings access
+    DroneAnalyzerSettings& settings() { return settings_; }
+    const DroneAnalyzerSettings& settings() const { return settings_; }
 
     // Prevent copying
     DroneUIController(const DroneUIController&) = delete;
@@ -180,6 +188,40 @@ private:
     // UI state
     bool scanning_active_;
     std::unique_ptr<DroneDisplayController> display_controller_;
+
+    // Settings management
+    DroneAnalyzerSettings settings_;
+
+    // Settings persistence - renamed to distinguish from runtime settings
+    app_settings::SettingsManager constant_settings_manager_{
+        "rx_drone_analyzer"sv,
+        app_settings::Mode::RX,
+        {
+            // Spectrum settings
+            {"spectrum_mode"sv, reinterpret_cast<uint32_t*>(&settings_.spectrum_mode)},
+
+            {"scan_interval"sv, &settings_.spectrum.min_scan_interval_ms},
+            {"stale_timeout"sv, &settings_.spectrum.stale_timeout_ms},
+            {"rssi_threshold"sv, &settings_.spectrum.default_rssi_threshold},
+            {"rssi_alpha"sv, &settings_.spectrum.rssi_smoothing_alpha},
+
+            // Detection settings
+            {"min_detections"sv, &settings_.detection.min_detection_count},
+            {"hysteresis_db"sv, &settings_.detection.hysteresis_margin_db},
+            {"trend_db"sv, &settings_.detection.trend_threshold_db},
+            {"reset_interval"sv, &settings_.detection.detection_reset_interval},
+
+            // Audio settings
+            {"alert_freq"sv, &settings_.audio.alert_frequency_hz},
+            {"beep_duration"sv, &settings_.audio.beep_duration_ms},
+            {"alert_squelch"sv, &settings_.audio.alert_squelch_db},
+
+            // Display settings
+            {"show_graph"sv, &settings_.display.show_rssi_graph},
+            {"show_trends"sv, &settings_.display.show_trends},
+            {"max_display"sv, &settings_.display.max_display_drones},
+            {"color_scheme"sv, &settings_.display.color_scheme},
+        }};
 
     // Menu button actions
     void on_manage_frequencies();

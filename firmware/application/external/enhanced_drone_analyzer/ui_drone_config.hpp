@@ -93,8 +93,8 @@ static constexpr int32_t DEFAULT_RSSI_THRESHOLD_DB = -90;
  * Optimized for embedded real-time constraints
  */
 
-// Minimum scan cycle interval (ms) - prevents UI freezing
-static constexpr uint32_t MIN_SCAN_INTERVAL_MS = 750;
+// Minimum scan cycle interval (ms) - CORRECTED from 750ms to 1000ms for energy efficiency
+static constexpr uint32_t MIN_SCAN_INTERVAL_MS = 1000;
 
 // Stale drone timeout (ms) - how long before removing inactive drones
 static constexpr uint32_t STALE_DRONE_TIMEOUT_MS = 30000;
