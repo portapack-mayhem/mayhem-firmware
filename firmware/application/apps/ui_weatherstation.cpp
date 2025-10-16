@@ -197,6 +197,10 @@ WeatherView::~WeatherView() {
     baseband::shutdown();
 }
 
+uint16_t WeatherView::bcd_decode_short(uint32_t data) {
+    return (data & 0xF) * 10 + ((data >> 4) & 0xF);
+}
+
 const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
     switch (type) {
         case FPW_NexusTH:
@@ -225,6 +229,8 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "LaCrosse TX141THBv2";
         case FPW_OREGON2:
             return "Oregon2";
+        case FPW_OREGON2B:
+            return "Oregon2B";
         case FPW_OREGON3:
             return "Oregon3";
         case FPW_OREGONv1:
@@ -299,7 +305,9 @@ WeatherRecentEntry WeatherView::process_data(const WeatherDataMessage* data) {
     WeatherRecentEntry ret = {};
     ret.sensorType = data->sensorType;
     int16_t i16 = 0;
+    int32_t i32 = 0;
     uint16_t u16 = 0;
+
     uint64_t u64 = 0;
     uint8_t u8 = 0;
     uint8_t channel_3021[] = {3, 0, 2, 1};
@@ -442,12 +450,34 @@ WeatherRecentEntry WeatherView::process_data(const WeatherDataMessage* data) {
             ret.humidity = (data->decode_data >> 8) & 0xFF;
             break;
         case FPW_OREGON2:
-            i16 = ((data->decode_data >> 4) & 0xF) * 10 + (((data->decode_data >> 4) >> 4) & 0xF);
-            i16 *= 10;
-            i16 += (data->decode_data >> 12) & 0xF;
-            if (data->decode_data & 0xF) i16 = -i16;
-            ret.temp = (float)i16 / 10.0;
-            // todo fix missing parts.
+            i32 = bcd_decode_short(data->decode_data >> 4);
+            i32 *= 10;
+            i32 += (data->decode_data >> 12) & 0xf;
+            if (data->decode_data & 0xF) i32 = -i32;
+            ret.temp = (float)i32 / 10.0;
+            ret.battery_low = ((data->decode_data >> 32) & 0x4) ? 1 : 0;
+            u8 = (data->decode_data >> 44) & 0xF;
+            ret.channel = 1;
+            while (u8 > 1) {
+                ret.channel++;
+                u8 >>= 1;
+            }
+            break;
+        case FPW_OREGON2B:
+            ret.humidity = bcd_decode_short(data->decode_data);
+            u64 = data->decode_data >> 8;
+            i32 = bcd_decode_short(u64 >> 4);
+            i32 *= 10;
+            i32 += (u64 >> 12) & 0xf;
+            if (u64 & 0xF) i32 = -i32;
+            ret.temp = (float)i32 / 10.0;
+            ret.battery_low = ((data->decode_data >> 32) & 0x4) ? 1 : 0;
+            u8 = (data->decode_data >> 44) & 0xF;
+            ret.channel = 1;
+            while (u8 > 1) {
+                ret.channel++;
+                u8 >>= 1;
+            }
             break;
         case FPW_OREGON3:
             // todo check
