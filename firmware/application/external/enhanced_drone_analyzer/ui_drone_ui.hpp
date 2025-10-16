@@ -87,6 +87,22 @@ public:
     void highlight_threat_zones_in_spectrum(const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& drones);
     size_t frequency_to_spectrum_bin(rf::Frequency freq_hz) const;
 
+    // EMBEDDED SAFETY: Spectrum processing utilities
+    void clear_spectrum_buffers();
+    bool validate_spectrum_data() const;
+    size_t get_safe_spectrum_index(size_t x, size_t y) const;
+
+    // SPECTRUM CONFIGURATION SYSTEM: Replace hard-coded ranges with configurable
+    struct SpectrumConfig {
+        rf::Frequency min_freq = 2400000000ULL;  // 2.4GHz default
+        rf::Frequency max_freq = 2500000000ULL;  // 2.5GHz default
+        uint32_t bandwidth = 24000000;            // 24MHz default
+        uint32_t sampling_rate = 24000000;        // 24Msps default
+    };
+
+    void set_spectrum_range(rf::Frequency min_freq, rf::Frequency max_freq);
+    SpectrumConfig spectrum_config_;
+
 private:
     // UI state for drone display (EMBEDDED FIX: Fixed arrays instead of vectors)
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> detected_drones_;

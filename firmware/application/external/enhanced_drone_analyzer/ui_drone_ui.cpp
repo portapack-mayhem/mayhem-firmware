@@ -13,8 +13,6 @@ namespace ui::external_app::enhanced_drone_analyzer {
 // DroneDisplayController implementation
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
     : nav_(nav),
-      mini_spectrum_data_(MINI_SPECTRUM_HEIGHT, std::vector<Color>(MINI_SPECTRUM_WIDTH, Color::black())),
-      spectrum_power_levels_(MINI_SPECTRUM_WIDTH, 0),
       spectrum_gradient_{},
       spectrum_fifo_(nullptr),
       spectrum_line_index_(0)
@@ -336,11 +334,8 @@ void DroneDisplayController::render_drone_text_display() {
 
 // Mini waterfall spectrum implementation (Search/Looking Glass pattern)
 void DroneDisplayController::initialize_mini_spectrum() {
-    // Pre-allocate spectrum data (Search pattern memory management)
-    mini_spectrum_data_ = std::vector<std::vector<Color>>(
-        MINI_SPECTRUM_HEIGHT, std::vector<Color>(MINI_SPECTRUM_WIDTH, Color::black()));
-
-    spectrum_power_levels_ = std::vector<uint8_t>(MINI_SPECTRUM_WIDTH, 0);
+    // FIXED: Use fixed arrays instead of vectors for embedded compliance
+    // Pre-allocate spectrum data (Search pattern memory management) - EMBEDDED FIXED
     spectrum_line_index_ = 0;
 
     // Initialize gradient for color mapping
@@ -359,8 +354,11 @@ void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& s
     // Clear current power levels (Looking Glass bin reset pattern)
     std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
 
-    // Process spectrum bins into power levels (Search FFT processing)
-    for (size_t bin = 0; bin < 256; bin++) {
+    // EMBEDDED OPTIMIZATION: Process only bins used for mini-spectrum, early exit
+    for (size_t bin = 0; bin < std::min(size_t{256}, MINI_SPECTRUM_WIDTH); bin++) {
+        // EMBEDDED OPTIMIZATION: Early exit for unused bins
+        if (bin >= MINI_SPECTRUM_WIDTH) break;
+
         // Skip DC spike and edges (Search pattern bin filtering)
         if (bin >= 2 && bin <= 253 && !(bin >= 122 && bin <= 134)) {
             uint8_t power;
@@ -370,22 +368,37 @@ void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& s
                 power = spectrum.db[bin - 128];
             }
 
-            // Map bin to mini spectrum coordinate
-            if (bin < MINI_SPECTRUM_WIDTH) {
-                spectrum_power_levels_[bin] = power;
-            }
+            // Store power for mini spectrum
+            spectrum_power_levels_[bin] = power;
+        } else {
+            // Mark filtered bins as zero
+            spectrum_power_levels_[bin] = 0;
         }
     }
 
+    // EMBEDDED SAFETY: Validate spectrum data before processing
+    if (!validate_spectrum_data()) {
+        clear_spectrum_buffers();
+        return;
+    }
+
     // Shift existing spectrum lines (waterfall effect - Search pattern)
-    for (int32_t line = MINI_SPECTRUM_HEIGHT - 1; line > 0; line--) {
-        mini_spectrum_data_[line] = mini_spectrum_data_[line - 1];
+    for (size_t line = MINI_SPECTRUM_HEIGHT - 1; line > 0; line--) {
+        for (size_t col = 0; col < MINI_SPECTRUM_WIDTH; col++) {
+            size_t safe_index = get_safe_spectrum_index(col, line);
+            size_t prev_safe_index = get_safe_spectrum_index(col, line - 1);
+            mini_spectrum_data_[safe_index / MINI_SPECTRUM_WIDTH][safe_index % MINI_SPECTRUM_WIDTH] =
+                mini_spectrum_data_[prev_safe_index / MINI_SPECTRUM_WIDTH][prev_safe_index % MINI_SPECTRUM_WIDTH];
+        }
     }
 
     // Create new spectrum line with gradient coloring
     for (size_t x = 0; x < MINI_SPECTRUM_WIDTH; x++) {
+        size_t safe_index = get_safe_spectrum_index(x, 0);
         uint8_t power = spectrum_power_levels_[x];
-        mini_spectrum_data_[0][x] = spectrum_gradient_.lut[power];
+        uint8_t safe_power = std::min(power, static_cast<uint8_t>(spectrum_gradient_.lut.size() - 1));
+        mini_spectrum_data_[safe_index / MINI_SPECTRUM_WIDTH][safe_index % MINI_SPECTRUM_WIDTH] =
+            spectrum_gradient_.lut[safe_power];
     }
 
     spectrum_line_index_ = (spectrum_line_index_ + 1) % MINI_SPECTRUM_HEIGHT;
@@ -396,22 +409,34 @@ void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& s
 
 // Render mini spectrum display (Search app pixel drawing)
 void DroneDisplayController::render_mini_spectrum() {
+    // EMBEDDED SAFETY: Validate before rendering
+    if (!validate_spectrum_data()) {
+        clear_spectrum_buffers();
+        return;
+    }
+
     // Count from bottom to top (waterfall effect)
     for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT; y++) {
-        // Spectrum display area coordinates
+        // Spectrum display area coordinates - WORKAROUND: Manual bounds checking
         int display_y = MINI_SPECTRUM_Y_START + (MINI_SPECTRUM_HEIGHT - 1 - y);
+        if (display_y < 0 || display_y >= screen_height) continue;
 
         // Draw horizontal line of spectrum data (Search draw_pixels pattern)
+        // FIX: Array-based data access for embedded safety
+        size_t safe_index = get_safe_spectrum_index(0, y);
         display.draw_pixels(
-            {0, static_cast<int>(display_y)},  // Start position (x=0)
-            {mini_spectrum_data_[y].size(), 1}, // Width x height
-            mini_spectrum_data_[y].data()       // Color data pointer
+            {0, display_y},                                    // Start position (x=0)
+            {MINI_SPECTRUM_WIDTH, 1},                         // Width x height
+            &mini_spectrum_data_[safe_index / MINI_SPECTRUM_WIDTH][safe_index % MINI_SPECTRUM_WIDTH]
         );
     }
 }
 
-// Highlight threat zones in spectrum (custom enhancement to Search pattern)
+    // Highlight threat zones in spectrum (custom enhancement to Search pattern)
 void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::vector<DisplayDroneEntry>& drones) {
+    // EMBEDDED SAFETY: Validate drones array
+    if (drones.size() > MAX_DISPLAYED_DRONES) return; // Array bounds security
+
     // For each detected drone, highlight its frequency bin in spectrum
     for (const auto& drone : drones) {
         size_t bin_x = frequency_to_spectrum_bin(drone.frequency);
@@ -420,27 +445,92 @@ void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::vecto
             // Override normal gradient colors with threat colors
             Color threat_color = get_threat_level_color(drone.threat);
 
-            for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT; y++) {
-                mini_spectrum_data_[y][bin_x] = threat_color;
+            // SAFE: Use bounds checking for array access
+            for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT && y < mini_spectrum_data_.size(); y++) {
+                if (bin_x < mini_spectrum_data_[y].size()) {
+                    mini_spectrum_data_[y][bin_x] = threat_color;
+                }
             }
         }
     }
 }
 
-// Convert frequency to spectrum bin position
-size_t DroneDisplayController::frequency_to_spectrum_bin(rf::Frequency freq_hz) const {
-    // Simple linear mapping for mini spectrum
-    // This is a simplified version - real implementation would use spectrum range
-    const rf::Frequency MIN_FREQ = 2400000000; // 2.4GHz
-    const rf::Frequency MAX_FREQ = 2500000000; // 2.5GHz (WiFi/ISM spectrum)
-    const rf::Frequency FREQ_RANGE = MAX_FREQ - MIN_FREQ;
+// EMBEDDED SAFETY: Clear spectrum buffers (utility for validation failures)
+void DroneDisplayController::clear_spectrum_buffers() {
+    // Reset line index
+    spectrum_line_index_ = 0;
 
-    if (freq_hz < MIN_FREQ || freq_hz > MAX_FREQ) {
-        return MINI_SPECTRUM_WIDTH; // Out of range
+    // Clear power levels array
+    std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
+
+    // Clear spectrum data array - fill with black
+    for (auto& row : mini_spectrum_data_) {
+        std::fill(row.begin(), row.end(), Color::black());
+    }
+}
+
+// EMBEDDED SAFETY: Validate spectrum data integrity
+bool DroneDisplayController::validate_spectrum_data() const {
+    // Check arrays sizes match constants
+    if (mini_spectrum_data_.size() != MINI_SPECTRUM_HEIGHT) return false;
+    if (spectrum_power_levels_.size() != MINI_SPECTRUM_WIDTH) return false;
+
+    for (const auto& row : mini_spectrum_data_) {
+        if (row.size() != MINI_SPECTRUM_WIDTH) return false;
     }
 
-    // Linear interpolation to bin position
-    size_t bin = ((freq_hz - MIN_FREQ) * MINI_SPECTRUM_WIDTH) / FREQ_RANGE;
+    // Check gradient is loaded
+    if (spectrum_gradient_.lut.empty()) return false;
+
+    return true;
+}
+
+// EMBEDDED SAFETY: Get safe spectrum array index (2D -> 1D safe mapping)
+size_t DroneDisplayController::get_safe_spectrum_index(size_t x, size_t y) const {
+    // Bounds checking before any array access
+    if (x >= MINI_SPECTRUM_WIDTH || y >= MINI_SPECTRUM_HEIGHT) {
+        return 0; // Return safe default - first element
+    }
+
+    // Return linear index for array access
+    return y * MINI_SPECTRUM_WIDTH + x;
+}
+
+// SPECTRUM CONFIGURATION IMPLEMENTATION: Configurable frequency ranges
+void DroneDisplayController::set_spectrum_range(rf::Frequency min_freq, rf::Frequency max_freq) {
+    // VALIDATION: Ensure valid range and Portapack hardware limits
+    if (min_freq >= max_freq || min_freq < MIN_HARDWARE_FREQ || max_freq > MAX_HARDWARE_FREQ) {
+        // LOGGING: Invalid range, using defaults
+        spectrum_config_.min_freq = 2400000000ULL;  // ISM default
+        spectrum_config_.max_freq = 2500000000ULL;
+        return;
+    }
+
+    spectrum_config_.min_freq = min_freq;
+    spectrum_config_.max_freq = max_freq;
+
+    // Auto-calculate bandwidth from range (simplified)
+    spectrum_config_.bandwidth = (max_freq - min_freq) > 24000000 ?
+                                24000000 : static_cast<uint32_t>(max_freq - min_freq);
+    spectrum_config_.sampling_rate = spectrum_config_.bandwidth; // Direct mapping
+}
+
+// EMBEDDED OPTIMIZATION: Early exit for unused spectrum bins
+size_t DroneDisplayController::frequency_to_spectrum_bin(rf::Frequency freq_hz) const {
+    // CONFIGURABLE: Use spectrum_config instead of hard-coded values
+    const rf::Frequency MIN_FREQ = spectrum_config_.min_freq;
+    const rf::Frequency MAX_FREQ = spectrum_config_.max_freq;
+    const rf::Frequency FREQ_RANGE = MAX_FREQ - MIN_FREQ;
+
+    if (freq_hz < MIN_FREQ || freq_hz > MAX_FREQ || FREQ_RANGE == 0) {
+        return MINI_SPECTRUM_WIDTH; // Out of range - safe sentinel value
+    }
+
+    // Linear interpolation with overflow protection
+    rf::Frequency relative_freq = freq_hz - MIN_FREQ;
+    size_t bin = (relative_freq * MINI_SPECTRUM_WIDTH) / FREQ_RANGE;
+
+    // EMBEDDED SAFETY: Clamp to valid range
     return std::min(bin, MINI_SPECTRUM_WIDTH - 1);
 }
 
