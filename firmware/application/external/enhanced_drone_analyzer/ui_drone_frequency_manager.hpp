@@ -14,7 +14,10 @@
 #include "ui/ui_menu.hpp"
 #include "ui/navigation.hpp"
 #include "ui_drone_types.hpp"
-#include "ui_drone_database.hpp"
+#include "freqman_db.hpp"
+#include "freqman.hpp"
+#include "file_path.hpp"
+
 #include <string>
 #include <vector>
 
@@ -42,6 +45,10 @@ public:
 
 private:
     NavigationView& nav_;
+    std::string freqman_file_{"DRONES"};  // Название файла для дронов
+
+    // ЗАМЕНА: Реальная FreqmanDB вместо пустого db_
+    FreqmanDB freqman_db_;
 
     // Split view: left menu, right details
     MenuView menu_view_{ {0, 0, 200, screen_height}, true };

@@ -4,11 +4,15 @@
 #include "ui_drone_frequency_manager.hpp"
 #include "binder.hpp"
 #include "portapack.hpp"
+#include "freqman_db.hpp"
+#include "file_path.hpp"
+#include "freqman.hpp"
+#include "string_format.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
 DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
-    : nav_(nav), selected_frequency_index_(0) {
+    : nav_(nav), freqman_file_("DRONES"), selected_frequency_index_(0) {
 
     // Add all UI components
     add_children({
@@ -40,12 +44,9 @@ DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
 
     // Initialize frequency field
     frequency_field_.set_step(5000000); // 5MHz steps
-    text_name_.set_length(24);
 
-    // Load initial data if available
-    if (menu_view_.get_menu_view().get_entry_count() > 0) {
-        update_frequency_details();
-    }
+    // Load frequencies from FreqmanDB
+    load_frequencies_from_database();
 }
 
 void DroneFrequencyManagerView::focus() {
@@ -97,63 +98,113 @@ void DroneFrequencyManagerView::on_frequency_selected(size_t index) {
 void DroneFrequencyManagerView::on_add_frequency() {
     // Validate form data first
     if (!validate_current_form()) {
-        update_status_text("Invalid data - check frequency/threat");
+        update_status_text("Invalid data - check all fields");
         return;
     }
 
-    auto new_entry = get_form_data();
+    auto form_data = get_form_data();
 
-    // Add to database (pattern from FreqMan on_add_entry)
-    if (db_.add_entry(new_entry)) {
-        refresh_frequency_list();
-        update_status_text("Frequency added successfully");
-        clear_form();
+    // Создать freqman_entry для сохранения в FreqmanDB
+    freqman_entry entry{
+        .frequency_a = static_cast<rf::Frequency>(form_data.frequency_hz),
+        .frequency_b = static_cast<rf::Frequency>(form_data.frequency_hz),  // Для single частоты
+        .type = freqman_type::Single,
+        .modulation = freqman_index_t(1),  // NFM по умолчанию для дронов
+        .bandwidth = freqman_index_t(3),   // 25kHz по умолчанию
+        .step = freqman_index_t(5),        // 25kHz шаг
+        .description = form_data.name,
+        .tonal = "",                       // Не используется для дронов
+    };
+
+    // Открыть и сохранить в DRONES.TXT
+    if (freqman_db_.open(get_freqman_path(freqman_file_), true)) {
+        // Проверить дубликаты
+        auto it = freqman_db_.find_entry([&entry](const auto& e) {
+            return e.frequency_a == entry.frequency_a;
+        });
+
+        if (it != freqman_db_.end()) {
+            update_status_text("Frequency already exists");
+            return;
+        }
+
+        if (freqman_db_.append_entry(entry)) {
+            refresh_frequency_list();
+            clear_form();
+            update_status_text("Frequency added successfully");
+        } else {
+            update_status_text("Failed to save frequency");
+        }
     } else {
-        update_status_text("Failed to add - duplicate or DB full");
+        update_status_text("Cannot open DRONES.TXT");
     }
 }
 
 void DroneFrequencyManagerView::on_update_frequency() {
-    // Update existing entry (pattern from FreqMan)
-    if (!validate_current_form()) {
-        update_status_text("Invalid data - check frequency/threat");
+    // Update existing entry in FreqmanDB
+    if (selected_frequency_index_ >= freqman_db_.entry_count()) {
+        update_status_text("No frequency selected");
         return;
     }
 
-    auto updated_entry = get_form_data();
-
-    if (db_.update_entry(selected_frequency_index_, updated_entry)) {
-        refresh_frequency_list();
-        update_frequency_details();
-        update_status_text("Frequency updated successfully");
-    } else {
-        update_status_text("Failed to update frequency");
+    if (!validate_current_form()) {
+        update_status_text("Invalid data - check all fields");
+        return;
     }
+
+    auto form_data = get_form_data();
+
+    // Обновить существующую freqman_entry
+    if (freqman_db_[selected_frequency_index_].type == freqman_type::Single) {
+        freqman_db_[selected_frequency_index_].frequency_a = static_cast<rf::Frequency>(form_data.frequency_hz);
+        freqman_db_[selected_frequency_index_].frequency_b = static_cast<rf::Frequency>(form_data.frequency_hz);
+    }
+    freqman_db_[selected_frequency_index_].description = form_data.name;
+
+    // Сохранить изменения
+    freqman_db_.save();
+
+    refresh_frequency_list();
+    update_frequency_details();
+    update_status_text("Frequency updated successfully");
 }
 
 void DroneFrequencyManagerView::on_remove_frequency() {
-    // Remove entry (pattern from FreqMan on_del_entry)
+    // Remove entry from FreqmanDB
+    if (selected_frequency_index_ >= freqman_db_.entry_count()) {
+        update_status_text("No frequency selected");
+        return;
+    }
+
     nav_.push<ModalMessageView>(
         "Delete", "Delete selected frequency?",
         YESNO,
         [this](bool choice) {
             if (choice) {
-                if (db_.remove_entry(selected_frequency_index_)) {
-                    refresh_frequency_list();
-                    if (selected_frequency_index_ >= db_.size()) {
-                        selected_frequency_index_ = 0;
-                    }
-                    update_frequency_details();
-                    update_status_text("Frequency deleted");
+                // Удалить запись из FreqmanDB
+                freqman_db_.erase(freqman_db_.begin() + selected_frequency_index_);
+                freqman_db_.save();
+
+                if (selected_frequency_index_ >= freqman_db_.entry_count() && freqman_db_.entry_count() > 0) {
+                    selected_frequency_index_ = freqman_db_.entry_count() - 1;
                 } else {
-                    update_status_text("Delete failed");
+                    selected_frequency_index_ = 0;
                 }
+
+                refresh_frequency_list();
+                update_frequency_details();
+                update_status_text("Frequency deleted");
             }
         });
 }
 
 void DroneFrequencyManagerView::on_clear_all() {
-    // Clear all entries (pattern from FreqMan)
+    // Clear all entries from FreqmanDB
+    if (freqman_db_.entry_count() == 0) {
+        update_status_text("No frequencies to clear");
+        return;
+    }
+
     nav_.push<ModalMessageView>(
         "Clear All", "Delete ALL frequencies?",
         YESNO,
@@ -164,8 +215,13 @@ void DroneFrequencyManagerView::on_clear_all() {
                     YESNO,
                     [this](bool choice) {
                         if (choice) {
-                            db_.clear_database();
+                            // Очистить все и сохранить пустую БД
+                            freqman_db_.clear();
+                            freqman_db_.save();
+
+                            selected_frequency_index_ = 0;
                             refresh_frequency_list();
+                            clear_form();
                             update_status_text("All frequencies cleared");
                         }
                     });
@@ -174,22 +230,26 @@ void DroneFrequencyManagerView::on_clear_all() {
 }
 
 void DroneFrequencyManagerView::update_frequency_details() {
-    // Update UI fields based on selected frequency
-    const auto* entry = db_.get_entry(selected_frequency_index_);
-    if (!entry) {
+    // Update UI fields based on selected frequency from FreqmanDB
+    if (selected_frequency_index_ >= freqman_db_.entry_count()) {
         clear_form();
         return;
     }
 
-    // Update all UI fields
-    frequency_field_.set_value(entry->frequency_hz);
-    drone_type_field_.set_selected_index(static_cast<size_t>(entry->drone_type));
-    threat_level_field_.set_selected_index(static_cast<size_t>(entry->threat_level));
-    rssi_field_.set_value(entry->rssi_threshold_db);
-    text_name_.set(entry->name);
-    bandwidth_field_.set_value(entry->bandwidth_hz);
-    enabled_checkbox_.set_value(true); // Assuming all entries are enabled
+    const freqman_entry& entry = freqman_db_[selected_frequency_index_];
 
+    // Load frequency and description from FreqmanDB entry
+    frequency_field_.set_value(entry.frequency_a);
+    text_name_.set(entry.description);
+
+    // For now, set default values for drone-specific fields
+    // TODO: Later we could encode drone type/threat in description field
+    drone_type_field_.set_selected_index(static_cast<size_t>(DroneType::UNKNOWN));
+    threat_level_field_.set_selected_index(static_cast<size_t>(ThreatLevel::LOW));
+    rssi_field_.set_value(-85);  // Default RSSI threshold for drones
+    bandwidth_field_.set_value(20000000);  // Default bandwidth
+
+    enabled_checkbox_.set_value(true);
     update_status_text("Entry loaded");
 }
 
@@ -224,8 +284,36 @@ FrequencyEntryForm DroneFrequencyManagerView::get_form_data() const {
 }
 
 void DroneFrequencyManagerView::refresh_frequency_list() {
-    // Refresh menu display (pattern from FreqMan refresh_categories)
-    // This would rebuild the list view
+    // Following FreqManUIList pattern, recreate menu items
+    // Clear existing menu items
+    menu_view_.get_menu_view().clear();
+
+    size_t entry_count = freqman_db_.entry_count();
+    if (entry_count == 0) {
+        update_status_text("No frequencies loaded");
+        return;
+    }
+
+    // Add each frequency to the menu
+    for (size_t i = 0; i < entry_count; ++i) {
+        const freqman_entry& entry = freqman_db_[i];
+
+        // Format display text: "433.92MHz: DJI Drone A"
+        std::string display_text = to_string_short_freq(entry.frequency_a) + ": " + entry.description;
+
+        // Add menu item with callback
+        menu_view_.get_menu_view().add_item({
+            display_text,
+            Theme::getInstance()->fg_light->foreground,
+            nullptr,  // No bitmap
+            [this, i]() {
+                selected_frequency_index_ = i;
+                update_frequency_details();
+            }
+        });
+    }
+
+    update_status_text(to_string_dec_uint(entry_count) + " frequencies loaded");
 }
 
 void DroneFrequencyManagerView::update_status_text(const char* text) {
@@ -269,6 +357,28 @@ void DroneFrequencyManagerView::initialize_menu_options() {
         {"-", 0},
         {"+", 1},
     });
+}
+
+void DroneFrequencyManagerView::load_frequencies_from_database() {
+    // Попытаться открыть или создать файл DRONES.TXT
+    if (freqman_db_.open(get_freqman_path(freqman_file_), true)) {
+        // Файл открыт, обновить меню частот
+        refresh_frequency_list();
+
+        if (freqman_db_.entry_count() > 0) {
+            // Выбрать первую запись для отображения в форме
+            selected_frequency_index_ = 0;
+            update_frequency_details();
+        } else {
+            // Пустая база данных - форма останется очищенной
+            clear_form();
+            update_status_text("No frequencies loaded - add new ones");
+        }
+    } else {
+        // Не удалось открыть/создать файл
+        clear_form();
+        update_status_text("Cannot access frequency database");
+    }
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer
