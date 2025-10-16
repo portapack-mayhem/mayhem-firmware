@@ -130,20 +130,17 @@ private:
     void perform_wideband_scan_cycle(DroneHardwareController& hardware);
     void perform_hybrid_scan_cycle(DroneHardwareController& hardware);
 
-    // Database dependency injection
-    const DroneFrequencyDatabase* database_ = nullptr;
-
     // Embedded trend counting for Portapack constraints
     void update_tracking_counts();
-    void update_trends_compact_display();
+    void update_trends_compact_display();  // Placeholder - implementation moved to UI layer
 
-    // Frequency validation
+    // Frequency validation using SimpleDroneValidation from ui_drone_validation.hpp
     bool validate_detection_simple(int32_t rssi_db, ThreatLevel threat);
 
-    // Private frequency access helpers
+    // Private frequency access helpers (Recon pattern)
     rf::Frequency get_current_radio_frequency() const;
 
-    // Prevent copying
+    // Prevent copying (embedded constraints)
     DroneScanner(const DroneScanner&) = delete;
     DroneScanner& operator=(const DroneScanner&) = delete;
 };

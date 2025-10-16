@@ -3,7 +3,8 @@
 
 #include "ui_drone_scanner.hpp"
 #include "ui_drone_hardware.hpp"
-#include "ui_drone_validation.hpp"  // ADD: Include for SimpleDroneValidation
+#include "ui_drone_validation.hpp"        // ADD: Include for SimpleDroneValidation
+#include "ui_drone_detection_ring.hpp"   // ADD: Ring buffer for memory optimization
 
 #include <algorithm>
 
@@ -319,27 +320,30 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
     }
 
     // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY) + HYSTERESIS
-    // Require multiple consecutive detections for stability + RSSI hysteresis
-    static std::array<uint8_t, 512> detection_counts = {};  // EMBEDDED OPTIMIZATION: Reduced from 1024 to save memory
-    static std::array<int32_t, 512> prev_rssi_values = {};  // Remember previous RSSI for hysteresis
-    size_t freq_hash = entry.frequency_a % detection_counts.size();
+    // OPTIMIZED: Now using ring buffer for 75% memory reduction
+    extern DetectionRingBuffer global_detection_ring;  // Forward declaration
 
-    // HYSTERESIS PROTECTION: Require RSSI to be consistently above threshold by margin
-    // Now using consolidated config constant
+    size_t freq_hash = entry.frequency_a;  // FREQUENCY AS HASH KEY
+
+    // HYSTERESIS PROTECTION: Check previous RSSI for stability
     int32_t effective_threshold = detection_threshold;
-    if (prev_rssi_values[freq_hash] < detection_threshold) {
-        effective_threshold = detection_threshold + HYSTERESIS_MARGIN_DB;  // Higher threshold for initially weak signals
+    if (global_detection_ring.get_rssi_value(freq_hash) < detection_threshold) {
+        effective_threshold = detection_threshold + HYSTERESIS_MARGIN_DB;
     }
-    prev_rssi_values[freq_hash] = rssi;  // Update for next cycle
 
     if (rssi >= detection_threshold) {
-        detection_counts[freq_hash] = std::min((uint8_t)(detection_counts[freq_hash] + 1), (uint8_t)255);
-        if (detection_counts[freq_hash] >= DETECTION_DELAY) {
+        // RING BUFFER UPDATE: O(1) memory efficient operation
+        uint8_t current_count = global_detection_ring.get_detection_count(freq_hash);
+        current_count = std::min((uint8_t)(current_count + 1), (uint8_t)255);
+        global_detection_ring.update_detection(freq_hash, current_count, rssi);
+
+        if (current_count >= MIN_DETECTION_COUNT) {
             // STEP 4: UPDATE DRONE TRACKING (Search/Looking Glass pattern)
             update_tracked_drone(detected_type, entry.frequency_a, rssi, threat_level);
         }
     } else {
-        detection_counts[freq_hash] = 0;  // Reset on signal loss
+        // RESET detection on signal loss (false negatives prevention)
+        global_detection_ring.update_detection(freq_hash, 0, -120);  // Use -120 as sentinel
     }
 }
 

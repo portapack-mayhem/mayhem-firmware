@@ -3,6 +3,7 @@
 
 #include "ui_drone_hardware.hpp"
 #include "receiver_model.hpp"
+#include "ui_drone_config.hpp"  // ADD: Include config for frequency validation
 #include <algorithm>
 
 namespace ui::external_app::enhanced_drone_analyzer {

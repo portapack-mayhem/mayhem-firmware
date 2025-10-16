@@ -13,6 +13,8 @@
 #include "channel_spectrum.hpp"     // Spectrum data structures
 #include "irq_controls.hpp"         // HardwareGuard for mutex protection
 
+#include <mutex>                    // ADD: Mutex for HardwareGuard implementation
+
 #include <memory>
 
 namespace ui::external_app::enhanced_drone_analyzer {
@@ -58,8 +60,19 @@ public:
     RxRadioState& get_radio_state() { return radio_state_; }
 
 private:
-    // ADD: Hardware guard for mutex protection following Detector RX pattern
+    // ADD: Global hardware mutex following Detector RX pattern
+    static std::mutex g_hardware_mutex_;         // Global mutex for hardware access protection
+
+    // Hardware guard for mutex protection following Detector RX pattern
     HardwareGuard hardware_guard_;                // RAII mutex protection for hardware access
+
+    // ADD: Reusable hardware guard template
+    class HardwareLockGuard {
+        std::unique_lock<std::mutex> lock_;
+    public:
+        HardwareLockGuard() : lock_(g_hardware_mutex_) {}
+        // RAII - automatically unlocks when destroyed
+    };
 
     // Spectrum configuration
     SpectrumMode spectrum_mode_;                    // Current spectrum settings
