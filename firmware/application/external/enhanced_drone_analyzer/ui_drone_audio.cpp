@@ -29,6 +29,11 @@ void DroneAudioController::cleanup_audio_device() {
 void DroneAudioController::play_detection_beep(ThreatLevel level) {
     if (!audio_enabled_) return;
 
+    // ADD BOUNDS CHECKING: Validate threat level (CRITICAL SAFETY FIX)
+    if (level < ThreatLevel::NONE || level > ThreatLevel::CRITICAL) {
+        level = ThreatLevel::MEDIUM;  // Safe default
+    }
+
     uint16_t frequency = get_beep_frequency(level);
 
     // Setup audio like in Looking Glass and Recon
