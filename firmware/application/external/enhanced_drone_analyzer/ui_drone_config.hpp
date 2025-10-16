@@ -207,4 +207,6 @@ static constexpr size_t DETECTION_MEMORY_SIZE = DETECTION_TABLE_SIZE * sizeof(ui
 
 } // namespace ui::external_app::enhanced_drone_analyzer
 
+} // namespace ui::external_app::enhanced_drone_analyzer
+
 #endif // __UI_DRONE_CONFIG_HPP__

@@ -95,14 +95,7 @@ enum class MovementTrend : uint8_t {
         }
     };
 
-// PRODUCTION: Add preset bandwidth mappings to save space
-static constexpr uint32_t DRONE_BANDWIDTH_PRESETS[] = {
-    3000000,  // 0: 3MHz - standard drone channel
-    6000000,  // 1: 6MHz - wideband civilian drones
-    10000000, // 2: 10MHz - military/various payloads
-    20000000, // 3: 20MHz - experimental/commercial
-    0         // END MARKER
-};
+// IMPORTANT: Bandwidth presets moved to ui_drone_config.hpp for consolidation
 
 // EMBEDDED-FRIENDLY: Fixed-size structure (15 bytes), no dynamic allocation
 struct TrackedDrone {
@@ -140,7 +133,8 @@ struct TrackedDrone {
 private:
     // CALCULATE TREND BASED ON RSSI CHANGE - Hardware optimized
     void calculate_simple_trend() {
-        const int16_t TREND_THRESHOLD_DB = 3; // 3dB minimum change
+        // Now using consolidated config constant instead of local TREND_THRESHOLD_DB
+#include "ui_drone_config.hpp"
         int16_t diff = last_rssi - prev_rssi;
 
         // PORTAPACK CONSTRAINT: Gradual trend accumulation

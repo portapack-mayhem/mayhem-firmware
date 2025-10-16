@@ -179,8 +179,10 @@ void DroneHardwareController::handle_channel_spectrum(const ChannelSpectrum& spe
 
         // STEP 3: RSSI FILTERING WITH WEIGHTED AVERAGE (Enhanced stability)
         // Use weighted average to smooth noise while maintaining responsiveness
-        const float ALPHA = 0.3f;  // New reading weight - balance between stability and responsiveness
-        last_valid_rssi_ = static_cast<int32_t>((ALPHA * avg_rssi) + ((1.0f - ALPHA) * last_valid_rssi_));
+        // Now using consolidated config constant
+#include "ui_drone_config.hpp"
+        last_valid_rssi_ = static_cast<int32_t>((RSSI_SMOOTHING_ALPHA * avg_rssi) +
+                                              ((1.0f - RSSI_SMOOTHING_ALPHA) * last_valid_rssi_));
     }
 
     // Delegate further processing to specialized method

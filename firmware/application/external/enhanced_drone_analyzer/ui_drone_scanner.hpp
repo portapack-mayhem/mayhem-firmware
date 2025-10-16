@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <array>
+#include "ui_drone_config.hpp"  // ADD: Include config for MAX_TRACKED_DRONES
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -103,7 +104,7 @@ private:
     bool is_real_mode_ = true;
 
     // Drone tracking system (embedded-compatible fixed arrays)
-    static constexpr size_t MAX_TRACKED_DRONES = 8;
+    // MAX_TRACKED_DRONES moved to ui_drone_config.hpp for consolidation
     std::array<TrackedDrone, MAX_TRACKED_DRONES> tracked_drones_;
     size_t tracked_drones_count_ = 0;
 

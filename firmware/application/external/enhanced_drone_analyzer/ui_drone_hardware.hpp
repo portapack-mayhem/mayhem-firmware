@@ -17,18 +17,7 @@
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
-// Configurable spectrum settings matching other spectrum apps
-enum class SpectrumMode {
-    ULTRA_NARROW = 0,    // 4MHz bandwidth
-    NARROW = 1,          // 8MHz bandwidth
-    MEDIUM = 2,          // 12MHz bandwidth (default for drone analysis)
-    WIDE = 3,            // 20MHz bandwidth
-    ULTRA_WIDE = 4       // 24MHz bandwidth (Looking Glass max)
-};
-
-// Bandwidth/sampling rate mapping following DetectorRx/Level patterns
-static constexpr int32_t SPECTRUM_BANDWIDTHS[] = {4000000, 8000000, 12000000, 20000000, 24000000};
-static constexpr int32_t SPECTRUM_SAMPLING_RATES[] = {4000000, 8000000, 12000000, 20000000, 24000000};
+// IMPORTANT: Spectrum constants moved to ui_drone_config.hpp for consolidation
 
 class DroneHardwareController {
 public:

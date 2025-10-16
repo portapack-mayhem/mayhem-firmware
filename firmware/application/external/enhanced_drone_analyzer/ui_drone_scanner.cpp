@@ -325,10 +325,10 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
     size_t freq_hash = entry.frequency_a % detection_counts.size();
 
     // HYSTERESIS PROTECTION: Require RSSI to be consistently above threshold by margin
-    const int32_t HYSTERESIS_MARGIN = 5;  // dB - prevent false triggers from noise fluctuations
+    // Now using consolidated config constant
     int32_t effective_threshold = detection_threshold;
     if (prev_rssi_values[freq_hash] < detection_threshold) {
-        effective_threshold = detection_threshold + HYSTERESIS_MARGIN;  // Higher threshold for initially weak signals
+        effective_threshold = detection_threshold + HYSTERESIS_MARGIN_DB;  // Higher threshold for initially weak signals
     }
     prev_rssi_values[freq_hash] = rssi;  // Update for next cycle
 
