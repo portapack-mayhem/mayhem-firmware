@@ -114,6 +114,7 @@ class WeatherView : public View {
 
    private:
     void on_tick_second();
+    uint16_t bcd_decode_short(uint32_t data);
     void on_data(const WeatherDataMessage* data);
     WeatherRecentEntry process_data(const WeatherDataMessage* data);
     NavigationView& nav_;
