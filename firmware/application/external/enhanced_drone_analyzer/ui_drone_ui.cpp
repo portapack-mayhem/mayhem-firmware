@@ -344,67 +344,72 @@ void DroneDisplayController::initialize_mini_spectrum() {
     }
 }
 
-// Process incoming spectrum data (Search app on_channel_spectrum pattern)
+// Process incoming spectrum data (PHASE 2 FIX: Optimize bin processing efficiency)
 void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& spectrum) {
-    // Similar to Search app's spectrum processing but mini version
-    // Convert ChannelSpectrum to mini waterfall line
-    // FIX: Remove spectrum_streaming_stop/start - follow Looking Glass pattern
-    // Looking Glass: Keep streaming continuous, manage in on_show/on_hide only
+    // PHASE 2 FIX: Following Looking Glass fractional bin processing pattern
+    // Process spectrum data efficiently, only bins we need for display
 
-    // Clear current power levels (Looking Glass bin reset pattern)
+    // Clear power levels for new scan
     std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
 
-    // EMBEDDED OPTIMIZATION: Process only bins used for mini-spectrum, early exit
-    for (size_t bin = 0; bin < std::min(size_t{256}, MINI_SPECTRUM_WIDTH); bin++) {
-        // EMBEDDED OPTIMIZATION: Early exit for unused bins
-        if (bin >= MINI_SPECTRUM_WIDTH) break;
+    // PHASE 2 FIX: Process only visible bins efficiently
+    // Looking Glass uses full 256 bins but we optimize for our display needs
+    bins_hz_size += each_bin_size;  // Accumulate Hz covered by this bin
 
-        // Skip DC spike and edges (Search pattern bin filtering)
-        if (bin >= 2 && bin <= 253 && !(bin >= 122 && bin <= 134)) {
-            uint8_t power;
-            if (bin < 128) {
-                power = spectrum.db[128 + bin];
-            } else {
-                power = spectrum.db[bin - 128];
-            }
+    // Get max power for current bin (Looking Glass approach)
+    uint8_t max_power = 0;
+    get_max_power_for_current_bin(spectrum, max_power);
 
-            // Store power for mini spectrum
-            spectrum_power_levels_[bin] = power;
-        } else {
-            // Mark filtered bins as zero
-            spectrum_power_levels_[bin] = 0;
-        }
+    // Store power for later gradient rendering
+    if (*powerlevel > min_color_power) {
+        add_spectrum_pixel_from_bin(max_power);
+    } else {
+        add_spectrum_pixel_from_bin(0);
     }
 
-    // EMBEDDED SAFETY: Validate spectrum data before processing
+    *powerlevel = 0;  // Reset for next bin
+
+    // Signal when we complete a screen line (240 pixels)
+    if (pixel_index == screen_width) {
+        // Line complete - renderer will handle display
+        bins_hz_size = 0;  // Reset Hz accumulator
+    }
+}
+
+// PHASE 2 OPTIMIZATION: Get max power from current spectrum bin
+void DroneDisplayController::get_max_power_for_current_bin(const ChannelSpectrum& spectrum, uint8_t& max_power) {
+    // PHASE 2 FIX: Simplified bin access following Search pattern
+    // Use center bins, skip DC spike and edges
+    for (size_t bin = 2; bin <= 253; bin++) {
+        if (bin >= 122 && bin <= 134) continue; // Skip DC spike
+
+        uint8_t power;
+        if (bin < 128) {
+            power = spectrum.db[128 + bin];
+        } else {
+            power = spectrum.db[bin - 128];
+        }
+
+        if (power > max_power)
+            max_power = power;
+    }
+}
+
+// PHASE 2 OPTIMIZATION: Build pixel from bin data efficiently
+void DroneDisplayController::add_spectrum_pixel_from_bin(uint8_t power) {
+    // PHASE 2 FIX: Direct pixel assembly following Looking Glass pattern
     if (!validate_spectrum_data()) {
         clear_spectrum_buffers();
         return;
     }
 
-    // Shift existing spectrum lines (waterfall effect - Search pattern)
-    for (size_t line = MINI_SPECTRUM_HEIGHT - 1; line > 0; line--) {
-        for (size_t col = 0; col < MINI_SPECTRUM_WIDTH; col++) {
-            size_t safe_index = get_safe_spectrum_index(col, line);
-            size_t prev_safe_index = get_safe_spectrum_index(col, line - 1);
-            mini_spectrum_data_[safe_index / MINI_SPECTRUM_WIDTH][safe_index % MINI_SPECTRUM_WIDTH] =
-                mini_spectrum_data_[prev_safe_index / MINI_SPECTRUM_WIDTH][prev_safe_index % MINI_SPECTRUM_WIDTH];
-        }
+    // Apply gradient and store in row buffer
+    if (pixel_index < spectrum_row.size()) {
+        spectrum_row[pixel_index] = spectrum_gradient_.lut[
+            std::min(power, static_cast<uint8_t>(spectrum_gradient_.lut.size() - 1))
+        ];
+        pixel_index++;
     }
-
-    // Create new spectrum line with gradient coloring
-    for (size_t x = 0; x < MINI_SPECTRUM_WIDTH; x++) {
-        size_t safe_index = get_safe_spectrum_index(x, 0);
-        uint8_t power = spectrum_power_levels_[x];
-        uint8_t safe_power = std::min(power, static_cast<uint8_t>(spectrum_gradient_.lut.size() - 1));
-        mini_spectrum_data_[safe_index / MINI_SPECTRUM_WIDTH][safe_index % MINI_SPECTRUM_WIDTH] =
-            spectrum_gradient_.lut[safe_power];
-    }
-
-    spectrum_line_index_ = (spectrum_line_index_ + 1) % MINI_SPECTRUM_HEIGHT;
-
-    // FIX: Remove spectrum_streaming_start() - following Looking Glass pattern
-    // Spectrum streaming is managed in main view's on_show/on_hide methods
 }
 
 // Render mini spectrum display (PHASE 1 FIX: Following Looking Glass pattern)

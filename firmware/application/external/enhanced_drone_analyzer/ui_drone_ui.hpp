@@ -54,10 +54,11 @@ public:
     // UI: Detected drones list with RSSI sorting (Search pattern)
     static constexpr size_t MAX_DISPLAYED_DRONES = 3;
 
-    // Text fields for displaying detected drones (Recon text pattern)
-    Text text_drone_1{{0, MINI_SPECTRUM_Y_START + 8, screen_width/2, 16}, ""};
-    Text text_drone_2{{screen_width/2, MINI_SPECTRUM_Y_START + 8, screen_width/2, 16}, ""};
-    Text text_drone_3{{0, MINI_SPECTRUM_Y_START + 24, screen_width/2, 16}, ""};
+    // Text fields for displaying detected drones (PHASE 4 FIX: Compile-time bounds)
+    // SPECTRUM_Y_TOP + 8: Below spectrum area, compile-time safe positioning
+    Text text_drone_1{{0, SPECTRUM_Y_TOP + 8, screen_width/2, 16}, ""};
+    Text text_drone_2{{screen_width/2, SPECTRUM_Y_TOP + 8, screen_width/2, 16}, ""};
+    Text text_drone_3{{0, SPECTRUM_Y_TOP + 24, screen_width/2, 16}, ""};
 
     // Display format constants
     static constexpr const char* DRONE_DISPLAY_FORMAT = "%s %s %-4ddB %c";
@@ -108,12 +109,18 @@ private:
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> detected_drones_;
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;  // Top 3 by RSSI
 
-    // Mini waterfall spectrum data (EMBEDDED FIX: Fixed arrays optimized for embedded)
-    std::array<std::array<Color, MINI_SPECTRUM_WIDTH>, MINI_SPECTRUM_HEIGHT> mini_spectrum_data_;   // MINI_SPECTRUM_HEIGHT x MINI_SPECTRUM_WIDTH
-    std::array<uint8_t, MINI_SPECTRUM_WIDTH> spectrum_power_levels_;         // Raw power for color mapping
-    Gradient spectrum_gradient_;                            // Color gradient for spectrum (Search style)
-    ChannelSpectrumFIFO* spectrum_fifo_ = nullptr;          // FIFO for spectrum data
-    uint32_t spectrum_line_index_ = 0;                      // Current line in waterfall
+    // PHASE 3 FIX: Memory optimization - exact size arrays following Looking Glass pattern
+    // Removed over-allocated mini_spectrum_data_ - only needed for scrolling spectrum
+    std::array<Color, screen_width> spectrum_row;           // One line buffer for scrolling (PHASE 1 FIX)
+    std::array<uint8_t, MINI_SPECTRUM_WIDTH> spectrum_power_levels_; // Raw power for color mapping
+    Gradient spectrum_gradient_;                             // Color gradient for spectrum (Search style)
+    ChannelSpectrumFIFO* spectrum_fifo_ = nullptr;           // FIFO for spectrum data
+    size_t pixel_index = 0;                                  // Current pixel in row (PHASE 1 FIX)
+    uint32_t bins_hz_size = 0;                               // Hz accumulator (PHASE 2 FIX)
+    uint32_t each_bin_size = 100000;                         // Hz per bin (configurable)
+    uint8_t* powerlevel = nullptr;                            // Current power working variable
+    uint8_t min_color_power = 0;                             // Filter threshold
+    const uint8_t ignore_dc = 4;                             // DC spike bins to ignore
 
     // UI: Detected drones list with RSSI sorting (Search pattern)
     NavigationView& nav_;
