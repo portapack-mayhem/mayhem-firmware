@@ -254,16 +254,46 @@ void DroneFrequencyManagerView::update_frequency_details() {
 }
 
 bool DroneFrequencyManagerView::validate_current_form() {
-    // Validate form data (pattern from FreqMan)
+    // Enhanced validation based on Level/Scanner patterns
     rf::Frequency freq = frequency_field_.get_value();
     ThreatLevel threat = static_cast<ThreatLevel>(threat_level_field_.selected_index_value());
+    DroneType drone_type = static_cast<DroneType>(drone_type_field_.selected_index_value());
+    int32_t rssi_threshold = rssi_field_.get_value();
+    std::string name = text_name_.get_string();
+    uint32_t bandwidth = bandwidth_field_.get_value();
 
+    // Validate frequency range (Portapack hardware constraints)
+    if (freq < MIN_HARDWARE_FREQ || freq > MAX_HARDWARE_FREQ) {
+        return false;
+    }
+
+    // Validate specific drone frequency ranges (safety constraint)
     if (freq < MIN_DRONE_FREQUENCY || freq > MAX_DRONE_FREQUENCY) {
         return false;
     }
 
-    // Validate threat level is within bounds
-    if (static_cast<size_t>(threat) >= static_cast<size_t>(ThreatLevel::UNKNOWN)) {
+    // Validate threat level bounds
+    if (static_cast<size_t>(threat) > static_cast<size_t>(ThreatLevel::CRITICAL)) {
+        return false;
+    }
+
+    // Validate drone type bounds
+    if (static_cast<size_t>(drone_type) >= static_cast<size_t>(DroneType::MAX_TYPES)) {
+        return false;
+    }
+
+    // Validate RSSI threshold range (realistic detection bounds)
+    if (rssi_threshold < -120 || rssi_threshold > -10) {
+        return false;
+    }
+
+    // Validate bandwidth within drone operation ranges
+    if (bandwidth < 1000000 || bandwidth > 100000000) { // 1MHz to 100MHz
+        return false;
+    }
+
+    // Validate name length (UI constraint)
+    if (name.empty() || name.length() > 20) {
         return false;
     }
 

@@ -5,6 +5,7 @@
 #include "ui_drone_hardware.hpp"
 #include "ui_drone_validation.hpp"        // ADD: Include for SimpleDroneValidation
 #include "ui_drone_detection_ring.hpp"   // ADD: Ring buffer for memory optimization
+#include "ui_detection_logger.hpp"       // ADD: Include for detection logging
 
 #include <algorithm>
 
@@ -338,6 +339,22 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
         global_detection_ring.update_detection(freq_hash, current_count, rssi);
 
         if (current_count >= MIN_DETECTION_COUNT) {
+            // STEP 6: LOG DETECTION (NEW: Integrated logging following LogFile pattern)
+            DroneDetectionLogger detection_logger;
+            DetectionLogEntry log_entry{
+                .timestamp = chTimeNow(),
+                .frequency_hz = static_cast<uint32_t>(entry.frequency_a),
+                .rssi_db = rssi,
+                .threat_level = threat_level,
+                .drone_type = detected_type,
+                .detection_count = current_count,
+                .confidence_score = 0.85f  // Placeholder confidence calculation
+            };
+
+            if (detection_logger.is_session_active()) {
+                detection_logger.log_detection(log_entry);
+            }
+
             // STEP 4: UPDATE DRONE TRACKING (Search/Looking Glass pattern)
             update_tracked_drone(detected_type, entry.frequency_a, rssi, threat_level);
         }
