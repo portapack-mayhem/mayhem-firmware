@@ -6,6 +6,7 @@
 #include "ui_drone_validation.hpp"        // ADD: Include for SimpleDroneValidation
 #include "ui_drone_detection_ring.hpp"   // ADD: Ring buffer for memory optimization
 #include "ui_detection_logger.hpp"       // ADD: Include for detection logging
+#include "ui_drone_database.hpp"         // ADD: Include for DroneFrequencyDatabase
 
 #include <algorithm>
 
@@ -39,6 +40,13 @@ void DroneScanner::initialize_database_and_scanner() {
     // PK: Removed unused scanner/detector initialization - causing conflicts
     // Initialize spectrum collector for REAL RSSI measurements - V0 INTEGRATION
     // This has been moved to DroneHardwareController
+
+    // Initialize owned drone database - same as freq database
+    std::filesystem::path db_path = get_freqman_path("DRONES");
+    if (!drone_database_.open(db_path, true)) {
+        // Database initialization failed - continue without enhanced drone data
+        // Scanning will work but with default parameters
+    }
 }
 
 void DroneScanner::cleanup_database_and_scanner() {
@@ -291,14 +299,12 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
     }
 
     // STEP 2: CHECK DATABASE THRESHOLD (fixed from Recon pattern)
-    // Database has RSSI threshold per frequency - check against it
+    // Use owned DroneFrequencyDatabase instead of uninitialized database_ pointer
     int32_t detection_threshold = -90; // Default if no database entry
 
-    if (database_) {
-        const auto* db_entry = database_->lookup_frequency(entry.frequency_a);
-        if (db_entry) {
-            detection_threshold = db_entry->rssi_threshold_db;
-        }
+    const auto* db_entry = drone_database_.lookup_frequency(entry.frequency_a);
+    if (db_entry) {
+        detection_threshold = db_entry->rssi_threshold_db;
     }
 
     // Only count as detection if RSSI exceeds threshold (Recon pattern: if (db > squelch))
@@ -308,16 +314,14 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
 
     total_detections_++;  // Increment total signal detections counter
 
-    // STEP 3: GET DRONE INFO FROM DATABASE (Search app pattern)
+    // STEP 3: GET DRONE INFO FROM OWNED DATABASE (Search app pattern)
     DroneType detected_type = DroneType::UNKNOWN;
     ThreatLevel threat_level = ThreatLevel::LOW;
 
-    if (database_) {
-        const auto* db_entry = database_->lookup_frequency(entry.frequency_a);
-        if (db_entry) {
-            detected_type = db_entry->drone_type;
-            threat_level = db_entry->threat_level;
-        }
+    // Use our owned drone database for lookup
+    if (db_entry) {
+        detected_type = db_entry->drone_type;
+        threat_level = db_entry->threat_level;
     }
 
     // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY) + HYSTERESIS

@@ -143,6 +143,11 @@ private:
     // Prevent copying (embedded constraints)
     DroneScanner(const DroneScanner&) = delete;
     DroneScanner& operator=(const DroneScanner&) = delete;
+
+private:
+    // OWNED: Drone-specific database for lookup operations
+    // This is initialized and managed by UI layer based on Frequency Manager edits
+    DroneFrequencyDatabase drone_database_;
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer

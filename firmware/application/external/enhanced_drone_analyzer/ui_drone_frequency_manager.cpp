@@ -45,7 +45,14 @@ DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
     // Initialize frequency field
     frequency_field_.set_step(5000000); // 5MHz steps
 
-    // Load frequencies from FreqmanDB
+    // Initialize both databases - DroneFrequencyDatabase for drone-specific data
+    std::filesystem::path db_path = get_freqman_path(freqman_file_);
+    if (!drone_db_.open(db_path, true)) {
+        // Fallback to basic FreqmanDB if DroneFrequencyDatabase fails
+        update_status_text("Using basic database mode");
+    }
+
+    // Load frequencies from database
     load_frequencies_from_database();
 }
 
@@ -104,7 +111,34 @@ void DroneFrequencyManagerView::on_add_frequency() {
 
     auto form_data = get_form_data();
 
-    // Создать freqman_entry для сохранения в FreqmanDB
+    // Create DroneFrequencyEntry for drone database
+    DroneFrequencyEntry drone_entry{
+        .frequency_hz = form_data.frequency_hz,
+        .drone_type = form_data.drone_type,
+        .threat_level = form_data.threat_level,
+        .rssi_threshold_db = form_data.rssi_threshold_db,
+        .bandwidth_idx = 0,  // Default - can be calculated from bandwidth_hz later
+        .name_offset = 0
+    };
+    drone_entry.name = form_data.name;
+
+    // Check for duplicates in drone database
+    if (drone_db_.lookup_frequency(form_data.frequency_hz) != nullptr) {
+        update_status_text("Frequency already exists");
+        return;
+    }
+
+    // Add to drone database first
+    if (drone_db_.add_drone_frequency(drone_entry, false)) {
+        drone_db_.save();  // Persist changes
+        refresh_frequency_list();
+        clear_form();
+        update_status_text("Frequency added successfully");
+    } else {
+        update_status_text("Failed to save frequency");
+    }
+
+    // BACKWARD COMPATIBILITY: Also update FreqmanDB for compatibility
     freqman_entry entry{
         .frequency_a = static_cast<rf::Frequency>(form_data.frequency_hz),
         .frequency_b = static_cast<rf::Frequency>(form_data.frequency_hz),  // Для single частоты
@@ -116,27 +150,10 @@ void DroneFrequencyManagerView::on_add_frequency() {
         .tonal = "",                       // Не используется для дронов
     };
 
-    // Открыть и сохранить в DRONES.TXT
+    // Open and save to DRONES.TXT (FreqmanDB fallback)
     if (freqman_db_.open(get_freqman_path(freqman_file_), true)) {
-        // Проверить дубликаты
-        auto it = freqman_db_.find_entry([&entry](const auto& e) {
-            return e.frequency_a == entry.frequency_a;
-        });
-
-        if (it != freqman_db_.end()) {
-            update_status_text("Frequency already exists");
-            return;
-        }
-
-        if (freqman_db_.append_entry(entry)) {
-            refresh_frequency_list();
-            clear_form();
-            update_status_text("Frequency added successfully");
-        } else {
-            update_status_text("Failed to save frequency");
-        }
-    } else {
-        update_status_text("Cannot open DRONES.TXT");
+        freqman_db_.append_entry(entry);
+        freqman_db_.save();
     }
 }
 

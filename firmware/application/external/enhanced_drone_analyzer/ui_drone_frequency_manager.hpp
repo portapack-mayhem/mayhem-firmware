@@ -17,6 +17,7 @@
 #include "freqman_db.hpp"
 #include "freqman.hpp"
 #include "file_path.hpp"
+#include "ui_drone_database.hpp"  // ADD: Drone frequency database
 
 #include <string>
 #include <vector>
@@ -47,8 +48,10 @@ private:
     NavigationView& nav_;
     std::string freqman_file_{"DRONES"};  // Название файла для дронов
 
-    // ЗАМЕНА: Реальная FreqmanDB вместо пустого db_
+    // DATABASE MANAGEMENT: Use DroneFrequencyDatabase for full drone metadata support
+    // FreqmanDB for backward compatibility, DroneFrequencyDatabase for drone-specific data
     FreqmanDB freqman_db_;
+    DroneFrequencyDatabase drone_db_;
 
     // Split view: left menu, right details
     MenuView menu_view_{ {0, 0, 200, screen_height}, true };

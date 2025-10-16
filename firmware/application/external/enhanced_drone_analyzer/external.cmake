@@ -264,6 +264,7 @@ set(EXTCPPSRC
 	external/enhanced_drone_analyzer/ui_drone_ui.cpp
 	# ADDITIONAL IMPLEMENTED FILES
 	external/enhanced_drone_analyzer/ui_detection_logger.cpp
+	external/enhanced_drone_analyzer/ui_drone_database.cpp
 	external/enhanced_drone_analyzer/ui_drone_frequency_manager.cpp
 	external/enhanced_drone_analyzer/ui_drone_audio_settings.cpp
 )
