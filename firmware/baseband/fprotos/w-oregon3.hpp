@@ -96,7 +96,7 @@ class FProtoWeatherOregon3 : public FProtoWeatherBase {
                                (var_data & 0xAAAAAAAAAAAAAAAA) >> 1;
                     var_data = (var_data & 0x3333333333333333) << 2 |
                                (var_data & 0xCCCCCCCCCCCCCCCC) >> 2;
-                    decode_data = var_data;
+                    decode_data = var_data >> OREGON3_CHECKSUM_BITS;
                     // ws_oregon3_decode_var_data(OREGON3_SENSOR_ID(data), var_data >> OREGON3_CHECKSUM_BITS);
                     parser_step = Oregon3DecoderStepReset;
                     if (callback) callback(this);
