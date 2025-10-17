@@ -65,7 +65,7 @@ class FreqManBaseView : public View {
 
     OptionsField options_category{
         {3 * 8, 2},
-        20 /* length */,
+        19 /* length */,
         {}};
 
     FreqManUIList freqlist_view{
