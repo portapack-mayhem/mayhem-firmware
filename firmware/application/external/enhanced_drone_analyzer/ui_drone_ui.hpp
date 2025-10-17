@@ -53,6 +53,7 @@ public:
 
     // UI: Detected drones list with RSSI sorting (Search pattern)
     static constexpr size_t MAX_DISPLAYED_DRONES = 3;
+    static constexpr size_t MAX_TRACKED_DRONES = 8;  // Maximum tracked before memory overflow
 
     // Text fields for displaying detected drones (PHASE 4 FIX: Compile-time bounds)
     // SPECTRUM_Y_TOP + 8: Below spectrum area, compile-time safe positioning
@@ -79,11 +80,12 @@ public:
 
     // Mini waterfall spectrum (PHASE 1 FIX: Looking Glass scroll area pattern)
     static constexpr size_t MINI_SPECTRUM_WIDTH = 240;   // Full screen width for Looking Glass compatibility
-    static constexpr size_t MINI_SPECTRUM_HEIGHT = 8;    // 8 lines height (unchanged)
-    static constexpr uint32_t SPECTRUM_Y_TOP = 109;      // Looking Glass scroll area start
+    static constexpr size_t MINI_SPECTRUM_HEIGHT = 16;   // Increased to 16 for better readability (FIX #2)
+    static constexpr uint32_t SPECTRUM_Y_TOP = 70;      // Enhanced resolution: lowered for taller waterfall
 
     void initialize_mini_spectrum();
     void process_mini_spectrum_data(const ChannelSpectrum& spectrum);
+    bool process_bins(uint8_t* power_level);
     void render_mini_spectrum();
     void highlight_threat_zones_in_spectrum(const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& drones);
     size_t frequency_to_spectrum_bin(rf::Frequency freq_hz) const;
@@ -105,14 +107,17 @@ public:
     SpectrumConfig spectrum_config_;
 
 private:
-    // UI state for drone display (EMBEDDED FIX: Fixed arrays instead of vectors)
-    std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> detected_drones_;
+    // UI state for drone display (EMBEDDED FIX: Vector for safety, array for fixed display)
+    std::vector<DisplayDroneEntry> detected_drones_;  // Dynamic tracking
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;  // Top 3 by RSSI
 
-    // PHASE 3 FIX: Memory optimization - exact size arrays following Looking Glass pattern
-    // Removed over-allocated mini_spectrum_data_ - only needed for scrolling spectrum
+    // PHASE 3 FIX: Memory optimization - exact size arrays following Looking Glass
     std::array<Color, screen_width> spectrum_row;           // One line buffer for scrolling (PHASE 1 FIX)
     std::array<uint8_t, MINI_SPECTRUM_WIDTH> spectrum_power_levels_; // Raw power for color mapping
+
+    struct ThreatBin { size_t bin; ThreatLevel threat; };
+    std::array<ThreatBin, MAX_DISPLAYED_DRONES> threat_bins_; // Bin indexes and threat levels for overlay
+    size_t threat_bins_count_ = 0;                          // Number of active threat bins
     Gradient spectrum_gradient_;                             // Color gradient for spectrum (Search style)
     ChannelSpectrumFIFO* spectrum_fifo_ = nullptr;           // FIFO for spectrum data
     size_t pixel_index = 0;                                  // Current pixel in row (PHASE 1 FIX)

@@ -11,6 +11,7 @@
 #include "ui_drone_validation.hpp"   // ADD: SimpleDroneValidation class
 #include "ui_drone_frequency_db.hpp" // ADD: DroneFrequencyDatabase class
 #include "ui_drone_hardware.hpp"     // Hardware controller for scanning
+#include "ui_detection_logger.hpp"   // ADD: DroneDetectionLogger class
 
 #include <vector>
 #include <array>
@@ -148,6 +149,9 @@ private:
     // OWNED: Drone-specific database for lookup operations
     // This is initialized and managed by UI layer based on Frequency Manager edits
     DroneFrequencyDatabase drone_database_;
+
+    // OWNED: Detection logger for CSV logging
+    DroneDetectionLogger detection_logger_;
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer

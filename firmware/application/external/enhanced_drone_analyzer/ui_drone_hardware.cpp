@@ -2,6 +2,9 @@
 // Hardware management implementation for Enhanced Drone Analyzer
 
 #include "ui_drone_hardware.hpp"
+
+// Define the static mutex (C++ static member definition)
+std::mutex DroneHardwareController::g_hardware_mutex_;
 #include "receiver_model.hpp"
 #include "ui_drone_config.hpp"  // ADD: Include config for frequency validation
 #include <algorithm>

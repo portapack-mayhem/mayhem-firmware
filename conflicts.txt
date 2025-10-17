@@ -1,0 +1,4 @@
+=== WATERFALL CONFLICTS ISSUES ===
+- Spectrum buffer overflow risk: pixel_index may not reset if line incomplete
+- Incomplete spectrum lines may display garbage pixels from previous scans
+- Threat zone overlay relies on frequency mapping accuracy

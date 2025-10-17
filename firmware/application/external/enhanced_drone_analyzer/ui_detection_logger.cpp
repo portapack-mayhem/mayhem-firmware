@@ -31,7 +31,7 @@ void DroneDetectionLogger::start_session() {
 void DroneDetectionLogger::end_session() {
     if (!session_active_) return;
 
-    end_session();
+    session_active_ = false;
 }
 
 bool DroneDetectionLogger::log_detection(const DetectionLogEntry& entry) {

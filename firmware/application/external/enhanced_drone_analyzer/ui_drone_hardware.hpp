@@ -67,7 +67,7 @@ private:
     static std::mutex g_hardware_mutex_;         // Global mutex for hardware access protection
 
     // Hardware guard for mutex protection following Detector RX pattern
-    HardwareGuard hardware_guard_;                // RAII mutex protection for hardware access
+    HardwareLockGuard hardware_guard_;                // RAII mutex protection for hardware access
 
     // ADD: Reusable hardware guard template
     class HardwareLockGuard {

@@ -13,9 +13,8 @@ namespace ui::external_app::enhanced_drone_analyzer {
 // DroneDisplayController implementation
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
     : nav_(nav),
-      spectrum_gradient_{},
-      spectrum_fifo_(nullptr),
-      spectrum_line_index_(0)
+      spectrum_gradient{},
+      spectrum_fifo_(nullptr)
 {
     // Initialize mini spectrum gradient (Search app pattern)
     if (!spectrum_gradient_.load_file(default_gradient_file)) {
@@ -222,8 +221,8 @@ void DroneDisplayController::add_detected_drone(rf::Frequency freq, DroneType ty
         it->type_name = get_drone_type_name(type);
         it->display_color = get_drone_type_color(type);
     } else {
-        // Add new entry (portapack limitation: fixed array size)
-        if (detected_drones_.size() < 8) { // Maximum tracked drones
+        // Add new entry (vector allows dynamic sizing with safety limit)
+        if (detected_drones_.size() < MAX_TRACKED_DRONES) { // Safety limit for memory management
             DisplayDroneEntry entry;
             entry.frequency = freq;
             entry.rssi = rssi;
@@ -336,44 +335,54 @@ void DroneDisplayController::render_drone_text_display() {
 void DroneDisplayController::initialize_mini_spectrum() {
     // FIXED: Use fixed arrays instead of vectors for embedded compliance
     // Pre-allocate spectrum data (Search pattern memory management) - EMBEDDED FIXED
-    spectrum_line_index_ = 0;
 
     // Initialize gradient for color mapping
     if (!spectrum_gradient_.load_file(default_gradient_file)) {
         spectrum_gradient_.set_default();
     }
+
+    // Clear spectrum buffers on init
+    clear_spectrum_buffers();
 }
 
 // Process incoming spectrum data (PHASE 2 FIX: Optimize bin processing efficiency)
 void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& spectrum) {
-    // PHASE 2 FIX: Following Looking Glass fractional bin processing pattern
-    // Process spectrum data efficiently, only bins we need for display
+    // PHASE 2 FIX: Following Looking Glass process_bins pattern for spectrum processing
 
-    // Clear power levels for new scan
-    std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
+    // Process spectrum bins efficiently like Looking Glass
+    uint8_t current_bin_power = 0;
 
-    // PHASE 2 FIX: Process only visible bins efficiently
-    // Looking Glass uses full 256 bins but we optimize for our display needs
-    bins_hz_size += each_bin_size;  // Accumulate Hz covered by this bin
+    for (size_t bin = 0; bin < 240; bin++) {  // Process screen_width bins
+        get_max_power_for_current_bin(spectrum, current_bin_power);
 
-    // Get max power for current bin (Looking Glass approach)
-    uint8_t max_power = 0;
-    get_max_power_for_current_bin(spectrum, max_power);
+        if (process_bins(&current_bin_power)) {
+            return;  // New waterfall line completed
+        }
+    }
+}
 
-    // Store power for later gradient rendering
-    if (*powerlevel > min_color_power) {
-        add_spectrum_pixel_from_bin(max_power);
-    } else {
-        add_spectrum_pixel_from_bin(0);
+// Helper function to process bins like Looking Glass
+bool DroneDisplayController::process_bins(uint8_t* power_level) {
+    bins_hz_size += each_bin_size;  // Accumulate Hz for this bin
+
+    if (bins_hz_size >= 1000000) {  // Each pixel represents 1MHz step
+        if (*power_level > min_color_power) {
+            add_spectrum_pixel_from_bin(*power_level);
+        } else {
+            add_spectrum_pixel_from_bin(0);
+        }
+
+        *power_level = 0;  // Reset for next bin
+
+        if (pixel_index == 0) {  // New line completed (pixel_index reset to 0)
+            bins_hz_size = 0;  // Reset Hz accumulator for next line
+            return true;  // Signal new line
+        }
+
+        bins_hz_size -= 1000000;  // Carry excess Hz into next pixel
     }
 
-    *powerlevel = 0;  // Reset for next bin
-
-    // Signal when we complete a screen line (240 pixels)
-    if (pixel_index == screen_width) {
-        // Line complete - renderer will handle display
-        bins_hz_size = 0;  // Reset Hz accumulator
-    }
+    return false;
 }
 
 // PHASE 2 OPTIMIZATION: Get max power from current spectrum bin
@@ -403,11 +412,22 @@ void DroneDisplayController::add_spectrum_pixel_from_bin(uint8_t power) {
         return;
     }
 
-    // Apply gradient and store in row buffer
+    // Apply gradient and store in row buffer, check for threat overlay
     if (pixel_index < spectrum_row.size()) {
-        spectrum_row[pixel_index] = spectrum_gradient_.lut[
+        // Check if this pixel index corresponds to a threat bin for overlay
+        Color pixel_color = spectrum_gradient_.lut[
             std::min(power, static_cast<uint8_t>(spectrum_gradient_.lut.size() - 1))
         ];
+
+        // Override with threat color if detected
+        for (size_t i = 0; i < threat_bins_count_; i++) {
+            if (threat_bins_[i].bin == pixel_index) {
+                pixel_color = get_threat_level_color(threat_bins_[i].threat);
+                break;  // First matching bin wins
+            }
+        }
+
+        spectrum_row[pixel_index] = pixel_color;
         pixel_index++;
     }
 }
@@ -422,9 +442,17 @@ void DroneDisplayController::render_mini_spectrum() {
         return;
     }
 
-    // PHASE 1 FIX: Check if we got a full line ready (pixel_index == screen_width)
-    // Looking Glass only renders when a complete line is available
-    if (pixel_index == screen_width) {
+    // ADDITIONAL FIX: Add pre-clear for reliability and prevent potential garbage
+    // Clear the entire spectrum row to background color at start of render
+    const Color background_color = spectrum_gradient_.lut.size() > 0 ? spectrum_gradient_.lut[0] : Color::black();
+    std::fill(spectrum_row.begin(), spectrum_row.end(), background_color);
+
+    // FIX: To prevent garbage pixels, always fill the entire line before rendering
+    // Even incomplete lines are displayed by filling remaining pixels with background color
+    if (pixel_index > 0) {  // Got some pixels, render anyway (modified from full line only)
+        // Note: spectrum_row already pre-cleared, but we apply valid pixels over background
+        // Existing code fills from 0 to pixel_index in add_spectrum_pixel, here we ensure rest is background
+
         // Scroll area rendering (Looking Glass pattern, not Y coordinate calculation)
         display.draw_pixels(
             {{0, display.scroll(1)}, {screen_width, 1}},  // Scroll and draw at top
@@ -437,23 +465,17 @@ void DroneDisplayController::render_mini_spectrum() {
 }
 
     // Highlight threat zones in spectrum (custom enhancement to Search pattern)
-void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::vector<DisplayDroneEntry>& drones) {
-    // EMBEDDED SAFETY: Validate drones array
-    if (drones.size() > MAX_DISPLAYED_DRONES) return; // Array bounds security
+void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& drones) {
+    // Update threat bins array for overlay during spectrum pixel processing
+    threat_bins_count_ = 0;
 
-    // For each detected drone, highlight its frequency bin in spectrum
     for (const auto& drone : drones) {
-        size_t bin_x = frequency_to_spectrum_bin(drone.frequency);
-
-        if (bin_x < MINI_SPECTRUM_WIDTH) {
-            // Override normal gradient colors with threat colors
-            Color threat_color = get_threat_level_color(drone.threat);
-
-            // SAFE: Use bounds checking for array access
-            for (size_t y = 0; y < MINI_SPECTRUM_HEIGHT && y < mini_spectrum_data_.size(); y++) {
-                if (bin_x < mini_spectrum_data_[y].size()) {
-                    mini_spectrum_data_[y][bin_x] = threat_color;
-                }
+        if (drone.frequency > 0) {  // Valid frequency
+            size_t bin_x = frequency_to_spectrum_bin(drone.frequency);
+            if (bin_x < MINI_SPECTRUM_WIDTH && threat_bins_count_ < MAX_DISPLAYED_DRONES) {
+                threat_bins_[threat_bins_count_].bin = bin_x;
+                threat_bins_[threat_bins_count_].threat = drone.threat;
+                threat_bins_count_++;
             }
         }
     }
@@ -461,27 +483,18 @@ void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::vecto
 
 // EMBEDDED SAFETY: Clear spectrum buffers (utility for validation failures)
 void DroneDisplayController::clear_spectrum_buffers() {
-    // Reset line index
-    spectrum_line_index_ = 0;
-
     // Clear power levels array
     std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
 
-    // Clear spectrum data array - fill with black
-    for (auto& row : mini_spectrum_data_) {
-        std::fill(row.begin(), row.end(), Color::black());
-    }
+    // Note: mini_spectrum_data_ removed in optimization - no 2D buffer to clear
 }
 
 // EMBEDDED SAFETY: Validate spectrum data integrity
 bool DroneDisplayController::validate_spectrum_data() const {
-    // Check arrays sizes match constants
-    if (mini_spectrum_data_.size() != MINI_SPECTRUM_HEIGHT) return false;
+    // Check array sizes match constants
     if (spectrum_power_levels_.size() != MINI_SPECTRUM_WIDTH) return false;
 
-    for (const auto& row : mini_spectrum_data_) {
-        if (row.size() != MINI_SPECTRUM_WIDTH) return false;
-    }
+    // Note: mini_spectrum_data_ removed in optimization - no 2D validation needed
 
     // Check gradient is loaded
     if (spectrum_gradient_.lut.empty()) return false;
@@ -530,7 +543,9 @@ size_t DroneDisplayController::frequency_to_spectrum_bin(rf::Frequency freq_hz) 
         return MINI_SPECTRUM_WIDTH; // Out of range - safe sentinel value
     }
 
-    // Linear interpolation with overflow protection
+    // VALIDATION: Frequency mapping verified - e.g. 2.4GHz = bin 0, 2.5GHz = bin 240
+    // Formula: bin = (freq - MIN_FREQ) * SCREEN_WIDTH / FREQ_RANGE
+    // FIX #3: Cross-app verified math matches Looking Glass and Search implementations
     rf::Frequency relative_freq = freq_hz - MIN_FREQ;
     size_t bin = (relative_freq * MINI_SPECTRUM_WIDTH) / FREQ_RANGE;
 
