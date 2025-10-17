@@ -2,6 +2,7 @@
 // Implementation of ScanningCoordinator - fixes the broken scanning workflow
 
 #include "ui_drone_scanning_coordinator.hpp"
+#include "ui_drone_settings.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -95,6 +96,18 @@ msg_t ScanningCoordinator::coordinated_scanning_thread() {
     chThdExit(MSG_OK);
 
     return MSG_OK;
+}
+
+void ScanningCoordinator::update_runtime_parameters(const DroneAnalyzerSettings& settings) {
+    // Update scanning parameters that can be changed at runtime
+    // Thread-safe: single writer (UI), single reader (scan thread)
+    scan_interval_ms_ = settings.spectrum.min_scan_interval_ms;
+
+    // Could add more runtime-updatable parameters:
+    // - Detection thresholds
+    // - Hysteresis values
+    // - Audio alert settings
+    // etc.
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer

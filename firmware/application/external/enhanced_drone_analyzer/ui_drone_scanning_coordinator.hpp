@@ -8,6 +8,7 @@
 #include "ui_drone_hardware.hpp"
 #include "ui_drone_scanner.hpp"
 #include "ui_drone_ui.hpp"
+#include "ui_drone_settings.hpp"  // For DroneAnalyzerSettings
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -35,6 +36,9 @@ public:
     // Configure scanning parameters
     void set_scan_interval(uint32_t interval_ms) { scan_interval_ms_ = interval_ms; }
     uint32_t get_scan_interval_ms() const { return scan_interval_ms_; }
+
+    // Update runtime parameters from settings (thread-safe)
+    void update_runtime_parameters(const DroneAnalyzerSettings& settings);
 
 private:
     // Static thread function - ChibiOS requirement

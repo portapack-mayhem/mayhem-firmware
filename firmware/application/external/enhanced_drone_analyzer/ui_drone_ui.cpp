@@ -743,6 +743,9 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     // FIX: Create scanning coordinator that fixes the broken architecture
     scanning_coordinator_ = std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_);
 
+    // CRITICAL FIX: Update coordinator with current settings to connect UI change to runtime behavior
+    scanning_coordinator_->update_runtime_parameters(ui_controller_->settings());
+
     // Setup button callbacks
     button_start_.on_select = [this](Button&) {
         handle_start_stop_button();
