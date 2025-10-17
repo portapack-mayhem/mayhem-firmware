@@ -79,11 +79,11 @@ static msg_t loopthread_fn(void* arg) {
     uint32_t wait = arg_c->loop;
     chRegSetThreadName("loopthread");
     for (uint32_t i = 0; i < wait; i++) {
-        if (chThdShouldTerminate()) return 0;
+        if (chThdShouldTerminate()) break;
         arg_c->on_loop_progress(i, false);
         chThdSleepMilliseconds(1000);
     }
-    arg_c->on_loop_progress(0, true);
+    if (!chThdShouldTerminate()) arg_c->on_loop_progress(0, true);
     chThdExit(0);
     return 0;
 }
