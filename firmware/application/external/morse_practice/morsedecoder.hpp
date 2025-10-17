@@ -298,8 +298,8 @@ class MorseDecoder {
         time_unit_ms_ = (time_unit_ms_ * (1.0 - learning_factor)) + (new_time_unit * learning_factor);
     }
 
-    size_t morse_table_size_ = 42;
-    MorseEntry morse_table_[42] = {
+    size_t morse_table_size_ = 41;
+    MorseEntry morse_table_[41] = {
         {".-", "A"},
         {"-...", "B"},
         {"-.-.", "C"},
@@ -337,10 +337,9 @@ class MorseDecoder {
         {"----.", "9"},
         {"-----", "0"},
         {".-.-.-", "."},
-        {"--..-", "?"},
         {"..--..", "?"},
         {"-.-.--", "!"},
-        {"--..-.", ","},
+        {"--..--", ","},
         {"-...-", "="}};
 };
 
