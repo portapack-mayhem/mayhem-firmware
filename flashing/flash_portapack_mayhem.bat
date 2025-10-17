@@ -23,6 +23,6 @@ if not exist portapack-mayhem-firmware.bin (
 
 "utils/hackrf_update.exe" portapack-mayhem-firmware.bin
 echo.
-echo If your device never boot after flashing, please refer to https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won't-boot
+echo If your device never boot after flashing, please refer to https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won%27t-boot
 echo.
 pause
