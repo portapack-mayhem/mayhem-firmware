@@ -190,6 +190,7 @@ public:
     void on_audio_toggle();
     void on_advanced_settings();
     void on_open_settings();  // New: Open settings dialog
+    void on_open_constant_settings();  // New: Open constant settings dialog
 
     // UI state management
     bool is_scanning() const { return scanning_active_; }

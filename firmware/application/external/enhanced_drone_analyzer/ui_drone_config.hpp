@@ -169,6 +169,15 @@ static constexpr rf::Frequency MINI_SPECTRUM_MAX_FREQ = 2500000000ULL; // 2.5GHz
 static constexpr rf::Frequency MIN_HARDWARE_FREQ = 50000000ULL;        // 50MHz
 static constexpr rf::Frequency MAX_HARDWARE_FREQ = 6000000000ULL;      // 6GHz
 
+/**
+ * DRONE-SPECIFIC FREQUENCY LIMITS
+ * Following Portapack MAX_UFREQ pattern but with drone safety constraints
+ */
+
+// Drone operational frequency limits (Hz) - typical drone bands (240MHz-6GHz)
+static constexpr rf::Frequency MIN_DRONE_FREQUENCY = 240000000ULL;     // 240MHz (DJI Mini/Avata)
+static constexpr rf::Frequency MAX_DRONE_FREQUENCY = 6000000000ULL;    // 6GHz (military wideband)
+
 // ISM band center frequency (Hz) - default center for drone scanning
 static constexpr rf::Frequency ISM_CENTER_FREQ = 433000000ULL;         // 433MHz
 

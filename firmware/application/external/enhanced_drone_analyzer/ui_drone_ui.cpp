@@ -603,7 +603,7 @@ void DroneUIController::show_menu() {
         {"Manage Frequencies", [this]() { on_manage_frequencies(); }},
         {"Create Database", [this]() { on_create_new_database(); }},
         {"Advanced", [this]() { on_advanced_settings(); }},
-        {"Constant Settings", [this]() { on_open_settings(); }}, // New: Constant settings dialog
+        {"Constant Settings", [this]() { on_open_constant_settings(); }}, // New: Constant settings dialog
         {"Frequency Warning", [this]() { on_frequency_warning(); }},
         {"About", [this]() { on_about(); }}  // Add About button
     });
@@ -719,6 +719,12 @@ void DroneUIController::on_frequency_warning() {
 
 void DroneUIController::on_about() {
     nav_.push<AuthorContactView>();
+}
+
+void DroneUIController::on_open_constant_settings() {
+    // Open the new constant settings dialog
+    static ConstantSettingsManager manager;
+    nav_.push<ConstantSettingsView>(nav_);
 }
 
 // EnhancedDroneSpectrumAnalyzerView implementation
