@@ -243,6 +243,18 @@ void MenuView::on_blur() {
         item_view(highlighted_item - offset)->unhighlight();
 }
 
+bool MenuView::on_touch(const TouchEvent event) {
+    size_t i = 0;
+    for (const auto child : children_) {
+        if (i >= menu_item_views.size()) break;
+        if (child->screen_rect().contains(event.point)) {
+            return set_highlighted(i + offset);
+        }
+        i++;
+    }
+    return false;
+}
+
 bool MenuView::on_key(const KeyEvent key) {
     switch (key) {
         case KeyEvent::Up:
