@@ -50,6 +50,7 @@ class FreqManUIList : public Widget {
     bool on_key(const KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    bool on_touch(const TouchEvent event) override;
 
     void set_parent_rect(Rect new_parent_rect) override;
 
