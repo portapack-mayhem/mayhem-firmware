@@ -31,6 +31,23 @@ public:
     static int32_t current_default_rssi_threshold_db;
     static uint32_t current_scan_interval_ms;
     static uint32_t current_stale_timeout_ms;
+    // Additional configurable constants
+    static float current_rssi_smoothing_alpha;
+    static uint32_t current_detection_reset_interval;
+    static size_t current_max_displayed_drones;
+    static rf::Frequency current_mini_spectrum_min_freq;
+    static rf::Frequency current_mini_spectrum_max_freq;
+    static uint16_t current_sos_frequency_hz;
+    static uint32_t current_beep_duration_ms;
+    static float current_rssi_threat_weight;
+    static float current_database_threat_weight;
+
+    // Additional hardware and buffer constants
+    static size_t current_detection_table_size;
+    static size_t current_max_tracked_drones;
+    static size_t current_max_database_entries;
+    static size_t current_spectrum_buffer_size;
+    static rf::Frequency current_ism_center_freq;
 };
 
 class ConstantSettingsView : public View {
@@ -70,12 +87,12 @@ private:
     NumberField field_stale_timeout_{ {95, 169}, 5, {5000}, 60000, 30000 };
 
     // ACTION BUTTONS
-    Button button_defaults_{ {5, 160}, "Load Defaults" };
-    Button button_save_{ {80, 160}, "Save Settings" };
-    Button button_ok_{ {165, 160}, "OK" };
+    Button button_defaults_{ {5, 480}, "Load Defaults" };
+    Button button_save_{ {80, 480}, "Save Settings" };
+    Button button_ok_{ {165, 480}, "OK" };
 
     // STATUS TEXT
-    Text text_status_{ {5, 185}, 230, "" };
+    Text text_status_{ {5, 500}, 230, "" };
 
     // Helper methods
     void initialize_field_values();
@@ -93,6 +110,54 @@ private:
     void validate_min_freq(int32_t value);
     void validate_max_freq(int32_t value);
     void validate_detection_params();
+
+    // SPECTRUM & UI PARAMETERS
+    Text text_spectrum_title_{ {5, 190}, "Spectrum & UI Parameters" };
+    Text text_rssi_smoothing_{ {5, 205}, "RSSI Smoothing Alpha:" };
+    NumberField field_rssi_smoothing_{ {125, 202}, 3, {1}, 99, 30 };  // multiplied by 100 for 0.01 precision
+    Text text_detection_reset_{ {5, 222}, "Detection Reset Interval:" };
+    NumberField field_detection_reset_{ {150, 219}, 3, {10}, 500, 50 };
+    Text text_max_drones_{ {5, 239}, "Max Displayed Drones:" };
+    NumberField field_max_drones_{ {125, 236}, 2, {1}, 8, 3 };
+    Text text_spectrum_min_{ {5, 256}, "Mini Spectrum Min Freq (GHz):" };
+    NumberField field_spectrum_min_{ {180, 253}, 1, {1}, 6, 2400 };  // in MHz
+    Text text_spectrum_max_{ {5, 273}, "Mini Spectrum Max Freq (GHz):" };
+    NumberField field_spectrum_max_{ {180, 270}, 1, {1}, 6, 2500 };  // in MHz
+
+    // AUDIO PARAMETERS
+    Text text_audio_title_{ {5, 290}, "Audio Alert Parameters" };
+    Text text_sos_freq_{ {5, 305}, "SOS Frequency (Hz):" };
+    NumberField field_sos_freq_{ {115, 302}, 4, {500}, 3000, 1500 };
+    Text text_beep_duration_{ {5, 322}, "Beep Duration (ms):" };
+    NumberField field_beep_duration_{ {125, 319}, 3, {50}, 1000, 200 };
+
+    // THREAT SCORING PARAMETERS
+    Text text_threat_title_{ {5, 335}, "Threat Scoring Weights" };
+    Text text_rssi_weight_{ {5, 350}, "RSSI Threat Weight:" };
+    NumberField field_rssi_weight_{ {115, 347}, 2, {1}, 99, 40 };  // multiplied by 100 for 0.01 precision
+    Text text_db_weight_{ {5, 367}, "Database Threat Weight:" };
+    NumberField field_db_weight_{ {140, 364}, 2, {1}, 99, 60 };  // multiplied by 100 for 0.01 precision
+
+    // HARDWARE & BUFFER PARAMETERS
+    Text text_hardware_title_{ {5, 380}, "Hardware & Buffer Parameters" };
+    Text text_detection_table_{ {5, 395}, "Detection Table Size:" };
+    NumberField field_detection_table_{ {120, 392}, 4, {128}, 1024, 512 };
+    Text text_max_tracked_{ {5, 412}, "Max Tracked Drones:" };
+    NumberField field_max_tracked_{ {120, 409}, 2, {1}, 16, 8 };
+    Text text_max_db_{ {5, 429}, "Max DB Entries:" };
+    NumberField field_max_db_{ {100, 426}, 3, {32}, 128, 64 };
+    Text text_spectrum_buffer_{ {5, 446}, "Spectrum Buffer Size:" };
+    NumberField field_spectrum_buffer_{ {130, 443}, 4, {128}, 512, 256 };
+    Text text_ism_center_{ {5, 463}, "ISM Center Freq (MHz):" };
+    NumberField field_ism_center_{ {130, 460}, 4, {400}, 600, 433 };
+
+    // Adjust ACTION BUTTONS lower
+    // Button button_defaults_{ {5, 480}, "Load Defaults" };
+    // Button button_save_{ {80, 480}, "Save Settings" };
+    // Button button_ok_{ {165, 480}, "OK" };
+
+    // STATUS TEXT
+    // Text text_status_{ {5, 505}, 230, "" };
 
     // Prevent copying
     ConstantSettingsView(const ConstantSettingsView&) = delete;
