@@ -79,7 +79,7 @@ static msg_t loopthread_fn(void* arg) {
     uint32_t wait = arg_c->loop;
     chRegSetThreadName("loopthread");
     for (uint32_t i = 0; i < wait; i++) {
-        if (chThdShouldTerminate()) break;
+        if (chThdShouldTerminate()) return 0;
         arg_c->on_loop_progress(i, false);
         chThdSleepMilliseconds(1000);
     }
@@ -124,14 +124,11 @@ void MorseView::focus() {
 MorseView::~MorseView() {
     if (ookthread) {
         chThdTerminate(ookthread);
-        chThdWait(ookthread);
-        chThdRelease(ookthread);
         ookthread = nullptr;
     }
     if (loopthread) {
         chThdTerminate(loopthread);
         chThdWait(loopthread);
-        // chThdRelease(loopthread);
         loopthread = nullptr;
     }
     transmitter_model.disable();
@@ -162,7 +159,6 @@ bool MorseView::start_tx() {
 
     if (mode_cw) {
         ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
-        // ookthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ookthread_fn, this);
     }
 
     return true;
@@ -185,7 +181,6 @@ void MorseView::update_tx_duration() {
 void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
         if (ookthread) {
-            chThdRelease(ookthread);
             ookthread = nullptr;
         }
         transmitter_model.disable();
@@ -199,7 +194,6 @@ void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
             if (loopthread) {
                 chThdTerminate(loopthread);
                 chThdWait(loopthread);
-                // chThdRelease(loopthread);
                 loopthread = nullptr;
             }
             loopthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO, loopthread_fn, this);
@@ -227,7 +221,6 @@ void MorseView::set_foxhunt(size_t i) {
 MorseView::MorseView(
     NavigationView& nav)
     : nav_(nav) {
-    // baseband::run_image(portapack::spi_flash::image_tag_tones);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
@@ -312,7 +305,6 @@ MorseView::MorseView(
         if (loopthread) {
             chThdTerminate(loopthread);
             chThdWait(loopthread);
-            // chThdRelease(loopthread);
             loopthread = nullptr;
         }
 
