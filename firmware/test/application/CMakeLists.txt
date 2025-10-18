@@ -37,7 +37,6 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/test_basics.cpp
 	${PROJECT_SOURCE_DIR}/test_circular_buffer.cpp
 	${PROJECT_SOURCE_DIR}/test_convert.cpp
-	${PROJECT_SOURCE_DIR}/test_enhanced_drone_analyzer.cpp
 	${PROJECT_SOURCE_DIR}/test_file_reader.cpp
 	${PROJECT_SOURCE_DIR}/test_file_wrapper.cpp
 	${PROJECT_SOURCE_DIR}/test_freqman_db.cpp

@@ -34,7 +34,6 @@
 #include "ui.hpp"
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
-#include <mutex>  // Priority 1.2: Add hardware access mutex
 
 using namespace ui;
 
@@ -43,15 +42,6 @@ namespace ui::external_app::scanner {
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
 #define MAX_FREQ_LOCK 10  // # of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
-
-// Priority 1.2: Hardware access mutex to prevent race conditions
-static std::mutex g_hardware_mutex;
-
-class HardwareGuard {
-    std::unique_lock<std::mutex> lock;
-public:
-    HardwareGuard() : lock(g_hardware_mutex) {}
-};
 
 // TODO: There is too much duplicated data in these classes.
 // ScannerThread should just use more from the View.

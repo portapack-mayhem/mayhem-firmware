@@ -270,10 +270,6 @@ void ScannerView::focus() {
 }
 
 ScannerView::~ScannerView() {
-    // Priority 1.2: Add hardware access mutex protection
-    // Prevent race conditions during hardware cleanup
-    HardwareGuard guard;  // RAII mutex lock
-
     // make sure to stop the thread before shutting down the receiver
     scan_thread.reset();
     audio::output::stop();

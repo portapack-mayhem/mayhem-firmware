@@ -255,15 +255,6 @@ set(EXTCPPSRC
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-	#enhanced_drone_analyzer
-	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
-	external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.cpp
-	# external/enhanced_drone_analyzer/ui_enhanced_drone_analyzer.hpp  # commented for refactoring
-	# external/enhanced_drone_analyzer/ui_enhanced_drone_analyzer.cpp  # commented for refactoring
-	# external/enhanced_drone_analyzer/ui_enhanced_spectrum_painter.hpp # commented for refactoring
-	# external/enhanced_drone_analyzer/ui_enhanced_spectrum_painter.cpp # commented for refactoring
-	# external/enhanced_drone_analyzer/ui_enhanced_frequency_database.hpp # commented for refactoring
-
 	#morse_practice
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
@@ -331,6 +322,5 @@ set(EXTAPPLIST
 	soundboard
 	game2048
 	bht_tx
-	enhanced_drone_analyzer
 	morse_practice
 )
