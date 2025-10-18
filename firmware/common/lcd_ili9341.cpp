@@ -77,13 +77,17 @@ void lcd_display_off() {
     io.lcd_data_write_command_and_data(0x28, {});
 }
 
-void lcd_sleep() {
+void lcd_sleep(bool hw_sleep = true) {
     lcd_display_off();
-    lcd_sleep_in();
+    if (hw_sleep) {
+        lcd_sleep_in();
+    }
 }
 
-void lcd_wake() {
-    lcd_sleep_out();
+void lcd_wake(bool hw_sleep = true) {
+    if (hw_sleep) {
+        lcd_sleep_out();
+    }
     lcd_display_on();
 }
 
@@ -394,12 +398,12 @@ void ILI9341::shutdown() {
     lcd_reset();
 }
 
-void ILI9341::sleep() {
-    lcd_sleep();
+void ILI9341::sleep(bool hw_sleep) {
+    lcd_sleep(hw_sleep);
 }
 
-void ILI9341::wake() {
-    lcd_wake();
+void ILI9341::wake(bool hw_sleep) {
+    lcd_wake(hw_sleep);
 }
 
 void ILI9341::fill_rectangle(ui::Rect r, const ui::Color c) {
