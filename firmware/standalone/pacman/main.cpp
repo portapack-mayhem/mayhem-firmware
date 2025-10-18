@@ -27,7 +27,7 @@ const standalone_application_api_t* _api;
 
 extern "C" {
 __attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {
-    /*.header_version = */ 1,
+    /*.header_version = */ 2,
 
     /*.app_name = */ "Pac-Man",
     /*.bitmap_data = */ {
@@ -73,15 +73,14 @@ __attribute__((section(".standalone_application_information"), used)) standalone
     /*PaintViewMirror */ NULL,
     /*OnTouchEvent */ NULL,
     /*OnFocus */ NULL,
-    /*OnKeyEvent */ NULL,
+    /*OnKeyEvent */ on_key_event,
     /*OnEncoder */ NULL,
     /*OnKeyboard */ NULL};
 }
 
 /* Implementing abort() eliminates requirement for _getpid(), _kill(), _exit(). */
 extern "C" void abort() {
-    while (true)
-        ;
+    while (true);
 }
 
 // replace memory allocations to use heap from chibios
