@@ -13,6 +13,8 @@ namespace ui::external_app::enhanced_drone_analyzer {
 // DroneDisplayController implementation
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
     : nav_(nav),
+      displayed_drones_{},
+      threat_bins_{},
       spectrum_gradient{},
       spectrum_fifo_(nullptr)
 {
@@ -744,20 +746,14 @@ void DroneUIController::on_open_constant_settings() {
 
 // EnhancedDroneSpectrumAnalyzerView implementation
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
-    : nav_(nav)
+    : nav_(nav),
+      hardware_(std::make_unique<DroneHardwareController>()),
+      scanner_(std::make_unique<DroneScanner>()),
+      audio_(std::make_unique<DroneAudioController>()),
+      ui_controller_(std::make_unique<DroneUIController>(nav, *hardware_, *scanner_, *audio_)),
+      display_controller_(std::make_unique<DroneDisplayController>(nav)),
+      scanning_coordinator_(std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_))
 {
-    // Initialize controllers - UPDATED WITH SCANNING COORDINATOR
-    hardware_ = std::make_unique<DroneHardwareController>();
-    scanner_ = std::make_unique<DroneScanner>();
-    audio_ = std::make_unique<DroneAudioController>();
-    ui_controller_ = std::make_unique<DroneUIController>(nav, *hardware_, *scanner_, *audio_);
-
-    // FIX: Separate display controller for coordinator
-    display_controller_ = std::make_unique<DroneDisplayController>(nav);
-
-    // FIX: Create scanning coordinator that fixes the broken architecture
-    scanning_coordinator_ = std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_);
-
     // CRITICAL FIX: Update coordinator with current settings to connect UI change to runtime behavior
     scanning_coordinator_->update_runtime_parameters(ui_controller_->settings());
 
@@ -773,9 +769,6 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     // Add child views
     add_child(&button_start_);
     add_child(&button_menu_);
-
-    // Focus initial button
-    focus();
 }
 
 void EnhancedDroneSpectrumAnalyzerView::focus() {
