@@ -392,7 +392,7 @@ void BattleshipView::paint(Painter& painter) {
         .background = Color::black(),
         .foreground = Color::white()};
     painter.fill_rectangle({0, 21, screen_width, 16}, Color::black());
-    painter.draw_string({10, 21}, style_status, current_status);
+    painter.draw_string({5, 21}, style_status, current_status);
     painter.draw_string({170, 21}, style_status, current_score);
 
     if (game_state == GameState::PLACING_SHIPS) {
@@ -402,11 +402,11 @@ void BattleshipView::paint(Painter& painter) {
         }
     } else if (game_state == GameState::MY_TURN) {
         draw_grid(painter, GRID_OFFSET_X, GRID_OFFSET_Y + 5, enemy_grid, false, true);
-        painter.draw_string({10, GRID_OFFSET_Y + GRID_SIZE * CELL_SIZE + 10}, style_status,
+        painter.draw_string({0, GRID_OFFSET_Y + GRID_SIZE * CELL_SIZE + 10}, style_status,
                             "Enemy ships: " + to_string_dec_uint(enemy_ships_remaining));
     } else if (game_state == GameState::OPPONENT_TURN || game_state == GameState::WAITING_FOR_OPPONENT) {
         draw_grid(painter, GRID_OFFSET_X, GRID_OFFSET_Y + 5, my_grid, true);
-        painter.draw_string({10, GRID_OFFSET_Y + GRID_SIZE * CELL_SIZE + 10}, style_status,
+        painter.draw_string({0, GRID_OFFSET_Y + GRID_SIZE * CELL_SIZE + 10}, style_status,
                             "Your ships: " + to_string_dec_uint(ships_remaining));
     } else if (game_state == GameState::GAME_OVER) {
         painter.draw_string({UI_POS_X_CENTER(11), 150}, style_status, "Game Over!");

@@ -200,7 +200,7 @@ class BattleshipView : public View {
     Text text_score{{170, 16, 60, 16}, ""};
     Button button_rotate{{5, UI_POS_Y_BOTTOM(3), 65, 32}, "Rotate"};
     Button button_place{{UI_POS_X_CENTER(6), UI_POS_Y_BOTTOM(3), 65, 32}, "Place"};
-    Button button_fire{{UI_POS_X_CENTER(6), UI_POS_Y_BOTTOM(3), 65, 32}, "Fire!"};
+    Button button_fire{{UI_POS_X_RIGHT(17), UI_POS_Y_BOTTOM(3), 65, 32}, "Fire!"};
     Button button_menu{{UI_POS_X_RIGHT(8), UI_POS_Y_BOTTOM(3), 65, 32}, "Menu"};
 
     // Methods
