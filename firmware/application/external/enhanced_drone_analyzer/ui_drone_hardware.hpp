@@ -23,7 +23,7 @@ namespace ui::external_app::enhanced_drone_analyzer {
 
 class DroneHardwareController {
 public:
-    DroneHardwareController(SpectrumMode mode = SpectrumMode::MEDIUM);
+    explicit DroneHardwareController(SpectrumMode mode = SpectrumMode::MEDIUM);
     ~DroneHardwareController();
 
     // Hardware lifecycle management (Following Looking Glass pattern)
@@ -34,7 +34,12 @@ public:
 
     // Spectrum configuration management
     void set_spectrum_mode(SpectrumMode mode);
-    SpectrumMode get_spectrum_mode() const { return spectrum_mode_; }
+
+    // PHASE 5 HARDWARE CONTROL RESTORATION: Getter/Setter functions for frequency and bandwidth
+    uint32_t get_spectrum_bandwidth() const;
+    void set_spectrum_bandwidth(uint32_t bandwidth_hz);
+    rf::Frequency get_spectrum_center_frequency() const;
+    void set_spectrum_center_frequency(rf::Frequency center_freq);
 
     // Frequency tuning hardware control
     bool tune_to_frequency(rf::Frequency frequency_hz);
@@ -42,10 +47,6 @@ public:
     // Spectrum streaming control
     void start_spectrum_streaming();
     void stop_spectrum_streaming();
-    bool is_spectrum_streaming_active() const { return spectrum_streaming_active_; }
-
-    // COORDINATOR SUPPORT: Check for new spectrum data
-    bool has_new_spectrum_data() const { return spectrum_streaming_active_; }
 
     // RSSI data retrieval from hardware
     int32_t get_real_rssi_from_hardware(rf::Frequency target_frequency);
@@ -54,13 +55,6 @@ public:
     void handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
     void handle_channel_spectrum(const ChannelSpectrum& spectrum);
     void process_channel_spectrum_data(const ChannelSpectrum& spectrum);
-
-    // FIFO management for spectrum data
-    ChannelSpectrumFIFO* get_fifo() const { return fifo_; }
-
-    // Radio state access
-    const RxRadioState& get_radio_state() const { return radio_state_; }
-    RxRadioState& get_radio_state() { return radio_state_; }
 
 private:
     // ADD: Global hardware mutex following Detector RX pattern
@@ -79,6 +73,8 @@ private:
 
     // Spectrum configuration
     SpectrumMode spectrum_mode_;                    // Current spectrum settings
+    rf::Frequency center_frequency_;                // ADD: Configurable center frequency
+    uint32_t bandwidth_hz_;                         // ADD: Configurable bandwidth override
 
     // Helper methods for spectrum configuration
     int32_t get_configured_sampling_rate() const;
