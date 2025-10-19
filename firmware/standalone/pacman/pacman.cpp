@@ -43,12 +43,24 @@ bool on_key_event(uint8_t key_val) {
     ui::KeyEvent key = (ui::KeyEvent)key_val;
     if (key == ui::KeyEvent::Right) {
         but_RIGHT = true;
+        but_LEFT = false;
+        but_DOWN = false;
+        but_UP = false;
     } else if (key == ui::KeyEvent::Left) {
         but_LEFT = true;
+        but_RIGHT = false;
+        but_DOWN = false;
+        but_UP = false;
     } else if (key == ui::KeyEvent::Down) {
         but_DOWN = true;
+        but_RIGHT = false;
+        but_LEFT = false;
+        but_UP = false;
     } else if (key == ui::KeyEvent::Up) {
         but_UP = true;
+        but_RIGHT = false;
+        but_LEFT = false;
+        but_DOWN = false;
     } else if (key == ui::KeyEvent::Select) {
         but_A = true;
     }

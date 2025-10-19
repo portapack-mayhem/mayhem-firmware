@@ -23,6 +23,19 @@
 #include "pacman.hpp"
 #include <memory>
 
+void notouch(int, int, uint32_t) {
+    // do nothing
+}
+void nothing() {
+    // do nothing
+}
+bool noencoder(int32_t) {
+    return false;
+}
+bool nokeyboard(uint8_t) {
+    return false;
+}
+
 const standalone_application_api_t* _api;
 
 extern "C" {
@@ -70,12 +83,12 @@ __attribute__((section(".standalone_application_information"), used)) standalone
     /*.initialize_app = */ initialize,
     /*.on_event = */ on_event,
     /*.shutdown = */ shutdown,
-    /*PaintViewMirror */ NULL,
-    /*OnTouchEvent */ NULL,
-    /*OnFocus */ NULL,
+    /*PaintViewMirror */ nothing,
+    /*OnTouchEvent */ notouch,
+    /*OnFocus */ nothing,
     /*OnKeyEvent */ on_key_event,
-    /*OnEncoder */ NULL,
-    /*OnKeyboard */ NULL};
+    /*OnEncoder */ noencoder,
+    /*OnKeyboard */ nokeyboard};
 }
 
 /* Implementing abort() eliminates requirement for _getpid(), _kill(), _exit(). */
