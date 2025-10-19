@@ -80,7 +80,15 @@ public:
         systime_t last_seen;
         std::string type_name;
         Color display_color;
+<<<<<<< HEAD
         MovementTrend trend = MovementTrend::UNKNOWN;
+=======
+<<<<<<< HEAD
+        MovementTrend trend = MovementTrend::UNKNOWN;
+=======
+        MovementTrend trend;
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
     };
 
     void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
@@ -267,7 +275,14 @@ private:
     void on_manage_frequencies();
     void on_create_new_database();
     void on_frequency_warning();
+<<<<<<< HEAD
     void on_select_language();
+=======
+<<<<<<< HEAD
+    void on_select_language();
+=======
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
 
     // PHASE 3: New advanced submenu functions
     void show_system_status();

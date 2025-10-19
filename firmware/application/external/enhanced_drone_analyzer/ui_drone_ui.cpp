@@ -640,6 +640,10 @@ void DroneUIController::on_toggle_mode() {
 
 void DroneUIController::show_menu() {
     auto menu_view = nav_.push<MenuView>({
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
         {Translator::translate("load_database"), [this]() { on_load_frequency_file(); }},
         {Translator::translate("save_frequency"), [this]() { on_save_frequency(); }},
         {Translator::translate("toggle_audio"), [this]() { on_toggle_audio_simple(); }}, // PHASE 1: RESTORE Audio Enable Toggle
@@ -673,6 +677,22 @@ void DroneUIController::on_select_language() {
     auto language_menu = nav_.push<MenuView>({
         {Translator::translate("english"), [this]() { Translator::set_language(Language::ENGLISH); nav_.display_modal(Translator::translate("english"), "Language updated to English"); }},
         {Translator::translate("russian"), [this]() { Translator::set_language(Language::RUSSIAN); nav_.display_modal("Русский", "Язык изменен на русский"); }}
+<<<<<<< HEAD
+=======
+=======
+        {"Load Database", [this]() { on_load_frequency_file(); }},
+        {"Save Frequency", [this]() { on_save_frequency(); }},
+        {"Toggle Audio Alerts", [this]() { on_toggle_audio_simple(); }}, // PHASE 1: RESTORE Audio Enable Toggle
+        {"Audio Settings", [this]() { on_audio_toggle(); }},
+        {"Add Preset", [this]() { on_add_preset_quick(); }}, // PHASE 4: RESTORE Preset system for drone database
+        {"Manage Frequencies", [this]() { on_manage_frequencies(); }},
+        {"Create Database", [this]() { on_create_new_database(); }},
+        {"Advanced", [this]() { on_advanced_settings(); }},
+        {"Constant Settings", [this]() { on_open_constant_settings(); }}, // New: Constant settings dialog
+        {"Frequency Warning", [this]() { on_frequency_warning(); }},
+        {"autor", [this]() { on_about(); }}  // Add autor button
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
     });
 }
 
@@ -1008,6 +1028,10 @@ void DroneUIController::on_open_constant_settings() {
 }
 
 void DroneUIController::on_add_preset_quick() {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
     // Connect previously unused get_all_presets() and get_presets_by_type()
     // get_all_presets() called internally in preset selector
     // get_presets_by_type() filters for specific threat levels
@@ -1022,6 +1046,11 @@ void DroneUIController::on_add_preset_quick() {
             selected_preset.threat_level == ThreatLevel::MEDIUM ? "MEDIUM" : "LOW");
     
     nav_.display_modal("Preset Added", success_msg);
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
     // PHASE 4: FULLY RESTORE Preset System - Connect to existing DronePresetSelector
     // get_all_presets() is implemented as DroneFrequencyPresets::get_all_presets()
     // get_presets_by_type() is implemented as DroneFrequencyPresets::get_presets_by_type()
@@ -1085,6 +1114,10 @@ void DroneUIController::add_preset_to_scanner(const DronePreset& preset) {
     }
 }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
 // PHASE 4: FULL AUDIO CONTROL RESTORATION - Connect all unused audio functions to UI
 void DroneUIController::on_toggle_audio_simple() {
     // STEP 1: Use RESTORED toggle_audio function (previously unused)
@@ -1096,6 +1129,21 @@ void DroneUIController::on_toggle_audio_simple() {
     // STEP 3: OPTIONAL: Use RESTORED set_audio_enabled if needed for explicit state setting
     // audio_.set_audio_enabled(new_state); // Already handled by toggle_audio()
 
+<<<<<<< HEAD
+=======
+=======
+// PHASE 1-2: AUDIO SYSTEM RESTORATION - Restore unused audio functions
+void DroneUIController::on_toggle_audio_simple() {
+    // Restore functionality for both set_audio_enabled and toggle_audio functions
+
+    // Use the RESTORED toggle_audio function (previously unused)
+    audio_.toggle_audio();
+
+    // Get the new state after toggle
+    bool new_state = audio_.is_audio_enabled();
+
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
     // Show user feedback status
     const char* status_msg = new_state ? "Audio alerts ENABLED" : "Audio alerts DISABLED";
     const char* full_msg = new_state ?
