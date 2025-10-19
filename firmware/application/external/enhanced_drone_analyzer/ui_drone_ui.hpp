@@ -10,10 +10,12 @@
 #include "ui_text.hpp"                  // Text display components
 #include "ui_progress_bar.hpp"          // Progress bar UI
 #include "ui_navigation.hpp"            // Navigation system
-#include "ui_drone_types.hpp"           // DroneType enum
-#include "ui_drone_audio.hpp"           // Audio controller
-#include "ui_drone_audio_settings_about.hpp" // About modal
-#include "ui_drone_settings.hpp"             // Settings structures
+#include "ui_options_field.hpp"         // Options field for scanning modes
+#include "ui_drone_config.hpp"               // Consolidated types and enums
+#include "ui_drone_audio.hpp"                // AudioManager definition - Migrated Session 5
+//#include "ui_drone_audio_settings_about.hpp" // About modal - will merge later
+#include "ui_drone_settings_complete.hpp"             // Settings structures
+#include "ui_minimal_drone_analyzer.hpp"     // For LoadingScreenView main view push
 
 #include "freqman_db.hpp"               // Frequency database (standard pattern)
 #include "ui_drone_hardware.hpp"        // Hardware controller
@@ -29,12 +31,19 @@ namespace ui::external_app::enhanced_drone_analyzer {
 
 class DroneDisplayController {
 public:
-    DroneDisplayController(NavigationView& nav);
+    explicit DroneDisplayController(NavigationView& nav);
     ~DroneDisplayController() = default;
 
-    // Core UI components access
+    // Core UI components access - RESTORED LAW FUNCTIONALS
     BigFrequencyDisplay& big_display() { return big_display_; }
     ProgressBar& scanning_progress() { return scanning_progress_; }
+    Text& text_threat_summary() { return text_threat_summary_; }
+    Text& text_status_info() { return text_status_info_; }
+    Text& text_scanner_stats() { return text_scanner_stats_; }
+    Text& text_trends_compact() { return text_trends_compact_; }
+    Text& text_drone_1() { return text_drone_1; }
+    Text& text_drone_2() { return text_drone_2; }
+    Text& text_drone_3() { return text_drone_3; }
 
     // Update UI from scanner state
     void update_detection_display(const DroneScanner& scanner);
@@ -71,10 +80,11 @@ public:
         systime_t last_seen;
         std::string type_name;
         Color display_color;
+        MovementTrend trend;
     };
 
     void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
-    void update_drones_display();
+    void update_drones_display(const DroneScanner& scanner);
     void sort_drones_by_rssi();
     const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& get_current_drones() const { return displayed_drones_; }
 
@@ -177,7 +187,7 @@ public:
     DroneUIController(NavigationView& nav,
                      DroneHardwareController& hardware,
                      DroneScanner& scanner,
-                     DroneAudioController& audio);
+                     AudioManager& audio_mgr);
     ~DroneUIController() = default;
 
     // Main UI view that combines all controllers
@@ -192,6 +202,7 @@ public:
     void show_menu();
     void on_load_frequency_file();
     void on_save_frequency();
+    void on_toggle_audio_simple();  // PHASE 1: RESTORE Audio Enable Toggle
     void on_audio_toggle();
     void on_advanced_settings();
     void on_open_settings();  // New: Open settings dialog
@@ -212,7 +223,7 @@ private:
     NavigationView& nav_;
     DroneHardwareController& hardware_;
     DroneScanner& scanner_;
-    DroneAudioController& audio_;
+    AudioManager& audio_mgr_;
 
     // UI state
     bool scanning_active_;
@@ -256,6 +267,21 @@ private:
     void on_manage_frequencies();
     void on_create_new_database();
     void on_frequency_warning();
+
+    // PHASE 3: New advanced submenu functions
+    void show_system_status();
+    void show_performance_stats();
+    void show_debug_info();
+
+    // PHASE 3: Spectrum configuration restoration
+    void select_spectrum_mode(SpectrumMode mode);
+    void on_spectrum_range_config();
+
+    // PHASE 4: Preset system restoration
+    void on_add_preset_quick();
+
+    // PHASE 5: Hardware control restoration
+    void on_hardware_control_menu();
 };
 
 // Main UI view class that ties everything together
@@ -279,7 +305,7 @@ private:
     // Controller instances - UPDATED WITH SCANNING COORDINATOR
     std::unique_ptr<DroneHardwareController> hardware_;
     std::unique_ptr<DroneScanner> scanner_;
-    std::unique_ptr<DroneAudioController> audio_;
+    std::unique_ptr<AudioManager> audio_mgr_;
     std::unique_ptr<DroneUIController> ui_controller_;
 
     // SCANNING COORDINATOR: Fixes the broken scanning architecture
@@ -289,6 +315,8 @@ private:
     // Main UI buttons (simplified)
     Button button_start_{{0, 0}, "START/STOP"};
     Button button_menu_{{120, 0}, "settings"};
+    Button button_author_{{184, 220}, "About"};  // Bottom right
+    OptionsField field_scanning_mode_{{80, 190, 160, 24}, OptionsField::StringOptions{"Database Scan", "Wideband Monitor", "Hybrid Discovery"}, "Mode"};
 
     // Scanning thread coordination
     void start_scanning_thread();
@@ -302,6 +330,9 @@ private:
     EnhancedDroneSpectrumAnalyzerView(const EnhancedDroneSpectrumAnalyzerView&) = delete;
     EnhancedDroneSpectrumAnalyzerView& operator=(const EnhancedDroneSpectrumAnalyzerView&) = delete;
 };
+
+// LOADINGSCREENVIEW CLASS REMOVED - DUPLICATE OF ui_minimal_drone_analyzer.hpp
+// Functionality preserved in ui_minimal_drone_analyzer.hpp to avoid redefinition
 
 } // namespace ui::external_app::enhanced_drone_analyzer
 

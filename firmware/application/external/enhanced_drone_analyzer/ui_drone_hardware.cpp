@@ -13,6 +13,8 @@ namespace ui::external_app::enhanced_drone_analyzer {
 
 DroneHardwareController::DroneHardwareController(SpectrumMode mode)
     : spectrum_mode_(mode),
+      center_frequency_(433000000),  // ADD: Default ISM 433MHz center frequency
+      bandwidth_hz_(SPECTRUM_MODE_DEFAULT_BANDWIDTH),  // ADD: Default from config
       radio_state_(ReceiverModel::Mode::SpectrumAnalysis), // RAII initialization
       hardware_guard_{}  // ADD: Hardware mutex protection following Detector RX pattern
       message_handler_spectrum_config_{
@@ -209,6 +211,51 @@ void DroneHardwareController::process_channel_spectrum_data(const ChannelSpectru
 int32_t DroneHardwareController::get_real_rssi_from_hardware(rf::Frequency target_frequency) {
     // PHASE 3: Now uses real spectrum data from spectrum callbacks
     return last_valid_rssi_;  // Real hardware RSSI from spectrum analysis
+}
+
+// PHASE 5 HARDWARE CONTROL RESTORATION: Implementation of getter/setter functions
+uint32_t DroneHardwareController::get_spectrum_bandwidth() const {
+    // Return configurable bandwidth, fall back to mode-based if not set
+    return (bandwidth_hz_ > 0) ? bandwidth_hz_ :
+           static_cast<uint32_t>(get_configured_bandwidth());
+}
+
+void DroneHardwareController::set_spectrum_bandwidth(uint32_t bandwidth_hz) {
+    // Validate bandwidth range for Portapack hardware
+    if (bandwidth_hz >= 1000000 && bandwidth_hz <= 120000000) {  // 1MHz to 120MHz range
+        bandwidth_hz_ = bandwidth_hz;
+
+        // PHASE 5: Apply bandwidth change to hardware immediately
+        // Update baseband configuration for spectrum analysis
+        receiver_model.set_baseband_bandwidth(bandwidth_hz_);
+
+        // If spectrum streaming is active, restart with new bandwidth
+        if (spectrum_streaming_active_) {
+            stop_spectrum_streaming();
+            baseband::set_spectrum(bandwidth_hz_, 0);  // Reconfigure spectrum
+            start_spectrum_streaming();  // Restart streaming
+        }
+    }
+    // Silently ignore invalid bandwidth values
+}
+
+rf::Frequency DroneHardwareController::get_spectrum_center_frequency() const {
+    // Return current center frequency configured in hardware
+    return center_frequency_;
+}
+
+void DroneHardwareController::set_spectrum_center_frequency(rf::Frequency center_freq) {
+    // Validate frequency range for Portapack hardware
+    if (center_freq >= 50000000 && center_freq <= 6000000000) {  // Standard range
+        center_frequency_ = center_freq;
+
+        // PHASE 5: Apply frequency change to hardware immediately
+        radio::set_tuning_frequency(center_freq);
+
+        // Center frequency change doesn't require spectrum restart
+        // Hardware handles continuous tuning automatically
+    }
+    // Silently ignore invalid frequency values
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer

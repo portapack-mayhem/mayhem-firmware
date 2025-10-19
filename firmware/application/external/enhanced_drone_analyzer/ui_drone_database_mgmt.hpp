@@ -1,7 +1,231 @@
-// ui_drone_frequency_manager.cpp
-// UI event handlers and CRUD operations for drone frequency management
+// ui_drone_database_mgmt.hpp
+// Consolidated drone-specific database management for Enhanced Drone Analyzer
+// Merged ui_drone_database.hpp and ui_drone_database.cpp for unified management
 
-#include "ui_drone_frequency_manager.hpp"
+#ifndef __UI_DRONE_DATABASE_MGMT_HPP__
+#define __UI_DRONE_DATABASE_MGMT_HPP__
+
+#include "freqman_db.hpp"        // Base FreqmanDB functionality
+#include "log_file.hpp"          // LogFile for persistence
+#include <algorithm>
+#include <vector>
+#include <array>
+#include <string>
+
+namespace ui::external_app::enhanced_drone_analyzer {
+
+DroneFrequencyDatabase::DroneFrequencyDatabase()
+    : db_path_({}) {
+    // Constructor - path set during open()
+}
+
+bool DroneFrequencyDatabase::open(const std::filesystem::path& path, bool create) {
+    if (freq_db_.open(path, create)) {
+        db_path_ = path;
+        sync_from_freqman_db();  // Load existing data and parse drone metadata
+        return true;
+    }
+    return false;
+}
+
+void DroneFrequencyDatabase::close() {
+    if (freq_db_.is_open()) {
+        save();  // Ensure changes are persisted
+        freq_db_.close();
+        db_path_.clear();
+        drone_entries_.clear();
+    }
+}
+
+bool DroneFrequencyDatabase::save() {
+    if (!freq_db_.is_open()) {
+        return false;
+    }
+
+    sync_to_freqman_db();  // Update FreqmanDB with encoded drone data
+    return freq_db_.save();
+}
+
+void DroneFrequencyDatabase::clear() {
+    freq_db_.clear();
+    drone_entries_.clear();
+}
+
+size_t DroneFrequencyDatabase::entry_count() const {
+    return drone_entries_.size();
+}
+
+bool DroneFrequencyDatabase::get_entry_drone(size_t index, DroneFrequencyEntry& entry) const {
+    if (index >= drone_entries_.size()) {
+        return false;
+    }
+
+    entry = drone_entries_[index];
+    return true;
+}
+
+bool DroneFrequencyDatabase::add_drone_frequency(const DroneFrequencyEntry& entry, bool override_existing) {
+    // Check for existing frequency
+    auto it = std::find_if(drone_entries_.begin(), drone_entries_.end(),
+                          [entry](const DroneFrequencyEntry& e) {
+                              return e.frequency_hz == entry.frequency_hz;
+                          });
+
+    if (it != drone_entries_.end()) {
+        if (!override_existing) {
+            return false;  // Frequency already exists
+        }
+        *it = entry;  // Update existing
+    } else {
+        drone_entries_.push_back(entry);  // Add new
+    }
+
+    return true;
+}
+
+bool DroneFrequencyDatabase::remove_frequency(rf::Frequency frequency) {
+    auto it = std::remove_if(drone_entries_.begin(), drone_entries_.end(),
+                            [frequency](const DroneFrequencyEntry& e) {
+                                return e.frequency_hz == frequency;
+                            });
+
+    if (it != drone_entries_.end()) {
+        drone_entries_.erase(it, drone_entries_.end());
+        return true;
+    }
+
+    return false;
+}
+
+const DroneFrequencyEntry* DroneFrequencyDatabase::lookup_frequency(rf::Frequency frequency) const {
+    auto it = std::find_if(drone_entries_.begin(), drone_entries_.end(),
+                          [frequency](const DroneFrequencyEntry& e) {
+                              return e.frequency_hz == frequency;
+                          });
+
+    if (it != drone_entries_.end()) {
+        return &(*it);
+    }
+
+    return nullptr;
+}
+
+std::vector<freqman_entry> DroneFrequencyDatabase::get_freqman_entries() const {
+    std::vector<freqman_entry> entries;
+
+    for (const auto& drone_entry : drone_entries_) {
+        freqman_entry entry{
+            .frequency_a = static_cast<rf::Frequency>(drone_entry.frequency_hz),
+            .frequency_b = static_cast<rf::Frequency>(drone_entry.frequency_hz),
+            .type = freqman_type::Single,
+            .modulation = freqman_index_t(1),  // NFM default for drones
+            .bandwidth = freqman_index_t(3),   // 25kHz default
+            .step = freqman_index_t(5),        // 25kHz step
+            .description = encode_drone_data(drone_entry),
+            .tonal = ""  // Not used for drones
+        };
+        entries.push_back(entry);
+    }
+
+    return entries;
+}
+
+void DroneFrequencyDatabase::sync_from_freqman_db() {
+    drone_entries_.clear();
+
+    if (!freq_db_.is_open()) {
+        return;
+    }
+
+    // Load and decode all entries from FreqmanDB
+    for (size_t i = 0; i < freq_db_.entry_count(); ++i) {
+        auto entry_opt = freq_db_.get_entry(i);
+        if (entry_opt) {
+            DroneFrequencyEntry drone_entry;
+            if (decode_drone_data(entry_opt->description, drone_entry)) {
+                // Successfully decoded drone data
+                drone_entry.frequency_hz = entry_opt->frequency_a;
+                drone_entries_.push_back(drone_entry);
+            }
+        }
+    }
+}
+
+void DroneFrequencyDatabase::sync_to_freqman_db() {
+    if (!freq_db_.is_open()) {
+        return;
+    }
+
+    freq_db_.clear();  // Clear existing entries
+
+    // Write all drone entries to FreqmanDB
+    auto freqman_entries = get_freqman_entries();
+    for (const auto& entry : freqman_entries) {
+        freq_db_.append_entry(entry);
+    }
+}
+
+std::string DroneFrequencyDatabase::encode_drone_data(const DroneFrequencyEntry& entry) const {
+    char buffer[128];
+    memset(buffer, 0, sizeof(buffer));
+
+    // Format: "DRONE|<type_idx>|<threat_idx>|<rssi_thresh>|<name>"
+    int ret = snprintf(buffer, sizeof(buffer) - 1,
+                      "DRONE|%u|%u|%d|%s",
+                      static_cast<uint8_t>(entry.drone_type),
+                      static_cast<uint8_t>(entry.threat_level),
+                      entry.rssi_threshold_db,
+                      entry.name.c_str());
+
+    if (ret < 0 || ret >= static_cast<int>(sizeof(buffer))) {
+        return "DRONE|0|0|-90|UNKNOWN";  // Safe fallback
+    }
+
+    return std::string(buffer);
+}
+
+bool DroneFrequencyDatabase::decode_drone_data(const std::string& description, DroneFrequencyEntry& entry) const {
+    // Check if description starts with "DRONE|"
+    if (description.substr(0, 6) != "DRONE|") {
+        return false;
+    }
+
+    // Parse format: "DRONE|<type_idx>|<threat_idx>|<rssi_thresh>|<name>"
+    char type_idx_str[4], threat_idx_str[4], rssi_str[8], name_str[64];
+    memset(type_idx_str, 0, sizeof(type_idx_str));
+    memset(threat_idx_str, 0, sizeof(threat_idx_str));
+    memset(rssi_str, 0, sizeof(rssi_str));
+    memset(name_str, 0, sizeof(name_str));
+
+    int ret = sscanf(description.c_str(), "DRONE|%3[^|]|%3[^|]|%7[^|]|%63[^|]",
+                     type_idx_str, threat_idx_str, rssi_str, name_str);
+
+    if (ret != 4) {
+        return false;  // Failed to parse all required fields
+    }
+
+    // Convert and validate
+    uint8_t type_idx = static_cast<uint8_t>(atoi(type_idx_str));
+    uint8_t threat_idx = static_cast<uint8_t>(atoi(threat_idx_str));
+    int8_t rssi_threshold = static_cast<int8_t>(atoi(rssi_str));
+
+    if (type_idx >= static_cast<uint8_t>(DroneType::MAX_TYPES) ||
+        threat_idx > static_cast<uint8_t>(ThreatLevel::CRITICAL)) {
+        return false;
+    }
+
+    // Fill entry
+    entry.drone_type = static_cast<DroneType>(type_idx);
+    entry.threat_level = static_cast<ThreatLevel>(threat_idx);
+    entry.rssi_threshold_db = rssi_threshold;
+    entry.name = std::string(name_str);
+
+    return true;
+}
+
+// Migration Session 7: Consolidate UI classes from ui_drone_frequency_manager.hpp/.cpp
+// Integrated into this header for unified database management UI
+
 #include "binder.hpp"
 #include "portapack.hpp"
 #include "freqman_db.hpp"
@@ -9,7 +233,95 @@
 #include "freqman.hpp"
 #include "string_format.hpp"
 
-namespace ui::external_app::enhanced_drone_analyzer {
+#include "ui.hpp"
+#include "ui/ui_button.hpp"
+#include "ui/ui_text.hpp"
+#include "ui/ui_checkbox.hpp"
+#include "ui/ui_number_field.hpp"
+#include "ui/ui_numeric_entry.hpp"
+#include "ui/ui_menu.hpp"
+#include "ui/navigation.hpp"
+#include "ui_drone_config.hpp"  // Consolidated types, validation, and presets
+
+struct FrequencyEntryForm {
+    uint32_t frequency_hz;
+    DroneType drone_type;
+    ThreatLevel threat_level;
+    int32_t rssi_threshold_db;
+    std::string name;
+    uint32_t bandwidth_hz;
+};
+
+class DroneFrequencyManagerView : public View {
+public:
+    DroneFrequencyManagerView(NavigationView& nav);
+    ~DroneFrequencyManagerView() override = default;
+
+    void focus() override;
+    std::string title() const override { return "Frequency Manager"; }
+    void paint(Painter& painter) override;
+    bool on_key(const KeyEvent key) override;
+    bool on_touch(const TouchEvent event) override;
+
+private:
+    NavigationView& nav_;
+    std::string freqman_file_{"DRONES"};  // Название файла для дронов
+
+    // DATABASE MANAGEMENT: Use DroneFrequencyDatabase for full drone metadata support
+    // FreqmanDB for backward compatibility, DroneFrequencyDatabase for drone-specific data
+    FreqmanDB freqman_db_;
+    DroneFrequencyDatabase drone_db_;
+
+    // Split view: left menu, right details
+    MenuView menu_view_{ {0, 0, 200, screen_height}, true };
+    uint32_t selected_frequency_index_ = 0;
+
+    // Right panel controls (corrected layout for screen width 240px)
+    NumberField frequency_field_{ {205, 20}, 8, {50000000}, 6000000000, 500000000 };
+    OptionsField drone_type_field_{ {205, 40}, 15 };
+    OptionsField threat_level_field_{ {205, 55}, 12 };
+    NumberField rssi_field_{ {205, 70}, 6, {-120}, -10, -80 };
+    TextEntry text_name_{ {205, 85}, 20 };
+    NumberField bandwidth_field_{ {205, 100}, 7, {0}, 100000000, 5000000 };
+
+    // NEW: Bandwidth offset controls for ±6MHz from center (default 3MHz)
+    NumberField bandwidth_offset_field_{ {201, 120}, 8, {-6000000}, 6000000, 3000000 };  // ±6MHz, default +3MHz
+    OptionsField offset_direction_field_{ {220, 135}, 4 };
+    Checkbox enabled_checkbox_{ {201, 145}, "" };
+
+    // Action buttons (bottom row)
+    Button button_preset_{ {0, 210}, "Add Preset" };     // NEW: Preset button above others
+    Button button_add_{ {0, 220}, "Add Frequency" };
+    Button button_update_{ {80, 220}, "Update" };
+    Button button_remove_{ {136, 220}, "Remove" };
+    Button button_clear_{ {184, 220}, "Clear All" };
+
+    // Status display
+    Text text_status_{ {0, 242}, 240, "Select frequency to edit..." };
+
+    // Handle frequency selection from menu
+    // Removed unused on_frequency_selected function
+
+    // CRUD operations
+    void on_add_frequency();
+    void on_update_frequency();
+    void on_remove_frequency();
+    void on_clear_all();
+
+    // Update UI with selected frequency data
+    void update_frequency_details();
+
+    // Validate and convert form data
+    bool validate_current_form();
+    FrequencyEntryForm get_form_data() const;
+
+    // UI update helpers
+    void refresh_frequency_list();
+    void update_status_text(const char* text);
+    void clear_form();
+
+// Migration Session 7: Implementations from ui_drone_frequency_manager.cpp
+// Added here to create header-only consolidated file
 
 DroneFrequencyManagerView::DroneFrequencyManagerView(NavigationView& nav)
     : nav_(nav), freqman_file_("DRONES"), selected_frequency_index_(0) {
@@ -97,11 +409,6 @@ bool DroneFrequencyManagerView::on_key(const KeyEvent key) {
 bool DroneFrequencyManagerView::on_touch(const TouchEvent event) {
     // Handle touch events similar to FreqMan
     return View::on_touch(event);
-}
-
-void DroneFrequencyManagerView::on_frequency_selected(size_t index) {
-    selected_frequency_index_ = index;
-    update_frequency_details();
 }
 
 void DroneFrequencyManagerView::on_add_frequency() {
@@ -460,4 +767,10 @@ void DroneFrequencyManagerView::load_frequencies_from_database() {
     }
 }
 
+    // Initialize UI controls
+    void initialize_menu_options();
+};
+
 } // namespace ui::external_app::enhanced_drone_analyzer
+
+#endif // __UI_DRONE_DATABASE_MGMT_HPP__
