@@ -255,9 +255,8 @@ set(EXTCPPSRC
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-	#enhanced_drone_analyzer - SCANNING ARCHITECTURE FIXED v0.3
+	#enhanced_drone_analyzer
 	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
-	# MODULAR COMPONENT FILES
 	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
 	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
 	external/enhanced_drone_analyzer/ui_drone_audio.cpp

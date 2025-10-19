@@ -23,6 +23,7 @@
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
+<<<<<<< HEAD
 // Language support
 enum class Language {
     ENGLISH,
@@ -281,6 +282,8 @@ private:
 
 Language Translator::current_language_ = Language::ENGLISH;
 
+=======
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
 // Перегруппированные настройки для лучшей организации UI
 struct DroneSpectrumSettings {
     uint32_t min_scan_interval_ms = 1000;  // Скорректировано с 750ms для энергоэффективности

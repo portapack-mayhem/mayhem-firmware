@@ -255,9 +255,11 @@ set(EXTCPPSRC
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-	#morse_practice
-	external/morse_practice/main.cpp
-	external/morse_practice/ui_morse_practice.cpp
+	#enhanced_drone_analyzer
+	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
+	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
+	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
+	external/enhanced_drone_analyzer/ui_drone_ui.cpp
 )
 
 set(EXTAPPLIST
@@ -322,5 +324,5 @@ set(EXTAPPLIST
 	soundboard
 	game2048
 	bht_tx
-	morse_practice
+	#enhanced_drone_analyzer
 )
