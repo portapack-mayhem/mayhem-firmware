@@ -23,12 +23,9 @@
 
 #include <array>
 
-namespace ui::external_app::battleship {
+#define GRID_SIZE 10
 
-constexpr uint8_t GRID_SIZE = 10;
-constexpr uint8_t CELL_SIZE = 24;
-constexpr uint8_t GRID_OFFSET_X = 0;
-constexpr uint8_t GRID_OFFSET_Y = 32;
+namespace ui::external_app::battleship {
 
 enum class ShipType : uint8_t {
     CARRIER = 5,
@@ -103,6 +100,10 @@ class BattleshipView : public View {
    private:
     NavigationView& nav_;
 
+    uint16_t CELL_SIZE = 24;
+    uint16_t GRID_OFFSET_X = 0;
+    uint16_t GRID_OFFSET_Y = 32;
+
     RxRadioState rx_radio_state_{
         433920000 /* frequency */,
         1750000 /* bandwidth */,
@@ -163,11 +164,11 @@ class BattleshipView : public View {
     uint32_t last_address{0};
 
     // UI Elements - Menu/Settings Screen
-    Text text_title{{60, 2, 120, 24}, "BATTLESHIP"};
-    Text text_subtitle{{40, 20, 160, 16}, "Naval Combat Game"};
+    Text text_title{{UI_POS_X_CENTER(11), 2, UI_POS_WIDTH(11), 16}, "BATTLESHIP"};
+    Text text_subtitle{{UI_POS_X_CENTER(18), 24, UI_POS_WIDTH(18), 16}, "Naval Combat Game"};
 
-    Rectangle rect_radio_settings{{12, 40, 216, 118}, Color::dark_grey()};
-    Text label_radio{{17, 45, 100, 16}, "RADIO SETUP"};
+    // Rectangle rect_radio_settings{{12, 40, 216, 118}, Color::dark_grey()};
+    Text label_radio{{UI_POS_X_CENTER(12), 45, UI_POS_WIDTH(12), 16}, "RADIO SETUP"};
     ButtonWithEncoder button_frequency{{17, 65, 11 * 8, 20}, ""};
 
     // Radio controls
@@ -183,25 +184,24 @@ class BattleshipView : public View {
     Text label_tx_gain{{155, 118, 25, 16}, "TX:"};
     NumberField field_tx_gain{{185, 118}, 2, {0, 47}, 8, ' '};
 
-    Rectangle rect_audio_settings{{12, 164, 216, 45}, Color::dark_grey()};
-    Text label_audio{{17, 169, 80, 16}, "AUDIO"};
-    Checkbox checkbox_sound{{17, 187}, 8, "Sound On", true};
+    // Rectangle rect_audio_settings{{12, 164, 216, 45}, Color::dark_grey()};
+    Text label_audio{{UI_POS_X_CENTER(6), 155, UI_POS_WIDTH(6), 16}, "AUDIO"};
+    Checkbox checkbox_sound{{17, 177}, 8, "Sound On", true};
     Text label_volume{{110, 187, 50, 16}, "Volume:"};
-    AudioVolumeField field_volume{{165, 187}};
+    AudioVolumeField field_volume{{165, 177}};
 
-    Rectangle rect_team_selection{{12, 217, 216, 75}, Color::dark_grey()};
-    Text label_team{{17, 222, 110, 16}, "SELECT TEAM"};
-    Button button_red_team{{25, 242, 85, 45}, "RED\nTEAM"};
-    Button button_blue_team{{130, 242, 85, 45}, "BLUE\nTEAM"};
+    // Rectangle rect_team_selection{{12, 217, 216, 75}, Color::dark_grey()};
+    Text label_team{{17, 220, 8 * 12, 16}, "SELECT TEAM"};
+    Button button_red_team{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(7), 237, UI_POS_WIDTH(10), 45}, "RED\nTEAM"};
+    Button button_blue_team{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(7), 237, UI_POS_WIDTH(10), 45}, "BLUE\nTEAM"};
 
     // In-game UI elements
-    RSSI rssi{{21 * 8, 0, 6 * 8, 4}};
-    Text text_status{{10, 16, 220, 16}, ""};
+    RSSI rssi{{UI_POS_X_RIGHT(6), 0, 6 * 8, 4}};
     Text text_score{{170, 16, 60, 16}, ""};
-    Button button_rotate{{10, 265, 65, 32}, "Rotate"};
-    Button button_place{{82, 265, 65, 32}, "Place"};
-    Button button_fire{{82, 265, 65, 32}, "Fire!"};
-    Button button_menu{{155, 265, 65, 32}, "Menu"};
+    Button button_rotate{{5, UI_POS_Y_BOTTOM(3), 65, 32}, "Rotate"};
+    Button button_place{{UI_POS_X_CENTER(6), UI_POS_Y_BOTTOM(3), 65, 32}, "Place"};
+    Button button_fire{{UI_POS_X_RIGHT(17), UI_POS_Y_BOTTOM(3), 65, 32}, "Fire!"};
+    Button button_menu{{UI_POS_X_RIGHT(8), UI_POS_Y_BOTTOM(3), 65, 32}, "Menu"};
 
     // Methods
     void init_game();
@@ -209,8 +209,8 @@ class BattleshipView : public View {
     void start_team(bool red);
     void setup_ships();
     void draw_menu_screen(Painter& painter);
-    void draw_grid(Painter& painter, uint8_t grid_x, uint8_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid = false);
-    void draw_cell(Painter& painter, uint8_t cell_x, uint8_t cell_y, CellState state, bool show_ships, bool is_offense_grid, bool is_cursor);
+    void draw_grid(Painter& painter, uint16_t grid_x, uint16_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid = false);
+    void draw_cell(Painter& painter, uint16_t cell_x, uint16_t cell_y, CellState state, bool show_ships, bool is_offense_grid, bool is_cursor);
     void draw_ship_preview(Painter& painter);
     void place_ship();
     bool can_place_ship(uint8_t x, uint8_t y, uint8_t size, bool horizontal);
@@ -218,6 +218,7 @@ class BattleshipView : public View {
     void process_shot(uint8_t x, uint8_t y);
     void update_score();
     bool is_cursor_at(uint8_t x, uint8_t y, bool is_offense_grid);
+    void show_hide_menu(bool menu_vis);
 
     void send_message(const GameMessage& msg);
     void process_message(const std::string& message);

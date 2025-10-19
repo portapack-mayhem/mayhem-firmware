@@ -48,8 +48,8 @@ class ILI9341 {
     void init();
     void shutdown();
 
-    void sleep();
-    void wake();
+    void sleep(bool hw_sleep = true);
+    void wake(bool hw_sleep = true);
 
     void fill_rectangle(ui::Rect r, const ui::Color c);
     void fill_rectangle_unrolled8(ui::Rect r, const ui::Color c);
