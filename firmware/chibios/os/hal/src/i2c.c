@@ -243,8 +243,10 @@ msg_t i2cMasterReceiveTimeout(I2CDriver* i2cp,
                    (timeout != TIME_IMMEDIATE),
                "i2cMasterReceiveTimeout");
 
-    chDbgAssert(i2cp->state == I2C_READY,
-                "i2cMasterReceive(), #1", "not ready");
+    // chDbgAssert(i2cp->state == I2C_READY, "i2cMasterReceive(), #1", "not ready");
+    if (i2cp->state != I2C_READY) {
+        return RDY_TIMEOUT;
+    }
 
     chSysLock();
     i2cp->errors = I2CD_NO_ERROR;
