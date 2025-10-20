@@ -85,6 +85,7 @@ MEMORY
     ram_external_app_game2048     (rwx) : org = 0xADEC0000, len = 32k
     ram_external_app_bht_tx          (rwx) : org = 0xADED0000, len = 32k
     ram_external_app_morse_practice  (rwx) : org = 0xADEE0000, len = 32k
+    ram_external_app_enhanced_drone_analyzer (rwx) : org = 0xADEF0000, len = 32k
 
 
 }
@@ -465,6 +466,11 @@ SECTIONS
         *(*ui*external_app*morse_practice*);
     } > ram_external_app_morse_practice
 
+    .external_app_enhanced_drone_analyzer : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_enhanced_drone_analyzer.application_information));
+        *(*ui*external_app*enhanced_drone_analyzer*);
+    } > ram_external_app_enhanced_drone_analyzer
+
 
 }
-

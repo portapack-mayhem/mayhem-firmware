@@ -80,8 +80,30 @@ public:
         systime_t last_seen;
         std::string type_name;
         Color display_color;
+<<<<<<< HEAD
+<<<<<<< HEAD
+        MovementTrend trend = MovementTrend::UNKNOWN;
+<<<<<<< HEAD
+        MovementTrend trend = MovementTrend::UNKNOWN;
+        MovementTrend trend;
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
 
     void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
+        MovementTrend trend = MovementTrend::UNKNOWN;
+=======
+<<<<<<< HEAD
+        MovementTrend trend = MovementTrend::UNKNOWN;
+=======
+<<<<<<< HEAD
+        MovementTrend trend = MovementTrend::UNKNOWN;
+=======
+        MovementTrend trend;
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
     };
 
     void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
@@ -268,6 +290,18 @@ private:
     void on_manage_frequencies();
     void on_create_new_database();
     void on_frequency_warning();
+<<<<<<< HEAD
+    void on_select_language();
+=======
+<<<<<<< HEAD
+    void on_select_language();
+=======
+<<<<<<< HEAD
+    void on_select_language();
+=======
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
 
     // PHASE 3: New advanced submenu functions
     void show_system_status();
@@ -316,6 +350,7 @@ private:
     // Main UI buttons (simplified)
     Button button_start_{{0, 0}, "START/STOP"};
     Button button_menu_{{120, 0}, "settings"};
+    Button button_author_{{184, 220}, "About"};  // Bottom right
     OptionsField field_scanning_mode_{{80, 190, 160, 24}, OptionsField::StringOptions{"Database Scan", "Wideband Monitor", "Hybrid Discovery"}, "Mode"};
 
     // Scanning thread coordination

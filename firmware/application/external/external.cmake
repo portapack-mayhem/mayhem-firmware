@@ -255,11 +255,19 @@ set(EXTCPPSRC
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-	#enhanced_drone_analyzer
+	#enhanced_drone_analyzer - SCANNING ARCHITECTURE FIXED v0.3
 	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
-	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
-	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
 	external/enhanced_drone_analyzer/ui_drone_ui.cpp
+	external/enhanced_drone_analyzer/ui_drone_ui.hpp
+	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
+	external/enhanced_drone_analyzer/ui_drone_hardware.hpp
+	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
+	external/enhanced_drone_analyzer/ui_drone_scanner.hpp
+	external/enhanced_drone_analyzer/ui_drone_audio.hpp
+	external/enhanced_drone_analyzer/ui_drone_config.hpp
+	external/enhanced_drone_analyzer/ui_drone_database_mgmt.hpp
+	external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp
+	external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp
 )
 
 set(EXTAPPLIST
@@ -324,5 +332,5 @@ set(EXTAPPLIST
 	soundboard
 	game2048
 	bht_tx
-	#enhanced_drone_analyzer
+	enhanced_drone_analyzer
 )

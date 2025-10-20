@@ -116,6 +116,7 @@ public:
     // Frequency database integration
     bool load_frequency_database();
     size_t get_database_size() const;
+    size_t get_current_database_index() const { return current_db_index_; }
     const freqman_entry* get_current_frequency_entry() const;
 
 

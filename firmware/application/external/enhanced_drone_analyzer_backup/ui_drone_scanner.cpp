@@ -523,6 +523,19 @@ void DroneScanner::process_wideband_detection_with_override(const freqman_entry&
     DroneType detected_type = DroneType::UNKNOWN;
 
     // RING BUFFER PROTECTION (reuse existing logic)
+<<<<<<< HEAD
+    // extern DetectionRingBuffer    extern DetectionRingBuffer& local_detection_ring; local_detection_ring;  // Renamed to avoid shadowing
+=======
+<<<<<<< HEAD
+    // extern DetectionRingBuffer    extern DetectionRingBuffer& local_detection_ring; local_detection_ring;  // Renamed to avoid shadowing
+=======
+<<<<<<< HEAD
+    // extern DetectionRingBuffer    extern DetectionRingBuffer& local_detection_ring; local_detection_ring;  // Renamed to avoid shadowing
+=======
+    extern DetectionRingBuffer& local_detection_ring;
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
     size_t freq_hash = entry.frequency_a;
 
     // Use wideband threshold for hysteresis check
@@ -637,6 +650,19 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
 
     // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY) + HYSTERESIS
     // OPTIMIZED: Now using ring buffer for 75% memory reduction
+<<<<<<< HEAD
+    // extern DetectionRingBuffer    extern DetectionRingBuffer& local_detection_ring; local_detection_ring;  // Renamed to avoid shadowing  // Forward declaration
+=======
+<<<<<<< HEAD
+    // extern DetectionRingBuffer    extern DetectionRingBuffer& local_detection_ring; local_detection_ring;  // Renamed to avoid shadowing  // Forward declaration
+=======
+<<<<<<< HEAD
+    // extern DetectionRingBuffer    extern DetectionRingBuffer& local_detection_ring; local_detection_ring;  // Renamed to avoid shadowing  // Forward declaration
+=======
+    extern DetectionRingBuffer& local_detection_ring;  // Forward declaration
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
 
     size_t freq_hash = entry.frequency_a;  // FREQUENCY AS HASH KEY
 
@@ -844,24 +870,34 @@ void DroneScanner::scan_init_from_loaded_frequencies() {
     total_detections_ = 0;
 }
 
-IMPLEMENTATION OF MIGRATED DetectionRingBuffer from ui_drone_detection_ring.cpp
+// IMPLEMENTATION OF MIGRATED DetectionRingBuffer from ui_drone_detection_ring.cpp
 
 // GLOBAL SINGLETON INSTANCE - Following Portapack patterns
-// GLOBAL SINGLETON INSTANCE - Portapack pattern for ring buffer
-
-DetectionRingBuffer global_detection_ring;
-
-
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
+DetectionRingBuffer local_detection_ring;
 
 // ALIAS for backward compatibility
+DetectionRingBuffer& local_detection_ring = local_detection_ring;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+DetectionRingBuffer global_detection_ring;
 
+// ALIAS for backward compatibility
 DetectionRingBuffer& local_detection_ring = global_detection_ring;
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
 
-
-
-DetectionRingBuffer::DetectionRingBuffer()
-    : detection_counts_{}, rssi_values_{}  // Initialize to zero
-{
+DetectionRingBuffer::DetectionRingBuffer() {
     clear();  // Initialize all to zero
 }
 
