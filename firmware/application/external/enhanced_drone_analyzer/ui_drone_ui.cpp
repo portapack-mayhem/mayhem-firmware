@@ -857,7 +857,7 @@ void EnhancedDroneSpectrumAnalyzerView::stop_scanning_thread() {
     scanning_coordinator_->stop_coordinated_scanning();
 }
 bool EnhancedDroneSpectrumAnalyzerView::handle_start_stop_button() {
-    if (ui_controller_->is_scanning()) {
+    if (scanning_coordinator_->is_scanning_active()) {
         ui_controller_->on_stop_scan();
         button_start_.set_text("START/STOP");
     } else {
