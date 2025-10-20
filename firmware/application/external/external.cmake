@@ -1,24 +1,25 @@
 set(EXTCPPSRC
-
-	#afsk_rx
+	#afsk_rx   16 byte
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
 
-	#calculator
+	#calculator  632 bytes
 	external/calculator/main.cpp
 	external/calculator/ui_calculator.cpp
 
-	#font_viewer
+	#font_viewer 8 byte?!
 	external/font_viewer/main.cpp
 	external/font_viewer/ui_font_viewer.cpp
 
-	#blespam
+	#blespam 336 bytes - array initializers?
 	external/blespam/main.cpp
 	external/blespam/ui_blespam.cpp
 
-	#analogtv
+	#analogtv 552 bytes 
 	external/analogtv/main.cpp
 	external/analogtv/analog_tv_app.cpp
+	external/analogtv/ui_tv.cpp
+
 
 	#nrf_rx
 	external/nrf_rx/main.cpp
@@ -32,6 +33,9 @@ set(EXTCPPSRC
 	external/lge/main.cpp
 	external/lge/lge_app.cpp
 
+# 37772 bytes 
+
+
 	#lcr
 	external/lcr/main.cpp
 	external/lcr/ui_lcr.cpp
@@ -43,6 +47,8 @@ set(EXTCPPSRC
 	#gpssim
 	external/gpssim/main.cpp
 	external/gpssim/gps_sim_app.cpp
+
+# 36516 bytes
 
 	#spainter
 	external/spainter/main.cpp
@@ -58,6 +64,8 @@ set(EXTCPPSRC
 	#tetris
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
+
+#35692 bytes
 
 	#extsensors
 	external/extsensors/main.cpp
@@ -76,6 +84,10 @@ set(EXTCPPSRC
 	#wardrivemap
 	external/wardrivemap/main.cpp
 	external/wardrivemap/ui_wardrivemap.cpp
+
+
+#33324 bytes
+
 
 	#tpmsrx
 	external/tpmsrx/main.cpp
@@ -97,6 +109,8 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
+#27140 bytes
+
 	#random
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
@@ -104,8 +118,8 @@ set(EXTCPPSRC
 	external/random_password/sha512.h
 
 	#acars
-	external/acars_rx/main.cpp
-	external/acars_rx/acars_app.cpp
+	#external/acars_rx/main.cpp
+	#external/acars_rx/acars_app.cpp
 
 	#wefax_rx
 	external/wefax_rx/main.cpp
@@ -116,6 +130,8 @@ set(EXTCPPSRC
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
+
+# 22460 bytes
 
 
 	#shoppingcart_lock
@@ -133,6 +149,8 @@ set(EXTCPPSRC
 	#cvs_spam
 	external/cvs_spam/main.cpp
 	external/cvs_spam/cvs_spam.cpp
+
+#19372 bytes
 
 	#flippertx
 	external/flippertx/main.cpp
@@ -154,6 +172,9 @@ set(EXTCPPSRC
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
 
+
+#15684 bytes
+
 	#metronome
 	external/metronome/main.cpp
 	external/metronome/ui_metronome.cpp
@@ -169,6 +190,8 @@ set(EXTCPPSRC
 	# whip calculator
 	external/antenna_length/main.cpp
 	external/antenna_length/ui_whipcalc.cpp
+
+#14100 bytes
 
 	# wav viewer
 	external/wav_view/main.cpp
@@ -186,6 +209,8 @@ set(EXTCPPSRC
 	external/snake/main.cpp
 	external/snake/ui_snake.cpp
 
+#12300 bytes
+
 	#stopwatch
 	external/stopwatch/main.cpp
 	external/stopwatch/ui_stopwatch.cpp
@@ -201,6 +226,8 @@ set(EXTCPPSRC
 	#doom
 	external/doom/main.cpp
 	external/doom/ui_doom.cpp
+
+#10916 bytes
 
 	#debug_pmem
 	external/debug_pmem/main.cpp
@@ -218,6 +245,9 @@ set(EXTCPPSRC
 	external/gfxeq/main.cpp
 	external/gfxeq/ui_gfxeq.cpp
 
+#9268 bytes
+	
+
 	#detector_rx
 	external/detector_rx/main.cpp
 	external/detector_rx/ui_detector_rx.cpp
@@ -234,30 +264,35 @@ set(EXTCPPSRC
 	external/battleship/main.cpp
 	external/battleship/ui_battleship.cpp
 
-	#ert
+#8828 bytes
+
+	#ert 3040 bytes - has common with baseband, could be renamed the namespace, so both could have it, but not kept in fw.
 	external/ert/main.cpp
 	external/ert/ert_app.cpp
 
-	#epirb_rx
+	#epirb_rx 168 byte flash 
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
 
-	#soundboard
+	#soundboard  272byte  - 1236 bytes
 	external/soundboard/main.cpp
 	external/soundboard/soundboard_app.cpp
 
-	#game2048
+	#game2048   - 168 byte flash
 	external/game2048/main.cpp
 	external/game2048/ui_game2048.cpp
 
-	#bht_tx
+	#bht_tx - 3920 byte flash, unknown
 	external/bht_tx/main.cpp
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-	#morse_practice
+
+	#morse_practice - 80 byte flash - bc of array initializers
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
+	
+
 )
 
 set(EXTAPPLIST
@@ -265,8 +300,8 @@ set(EXTAPPLIST
 	calculator
 	font_viewer
 	blespam
-	nrf_rx
 	analogtv
+	nrf_rx
 	coasterp
 	lge
 	lcr
@@ -279,7 +314,6 @@ set(EXTAPPLIST
 	foxhunt_rx
 	audio_test
 	wardrivemap
-	cvs_spam
 	tpmsrx
 	protoview
 	adsbtx
@@ -287,11 +321,12 @@ set(EXTAPPLIST
 	sstvtx
 	random_password
 	# acars_rx
-	ookbrute
-	ook_editor
 	wefax_rx
 	noaaapt_rx
 	shoppingcart_lock
+	ookbrute
+	ook_editor
+	cvs_spam
 	flippertx
 	remote
 	mcu_temperature

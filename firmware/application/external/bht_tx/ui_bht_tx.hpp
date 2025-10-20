@@ -207,7 +207,7 @@ class BHTView : public View {
         "Scan"};
 
     Checkbox checkbox_flashing{
-        {16 * 8, 25 * 8},
+        {UI_POS_X(16), 25 * 8},
         8,
         "Flashing"};
     NumberField field_speed{
