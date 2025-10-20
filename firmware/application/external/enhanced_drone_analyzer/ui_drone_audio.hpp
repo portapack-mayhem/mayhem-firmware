@@ -153,8 +153,22 @@ private:
     NumberField field_test_threat_level_{ {130, 60}, 1, {0, 4, 1, 1}, "Threat" };
     Text text_test_instructions_{ {10, 85, 240, 16},
         "Select threat level to test" };
+<<<<<<< HEAD
     Text text_last_beep_{ {10, 100, 240, 16}, "Last beep: Never" };
     Button button_sos_alert_{ {10, 120}, "SOS Alert" };
+=======
+<<<<<<< HEAD
+    Text text_last_beep_{ {10, 100, 240, 16}, "Last beep: Never" };
+    Button button_sos_alert_{ {10, 120}, "SOS Alert" };
+=======
+<<<<<<< HEAD
+    Text text_last_beep_{ {10, 100, 240, 16}, "Last beep: Never" };
+    Button button_sos_alert_{ {10, 120}, "SOS Alert" };
+=======
+    Button button_sos_alert_{ {10, 110}, "SOS Alert" };
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
     Button button_about_{ {5, 135}, "ABOUT", 14 };  // Left bottom corner
 
     // Button handlers
@@ -320,7 +334,18 @@ DroneAudioSettingsView::DroneAudioSettingsView(
         &checkbox_audio_enabled_,
         &field_test_threat_level_,
         &text_test_instructions_,
+<<<<<<< HEAD
         &text_last_beep_,
+=======
+<<<<<<< HEAD
+        &text_last_beep_,
+=======
+<<<<<<< HEAD
+        &text_last_beep_,
+=======
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
         &button_test_audio_,
         &button_sos_alert_,
         &button_about_  // Add about button
@@ -398,10 +423,26 @@ void DroneAudioSettingsView::on_test_audio() {
         // RESTORATION: After test, show last beep time if available
         uint32_t last_beep = audio_controller_.get_last_beep_time(); // Restore unused function
         if (last_beep > 0) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
             char time_str[32];
             snprintf(time_str, sizeof(time_str), "Last beep: %u ms ago", (chTimeNow() - last_beep));
             text_last_beep_.set(time_str);
             set_dirty();  // Mark UI for redraw
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+            // Could display last beep time in UI here
+>>>>>>> a48640829308c7ab7e0768914004ec59c3d45960
+>>>>>>> 8ed76d5e76761e9c544152cd14263c2abc260169
+>>>>>>> 12abf0fef69304265a361b1845ddcbcb5b32279b
         }
     }
 }
