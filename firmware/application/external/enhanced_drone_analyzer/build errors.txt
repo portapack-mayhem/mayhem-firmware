@@ -1,51 +1,48 @@
 # Firmware Build Errors Log - Enhanced Drone Analyzer Analysis
-# This file contains actual compilation errors from the latest build attempt
-# Resolved errors have been removed; only current failing items remain
+# Latest build attempt: 2025-10-20
+# Contains current actionable errors preventing successful compilation
+# Previous outdated link-time errors removed
 
-# CHIBIOS/BASEBAND COMPILATION FAILURES (PREFERENTIAL LINKER ERRORS - LINK TIME)
-# These occur when baseband objects fail to link properly due to missing dependencies or ordering issues
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/crt0.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/common/ARMCMx/nvic.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M4/vectors.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chsys.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chlists.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/chcore.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chvt.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testmsg.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chdebug.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chregistry.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/chcore_v7m.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chcond.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chdynamic.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmempools.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chevents.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmsg.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testthd.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmtx.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testsem.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chschd.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chqueues.c.obj
-FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmemcore.c.obj
+# CRITICAL COMPILATION BLOCKERS (CURRENT BUILD ATTEMPT):
+# Project fails at earliest compilation stage due to preprocessor macro issues
+# GCC v10.3.1 unable to process duplicate macro definitions
+# ERROR: "macro names must be identifiers" (70+ instances across all Chibios objects)
+# ROOT CAUSE: CMake toolchain duplicates -DVERSION_STRING="7eed5301" flag excessively
+# AFFECTS: All baseband and application object compilations
+# STATUS: Requires CMake toolchain fix before any code can be built
 
-# APPLICATION CPLD DATA FAILURES
-# These are related to CPLD bitstream processing and may be resolved by ensuring CPLD tools are properly configured
-FAILED: firmware/application/portapack_cpld_20170522_data.cpp C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/application/portapack_cpld_20170522_data.cpp
-FAILED: firmware/application/portapack_cpld_20150901_data.cpp C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/application/portapack_cpld_20150901_data.cpp
-FAILED: firmware/application/hackrf_cpld_data.cpp C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/application/hackrf_cpld_data.cpp
+# BUILD ENVIRONMENT ISSUES (CURRENT):
+# FAILED: libopencm3_hackrf_usb subproject - missing 'make' utility on Windows
+# FAILED: hackrf_cpld_data.cpp generation - platform 'avr32' unrecognized
+# FAILED: Multiple CPLD data extraction failures (portapack_cpld_*.cpp generation)
 
-# CPPCHECK-STYLE CODE QUALITY ISSUES (INFORMATIONAL)
-# These are static analysis findings that may affect code correctness:
-# - MissingIncludes: Portapack headers (ui_*.hpp) - expected in build environment
-# - UnusedFunctions: Several utility functions not used in current code paths
-# - NonExplicitConstructors: Some classes could benefit from explicit constructors
-# - Style issues: Parameter passing by const ref, STL algorithm usage
-# - Potential bugs: Variable scope reductions, parameter handling
+# APPLICATION CPLD DATA GENERATION ERRORS (CURRENT):
+# These prevent CPLD header generation and halt build at configuration stage
+# FAILED: firmware/application/portapack_cpld_20170522_data.cpp
+# FAILED: firmware/application/portapack_cpld_20150901_data.cpp
+# FAILED: firmware/application/hackrf_cpld_data.cpp
 
-# ENHANCED DRONE ANALYZER SPECIFIC ISSUES:
-# Code analysis complete - no direct compilation errors found in EDA code paths
-# All required files are present and properly registered in external.cmake
-# App registration in EXTAPPLIST confirmed
+# STATIC ANALYSIS FINDINGS (INFORMATIONAL - NON-BLOCKING):
+# CPPCHECK REPORTS:
+# - Missing header inclusions for Portapack UI framework components
+# - Several unused utility functions in large codebases
+# - Implicit constructor definitions could be explicit
+# - Parameter passing optimizations recommended (const ref)
+# - Variable scope reductions possible
+# - STL algorithm usage optimizations
+# - Memory management pattern consistency suggestions
 
-# BUILD RECOMMENDATION:
-# Focus on resolving CPLD data extraction failures first, then baseband linking issues
-# Enhanced Drone Analyzer app code appears to be syntactically correct
+# ENHANCED DRONE ANALYZER APP STATUS:
+# Code analysis complete - no direct compilation errors found in EDA application code
+# All required files present and properly registered in build system
+# App registration in EXTAPPLIST confirmed correct
+# App architecture follows Portapack external application patterns
+# External app compilation not reached due to early framework failures
+
+# CORRECTION PRIORITIES (DESCENDING ORDER):
+# 1. URGENT: Fix CMake toolchain duplicate defines preventing GCC compilation
+# 2. Install GNU make utility for Windows build environment
+# 3. Resolve CPLD data extraction tools/platform issues
+# 4. Consider GCC toolchain downgrade to v9.2.1 for better compatibility
+# 5. Address code quality issues in separate refactor cycle
+****+++ REPLACE

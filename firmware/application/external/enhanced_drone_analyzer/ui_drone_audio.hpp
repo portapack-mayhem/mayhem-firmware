@@ -137,6 +137,11 @@ public:
         on_settings_changed_ = callback;
     }
 
+    // PHASE 3: RESTORE AUDIO FUNCTIONALITY - AudioController callback implementation
+    void set_on_audio_settings_changed(std::function<void()> callback) {
+        on_audio_settings_changed_ = callback;  // RESTORE: Implement missing audio settings callback
+    }
+
 private:
     NavigationView& nav_;
     DroneAudioSettings& audio_settings_;  // Renamed to avoid confusion with parameter
