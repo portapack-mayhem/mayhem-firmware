@@ -424,7 +424,6 @@ void DroneUIController::on_start_scan() {
     display_controller_->update_detection_display(scanner_);
 }
 void DroneUIController::on_stop_scan() {
-    if (!scanning_active_) return; // Not scanning
     scanning_active_ = false;
     scanner_.stop_scanning();
     audio_.stop_audio();

@@ -31,7 +31,14 @@ public:
     bool is_audio_enabled() const { return audio_enabled_; }
     void set_audio_enabled(bool enabled) { audio_enabled_ = enabled; }
     ThreatLevel get_test_threat_level() const { return test_threat_level_; }
-    void set_test_threat_level(ThreatLevel level) { test_threat_level_ = level; }
+    void set_test_threat_level(ThreatLevel level) {
+        // VALIDATION: Add bounds checking as per Phase 3 audio restoration
+        if (level >= ThreatLevel::NONE && level <= ThreatLevel::CRITICAL) {
+            test_threat_level_ = level;
+        } else {
+            test_threat_level_ = ThreatLevel::MEDIUM;  // Safe default
+        }
+    }
 
     // Audio playback (replaces DroneAudioController methods)
     void play_detection_beep(ThreatLevel level);
@@ -46,6 +53,14 @@ public:
 
     // Static beep method for external access
     static void request_audio_beep(uint16_t frequency, uint32_t duration_ms);
+
+    // VALIDATION: Add audio parameter validation function (Phase 3)
+    static bool validate_audio_alert_frequency(uint16_t frequency_hz) {
+        return frequency_hz >= 400 && frequency_hz <= 3000;  // Reasonable range for beeps
+    }
+    static bool validate_audio_duration(uint32_t duration_ms) {
+        return duration_ms >= 50 && duration_ms <= 2000;  // Reasonable range for alerts
+    }
 
     // Prevent copying
     AudioManager(const AudioManager&) = delete;
