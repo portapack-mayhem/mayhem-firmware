@@ -1,0 +1,51 @@
+# Firmware Build Errors Log - Enhanced Drone Analyzer Analysis
+# This file contains actual compilation errors from the latest build attempt
+# Resolved errors have been removed; only current failing items remain
+
+# CHIBIOS/BASEBAND COMPILATION FAILURES (PREFERENTIAL LINKER ERRORS - LINK TIME)
+# These occur when baseband objects fail to link properly due to missing dependencies or ordering issues
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/crt0.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/common/ARMCMx/nvic.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M4/vectors.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chsys.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chlists.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/chcore.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chvt.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testmsg.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chdebug.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chregistry.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/ports/GCC/ARMCMx/chcore_v7m.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chcond.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chdynamic.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmempools.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chevents.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmsg.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testthd.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmtx.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/test/testsem.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chschd.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chqueues.c.obj
+FAILED: firmware/baseband/CMakeFiles/baseband_shared.dir/__/chibios/os/kernel/src/chmemcore.c.obj
+
+# APPLICATION CPLD DATA FAILURES
+# These are related to CPLD bitstream processing and may be resolved by ensuring CPLD tools are properly configured
+FAILED: firmware/application/portapack_cpld_20170522_data.cpp C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/application/portapack_cpld_20170522_data.cpp
+FAILED: firmware/application/portapack_cpld_20150901_data.cpp C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/application/portapack_cpld_20150901_data.cpp
+FAILED: firmware/application/hackrf_cpld_data.cpp C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/application/hackrf_cpld_data.cpp
+
+# CPPCHECK-STYLE CODE QUALITY ISSUES (INFORMATIONAL)
+# These are static analysis findings that may affect code correctness:
+# - MissingIncludes: Portapack headers (ui_*.hpp) - expected in build environment
+# - UnusedFunctions: Several utility functions not used in current code paths
+# - NonExplicitConstructors: Some classes could benefit from explicit constructors
+# - Style issues: Parameter passing by const ref, STL algorithm usage
+# - Potential bugs: Variable scope reductions, parameter handling
+
+# ENHANCED DRONE ANALYZER SPECIFIC ISSUES:
+# Code analysis complete - no direct compilation errors found in EDA code paths
+# All required files are present and properly registered in external.cmake
+# App registration in EXTAPPLIST confirmed
+
+# BUILD RECOMMENDATION:
+# Focus on resolving CPLD data extraction failures first, then baseband linking issues
+# Enhanced Drone Analyzer app code appears to be syntactically correct

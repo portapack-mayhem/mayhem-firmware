@@ -70,14 +70,14 @@ enum class MovementTrend : uint8_t {
 
     // FREQUENCY DATABASE ENTRY - OPTIMIZED FOR PRODUCTION
     struct DroneFrequencyEntry {
-        uint32_t frequency_hz;          // Core frequency in Hz
+        rf::Frequency frequency_hz;     // Core frequency in Hz
         uint8_t drone_type_idx;         // Compact ref to DroneType enum
         uint8_t threat_level_idx;       // Compact ref to ThreatLevel enum
         int8_t rssi_threshold_db;       // Signed byte for threshold
         uint8_t bandwidth_idx;          // Index to bandwidth preset (saves space)
         uint16_t name_offset;           // Offset in string pool (future optimization)
 
-        DroneFrequencyEntry(uint32_t freq, DroneType type, ThreatLevel threat,
+        DroneFrequencyEntry(rf::Frequency freq, DroneType type, ThreatLevel threat,
                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
             : frequency_hz(freq),
               drone_type_idx(static_cast<uint8_t>(type)),
@@ -106,7 +106,7 @@ enum class MovementTrend : uint8_t {
 
 // EMBEDDED-FRIENDLY: Fixed-size structure (15 bytes), no dynamic allocation
 struct TrackedDrone {
-    uint32_t frequency;       // 4 bytes: Частота в Hz (433MHz = 433000000)
+    rf::Frequency frequency; // 4 bytes: Частота в Hz (433MHz = 433000000)
     int16_t last_rssi;        // 2 bytes: Последний RSSI (-120 to -20 dB)
     int16_t prev_rssi;        // 2 bytes: Предыдущий RSSI для тренда
     systime_t last_seen;      // 4 bytes: ChibiOS system time
@@ -115,7 +115,7 @@ struct TrackedDrone {
     uint8_t update_count;     // 1 byte: Количество обновлений (0 = free slot)
 
     // EMBEDDED CONSTRUCTOR: Initialize to zero (free slot)
-    TrackedDrone() : frequency(0), last_rssi(-120), prev_rssi(-120),
+    TrackedDrone() : frequency(0ULL), last_rssi(-120), prev_rssi(-120),
                      last_seen(0), drone_type(0), trend_history(0), update_count(0) {}
 
     // ADD RSSI WITH TREND CALCULATION - Embedded optimized

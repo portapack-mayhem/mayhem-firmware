@@ -110,12 +110,109 @@ public:
 
     void reset_to_defaults();
 
-    std::string serialize() const;
-    bool deserialize(const std::string& data);
+    std::string serialize() const {
+        std::stringstream ss;
+        ss << "v1:" << static_cast<int>(spectrum_mode) << ":"
+           << spectrum.min_scan_interval_ms << ":"
+           << spectrum.stale_timeout_ms << ":"
+           << spectrum.default_rssi_threshold << ":"
+           << spectrum.rssi_smoothing_alpha << ":"
+           << static_cast<int>(detection.min_detection_count) << ":"
+           << detection.hysteresis_margin_db << ":"
+           << detection.trend_threshold_db << ":"
+           << detection.detection_reset_interval << ":"
+           << audio.alert_frequency_hz << ":"
+           << audio.beep_duration_ms << ":"
+           << audio.alert_squelch_db << ":"
+           << (display.show_rssi_graph ? "1" : "0") << ":"
+           << (display.show_trends ? "1" : "0") << ":"
+           << display.max_display_drones << ":"
+           << (display.color_scheme ? "1" : "0");
+        return ss.str();
+    }
+
+    bool deserialize(const std::string& data) {
+        std::stringstream ss(data);
+        std::string token;
+
+        if (!std::getline(ss, token, ':')) return false;
+        if (token != "v1") return false;
+
+        int spectrum_mode_int;
+        if (!std::getline(ss, token, ':')) return false;
+        spectrum_mode_int = std::stoi(token);
+        spectrum_mode = static_cast<SpectrumMode>(spectrum_mode_int);
+
+        // Spectrum settings
+        if (!std::getline(ss, token, ':')) return false;
+        spectrum.min_scan_interval_ms = static_cast<uint32_t>(std::stoul(token));
+        if (!std::getline(ss, token, ':')) return false;
+        spectrum.stale_timeout_ms = static_cast<uint32_t>(std::stoul(token));
+        if (!std::getline(ss, token, ':')) return false;
+        spectrum.default_rssi_threshold = std::stoi(token);
+        if (!std::getline(ss, token, ':')) return false;
+        spectrum.rssi_smoothing_alpha = std::stof(token);
+
+        // Detection settings
+        if (!std::getline(ss, token, ':')) return false;
+        detection.min_detection_count = static_cast<uint8_t>(std::stoi(token));
+        if (!std::getline(ss, token, ':')) return false;
+        detection.hysteresis_margin_db = std::stoi(token);
+        if (!std::getline(ss, token, ':')) return false;
+        detection.trend_threshold_db = std::stoi(token);
+        if (!std::getline(ss, token, ':')) return false;
+        detection.detection_reset_interval = static_cast<uint32_t>(std::stoul(token));
+
+        // Audio settings
+        if (!std::getline(ss, token, ':')) return false;
+        audio.alert_frequency_hz = static_cast<uint16_t>(std::stoi(token));
+        if (!std::getline(ss, token, ':')) return false;
+        audio.beep_duration_ms = static_cast<uint32_t>(std::stoul(token));
+        if (!std::getline(ss, token, ':')) return false;
+        audio.alert_squelch_db = std::stoi(token);
+
+        // Display settings
+        if (!std::getline(ss, token, ':')) return false;
+        display.show_rssi_graph = (token == "1");
+        if (!std::getline(ss, token, ':')) return false;
+        display.show_trends = (token == "1");
+        if (!std::getline(ss, token, ':')) return false;
+        display.max_display_drones = static_cast<size_t>(std::stoul(token));
+        if (!std::getline(ss, token, ':')) return false;
+        display.color_scheme = (token == "1");
+
+        return true;
+    }
 };
 
 // Глобальная функция для получения настроек по умолчанию
 const DroneAnalyzerSettings& get_default_settings();
+
+// Settings persistence manager
+class DroneSettingsManager {
+public:
+    static bool load_settings(DroneAnalyzerSettings& settings) {
+        app_settings::SettingsManager settings_manager{"eda_main", app_settings::Mode::SETTINGS, {}};
+        std::string serialized = "";
+        bool success = settings_manager.load() &&
+                      settings_manager.get_value("config", serialized) &&
+                      settings.deserialize(serialized);
+        if (!success) {
+            settings = get_default_settings();
+        }
+        return success;
+    }
+
+    static bool save_settings(const DroneAnalyzerSettings& settings) {
+        app_settings::SettingsManager settings_manager{"eda_main", app_settings::Mode::SETTINGS, {}};
+        std::string serialized = settings.serialize();
+        return settings_manager.set_value("config", serialized) && settings_manager.save();
+    }
+
+    static void reset_to_defaults(DroneAnalyzerSettings& settings) {
+        settings = get_default_settings();
+    }
+};
 
 // Settings dialog view with tabbed interface
 class DroneSettingsView : public View {

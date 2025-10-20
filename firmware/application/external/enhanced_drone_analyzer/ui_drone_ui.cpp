@@ -1,16 +1,9 @@
-// ui_drone_ui.cpp
-// UI components implementation for Enhanced Drone Analyzer
-
 #include "ui_drone_ui.hpp"
 #include "ui_menu.hpp"
 #include "app_settings.hpp"
-
 #include <algorithm>
 #include <sstream>
-
 namespace ui::external_app::enhanced_drone_analyzer {
-
-// DroneDisplayController implementation
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
     : nav_(nav),
       displayed_drones_{},
@@ -18,15 +11,11 @@ DroneDisplayController::DroneDisplayController(NavigationView& nav)
       spectrum_gradient{},
       spectrum_fifo_(nullptr)
 {
-    // Initialize mini spectrum gradient (Search app pattern)
     if (!spectrum_gradient_.load_file(default_gradient_file)) {
         spectrum_gradient_.set_default();
     }
-
-    // UI components initialized in constructor initializer list
     initialize_mini_spectrum();
 }
-
 Color DroneDisplayController::get_threat_level_color(ThreatLevel level) const {
     switch (level) {
         case ThreatLevel::CRITICAL: return Color::red();
@@ -37,7 +26,6 @@ Color DroneDisplayController::get_threat_level_color(ThreatLevel level) const {
         default: return Color::white(); // No threat
     }
 }
-
 Color DroneDisplayController::get_drone_type_color(DroneType type) const {
     switch (type) {
         case DroneType::MAVIC: return Color(0, 0, 255);    // DJI Mavic series - blue
@@ -51,7 +39,6 @@ Color DroneDisplayController::get_drone_type_color(DroneType type) const {
         default: return Color(64, 64, 64); // Gray for unknown
     }
 }
-
 std::string DroneDisplayController::get_drone_type_name(DroneType type) const {
     switch (type) {
         case DroneType::MAVIC: return "Mavic";
@@ -65,7 +52,6 @@ std::string DroneDisplayController::get_drone_type_name(DroneType type) const {
         default: return "Unknown";
     }
 }
-
 const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) const {
     switch (level) {
         case ThreatLevel::CRITICAL: return "CRITICAL";
@@ -76,14 +62,11 @@ const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) con
         default: return "NONE";
     }
 }
-
 void DroneDisplayController::update_detection_display(const DroneScanner& scanner) {
-    // UPDATE BIG DISPLAY WITH CURRENT STATUS
     if (scanner.is_scanning_active()) {
         rf::Frequency current_freq = scanner.get_current_scanning_frequency();
-        char freq_buffer[32];
-
         if (current_freq > 0) {
+            char freq_buffer[32];
             float freq_mhz = static_cast<float>(current_freq) / 1000000.0f;
             if (freq_mhz < 1000.0f) {
                 snprintf(freq_buffer, sizeof(freq_buffer), "%.1f MHz", freq_mhz);
@@ -98,23 +81,16 @@ void DroneDisplayController::update_detection_display(const DroneScanner& scanne
     } else {
         big_display_.set("READY");
     }
-
-    // FIXED: PROGRESS BAR - Use database size for progress tracking
     size_t total_freqs = scanner.get_database_size();
     if (total_freqs > 0 && scanner.is_scanning_active()) {
-        // Simple progress indication (scanner doesn't track exact progress yet)
         uint32_t progress_percent = 50; // Placeholder - would need actual progress tracking
         scanning_progress_.set_value(std::min(progress_percent, (uint32_t)100));
     } else {
         scanning_progress_.set_value(0);
     }
-
-    // UPDATE COMPACT STATUS LINES - essential info only
     ThreatLevel max_threat = scanner.get_max_detected_threat();
     bool has_detections = (scanner.get_approaching_count() + scanner.get_receding_count() +
                           scanner.get_static_count()) > 0;
-
-    // COMPACT THREAT SUMMARY LINE
     if (has_detections) {
         char summary_buffer[64];
         snprintf(summary_buffer, sizeof(summary_buffer), "THREAT: %s | ▲%llu ■%llu ▼%llu",
@@ -127,13 +103,9 @@ void DroneDisplayController::update_detection_display(const DroneScanner& scanne
     } else {
         text_threat_summary_.set("THREAT: NONE | All clear");
         text_threat_summary_.set_style(Theme::getInstance()->fg_green); // No threat = green
-
-    // RESTORATION: Update trends display when counts change (following Scanner/update patterns)
     update_trends_display(scanner.get_approaching_count(),
                          scanner.get_static_count(),
                          scanner.get_receding_count());
-
-    // STATUS INFO LINE
     char status_buffer[64];
     if (scanner.is_scanning_active()) {
         std::string mode_str = scanner.is_real_mode() ? "REAL" : "DEMO";
@@ -143,8 +115,6 @@ void DroneDisplayController::update_detection_display(const DroneScanner& scanne
         snprintf(status_buffer, sizeof(status_buffer), "Ready - Enhanced Drone Analyzer");
     }
     text_status_info_.set(status_buffer);
-
-    // SCANNER STATS LINE
     size_t loaded_freqs = scanner.get_database_size();
     char stats_buffer[64];
     if (scanner.is_scanning_active() && loaded_freqs > 0) {
@@ -157,8 +127,6 @@ void DroneDisplayController::update_detection_display(const DroneScanner& scanne
         snprintf(stats_buffer, sizeof(stats_buffer), "No database loaded");
     }
     text_scanner_stats_.set(stats_buffer);
-
-    // UPDATE BIG DISPLAY COLOR BASED ON THREAT
     if (max_threat >= ThreatLevel::HIGH) {
         big_display_.set_style(Theme::getInstance()->fg_red);      // Critical threat
     } else if (max_threat >= ThreatLevel::MEDIUM) {
@@ -171,7 +139,6 @@ void DroneDisplayController::update_detection_display(const DroneScanner& scanne
         big_display_.set_style(Theme::getInstance()->bg_darkest);  // Not scanning
     }
 }
-
 void DroneDisplayController::update_trends_display(size_t approaching,
                                                    size_t static_count,
                                                    size_t receding) {
@@ -180,7 +147,6 @@ void DroneDisplayController::update_trends_display(size_t approaching,
              approaching, static_count, receding);
     text_trends_compact_.set(trend_buffer);
 }
-
 void DroneDisplayController::set_scanning_status(bool active, const std::string& message) {
     if (active) {
         text_status_.set(std::string("Status: ") + message);
@@ -190,7 +156,6 @@ void DroneDisplayController::set_scanning_status(bool active, const std::string&
         text_status_.set_style(Theme::getInstance()->fg_light->foreground);
     }
 }
-
 void DroneDisplayController::set_frequency_display(rf::Frequency freq) {
     if (freq > 0) {
         char freq_buffer[32];
@@ -206,20 +171,13 @@ void DroneDisplayController::set_frequency_display(rf::Frequency freq) {
         big_display_.set("READY");
     }
 }
-
-// UI: Detected drones list implementation (Search pattern)
-// Add or update detected drone entry with RSSI sorting
 void DroneDisplayController::add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi) {
     systime_t now = chTimeNow();
-
-    // Check if this frequency already exists (Search pattern: maintain recent entries)
     auto it = std::find_if(detected_drones_.begin(), detected_drones_.end(),
                           [freq](const DisplayDroneEntry& entry) {
                               return entry.frequency == freq;
                           });
-
     if (it != detected_drones_.end()) {
-        // Update existing entry
         it->rssi = rssi;
         it->threat = threat;
         it->type = type;
@@ -227,7 +185,6 @@ void DroneDisplayController::add_detected_drone(rf::Frequency freq, DroneType ty
         it->type_name = get_drone_type_name(type);
         it->display_color = get_drone_type_color(type);
     } else {
-        // Add new entry (vector allows dynamic sizing with safety limit)
         if (detected_drones_.size() < MAX_TRACKED_DRONES) { // Safety limit for memory management
             DisplayDroneEntry entry;
             entry.frequency = freq;
@@ -240,74 +197,46 @@ void DroneDisplayController::add_detected_drone(rf::Frequency freq, DroneType ty
             detected_drones_.push_back(entry);
         }
     }
-
-    // Update display with sorted list
     update_drones_display();
 }
-
-// Sort drones by RSSI (Level pattern: strongest signals first)
 void DroneDisplayController::sort_drones_by_rssi() {
     std::sort(detected_drones_.begin(), detected_drones_.end(),
               [](const DisplayDroneEntry& a, const DisplayDroneEntry& b) {
-                  // Sort by RSSI descending (stronger signals first)
-                  // If RSSI equal, sort by threat level, then by recency
                   if (a.rssi != b.rssi) return a.rssi > b.rssi;
                   if (a.threat != b.threat) return static_cast<int>(a.threat) > static_cast<int>(b.threat);
                   return a.last_seen > b.last_seen;
               });
 }
-
-// Update UI with top 3 drones by RSSI (Search pattern: display recent entries) - ENHANCED WITH TREND LOOKUP
 void DroneDisplayController::update_drones_display(const DroneScanner& scanner) {
-    // Remove stale entries (older than 30 seconds)
     const systime_t STALE_TIMEOUT = 30000; // 30 seconds in ChibiOS ticks
     systime_t now = chTimeNow();
-
     detected_drones_.erase(
         std::remove_if(detected_drones_.begin(), detected_drones_.end(),
                       [now, STALE_TIMEOUT](const DisplayDroneEntry& entry) {
                           return (now - entry.last_seen) > STALE_TIMEOUT;
                       }),
         detected_drones_.end());
-
-    // Sort remaining drones by RSSI
     sort_drones_by_rssi();
-
-    // Take top 3 for display
     displayed_drones_.clear();
     size_t count = std::min(detected_drones_.size(), MAX_DISPLAYED_DRONES);
     for (size_t i = 0; i < count; ++i) {
         displayed_drones_.push_back(detected_drones_[i]);
     }
-
-    // Update mini spectrum with threat zones and render text
     highlight_threat_zones_in_spectrum(displayed_drones_);
     render_drone_text_display();
-
-    // PHASE 4: RESTORE UNUSED getTrackedDrone() and get_current_drones() in UI updates
-    // Use getTrackedDrone() for display updates and get_current_drones() for spectrums
     for (size_t i = 0; i < MAX_TRACKED_DRONES && i < 3; ++i) {
         const auto& drone = scanner.getTrackedDrone(i);
         if (drone.update_count > 0) {  // Only show active drones
-            // This demonstrates getTrackedDrone() is now connected to UI display system
-            // The function was previously unused and now provides drone tracking data to UI
         }
     }
 }
-
-// Render the top 3 drones as text overlay (Recon text pattern) - TREND SYSTEM RESTORED
 void DroneDisplayController::render_drone_text_display() {
-    // Clear all displays first
     text_drone_1.set("");
     text_drone_2.set("");
     text_drone_3.set("");
-
     for (size_t i = 0; i < std::min(displayed_drones_.size(), size_t(3)); ++i) {
         const auto& drone = displayed_drones_[i];
-
-        // Format: "TYPE FREQ RSSI TREND"
         char buffer[32];
-        // RESTORED: Use actual trend data instead of static symbol
         char trend_symbol;
         switch (drone.trend) {
             case MovementTrend::APPROACHING: trend_symbol = '▲'; break;
@@ -316,8 +245,6 @@ void DroneDisplayController::render_drone_text_display() {
             case MovementTrend::UNKNOWN:
             default: trend_symbol = '■'; break;
         }
-
-        // Create frequency abbreviation (Radio app pattern)
         std::string freq_str;
         if (drone.frequency >= 1000000000) {  // GHz
             freq_str = to_string_dec_uint(drone.frequency / 1000000000, 1) + "G";
@@ -326,18 +253,12 @@ void DroneDisplayController::render_drone_text_display() {
         } else { // kHz
             freq_str = to_string_dec_uint(drone.frequency / 1000, 1) + "k";
         }
-
-        // Format display string
         snprintf(buffer, sizeof(buffer), DRONE_DISPLAY_FORMAT,
                 drone.type_name.c_str(),
                 freq_str.c_str(),
                 drone.rssi,
                 trend_symbol);
-
-        // Apply threat level color
         Color threat_color = get_threat_level_color(drone.threat);
-
-        // Update appropriate text field
         switch(i) {
             case 0:
                 text_drone_1.set(buffer);
@@ -354,145 +275,87 @@ void DroneDisplayController::render_drone_text_display() {
         }
     }
 }
-
-// Mini waterfall spectrum implementation (Search/Looking Glass pattern)
 void DroneDisplayController::initialize_mini_spectrum() {
-    // FIXED: Use fixed arrays instead of vectors for embedded compliance
-    // Pre-allocate spectrum data (Search pattern memory management) - EMBEDDED FIXED
-
-    // Initialize gradient for color mapping
     if (!spectrum_gradient_.load_file(default_gradient_file)) {
         spectrum_gradient_.set_default();
     }
-
-    // Clear spectrum buffers on init
     clear_spectrum_buffers();
 }
-
-// Process incoming spectrum data (PHASE 2 FIX: Optimize bin processing efficiency)
 void DroneDisplayController::process_mini_spectrum_data(const ChannelSpectrum& spectrum) {
-    // PHASE 2 FIX: Following Looking Glass process_bins pattern for spectrum processing
-
-    // Process spectrum bins efficiently like Looking Glass
     uint8_t current_bin_power = 0;
-
     for (size_t bin = 0; bin < 240; bin++) {  // Process screen_width bins
         get_max_power_for_current_bin(spectrum, current_bin_power);
-
         if (process_bins(&current_bin_power)) {
             return;  // New waterfall line completed
         }
     }
 }
-
-// Helper function to process bins like Looking Glass
 bool DroneDisplayController::process_bins(uint8_t* power_level) {
     bins_hz_size += each_bin_size;  // Accumulate Hz for this bin
-
     if (bins_hz_size >= 1000000) {  // Each pixel represents 1MHz step
         if (*power_level > min_color_power) {
             add_spectrum_pixel_from_bin(*power_level);
         } else {
             add_spectrum_pixel_from_bin(0);
         }
-
         *power_level = 0;  // Reset for next bin
-
         if (pixel_index == 0) {  // New line completed (pixel_index reset to 0)
             bins_hz_size = 0;  // Reset Hz accumulator for next line
             return true;  // Signal new line
         }
-
         bins_hz_size -= 1000000;  // Carry excess Hz into next pixel
     }
-
     return false;
 }
-
-// PHASE 2 OPTIMIZATION: Get max power from current spectrum bin
 void DroneDisplayController::get_max_power_for_current_bin(const ChannelSpectrum& spectrum, uint8_t& max_power) {
-    // PHASE 2 FIX: Simplified bin access following Search pattern
-    // Use center bins, skip DC spike and edges
     for (size_t bin = 2; bin <= 253; bin++) {
         if (bin >= 122 && bin <= 134) continue; // Skip DC spike
-
         uint8_t power;
         if (bin < 128) {
             power = spectrum.db[128 + bin];
         } else {
             power = spectrum.db[bin - 128];
         }
-
         if (power > max_power)
             max_power = power;
     }
 }
-
-// PHASE 2 OPTIMIZATION: Build pixel from bin data efficiently
 void DroneDisplayController::add_spectrum_pixel_from_bin(uint8_t power) {
-    // PHASE 2 FIX: Direct pixel assembly following Looking Glass pattern
     if (!validate_spectrum_data()) {
         clear_spectrum_buffers();
         return;
     }
-
-    // Apply gradient and store in row buffer, check for threat overlay
     if (pixel_index < spectrum_row.size()) {
-        // Check if this pixel index corresponds to a threat bin for overlay
         Color pixel_color = spectrum_gradient_.lut[
             std::min(power, static_cast<uint8_t>(spectrum_gradient_.lut.size() - 1))
         ];
-
-        // Override with threat color if detected
         for (size_t i = 0; i < threat_bins_count_; i++) {
             if (threat_bins_[i].bin == pixel_index) {
                 pixel_color = get_threat_level_color(threat_bins_[i].threat);
                 break;  // First matching bin wins
             }
         }
-
         spectrum_row[pixel_index] = pixel_color;
         pixel_index++;
     }
 }
-
-// Render mini spectrum display (PHASE 1 FIX: Following Looking Glass pattern)
 void DroneDisplayController::render_mini_spectrum() {
-    // PHASE 1 FIX: Use scroll area rendering instead of Y coordinate calculation
-    // This matches Looking Glass waterfall implementation for proper display
-
     if (!validate_spectrum_data()) {
         clear_spectrum_buffers();
         return;
     }
-
-    // ADDITIONAL FIX: Add pre-clear for reliability and prevent potential garbage
-    // Clear the entire spectrum row to background color at start of render
     const Color background_color = spectrum_gradient_.lut.size() > 0 ? spectrum_gradient_.lut[0] : Color::black();
     std::fill(spectrum_row.begin(), spectrum_row.end(), background_color);
-
-    // FIX: To prevent garbage pixels, always fill the entire line before rendering
-    // Even incomplete lines are displayed by filling remaining pixels with background color
     if (pixel_index > 0) {  // Got some pixels, render anyway (modified from full line only)
-        // Note: spectrum_row already pre-cleared, but we apply valid pixels over background
-        // Existing code fills from 0 to pixel_index in add_spectrum_pixel, here we ensure rest is background
-
-        // Scroll area rendering (Looking Glass pattern, not Y coordinate calculation)
         display.draw_pixels(
             {{0, display.scroll(1)}, {screen_width, 1}},  // Scroll and draw at top
             spectrum_row                                  // Render the completed line
         );
-
-        // Reset for next line
         pixel_index = 0;
     }
 }
-
-    // Highlight threat zones in spectrum (custom enhancement to Search pattern)
 void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& drones) {
-    // Update threat bins array for overlay during spectrum pixel processing
     threat_bins_count_ = 0;
-
     for (const auto& drone : drones) {
         if (drone.frequency > 0) {  // Valid frequency
             size_t bin_x = frequency_to_spectrum_bin(drone.frequency);
@@ -504,80 +367,43 @@ void DroneDisplayController::highlight_threat_zones_in_spectrum(const std::array
         }
     }
 }
-
-// EMBEDDED SAFETY: Clear spectrum buffers (utility for validation failures)
 void DroneDisplayController::clear_spectrum_buffers() {
-    // Clear power levels array
     std::fill(spectrum_power_levels_.begin(), spectrum_power_levels_.end(), 0);
-
-    // Note: mini_spectrum_data_ removed in optimization - no 2D buffer to clear
 }
-
-// EMBEDDED SAFETY: Validate spectrum data integrity
 bool DroneDisplayController::validate_spectrum_data() const {
-    // Check array sizes match constants
     if (spectrum_power_levels_.size() != MINI_SPECTRUM_WIDTH) return false;
-
-    // Note: mini_spectrum_data_ removed in optimization - no 2D validation needed
-
-    // Check gradient is loaded
     if (spectrum_gradient_.lut.empty()) return false;
-
     return true;
 }
-
-// EMBEDDED SAFETY: Get safe spectrum array index (2D -> 1D safe mapping)
 size_t DroneDisplayController::get_safe_spectrum_index(size_t x, size_t y) const {
-    // Bounds checking before any array access
     if (x >= MINI_SPECTRUM_WIDTH || y >= MINI_SPECTRUM_HEIGHT) {
         return 0; // Return safe default - first element
     }
-
-    // Return linear index for array access
     return y * MINI_SPECTRUM_WIDTH + x;
 }
-
-// SPECTRUM CONFIGURATION IMPLEMENTATION: Configurable frequency ranges
 void DroneDisplayController::set_spectrum_range(rf::Frequency min_freq, rf::Frequency max_freq) {
-    // VALIDATION: Ensure valid range and Portapack hardware limits
     if (min_freq >= max_freq || min_freq < MIN_HARDWARE_FREQ || max_freq > MAX_HARDWARE_FREQ) {
-        // LOGGING: Invalid range, using defaults
         spectrum_config_.min_freq = 2400000000ULL;  // ISM default
         spectrum_config_.max_freq = 2500000000ULL;
         return;
     }
-
     spectrum_config_.min_freq = min_freq;
     spectrum_config_.max_freq = max_freq;
-
-    // Auto-calculate bandwidth from range (simplified)
     spectrum_config_.bandwidth = (max_freq - min_freq) > 24000000 ?
                                 24000000 : static_cast<uint32_t>(max_freq - min_freq);
     spectrum_config_.sampling_rate = spectrum_config_.bandwidth; // Direct mapping
 }
-
-// EMBEDDED OPTIMIZATION: Early exit for unused spectrum bins
 size_t DroneDisplayController::frequency_to_spectrum_bin(rf::Frequency freq_hz) const {
-    // CONFIGURABLE: Use spectrum_config instead of hard-coded values
     const rf::Frequency MIN_FREQ = spectrum_config_.min_freq;
     const rf::Frequency MAX_FREQ = spectrum_config_.max_freq;
     const rf::Frequency FREQ_RANGE = MAX_FREQ - MIN_FREQ;
-
     if (freq_hz < MIN_FREQ || freq_hz > MAX_FREQ || FREQ_RANGE == 0) {
         return MINI_SPECTRUM_WIDTH; // Out of range - safe sentinel value
     }
-
-    // VALIDATION: Frequency mapping verified - e.g. 2.4GHz = bin 0, 2.5GHz = bin 240
-    // Formula: bin = (freq - MIN_FREQ) * SCREEN_WIDTH / FREQ_RANGE
-    // FIX #3: Cross-app verified math matches Looking Glass and Search implementations
     rf::Frequency relative_freq = freq_hz - MIN_FREQ;
     size_t bin = (relative_freq * MINI_SPECTRUM_WIDTH) / FREQ_RANGE;
-
-    // EMBEDDED SAFETY: Clamp to valid range
     return std::min(bin, MINI_SPECTRUM_WIDTH - 1);
 }
-
-// DroneUIController implementation
 DroneUIController::DroneUIController(NavigationView& nav,
                                    DroneHardwareController& hardware,
                                    DroneScanner& scanner,
@@ -589,36 +415,22 @@ DroneUIController::DroneUIController(NavigationView& nav,
       scanning_active_(false),
       display_controller_(std::make_unique<DroneDisplayController>(nav))
 {
-    // UI controller initialized
 }
-
 void DroneUIController::on_start_scan() {
     if (scanning_active_) return; // Already scanning
-
     scanning_active_ = true;
     scanner_.start_scanning();
-
     display_controller_->set_scanning_status(true, "Scanning Active");
-
-    // Update UI components
     display_controller_->update_detection_display(scanner_);
 }
-
 void DroneUIController::on_stop_scan() {
     if (!scanning_active_) return; // Not scanning
-
     scanning_active_ = false;
     scanner_.stop_scanning();
-
-    // PHASE 2-2: RESTORE stop_audio function - clean up audio on scan stop
     audio_.stop_audio();
-
     display_controller_->set_scanning_status(false, "Stopped");
-
-    // Update UI components
     display_controller_->update_detection_display(scanner_);
 }
-
 void DroneUIController::on_toggle_mode() {
     if (scanner_.is_real_mode()) {
         scanner_.switch_to_demo_mode();
@@ -631,12 +443,9 @@ void DroneUIController::on_toggle_mode() {
             hardware_.start_spectrum_streaming();
         }
     }
-
-    // Update status display
     display_controller_->set_scanning_status(scanning_active_,
                                            scanner_.is_real_mode() ? "Real Mode" : "Demo Mode");
 }
-
 void DroneUIController::show_menu() {
     auto menu_view = nav_.push<MenuView>({
         {Translator::translate("load_database"), [this]() { on_load_frequency_file(); }},
@@ -644,11 +453,6 @@ void DroneUIController::show_menu() {
         {Translator::translate("toggle_audio"), [this]() { on_toggle_audio_simple(); }}, // PHASE 1: RESTORE Audio Enable Toggle
         {Translator::translate("audio_settings"), [this]() { on_audio_toggle(); }},
         {Translator::translate("add_preset"), [this]() { on_add_preset_quick(); }}, // PHASE 4: RESTORE Preset system for drone database
-    // Connect previously unused get_all_presets() and get_presets_by_type()
-    // get_all_presets() called internally in preset selector
-    // get_presets_by_type() filters for specific threat levels
-    
-    // Show confirmation using pattern from other apps
     char success_msg[128];
     snprintf(success_msg, sizeof(success_msg),
             "RESTORATION: Preset Added Successfully\n%s (%d MHz)\nThreat: %s",
@@ -656,7 +460,6 @@ void DroneUIController::show_menu() {
             static_cast<int>(selected_preset.frequency_hz / 1000000),
             selected_preset.threat_level == ThreatLevel::HIGH ? "HIGH" :
             selected_preset.threat_level == ThreatLevel::MEDIUM ? "MEDIUM" : "LOW");
-    
     nav_.display_modal("Preset Added", success_msg);
         {Translator::translate("manage_freq"), [this]() { on_manage_frequencies(); }},
         {Translator::translate("create_db"), [this]() { on_create_new_database(); }},
@@ -667,53 +470,37 @@ void DroneUIController::show_menu() {
         {Translator::translate("about_author"), [this]() { on_about(); }}
     });
 }
-
 void DroneUIController::on_select_language() {
     auto language_menu = nav_.push<MenuView>({
         {Translator::translate("english"), [this]() { Translator::set_language(Language::ENGLISH); nav_.display_modal(Translator::translate("english"), "Language updated to English"); }},
         {Translator::translate("russian"), [this]() { Translator::set_language(Language::RUSSIAN); nav_.display_modal("Русский", "Язык изменен на русский"); }}
     });
 }
-
 void DroneUIController::on_load_frequency_file() {
-    // Implement frequency database loading (RESTORATION: Connect dead load code)
     bool loaded = scanner_.load_frequency_database();
-
     if (!loaded) {
         nav_.display_modal("Error", "Failed to load frequency\ndatabase");
         return;
     }
-
-    // RESTORATION: Show frequency warning if database is large (>100 entries)
-    // Prevents slow scanning without user awareness (connects unused on_frequency_warning)
     size_t db_size = scanner_.get_database_size();
     if (db_size > 100) {
         on_frequency_warning();  // Call the fully implemented warning function
     }
-
-    // Show success and database info
     char success_msg[128];
     snprintf(success_msg, sizeof(success_msg), "Loaded %zu frequencies\nsuccessfully", db_size);
     nav_.display_modal("Success", success_msg);
 }
-
 void DroneUIController::on_save_frequency() {
-    // Placeholder - implement save frequency UI
     nav_.display_modal("Info", "Save functionality\nComing soon...");
 }
-
 void DroneUIController::on_audio_toggle() {
-    // REAL AUDIO SETTINGS UI - create settings object and open full UI
     static DroneAudioSettings audio_settings = {
         .audio_enabled = audio_.is_audio_enabled(),
         .test_threat_level = ThreatLevel::HIGH
     };
-
     nav_.push<DroneAudioSettingsView>(audio_settings, audio_);
 }
-
 void DroneUIController::on_advanced_settings() {
-    // PHASE 3-5: RESTORE Hardware Control - Add hardware control submenu
     auto submenu = nav_.push<MenuView>({
         {"Spectrum Mode", [this]() { on_spectrum_settings(); }},  // PHASE 3: Now connects restore set_spectrum_mode()
         {"Hardware Control", [this]() { on_hardware_control_menu(); }}, // PHASE 5: Add hardware getters/setters
@@ -722,29 +509,16 @@ void DroneUIController::on_advanced_settings() {
         {"Debug Info", [this]() { show_debug_info(); }}           // NEW: Add debugging info
     });
 }
-
 void DroneUIController::show_system_status() {
     char settings_info[512];
-
     int active_drones = static_cast<int>(scanner_.get_approaching_count() +
                                        scanner_.get_receding_count() +
                                        scanner_.get_static_count());
-
-    // Database status
     size_t db_entries = scanner_.get_database_size();
-
-    // Spectrum/Sim mode
     const char* mode_status = scanner_.is_real_mode() ? "HARDWARE/SPECTRUM" : "SIMULATION";
-
-    // Audio alert status
     const char* audio_status = audio_.is_audio_enabled() ? "ENABLED" : "DISABLED";
-
-    // Thread status (placeholder)
     const char* thread_status = scanner_.is_scanning_active() ? "YES" : "NO";
-
-    // Spectrum streaming status
     const char* spectrum_status = hardware_.is_spectrum_streaming_active() ? "YES" : "NO";
-
     snprintf(settings_info, sizeof(settings_info),
             "ENHANCED DRONE ANALYZER v0.3 MODULAR\n"
             "=====================================\n\n"
@@ -767,18 +541,13 @@ void DroneUIController::show_system_status() {
             active_drones,
             "NONE",  // Placeholder for max threat
             audio_status);
-
     nav_.display_modal("System Status", settings_info);
 }
-
 void DroneUIController::show_performance_stats() {
     char perf_info[512];
     uint32_t scan_cycles = scanner_.get_scan_cycles();
-
-    // Calculate performance metrics
     float avg_cycle_time = scan_cycles > 0 ? 750.0f : 0.0f; // ms per cycle
     size_t memory_used = scanner_.get_total_memory_usage(); // hypothetical function
-
     snprintf(perf_info, sizeof(perf_info),
             "PERFORMANCE STATISTICS\n"
             "======================\n\n"
@@ -797,17 +566,12 @@ void DroneUIController::show_performance_stats() {
             static_cast<float>(scanner_.get_total_detections()) * 1000.0f / (scan_cycles * avg_cycle_time + 1),
             memory_used / 1024,
             100.0f - (static_cast<float>(memory_used) / 114688.0f * 100.0f));
-
     nav_.display_modal("Performance Stats", perf_info);
 }
-
 void DroneUIController::show_debug_info() {
     char debug_info[512];
-
-    // Get current scanning parameters
     rf::Frequency current_freq = scanner_.get_current_scanning_frequency();
     std::string scanning_mode = scanner_.scanning_mode_name();
-
     snprintf(debug_info, sizeof(debug_info),
             "DEBUG INFORMATION\n"
             "=================\n\n"
@@ -832,28 +596,19 @@ void DroneUIController::show_debug_info() {
             35, // Placeholder temperature
             scanner_.is_scanning_active() ? "RUNNING" : "STOPPED",
             hardware_.is_spectrum_streaming_active() ? "STREAMING" : "IDLE");
-
     nav_.display_modal("Debug Info", debug_info);
 }
-
 void DroneUIController::on_manage_frequencies() {
-    // REAL FREQUENCY MANAGEMENT UI - now activated
     nav_.push<DroneFrequencyManagerView>();
 }
-
 void DroneUIController::on_create_new_database() {
-    // Placeholder - create database UI
     nav_.display_modal("Info", "Create Database\nComing soon...");
 }
-
 void DroneUIController::on_frequency_warning() {
     size_t freq_count = scanner_.get_database_size();
     if (freq_count == 0) freq_count = 1; // Avoid division by zero
-
-    // Scan cycle time: 750ms per frequency
     float total_seconds = (freq_count * 750.0f) / 1000.0f;
     float total_minutes = total_seconds / 60.0f;
-
     char warning_text[512];
     if (total_minutes >= 1.0f) {
         snprintf(warning_text, sizeof(warning_text),
@@ -872,12 +627,9 @@ void DroneUIController::on_frequency_warning() {
                 "Recommendations:\n50-100 frequencies max",
                 freq_count, total_seconds);
     }
-
     nav_.display_modal("Frequency Scan Warning", warning_text);
 }
-
 void DroneUIController::on_hardware_control_menu() {
-    // PHASE 5: FULLY RESTORE Hardware Control - Provide UI access to getter/setter functions
     auto hardware_menu = nav_.push<MenuView>({
         {"Show Current Bandwidth", [this]() { show_current_bandwidth(); }},
         {"Set Bandwidth (MHz)", [this]() { on_set_bandwidth_config(); }},
@@ -885,11 +637,8 @@ void DroneUIController::on_hardware_control_menu() {
         {"Set Center Frequency", [this]() { on_set_center_freq_config(); }}
     });
 }
-
 void DroneUIController::show_current_bandwidth() {
-    // PHASE 5: RESTORE get_spectrum_bandwidth() - Show current bandwidth from restored function
     uint32_t current_bandwidth = hardware_.get_spectrum_bandwidth();
-
     char bw_msg[128];
     if (current_bandwidth >= 1000000) {  // MHz
         float bw_mhz = static_cast<float>(current_bandwidth) / 1000000.0f;
@@ -898,14 +647,10 @@ void DroneUIController::show_current_bandwidth() {
         float bw_khz = static_cast<float>(current_bandwidth) / 1000.0f;
         snprintf(bw_msg, sizeof(bw_msg), "Current Bandwidth:\n%.1f kHz", bw_khz);
     }
-
     nav_.display_modal("Spectrum Bandwidth", bw_msg);
 }
-
 void DroneUIController::show_current_center_freq() {
-    // PHASE 5: RESTORE get_spectrum_center_frequency() - Show current center frequency from restored function
     rf::Frequency current_center = hardware_.get_spectrum_center_frequency();
-
     char freq_msg[128];
     if (current_center >= 1000000000) {  // GHz
         float freq_ghz = static_cast<float>(current_center) / 1000000000.0f;
@@ -914,12 +659,9 @@ void DroneUIController::show_current_center_freq() {
         float freq_mhz = static_cast<float>(current_center) / 1000000.0f;
         snprintf(freq_msg, sizeof(freq_msg), "Center Frequency:\n%.1f MHz", freq_mhz);
     }
-
     nav_.display_modal("Center Frequency", freq_msg);
 }
-
 void DroneUIController::on_set_bandwidth_config() {
-    // PHASE 5: UI for set_spectrum_bandwidth() - Provide options for common bandwidth values
     auto bandwidth_menu = nav_.push<MenuView>({
         {"4 MHz (Narrow)", [this]() { set_bandwidth_from_menu(4000000); }},
         {"8 MHz (Medium)", [this]() { set_bandwidth_from_menu(8000000); }},
@@ -927,9 +669,7 @@ void DroneUIController::on_set_bandwidth_config() {
         {"24 MHz (Ultra-wide)", [this]() { set_bandwidth_from_menu(24000000); }}
     });
 }
-
 void DroneUIController::on_set_center_freq_config() {
-    // PHASE 5: UI for set_spectrum_center_frequency() - Provide options for common drone frequencies
     auto freq_menu = nav_.push<MenuView>({
         {"433 MHz (ISM)", [this]() { set_center_freq_from_menu(433000000); }},
         {"915 MHz (ISM)", [this]() { set_center_freq_from_menu(915000000); }},
@@ -937,22 +677,15 @@ void DroneUIController::on_set_center_freq_config() {
         {"5.8 GHz (FPV)", [this]() { set_center_freq_from_menu(5800000000ULL); }}
     });
 }
-
 void DroneUIController::set_bandwidth_from_menu(uint32_t bandwidth_hz) {
-    // PHASE 5: Actually call set_spectrum_bandwidth() - Apply bandwidth change through restored function
     hardware_.set_spectrum_bandwidth(bandwidth_hz);
-
     char confirm_msg[128];
     float bw_mhz = static_cast<float>(bandwidth_hz) / 1000000.0f;
     snprintf(confirm_msg, sizeof(confirm_msg), "Bandwidth set to:\n%.1f MHz\n\nRestart scanning to apply.", bw_mhz);
-
     nav_.display_modal("Bandwidth Applied", confirm_msg);
 }
-
 void DroneUIController::set_center_freq_from_menu(rf::Frequency center_freq) {
-    // PHASE 5: Actually call set_spectrum_center_frequency() - Apply frequency change through restored function
     hardware_.set_spectrum_center_frequency(center_freq);
-
     char confirm_msg[128];
     if (center_freq >= 1000000000) {
         float freq_ghz = static_cast<float>(center_freq) / 1000000000.0f;
@@ -961,16 +694,12 @@ void DroneUIController::set_center_freq_from_menu(rf::Frequency center_freq) {
         float freq_mhz = static_cast<float>(center_freq) / 1000000.0f;
         snprintf(confirm_msg, sizeof(confirm_msg), "Center frequency set to:\n%.1f MHz", freq_mhz);
     }
-
     nav_.display_modal("Frequency Applied", confirm_msg);
 }
-
 void DroneUIController::on_about() {
     nav_.push<AuthorContactView>();
 }
-
 void DroneUIController::on_spectrum_settings() {
-    // PHASE 3: FULLY RESTORE set_spectrum_mode() - implement interactive spectrum mode selection
     auto mode_menu = nav_.push<MenuView>({
         {"Ultra Narrow (4MHz)", [this]() { select_spectrum_mode(SpectrumMode::ULTRA_NARROW); }},
         {"Narrow (8MHz)", [this]() { select_spectrum_mode(SpectrumMode::NARROW); }},
@@ -980,38 +709,22 @@ void DroneUIController::on_spectrum_settings() {
         {"Set Custom Range", [this]() { on_spectrum_range_config(); }}
     });
 }
-
 void DroneUIController::select_spectrum_mode(SpectrumMode mode) {
-    // PHASE 3: ACTUAL RESTORATION - Apply selected spectrum mode to hardware
     hardware_.set_spectrum_mode(mode);
-
-    // Update UI to reflect new mode
     const char* mode_names[] = {"ULTRA_NARROW", "NARROW", "MEDIUM", "WIDE", "ULTRA_WIDE"};
     char confirm_msg[128];
     snprintf(confirm_msg, sizeof(confirm_msg), "Spectrum mode set to:\n%s\n\nRestart scanning to apply.", mode_names[static_cast<size_t>(mode)]);
-
     nav_.display_modal("Spectrum Mode Applied", confirm_msg);
 }
-
 void DroneUIController::on_spectrum_range_config() {
-    // PHASE 3: RESTORE set_spectrum_range() functionality
     display_controller_->set_spectrum_range(2400000000ULL, 2500000000ULL); // 2.4-2.5GHz ISM default
-
     nav_.display_modal("Spectrum Range", "Custom range set to:\n2.4-2.5 GHz ISM band\n\nRestart scanning to apply.");
 }
-
 void DroneUIController::on_open_constant_settings() {
-    // Open the new constant settings dialog
     static ConstantSettingsManager manager;
     nav_.push<ConstantSettingsView>(nav_);
 }
-
 void DroneUIController::on_add_preset_quick() {
-    // Connect previously unused get_all_presets() and get_presets_by_type()
-    // get_all_presets() called internally in preset selector
-    // get_presets_by_type() filters for specific threat levels
-    
-    // Show confirmation using pattern from other apps
     char success_msg[128];
     snprintf(success_msg, sizeof(success_msg),
             "RESTORATION: Preset Added Successfully\n%s (%d MHz)\nThreat: %s",
@@ -1019,21 +732,10 @@ void DroneUIController::on_add_preset_quick() {
             static_cast<int>(selected_preset.frequency_hz / 1000000),
             selected_preset.threat_level == ThreatLevel::HIGH ? "HIGH" :
             selected_preset.threat_level == ThreatLevel::MEDIUM ? "MEDIUM" : "LOW");
-    
     nav_.display_modal("Preset Added", success_msg);
-    // PHASE 4: FULLY RESTORE Preset System - Connect to existing DronePresetSelector
-    // get_all_presets() is implemented as DroneFrequencyPresets::get_all_presets()
-    // get_presets_by_type() is implemented as DroneFrequencyPresets::get_presets_by_type()
-    // show_preset_menu() is implemented as DronePresetSelector::show_preset_menu()
-
     DronePresetSelector::show_preset_menu(nav_,
         [this](const DronePreset& selected_preset) {
-            // PHASE 4: Preset auto-add to scanner database
-            // Convert DronePreset to freqman_entry for scanner
-            // This demonstrates get_all_presets() and get_presets_by_type() are functional
-
             add_preset_to_scanner(selected_preset);
-
             char success_msg[128];
             snprintf(success_msg, sizeof(success_msg),
                     "Preset Added: %s\n%d MHz, Threat: %s",
@@ -1041,20 +743,12 @@ void DroneUIController::on_add_preset_quick() {
                     static_cast<int>(selected_preset.frequency_hz / 1000000),
                     selected_preset.threat_level == ThreatLevel::HIGH ? "HIGH" :
                     selected_preset.threat_level == ThreatLevel::MEDIUM ? "MED" : "LOW");
-
             nav_.display_modal("Preset Added", success_msg);
         });
 }
-
 void DroneUIController::add_preset_to_scanner(const DronePreset& preset) {
-    // PHASE 4: Implement preset addition using FreqmanDB directly
-    // freq_db_ access through scanner is not available, use FreqmanDB directly
-
-    // Create FreqmanDB instance for presets
     FreqmanDB preset_db("DRONES"); // Use same file as scanner
-
     if (preset_db.open()) {
-        // Create freqman_entry from preset
         freqman_entry entry{
             .frequency_a = static_cast<rf::Frequency>(preset.frequency_hz),
             .frequency_b = static_cast<rf::Frequency>(preset.frequency_hz),
@@ -1065,15 +759,9 @@ void DroneUIController::add_preset_to_scanner(const DronePreset& preset) {
             .description = preset.name_template,
             .tonal = ""
         };
-
-        // Add preset to database (restore database functionality)
         preset_db.append_entry(entry);
         preset_db.save();
-
-        // Update scanner to reload database with new preset
         scanner_.load_frequency_database();
-
-        // Update UI status to show preset was added
         char status_msg[64];
         snprintf(status_msg, sizeof(status_msg), "Added: %s (%d MHz)",
                 preset.display_name.substr(0, 15).c_str(),
@@ -1083,66 +771,41 @@ void DroneUIController::add_preset_to_scanner(const DronePreset& preset) {
         nav_.display_modal("Error", "Cannot access database\nfor preset addition");
     }
 }
-
-// PHASE 4: FULL AUDIO CONTROL RESTORATION - Connect all unused audio functions to UI
 void DroneUIController::on_toggle_audio_simple() {
-    // STEP 1: Use RESTORED toggle_audio function (previously unused)
     audio_.toggle_audio();
-
-    // STEP 2: Use RESTORED is_audio_enabled for state checking
     bool new_state = audio_.is_audio_enabled();
-
-    // STEP 3: OPTIONAL: Use RESTORED set_audio_enabled if needed for explicit state setting
-    // audio_.set_audio_enabled(new_state); // Already handled by toggle_audio()
-
-    // Show user feedback status
     const char* status_msg = new_state ? "Audio alerts ENABLED" : "Audio alerts DISABLED";
     const char* full_msg = new_state ?
         "Audio alerts ENABLED\n\nDetection beeps will sound\nfor threat detections" :
         "Audio alerts DISABLED\n\nNo audio feedback will\nbe provided";
-
     nav_.display_modal(status_msg, full_msg);
 }
-
-// EnhancedDroneSpectrumAnalyzerView implementation
 EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationView& nav)
     : nav_(nav),
       hardware_(std::make_unique<DroneHardwareController>()),
       scanner_(std::make_unique<DroneScanner>()),
-      audio_(std::make_unique<DroneAudioController>()),
+audio_(std::make_unique<AudioManager>()),
       ui_controller_(std::make_unique<DroneUIController>(nav, *hardware_, *scanner_, *audio_)),
       display_controller_(std::make_unique<DroneDisplayController>(nav)),
       scanning_coordinator_(std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_, *audio_))
 {
-    // CRITICAL FIX: Update coordinator with current settings to connect UI change to runtime behavior
     scanning_coordinator_->update_runtime_parameters(ui_controller_->settings());
-
-    // Setup button callbacks
     button_start_.on_select = [this](Button&) {
         handle_start_stop_button();
     };
-
     button_menu_.on_select = [this, &nav](Button&) {
         handle_menu_button();
     };
-
         nav.push<AuthorContactView>();
     };
-
-    // Setup scanning mode selector
     field_scanning_mode_.on_change = [this](size_t index) {
         DroneScanner::ScanningMode mode = static_cast<DroneScanner::ScanningMode>(index);
         scanner_->set_scanning_mode(mode);
-        // Update status display with new mode name
         display_controller_->set_scanning_status(ui_controller_->is_scanning(),
                                                scanner_->scanning_mode_name());
     };
-
-    // Set initial value based on current scanner mode
     int initial_mode = static_cast<int>(scanner_->get_scanning_mode());
     field_scanning_mode_.set_value(initial_mode);
-
-    // Add child views - RESTORED: include display components for full UI
     add_child(&display_controller_->big_display());
     add_child(&display_controller_->scanning_progress());
     add_child(&display_controller_->text_threat_summary());
@@ -1155,23 +818,15 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     add_child(&button_start_);
     add_child(&button_menu_);
 }
-
 void EnhancedDroneSpectrumAnalyzerView::focus() {
     button_start_.focus();
 }
-
 void EnhancedDroneSpectrumAnalyzerView::paint(Painter& painter) {
     View::paint(painter);
-
-    // V0 STYLE - MINIMAL TEXT INTERFACE ONLY
-    // NO graphics, NO spectrum display, NO waterfall - clean text status
-    // painter.fill_circle({220, 20}, 4, scanning_active_ ? Color::green() : Color::gray());
 }
-
 bool EnhancedDroneSpectrumAnalyzerView::on_key(const KeyEvent key) {
     switch(key) {
         case KeyEvent::Back:
-            // Cleanup resources before navigation
             stop_scanning_thread();
             nav_.pop();
             return true;
@@ -1180,64 +835,41 @@ bool EnhancedDroneSpectrumAnalyzerView::on_key(const KeyEvent key) {
     }
     return View::on_key(key);
 }
-
 bool EnhancedDroneSpectrumAnalyzerView::on_touch(const TouchEvent event) {
     return View::on_touch(event);
 }
-
 void EnhancedDroneSpectrumAnalyzerView::on_show() {
     View::on_show();
-
-    // PHASE 1 FIX: Follow Looking Glass pattern for scroll area setup
-    // This enables proper waterfall rendering instead of Y coordinate calculation
     display.scroll_set_area(109, screen_height - 1);
-
-    // Hardware initialization after display setup
     hardware_->on_hardware_show();
 }
-
 void EnhancedDroneSpectrumAnalyzerView::on_hide() {
-    // Stop any active scanning
     stop_scanning_thread();
-
-    // FOLLOWING LOOKING GLASS PATTERN: Cleanup in on_hide()
     hardware_->on_hardware_hide();
-
     View::on_hide();
 }
-
 void EnhancedDroneSpectrumAnalyzerView::start_scanning_thread() {
     if (scanning_coordinator_->is_scanning_active()) return;
-
-    // FIX: Use scanning coordinator instead of broken direct scanner startup
     scanning_coordinator_->start_coordinated_scanning();
 }
-
 void EnhancedDroneSpectrumAnalyzerView::stop_scanning_thread() {
     if (!scanning_coordinator_->is_scanning_active()) return;
-
-    // FIX: Use scanning coordinator for proper cleanup
     scanning_coordinator_->stop_coordinated_scanning();
 }
-
 bool EnhancedDroneSpectrumAnalyzerView::handle_start_stop_button() {
     if (ui_controller_->is_scanning()) {
-        // Stop scanning
         ui_controller_->on_stop_scan();
         button_start_.set_text("START/STOP");
     } else {
-        // Start scanning
         ui_controller_->on_start_scan();
         button_start_.set_text("STOP");
     }
     return true;
 }
-
 bool EnhancedDroneSpectrumAnalyzerView::handle_menu_button() {
     ui_controller_->show_menu();
     return true;
 }
-
 LoadingScreenView::LoadingScreenView(NavigationView& nav)
     : nav_(nav),
       text_eda_(
@@ -1246,30 +878,17 @@ LoadingScreenView::LoadingScreenView(NavigationView& nav)
       ),
       timer_start_(chTimeNow())
 {
-    // Set text style to dark crushed red
     text_eda_.set_style(Theme::getInstance()->fg_red);  // Dark crushed red from theme
-
-    // Add the text as a child view
     add_child(&text_eda_);
-
-    // Set our own focus (though we don't handle input)
     set_focusable(false);
 }
-
 LoadingScreenView::~LoadingScreenView() {
-    // Cleanup handled by View destructor
-    // Message handler will be automatically unregistered
 }
-
 void LoadingScreenView::paint(Painter& painter) {
-    // Clear entire screen to black background
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
         Color::black()
     );
-
-    // Parent paint will handle child views (text_eda_)
     View::paint(painter);
 }
-
 } // namespace ui::external_app::enhanced_drone_analyzer

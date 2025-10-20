@@ -259,19 +259,3 @@ void DroneHardwareController::set_spectrum_center_frequency(rf::Frequency center
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer
-
-// RESTORATION: Connect unused hardware functions to UI control
-void DroneHardwareController::connect_hardware_ui_controls() {
-    // This function demonstrates that set_spectrum_bandwidth and get_spectrum_center_frequency
-    // are now connected to the UI hardware control menu system
-    // Previously unused - now activated for frequency/bandwidth fine-tuning
-
-    // Pattern verification: Similar to tuner app parameter access
-    uint32_t current_bandwidth = get_spectrum_bandwidth();
-    rf::Frequency current_center = get_spectrum_center_frequency();
-
-    // Available for menu callbacks to modify spectrum parameters
-    (void)current_bandwidth; // Suppress unused warning
-    (void)current_center;    // Suppress unused warning
-}
-

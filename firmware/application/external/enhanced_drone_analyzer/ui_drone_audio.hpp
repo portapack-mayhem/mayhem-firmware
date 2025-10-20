@@ -10,7 +10,6 @@
 #include "ui/ui_button.hpp"
 #include "ui/navigation.hpp"
 #include "external_app.hpp"
-#include "ui_drone_audio.hpp"
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "ch.h"
@@ -146,6 +145,7 @@ private:
     // UI Elements
     Checkbox checkbox_audio_enabled_{ {10, 30}, "Enable Audio Alerts" };
     Button button_test_audio_{ {10, 60}, "Test Audio" };
+    Button button_sos_alert_{ {120, 60}, "SOS Alert" };
 
     Text text_description_{ {0, 0, 240, 32},
         "Configure audio alerts for\ndrone detections and warnings." };

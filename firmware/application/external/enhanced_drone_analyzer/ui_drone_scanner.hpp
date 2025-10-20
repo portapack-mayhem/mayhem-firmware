@@ -165,6 +165,11 @@ public:
     // Error handling
     void handle_scan_error(const char* error_msg);
 
+    // Access to detection logger for session summary (public interface)
+    std::string get_session_summary() const {
+        return detection_logger_.format_session_summary(get_scan_cycles(), get_total_detections());
+    }
+
 private:
     // Scanning thread management
     static msg_t scanning_thread_function(void* arg);
@@ -372,7 +377,7 @@ public:
                        DroneHardwareController& hardware,
                        DroneScanner& scanner,
                        DroneDisplayController& display_controller,
-                       AudioManager& audio_manager);
+                       DroneAudioController& audio_controller);
 
     ~ScanningCoordinator();
 
@@ -411,7 +416,7 @@ private:
     DroneHardwareController& hardware_;
     DroneScanner& scanner_;
     DroneDisplayController& display_controller_;
-    AudioManager& audio_manager_;  // CRITICAL: Missing from original constructor
+    DroneAudioController& audio_controller_;  // Changed to match used type
 
     // Scanning configuration
     uint32_t scan_interval_ms_ = 750;  // Default from EDA config
@@ -423,12 +428,12 @@ ScanningCoordinator::ScanningCoordinator(NavigationView& nav,
                                        DroneHardwareController& hardware,
                                        DroneScanner& scanner,
                                        DroneDisplayController& display_controller,
-                                       AudioManager& audio_manager)
+                                       DroneAudioController& audio_controller)
     : nav_(nav),
       hardware_(hardware),
       scanner_(scanner),
       display_controller_(display_controller),
-      audio_manager_(audio_manager),  // CRITICAL: Fixed missing audio_manager
+      audio_controller_(audio_controller),  // Updated to match member type
       scanning_active_(false),
       scanning_thread_(nullptr)
 {
@@ -497,10 +502,7 @@ void ScanningCoordinator::stop_coordinated_scanning() {
         // **NEW: Display formatted session summary via modal dialog**
         // Restores dead code functionality - shows detailed scans session stats
         // Pass real statistics from scanner for comprehensive report
-        const std::string summary = scanner_.detection_logger_.format_session_summary(
-            scanner_.get_scan_cycles(),
-            scanner_.get_total_detections()
-        );
+        const std::string summary = scanner_.get_session_summary();
         show_session_summary(summary);
     }
 
