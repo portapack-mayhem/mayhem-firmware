@@ -64,20 +64,20 @@ const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) con
 }
 void DroneDisplayController::update_detection_display(const DroneScanner& scanner) {
     if (scanner.is_scanning_active()) {
-        rf::Frequency current_freq = scanner.get_current_scanning_frequency();
-        if (current_freq > 0) {
-            char freq_buffer[32];
-            float freq_mhz = static_cast<float>(current_freq) / 1000000.0f;
-            if (freq_mhz < 1000.0f) {
-                snprintf(freq_buffer, sizeof(freq_buffer), "%.1f MHz", freq_mhz);
-            } else {
-                freq_mhz /= 1000.0f; // Convert to GHz
-                snprintf(freq_buffer, sizeof(freq_buffer), "%.2f GHz", freq_mhz);
-            }
-            big_display_.set(freq_buffer);
+    rf::Frequency current_freq = scanner.get_current_scanning_frequency();
+    if (current_freq > 0) {
+        char freq_buffer[32];
+        float freq_mhz = static_cast<float>(current_freq) / 1000000.0f;
+        if (freq_mhz < 1000.0f) {
+            snprintf(freq_buffer, sizeof(freq_buffer), "%.1f MHz", freq_mhz);
         } else {
-            big_display_.set("SCANNING...");
+            freq_mhz /= 1000.0f; // Convert to GHz
+            snprintf(freq_buffer, sizeof(freq_buffer), "%.2f GHz", freq_mhz);
         }
+        big_display_.set(freq_buffer);
+    } else {
+        big_display_.set("SCANNING...");
+    }
     } else {
         big_display_.set("READY");
     }
