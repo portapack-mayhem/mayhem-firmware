@@ -51,44 +51,43 @@ set(EXTCPPSRC
 	external/spainter/ui_spectrum_painter_text.cpp
 	external/spainter/ui_spectrum_painter_image.cpp
 
-	#keyfob
+	#keyfob 216 byte
 	external/keyfob/main.cpp
 	external/keyfob/ui_keyfob.cpp
 	external/keyfob/ui_keyfob.hpp
 
-	#tetris
+	#tetris 88 byte
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
 
 
-	#extsensors
+	#extsensors 192 byte
 	external/extsensors/main.cpp
 	external/extsensors/ui_extsensors.cpp
 	external/extsensors/ui_extsensors.hpp
 
-	#foxhunt
+	#foxhunt 0
 	external/foxhunt/main.cpp
 	external/foxhunt/ui_foxhunt_rx.cpp
 	external/foxhunt/ui_foxhunt_rx.hpp
 
-	#audio_test
+	#audio_test 192 byte
 	external/audio_test/main.cpp
 	external/audio_test/ui_audio_test.cpp
 
-	#wardrivemap
+	#wardrivemap 64 byte
 	external/wardrivemap/main.cpp
 	external/wardrivemap/ui_wardrivemap.cpp
 
-
-	#tpmsrx
+	#tpmsrx 920 byte- possible shared part with baseband
 	external/tpmsrx/main.cpp
 	external/tpmsrx/tpms_app.cpp
 
-	#protoview
+	#protoview 8 byte
 	external/protoview/main.cpp
 	external/protoview/ui_protoview.cpp
 
-	#adsbtx
+	#adsbtx  3544 byte - adsb shared part
 	external/adsbtx/main.cpp
 	external/adsbtx/ui_adsb_tx.cpp
 
