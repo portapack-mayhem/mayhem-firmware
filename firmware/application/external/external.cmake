@@ -33,24 +33,19 @@ set(EXTCPPSRC
 	external/lge/lge_app.cpp
 	external/lge/rfm69.cpp
 
-# 37772 bytes 
-
-
-	#lcr
+	#lcr - 460 byte flash
 	external/lcr/main.cpp
 	external/lcr/ui_lcr.cpp
 
-	#jammer
+	#jammer 144 byte
 	external/jammer/main.cpp
 	external/jammer/ui_jammer.cpp
 
-	#gpssim
+	#gpssim  160 byte
 	external/gpssim/main.cpp
 	external/gpssim/gps_sim_app.cpp
 
-# 36516 bytes
-
-	#spainter
+	#spainter   464 byte
 	external/spainter/main.cpp
 	external/spainter/ui_spectrum_painter.cpp
 	external/spainter/ui_spectrum_painter_text.cpp
@@ -65,7 +60,6 @@ set(EXTCPPSRC
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
 
-#35692 bytes
 
 	#extsensors
 	external/extsensors/main.cpp
@@ -84,9 +78,6 @@ set(EXTCPPSRC
 	#wardrivemap
 	external/wardrivemap/main.cpp
 	external/wardrivemap/ui_wardrivemap.cpp
-
-
-#33324 bytes
 
 
 	#tpmsrx
@@ -109,8 +100,6 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
-#27140 bytes
-
 	#random
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
@@ -130,10 +119,6 @@ set(EXTCPPSRC
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
-
-# 22460 bytes
-
-
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp
@@ -149,8 +134,6 @@ set(EXTCPPSRC
 	#cvs_spam
 	external/cvs_spam/main.cpp
 	external/cvs_spam/cvs_spam.cpp
-
-#19372 bytes
 
 	#flippertx
 	external/flippertx/main.cpp
@@ -172,9 +155,6 @@ set(EXTCPPSRC
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
 
-
-#15684 bytes
-
 	#metronome
 	external/metronome/main.cpp
 	external/metronome/ui_metronome.cpp
@@ -190,8 +170,6 @@ set(EXTCPPSRC
 	# whip calculator
 	external/antenna_length/main.cpp
 	external/antenna_length/ui_whipcalc.cpp
-
-#14100 bytes
 
 	# wav viewer
 	external/wav_view/main.cpp
@@ -209,8 +187,6 @@ set(EXTCPPSRC
 	external/snake/main.cpp
 	external/snake/ui_snake.cpp
 
-#12300 bytes
-
 	#stopwatch
 	external/stopwatch/main.cpp
 	external/stopwatch/ui_stopwatch.cpp
@@ -226,8 +202,6 @@ set(EXTCPPSRC
 	#doom
 	external/doom/main.cpp
 	external/doom/ui_doom.cpp
-
-#10916 bytes
 
 	#debug_pmem
 	external/debug_pmem/main.cpp
@@ -245,9 +219,6 @@ set(EXTCPPSRC
 	external/gfxeq/main.cpp
 	external/gfxeq/ui_gfxeq.cpp
 
-#9268 bytes
-	
-
 	#detector_rx
 	external/detector_rx/main.cpp
 	external/detector_rx/ui_detector_rx.cpp
@@ -263,8 +234,6 @@ set(EXTCPPSRC
 	#battleship
 	external/battleship/main.cpp
 	external/battleship/ui_battleship.cpp
-
-#8828 bytes
 
 	#ert 3040 bytes - has common with baseband, could be renamed the namespace, so both could have it, but not kept in fw.
 	external/ert/main.cpp
@@ -287,12 +256,10 @@ set(EXTCPPSRC
 	external/bht_tx/ui_bht_tx.cpp
 	external/bht_tx/bht.cpp
 
-
 	#morse_practice - 80 byte flash - bc of array initializers
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
 	
-
 )
 
 set(EXTAPPLIST
