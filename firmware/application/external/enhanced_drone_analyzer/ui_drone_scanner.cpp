@@ -84,11 +84,15 @@ void DroneScanner::setup_wideband_range(rf::Frequency min_freq, rf::Frequency ma
         rf::Frequency offset = ((scanning_range - slices_span) / 2) + (WIDEBAND_SLICE_WIDTH / 2);
         rf::Frequency center_frequency = min_freq + offset;
 
-        // Populate slices array
-        for (uint32_t slice = 0; slice < wideband_scan_data_.slices_nb; slice++) {
-            wideband_scan_data_.slices[slice].center_frequency = center_frequency;
-            center_frequency += WIDEBAND_SLICE_WIDTH;
-        }
+        // Populate slices array using STL algorithm (PHASE 8 OPTIMIZATION)
+        std::generate_n(wideband_scan_data_.slices,
+                       wideband_scan_data_.slices_nb,
+                       [&center_frequency]() mutable -> WidebandSlice {
+                           WidebandSlice slice;
+                           slice.center_frequency = center_frequency;
+                           center_frequency += WIDEBAND_SLICE_WIDTH;
+                           return slice;
+                       });
     } else {
         // Single slice covers the entire range
         wideband_scan_data_.slices[0].center_frequency = (max_freq + min_freq) / 2;
