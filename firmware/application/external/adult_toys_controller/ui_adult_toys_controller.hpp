@@ -83,12 +83,12 @@ class ADULT_toys : public ui::View {
     std::string title() const override {
         return "Adult Toys";
     };
-
-    struct LovespouseMode {
-        uint32_t value;
-        std::string name;
-    };
-
+    /*
+        struct LovespouseMode {
+            uint32_t value;
+            std::string name;
+        };
+    */
    private:
     NavigationView& nav_;
     TxRadioState radio_state_{
@@ -248,14 +248,13 @@ class ADULT_toys : public ui::View {
         "Independent 2-8",
         "Independent 2-9"};
 
+    std::string stop_names[3] = {"Classic Stop",
+                                 "Independent 1 Stop",
+                                 "Independent 2 Stop"};
     uint32_t stop_values[3] = {
         0xE5157D,
         0xD5964C,
         0xA5113F};
-
-    std::string stop_names[3] = {"Classic Stop",
-                                 "Independent 1 Stop",
-                                 "Independent 2 Stop"};
 };
 
 };  // namespace ui::external_app::adult_toys_controller
