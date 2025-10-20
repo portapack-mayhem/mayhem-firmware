@@ -20,18 +20,18 @@ set(EXTCPPSRC
 	external/analogtv/analog_tv_app.cpp
 	external/analogtv/ui_tv.cpp
 
-
-	#nrf_rx
+	#nrf_rx  40 byte
 	external/nrf_rx/main.cpp
 	external/nrf_rx/ui_nrf_rx.cpp
 
-	#coasterp
+	#coasterp  0 byte
 	external/coasterp/main.cpp
 	external/coasterp/ui_coasterp.cpp
 
-	#lge
+	#lge  120 byte
 	external/lge/main.cpp
 	external/lge/lge_app.cpp
+	external/lge/rfm69.cpp
 
 # 37772 bytes 
 
