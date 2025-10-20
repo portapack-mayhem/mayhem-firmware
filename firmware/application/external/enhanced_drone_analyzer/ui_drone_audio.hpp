@@ -153,6 +153,7 @@ private:
     NumberField field_test_threat_level_{ {130, 60}, 1, {0, 4, 1, 1}, "Threat" };
     Text text_test_instructions_{ {10, 85, 240, 16},
         "Select threat level to test" };
+    Text text_last_beep_{ {10, 100, 240, 16}, "" };
 
     // Button handlers
     void on_audio_enabled_changed();
@@ -317,6 +318,7 @@ DroneAudioSettingsView::DroneAudioSettingsView(
         &checkbox_audio_enabled_,
         &field_test_threat_level_,
         &text_test_instructions_,
+        &text_last_beep_,
         &button_test_audio_,
         &button_sos_alert_
     });
