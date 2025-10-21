@@ -275,7 +275,7 @@ uint8_t ADULT_toys::randomize(uint8_t max) {
 
 void ADULT_toys::printCurrentModes() {
     uint8_t max_val = play_running ? max_plays : max_stops;
-    auto name = play_running ? play_names[toy_packet] : stop_names[toy_packet];
+    auto name = play_running ? plays[toy_packet].name : stops[toy_packet].name;
     std::string current = to_string_dec_uint(toy_packet + 1);
     std::string max_val_str = to_string_dec_uint(max_val);
 
@@ -335,7 +335,7 @@ void ADULT_toys::on_tx_progress(const bool done) {
     if (random_running) {
         toy_packet = randomize(play_running ? max_plays : max_stops);
     }
-    createPacket(play_running ? play_values[toy_packet] : stop_values[toy_packet]);
+    createPacket(play_running ? plays[toy_packet].value : stops[toy_packet].value);
     printCurrentModes();
 
     if (n_message_running) {

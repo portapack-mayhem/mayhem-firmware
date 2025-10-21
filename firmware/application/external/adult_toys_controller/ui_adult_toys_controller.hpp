@@ -83,12 +83,12 @@ class ADULT_toys : public ui::View {
     std::string title() const override {
         return "Adult Toys";
     };
-    /*
-        struct LovespouseMode {
-            uint32_t value;
-            std::string name;
-        };
-    */
+
+    struct LovespouseMode {
+        uint32_t value;
+        std::string name;
+    };
+
    private:
     NavigationView& nav_;
     TxRadioState radio_state_{
@@ -192,73 +192,42 @@ class ADULT_toys : public ui::View {
             this->on_tx_progress(message.done);
         }};
 
-    uint32_t play_values[max_plays] = {
-        0xE49C6C,
-        0xE7075E,
-        0xE68E4F,
-        0xE1313B,
-        0xE0B82A,
-        0xE32318,
-        0xE2AA09,
-        0xED5DF1,
-        0xECD4E0,
-        0xD41F5D,
-        0xD7846F,
-        0xD60D7E,
-        0xD1B20A,
-        0xD0B31B,
-        0xD3A029,
-        0xD22938,
-        0xDDDEC0,
-        0xDC57D1,
-        0xA4982E,
-        0xA7031C,
-        0xA68A0D,
-        0xA13579,
-        0xA0BC68,
-        0xA3275A,
-        0xA2AE4B,
-        0xAD59B3,
-        0xACD0A2};
+    LovespouseMode plays[max_plays] = {
+        {0xE49C6C, "Classic 1"},
+        {0xE7075E, "Classic 2"},
+        {0xE68E4F, "Classic 3"},
+        {0xE1313B, "Classic 4"},
+        {0xE0B82A, "Classic 5"},
+        {0xE32318, "Classic 6"},
+        {0xE2AA09, "Classic 7"},
+        {0xED5DF1, "Classic 8"},
+        {0xECD4E0, "Classic 9"},
+        {0xD41F5D, "Independent 1-1"},
+        {0xD7846F, "Independent 1-2"},
+        {0xD60D7E, "Independent 1-3"},
+        {0xD1B20A, "Independent 1-4"},
+        {0xD0B31B, "Independent 1-5"},
+        {0xD3A029, "Independent 1-6"},
+        {0xD22938, "Independent 1-7"},
+        {0xDDDEC0, "Independent 1-8"},
+        {0xDC57D1, "Independent 1-9"},
+        {0xA4982E, "Independent 2-1"},
+        {0xA7031C, "Independent 2-2"},
+        {0xA68A0D, "Independent 2-3"},
+        {0xA13579, "Independent 2-4"},
+        {0xA0BC68, "Independent 2-5"},
+        {0xA3275A, "Independent 2-6"},
+        {0xA2AE4B, "Independent 2-7"},
+        {0xAD59B3, "Independent 2-8"},
+        {0xACD0A2, "Independent 2-9"},
+    };
 
-    std::string play_names[max_plays] = {
-        "Classic 1",
-        "Classic 2",
-        "Classic 3",
-        "Classic 4",
-        "Classic 5",
-        "Classic 6",
-        "Classic 7",
-        "Classic 8",
-        "Classic 9",
-        "Independent 1-1",
-        "Independent 1-2",
-        "Independent 1-3",
-        "Independent 1-4",
-        "Independent 1-5",
-        "Independent 1-6",
-        "Independent 1-7",
-        "Independent 1-8",
-        "Independent 1-9",
-        "Independent 2-1",
-        "Independent 2-2",
-        "Independent 2-3",
-        "Independent 2-4",
-        "Independent 2-5",
-        "Independent 2-6",
-        "Independent 2-7",
-        "Independent 2-8",
-        "Independent 2-9"};
-
-    std::string stop_names[3] = {"Classic Stop",
-                                 "Independent 1 Stop",
-                                 "Independent 2 Stop"};
-    uint32_t stop_values[3] = {
-        0xE5157D,
-        0xD5964C,
-        0xA5113F};
+    LovespouseMode stops[max_stops] = {
+        {0xE5157D, "Classic Stop"},
+        {0xD5964C, "Independent 1 Stop"},
+        {0xA5113F, "Independent 2 Stop"},
+    };
 };
-
 };  // namespace ui::external_app::adult_toys_controller
 
 #endif  // ui_adult_toys_controller_hpp
