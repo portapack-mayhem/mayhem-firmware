@@ -122,19 +122,21 @@ set(EXTCPPSRC
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp
 
-	#ookbrute
+#whole free: 3284 bytes
+
+	#ookbrute  80 byte
 	external/ookbrute/main.cpp
 	external/ookbrute/ui_ookbrute.cpp
 
-	#ook_editor
+	#ook_editor  1808 bytes
 	external/ook_editor/main.cpp
 	external/ook_editor/ui_ook_editor.cpp
 
-	#cvs_spam
+	#cvs_spam 24 byte
 	external/cvs_spam/main.cpp
 	external/cvs_spam/cvs_spam.cpp
 
-	#flippertx
+	#flippertx  712 bytes
 	external/flippertx/main.cpp
 	external/flippertx/ui_flippertx.cpp
 
@@ -174,7 +176,6 @@ set(EXTCPPSRC
 	external/wav_view/main.cpp
 	external/wav_view/ui_view_wav.cpp
 
-#whole free: 3284 bytes
 
 	# wipe sdcard 16 byte
 	external/sd_wipe/main.cpp
