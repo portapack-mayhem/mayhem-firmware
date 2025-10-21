@@ -23,11 +23,24 @@
 #include "pacman.hpp"
 #include <memory>
 
+void notouch(int, int, uint32_t) {
+    // do nothing
+}
+void nothing() {
+    // do nothing
+}
+bool noencoder(int32_t) {
+    return false;
+}
+bool nokeyboard(uint8_t) {
+    return false;
+}
+
 const standalone_application_api_t* _api;
 
 extern "C" {
 __attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {
-    /*.header_version = */ 1,
+    /*.header_version = */ 2,
 
     /*.app_name = */ "Pac-Man",
     /*.bitmap_data = */ {
@@ -70,18 +83,17 @@ __attribute__((section(".standalone_application_information"), used)) standalone
     /*.initialize_app = */ initialize,
     /*.on_event = */ on_event,
     /*.shutdown = */ shutdown,
-    /*PaintViewMirror */ NULL,
-    /*OnTouchEvent */ NULL,
-    /*OnFocus */ NULL,
-    /*OnKeyEvent */ NULL,
-    /*OnEncoder */ NULL,
-    /*OnKeyboard */ NULL};
+    /*PaintViewMirror */ nothing,
+    /*OnTouchEvent */ notouch,
+    /*OnFocus */ nothing,
+    /*OnKeyEvent */ on_key_event,
+    /*OnEncoder */ noencoder,
+    /*OnKeyboard */ nokeyboard};
 }
 
 /* Implementing abort() eliminates requirement for _getpid(), _kill(), _exit(). */
 extern "C" void abort() {
-    while (true)
-        ;
+    while (true);
 }
 
 // replace memory allocations to use heap from chibios
