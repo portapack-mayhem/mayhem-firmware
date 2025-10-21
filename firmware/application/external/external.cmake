@@ -211,26 +211,26 @@ set(EXTCPPSRC
 	external/scanner/ui_scanner.cpp
 
 	#level
-	external/level/main.cpp
-	external/level/ui_level.cpp
+	#external/level/main.cpp
+	#external/level/ui_level.cpp
 
-	#gfxEQ
+	#gfxEQ 80 byte
 	external/gfxeq/main.cpp
 	external/gfxeq/ui_gfxeq.cpp
 
-	#detector_rx
+	#detector_rx  168 byte
 	external/detector_rx/main.cpp
 	external/detector_rx/ui_detector_rx.cpp
 
-	#space_invaders
+	#space_invaders  0 byte
 	external/spaceinv/main.cpp
 	external/spaceinv/ui_spaceinv.cpp
 
-	#blackjack
+	#blackjack 24 byte
 	external/blackjack/main.cpp
 	external/blackjack/ui_blackjack.cpp
 
-	#battleship
+	#battleship  256 byte
 	external/battleship/main.cpp
 	external/battleship/ui_battleship.cpp
 
@@ -259,6 +259,9 @@ set(EXTCPPSRC
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
 	
+
+#whole free: 3284 bytes
+
 )
 
 set(EXTAPPLIST
@@ -312,7 +315,7 @@ set(EXTAPPLIST
 	doom
 	debug_pmem
 	scanner
-	level
+	#level
 	gfxeq
 	detector_rx
 	spaceinv
