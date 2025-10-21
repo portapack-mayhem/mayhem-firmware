@@ -179,40 +179,42 @@ set(EXTCPPSRC
 	external/sd_wipe/ui_sd_wipe.cpp
 
 	# playlist editor
-	external/playlist_editor/main.cpp
-	external/playlist_editor/ui_playlist_editor.cpp
+	#external/playlist_editor/main.cpp
+	#external/playlist_editor/ui_playlist_editor.cpp
 
-	#snake
+	#snake 240 bytes
 	external/snake/main.cpp
 	external/snake/ui_snake.cpp
 
-	#stopwatch
+#whole free: 3284 bytes
+
+	#stopwatch 0
 	external/stopwatch/main.cpp
 	external/stopwatch/ui_stopwatch.cpp
 
-	#breakout
+	#breakout 1144 bytes
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
 
-	#dinogame
+	#dinogame 0 
 	external/dinogame/main.cpp
 	external/dinogame/ui_dinogame.cpp
 
-	#doom
+	#doom 224
 	external/doom/main.cpp
 	external/doom/ui_doom.cpp
 
-	#debug_pmem
+	#debug_pmem  944 byte
 	external/debug_pmem/main.cpp
 	external/debug_pmem/ui_debug_pmem.cpp
 
-	#scanner
+	#scanner 520 byte
 	external/scanner/main.cpp
 	external/scanner/ui_scanner.cpp
 
-	#level
-	#external/level/main.cpp
-	#external/level/ui_level.cpp
+	#level  24 byte
+	external/level/main.cpp
+	external/level/ui_level.cpp
 
 	#gfxEQ 80 byte
 	external/gfxeq/main.cpp
@@ -260,8 +262,6 @@ set(EXTCPPSRC
 	external/morse_practice/ui_morse_practice.cpp
 	
 
-#whole free: 3284 bytes
-
 )
 
 set(EXTAPPLIST
@@ -307,7 +307,7 @@ set(EXTAPPLIST
 	antenna_length
 	view_wav
 	sd_wipe
-	playlist_editor
+	#playlist_editor
 	snake
 	stopwatch
 	breakout
@@ -315,7 +315,7 @@ set(EXTAPPLIST
 	doom
 	debug_pmem
 	scanner
-	#level
+	level
 	gfxeq
 	detector_rx
 	spaceinv
