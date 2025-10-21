@@ -138,55 +138,56 @@ set(EXTCPPSRC
 	external/flippertx/main.cpp
 	external/flippertx/ui_flippertx.cpp
 
-	#remote
+	#remote 1664 bytes
 	external/remote/main.cpp
 	external/remote/ui_remote.cpp
 
-	#mcu_temperature
+	#mcu_temperature    112
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
 
-	#fmradio
+	#fmradio  640
 	external/fmradio/main.cpp
 	external/fmradio/ui_fmradio.cpp
 
-	#tuner
+	#tuner 384
 	external/tuner/main.cpp
 	external/tuner/ui_tuner.cpp
 
-	#metronome
+	#metronome 696 bytes
 	external/metronome/main.cpp
 	external/metronome/ui_metronome.cpp
 
-	#app_manager
+	#app_manager 40 bytes
 	external/app_manager/main.cpp
 	external/app_manager/ui_app_manager.cpp
 
-	#hopper
+	#hopper 472 bytes
 	external/hopper/main.cpp
 	external/hopper/ui_hopper.cpp
 
-	# whip calculator
+	# whip calculator  48 bytes
 	external/antenna_length/main.cpp
 	external/antenna_length/ui_whipcalc.cpp
 
-	# wav viewer
+	# wav viewer 1232 bytes
 	external/wav_view/main.cpp
 	external/wav_view/ui_view_wav.cpp
 
-	# wipe sdcard
+#whole free: 3284 bytes
+
+	# wipe sdcard 16 byte
 	external/sd_wipe/main.cpp
 	external/sd_wipe/ui_sd_wipe.cpp
 
-	# playlist editor
-	#external/playlist_editor/main.cpp
-	#external/playlist_editor/ui_playlist_editor.cpp
+	# playlist editor 232 bytes
+	external/playlist_editor/main.cpp
+	external/playlist_editor/ui_playlist_editor.cpp
 
 	#snake 240 bytes
 	external/snake/main.cpp
 	external/snake/ui_snake.cpp
 
-#whole free: 3284 bytes
 
 	#stopwatch 0
 	external/stopwatch/main.cpp
@@ -307,7 +308,7 @@ set(EXTAPPLIST
 	antenna_length
 	view_wav
 	sd_wipe
-	#playlist_editor
+	playlist_editor
 	snake
 	stopwatch
 	breakout
