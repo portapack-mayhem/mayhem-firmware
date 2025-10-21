@@ -209,6 +209,8 @@ void ADULT_toys::on_show() {
 }
 
 void ADULT_toys::createPacket(uint32_t mode) {
+    randomizeMac();
+    randomChn();
     const uint8_t size = 22;
     uint8_t packet[size];
     uint8_t i = 0;
@@ -283,6 +285,47 @@ void ADULT_toys::printCurrentModes() {
     result_str += " ";
     result_str += name;
     txt_last.set(result_str.c_str());
+}
+
+uint64_t ADULT_toys::get_freq_by_channel_number(uint8_t channel_number) {
+    uint64_t freq_hz;
+
+    switch (channel_number) {
+        case 37:
+            freq_hz = 2'402'000'000ull;
+            break;
+        case 38:
+            freq_hz = 2'426'000'000ull;
+            break;
+        case 39:
+            freq_hz = 2'480'000'000ull;
+            break;
+        case 0 ... 10:
+            freq_hz = 2'404'000'000ull + channel_number * 2'000'000ull;
+            break;
+        case 11 ... 36:
+            freq_hz = 2'428'000'000ull + (channel_number - 11) * 2'000'000ull;
+            break;
+        default:
+            freq_hz = UINT64_MAX;
+    }
+
+    return freq_hz;
+}
+
+void ADULT_toys::randomizeMac() {
+    const char hexDigits[] = "0123456789ABCDEF";
+    // Generate 12 random hexadecimal characters
+    for (int i = 0; i < 12; ++i) {
+        int randomIndex = rand() % 16;
+        mac[i] = hexDigits[randomIndex];
+    }
+    mac[12] = '\0';  // Null-terminate the string
+}
+
+void ADULT_toys::randomChn() {
+    channel_number = 37 + std::rand() % (39 - 37 + 1);
+    field_frequency.set_value(get_freq_by_channel_number(channel_number));
 }
 
 void ADULT_toys::on_tx_progress(const bool done) {

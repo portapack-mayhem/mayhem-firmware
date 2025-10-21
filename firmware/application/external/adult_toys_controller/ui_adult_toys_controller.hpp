@@ -164,7 +164,7 @@ class ADULT_toys : public ui::View {
     uint8_t channel_number = 37;
     char advertisementData[63] = {"03032CFE06162CFED5A59E020AB4\0"};
 
-    PKT_TYPE pduType = {PKT_TYPE_ADV_IND};
+    PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
     uint8_t toy_packet = 0;
     uint16_t n_message_max = 999;
@@ -180,8 +180,10 @@ class ADULT_toys : public ui::View {
     void printCurrentModes();
     void on_tx_progress(const bool done);
     void hidden_program(bool hide);
-
+    void randomizeMac();
+    void randomChn();
     uint8_t randomize(uint8_t max);
+    uint64_t get_freq_by_channel_number(uint8_t channel_number);
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
