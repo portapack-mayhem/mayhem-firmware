@@ -36,8 +36,6 @@
 #include "log_file.hpp"
 #include "utility.hpp"
 
-#include "ui_about_simple.hpp"
-
 using namespace ui;
 
 namespace ui::external_app::adult_toys_controller {
