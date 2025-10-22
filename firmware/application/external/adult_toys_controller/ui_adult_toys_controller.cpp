@@ -15,27 +15,29 @@ using namespace ui;
 
 namespace ui::external_app::adult_toys_controller {
 
-void ADULT_toys::focus() {
+void AdultToysView::focus() {
     button_on.focus();
 }
 
-ADULT_toys::ADULT_toys(NavigationView& nav)
+AdultToysView::AdultToysView(NavigationView& nav)
     : nav_{nav} {
     add_children({
         &button_on,
         &btn_adult,
         &btn_child,
-        &Left_arrow,
-        &Right_arrow,
-        &Plus,
-        &Minus,
-        &Random_mode,
-        &Play_mode,
-        &Stop_mode,
-        &N_message,
-        &Inf_message,
+        &btn_mode_decrease,
+        &btn_mode_increase,
+        &btn_pcknum_inc,
+        &btn_pcknum_dec,
+        &chk_mode_rnd,
+        &chk_mode_play,
+        &chk_mode_stop,
+        &chk_mode_ncnt,
+        &chk_mode_infinite,
         &field_frequency,
-        &txt_last,
+        &txt_selected_mode,
+        &options_target,
+        &labels,
         &message_num,
         &tx_view,
         &screen_message_1,
@@ -74,14 +76,14 @@ ADULT_toys::ADULT_toys(NavigationView& nav)
         }  // if play_running || stop_running
     };
 
-    Left_arrow.on_select = [this](Button&) {
+    btn_mode_decrease.on_select = [this](Button&) {
         if (toy_packet > 0) {
             toy_packet--;
             printCurrentModes();
         }
     };
 
-    Right_arrow.on_select = [this](Button&) {
+    btn_mode_increase.on_select = [this](Button&) {
         if (stop_running || play_running) {
             if (play_running && (toy_packet < max_plays - 1)) {
                 toy_packet++;
@@ -94,8 +96,9 @@ ADULT_toys::ADULT_toys(NavigationView& nav)
         }
     };
 
-    Plus.on_select = [this](Button&) {
-        if (n_message_running && !button_onstate) {
+    btn_pcknum_inc.on_select = [this](Button&) {
+        if (!button_onstate) {
+            chk_mode_ncnt.set_value(true);
             if (n_message_set < n_message_max) {
                 n_message_set++;
             } else {
@@ -106,8 +109,9 @@ ADULT_toys::ADULT_toys(NavigationView& nav)
         }
     };
 
-    Minus.on_select = [this](Button&) {
-        if (n_message_running && !button_onstate) {
+    btn_pcknum_dec.on_select = [this](Button&) {
+        if (!button_onstate) {
+            chk_mode_ncnt.set_value(true);
             if (n_message_set > 0) {
                 n_message_set--;
             } else {
@@ -119,7 +123,8 @@ ADULT_toys::ADULT_toys(NavigationView& nav)
     };
 
     message_num.on_change = [this](int32_t v) {
-        if (n_message_running && !button_onstate) {
+        if (!button_onstate) {
+            chk_mode_ncnt.set_value(true);
             n_message_set = static_cast<uint16_t>(v);
             n_message_current = n_message_set;
         } else {
@@ -127,62 +132,68 @@ ADULT_toys::ADULT_toys(NavigationView& nav)
         }
     };
 
-    Random_mode.on_select = [this](Checkbox&, bool v) {
+    chk_mode_rnd.on_select = [this](Checkbox&, bool v) {
         random_running = v;
     };
 
-    Play_mode.on_select = [this](Checkbox&, bool v) {
+    chk_mode_play.on_select = [this](Checkbox&, bool v) {
         play_running = v;
         if (play_running && stop_running) {
             toy_packet = 0;
             stop_running = false;
-            Stop_mode.set_value(stop_running);
+            chk_mode_stop.set_value(stop_running);
         }
         if (play_running) printCurrentModes();
     };
 
-    Stop_mode.on_select = [this](Checkbox&, bool v) {
+    chk_mode_stop.on_select = [this](Checkbox&, bool v) {
         stop_running = v;
         if (play_running && stop_running) {
             toy_packet = 0;
             play_running = false;
-            Play_mode.set_value(play_running);
+            chk_mode_play.set_value(play_running);
         }
         if (stop_running) printCurrentModes();
     };
 
-    N_message.on_select = [this](Checkbox&, bool v) {
+    chk_mode_ncnt.on_select = [this](Checkbox&, bool v) {
         n_message_running = v;
-        if (n_message_running && Inf_message_running) {
-            Inf_message_running = false;
-            Inf_message.set_value(Inf_message_running);
+        if (n_message_running && inf_message_running) {
+            inf_message_running = false;
+            chk_mode_infinite.set_value(inf_message_running);
         }
     };
 
-    Inf_message.on_select = [this](Checkbox&, bool v) {
-        Inf_message_running = v;
-        if (n_message_running && Inf_message_running) {
+    chk_mode_infinite.on_select = [this](Checkbox&, bool v) {
+        inf_message_running = v;
+        if (n_message_running && inf_message_running) {
             n_message_running = false;
-            N_message.set_value(n_message_running);
+            chk_mode_ncnt.set_value(n_message_running);
         }
     };
-    Inf_message.set_value(true);
-    Play_mode.set_value(true);
+    options_target.on_change = [this](size_t, int32_t i) {
+        target = (uint8_t)i;
+    };
+
+    chk_mode_infinite.set_value(true);
+    chk_mode_play.set_value(true);
 }
 
-void ADULT_toys::hidden_program(bool hide) {
+void AdultToysView::hidden_program(bool hide) {
+    options_target.hidden(hide);
+    labels.hidden(hide);
     button_on.hidden(hide);
-    Left_arrow.hidden(hide);
-    Right_arrow.hidden(hide);
-    Plus.hidden(hide);
-    Minus.hidden(hide);
-    Random_mode.hidden(hide);
-    Play_mode.hidden(hide);
-    Stop_mode.hidden(hide);
-    N_message.hidden(hide);
-    Inf_message.hidden(hide);
+    btn_mode_decrease.hidden(hide);
+    btn_mode_increase.hidden(hide);
+    btn_pcknum_inc.hidden(hide);
+    btn_pcknum_dec.hidden(hide);
+    chk_mode_rnd.hidden(hide);
+    chk_mode_play.hidden(hide);
+    chk_mode_stop.hidden(hide);
+    chk_mode_ncnt.hidden(hide);
+    chk_mode_infinite.hidden(hide);
     field_frequency.hidden(hide);
-    txt_last.hidden(hide);
+    txt_selected_mode.hidden(hide);
     message_num.hidden(hide);
     tx_view.hidden(hide);
     btn_adult.hidden(!hide);
@@ -204,76 +215,80 @@ void ADULT_toys::hidden_program(bool hide) {
         button_on.focus();
 }
 
-void ADULT_toys::on_show() {
+void AdultToysView::on_show() {
     hidden_program(!start_screen);
 }
 
-void ADULT_toys::createPacket(uint32_t mode) {
-    randomizeMac();
+void AdultToysView::createPacket(bool regenerate) {
+    if (regenerate) randomizeMac();
     randomChn();
-    const uint8_t size = 22;
-    uint8_t packet[size];
-    uint8_t i = 0;
+    if (target == 1 || 1) {  // now only lovespouse supported, in the future, need to separee them
+        uint32_t mode = play_running ? plays[toy_packet].value : stops[toy_packet].value;
 
-    // 1. AD Flags
-    packet[i++] = 2;
-    packet[i++] = 0x01;
-    packet[i++] = 0x1A;
+        const uint8_t size = 22;
+        uint8_t packet[size];
+        uint8_t i = 0;
 
-    // 2. Manufacturer Specific
-    packet[i++] = 14;
-    packet[i++] = 0xFF;
-    packet[i++] = 0xFF;
-    packet[i++] = 0x00;
-    packet[i++] = 0x6D;
-    packet[i++] = 0xB6;
-    packet[i++] = 0x43;
-    packet[i++] = 0xCE;
-    packet[i++] = 0x97;
-    packet[i++] = 0xFE;
-    packet[i++] = 0x42;
-    packet[i++] = 0x7C;
-    packet[i++] = (mode >> 0x10) & 0xFF;
-    packet[i++] = (mode >> 0x8) & 0xFF;
-    packet[i++] = (mode >> 0x0) & 0xFF;
+        // 1. AD Flags
+        packet[i++] = 2;
+        packet[i++] = 0x01;
+        packet[i++] = 0x1A;
 
-    // 3. Service UUID List
-    packet[i++] = 3;
-    packet[i++] = 0x03;
-    packet[i++] = 0x8F;
-    packet[i++] = 0xAE;
+        // 2. Manufacturer Specific
+        packet[i++] = 14;
+        packet[i++] = 0xFF;
+        packet[i++] = 0xFF;
+        packet[i++] = 0x00;
+        packet[i++] = 0x6D;
+        packet[i++] = 0xB6;
+        packet[i++] = 0x43;
+        packet[i++] = 0xCE;
+        packet[i++] = 0x97;
+        packet[i++] = 0xFE;
+        packet[i++] = 0x42;
+        packet[i++] = 0x7C;
+        packet[i++] = (mode >> 0x10) & 0xFF;
+        packet[i++] = (mode >> 0x8) & 0xFF;
+        packet[i++] = (mode >> 0x0) & 0xFF;
 
-    std::string res = to_string_hex_array(packet, i);
+        // 3. Service UUID List
+        packet[i++] = 3;
+        packet[i++] = 0x03;
+        packet[i++] = 0x8F;
+        packet[i++] = 0xAE;
 
-    memset(advertisementData, 0, sizeof(advertisementData));
-    std::copy(res.begin(), res.end(), advertisementData);
+        std::string res = to_string_hex_array(packet, i);
+
+        memset(advertisementData, 0, sizeof(advertisementData));
+        std::copy(res.begin(), res.end(), advertisementData);
+    }
 }
 
-ADULT_toys::~ADULT_toys() {
+AdultToysView::~AdultToysView() {
     stop();
 }
 
-void ADULT_toys::stop() {
+void AdultToysView::stop() {
     transmitter_model.disable();
     baseband::shutdown();
 }
 
-void ADULT_toys::start() {
+void AdultToysView::start() {
     baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
     transmitter_model.enable();
     on_tx_progress(true);
 }
 
-void ADULT_toys::reset() {
+void AdultToysView::reset() {
     stop();
     start();
 }
 
-uint8_t ADULT_toys::randomize(uint8_t max) {
+uint8_t AdultToysView::randomize(uint8_t max) {
     return static_cast<uint8_t>(rand() % max);
 }
 
-void ADULT_toys::printCurrentModes() {
+void AdultToysView::printCurrentModes() {
     uint8_t max_val = play_running ? max_plays : max_stops;
     auto name = play_running ? plays[toy_packet].name : stops[toy_packet].name;
     std::string current = to_string_dec_uint(toy_packet + 1);
@@ -284,10 +299,10 @@ void ADULT_toys::printCurrentModes() {
     result_str += max_val_str;
     result_str += " ";
     result_str += name;
-    txt_last.set(result_str.c_str());
+    txt_selected_mode.set(result_str.c_str());
 }
 
-uint64_t ADULT_toys::get_freq_by_channel_number(uint8_t channel_number) {
+uint64_t AdultToysView::get_freq_by_channel_number(uint8_t channel_number) {
     uint64_t freq_hz;
 
     switch (channel_number) {
@@ -313,7 +328,7 @@ uint64_t ADULT_toys::get_freq_by_channel_number(uint8_t channel_number) {
     return freq_hz;
 }
 
-void ADULT_toys::randomizeMac() {
+void AdultToysView::randomizeMac() {
     const char hexDigits[] = "0123456789ABCDEF";
     // Generate 12 random hexadecimal characters
     for (int i = 0; i < 12; ++i) {
@@ -323,19 +338,19 @@ void ADULT_toys::randomizeMac() {
     mac[12] = '\0';  // Null-terminate the string
 }
 
-void ADULT_toys::randomChn() {
+void AdultToysView::randomChn() {
     channel_number = 37 + std::rand() % (39 - 37 + 1);
     field_frequency.set_value(get_freq_by_channel_number(channel_number));
 }
 
-void ADULT_toys::on_tx_progress(const bool done) {
+void AdultToysView::on_tx_progress(const bool done) {
     if (!done) return;
     if (!button_onstate) return;
-
-    if (random_running) {
+    bool regenerate = (counter++ % 600) == 0;
+    if (random_running && regenerate) {
         toy_packet = randomize(play_running ? max_plays : max_stops);
     }
-    createPacket(play_running ? plays[toy_packet].value : stops[toy_packet].value);
+    createPacket(regenerate);
     printCurrentModes();
 
     if (n_message_running) {

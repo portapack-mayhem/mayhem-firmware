@@ -72,10 +72,10 @@ enum PKT_TYPE {
     PKT_TYPE_NUM_PKT_TYPE
 };
 
-class ADULT_toys : public ui::View {
+class AdultToysView : public ui::View {
    public:
-    ADULT_toys(NavigationView& nav);
-    ~ADULT_toys();
+    AdultToysView(NavigationView& nav);
+    ~AdultToysView();
 
     void focus() override;
     void on_show() override;
@@ -108,37 +108,44 @@ class ADULT_toys : public ui::View {
     app_settings::SettingsManager settings_{
         "Adult Toys", app_settings::Mode::TX};
 
+    OptionsField options_target{
+        {UI_POS_X(6), UI_POS_Y(1)},
+        11,
+        {{"LoveSpouse", 1}}};
+
     Button btn_adult{{UI_POS_X(0), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(3)}, "adult"};
 
-    Button btn_child{{UI_POS_X(20), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(3)}, "child"};
+    Button btn_child{{UI_POS_X_RIGHT(10), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(3)}, "child"};
 
     Button button_on{
         {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         LanguageHelper::currentMessages[LANG_START]};
 
-    Button Left_arrow{
+    Button btn_mode_decrease{
         {UI_POS_X(0), UI_POS_Y(13), UI_POS_WIDTH(3), UI_POS_HEIGHT(2)},
         "<-"};
 
-    Button Right_arrow{
+    Button btn_mode_increase{
         {UI_POS_X_RIGHT(3), UI_POS_Y(13), UI_POS_WIDTH(3), UI_POS_HEIGHT(2)},
         "->"};
-    Text txt_last{{UI_POS_X(4), UI_POS_Y(13.5), UI_POS_WIDTH_REMAINING(7), UI_POS_HEIGHT(1)}, ""};
 
-    Button Plus{
+    Text txt_selected_mode{{UI_POS_X_CENTER(22), UI_POS_Y(13.5), UI_POS_WIDTH(22), UI_POS_HEIGHT(1)}, ""};
+
+    Button btn_pcknum_inc{
         {UI_POS_X(7), UI_POS_Y(9), UI_POS_WIDTH(2), UI_POS_HEIGHT(1.5)},
         "+"};
 
-    Button Minus{
+    Button btn_pcknum_dec{
         {UI_POS_X(0), UI_POS_Y(9), UI_POS_WIDTH(2), UI_POS_HEIGHT(1.5)},
         "-"};
-    NumberField message_num{{UI_POS_X(3), UI_POS_Y(9)}, 3, {0, 999}, 1, ' ', true};
 
-    Checkbox Random_mode{{UI_POS_X(13), UI_POS_Y(3)}, 12, "Random Msg.", false};
-    Checkbox Play_mode{{UI_POS_X(13), UI_POS_Y(5)}, 10, "Play Mode", false};
-    Checkbox Stop_mode{{UI_POS_X(13), UI_POS_Y(7)}, 10, "Stop Mode", false};
-    Checkbox N_message{{UI_POS_X(13), UI_POS_Y(9)}, 7, "N Msg.", false};
-    Checkbox Inf_message{{UI_POS_X(13), UI_POS_Y(11)}, 10, "Inf. Msg.", false};
+    NumberField message_num{{UI_POS_X(3), UI_POS_Y(9.2)}, 3, {0, 999}, 1, ' ', true};
+
+    Checkbox chk_mode_rnd{{UI_POS_X_RIGHT(15), UI_POS_Y(3)}, 12, "Random Msg.", false};
+    Checkbox chk_mode_play{{UI_POS_X_RIGHT(15), UI_POS_Y(5)}, 10, "Play Mode", false};
+    Checkbox chk_mode_stop{{UI_POS_X_RIGHT(15), UI_POS_Y(7)}, 10, "Stop Mode", false};
+    Checkbox chk_mode_ncnt{{UI_POS_X_RIGHT(15), UI_POS_Y(9)}, 7, "N Msg.", false};
+    Checkbox chk_mode_infinite{{UI_POS_X_RIGHT(15), UI_POS_Y(11)}, 10, "Inf. Msg.", false};
 
     Text screen_message_1{{0, 0, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "The application is intended"};
     Text screen_message_2{{0, 25, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "for controlling Love Spouse"};
@@ -152,13 +159,18 @@ class ADULT_toys : public ui::View {
     Text screen_message_9{{0, 215, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "responsibility\"."};
     Text screen_message_10{{UI_POS_X_CENTER(0), 230, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "(The developer)"};
 
+    Labels labels{
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Type:", Theme::getInstance()->fg_light->foreground}};
+
     bool button_onstate{false};
     bool play_running{false};
     bool stop_running{false};
     bool random_running{false};
     bool n_message_running{false};
-    bool Inf_message_running{false};
+    bool inf_message_running{false};
     bool start_screen{false};
+
+    uint8_t target = 1;  // lovespouse
 
     char mac[13] = "010203040506";
     uint8_t channel_number = 37;
@@ -173,7 +185,9 @@ class ADULT_toys : public ui::View {
     static const size_t max_plays = 27;
     static const size_t max_stops = 3;
 
-    void createPacket(uint32_t mode);
+    uint16_t counter = 599;
+
+    void createPacket(bool regenerate);
     void start();
     void stop();
     void reset();

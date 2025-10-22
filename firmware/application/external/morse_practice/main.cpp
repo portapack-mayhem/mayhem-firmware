@@ -34,7 +34,6 @@ void initialize_app(NavigationView& nav) {
 
 extern "C" {
 
-// Az alkalmazás információ C-linkage-ként, hogy a firmware hívhassa
 __attribute__((section(".external_app.app_morse_practice.application_information"), used))
 application_information_t _application_information_morse_practice = {
     /*.memory_location = */ (uint8_t*)0x00000000,
