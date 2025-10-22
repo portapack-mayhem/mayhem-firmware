@@ -157,7 +157,7 @@ class AdultToysView : public ui::View {
     Text screen_message_7{{0, 165, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "I assume full responsibility"};
     Text screen_message_8{{0, 190, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "for the \"I do not assume"};
     Text screen_message_9{{0, 215, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "responsibility\"."};
-    Text screen_message_10{{UI_POS_X_CENTER(0), 230, UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "(The developer)"};
+    Text screen_message_10{{UI_POS_X_RIGHT(16), 230, UI_POS_WIDTH(16), UI_POS_HEIGHT(1)}, "(The developer)"};
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Type:", Theme::getInstance()->fg_light->foreground}};
