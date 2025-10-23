@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
 namespace ui::external_app::enhanced_drone_analyzer {
 class DroneDisplayController {
 public:
@@ -57,7 +58,6 @@ public:
     void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     void update_drones_display(const DroneScanner& scanner);
     void sort_drones_by_rssi();
-    const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& get_current_drones() const { return displayed_drones_; }
     static constexpr size_t MINI_SPECTRUM_WIDTH = 200;   // Optimized width for details
     static constexpr size_t MINI_SPECTRUM_HEIGHT = 24;   // Increased height for better readability
     static constexpr uint32_t SPECTRUM_Y_TOP = 70;      // Enhanced resolution: lowered for taller waterfall
@@ -94,6 +94,7 @@ private:
     uint8_t* powerlevel = nullptr;                            // Current power working variable
     uint8_t min_color_power = 0;                             // Filter threshold
     const uint8_t ignore_dc = 4;                             // DC spike bins to ignore
+    std::mutex spectrum_access_mutex_;                       // Thread safety for spectrum rendering
     NavigationView& nav_;
     MessageHandlerRegistration message_handler_spectrum_config_{
         Message::ID::ChannelSpectrumConfig,
@@ -189,10 +190,12 @@ private:
     void on_spectrum_range_config();
     void on_add_preset_quick();
     void on_hardware_control_menu();
+    void on_save_settings();
+    void on_load_settings();
 };
 class EnhancedDroneSpectrumAnalyzerView : public View {
 public:
-    EnhancedDroneSpectrumAnalyzerView(NavigationView& nav);
+    explicit EnhancedDroneSpectrumAnalyzerView(NavigationView& nav);
     ~EnhancedDroneSpectrumAnalyzerView() override = default;
     void focus() override;
     std::string title() const override { return "Enhanced Drone Analyzer"; }

@@ -3,6 +3,10 @@
 
 #include "ui_drone_scanner.hpp"
 #include "ui_drone_hardware.hpp"
+#include "ui_drone_validation.hpp"        // ADD: Include for SimpleDroneValidation
+#include "ui_drone_detection_ring.hpp"   // ADD: Ring buffer for memory optimization
+#include "ui_detection_logger.hpp"       // ADD: Include for detection logging
+#include "ui_drone_database.hpp"         // ADD: Include for DroneFrequencyDatabase
 
 #include <algorithm>
 
@@ -84,15 +88,11 @@ void DroneScanner::setup_wideband_range(rf::Frequency min_freq, rf::Frequency ma
         rf::Frequency offset = ((scanning_range - slices_span) / 2) + (WIDEBAND_SLICE_WIDTH / 2);
         rf::Frequency center_frequency = min_freq + offset;
 
-        // Populate slices array using STL algorithm (PHASE 8 OPTIMIZATION)
-        std::generate_n(wideband_scan_data_.slices,
-                       wideband_scan_data_.slices_nb,
-                       [&center_frequency]() mutable -> WidebandSlice {
-                           WidebandSlice slice;
-                           slice.center_frequency = center_frequency;
-                           center_frequency += WIDEBAND_SLICE_WIDTH;
-                           return slice;
-                       });
+        // Populate slices array
+        for (uint32_t slice = 0; slice < wideband_scan_data_.slices_nb; slice++) {
+            wideband_scan_data_.slices[slice].center_frequency = center_frequency;
+            center_frequency += WIDEBAND_SLICE_WIDTH;
+        }
     } else {
         // Single slice covers the entire range
         wideband_scan_data_.slices[0].center_frequency = (max_freq + min_freq) / 2;
@@ -212,6 +212,14 @@ bool DroneScanner::load_frequency_database() {
 
 size_t DroneScanner::get_database_size() const {
     return freq_db_.is_open() ? freq_db_.entry_count() : 0;
+}
+
+const freqman_entry* DroneScanner::get_current_frequency_entry() const {
+    if (!freq_db_.is_open() || current_db_index_ >= freq_db_.entry_count()) {
+        return nullptr;
+    }
+
+    return freq_db_.get_entry(current_db_index_);
 }
 
 void DroneScanner::set_scanning_parameters(uint32_t scan_cycles_param,
@@ -496,10 +504,11 @@ void DroneScanner::process_wideband_detection_with_override(const freqman_entry&
 
     // WIDEBAND THREAT CLASSIFICATION
     // Wideband signals get conservative threat assessment initially
+    ThreatLevel threat_level = ThreatLevel::UNKNOWN;
+
     // Classify based on signal strength and frequency characteristics
-    ThreatLevel threat_level;
-    if (rssi > -70) {
-        threat_level = ThreatLevel::HIGH;
+    if (rssi > -70) {  // Very strong signal
+        threat_level = ThreatLevel::MEDIUM;
     } else if (rssi > -80) {  // Moderate signal
         threat_level = ThreatLevel::LOW;
     } else {
@@ -518,6 +527,7 @@ void DroneScanner::process_wideband_detection_with_override(const freqman_entry&
     DroneType detected_type = DroneType::UNKNOWN;
 
     // RING BUFFER PROTECTION (reuse existing logic)
+    extern DetectionRingBuffer& local_detection_ring;
     size_t freq_hash = entry.frequency_a;
 
     // Use wideband threshold for hysteresis check
@@ -632,6 +642,7 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
 
     // STEP 5: MINIMUM DETECTION DELAY (Search pattern DETECTION_DELAY) + HYSTERESIS
     // OPTIMIZED: Now using ring buffer for 75% memory reduction
+    extern DetectionRingBuffer& local_detection_ring;  // Forward declaration
 
     size_t freq_hash = entry.frequency_a;  // FREQUENCY AS HASH KEY
 
@@ -641,17 +652,13 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
         effective_threshold = detection_threshold + HYSTERESIS_MARGIN_DB;
     }
 
-    if (rssi >= effective_threshold) {
+    if (rssi >= detection_threshold) {
         // RING BUFFER UPDATE: O(1) memory efficient operation
         uint8_t current_count = local_detection_ring.get_detection_count(freq_hash);
         current_count = std::min((uint8_t)(current_count + 1), (uint8_t)255);
         local_detection_ring.update_detection(freq_hash, current_count, rssi);
 
         if (current_count >= MIN_DETECTION_COUNT) {
-            // DETECTION_DELAY ACTIVATION: Add minimum delay before confirming detection
-            // Prevents false positives from rapid signal fluctuations (Search pattern)
-            chThdSleepMilliseconds(DETECTION_DELAY);  // 3ms verification delay
-
             // STEP 6: LOG DETECTION (NEW: Integrated logging following LogFile pattern)
             DroneDetectionLogger detection_logger;
             DetectionLogEntry log_entry{
@@ -673,7 +680,7 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
         }
     } else {
         // RESET detection on signal loss (false negatives prevention)
-        local_detection_ring.update_detection(freq_hash, 0, -120);  // Use -120 as sentinel
+        global_detection_ring.update_detection(freq_hash, 0, -120);  // Use -120 as sentinel
     }
 }
 
@@ -738,7 +745,7 @@ void DroneScanner::remove_stale_drones() {
     size_t write_idx = 0;
 
     for (size_t read_idx = 0; read_idx < MAX_TRACKED_DRONES; read_idx++) {
-        const TrackedDrone& drone = tracked_drones_[read_idx];
+        TrackedDrone& drone = tracked_drones_[read_idx];
 
         // Skip free slots (update_count == 0)
         if (drone.update_count == 0) continue;
@@ -776,7 +783,7 @@ void DroneScanner::update_tracking_counts() {
         const TrackedDrone& drone = tracked_drones_[i];
 
         // Skip free slots and drones with insufficient updates
-        if (drone.update_count < 2) continue;
+        if (drone.update_count == 0 || drone.update_count < 2) continue;
 
         // Get current trend and increment appropriate counter
         MovementTrend trend = drone.get_trend();
@@ -837,60 +844,6 @@ void DroneScanner::scan_init_from_loaded_frequencies() {
     // Reset scan state from loaded frequencies
     current_db_index_ = 0;
     total_detections_ = 0;
-}
-
-IMPLEMENTATION OF MIGRATED DetectionRingBuffer from ui_drone_detection_ring.cpp
-
-// GLOBAL SINGLETON INSTANCE - Following Portapack patterns
-// GLOBAL SINGLETON INSTANCE - Portapack pattern for ring buffer
-
-DetectionRingBuffer global_detection_ring;
-
-
-
-// ALIAS for backward compatibility
-
-DetectionRingBuffer& local_detection_ring = global_detection_ring;
-
-
-
-DetectionRingBuffer::DetectionRingBuffer()
-    : detection_counts_{}, rssi_values_{}  // Initialize to zero
-{
-    clear();  // Initialize all to zero
-}
-
-void DetectionRingBuffer::update_detection(size_t frequency_hash, uint8_t detection_count, int32_t rssi_value) {
-    // RING BUFFER MATH: Hash to index with wrapping
-    const size_t index = frequency_hash % DETECTION_TABLE_SIZE;
-
-    // EMBEDDED OPTIMIZATION: Direct array access (O(1))
-    detection_counts_[index] = detection_count;
-    rssi_values_[index] = rssi_value;
-
-    // MEMORY BARRIER: Ensure writes are visible (embedded safety)
-    __DMB();
-}
-
-uint8_t DetectionRingBuffer::get_detection_count(size_t frequency_hash) const {
-    const size_t index = frequency_hash % DETECTION_TABLE_SIZE;
-    return detection_counts_[index];
-}
-
-int32_t DetectionRingBuffer::get_rssi_value(size_t frequency_hash) const {
-    const size_t index = frequency_hash % DETECTION_TABLE_SIZE;
-    return rssi_values_[index];
-}
-
-void DetectionRingBuffer::clear() {
-    // MEMORY OPTIMIZATION: Single memset operation
-    memset(detection_counts_, 0, sizeof(detection_counts_));
-    memset(rssi_values_, 0, sizeof(rssi_values_));
-
-    // Reset all to safe defaults
-    for (size_t i = 0; i < DETECTION_TABLE_SIZE; i++) {
-        rssi_values_[i] = -120;  // Sentinel value for "no previous measurement"
-    }
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer

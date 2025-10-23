@@ -9,9 +9,8 @@
 # 1. CMAKE TOOLCHAIN ISSUE: Duplicate -DVERSION_STRING macro causing GCC failure
 #    - Affects all ChibiOS objects compilation
 #    - Resolution: Modify toolchain-arm-cortex-m.cmake to prevent duplication
-# 2. MISSING BUILD UTILITIES: GNU 'make' not found on Windows
-#    - Affects libopencm3 subproject compilation
-#    - Resolution: Install MinGW or MSYS2 make utility
+# 2. GNU 'make' FOUND: Available at C:\Users\Max\Desktop\M\mingw64-10.2.0\bin\make.exe
+#    - Resolution: Ensure this is in PATH or prepend to commands
 # 3. CPLD DATA GENERATION FAILURE:
 #    - 'avr32' platform unrecognized in extract_cpld_data.py
 #    - Failed generation of portapack_cpld_*.cpp and hackrf_cpld_data.cpp

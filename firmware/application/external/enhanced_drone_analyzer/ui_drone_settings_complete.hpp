@@ -273,10 +273,9 @@ private:
     void show_validation_error(const std::string& message);
 };
 
-// Constant Settings View
 class ConstantSettingsView : public View {
 public:
-    ConstantSettingsView(NavigationView& nav);
+    explicit ConstantSettingsView(NavigationView& nav);
     ~ConstantSettingsView() override = default;
 
     void focus() override;

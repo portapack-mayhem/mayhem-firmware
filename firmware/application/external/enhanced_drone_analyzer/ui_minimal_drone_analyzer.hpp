@@ -16,7 +16,7 @@ namespace ui::external_app::enhanced_drone_analyzer {
 // Loading screen UI for Enhanced Drone Analyzer
 class LoadingScreenView : public View {
 public:
-    LoadingScreenView(NavigationView& nav);
+    explicit LoadingScreenView(NavigationView& nav);
     ~LoadingScreenView();
 
     void paint(Painter& painter) override;

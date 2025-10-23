@@ -116,8 +116,6 @@ public:
     // Frequency database integration
     bool load_frequency_database();
     size_t get_database_size() const;
-    size_t get_current_database_index() const { return current_db_index_; }
-    const freqman_entry* get_current_frequency_entry() const;
 
 
 
@@ -151,10 +149,6 @@ public:
 
     // Current scanning state
     rf::Frequency get_current_scanning_frequency() const;
-    rf::Frequency get_last_scanned_frequency() const { return last_scanned_frequency_; }
-
-    // Detection status for audio notifications
-    bool has_new_drone_detection() const { return new_detection_this_cycle_; }
     ThreatLevel get_max_detected_threat() const { return max_detected_threat_; }
 
     // UI access for trend display (public getter for tracked drones)
@@ -389,10 +383,6 @@ public:
     void start_coordinated_scanning();
     void stop_coordinated_scanning();
     bool is_scanning_active() const { return scanning_active_; }
-
-    // Configure scanning parameters
-    void set_scan_interval(uint32_t interval_ms) { scan_interval_ms_ = interval_ms; }
-    uint32_t get_scan_interval_ms() const { return scan_interval_ms_; }
 
     // Session summary display - restores unused format_session_summary function
     void show_session_summary(const std::string& summary);
