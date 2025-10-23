@@ -21,12 +21,12 @@
 
 #include "ui_sstv_rx.hpp"
 
-#include "audio.hpp"
-#include "baseband_api.hpp"
-#include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
-#include "oversample.hpp"
+#include "portapack.hpp"
+#include "hackrf_hal.hpp"
 #include <cstdint>
+#include <cstring>
+#include <stdio.h>
 
 using namespace portapack;
 using namespace modems;
@@ -38,19 +38,25 @@ namespace ui::external_app::sstv_rx {
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
-    add_children({&field_rf_amp,
-                  &field_lna,
-                  &field_vga,
-                  &rssi,
-                  &field_frequency,
-                  &field_volume,
-                  &field_bw,
-                  &audio,
-                  &start_btn,
-                  &stop_btn,
-                  &field_modulation,
-                  &label_config,
-                  &options_config,});
+    add_children({
+        &field_rf_amp,
+        &field_lna,
+        &field_vga,
+        &rssi,
+        &field_frequency,
+        &field_volume,
+        &field_bw,
+        &audio,
+        &start_btn,
+        &stop_btn,
+        &options_mode,
+        &labels
+    });
+
+    using option_t = std::pair<std::string, int32_t>;
+    using options_t = std::vector<option_t>;
+    options_t mode_options;
+    uint32_t c;
 
     // Start button handlers
     start_btn.on_select = [this](Button&) {
@@ -69,7 +75,17 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         field_frequency.set_value(96100000);  // Default to 96.100 MHz
     }
     field_frequency.set_step(25000);
-    widget = std::make_unique<WFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+
+    // Populate mode list
+    for (c = 0; c < SSTV_MODES_NB; c++)
+        mode_options.emplace_back(sstv_modes[c].name, c);
+    options_mode.set_options(mode_options);
+
+    options_mode.on_change = [this](size_t i, int32_t) {
+        this->on_mode_changed(i);
+    };
+    options_mode.set_selected_index(1);  // Scottie 2
+    on_mode_changed(1);
 }
 
 // Destructor: Ensure reception is stopped
@@ -88,7 +104,7 @@ void SstvRxView::focus() {
 
 // Start WFM audio reception if not already started
 void SstvRxView::on_start() {
-    if(!is_receiving) {
+    if (!is_receiving) {
         start_audio();
     }
 }
@@ -118,10 +134,10 @@ void SstvRxView::start_audio() {
     receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     field_bw.set_by_value(0);  // 200k default
     receiver_model.set_wfm_configuration(field_bw.selected_index_value());
-        field_bw.on_change = [this](size_t index, OptionsField::value_t n) {
-            radio_bw = index;
-            receiver_model.set_wfm_configuration(n);
-        };
+    field_bw.on_change = [this](size_t index, OptionsField::value_t n) {
+        radio_bw = index;
+        receiver_model.set_wfm_configuration(n);
+    };
 
     receiver_model.set_modulation(receiver_mode);
 
@@ -131,7 +147,12 @@ void SstvRxView::start_audio() {
     audio::output::start();
     receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
     receiver_model.enable();
-    field_modulation.set_by_value(static_cast<int32_t>(ReceiverModel::Mode::WidebandFMAudio));
+}
+
+void SstvRxView::on_mode_changed(const size_t index) {
+    sstv_color_seq rx_color_sequence;
+    rx_sstv_mode = &sstv_modes[index];
+    rx_color_sequence = sstv_modes[index].color_sequence;
 }
 
 }  // namespace ui::external_app::sstv_rx
