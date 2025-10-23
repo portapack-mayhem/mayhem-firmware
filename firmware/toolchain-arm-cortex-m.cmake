@@ -34,19 +34,8 @@ set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 	set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 endif()
 
-execute_process(
-  COMMAND ${CMAKE_C_COMPILER} -print-file-name=libc.a
-  OUTPUT_VARIABLE CMAKE_INSTALL_PREFIX
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-get_filename_component(CMAKE_INSTALL_PREFIX
-  "${CMAKE_INSTALL_PREFIX}" PATH
-)
-get_filename_component(CMAKE_INSTALL_PREFIX
-  "${CMAKE_INSTALL_PREFIX}/.." REALPATH
-)
-set(CMAKE_INSTALL_PREFIX  ${CMAKE_INSTALL_PREFIX} CACHE FILEPATH
-    "Install path prefix, prepended onto install directories.")
+# Hardcode prefix for embedded toolchain
+set(CMAKE_INSTALL_PREFIX /usr CACHE FILEPATH "Install path prefix, prepended onto install directories.")
 
 message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
 message(STATUS "Toolchain prefix: ${CMAKE_INSTALL_PREFIX}")

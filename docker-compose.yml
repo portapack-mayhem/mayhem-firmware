@@ -4,6 +4,6 @@ services:
   portapack-mayhem-dev:
     build:
       context: .
-      dockerfile: dockerfile-alpine
+      dockerfile: dockerfile
     volumes:
       - "./bin:/havocbin"

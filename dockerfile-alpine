@@ -23,7 +23,6 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 CMD cd /havocsrc && \
-        mkdir build && cd build && \ 
+        mkdir -p build && cd build && \
         cmake .. && make firmware && \
-        cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
-
+        cp firmware/portapack-h1-havoc.bin /havocbin
