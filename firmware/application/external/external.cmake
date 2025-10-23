@@ -97,6 +97,10 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
+	#sstv_rx
+	external/sstv_rx/main.cpp
+	external/sstv_rx/ui_sstv_rx.cpp
+
 	#random
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
@@ -289,6 +293,7 @@ set(EXTAPPLIST
 	adsbtx
 	morse_tx
 	sstvtx
+	sstv_rx
 	random_password
 	# acars_rx
 	ookbrute
