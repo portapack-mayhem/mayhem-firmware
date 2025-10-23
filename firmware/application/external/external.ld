@@ -85,8 +85,12 @@ MEMORY
     ram_external_app_game2048     (rwx) : org = 0xADEC0000, len = 32k
     ram_external_app_bht_tx          (rwx) : org = 0xADED0000, len = 32k
     ram_external_app_morse_practice  (rwx) : org = 0xADEE0000, len = 32k
+<<<<<<< HEAD
     ram_external_app_enhanced_drone_analyzer (rwx) : org = 0xADEF0000, len = 32k
 
+=======
+    ram_external_app_adult_toys_controller  (rwx) : org = 0xADEF0000, len = 32k
+>>>>>>> 81afec9ea4dbb13a85a24309e6021ad24dfb622d
 
 }
 
@@ -466,11 +470,19 @@ SECTIONS
         *(*ui*external_app*morse_practice*);
     } > ram_external_app_morse_practice
 
+<<<<<<< HEAD
     .external_app_enhanced_drone_analyzer : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_enhanced_drone_analyzer.application_information));
         *(*ui*external_app*enhanced_drone_analyzer*);
     } > ram_external_app_enhanced_drone_analyzer
 
+=======
+    .external_app_adult_toys_controller : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_adult_toys_controller.application_information));
+        *(*ui*external_app*adult_toys_controller*);
+    } > ram_external_app_adult_toys_controller
+>>>>>>> 81afec9ea4dbb13a85a24309e6021ad24dfb622d
 
 }

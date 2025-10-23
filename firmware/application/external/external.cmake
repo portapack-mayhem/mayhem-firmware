@@ -250,10 +250,13 @@ set(EXTCPPSRC
 	external/game2048/main.cpp
 	external/game2048/ui_game2048.cpp
 
-	#bht_tx
-	external/bht_tx/main.cpp
-	external/bht_tx/ui_bht_tx.cpp
-	external/bht_tx/bht.cpp
+	#morse_practice
+	external/morse_practice/main.cpp
+	external/morse_practice/ui_morse_practice.cpp
+
+	#adult_toys_controller
+	external/adult_toys_controller/main.cpp
+	external/adult_toys_controller/ui_adult_toys_controller.cpp
 
 	#enhanced_drone_analyzer - SCANNING ARCHITECTURE FIXED v0.3
 	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
@@ -332,5 +335,7 @@ set(EXTAPPLIST
 	soundboard
 	game2048
 	bht_tx
+	morse_practice
+	adult_toys_controller
 	enhanced_drone_analyzer
 )
