@@ -35,7 +35,7 @@ set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 endif()
 
 # Hardcode prefix for embedded toolchain
-set(CMAKE_INSTALL_PREFIX /usr CACHE FILEPATH "Install path prefix, prepended onto install directories.")
+set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10" CACHE FILEPATH "Install path prefix, prepended onto install directories.")
 
 message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
 message(STATUS "Toolchain prefix: ${CMAKE_INSTALL_PREFIX}")
