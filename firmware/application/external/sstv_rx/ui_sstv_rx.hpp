@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Pezsma
+ * Copyright (C) 2025 StarVore Labs
  *
  * This file is part of PortaPack.
  *
