@@ -9,6 +9,7 @@
 #include "ui_drone_config.hpp"
 
 #include "ui.hpp"
+#include "ui_tabview.hpp"
 
 #include "portapack.hpp"
 

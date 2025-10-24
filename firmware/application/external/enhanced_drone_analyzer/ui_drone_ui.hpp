@@ -157,6 +157,7 @@ public:
         systime_t last_seen;
         std::string type_name;
         Color display_color;
+    };
     void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     };
     void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
@@ -266,6 +267,7 @@ private:
     app_settings::SettingsManager constant_settings_manager_{
         "rx_drone_analyzer"sv,
         app_settings::Mode::RX,
+        app_settings::Options::None,
         {
             {"spectrum_mode"sv, reinterpret_cast<uint32_t*>(&settings_.spectrum_mode)},
             {"scan_interval"sv, &settings_.spectrum.min_scan_interval_ms},
@@ -323,8 +325,8 @@ private:
     std::unique_ptr<DroneDisplayController> display_controller_; // Now separate
 
     // Legacy buttons (keep for backward compatibility, will reposition)
-    Button button_start_{{screen_width - 120, screen_height - 32}, "START/STOP"};
-    Button button_menu_{{screen_width - 60, screen_height - 32}, "⚙️"};
+    Button button_start_{{screen_width - 120, screen_height - 32, 120, 32}, "START/STOP"};
+    Button button_menu_{{screen_width - 60, screen_height - 32, 60, 32}, "⚙️"};
 
     std::vector<std::string> scanning_mode_options_ = {"Database Scan", "Wideband Monitor", "Hybrid Discovery"};
     OptionsField field_scanning_mode_{{80, 190, 160, 24}, scanning_mode_options_, 0, "Mode"};
