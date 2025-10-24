@@ -16,6 +16,9 @@ namespace ui::external_app::enhanced_drone_analyzer {
 struct DroneAudioSettings {
     bool audio_enabled = true;             // Audio enabled by default
     ThreatLevel test_threat_level = ThreatLevel::MEDIUM;  // Safe default
+    uint16_t alert_frequency_hz = 800;     // Alert beep frequency
+    uint32_t beep_duration_ms = 100;       // Alert beep duration
+    int32_t alert_squelch_db = -80;         // Audio squelch threshold
 };
 
 // CONSOLIDATED: Merge DroneAudioController functionality into a unified AudioManager
@@ -161,13 +164,13 @@ private:
 
     // UI Elements
     Checkbox checkbox_audio_enabled_{Rect{10, 30, 200, 16}, "Enable Audio Alerts"};
-    Button button_test_audio_{Rect{10, 60, 80, 24}, "Test Audio"};
-    Button button_sos_alert_{Rect{120, 60, 80, 24}, "SOS Alert"};
+    Button button_test_audio_{{10, 60, 80, 24}, "Test Audio"};
+    Button button_sos_alert_{{120, 60, 80, 24}, "SOS Alert"};
 
     Text text_description_{Rect{0, 0, 240, 32},
         "Configure audio alerts for\ndrone detections and warnings."};
 
-    NumberField field_test_threat_level_{Rect{130, 60, 40, 24}, 1, {0, 4, 1, 1}, "Threat"};
+    NumberField field_test_threat_level_{{130, 60, 40, 24}, 1, {0, 4}, 1, ' '};
     Text text_test_instructions_{Rect{10, 85, 240, 16},
         "Select threat level to test"};
     Text text_last_beep_{Rect{10, 100, 240, 16}, ""};

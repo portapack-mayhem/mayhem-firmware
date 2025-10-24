@@ -186,7 +186,7 @@ const DroneAnalyzerSettings& get_default_settings();
 class DroneSettingsManager {
 public:
     static bool load_settings(DroneAnalyzerSettings& settings) {
-        app_settings::SettingsManager settings_manager{"eda_main", app_settings::Mode::SETTINGS, {}};
+        app_settings::SettingsManager settings_manager{"eda_main", app_settings::Mode::RX, {}};
         std::string serialized = "";
         bool success = settings_manager.load() &&
                       settings_manager.get_value("config", serialized) &&
@@ -198,7 +198,7 @@ public:
     }
 
     static bool save_settings(const DroneAnalyzerSettings& settings) {
-        app_settings::SettingsManager settings_manager{"eda_main", app_settings::Mode::SETTINGS, {}};
+        app_settings::SettingsManager settings_manager{"eda_main", app_settings::Mode::RX, {}};
         std::string serialized = settings.serialize();
         return settings_manager.set_value("config", serialized) && settings_manager.save();
     }
