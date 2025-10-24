@@ -160,17 +160,17 @@ private:
     DroneAudioController& audio_controller_;  // FIX: Updated member name and type
 
     // UI Elements
-    Checkbox checkbox_audio_enabled_{ {10, 30}, "Enable Audio Alerts" };
-    Button button_test_audio_{ {10, 60}, "Test Audio" };
-    Button button_sos_alert_{ {120, 60}, "SOS Alert" };
+    Checkbox checkbox_audio_enabled_{Rect{10, 30, 200, 16}, "Enable Audio Alerts"};
+    Button button_test_audio_{Rect{10, 60, 80, 24}, "Test Audio"};
+    Button button_sos_alert_{Rect{120, 60, 80, 24}, "SOS Alert"};
 
-    Text text_description_{ {0, 0, 240, 32},
-        "Configure audio alerts for\ndrone detections and warnings." };
+    Text text_description_{Rect{0, 0, 240, 32},
+        "Configure audio alerts for\ndrone detections and warnings."};
 
-    NumberField field_test_threat_level_{ {130, 60}, 1, {0, 4, 1, 1}, "Threat" };
-    Text text_test_instructions_{ {10, 85, 240, 16},
-        "Select threat level to test" };
-    Text text_last_beep_{ {10, 100, 240, 16}, "" };
+    NumberField field_test_threat_level_{Rect{130, 60, 40, 24}, 1, {0, 4, 1, 1}, "Threat"};
+    Text text_test_instructions_{Rect{10, 85, 240, 16},
+        "Select threat level to test"};
+    Text text_last_beep_{Rect{10, 100, 240, 16}, ""};
 
     // Button handlers
     void on_audio_enabled_changed();
@@ -194,27 +194,27 @@ private:
     NavigationView& nav_;
 
     // UI Elements
-    Text text_title_{{5, 10}, "ENHANCED DRONE ANALYZER"};
-    Text text_version_{{5, 25}, "Version 0.3 (PRODUCTION READY)"};
+    Text text_title_{Rect{5, 10, 225, 16}, "ENHANCED DRONE ANALYZER"};
+    Text text_version_{Rect{5, 25, 225, 16}, "Version 0.3 (PRODUCTION READY)"};
 
-    Text text_feedback_title_{{5, 45}, "FEEDBACK & SUPPORT:"};
-    Text text_telegram_{{5, 55}, "Telegram ID: 5364595248"};
-    Text text_username_{{5, 65}, "@max_ai_master"};
+    Text text_feedback_title_{Rect{5, 45, 225, 16}, "FEEDBACK & SUPPORT:"};
+    Text text_telegram_{Rect{5, 55, 225, 16}, "Telegram ID: 5364595248"};
+    Text text_username_{Rect{5, 65, 225, 16}, "@max_ai_master"};
 
-    Text text_donation_title_{{5, 85}, "DONATIONS:"};
-    Text text_yoomoney_{{5, 95}, "YooMoney: 41001810704697"};
-    Text text_card_{{5, 100}, "Card: 2202 2020 5787 1695"};
+    Text text_donation_title_{Rect{5, 85, 225, 16}, "DONATIONS:"};
+    Text text_yoomoney_{Rect{5, 95, 225, 16}, "YooMoney: 41001810704697"};
+    Text text_card_{Rect{5, 100, 225, 16}, "Card: 2202 2020 5787 1695"};
 
-    Text text_ton_wallet_{{5, 115}, "TON: UQCdtMxQB5zbQBOICkY90lTQQqcs8V-V28Bf2AGvl8xOc5HR"};
-    Text text_author_note_{{5, 135}, "18 октября 2025 года. Кузнецов М.С."};
-    Text text_quote1_{{5, 150}, "Пусть не сложит голову идущий"};
-    Text text_quote2_{{5, 160}, "Пусть поможет идти просящий."};
-    Text text_quote3_{{5, 165}, "Ваши пожертвования превратятся в код"};
-    Text text_greeting_{{5, 170}, "Привет от слесарей г. Оренбурга службы ВДГО"};
-    Text text_greeting2_{{5, 180}, "и слесаря который это приложение написал"};
-    Text text_disclaimer_{{5, 195}, "2025 - Enhanced Drone Technology"};
+    Text text_ton_wallet_{Rect{5, 115, 225, 16}, "TON: UQCdtMxQB5zbQBOICkY90lTQQqcs8V-V28Bf2AGvl8xOc5HR"};
+    Text text_author_note_{Rect{5, 135, 225, 16}, "18 октября 2025 года. Кузнецов М.С."};
+    Text text_quote1_{Rect{5, 150, 225, 16}, "Пусть не сложит голову идущий"};
+    Text text_quote2_{Rect{5, 160, 225, 16}, "Пусть поможет идти просящий."};
+    Text text_quote3_{Rect{5, 165, 225, 16}, "Ваши пожертвования превратятся в код"};
+    Text text_greeting_{Rect{5, 170, 225, 16}, "Привет от слесарей г. Оренбурга службы ВДГО"};
+    Text text_greeting2_{Rect{5, 180, 225, 16}, "и слесаря который это приложение написал"};
+    Text text_disclaimer_{Rect{5, 195, 225, 16}, "2025 - Enhanced Drone Technology"};
 
-    Button button_close_{{150, 205}, "CLOSE"};
+    Button button_close_{Rect{150, 205, 80, 24}, "CLOSE"};
 
     // Button handler
     void on_close();

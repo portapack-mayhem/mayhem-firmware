@@ -1369,10 +1369,7 @@ void EnhancedDroneSpectrumAnalyzerView::handle_scanner_update() {
 
 LoadingScreenView::LoadingScreenView(NavigationView& nav)
     : nav_(nav),
-      text_eda_(
-          {120 - 12, 213, 24, 16},  // Centered X, 2/3 height Y (320 * 2/3 = 213)
-          "EDA"
-      ),
+      text_eda_(Rect{108, 213, 24, 16}, "EDA"),
       timer_start_(chTimeNow())
 {
     text_eda_.set_style(Theme::getInstance()->fg_red);  // Dark crushed red from theme
