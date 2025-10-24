@@ -9,12 +9,6 @@
 #include "ui_drone_config.hpp"
 
 #include "ui.hpp"
-#include "ui_tabview.hpp"
-#include "ui_button.hpp"
-#include "ui_checkbox.hpp"
-#include "ui_number_field.hpp"
-#include "ui_options_field.hpp"
-#include "ui_text.hpp"
 
 #include "portapack.hpp"
 

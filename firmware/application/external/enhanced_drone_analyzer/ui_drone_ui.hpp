@@ -1,11 +1,7 @@
 #ifndef __UI_DRONE_UI_HPP__
 #define __UI_DRONE_UI_HPP__
 #include "ui.hpp"                       // UI base classes
-#include "ui_button.hpp"                // Button UI components
-#include "ui_text.hpp"                  // Text display components
-#include "ui_progress_bar.hpp"          // Progress bar UI
 #include "ui_navigation.hpp"            // Navigation system
-#include "ui_options_field.hpp"         // Options field for scanning modes
 #include "ui_drone_config.hpp"               // Consolidated types and enums
 #include "ui_drone_audio.hpp"                // AudioManager definition - Migrated Session 5
 #include "ui_drone_settings_complete.hpp"             // Settings structures
