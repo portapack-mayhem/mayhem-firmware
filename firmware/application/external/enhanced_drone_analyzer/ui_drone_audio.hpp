@@ -34,10 +34,10 @@ public:
             test_threat_level_ = ThreatLevel::MEDIUM;  // Safe default
         }
     }
-    // AUDIO CLEANUP: Unused style functions - commented to reduce dead code
-    // void toggle_audio() { audio_enabled_ = !audio_enabled_; }
-    // static bool validate_audio_alert_frequency(uint16_t frequency_hz) { return frequency_hz >= 400 && frequency_hz <= 3000; }
-    // static bool validate_audio_duration(uint32_t duration_ms) { return duration_ms >= 50 && duration_ms <= 2000; }
+    // AUDIO CLEANUP: Unused style functions - RESTORED for external access
+    void toggle_audio() { audio_enabled_ = !audio_enabled_; }
+    static bool validate_audio_alert_frequency(uint16_t frequency_hz) { return frequency_hz >= 400 && frequency_hz <= 3000; }
+    static bool validate_audio_duration(uint32_t duration_ms) { return duration_ms >= 50 && duration_ms <= 2000; }
 
     // Audio playback (replaces DroneAudioController methods)
     void play_detection_beep(ThreatLevel level);
@@ -167,10 +167,16 @@ private:
     Button button_test_audio_{{10, 60, 80, 24}, "Test Audio"};
     Button button_sos_alert_{{120, 60, 80, 24}, "SOS Alert"};
 
-    Text text_description_{Rect{0, 0, 240, 32},
+    Text text_description_{Rect{10, 10, 240, 32},
         "Configure audio alerts for\ndrone detections and warnings."};
 
-    NumberField field_test_threat_level_{{130, 60, 40, 24}, 1, {0, 4}, 1, ' '};
+    NumberField field_test_threat_level_{
+        {130, 60, 40, 24},
+        2,
+        {0, 4},
+        0,
+        ' '
+    };
     Text text_test_instructions_{Rect{10, 85, 240, 16},
         "Select threat level to test"};
     Text text_last_beep_{Rect{10, 100, 240, 16}, ""};
@@ -226,10 +232,7 @@ private:
 
 } // namespace ui::external_app::enhanced_drone_analyzer
 
-// HEADER-ONLY IMPLEMENTATIONS - Consolidated from ui_drone_audio_settings.cpp
-// Moved to namespace scope correct placement
-// Wrapped in anonymous namespace for internal linkage
-namespace {
+namespace ui::external_app::enhanced_drone_analyzer {
 
 // AudioManager implementation (consolidated audio system)
 AudioManager::AudioManager()
@@ -476,6 +479,6 @@ void AuthorContactView::on_close() {
     nav_.pop();  // Return to previous view
 }
 
-} // anonymous namespace
+} // namespace ui::external_app::enhanced_drone_analyzer
 
 #endif // __UI_DRONE_AUDIO_HPP__
