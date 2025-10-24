@@ -12,13 +12,9 @@ VOLUME /havocbin
 #Copy build context (repository root) to /havocsrc
 COPY ./ /havocsrc
 
-# Fix line endings in HackRF files (Windows CRLF -> Unix LF)
-RUN find /havocsrc/hackrf -type f -name "*.py" -o -name "*.sh" -o -name "*.mk" | xargs dos2unix 2>/dev/null || true
-RUN find /havocsrc/hackrf -type f -name "Makefile*" | xargs dos2unix 2>/dev/null || true
-
 #Fetch dependencies from APT
 RUN apt-get update && \
-        apt-get install -y tar wget dfu-util cmake python bzip2 lz4 curl python3 python3-yaml dos2unix && \
+        apt-get install -y tar wget dfu-util cmake python bzip2 lz4 curl python3 python3-yaml && \
         apt-get -qy autoremove
 
 #Install current pip from PyPa
@@ -35,12 +31,18 @@ RUN rm -rf /usr/bin/python && \
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-# Install ARM GCC toolchain from Debian/Ubuntu packages
-RUN apt-get update && apt-get install -y gcc-arm-none-eabi
+#Grab the GNU ARM toolchain from arm.com
+#Then extract contents to /opt/build/armbin/
+RUN mkdir /opt/build && cd /opt/build && \
+        wget -O gcc-arm-none-eabi $ARMBINURL && \
+        mkdir armbin && \
+        tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
 
-# Note: Using Debian package instead of downloading from ARM website
+#Set environment variable so compiler knows where the toolchain lives
+ENV PATH=$PATH:/opt/build/armbin/bin
 
 CMD cd /havocsrc && \
-        mkdir -p build && cd build && \
+        mkdir build && cd build && \ 
         cmake .. && make firmware && \
-        cp firmware/portapack-h1-havoc.bin /havocbin
+        cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
+

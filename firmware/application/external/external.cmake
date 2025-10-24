@@ -250,6 +250,11 @@ set(EXTCPPSRC
 	external/game2048/main.cpp
 	external/game2048/ui_game2048.cpp
 
+	#bht_tx
+	external/bht_tx/main.cpp
+	external/bht_tx/ui_bht_tx.cpp
+	external/bht_tx/bht.cpp
+
 	#morse_practice
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
@@ -258,19 +263,11 @@ set(EXTCPPSRC
 	external/adult_toys_controller/main.cpp
 	external/adult_toys_controller/ui_adult_toys_controller.cpp
 
-	#enhanced_drone_analyzer - SCANNING ARCHITECTURE FIXED v0.3
+	#enhanced_drone_analyzer
 	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
-	external/enhanced_drone_analyzer/ui_drone_ui.cpp
-	external/enhanced_drone_analyzer/ui_drone_ui.hpp
 	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
-	external/enhanced_drone_analyzer/ui_drone_hardware.hpp
 	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
-	external/enhanced_drone_analyzer/ui_drone_scanner.hpp
-	external/enhanced_drone_analyzer/ui_drone_audio.hpp
-	external/enhanced_drone_analyzer/ui_drone_config.hpp
-	external/enhanced_drone_analyzer/ui_drone_database_mgmt.hpp
-	external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp
-	external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp
+	external/enhanced_drone_analyzer/ui_drone_ui.cpp
 )
 
 set(EXTAPPLIST

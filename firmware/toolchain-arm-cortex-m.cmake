@@ -29,13 +29,24 @@ if(CMAKE_VERSION VERSION_LESS 3.6)
 	CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
 	CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
 else()
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+	set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+	set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 	set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 endif()
 
-# Hardcode prefix for embedded toolchain
-set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10" CACHE FILEPATH "Install path prefix, prepended onto install directories.")
+execute_process(
+  COMMAND ${CMAKE_C_COMPILER} -print-file-name=libc.a
+  OUTPUT_VARIABLE CMAKE_INSTALL_PREFIX
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+get_filename_component(CMAKE_INSTALL_PREFIX
+  "${CMAKE_INSTALL_PREFIX}" PATH
+)
+get_filename_component(CMAKE_INSTALL_PREFIX
+  "${CMAKE_INSTALL_PREFIX}/.." REALPATH
+)
+set(CMAKE_INSTALL_PREFIX  ${CMAKE_INSTALL_PREFIX} CACHE FILEPATH
+    "Install path prefix, prepended onto install directories.")
 
 message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
 message(STATUS "Toolchain prefix: ${CMAKE_INSTALL_PREFIX}")
