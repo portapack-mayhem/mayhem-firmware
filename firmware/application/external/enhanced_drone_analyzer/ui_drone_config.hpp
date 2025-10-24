@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include "rf_path.hpp"              // Required for rf::Frequency type
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -67,14 +68,14 @@ enum class MovementTrend : uint8_t {
 };
 
     struct DroneFrequencyEntry {
-        Frequency frequency_hz;
+        rf::Frequency frequency_hz;
         uint8_t drone_type_idx;
         uint8_t threat_level_idx;
         int8_t rssi_threshold_db;
         uint8_t bandwidth_idx;
         uint16_t name_offset;
 
-        DroneFrequencyEntry(Frequency freq, DroneType type, ThreatLevel threat,
+        DroneFrequencyEntry(rf::Frequency freq, DroneType type, ThreatLevel threat,
                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
             : frequency_hz(freq),
               drone_type_idx(static_cast<uint8_t>(type)),
@@ -90,7 +91,7 @@ enum class MovementTrend : uint8_t {
     };
 
 struct TrackedDrone {
-    Frequency frequency;
+    rf::Frequency frequency;
     int16_t last_rssi;
     int16_t prev_rssi;
     systime_t last_seen;
