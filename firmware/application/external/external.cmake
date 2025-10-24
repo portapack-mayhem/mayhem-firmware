@@ -265,9 +265,17 @@ set(EXTCPPSRC
 
 	#enhanced_drone_analyzer
 	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
+	external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp
+	external/enhanced_drone_analyzer/ui_drone_config.hpp
 	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
+	external/enhanced_drone_analyzer/ui_drone_hardware.hpp
 	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
+	external/enhanced_drone_analyzer/ui_drone_scanner.hpp
+	external/enhanced_drone_analyzer/ui_drone_audio.hpp
+	external/enhanced_drone_analyzer/ui_drone_database_mgmt.hpp
+	external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp
 	external/enhanced_drone_analyzer/ui_drone_ui.cpp
+	external/enhanced_drone_analyzer/ui_drone_ui.hpp
 )
 
 set(EXTAPPLIST

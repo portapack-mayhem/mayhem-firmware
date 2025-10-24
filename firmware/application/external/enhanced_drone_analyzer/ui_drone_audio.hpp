@@ -6,9 +6,7 @@
 #define __UI_DRONE_AUDIO_HPP__
 
 #include "ui.hpp"
-#include "ui/ui_checkbox.hpp"
-#include "ui/ui_button.hpp"
-#include "ui/navigation.hpp"
+#include "ui.hpp"
 #include "external_app.hpp"
 #include "audio.hpp"
 #include "baseband_api.hpp"

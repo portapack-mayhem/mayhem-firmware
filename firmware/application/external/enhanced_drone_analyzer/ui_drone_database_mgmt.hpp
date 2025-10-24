@@ -234,13 +234,6 @@ bool DroneFrequencyDatabase::decode_drone_data(const std::string& description, D
 #include "string_format.hpp"
 
 #include "ui.hpp"
-#include "ui/ui_button.hpp"
-#include "ui/ui_text.hpp"
-#include "ui/ui_checkbox.hpp"
-#include "ui/ui_number_field.hpp"
-#include "ui/ui_numeric_entry.hpp"
-#include "ui/ui_menu.hpp"
-#include "ui/navigation.hpp"
 #include "ui_drone_config.hpp"  // Consolidated types, validation, and presets
 
 struct FrequencyEntryForm {
