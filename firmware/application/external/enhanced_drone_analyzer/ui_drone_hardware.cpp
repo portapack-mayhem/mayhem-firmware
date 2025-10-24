@@ -135,7 +135,7 @@ void DroneHardwareController::stop_spectrum_streaming() {
     }
 }
 
-bool DroneHardwareController::tune_to_frequency(rf::Frequency frequency_hz) {
+bool DroneHardwareController::tune_to_frequency(Frequency frequency_hz) {
     // Validate frequency range for Portapack hardware
     if (frequency_hz < 50000000 || frequency_hz > 6000000000) {
         return false; // Out of range
@@ -208,7 +208,7 @@ void DroneHardwareController::process_channel_spectrum_data(const ChannelSpectru
     (void)spectrum;  // Suppress unused parameter warning
 }
 
-int32_t DroneHardwareController::get_real_rssi_from_hardware(rf::Frequency target_frequency) {
+int32_t DroneHardwareController::get_real_rssi_from_hardware(Frequency target_frequency) {
     // PHASE 3: Now uses real spectrum data from spectrum callbacks
     return last_valid_rssi_;  // Real hardware RSSI from spectrum analysis
 }
@@ -239,12 +239,12 @@ void DroneHardwareController::set_spectrum_bandwidth(uint32_t bandwidth_hz) {
     // Silently ignore invalid bandwidth values
 }
 
-rf::Frequency DroneHardwareController::get_spectrum_center_frequency() const {
+Frequency DroneHardwareController::get_spectrum_center_frequency() const {
     // Return current center frequency configured in hardware
     return center_frequency_;
 }
 
-void DroneHardwareController::set_spectrum_center_frequency(rf::Frequency center_freq) {
+void DroneHardwareController::set_spectrum_center_frequency(Frequency center_freq) {
     // Validate frequency range for Portapack hardware
     if (center_freq >= 50000000 && center_freq <= 6000000000) {  // Standard range
         center_frequency_ = center_freq;

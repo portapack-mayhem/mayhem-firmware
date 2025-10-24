@@ -22,12 +22,12 @@ public:
 
     // Core update function - single entry point for all threat data
     void update(ThreatLevel max_threat, size_t approaching, size_t static_count,
-                size_t receding, rf::Frequency current_freq, bool is_scanning);
+                size_t receding, Frequency current_freq, bool is_scanning);
 
     // Individual setters for granular control
     void set_max_threat(ThreatLevel threat);
     void set_movement_counts(size_t approaching, size_t static_count, size_t receding);
-    void set_current_frequency(rf::Frequency freq);
+    void set_current_frequency(Frequency freq);
     void set_scanning_state(bool is_scanning);
 
     // Visual customization
@@ -52,7 +52,7 @@ private:
     // State variables for rendering
     ThreatLevel current_threat_ = ThreatLevel::NONE;
     bool is_scanning_ = false;
-    rf::Frequency current_freq_ = 2400000000ULL; // Default 2.4GHz
+    Frequency current_freq_ = 2400000000ULL; // Default 2.4GHz
     size_t approaching_count_ = 0;
     size_t static_count_ = 0;
     size_t receding_count_ = 0;
@@ -82,7 +82,7 @@ private:
     bool is_active_ = false;
 
     // Card data
-    rf::Frequency frequency_ = 0;
+    Frequency frequency_ = 0;
     ThreatLevel threat_ = ThreatLevel::NONE;
     MovementTrend trend_ = MovementTrend::STATIC;
     int32_t rssi_ = -120;
@@ -140,7 +140,7 @@ public:
     void update_trends_display(size_t approaching, size_t static_count, size_t receding);
     NavigationView& nav() { return nav_; }
     void set_scanning_status(bool active, const std::string& message);
-    void set_frequency_display(rf::Frequency freq);
+    void set_frequency_display(Frequency freq);
     DroneDisplayController(const DroneDisplayController&) = delete;
     DroneDisplayController& operator=(const DroneDisplayController&) = delete;
     static constexpr size_t MAX_DISPLAYED_DRONES = 3;
@@ -150,16 +150,16 @@ public:
     Text text_drone_3{{0, SPECTRUM_Y_TOP + 24, screen_width/2, 16}, ""};
     static constexpr const char* DRONE_DISPLAY_FORMAT = "%s %s %-4ddB %c";
     struct DisplayDroneEntry {
-        rf::Frequency frequency;
+        Frequency frequency;
         DroneType type;
         ThreatLevel threat;
         int32_t rssi;
         systime_t last_seen;
         std::string type_name;
         Color display_color;
-    void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
+    void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     };
-    void add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
+    void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     void update_drones_display(const DroneScanner& scanner);
     void sort_drones_by_rssi();
     static constexpr size_t MINI_SPECTRUM_WIDTH = 200;   // Optimized width for details
@@ -170,17 +170,17 @@ public:
     bool process_bins(uint8_t* power_level);
     void render_mini_spectrum();
     void highlight_threat_zones_in_spectrum(const std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES>& drones);
-    size_t frequency_to_spectrum_bin(rf::Frequency freq_hz) const;
+    size_t frequency_to_spectrum_bin(Frequency freq_hz) const;
     void clear_spectrum_buffers();
     bool validate_spectrum_data() const;
     size_t get_safe_spectrum_index(size_t x, size_t y) const;
     struct SpectrumConfig {
-        rf::Frequency min_freq = 2400000000ULL;  // 2.4GHz default
-        rf::Frequency max_freq = 2500000000ULL;  // 2.5GHz default
+        Frequency min_freq = 2400000000ULL;  // 2.4GHz default
+        Frequency max_freq = 2500000000ULL;  // 2.5GHz default
         uint32_t bandwidth = 24000000;            // 24MHz default
         uint32_t sampling_rate = 24000000;        // 24Msps default
     };
-    void set_spectrum_range(rf::Frequency min_freq, rf::Frequency max_freq);
+    void set_spectrum_range(Frequency min_freq, Frequency max_freq);
     SpectrumConfig spectrum_config_;
 private:
     std::vector<DisplayDroneEntry> detected_drones_;  // Dynamic tracking

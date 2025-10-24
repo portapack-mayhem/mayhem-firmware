@@ -63,12 +63,12 @@ void DroneScanner::initialize_wideband_scanning() {
 }
 
 // Setup wideband scanning range and calculate slices (adapted from Search app)
-void DroneScanner::setup_wideband_range(rf::Frequency min_freq, rf::Frequency max_freq) {
+void DroneScanner::setup_wideband_range(Frequency min_freq, Frequency max_freq) {
     wideband_scan_data_.min_freq = min_freq;
     wideband_scan_data_.max_freq = max_freq;
 
     // Calculate scanning range
-    rf::Frequency scanning_range = max_freq - min_freq;
+    Frequency scanning_range = max_freq - min_freq;
 
     if (scanning_range > WIDEBAND_SLICE_WIDTH) {
         // Multiple slices required (Search app logic: slices_nb = (range + slice_width - 1) / slice_width)
@@ -80,9 +80,9 @@ void DroneScanner::setup_wideband_range(rf::Frequency min_freq, rf::Frequency ma
         }
 
         // Calculate slice positioning (Search app offset logic)
-        rf::Frequency slices_span = wideband_scan_data_.slices_nb * WIDEBAND_SLICE_WIDTH;
-        rf::Frequency offset = ((scanning_range - slices_span) / 2) + (WIDEBAND_SLICE_WIDTH / 2);
-        rf::Frequency center_frequency = min_freq + offset;
+        Frequency slices_span = wideband_scan_data_.slices_nb * WIDEBAND_SLICE_WIDTH;
+        Frequency offset = ((scanning_range - slices_span) / 2) + (WIDEBAND_SLICE_WIDTH / 2);
+        Frequency center_frequency = min_freq + offset;
 
         // Populate slices array using STL algorithm (PHASE 8 OPTIMIZATION)
         std::generate_n(wideband_scan_data_.slices,
@@ -306,7 +306,7 @@ void DroneScanner::perform_database_scan_cycle(DroneHardwareController& hardware
     // Validate entry exists and contains valid frequency (Recon safety checks)
     if (entry_opt && entry_opt->frequency_hz > 0) {
         // RECON PATTERN: Tune radio to the specific database frequency
-        rf::Frequency target_freq_hz = entry_opt->frequency_hz;
+        Frequency target_freq_hz = entry_opt->frequency_hz;
 
         // SAFETY: Validate frequency range like Recon does
         if (target_freq_hz >= 50000000 && target_freq_hz <= 6000000000) {
@@ -387,7 +387,7 @@ void DroneScanner::process_wideband_slice_samples(DroneHardwareController& hardw
     const int32_t sample_offsets[] = {-1000000, 1000000};  // ±1MHz offsets within 2.5MHz slice
 
     for (int32_t offset : sample_offsets) {
-        rf::Frequency sample_freq = slice.center_frequency + offset;
+        Frequency sample_freq = slice.center_frequency + offset;
 
         // Validate frequency is within valid hardware range
         if (sample_freq >= MIN_HARDWARE_FREQ && sample_freq <= MAX_HARDWARE_FREQ) {
@@ -404,7 +404,7 @@ void DroneScanner::process_wideband_slice_samples(DroneHardwareController& hardw
 }
 
 // Calculate appropriate threshold for wideband signals
-int32_t DroneScanner::calculate_wideband_threshold(rf::Frequency detected_freq) {
+int32_t DroneScanner::calculate_wideband_threshold(Frequency detected_freq) {
     // Base threshold for wideband (more conservative)
     int32_t threshold = WIDEBAND_RSSI_THRESHOLD_DB;
 
@@ -427,7 +427,7 @@ int32_t DroneScanner::calculate_wideband_threshold(rf::Frequency detected_freq) 
 }
 
 // Create detection entry for wideband finds with enhanced thresholding
-void DroneScanner::create_wideband_detection_entry(rf::Frequency detected_freq, int32_t rssi) {
+void DroneScanner::create_wideband_detection_entry(Frequency detected_freq, int32_t rssi) {
     // Calculate frequency-appropriate threshold instead of using general default
     int32_t wideband_threshold = calculate_wideband_threshold(detected_freq);
 
@@ -677,7 +677,7 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
     }
 }
 
-void DroneScanner::update_tracked_drone(DroneType type, rf::Frequency frequency,
+void DroneScanner::update_tracked_drone(DroneType type, Frequency frequency,
                                          int32_t rssi, ThreatLevel threat_level) {
     // PORTAPACK CONSTRAINTS: MAX_TRACKED_DRONES = 8, fixed array, no heap allocation
 
@@ -809,7 +809,7 @@ bool DroneScanner::validate_detection_simple(int32_t rssi_db, ThreatLevel threat
     return SimpleDroneValidation::validate_rssi_signal(rssi_db, threat);
 }
 
-rf::Frequency DroneScanner::get_current_radio_frequency() const {
+Frequency DroneScanner::get_current_radio_frequency() const {
     // Return currently scanned frequency or default ISM band
     if (freq_db_.is_open() && current_db_index_ < freq_db_.entry_count()) {
         const auto& entry_opt = freq_db_.get_entry(current_db_index_);
@@ -820,7 +820,7 @@ rf::Frequency DroneScanner::get_current_radio_frequency() const {
     return 433000000; // Default ISM band
 }
 
-rf::Frequency DroneScanner::get_current_scanning_frequency() const {
+Frequency DroneScanner::get_current_scanning_frequency() const {
     return get_current_radio_frequency();
 }
 

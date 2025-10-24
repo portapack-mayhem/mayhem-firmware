@@ -142,13 +142,13 @@ public:
     void process_rssi_detection(const freqman_entry& entry, int32_t rssi);
 
     // Drone tracking system
-    void update_tracked_drone(DroneType type, rf::Frequency frequency, int32_t rssi, ThreatLevel threat_level);
+    void update_tracked_drone(DroneType type, Frequency frequency, int32_t rssi, ThreatLevel threat_level);
     void remove_stale_drones();
 
 
 
     // Current scanning state
-    rf::Frequency get_current_scanning_frequency() const;
+    Frequency get_current_scanning_frequency() const;
     ThreatLevel get_max_detected_threat() const { return max_detected_threat_; }
 
     // UI access for trend display (public getter for tracked drones)
@@ -175,7 +175,7 @@ private:
     // Frequency database management
     FreqmanDB freq_db_;
     size_t current_db_index_ = 0;
-    rf::Frequency last_scanned_frequency_ = 0;
+    Frequency last_scanned_frequency_ = 0;
 
     // Scanning parameters (moved from main class)
     uint32_t scan_cycles_ = 0;
@@ -222,7 +222,7 @@ private:
     bool validate_detection_simple(int32_t rssi_db, ThreatLevel threat);
 
     // Private frequency access helpers (Recon pattern)
-    rf::Frequency get_current_radio_frequency() const;
+    Frequency get_current_radio_frequency() const;
 
     // Prevent copying (embedded constraints)
     DroneScanner(const DroneScanner&) = delete;

@@ -50,6 +50,15 @@ enum class ThreatLevel {
     CRITICAL = 4
 };
 
+// PHASE 1 FIX 2: Add missing SpectrumMode enum definition
+enum class SpectrumMode {
+    ULTRA_NARROW = 0,    // 4MHz - for precision analysis
+    NARROW = 1,          // 8MHz - for detailed scanning
+    MEDIUM = 2,          // 12MHz - balanced performance (default)
+    WIDE = 3,            // 20MHz - for wide area coverage
+    ULTRA_WIDE = 4       // 24MHz - maximum bandwidth
+};
+
 enum class MovementTrend : uint8_t {
     STATIC = 0,
     APPROACHING = 1,
@@ -58,14 +67,14 @@ enum class MovementTrend : uint8_t {
 };
 
     struct DroneFrequencyEntry {
-        rf::Frequency frequency_hz;
+        Frequency frequency_hz;
         uint8_t drone_type_idx;
         uint8_t threat_level_idx;
         int8_t rssi_threshold_db;
         uint8_t bandwidth_idx;
         uint16_t name_offset;
 
-        DroneFrequencyEntry(rf::Frequency freq, DroneType type, ThreatLevel threat,
+        DroneFrequencyEntry(Frequency freq, DroneType type, ThreatLevel threat,
                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
             : frequency_hz(freq),
               drone_type_idx(static_cast<uint8_t>(type)),
@@ -81,7 +90,7 @@ enum class MovementTrend : uint8_t {
     };
 
 struct TrackedDrone {
-    rf::Frequency frequency;
+    Frequency frequency;
     int16_t last_rssi;
     int16_t prev_rssi;
     systime_t last_seen;
@@ -161,26 +170,26 @@ struct SimpleDroneValidation {
         return ThreatLevel::NONE;
     }
 
-    static bool validate_frequency_range(rf::Frequency freq_hz) {
+    static bool validate_frequency_range(Frequency freq_hz) {
         return freq_hz >= 50000000 && freq_hz <= 6000000000UL;
     }
 };
 
 struct WidebandSlice {
-    rf::Frequency center_frequency;
+    Frequency center_frequency;
     uint8_t max_power;
     int16_t max_index;
 
     WidebandSlice() : center_frequency(0), max_power(0), max_index(-1) {}
-    explicit WidebandSlice(rf::Frequency freq) : center_frequency(freq), max_power(0), max_index(-1) {}
+    explicit WidebandSlice(Frequency freq) : center_frequency(freq), max_power(0), max_index(-1) {}
 };
 
 struct WidebandScanData {
     WidebandSlice slices[WIDEBAND_MAX_SLICES];
     uint32_t slices_nb;
     uint32_t slice_counter;
-    rf::Frequency min_freq;
-    rf::Frequency max_freq;
+    Frequency min_freq;
+    Frequency max_freq;
 
     void reset() {
         slices_nb = 0;
@@ -195,13 +204,13 @@ struct WidebandScanData {
 
 static constexpr uint32_t SCAN_THREAD_STACK_SIZE = 2048;
 
-static constexpr rf::Frequency WIDEBAND_SLICE_WIDTH = 2500000;
+static constexpr Frequency WIDEBAND_SLICE_WIDTH = 2500000;
 static constexpr uint32_t WIDEBAND_BIN_NB = 256;
 static constexpr uint32_t WIDEBAND_BIN_NB_NO_DC = WIDEBAND_BIN_NB - 16;
 static constexpr uint32_t WIDEBAND_BIN_WIDTH = WIDEBAND_SLICE_WIDTH / WIDEBAND_BIN_NB;
 
-static constexpr rf::Frequency WIDEBAND_DEFAULT_MIN = 1000000;
-static constexpr rf::Frequency WIDEBAND_DEFAULT_MAX = 6000000000;
+static constexpr Frequency WIDEBAND_DEFAULT_MIN = 1000000;
+static constexpr Frequency WIDEBAND_DEFAULT_MAX = 6000000000;
 
 static constexpr uint32_t WIDEBAND_MAX_SLICES = 32;
 
@@ -273,16 +282,16 @@ static constexpr uint32_t MINI_SPECTRUM_Y_START = 180;
 
 static constexpr size_t MAX_DISPLAYED_DRONES = 3;
 
-static constexpr rf::Frequency MINI_SPECTRUM_MIN_FREQ = 2400000000ULL;
-static constexpr rf::Frequency MINI_SPECTRUM_MAX_FREQ = 2500000000ULL;
+static constexpr Frequency MINI_SPECTRUM_MIN_FREQ = 2400000000ULL;
+static constexpr Frequency MINI_SPECTRUM_MAX_FREQ = 2500000000ULL;
 
-static constexpr rf::Frequency MIN_HARDWARE_FREQ = 50000000ULL;
-static constexpr rf::Frequency MAX_HARDWARE_FREQ = 6000000000ULL;
+static constexpr Frequency MIN_HARDWARE_FREQ = 50000000ULL;
+static constexpr Frequency MAX_HARDWARE_FREQ = 6000000000ULL;
 
-static constexpr rf::Frequency MIN_DRONE_FREQUENCY = 240000000ULL;
-static constexpr rf::Frequency MAX_DRONE_FREQUENCY = 6000000000ULL;
+static constexpr Frequency MIN_DRONE_FREQUENCY = 240000000ULL;
+static constexpr Frequency MAX_DRONE_FREQUENCY = 6000000000ULL;
 
-static constexpr rf::Frequency ISM_CENTER_FREQ = 433000000ULL;
+static constexpr Frequency ISM_CENTER_FREQ = 433000000ULL;
 
 static constexpr float RSSI_THREAT_WEIGHT = 0.4f;
 

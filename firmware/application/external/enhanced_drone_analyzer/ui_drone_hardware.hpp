@@ -10,7 +10,6 @@
 #include "portapack.hpp"            // Portapack system interface
 #include "radio.hpp"                // Radio tuning interface
 #include "message.hpp"              // Message system with ChannelSpectrum
-#include "channel_spectrum.hpp"     // Spectrum data structures
 #include "irq_controls.hpp"         // HardwareGuard for mutex protection
 
 #include <mutex>                    // ADD: Mutex for HardwareGuard implementation
@@ -38,18 +37,18 @@ public:
     // PHASE 5 HARDWARE CONTROL RESTORATION: Getter/Setter functions for frequency and bandwidth
     uint32_t get_spectrum_bandwidth() const;
     void set_spectrum_bandwidth(uint32_t bandwidth_hz);
-    rf::Frequency get_spectrum_center_frequency() const;
-    void set_spectrum_center_frequency(rf::Frequency center_freq);
+    Frequency get_spectrum_center_frequency() const;
+    void set_spectrum_center_frequency(Frequency center_freq);
 
     // Frequency tuning hardware control
-    bool tune_to_frequency(rf::Frequency frequency_hz);
+    bool tune_to_frequency(Frequency frequency_hz);
 
     // Spectrum streaming control
     void start_spectrum_streaming();
     void stop_spectrum_streaming();
 
     // RSSI data retrieval from hardware
-    int32_t get_real_rssi_from_hardware(rf::Frequency target_frequency);
+    int32_t get_real_rssi_from_hardware(Frequency target_frequency);
 
     // Spectrum message handlers (moving from main class)
     void handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
@@ -73,7 +72,7 @@ private:
 
     // Spectrum configuration
     SpectrumMode spectrum_mode_;                    // Current spectrum settings
-    rf::Frequency center_frequency_;                // ADD: Configurable center frequency
+    Frequency center_frequency_;                // ADD: Configurable center frequency
     uint32_t bandwidth_hz_;                         // ADD: Configurable bandwidth override
 
     // Helper methods for spectrum configuration

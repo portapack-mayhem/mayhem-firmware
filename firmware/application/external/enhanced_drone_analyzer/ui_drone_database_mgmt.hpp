@@ -83,7 +83,7 @@ bool DroneFrequencyDatabase::add_drone_frequency(const DroneFrequencyEntry& entr
     return true;
 }
 
-bool DroneFrequencyDatabase::remove_frequency(rf::Frequency frequency) {
+bool DroneFrequencyDatabase::remove_frequency(Frequency frequency) {
     auto it = std::remove_if(drone_entries_.begin(), drone_entries_.end(),
                             [frequency](const DroneFrequencyEntry& e) {
                                 return e.frequency_hz == frequency;
@@ -97,7 +97,7 @@ bool DroneFrequencyDatabase::remove_frequency(rf::Frequency frequency) {
     return false;
 }
 
-const DroneFrequencyEntry* DroneFrequencyDatabase::lookup_frequency(rf::Frequency frequency) const {
+const DroneFrequencyEntry* DroneFrequencyDatabase::lookup_frequency(Frequency frequency) const {
     auto it = std::find_if(drone_entries_.begin(), drone_entries_.end(),
                           [frequency](const DroneFrequencyEntry& e) {
                               return e.frequency_hz == frequency;
@@ -115,8 +115,8 @@ std::vector<freqman_entry> DroneFrequencyDatabase::get_freqman_entries() const {
 
     for (const auto& drone_entry : drone_entries_) {
         freqman_entry entry{
-            .frequency_a = static_cast<rf::Frequency>(drone_entry.frequency_hz),
-            .frequency_b = static_cast<rf::Frequency>(drone_entry.frequency_hz),
+            .frequency_a = static_cast<Frequency>(drone_entry.frequency_hz),
+            .frequency_b = static_cast<Frequency>(drone_entry.frequency_hz),
             .type = freqman_type::Single,
             .modulation = freqman_index_t(1),  // NFM default for drones
             .bandwidth = freqman_index_t(3),   // 25kHz default
@@ -442,8 +442,8 @@ void DroneFrequencyManagerView::on_add_frequency() {
 
     // BACKWARD COMPATIBILITY: Also update FreqmanDB for compatibility
     freqman_entry entry{
-        .frequency_a = static_cast<rf::Frequency>(form_data.frequency_hz),
-        .frequency_b = static_cast<rf::Frequency>(form_data.frequency_hz),  // Для single частоты
+        .frequency_a = static_cast<Frequency>(form_data.frequency_hz),
+        .frequency_b = static_cast<Frequency>(form_data.frequency_hz),  // Для single частоты
         .type = freqman_type::Single,
         .modulation = freqman_index_t(1),  // NFM по умолчанию для дронов
         .bandwidth = freqman_index_t(3),   // 25kHz по умолчанию
@@ -475,8 +475,8 @@ void DroneFrequencyManagerView::on_update_frequency() {
 
     // Обновить существующую freqman_entry
     if (freqman_db_[selected_frequency_index_].type == freqman_type::Single) {
-        freqman_db_[selected_frequency_index_].frequency_a = static_cast<rf::Frequency>(form_data.frequency_hz);
-        freqman_db_[selected_frequency_index_].frequency_b = static_cast<rf::Frequency>(form_data.frequency_hz);
+        freqman_db_[selected_frequency_index_].frequency_a = static_cast<Frequency>(form_data.frequency_hz);
+        freqman_db_[selected_frequency_index_].frequency_b = static_cast<Frequency>(form_data.frequency_hz);
     }
     freqman_db_[selected_frequency_index_].description = form_data.name;
 
@@ -604,7 +604,7 @@ void DroneFrequencyManagerView::update_frequency_details() {
 
 bool DroneFrequencyManagerView::validate_current_form() {
     // Enhanced validation based on Level/Scanner patterns
-    rf::Frequency freq = frequency_field_.get_value();
+    Frequency freq = frequency_field_.get_value();
     ThreatLevel threat = static_cast<ThreatLevel>(threat_level_field_.selected_index_value());
     DroneType drone_type = static_cast<DroneType>(drone_type_field_.selected_index_value());
     int32_t rssi_threshold = rssi_field_.get_value();

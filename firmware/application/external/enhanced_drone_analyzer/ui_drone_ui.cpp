@@ -21,7 +21,7 @@ SmartThreatHeader::SmartThreatHeader(Rect parent_rect)
 
 void SmartThreatHeader::update(ThreatLevel max_threat, size_t approaching,
                                size_t static_count, size_t receding,
-                               rf::Frequency current_freq, bool is_scanning) {
+                               Frequency current_freq, bool is_scanning) {
     current_threat_ = max_threat;
     is_scanning_ = is_scanning;
     current_freq_ = current_freq;
@@ -91,7 +91,7 @@ void SmartThreatHeader::set_movement_counts(size_t approaching, size_t static_co
            current_freq_, is_scanning_);
 }
 
-void SmartThreatHeader::set_current_frequency(rf::Frequency freq) {
+void SmartThreatHeader::set_current_frequency(Frequency freq) {
     if (freq != current_freq_) {
         update(current_threat_, approaching_count_, static_count_, receding_count_,
                freq, is_scanning_);
@@ -428,7 +428,7 @@ const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) con
 }
 void DroneDisplayController::update_detection_display(const DroneScanner& scanner) {
     if (scanner.is_scanning_active()) {
-    rf::Frequency current_freq = scanner.get_current_scanning_frequency();
+    Frequency current_freq = scanner.get_current_scanning_frequency();
     if (current_freq > 0) {
         char freq_buffer[32];
         float freq_mhz = static_cast<float>(current_freq) / 1000000.0f;
@@ -520,7 +520,7 @@ void DroneDisplayController::set_scanning_status(bool active, const std::string&
         text_status_.set_style(Theme::getInstance()->fg_light->foreground);
     }
 }
-void DroneDisplayController::set_frequency_display(rf::Frequency freq) {
+void DroneDisplayController::set_frequency_display(Frequency freq) {
     if (freq > 0) {
         char freq_buffer[32];
         float freq_mhz = static_cast<float>(freq) / 1000000.0f;
@@ -535,7 +535,7 @@ void DroneDisplayController::set_frequency_display(rf::Frequency freq) {
         big_display_.set("READY");
     }
 }
-void DroneDisplayController::add_detected_drone(rf::Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi) {
+void DroneDisplayController::add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi) {
     systime_t now = chTimeNow();
     auto it = std::find_if(detected_drones_.begin(), detected_drones_.end(),
                           [freq](const DisplayDroneEntry& entry) {
@@ -756,7 +756,7 @@ size_t DroneDisplayController::get_safe_spectrum_index(size_t x, size_t y) const
     }
     return y * MINI_SPECTRUM_WIDTH + x;
 }
-void DroneDisplayController::set_spectrum_range(rf::Frequency min_freq, rf::Frequency max_freq) {
+void DroneDisplayController::set_spectrum_range(Frequency min_freq, Frequency max_freq) {
     if (min_freq >= max_freq || min_freq < MIN_HARDWARE_FREQ || max_freq > MAX_HARDWARE_FREQ) {
         spectrum_config_.min_freq = 2400000000ULL;  // ISM default
         spectrum_config_.max_freq = 2500000000ULL;
@@ -768,14 +768,14 @@ void DroneDisplayController::set_spectrum_range(rf::Frequency min_freq, rf::Freq
                                 24000000 : static_cast<uint32_t>(max_freq - min_freq);
     spectrum_config_.sampling_rate = spectrum_config_.bandwidth; // Direct mapping
 }
-size_t DroneDisplayController::frequency_to_spectrum_bin(rf::Frequency freq_hz) const {
-    const rf::Frequency MIN_FREQ = spectrum_config_.min_freq;
-    const rf::Frequency MAX_FREQ = spectrum_config_.max_freq;
-    const rf::Frequency FREQ_RANGE = MAX_FREQ - MIN_FREQ;
+size_t DroneDisplayController::frequency_to_spectrum_bin(Frequency freq_hz) const {
+    const Frequency MIN_FREQ = spectrum_config_.min_freq;
+    const Frequency MAX_FREQ = spectrum_config_.max_freq;
+    const Frequency FREQ_RANGE = MAX_FREQ - MIN_FREQ;
     if (freq_hz < MIN_FREQ || freq_hz > MAX_FREQ || FREQ_RANGE == 0) {
         return MINI_SPECTRUM_WIDTH; // Out of range - safe sentinel value
     }
-    rf::Frequency relative_freq = freq_hz - MIN_FREQ;
+    Frequency relative_freq = freq_hz - MIN_FREQ;
     size_t bin = (relative_freq * MINI_SPECTRUM_WIDTH) / FREQ_RANGE;
     return std::min(bin, MINI_SPECTRUM_WIDTH - 1);
 }
@@ -946,7 +946,7 @@ void DroneUIController::show_performance_stats() {
 }
 void DroneUIController::show_debug_info() {
     char debug_info[512];
-    rf::Frequency current_freq = scanner_.get_current_scanning_frequency();
+    Frequency current_freq = scanner_.get_current_scanning_frequency();
     std::string scanning_mode = scanner_.scanning_mode_name();
     snprintf(debug_info, sizeof(debug_info),
             "DEBUG INFORMATION\n"
@@ -1040,7 +1040,7 @@ void DroneUIController::show_current_bandwidth() {
     nav_.display_modal("Spectrum Bandwidth", bw_msg);
 }
 void DroneUIController::show_current_center_freq() {
-    rf::Frequency current_center = hardware_.get_spectrum_center_frequency();
+    Frequency current_center = hardware_.get_spectrum_center_frequency();
     char freq_msg[128];
     if (current_center >= 1000000000) {  // GHz
         float freq_ghz = static_cast<float>(current_center) / 1000000000.0f;
@@ -1074,7 +1074,7 @@ void DroneUIController::set_bandwidth_from_menu(uint32_t bandwidth_hz) {
     snprintf(confirm_msg, sizeof(confirm_msg), "Bandwidth set to:\n%.1f MHz\n\nRestart scanning to apply.", bw_mhz);
     nav_.display_modal("Bandwidth Applied", confirm_msg);
 }
-void DroneUIController::set_center_freq_from_menu(rf::Frequency center_freq) {
+void DroneUIController::set_center_freq_from_menu(Frequency center_freq) {
     hardware_.set_spectrum_center_frequency(center_freq);
     char confirm_msg[128];
     if (center_freq >= 1000000000) {
@@ -1154,8 +1154,8 @@ void DroneUIController::add_preset_to_scanner(const DronePreset& preset) {
     FreqmanDB preset_db("DRONES"); // Use same file as scanner
     if (preset_db.open()) {
         freqman_entry entry{
-            .frequency_a = static_cast<rf::Frequency>(preset.frequency_hz),
-            .frequency_b = static_cast<rf::Frequency>(preset.frequency_hz),
+            .frequency_a = static_cast<Frequency>(preset.frequency_hz),
+            .frequency_b = static_cast<Frequency>(preset.frequency_hz),
             .type = freqman_type::Single,
             .modulation = freqman_index_t(1),  // NFM default for drones
             .bandwidth = freqman_index_t(3),   // 25kHz default
@@ -1315,7 +1315,7 @@ void EnhancedDroneSpectrumAnalyzerView::handle_scanner_update() {
     size_t static_count = scanner_->get_static_count();
     size_t receding = scanner_->get_receding_count();
     bool is_scanning = scanner_->is_scanning_active();
-    rf::Frequency current_freq = scanner_->get_current_scanning_frequency();
+    Frequency current_freq = scanner_->get_current_scanning_frequency();
     uint32_t total_detections = scanner_->get_total_detections();
 
     // Update Smart Threat Header - single consolidated update
@@ -1389,3 +1389,102 @@ void LoadingScreenView::paint(Painter& painter) {
     View::paint(painter);
 }
 } // namespace ui::external_app::enhanced_drone_analyzer
+// TEMPORARY: Add missing SmartThreatHeader implementation to resolve compilation error
+void SmartThreatHeader::update(ThreatLevel max_threat, size_t approaching,
+                              size_t static_count, size_t receding,
+                              Frequency current_freq, bool is_scanning) {
+    // Update internal state variables (PHASE 1 MISSING IMPLEMENTATION FIX)
+    current_threat_ = max_threat;
+    approaching_count_ = approaching;
+    static_count_ = static_count;
+    receding_count_ = receding;
+    current_freq_ = current_freq;
+    is_scanning_ = is_scanning;
+
+    // Update progress bar color and value based on threat level
+    size_t progress_value = static_cast<size_t>(max_threat) * 25; // Convert threat level to visual progress
+    if (progress_value > 100) progress_value = 100;
+    threat_progress_bar_.set_value(progress_value);
+
+    // Update status text with current threat and counts
+    std::string status_text = get_threat_icon_text(max_threat) + " | ▲" +
+                            std::to_string(approaching_count_) + " ■" +
+                            std::to_string(static_count_) + " ▼" +
+                            std::to_string(receding_count_);
+    threat_status_main_.set(status_text.c_str());
+
+    // Update frequency display
+    std::string freq_text = to_string_short_freq(current_freq);
+    if (is_scanning) {
+        freq_text += " SCANNING";
+    }
+    threat_frequency_.set(freq_text.c_str());
+
+    // Mark for repaint to show immediate changes
+    set_dirty();
+}
+
+// Complete SmartThreatHeader methods (PHASE 1 MISSING IMPLEMENTATION FIX)
+void SmartThreatHeader::set_max_threat(ThreatLevel threat) {
+    current_threat_ = threat;
+    set_dirty();
+}
+
+void SmartThreatHeader::set_movement_counts(size_t approaching, size_t static_count, size_t receding) {
+    approaching_count_ = approaching;
+    static_count_ = static_count;
+    receding_count_ = receding;
+    set_dirty();
+}
+
+void SmartThreatHeader::set_current_frequency(Frequency freq) {
+    current_freq_ = freq;
+    set_dirty();
+}
+
+void SmartThreatHeader::set_scanning_state(bool is_scanning) {
+    is_scanning_ = is_scanning;
+    set_dirty();
+}
+
+void SmartThreatHeader::set_color_scheme(bool use_dark_theme) {
+    // Color scheme logic (simplified for now)
+    set_dirty();
+}
+
+// Helper methods for SmartThreatHeader
+Color SmartThreatHeader::get_threat_bar_color(ThreatLevel level) const {
+    switch (level) {
+        case ThreatLevel::CRITICAL: return Theme::getInstance()->fg_red->foreground;
+        case ThreatLevel::HIGH: return Theme::getInstance()->fg_orange->foreground;
+        case ThreatLevel::MEDIUM: return Theme::getInstance()->fg_yellow->foreground;
+        case ThreatLevel::LOW: return Theme::getInstance()->fg_blue->foreground;
+        default: return Theme::getInstance()->fg_green->foreground;
+    }
+}
+
+Color SmartThreatHeader::get_threat_text_color(ThreatLevel level) const {
+    return get_threat_bar_color(level); // Same color for text and bar
+}
+
+std::string SmartThreatHeader::get_threat_icon_text(ThreatLevel level) const {
+    switch (level) {
+        case ThreatLevel::CRITICAL: return "THREAT: CRITICAL";
+        case ThreatLevel::HIGH: return "THREAT: HIGH";
+        case ThreatLevel::MEDIUM: return "THREAT: MEDIUM";
+        case ThreatLevel::LOW: return "THREAT: LOW";
+        case ThreatLevel::NONE: return "THREAT: NORMAL";
+        default: return "THREAT: NONE";
+    }
+}
+
+void SmartThreatHeader::paint(Painter& painter) {
+    View::paint(painter);
+
+    // Draw threat progress bar
+    auto bar_color = get_threat_bar_color(current_threat_);
+    threat_progress_bar_.set_color(bar_color);
+
+    // Draw additional visual elements if needed
+    // SmartThreatHeader custom painting logic
+}

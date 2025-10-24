@@ -498,12 +498,12 @@ public:
         current_max_drone_freq = 6000000000ULL;
     }
 
-    static rf::Frequency current_min_drone_freq;
-    static rf::Frequency current_max_drone_freq;
+    static Frequency current_min_drone_freq;
+    static Frequency current_max_drone_freq;
 };
 
-rf::Frequency ConstantSettingsManager::current_min_drone_freq = 2400000000ULL;
-rf::Frequency ConstantSettingsManager::current_max_drone_freq = 6000000000ULL;
+Frequency ConstantSettingsManager::current_min_drone_freq = 2400000000ULL;
+Frequency ConstantSettingsManager::current_max_drone_freq = 6000000000ULL;
 
 ConstantSettingsView::ConstantSettingsView(NavigationView& nav)
     : nav_(nav) {
