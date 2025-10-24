@@ -5,8 +5,7 @@
 #define __UI_MINIMAL_DRONE_ANALYZER_HPP__
 
 #include "ui.hpp"
-#include "ui_text.hpp"
-#include "ui_navigation.hpp"
+#include "ui.hpp"
 #include "ui_drone_ui.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
