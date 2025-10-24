@@ -63,6 +63,71 @@ private:
     size_t receding_count_ = 0;
 };
 
+// PHASE 2: Threat Card Component - Modern compact drone display
+class ThreatCard : public View {
+public:
+    explicit ThreatCard(size_t card_index = 0, Rect parent_rect = {0, 0, screen_width, 24});
+    ~ThreatCard() = default;
+
+    // Update card with drone information
+    void update_card(const DisplayDroneEntry& drone);
+    void clear_card();
+
+    // Compact rendering
+    std::string render_compact() const;
+    Color get_card_bg_color() const;
+    Color get_card_text_color() const;
+
+    ThreatCard(const ThreatCard&) = delete;
+    ThreatCard& operator=(const ThreatCard&) = delete;
+
+private:
+    size_t card_index_;
+    Text card_text_ {{0, 2, screen_width, 20}, ""};
+    bool is_active_ = false;
+
+    // Card data
+    rf::Frequency frequency_ = 0;
+    ThreatLevel threat_ = ThreatLevel::NONE;
+    MovementTrend trend_ = MovementTrend::STATIC;
+    int32_t rssi_ = -120;
+    uint8_t detection_count_ = 0;
+    systime_t last_seen_ = 0;
+    std::string threat_name_ = "UNKNOWN";
+
+    void paint(Painter& painter) override;
+};
+
+// PHASE 2.5: Console-Style Status Display - Ultra-compact information layout
+class ConsoleStatusBar : public View {
+public:
+    explicit ConsoleStatusBar(size_t bar_index = 0, Rect parent_rect = {0, 0, screen_width, 16});
+    ~ConsoleStatusBar() = default;
+
+    // Phase 4: State-based adaptive display
+    enum class DisplayMode { SCANNING, ALERT, NORMAL };
+
+    void update_scanning_progress(uint32_t progress_percent, uint32_t total_cycles = 0, uint32_t detections = 0);
+    void update_alert_status(ThreatLevel threat, size_t total_drones, const std::string& alert_msg);
+    void update_normal_status(const std::string& primary, const std::string& secondary);
+
+    void set_display_mode(DisplayMode mode);
+
+    ConsoleStatusBar(const ConsoleStatusBar&) = delete;
+    ConsoleStatusBar& operator=(const ConsoleStatusBar&) = delete;
+
+private:
+    size_t bar_index_;
+    DisplayMode mode_ = DisplayMode::NORMAL;
+
+    // Text elements for different modes
+    Text progress_text_  {{0, 1, screen_width, 16}, ""};
+    Text alert_text_     {{0, 1, screen_width, 16}, ""};
+    Text normal_text_    {{0, 1, screen_width, 16}, ""};
+
+    void paint(Painter& painter) override;
+};
+
 class DroneDisplayController {
 public:
     explicit DroneDisplayController(NavigationView& nav);

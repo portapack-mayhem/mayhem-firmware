@@ -162,6 +162,212 @@ void SmartThreatHeader::paint(Painter& painter) {
                                parent_rect_.width(), 4}, pulse_color);
     }
 }
+
+// PHASE 2: ThreatCard Implementation - Modern compact drone display
+ThreatCard::ThreatCard(size_t card_index, Rect parent_rect)
+    : View(parent_rect), card_index_(card_index) {
+    add_children({&card_text_});
+}
+
+void ThreatCard::update_card(const DisplayDroneEntry& drone) {
+    is_active_ = true;
+    frequency_ = drone.frequency;
+    threat_ = drone.threat;
+    rssi_ = drone.rssi;
+    last_seen_ = drone.last_seen;
+    threat_name_ = drone.type_name;
+
+    // For now, set a simple trend (can be enhanced later)
+    trend_ = MovementTrend::STATIC;
+
+    // Update text display
+    card_text_.set(render_compact());
+    card_text_.set_style(get_card_text_color());
+
+    set_dirty();
+}
+
+void ThreatCard::clear_card() {
+    is_active_ = false;
+    card_text_.set("");
+    set_dirty();
+}
+
+std::string ThreatCard::render_compact() const {
+    if (!is_active_) return "";
+
+    char buffer[32];
+
+    // Format: "🏗️ DJI Mini │ 2400MHz │ ▲ HIGH │ 74dB"
+    const char* trend_symbol = (trend_ == MovementTrend::APPROACHING) ? "▲" :
+                              (trend_ == MovementTrend::RECEDING) ? "▼" : "■";
+
+    // Threat level abbreviation
+    const char* threat_abbr = (threat_ == ThreatLevel::CRITICAL) ? "CRIT" :
+                             (threat_ == ThreatLevel::HIGH) ? "HIGH" :
+                             (threat_ == ThreatLevel::MEDIUM) ? "MED" :
+                             (threat_ == ThreatLevel::LOW) ? "LOW" : "NONE";
+
+    // Convert frequency to MHz for display
+    float freq_mhz = static_cast<float>(frequency_) / 1000000.0f;
+    if (freq_mhz >= 1000) { // GHz format
+        freq_mhz /= 1000;
+        snprintf(buffer, sizeof(buffer), "🛰️ %s │ %.1fG │ %s %s │ %ddB",
+                threat_name_.c_str(), freq_mhz, trend_symbol, threat_abbr, rssi_);
+    } else {
+        snprintf(buffer, sizeof(buffer), "🛰️ %s │ %.0fM │ %s %s │ %ddB",
+                threat_name_.c_str(), freq_mhz, trend_symbol, threat_abbr, rssi_);
+    }
+
+    return std::string(buffer);
+}
+
+Color ThreatCard::get_card_bg_color() const {
+    if (!is_active_) return Color::black();
+
+    switch (threat_) {
+        case ThreatLevel::CRITICAL: return Color(64, 0, 0);    // Dark red background
+        case ThreatLevel::HIGH: return Color(64, 32, 0);       // Dark orange background
+        case ThreatLevel::MEDIUM: return Color(32, 32, 0);     // Dark yellow background
+        case ThreatLevel::LOW: return Color(0, 32, 0);         // Dark green background
+        case ThreatLevel::NONE:
+        default: return Color(0, 0, 64);                       // Dark blue background
+    }
+}
+
+Color ThreatCard::get_card_text_color() const {
+    if (!is_active_) return Color::white();
+
+    switch (threat_) {
+        case ThreatLevel::CRITICAL: return Color::red();
+        case ThreatLevel::HIGH: return Color(255, 140, 0);     // Orange
+        case ThreatLevel::MEDIUM: return Color::yellow();
+        case ThreatLevel::LOW: return Color::green();
+        case ThreatLevel::NONE:
+        default: return Color::white();
+    }
+}
+
+void ThreatCard::paint(Painter& painter) {
+    // Custom background rendering for threat visualization
+    View::paint(painter);
+
+    if (is_active_) {
+        Color bg_color = get_card_bg_color();
+        painter.fill_rectangle({parent_rect_.left(), parent_rect_.top(),
+                               parent_rect_.width(), 2}, bg_color);
+    }
+}
+
+// PHASE 2.5: ConsoleStatusBar Implementation - Ultra-compact information layout
+ConsoleStatusBar::ConsoleStatusBar(size_t bar_index, Rect parent_rect)
+    : View(parent_rect), bar_index_(bar_index) {
+    add_children({&progress_text_, &alert_text_, &normal_text_});
+
+    // Initially show normal mode
+    set_display_mode(DisplayMode::NORMAL);
+}
+
+void ConsoleStatusBar::update_scanning_progress(uint32_t progress_percent, uint32_t total_cycles, uint32_t detections) {
+    set_display_mode(DisplayMode::SCANNING);
+
+    // Create a simple ASCII progress bar (8 characters)
+    char progress_bar[9] = "░░░░░░░░";
+    uint8_t filled = (progress_percent * 8) / 100;
+    for (uint8_t i = 0; i < filled; i++) {
+        progress_bar[i] = '█';
+    }
+
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%s %u%% C:%u D:%u",
+            progress_bar, progress_percent, total_cycles, detections);
+
+    progress_text_.set(buffer);
+    progress_text_.set_style(Theme::getInstance()->fg_blue);
+
+    // Switch to alert mode if high threat detected
+    if (detections > 0) {
+        set_display_mode(DisplayMode::ALERT);
+        snprintf(buffer, sizeof(buffer), "⚠️ DETECTED: %u threats found!", detections);
+        alert_text_.set(buffer);
+        alert_text_.set_style(Theme::getInstance()->fg_red);
+    }
+
+    set_dirty();
+}
+
+void ConsoleStatusBar::update_alert_status(ThreatLevel threat, size_t total_drones, const std::string& alert_msg) {
+    set_display_mode(DisplayMode::ALERT);
+
+    const char* icons[5] = {"ℹ️", "⚠️", "🟠", "🔴", "🚨"}; // NONE to CRITICAL
+    const char* colors[5] = {"white", "yellow", "orange", "red", "maroon"};
+
+    size_t icon_idx = std::min(static_cast<size_t>(threat), size_t(4));
+
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "%s ALERT: %zu drones | %s",
+            icons[icon_idx], total_drones, alert_msg.c_str());
+
+    alert_text_.set(buffer);
+    alert_text_.set_style((threat >= ThreatLevel::CRITICAL) ? Theme::getInstance()->fg_red : Theme::getInstance()->fg_yellow);
+
+    set_dirty();
+}
+
+void ConsoleStatusBar::update_normal_status(const std::string& primary, const std::string& secondary) {
+    set_display_mode(DisplayMode::NORMAL);
+
+    char buffer[64];
+    if (secondary.empty()) {
+        snprintf(buffer, sizeof(buffer), "%s", primary.c_str());
+    } else {
+        snprintf(buffer, sizeof(buffer), "%s | %s", primary.c_str(), secondary.c_str());
+    }
+
+    normal_text_.set(buffer);
+    normal_text_.set_style(Theme::getInstance()->fg_light->foreground);
+
+    set_dirty();
+}
+
+void ConsoleStatusBar::set_display_mode(DisplayMode mode) {
+    if (mode_ == mode) return;
+
+    mode_ = mode;
+
+    // Hide all texts initially
+    progress_text_.hidden(true);
+    alert_text_.hidden(true);
+    normal_text_.hidden(true);
+
+    // Show appropriate text based on mode
+    switch (mode) {
+        case DisplayMode::SCANNING:
+            progress_text_.hidden(false);
+            break;
+        case DisplayMode::ALERT:
+            alert_text_.hidden(false);
+            break;
+        case DisplayMode::NORMAL:
+        default:
+            normal_text_.hidden(false);
+            break;
+    }
+
+    set_dirty();
+}
+
+void ConsoleStatusBar::paint(Painter& painter) {
+    // Custom rendering with subtle background for console feel
+    View::paint(painter);
+
+    // Add subtle background stripe
+    if (mode_ == DisplayMode::ALERT) {
+        painter.fill_rectangle({parent_rect_.left(), parent_rect_.top(),
+                               parent_rect_.width(), 2}, Color(32, 0, 0)); // Subtle red stripe
+    }
+}
+
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
     : nav_(nav),
       displayed_drones_{},
