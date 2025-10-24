@@ -9,7 +9,6 @@
 #include "ui_drone_config.hpp"               // Consolidated types and enums
 #include "ui_drone_audio.hpp"                // AudioManager definition - Migrated Session 5
 #include "ui_drone_settings_complete.hpp"             // Settings structures
-#include "ui_minimal_drone_analyzer.hpp"     // For LoadingScreenView main view push
 #include "freqman_db.hpp"               // Frequency database (standard pattern)
 #include "ui_drone_hardware.hpp"        // Hardware controller
 #include "ui_drone_scanner.hpp"         // Scanner controller

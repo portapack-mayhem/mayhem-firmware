@@ -7,9 +7,7 @@
 #include "ui.hpp"
 #include "ui_text.hpp"
 #include "ui_navigation.hpp"
-
-// Forward declaration of main view
-class EnhancedDroneSpectrumAnalyzerView;
+#include "ui_drone_ui.hpp"
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -21,11 +19,11 @@ public:
 
     void paint(Painter& painter) override;
 
-    bool on_key(const KeyEvent key) override {
+    bool on_key([[maybe_unused]] const KeyEvent key) override {
         return false;  // Don't handle keys during loading
     }
 
-    bool on_touch(const TouchEvent event) override {
+    bool on_touch([[maybe_unused]] const TouchEvent event) override {
         return false;  // Don't handle touch during loading
     }
 

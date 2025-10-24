@@ -27,7 +27,7 @@ application_information_t _application_information_enhanced_drone_analyzer = {
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Enhanced Drone Analyzer v0.3",
+    /*.app_name = */ "EDA v0.3",
     /*.bitmap_data = */ {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
