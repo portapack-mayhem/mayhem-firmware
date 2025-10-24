@@ -19,6 +19,50 @@
 #include <vector>
 #include <mutex>
 namespace ui::external_app::enhanced_drone_analyzer {
+// PHASE 1: Smart Threat Header Component for Modern UI Design
+class SmartThreatHeader : public View {
+public:
+    explicit SmartThreatHeader(Rect parent_rect = {0, 0, screen_width, 48});
+    ~SmartThreatHeader() = default;
+
+    // Core update function - single entry point for all threat data
+    void update(ThreatLevel max_threat, size_t approaching, size_t static_count,
+                size_t receding, rf::Frequency current_freq, bool is_scanning);
+
+    // Individual setters for granular control
+    void set_max_threat(ThreatLevel threat);
+    void set_movement_counts(size_t approaching, size_t static_count, size_t receding);
+    void set_current_frequency(rf::Frequency freq);
+    void set_scanning_state(bool is_scanning);
+
+    // Visual customization
+    void set_color_scheme(bool use_dark_theme);
+
+    SmartThreatHeader(const SmartThreatHeader&) = delete;
+    SmartThreatHeader& operator=(const SmartThreatHeader&) = delete;
+
+private:
+    // UI Components - modular design
+    ProgressBar threat_progress_bar_ {{0, 0, screen_width, 16}};
+    Text threat_status_main_ {{0, 20, screen_width, 16}, "THREAT: LOW | ▲0 ■0 ▼0"};
+    Text threat_frequency_ {{0, 38, screen_width, 16}, "2400.0MHz SCANNING"};
+
+    // Color mapping functions
+    Color get_threat_bar_color(ThreatLevel level) const;
+    Color get_threat_text_color(ThreatLevel level) const;
+    std::string get_threat_icon_text(ThreatLevel level) const;
+
+    void paint(Painter& painter) override;
+
+    // State variables for rendering
+    ThreatLevel current_threat_ = ThreatLevel::NONE;
+    bool is_scanning_ = false;
+    rf::Frequency current_freq_ = 2400000000ULL; // Default 2.4GHz
+    size_t approaching_count_ = 0;
+    size_t static_count_ = 0;
+    size_t receding_count_ = 0;
+};
+
 class DroneDisplayController {
 public:
     explicit DroneDisplayController(NavigationView& nav);

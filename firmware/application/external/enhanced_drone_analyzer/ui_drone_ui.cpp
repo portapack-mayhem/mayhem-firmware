@@ -5,6 +5,163 @@
 #include <sstream>
 #include <mutex>
 namespace ui::external_app::enhanced_drone_analyzer {
+
+// PHASE 1 IMPLEMENTATION: Smart Threat Header Component
+SmartThreatHeader::SmartThreatHeader(Rect parent_rect)
+    : View(parent_rect) {
+    add_children({
+        &threat_progress_bar_,
+        &threat_status_main_,
+        &threat_frequency_
+    });
+
+    // Initialize default state
+    update(ThreatLevel::NONE, 0, 0, 0, 2400000000ULL, false);
+}
+
+void SmartThreatHeader::update(ThreatLevel max_threat, size_t approaching,
+                               size_t static_count, size_t receding,
+                               rf::Frequency current_freq, bool is_scanning) {
+    current_threat_ = max_threat;
+    is_scanning_ = is_scanning;
+    current_freq_ = current_freq;
+    approaching_count_ = approaching;
+    static_count_ = static_count;
+    receding_count_ = receding;
+
+    // Update progress bar state based on threat
+    size_t total_drones = approaching + static_count + receding;
+    threat_progress_bar_.set_value(total_drones * 10); // Rough scale
+    threat_progress_bar_.set_style(get_threat_bar_color(max_threat));
+
+    // Update status line with threat summary
+    char buffer[64];
+    std::string threat_name = get_threat_icon_text(max_threat);
+    if (total_drones > 0) {
+        snprintf(buffer, sizeof(buffer), "THREAT: %s | ▲%zu ■%zu ▼%zu",
+                threat_name.c_str(), approaching, static_count, receding);
+    } else if (is_scanning) {
+        snprintf(buffer, sizeof(buffer), "SCANNING: ▲%zu ■%zu ▼%zu",
+                approaching, static_count, receding);
+    } else {
+        snprintf(buffer, sizeof(buffer), "READY: No Threats Detected");
+    }
+    threat_status_main_.set(buffer);
+
+    // Update frequency display
+    if (current_freq > 0) {
+        char freq_buffer[16];
+        if (current_freq >= 1000000000) { // GHz
+            float freq_ghz = static_cast<float>(current_freq) / 1000000000.0f;
+            if (is_scanning) {
+                snprintf(freq_buffer, sizeof(freq_buffer), "%.2fGHz SCANNING", freq_ghz);
+            } else {
+                snprintf(freq_buffer, sizeof(freq_buffer), "%.2fGHz READY", freq_ghz);
+            }
+        } else { // MHz
+            float freq_mhz = static_cast<float>(current_freq) / 1000000.0f;
+            if (is_scanning) {
+                snprintf(freq_buffer, sizeof(freq_buffer), "%.1fMHz SCANNING", freq_mhz);
+            } else {
+                snprintf(freq_buffer, sizeof(freq_buffer), "%.1fMHz READY", freq_mhz);
+            }
+        }
+        threat_frequency_.set(freq_buffer);
+    } else {
+        threat_frequency_.set("NO SIGNAL");
+    }
+
+    // Apply colors to text elements
+    Color threat_color = get_threat_text_color(max_threat);
+    threat_status_main_.set_style(threat_color);
+    threat_frequency_.set_style(threat_color);
+
+    set_dirty();
+}
+
+void SmartThreatHeader::set_max_threat(ThreatLevel threat) {
+    if (threat != current_threat_) {
+        update(threat, approaching_count_, static_count_, receding_count_,
+               current_freq_, is_scanning_);
+    }
+}
+
+void SmartThreatHeader::set_movement_counts(size_t approaching, size_t static_count, size_t receding) {
+    update(current_threat_, approaching, static_count, receding,
+           current_freq_, is_scanning_);
+}
+
+void SmartThreatHeader::set_current_frequency(rf::Frequency freq) {
+    if (freq != current_freq_) {
+        update(current_threat_, approaching_count_, static_count_, receding_count_,
+               freq, is_scanning_);
+    }
+}
+
+void SmartThreatHeader::set_scanning_state(bool is_scanning) {
+    if (is_scanning != is_scanning_) {
+        update(current_threat_, approaching_count_, static_count_, receding_count_,
+               current_freq_, is_scanning);
+    }
+}
+
+void SmartThreatHeader::set_color_scheme(bool use_dark_theme) {
+    // Future implementation for theme switching
+    (void)use_dark_theme; // Suppress unused parameter warning
+}
+
+Color SmartThreatHeader::get_threat_bar_color(ThreatLevel level) const {
+    switch (level) {
+        case ThreatLevel::CRITICAL: return Color::red();
+        case ThreatLevel::HIGH: return Color(255, 140, 0); // Dark orange
+        case ThreatLevel::MEDIUM: return Color::yellow();
+        case ThreatLevel::LOW: return Color::green();
+        case ThreatLevel::NONE:
+        default: return Color::blue(); // Safe blue for no threats
+    }
+}
+
+Color SmartThreatHeader::get_threat_text_color(ThreatLevel level) const {
+    // Map threat levels to colors with good contrast
+    switch (level) {
+        case ThreatLevel::CRITICAL: return Color::red();
+        case ThreatLevel::HIGH: return Color(255, 165, 0); // Orange
+        case ThreatLevel::MEDIUM: return Color::yellow();
+        case ThreatLevel::LOW: return Color::green();
+        case ThreatLevel::NONE:
+        default: return Color::white(); // White for neutral state
+    }
+}
+
+std::string SmartThreatHeader::get_threat_icon_text(ThreatLevel level) const {
+    switch (level) {
+        case ThreatLevel::CRITICAL: return "CRITICAL 🔴";
+        case ThreatLevel::HIGH: return "HIGH 🟠";
+        case ThreatLevel::MEDIUM: return "MEDIUM 🟡";
+        case ThreatLevel::LOW: return "LOW 🟢";
+        case ThreatLevel::NONE:
+        default: return "CLEAR ✅";
+    }
+}
+
+void SmartThreatHeader::paint(Painter& painter) {
+    // Custom rendering for threat visualization
+    View::paint(painter);
+
+    // Optional: Add gradient background based on threat level
+    if (current_threat_ >= ThreatLevel::HIGH) {
+        // Pulse effect for high threats
+        static uint32_t pulse_timer = 0;
+        pulse_timer++;
+        uint8_t alpha = (pulse_timer % 20) < 10 ? 50 : 100;
+
+        Color pulse_color = get_threat_bar_color(current_threat_);
+        pulse_color = Color(pulse_color.r, pulse_color.g, pulse_color.b, alpha);
+
+        painter.fill_rectangle({parent_rect_.left(), parent_rect_.top(),
+                               parent_rect_.width(), 4}, pulse_color);
+    }
+}
 DroneDisplayController::DroneDisplayController(NavigationView& nav)
     : nav_(nav),
       displayed_drones_{},
