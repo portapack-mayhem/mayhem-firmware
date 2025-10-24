@@ -1188,39 +1188,48 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
     : nav_(nav),
       hardware_(std::make_unique<DroneHardwareController>()),
       scanner_(std::make_unique<DroneScanner>()),
-audio_(std::make_unique<AudioManager>()),
+      audio_(std::make_unique<AudioManager>()),
       ui_controller_(std::make_unique<DroneUIController>(nav, *hardware_, *scanner_, *audio_)),
       display_controller_(std::make_unique<DroneDisplayController>(nav)),
       scanning_coordinator_(std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_, *audio_))
 {
     scanning_coordinator_->update_runtime_parameters(ui_controller_->settings());
+
+    // PHASE 3: Initialize modern UI components
+    initialize_modern_layout();
+
     button_start_.on_select = [this](Button&) {
         handle_start_stop_button();
     };
     button_menu_.on_select = [this, &nav](Button&) {
         handle_menu_button();
     };
-        nav.push<AuthorContactView>();
-    };
+
     field_scanning_mode_.on_change = [this](size_t index) {
         DroneScanner::ScanningMode mode = static_cast<DroneScanner::ScanningMode>(index);
         scanner_->set_scanning_mode(mode);
         display_controller_->set_scanning_status(ui_controller_->is_scanning(),
                                                scanner_->scanning_mode_name());
+        // Update new UI components
+        update_modern_layout();
     };
+
     int initial_mode = static_cast<int>(scanner_->get_scanning_mode());
     field_scanning_mode_.set_value(initial_mode);
-    add_child(&display_controller_->big_display());
-    add_child(&display_controller_->scanning_progress());
-    add_child(&display_controller_->text_threat_summary());
-    add_child(&display_controller_->text_status_info());
-    add_child(&display_controller_->text_scanner_stats());
-    add_child(&display_controller_->text_trends_compact());
-    add_child(&display_controller_->text_drone_1());
-    add_child(&display_controller_->text_drone_2());
-    add_child(&display_controller_->text_drone_3());
+
+    // PHASE 3: Add modern UI components instead of old scattered text fields
+    add_child(smart_header_.get());
+    add_child(status_bar_.get());
+    for (auto& card : threat_cards_) {
+        add_child(card.get());
+    }
+
+    // Legacy buttons for now (will be repositioned in final design)
     add_child(&button_start_);
     add_child(&button_menu_);
+
+    // Initial layout update
+    update_modern_layout();
 }
 void EnhancedDroneSpectrumAnalyzerView::focus() {
     button_start_.focus();
@@ -1274,6 +1283,90 @@ bool EnhancedDroneSpectrumAnalyzerView::handle_menu_button() {
     ui_controller_->show_menu();
     return true;
 }
+
+// PHASE 3: Modern Layout Implementation - State-based UI adaptation
+void EnhancedDroneSpectrumAnalyzerView::initialize_modern_layout() {
+    // Initialize new UI components with proper positioning
+    smart_header_ = std::make_unique<SmartThreatHeader>(Rect{0, 0, screen_width, 48});
+    status_bar_ = std::make_unique<ConsoleStatusBar>(0, Rect{0, screen_height - 32, screen_width, 16});
+
+    // Initialize threat cards in vertical stack below header
+    size_t card_y_pos = 52; // Start below header (48 + 4 margin)
+    for (size_t i = 0; i < threat_cards_.size(); ++i) {
+        threat_cards_[i] = std::make_unique<ThreatCard>(i, Rect{0, card_y_pos, screen_width, 24});
+        card_y_pos += 26; // 24 + 2 margin
+    }
+
+    // Initial state update
+    handle_scanner_update();
+}
+
+void EnhancedDroneSpectrumAnalyzerView::update_modern_layout() {
+    // Refresh all modern UI components with current scanner state
+    handle_scanner_update();
+}
+
+void EnhancedDroneSpectrumAnalyzerView::handle_scanner_update() {
+    if (!scanner_) return;
+
+    // Get current scanner state
+    ThreatLevel max_threat = scanner_->get_max_detected_threat();
+    size_t approaching = scanner_->get_approaching_count();
+    size_t static_count = scanner_->get_static_count();
+    size_t receding = scanner_->get_receding_count();
+    bool is_scanning = scanner_->is_scanning_active();
+    rf::Frequency current_freq = scanner_->get_current_scanning_frequency();
+    uint32_t total_detections = scanner_->get_total_detections();
+
+    // Update Smart Threat Header - single consolidated update
+    smart_header_->update(max_threat, approaching, static_count, receding,
+                         current_freq, is_scanning);
+
+    // Update status bar based on scanning state
+    if (is_scanning) {
+        // PHASE 3: Estimate progress based on scan cycles (need improvement)
+        uint32_t cycles = scanner_->get_scan_cycles();
+        uint32_t progress = std::min(cycles * 10, 100u); // Rough estimate
+        status_bar_->update_scanning_progress(progress, cycles, total_detections);
+    } else if (approaching + static_count + receding > 0) {
+        // Alert mode when threats detected but not scanning
+        size_t total_drones = approaching + static_count + receding;
+        status_bar_->update_alert_status(max_threat, total_drones, "Threats detected!");
+    } else {
+        // Normal ready state
+        status_bar_->update_normal_status("EDA Ready", "No threats detected");
+    }
+
+    // Update threat cards with current top 3 threats
+    for (size_t i = 0; i < std::min(3u, DisplayDroneEntry::MAX_DISPLAYED_DRONES); ++i) {
+        const auto& drone = scanner_->getTrackedDrone(i);
+        if (drone.update_count > 0 && threat_cards_[i]) {
+            // Create a display entry for the card
+            DisplayDroneEntry entry;
+            entry.frequency = drone.frequency;
+            entry.type = drone.type;
+            entry.threat = drone.threat_level;
+            entry.rssi = drone.rssi;
+            entry.last_seen = chTimeNow();
+            entry.type_name = drone.model_name; // Assuming scanner provides this
+            entry.display_color = Color::white(); // Default, should be calculated
+
+            threat_cards_[i]->update_card(entry);
+        } else {
+            // Clear inactive cards
+            if (threat_cards_[i]) {
+                threat_cards_[i]->clear_card();
+            }
+        }
+    }
+    // Clear remaining cards if less than 3 threats
+    for (size_t i = std::min(3u, DisplayDroneEntry::MAX_DISPLAYED_DRONES); i < 3; ++i) {
+        if (threat_cards_[i]) {
+            threat_cards_[i]->clear_card();
+        }
+    }
+}
+
 LoadingScreenView::LoadingScreenView(NavigationView& nav)
     : nav_(nav),
       text_eda_(

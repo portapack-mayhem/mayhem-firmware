@@ -314,6 +314,11 @@ public:
     void on_show() override;
     void on_hide() override;
 private:
+    // PHASE 3: New Modern UI Layout Components
+    std::unique_ptr<SmartThreatHeader> smart_header_;     // New compact header
+    std::unique_ptr<ConsoleStatusBar> status_bar_;        // New console-style status
+    std::array<std::unique_ptr<ThreatCard>, 3> threat_cards_; // Threat display cards
+
     NavigationView& nav_;
     std::unique_ptr<DroneHardwareController> hardware_;
     std::unique_ptr<DroneScanner> scanner_;
@@ -321,9 +326,18 @@ private:
     std::unique_ptr<DroneUIController> ui_controller_;
     std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
     std::unique_ptr<DroneDisplayController> display_controller_; // Now separate
-    Button button_start_{{0, 0}, "START/STOP"};
-    Button button_menu_{{120, 0}, "settings"};
+
+    // Legacy buttons (keep for backward compatibility, will reposition)
+    Button button_start_{{screen_width - 120, screen_height - 32}, "START/STOP"};
+    Button button_menu_{{screen_width - 60, screen_height - 32}, "⚙️"};
+
     OptionsField field_scanning_mode_{{80, 190, 160, 24}, OptionsField::StringOptions{"Database Scan", "Wideband Monitor", "Hybrid Discovery"}, "Mode"};
+
+    // PHASE 3: Modern UI Layout Management
+    void initialize_modern_layout();
+    void update_modern_layout();
+    void handle_scanner_update();
+
     void start_scanning_thread();
     void stop_scanning_thread();
     bool handle_start_stop_button();
