@@ -83,7 +83,6 @@ static constexpr size_t DETECTION_MEMORY_SIZE = DETECTION_TABLE_SIZE * sizeof(ui
 
 // Aliases for cleaner code
 using Frequency = rf::Frequency;
-using ThreatLevel = ui::external_app::enhanced_drone_analyzer::ThreatLevel; // Avoid self-reference if need
 
 enum class DroneType {
     UNKNOWN = 0,
@@ -159,7 +158,7 @@ enum class MovementTrend : uint8_t {
               name_offset(0) {}
 
         bool is_valid() const {
-            return frequency_hz >= 50000000 && frequency_hz <= 6000000000UL &&
+            return frequency_hz >= 50000000ULL && frequency_hz <= 6000000000ULL &&
                    rssi_threshold_db >= -120 && rssi_threshold_db <= -20;
         }
     };
@@ -296,13 +295,13 @@ public:
 
     static std::vector<std::string> get_preset_names();
 
-private:
-    static const std::vector<DronePreset> s_presets;
-};
-
     static std::vector<DroneType> get_available_types();
 
     static std::string get_type_display_name(DroneType type);
+
+private:
+    static const std::vector<DronePreset> s_presets;
+};
 
 class DronePresetSelector {
 public:

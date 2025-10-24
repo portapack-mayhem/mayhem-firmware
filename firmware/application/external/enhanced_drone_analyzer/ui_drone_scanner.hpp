@@ -10,6 +10,7 @@
 #include "ui_drone_config.hpp"       // Consolidated types, enums, and validation
 #include "ui_drone_hardware.hpp"     // Hardware controller for scanning
 #include "log_file.hpp"              // For DroneDetectionLogger (merged)
+#include "ch.h"                      // ChibiOS RTOS functions
 
 #include <vector>
 #include <array>
@@ -338,7 +339,7 @@ inline std::string DroneScanner::DroneDetectionLogger::format_session_summary(si
         "PERFORMANCE:\n"
         "Avg. detections/cycle: %.2f\n"
         "Detection rate: %.1f/sec\n"
-        "Logged entries: %u\n\n"
+        "Logged entries: %lu\n\n"
         "Enhanced Drone Analyzer v0.3",
         static_cast<float>(session_duration_ms) / 1000.0f,
         scan_cycles,
@@ -450,8 +451,8 @@ void ScanningCoordinator::start_coordinated_scanning() {
     scanning_thread_ = chThdCreateFromHeap(nullptr,
                                          SCANNING_THREAD_STACK_SIZE,
                                          "coord_scan", // Descriptive name
-                                         NORMALPRIO,
-                                         scanning_thread_function,
+                                         (tprio_t)NORMALPRIO,
+                                         (tfunc_t)scanning_thread_function,
                                          this);
 
     if (!scanning_thread_) {

@@ -2,122 +2,77 @@
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:86:64: error: 'ThreatLevel' in namespace 'ui::external_app::enhanced_drone_analyzer' does not name a type
+   86 | using ThreatLevel = ui::external_app::enhanced_drone_analyzer::ThreatLevel; // Avoid self-reference if need
+      |                                                                ^~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In constructor 'ui::external_app::enhanced_drone_analyzer::DroneFrequencyEntry::DroneFrequencyEntry(rf::Frequency, ui::external_app::enhanced_drone_analyzer::DroneType, ui::external_app::enhanced_drone_analyzer::ThreatLevel, int32_t, uint32_t, const char*)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:79:58: warning: unused parameter 'bw_hz' [-Wunused-parameter]
-   79 |                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:153:58: warning: unused parameter 'bw_hz' [-Wunused-parameter]
+  153 |                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
       |                                                 ~~~~~~~~~^~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:79:77: warning: unused parameter 'desc' [-Wunused-parameter]
-   79 |                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:153:77: warning: unused parameter 'desc' [-Wunused-parameter]
+  153 |                            int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
       |                                                                 ~~~~~~~~~~~~^~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In member function 'bool ui::external_app::enhanced_drone_analyzer::DroneFrequencyEntry::is_valid() const':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:88:61: warning: comparison of integer expressions of different signedness: 'const Frequency' {aka 'const long long int'} and 'long long unsigned int' [-Wsign-compare]
-   88 |             return frequency_hz >= 50000000 && frequency_hz <= 6000000000UL &&
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:162:61: warning: comparison of integer expressions of different signedness: 'const Frequency' {aka 'const long long int'} and 'long long unsigned int' [-Wsign-compare]
+  162 |             return frequency_hz >= 50000000 && frequency_hz <= 6000000000UL &&
       |                                                ~~~~~~~~~~~~~^~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::TrackedDrone::calculate_simple_trend()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:127:20: error: 'TREND_THRESHOLD_DB' was not declared in this scope
-  127 |         if (diff > TREND_THRESHOLD_DB) {
-      |                    ^~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In static member function 'static bool ui::external_app::enhanced_drone_analyzer::SimpleDroneValidation::validate_frequency_range(rf::Frequency)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:175:47: warning: comparison of integer expressions of different signedness: 'rf::Frequency' {aka 'long long int'} and 'long long unsigned int' [-Wsign-compare]
-  175 |         return freq_hz >= 50000000 && freq_hz <= 6000000000UL;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:249:47: warning: comparison of integer expressions of different signedness: 'rf::Frequency' {aka 'long long int'} and 'long long unsigned int' [-Wsign-compare]
+  249 |         return freq_hz >= 50000000 && freq_hz <= 6000000000UL;
       |                                       ~~~~~~~~^~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:189:26: error: 'WIDEBAND_MAX_SLICES' was not declared in this scope
-  189 |     WidebandSlice slices[WIDEBAND_MAX_SLICES];
-      |                          ^~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::WidebandScanData::reset()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:198:20: error: 'WIDEBAND_DEFAULT_MIN' was not declared in this scope
-  198 |         min_freq = WIDEBAND_DEFAULT_MIN;
-      |                    ^~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:199:20: error: 'WIDEBAND_DEFAULT_MAX' was not declared in this scope
-  199 |         max_freq = WIDEBAND_DEFAULT_MAX;
-      |                    ^~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:200:28: error: 'slices' was not declared in this scope; did you mean 'slice'?
-  200 |         for (auto& slice : slices) {
-      |                            ^~~~~~
-      |                            slice
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:342:1: error: 'static' may not be used when defining (as opposed to declaring) a static data member [-fpermissive]
-  342 | static const std::vector<DronePreset> DroneFrequencyPresets::s_presets = {
-      | ^~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:410:1: error: narrowing conversion of '5800000000' from 'long long int' to 'uint32_t' {aka 'long unsigned int'} [-Wnarrowing]
-  410 | };
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:383:1: error: narrowing conversion of '5800000000' from 'long long int' to 'uint32_t' {aka 'long unsigned int'} [-Wnarrowing]
+  383 | };
       | ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In constructor 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_preset_menu(ui::NavigationView&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::PresetMenuView::PresetMenuView(std::vector<std::__cxx11::basic_string<char> >, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:451:59: error: no matching function for call to 'ui::MenuView::MenuView(<brace-enclosed initializer list>)'
-  451 |               on_selected_fn(callback), preset_names(names) {
-      |                                                           ^
-In file included from /havoc/firmware/application/./ui_navigation.hpp:37,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:4,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/ui/ui_menu.hpp:81:5: note: candidate: 'ui::MenuView::MenuView(ui::Rect, bool)'
-   81 |     MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
-      |     ^~~~~~~~
-/havoc/firmware/application/ui/ui_menu.hpp:81:19: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'ui::Rect'
-   81 |     MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
-      |              ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In member function 'virtual bool ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_preset_menu(ui::NavigationView&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::PresetMenuView::on_key(ui::KeyEvent)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:464:30: error: 'get_selected_index' was not declared in this scope
-  464 |                 size_t idx = get_selected_index();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:440:30: error: 'get_selected_index' was not declared in this scope
+  440 |                 size_t idx = get_selected_index();
       |                              ^~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:484:24: error: no declaration matches 'std::vector<ui::external_app::enhanced_drone_analyzer::DroneType> ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_available_types()'
-  484 | std::vector<DroneType> DroneFrequencyPresets::get_available_types() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:460:24: error: no declaration matches 'std::vector<ui::external_app::enhanced_drone_analyzer::DroneType> ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_available_types()'
+  460 | std::vector<DroneType> DroneFrequencyPresets::get_available_types() {
       |                        ^~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:484:24: note: no functions named 'std::vector<ui::external_app::enhanced_drone_analyzer::DroneType> ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_available_types()'
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:316:7: note: 'class ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets' defined here
-  316 | class DroneFrequencyPresets {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:460:24: note: no functions named 'std::vector<ui::external_app::enhanced_drone_analyzer::DroneType> ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_available_types()'
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:289:7: note: 'class ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets' defined here
+  289 | class DroneFrequencyPresets {
       |       ^~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:492:13: error: no declaration matches 'std::string ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_type_display_name(ui::external_app::enhanced_drone_analyzer::DroneType)'
-  492 | std::string DroneFrequencyPresets::get_type_display_name(DroneType type) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:468:13: error: no declaration matches 'std::string ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_type_display_name(ui::external_app::enhanced_drone_analyzer::DroneType)'
+  468 | std::string DroneFrequencyPresets::get_type_display_name(DroneType type) {
       |             ^~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:492:13: note: no functions named 'std::string ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_type_display_name(ui::external_app::enhanced_drone_analyzer::DroneType)'
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:316:7: note: 'class ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets' defined here
-  316 | class DroneFrequencyPresets {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:468:13: note: no functions named 'std::string ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets::get_type_display_name(ui::external_app::enhanced_drone_analyzer::DroneType)'
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:289:7: note: 'class ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets' defined here
+  289 | class DroneFrequencyPresets {
       |       ^~~~~~~~~~~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In constructor 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_type_filtered_presets(ui::NavigationView&, ui::external_app::enhanced_drone_analyzer::DroneType, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::FilteredPresetMenuView::FilteredPresetMenuView(std::vector<std::__cxx11::basic_string<char> >, std::vector<ui::external_app::enhanced_drone_analyzer::DronePreset>, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:516:48: error: 'get_type_display_name' is not a member of 'ui::external_app::enhanced_drone_analyzer::DroneFrequencyPresets'
-  516 |             : MenuView({DroneFrequencyPresets::get_type_display_name(presets[0].drone_type) + " Presets", Theme::getInstance()->fg_light->foreground, nullptr}),
-      |                                                ^~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:517:86: error: no matching function for call to 'ui::MenuView::MenuView(<brace-enclosed initializer list>)'
-  517 |               on_selected_fn(callback), preset_names(names), filtered_presets(presets) {}
-      |                                                                                      ^
-In file included from /havoc/firmware/application/./ui_navigation.hpp:37,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:4,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/ui/ui_menu.hpp:81:5: note: candidate: 'ui::MenuView::MenuView(ui::Rect, bool)'
-   81 |     MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
-      |     ^~~~~~~~
-/havoc/firmware/application/ui/ui_menu.hpp:81:19: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'ui::Rect'
-   81 |     MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
-      |              ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp: In member function 'virtual bool ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_type_filtered_presets(ui::NavigationView&, ui::external_app::enhanced_drone_analyzer::DroneType, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::FilteredPresetMenuView::on_key(ui::KeyEvent)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:521:30: error: 'get_selected_index' was not declared in this scope
-  521 |                 size_t idx = get_selected_index();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:501:30: error: 'get_selected_index' was not declared in this scope
+  501 |                 size_t idx = get_selected_index();
       |                              ^~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In constructor 'ui::external_app::enhanced_drone_analyzer::DroneAudioController::DroneAudioController()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:84:5: warning: 'ui::external_app::enhanced_drone_analyzer::DroneAudioController::audio_manager_' should be initialized in the member initialization list [-Weffc++]
-   84 |     DroneAudioController() : audio_enabled_(true), last_beep_time_(0) {} // DEPRECATED: Use AudioManager instead
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:83:5: warning: 'ui::external_app::enhanced_drone_analyzer::DroneAudioController::audio_manager_' should be initialized in the member initialization list [-Weffc++]
+   83 |     DroneAudioController() : audio_enabled_(true), last_beep_time_(0) {} // DEPRECATED: Use AudioManager instead
       |     ^~~~~~~~~~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::DroneAudioController::play_sos_signal()':
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:118:23: error: 'chVTGetSystemTime' was not declared in this scope
+  118 |     last_beep_time_ = chVTGetSystemTime();
+      |                       ^~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In member function 'uint16_t ui::external_app::enhanced_drone_analyzer::DroneAudioController::get_beep_frequency(ui::external_app::enhanced_drone_analyzer::ThreatLevel) const':
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:121:45: warning: unused parameter 'level' [-Wunused-parameter]
   121 |     uint16_t get_beep_frequency(ThreatLevel level) const { return 1000; }
       |                                 ~~~~~~~~~~~~^~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:145:49: error: 'DroneAudioSettings' has not been declared
+  145 |     DroneAudioSettingsView(NavigationView& nav, DroneAudioSettings& settings, DroneAudioController& audio_controller);
+      |                                                 ^~~~~~~~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:162:5: error: 'DroneAudioSettings' does not name a type; did you mean 'DroneAudioSettingsView'?
+  162 |     DroneAudioSettings& audio_settings_;  // Renamed to avoid confusion with parameter
+      |     ^~~~~~~~~~~~~~~~~~
+      |     DroneAudioSettingsView
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:166:82: error: could not convert '{ui::Rect(10, 30, 200, 16), "Enable Audio Alerts"}' from '<brace-enclosed initializer list>' to 'ui::Checkbox'
   166 |     Checkbox checkbox_audio_enabled_{Rect{10, 30, 200, 16}, "Enable Audio Alerts"};
       |                                                                                  ^
@@ -128,252 +83,230 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
       |                                                                              ^
       |                                                                              |
       |                                                                              <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::DroneAudioSettingsView::set_on_audio_settings_changed(std::function<void()>)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:157:9: error: 'on_audio_settings_changed_' was not declared in this scope; did you mean 'set_on_audio_settings_changed'?
-  157 |         on_audio_settings_changed_ = callback;  // RESTORE: Implement missing audio settings callback
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
-      |         set_on_audio_settings_changed
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:233:1: error: 'AudioManager' does not name a type
-  233 | AudioManager::AudioManager()
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:235:1: error: 'AudioManager' does not name a type
+  235 | AudioManager::AudioManager()
       | ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:239:1: error: 'AudioManager' does not name a type
-  239 | AudioManager::~AudioManager() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:241:1: error: 'AudioManager' does not name a type
+  241 | AudioManager::~AudioManager() {
       | ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:243:6: error: 'AudioManager' has not been declared
-  243 | void AudioManager::initialize_audio_device() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:245:6: error: 'AudioManager' has not been declared
+  245 | void AudioManager::initialize_audio_device() {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:247:6: error: 'AudioManager' has not been declared
-  247 | void AudioManager::cleanup_audio_device() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:249:6: error: 'AudioManager' has not been declared
+  249 | void AudioManager::cleanup_audio_device() {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:251:6: error: 'AudioManager' has not been declared
-  251 | void AudioManager::play_detection_beep(ThreatLevel level) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:253:6: error: 'AudioManager' has not been declared
+  253 | void AudioManager::play_detection_beep(ThreatLevel level) {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:251:40: error: variable or field 'play_detection_beep' declared void
-  251 | void AudioManager::play_detection_beep(ThreatLevel level) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:253:40: error: variable or field 'play_detection_beep' declared void
+  253 | void AudioManager::play_detection_beep(ThreatLevel level) {
       |                                        ^~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:251:40: error: 'ThreatLevel' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::ThreatLevel'?
-  251 | void AudioManager::play_detection_beep(ThreatLevel level) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:253:40: error: 'ThreatLevel' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::ThreatLevel'?
+  253 | void AudioManager::play_detection_beep(ThreatLevel level) {
       |                                        ^~~~~~~~~~~
       |                                        ui::external_app::enhanced_drone_analyzer::ThreatLevel
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:46:12: note: 'ui::external_app::enhanced_drone_analyzer::ThreatLevel' declared here
-   46 | enum class ThreatLevel {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:120:12: note: 'ui::external_app::enhanced_drone_analyzer::ThreatLevel' declared here
+  120 | enum class ThreatLevel {
       |            ^~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:273:6: error: 'AudioManager' has not been declared
-  273 | void AudioManager::play_sos_signal() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:275:6: error: 'AudioManager' has not been declared
+  275 | void AudioManager::play_sos_signal() {
       |      ^~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::play_sos_signal()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:274:10: error: 'audio_enabled_' was not declared in this scope
-  274 |     if (!audio_enabled_) return;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:276:10: error: 'audio_enabled_' was not declared in this scope
+  276 |     if (!audio_enabled_) return;
       |          ^~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:298:5: error: 'last_beep_time_' was not declared in this scope
-  298 |     last_beep_time_ = chTimeNow();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:301:5: error: 'last_beep_time_' was not declared in this scope
+  301 |     last_beep_time_ = chVTGetSystemTime();
       |     ^~~~~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:301:23: error: 'chVTGetSystemTime' was not declared in this scope
+  301 |     last_beep_time_ = chVTGetSystemTime();
+      |                       ^~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:303:6: error: 'AudioManager' has not been declared
-  303 | void AudioManager::stop_audio() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:306:6: error: 'AudioManager' has not been declared
+  306 | void AudioManager::stop_audio() {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:307:10: error: 'AudioManager' has not been declared
-  307 | uint16_t AudioManager::get_beep_frequency(ThreatLevel level) const {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:310:10: error: 'AudioManager' has not been declared
+  310 | uint16_t AudioManager::get_beep_frequency(ThreatLevel level) const {
       |          ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:307:43: error: 'ThreatLevel' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::ThreatLevel'?
-  307 | uint16_t AudioManager::get_beep_frequency(ThreatLevel level) const {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:310:43: error: 'ThreatLevel' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::ThreatLevel'?
+  310 | uint16_t AudioManager::get_beep_frequency(ThreatLevel level) const {
       |                                           ^~~~~~~~~~~
       |                                           ui::external_app::enhanced_drone_analyzer::ThreatLevel
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:46:12: note: 'ui::external_app::enhanced_drone_analyzer::ThreatLevel' declared here
-   46 | enum class ThreatLevel {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:120:12: note: 'ui::external_app::enhanced_drone_analyzer::ThreatLevel' declared here
+  120 | enum class ThreatLevel {
       |            ^~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:318:6: error: 'AudioManager' has not been declared
-  318 | void AudioManager::request_audio_beep(uint16_t frequency, uint32_t duration_ms) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:321:6: error: 'AudioManager' has not been declared
+  321 | void AudioManager::request_audio_beep(uint16_t frequency, uint32_t duration_ms) {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:329:1: error: 'DroneAudioSettingsView' does not name a type
-  329 | DroneAudioSettingsView::DroneAudioSettingsView(
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:332:1: error: 'DroneAudioSettingsView' does not name a type
+  332 | DroneAudioSettingsView::DroneAudioSettingsView(
       | ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:371:6: error: 'DroneAudioSettingsView' has not been declared
-  371 | void DroneAudioSettingsView::focus() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:374:6: error: 'DroneAudioSettingsView' has not been declared
+  374 | void DroneAudioSettingsView::focus() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::focus()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:372:5: error: 'checkbox_audio_enabled_' was not declared in this scope
-  372 |     checkbox_audio_enabled_.focus();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:375:5: error: 'checkbox_audio_enabled_' was not declared in this scope
+  375 |     checkbox_audio_enabled_.focus();
       |     ^~~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:375:6: error: 'DroneAudioSettingsView' has not been declared
-  375 | void DroneAudioSettingsView::on_audio_enabled_changed() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:378:6: error: 'DroneAudioSettingsView' has not been declared
+  378 | void DroneAudioSettingsView::on_audio_enabled_changed() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::on_audio_enabled_changed()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:377:9: error: 'checkbox_audio_enabled_' was not declared in this scope
-  377 |     if (checkbox_audio_enabled_.value()) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:380:9: error: 'checkbox_audio_enabled_' was not declared in this scope
+  380 |     if (checkbox_audio_enabled_.value()) {
       |         ^~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:378:9: error: 'audio_controller_' was not declared in this scope
-  378 |         audio_controller_.enable_audio();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:381:9: error: 'audio_controller_' was not declared in this scope
+  381 |         audio_controller_.enable_audio();
       |         ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:380:9: error: 'audio_controller_' was not declared in this scope
-  380 |         audio_controller_.disable_audio();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:383:9: error: 'audio_controller_' was not declared in this scope
+  383 |         audio_controller_.disable_audio();
       |         ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:384:5: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
-  384 |     audio_settings_.audio_enabled = checkbox_audio_enabled_.value();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:387:5: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
+  387 |     audio_settings_.audio_enabled = checkbox_audio_enabled_.value();
       |     ^~~~~~~~~~~~~~~
       |     app_settings
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:384:37: error: 'checkbox_audio_enabled_' was not declared in this scope
-  384 |     audio_settings_.audio_enabled = checkbox_audio_enabled_.value();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:387:37: error: 'checkbox_audio_enabled_' was not declared in this scope
+  387 |     audio_settings_.audio_enabled = checkbox_audio_enabled_.value();
       |                                     ^~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:386:9: error: 'on_settings_changed_' was not declared in this scope
-  386 |     if (on_settings_changed_) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:389:9: error: 'on_settings_changed_' was not declared in this scope
+  389 |     if (on_settings_changed_) {
       |         ^~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:391:6: error: 'DroneAudioSettingsView' has not been declared
-  391 | void DroneAudioSettingsView::on_test_audio() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:394:6: error: 'DroneAudioSettingsView' has not been declared
+  394 | void DroneAudioSettingsView::on_test_audio() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::on_test_audio()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:393:5: error: 'ThreatLevel' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::ThreatLevel'?
-  393 |     ThreatLevel current_saved_level = audio_controller_.get_test_threat_level(); // Restore unused function
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:396:5: error: 'ThreatLevel' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::ThreatLevel'?
+  396 |     ThreatLevel current_saved_level = audio_controller_.get_test_threat_level(); // Restore unused function
       |     ^~~~~~~~~~~
       |     ui::external_app::enhanced_drone_analyzer::ThreatLevel
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:46:12: note: 'ui::external_app::enhanced_drone_analyzer::ThreatLevel' declared here
-   46 | enum class ThreatLevel {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:120:12: note: 'ui::external_app::enhanced_drone_analyzer::ThreatLevel' declared here
+  120 | enum class ThreatLevel {
       |            ^~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:394:16: error: expected ';' before 'test_level'
-  394 |     ThreatLevel test_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:397:16: error: expected ';' before 'test_level'
+  397 |     ThreatLevel test_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
       |                ^~~~~~~~~~~
       |                ;
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:397:9: error: 'current_saved_level' was not declared in this scope
-  397 |     if (current_saved_level != test_level) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:400:9: error: 'current_saved_level' was not declared in this scope
+  400 |     if (current_saved_level != test_level) {
       |         ^~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:397:32: error: 'test_level' was not declared in this scope
-  397 |     if (current_saved_level != test_level) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:400:32: error: 'test_level' was not declared in this scope
+  400 |     if (current_saved_level != test_level) {
       |                                ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:399:9: error: 'audio_controller_' was not declared in this scope
-  399 |         audio_controller_.set_test_threat_level(test_level); // Restore unused function
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:402:9: error: 'audio_controller_' was not declared in this scope
+  402 |         audio_controller_.set_test_threat_level(test_level); // Restore unused function
       |         ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:403:9: error: 'test_level' was not declared in this scope
-  403 |     if (test_level < ThreatLevel::NONE || test_level > ThreatLevel::CRITICAL) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:406:9: error: 'test_level' was not declared in this scope
+  406 |     if (test_level < ThreatLevel::NONE || test_level > ThreatLevel::CRITICAL) {
       |         ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:403:22: error: 'ThreatLevel' is not a class, namespace, or enumeration
-  403 |     if (test_level < ThreatLevel::NONE || test_level > ThreatLevel::CRITICAL) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:406:22: error: 'ThreatLevel' is not a class, namespace, or enumeration
+  406 |     if (test_level < ThreatLevel::NONE || test_level > ThreatLevel::CRITICAL) {
       |                      ^~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:403:56: error: 'ThreatLevel' is not a class, namespace, or enumeration
-  403 |     if (test_level < ThreatLevel::NONE || test_level > ThreatLevel::CRITICAL) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:406:56: error: 'ThreatLevel' is not a class, namespace, or enumeration
+  406 |     if (test_level < ThreatLevel::NONE || test_level > ThreatLevel::CRITICAL) {
       |                                                        ^~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:404:22: error: 'ThreatLevel' is not a class, namespace, or enumeration
-  404 |         test_level = ThreatLevel::MEDIUM;  // Safe default
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:407:22: error: 'ThreatLevel' is not a class, namespace, or enumeration
+  407 |         test_level = ThreatLevel::MEDIUM;  // Safe default
       |                      ^~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:407:9: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
-  407 |     if (audio_settings_.audio_enabled) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:410:9: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
+  410 |     if (audio_settings_.audio_enabled) {
       |         ^~~~~~~~~~~~~~~
       |         app_settings
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:409:9: error: 'audio_controller_' was not declared in this scope
-  409 |         audio_controller_.play_detection_beep(test_level);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:412:9: error: 'audio_controller_' was not declared in this scope
+  412 |         audio_controller_.play_detection_beep(test_level);
       |         ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:409:47: error: 'test_level' was not declared in this scope
-  409 |         audio_controller_.play_detection_beep(test_level);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:412:47: error: 'test_level' was not declared in this scope
+  412 |         audio_controller_.play_detection_beep(test_level);
       |                                               ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:415:63: warning: format '%u' expects argument of type 'unsigned int', but argument 4 has type 'long unsigned int' [-Wformat=]
-  415 |             snprintf(time_str, sizeof(time_str), "Last beep: %u ms ago", (chTimeNow() - last_beep));
-      |                                                              ~^          ~~~~~~~~~~~~~~~~~~~~~~~~~
-      |                                                               |                       |
-      |                                                               unsigned int            long unsigned int
-      |                                                              %lu
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:416:13: error: 'text_last_beep_' was not declared in this scope
-  416 |             text_last_beep_.set(time_str);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:418:75: error: 'chVTGetSystemTime' was not declared in this scope
+  418 |             snprintf(time_str, sizeof(time_str), "Last beep: %u ms ago", (chVTGetSystemTime() - last_beep));
+      |                                                                           ^~~~~~~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:419:13: error: 'text_last_beep_' was not declared in this scope
+  419 |             text_last_beep_.set(time_str);
       |             ^~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:417:13: error: 'set_dirty' was not declared in this scope
-  417 |             set_dirty();  // Mark UI for redraw
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:420:13: error: 'set_dirty' was not declared in this scope
+  420 |             set_dirty();  // Mark UI for redraw
       |             ^~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:422:6: error: 'DroneAudioSettingsView' has not been declared
-  422 | void DroneAudioSettingsView::on_test_threat_level_changed() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:425:6: error: 'DroneAudioSettingsView' has not been declared
+  425 | void DroneAudioSettingsView::on_test_threat_level_changed() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::on_test_threat_level_changed()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:424:5: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
-  424 |     audio_settings_.test_threat_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:427:5: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
+  427 |     audio_settings_.test_threat_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
       |     ^~~~~~~~~~~~~~~
       |     app_settings
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:424:53: error: 'ThreatLevel' does not name a type
-  424 |     audio_settings_.test_threat_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:427:53: error: 'ThreatLevel' does not name a type
+  427 |     audio_settings_.test_threat_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
       |                                                     ^~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:424:66: error: 'field_test_threat_level_' was not declared in this scope
-  424 |     audio_settings_.test_threat_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:427:66: error: 'field_test_threat_level_' was not declared in this scope
+  427 |     audio_settings_.test_threat_level = static_cast<ThreatLevel>(field_test_threat_level_.get_value());
       |                                                                  ^~~~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:427:6: error: 'DroneAudioSettingsView' has not been declared
-  427 | void DroneAudioSettingsView::on_sos_alert() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:430:6: error: 'DroneAudioSettingsView' has not been declared
+  430 | void DroneAudioSettingsView::on_sos_alert() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::on_sos_alert()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:428:5: error: 'audio_controller_' was not declared in this scope
-  428 |     audio_controller_.play_sos_signal();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:431:5: error: 'audio_controller_' was not declared in this scope
+  431 |     audio_controller_.play_sos_signal();
       |     ^~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:431:6: error: 'DroneAudioSettingsView' has not been declared
-  431 | void DroneAudioSettingsView::update_ui_from_settings() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:434:6: error: 'DroneAudioSettingsView' has not been declared
+  434 | void DroneAudioSettingsView::update_ui_from_settings() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::update_ui_from_settings()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:433:5: error: 'checkbox_audio_enabled_' was not declared in this scope
-  433 |     checkbox_audio_enabled_.set_value(audio_settings_.audio_enabled);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:436:5: error: 'checkbox_audio_enabled_' was not declared in this scope
+  436 |     checkbox_audio_enabled_.set_value(audio_settings_.audio_enabled);
       |     ^~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:433:39: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
-  433 |     checkbox_audio_enabled_.set_value(audio_settings_.audio_enabled);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:436:39: error: 'audio_settings_' was not declared in this scope; did you mean 'app_settings'?
+  436 |     checkbox_audio_enabled_.set_value(audio_settings_.audio_enabled);
       |                                       ^~~~~~~~~~~~~~~
       |                                       app_settings
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:434:5: error: 'field_test_threat_level_' was not declared in this scope
-  434 |     field_test_threat_level_.set_value(static_cast<int>(audio_settings_.test_threat_level));
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:437:5: error: 'field_test_threat_level_' was not declared in this scope
+  437 |     field_test_threat_level_.set_value(static_cast<int>(audio_settings_.test_threat_level));
       |     ^~~~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:438:1: error: 'AuthorContactView' does not name a type
-  438 | AuthorContactView::AuthorContactView(NavigationView& nav)
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:441:1: error: 'AuthorContactView' does not name a type
+  441 | AuthorContactView::AuthorContactView(NavigationView& nav)
       | ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:468:6: error: 'AuthorContactView' has not been declared
-  468 | void AuthorContactView::focus() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:471:6: error: 'AuthorContactView' has not been declared
+  471 | void AuthorContactView::focus() {
       |      ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:468:6: error: redefinition of 'void {anonymous}::focus()'
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:371:6: note: 'void {anonymous}::focus()' previously defined here
-  371 | void DroneAudioSettingsView::focus() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:471:6: error: redefinition of 'void {anonymous}::focus()'
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:374:6: note: 'void {anonymous}::focus()' previously defined here
+  374 | void DroneAudioSettingsView::focus() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::focus()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:469:5: error: 'button_close_' was not declared in this scope
-  469 |     button_close_.focus();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:472:5: error: 'button_close_' was not declared in this scope
+  472 |     button_close_.focus();
       |     ^~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:472:6: error: 'AuthorContactView' has not been declared
-  472 | void AuthorContactView::on_close() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:475:6: error: 'AuthorContactView' has not been declared
+  475 | void AuthorContactView::on_close() {
       |      ^~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp: In function 'void {anonymous}::on_close()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:473:5: error: 'nav_' was not declared in this scope
-  473 |     nav_.pop();  // Return to previous view
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:476:5: error: 'nav_' was not declared in this scope
+  476 |     nav_.pop();  // Return to previous view
       |     ^~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:7,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:83:8: error: redefinition of 'struct ui::external_app::enhanced_drone_analyzer::DroneAudioSettings'
-   83 | struct DroneAudioSettings {
-      |        ^~~~~~~~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:16:8: note: previous definition of 'struct ui::external_app::enhanced_drone_analyzer::DroneAudioSettings'
-   16 | struct DroneAudioSettings {
-      |        ^~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:7,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
@@ -397,61 +330,31 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
   224 |     TabView tab_view{
       |     ^~~~~~~
       |     View
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:240:62: error: could not convert '{{8, (2 * 16)}, "Spectrum Analysis"}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  240 |     Text text_spectrum_title{{8, 2 * 16}, "Spectrum Analysis"};
-      |                                                              ^
-      |                                                              |
-      |                                                              <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:241:108: error: could not convert '{{8, ((4 * 16) + 8)}, "Scan Int.:", ui::Theme::getInstance()->ui::ThemeTemplate::fg_light->ui::Style::foreground}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  241 |     Text text_scan_interval_label{{8, 4 * 16 + 8}, "Scan Int.:", Theme::getInstance()->fg_light->foreground};
-      |                                                                                                            ^
-      |                                                                                                            |
-      |                                                                                                            <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:247:62: error: could not convert '{{8, (2 * 16)}, "Signal Detection"}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  247 |     Text text_detection_title{{8, 2 * 16}, "Signal Detection"};
-      |                                                              ^
-      |                                                              |
-      |                                                              <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:248:114: error: could not convert '{{8, ((3 * 16) + 8)}, "Min Detections:", ui::Theme::getInstance()->ui::ThemeTemplate::fg_light->ui::Style::foreground}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  248 |     Text text_min_detections_label{{8, 3 * 16 + 8}, "Min Detections:", Theme::getInstance()->fg_light->foreground};
-      |                                                                                                                  ^
-      |                                                                                                                  |
-      |                                                                                                                  <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:254:54: error: could not convert '{{8, (2 * 16)}, "Audio Alerts"}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  254 |     Text text_audio_title{{8, 2 * 16}, "Audio Alerts"};
-      |                                                      ^
-      |                                                      |
-      |                                                      <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:255:107: error: could not convert '{{8, ((3 * 16) + 8)}, "Alert Freq.:", ui::Theme::getInstance()->ui::ThemeTemplate::fg_light->ui::Style::foreground}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  255 |     Text text_alert_freq_label{{8, 3 * 16 + 8}, "Alert Freq.:", Theme::getInstance()->fg_light->foreground};
-      |                                                                                                           ^
-      |                                                                                                           |
-      |                                                                                                           <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:261:60: error: could not convert '{{8, (2 * 16)}, "Display Settings"}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  261 |     Text text_display_title{{8, 2 * 16}, "Display Settings"};
-      |                                                            ^
-      |                                                            |
-      |                                                            <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:241:117: error: could not convert '{{8, ((4 * 16) + 8), 120, 16}, "Scan Int.:", ui::Theme::getInstance()->ui::ThemeTemplate::fg_light->ui::Style::foreground}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  241 |     Text text_scan_interval_label{{8, 4 * 16 + 8, 120, 16}, "Scan Int.:", Theme::getInstance()->fg_light->foreground};
+      |                                                                                                                     ^
+      |                                                                                                                     |
+      |                                                                                                                     <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:248:123: error: could not convert '{{8, ((3 * 16) + 8), 120, 16}, "Min Detections:", ui::Theme::getInstance()->ui::ThemeTemplate::fg_light->ui::Style::foreground}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  248 |     Text text_min_detections_label{{8, 3 * 16 + 8, 120, 16}, "Min Detections:", Theme::getInstance()->fg_light->foreground};
+      |                                                                                                                           ^
+      |                                                                                                                           |
+      |                                                                                                                           <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:255:116: error: could not convert '{{8, ((3 * 16) + 8), 120, 16}, "Alert Freq.:", ui::Theme::getInstance()->ui::ThemeTemplate::fg_light->ui::Style::foreground}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  255 |     Text text_alert_freq_label{{8, 3 * 16 + 8, 120, 16}, "Alert Freq.:", Theme::getInstance()->fg_light->foreground};
+      |                                                                                                                    ^
+      |                                                                                                                    |
+      |                                                                                                                    <brace-enclosed initializer list>
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: In member function 'virtual void ui::external_app::enhanced_drone_analyzer::DroneSettingsView::focus()':
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:217:29: error: 'tab_view' was not declared in this scope
   217 |     void focus() override { tab_view.focus(); }
       |                             ^~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:281:49: error: could not convert '{{8, 8}, "Constant Settings"}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  281 |     Text text_title_{{8, 8}, "Constant Settings"};
-      |                                                 ^
-      |                                                 |
-      |                                                 <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:282:57: error: could not convert '{{8, 32}, "Min Drone Freq (MHz):"}' from '<brace-enclosed initializer list>' to 'ui::Text'
-  282 |     Text text_min_freq_{{8, 32}, "Min Drone Freq (MHz):"};
-      |                                                         ^
-      |                                                         |
-      |                                                         <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:283:69: error: could not convert '{{120, 32}, 4, {400}, 6000, 240}' from '<brace-enclosed initializer list>' to 'ui::NumberField'
-  283 |     NumberField field_min_drone_freq_{{120, 32}, 4, {400}, 6000, 240};
-      |                                                                     ^
-      |                                                                     |
-      |                                                                     <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:283:82: error: could not convert '{{120, 32, 80, 24}, 4, {400, 6000}, 240, ' '}' from '<brace-enclosed initializer list>' to 'ui::NumberField'
+  283 |     NumberField field_min_drone_freq_{{120, 32, 80, 24}, 4, {400, 6000}, 240, ' '};
+      |                                                                                  ^
+      |                                                                                  |
+      |                                                                                  <brace-enclosed initializer list>
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:296:47: error: definition of 'void ui::external_app::enhanced_drone_analyzer::DroneAnalyzerSettings::reset_to_defaults()' is not in namespace enclosing 'ui::external_app::enhanced_drone_analyzer::DroneAnalyzerSettings' [-fpermissive]
   296 | void DroneAnalyzerSettings::reset_to_defaults() {
       |                                               ^
@@ -531,52 +434,47 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
   452 | void DroneSettingsView::save_ui_to_settings() {
       |                                             ^
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::DroneSettingsView::save_ui_to_settings()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:453:67: error: 'class ui::NumberField' has no member named 'to_integer'
-  453 |     settings_.spectrum.min_scan_interval_ms = field_scan_interval.to_integer();
-      |                                                                   ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:454:68: error: 'class ui::NumberField' has no member named 'to_integer'
-  454 |     settings_.detection.min_detection_count = field_min_detections.to_integer();
-      |                                                                    ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:455:59: error: 'class ui::NumberField' has no member named 'to_integer'
-  455 |     settings_.audio.alert_frequency_hz = field_alert_freq.to_integer();
-      |                                                           ^~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:453:67: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  453 |     settings_.spectrum.min_scan_interval_ms = field_scan_interval.get_value();
+      |                                                                   ^~~~~~~~~
+      |                                                                   set_value
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:454:68: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  454 |     settings_.detection.min_detection_count = field_min_detections.get_value();
+      |                                                                    ^~~~~~~~~
+      |                                                                    set_value
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:455:59: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  455 |     settings_.audio.alert_frequency_hz = field_alert_freq.get_value();
+      |                                                           ^~~~~~~~~
+      |                                                           set_value
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: At global scope:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:458:43: error: definition of 'void ui::external_app::enhanced_drone_analyzer::DroneSettingsView::validate_settings()' is not in namespace enclosing 'ui::external_app::enhanced_drone_analyzer::DroneSettingsView' [-fpermissive]
   458 | void DroneSettingsView::validate_settings() {
       |                                           ^
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::DroneSettingsView::validate_settings()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:460:29: error: 'class ui::NumberField' has no member named 'to_integer'
-  460 |     if (field_scan_interval.to_integer() < 200 || field_scan_interval.to_integer() > 5000) {
-      |                             ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:460:71: error: 'class ui::NumberField' has no member named 'to_integer'
-  460 |     if (field_scan_interval.to_integer() < 200 || field_scan_interval.to_integer() > 5000) {
-      |                                                                       ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:466:26: error: 'class ui::NumberField' has no member named 'to_integer'
-  466 |     if (field_alert_freq.to_integer() < 400 || field_alert_freq.to_integer() > 3000) {
-      |                          ^~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:466:65: error: 'class ui::NumberField' has no member named 'to_integer'
-  466 |     if (field_alert_freq.to_integer() < 400 || field_alert_freq.to_integer() > 3000) {
-      |                                                                 ^~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:460:29: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  460 |     if (field_scan_interval.get_value() < 200 || field_scan_interval.get_value() > 5000) {
+      |                             ^~~~~~~~~
+      |                             set_value
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:460:70: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  460 |     if (field_scan_interval.get_value() < 200 || field_scan_interval.get_value() > 5000) {
+      |                                                                      ^~~~~~~~~
+      |                                                                      set_value
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:466:26: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  466 |     if (field_alert_freq.get_value() < 400 || field_alert_freq.get_value() > 3000) {
+      |                          ^~~~~~~~~
+      |                          set_value
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:466:64: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
+  466 |     if (field_alert_freq.get_value() < 400 || field_alert_freq.get_value() > 3000) {
+      |                                                                ^~~~~~~~~
+      |                                                                set_value
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: At global scope:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:473:73: error: definition of 'void ui::external_app::enhanced_drone_analyzer::DroneSettingsView::show_validation_error(const string&)' is not in namespace enclosing 'ui::external_app::enhanced_drone_analyzer::DroneSettingsView' [-fpermissive]
   473 | void DroneSettingsView::show_validation_error(const std::string& message) {
       |                                                                         ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:501:12: error: 'Frequency' does not name a type
-  501 |     static Frequency current_min_drone_freq;
-      |            ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:502:12: error: 'Frequency' does not name a type
-  502 |     static Frequency current_max_drone_freq;
-      |            ^~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: In static member function 'static bool {anonymous}::ConstantSettingsManager::load_settings()':
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:481:93: error: 'SETTINGS' is not a member of 'app_settings::Mode'
   481 |         app_settings::SettingsManager settings_manager{"eda_constants", app_settings::Mode::SETTINGS, {
       |                                                                                             ^~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:482:57: error: 'current_min_drone_freq' was not declared in this scope
-  482 |             {"min_drone_freq", reinterpret_cast<void*>(&current_min_drone_freq)},
-      |                                                         ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:483:57: error: 'current_max_drone_freq' was not declared in this scope
-  483 |             {"max_drone_freq", reinterpret_cast<void*>(&current_max_drone_freq)}
-      |                                                         ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:484:10: error: no matching function for call to 'app_settings::SettingsManager::SettingsManager(<brace-enclosed initializer list>)'
   484 |         }};
       |          ^
@@ -613,12 +511,6 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:489:93: error: 'SETTINGS' is not a member of 'app_settings::Mode'
   489 |         app_settings::SettingsManager settings_manager{"eda_constants", app_settings::Mode::SETTINGS, {
       |                                                                                             ^~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:490:57: error: 'current_min_drone_freq' was not declared in this scope
-  490 |             {"min_drone_freq", reinterpret_cast<void*>(&current_min_drone_freq)},
-      |                                                         ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:491:57: error: 'current_max_drone_freq' was not declared in this scope
-  491 |             {"max_drone_freq", reinterpret_cast<void*>(&current_max_drone_freq)}
-      |                                                         ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:492:10: error: no matching function for call to 'app_settings::SettingsManager::SettingsManager(<brace-enclosed initializer list>)'
   492 |         }};
       |          ^
@@ -650,20 +542,7 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:493:33: error: 'class app_settings::SettingsManager' has no member named 'save'
   493 |         return settings_manager.save();
       |                                 ^~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: In static member function 'static void {anonymous}::ConstantSettingsManager::reset_to_defaults()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:497:9: error: 'current_min_drone_freq' was not declared in this scope
-  497 |         current_min_drone_freq = 2400000000ULL;
-      |         ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:498:9: error: 'current_max_drone_freq' was not declared in this scope
-  498 |         current_max_drone_freq = 6000000000ULL;
-      |         ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:505:1: error: 'Frequency' does not name a type
-  505 | Frequency ConstantSettingsManager::current_min_drone_freq = 2400000000ULL;
-      | ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:506:1: error: 'Frequency' does not name a type
-  506 | Frequency ConstantSettingsManager::current_max_drone_freq = 6000000000ULL;
-      | ^~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:508:63: error: definition of 'ui::external_app::enhanced_drone_analyzer::ConstantSettingsView::ConstantSettingsView(ui::NavigationView&)' is not in namespace enclosing 'ui::external_app::enhanced_drone_analyzer::ConstantSettingsView' [-fpermissive]
   508 | ConstantSettingsView::ConstantSettingsView(NavigationView& nav)
       |                                                               ^
@@ -720,9 +599,6 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:517:56: note:   'ui::external_app::enhanced_drone_analyzer::ConstantSettingsView::ConstantSettingsView(ui::NavigationView&)::<lambda()>' is not derived from 'std::reference_wrapper<_Tp>'
   517 |     button_ok_.on_select = [this]() { on_ok_pressed(); };
       |                                                        ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:519:62: error: 'current_min_drone_freq' is not a member of '{anonymous}::ConstantSettingsManager'
-  519 |     field_min_drone_freq_.set_value(ConstantSettingsManager::current_min_drone_freq / 1000000);
-      |                                                              ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: At global scope:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:522:34: error: definition of 'void ui::external_app::enhanced_drone_analyzer::ConstantSettingsView::focus()' is not in namespace enclosing 'ui::external_app::enhanced_drone_analyzer::ConstantSettingsView' [-fpermissive]
   522 | void ConstantSettingsView::focus() {
@@ -731,74 +607,14 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
   526 | void ConstantSettingsView::on_ok_pressed() {
       |                                          ^
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp: In member function 'void ui::external_app::enhanced_drone_analyzer::ConstantSettingsView::on_ok_pressed()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:527:30: error: 'current_min_drone_freq' is not a member of '{anonymous}::ConstantSettingsManager'
-  527 |     ConstantSettingsManager::current_min_drone_freq = field_min_drone_freq_.get_value() * 1000000ULL;
-      |                              ^~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp:527:77: error: 'class ui::NumberField' has no member named 'get_value'; did you mean 'set_value'?
   527 |     ConstantSettingsManager::current_min_drone_freq = field_min_drone_freq_.get_value() * 1000000ULL;
       |                                                                             ^~~~~~~~~
       |                                                                             set_value
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:40:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-   40 |     Frequency get_spectrum_center_frequency() const;
-      |     ^~~~~~~~~
-      |     BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:41:40: error: 'Frequency' has not been declared
-   41 |     void set_spectrum_center_frequency(Frequency center_freq);
-      |                                        ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:44:28: error: 'Frequency' has not been declared
-   44 |     bool tune_to_frequency(Frequency frequency_hz);
-      |                            ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:51:41: error: 'Frequency' has not been declared
-   51 |     int32_t get_real_rssi_from_hardware(Frequency target_frequency);
-      |                                         ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:60:17: error: 'mutex' in namespace 'std' does not name a type
-   60 |     static std::mutex g_hardware_mutex_;         // Global mutex for hardware access protection
-      |                 ^~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:16:1: note: 'std::mutex' is defined in header '<mutex>'; did you forget to '#include <mutex>'?
-   15 | #include <mutex>                    // ADD: Mutex for HardwareGuard implementation
-  +++ |+#include <mutex>
-   16 | 
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:63:5: error: 'HardwareLockGuard' does not name a type
-   63 |     HardwareLockGuard hardware_guard_;                // RAII mutex protection for hardware access
-      |     ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:67:31: error: 'mutex' is not a member of 'std'
-   67 |         std::unique_lock<std::mutex> lock_;
-      |                               ^~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:67:31: note: 'std::mutex' is defined in header '<mutex>'; did you forget to '#include <mutex>'?
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:67:36: error: template argument 1 is invalid
-   67 |         std::unique_lock<std::mutex> lock_;
-      |                                    ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:75:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-   75 |     Frequency center_frequency_;                // ADD: Configurable center frequency
-      |     ^~~~~~~~~
-      |     BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp: In constructor 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::HardwareLockGuard::HardwareLockGuard()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.hpp:69:37: error: 'g_hardware_mutex_' was not declared in this scope
-   69 |         HardwareLockGuard() : lock_(g_hardware_mutex_) {}
-      |                                     ^~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:10,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:145:47: error: 'Frequency' has not been declared
-  145 |     void update_tracked_drone(DroneType type, Frequency frequency, int32_t rssi, ThreatLevel threat_level);
-      |                                               ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:151:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-  151 |     Frequency get_current_scanning_frequency() const;
-      |     ^~~~~~~~~
-      |     BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:178:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-  178 |     Frequency last_scanned_frequency_ = 0;
-      |     ^~~~~~~~~
-      |     BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:225:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-  225 |     Frequency get_current_radio_frequency() const;
-      |     ^~~~~~~~~
-      |     BigFrequency
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:238:5: error: 'DroneFrequencyDatabase' does not name a type; did you mean 'DroneFrequencyPresets'?
   238 |     DroneFrequencyDatabase drone_database_;
       |     ^~~~~~~~~~~~~~~~~~~~~~
@@ -1013,10 +829,6 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
       |     ^~~~~~~~~~~~~~~~~~~
       |     audio_controller_
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp: In member function 'msg_t ui::external_app::enhanced_drone_analyzer::ScanningCoordinator::coordinated_scanning_thread()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:509:33: error: 'chThdShouldTerminateX' was not declared in this scope; did you mean 'chThdShouldTerminate'?
-  509 |     while (scanning_active_ && !chThdShouldTerminateX()) {
-      |                                 ^~~~~~~~~~~~~~~~~~~~~
-      |                                 chThdShouldTerminate
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.hpp:515:9: error: 'display_controller_' was not declared in this scope; did you mean 'audio_controller_'?
   515 |         display_controller_.update_detection_display(scanner_);
       |         ^~~~~~~~~~~~~~~~~~~
@@ -1030,30 +842,13 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:25:34: error: 'Frequency' has not been declared
-   25 |                 size_t receding, Frequency current_freq, bool is_scanning);
-      |                                  ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:30:32: error: 'Frequency' has not been declared
-   30 |     void set_current_frequency(Frequency freq);
-      |                                ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:55:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-   55 |     Frequency current_freq_ = 2400000000ULL; // Default 2.4GHz
-      |     ^~~~~~~~~
-      |     BigFrequency
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:68:28: error: 'DisplayDroneEntry' does not name a type
    68 |     void update_card(const DisplayDroneEntry& drone);
       |                            ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:85:5: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-   85 |     Frequency frequency_ = 0;
-      |     ^~~~~~~~~
-      |     BigFrequency
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:130:5: error: 'BigFrequencyDisplay' does not name a type; did you mean 'BigFrequency'?
   130 |     BigFrequencyDisplay& big_display() { return big_display_; }
       |     ^~~~~~~~~~~~~~~~~~~
       |     BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:143:32: error: 'Frequency' has not been declared
-  143 |     void set_frequency_display(Frequency freq);
-      |                                ^~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:148:70: error: 'ui::Text ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_1' conflicts with a previous declaration
   148 |     Text text_drone_1{{0, SPECTRUM_Y_TOP + 8, screen_width/2, 16}, ""};
       |                                                                      ^
@@ -1072,56 +867,9 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:138:11: note: previous declaration 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_3()'
   138 |     Text& text_drone_3() { return text_drone_3; }
       |           ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:153:9: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-  153 |         Frequency frequency;
-      |         ^~~~~~~~~
-      |         BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:160:29: error: 'Frequency' has not been declared
-  160 |     void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
-      |                             ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:162:29: error: 'Frequency' has not been declared
-  162 |     void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
-      |                             ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:173:38: error: 'Frequency' has not been declared
-  173 |     size_t frequency_to_spectrum_bin(Frequency freq_hz) const;
-      |                                      ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:178:9: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-  178 |         Frequency min_freq = 2400000000ULL;  // 2.4GHz default
-      |         ^~~~~~~~~
-      |         BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:179:9: error: 'Frequency' does not name a type; did you mean 'BigFrequency'?
-  179 |         Frequency max_freq = 2500000000ULL;  // 2.5GHz default
-      |         ^~~~~~~~~
-      |         BigFrequency
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:183:29: error: 'Frequency' has not been declared
-  183 |     void set_spectrum_range(Frequency min_freq, Frequency max_freq);
-      |                             ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:183:49: error: 'Frequency' has not been declared
-  183 |     void set_spectrum_range(Frequency min_freq, Frequency max_freq);
-      |                                                 ^~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:188:35: error: the value of 'ui::screen_width' is not usable in a constant expression
-  188 |     std::array<Color, screen_width> spectrum_row;           // One line buffer for scrolling (PHASE 1 FIX)
-      |                                   ^
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:7,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/common/ui.hpp:91:17: note: 'uint16_t ui::screen_width' is not const
-   91 | extern uint16_t screen_width;
-      |                 ^~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:188:35: note: in template argument for type 'unsigned int'
-  188 |     std::array<Color, screen_width> spectrum_row;           // One line buffer for scrolling (PHASE 1 FIX)
-      |                                   ^
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:193:5: error: 'Gradient' does not name a type
   193 |     Gradient spectrum_gradient_;                             // Color gradient for spectrum (Search style)
       |     ^~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:201:10: error: 'mutex' in namespace 'std' does not name a type
-  201 |     std::mutex spectrum_access_mutex_;                       // Thread safety for spectrum rendering
-      |          ^~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:11:1: note: 'std::mutex' is defined in header '<mutex>'; did you forget to '#include <mutex>'?
-   10 | #include "ui_drone_scanner.hpp"         // Scanner controller
-  +++ |+#include <mutex>
-   11 | #include <app_settings.hpp>             // SettingsManager
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:220:5: error: 'BigFrequencyDisplay' does not name a type; did you mean 'BigFrequency'?
   220 |     BigFrequencyDisplay big_display_{{0, 24, 240, 32}};
       |     ^~~~~~~~~~~~~~~~~~~
@@ -1157,49 +905,46 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
       |                                                                          ^
       |                                                                          |
       |                                                                          <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:329:73: error: 'StringOptions' is not a member of 'ui::OptionsField'
-  329 |     OptionsField field_scanning_mode_{{80, 190, 160, 24}, OptionsField::StringOptions{"Database Scan", "Wideband Monitor", "Hybrid Discovery"}, "Mode"};
-      |                                                                         ^~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:329:86: error: expected '}' before '{' token
-  329 |     OptionsField field_scanning_mode_{{80, 190, 160, 24}, OptionsField::StringOptions{"Database Scan", "Wideband Monitor", "Hybrid Discovery"}, "Mode"};
-      |                                      ~                                               ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:329:86: error: could not convert '{{80, 190, 160, 24}, <expression error>}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:329:86: error: expected ';' before '{' token
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:330:92: error: could not convert '{{80, 190, 160, 24}, ((ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView*)this)->ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView::scanning_mode_options_, 0, "Mode"}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
+  330 |     OptionsField field_scanning_mode_{{80, 190, 160, 24}, scanning_mode_options_, 0, "Mode"};
+      |                                                                                            ^
+      |                                                                                            |
+      |                                                                                            <brace-enclosed initializer list>
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:4,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/./ui_navigation.hpp: In instantiation of 'T* ui::NavigationView::push(Args&& ...) [with T = ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_preset_menu(ui::NavigationView&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::PresetMenuView; Args = {std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>&}]':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:481:55:   required from here
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:457:55:   required from here
 /havoc/firmware/application/./ui_navigation.hpp:111:69: error: no matching function for call to 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_preset_menu(ui::NavigationView&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::PresetMenuView::PresetMenuView(ui::NavigationView&, std::vector<std::__cxx11::basic_string<char> >&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>&)'
   111 |         return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
       |                                                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:449:9: note: candidate: 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_preset_menu(ui::NavigationView&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::PresetMenuView::PresetMenuView(std::vector<std::__cxx11::basic_string<char> >, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)'
-  449 |         PresetMenuView(std::vector<std::string> names, std::function<void(const DronePreset&)> callback)
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:422:9: note: candidate: 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_preset_menu(ui::NavigationView&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::PresetMenuView::PresetMenuView(std::vector<std::__cxx11::basic_string<char> >, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)'
+  422 |         PresetMenuView(std::vector<std::string> names, std::function<void(const DronePreset&)> callback)
       |         ^~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:449:9: note:   candidate expects 2 arguments, 3 provided
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:422:9: note:   candidate expects 2 arguments, 3 provided
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:4,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
 /havoc/firmware/application/./ui_navigation.hpp: In instantiation of 'T* ui::NavigationView::push(Args&& ...) [with T = ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_type_filtered_presets(ui::NavigationView&, ui::external_app::enhanced_drone_analyzer::DroneType, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::FilteredPresetMenuView; Args = {std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<ui::external_app::enhanced_drone_analyzer::DronePreset, std::allocator<ui::external_app::enhanced_drone_analyzer::DronePreset> >&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>&}]':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:536:74:   required from here
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:516:74:   required from here
 /havoc/firmware/application/./ui_navigation.hpp:111:69: error: no matching function for call to 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_type_filtered_presets(ui::NavigationView&, ui::external_app::enhanced_drone_analyzer::DroneType, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::FilteredPresetMenuView::FilteredPresetMenuView(ui::NavigationView&, std::vector<std::__cxx11::basic_string<char> >&, std::vector<ui::external_app::enhanced_drone_analyzer::DronePreset>&, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>&)'
   111 |         return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
       |                                                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:5,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:515:9: note: candidate: 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_type_filtered_presets(ui::NavigationView&, ui::external_app::enhanced_drone_analyzer::DroneType, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::FilteredPresetMenuView::FilteredPresetMenuView(std::vector<std::__cxx11::basic_string<char> >, std::vector<ui::external_app::enhanced_drone_analyzer::DronePreset>, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)'
-  515 |         FilteredPresetMenuView(std::vector<std::string> names, std::vector<DronePreset> presets, std::function<void(const DronePreset&)> callback)
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:491:9: note: candidate: 'ui::external_app::enhanced_drone_analyzer::DronePresetSelector::show_type_filtered_presets(ui::NavigationView&, ui::external_app::enhanced_drone_analyzer::DroneType, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)::FilteredPresetMenuView::FilteredPresetMenuView(std::vector<std::__cxx11::basic_string<char> >, std::vector<ui::external_app::enhanced_drone_analyzer::DronePreset>, std::function<void(const ui::external_app::enhanced_drone_analyzer::DronePreset&)>)'
+  491 |         FilteredPresetMenuView(std::vector<std::string> names, std::vector<DronePreset> presets, std::function<void(const DronePreset&)> callback)
       |         ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:515:9: note:   candidate expects 3 arguments, 4 provided
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:330:35: warning: 'std::vector<ui::external_app::enhanced_drone_analyzer::DroneType> ui::external_app::enhanced_drone_analyzer::get_available_types()' declared 'static' but never defined [-Wunused-function]
-  330 |     static std::vector<DroneType> get_available_types();
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:491:9: note:   candidate expects 3 arguments, 4 provided
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:303:35: warning: 'std::vector<ui::external_app::enhanced_drone_analyzer::DroneType> ui::external_app::enhanced_drone_analyzer::get_available_types()' declared 'static' but never defined [-Wunused-function]
+  303 |     static std::vector<DroneType> get_available_types();
       |                                   ^~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:332:24: warning: 'std::string ui::external_app::enhanced_drone_analyzer::get_type_display_name(ui::external_app::enhanced_drone_analyzer::DroneType)' declared 'static' but never defined [-Wunused-function]
-  332 |     static std::string get_type_display_name(DroneType type);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_config.hpp:305:24: warning: 'std::string ui::external_app::enhanced_drone_analyzer::get_type_display_name(ui::external_app::enhanced_drone_analyzer::DroneType)' declared 'static' but never defined [-Wunused-function]
+  305 |     static std::string get_type_display_name(DroneType type);
       |                        ^~~~~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:7,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
@@ -1210,47 +955,47 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.hpp:6,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp:9,
                  from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp:5:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:472:6: warning: 'void {anonymous}::on_close()' defined but not used [-Wunused-function]
-  472 | void AuthorContactView::on_close() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:475:6: warning: 'void {anonymous}::on_close()' defined but not used [-Wunused-function]
+  475 | void AuthorContactView::on_close() {
       |      ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:468:6: warning: 'void {anonymous}::focus()' defined but not used [-Wunused-function]
-  468 | void AuthorContactView::focus() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:471:6: warning: 'void {anonymous}::focus()' defined but not used [-Wunused-function]
+  471 | void AuthorContactView::focus() {
       |      ^~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:431:6: warning: 'void {anonymous}::update_ui_from_settings()' defined but not used [-Wunused-function]
-  431 | void DroneAudioSettingsView::update_ui_from_settings() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:434:6: warning: 'void {anonymous}::update_ui_from_settings()' defined but not used [-Wunused-function]
+  434 | void DroneAudioSettingsView::update_ui_from_settings() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:427:6: warning: 'void {anonymous}::on_sos_alert()' defined but not used [-Wunused-function]
-  427 | void DroneAudioSettingsView::on_sos_alert() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:430:6: warning: 'void {anonymous}::on_sos_alert()' defined but not used [-Wunused-function]
+  430 | void DroneAudioSettingsView::on_sos_alert() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:422:6: warning: 'void {anonymous}::on_test_threat_level_changed()' defined but not used [-Wunused-function]
-  422 | void DroneAudioSettingsView::on_test_threat_level_changed() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:425:6: warning: 'void {anonymous}::on_test_threat_level_changed()' defined but not used [-Wunused-function]
+  425 | void DroneAudioSettingsView::on_test_threat_level_changed() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:391:6: warning: 'void {anonymous}::on_test_audio()' defined but not used [-Wunused-function]
-  391 | void DroneAudioSettingsView::on_test_audio() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:394:6: warning: 'void {anonymous}::on_test_audio()' defined but not used [-Wunused-function]
+  394 | void DroneAudioSettingsView::on_test_audio() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:375:6: warning: 'void {anonymous}::on_audio_enabled_changed()' defined but not used [-Wunused-function]
-  375 | void DroneAudioSettingsView::on_audio_enabled_changed() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:378:6: warning: 'void {anonymous}::on_audio_enabled_changed()' defined but not used [-Wunused-function]
+  378 | void DroneAudioSettingsView::on_audio_enabled_changed() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:371:6: warning: 'void {anonymous}::focus()' defined but not used [-Wunused-function]
-  371 | void DroneAudioSettingsView::focus() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:374:6: warning: 'void {anonymous}::focus()' defined but not used [-Wunused-function]
+  374 | void DroneAudioSettingsView::focus() {
       |      ^~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:318:6: warning: 'void {anonymous}::request_audio_beep(uint16_t, uint32_t)' defined but not used [-Wunused-function]
-  318 | void AudioManager::request_audio_beep(uint16_t frequency, uint32_t duration_ms) {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:321:6: warning: 'void {anonymous}::request_audio_beep(uint16_t, uint32_t)' defined but not used [-Wunused-function]
+  321 | void AudioManager::request_audio_beep(uint16_t frequency, uint32_t duration_ms) {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:307:10: warning: '{anonymous}::get_beep_frequency' defined but not used [-Wunused-variable]
-  307 | uint16_t AudioManager::get_beep_frequency(ThreatLevel level) const {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:310:10: warning: '{anonymous}::get_beep_frequency' defined but not used [-Wunused-variable]
+  310 | uint16_t AudioManager::get_beep_frequency(ThreatLevel level) const {
       |          ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:303:6: warning: 'void {anonymous}::stop_audio()' defined but not used [-Wunused-function]
-  303 | void AudioManager::stop_audio() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:306:6: warning: 'void {anonymous}::stop_audio()' defined but not used [-Wunused-function]
+  306 | void AudioManager::stop_audio() {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:273:6: warning: 'void {anonymous}::play_sos_signal()' defined but not used [-Wunused-function]
-  273 | void AudioManager::play_sos_signal() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:275:6: warning: 'void {anonymous}::play_sos_signal()' defined but not used [-Wunused-function]
+  275 | void AudioManager::play_sos_signal() {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:247:6: warning: 'void {anonymous}::cleanup_audio_device()' defined but not used [-Wunused-function]
-  247 | void AudioManager::cleanup_audio_device() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:249:6: warning: 'void {anonymous}::cleanup_audio_device()' defined but not used [-Wunused-function]
+  249 | void AudioManager::cleanup_audio_device() {
       |      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:243:6: warning: 'void {anonymous}::initialize_audio_device()' defined but not used [-Wunused-function]
-  243 | void AudioManager::initialize_audio_device() {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_drone_audio.hpp:245:6: warning: 'void {anonymous}::initialize_audio_device()' defined but not used [-Wunused-function]
+  245 | void AudioManager::initialize_audio_device() {
       |      ^~~~~~~~~~~~
 cc1plus: warning: unrecognized command line option '-Wno-volatile'
 make[2]: *** [firmware/application/CMakeFiles/application.elf.dir/build.make:5775: firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp.obj] Error 1
