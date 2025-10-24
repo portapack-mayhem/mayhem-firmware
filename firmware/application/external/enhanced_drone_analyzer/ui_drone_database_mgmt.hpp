@@ -760,8 +760,6 @@ void DroneFrequencyManagerView::load_frequencies_from_database() {
     }
 }
 
-    // Initialize UI controls
-    void initialize_menu_options();
 };
 
 } // namespace ui::external_app::enhanced_drone_analyzer
