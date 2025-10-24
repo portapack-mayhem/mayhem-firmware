@@ -13,13 +13,7 @@
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
-struct DroneAudioSettings {
-    bool audio_enabled = true;             // Audio enabled by default
-    ThreatLevel test_threat_level = ThreatLevel::MEDIUM;  // Safe default
-    uint16_t alert_frequency_hz = 800;     // Alert beep frequency
-    uint32_t beep_duration_ms = 100;       // Alert beep duration
-    int32_t alert_squelch_db = -80;         // Audio squelch threshold
-};
+// NOTE: DroneAudioSettings struct moved to ui_drone_settings_complete.hpp for consolidation
 
 // CONSOLIDATED: Merge DroneAudioController functionality into a unified AudioManager
 class AudioManager {
@@ -28,6 +22,7 @@ public:
     ~AudioManager();
 
     // Settings access (replaces DroneAudioSettings struct)
+    // AUDIO CLEANUP: Preserving get/set, keeping for potential UI expansion
     bool is_audio_enabled() const { return audio_enabled_; }
     void set_audio_enabled(bool enabled) { audio_enabled_ = enabled; }
     ThreatLevel get_test_threat_level() const { return test_threat_level_; }
@@ -39,6 +34,10 @@ public:
             test_threat_level_ = ThreatLevel::MEDIUM;  // Safe default
         }
     }
+    // AUDIO CLEANUP: Unused style functions - commented to reduce dead code
+    // void toggle_audio() { audio_enabled_ = !audio_enabled_; }
+    // static bool validate_audio_alert_frequency(uint16_t frequency_hz) { return frequency_hz >= 400 && frequency_hz <= 3000; }
+    // static bool validate_audio_duration(uint32_t duration_ms) { return duration_ms >= 50 && duration_ms <= 2000; }
 
     // Audio playback (replaces DroneAudioController methods)
     void play_detection_beep(ThreatLevel level);
@@ -115,7 +114,8 @@ public:
             chThdSleepMilliseconds(150);
         }
 
-        last_beep_time_ = chTimeNow();
+
+    last_beep_time_ = chVTGetSystemTime();
     }
     void stop_audio() { audio::output::stop(); }
     uint16_t get_beep_frequency(ThreatLevel level) const { return 1000; }
@@ -183,6 +183,7 @@ private:
 
     // Callback
     std::function<void()> on_settings_changed_;
+    std::function<void()> on_audio_settings_changed_;
 };
 
 // ABOUT MODAL: Consolidated from ui_drone_audio_settings_about.hpp
@@ -226,6 +227,7 @@ private:
 } // namespace ui::external_app::enhanced_drone_analyzer
 
 // HEADER-ONLY IMPLEMENTATIONS - Consolidated from ui_drone_audio_settings.cpp
+// Moved to namespace scope correct placement
 // Wrapped in anonymous namespace for internal linkage
 namespace {
 
@@ -265,7 +267,7 @@ void AudioManager::play_detection_beep(ThreatLevel level) {
 
     baseband::request_audio_beep(frequency, 24000, 200);
 
-    last_beep_time_ = chTimeNow();
+    last_beep_time_ = chVTGetSystemTime();
     chThdSleepMilliseconds(250);
     audio::output::stop();
 }
@@ -295,7 +297,8 @@ void AudioManager::play_sos_signal() {
         chThdSleepMilliseconds(150);
     }
 
-    last_beep_time_ = chTimeNow();
+
+    last_beep_time_ = chVTGetSystemTime();
     chThdSleepMilliseconds(250);
     audio::output::stop();
 }
@@ -412,7 +415,7 @@ void DroneAudioSettingsView::on_test_audio() {
         uint32_t last_beep = audio_controller_.get_last_beep_time(); // Restore unused function
         if (last_beep > 0) {
             char time_str[32];
-            snprintf(time_str, sizeof(time_str), "Last beep: %u ms ago", (chTimeNow() - last_beep));
+            snprintf(time_str, sizeof(time_str), "Last beep: %u ms ago", (chVTGetSystemTime() - last_beep));
             text_last_beep_.set(time_str);
             set_dirty();  // Mark UI for redraw
         }

@@ -271,7 +271,7 @@ inline bool DroneScanner::DroneDetectionLogger::log_detection(const DetectionLog
     if (!session_active_) return false;
     if (!ensure_csv_header()) return false;
     std::string csv_entry = format_csv_entry(entry);
-    auto error = csv_log_.append(generate_log_filename());
+    auto error = csv_log_.append(generate_log_filename().string());
     if (error.is_error()) return false;
     error = csv_log_.write_raw(csv_entry);
     if (!error.is_error()) {
@@ -506,7 +506,7 @@ msg_t ScanningCoordinator::scanning_thread_function(void* arg) {
 }
 
 msg_t ScanningCoordinator::coordinated_scanning_thread() {
-    while (scanning_active_ && !chThdShouldTerminateX()) {
+    while (scanning_active_ && !chThdShouldTerminate()) {
         // **FIX: ACTUAL SCANNING WORKFLOW**
         // 1. Call hardware-scanner coordination (the missing link!)
         scanner_.perform_scan_cycle(hardware_);

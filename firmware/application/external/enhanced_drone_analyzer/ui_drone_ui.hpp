@@ -12,7 +12,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <mutex>
+// #include <mutex>  // Disabled for embedded compatibility
 namespace ui::external_app::enhanced_drone_analyzer {
 // PHASE 1: Smart Threat Header Component for Modern UI Design
 class SmartThreatHeader : public View {
@@ -185,7 +185,7 @@ public:
 private:
     std::vector<DisplayDroneEntry> detected_drones_;  // Dynamic tracking
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;  // Top 3 by RSSI
-    std::array<Color, screen_width> spectrum_row;           // One line buffer for scrolling (PHASE 1 FIX)
+    std::array<Color, 240u> spectrum_row;           // One line buffer for scrolling (PHASE 1 FIX)
     std::array<uint8_t, 200> spectrum_power_levels_;         // Raw power for color mapping (adjusted for new width)
     struct ThreatBin { size_t bin; ThreatLevel threat; };
     std::array<ThreatBin, MAX_DISPLAYED_DRONES> threat_bins_; // Bin indexes and threat levels for overlay
@@ -198,7 +198,7 @@ private:
     uint8_t* powerlevel = nullptr;                            // Current power working variable
     uint8_t min_color_power = 0;                             // Filter threshold
     const uint8_t ignore_dc = 4;                             // DC spike bins to ignore
-    std::mutex spectrum_access_mutex_;                       // Thread safety for spectrum rendering
+    // std::mutex spectrum_access_mutex_;                       // Disabled for embedded compatibility
     NavigationView& nav_;
     MessageHandlerRegistration message_handler_spectrum_config_{
         Message::ID::ChannelSpectrumConfig,
@@ -326,7 +326,8 @@ private:
     Button button_start_{{screen_width - 120, screen_height - 32}, "START/STOP"};
     Button button_menu_{{screen_width - 60, screen_height - 32}, "⚙️"};
 
-    OptionsField field_scanning_mode_{{80, 190, 160, 24}, OptionsField::StringOptions{"Database Scan", "Wideband Monitor", "Hybrid Discovery"}, "Mode"};
+    std::vector<std::string> scanning_mode_options_ = {"Database Scan", "Wideband Monitor", "Hybrid Discovery"};
+    OptionsField field_scanning_mode_{{80, 190, 160, 24}, scanning_mode_options_, 0, "Mode"};
 
     // PHASE 3: Modern UI Layout Management
     void initialize_modern_layout();

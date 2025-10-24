@@ -7,9 +7,83 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <functional>                // For std::function in lambdas
 #include "radio_state.hpp"          // Required for rf::Frequency type
 
 namespace ui::external_app::enhanced_drone_analyzer {
+
+// Define constants early to avoid scope issues
+static constexpr int16_t TREND_THRESHOLD_DB = 3;
+static constexpr uint32_t WIDEBAND_MAX_SLICES = 32;
+static constexpr rf::Frequency WIDEBAND_DEFAULT_MIN = 1000000;
+static constexpr rf::Frequency WIDEBAND_DEFAULT_MAX = 6000000000;
+
+// Other constants
+static constexpr uint32_t SCAN_THREAD_STACK_SIZE = 2048;
+static constexpr rf::Frequency WIDEBAND_SLICE_WIDTH = 2500000;
+static constexpr uint32_t WIDEBAND_BIN_NB = 256;
+static constexpr uint32_t WIDEBAND_BIN_NB_NO_DC = WIDEBAND_BIN_NB - 16;
+static constexpr uint32_t WIDEBAND_BIN_WIDTH = WIDEBAND_SLICE_WIDTH / WIDEBAND_BIN_NB;
+static constexpr uint8_t WIDEBAND_DC_LOWER_BOUND = 122;
+static constexpr uint8_t WIDEBAND_DC_UPPER_BOUND = 134;
+static constexpr uint8_t WIDEBAND_EDGE_MARGIN = 2;
+static constexpr size_t MAX_TRACKED_DRONES = 8;
+static constexpr size_t MAX_DATABASE_ENTRIES = 64;
+static constexpr size_t SPECTRUM_BUFFER_SIZE = 256;
+static constexpr size_t DETECTION_TABLE_SIZE = 512;
+static constexpr int32_t SPECTRUM_BANDWIDTHS[] = {
+    4000000,
+    8000000,
+    12000000,
+    20000000,
+    24000000
+};
+static constexpr int32_t SPECTRUM_SAMPLING_RATES[] = {
+    4000000,
+    8000000,
+    12000000,
+    20000000,
+    24000000
+};
+static constexpr uint8_t MIN_DETECTION_COUNT = 3;
+static constexpr int32_t HYSTERESIS_MARGIN_DB = 5;
+static constexpr float RSSI_SMOOTHING_ALPHA = 0.3f;
+static constexpr int32_t DEFAULT_RSSI_THRESHOLD_DB = -90;
+static constexpr int32_t WIDEBAND_RSSI_THRESHOLD_DB = -85;
+static constexpr int32_t WIDEBAND_DYNAMIC_THRESHOLD_OFFSET_DB = 5;
+static constexpr uint32_t MIN_SCAN_INTERVAL_MS = 500;
+static constexpr uint32_t STALE_DRONE_TIMEOUT_MS = 30000;
+static constexpr uint32_t DETECTION_RESET_INTERVAL = 50;
+static constexpr uint32_t HYBRID_WIDEBAND_RATIO = 4;
+static constexpr uint32_t DRONE_BANDWIDTH_PRESETS[] = {
+    3000000,
+    6000000,
+    10000000,
+    20000000,
+    0
+};
+static constexpr uint16_t SOS_FREQUENCY_HZ = 1500;
+static constexpr uint32_t DETECTION_BEEP_DURATION_MS = 200;
+static constexpr size_t MINI_SPECTRUM_WIDTH = 240;
+static constexpr size_t MINI_SPECTRUM_HEIGHT = 24;
+static constexpr uint32_t MINI_SPECTRUM_Y_START = 180;
+static constexpr size_t MAX_DISPLAYED_DRONES = 3;
+static constexpr rf::Frequency MINI_SPECTRUM_MIN_FREQ = 2400000000ULL;
+static constexpr rf::Frequency MINI_SPECTRUM_MAX_FREQ = 2500000000ULL;
+static constexpr rf::Frequency MIN_HARDWARE_FREQ = 50000000ULL;
+static constexpr rf::Frequency MAX_HARDWARE_FREQ = 6000000000ULL;
+static constexpr rf::Frequency MIN_DRONE_FREQUENCY = 240000000ULL;
+static constexpr rf::Frequency MAX_DRONE_FREQUENCY = 6000000000ULL;
+static constexpr rf::Frequency ISM_CENTER_FREQ = 433000000ULL;
+static constexpr float RSSI_THREAT_WEIGHT = 0.4f;
+static constexpr float DATABASE_THREAT_WEIGHT = 0.6f;
+static constexpr size_t DRONE_TRACKING_SIZE = 15;
+static constexpr size_t TOTAL_TRACKING_MEMORY = MAX_TRACKED_DRONES * DRONE_TRACKING_SIZE;
+static constexpr size_t DETECTION_MEMORY_SIZE = DETECTION_TABLE_SIZE * sizeof(uint8_t) * 2;
+
+// Aliases for cleaner code
+using Frequency = rf::Frequency;
+using ThreatLevel = ui::external_app::enhanced_drone_analyzer::ThreatLevel; // Avoid self-reference if need
 
 enum class DroneType {
     UNKNOWN = 0,
@@ -203,107 +277,6 @@ struct WidebandScanData {
     }
 };
 
-static constexpr uint32_t SCAN_THREAD_STACK_SIZE = 2048;
-
-static constexpr rf::Frequency WIDEBAND_SLICE_WIDTH = 2500000;
-static constexpr uint32_t WIDEBAND_BIN_NB = 256;
-static constexpr uint32_t WIDEBAND_BIN_NB_NO_DC = WIDEBAND_BIN_NB - 16;
-static constexpr uint32_t WIDEBAND_BIN_WIDTH = WIDEBAND_SLICE_WIDTH / WIDEBAND_BIN_NB;
-
-static constexpr rf::Frequency WIDEBAND_DEFAULT_MIN = 1000000;
-static constexpr rf::Frequency WIDEBAND_DEFAULT_MAX = 6000000000;
-
-static constexpr uint32_t WIDEBAND_MAX_SLICES = 32;
-
-static constexpr uint8_t WIDEBAND_DC_LOWER_BOUND = 122;
-static constexpr uint8_t WIDEBAND_DC_UPPER_BOUND = 134;
-
-static constexpr uint8_t WIDEBAND_EDGE_MARGIN = 2;
-
-static constexpr size_t MAX_TRACKED_DRONES = 8;
-
-static constexpr size_t MAX_DATABASE_ENTRIES = 64;
-
-static constexpr size_t SPECTRUM_BUFFER_SIZE = 256;
-
-static constexpr size_t DETECTION_TABLE_SIZE = 512;
-
-static constexpr int32_t SPECTRUM_BANDWIDTHS[] = {
-    4000000,
-    8000000,
-    12000000,
-    20000000,
-    24000000
-};
-
-static constexpr int32_t SPECTRUM_SAMPLING_RATES[] = {
-    4000000,
-    8000000,
-    12000000,
-    20000000,
-    24000000
-};
-
-static constexpr uint8_t MIN_DETECTION_COUNT = 3;
-
-static constexpr int32_t HYSTERESIS_MARGIN_DB = 5;
-
-static constexpr int16_t TREND_THRESHOLD_DB = 3;
-
-static constexpr float RSSI_SMOOTHING_ALPHA = 0.3f;
-
-static constexpr int32_t DEFAULT_RSSI_THRESHOLD_DB = -90;
-
-static constexpr int32_t WIDEBAND_RSSI_THRESHOLD_DB = -85;
-static constexpr int32_t WIDEBAND_DYNAMIC_THRESHOLD_OFFSET_DB = 5;
-
-static constexpr uint32_t MIN_SCAN_INTERVAL_MS = 500;
-
-static constexpr uint32_t STALE_DRONE_TIMEOUT_MS = 30000;
-
-static constexpr uint32_t DETECTION_RESET_INTERVAL = 50;
-
-static constexpr uint32_t HYBRID_WIDEBAND_RATIO = 4;
-
-static constexpr uint32_t DRONE_BANDWIDTH_PRESETS[] = {
-    3000000,
-    6000000,
-    10000000,
-    20000000,
-    0
-};
-
-static constexpr uint16_t SOS_FREQUENCY_HZ = 1500;
-
-static constexpr uint32_t DETECTION_BEEP_DURATION_MS = 200;
-
-static constexpr size_t MINI_SPECTRUM_WIDTH = 240;
-static constexpr size_t MINI_SPECTRUM_HEIGHT = 24;
-static constexpr uint32_t MINI_SPECTRUM_Y_START = 180;
-
-static constexpr size_t MAX_DISPLAYED_DRONES = 3;
-
-static constexpr rf::Frequency MINI_SPECTRUM_MIN_FREQ = 2400000000ULL;
-static constexpr rf::Frequency MINI_SPECTRUM_MAX_FREQ = 2500000000ULL;
-
-static constexpr rf::Frequency MIN_HARDWARE_FREQ = 50000000ULL;
-static constexpr rf::Frequency MAX_HARDWARE_FREQ = 6000000000ULL;
-
-static constexpr rf::Frequency MIN_DRONE_FREQUENCY = 240000000ULL;
-static constexpr rf::Frequency MAX_DRONE_FREQUENCY = 6000000000ULL;
-
-static constexpr rf::Frequency ISM_CENTER_FREQ = 433000000ULL;
-
-static constexpr float RSSI_THREAT_WEIGHT = 0.4f;
-
-static constexpr float DATABASE_THREAT_WEIGHT = 0.6f;
-
-static constexpr size_t DRONE_TRACKING_SIZE = 15;
-
-static constexpr size_t TOTAL_TRACKING_MEMORY = MAX_TRACKED_DRONES * DRONE_TRACKING_SIZE;
-
-static constexpr size_t DETECTION_MEMORY_SIZE = DETECTION_TABLE_SIZE * sizeof(uint8_t) * 2;
-
 struct DronePreset {
     std::string display_name;
     uint32_t frequency_hz;
@@ -339,9 +312,9 @@ public:
                                           std::function<void(const DronePreset&)> on_selected);
 };
 
-static const std::vector<DronePreset> DroneFrequencyPresets::s_presets = {
+const std::vector<DronePreset> DroneFrequencyPresets::s_presets = {
 
-    {"DJI Mini 4 Pro",       2400000000, DroneType::DJI_MINI,   ThreatLevel::NONE,     -75, "DJI Mini 4 Pro"},
+    {"DJI Mini 4 Pro",       2400000000ULL, DroneType::DJI_MINI,   ThreatLevel::NONE,     -75, "DJI Mini 4 Pro"},
     {"DJI Mini 4 Pro (5.8GHz)", 5800000000, DroneType::DJI_MINI,   ThreatLevel::NONE,     -75, "DJI Mini 4 Pro (Video)"},
     {"DJI Mavic 3 Pro",      2400000000, DroneType::DJI_MAVIC,  ThreatLevel::NONE,     -70, "DJI Mavic 3 Pro"},
     {"DJI Mavic 3 Pro (5.8GHz)", 5800000000, DroneType::DJI_MAVIC,  ThreatLevel::NONE,     -70, "DJI Mavic 3 Pro (Video)"},
@@ -447,8 +420,11 @@ void DronePresetSelector::show_preset_menu(NavigationView& nav,
     class PresetMenuView : public MenuView {
     public:
         PresetMenuView(std::vector<std::string> names, std::function<void(const DronePreset&)> callback)
-            : MenuView({"Select Drone Preset", Theme::getInstance()->fg_light->foreground, nullptr}),
+            : MenuView(),
               on_selected_fn(callback), preset_names(names) {
+            for (const auto& name : names) {
+                add_item(MenuItem{name, ui::Color::white(), nullptr, [](KeyEvent){}});
+            }
         }
 
         virtual bool on_key(const KeyEvent key) override {
@@ -513,8 +489,12 @@ void DronePresetSelector::show_type_filtered_presets(NavigationView& nav, DroneT
     class FilteredPresetMenuView : public MenuView {
     public:
         FilteredPresetMenuView(std::vector<std::string> names, std::vector<DronePreset> presets, std::function<void(const DronePreset&)> callback)
-            : MenuView({DroneFrequencyPresets::get_type_display_name(presets[0].drone_type) + " Presets", Theme::getInstance()->fg_light->foreground, nullptr}),
-              on_selected_fn(callback), preset_names(names), filtered_presets(presets) {}
+            : MenuView(),
+              on_selected_fn(callback), preset_names(names), filtered_presets(presets) {
+            for (const auto& name : names) {
+                add_item(MenuItem{name, ui::Color::white(), nullptr, [](KeyEvent){}});
+            }
+        }
 
         virtual bool on_key(const KeyEvent key) override {
             if (key == KeyEvent::Select) {

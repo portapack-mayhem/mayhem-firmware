@@ -237,28 +237,28 @@ private:
     };
 
     // Spectrum tab
-    Text text_spectrum_title{{8, 2 * 16}, "Spectrum Analysis"};
-    Text text_scan_interval_label{{8, 4 * 16 + 8}, "Scan Int.:", Theme::getInstance()->fg_light->foreground};
+    Text text_spectrum_title{{8, 2 * 16, screen_width, 16}, "Spectrum Analysis"};
+    Text text_scan_interval_label{{8, 4 * 16 + 8, 120, 16}, "Scan Int.:", Theme::getInstance()->fg_light->foreground};
     NumberField field_scan_interval{
         {8 * 9, 4 * 16 + 8}, 4, {200, 5000}, 100, ' '
     };
 
     // Detection tab
-    Text text_detection_title{{8, 2 * 16}, "Signal Detection"};
-    Text text_min_detections_label{{8, 3 * 16 + 8}, "Min Detections:", Theme::getInstance()->fg_light->foreground};
+    Text text_detection_title{{8, 2 * 16, screen_width, 16}, "Signal Detection"};
+    Text text_min_detections_label{{8, 3 * 16 + 8, 120, 16}, "Min Detections:", Theme::getInstance()->fg_light->foreground};
     NumberField field_min_detections{
         {8 * 14, 3 * 16 + 8}, 2, {1, 10}, 1, ' '
     };
 
     // Audio tab
-    Text text_audio_title{{8, 2 * 16}, "Audio Alerts"};
-    Text text_alert_freq_label{{8, 3 * 16 + 8}, "Alert Freq.:", Theme::getInstance()->fg_light->foreground};
+    Text text_audio_title{{8, 2 * 16, screen_width, 16}, "Audio Alerts"};
+    Text text_alert_freq_label{{8, 3 * 16 + 8, 120, 16}, "Alert Freq.:", Theme::getInstance()->fg_light->foreground};
     NumberField field_alert_freq{
         {8 * 11, 3 * 16 + 8}, 4, {400, 3000}, 50, ' '
     };
 
     // Display tab
-    Text text_display_title{{8, 2 * 16}, "Display Settings"};
+    Text text_display_title{{8, 2 * 16, screen_width, 16}, "Display Settings"};
 
     void setup_ui_elements();
     void load_settings_to_ui();
@@ -278,9 +278,9 @@ public:
 private:
     NavigationView& nav_;
 
-    Text text_title_{{8, 8}, "Constant Settings"};
-    Text text_min_freq_{{8, 32}, "Min Drone Freq (MHz):"};
-    NumberField field_min_drone_freq_{{120, 32}, 4, {400}, 6000, 240};
+    Text text_title_{{8, 8, 240, 16}, "Constant Settings"};
+    Text text_min_freq_{{8, 32, 200, 16}, "Min Drone Freq (MHz):"};
+    NumberField field_min_drone_freq_{{120, 32, 80, 24}, 4, {400, 6000}, 240, ' '};
 
     Button button_ok_{{screen_width/2 - 20, screen_height - 24, 40, 16}, "OK"};
     void on_ok_pressed();
@@ -450,20 +450,20 @@ void DroneSettingsView::load_settings_to_ui() {
 }
 
 void DroneSettingsView::save_ui_to_settings() {
-    settings_.spectrum.min_scan_interval_ms = field_scan_interval.to_integer();
-    settings_.detection.min_detection_count = field_min_detections.to_integer();
-    settings_.audio.alert_frequency_hz = field_alert_freq.to_integer();
+    settings_.spectrum.min_scan_interval_ms = field_scan_interval.get_value();
+    settings_.detection.min_detection_count = field_min_detections.get_value();
+    settings_.audio.alert_frequency_hz = field_alert_freq.get_value();
 }
 
 void DroneSettingsView::validate_settings() {
     // Basic validation
-    if (field_scan_interval.to_integer() < 200 || field_scan_interval.to_integer() > 5000) {
+    if (field_scan_interval.get_value() < 200 || field_scan_interval.get_value() > 5000) {
         show_validation_error("Scan interval must be 200-5000 ms");
         field_scan_interval.focus();
         return;
     }
 
-    if (field_alert_freq.to_integer() < 400 || field_alert_freq.to_integer() > 3000) {
+    if (field_alert_freq.get_value() < 400 || field_alert_freq.get_value() > 3000) {
         show_validation_error("Alert frequency must be 400-3000 Hz");
         field_alert_freq.focus();
         return;
