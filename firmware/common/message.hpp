@@ -136,6 +136,7 @@ class Message {
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
         EPIRBPacket = 81,
+        SSTVRXConfigure = 82,
         MAX
     };
 
@@ -1137,6 +1138,18 @@ class SSTVConfigureMessage : public Message {
 
     const uint8_t vis_code;
     const uint32_t pixel_duration;
+};
+
+class SSTVRXConfigureMessage : public Message {
+    public:
+     constexpr SSTVRXConfigureMessage(
+        const uint8_t code)
+     : Message{id: ID::SSTVRXConfigure},
+        code(code) {
+
+    }
+
+    const uint8_t code;
 };
 
 class FSKConfigureMessage : public Message {

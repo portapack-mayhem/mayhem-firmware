@@ -20,25 +20,25 @@
  */
 
 #include "ui.hpp"
-#include "ui_sstv_rx.hpp"
+#include "ui_sstvrx.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::sstv_rx {
+namespace ui::external_app::sstvrx {
 
 void initialize_app(NavigationView& nav) {
     nav.push<SstvRxView>();
 }
 
-}  // namespace ui::external_app::sstv_rx
+}  // namespace ui::external_app::sstvrx
 
 extern "C" {
 
 // Az alkalmazás információ C-linkage-ként, hogy a firmware hívhassa
-__attribute__((section(".external_app.app_sstv_rx.application_information"), used))
-application_information_t _application_information_sstv_rx = {
+__attribute__((section(".external_app.app_sstvrx.application_information"), used))
+application_information_t _application_information_sstvrx = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::sstv_rx::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::sstvrx::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
@@ -81,7 +81,7 @@ application_information_t _application_information_sstv_rx = {
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'W', 'F', 'M'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'S', 'R', 'X'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 

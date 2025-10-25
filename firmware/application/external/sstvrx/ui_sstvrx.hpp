@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SSTV_RX_H__
-#define __SSTV_RX_H__
+#ifndef __SSTVRX_H__
+#define __SSTVRX_H__
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -30,6 +30,7 @@
 #include "ui_freq_field.hpp"
 #include "ui_freqman.hpp"
 #include "baseband_api.hpp"
+#include "event_m0.hpp"
 #include "message.hpp"
 #include "sstv.hpp"
 #include "file.hpp"
@@ -45,9 +46,19 @@
 
 using namespace sstv;
 
-namespace ui::external_app::sstv_rx {
+namespace ui::external_app::sstvrx {
 
 #define FMR_BTNGRID_TOP 60
+
+class SstvRxLogger {
+    public:
+     Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+     }
+
+    private:
+     LogFile log_file{};
+};
 
 class SstvRxView : public ui::View {
    public:
@@ -62,6 +73,7 @@ class SstvRxView : public ui::View {
 
    private:
     ui::NavigationView& nav_;
+    std::unique_ptr<SstvRxLogger> logger{};
 
     ReceiverModel::Mode receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     AudioSpectrum* audio_spectrum_data{nullptr};
@@ -83,12 +95,14 @@ class SstvRxView : public ui::View {
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
     AudioVolumeField field_volume{{screen_width - 2 * 8, UI_POS_Y(0)}};
     OptionsField options_mode {
-        {6 * 8, 3 * 8},
+        {20 * 8, 3 * 8},
         16,
         {}};
     Labels labels{
-        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground}};
-    OptionsField field_bw{{10 * 8, FMR_BTNGRID_TOP + 6 * 34}, 6, {}};
+        {{15 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 8}, "BW:", Theme::getInstance()->fg_light->foreground},
+    };
+    OptionsField field_bw{{4 * 8, 3 * 8}, 6, {}};
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
     ui::Button start_btn{{UI_POS_X_CENTER(12), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Start RX"};
     ui::Button stop_btn{{UI_POS_X_CENTER(12), UI_POS_Y(8), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};
@@ -100,6 +114,6 @@ class SstvRxView : public ui::View {
     void on_mode_changed(const size_t index);
 };
 
-}  // namespace ui::external_app::sstv_rx
+}  // namespace ui::external_app::sstvrx
 
-#endif  // __SSTV_RX_H__
+#endif  // __SSTVRX_H__

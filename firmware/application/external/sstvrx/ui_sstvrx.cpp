@@ -19,11 +19,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_sstv_rx.hpp"
+#include "ui_sstvrx.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
+#include "file_path.hpp"
+#include "message.hpp"
 #include <cstdint>
 #include <cstring>
 #include <stdio.h>
@@ -33,11 +35,11 @@ using namespace modems;
 using namespace ui;
 
 // SSTV RX View Implementation
-namespace ui::external_app::sstv_rx {
+namespace ui::external_app::sstvrx {
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
+    baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
     add_children({
         &field_rf_amp,
         &field_lna,
@@ -86,6 +88,11 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     };
     options_mode.set_selected_index(1);  // Scottie 2
     on_mode_changed(1);
+
+    logger = std::make_unique<SstvRxLogger>();
+    if (logger) {
+        logger->append(logs_dir / "SSTVRX.txt");
+    }
 }
 
 // Destructor: Ensure reception is stopped
@@ -102,14 +109,14 @@ void SstvRxView::focus() {
     field_frequency.focus();
 }
 
-// Start WFM audio reception if not already started
+// Start NFM audio reception if not already started
 void SstvRxView::on_start() {
     if (!is_receiving) {
         start_audio();
     }
 }
 
-// Stop WFM audio reception
+// Stop NFM audio reception
 void SstvRxView::on_stop() {
     if (is_receiving) {
         audio::output::stop();
@@ -117,9 +124,10 @@ void SstvRxView::on_stop() {
         baseband::shutdown();
         is_receiving = false;
     }
+    baseband::set_sstvrx_data(0);
 }
 
-// Start WFM audio reception
+// Start NFM audio reception
 void SstvRxView::start_audio() {
     is_receiving = true;
     field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n; };
@@ -127,16 +135,18 @@ void SstvRxView::start_audio() {
     receiver_model.disable();
     baseband::shutdown();
 
+    baseband::set_sstvrx_data(1);
+
     std::fill(audio_spectrum, audio_spectrum + 128, 0);
     audio_sampling_rate = audio::Rate::Hz_48000;
-    freqman_set_bandwidth_option(2, field_bw);  // WFM_MODULATION
-    baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
+    freqman_set_bandwidth_option(2, field_bw);  // NFM_MODULATION
+    baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
     receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
-    field_bw.set_by_value(0);  // 200k default
-    receiver_model.set_wfm_configuration(field_bw.selected_index_value());
+    field_bw.set_by_value(1);  // 80k default
+    receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
     field_bw.on_change = [this](size_t index, OptionsField::value_t n) {
         radio_bw = index;
-        receiver_model.set_wfm_configuration(n);
+        receiver_model.set_nbfm_configuration(n);
     };
 
     receiver_model.set_modulation(receiver_mode);
@@ -150,9 +160,7 @@ void SstvRxView::start_audio() {
 }
 
 void SstvRxView::on_mode_changed(const size_t index) {
-    sstv_color_seq rx_color_sequence;
     rx_sstv_mode = &sstv_modes[index];
-    rx_color_sequence = sstv_modes[index].color_sequence;
 }
 
-}  // namespace ui::external_app::sstv_rx
+}  // namespace ui::external_app::sstvrx
