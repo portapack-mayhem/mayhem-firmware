@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="2">
+    <cppcheck version="2.17.1"/>
+    <errors>
+        <error id="passedByValue" severity="performance" msg="Function parameter &apos;names&apos; should be passed by const reference." verbose="Parameter &apos;names&apos; is passed by value. It could be passed as a const reference which is usually faster and recommended in C++." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="421" column="49" info="Function parameter &apos;names&apos; should be passed by const reference."/>
+            <symbol>names</symbol>
+        </error>
+        <error id="passedByValue" severity="performance" msg="Function parameter &apos;presets&apos; should be passed by const reference." verbose="Parameter &apos;presets&apos; is passed by value. It could be passed as a const reference which is usually faster and recommended in C++." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="490" column="89" info="Function parameter &apos;presets&apos; should be passed by const reference."/>
+            <symbol>presets</symbol>
+        </error>
+        <error id="useStlAlgorithm" severity="style" msg="Consider using std::generate algorithm instead of a raw loop." verbose="Consider using std::generate algorithm instead of a raw loop." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="274" column="19"/>
+        </error>
+        <error id="useStlAlgorithm" severity="style" msg="Consider using std::copy_if algorithm instead of a raw loop." verbose="Consider using std::copy_if algorithm instead of a raw loop." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="392" column="21"/>
+        </error>
+        <error id="useStlAlgorithm" severity="style" msg="Consider using std::find_if algorithm instead of a raw loop." verbose="Consider using std::find_if algorithm instead of a raw loop." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="400" column="50"/>
+        </error>
+        <error id="useStlAlgorithm" severity="style" msg="Consider using std::transform algorithm instead of a raw loop." verbose="Consider using std::transform algorithm instead of a raw loop." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="410" column="15"/>
+        </error>
+        <error id="useStlAlgorithm" severity="style" msg="Consider using std::transform algorithm instead of a raw loop." verbose="Consider using std::transform algorithm instead of a raw loop." cwe="398" file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_config.hpp" line="485" column="15"/>
+        </error>
+    </errors>
+</results>

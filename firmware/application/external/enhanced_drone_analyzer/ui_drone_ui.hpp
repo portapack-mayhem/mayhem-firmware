@@ -13,6 +13,19 @@
 #include <string>
 #include <vector>
 // #include <mutex>  // Disabled for embedded compatibility
+
+// Forward declaration for DisplayDroneEntry struct used before its definition
+struct DisplayDroneEntry {
+    Frequency frequency;
+    DroneType type;
+    ThreatLevel threat;
+    int32_t rssi;
+    systime_t last_seen;
+    std::string type_name;
+    Color display_color;
+    MovementTrend trend;
+};
+
 namespace ui::external_app::enhanced_drone_analyzer {
 // PHASE 1: Smart Threat Header Component for Modern UI Design
 class SmartThreatHeader : public View {
@@ -127,7 +140,7 @@ class DroneDisplayController {
 public:
     explicit DroneDisplayController(NavigationView& nav);
     ~DroneDisplayController() = default;
-    BigFrequencyDisplay& big_display() { return big_display_; }
+    BigFrequency& big_display() { return big_display_; }
     ProgressBar& scanning_progress() { return scanning_progress_; }
     Text& text_threat_summary() { return text_threat_summary_; }
     Text& text_status_info() { return text_status_info_; }
@@ -157,8 +170,6 @@ public:
         systime_t last_seen;
         std::string type_name;
         Color display_color;
-    };
-    void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     };
     void add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi);
     void update_drones_display(const DroneScanner& scanner);
@@ -218,7 +229,7 @@ private:
                 this->render_mini_spectrum();
             }
         }};
-    BigFrequencyDisplay big_display_{{0, 24, 240, 32}};
+    BigFrequency big_display_{{0, 24, 240, 32}, 0};
     ProgressBar scanning_progress_{{0, 64, 240, 16}};
     Text text_threat_summary_{{0, 84, 240, 16}, "THREAT: NONE | ▲0 ■0 ▼0"};
     Text text_status_info_{{0, 100, 240, 16}, "Ready - Enhanced Drone Analyzer"};

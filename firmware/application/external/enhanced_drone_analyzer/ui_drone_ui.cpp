@@ -4,7 +4,10 @@
 #include <algorithm>
 #include <sstream>
 #include <mutex>
-namespace ui::external_app::enhanced_drone_analyzer {
+
+namespace ui {
+namespace external_app {
+namespace enhanced_drone_analyzer {
 
 // PHASE 1 IMPLEMENTATION: Smart Threat Header Component
 SmartThreatHeader::SmartThreatHeader(Rect parent_rect)
@@ -829,14 +832,6 @@ void DroneUIController::show_menu() {
         {Translator::translate("toggle_audio"), [this]() { on_toggle_audio_simple(); }}, // PHASE 1: RESTORE Audio Enable Toggle
         {Translator::translate("audio_settings"), [this]() { on_audio_toggle(); }},
         {Translator::translate("add_preset"), [this]() { on_add_preset_quick(); }}, // PHASE 4: RESTORE Preset system for drone database
-    char success_msg[128];
-    snprintf(success_msg, sizeof(success_msg),
-            "RESTORATION: Preset Added Successfully\n%s (%d MHz)\nThreat: %s",
-            selected_preset.display_name.c_str(),
-            static_cast<int>(selected_preset.frequency_hz / 1000000),
-            selected_preset.threat_level == ThreatLevel::HIGH ? "HIGH" :
-            selected_preset.threat_level == ThreatLevel::MEDIUM ? "MEDIUM" : "LOW");
-    nav_.display_modal("Preset Added", success_msg);
         {Translator::translate("manage_freq"), [this]() { on_manage_frequencies(); }},
         {Translator::translate("create_db"), [this]() { on_create_new_database(); }},
         {Translator::translate("advanced"), [this]() { on_advanced_settings(); }},
@@ -1385,103 +1380,6 @@ void LoadingScreenView::paint(Painter& painter) {
     );
     View::paint(painter);
 }
-} // namespace ui::external_app::enhanced_drone_analyzer
-// TEMPORARY: Add missing SmartThreatHeader implementation to resolve compilation error
-void SmartThreatHeader::update(ThreatLevel max_threat, size_t approaching,
-                              size_t static_count, size_t receding,
-                              Frequency current_freq, bool is_scanning) {
-    // Update internal state variables (PHASE 1 MISSING IMPLEMENTATION FIX)
-    current_threat_ = max_threat;
-    approaching_count_ = approaching;
-    static_count_ = static_count;
-    receding_count_ = receding;
-    current_freq_ = current_freq;
-    is_scanning_ = is_scanning;
-
-    // Update progress bar color and value based on threat level
-    size_t progress_value = static_cast<size_t>(max_threat) * 25; // Convert threat level to visual progress
-    if (progress_value > 100) progress_value = 100;
-    threat_progress_bar_.set_value(progress_value);
-
-    // Update status text with current threat and counts
-    std::string status_text = get_threat_icon_text(max_threat) + " | ▲" +
-                            std::to_string(approaching_count_) + " ■" +
-                            std::to_string(static_count_) + " ▼" +
-                            std::to_string(receding_count_);
-    threat_status_main_.set(status_text.c_str());
-
-    // Update frequency display
-    std::string freq_text = to_string_short_freq(current_freq);
-    if (is_scanning) {
-        freq_text += " SCANNING";
-    }
-    threat_frequency_.set(freq_text.c_str());
-
-    // Mark for repaint to show immediate changes
-    set_dirty();
-}
-
-// Complete SmartThreatHeader methods (PHASE 1 MISSING IMPLEMENTATION FIX)
-void SmartThreatHeader::set_max_threat(ThreatLevel threat) {
-    current_threat_ = threat;
-    set_dirty();
-}
-
-void SmartThreatHeader::set_movement_counts(size_t approaching, size_t static_count, size_t receding) {
-    approaching_count_ = approaching;
-    static_count_ = static_count;
-    receding_count_ = receding;
-    set_dirty();
-}
-
-void SmartThreatHeader::set_current_frequency(Frequency freq) {
-    current_freq_ = freq;
-    set_dirty();
-}
-
-void SmartThreatHeader::set_scanning_state(bool is_scanning) {
-    is_scanning_ = is_scanning;
-    set_dirty();
-}
-
-void SmartThreatHeader::set_color_scheme(bool use_dark_theme) {
-    // Color scheme logic (simplified for now)
-    set_dirty();
-}
-
-// Helper methods for SmartThreatHeader
-Color SmartThreatHeader::get_threat_bar_color(ThreatLevel level) const {
-    switch (level) {
-        case ThreatLevel::CRITICAL: return Theme::getInstance()->fg_red->foreground;
-        case ThreatLevel::HIGH: return Theme::getInstance()->fg_orange->foreground;
-        case ThreatLevel::MEDIUM: return Theme::getInstance()->fg_yellow->foreground;
-        case ThreatLevel::LOW: return Theme::getInstance()->fg_blue->foreground;
-        default: return Theme::getInstance()->fg_green->foreground;
-    }
-}
-
-Color SmartThreatHeader::get_threat_text_color(ThreatLevel level) const {
-    return get_threat_bar_color(level); // Same color for text and bar
-}
-
-std::string SmartThreatHeader::get_threat_icon_text(ThreatLevel level) const {
-    switch (level) {
-        case ThreatLevel::CRITICAL: return "THREAT: CRITICAL";
-        case ThreatLevel::HIGH: return "THREAT: HIGH";
-        case ThreatLevel::MEDIUM: return "THREAT: MEDIUM";
-        case ThreatLevel::LOW: return "THREAT: LOW";
-        case ThreatLevel::NONE: return "THREAT: NORMAL";
-        default: return "THREAT: NONE";
-    }
-}
-
-void SmartThreatHeader::paint(Painter& painter) {
-    View::paint(painter);
-
-    // Draw threat progress bar
-    auto bar_color = get_threat_bar_color(current_threat_);
-    threat_progress_bar_.set_color(bar_color);
-
-    // Draw additional visual elements if needed
-    // SmartThreatHeader custom painting logic
-}
+} // namespace enhanced_drone_analyzer
+} // namespace external_app
+} // namespace ui

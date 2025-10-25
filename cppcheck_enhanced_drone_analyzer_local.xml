@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="2">
+    <cppcheck version="2.17.1"/>
+    <errors>
+        <error id="syntaxError" severity="error" msg="Unmatched &apos;}&apos;. Configuration: &apos;&apos;." verbose="Unmatched &apos;}&apos;. Configuration: &apos;&apos;." file0="firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_ui.hpp" line="346" column="1"/>
+        </error>
+        <error id="normalCheckLevelMaxBranches" severity="information" msg="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." verbose="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.cpp">
+            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_scanner.cpp" line="0" column="0"/>
+        </error>
+    </errors>
+</results>

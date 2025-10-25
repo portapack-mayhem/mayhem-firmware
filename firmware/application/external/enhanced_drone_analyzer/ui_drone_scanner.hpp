@@ -236,7 +236,7 @@ private:
 
     // OWNED: Drone-specific database for lookup operations
     // This is initialized and managed by UI layer based on Frequency Manager edits
-    DroneFrequencyDatabase drone_database_;
+    FreqmanDB drone_database_;
 
     // OWNED: Detection logger for CSV logging
     DroneDetectionLogger detection_logger_;

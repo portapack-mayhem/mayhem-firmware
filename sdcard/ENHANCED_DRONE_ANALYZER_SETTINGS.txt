@@ -1,0 +1,39 @@
+# Enhanced Drone Analyzer Settings File
+# This file enables communication between Settings and Scanner apps
+# Format: key=value
+# Generated automatically by Settings App
+
+# Scanning Configuration
+spectrum_mode=MEDIUM
+scan_interval_ms=1000
+rssi_threshold_db=-90
+enable_audio_alerts=true
+audio_alert_frequency_hz=800
+audio_alert_duration_ms=500
+
+# Hardware Settings
+enable_real_hardware=true
+demo_mode=false
+hardware_bandwidth_hz=24000000
+
+# Frequency Ranges
+min_frequency_hz=2400000000
+max_frequency_hz=2500000000
+
+# Wideband Settings
+enable_wideband_scanning=false
+wideband_min_freq_hz=2400000000
+wideband_max_freq_hz=2500000000
+
+# Application Settings
+show_detailed_info=true
+auto_save_logs=true
+log_file_path=/eda_logs
+
+# Frequency Database Path
+freqman_path=DRONES
+
+# Settings Metadata
+last_updated=2025-10-25
+version=1.0
+description=Default settings for Enhanced Drone Analyzer modular apps

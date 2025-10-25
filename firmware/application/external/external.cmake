@@ -263,19 +263,16 @@ set(EXTCPPSRC
 	external/adult_toys_controller/main.cpp
 	external/adult_toys_controller/ui_adult_toys_controller.cpp
 
-	#enhanced_drone_analyzer
-	external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
-	external/enhanced_drone_analyzer/ui_minimal_drone_analyzer.hpp
-	external/enhanced_drone_analyzer/ui_drone_config.hpp
-	external/enhanced_drone_analyzer/ui_drone_hardware.cpp
-	external/enhanced_drone_analyzer/ui_drone_hardware.hpp
-	external/enhanced_drone_analyzer/ui_drone_scanner.cpp
-	external/enhanced_drone_analyzer/ui_drone_scanner.hpp
-	external/enhanced_drone_analyzer/ui_drone_audio.hpp
-	external/enhanced_drone_analyzer/ui_drone_database_mgmt.hpp
-	external/enhanced_drone_analyzer/ui_drone_settings_complete.hpp
-	external/enhanced_drone_analyzer/ui_drone_ui.cpp
-	external/enhanced_drone_analyzer/ui_drone_ui.hpp
+	#enhanced_drone_analyzer_scanner - New modular scanner app
+	external/enhanced_drone_analyzer/scanner/enhanced_drone_analyzer_scanner_main.cpp
+	external/enhanced_drone_analyzer/scanner/ui_scanner_combined.cpp
+
+	#enhanced_drone_analyzer_settings - New modular settings app
+	external/enhanced_drone_analyzer/Settings/enhanced_drone_analyzer_settings_main.cpp
+	external/enhanced_drone_analyzer/Settings/ui_settings_combined.cpp
+
+	#enhanced_drone_analyzer - Original monolithic app (deprecated)
+	# external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp
 )
 
 set(EXTAPPLIST
@@ -342,5 +339,7 @@ set(EXTAPPLIST
 	bht_tx
 	morse_practice
 	adult_toys_controller
-	enhanced_drone_analyzer
+	enhanced_drone_analyzer_scanner
+	enhanced_drone_analyzer_settings
+	# enhanced_drone_analyzer - Original deprecated
 )

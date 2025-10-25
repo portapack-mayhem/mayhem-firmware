@@ -148,8 +148,8 @@ enum class MovementTrend : uint8_t {
         uint8_t bandwidth_idx;
         uint16_t name_offset;
 
-        DroneFrequencyEntry(rf::Frequency freq, DroneType type, ThreatLevel threat,
-                           int32_t rssi_thresh, uint32_t bw_hz, const char* desc)
+    DroneFrequencyEntry(rf::Frequency freq, DroneType type, ThreatLevel threat,
+                       int32_t rssi_thresh, uint32_t /*bw_hz*/, const char* /*desc*/)
             : frequency_hz(freq),
               drone_type_idx(static_cast<uint8_t>(type)),
               threat_level_idx(static_cast<uint8_t>(threat)),
@@ -278,7 +278,7 @@ struct WidebandScanData {
 
 struct DronePreset {
     std::string display_name;
-    uint32_t frequency_hz;
+    Frequency frequency_hz;
     DroneType drone_type;
     ThreatLevel threat_level;
     int32_t rssi_threshold_db;
@@ -436,7 +436,7 @@ void DronePresetSelector::show_preset_menu(NavigationView& nav,
                 return true;
             }
             if (key == KeyEvent::Select) {
-                size_t idx = get_selected_index();
+                size_t idx = highlighted_index();
                 if (idx < preset_names.size()) {
                     const DronePreset* preset = DroneFrequencyPresets::find_preset_by_name(preset_names[idx]);
                     if (preset && on_selected_fn) {
@@ -497,7 +497,7 @@ void DronePresetSelector::show_type_filtered_presets(NavigationView& nav, DroneT
 
         virtual bool on_key(const KeyEvent key) override {
             if (key == KeyEvent::Select) {
-                size_t idx = get_selected_index();
+                size_t idx = highlighted_index();
                 if (idx < filtered_presets.size()) {
                     on_selected_fn(filtered_presets[idx]);
                 }
@@ -513,6 +513,102 @@ void DronePresetSelector::show_type_filtered_presets(NavigationView& nav, DroneT
     };
 
     nav.push<FilteredPresetMenuView>(names, filtered_presets, on_selected);
+}
+
+/**
+ * TXT-Based Configuration System - Implements communication between Settings and Scanner apps
+ */
+class ScannerConfig {
+public:
+    struct ConfigData {
+        std::string scanning_mode = "DATABASE";
+        uint32_t min_frequency_hz = 50000000;
+        uint32_t max_frequency_hz = 6000000000;
+        int32_t rssi_threshold_db = -90;
+        uint32_t scan_interval_ms = 750;
+        bool enable_audio_alerts = true;
+        std::string freqman_path = "DRONES";
+    };
+
+    ScannerConfig() = default;
+    ~ScannerConfig() = default;
+
+    const ConfigData& get_data() const { return config_data_; }
+
+    // TXT file operations
+    bool load_from_file(const std::string& filepath = "SCANNER_CONFIG.txt");
+    bool save_to_file(const std::string& filepath = "SCANNER_CONFIG.txt") const;
+
+    // Configuration setters for settings app
+    void set_scanning_mode(const std::string& mode) { config_data_.scanning_mode = mode; }
+    void set_frequency_range(uint32_t min_hz, uint32_t max_hz) {
+        config_data_.min_frequency_hz = min_hz;
+        config_data_.max_frequency_hz = max_hz;
+    }
+    void set_rssi_threshold(int32_t threshold) { config_data_.rssi_threshold_db = threshold; }
+    void set_scan_interval(uint32_t interval_ms) { config_data_.scan_interval_ms = interval_ms; }
+    void set_audio_alerts(bool enabled) { config_data_.enable_audio_alerts = enabled; }
+    void set_freqman_path(const std::string& path) { config_data_.freqman_path = path; }
+
+private:
+    ConfigData config_data_;
+};
+
+bool ScannerConfig::load_from_file(const std::string& filepath) {
+    // Implementation uses File and FileLineReader
+    // Creates/gets sdcard/SCANNER_CONFIG.txt
+    File f;
+    auto path = "settings/" + filepath;  // Put in settings directory
+
+    auto error = f.open(path);
+    if (error) {
+        return false; // File not found, use defaults
+    }
+
+    auto reader = FileLineReader(f);
+    for (const auto& line : reader) {
+        auto cols = split_string(line, '=');
+        if (cols.size() == 2) {
+            const std::string& key = trim(cols[0]);
+            const std::string& value = trim(cols[1]);
+            if (key == "scanning_mode") config_data_.scanning_mode = value;
+            else if (key == "min_frequency_hz") config_data_.min_frequency_hz = std::stoul(value);
+            else if (key == "max_frequency_hz") config_data_.max_frequency_hz = std::stoul(value);
+            else if (key == "rssi_threshold_db") config_data_.rssi_threshold_db = std::stoi(value);
+            else if (key == "scan_interval_ms") config_data_.scan_interval_ms = std::stoul(value);
+            else if (key == "enable_audio_alerts") config_data_.enable_audio_alerts = (value == "true");
+            else if (key == "freqman_path") config_data_.freqman_path = value;
+        }
+    }
+    return true;
+}
+
+bool ScannerConfig::save_to_file(const std::string& filepath) const {
+    // Write to sdcard/SCANNER_CONFIG.txt
+    File f;
+    auto path = "settings/" + filepath;
+
+    ensure_directory(settings_dir);
+    auto error = f.create(path);
+    if (error) return false;
+
+    // Write key=value pairs
+    auto write_line = [&](const std::string& key, const std::string& value) {
+        f.write(key.data(), key.length());
+        f.write("=", 1);
+        f.write(value.data(), value.length());
+        f.write("\n", 1);
+    };
+
+    write_line("scanning_mode", config_data_.scanning_mode);
+    write_line("min_frequency_hz", std::to_string(config_data_.min_frequency_hz));
+    write_line("max_frequency_hz", std::to_string(config_data_.max_frequency_hz));
+    write_line("rssi_threshold_db", std::to_string(config_data_.rssi_threshold_db));
+    write_line("scan_interval_ms", std::to_string(config_data_.scan_interval_ms));
+    write_line("enable_audio_alerts", config_data_.enable_audio_alerts ? "true" : "false");
+    write_line("freqman_path", config_data_.freqman_path);
+
+    return true;
 }
 
 } 
