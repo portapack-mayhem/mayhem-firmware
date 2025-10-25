@@ -1,3 +1,0 @@
-[submodule "hackrf"]
-	path = hackrf
-	url = https://github.com/portapack-mayhem/hackrf.git
