@@ -114,9 +114,10 @@ void DroneScanner::setup_wideband_range(Frequency min_freq, Frequency max_freq) 
 
         std::generate_n(wideband_scan_data_.slices,
                        wideband_scan_data_.slices_nb,
-                       [&center_frequency]() mutable -> WidebandSlice {
+                       [&center_frequency, slice_index = 0]() mutable -> WidebandSlice {
                            WidebandSlice slice;
                            slice.center_frequency = center_frequency;
+                           slice.index = slice_index++;
                            center_frequency += WIDEBAND_SLICE_WIDTH;
                            return slice;
                        });

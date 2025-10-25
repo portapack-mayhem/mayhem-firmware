@@ -96,6 +96,7 @@ enum class DroneType {
     DJI_AVATA,
     FPV_RACING,
     FPV_FREESTYLE,
+    PARROT_ANAFI,
     ORLAN_10,
     LANCET,
     SHAHED_136,
