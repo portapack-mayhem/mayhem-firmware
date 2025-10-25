@@ -48,12 +48,65 @@ enum class SpectrumMode {
     ULTRA_WIDE
 };
 
-struct TrackedDrone {
+class TrackedDrone {
+public:
+    TrackedDrone() : frequency(0), drone_type(static_cast<uint8_t>(DroneType::UNKNOWN)),
+                     threat_level(static_cast<uint8_t>(ThreatLevel::NONE)), update_count(0), last_seen(0) {}
+
+    void add_rssi(int16_t rssi, systime_t timestamp) {
+        // Store RSSI history for trend calculation
+        rssi_history_[history_index_] = rssi;
+        timestamp_history_[history_index_] = timestamp;
+        history_index_ = (history_index_ + 1) % MAX_HISTORY;
+
+        if (last_seen < timestamp) {
+            last_seen = timestamp;
+            update_count++;
+        }
+    }
+
+    MovementTrend get_trend() const {
+        if (update_count < 2) return MovementTrend::UNKNOWN;
+
+        // Analyze RSSI trend over last few samples
+        int32_t recent_rssi = 0, older_rssi = 0;
+        size_t recent_count = 0, older_count = 0;
+
+        for (size_t i = 0; i < MAX_HISTORY; i++) {
+            if (i < history_index_) {
+                recent_rssi += rssi_history_[i];
+                recent_count++;
+            } else if (i > history_index_ && i < MAX_HISTORY - 1) {
+                older_rssi += rssi_history_[i];
+                older_count++;
+            }
+        }
+
+        if (recent_count == 0 || older_count == 0) return MovementTrend::UNKNOWN;
+
+        int32_t avg_recent = recent_rssi / recent_count;
+        int32_t avg_older = older_rssi / older_count;
+        int32_t diff_dB = avg_recent - avg_older;
+
+        if (diff_dB > 5) return MovementTrend::APPROACHING;
+        if (diff_dB < -5) return MovementTrend::RECEDING;
+        return MovementTrend::STATIC;
+    }
+
     uint32_t frequency;
     uint8_t drone_type;
     uint8_t threat_level;
     uint8_t update_count;
     systime_t last_seen;
+
+private:
+    static constexpr size_t MAX_HISTORY = 8;
+    int16_t rssi_history_[MAX_HISTORY] = {0};
+    systime_t timestamp_history_[MAX_HISTORY] = {0};
+    size_t history_index_ = 0;
+
+    TrackedDrone(const TrackedDrone&) = delete;
+    TrackedDrone& operator=(const TrackedDrone&) = delete;
 };
 
 struct DisplayDroneEntry {
@@ -84,7 +137,7 @@ static constexpr size_t MAX_DISPLAYED_DRONES = 3;
 static constexpr size_t MINI_SPECTRUM_WIDTH = 200;
 static constexpr size_t MINI_SPECTRUM_HEIGHT = 24;
 static constexpr uint32_t MIN_HARDWARE_FREQ = 1'000'000;
-static constexpr uint32_t MAX_HARDWARE_FREQ = 6'000'000'000;
+static constexpr uint64_t MAX_HARDWARE_FREQ = 6'000'000'000ULL;
 static constexpr uint32_t WIDEBAND_DEFAULT_MIN = 2'400'000'000ULL;
 static constexpr uint32_t WIDEBAND_DEFAULT_MAX = 2'500'000'000ULL;
 static constexpr uint32_t WIDEBAND_SLICE_WIDTH = 25'000'000;
@@ -95,16 +148,7 @@ static constexpr int32_t WIDEBAND_DYNAMIC_THRESHOLD_OFFSET_DB = 5;
 static constexpr uint8_t MIN_DETECTION_COUNT = 3;
 static constexpr int32_t HYSTERESIS_MARGIN_DB = 5;
 
-using freqman_entry = struct {
-    uint64_t frequency_a;
-    uint64_t frequency_b;
-    uint8_t type;
-    uint16_t modulation;
-    uint16_t bandwidth;
-    uint16_t step;
-    std::string description;
-    std::string tonal;
-};
+// freqman_entry defined in freqman_db.hpp - removed conflicting typedef
 
 static constexpr size_t DETECTION_TABLE_SIZE = 256;
 
@@ -553,6 +597,16 @@ public:
     };
 
 private:
+    BigFrequency big_display_{{{4, 6 * 16, 28 * 8, 52}}};
+    ProgressBar scanning_progress_{{{0, 7 * 16, screen_width, 8}}};
+    Text text_threat_summary_{{{0, 8 * 16, screen_width, 16}, "THREAT: NONE"}};
+    Text text_status_info_{{{0, 9 * 16, screen_width, 16}, "Ready"}};
+    Text text_scanner_stats_{{{0, 10 * 16, screen_width, 16}, "No database"}};
+    Text text_trends_compact_{{{0, 11 * 16, screen_width, 16}, ""}};
+    Text text_drone_1{{{screen_width - 120, 12 * 16, 120, 16}, ""}};
+    Text text_drone_2{{{screen_width - 120, 13 * 16, 120, 16}, ""}};
+    Text text_drone_3{{{screen_width - 120, 14 * 16, 120, 16}, ""}};
+
     std::vector<DisplayDroneEntry> detected_drones_;
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;
 
@@ -685,7 +739,7 @@ public:
 
 private:
     NavigationView& nav_;
-    Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
+    Text text_eda_{Rect{108, 213, 24, 16}, "EDA"};
     systime_t timer_start_ = 0;
 };
 
