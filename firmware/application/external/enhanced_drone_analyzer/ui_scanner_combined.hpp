@@ -139,11 +139,74 @@ struct DetectionLogEntry {
 };
 
 // ===========================================
-// PART 2: SCANNER CLASSES (from ui_drone_scanner.hpp)
+// PART 2: CONFIGURATION STRUCTURES (Shared with Settings App)
+// ===========================================
+
+struct DroneAnalyzerSettings {
+    // Core scanning parameters
+    SpectrumMode spectrum_mode = SpectrumMode::MEDIUM;
+    uint32_t scan_interval_ms = 1000;
+    int32_t rssi_threshold_db = DEFAULT_RSSI_THRESHOLD_DB;
+    bool enable_audio_alerts = true;
+    uint16_t audio_alert_frequency_hz = 800;
+    uint32_t audio_alert_duration_ms = 500;
+
+    // Hardware settings
+    uint32_t hardware_bandwidth_hz = 24000000;
+    bool enable_real_hardware = true;
+    bool demo_mode = false;
+};
+
+struct ConfigData {
+    SpectrumMode spectrum_mode = SpectrumMode::MEDIUM;
+    int32_t rssi_threshold_db = DEFAULT_RSSI_THRESHOLD_DB;
+    uint32_t scan_interval_ms = 1000;
+    bool enable_audio_alerts = true;
+    std::string freqman_path = "DRONES";
+};
+
+class ScannerConfig {
+public:
+    explicit ScannerConfig(ConfigData config = {});
+    ~ScannerConfig() = default;
+
+    bool load_from_file(const std::string& filepath);
+    bool save_to_file(const std::string& filepath) const;
+
+    const ConfigData& get_data() const { return config_data_; }
+    ConfigData& get_data() { return config_data_; }
+
+    void set_frequency_range(uint32_t min_hz, uint32_t max_hz);
+    void set_rssi_threshold(int32_t threshold);
+    void set_scan_interval(uint32_t interval_ms);
+    void set_audio_alerts(bool enabled);
+    void set_freqman_path(const std::string& path);
+
+    void set_scanning_mode(const std::string& mode);
+    bool is_valid() const;
+
+    ScannerConfig(const ScannerConfig&) = delete;
+    ScannerConfig& operator=(const ScannerConfig&) = delete;
+
+private:
+    ConfigData config_data_;
+};
+
+class SimpleDroneValidation {
+public:
+    static bool validate_frequency_range(Frequency freq_hz);
+    static bool validate_rssi_signal(int32_t rssi_db, ThreatLevel threat);
+    static ThreatLevel classify_signal_strength(int32_t rssi_db);
+    static DroneType identify_drone_type(Frequency freq_hz, int32_t rssi_db);
+    static bool validate_drone_detection(Frequency freq_hz, int32_t rssi_db,
+                                       DroneType type, ThreatLevel threat);
+};
+
+// ===========================================
+// PART 3: SCANNER CLASSES (from ui_drone_scanner.hpp)
 // ===========================================
 
 #include "freqman_db.hpp"
-#include "ui_drone_config.hpp"
 #include <ch.h>
 #include <vector>
 #include <array>

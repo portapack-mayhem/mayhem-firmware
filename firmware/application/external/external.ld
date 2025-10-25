@@ -79,6 +79,7 @@ MEMORY
     ram_external_app_spaceinv   (rwx) : org = 0xADE60000, len = 32k
     ram_external_app_blackjack  (rwx) : org = 0xADE70000, len = 32k
     ram_external_app_battleship   (rwx) : org = 0xADE80000, len = 32k
+<<<<<<< HEAD
     ram_external_app_ert        (rwx) : org = 0xADE90000, len = 32k
     ram_external_app_epirb_rx   (rwx) : org = 0xADEA0000, len = 32k
     ram_external_app_soundboard   (rwx) : org = 0xADEB0000, len = 32k
@@ -86,8 +87,11 @@ MEMORY
     ram_external_app_bht_tx          (rwx) : org = 0xADED0000, len = 32k
     ram_external_app_morse_practice  (rwx) : org = 0xADEE0000, len = 32k
     ram_external_app_adult_toys_controller  (rwx) : org = 0xADEF0000, len = 32k
-    ram_external_app_enhanced_drone_analyzer (rwx) : org = 0xADF00000, len = 32k
+    ram_external_app_enhanced_drone_analyzer_scanner  (rwx) : org = 0xADF00000, len = 32k
+    ram_external_app_enhanced_drone_analyzer_settings  (rwx) : org = 0xADF10000, len = 32k
 
+=======
+>>>>>>> upstream/master
 }
 
 SECTIONS
@@ -349,7 +353,11 @@ SECTIONS
         KEEP(*(.external_app.app_stopwatch.application_information));
         *(*ui*external_app*stopwatch*);
     } > ram_external_app_stopwatch
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> upstream/master
    .external_app_wefax_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_wefax_rx.application_information));
@@ -372,19 +380,32 @@ SECTIONS
     {
         KEEP(*(.external_app.app_doom.application_information));
         *(*ui*external_app*doom*);
+<<<<<<< HEAD
     } > ram_external_app_doom
 
+=======
+    } > ram_external_app_doom    
+    
+>>>>>>> upstream/master
     .external_app_debug_pmem : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_debug_pmem.application_information));
         *(*ui*external_app*debug_pmem*);
+<<<<<<< HEAD
     } > ram_external_app_debug_pmem
+=======
+    } > ram_external_app_debug_pmem    
+>>>>>>> upstream/master
 
     .external_app_scanner : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_scanner.application_information));
         *(*ui*external_app*scanner*);
+<<<<<<< HEAD
     } > ram_external_app_scanner
+=======
+    } > ram_external_app_scanner    
+>>>>>>> upstream/master
 
     .external_app_level : ALIGN(4) SUBALIGN(4)
     {
@@ -416,18 +437,27 @@ SECTIONS
         *(*ui*external_app*spaceinv*);
     } > ram_external_app_spaceinv
 
+<<<<<<< HEAD
     .external_app_blackjack : ALIGN(4) SUBALIGN(4)
+=======
+        .external_app_blackjack : ALIGN(4) SUBALIGN(4)
+>>>>>>> upstream/master
     {
         KEEP(*(.external_app.app_blackjack.application_information));
         *(*ui*external_app*blackjack*);
     } > ram_external_app_blackjack
 
+<<<<<<< HEAD
     .external_app_battleship : ALIGN(4) SUBALIGN(4)
+=======
+        .external_app_battleship : ALIGN(4) SUBALIGN(4)
+>>>>>>> upstream/master
     {
         KEEP(*(.external_app.app_battleship.application_information));
         *(*ui*external_app*battleship*);
     } > ram_external_app_battleship
 
+<<<<<<< HEAD
     .external_app_ert : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_ert.application_information));
@@ -472,10 +502,19 @@ SECTIONS
         *(*ui*external_app*adult_toys_controller*);
     } > ram_external_app_adult_toys_controller
 
-    .external_app_enhanced_drone_analyzer : ALIGN(4) SUBALIGN(4)
+    .external_app_enhanced_drone_analyzer_scanner : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_enhanced_drone_analyzer.application_information));
-        *(*ui*external_app*enhanced_drone_analyzer*);
-    } > ram_external_app_enhanced_drone_analyzer
+        KEEP(*(.external_app.app_enhanced_drone_analyzer_scanner.application_information));
+        *(*ui*external_app*enhanced_drone_analyzer_scanner* *enhanced_drone_analyzer_scanner_main*);
+    } > ram_external_app_enhanced_drone_analyzer_scanner
 
+    .external_app_enhanced_drone_analyzer_settings : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_enhanced_drone_analyzer_settings.application_information));
+        *(*ui*external_app*enhanced_drone_analyzer*settings* *enhanced_drone_analyzer_settings_main*);
+    } > ram_external_app_enhanced_drone_analyzer_settings
+
+=======
+>>>>>>> upstream/master
 }
+

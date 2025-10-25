@@ -324,18 +324,86 @@ bool DroneFrequencyPresets::apply_preset(ScannerConfig& config, const DronePrese
 // ============ DronePresetSelector Implementation ============
 
 void DronePresetSelector::show_preset_menu(NavigationView& nav, PresetMenuView callback) {
-    (void)nav; (void)callback;
-    // Implementation for menu display
+    auto preset_names = DroneFrequencyPresets::get_preset_names();
+    auto all_presets = DroneFrequencyPresets::get_all_presets();
+
+    class PresetMenuView : public MenuView {
+    public:
+        PresetMenuView(std::vector<std::string> names, std::function<void(const DronePreset&)> on_selected,
+                      const std::vector<DronePreset>& presets)
+            : MenuView(), names_(names), on_selected_fn_(on_selected), presets_(presets) {
+            for (const auto& name : names) {
+                add_item({name, Color::white()});
+            }
+        }
+
+        bool on_key(const KeyEvent key) override {
+            if (key == KeyEvent::Select) {
+                size_t idx = highlighted_index();
+                if (idx < presets_.size()) {
+                    if (on_selected_fn_) {
+                        on_selected_fn_(presets_[idx]);
+                    }
+                }
+                return true;
+            }
+            return MenuView::on_key(key);
+        }
+
+    private:
+        std::vector<std::string> names_;
+        std::function<void(const DronePreset&)> on_selected_fn_;
+        const std::vector<DronePreset>& presets_;
+    };
+
+    nav.push<PresetMenuView>(preset_names, callback, all_presets);
 }
 
 void DronePresetSelector::show_type_filtered_presets(NavigationView& nav, DroneType type, FilteredPresetMenuView callback) {
-    (void)nav; (void)type; (void)callback;
-    // Implementation for filtered presets display
+    auto filtered_presets = DroneFrequencyPresets::get_presets_of_type(DroneFrequencyPresets::get_all_presets(), type);
+    std::vector<std::string> names;
+    for (const auto& preset : filtered_presets) {
+        names.push_back(preset.display_name);
+    }
+
+    class FilteredPresetMenuView : public MenuView {
+    public:
+        FilteredPresetMenuView(std::vector<std::string> names, std::function<void(const DronePreset&)> on_selected,
+                              const std::vector<DronePreset>& presets)
+            : MenuView(), names_(names), on_selected_fn_(on_selected), presets_(presets) {
+            for (const auto& name : names) {
+                add_item({name, Color::white()});
+            }
+        }
+
+        bool on_key(const KeyEvent key) override {
+            if (key == KeyEvent::Select) {
+                size_t idx = highlighted_index();
+                if (idx < presets_.size()) {
+                    if (on_selected_fn_) {
+                        on_selected_fn_(presets_[idx]);
+                    }
+                }
+                return true;
+            }
+            return MenuView::on_key(key);
+        }
+
+    private:
+        std::vector<std::string> names_;
+        std::function<void(const DronePreset&)> on_selected_fn_;
+        const std::vector<DronePreset>& presets_;
+    };
+
+    nav.push<FilteredPresetMenuView>(names, callback, filtered_presets);
 }
 
 PresetMenuView DronePresetSelector::create_config_updater(ScannerConfig& config_to_update) {
-    (void)config_to_update;
-    return PresetMenuView();
+    // Return lambda that updates config when preset selected
+    return [&config_to_update](const DronePreset& preset) {
+        // Apply preset to config
+        DroneFrequencyPresets::apply_preset(config_to_update, preset);
+    };
 }
 
 // ============ SimpleDroneValidation Implementation ============
@@ -388,6 +456,131 @@ bool DroneFrequencyEntry::is_valid() const {
     return SimpleDroneValidation::validate_frequency_range(frequency_hz) &&
            rssi_threshold_db >= -120 && rssi_threshold_db <= 0 &&
            bandwidth_hz > 0;
+}
+
+// ===========================================
+// PART 2: UI IMPLEMENTATIONS
+// ===========================================
+
+// HardwareSettingsView Implementation
+HardwareSettingsView::HardwareSettingsView(NavigationView& nav)
+    : View(), nav_(nav)
+{
+}
+
+void HardwareSettingsView::focus() {
+    button_save_.focus();
+}
+
+std::string HardwareSettingsView::title() const {
+    return "Hardware Settings";
+}
+
+void HardwareSettingsView::load_current_settings() {
+    // Load settings from TXT file or defaults
+    DroneAnalyzerSettings settings;
+    if (!DroneAnalyzerSettingsManager::load(settings)) {
+        DroneAnalyzerSettingsManager::reset_to_defaults(settings);
+    }
+
+    // Set UI elements
+    checkbox_real_hardware_.set_value(settings.enable_real_hardware);
+
+    size_t mode_idx = 0;
+    switch (settings.spectrum_mode) {
+        case SpectrumMode::ULTRA_NARROW: mode_idx = 0; break;
+        case SpectrumMode::NARROW: mode_idx = 1; break;
+        case SpectrumMode::MEDIUM: mode_idx = 2; break;
+        case SpectrumMode::WIDE: mode_idx = 3; break;
+        case SpectrumMode::ULTRA_WIDE: mode_idx = 4; break;
+    }
+    field_spectrum_mode_.set_value(mode_idx);
+
+    // Note: Hardware control not available in settings app, settings are passed to scanner
+}
+
+void HardwareSettingsView::save_current_settings() {
+    DroneAnalyzerSettings settings;
+    DroneAnalyzerSettingsManager::load(settings); // Load current
+
+    settings.enable_real_hardware = checkbox_real_hardware_.value();
+    settings.demo_mode = !checkbox_real_hardware_.value();
+
+    size_t mode_idx = field_spectrum_mode_.selected_index();
+    switch (mode_idx) {
+        case 0: settings.spectrum_mode = SpectrumMode::ULTRA_NARROW; break;
+        case 1: settings.spectrum_mode = SpectrumMode::NARROW; break;
+        case 2: settings.spectrum_mode = SpectrumMode::MEDIUM; break;
+        case 3: settings.spectrum_mode = SpectrumMode::WIDE; break;
+        case 4: settings.spectrum_mode = SpectrumMode::ULTRA_WIDE; break;
+    }
+
+    DroneAnalyzerSettingsManager::save(settings);
+}
+
+void HardwareSettingsView::update_ui_from_settings() {
+    load_current_settings();
+}
+
+void HardwareSettingsView::update_settings_from_ui() {
+    save_current_settings();
+}
+
+void HardwareSettingsView::on_save_settings() {
+    save_current_settings();
+    nav_.display_modal("Success", "Hardware settings saved\nto TXT file");
+}
+
+AudioSettingsView::AudioSettingsView(NavigationView& nav)
+    : View(), nav_(nav)
+{
+}
+
+void AudioSettingsView::focus() {
+    button_save_.focus();
+}
+
+std::string AudioSettingsView::title() const {
+    return "Audio Settings";
+}
+
+void AudioSettingsView::load_current_settings() {
+    // Load from settings TXT
+    DroneAnalyzerSettings settings;
+    if (!DroneAnalyzerSettingsManager::load(settings)) {
+        DroneAnalyzerSettingsManager::reset_to_defaults(settings);
+    }
+
+    checkbox_audio_enabled_.set_value(settings.enable_audio_alerts);
+    number_alert_frequency_.set_value(settings.audio_alert_frequency_hz);
+    number_alert_duration_.set_value(settings.audio_alert_duration_ms);
+
+    // Volume not implemented yet
+    // Repeat alerts not implemented yet
+}
+
+void AudioSettingsView::save_current_settings() {
+    DroneAnalyzerSettings settings;
+    DroneAnalyzerSettingsManager::load(settings); // Load current
+
+    settings.enable_audio_alerts = checkbox_audio_enabled_.value();
+    settings.audio_alert_frequency_hz = number_alert_frequency_.value();
+    settings.audio_alert_duration_ms = number_alert_duration_.value();
+
+    DroneAnalyzerSettingsManager::save(settings); // Save back to TXT
+}
+
+void AudioSettingsView::update_ui_from_settings() {
+    load_current_settings();
+}
+
+void AudioSettingsView::update_settings_from_ui() {
+    save_current_settings();
+}
+
+void AudioSettingsView::on_save_settings() {
+    save_current_settings();
+    nav_.display_modal("Success", "Audio settings saved\nto TXT file");
 }
 
 } // namespace ui::external_app::enhanced_drone_analyzer
