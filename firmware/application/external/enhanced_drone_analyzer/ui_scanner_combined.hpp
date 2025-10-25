@@ -328,6 +328,8 @@ public:
 
     std::string get_session_summary() const;
 
+    void export_runtime_status(); // Export current scanner status to TXT file for Settings app
+
     DroneScanner(const DroneScanner&) = delete;
     DroneScanner& operator=(const DroneScanner&) = delete;
 
@@ -729,15 +731,14 @@ private:
     Button button_start_{{screen_width - 120, screen_height - 32, 120, 32}, "START/STOP"};
     Button button_menu_{{screen_width - 60, screen_height - 32, 60, 32}, "⚙️"};
 
-    std::vector<std::string> scanning_mode_options_ = {"Database Scan", "Wideband Monitor", "Hybrid Discovery"};
     OptionsField field_scanning_mode_{
     {80, 190},
-    20,
     {
         {"Database Scan", 0},
         {"Wideband Monitor", 1},
         {"Hybrid Discovery", 2}
-    }};
+    },
+    1 };
 
     void initialize_modern_layout();
     void update_modern_layout();
