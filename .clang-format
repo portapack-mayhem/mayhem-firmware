@@ -1,0 +1,14 @@
+---
+BasedOnStyle: Chromium
+IndentWidth: '4'
+SortIncludes: 'false'
+AllowAllArgumentsOnNextLine: 'true'
+ColumnLimit: 0
+Cpp11BracedListStyle: 'true'
+AllowShortLoopsOnASingleLine: 'true'
+AllowShortIfStatementsOnASingleLine: 'true'
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
+
+...

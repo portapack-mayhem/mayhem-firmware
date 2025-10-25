@@ -1,0 +1,85 @@
+/firmware/baseband/*.img
+/firmware/application/application.bin
+/CMakeCache.txt
+/Makefile
+/firmware/Makefile
+/firmware/baseband/Makefile
+/firmware/bootstrap/Makefile
+/firmware/application/Makefile
+/firmware/application/portapack_cpld_data.cpp
+/firmware/application/hackrf_cpld_data.cpp
+/firmware/application/hackrf_cpld_data.hpp
+/sdcard/ADSB/world_map.bin
+/sdcard/FREQMAN/BHT*
+/sdcard/FREQMAN/R.TXT
+/sdcard/FREQMAN/XXX.TXT
+/armbin
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.out
+*.app
+/firmware/baseband/*.bin
+
+# Other compiler/linker outputs
+*.make
+*.elf
+*.map
+*.lst
+.dep/
+/build*
+CMakeFiles/
+cmake-build-debug/
+
+# Debugging
+.gdbinit*
+
+# Editor/ IDE files
+*.sublime-project
+*.sublime-workspace
+.vscode
+.idea
+*.swp
+.claude
+
+# VSCodium extensions
+.history
+
+# Host OS leftovers
+.DS_Store
+/firmware/CMakeCache.txt
+
+# Python env/ venv and cache
+env/
+venv/
+**/__pycache__/
+*.pyc
+
+# Other
+*.bak
+
+# generated bitmap arr file
+# TODO: generate bitmap during build, since we use python during build anyway, lemme know if this is a bad idea @zxkmm
+/firmware/tools/bitmap.hpp

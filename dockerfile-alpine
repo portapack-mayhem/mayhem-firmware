@@ -1,0 +1,29 @@
+# Download base image.
+FROM alpine:edge
+
+# Download ARM toolkit.
+RUN apk add --no-cache gcc-arm-none-eabi gcc
+
+# Create volume /havocbin for compiled firmware binaries
+VOLUME /havocbin
+
+# Copy build context (repository root) to /havocsrc
+COPY ./ /havocsrc
+
+# Fetch dependencies from APK
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+RUN apk update -U
+RUN apk add --no-cache git tar wget cmake curl bzip2 lz4 make
+RUN apk add --no-cache dfu-util ccache icu-data-full
+RUN apk add --no-cache python3 py3-pip py3-yaml
+RUN apk add --no-cache py3-pyyaml-env-tag
+RUN apk add --no-cache g++ gcc clang clang-static clang-dev llvm-dev llvm-static
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+CMD cd /havocsrc && \
+        mkdir build && cd build && \ 
+        cmake .. && make firmware && \
+        cp /portapack-havoc/firmware/portapack-h1-havoc.bin /havocbin
+
