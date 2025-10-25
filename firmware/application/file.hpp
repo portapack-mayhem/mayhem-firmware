@@ -312,8 +312,6 @@ class File {
     using Timestamp = uint32_t;
     using Error = std::filesystem::filesystem_error;
 
-    bool is_ready() const { return f.obj.fs != nullptr; }
-
     template <typename T>
     using Result = Result<T, Error>;
 

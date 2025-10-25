@@ -126,8 +126,6 @@ constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 
 constexpr image_tag_t image_tag_hackrf{'H', 'R', 'F', '1'};
 
-constexpr image_tag_t image_tag_sstv_rx{'P', 'S', 'R', 'X'};
-
 struct chunk_t {
     const image_tag_t tag;
     const uint32_t length;

@@ -62,7 +62,6 @@ class SSTVTXProcessor : public BasebandProcessor {
 
     sstv_scanline* current_scanline{};
 
-    uint16_t line_width{320};  // Default width, updated by configure message
     uint8_t pixel_luma{};
     uint32_t fm_delta{0};
     uint32_t tone_phase{0};

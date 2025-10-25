@@ -49,7 +49,7 @@
 
 class Message {
    public:
-    static constexpr size_t MAX_SIZE = 2048;  // Increased to handle SSTV line data (640*3 bytes + overhead)
+    static constexpr size_t MAX_SIZE = 512;
 
     enum class ID : uint32_t {
         /* Assign consecutive IDs. IDs are used to index array. */
@@ -136,7 +136,6 @@ class Message {
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
         EPIRBPacket = 81,
-        SSTVLine = 82,
         MAX
     };
 
@@ -1255,7 +1254,6 @@ class RequestSignalMessage : public Message {
         RSSIBeepRequest = 3,
         BeepStopRequest = 4,
         Squelched = 5,
-        FrameSync = 6,
     };
 
     constexpr RequestSignalMessage(
@@ -1568,21 +1566,6 @@ class NoaaAptRxImageDataMessage : public Message {
         : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
-};
-
-class SSTVLineMessage : public Message {
-   public:
-    constexpr SSTVLineMessage()
-        : Message{ID::SSTVLine} {}
-        
-    // Constructor that takes Message::ID (though we'll enforce SSTVLine)
-    constexpr SSTVLineMessage(Message::ID id)
-        : Message{ID::SSTVLine} {  // Always use SSTVLine regardless of passed ID for type safety
-        (void)id;  // Suppress unused parameter warning
-    }
-    
-    uint32_t line_number{0};
-    std::array<uint8_t, 1920> pixel_data{};  // Max 640 pixels * 3 bytes per pixel
 };
 
 #endif /*__MESSAGE_H__*/

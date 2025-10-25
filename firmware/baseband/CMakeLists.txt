@@ -690,13 +690,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PATX audio_tx)
 
-### SSTV RX
-
-set(MODE_CPPSRC
-	proc_sstvrx.cpp
-)
-DeclareTargets(PSRX sstv_rx)
-
 
 ### HackRF "factory" firmware
 
