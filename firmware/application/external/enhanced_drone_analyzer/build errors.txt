@@ -1,132 +1,129 @@
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:87:47: warning: unsigned conversion from 'long long int' to 'uint32_t' {aka 'long unsigned int'} changes value from '6000000000' to '1705032704' [-Woverflow]
-   87 | static constexpr uint32_t MAX_HARDWARE_FREQ = 6'000'000'000;
-      |                                               ^~~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:209,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/./freqman_db.hpp:140:8: error: using typedef-name 'using freqman_entry = struct<unnamed>' after 'struct'
-  140 | struct freqman_entry {
-      |        ^~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:98:7: note: 'using freqman_entry = struct<unnamed>' has a previous declaration here
-   98 | using freqman_entry = struct {
-      |       ^~~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:261:29: error: 'DroneHardwareController' has not been declared
-  261 |     void perform_scan_cycle(DroneHardwareController& hardware);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:305:29: error: 'DroneHardwareController' has not been declared
+  305 |     void perform_scan_cycle(DroneHardwareController& hardware);
       |                             ^~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:289:9: error: 'LogFile' does not name a type
-  289 |         LogFile csv_log_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:333:9: error: 'LogFile' does not name a type
+  333 |         LogFile csv_log_;
       |         ^~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:309:38: error: 'DroneHardwareController' has not been declared
-  309 |     void perform_database_scan_cycle(DroneHardwareController& hardware);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:353:38: error: 'DroneHardwareController' has not been declared
+  353 |     void perform_database_scan_cycle(DroneHardwareController& hardware);
       |                                      ^~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:310:38: error: 'DroneHardwareController' has not been declared
-  310 |     void perform_wideband_scan_cycle(DroneHardwareController& hardware);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:354:38: error: 'DroneHardwareController' has not been declared
+  354 |     void perform_wideband_scan_cycle(DroneHardwareController& hardware);
       |                                      ^~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:311:36: error: 'DroneHardwareController' has not been declared
-  311 |     void perform_hybrid_scan_cycle(DroneHardwareController& hardware);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:355:36: error: 'DroneHardwareController' has not been declared
+  355 |     void perform_hybrid_scan_cycle(DroneHardwareController& hardware);
       |                                    ^~~~~~~~~~~~~~~~~~~~~~~
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:565:5: error: 'Gradient' does not name a type
-  565 |     Gradient spectrum_gradient_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:606:67: error: 'ui::Text ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_1' conflicts with a previous declaration
+  606 |     Text text_drone_1{{{screen_width - 120, 12 * 16, 120, 16}, ""}};
+      |                                                                   ^
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:563:11: note: previous declaration 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_1()'
+  563 |     Text& text_drone_1() { return text_drone_1; }
+      |           ^~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:607:67: error: 'ui::Text ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_2' conflicts with a previous declaration
+  607 |     Text text_drone_2{{{screen_width - 120, 13 * 16, 120, 16}, ""}};
+      |                                                                   ^
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:564:11: note: previous declaration 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_2()'
+  564 |     Text& text_drone_2() { return text_drone_2; }
+      |           ^~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:608:67: error: 'ui::Text ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_3' conflicts with a previous declaration
+  608 |     Text text_drone_3{{{screen_width - 120, 14 * 16, 120, 16}, ""}};
+      |                                                                   ^
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:565:11: note: previous declaration 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_3()'
+  565 |     Text& text_drone_3() { return text_drone_3; }
+      |           ^~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:619:5: error: 'Gradient' does not name a type
+  619 |     Gradient spectrum_gradient_;
       |     ^~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::BigFrequency& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::big_display()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:513:42: error: 'big_display_' was not declared in this scope; did you mean 'big_display'?
-  513 |     BigFrequency& big_display() { return big_display_; }
-      |                                          ^~~~~~~~~~~~
-      |                                          big_display
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::ProgressBar& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::scanning_progress()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:514:47: error: 'scanning_progress_' was not declared in this scope; did you mean 'scanning_progress'?
-  514 |     ProgressBar& scanning_progress() { return scanning_progress_; }
-      |                                               ^~~~~~~~~~~~~~~~~~
-      |                                               scanning_progress
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_threat_summary()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:515:42: error: 'text_threat_summary_' was not declared in this scope; did you mean 'text_threat_summary'?
-  515 |     Text& text_threat_summary() { return text_threat_summary_; }
-      |                                          ^~~~~~~~~~~~~~~~~~~~
-      |                                          text_threat_summary
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_status_info()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:516:39: error: 'text_status_info_' was not declared in this scope; did you mean 'text_status_info'?
-  516 |     Text& text_status_info() { return text_status_info_; }
-      |                                       ^~~~~~~~~~~~~~~~~
-      |                                       text_status_info
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_scanner_stats()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:517:41: error: 'text_scanner_stats_' was not declared in this scope; did you mean 'text_scanner_stats'?
-  517 |     Text& text_scanner_stats() { return text_scanner_stats_; }
-      |                                         ^~~~~~~~~~~~~~~~~~~
-      |                                         text_scanner_stats
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_trends_compact()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:518:42: error: 'text_trends_compact_' was not declared in this scope; did you mean 'text_trends_compact'?
-  518 |     Text& text_trends_compact() { return text_trends_compact_; }
-      |                                          ^~~~~~~~~~~~~~~~~~~~
-      |                                          text_trends_compact
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:600:56: error: could not convert '{{{4, (6 * 16), (28 * 8), 52}}}' from '<brace-enclosed initializer list>' to 'ui::BigFrequency'
+  600 |     BigFrequency big_display_{{{4, 6 * 16, 28 * 8, 52}}};
+      |                                                        ^
+      |                                                        |
+      |                                                        <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:601:66: error: could not convert '{{{0, (7 * 16), ui::screen_width, 8}}}' from '<brace-enclosed initializer list>' to 'ui::ProgressBar'
+  601 |     ProgressBar scanning_progress_{{{0, 7 * 16, screen_width, 8}}};
+      |                                                                  ^
+      |                                                                  |
+      |                                                                  <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:602:78: error: could not convert '{{{0, (8 * 16), ui::screen_width, 16}, "THREAT: NONE"}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  602 |     Text text_threat_summary_{{{0, 8 * 16, screen_width, 16}, "THREAT: NONE"}};
+      |                                                                              ^
+      |                                                                              |
+      |                                                                              <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:603:68: error: could not convert '{{{0, (9 * 16), ui::screen_width, 16}, "Ready"}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  603 |     Text text_status_info_{{{0, 9 * 16, screen_width, 16}, "Ready"}};
+      |                                                                    ^
+      |                                                                    |
+      |                                                                    <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:604:77: error: could not convert '{{{0, (10 * 16), ui::screen_width, 16}, "No database"}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  604 |     Text text_scanner_stats_{{{0, 10 * 16, screen_width, 16}, "No database"}};
+      |                                                                             ^
+      |                                                                             |
+      |                                                                             <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:605:67: error: could not convert '{{{0, (11 * 16), ui::screen_width, 16}, ""}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  605 |     Text text_trends_compact_{{{0, 11 * 16, screen_width, 16}, ""}};
+      |                                                                   ^
+      |                                                                   |
+      |                                                                   <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:606:67: error: could not convert '{{{(((int)ui::screen_width) - 120), (12 * 16), 120, 16}, ""}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  606 |     Text text_drone_1{{{screen_width - 120, 12 * 16, 120, 16}, ""}};
+      |                                                                   ^
+      |                                                                   |
+      |                                                                   <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:607:67: error: could not convert '{{{(((int)ui::screen_width) - 120), (13 * 16), 120, 16}, ""}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  607 |     Text text_drone_2{{{screen_width - 120, 13 * 16, 120, 16}, ""}};
+      |                                                                   ^
+      |                                                                   |
+      |                                                                   <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:608:67: error: could not convert '{{{(((int)ui::screen_width) - 120), (14 * 16), 120, 16}, ""}}' from '<brace-enclosed initializer list>' to 'ui::Text'
+  608 |     Text text_drone_3{{{screen_width - 120, 14 * 16, 120, 16}, ""}};
+      |                                                                   ^
+      |                                                                   |
+      |                                                                   <brace-enclosed initializer list>
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_1()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:519:35: error: invalid initialization of non-const reference of type 'ui::Text&' from an rvalue of type '<unresolved overloaded function type>'
-  519 |     Text& text_drone_1() { return text_drone_1; }
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:563:35: error: invalid initialization of non-const reference of type 'ui::Text&' from an rvalue of type '<unresolved overloaded function type>'
+  563 |     Text& text_drone_1() { return text_drone_1; }
       |                                   ^~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_2()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:520:35: error: invalid initialization of non-const reference of type 'ui::Text&' from an rvalue of type '<unresolved overloaded function type>'
-  520 |     Text& text_drone_2() { return text_drone_2; }
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:564:35: error: invalid initialization of non-const reference of type 'ui::Text&' from an rvalue of type '<unresolved overloaded function type>'
+  564 |     Text& text_drone_2() { return text_drone_2; }
       |                                   ^~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text& ui::external_app::enhanced_drone_analyzer::DroneDisplayController::text_drone_3()':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:521:35: error: invalid initialization of non-const reference of type 'ui::Text&' from an rvalue of type '<unresolved overloaded function type>'
-  521 |     Text& text_drone_3() { return text_drone_3; }
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:565:35: error: invalid initialization of non-const reference of type 'ui::Text&' from an rvalue of type '<unresolved overloaded function type>'
+  565 |     Text& text_drone_3() { return text_drone_3; }
       |                                   ^~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:589:22: error: 'AudioManager' has not been declared
-  589 |                      AudioManager& audio_mgr);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:643:22: error: 'AudioManager' has not been declared
+  643 |                      AudioManager& audio_mgr);
       |                      ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:615:5: error: 'AudioManager' does not name a type
-  615 |     AudioManager& audio_mgr_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:669:5: error: 'AudioManager' does not name a type
+  669 |     AudioManager& audio_mgr_;
       |     ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:656:21: error: 'AudioManager' was not declared in this scope
-  656 |     std::unique_ptr<AudioManager> audio_mgr_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:710:21: error: 'AudioManager' was not declared in this scope
+  710 |     std::unique_ptr<AudioManager> audio_mgr_;
       |                     ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:656:33: error: template argument 1 is invalid
-  656 |     std::unique_ptr<AudioManager> audio_mgr_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:710:33: error: template argument 1 is invalid
+  710 |     std::unique_ptr<AudioManager> audio_mgr_;
       |                                 ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:656:33: error: template argument 2 is invalid
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:658:21: error: 'ScanningCoordinator' was not declared in this scope
-  658 |     std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:710:33: error: template argument 2 is invalid
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:712:21: error: 'ScanningCoordinator' was not declared in this scope
+  712 |     std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
       |                     ^~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:658:40: error: template argument 1 is invalid
-  658 |     std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:712:40: error: template argument 1 is invalid
+  712 |     std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
       |                                        ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:658:40: error: template argument 2 is invalid
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:665:92: error: could not convert '{{80, 190, 160, 24}, ((ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView*)this)->ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView::scanning_mode_options_, 0, "Mode"}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
-  665 |     OptionsField field_scanning_mode_{{80, 190, 160, 24}, scanning_mode_options_, 0, "Mode"};
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:712:40: error: template argument 2 is invalid
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:719:92: error: could not convert '{{80, 190, 160, 24}, ((ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView*)this)->ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView::scanning_mode_options_, 0, "Mode"}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
+  719 |     OptionsField field_scanning_mode_{{80, 190, 160, 24}, scanning_mode_options_, 0, "Mode"};
       |                                                                                            ^
       |                                                                                            |
       |                                                                                            <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:24: error: expected ')' before '{' token
-  688 |     Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
-      |                   ~    ^
-      |                        )
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:42: error: expected unqualified-id before ',' token
-  688 |     Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
-      |                                          ^
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: In member function 'ui::Text ui::external_app::enhanced_drone_analyzer::LoadingScreenView::text_eda_(ui::Rect)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:25: warning: left operand of comma operator has no effect [-Wunused-value]
-  688 |     Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
-      |                         ^~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:35: warning: right operand of comma operator has no effect [-Wunused-value]
-  688 |     Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
-      |                                   ^~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:39: warning: right operand of comma operator has no effect [-Wunused-value]
-  688 |     Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
-      |                                       ^~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:41: error: expected ';' before '}' token
-  688 |     Text text_eda_(Rect{108, 213, 24, 16}, "EDA");
-      |                                         ^
-      |                                         ;
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:41: warning: right operand of comma operator has no effect [-Wunused-value]
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:688:41: warning: no return statement in function returning non-void [-Wreturn-type]
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp: At global scope:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:699:24: error: 'AudioManager' has not been declared
-  699 |                        AudioManager& audio_controller);
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:753:24: error: 'AudioManager' has not been declared
+  753 |                        AudioManager& audio_controller);
       |                        ^~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:724:5: error: 'AudioManager' does not name a type
-  724 |     AudioManager& audio_controller_;
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:778:5: error: 'AudioManager' does not name a type
+  778 |     AudioManager& audio_controller_;
       |     ^~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp: In function 'void ui::external_app::enhanced_drone_analyzer_scanner::initialize_app(ui::NavigationView&)':
 /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:24:14: error: 'EnhancedDroneSpectrumAnalyzerView' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView'?
@@ -134,8 +131,8 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
       |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       |              ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:635:7: note: 'ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView' declared here
-  635 | class EnhancedDroneSpectrumAnalyzerView : public View {
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:689:7: note: 'ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView' declared here
+  689 | class EnhancedDroneSpectrumAnalyzerView : public View {
       |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:24:49: error: no matching function for call to 'ui::NavigationView::push<<expression error> >()'
    24 |     nav.push<EnhancedDroneSpectrumAnalyzerView>();
@@ -148,16 +145,7 @@ In file included from /havoc/firmware/application/external/enhanced_drone_analyz
 /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:24:49: error: template argument 1 is invalid
    24 |     nav.push<EnhancedDroneSpectrumAnalyzerView>();
       |                                                 ^
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:209,
-                 from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/./freqman_db.hpp: At global scope:
-/havoc/firmware/application/./freqman_db.hpp:244:19: error: 'freqman_entry FreqmanDB::operator[](FreqmanDB::Index) const', declared using unnamed type, is used but never defined [-fpermissive]
-  244 |     freqman_entry operator[](Index index) const;
-      |                   ^~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:98:7: note: 'using freqman_entry = struct<unnamed>' does not refer to the unqualified type, so it is not used for linkage
-   98 | using freqman_entry = struct {
-      |       ^~~~~~~~~~~~~
+At global scope:
 cc1plus: warning: unrecognized command line option '-Wno-volatile'
 make[2]: *** [firmware/application/CMakeFiles/application.elf.dir/build.make:5369: firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj] Error 1
 make[1]: *** [CMakeFiles/Makefile2:1337: firmware/application/CMakeFiles/application.elf.dir/all] Error 2

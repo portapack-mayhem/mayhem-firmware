@@ -13,6 +13,13 @@
 #include <string>
 #include <vector>
 
+// Forward declarations for build fixes
+class DroneHardwareController;
+class LogFile;
+class AudioManager;
+class ScanningCoordinator;
+class Gradient;
+
 using Frequency = uint64_t;
 
 enum class ThreatLevel {
@@ -251,6 +258,7 @@ public:
 // ===========================================
 
 #include "freqman_db.hpp"
+#include "../../application/log_file.hpp"
 #include <ch.h>
 #include <vector>
 #include <array>
@@ -327,7 +335,7 @@ public:
         void start_session();
         void end_session();
         bool log_detection(const DetectionLogEntry& entry);
-        std::filesystem::path get_log_filename() const;
+        std::string get_log_filename() const;
 
     private:
         LogFile csv_log_;
@@ -339,7 +347,7 @@ public:
         bool ensure_csv_header();
         std::string format_csv_entry(const DetectionLogEntry& entry);
         std::string format_session_summary(size_t scan_cycles, size_t total_detections) const;
-        std::filesystem::path generate_log_filename() const;
+        std::string generate_log_filename() const;
     };
 
 private:
@@ -560,9 +568,9 @@ public:
     Text& text_status_info() { return text_status_info_; }
     Text& text_scanner_stats() { return text_scanner_stats_; }
     Text& text_trends_compact() { return text_trends_compact_; }
-    Text& text_drone_1() { return text_drone_1; }
-    Text& text_drone_2() { return text_drone_2; }
-    Text& text_drone_3() { return text_drone_3; }
+    Text& text_drone_1() { return text_drone_1_; }
+    Text& text_drone_2() { return text_drone_2_; }
+    Text& text_drone_3() { return text_drone_3_; }
 
     void update_detection_display(const DroneScanner& scanner);
     void update_trends_display(size_t approaching, size_t static_count, size_t receding);
@@ -597,15 +605,15 @@ public:
     };
 
 private:
-    BigFrequency big_display_{{{4, 6 * 16, 28 * 8, 52}}};
-    ProgressBar scanning_progress_{{{0, 7 * 16, screen_width, 8}}};
-    Text text_threat_summary_{{{0, 8 * 16, screen_width, 16}, "THREAT: NONE"}};
-    Text text_status_info_{{{0, 9 * 16, screen_width, 16}, "Ready"}};
-    Text text_scanner_stats_{{{0, 10 * 16, screen_width, 16}, "No database"}};
-    Text text_trends_compact_{{{0, 11 * 16, screen_width, 16}, ""}};
-    Text text_drone_1{{{screen_width - 120, 12 * 16, 120, 16}, ""}};
-    Text text_drone_2{{{screen_width - 120, 13 * 16, 120, 16}, ""}};
-    Text text_drone_3{{{screen_width - 120, 14 * 16, 120, 16}, ""}};
+    BigFrequency big_display_{{4, 6 * 16, 28 * 8, 52}, 0};
+    ProgressBar scanning_progress_{{0, 7 * 16, screen_width, 8}};
+    Text text_threat_summary_{{0, 8 * 16, screen_width, 16}, "THREAT: NONE"};
+    Text text_status_info_{{0, 9 * 16, screen_width, 16}, "Ready"};
+    Text text_scanner_stats_{{0, 10 * 16, screen_width, 16}, "No database"};
+    Text text_trends_compact_{{0, 11 * 16, screen_width, 16}, ""};
+    Text text_drone_1_{{screen_width - 120, 12 * 16, 120, 16}, ""};
+    Text text_drone_2_{{screen_width - 120, 13 * 16, 120, 16}, ""};
+    Text text_drone_3_{{screen_width - 120, 14 * 16, 120, 16}, ""};
 
     std::vector<DisplayDroneEntry> detected_drones_;
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;
@@ -668,7 +676,7 @@ private:
     DroneScanner& scanner_;
     AudioManager& audio_mgr_;
     bool scanning_active_;
-    std::unique_ptr<DroneDisplayController> display_controller_;
+    DroneDisplayController* display_controller_;
     DroneAnalyzerSettings settings_;
     app_settings::SettingsManager constant_settings_manager_;
 
@@ -700,23 +708,23 @@ public:
     void on_hide() override;
 
 private:
-    std::unique_ptr<SmartThreatHeader> smart_header_;
-    std::unique_ptr<ConsoleStatusBar> status_bar_;
-    std::array<std::unique_ptr<ThreatCard>, 3> threat_cards_;
+    SmartThreatHeader* smart_header_ = nullptr;
+    ConsoleStatusBar* status_bar_ = nullptr;
+    std::array<ThreatCard*, 3> threat_cards_ = {nullptr, nullptr, nullptr};
 
     NavigationView& nav_;
-    std::unique_ptr<DroneHardwareController> hardware_;
-    std::unique_ptr<DroneScanner> scanner_;
-    std::unique_ptr<AudioManager> audio_mgr_;
-    std::unique_ptr<DroneUIController> ui_controller_;
-    std::unique_ptr<ScanningCoordinator> scanning_coordinator_;
-    std::unique_ptr<DroneDisplayController> display_controller_;
+    DroneHardwareController* hardware_ = nullptr;
+    DroneScanner* scanner_ = nullptr;
+    AudioManager* audio_mgr_ = nullptr;
+    DroneUIController* ui_controller_ = nullptr;
+    ScanningCoordinator* scanning_coordinator_ = nullptr;
+    DroneDisplayController* display_controller_ = nullptr;
 
     Button button_start_{{screen_width - 120, screen_height - 32, 120, 32}, "START/STOP"};
     Button button_menu_{{screen_width - 60, screen_height - 32, 60, 32}, "⚙️"};
 
     std::vector<std::string> scanning_mode_options_ = {"Database Scan", "Wideband Monitor", "Hybrid Discovery"};
-    OptionsField field_scanning_mode_{{80, 190, 160, 24}, scanning_mode_options_, 0, "Mode"};
+    OptionsField field_scanning_mode_{{80, 190}, 20, scanning_mode_options_};
 
     void initialize_modern_layout();
     void update_modern_layout();
