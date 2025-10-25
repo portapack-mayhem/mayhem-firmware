@@ -617,9 +617,9 @@ private:
     Text text_status_info_{{0, 9 * 16, screen_width, 16}, "Ready"};
     Text text_scanner_stats_{{0, 10 * 16, screen_width, 16}, "No database"};
     Text text_trends_compact_{{0, 11 * 16, screen_width, 16}, ""};
-    Text text_drone_1_{{screen_width - 120, 12 * 16, 120, 16}, ""};
-    Text text_drone_2_{{screen_width - 120, 13 * 16, 120, 16}, ""};
-    Text text_drone_3_{{screen_width - 120, 14 * 16, 120, 16}, ""};
+    Text text_drone_1_{Rect{screen_width - 120, 12 * 16, 120, 16}, ""};
+    Text text_drone_2_{Rect{screen_width - 120, 13 * 16, 120, 16}, ""};
+    Text text_drone_3_{Rect{screen_width - 120, 14 * 16, 120, 16}, ""};
 
     std::vector<DisplayDroneEntry> detected_drones_;
     std::array<DisplayDroneEntry, MAX_DISPLAYED_DRONES> displayed_drones_;
@@ -730,7 +730,14 @@ private:
     Button button_menu_{{screen_width - 60, screen_height - 32, 60, 32}, "⚙️"};
 
     std::vector<std::string> scanning_mode_options_ = {"Database Scan", "Wideband Monitor", "Hybrid Discovery"};
-    OptionsField field_scanning_mode_{{80, 190}, scanning_mode_options_, 0, "Scanning Mode"};
+    OptionsField field_scanning_mode_{
+    {80, 190},
+    20,
+    {
+        {"Database Scan", 0},
+        {"Wideband Monitor", 1},
+        {"Hybrid Discovery", 2}
+    }};
 
     void initialize_modern_layout();
     void update_modern_layout();

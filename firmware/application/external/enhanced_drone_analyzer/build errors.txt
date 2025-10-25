@@ -1,38 +1,10 @@
+firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:627:14: error: field 'spectrum_gradient_' has incomplete type 'Gradient'
-  627 |     Gradient spectrum_gradient_;
-      |              ^~~~~~~~~~~~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:21:7: note: forward declaration of 'class Gradient'
-   21 | class Gradient;
-      |       ^~~~~~~~
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:727:76: error: could not convert '{{80, 190}, 20, ((ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView*)this)->ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView::scanning_mode_options_}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
-  727 |     OptionsField field_scanning_mode_{{80, 190}, 20, scanning_mode_options_};
-      |                                                                            ^
-      |                                                                            |
-      |                                                                            <brace-enclosed initializer list>
-/havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp: In function 'void ui::external_app::enhanced_drone_analyzer_scanner::initialize_app(ui::NavigationView&)':
-/havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:24:14: error: 'EnhancedDroneSpectrumAnalyzerView' was not declared in this scope; did you mean 'ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView'?
-   24 |     nav.push<EnhancedDroneSpectrumAnalyzerView>();
-      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      |              ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:697:7: note: 'ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView' declared here
-  697 | class EnhancedDroneSpectrumAnalyzerView : public View {
-      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:24:49: error: no matching function for call to 'ui::NavigationView::push<<expression error> >()'
-   24 |     nav.push<EnhancedDroneSpectrumAnalyzerView>();
-      |                                                 ^
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:18:
-/havoc/firmware/application/./ui_navigation.hpp:110:8: note: candidate: 'template<class T, class ... Args> T* ui::NavigationView::push(Args&& ...)'
-  110 |     T* push(Args&&... args) {
-      |        ^~~~
-/havoc/firmware/application/./ui_navigation.hpp:110:8: note:   template argument deduction/substitution failed:
-/havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:24:49: error: template argument 1 is invalid
-   24 |     nav.push<EnhancedDroneSpectrumAnalyzerView>();
-      |                                                 ^
-At global scope:
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:733:92: error: could not convert '{{80, 190}, ((ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView*)this)->ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView::scanning_mode_options_, 0, "Scanning Mode"}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
+  733 |     OptionsField field_scanning_mode_{{80, 190}, scanning_mode_options_, 0, "Scanning Mode"};
+      |                                                                                            ^
+      |                                                                                            |
+      |                                                                                            <brace-enclosed initializer list>
 cc1plus: warning: unrecognized command line option '-Wno-volatile'
 make[2]: *** [firmware/application/CMakeFiles/application.elf.dir/build.make:5369: firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj] Error 1
 make[1]: *** [CMakeFiles/Makefile2:1337: firmware/application/CMakeFiles/application.elf.dir/all] Error 2

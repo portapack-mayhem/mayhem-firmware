@@ -286,7 +286,8 @@ size_t DroneScanner::get_database_size() const {
 void DroneScanner::set_scanning_mode(ScanningMode mode) {
     scanning_mode_ = mode;
     stop_scanning();
-    reset_scan_cycles();
+    scan_cycles_ = 0;  // Reset scan cycles
+    total_detections_ = 0;  // Reset total detections
 
     if (scanning_mode_ == ScanningMode::DATABASE || scanning_mode_ == ScanningMode::HYBRID) {
         load_frequency_database();
@@ -649,6 +650,53 @@ void DroneScanner::handle_scan_error(const char* error_msg) {
     (void)error_msg;
 }
 
+uint32_t DroneScanner::get_scan_cycles() const {
+    return scan_cycles_;
+}
+
+uint32_t DroneScanner::get_total_detections() const {
+    return total_detections_;
+}
+
+size_t DroneScanner::get_total_memory_usage() const {
+    // Estimate memory usage for UI display
+    // This is a rough approximation for performance monitoring
+    return sizeof(*this) + (tracked_drones_.size() * sizeof(TrackedDrone)) +
+           (freq_db_.is_open() ? freq_db_.entry_count() * sizeof(freqman_entry) : 0);
+}
+
+size_t DroneScanner::get_approaching_count() const {
+    return approaching_count_;
+}
+
+size_t DroneScanner::get_receding_count() const {
+    return receding_count_;
+}
+
+size_t DroneScanner::get_static_count() const {
+    return static_count_;
+}
+
+bool DroneScanner::is_real_mode() const {
+    return is_real_mode_;
+}
+
+void DroneScanner::switch_to_demo_mode() {
+    is_real_mode_ = false;
+}
+
+void DroneScanner::switch_to_real_mode() {
+    is_real_mode_ = true;
+}
+
+void DroneScanner::scan_init_from_loaded_frequencies() {
+    // Placeholder for initialization from loaded frequency database
+}
+
+void DroneScanner::reset_scan_cycles() {
+    scan_cycles_ = 0;
+}
+
 // DroneScanner::DroneDetectionLogger implementations
 inline DroneScanner::DroneDetectionLogger::DroneDetectionLogger()
     : session_active_(false), session_start_(0), logged_count_(0), header_written_(false) {
@@ -807,7 +855,20 @@ void DroneHardwareController::set_spectrum_center_frequency(Frequency center_fre
 }
 
 bool DroneHardwareController::tune_to_frequency(Frequency frequency_hz) {
+    // Validate frequency range
+    if (frequency_hz < MIN_HARDWARE_FREQ || frequency_hz > MAX_HARDWARE_FREQ) {
+        return false;
+    }
+
+    // Store current frequency for tracking
+    center_frequency_ = frequency_hz;
+
+    // Configure radio tuning
     radio_state_.configure_tuning(frequency_hz);
+
+    // Update bandwidth based on spectrum mode
+    update_radio_bandwidth();
+
     return true;
 }
 
@@ -822,9 +883,56 @@ void DroneHardwareController::stop_spectrum_streaming() {
     radio_state_.stop_sampling();
 }
 
-int32_t DroneHardwareController::get_real_rssi_from_hardware(Frequency target_frequency) {
-    // Simulated RSSI for demo
+bool DroneHardwareController::is_spectrum_streaming_active() const {
+    return spectrum_streaming_active_;
+}
+
+int32_t DroneHardwareController::get_current_rssi() const {
     return last_valid_rssi_;
+}
+
+int32_t DroneHardwareController::get_real_rssi_from_hardware(Frequency target_frequency) {
+    // Simulated RSSI for demo - in real hardware, this would measure actual RSSI
+    (void)target_frequency;
+    last_valid_rssi_ = (last_valid_rssi_ + 1) % 100 - 50; // Fake varying RSSI
+    return last_valid_rssi_;
+}
+
+void DroneHardwareController::update_radio_bandwidth() {
+    // Update radio configuration based on current spectrum mode and bandwidth
+    // This method is called after setting mode/bandwidth to apply changes
+
+    // Configure radio bandwidth based on spectrum mode
+    switch (spectrum_mode_) {
+        case SpectrumMode::NARROW:
+            // Set narrow bandwidth for precision scanning
+            radio_state_.configure_bandwidth(4000000); // 4MHz
+            break;
+        case SpectrumMode::MEDIUM:
+            // Medium bandwidth for balanced performance
+            radio_state_.configure_bandwidth(8000000); // 8MHz
+            break;
+        case SpectrumMode::WIDE:
+            // Wide bandwidth for broad surveillance
+            radio_state_.configure_bandwidth(20000000); // 20MHz
+            break;
+        case SpectrumMode::ULTRA_WIDE:
+            // Ultra-wide for fast sweeping
+            radio_state_.configure_bandwidth(24000000); // 24MHz
+            break;
+        default:
+            radio_state_.configure_bandwidth(8000000); // Default to medium
+            break;
+    }
+}
+
+void DroneHardwareController::update_spectrum_for_scanner() {
+    // Update spectrum parameters if needed for scanning
+    // This is called by ScanningCoordinator to maintain sync
+    if (spectrum_streaming_active_) {
+        // Ensure spectrum configuration matches current hardware settings
+        update_radio_bandwidth();
+    }
 }
 
 void DroneHardwareController::handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message) {
@@ -2159,6 +2267,196 @@ void LoadingScreenView::paint(Painter& painter) {
     );
     View::paint(painter);
 }
+
+// ===========================================
+// PART 6: MISSING WIDGET IMPLEMENTATIONS
+// ===========================================
+
+// Fix OptionsField selected_index method
+size_t OptionsField::selected_index() const {
+    return selected_index_;
+}
+
+size_t OptionsField::selected_index_value() const {
+    return selected_index_value_;
+}
+
+const std::string& OptionsField::selected_index_name() const {
+    return options_[selected_index_].first;
+}
+
+int32_t OptionsField::selected_index_value() const {
+    return options_[selected_index_].second;
+}
+
+// Forward declarations for missing classes (stubs)
+class DroneFrequencyManagerView : public View {
+public:
+    explicit DroneFrequencyManagerView(NavigationView& nav) : View(), nav_(nav) {}
+    std::string title() const override { return "Frequency Manager"; }
+    void paint(Painter& painter) override { View::paint(painter); }
+private:
+    NavigationView& nav_;
+};
+
+class AuthorContactView : public View {
+public:
+    AuthorContactView() {}
+    std::string title() const override { return "About Author"; }
+    void paint(Painter& painter) override { View::paint(painter); }
+};
+
+class DroneAudioSettingsView : public View {
+public:
+    DroneAudioSettingsView(DroneAudioSettings& settings, AudioManager& audio_mgr)
+        : settings_(settings), audio_mgr_(audio_mgr) {}
+    std::string title() const override { return "Audio Settings"; }
+    void paint(Painter& painter) override { View::paint(painter); }
+private:
+    DroneAudioSettings& settings_;
+    AudioManager& audio_mgr_;
+};
+
+struct DroneAudioSettings {
+    bool audio_enabled;
+    ThreatLevel test_threat_level;
+};
+
+class DronePresetSelector {
+public:
+    static void show_preset_menu(NavigationView& nav,
+                               std::function<void(const DronePreset&)> callback) {
+        (void)nav; (void)callback; // Stub implementation
+    }
+};
+
+class DroneAnalyzerSettingsManager {
+public:
+    static bool save_settings(const DroneAnalyzerSettings& settings) {
+        (void)settings; // Stub - should use file I/O
+        return true;
+    }
+    static bool load_settings(DroneAnalyzerSettings& settings) {
+        (void)settings; // Stub - should use file I/O
+        return false;
+    }
+};
+
+class ConstantSettingsView : public View {
+public:
+    ConstantSettingsView(NavigationView& nav) : View(), nav_(nav) {}
+    std::string title() const override { return "Constants Settings"; }
+    void paint(Painter& painter) override { View::paint(painter); }
+private:
+    NavigationView& nav_;
+};
+
+class ConstantSettingsManager {
+    // Stub class
+};
+
+struct Translator {
+    static std::string translate(const char* key) { return key; }
+    static void set_language(int lang) { (void)lang; }
+};
+
+enum class Language { ENGLISH, RUSSIAN };
+
+// Environment variables
+const char* default_gradient_file = nullptr;
+
+// AudioManager implementations (stubs)
+AudioManager::AudioManager() {}
+AudioManager::~AudioManager() {}
+void AudioManager::play_detection_beep(ThreatLevel level) { (void)level; }
+void AudioManager::stop_audio() {}
+void AudioManager::toggle_audio() {}
+bool AudioManager::is_audio_enabled() const { return true; }
+
+// ScannerConfig implementations (stubs)
+ScannerConfig::ScannerConfig(ConfigData config) : config_data_(config) {}
+void ScannerConfig::set_frequency_range(uint32_t min_hz, uint32_t max_hz) {
+    (void)min_hz; (void)max_hz;
+}
+void ScannerConfig::set_rssi_threshold(int32_t threshold) { config_data_.rssi_threshold_db = threshold; }
+void ScannerConfig::set_scan_interval(uint32_t interval_ms) { config_data_.scan_interval_ms = interval_ms; }
+void ScannerConfig::set_audio_alerts(bool enabled) { config_data_.enable_audio_alerts = enabled; }
+void ScannerConfig::set_freqman_path(const std::string& path) { config_data_.freqman_path = path; }
+void ScannerConfig::set_scanning_mode(const std::string& mode) { (void)mode; }
+bool ScannerConfig::is_valid() const { return true; }
+
+// DroneFrequencyPresets stub
+std::vector<DronePreset> DroneFrequencyPresets::get_all_presets() {
+    return {}; // Empty for now
+}
+
+// SimpleDroneValidation implementations
+bool SimpleDroneValidation::validate_frequency_range(Frequency freq_hz) {
+    return freq_hz >= MIN_HARDWARE_FREQ && freq_hz <= MAX_HARDWARE_FREQ;
+}
+bool SimpleDroneValidation::validate_rssi_signal(int32_t rssi_db, ThreatLevel threat) {
+    (void)threat;
+    return rssi_db >= -120 && rssi_db <= 0;
+}
+ThreatLevel SimpleDroneValidation::classify_signal_strength(int32_t rssi_db) {
+    if (rssi_db > -70) return ThreatLevel::HIGH;
+    if (rssi_db > -85) return ThreatLevel::MEDIUM;
+    if (rssi_db > -100) return ThreatLevel::LOW;
+    return ThreatLevel::NONE;
+}
+DroneType SimpleDroneValidation::identify_drone_type(Frequency freq_hz, int32_t rssi_db) {
+    (void)rssi_db;
+    if (freq_hz >= 2400000000ULL && freq_hz <= 2500000000ULL) return DroneType::UNKNOWN; // Modify as needed
+    return DroneType::UNKNOWN;
+}
+bool SimpleDroneValidation::validate_drone_detection(Frequency freq_hz, int32_t rssi_db,
+                                                   DroneType type, ThreatLevel threat) {
+    return validate_frequency_range(freq_hz) &&
+           validate_rssi_signal(rssi_db, threat) &&
+           type != DroneType::UNKNOWN;
+}
+
+// DroneDisplayController private method implementations
+Color DroneDisplayController::get_threat_level_color(ThreatLevel level) const {
+    switch (level) {
+        case ThreatLevel::CRITICAL: return Color::red();
+        case ThreatLevel::HIGH: return Color(255, 140, 0);
+        case ThreatLevel::MEDIUM: return Color::yellow();
+        case ThreatLevel::LOW: return Color::green();
+        case ThreatLevel::NONE: default: return Color::blue();
+    }
+}
+
+const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) const {
+    switch (level) {
+        case ThreatLevel::CRITICAL: return "CRITICAL";
+        case ThreatLevel::HIGH: return "HIGH";
+        case ThreatLevel::MEDIUM: return "MEDIUM";
+        case ThreatLevel::LOW: return "LOW";
+        case ThreatLevel::NONE: default: return "CLEAR";
+    }
+}
+
+const char* get_drone_type_name(uint8_t type) {
+    switch (static_cast<DroneType>(type)) {
+        case DroneType::MAVIC: return "MAVIC";
+        case DroneType::PHANTOM: return "PHANTOM";
+        case DroneType::DJI_MINI: return "DJI MINI";
+        case DroneType::PARROT_ANAFI: return "PARROT ANAFI";
+        case DroneType::PARROT_BEBOP: return "PARROT BEBOP";
+        case DroneType::PX4_DRONE: return "PX4";
+        case DroneType::MILITARY_DRONE: return "MILITARY";
+        case DroneType::UNKNOWN: default: return "UNKNOWN";
+    }
+}
+
+Color get_drone_type_color(uint8_t type) {
+    (void)type; // For now, return default color
+    return Color::white();
+}
+
+// Spectrum mutex definition
+std::mutex spectrum_access_mutex_;
 
 // ScanningCoordinator implementation
 ScanningCoordinator::ScanningCoordinator(NavigationView& nav,
