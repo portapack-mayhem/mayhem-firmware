@@ -198,14 +198,26 @@ void EnhancedDroneAnalyzerScannerMain::on_hide() {
 
 } // namespace ui::external_app::enhanced_drone_analyzer::scanner
 
-// Portapack app registration
+// Portapack app registration - Must use application_information_t structure
 extern "C" {
-    __attribute__((section(".external_apps")))
-    const struct {
-        const char* name;
-        void (*main)(NavigationView& nav);
-    } scanner_app_definition = {
-        "Enhanced Drone Analyzer Scanner",
-        ui::external_app::enhanced_drone_analyzer::scanner::scanner_app_main
-    };
+
+__attribute__((section(".external_app.app_enhanced_drone_analyzer_scanner.application_information"), used)) application_information_t _application_information_enhanced_drone_analyzer_scanner = {
+    /*.memory_location = */ (uint8_t*)0x00000000,  // will be filled at compile time
+    /*.externalAppEntry = */ ui::external_app::enhanced_drone_analyzer::scanner::scanner_app_main,
+    /*.header_version = */ CURRENT_HEADER_VERSION,
+    /*.app_version = */ VERSION_MD5,
+
+    /*.app_name = */ "EDA Scanner",
+    /*.bitmap_data = */ {
+        0xC0, 0x03, 0xF0, 0x0F, 0x18, 0x18, 0xEC, 0x37, 0x36, 0x6D, 0x3A, 0x59,
+        0x4B, 0xD5, 0x8B, 0xD3, 0xCB, 0xD1, 0xAB, 0xD2, 0x9A, 0x5C, 0xB6, 0x6C,
+        0xEC, 0x37, 0xD8, 0x1B, 0xD0, 0x0B, 0xC0, 0x03,  // Modified drone icon
+    },
+    /*.icon_color = */ ui::Color::red().v,      // Red for threat detection
+    /*.menu_location = */ app_location_t::RX,   // RX category for scanner
+    /*.desired_menu_position = */ -1,           // Auto-position
+
+    /*.m4_app_tag = portapack::spi_flash::image_tag_enhanced_drone_analyzer_scanner */ {'E', 'D', 'A', 'S'},  // "EDAS"
+    /*.m4_app_offset = */ 0x00000000,           // will be filled at compile time
+};
 }

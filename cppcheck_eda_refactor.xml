@@ -1,18 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<results version="2">
-    <cppcheck version="2.17.1"/>
-    <errors>
-        <error id="normalCheckLevelMaxBranches" severity="information" msg="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." verbose="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." file0="firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_main.cpp">
-            <location file="firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_main.cpp" line="0" column="0"/>
-        </error>
-        <error id="normalCheckLevelMaxBranches" severity="information" msg="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." verbose="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_hardware.cpp">
-            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_hardware.cpp" line="0" column="0"/>
-        </error>
-        <error id="normalCheckLevelMaxBranches" severity="information" msg="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." verbose="Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches." file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_scanner.cpp">
-            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_scanner.cpp" line="0" column="0"/>
-        </error>
-        <error id="syntaxError" severity="error" msg="Unmatched &apos;{&apos;. Configuration: &apos;&apos;." verbose="Unmatched &apos;{&apos;. Configuration: &apos;&apos;." file0="firmware/application/external/enhanced_drone_analyzer/ui_drone_ui.cpp">
-            <location file="firmware\application\external\enhanced_drone_analyzer\ui_drone_ui.cpp" line="8" column="14"/>
-        </error>
-    </errors>
-</results>
+Checking firmware\application\external\enhanced_drone_analyzer\Settings\enhanced_drone_analyzer_settings_main.cpp ...
+1/9 files checked 5% done
+Checking firmware\application\external\enhanced_drone_analyzer\Settings\ui_settings_combined.cpp ...
+2/9 files checked 14% done
+Checking firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_main.cpp ...
+3/9 files checked 15% done
+Checking firmware\application\external\enhanced_drone_analyzer\scanner\enhanced_drone_analyzer_scanner_main.cpp ...
+4/9 files checked 19% done
+Checking firmware\application\external\enhanced_drone_analyzer\scanner\ui_scanner_combined.cpp ...
+5/9 files checked 43% done
+Checking firmware\application\external\enhanced_drone_analyzer\test_compilation.cpp ...
+6/9 files checked 44% done
+Checking firmware\application\external\enhanced_drone_analyzer\ui_drone_hardware.cpp ...
+7/9 files checked 49% done
+Checking firmware\application\external\enhanced_drone_analyzer\ui_drone_scanner.cpp ...
+8/9 files checked 68% done
+Checking firmware\application\external\enhanced_drone_analyzer\ui_drone_ui.cpp ...
+9/9 files checked 100% done

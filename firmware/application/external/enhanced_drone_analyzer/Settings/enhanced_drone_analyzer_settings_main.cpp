@@ -253,14 +253,26 @@ void EnhancedDroneAnalyzerSettingsMain::on_hide() {
 
 } // namespace ui::external_app::enhanced_drone_analyzer::settings
 
-// Portapack app registration
+// Portapack app registration - Must use application_information_t structure
 extern "C" {
-    __attribute__((section(".external_apps")))
-    const struct {
-        const char* name;
-        void (*main)(NavigationView& nav);
-    } settings_app_definition = {
-        "Enhanced Drone Analyzer Settings",
-        ui::external_app::enhanced_drone_analyzer::settings::settings_app_main
-    };
+
+__attribute__((section(".external_app.app_enhanced_drone_analyzer_settings.application_information"), used)) application_information_t _application_information_enhanced_drone_analyzer_settings = {
+    /*.memory_location = */ (uint8_t*)0x00000000,  // will be filled at compile time
+    /*.externalAppEntry = */ ui::external_app::enhanced_drone_analyzer::settings::settings_app_main,
+    /*.header_version = */ CURRENT_HEADER_VERSION,
+    /*.app_version = */ VERSION_MD5,
+
+    /*.app_name = */ "EDA Settings",
+    /*.bitmap_data = */ {
+        0xC0, 0x03, 0xF0, 0x0F, 0x18, 0x18, 0x08, 0x10, 0x08, 0x10, 0x08, 0x10,
+        0x08, 0x10, 0x3F, 0xFC, 0x40, 0x02, 0x80, 0x01, 0x7F, 0xFE, 0x00, 0x00,
+        0x7F, 0xFE, 0x40, 0x02, 0x80, 0x01, 0x00, 0x00,  // Settings gear icon
+    },
+    /*.icon_color = */ ui::Color::blue().v,     // Blue for settings
+    /*.menu_location = */ app_location_t::UTIL, // UTIL category for settings
+    /*.desired_menu_position = */ -1,           // Auto-position
+
+    /*.m4_app_tag = portapack::spi_flash::image_tag_enhanced_drone_analyzer_settings */ {'E', 'D', 'A', 'T'},  // "EDAT"
+    /*.m4_app_offset = */ 0x00000000,           // will be filled at compile time
+};
 }
