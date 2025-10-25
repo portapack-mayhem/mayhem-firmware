@@ -432,15 +432,17 @@ private:
 };
 
 // ===========================================
-// PART 3: HARDWARE CLASSES (from ui_drone_hardware.hpp)
+// PART 4: UI CLASSES (from ui_drone_hardware.hpp)
 // ===========================================
 
-#include "radio_state.hpp"
-#include "baseband_api.hpp"
-#include "portapack.hpp"
-#include "radio.hpp"
-#include "message.hpp"
-#include "irq_controls.hpp"
+// Removed: #include "radio_state.hpp"  // Insufficient API - replaced with full radio::
+#include "baseband_api.hpp"    // Baseband signal processing
+#include "portapack.hpp"       // Core Portapack hardware API
+using namespace portapack;     // Access portapack::display, receiver_model, etc.
+
+#include "radio.hpp"           // Radio hardware control (radio::set_* functions)
+#include "message.hpp"         // Message queue system
+#include "irq_controls.hpp"    // Interrupt controls
 
 class DroneHardwareController {
 public:
@@ -461,6 +463,9 @@ public:
     bool tune_to_frequency(Frequency frequency_hz);
     void start_spectrum_streaming();
     void stop_spectrum_streaming();
+
+    int32_t get_configured_sampling_rate() const;
+    int32_t get_configured_bandwidth() const;
     int32_t get_real_rssi_from_hardware(Frequency target_frequency);
 
     void handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
@@ -789,6 +794,60 @@ private:
     NavigationView& nav_;
     Text text_eda_{Rect{108, 213, 24, 16}, "EDA"};
     systime_t timer_start_ = 0;
+};
+
+// ================================================================
+// PHASE 7: WIDEBAND MEDIAN FILTER IMPLEMENTATION
+// ================================================================
+
+class WidebandMedianFilter {
+private:
+    static constexpr size_t WINDOW_SIZE = 11;  // Optimal for embedded: 11 samples
+    std::array<int16_t, WINDOW_SIZE> window_{};
+    size_t head_ = 0;
+    bool buffer_full_ = false;
+
+public:
+    // Default constructor
+    WidebandMedianFilter() = default;
+
+    // Add RSSI sample to sliding window
+    void add_sample(int16_t rssi) {
+        window_[head_] = rssi;
+        head_ = (head_ + 1) % WINDOW_SIZE;
+        if (head_ == 0) buffer_full_ = true;
+    }
+
+    // Calculate median threshold for noise filtering
+    int16_t get_median_threshold() const {
+        if (!buffer_full_) return DEFAULT_RSSI_THRESHOLD_DB;
+
+        // Bubble sort implementation for embedded median calculation
+        auto work_copy = window_;
+        for (size_t i = 0; i < WINDOW_SIZE / 2 + 1; ++i) {
+            for (size_t j = 0; j < WINDOW_SIZE - 1; ++j) {
+                if (work_copy[j] > work_copy[j + 1]) {
+                    std::swap(work_copy[j], work_copy[j + 1]);
+                }
+            }
+        }
+
+        // Return median with hysteresis margin for noise immunity
+        return work_copy[WINDOW_SIZE / 2] - HYSTERESIS_MARGIN_DB;
+    }
+
+    // Reset filter state (useful for scanning mode changes)
+    void reset() {
+        buffer_full_ = false;
+        head_ = 0;
+        std::fill(window_.begin(), window_.end(), 0);
+    }
+
+    // Check if filter has enough data for reliable median
+    bool is_ready() const { return buffer_full_; }
+
+    WidebandMedianFilter(const WidebandMedianFilter&) = delete;
+    WidebandMedianFilter& operator=(const WidebandMedianFilter&) = delete;
 };
 
 // ScanningCoordinator definition from ui_drone_scanner.hpp

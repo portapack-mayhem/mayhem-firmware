@@ -1,0 +1,662 @@
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:17:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:18:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:19:0: information: Include file: "external_app.hpp" not found. [missingInclude]
+#include "external_app.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:12:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"              // Required: Color class, basic UI framework
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:13:0: information: Include file: "message.hpp" not found. [missingInclude]
+#include "message.hpp"         // Required: MessageHandlerRegistration class
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:14:0: information: Include file: "ui_widget.hpp" not found. [missingInclude]
+#include "ui_widget.hpp"       // Required: ProgressBar, Text, BigFrequency widgets
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:15:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"   // Required: NavigationView class
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:16:0: information: Include file: "ui_freq_field.hpp" not found. [missingInclude]
+#include "ui_freq_field.hpp"   // Required: BigFrequency specific functionality
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:17:0: information: Include file: "radio_state.hpp" not found. [missingInclude]
+#include "radio_state.hpp"     // Required: Radio hardware state management
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:18:0: information: Include file: "baseband_api.hpp" not found. [missingInclude]
+#include "baseband_api.hpp"    // Required: Baseband functions for hardware
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:21:0: information: Include file: <memory> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <memory>              // std::unique_ptr, std::make_unique
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:22:0: information: Include file: <vector> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <vector>              // std::vector for dynamic arrays
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:23:0: information: Include file: <string> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string>              // std::string for text handling
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:24:0: information: Include file: <cstdint> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdint>            // int32_t, uint32_t, etc.
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:25:0: information: Include file: <algorithm> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <algorithm>          // std::min, std::max, std::fill
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:26:0: information: Include file: <array> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <array>              // std::array for fixed-size arrays
+^
+firmware\application\gradient.hpp:25:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\file.hpp:26:0: information: Include file: "ff.h" not found. [missingInclude]
+#include "ff.h"
+^
+firmware\application\file.hpp:28:0: information: Include file: "optional.hpp" not found. [missingInclude]
+#include "optional.hpp"
+^
+firmware\application\file.hpp:29:0: information: Include file: "result.hpp" not found. [missingInclude]
+#include "result.hpp"
+^
+firmware\application\file.hpp:31:0: information: Include file: <cstddef> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstddef>
+^
+firmware\application\file.hpp:32:0: information: Include file: <cstdint> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdint>
+^
+firmware\application\file.hpp:33:0: information: Include file: <string> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string>
+^
+firmware\application\file.hpp:34:0: information: Include file: <array> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <array>
+^
+firmware\application\file.hpp:35:0: information: Include file: <memory> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <memory>
+^
+firmware\application\file.hpp:36:0: information: Include file: <iterator> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <iterator>
+^
+firmware\application\file.hpp:37:0: information: Include file: <vector> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <vector>
+^
+firmware\application\gradient.hpp:28:0: information: Include file: <array> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <array>
+^
+firmware\application\gradient.hpp:29:0: information: Include file: <cstdint> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdint>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_drone_audio.hpp:7:0: information: Include file: <cstdint> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdint>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:37:0: information: Include file: <cstdint> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdint>            // Already included above
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:38:0: information: Include file: <string> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string>             // Already included above
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:39:0: information: Include file: <vector> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <vector>             // Already included above
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:46:0: information: Include file: <memory> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <memory>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:292:0: information: Include file: "freqman_db.hpp" not found. [missingInclude]
+#include "freqman_db.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:293:0: information: Include file: "../../application/log_file.hpp" not found. [missingInclude]
+#include "../../application/log_file.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:294:0: information: Include file: <ch.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <ch.h>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:295:0: information: Include file: <vector> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <vector>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:296:0: information: Include file: <array> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <array>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:438:0: information: Include file: "radio_state.hpp" not found. [missingInclude]
+#include "radio_state.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:439:0: information: Include file: "baseband_api.hpp" not found. [missingInclude]
+#include "baseband_api.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:440:0: information: Include file: "portapack.hpp" not found. [missingInclude]
+#include "portapack.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:441:0: information: Include file: "radio.hpp" not found. [missingInclude]
+#include "radio.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:442:0: information: Include file: "message.hpp" not found. [missingInclude]
+#include "message.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:443:0: information: Include file: "irq_controls.hpp" not found. [missingInclude]
+#include "irq_controls.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:497:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:498:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:499:0: information: Include file: "app_settings.hpp" not found. [missingInclude]
+#include "app_settings.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:500:0: information: Include file: "freqman_db.hpp" not found. [missingInclude]
+#include "freqman_db.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:501:0: information: Include file: <memory> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <memory>
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\file.hpp:45:15: style: Struct 'filesystem_error' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    constexpr filesystem_error(
+              ^
+firmware\application\file.hpp:50:15: style: Struct 'filesystem_error' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    constexpr filesystem_error(
+              ^
+firmware\application\file.hpp:88:5: style: Struct 'path' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    path(const Source& source)
+    ^
+firmware\application\file.hpp:98:5: style: Struct 'path' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    path(const char16_t* const s)
+    ^
+firmware\application\file.hpp:102:5: style: Struct 'path' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    path(const TCHAR* const s)
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:783:5: style: Class 'LoadingScreenView' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    LoadingScreenView(NavigationView& nav);
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:12:0: information: Include file: <cstdint> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdint>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:13:0: information: Include file: <string> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:14:0: information: Include file: <vector> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <vector>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:299:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:300:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:301:0: information: Include file: "ui_tabview.hpp" not found. [missingInclude]
+#include "ui_tabview.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:302:0: information: Include file: "app_settings.hpp" not found. [missingInclude]
+#include "app_settings.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:303:0: information: Include file: <string> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:304:0: information: Include file: <sstream> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sstream>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:444:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:445:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:446:0: information: Include file: "external_app.hpp" not found. [missingInclude]
+#include "external_app.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:5:0: information: Include file: "app_settings.hpp" not found. [missingInclude]
+#include "app_settings.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:6:0: information: Include file: "portapack.hpp" not found. [missingInclude]
+#include "portapack.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:7:0: information: Include file: "io_file.hpp" not found. [missingInclude]
+#include "io_file.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:8:0: information: Include file: "string_format.hpp" not found. [missingInclude]
+#include "string_format.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:526:5: style: Class 'LoadingView' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    LoadingView(NavigationView& nav, const std::string& loading_text = "Loading...");
+    ^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:17:5: style: Class 'EnhancedDroneAnalyzerSettingsMain' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    EnhancedDroneAnalyzerSettingsMain(NavigationView& nav);
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:8:0: information: Include file: <algorithm> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <algorithm>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:9:0: information: Include file: <sstream> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sstream>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:10:0: information: Include file: <mutex> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <mutex>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:11:0: information: Include file: <cstdlib> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <cstdlib>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1618:20: warning: Member variable 'DroneUIController::audio_mgr_' is not initialized in the constructor. [uninitMemberVar]
+DroneUIController::DroneUIController(NavigationView& nav,
+                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:404:13: style: inconclusive: Member variable 'DroneScanner::scanning_thread_' is in the wrong place in the initializer list. [initializerList]
+    Thread* scanning_thread_ = nullptr;
+            ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:132:7: note: Member variable 'DroneScanner::scanning_thread_' is in the wrong place in the initializer list.
+      scanning_thread_(nullptr),
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:404:13: note: Member variable 'DroneScanner::scanning_thread_' is in the wrong place in the initializer list.
+    Thread* scanning_thread_ = nullptr;
+            ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:408:15: style: inconclusive: Member variable 'DroneScanner::freq_db_' is in the wrong place in the initializer list. [initializerList]
+    FreqmanDB freq_db_;
+              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:145:7: note: Member variable 'DroneScanner::freq_db_' is in the wrong place in the initializer list.
+      freq_db_(),
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:408:15: note: Member variable 'DroneScanner::freq_db_' is in the wrong place in the initializer list.
+    FreqmanDB freq_db_;
+              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:406:10: style: inconclusive: Member variable 'DroneScanner::scanning_active_' is in the wrong place in the initializer list. [initializerList]
+    bool scanning_active_ = false;
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:154:7: note: Member variable 'DroneScanner::scanning_active_' is in the wrong place in the initializer list.
+      scanning_active_(false)
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:406:10: note: Member variable 'DroneScanner::scanning_active_' is in the wrong place in the initializer list.
+    bool scanning_active_ = false;
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:661:14: style: inconclusive: Member variable 'DroneDisplayController::spectrum_gradient_' is in the wrong place in the initializer list. [initializerList]
+    Gradient spectrum_gradient_;
+             ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1255:18: note: Member variable 'DroneDisplayController::spectrum_gradient_' is in the wrong place in the initializer list.
+    : nav_(nav), spectrum_gradient_{}
+                 ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:661:14: note: Member variable 'DroneDisplayController::spectrum_gradient_' is in the wrong place in the initializer list.
+    Gradient spectrum_gradient_;
+             ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:754:26: style: inconclusive: Member variable 'EnhancedDroneSpectrumAnalyzerView::scanning_coordinator_' uses an uninitialized argument 'display_controller_' due to the order of declarations. [initializerList]
+    ScanningCoordinator* scanning_coordinator_ = nullptr;
+                         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2055:7: note: Member variable 'EnhancedDroneSpectrumAnalyzerView::scanning_coordinator_' uses an uninitialized argument 'display_controller_' due to the order of declarations.
+      scanning_coordinator_(std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_, *audio_))
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:754:26: note: Member variable 'EnhancedDroneSpectrumAnalyzerView::scanning_coordinator_' uses an uninitialized argument 'display_controller_' due to the order of declarations.
+    ScanningCoordinator* scanning_coordinator_ = nullptr;
+                         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:754:26: style: inconclusive: Member variable 'EnhancedDroneSpectrumAnalyzerView::scanning_coordinator_' is in the wrong place in the initializer list. [initializerList]
+    ScanningCoordinator* scanning_coordinator_ = nullptr;
+                         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2055:7: note: Member variable 'EnhancedDroneSpectrumAnalyzerView::scanning_coordinator_' is in the wrong place in the initializer list.
+      scanning_coordinator_(std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_, *audio_))
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:754:26: note: Member variable 'EnhancedDroneSpectrumAnalyzerView::scanning_coordinator_' is in the wrong place in the initializer list.
+    ScanningCoordinator* scanning_coordinator_ = nullptr;
+                         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:353:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::handle_scan_error' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void handle_scan_error(const char* error_msg);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:649:20: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::handle_scan_error' can be static (but you may consider moving to unnamed namespace).
+void DroneScanner::handle_scan_error(const char* error_msg) {
+                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:353:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::handle_scan_error' can be static (but you may consider moving to unnamed namespace).
+    void handle_scan_error(const char* error_msg);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:393:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::scan_init_from_loaded_frequencies' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void scan_init_from_loaded_frequencies();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:692:20: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::scan_init_from_loaded_frequencies' can be static (but you may consider moving to unnamed namespace).
+void DroneScanner::scan_init_from_loaded_frequencies() {
+                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:393:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::scan_init_from_loaded_frequencies' can be static (but you may consider moving to unnamed namespace).
+    void scan_init_from_loaded_frequencies();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:400:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::update_trends_compact_display' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void update_trends_compact_display();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:623:20: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::update_trends_compact_display' can be static (but you may consider moving to unnamed namespace).
+void DroneScanner::update_trends_compact_display() {
+                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:400:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::update_trends_compact_display' can be static (but you may consider moving to unnamed namespace).
+    void update_trends_compact_display();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:401:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::validate_detection_simple' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    bool validate_detection_simple(int32_t rssi_db, ThreatLevel threat);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:627:20: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::validate_detection_simple' can be static (but you may consider moving to unnamed namespace).
+bool DroneScanner::validate_detection_simple(int32_t rssi_db, ThreatLevel threat) {
+                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:401:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::validate_detection_simple' can be static (but you may consider moving to unnamed namespace).
+    bool validate_detection_simple(int32_t rssi_db, ThreatLevel threat);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:382:21: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::DroneDetectionLogger::format_csv_entry' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+        std::string format_csv_entry(const DetectionLogEntry& entry);
+                    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:751:56: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::DroneDetectionLogger::format_csv_entry' can be static (but you may consider moving to unnamed namespace).
+inline std::string DroneScanner::DroneDetectionLogger::format_csv_entry(const DetectionLogEntry& entry) {
+                                                       ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:382:21: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::DroneDetectionLogger::format_csv_entry' can be static (but you may consider moving to unnamed namespace).
+        std::string format_csv_entry(const DetectionLogEntry& entry);
+                    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:384:21: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::DroneDetectionLogger::generate_log_filename' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+        std::string generate_log_filename() const;
+                    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:763:66: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::DroneDetectionLogger::generate_log_filename' can be static (but you may consider moving to unnamed namespace).
+inline std::filesystem::path DroneScanner::DroneDetectionLogger::generate_log_filename() const {
+                                                                 ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:384:21: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneScanner::DroneDetectionLogger::generate_log_filename' can be static (but you may consider moving to unnamed namespace).
+        std::string generate_log_filename() const;
+                    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:466:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::handle_channel_spectrum_config' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:938:31: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::handle_channel_spectrum_config' can be static (but you may consider moving to unnamed namespace).
+void DroneHardwareController::handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message) {
+                              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:466:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::handle_channel_spectrum_config' can be static (but you may consider moving to unnamed namespace).
+    void handle_channel_spectrum_config(const ChannelSpectrumConfigMessage* const message);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:468:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::process_channel_spectrum_data' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void process_channel_spectrum_data(const ChannelSpectrum& spectrum);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:943:31: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::process_channel_spectrum_data' can be static (but you may consider moving to unnamed namespace).
+void DroneHardwareController::process_channel_spectrum_data(const ChannelSpectrum& spectrum) {
+                              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:468:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::process_channel_spectrum_data' can be static (but you may consider moving to unnamed namespace).
+    void process_channel_spectrum_data(const ChannelSpectrum& spectrum);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:474:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::initialize_radio_state' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void initialize_radio_state();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:819:31: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::initialize_radio_state' can be static (but you may consider moving to unnamed namespace).
+void DroneHardwareController::initialize_radio_state() {
+                              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:474:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneHardwareController::initialize_radio_state' can be static (but you may consider moving to unnamed namespace).
+    void initialize_radio_state();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:514:10: style: inconclusive: Either there is a missing 'override', or the member function 'ui::external_app::enhanced_drone_analyzer::SmartThreatHeader::set_color_scheme' can be const. [functionConst]
+    void set_color_scheme(bool use_dark_theme);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1043:25: note: Either there is a missing 'override', or the member function 'ui::external_app::enhanced_drone_analyzer::SmartThreatHeader::set_color_scheme' can be const.
+void SmartThreatHeader::set_color_scheme(bool use_dark_theme) {
+                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:514:10: note: Either there is a missing 'override', or the member function 'ui::external_app::enhanced_drone_analyzer::SmartThreatHeader::set_color_scheme' can be const.
+    void set_color_scheme(bool use_dark_theme);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:616:10: style: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::render_drone_text_display' can be const. [functionConst]
+    void render_drone_text_display();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1420:30: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::render_drone_text_display' can be const.
+void DroneDisplayController::render_drone_text_display() {
+                             ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:616:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::render_drone_text_display' can be const.
+    void render_drone_text_display();
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:626:12: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_safe_spectrum_index' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    size_t get_safe_spectrum_index(size_t x, size_t y) const;
+           ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1586:32: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_safe_spectrum_index' can be static (but you may consider moving to unnamed namespace).
+size_t DroneDisplayController::get_safe_spectrum_index(size_t x, size_t y) const {
+                               ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:626:12: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_safe_spectrum_index' can be static (but you may consider moving to unnamed namespace).
+    size_t get_safe_spectrum_index(size_t x, size_t y) const;
+           ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:676:11: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_threat_level_color' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    Color get_threat_level_color(ThreatLevel level) const;
+          ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2420:31: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_threat_level_color' can be static (but you may consider moving to unnamed namespace).
+Color DroneDisplayController::get_threat_level_color(ThreatLevel level) const {
+                              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:676:11: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_threat_level_color' can be static (but you may consider moving to unnamed namespace).
+    Color get_threat_level_color(ThreatLevel level) const;
+          ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:677:17: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_threat_level_name' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    const char* get_threat_level_name(ThreatLevel level) const;
+                ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2430:37: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_threat_level_name' can be static (but you may consider moving to unnamed namespace).
+const char* DroneDisplayController::get_threat_level_name(ThreatLevel level) const {
+                                    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:677:17: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::DroneDisplayController::get_threat_level_name' can be static (but you may consider moving to unnamed namespace).
+    const char* get_threat_level_name(ThreatLevel level) const;
+                ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2347:5: style: Class 'ConstantSettingsView' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    ConstantSettingsView(NavigationView& nav) : View(), nav_(nav) {}
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1862:52: style: Condition 'DroneAnalyzerSettingsManager::save_settings(settings_)' is always true [knownConditionTrueFalse]
+    if (DroneAnalyzerSettingsManager::save_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1862:52: note: Calling function 'save_settings' returns 1
+    if (DroneAnalyzerSettingsManager::save_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1862:52: note: Condition 'DroneAnalyzerSettingsManager::save_settings(settings_)' is always true
+    if (DroneAnalyzerSettingsManager::save_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1870:52: style: Condition 'DroneAnalyzerSettingsManager::load_settings(settings_)' is always false [knownConditionTrueFalse]
+    if (DroneAnalyzerSettingsManager::load_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1870:52: note: Calling function 'load_settings' returns 0
+    if (DroneAnalyzerSettingsManager::load_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1870:52: note: Condition 'DroneAnalyzerSettingsManager::load_settings(settings_)' is always false
+    if (DroneAnalyzerSettingsManager::load_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:826:74: style: C-style pointer casting [cstyleCast]
+        [this](const Message* const p) { handle_channel_spectrum_config((const ChannelSpectrumConfigMessage*)p); });
+                                                                         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1621:50: style: inconclusive: Function 'DroneUIController' argument 4 names different: declaration 'audio_mgr' definition 'audio'. [funcArgNamesDifferent]
+                                   AudioManager& audio)
+                                                 ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:685:36: note: Function 'DroneUIController' argument 4 names different: declaration 'audio_mgr' definition 'audio'.
+                     AudioManager& audio_mgr);
+                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1621:50: note: Function 'DroneUIController' argument 4 names different: declaration 'audio_mgr' definition 'audio'.
+                                   AudioManager& audio)
+                                                 ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2327:50: style: Parameter 'nav' can be declared as reference to const [constParameterReference]
+    static void show_preset_menu(NavigationView& nav,
+                                                 ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2339:54: style: Parameter 'settings' can be declared as reference to const [constParameterReference]
+    static bool load_settings(DroneAnalyzerSettings& settings) {
+                                                     ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1971:36: style: Unused variable: manager [unusedVariable]
+    static ConstantSettingsManager manager;
+                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:5:0: information: Include file: <algorithm> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <algorithm>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:6:0: information: Include file: <sstream> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sstream>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:7:0: information: Include file: <fstream> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <fstream>
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:330:5: style: The class 'PresetMenuView' does not declare a constructor although it has private member variables which likely require initialization. [noConstructor]
+    class PresetMenuView : public MenuView {
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:369:5: style: The class 'FilteredPresetMenuView' does not declare a constructor although it has private member variables which likely require initialization. [noConstructor]
+    class FilteredPresetMenuView : public MenuView {
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:229:10: performance: inconclusive: Technically the member function 'ui::external_app::enhanced_drone_analyzer::ScannerConfig::set_frequency_range' can be static (but you may consider moving to unnamed namespace). [functionStatic]
+    void set_frequency_range(uint32_t min_hz, uint32_t max_hz);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:246:21: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::ScannerConfig::set_frequency_range' can be static (but you may consider moving to unnamed namespace).
+void ScannerConfig::set_frequency_range(uint32_t min_hz, uint32_t max_hz) {
+                    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:229:10: note: Technically the member function 'ui::external_app::enhanced_drone_analyzer::ScannerConfig::set_frequency_range' can be static (but you may consider moving to unnamed namespace).
+    void set_frequency_range(uint32_t min_hz, uint32_t max_hz);
+         ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:433:28: style: Condition 'freq_hz>=5200000000ULL' is always false [knownConditionTrueFalse]
+        } else if (freq_hz >= 5200000000ULL && freq_hz <= 5800000000ULL) {
+                           ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:430:45: note: Assuming that condition 'freq_hz<=2500000000ULL' is not redundant
+    if (freq_hz >= 2400000000ULL && freq_hz <= 2500000000ULL) {
+                                            ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:433:28: note: Condition 'freq_hz>=5200000000ULL' is always false
+        } else if (freq_hz >= 5200000000ULL && freq_hz <= 5800000000ULL) {
+                           ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:194:41: performance: Function parameter 'config' should be passed by const reference. However it seems that 'ScannerConfig' is a callback function. [passedByValueCallback]
+ScannerConfig::ScannerConfig(ConfigData config)
+                                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:218:7: note: Function pointer used here.
+class ScannerConfig {
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:194:41: note: Function parameter 'config' should be passed by const reference. However it seems that 'ScannerConfig' is a callback function.
+ScannerConfig::ScannerConfig(ConfigData config)
+                                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:318:57: style: Parameter 'config' can be declared as reference to const [constParameterReference]
+bool DroneFrequencyPresets::apply_preset(ScannerConfig& config, const DronePreset& preset) {
+                                                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:366:15: style: Consider using std::transform algorithm instead of a raw loop. [useStlAlgorithm]
+        names.push_back(preset.display_name);
+              ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:645:0: style: The function 'get_session_summary' is never used. [unusedFunction]
+std::string DroneScanner::get_session_summary() const {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:948:0: style: The function 'get_configured_sampling_rate' is never used. [unusedFunction]
+int32_t DroneHardwareController::get_configured_sampling_rate() const {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:952:0: style: The function 'get_configured_bandwidth' is never used. [unusedFunction]
+int32_t DroneHardwareController::get_configured_bandwidth() const {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1017:0: style: The function 'set_max_threat' is never used. [unusedFunction]
+void SmartThreatHeader::set_max_threat(ThreatLevel threat) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1024:0: style: The function 'set_movement_counts' is never used. [unusedFunction]
+void SmartThreatHeader::set_movement_counts(size_t approaching, size_t static_count, size_t receding) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1029:0: style: The function 'set_current_frequency' is never used. [unusedFunction]
+void SmartThreatHeader::set_current_frequency(Frequency freq) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1036:0: style: The function 'set_scanning_state' is never used. [unusedFunction]
+void SmartThreatHeader::set_scanning_state(bool is_scanning) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1043:0: style: The function 'set_color_scheme' is never used. [unusedFunction]
+void SmartThreatHeader::set_color_scheme(bool use_dark_theme) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1362:0: style: The function 'add_detected_drone' is never used. [unusedFunction]
+void DroneDisplayController::add_detected_drone(Frequency freq, DroneType type, ThreatLevel threat, int32_t rssi) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1586:0: style: The function 'get_safe_spectrum_index' is never used. [unusedFunction]
+size_t DroneDisplayController::get_safe_spectrum_index(size_t x, size_t y) const {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1647:0: style: The function 'on_toggle_mode' is never used. [unusedFunction]
+void DroneUIController::on_toggle_mode() {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2141:0: style: The function 'start_scanning_thread' is never used. [unusedFunction]
+void EnhancedDroneSpectrumAnalyzerView::start_scanning_thread() {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2538:0: style: The function 'show_session_summary' is never used. [unusedFunction]
+void ScanningCoordinator::show_session_summary(const std::string& summary) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:259:0: style: The function 'get_data' is never used. [unusedFunction]
+    const ConfigData& get_data() const { return config_data_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:599:0: style: The function 'big_display' is never used. [unusedFunction]
+    BigFrequency& big_display() { return big_display_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:600:0: style: The function 'scanning_progress' is never used. [unusedFunction]
+    ProgressBar& scanning_progress() { return scanning_progress_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:601:0: style: The function 'text_threat_summary' is never used. [unusedFunction]
+    Text& text_threat_summary() { return text_threat_summary_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:602:0: style: The function 'text_status_info' is never used. [unusedFunction]
+    Text& text_status_info() { return text_status_info_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:603:0: style: The function 'text_scanner_stats' is never used. [unusedFunction]
+    Text& text_scanner_stats() { return text_scanner_stats_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:604:0: style: The function 'text_trends_compact' is never used. [unusedFunction]
+    Text& text_trends_compact() { return text_trends_compact_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:605:0: style: The function 'text_drone_1' is never used. [unusedFunction]
+    Text& text_drone_1() { return text_drone_1_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:606:0: style: The function 'text_drone_2' is never used. [unusedFunction]
+    Text& text_drone_2() { return text_drone_2_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:607:0: style: The function 'text_drone_3' is never used. [unusedFunction]
+    Text& text_drone_3() { return text_drone_3_; }
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:27:0: style: The function 'get_settings_manager' is never used. [unusedFunction]
+DroneAnalyzerSettingsManager& get_settings_manager() {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:136:0: style: The function 'serialize' is never used. [unusedFunction]
+std::string DroneAnalyzerSettingsManager::serialize(const DroneAnalyzerSettings& settings) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:154:0: style: The function 'deserialize' is never used. [unusedFunction]
+bool DroneAnalyzerSettingsManager::deserialize(DroneAnalyzerSettings& settings, const std::string& data) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:188:0: style: The function 'get_translation' is never used. [unusedFunction]
+const char* DroneAnalyzerSettingsManager::get_translation(const std::string& key) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:198:0: style: The function 'load_from_file' is never used. [unusedFunction]
+bool ScannerConfig::load_from_file(const std::string& filepath) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:225:0: style: The function 'save_to_file' is never used. [unusedFunction]
+bool ScannerConfig::save_to_file(const std::string& filepath) const {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:246:0: style: The function 'set_frequency_range' is never used. [unusedFunction]
+void ScannerConfig::set_frequency_range(uint32_t min_hz, uint32_t max_hz) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:251:0: style: The function 'set_rssi_threshold' is never used. [unusedFunction]
+void ScannerConfig::set_rssi_threshold(int32_t threshold) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:255:0: style: The function 'set_scan_interval' is never used. [unusedFunction]
+void ScannerConfig::set_scan_interval(uint32_t interval_ms) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:259:0: style: The function 'set_audio_alerts' is never used. [unusedFunction]
+void ScannerConfig::set_audio_alerts(bool enabled) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:263:0: style: The function 'set_freqman_path' is never used. [unusedFunction]
+void ScannerConfig::set_freqman_path(const std::string& path) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:292:0: style: The function 'get_available_types' is never used. [unusedFunction]
+std::vector<DroneType> DroneFrequencyPresets::get_available_types() {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:298:0: style: The function 'get_type_display_name' is never used. [unusedFunction]
+std::string DroneFrequencyPresets::get_type_display_name(DroneType type) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:362:0: style: The function 'show_type_filtered_presets' is never used. [unusedFunction]
+void DronePresetSelector::show_type_filtered_presets(NavigationView& nav, DroneType type, FilteredPresetMenuView callback) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:401:0: style: The function 'create_config_updater' is never used. [unusedFunction]
+PresetMenuView DronePresetSelector::create_config_updater(ScannerConfig& config_to_update) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:426:0: style: The function 'identify_drone_type' is never used. [unusedFunction]
+DroneType SimpleDroneValidation::identify_drone_type(Frequency freq_hz, int32_t rssi_db) {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:442:0: style: The function 'validate_drone_detection' is never used. [unusedFunction]
+bool SimpleDroneValidation::validate_drone_detection(Frequency freq_hz, int32_t rssi_db,
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:521:0: style: The function 'update_ui_from_settings' is never used. [unusedFunction]
+void HardwareSettingsView::update_ui_from_settings() {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:525:0: style: The function 'update_settings_from_ui' is never used. [unusedFunction]
+void HardwareSettingsView::update_settings_from_ui() {
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:197:0: style: The function 'get_language' is never used. [unusedFunction]
+    static Language get_language() { return current_language_; }
+^
+firmware\application\file.hpp:55:0: style: The function 'code' is never used. [unusedFunction]
+    uint32_t code() const {
+^
+firmware\application\file.hpp:61:0: style: The function 'ok' is never used. [unusedFunction]
+    bool ok() const {
+^
+firmware\application\file.hpp:129:0: style: The function 'tchar' is never used. [unusedFunction]
+    const TCHAR* tchar() const {
+^
+firmware\application\file.hpp:281:0: style: The function 'scan_root_files' is never used. [unusedFunction]
+void scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension, const TCallback& fn) {
+^
+nofile:0:0: information: Active checkers: 179/856 (use --checkers-report=<filename> to see details) [checkersReport]
+

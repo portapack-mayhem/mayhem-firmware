@@ -1,0 +1,206 @@
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:17:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:18:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:19:0: information: Include file: "external_app.hpp" not found. [missingInclude]
+#include "external_app.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:12:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"              // Required: Color class, basic UI framework
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:13:0: information: Include file: "message.hpp" not found. [missingInclude]
+#include "message.hpp"         // Required: MessageHandlerRegistration class
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:14:0: information: Include file: "ui_widget.hpp" not found. [missingInclude]
+#include "ui_widget.hpp"       // Required: ProgressBar, Text, BigFrequency widgets
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:15:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"   // Required: NavigationView class
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:16:0: information: Include file: "ui_freq_field.hpp" not found. [missingInclude]
+#include "ui_freq_field.hpp"   // Required: BigFrequency specific functionality
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:17:0: information: Include file: "radio_state.hpp" not found. [missingInclude]
+#include "radio_state.hpp"     // Required: Radio hardware state management
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:18:0: information: Include file: "baseband_api.hpp" not found. [missingInclude]
+#include "baseband_api.hpp"    // Required: Baseband functions for hardware
+^
+firmware\application\gradient.hpp:25:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\file.hpp:26:0: information: Include file: "ff.h" not found. [missingInclude]
+#include "ff.h"
+^
+firmware\application\file.hpp:28:0: information: Include file: "optional.hpp" not found. [missingInclude]
+#include "optional.hpp"
+^
+firmware\application\file.hpp:29:0: information: Include file: "result.hpp" not found. [missingInclude]
+#include "result.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:292:0: information: Include file: "freqman_db.hpp" not found. [missingInclude]
+#include "freqman_db.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:293:0: information: Include file: "../../application/log_file.hpp" not found. [missingInclude]
+#include "../../application/log_file.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:439:0: information: Include file: "baseband_api.hpp" not found. [missingInclude]
+#include "baseband_api.hpp"    // Baseband signal processing
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:440:0: information: Include file: "portapack.hpp" not found. [missingInclude]
+#include "portapack.hpp"       // Core Portapack hardware API
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:443:0: information: Include file: "radio.hpp" not found. [missingInclude]
+#include "radio.hpp"           // Radio hardware control (radio::set_* functions)
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:444:0: information: Include file: "message.hpp" not found. [missingInclude]
+#include "message.hpp"         // Message queue system
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:445:0: information: Include file: "irq_controls.hpp" not found. [missingInclude]
+#include "irq_controls.hpp"    // Interrupt controls
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:502:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:503:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:504:0: information: Include file: "app_settings.hpp" not found. [missingInclude]
+#include "app_settings.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:505:0: information: Include file: "freqman_db.hpp" not found. [missingInclude]
+#include "freqman_db.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:21:0: information: Include file: "portapack.hpp" not found. [missingInclude]
+#include "portapack.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_scanner_main.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\file.hpp:45:15: style: Struct 'filesystem_error' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    constexpr filesystem_error(
+              ^
+firmware\application\file.hpp:50:15: style: Struct 'filesystem_error' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    constexpr filesystem_error(
+              ^
+firmware\application\file.hpp:88:5: style: Struct 'path' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    path(const Source& source)
+    ^
+firmware\application\file.hpp:98:5: style: Struct 'path' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    path(const char16_t* const s)
+    ^
+firmware\application\file.hpp:102:5: style: Struct 'path' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    path(const TCHAR* const s)
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.hpp:788:5: style: Class 'LoadingScreenView' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    LoadingScreenView(NavigationView& nav);
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:299:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:300:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:301:0: information: Include file: "ui_tabview.hpp" not found. [missingInclude]
+#include "ui_tabview.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:302:0: information: Include file: "app_settings.hpp" not found. [missingInclude]
+#include "app_settings.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:444:0: information: Include file: "ui.hpp" not found. [missingInclude]
+#include "ui.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:445:0: information: Include file: "ui_navigation.hpp" not found. [missingInclude]
+#include "ui_navigation.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:446:0: information: Include file: "external_app.hpp" not found. [missingInclude]
+#include "external_app.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:5:0: information: Include file: "app_settings.hpp" not found. [missingInclude]
+#include "app_settings.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:6:0: information: Include file: "portapack.hpp" not found. [missingInclude]
+#include "portapack.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:7:0: information: Include file: "io_file.hpp" not found. [missingInclude]
+#include "io_file.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\enhanced_drone_analyzer_settings_main.cpp:8:0: information: Include file: "string_format.hpp" not found. [missingInclude]
+#include "string_format.hpp"
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:526:5: style: Class 'LoadingView' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    LoadingView(NavigationView& nav, const std::string& loading_text = "Loading...");
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2368:5: style: Class 'ConstantSettingsView' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    ConstantSettingsView(NavigationView& nav) : View(), nav_(nav) {}
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1883:52: style: Condition 'DroneAnalyzerSettingsManager::save_settings(settings_)' is always true [knownConditionTrueFalse]
+    if (DroneAnalyzerSettingsManager::save_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1883:52: note: Calling function 'save_settings' returns 1
+    if (DroneAnalyzerSettingsManager::save_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1883:52: note: Condition 'DroneAnalyzerSettingsManager::save_settings(settings_)' is always true
+    if (DroneAnalyzerSettingsManager::save_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1891:52: style: Condition 'DroneAnalyzerSettingsManager::load_settings(settings_)' is always false [knownConditionTrueFalse]
+    if (DroneAnalyzerSettingsManager::load_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1891:52: note: Calling function 'load_settings' returns 0
+    if (DroneAnalyzerSettingsManager::load_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1891:52: note: Condition 'DroneAnalyzerSettingsManager::load_settings(settings_)' is always false
+    if (DroneAnalyzerSettingsManager::load_settings(settings_)) {
+                                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:847:74: style: C-style pointer casting [cstyleCast]
+        [this](const Message* const p) { handle_channel_spectrum_config((const ChannelSpectrumConfigMessage*)p); });
+                                                                         ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2348:50: style: Parameter 'nav' can be declared as reference to const [constParameterReference]
+    static void show_preset_menu(NavigationView& nav,
+                                                 ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:2360:54: style: Parameter 'settings' can be declared as reference to const [constParameterReference]
+    static bool load_settings(DroneAnalyzerSettings& settings) {
+                                                     ^
+firmware\application\external\enhanced_drone_analyzer\ui_scanner_combined.cpp:1992:36: style: Unused variable: manager [unusedVariable]
+    static ConstantSettingsManager manager;
+                                   ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:330:5: style: The class 'PresetMenuView' does not declare a constructor although it has private member variables which likely require initialization. [noConstructor]
+    class PresetMenuView : public MenuView {
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:369:5: style: The class 'FilteredPresetMenuView' does not declare a constructor although it has private member variables which likely require initialization. [noConstructor]
+    class FilteredPresetMenuView : public MenuView {
+    ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:433:28: style: Condition 'freq_hz>=5200000000ULL' is always false [knownConditionTrueFalse]
+        } else if (freq_hz >= 5200000000ULL && freq_hz <= 5800000000ULL) {
+                           ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:430:45: note: Assuming that condition 'freq_hz<=2500000000ULL' is not redundant
+    if (freq_hz >= 2400000000ULL && freq_hz <= 2500000000ULL) {
+                                            ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:433:28: note: Condition 'freq_hz>=5200000000ULL' is always false
+        } else if (freq_hz >= 5200000000ULL && freq_hz <= 5800000000ULL) {
+                           ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:194:41: performance: Function parameter 'config' should be passed by const reference. However it seems that 'ScannerConfig' is a callback function. [passedByValueCallback]
+ScannerConfig::ScannerConfig(ConfigData config)
+                                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.hpp:218:7: note: Function pointer used here.
+class ScannerConfig {
+      ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:194:41: note: Function parameter 'config' should be passed by const reference. However it seems that 'ScannerConfig' is a callback function.
+ScannerConfig::ScannerConfig(ConfigData config)
+                                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:318:57: style: Parameter 'config' can be declared as reference to const [constParameterReference]
+bool DroneFrequencyPresets::apply_preset(ScannerConfig& config, const DronePreset& preset) {
+                                                        ^
+firmware\application\external\enhanced_drone_analyzer\ui_settings_combined.cpp:366:15: style: Consider using std::transform algorithm instead of a raw loop. [useStlAlgorithm]
+        names.push_back(preset.display_name);
+              ^
+nofile:0:0: information: Active checkers: 168/856 (use --checkers-report=<filename> to see details) [checkersReport]
+

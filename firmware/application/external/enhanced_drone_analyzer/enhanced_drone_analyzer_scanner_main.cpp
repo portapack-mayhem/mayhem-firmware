@@ -18,6 +18,9 @@
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 #include "ui_scanner_combined.hpp"
+#include "portapack.hpp"
+
+using namespace portapack;
 
 using namespace ui::external_app::enhanced_drone_analyzer;
 

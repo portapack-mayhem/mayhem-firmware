@@ -462,10 +462,20 @@ bool DroneFrequencyEntry::is_valid() const {
 // PART 2: UI IMPLEMENTATIONS
 // ===========================================
 
+#include "ui_widget.hpp"
+#include "app_settings.hpp"
+
 // HardwareSettingsView Implementation
 HardwareSettingsView::HardwareSettingsView(NavigationView& nav)
-    : View(), nav_(nav)
+    : nav_(nav)
 {
+    // Using proper PortaPack UI widgets
+    add_children({
+        &checkbox_real_hardware_,
+        &text_real_hardware_
+    });
+
+    load_current_settings();
 }
 
 void HardwareSettingsView::focus() {

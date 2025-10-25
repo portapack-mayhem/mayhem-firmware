@@ -12,11 +12,11 @@
 
 // Settings file loading helper for scanner app
 bool load_settings_from_sd_card(DroneAnalyzerSettings& settings) {
-    static constexpr const char* SETTINGS_FILE_PATH = "/sdcard/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";
+    static constexpr const char* SETTINGS_FILE_PATH = "/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";
 
     File settings_file;
-    auto open_result = settings_file.open(SETTINGS_FILE_PATH);
-    if (open_result.is_error()) {
+    auto error = settings_file.open(SETTINGS_FILE_PATH);
+    if (error.is_error()) {
         return false;  // No file, keep defaults
     }
 
@@ -163,8 +163,8 @@ DroneScanner::~DroneScanner() {
 }
 
 void DroneScanner::initialize_database_and_scanner() {
-    std::filesystem::path db_path = get_freqman_path("DRONES");
-    if (!drone_database_.open(db_path, true)) {
+    auto db_path = get_freqman_path("DRONES");
+    if (!freq_db_.open(db_path, true)) {  // FreqmanDB::open uses different signature
         // Continue without enhanced drone data
     }
 }
@@ -467,9 +467,20 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
     }
 
     int32_t detection_threshold = -90;
-    const auto* db_entry = drone_database_.lookup_frequency(entry.frequency_a);
-    if (db_entry) {
-        detection_threshold = db_entry->rssi_threshold_db;
+    std::optional<freqman_entry> db_entry = std::nullopt;
+
+    // Use FreqmanDB iterator search instead of lookup_frequency
+    auto entry_it = freq_db_.find_entry([&entry](const freqman_entry& e) {
+        return e.frequency_a == entry.frequency_a && e.type == freqman_type::Single;
+    });
+
+    if (entry_it != freq_db_.end()) {
+        db_entry = *entry_it;
+        // Use modulation field to store rssi_threshold_db (custom extension)
+        detection_threshold = db_entry->modulation;
+        if (detection_threshold == freqman_invalid_index) {
+            detection_threshold = -90; // Default if not set
+        }
     }
 
     ThreatLevel validated_threat = SimpleDroneValidation::classify_signal_strength(rssi);
@@ -477,8 +488,17 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
 
     DroneType detected_type = DroneType::UNKNOWN;
     if (db_entry) {
-        detected_type = db_entry->drone_type;
-        threat_level = db_entry->threat_level;
+        // Extract enhanced drone info from description field
+        std::string desc = db_entry->description;
+        threat_level = (desc.find("CRITICAL") != std::string::npos) ? ThreatLevel::CRITICAL :
+                      (desc.find("HIGH") != std::string::npos) ? ThreatLevel::HIGH :
+                      (desc.find("MEDIUM") != std::string::npos) ? ThreatLevel::MEDIUM :
+                      ThreatLevel::LOW;
+
+        detected_type = (desc.find("DJI") != std::string::npos) ? DroneType::MAVIC :
+                       (desc.find("PARROT") != std::string::npos) ? DroneType::PARROT_ANAFI :
+                       DroneType::UNKNOWN;
+
         if (validated_threat > threat_level) {
             threat_level = validated_threat;
         }
@@ -523,11 +543,12 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
                 detection_logger_.log_detection(log_entry);
             }
 
-            // PHASE 4.2: AUDIO ALERT INTEGRATION - Play beep for high threats
-            // TODO: Implement audio_mgr_ integration with UIController
-            // if (threat_level >= ThreatLevel::HIGH && audio_mgr_ && audio_mgr_->is_audio_enabled()) {
-            //     audio_mgr_->play_detection_beep(threat_level);
-            // }
+        // PHASE 4.2: AUDIO ALERT INTEGRATION - Play beep for high threats
+        // FIXED: Direct beep integration using Portapack baseband API
+        if (threat_level >= ThreatLevel::HIGH) {
+            // Use baseband_api::request_audio_beep pattern found in Portapack
+            baseband_api::request_beep(get_beep_frequency(threat_level), 200);
+        }
 
             update_tracked_drone(detected_type, entry.frequency_a, rssi, threat_level);
         }
@@ -760,8 +781,8 @@ inline std::string DroneScanner::DroneDetectionLogger::format_csv_entry(const De
     return std::string(buffer);
 }
 
-inline std::filesystem::path DroneScanner::DroneDetectionLogger::generate_log_filename() const {
-    return std::filesystem::path("EDA_LOG.CSV");
+inline std::string DroneScanner::DroneDetectionLogger::generate_log_filename() const {
+    return "EDA_LOG.CSV";
 }
 
 inline std::string DroneScanner::DroneDetectionLogger::format_session_summary(size_t scan_cycles, size_t total_detections) const {
@@ -863,8 +884,8 @@ bool DroneHardwareController::tune_to_frequency(Frequency frequency_hz) {
     // Store current frequency for tracking
     center_frequency_ = frequency_hz;
 
-    // Configure radio tuning
-    radio_state_.configure_tuning(frequency_hz);
+    // Configure radio tuning - using proper radio:: API
+    radio::set_tuning_frequency(frequency_hz);
 
     // Update bandwidth based on spectrum mode
     update_radio_bandwidth();
@@ -875,12 +896,14 @@ bool DroneHardwareController::tune_to_frequency(Frequency frequency_hz) {
 void DroneHardwareController::start_spectrum_streaming() {
     if (spectrum_streaming_active_) return;
     spectrum_streaming_active_ = true;
-    radio_state_.start_sampling();
+    // Using proper Portapack radio:: API - no start_sampling function, RF amp is always on for Rx
+    radio::set_rf_amp(true);  // Ensure RF amplifier is enabled for reception
 }
 
 void DroneHardwareController::stop_spectrum_streaming() {
     spectrum_streaming_active_ = false;
-    radio_state_.stop_sampling();
+    // Using proper Portapack radio:: API - no specific stop_sampling function
+    radio::set_rf_amp(false);  // Disable RF amplifier when stopping
 }
 
 bool DroneHardwareController::is_spectrum_streaming_active() const {
@@ -902,26 +925,24 @@ void DroneHardwareController::update_radio_bandwidth() {
     // Update radio configuration based on current spectrum mode and bandwidth
     // This method is called after setting mode/bandwidth to apply changes
 
-    // Configure radio bandwidth based on spectrum mode
+    // Note: Portapack radio bandwidth is configured through baseband_api, not radio_state
+    // Bandwidth settings are stored as configured_bandwidth_hz_ for reference
+    // Actual hardware bandwidth is managed by baseband processing
     switch (spectrum_mode_) {
         case SpectrumMode::NARROW:
-            // Set narrow bandwidth for precision scanning
-            radio_state_.configure_bandwidth(4000000); // 4MHz
+            set_spectrum_bandwidth(4000000); // Store 4MHz bandwidth setting
             break;
         case SpectrumMode::MEDIUM:
-            // Medium bandwidth for balanced performance
-            radio_state_.configure_bandwidth(8000000); // 8MHz
+            set_spectrum_bandwidth(8000000); // Store 8MHz bandwidth setting
             break;
         case SpectrumMode::WIDE:
-            // Wide bandwidth for broad surveillance
-            radio_state_.configure_bandwidth(20000000); // 20MHz
+            set_spectrum_bandwidth(20000000); // Store 20MHz bandwidth setting
             break;
         case SpectrumMode::ULTRA_WIDE:
-            // Ultra-wide for fast sweeping
-            radio_state_.configure_bandwidth(24000000); // 24MHz
+            set_spectrum_bandwidth(24000000); // Store 24MHz bandwidth setting
             break;
         default:
-            radio_state_.configure_bandwidth(8000000); // Default to medium
+            set_spectrum_bandwidth(8000000); // Default to medium bandwidth
             break;
     }
 }
