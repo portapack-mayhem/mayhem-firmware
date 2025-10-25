@@ -43,9 +43,48 @@
 #include "audio.hpp"
 #include <ch.h>
 
+#pragma pack(push, 1)
+struct BMPHeader {
+    uint16_t signature;
+    uint32_t file_size;
+    uint32_t reserved;
+    uint32_t data_offset;
+    uint32_t header_size;
+    int32_t width;
+    int32_t height;
+    uint16_t planes;
+    uint16_t bits_per_pixel;
+    uint32_t compression;
+    uint32_t image_size;
+    int32_t x_pixels_per_meter;
+    int32_t y_pixels_per_meter;
+    uint32_t colors_used;
+    uint32_t important_colors;
+};
+#pragma pack(pop)
+
 using namespace sstv;
 
 namespace ui::external_app::sstv_rx {
+
+class SSTVLogger {
+public:
+    void append(const std::filesystem::path& filename) {
+        log_file.append(filename);
+    }
+    
+    void log(char type, uint8_t val = 0) {
+        char buf[4];
+        buf[0] = type;
+        buf[1] = val;
+        buf[2] = '\n';
+        buf[3] = 0;
+        log_file.write_entry(buf);
+    }
+
+private:
+    LogFile log_file{};
+};
 
 #define FMR_BTNGRID_TOP 60
 
@@ -60,6 +99,9 @@ class SstvRxView : public ui::View {
     void focus() override;
     void on_show() override;
 
+    // Message handlers
+    void on_message(const Message* const message);
+
    private:
     ui::NavigationView& nav_;
 
@@ -69,10 +111,10 @@ class SstvRxView : public ui::View {
     RxRadioState radio_state_{};
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
     uint8_t radio_bw = 0;
-    bool is_receiving = false;
     app_settings::SettingsManager settings_{
         "rx_sstv", app_settings::Mode::RX};
     const sstv_mode* rx_sstv_mode{};
+    std::unique_ptr<SSTVLogger> logger{};
 
     // UI Elements
     RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
@@ -92,12 +134,26 @@ class SstvRxView : public ui::View {
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
     ui::Button start_btn{{UI_POS_X_CENTER(12), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Start RX"};
     ui::Button stop_btn{{UI_POS_X_CENTER(12), UI_POS_Y(8), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};
+    ui::Button save_btn{{UI_POS_X_CENTER(12), UI_POS_Y(13), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Save Image"};
+
+    static constexpr size_t MAX_LINE_BUFFER_SIZE = 640 * 3;  // Max line size for highest resolution mode
+    std::array<uint8_t, MAX_LINE_BUFFER_SIZE> line_buffer{};  // Single line buffer
+    File temp_file{};  // Temporary file for storing image data
+    bool image_ready{false};
+    uint32_t current_line{0};
+    std::filesystem::path temp_path{};
 
     void on_audio_spectrum();
     void start_audio();
     void on_start();
     void on_stop();
     void on_mode_changed(const size_t index);
+    void save_image();
+    void init_temp_file();
+    void cleanup_temp_file();
+    
+    void handle_line(const SSTVLineMessage& message);
+    void handle_frame_sync();
 };
 
 }  // namespace ui::external_app::sstv_rx

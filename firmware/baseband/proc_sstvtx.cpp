@@ -78,7 +78,7 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
                 sample_count = pixel_duration;
                 pixel_index++;
 
-                if (pixel_index >= 320) {
+                if (pixel_index >= line_width) {
                     // Scanline done, (dirty) state jump
                     pixel_index = 0;
                     state = STATE_VIS;

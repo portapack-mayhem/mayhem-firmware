@@ -26,7 +26,7 @@
 
 namespace ui::external_app::sstv_rx {
 
-void initialize_app(NavigationView& nav) {
+void initialize_app(ui::NavigationView& nav) {
     nav.push<SstvRxView>();
 }
 
@@ -77,11 +77,11 @@ application_information_t _application_information_sstv_rx = {
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::green().v,
+    /*.icon_color = */ Color::green().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'W', 'F', 'M'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'S', 'R', 'X'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 
