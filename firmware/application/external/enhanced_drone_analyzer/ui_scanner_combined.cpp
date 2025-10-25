@@ -10,23 +10,19 @@
 #include <mutex>
 #include <cstdlib>
 
-// Settings file loading helper for scanner app
+// Settings file loading helper for scanner app - FIXED per Portapack File API
 bool load_settings_from_sd_card(DroneAnalyzerSettings& settings) {
-    static constexpr const char* SETTINGS_FILE_PATH = "/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";
+    static constexpr const char* SETTINGS_FILE_PATH = "/sdcard/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";  // ADD: /sdcard/ prefix
 
     File settings_file;
-    auto error = settings_file.open(SETTINGS_FILE_PATH);
-    if (error.is_error()) {
+    // FIXED: File::open takes path directly, no error check needed - returns bool
+    if (!settings_file.open(SETTINGS_FILE_PATH)) {
         return false;  // No file, keep defaults
     }
 
     char line_buffer[256];
-    while (true) {
-        auto read_result = settings_file.read_line(line_buffer, sizeof(line_buffer));
-        if (read_result.is_error() || read_result.value == 0) {
-            break;  // End of file
-        }
-
+    // FIXED: Read line by line using proper File API
+    while (settings_file.read_line(line_buffer, sizeof(line_buffer)).value > 0) {
         // Trim whitespace from line
         std::string line(line_buffer);
         auto it = std::find_if(line.begin(), line.end(), [](int ch) { return !std::isspace(ch); });
@@ -79,8 +75,7 @@ bool load_settings_from_sd_card(DroneAnalyzerSettings& settings) {
         // Ignore unknown keys
     }
 
-    settings_file.close();
-    return true;
+    return true;  // SUCCESS: Settings loaded from SD card
 }
 
 namespace ui::external_app::enhanced_drone_analyzer {
@@ -219,9 +214,9 @@ void DroneScanner::start_scanning() {
     scan_cycles_ = 0;
     total_detections_ = 0;
 
+    // FIXED: chThdCreateFromHeap call per ChibiOS API - remove thread name, adjust parameters
     scanning_thread_ = chThdCreateFromHeap(nullptr, SCAN_THREAD_STACK_SIZE,
-                                          "drone_scanner", NORMALPRIO,
-                                          scanning_thread_function, this);
+                                           NORMALPRIO, scanning_thread_function, this);
     if (!scanning_thread_) {
         scanning_active_ = false;
     }
@@ -248,7 +243,8 @@ msg_t DroneScanner::scanning_thread_function(void* arg) {
 }
 
 msg_t DroneScanner::scanning_thread() {
-    while (scanning_active_ && !chThdShouldTerminateX()) {
+    // FIXED: chThdShouldTerminateX() → chThdShouldTerminate() (no 'X' suffix)
+    while (scanning_active_ && !chThdShouldTerminate()) {
         chThdSleepMilliseconds(MIN_SCAN_INTERVAL_MS);
         scan_cycles_++;
     }
@@ -2529,7 +2525,8 @@ msg_t ScanningCoordinator::scanning_thread_function(void* arg) {
 }
 
 msg_t ScanningCoordinator::coordinated_scanning_thread() {
-    while (scanning_active_ && !chThdShouldTerminateX()) {
+    // FIXED: chThdShouldTerminateX() → chThdShouldTerminate() (no 'X' suffix)
+    while (scanning_active_ && !chThdShouldTerminate()) {
         if (scanner_.is_scanning_active()) {
             // Coordinate scanning cycle
             hardware_.update_spectrum_for_scanner();
