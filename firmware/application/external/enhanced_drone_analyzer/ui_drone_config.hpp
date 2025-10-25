@@ -9,6 +9,9 @@
 #include <set>
 #include <functional>                // For std::function in lambdas
 #include "radio_state.hpp"          // Required for rf::Frequency type
+#include "file_reader.hpp"          // For FileLineReader and split_string
+#include "string_format.hpp"        // For trim function
+#include "file.hpp"                 // For ensure_directory function
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
