@@ -19,6 +19,8 @@
 #include "external_app.hpp"
 #include "ui_scanner_combined.hpp"
 
+using namespace ui::external_app::enhanced_drone_analyzer;
+
 namespace ui::external_app::enhanced_drone_analyzer_scanner {
 void initialize_app(ui::NavigationView& nav) {
     nav.push<EnhancedDroneSpectrumAnalyzerView>();

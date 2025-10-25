@@ -8,6 +8,80 @@
 #include <algorithm>
 #include <sstream>
 #include <mutex>
+#include <cstdlib>
+
+// Settings file loading helper for scanner app
+bool load_settings_from_sd_card(DroneAnalyzerSettings& settings) {
+    static constexpr const char* SETTINGS_FILE_PATH = "/sdcard/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";
+
+    File settings_file;
+    auto open_result = settings_file.open(SETTINGS_FILE_PATH);
+    if (open_result.is_error()) {
+        return false;  // No file, keep defaults
+    }
+
+    char line_buffer[256];
+    while (true) {
+        auto read_result = settings_file.read_line(line_buffer, sizeof(line_buffer));
+        if (read_result.is_error() || read_result.value == 0) {
+            break;  // End of file
+        }
+
+        // Trim whitespace from line
+        std::string line(line_buffer);
+        auto it = std::find_if(line.begin(), line.end(), [](int ch) { return !std::isspace(ch); });
+        line.erase(line.begin(), it);
+        auto rit = std::find_if(line.rbegin(), line.rend(), [](int ch) { return !std::isspace(ch); });
+        line.erase(rit.base(), line.end());
+
+        size_t equals_pos = line.find('=');
+        if (equals_pos == std::string::npos) {
+            continue;  // Skip malformed lines
+        }
+
+        std::string key = line.substr(0, equals_pos);
+        std::string value = line.substr(equals_pos + 1);
+
+        // Trim key/value whitespace
+        key.erase(key.begin(), std::find_if(key.begin(), key.end(), [](int ch) { return !std::isspace(ch); }));
+        key.erase(std::find_if(key.rbegin(), key.rend(), [](int ch) { return !std::isspace(ch); }).base(), key.end());
+        value.erase(value.begin(), std::find_if(value.begin(), value.end(), [](int ch) { return !std::isspace(ch); }));
+        value.erase(std::find_if(value.rbegin(), value.rend(), [](int ch) { return !std::isspace(ch); }).base(), value.end());
+
+        // Parse settings
+        if (key == "spectrum_mode") {
+            if (value == "NARROW") settings.spectrum_mode = SpectrumMode::NARROW;
+            else if (value == "MEDIUM") settings.spectrum_mode = SpectrumMode::MEDIUM;
+            else if (value == "WIDE") settings.spectrum_mode = SpectrumMode::WIDE;
+            else if (value == "ULTRA_WIDE") settings.spectrum_mode = SpectrumMode::ULTRA_WIDE;
+            // Default remains MEDIUM
+        } else if (key == "scan_interval_ms") {
+            uint32_t val = strtoul(value.c_str(), nullptr, 10);
+            if (val >= 100 && val <= 30000) {
+                settings.scan_interval_ms = val;
+            }
+        } else if (key == "rssi_threshold_db") {
+            settings.rssi_threshold_db = strtol(value.c_str(), nullptr, 10);
+            // Validation done elsewhere
+        } else if (key == "enable_audio_alerts") {
+            settings.enable_audio_alerts = (value == "true");
+        } else if (key == "audio_alert_frequency_hz") {
+            settings.audio_alert_frequency_hz = strtoul(value.c_str(), nullptr, 10);
+        } else if (key == "audio_alert_duration_ms") {
+            settings.audio_alert_duration_ms = strtoul(value.c_str(), nullptr, 10);
+        } else if (key == "enable_real_hardware") {
+            settings.enable_real_hardware = (value == "true");
+        } else if (key == "demo_mode") {
+            settings.demo_mode = (value == "true");
+        } else if (key == "hardware_bandwidth_hz") {
+            settings.hardware_bandwidth_hz = strtoul(value.c_str(), nullptr, 10);
+        }
+        // Ignore unknown keys
+    }
+
+    settings_file.close();
+    return true;
+}
 
 namespace ui::external_app::enhanced_drone_analyzer {
 
@@ -1872,7 +1946,16 @@ EnhancedDroneSpectrumAnalyzerView::EnhancedDroneSpectrumAnalyzerView(NavigationV
       display_controller_(std::make_unique<DroneDisplayController>(nav)),
       scanning_coordinator_(std::make_unique<ScanningCoordinator>(nav, *hardware_, *scanner_, *display_controller_, *audio_))
 {
-    scanning_coordinator_->update_runtime_parameters(ui_controller_->settings());
+    // Load settings from SD card TXT file for scanner initialization
+    DroneAnalyzerSettings loaded_settings;
+    if (!load_settings_from_sd_card(loaded_settings)) {
+        // Fall back to controller defaults if load fails
+        loaded_settings = ui_controller_->settings();
+    } else {
+        // Apply loaded settings to controller
+        ui_controller_->settings() = loaded_settings;
+    }
+    scanning_coordinator_->update_runtime_parameters(loaded_settings);
 
     // PHASE 3: Initialize modern UI components
     initialize_modern_layout();

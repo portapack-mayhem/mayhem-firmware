@@ -205,61 +205,43 @@ All major architectural problems resolved. Modular architecture with separated c
 
 === COMPILATION ERROR FIX PLAN - DETAILED STEPS ===
 
-**PROBLEM:** Build error: fatal error: ui_drone_config.hpp: No such file or directory
+**PROBLEM:** Build error: Multiple compilation errors in ui_scanner_combined.hpp (includes, member initialization, namespace conflicts)
 
-**ROOT CAUSE:** Build cache contains outdated file version with unnecessary include statements
+**ROOT CAUSE:** Source code has missing includes, wrong return statements in getters, incomplete member initializations
 
-**DETAILED FIX STEPS:**
+**CURRENT FIXES APPLIED:**
 
-1. **CLEAN BUILD CACHE** (Critical - Must be done first)
+1. **Added Missing Includes** ✅ COMPLETED
+   - Added #include "../../gradient.hpp"
+   - Added #include <memory>
+   - Added #include "ui_drone_audio.hpp"
+   - Removed duplicate forward declarations
+
+2. **Namespace Fix in Main** ✅ COMPLETED
+   - Added using namespace ui::external_app::enhanced_drone_analyzer; in scanner_main.cpp
+
+3. **Getter Fixes** PENDING - Require return text_drone_*_; not text_drone*
+
+**DETAILED FIX STEPS - REMAINING:**
+
+4. **Fix getter return statements:**
+   - Change return text_drone_1; to return text_drone_1_; in DroneDisplayController getters
+   - Same for text_drone_2 and text_drone_3
+
+5. **Fix member initializations:**
+   - OptionsField initialization has wrong arguments (remove "Mode")
+   - BigFrequency initialization needs full Rect and frequency value
+
+6. **Rebuild from scratch:**
    ```bash
-   # Navigate to project build directory
-   cd /path/to/mayhem-firmware/build
+   # Clean build cache
+   rm -rf build/CMakeCache.txt CMakeFiles/ cmake_install.cmake
 
-   # Remove CMake cache files
-   rm -rf CMakeCache.txt CMakeFiles/ cmake_install.cmake
-
-   # Remove compiled objects (if applicable)
-   make clean
+   # Configure and build
+   cmake .. && make enhanced_drone_analyzer_scanner
    ```
 
-2. **VERIFY SOURCE FILES** (Current status: ✅ Verified clean)
-   - Confirmed no #include "ui_drone_config.hpp" in any current source files
-   - Consolidated headers are self-contained
-   - All necessary declarations moved into combined files
-
-3. **REBUILD FROM SCRATCH**
-   ```bash
-   # Configure CMake
-   cmake /path/to/mayhem-firmware -DCMAKE_BUILD_TYPE=Release
-
-   # Build project
-   make -j$(nproc)
-
-   # Optional: Build only EDA components
-   make enhanced_drone_analyzer_scanner
-   make enhanced_drone_analyzer_settings
-   ```
-
-4. **VALIDATION STEPS**
-   - Check that scanner/ and settings/ subdirectories don't exist in build/
-   - Verify both apps appear in Portapack external app menu
-   - Test TXT file creation in /sdcard/
-   - Confirm no compilation errors
-
-**ALTERNATIVE APPROACH** (Not recommended):
-If cache cleaning isn't possible, temporary stub file can be created:
-```cpp
-// ui_drone_config.hpp - TEMPORARY STUB FOR BUILD CACHE COMPATIBILITY
-#ifndef __UI_DRONE_CONFIG_HPP__
-#define __UI_DRONE_CONFIG_HPP__
-// EMPTY - All definitions moved to combined headers
-#endif
-```
-
-But this approach is **NOT RECOMMENDED** - cache cleaning is the proper solution.
-
-**EXPECTED OUTCOME:** Clean rebuild should compile successfully without errors, as current source files are self-contained and dependency-free.
+**EXPECTED OUTCOME:** After fixing remaining return statements and OptionsField, compilation should succeed with minimal remaining errors focused on missing method implementations in .cpp files.
 
 === LATEST CORRECTION STATUS UPDATE - 2025-10-25 ===
 

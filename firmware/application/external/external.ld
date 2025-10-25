@@ -477,4 +477,19 @@ SECTIONS
         *(*ui*external_app*adult_toys_controller*);
     } > ram_external_app_adult_toys_controller
 
+    /*
+     * Enhanced Drone Analyzer: Two separate applications
+     */
+    .external_app_enhanced_drone_analyzer_scanner : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_enhanced_drone_analyzer_scanner.application_information));
+        *(*ui*external_app*enhanced_drone_analyzer*scanner*);
+    } > ram_external_app_enhanced_drone_analyzer_scanner
+
+    .external_app_enhanced_drone_analyzer_settings : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_enhanced_drone_analyzer_settings.application_information));
+        *(*ui*external_app*enhanced_drone_analyzer*settings*);
+    } > ram_external_app_enhanced_drone_analyzer_settings
+
 }

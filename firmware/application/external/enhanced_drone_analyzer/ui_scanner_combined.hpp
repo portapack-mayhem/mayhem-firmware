@@ -14,11 +14,17 @@
 #include <vector>
 
 // Forward declarations for build fixes
+
+#include "../../gradient.hpp"
+
+#include <memory>
+
+#include "ui_drone_audio.hpp"
+
 class DroneHardwareController;
 class LogFile;
-class AudioManager;
+
 class ScanningCoordinator;
-class Gradient;
 
 using Frequency = uint64_t;
 
@@ -724,7 +730,7 @@ private:
     Button button_menu_{{screen_width - 60, screen_height - 32, 60, 32}, "⚙️"};
 
     std::vector<std::string> scanning_mode_options_ = {"Database Scan", "Wideband Monitor", "Hybrid Discovery"};
-    OptionsField field_scanning_mode_{{80, 190}, 20, scanning_mode_options_};
+    OptionsField field_scanning_mode_{{80, 190}, scanning_mode_options_, 0, "Scanning Mode"};
 
     void initialize_modern_layout();
     void update_modern_layout();
