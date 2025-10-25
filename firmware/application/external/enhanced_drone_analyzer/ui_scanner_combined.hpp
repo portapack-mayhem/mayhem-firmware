@@ -480,9 +480,6 @@ private:
     void initialize_spectrum_collector();
     void cleanup_spectrum_collector();
 
-    int32_t get_configured_sampling_rate() const;
-    int32_t get_configured_bandwidth() const;
-
     MessageHandlerRegistration message_handler_spectrum_config_;
     MessageHandlerRegistration message_handler_frame_sync_;
 
