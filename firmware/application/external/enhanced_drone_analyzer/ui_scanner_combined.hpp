@@ -733,12 +733,12 @@ private:
 
     OptionsField field_scanning_mode_{
     {80, 190},
+    15,  // Display length
     {
         {"Database Scan", 0},
         {"Wideband Monitor", 1},
         {"Hybrid Discovery", 2}
-    },
-    1 };
+    }};
 
     void initialize_modern_layout();
     void update_modern_layout();

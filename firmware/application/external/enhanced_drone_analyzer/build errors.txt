@@ -1,10 +1,10 @@
 firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj
 In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:733:92: error: could not convert '{{80, 190}, ((ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView*)this)->ui::external_app::enhanced_drone_analyzer::EnhancedDroneSpectrumAnalyzerView::scanning_mode_options_, 0, "Scanning Mode"}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
-  733 |     OptionsField field_scanning_mode_{{80, 190}, scanning_mode_options_, 0, "Scanning Mode"};
-      |                                                                                            ^
-      |                                                                                            |
-      |                                                                                            <brace-enclosed initializer list>
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:741:7: error: could not convert '{{80, 190}, {{"Database Scan", 0}, {"Wideband Monitor", 1}, {"Hybrid Discovery", 2}}, 1}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
+  741 |     1 };
+      |       ^
+      |       |
+      |       <brace-enclosed initializer list>
 cc1plus: warning: unrecognized command line option '-Wno-volatile'
 make[2]: *** [firmware/application/CMakeFiles/application.elf.dir/build.make:5369: firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj] Error 1
 make[1]: *** [CMakeFiles/Makefile2:1337: firmware/application/CMakeFiles/application.elf.dir/all] Error 2
