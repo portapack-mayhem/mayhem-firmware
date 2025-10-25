@@ -1181,7 +1181,7 @@ void ConsoleStatusBar::update_scanning_progress(uint32_t progress_percent, uint3
     char progress_bar[9] = "░░░░░░░░";
     uint8_t filled = (progress_percent * 8) / 100;
     for (uint8_t i = 0; i < filled; i++) {
-        progress_bar[i] = '█';
+        progress_bar[i] = '#';
     }
 
     char buffer[32];
@@ -1426,11 +1426,11 @@ void DroneDisplayController::render_drone_text_display() {
         char buffer[32];
         char trend_symbol;
         switch (drone.trend) {
-            case MovementTrend::APPROACHING: trend_symbol = '▲'; break;
-            case MovementTrend::RECEDING: trend_symbol = '▼'; break;
+            case MovementTrend::APPROACHING: trend_symbol = '^'; break;
+            case MovementTrend::RECEDING: trend_symbol = 'v'; break;
             case MovementTrend::STATIC:
             case MovementTrend::UNKNOWN:
-            default: trend_symbol = '■'; break;
+            default: trend_symbol = '*'; break;
         }
         std::string freq_str;
         if (drone.frequency >= 1000000000) {  // GHz

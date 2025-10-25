@@ -1,12 +1,1143 @@
-firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj
-In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp:20:
-/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:741:7: error: could not convert '{{80, 190}, {{"Database Scan", 0}, {"Wideband Monitor", 1}, {"Hybrid Discovery", 2}}, 1}' from '<brace-enclosed initializer list>' to 'ui::OptionsField'
-  741 |     1 };
-      |       ^
-      |       |
-      |       <brace-enclosed initializer list>
-cc1plus: warning: unrecognized command line option '-Wno-volatile'
-make[2]: *** [firmware/application/CMakeFiles/application.elf.dir/build.make:5369: firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj] Error 1
-make[1]: *** [CMakeFiles/Makefile2:1337: firmware/application/CMakeFiles/application.elf.dir/all] Error 2
-make: *** [Makefile:101: all] Error 2
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:1184:27: warning: multi-character character constant [-Wmultichar]
+ 1184 |         progress_bar[i] = '█';
+      |                           ^~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:1429:61: warning: multi-character character constant [-Wmultichar]
+ 1429 |             case MovementTrend::APPROACHING: trend_symbol = '▲'; break;
+      |                                                             ^~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:1430:58: warning: multi-character character constant [-Wmultichar]
+ 1430 |             case MovementTrend::RECEDING: trend_symbol = '▼'; break;
+      |                                                          ^~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:1433:37: warning: multi-character character constant [-Wmultichar]
+ 1433 |             default: trend_symbol = '■'; break;
+      |                                     ^~~~~
+In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:132:5: error: 'Color' does not name a type; did you mean 'tolower'?
+  132 |     Color display_color;
+      |     ^~~~~
+      |     tolower
+In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:455:5: error: 'MessageHandlerRegistration' does not name a type
+  455 |     MessageHandlerRegistration message_handler_spectrum_config_;
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:456:5: error: 'MessageHandlerRegistration' does not name a type
+  456 |     MessageHandlerRegistration message_handler_frame_sync_;
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:147:7: error: 'is_nothrow_default_constructible' was not declared in this scope; did you mean 'std::is_nothrow_default_constructible'?
+  147 |       _GLIBCXX_NOEXCEPT_IF(
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:951:12: note: 'std::is_nothrow_default_constructible' declared here
+  951 |     struct is_nothrow_default_constructible
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:147:7: error: expected primary-expression before '>' token
+  147 |       _GLIBCXX_NOEXCEPT_IF(
+      |       ^~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:147:7: error: '::value' has not been declared
+  147 |       _GLIBCXX_NOEXCEPT_IF(
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:161:11: error: 'is_nothrow_copy_constructible' was not declared in this scope; did you mean 'std::is_nothrow_copy_constructible'?
+  161 |  noexcept(is_nothrow_copy_constructible<_Key_compare>::value)
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |           std::is_nothrow_copy_constructible
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:993:12: note: 'std::is_nothrow_copy_constructible' declared here
+  993 |     struct is_nothrow_copy_constructible
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:161:53: error: expected primary-expression before '>' token
+  161 |  noexcept(is_nothrow_copy_constructible<_Key_compare>::value)
+      |                                                     ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:161:56: error: '::value' has not been declared
+  161 |  noexcept(is_nothrow_copy_constructible<_Key_compare>::value)
+      |                                                        ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:262:15: error: 'bidirectional_iterator_tag' does not name a type
+  262 |       typedef bidirectional_iterator_tag iterator_category;
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:334:15: error: 'bidirectional_iterator_tag' does not name a type
+  334 |       typedef bidirectional_iterator_tag iterator_category;
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:415:60: error: '__void_t' does not name a type; did you mean '__id_t'?
+  415 |   template<typename _Cmp, typename _SfinaeType, typename = __void_t<>>
+      |                                                            ^~~~~~~~
+      |                                                            __id_t
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:415:68: error: expected '>' before '<' token
+  415 |   template<typename _Cmp, typename _SfinaeType, typename = __void_t<>>
+      |                                                                    ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:421:5: error: '__void_t' was not declared in this scope; did you mean 'std::__void_t'?
+  421 |     __void_t<typename _Cmp::is_transparent>>
+      |     ^~~~~~~~
+      |     std::__void_t
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2408:31: note: 'std::__void_t' declared here
+ 2408 |   template<typename...> using __void_t = void;
+      |                               ^~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:421:29: error: template argument 3 is invalid
+  421 |     __void_t<typename _Cmp::is_transparent>>
+      |                             ^~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:421:43: error: expected unqualified-id before '>' token
+  421 |     __void_t<typename _Cmp::is_transparent>>
+      |                                           ^~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:426:56: error: template argument 3 is invalid
+  426 |       = typename __has_is_transparent<_Cmp, _SfinaeType>::type;
+      |                                                        ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:435:42: error: 'allocator' does not name a type
+  435 |     typename _Compare, typename _Alloc = allocator<_Val> >
+      |                                          ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:435:51: error: expected '>' before '<' token
+  435 |     typename _Compare, typename _Alloc = allocator<_Val> >
+      |                                                   ^
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:681:6: error: 'is_nothrow_default_constructible' was not declared in this scope; did you mean 'std::is_nothrow_default_constructible'?
+  681 |      _GLIBCXX_NOEXCEPT_IF(
+      |      ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:951:12: note: 'std::is_nothrow_default_constructible' declared here
+  951 |     struct is_nothrow_default_constructible
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:681:6: error: expected primary-expression before '>' token
+  681 |      _GLIBCXX_NOEXCEPT_IF(
+      |      ^~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:681:6: error: '::value' has not been declared
+  681 |      _GLIBCXX_NOEXCEPT_IF(
+      |      ^~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:681:6: error: 'is_nothrow_default_constructible' was not declared in this scope; did you mean 'std::is_nothrow_default_constructible'?
+  681 |      _GLIBCXX_NOEXCEPT_IF(
+      |      ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:951:12: note: 'std::is_nothrow_default_constructible' declared here
+  951 |     struct is_nothrow_default_constructible
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:681:6: error: expected primary-expression before '>' token
+  681 |      _GLIBCXX_NOEXCEPT_IF(
+      |      ^~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:681:6: error: '::value' has not been declared
+  681 |      _GLIBCXX_NOEXCEPT_IF(
+      |      ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:832:20: error: 'reverse_iterator' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a template type
+  832 |       typedef std::reverse_iterator<iterator>       reverse_iterator;
+      |                    ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:833:20: error: 'reverse_iterator' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a template type
+  833 |       typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+      |                    ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:836:25: error: '_Node_handle' does not name a type
+  836 |       using node_type = _Node_handle<_Key, _Val, _Node_allocator>;
+      |                         ^~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:837:34: error: '_Node_insert_return' does not name a type
+  837 |       using insert_return_type = _Node_insert_return<
+      |                                  ^~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:842:7: error: 'pair' does not name a type; did you mean 'pi'?
+  842 |       pair<_Base_ptr, _Base_ptr>
+      |       ^~~~
+      |       pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:845:7: error: 'pair' does not name a type; did you mean 'pi'?
+  845 |       pair<_Base_ptr, _Base_ptr>
+      |       ^~~~
+      |       pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:848:7: error: 'pair' does not name a type; did you mean 'pi'?
+  848 |       pair<_Base_ptr, _Base_ptr>
+      |       ^~~~
+      |       pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:852:7: error: 'pair' does not name a type; did you mean 'pi'?
+  852 |       pair<_Base_ptr, _Base_ptr>
+      |       ^~~~
+      |       pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:972:55: error: 'true_type' has not been declared
+  972 |       _Rb_tree(_Rb_tree&& __x, _Node_allocator&& __a, true_type)
+      |                                                       ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:973:16: error: 'is_nothrow_default_constructible' was not declared in this scope; did you mean 'std::is_nothrow_default_constructible'?
+  973 |       noexcept(is_nothrow_default_constructible<_Compare>::value)
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                std::is_nothrow_default_constructible
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:951:12: note: 'std::is_nothrow_default_constructible' declared here
+  951 |     struct is_nothrow_default_constructible
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:973:57: error: expected primary-expression before '>' token
+  973 |       noexcept(is_nothrow_default_constructible<_Compare>::value)
+      |                                                         ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:973:60: error: '::value' has not been declared
+  973 |       noexcept(is_nothrow_default_constructible<_Compare>::value)
+      |                                                            ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:977:55: error: 'false_type' has not been declared
+  977 |       _Rb_tree(_Rb_tree&& __x, _Node_allocator&& __a, false_type)
+      |                                                       ^~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:977:7: error: 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&, int)' cannot be overloaded with 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&, int)'
+  977 |       _Rb_tree(_Rb_tree&& __x, _Node_allocator&& __a, false_type)
+      |       ^~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:972:7: note: previous declaration 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&, int)'
+  972 |       _Rb_tree(_Rb_tree&& __x, _Node_allocator&& __a, true_type)
+      |       ^~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:16: error: 'declval' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::declval'?
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2160:10: note: 'std::declval' declared here
+ 2160 |     auto declval() noexcept -> decltype(__declval<_Tp>(0))
+      |          ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:44: error: 'declval' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::declval'?
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                            ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2160:10: note: 'std::declval' declared here
+ 2160 |     auto declval() noexcept -> decltype(__declval<_Tp>(0))
+      |          ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:988:9: error: 'declval' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::declval'?
+  988 |    std::declval<typename _Alloc_traits::is_always_equal>())) )
+      |         ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2160:10: note: 'std::declval' declared here
+ 2160 |     auto declval() noexcept -> decltype(__declval<_Tp>(0))
+      |          ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:10: error: expected primary-expression before '(' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |          ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:16: error: 'declval' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::declval'?
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2160:10: note: 'std::declval' declared here
+ 2160 |     auto declval() noexcept -> decltype(__declval<_Tp>(0))
+      |          ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:32: error: expected primary-expression before '&&' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                ^~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:34: error: expected primary-expression before '>' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                  ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:36: error: expected primary-expression before ')' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                    ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:44: error: 'declval' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::declval'?
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                            ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2160:10: note: 'std::declval' declared here
+ 2160 |     auto declval() noexcept -> decltype(__declval<_Tp>(0))
+      |          ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:67: error: expected primary-expression before '&&' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                                                   ^~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:69: error: expected primary-expression before '>' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                                                     ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:987:71: error: expected primary-expression before ')' token
+  987 |  _Rb_tree(std::declval<_Rb_tree&&>(), std::declval<_Node_allocator&&>(),
+      |                                                                       ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:988:9: error: 'declval' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::declval'?
+  988 |    std::declval<typename _Alloc_traits::is_always_equal>())) )
+      |         ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2160:10: note: 'std::declval' declared here
+ 2160 |     auto declval() noexcept -> decltype(__declval<_Tp>(0))
+      |          ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:988:56: error: expected '(' before '>' token
+  988 |    std::declval<typename _Alloc_traits::is_always_equal>())) )
+      |                                                        ^
+      |                                                        (
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:988:58: error: expected primary-expression before ')' token
+  988 |    std::declval<typename _Alloc_traits::is_always_equal>())) )
+      |                                                          ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1021:7: error: 'reverse_iterator' does not name a type; did you mean 'const_iterator'?
+ 1021 |       reverse_iterator
+      |       ^~~~~~~~~~~~~~~~
+      |       const_iterator
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1025:7: error: 'const_reverse_iterator' does not name a type; did you mean 'const_iterator'?
+ 1025 |       const_reverse_iterator
+      |       ^~~~~~~~~~~~~~~~~~~~~~
+      |       const_iterator
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1029:7: error: 'reverse_iterator' does not name a type; did you mean 'const_iterator'?
+ 1029 |       reverse_iterator
+      |       ^~~~~~~~~~~~~~~~
+      |       const_iterator
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1033:7: error: 'const_reverse_iterator' does not name a type; did you mean 'const_iterator'?
+ 1033 |       const_reverse_iterator
+      |       ^~~~~~~~~~~~~~~~~~~~~~
+      |       const_iterator
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1051:7: error: '__is_nothrow_swappable' was not declared in this scope; did you mean 'std::__is_nothrow_swappable'?
+ 1051 |       _GLIBCXX_NOEXCEPT_IF(__is_nothrow_swappable<_Compare>::value);
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2465:12: note: 'std::__is_nothrow_swappable' declared here
+ 2465 |     struct __is_nothrow_swappable;
+      |            ^~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/cstdint:38,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:12,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1051:7: error: expected primary-expression before '>' token
+ 1051 |       _GLIBCXX_NOEXCEPT_IF(__is_nothrow_swappable<_Compare>::value);
+      |       ^~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1051:7: error: '::value' has not been declared
+ 1051 |       _GLIBCXX_NOEXCEPT_IF(__is_nothrow_swappable<_Compare>::value);
+      |       ^~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1056:2: error: 'pair' does not name a type; did you mean 'pi'?
+ 1056 |  pair<iterator, bool>
+      |  ^~~~
+      |  pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1088:2: error: 'pair' does not name a type; did you mean 'pi'?
+ 1088 |  pair<iterator, bool>
+      |  ^~~~
+      |  pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1105:6: error: 'is_same' does not name a type
+ 1105 |    = is_same<value_type, typename iterator_traits<_Iter>::value_type>;
+      |      ^~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1108:2: error: '__enable_if_t' does not name a type; did you mean '__enable_irq'?
+ 1108 |  __enable_if_t<__same_value_type<_InputIterator>::value>
+      |  ^~~~~~~~~~~~~
+      |  __enable_irq
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1117:2: error: '__enable_if_t' does not name a type; did you mean '__enable_irq'?
+ 1117 |  __enable_if_t<!__same_value_type<_InputIterator>::value>
+      |  ^~~~~~~~~~~~~
+      |  __enable_irq
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1125:2: error: '__enable_if_t' does not name a type; did you mean '__enable_irq'?
+ 1125 |  __enable_if_t<__same_value_type<_InputIterator>::value>
+      |  ^~~~~~~~~~~~~
+      |  __enable_irq
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1134:2: error: '__enable_if_t' does not name a type; did you mean '__enable_irq'?
+ 1134 |  __enable_if_t<!__same_value_type<_InputIterator>::value>
+      |  ^~~~~~~~~~~~~
+      |  __enable_irq
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1296:7: error: 'pair' does not name a type; did you mean 'pi'?
+ 1296 |       pair<iterator, iterator>
+      |       ^~~~
+      |       pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1299:7: error: 'pair' does not name a type; did you mean 'pi'?
+ 1299 |       pair<const_iterator, const_iterator>
+      |       ^~~~
+      |       pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1304:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1304 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1304:47: error: expected '>' before '<' token
+ 1304 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1313:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1313 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1313:47: error: expected '>' before '<' token
+ 1313 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1324:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1324 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1324:47: error: expected '>' before '<' token
+ 1324 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1333:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1333 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1333:47: error: expected '>' before '<' token
+ 1333 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1342:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1342 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1342:47: error: expected '>' before '<' token
+ 1342 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1360:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1360 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1360:47: error: expected '>' before '<' token
+ 1360 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1369:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1369 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1369:47: error: expected '>' before '<' token
+ 1369 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1387:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1387 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1387:47: error: expected '>' before '<' token
+ 1387 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1388:2: error: 'pair' does not name a type; did you mean 'pi'?
+ 1388 |  pair<iterator, iterator>
+      |  ^~~~
+      |  pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1397:25: error: '__has_is_transparent_t' does not name a type; did you mean '__has_is_transparent'?
+ 1397 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                         ^~~~~~~~~~~~~~~~~~~~~~
+      |                         __has_is_transparent
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1397:47: error: expected '>' before '<' token
+ 1397 |         typename _Req = __has_is_transparent_t<_Compare, _Kt>>
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1398:2: error: 'pair' does not name a type; did you mean 'pi'?
+ 1398 |  pair<const_iterator, const_iterator>
+      |  ^~~~
+      |  pi
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1418:12: error: 'is_nothrow_move_assignable' was not declared in this scope; did you mean 'std::is_nothrow_move_assignable'?
+ 1418 |         && is_nothrow_move_assignable<_Compare>::value);
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+      |            std::is_nothrow_move_assignable
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:1101:12: note: 'std::is_nothrow_move_assignable' declared here
+ 1101 |     struct is_nothrow_move_assignable
+      |            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1418:47: error: expected primary-expression before '>' token
+ 1418 |         && is_nothrow_move_assignable<_Compare>::value);
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1418:50: error: '::value' has not been declared
+ 1418 |         && is_nothrow_move_assignable<_Compare>::value);
+      |                                                  ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1431:35: error: 'true_type' has not been declared
+ 1431 |       _M_move_data(_Rb_tree& __x, true_type)
+      |                                   ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1437:31: error: 'false_type' has not been declared
+ 1437 |       _M_move_data(_Rb_tree&, false_type);
+      |                               ^~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1437:7: error: 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_move_data(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&, int)' cannot be overloaded with 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_move_data(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&, int)'
+ 1437 |       _M_move_data(_Rb_tree&, false_type);
+      |       ^~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1431:7: note: previous declaration 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_move_data(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&, int)'
+ 1431 |       _M_move_data(_Rb_tree& __x, true_type)
+      |       ^~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1441:33: error: 'true_type' has not been declared
+ 1441 |       _M_move_assign(_Rb_tree&, true_type);
+      |                                 ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1446:33: error: 'false_type' has not been declared
+ 1446 |       _M_move_assign(_Rb_tree&, false_type);
+      |                                 ^~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1446:7: error: 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_move_assign(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&, int)' cannot be overloaded with 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_move_assign(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&, int)'
+ 1446 |       _M_move_assign(_Rb_tree&, false_type);
+      |       ^~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1441:7: note: previous declaration 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_move_assign(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&, int)'
+ 1441 |       _M_move_assign(_Rb_tree&, true_type);
+      |       ^~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1452:7: error: 'insert_return_type' does not name a type
+ 1452 |       insert_return_type
+      |       ^~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1482:30: error: 'node_type' has not been declared
+ 1482 |       _M_reinsert_node_equal(node_type&& __nh)
+      |                              ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1502:59: error: 'node_type' has not been declared
+ 1502 |       _M_reinsert_node_hint_unique(const_iterator __hint, node_type&& __nh)
+      |                                                           ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1524:58: error: 'node_type' has not been declared
+ 1524 |       _M_reinsert_node_hint_equal(const_iterator __hint, node_type&& __nh)
+      |                                                          ^~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1543:7: error: 'node_type' does not name a type; did you mean 'size_type'?
+ 1543 |       node_type
+      |       ^~~~~~~~~
+      |       size_type
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1553:7: error: 'node_type' does not name a type; did you mean 'size_type'?
+ 1553 |       node_type
+      |       ^~~~~~~~~
+      |       size_type
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree_node<_Val>* ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Reuse_or_alloc_node::operator()(_Arg&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:487:34: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+  487 |   _M_t._M_construct_node(__node, _GLIBCXX_FORWARD(_Arg, __arg));
+      |                                  ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:487:34: error: expected primary-expression before '>' token
+  487 |   _M_t._M_construct_node(__node, _GLIBCXX_FORWARD(_Arg, __arg));
+      |                                  ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:491:33: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+  491 |      return _M_t._M_create_node(_GLIBCXX_FORWARD(_Arg, __arg));
+      |                                 ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:491:33: error: expected primary-expression before '>' token
+  491 |      return _M_t._M_create_node(_GLIBCXX_FORWARD(_Arg, __arg));
+      |                                 ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree_node<_Val>* ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Alloc_node::operator()(_Arg&&) const':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:548:33: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+  548 |    { return _M_t._M_create_node(_GLIBCXX_FORWARD(_Arg, __arg)); }
+      |                                 ^~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:548:33: error: expected primary-expression before '>' token
+  548 |    { return _M_t._M_create_node(_GLIBCXX_FORWARD(_Arg, __arg)); }
+      |                                 ^~~~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'void ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_construct_node(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Link_type, _Args&& ...)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:616:17: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+  616 |            std::forward<_Args>(__args)...);
+      |                 ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:616:30: error: expected primary-expression before '>' token
+  616 |            std::forward<_Args>(__args)...);
+      |                              ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree_node<_Val>* ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_create_node(_Args&& ...)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:631:34: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+  631 |    _M_construct_node(__tmp, std::forward<_Args>(__args)...);
+      |                                  ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:631:47: error: expected primary-expression before '>' token
+  631 |    _M_construct_node(__tmp, std::forward<_Args>(__args)...);
+      |                                               ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree_impl<_Key_compare, <anonymous> >::_Rb_tree_impl(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:701:27: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  701 |    : _Node_allocator(std::move(__a))
+      |                           ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree_impl<_Key_compare, <anonymous> >::_Rb_tree_impl(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree_impl<_Key_compare, <anonymous> >&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:705:27: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  705 |    : _Node_allocator(std::move(__a)),
+      |                           ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:706:29: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  706 |      _Base_key_compare(std::move(__x)),
+      |                             ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:707:27: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  707 |      _Rb_tree_header(std::move(__x))
+      |                           ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree_impl<_Key_compare, <anonymous> >::_Rb_tree_impl(const _Key_compare&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:711:27: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  711 |    : _Node_allocator(std::move(__a)), _Base_key_compare(__comp)
+      |                           ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In static member function 'static const _Key& ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_S_key(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Const_Link_type)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:772:16: error: '__is_invocable' was not declared in this scope; did you mean 'std::__is_invocable'?
+  772 |  static_assert(__is_invocable<_Compare&, const _Key&, const _Key&>{},
+      |                ^~~~~~~~~~~~~~
+      |                std::__is_invocable
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2709:12: note: 'std::__is_invocable' declared here
+ 2709 |     struct __is_invocable
+      |            ^~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:772:39: error: expected primary-expression before '&' token
+  772 |  static_assert(__is_invocable<_Compare&, const _Key&, const _Key&>{},
+      |                                       ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:772:40: error: expected primary-expression before ',' token
+  772 |  static_assert(__is_invocable<_Compare&, const _Key&, const _Key&>{},
+      |                                        ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:772:42: error: expected string-literal before 'const'
+  772 |  static_assert(__is_invocable<_Compare&, const _Key&, const _Key&>{},
+      |                                          ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:772:41: error: expected ')' before 'const'
+  772 |  static_assert(__is_invocable<_Compare&, const _Key&, const _Key&>{},
+      |               ~                         ^~~~~~
+      |                                         )
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:778:39: error: expected primary-expression before '&' token
+  778 |  if constexpr (__is_invocable<_Compare&, const _Key&, const _Key&>{})
+      |                                       ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:778:40: error: expected primary-expression before ',' token
+  778 |  if constexpr (__is_invocable<_Compare&, const _Key&, const _Key&>{})
+      |                                        ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:778:42: error: expected primary-expression before 'const'
+  778 |  if constexpr (__is_invocable<_Compare&, const _Key&, const _Key&>{})
+      |                                          ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:778:41: error: expected ')' before 'const'
+  778 |  if constexpr (__is_invocable<_Compare&, const _Key&, const _Key&>{})
+      |               ~                         ^~~~~~
+      |                                         )
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:780:8: error: 'is_invocable_v' was not declared in this scope; did you mean 'std::is_invocable_v<_Fn, _Args ...>'?
+  780 |        is_invocable_v<const _Compare&, const _Key&, const _Key&>,
+      |        ^~~~~~~~~~~~~~
+      |        std::is_invocable_v<_Fn, _Args ...>
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:2824:27: note: 'std::is_invocable_v<_Fn, _Args ...>' declared here
+ 2824 |     inline constexpr bool is_invocable_v = is_invocable<_Fn, _Args...>::value;
+      |                           ^~~~~~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:780:23: error: expected primary-expression before 'const'
+  780 |        is_invocable_v<const _Compare&, const _Key&, const _Key&>,
+      |                       ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:780:23: error: expected ',' before 'const'
+  780 |        is_invocable_v<const _Compare&, const _Key&, const _Key&>,
+      |                       ^~~~~
+      |                       ,
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:780:23: error: expected string-literal before 'const'
+  780 |        is_invocable_v<const _Compare&, const _Key&, const _Key&>,
+      |                       ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:780:23: error: expected ')' before 'const'
+  780 |        is_invocable_v<const _Compare&, const _Key&, const _Key&>,
+      |                       ^~~~~
+      |                       )
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:779:17: note: to match this '('
+  779 |    static_assert(
+      |                 ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, const allocator_type&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:968:23: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  968 |       : _Rb_tree(std::move(__x), _Node_allocator(__a))
+      |                       ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&, int)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:974:22: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  974 |       : _M_impl(std::move(__x._M_impl), std::move(__a))
+      |                      ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:974:46: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  974 |       : _M_impl(std::move(__x._M_impl), std::move(__a))
+      |                                              ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&, int)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:978:50: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  978 |       : _M_impl(__x._M_impl._M_key_compare, std::move(__a))
+      |                                                  ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:981:22: error: 'false_type' was not declared in this scope; did you mean 'std::false_type'?
+  981 |    _M_move_data(__x, false_type{});
+      |                      ^~~~~~~~~~
+      |                      std::false_type
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:55,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/type_traits:78:45: note: 'std::false_type' declared here
+   78 |   typedef integral_constant<bool, false>    false_type;
+      |                                             ^~~~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In constructor 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Rb_tree(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>&&, ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_Node_allocator&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:989:23: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  989 |       : _Rb_tree(std::move(__x), std::move(__a),
+      |                       ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:989:39: error: 'move' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::move'?
+  989 |       : _Rb_tree(std::move(__x), std::move(__a),
+      |                                       ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/algorithm:71,
+                 from /havoc/firmware/common/utility.hpp:25,
+                 from /havoc/firmware/application/./freqman_db.hpp:30,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:266,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/pstl/glue_algorithm_defs.h:353:1: note: 'std::move' declared here
+  353 | move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first);
+      | ^~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::iterator ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_insert_unique_(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, _Arg&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1072:41: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+ 1072 |    return _M_insert_unique_(__pos, std::forward<_Arg>(__x), __an);
+      |                                         ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1072:53: error: expected primary-expression before '>' token
+ 1072 |    return _M_insert_unique_(__pos, std::forward<_Arg>(__x), __an);
+      |                                                     ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::iterator ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_insert_equal_(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, _Arg&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1084:40: error: 'forward' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::forward'?
+ 1084 |    return _M_insert_equal_(__pos, std::forward<_Arg>(__x), __an);
+      |                                        ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_pair.h:59,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:64,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/move.h:85:5: note: 'std::forward' declared here
+   85 |     forward(typename std::remove_reference<_Tp>::type&& __t) noexcept
+      |     ^~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1084:52: error: expected primary-expression before '>' token
+ 1084 |    return _M_insert_equal_(__pos, std::forward<_Arg>(__x), __an);
+      |                                                    ^
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::size_type ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_count_tr(const _Kt&) const':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1329:16: error: 'distance' is not a member of 'ui::external_app::enhanced_drone_analyzer::std'; did you mean 'std::distance'?
+ 1329 |    return std::distance(__p.first, __p.second);
+      |                ^~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h:66,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/char_traits.h:39,
+                 from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/string:40,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:13,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_iterator_base_funcs.h:138:5: note: 'std::distance' declared here
+  138 |     distance(_InputIterator __first, _InputIterator __last)
+      |     ^~~~~~~~
+In file included from /opt/build/armbin/arm-none-eabi/include/c++/9.2.1/map:60,
+                 from /havoc/firmware/application/./ui_navigation.hpp:29,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::iterator ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_reinsert_node_equal(int&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1485:11: error: request for member 'empty' in '__nh', which is of non-class type 'int'
+ 1485 |  if (__nh.empty())
+      |           ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1490:48: error: request for member '_M_key' in '__nh', which is of non-class type 'int'
+ 1490 |      auto __res = _M_get_insert_equal_pos(__nh._M_key());
+      |                                                ^~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1490:19: error: there are no arguments to '_M_get_insert_equal_pos' that depend on a template parameter, so a declaration of '_M_get_insert_equal_pos' must be available [-fpermissive]
+ 1490 |      auto __res = _M_get_insert_equal_pos(__nh._M_key());
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1490:19: note: (if you use '-fpermissive', G++ will accept your code, but allowing the use of an undeclared name is deprecated)
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1492:63: error: request for member '_M_ptr' in '__nh', which is of non-class type 'int'
+ 1492 |        __ret = _M_insert_node(__res.first, __res.second, __nh._M_ptr);
+      |                                                               ^~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1494:48: error: request for member '_M_ptr' in '__nh', which is of non-class type 'int'
+ 1494 |        __ret = _M_insert_equal_lower_node(__nh._M_ptr);
+      |                                                ^~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1495:11: error: request for member '_M_ptr' in '__nh', which is of non-class type 'int'
+ 1495 |      __nh._M_ptr = nullptr;
+      |           ^~~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h: In member function 'ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::iterator ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::_M_reinsert_node_hint_unique(ui::external_app::enhanced_drone_analyzer::std::_Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, int&&)':
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1505:11: error: request for member 'empty' in '__nh', which is of non-class type 'int'
+ 1505 |  if (__nh.empty())
+      |           ^~~~~
+/opt/build/armbin/arm-none-eabi/include/c++/9.2.1/bits/stl_tree.h:1510:62: error: request for member '_M_key' in '__nh', which is of non-class type 'int'
+ 1510 |      auto __res = _M_get_insert_hint_unique_pos(__hint, __nh._M_key());
+      |                                                              ^~~~~~
+/havoc/firmware/application/./ui_navigation.hpp:484:16: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  484 |     const std::string message_;
+      |                ^~~~~~
+/havoc/firmware/application/./ui_navigation.hpp:486:16: error: 'function' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a template type
+  486 |     const std::function<void(bool)> on_choice_;
+      |                ^~~~~~~~
+/havoc/firmware/application/./ui_navigation.hpp:491:9: error: invalid conversion from 'const char*' to 'int' [-fpermissive]
+  491 |         "OK",
+      |         ^~~~
+      |         |
+      |         const char*
+In file included from /havoc/firmware/application/./ui_navigation.hpp:35,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/common/ui_widget.hpp:430:21: note:   initializing argument 2 of 'ui::external_app::enhanced_drone_analyzer::ui::Button::Button(ui::Rect, int)'
+  430 |         std::string text)
+      |         ~~~~~~~~~~~~^~~~
+In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/application/./ui_navigation.hpp:496:9: error: invalid conversion from 'const char*' to 'int' [-fpermissive]
+  496 |         "YES",
+      |         ^~~~~
+      |         |
+      |         const char*
+In file included from /havoc/firmware/application/./ui_navigation.hpp:35,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/common/ui_widget.hpp:430:21: note:   initializing argument 2 of 'ui::external_app::enhanced_drone_analyzer::ui::Button::Button(ui::Rect, int)'
+  430 |         std::string text)
+      |         ~~~~~~~~~~~~^~~~
+In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/application/./ui_navigation.hpp:501:9: error: invalid conversion from 'const char*' to 'int' [-fpermissive]
+  501 |         "NO",
+      |         ^~~~
+      |         |
+      |         const char*
+In file included from /havoc/firmware/application/./ui_navigation.hpp:35,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:472,
+                 from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/common/ui_widget.hpp:430:21: note:   initializing argument 2 of 'ui::external_app::enhanced_drone_analyzer::ui::Button::Button(ui::Rect, int)'
+  430 |         std::string text)
+      |         ~~~~~~~~~~~~^~~~
+In file included from /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp:5:
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:477:39: error: expected class-name before '{' token
+  477 | class SmartThreatHeader : public View {
+      |                                       ^
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:494:5: error: 'ProgressBar' does not name a type
+  494 |     ProgressBar threat_progress_bar_ {{0, 0, screen_width, 16}};
+      |     ^~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:495:5: error: 'Text' does not name a type
+  495 |     Text threat_status_main_ {{0, 20, screen_width, 16}, "THREAT: LOW | ▲0 ■0 ▼0"};
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:496:5: error: 'Text' does not name a type
+  496 |     Text threat_frequency_ {{0, 38, screen_width, 16}, "2400.0MHz SCANNING"};
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:500:10: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  500 |     std::string get_threat_icon_text(ThreatLevel level) const;
+      |          ^~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:502:10: error: 'void ui::external_app::enhanced_drone_analyzer::SmartThreatHeader::paint(ui::Painter&)' marked 'override', but does not override
+  502 |     void paint(Painter& painter) override;
+      |          ^~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:512:32: error: expected class-name before '{' token
+  512 | class ThreatCard : public View {
+      |                                ^
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:519:10: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  519 |     std::string render_compact() const;
+      |          ^~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:528:5: error: 'Text' does not name a type
+  528 |     Text card_text_ {{0, 2, screen_width, 20}, ""};
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:537:10: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  537 |     std::string threat_name_ = "UNKNOWN";
+      |          ^~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:539:10: error: 'void ui::external_app::enhanced_drone_analyzer::ThreatCard::paint(ui::Painter&)' marked 'override', but does not override
+  539 |     void paint(Painter& painter) override;
+      |          ^~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:544:38: error: expected class-name before '{' token
+  544 | class ConsoleStatusBar : public View {
+      |                                      ^
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:550:82: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  550 |     void update_alert_status(ThreatLevel threat, size_t total_drones, const std::string& alert_msg);
+      |                                                                                  ^~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:551:42: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  551 |     void update_normal_status(const std::string& primary, const std::string& secondary);
+      |                                          ^~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:551:70: error: 'string' in namespace 'ui::external_app::enhanced_drone_analyzer::std' does not name a type
+  551 |     void update_normal_status(const std::string& primary, const std::string& secondary);
+      |                                                                      ^~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:561:5: error: 'Text' does not name a type
+  561 |     Text progress_text_  {{0, 1, screen_width, 16}, ""};
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:562:5: error: 'Text' does not name a type
+  562 |     Text alert_text_     {{0, 1, screen_width, 16}, ""};
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:563:5: error: 'Text' does not name a type
+  563 |     Text normal_text_    {{0, 1, screen_width, 16}, ""};
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:565:10: error: 'void ui::external_app::enhanced_drone_analyzer::ConsoleStatusBar::paint(ui::Painter&)' marked 'override', but does not override
+  565 |     void paint(Painter& painter) override;
+      |          ^~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:570:51: error: expected ')' before '&' token
+  570 |     explicit DroneDisplayController(NavigationView& nav);
+      |                                    ~              ^
+      |                                                   )
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:573:5: error: 'BigFrequency' does not name a type; did you mean 'Frequency'?
+  573 |     BigFrequency& big_display() { return big_display_; }
+      |     ^~~~~~~~~~~~
+      |     Frequency
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:574:5: error: 'ProgressBar' does not name a type
+  574 |     ProgressBar& scanning_progress() { return scanning_progress_; }
+      |     ^~~~~~~~~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:575:5: error: 'Text' does not name a type
+  575 |     Text& text_threat_summary() { return text_threat_summary_; }
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:576:5: error: 'Text' does not name a type
+  576 |     Text& text_status_info() { return text_status_info_; }
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:577:5: error: 'Text' does not name a type
+  577 |     Text& text_scanner_stats() { return text_scanner_stats_; }
+      |     ^~~~
+/havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.hpp:578:5: error: 'Text' does not name a type
+  578 |     Text& text_trends_compact() { return text_trends_compact_; }
 Error: Process completed with exit code 2.

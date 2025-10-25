@@ -1,4 +1,4 @@
-// ui_scanner_combined.hpp - Unified header for Enhanced Drone Analyzer Scanner App
+ // ui_scanner_combined.hpp - Unified header for Enhanced Drone Analyzer Scanner App
 // Combines: ui_drone_common_types.hpp, ui_drone_scanner.hpp, ui_drone_hardware.hpp, ui_drone_ui.hpp
 // Created during migration: Split monolithic app into focused Scanner application
 
@@ -6,14 +6,40 @@
 #define __UI_SCANNER_COMBINED_HPP__
 
 // ===========================================
+// CRITICAL COMPILATION FIXES - REQUIRED INCLUDES
+// ===========================================
+
+#include "ui.hpp"              // Required: Color class, basic UI framework
+#include "message.hpp"         // Required: MessageHandlerRegistration class
+#include "ui_widget.hpp"       // Required: ProgressBar, Text, BigFrequency widgets
+#include "ui_navigation.hpp"   // Required: NavigationView class
+#include "ui_freq_field.hpp"   // Required: BigFrequency specific functionality
+#include "radio_state.hpp"     // Required: Radio hardware state management
+#include "baseband_api.hpp"    // Required: Baseband functions for hardware
+
+// Standard library includes (compatible with ARM GCC C++14)
+#include <memory>              // std::unique_ptr, std::make_unique
+#include <vector>              // std::vector for dynamic arrays
+#include <string>              // std::string for text handling
+#include <cstdint>            // int32_t, uint32_t, etc.
+#include <algorithm>          // std::min, std::max, std::fill
+#include <array>              // std::array for fixed-size arrays
+
+// Project-specific includes
+#include "../../gradient.hpp"  // Spectrum gradient for waterfall display
+#include "ui_drone_audio.hpp"  // Audio management submodule
+
+// ===========================================
 // PART 1: COMMON TYPES (from ui_drone_common_types.hpp)
 // ===========================================
 
-#include <cstdint>
-#include <string>
-#include <vector>
+// Standard types now available
+#include <cstdint>            // Already included above
+#include <string>             // Already included above
+#include <vector>             // Already included above
 
 // Forward declarations for build fixes
+
 
 #include "../../gradient.hpp"
 
