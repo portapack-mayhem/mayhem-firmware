@@ -110,7 +110,6 @@ set(EXTCPPSRC
 	#wefax_rx
 	external/wefax_rx/main.cpp
 	external/wefax_rx/ui_wefax_rx.cpp
-<<<<<<< HEAD
 
 
 	#noaaapt_rx
@@ -118,14 +117,6 @@ set(EXTCPPSRC
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
 
-=======
-	
-	#noaaapt_rx
-	external/noaaapt_rx/main.cpp
-	external/noaaapt_rx/ui_noaaapt_rx.cpp
-		
-	
->>>>>>> upstream/master
 
 	#shoppingcart_lock
 	external/shoppingcart_lock/main.cpp
@@ -225,7 +216,6 @@ set(EXTCPPSRC
 
 	#gfxEQ
 	external/gfxeq/main.cpp
-<<<<<<< HEAD
 	external/gfxeq/ui_gfxeq.cpp
 
 	#detector_rx
@@ -235,17 +225,6 @@ set(EXTCPPSRC
 	#space_invaders
 	external/spaceinv/main.cpp
 	external/spaceinv/ui_spaceinv.cpp
-=======
-	external/gfxeq/ui_gfxeq.cpp	
-
-	#detector_rx
-	external/detector_rx/main.cpp
-	external/detector_rx/ui_detector_rx.cpp		
-
-	#space_invaders
-	external/spaceinv/main.cpp
-	external/spaceinv/ui_spaceinv.cpp		
->>>>>>> upstream/master
 
 	#blackjack
 	external/blackjack/main.cpp
@@ -253,7 +232,6 @@ set(EXTCPPSRC
 
 	#battleship
 	external/battleship/main.cpp
-<<<<<<< HEAD
 	external/battleship/ui_battleship.cpp
 
 	#ert
@@ -284,17 +262,6 @@ set(EXTCPPSRC
 	#adult_toys_controller
 	external/adult_toys_controller/main.cpp
 	external/adult_toys_controller/ui_adult_toys_controller.cpp
-
-	#enhanced_drone_analyzer_scanner
-	external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp
-	external/enhanced_drone_analyzer/ui_scanner_combined.cpp
-
-	#enhanced_drone_analyzer_settings
-	external/enhanced_drone_analyzer/enhanced_drone_analyzer_settings_main.cpp
-	external/enhanced_drone_analyzer/ui_settings_combined.cpp
-=======
-	external/battleship/ui_battleship.cpp		
->>>>>>> upstream/master
 )
 
 set(EXTAPPLIST
@@ -354,7 +321,6 @@ set(EXTAPPLIST
 	spaceinv
 	blackjack
 	battleship
-<<<<<<< HEAD
 	ert
 	epirb_rx
 	soundboard
@@ -362,8 +328,4 @@ set(EXTAPPLIST
 	bht_tx
 	morse_practice
 	adult_toys_controller
-	enhanced_drone_analyzer_scanner
-	enhanced_drone_analyzer_settings
-=======
->>>>>>> upstream/master
 )
