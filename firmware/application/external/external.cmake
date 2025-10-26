@@ -99,11 +99,10 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
-	#random 3488 bytes. without sha512 it uses 0 bytes
+	#random 3488 bytes.
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
 	external/random_password/sha512.cpp
-	external/random_password/sha512.h
 
 	#acars
 	#external/acars_rx/main.cpp
