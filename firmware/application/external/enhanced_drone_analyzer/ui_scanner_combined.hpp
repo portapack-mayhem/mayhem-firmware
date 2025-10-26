@@ -480,9 +480,9 @@ private:
     Frequency center_frequency_;
     uint32_t bandwidth_hz_;
     RxRadioState radio_state_;
-    ChannelSpectrumFIFO* fifo_ = nullptr;
-    bool spectrum_streaming_active_ = false;
-    int32_t last_valid_rssi_ = -120;
+    ChannelSpectrumFIFO* fifo_;
+    bool spectrum_streaming_active_;
+    int32_t last_valid_rssi_;
 };
 
 // ===========================================

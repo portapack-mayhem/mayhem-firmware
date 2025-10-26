@@ -6,7 +6,32 @@
 
 ---
 
-**ДЕТАЛЬНЫЙ ПЛАН ИСПРАВЛЕНИЙ ПО ПРАВИЛЬНЫМ БИБЛИОТЕКАМ**
+**ДЕТАЛЬНЫЙ ПЛАН ИСПРАВЛЕНИЙ ПО ПРАВИЛЬНЫМ Portapack API БИБЛИОТЕКАМ**
+
+## КЛЮЧЕВЫЕ БИБЛИОТЕКИ ЭТАЛОНЫ:
+### **`firmware/common/file.hpp`**: Работа с файлами и SD-картой (FatFS-based)
+- Пример: `auto file = File::open("/sdcard/settings.txt", File::READ);`
+- Вместо std::ifstream: `file.read_line(buffer, size)`, `file.write(data)`
+
+### **`firmware/application/portapack.hpp`**: Главная библиотека для PortaPack hardware
+- Примеры: `portapack::init()`, `portapack::display`, `portapack::receiver_model`
+- Использовать для: IO, display, radio control, I2C/SPI, USB, signal generator, antenna
+
+### **`firmware/common/ui.hpp, ui_widget.hpp, ui_painter.hpp`**: GUI widgets и рендеринг
+- Классы: Button, Text, Checkbox, OptionsField, BigFrequency
+- Рисование: `painter.fill_rectangle(Ui::Rect{left,top,width,height}, color)`
+- Стили: `widget.set_style(Theme::getInstance()->fg_red)` вместо Color
+
+### **`firmware/application/baseband_api.hpp`**: Baseband processor (signal processing, Rx/Tx)
+- Аудио: `baseband_api::request_beep(frequency_hz, duration_ms)`
+
+### **`firmware/common/radio.hpp`**: RF paths, transmitter/receiver control
+- Примеры: `radio::set_tuning_frequency(freq)`, `radio::set_rf_amp(bool)`, `radio::set_bandwidth(hz)`
+
+### **`firmware/application/freqman.hpp, freqman_db.hpp`**: Частоты и базы данных
+- FreqmanDB operations, включая SD card storage
+
+### **`firmware/common/database.hpp`**: Settings и frequencies storage
 
 ## МАСТЕР ПЛАН ПО ЭТАЛАМ
 
@@ -17,30 +42,96 @@
 - **Тестирование:** Settings ↔ Scanner communication файл готов
 
 ### **Этап 1: 🟡 В ПРОЦЕССЕ - Constructor Fixes (C++ member init)**
-- **Ошибки:** Multiple member initializations in DroneScanner (6 переменных)
-- **Фикс:** Member init list only, remove duplicates
-- **Цель:** Сократить ошибки с 253 → 247
+- **Ошибки:** Multiple member initializations in DroneScanner (is_real_mode_, approaching_count_, receding_count_, static_count_, max_detected_threat_, last_valid_rssi_)
+- **Фикс:** Убрать дублирование инициализации, использовать только member initializer list
+- **Пример исправления в ui_scanner_combined.cpp:**
+  ```
+  DroneScanner::DroneScanner()
+      : scanning_active_(false), scanning_thread_(nullptr), freq_db_(),
+        drone_database_(), detection_logger_(), is_real_mode_(true),
+        approaching_count_(0), receding_count_(0), static_count_(0),
+        max_detected_threat_(ThreatLevel::NONE), last_valid_rssi_(-120),
+        wideband_scan_data_(), current_db_index_(0), scan_cycles_(0),
+        total_detections_(0) {
+      // Конструктор body empty
+  }
+  ```
+- **Цель:** Сократить ошибки с 253 → 247 (6 member init fixes)
 
 ### **Этап 2: RADIO API INTEGRATION (firmware/common/radio.hpp)**
-- **Текущие ошибки:** radio_state:: calls → radio:: calls needed
+- **Текущие ошибки:** radio_state::* calls → radio::* calls, update_radio_bandwidth() undefined
+- **Файлы для исправления:** ui_scanner_combined.cpp (DroneHardwareController)
 - **Фиксы:**
-  - radio::set_tuning_frequency(frequency_hz)
-  - radio::set_rf_amp(true/false)
-  - radio::set_lna_gain() / radio::set_vga_gain()
+  - `radio_state::set_tuning_frequency()` → `radio::set_tuning_frequency(frequency_hz)`
+  - `radio_state::set_rf_amp()` → `radio::set_rf_amp(true/false)`
+  - `radio_state::set_lna_gain()` → `radio::set_lna_gain(gain_db)`
+  - `radio_state::set_vga_gain()` → `radio::set_vga_gain(gain_db)`
+  - Добавить `update_radio_bandwidth()` функцию в DroneHardwareController:
+    ```cpp
+    void DroneHardwareController::update_radio_bandwidth() {
+        radio::set_bandwidth(radio::bandwidth_minimum());  // или конкретное значение
+    }
+    ```
+  - Проверить: `#include "radio.hpp"`
+- **Результат:** RF hardware control работает через правильное radio:: API
 
-### **Этап 3: UI WIDGET API FIXES (ui.hpp, ui_widget.hpp, ui_painter.hpp)**
-- **Color API:** Style* вместо Color для widget.set_style()
-- **Painter API:** Rect{left,top,width,height} конструктор
-- **OptionsField:** set_by_value() вместо set_value()
-- **Цель:** Widget rendering работает правильно
+### **Этап 3: UI WIDGET API FIXES (firmware/common/ui.hpp, ui_widget.hpp, ui_painter.hpp)**
+- **Файлы:** ui_scanner_combined.cpp (SmartThreatHeader, ThreatCard, ConsoleStatusBar, etc.)
+- **Стиль виджетов:** `set_style(Color)` → `set_style(Theme::getInstance()->fg_red)` (единственный параметр Style*)
+  - Фиксы в ui_scanner_combined.cpp:
+    - `threat_progress_bar_.set_style(get_threat_bar_color())` → `threat_progress_bar_.set_style(Theme::getInstance()->fg_red)`
+    - `threat_status_main_.set_style(get_threat_text_color())` → аналогично используя Theme
+    - `alert_text_.set_style((threat >= ThreatLevel::CRITICAL) ? Theme::getInstance()->fg_red : Theme::getInstance()->fg_yellow())`
+- **Painter API:** Правильная Rect конструкция
+  - `painter.fill_rectangle({left, top, width, height}, color)` → `painter.fill_rectangle(Ui::Rect{left, top, width, height}, color)`
+  - `parent_rect_.left()` → `parent_rect.left()` (член класса, не вызов функции)
+- **OptionsField API:** `field_scanning_mode_.set_value(mode_idx)` → `field_scanning_mode_.set_by_value(mode_idx)`
+- **BigFrequency:** `big_display_.set("SCANNING...")` → `big_display_.set(frequency_value)` (только Frequency)
+- **Color access:** `ui::Color.r()` → `ui::Color.r` (property, не функция)
+- **Widget style normal:** `normal_text_.set_style(Theme::getInstance()->fg_light->foreground)`
+- **Результат:** Все UI widgets рендерятся правильно через proper Style API
 
 ### **Этап 4: BASEBAND API INTEGRATION (baseband_api.hpp)**
 - **Текущие ошибки:** baseband_api не используется для signal processing
 - **Фиксы:** baseband_api::request_beep(freq, duration_ms) для аудио
 
+### **Этап 4: BASEBAND & FREQMAN API INTEGRATION**
+- **Baseband API (firmware/application/baseband_api.hpp):**
+  - `baseband_api::request_beep(frequency_hz, duration_ms)` для замены `get_beep_frequency()` функции
+  - `#include "baseband_api.hpp"` в ui_drone_audio.hpp
+  - Реализовать `get_beep_frequency(ThreatLevel)` → возвращает frequency based on threat
+- **FreqmanDB API (freqman.hpp, freqman_db.hpp):**
+  - `freq_db_.is_open()` → `freq_db_.is_valid()` или `freq_db_.size() > 0`
+  - `freq_db_.get_entry(index)` → `freq_db_[index]` или `freq_db_.at(index)`
+  - `freq_db_.entry_count()` кажется корректным
+  - Правильный `freqman_entry` struct usage для `drone_type` поля
+- **File I/O remaining:** `file.read_line(line_buffer, sizeof(line_buffer)).value > 0` → `file.read_line(line_buffer)`
+- **Результат:** Bаза данных частот и audio работают через Portapack APIs
+
 ### **Этап 5: THREAD API FIXES (ChibiOS)**
-- **Текущие ошибки:** chThdCreateFromHeap wrong parameters
-- **Фиксы:** NORMALPRIO, MSG_OK, правильные параметры thread creation
+- **Текущие ошибки:** chThdCreateFromHeap wrong parameters, MSG_OK not declared
+- **Файлы:** ui_scanner_combined.cpp (ScanningCoordinator)
+- **Фиксы:**
+  - Правильные параметры thread создания:
+    ```cpp
+    scanning_thread_ = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, scanning_thread_function, this);
+    // Правильные: heap, stack_size, priority, function, arg
+    ```
+  - `chThdExit(MSG_OK);` - MSG_OK должен быть определен из ChibiOS
+  - Добавить includes: `#include "ch.h"`, `"chthd.h"`
+  - **Результат:** Thread creation работает корректно
+
+### **Этап 5A: ADVANCED ERROR FIXES**
+- **MessageHandlerRegistration constructors:**
+  - Убрать defaut constructor calls, использовать:
+  ```cpp
+  message_handler_{Message::ID::ChannelSpectrumConfigChange, [this](const Message* const p) { ... }}
+  ```
+- **TrackedDrone copy operators:**
+  - Убрать `= delete` или реализовать disabled copy operator usage (использовать std::move)
+- **Incomplete types:** Реализовать ScanningCoordinator или убрать forward declarations
+- **std::mutex:** Заменить на ChibiOS mutex или Portapack's thread safety mechanisms
+- **unique_ptr incomplete types:** Добавить полные определения для AudioManager, ScanningCoordinator
 
 ### **Этап 6: ENUM & TYPE DEFINITIONS**
 - **ThreatLevel::UNKNOWN** убрать (not needed per spec)

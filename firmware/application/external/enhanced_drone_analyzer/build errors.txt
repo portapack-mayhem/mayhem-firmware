@@ -1,4 +1,3 @@
-[ 97%] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/debug_pmem/ui_debug_pmem.cpp.obj
 [ 97%] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/enhanced_drone_analyzer_scanner_main.cpp.obj
 [ 97%] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/enhanced_drone_analyzer/ui_scanner_combined.cpp.obj
 /havoc/firmware/application/external/enhanced_drone_analyzer/ui_scanner_combined.cpp: In function 'bool load_settings_from_sd_card(DroneAnalyzerSettings&)':

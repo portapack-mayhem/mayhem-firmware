@@ -1,0 +1,16 @@
+CMake is re-running because C:/Users/Max/Desktop/M/mayhem-firmware/build/firmware/standalone/pacman/CMakeFiles/generate.stamp dependency file is missing.
+-- Cross-compiling with the gcc-arm-embedded toolchain
+-- Toolchain prefix: C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10/arm-none-eabi
+Building version: 65d83377 MD5: 0x8cfc57b9
+-- dfu-suffix not found: not building DFU file
+-- dfu-suffix not found: not building DFU file
+-- -------v ccache info--------
+-- Not using ccache, use `cmake -DUSE_CCACHE=ON ..` (pure cmake) or `cmake -G Ninja -DUSE_CCACHE=ON ..` (cmake with Ninja) to turn on ccache
+-- -------^ ccache info--------
+WARNING: Compiler version mismatch, please use the official compiler version 9.2.1 when sharing builds! Current compiler version: 10.3.1
+-- Configuring done (0.7s)
+-- Generating done (2.5s)
+-- Build files have been written to: C:/Users/Max/Desktop/M/mayhem-firmware/build
+Версия MSBuild 17.8.3+195e7f5a3 для .NET Framework
+MSBUILD : error MSB1009: файл проекта не существует.
+Ключ: external_app_enhanced_drone_analyzer.vcxproj

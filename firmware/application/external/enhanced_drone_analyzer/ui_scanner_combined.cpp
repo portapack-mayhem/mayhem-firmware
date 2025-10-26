@@ -11,21 +11,13 @@
 #include <cstdlib>
 
 // Settings file loading helper for scanner app - FIXED per Portapack File API
-// FIXED: Portapack File API - no read_line method, use read() with manual parsing
 bool load_settings_from_sd_card(DroneAnalyzerSettings& settings) {
-    static constexpr const char* SETTINGS_FILE_PATH = "/sdcard/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";  // ADD: /sdcard/ prefix
+    static constexpr const char* SETTINGS_FILE_PATH = "/sdcard/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";
 
-    File settings_file;
-    // FIXED: File::open returns Optional<Error>
-    auto open_result = settings_file.open(SETTINGS_FILE_PATH);
-    if (open_result.is_error()) {
-        return false;  // No file, keep defaults
-    }
-
-    // Read entire file contents and parse line by line
+    // Read entire file contents using Portapack File API
     auto read_result = File::read_file(SETTINGS_FILE_PATH);
     if (read_result.is_error()) {
-        return false;
+        return false;  // No file, keep defaults
     }
 
     std::string file_content = read_result.value();
@@ -395,7 +387,7 @@ void DroneScanner::wideband_detection_override(const freqman_entry& entry, int32
 
 void DroneScanner::process_wideband_detection_with_override(const freqman_entry& entry, int32_t rssi,
                                                            int32_t original_threshold, int32_t wideband_threshold) {
-    if (!SimpleDroneValidation::validate_rssi_signal(rssi, ThreatLevel::UNKNOWN) ||
+    if (!SimpleDroneValidation::validate_rssi_signal(rssi, ThreatLevel::NONE) ||
         !SimpleDroneValidation::validate_frequency_range(entry.frequency_a)) {
         return;
     }
@@ -406,7 +398,7 @@ void DroneScanner::process_wideband_detection_with_override(const freqman_entry&
     } else if (rssi > -80) {
         threat_level = ThreatLevel::LOW;
     } else {
-        threat_level = ThreatLevel::UNKNOWN;
+        threat_level = ThreatLevel::NONE;
     }
 
     if (entry.frequency_a >= 2'400'000'000 && entry.frequency_a <= 2'500'000'000) {
@@ -456,7 +448,7 @@ void DroneScanner::perform_hybrid_scan_cycle(DroneHardwareController& hardware) 
 }
 
 void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rssi) {
-    if (!SimpleDroneValidation::validate_rssi_signal(rssi, ThreatLevel::UNKNOWN)) {
+    if (!SimpleDroneValidation::validate_rssi_signal(rssi, ThreatLevel::NONE)) {
         return;
     }
 
@@ -464,7 +456,7 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
         return;
     }
 
-    if (!validate_detection_simple(rssi, ThreatLevel::UNKNOWN)) {
+    if (!validate_detection_simple(rssi, ThreatLevel::NONE)) {
         return;
     }
 
@@ -998,7 +990,7 @@ void SmartThreatHeader::update(ThreatLevel max_threat, size_t approaching, size_
 
     size_t total_drones = approaching + static_count + receding;
     threat_progress_bar_.set_value(total_drones * 10);
-    threat_progress_bar_.set_style(get_threat_bar_color(max_threat));
+    threat_progress_bar_.set_style(&get_threat_bar_style(max_threat));
 
     char buffer[64];
     std::string threat_name = get_threat_icon_text(max_threat);
@@ -1012,7 +1004,7 @@ void SmartThreatHeader::update(ThreatLevel max_threat, size_t approaching, size_
         snprintf(buffer, sizeof(buffer), "READY: No Threats Detected");
     }
     threat_status_main_.set(buffer);
-    threat_status_main_.set_style(get_threat_text_color(max_threat));
+    threat_status_main_.set_style(&get_threat_text_style(max_threat));
 
     if (current_freq > 0) {
         float freq_mhz = static_cast<float>(current_freq) / 1000000.0f;
@@ -2508,9 +2500,8 @@ void ScanningCoordinator::start_coordinated_scanning() {
 
     scanning_active_ = true;
 
-    scanning_thread_ = chThdCreateFromHeap(nullptr, SCANNING_THREAD_STACK_SIZE,
-                                          "scanning_coord", NORMALPRIO,
-                                          scanning_thread_function, this);
+    scanning_thread_ = chThdCreateFromHeap(NULL, SCANNING_THREAD_STACK_SIZE,
+                                           NORMALPRIO, scanning_thread_function, this);
     if (!scanning_thread_) {
         scanning_active_ = false;
     }
