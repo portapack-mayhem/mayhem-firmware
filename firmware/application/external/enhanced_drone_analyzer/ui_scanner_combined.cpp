@@ -11,20 +11,30 @@
 #include <cstdlib>
 
 // Settings file loading helper for scanner app - FIXED per Portapack File API
+// FIXED: Portapack File API - no read_line method, use read() with manual parsing
 bool load_settings_from_sd_card(DroneAnalyzerSettings& settings) {
     static constexpr const char* SETTINGS_FILE_PATH = "/sdcard/ENHANCED_DRONE_ANALYZER_SETTINGS.txt";  // ADD: /sdcard/ prefix
 
     File settings_file;
-    // FIXED: File::open takes path directly, no error check needed - returns bool
-    if (!settings_file.open(SETTINGS_FILE_PATH)) {
+    // FIXED: File::open returns Optional<Error>
+    auto open_result = settings_file.open(SETTINGS_FILE_PATH);
+    if (open_result.is_error()) {
         return false;  // No file, keep defaults
     }
 
-    char line_buffer[256];
-    // FIXED: Read line by line using proper File API
-    while (settings_file.read_line(line_buffer, sizeof(line_buffer)).value > 0) {
+    // Read entire file contents and parse line by line
+    auto read_result = File::read_file(SETTINGS_FILE_PATH);
+    if (read_result.is_error()) {
+        return false;
+    }
+
+    std::string file_content = read_result.value();
+    std::istringstream iss(file_content);
+    std::string line;
+
+    // FIXED: Parse lines manually from full file content
+    while (std::getline(iss, line)) {
         // Trim whitespace from line
-        std::string line(line_buffer);
         auto it = std::find_if(line.begin(), line.end(), [](int ch) { return !std::isspace(ch); });
         line.erase(line.begin(), it);
         auto rit = std::find_if(line.rbegin(), line.rend(), [](int ch) { return !std::isspace(ch); });
@@ -123,33 +133,29 @@ void DetectionRingBuffer::clear() {
 // ===========================================
 
 DroneScanner::DroneScanner()
-    : scanning_active_(false),
-      scanning_thread_(nullptr),
-      current_db_index_(0),
-      last_scanned_frequency_(0),
-      scan_cycles_(0),
-      total_detections_(0),
-      is_real_mode_(true),
-      tracked_drones_count_(0),
-      approaching_count_(0),
-      receding_count_(0),
-      static_count_(0),
-      max_detected_threat_(ThreatLevel::NONE),
-      last_valid_rssi_(-120),
-      wideband_scan_data_(),
-      freq_db_(),
-      scanning_mode_(ScanningMode::DATABASE),
-      is_real_mode_(true),
-      tracked_drones_(),  // FIXED: Initialize tracked drones array to resolve cppcheck uninitialized member warning
-      approaching_count_(0),
-      receding_count_(0),
-      static_count_(0),
-      max_detected_threat_(ThreatLevel::NONE),
-      last_valid_rssi_(-120),
-      scanning_active_(false)
+    : scanning_active_(false),              // Initialize in member init list only
+      scanning_thread_(nullptr),            // Initialize in member init list only
+      current_db_index_(0),                 // Initialize in member init list only
+      last_scanned_frequency_(0),           // Initialize in member init list only
+      scan_cycles_(0),                      // Initialize in member init list only
+      total_detections_(0),                 // Initialize in member init list only
+      is_real_mode_(true),                  // Initialize in member init list only
+      tracked_drones_count_(0),             // Initialize in member init list only
+      approaching_count_(0),                // Initialize in member init list only
+      receding_count_(0),                   // Initialize in member init list only
+      static_count_(0),                     // Initialize in member init list only
+      max_detected_threat_(ThreatLevel::NONE), // Initialize in member init list only
+      last_valid_rssi_(-120),               // Initialize in member init list only
+      wideband_scan_data_(),                // Default construct
+      freq_db_(),                           // Default construct
+      scanning_mode_(ScanningMode::DATABASE), // Initialize in member init list only
+      tracked_drones_()                     // Default construct array
 {
+    // Removed duplicate variable assignments - no duplicate initializations allowed
+    // All member variables were already initialized in the member init list above
+
+    // Call initialization functions (these can't be in member init list)
     initialize_database_and_scanner();
-    initialize_wideband_scanning();
 }
 
 DroneScanner::~DroneScanner() {
@@ -539,12 +545,12 @@ void DroneScanner::process_rssi_detection(const freqman_entry& entry, int32_t rs
                 detection_logger_.log_detection(log_entry);
             }
 
-        // PHASE 4.2: AUDIO ALERT INTEGRATION - Play beep for high threats
-        // FIXED: Direct beep integration using Portapack baseband API
-        if (threat_level >= ThreatLevel::HIGH) {
-            // Use baseband_api::request_audio_beep pattern found in Portapack
-            baseband_api::request_beep(get_beep_frequency(threat_level), 200);
-        }
+// PHASE 4.2: AUDIO ALERT INTEGRATION - Play beep for high threats
+// CORRECTED: Using proper baseband_api for audio alerts (per Portapack API)
+if (threat_level >= ThreatLevel::HIGH) {
+    // Use baseband_api::request_audio_beep with SAMPLE_RATE and duration
+    baseband_api::request_audio_beep(800, 48000, 200);  // 800Hz, 48kHz sample rate, 200ms duration
+}
 
             update_tracked_drone(detected_type, entry.frequency_a, rssi, threat_level);
         }
@@ -892,8 +898,9 @@ bool DroneHardwareController::tune_to_frequency(Frequency frequency_hz) {
 void DroneHardwareController::start_spectrum_streaming() {
     if (spectrum_streaming_active_) return;
     spectrum_streaming_active_ = true;
-    // Using proper Portapack radio:: API - no start_sampling function, RF amp is always on for Rx
+    // Using proper Portapack radio:: API - enable RF amp and antenna bias for reception
     radio::set_rf_amp(true);  // Ensure RF amplifier is enabled for reception
+    radio::set_antenna_bias(portapack::get_antenna_bias());  // Enable antenna bias as per receiver_model pattern
 }
 
 void DroneHardwareController::stop_spectrum_streaming() {

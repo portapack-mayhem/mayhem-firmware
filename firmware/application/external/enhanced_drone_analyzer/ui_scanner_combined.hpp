@@ -6,16 +6,22 @@
 #define __UI_SCANNER_COMBINED_HPP__
 
 // ===========================================
-// CRITICAL COMPILATION FIXES - REQUIRED INCLUDES
+// CRITICAL COMPILATION FIXES - REQUIRED INCLUDES (Portapack API Corrections)
 // ===========================================
 
 #include "ui.hpp"              // Required: Color class, basic UI framework
-#include "message.hpp"         // Required: MessageHandlerRegistration class
 #include "ui_widget.hpp"       // Required: ProgressBar, Text, BigFrequency widgets
 #include "ui_navigation.hpp"   // Required: NavigationView class
 #include "ui_freq_field.hpp"   // Required: BigFrequency specific functionality
+#include "ui_painter.hpp"      // Required: UI painter functions
+#include "message.hpp"         // Required: MessageHandlerRegistration class
 #include "radio_state.hpp"     // Required: Radio hardware state management
+#include "radio.hpp"           // Required: RF radio control (FIXED: added radio.hpp)
 #include "baseband_api.hpp"    // Required: Baseband functions for hardware
+#include "freqman_db.hpp"      // Required: Frequency database (FIXED: corrected path)
+#include "../../log_file.hpp"  // Required: Log file functionality (FIXED: corrected path)
+#include "../../gradient.hpp"  // Spectrum gradient for waterfall display
+#include <ch.h>                // ChibiOS threading (FIXED: added)
 
 // Standard library includes (compatible with ARM GCC C++14)
 #include <memory>              // std::unique_ptr, std::make_unique
@@ -24,28 +30,14 @@
 #include <cstdint>            // int32_t, uint32_t, etc.
 #include <algorithm>          // std::min, std::max, std::fill
 #include <array>              // std::array for fixed-size arrays
-
-// Project-specific includes
-#include "../../gradient.hpp"  // Spectrum gradient for waterfall display
-#include "ui_drone_audio.hpp"  // Audio management submodule
+#include <functional>         // std::function for callbacks (FIXED: added)
 
 // ===========================================
 // PART 1: COMMON TYPES (from ui_drone_common_types.hpp)
 // ===========================================
 
-// Standard types now available
-#include <cstdint>            // Already included above
-#include <string>             // Already included above
-#include <vector>             // Already included above
-
 // Forward declarations for build fixes
-
-
-#include "../../gradient.hpp"
-
-#include <memory>
-
-#include "ui_drone_audio.hpp"
+// Note: Audio functionality integrated via baseband_api.hpp in hardware section
 
 class DroneHardwareController;
 class LogFile;
@@ -390,6 +382,7 @@ private:
 
     void initialize_database_and_scanner();
     void cleanup_database_and_scanner();
+    void initialize_wideband_scanning();
     void scan_init_from_loaded_frequencies();
 
     void perform_database_scan_cycle(DroneHardwareController& hardware);
