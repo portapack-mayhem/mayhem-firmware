@@ -91,15 +91,15 @@ set(EXTCPPSRC
 	external/adsbtx/main.cpp
 	external/adsbtx/ui_adsb_tx.cpp
 
-	#morse_tx
+	#morse_tx 768 bytes
 	external/morse_tx/main.cpp
 	external/morse_tx/ui_morse.cpp
 
-	#sstvtx
+	#sstvtx 456 bytes
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
-	#random
+	#random 3488 bytes. without sha512 it uses 0 bytes
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
 	external/random_password/sha512.cpp
@@ -109,20 +109,19 @@ set(EXTCPPSRC
 	#external/acars_rx/main.cpp
 	#external/acars_rx/acars_app.cpp
 
-	#wefax_rx
+	#wefax_rx 192 bytes
 	external/wefax_rx/main.cpp
 	external/wefax_rx/ui_wefax_rx.cpp
 
 
-	#noaaapt_rx
+	#noaaapt_rx  72 bytes
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
-	#shoppingcart_lock
+	#shoppingcart_lock 272 bytes
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp
 
-#whole free: 3284 bytes
 
 	#ookbrute  80 byte
 	external/ookbrute/main.cpp
@@ -263,7 +262,7 @@ set(EXTCPPSRC
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
 
-	#adult_toys_controller
+	#adult_toys_controller  144 bytes 
 	external/adult_toys_controller/main.cpp
 	external/adult_toys_controller/ui_adult_toys_controller.cpp
 )
@@ -293,7 +292,7 @@ set(EXTAPPLIST
 	morse_tx
 	sstvtx
 	random_password
-	# acars_rx
+	# acars_rx --not working
 	wefax_rx
 	noaaapt_rx
 	shoppingcart_lock
