@@ -23,6 +23,7 @@
 #include "proc_sstvtx.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <cstdint>
 
@@ -149,6 +150,7 @@ void SSTVTXProcessor::on_message(const Message* const msg) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<SSTVTXProcessor>()};
     event_dispatcher.run();
     return 0;

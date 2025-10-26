@@ -137,6 +137,7 @@ class Message {
         FSKPacket = 80,
         EPIRBPacket = 81,
         SSTVRXConfigure = 82,
+        SSTVRXProgress = 83,
         MAX
     };
 
@@ -1150,6 +1151,20 @@ class SSTVRXConfigureMessage : public Message {
     }
 
     const uint8_t code;
+};
+
+class SSTVRXProgressMessage : public Message {
+    public:
+     constexpr SSTVRXProgressMessage(
+        const uint16_t line,
+        const uint16_t total_lines)
+     : Message{ID::SSTVRXProgress},
+        line(line),
+        total_lines(total_lines) {
+    }
+
+    const uint16_t line;
+    const uint16_t total_lines;
 };
 
 class FSKConfigureMessage : public Message {

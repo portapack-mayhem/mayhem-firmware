@@ -36,17 +36,60 @@ class SSTVRXProcessor : public BasebandProcessor {
 
     private:
      enum state_t {
-        STATE_CALIBRATION = 0,
-        STATE_VIS,
-        STATE_SYNC,
-        STATE_PIXELS
+        STATE_SYNC_SEARCH = 0,
+        STATE_VIS_DECODE,
+        STATE_IMAGE_DATA
      };
 
-     state_t state{};
-
+     static constexpr uint32_t MAX_SAMPLES_PER_LINE = 4096;
+     static constexpr uint16_t PIXELS_PER_LINE = 320;
+     
+     // Frequency ranges for SSTV (in Hz)
+     static constexpr int32_t FREQ_BLACK = 1500;
+     static constexpr int32_t FREQ_WHITE = 2300;
+     static constexpr int32_t FREQ_SYNC = 1200;
+     static constexpr int32_t FREQ_VIS_BIT0 = 1300;
+     static constexpr int32_t FREQ_VIS_BIT1 = 1100;
+     
+     state_t state{STATE_SYNC_SEARCH};
      bool configured{false};
-
-     int8_t re{}, im{};
+     uint8_t vis_code{0};
+     
+     // FM demodulation state
+     int32_t prev_i{0};
+     int32_t prev_q{0};
+     
+     // Frequency estimation (using zero-crossing method)
+     int32_t prev_sample{0};
+     uint32_t zero_cross_timer{0};
+     uint32_t zero_cross_count{0};
+     int32_t current_freq{0};  // Current estimated frequency in Hz
+     
+     // Line decoding state
+     uint8_t line_buffer_r[PIXELS_PER_LINE];
+     uint8_t line_buffer_g[PIXELS_PER_LINE];
+     uint8_t line_buffer_b[PIXELS_PER_LINE];
+     
+     uint32_t sample_count{0};
+     uint32_t pixel_index{0};
+     uint32_t channel_index{0};  // 0=G, 1=B, 2=R for Scottie
+     uint16_t current_line{0};
+     
+     // Timing parameters (will be set based on mode)
+     uint32_t samples_per_pixel{846};  // Scottie 2: 0.2752ms at 3.072MHz
+     uint32_t samples_per_sync{27648};  // 9ms
+     uint32_t samples_per_gap{4608};    // 1.5ms
+     
+     // Sync detection
+     uint32_t sync_sample_count{0};
+     bool in_sync{false};
+     
+     // Helper functions
+     int32_t freq_to_pixel(int32_t freq);
+     void process_pixel_sample(int32_t freq);
+     void process_line();
+     void detect_sync(int32_t freq);
+     void estimate_frequency(int32_t demod_sample);
 
      RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 

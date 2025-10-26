@@ -56,6 +56,9 @@ class SstvRxLogger {
         return log_file.append(filename);
      }
 
+     void log_error(const std::string& error_message);
+     void log_info(const std::string& info_message);
+
     private:
      LogFile log_file{};
 };
@@ -85,6 +88,22 @@ class SstvRxView : public ui::View {
     app_settings::SettingsManager settings_{
         "rx_sstv", app_settings::Mode::RX};
     const sstv_mode* rx_sstv_mode{};
+    
+    // Image data storage - only store current line to save memory
+    static constexpr uint16_t IMAGE_WIDTH = 320;
+    static constexpr uint16_t IMAGE_HEIGHT = 256;
+    static constexpr uint16_t PIXELS_PER_LINE = 320;
+    uint16_t current_line_rx{0};
+    std::unique_ptr<File> image_file{};
+    std::filesystem::path current_image_path{};
+
+    MessageHandlerRegistration message_handler_progress{
+        Message::ID::SSTVRXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const SSTVRXProgressMessage*>(p);
+            this->on_progress(message.line, message.total_lines);
+        }
+    };
 
     // UI Elements
     RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
@@ -104,14 +123,18 @@ class SstvRxView : public ui::View {
     };
     OptionsField field_bw{{4 * 8, 3 * 8}, 6, {}};
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
-    ui::Button start_btn{{UI_POS_X_CENTER(12), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Start RX"};
-    ui::Button stop_btn{{UI_POS_X_CENTER(12), UI_POS_Y(8), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};
+    ui::Button start_btn{{2 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Start RX"};
+    ui::Button stop_btn{{16 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};
 
     void on_audio_spectrum();
     void start_audio();
     void on_start();
     void on_stop();
     void on_mode_changed(const size_t index);
+    void on_progress(uint16_t line, uint16_t total_lines);
+    void write_bmp_header();
+    void finish_image();
+    void save_image();  // Deprecated
 };
 
 }  // namespace ui::external_app::sstvrx
