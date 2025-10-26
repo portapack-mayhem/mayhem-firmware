@@ -161,10 +161,17 @@ void SstvRxView::start_audio() {
     }
     is_receiving = true;
     
+    // Clear display area and reset line counter
+    portapack::display.fill_rectangle(
+        {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
+        {0, 0, 0}  // Black
+    );
+    line_num = 0;
+    
     // Initialize new image file
     current_line_rx = 0;
     auto timestamp = to_string_timestamp(rtc_time::now());
-    current_image_path = sstv_dir / ("SSTV_" + timestamp + ".bmp");
+    current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
     
     image_file = std::make_unique<File>();
     auto error = image_file->create(current_image_path);
@@ -211,6 +218,38 @@ void SstvRxView::on_mode_changed(const size_t index) {
     rx_sstv_mode = &sstv_modes[index];
 }
 
+void SstvRxView::update_display(uint16_t current_line, const uint8_t* data_ptr) {
+    if (current_line >= IMAGE_HEIGHT) return;
+    
+    // Reset line counter if we reach the bottom of display
+    if (line_num >= DISPLAY_HEIGHT) {
+        line_num = 0;
+    }
+    
+    // Scale line to display width
+    for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
+        // Scale x coordinate
+        uint16_t src_x = (x * IMAGE_WIDTH) / DISPLAY_WIDTH;
+        if (src_x >= IMAGE_WIDTH) continue;
+        
+        // Get RGB values and create color
+        uint8_t r = data_ptr[2 + src_x];
+        uint8_t g = data_ptr[2 + PIXELS_PER_LINE + src_x];
+        uint8_t b = data_ptr[2 + PIXELS_PER_LINE * 2 + src_x];
+        line_buffer[x] = {r, g, b};  // Color constructor handles conversion
+    }
+    
+    // Render the line at the current position
+    portapack::display.render_line(
+        {0, line_num + SSTV_IMG_START_ROW * 16},
+        DISPLAY_WIDTH,
+        line_buffer
+    );
+    
+    // Increment line counter
+    line_num++;
+}
+
 void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     // This is called from M4 when a new line is decoded
     current_line_rx = line;
@@ -236,6 +275,9 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         uint32_t line_offset = 54 + ((IMAGE_HEIGHT - 1 - line_num) * IMAGE_WIDTH * 3);
         image_file->seek(line_offset);
         image_file->write(row_data, IMAGE_WIDTH * 3);
+        
+        // Update live display
+        update_display(line_num, data_ptr);
     }
     
     if (logger && (line % 10 == 0)) {  // Log every 10 lines to reduce overhead

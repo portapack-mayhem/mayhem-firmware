@@ -93,9 +93,15 @@ class SstvRxView : public ui::View {
     static constexpr uint16_t IMAGE_WIDTH = 320;
     static constexpr uint16_t IMAGE_HEIGHT = 256;
     static constexpr uint16_t PIXELS_PER_LINE = 320;
+    static constexpr uint16_t DISPLAY_WIDTH = 240;  // Scaled display width
+    static constexpr uint16_t DISPLAY_HEIGHT = 192; // Scaled display height
+    static constexpr uint16_t SSTV_IMG_START_ROW = 7;  // Start drawing at row 7 (after controls)
+    
     uint16_t current_line_rx{0};
     std::unique_ptr<File> image_file{};
     std::filesystem::path current_image_path{};
+    ui::Color line_buffer[DISPLAY_WIDTH];
+    uint16_t line_num{0};
 
     MessageHandlerRegistration message_handler_progress{
         Message::ID::SSTVRXProgress,
@@ -127,6 +133,7 @@ class SstvRxView : public ui::View {
     ui::Button stop_btn{{16 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};
 
     void on_audio_spectrum();
+    void update_display(uint16_t line_num, const uint8_t* data_ptr);
     void start_audio();
     void on_start();
     void on_stop();
