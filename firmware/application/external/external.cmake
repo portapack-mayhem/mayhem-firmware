@@ -99,7 +99,7 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
-	#random 3488 bytes.
+	#random 464  bytes.
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
 	external/random_password/sha512.cpp
