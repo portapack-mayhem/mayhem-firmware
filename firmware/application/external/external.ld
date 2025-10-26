@@ -85,7 +85,7 @@ MEMORY
     ram_external_app_game2048     (rwx) : org = 0xADEC0000, len = 32k
     ram_external_app_bht_tx          (rwx) : org = 0xADED0000, len = 32k
     ram_external_app_morse_practice  (rwx) : org = 0xADEE0000, len = 32k
-
+    ram_external_app_adult_toys_controller  (rwx) : org = 0xADEF0000, len = 32k
 
 }
 
@@ -465,6 +465,11 @@ SECTIONS
         *(*ui*external_app*morse_practice*);
     } > ram_external_app_morse_practice
 
+    .external_app_adult_toys_controller : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_adult_toys_controller.application_information));
+        *(*ui*external_app*adult_toys_controller*);
+    } > ram_external_app_adult_toys_controller
 
 }
 

@@ -262,8 +262,10 @@ set(EXTCPPSRC
 	#morse_practice - 80 byte flash - bc of array initializers
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
-	
 
+	#adult_toys_controller
+	external/adult_toys_controller/main.cpp
+	external/adult_toys_controller/ui_adult_toys_controller.cpp
 )
 
 set(EXTAPPLIST
@@ -329,4 +331,5 @@ set(EXTAPPLIST
 	game2048
 	bht_tx
 	morse_practice
+	adult_toys_controller
 )
