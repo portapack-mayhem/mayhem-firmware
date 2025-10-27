@@ -32,6 +32,8 @@ class Encoder {
    private:
     uint_fast8_t state{0};
     int_fast8_t prev_direction{0};
+    uint8_t direction_stability_count{0};  // count consecutive same-direction changes
+    uint8_t direction_cooldown{0};         // prevent rapid direction reversals
 };
 
 #endif /*__ENCODER_H__*/
