@@ -681,27 +681,35 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
     add_children({&labels,
                   &field_encoder_dial_sensitivity,
                   &field_encoder_rate_multiplier,
-                  &field_encoder_dial_direction,
-                  &field_encoder_consecutive_hits,
-                  &field_encoder_cooldown_ms,
-                  &field_encoder_debounce_ms,
                   &button_save,
-                  &button_cancel});
+                  &button_cancel,
+                  &button_dial_sensitivity_plus,
+                  &button_dial_sensitivity_minus,
+                  &button_rate_multiplier_plus,
+                  &button_rate_multiplier_minus,
+                  &field_encoder_dial_direction});
 
     field_encoder_dial_sensitivity.set_by_value(pmem::encoder_dial_sensitivity());
     field_encoder_rate_multiplier.set_value(pmem::encoder_rate_multiplier());
     field_encoder_dial_direction.set_by_value(pmem::encoder_dial_direction());
-    field_encoder_consecutive_hits.set_value(pmem::encoder_consecutive_hits());
-    field_encoder_cooldown_ms.set_value(pmem::encoder_cooldown_ms());
-    field_encoder_debounce_ms.set_value(pmem::encoder_debounce_ms());
+
+    button_dial_sensitivity_plus.on_select = [this](Button&) {
+        field_encoder_dial_sensitivity.on_encoder(1);
+    };
+    button_dial_sensitivity_minus.on_select = [this](Button&) {
+        field_encoder_dial_sensitivity.on_encoder(-1);
+    };
+    button_rate_multiplier_plus.on_select = [this](Button&) {
+        field_encoder_rate_multiplier.on_encoder(1);
+    };
+    button_rate_multiplier_minus.on_select = [this](Button&) {
+        field_encoder_rate_multiplier.on_encoder(-1);
+    };
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
         pmem::set_encoder_rate_multiplier(field_encoder_rate_multiplier.value());
         pmem::set_encoder_dial_direction(field_encoder_dial_direction.selected_index_value());
-        pmem::set_encoder_consecutive_hits(field_encoder_consecutive_hits.value());
-        pmem::set_encoder_cooldown_ms(field_encoder_cooldown_ms.value());
-        pmem::set_encoder_debounce_ms(field_encoder_debounce_ms.value());
         nav.pop();
     };
 

@@ -259,13 +259,6 @@ void set_encoder_rate_multiplier(uint8_t v);
 bool encoder_dial_direction();
 void set_encoder_dial_direction(bool v);
 
-uint8_t encoder_consecutive_hits();
-void set_encoder_consecutive_hits(uint8_t v);
-uint8_t encoder_cooldown_ms();
-void set_encoder_cooldown_ms(uint8_t v);
-uint8_t encoder_debounce_ms();
-void set_encoder_debounce_ms(uint8_t v);
-
 uint32_t config_mode_storage_direct();
 void set_config_mode_storage_direct(uint32_t v);
 bool config_disable_config_mode_direct();

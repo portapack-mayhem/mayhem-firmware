@@ -78,7 +78,7 @@ class EncoderDebounce {
     uint8_t rotation_rate();  // returns last rotation rate
 
    private:
-    uint32_t history_{0};  // shift register of previous reads from encoder (16 samples @ 2 bits each)
+    uint8_t history_{0};  // shift register of previous reads from encoder
 
     uint8_t state_{0};  // actual encoder output state (after debounce logic)
 

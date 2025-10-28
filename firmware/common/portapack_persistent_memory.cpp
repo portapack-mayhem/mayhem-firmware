@@ -234,11 +234,6 @@ struct data_t {
 
     uint16_t UNUSED : 4;
 
-    // Encoder debounce parameters for noisy hardware
-    uint8_t encoder_consecutive_hits;  // Number of consecutive same-direction hits required (1-10)
-    uint8_t encoder_cooldown_ms;       // Cooldown period in ms after movement (0-255ms)
-    uint8_t encoder_debounce_ms;       // Debounce stability window in ms (4-32ms)
-
     // Headphone volume in centibels.
     int16_t headphone_volume_cb;
 
@@ -308,10 +303,6 @@ struct data_t {
           fake_brightness_level(BRIGHTNESS_50),
           encoder_rate_multiplier(1),
           UNUSED(0),
-
-          encoder_consecutive_hits(3),  // Default: 3 hits (Version 1 setting)
-          encoder_cooldown_ms(20),      // Default: 20ms (Version 1 setting)
-          encoder_debounce_ms(16),      // Default: 16ms stability window
 
           headphone_volume_cb(-600),
           misc_config(),
@@ -1128,38 +1119,6 @@ bool encoder_dial_direction() {
 }
 void set_encoder_dial_direction(bool v) {
     data->encoder_dial_direction = v;
-}
-
-// Encoder debounce parameters for noisy hardware
-uint8_t encoder_consecutive_hits() {
-    uint8_t v = data->encoder_consecutive_hits;
-    if (v == 0) v = 3;   // default to 3 if not set
-    if (v > 10) v = 10;  // cap at 10
-    return v;
-}
-void set_encoder_consecutive_hits(uint8_t v) {
-    if (v < 1) v = 1;    // minimum 1
-    if (v > 10) v = 10;  // maximum 10
-    data->encoder_consecutive_hits = v;
-}
-
-uint8_t encoder_cooldown_ms() {
-    return data->encoder_cooldown_ms;
-}
-void set_encoder_cooldown_ms(uint8_t v) {
-    data->encoder_cooldown_ms = v;
-}
-
-uint8_t encoder_debounce_ms() {
-    uint8_t v = data->encoder_debounce_ms;
-    if (v < 4) v = 16;   // default to 16ms if not set or too low
-    if (v > 32) v = 32;  // cap at 32ms
-    return v;
-}
-void set_encoder_debounce_ms(uint8_t v) {
-    if (v < 4) v = 4;    // minimum 4ms
-    if (v > 32) v = 32;  // maximum 32ms
-    data->encoder_debounce_ms = v;
 }
 
 // Recovery mode magic value storage

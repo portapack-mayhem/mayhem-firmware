@@ -163,28 +163,15 @@ uint8_t EncoderDebounce::rotation_rate() {
 
 // Returns TRUE if encoder position phase bits changed (after debouncing)
 bool EncoderDebounce::feed(const uint8_t phase_bits) {
-    // Shift in new 2-bit sample into 32-bit history (16 samples total)
     history_ = (history_ << 2) | phase_bits;
 
-    // For very noisy encoders: require BOTH bits stable for N consecutive ticks
-    // Get configurable debounce window (4-32ms)
-    uint8_t debounce_samples = portapack::persistent_memory::encoder_debounce_ms();
+    // If both inputs have been stable for the last 4 ticks, history_ should equal 0x00, 0x55, 0xAA, or 0xFF.
+    uint8_t expected_stable_history = phase_bits * 0b01010101;
 
-    // Build expected pattern: phase_bits repeated debounce_samples times
-    // For phase_bits=0b00: 0x00000000, 0b01: 0x55555555, 0b10: 0xAAAAAAAA, 0b11: 0xFFFFFFFF
-    uint32_t expected_stable_history = 0;
-    for (uint8_t i = 0; i < debounce_samples; i++) {
-        expected_stable_history = (expected_stable_history << 2) | phase_bits;
-    }
-
-    // Create mask for the number of samples we're checking
-    uint32_t mask = 0;
-    for (uint8_t i = 0; i < debounce_samples; i++) {
-        mask = (mask << 2) | 0x3;
-    }
-
-    // Require exact match - both bits must be stable for configured ms
-    if ((history_ & mask) == expected_stable_history) {
+    // But, checking for equal seems to cause issues with at least 1 user's encoder, so we're treating the input
+    // as "stable" if at least ONE input bit is consistent for 4 ticks...
+    uint8_t diff = (history_ ^ expected_stable_history);
+    if (((diff & 0b01010101) == 0) || ((diff & 0b10101010) == 0)) {
         // Has the debounced input value changed?
         if (state_ != phase_bits) {
             state_ = phase_bits;
