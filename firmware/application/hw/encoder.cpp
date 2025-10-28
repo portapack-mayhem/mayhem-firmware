@@ -62,41 +62,21 @@ int_fast8_t Encoder::update(const uint_fast8_t phase_bits) {
 
     int_fast8_t direction = transition_map[state];
 
-    // Decrement cooldown timer
-    if (direction_cooldown > 0) {
-        direction_cooldown--;
+    // Require 2 state changes in same direction to register movement -- for additional level of contact switch debouncing
+    if (direction == prev_direction) {
+        if ((sensitivity_map[portapack::persistent_memory::encoder_dial_sensitivity()] & (1 << state)) == 0)
+            return 0;
+
+        // false: normal, true: reverse
+        if (portapack::persistent_memory::encoder_dial_direction())
+            direction = -direction;
+
+        return direction;
     }
 
-    // Require N consecutive state changes in same direction (configurable for noisy encoders)
-    if (direction == prev_direction && direction != 0) {
-        direction_stability_count++;
-
-        // Need N consecutive same-direction changes AND cooldown expired
-        uint8_t required_hits = portapack::persistent_memory::encoder_consecutive_hits();
-        if (direction_stability_count >= required_hits && direction_cooldown == 0) {
-            if ((sensitivity_map[portapack::persistent_memory::encoder_dial_sensitivity()] & (1 << state)) == 0)
-                return 0;
-
-            // Successfully registered movement - reset stability and set cooldown
-            direction_stability_count = 0;
-            direction_cooldown = portapack::persistent_memory::encoder_cooldown_ms();
-
-            // false: normal, true: reverse
-            if (portapack::persistent_memory::encoder_dial_direction())
-                direction = -direction;
-
-            return direction;
-        }
-    } else if (direction != 0 && direction != prev_direction) {
-        // Direction changed - only accept if cooldown expired (prevents bounce-induced reversals)
-        if (direction_cooldown == 0) {
-            prev_direction = direction;
-            direction_stability_count = 1;  // Start counting this new direction
-        } else {
-            // During cooldown, completely ignore opposite direction - reset stability count
-            direction_stability_count = 0;
-        }
-    }
+    // It's normal for transition map to return 0 between every +1/-1, so discarding those
+    if (direction != 0)
+        prev_direction = direction;
 
     return 0;
 }
