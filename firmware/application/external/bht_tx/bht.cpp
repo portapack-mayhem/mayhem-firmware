@@ -21,7 +21,6 @@
  */
 
 #include "bht.hpp"
-#include "portapack_persistent_memory.hpp"
 
 namespace ui::external_app::bht_tx {
 

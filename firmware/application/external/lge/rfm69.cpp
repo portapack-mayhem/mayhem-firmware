@@ -24,6 +24,8 @@
 #include "crc.hpp"
 #include "portapack_shared_memory.hpp"
 
+namespace ui::external_app::lge {
+
 uint32_t RFM69::gen_frame(std::vector<uint8_t>& payload) {
     CRC<16> crc{0x1021, 0x1D0F, 0xFFFF};
     std::vector<uint8_t> frame{};
@@ -74,3 +76,5 @@ uint32_t RFM69::gen_frame(std::vector<uint8_t>& payload) {
     // Copy for baseband
     return frame.size();
 }
+
+} /* namespace ui::external_app::lge */

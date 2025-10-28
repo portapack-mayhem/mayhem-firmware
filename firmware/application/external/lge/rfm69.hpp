@@ -28,6 +28,8 @@
 
 #include "utility.hpp"
 
+namespace ui::external_app::lge {
+
 class RFM69 {
    public:
     RFM69(const uint8_t num_preamble, const uint16_t sync_word, const bool CRC, const bool manchester)
@@ -53,5 +55,7 @@ class RFM69 {
     bool CRC_{true};
     bool manchester_{false};
 };
+
+} /* namespace ui::external_app::lge */
 
 #endif /*__RFM69_H__*/

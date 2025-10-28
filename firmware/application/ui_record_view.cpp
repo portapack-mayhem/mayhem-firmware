@@ -175,7 +175,7 @@ void RecordView::start() {
 
     text_record_filename.set("");
     text_record_dropped.set("");
-    trim_path = {};
+    trim_path = "";
 
     if (sampling_rate == 0) {
         return;
@@ -348,7 +348,7 @@ void RecordView::trim_capture() {
         trim_ui.clear();
     }
 
-    trim_path = {};
+    trim_path = "";
 }
 
 void RecordView::on_gps(const GPSPosDataMessage* msg) {

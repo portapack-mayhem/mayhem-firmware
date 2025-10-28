@@ -79,7 +79,7 @@ class FlipperTxView : public View {
     void on_tx_progress(const bool done);
     bool on_file_changed(std::filesystem::path new_file_path);
 
-    std::filesystem::path filename = {};
+    std::filesystem::path filename = "";
     FlipperProto proto = FLIPPER_PROTO_UNSUPPORTED;
     FlipperPreset preset = FLIPPER_PRESET_UNK;
     uint16_t te = 0;  // for binraw

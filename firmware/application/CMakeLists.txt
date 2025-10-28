@@ -192,7 +192,6 @@ set(CPPSRC
 	core_control.cpp
 	database.cpp
 	gradient.cpp
-	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
 	file.cpp
@@ -261,7 +260,6 @@ set(CPPSRC
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
 	ui/ui_freqlist.cpp
-	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp

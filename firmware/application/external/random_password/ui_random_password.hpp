@@ -92,6 +92,10 @@ class RandomPasswordView : public View {
     std::string generate_log_line();
     void paint_password_hints();
 
+    bool islower(char c);
+    bool isupper(char c);
+    bool isdigit(char c);
+
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{

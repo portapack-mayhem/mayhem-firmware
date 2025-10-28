@@ -33,7 +33,7 @@
 #include <cstdint>
 #include <cstddef>
 
-namespace ui {
+namespace ui::external_app::analogtv {
 namespace tv {
 
 class TimeScopeView : public View {
@@ -167,6 +167,6 @@ class TVWidget : public View {
 };
 
 } /* namespace tv */
-} /* namespace ui */
+}  // namespace ui::external_app::analogtv
 
 #endif /*__UI_TV_H__*/
