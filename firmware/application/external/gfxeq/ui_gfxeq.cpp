@@ -24,24 +24,6 @@ namespace ui::external_app::gfxeq {
 
 gfxEQView::gfxEQView(NavigationView& nav)
     : nav_{nav} {
-    // Get screen dimensions
-    const auto screen_width = portapack::display.width();
-    const auto screen_height = portapack::display.height();
-
-    // Standard layout approach similar to other apps
-    const int16_t controls_y = 4;
-
-    // Position controls with standard spacing
-    button_frequency.set_parent_rect({0, controls_y, 11 * 8, 16});
-    field_rf_amp.set_parent_rect({12 * 8, controls_y, 2 * 8, 16});
-    field_lna.set_parent_rect({14 * 8, controls_y, 2 * 8, 16});
-    field_vga.set_parent_rect({17 * 8, controls_y, 3 * 8, 16});
-    button_mood.set_parent_rect({21 * 8, controls_y, 4 * 8, 16});
-    field_volume.set_parent_rect({screen_width - 2 * 8, controls_y, 2 * 8, 16});
-
-    // Graph positioned 2 pixels to the right
-    gr.set_parent_rect({2, controls_y + 20, screen_width, screen_height - controls_y - 24});
-
     add_children({&button_frequency, &field_rf_amp, &field_lna, &field_vga,
                   &button_mood, &field_volume, &gr});
 
