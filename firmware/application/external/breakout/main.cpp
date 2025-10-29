@@ -65,6 +65,6 @@ __attribute__((section(".external_app.app_breakout.application_information"), us
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = */ {'P', 'A', 'B', 'P'},  // This is the audio beep baseband tag!
-    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+    /*.m4_app_offset = */ 0x00000000,         // will be filled at compile time
 };
 }

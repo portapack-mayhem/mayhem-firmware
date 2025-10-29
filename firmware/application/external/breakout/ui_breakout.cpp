@@ -98,11 +98,11 @@ void BreakoutView::init_game() {
     game_state = STATE_MENU;
     menu_blink_state = true;
     menu_blink_counter = 0;
-    
-    // Play startup sound 
+
+    // Play startup sound
     if (sound_enabled) {
-        baseband::request_audio_beep(262, 24000, 150);  // C4 - 
-        chThdSleepMilliseconds(200);  
+        baseband::request_audio_beep(262, 24000, 150);  // C4 -
+        chThdSleepMilliseconds(200);
         baseband::request_audio_beep(262, 24000, 150);  // C4
         chThdSleepMilliseconds(200);
         baseband::request_audio_beep(392, 24000, 150);  // G4
@@ -113,7 +113,7 @@ void BreakoutView::init_game() {
         chThdSleepMilliseconds(200);
         baseband::request_audio_beep(440, 24000, 150);  // A4
         chThdSleepMilliseconds(200);
-        baseband::request_audio_beep(392, 24000, 300);  // G4 
+        baseband::request_audio_beep(392, 24000, 300);  // G4
         chThdSleepMilliseconds(350);
         baseband::request_audio_beep(349, 24000, 150);  // F4
         chThdSleepMilliseconds(200);
@@ -166,23 +166,23 @@ void BreakoutView::draw_screen() {
 void BreakoutView::draw_menu_volume_bar() {
     // Clear the entire volume area first to handle bar shrinking
     painter.fill_rectangle({40, 259, 220, 40}, Color::black());
-    
+
     // Draw volume label
     auto style = *ui::Theme::getInstance()->fg_light;
     painter.draw_string({40, 260}, style, "Volume:");
-    
+
     // Draw volume bar background
     painter.draw_rectangle({100, 259, 102, 10}, Color::grey());
-    
+
     // Draw volume level
     int bar_width = (volume_level * 100) / 99;
     if (bar_width > 0) {
         painter.fill_rectangle({101, 260, bar_width, 8}, Color::green());
     }
-    
+
     // Draw percentage
     painter.draw_string({210, 260}, style, std::to_string(volume_level) + "%");
-    
+
     // Draw sound status
     if (sound_enabled) {
         painter.draw_string({UI_POS_X_CENTER(11), 280}, *ui::Theme::getInstance()->fg_green, "Sound: ON");
@@ -235,12 +235,12 @@ void BreakoutView::adjust_volume(int delta) {
     volume_level += delta;
     if (volume_level < 0) volume_level = 0;
     if (volume_level > 99) volume_level = 99;
-    
+
     // Update the actual audio volume using decibel conversion
     // Map 0-99 to roughly -60dB to 0dB range
     int db = (volume_level - 99) * 60 / 99;  // Maps 0->-60dB, 99->0dB
     audio::headphone::set_volume(volume_t::decibel(db));
-    
+
     // If we're in the menu, redraw the volume bar
     if (game_state == STATE_MENU) {
         draw_menu_volume_bar();
@@ -346,7 +346,7 @@ void BreakoutView::update_game() {
         if (ball_x + BALL_SIZE >= paddle_x && ball_x <= paddle_x + PADDLE_WIDTH) {
             ball_y = PADDLE_Y - BALL_SIZE;
             ball_dy = -ball_dy;
-            
+
             play_paddle_hit();
 
             // Add some angle based on hit position
@@ -387,7 +387,7 @@ bool BreakoutView::check_brick_collision(int row, int col) {
 
         score += (5 - row) * 10;
         draw_score();
-        
+
         play_brick_hit();
 
         ball_dy = -ball_dy;
@@ -431,10 +431,10 @@ void BreakoutView::show_menu() {
         painter.draw_string({UI_POS_X_CENTER(20), 130}, style_cyan, "ROTARY: MOVE PADDLE");
         painter.draw_string({UI_POS_X_CENTER(21), 160}, style_cyan, "SELECT: START/LAUNCH");
         painter.draw_string({UI_POS_X_CENTER(25), 190}, style_blue, "========================");
-        
+
         // Volume adjustment instructions
         painter.draw_string({UI_POS_X_CENTER(24), 220}, style_cyan, "Press UP/DOWN for Volume");
-        
+
         // Draw volume control at bottom
         draw_menu_volume_bar();
     }
@@ -485,9 +485,9 @@ void BreakoutView::reset_game() {
     score = 0;
     lives = 3;
     game_state = STATE_PLAYING;
-    
+
     dummy.focus();
-    
+
     init_level();
     draw_screen();
 }
@@ -497,8 +497,8 @@ void BreakoutView::play_paddle_hit() {
     if (sound_enabled) {
         uint32_t current_time = chTimeNow();
         if (current_time - last_sound_time >= min_sound_interval) {
-            baseband::request_beep_stop();  // Stop any previous sound
-            chThdSleepMilliseconds(5);      // Small delay
+            baseband::request_beep_stop();                 // Stop any previous sound
+            chThdSleepMilliseconds(5);                     // Small delay
             baseband::request_audio_beep(440, 24000, 40);  // 440Hz A4, 40ms
             last_sound_time = current_time;
         }
@@ -523,8 +523,8 @@ void BreakoutView::play_wall_hit() {
     if (sound_enabled) {
         uint32_t current_time = chTimeNow();
         if (current_time - last_sound_time >= min_sound_interval) {
-            baseband::request_beep_stop();  // Stop any previous sound
-            chThdSleepMilliseconds(5);      // Small delay
+            baseband::request_beep_stop();                  // Stop any previous sound
+            chThdSleepMilliseconds(5);                      // Small delay
             baseband::request_audio_beep(220, 24000, 120);  // 220Hz A3, 120ms
             last_sound_time = current_time;
         }
@@ -555,7 +555,7 @@ void BreakoutView::play_death_sound() {
         chThdSleepMilliseconds(180);
         baseband::request_audio_beep(196, 24000, 200);  // G3
         chThdSleepMilliseconds(230);
-        baseband::request_audio_beep(130, 24000, 300);  // C3 
+        baseband::request_audio_beep(130, 24000, 300);  // C3
     }
 }
 
@@ -569,8 +569,8 @@ void BreakoutView::play_game_over() {
         baseband::request_audio_beep(392, 24000, 150);  // G4
         chThdSleepMilliseconds(200);
         baseband::request_audio_beep(311, 24000, 500);  // Eb4 - long
-        chThdSleepMilliseconds(600); 
-        
+        chThdSleepMilliseconds(600);
+
         // Second phrase
         baseband::request_audio_beep(349, 24000, 300);  // F4
         chThdSleepMilliseconds(350);
@@ -580,7 +580,7 @@ void BreakoutView::play_game_over() {
         chThdSleepMilliseconds(200);
         baseband::request_audio_beep(294, 24000, 500);  // D4 - long
         chThdSleepMilliseconds(600);
-        
+
         // Final phrase - slower and more dramatic
         baseband::request_audio_beep(262, 24000, 200);  // C4
         chThdSleepMilliseconds(250);
@@ -594,7 +594,7 @@ void BreakoutView::play_game_over() {
         chThdSleepMilliseconds(250);
         baseband::request_audio_beep(175, 24000, 200);  // F3
         chThdSleepMilliseconds(250);
-        baseband::request_audio_beep(131, 24000, 600);  // C3 
+        baseband::request_audio_beep(131, 24000, 600);  // C3
     }
 }
 
@@ -608,24 +608,23 @@ void BreakoutView::play_level_complete() {
 
 BreakoutView::BreakoutView(NavigationView& nav)
     : nav_{nav}, bricks{} {
-    
     // Initialize audio system for beeps FIRST
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // Load the audio beep baseband
-    
+
     add_children({&dummy});
-    
+
     // Initialize audio
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
-    
+
     // Set initial volume to 80% and ensure sound is ON
     volume_level = 80;
     sound_enabled = true;  // Make sure this is explicitly set to ON
-    
+
     // Set the actual volume
     int db = (volume_level - 99) * 60 / 99;  // Maps to roughly -12dB for 80%
     audio::headphone::set_volume(volume_t::decibel(db));
-    
+
     attach(1.0 / 60.0);
 }
 

@@ -102,7 +102,7 @@ class BreakoutView : public View {
     void attach(double delay_sec);
     void detach();
     void adjust_volume(int delta);
-    
+
     // Sound effect methods
     void play_paddle_hit();
     void play_brick_hit();
@@ -160,13 +160,13 @@ class BreakoutView : public View {
     bool game_update_callback = false;
     double game_update_timeout = 0;
     uint32_t game_update_counter = 0;
-    
+
     // Audio control
     bool sound_enabled = true;
     int volume_level = 80;  // 0-99
     uint32_t last_sound_time = 0;
-    uint32_t min_sound_interval = 20; // Minimum ms between sounds
-    
+    uint32_t min_sound_interval = 20;  // Minimum ms between sounds
+
     Button dummy{
         {screen_width, 0, 0, 0},
         ""};
