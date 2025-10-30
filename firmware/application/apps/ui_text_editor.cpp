@@ -612,7 +612,7 @@ void TextEditorView::open_file(const fs::path& path) {
     viewer.clear_file();
     delete_temp_file(path_);
 
-    path_ = {};
+    path_ = "";
     file_dirty_ = false;
     has_temp_file_ = false;
     auto result = FileWrapper::open(

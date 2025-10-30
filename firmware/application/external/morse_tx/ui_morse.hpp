@@ -110,7 +110,7 @@ class MorseView : public View {
     bool run{false};
 
     Labels labels{
-        {{4 * 8, 6 * 8}, "Speed:   wps", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 6 * 8}, "Speed:   wpm", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 8 * 8}, "Tone:    Hz", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 10 * 8}, "Modulation:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 12 * 8}, "Loop:", Theme::getInstance()->fg_light->foreground},

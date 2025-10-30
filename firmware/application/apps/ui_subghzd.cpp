@@ -339,7 +339,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_CAMEATOMO) {
         entry_.data ^= 0xFFFFFFFFFFFFFFFF;
         entry_.data <<= 4;
-        uint8_t pack[8] = {};
+        uint8_t pack[8];
         pack[0] = (entry_.data >> 56);
         pack[1] = ((entry_.data >> 48) & 0xFF);
         pack[2] = ((entry_.data >> 40) & 0xFF);

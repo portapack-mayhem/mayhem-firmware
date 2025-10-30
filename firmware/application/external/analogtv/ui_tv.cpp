@@ -34,7 +34,7 @@ using namespace portapack;
 #include <cmath>
 #include <array>
 
-namespace ui {
+namespace ui::external_app::analogtv {
 namespace tv {
 
 /* TimeScopeView******************************************************/
@@ -235,4 +235,4 @@ void TVWidget::on_audio_spectrum() {
 }
 
 } /* namespace tv */
-} /* namespace ui */
+}  // namespace ui::external_app::analogtv

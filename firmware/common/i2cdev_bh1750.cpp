@@ -32,7 +32,7 @@ namespace i2cdev {
 bool I2cDev_BH1750::init(uint8_t addr_) {
     if (addr_ != I2CDEV_BH1750_ADDR_1) return false;
     addr = addr_;
-    model = I2CDECMDL_BH1750;
+    model = I2CDEVMDL_BH1750;
     query_interval = 3;
 
     // power up
