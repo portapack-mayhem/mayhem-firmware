@@ -41,7 +41,6 @@ gfxEQView::gfxEQView(NavigationView& nav)
     audio::set_rate(audio::Rate::Hz_48000);
     audio::output::start();
     receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack
-                                                                             //
     receiver_model.enable();
 
     receiver_model.set_target_frequency(frequency_value);  // Retune to actual freq
