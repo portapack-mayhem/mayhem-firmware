@@ -11,6 +11,7 @@
 
 #include "ui.hpp"
 #include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
 #include "event_m0.hpp"
 #include "message.hpp"
 #include "irq_controls.hpp"
@@ -56,15 +57,18 @@ enum {
 class BreakoutView : public View {
    public:
     BreakoutView(NavigationView& nav);
+    ~BreakoutView();
     void on_show() override;
+    void on_hide() override;
 
     std::string title() const override { return "Breakout"; }
 
-    void focus() override { dummy.focus(); }
+    void focus() override;
     void paint(Painter& painter) override;
     void frame_sync();
     bool on_encoder(const EncoderEvent event) override;
     bool on_key(KeyEvent key) override;
+    bool on_touch(const TouchEvent event) override;
 
     void cls();
     void background(int color);
@@ -81,6 +85,7 @@ class BreakoutView : public View {
     void draw_lives();
     void draw_level();
     void draw_borders();
+    void draw_menu_volume_bar();
     void move_paddle_left();
     void move_paddle_right();
     void launch_ball();
@@ -96,6 +101,15 @@ class BreakoutView : public View {
     void check_game_timer();
     void attach(double delay_sec);
     void detach();
+    void adjust_volume(int delta);
+
+    // Sound effect methods
+    void play_paddle_hit();
+    void play_brick_hit();
+    void play_wall_hit();
+    void play_death_sound();
+    void play_game_over();
+    void play_level_complete();
 
    private:
     const Color pp_colors[9] = {
@@ -146,6 +160,12 @@ class BreakoutView : public View {
     bool game_update_callback = false;
     double game_update_timeout = 0;
     uint32_t game_update_counter = 0;
+
+    // Audio control
+    bool sound_enabled = true;
+    int volume_level = 80;  // 0-99
+    uint32_t last_sound_time = 0;
+    uint32_t min_sound_interval = 20;  // Minimum ms between sounds
 
     Button dummy{
         {screen_width, 0, 0, 0},
