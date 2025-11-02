@@ -769,9 +769,9 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
 }
 
 // clang-format off
-void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos) {
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile ) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
-    if (externalItems.empty()) {
+    if (externalItems.empty() && show_error_tile) {
         grid.insert_item({"ExtAppErr",
                           Theme::getInstance()->error_dark->foreground,
                           nullptr,
@@ -848,8 +848,7 @@ void TranceiversMenuView::on_populate() {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_apps(nav_, *this, TRX);
-    // add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
-    // this folder doesn't have external apps, comment to prevent pop the err msg.
+    add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0, false);  // this folder doesn't have external apps, so don't show error for it.
     // NB: when has external app someday, uncomment this.
 }
 

@@ -81,7 +81,7 @@ class AlphanumView : public TextEntryView {
     std::array<Button, 29> buttons{};
 
     NewButton button_shift{
-        {192, 214, screen_width / 5, 38},
+        {screen_width - screen_width / 5, 214, screen_width / 5, 38},
         {},
         &bitmap_icon_shift,
         Theme::getInstance()->bg_dark->background,
