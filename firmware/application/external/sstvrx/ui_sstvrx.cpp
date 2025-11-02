@@ -47,6 +47,9 @@ void SstvRxLogger::log_info(const std::string& info_message) {
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
+    
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    
     add_children({
         &field_rf_amp,
         &field_lna,
@@ -54,13 +57,29 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         &rssi,
         &field_frequency,
         &field_volume,
-        &field_bw,
         &audio,
         &start_btn,
         &stop_btn,
         &options_mode,
         &labels
     });
+    
+    // Initialize audio with proper rate for SSTV
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+    
+    // Configure receiver with optimal settings for SSTV
+    // NOTE: Do NOT set modulation mode - SSTV uses a custom baseband processor
+    receiver_model.set_sampling_rate(3072000);
+    receiver_model.set_baseband_bandwidth(16000);  // Wide enough for SSTV but not too wide
+    receiver_model.set_squelch_level(0);
+    receiver_model.set_hidden_offset(2500);  // Small offset to avoid DC spike but minimize distortion
+    
+    // Set initial control values
+    field_vga.set_value(40);
+    field_lna.set_value(32);
+    field_rf_amp.set_value(false);
+    field_volume.set_value(35);
 
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
@@ -113,7 +132,7 @@ SstvRxView::~SstvRxView() {
 }
 
 void SstvRxView::on_show() {
-    return;
+    // No additional initialization needed
 }
 
 void SstvRxView::focus() {
@@ -140,14 +159,27 @@ void SstvRxView::on_stop() {
         logger->log_info("Stopping SSTV RX Reception");
     }
     if (is_receiving) {
-        audio::output::stop();
+        // Stop in reverse order of start
         receiver_model.disable();
-        baseband::shutdown();
+        audio::output::stop();
+        
+        // Reset state
         is_receiving = false;
+        
+        // Clear the display area
+        portapack::display.fill_rectangle(
+            {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
+            {0, 0, 0}  // Black
+        );
+        line_num = 0;
         
         // Close image file if still open
         if (image_file) {
             image_file.reset();
+        }
+        
+        if (logger) {
+            logger->log_info("SSTV RX Reception Stopped");
         }
     } else if (logger) {
         logger->log_error("SSTV RX Reception Not Running");
@@ -159,7 +191,21 @@ void SstvRxView::start_audio() {
     if (logger) {
         logger->log_info("Configuring SSTV RX Audio Reception");
     }
-    is_receiving = true;
+    
+    // Configure the baseband processor with VIS code
+    if (rx_sstv_mode) {
+        baseband::set_sstvrx_data(rx_sstv_mode->vis_code);
+        if (logger) {
+            logger->log_info("Sent VIS code to processor: " + to_string_dec_uint(rx_sstv_mode->vis_code));
+        }
+    }
+    
+    // Initialize audio path
+    audio::output::stop();
+    audio::set_rate(audio::Rate::Hz_24000);
+    
+    // Set audio routing and volume
+    //audio::output::start();
     
     // Clear display area and reset line counter
     portapack::display.fill_rectangle(
@@ -171,6 +217,12 @@ void SstvRxView::start_audio() {
     // Initialize new image file
     current_line_rx = 0;
     auto timestamp = to_string_timestamp(rtc_time::now());
+    auto dir_error = ensure_directory(sstv_dir / "RX");
+    if (!dir_error.ok()) {
+        if (logger) {
+            logger->log_error("Failed to create directory: SSTV/RX");
+        }
+    }
     current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
     
     image_file = std::make_unique<File>();
@@ -188,26 +240,13 @@ void SstvRxView::start_audio() {
         }
     }
     
-    audio::output::stop();
-    receiver_model.disable();
-    baseband::shutdown();
-
-    // Load SSTV RX baseband processor
-    //baseband::run_image(portapack::spi_flash::image_tag_sstv_rx);
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    // Start audio output
+    audio::output::start();
+    audio::headphone::set_volume(persistent_memory::headphone_volume());
     
-    // Configure the processor with VIS code (Scottie 2 = 56 with parity)
-    if (rx_sstv_mode) {
-        baseband::set_sstvrx_data(rx_sstv_mode->vis_code);
-        if (logger) {
-            logger->log_info("Configured for mode: " + std::string(rx_sstv_mode->name));
-        }
-    }
-
-    receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_baseband_bandwidth(1750000);
-    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+    // Enable receiver last
     receiver_model.enable();
+    is_receiving = true;
 
     if (logger) {
         logger->log_info("SSTV RX Started");
@@ -251,7 +290,21 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* data_ptr) 
 }
 
 void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
-    // This is called from M4 when a new line is decoded
+    // Handle debug messages
+    if (line == 0xFFFF) {
+        if (logger) {
+            logger->log_error("Processor not configured");
+        }
+        return;
+    }
+    if (line == 0xFFFE) {
+        if (logger) {
+            logger->log_info("Audio peak level: " + to_string_dec_uint(total_lines));
+        }
+        return;
+    }
+    
+    // Normal line processing
     current_line_rx = line;
     
     // Read line data from shared memory

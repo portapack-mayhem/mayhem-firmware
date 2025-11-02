@@ -22,36 +22,50 @@
 #include "proc_sstvrx.hpp"
 #include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
+#include "audio_dma.hpp"
+#include "sine_table_int8.hpp"
+#include "fxpt_atan2.hpp"
 
 #include <cstdint>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 
 void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
-    if (!configured) return;
+    if (!configured) {
+        // Just return silently if not configured
+        return;
+    }
+    
+    // Decimation chain
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto channel = decim_1.execute(decim_0_out, dst_buffer);
+    
+    // FM demodulation and audio processing
+    auto audio_oversampled = demod.execute(channel, work_audio_buffer);
+    auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
+    auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
+    auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
+    
+    // Feed audio samples to output and use for frequency estimation
+    audio_output.write(audio);
 
-    // Process I/Q samples
-    for (size_t i = 0; i < buffer.count; i++) {
-        auto s = buffer.p[i];
+    // Process each audio sample for SSTV decoding
+    for (size_t i = 0; i < audio.count; i++) {
+        // Convert float audio sample to int16 for processing
+        const int32_t sample_int = audio.p[i] * 32768.0f;
+        int32_t audio_sample = __SSAT(sample_int, 16);
         
-        // FM demodulation using phase difference
-        int32_t i_val = s.real();
-        int32_t q_val = s.imag();
+        // Estimate frequency using zero-crossing detection on the audio tones
+        estimate_frequency_from_audio(audio_sample);
         
-        // Calculate phase difference (simplified FM demod)
-        int32_t delta_phi = (i_val * prev_q - q_val * prev_i);
-        prev_i = i_val;
-        prev_q = q_val;
-        
-        // Scale to approximate audio sample (-128 to 127 range)
-        int32_t demod_sample = delta_phi >> 16;
-        
-        // Estimate frequency from demodulated signal
-        estimate_frequency(demod_sample);
+        // Apply frequency offset compensation (calibrated from sync pulse)
+        int32_t corrected_freq = current_freq - freq_offset;
         
         // Process based on current state
         switch (state) {
             case STATE_SYNC_SEARCH:
+                // Use uncorrected frequency for sync detection and calibration
                 detect_sync(current_freq);
                 break;
                 
@@ -62,35 +76,44 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
                 break;
                 
             case STATE_IMAGE_DATA:
-                process_pixel_sample(current_freq);
+                // Use corrected frequency for pixel decoding
+                process_pixel_sample(corrected_freq);
                 break;
         }
     }
 }
 
-// Estimate frequency using zero-crossing detection
-void SSTVRXProcessor::estimate_frequency(int32_t demod_sample) {
-    // Detect zero crossings
-    if ((prev_sample < 0 && demod_sample >= 0) || (prev_sample >= 0 && demod_sample < 0)) {
-        // Zero crossing detected
-        if (zero_cross_timer > 0) {
-            // Calculate frequency: f = sampling_rate / (2 * period_in_samples)
-            // Sampling rate = 3,072,000 Hz
-            // Period = 2 * zero_cross_timer (time between crossings)
-            current_freq = 1536000 / (zero_cross_timer + 1);  // Avoid divide by zero
-            zero_cross_count++;
+// Estimate frequency from audio samples using zero-crossing detection
+void SSTVRXProcessor::estimate_frequency_from_audio(int32_t audio_sample) {
+    // Simple zero-crossing detection
+    // Count zero-crossings to estimate frequency of the audio tone
+    
+    // Detect zero crossing (sign change)
+    if ((prev_audio_sample < 0 && audio_sample >= 0) || 
+        (prev_audio_sample >= 0 && audio_sample < 0)) {
+        
+        if (zero_cross_timer > 2 && zero_cross_timer < 200) {  // Reasonable range, skip very fast crossings
+            // Frequency = sample_rate / (2 * half_period)
+            // At 24kHz: 1200Hz = 10 samples per half-period, 2300Hz = 5.2 samples
+            uint32_t measured_freq = 12000 / zero_cross_timer;  // 24000 / (2 * timer)
+            
+            // Validate range
+            if (measured_freq >= 800 && measured_freq <= 3000) {
+                // Light smoothing to reduce noise but still track changes
+                freq_smooth = (measured_freq * 3 + freq_smooth * 5) / 8;
+                current_freq = freq_smooth;
+            }
         }
         zero_cross_timer = 0;
     } else {
         zero_cross_timer++;
-        // Prevent overflow and stuck frequency
-        if (zero_cross_timer > 6144) {  // ~2ms timeout
-            zero_cross_timer = 6144;
-            current_freq = 0;
+        if (zero_cross_timer > 300) {
+            // No crossings for a long time - signal might be DC or very low freq
+            zero_cross_timer = 300;
         }
     }
     
-    prev_sample = demod_sample;
+    prev_audio_sample = audio_sample;
 }
 
 // Convert frequency to pixel value (0-255)
@@ -111,26 +134,50 @@ int32_t SSTVRXProcessor::freq_to_pixel(int32_t freq) {
 // Detect horizontal sync pulses
 void SSTVRXProcessor::detect_sync(int32_t freq) {
     // Sync pulse is 1200 Hz for ~9ms
-    const int32_t sync_tolerance = 50;  // Hz
+    const int32_t sync_tolerance = 150;  // Hz - wider tolerance for reliability
+    const uint32_t min_sync_samples = samples_per_sync / 4;  // Reduced requirement for better detection
     
+    // Check for sync frequency (1200 Hz)
     if (freq > (FREQ_SYNC - sync_tolerance) && freq < (FREQ_SYNC + sync_tolerance)) {
         sync_sample_count++;
         
+        // Accumulate frequency during sync for offset calibration
+        if (!freq_offset_calibrated && sync_sample_count < 100) {
+            sync_freq_accumulator += freq;
+            sync_freq_count++;
+        }
+        
         // If we've seen sync frequency long enough, consider it a sync pulse
-        if (sync_sample_count > samples_per_sync / 2) {  // At least half of sync duration
+        if (sync_sample_count > min_sync_samples) {
             in_sync = true;
         }
     } else {
-        // Not sync frequency
-        if (in_sync && sync_sample_count > 0) {
-            // End of sync pulse detected - start of image data
+        // Not sync frequency - check if we just finished a valid sync
+        if (in_sync && sync_sample_count >= min_sync_samples) {
+            // Valid sync pulse detected
+            
+            // Calibrate frequency offset from first sync pulse
+            if (!freq_offset_calibrated && sync_freq_count > 20) {
+                int32_t avg_sync_freq = sync_freq_accumulator / sync_freq_count;
+                freq_offset = avg_sync_freq - FREQ_SYNC;  // Should be 0 if perfectly tuned
+                freq_offset_calibrated = true;
+            }
+            
+            // Start decoding image data
             state = STATE_IMAGE_DATA;
             sample_count = 0;
             pixel_index = 0;
             channel_index = 0;  // Scottie starts with Green
-            in_sync = false;
+            
+            // Reset line buffers
+            memset(line_buffer_r, 0, PIXELS_PER_LINE);
+            memset(line_buffer_g, 0, PIXELS_PER_LINE);
+            memset(line_buffer_b, 0, PIXELS_PER_LINE);
         }
+        in_sync = false;
         sync_sample_count = 0;
+        sync_freq_accumulator = 0;  // Reset for next sync
+        sync_freq_count = 0;
     }
 }
 
@@ -138,17 +185,21 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
 void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
     sample_count++;
     
-    // Average samples over pixel duration
-    static int32_t pixel_accumulator = 0;
-    static uint32_t pixel_sample_count = 0;
+    // Accumulate frequency samples over pixel duration
+    // Clamp to reasonable range if invalid (helps with noise)
+    if (freq < 800) {
+        freq = 800;
+    } else if (freq > 3000) {
+        freq = 3000;
+    }
     
     pixel_accumulator += freq;
     pixel_sample_count++;
     
     // When we've accumulated enough samples for one pixel
     if (pixel_sample_count >= samples_per_pixel) {
-        // Calculate average frequency
-        int32_t avg_freq = pixel_accumulator / pixel_sample_count;
+        // Calculate average frequency (protect against division by zero)
+        int32_t avg_freq = (pixel_sample_count > 0) ? (pixel_accumulator / pixel_sample_count) : FREQ_BLACK;
         
         // Convert to pixel value
         uint8_t pixel_value = freq_to_pixel(avg_freq);
@@ -218,21 +269,59 @@ void SSTVRXProcessor::process_line() {
 
 void SSTVRXProcessor::on_message(const Message* const msg) {
     switch (msg->id) {
+        case Message::ID::CaptureConfig:
+            capture_config(*reinterpret_cast<const CaptureConfigMessage*>(msg));
+            break;
+            
         case Message::ID::SSTVRXConfigure: {
             const auto message = *reinterpret_cast<const SSTVRXConfigureMessage*>(msg);
             vis_code = message.code;
+            
+            // Configure decimation and filtering chain
+            decim_0.configure(taps_16k0_decim_0.taps);
+            decim_1.configure(taps_38k_wfmam_decim_1.taps);
+            
+            // Calculate filter parameters
+            const size_t decim_0_input_fs = baseband_fs;
+            const size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+            const size_t decim_1_input_fs = decim_0_output_fs;
+            const size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+            
+            // Configure demodulator and audio chain for SSTV
+            // SSTV is transmitted as narrowband FM (same as voice), typically ±5kHz deviation
+            demod.configure(decim_1_output_fs, 5000);
+            // Use low-pass filter to pass audio frequencies up to ~3kHz (covers SSTV range 1200-2300 Hz)
+            audio_filter.configure(taps_64_lp_025_025.taps);  // Low-pass filter
+            // Enable audio output for monitoring with passthrough filters (no HPF or deemph needed for SSTV)
+            audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
+            
+            // Initialize state variables
+            current_freq = 1200;  // Default to sync frequency
+            prev_audio_sample = 0;
+            zero_cross_timer = 0;
+            freq_smooth = 1200;
             configured = true;
             current_line = 0;
             sample_count = 0;
             pixel_index = 0;
             channel_index = 0;
+            pixel_accumulator = 0;
+            pixel_sample_count = 0;
+            sync_sample_count = 0;
+            in_sync = false;
             state = STATE_SYNC_SEARCH;
             
-            // Set timing for Scottie 2 (can be extended for other modes)
-            // Scottie 2: 0.2752ms per pixel at 3.072MHz = 845.5 samples
-            samples_per_pixel = 846;
-            samples_per_sync = 27648;   // 9ms
-            samples_per_gap = 4608;     // 1.5ms
+            // Reset frequency offset calibration
+            freq_offset = 0;
+            freq_offset_calibrated = false;
+            sync_freq_accumulator = 0;
+            sync_freq_count = 0;
+            
+            // Set timing for Scottie 2 at 24kHz audio sample rate
+            // Scottie 2: 0.2752ms/pixel, 9ms sync, 1.5ms gap
+            samples_per_pixel = 7;      // 0.2752ms × 24000 Hz = 6.6 samples (round to 7)
+            samples_per_sync = 216;     // 9ms × 24000 Hz = 216 samples
+            samples_per_gap = 36;       // 1.5ms × 24000 Hz = 36 samples
             
             break;
         }
@@ -242,7 +331,18 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
     }
 }
 
+void SSTVRXProcessor::capture_config(const CaptureConfigMessage& message) {
+    if (message.config) {
+        audio_output.set_stream(std::make_unique<StreamInput>(message.config));
+    } else {
+        audio_output.set_stream(nullptr);
+    }
+}
+
 int main() {
+    // Initialize audio DMA
+    audio::dma::init_audio_out();
+    
     EventDispatcher event_dispatcher{std::make_unique<SSTVRXProcessor>()};
     event_dispatcher.run();
     return 0;

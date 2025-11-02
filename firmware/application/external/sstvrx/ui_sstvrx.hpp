@@ -42,6 +42,7 @@
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "audio.hpp"
+#include "portapack.hpp"
 #include <ch.h>
 
 using namespace sstv;
@@ -120,14 +121,12 @@ class SstvRxView : public ui::View {
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
     AudioVolumeField field_volume{{screen_width - 2 * 8, UI_POS_Y(0)}};
     OptionsField options_mode {
-        {20 * 8, 3 * 8},
+        {6 * 8, 3 * 8},
         16,
         {}};
     Labels labels{
-        {{15 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 3 * 8}, "BW:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground}
     };
-    OptionsField field_bw{{4 * 8, 3 * 8}, 6, {}};
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
     ui::Button start_btn{{2 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Start RX"};
     ui::Button stop_btn{{16 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};

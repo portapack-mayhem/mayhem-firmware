@@ -27,6 +27,11 @@
 #include "baseband_thread.hpp"
 #include "sstv.hpp"
 
+#include "dsp_decimate.hpp"
+#include "dsp_demodulate.hpp"
+#include "dsp_iir.hpp"
+#include "audio_output.hpp"
+
 using namespace sstv;
 
 class SSTVRXProcessor : public BasebandProcessor {
@@ -55,15 +60,34 @@ class SSTVRXProcessor : public BasebandProcessor {
      bool configured{false};
      uint8_t vis_code{0};
      
-     // FM demodulation state
-     int32_t prev_i{0};
-     int32_t prev_q{0};
+     static constexpr size_t baseband_fs = 3072000;
      
-     // Frequency estimation (using zero-crossing method)
-     int32_t prev_sample{0};
+     // DSP chain components
+     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+     dsp::demodulate::FM demod{};
+     dsp::decimate::DecimateBy2CIC4Real audio_dec_1{};
+     dsp::decimate::DecimateBy2CIC4Real audio_dec_2{};
+     dsp::decimate::FIR64AndDecimateBy2Real audio_filter{};
+     AudioOutput audio_output{};
+
+     // Buffers
+     std::array<complex16_t, 512> dst{};
+     const buffer_c16_t dst_buffer{
+         dst.data(),
+         dst.size()
+     };
+     // work_audio_buffer and dst_buffer use the same data pointer
+     const buffer_s16_t work_audio_buffer{
+         (int16_t*)dst.data(),
+         sizeof(dst) / sizeof(int16_t)
+     };
+     
+     // Frequency tracking state
+     int32_t current_freq{1200};  // Current frequency in Hz
+     int32_t prev_audio_sample{0};
      uint32_t zero_cross_timer{0};
-     uint32_t zero_cross_count{0};
-     int32_t current_freq{0};  // Current estimated frequency in Hz
+     int32_t freq_smooth{1200};
      
      // Line decoding state
      uint8_t line_buffer_r[PIXELS_PER_LINE];
@@ -75,6 +99,10 @@ class SSTVRXProcessor : public BasebandProcessor {
      uint32_t channel_index{0};  // 0=G, 1=B, 2=R for Scottie
      uint16_t current_line{0};
      
+     // Pixel accumulation for averaging
+     int32_t pixel_accumulator{0};
+     uint32_t pixel_sample_count{0};
+     
      // Timing parameters (will be set based on mode)
      uint32_t samples_per_pixel{846};  // Scottie 2: 0.2752ms at 3.072MHz
      uint32_t samples_per_sync{27648};  // 9ms
@@ -84,12 +112,19 @@ class SSTVRXProcessor : public BasebandProcessor {
      uint32_t sync_sample_count{0};
      bool in_sync{false};
      
+     // Frequency offset compensation (auto-calibrated from sync pulses)
+     int32_t freq_offset{0};
+     bool freq_offset_calibrated{false};
+     int32_t sync_freq_accumulator{0};
+     uint32_t sync_freq_count{0};
+     
      // Helper functions
      int32_t freq_to_pixel(int32_t freq);
      void process_pixel_sample(int32_t freq);
      void process_line();
      void detect_sync(int32_t freq);
-     void estimate_frequency(int32_t demod_sample);
+     void estimate_frequency_from_audio(int32_t audio_sample);
+     void capture_config(const CaptureConfigMessage& message);
 
      RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 
