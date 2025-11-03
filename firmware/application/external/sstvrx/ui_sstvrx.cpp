@@ -126,6 +126,7 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
 SstvRxView::~SstvRxView() {
     is_receiving = true;
     on_stop();
+    baseband::shutdown();
     if (logger) {
         logger->log_info("SSTV RX Stopped");
     }

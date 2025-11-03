@@ -62,13 +62,10 @@ class SSTVRXProcessor : public BasebandProcessor {
      
      static constexpr size_t baseband_fs = 3072000;
      
-     // DSP chain components
-     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
-     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-     dsp::demodulate::FM demod{};
-     dsp::decimate::DecimateBy2CIC4Real audio_dec_1{};
-     dsp::decimate::DecimateBy2CIC4Real audio_dec_2{};
-     dsp::decimate::FIR64AndDecimateBy2Real audio_filter{};
+     // DSP chain components (using NFM-style decimation for SSTV)
+     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};  // Decimate by 8 (NFM style)
+     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};    // Decimate by 8
+     dsp::demodulate::FM demod{};                     // FM demodulator outputs 24kHz audio
      AudioOutput audio_output{};
 
      // Buffers
@@ -83,11 +80,16 @@ class SSTVRXProcessor : public BasebandProcessor {
          sizeof(dst) / sizeof(int16_t)
      };
      
-     // Frequency tracking state
+     // State variables for Goertzel frequency estimation
      int32_t current_freq{1200};  // Current frequency in Hz
-     int32_t prev_audio_sample{0};
-     uint32_t zero_cross_timer{0};
-     int32_t freq_smooth{1200};
+     
+     // Goertzel filters for SSTV frequencies at 24kHz sample rate
+     // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
+     static constexpr size_t GOERTZEL_N = 16;  // samples per block (faster updates)
+     float goertzel_Q1[4]{0, 0, 0, 0};
+     float goertzel_Q2[4]{0, 0, 0, 0};
+     float goertzel_coeff[4];  // Calculated in configure
+     size_t goertzel_count{0};
      
      // Line decoding state
      uint8_t line_buffer_r[PIXELS_PER_LINE];
@@ -123,7 +125,7 @@ class SSTVRXProcessor : public BasebandProcessor {
      void process_pixel_sample(int32_t freq);
      void process_line();
      void detect_sync(int32_t freq);
-     void estimate_frequency_from_audio(int32_t audio_sample);
+     void estimate_frequency_goertzel(int32_t audio_sample);
      void capture_config(const CaptureConfigMessage& message);
 
      RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};

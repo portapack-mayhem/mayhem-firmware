@@ -31,6 +31,10 @@
 #include <cstddef>
 #include <cstring>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) {
         // Just return silently if not configured
@@ -42,78 +46,110 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
     const auto channel = decim_1.execute(decim_0_out, dst_buffer);
     
     // FM demodulation and audio processing
-    auto audio_oversampled = demod.execute(channel, work_audio_buffer);
-    auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
-    auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
-    auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
+    // NFM-style demodulation outputs 24kHz audio directly
+    auto audio = demod.execute(channel, work_audio_buffer);
     
     // Feed audio samples to output and use for frequency estimation
     audio_output.write(audio);
 
     // Process each audio sample for SSTV decoding
+    // audio is buffer_s16_t, so audio.p[i] is int16_t
     for (size_t i = 0; i < audio.count; i++) {
-        // Convert float audio sample to int16 for processing
-        const int32_t sample_int = audio.p[i] * 32768.0f;
-        int32_t audio_sample = __SSAT(sample_int, 16);
+        // Get int16 audio sample directly (no float conversion needed)
+        int32_t audio_sample = audio.p[i];
         
-        // Estimate frequency using zero-crossing detection on the audio tones
-        estimate_frequency_from_audio(audio_sample);
-        
-        // Apply frequency offset compensation (calibrated from sync pulse)
-        int32_t corrected_freq = current_freq - freq_offset;
+        // Estimate frequency using Goertzel algorithm on the audio tones
+        estimate_frequency_goertzel(audio_sample);
         
         // Process based on current state
         switch (state) {
             case STATE_SYNC_SEARCH:
-                // Use uncorrected frequency for sync detection and calibration
+                // Use raw frequency for sync detection (skip offset correction for now)
                 detect_sync(current_freq);
                 break;
                 
             case STATE_VIS_DECODE:
-                // TODO: Implement VIS code detection
-                // For now, skip directly to image data
+                // VIS code detection not implemented yet
+                // Skip directly to image data after sync
                 state = STATE_IMAGE_DATA;
                 break;
                 
             case STATE_IMAGE_DATA:
-                // Use corrected frequency for pixel decoding
-                process_pixel_sample(corrected_freq);
+                // Use raw frequency without offset correction for now
+                // TODO: Re-enable offset correction once basic decoding works
+                process_pixel_sample(current_freq);
                 break;
         }
     }
 }
 
-// Estimate frequency from audio samples using zero-crossing detection
-void SSTVRXProcessor::estimate_frequency_from_audio(int32_t audio_sample) {
-    // Simple zero-crossing detection
-    // Count zero-crossings to estimate frequency of the audio tone
+// Estimate frequency from audio samples using Goertzel algorithm
+void SSTVRXProcessor::estimate_frequency_goertzel(int32_t audio_sample) {
+    // Normalize sample to float [-1.0, 1.0]
+    float sample = audio_sample / 32768.0f;
     
-    // Detect zero crossing (sign change)
-    if ((prev_audio_sample < 0 && audio_sample >= 0) || 
-        (prev_audio_sample >= 0 && audio_sample < 0)) {
-        
-        if (zero_cross_timer > 2 && zero_cross_timer < 200) {  // Reasonable range, skip very fast crossings
-            // Frequency = sample_rate / (2 * half_period)
-            // At 24kHz: 1200Hz = 10 samples per half-period, 2300Hz = 5.2 samples
-            uint32_t measured_freq = 12000 / zero_cross_timer;  // 24000 / (2 * timer)
-            
-            // Validate range
-            if (measured_freq >= 800 && measured_freq <= 3000) {
-                // Light smoothing to reduce noise but still track changes
-                freq_smooth = (measured_freq * 3 + freq_smooth * 5) / 8;
-                current_freq = freq_smooth;
-            }
-        }
-        zero_cross_timer = 0;
-    } else {
-        zero_cross_timer++;
-        if (zero_cross_timer > 300) {
-            // No crossings for a long time - signal might be DC or very low freq
-            zero_cross_timer = 300;
-        }
+    // Update Goertzel filters for each target frequency
+    for (int f = 0; f < 4; f++) {
+        float Q0 = goertzel_coeff[f] * goertzel_Q1[f] - goertzel_Q2[f] + sample;
+        goertzel_Q2[f] = goertzel_Q1[f];
+        goertzel_Q1[f] = Q0;
     }
     
-    prev_audio_sample = audio_sample;
+    goertzel_count++;
+    
+    // Calculate magnitudes every N samples
+    if (goertzel_count >= GOERTZEL_N) {
+        float magnitudes[4];
+        
+        for (int f = 0; f < 4; f++) {
+            // Calculate magnitude^2 (we don't need sqrt for comparison)
+            magnitudes[f] = goertzel_Q1[f] * goertzel_Q1[f] + 
+                           goertzel_Q2[f] * goertzel_Q2[f] - 
+                           goertzel_Q1[f] * goertzel_Q2[f] * goertzel_coeff[f];
+            
+            // Reset for next block
+            goertzel_Q1[f] = 0;
+            goertzel_Q2[f] = 0;
+        }
+        
+        // Find which frequency has the strongest response
+        int max_idx = 0;
+        float max_mag = magnitudes[0];
+        for (int f = 1; f < 4; f++) {
+            if (magnitudes[f] > max_mag) {
+                max_mag = magnitudes[f];
+                max_idx = f;
+            }
+        }
+        
+        // Map index to frequency
+        // 0=1200Hz, 1=1500Hz, 2=1900Hz, 3=2300Hz
+        const int freqs[4] = {1200, 1500, 1900, 2300};
+        
+        // Interpolate between adjacent bins for better accuracy
+        if (max_mag > 0.005f) {  // Lower threshold for better sensitivity
+            int freq_est = freqs[max_idx];
+            
+            // Improved linear interpolation between bins
+            if (max_idx > 0 && magnitudes[max_idx - 1] > 0.002f) {
+                float ratio = magnitudes[max_idx - 1] / max_mag;
+                if (ratio > 0.2f) {  // More aggressive interpolation
+                    freq_est -= (int)((freqs[max_idx] - freqs[max_idx - 1]) * ratio * 0.5f);
+                }
+            }
+            if (max_idx < 3 && magnitudes[max_idx + 1] > 0.002f) {
+                float ratio = magnitudes[max_idx + 1] / max_mag;
+                if (ratio > 0.2f) {  // More aggressive interpolation
+                    freq_est += (int)((freqs[max_idx + 1] - freqs[max_idx]) * ratio * 0.5f);
+                }
+            }
+            
+            // Smooth frequency changes to reduce noise
+            current_freq = (current_freq * 3 + freq_est) / 4;
+        }
+        
+        goertzel_count = 0;
+    }
 }
 
 // Convert frequency to pixel value (0-255)
@@ -134,18 +170,12 @@ int32_t SSTVRXProcessor::freq_to_pixel(int32_t freq) {
 // Detect horizontal sync pulses
 void SSTVRXProcessor::detect_sync(int32_t freq) {
     // Sync pulse is 1200 Hz for ~9ms
-    const int32_t sync_tolerance = 150;  // Hz - wider tolerance for reliability
-    const uint32_t min_sync_samples = samples_per_sync / 4;  // Reduced requirement for better detection
+    const int32_t sync_tolerance = 200;  // Hz - wider tolerance for reliability
+    const uint32_t min_sync_samples = samples_per_sync / 4;  // Need at least 1/4 of sync duration
     
-    // Check for sync frequency (1200 Hz)
+    // Check for sync frequency (1200 Hz ± 200 Hz = 1000-1400 Hz)
     if (freq > (FREQ_SYNC - sync_tolerance) && freq < (FREQ_SYNC + sync_tolerance)) {
         sync_sample_count++;
-        
-        // Accumulate frequency during sync for offset calibration
-        if (!freq_offset_calibrated && sync_sample_count < 100) {
-            sync_freq_accumulator += freq;
-            sync_freq_count++;
-        }
         
         // If we've seen sync frequency long enough, consider it a sync pulse
         if (sync_sample_count > min_sync_samples) {
@@ -154,16 +184,7 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
     } else {
         // Not sync frequency - check if we just finished a valid sync
         if (in_sync && sync_sample_count >= min_sync_samples) {
-            // Valid sync pulse detected
-            
-            // Calibrate frequency offset from first sync pulse
-            if (!freq_offset_calibrated && sync_freq_count > 20) {
-                int32_t avg_sync_freq = sync_freq_accumulator / sync_freq_count;
-                freq_offset = avg_sync_freq - FREQ_SYNC;  // Should be 0 if perfectly tuned
-                freq_offset_calibrated = true;
-            }
-            
-            // Start decoding image data
+            // Valid sync pulse detected - start decoding image data
             state = STATE_IMAGE_DATA;
             sample_count = 0;
             pixel_index = 0;
@@ -176,8 +197,6 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
         }
         in_sync = false;
         sync_sample_count = 0;
-        sync_freq_accumulator = 0;  // Reset for next sync
-        sync_freq_count = 0;
     }
 }
 
@@ -277,9 +296,9 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             const auto message = *reinterpret_cast<const SSTVRXConfigureMessage*>(msg);
             vis_code = message.code;
             
-            // Configure decimation and filtering chain
-            decim_0.configure(taps_16k0_decim_0.taps);
-            decim_1.configure(taps_38k_wfmam_decim_1.taps);
+            // Configure decimation chain using NFM filters (narrower than WFMAM)
+            decim_0.configure(taps_11k0_decim_0.taps);  // NFM decim0 filter
+            decim_1.configure(taps_11k0_decim_1.taps);  // NFM decim1 filter
             
             // Calculate filter parameters
             const size_t decim_0_input_fs = baseband_fs;
@@ -287,19 +306,28 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             const size_t decim_1_input_fs = decim_0_output_fs;
             const size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
             
-            // Configure demodulator and audio chain for SSTV
-            // SSTV is transmitted as narrowband FM (same as voice), typically ±5kHz deviation
-            demod.configure(decim_1_output_fs, 5000);
-            // Use low-pass filter to pass audio frequencies up to ~3kHz (covers SSTV range 1200-2300 Hz)
-            audio_filter.configure(taps_64_lp_025_025.taps);  // Low-pass filter
-            // Enable audio output for monitoring with passthrough filters (no HPF or deemph needed for SSTV)
+            // Configure demodulator for SSTV - use moderate NFM deviation
+            // SSTV needs wider deviation than voice NFM to capture 1200-2300 Hz tone range
+            demod.configure(decim_1_output_fs, 7500);  // 7.5kHz deviation (wider for SSTV tones)
+            // No audio filter needed - we want clean SSTV tones without filtering
+            // Enable audio output for monitoring with passthrough filters
             audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
+            
+            // Initialize Goertzel coefficients for 24kHz sample rate
+            // coeff = 2 * cos(2 * PI * freq / sample_rate)
+            const float sample_rate = 24000.0f;  // Changed from 12kHz to 24kHz
+            const float target_freqs[4] = {1200.0f, 1500.0f, 1900.0f, 2300.0f};
+            for (int f = 0; f < 4; f++) {
+                float k = (GOERTZEL_N * target_freqs[f]) / sample_rate;
+                float omega = (2.0f * M_PI * k) / GOERTZEL_N;
+                goertzel_coeff[f] = 2.0f * cosf(omega);
+                goertzel_Q1[f] = 0;
+                goertzel_Q2[f] = 0;
+            }
+            goertzel_count = 0;
             
             // Initialize state variables
             current_freq = 1200;  // Default to sync frequency
-            prev_audio_sample = 0;
-            zero_cross_timer = 0;
-            freq_smooth = 1200;
             configured = true;
             current_line = 0;
             sample_count = 0;
@@ -318,6 +346,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             sync_freq_count = 0;
             
             // Set timing for Scottie 2 at 24kHz audio sample rate
+            // Decimation: 3.072MHz /8 /8 = 48kHz -> demod -> 24kHz
             // Scottie 2: 0.2752ms/pixel, 9ms sync, 1.5ms gap
             samples_per_pixel = 7;      // 0.2752ms × 24000 Hz = 6.6 samples (round to 7)
             samples_per_sync = 216;     // 9ms × 24000 Hz = 216 samples
