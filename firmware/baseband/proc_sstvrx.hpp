@@ -63,9 +63,10 @@ class SSTVRXProcessor : public BasebandProcessor {
      static constexpr size_t baseband_fs = 3072000;
      
      // DSP chain components (using NFM-style decimation for SSTV)
-     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};  // Decimate by 8 (NFM style)
-     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};    // Decimate by 8
-     dsp::demodulate::FM demod{};                     // FM demodulator outputs 24kHz audio
+     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};      // Decimate by 8 (NFM style)
+     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};        // Decimate by 8
+     dsp::decimate::FIRAndDecimateComplex channel_filter{};  // Decimate by 2 -> 24kHz
+     dsp::demodulate::FM demod{};                         // FM demodulator
      AudioOutput audio_output{};
 
      // Buffers

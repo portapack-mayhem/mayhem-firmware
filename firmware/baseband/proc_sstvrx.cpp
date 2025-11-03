@@ -41,12 +41,13 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
         return;
     }
     
-    // Decimation chain
+    // Decimation chain (same as NFM)
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-    const auto channel = decim_1.execute(decim_0_out, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+    const auto channel = channel_filter.execute(decim_1_out, dst_buffer);
     
     // FM demodulation and audio processing
-    // NFM-style demodulation outputs 24kHz audio directly
+    // Demodulator outputs 24kHz audio after channel filter decimation
     auto audio = demod.execute(channel, work_audio_buffer);
     
     // Feed audio samples to output and use for frequency estimation
@@ -299,16 +300,18 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             // Configure decimation chain using NFM filters (narrower than WFMAM)
             decim_0.configure(taps_11k0_decim_0.taps);  // NFM decim0 filter
             decim_1.configure(taps_11k0_decim_1.taps);  // NFM decim1 filter
+            channel_filter.configure(taps_11k0_channel.taps, 2);  // Decimate by 2 to get 24kHz
             
             // Calculate filter parameters
             const size_t decim_0_input_fs = baseband_fs;
             const size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
             const size_t decim_1_input_fs = decim_0_output_fs;
             const size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+            const size_t channel_filter_output_fs = decim_1_output_fs / 2;  // Final rate: 24kHz
             
             // Configure demodulator for SSTV - use moderate NFM deviation
             // SSTV needs wider deviation than voice NFM to capture 1200-2300 Hz tone range
-            demod.configure(decim_1_output_fs, 7500);  // 7.5kHz deviation (wider for SSTV tones)
+            demod.configure(channel_filter_output_fs, 7500);  // 7.5kHz deviation (wider for SSTV tones)
             // No audio filter needed - we want clean SSTV tones without filtering
             // Enable audio output for monitoring with passthrough filters
             audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
@@ -346,7 +349,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             sync_freq_count = 0;
             
             // Set timing for Scottie 2 at 24kHz audio sample rate
-            // Decimation: 3.072MHz /8 /8 = 48kHz -> demod -> 24kHz
+            // Decimation: 3.072MHz /8 /8 /2 = 24kHz (same as NFM)
             // Scottie 2: 0.2752ms/pixel, 9ms sync, 1.5ms gap
             samples_per_pixel = 7;      // 0.2752ms × 24000 Hz = 6.6 samples (round to 7)
             samples_per_sync = 216;     // 9ms × 24000 Hz = 216 samples
