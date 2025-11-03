@@ -138,6 +138,8 @@ class Message {
         EPIRBPacket = 81,
         SSTVRXConfigure = 82,
         SSTVRXProgress = 83,
+        SSTVRXPhaseSlant = 84,
+        SSTVRXCalibration = 85,
         MAX
     };
 
@@ -1165,6 +1167,37 @@ class SSTVRXProgressMessage : public Message {
 
     const uint16_t line;
     const uint16_t total_lines;
+};
+
+class SSTVRXPhaseSlantMessage : public Message {
+    public:
+     constexpr SSTVRXPhaseSlantMessage(
+        const int16_t phase,
+        const int16_t slant)
+     : Message{ID::SSTVRXPhaseSlant},
+        phase(phase),
+        slant(slant) {
+    }
+
+    const int16_t phase;
+    const int16_t slant;
+};
+
+class SSTVRXCalibrationMessage : public Message {
+    public:
+     constexpr SSTVRXCalibrationMessage(
+        const int16_t suggested_phase,
+        const int16_t suggested_slant,
+        const uint16_t sync_count)
+     : Message{ID::SSTVRXCalibration},
+        suggested_phase(suggested_phase),
+        suggested_slant(suggested_slant),
+        sync_count(sync_count) {
+    }
+
+    const int16_t suggested_phase;   // Suggested phase correction in pixels
+    const int16_t suggested_slant;   // Suggested slant correction in 0.1% units
+    const uint16_t sync_count;       // Number of syncs analyzed
 };
 
 class FSKConfigureMessage : public Message {

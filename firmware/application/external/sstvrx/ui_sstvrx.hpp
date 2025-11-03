@@ -29,6 +29,7 @@
 #include "ui_receiver.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_freqman.hpp"
+#include "ui_channel.hpp"
 #include "baseband_api.hpp"
 #include "event_m0.hpp"
 #include "message.hpp"
@@ -78,6 +79,16 @@ class SstvRxView : public ui::View {
    private:
     ui::NavigationView& nav_;
     std::unique_ptr<SstvRxLogger> logger{};
+    
+    // Phase and slant adjustments (runtime only, not persisted)
+    int16_t phase_adjustment{0};   // Horizontal offset in pixels (-50 to +50)
+    int16_t slant_adjustment{0};   // Timing adjustment in 0.1% units (-100 to +100)
+    
+    // Settings must be declared before UI controls
+    app_settings::SettingsManager settings_{
+        "rx_sstv", 
+        app_settings::Mode::RX
+    };
 
     ReceiverModel::Mode receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     AudioSpectrum* audio_spectrum_data{nullptr};
@@ -86,8 +97,6 @@ class SstvRxView : public ui::View {
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
     uint8_t radio_bw = 0;
     bool is_receiving = false;
-    app_settings::SettingsManager settings_{
-        "rx_sstv", app_settings::Mode::RX};
     const sstv_mode* rx_sstv_mode{};
     
     // Image data storage - only store current line to save memory
@@ -103,6 +112,10 @@ class SstvRxView : public ui::View {
     std::filesystem::path current_image_path{};
     ui::Color line_buffer[DISPLAY_WIDTH];
     uint16_t line_num{0};
+    
+    // Note: Post-reception phase/slant adjustment disabled due to M0 memory constraints
+    // The 245KB image buffer exceeds available heap memory
+    uint16_t max_received_line{0};
 
     MessageHandlerRegistration message_handler_progress{
         Message::ID::SSTVRXProgress,
@@ -112,32 +125,69 @@ class SstvRxView : public ui::View {
         }
     };
 
+    MessageHandlerRegistration message_handler_calibration{
+        Message::ID::SSTVRXCalibration,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const SSTVRXCalibrationMessage*>(p);
+            this->on_calibration(message.suggested_phase, message.suggested_slant, message.sync_count);
+        }
+    };
+
     // UI Elements
     RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{{15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{{18 * 8, UI_POS_Y(0)}};
     
     RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
+    Channel channel{
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
     AudioVolumeField field_volume{{screen_width - 2 * 8, UI_POS_Y(0)}};
     OptionsField options_mode {
         {6 * 8, 3 * 8},
         16,
         {}};
+    
+    NumberField field_phase{
+        {4 * 8, UI_POS_Y(3)},
+        3,
+        {-50, 50},
+        1,
+        ' '
+    };
+    
+    NumberField field_slant{
+        {13 * 8, UI_POS_Y(3)},
+        4,
+        {-100, 100},
+        1,
+        ' '
+    };
+    
     Labels labels{
-        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground}
+        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, UI_POS_Y(3)}, "Ph:", Theme::getInstance()->fg_light->foreground},
+        {{8 * 8, UI_POS_Y(3)}, "Slnt:", Theme::getInstance()->fg_light->foreground}
     };
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
-    ui::Button start_btn{{2 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Start RX"};
-    ui::Button stop_btn{{16 * 8, UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Stop RX"};
+    ui::Button start_stop_btn{{18 * 8, UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(2)}, "Start RX"};
+    //ui::Button redraw_btn{{16 * 8, UI_POS_Y(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Redraw"};
+    
+    // Calibration suggestion display
+    Text text_calibration{
+        {1 * 8, UI_POS_Y(4), 18 * 8, 17},
+        "Calib: N/A"
+    };
 
     void on_audio_spectrum();
     void update_display(uint16_t line_num, const uint8_t* data_ptr);
+    void redraw_image();  // Disabled due to memory constraints
     void start_audio();
-    void on_start();
+    void on_start_stop();  // Combined start/stop handler
     void on_stop();
     void on_mode_changed(const size_t index);
     void on_progress(uint16_t line, uint16_t total_lines);
+    void on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count);
     void write_bmp_header();
     void finish_image();
     void save_image();  // Deprecated

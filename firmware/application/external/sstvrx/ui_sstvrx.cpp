@@ -55,13 +55,16 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         &field_lna,
         &field_vga,
         &rssi,
+        &channel,
         &field_frequency,
         &field_volume,
         &audio,
-        &start_btn,
-        &stop_btn,
+        &start_stop_btn,
         &options_mode,
-        &labels
+        &field_phase,
+        &field_slant,
+        &labels,
+        &text_calibration
     });
     
     // Initialize audio with proper rate for SSTV
@@ -72,35 +75,27 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     // NOTE: Do NOT set modulation mode - SSTV uses a custom baseband processor
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(16000);  // Wide enough for SSTV but not too wide
-    receiver_model.set_squelch_level(0);
+    receiver_model.set_squelch_level(1);
     receiver_model.set_hidden_offset(2500);  // Small offset to avoid DC spike but minimize distortion
     
-    // Set initial control values
-    field_vga.set_value(40);
-    field_lna.set_value(32);
-    field_rf_amp.set_value(false);
-    field_volume.set_value(35);
+    // Field values will be set in on_show() to ensure proper initialization
 
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t mode_options;
     uint32_t c;
 
-    // Start button handlers
-    start_btn.on_select = [this](Button&) {
-        start_btn.focus();
-        on_start();
+    // Start/Stop button handler - toggles between start and stop
+    start_stop_btn.on_select = [this](Button&) {
+        start_stop_btn.focus();
+        on_start_stop();
     };
 
-    // Stop button handlers
-    stop_btn.on_select = [this](Button&) {
-        stop_btn.focus();
-        on_stop();
-    };
-
-    // Initialize frequency field
-    if (field_frequency.value() == 0) {
-        field_frequency.set_value(96100000);  // Default to 96.100 MHz
+    // Initialize frequency field from settings or use default
+    if (settings_.loaded() && settings_.raw().rx_frequency != 0) {
+        field_frequency.set_value(settings_.raw().rx_frequency);
+    } else if (field_frequency.value() == 0) {
+        field_frequency.set_value(145800000);  // Default to 145.800 MHz (ISS)
     }
     field_frequency.set_step(25000);
 
@@ -114,11 +109,34 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     };
     options_mode.set_selected_index(1);  // Scottie 2
     on_mode_changed(1);
+    
+    // Initialize phase and slant controls from loaded settings
+    field_phase.set_value(phase_adjustment);
+    field_phase.on_change = [this](int32_t v) {
+        phase_adjustment = v;
+        if (is_receiving) {
+            baseband::set_sstvrx_phase_slant(phase_adjustment, slant_adjustment);
+        } else if (max_received_line > 0) {
+            // Auto-redraw when adjusting after reception
+            redraw_image();
+        }
+    };
+    
+    field_slant.set_value(slant_adjustment);
+    field_slant.on_change = [this](int32_t v) {
+        slant_adjustment = v;
+        if (is_receiving) {
+            baseband::set_sstvrx_phase_slant(phase_adjustment, slant_adjustment);
+        } else if (max_received_line > 0) {
+            // Auto-redraw when adjusting after reception
+            redraw_image();
+        }
+    };
 
     logger = std::make_unique<SstvRxLogger>();
     if (logger) {
         logger->append(logs_dir / "SSTVRX.txt");
-        logger->log_info("SSTV RX Started");
+        logger->log_info("----------SSTV RX Started----------");
     }
 }
 
@@ -133,24 +151,30 @@ SstvRxView::~SstvRxView() {
 }
 
 void SstvRxView::on_show() {
-    // No additional initialization needed
+    // Update field values from receiver model to reflect loaded settings
+    field_lna.set_value(receiver_model.lna());
+    field_vga.set_value(receiver_model.vga());
+    field_rf_amp.set_value(receiver_model.rf_amp());
+    field_volume.set_value(receiver_model.normalized_headphone_volume());
 }
 
 void SstvRxView::focus() {
     field_frequency.focus();
 }
 
-// Start NFM audio reception if not already started
-void SstvRxView::on_start() {
-    if (logger) {
-        logger->log_info("Starting SSTV RX Reception");
-    }
-    
-    if (!is_receiving) {
+// Combined start/stop handler - toggles based on current state
+void SstvRxView::on_start_stop() {
+    if (is_receiving) {
+        // Currently receiving - stop it
+        on_stop();
+        start_stop_btn.set_text("Start RX");
+    } else {
+        // Currently stopped - start reception
+        if (logger) {
+            logger->log_info("Starting SSTV RX Reception");
+        }
         start_audio();
-        return;
-    } else if (logger) {
-        logger->log_error("SSTV RX Reception Already Started");
+        start_stop_btn.set_text("Stop RX");
     }
 }
 
@@ -166,13 +190,6 @@ void SstvRxView::on_stop() {
         
         // Reset state
         is_receiving = false;
-        
-        // Clear the display area
-        portapack::display.fill_rectangle(
-            {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
-            {0, 0, 0}  // Black
-        );
-        line_num = 0;
         
         // Close image file if still open
         if (image_file) {
@@ -201,6 +218,9 @@ void SstvRxView::start_audio() {
         }
     }
     
+    // Send phase and slant adjustments
+    baseband::set_sstvrx_phase_slant(phase_adjustment, slant_adjustment);
+    
     // Initialize audio path
     audio::output::stop();
     audio::set_rate(audio::Rate::Hz_24000);
@@ -214,6 +234,10 @@ void SstvRxView::start_audio() {
         {0, 0, 0}  // Black
     );
     line_num = 0;
+    max_received_line = 0;
+    
+    // Clear calibration display
+    text_calibration.set("Calibrating...");
     
     // Initialize new image file
     current_line_rx = 0;
@@ -244,6 +268,10 @@ void SstvRxView::start_audio() {
     // Start audio output
     audio::output::start();
     audio::headphone::set_volume(persistent_memory::headphone_volume());
+    
+    // Set a nominal modulation mode for receiver chain initialization
+    // Even though SSTV uses custom baseband, we need this for proper RF/audio stats
+    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     
     // Enable receiver last
     receiver_model.enable();
@@ -289,8 +317,14 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* data_ptr) 
     // Increment line counter
     line_num++;
 }
+void SstvRxView::redraw_image() {
+    // Disabled: Post-reception redraw requires 245KB buffer which exceeds M0 memory
+    // Phase and slant adjustments must be set before reception starts
+}
 
 void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
+    if (!is_receiving) return;
+
     // Handle debug messages
     if (line == 0xFFFF) {
         if (logger) {
@@ -300,7 +334,38 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     }
     if (line == 0xFFFE) {
         if (logger) {
-            logger->log_info("Audio peak level: " + to_string_dec_uint(total_lines));
+            logger->log_info("Sync pulse duration: " + to_string_dec_uint(total_lines) + " samples");
+        }
+        return;
+    }
+    if (line == 0xFFFD) {
+        if (logger) {
+            logger->log_info("Sync detected, count=" + to_string_dec_uint(total_lines));
+        }
+        text_calibration.set("Syncs: " + to_string_dec_uint(total_lines));
+        return;
+    }
+    if (line == 0xFFFC) {
+        if (logger) {
+            logger->log_info("Expected interval: " + to_string_dec_uint(total_lines) + " samples");
+        }
+        return;
+    }
+    if (line == 0xFFFB) {
+        if (logger) {
+            logger->log_info("Actual interval: " + to_string_dec_uint(total_lines) + " samples");
+        }
+        return;
+    }
+    if (line == 0xFFFA) {
+        if (logger) {
+            logger->log_info("SYNC TIMEOUT after " + to_string_dec_uint(total_lines) + " samples - continuing without sync");
+        }
+        return;
+    }
+    if (line == 0xFFF9) {
+        if (logger) {
+            logger->log_info("Detected frequency at sync: " + to_string_dec_uint(total_lines) + " Hz");
         }
         return;
     }
@@ -318,11 +383,12 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     if (image_file && line_num < IMAGE_HEIGHT) {
         uint8_t row_data[IMAGE_WIDTH * 3];
         
-        // BMP stores as BGR
+        // BMP stores as BGR, but our data seems to have R and B swapped
+        // So we write them in RGB order to compensate
         for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-            row_data[x * 3 + 0] = data_ptr[2 + PIXELS_PER_LINE * 2 + x]; // B
-            row_data[x * 3 + 1] = data_ptr[2 + PIXELS_PER_LINE + x];     // G
-            row_data[x * 3 + 2] = data_ptr[2 + x];                        // R
+            row_data[x * 3 + 0] = data_ptr[2 + x];                        // R→B (swap)
+            row_data[x * 3 + 1] = data_ptr[2 + PIXELS_PER_LINE + x];     // G→G (same)
+            row_data[x * 3 + 2] = data_ptr[2 + PIXELS_PER_LINE * 2 + x]; // B→R (swap)
         }
         
         // Seek to correct position (BMP is bottom-up, so invert line number)
@@ -385,6 +451,32 @@ void SstvRxView::finish_image() {
         image_file.reset();
         if (logger) {
             logger->log_info("Image completed: " + current_image_path.string());
+        }
+    }
+}
+
+void SstvRxView::on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count) {
+    if (!is_receiving) return;
+
+    // Display calibration suggestions to the user
+    if (sync_count >= 4) {
+        std::string cal_text = "Try Slant=" + to_string_dec_int(suggested_slant);
+        text_calibration.set(cal_text);
+        text_calibration.set_dirty();
+        
+        // Don't auto-apply yet - just suggest for now until we verify the values are correct
+        // User can manually adjust if needed
+        
+        // Log the suggestion
+        if (logger) {
+            logger->log_info("Calibration suggestion: phase=" + to_string_dec_int(suggested_phase) + 
+                           " slant=" + to_string_dec_int(suggested_slant) + 
+                           " (from " + to_string_dec_uint(sync_count) + " syncs)");
+        }
+    } else {
+        // Log that we received calibration but not enough syncs yet
+        if (logger) {
+            logger->log_info("Calibration received: " + to_string_dec_uint(sync_count) + " syncs (need 4+)");
         }
     }
 }

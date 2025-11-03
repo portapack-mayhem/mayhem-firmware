@@ -25,6 +25,7 @@
 #include "audio_dma.hpp"
 #include "sine_table_int8.hpp"
 #include "fxpt_atan2.hpp"
+#include "message.hpp"
 
 #include <cstdint>
 #include <cmath>
@@ -59,25 +60,64 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
         // Get int16 audio sample directly (no float conversion needed)
         int32_t audio_sample = audio.p[i];
         
+        // Increment global sample counter for calibration
+        global_sample_count++;
+        
         // Estimate frequency using Goertzel algorithm on the audio tones
         estimate_frequency_goertzel(audio_sample);
         
         // Process based on current state
         switch (state) {
             case STATE_SYNC_SEARCH:
-                // Use raw frequency for sync detection (skip offset correction for now)
                 detect_sync(current_freq);
+                sample_count++;
+                
+                // Timeout if sync not detected within reasonable time
+                // Expected sync duration is ~9ms (216 samples), but with slant/drift,
+                // allow up to 500ms (~12000 samples) before giving up and moving on
+                if (sample_count > 12000) {
+                    // No sync detected - skip to separator and continue
+                    // This prevents getting stuck waiting for a weak/missing sync
+                    // Send debug message to indicate timeout
+                    SSTVRXProgressMessage timeout_msg{0xFFFA, (uint16_t)sample_count};
+                    shared_memory.application_queue.push(timeout_msg);
+                    
+                    state = STATE_SEPARATOR;
+                    sample_count = 0;
+                    pixel_index = 0;
+                    channel_index = 0;
+                    pixel_accumulator = 0;
+                    pixel_sample_count = 0;
+                    pixel_phase = 0.0f;
+                }
                 break;
                 
             case STATE_VIS_DECODE:
                 // VIS code detection not implemented yet
-                // Skip directly to image data after sync
-                state = STATE_IMAGE_DATA;
+                // Skip directly to separator wait
+                state = STATE_SEPARATOR;
+                sample_count = 0;
+                break;
+                
+            case STATE_SEPARATOR:
+                // Wait for separator pulse to complete (1500Hz, 1.5ms)
+                // We don't need to verify frequency, just count samples
+                sample_count++;
+                
+                if (sample_count >= samples_per_gap) {
+                    // Separator complete, move to image data
+                    sample_count = 0;
+                    pixel_accumulator = 0;
+                    pixel_sample_count = 0;
+                    pixel_phase = 0.0f;  // Reset pixel timing
+                    
+                    // Always move to image data after separator
+                    // SSTV is continuous - no need to hunt for syncs after initial lock
+                    state = STATE_IMAGE_DATA;
+                }
                 break;
                 
             case STATE_IMAGE_DATA:
-                // Use raw frequency without offset correction for now
-                // TODO: Re-enable offset correction once basic decoding works
                 process_pixel_sample(current_freq);
                 break;
         }
@@ -127,26 +167,30 @@ void SSTVRXProcessor::estimate_frequency_goertzel(int32_t audio_sample) {
         // 0=1200Hz, 1=1500Hz, 2=1900Hz, 3=2300Hz
         const int freqs[4] = {1200, 1500, 1900, 2300};
         
-        // Interpolate between adjacent bins for better accuracy
-        if (max_mag > 0.005f) {  // Lower threshold for better sensitivity
+        // Check if we have a strong enough signal
+        // Lowered threshold for weak signals (SSTV often has low audio levels)
+        if (max_mag > 0.001f) {  // Very low threshold - accept weak signals
             int freq_est = freqs[max_idx];
             
             // Improved linear interpolation between bins
-            if (max_idx > 0 && magnitudes[max_idx - 1] > 0.002f) {
+            if (max_idx > 0 && magnitudes[max_idx - 1] > 0.0005f) {
                 float ratio = magnitudes[max_idx - 1] / max_mag;
-                if (ratio > 0.2f) {  // More aggressive interpolation
+                if (ratio > 0.2f) {
                     freq_est -= (int)((freqs[max_idx] - freqs[max_idx - 1]) * ratio * 0.5f);
                 }
             }
-            if (max_idx < 3 && magnitudes[max_idx + 1] > 0.002f) {
+            if (max_idx < 3 && magnitudes[max_idx + 1] > 0.0005f) {
                 float ratio = magnitudes[max_idx + 1] / max_mag;
-                if (ratio > 0.2f) {  // More aggressive interpolation
+                if (ratio > 0.2f) {
                     freq_est += (int)((freqs[max_idx + 1] - freqs[max_idx]) * ratio * 0.5f);
                 }
             }
             
-            // Smooth frequency changes to reduce noise
-            current_freq = (current_freq * 3 + freq_est) / 4;
+            // Light smoothing to reduce noise while maintaining responsiveness
+            current_freq = (current_freq + freq_est) / 2;
+        } else {
+            // Signal too weak - don't update frequency (keeps last valid estimate)
+            // This prevents spurious detections from noise
         }
         
         goertzel_count = 0;
@@ -171,25 +215,65 @@ int32_t SSTVRXProcessor::freq_to_pixel(int32_t freq) {
 // Detect horizontal sync pulses
 void SSTVRXProcessor::detect_sync(int32_t freq) {
     // Sync pulse is 1200 Hz for ~9ms
-    const int32_t sync_tolerance = 200;  // Hz - wider tolerance for reliability
-    const uint32_t min_sync_samples = samples_per_sync / 4;  // Need at least 1/4 of sync duration
+    const int32_t sync_tolerance = 150;  // Hz - tolerance for sync detection
     
-    // Check for sync frequency (1200 Hz ± 200 Hz = 1000-1400 Hz)
+    // Check for sync frequency (1200 Hz ± 150 Hz)
     if (freq > (FREQ_SYNC - sync_tolerance) && freq < (FREQ_SYNC + sync_tolerance)) {
         sync_sample_count++;
-        
-        // If we've seen sync frequency long enough, consider it a sync pulse
-        if (sync_sample_count > min_sync_samples) {
-            in_sync = true;
-        }
+        in_sync = true;
     } else {
         // Not sync frequency - check if we just finished a valid sync
-        if (in_sync && sync_sample_count >= min_sync_samples) {
-            // Valid sync pulse detected - start decoding image data
-            state = STATE_IMAGE_DATA;
+        // Require at least 1/3 of expected sync duration (more lenient for weak signals)
+        if (in_sync && sync_sample_count >= (samples_per_sync / 3)) {
+            // Valid sync pulse detected
+            
+            // Track sync pulse timing for auto-calibration
+            // Only record sync if it's within reasonable timing (reject obvious outliers upfront)
+            bool should_record_sync = true;
+            if (sync_history_count > 0) {
+                uint32_t interval = global_sample_count - sync_positions[sync_history_count - 1];
+                // Reject intervals >50% off expected LINE interval (not sync pulse duration!)
+                // Expected line interval is ~6663 samples (sync+sep+G+sep+B+sep+R)
+                // So accept 3331-13326 samples (50% tolerance for clock drift/noise)
+                const uint32_t expected_line_interval = 6663;
+                const uint32_t min_interval = expected_line_interval / 2;       // 3331 samples
+                const uint32_t max_interval = expected_line_interval * 2;       // 13326 samples
+                if (interval < min_interval || interval > max_interval) {
+                    should_record_sync = false;  // Skip recording this obvious outlier
+                }
+            }
+            
+            if (should_record_sync && sync_history_count < MAX_SYNC_HISTORY) {
+                sync_positions[sync_history_count] = global_sample_count;
+                sync_history_count++;
+                
+                // Send debug message with sync count
+                SSTVRXProgressMessage sync_debug{0xFFFD, sync_history_count};
+                shared_memory.application_queue.push(sync_debug);
+                
+                // Calculate calibration after collecting enough syncs for accuracy
+                // Wait for 8 syncs to get better statistics, then update every 8 syncs
+                if (sync_history_count >= 8 && pixel_time_frac != 0.0f && sync_history_count % 8 == 0) {
+                    calculate_calibration();
+                }
+            }
+            
+            // Debug: Send sync detection info with timing data
+            // Also send current frequency estimate for debugging
+            SSTVRXProgressMessage debug_msg{0xFFFE, (uint16_t)sync_sample_count};
+            shared_memory.application_queue.push(debug_msg);
+            
+            // Send frequency estimate for debugging (use 0xFFF9)
+            SSTVRXProgressMessage freq_msg{0xFFF9, (uint16_t)current_freq};
+            shared_memory.application_queue.push(freq_msg);
+            
+            state = STATE_SEPARATOR;
             sample_count = 0;
             pixel_index = 0;
-            channel_index = 0;  // Scottie starts with Green
+            channel_index = 0;  // Will start with Green after separator
+            pixel_accumulator = 0;
+            pixel_sample_count = 0;
+            pixel_phase = 0.0f;  // Reset fractional timing
             
             // Reset line buffers
             memset(line_buffer_r, 0, PIXELS_PER_LINE);
@@ -201,40 +285,102 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
     }
 }
 
-// Process pixel samples during image data state
-void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
-    sample_count++;
+// Calculate phase and slant calibration from sync timing
+void SSTVRXProcessor::calculate_calibration() {
+    if (sync_history_count < 2 || pixel_time_frac == 0.0f) return;
     
-    // Accumulate frequency samples over pixel duration
-    // Clamp to reasonable range if invalid (helps with noise)
-    if (freq < 800) {
-        freq = 800;
-    } else if (freq > 3000) {
-        freq = 3000;
+    // Calculate expected interval (one full line for Scottie 2)
+    // Scottie 2: 9ms sync + 1.5ms sep + 146.432ms G + 1.5ms sep + 146.432ms B + 1.5ms sep + 146.432ms R
+    expected_sync_interval = samples_per_sync + samples_per_gap + 
+                            (uint32_t)(pixel_time_frac * PIXELS_PER_LINE) + samples_per_gap +
+                            (uint32_t)(pixel_time_frac * PIXELS_PER_LINE) + samples_per_gap +
+                            (uint32_t)(pixel_time_frac * PIXELS_PER_LINE);
+    
+    // Send debug info about expected interval
+    SSTVRXProgressMessage debug_interval{0xFFFC, (uint16_t)(expected_sync_interval & 0xFFFF)};
+    shared_memory.application_queue.push(debug_interval);
+    
+    // Calculate average timing error (slant) from recent intervals
+    // Use last 8 intervals for more responsive calibration, but filter outliers
+    int32_t total_timing_error = 0;
+    uint32_t last_interval = 0;
+    uint16_t start_idx = (sync_history_count > 8) ? (sync_history_count - 8) : 1;
+    uint16_t interval_count = 0;
+    
+    for (uint16_t i = start_idx; i < sync_history_count; i++) {
+        uint32_t actual_interval = sync_positions[i] - sync_positions[i - 1];
+        last_interval = actual_interval;
+        
+        // Filter out outliers: reject intervals >20% off expected value
+        // These are likely missed syncs, not actual timing drift
+        int32_t timing_error = (int32_t)actual_interval - (int32_t)expected_sync_interval;
+        int32_t max_deviation = (int32_t)expected_sync_interval / 5;  // 20% threshold
+        
+        // Only include intervals within ±20% of expected
+        if (timing_error >= -max_deviation && timing_error <= max_deviation) {
+            total_timing_error += timing_error;
+            interval_count++;
+        }
     }
     
+    // Send debug info about last actual interval
+    SSTVRXProgressMessage debug_actual{0xFFFB, (uint16_t)(last_interval & 0xFFFF)};
+    shared_memory.application_queue.push(debug_actual);
+    
+    if (interval_count == 0) return;  // Safety check - no valid intervals
+    
+    // Average error per line
+    int32_t avg_error = total_timing_error / interval_count;
+    
+    // Convert to slant adjustment (0.1% units)
+    // Error in samples / expected_sync_interval = fractional error
+    // Multiply by 1000 to get 0.1% units
+    int16_t suggested_slant = (int16_t)(((int64_t)avg_error * 1000) / expected_sync_interval);
+    
+    // Clamp to reasonable range (±10% = ±100 in 0.1% units)
+    if (suggested_slant > 100) suggested_slant = 100;
+    if (suggested_slant < -100) suggested_slant = -100;
+    
+    // Phase is harder to detect automatically without knowing absolute position
+    // For now, we only suggest slant correction
+    int16_t suggested_phase = 0;
+    
+    // Send calibration suggestion
+    SSTVRXCalibrationMessage cal_msg{suggested_phase, suggested_slant, sync_history_count};
+    shared_memory.application_queue.push(cal_msg);
+}
+
+// Process pixel samples during image data state
+void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
+    // Accumulate frequency samples for averaging
     pixel_accumulator += freq;
     pixel_sample_count++;
     
-    // When we've accumulated enough samples for one pixel
-    if (pixel_sample_count >= samples_per_pixel) {
-        // Calculate average frequency (protect against division by zero)
-        int32_t avg_freq = (pixel_sample_count > 0) ? (pixel_accumulator / pixel_sample_count) : FREQ_BLACK;
+    // Advance pixel phase with slant adjustment
+    pixel_phase += slant_factor;
+    
+    // Check if we've accumulated enough for one pixel using fractional timing
+    if (pixel_phase >= pixel_time_frac) {
+        // Pixel complete - calculate average frequency
+        int32_t avg_freq = pixel_accumulator / pixel_sample_count;
         
         // Convert to pixel value
         uint8_t pixel_value = freq_to_pixel(avg_freq);
         
-        // Store in appropriate channel buffer
-        if (pixel_index < PIXELS_PER_LINE) {
+        // Apply phase offset (horizontal shift)
+        int32_t adjusted_pixel_index = (int32_t)pixel_index + phase_offset;
+        
+        // Store in appropriate channel buffer if within bounds
+        if (adjusted_pixel_index >= 0 && adjusted_pixel_index < PIXELS_PER_LINE) {
             switch (channel_index) {
                 case 0:  // Green (Scottie sequence: GBR)
-                    line_buffer_g[pixel_index] = pixel_value;
+                    line_buffer_g[adjusted_pixel_index] = pixel_value;
                     break;
                 case 1:  // Blue
-                    line_buffer_b[pixel_index] = pixel_value;
+                    line_buffer_b[adjusted_pixel_index] = pixel_value;
                     break;
                 case 2:  // Red
-                    line_buffer_r[pixel_index] = pixel_value;
+                    line_buffer_r[adjusted_pixel_index] = pixel_value;
                     break;
             }
         }
@@ -242,23 +388,30 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
         pixel_index++;
         pixel_accumulator = 0;
         pixel_sample_count = 0;
+        pixel_phase -= pixel_time_frac;  // Keep fractional part for next pixel
         
         // Check if we finished a color channel
         if (pixel_index >= PIXELS_PER_LINE) {
             pixel_index = 0;
-            channel_index++;
-            
-            // Skip gap between channels (1.5ms for Scottie)
-            sample_count += samples_per_gap;
             
             // Check if we finished all three channels (complete line)
-            if (channel_index >= 3) {
+            if (channel_index >= 2) {
+                // Finished Red channel (last channel)
                 process_line();
                 channel_index = 0;
                 
-                // Look for next sync pulse
+                // In Scottie 2, there's NO separator after red channel
+                // The sync pulse comes immediately, followed by separator before green
+                // So we transition directly to sync search for the next line
                 state = STATE_SYNC_SEARCH;
                 sync_sample_count = 0;
+                in_sync = false;
+            } else {
+                // Finished Green or Blue, move to next channel
+                channel_index++;
+                
+                // Enter separator state between channels
+                state = STATE_SEPARATOR;
                 sample_count = 0;
             }
         }
@@ -292,6 +445,16 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
         case Message::ID::CaptureConfig:
             capture_config(*reinterpret_cast<const CaptureConfigMessage*>(msg));
             break;
+            
+        case Message::ID::SSTVRXPhaseSlant: {
+            const auto message = *reinterpret_cast<const SSTVRXPhaseSlantMessage*>(msg);
+            phase_offset = message.phase;
+            slant_rate = message.slant;
+            // Convert slant from 0.1% units to a multiplier
+            // slant_rate of +10 = +1% faster = multiply by 1.01
+            slant_factor = 1.0f + (slant_rate / 1000.0f);
+            break;
+        }
             
         case Message::ID::SSTVRXConfigure: {
             const auto message = *reinterpret_cast<const SSTVRXConfigureMessage*>(msg);
@@ -348,12 +511,18 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             sync_freq_accumulator = 0;
             sync_freq_count = 0;
             
+            // Reset sync history for calibration
+            sync_history_count = 0;
+            memset(sync_positions, 0, sizeof(sync_positions));
+            
             // Set timing for Scottie 2 at 24kHz audio sample rate
             // Decimation: 3.072MHz /8 /8 /2 = 24kHz (same as NFM)
-            // Scottie 2: 0.2752ms/pixel, 9ms sync, 1.5ms gap
-            samples_per_pixel = 7;      // 0.2752ms × 24000 Hz = 6.6 samples (round to 7)
-            samples_per_sync = 216;     // 9ms × 24000 Hz = 216 samples
-            samples_per_gap = 36;       // 1.5ms × 24000 Hz = 36 samples
+            // Scottie 2: 0.2752ms/pixel, 9ms sync, 1.5ms separator
+            pixel_time_frac = 0.2752f * 24.0f;  // 6.6048 samples/pixel (exact)
+            samples_per_pixel = 7;               // Integer approximation for quick checks
+            samples_per_sync = 216;              // 9ms × 24000 Hz = 216 samples
+            samples_per_gap = 36;                // 1.5ms × 24000 Hz = 36 samples
+            pixel_phase = 0.0f;
             
             break;
         }

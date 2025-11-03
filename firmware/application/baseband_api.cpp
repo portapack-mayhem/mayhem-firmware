@@ -153,6 +153,13 @@ void set_sstvrx_data(const uint8_t code) {
     send_message(&message);
 }
 
+void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant) {
+    const SSTVRXPhaseSlantMessage message{
+        phase,
+        slant};
+    send_message(&message);
+}
+
 void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
     const AFSKRxConfigureMessage message{
         baudrate,

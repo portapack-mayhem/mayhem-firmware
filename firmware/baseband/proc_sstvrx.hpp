@@ -43,6 +43,7 @@ class SSTVRXProcessor : public BasebandProcessor {
      enum state_t {
         STATE_SYNC_SEARCH = 0,
         STATE_VIS_DECODE,
+        STATE_SEPARATOR,  // Wait for separator pulse (1500Hz)
         STATE_IMAGE_DATA
      };
 
@@ -86,7 +87,9 @@ class SSTVRXProcessor : public BasebandProcessor {
      
      // Goertzel filters for SSTV frequencies at 24kHz sample rate
      // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
-     static constexpr size_t GOERTZEL_N = 16;  // samples per block (faster updates)
+     // Larger block size = better frequency discrimination but slower response
+     // At 24kHz: 48 samples = 2ms, enough for ~2.4 cycles of 1200Hz
+     static constexpr size_t GOERTZEL_N = 48;  // Increased from 16 for better accuracy
      float goertzel_Q1[4]{0, 0, 0, 0};
      float goertzel_Q2[4]{0, 0, 0, 0};
      float goertzel_coeff[4];  // Calculated in configure
@@ -106,14 +109,32 @@ class SSTVRXProcessor : public BasebandProcessor {
      int32_t pixel_accumulator{0};
      uint32_t pixel_sample_count{0};
      
+     // Fractional pixel timing for accuracy
+     float pixel_time_frac{0.0f};  // Fractional samples per pixel
+     float pixel_phase{0.0f};       // Accumulated phase for current pixel
+     
+     // Phase and slant adjustments
+     int16_t phase_offset{0};       // Horizontal offset in pixels
+     int16_t slant_rate{0};         // Timing adjustment in 0.1% units
+     float slant_factor{1.0f};      // Calculated slant multiplier
+     
      // Timing parameters (will be set based on mode)
-     uint32_t samples_per_pixel{846};  // Scottie 2: 0.2752ms at 3.072MHz
-     uint32_t samples_per_sync{27648};  // 9ms
-     uint32_t samples_per_gap{4608};    // 1.5ms
+     uint32_t samples_per_pixel{7};      // Integer part for quick checks
+     uint32_t samples_per_sync{216};     // 9ms
+     uint32_t samples_per_gap{36};       // 1.5ms
      
      // Sync detection
      uint32_t sync_sample_count{0};
      bool in_sync{false};
+     
+     // Sync pulse timing tracking for auto-calibration
+     static constexpr uint32_t MAX_SYNC_HISTORY = 256;  // Track all syncs in image
+     uint32_t sync_positions[MAX_SYNC_HISTORY];  // Sample positions when sync detected
+     uint16_t sync_history_count{0};
+     uint32_t expected_sync_interval{0};  // Expected samples between syncs
+     int32_t accumulated_phase_error{0};   // Accumulated phase offset in samples
+     int32_t accumulated_slant_error{0};   // Accumulated timing drift
+     uint32_t global_sample_count{0};      // Never-reset counter for timing calibration
      
      // Frequency offset compensation (auto-calibrated from sync pulses)
      int32_t freq_offset{0};
@@ -126,13 +147,14 @@ class SSTVRXProcessor : public BasebandProcessor {
      void process_pixel_sample(int32_t freq);
      void process_line();
      void detect_sync(int32_t freq);
+     void calculate_calibration();
      void estimate_frequency_goertzel(int32_t audio_sample);
      void capture_config(const CaptureConfigMessage& message);
 
      RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 
      /* NB: Threads should be the last members in the class definition. */
-     BasebandThread baseband_thread{307200, this, baseband::Direction::Receive};
+     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
 };
 
 #endif
