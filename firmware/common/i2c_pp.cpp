@@ -50,11 +50,23 @@ bool I2C::transfer(
     const size_t count_tx,
     uint8_t* const data_rx,
     const size_t count_rx,
-    systime_t timeout) {
+    systime_t timeout) 
+{
+    // use ESP-AI device lock the i2c bus.
+    if (_driver->state != I2C_READY) {
+
+        if (_driver->state == I2C_LOCKED)
+        {
+            chSysLock();
+            _driver->state = I2C_READY;
+            chSysUnlock();
+        }
+    }
+
     i2cAcquireBus(_driver);
-    const msg_t status = i2cMasterTransmitTimeout(
-        _driver, slave_address, data_tx, count_tx, data_rx, count_rx, timeout);
+    const msg_t status = i2cMasterTransmitTimeout(_driver, slave_address, data_tx, count_tx, data_rx, count_rx, timeout);
     i2cReleaseBus(_driver);
+    
     return (status == RDY_OK);
 }
 
