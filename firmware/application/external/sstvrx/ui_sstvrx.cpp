@@ -369,6 +369,24 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         }
         return;
     }
+    if (line == 0xFFF8) {
+        if (logger) {
+            logger->log_info("OUTLIER REJECTED: interval=" + to_string_dec_uint(total_lines) + " samples (expected 3331-13326)");
+        }
+        return;
+    }
+    if (line == 0xFFF7) {
+        if (logger) {
+            logger->log_info("PRE-RECORD: sync_history_count=" + to_string_dec_uint(total_lines));
+        }
+        return;
+    }
+    if (line == 0xFFF6) {
+        if (logger) {
+            logger->log_info("MAX_SYNC_HISTORY EXCEEDED: count=" + to_string_dec_uint(total_lines));
+        }
+        return;
+    }
     
     // Normal line processing
     current_line_rx = line;
@@ -383,12 +401,11 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     if (image_file && line_num < IMAGE_HEIGHT) {
         uint8_t row_data[IMAGE_WIDTH * 3];
         
-        // BMP stores as BGR, but our data seems to have R and B swapped
-        // So we write them in RGB order to compensate
+        // BMP stores as BGR (blue, green, red byte order)
         for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-            row_data[x * 3 + 0] = data_ptr[2 + x];                        // R→B (swap)
-            row_data[x * 3 + 1] = data_ptr[2 + PIXELS_PER_LINE + x];     // G→G (same)
-            row_data[x * 3 + 2] = data_ptr[2 + PIXELS_PER_LINE * 2 + x]; // B→R (swap)
+            row_data[x * 3 + 0] = data_ptr[2 + PIXELS_PER_LINE * 2 + x]; // B (third buffer)
+            row_data[x * 3 + 1] = data_ptr[2 + PIXELS_PER_LINE + x];     // G (second buffer)
+            row_data[x * 3 + 2] = data_ptr[2 + x];                        // R (first buffer)
         }
         
         // Seek to correct position (BMP is bottom-up, so invert line number)

@@ -70,26 +70,33 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
         switch (state) {
             case STATE_SYNC_SEARCH:
                 detect_sync(current_freq);
-                sample_count++;
                 
-                // Timeout if sync not detected within reasonable time
-                // Expected sync duration is ~9ms (216 samples), but with slant/drift,
-                // allow up to 500ms (~12000 samples) before giving up and moving on
-                if (sample_count > 12000) {
-                    // No sync detected - skip to separator and continue
-                    // This prevents getting stuck waiting for a weak/missing sync
-                    // Send debug message to indicate timeout
-                    SSTVRXProgressMessage timeout_msg{0xFFFA, (uint16_t)sample_count};
-                    shared_memory.application_queue.push(timeout_msg);
+                // On Line 0, we MUST wait indefinitely for the first valid sync
+                // This establishes proper timing and channel alignment
+                // Do NOT increment sample_count or check timeout on Line 0
+                if (current_line > 0) {
+                    sample_count++;
                     
-                    state = STATE_SEPARATOR;
-                    sample_count = 0;
-                    pixel_index = 0;
-                    channel_index = 0;
-                    pixel_accumulator = 0;
-                    pixel_sample_count = 0;
-                    pixel_phase = 0.0f;
+                    // Timeout if sync not detected within reasonable time on mid-image lines
+                    // Expected sync duration is ~9ms (216 samples), but with slant/drift,
+                    // allow up to 500ms (~12000 samples) before giving up and moving on
+                    if (sample_count > 12000) {
+                        // No sync detected for mid-image line - skip to separator and continue
+                        // This prevents getting stuck waiting for a weak/missing sync
+                        // Send debug message to indicate timeout
+                        SSTVRXProgressMessage timeout_msg{0xFFFA, (uint16_t)sample_count};
+                        shared_memory.application_queue.push(timeout_msg);
+                        
+                        state = STATE_SEPARATOR;
+                        sample_count = 0;
+                        pixel_index = 0;
+                        channel_index = 0;
+                        pixel_accumulator = 0;
+                        pixel_sample_count = 0;
+                        pixel_phase = 0.0f;
+                    }
                 }
+                // Line 0: wait indefinitely for first sync - no timeout
                 break;
                 
             case STATE_VIS_DECODE:
@@ -225,25 +232,12 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
         // Not sync frequency - check if we just finished a valid sync
         // Require at least 1/3 of expected sync duration (more lenient for weak signals)
         if (in_sync && sync_sample_count >= (samples_per_sync / 3)) {
-            // Valid sync pulse detected
+            // Valid sync pulse detected - always record it for timing tracking
+            // Debug: log current history count before recording
+            SSTVRXProgressMessage pre_count_msg{0xFFF7, sync_history_count};
+            shared_memory.application_queue.push(pre_count_msg);
             
-            // Track sync pulse timing for auto-calibration
-            // Only record sync if it's within reasonable timing (reject obvious outliers upfront)
-            bool should_record_sync = true;
-            if (sync_history_count > 0) {
-                uint32_t interval = global_sample_count - sync_positions[sync_history_count - 1];
-                // Reject intervals >50% off expected LINE interval (not sync pulse duration!)
-                // Expected line interval is ~6663 samples (sync+sep+G+sep+B+sep+R)
-                // So accept 3331-13326 samples (50% tolerance for clock drift/noise)
-                const uint32_t expected_line_interval = 6663;
-                const uint32_t min_interval = expected_line_interval / 2;       // 3331 samples
-                const uint32_t max_interval = expected_line_interval * 2;       // 13326 samples
-                if (interval < min_interval || interval > max_interval) {
-                    should_record_sync = false;  // Skip recording this obvious outlier
-                }
-            }
-            
-            if (should_record_sync && sync_history_count < MAX_SYNC_HISTORY) {
+            if (sync_history_count < MAX_SYNC_HISTORY) {
                 sync_positions[sync_history_count] = global_sample_count;
                 sync_history_count++;
                 
@@ -251,11 +245,33 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
                 SSTVRXProgressMessage sync_debug{0xFFFD, sync_history_count};
                 shared_memory.application_queue.push(sync_debug);
                 
+                // Check if this sync should be used for calibration (reject outliers)
+                bool use_for_calibration = true;
+                if (sync_history_count > 1) {
+                    uint32_t interval = sync_positions[sync_history_count - 1] - sync_positions[sync_history_count - 2];
+                    // Reject intervals >50% off expected LINE interval (not sync pulse duration!)
+                    // Expected line interval is ~6663 samples (sync+sep+G+sep+B+sep+R)
+                    // So accept 3331-13326 samples (50%-100% tolerance for clock drift/noise)
+                    const uint32_t expected_line_interval = 6663;
+                    const uint32_t min_interval = expected_line_interval / 2;       // 3331 samples
+                    const uint32_t max_interval = expected_line_interval * 2;       // 13326 samples
+                    if (interval < min_interval || interval > max_interval) {
+                        use_for_calibration = false;  // Don't use this sync for calibration
+                        // Debug: Send outlier rejection message (use 0xFFF8 for interval value)
+                        SSTVRXProgressMessage outlier_msg{0xFFF8, (uint16_t)(interval & 0xFFFF)};
+                        shared_memory.application_queue.push(outlier_msg);
+                    }
+                }
+                
                 // Calculate calibration after collecting enough syncs for accuracy
                 // Wait for 8 syncs to get better statistics, then update every 8 syncs
-                if (sync_history_count >= 8 && pixel_time_frac != 0.0f && sync_history_count % 8 == 0) {
+                if (use_for_calibration && sync_history_count >= 8 && pixel_time_frac != 0.0f && sync_history_count % 8 == 0) {
                     calculate_calibration();
                 }
+            } else {
+                // Debug: MAX_SYNC_HISTORY exceeded
+                SSTVRXProgressMessage max_reached_msg{0xFFF6, sync_history_count};
+                shared_memory.application_queue.push(max_reached_msg);
             }
             
             // Debug: Send sync detection info with timing data
