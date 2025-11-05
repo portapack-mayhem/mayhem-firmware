@@ -40,7 +40,7 @@ void shutdown();
 void OnFocus();
 bool OnKeyEvent(uint8_t);
 bool OnEncoder(int32_t);
-void OnTouchEvent(int, int, uint32_t);
+bool OnTouchEvent(int, int, uint32_t);
 bool OnKeyboad(uint8_t);
 void PaintViewMirror();
 
