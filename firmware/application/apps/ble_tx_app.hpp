@@ -293,7 +293,7 @@ class BLETxView : public View {
         {{UI_POS_X(0), 9 * 16}, "Packet Data:", Theme::getInstance()->fg_light->foreground}};
 
     TextViewer dataEditView{
-        {0, 9 * 18, 240, 240}};
+        {0, 9 * 18, screen_width, screen_height - 80}};
 
     Button button_clear_marked{
         {UI_POS_X(1), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(13), UI_POS_HEIGHT(1.5)},
