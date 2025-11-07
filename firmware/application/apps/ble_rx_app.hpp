@@ -175,13 +175,6 @@ class BleRecentEntryDetailView : public View {
         {7 * 8, UI_POS_Y(2), 23 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
-    Labels label_vendor{
-        {{0 * 8, 2 * 16}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
-
-    Text text_vendor{
-        {7 * 8, 2 * 16, 23 * 8, 16},
-        "-"};
-
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(3)}, "Len", Theme::getInstance()->fg_light->foreground},
         {{5 * 8, UI_POS_Y(3)}, "Type", Theme::getInstance()->fg_light->foreground},
