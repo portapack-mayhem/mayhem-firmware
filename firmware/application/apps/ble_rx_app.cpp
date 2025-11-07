@@ -200,14 +200,6 @@ void RecentEntriesTable<BleRecentEntries>::draw(
         hitsStr = to_string_dec_int(entry.numHits);
     }
 
-    std::string hitsStr;
-
-    if (!entry.informationString.empty()) {
-        hitsStr = entry.informationString;
-    } else {
-        hitsStr = to_string_dec_int(entry.numHits);
-    }
-
     // Pushing single digit values down right justified.
     int hitsDigits = hitsStr.length();
     uint8_t hits_spacing = 8 - hitsDigits;
@@ -1049,11 +1041,6 @@ bool BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         if (!success && !uniqueParsing) {
             success = parse_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.informationString);
         }
-
-        if (!success && !uniqueParsing) {
-            success = parse_beacon_data(packet->data, packet->dataLen, entry.nameString, entry.informationString);
-        }
-
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         if (!uniqueParsing) {
             ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;

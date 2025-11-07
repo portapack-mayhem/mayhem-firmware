@@ -994,10 +994,6 @@ class Waveform : public Widget {
     void set_paused(bool paused);
     bool is_clickable() const;
 
-    bool is_paused() const;
-    void set_paused(bool paused);
-    bool is_clickable() const;
-
     void paint(Painter& painter) override;
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
