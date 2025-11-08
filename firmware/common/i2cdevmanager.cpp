@@ -305,8 +305,9 @@ bool I2CDevManager::scan() {
     for (size_t i = 0; i < devlist.size(); ++i) {
         if (std::find(currList.begin(), currList.end(), devlist[i].addr) == currList.end()) {
             // found on our list, but now not discovered, so remove it
-            devlist[i].addr = 0;  // mark to delete
-            changed = true;
+            // use ESP32 AI device could lock I2C device, so dont call time_fn?
+            // devlist[i].addr = 0;  // mark to delete
+            // changed = true;
         }
     }
     return changed;
