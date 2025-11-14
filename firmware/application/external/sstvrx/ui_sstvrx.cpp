@@ -252,8 +252,7 @@ void SstvRxView::start_audio() {
     // Clear display area and reset line counter
     portapack::display.fill_rectangle(
         {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
-        {0, 0, 0}  // Black
-    );
+        {0, 0, 0});
     line_num = 0;
     max_received_line = 0;
     pending_line_valid = false;
@@ -288,9 +287,8 @@ void SstvRxView::start_audio() {
     audio::output::start();
     audio::headphone::set_volume(persistent_memory::headphone_volume());
     
-    // Set a nominal modulation mode for receiver chain initialization
-    // Even though SSTV uses custom baseband, we need this for proper RF/audio stats
-    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+    // Keep ReceiverModel in capture mode so it doesn't override our custom baseband/audio configuration.
+    receiver_model.set_modulation(ReceiverModel::Mode::Capture);
     
     // Enable receiver last
     receiver_model.enable();
@@ -305,18 +303,18 @@ void SstvRxView::on_mode_changed(const size_t index) {
 
 void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) {
     if (current_line >= IMAGE_HEIGHT) return;
-    
+
     // Reset line counter if we reach the bottom of display
     if (line_num >= DISPLAY_HEIGHT) {
         line_num = 0;
     }
-    
+
     // Scale line to display width
     for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
         // Scale x coordinate
         uint16_t src_x = (x * IMAGE_WIDTH) / DISPLAY_WIDTH;
         if (src_x >= IMAGE_WIDTH) continue;
-        
+
         // Get RGB values from interleaved data [R,G,B,R,G,B,...]
         uint8_t r = rgb_line[src_x * 3 + 0];
         uint8_t g = rgb_line[src_x * 3 + 1];
@@ -324,14 +322,14 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) 
         // Display uses BGR order like BMP format
         line_buffer[x] = {b, g, r};
     }
-    
+
     // Render the line at the current position
     portapack::display.render_line(
         {0, line_num + SSTV_IMG_START_ROW * 16},
         DISPLAY_WIDTH,
         line_buffer
     );
-    
+
     // Increment line counter
     line_num++;
 }
