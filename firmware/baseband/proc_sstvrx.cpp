@@ -69,34 +69,15 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
         // Process based on current state
         switch (state) {
             case STATE_SYNC_SEARCH:
-                detect_sync(current_freq);
-                
-                // On Line 0, we MUST wait indefinitely for the first valid sync
-                // This establishes proper timing and channel alignment
-                // Do NOT increment sample_count or check timeout on Line 0
-                if (current_line > 0) {
-                    sample_count++;
-                    
-                    // Timeout if sync not detected within reasonable time on mid-image lines
-                    // Expected sync duration is ~9ms (216 samples), but with slant/drift,
-                    // allow up to 500ms (~12000 samples) before giving up and moving on
-                    if (sample_count > 12000) {
-                        // No sync detected for mid-image line - skip to separator and continue
-                        // This prevents getting stuck waiting for a weak/missing sync
-                        // Send debug message to indicate timeout
-                        SSTVRXProgressMessage timeout_msg{0xFFFA, (uint16_t)sample_count};
-                        shared_memory.application_queue.push(timeout_msg);
-                        
-                        state = STATE_SEPARATOR;
-                        sample_count = 0;
-                        pixel_index = 0;
-                        channel_index = 0;
-                        pixel_accumulator = 0;
-                        pixel_sample_count = 0;
-                        pixel_phase = 0.0f;
-                    }
+                // Before Line 0: wait for initial sync pulses to establish timing
+                if (current_line == 0) {
+                    detect_sync(current_freq);
                 }
-                // Line 0: wait indefinitely for first sync - no timeout
+                // After Line 0 started: we're at end of a line, waiting for next sync
+                // Just wait - the sync will be detected and we'll transition to separator
+                else {
+                    detect_sync(current_freq);
+                }
                 break;
                 
             case STATE_VIS_DECODE:
@@ -107,24 +88,21 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
                 break;
                 
             case STATE_SEPARATOR:
-                // Wait for separator pulse to complete (1500Hz, 1.5ms)
-                // We don't need to verify frequency, just count samples
+                // Wait for separator to complete (1.5ms = 36 samples)
+                // Separator is a 1500Hz tone that marks channel boundaries
                 sample_count++;
-                
                 if (sample_count >= samples_per_gap) {
-                    // Separator complete, move to image data
+                    // Separator complete, start next channel
                     sample_count = 0;
                     pixel_accumulator = 0;
                     pixel_sample_count = 0;
-                    pixel_phase = 0.0f;  // Reset pixel timing
-                    
-                    // Always move to image data after separator
-                    // SSTV is continuous - no need to hunt for syncs after initial lock
+                    pixel_phase = 0.0f;
                     state = STATE_IMAGE_DATA;
                 }
                 break;
                 
             case STATE_IMAGE_DATA:
+                // Process pixels continuously
                 process_pixel_sample(current_freq);
                 break;
         }
@@ -249,12 +227,10 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
                 bool use_for_calibration = true;
                 if (sync_history_count > 1) {
                     uint32_t interval = sync_positions[sync_history_count - 1] - sync_positions[sync_history_count - 2];
-                    // Reject intervals >50% off expected LINE interval (not sync pulse duration!)
-                    // Expected line interval is ~6663 samples (sync+sep+G+sep+B+sep+R)
-                    // So accept 3331-13326 samples (50%-100% tolerance for clock drift/noise)
-                    const uint32_t expected_line_interval = 6663;
-                    const uint32_t min_interval = expected_line_interval / 2;       // 3331 samples
-                    const uint32_t max_interval = expected_line_interval * 2;       // 13326 samples
+                    // Expected line interval is ~13344 samples based on actual measurements
+                    // Accept 10000-15000 samples (±25% tolerance for clock drift/noise)
+                    const uint32_t min_interval = 10000;  // Lower bound
+                    const uint32_t max_interval = 15000;  // Upper bound
                     if (interval < min_interval || interval > max_interval) {
                         use_for_calibration = false;  // Don't use this sync for calibration
                         // Debug: Send outlier rejection message (use 0xFFF8 for interval value)
@@ -283,18 +259,35 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
             SSTVRXProgressMessage freq_msg{0xFFF9, (uint16_t)current_freq};
             shared_memory.application_queue.push(freq_msg);
             
-            state = STATE_SEPARATOR;
-            sample_count = 0;
-            pixel_index = 0;
-            channel_index = 0;  // Will start with Green after separator
-            pixel_accumulator = 0;
-            pixel_sample_count = 0;
-            pixel_phase = 0.0f;  // Reset fractional timing
-            
-            // Reset line buffers
-            memset(line_buffer_r, 0, PIXELS_PER_LINE);
-            memset(line_buffer_g, 0, PIXELS_PER_LINE);
-            memset(line_buffer_b, 0, PIXELS_PER_LINE);
+            // Handle sync detection based on current line
+            if (current_line == 0 && sync_history_count >= 2) {
+                // Line 0: Start decoding after 2 syncs
+                state = STATE_SEPARATOR;
+                sample_count = 0;
+                pixel_index = 0;
+                channel_index = 0;  // Start with Green (Scottie 2 order: G→B→R)
+                pixel_accumulator = 0;
+                pixel_sample_count = 0;
+                pixel_phase = 0.0f;  // Reset fractional timing
+                
+                // Reset line buffers
+                memset(line_buffer_r, 0, PIXELS_PER_LINE);
+                memset(line_buffer_g, 0, PIXELS_PER_LINE);
+                memset(line_buffer_b, 0, PIXELS_PER_LINE);
+                
+                // Prevent restarting Line 0 on subsequent syncs by moving to Line 1
+                current_line = 1;
+            } else if (current_line > 0 && state == STATE_SYNC_SEARCH) {
+                // Mid-image sync: transition to separator for next line
+                state = STATE_SEPARATOR;
+                sample_count = 0;
+                pixel_index = 0;
+                channel_index = 0;  // Start with Green
+                pixel_accumulator = 0;
+                pixel_sample_count = 0;
+                pixel_phase = 0.0f;
+            }
+            // else: Line 0 without enough syncs, or mid-image but not in SYNC_SEARCH - just track the sync
         }
         in_sync = false;
         sync_sample_count = 0;
@@ -372,38 +365,52 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
     pixel_accumulator += freq;
     pixel_sample_count++;
     
-    // Advance pixel phase with slant adjustment
+    // Advance pixel phase (1.0 per sample, adjusted by slant)
     pixel_phase += slant_factor;
     
-    // Check if we've accumulated enough for one pixel using fractional timing
-    if (pixel_phase >= pixel_time_frac) {
+    // Check if we've accumulated enough samples for one or more pixels
+    // pixel_time_frac is the number of samples per pixel (e.g., 13.5625)
+    // Use a loop to handle cases where pixel_phase exceeds pixel_time_frac by more than one pixel
+    while (pixel_phase >= pixel_time_frac && pixel_index < PIXELS_PER_LINE) {
         // Pixel complete - calculate average frequency
-        int32_t avg_freq = pixel_accumulator / pixel_sample_count;
+        // Prevent division by zero
+        int32_t avg_freq;
+        if (pixel_sample_count > 0) {
+            avg_freq = pixel_accumulator / pixel_sample_count;
+        } else {
+            avg_freq = freq;  // Use current frequency if no samples accumulated
+        }
         
         // Convert to pixel value
         uint8_t pixel_value = freq_to_pixel(avg_freq);
         
-        // Apply phase offset (horizontal shift)
+        // Apply phase offset (horizontal shift) and clamp to prevent out-of-bounds writes
+        // Clamping prevents pixels from wrapping around and causing duplication
         int32_t adjusted_pixel_index = (int32_t)pixel_index + phase_offset;
+        if (adjusted_pixel_index < 0) {
+            adjusted_pixel_index = 0;
+        } else if (adjusted_pixel_index >= PIXELS_PER_LINE) {
+            adjusted_pixel_index = PIXELS_PER_LINE - 1;
+        }
         
-        // Store in appropriate channel buffer if within bounds
-        if (adjusted_pixel_index >= 0 && adjusted_pixel_index < PIXELS_PER_LINE) {
-            switch (channel_index) {
-                case 0:  // Green (Scottie sequence: GBR)
-                    line_buffer_g[adjusted_pixel_index] = pixel_value;
-                    break;
-                case 1:  // Blue
-                    line_buffer_b[adjusted_pixel_index] = pixel_value;
-                    break;
-                case 2:  // Red
-                    line_buffer_r[adjusted_pixel_index] = pixel_value;
-                    break;
-            }
+        // Store in appropriate channel buffer - always write (bounds already checked)
+        switch (channel_index) {
+            case 0:  // First channel transmitted: Green (per Scottie 2 spec)
+                line_buffer_g[adjusted_pixel_index] = pixel_value;
+                break;
+            case 1:  // Second channel transmitted: Blue (per Scottie 2 spec)
+                line_buffer_b[adjusted_pixel_index] = pixel_value;
+                break;
+            case 2:  // Third channel transmitted: Red (per Scottie 2 spec)
+                line_buffer_r[adjusted_pixel_index] = pixel_value;
+                break;
         }
         
         pixel_index++;
-        pixel_accumulator = 0;
-        pixel_sample_count = 0;
+        // Reset accumulator for next pixel
+        // If this is not the last pixel in the loop, subsequent pixels will use current sample
+        pixel_accumulator = freq;
+        pixel_sample_count = 1;
         pixel_phase -= pixel_time_frac;  // Keep fractional part for next pixel
         
         // Check if we finished a color channel
@@ -422,6 +429,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
                 state = STATE_SYNC_SEARCH;
                 sync_sample_count = 0;
                 in_sync = false;
+                break;  // Exit loop when transitioning to new line
             } else {
                 // Finished Green or Blue, move to next channel
                 channel_index++;
@@ -429,6 +437,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
                 // Enter separator state between channels
                 state = STATE_SEPARATOR;
                 sample_count = 0;
+                break;  // Exit loop when transitioning to separator
             }
         }
     }
@@ -439,19 +448,55 @@ void SSTVRXProcessor::process_line() {
     
     // Copy line data to shared memory for M0 to read
     // Use bb_data to transfer RGB data
+    // bb_data is only 512 bytes, so we need to interleave RGB and limit to what fits
+    // 2 bytes header + 510 bytes RGB = 170 pixels max (510/3 = 170)
+    // But we need 320 pixels, so we'll write RGB interleaved format
     uint8_t* data_ptr = shared_memory.bb_data.data;
     
     // Pack RGB data: [line_number(2 bytes)][R(320)][G(320)][B(320)]
-    data_ptr[0] = current_line & 0xFF;
-    data_ptr[1] = (current_line >> 8) & 0xFF;
+    // NOTE: This causes buffer overflow (962 bytes > 512 bytes)!
+    // The overflow causes memory corruption and image duplication
+    // We need to interleave RGB to match what the UI expects and fit in buffer
+    // Encode line number: first chunk = line*2, second chunk = line*2+1
+    // This ensures first chunks are even, second chunks are odd
+    data_ptr[0] = (current_line * 2) & 0xFF;
+    data_ptr[1] = ((current_line * 2) >> 8) & 0xFF;
     
-    memcpy(data_ptr + 2, line_buffer_r, PIXELS_PER_LINE);
-    memcpy(data_ptr + 2 + PIXELS_PER_LINE, line_buffer_g, PIXELS_PER_LINE);
-    memcpy(data_ptr + 2 + PIXELS_PER_LINE * 2, line_buffer_b, PIXELS_PER_LINE);
+    // Write RGB data interleaved: R,G,B,R,G,B,... format
+    // This matches the BMP format the UI expects
+    // Buffer is only 512 bytes: 2 (header) + 510 (RGB) = 170 pixels max
+    // Write only what fits to prevent buffer overflow and duplication
+    const uint16_t max_pixels = (512 - 2) / 3;  // 170 pixels max
+    const uint16_t pixels_to_write = (PIXELS_PER_LINE < max_pixels) ? PIXELS_PER_LINE : max_pixels;
     
-    // Send progress message
-    SSTVRXProgressMessage progress_message{current_line, 256};
+    for (uint16_t i = 0; i < pixels_to_write; i++) {
+        data_ptr[2 + i * 3 + 0] = line_buffer_r[i];
+        data_ptr[2 + i * 3 + 1] = line_buffer_g[i];
+        data_ptr[2 + i * 3 + 2] = line_buffer_b[i];
+    }
+    
+    // Send progress message for first chunk (use encoded line number)
+    SSTVRXProgressMessage progress_message{static_cast<uint16_t>(current_line * 2), 256};
     shared_memory.application_queue.push(progress_message);
+    
+    // Write second chunk for remaining pixels (150 pixels = 450 bytes)
+    // Use line number encoding: line*2+1 to indicate second chunk (odd number)
+    if (PIXELS_PER_LINE > max_pixels) {
+        // Write second chunk with modified line number (odd = second chunk)
+        data_ptr[0] = (current_line * 2 + 1) & 0xFF;
+        data_ptr[1] = ((current_line * 2 + 1) >> 8) & 0xFF;
+        
+        for (uint16_t i = 0; i < (PIXELS_PER_LINE - max_pixels); i++) {
+            uint16_t src_idx = max_pixels + i;
+            data_ptr[2 + i * 3 + 0] = line_buffer_r[src_idx];
+            data_ptr[2 + i * 3 + 1] = line_buffer_g[src_idx];
+            data_ptr[2 + i * 3 + 2] = line_buffer_b[src_idx];
+        }
+        
+        // Send second chunk message
+        SSTVRXProgressMessage progress_message2{static_cast<uint16_t>(current_line * 2 + 1), 256};
+        shared_memory.application_queue.push(progress_message2);
+    }
     
     current_line++;
 }
@@ -532,10 +577,13 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             memset(sync_positions, 0, sizeof(sync_positions));
             
             // Set timing for Scottie 2 at 24kHz audio sample rate
-            // Decimation: 3.072MHz /8 /8 /2 = 24kHz (same as NFM)
-            // Scottie 2: 0.2752ms/pixel, 9ms sync, 1.5ms separator
-            pixel_time_frac = 0.2752f * 24.0f;  // 6.6048 samples/pixel (exact)
-            samples_per_pixel = 7;               // Integer approximation for quick checks
+            // Measured sync intervals: typically 13344 samples
+            // Total line: 13344 = sync(216) + [sep(36) + channel]×3
+            // We SKIP separators (they're just 1500Hz timing markers)
+            // Available for image: 13344 - 216(sync) - 108(3×sep) = 13020 samples
+            // Per pixel: 13020 / (3 channels × 320 pixels) = 13.5625 samples/pixel
+            pixel_time_frac = 13.5625f;          // Exact timing, skipping separators  
+            samples_per_pixel = 14;              // Integer approximation
             samples_per_sync = 216;              // 9ms × 24000 Hz = 216 samples
             samples_per_gap = 36;                // 1.5ms × 24000 Hz = 36 samples
             pixel_phase = 0.0f;

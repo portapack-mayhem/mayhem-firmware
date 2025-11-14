@@ -126,6 +126,8 @@ class SSTVRXProcessor : public BasebandProcessor {
      // Sync detection
      uint32_t sync_sample_count{0};
      bool in_sync{false};
+     int32_t sync_freq_sum{0};       // Accumulated frequency during sync pulse
+     uint32_t sync_freq_samples{0};  // Number of samples in sync pulse for averaging
      
      // Sync pulse timing tracking for auto-calibration
      static constexpr uint32_t MAX_SYNC_HISTORY = 256;  // Track all syncs in image

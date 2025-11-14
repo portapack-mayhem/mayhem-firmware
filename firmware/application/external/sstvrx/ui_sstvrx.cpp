@@ -73,10 +73,12 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     
     // Configure receiver with optimal settings for SSTV
     // NOTE: Do NOT set modulation mode - SSTV uses a custom baseband processor
+    // Standard sampling rate (3.072MHz) with wide bandwidth to capture full SSTV audio spectrum
+    // SSTV uses 1200-2300 Hz tones, so we need wide baseband to avoid distortion
     receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_baseband_bandwidth(16000);  // Wide enough for SSTV but not too wide
+    receiver_model.set_baseband_bandwidth(1750000);  // Standard wideband setting
     receiver_model.set_squelch_level(1);
-    receiver_model.set_hidden_offset(2500);  // Small offset to avoid DC spike but minimize distortion
+    receiver_model.set_hidden_offset(0);  // No offset needed
     
     // Field values will be set in on_show() to ensure proper initialization
 
@@ -300,11 +302,12 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* data_ptr) 
         uint16_t src_x = (x * IMAGE_WIDTH) / DISPLAY_WIDTH;
         if (src_x >= IMAGE_WIDTH) continue;
         
-        // Get RGB values and create color
-        uint8_t r = data_ptr[2 + src_x];
-        uint8_t g = data_ptr[2 + PIXELS_PER_LINE + src_x];
-        uint8_t b = data_ptr[2 + PIXELS_PER_LINE * 2 + src_x];
-        line_buffer[x] = {r, g, b};  // Color constructor handles conversion
+        // Get RGB values from interleaved data [R,G,B,R,G,B,...]
+        uint8_t r = data_ptr[2 + src_x * 3 + 0];
+        uint8_t g = data_ptr[2 + src_x * 3 + 1];
+        uint8_t b = data_ptr[2 + src_x * 3 + 2];
+        // Display uses BGR order like BMP format
+        line_buffer[x] = {b, g, r};
     }
     
     // Render the line at the current position
@@ -371,7 +374,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     }
     if (line == 0xFFF8) {
         if (logger) {
-            logger->log_info("OUTLIER REJECTED: interval=" + to_string_dec_uint(total_lines) + " samples (expected 3331-13326)");
+            logger->log_info("OUTLIER REJECTED: interval=" + to_string_dec_uint(total_lines) + " samples (expected 10000-15000)");
         }
         return;
     }
@@ -387,6 +390,24 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         }
         return;
     }
+    if (line == 0xFFF5) {
+        if (logger) {
+            // Decode rejection reason bit flags: 0x1=interval, 0x2=freq, 0x4=duration
+            std::string reasons = "";
+            if (total_lines & 0x1) reasons += "interval ";
+            if (total_lines & 0x2) reasons += "freq ";
+            if (total_lines & 0x4) reasons += "duration ";
+            if (reasons.empty()) reasons = "unknown";
+            logger->log_info("FALSE SYNC PAIR REJECTED on Line 0: " + reasons);
+        }
+        return;
+    }
+    if (line == 0xFFF4) {
+        if (logger) {
+            logger->log_info("STARTING LINE 0 DECODE after sync_sample_count=" + to_string_dec_uint(total_lines));
+        }
+        return;
+    }
     
     // Normal line processing
     current_line_rx = line;
@@ -394,27 +415,97 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     // Read line data from shared memory
     uint8_t* data_ptr = shared_memory.bb_data.data;
     
-    // Extract line number
-    uint16_t line_num = data_ptr[0] | (data_ptr[1] << 8);
+    // Extract line number - check if it's a second chunk
+    // Encoding: first chunk = line*2 (even), second chunk = line*2+1 (odd)
+    // Line 0: first=0, second=1; Line 1: first=2, second=3; etc.
+    uint16_t line_num_encoded = data_ptr[0] | (data_ptr[1] << 8);
+    bool is_second_chunk = (line_num_encoded & 1) == 1;  // Odd = second chunk
+    uint16_t actual_line_num = line_num_encoded / 2;  // Decode: divide by 2
+    
+    const uint16_t max_pixels_per_chunk = (512 - 2) / 3;  // 170 pixels
     
     // Write line directly to file (BMP is bottom-up)
-    if (image_file && line_num < IMAGE_HEIGHT) {
-        uint8_t row_data[IMAGE_WIDTH * 3];
+    // Write chunks directly to file at correct offsets to avoid large buffer
+    if (image_file && actual_line_num < IMAGE_HEIGHT) {
+        uint32_t row_stride = IMAGE_WIDTH * 3;
+        uint32_t base_line_offset = 54 + ((IMAGE_HEIGHT - 1 - actual_line_num) * row_stride);
         
-        // BMP stores as BGR (blue, green, red byte order)
-        for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-            row_data[x * 3 + 0] = data_ptr[2 + PIXELS_PER_LINE * 2 + x]; // B (third buffer)
-            row_data[x * 3 + 1] = data_ptr[2 + PIXELS_PER_LINE + x];     // G (second buffer)
-            row_data[x * 3 + 2] = data_ptr[2 + x];                        // R (first buffer)
+        if (is_second_chunk) {
+            // Second chunk: pixels 170-319
+            // Write directly to file at offset for pixels 170-319
+            uint16_t second_chunk_pixels = IMAGE_WIDTH - max_pixels_per_chunk;  // 150 pixels
+            uint32_t chunk_offset = base_line_offset + (max_pixels_per_chunk * 3);
+            
+            image_file->sync();
+            if (image_file->seek(chunk_offset)) {
+                // Convert RGB to BGR and write directly
+                for (uint16_t i = 0; i < second_chunk_pixels; i++) {
+                    uint8_t r = data_ptr[2 + i * 3 + 0];
+                    uint8_t g = data_ptr[2 + i * 3 + 1];
+                    uint8_t b = data_ptr[2 + i * 3 + 2];
+                    uint8_t bgr[3] = {b, g, r};  // BGR order for BMP
+                    image_file->write(bgr, 3);
+                }
+                image_file->sync();
+            }
+            
+            // Now update display - read both chunks from file or reconstruct
+            // For display, we'll reconstruct from what we just wrote
+            // Read the complete line from file for display
+            image_file->sync();
+            if (image_file->seek(base_line_offset)) {
+                uint8_t row_data[IMAGE_WIDTH * 3];
+                if (image_file->read(row_data, row_stride)) {
+                    // Convert BGR back to RGB for display
+                    uint8_t display_data[2 + IMAGE_WIDTH * 3];
+                    display_data[0] = actual_line_num & 0xFF;
+                    display_data[1] = (actual_line_num >> 8) & 0xFF;
+                    for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
+                        display_data[2 + x * 3 + 0] = row_data[x * 3 + 2];  // R
+                        display_data[2 + x * 3 + 1] = row_data[x * 3 + 1];  // G
+                        display_data[2 + x * 3 + 2] = row_data[x * 3 + 0];  // B
+                    }
+                    update_display(actual_line_num, display_data);
+                }
+            }
+        } else {
+            // First chunk: pixels 0-169
+            // Write directly to file at offset for pixels 0-169
+            image_file->sync();
+            if (image_file->seek(base_line_offset)) {
+                // Convert RGB to BGR and write directly
+                for (uint16_t i = 0; i < max_pixels_per_chunk && i < IMAGE_WIDTH; i++) {
+                    uint8_t r = data_ptr[2 + i * 3 + 0];
+                    uint8_t g = data_ptr[2 + i * 3 + 1];
+                    uint8_t b = data_ptr[2 + i * 3 + 2];
+                    uint8_t bgr[3] = {b, g, r};  // BGR order for BMP
+                    image_file->write(bgr, 3);
+                }
+                image_file->sync();
+            }
+            
+            // If this is a complete line (only one chunk needed), update display now
+            if (IMAGE_WIDTH <= max_pixels_per_chunk) {
+                // Read back for display
+                image_file->sync();
+                if (image_file->seek(base_line_offset)) {
+                    uint8_t row_data[IMAGE_WIDTH * 3];
+                    if (image_file->read(row_data, row_stride)) {
+                        uint8_t display_data[2 + IMAGE_WIDTH * 3];
+                        display_data[0] = actual_line_num & 0xFF;
+                        display_data[1] = (actual_line_num >> 8) & 0xFF;
+                        for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
+                            display_data[2 + x * 3 + 0] = row_data[x * 3 + 2];  // R
+                            display_data[2 + x * 3 + 1] = row_data[x * 3 + 1];  // G
+                            display_data[2 + x * 3 + 2] = row_data[x * 3 + 0];  // B
+                        }
+                        update_display(actual_line_num, display_data);
+                    }
+                }
+            }
+            // Otherwise wait for second chunk - return early
+            return;
         }
-        
-        // Seek to correct position (BMP is bottom-up, so invert line number)
-        uint32_t line_offset = 54 + ((IMAGE_HEIGHT - 1 - line_num) * IMAGE_WIDTH * 3);
-        image_file->seek(line_offset);
-        image_file->write(row_data, IMAGE_WIDTH * 3);
-        
-        // Update live display
-        update_display(line_num, data_ptr);
     }
     
     if (logger && (line % 10 == 0)) {  // Log every 10 lines to reduce overhead
