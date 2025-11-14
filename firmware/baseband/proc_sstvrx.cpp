@@ -31,10 +31,42 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <algorithm>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+namespace {
+constexpr size_t sstv_shared_buffer_bytes = sizeof(shared_memory.bb_data.data);
+constexpr size_t sstv_chunk_flag_index = sstv_shared_buffer_bytes - 1;  // Reserve last byte as ownership flag
+constexpr size_t sstv_chunk_header_bytes = 2;
+constexpr size_t sstv_chunk_copy_bytes = sstv_shared_buffer_bytes - 1;  // Bytes copied to M0 (excludes flag)
+constexpr uint16_t sstv_max_chunk_pixels = (sstv_chunk_copy_bytes - sstv_chunk_header_bytes) / 3;
+
+inline volatile uint8_t& chunk_flag() {
+    return *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[sstv_chunk_flag_index]);
+}
+
+inline void wait_for_chunk_slot() {
+    while (chunk_flag() != 0) {
+        __asm__ volatile("nop");
+    }
+}
+
+inline void mark_chunk_ready() {
+    chunk_flag() = 1;
+}
+
+inline const sstv_mode* find_mode_by_vis_code(const uint8_t vis_code) {
+    for (const auto& mode : sstv_modes) {
+        if (mode.vis_code == vis_code) {
+            return &mode;
+        }
+    }
+    return nullptr;
+}
+}  // namespace
 
 void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) {
@@ -227,15 +259,19 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
                 bool use_for_calibration = true;
                 if (sync_history_count > 1) {
                     uint32_t interval = sync_positions[sync_history_count - 1] - sync_positions[sync_history_count - 2];
-                    // Expected line interval is ~13344 samples based on actual measurements
-                    // Accept 10000-15000 samples (±25% tolerance for clock drift/noise)
-                    const uint32_t min_interval = 10000;  // Lower bound
-                    const uint32_t max_interval = 15000;  // Upper bound
-                    if (interval < min_interval || interval > max_interval) {
-                        use_for_calibration = false;  // Don't use this sync for calibration
-                        // Debug: Send outlier rejection message (use 0xFFF8 for interval value)
-                        SSTVRXProgressMessage outlier_msg{0xFFF8, (uint16_t)(interval & 0xFFFF)};
-                        shared_memory.application_queue.push(outlier_msg);
+                    const uint32_t nominal_interval = compute_nominal_line_interval();
+                    if (nominal_interval == 0) {
+                        use_for_calibration = false;
+                    } else {
+                        const uint32_t tolerance = nominal_interval / 4;
+                        const uint32_t min_interval = (nominal_interval > tolerance) ? (nominal_interval - tolerance) : 0;
+                        const uint32_t max_interval = nominal_interval + tolerance;
+                        if (interval < min_interval || interval > max_interval) {
+                            use_for_calibration = false;  // Don't use this sync for calibration
+                            // Debug: Send outlier rejection message (use 0xFFF8 for interval value)
+                            SSTVRXProgressMessage outlier_msg{0xFFF8, (uint16_t)(interval & 0xFFFF)};
+                            shared_memory.application_queue.push(outlier_msg);
+                        }
                     }
                 }
                 
@@ -298,12 +334,10 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
 void SSTVRXProcessor::calculate_calibration() {
     if (sync_history_count < 2 || pixel_time_frac == 0.0f) return;
     
-    // Calculate expected interval (one full line for Scottie 2)
-    // Scottie 2: 9ms sync + 1.5ms sep + 146.432ms G + 1.5ms sep + 146.432ms B + 1.5ms sep + 146.432ms R
-    expected_sync_interval = samples_per_sync + samples_per_gap + 
-                            (uint32_t)(pixel_time_frac * PIXELS_PER_LINE) + samples_per_gap +
-                            (uint32_t)(pixel_time_frac * PIXELS_PER_LINE) + samples_per_gap +
-                            (uint32_t)(pixel_time_frac * PIXELS_PER_LINE);
+    expected_sync_interval = compute_nominal_line_interval();
+    if (expected_sync_interval == 0) {
+        return;
+    }
     
     // Send debug info about expected interval
     SSTVRXProgressMessage debug_interval{0xFFFC, (uint16_t)(expected_sync_interval & 0xFFFF)};
@@ -359,6 +393,17 @@ void SSTVRXProcessor::calculate_calibration() {
     shared_memory.application_queue.push(cal_msg);
 }
 
+uint32_t SSTVRXProcessor::compute_nominal_line_interval() const {
+    const uint32_t color_sections = (active_mode && active_mode->color) ? 3U : 1U;
+    const uint32_t gap_sections = (active_mode && active_mode->gaps) ? color_sections : 0U;
+    const float samples_per_channel_f = pixel_time_frac * static_cast<float>(PIXELS_PER_LINE);
+    const float rounded_channel = std::round(samples_per_channel_f);
+    const uint32_t samples_per_channel = static_cast<uint32_t>(std::max(1.0f, rounded_channel));
+    const uint32_t total_channel_samples = samples_per_channel * color_sections;
+    const uint32_t total_gap_samples = samples_per_gap * gap_sections;
+    return samples_per_sync + total_gap_samples + total_channel_samples;
+}
+
 // Process pixel samples during image data state
 void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
     // Accumulate frequency samples for averaging
@@ -369,7 +414,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
     pixel_phase += slant_factor;
     
     // Check if we've accumulated enough samples for one or more pixels
-    // pixel_time_frac is the number of samples per pixel (e.g., 13.5625)
+    // pixel_time_frac is the number of audio samples per pixel for the current mode
     // Use a loop to handle cases where pixel_phase exceeds pixel_time_frac by more than one pixel
     while (pixel_phase >= pixel_time_frac && pixel_index < PIXELS_PER_LINE) {
         // Pixel complete - calculate average frequency
@@ -444,60 +489,41 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
 }
 
 void SSTVRXProcessor::process_line() {
-    if (current_line >= 256) return;  // Scottie 2 has 256 lines
-    
-    // Copy line data to shared memory for M0 to read
-    // Use bb_data to transfer RGB data
-    // bb_data is only 512 bytes, so we need to interleave RGB and limit to what fits
-    // 2 bytes header + 510 bytes RGB = 170 pixels max (510/3 = 170)
-    // But we need 320 pixels, so we'll write RGB interleaved format
-    uint8_t* data_ptr = shared_memory.bb_data.data;
-    
-    // Pack RGB data: [line_number(2 bytes)][R(320)][G(320)][B(320)]
-    // NOTE: This causes buffer overflow (962 bytes > 512 bytes)!
-    // The overflow causes memory corruption and image duplication
-    // We need to interleave RGB to match what the UI expects and fit in buffer
-    // Encode line number: first chunk = line*2, second chunk = line*2+1
-    // This ensures first chunks are even, second chunks are odd
-    data_ptr[0] = (current_line * 2) & 0xFF;
-    data_ptr[1] = ((current_line * 2) >> 8) & 0xFF;
-    
-    // Write RGB data interleaved: R,G,B,R,G,B,... format
-    // This matches the BMP format the UI expects
-    // Buffer is only 512 bytes: 2 (header) + 510 (RGB) = 170 pixels max
-    // Write only what fits to prevent buffer overflow and duplication
-    const uint16_t max_pixels = (512 - 2) / 3;  // 170 pixels max
-    const uint16_t pixels_to_write = (PIXELS_PER_LINE < max_pixels) ? PIXELS_PER_LINE : max_pixels;
-    
-    for (uint16_t i = 0; i < pixels_to_write; i++) {
-        data_ptr[2 + i * 3 + 0] = line_buffer_r[i];
-        data_ptr[2 + i * 3 + 1] = line_buffer_g[i];
-        data_ptr[2 + i * 3 + 2] = line_buffer_b[i];
-    }
-    
-    // Send progress message for first chunk (use encoded line number)
-    SSTVRXProgressMessage progress_message{static_cast<uint16_t>(current_line * 2), 256};
-    shared_memory.application_queue.push(progress_message);
-    
-    // Write second chunk for remaining pixels (150 pixels = 450 bytes)
-    // Use line number encoding: line*2+1 to indicate second chunk (odd number)
-    if (PIXELS_PER_LINE > max_pixels) {
-        // Write second chunk with modified line number (odd = second chunk)
-        data_ptr[0] = (current_line * 2 + 1) & 0xFF;
-        data_ptr[1] = ((current_line * 2 + 1) >> 8) & 0xFF;
-        
-        for (uint16_t i = 0; i < (PIXELS_PER_LINE - max_pixels); i++) {
-            uint16_t src_idx = max_pixels + i;
-            data_ptr[2 + i * 3 + 0] = line_buffer_r[src_idx];
-            data_ptr[2 + i * 3 + 1] = line_buffer_g[src_idx];
-            data_ptr[2 + i * 3 + 2] = line_buffer_b[src_idx];
+    if (current_line >= mode_total_lines || mode_total_lines == 0) return;
+
+    const uint16_t first_chunk_pixels = (PIXELS_PER_LINE < sstv_max_chunk_pixels) ? PIXELS_PER_LINE : sstv_max_chunk_pixels;
+    const uint16_t remaining_pixels = (PIXELS_PER_LINE > sstv_max_chunk_pixels) ? (PIXELS_PER_LINE - sstv_max_chunk_pixels) : 0;
+
+    auto write_chunk = [&](const uint16_t encoded_line, const uint16_t start_pixel, const uint16_t pixel_count) {
+        if (pixel_count == 0) {
+            return;
         }
-        
-        // Send second chunk message
-        SSTVRXProgressMessage progress_message2{static_cast<uint16_t>(current_line * 2 + 1), 256};
-        shared_memory.application_queue.push(progress_message2);
+
+        wait_for_chunk_slot();
+
+        uint8_t* data_ptr = shared_memory.bb_data.data;
+        data_ptr[0] = encoded_line & 0xFF;
+        data_ptr[1] = (encoded_line >> 8) & 0xFF;
+
+        for (uint16_t i = 0; i < pixel_count; i++) {
+            const uint16_t src_idx = start_pixel + i;
+            const size_t dst = sstv_chunk_header_bytes + i * 3;
+            data_ptr[dst + 0] = line_buffer_r[src_idx];
+            data_ptr[dst + 1] = line_buffer_g[src_idx];
+            data_ptr[dst + 2] = line_buffer_b[src_idx];
+        }
+
+        mark_chunk_ready();
+        SSTVRXProgressMessage progress_message{encoded_line, mode_total_lines};
+        shared_memory.application_queue.push(progress_message);
+    };
+
+    write_chunk(static_cast<uint16_t>(current_line * 2), 0, first_chunk_pixels);
+
+    if (remaining_pixels) {
+        write_chunk(static_cast<uint16_t>(current_line * 2 + 1), first_chunk_pixels, remaining_pixels);
     }
-    
+
     current_line++;
 }
 
@@ -520,18 +546,36 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
         case Message::ID::SSTVRXConfigure: {
             const auto message = *reinterpret_cast<const SSTVRXConfigureMessage*>(msg);
             vis_code = message.code;
+
+            active_mode = find_mode_by_vis_code(message.code);
+            if (!active_mode) {
+                configured = false;
+                SSTVRXProgressMessage error_msg{0xFFFF, 0};
+                shared_memory.application_queue.push(error_msg);
+                break;
+            }
+            if (active_mode->pixels != PIXELS_PER_LINE) {
+                configured = false;
+                SSTVRXProgressMessage error_msg{0xFFFF, 0};
+                shared_memory.application_queue.push(error_msg);
+                break;
+            }
+            mode_total_lines = active_mode->lines;
+            if (mode_total_lines == 0) {
+                mode_total_lines = 1;
+            }
             
             // Configure decimation chain using NFM filters (narrower than WFMAM)
             decim_0.configure(taps_11k0_decim_0.taps);  // NFM decim0 filter
             decim_1.configure(taps_11k0_decim_1.taps);  // NFM decim1 filter
-            channel_filter.configure(taps_11k0_channel.taps, 2);  // Decimate by 2 to get 24kHz
+            channel_filter.configure(taps_11k0_channel.taps, 1);  // Keep 48kHz audio for better pixel resolution
             
             // Calculate filter parameters
             const size_t decim_0_input_fs = baseband_fs;
             const size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
             const size_t decim_1_input_fs = decim_0_output_fs;
             const size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
-            const size_t channel_filter_output_fs = decim_1_output_fs / 2;  // Final rate: 24kHz
+            const size_t channel_filter_output_fs = decim_1_output_fs;      // Final rate: 48kHz
             
             // Configure demodulator for SSTV - use moderate NFM deviation
             // SSTV needs wider deviation than voice NFM to capture 1200-2300 Hz tone range
@@ -542,7 +586,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             
             // Initialize Goertzel coefficients for 24kHz sample rate
             // coeff = 2 * cos(2 * PI * freq / sample_rate)
-            const float sample_rate = 24000.0f;  // Changed from 12kHz to 24kHz
+            const float sample_rate = static_cast<float>(channel_filter_output_fs);
             const float target_freqs[4] = {1200.0f, 1500.0f, 1900.0f, 2300.0f};
             for (int f = 0; f < 4; f++) {
                 float k = (GOERTZEL_N * target_freqs[f]) / sample_rate;
@@ -576,17 +620,25 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             sync_history_count = 0;
             memset(sync_positions, 0, sizeof(sync_positions));
             
-            // Set timing for Scottie 2 at 24kHz audio sample rate
-            // Measured sync intervals: typically 13344 samples
-            // Total line: 13344 = sync(216) + [sep(36) + channel]×3
-            // We SKIP separators (they're just 1500Hz timing markers)
-            // Available for image: 13344 - 216(sync) - 108(3×sep) = 13020 samples
-            // Per pixel: 13020 / (3 channels × 320 pixels) = 13.5625 samples/pixel
-            pixel_time_frac = 13.5625f;          // Exact timing, skipping separators  
-            samples_per_pixel = 14;              // Integer approximation
-            samples_per_sync = 216;              // 9ms × 24000 Hz = 216 samples
-            samples_per_gap = 36;                // 1.5ms × 24000 Hz = 36 samples
+            // Translate SSTV timing constants (expressed for 3.072MHz TX) to 48kHz RX domain
+            const float conversion = sample_rate / static_cast<float>(SSTV_SAMPLERATE);
+            pixel_time_frac = static_cast<float>(active_mode->samples_per_pixel) * conversion;
+            if (pixel_time_frac < 1.0f) {
+                pixel_time_frac = 1.0f;
+            }
+            samples_per_pixel = static_cast<uint32_t>(pixel_time_frac + 0.5f);
+
+            const auto convert_interval = [conversion](uint32_t value) -> uint32_t {
+                const float samples = static_cast<float>(value) * conversion;
+                const float rounded = std::round(samples);
+                const float clamped = std::max(1.0f, rounded);
+                return static_cast<uint32_t>(clamped);
+            };
+
+            samples_per_sync = convert_interval(active_mode->samples_per_sync);
+            samples_per_gap = active_mode->gaps ? convert_interval(active_mode->samples_per_gap) : 0;
             pixel_phase = 0.0f;
+            shared_memory.bb_data.data[sstv_chunk_flag_index] = 0;
             
             break;
         }

@@ -60,6 +60,8 @@ class SSTVRXProcessor : public BasebandProcessor {
      state_t state{STATE_SYNC_SEARCH};
      bool configured{false};
      uint8_t vis_code{0};
+    const sstv_mode* active_mode{nullptr};
+    uint16_t mode_total_lines{256};
      
      static constexpr size_t baseband_fs = 3072000;
      
@@ -85,10 +87,10 @@ class SSTVRXProcessor : public BasebandProcessor {
      // State variables for Goertzel frequency estimation
      int32_t current_freq{1200};  // Current frequency in Hz
      
-     // Goertzel filters for SSTV frequencies at 24kHz sample rate
-     // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
-     // Larger block size = better frequency discrimination but slower response
-     // At 24kHz: 48 samples = 2ms, enough for ~2.4 cycles of 1200Hz
+    // Goertzel filters for SSTV frequencies; configured at runtime (48kHz today)
+    // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
+    // Larger block size = better frequency discrimination but slower response
+    // At 48kHz: 48 samples ≈ 1ms, a little over one cycle of a 1200Hz tone
      static constexpr size_t GOERTZEL_N = 48;  // Increased from 16 for better accuracy
      float goertzel_Q1[4]{0, 0, 0, 0};
      float goertzel_Q2[4]{0, 0, 0, 0};
@@ -150,6 +152,7 @@ class SSTVRXProcessor : public BasebandProcessor {
      void process_line();
      void detect_sync(int32_t freq);
      void calculate_calibration();
+    uint32_t compute_nominal_line_interval() const;
      void estimate_frequency_goertzel(int32_t audio_sample);
      void capture_config(const CaptureConfigMessage& message);
 
