@@ -159,13 +159,27 @@ void BitExtractor::configure(uint32_t sample_rate) {
     // without needing to know exact transition boundaries.
     for (auto& rate : known_rates_)
         rate.sample_interval = sample_rate / (2.0 * rate.baud_rate);
+
+    if (baud_config_ >= 0 && baud_config_ < static_cast<int8_t>(known_rates_.size())) {
+        current_rate_ = &known_rates_[baud_config_];
+    } else {
+        current_rate_ = nullptr;
+    }
 }
 
 void BitExtractor::reset() {
-    current_rate_ = nullptr;
-
     for (auto& rate : known_rates_)
         rate.reset();
+
+    if (baud_config_ >= 0 && baud_config_ < static_cast<int8_t>(known_rates_.size())) {
+        current_rate_ = &known_rates_[baud_config_];
+    } else {
+        current_rate_ = nullptr;
+    }
+}
+
+void BitExtractor::set_baud_config(int8_t baud_config) {
+    baud_config_ = baud_config;
 }
 
 uint16_t BitExtractor::baud_rate() const {
@@ -352,7 +366,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 void POCSAGProcessor::on_message(const Message* const message) {
     switch (message->id) {
         case Message::ID::POCSAGConfigure:
-            configure();
+            configure(reinterpret_cast<const POCSAGConfigureMessage*>(message)->baud_config);
             break;
 
         case Message::ID::NBFMConfigure: {
@@ -370,7 +384,7 @@ void POCSAGProcessor::on_message(const Message* const message) {
     }
 }
 
-void POCSAGProcessor::configure() {
+void POCSAGProcessor::configure(int8_t baud_config) {
     constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
     constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
     constexpr size_t channel_filter_output_fs = decim_1_output_fs / 2;
@@ -383,7 +397,7 @@ void POCSAGProcessor::configure() {
 
     // Don't process the audio stream.
     audio_output.configure(false);
-
+    bit_extractor.set_baud_config(baud_config);
     bit_extractor.configure(demod_input_fs);
 
     // Set ready to process data.

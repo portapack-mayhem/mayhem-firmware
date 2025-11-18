@@ -91,7 +91,7 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat, const uint32_t pause_symbols, const uint8_t de_bruijn_length = 0);
 void kill_ook();
 void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift, const uint32_t progress_notice);
-void set_pocsag();
+void set_pocsag(int8_t baud_config = -1);
 void set_adsb();
 void set_jammer(const bool run, const jammer::JammerType type, const uint32_t speed);
 void set_rds_data(const uint16_t message_length);

@@ -142,7 +142,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
 
     audio::output::start();
     receiver_model.enable();
-    baseband::set_pocsag();
+    baseband::set_pocsag(-1);
 }
 
 void POCSAGAppView::focus() {
