@@ -104,7 +104,7 @@ class AdultToysView : public ui::View {
         /*short_ui*/ true};
 
     app_settings::SettingsManager settings_{
-        "Adult Toys", app_settings::Mode::TX};
+        "tx_adult_toys", app_settings::Mode::TX};
 
     OptionsField options_target{
         {UI_POS_X(6), UI_POS_Y(1)},

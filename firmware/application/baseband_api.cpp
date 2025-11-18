@@ -288,8 +288,8 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
     send_message(&message);
 }
 
-void set_pocsag() {
-    const POCSAGConfigureMessage message{};
+void set_pocsag(int8_t baud_config) {
+    const POCSAGConfigureMessage message{baud_config};
     send_message(&message);
 }
 
