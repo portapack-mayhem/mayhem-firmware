@@ -56,6 +56,7 @@ POCSAGSettingsView::POCSAGSettingsView(
     : settings_{settings} {
     add_children(
         {&labels,
+         &opt_baud_rate,
          &check_log,
          &check_log_raw,
          &check_small_font,
@@ -65,6 +66,7 @@ POCSAGSettingsView::POCSAGSettingsView(
          &field_filter_address,
          &button_save});
 
+    opt_baud_rate.set_by_value(settings_.baud_rate);
     check_log.set_value(settings_.enable_logging);
     check_log_raw.set_value(settings_.enable_raw_log);
     check_small_font.set_value(settings_.enable_small_font);
@@ -81,7 +83,7 @@ POCSAGSettingsView::POCSAGSettingsView(
         settings_.hide_addr_only = check_hide_addr_only.value();
         settings_.filter_mode = opt_filter_mode.selected_index_value();
         settings_.filter_address = field_filter_address.to_integer();
-
+        settings_.baud_rate = opt_baud_rate.selected_index_value();
         nav.pop();
     };
 }
@@ -142,7 +144,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
 
     audio::output::start();
     receiver_model.enable();
-    baseband::set_pocsag(-1);
+    baseband::set_pocsag((int8_t)settings_.baud_rate);
 }
 
 void POCSAGAppView::focus() {
@@ -182,6 +184,7 @@ void POCSAGAppView::refresh_ui() {
             btn_text = "Filter Last";
             break;
     }
+    baseband::set_pocsag((int8_t)settings_.baud_rate);
     button_filter_last.set_text(btn_text);
 }
 
