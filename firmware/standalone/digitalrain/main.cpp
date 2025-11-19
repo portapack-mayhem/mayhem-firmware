@@ -29,7 +29,7 @@ extern "C" {
 __attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {
     /*.header_version = */ 2,
 
-    /*.app_name = */ "DigitalRain",
+    /*.app_name = */ "DigitababababbaslRain",
     /*.bitmap_data = */ {
         0x00,
         0x00,
