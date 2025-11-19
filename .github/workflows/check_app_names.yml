@@ -1,0 +1,88 @@
+name: Check App Name Lengths
+
+on:
+  pull_request:
+    paths:
+      - 'firmware/application/external/*/main.cpp'
+      - 'firmware/standalone/*/main.cpp'
+      - 'firmware/application/ui_navigation.cpp'
+      - '.github/workflows/check_app_names.yml'
+      - '.github/workflows/check_app_names.py'
+
+jobs:
+  validate_app_names:
+    runs-on: ubuntu-latest
+    name: Validate App Name Lengths
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run app name validation
+        id: validate
+        run: |
+          python3 .github/workflows/check_app_names.py \
+            --repo-root . \
+            --format text \
+            --github-output $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Generate markdown report
+        id: report
+        if: always()
+        run: |
+          python3 .github/workflows/check_app_names.py \
+            --repo-root . \
+            --format markdown > report.md
+          cat report.md
+
+      - name: Comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('report.md', 'utf8');
+
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('App Name Length Validation Results')
+            );
+
+            const commentBody = report;
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+
+      - name: Check validation result
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "::error::App name validation failed. Please check the PR comment for details."
+          exit 1
