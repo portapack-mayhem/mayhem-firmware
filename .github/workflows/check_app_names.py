@@ -4,7 +4,7 @@
 App Name Length Validator for Mayhem Firmware
 Checks that app names conform to length requirements:
 - RX/TX locations: max 9 characters
-- Other locations: max 12 characters
+- Other locations: max 14 characters
 """
 
 import re
@@ -90,7 +90,7 @@ def get_max_length_for_location(location_str: str) -> int:
     if location_str in ['RX', 'TX']:
         return 9
     else:
-        return 12
+        return 14
 
 
 def validate_app_name_lengths(apps: List[Dict]) -> List[Dict]:
@@ -163,7 +163,7 @@ def format_output_text(violations: List[Dict], total_apps: int) -> str:
         output.append("")
         output.append("Requirements:")
         output.append("  - RX/TX locations: maximum 9 characters")
-        output.append("  - Other locations: maximum 12 characters")
+        output.append("  - Other locations: maximum 14 characters")
         output.append("")
         output.append("-" * 70)
 
@@ -198,7 +198,7 @@ def format_output_markdown(violations: List[Dict], total_apps: int) -> str:
         output.append("")
         output.append("**Requirements:**")
         output.append("- RX/TX locations: maximum **9 characters**")
-        output.append("- Other locations: maximum **12 characters**")
+        output.append("- Other locations: maximum **14 characters**")
         output.append("")
         output.append("### Violations")
         output.append("")
