@@ -40,7 +40,7 @@ __attribute__((section(".external_app.app_adult_toys_controller.application_info
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Adult Toys",
+    /*.app_name = */ "Adult Toy", // max 9 chars for TX apps
     /*.bitmap_data = */ {
         0x00,
         0x00,
