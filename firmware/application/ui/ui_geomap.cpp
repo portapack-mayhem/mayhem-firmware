@@ -459,9 +459,6 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
             int source_row = src_y + y;
             int dest_row = dest_y + y;
             bmp.seek(src_x, source_row);
-            // for (int x = 0; x < clip_w; ++x) {
-            //    bmp.read_next_px(line[x], true);
-            // }
             bmp.read_next_px_cnt(line.data(), clip_w, false);
             display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
         }
@@ -470,9 +467,6 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
             int source_row = src_y + y;
             int dest_row = dest_y + y;
             bmp.seek(src_x, source_row);
-            // for (int x = 0; x < clip_w; ++x) {
-            //     bmp.read_next_px(line[x], true);
-            // }
             bmp.read_next_px_cnt(line.data(), clip_w, false);
             display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
         }
