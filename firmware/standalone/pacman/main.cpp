@@ -25,6 +25,7 @@
 
 bool notouch(int, int, uint32_t) {
     // do nothing
+    return false;
 }
 void nothing() {
     // do nothing
