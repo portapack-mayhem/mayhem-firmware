@@ -173,7 +173,7 @@ bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
             //*a = (val >> 15) & 0x01;            // 1-bit alpha
             uint8_t r = (val >> 10) & 0x1F;  // 5-bit red
             uint8_t g = (val >> 5) & 0x1F;   // 5-bit green
-            uint8_t b = (val) & 0x1F;        // 5-bit blue
+            uint8_t b = (val)&0x1F;          // 5-bit blue
             // expand
             r = (r << 3) | (r >> 2);
             g = (g << 3) | (g >> 2);
@@ -217,7 +217,7 @@ bool BMPFile::read_next_px_cnt(ui::Color* px, uint32_t count, bool seek) {
                     //*a = (val >> 15) & 0x01;            // 1-bit alpha
                     uint8_t r = (val >> 10) & 0x1F;  // 5-bit red
                     uint8_t g = (val >> 5) & 0x1F;   // 5-bit green
-                    uint8_t b = (val) & 0x1F;        // 5-bit blue
+                    uint8_t b = (val)&0x1F;          // 5-bit blue
                     // expand
                     r = (r << 3) | (r >> 2);
                     g = (g << 3) | (g >> 2);
