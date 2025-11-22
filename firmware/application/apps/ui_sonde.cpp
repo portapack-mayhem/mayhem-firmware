@@ -174,10 +174,11 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         gps_info = packet.get_GPS_data();
 
-        geopos.set_altitude(gps_info.alt);
-        geopos.set_lat(gps_info.lat);
-        geopos.set_lon(gps_info.lon);
-
+        if (gps_info.lat != 0 && gps_info.lon != 0) {  // only update when valid, to prevent flashing
+            geopos.set_altitude(gps_info.alt);
+            geopos.set_lat(gps_info.lat);
+            geopos.set_lon(gps_info.lon);
+        }
         if (logger && logging) {
             logger->on_packet(packet);
         }

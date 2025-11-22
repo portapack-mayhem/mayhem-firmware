@@ -126,6 +126,7 @@ struct POCSAGSettings {
     bool hide_bad_data = false;
     bool hide_addr_only = false;
     uint8_t filter_mode = false;
+    int32_t baud_rate = -1;
     uint32_t filter_address = 0;
 };
 
@@ -139,7 +140,16 @@ class POCSAGSettingsView : public View {
    private:
     POCSAGSettings& settings_;
 
+    OptionsField opt_baud_rate{
+        {8 * 8, 0 * 16},
+        4,
+        {{"Auto", -1},
+         {" 512", 0},
+         {"1200", 1},
+         {"2400", 2}}};
+
     Labels labels{
+        {{2 * 8, 0 * 16}, "Baud:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 12 * 16}, "Filter Mode:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 13 * 16}, "Filter Addr:", Theme::getInstance()->fg_light->foreground},
     };
@@ -221,6 +231,7 @@ class POCSAGAppView : public View {
             {"filter_address"sv, &settings_.filter_address},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
+            {"baud_rate"sv, &settings_.baud_rate},
         }};
 
     void refresh_ui();
