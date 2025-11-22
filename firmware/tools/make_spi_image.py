@@ -40,6 +40,200 @@ Usage: <command> <application_path> <baseband_path> <output_path>
        Where paths refer to the .bin files for each component project.
 """
 
+########app name length validation########
+
+# app_location_t enum values
+APP_LOCATION_UTILITIES = 0
+APP_LOCATION_RX = 1
+APP_LOCATION_TX = 2
+APP_LOCATION_DEBUG = 3
+APP_LOCATION_HOME = 4
+APP_LOCATION_SETTINGS = 5
+APP_LOCATION_GAMES = 6
+APP_LOCATION_TRX = 7
+
+# Map location enum values to names
+APP_LOCATION_NAMES = {
+    APP_LOCATION_UTILITIES: "UTILITIES",
+    APP_LOCATION_RX: "RX",
+    APP_LOCATION_TX: "TX",
+    APP_LOCATION_DEBUG: "DEBUG",
+    APP_LOCATION_HOME: "HOME",
+    APP_LOCATION_SETTINGS: "SETTINGS",
+    APP_LOCATION_GAMES: "GAMES",
+    APP_LOCATION_TRX: "TRX"
+}
+
+def parse_external_app_info(main_cpp_path):
+    """Parse external app main.cpp file to extract app_name and menu_location"""
+    try:
+        with open(main_cpp_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+
+        # Look for app_name field
+        app_name_match = re.search(r'/\*\.app_name\s*=\s*\*/\s*"([^"]*)"', content)
+        if not app_name_match:
+            return None
+        app_name = app_name_match.group(1)
+
+        # Look for menu_location field
+        menu_location_match = re.search(r'/\*\.menu_location\s*=\s*\*/\s*app_location_t::(\w+)', content)
+        if not menu_location_match:
+            return None
+        location_str = menu_location_match.group(1)
+
+        return {
+            'app_name': app_name,
+            'location': location_str,
+            'file': main_cpp_path
+        }
+    except Exception as e:
+        print(f"Error parsing {main_cpp_path}: {e}")
+        return None
+
+def parse_standalone_app_info(main_cpp_path):
+    """Parse standalone app main.cpp file to extract app_name and menu_location"""
+    try:
+        with open(main_cpp_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+
+        # Look for app_name field
+        app_name_match = re.search(r'/\*\.app_name\s*=\s*\*/\s*"([^"]*)"', content)
+        if not app_name_match:
+            return None
+        app_name = app_name_match.group(1)
+
+        # Look for menu_location field
+        menu_location_match = re.search(r'/\*\.menu_location\s*=\s*\*/\s*app_location_t::(\w+)', content)
+        if not menu_location_match:
+            return None
+        location_str = menu_location_match.group(1)
+
+        return {
+            'app_name': app_name,
+            'location': location_str,
+            'file': main_cpp_path
+        }
+    except Exception as e:
+        print(f"Error parsing {main_cpp_path}: {e}")
+        return None
+
+def parse_builtin_apps(ui_navigation_cpp_path):
+    """Parse ui_navigation.cpp to extract built-in app names and locations"""
+    try:
+        with open(ui_navigation_cpp_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+
+        # Find the appList definition
+        applist_match = re.search(r'const\s+NavigationView::AppList\s+NavigationView::appList\s*=\s*\{(.*?)\};', content, re.DOTALL)
+        if not applist_match:
+            print("WARNING: Could not find appList in ui_navigation.cpp")
+            return []
+
+        applist_content = applist_match.group(1)
+
+        # Parse each app entry
+        # Pattern matches: {id, "DisplayName", LOCATION, Color, icon, factory}
+        app_pattern = r'\{[^}]*?"([^"]+)",\s*(\w+),\s*[^}]*?\}'
+        apps = []
+
+        for match in re.finditer(app_pattern, applist_content):
+            app_name = match.group(1)
+            location_str = match.group(2)
+
+            apps.append({
+                'app_name': app_name,
+                'location': location_str,
+                'file': ui_navigation_cpp_path
+            })
+
+        return apps
+    except Exception as e:
+        print(f"Error parsing {ui_navigation_cpp_path}: {e}")
+        return []
+
+def get_max_length_for_location(location_str):
+    """Return maximum app_name length for given location"""
+    if location_str in ['RX', 'TX']:
+        return 9
+    else:
+        return 14
+
+def validate_app_name_lengths(apps):
+    """Validate app name lengths and return list of violations"""
+    violations = []
+
+    for app in apps:
+        app_name = app['app_name']
+        location = app['location']
+        max_length = get_max_length_for_location(location)
+
+        if len(app_name) > max_length:
+            violations.append({
+                'app_name': app_name,
+                'location': location,
+                'current_length': len(app_name),
+                'max_length': max_length,
+                'file': app['file']
+            })
+
+    return violations
+
+def check_all_app_names():
+    """Check app names from external, standalone, and built-in apps"""
+    print("\n")
+    print("=" * 60)
+    print("Checking app name lengths")
+    print("=" * 60)
+
+    all_apps = []
+
+    # Check external apps
+    firmware_root = Path(__file__).parent.parent
+    external_apps_dir = firmware_root / "application" / "external"
+
+    if external_apps_dir.exists():
+        for main_cpp in external_apps_dir.glob("*/main.cpp"):
+            app_info = parse_external_app_info(main_cpp)
+            if app_info:
+                all_apps.append(app_info)
+
+    # Check standalone apps
+    standalone_apps_dir = firmware_root / "standalone"
+
+    if standalone_apps_dir.exists():
+        for main_cpp in standalone_apps_dir.glob("*/main.cpp"):
+            app_info = parse_standalone_app_info(main_cpp)
+            if app_info:
+                all_apps.append(app_info)
+
+    # Check built-in apps
+    ui_navigation_cpp = firmware_root / "application" / "ui_navigation.cpp"
+    if ui_navigation_cpp.exists():
+        builtin_apps = parse_builtin_apps(ui_navigation_cpp)
+        all_apps.extend(builtin_apps)
+
+    print(f"Found {len(all_apps)} apps to check")
+
+    # Validate all apps
+    violations = validate_app_name_lengths(all_apps)
+
+    if violations:
+        print("WARNING: Found app names exceeding length limits:")
+        for v in violations:
+            print(f"\nApp: '{v['app_name']}'")
+            print(f"  Location: {v['location']}")
+            print(f"  Length: {v['current_length']} (max: {v['max_length']})")
+            print(f"  File: {v['file']}")
+        print(f"Total violations: {len(violations)}")
+    else:
+        print("All app names are within length limits. PASS")
+
+    print("=" * 60)
+    print()
+
+#^^^^^^^^app name length validation^^^^^^^^
+
 
 def read_image(path):
     f = open(path, 'rb')
@@ -205,6 +399,12 @@ except Exception as e:
     print(f"err: {e}")
 
 #^^^^^^^^external app linker script address check worker^^^^^^^^
+
+########app name length check worker########
+
+check_all_app_names()
+
+#^^^^^^^^app name length check worker^^^^^^^^
 
 
 spi_size = 1048576
