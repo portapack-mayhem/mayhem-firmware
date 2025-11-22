@@ -26,6 +26,8 @@
 #include "hackrf_hal.hpp"
 #include "file_path.hpp"
 #include "message.hpp"
+#include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <stdio.h>
@@ -34,9 +36,31 @@ using namespace portapack;
 using namespace modems;
 using namespace ui;
 
+#if SSTVRX_ENABLE_LOGGER
+#define SSTVRX_LOG_INFO(msg)    \
+    do {                       \
+        if (logger) {          \
+            logger->log_info(msg); \
+        }                      \
+    } while (0)
+#define SSTVRX_LOG_ERROR(msg)   \
+    do {                       \
+        if (logger) {          \
+            logger->log_error(msg); \
+        }                      \
+    } while (0)
+#else
+#define SSTVRX_LOG_INFO(msg) do { (void)sizeof(msg); } while (0)
+#define SSTVRX_LOG_ERROR(msg) do { (void)sizeof(msg); } while (0)
+#endif
+
 // SSTV RX View Implementation
 namespace ui::external_app::sstvrx {
 
+static_assert(sizeof(shared_memory.bb_data.data) == 512,
+              "SSTV shared buffer size mismatch");
+
+#if SSTVRX_ENABLE_LOGGER
 void SstvRxLogger::log_error(const std::string& error_message) {
     log_file.write_entry(rtc_time::now(), "ERROR: " + error_message);
 }
@@ -44,6 +68,7 @@ void SstvRxLogger::log_error(const std::string& error_message) {
 void SstvRxLogger::log_info(const std::string& info_message) {
     log_file.write_entry(rtc_time::now(), "INFO: " + info_message);
 }
+#endif
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
@@ -68,15 +93,17 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     });
     
     // Initialize audio with proper rate for SSTV
-    audio::set_rate(audio::Rate::Hz_24000);
+    audio::set_rate(audio::Rate::Hz_48000);
     audio::output::start();
     
     // Configure receiver with optimal settings for SSTV
     // NOTE: Do NOT set modulation mode - SSTV uses a custom baseband processor
+    // Standard sampling rate (3.072MHz) with wide bandwidth to capture full SSTV audio spectrum
+    // SSTV uses 1200-2300 Hz tones, so we need wide baseband to avoid distortion
     receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_baseband_bandwidth(16000);  // Wide enough for SSTV but not too wide
+    receiver_model.set_baseband_bandwidth(1750000);  // Standard wideband setting
     receiver_model.set_squelch_level(1);
-    receiver_model.set_hidden_offset(2500);  // Small offset to avoid DC spike but minimize distortion
+    receiver_model.set_hidden_offset(0);  // No offset needed
     
     // Field values will be set in on_show() to ensure proper initialization
 
@@ -133,11 +160,13 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         }
     };
 
+#if SSTVRX_ENABLE_LOGGER
     logger = std::make_unique<SstvRxLogger>();
     if (logger) {
         logger->append(logs_dir / "SSTVRX.txt");
         logger->log_info("----------SSTV RX Started----------");
     }
+#endif
 }
 
 // Destructor: Ensure reception is stopped
@@ -145,9 +174,7 @@ SstvRxView::~SstvRxView() {
     is_receiving = true;
     on_stop();
     baseband::shutdown();
-    if (logger) {
-        logger->log_info("SSTV RX Stopped");
-    }
+    SSTVRX_LOG_INFO("SSTV RX Stopped");
 }
 
 void SstvRxView::on_show() {
@@ -170,9 +197,7 @@ void SstvRxView::on_start_stop() {
         start_stop_btn.set_text("Start RX");
     } else {
         // Currently stopped - start reception
-        if (logger) {
-            logger->log_info("Starting SSTV RX Reception");
-        }
+        SSTVRX_LOG_INFO("Starting SSTV RX Reception");
         start_audio();
         start_stop_btn.set_text("Stop RX");
     }
@@ -180,9 +205,7 @@ void SstvRxView::on_start_stop() {
 
 // Stop NFM audio reception
 void SstvRxView::on_stop() {
-    if (logger) {
-        logger->log_info("Stopping SSTV RX Reception");
-    }
+    SSTVRX_LOG_INFO("Stopping SSTV RX Reception");
     if (is_receiving) {
         // Stop in reverse order of start
         receiver_model.disable();
@@ -195,27 +218,25 @@ void SstvRxView::on_stop() {
         if (image_file) {
             image_file.reset();
         }
+        pending_line_valid = false;
+        pending_chunk_mask = 0;
+        std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
+        *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
         
-        if (logger) {
-            logger->log_info("SSTV RX Reception Stopped");
-        }
-    } else if (logger) {
-        logger->log_error("SSTV RX Reception Not Running");
+        SSTVRX_LOG_INFO("SSTV RX Reception Stopped");
+    } else {
+        SSTVRX_LOG_ERROR("SSTV RX Reception Not Running");
     }
 }
 
 // Start NFM audio reception
 void SstvRxView::start_audio() {
-    if (logger) {
-        logger->log_info("Configuring SSTV RX Audio Reception");
-    }
+    SSTVRX_LOG_INFO("Configuring SSTV RX Audio Reception");
     
     // Configure the baseband processor with VIS code
     if (rx_sstv_mode) {
         baseband::set_sstvrx_data(rx_sstv_mode->vis_code);
-        if (logger) {
-            logger->log_info("Sent VIS code to processor: " + to_string_dec_uint(rx_sstv_mode->vis_code));
-        }
+        SSTVRX_LOG_INFO("Sent VIS code to processor: " + to_string_dec_uint(rx_sstv_mode->vis_code));
     }
     
     // Send phase and slant adjustments
@@ -223,7 +244,7 @@ void SstvRxView::start_audio() {
     
     // Initialize audio path
     audio::output::stop();
-    audio::set_rate(audio::Rate::Hz_24000);
+    audio::set_rate(audio::Rate::Hz_48000);
     
     // Set audio routing and volume
     //audio::output::start();
@@ -231,10 +252,13 @@ void SstvRxView::start_audio() {
     // Clear display area and reset line counter
     portapack::display.fill_rectangle(
         {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
-        {0, 0, 0}  // Black
-    );
+        {0, 0, 0});
     line_num = 0;
     max_received_line = 0;
+    pending_line_valid = false;
+    pending_chunk_mask = 0;
+    std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
+    *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
     
     // Clear calibration display
     text_calibration.set("Calibrating...");
@@ -244,76 +268,68 @@ void SstvRxView::start_audio() {
     auto timestamp = to_string_timestamp(rtc_time::now());
     auto dir_error = ensure_directory(sstv_dir / "RX");
     if (!dir_error.ok()) {
-        if (logger) {
-            logger->log_error("Failed to create directory: SSTV/RX");
-        }
+        SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
     }
     current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
     
     image_file = std::make_unique<File>();
     auto error = image_file->create(current_image_path);
     if (error) {
-        if (logger) {
-            logger->log_error("Failed to create file: " + current_image_path.string());
-        }
+        SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
         image_file.reset();
     } else {
         // Write BMP header immediately
         write_bmp_header();
-        if (logger) {
-            logger->log_info("Created image file: " + current_image_path.string());
-        }
+        SSTVRX_LOG_INFO("Created image file: " + current_image_path.string());
     }
     
     // Start audio output
     audio::output::start();
     audio::headphone::set_volume(persistent_memory::headphone_volume());
     
-    // Set a nominal modulation mode for receiver chain initialization
-    // Even though SSTV uses custom baseband, we need this for proper RF/audio stats
-    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+    // Keep ReceiverModel in capture mode so it doesn't override our custom baseband/audio configuration.
+    receiver_model.set_modulation(ReceiverModel::Mode::Capture);
     
     // Enable receiver last
     receiver_model.enable();
     is_receiving = true;
 
-    if (logger) {
-        logger->log_info("SSTV RX Started");
-    }
+    SSTVRX_LOG_INFO("SSTV RX Started");
 }
 
 void SstvRxView::on_mode_changed(const size_t index) {
     rx_sstv_mode = &sstv_modes[index];
 }
 
-void SstvRxView::update_display(uint16_t current_line, const uint8_t* data_ptr) {
+void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) {
     if (current_line >= IMAGE_HEIGHT) return;
-    
+
     // Reset line counter if we reach the bottom of display
     if (line_num >= DISPLAY_HEIGHT) {
         line_num = 0;
     }
-    
+
     // Scale line to display width
     for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
         // Scale x coordinate
         uint16_t src_x = (x * IMAGE_WIDTH) / DISPLAY_WIDTH;
         if (src_x >= IMAGE_WIDTH) continue;
-        
-        // Get RGB values and create color
-        uint8_t r = data_ptr[2 + src_x];
-        uint8_t g = data_ptr[2 + PIXELS_PER_LINE + src_x];
-        uint8_t b = data_ptr[2 + PIXELS_PER_LINE * 2 + src_x];
-        line_buffer[x] = {r, g, b};  // Color constructor handles conversion
+
+        // Get RGB values from interleaved data [R,G,B,R,G,B,...]
+        uint8_t r = rgb_line[src_x * 3 + 0];
+        uint8_t g = rgb_line[src_x * 3 + 1];
+        uint8_t b = rgb_line[src_x * 3 + 2];
+        // Display uses BGR order like BMP format
+        line_buffer[x] = {b, g, r};
     }
-    
+
     // Render the line at the current position
     portapack::display.render_line(
         {0, line_num + SSTV_IMG_START_ROW * 16},
         DISPLAY_WIDTH,
         line_buffer
     );
-    
+
     // Increment line counter
     line_num++;
 }
@@ -323,106 +339,126 @@ void SstvRxView::redraw_image() {
 }
 
 void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
-    if (!is_receiving) return;
+    if (!is_receiving) {
+        if (line < 0xFFF0) {
+            *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
+        }
+        return;
+    }
 
     // Handle debug messages
     if (line == 0xFFFF) {
-        if (logger) {
-            logger->log_error("Processor not configured");
-        }
+        SSTVRX_LOG_ERROR("Processor not configured");
         return;
     }
     if (line == 0xFFFE) {
-        if (logger) {
-            logger->log_info("Sync pulse duration: " + to_string_dec_uint(total_lines) + " samples");
-        }
+        SSTVRX_LOG_INFO("Sync pulse duration: " + to_string_dec_uint(total_lines) + " samples");
         return;
     }
     if (line == 0xFFFD) {
-        if (logger) {
-            logger->log_info("Sync detected, count=" + to_string_dec_uint(total_lines));
-        }
+        SSTVRX_LOG_INFO("Sync detected, count=" + to_string_dec_uint(total_lines));
         text_calibration.set("Syncs: " + to_string_dec_uint(total_lines));
         return;
     }
     if (line == 0xFFFC) {
-        if (logger) {
-            logger->log_info("Expected interval: " + to_string_dec_uint(total_lines) + " samples");
-        }
+        SSTVRX_LOG_INFO("Expected interval: " + to_string_dec_uint(total_lines) + " samples");
         return;
     }
     if (line == 0xFFFB) {
-        if (logger) {
-            logger->log_info("Actual interval: " + to_string_dec_uint(total_lines) + " samples");
-        }
+        SSTVRX_LOG_INFO("Actual interval: " + to_string_dec_uint(total_lines) + " samples");
         return;
     }
     if (line == 0xFFFA) {
-        if (logger) {
-            logger->log_info("SYNC TIMEOUT after " + to_string_dec_uint(total_lines) + " samples - continuing without sync");
-        }
+        SSTVRX_LOG_INFO("SYNC TIMEOUT after " + to_string_dec_uint(total_lines) + " samples - continuing without sync");
         return;
     }
     if (line == 0xFFF9) {
-        if (logger) {
-            logger->log_info("Detected frequency at sync: " + to_string_dec_uint(total_lines) + " Hz");
-        }
+        SSTVRX_LOG_INFO("Detected frequency at sync: " + to_string_dec_uint(total_lines) + " Hz");
         return;
     }
     if (line == 0xFFF8) {
-        if (logger) {
-            logger->log_info("OUTLIER REJECTED: interval=" + to_string_dec_uint(total_lines) + " samples (expected 3331-13326)");
-        }
+        SSTVRX_LOG_INFO("OUTLIER REJECTED: interval=" + to_string_dec_uint(total_lines) + " samples (expected 10000-15000)");
         return;
     }
     if (line == 0xFFF7) {
-        if (logger) {
-            logger->log_info("PRE-RECORD: sync_history_count=" + to_string_dec_uint(total_lines));
-        }
+        SSTVRX_LOG_INFO("PRE-RECORD: sync_history_count=" + to_string_dec_uint(total_lines));
         return;
     }
     if (line == 0xFFF6) {
-        if (logger) {
-            logger->log_info("MAX_SYNC_HISTORY EXCEEDED: count=" + to_string_dec_uint(total_lines));
-        }
+        SSTVRX_LOG_INFO("MAX_SYNC_HISTORY EXCEEDED: count=" + to_string_dec_uint(total_lines));
+        return;
+    }
+    if (line == 0xFFF5) {
+        // Decode rejection reason bit flags: 0x1=interval, 0x2=freq, 0x4=duration
+        std::string reasons = "";
+        if (total_lines & 0x1) reasons += "interval ";
+        if (total_lines & 0x2) reasons += "freq ";
+        if (total_lines & 0x4) reasons += "duration ";
+        if (reasons.empty()) reasons = "unknown";
+        SSTVRX_LOG_INFO("FALSE SYNC PAIR REJECTED on Line 0: " + reasons);
+        return;
+    }
+    if (line == 0xFFF4) {
+        SSTVRX_LOG_INFO("STARTING LINE 0 DECODE after sync_sample_count=" + to_string_dec_uint(total_lines));
         return;
     }
     
-    // Normal line processing
-    current_line_rx = line;
-    
-    // Read line data from shared memory
-    uint8_t* data_ptr = shared_memory.bb_data.data;
-    
-    // Extract line number
-    uint16_t line_num = data_ptr[0] | (data_ptr[1] << 8);
-    
-    // Write line directly to file (BMP is bottom-up)
-    if (image_file && line_num < IMAGE_HEIGHT) {
-        uint8_t row_data[IMAGE_WIDTH * 3];
-        
-        // BMP stores as BGR (blue, green, red byte order)
-        for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-            row_data[x * 3 + 0] = data_ptr[2 + PIXELS_PER_LINE * 2 + x]; // B (third buffer)
-            row_data[x * 3 + 1] = data_ptr[2 + PIXELS_PER_LINE + x];     // G (second buffer)
-            row_data[x * 3 + 2] = data_ptr[2 + x];                        // R (first buffer)
-        }
-        
-        // Seek to correct position (BMP is bottom-up, so invert line number)
-        uint32_t line_offset = 54 + ((IMAGE_HEIGHT - 1 - line_num) * IMAGE_WIDTH * 3);
-        image_file->seek(line_offset);
-        image_file->write(row_data, IMAGE_WIDTH * 3);
-        
-        // Update live display
-        update_display(line_num, data_ptr);
+    std::array<uint8_t, CHUNK_COPY_BYTES> chunk{};
+    memcpy(chunk.data(), shared_memory.bb_data.data, chunk.size());
+    *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
+
+    const uint16_t line_num_encoded = chunk[0] | (chunk[1] << 8);
+    const bool is_second_chunk = (line_num_encoded & 1) == 1;
+    const uint16_t actual_line_num = line_num_encoded / 2;
+
+    if (actual_line_num >= IMAGE_HEIGHT) {
+        return;
     }
-    
-    if (logger && (line % 10 == 0)) {  // Log every 10 lines to reduce overhead
-        logger->log_info("Line " + to_string_dec_uint(line) + "/" + to_string_dec_uint(total_lines));
+
+    const bool multi_chunk_line = PIXELS_PER_LINE > MAX_CHUNK_PIXELS;
+    if (!pending_line_valid || pending_line_number != actual_line_num) {
+        pending_line_number = actual_line_num;
+        pending_line_valid = true;
+        pending_chunk_mask = 0;
+        std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
     }
-    
-    // When image is complete, close file
-    if (line >= (total_lines - 1)) {
+
+    const uint16_t chunk_pixels = multi_chunk_line
+        ? (is_second_chunk ? (PIXELS_PER_LINE - MAX_CHUNK_PIXELS) : MAX_CHUNK_PIXELS)
+        : PIXELS_PER_LINE;
+    const uint16_t dest_pixel_offset = (multi_chunk_line && is_second_chunk) ? MAX_CHUNK_PIXELS : 0;
+    const uint16_t chunk_bytes = chunk_pixels * 3;
+    const uint16_t max_copy_bytes = static_cast<uint16_t>(chunk.size() > CHUNK_HEADER_BYTES ? (chunk.size() - CHUNK_HEADER_BYTES) : 0);
+    const uint16_t bytes_to_copy = (chunk_bytes < max_copy_bytes) ? chunk_bytes : max_copy_bytes;
+    const uint16_t dest_byte_offset = dest_pixel_offset * 3;
+
+    if (bytes_to_copy > 0 && (dest_byte_offset + bytes_to_copy) <= pending_line_rgb.size()) {
+        memcpy(pending_line_rgb.data() + dest_byte_offset, chunk.data() + CHUNK_HEADER_BYTES, bytes_to_copy);
+    }
+
+    const uint8_t chunk_bit = (multi_chunk_line && is_second_chunk) ? 0x2 : 0x1;
+    pending_chunk_mask |= chunk_bit;
+    const uint8_t required_mask = multi_chunk_line ? 0x3 : 0x1;
+    if (pending_chunk_mask != required_mask) {
+        return;
+    }
+
+    pending_line_valid = false;
+    pending_chunk_mask = 0;
+    current_line_rx = actual_line_num;
+    if (actual_line_num < IMAGE_HEIGHT) {
+        write_line_to_file(actual_line_num, pending_line_rgb.data());
+        update_display(actual_line_num, pending_line_rgb.data());
+        max_received_line = std::max<uint16_t>(max_received_line, static_cast<uint16_t>(actual_line_num + 1));
+    }
+
+#if SSTVRX_ENABLE_LOGGER
+    if (logger && (actual_line_num % 10 == 0)) {
+        logger->log_info("Line " + to_string_dec_uint(actual_line_num) + "/" + to_string_dec_uint(total_lines));
+    }
+#endif
+
+    if (actual_line_num >= (total_lines - 1)) {
         finish_image();
     }
 }
@@ -463,12 +499,34 @@ void SstvRxView::write_bmp_header() {
     }
 }
 
+void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
+    if (!image_file || line_num >= IMAGE_HEIGHT) {
+        return;
+    }
+
+    const uint32_t row_stride = IMAGE_WIDTH * 3;
+    const uint32_t base_line_offset = 54 + ((IMAGE_HEIGHT - 1 - line_num) * row_stride);
+    if (!image_file->seek(base_line_offset)) {
+        SSTVRX_LOG_ERROR("Failed to seek for line " + to_string_dec_uint(line_num));
+        return;
+    }
+
+    std::array<uint8_t, IMAGE_WIDTH * 3> bgr_line{};
+    for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
+        bgr_line[x * 3 + 0] = rgb_line[x * 3 + 2];
+        bgr_line[x * 3 + 1] = rgb_line[x * 3 + 1];
+        bgr_line[x * 3 + 2] = rgb_line[x * 3 + 0];
+    }
+
+    if (!image_file->write(bgr_line.data(), row_stride)) {
+        SSTVRX_LOG_ERROR("Failed to write line " + to_string_dec_uint(line_num));
+    }
+}
+
 void SstvRxView::finish_image() {
     if (image_file) {
         image_file.reset();
-        if (logger) {
-            logger->log_info("Image completed: " + current_image_path.string());
-        }
+        SSTVRX_LOG_INFO("Image completed: " + current_image_path.string());
     }
 }
 
@@ -485,16 +543,12 @@ void SstvRxView::on_calibration(int16_t suggested_phase, int16_t suggested_slant
         // User can manually adjust if needed
         
         // Log the suggestion
-        if (logger) {
-            logger->log_info("Calibration suggestion: phase=" + to_string_dec_int(suggested_phase) + 
-                           " slant=" + to_string_dec_int(suggested_slant) + 
-                           " (from " + to_string_dec_uint(sync_count) + " syncs)");
-        }
+        SSTVRX_LOG_INFO("Calibration suggestion: phase=" + to_string_dec_int(suggested_phase) + 
+                        " slant=" + to_string_dec_int(suggested_slant) + 
+                        " (from " + to_string_dec_uint(sync_count) + " syncs)");
     } else {
         // Log that we received calibration but not enough syncs yet
-        if (logger) {
-            logger->log_info("Calibration received: " + to_string_dec_uint(sync_count) + " syncs (need 4+)");
-        }
+        SSTVRX_LOG_INFO("Calibration received: " + to_string_dec_uint(sync_count) + " syncs (need 4+)");
     }
 }
 

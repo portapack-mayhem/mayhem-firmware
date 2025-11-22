@@ -32,6 +32,8 @@
 #include "dsp_iir.hpp"
 #include "audio_output.hpp"
 
+#include <array>
+
 using namespace sstv;
 
 class SSTVRXProcessor : public BasebandProcessor {
@@ -60,6 +62,8 @@ class SSTVRXProcessor : public BasebandProcessor {
      state_t state{STATE_SYNC_SEARCH};
      bool configured{false};
      uint8_t vis_code{0};
+    const sstv_mode* active_mode{nullptr};
+    uint16_t mode_total_lines{256};
      
      static constexpr size_t baseband_fs = 3072000;
      
@@ -85,10 +89,10 @@ class SSTVRXProcessor : public BasebandProcessor {
      // State variables for Goertzel frequency estimation
      int32_t current_freq{1200};  // Current frequency in Hz
      
-     // Goertzel filters for SSTV frequencies at 24kHz sample rate
-     // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
-     // Larger block size = better frequency discrimination but slower response
-     // At 24kHz: 48 samples = 2ms, enough for ~2.4 cycles of 1200Hz
+    // Goertzel filters for SSTV frequencies; configured at runtime (48kHz today)
+    // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
+    // Larger block size = better frequency discrimination but slower response
+    // At 48kHz: 48 samples ≈ 1ms, a little over one cycle of a 1200Hz tone
      static constexpr size_t GOERTZEL_N = 48;  // Increased from 16 for better accuracy
      float goertzel_Q1[4]{0, 0, 0, 0};
      float goertzel_Q2[4]{0, 0, 0, 0};
@@ -102,8 +106,11 @@ class SSTVRXProcessor : public BasebandProcessor {
      
      uint32_t sample_count{0};
      uint32_t pixel_index{0};
-     uint32_t channel_index{0};  // 0=G, 1=B, 2=R for Scottie
+     uint32_t channel_index{0};
+     uint8_t channel_count{3};
+     std::array<uint8_t, 3> color_order{{1, 2, 0}};
      uint16_t current_line{0};
+     bool waiting_for_first_line{true};
      
      // Pixel accumulation for averaging
      int32_t pixel_accumulator{0};
@@ -121,11 +128,15 @@ class SSTVRXProcessor : public BasebandProcessor {
      // Timing parameters (will be set based on mode)
      uint32_t samples_per_pixel{7};      // Integer part for quick checks
      uint32_t samples_per_sync{216};     // 9ms
-     uint32_t samples_per_gap{36};       // 1.5ms
+     uint32_t samples_per_gap{36};       // Gap after sync or between channels
+     uint32_t channel_gap_samples{36};   // Separators between color sections
+     uint32_t separator_target{0};
      
      // Sync detection
      uint32_t sync_sample_count{0};
      bool in_sync{false};
+     int32_t sync_freq_sum{0};       // Accumulated frequency during sync pulse
+     uint32_t sync_freq_samples{0};  // Number of samples in sync pulse for averaging
      
      // Sync pulse timing tracking for auto-calibration
      static constexpr uint32_t MAX_SYNC_HISTORY = 256;  // Track all syncs in image
@@ -148,8 +159,14 @@ class SSTVRXProcessor : public BasebandProcessor {
      void process_line();
      void detect_sync(int32_t freq);
      void calculate_calibration();
+    uint32_t compute_nominal_line_interval() const;
      void estimate_frequency_goertzel(int32_t audio_sample);
      void capture_config(const CaptureConfigMessage& message);
+     void reset_pixel_state();
+     void start_gap(uint32_t duration);
+     void begin_line_after_sync();
+     void clear_line_buffers();
+     void store_pixel_value(uint32_t channel, uint16_t pixel, uint8_t value);
 
      RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 

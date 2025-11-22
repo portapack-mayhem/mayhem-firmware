@@ -44,7 +44,12 @@
 #include "utility.hpp"
 #include "audio.hpp"
 #include "portapack.hpp"
+#include <array>
 #include <ch.h>
+
+#ifndef SSTVRX_ENABLE_LOGGER
+#define SSTVRX_ENABLE_LOGGER 0
+#endif
 
 using namespace sstv;
 
@@ -52,18 +57,20 @@ namespace ui::external_app::sstvrx {
 
 #define FMR_BTNGRID_TOP 60
 
+#if SSTVRX_ENABLE_LOGGER
 class SstvRxLogger {
-    public:
-     Optional<File::Error> append(const std::filesystem::path& filename) {
-        return log_file.append(filename);
-     }
+     public:
+      Optional<File::Error> append(const std::filesystem::path& filename) {
+          return log_file.append(filename);
+      }
 
-     void log_error(const std::string& error_message);
-     void log_info(const std::string& info_message);
+      void log_error(const std::string& error_message);
+      void log_info(const std::string& info_message);
 
-    private:
-     LogFile log_file{};
+     private:
+      LogFile log_file{};
 };
+#endif
 
 class SstvRxView : public ui::View {
    public:
@@ -78,7 +85,9 @@ class SstvRxView : public ui::View {
 
    private:
     ui::NavigationView& nav_;
+#if SSTVRX_ENABLE_LOGGER
     std::unique_ptr<SstvRxLogger> logger{};
+#endif
     
     // Phase and slant adjustments (runtime only, not persisted)
     int16_t phase_adjustment{0};   // Horizontal offset in pixels (-50 to +50)
@@ -106,12 +115,21 @@ class SstvRxView : public ui::View {
     static constexpr uint16_t DISPLAY_WIDTH = 240;  // Scaled display width
     static constexpr uint16_t DISPLAY_HEIGHT = 192; // Scaled display height
     static constexpr uint16_t SSTV_IMG_START_ROW = 7;  // Start drawing at row 7 (after controls)
+    static constexpr size_t SHARED_BUFFER_BYTES = 512;
+    static constexpr size_t CHUNK_FLAG_INDEX = SHARED_BUFFER_BYTES - 1;
+    static constexpr size_t CHUNK_HEADER_BYTES = 2;
+    static constexpr size_t CHUNK_COPY_BYTES = CHUNK_FLAG_INDEX;  // Exclude flag byte
+    static constexpr uint16_t MAX_CHUNK_PIXELS = (CHUNK_COPY_BYTES - CHUNK_HEADER_BYTES) / 3;
     
     uint16_t current_line_rx{0};
     std::unique_ptr<File> image_file{};
     std::filesystem::path current_image_path{};
     ui::Color line_buffer[DISPLAY_WIDTH];
     uint16_t line_num{0};
+    std::array<uint8_t, IMAGE_WIDTH * 3> pending_line_rgb{};
+    uint16_t pending_line_number{0};
+    uint8_t pending_chunk_mask{0};
+    bool pending_line_valid{false};
     
     // Note: Post-reception phase/slant adjustment disabled due to M0 memory constraints
     // The 245KB image buffer exceeds available heap memory
@@ -180,7 +198,7 @@ class SstvRxView : public ui::View {
     };
 
     void on_audio_spectrum();
-    void update_display(uint16_t line_num, const uint8_t* data_ptr);
+    void update_display(uint16_t line_num, const uint8_t* rgb_line);
     void redraw_image();  // Disabled due to memory constraints
     void start_audio();
     void on_start_stop();  // Combined start/stop handler
@@ -189,6 +207,7 @@ class SstvRxView : public ui::View {
     void on_progress(uint16_t line, uint16_t total_lines);
     void on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count);
     void write_bmp_header();
+    void write_line_to_file(uint16_t line_num, const uint8_t* rgb_line);
     void finish_image();
     void save_image();  // Deprecated
 };
