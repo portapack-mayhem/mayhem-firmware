@@ -66,6 +66,17 @@ inline const sstv_mode* find_mode_by_vis_code(const uint8_t vis_code) {
     }
     return nullptr;
 }
+
+inline std::array<uint8_t, 3> color_order_for_mode(const sstv_mode& mode) {
+    switch (mode.color_sequence) {
+        case SSTV_COLOR_RGB:
+            return {0, 1, 2};
+        case SSTV_COLOR_GBR:
+            return {1, 2, 0};
+        default:
+            return {0, 1, 2};
+    }
+}
 }  // namespace
 
 void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
@@ -120,15 +131,10 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
                 break;
                 
             case STATE_SEPARATOR:
-                // Wait for separator to complete (1.5ms = 36 samples)
-                // Separator is a 1500Hz tone that marks channel boundaries
+                // Wait for separator/porch tone to finish before resuming pixels
                 sample_count++;
-                if (sample_count >= samples_per_gap) {
-                    // Separator complete, start next channel
+                if (separator_target == 0 || sample_count >= separator_target) {
                     sample_count = 0;
-                    pixel_accumulator = 0;
-                    pixel_sample_count = 0;
-                    pixel_phase = 0.0f;
                     state = STATE_IMAGE_DATA;
                 }
                 break;
@@ -295,33 +301,20 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
             SSTVRXProgressMessage freq_msg{0xFFF9, (uint16_t)current_freq};
             shared_memory.application_queue.push(freq_msg);
             
-            // Handle sync detection based on current line
-            if (current_line == 0 && sync_history_count >= 2) {
-                // Line 0: Start decoding after 2 syncs
-                state = STATE_SEPARATOR;
-                sample_count = 0;
-                pixel_index = 0;
-                channel_index = 0;  // Start with Green (Scottie 2 order: G→B→R)
-                pixel_accumulator = 0;
-                pixel_sample_count = 0;
-                pixel_phase = 0.0f;  // Reset fractional timing
-                
-                // Reset line buffers
-                memset(line_buffer_r, 0, PIXELS_PER_LINE);
-                memset(line_buffer_g, 0, PIXELS_PER_LINE);
-                memset(line_buffer_b, 0, PIXELS_PER_LINE);
-                
-                // Prevent restarting Line 0 on subsequent syncs by moving to Line 1
-                current_line = 1;
-            } else if (current_line > 0 && state == STATE_SYNC_SEARCH) {
-                // Mid-image sync: transition to separator for next line
-                state = STATE_SEPARATOR;
-                sample_count = 0;
-                pixel_index = 0;
-                channel_index = 0;  // Start with Green
-                pixel_accumulator = 0;
-                pixel_sample_count = 0;
-                pixel_phase = 0.0f;
+            bool ready_for_line = false;
+            if (waiting_for_first_line) {
+                if (sync_history_count >= 2) {
+                    waiting_for_first_line = false;
+                    ready_for_line = true;
+                    SSTVRXProgressMessage start_msg{0xFFF4, static_cast<uint16_t>(sync_sample_count)};
+                    shared_memory.application_queue.push(start_msg);
+                }
+            } else if (state == STATE_SYNC_SEARCH) {
+                ready_for_line = true;
+            }
+
+            if (ready_for_line) {
+                begin_line_after_sync();
             }
             // else: Line 0 without enough syncs, or mid-image but not in SYNC_SEARCH - just track the sync
         }
@@ -394,12 +387,14 @@ void SSTVRXProcessor::calculate_calibration() {
 }
 
 uint32_t SSTVRXProcessor::compute_nominal_line_interval() const {
-    const uint32_t color_sections = (active_mode && active_mode->color) ? 3U : 1U;
-    const uint32_t gap_sections = (active_mode && active_mode->gaps) ? color_sections : 0U;
+    const uint32_t channel_sections = (channel_count > 0) ? channel_count : 1U;
+    const uint32_t gap_sections = (samples_per_gap == 0)
+                                      ? 0U
+                                      : ((active_mode && active_mode->gaps) ? channel_sections : 1U);
     const float samples_per_channel_f = pixel_time_frac * static_cast<float>(PIXELS_PER_LINE);
     const float rounded_channel = std::round(samples_per_channel_f);
     const uint32_t samples_per_channel = static_cast<uint32_t>(std::max(1.0f, rounded_channel));
-    const uint32_t total_channel_samples = samples_per_channel * color_sections;
+    const uint32_t total_channel_samples = samples_per_channel * channel_sections;
     const uint32_t total_gap_samples = samples_per_gap * gap_sections;
     return samples_per_sync + total_gap_samples + total_channel_samples;
 }
@@ -438,19 +433,8 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
             adjusted_pixel_index = PIXELS_PER_LINE - 1;
         }
         
-        // Store in appropriate channel buffer - always write (bounds already checked)
-        switch (channel_index) {
-            case 0:  // First channel transmitted: Green (per Scottie 2 spec)
-                line_buffer_g[adjusted_pixel_index] = pixel_value;
-                break;
-            case 1:  // Second channel transmitted: Blue (per Scottie 2 spec)
-                line_buffer_b[adjusted_pixel_index] = pixel_value;
-                break;
-            case 2:  // Third channel transmitted: Red (per Scottie 2 spec)
-                line_buffer_r[adjusted_pixel_index] = pixel_value;
-                break;
-        }
-        
+        store_pixel_value(channel_index, static_cast<uint16_t>(adjusted_pixel_index), pixel_value);
+
         pixel_index++;
         // Reset accumulator for next pixel
         // If this is not the last pixel in the loop, subsequent pixels will use current sample
@@ -461,28 +445,25 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
         // Check if we finished a color channel
         if (pixel_index >= PIXELS_PER_LINE) {
             pixel_index = 0;
-            
-            // Check if we finished all three channels (complete line)
-            if (channel_index >= 2) {
-                // Finished Red channel (last channel)
+
+            const bool last_channel = ((channel_index + 1) >= channel_count);
+            if (last_channel) {
                 process_line();
                 channel_index = 0;
-                
-                // In Scottie 2, there's NO separator after red channel
-                // The sync pulse comes immediately, followed by separator before green
-                // So we transition directly to sync search for the next line
                 state = STATE_SYNC_SEARCH;
                 sync_sample_count = 0;
                 in_sync = false;
-                break;  // Exit loop when transitioning to new line
+                reset_pixel_state();
+                break;
             } else {
-                // Finished Green or Blue, move to next channel
                 channel_index++;
-                
-                // Enter separator state between channels
-                state = STATE_SEPARATOR;
-                sample_count = 0;
-                break;  // Exit loop when transitioning to separator
+                reset_pixel_state();
+                if (channel_gap_samples > 0) {
+                    start_gap(channel_gap_samples);
+                } else {
+                    state = STATE_IMAGE_DATA;
+                }
+                break;
             }
         }
     }
@@ -564,6 +545,12 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             if (mode_total_lines == 0) {
                 mode_total_lines = 1;
             }
+            channel_count = static_cast<uint8_t>(active_mode->color ? 3U : 1U);
+            if (channel_count == 0) {
+                channel_count = 1;
+            }
+            color_order = color_order_for_mode(*active_mode);
+            waiting_for_first_line = true;
             
             // Configure decimation chain using NFM filters (narrower than WFMAM)
             decim_0.configure(taps_11k0_decim_0.taps);  // NFM decim0 filter
@@ -609,6 +596,8 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             sync_sample_count = 0;
             in_sync = false;
             state = STATE_SYNC_SEARCH;
+            separator_target = 0;
+            clear_line_buffers();
             
             // Reset frequency offset calibration
             freq_offset = 0;
@@ -636,13 +625,76 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             };
 
             samples_per_sync = convert_interval(active_mode->samples_per_sync);
-            samples_per_gap = active_mode->gaps ? convert_interval(active_mode->samples_per_gap) : 0;
+            samples_per_gap = convert_interval(active_mode->samples_per_gap);
+            channel_gap_samples = active_mode->gaps ? samples_per_gap : 0;
             pixel_phase = 0.0f;
+            reset_pixel_state();
             shared_memory.bb_data.data[sstv_chunk_flag_index] = 0;
             
             break;
         }
         
+        default:
+            break;
+    }
+}
+
+void SSTVRXProcessor::reset_pixel_state() {
+    pixel_accumulator = 0;
+    pixel_sample_count = 0;
+    pixel_phase = 0.0f;
+}
+
+void SSTVRXProcessor::start_gap(const uint32_t duration) {
+    reset_pixel_state();
+    separator_target = duration;
+    sample_count = 0;
+    if (duration == 0) {
+        state = STATE_IMAGE_DATA;
+    } else {
+        state = STATE_SEPARATOR;
+    }
+}
+
+void SSTVRXProcessor::clear_line_buffers() {
+    std::fill_n(line_buffer_r, PIXELS_PER_LINE, uint8_t{0});
+    std::fill_n(line_buffer_g, PIXELS_PER_LINE, uint8_t{0});
+    std::fill_n(line_buffer_b, PIXELS_PER_LINE, uint8_t{0});
+}
+
+void SSTVRXProcessor::begin_line_after_sync() {
+    pixel_index = 0;
+    channel_index = 0;
+    clear_line_buffers();
+    start_gap(samples_per_gap);
+}
+
+void SSTVRXProcessor::store_pixel_value(const uint32_t channel, const uint16_t pixel, const uint8_t value) {
+    if (!active_mode) {
+        return;
+    }
+
+    if (!active_mode->color) {
+        line_buffer_r[pixel] = value;
+        line_buffer_g[pixel] = value;
+        line_buffer_b[pixel] = value;
+        return;
+    }
+
+    if (channel >= channel_count || channel >= color_order.size()) {
+        return;
+    }
+
+    switch (color_order[channel]) {
+        case 0:
+            line_buffer_r[pixel] = value;
+            break;
+        case 1:
+            line_buffer_g[pixel] = value;
+            break;
+        case 2:
+            line_buffer_b[pixel] = value;
+            break;
         default:
             break;
     }

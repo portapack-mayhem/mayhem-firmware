@@ -32,6 +32,8 @@
 #include "dsp_iir.hpp"
 #include "audio_output.hpp"
 
+#include <array>
+
 using namespace sstv;
 
 class SSTVRXProcessor : public BasebandProcessor {
@@ -104,8 +106,11 @@ class SSTVRXProcessor : public BasebandProcessor {
      
      uint32_t sample_count{0};
      uint32_t pixel_index{0};
-     uint32_t channel_index{0};  // 0=G, 1=B, 2=R for Scottie
+     uint32_t channel_index{0};
+     uint8_t channel_count{3};
+     std::array<uint8_t, 3> color_order{{1, 2, 0}};
      uint16_t current_line{0};
+     bool waiting_for_first_line{true};
      
      // Pixel accumulation for averaging
      int32_t pixel_accumulator{0};
@@ -123,7 +128,9 @@ class SSTVRXProcessor : public BasebandProcessor {
      // Timing parameters (will be set based on mode)
      uint32_t samples_per_pixel{7};      // Integer part for quick checks
      uint32_t samples_per_sync{216};     // 9ms
-     uint32_t samples_per_gap{36};       // 1.5ms
+     uint32_t samples_per_gap{36};       // Gap after sync or between channels
+     uint32_t channel_gap_samples{36};   // Separators between color sections
+     uint32_t separator_target{0};
      
      // Sync detection
      uint32_t sync_sample_count{0};
@@ -155,6 +162,11 @@ class SSTVRXProcessor : public BasebandProcessor {
     uint32_t compute_nominal_line_interval() const;
      void estimate_frequency_goertzel(int32_t audio_sample);
      void capture_config(const CaptureConfigMessage& message);
+     void reset_pixel_state();
+     void start_gap(uint32_t duration);
+     void begin_line_after_sync();
+     void clear_line_buffers();
+     void store_pixel_value(uint32_t channel, uint16_t pixel, uint8_t value);
 
      RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 
