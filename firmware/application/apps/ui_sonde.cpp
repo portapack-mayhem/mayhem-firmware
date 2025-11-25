@@ -155,7 +155,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         sonde_id = packet.serial_number();  // used also as tag on the geomap
         text_serial.set(sonde_id);
 
-        text_timestamp.set(to_string_timestamp(packet.received_at()));
+        text_timestamp.set(to_string_datetime(packet.received_at(), TimeFormat::YMDHMS));
 
         text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 2) + "V");
 
@@ -163,13 +163,11 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         temp_humid_info = packet.get_temp_humid();
         if (temp_humid_info.humid != 0) {
-            double decimals = abs(get_decimals(temp_humid_info.humid, 10, true));
-            text_humid.set(to_string_dec_int((int)temp_humid_info.humid) + "." + to_string_dec_uint(decimals, 1) + "%");
+            text_humid.set(to_string_decimal(temp_humid_info.humid, 1) + "%");
         }
 
         if (temp_humid_info.temp != 0) {
-            double decimals = abs(get_decimals(temp_humid_info.temp, 10, true));
-            text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + STR_DEGREES_C);
+            text_temp.set(to_string_decimal(temp_humid_info.temp, 1) + STR_DEGREES_C);
         }
 
         gps_info = packet.get_GPS_data();

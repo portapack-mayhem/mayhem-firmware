@@ -144,7 +144,7 @@ class SondeView : public View {
         "..."};
 
     Text text_timestamp{
-        {9 * 8, 4 * 16, 11 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_voltage{
