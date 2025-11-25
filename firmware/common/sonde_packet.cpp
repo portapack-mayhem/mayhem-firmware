@@ -145,7 +145,7 @@ uint32_t Packet::battery_voltage() const {
     if (type_ == Type::Meteomodem_M10)
         return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
     else if (type_ == Type::Meteomodem_M20) {
-        return 0;  // NOT SUPPPORTED YET
+        return reader_bi_m.read(0x26 * 8, 8) * (3.3f / 255);  // based on https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
     } else if (type_ == Type::Meteomodem_M2K2)
         return reader_bi_m.read(69 * 8, 8) * 66;  // Actually 65.8
     else if (type_ == Type::Vaisala_RS41_SG) {
