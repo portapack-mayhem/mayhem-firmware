@@ -36,6 +36,16 @@ struct GPS_data {
     uint32_t alt{0};
     float lat{0};
     float lon{0};
+
+    bool is_valid() const {
+        if (lat >= -0.01 && lat <= 0.01 && lon >= -0.01 && lon <= 0.01)
+            return false;
+        if (lat < -90.0 || lat > 90.0)
+            return false;
+        if (lon < -180.0 || lon > 180.0)
+            return false;
+        return true;
+    }
 };
 
 struct temp_humid {
@@ -97,6 +107,7 @@ class Packet {
 
     bool crc_ok_M10() const;
     bool crc_ok_RS41() const;
+    bool check_ok_M20() const;
     bool crc16rs41(uint32_t field_start) const;
 };
 

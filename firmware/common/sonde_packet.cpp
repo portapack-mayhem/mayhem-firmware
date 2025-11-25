@@ -145,7 +145,7 @@ uint32_t Packet::battery_voltage() const {
     if (type_ == Type::Meteomodem_M10)
         return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
     else if (type_ == Type::Meteomodem_M20) {
-        return reader_bi_m.read(0x26 * 8, 8) * (3.3f / 255);  // based on https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+        return reader_bi_m.read(0x26 * 8, 8) * (3.3f / 255.0) * 1000;  // based on https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
     } else if (type_ == Type::Meteomodem_M2K2)
         return reader_bi_m.read(69 * 8, 8) * 66;  // Actually 65.8
     else if (type_ == Type::Vaisala_RS41_SG) {
@@ -404,9 +404,21 @@ bool Packet::crc_ok() const {
             return crc_ok_M10();
         case Type::Vaisala_RS41_SG:
             return crc_ok_RS41();
+        case Type::Meteomodem_M20:
+            return check_ok_M20();
         default:
             return true;  // euquiq: it was false, but if no crc routine, then no way to check
     }
+}
+
+bool Packet::check_ok_M20() const {
+    uint8_t b1 = reader_bi_m.read(0, 8);
+    uint8_t b2 = reader_bi_m.read(8, 8);
+    if ((b1 != 0x45 && b1 != 0x43) || b2 != 0x20)
+        return false;
+    if (packet_.size() / 8 < b1)
+        return false;
+    return true;
 }
 
 // each data block has a 2 byte header, data, and 2 byte tail:
