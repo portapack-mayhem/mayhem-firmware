@@ -178,6 +178,9 @@ void SondeView::on_packet(const sonde::Packet& packet) {
             geopos.set_altitude(gps_info.alt);
             geopos.set_lat(gps_info.lat);
             geopos.set_lon(gps_info.lon);
+            if (geomap_view_) {
+                geomap_view_->update_position(gps_info.lat, gps_info.lon, gps_info.alt, 0);
+            }
         }
         if (logger && logging) {
             logger->on_packet(packet);
