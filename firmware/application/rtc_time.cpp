@@ -265,4 +265,31 @@ uint8_t day_of_week(uint16_t year, uint8_t month, uint8_t day) {
     return (day - 1 + (13 * m / 5) + y + (y / 4) - (y / 100) + (y / 400)) % 7;
 }
 
+bool isLeap(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+time_t rtcToUnixUTC(const rtc::RTC& rtc) {
+    const uint8_t daysOfMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    uint16_t y = rtc.year();
+    uint8_t m = rtc.month();
+    uint8_t d = rtc.day();
+    uint32_t totalDays = 0;
+    for (int i = 1970; i < y; i++) {
+        totalDays += isLeap(i) ? 366 : 365;
+    }
+    for (int i = 1; i < m; i++) {
+        totalDays += daysOfMonth[i];
+        if (i == 2 && isLeap(y)) {
+            totalDays++;
+        }
+    }
+    totalDays += (d - 1);
+    time_t totalSeconds = totalDays * 86400;  // 24 * 60 * 60
+    totalSeconds += rtc.hour() * 3600;
+    totalSeconds += rtc.minute() * 60;
+    totalSeconds += rtc.second();
+    return totalSeconds;
+}
+
 } /* namespace rtc_time */

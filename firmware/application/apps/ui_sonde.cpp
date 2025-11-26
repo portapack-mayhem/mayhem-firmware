@@ -30,11 +30,10 @@
 #include "portapack.hpp"
 #include <cstring>
 #include <stdio.h>
+#include "rtc_time.hpp"
 
 using namespace portapack;
 namespace pmem = portapack::persistent_memory;
-
-#include "string_format.hpp"
 #include "complex.hpp"
 
 void SondeLogger::on_packet(const sonde::Packet& packet) {
@@ -65,6 +64,8 @@ SondeView::SondeView(NavigationView& nav)
                   &text_frame,
                   &text_temp,
                   &text_humid,
+                  &text_press,
+                  &text_vspeed,
                   &geopos,
                   &button_see_qr,
                   &button_see_map});
@@ -107,7 +108,7 @@ SondeView::SondeView(NavigationView& nav)
 
     logger = std::make_unique<SondeLogger>();
     if (logger)
-        logger->append(logs_dir / u"SONDE.TXT");
+        logger->append(logs_dir / u"SONDE_" + to_string_timestamp(rtc_time::now()) + u".TXT");
 
     if (pmem::beep_on_packets()) {
         audio::set_rate(audio::Rate::Hz_24000);
@@ -155,7 +156,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         sonde_id = packet.serial_number();  // used also as tag on the geomap
         text_serial.set(sonde_id);
 
-        text_timestamp.set(to_string_timestamp(packet.received_at()));
+        text_timestamp.set(to_string_datetime(packet.received_at(), TimeFormat::YMDHMS));
 
         text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 2) + "V");
 
@@ -163,21 +164,41 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         temp_humid_info = packet.get_temp_humid();
         if (temp_humid_info.humid != 0) {
-            double decimals = abs(get_decimals(temp_humid_info.humid, 10, true));
-            text_humid.set(to_string_dec_int((int)temp_humid_info.humid) + "." + to_string_dec_uint(decimals, 1) + "%");
+            text_humid.set(to_string_decimal(temp_humid_info.humid, 1) + "%");
         }
 
         if (temp_humid_info.temp != 0) {
-            double decimals = abs(get_decimals(temp_humid_info.temp, 10, true));
-            text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + STR_DEGREES_C);
+            text_temp.set(to_string_decimal(temp_humid_info.temp, 1) + STR_DEGREES_C);
+        }
+
+        if (packet.get_pressure() != 0) {
+            text_press.set(to_string_decimal(packet.get_pressure(), 1) + " hPa");
         }
 
         gps_info = packet.get_GPS_data();
 
-        if (gps_info.lat != 0 && gps_info.lon != 0) {  // only update when valid, to prevent flashing
+        if (last_timestamp_update_ != 0 && last_altitude_ != 0) {
+            // calculate speeds
+            float vspeed = 0;
+            time_t currpackettime = rtc_time::rtcToUnixUTC(packet.received_at());
+            int32_t time_diff = (currpackettime - last_timestamp_update_);
+            if (time_diff >= 10) {  // update only every 10 seconds
+                vspeed = (static_cast<int>(gps_info.alt) - static_cast<int>(last_altitude_)) / (float)time_diff;
+                last_timestamp_update_ = currpackettime;
+                last_altitude_ = gps_info.alt;
+                text_vspeed.set(to_string_decimal(vspeed, 1) + " m/s");
+            }
+        } else {  // save first valid packet time + altitude
+            last_timestamp_update_ = rtc_time::rtcToUnixUTC(packet.received_at());
+            last_altitude_ = geopos.altitude();
+        }
+        if (gps_info.is_valid()) {  // only update when valid, to prevent flashing
             geopos.set_altitude(gps_info.alt);
             geopos.set_lat(gps_info.lat);
             geopos.set_lon(gps_info.lon);
+            if (geomap_view_) {
+                geomap_view_->update_position(gps_info.lat, gps_info.lon, 400, gps_info.alt, 0);
+            }
         }
         if (logger && logging) {
             logger->on_packet(packet);
