@@ -56,6 +56,9 @@ bool leap_year(uint16_t year);
 uint16_t day_of_year(uint16_t year, uint8_t month, uint8_t day);
 uint16_t day_of_year_of_nth_weekday(uint16_t year, uint8_t month, uint8_t n, uint8_t weekday);
 
+bool isLeap(int year);
+time_t rtcToUnixUTC(const rtc::RTC& rtc);
+
 } /* namespace rtc_time */
 
 #endif /*__RTC_TIME_H__*/

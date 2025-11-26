@@ -30,11 +30,10 @@
 #include "portapack.hpp"
 #include <cstring>
 #include <stdio.h>
+#include "rtc_time.hpp"
 
 using namespace portapack;
 namespace pmem = portapack::persistent_memory;
-
-#include "string_format.hpp"
 #include "complex.hpp"
 
 void SondeLogger::on_packet(const sonde::Packet& packet) {
@@ -66,6 +65,7 @@ SondeView::SondeView(NavigationView& nav)
                   &text_temp,
                   &text_humid,
                   &text_press,
+                  &text_vspeed,
                   &geopos,
                   &button_see_qr,
                   &button_see_map});
@@ -177,6 +177,21 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         gps_info = packet.get_GPS_data();
 
+        if (last_timestamp_update_ != 0 && last_altitude_ != 0) {
+            // calculate speeds
+            float vspeed = 0;
+            time_t currpackettime = rtc_time::rtcToUnixUTC(packet.received_at());
+            int32_t time_diff = (currpackettime - last_timestamp_update_);
+            if (time_diff >= 10) {  // update only every 10 seconds
+                vspeed = (static_cast<int>(gps_info.alt) - static_cast<int>(last_altitude_)) / (float)time_diff;
+                last_timestamp_update_ = currpackettime;
+                last_altitude_ = gps_info.alt;
+                text_vspeed.set(to_string_decimal(vspeed, 1) + " m/s");
+            }
+        } else {  // save first valid packet time + altitude
+            last_timestamp_update_ = rtc_time::rtcToUnixUTC(packet.received_at());
+            last_altitude_ = geopos.altitude();
+        }
         if (gps_info.is_valid()) {  // only update when valid, to prevent flashing
             geopos.set_altitude(gps_info.alt);
             geopos.set_lat(gps_info.lat);

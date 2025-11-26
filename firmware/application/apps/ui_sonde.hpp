@@ -30,6 +30,7 @@
 #include "ui_rssi.hpp"
 #include "ui_qrcode.hpp"
 #include "ui_geomap.hpp"
+#include "string_format.hpp"
 
 #include "event_m0.hpp"
 
@@ -102,7 +103,8 @@ class SondeView : public View {
         {{UI_POS_X(3), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(4), UI_POS_Y(7)}, "Temp:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(8)}, "Humidity:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(9)}, "Pressure:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(9)}, "Pressure:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(10)}, "VSpeed:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -167,6 +169,10 @@ class SondeView : public View {
         {UI_POS_X(9), UI_POS_Y(9), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
 
+    Text text_vspeed{
+        {UI_POS_X(9), UI_POS_Y(10), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        "..."};
+
     GeoPos geopos{
         {UI_POS_X(0), UI_POS_Y(12)},
         GeoPos::alt_unit::METERS,
@@ -181,6 +187,8 @@ class SondeView : public View {
         "See on map"};
 
     GeoMapView* geomap_view_{nullptr};
+    time_t last_timestamp_update_{0};
+    uint32_t last_altitude_{0};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::SondePacket,
