@@ -107,7 +107,7 @@ SondeView::SondeView(NavigationView& nav)
 
     logger = std::make_unique<SondeLogger>();
     if (logger)
-        logger->append(logs_dir / u"SONDE.TXT");
+        logger->append(logs_dir / u"SONDE_" + to_string_timestamp(rtc_time::now()) + u".TXT");
 
     if (pmem::beep_on_packets()) {
         audio::set_rate(audio::Rate::Hz_24000);
