@@ -166,6 +166,40 @@ uint32_t Packet::frame() const {
         return 0;  // Unknown
     }
 }
+uint8_t Packet::getFwVerM20() const {
+    size_t pos_fw = 0x43;
+    int flen = reader_bi_m.read(0, 8);
+    if (flen != 0x45) {
+        int auxLen = flen - 0x45;
+        if (auxLen < 0) {
+            pos_fw = flen - 2;
+        }
+    }
+    return reader_bi_m.read(pos_fw, 8);
+}
+
+float Packet::get_pressure() const {
+    float pressure = 0.0f;
+    if (type_ == Type::Meteomodem_M20) {
+        float hPa = 0.0f;
+        uint32_t val = ((uint32_t)reader_bi_m.read(0x25 * 8, 8) << 8) | (uint32_t)reader_bi_m.read(0x24 * 8, 8);  // cf. DF9DQ
+        uint8_t p0 = 0x00;
+        uint8_t fwVer = getFwVerM20();
+        if (fwVer >= 0x07) {  // SPI1_P[0]
+            p0 = reader_bi_m.read(0x16 * 8, 8);
+        }
+        val = (val << 8) | p0;
+
+        if (val > 0) {
+            hPa = val / (float)(16 * 256);  // 4096=0x1000
+        }
+        if (hPa > 2560.0f) {  // val > 0xA00000
+            hPa = -1.0f;
+        }
+        pressure = hPa;
+    }
+    return pressure;
+}
 
 temp_humid Packet::get_temp_humid() const {
     temp_humid result;

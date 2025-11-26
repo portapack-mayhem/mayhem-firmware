@@ -65,6 +65,7 @@ SondeView::SondeView(NavigationView& nav)
                   &text_frame,
                   &text_temp,
                   &text_humid,
+                  &text_press,
                   &geopos,
                   &button_see_qr,
                   &button_see_map});
@@ -170,6 +171,10 @@ void SondeView::on_packet(const sonde::Packet& packet) {
             text_temp.set(to_string_decimal(temp_humid_info.temp, 1) + STR_DEGREES_C);
         }
 
+        if (packet.get_pressure() != 0) {
+            text_press.set(to_string_decimal(packet.get_pressure(), 1) + " hPa");
+        }
+
         gps_info = packet.get_GPS_data();
 
         if (gps_info.is_valid()) {  // only update when valid, to prevent flashing
@@ -177,7 +182,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
             geopos.set_lat(gps_info.lat);
             geopos.set_lon(gps_info.lon);
             if (geomap_view_) {
-                geomap_view_->update_position(gps_info.lat, gps_info.lon, 0, gps_info.alt, 0);
+                geomap_view_->update_position(gps_info.lat, gps_info.lon, 400, gps_info.alt, 0);
             }
         }
         if (logger && logging) {

@@ -94,32 +94,32 @@ class SondeView : public View {
     // AudioOutput audio_output { };
 
     Labels labels{
-        {{4 * 8, 2 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{6 * 8, 3 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), 4 * 16}, "DateTime:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(4), UI_POS_Y(2)}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(6), UI_POS_Y(3)}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(4)}, "DateTime:", Theme::getInstance()->fg_light->foreground},
 
-        {{3 * 8, 5 * 16}, "Vbatt:", Theme::getInstance()->fg_light->foreground},
-        {{3 * 8, 6 * 16}, "Frame:", Theme::getInstance()->fg_light->foreground},
-        {{4 * 8, 7 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), 8 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(3), UI_POS_Y(5)}, "Vbatt:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(3), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(4), UI_POS_Y(7)}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(8)}, "Humidity:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(9)}, "Pressure:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
-        {UI_POS_X(0), 0 * 8},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {13 * 8, UI_POS_Y(0)}};
-
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {21 * 8, 0, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, UI_POS_WIDTH_REMAINING(24), 4},
+        {UI_POS_X(21), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{
@@ -136,11 +136,11 @@ class SondeView : public View {
         "CRC"};
 
     Text text_signature{
-        {9 * 8, 2 * 16, 10 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_serial{
-        {9 * 8, 3 * 16, 11 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_timestamp{
@@ -148,32 +148,35 @@ class SondeView : public View {
         "..."};
 
     Text text_voltage{
-        {9 * 8, 5 * 16, 10 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_frame{
-        {9 * 8, 6 * 16, 10 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(6), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_temp{
-        {9 * 8, 7 * 16, 10 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_humid{
-        {9 * 8, 8 * 16, 10 * 8, 16},
+        {UI_POS_X(9), UI_POS_Y(8), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        "..."};
+    Text text_press{
+        {UI_POS_X(9), UI_POS_Y(9), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
 
     GeoPos geopos{
-        {0, 12 * 16},
+        {UI_POS_X(0), UI_POS_Y(12)},
         GeoPos::alt_unit::METERS,
         GeoPos::spd_unit::HIDDEN};
 
     Button button_see_qr{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "See QR"};
 
     Button button_see_map{
-        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "See on map"};
 
     GeoMapView* geomap_view_{nullptr};
