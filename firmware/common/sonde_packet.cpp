@@ -64,7 +64,7 @@ Packet::Packet(
             type_ = Type::Meteomodem_M10;
         else if (id_byte == 0x648F)
             type_ = Type::Meteomodem_M2K2;
-        else if (id_byte == 0x4520)  // https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+        else if (id_byte == 0x4520 || id_byte == 0x4320)  // https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
             type_ = Type::Meteomodem_M20;
     }
 }

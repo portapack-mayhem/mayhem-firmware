@@ -119,7 +119,7 @@ class SondeView : public View {
     RSSI rssi{
         {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {UI_POS_X(21), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(24), 4},
+        {UI_POS_X(21), UI_POS_Y(0) + 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{
@@ -136,11 +136,11 @@ class SondeView : public View {
         "CRC"};
 
     Text text_signature{
-        {UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_serial{
-        {UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
+        {UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
         "..."};
 
     Text text_timestamp{
@@ -162,6 +162,7 @@ class SondeView : public View {
     Text text_humid{
         {UI_POS_X(9), UI_POS_Y(8), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
+
     Text text_press{
         {UI_POS_X(9), UI_POS_Y(9), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "..."};
