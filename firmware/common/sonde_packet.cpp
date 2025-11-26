@@ -378,6 +378,10 @@ std::string Packet::serial_number() const {
             }
         }
         return serial_id;
+    } else if (type_ == Type::Meteomodem_M20) {
+        // Inspired by https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+        uint32_t sn = reader_bi_m.read(0x12 * 8, 8) | (reader_bi_m.read(0x13 * 8, 8) << 8) | (reader_bi_m.read(0x14 * 8, 8) << 16);
+        return to_string_dec_uint(sn);  // Serial is 3 bytes at byte #12
     } else {
         return "?";
     }
