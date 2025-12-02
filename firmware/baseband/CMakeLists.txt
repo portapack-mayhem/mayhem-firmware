@@ -556,6 +556,13 @@ DeclareTargets(PUSB sd_over_usb)
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
 
+### FLEX RX
+
+set(MODE_CPPSRC
+	proc_flex.cpp
+)
+DeclareTargets(PFLX flex)
+
 ### ACARS RX
 
 set(MODE_CPPSRC
