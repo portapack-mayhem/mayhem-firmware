@@ -381,6 +381,56 @@ void run_image(const spi_flash::image_tag_t image_tag) {
     }
 }
 
+void run_image_from_file(const std::filesystem::path& path) {
+    if (baseband_image_running) {
+        chDbgPanic("BBRunning");
+    }
+
+    creg::m4txevent::clear();
+    shared_memory.clear_baseband_ready();
+
+    // Read file content to M4 RAM
+    File file;
+    auto result = file.open(path);
+    if (result.is_valid()) {
+        chDbgPanic("BBFileOpenFail");
+    }
+
+    auto size = file.size();
+    
+    // Read in chunks to avoid "M0 Guru Max Transaction Size" errors
+    // max_file_block_size is typically 512, let's use a safe chunk size.
+    constexpr size_t chunk_size = 4096; 
+    uint8_t* dst = reinterpret_cast<uint8_t*>(memory::map::m4_code.base());
+    File::Size bytes_read = 0;
+    
+    while (bytes_read < size) {
+        size_t current_chunk = std::min<size_t>(size - bytes_read, chunk_size);
+        auto read_result = file.read(dst + bytes_read, current_chunk);
+        
+        if (read_result.is_error()) {
+             chDbgPanic("BBFileReadFail");
+        }
+        
+        bytes_read += read_result.value();
+    }
+
+    m4_init_prepared(memory::map::m4_code.base(), false);
+    baseband_image_running = true;
+
+    creg::m4txevent::enable();
+
+    if constexpr (enforce_core_sync) {
+        // Wait up to 3 seconds for baseband to start handling events.
+        auto count = 3'000u;
+        while (!shared_memory.baseband_ready && --count)
+            chThdSleepMilliseconds(1);
+
+        if (count == 0)
+            chDbgPanic("Baseband Sync Fail");
+    }
+}
+
 void run_prepared_image(const uint32_t m4_code) {
     if (baseband_image_running) {
         chDbgPanic("BBRunning");

@@ -20,7 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "pocsag_app.hpp"
+#include "rtc_time.hpp"
+#include "pager_app.hpp"
 
 #include "audio.hpp"
 #include "baseband_api.hpp"
@@ -28,12 +29,13 @@
 #include "string_format.hpp"
 #include "utility.hpp"
 #include "file_path.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 using namespace pocsag;
 namespace pmem = portapack::persistent_memory;
 
-void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
+void PagerLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
     std::string entry = "Raw: F:" + to_string_dec_uint(frequency) + "Hz " +
                         to_string_dec_uint(packet.bitrate()) + " Codewords:";
 
@@ -44,18 +46,19 @@ void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32
     log_file.write_entry(packet.timestamp(), entry);
 }
 
-void POCSAGLogger::log_decoded(Timestamp timestamp, const std::string& text) {
+void PagerLogger::log_decoded(Timestamp timestamp, const std::string& text) {
     log_file.write_entry(timestamp, text);
 }
 
 namespace ui {
 
-POCSAGSettingsView::POCSAGSettingsView(
+PagerSettingsView::PagerSettingsView(
     NavigationView& nav,
-    POCSAGSettings& settings)
+    PagerSettings& settings)
     : settings_{settings} {
     add_children(
         {&labels,
+         &opt_mode,
          &opt_baud_rate,
          &check_log,
          &check_log_raw,
@@ -66,6 +69,7 @@ POCSAGSettingsView::POCSAGSettingsView(
          &field_filter_address,
          &button_save});
 
+    opt_mode.set_selected_index(settings_.pager_mode);
     opt_baud_rate.set_by_value(settings_.baud_rate);
     check_log.set_value(settings_.enable_logging);
     check_log_raw.set_value(settings_.enable_raw_log);
@@ -76,6 +80,7 @@ POCSAGSettingsView::POCSAGSettingsView(
     field_filter_address.set_value(settings_.filter_address);
 
     button_save.on_select = [this, &nav](Button&) {
+        settings_.pager_mode = opt_mode.selected_index();
         settings_.enable_logging = check_log.value();
         settings_.enable_raw_log = check_log_raw.value();
         settings_.enable_small_font = check_small_font.value();
@@ -88,9 +93,12 @@ POCSAGSettingsView::POCSAGSettingsView(
     };
 }
 
-POCSAGAppView::POCSAGAppView(NavigationView& nav)
+PagerAppView::PagerAppView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
+    
+    // Load the new unified baseband image
+    // baseband::run_image(portapack::spi_flash::image_tag_pager);
+    baseband::run_image_from_file(u"PPAG.bin");
 
     add_children(
         {&rssi,
@@ -116,9 +124,10 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
         settings_.filter_mode = (settings_.filter_address == 0)
                                     ? FILTER_NONE
                                     : FILTER_DROP;
+        settings_.pager_mode = AUTO; // Default
     }
 
-    logger.append(logs_dir / u"POCSAG.TXT");
+    logger.append(logs_dir / u"PAGER.TXT");
 
     field_squelch.set_value(receiver_model.squelch_level());
     field_squelch.on_change = [this](int32_t v) {
@@ -133,7 +142,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
     };
 
     button_config.on_select = [this](Button&) {
-        nav_.push<POCSAGSettingsView>(settings_);
+        nav_.push<PagerSettingsView>(settings_);
         nav_.set_on_pop([this]() { refresh_ui(); });
     };
 
@@ -144,14 +153,15 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
 
     audio::output::start();
     receiver_model.enable();
-    baseband::set_pocsag((int8_t)settings_.baud_rate);
+    
+    apply_config();
 }
 
-void POCSAGAppView::focus() {
+void PagerAppView::focus() {
     field_frequency.focus();
 }
 
-POCSAGAppView::~POCSAGAppView() {
+PagerAppView::~PagerAppView() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -161,7 +171,19 @@ POCSAGAppView::~POCSAGAppView() {
     pmem::set_pocsag_last_address(last_address);  // For POCSAG TX.
 }
 
-void POCSAGAppView::refresh_ui() {
+void PagerAppView::apply_config() {
+    if (settings_.pager_mode == AUTO) {
+        // Send a magic baud rate -2 to indicate AUTO mode to PagerProcessor
+        baseband::set_pocsag(-2); 
+    } else if (settings_.pager_mode == POCSAG) {
+        baseband::set_pocsag((int8_t)settings_.baud_rate);
+    } else {
+        baseband::set_flex_config(); // Helper function or custom message
+        // baseband::set_flex_config() calls FlexConfigure (ID 84)
+    }
+}
+
+void PagerAppView::refresh_ui() {
     // Set console font style.
     console.set_style(
         settings_.enable_small_font
@@ -184,11 +206,15 @@ void POCSAGAppView::refresh_ui() {
             btn_text = "Filter Last";
             break;
     }
-    baseband::set_pocsag((int8_t)settings_.baud_rate);
+    
+    apply_config();
     button_filter_last.set_text(btn_text);
+    
+    // Update Frequency if needed based on mode?
+    // For now assuming user sets frequency manually or freqman
 }
 
-bool POCSAGAppView::ignore_address(uint32_t address) const {
+bool PagerAppView::ignore_address(uint32_t address) const {
     switch (settings_.filter_mode) {
         case FILTER_DROP:
             return address == settings_.filter_address;
@@ -202,7 +228,7 @@ bool POCSAGAppView::ignore_address(uint32_t address) const {
     }
 }
 
-void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefix) {
+void PagerAppView::handle_decoded(Timestamp timestamp, const std::string& prefix) {
     bool bad_data = pocsag_state.errors >= 3;
 
     // Too many errors for reliable decode.
@@ -274,18 +300,19 @@ static Color get_status_color(const POCSAGState& state) {
             return Theme::getInstance()->fg_green->foreground;
     }
 
-    // Shouldn't get here...
     return Theme::getInstance()->fg_red->foreground;
 }
 
-void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
+void PagerAppView::on_packet_pocsag(const POCSAGPacketMessage* message) {
+    if (settings_.pager_mode != POCSAG && settings_.pager_mode != AUTO) return;
+
     const uint32_t roundVal = 50;
     const uint32_t bitrate_rounded = roundVal * ((message->packet.bitrate() + (roundVal / 2)) / roundVal);
     auto bitrate = to_string_dec_uint(bitrate_rounded);
     auto timestamp = to_string_datetime(message->packet.timestamp(), HM);
     auto prefix = timestamp + " " + bitrate;
 
-    // Display packet count to be able to tell whether baseband sent a packet for a tone.
+    // Display packet count
     ++packet_count;
     text_packet_count.set(to_string_dec_uint(packet_count));
 
@@ -296,20 +323,17 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         console.writeln("\n" STR_COLOR_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
         last_address = 0;
     } else {
-        // Set color before to be able to see if decode gets stuck.
         image_status.set_foreground(Theme::getInstance()->fg_magenta->foreground);
         pocsag_state.codeword_index = 0;
         pocsag_state.errors = 0;
 
-        // Handle multiple messages (if any).
+        // Handle multiple messages
         while (pocsag_decode_batch(message->packet, pocsag_state))
             handle_decoded(message->packet.timestamp(), prefix);
 
-        // Handle the remainder.
         handle_decoded(message->packet.timestamp(), prefix);
     }
 
-    // Set status icon color to indicate state machine state.
     image_status.set_foreground(get_status_color(pocsag_state));
 
     if (pmem::beep_on_packets()) {
@@ -317,14 +341,59 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     }
 }
 
-void POCSAGAppView::on_stats(const POCSAGStatsMessage* stats) {
+void PagerAppView::on_stats_pocsag(const POCSAGStatsMessage* stats) {
+    if (settings_.pager_mode != POCSAG && settings_.pager_mode != AUTO) return;
     widget_baud.set_rate(stats->baud_rate);
     widget_bits.set_bits(stats->current_bits);
     widget_frames.set_frames(stats->current_frames);
     widget_frames.set_sync(stats->has_sync);
 }
 
-void POCSAGAppView::on_freqchg(int64_t freq) {
+void PagerAppView::on_packet_flex(const FlexPacketMessage* message) {
+    if (settings_.pager_mode != FLEX && settings_.pager_mode != AUTO) return;
+
+    // Display packet count
+    ++packet_count;
+    text_packet_count.set(to_string_dec_uint(packet_count));
+
+    std::string text = "\n";
+    text += STR_COLOR_GREEN;
+    text += "FLEX ";
+    text += to_string_dec_uint(message->packet.bitrate);
+    text += " #";
+    text += to_string_dec_uint(message->packet.capcode);
+    text += ": ";
+    text += STR_COLOR_WHITE;
+    text += message->packet.message;
+    
+    console.writeln(text);
+    
+    if (logging()) {
+        logger.log_decoded(rtc_time::now(), text);
+    }
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
+}
+
+void PagerAppView::on_debug_flex(const FlexDebugMessage* message) {
+    if (settings_.pager_mode != FLEX && settings_.pager_mode != AUTO) return;
+
+    // Build debug string but do NOT write it to the on-screen console.
+    std::string text;
+    text += "DBG: ";
+    text += message->text;
+    text += " ";
+    text += to_string_hex(message->val1, 8);
+    text += " ";
+    text += to_string_hex(message->val2, 8);
+
+    // Send FLEX debug messages only to async serial output when enabled.
+    UsbSerialAsyncmsg::asyncmsg(text);
+}
+
+void PagerAppView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
 }
 
@@ -365,3 +434,4 @@ void FrameIndicator::paint(Painter& painter) {
 }
 
 } /* namespace ui */
+

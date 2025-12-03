@@ -20,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __POCSAG_APP_H__
-#define __POCSAG_APP_H__
+#ifndef __PAGER_APP_H__
+#define __PAGER_APP_H__
 
 #include "ui_widget.hpp"
 #include "ui_freq_field.hpp"
@@ -32,11 +32,12 @@
 #include "log_file.hpp"
 #include "pocsag.hpp"
 #include "pocsag_packet.hpp"
+#include "flex_defs.hpp"
 #include "radio_state.hpp"
 
 #include <functional>
 
-class POCSAGLogger {
+class PagerLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
@@ -113,13 +114,19 @@ class FrameIndicator : public Widget {
     bool has_sync_ = false;
 };
 
+enum PagerMode : int32_t {
+    POCSAG,
+    FLEX,
+    AUTO
+};
+
 enum POCSAGFilter : uint8_t {
     FILTER_NONE,
     FILTER_DROP,
     FILTER_KEEP
 };
 
-struct POCSAGSettings {
+struct PagerSettings {
     bool enable_small_font = false;
     bool enable_logging = false;
     bool enable_raw_log = false;
@@ -128,20 +135,29 @@ struct POCSAGSettings {
     uint8_t filter_mode = false;
     int32_t baud_rate = -1;
     uint32_t filter_address = 0;
+    int32_t pager_mode = POCSAG; // PagerMode
 };
 
-class POCSAGSettingsView : public View {
+class PagerSettingsView : public View {
    public:
-    POCSAGSettingsView(NavigationView& nav, POCSAGSettings& settings);
+    PagerSettingsView(NavigationView& nav, PagerSettings& settings);
 
-    std::string title() const override { return "POCSAG Config"; };
+    std::string title() const override { return "Pager Config"; };
     void focus() override { button_save.focus(); }
 
    private:
-    POCSAGSettings& settings_;
+    PagerSettings& settings_;
+
+    OptionsField opt_mode{
+        {2 * 8, 0 * 16},
+        6,
+        {{"POCSAG", POCSAG},
+         {"FLEX  ", FLEX},
+         {"AUTO  ", AUTO}}
+    };
 
     OptionsField opt_baud_rate{
-        {8 * 8, 0 * 16},
+        {16 * 8, 0 * 16},
         4,
         {{"Auto", -1},
          {" 512", 0},
@@ -149,7 +165,6 @@ class POCSAGSettingsView : public View {
          {"2400", 2}}};
 
     Labels labels{
-        {{2 * 8, 0 * 16}, "Baud:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 12 * 16}, "Filter Mode:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 13 * 16}, "Filter Addr:", Theme::getInstance()->fg_light->foreground},
     };
@@ -197,12 +212,12 @@ class POCSAGSettingsView : public View {
         "Save"};
 };
 
-class POCSAGAppView : public View {
+class PagerAppView : public View {
    public:
-    POCSAGAppView(NavigationView& nav);
-    ~POCSAGAppView();
+    PagerAppView(NavigationView& nav);
+    ~PagerAppView();
 
-    std::string title() const override { return "POCSAG RX"; };
+    std::string title() const override { return "Pager RX"; };
     void focus() override;
 
    private:
@@ -219,9 +234,9 @@ class POCSAGAppView : public View {
     };
 
     // Settings
-    POCSAGSettings settings_{};
+    PagerSettings settings_{};
     app_settings::SettingsManager app_settings_{
-        "rx_pocsag"sv,
+        "rx_pager"sv,
         app_settings::Mode::RX,
         {
             {"small_font"sv, &settings_.enable_small_font},
@@ -232,18 +247,26 @@ class POCSAGAppView : public View {
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
             {"baud_rate"sv, &settings_.baud_rate},
+            {"pager_mode"sv, &settings_.pager_mode},
         }};
 
     void refresh_ui();
     bool ignore_address(uint32_t address) const;
     void handle_decoded(Timestamp timestamp, const std::string& prefix);
-    void on_packet(const POCSAGPacketMessage* message);
-    void on_stats(const POCSAGStatsMessage* stats);
+    
+    // Message Handlers
+    void on_packet_pocsag(const POCSAGPacketMessage* message);
+    void on_stats_pocsag(const POCSAGStatsMessage* stats);
+    
+    void on_packet_flex(const FlexPacketMessage* message);
+    void on_debug_flex(const FlexDebugMessage* message);
+
+    void apply_config();
 
     uint32_t last_address = 0;
     pocsag::EccContainer ecc{};
     pocsag::POCSAGState pocsag_state{&ecc};
-    POCSAGLogger logger{};
+    PagerLogger logger{};
     uint16_t packet_count = 0;
 
     RxFrequencyField field_frequency{
@@ -312,21 +335,36 @@ class POCSAGAppView : public View {
             this->on_freqchg(message->freq);
         }};
 
-    MessageHandlerRegistration message_handler_packet{
+    MessageHandlerRegistration message_handler_packet_pocsag{
         Message::ID::POCSAGPacket,
         [this](Message* const p) {
             const auto message = static_cast<const POCSAGPacketMessage*>(p);
-            this->on_packet(message);
+            this->on_packet_pocsag(message);
         }};
 
-    MessageHandlerRegistration message_handler_stats{
+    MessageHandlerRegistration message_handler_stats_pocsag{
         Message::ID::POCSAGStats,
         [this](Message* const p) {
             const auto stats = static_cast<const POCSAGStatsMessage*>(p);
-            this->on_stats(stats);
+            this->on_stats_pocsag(stats);
+        }};
+
+    MessageHandlerRegistration message_handler_packet_flex{
+        Message::ID::FlexPacket,
+        [this](Message* const p) {
+            const auto message = static_cast<const FlexPacketMessage*>(p);
+            this->on_packet_flex(message);
+        }};
+
+    MessageHandlerRegistration message_handler_debug_flex{
+        Message::ID::FlexDebug,
+        [this](Message* const p) {
+            const auto message = static_cast<const FlexDebugMessage*>(p);
+            this->on_debug_flex(message);
         }};
 };
 
 } /* namespace ui */
 
-#endif /*__POCSAG_APP_H__*/
+#endif /*__PAGER_APP_H__*/
+

@@ -431,7 +431,18 @@ DeclareTargets(POOK ook)
 set(MODE_CPPSRC
 	proc_pocsag2.cpp
 )
-DeclareTargets(PPO2 pocsag2)
+# DeclareTargets(PPO2 pocsag2)
+
+### Pager (POCSAG + FLEX)
+
+set(add_to_firmware FALSE)
+set(MODE_FLAGS "-Os")
+set(MODE_CPPSRC
+	proc_pager.cpp
+)
+DeclareTargets(PPAG pager)
+set(MODE_FLAGS "-O3")
+set(add_to_firmware TRUE)
 
 ### RDS
 
@@ -555,13 +566,6 @@ DeclareTargets(PUSB sd_over_usb)
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
-
-### FLEX RX
-
-set(MODE_CPPSRC
-	proc_flex.cpp
-)
-DeclareTargets(PFLX flex)
 
 ### ACARS RX
 
