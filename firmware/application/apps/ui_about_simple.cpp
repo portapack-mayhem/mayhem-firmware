@@ -10,7 +10,7 @@ namespace ui {
 constexpr std::string_view mayhem_information_list[] = {
     "#****** Mayhem Community ******",
     " ",
-    "  https://discord.mayhem.app",
+    "  https://discord.hackrf.app",
     " ",
     "#**** List of contributors ****",
     " ",
