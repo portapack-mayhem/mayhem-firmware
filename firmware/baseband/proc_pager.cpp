@@ -433,13 +433,6 @@ void PagerProcessor::execute(const buffer_c8_t& buffer) {
     // demod: 24k -> audio (float). dst_buffer -> audio_buffer.
     auto audio = demod.execute(channel_out, audio_buffer);
 
-    // Heartbeat debug similar to original FLEX-only processor
-    // static int flex_debug_counter = 0;
-    // if (++flex_debug_counter > 1000) {
-    //     flex_send_debug("Running", 0, 0);
-    //     flex_debug_counter = 0;
-    // }
-
     if (mode == pager::Mode::AUTO) {
         // Try both - FLEX first since it needs raw audio
         // POCSAG modifies audio in-place, so FLEX must go first
