@@ -6,14 +6,12 @@
 #include "ui_receiver.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_rssi.hpp"
-#include "ui_spectrum.hpp"
-#include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
-#include "freqman_db.hpp"
 
 #include <string>
 #include <vector>
+#include <array>
 
 namespace ui::external_app::flex_rx {
 
@@ -27,37 +25,70 @@ class FlexAppView : public View {
 
    private:
     NavigationView& nav_;
-    RxRadioState radio_state_{
-        929612500 /* frequency - common pager freq in some regions, or 931M */,
-        max283x::filter::bandwidth_minimum /* bandwidth */,
-        3072000 /* sampling rate */
-    };
 
-    // UI Elements - Row 0
+    // Saved settings
+    rf::Frequency frequency_value{931740000};  // Default FLEX frequency
+    uint32_t current_color_index{0};           // Current text color selection
+
+    // Available text colors for message display
+    static constexpr std::array<Color, 7> text_colors = {{Color::green(),
+                                                          Color::white(),
+                                                          Color::cyan(),
+                                                          Color::magenta(),
+                                                          Color::yellow(),
+                                                          Color::blue(),
+                                                          Color::red()}};
+
+    RxRadioState radio_state_{};
+
+    // Message log settings
+    static constexpr size_t MAX_LOG_LINES = 32;  // Limit to prevent memory issues
+    std::vector<std::string> log_messages{};     // Stored log lines
+
+    // Helper methods
+    void log_message(const std::string& message);  // Add message with word wrap
+    void rebuild_menu();                           // Rebuild menu after color change or overflow
+    void update_freq(rf::Frequency f);             // Update tuned frequency
+    void cycle_color();                            // Cycle through text colors
+
+    // UI Elements - Row 0, dynamically positioned
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
+
+    // Color cycle button
+    Button button_color{
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)},
+        "COLOR"};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(26), 0, UI_POS_WIDTH(4), 4}};
 
-    // Console - starts at row 1, extends to bottom of screen
-    Console console{
-        {0, 1 * 16, screen_width, screen_height - 1 * 16}};
+    // Message display area - scrollable menu view
+    MenuView menu_view{
+        {0, 1 * 16, screen_width, screen_height - 1 * 16},
+        true};
 
-    // Logic
+    // Persistent settings manager
+    app_settings::SettingsManager settings_{
+        "rx_flex",
+        app_settings::Mode::RX,
+        {{"frequency", &frequency_value},
+         {"color_index", &current_color_index}}};
+
+    // Message handlers
     void on_packet(const FlexPacketMessage* message);
     void on_stats(const FlexStatsMessage* message);
     void on_debug(const FlexDebugMessage* message);
 
-    // Message Handlers
+    // Message handler registrations
     MessageHandlerRegistration message_handler_packet{
         Message::ID::FlexPacket,
         [this](const Message* const p) {
@@ -78,9 +109,6 @@ class FlexAppView : public View {
             const auto message = *static_cast<const FlexDebugMessage*>(p);
             this->on_debug(&message);
         }};
-
-    // Config
-    void update_freq(rf::Frequency f);
 };
 
 }  // namespace ui::external_app::flex_rx
