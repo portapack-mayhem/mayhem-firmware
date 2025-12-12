@@ -1,24 +1,24 @@
 #include "proc_flex.hpp"
 #include "event_m4.hpp"
 #include "audio_dma.hpp"
-#include "pocsag.hpp" 
+#include "pocsag.hpp"
 #include "dsp_fir_taps.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include <cmath>
 #include <cstring>
-#include <cstdio> // for snprintf
+#include <cstdio>  // for snprintf
 
 // Constants from demod_flex.c
-#define FREQ_SAMP            24000 // Our sample rate
-#define DC_OFFSET_FILTER     0.010 
-#define PHASE_LOCKED_RATE    0.045
-#define PHASE_UNLOCKED_RATE  0.050
-#define LOCK_LEN             24
-#define IDLE_THRESHOLD       0
-#define DEMOD_TIMEOUT        100
-#define FLEX_SYNC_MARKER     0xA6C6AAAAul
-#define SLICE_THRESHOLD      0.667
+#define FREQ_SAMP 24000  // Our sample rate
+#define DC_OFFSET_FILTER 0.010
+#define PHASE_LOCKED_RATE 0.045
+#define PHASE_UNLOCKED_RATE 0.050
+#define LOCK_LEN 24
+#define IDLE_THRESHOLD 0
+#define DEMOD_TIMEOUT 100
+#define FLEX_SYNC_MARKER 0xA6C6AAAAul
+#define SLICE_THRESHOLD 0.667
 
 // Implement EccContainer here to avoid linking pocsag.cpp which pulls in app headers
 using namespace pocsag;
@@ -151,7 +151,7 @@ uint32_t bit_reverse_32(uint32_t x) {
     return x;
 }
 
-} // namespace
+}  // namespace
 
 void FlexProcessor::send_debug(const char* text, uint32_t v1, uint32_t v2) {
     if (shared_memory.application_queue.is_empty()) return;
@@ -162,7 +162,7 @@ void FlexProcessor::send_debug(const char* text, uint32_t v1, uint32_t v2) {
 
 void FlexProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
-    
+
     // Heartbeat debug every ~1 second (24000Hz / 4096 buffer size * ~6)
     static int debug_count = 0;
     debug_count++;
@@ -196,7 +196,7 @@ void FlexProcessor::flex_demodulate(double sample) {
         int j;
         int decmax = 0;
         int modal_symbol = 0;
-        for (j = 0; j<4; j++) {
+        for (j = 0; j < 4; j++) {
             if (demodulator.symcount[j] > decmax) {
                 modal_symbol = j;
                 decmax = demodulator.symcount[j];
@@ -210,14 +210,13 @@ void FlexProcessor::flex_demodulate(double sample) {
         if (demodulator.locked) {
             /*Process the symbol*/
             flex_sym(modal_symbol);
-        }
-        else {
+        } else {
             /*Check for lock pattern*/
             /*Shift symbols into buffer, symbols are converted so that the max and min symbols map to 1 and 2 i.e each contain a single 1 */
             demodulator.lock_buf = (demodulator.lock_buf << 2) | (modal_symbol ^ 0x1);
             uint64_t lock_pattern = demodulator.lock_buf ^ 0x6666666666666666ull;
             uint64_t lock_mask = (1ull << (2 * LOCK_LEN)) - 1;
-            
+
             if ((lock_pattern & lock_mask) == 0 || ((~lock_pattern) & lock_mask) == 0) {
                 demodulator.locked = 1;
                 demodulator.lock_buf = 0;
@@ -363,8 +362,7 @@ void FlexProcessor::decode_mode(unsigned int sync_code) {
         {0x7B18, 3200, 2},
         {0xDEA0, 3200, 4},
         {0x4C7C, 3200, 4},
-        {0, 0, 0}
-    };
+        {0, 0, 0}};
 
     for (int i = 0; flex_modes[i].sync != 0; i++) {
         unsigned int diff = popcount((unsigned int)flex_modes[i].sync ^ sync_code);
@@ -398,7 +396,7 @@ int FlexProcessor::decode_fiw() {
     uint32_t fiw_val = fiw.rawdata;
     int decode_error = bch_fix_errors(&fiw_val);
 
-    if (decode_error > 2) { 
+    if (decode_error > 2) {
         return 1;
     }
 
@@ -434,7 +432,7 @@ int FlexProcessor::read_data(unsigned char sym) {
     }
 
     unsigned int idx = ((data.data_bit_counter >> 5) & 0xFFF8) | (data.data_bit_counter & 0x0007);
-    if (idx >= 88) return 0; // Boundary check
+    if (idx >= 88) return 0;  // Boundary check
 
     if (data.phase_toggle == 0) {
         data.PhaseA.buf[idx] = (data.PhaseA.buf[idx] >> 1) | (bit_a ? 0x80000000 : 0);
@@ -525,14 +523,18 @@ void FlexProcessor::flex_sym(unsigned char sym) {
             if (++state.sync2_count == sync.baud * 25 / 1000) {
                 state.data_count = 0;
                 // Clear phase data
-                for (int i=0; i<88; i++) {
-                    data.PhaseA.buf[i]=0; data.PhaseB.buf[i]=0;
-                    data.PhaseC.buf[i]=0; data.PhaseD.buf[i]=0;
+                for (int i = 0; i < 88; i++) {
+                    data.PhaseA.buf[i] = 0;
+                    data.PhaseB.buf[i] = 0;
+                    data.PhaseC.buf[i] = 0;
+                    data.PhaseD.buf[i] = 0;
                 }
-                data.PhaseA.idle_count=0; data.PhaseB.idle_count=0;
-                data.PhaseC.idle_count=0; data.PhaseD.idle_count=0;
-                data.phase_toggle=0;
-                data.data_bit_counter=0;
+                data.PhaseA.idle_count = 0;
+                data.PhaseB.idle_count = 0;
+                data.PhaseC.idle_count = 0;
+                data.PhaseD.idle_count = 0;
+                data.phase_toggle = 0;
+                data.data_bit_counter = 0;
 
                 state.Current = flex::State::DATA;
             }
@@ -573,19 +575,28 @@ void FlexProcessor::decode_data() {
 }
 
 void FlexProcessor::decode_phase(char PhaseNo) {
-    uint32_t *phaseptr = nullptr;
+    uint32_t* phaseptr = nullptr;
     switch (PhaseNo) {
-        case 'A': phaseptr = data.PhaseA.buf; break;
-        case 'B': phaseptr = data.PhaseB.buf; break;
-        case 'C': phaseptr = data.PhaseC.buf; break;
-        case 'D': phaseptr = data.PhaseD.buf; break;
-        default: return;
+        case 'A':
+            phaseptr = data.PhaseA.buf;
+            break;
+        case 'B':
+            phaseptr = data.PhaseB.buf;
+            break;
+        case 'C':
+            phaseptr = data.PhaseC.buf;
+            break;
+        case 'D':
+            phaseptr = data.PhaseD.buf;
+            break;
+        default:
+            return;
     }
 
     for (int i = 0; i < 88; i++) {
         int decode_error = bch_fix_errors(&phaseptr[i]);
         if (decode_error > 2) return;
-        phaseptr[i] &= 0x001FFFFF; // Extract message bits
+        phaseptr[i] &= 0x001FFFFF;  // Extract message bits
     }
 
     uint32_t biw = phaseptr[0];
@@ -599,22 +610,38 @@ void FlexProcessor::decode_phase(char PhaseNo) {
         if (phaseptr[i] == 0x00000000 || phaseptr[i] == 0x001FFFFF) continue;
 
         parse_capcode(phaseptr[i]);
-        if (decode.long_address) continue; // Skip long addresses for now
+        if (decode.long_address) continue;  // Skip long addresses for now
 
         if (decode.capcode > 4297068542ll || decode.capcode < 0) continue;
 
         uint32_t viw = phaseptr[j];
         int type_val = (viw >> 4) & 0x07;
-        
-        switch(type_val) {
-            case 0: decode.type = flex::PageType::SECURE; break;
-            case 1: decode.type = flex::PageType::SHORT_INSTRUCTION; break;
-            case 2: decode.type = flex::PageType::TONE; break;
-            case 3: decode.type = flex::PageType::STANDARD_NUMERIC; break;
-            case 4: decode.type = flex::PageType::SPECIAL_NUMERIC; break;
-            case 5: decode.type = flex::PageType::ALPHANUMERIC; break;
-            case 6: decode.type = flex::PageType::BINARY; break;
-            case 7: decode.type = flex::PageType::NUMBERED_NUMERIC; break;
+
+        switch (type_val) {
+            case 0:
+                decode.type = flex::PageType::SECURE;
+                break;
+            case 1:
+                decode.type = flex::PageType::SHORT_INSTRUCTION;
+                break;
+            case 2:
+                decode.type = flex::PageType::TONE;
+                break;
+            case 3:
+                decode.type = flex::PageType::STANDARD_NUMERIC;
+                break;
+            case 4:
+                decode.type = flex::PageType::SPECIAL_NUMERIC;
+                break;
+            case 5:
+                decode.type = flex::PageType::ALPHANUMERIC;
+                break;
+            case 6:
+                decode.type = flex::PageType::BINARY;
+                break;
+            case 7:
+                decode.type = flex::PageType::NUMBERED_NUMERIC;
+                break;
         }
 
         int mw1 = (viw >> 7) & 0x7F;
@@ -642,16 +669,16 @@ void FlexProcessor::parse_capcode(uint32_t aw1) {
     decode.capcode = aw1 - 0x8000;
 }
 
-void FlexProcessor::parse_alphanumeric(uint32_t * phaseptr, char, int mw1, int mw2, int) {
-    char message[128] = {0}; // Fixed buffer for message
+void FlexProcessor::parse_alphanumeric(uint32_t* phaseptr, char, int mw1, int mw2, int) {
+    char message[128] = {0};  // Fixed buffer for message
     int currentChar = 0;
-    
+
     // int frag = (phaseptr[mw1] >> 11) & 0x03;
     // int cont = (phaseptr[mw1] >> 0x0A) & 0x01;
     // Helper logic for fragmentation (ignored for basic display)
 
     mw1++;
-    
+
     for (int i = mw1; i <= mw2; i++) {
         unsigned int dw = phaseptr[i];
         unsigned char ch;
@@ -662,10 +689,10 @@ void FlexProcessor::parse_alphanumeric(uint32_t * phaseptr, char, int mw1, int m
             ch = dw & 0x7F;
             if (ch != 0x03 && currentChar < 127) message[currentChar++] = ch;
         }
-        
+
         ch = (dw >> 7) & 0x7F;
         if (ch != 0x03 && currentChar < 127) message[currentChar++] = ch;
-        
+
         ch = (dw >> 14) & 0x7F;
         if (ch != 0x03 && currentChar < 127) message[currentChar++] = ch;
     }
@@ -674,19 +701,19 @@ void FlexProcessor::parse_alphanumeric(uint32_t * phaseptr, char, int mw1, int m
     flex::FlexPacket packet;
     packet.bitrate = sync.baud;
     packet.capcode = decode.capcode;
-    packet.function = 0; // TODO extract function if available
-    packet.type = 5; // ALPHANUMERIC
-    packet.status = 0; // OK
-    strncpy(packet.message, message, sizeof(packet.message) - 1);
-    
+    packet.function = 0;  // TODO extract function if available
+    packet.type = 5;      // ALPHANUMERIC
+    packet.status = 0;    // OK
+    memcpy(packet.message, message, currentChar + 1);
+
     send_packet(packet);
 }
 
-void FlexProcessor::parse_numeric(uint32_t * phaseptr, char, int j) {
+void FlexProcessor::parse_numeric(uint32_t* phaseptr, char, int j) {
     // Simplified numeric parsing
     char message[128] = {0};
     const char flex_bcd[] = "0123456789 U -][";
-    
+
     int w1 = phaseptr[j] >> 7;
     int w2 = w1 >> 7;
     w1 = w1 & 0x7f;
@@ -695,12 +722,15 @@ void FlexProcessor::parse_numeric(uint32_t * phaseptr, char, int j) {
     int dw;
     // Handle short vs long logic if needed (simplified)
     dw = phaseptr[w1];
-    w1++; w2++;
+    w1++;
+    w2++;
 
     unsigned char digit = 0;
-    int count = 4; // Standard numeric skip
-    if (decode.type == flex::PageType::NUMBERED_NUMERIC) count += 10;
-    else count += 2;
+    int count = 4;  // Standard numeric skip
+    if (decode.type == flex::PageType::NUMBERED_NUMERIC)
+        count += 10;
+    else
+        count += 2;
 
     int idx = 0;
     for (int i = w1; i <= w2; i++) {
@@ -723,26 +753,26 @@ void FlexProcessor::parse_numeric(uint32_t * phaseptr, char, int j) {
     packet.bitrate = sync.baud;
     packet.capcode = decode.capcode;
     packet.function = 0;
-    packet.type = 3; // NUMERIC
+    packet.type = 3;  // NUMERIC
     packet.status = 0;
-    strncpy(packet.message, message, sizeof(packet.message) - 1);
-    
+    memcpy(packet.message, message, idx + 1);
+
     send_packet(packet);
 }
 
-void FlexProcessor::parse_tone_only(uint32_t *, char, int) {
+void FlexProcessor::parse_tone_only(uint32_t*, char, int) {
     flex::FlexPacket packet;
     packet.bitrate = sync.baud;
     packet.capcode = decode.capcode;
     packet.function = 0;
-    packet.type = 2; // TONE
+    packet.type = 2;  // TONE
     packet.status = 0;
     snprintf(packet.message, sizeof(packet.message), "Tone Only");
-    
+
     send_packet(packet);
 }
 
-void FlexProcessor::parse_unknown(uint32_t *, char, int, int) {
+void FlexProcessor::parse_unknown(uint32_t*, char, int, int) {
     // Ignored
 }
 
@@ -755,11 +785,11 @@ void FlexProcessor::on_message(const Message* const message) {
 void FlexProcessor::configure() {
     decim_0_iq.configure(taps_11k0_decim_0.taps);
     decim_1_iq.configure(taps_11k0_decim_1.taps);
-    channel_filter.configure(taps_11k0_channel.taps, 2); // Decim 2 -> 24kHz output
-    
+    channel_filter.configure(taps_11k0_channel.taps, 2);  // Decim 2 -> 24kHz output
+
     demod.configure(24000, 4800);
     demodulator.sample_freq = 24000;
-    
+
     configured = true;
     send_debug("Configured", 0, 0);
 }

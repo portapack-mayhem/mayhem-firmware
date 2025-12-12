@@ -7,7 +7,7 @@
 #include "dsp_demodulate.hpp"
 #include "message.hpp"
 #include "flex_defs.hpp"
-#include "pocsag.hpp" // For EccContainer
+#include "pocsag.hpp"  // For EccContainer
 
 #include <cstdint>
 #include <array>
@@ -49,7 +49,7 @@ struct FlexDemodParams {
 };
 
 struct FlexGroupHandler {
-    int64_t GroupCodes[17][100]; // Reduced size from 1000 to save RAM
+    int64_t GroupCodes[17][100];  // Reduced size from 1000 to save RAM
     int GroupCycle[17];
     int GroupFrame[17];
 };
@@ -104,7 +104,7 @@ struct FlexDecode {
     int64_t capcode = 0;
 };
 
-} // namespace flex
+}  // namespace flex
 
 class FlexProcessor : public BasebandProcessor {
    public:
@@ -125,7 +125,7 @@ class FlexProcessor : public BasebandProcessor {
     // Buffers
     std::array<complex16_t, 256> dst{};
     const buffer_c16_t dst_buffer{dst.data(), dst.size()};
-    
+
     std::array<float, 16> audio{};
     const buffer_f32_t audio_buffer{audio.data(), audio.size()};
 
@@ -138,13 +138,13 @@ class FlexProcessor : public BasebandProcessor {
     flex::FlexData data{};
     flex::FlexDecode decode{};
     flex::FlexGroupHandler group_handler{};
-    
-    pocsag::EccContainer ecc{}; 
+
+    pocsag::EccContainer ecc{};
 
     // Methods
     void configure();
     void process_audio(const buffer_f32_t& audio);
-    
+
     // Internal Flex logic
     int build_symbol(double sample);
     void flex_demodulate(double sample);
@@ -152,24 +152,24 @@ class FlexProcessor : public BasebandProcessor {
     unsigned int flex_sync_check(uint64_t buf);
     unsigned int flex_sync(unsigned char sym);
     void decode_mode(unsigned int sync_code);
-    void read_2fsk(unsigned int sym, uint32_t * dat); // Changed to uint32_t*
+    void read_2fsk(unsigned int sym, uint32_t* dat);  // Changed to uint32_t*
     int decode_fiw();
     int read_data(unsigned char sym);
     void decode_data();
     void decode_phase(char PhaseNo);
-    int bch_fix_errors(uint32_t * data_to_fix);
-    
+    int bch_fix_errors(uint32_t* data_to_fix);
+
     // Parsing
     void parse_capcode(uint32_t aw1);
-    void parse_alphanumeric(uint32_t * phaseptr, char PhaseNo, int mw1, int mw2, int flex_groupmessage);
-    void parse_numeric(uint32_t * phaseptr, char PhaseNo, int j);
-    void parse_tone_only(uint32_t * phaseptr, char PhaseNo, int j);
-    void parse_unknown(uint32_t * phaseptr, char PhaseNo, int mw1, int mw2);
+    void parse_alphanumeric(uint32_t* phaseptr, char PhaseNo, int mw1, int mw2, int flex_groupmessage);
+    void parse_numeric(uint32_t* phaseptr, char PhaseNo, int j);
+    void parse_tone_only(uint32_t* phaseptr, char PhaseNo, int j);
+    void parse_unknown(uint32_t* phaseptr, char PhaseNo, int mw1, int mw2);
 
     void send_packet(const flex::FlexPacket& packet);
     void send_stats();
     void send_debug(const char* text, uint32_t v1, uint32_t v2);
-    
+
     // Threads
     BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
 };

@@ -21,16 +21,14 @@ struct FlexStats {
 };
 
 struct FlexPacket {
-    uint32_t bitrate; // 1600, 3200, 6400
+    uint32_t bitrate;  // 1600, 3200, 6400
     uint32_t capcode;
-    uint32_t function; // 0-3
-    uint32_t type; // Message type (e.g. ALN, NUM, etc - could use enum)
-    char message[128]; // Decoded message text
-    uint32_t status; // 0=OK, other=Errors
+    uint32_t function;  // 0-3
+    uint32_t type;      // Message type (e.g. ALN, NUM, etc - could use enum)
+    char message[128];  // Decoded message text
+    uint32_t status;    // 0=OK, other=Errors
 };
 
 } /* namespace flex */
 
 #endif /*__FLEX_DEFS_H__*/
-
-

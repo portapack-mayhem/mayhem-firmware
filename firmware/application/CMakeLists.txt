@@ -271,7 +271,6 @@ set(CPPSRC
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
-	apps/flex_app.cpp
 	apps/pocsag_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp

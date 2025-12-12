@@ -1,5 +1,5 @@
-#ifndef __FLEX_APP_H__
-#define __FLEX_APP_H__
+#ifndef __UI_FLEX_RX_H__
+#define __UI_FLEX_RX_H__
 
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace ui {
+namespace ui::external_app::flex_rx {
 
 class FlexAppView : public View {
    public:
@@ -40,14 +40,13 @@ class FlexAppView : public View {
         {15 * 8, 0 * 16}};
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
-    
+
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
-        
+
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
-        nav_
-    };
+        nav_};
 
     Console console{
         {0, 2 * 16, 240, 240}};
@@ -56,37 +55,33 @@ class FlexAppView : public View {
     void on_packet(const FlexPacketMessage* message);
     void on_stats(const FlexStatsMessage* message);
     void on_debug(const FlexDebugMessage* message);
-    
+
     // Message Handlers
     MessageHandlerRegistration message_handler_packet{
         Message::ID::FlexPacket,
         [this](const Message* const p) {
             const auto message = *static_cast<const FlexPacketMessage*>(p);
             this->on_packet(&message);
-        }
-    };
-    
+        }};
+
     MessageHandlerRegistration message_handler_stats{
         Message::ID::FlexStats,
         [this](const Message* const p) {
             const auto message = *static_cast<const FlexStatsMessage*>(p);
             this->on_stats(&message);
-        }
-    };
+        }};
 
     MessageHandlerRegistration message_handler_debug{
         Message::ID::FlexDebug,
         [this](const Message* const p) {
             const auto message = *static_cast<const FlexDebugMessage*>(p);
             this->on_debug(&message);
-        }
-    };
-    
+        }};
+
     // Config
     void update_freq(rf::Frequency f);
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::flex_rx
 
-#endif /*__FLEX_APP_H__*/
-
+#endif /*__UI_FLEX_RX_H__*/
