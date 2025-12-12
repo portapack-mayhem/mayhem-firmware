@@ -33,7 +33,11 @@ class FlexAppView : public View {
         3072000 /* sampling rate */
     };
 
-    // UI Elements
+    // UI Elements - Row 0
+    RxFrequencyField field_frequency{
+        {0 * 8, 0 * 16},
+        nav_};
+
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
     LNAGainField field_lna{
@@ -44,12 +48,9 @@ class FlexAppView : public View {
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
 
-    RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
-        nav_};
-
+    // Console - starts at row 1, extends to bottom of screen
     Console console{
-        {0, 2 * 16, 240, 240}};
+        {0, 1 * 16, screen_width, screen_height - 1 * 16}};
 
     // Logic
     void on_packet(const FlexPacketMessage* message);
