@@ -35,6 +35,7 @@
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "flex_defs.hpp"
 #include "aprs_packet.hpp"
 #include "sonde_packet.hpp"
 #include "tpms_packet.hpp"
@@ -136,6 +137,10 @@ class Message {
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
         EPIRBPacket = 81,
+        FlexPacket = 82,
+        FlexStats = 83,
+        FlexConfigure = 84,
+        FlexDebug = 85,
         MAX
     };
 
@@ -1567,6 +1572,51 @@ class NoaaAptRxImageDataMessage : public Message {
         : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
+};
+
+class FlexPacketMessage : public Message {
+   public:
+    constexpr FlexPacketMessage(const flex::FlexPacket& packet)
+        : Message{ID::FlexPacket},
+          packet{packet} {
+    }
+    flex::FlexPacket packet;
+};
+
+class FlexStatsMessage : public Message {
+   public:
+    constexpr FlexStatsMessage(const flex::FlexStats& stats)
+        : Message{ID::FlexStats},
+          stats{stats} {
+    }
+    flex::FlexStats stats;
+};
+
+class FlexConfigureMessage : public Message {
+   public:
+    constexpr FlexConfigureMessage()
+        : Message{ID::FlexConfigure} {
+    }
+};
+
+class FlexDebugMessage : public Message {
+   public:
+    constexpr FlexDebugMessage(const uint32_t val1, const uint32_t val2, const char* msg)
+        : Message{ID::FlexDebug},
+          val1{val1},
+          val2{val2},
+          text{} {
+        size_t i = 0;
+        while (i < sizeof(text) - 1 && msg[i] != '\0') {
+            text[i] = msg[i];
+            i++;
+        }
+        text[i] = '\0';
+    }
+
+    uint32_t val1;
+    uint32_t val2;
+    char text[64];
 };
 
 #endif /*__MESSAGE_H__*/
