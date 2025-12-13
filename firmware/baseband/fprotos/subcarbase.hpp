@@ -13,18 +13,18 @@ For comments in a protocol implementation check w-nexus-th.hpp
 #include <string>
 // default values to indicate 'no value'
 
-class FProtoSubCarDBase;
-typedef void (*SubCarProtocolDecoderBaseRxCallback)(FProtoSubCarDBase* instance);
+class FProtoSubCarBase;
+typedef void (*SubCarProtocolDecoderBaseRxCallback)(FProtoSubCarBase* instance);
 
-class FProtoSubCarDBase {
+class FProtoSubCarBase {
    public:
-    FProtoSubCarDBase() {}
-    virtual ~FProtoSubCarDBase() {}
+    FProtoSubCarBase() {}
+    virtual ~FProtoSubCarBase() {}
     virtual void feed(bool level, uint32_t duration) = 0;                        // need to be implemented on each protocol handler.
     void setCallback(SubCarProtocolDecoderBaseRxCallback cb) { callback = cb; }  // this is called when there is a hit.
 
     // General data holder, these will be passed
-    uint8_t sensorType = FPS_Invalid;
+    uint8_t sensorType = FPC_Invalid;
     uint16_t data_count_bit = 0;
     uint64_t decode_data = 0;
 

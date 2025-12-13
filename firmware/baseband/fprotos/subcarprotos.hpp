@@ -9,8 +9,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "portapack_shared_memory.hpp"
 
 #include "fprotolistgeneral.hpp"
-#include "subghzdbase.hpp"
-#include "s-princeton.hpp"
+#include "subcarbase.hpp"
+#include "c-suzuki.hpp"
 
 #ifndef __FPROTO_PROTOLISTCAR_H__
 #define __FPROTO_PROTOLISTCAR_H__
@@ -21,15 +21,15 @@ class SubCarProtos : public FProtoListGeneral {
     SubCarProtos& operator=(const SubCarProtos&) { return *this; }  // won't use, but makes compiler happy
     SubCarProtos() {
         // add protos
-        protos[FPS_PRINCETON] = new FProtoSubGhzDPrinceton();
+        protos[FPC_SUZUKI] = new FProtoSubCarSuzuki();
 
-        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+        for (uint8_t i = 0; i < FPC_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
         }
     }
 
     ~SubCarProtos() {  // not needed for current operation logic, but a bit more elegant :)
-        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+        for (uint8_t i = 0; i < FPC_COUNT; ++i) {
             if (protos[i] != NULL) {
                 free(protos[i]);
                 protos[i] = NULL;
@@ -37,19 +37,19 @@ class SubCarProtos : public FProtoListGeneral {
         }
     };
 
-    static void callbackTarget(FProtoSubGhzDBase* instance) {
+    static void callbackTarget(FProtoSubCarBase* instance) {
         SubCarDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->decode_data};
         shared_memory.application_queue.push(packet_message);
     }
 
     void feed(bool level, uint32_t duration) {
-        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+        for (uint8_t i = 0; i < FPC_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->feed(level, duration);
         }
     }
 
    protected:
-    FProtoSubGhzDBase* protos[FPS_COUNT] = {NULL};
+    FProtoSubCarBase* protos[FPC_COUNT] = {NULL};
 };
 
 #endif

@@ -76,6 +76,19 @@ class SubCarProcessor : public BasebandProcessor {
     bool configured{false};
     uint8_t mode = 0;  // 0 = am, 1 = fm
 
+    // fm part:
+    struct DemodFMState {
+        int8_t prev_i = 0;
+        int8_t prev_q = 0;
+        int32_t frequency_accumulator = 0;
+        int32_t sample_counter = 0;
+
+        // For duration timing
+        bool current_logic_level = false;
+        uint32_t duration_ms = 0;
+    };
+    DemodFMState fm_state{};
+
     FProtoListGeneral* protoList = new SubCarProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);
 

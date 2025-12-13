@@ -154,8 +154,8 @@ SubCarView::~SubCarView() {
 
 const char* SubCarView::getSensorTypeName(FPROTO_SUBCAR_SENSOR type) {
     switch (type) {
-        case FPC_PRINCETON:
-            return "Princeton";
+        case FPC_SUZUKI:
+            return "Suzuki";
 
         case FPC_Invalid:
         default:
@@ -201,7 +201,7 @@ void SubCarRecentEntryDetailView::parseProtocol() {
 
     if (entry_.sensorType == FPC_Invalid) return;
 
-    if (entry_.sensorType == FPC_PRINCETON) {
+    if (entry_.sensorType == FPC_SUZUKI) {
         serial = entry_.data >> 4;
         btn = entry_.data & 0xF;
         return;

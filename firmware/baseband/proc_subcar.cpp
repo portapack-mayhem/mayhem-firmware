@@ -38,6 +38,7 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
     feed_channel_stats(decim_1_out);
 
     for (size_t i = 0; i < decim_1_out.count; i++) {
+        // am decoding
         threshold = (low_estimate + high_estimate) / 2;
         int32_t const hysteresis = threshold / 8;  // +-12%
         int16_t re = decim_1_out.p[i].real();
@@ -106,9 +107,28 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
             if (currentDuration >= 30'000'000) sig_state = STATE_IDLE;
-            if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
+            // if (protoList) protoList->feed(currentHiLow, currentDuration / 1000); //toto split the protos, and feed this to am
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
+        }
+
+        // fm decoding:
+        int32_t instant_freq = ((int32_t)re * fm_state.prev_i) - ((int32_t)im * fm_state.prev_q);
+        fm_state.frequency_accumulator += instant_freq;
+        fm_state.sample_counter++;
+        fm_state.prev_i = im;
+        fm_state.prev_q = re;
+        if (fm_state.sample_counter >= 20) {
+            bool logic_level = (fm_state.frequency_accumulator >= 0);
+            fm_state.duration_ms += (nsPerDecSamp * fm_state.sample_counter) / 1000;
+            if (logic_level != fm_state.current_logic_level) {
+                // level change, send duration
+                if (protoList) protoList->feed(fm_state.current_logic_level, fm_state.duration_ms);
+                fm_state.current_logic_level = logic_level;
+                fm_state.duration_ms = 0;
+            }
+            fm_state.frequency_accumulator = 0;
+            fm_state.sample_counter = 0;
         }
     }
 }
