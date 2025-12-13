@@ -341,6 +341,11 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_flex_config() {
+    const FlexConfigureMessage message{};
+    send_message(&message);
+}
+
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};

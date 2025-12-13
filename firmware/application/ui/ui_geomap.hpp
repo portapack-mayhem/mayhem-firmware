@@ -255,7 +255,7 @@ class GeoMap : public Widget {
     void map_read_line_bin(ui::Color* buffer, uint16_t pixels);
     // open street map related
     uint8_t find_osm_file_tile();
-    void set_osm_max_zoom();
+    void set_osm_max_zoom(bool changeboth = false);
     bool draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y);
     int lon2tile(double lon, int zoom);
     int lat2tile(double lat, int zoom);
@@ -263,7 +263,8 @@ class GeoMap : public Widget {
     double lat_to_pixel_y_tile(double lat, int zoom);
     double tile_pixel_x_to_lon(int x, int zoom);
     double tile_pixel_y_to_lat(int y, int zoom);
-    uint8_t map_osm_zoom{3};
+    uint8_t map_osm_zoom{5};
+    uint8_t map_osm_real_zoom{5};
     double viewport_top_left_px = 0;
     double viewport_top_left_py = 0;
 

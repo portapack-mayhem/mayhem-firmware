@@ -199,7 +199,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
             }
         }
         map_osm_zoom++;
-        if (has_osm) set_osm_max_zoom();
+        if (has_osm) set_osm_max_zoom(true);
     } else if (delta < 0) {
         if (map_zoom > -MAX_MAP_ZOOM_OUT) {
             if (map_zoom == 1) {
@@ -212,6 +212,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
             }
         }
         if (map_osm_zoom > 0) map_osm_zoom--;
+        if (has_osm) set_osm_max_zoom(true);
     } else {
         return false;
     }
@@ -299,8 +300,8 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
         return {(int16_t)x, (int16_t)y};
     }
     // osm calculation
-    double y = lat_to_pixel_y_tile(item.lat, map_osm_zoom) - viewport_top_left_py;
-    double x = lon_to_pixel_x_tile(item.lon, map_osm_zoom) - viewport_top_left_px;
+    double y = lat_to_pixel_y_tile(item.lat, map_osm_real_zoom) - viewport_top_left_py;
+    double x = lon_to_pixel_x_tile(item.lon, map_osm_real_zoom) - viewport_top_left_px;
     return {(int16_t)x, (int16_t)y};
 }
 
@@ -327,7 +328,7 @@ int GeoMap::lat2tile(double lat, int zoom) {
     return (int)floor((1.0 - log(tan(lat_rad) + 1.0 / cos(lat_rad)) / M_PI) / 2.0 * pow(2.0, zoom));
 }
 
-void GeoMap::set_osm_max_zoom() {
+void GeoMap::set_osm_max_zoom(bool changeboth) {
     if (map_osm_zoom > 20) map_osm_zoom = 20;
     for (uint8_t i = map_osm_zoom; i > 0; i--) {
         int tile_x = lon2tile(lon_, i);
@@ -335,11 +336,13 @@ void GeoMap::set_osm_max_zoom() {
         std::string filename = "/OSM/" + to_string_dec_int(i) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp";
         std::filesystem::path file_path(filename);
         if (file_exists(file_path)) {
-            map_osm_zoom = i;
+            map_osm_real_zoom = i;
+            if (changeboth) map_osm_zoom = i;
             return;
         }
     }
-    map_osm_zoom = 0;  // should not happen
+    if (changeboth) map_osm_zoom = 0;  // should not happen
+    map_osm_real_zoom = 0;             // should not happen
 }
 
 // checks if the tile file presents or not. to determine if we got osm or not
@@ -530,8 +533,8 @@ void GeoMap::paint(Painter& painter) {
             } else {
                 // display osm tiles
                 //  Convert center GPS to a global pixel coordinate
-                double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_zoom);
-                double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_zoom);
+                double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_real_zoom);
+                double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_real_zoom);
 
                 // Find the top-left corner of the screen (viewport) in global pixel coordinates
                 viewport_top_left_px = global_center_px - (r.width() / 2.0);
@@ -560,7 +563,7 @@ void GeoMap::paint(Painter& painter) {
                         // For the first tile (x=0, y=0), this will be the negative offset.
                         int draw_pos_x = round(render_offset_x + x * TILE_SIZE);
                         int draw_pos_y = round(render_offset_y + y * TILE_SIZE);
-                        if (!draw_osm_file(map_osm_zoom, current_tile_x, current_tile_y, draw_pos_x, draw_pos_y)) {
+                        if (!draw_osm_file(map_osm_real_zoom, current_tile_x, current_tile_y, draw_pos_x, draw_pos_y)) {
                             // already blanked it.
                         }
                     }
@@ -623,7 +626,7 @@ bool GeoMap::on_touch(const TouchEvent event) {
                 on_move(p.x() / 2.0 * lon_ratio, p.y() / 2.0 * lat_ratio, false);
             } else {
                 p = event.point - screen_rect().location();
-                on_move(tile_pixel_x_to_lon(p.x() + viewport_top_left_px, map_osm_zoom), tile_pixel_y_to_lat(p.y() + viewport_top_left_py, map_osm_zoom), true);
+                on_move(tile_pixel_x_to_lon(p.x() + viewport_top_left_px, map_osm_real_zoom), tile_pixel_y_to_lat(p.y() + viewport_top_left_py, map_osm_real_zoom), true);
             }
             return true;
         }

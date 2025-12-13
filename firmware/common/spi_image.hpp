@@ -91,6 +91,7 @@ constexpr image_tag_t image_tag_epirb_rx{'P', 'E', 'P', 'I'};
 constexpr image_tag_t image_tag_nfm_audio{'P', 'N', 'F', 'M'};
 constexpr image_tag_t image_tag_pocsag{'P', 'P', 'O', 'C'};
 constexpr image_tag_t image_tag_pocsag2{'P', 'P', 'O', '2'};
+constexpr image_tag_t image_tag_flex{'P', 'F', 'L', 'X'};
 constexpr image_tag_t image_tag_sonde{'P', 'S', 'O', 'N'};
 constexpr image_tag_t image_tag_tpms{'P', 'T', 'P', 'M'};
 constexpr image_tag_t image_tag_wfm_audio{'P', 'W', 'F', 'M'};
