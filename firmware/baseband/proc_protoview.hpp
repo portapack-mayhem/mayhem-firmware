@@ -36,10 +36,20 @@ class ProtoViewProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
+    struct DemodFMState {
+        int prev_quad = 0;  // Stores 0, 1, 2, or 3
+
+        int32_t dc_offset = 0;
+        int32_t smoothed_error = 0;
+        bool current_logic_level = false;
+        uint32_t buffer_count = 0;
+    };
 
    private:
     size_t baseband_fs = 0;  // will be set later by configure message.
     uint32_t nsPerDecSamp = 0;
+
+    DemodFMState fm_state{};
 
     /* Array Buffer aux. used in decim0 and decim1 IQ c16 signed  data ; (decim0 defines the max length of the array) */
     std::array<complex16_t, 512> dst{};  // decim0 /4 ,  2048/4 = 512 complex I,Q

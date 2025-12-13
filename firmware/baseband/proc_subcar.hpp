@@ -78,14 +78,11 @@ class SubCarProcessor : public BasebandProcessor {
 
     // fm part:
     struct DemodFMState {
-        int8_t prev_i = 0;
-        int8_t prev_q = 0;
-        int32_t frequency_accumulator = 0;
-        int32_t sample_counter = 0;
-
-        // For duration timing
+        int prev_quad = 0;  // Stores 0, 1, 2, or 3
+        int32_t dc_offset = 0;
+        int32_t smoothed_error = 0;
         bool current_logic_level = false;
-        uint32_t duration_ms = 0;
+        uint32_t buffer_count = 0;
     };
     DemodFMState fm_state{};
 

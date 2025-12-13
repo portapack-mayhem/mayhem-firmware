@@ -25,49 +25,102 @@
 #include "event_m4.hpp"
 #include "audio_dma.hpp"
 
+static inline int get_quadrant(int16_t i, int16_t q) {
+    if (i >= 0) {
+        return (q >= 0) ? 0 : 3;
+    } else {
+        return (q >= 0) ? 1 : 2;
+    }
+}
+
 void ProtoViewProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    // SR = 4Mhz ,  and we are decimating by /8 in total , decim1_out clock 4Mhz /8= 500khz samples/sec.
-    // buffer has   2048 complex i8 I,Q signed samples
-    // decim0 out:  2048/4 = 512 complex i16 I,Q signed samples
-    // decim1 out:  512/2 =  256 complex i16 I,Q signed samples
-    // Regarding Filters, we are re-using existing FIR filters, @4Mhz, FIR decim1 ilter, BW =+-220Khz (at -3dB's). BW = 440kHZ.
-
-    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);       // Input:2048 complex/4 (decim factor) = 512_output complex (1024 I/Q samples)
-    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
+    // 1. Decimation Chain
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     feed_channel_stats(decim_1_out);
 
-    for (size_t i = 0; i < decim_1_out.count; i++) {
-        int16_t re = decim_1_out.p[i].real();
-        int16_t im = decim_1_out.p[i].imag();
-        uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
+    // --- CONFIGURATION ---
+    const int32_t DC_ALPHA = 5;  // Auto-centering speed
+    int32_t buffer_rotation_sum = 0;
 
-        mag = (mag >> 12);  // Decim samples are calculated with saturated gain . (we could also reduce that sat. param at configure time)
+    // 2. QUADRANT COUNTING LOOP
+    for (size_t k = 0; k < decim_1_out.count; k++) {
+        int16_t re = decim_1_out.p[k].real();
+        int16_t im = decim_1_out.p[k].imag();
 
-        bool meashl = (mag > threshold);
-        tm += mag;
-        if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
-        {
-            currentDuration += nsPerDecSamp;
-        } else {  // called on change, so send the last duration and dir.
-            message.times[message.timeptr++] = currentHiLow ? (int32_t)(currentDuration / 1000) : -1 * (int32_t)(currentDuration / 1000);
+        // Get current quadrant (0, 1, 2, or 3)
+        int current_quad = get_quadrant(re, im);
+
+        // Calculate Step (Current - Previous)
+        int diff = current_quad - fm_state.prev_quad;
+
+        // Handle Wrap-Around (crossing from Q3 to Q0 or Q0 to Q3)
+        //  3 -> 0 should be +1 (CCW)
+        //  0 -> 3 should be -1 (CW)
+        if (diff == -3)
+            diff = 1;
+        else if (diff == 3)
+            diff = -1;
+
+        // Sanity Check: If diff is +/- 2, we skipped a quadrant (aliasing or noise).
+        // We usually ignore it or guess the direction based on history.
+        // For simplicity, treat +/- 2 as 0 (invalid step).
+        if (diff == 2 || diff == -2) diff = 0;
+
+        // Update History
+        fm_state.prev_quad = current_quad;
+
+        // Accumulate Rotation
+        buffer_rotation_sum += diff;
+    }
+
+    // 3. AUTO-CENTERING (DC BLOCKER)
+    // Even with quadrant counting, "drift" (hand effect) makes the wheel spin
+    // faster or slower. We need to subtract the average speed.
+
+    // Update our "Average Speed" estimate
+    // Note: buffer_rotation_sum is roughly proportional to frequency.
+    fm_state.dc_offset = (fm_state.dc_offset * ((1 << DC_ALPHA) - 1) + buffer_rotation_sum) >> DC_ALPHA;
+
+    // Remove the drift
+    int32_t centered_rotation = buffer_rotation_sum - fm_state.dc_offset;
+
+    // 4. LOW PASS FILTER
+    const int32_t LPF_ALPHA = 4;
+    fm_state.smoothed_error = (fm_state.smoothed_error * (LPF_ALPHA - 1) + centered_rotation) / LPF_ALPHA;
+
+    // 5. DECISION LOGIC
+    // Threshold is small now because we are counting quadrant steps.
+    // Max steps per buffer (256 samples) is 256.
+    // Typical FSK deviation might give you +/- 10 to 50 steps per buffer.
+    const int32_t THRESHOLD = 3;
+
+    bool new_level = fm_state.current_logic_level;
+
+    if (fm_state.smoothed_error > THRESHOLD) {
+        new_level = true;
+    } else if (fm_state.smoothed_error < -THRESHOLD) {
+        new_level = false;
+    }
+
+    // 6. TIMING OUTPUT
+    if (new_level == fm_state.current_logic_level) {
+        fm_state.buffer_count++;
+    } else {
+        // Output pulse duration
+        int32_t duration_us = fm_state.buffer_count * 512;
+
+        if (duration_us > 250) {
+            message.times[message.timeptr++] = fm_state.current_logic_level ? duration_us : -duration_us;
             if (message.timeptr > message.maxptr) {
                 shared_memory.application_queue.push(message);
                 message.timeptr = 0;
             }
-            currentDuration = nsPerDecSamp;
-            currentHiLow = meashl;
         }
-    }
-
-    cnt += decim_1_out.count;  // TODO , check if it is necessary that xdecim factor.
-    if (cnt > 90'000) {
-        threshold = (tm / cnt) / 2;
-        cnt = 0;
-        tm = 0;
-        if (threshold < 50) threshold = 50;
-        if (threshold > 1700) threshold = 1700;
+        fm_state.current_logic_level = new_level;
+        fm_state.buffer_count = 1;
     }
 }
 
