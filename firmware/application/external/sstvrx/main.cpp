@@ -77,7 +77,7 @@ application_information_t _application_information_sstvrx = {
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::green().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
