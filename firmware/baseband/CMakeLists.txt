@@ -485,6 +485,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSGD subghzd)
 
+### SubCar Decoders
+
+set(MODE_CPPSRC
+	proc_subcar.cpp
+)
+DeclareTargets(PSCD subcar)
+
 
 ### Weather Stations
 set(MODE_CPPSRC

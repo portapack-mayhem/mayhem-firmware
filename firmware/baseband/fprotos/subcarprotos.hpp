@@ -1,0 +1,55 @@
+/*
+This is the protocol list handler. It holds an instance of all known protocols.
+So include here the .hpp, and add a new element to the protos vector in the constructor. That's all you need to do here if you wanna add a new proto.
+    @htotoo
+*/
+
+#include <vector>
+#include <memory>
+#include "portapack_shared_memory.hpp"
+
+#include "fprotolistgeneral.hpp"
+#include "subghzdbase.hpp"
+#include "s-princeton.hpp"
+
+#ifndef __FPROTO_PROTOLISTCAR_H__
+#define __FPROTO_PROTOLISTCAR_H__
+
+class SubCarProtos : public FProtoListGeneral {
+   public:
+    SubCarProtos(const SubCarProtos&) { SubCarProtos(); };          // won't use, but makes compiler happy
+    SubCarProtos& operator=(const SubCarProtos&) { return *this; }  // won't use, but makes compiler happy
+    SubCarProtos() {
+        // add protos
+        protos[FPS_PRINCETON] = new FProtoSubGhzDPrinceton();
+
+        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+            if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
+        }
+    }
+
+    ~SubCarProtos() {  // not needed for current operation logic, but a bit more elegant :)
+        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+            if (protos[i] != NULL) {
+                free(protos[i]);
+                protos[i] = NULL;
+            }
+        }
+    };
+
+    static void callbackTarget(FProtoSubGhzDBase* instance) {
+        SubGhzDDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->decode_data};
+        shared_memory.application_queue.push(packet_message);
+    }
+
+    void feed(bool level, uint32_t duration) {
+        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+            if (protos[i] != NULL) protos[i]->feed(level, duration);
+        }
+    }
+
+   protected:
+    FProtoSubGhzDBase* protos[FPS_COUNT] = {NULL};
+};
+
+#endif

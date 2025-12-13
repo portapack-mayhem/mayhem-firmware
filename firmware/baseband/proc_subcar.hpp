@@ -23,8 +23,8 @@
     Creator: @htotoo
 */
 
-#ifndef __PROC_SUBGHZD_H__
-#define __PROC_SUBGHZD_H__
+#ifndef __PROC_SUBCAR_H__
+#define __PROC_SUBCAR_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
@@ -34,14 +34,14 @@
 
 #pragma GCC push_options
 #pragma GCC optimize("Os")
-#include "fprotos/subghzdprotos.hpp"
+#include "fprotos/subcarprotos.hpp"
 #pragma GCC pop_options
 
 #define OOK_EST_HIGH_RATIO 3  // Constant for slowness of OOK high level estimator
 #define OOK_EST_LOW_RATIO 5   // Constant for slowness of OOK low level (noise) estimator (very slow)
 #define OOK_MAX_HIGH_LEVEL 450000
 
-class SubGhzDProcessor : public BasebandProcessor {
+class SubCarProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
@@ -74,8 +74,9 @@ class SubGhzDProcessor : public BasebandProcessor {
     uint32_t threshold = 0x0630;
     bool currentHiLow = false;
     bool configured{false};
+    uint8_t mode = 0;  // 0 = am, 1 = fm
 
-    FProtoListGeneral* protoList = new SubGhzDProtos();  // holds all the protocols we can parse
+    FProtoListGeneral* protoList = new SubCarProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);
 
     /* NB: Threads should be the last members in the class definition. */
