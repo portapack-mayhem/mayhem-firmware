@@ -141,6 +141,7 @@ class Message {
         FlexStats = 83,
         FlexConfigure = 84,
         FlexDebug = 85,
+        SubCarData = 86,
         MAX
     };
 
@@ -1617,6 +1618,22 @@ class FlexDebugMessage : public Message {
     uint32_t val1;
     uint32_t val2;
     char text[64];
+};
+
+class SubCarDataMessage : public Message {
+   public:
+    constexpr SubCarDataMessage(
+        uint8_t sensorType = 0,
+        uint16_t bits = 0,
+        uint64_t data = 0)
+        : Message{ID::SubCarData},
+          sensorType{sensorType},
+          bits{bits},
+          data{data} {
+    }
+    uint8_t sensorType = 0;
+    uint16_t bits = 0;
+    uint64_t data = 0;
 };
 
 #endif /*__MESSAGE_H__*/

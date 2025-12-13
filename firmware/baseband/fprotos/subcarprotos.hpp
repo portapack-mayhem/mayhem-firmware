@@ -38,7 +38,7 @@ class SubCarProtos : public FProtoListGeneral {
     };
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
-        SubGhzDDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->decode_data};
+        SubCarDataMessage packet_message{instance->sensorType, instance->data_count_bit, instance->decode_data};
         shared_memory.application_queue.push(packet_message);
     }
 

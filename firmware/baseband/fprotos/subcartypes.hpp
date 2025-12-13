@@ -12,9 +12,9 @@ Also it must have a switch-case element in the getSubGhzDSensorTypeName() functi
 #define FPM_FM 1
 
 enum FPROTO_SUBCAR_SENSOR : uint8_t {
-    FPS_Invalid = 0,
-    FPS_PRINCETON,
-    FPS_COUNT
+    FPC_Invalid = 0,
+    FPC_PRINCETON,
+    FPC_COUNT
 };
 
 #endif
