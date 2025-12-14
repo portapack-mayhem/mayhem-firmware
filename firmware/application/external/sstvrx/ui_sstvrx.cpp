@@ -37,21 +37,27 @@ using namespace modems;
 using namespace ui;
 
 #if SSTVRX_ENABLE_LOGGER
-#define SSTVRX_LOG_INFO(msg)    \
-    do {                       \
-        if (logger) {          \
+#define SSTVRX_LOG_INFO(msg)       \
+    do {                           \
+        if (logger) {              \
             logger->log_info(msg); \
-        }                      \
+        }                          \
     } while (0)
-#define SSTVRX_LOG_ERROR(msg)   \
-    do {                       \
-        if (logger) {          \
+#define SSTVRX_LOG_ERROR(msg)       \
+    do {                            \
+        if (logger) {               \
             logger->log_error(msg); \
-        }                      \
+        }                           \
     } while (0)
 #else
-#define SSTVRX_LOG_INFO(msg) do { (void)sizeof(msg); } while (0)
-#define SSTVRX_LOG_ERROR(msg) do { (void)sizeof(msg); } while (0)
+#define SSTVRX_LOG_INFO(msg) \
+    do {                     \
+        (void)sizeof(msg);   \
+    } while (0)
+#define SSTVRX_LOG_ERROR(msg) \
+    do {                      \
+        (void)sizeof(msg);    \
+    } while (0)
 #endif
 
 // SSTV RX View Implementation
@@ -72,30 +78,27 @@ void SstvRxLogger::log_info(const std::string& info_message) {
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
-    
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-    
-    add_children({
-        &field_rf_amp,
-        &field_lna,
-        &field_vga,
-        &rssi,
-        &channel,
-        &field_frequency,
-        &field_volume,
-        &audio,
-        &start_stop_btn,
-        &options_mode,
-        &field_phase,
-        &field_slant,
-        &labels,
-        &text_calibration
-    });
-    
+
+    add_children({&field_rf_amp,
+                  &field_lna,
+                  &field_vga,
+                  &rssi,
+                  &channel,
+                  &field_frequency,
+                  &field_volume,
+                  &audio,
+                  &start_stop_btn,
+                  &options_mode,
+                  &field_phase,
+                  &field_slant,
+                  &labels,
+                  &text_calibration});
+
     // Initialize audio with proper rate for SSTV
     audio::set_rate(audio::Rate::Hz_48000);
     audio::output::start();
-    
+
     // Configure receiver with optimal settings for SSTV
     // NOTE: Do NOT set modulation mode - SSTV uses a custom baseband processor
     // Standard sampling rate (3.072MHz) with wide bandwidth to capture full SSTV audio spectrum
@@ -104,7 +107,7 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     receiver_model.set_baseband_bandwidth(1750000);  // Standard wideband setting
     receiver_model.set_squelch_level(1);
     receiver_model.set_hidden_offset(0);  // No offset needed
-    
+
     // Field values will be set in on_show() to ensure proper initialization
 
     using option_t = std::pair<std::string, int32_t>;
@@ -136,7 +139,7 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     };
     options_mode.set_selected_index(1);  // Scottie 2
     on_mode_changed(1);
-    
+
     // Initialize phase and slant controls from loaded settings
     field_phase.set_value(phase_adjustment);
     field_phase.on_change = [this](int32_t v) {
@@ -148,7 +151,7 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
             redraw_image();
         }
     };
-    
+
     field_slant.set_value(slant_adjustment);
     field_slant.on_change = [this](int32_t v) {
         slant_adjustment = v;
@@ -210,10 +213,10 @@ void SstvRxView::on_stop() {
         // Stop in reverse order of start
         receiver_model.disable();
         audio::output::stop();
-        
+
         // Reset state
         is_receiving = false;
-        
+
         // Close image file if still open
         if (image_file) {
             image_file.reset();
@@ -222,7 +225,7 @@ void SstvRxView::on_stop() {
         pending_chunk_mask = 0;
         std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
         *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
-        
+
         SSTVRX_LOG_INFO("SSTV RX Reception Stopped");
     } else {
         SSTVRX_LOG_ERROR("SSTV RX Reception Not Running");
@@ -232,23 +235,23 @@ void SstvRxView::on_stop() {
 // Start NFM audio reception
 void SstvRxView::start_audio() {
     SSTVRX_LOG_INFO("Configuring SSTV RX Audio Reception");
-    
+
     // Configure the baseband processor with VIS code
     if (rx_sstv_mode) {
         baseband::set_sstvrx_data(rx_sstv_mode->vis_code);
         SSTVRX_LOG_INFO("Sent VIS code to processor: " + to_string_dec_uint(rx_sstv_mode->vis_code));
     }
-    
+
     // Send phase and slant adjustments
     baseband::set_sstvrx_phase_slant(phase_adjustment, slant_adjustment);
-    
+
     // Initialize audio path
     audio::output::stop();
     audio::set_rate(audio::Rate::Hz_48000);
-    
+
     // Set audio routing and volume
-    //audio::output::start();
-    
+    // audio::output::start();
+
     // Clear display area and reset line counter
     portapack::display.fill_rectangle(
         {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
@@ -259,10 +262,10 @@ void SstvRxView::start_audio() {
     pending_chunk_mask = 0;
     std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
-    
+
     // Clear calibration display
     text_calibration.set("Calibrating...");
-    
+
     // Initialize new image file
     current_line_rx = 0;
     auto timestamp = to_string_timestamp(rtc_time::now());
@@ -271,7 +274,7 @@ void SstvRxView::start_audio() {
         SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
     }
     current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
-    
+
     image_file = std::make_unique<File>();
     auto error = image_file->create(current_image_path);
     if (error) {
@@ -282,14 +285,14 @@ void SstvRxView::start_audio() {
         write_bmp_header();
         SSTVRX_LOG_INFO("Created image file: " + current_image_path.string());
     }
-    
+
     // Start audio output
     audio::output::start();
     audio::headphone::set_volume(persistent_memory::headphone_volume());
-    
+
     // Keep ReceiverModel in capture mode so it doesn't override our custom baseband/audio configuration.
     receiver_model.set_modulation(ReceiverModel::Mode::Capture);
-    
+
     // Enable receiver last
     receiver_model.enable();
     is_receiving = true;
@@ -327,8 +330,7 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) 
     portapack::display.render_line(
         {0, line_num + SSTV_IMG_START_ROW * 16},
         DISPLAY_WIDTH,
-        line_buffer
-    );
+        line_buffer);
 
     // Increment line counter
     line_num++;
@@ -402,7 +404,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         SSTVRX_LOG_INFO("STARTING LINE 0 DECODE after sync_sample_count=" + to_string_dec_uint(total_lines));
         return;
     }
-    
+
     std::array<uint8_t, CHUNK_COPY_BYTES> chunk{};
     memcpy(chunk.data(), shared_memory.bb_data.data, chunk.size());
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
@@ -424,8 +426,8 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     }
 
     const uint16_t chunk_pixels = multi_chunk_line
-        ? (is_second_chunk ? (PIXELS_PER_LINE - MAX_CHUNK_PIXELS) : MAX_CHUNK_PIXELS)
-        : PIXELS_PER_LINE;
+                                      ? (is_second_chunk ? (PIXELS_PER_LINE - MAX_CHUNK_PIXELS) : MAX_CHUNK_PIXELS)
+                                      : PIXELS_PER_LINE;
     const uint16_t dest_pixel_offset = (multi_chunk_line && is_second_chunk) ? MAX_CHUNK_PIXELS : 0;
     const uint16_t chunk_bytes = chunk_pixels * 3;
     const uint16_t max_copy_bytes = static_cast<uint16_t>(chunk.size() > CHUNK_HEADER_BYTES ? (chunk.size() - CHUNK_HEADER_BYTES) : 0);
@@ -465,32 +467,32 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
 
 void SstvRxView::write_bmp_header() {
     if (!image_file) return;
-    
+
     // BMP Header (14 bytes)
     uint32_t file_size = 54 + (IMAGE_WIDTH * IMAGE_HEIGHT * 3);
     uint8_t bmp_header[54] = {
         'B', 'M',  // Signature
         static_cast<uint8_t>(file_size), static_cast<uint8_t>(file_size >> 8),
         static_cast<uint8_t>(file_size >> 16), static_cast<uint8_t>(file_size >> 24),  // File size
-        0, 0, 0, 0,  // Reserved
-        54, 0, 0, 0,  // Pixel data offset
-        
+        0, 0, 0, 0,                                                                    // Reserved
+        54, 0, 0, 0,                                                                   // Pixel data offset
+
         // DIB Header (40 bytes)
-        40, 0, 0, 0,  // Header size
-        static_cast<uint8_t>(IMAGE_WIDTH), static_cast<uint8_t>(IMAGE_WIDTH >> 8), 0, 0,  // Width
+        40, 0, 0, 0,                                                                        // Header size
+        static_cast<uint8_t>(IMAGE_WIDTH), static_cast<uint8_t>(IMAGE_WIDTH >> 8), 0, 0,    // Width
         static_cast<uint8_t>(IMAGE_HEIGHT), static_cast<uint8_t>(IMAGE_HEIGHT >> 8), 0, 0,  // Height
-        1, 0,  // Color planes
-        24, 0,  // Bits per pixel
-        0, 0, 0, 0,  // Compression (none)
-        0, 0, 0, 0,  // Image size (can be 0 for uncompressed)
-        0, 0, 0, 0,  // X pixels per meter
-        0, 0, 0, 0,  // Y pixels per meter
-        0, 0, 0, 0,  // Colors in palette
-        0, 0, 0, 0   // Important colors
+        1, 0,                                                                               // Color planes
+        24, 0,                                                                              // Bits per pixel
+        0, 0, 0, 0,                                                                         // Compression (none)
+        0, 0, 0, 0,                                                                         // Image size (can be 0 for uncompressed)
+        0, 0, 0, 0,                                                                         // X pixels per meter
+        0, 0, 0, 0,                                                                         // Y pixels per meter
+        0, 0, 0, 0,                                                                         // Colors in palette
+        0, 0, 0, 0                                                                          // Important colors
     };
-    
+
     image_file->write(bmp_header, 54);
-    
+
     // Pre-fill with black pixels
     uint8_t black_row[IMAGE_WIDTH * 3];
     memset(black_row, 0, sizeof(black_row));
@@ -538,13 +540,13 @@ void SstvRxView::on_calibration(int16_t suggested_phase, int16_t suggested_slant
         std::string cal_text = "Try Slant=" + to_string_dec_int(suggested_slant);
         text_calibration.set(cal_text);
         text_calibration.set_dirty();
-        
+
         // Don't auto-apply yet - just suggest for now until we verify the values are correct
         // User can manually adjust if needed
-        
+
         // Log the suggestion
-        SSTVRX_LOG_INFO("Calibration suggestion: phase=" + to_string_dec_int(suggested_phase) + 
-                        " slant=" + to_string_dec_int(suggested_slant) + 
+        SSTVRX_LOG_INFO("Calibration suggestion: phase=" + to_string_dec_int(suggested_phase) +
+                        " slant=" + to_string_dec_int(suggested_slant) +
                         " (from " + to_string_dec_uint(sync_count) + " syncs)");
     } else {
         // Log that we received calibration but not enough syncs yet

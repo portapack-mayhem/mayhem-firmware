@@ -1149,25 +1149,24 @@ class SSTVConfigureMessage : public Message {
 };
 
 class SSTVRXConfigureMessage : public Message {
-    public:
-     constexpr SSTVRXConfigureMessage(
+   public:
+    constexpr SSTVRXConfigureMessage(
         const uint8_t code)
-     : Message{id: ID::SSTVRXConfigure},
-        code(code) {
-
+        : Message{id : ID::SSTVRXConfigure},
+          code(code) {
     }
 
     const uint8_t code;
 };
 
 class SSTVRXProgressMessage : public Message {
-    public:
-     constexpr SSTVRXProgressMessage(
+   public:
+    constexpr SSTVRXProgressMessage(
         const uint16_t line,
         const uint16_t total_lines)
-     : Message{ID::SSTVRXProgress},
-        line(line),
-        total_lines(total_lines) {
+        : Message{ID::SSTVRXProgress},
+          line(line),
+          total_lines(total_lines) {
     }
 
     const uint16_t line;
@@ -1175,13 +1174,13 @@ class SSTVRXProgressMessage : public Message {
 };
 
 class SSTVRXPhaseSlantMessage : public Message {
-    public:
-     constexpr SSTVRXPhaseSlantMessage(
+   public:
+    constexpr SSTVRXPhaseSlantMessage(
         const int16_t phase,
         const int16_t slant)
-     : Message{ID::SSTVRXPhaseSlant},
-        phase(phase),
-        slant(slant) {
+        : Message{ID::SSTVRXPhaseSlant},
+          phase(phase),
+          slant(slant) {
     }
 
     const int16_t phase;
@@ -1189,20 +1188,20 @@ class SSTVRXPhaseSlantMessage : public Message {
 };
 
 class SSTVRXCalibrationMessage : public Message {
-    public:
-     constexpr SSTVRXCalibrationMessage(
+   public:
+    constexpr SSTVRXCalibrationMessage(
         const int16_t suggested_phase,
         const int16_t suggested_slant,
         const uint16_t sync_count)
-     : Message{ID::SSTVRXCalibration},
-        suggested_phase(suggested_phase),
-        suggested_slant(suggested_slant),
-        sync_count(sync_count) {
+        : Message{ID::SSTVRXCalibration},
+          suggested_phase(suggested_phase),
+          suggested_slant(suggested_slant),
+          sync_count(sync_count) {
     }
 
-    const int16_t suggested_phase;   // Suggested phase correction in pixels
-    const int16_t suggested_slant;   // Suggested slant correction in 0.1% units
-    const uint16_t sync_count;       // Number of syncs analyzed
+    const int16_t suggested_phase;  // Suggested phase correction in pixels
+    const int16_t suggested_slant;  // Suggested slant correction in 0.1% units
+    const uint16_t sync_count;      // Number of syncs analyzed
 };
 
 class FSKConfigureMessage : public Message {

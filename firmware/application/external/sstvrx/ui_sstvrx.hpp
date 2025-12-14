@@ -59,16 +59,16 @@ namespace ui::external_app::sstvrx {
 
 #if SSTVRX_ENABLE_LOGGER
 class SstvRxLogger {
-     public:
-      Optional<File::Error> append(const std::filesystem::path& filename) {
-          return log_file.append(filename);
-      }
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
 
-      void log_error(const std::string& error_message);
-      void log_info(const std::string& info_message);
+    void log_error(const std::string& error_message);
+    void log_info(const std::string& info_message);
 
-     private:
-      LogFile log_file{};
+   private:
+    LogFile log_file{};
 };
 #endif
 
@@ -88,16 +88,15 @@ class SstvRxView : public ui::View {
 #if SSTVRX_ENABLE_LOGGER
     std::unique_ptr<SstvRxLogger> logger{};
 #endif
-    
+
     // Phase and slant adjustments (runtime only, not persisted)
-    int16_t phase_adjustment{0};   // Horizontal offset in pixels (-50 to +50)
-    int16_t slant_adjustment{0};   // Timing adjustment in 0.1% units (-100 to +100)
-    
+    int16_t phase_adjustment{0};  // Horizontal offset in pixels (-50 to +50)
+    int16_t slant_adjustment{0};  // Timing adjustment in 0.1% units (-100 to +100)
+
     // Settings must be declared before UI controls
     app_settings::SettingsManager settings_{
-        "rx_sstv", 
-        app_settings::Mode::RX
-    };
+        "rx_sstv",
+        app_settings::Mode::RX};
 
     ReceiverModel::Mode receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     AudioSpectrum* audio_spectrum_data{nullptr};
@@ -107,20 +106,20 @@ class SstvRxView : public ui::View {
     uint8_t radio_bw = 0;
     bool is_receiving = false;
     const sstv_mode* rx_sstv_mode{};
-    
+
     // Image data storage - only store current line to save memory
     static constexpr uint16_t IMAGE_WIDTH = 320;
     static constexpr uint16_t IMAGE_HEIGHT = 256;
     static constexpr uint16_t PIXELS_PER_LINE = 320;
-    static constexpr uint16_t DISPLAY_WIDTH = 240;  // Scaled display width
-    static constexpr uint16_t DISPLAY_HEIGHT = 192; // Scaled display height
+    static constexpr uint16_t DISPLAY_WIDTH = 240;     // Scaled display width
+    static constexpr uint16_t DISPLAY_HEIGHT = 192;    // Scaled display height
     static constexpr uint16_t SSTV_IMG_START_ROW = 7;  // Start drawing at row 7 (after controls)
     static constexpr size_t SHARED_BUFFER_BYTES = 512;
     static constexpr size_t CHUNK_FLAG_INDEX = SHARED_BUFFER_BYTES - 1;
     static constexpr size_t CHUNK_HEADER_BYTES = 2;
     static constexpr size_t CHUNK_COPY_BYTES = CHUNK_FLAG_INDEX;  // Exclude flag byte
     static constexpr uint16_t MAX_CHUNK_PIXELS = (CHUNK_COPY_BYTES - CHUNK_HEADER_BYTES) / 3;
-    
+
     uint16_t current_line_rx{0};
     std::unique_ptr<File> image_file{};
     std::filesystem::path current_image_path{};
@@ -130,7 +129,7 @@ class SstvRxView : public ui::View {
     uint16_t pending_line_number{0};
     uint8_t pending_chunk_mask{0};
     bool pending_line_valid{false};
-    
+
     // Note: Post-reception phase/slant adjustment disabled due to M0 memory constraints
     // The 245KB image buffer exceeds available heap memory
     uint16_t max_received_line{0};
@@ -140,62 +139,56 @@ class SstvRxView : public ui::View {
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const SSTVRXProgressMessage*>(p);
             this->on_progress(message.line, message.total_lines);
-        }
-    };
+        }};
 
     MessageHandlerRegistration message_handler_calibration{
         Message::ID::SSTVRXCalibration,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const SSTVRXCalibrationMessage*>(p);
             this->on_calibration(message.suggested_phase, message.suggested_slant, message.sync_count);
-        }
-    };
+        }};
 
     // UI Elements
     RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{{15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{{18 * 8, UI_POS_Y(0)}};
-    
+
     RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
         {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
     AudioVolumeField field_volume{{screen_width - 2 * 8, UI_POS_Y(0)}};
-    OptionsField options_mode {
+    OptionsField options_mode{
         {6 * 8, 3 * 8},
         16,
         {}};
-    
+
     NumberField field_phase{
         {4 * 8, UI_POS_Y(3)},
         3,
         {-50, 50},
         1,
-        ' '
-    };
-    
+        ' '};
+
     NumberField field_slant{
         {13 * 8, UI_POS_Y(3)},
         4,
         {-100, 100},
         1,
-        ' '
-    };
-    
+        ' '};
+
     Labels labels{
         {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, UI_POS_Y(3)}, "Ph:", Theme::getInstance()->fg_light->foreground},
-        {{8 * 8, UI_POS_Y(3)}, "Slnt:", Theme::getInstance()->fg_light->foreground}
-    };
+        {{8 * 8, UI_POS_Y(3)}, "Slnt:", Theme::getInstance()->fg_light->foreground}};
     Audio audio{{21 * 8, 10, 6 * 8, 4}};
     ui::Button start_stop_btn{{18 * 8, UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(2)}, "Start RX"};
-    //ui::Button redraw_btn{{16 * 8, UI_POS_Y(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Redraw"};
-    
+    // ui::Button redraw_btn{{16 * 8, UI_POS_Y(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Redraw"};
+
     // Calibration suggestion display
     Text text_calibration{
         {1 * 8, UI_POS_Y(4), 18 * 8, 17},
-        "Calib: N/A"
-    };
+        "Calib: N/A"};
 
     void on_audio_spectrum();
     void update_display(uint16_t line_num, const uint8_t* rgb_line);
