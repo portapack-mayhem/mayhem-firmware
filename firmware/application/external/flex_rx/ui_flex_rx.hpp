@@ -39,24 +39,24 @@ class FlexAppView : public View {
     void redraw_console();
     void update_freq(rf::Frequency f);
 
-    // UI Elements - Row 0
+    // UI Elements - Row 0, dynamically positioned
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {21 * 8, 0, 10 * 8, 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH(9), 4}};
 
-    // Message display area
+    // Message display area (below controls, account for status bar)
     Console console{
-        {0, 1 * 16, screen_width, screen_height - 1 * 16}};
+        {0, 1 * 16, screen_width, screen_height - 2 * 16}};
 
     // Persistent settings manager
     app_settings::SettingsManager settings_{

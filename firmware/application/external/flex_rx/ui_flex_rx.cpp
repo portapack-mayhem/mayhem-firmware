@@ -54,46 +54,48 @@ void FlexAppView::focus() {
 // Redraw all messages to console
 void FlexAppView::redraw_console() {
     console.clear(true);
+    bool first = true;
     for (const auto& msg : messages) {
+        if (!first) {
+            console.writeln("");  // Blank line between messages
+        }
+        first = false;
         console.writeln(msg);
     }
 }
 
 // Add message to log with automatic line wrapping
 void FlexAppView::log_message(const std::string& message) {
-    // Calculate characters per line based on screen width (8 pixels per char)
     const size_t chars_per_line = screen_width / 8;
-    const size_t console_lines = (screen_height - 1 * 16) / 16;
-
-    // Add blank line between messages (not before first)
-    if (!messages.empty()) {
-        messages.push_back("");
-    }
+    // Console height accounts for status bar and controls row
+    const size_t console_lines = (screen_height - 2 * 16) / 16;
 
     messages.push_back(message);
 
-    // Calculate total lines used
+    // Calculate total lines used (messages + blank lines between them)
     size_t total_lines = 0;
-    for (const auto& msg : messages) {
-        size_t msg_lines = (msg.length() + chars_per_line - 1) / chars_per_line;
+    for (size_t i = 0; i < messages.size(); i++) {
+        if (i > 0) total_lines++;  // Count blank line separator
+        size_t msg_lines = (messages[i].length() + chars_per_line - 1) / chars_per_line;
         if (msg_lines == 0) msg_lines = 1;
         total_lines += msg_lines;
     }
 
     // If console would overflow, remove oldest messages and redraw
-    if (total_lines >= console_lines - 1) {
-        while (total_lines >= console_lines - 1 && !messages.empty()) {
+    if (total_lines > console_lines) {
+        while (total_lines > console_lines && !messages.empty()) {
             const auto& oldest = messages.front();
             size_t oldest_lines = (oldest.length() + chars_per_line - 1) / chars_per_line;
             if (oldest_lines == 0) oldest_lines = 1;
             total_lines -= oldest_lines;
+            if (messages.size() > 1) total_lines--;  // Remove separator line too
             messages.erase(messages.begin());
         }
         redraw_console();
     } else {
         // Just append new message
         if (messages.size() > 1) {
-            console.writeln("");
+            console.writeln("");  // Blank line before new message
         }
         console.writeln(message);
     }
