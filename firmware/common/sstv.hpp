@@ -28,7 +28,7 @@ namespace sstv {
 #define SSTV_SAMPLERATE 3072000
 #define SSTV_DELTA_COEF ((1ULL << 32) / SSTV_SAMPLERATE)
 
-#define SSTV_F2D(f) (uint32_t)((f)*SSTV_DELTA_COEF)
+#define SSTV_F2D(f) (uint32_t)((f) * SSTV_DELTA_COEF)
 #define SSTV_MS2S(d) (uint32_t)((d) / 1000.0 * (float)SSTV_SAMPLERATE)
 
 #define SSTV_VIS_SS SSTV_F2D(1200)
