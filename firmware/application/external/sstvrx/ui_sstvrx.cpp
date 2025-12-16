@@ -299,6 +299,7 @@ void SstvRxView::on_mode_changed(const size_t index) {
 }
 
 void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
+    (void)line_num;
     if (!bmp.is_loaded()) return;
     // Ensure BMP height is sufficient
     if (bmp.get_real_height() <= file_line_num) {
@@ -465,8 +466,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     if (actual_line_num < IMAGE_HEIGHT) {
         write_line_to_file(actual_line_num, pending_line_rgb.data());
         update_display(actual_line_num, pending_line_rgb.data());
-
-        max_received_line = std::max<uint16_t>(max_received_line, static_cast<uint16_t>(actual_line_num + 1));
+        max_received_line = max_received_line > (actual_line_num + 1) ? max_received_line : (actual_line_num + 1);
     }
 
 #if SSTVRX_ENABLE_LOGGER
@@ -475,9 +475,9 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     }
 #endif
 
-    if (actual_line_num >= (total_lines - 1)) {
-        finish_image();
-    }
+    // if (actual_line_num >= (total_lines - 1)) { //don't auto finish image upon end, user need to manually stop. this method is not reliable enough.
+    //     finish_image();
+    // }
 }
 
 void SstvRxView::finish_image() {

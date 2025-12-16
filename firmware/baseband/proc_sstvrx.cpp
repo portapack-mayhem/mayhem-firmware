@@ -89,7 +89,7 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel = channel_filter.execute(decim_1_out, dst_buffer);
-
+    feed_channel_stats(channel);
     // FM demodulation and audio processing
     // Demodulator outputs 24kHz audio after channel filter decimation
     auto audio = demod.execute(channel, work_audio_buffer);
@@ -470,7 +470,8 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
 }
 
 void SSTVRXProcessor::process_line() {
-    if (current_line >= mode_total_lines || mode_total_lines == 0) return;
+    if (current_line >= mode_total_lines) current_line = 1;  // reset, maybe a new image
+    if (mode_total_lines == 0) return;                       // not set
 
     const uint16_t first_chunk_pixels = (PIXELS_PER_LINE < sstv_max_chunk_pixels) ? PIXELS_PER_LINE : sstv_max_chunk_pixels;
     const uint16_t remaining_pixels = (PIXELS_PER_LINE > sstv_max_chunk_pixels) ? (PIXELS_PER_LINE - sstv_max_chunk_pixels) : 0;
