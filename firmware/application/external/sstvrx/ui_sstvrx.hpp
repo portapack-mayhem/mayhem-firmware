@@ -121,7 +121,7 @@ class SstvRxView : public ui::View {
     static constexpr uint16_t MAX_CHUNK_PIXELS = (CHUNK_COPY_BYTES - CHUNK_HEADER_BYTES) / 3;
 
     uint16_t current_line_rx{0};
-    std::unique_ptr<File> image_file{};
+    BMPFile bmp{};
     std::filesystem::path current_image_path{};
     ui::Color line_buffer[DISPLAY_WIDTH];
     uint16_t line_num{0};

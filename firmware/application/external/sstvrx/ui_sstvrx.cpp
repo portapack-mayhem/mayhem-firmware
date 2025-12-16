@@ -218,9 +218,8 @@ void SstvRxView::on_stop() {
         is_receiving = false;
 
         // Close image file if still open
-        if (image_file) {
-            image_file.reset();
-        }
+        bmp.close();
+
         pending_line_valid = false;
         pending_chunk_mask = 0;
         std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
@@ -274,16 +273,10 @@ void SstvRxView::start_audio() {
         SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
     }
     current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
-
-    image_file = std::make_unique<File>();
-    auto error = image_file->create(current_image_path);
+    auto error = bmp.create(current_image_path, IMAGE_WIDTH, IMAGE_HEIGHT);
     if (error) {
         SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
-        image_file.reset();
-    } else {
-        // Write BMP header immediately
-        write_bmp_header();
-        SSTVRX_LOG_INFO("Created image file: " + current_image_path.string());
+        bmp.close();
     }
 
     // Start audio output
@@ -296,7 +289,6 @@ void SstvRxView::start_audio() {
     // Enable receiver last
     receiver_model.enable();
     is_receiving = true;
-
     SSTVRX_LOG_INFO("SSTV RX Started");
 }
 
@@ -465,71 +457,24 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     }
 }
 
-void SstvRxView::write_bmp_header() {
-    if (!image_file) return;
-
-    // BMP Header (14 bytes)
-    uint32_t file_size = 54 + (IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-    uint8_t bmp_header[54] = {
-        'B', 'M',  // Signature
-        static_cast<uint8_t>(file_size), static_cast<uint8_t>(file_size >> 8),
-        static_cast<uint8_t>(file_size >> 16), static_cast<uint8_t>(file_size >> 24),  // File size
-        0, 0, 0, 0,                                                                    // Reserved
-        54, 0, 0, 0,                                                                   // Pixel data offset
-
-        // DIB Header (40 bytes)
-        40, 0, 0, 0,                                                                        // Header size
-        static_cast<uint8_t>(IMAGE_WIDTH), static_cast<uint8_t>(IMAGE_WIDTH >> 8), 0, 0,    // Width
-        static_cast<uint8_t>(IMAGE_HEIGHT), static_cast<uint8_t>(IMAGE_HEIGHT >> 8), 0, 0,  // Height
-        1, 0,                                                                               // Color planes
-        24, 0,                                                                              // Bits per pixel
-        0, 0, 0, 0,                                                                         // Compression (none)
-        0, 0, 0, 0,                                                                         // Image size (can be 0 for uncompressed)
-        0, 0, 0, 0,                                                                         // X pixels per meter
-        0, 0, 0, 0,                                                                         // Y pixels per meter
-        0, 0, 0, 0,                                                                         // Colors in palette
-        0, 0, 0, 0                                                                          // Important colors
-    };
-
-    image_file->write(bmp_header, 54);
-
-    // Pre-fill with black pixels
-    uint8_t black_row[IMAGE_WIDTH * 3];
-    memset(black_row, 0, sizeof(black_row));
-    for (uint16_t y = 0; y < IMAGE_HEIGHT; y++) {
-        image_file->write(black_row, IMAGE_WIDTH * 3);
-    }
-}
-
 void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
-    if (!image_file || line_num >= IMAGE_HEIGHT) {
+    if (line_num >= IMAGE_HEIGHT) {
         return;
     }
-
-    const uint32_t row_stride = IMAGE_WIDTH * 3;
-    const uint32_t base_line_offset = 54 + ((IMAGE_HEIGHT - 1 - line_num) * row_stride);
-    if (!image_file->seek(base_line_offset)) {
-        SSTVRX_LOG_ERROR("Failed to seek for line " + to_string_dec_uint(line_num));
-        return;
-    }
-
-    std::array<uint8_t, IMAGE_WIDTH * 3> bgr_line{};
+    if (bmp.get_real_height() < line_num) bmp.expand_y_delta(1);
+    bmp.seek(0, line_num);
     for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-        bgr_line[x * 3 + 0] = rgb_line[x * 3 + 2];
-        bgr_line[x * 3 + 1] = rgb_line[x * 3 + 1];
-        bgr_line[x * 3 + 2] = rgb_line[x * 3 + 0];
-    }
-
-    if (!image_file->write(bgr_line.data(), row_stride)) {
-        SSTVRX_LOG_ERROR("Failed to write line " + to_string_dec_uint(line_num));
+        Color px{
+            rgb_line[x * 3 + 0],
+            rgb_line[x * 3 + 1],
+            rgb_line[x * 3 + 2]};
+        bmp.write_next_px(px);
     }
 }
 
 void SstvRxView::finish_image() {
-    if (image_file) {
-        image_file.reset();
-        SSTVRX_LOG_INFO("Image completed: " + current_image_path.string());
-    }
+    bmp.close();
+    SSTVRX_LOG_INFO("Image completed: " + current_image_path.string());
 }
 
 void SstvRxView::on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count) {
