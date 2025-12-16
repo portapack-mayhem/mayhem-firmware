@@ -55,8 +55,7 @@ class MessageQueue {
         const bool result = push(message);
         if (result) {
             // TODO: More graceful method of waiting for empty? Maybe sleep for a bit?
-            while (!is_empty())
-                ;
+            while (!is_empty());
         }
         return result;
     }

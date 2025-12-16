@@ -18,9 +18,8 @@ FlexAppView::FlexAppView(NavigationView& nav)
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
-                  &button_color,
                   &rssi,
-                  &menu_view});
+                  &console});
 
     // Restore saved frequency
     field_frequency.set_value(frequency_value);
@@ -29,11 +28,6 @@ FlexAppView::FlexAppView(NavigationView& nav)
     // Frequency change callback
     field_frequency.updated = [this](rf::Frequency f) {
         update_freq(f);
-    };
-
-    // Color button cycles through available colors
-    button_color.on_select = [this](Button&) {
-        cycle_color();
     };
 
     // Configure receiver
@@ -45,7 +39,7 @@ FlexAppView::FlexAppView(NavigationView& nav)
     // Initialize FLEX baseband
     baseband::set_flex_config();
 
-    log_message("FLEX RX Ready");
+    console.writeln("Ready");
 }
 
 FlexAppView::~FlexAppView() {
@@ -57,79 +51,53 @@ void FlexAppView::focus() {
     field_frequency.focus();
 }
 
-// Cycle to next text color and refresh display
-void FlexAppView::cycle_color() {
-    current_color_index = (current_color_index + 1) % text_colors.size();
-    rebuild_menu();
-}
-
-// Rebuild entire menu with current color
-void FlexAppView::rebuild_menu() {
-    menu_view.clear();
-    Color current_color = text_colors[current_color_index];
-    for (const auto& msg : log_messages) {
-        menu_view.add_item({msg,
-                            current_color,
-                            nullptr,
-                            [](KeyEvent) {}});
-    }
-    if (menu_view.item_count() > 0) {
-        menu_view.set_highlighted(menu_view.item_count() - 1);
+// Redraw all messages to console
+void FlexAppView::redraw_console() {
+    console.clear(true);
+    bool first = true;
+    for (const auto& msg : messages) {
+        if (!first) {
+            console.writeln("");  // Blank line between messages
+        }
+        first = false;
+        console.writeln(msg);
     }
 }
 
 // Add message to log with automatic line wrapping
 void FlexAppView::log_message(const std::string& message) {
-    // Calculate characters per line based on screen width (8 pixels per char)
     const size_t chars_per_line = screen_width / 8;
-    Color current_color = text_colors[current_color_index];
+    // Console height accounts for status bar and controls row
+    const size_t console_lines = (screen_height - 2 * 16) / 16;
 
-    std::string remaining = message;
-    bool first_line = true;
-    bool needs_rebuild = false;
-    size_t lines_added = 0;
+    messages.push_back(message);
 
-    // Split message into screen-width chunks
-    while (!remaining.empty()) {
-        std::string line;
-        if (remaining.length() <= chars_per_line) {
-            line = remaining;
-            remaining.clear();
-        } else {
-            line = remaining.substr(0, chars_per_line);
-            remaining = remaining.substr(chars_per_line);
-        }
-
-        // Indent continuation lines
-        if (!first_line) {
-            line = " " + line;
-        }
-        first_line = false;
-
-        // Remove oldest line if at limit
-        if (log_messages.size() >= MAX_LOG_LINES) {
-            log_messages.erase(log_messages.begin());
-            needs_rebuild = true;
-        }
-
-        log_messages.push_back(line);
-        lines_added++;
+    // Calculate total lines used (messages + blank lines between them)
+    size_t total_lines = 0;
+    for (size_t i = 0; i < messages.size(); i++) {
+        if (i > 0) total_lines++;  // Count blank line separator
+        size_t msg_lines = (messages[i].length() + chars_per_line - 1) / chars_per_line;
+        if (msg_lines == 0) msg_lines = 1;
+        total_lines += msg_lines;
     }
 
-    // Either rebuild all or just add new lines
-    if (needs_rebuild) {
-        rebuild_menu();
+    // If console would overflow, remove oldest messages and redraw
+    if (total_lines > console_lines) {
+        while (total_lines > console_lines && !messages.empty()) {
+            const auto& oldest = messages.front();
+            size_t oldest_lines = (oldest.length() + chars_per_line - 1) / chars_per_line;
+            if (oldest_lines == 0) oldest_lines = 1;
+            total_lines -= oldest_lines;
+            if (messages.size() > 1) total_lines--;  // Remove separator line too
+            messages.erase(messages.begin());
+        }
+        redraw_console();
     } else {
-        size_t start_idx = log_messages.size() - lines_added;
-        for (size_t i = start_idx; i < log_messages.size(); i++) {
-            menu_view.add_item({log_messages[i],
-                                current_color,
-                                nullptr,
-                                [](KeyEvent) {}});
+        // Just append new message
+        if (messages.size() > 1) {
+            console.writeln("");  // Blank line before new message
         }
-        if (menu_view.item_count() > 0) {
-            menu_view.set_highlighted(menu_view.item_count() - 1);
-        }
+        console.writeln(message);
     }
 }
 
@@ -141,27 +109,21 @@ void FlexAppView::update_freq(rf::Frequency f) {
 
 // Handle decoded FLEX packet from baseband
 void FlexAppView::on_packet(const FlexPacketMessage* message) {
-    std::string text = "FLEX ";
-    text += to_string_dec_uint(message->packet.bitrate);
-    text += " ";
-    text += to_string_dec_uint(message->packet.capcode);
-    text += ": ";
-    text += message->packet.message;
-
-    log_message(text);
+    log_message(message->packet.message);
 }
 
 // Handle stats message (currently unused)
-void FlexAppView::on_stats(const FlexStatsMessage* /* message */) {
+void FlexAppView::on_stats(const FlexStatsMessage*) {
 }
 
-// Handle debug message from baseband
+// Debug handler - uncomment to see baseband debug messages
 void FlexAppView::on_debug(const FlexDebugMessage* message) {
-    std::string text = "DBG: ";
-    text += message->text;
-    text += " " + to_string_hex(message->val1, 8);
-    text += " " + to_string_hex(message->val2, 8);
-    log_message(text);
+    (void)message;  // Suppress unused parameter warning
+    // std::string text = "DBG: ";
+    // text += message->text;
+    // text += " " + to_string_hex(message->val1, 8);
+    // text += " " + to_string_hex(message->val2, 8);
+    // log_message(text);
 }
 
 }  // namespace ui::external_app::flex_rx
