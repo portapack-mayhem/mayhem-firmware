@@ -176,7 +176,7 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
         int32_t duration_us = fm_state.buffer_count * 512;
 
         if (duration_us > 250) {
-            if (protoList) protoList->feed(fm_state.current_logic_level, duration_us);
+            if (protoListFm) protoListFm->feed(fm_state.current_logic_level, duration_us);
         }
         fm_state.current_logic_level = new_level;
         fm_state.buffer_count = 1;
