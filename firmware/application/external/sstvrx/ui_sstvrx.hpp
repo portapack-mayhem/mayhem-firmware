@@ -149,45 +149,32 @@ class SstvRxView : public ui::View {
         }};
 
     // UI Elements
-    RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
-    LNAGainField field_lna{{15 * 8, UI_POS_Y(0)}};
-    VGAGainField field_vga{{18 * 8, UI_POS_Y(0)}};
+    RFAmpField field_rf_amp{{UI_POS_X(13), UI_POS_Y(0)}};
+    LNAGainField field_lna{{UI_POS_X(15), UI_POS_Y(0)}};
+    VGAGainField field_vga{{UI_POS_X(18), UI_POS_Y(0)}};
 
     RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
-    Channel channel{
-        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
+    Channel channel{{UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
-    AudioVolumeField field_volume{{screen_width - 2 * 8, UI_POS_Y(0)}};
-    OptionsField options_mode{
-        {6 * 8, 3 * 8},
-        16,
-        {}};
+    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
-    NumberField field_phase{
-        {4 * 8, UI_POS_Y(3)},
-        3,
-        {-50, 50},
-        1,
-        ' '};
+    OptionsField options_mode{{UI_POS_X(6), UI_POS_Y(1)}, 16, {}};
 
-    NumberField field_slant{
-        {13 * 8, UI_POS_Y(3)},
-        4,
-        {-100, 100},
-        1,
-        ' '};
+    NumberField field_phase{{UI_POS_X(4), UI_POS_Y(2)}, 3, {-50, 50}, 1, ' '};
+    NumberField field_slant{{UI_POS_X(13), UI_POS_Y(2)}, 4, {-100, 100}, 1, ' '};
 
     Labels labels{
-        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, UI_POS_Y(3)}, "Ph:", Theme::getInstance()->fg_light->foreground},
-        {{8 * 8, UI_POS_Y(3)}, "Slnt:", Theme::getInstance()->fg_light->foreground}};
-    Audio audio{{21 * 8, 10, 6 * 8, 4}};
-    ui::Button start_stop_btn{{18 * 8, UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(2)}, "Start RX"};
+        {{UI_POS_X(1), UI_POS_Y(1)}, "Mode:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "Ph:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(8), UI_POS_Y(2)}, "Slnt:", Theme::getInstance()->fg_light->foreground}};
+
+    Audio audio{{UI_POS_X(21), 10, UI_POS_WIDTH(6), 4}};
+    ui::Button start_stop_btn{{UI_POS_X_RIGHT(12), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(2)}, "Start RX"};
     // ui::Button redraw_btn{{16 * 8, UI_POS_Y(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Redraw"};
 
     // Calibration suggestion display
     Text text_calibration{
-        {1 * 8, UI_POS_Y(4), 18 * 8, 17},
+        {UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH(18), UI_POS_HEIGHT(1)},
         "Calib: N/A"};
 
     void on_audio_spectrum();
