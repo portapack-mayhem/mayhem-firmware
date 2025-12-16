@@ -311,7 +311,7 @@ void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) 
         uint8_t r = rgb_line[x * 3 + 0];
         uint8_t g = rgb_line[x * 3 + 1];
         uint8_t b = rgb_line[x * 3 + 2];
-        Color px(b, g, r);
+        Color px(g, b, r);
         bmp.write_next_px(px);
     }
     file_line_num++;
@@ -336,7 +336,8 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) 
         uint8_t g = rgb_line[src_x * 3 + 1];
         uint8_t b = rgb_line[src_x * 3 + 2];
         // Display uses BGR order like BMP format
-        line_buffer[x] = Color(b, r, g);
+        // line_buffer[x] = Color(b, r, g);
+        line_buffer[x] = Color(g, b, r);
     }
 
     // Render the line at the current position
