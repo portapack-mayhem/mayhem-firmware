@@ -35,7 +35,7 @@
 #include "message.hpp"
 #include "sstv.hpp"
 #include "file.hpp"
-#include "bmp.hpp"
+#include "bmpfile.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "oversample.hpp"
@@ -111,8 +111,8 @@ class SstvRxView : public ui::View {
     static constexpr uint16_t IMAGE_WIDTH = 320;
     static constexpr uint16_t IMAGE_HEIGHT = 256;
     static constexpr uint16_t PIXELS_PER_LINE = 320;
-    static constexpr uint16_t DISPLAY_WIDTH = 240;     // Scaled display width
-    static constexpr uint16_t DISPLAY_HEIGHT = 192;    // Scaled display height
+    uint16_t DISPLAY_WIDTH = 240;                      // Scaled display width
+    uint16_t DISPLAY_HEIGHT = 192;                     // Scaled display height
     static constexpr uint16_t SSTV_IMG_START_ROW = 7;  // Start drawing at row 7 (after controls)
     static constexpr size_t SHARED_BUFFER_BYTES = 512;
     static constexpr size_t CHUNK_FLAG_INDEX = SHARED_BUFFER_BYTES - 1;
@@ -123,8 +123,8 @@ class SstvRxView : public ui::View {
     uint16_t current_line_rx{0};
     BMPFile bmp{};
     std::filesystem::path current_image_path{};
-    ui::Color line_buffer[DISPLAY_WIDTH];
-    uint16_t line_num{0};
+    ui::Color line_buffer[320];
+    uint16_t line_num{0}, file_line_num{0};
     std::array<uint8_t, IMAGE_WIDTH * 3> pending_line_rgb{};
     uint16_t pending_line_number{0};
     uint8_t pending_chunk_mask{0};
@@ -189,7 +189,6 @@ class SstvRxView : public ui::View {
     void write_bmp_header();
     void write_line_to_file(uint16_t line_num, const uint8_t* rgb_line);
     void finish_image();
-    void save_image();  // Deprecated
 };
 
 }  // namespace ui::external_app::sstvrx

@@ -79,7 +79,8 @@ void SstvRxLogger::log_info(const std::string& info_message) {
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-
+    DISPLAY_HEIGHT = screen_height - SSTV_IMG_START_ROW * 16 - 16;
+    DISPLAY_WIDTH = screen_width;
     add_children({&field_rf_amp,
                   &field_lna,
                   &field_vga,
@@ -256,6 +257,7 @@ void SstvRxView::start_audio() {
         {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
         {0, 0, 0});
     line_num = 0;
+    file_line_num = 0;
     max_received_line = 0;
     pending_line_valid = false;
     pending_chunk_mask = 0;
@@ -273,8 +275,8 @@ void SstvRxView::start_audio() {
         SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
     }
     current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
-    auto error = bmp.create(current_image_path, IMAGE_WIDTH, IMAGE_HEIGHT);
-    if (error) {
+    auto ok = bmp.create(current_image_path, IMAGE_WIDTH, 1);
+    if (!ok) {
         SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
         bmp.close();
     }
@@ -296,6 +298,25 @@ void SstvRxView::on_mode_changed(const size_t index) {
     rx_sstv_mode = &sstv_modes[index];
 }
 
+void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
+    if (!bmp.is_loaded()) return;
+    // Ensure BMP height is sufficient
+    if (bmp.get_real_height() <= file_line_num) {
+        bmp.expand_y(file_line_num + 1);
+    }
+    bmp.seek(0, file_line_num);
+
+    // Write RGB data in BGR order
+    for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
+        uint8_t r = rgb_line[x * 3 + 0];
+        uint8_t g = rgb_line[x * 3 + 1];
+        uint8_t b = rgb_line[x * 3 + 2];
+        Color px(b, g, r);
+        bmp.write_next_px(px);
+    }
+    file_line_num++;
+}
+
 void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) {
     if (current_line >= IMAGE_HEIGHT) return;
 
@@ -315,7 +336,7 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) 
         uint8_t g = rgb_line[src_x * 3 + 1];
         uint8_t b = rgb_line[src_x * 3 + 2];
         // Display uses BGR order like BMP format
-        line_buffer[x] = {b, g, r};
+        line_buffer[x] = Color(b, r, g);
     }
 
     // Render the line at the current position
@@ -443,6 +464,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     if (actual_line_num < IMAGE_HEIGHT) {
         write_line_to_file(actual_line_num, pending_line_rgb.data());
         update_display(actual_line_num, pending_line_rgb.data());
+
         max_received_line = std::max<uint16_t>(max_received_line, static_cast<uint16_t>(actual_line_num + 1));
     }
 
@@ -454,21 +476,6 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
 
     if (actual_line_num >= (total_lines - 1)) {
         finish_image();
-    }
-}
-
-void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
-    if (line_num >= IMAGE_HEIGHT) {
-        return;
-    }
-    if (bmp.get_real_height() < line_num) bmp.expand_y_delta(1);
-    bmp.seek(0, line_num);
-    for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-        Color px{
-            rgb_line[x * 3 + 0],
-            rgb_line[x * 3 + 1],
-            rgb_line[x * 3 + 2]};
-        bmp.write_next_px(px);
     }
 }
 
@@ -497,10 +504,6 @@ void SstvRxView::on_calibration(int16_t suggested_phase, int16_t suggested_slant
         // Log that we received calibration but not enough syncs yet
         SSTVRX_LOG_INFO("Calibration received: " + to_string_dec_uint(sync_count) + " syncs (need 4+)");
     }
-}
-
-void SstvRxView::save_image() {
-    // Deprecated - now using incremental write in on_progress
 }
 
 }  // namespace ui::external_app::sstvrx
