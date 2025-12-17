@@ -155,6 +155,8 @@ const char* SubCarView::getSensorTypeName(FPROTO_SUBCAR_SENSOR type) {
     switch (type) {
         case FPC_SUZUKI:
             return "Suzuki";
+        case FPC_VW:
+            return "VW";
 
         case FPC_Invalid:
         default:
@@ -208,5 +210,43 @@ void SubCarRecentEntryDetailView::parseProtocol() {
         btn = to_string_dec_uint(buttonid);
         return;
     }
+    if (entry_.sensorType == FPC_VW) {
+        // uint32_t key_high = (entry_.data >> 32) & 0xFFFFFFFF;
+        uint32_t key_low = entry_.data & 0xFFFFFFFF;
+        serial = key_low;  // trimmed to 32 bits for VW
+        uint8_t check = entry_.data2 & 0xFF;
+        uint8_t btnid = (check >> 4) & 0xF;
+        switch (btnid) {
+            case 0x1:
+                btn = "UNLOCK";
+                break;
+            case 0x2:
+                btn = "LOCK";
+                break;
+            case 0x3:
+                btn = "Un+Lk";
+                break;
+            case 0x4:
+                btn = "TRUNK";
+                break;
+            case 0x5:
+                btn = "Un+Tr";
+                break;
+            case 0x6:
+                btn = "Lk+Tr";
+                break;
+            case 0x7:
+                btn = "Un+Lk+Tr";
+                break;
+            case 0x8:
+                btn = "PANIC";
+                break;
+            default:
+                btn = "Unknown";
+                break;
+        }
+    }
+    return;
 }
+
 }  // namespace ui

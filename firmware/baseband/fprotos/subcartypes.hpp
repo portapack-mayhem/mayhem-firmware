@@ -14,6 +14,7 @@ Also it must have a switch-case element in the getSubGhzDSensorTypeName() functi
 enum FPROTO_SUBCAR_SENSOR : uint8_t {
     FPC_Invalid = 0,
     FPC_SUZUKI = 1,
+    FPC_VW = 2,
     FPC_COUNT
 };
 
