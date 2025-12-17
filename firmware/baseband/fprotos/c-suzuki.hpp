@@ -97,18 +97,12 @@ class FProtoSubCarSuzuki : public FProtoSubCarBase {
                         // Gap found - end of transmission
                         if (data_count_bit == 64) {
                             data_count_bit = 64;
-                            uint64_t data = ((uint64_t)data_high << 32) | (uint64_t)data_low;
-
+                            decode_data = ((uint64_t)data_high << 32) | (uint64_t)data_low;
                             // Check manufacturer nibble (should be 0xF)
                             uint8_t manufacturer = (data_high >> 28) & 0xF;
                             if (manufacturer == 0xF) {
                                 // Extract fields
-                                uint64_t data = data;
-                                uint32_t serial_button = ((data_high & 0xFFF) << 20) | (data_low >> 12);
-                                uint8_t serial = serial_button >> 4;
-                                uint8_t btn = serial_button & 0xF;
-                                uint16_t cnt = (data >> 44) & 0xFFFF;
-
+                                decode_data2 = 0;  // Not used
                                 if (callback) {
                                     callback(this);
                                 }

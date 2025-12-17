@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2026 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -19,6 +18,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
+/*
+   This and The other files related to this is based on a lot of great people's work. https://github.com/RocketGod-git/ProtoPirate Check the repo, and the credits inside.
+*/
 
 #ifndef __UI_SubCar_H__
 #define __UI_SubCar_H__
@@ -50,14 +52,17 @@ struct SubCarRecentEntry {
     uint16_t bits = 0;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
     uint64_t data = 0;
+    uint64_t data2 = 0;
     SubCarRecentEntry() {}
     SubCarRecentEntry(
         uint8_t sensorType,
         uint64_t data = 0,
+        uint64_t data2 = 0,
         uint16_t bits = 0)
         : sensorType{sensorType},
           bits{bits},
-          data{data} {
+          data{data},
+          data2{data2} {
     }
     Key key() const {
         return (data ^ ((static_cast<uint64_t>(sensorType) & 0xFF) << 0));
@@ -186,9 +191,8 @@ class SubCarRecentEntryDetailView : public View {
     SubCarRecentEntry entry_{};
 
     uint32_t serial = 0;
-    uint8_t btn = SD_NO_BTN;
+    std::string btn = "";
     uint32_t cnt = SD_NO_CNT;
-    uint32_t seed = 0;
 
     Text text_type{{UI_POS_X(0), 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};

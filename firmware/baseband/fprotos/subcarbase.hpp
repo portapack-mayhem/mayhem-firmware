@@ -27,6 +27,7 @@ class FProtoSubCarBase {
     uint8_t sensorType = FPC_Invalid;
     uint16_t data_count_bit = 0;
     uint64_t decode_data = 0;
+    uint64_t decode_data2 = 0;
 
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.

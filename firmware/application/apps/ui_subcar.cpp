@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2026 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -36,7 +35,7 @@ std::string SubCarRecentEntry::to_csv() {
     std::string csv = ";";
     csv += SubCarView::getSensorTypeName((FPROTO_SUBCAR_SENSOR)sensorType);
     csv += ";" + to_string_dec_uint(bits) + ";";
-    csv += to_string_hex(data, 64 / 4);
+    csv += to_string_hex(data, 64 / 4) + ";" + to_string_hex(data2, 64 / 4);
     return csv;
 }
 
@@ -52,10 +51,10 @@ void SubCarRecentEntryDetailView::update_data() {
 
     text_id.set("0x" + to_string_hex(serial));
     if (entry_.bits > 0) console.writeln("Bits: " + to_string_dec_uint(entry_.bits));
-    if (btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(btn));
+    if (!btn.empty()) console.writeln("Btn: " + btn);
     if (cnt != SD_NO_CNT) console.writeln("Cnt: " + to_string_dec_uint(cnt));
-
-    if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
+    if (entry_.data != 0) console.writeln("Data : " + to_string_hex(entry_.data));
+    if (entry_.data2 != 0) console.writeln("Data2: " + to_string_hex(entry_.data2));
 }
 
 SubCarRecentEntryDetailView::SubCarRecentEntryDetailView(NavigationView& nav, const SubCarRecentEntry& entry)
@@ -129,7 +128,7 @@ void SubCarView::on_tick_second() {
 }
 
 void SubCarView::on_data(const SubCarDataMessage* data) {
-    SubCarRecentEntry key{data->sensorType, data->data, data->bits};
+    SubCarRecentEntry key{data->sensorType, data->data, data->data2, data->bits};
     if (logger && logging) {
         logger->log_data(key);
     }
@@ -195,15 +194,18 @@ void RecentEntriesTable<ui::SubCarRecentEntries>::draw(
 }
 
 void SubCarRecentEntryDetailView::parseProtocol() {
-    btn = SD_NO_BTN;
+    btn = "";
     cnt = SD_NO_CNT;
     serial = 0;
 
     if (entry_.sensorType == FPC_Invalid) return;
 
     if (entry_.sensorType == FPC_SUZUKI) {
-        serial = entry_.data >> 4;
-        btn = entry_.data & 0xF;
+        uint32_t serial_button = (((entry_.data >> 32) & 0xFFF) << 20) | (entry_.data >> 12);
+        serial = serial_button >> 4;
+        uint8_t buttonid = serial_button & 0xF;
+        cnt = (entry_.data >> 44) & 0xFFFF;
+        btn = to_string_dec_uint(buttonid);
         return;
     }
 }

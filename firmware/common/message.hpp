@@ -1625,15 +1625,18 @@ class SubCarDataMessage : public Message {
     constexpr SubCarDataMessage(
         uint8_t sensorType = 0,
         uint16_t bits = 0,
-        uint64_t data = 0)
+        uint64_t data = 0,
+        uint64_t data2 = 0)
         : Message{ID::SubCarData},
           sensorType{sensorType},
           bits{bits},
-          data{data} {
+          data{data},
+          data2{data2} {
     }
     uint8_t sensorType = 0;
     uint16_t bits = 0;
     uint64_t data = 0;
+    uint64_t data2 = 0;
 };
 
 #endif /*__MESSAGE_H__*/

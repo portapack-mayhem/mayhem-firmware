@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2026 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -19,7 +18,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
-
+/*
+   This and The other files related to this is based on a lot of great people's work. https://github.com/RocketGod-git/ProtoPirate Check the repo, and the credits inside.
+*/
 #include "proc_subcar.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
