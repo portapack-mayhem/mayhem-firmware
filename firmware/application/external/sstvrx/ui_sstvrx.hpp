@@ -174,7 +174,7 @@ class SstvRxView : public ui::View {
 
     // Calibration suggestion display
     Text text_calibration{
-        {UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH(18), UI_POS_HEIGHT(1)},
+        {UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH(17), UI_POS_HEIGHT(1)},
         "Calib: N/A"};
 
     void on_audio_spectrum();
