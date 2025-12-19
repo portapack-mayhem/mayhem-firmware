@@ -172,6 +172,10 @@ const char* SubCarView::getSensorTypeName(FPROTO_SUBCAR_SENSOR type) {
             return "Kia V0";
         case FPC_FORDV0:
             return "Ford V0";
+        case FPC_FIATV0:
+            return "Fiat V0";
+        case FPC_BMWV0:
+            return "BMW V0";
 
         case FPC_Invalid:
         default:
@@ -428,6 +432,13 @@ void SubCarRecentEntryDetailView::parseProtocol() {
         cnt = ((buf[5] & 0x0F) << 16) |
               (buf[6] << 8) |
               buf[7];
+        btn = to_string_dec_uint(button);
+    }
+
+    if (entry_.sensorType == FPC_FIATV0) {
+        serial = (uint32_t)(entry_.data & 0xFFFFFFFF);
+        cnt = (uint32_t)((entry_.data >> 32) & 0xFFFFFFFF);
+        uint8_t button = (uint8_t)(entry_.data2 & 0xFF);
         btn = to_string_dec_uint(button);
     }
 

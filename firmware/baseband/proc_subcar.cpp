@@ -125,7 +125,7 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
             currentHiLow = meashl;
         }
 
-        // fm part:
+        // fm part: -- NOT WORKING!!!! TODO FIX. AI code ;)
         int current_quad = get_quadrant(re, im);
         // Calculate Step (Current - Previous)
         int diff = current_quad - fm_state.prev_quad;
@@ -136,10 +136,6 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
             diff = 1;
         else if (diff == 3)
             diff = -1;
-        // Sanity Check: If diff is +/- 2, we skipped a quadrant (aliasing or noise).
-        // We usually ignore it or guess the direction based on history.
-        // For simplicity, treat +/- 2 as 0 (invalid step).
-        if (diff == 2 || diff == -2) diff = 0;
         // Update History
         fm_state.prev_quad = current_quad;
         // Accumulate Rotation
