@@ -90,7 +90,7 @@ SubCarView::SubCarView(NavigationView& nav)
                   &field_frequency,
                   &button_clear_list,
                   &check_log,
-                  &recent_entries_view});
+                  &labels, &recent_entries_view});
 
     baseband::run_image(portapack::spi_flash::image_tag_subcar);
     logger = std::make_unique<SubCarLogger>();
@@ -169,6 +169,8 @@ const char* SubCarView::getSensorTypeName(FPROTO_SUBCAR_SENSOR type) {
             return "Kia V1";
         case FPC_KIAV0:
             return "Kia V0";
+        case FPC_FORDV0:
+            return "Ford V0";
 
         case FPC_Invalid:
         default:
@@ -367,6 +369,64 @@ void SubCarRecentEntryDetailView::parseProtocol() {
         serial = (uint32_t)((entry_.data >> 12) & 0x0FFFFFFF);
         uint8_t button = (entry_.data >> 8) & 0x0F;
         cnt = (entry_.data >> 40) & 0xFFFF;
+        btn = to_string_dec_uint(button);
+    }
+    if (entry_.sensorType == FPC_FORDV0) {
+        uint8_t buf[13] = {0};
+
+        for (int i = 0; i < 8; ++i) {
+            buf[i] = (uint8_t)(entry_.data >> (56 - i * 8));
+        }
+
+        buf[8] = (uint8_t)(entry_.data2 >> 8);
+        buf[9] = (uint8_t)(entry_.data2 & 0xFF);
+        uint8_t tmp = buf[8];
+        uint8_t parity = 0;
+        uint8_t parity_any = (tmp != 0);
+        while (tmp) {
+            parity ^= (tmp & 1);
+            tmp >>= 1;
+        }
+        buf[11] = parity_any ? parity : 0;
+        uint8_t xor_byte;
+        uint8_t limit;
+        if (buf[11]) {
+            xor_byte = buf[7];
+            limit = 7;
+        } else {
+            xor_byte = buf[6];
+            limit = 6;
+        }
+
+        for (int idx = 1; idx < limit; ++idx) {
+            buf[idx] ^= xor_byte;
+        }
+
+        if (buf[11] == 0) {
+            buf[7] ^= xor_byte;
+        }
+
+        uint8_t orig_b7 = buf[7];
+        buf[7] = (orig_b7 & 0xAA) | (buf[6] & 0x55);
+        uint8_t mixed = (buf[6] & 0xAA) | (orig_b7 & 0x55);
+        buf[12] = mixed;
+        buf[6] = mixed;
+
+        uint32_t serial_le = ((uint32_t)buf[1]) |
+                             ((uint32_t)buf[2] << 8) |
+                             ((uint32_t)buf[3] << 16) |
+                             ((uint32_t)buf[4] << 24);
+
+        serial = ((serial_le & 0xFF) << 24) |
+                 (((serial_le >> 8) & 0xFF) << 16) |
+                 (((serial_le >> 16) & 0xFF) << 8) |
+                 ((serial_le >> 24) & 0xFF);
+
+        uint8_t button = (buf[5] >> 4) & 0x0F;
+
+        cnt = ((buf[5] & 0x0F) << 16) |
+              (buf[6] << 8) |
+              buf[7];
         btn = to_string_dec_uint(button);
     }
 

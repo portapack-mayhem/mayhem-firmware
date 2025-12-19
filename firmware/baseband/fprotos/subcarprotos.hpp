@@ -18,6 +18,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "c-kia_v2.hpp"
 #include "c-kia_v1.hpp"
 #include "c-kia_v0.hpp"
+#include "c-ford_v0.hpp"
 
 #ifndef __FPROTO_PROTOLISTCAR_H__
 #define __FPROTO_PROTOLISTCAR_H__
@@ -36,6 +37,7 @@ class SubCarProtos : public FProtoListGeneral {
         protos[FPC_KIAV2] = new FProtoSubCarKiaV2();
         protos[FPC_KIAV1] = new FProtoSubCarKiaV1();
         protos[FPC_KIAV0] = new FProtoSubCarKiaV0();
+        protos[FPC_FORDV0] = new FProtoSubCarFordV0();
 
         for (uint8_t i = 0; i < FPC_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);

@@ -152,6 +152,10 @@ class SubCarView : public View {
         "Log",
         true};
 
+    Labels labels{
+        {{UI_POS_X_RIGHT(14), UI_POS_Y(3)}, "no fm yet :(", Theme::getInstance()->fg_light->foreground},
+    };
+
     static constexpr auto header_height = 3 * 16;
 
     std::unique_ptr<SubCarLogger> logger{};
