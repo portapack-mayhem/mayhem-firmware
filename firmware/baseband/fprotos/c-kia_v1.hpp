@@ -70,7 +70,7 @@ class FProtoSubCarKiaV1 : public FProtoSubCarBase {
             if (decoded_bits > best_bits) {
                 best_bits = decoded_bits;
                 best_data = data;
-                best_offset = offset;
+                // best_offset = offset;
             }
         }
 
