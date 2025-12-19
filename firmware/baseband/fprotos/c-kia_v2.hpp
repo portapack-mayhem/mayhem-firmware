@@ -131,6 +131,7 @@ class FProtoSubCarKiaV2 : public FProtoSubCarBase {
                         uint16_t raw_count = (uint16_t)((data >> 4) & 0xFFF);
                         cnt = ((raw_count >> 4) | (raw_count << 8)) & 0xFFF;
                         */
+                        data_count_bit = decode_count_bit;
                         if (callback)
                             callback(this);
                     }

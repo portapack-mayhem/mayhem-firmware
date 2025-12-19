@@ -122,7 +122,7 @@ class FProtoSubCarKiaV5 : public FProtoSubCarBase {
                     if (kia_v5_manchester_decode()) {
                         // generic.data = decode_data;
                         // generic.data_count_bit = decode_count_bit;
-
+                        data_count_bit = decode_count_bit;
                         // Compute yek (bit-reverse each byte)
                         uint64_t yek = 0;
                         for (int i = 0; i < 8; i++) {
