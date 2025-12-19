@@ -351,7 +351,7 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPC_KIAV3V4) {
         // not decrypted!
         serial = SD_NO_SERIAL;  //(uint32_t)entry_.data;
-        uint8_t button = entry_.data2 & 0xFF;
+        // uint8_t button = entry_.data2 & 0xFF;
         btn = "?";  // to_string_dec_uint(button);
     }
 
@@ -439,6 +439,13 @@ void SubCarRecentEntryDetailView::parseProtocol() {
         serial = (uint32_t)(entry_.data & 0xFFFFFFFF);
         cnt = (uint32_t)((entry_.data >> 32) & 0xFFFFFFFF);
         uint8_t button = (uint8_t)(entry_.data2 & 0xFF);
+        btn = to_string_dec_uint(button);
+    }
+
+    if (entry_.sensorType == FPC_BMWV0) {
+        serial = (uint32_t)((entry_.data >> 12) & 0x0FFFFFFF);
+        uint8_t button = (entry_.data >> 8) & 0x0F;
+        cnt = (entry_.data >> 40) & 0xFFFF;
         btn = to_string_dec_uint(button);
     }
 
