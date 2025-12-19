@@ -18,6 +18,7 @@ enum FPROTO_SUBCAR_SENSOR : uint8_t {
     FPC_SUBARU = 3,
     FPC_KIAV5 = 4,
     FPC_KIAV3V4 = 5,
+    FPC_KIAV2 = 6,
     FPC_COUNT
 };
 

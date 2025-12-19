@@ -172,12 +172,12 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
         }
     }
 
-    bool is_v3_sync;  // true = V3 (long LOW sync), false = V4 (long HIGH sync)
-    uint8_t version;  // 0 = V4, 1 = V3
-    uint8_t raw_bits[32];
-    uint16_t raw_bit_count;
-    uint16_t header_count;
+    bool is_v3_sync = false;  // true = V3 (long LOW sync), false = V4 (long HIGH sync)
+    uint8_t version = 0;      // 0 = V4, 1 = V3
+    uint8_t raw_bits[32]{0};
+    uint16_t raw_bit_count = 0;
+    uint16_t header_count = 0;
 
-    uint32_t encrypted;
-    uint32_t decrypted;
+    // uint32_t encrypted;
+    //  uint32_t decrypted;
 };

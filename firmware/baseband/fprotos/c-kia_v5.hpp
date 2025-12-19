@@ -170,7 +170,7 @@ class FProtoSubCarKiaV5 : public FProtoSubCarBase {
         }
     }
 
-    uint8_t raw_bits[32];
-    uint16_t raw_bit_count;
-    uint16_t header_count;
+    uint8_t raw_bits[32]{};
+    uint16_t raw_bit_count = 0;
+    uint16_t header_count = 0;
 };
