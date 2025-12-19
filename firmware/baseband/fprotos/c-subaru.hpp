@@ -34,7 +34,7 @@ class FProtoSubCarSubaru : public FProtoSubCarBase {
             uint8_t bit_idx = 7 - (bit_count % 8);
             if (bit) {
                 data[byte_idx] |= (1 << bit_idx);
-                3
+
             } else {
                 data[byte_idx] &= ~(1 << bit_idx);
             }

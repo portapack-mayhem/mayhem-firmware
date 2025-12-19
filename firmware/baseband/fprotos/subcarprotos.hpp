@@ -12,6 +12,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "subcarbase.hpp"
 #include "c-suzuki.hpp"
 #include "c-vw.hpp"
+#include "c-subaru.hpp"
 
 #ifndef __FPROTO_PROTOLISTCAR_H__
 #define __FPROTO_PROTOLISTCAR_H__
@@ -24,6 +25,7 @@ class SubCarProtos : public FProtoListGeneral {
         // add protos
         protos[FPC_SUZUKI] = new FProtoSubCarSuzuki();
         protos[FPC_VW] = new FProtoSubCarVW();
+        protos[FPC_SUBARU] = new FProtoSubCarSubaru();
 
         for (uint8_t i = 0; i < FPC_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
