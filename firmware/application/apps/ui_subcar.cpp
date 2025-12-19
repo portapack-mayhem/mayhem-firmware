@@ -157,6 +157,8 @@ const char* SubCarView::getSensorTypeName(FPROTO_SUBCAR_SENSOR type) {
             return "Suzuki";
         case FPC_VW:
             return "VW";
+        case FPC_SUBARU:
+            return "Subaru";
 
         case FPC_Invalid:
         default:
@@ -193,6 +195,72 @@ void RecentEntriesTable<ui::SubCarRecentEntries>::draw(
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
+}
+
+void subaru_decode_count(const uint8_t* KB, uint16_t* count) {
+    uint8_t lo = 0;
+    if ((KB[4] & 0x40) == 0)
+        lo |= 0x01;
+    if ((KB[4] & 0x80) == 0)
+        lo |= 0x02;
+    if ((KB[5] & 0x01) == 0)
+        lo |= 0x04;
+    if ((KB[5] & 0x02) == 0)
+        lo |= 0x08;
+    if ((KB[6] & 0x01) == 0)
+        lo |= 0x10;
+    if ((KB[6] & 0x02) == 0)
+        lo |= 0x20;
+    if ((KB[5] & 0x40) == 0)
+        lo |= 0x40;
+    if ((KB[5] & 0x80) == 0)
+        lo |= 0x80;
+
+    uint8_t REG_SH1 = (KB[7] << 4) & 0xF0;
+    if (KB[5] & 0x04)
+        REG_SH1 |= 0x04;
+    if (KB[5] & 0x08)
+        REG_SH1 |= 0x08;
+    if (KB[6] & 0x80)
+        REG_SH1 |= 0x02;
+    if (KB[6] & 0x40)
+        REG_SH1 |= 0x01;
+
+    uint8_t REG_SH2 = ((KB[6] << 2) & 0xF0) | ((KB[7] >> 4) & 0x0F);
+
+    uint8_t SER0 = KB[3];
+    uint8_t SER1 = KB[1];
+    uint8_t SER2 = KB[2];
+
+    uint8_t total_rot = 4 + lo;
+    for (uint8_t i = 0; i < total_rot; ++i) {
+        uint8_t t_bit = (SER0 >> 7) & 1;
+        SER0 = ((SER0 << 1) & 0xFE) | ((SER1 >> 7) & 1);
+        SER1 = ((SER1 << 1) & 0xFE) | ((SER2 >> 7) & 1);
+        SER2 = ((SER2 << 1) & 0xFE) | t_bit;
+    }
+
+    uint8_t T1 = SER1 ^ REG_SH1;
+    uint8_t T2 = SER2 ^ REG_SH2;
+
+    uint8_t hi = 0;
+    if ((T1 & 0x10) == 0)
+        hi |= 0x04;
+    if ((T1 & 0x20) == 0)
+        hi |= 0x08;
+    if ((T2 & 0x80) == 0)
+        hi |= 0x02;
+    if ((T2 & 0x40) == 0)
+        hi |= 0x01;
+    if ((T1 & 0x01) == 0)
+        hi |= 0x40;
+    if ((T1 & 0x02) == 0)
+        hi |= 0x80;
+    if ((T2 & 0x08) == 0)
+        hi |= 0x20;
+    if ((T2 & 0x04) == 0)
+        hi |= 0x10;
+    *count = ((hi << 8) | lo) & 0xFFFF;
 }
 
 void SubCarRecentEntryDetailView::parseProtocol() {
@@ -245,6 +313,15 @@ void SubCarRecentEntryDetailView::parseProtocol() {
                 btn = "Unknown";
                 break;
         }
+    }
+    if (entry_.sensorType == FPC_SUBARU) {
+        uint8_t* data_bytes = (uint8_t*)entry_.data;
+        serial = ((uint32_t)data_bytes[1] << 16) | ((uint32_t)data_bytes[2] << 8) | data_bytes[3];
+        uint8_t button = data_bytes[0] & 0x0F;
+        btn = to_string_dec_uint(button);
+        uint16_t cnttmp = 0;
+        subaru_decode_count(data_bytes, &cnttmp);
+        cnt = cnttmp;
     }
     return;
 }

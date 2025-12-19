@@ -1,11 +1,5 @@
-
-#ifndef __FPROTO_VW_H__
-#define __FPROTO_VW_H__
-
+#pragma once
 #include "subcarbase.hpp"
-
-#define VW_GAP_TIME 2000
-#define VW_GAP_DELTA 400
 
 typedef enum {
     VwDecoderStepReset = 0,
@@ -240,5 +234,3 @@ class FProtoSubCarVW : public FProtoSubCarBase {
 
     ManchesterState manchester_state = ManchesterStateMid1;
 };
-
-#endif

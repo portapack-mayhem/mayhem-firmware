@@ -1,7 +1,4 @@
-
-#ifndef __FPROTO_SUZUKI_H__
-#define __FPROTO_SUZUKI_H__
-
+#pragma once
 #include "subcarbase.hpp"
 
 #define SUZUKI_GAP_TIME 2000
@@ -121,5 +118,3 @@ class FProtoSubCarSuzuki : public FProtoSubCarBase {
     uint32_t data_low = 0;
     uint8_t data_count_bit = 0;
 };
-
-#endif
