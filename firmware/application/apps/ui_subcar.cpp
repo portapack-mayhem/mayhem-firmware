@@ -90,7 +90,8 @@ SubCarView::SubCarView(NavigationView& nav)
                   &field_frequency,
                   &button_clear_list,
                   &check_log,
-                  &labels, &recent_entries_view});
+                  &labels,
+                  &recent_entries_view});
 
     baseband::run_image(portapack::spi_flash::image_tag_subcar);
     logger = std::make_unique<SubCarLogger>();

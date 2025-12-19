@@ -153,7 +153,7 @@ class SubCarView : public View {
         true};
 
     Labels labels{
-        {{UI_POS_X_RIGHT(14), UI_POS_Y(3)}, "no fm yet :(", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(14), UI_POS_Y(1)}, "no fm yet :(", Theme::getInstance()->fg_light->foreground},
     };
 
     static constexpr auto header_height = 3 * 16;
