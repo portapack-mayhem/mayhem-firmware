@@ -65,7 +65,7 @@ struct SubCarRecentEntry {
           data2{data2} {
     }
     Key key() const {
-        return (data ^ ((static_cast<uint64_t>(sensorType) & 0xFF) << 0));
+        return (data ^ ((static_cast<uint64_t>(sensorType) & 0xFF) << 0));  // should be optimized...
     }
     void inc_age(int delta) {
         if (UINT16_MAX - delta > age) age += delta;
