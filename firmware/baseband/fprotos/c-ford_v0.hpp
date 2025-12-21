@@ -121,6 +121,7 @@ class FProtoSubCarFordV0 : public FProtoSubCarBase {
                          instance->generic.btn = instance->button;
                          instance->generic.cnt = instance->count;
                          */
+                        data_count_bit = 64;
                         if (callback) {
                             callback(this);
                         }

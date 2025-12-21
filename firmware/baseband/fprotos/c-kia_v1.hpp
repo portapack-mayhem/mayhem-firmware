@@ -146,7 +146,7 @@ class FProtoSubCarKiaV1 : public FProtoSubCarBase {
 
                     if (kia_v1_manchester_decode()) {
                         // instance->generic.data = decode_data;
-                        data_count_bit = decode_count_bit;
+                        data_count_bit = raw_bit_count / 8;
 
                         // Extract fields from 56-bit data per RTL-433:
                         // Serial: bits 55-24 (32 bits)
