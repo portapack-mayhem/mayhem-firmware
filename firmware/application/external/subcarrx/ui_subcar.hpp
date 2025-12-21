@@ -39,11 +39,11 @@
 #include "log_file.hpp"
 #include "recent_entries.hpp"
 
-#include "../baseband/fprotos/subcartypes.hpp"
+#include "../../baseband/fprotos/subcartypes.hpp"
 
 using namespace ui;
 
-namespace ui {
+namespace ui::external_app::subcarrx {
 
 struct SubCarRecentEntry {
     using Key = uint64_t;
@@ -160,7 +160,7 @@ class SubCarView : public View {
 
     std::unique_ptr<SubCarLogger> logger{};
 
-    RecentEntriesColumns columns{{
+    ui::RecentEntriesColumns columns{{
         {"Type", 0},
         {"Bits", 4},
         {"Age", 3},
@@ -217,6 +217,6 @@ class SubCarRecentEntryDetailView : public View {
     void parseProtocol();
 };
 
-}  // namespace ui
+}  // namespace ui::external_app::subcarrx
 
 #endif /*__UI_SubCar_H__*/

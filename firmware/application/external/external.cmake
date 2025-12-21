@@ -272,6 +272,10 @@ set(EXTCPPSRC
 	#flex_rx
 	external/flex_rx/main.cpp
 	external/flex_rx/ui_flex_rx.cpp	
+
+	#subcarrx
+	external/subcarrx/main.cpp
+	external/subcarrx/ui_subcar.cpp
 )
 
 set(EXTAPPLIST
@@ -340,4 +344,5 @@ set(EXTAPPLIST
 	morse_practice
 	adult_toys_controller
 	flex_rx
+	subcarrx
 )

@@ -88,6 +88,7 @@ MEMORY
     ram_external_app_adult_toys_controller  (rwx) : org = 0xADEF0000, len = 32k
     ram_external_app_flex_rx  (rwx) : org = 0xADF00000, len = 32k
     ram_external_app_sstvrx  (rwx) : org = 0xADF10000, len = 32k
+    ram_external_app_subcarrx  (rwx) : org = 0xADF20000, len = 32k
 
 }
 
@@ -484,5 +485,13 @@ SECTIONS
         KEEP(*(.external_app.app_sstvrx.application_information));
         *(*ui*external_app*sstvrx*);
     } > ram_external_app_sstvrx
+
+    .external_app_subcarrx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_subcarrx.application_information));
+        *(*ui*external_app*subcarrx*);
+    } > ram_external_app_subcarrx
+
+    
 }
 

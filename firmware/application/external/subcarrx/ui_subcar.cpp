@@ -29,7 +29,7 @@
 using namespace portapack;
 using namespace ui;
 
-namespace ui {
+namespace ui::external_app::subcarrx {
 
 std::string SubCarRecentEntry::to_csv() {
     std::string csv = ";";
@@ -93,7 +93,7 @@ SubCarView::SubCarView(NavigationView& nav)
                   &labels,
                   &recent_entries_view});
 
-    baseband::run_image(portapack::spi_flash::image_tag_subcar);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     logger = std::make_unique<SubCarLogger>();
 
     button_clear_list.on_select = [this](Button&) {
@@ -190,28 +190,6 @@ std::string SubCarView::pad_string_with_spaces(int snakes) {
 
 void SubCarView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
-}
-
-template <>
-void RecentEntriesTable<ui::SubCarRecentEntries>::draw(
-    const Entry& entry,
-    const Rect& target_rect,
-    Painter& painter,
-    const Style& style,
-    RecentEntriesColumns& columns) {
-    std::string line{};
-    line.reserve(30);
-
-    line = SubCarView::getSensorTypeName((FPROTO_SUBCAR_SENSOR)entry.sensorType);
-    line = line + " " + to_string_hex(entry.data << 32);
-    line.resize(columns.at(0).second, ' ');
-    std::string ageStr = to_string_dec_uint(entry.age);
-    std::string bitsStr = to_string_dec_uint(entry.bits);
-    line += SubCarView::pad_string_with_spaces(5 - bitsStr.length()) + bitsStr;
-    line += SubCarView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
-
-    line.resize(target_rect.width() / 8, ' ');
-    painter.draw_string(target_rect.location(), style, line);
 }
 
 void subaru_decode_count(const uint8_t* KB, uint16_t* count) {
@@ -450,6 +428,32 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     }
 
     return;
+}
+
+}  // namespace ui::external_app::subcarrx
+
+namespace ui {
+
+template <>
+void RecentEntriesTable<ui::external_app::subcarrx::SubCarRecentEntries>::draw(
+    const Entry& entry,
+    const Rect& target_rect,
+    Painter& painter,
+    const Style& style,
+    ui::RecentEntriesColumns& columns) {
+    std::string line{};
+    line.reserve(30);
+
+    line = ui::external_app::subcarrx::SubCarView::getSensorTypeName((FPROTO_SUBCAR_SENSOR)entry.sensorType);
+    line = line + " " + to_string_hex(entry.data << 32);
+    line.resize(columns.at(0).second, ' ');
+    std::string ageStr = to_string_dec_uint(entry.age);
+    std::string bitsStr = to_string_dec_uint(entry.bits);
+    line += ui::external_app::subcarrx::SubCarView::pad_string_with_spaces(5 - bitsStr.length()) + bitsStr;
+    line += ui::external_app::subcarrx::SubCarView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
+
+    line.resize(target_rect.width() / 8, ' ');
+    painter.draw_string(target_rect.location(), style, line);
 }
 
 }  // namespace ui

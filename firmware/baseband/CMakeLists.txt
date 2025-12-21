@@ -485,13 +485,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSGD subghzd)
 
-### SubCar Decoders
-
-set(MODE_CPPSRC
-	proc_subcar.cpp
-)
-DeclareTargets(PSCD subcar)
-
 
 ### Weather Stations
 set(MODE_CPPSRC
@@ -710,6 +703,13 @@ set(MODE_CPPSRC
 	proc_audiotx.cpp
 )
 DeclareTargets(PATX audio_tx)
+
+### SubCar Decoders
+
+set(MODE_CPPSRC
+	proc_subcar.cpp
+)
+DeclareTargets(PSCD subcar)
 
 
 ### HackRF "factory" firmware
