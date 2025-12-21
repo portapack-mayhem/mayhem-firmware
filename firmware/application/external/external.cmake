@@ -99,6 +99,10 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
+	#sstvrx
+	external/sstvrx/main.cpp
+	external/sstvrx/ui_sstvrx.cpp
+
 	#random 464  bytes.
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
@@ -294,6 +298,7 @@ set(EXTAPPLIST
 	adsbtx
 	morse_tx
 	sstvtx
+	sstvrx
 	random_password
 	# acars_rx --not working
 	wefax_rx
