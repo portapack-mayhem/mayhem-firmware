@@ -252,8 +252,6 @@ void ReceiverModel::enable() {
 
     // TODO: maybe not the perfect place for this, but it's reasonable.
     update_headphone_volume();
-
-    led_rx.on();
 }
 
 void ReceiverModel::disable() {
@@ -262,7 +260,6 @@ void ReceiverModel::disable() {
     // TODO: Responsibility for enabling/disabling the radio is muddy.
     // Some happens in ReceiverModel, some inside radio namespace.
     radio::disable();
-    led_rx.off();
 }
 
 void ReceiverModel::initialize() {

@@ -101,7 +101,6 @@ void TransmitterModel::enable() {
     update_sampling_rate();
     update_tx_gain();
 
-    led_tx.on();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
@@ -118,7 +117,6 @@ void TransmitterModel::disable() {
     radio::disable();
 
     rtc_time::signal_tick_second -= signal_token_tick_second;
-    led_tx.off();
 }
 
 void TransmitterModel::initialize() {
