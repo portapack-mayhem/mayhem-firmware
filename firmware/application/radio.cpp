@@ -42,6 +42,8 @@ using namespace hackrf::one;
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
+#include <algorithm>
+
 /* Direct access to the radio. Setting values incorrectly can damage
  * the device. Applications should use ReceiverModel or TransmitterModel
  * instead of calling these functions directly. */
@@ -150,10 +152,14 @@ void set_direction(const rf::Direction new_direction) {
 
     baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
 
-    if (direction == rf::Direction::Receive)
+    if (direction == rf::Direction::Receive) {
         led_rx.on();
-    else
+    } else {
+        if (portapack::persistent_memory::config_tx_amp_disabled())
+            rf_path.set_rf_amp(false);
+
         led_tx.on();
+    }
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -205,7 +211,7 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 }
 
 void set_rf_amp(const bool rf_amp) {
-    rf_path.set_rf_amp(rf_amp);
+    rf_path.set_rf_amp(rf_amp && (direction != rf::Direction::Transmit || !portapack::persistent_memory::config_tx_amp_disabled()));
 }
 
 void set_lna_gain(const int_fast8_t db) {
@@ -217,7 +223,7 @@ void set_vga_gain(const int_fast8_t db) {
 }
 
 void set_tx_gain(const int_fast8_t db) {
-    second_if->set_tx_vga_gain(db);
+    second_if->set_tx_vga_gain(std::min(static_cast<int8_t>(db), portapack::persistent_memory::config_tx_gain_max_db()));
 }
 
 void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum) {
