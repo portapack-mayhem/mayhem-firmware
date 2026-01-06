@@ -155,7 +155,7 @@ struct misc_config_t {
     bool tx_amp_disabled : 1;
     bool UNUSED_7 : 1;
 
-    int8_t tx_gain_max_db;
+    uint8_t tx_gain_max_db;
     uint8_t PLACEHOLDER_1;
     uint8_t PLACEHOLDER_2;
 };
@@ -656,7 +656,7 @@ bool config_tx_amp_disabled() {
     return data->misc_config.tx_amp_disabled;
 }
 
-int8_t config_tx_gain_max_db() {
+uint8_t config_tx_gain_max_db() {
     return data->misc_config.tx_gain_max_db;
 }
 
@@ -758,7 +758,7 @@ void set_config_tx_amp_disabled(bool v) {
     data->misc_config.tx_amp_disabled = v;
 }
 
-void set_config_tx_gain_max_db(int8_t v) {
+void set_config_tx_gain_max_db(uint8_t v) {
     data->misc_config.tx_gain_max_db = v;
 }
 

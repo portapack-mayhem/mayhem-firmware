@@ -31,6 +31,8 @@
 #include "portapack_persistent_memory.hpp"
 #include "radio.hpp"
 
+#include <algorithm>
+
 using namespace hackrf::one;
 using namespace portapack;
 
@@ -70,7 +72,7 @@ void TransmitterModel::set_channel_bandwidth(uint32_t v) {
 }
 
 uint8_t TransmitterModel::tx_gain() const {
-    return settings_.tx_gain_db;
+    return std::min(settings_.tx_gain_db, portapack::persistent_memory::config_tx_gain_max_db());
 }
 
 void TransmitterModel::set_tx_gain(uint8_t v_db) {
@@ -79,7 +81,7 @@ void TransmitterModel::set_tx_gain(uint8_t v_db) {
 }
 
 bool TransmitterModel::rf_amp() const {
-    return settings_.rf_amp;
+    return settings_.rf_amp && !portapack::persistent_memory::config_tx_amp_disabled();
 }
 
 void TransmitterModel::set_rf_amp(bool enabled) {
