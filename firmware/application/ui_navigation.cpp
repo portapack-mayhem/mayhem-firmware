@@ -320,6 +320,14 @@ SystemStatusView::SystemStatusView(
     refresh();
 }
 
+void SystemStatusView::on_tx_disabled() {
+    if (!nav_.is_valid())
+        return;
+
+    nav_.pop();
+    nav_.display_modal("Error", "RF transmit disabled.\nApplication closed.");
+}
+
 // when battery icon / text is clicked
 void SystemStatusView::on_battery_details() {
     if (!nav_.is_valid()) return;

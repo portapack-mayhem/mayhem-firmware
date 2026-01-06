@@ -94,6 +94,15 @@ void TransmitterModel::set_antenna_bias() {
 }
 
 void TransmitterModel::enable() {
+    if (portapack::persistent_memory::config_tx_disabled()) {
+        radio::disable();
+
+        TXDisabledMessage message;
+        EventDispatcher::send_message(message);
+
+        return;
+    }
+
     enabled_ = true;
     radio::set_direction(rf::Direction::Transmit);
     update_tuning_frequency();
