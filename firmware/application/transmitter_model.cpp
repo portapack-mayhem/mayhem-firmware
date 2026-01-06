@@ -133,11 +133,13 @@ void TransmitterModel::configure_from_app_settings(
 }
 
 void TransmitterModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(target_frequency());
+    if (enabled_)
+        radio::set_tuning_frequency(target_frequency());
 }
 
 void TransmitterModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth_tx(baseband_bandwidth());
+    if (enabled_)
+        radio::set_baseband_filter_bandwidth_tx(baseband_bandwidth());
 }
 
 void TransmitterModel::update_sampling_rate() {
@@ -146,17 +148,20 @@ void TransmitterModel::update_sampling_rate() {
     // protocols that need quick RX/TX turn-around.
 
     // Disabling baseband while changing sampling rates seems like a good idea...
+    if (enabled_)
+        radio::set_baseband_rate(sampling_rate());
 
-    radio::set_baseband_rate(sampling_rate());
     update_tuning_frequency();
 }
 
 void TransmitterModel::update_tx_gain() {
-    radio::set_tx_gain(tx_gain());
+    if (enabled_)
+        radio::set_tx_gain(tx_gain());
 }
 
 void TransmitterModel::update_rf_amp() {
-    radio::set_rf_amp(rf_amp());
+    if (enabled_)
+        radio::set_rf_amp(rf_amp());
 }
 
 void TransmitterModel::update_antenna_bias() {
