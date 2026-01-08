@@ -114,7 +114,7 @@ const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
     {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
-    {nullptr, "Tranceiver", HOME, Color::cyan(), &bitmap_icon_tranceivers, new ViewFactory<TranceiversMenuView>()},
+    {nullptr, "Transceiver", HOME, Color::cyan(), &bitmap_icon_transceivers, new ViewFactory<TransceiversMenuView>()},
     {"recon", "Recon", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
@@ -845,12 +845,12 @@ void TransmittersMenuView::on_populate() {
     add_external_items(nav_, app_location_t::TX, *this, return_icon ? 1 : 0);
 }
 
-/* TranceiversMenuView **************************************************/
+/* TransceiversMenuView **************************************************/
 
-TranceiversMenuView::TranceiversMenuView(NavigationView& nav)
+TransceiversMenuView::TransceiversMenuView(NavigationView& nav)
     : nav_(nav) {}
 
-void TranceiversMenuView::on_populate() {
+void TransceiversMenuView::on_populate() {
     bool return_icon = pmem::show_gui_return_icon();
     if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});

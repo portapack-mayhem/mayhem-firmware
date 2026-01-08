@@ -389,10 +389,10 @@ class TransmittersMenuView : public BtnGridView {
     void on_populate() override;
 };
 
-class TranceiversMenuView : public BtnGridView {
+class TransceiversMenuView : public BtnGridView {
    public:
-    TranceiversMenuView(NavigationView& nav);
-    std::string title() const override { return "Tranceiver"; };
+    TransceiversMenuView(NavigationView& nav);
+    std::string title() const override { return "Transceiver"; };
 
    private:
     NavigationView& nav_;
