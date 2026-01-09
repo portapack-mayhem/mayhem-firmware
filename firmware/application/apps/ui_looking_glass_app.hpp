@@ -116,8 +116,8 @@ class GlassView : public View {
     void update_min(int32_t v);
     void update_max(int32_t v);
     void update_range_field();
-    void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
-    rf::Frequency get_freq_from_bin_pos(uint8_t pos);
+    void get_max_power(const ChannelSpectrum& spectrum, uint16_t bin, uint8_t& max_power);
+    rf::Frequency get_freq_from_bin_pos(uint16_t pos);
     void on_marker_change();
     void retune();
     bool process_bins(uint8_t* powerlevel);
@@ -128,7 +128,7 @@ class GlassView : public View {
     void on_range_changed();
     void reset_live_view();
     void add_spectrum_pixel(uint8_t power);
-    void plot_marker(uint8_t pos);
+    void plot_marker(uint16_t pos);
     void load_presets();
     void populate_presets();
     void launch_audio(rf::Frequency center_freq);
@@ -138,7 +138,7 @@ class GlassView : public View {
     rf::Frequency f_center_ini{0};
 
     rf::Frequency marker{0};
-    uint8_t marker_pixel_index{0};
+    uint16_t marker_pixel_index{0};
     rf::Frequency marker_pixel_step{0};
 
     // Size of one spectrum bin in Hz.
