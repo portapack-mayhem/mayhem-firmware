@@ -666,6 +666,8 @@ class ImageOptionsField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    bool on_key(const KeyEvent event) override;
+
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
 
@@ -674,6 +676,7 @@ class ImageOptionsField : public Widget {
     size_t selected_index_{0};
     Color foreground_;
     Color background_;
+    bool is_activated = false;
 };
 
 class OptionsField : public Widget {
@@ -706,6 +709,7 @@ class OptionsField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    bool on_key(const KeyEvent event) override;
 
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
@@ -715,6 +719,7 @@ class OptionsField : public Widget {
     options_t options_;
     size_t selected_index_{0};
     bool centered_{false};  // e.g.: length as screen_width/8, x position as 0, it will be centered in x axis
+    bool is_activated = false;
 };
 
 // A TextEdit is bound to a string reference and allows the string
@@ -851,11 +856,11 @@ class NumberField : public Widget {
     NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char, bool can_loop);
 
     NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char)
-        : NumberField{parent_pos, length, range, step, fill_char, false} {
+        : NumberField{parent_pos, length, range, step, fill_char, true} {
     }
 
     NumberField()
-        : NumberField{{0, 0}, 1, {0, 1}, 1, ' ', false} {
+        : NumberField{{0, 0}, 1, {0, 1}, 1, ' ', true} {
     }
 
     NumberField(const NumberField&) = delete;
