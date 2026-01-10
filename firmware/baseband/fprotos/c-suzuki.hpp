@@ -6,8 +6,8 @@
 
 typedef enum {
     SuzukiDecoderStepReset = 0,
-    SuzukiDecoderStepFoundStartPulse,
-    SuzukiDecoderStepSaveDuration,
+    SuzukiDecoderStepCountPreamble = 1,
+    SuzukiDecoderStepDecodeData = 2,
 } SuzukiDecoderStep;
 
 class FProtoSubCarSuzuki : public FProtoSubCarBase {
@@ -20,54 +20,45 @@ class FProtoSubCarSuzuki : public FProtoSubCarBase {
         min_count_bit_for_found = 64;
     }
     void suzuki_add_bit(uint32_t bit) {
-        uint32_t carry = data_low >> 31;
-        data_low = (data_low << 1) | bit;
-        data_high = (data_high << 1) | carry;
-        data_count_bit++;
+        decode_data = (decode_data << 1) | bit;
+        decode_count_bit++;
     }
     void subghz_protocol_decoder_suzuki_reset() {
         parser_step = SuzukiDecoderStepReset;
         header_count = 0;
         data_count_bit = 0;
-        data_low = 0;
-        data_high = 0;
+        decode_data = 0;
     }
 
     void feed(bool level, uint32_t duration) {
         switch (parser_step) {
             case SuzukiDecoderStepReset:
-                // Wait for short HIGH pulse (~250µs) to start preamble
-                if (!level)
+                // Wait for HIGH pulse (~250µs) to start preamble
+                if (!level) {
                     return;
-
+                }
                 if (DURATION_DIFF(duration, te_short) > te_delta) {
                     return;
                 }
 
-                data_low = 0;
-                data_high = 0;
-                parser_step = SuzukiDecoderStepFoundStartPulse;
+                decode_data = 0;
+                decode_count_bit = 0;
+                parser_step = SuzukiDecoderStepCountPreamble;
                 header_count = 0;
-                data_count_bit = 0;
                 break;
 
-            case SuzukiDecoderStepFoundStartPulse:
+            case SuzukiDecoderStepCountPreamble:
                 if (level) {
                     // HIGH pulse
-                    if (header_count < 257) {
-                        // Still in preamble - just count
-                        return;
-                    }
 
-                    // After preamble, look for long HIGH to start data
-                    if (DURATION_DIFF(duration, te_long) < te_delta) {
-                        parser_step = SuzukiDecoderStepSaveDuration;
-                        suzuki_add_bit(1);
+                    if (header_count >= 300) {
+                        if (DURATION_DIFF(duration, te_long) <= te_delta) {
+                            parser_step = SuzukiDecoderStepDecodeData;
+                            suzuki_add_bit(1);
+                        }
                     }
-                    // Ignore short HIGHs after preamble until we see a long one
                 } else {
-                    // LOW pulse - count as header if short
-                    if (DURATION_DIFF(duration, te_short) < te_delta) {
+                    if (DURATION_DIFF(duration, te_short) <= te_delta) {
                         te_last = duration;
                         header_count++;
                     } else {
@@ -76,45 +67,69 @@ class FProtoSubCarSuzuki : public FProtoSubCarBase {
                 }
                 break;
 
-            case SuzukiDecoderStepSaveDuration:
+            case SuzukiDecoderStepDecodeData:
+
                 if (level) {
                     // HIGH pulse - determines bit value
-                    // Long HIGH (~500µs) = 1, Short HIGH (~250µs) = 0
-                    if (DURATION_DIFF(duration, te_long) < te_delta) {
-                        suzuki_add_bit(1);
-                    } else if (DURATION_DIFF(duration, te_short) < te_delta) {
-                        suzuki_add_bit(0);
+                    if (duration < te_long) {
+                        uint32_t diff_long = 500 - duration;
+                        if (diff_long > 99) {
+                            uint32_t diff_short;
+                            if (duration < 250) {
+                                diff_short = 250 - duration;
+                            } else {
+                                diff_short = duration - 250;
+                            }
+
+                            if (diff_short <= 99) {
+                                suzuki_add_bit(0);
+                            }
+                        } else {
+                            suzuki_add_bit(1);
+                        }
                     } else {
-                        parser_step = SuzukiDecoderStepReset;
+                        uint32_t diff_long = duration - 500;
+                        if (diff_long <= 99) {
+                            suzuki_add_bit(1);
+                        }
                     }
-                    // Stay in this state for next bit
                 } else {
                     // LOW pulse - check for gap (end of transmission)
-                    if (DURATION_DIFF(duration, SUZUKI_GAP_TIME) < SUZUKI_GAP_DELTA) {
-                        // Gap found - end of transmission
-                        if (data_count_bit == 64) {
+                    uint32_t diff_gap;
+                    if (duration < SUZUKI_GAP_TIME) {
+                        diff_gap = SUZUKI_GAP_TIME - duration;
+                    } else {
+                        diff_gap = duration - SUZUKI_GAP_TIME;
+                    }
+
+                    if (diff_gap <= SUZUKI_GAP_DELTA) {
+                        if (decode_count_bit == 64) {
+                            // instance->generic.data = decode_data;
                             data_count_bit = 64;
-                            decode_data = ((uint64_t)data_high << 32) | (uint64_t)data_low;
-                            // Check manufacturer nibble (should be 0xF)
-                            uint8_t manufacturer = (data_high >> 28) & 0xF;
-                            if (manufacturer == 0xF) {
-                                // Extract fields
-                                decode_data2 = 0;  // Not used
-                                if (callback) {
-                                    callback(this);
-                                }
+
+                            /*uint64_t data = instance->generic.data;
+                            uint32_t data_high = (uint32_t)(data >> 32);
+                            uint32_t data_low = (uint32_t)data;
+
+                            instance->generic.serial = ((data_high & 0xFFF) << 16) | (data_low >> 16);
+
+                            instance->generic.btn = (data_low >> 12) & 0xF;
+                            instance->generic.cnt = (data_high << 4) >> 16;
+*/
+                            if (callback) {
+                                callback(this);
                             }
                         }
+
+                        decode_data = 0;
+                        decode_count_bit = 0;
                         parser_step = SuzukiDecoderStepReset;
                     }
-                    // Short LOW pulses are ignored - stay in this state
                 }
                 break;
         }
     }
 
     uint16_t header_count = 0;
-    uint32_t data_high = 0;
-    uint32_t data_low = 0;
     uint8_t data_count_bit = 0;
 };

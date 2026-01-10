@@ -20,6 +20,7 @@ class FProtoSubCarSubaru : public FProtoSubCarBase {
         te_delta = 260;
         min_count_bit_for_found = 64;
     }
+
     void subghz_protocol_decoder_subaru_reset() {
         parser_step = SubaruDecoderStepReset;
         te_last = 0;
