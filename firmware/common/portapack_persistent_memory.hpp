@@ -203,8 +203,9 @@ bool config_disable_external_tcxo();
 bool config_sdcard_high_speed_io();
 bool config_disable_config_mode();
 bool beep_on_packets();
+bool config_tx_disabled();
 bool config_tx_amp_disabled();
-int8_t config_tx_gain_max_db();
+uint8_t config_tx_gain_max_db();
 
 bool config_splash();
 bool config_converter();
@@ -228,8 +229,9 @@ void set_config_disable_external_tcxo(bool v);
 void set_config_sdcard_high_speed_io(bool v, bool save);
 void set_config_disable_config_mode(bool v);
 void set_beep_on_packets(bool v);
+void set_config_tx_disabled(bool v);
 void set_config_tx_amp_disabled(bool v);
-void set_config_tx_gain_max_db(int8_t v);
+void set_config_tx_gain_max_db(uint8_t v);
 
 void set_config_splash(bool v);
 bool config_converter();

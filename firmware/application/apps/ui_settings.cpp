@@ -315,17 +315,20 @@ SetTXLimitView::SetTXLimitView(NavigationView& nav) {
     add_children({
         &labels,
         &tx_gain_max_db,
+        &tx_disable_switch,
         &tx_amp_disable_switch,
         &button_save,
         &button_cancel,
     });
 
-    tx_gain_max_db.set_value(pmem::config_tx_gain_max_db());
+    tx_disable_switch.set_value(pmem::config_tx_disabled());
     tx_amp_disable_switch.set_value(pmem::config_tx_amp_disabled());
+    tx_gain_max_db.set_value(pmem::config_tx_gain_max_db());
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_config_tx_gain_max_db(tx_gain_max_db.value());
+        pmem::set_config_tx_disabled(tx_disable_switch.value());
         pmem::set_config_tx_amp_disabled(tx_amp_disable_switch.value());
+        pmem::set_config_tx_gain_max_db(tx_gain_max_db.value());
         send_system_refresh();
         nav.pop();
     };

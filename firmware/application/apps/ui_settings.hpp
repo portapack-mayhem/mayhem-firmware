@@ -277,22 +277,27 @@ class SetTXLimitView : public View {
         {{1 * 8, 1 * 16}, "Limits RF TX Gain", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 2 * 16}, "(This may affect", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 16}, "all applications.)", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 8 * 16}, "TX Gain (Max):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 12 * 16}, "TX Max Gain:", Theme::getInstance()->fg_light->foreground},
 
     };
 
+    Checkbox tx_disable_switch{
+        {1 * 8, 6 * 16},
+        23,
+        "Disable TX"};
+
+    Checkbox tx_amp_disable_switch{
+        {1 * 8, 8 * 16},
+        23,
+        "Disable TX Amp"};
+
     NumberField tx_gain_max_db{
-        {20 * 8, 8 * 16},
+        {20 * 8, 12 * 16},
         6,
         {0, 47},
         1,
         ' ',
     };
-
-    Checkbox tx_amp_disable_switch{
-        {1 * 8, 12 * 16},
-        23,
-        "Disable TX Amp"};
 
     Button button_save{
         {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},

@@ -303,7 +303,8 @@ int32_t ReceiverModel::tuning_offset() {
 
 void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
-    radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
+    if (enabled_)
+        radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
 }
 
 void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
@@ -312,7 +313,8 @@ void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
 }
 
 void ReceiverModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth_rx(baseband_bandwidth());
+    if (enabled_)
+        radio::set_baseband_filter_bandwidth_rx(baseband_bandwidth());
 }
 
 void ReceiverModel::update_sampling_rate() {
@@ -321,23 +323,31 @@ void ReceiverModel::update_sampling_rate() {
     // protocols that need quick RX/TX turn-around.
 
     // Disabling baseband while changing sampling rates seems like a good idea...
-    radio::set_baseband_rate(sampling_rate());
+    if (enabled_)
+        radio::set_baseband_rate(sampling_rate());
+
     update_tuning_frequency();
 }
 
 void ReceiverModel::update_lna() {
-    radio::set_lna_gain(lna());
+    if (enabled_)
+        radio::set_lna_gain(lna());
 }
 
 void ReceiverModel::update_vga() {
-    radio::set_vga_gain(vga());
+    if (enabled_)
+        radio::set_vga_gain(vga());
 }
 
 void ReceiverModel::update_rf_amp() {
-    radio::set_rf_amp(rf_amp());
+    if (enabled_)
+        radio::set_rf_amp(rf_amp());
 }
 
 void ReceiverModel::update_modulation() {
+    if (!enabled_)
+        return;
+
     switch (modulation()) {
         default:
         case Mode::AMAudio:
@@ -392,5 +402,6 @@ void ReceiverModel::update_antenna_bias() {
 }
 
 void ReceiverModel::update_headphone_volume() {
-    audio::headphone::set_volume(headphone_volume());
+    if (enabled_)
+        audio::headphone::set_volume(headphone_volume());
 }

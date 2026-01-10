@@ -303,6 +303,7 @@ class SystemStatusView : public View {
     void on_title();
     void refresh();
     void on_clk();
+    void on_tx_disabled();
     void rtc_battery_workaround();
     void on_battery_data(const BatteryStateMessage* msg);
     void on_battery_details();
@@ -312,6 +313,13 @@ class SystemStatusView : public View {
         [this](const Message* const p) {
             (void)p;
             this->refresh();
+        }};
+
+    MessageHandlerRegistration message_handler_tx_disabled{
+        Message::ID::TXDisabled,
+        [this](const Message* const p) {
+            (void)p;
+            this->on_tx_disabled();
         }};
 
     MessageHandlerRegistration message_handler_battery{
@@ -381,10 +389,10 @@ class TransmittersMenuView : public BtnGridView {
     void on_populate() override;
 };
 
-class TranceiversMenuView : public BtnGridView {
+class TransceiversMenuView : public BtnGridView {
    public:
-    TranceiversMenuView(NavigationView& nav);
-    std::string title() const override { return "Tranceiver"; };
+    TransceiversMenuView(NavigationView& nav);
+    std::string title() const override { return "Transceiver"; };
 
    private:
     NavigationView& nav_;

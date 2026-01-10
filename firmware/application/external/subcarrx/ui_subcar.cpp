@@ -266,10 +266,11 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPC_Invalid) return;
 
     if (entry_.sensorType == FPC_SUZUKI) {
-        uint32_t serial_button = (((entry_.data >> 32) & 0xFFF) << 20) | (entry_.data >> 12);
-        serial = serial_button >> 4;
-        uint8_t buttonid = serial_button & 0xF;
-        cnt = (entry_.data >> 44) & 0xFFFF;
+        uint32_t data_high = (uint32_t)(entry_.data >> 32);
+        uint32_t data_low = (uint32_t)entry_.data;
+        serial = ((data_high & 0xFFF) << 16) | (data_low >> 16);
+        uint8_t buttonid = (data_low >> 12) & 0xF;
+        cnt = (data_high << 4) >> 16;
         btn = to_string_dec_uint(buttonid);
         return;
     }
@@ -320,15 +321,78 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     }
 
     if (entry_.sensorType == FPC_KIAV5) {
-        serial = (uint32_t)(((entry_.data >> 32) & 0x0FFFFFFF) >> 1);
-        uint8_t button = (entry_.data >> 61) & 0x07;
+        uint64_t yek = 0;
+        for (int i = 0; i < 8; i++) {
+            uint8_t byte = (entry_.data2 >> (i * 8)) & 0xFF;
+            uint8_t reversed = 0;
+            for (int b = 0; b < 8; b++) {
+                if (byte & (1 << b))
+                    reversed |= (1 << (7 - b));
+            }
+            yek |= ((uint64_t)reversed << ((7 - i) * 8));
+        }
+        serial = (uint32_t)((yek >> 32) & 0x0FFFFFFF);
+        uint8_t button = (uint8_t)((yek >> 60) & 0x0F);
+        uint32_t encrypted = (uint32_t)(yek & 0xFFFFFFFF);
         btn = to_string_dec_uint(button);
-        cnt = (uint16_t)(entry_.data & 0xFFFF);
+        // decode
+        uint8_t keystore_bytes[] = {0x53, 0x54, 0x46, 0x52, 0x4b, 0x45, 0x30, 0x30};
+        uint8_t s0 = (encrypted & 0xFF);
+        uint8_t s1 = (encrypted >> 8) & 0xFF;
+        uint8_t s2 = (encrypted >> 16) & 0xFF;
+        uint8_t s3 = (encrypted >> 24) & 0xFF;
+        int round_index = 1;
+        for (size_t i = 0; i < 18; i++) {
+            uint8_t r = keystore_bytes[round_index] & 0xFF;
+            int steps = 8;
+            while (steps > 0) {
+                uint8_t base;
+                if ((s3 & 0x40) == 0) {
+                    base = (s3 & 0x02) == 0 ? 0x74 : 0x2E;
+                } else {
+                    base = (s3 & 0x02) == 0 ? 0x3A : 0x5C;
+                }
+
+                if (s2 & 0x08) {
+                    base = (((base >> 4) & 0x0F) | ((base & 0x0F) << 4)) & 0xFF;
+                }
+                if (s1 & 0x01) {
+                    base = ((base & 0x3F) << 2) & 0xFF;
+                }
+                if (s0 & 0x01) {
+                    base = (base << 1) & 0xFF;
+                }
+
+                uint8_t temp = (s3 ^ s1) & 0xFF;
+                s3 = ((s3 & 0x7F) << 1) & 0xFF;
+                if (s2 & 0x80) {
+                    s3 |= 0x01;
+                }
+                s2 = ((s2 & 0x7F) << 1) & 0xFF;
+                if (s1 & 0x80) {
+                    s2 |= 0x01;
+                }
+                s1 = ((s1 & 0x7F) << 1) & 0xFF;
+                if (s0 & 0x80) {
+                    s1 |= 0x01;
+                }
+                s0 = ((s0 & 0x7F) << 1) & 0xFF;
+
+                uint8_t chk = (base ^ (r ^ temp)) & 0xFF;
+                if (chk & 0x80) {
+                    s0 |= 0x01;
+                }
+                r = ((r & 0x7F) << 1) & 0xFF;
+                steps--;
+            }
+            round_index = (round_index - 1) & 0x7;
+        }
+        cnt = (s0 + (s1 << 8)) & 0xFFFF;
     }
 
     if (entry_.sensorType == FPC_KIAV3V4) {
         // not decrypted!
-        serial = SD_NO_SERIAL;  //(uint32_t)entry_.data;
+        serial = (uint32_t)entry_.data;
         // uint8_t button = entry_.data2 & 0xFF;
         btn = "?";  // to_string_dec_uint(button);
     }
@@ -344,7 +408,7 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPC_KIAV1) {
         serial = (uint32_t)((entry_.data >> 24) & 0xFFFFFFFF);
         uint8_t button = (uint8_t)((entry_.data >> 16) & 0xFF);
-        cnt = (uint8_t)((entry_.data >> 8) & 0xFF);
+        cnt = (uint8_t)((entry_.data >> 4) & 0xF) << 8 | ((entry_.data >> 8) & 0xFF);
         btn = to_string_dec_uint(button);
     }
 

@@ -146,6 +146,7 @@ class Message {
         SSTVRXPhaseSlant = 88,
         SSTVRXCalibration = 89,
         SubCarData = 90,
+        TXDisabled = 91,
         MAX
     };
 
@@ -1697,6 +1698,13 @@ class SubCarDataMessage : public Message {
     uint16_t bits = 0;
     uint64_t data = 0;
     uint64_t data2 = 0;
+};
+
+class TXDisabledMessage : public Message {
+   public:
+    constexpr TXDisabledMessage()
+        : Message{ID::TXDisabled} {
+    }
 };
 
 #endif /*__MESSAGE_H__*/
