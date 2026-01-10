@@ -266,10 +266,11 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPC_Invalid) return;
 
     if (entry_.sensorType == FPC_SUZUKI) {
-        uint32_t serial_button = (((entry_.data >> 32) & 0xFFF) << 20) | (entry_.data >> 12);
-        serial = serial_button >> 4;
-        uint8_t buttonid = serial_button & 0xF;
-        cnt = (entry_.data >> 44) & 0xFFFF;
+        uint32_t data_high = (uint32_t)(entry_.data >> 32);
+        uint32_t data_low = (uint32_t)entry_.data;
+        serial = ((data_high & 0xFFF) << 16) | (data_low >> 16);
+        uint8_t buttonid = (data_low >> 12) & 0xF;
+        cnt = (data_high << 4) >> 16;
         btn = to_string_dec_uint(buttonid);
         return;
     }
