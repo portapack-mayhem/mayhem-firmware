@@ -31,7 +31,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::siggen {
 
 void SigGenView::focus() {
     options_shape.focus();
@@ -75,7 +75,7 @@ void SigGenView::on_tx_progress(const uint32_t progress, const bool done) {
 
 SigGenView::SigGenView(
     NavigationView& nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_siggen);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &options_mod,
@@ -172,4 +172,4 @@ SigGenView::SigGenView(
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::siggen

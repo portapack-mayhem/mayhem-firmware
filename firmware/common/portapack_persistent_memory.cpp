@@ -152,12 +152,12 @@ struct misc_config_t {
     bool config_sdcard_high_speed_io : 1;
     bool config_disable_config_mode : 1;
     bool beep_on_packets : 1;
-    bool UNUSED_6 : 1;
-    bool UNUSED_7 : 1;
+    bool tx_disabled : 1;
+    bool tx_amp_disabled : 1;
 
+    uint8_t tx_gain_max_db;
     uint8_t PLACEHOLDER_1;
     uint8_t PLACEHOLDER_2;
-    uint8_t PLACEHOLDER_3;
 };
 static_assert(sizeof(misc_config_t) == sizeof(uint32_t));
 
@@ -441,6 +441,10 @@ void defaults() {
     set_recon_repeat_delay(1);
 
     set_config_sdcard_high_speed_io(false, true);
+
+    set_config_tx_disabled(false);
+    set_config_tx_amp_disabled(false);
+    set_config_tx_gain_max_db(47);
 }
 
 void init() {
@@ -649,6 +653,18 @@ bool config_sdcard_high_speed_io() {
     return data->misc_config.config_sdcard_high_speed_io;
 }
 
+bool config_tx_disabled() {
+    return data->misc_config.tx_disabled;
+}
+
+bool config_tx_amp_disabled() {
+    return data->misc_config.tx_amp_disabled;
+}
+
+uint8_t config_tx_gain_max_db() {
+    return data->misc_config.tx_gain_max_db;
+}
+
 bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
@@ -741,6 +757,18 @@ void set_config_sdcard_high_speed_io(bool v, bool save) {
     }
     if (save)
         data->misc_config.config_sdcard_high_speed_io = v;
+}
+
+void set_config_tx_disabled(bool v) {
+    data->misc_config.tx_disabled = v;
+}
+
+void set_config_tx_amp_disabled(bool v) {
+    data->misc_config.tx_amp_disabled = v;
+}
+
+void set_config_tx_gain_max_db(uint8_t v) {
+    data->misc_config.tx_gain_max_db = v;
 }
 
 void set_stealth_mode(bool v) {

@@ -309,6 +309,39 @@ SetFrequencyCorrectionModel SetRadioView::form_collect() {
     };
 }
 
+/* SetTXLimitView ************************************/
+
+SetTXLimitView::SetTXLimitView(NavigationView& nav) {
+    add_children({
+        &labels,
+        &tx_gain_max_db,
+        &tx_disable_switch,
+        &tx_amp_disable_switch,
+        &button_save,
+        &button_cancel,
+    });
+
+    tx_disable_switch.set_value(pmem::config_tx_disabled());
+    tx_amp_disable_switch.set_value(pmem::config_tx_amp_disabled());
+    tx_gain_max_db.set_value(pmem::config_tx_gain_max_db());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_config_tx_disabled(tx_disable_switch.value());
+        pmem::set_config_tx_amp_disabled(tx_amp_disable_switch.value());
+        pmem::set_config_tx_gain_max_db(tx_gain_max_db.value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetTXLimitView::focus() {
+    button_save.focus();
+}
+
 /* SetUIView *********************************************/
 
 SetUIView::SetUIView(NavigationView& nav) {
@@ -1107,6 +1140,7 @@ void SettingsMenuView::on_populate() {
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
+        {"TX Limit", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetTXLimitView>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},

@@ -35,6 +35,7 @@
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "flex_defs.hpp"
 #include "aprs_packet.hpp"
 #include "sonde_packet.hpp"
 #include "tpms_packet.hpp"
@@ -136,6 +137,16 @@ class Message {
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
         EPIRBPacket = 81,
+        FlexPacket = 82,
+        FlexStats = 83,
+        FlexConfigure = 84,
+        FlexDebug = 85,
+        SSTVRXConfigure = 86,
+        SSTVRXProgress = 87,
+        SSTVRXPhaseSlant = 88,
+        SSTVRXCalibration = 89,
+        SubCarData = 90,
+        TXDisabled = 91,
         MAX
     };
 
@@ -1139,6 +1150,62 @@ class SSTVConfigureMessage : public Message {
     const uint32_t pixel_duration;
 };
 
+class SSTVRXConfigureMessage : public Message {
+   public:
+    constexpr SSTVRXConfigureMessage(
+        const uint8_t code)
+        : Message{id : ID::SSTVRXConfigure},
+          code(code) {
+    }
+
+    const uint8_t code;
+};
+
+class SSTVRXProgressMessage : public Message {
+   public:
+    constexpr SSTVRXProgressMessage(
+        const uint16_t line,
+        const uint16_t total_lines)
+        : Message{ID::SSTVRXProgress},
+          line(line),
+          total_lines(total_lines) {
+    }
+
+    const uint16_t line;
+    const uint16_t total_lines;
+};
+
+class SSTVRXPhaseSlantMessage : public Message {
+   public:
+    constexpr SSTVRXPhaseSlantMessage(
+        const int16_t phase,
+        const int16_t slant)
+        : Message{ID::SSTVRXPhaseSlant},
+          phase(phase),
+          slant(slant) {
+    }
+
+    const int16_t phase;
+    const int16_t slant;
+};
+
+class SSTVRXCalibrationMessage : public Message {
+   public:
+    constexpr SSTVRXCalibrationMessage(
+        const int16_t suggested_phase,
+        const int16_t suggested_slant,
+        const uint16_t sync_count)
+        : Message{ID::SSTVRXCalibration},
+          suggested_phase(suggested_phase),
+          suggested_slant(suggested_slant),
+          sync_count(sync_count) {
+    }
+
+    const int16_t suggested_phase;  // Suggested phase correction in pixels
+    const int16_t suggested_slant;  // Suggested slant correction in 0.1% units
+    const uint16_t sync_count;      // Number of syncs analyzed
+};
+
 class FSKConfigureMessage : public Message {
    public:
     constexpr FSKConfigureMessage(
@@ -1187,9 +1254,10 @@ class FSKRxConfigureMessage : public Message {
 
 class POCSAGConfigureMessage : public Message {
    public:
-    constexpr POCSAGConfigureMessage()
-        : Message{ID::POCSAGConfigure} {
+    constexpr POCSAGConfigureMessage(int8_t baud_config = -1)
+        : Message{ID::POCSAGConfigure}, baud_config(baud_config) {
     }
+    int8_t baud_config;  //-1 auto, 0=512,1=1200,2=2400
 };
 
 class APRSPacketMessage : public Message {
@@ -1566,6 +1634,77 @@ class NoaaAptRxImageDataMessage : public Message {
         : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
+};
+
+class FlexPacketMessage : public Message {
+   public:
+    constexpr FlexPacketMessage(const flex::FlexPacket& packet)
+        : Message{ID::FlexPacket},
+          packet{packet} {
+    }
+    flex::FlexPacket packet;
+};
+
+class FlexStatsMessage : public Message {
+   public:
+    constexpr FlexStatsMessage(const flex::FlexStats& stats)
+        : Message{ID::FlexStats},
+          stats{stats} {
+    }
+    flex::FlexStats stats;
+};
+
+class FlexConfigureMessage : public Message {
+   public:
+    constexpr FlexConfigureMessage()
+        : Message{ID::FlexConfigure} {
+    }
+};
+
+class FlexDebugMessage : public Message {
+   public:
+    constexpr FlexDebugMessage(const uint32_t val1, const uint32_t val2, const char* msg)
+        : Message{ID::FlexDebug},
+          val1{val1},
+          val2{val2},
+          text{} {
+        size_t i = 0;
+        while (i < sizeof(text) - 1 && msg[i] != '\0') {
+            text[i] = msg[i];
+            i++;
+        }
+        text[i] = '\0';
+    }
+
+    uint32_t val1;
+    uint32_t val2;
+    char text[64];
+};
+
+class SubCarDataMessage : public Message {
+   public:
+    constexpr SubCarDataMessage(
+        uint8_t sensorType = 0,
+        uint16_t bits = 0,
+        uint64_t data = 0,
+        uint64_t data2 = 0)
+        : Message{ID::SubCarData},
+          sensorType{sensorType},
+          bits{bits},
+          data{data},
+          data2{data2} {
+    }
+    uint8_t sensorType = 0;
+    uint16_t bits = 0;
+    uint64_t data = 0;
+    uint64_t data2 = 0;
+};
+
+class TXDisabledMessage : public Message {
+   public:
+    constexpr TXDisabledMessage()
+        : Message{ID::TXDisabled} {
+    }
 };
 
 #endif /*__MESSAGE_H__*/

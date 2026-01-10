@@ -23,8 +23,9 @@
 #include "pacman.hpp"
 #include <memory>
 
-void notouch(int, int, uint32_t) {
+bool notouch(int, int, uint32_t) {
     // do nothing
+    return false;
 }
 void nothing() {
     // do nothing

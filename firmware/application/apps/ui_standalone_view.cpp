@@ -285,9 +285,9 @@ bool StandaloneView::on_encoder(const EncoderEvent event) {
 
 bool StandaloneView::on_touch(const TouchEvent event) {
     if (get_application_information()->header_version > 1) {
-        get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
+        return get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
     }
-    return true;
+    return false;
 }
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {

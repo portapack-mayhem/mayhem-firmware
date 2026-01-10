@@ -315,7 +315,7 @@ class File {
     template <typename T>
     using Result = Result<T, Error>;
 
-    File(){};
+    File() {};
     ~File();
 
     File(File&& other) {

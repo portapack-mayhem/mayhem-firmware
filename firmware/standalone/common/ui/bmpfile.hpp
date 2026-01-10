@@ -42,6 +42,7 @@ class BMPFile {
     uint32_t getbpr() { return byte_per_row; };
 
     bool read_next_px(ui::Color& px, bool seek);
+    bool read_next_px_cnt(ui::Color* px, uint32_t count, bool seek);
     bool write_next_px(ui::Color& px);
     uint32_t get_real_height();
     uint32_t get_width();

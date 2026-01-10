@@ -77,7 +77,7 @@ ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event) {
 
 ui::Widget* captured_widget{nullptr};
 
-void OnTouchEvent(int, int, uint32_t) {
+bool OnTouchEvent(int, int, uint32_t) {
     if (standaloneViewMirror) {
         _api->exit_app();
         /* //left here for example, but not used in digital rain
@@ -96,6 +96,7 @@ void OnTouchEvent(int, int, uint32_t) {
             captured_widget->on_touch(event);
             */
     }
+    return false;
 }
 
 void OnFocus() {

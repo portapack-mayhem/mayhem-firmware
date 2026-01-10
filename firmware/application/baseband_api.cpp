@@ -147,6 +147,19 @@ void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
     send_message(&message);
 }
 
+void set_sstvrx_data(const uint8_t code) {
+    const SSTVRXConfigureMessage message{
+        code};
+    send_message(&message);
+}
+
+void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant) {
+    const SSTVRXPhaseSlantMessage message{
+        phase,
+        slant};
+    send_message(&message);
+}
+
 void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
     const AFSKRxConfigureMessage message{
         baudrate,
@@ -288,8 +301,8 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
     send_message(&message);
 }
 
-void set_pocsag() {
-    const POCSAGConfigureMessage message{};
+void set_pocsag(int8_t baud_config) {
+    const POCSAGConfigureMessage message{baud_config};
     send_message(&message);
 }
 
@@ -325,6 +338,11 @@ void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
 
 void set_noaaapt_config() {
     const NoaaAptRxConfigureMessage message{};
+    send_message(&message);
+}
+
+void set_flex_config() {
+    const FlexConfigureMessage message{};
     send_message(&message);
 }
 

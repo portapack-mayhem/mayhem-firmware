@@ -74,13 +74,15 @@ void set_tone(const uint32_t index, const uint32_t delta, const uint32_t duratio
 void set_tones_config(const uint32_t bw, const uint32_t pre_silence, const uint16_t tone_count, const bool dual_tone, const bool audio_out);
 void kill_tone();
 void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration);
+void set_sstvrx_data(const uint8_t code);
+void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant);
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain, uint8_t audio_shift_bits_s16, uint8_t bits_per_sample, const uint32_t tone_key_delta, const bool am_enabled, const bool dsb_enabled, const bool usb_enabled, const bool lsb_enabled);
 void set_fifo_data(const int8_t* data);
 void set_pitch_rssi(int32_t avg, bool enabled);
 void set_afsk_data(const uint32_t afsk_samples_per_bit, const uint32_t afsk_phase_inc_mark, const uint32_t afsk_phase_inc_space, const uint8_t afsk_repeat, const uint32_t afsk_bw, const uint8_t symbol_count);
 void kill_afsk();
 void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word);
-void set_fsk(const uint32_t samplesPerSymbol, const uint32_t syncWord, const uint8_t syncWordLength, const uint32_t preamble, const uint8_t preambleLength, uint16_t numDataBytes);
+void set_fsk(const uint8_t samplesPerSymbol, const uint32_t syncWord, const uint8_t syncWordLength, const uint32_t preamble, const uint8_t preambleLength, uint16_t numDataBytes);
 void set_aprs(const uint32_t baudrate);
 
 void set_btlerx(uint8_t channel_number);
@@ -91,7 +93,7 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat, const uint32_t pause_symbols, const uint8_t de_bruijn_length = 0);
 void kill_ook();
 void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint32_t shift, const uint32_t progress_notice);
-void set_pocsag();
+void set_pocsag(int8_t baud_config = -1);
 void set_adsb();
 void set_jammer(const bool run, const jammer::JammerType type, const uint32_t speed);
 void set_rds_data(const uint16_t message_length);
@@ -102,6 +104,7 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 void set_subghzd_config(uint8_t modulation, uint32_t sampling_rate);
 void set_wefax_config(uint8_t lpm, uint8_t ioc);
 void set_noaaapt_config();
+void set_flex_config();
 
 void request_roger_beep();
 void request_rssi_beep();

@@ -99,6 +99,10 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
+	#sstvrx
+	external/sstvrx/main.cpp
+	external/sstvrx/ui_sstvrx.cpp
+
 	#random 464  bytes.
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
@@ -264,6 +268,24 @@ set(EXTCPPSRC
 	#adult_toys_controller  144 bytes 
 	external/adult_toys_controller/main.cpp
 	external/adult_toys_controller/ui_adult_toys_controller.cpp
+
+	#flex_rx
+	external/flex_rx/main.cpp
+	external/flex_rx/ui_flex_rx.cpp	
+
+	#subcarrx
+	external/subcarrx/main.cpp
+	external/subcarrx/ui_subcar.cpp
+
+	#siggen
+	external/siggen/main.cpp
+	external/siggen/ui_siggen.cpp
+
+	#sdusb
+
+	external/sdusb/main.cpp
+	external/sdusb/ui_sd_over_usb.cpp
+
 )
 
 set(EXTAPPLIST
@@ -290,6 +312,7 @@ set(EXTAPPLIST
 	adsbtx
 	morse_tx
 	sstvtx
+	sstvrx
 	random_password
 	# acars_rx --not working
 	wefax_rx
@@ -330,4 +353,8 @@ set(EXTAPPLIST
 	bht_tx
 	morse_practice
 	adult_toys_controller
+	flex_rx
+	subcarrx
+	siggen
+	sdusb
 )
