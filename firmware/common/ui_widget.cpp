@@ -1358,14 +1358,18 @@ void NewButton::paint(Painter& painter) {
         }
 
         if (!text_.empty()) {
-            const auto label_r = style.font.size_of(text_);
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
             if (bitmap_) {
                 y += spacing;
             }
-            painter.draw_string(
-                {r.left() + (r.width() - label_r.width()) / 2, y},
-                style,
-                text_);
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
         }
     } else {  // no valign
         if (bitmap_) {
@@ -1379,11 +1383,16 @@ void NewButton::paint(Painter& painter) {
         }
 
         if (!text_.empty()) {
-            const auto label_r = style.font.size_of(text_);
-            painter.draw_string(
-                {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-                style,
-                text_);
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
+                                text_to_draw);
         }
     }
 }
@@ -1732,6 +1741,14 @@ bool ImageOptionsField::on_keyboard(const KeyboardEvent key) {
     return false;
 }
 
+bool ImageOptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
+    return false;
+}
+
 bool ImageOptionsField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
@@ -1878,6 +1895,14 @@ bool OptionsField::on_encoder(const EncoderEvent delta) {
 bool OptionsField::on_keyboard(const KeyboardEvent key) {
     if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
     if (key == '-' || key == 8) return on_encoder(-1);
+    return false;
+}
+
+bool OptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
     return false;
 }
 
@@ -2313,6 +2338,8 @@ bool NumberField::on_key(const KeyEvent key) {
         if (on_select) {
             on_select(*this);
             return true;
+        } else {
+            return on_encoder(1);
         }
     }
 
