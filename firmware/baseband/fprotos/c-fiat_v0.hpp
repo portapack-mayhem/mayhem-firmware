@@ -161,8 +161,6 @@ class FProtoSubCarFiatV0 : public FProtoSubCarBase {
                         }
 
                         if (bit_count > 0x46) {
-                            final_count = bit_count;
-
                             endbyte = (uint8_t)data_low;
                             /*
                                                         generic.data = ((uint64_t)hop << 32) | fix;
@@ -192,13 +190,11 @@ class FProtoSubCarFiatV0 : public FProtoSubCarBase {
 
     ManchesterState manchester_state = ManchesterStateMid1;
     uint8_t decoder_state = 0;
+    uint8_t bit_count = 0;
+    uint8_t endbyte = 0;
     uint16_t preamble_count = 0;
     uint32_t data_low = 0;
     uint32_t data_high = 0;
-    uint8_t bit_count = 0;
     uint32_t hop = 0;
     uint32_t fix = 0;
-    uint8_t endbyte = 0;
-    uint8_t final_count = 0;
-    uint32_t te_last = 0;
 };
