@@ -276,6 +276,11 @@ set(EXTCPPSRC
 	#subcarrx
 	external/subcarrx/main.cpp
 	external/subcarrx/ui_subcar.cpp
+
+	#siggen
+	external/siggen/main.cpp
+	external/siggen/ui_siggen.cpp
+
 )
 
 set(EXTAPPLIST
@@ -345,4 +350,5 @@ set(EXTAPPLIST
 	adult_toys_controller
 	flex_rx
 	subcarrx
+	siggen
 )

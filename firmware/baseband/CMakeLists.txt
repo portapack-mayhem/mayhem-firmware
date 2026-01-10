@@ -447,14 +447,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PREP replay)
 
-### Signal generator
-
-set(MODE_CPPSRC
-	proc_siggen.cpp
-)
-DeclareTargets(PSIG siggen)
-
-
 
 ### Tones
 
@@ -680,6 +672,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(POSK ookstream)
 
+
+### Signal generator
+
+set(MODE_CPPSRC
+	proc_siggen.cpp
+)
+DeclareTargets(PSIG siggen)
 
 
 ### WeFax Rx

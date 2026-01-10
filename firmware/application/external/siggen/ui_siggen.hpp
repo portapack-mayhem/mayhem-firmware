@@ -33,7 +33,7 @@
 #include "portapack.hpp"
 #include "message.hpp"
 
-namespace ui {
+namespace ui::external_app::siggen {
 
 class SigGenView : public View {
    public:
@@ -139,6 +139,6 @@ class SigGenView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::siggen
 
 #endif /*__SIGGEN_H__*/
