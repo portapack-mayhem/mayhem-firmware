@@ -89,6 +89,7 @@ MEMORY
     ram_external_app_flex_rx  (rwx) : org = 0xADF00000, len = 32k
     ram_external_app_sstvrx  (rwx) : org = 0xADF10000, len = 32k
     ram_external_app_subcarrx  (rwx) : org = 0xADF20000, len = 32k
+    ram_external_app_siggen  (rwx) : org = 0xADF30000, len = 32k
 
 }
 
@@ -491,6 +492,12 @@ SECTIONS
         KEEP(*(.external_app.app_subcarrx.application_information));
         *(*ui*external_app*subcarrx*);
     } > ram_external_app_subcarrx
+
+    .external_app_siggen : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_siggen.application_information));
+        *(*ui*external_app*siggen*);
+    } > ram_external_app_siggen
 
     
 }
