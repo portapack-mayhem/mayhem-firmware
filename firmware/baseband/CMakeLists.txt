@@ -497,7 +497,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFUT flash_utility)
 
-
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
@@ -681,6 +680,8 @@ set(MODE_CPPSRC
 	sd_over_usb/usb_descriptor.c
 	sd_over_usb/hackrf_core.c
 
+	${HACKRF_PATH}/firmware/common/adc.c
+	${HACKRF_PATH}/firmware/common/selftest.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
