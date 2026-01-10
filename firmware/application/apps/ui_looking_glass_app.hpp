@@ -66,9 +66,6 @@ class GlassView : public View {
     void on_hide() override;
     void focus() override;
 
-    uint8_t get_spec_iq_phase_calibration_value();
-    void set_spec_iq_phase_calibration_value(uint8_t cal_value);
-
    private:
     NavigationView& nav_;
     Gradient gradient{};
@@ -80,11 +77,10 @@ class GlassView : public View {
     uint8_t filter_index = 0;  // OFF
     uint8_t trigger = 32;
     uint8_t mode = LOOKING_GLASS_FASTSCAN;
-    uint8_t live_frequency_view = 0;         // Spectrum
-    uint8_t live_frequency_integrate = 3;    // Default (3 * old value + new_value) / 4
-    uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
-    int32_t beep_squelch = 20;               // range from -100 to +20, >=20 disabled
-    bool beep_enabled = false;               // activate on bip button click
+    uint8_t live_frequency_view = 0;       // Spectrum
+    uint8_t live_frequency_integrate = 3;  // Default (3 * old value + new_value) / 4
+    int32_t beep_squelch = 20;             // range from -100 to +20, >=20 disabled
+    bool beep_enabled = false;             // activate on bip button click
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
         app_settings::Mode::RX,
@@ -97,7 +93,6 @@ class GlassView : public View {
             {"scan_mode"sv, &mode},
             {"freq_view"sv, &live_frequency_view},
             {"freq_integrate"sv, &live_frequency_integrate},
-            {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
             {"beep_squelch"sv, &beep_squelch},
             {"beep_enabled"sv, &beep_enabled},
         }};
@@ -118,7 +113,7 @@ class GlassView : public View {
     void update_range_field();
     void get_max_power(const ChannelSpectrum& spectrum, uint16_t bin, uint8_t& max_power);
     rf::Frequency get_freq_from_bin_pos(uint16_t pos);
-    void on_marker_change();
+    void on_marker_change(int8_t delta);
     void retune();
     bool process_bins(uint8_t* powerlevel);
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
@@ -173,8 +168,7 @@ class GlassView : public View {
         {{0, UI_POS_Y(0)}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
         {{0, 2 * 16}, "P:", Theme::getInstance()->fg_light->foreground},
-        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::getInstance()->fg_light->foreground},
-        //{{0, 4 * 16}, "RES:    STEPS:", Theme::getInstance()->fg_light->foreground}};
+        {{0, 3 * 16}, "MARKER( / ):          MHz", Theme::getInstance()->fg_light->foreground},
         {{0, 4 * 16}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency_min{
@@ -223,16 +217,16 @@ class GlassView : public View {
         ""};
 
     TextField field_marker{
-        {7 * 8, 3 * 16, 9 * 8, 16},
+        {12 * 8, 3 * 16, 9 * 8, 16},
         ""};
 
-    NumberField field_rx_iq_phase_cal{
-        {28 * 8, 3 * 16},
-        2,
-        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
-        1,
-        ' ',
-    };
+    Button button_marker_minus{
+        {7 * 8, 3 * 16 + 4, 1 * 8, 1 * 8},
+        "-"};
+
+    Button button_marker_plus{
+        {9 * 8, 3 * 16 + 4, 1 * 8, 1 * 8},
+        "+"};
 
     NumberField field_trigger{
         {4 * 8, 4 * 16},
