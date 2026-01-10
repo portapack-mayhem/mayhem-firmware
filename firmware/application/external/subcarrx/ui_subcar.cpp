@@ -328,7 +328,7 @@ void SubCarRecentEntryDetailView::parseProtocol() {
 
     if (entry_.sensorType == FPC_KIAV3V4) {
         // not decrypted!
-        serial = SD_NO_SERIAL;  //(uint32_t)entry_.data;
+        serial = (uint32_t)entry_.data;
         // uint8_t button = entry_.data2 & 0xFF;
         btn = "?";  // to_string_dec_uint(button);
     }
