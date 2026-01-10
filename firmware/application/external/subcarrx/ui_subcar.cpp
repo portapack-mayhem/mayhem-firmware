@@ -344,7 +344,7 @@ void SubCarRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPC_KIAV1) {
         serial = (uint32_t)((entry_.data >> 24) & 0xFFFFFFFF);
         uint8_t button = (uint8_t)((entry_.data >> 16) & 0xFF);
-        cnt = (uint8_t)((entry_.data >> 8) & 0xFF);
+        cnt = (uint8_t)((entry_.data >> 4) & 0xF) << 8 | ((entry_.data >> 8) & 0xFF);
         btn = to_string_dec_uint(button);
     }
 
