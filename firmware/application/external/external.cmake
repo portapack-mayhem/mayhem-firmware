@@ -281,6 +281,11 @@ set(EXTCPPSRC
 	external/siggen/main.cpp
 	external/siggen/ui_siggen.cpp
 
+	#sdusb
+
+	external/sdusb/main.cpp
+	external/sdusb/ui_sd_over_usb.cpp
+
 )
 
 set(EXTAPPLIST
@@ -351,4 +356,5 @@ set(EXTAPPLIST
 	flex_rx
 	subcarrx
 	siggen
+	sdusb
 )
