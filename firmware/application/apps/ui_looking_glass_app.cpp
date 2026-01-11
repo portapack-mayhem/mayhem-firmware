@@ -101,7 +101,14 @@ rf::Frequency GlassView::get_freq_from_bin_pos(uint16_t pos) {
     return freq_at_pos;
 }
 
-void GlassView::on_marker_change() {
+void GlassView::on_marker_change(int8_t delta) {
+    if ((marker_pixel_index + delta) < 0)
+        marker_pixel_index = marker_pixel_index + delta + screen_width;
+    else if ((marker_pixel_index + delta) > screen_width)
+        marker_pixel_index = marker_pixel_index + delta - screen_width;
+    else
+        marker_pixel_index = marker_pixel_index + delta;
+
     marker = get_freq_from_bin_pos(marker_pixel_index);
     field_marker.set_text(to_string_short_freq(marker));
     plot_marker(marker_pixel_index);  // Refresh marker on screen
@@ -285,7 +292,7 @@ void GlassView::on_range_changed() {
     max_power = 0;
     bins_hz_size = 0;
 
-    on_marker_change();
+    on_marker_change(0);
     update_range_field();
 
     // set the sample rate and bandwidth
@@ -381,9 +388,10 @@ GlassView::GlassView(
                   &button_beep_squelch,
                   &field_marker,
                   &field_trigger,
+                  &button_marker_minus,
+                  &button_marker_plus,
                   &button_jump,
                   &button_rst,
-                  &field_rx_iq_phase_cal,
                   &freq_stats});
 
     load_presets();  // Load available presets from TXT files (or default).
@@ -491,13 +499,7 @@ GlassView::GlassView(
     range_presets.set_selected_index(preset_index);
 
     field_marker.on_encoder_change = [this](TextField&, EncoderEvent delta) {
-        if ((marker_pixel_index + delta) < 0)
-            marker_pixel_index = marker_pixel_index + delta + screen_width;
-        else if ((marker_pixel_index + delta) > screen_width)
-            marker_pixel_index = marker_pixel_index + delta - screen_width;
-        else
-            marker_pixel_index = marker_pixel_index + delta;
-        on_marker_change();
+        on_marker_change(delta);
     };
 
     field_marker.on_select = [this](TextField&) {
@@ -516,6 +518,14 @@ GlassView::GlassView(
         update_range_field();
     };
 
+    button_marker_minus.on_select = [this](Button&) {
+        on_marker_change(-1);
+    };
+
+    button_marker_plus.on_select = [this](Button&) {
+        on_marker_change(1);
+    };
+
     button_jump.on_select = [this](Button&) {
         // Launch Audio with peak frequency.
         launch_audio(max_freq_hold);
@@ -524,13 +534,6 @@ GlassView::GlassView(
     button_rst.on_select = [this](Button&) {
         reset_live_view();
     };
-
-    field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                 // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
-    field_rx_iq_phase_cal.set_value(get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
-    field_rx_iq_phase_cal.on_change = [this](int32_t v) {
-        set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
-    };
-    set_spec_iq_phase_calibration_value(get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
 
     display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
 
@@ -579,15 +582,6 @@ void GlassView::on_freqchg(int64_t freq) {
     update_min(freq - half_range);
     update_max(freq + half_range);
     on_range_changed();
-}
-
-uint8_t GlassView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
-    return iq_phase_calibration_value;
-}
-
-void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions
-    iq_phase_calibration_value = cal_value;
-    radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
 }
 
 void GlassView::load_presets() {

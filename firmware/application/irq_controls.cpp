@@ -227,8 +227,8 @@ void controls_init() {
     gptStart(&GPTD1, &timer0_config);
     gptStartContinuous(&GPTD1, timer0_match_count);
 
-    // Enable repeat for directional switches only
-    for (auto i = Switch::Right; i <= Switch::Up; incr(i))
+    // Enable repeat for directional and Select switches only
+    for (auto i = Switch::Right; i <= Switch::Sel; incr(i))
         switch_debounce[toUType(i)].enable_repeat();
 }
 
