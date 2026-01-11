@@ -2294,20 +2294,44 @@ void NumberField::getWidgetName(std::string& result) {
 }
 
 void NumberField::set_value(int32_t new_value, bool trigger_change) {
+    const int32_t lo = range.first;
+    const int32_t hi = range.second;
+
+    // Helper: floor-div for negatives
+    auto floordiv = [](int64_t a, int64_t b) -> int64_t {  // b > 0
+        int64_t q = a / b;
+        int64_t r = a % b;
+        return (r < 0) ? (q - 1) : q;
+    };
+    // Helper: positive modulo
+    auto posmod = [](int64_t a, int64_t m) -> int64_t {  // m > 0
+        int64_t r = a % m;
+        return (r < 0) ? (r + m) : r;
+    };
+
     if (can_loop) {
-        if (new_value >= range.first)
-            new_value = new_value % (range.second + 1);
-        else
-            new_value = range.second + new_value + 1;
+        // number of discrete positions
+        const int64_t count = (int64_t)(hi - lo) / step + 1;
+
+        // map value -> step index (floor so negatives behave)
+        int64_t idx = floordiv((int64_t)new_value - lo, step);
+
+        // wrap index
+        idx = posmod(idx, count);
+
+        // rebuild value
+        new_value = (int32_t)(lo + idx * step);
+    } else {
+        new_value = clip(new_value, lo, hi);
+        // optionally snap to step here too
+        int64_t idx = floordiv((int64_t)new_value - lo, step);
+        new_value = (int32_t)(lo + idx * step);
     }
 
-    new_value = clip(new_value, range.first, range.second);
-
+    // set final value if needed
     if (new_value != value()) {
         value_ = new_value;
-        if (on_change && trigger_change) {
-            on_change(value_);
-        }
+        if (on_change && trigger_change) on_change(value_);
         set_dirty();
     }
 }
