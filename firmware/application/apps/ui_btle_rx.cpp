@@ -53,7 +53,7 @@ BTLERxView::BTLERxView(NavigationView& nav)
                   &button_modem_setup,
                   &console});
 
-    // Auto-configure modem for LCR RX (TODO: remove later)
+    // Auto-configure modem for LCR RX
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;
@@ -69,7 +69,7 @@ BTLERxView::BTLERxView(NavigationView& nav)
         nav.push<ModemSetupView>();
     };
 
-    // Auto-configure modem for LCR RX (will be removed later)
+    // Configure BTLE RX baseband
     baseband::set_btlerx(channel_number);
 
     audio::set_rate(audio::Rate::Hz_24000);
