@@ -410,6 +410,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
          &recent_entries_view,
          &status_frame,
          &status_good_frame,
+         &check_log,
          &field_volume});
 
     recent_entries_view.set_parent_rect({0, 16, screen_width, UI_POS_HEIGHT_REMAINING(2)});
@@ -427,8 +428,15 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
         on_tick_second();
     };
 
+    // Set up logging checkbox
+    check_log.set_value(logging_enabled);
+    check_log.on_select = [this](Checkbox&, bool v) {
+        logging_enabled = v;
+    };
+
     logger = std::make_unique<ADSBLogger>();
-    logger->append(logs_dir / u"ADSB.TXT");
+    if (logging_enabled)
+        logger->append(logs_dir / u"ADSB.TXT");
 
     receiver_model.enable();
     baseband::set_adsb();
@@ -602,7 +610,11 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
         }
     }
 
-    logger->log(log_entry);
+    if (logging_enabled) {
+        // Open log file if not already open
+        logger->append(logs_dir / u"ADSB.TXT");
+        logger->log(log_entry);
+    }
 }
 
 void ADSBRxView::on_tick_second() {

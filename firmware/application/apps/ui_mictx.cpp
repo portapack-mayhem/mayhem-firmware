@@ -140,8 +140,9 @@ void MicTXView::set_tx(bool enable) {
             if (rx_enabled) {
                 rxaudio(true);  // Turn back on audio RX
 
-                // TODO FIXME: this isn't working: vu meter isn't going to 0:
-                vumeter.set_value(0);  // Reset  vumeter
+                // Fix: Reset both the audio_level variable and the vumeter widget
+                audio_level = 0;       // Reset the audio level variable (fixes FIXME)
+                vumeter.set_value(0);  // Reset vumeter UI widget
                 vumeter.dirty();       // Force to refresh vumeter.
             }
         }

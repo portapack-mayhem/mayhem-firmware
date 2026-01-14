@@ -388,34 +388,72 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
 
         case CONNECT_REQ:
         default: {
-            uint8_t type = 0xFF;
+            // Parse CONNECT_REQ using the ADV_PDU_PAYLOAD_TYPE_5 structure
+            if (entry_.pduType == CONNECT_REQ && entry_.packetData.dataLen >= 22) {
+                ADV_PDU_PAYLOAD_TYPE_5* connect_req = (ADV_PDU_PAYLOAD_TYPE_5*)entry_.packetData.data;
 
-            // TODO: Display Connect Request Information. For right now just printing full hex data.
-            // This struct will eventually be used to break apart containing data of Connect Request.
-            // ADV_PDU_PAYLOAD_TYPE_5 * connect_req = (ADV_PDU_PAYLOAD_TYPE_5 *)entry_.packetData.data;
+                // Display Initiator Address (AdvA) - first 6 bytes, reversed for display
+                uint8_t advA_reversed[6];
+                for (int idx = 0; idx < 6; idx++) {
+                    advA_reversed[idx] = connect_req->AdvA[5 - idx];
+                }
+                field_rect = draw_field(painter, field_rect, s, "Init", to_string_mac_address(advA_reversed, 6, false));
 
-            for (currentByte = 0; (currentByte < entry_.packetData.dataLen); currentByte++) {
-                data[0][currentByte] = entry_.packetData.data[currentByte];
-            }
+                // Display Access Address (AA) - 4 bytes
+                std::string aa_str = "";
+                for (int idx = 3; idx >= 0; idx--) {
+                    aa_str += to_string_hex(connect_req->AA[idx], 2);
+                }
+                field_rect = draw_field(painter, field_rect, s, "AA", aa_str);
 
-            uint8_t number_data_lines = ceil((float)entry_.packetData.dataLen / 10.0);
-            uint8_t current_line = 0;
-            std::array<std::string, total_data_lines> data_strings{};
+                // Display CRC Init (lower 24 bits)
+                field_rect = draw_field(painter, field_rect, s, "CRC", to_string_hex(connect_req->CRCInit & 0xFFFFFF, 6));
 
-            for (j = 0; (j < (number_data_lines * 10)) && (j < entry_.packetData.dataLen); j++) {
-                if ((j / 10) != current_line) {
-                    current_line++;
+                // Display Window Size and Offset
+                field_rect = draw_field(painter, field_rect, s, "Win", 
+                    "Sz:" + to_string_dec_uint(connect_req->WinSize) + 
+                    " Off:" + to_string_dec_uint(connect_req->WinOffset));
+
+                // Display Connection Interval (in 1.25ms units)
+                float interval_ms = connect_req->Interval * 1.25f;
+                field_rect = draw_field(painter, field_rect, s, "Int", 
+                    to_string_dec_uint(connect_req->Interval) + " (" + to_string_dec_uint((uint32_t)interval_ms) + "ms)");
+
+                // Display Latency and Timeout
+                float timeout_ms = connect_req->Timeout * 10.0f;
+                field_rect = draw_field(painter, field_rect, s, "Lat", 
+                    to_string_dec_uint(connect_req->Latency) + " Tout:" + to_string_dec_uint((uint32_t)timeout_ms) + "ms");
+
+                // Display Hop Increment and SCA (Sleep Clock Accuracy)
+                field_rect = draw_field(painter, field_rect, s, "Hop", 
+                    to_string_dec_uint(connect_req->Hop & 0x1F) + " SCA:" + to_string_dec_uint(connect_req->SCA & 0x07));
+            } else {
+                // Fallback to hex display for unknown types or insufficient data
+                uint8_t type = 0xFF;
+
+                for (currentByte = 0; (currentByte < entry_.packetData.dataLen); currentByte++) {
+                    data[0][currentByte] = entry_.packetData.data[currentByte];
                 }
 
-                data_strings[current_line] += to_string_hex(data[0][j], 2);
-            }
+                uint8_t number_data_lines = ceil((float)entry_.packetData.dataLen / 10.0);
+                uint8_t current_line = 0;
+                std::array<std::string, total_data_lines> data_strings{};
 
-            field_rect = draw_field(painter, field_rect, s, to_string_hex(entry_.packetData.dataLen), to_string_hex(type) + pad_string_with_spaces(3) + data_strings[0]);
+                for (j = 0; (j < (number_data_lines * 10)) && (j < entry_.packetData.dataLen); j++) {
+                    if ((j / 10) != current_line) {
+                        current_line++;
+                    }
 
-            if (number_data_lines > 1) {
-                for (k = 1; k < number_data_lines; k++) {
-                    if (!data_strings[k].empty()) {
-                        field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
+                    data_strings[current_line] += to_string_hex(data[0][j], 2);
+                }
+
+                field_rect = draw_field(painter, field_rect, s, to_string_hex(entry_.packetData.dataLen), to_string_hex(type) + pad_string_with_spaces(3) + data_strings[0]);
+
+                if (number_data_lines > 1) {
+                    for (k = 1; k < number_data_lines; k++) {
+                        if (!data_strings[k].empty()) {
+                            field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
+                        }
                     }
                 }
             }
