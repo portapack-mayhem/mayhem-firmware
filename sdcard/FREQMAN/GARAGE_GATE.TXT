@@ -1,0 +1,12 @@
+f=315000000,d=Garage NA 315
+f=390000000,d=Garage NA 390
+f=433920000,d=Garage EU/Asia 433
+f=868350000,d=Garage EU 868
+f=300000000,d=Gate 300
+f=318000000,d=Gate 318
+f=330000000,d=Gate 330
+f=350000000,d=Gate 350
+f=403550000,d=Chamberlain
+f=310000000,d=Linear Multicode
+f=372500000,d=Gate 372.5
+f=387000000,d=Liftmaster Security+
