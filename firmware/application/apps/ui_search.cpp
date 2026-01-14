@@ -22,6 +22,8 @@
 
 #include "ui_search.hpp"
 
+#include <utility>
+
 #include "baseband_api.hpp"
 #include "binder.hpp"
 #include "string_format.hpp"
