@@ -1,7 +1,7 @@
 FROM alpine:edge
 
 # Download ARM toolkit.
-RUN apk add --no-cache gcc-arm-none-eabi gcc
+RUN apk add --no-cache gcc-arm-none-eabi g++-arm-none-eabi newlib-arm-none-eabi gcc
 
 # Create volume /havoc/bin for compiled firmware binaries
 VOLUME /havoc
