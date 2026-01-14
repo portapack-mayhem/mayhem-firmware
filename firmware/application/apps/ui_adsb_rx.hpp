@@ -183,8 +183,7 @@ struct ADSBLogEntry {
     uint16_t sqwk{};
 };
 
-// TODO: Make logging optional.
-/* Logs entries to a log file. */
+/* Logs entries to a log file. Logging can be enabled/disabled via UI. */
 class ADSBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -384,8 +383,12 @@ class ADSBRxView : public View {
         2'500'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
         ReceiverModel::Mode::SpectrumAnalysis};
+    bool logging_enabled{true};
     app_settings::SettingsManager settings_{
-        "rx_adsb", app_settings::Mode::RX};
+        "rx_adsb", app_settings::Mode::RX,
+        {
+            {"logging"sv, &logging_enabled},
+        }};
 
     std::unique_ptr<ADSBLogger> logger{};
 
@@ -448,6 +451,12 @@ class ADSBRxView : public View {
         {UI_POS_X_RIGHT(3) + 2, 9, 2, 2},
         Theme::getInstance()->fg_green->foreground,
     };
+
+    Checkbox check_log{
+        {UI_POS_X_RIGHT(8), UI_POS_Y(0)},
+        3,
+        "Log",
+        true};
 
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
