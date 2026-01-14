@@ -13,6 +13,7 @@ RUN apk update -U
 RUN apk add --no-cache git tar wget cmake curl bzip2 lz4 make
 RUN apk add --no-cache dfu-util ccache icu-data-full
 RUN apk add --no-cache python3 py3-pip py3-yaml
+RUN ln -sf python3 /usr/bin/python
 RUN apk add --no-cache py3-pyyaml-env-tag
 RUN apk add --no-cache g++ gcc clang clang-static clang-dev llvm-dev llvm-static
 
