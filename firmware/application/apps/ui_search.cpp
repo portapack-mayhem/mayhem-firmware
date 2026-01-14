@@ -355,8 +355,14 @@ void SearchView::on_range_changed() {
     int64_t offset;
     size_t slice;
 
-    // TODO: enforce min < max?
-    search_span = abs(settings_.freq_max - settings_.freq_min);
+    // Enforce min < max by swapping if necessary
+    if (settings_.freq_min > settings_.freq_max) {
+        std::swap(settings_.freq_min, settings_.freq_max);
+        field_frequency_min.set_value(settings_.freq_min);
+        field_frequency_max.set_value(settings_.freq_max);
+    }
+
+    search_span = settings_.freq_max - settings_.freq_min;
 
     if (search_span > SEARCH_SLICE_WIDTH) {
         // ex: 100M~115M (15M span):
