@@ -221,6 +221,9 @@ FrequencyLoadView::FrequencyLoadView(
 /* FrequencyManagerView **********************************/
 
 void FrequencyManagerView::on_edit_entry() {
+    if (db_.empty())
+        return;
+
     auto edit_view = nav_.push<FrequencyEditView>(current_entry());
     edit_view->on_save = [this](const freqman_entry& entry) {
         db_.replace_entry(current_index(), entry);
@@ -229,6 +232,9 @@ void FrequencyManagerView::on_edit_entry() {
 }
 
 void FrequencyManagerView::on_edit_freq() {
+    if (db_.empty())
+        return;
+
     auto freq_edit_view = nav_.push<FrequencyKeypadView>(current_entry().frequency_a);
     freq_edit_view->on_changed = [this](rf::Frequency f) {
         auto entry = current_entry();
@@ -239,6 +245,9 @@ void FrequencyManagerView::on_edit_freq() {
 }
 
 void FrequencyManagerView::on_edit_desc() {
+    if (db_.empty())
+        return;
+
     temp_buffer_ = current_entry().description;
     text_prompt(nav_, temp_buffer_, freqman_max_desc_size, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_desc) {
         auto entry = current_entry();
