@@ -27,7 +27,7 @@
 #include <cmath>
 #include "string_format.hpp"
 
-namespace ui::external_app::morse_practice {
+namespace ui::external_app::morse_radio {
 
 class MorseRingBuffer {
    public:
@@ -65,6 +65,12 @@ class MorseRingBuffer {
             out[i] = (*this)[i];
     }
 
+    void clear() {
+        head_ = 0;
+        tail_ = 0;
+        count_ = 0;
+    }
+
    private:
     uint32_t data_[40];
     size_t head_;
@@ -89,6 +95,15 @@ class MorseDecoder {
     };
 
     MorseDecoder() {}
+
+    void resetLearning() {
+        time_unit_ms_ = 119.0;
+        current_sequence_ = "";
+        last_sequence_ = "";
+        last_confidence_ = 0.0;
+        pulse_history_.clear();
+        pulse_gaps_.clear();
+    }
 
     DecodeResult
     handleInput(int32_t duration_ms) {
@@ -359,6 +374,6 @@ class MorseDecoder {
         {".-.-.", "+"}};
 };
 
-}  // namespace ui::external_app::morse_practice
+}  // namespace ui::external_app::morse_radio
 
 #endif  // __MORSEDECODER_HPP__

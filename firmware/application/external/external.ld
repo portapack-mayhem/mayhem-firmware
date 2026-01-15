@@ -91,7 +91,7 @@ MEMORY
     ram_external_app_subcarrx  (rwx) : org = 0xADF20000, len = 32k
     ram_external_app_siggen  (rwx) : org = 0xADF30000, len = 32k
     ram_external_app_sdusb  (rwx) : org = 0xADF40000, len = 32k
-
+    ram_external_app_morse_radio  (rwx) : org = 0xADF50000, len = 32k
 }
 
 SECTIONS
@@ -506,5 +506,11 @@ SECTIONS
         *(*ui*external_app*sdusb*);
     } > ram_external_app_sdusb
    
+    .external_app_morse_radio : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_morse_radio.application_information));
+        *(*ui*external_app*morse_radio*);
+    } > ram_external_app_morse_radio
+
 }
 

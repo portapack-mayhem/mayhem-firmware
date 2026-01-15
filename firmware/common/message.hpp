@@ -146,7 +146,9 @@ class Message {
         SSTVRXPhaseSlant = 88,
         SSTVRXCalibration = 89,
         SubCarData = 90,
-        TXDisabled = 91,
+        MorseRXData = 91,
+        MorseRXConfig = 92,
+        TXDisabled = 93,
         MAX
     };
 
@@ -1698,6 +1700,22 @@ class SubCarDataMessage : public Message {
     uint16_t bits = 0;
     uint64_t data = 0;
     uint64_t data2 = 0;
+};
+
+class MorseRXDataMessage : public Message {
+   public:
+    constexpr MorseRXDataMessage()
+        : Message{ID::MorseRXData} {}
+    uint32_t measured_frequency = 0;
+    int32_t times[2] = {0};  // positive: high, negative: low
+    uint16_t timeptr = 0;
+    const uint16_t maxptr = 1;
+};
+
+class MorseRXConfigureMessage : public Message {
+   public:
+    constexpr MorseRXConfigureMessage()
+        : Message{ID::MorseRXConfig} {}
 };
 
 class TXDisabledMessage : public Message {

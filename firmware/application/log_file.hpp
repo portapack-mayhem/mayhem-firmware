@@ -40,6 +40,7 @@ class LogFile {
     Optional<File::Error> write_entry(const std::string& entry);
     Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
     Optional<File::Error> write_raw(const std::string& message);
+    Optional<File::Error> write_raw_cont(const std::string& message);
 
    private:
     File file{};
