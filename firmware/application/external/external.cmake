@@ -282,9 +282,13 @@ set(EXTCPPSRC
 	external/siggen/ui_siggen.cpp
 
 	#sdusb
-
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
+
+
+	#morse_radio
+	external/morse_radio/main.cpp
+	external/morse_radio/ui_morse_radio.cpp
 
 )
 
@@ -357,4 +361,5 @@ set(EXTAPPLIST
 	subcarrx
 	siggen
 	sdusb
+	morse_radio
 )

@@ -98,7 +98,7 @@ void MorsePracticeView::writeCharToConsole(const std::string& ch, double confide
 
     if (ch == " ") {
         color_id = 0;
-    } else if (ch == MORSEDEC_ERROR) {
+    } else if (ch[0] == '{') {  // no match
         color_id = 0;
     } else {
         if (confidence < 0.8)
