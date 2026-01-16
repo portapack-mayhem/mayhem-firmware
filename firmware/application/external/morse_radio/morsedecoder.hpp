@@ -24,7 +24,6 @@
 
 #include <cstdint>
 #include <string>
-#include <cmath>
 #include "string_format.hpp"
 
 namespace ui::external_app::morse_radio {
@@ -109,7 +108,7 @@ class MorseDecoder {
     handleInput(int32_t duration_ms) {
         DecodeResult result = {"", 0.0};
 
-        if (std::abs(duration_ms) < 5) return result;
+        if (duration_ms < 5 && duration_ms > -5) return result;
 
         if (duration_ms > 0) {
             pulse_history_.push_back(duration_ms);

@@ -100,7 +100,7 @@ void MorseLogger::radio_set_log() {
 
 bool MorseLogger::on_packet(const std::string& content, bool time) {
     if (!time) {
-        log_file.write_raw_cont("\r\n\r\n");
+        log_file.write_raw_no_newline("\r\n\r\n");
         auto timestamp = to_string_datetime(rtc_time::now(), YMDHMS);
         log_file.write_raw("[" + timestamp + "] ");
 
@@ -116,16 +116,16 @@ bool MorseLogger::on_packet(const std::string& content, bool time) {
         std::string s(1, c);
 
         if ((char_count >= 35 && c == ' ') || (char_count >= 47)) {
-            log_file.write_raw_cont("\r\n");
+            log_file.write_raw_no_newline("\r\n");
 
             if (c != ' ') {
-                log_file.write_raw_cont(s);
+                log_file.write_raw_no_newline(s);
                 char_count = 1;
             } else {
                 char_count = 0;
             }
         } else {
-            log_file.write_raw_cont(s);
+            log_file.write_raw_no_newline(s);
             char_count++;
         }
     }
@@ -160,19 +160,19 @@ void MorseRadioView::check_for_timeout() {
     }
 }
 
-int32_t MorseRadioView::ProcessSignal(int32_t value_us) {
-    int8_t sign = (value_us > 0) ? 1 : ((value_us < 0) ? -1 : 0);
+int32_t MorseRadioView::ProcessSignal(int32_t sig_time_us) {
+    int8_t sign = (sig_time_us > 0) ? 1 : ((sig_time_us < 0) ? -1 : 0);
     int32_t result = 0;
 
     if (last_sign_ == 0) {
         last_sign_ = sign;
-        accumulator_us_ = value_us;
+        accumulator_us_ = sig_time_us;
         long_pause_sent_ = false;
         return 0;
     }
 
     if (sign == last_sign_) {
-        accumulator_us_ += value_us;
+        accumulator_us_ += sig_time_us;
 
         if (sign < 0) {
             int32_t threshold_us = morse_decoder_.getInterWordThreshold() * 1000;
@@ -190,7 +190,7 @@ int32_t MorseRadioView::ProcessSignal(int32_t value_us) {
             result = 0;
         }
 
-        accumulator_us_ = value_us;
+        accumulator_us_ = sig_time_us;
         last_sign_ = sign;
         long_pause_sent_ = false;
     }
@@ -205,7 +205,7 @@ void MorseRadioView::on_data(const MorseRXDataMessage* message) {
     int32_t r;
 
     for (uint16_t i = 0; i <= message->maxptr; ++i) {
-        if (message->times[i] >= 30000 || message->times[i] <= -30000) {
+        if (message->state_durations[i] >= 30000 || message->state_durations[i] <= -30000) {
             if (!has_valid) {
                 start = i;
             }
@@ -217,7 +217,7 @@ void MorseRadioView::on_data(const MorseRXDataMessage* message) {
     if (!has_valid) return;  // no valid data arrived
 
     for (uint16_t i = start; i <= stop; i++) {
-        r = ProcessSignal(message->times[i]);
+        r = ProcessSignal(message->state_durations[i]);
         auto result = morse_decoder_.handleInput((r != 0) ? r : 0);
         if (result.isValid()) {
             last_activity_time = chTimeNow();  // start reset timer on valid input

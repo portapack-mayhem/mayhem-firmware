@@ -1707,8 +1707,8 @@ class MorseRXDataMessage : public Message {
     constexpr MorseRXDataMessage()
         : Message{ID::MorseRXData} {}
     uint32_t measured_frequency = 0;
-    int32_t times[2] = {0};  // positive: high, negative: low
-    uint16_t timeptr = 0;
+    int32_t state_durations[2] = {0};  // positive: high, negative: low
+    uint16_t state_cnt = 0;
     const uint16_t maxptr = 1;
 };
 

@@ -75,7 +75,7 @@ class MorseRadioView : public ui::View {
     void on_data(const MorseRXDataMessage* message);
     void on_message(const Message* const p);
     void check_for_timeout();
-    int32_t ProcessSignal(int32_t value_us);
+    int32_t ProcessSignal(int32_t sig_time_us);
     ui::NavigationView& nav_;
     MorseDecoder morse_decoder_{};
     RxRadioState radio_state_{};

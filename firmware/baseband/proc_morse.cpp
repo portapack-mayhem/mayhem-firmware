@@ -176,9 +176,9 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
                     int32_t duration_us = (int32_t)((int64_t)duration_samples * 125 / 3);
 
                     if (duration_us > 10000) {
-                        message.times[0] = was_signaling ? duration_us : -duration_us;
+                        message.state_durations[0] = was_signaling ? duration_us : -duration_us;
                         message.measured_frequency = (uint32_t)current_freq;
-                        message.timeptr = 1;
+                        message.state_cnt = 1;
                         shared_memory.application_queue.push(message);
                     }
                     was_signaling = is_tone;
@@ -187,8 +187,8 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
 
                 if (!was_signaling && duration_samples > 28800) {
                     int32_t duration_us = (int32_t)((int64_t)duration_samples * 125 / 3);
-                    message.times[0] = -duration_us;
-                    message.timeptr = 1;
+                    message.state_durations[0] = -duration_us;
+                    message.state_cnt = 1;
                     shared_memory.application_queue.push(message);
                     duration_samples = 0;
                 }

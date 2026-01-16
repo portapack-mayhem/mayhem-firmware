@@ -39,7 +39,7 @@ Optional<File::Error> LogFile::write_raw(const std::string& message) {
     return error;
 }
 
-Optional<File::Error> LogFile::write_raw_cont(const std::string& message) {
+Optional<File::Error> LogFile::write_raw_no_newline(const std::string& message) {
     auto result_s = file.write(message.c_str(), message.size());
     if (!result_s.is_error()) {
         file.sync();
