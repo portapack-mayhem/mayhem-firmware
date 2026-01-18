@@ -228,6 +228,10 @@ set(EXTCPPSRC
 	external/detector_rx/main.cpp
 	external/detector_rx/ui_detector_rx.cpp
 
+	#bugdetector
+external/bugdetector/main.cpp
+external/bugdetector/ui_bugdetector.cpp
+
 	#space_invaders  0 byte
 	external/spaceinv/main.cpp
 	external/spaceinv/ui_spaceinv.cpp
@@ -333,6 +337,7 @@ set(EXTAPPLIST
 	level
 	gfxeq
 	detector_rx
+	bugdetector
 	spaceinv
 	blackjack
 	battleship
