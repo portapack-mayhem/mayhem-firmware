@@ -39,7 +39,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     receiver_model.set_hidden_offset(0);
     baseband::set_moreserx_config(0);
     receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-    receiver_model.set_am_configuration(8);
+    receiver_model.set_am_configuration(9);
     receiver_model.enable();
 
     auto vol = field_volume.value();  // audio volume fix

@@ -1707,15 +1707,17 @@ class MorseRXDataMessage : public Message {
     constexpr MorseRXDataMessage()
         : Message{ID::MorseRXData} {}
     uint32_t measured_frequency = 0;
-    int32_t state_durations[2] = {0};  // positive: high, negative: low
+    int32_t state_durations[20] = {0};  // positive: high, negative: low
     uint16_t state_cnt = 0;
-    const uint16_t maxptr = 1;
+    const uint16_t maxptr = 20;
 };
 
 class MorseRXConfigureMessage : public Message {
    public:
-    constexpr MorseRXConfigureMessage()
-        : Message{ID::MorseRXConfig} {}
+    constexpr MorseRXConfigureMessage(uint8_t mode)
+        : Message{ID::MorseRXConfig},
+          mode{mode} {}
+    uint8_t mode = 0;
 };
 
 class TXDisabledMessage : public Message {
