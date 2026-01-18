@@ -30,6 +30,7 @@
 #include "audio_output.hpp"
 #include "dsp_fir_taps.hpp"
 #include "rssi_thread.hpp"
+#include "audio_compressor.hpp"
 
 class MorseProcessor : public BasebandProcessor {
    public:
@@ -42,19 +43,29 @@ class MorseProcessor : public BasebandProcessor {
    private:
     bool configured{false};
 
-    size_t baseband_fs = 3072000;
+    static constexpr size_t decim_2_decimation_factor = 4;
+    static constexpr size_t channel_filter_decimation_factor = 1;
+
+    static constexpr size_t baseband_fs = 3072000;
 
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 
-    std::array<complex16_t, 512> dst_buffer{};
-    std::array<int16_t, 32> audio_buffer{};
+    std::array<complex16_t, 512> dst{};
+    const buffer_c16_t dst_buffer{
+        dst.data(),
+        dst.size()};
+    std::array<float, 32> audio{};
+    const buffer_f32_t audio_buffer{
+        audio.data(),
+        audio.size()};
 
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    dsp::demodulate::FM demod{};
+    dsp::demodulate::SSB demod{};
     AudioOutput audio_output{};
+    FeedForwardCompressor audio_compressor{};
 
     // Goertzel and signal detection
     int32_t coeff_int{0};
@@ -73,7 +84,7 @@ class MorseProcessor : public BasebandProcessor {
     int32_t dc_offset{0};
 
     // Squelch and stability
-    bool squelch_is_open{false};
+    bool squelch_is_open{true};
     int32_t squelch_hold{0};
 
     int32_t user_squelch_level{0};
@@ -84,6 +95,7 @@ class MorseProcessor : public BasebandProcessor {
 
     MorseRXDataMessage message{};
 
+    // void configure(const AMConfigureMessage& message);
     void configure();
 };
 

@@ -27,15 +27,12 @@
 
 void MorseProcessor::configure() {
     configured = false;
-    baseband_fs = 3072000;
-    baseband_thread.set_sampling_rate(baseband_fs);
 
-    // 1. DSP filters
-    decim_0.configure(taps_11k0_decim_0.taps);
-    decim_1.configure(taps_11k0_decim_1.taps);
-    channel_filter.configure(taps_11k0_channel.taps, 2);
-    demod.configure(24000, 5000);
-    audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
+    decim_0.configure(taps_6k0_decim_0.taps);
+    decim_1.configure(taps_6k0_decim_1.taps);
+    channel_filter.configure(taps_2k8_usb_channel.taps, 2);
+
+    audio_output.configure(audio_12k_hpf_300hz_config);
 
     // 2. Resetting variables
     dc_offset = 0;
@@ -58,18 +55,8 @@ void MorseProcessor::configure() {
 
     startup_delay = 20;
 
-    squelch_is_open = false;
+    squelch_is_open = true;
     configured = true;
-}
-
-void MorseProcessor::on_message(const Message* const p) {
-    if (p->id == Message::ID::MorseRXConfig) {
-        configure();
-    } else if (p->id == Message::ID::NBFMConfigure) {
-        auto nbfm_msg = *reinterpret_cast<const NBFMConfigureMessage*>(p);
-        user_squelch_level = nbfm_msg.squelch_level;
-        audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
-    }
 }
 
 void MorseProcessor::update_goertzel_coeff(float freq) {
@@ -82,18 +69,18 @@ void MorseProcessor::update_goertzel_coeff(float freq) {
 void MorseProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    buffer_c16_t dst_buffer_c16(dst_buffer.data(), dst_buffer.size());
-    const auto decim_0_out = decim_0.execute(buffer, dst_buffer_c16);
-    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer_c16);
-    const auto channel = channel_filter.execute(decim_1_out, dst_buffer_c16);
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+
+    const auto channel = channel_filter.execute(decim_1_out, dst_buffer);
 
     feed_channel_stats(channel);
 
-    buffer_s16_t audio_buffer_s16(audio_buffer.data(), audio_buffer.size());
-    auto audio_buf = demod.execute(channel, audio_buffer_s16);
+    auto audio_buf = demod.execute(channel, audio_buffer);
+    audio_compressor.execute_in_place(audio_buffer);
 
     for (size_t i = 0; i < audio_buf.count; i++) {
-        int32_t raw_sample = audio_buf.p[i];
+        int32_t raw_sample = audio_buf.p[i] * 32768.0f;
 
         // 1. DC & LPF
         dc_offset += (raw_sample - dc_offset) / 32;
@@ -111,8 +98,8 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
         } else {
             if (squelch_hold > 0)
                 squelch_hold--;
-            else
-                squelch_is_open = false;
+            // else
+            // squelch_is_open = false;
         }
 
         // 3. Frequency measurement (ZC)
@@ -203,6 +190,28 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
         audio_buf.p[i] = squelch_is_open ? (int16_t)sample : 0;
     }
     audio_output.write(audio_buf);
+}
+
+void MorseProcessor::on_message(const Message* const p) {
+    switch (p->id) {
+        case Message::ID::MorseRXConfig:
+            configure();
+            break;
+
+        case Message::ID::AMConfigure:
+            // configure(*reinterpret_cast<const AMConfigureMessage*>(p));
+            break;
+
+        case Message::ID::NBFMConfigure: {
+            auto nbfm_msg = *reinterpret_cast<const NBFMConfigureMessage*>(p);
+            user_squelch_level = nbfm_msg.squelch_level;
+            // audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 int main() {

@@ -368,8 +368,8 @@ void set_subghzd_config(uint8_t modulation = 0, uint32_t sampling_rate = 0) {
     send_message(&message);
 }
 
-void set_moreserx_config() {
-    const MorseRXConfigureMessage message{};
+void set_moreserx_config(uint8_t mode) {
+    const MorseRXConfigureMessage message{mode};
     send_message(&message);
 }
 
