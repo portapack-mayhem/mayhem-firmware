@@ -75,8 +75,6 @@ static std::string signal_type(tpms::SignalType signal_type) {
 
 void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
     const auto hex_formatted = packet.symbols_formatted();
-
-    // TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
     const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
 
     std::string entry = target_frequency_str + " " + ui::external_app::tpmsrx::format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
@@ -100,7 +98,6 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 }
 
 TPMSAppView::TPMSAppView(NavigationView&) {
-    // baseband::run_image(portapack::spi_flash::image_tag_tpms);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
@@ -112,7 +109,20 @@ TPMSAppView::TPMSAppView(NavigationView&) {
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
+                  &text_db_stats,        // ADD
+                  &button_clear_db,      // ADD
+                  &checkbox_auto_save,   // ADD
                   &recent_entries_view});
+
+    // Initialize database
+    database_.initialize();
+    update_db_stats();
+
+    // Button handlers
+    button_clear_db.on_select = [this](Button&) {
+        database_.clear_all();
+        update_db_stats();
+    };
 
     receiver_model.enable();
 
@@ -158,6 +168,11 @@ void TPMSAppView::update_view() {
     recent_entries_view.set_parent_rect(view_normal_rect);
 }
 
+void TPMSAppView::update_db_stats() {
+    size_t count = database_.get_sensor_count();
+    text_db_stats.set("DB: " + to_string_dec_uint(count) + " sensors");
+}
+
 void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
@@ -177,6 +192,13 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
         auto& entry = ::on_packet(recent, TPMSRecentEntry::Key{reading.type(), reading.id()});
         entry.update(reading);
         recent_entries_view.set_dirty();
+
+        // Save to database if auto-save is enabled
+        if (checkbox_auto_save.value()) {
+            uint32_t timestamp = 0; // TODO: Get proper timestamp
+            database_.add_or_update_sensor(reading, timestamp, receiver_model.target_frequency());
+            update_db_stats();
+        }
     }
 
     if (pmem::beep_on_packets()) {
@@ -208,17 +230,13 @@ void RecentEntriesTable<ui::external_app::tpmsrx::TPMSRecentEntries>::draw(
     if (entry.last_pressure.is_valid()) {
         line += "  " + ui::external_app::tpmsrx::format::pressure(entry.last_pressure.value());
     } else {
-        line +=
-            "  "
-            "   ";
+        line += "     ";
     }
 
     if (entry.last_temperature.is_valid()) {
         line += "  " + ui::external_app::tpmsrx::format::temperature(entry.last_temperature.value());
     } else {
-        line +=
-            "  "
-            "   ";
+        line += "     ";
     }
 
     if (entry.received_count > 999) {
@@ -230,9 +248,7 @@ void RecentEntriesTable<ui::external_app::tpmsrx::TPMSRecentEntries>::draw(
     if (entry.last_flags.is_valid()) {
         line += " " + ui::external_app::tpmsrx::format::flags(entry.last_flags.value());
     } else {
-        line +=
-            " "
-            "  ";
+        line += "   ";
     }
 
     line.resize(target_rect.width() / 8, ' ');

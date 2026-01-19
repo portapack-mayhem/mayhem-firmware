@@ -37,6 +37,7 @@
 #include "recent_entries.hpp"
 
 #include "tpms_packet.hpp"
+#include "tpms_database.hpp"
 
 namespace ui::external_app::tpmsrx {
 
@@ -129,7 +130,7 @@ class TPMSAppView : public View {
             this->on_packet(packet);
         }};
 
-    static constexpr ui::Dim header_height = 1 * 16;
+    static constexpr ui::Dim header_height = 2 * 16;
 
     ui::Rect view_normal_rect{};
 
@@ -173,8 +174,23 @@ class TPMSAppView : public View {
     VGAGainField field_vga{
         {18 * 8, UI_POS_Y(0)}};
 
+    Text text_db_stats{
+        {0, UI_POS_Y(1), 15 * 8, 16},
+        "DB: 0 sensors"};
+
+    Button button_clear_db{
+        {16 * 8, UI_POS_Y(1), 7 * 8, 16},
+        "Clear DB"};
+
+    Checkbox checkbox_auto_save{
+        {24 * 8, UI_POS_Y(1)},
+        4,
+        "Auto",
+        true};
+
     TPMSRecentEntries recent{};
     std::unique_ptr<TPMSLogger> logger{};
+	tpms::TPMSDatabase database_{};
 
     RecentEntriesColumns columns{{
         {"Tp", 2},
@@ -189,6 +205,7 @@ class TPMSAppView : public View {
     void on_packet(const tpms::Packet& packet);
     void on_show_list();
     void update_view();
+	void update_db_stats(); 
 };
 
 }  // namespace ui::external_app::tpmsrx

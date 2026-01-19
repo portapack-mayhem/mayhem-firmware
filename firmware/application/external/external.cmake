@@ -82,6 +82,7 @@ set(EXTCPPSRC
 	#tpmsrx 920 byte- possible shared part with baseband
 	external/tpmsrx/main.cpp
 	external/tpmsrx/tpms_app.cpp
+        external/tpmsrx/tpms_database.cpp
 
 	#protoview 8 byte
 	external/protoview/main.cpp
