@@ -332,6 +332,10 @@ WaterfallView::WaterfallView(const bool cursor) {
         }
     };
 
+    load_gradient();
+}
+
+void WaterfallView::load_gradient() {
     if (!waterfall_widget.gradient.load_file(default_gradient_file)) {
         waterfall_widget.gradient.set_default();
     }
