@@ -55,7 +55,7 @@ void load_blacklist();
 
 class BtnGridView : public View {
    public:
-    BtnGridView(Rect new_parent_rect = {0, 0, 240, 304}, bool keep_highlight = false);
+    BtnGridView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16}, bool keep_highlight = false);
 
     ~BtnGridView();
 
@@ -89,6 +89,9 @@ class BtnGridView : public View {
     bool blacklisted_app(GridItem new_item);
 
     void update_items();
+    void set_btn_height_fixed(uint8_t h) {
+        button_h = h;
+    }
 
    protected:
     virtual void on_populate() = 0;
@@ -101,15 +104,15 @@ class BtnGridView : public View {
     std::vector<std::unique_ptr<NewButton>> menu_item_views{};
 
     Button button_pgup{
-        {0, 324, 120, 16},
+        {0, 1324, 120, 16},
         "       "};
 
     Button button_pgdown{
-        {121, 324, 119, 16},
+        {121, 1324, 119, 16},
         "         "};
 
-    int button_w = 240 / rows_;
-    static constexpr int button_h = 48;
+    int button_w = screen_width / rows_;
+    int button_h = 48;
     size_t displayed_max{0};
     size_t highlighted_item{0};
     size_t offset{0};

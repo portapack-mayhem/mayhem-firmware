@@ -54,10 +54,13 @@ class TextViewer : public Widget {
 
     std::function<void()> on_select{};
     std::function<void()> on_cursor_moved{};
+    std::function<void(uint8_t)> on_change{};
 
     void paint(Painter& painter) override;
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
+    void set_value(uint8_t new_value);
+    void on_focus() override;
 
     void redraw(bool redraw_text = false, bool redraw_marked = false);
 
@@ -74,6 +77,7 @@ class TextViewer : public Widget {
     void cursor_set(uint16_t line, uint16_t col);
     void cursor_mark_selected();
     void cursor_clear_marked();
+    void enable_long_press();
 
     typedef std::pair<uint16_t, uint16_t> LineColPair;
     std::vector<LineColPair> lineColPair{};
@@ -95,6 +99,9 @@ class TextViewer : public Widget {
     int8_t char_height{};
     uint8_t max_line{};
     uint8_t max_col{};
+    bool digit_mode_{false};
+    uint8_t value_{0};
+    bool allow_digit_mode_{true};
 
     /* Returns true if the cursor was updated. */
     bool apply_scrolling_constraints(
@@ -157,7 +164,7 @@ class TextEditorMenu : public View {
     void hide_children(bool hidden);
 
     Rectangle rect_frame{
-        {0 * 8, 0 * 8, 23 * 8, 23 * 8},
+        {UI_POS_X(0), 0 * 8, 23 * 8, 23 * 8},
         Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_home{
@@ -260,23 +267,23 @@ class TextEditorView : public View {
 
     TextViewer viewer{
         /* 272 = screen_height - 16 (top bar) - 32 (bottom controls) */
-        {0, 0, screen_width, 272}};
+        {0, 0, screen_width, UI_POS_HEIGHT_REMAINING(4)}};
 
     TextEditorMenu menu{};
 
     NewButton button_menu{
-        {26 * 8, 34 * 8, 4 * 8, 4 * 8},
+        {UI_POS_X_RIGHT(4), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_controls,
         Theme::getInstance()->bg_dark->background,
         /*vcenter*/ true};
 
     Text text_position{
-        {0 * 8, 34 * 8, 26 * 8, 2 * 8},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT(1)},
         ""};
 
     Text text_size{
-        {0 * 8, 36 * 8, 26 * 8, 2 * 8},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT(1)},
         ""};
 };
 

@@ -104,10 +104,10 @@ class BLESpamView : public View {
         4'000'000 /* sampling rate */
     };
     TxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
     TransmitterView2 tx_view{
-        {11 * 8, 0 * 16},
+        {11 * 8, UI_POS_Y(0)},
         /*short_ui*/ true};
     app_settings::SettingsManager settings_{
         "tx_blespam", app_settings::Mode::TX};
@@ -119,10 +119,10 @@ class BLESpamView : public View {
 
 #ifdef BLESPMUSECONSOLE
     Console console{
-        {0, 70, 240, 220}};
+        {0, 70, screen_width, 220}};
 #endif
     OptionsField options_atkmode{
-        {0 * 8, 2 * 8},
+        {UI_POS_X(0), 2 * 8},
         10,
         {{"Android", 0},
          {"iOs", 1},

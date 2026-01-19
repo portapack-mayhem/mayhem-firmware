@@ -36,7 +36,7 @@ class BasebandStatsView : public View {
 
    private:
     Text text_stats{
-        {0 * 8, 0, (4 * 4 + 3) * 8, 1 * 16},
+        {UI_POS_X(0), 0, (4 * 4 + 3) * 8, UI_POS_Y(1)},
         "",
     };
 

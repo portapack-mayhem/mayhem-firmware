@@ -80,7 +80,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
     add_children({&labels,
                   &menu_view});
 
-    menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
+    menu_view.set_parent_rect({0, 3 * 8, screen_width, 33 * 8});
 
     ensure_directory(apps_dir);
     ensure_directory(firmware_dir);
@@ -127,6 +127,12 @@ bool FlashUtilityView::endsWith(const std::u16string& str, const std::u16string&
         return endOfString == suffix;
     } else {
         return false;
+    }
+}
+
+void FlashUtilityView::wait_till_loaded() {
+    while (!isLoaded) {
+        chThdSleepMilliseconds(50);
     }
 }
 

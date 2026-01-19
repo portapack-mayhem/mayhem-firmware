@@ -73,7 +73,7 @@ void SpectrumInputTextView::paint(Painter& painter) {
     }
 
     painter.fill_rectangle(
-        {{0, 40}, {240, 204}},
+        {{0, 40}, {screen_width, 204}},
         style().background);
 }
 

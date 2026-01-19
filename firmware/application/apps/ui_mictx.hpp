@@ -170,7 +170,7 @@ class MicTXView : public View {
         {{17 * 8, 1 * 8}, "ALC", Theme::getInstance()->fg_light->foreground}};
 
     VuMeter vumeter{
-        {0 * 8, 1 * 8, 2 * 8, 33 * 8},
+        {UI_POS_X(0), 1 * 8, 2 * 8, 33 * 8},
         12,
         true};
 
@@ -350,7 +350,7 @@ class MicTXView : public View {
     };
 
     Button tx_button{
-        {10 * 8, 30 * 8, 10 * 8, 5 * 8},
+        {10 * 8, screen_width, 10 * 8, 5 * 8},
         "PTT TX",
         true};
 

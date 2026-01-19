@@ -93,8 +93,8 @@ void NBFMConfig::apply(const uint8_t squelch_level) const {
 
 void WFMConfig::apply() const {
     const WFMConfigureMessage message{
-        decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_40k_wfm_decim_0
-        decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_40k_wfm_decim_1
+        decim_0,             // 	Dynamic array 24 taps : taps_200k_decim_0 , 	taps_180k_wfm_decim_0, taps_80k_wfm_decim_0
+        decim_1,             // 	Dynamic array 16 taps : taps_200k_decim_1 or 	taps_180k_wfm_decim_1, taps_80k_wfm_decim_1
         taps_64_lp_156_198,  // Fixed channel audio filter 15khz
         75000,
         audio_48k_hpf_30hz_config,
@@ -105,10 +105,10 @@ void WFMConfig::apply() const {
 
 void WFMAMConfig::apply() const {
     const WFMAMConfigureMessage message{
-        decim_0,               // 	Fixed 24 taps array : taps_16k0_decim_0
-        decim_1,               // 	Fixed 32 taps array : taps_84k_wfm_decim_1
-        taps_64_lp_1875_2166,  // Fixed channel audio filter , 64 taps array , to filter DSB AM 2k4 carrier before demod. AM .
-        17000,                 // NOAA satellite tx , FM deviation = +-17Khz.
+        decim_0,         // 	Fixed 24 taps array : taps_16k0_decim_0
+        decim_1,         // Dynamic  32 taps array : taps_80k_wfmam_decim_1, 38k_wfmam
+        taps_64_lp_bpf,  // Dynamic 64 taps array , to filter modulated DSB AM 2k4 carrier before demod. AM .(LPF / BPF)
+        17000,           // NOAA satellite tx , FM deviation = +-17Khz.
         apt_audio_12k_notch_2k4_config,
         apt_audio_12k_lpf_2000hz_config};
     send_message(&message);
@@ -144,6 +144,19 @@ void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
     const SSTVConfigureMessage message{
         vis_code,
         pixel_duration};
+    send_message(&message);
+}
+
+void set_sstvrx_data(const uint8_t code) {
+    const SSTVRXConfigureMessage message{
+        code};
+    send_message(&message);
+}
+
+void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant) {
+    const SSTVRXPhaseSlantMessage message{
+        phase,
+        slant};
     send_message(&message);
 }
 
@@ -186,13 +199,14 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
     send_message(&message);
 }
 
-void set_fsk(const size_t deviation) {
+void set_fsk(const uint8_t samplesPerSymbol, const uint32_t syncWord, const uint8_t syncWordLength, const uint32_t preamble, const uint8_t preambleLength, uint16_t numDataBytes) {
     const FSKRxConfigureMessage message{
-        taps_200k_decim_0,
-        taps_16k0_decim_1,
-        taps_11k0_channel,
-        2,
-        deviation};
+        samplesPerSymbol,
+        syncWord,
+        syncWordLength,
+        preamble,
+        preambleLength,
+        numDataBytes};
 
     send_message(&message);
 }
@@ -287,8 +301,8 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
     send_message(&message);
 }
 
-void set_pocsag() {
-    const POCSAGConfigureMessage message{};
+void set_pocsag(int8_t baud_config) {
+    const POCSAGConfigureMessage message{baud_config};
     send_message(&message);
 }
 
@@ -327,6 +341,11 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_flex_config() {
+    const FlexConfigureMessage message{};
+    send_message(&message);
+}
+
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};
@@ -346,6 +365,11 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 
 void set_subghzd_config(uint8_t modulation = 0, uint32_t sampling_rate = 0) {
     const SubGhzFPRxConfigureMessage message{modulation, sampling_rate};
+    send_message(&message);
+}
+
+void set_moreserx_config() {
+    const MorseRXConfigureMessage message{};
     send_message(&message);
 }
 

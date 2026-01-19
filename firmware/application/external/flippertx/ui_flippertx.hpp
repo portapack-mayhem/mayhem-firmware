@@ -49,10 +49,10 @@ class FlipperTxView : public View {
     };
 
     TxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
     TransmitterView2 tx_view{
-        {11 * 8, 0 * 16},
+        {11 * 8, UI_POS_Y(0)},
         /*short_ui*/ true};
 
     app_settings::SettingsManager settings_{
@@ -79,7 +79,7 @@ class FlipperTxView : public View {
     void on_tx_progress(const bool done);
     bool on_file_changed(std::filesystem::path new_file_path);
 
-    std::filesystem::path filename = {};
+    std::filesystem::path filename = "";
     FlipperProto proto = FLIPPER_PROTO_UNSUPPORTED;
     FlipperPreset preset = FLIPPER_PRESET_UNK;
     uint16_t te = 0;  // for binraw

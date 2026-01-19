@@ -84,7 +84,7 @@ class ExternalModuleView : public View {
     Text text_app5_name{{24, 160, 200, 16}};
 
     Button dummy{
-        {240, 0, 0, 0},
+        {screen_width, 0, 0, 0},
         ""};
 
     SignalToken signal_token_tick_second{};

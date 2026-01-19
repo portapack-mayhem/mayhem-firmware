@@ -69,7 +69,7 @@ void GlassView::manage_beep_audio() {
     }
 }
 
-void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power) {
+void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint16_t bin, uint8_t& max_power) {
     if (mode == LOOKING_GLASS_SINGLEPASS) {
         // <20MHz spectrum mode
         if (bin < 120) {
@@ -91,17 +91,24 @@ void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint
     }
 }
 
-rf::Frequency GlassView::get_freq_from_bin_pos(uint8_t pos) {
+rf::Frequency GlassView::get_freq_from_bin_pos(uint16_t pos) {
     rf::Frequency freq_at_pos = 0;
     if (mode == LOOKING_GLASS_SINGLEPASS) {
-        // starting from the middle, minus 8 ignored bin on each side. Since pos is [-120,120] after the (pos - 120), it's divided by SCREEN_W(240)/2 => 120
-        freq_at_pos = f_center_ini + ((pos - 120) * ((looking_glass_range - ((16 * looking_glass_range) / SPEC_NB_BINS)) / 2)) / (SCREEN_W / 2);
+        // starting from the middle, minus 8 ignored bin on each side. Since pos is [-120,120] after the (pos - 120), it's divided by screen_width(240)/2 => 120
+        freq_at_pos = f_center_ini + ((pos - 120) * ((looking_glass_range - ((16 * looking_glass_range) / SPEC_NB_BINS)) / 2)) / (screen_width / 2);
     } else
-        freq_at_pos = f_min + (2 * offset * each_bin_size) + (pos * looking_glass_range) / SCREEN_W;
+        freq_at_pos = f_min + (2 * offset * each_bin_size) + (pos * looking_glass_range) / screen_width;
     return freq_at_pos;
 }
 
-void GlassView::on_marker_change() {
+void GlassView::on_marker_change(int8_t delta) {
+    if ((marker_pixel_index + delta) < 0)
+        marker_pixel_index = marker_pixel_index + delta + screen_width;
+    else if ((marker_pixel_index + delta) > screen_width)
+        marker_pixel_index = marker_pixel_index + delta - screen_width;
+    else
+        marker_pixel_index = marker_pixel_index + delta;
+
     marker = get_freq_from_bin_pos(marker_pixel_index);
     field_marker.set_text(to_string_short_freq(marker));
     plot_marker(marker_pixel_index);  // Refresh marker on screen
@@ -122,7 +129,7 @@ void GlassView::reset_live_view() {
 
     // Clear screen in peak mode.
     if (live_frequency_view == 2)
-        display.fill_rectangle({{0, 108 + 16}, {SCREEN_W, SCREEN_H - (108 + 16)}}, {0, 0, 0});
+        display.fill_rectangle({{0, 108 + 16}, {screen_width, screen_height - (108 + 16)}}, {0, 0, 0});
 }
 
 void GlassView::add_spectrum_pixel(uint8_t power) {
@@ -130,7 +137,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
     spectrum_data[pixel_index] = (live_frequency_integrate * spectrum_data[pixel_index] + power) / (live_frequency_integrate + 1);  // smoothing
     pixel_index++;
 
-    if (pixel_index == SCREEN_W)  // got an entire waterfall line
+    if (pixel_index == screen_width)  // got an entire waterfall line
     {
         if (live_frequency_view > 0) {
             constexpr int rssi_sample_range = SPEC_NB_BINS;
@@ -140,22 +147,22 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
             constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
             constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
             constexpr int raw_delta = raw_max - raw_min;
-            const range_t<int> y_max_range{0, 320 - (108 + 16)};
+            const range_t<int> y_max_range{0, screen_height - (108 + 16)};
 
             // drawing and keeping track of max freq
-            for (uint16_t xpos = 0; xpos < SCREEN_W; xpos++) {
+            for (uint16_t xpos = 0; xpos < screen_width; xpos++) {
                 // save max powerwull freq
                 if (spectrum_data[xpos] > max_freq_power) {
                     max_freq_power = spectrum_data[xpos];
                     max_freq_hold = get_freq_from_bin_pos(xpos);
                 }
-                int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (320 - (108 + 16))) / raw_delta);
+                int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (screen_height - (108 + 16))) / raw_delta);
                 uint8_t color_gradient = (point * 255) / 212;
                 // clear if not in peak view
                 if (live_frequency_view != 2) {
-                    display.fill_rectangle({{xpos, 108 + 16}, {1, SCREEN_H - point}}, {0, 0, 0});
+                    display.fill_rectangle({{xpos, 108 + 16}, {1, screen_height - point}}, {0, 0, 0});
                 }
-                display.fill_rectangle({{xpos, SCREEN_H - point}, {1, point}}, {color_gradient, 0, uint8_t(255 - color_gradient)});
+                display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, {color_gradient, 0, uint8_t(255 - color_gradient)});
             }
             if (last_max_freq != max_freq_hold) {
                 last_max_freq = max_freq_hold;
@@ -163,7 +170,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
             }
             plot_marker(marker_pixel_index);
         } else {
-            display.draw_pixels({{0, display.scroll(1)}, {SCREEN_W, 1}}, spectrum_row);  // new line at top, one less var, speedier
+            display.draw_pixels({{0, display.scroll(1)}, {screen_width, 1}}, spectrum_row);  // new line at top, one less var, speedier
         }
         pixel_index = 0;  // Start New cascade line
     }
@@ -199,8 +206,8 @@ bool GlassView::process_bins(uint8_t* powerlevel) {
 void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     baseband::spectrum_streaming_stop();
     // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
-    // we actually need SCREEN_W (240) of those bins
-    for (uint8_t bin = 0; bin < bin_length; bin++) {
+    // we actually need screen_width (240) of those bins
+    for (uint16_t bin = 0; bin < bin_length; bin++) {
         get_max_power(spectrum, bin, max_power);
         if (max_power > range_max_power)
             range_max_power = max_power;
@@ -208,7 +215,7 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         if (bin == 119) {
             uint8_t next_max_power = 0;
             get_max_power(spectrum, bin + 1, next_max_power);
-            for (uint8_t it = 0; it < ignore_dc; it++) {
+            for (uint16_t it = 0; it < ignore_dc; it++) {
                 uint8_t med_max_power = (max_power + next_max_power) / 2;  // due to the way process_bins works we have to keep resetting the color
                 if (process_bins(&med_max_power) == true)
                     return;  // new line signaled, return
@@ -238,7 +245,7 @@ void GlassView::on_hide() {
 }
 
 void GlassView::on_show() {
-    display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates
+    display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
     baseband::spectrum_streaming_start();
 }
 
@@ -253,11 +260,11 @@ void GlassView::on_range_changed() {
         // if the view is done in one pass, show it like in analog_audio_app
         mode = LOOKING_GLASS_SINGLEPASS;
         offset = 2;
-        bin_length = SCREEN_W;
+        bin_length = screen_width;
         ignore_dc = 0;
         looking_glass_bandwidth = looking_glass_range;
         looking_glass_sampling_rate = looking_glass_range;
-        each_bin_size = looking_glass_bandwidth / SCREEN_W;
+        each_bin_size = looking_glass_bandwidth / screen_width;
         looking_glass_step = looking_glass_bandwidth;
         f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
     } else {
@@ -269,7 +276,7 @@ void GlassView::on_range_changed() {
         if (mode == LOOKING_GLASS_FASTSCAN) {
             offset = 2;
             ignore_dc = 4;
-            bin_length = SCREEN_W;
+            bin_length = screen_width;
         } else {  // if( mode == LOOKING_GLASS_SLOWSCAN )
             offset = 2;
             bin_length = 80;
@@ -279,13 +286,13 @@ void GlassView::on_range_changed() {
         f_center_ini = f_min - (offset * each_bin_size) + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
     }
     search_span = looking_glass_range / MHZ_DIV;
-    marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
+    marker_pixel_step = looking_glass_range / screen_width;  // Each pixel value in Hz
 
     pixel_index = 0;
     max_power = 0;
     bins_hz_size = 0;
 
-    on_marker_change();
+    on_marker_change(0);
     update_range_field();
 
     // set the sample rate and bandwidth
@@ -298,16 +305,16 @@ void GlassView::on_range_changed() {
     receiver_model.set_target_frequency(f_center);  // tune rx for this slice
 }
 
-void GlassView::plot_marker(uint8_t pos) {
-    uint8_t shift_y = 0;
+void GlassView::plot_marker(uint16_t pos) {
+    uint16_t shift_y = 0;
     if (live_frequency_view > 0)  // plot one line down when in live view
     {
         shift_y = 16;
     }
-    portapack::display.fill_rectangle({0, 100 + shift_y, SCREEN_W, 8}, Theme::getInstance()->bg_darkest->background);  // Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({pos - 2, 100 + shift_y, 5, 3}, Theme::getInstance()->fg_red->foreground);       // Red marker top
-    portapack::display.fill_rectangle({pos - 1, 103 + shift_y, 3, 3}, Theme::getInstance()->fg_red->foreground);       // Red marker middle
-    portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Theme::getInstance()->fg_red->foreground);           // Red marker bottom
+    portapack::display.fill_rectangle({0, 100 + shift_y, screen_width, 8}, Theme::getInstance()->bg_darkest->background);  // Clear old marker and whole marker rectangle btw
+    portapack::display.fill_rectangle({pos - 2, 100 + shift_y, 5, 3}, Theme::getInstance()->fg_red->foreground);           // Red marker top
+    portapack::display.fill_rectangle({pos - 1, 103 + shift_y, 3, 3}, Theme::getInstance()->fg_red->foreground);           // Red marker middle
+    portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Theme::getInstance()->fg_red->foreground);               // Red marker bottom
 }
 
 void GlassView::update_min(int32_t v) {
@@ -358,7 +365,8 @@ GlassView::GlassView(
     NavigationView& nav)
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-
+    spectrum_row.resize(screen_width);
+    spectrum_data.resize(screen_width);
     if (!gradient.load_file(default_gradient_file)) {
         gradient.set_default();
     }
@@ -380,9 +388,10 @@ GlassView::GlassView(
                   &button_beep_squelch,
                   &field_marker,
                   &field_trigger,
+                  &button_marker_minus,
+                  &button_marker_plus,
                   &button_jump,
                   &button_rst,
-                  &field_rx_iq_phase_cal,
                   &freq_stats});
 
     load_presets();  // Load available presets from TXT files (or default).
@@ -437,11 +446,11 @@ GlassView::GlassView(
                 freq_stats.hidden(true);
                 button_jump.hidden(true);
                 button_rst.hidden(true);
-                display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates.
+                display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates.
                 break;
 
             case 1:  // LEVEL
-                display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
+                display.fill_rectangle({{0, 108}, {screen_width, 24}}, {0, 0, 0});
                 display.scroll_disable();
                 level_integration.hidden(false);
                 freq_stats.hidden(false);
@@ -451,7 +460,7 @@ GlassView::GlassView(
 
             case 2:  // PEAK
             default:
-                display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
+                display.fill_rectangle({{0, 108}, {screen_width, 24}}, {0, 0, 0});
                 display.scroll_disable();
                 level_integration.hidden(false);
                 freq_stats.hidden(false);
@@ -490,13 +499,7 @@ GlassView::GlassView(
     range_presets.set_selected_index(preset_index);
 
     field_marker.on_encoder_change = [this](TextField&, EncoderEvent delta) {
-        if ((marker_pixel_index + delta) < 0)
-            marker_pixel_index = marker_pixel_index + delta + SCREEN_W;
-        else if ((marker_pixel_index + delta) > SCREEN_W)
-            marker_pixel_index = marker_pixel_index + delta - SCREEN_W;
-        else
-            marker_pixel_index = marker_pixel_index + delta;
-        on_marker_change();
+        on_marker_change(delta);
     };
 
     field_marker.on_select = [this](TextField&) {
@@ -515,6 +518,14 @@ GlassView::GlassView(
         update_range_field();
     };
 
+    button_marker_minus.on_select = [this](Button&) {
+        on_marker_change(-1);
+    };
+
+    button_marker_plus.on_select = [this](Button&) {
+        on_marker_change(1);
+    };
+
     button_jump.on_select = [this](Button&) {
         // Launch Audio with peak frequency.
         launch_audio(max_freq_hold);
@@ -524,14 +535,7 @@ GlassView::GlassView(
         reset_live_view();
     };
 
-    field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                 // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
-    field_rx_iq_phase_cal.set_value(get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
-    field_rx_iq_phase_cal.on_change = [this](int32_t v) {
-        set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
-    };
-    set_spec_iq_phase_calibration_value(get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
-
-    display.scroll_set_area(109, 319);
+    display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
 
     // trigger:
     // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute,
@@ -539,7 +543,7 @@ GlassView::GlassView(
     // at which time it pushes the buffer up with channel_spectrum.feed
     baseband::set_spectrum(looking_glass_bandwidth, trigger);
 
-    marker_pixel_index = SCREEN_W / 2;
+    marker_pixel_index = screen_width / 2;
     on_range_changed();  // Force a UI update.
 
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
@@ -578,15 +582,6 @@ void GlassView::on_freqchg(int64_t freq) {
     update_min(freq - half_range);
     update_max(freq + half_range);
     on_range_changed();
-}
-
-uint8_t GlassView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
-    return iq_phase_calibration_value;
-}
-
-void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions
-    iq_phase_calibration_value = cal_value;
-    radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
 }
 
 void GlassView::load_presets() {

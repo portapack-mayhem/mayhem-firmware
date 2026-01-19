@@ -26,17 +26,24 @@
 #include "binder.hpp"
 #include "string_format.hpp"
 #include "ui_freqman.hpp"
+#include "audio.hpp"
 
 using namespace portapack;
+namespace pmem = portapack::persistent_memory;
 
 namespace ui {
+
+void SearchLogger::log_data(SearchRecentEntry& data) {
+    log_file.write_entry(";" + to_string_short_freq(data.frequency) + ";" + std::to_string(data.duration));
+}
 
 template <>
 void RecentEntriesTable<SearchRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string str_duration = "";
 
     if (entry.duration < 600)
@@ -44,9 +51,10 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
     else
         str_duration = to_string_dec_uint(entry.duration / 600) + "m" + to_string_dec_uint((entry.duration / 10) % 60) + "s";
 
-    str_duration.resize(target_rect.width() / 8, ' ');
-
-    painter.draw_string(target_rect.location(), style, to_string_short_freq(entry.frequency) + " " + entry.time + " " + str_duration);
+    str_duration.resize(11, ' ');
+    std::string freq = to_string_short_freq(entry.frequency);
+    freq.resize(columns.at(0).second, ' ');
+    painter.draw_string(target_rect.location(), style, freq + " " + entry.time + " " + str_duration);
 }
 
 /* SearchView ********************************************/
@@ -54,6 +62,7 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
 SearchView::SearchView(
     NavigationView& nav)
     : nav_(nav) {
+    spectrum_row.resize(240);
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
     if (!gradient.load_file(default_gradient_file)) {
@@ -75,11 +84,12 @@ SearchView::SearchView(
                   &check_snap,
                   &options_snap,
                   &big_display,
+                  &check_log,
                   &recent_entries_view});
 
     baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
 
-    recent_entries_view.set_parent_rect({0, 28 * 8, screen_width, 12 * 8});
+    recent_entries_view.set_parent_rect({0, 28 * 8, screen_width, screen_height - 28 * 8});
     recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
         nav.push<FrequencySaveView>(entry.frequency);
     };
@@ -100,6 +110,14 @@ SearchView::SearchView(
         on_range_changed();
     });
 
+    check_log.on_select = [this](Checkbox&, bool v) {
+        logging = v;
+        if (logging) {
+            logger.append(logs_dir.string() + "/SEARCH_" + to_string_timestamp(rtc_time::now()) + ".CSV");
+            logger.write_header();
+        }
+    };
+
     bind(field_threshold, settings_.power_threshold);
     bind(check_snap, settings_.snap_search);
     bind(options_snap, settings_.snap_step);
@@ -108,9 +126,15 @@ SearchView::SearchView(
 
     on_range_changed();
     receiver_model.enable();
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 SearchView::~SearchView() {
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -139,9 +163,8 @@ void SearchView::do_detection() {
     // Display spectrum
     bin_skip_acc = 0;
     pixel_index = 0;
-    display.draw_pixels(
-        {{0, 88}, {(Dim)spectrum_row.size(), 1}},
-        spectrum_row);
+    uint16_t center_align_start = (screen_width - spectrum_row.size()) / 2;
+    display.draw_pixels({{center_align_start, 88}, {(Dim)spectrum_row.size(), 1}}, spectrum_row);
 
     mean_power = mean_acc / (SEARCH_BIN_NB_NO_DC * slices_nb);
     mean_acc = 0;
@@ -192,7 +215,9 @@ void SearchView::do_detection() {
 
                         locked = true;
                         locked_bin = bin_max;
-
+                        if (pmem::beep_on_packets()) {
+                            baseband::request_audio_beep(1000, 24000, 60);
+                        }
                         // TODO: open Audio.
                     } else
                         text_infos.set("Out of range");
@@ -210,6 +235,7 @@ void SearchView::do_detection() {
 
                 auto& entry = ::on_packet(recent, resolved_frequency);
                 entry.set_duration(duration);
+                if (logging) logger.log_data(entry);
                 recent_entries_view.set_dirty();
 
                 text_infos.set("Listening");
@@ -225,7 +251,7 @@ void SearchView::do_detection() {
     // Refresh red tick
     portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->background);
     if (bin_max > -1) {
-        last_tick_pos = (Coord)(bin_max / slices_nb);
+        last_tick_pos = (Coord)(bin_max / slices_nb) + center_align_start;
         portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->foreground);
     }
 }
@@ -374,7 +400,7 @@ void SearchView::add_spectrum_pixel(Color color) {
 
     bin_skip_acc -= 0x10000;
 
-    if (pixel_index < screen_width)
+    if (pixel_index < spectrum_row.size())
         spectrum_row[pixel_index++] = color;
 }
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyleft Mr. Robot 2025
+ * copyleft 2025 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -61,7 +61,7 @@ void AudioSpectrumView::paint(Painter& painter) {
 
     // Cursor
     const Rect r_cursor{
-        field_frequency.value() / (48000 / 240), r.bottom() - 32 - cursor_band_height,
+        field_frequency.value() / (48000 / screen_width), r.bottom() - 32 - cursor_band_height,
         1, cursor_band_height};
     painter.fill_rectangle(
         r_cursor,
@@ -104,8 +104,8 @@ void FrequencyScale::set_channel_filter(
 void FrequencyScale::set_cursor_position(const int32_t position) {
     cursor_position = position;
 
-    cursor_position = std::min<int32_t>(cursor_position, 119);
-    cursor_position = std::max<int32_t>(cursor_position, -120);
+    cursor_position = std::min<int32_t>(cursor_position, screen_width / 2 - 1);
+    cursor_position = std::max<int32_t>(cursor_position, -1 * screen_width / 2);
 
     set_dirty();
 }
@@ -124,7 +124,7 @@ void FrequencyScale::paint(Painter& painter) {
     draw_frequency_ticks(painter, r);
 
     const Rect r_cursor{
-        118 + cursor_position, r.bottom() - filter_band_height,
+        (screen_width / 2 - 2) + cursor_position, r.bottom() - filter_band_height,
         5, filter_band_height};
     painter.fill_rectangle(
         r_cursor,
@@ -222,8 +222,8 @@ void FrequencyScale::on_blur() {
 bool FrequencyScale::on_encoder(const EncoderEvent delta) {
     cursor_position += delta;
 
-    cursor_position = std::min<int32_t>(cursor_position, 119);
-    cursor_position = std::max<int32_t>(cursor_position, -120);
+    cursor_position = std::min<int32_t>(cursor_position, screen_width / 2 - 1);
+    cursor_position = std::max<int32_t>(cursor_position, -1 * screen_width / 2);
 
     set_dirty();
 
@@ -233,7 +233,7 @@ bool FrequencyScale::on_encoder(const EncoderEvent delta) {
 bool FrequencyScale::on_key(const KeyEvent key) {
     if (key == KeyEvent::Select) {
         if (on_select) {
-            on_select((cursor_position * spectrum_sampling_rate) / 240);
+            on_select((cursor_position * spectrum_sampling_rate) / screen_width);
             cursor_position = 0;
             set_dirty();
             return true;
@@ -246,7 +246,7 @@ bool FrequencyScale::on_key(const KeyEvent key) {
 bool FrequencyScale::on_touch(const TouchEvent touch) {
     if (touch.type == TouchEvent::Type::Start) {
         if (on_select) {
-            on_select((touch.point.x() * spectrum_sampling_rate) / 240);
+            on_select((touch.point.x() * spectrum_sampling_rate) / screen_width);
         }
     }
     return true;
@@ -261,6 +261,8 @@ void WaterfallWidget::on_show() {
 
     const auto screen_r = screen_rect();
     display.scroll_set_area(screen_r.top(), screen_r.bottom());
+
+    clear();
 }
 
 void WaterfallWidget::on_hide() {
@@ -268,27 +270,25 @@ void WaterfallWidget::on_hide() {
      * position?
      */
     display.scroll_disable();
+    clear();
 }
 
 void WaterfallWidget::on_channel_spectrum(
     const ChannelSpectrum& spectrum) {
     /* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
-
-    std::array<Color, 240> pixel_row;
-    for (size_t i = 0; i < 120; i++) {
-        const auto pixel_color = gradient.lut[spectrum.db[256 - 120 + i]];
+    std::vector<Color> pixel_row(screen_width);
+    for (size_t i = 0; i < screen_width / 2; i++) {
+        const auto pixel_color = gradient.lut[spectrum.db[256 - screen_width / 2 + i]];
         pixel_row[i] = pixel_color;
     }
 
-    for (size_t i = 120; i < 240; i++) {
-        const auto pixel_color = gradient.lut[spectrum.db[i - 120]];
+    for (size_t i = screen_width / 2; i < screen_width; i++) {
+        const auto pixel_color = gradient.lut[spectrum.db[i - screen_width / 2]];
         pixel_row[i] = pixel_color;
     }
-
     const auto draw_y = display.scroll(1);
-
     display.draw_pixels(
-        {{0, draw_y}, {pixel_row.size(), 1}},
+        {{0, draw_y}, {(int)pixel_row.size(), 1}},
         pixel_row);
 }
 

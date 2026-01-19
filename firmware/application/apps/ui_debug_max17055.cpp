@@ -12,7 +12,7 @@ BatteryCapacityView::RegisterEntry BatteryCapacityView::get_entry(size_t index) 
 
 BatteryCapacityView::BatteryCapacityView(NavigationView& nav) {
     for (size_t i = 0; i < ENTRIES_PER_PAGE; ++i) {
-        name_texts[i].set_parent_rect({0 * 8, static_cast<int>((i + 1) * 16), 8 * 8, 16});
+        name_texts[i].set_parent_rect({UI_POS_X(0), static_cast<int>((i + 1) * 16), 8 * 8, 16});
         addr_texts[i].set_parent_rect({9 * 8, static_cast<int>((i + 1) * 16), 4 * 8, 16});
         hex_texts[i].set_parent_rect({14 * 8, static_cast<int>((i + 1) * 16), 6 * 8, 16});
         value_texts[i].set_parent_rect({21 * 8, static_cast<int>((i + 1) * 16), 10 * 8, 16});

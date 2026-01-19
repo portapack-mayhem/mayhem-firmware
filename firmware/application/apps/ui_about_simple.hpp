@@ -6,6 +6,10 @@
 
 #include <cstdint>
 
+/*
+    TODO: Now it is dyn width. There should be an algorithm to fill the menu based on it's size.
+*/
+
 namespace ui {
 class AboutView : public View {
    public:
@@ -22,11 +26,11 @@ class AboutView : public View {
     uint16_t frame_sync_count{0};
     void on_frame_sync();
     MenuView menu_view{
-        {0, 0, 240, 264},
+        {0, 0, screen_width, screen_height - 56},
         true};
 
     Button button_ok{
-        {240 / 3, 270, 240 / 3, 24},
+        {screen_width / 3, screen_height - 50, screen_width / 3, 24},
         "OK",
     };
 

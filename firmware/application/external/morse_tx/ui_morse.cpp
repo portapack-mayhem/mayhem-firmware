@@ -45,12 +45,9 @@ static msg_t ookthread_fn(void* arg) {
     uint8_t* message_symbols = shared_memory.bb_data.tones_data.message;
     uint8_t symbol;
     MorseView* arg_c = (MorseView*)arg;
-
     chRegSetThreadName("ookthread");
-
     for (uint32_t i = 0; i < arg_c->symbol_count; i++) {
         if (chThdShouldTerminate()) break;
-
         symbol = message_symbols[i];
 
         v = (symbol < 2) ? 1 : 0;  // TX on for dot or dash, off for pause
@@ -61,9 +58,7 @@ static msg_t ookthread_fn(void* arg) {
         } else {
             gpio_og_tx.write(v);  // in hackrf <=r6, "1" means tx , "0" no tx.
         }
-
         arg_c->on_tx_progress(i, false);
-
         chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
     }
 
@@ -82,22 +77,42 @@ static msg_t ookthread_fn(void* arg) {
 static msg_t loopthread_fn(void* arg) {
     MorseView* arg_c = (MorseView*)arg;
     uint32_t wait = arg_c->loop;
-
     chRegSetThreadName("loopthread");
-
     for (uint32_t i = 0; i < wait; i++) {
         if (chThdShouldTerminate()) break;
-
         arg_c->on_loop_progress(i, false);
         chThdSleepMilliseconds(1000);
     }
-
-    arg_c->on_loop_progress(0, true);
+    if (!chThdShouldTerminate()) arg_c->on_loop_progress(0, true);
     chThdExit(0);
-
     return 0;
 }
 
+void MorseView::on_set_tone(NavigationView& nav) {
+    tone_input_buffer = to_string_dec_uint(tone);
+
+    text_prompt(nav, tone_input_buffer, 4, ENTER_KEYBOARD_MODE_DIGITS, [this](std::string& buffer) {
+        bool is_digit_only = true;
+        for (size_t i = 0; i < tone_input_buffer.size(); ++i) {
+            if (tone_input_buffer[i] < '0' || tone_input_buffer[i] > '9') {
+                is_digit_only = false;
+                break;
+            }
+        }
+        if (!buffer.empty() && is_digit_only) {
+            int new_tone = atoi(buffer.c_str());
+            if (new_tone >= 100 && new_tone <= 9999) {
+                tone = new_tone;
+                field_tone.set_value(tone);
+                update_tx_duration();
+            } else {
+                nav_.display_modal("Out of range", "Tone must be between 100 and 9999 Hz");
+            }
+        } else {
+            nav_.display_modal("Invalid input", "Please enter digits only");
+        }
+    });
+}
 void MorseView::on_set_text(NavigationView& nav) {
     text_prompt(nav, buffer, 28, ENTER_KEYBOARD_MODE_ALPHA);
 }
@@ -107,6 +122,15 @@ void MorseView::focus() {
 }
 
 MorseView::~MorseView() {
+    if (ookthread) {
+        chThdTerminate(ookthread);
+        ookthread = nullptr;
+    }
+    if (loopthread) {
+        chThdTerminate(loopthread);
+        chThdWait(loopthread);
+        loopthread = nullptr;
+    }
     transmitter_model.disable();
     baseband::shutdown();
 }
@@ -156,6 +180,9 @@ void MorseView::update_tx_duration() {
 
 void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
+        if (ookthread) {
+            ookthread = nullptr;
+        }
         transmitter_model.disable();
         progressbar.set_value(0);
 
@@ -165,10 +192,10 @@ void MorseView::on_tx_progress(const uint32_t progress, const bool done) {
             progressbar.set_value(0);
 
             if (loopthread) {
-                chThdRelease(loopthread);
+                chThdTerminate(loopthread);
+                chThdWait(loopthread);
                 loopthread = nullptr;
             }
-
             loopthread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO, loopthread_fn, this);
         } else {
             tx_view.set_transmitting(false);
@@ -194,7 +221,6 @@ void MorseView::set_foxhunt(size_t i) {
 MorseView::MorseView(
     NavigationView& nav)
     : nav_(nav) {
-    // baseband::run_image(portapack::spi_flash::image_tag_tones);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
@@ -248,6 +274,10 @@ MorseView::MorseView(
 
     field_tone.on_change = [this](int32_t value) {
         tone = value;
+    };
+
+    field_tone.on_select = [this, &nav](NumberField&) {
+        this->on_set_tone(nav);
     };
 
     button_message.on_select = [this, &nav](Button&) {

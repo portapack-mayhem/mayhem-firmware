@@ -7,94 +7,50 @@
  */
 
 #include "ui_breakout.hpp"
+#include "baseband_api.hpp"
+#include "audio.hpp"
+#include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
+
+using namespace portapack;
 
 namespace ui::external_app::breakout {
 
-Ticker game_timer;
-
-int paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) / 2;
-float ball_x = SCREEN_WIDTH / 2;
-float ball_y = GAME_AREA_BOTTOM - PADDLE_HEIGHT - BALL_SIZE - 1;
-float ball_dx = 1.5f;
-float ball_dy = -2.0f;
-int score = 0;
-int lives = 3;
-int level = 1;
-int game_state = STATE_MENU;
-bool initialized = false;
-bool ball_attached = true;
-unsigned int brick_count = 0;
-
-bool menu_initialized = false;
-bool blink_state = true;
-uint32_t blink_counter = 0;
-int16_t prompt_x = 0;
-
-bool gameover_initialized = false;
-bool gameover_blink_state = true;
-uint32_t gameover_blink_counter = 0;
-int16_t restart_x = 0;
-
-bool bricks[BRICK_ROWS][BRICK_COLS];
-int brick_colors[BRICK_ROWS];
-
-const Color pp_colors[] = {
-    Color::white(),
-    Color::blue(),
-    Color::yellow(),
-    Color::purple(),
-    Color::green(),
-    Color::red(),
-    Color::magenta(),
-    Color::orange(),
-    Color::black(),
-};
-
-Painter painter;
-
-bool but_RIGHT = false;
-bool but_LEFT = false;
-bool but_SELECT = false;
-
-static Callback game_update_callback = nullptr;
-static uint32_t game_update_timeout = 0;
-static uint32_t game_update_counter = 0;
-
-void cls() {
+void BreakoutView::cls() {
     painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
 }
 
-void background(int color) {
+void BreakoutView::background(int color) {
     (void)color;
 }
 
-void fillrect(int x1, int y1, int x2, int y2, int color) {
+void BreakoutView::fillrect(int x1, int y1, int x2, int y2, int color) {
     painter.fill_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
 }
 
-void rect(int x1, int y1, int x2, int y2, int color) {
+void BreakoutView::rect(int x1, int y1, int x2, int y2, int color) {
     painter.draw_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
 }
 
-void check_game_timer() {
+void BreakoutView::check_game_timer() {
     if (game_update_callback) {
         if (++game_update_counter >= game_update_timeout) {
             game_update_counter = 0;
-            game_update_callback();
+            game_timer_check();
         }
     }
 }
 
-void Ticker::attach(Callback func, double delay_sec) {
-    game_update_callback = func;
+void BreakoutView::attach(double delay_sec) {
+    game_update_callback = true;
     game_update_timeout = delay_sec * 60;
 }
 
-void Ticker::detach() {
-    game_update_callback = nullptr;
+void BreakoutView::detach() {
+    game_update_callback = false;
 }
 
-void game_timer_check() {
+void BreakoutView::game_timer_check() {
     if (game_state == STATE_PLAYING) {
         update_game();
     } else if (game_state == STATE_MENU) {
@@ -104,36 +60,88 @@ void game_timer_check() {
     }
 }
 
-void init_game() {
+void BreakoutView::init_game() {
+    SCREEN_WIDTH = screen_width;
+    SCREEN_HEIGHT = screen_height;
+    GAME_AREA_BOTTOM = SCREEN_HEIGHT - 10;
+    PADDLE_Y = GAME_AREA_BOTTOM - PADDLE_HEIGHT;
+    PADDLE_SPEED = 10;
+
+    // Calculate brick layout
+    int available_width = SCREEN_WIDTH - 4;
+    BRICK_COLS = available_width / 22;
+    if (BRICK_COLS > 12) BRICK_COLS = 12;
+    if (BRICK_COLS < 5) BRICK_COLS = 5;
+    BRICK_WIDTH = (available_width - (BRICK_COLS - 1) * BRICK_GAP) / BRICK_COLS;
+
+    // Initialize paddle position
     paddle_x = (SCREEN_WIDTH - PADDLE_WIDTH) / 2;
     score = 0;
     lives = 3;
     level = 1;
 
+    // Set brick colors
     brick_colors[0] = Red;
     brick_colors[1] = Orange;
     brick_colors[2] = Yellow;
     brick_colors[3] = Green;
     brick_colors[4] = Purple;
 
+    // Initialize bricks array
+    bricks.resize(BRICK_ROWS);
+    for (int i = 0; i < BRICK_ROWS; i++) {
+        bricks[i].resize(BRICK_COLS);
+    }
+
     init_level();
 
     game_state = STATE_MENU;
-    menu_initialized = false;
-    blink_state = true;
-    blink_counter = 0;
+    menu_blink_state = true;
+    menu_blink_counter = 0;
+
+    // Play startup sound
+    if (sound_enabled) {
+        baseband::request_audio_beep(262, 24000, 150);  // C4 -
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(262, 24000, 150);  // C4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(392, 24000, 150);  // G4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(392, 24000, 150);  // G4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(440, 24000, 150);  // A4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(440, 24000, 150);  // A4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(392, 24000, 300);  // G4
+        chThdSleepMilliseconds(350);
+        baseband::request_audio_beep(349, 24000, 150);  // F4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(349, 24000, 150);  // F4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(330, 24000, 150);  // E4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(330, 24000, 150);  // E4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(294, 24000, 150);  // D4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(294, 24000, 150);  // D4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(262, 24000, 400);  // C4
+    }
 }
 
-void init_level() {
+void BreakoutView::init_level() {
     ball_x = paddle_x + (PADDLE_WIDTH / 2) - (BALL_SIZE / 2);
     ball_y = GAME_AREA_BOTTOM - PADDLE_HEIGHT - BALL_SIZE - 1;
 
-    float speed_multiplier = (level == 1) ? 1.0f : 1.0f + ((level - 1) * BALL_SPEED_INCREASE);
-    ball_dx = (ball_dx > 0 ? 1.5f : -1.5f) * speed_multiplier;
+    float speed_multiplier = 1.0f + ((level - 1) * BALL_SPEED_INCREASE);
+    ball_dx = 1.5f * speed_multiplier;
     ball_dy = -2.0f * speed_multiplier;
 
     ball_attached = true;
 
+    // Fill all bricks
     brick_count = 0;
     for (int row = 0; row < BRICK_ROWS; row++) {
         for (int col = 0; col < BRICK_COLS; col++) {
@@ -143,10 +151,9 @@ void init_level() {
     }
 }
 
-void draw_screen() {
+void BreakoutView::draw_screen() {
     cls();
     background(COLOR_BACKGROUND);
-
     draw_borders();
     draw_bricks();
     draw_paddle();
@@ -156,11 +163,39 @@ void draw_screen() {
     draw_level();
 }
 
-void draw_borders() {
+void BreakoutView::draw_menu_volume_bar() {
+    // Clear the entire volume area first to handle bar shrinking
+    painter.fill_rectangle({40, 259, 220, 40}, Color::black());
+
+    // Draw volume label
+    auto style = *ui::Theme::getInstance()->fg_light;
+    painter.draw_string({40, 260}, style, "Volume:");
+
+    // Draw volume bar background
+    painter.draw_rectangle({100, 259, 102, 10}, Color::grey());
+
+    // Draw volume level
+    int bar_width = (volume_level * 100) / 99;
+    if (bar_width > 0) {
+        painter.fill_rectangle({101, 260, bar_width, 8}, Color::green());
+    }
+
+    // Draw percentage
+    painter.draw_string({210, 260}, style, std::to_string(volume_level) + "%");
+
+    // Draw sound status
+    if (sound_enabled) {
+        painter.draw_string({UI_POS_X_CENTER(11), 280}, *ui::Theme::getInstance()->fg_green, "Sound: ON");
+    } else {
+        painter.draw_string({UI_POS_X_CENTER(11), 280}, *ui::Theme::getInstance()->fg_red, "Sound: OFF");
+    }
+}
+
+void BreakoutView::draw_borders() {
     rect(0, GAME_AREA_TOP - 1, SCREEN_WIDTH, GAME_AREA_TOP, COLOR_BORDER);
 }
 
-void draw_bricks() {
+void BreakoutView::draw_bricks() {
     for (int row = 0; row < BRICK_ROWS; row++) {
         for (int col = 0; col < BRICK_COLS; col++) {
             if (bricks[row][col]) {
@@ -173,37 +208,53 @@ void draw_bricks() {
     }
 }
 
-void draw_paddle() {
+void BreakoutView::draw_paddle() {
     fillrect(paddle_x, PADDLE_Y, paddle_x + PADDLE_WIDTH, PADDLE_Y + PADDLE_HEIGHT, COLOR_PADDLE);
 }
 
-void draw_ball() {
+void BreakoutView::draw_ball() {
     fillrect(ball_x, ball_y, ball_x + BALL_SIZE, ball_y + BALL_SIZE, COLOR_BALL);
 }
 
-void draw_score() {
+void BreakoutView::draw_score() {
     auto style = *ui::Theme::getInstance()->fg_green;
     painter.draw_string({5, 10}, style, "Score: " + std::to_string(score));
 }
 
-void draw_lives() {
+void BreakoutView::draw_lives() {
     auto style = *ui::Theme::getInstance()->fg_red;
     painter.draw_string({5, 30}, style, "Lives: " + std::to_string(lives));
 }
 
-void draw_level() {
+void BreakoutView::draw_level() {
     auto style = *ui::Theme::getInstance()->fg_yellow;
     painter.draw_string({80, 30}, style, "Level: " + std::to_string(level));
 }
 
-void move_paddle_left() {
+void BreakoutView::adjust_volume(int delta) {
+    volume_level += delta;
+    if (volume_level < 0) volume_level = 0;
+    if (volume_level > 99) volume_level = 99;
+
+    // Update the actual audio volume using decibel conversion
+    // Map 0-99 to roughly -60dB to 0dB range
+    int db = (volume_level - 99) * 60 / 99;  // Maps 0->-60dB, 99->0dB
+    audio::headphone::set_volume(volume_t::decibel(db));
+
+    // If we're in the menu, redraw the volume bar
+    if (game_state == STATE_MENU) {
+        draw_menu_volume_bar();
+    }
+}
+
+void BreakoutView::move_paddle_left() {
     if (paddle_x > 0) {
         fillrect(paddle_x, PADDLE_Y, paddle_x + PADDLE_WIDTH, PADDLE_Y + PADDLE_HEIGHT, COLOR_BACKGROUND);
         if (ball_attached) {
             fillrect(ball_x, ball_y, ball_x + BALL_SIZE, ball_y + BALL_SIZE, COLOR_BACKGROUND);
         }
 
-        paddle_x -= 10;
+        paddle_x -= PADDLE_SPEED;
         if (paddle_x < 0) paddle_x = 0;
 
         if (ball_attached) {
@@ -217,14 +268,14 @@ void move_paddle_left() {
     }
 }
 
-void move_paddle_right() {
+void BreakoutView::move_paddle_right() {
     if (paddle_x < SCREEN_WIDTH - PADDLE_WIDTH) {
         fillrect(paddle_x, PADDLE_Y, paddle_x + PADDLE_WIDTH, PADDLE_Y + PADDLE_HEIGHT, COLOR_BACKGROUND);
         if (ball_attached) {
             fillrect(ball_x, ball_y, ball_x + BALL_SIZE, ball_y + BALL_SIZE, COLOR_BACKGROUND);
         }
 
-        paddle_x += 10;
+        paddle_x += PADDLE_SPEED;
         if (paddle_x > SCREEN_WIDTH - PADDLE_WIDTH) paddle_x = SCREEN_WIDTH - PADDLE_WIDTH;
 
         if (ball_attached) {
@@ -238,27 +289,46 @@ void move_paddle_right() {
     }
 }
 
-void launch_ball() {
+void BreakoutView::launch_ball() {
     if (ball_attached) {
         ball_attached = false;
-        ball_x = paddle_x + (PADDLE_WIDTH / 2) - (BALL_SIZE / 2);
-        ball_y = GAME_AREA_BOTTOM - PADDLE_HEIGHT - BALL_SIZE - 1;
-        float speed_multiplier = (level == 1) ? 1.0f : 1.0f + ((level - 1) * BALL_SPEED_INCREASE);
+        float speed_multiplier = 1.0f + ((level - 1) * BALL_SPEED_INCREASE);
         ball_dx = 1.5f * speed_multiplier;
         ball_dy = -2.0f * speed_multiplier;
     }
 }
 
-void update_game() {
+void BreakoutView::update_game() {
     if (ball_attached) {
         return;
     }
 
     fillrect(ball_x, ball_y, ball_x + BALL_SIZE, ball_y + BALL_SIZE, COLOR_BACKGROUND);
 
-    float next_ball_y = ball_y + ball_dy;
-    if (next_ball_y > GAME_AREA_BOTTOM) {
+    ball_x += ball_dx;
+    ball_y += ball_dy;
+
+    // Wall collisions
+    if (ball_x < 0) {
+        ball_x = 0;
+        ball_dx = -ball_dx;
+        play_wall_hit();
+    } else if (ball_x > SCREEN_WIDTH - BALL_SIZE) {
+        ball_x = SCREEN_WIDTH - BALL_SIZE;
+        ball_dx = -ball_dx;
+        play_wall_hit();
+    }
+
+    if (ball_y < GAME_AREA_TOP) {
+        ball_y = GAME_AREA_TOP;
+        ball_dy = -ball_dy;
+        play_wall_hit();
+    }
+
+    // Bottom edge - lose life
+    if (ball_y > GAME_AREA_BOTTOM) {
         lives--;
+        play_death_sound();  // Play death sound
         draw_lives();
         if (lives <= 0) {
             handle_game_over();
@@ -271,37 +341,22 @@ void update_game() {
         return;
     }
 
-    ball_x += ball_dx;
-    ball_y = next_ball_y;
-
-    if (ball_x < 0) {
-        ball_x = 0;
-        ball_dx = -ball_dx;
-    } else if (ball_x > SCREEN_WIDTH - BALL_SIZE) {
-        ball_x = SCREEN_WIDTH - BALL_SIZE;
-        ball_dx = -ball_dx;
-    }
-
-    if (ball_y < GAME_AREA_TOP) {
-        ball_y = GAME_AREA_TOP;
-        ball_dy = -ball_dy;
-    }
-
+    // Paddle collision
     if (ball_y + BALL_SIZE >= PADDLE_Y && ball_y <= PADDLE_Y + PADDLE_HEIGHT) {
         if (ball_x + BALL_SIZE >= paddle_x && ball_x <= paddle_x + PADDLE_WIDTH) {
             ball_y = PADDLE_Y - BALL_SIZE;
+            ball_dy = -ball_dy;
+
+            play_paddle_hit();
+
+            // Add some angle based on hit position
             float hit_position = (ball_x + (BALL_SIZE / 2)) - paddle_x;
             float angle = (hit_position / PADDLE_WIDTH) - 0.5f;
             ball_dx = angle * 4.0f;
-            if (ball_dx > -0.5f && ball_dx < 0.5f) {
-                ball_dx = (ball_dx > 0) ? 0.5f : -0.5f;
-            }
-            ball_dy = -ball_dy;
         }
     }
 
     check_collisions();
-
     draw_ball();
 
     if (check_level_complete()) {
@@ -309,186 +364,290 @@ void update_game() {
     }
 }
 
-void check_collisions() {
+void BreakoutView::check_collisions() {
     int grid_x = ball_x / (BRICK_WIDTH + BRICK_GAP);
     int grid_y = (ball_y - GAME_AREA_TOP - 5) / (BRICK_HEIGHT + BRICK_GAP);
 
-    for (int row = grid_y - 1; row <= grid_y + 1; row++) {
-        for (int col = grid_x - 1; col <= grid_x + 1; col++) {
-            if (row >= 0 && row < BRICK_ROWS && col >= 0 && col < BRICK_COLS) {
-                if (bricks[row][col] && check_brick_collision(row, col)) {
-                    return;
-                }
-            }
-        }
+    if (grid_x >= 0 && grid_x < BRICK_COLS && grid_y >= 0 && grid_y < BRICK_ROWS) {
+        check_brick_collision(grid_y, grid_x);
     }
 }
 
-bool check_brick_collision(int row, int col) {
+bool BreakoutView::check_brick_collision(int row, int col) {
+    if (!bricks[row][col]) return false;
+
     int brick_x = col * (BRICK_WIDTH + BRICK_GAP);
     int brick_y = GAME_AREA_TOP + row * (BRICK_HEIGHT + BRICK_GAP) + 5;
 
     if (ball_x + BALL_SIZE >= brick_x && ball_x <= brick_x + BRICK_WIDTH &&
         ball_y + BALL_SIZE >= brick_y && ball_y <= brick_y + BRICK_HEIGHT) {
         fillrect(brick_x, brick_y, brick_x + BRICK_WIDTH, brick_y + BRICK_HEIGHT, COLOR_BACKGROUND);
-
         bricks[row][col] = false;
         brick_count--;
 
         score += (5 - row) * 10;
         draw_score();
 
-        float center_x = brick_x + BRICK_WIDTH / 2;
-        float center_y = brick_y + BRICK_HEIGHT / 2;
-        float ball_center_x = ball_x + BALL_SIZE / 2;
-        float ball_center_y = ball_y + BALL_SIZE / 2;
-        float dx = std::abs(ball_center_x - center_x);
-        float dy = std::abs(ball_center_y - center_y);
+        play_brick_hit();
 
-        if (dx * BRICK_HEIGHT > dy * BRICK_WIDTH) {
-            ball_dx = -ball_dx;
-        } else {
-            ball_dy = -ball_dy;
-        }
-
+        ball_dy = -ball_dy;
         return true;
     }
 
     return false;
 }
 
-bool check_level_complete() {
+bool BreakoutView::check_level_complete() {
     return brick_count == 0;
 }
 
-void next_level() {
+void BreakoutView::next_level() {
     level++;
+    play_level_complete();
+    chThdSleepMilliseconds(500);  // Give time for sound to play
     init_level();
     draw_screen();
 }
 
-void handle_game_over() {
+void BreakoutView::handle_game_over() {
     game_state = STATE_GAME_OVER;
-    gameover_initialized = false;
-    show_game_over();
-}
-
-void init_menu() {
-    cls();
-    background(COLOR_BACKGROUND);
-
-    auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
-    auto style_blue = *ui::Theme::getInstance()->fg_blue;
-    auto style_cyan = *ui::Theme::getInstance()->fg_cyan;
-
-    int16_t screen_width = 240;
-    int16_t title_x = (screen_width - 17 * 8) / 2;
-    int16_t divider_width = 24 * 8;
-    int16_t divider_x = (screen_width - divider_width) / 2;
-    int16_t instruction_width = 22 * 8;
-    int16_t instruction_x = (screen_width - instruction_width) / 2;
-    int16_t prompt_width = 16 * 8;
-    prompt_x = (screen_width - prompt_width) / 2;
-
-    painter.fill_rectangle({0, 30, screen_width, 30}, Color::black());
-    painter.draw_string({title_x + 2, 42}, style_yellow, "*** BREAKOUT ***");
-    painter.draw_string({divider_x, 70}, style_blue, "========================");
-    painter.fill_rectangle({instruction_x - 5, 110, instruction_width + 10, 70}, Color::black());
-    painter.draw_rectangle({instruction_x - 5, 110, instruction_width + 10, 70}, Color::white());
-    painter.draw_string({instruction_x, 120}, style_cyan, "  ROTARY: MOVE PADDLE");
-    painter.draw_string({instruction_x, 150}, style_cyan, " SELECT: START/LAUNCH");
-    painter.draw_string({divider_x, 190}, style_blue, "========================");
-
-    menu_initialized = true;
-}
-
-void show_menu() {
-    if (!menu_initialized) {
-        init_menu();
-    }
-
-    auto style_red = *ui::Theme::getInstance()->fg_red;
-
-    if (++blink_counter >= 30) {
-        blink_counter = 0;
-        blink_state = !blink_state;
-
-        painter.fill_rectangle({prompt_x - 2, 228, 16 * 8 + 4, 20}, Color::black());
-
-        if (blink_state) {
-            painter.draw_string({prompt_x, 230}, style_red, "* PRESS SELECT *");
-        }
-    }
-}
-
-void init_game_over() {
-    cls();
-    background(COLOR_BACKGROUND);
-
-    auto style_red = *ui::Theme::getInstance()->fg_red;
-    auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
-
-    int16_t screen_width = 240;
-    int16_t title_width = 9 * 8;
-    int16_t title_x = (screen_width - title_width) / 2;
-    int16_t score_text_width = (16 + std::to_string(score).length()) * 8;
-    int16_t score_x = (screen_width - score_text_width) / 2;
-
-    painter.draw_rectangle({20, 80, screen_width - 40, 160}, Color::red());
-    painter.draw_rectangle({22, 82, screen_width - 44, 156}, Color::white());
-
-    painter.draw_string({title_x, 100}, style_red, "GAME OVER");
-
-    painter.fill_rectangle({40, 140, screen_width - 80, 30}, Color::black());
-    painter.draw_rectangle({40, 140, screen_width - 80, 30}, Color::yellow());
-    painter.draw_string({score_x, 150}, style_yellow, " FINAL SCORE: " + std::to_string(score));
-
-    int16_t restart_width = 12 * 8;
-    restart_x = (screen_width - restart_width) / 2;
-
-    gameover_initialized = true;
     gameover_blink_state = true;
     gameover_blink_counter = 0;
+    play_game_over();
 }
 
-void show_game_over() {
-    if (!gameover_initialized) {
-        init_game_over();
+void BreakoutView::show_menu() {
+    // Only draw the static parts once
+    if (menu_blink_counter == 0) {
+        cls();
+        background(COLOR_BACKGROUND);
+
+        auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
+        auto style_blue = *ui::Theme::getInstance()->fg_blue;
+        auto style_cyan = *ui::Theme::getInstance()->fg_cyan;
+
+        painter.draw_string({UI_POS_X_CENTER(17), 40}, style_yellow, "*** BREAKOUT ***");
+        painter.draw_string({UI_POS_X_CENTER(25), 100}, style_blue, "========================");
+        painter.draw_string({UI_POS_X_CENTER(20), 130}, style_cyan, "ROTARY: MOVE PADDLE");
+        painter.draw_string({UI_POS_X_CENTER(21), 160}, style_cyan, "SELECT: START/LAUNCH");
+        painter.draw_string({UI_POS_X_CENTER(25), 190}, style_blue, "========================");
+
+        // Volume adjustment instructions
+        painter.draw_string({UI_POS_X_CENTER(24), 220}, style_cyan, "Press UP/DOWN for Volume");
+
+        // Draw volume control at bottom
+        draw_menu_volume_bar();
     }
 
-    auto style_green = *ui::Theme::getInstance()->fg_green;
+    // Only flash the "PRESS SELECT" text
+    if (++menu_blink_counter >= 30) {
+        menu_blink_counter = 1;  // Keep it at 1 so we don't redraw everything
+        menu_blink_state = !menu_blink_state;
 
-    if (++gameover_blink_counter >= 30) {
-        gameover_blink_counter = 0;
-        gameover_blink_state = !gameover_blink_state;
+        auto style_red = *ui::Theme::getInstance()->fg_red;
+        painter.fill_rectangle({UI_POS_X_CENTER(17), 238, 128, 20}, Color::black());
 
-        painter.fill_rectangle({restart_x - 2, 198, 12 * 8 + 4, 20}, Color::black());
-
-        if (gameover_blink_state) {
-            painter.draw_string({restart_x, 200}, style_green, "PRESS SELECT");
+        if (menu_blink_state) {
+            painter.draw_string({UI_POS_X_CENTER(17), 240}, style_red, "* PRESS SELECT *");
         }
     }
 }
 
-void reset_game() {
+void BreakoutView::show_game_over() {
+    // Only draw the static parts once
+    if (gameover_blink_counter == 0) {
+        cls();
+        background(COLOR_BACKGROUND);
+
+        auto style_red = *ui::Theme::getInstance()->fg_red;
+        auto style_yellow = *ui::Theme::getInstance()->fg_yellow;
+
+        painter.draw_string({UI_POS_X_CENTER(10), 100}, style_red, "GAME OVER");
+        painter.draw_string({UI_POS_X_CENTER(11), 150}, style_yellow, "SCORE: " + std::to_string(score));
+    }
+
+    // Only flash the "PRESS SELECT" text
+    if (++gameover_blink_counter >= 30) {
+        gameover_blink_counter = 1;  // Keep it at 1 so we don't redraw everything
+        gameover_blink_state = !gameover_blink_state;
+
+        auto style_green = *ui::Theme::getInstance()->fg_green;
+        painter.fill_rectangle({UI_POS_X_CENTER(13), 198, 96, 20}, Color::black());
+
+        if (gameover_blink_state) {
+            painter.draw_string({UI_POS_X_CENTER(13), 200}, style_green, "PRESS SELECT");
+        }
+    }
+}
+
+void BreakoutView::reset_game() {
     level = 1;
     score = 0;
     lives = 3;
     game_state = STATE_PLAYING;
+
+    dummy.focus();
+
     init_level();
     draw_screen();
-    gameover_initialized = false;
-    gameover_blink_state = true;
-    gameover_blink_counter = 0;
+}
+
+// Sound effect implementations with timing control
+void BreakoutView::play_paddle_hit() {
+    if (sound_enabled) {
+        uint32_t current_time = chTimeNow();
+        if (current_time - last_sound_time >= min_sound_interval) {
+            baseband::request_beep_stop();                 // Stop any previous sound
+            chThdSleepMilliseconds(5);                     // Small delay
+            baseband::request_audio_beep(440, 24000, 40);  // 440Hz A4, 40ms
+            last_sound_time = current_time;
+        }
+    }
+}
+
+void BreakoutView::play_brick_hit() {
+    if (sound_enabled) {
+        uint32_t current_time = chTimeNow();
+        if (current_time - last_sound_time >= min_sound_interval) {
+            baseband::request_beep_stop();  // Stop any previous sound
+            chThdSleepMilliseconds(5);      // Small delay
+            // Higher pitch that varies with remaining bricks
+            uint32_t freq = 880 + ((25 - brick_count) * 20);  // Gets higher as bricks are destroyed
+            baseband::request_audio_beep(freq, 24000, 30);
+            last_sound_time = current_time;
+        }
+    }
+}
+
+void BreakoutView::play_wall_hit() {
+    if (sound_enabled) {
+        uint32_t current_time = chTimeNow();
+        if (current_time - last_sound_time >= min_sound_interval) {
+            baseband::request_beep_stop();                  // Stop any previous sound
+            chThdSleepMilliseconds(5);                      // Small delay
+            baseband::request_audio_beep(220, 24000, 120);  // 220Hz A3, 120ms
+            last_sound_time = current_time;
+        }
+    }
+}
+
+void BreakoutView::play_death_sound() {
+    if (sound_enabled) {
+        baseband::request_audio_beep(493, 24000, 150);  // B4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(466, 24000, 150);  // Bb4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(440, 24000, 150);  // A4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(415, 24000, 150);  // Ab4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(392, 24000, 150);  // G4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(369, 24000, 150);  // Gb4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(349, 24000, 150);  // F4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(329, 24000, 150);  // E4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(293, 24000, 150);  // D4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(261, 24000, 150);  // C4
+        chThdSleepMilliseconds(180);
+        baseband::request_audio_beep(196, 24000, 200);  // G3
+        chThdSleepMilliseconds(230);
+        baseband::request_audio_beep(130, 24000, 300);  // C3
+    }
+}
+
+void BreakoutView::play_game_over() {
+    if (sound_enabled) {
+        // First phrase
+        baseband::request_audio_beep(392, 24000, 300);  // G4
+        chThdSleepMilliseconds(350);
+        baseband::request_audio_beep(392, 24000, 150);  // G4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(392, 24000, 150);  // G4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(311, 24000, 500);  // Eb4 - long
+        chThdSleepMilliseconds(600);
+
+        // Second phrase
+        baseband::request_audio_beep(349, 24000, 300);  // F4
+        chThdSleepMilliseconds(350);
+        baseband::request_audio_beep(349, 24000, 150);  // F4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(349, 24000, 150);  // F4
+        chThdSleepMilliseconds(200);
+        baseband::request_audio_beep(294, 24000, 500);  // D4 - long
+        chThdSleepMilliseconds(600);
+
+        // Final phrase - slower and more dramatic
+        baseband::request_audio_beep(262, 24000, 200);  // C4
+        chThdSleepMilliseconds(250);
+        baseband::request_audio_beep(247, 24000, 200);  // B3
+        chThdSleepMilliseconds(250);
+        baseband::request_audio_beep(233, 24000, 200);  // Bb3
+        chThdSleepMilliseconds(250);
+        baseband::request_audio_beep(220, 24000, 200);  // A3
+        chThdSleepMilliseconds(250);
+        baseband::request_audio_beep(196, 24000, 200);  // G3
+        chThdSleepMilliseconds(250);
+        baseband::request_audio_beep(175, 24000, 200);  // F3
+        chThdSleepMilliseconds(250);
+        baseband::request_audio_beep(131, 24000, 600);  // C3
+    }
+}
+
+void BreakoutView::play_level_complete() {
+    if (sound_enabled) {
+        baseband::request_beep_stop();  // Stop any previous sound
+        chThdSleepMilliseconds(10);
+        baseband::request_audio_beep(1047, 24000, 300);  // 1047Hz C6, 300ms
+    }
 }
 
 BreakoutView::BreakoutView(NavigationView& nav)
-    : nav_{nav} {
+    : nav_{nav}, bricks{} {
+    // Initialize audio system for beeps FIRST
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // Load the audio beep baseband
+
     add_children({&dummy});
-    game_timer.attach(&game_timer_check, 1.0 / 60.0);
+
+    // Initialize audio
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+
+    // Set initial volume to 80% and ensure sound is ON
+    volume_level = 80;
+    sound_enabled = true;  // Make sure this is explicitly set to ON
+
+    // Set the actual volume
+    int db = (volume_level - 99) * 60 / 99;  // Maps to roughly -12dB for 80%
+    audio::headphone::set_volume(volume_t::decibel(db));
+
+    attach(1.0 / 60.0);
+}
+
+BreakoutView::~BreakoutView() {
+    // Clean shutdown
+    baseband::request_beep_stop();
+    receiver_model.disable();
+    baseband::shutdown();
+    audio::output::stop();
 }
 
 void BreakoutView::on_show() {
+    // Nothing needed here, initialization done in constructor
+}
+
+void BreakoutView::on_hide() {
+    // Additional cleanup
+    baseband::request_beep_stop();
+    audio::output::stop();
+}
+
+void BreakoutView::focus() {
+    dummy.focus();
 }
 
 void BreakoutView::paint(Painter& painter) {
@@ -510,20 +669,15 @@ bool BreakoutView::on_encoder(const EncoderEvent delta) {
     if (game_state == STATE_PLAYING) {
         if (delta > 0) {
             move_paddle_right();
-            set_dirty();
         } else if (delta < 0) {
             move_paddle_left();
-            set_dirty();
         }
+        set_dirty();
     }
     return true;
 }
 
 bool BreakoutView::on_key(const KeyEvent key) {
-    but_SELECT = (key == KeyEvent::Select);
-    but_LEFT = (key == KeyEvent::Left);
-    but_RIGHT = (key == KeyEvent::Right);
-
     if (key == KeyEvent::Select) {
         if (game_state == STATE_MENU) {
             game_state = STATE_PLAYING;
@@ -531,19 +685,32 @@ bool BreakoutView::on_key(const KeyEvent key) {
         } else if (game_state == STATE_PLAYING && ball_attached) {
             launch_ball();
         } else if (game_state == STATE_GAME_OVER) {
-            reset_game();
+            // Return to menu after game over
+            game_state = STATE_MENU;
+            menu_blink_counter = 0;
+            init_game();
         }
-    } else if (key == KeyEvent::Left) {
-        if (game_state == STATE_PLAYING) {
-            move_paddle_left();
-        }
-    } else if (key == KeyEvent::Right) {
-        if (game_state == STATE_PLAYING) {
-            move_paddle_right();
-        }
+    } else if (key == KeyEvent::Left && game_state == STATE_PLAYING) {
+        move_paddle_left();
+    } else if (key == KeyEvent::Right && game_state == STATE_PLAYING) {
+        move_paddle_right();
+    } else if (key == KeyEvent::Up && game_state == STATE_MENU) {
+        // Only adjust volume in menu
+        adjust_volume(5);
+        if (!sound_enabled) sound_enabled = true;
+        set_dirty();
+    } else if (key == KeyEvent::Down && game_state == STATE_MENU) {
+        // Only adjust volume in menu
+        adjust_volume(-5);
+        set_dirty();
     }
 
     set_dirty();
+    return true;
+}
+
+bool BreakoutView::on_touch(const TouchEvent event) {
+    (void)event;  // Intentionally unused - touch disabled to avoid nav bar issues
     return true;
 }
 

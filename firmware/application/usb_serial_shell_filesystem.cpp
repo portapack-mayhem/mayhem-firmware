@@ -59,13 +59,23 @@ static bool report_on_error(BaseSequentialStream* chp, File::Result<uint64_t> er
     return false;
 }
 
+std::string full_fn_from_args(int argc, char* argv[]) {
+    std::string full_fn;
+    for (int i = 0; i < argc; i++) {
+        if (i != 0)
+            full_fn += " ";
+        full_fn += argv[i];
+    }
+    return full_fn;
+}
+
 void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
+    if (argc < 1) {
         chprintf(chp, "usage: ls /\r\n");
         return;
     }
 
-    auto path = path_from_string8(argv[0]);
+    auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
 
     for (const auto& entry : std::filesystem::directory_iterator(path, "*")) {
         if (std::filesystem::is_directory(entry.status())) {
@@ -79,12 +89,12 @@ void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 void cmd_sd_unlink(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
+    if (argc < 1) {
         chprintf(chp, "usage: unlink <path>\r\n");
         return;
     }
 
-    auto path = path_from_string8(argv[0]);
+    auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
     auto error = delete_file(path);
     if (report_on_error(chp, error)) return;
 
@@ -92,12 +102,12 @@ void cmd_sd_unlink(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 void cmd_sd_mkdir(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
+    if (argc < 1) {
         chprintf(chp, "usage: mkdir <path>\r\n");
         return;
     }
 
-    auto path = path_from_string8(argv[0]);
+    auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
 
     if (std::filesystem::is_directory(path)) {
         chprintf(chp, "directory already exists.\r\n");
@@ -111,11 +121,11 @@ void cmd_sd_mkdir(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
+    if (argc < 1) {
         chprintf(chp, "usage: filesize <path>\r\n");
         return;
     }
-    auto path = path_from_string8(argv[0]);
+    auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
     FILINFO res;
     auto stat = f_stat(path.tchar(), &res);
     if (report_on_error(chp, stat)) return;
@@ -125,7 +135,7 @@ void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
+    if (argc < 1) {
         chprintf(chp, "usage: fopen <path>\r\n");
         return;
     }
@@ -135,7 +145,7 @@ void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
 
-    auto path = path_from_string8(argv[0]);
+    auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
     shell_file = new File();
     auto error = shell_file->open(path, false, true);
     if (report_on_error(chp, error)) return;
@@ -375,12 +385,12 @@ void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 void cmd_sd_crc32(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
+    if (argc < 1) {
         chprintf(chp, "usage: crc32 <path>\r\n");
         return;
     }
 
-    auto path = path_from_string8(argv[0]);
+    auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
     File* crc_file = new File();
     auto error = crc_file->open(path, true, false);
     if (report_on_error(chp, error)) return;

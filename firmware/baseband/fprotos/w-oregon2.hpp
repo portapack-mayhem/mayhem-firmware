@@ -132,15 +132,14 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
                 // waiting for variable (sensor-specific data)
                 if (decode_count_bit == (uint32_t)var_bits + OREGON2_CHECKSUM_BITS) {
                     var_data = decode_data & 0xFFFFFFFF;
-
                     // reverse nibbles in var data
                     var_data = (var_data & 0x55555555) << 1 |
                                (var_data & 0xAAAAAAAA) >> 1;
                     var_data = (var_data & 0x33333333) << 2 |
                                (var_data & 0xCCCCCCCC) >> 2;
-                    decode_data = var_data;
+                    decode_data = var_data >> OREGON2_CHECKSUM_BITS;
+                    decode_data |= (data << 32);  // unique to portapack, i sent the upper part too, so we have all the data in one place
                     // ws_oregon2_decode_var_data(OREGON2_SENSOR_ID(data), var_data >> OREGON2_CHECKSUM_BITS); //a bit stepback, but will work
-
                     parser_step = Oregon2DecoderStepReset;
                     if (callback) callback(this);
                 }
@@ -195,8 +194,10 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
             case ID_RTHN129_3:
             case ID_RTHN129_4:
             case ID_RTHN129_5:
+                sensorType = FPW_OREGON2;
                 return 16;
             case ID_THGR122N:
+                sensorType = FPW_OREGON2B;
                 return 24;
             default:
                 return 0;

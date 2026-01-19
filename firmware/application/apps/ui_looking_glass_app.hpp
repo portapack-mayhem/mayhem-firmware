@@ -51,9 +51,6 @@ namespace ui {
 #define LOOKING_GLASS_SINGLEPASS 2
 // one spectrum line number of bins
 #define SPEC_NB_BINS 256
-// screen dimensions
-#define SCREEN_W 240
-#define SCREEN_H 320
 
 class GlassView : public View {
    public:
@@ -69,9 +66,6 @@ class GlassView : public View {
     void on_hide() override;
     void focus() override;
 
-    uint8_t get_spec_iq_phase_calibration_value();
-    void set_spec_iq_phase_calibration_value(uint8_t cal_value);
-
    private:
     NavigationView& nav_;
     Gradient gradient{};
@@ -83,11 +77,10 @@ class GlassView : public View {
     uint8_t filter_index = 0;  // OFF
     uint8_t trigger = 32;
     uint8_t mode = LOOKING_GLASS_FASTSCAN;
-    uint8_t live_frequency_view = 0;         // Spectrum
-    uint8_t live_frequency_integrate = 3;    // Default (3 * old value + new_value) / 4
-    uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
-    int32_t beep_squelch = 20;               // range from -100 to +20, >=20 disabled
-    bool beep_enabled = false;               // activate on bip button click
+    uint8_t live_frequency_view = 0;       // Spectrum
+    uint8_t live_frequency_integrate = 3;  // Default (3 * old value + new_value) / 4
+    int32_t beep_squelch = 20;             // range from -100 to +20, >=20 disabled
+    bool beep_enabled = false;             // activate on bip button click
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
         app_settings::Mode::RX,
@@ -100,7 +93,6 @@ class GlassView : public View {
             {"scan_mode"sv, &mode},
             {"freq_view"sv, &live_frequency_view},
             {"freq_integrate"sv, &live_frequency_integrate},
-            {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
             {"beep_squelch"sv, &beep_squelch},
             {"beep_enabled"sv, &beep_enabled},
         }};
@@ -119,9 +111,9 @@ class GlassView : public View {
     void update_min(int32_t v);
     void update_max(int32_t v);
     void update_range_field();
-    void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
-    rf::Frequency get_freq_from_bin_pos(uint8_t pos);
-    void on_marker_change();
+    void get_max_power(const ChannelSpectrum& spectrum, uint16_t bin, uint8_t& max_power);
+    rf::Frequency get_freq_from_bin_pos(uint16_t pos);
+    void on_marker_change(int8_t delta);
     void retune();
     bool process_bins(uint8_t* powerlevel);
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
@@ -131,7 +123,7 @@ class GlassView : public View {
     void on_range_changed();
     void reset_live_view();
     void add_spectrum_pixel(uint8_t power);
-    void plot_marker(uint8_t pos);
+    void plot_marker(uint16_t pos);
     void load_presets();
     void populate_presets();
     void launch_audio(rf::Frequency center_freq);
@@ -141,7 +133,7 @@ class GlassView : public View {
     rf::Frequency f_center_ini{0};
 
     rf::Frequency marker{0};
-    uint8_t marker_pixel_index{0};
+    uint16_t marker_pixel_index{0};
     rf::Frequency marker_pixel_step{0};
 
     // Size of one spectrum bin in Hz.
@@ -155,8 +147,8 @@ class GlassView : public View {
     uint8_t min_color_power{0};  // Filter cutoff level.
     uint32_t pixel_index{0};
 
-    std::array<Color, SCREEN_W> spectrum_row{};
-    std::array<uint8_t, SCREEN_W> spectrum_data{};
+    std::vector<Color> spectrum_row{};
+    std::vector<uint8_t> spectrum_data{};
     ChannelSpectrumFIFO* fifo{};
 
     int32_t steps = 1;
@@ -168,37 +160,36 @@ class GlassView : public View {
     rf::Frequency max_freq_hold = 0;
     rf::Frequency last_max_freq = 0;
     int16_t max_freq_power = -1000;
-    uint8_t bin_length = SCREEN_W;
+    uint8_t bin_length = screen_width;
     uint8_t offset = 0;
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
+        {{0, UI_POS_Y(0)}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
         {{0, 2 * 16}, "P:", Theme::getInstance()->fg_light->foreground},
-        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::getInstance()->fg_light->foreground},
-        //{{0, 4 * 16}, "RES:    STEPS:", Theme::getInstance()->fg_light->foreground}};
+        {{0, 3 * 16}, "MARKER( / ):          MHz", Theme::getInstance()->fg_light->foreground},
         {{0, 4 * 16}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency_min{
-        {4 * 8, 0 * 16},
+        {4 * 8, UI_POS_Y(0)},
         4,
         {0, 7199},
         1,  // number of steps by encoder delta
         ' '};
 
     NumberField field_frequency_max{
-        {13 * 8, 0 * 16},
+        {13 * 8, UI_POS_Y(0)},
         4,
         {1, 7200},
         1,  // number of steps by encoder delta
         ' '};
 
     LNAGainField field_lna{
-        {21 * 8, 0 * 16}};
+        {21 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {27 * 8, 0 * 16}};
+        {27 * 8, UI_POS_Y(0)}};
 
     TextField field_range{
         {6 * 8, 1 * 16, 6 * 8, 16},
@@ -222,20 +213,20 @@ class GlassView : public View {
         {}};
 
     ButtonWithEncoder button_beep_squelch{
-        {240 - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
+        {screen_width - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
         ""};
 
     TextField field_marker{
-        {7 * 8, 3 * 16, 9 * 8, 16},
+        {12 * 8, 3 * 16, 9 * 8, 16},
         ""};
 
-    NumberField field_rx_iq_phase_cal{
-        {28 * 8, 3 * 16},
-        2,
-        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
-        1,
-        ' ',
-    };
+    Button button_marker_minus{
+        {7 * 8, 3 * 16 + 4, 1 * 8, 1 * 8},
+        "-"};
+
+    Button button_marker_plus{
+        {9 * 8, 3 * 16 + 4, 1 * 8, 1 * 8},
+        "+"};
 
     NumberField field_trigger{
         {4 * 8, 4 * 16},
@@ -293,15 +284,15 @@ class GlassView : public View {
         }};
 
     Button button_jump{
-        {SCREEN_W - 4 * 8, 5 * 16, 4 * 8, 16},
+        {screen_width - 4 * 8, 5 * 16, 4 * 8, 16},
         "JMP"};
 
     Button button_rst{
-        {SCREEN_W - 9 * 8, 5 * 16, 4 * 8, 16},
+        {screen_width - 9 * 8, 5 * 16, 4 * 8, 16},
         "RST"};
 
     Text freq_stats{
-        {0 * 8, 5 * 16, SCREEN_W - 10 * 8, 8},
+        {UI_POS_X(0), 5 * 16, screen_width - 10 * 8, 8},
         ""};
 
     MessageHandlerRegistration message_handler_spectrum_config{

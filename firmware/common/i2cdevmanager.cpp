@@ -32,6 +32,7 @@
 #include "i2cdev_ads1110.hpp"
 #include "i2cdev_bh1750.hpp"
 #include "i2cdev_ppmod.hpp"
+#include "i2cdev_sht4x.hpp"
 
 namespace i2cdev {
 
@@ -73,6 +74,11 @@ bool I2CDevManager::found(uint8_t addr) {
         if (!item.dev->init(addr)) item.dev = nullptr;
     }
 
+    if (!item.dev && (addr == I2CDEV_SHT4X_ADDR_1 || addr == I2CDEV_SHT4X_ADDR_2)) {
+        item.dev = std::make_unique<I2cDev_SHT4x>();
+        if (!item.dev->init(addr)) item.dev = nullptr;
+    }
+
     if (!item.dev && (addr == I2CDEV_MAX17055_ADDR_1)) {
         item.dev = std::make_unique<I2cDev_MAX17055>();
         if (!item.dev->init(addr)) item.dev = nullptr;
@@ -107,6 +113,19 @@ FROM HERE YOU SHOULDN'T WRITE ANYTHING IF YOU JUST IMPLEMENT A NEW DRIVER
 
 
 */
+
+void I2cDev::unlockDevice() {
+    mtx = 0;
+}
+
+// when device is locked, all not important queries will return 0 or nullopt, so no communication broken.
+bool I2cDev::lockDevice() {
+    if (mtx == 0) {
+        mtx = 1;
+        return true;
+    }
+    return false;
+}
 
 void I2cDev::set_update_interval(uint8_t interval) {
     query_interval = interval;

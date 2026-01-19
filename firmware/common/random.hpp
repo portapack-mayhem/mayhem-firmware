@@ -28,8 +28,8 @@
 #define MATRIX_A 0x9908b0dfUL /* constant vector a */
 #define UMASK 0x80000000UL    /* most significant w-r bits */
 #define LMASK 0x7fffffffUL    /* least significant r bits */
-#define MIXBITS(u, v) (((u)&UMASK) | ((v)&LMASK))
-#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v)&1UL ? MATRIX_A : 0UL))
+#define MIXBITS(u, v) (((u) & UMASK) | ((v) & LMASK))
+#define TWIST(u, v) ((MIXBITS(u, v) >> 1) ^ ((v) & 1UL ? MATRIX_A : 0UL))
 
 /* initializes state[N] with a seed */
 extern void init_genrand(unsigned long s);

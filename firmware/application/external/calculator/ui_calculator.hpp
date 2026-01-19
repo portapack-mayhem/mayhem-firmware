@@ -48,25 +48,25 @@ class CalculatorView : public View {
    private:
     NavigationView& nav_;
 
-    Button button_F{{0 * 8, 11 * 16, 6 * 8, 16 + 8}, "F"};
-    Button button_7{{8 * 8, 11 * 16, 6 * 8, 16 + 8}, "7"};
-    Button button_8{{16 * 8, 11 * 16, 6 * 8, 16 + 8}, "8"};
-    Button button_9{{24 * 8, 11 * 16, 6 * 8, 16 + 8}, "9"};
-    Button button_E{{0 * 8, 13 * 16, 6 * 8, 16 + 8}, "E"};
-    Button button_4{{8 * 8, 13 * 16, 6 * 8, 16 + 8}, "4"};
-    Button button_5{{16 * 8, 13 * 16, 6 * 8, 16 + 8}, "5"};
-    Button button_6{{24 * 8, 13 * 16, 6 * 8, 16 + 8}, "6"};
-    Button button_N{{0 * 8, 15 * 16, 6 * 8, 16 + 8}, "N"};
-    Button button_1{{8 * 8, 15 * 16, 6 * 8, 16 + 8}, "1"};
-    Button button_2{{16 * 8, 15 * 16, 6 * 8, 16 + 8}, "2"};
-    Button button_3{{24 * 8, 15 * 16, 6 * 8, 16 + 8}, "3"};
-    Button button_C{{0 * 8, 17 * 16, 6 * 8, 16 + 8}, "C"};
-    Button button_0{{8 * 8, 17 * 16, 6 * 8, 16 + 8}, "0"};
-    Button button_P{{16 * 8, 17 * 16, 6 * 8, 16 + 8}, "."};
-    Button button_D{{24 * 8, 17 * 16, 6 * 8, 16 + 8}, "D"};
+    Button button_F{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "F"};
+    Button button_7{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "7"};
+    Button button_8{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "8"};
+    Button button_9{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(9), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "9"};
+    Button button_E{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "E"};
+    Button button_4{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "4"};
+    Button button_5{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "5"};
+    Button button_6{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "6"};
+    Button button_N{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "N"};
+    Button button_1{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "1"};
+    Button button_2{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "2"};
+    Button button_3{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "3"};
+    Button button_C{{UI_POS_X_TABLE(4, 0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "C"};
+    Button button_0{{UI_POS_X_TABLE(4, 1), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "0"};
+    Button button_P{{UI_POS_X_TABLE(4, 2), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "."};
+    Button button_D{{UI_POS_X_TABLE(4, 3), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(1.5)}, "D"};
 
     Console console{
-        {0 * 8, 0 * 16, screen_width, 10 * 16}};
+        {UI_POS_X(0), UI_POS_Y(0), screen_width, UI_POS_HEIGHT_REMAINING(10)}};
 
     void on_button_press(uint8_t button);
     void update_button_labels();

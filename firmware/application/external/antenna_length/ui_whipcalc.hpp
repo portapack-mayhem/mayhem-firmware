@@ -86,10 +86,10 @@ class WhipCalcView : public View {
         {13 * 8, 4 * 16, 10 * 16, 16},
         "-"};
     Console console{
-        {0, 6 * 16, 240, 160}};
+        {0, 6 * 16, screen_width, 160}};
 
     Button button_exit{
-        {72, 17 * 16, 96, 32},
+        {UI_POS_X_RIGHT(12), UI_POS_Y_BOTTOM(3), 96, 32},
         "Back"};
 };
 

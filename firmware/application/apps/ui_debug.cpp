@@ -202,10 +202,10 @@ RegistersView::RegistersView(
     };
     button_done.on_select = [&nav](Button&) { nav.pop(); };
 
-    registers_widget.set_parent_rect({0, 48, 240, 192});
+    registers_widget.set_parent_rect({0, 48, screen_width, 192});
     registers_widget.set_page(0);
 
-    text_title.set_parent_rect({(240 - static_cast<int>(title.size()) * 8) / 2, 16,
+    text_title.set_parent_rect({(screen_width - static_cast<int>(title.size()) * 8) / 2, 16,
                                 static_cast<int>(title.size()) * 8, 16});
     text_title.set(title);
 
@@ -482,7 +482,7 @@ DebugPmemView::DebugPmemView(NavigationView& nav)
     : registers_widget(RegistersWidgetConfig{CT_PMEM, PMEM_SIZE_BYTES, page_size, 8}) {
     add_children({&registers_widget, &text_checksum, &text_checksum2, &button_ok});
 
-    registers_widget.set_parent_rect({0, 32, 240, 192});
+    registers_widget.set_parent_rect({0, 32, screen_width, 192});
 
     text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size(), 3) + "  CRC: " + to_string_hex(portapack::persistent_memory::pmem_stored_checksum(), 8));
     text_checksum2.set("Calculated CRC: " + to_string_hex(portapack::persistent_memory::pmem_calculated_checksum(), 8));

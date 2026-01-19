@@ -90,7 +90,7 @@ class BattinfoView : public View {
         "-"};
 
     Text text_warn{
-        {1 * 8, 8 * 16, 30 * 8, 2 * 16},
+        {1 * 8, 8 * 16, screen_width, 2 * 16},
         ""}; */
 
     Button button_mode{
@@ -98,7 +98,7 @@ class BattinfoView : public View {
         "Volt"};
 
     Button button_exit{
-        {72, 17 * 16, 96, 32},
+        {UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Back"};
     static msg_t static_fn(void* arg);
     Thread* thread{nullptr};

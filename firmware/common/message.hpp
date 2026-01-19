@@ -35,6 +35,7 @@
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "flex_defs.hpp"
 #include "aprs_packet.hpp"
 #include "sonde_packet.hpp"
 #include "tpms_packet.hpp"
@@ -134,6 +135,20 @@ class Message {
         NoaaAptRxConfigure = 77,
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
+        FSKPacket = 80,
+        EPIRBPacket = 81,
+        FlexPacket = 82,
+        FlexStats = 83,
+        FlexConfigure = 84,
+        FlexDebug = 85,
+        SSTVRXConfigure = 86,
+        SSTVRXProgress = 87,
+        SSTVRXPhaseSlant = 88,
+        SSTVRXCalibration = 89,
+        SubCarData = 90,
+        MorseRXData = 91,
+        MorseRXConfig = 92,
+        TXDisabled = 93,
         MAX
     };
 
@@ -338,6 +353,17 @@ class AISPacketMessage : public Message {
     baseband::Packet packet;
 };
 
+class EPIRBPacketMessage : public Message {
+   public:
+    constexpr EPIRBPacketMessage(
+        const baseband::Packet& packet)
+        : Message{ID::EPIRBPacket},
+          packet{packet} {
+    }
+
+    baseband::Packet packet;
+};
+
 class TPMSPacketMessage : public Message {
    public:
     constexpr TPMSPacketMessage(
@@ -452,6 +478,17 @@ struct BlePacketData {
     uint8_t dataLen;
 };
 
+struct FskPacketData {
+    int8_t real;
+    int8_t imag;
+    int max_dB;
+    uint8_t data[512];
+    uint16_t dataLen;
+    uint64_t syncWord;
+    float power;
+    float frequency_offset_hz;
+};
+
 class BLEPacketMessage : public Message {
    public:
     constexpr BLEPacketMessage(
@@ -461,6 +498,17 @@ class BLEPacketMessage : public Message {
     }
 
     BlePacketData* packet{nullptr};
+};
+
+class FSKRxPacketMessage : public Message {
+   public:
+    constexpr FSKRxPacketMessage(
+        FskPacketData* packet)
+        : Message{ID::FSKPacket},
+          packet{packet} {
+    }
+
+    FskPacketData* packet{nullptr};
 };
 
 class CodedSquelchMessage : public Message {
@@ -1104,6 +1152,62 @@ class SSTVConfigureMessage : public Message {
     const uint32_t pixel_duration;
 };
 
+class SSTVRXConfigureMessage : public Message {
+   public:
+    constexpr SSTVRXConfigureMessage(
+        const uint8_t code)
+        : Message{id : ID::SSTVRXConfigure},
+          code(code) {
+    }
+
+    const uint8_t code;
+};
+
+class SSTVRXProgressMessage : public Message {
+   public:
+    constexpr SSTVRXProgressMessage(
+        const uint16_t line,
+        const uint16_t total_lines)
+        : Message{ID::SSTVRXProgress},
+          line(line),
+          total_lines(total_lines) {
+    }
+
+    const uint16_t line;
+    const uint16_t total_lines;
+};
+
+class SSTVRXPhaseSlantMessage : public Message {
+   public:
+    constexpr SSTVRXPhaseSlantMessage(
+        const int16_t phase,
+        const int16_t slant)
+        : Message{ID::SSTVRXPhaseSlant},
+          phase(phase),
+          slant(slant) {
+    }
+
+    const int16_t phase;
+    const int16_t slant;
+};
+
+class SSTVRXCalibrationMessage : public Message {
+   public:
+    constexpr SSTVRXCalibrationMessage(
+        const int16_t suggested_phase,
+        const int16_t suggested_slant,
+        const uint16_t sync_count)
+        : Message{ID::SSTVRXCalibration},
+          suggested_phase(suggested_phase),
+          suggested_slant(suggested_slant),
+          sync_count(sync_count) {
+    }
+
+    const int16_t suggested_phase;  // Suggested phase correction in pixels
+    const int16_t suggested_slant;  // Suggested slant correction in 0.1% units
+    const uint16_t sync_count;      // Number of syncs analyzed
+};
+
 class FSKConfigureMessage : public Message {
    public:
     constexpr FSKConfigureMessage(
@@ -1127,31 +1231,35 @@ class FSKConfigureMessage : public Message {
 class FSKRxConfigureMessage : public Message {
    public:
     constexpr FSKRxConfigureMessage(
-        const fir_taps_real<24> decim_0_filter,
-        const fir_taps_real<32> decim_1_filter,
-        const fir_taps_real<32> channel_filter,
-        const size_t channel_decimation,
-        const size_t deviation)
+        const uint8_t samplesPerSymbol,
+        const uint32_t syncWord,
+        const uint8_t syncWordLength,
+        const uint32_t preamble,
+        const uint8_t preambleLength,
+        const uint16_t numDataBytes)
         : Message{ID::FSKRxConfigure},
-          decim_0_filter(decim_0_filter),
-          decim_1_filter(decim_1_filter),
-          channel_filter(channel_filter),
-          channel_decimation{channel_decimation},
-          deviation{deviation} {
+          samplesPerSymbol(samplesPerSymbol),
+          syncWord(syncWord),
+          syncWordLength(syncWordLength),
+          preamble(preamble),
+          preambleLength(preambleLength),
+          numDataBytes(numDataBytes) {
     }
 
-    const fir_taps_real<24> decim_0_filter;
-    const fir_taps_real<32> decim_1_filter;
-    const fir_taps_real<32> channel_filter;
-    const size_t channel_decimation;
-    const size_t deviation;
+    const uint8_t samplesPerSymbol;
+    const uint32_t syncWord;
+    const uint8_t syncWordLength;
+    const uint32_t preamble;
+    const uint8_t preambleLength;
+    const uint16_t numDataBytes;
 };
 
 class POCSAGConfigureMessage : public Message {
    public:
-    constexpr POCSAGConfigureMessage()
-        : Message{ID::POCSAGConfigure} {
+    constexpr POCSAGConfigureMessage(int8_t baud_config = -1)
+        : Message{ID::POCSAGConfigure}, baud_config(baud_config) {
     }
+    int8_t baud_config;  //-1 auto, 0=512,1=1200,2=2400
 };
 
 class APRSPacketMessage : public Message {
@@ -1528,6 +1636,93 @@ class NoaaAptRxImageDataMessage : public Message {
         : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
+};
+
+class FlexPacketMessage : public Message {
+   public:
+    constexpr FlexPacketMessage(const flex::FlexPacket& packet)
+        : Message{ID::FlexPacket},
+          packet{packet} {
+    }
+    flex::FlexPacket packet;
+};
+
+class FlexStatsMessage : public Message {
+   public:
+    constexpr FlexStatsMessage(const flex::FlexStats& stats)
+        : Message{ID::FlexStats},
+          stats{stats} {
+    }
+    flex::FlexStats stats;
+};
+
+class FlexConfigureMessage : public Message {
+   public:
+    constexpr FlexConfigureMessage()
+        : Message{ID::FlexConfigure} {
+    }
+};
+
+class FlexDebugMessage : public Message {
+   public:
+    constexpr FlexDebugMessage(const uint32_t val1, const uint32_t val2, const char* msg)
+        : Message{ID::FlexDebug},
+          val1{val1},
+          val2{val2},
+          text{} {
+        size_t i = 0;
+        while (i < sizeof(text) - 1 && msg[i] != '\0') {
+            text[i] = msg[i];
+            i++;
+        }
+        text[i] = '\0';
+    }
+
+    uint32_t val1;
+    uint32_t val2;
+    char text[64];
+};
+
+class SubCarDataMessage : public Message {
+   public:
+    constexpr SubCarDataMessage(
+        uint8_t sensorType = 0,
+        uint16_t bits = 0,
+        uint64_t data = 0,
+        uint64_t data2 = 0)
+        : Message{ID::SubCarData},
+          sensorType{sensorType},
+          bits{bits},
+          data{data},
+          data2{data2} {
+    }
+    uint8_t sensorType = 0;
+    uint16_t bits = 0;
+    uint64_t data = 0;
+    uint64_t data2 = 0;
+};
+
+class MorseRXDataMessage : public Message {
+   public:
+    constexpr MorseRXDataMessage()
+        : Message{ID::MorseRXData} {}
+    uint32_t measured_frequency = 0;
+    int32_t state_durations[2] = {0};  // positive: high, negative: low
+    uint16_t state_cnt = 0;
+    const uint16_t maxptr = 1;
+};
+
+class MorseRXConfigureMessage : public Message {
+   public:
+    constexpr MorseRXConfigureMessage()
+        : Message{ID::MorseRXConfig} {}
+};
+
+class TXDisabledMessage : public Message {
+   public:
+    constexpr TXDisabledMessage()
+        : Message{ID::TXDisabled} {
+    }
 };
 
 #endif /*__MESSAGE_H__*/

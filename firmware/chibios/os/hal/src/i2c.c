@@ -69,7 +69,7 @@
  * @init
  */
 void i2cInit(void) {
-  i2c_lld_init();
+    i2c_lld_init();
 }
 
 /**
@@ -79,21 +79,20 @@ void i2cInit(void) {
  *
  * @init
  */
-void i2cObjectInit(I2CDriver *i2cp) {
-
-  i2cp->state  = I2C_STOP;
-  i2cp->config = NULL;
+void i2cObjectInit(I2CDriver* i2cp) {
+    i2cp->state = I2C_STOP;
+    i2cp->config = NULL;
 
 #if I2C_USE_MUTUAL_EXCLUSION
 #if CH_USE_MUTEXES
-  chMtxInit(&i2cp->mutex);
+    chMtxInit(&i2cp->mutex);
 #else
-  chSemInit(&i2cp->semaphore, 1);
+    chSemInit(&i2cp->semaphore, 1);
 #endif /* CH_USE_MUTEXES */
 #endif /* I2C_USE_MUTUAL_EXCLUSION */
 
 #if defined(I2C_DRIVER_EXT_INIT_HOOK)
-  I2C_DRIVER_EXT_INIT_HOOK(i2cp);
+    I2C_DRIVER_EXT_INIT_HOOK(i2cp);
 #endif
 }
 
@@ -105,19 +104,18 @@ void i2cObjectInit(I2CDriver *i2cp) {
  *
  * @api
  */
-void i2cStart(I2CDriver *i2cp, const I2CConfig *config) {
+void i2cStart(I2CDriver* i2cp, const I2CConfig* config) {
+    chDbgCheck((i2cp != NULL) && (config != NULL), "i2cStart");
+    chDbgAssert((i2cp->state == I2C_STOP) || (i2cp->state == I2C_READY) ||
+                    (i2cp->state == I2C_LOCKED),
+                "i2cStart(), #1",
+                "invalid state");
 
-  chDbgCheck((i2cp != NULL) && (config != NULL), "i2cStart");
-  chDbgAssert((i2cp->state == I2C_STOP) || (i2cp->state == I2C_READY) ||
-              (i2cp->state == I2C_LOCKED),
-              "i2cStart(), #1",
-              "invalid state");
-
-  chSysLock();
-  i2cp->config = config;
-  i2c_lld_start(i2cp);
-  i2cp->state = I2C_READY;
-  chSysUnlock();
+    chSysLock();
+    i2cp->config = config;
+    i2c_lld_start(i2cp);
+    i2cp->state = I2C_READY;
+    chSysUnlock();
 }
 
 /**
@@ -127,18 +125,17 @@ void i2cStart(I2CDriver *i2cp, const I2CConfig *config) {
  *
  * @api
  */
-void i2cStop(I2CDriver *i2cp) {
+void i2cStop(I2CDriver* i2cp) {
+    chDbgCheck(i2cp != NULL, "i2cStop");
+    chDbgAssert((i2cp->state == I2C_STOP) || (i2cp->state == I2C_READY) ||
+                    (i2cp->state == I2C_LOCKED),
+                "i2cStop(), #1",
+                "invalid state");
 
-  chDbgCheck(i2cp != NULL, "i2cStop");
-  chDbgAssert((i2cp->state == I2C_STOP) || (i2cp->state == I2C_READY) ||
-              (i2cp->state == I2C_LOCKED),
-              "i2cStop(), #1",
-              "invalid state");
-
-  chSysLock();
-  i2c_lld_stop(i2cp);
-  i2cp->state = I2C_STOP;
-  chSysUnlock();
+    chSysLock();
+    i2c_lld_stop(i2cp);
+    i2cp->state = I2C_STOP;
+    chSysUnlock();
 }
 
 /**
@@ -149,11 +146,10 @@ void i2cStop(I2CDriver *i2cp) {
  *
  * @api
  */
-i2cflags_t i2cGetErrors(I2CDriver *i2cp) {
+i2cflags_t i2cGetErrors(I2CDriver* i2cp) {
+    chDbgCheck(i2cp != NULL, "i2cGetErrors");
 
-  chDbgCheck(i2cp != NULL, "i2cGetErrors");
-
-  return i2c_lld_get_errors(i2cp);
+    return i2c_lld_get_errors(i2cp);
 }
 
 /**
@@ -182,35 +178,37 @@ i2cflags_t i2cGetErrors(I2CDriver *i2cp) {
  *
  * @api
  */
-msg_t i2cMasterTransmitTimeout(I2CDriver *i2cp,
+msg_t i2cMasterTransmitTimeout(I2CDriver* i2cp,
                                i2caddr_t addr,
-                               const uint8_t *txbuf,
+                               const uint8_t* txbuf,
                                size_t txbytes,
-                               uint8_t *rxbuf,
+                               uint8_t* rxbuf,
                                size_t rxbytes,
                                systime_t timeout) {
-  msg_t rdymsg;
+    msg_t rdymsg;
 
-  chDbgCheck((i2cp != NULL) && (addr != 0) &&
-             (txbytes > 0) && (txbuf != NULL) &&
-             ((rxbytes == 0) || ((rxbytes > 0) && (rxbuf != NULL))) &&
-             (timeout != TIME_IMMEDIATE),
-             "i2cMasterTransmitTimeout");
+    chDbgCheck((i2cp != NULL) && (addr != 0) &&
+                   (txbytes > 0) && (txbuf != NULL) &&
+                   ((rxbytes == 0) || ((rxbytes > 0) && (rxbuf != NULL))) &&
+                   (timeout != TIME_IMMEDIATE),
+               "i2cMasterTransmitTimeout");
 
-  chDbgAssert(i2cp->state == I2C_READY,
-              "i2cMasterTransmitTimeout(), #1", "not ready");
+    // chDbgAssert(i2cp->state == I2C_READY, "i2cMasterTransmitTimeout(), #1", "not ready");
+    if (i2cp->state != I2C_READY) {
+        return RDY_TIMEOUT;
+    }
 
-  chSysLock();
-  i2cp->errors = I2CD_NO_ERROR;
-  i2cp->state = I2C_ACTIVE_TX;
-  rdymsg = i2c_lld_master_transmit_timeout(i2cp, addr, txbuf, txbytes,
-                                           rxbuf, rxbytes, timeout);
-  if (rdymsg == RDY_TIMEOUT)
-    i2cp->state = I2C_LOCKED;
-  else
-    i2cp->state = I2C_READY;
-  chSysUnlock();
-  return rdymsg;
+    chSysLock();
+    i2cp->errors = I2CD_NO_ERROR;
+    i2cp->state = I2C_ACTIVE_TX;
+    rdymsg = i2c_lld_master_transmit_timeout(i2cp, addr, txbuf, txbytes,
+                                             rxbuf, rxbytes, timeout);
+    if (rdymsg == RDY_TIMEOUT)
+        i2cp->state = I2C_LOCKED;
+    else
+        i2cp->state = I2C_READY;
+    chSysUnlock();
+    return rdymsg;
 }
 
 /**
@@ -233,32 +231,33 @@ msg_t i2cMasterTransmitTimeout(I2CDriver *i2cp,
  *
  * @api
  */
-msg_t i2cMasterReceiveTimeout(I2CDriver *i2cp,
+msg_t i2cMasterReceiveTimeout(I2CDriver* i2cp,
                               i2caddr_t addr,
-                              uint8_t *rxbuf,
+                              uint8_t* rxbuf,
                               size_t rxbytes,
-                              systime_t timeout){
+                              systime_t timeout) {
+    msg_t rdymsg;
 
-  msg_t rdymsg;
+    chDbgCheck((i2cp != NULL) && (addr != 0) &&
+                   (rxbytes > 0) && (rxbuf != NULL) &&
+                   (timeout != TIME_IMMEDIATE),
+               "i2cMasterReceiveTimeout");
 
-  chDbgCheck((i2cp != NULL) && (addr != 0) &&
-             (rxbytes > 0) && (rxbuf != NULL) &&
-             (timeout != TIME_IMMEDIATE),
-             "i2cMasterReceiveTimeout");
+    // chDbgAssert(i2cp->state == I2C_READY, "i2cMasterReceive(), #1", "not ready");
+    if (i2cp->state != I2C_READY) {
+        return RDY_TIMEOUT;
+    }
 
-  chDbgAssert(i2cp->state == I2C_READY,
-              "i2cMasterReceive(), #1", "not ready");
-
-  chSysLock();
-  i2cp->errors = I2CD_NO_ERROR;
-  i2cp->state = I2C_ACTIVE_RX;
-  rdymsg = i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
-  if (rdymsg == RDY_TIMEOUT)
-    i2cp->state = I2C_LOCKED;
-  else
-    i2cp->state = I2C_READY;
-  chSysUnlock();
-  return rdymsg;
+    chSysLock();
+    i2cp->errors = I2CD_NO_ERROR;
+    i2cp->state = I2C_ACTIVE_RX;
+    rdymsg = i2c_lld_master_receive_timeout(i2cp, addr, rxbuf, rxbytes, timeout);
+    if (rdymsg == RDY_TIMEOUT)
+        i2cp->state = I2C_LOCKED;
+    else
+        i2cp->state = I2C_READY;
+    chSysUnlock();
+    return rdymsg;
 }
 
 #if I2C_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
@@ -273,14 +272,13 @@ msg_t i2cMasterReceiveTimeout(I2CDriver *i2cp,
  *
  * @api
  */
-void i2cAcquireBus(I2CDriver *i2cp) {
-
-  chDbgCheck(i2cp != NULL, "i2cAcquireBus");
+void i2cAcquireBus(I2CDriver* i2cp) {
+    chDbgCheck(i2cp != NULL, "i2cAcquireBus");
 
 #if CH_USE_MUTEXES
-  chMtxLock(&i2cp->mutex);
+    chMtxLock(&i2cp->mutex);
 #elif CH_USE_SEMAPHORES
-  chSemWait(&i2cp->semaphore);
+    chSemWait(&i2cp->semaphore);
 #endif
 }
 
@@ -293,14 +291,13 @@ void i2cAcquireBus(I2CDriver *i2cp) {
  *
  * @api
  */
-void i2cReleaseBus(I2CDriver *i2cp) {
-
-  chDbgCheck(i2cp != NULL, "i2cReleaseBus");
+void i2cReleaseBus(I2CDriver* i2cp) {
+    chDbgCheck(i2cp != NULL, "i2cReleaseBus");
 
 #if CH_USE_MUTEXES
-  chMtxUnlock();
+    chMtxUnlock();
 #elif CH_USE_SEMAPHORES
-  chSemSignal(&i2cp->semaphore);
+    chSemSignal(&i2cp->semaphore);
 #endif
 }
 #endif /* I2C_USE_MUTUAL_EXCLUSION */

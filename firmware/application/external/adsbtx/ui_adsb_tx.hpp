@@ -62,7 +62,7 @@ class ADSBPositionView : public OptionTabView {
         GeoPos::HIDDEN};
 
     Button button_set_map{
-        {8 * 8, 6 * 16, 14 * 8, 2 * 16},
+        {UI_POS_X_CENTER(14), 6 * 16, 14 * 8, 2 * 16},
         "Set from map"};
 };
 
@@ -218,7 +218,7 @@ class ADSBTxView : public View {
     void start_tx();
     void generate_frames();
 
-    Rect view_rect = {0, 7 * 8, 240, 192};
+    Rect view_rect = {0, 7 * 8, screen_width, 192};
 
     ADSBPositionView view_position{nav_, view_rect};
     ADSBCallsignView view_callsign{nav_, view_rect};
@@ -244,7 +244,7 @@ class ADSBTxView : public View {
         "-"};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         1000000,
         0};
 

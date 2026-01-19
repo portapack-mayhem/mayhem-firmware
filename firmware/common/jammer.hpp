@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2025 RocketGod - Added modes from my Flipper Zero RF Jammer App - https://betaskynet.com
  *
  * This file is part of PortaPack.
  *
@@ -20,11 +21,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#define JAMMER_CH_WIDTH 1000000
-#define JAMMER_MAX_CH 24
-
 #ifndef __JAMMER_H__
 #define __JAMMER_H__
+
+#define JAMMER_CH_WIDTH 1000000
+#define JAMMER_MAX_CH 80
 
 namespace jammer {
 
@@ -37,7 +38,15 @@ typedef struct jammer_range {
 enum JammerType : uint32_t {
     TYPE_FSK = 0,
     TYPE_TONE = 1,
-    TYPE_SWEEP = 2
+    TYPE_SWEEP = 2,
+    TYPE_RANDOM = 3,
+    TYPE_SINE = 4,
+    TYPE_SQUARE = 5,
+    TYPE_SAWTOOTH = 6,
+    TYPE_TRIANGLE = 7,
+    TYPE_CHIRP = 8,
+    TYPE_GAUSSIAN = 9,
+    TYPE_BRUTEFORCE = 10
 };
 
 } /* namespace jammer */

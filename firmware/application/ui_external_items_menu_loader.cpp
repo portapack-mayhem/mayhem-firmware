@@ -132,20 +132,36 @@ namespace ui {
 
                 gridItem.on_select = [&nav, appInfo, i]() {
                     auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+                    dev2->lockDevice();
                     if (dev2) {
-                        auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - appInfo->binary_size);
+                        // auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - appInfo->binary_size);
+                        auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::local_sram_0.base());
+                        uint8_t errorcnt = 0;
                         for (size_t j = 0; j < appInfo->binary_size; j += 128) {
-                            auto segment = dev2->downloadStandaloneApp(i, j);
-                            if (segment.size() != 128) {
-                                continue;
+                            errorcnt = 0;
+                            do {
+                                auto segment = dev2->downloadStandaloneApp(i, j);
+                                if (segment.size() != 128) {
+                                    errorcnt++;
+                                    if (errorcnt > 5) {
+                                        break;
+                                    }
+                                } else {
+                                    std::copy(segment.begin(), segment.end(), app_image + j);
+                                    break;
+                                }
+                            } while (1);  // when ok, break. when errorcnt > 5, break
+                            if (errorcnt > 5) {
+                                nav.display_modal("Error", "Unable to download app.");
+                                dev2->unlockDevice();
+                                return;
                             }
-
-                            std::copy(segment.begin(), segment.end(), app_image + j);
                         }
 
                         if (!run_module_app(nav, app_image, appInfo->binary_size)) {
                             nav.display_modal("Error", "Unable to run downloaded app.");
                         }
+                        dev2->unlockDevice();
                     } else
                         nav.display_modal("Error", "Unable to download app.");
                 };
@@ -346,8 +362,7 @@ namespace ui {
     if (openError)
         return false;
 
-    // TODO: move this to m4 memory space
-    auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - app.size());
+    auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::local_sram_0.base());
 
     // read file in 512 byte chunks
     for (size_t file_read_index = 0; file_read_index < app.size(); file_read_index += std::filesystem::max_file_block_size) {

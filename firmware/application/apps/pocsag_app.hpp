@@ -126,6 +126,7 @@ struct POCSAGSettings {
     bool hide_bad_data = false;
     bool hide_addr_only = false;
     uint8_t filter_mode = false;
+    int32_t baud_rate = -1;
     uint32_t filter_address = 0;
 };
 
@@ -139,7 +140,16 @@ class POCSAGSettingsView : public View {
    private:
     POCSAGSettings& settings_;
 
+    OptionsField opt_baud_rate{
+        {8 * 8, 0 * 16},
+        4,
+        {{"Auto", -1},
+         {" 512", 0},
+         {"1200", 1},
+         {"2400", 2}}};
+
     Labels labels{
+        {{2 * 8, 0 * 16}, "Baud:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 12 * 16}, "Filter Mode:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 13 * 16}, "Filter Addr:", Theme::getInstance()->fg_light->foreground},
     };
@@ -183,7 +193,7 @@ class POCSAGSettingsView : public View {
         true /*explicit_edit*/};
 
     Button button_save{
-        {11 * 8, 16 * 16, 10 * 8, 2 * 16},
+        {UI_POS_X_CENTER(10), UI_POS_Y(16), 10 * 8, 2 * 16},
         "Save"};
 };
 
@@ -221,6 +231,7 @@ class POCSAGAppView : public View {
             {"filter_address"sv, &settings_.filter_address},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
+            {"baud_rate"sv, &settings_.baud_rate},
         }};
 
     void refresh_ui();
@@ -236,30 +247,30 @@ class POCSAGAppView : public View {
     uint16_t packet_count = 0;
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
 
     RFAmpField field_rf_amp{
-        {11 * 8, 0 * 16}};
+        {11 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {16 * 8, 0 * 16}};
+        {16 * 8, UI_POS_Y(0)}};
 
     RSSI rssi{
-        {19 * 8 - 4, 3, 6 * 8, 4}};
+        {19 * 8 - 4, 3, UI_POS_WIDTH_REMAINING(26), 4}};
     Audio audio{
-        {19 * 8 - 4, 8, 6 * 8, 4}};
+        {19 * 8 - 4, 8, UI_POS_WIDTH_REMAINING(26), 4}};
 
     NumberField field_squelch{
-        {25 * 8, 0 * 16},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(0)},
         2,
         {0, 99},
         1,
         ' ',
         true /*wrap*/};
     AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Image image_status{
         {0 * 8 + 4, 1 * 16 + 2, 16, 16},

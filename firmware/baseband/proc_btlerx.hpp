@@ -47,6 +47,8 @@ class BTLERxProcessor : public BasebandProcessor {
     static constexpr int LEN_DEMOD_BUF_ACCESS{32};
     static constexpr uint32_t DEFAULT_ACCESS_ADDR{0x8E89BED6};
     static constexpr int NUM_ACCESS_ADDR_BYTE{4};
+    static constexpr int NUM_PDU_HEADER_BYTE{2};
+    static constexpr int ROLLING_WINDOW{32};
 
     enum Parse_State {
         Parse_State_Begin = 0,
@@ -81,8 +83,8 @@ class BTLERxProcessor : public BasebandProcessor {
     };
 
     static constexpr size_t baseband_fs = 4000000;
-    static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
 
+    float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);
     uint_fast32_t crc_update(uint_fast32_t crc, const void* data, size_t data_len);
     uint_fast32_t crc24_byte(uint8_t* byte_in, int num_byte, uint32_t init_hex);
     bool crc_check(uint8_t* tmp_byte, int body_len, uint32_t crc_init);
@@ -94,6 +96,12 @@ class BTLERxProcessor : public BasebandProcessor {
     void scramble_byte(uint8_t* byte_in, int num_byte, const uint8_t* scramble_table_byte, uint8_t* byte_out);
     // void demod_byte(int num_byte, uint8_t *out_byte);
     int verify_payload_byte(int num_payload_byte, ADV_PDU_TYPE pdu_type);
+
+    void resetOffsetTracking();
+    void resetBitPacketIndex();
+    void resetToDefaultState();
+
+    void demodulateFSKBits(int num_demod_byte);
 
     void handleBeginState();
     void handlePDUHeaderState();
@@ -120,13 +128,18 @@ class BTLERxProcessor : public BasebandProcessor {
     BlePacketData blePacketData{};
 
     Parse_State parseState{Parse_State_Begin};
-    uint16_t packet_index{0};
-    int sample_idx{0};
-    int symbols_eaten{0};
+    int samples_eaten{0};
     uint8_t bit_decision{0};
     uint8_t payload_len{0};
     uint8_t pdu_type{0};
     int32_t max_dB{0};
+    uint16_t packet_index{0};
+    uint8_t bit_index{0};
+
+    float frequency_offset_estimate{0.0f};
+    float frequency_offset{0.0f};
+    float phase_buffer[ROLLING_WINDOW] = {0.0f};
+    int phase_buffer_index = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

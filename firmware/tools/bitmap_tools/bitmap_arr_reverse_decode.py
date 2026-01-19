@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
-# Copyleft (ɔ) 2024 zxkmm with the GPL license
+# copyleft 2024 zxkmm AKA zix aka sommermorgentraum
 #
 # This file is part of PortaPack.
 #

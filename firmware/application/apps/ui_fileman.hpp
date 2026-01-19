@@ -64,7 +64,8 @@ class FileManBaseView : public View {
     uint32_t prev_highlight = 0;
     uint8_t pagination = 0;
     uint8_t nb_pages = 1;
-    static constexpr size_t max_filename_length = 20;
+    bool restoring_navigation = false;
+    size_t max_filename_length = 20;
     static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't sort it
     static constexpr size_t items_per_page = 20;
 
@@ -96,6 +97,7 @@ class FileManBaseView : public View {
     void load_directory_contents(const std::filesystem::path& dir_path);
     void load_directory_contents_unordered(const std::filesystem::path& dir_path, size_t file_cnt);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
+    std::string get_extension(const std::string& t) const;
     void copy_waterfall(std::filesystem::path path);
 
     NavigationView& nav_;
@@ -120,16 +122,16 @@ class FileManBaseView : public View {
         {{0, 0}, "Path:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_current{
-        {6 * 8, 0 * 8, 24 * 8, 16},
+        {UI_POS_X(6), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)},
         "",
     };
 
     MenuView menu_view{
-        {0, 2 * 8, 240, 26 * 8},
+        {0, UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(7)},
         true};
 
     Button button_exit{
-        {22 * 8, 34 * 8, 8 * 8, 32},
+        {UI_POS_X_RIGHT(8), UI_POS_Y_BOTTOM(3), 8 * 8, UI_POS_HEIGHT(2)},
         "Exit"};
 };
 
@@ -172,7 +174,7 @@ private:
         };
 
         Text text_path {
-                { 0 * 8, 2 * 16, 30 * 8, 16 },
+                { 0 * 8, 2 * 16, screen_width, 16 },
                 "",
         };
 
@@ -182,7 +184,7 @@ private:
         };
 
         Text text_name {
-                { 0 * 8, 7 * 16, 30 * 8, 16 },
+                { 0 * 8, 7 * 16, screen_width, 16 },
                 "",
         };
 
@@ -228,66 +230,66 @@ class FileManagerView : public FileManBaseView {
     bool selected_is_valid() const;
 
     Text text_date{
-        {0 * 8, 26 * 8, 28 * 8, 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(6), 28 * 8, UI_POS_HEIGHT(1)},
         ""};
 
     NewButton button_rename{
-        {0 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_rename,
         Theme::getInstance()->fg_blue->foreground};
 
     NewButton button_delete{
-        {9 * 8, 34 * 8, 4 * 8, 32},
+        {UI_POS_X(9), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_trash,
         Theme::getInstance()->fg_red->foreground};
 
     NewButton button_clean{
-        {13 * 8, 34 * 8, 4 * 8, 32},
+        {UI_POS_X(13), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_clean,
         Theme::getInstance()->fg_red->foreground};
 
     NewButton button_cut{
-        {9 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(9), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_cut,
         Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_copy{
-        {13 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(13), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_copy,
         Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_paste{
-        {17 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(17), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_paste,
         Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_new_dir{
-        {22 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(22), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_new_dir,
         Theme::getInstance()->fg_green->foreground};
 
     NewButton button_new_file{
-        {26 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(26), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_new_file,
         Theme::getInstance()->fg_green->foreground};
 
     NewButton button_open_notepad{
-        {0 * 8, 34 * 8, 4 * 8, 32},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_notepad,
         Theme::getInstance()->fg_orange->foreground};
 
     NewButton button_rename_timestamp{
 
-        {4 * 8, 29 * 8, 4 * 8, 32},
+        {UI_POS_X(4), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_options_datetime,
         Theme::getInstance()->fg_blue->foreground,
@@ -295,13 +297,13 @@ class FileManagerView : public FileManBaseView {
 
     NewButton button_open_iq_trim{
 
-        {4 * 8, 34 * 8, 4 * 8, 32},
+        {UI_POS_X(4), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_trim,
         Theme::getInstance()->fg_orange->foreground};
 
     NewButton button_show_hidden_files{
-        {17 * 8, 34 * 8, 4 * 8, 32},
+        {UI_POS_X(17), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)},
         {},
         &bitmap_icon_hide,
         Theme::getInstance()->fg_dark->foreground};

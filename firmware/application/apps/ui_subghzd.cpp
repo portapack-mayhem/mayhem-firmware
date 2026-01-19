@@ -84,6 +84,7 @@ void SubGhzDView::focus() {
 SubGhzDView::SubGhzDView(NavigationView& nav)
     : nav_{nav} {
     add_children({&rssi,
+                  &channel,
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
@@ -261,17 +262,14 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string line{};
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
     line = line + " " + to_string_hex(entry.data << 32);
-    if (line.length() < 19) {
-        line += SubGhzDView::pad_string_with_spaces(19 - line.length());
-    } else {
-        line = truncate(line, 19);
-    }
+    line.resize(columns.at(0).second, ' ');
     std::string ageStr = to_string_dec_uint(entry.age);
     std::string bitsStr = to_string_dec_uint(entry.bits);
     line += SubGhzDView::pad_string_with_spaces(5 - bitsStr.length()) + bitsStr;
@@ -341,7 +339,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_CAMEATOMO) {
         entry_.data ^= 0xFFFFFFFFFFFFFFFF;
         entry_.data <<= 4;
-        uint8_t pack[8] = {};
+        uint8_t pack[8];
         pack[0] = (entry_.data >> 56);
         pack[1] = ((entry_.data >> 48) & 0xFF);
         pack[2] = ((entry_.data >> 40) & 0xFF);

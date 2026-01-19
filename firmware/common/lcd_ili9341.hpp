@@ -34,7 +34,7 @@ namespace lcd {
 
 class ILI9341 {
    public:
-    constexpr ILI9341()
+    ILI9341()
         : scroll_state{0, 0, height(), 0} {
     }
 
@@ -43,12 +43,13 @@ class ILI9341 {
     void operator=(const ILI9341&) = delete;
 
     bool read_display_status();
+    uint32_t lcd_read_display_id();
 
     void init();
     void shutdown();
 
-    void sleep();
-    void wake();
+    void sleep(bool hw_sleep = true);
+    void wake(bool hw_sleep = true);
 
     void fill_rectangle(ui::Rect r, const ui::Color c);
     void fill_rectangle_unrolled8(ui::Rect r, const ui::Color c);
@@ -62,7 +63,7 @@ class ILI9341 {
     void draw_pixel(const ui::Point p, const ui::Color color);
     void draw_bmp_from_bmp_hex_arr(const ui::Point p, const uint8_t* bitmap, const uint8_t* transparency_color);
     bool draw_bmp_from_sdcard_file(const ui::Point p, const std::filesystem::path& file);
-    void render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer);
+    void render_line(const ui::Point p, const uint16_t count, const ui::Color* line_buffer);
     void render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer);
 
     template <size_t N>
@@ -72,10 +73,21 @@ class ILI9341 {
         draw_pixels(r, colors.data(), colors.size());
     }
 
+    void draw_pixels(
+        const ui::Rect r,
+        const std::vector<ui::Color>& colors) {
+        draw_pixels(r, colors.data(), colors.size());
+    }
+
     template <size_t N>
     void read_pixels(
         const ui::Rect r,
         std::array<ui::ColorRGB888, N>& colors) {
+        read_pixels(r, colors.data(), colors.size());
+    }
+    void read_pixels(
+        const ui::Rect r,
+        std::vector<ui::ColorRGB888>& colors) {
         read_pixels(r, colors.data(), colors.size());
     }
 
@@ -138,9 +150,9 @@ class ILI9341 {
      */
     ui::Coord scroll_area_y(const ui::Coord y) const;
 
-    constexpr ui::Dim width() const { return ui::screen_width; }
-    constexpr ui::Dim height() const { return ui::screen_height; }
-    constexpr ui::Rect screen_rect() const { return {0, 0, width(), height()}; }
+    ui::Dim width() { return ui::screen_width; }
+    ui::Dim height() { return ui::screen_height; }
+    ui::Rect screen_rect() { return {0, 0, width(), height()}; }
 
     void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
     void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
@@ -152,7 +164,6 @@ class ILI9341 {
         ui::Dim height;
         ui::Coord current_position;
     };
-
     scroll_t scroll_state;
 };
 

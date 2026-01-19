@@ -58,23 +58,23 @@ class ShoppingCartLock : public View {
     void restart_playback();
 
     MenuView menu_view{
-        {0, 0, 240, 150},
+        {0, 0, screen_width, 150},
         true};
 
     Text text_empty{
-        {40, 70, 160, 16},
+        {UI_POS_X_CENTER(20), 70, 160, 16},
         "RocketGod was here"};
 
     Button button_lock{
-        {40, 165, 160, 35},
+        {UI_POS_X_CENTER(20), 165, 160, 35},
         LanguageHelper::currentMessages[LANG_LOCK]};
 
     Button button_unlock{
-        {40, 205, 160, 35},
+        {UI_POS_X_CENTER(20), 205, 160, 35},
         LanguageHelper::currentMessages[LANG_UNLOCK]};
 
     Button button_stop{
-        {40, 245, 160, 35},
+        {UI_POS_X_CENTER(20), 245, 160, 35},
         LanguageHelper::currentMessages[LANG_STOP]};
 
     MessageHandlerRegistration message_handler_fifo_signal{

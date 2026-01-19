@@ -114,7 +114,7 @@ Optional<capture_metadata> read_metadata_file(const fs::path& path) {
 }
 
 bool parse_float_meta(std::string_view str, float& out_val) {
-    out_val = {};
+    out_val = 0.0f;
 
     if (str.size() > max_parse_int_length)
         return false;
