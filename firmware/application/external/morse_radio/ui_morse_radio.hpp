@@ -110,16 +110,18 @@ class MorseRadioView : public ui::View {
     };
     ui::Text txt_speed{{UI_POS_X(23), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)}, "??"};
     ui::Text txt_last{{UI_POS_X(12), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(12), UI_POS_HEIGHT(1)}, ""};
+    ui::Text txt_freq{{UI_POS_X(21), UI_POS_Y(2), UI_POS_WIDTH(4), UI_POS_HEIGHT(1)}, "??"};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(7)}};
     ui::Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Squelch:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(15), UI_POS_Y(1)}, "Speed:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(26), UI_POS_Y(1)}, "wpm", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(4)}, "Last seq.:", Theme::getInstance()->fg_light->foreground},
-    };
+        {{UI_POS_X(15), UI_POS_Y(2)}, "freq:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(26), UI_POS_Y(2)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     ui::OptionsField options_mode{
-        {UI_POS_X(10), UI_POS_Y(2)},
+        {UI_POS_X(9), UI_POS_Y(2)},
         5,
         {{"CW/FM", 0}, {"USB", 1}, {"LSB", 2}}};
 

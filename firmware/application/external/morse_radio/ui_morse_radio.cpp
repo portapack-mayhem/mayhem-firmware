@@ -16,6 +16,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
                   &field_frequency,
                   &txt_last,
                   &txt_speed,
+                  &txt_freq,
                   &options_mode,
                   &btn_clear,
                   &console_text,
@@ -38,8 +39,8 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     receiver_model.enable();
 
     options_mode.on_change = [this](size_t, int32_t value) {
-        current_mode = static_cast<uint8_t>(value);
-
+        current_mode = static_cast<uint8_t>(value);  // static buzis
+        morse_decoder_.resetLearning();
         if (current_mode == 0) {
             receiver_model.set_am_configuration(4);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
@@ -220,6 +221,15 @@ void MorseRadioView::on_data(const MorseRXDataMessage* message) {
         }
     }
     if (!has_valid) return;  // no valid data arrived
+
+    if (message->measured_frequency < 400 || message->measured_frequency > 1400)
+        txt_freq.set_style(Theme::getInstance()->fg_red);
+    else if (message->measured_frequency < 520 || message->measured_frequency > 1220)
+        txt_freq.set_style(Theme::getInstance()->fg_yellow);
+    else
+        txt_freq.set_style(Theme::getInstance()->fg_green);
+
+    txt_freq.set(to_string_dec_uint(message->measured_frequency));
 
     for (uint16_t i = start; i <= stop; i++) {
         r = ProcessSignal(message->state_durations[i]);

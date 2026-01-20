@@ -30,7 +30,6 @@
 #include "audio_output.hpp"
 #include "dsp_fir_taps.hpp"
 #include "rssi_thread.hpp"
-#include "audio_compressor.hpp"
 
 class MorseProcessor : public BasebandProcessor {
    public:
@@ -41,11 +40,16 @@ class MorseProcessor : public BasebandProcessor {
     void update_goertzel_coeff(float freq);
 
    private:
-    bool configured{false};
+    BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
+    void configure(uint8_t mode);
     buffer_f32_t demodulate(const buffer_c16_t& channel);
 
-    BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
-    RSSIThread rssi_thread{};
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
+    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    dsp::demodulate::FM demod_cw_fm{};
+    dsp::demodulate::SSB demod_ssb{};
+    AudioOutput audio_output{};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -56,45 +60,43 @@ class MorseProcessor : public BasebandProcessor {
         audio.data(),
         audio.size()};
 
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-    dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    dsp::demodulate::FM demod_cw_fm{};
-    dsp::demodulate::SSB demod_ssb{};
-    AudioOutput audio_output{};
-    FeedForwardCompressor audio_compressor{};
+    bool configured{false};
+    bool was_signaling{false};    // Goertzel
+    bool squelch_is_open{false};  // Squelch and stability
+    uint8_t modulation{0};        // 0=CW/FM, 1=USB, 2=LSB
 
-    // Goertzel and signal detection
-    int32_t coeff_int{0};
-    int32_t s_prev_i{0};
-    int32_t s_prev2_i{0};
-    uint32_t goertzel_count{0};
-    uint32_t duration_samples{0};
-    bool was_signaling{false};
+    int16_t prev_sample{0};  // Variables required for measurement
 
-    // Variables required for measurement
-    int16_t prev_sample{0};
-    uint32_t zc_counter{0};
-    float current_freq{0.0f};
+    uint32_t zc_counter{0};        // Variables required for measurement
+    uint32_t goertzel_count{0};    // Goertzel
+    uint32_t duration_samples{0};  // Goertzel
 
+    int32_t coeff_int{0};  // Goertzel
+    int32_t s_prev_i{0};   // Goertzel
+    int32_t s_prev2_i{0};  // Goertzel
     int32_t lpf_sample{0};
     int32_t dc_offset{0};
+    int32_t squelch_hold{0};        // Squelch and stability
+    int32_t user_squelch_level{0};  // Squelch and stability
+    int32_t startup_delay{0};       // Squelch and stability
+    int32_t last_zc_counter{0};     // Squelch and stability
+    int64_t noise_floor{0};         // Squelch and stability
 
-    // Squelch and stability
-    bool squelch_is_open{false};
-    int32_t squelch_hold{0};
+    float current_freq{0.0f};  // Variables required for measurement
 
-    int32_t user_squelch_level{0};
-    int64_t noise_floor{0};
+    // UI és időzítés
+    int32_t ui_update_timer = 0;
+    int32_t freq_hold_timer = 0;
+    float display_freq = 0.0f;
 
-    int32_t startup_delay{0};    // Power-on delay
-    int32_t last_zc_counter{0};  // Previous ZC measurement for comparison
-    uint8_t modulation{0};       // 0=CW/FM, 1=USB, 2=LSB
+    // Precíziós mérés változói
+    int32_t samples_in_period = 0;      // Számláló egy teljes periódushoz
+    bool signal_state_high = false;     // Schmitt-trigger állapota
+    float freq_avg_accumulator = 0.0f;  // Átlagoláshoz
+    int32_t freq_avg_count = 0;         // Átlagoláshoz
 
     MorseRXDataMessage message{};
-
-    // void configure(const AMConfigureMessage& message);
-    void configure(uint8_t mode);
+    RSSIThread rssi_thread{};
 };
 
 #endif  // __PROC_MORSE_H__
