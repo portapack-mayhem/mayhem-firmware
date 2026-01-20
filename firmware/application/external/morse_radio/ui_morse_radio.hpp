@@ -40,6 +40,7 @@
 #include "file.hpp"
 #include "rtc_time.hpp"
 #include "morsedecoder.hpp"
+
 #include <cstdint>
 
 namespace ui::external_app::morse_radio {
@@ -53,8 +54,8 @@ class MorseLogger {
     }
 
     void init_daily_log(const std::filesystem::path& log_dir);
-    bool on_packet(const std::string& content, bool time);
-    void radio_set_log();
+    bool on_packet(const std::string& content, bool time, uint8_t current_mode);
+    // void radio_set_log(uint8_t current_mode);
 
    private:
     LogFile log_file{};
@@ -81,7 +82,9 @@ class MorseRadioView : public ui::View {
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
     app_settings::SettingsManager settings_{
-        "trx_morese_radio", app_settings::Mode::RX_TX};
+        "trx_morese_radio",
+        app_settings::Mode::RX,
+        {{"current_mode"sv, &current_mode}}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -114,20 +117,27 @@ class MorseRadioView : public ui::View {
         {{UI_POS_X(26), UI_POS_Y(1)}, "wpm", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(4)}, "Last seq.:", Theme::getInstance()->fg_light->foreground},
     };
+
+    ui::OptionsField options_mode{
+        {UI_POS_X(10), UI_POS_Y(2)},
+        5,
+        {{"CW/FM", 0}, {"USB", 1}, {"LSB", 2}}};
+
     Checkbox chk_log{{UI_POS_X(0), UI_POS_Y(2)}, 12, "Log", false};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};
 
-    uint8_t last_color_id{255};
-    uint8_t color_id{255};
     std::string arr_color[4] = {STR_COLOR_WHITE, STR_COLOR_RED, STR_COLOR_YELLOW, STR_COLOR_GREEN};
 
-    int32_t accumulator_us_{0};
-    int8_t last_sign_{0};
-    uint8_t space_timer{0};
     bool long_pause_sent_{false};
     bool save_log{false};
     bool reset_triggered_{false};
     bool time_stamp{false};
+    uint8_t current_mode{0};
+    uint8_t last_color_id{255};
+    uint8_t color_id{255};
+    int8_t last_sign_{0};
+    uint8_t space_timer{0};
+    int32_t accumulator_us_{0};
     uint64_t last_activity_time{0};
 
     MessageHandlerRegistration message_handler_packet{

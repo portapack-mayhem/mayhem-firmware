@@ -42,13 +42,9 @@ class MorseProcessor : public BasebandProcessor {
 
    private:
     bool configured{false};
+    buffer_f32_t demodulate(const buffer_c16_t& channel);
 
-    static constexpr size_t decim_2_decimation_factor = 4;
-    static constexpr size_t channel_filter_decimation_factor = 1;
-
-    static constexpr size_t baseband_fs = 3072000;
-
-    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 
     std::array<complex16_t, 512> dst{};
@@ -63,7 +59,8 @@ class MorseProcessor : public BasebandProcessor {
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    dsp::demodulate::SSB demod{};
+    dsp::demodulate::FM demod_cw_fm{};
+    dsp::demodulate::SSB demod_ssb{};
     AudioOutput audio_output{};
     FeedForwardCompressor audio_compressor{};
 
@@ -84,7 +81,7 @@ class MorseProcessor : public BasebandProcessor {
     int32_t dc_offset{0};
 
     // Squelch and stability
-    bool squelch_is_open{true};
+    bool squelch_is_open{false};
     int32_t squelch_hold{0};
 
     int32_t user_squelch_level{0};
@@ -92,11 +89,12 @@ class MorseProcessor : public BasebandProcessor {
 
     int32_t startup_delay{0};    // Power-on delay
     int32_t last_zc_counter{0};  // Previous ZC measurement for comparison
+    uint8_t modulation{0};       // 0=CW/FM, 1=USB, 2=LSB
 
     MorseRXDataMessage message{};
 
     // void configure(const AMConfigureMessage& message);
-    void configure();
+    void configure(uint8_t mode);
 };
 
 #endif  // __PROC_MORSE_H__

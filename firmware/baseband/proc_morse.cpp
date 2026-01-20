@@ -25,14 +25,33 @@
 #include "event_m4.hpp"
 #include <cmath>
 
-void MorseProcessor::configure() {
+void MorseProcessor::configure(uint8_t mode) {
     configured = false;
 
-    decim_0.configure(taps_6k0_decim_0.taps);
-    decim_1.configure(taps_6k0_decim_1.taps);
-    channel_filter.configure(taps_2k8_lsb_channel.taps, 2);
+    switch (mode) {
+        case 0:  // CW/FM
+            decim_0.configure(taps_11k0_decim_0.taps);
+            decim_1.configure(taps_11k0_decim_1.taps);
+            channel_filter.configure(taps_11k0_channel.taps, 2);
+            demod_cw_fm.configure(24000, 5000);  // Standard NFM
+            break;
+        case 1:  // USB
+            decim_0.configure(taps_6k0_decim_0.taps);
+            decim_1.configure(taps_6k0_decim_1.taps);
+            channel_filter.configure(taps_2k8_usb_channel.taps, 4);
+            break;
+        case 2:  // LSB
+            decim_0.configure(taps_6k0_decim_0.taps);
+            decim_1.configure(taps_6k0_decim_1.taps);
+            channel_filter.configure(taps_2k8_lsb_channel.taps, 4);
+            break;
+    }
 
-    audio_output.configure(audio_12k_hpf_300hz_config);
+    modulation = mode;
+    if (mode > 0)
+        audio_output.configure(audio_12k_hpf_300hz_config);
+    else
+        audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
 
     // 2. Resetting variables
     dc_offset = 0;
@@ -62,8 +81,20 @@ void MorseProcessor::configure() {
 void MorseProcessor::update_goertzel_coeff(float freq) {
     if (freq < 400.0f) freq = 400.0f;
     if (freq > 1500.0f) freq = 1500.0f;  // limit to algo capacity min/max
-    float omega = 2.0f * M_PI * freq / 24000.0f;
+
+    // 0 = FM (24k), 1 = USB (12k), 2 = LSB (12k)
+    float sample_rate = (modulation == 0) ? 24000.0f : 12000.0f;
+
+    float omega = 2.0f * M_PI * freq / sample_rate;
     coeff_int = (int32_t)(2.0f * cosf(omega) * 16384.0f);
+}
+
+inline buffer_f32_t MorseProcessor::demodulate(const buffer_c16_t& channel) {
+    if (modulation > 0) {
+        squelch_is_open = true;
+        return demod_ssb.execute(channel, audio_buffer);
+    }
+    return demod_cw_fm.execute(channel, audio_buffer);
 }
 
 void MorseProcessor::execute(const buffer_c8_t& buffer) {
@@ -74,13 +105,13 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
 
     const auto channel = channel_filter.execute(decim_1_out, dst_buffer);
 
-    feed_channel_stats(channel);
+    // feed_channel_stats(channel); --no channel displayed
 
-    auto audio_buf = demod.execute(channel, audio_buffer);
-    audio_compressor.execute_in_place(audio_buffer);
+    buffer_f32_t audio_buf = demodulate(channel);
+    // audio_compressor.execute_in_place(audio_buf);
 
     for (size_t i = 0; i < audio_buf.count; i++) {
-        int32_t raw_sample = audio_buf.p[i] * 32768.0f;
+        int32_t raw_sample = audio_buf.p[i] * 32768;
 
         // 1. DC & LPF
         dc_offset += (raw_sample - dc_offset) / 32;
@@ -98,8 +129,9 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
         } else {
             if (squelch_hold > 0)
                 squelch_hold--;
-            // else
-            // squelch_is_open = false;
+            else {
+                if (modulation == 0) squelch_is_open = false;
+            }
         }
 
         // 3. Frequency measurement (ZC)
@@ -186,26 +218,24 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
             s_prev2_i = 0;
             goertzel_count = 0;
         }
-
-        audio_buf.p[i] = squelch_is_open ? (int16_t)sample : 0;
+        if (!squelch_is_open) audio_buf.p[i] = 0;
+        // audio_buf.p[i] = squelch_is_open ? (int16_t)sample : 0;  // todo check
     }
     audio_output.write(audio_buf);
 }
 
 void MorseProcessor::on_message(const Message* const p) {
     switch (p->id) {
-        case Message::ID::MorseRXConfig:
-            configure();
+        case Message::ID::MorseRXConfig: {
+            auto morse_rx_msg = *reinterpret_cast<const MorseRXConfigureMessage*>(p);
+            configure(morse_rx_msg.mode);
             break;
-
-        case Message::ID::AMConfigure:
-            // configure(*reinterpret_cast<const AMConfigureMessage*>(p));
-            break;
+        }
 
         case Message::ID::NBFMConfigure: {
             auto nbfm_msg = *reinterpret_cast<const NBFMConfigureMessage*>(p);
             user_squelch_level = nbfm_msg.squelch_level;
-            // audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
+            audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
             break;
         }
 
