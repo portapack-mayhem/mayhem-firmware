@@ -117,7 +117,7 @@ class MorseRadioView : public ui::View {
         {{UI_POS_X(15), UI_POS_Y(1)}, "Speed:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(26), UI_POS_Y(1)}, "wpm", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(4)}, "Last seq.:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(15), UI_POS_Y(2)}, "freq:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(15), UI_POS_Y(2)}, "Tone:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(26), UI_POS_Y(2)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     ui::OptionsField options_mode{

@@ -84,16 +84,14 @@ class MorseProcessor : public BasebandProcessor {
 
     float current_freq{0.0f};  // Variables required for measurement
 
-    // UI és időzítés
-    int32_t ui_update_timer = 0;
-    int32_t freq_hold_timer = 0;
-    float display_freq = 0.0f;
+    int32_t freq_acc_count = 0;         // Hiányzó változó: Hullám számláló
+    float freq_avg_accumulator = 0.0f;  // Hiányzó változó: Frekvencia összegző
+    int32_t samples_in_period = 0;      // Periódus hossza
+    bool signal_state_high = false;     // Schmitt trigger állapota
 
-    // Precíziós mérés változói
-    int32_t samples_in_period = 0;      // Számláló egy teljes periódushoz
-    bool signal_state_high = false;     // Schmitt-trigger állapota
-    float freq_avg_accumulator = 0.0f;  // Átlagoláshoz
-    int32_t freq_avg_count = 0;         // Átlagoláshoz
+    int32_t freq_hold_timer = 0;  // Kijelző tartás
+    float display_freq = 0.0f;    // Kijelzett frekvencia
+    int32_t ui_update_timer = 0;  // UI frissítés lassító
 
     MorseRXDataMessage message{};
     RSSIThread rssi_thread{};

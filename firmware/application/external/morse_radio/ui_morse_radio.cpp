@@ -224,7 +224,7 @@ void MorseRadioView::on_data(const MorseRXDataMessage* message) {
 
     if (message->measured_frequency < 400 || message->measured_frequency > 1400)
         txt_freq.set_style(Theme::getInstance()->fg_red);
-    else if (message->measured_frequency < 520 || message->measured_frequency > 1220)
+    else if (message->measured_frequency < 580 || message->measured_frequency > 1220)
         txt_freq.set_style(Theme::getInstance()->fg_yellow);
     else
         txt_freq.set_style(Theme::getInstance()->fg_green);
