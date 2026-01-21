@@ -85,31 +85,15 @@ void MorseProcessor::configure(uint8_t mode) {
 
     configured = true;
 }
-/*
-void MorseProcessor::update_goertzel_coeff(float freq) {
-    if (freq < 100.0f) freq = 100.0f;
-    if (freq > 4000.0f) freq = 4000.0f;  // limit to algo capacity min/max
-
-    // 0 = FM (24k), 1 = USB (12k), 2 = LSB (12k)
-    float sample_rate = (modulation == 0) ? 24000.0f : 12000.0f;
-
-    float omega = 2.0f * M_PI * freq / sample_rate;
-    float omega_sq = omega * omega;
-    float cos_approx = 1.0f - (omega_sq * 0.5f);
-
-    coeff_int = (int32_t)(2.0f * cos_approx * 16384.0f);
-}
-*/
 
 void MorseProcessor::update_goertzel_coeff(float freq) {
-    if (freq < 100.0f) freq = 100.0f;
-    if (freq > 4000.0f) freq = 4000.0f;
+    if (freq < 300.0f) freq = 300.0f;
+    if (freq > 2500.0f) freq = 2500.0f;
 
     float sample_rate = (modulation == 0) ? 24000.0f : 12000.0f;
+    float x = 6.283185f * freq / sample_rate;
 
-    // Taylor-soros közelítés cos(x)-re: 1 - x^2/2 + x^4/24
-    // Ez sokkal kisebb, mint a teljes math könyvtár cosf() függvénye.
-    float x = 2.0f * M_PI * freq / sample_rate;
+    // Taylor-soros közelítés cos(x)-re (ez nem foglal extra helyet a flash-ben)
     float x2 = x * x;
     float cos_approx = 1.0f - (x2 * 0.5f) + (x2 * x2 * 0.04166f);
 
@@ -127,130 +111,112 @@ inline buffer_f32_t MorseProcessor::demodulate(const buffer_c16_t& channel) {
 void MorseProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    const auto channel = channel_filter.execute(
-        decim_1.execute(decim_0.execute(buffer, dst_buffer), dst_buffer),
-        dst_buffer);
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+    const auto channel = channel_filter.execute(decim_1_out, dst_buffer);
+
     buffer_f32_t audio_buf = demodulate(channel);
 
-    // Kiszámoljuk a mód-függő értékeket egyszer, fixpontosan ahol lehet
-    const bool is_fm = (modulation == 0);
-    const float gain = is_fm ? 8.0f : 18.0f;
-    const float sample_rate = is_fm ? 24000.0f : 12000.0f;
-    const int32_t trigger_level = is_fm ? 1200 : 700;
-    const int32_t sig_threshold = is_fm ? 1000 : 400;
-
     for (size_t i = 0; i < audio_buf.count; i++) {
-        float sample_f = audio_buf.p[i] * gain;
-        if (sample_f > 1.0f)
-            sample_f = 1.0f;
-        else if (sample_f < -1.0f)
-            sample_f = -1.0f;
-
-        audio_buf.p[i] = sample_f;
-        int32_t raw_sample = (int32_t)(sample_f * 32767.0f);
-
-        dc_offset += (raw_sample - dc_offset) / 256;
+        int32_t raw_sample = audio_buf.p[i] * 32768;
+        dc_offset += (raw_sample - dc_offset) / 32;
         int32_t sample = raw_sample - dc_offset;
-        lpf_sample = (lpf_sample * 2 + sample) / 3;
+        lpf_sample = (lpf_sample * 3 + sample) / 4;
         int32_t abs_sample = (sample < 0) ? -sample : sample;
 
-        // Squelch (zajzár)
-        if (is_fm) {
-            int32_t sq_limit = user_squelch_level * 120;
-            if (abs_sample > sq_limit || user_squelch_level == 0) {
-                squelch_is_open = true;
-                squelch_hold = 2400;
-            } else if (squelch_hold > 0)
-                squelch_hold--;
-            else
-                squelch_is_open = false;
-        } else
+        // Squelch logika
+        int32_t audio_threshold = (user_squelch_level * user_squelch_level) * 3;
+        if (abs_sample > audio_threshold || user_squelch_level == 0) {
             squelch_is_open = true;
-
-        // Frekvenciamérés (ZC)
-        if (abs_sample > trigger_level) {
-            samples_in_period++;
-            if (!signal_state_high && lpf_sample > (trigger_level / 2)) {
-                signal_state_high = true;
-                freq_acc_count++;
-                if (freq_acc_count >= 8) {
-                    float raw_freq = (sample_rate * 8.0f) / (float)samples_in_period;
-                    // SSB korrekciók a méréshez
-                    if (modulation == 1)
-                        raw_freq -= 40.0f;
-                    else if (modulation == 2)
-                        raw_freq += 30.0f;
-
-                    if (raw_freq > 200.0f && raw_freq < 2500.0f) {
-                        display_freq = (display_freq * 0.9f) + (raw_freq * 0.1f);
-                        freq_hold_timer = (int32_t)sample_rate;
-                    }
-                    samples_in_period = 0;
-                    freq_acc_count = 0;
-                }
-            } else if (signal_state_high && lpf_sample < -(trigger_level / 2))
-                signal_state_high = false;
+            squelch_hold = 2400;
+        } else {
+            if (squelch_hold > 0)
+                squelch_hold--;
+            else if (modulation == 0)
+                squelch_is_open = false;
         }
 
-        // Morse Dekódolás Goertzel-lel
-        bool raw_signal = (abs_sample > sig_threshold);  // Használjuk a küszöböt
+        // --- STABILIZÁLT FREKVENCIA MÉRÉS ---
+        if (squelch_is_open) {
+            if ((lpf_sample >= 0 && prev_sample < 0) || (lpf_sample < 0 && prev_sample >= 0)) {
+                // Csak akkor frissítünk frekvenciát, ha NINCS épp jelvétel (szünetben hangolunk)
+                // Vagy ha a jel nagyon instabil. Ez megakadályozza az ugrálást vétel közben.
+                if (!was_signaling && zc_counter >= 4 && zc_counter <= 64) {
+                    float base_sr = (modulation == 0) ? 24000.0f : 12000.0f;
+                    float n_freq = base_sr / (zc_counter * 2.0f);
 
-        if (squelch_is_open && raw_signal) {
-            if (!was_signaling) {
-                update_goertzel_coeff(display_freq > 100.0f ? display_freq : (is_fm ? 700.0f : 800.0f));
+                    if (n_freq > 350.0f && n_freq < 2200.0f) {
+                        // Erősebb simítás (0.95), hogy ne ugráljon
+                        current_freq = (current_freq * 0.95f) + (n_freq * 0.05f);
+                        update_goertzel_coeff(current_freq);
+                        freq_hold_timer = (int32_t)base_sr;
+                    }
+                }
+                zc_counter = 0;
+            } else {
+                if (zc_counter < 100) zc_counter++;
             }
+        }
+        prev_sample = (int16_t)lpf_sample;
 
-            int64_t s = (int64_t)sample + (((int64_t)coeff_int * s_prev_i) >> 14) - s_prev2_i;
-            s_prev2_i = s_prev_i;
-            s_prev_i = (int32_t)s;
-            goertzel_count++;
+        // Goertzel
+        int64_t s = (int64_t)sample + (((int64_t)coeff_int * s_prev_i) >> 14) - s_prev2_i;
+        s_prev2_i = s_prev_i;
+        s_prev_i = (int32_t)s;
+        goertzel_count++;
 
-            if (goertzel_count >= 60) {
-                int64_t pwr = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
-                              (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
+        if (goertzel_count >= 60) {
+            int64_t power = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
+                            (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
 
-                if (!was_signaling) noise_floor = (noise_floor * 255 + pwr) / 256;
+            if (startup_delay > 0) {
+                startup_delay--;
+                noise_floor = (noise_floor * 15 + power) / 16;
+            } else {
+                if (!was_signaling) noise_floor = (noise_floor * 127 + power) / 128;
 
-                // SSB-ben megengedőbb SNR (2.0), FM-ben szigorúbb (5.0)
-                int64_t snr_limit = was_signaling ? 2 : (is_fm ? 5 : 2);
-                int64_t min_pwr = is_fm ? 80000 : 30000;
-                bool is_tone = (pwr > (noise_floor * snr_limit)) && (pwr > min_pwr);
+                int64_t sensitivity = 4 + (user_squelch_level / 10);
+                int64_t pwr_threshold = was_signaling ? (noise_floor * sensitivity / 2) : (noise_floor * sensitivity);
+
+                int64_t min_pwr = (modulation == 0) ? 150000 : 80000;
+                bool is_tone = squelch_is_open && (power > pwr_threshold) && (power > min_pwr);
 
                 if (is_tone != was_signaling) {
-                    // Üzenet küldése (időalap korrekcióval)
-                    int32_t duration_us = (int32_t)((int64_t)duration_samples * (is_fm ? 41 : 83));
-                    message.state_durations[0] = was_signaling ? duration_us : -duration_us;
-                    message.measured_frequency = (uint32_t)((display_freq / 5) * 5);
-                    message.state_cnt = 1;
-                    shared_memory.application_queue.push(message);
+                    int32_t time_base = (modulation == 0) ? 41 : 83;
+                    int32_t duration_us = (int32_t)((int64_t)duration_samples * time_base);
+
+                    if (duration_us > 15000) {  // 15ms alatti tüskéket elvetünk (zajszűrés)
+                        message.state_durations[0] = was_signaling ? duration_us : -duration_us;
+                        message.measured_frequency = (uint32_t)current_freq;
+                        message.state_cnt = 1;
+                        shared_memory.application_queue.push(message);
+                    }
                     was_signaling = is_tone;
                     duration_samples = 0;
                 }
-                duration_samples += 60;
-                s_prev_i = s_prev2_i = goertzel_count = 0;
             }
-        } else if (was_signaling) {
-            // Jel elvesztésekor lezárás
-            int32_t duration_us = (int32_t)((int64_t)duration_samples * (is_fm ? 41 : 83));
-            message.state_durations[0] = duration_us;
-            message.measured_frequency = (uint32_t)((display_freq / 5) * 5);
-            message.state_cnt = 1;
-            shared_memory.application_queue.push(message);
-            was_signaling = false;
-            duration_samples = 0;
+            duration_samples += 60;
+            s_prev_i = s_prev2_i = goertzel_count = 0;
         }
 
-        // UI Frissítés (leegyszerűsítve a méret miatt)
+        // UI frissítés
         if (freq_hold_timer > 0) {
-            if (++ui_update_timer > 2400) {
-                message.measured_frequency = (uint32_t)((display_freq / 5) * 5);
+            if (++ui_update_timer > 4800) {  // Ritkább UI frissítés (200ms), kevesebb ugrálás
+                message.measured_frequency = (uint32_t)current_freq;
                 message.state_cnt = 0;
                 shared_memory.application_queue.push(message);
                 ui_update_timer = 0;
             }
             freq_hold_timer--;
         }
-        if (!squelch_is_open && is_fm) audio_buf.p[i] = 0;
+        if (!squelch_is_open && modulation == 0) audio_buf.p[i] = 0;
+    }
+
+    // SSB Hangerő korrekció
+    if (modulation > 0) {
+        for (size_t i = 0; i < audio_buf.count; i++) {
+            audio_buf.p[i] *= 6.0f;  // 8x helyett 6x, hogy ne torzítson annyira
+        }
     }
     audio_output.write(audio_buf);
 }
