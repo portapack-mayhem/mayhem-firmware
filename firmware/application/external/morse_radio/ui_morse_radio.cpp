@@ -39,7 +39,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     receiver_model.enable();
 
     options_mode.on_change = [this](size_t, int32_t value) {
-        current_mode = static_cast<uint8_t>(value);  // static buzis
+        current_mode = static_cast<uint8_t>(value);
         morse_decoder_.resetLearning();
         if (current_mode == 0) {
             receiver_model.set_am_configuration(4);

@@ -37,19 +37,15 @@ class MorseProcessor : public BasebandProcessor {
 
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const p) override;
-    void update_goertzel_coeff(float freq);
 
    private:
-    BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
     void configure(uint8_t mode);
     buffer_f32_t demodulate(const buffer_c16_t& channel);
+    void set_decoder_freq(float freq);
+    void measure_frequency(int32_t sample);
 
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-    dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    dsp::demodulate::FM demod_cw_fm{};
-    dsp::demodulate::SSB demod_ssb{};
-    AudioOutput audio_output{};
+    BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -60,41 +56,51 @@ class MorseProcessor : public BasebandProcessor {
         audio.data(),
         audio.size()};
 
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
+    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    dsp::demodulate::FM demod_cw_fm{};
+    dsp::demodulate::SSB demod_ssb{};
+    AudioOutput audio_output{};
+
     bool configured{false};
-    bool was_signaling{false};    // Goertzel
-    bool squelch_is_open{false};  // Squelch and stability
-    uint8_t modulation{0};        // 0=CW/FM, 1=USB, 2=LSB
 
-    int16_t prev_sample{0};  // Variables required for measurement
+    uint8_t modulation{0};  // 0=CW/FM, 1=USB, 2=LSB
+    bool squelch_is_open{false};
+    int32_t user_squelch_level{0};
 
-    uint32_t zc_counter{0};        // Variables required for measurement
-    uint32_t goertzel_count{0};    // Goertzel
-    uint32_t duration_samples{0};  // Goertzel
+    // --- 1. CSOPORT: DEKÓDOLÁS VÁLTOZÓI (goog_decode logika) ---
+    // Ezeket a mérő rutin NEM módosíthatja!
+    int32_t dec_coeff_int{0};  // Goertzel koefficiens
+    int32_t dec_s_prev_i{0};
+    int32_t dec_s_prev2_i{0};
+    uint32_t dec_goertzel_count{0};
+    uint32_t dec_duration_samples{0};
+    bool dec_was_signaling{false};
+    int64_t dec_noise_floor{0};
 
-    int32_t coeff_int{0};  // Goertzel
-    int32_t s_prev_i{0};   // Goertzel
-    int32_t s_prev2_i{0};  // Goertzel
-    int32_t lpf_sample{0};
-    int32_t dc_offset{0};
-    int32_t squelch_hold{0};        // Squelch and stability
-    int32_t user_squelch_level{0};  // Squelch and stability
-    int32_t startup_delay{0};       // Squelch and stability
-    int32_t last_zc_counter{0};     // Squelch and stability
-    int64_t noise_floor{0};         // Squelch and stability
+    // --- 2. CSOPORT: FREKVENCIA MÉRÉS VÁLTOZÓI (good_fequency_meas logika) ---
+    // Ezek csak a kijelzőt (measured_frequency) frissítik
+    int16_t meas_prev_sample{0};
+    uint32_t meas_zc_counter{0};
+    uint32_t meas_samples_in_period{0};
+    bool meas_signal_state_high{false};
+    float meas_avg_accumulator{0.0f};
+    uint32_t meas_avg_count{0};
+    uint32_t meas_last_period_len{0};
+    uint32_t meas_consistency_count{0};
 
-    float current_freq{0.0f};  // Variables required for measurement
+    int32_t meas_lpf{0};          // Aluláteresztő szűrő tároló
+    bool meas_state_high{false};  // Hiszterézis állapot (Fent/Lent)
+    uint32_t ui_update_timer{0};
 
-    int32_t freq_acc_count = 0;         // Hiányzó változó: Hullám számláló
-    float freq_avg_accumulator = 0.0f;  // Hiányzó változó: Frekvencia összegző
-    int32_t samples_in_period = 0;      // Periódus hossza
-    bool signal_state_high = false;     // Schmitt trigger állapota
+    float meas_freq_accumulator{0.0f};
+    uint32_t meas_freq_count{0};
 
-    int32_t freq_hold_timer = 0;  // Kijelző tartás
-    float display_freq = 0.0f;    // Kijelzett frekvencia
-    int32_t ui_update_timer = 0;  // UI frissítés lassító
+    // zajméréshez
+    int32_t trigger_level{500};
 
     MorseRXDataMessage message{};
-    RSSIThread rssi_thread{};
 };
 
-#endif  // __PROC_MORSE_H__
+#endif
