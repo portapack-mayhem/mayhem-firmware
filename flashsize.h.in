@@ -1,0 +1,6 @@
+#pragma once
+
+// clang-format off
+#define FLASH_SIZE_BYTES @FLASH_BYTES_SIZE@
+#define FLASH_SIZE_MB @FLASH_MB_SIZE@
+// clang-format on

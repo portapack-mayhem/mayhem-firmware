@@ -27,6 +27,13 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 add_compile_options(-fdiagnostics-color=always)
 
+#Flash size related add_link_options
+if(NOT DEFINED FLASH_MB_SIZE)
+    set(FLASH_MB_SIZE 1) # Default to 1MB if not provided
+endif()
+math(EXPR FLASH_BYTES_SIZE "${FLASH_MB_SIZE} * 1024 * 1024")
+configure_file(flashsize.h.in firmware/flashsize.h)
+
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
 project(portapack-h1)
