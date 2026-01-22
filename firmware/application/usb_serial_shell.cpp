@@ -1386,7 +1386,11 @@ static void cmd_getres(BaseSequentialStream* chp, int argc, char* argv[]) {
 static void cmd_getflash(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
-    std::string res = "ALLOWED:" + to_string_dec_uint(FLASH_SIZE_MB) + "\r\nCURRENT:" + to_string_dec_uint(FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
+    uint8_t allowrun = FLASH_SIZE_MB;
+    if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+        allowrun = 1;
+    }
+    std::string res = "ALLOWEDFW:" + to_string_dec_uint(FLASH_SIZE_MB) + "\r\nALLOWEDRUNTIME:" + to_string_dec_uint(allowrun) + "\r\nCURRENT:" + to_string_dec_uint(FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
     chprintf(chp, res.c_str());
 }
 
