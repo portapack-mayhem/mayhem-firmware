@@ -1383,6 +1383,25 @@ static void cmd_getres(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, res.c_str());
 }
 
+static void cmd_getflash(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    uint8_t allowrun = FLASH_SIZE_MB;
+    if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+        allowrun = 1;
+    }
+    std::string res = "ALLOWEDFW:" + to_string_dec_uint(FLASH_SIZE_MB) + "\r\nALLOWEDRUNTIME:" + to_string_dec_uint(allowrun) + "\r\nCURRENT:" + to_string_dec_uint(FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
+    chprintf(chp, res.c_str());
+}
+
+static void cmd_getdevtype(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    std::string res = portapack::device_type == portapack::DeviceType::DEV_PORTARF ? "PORTARF" : "PORTAPACK";
+    res += "\r\nok\r\n";
+    chprintf(chp, res.c_str());
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1419,6 +1438,8 @@ static const ShellCommand commands[] = {
     {"asyncmsg", cmd_asyncmsg},
     {"setfreq", cmd_setfreq},
     {"getres", cmd_getres},
+    {"getflash", cmd_getflash},
+    {"getdevtype", cmd_getdevtype},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
