@@ -39,27 +39,31 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     receiver_model.enable();
 
     options_mode.on_change = [this](size_t, int32_t value) {
-        current_mode = static_cast<uint8_t>(value);
+        current_mode = (uint8_t)value;
         morse_decoder_.resetLearning();
         if (current_mode == 0) {
             receiver_model.set_am_configuration(4);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-            field_squelch.set_value(field_squelch.value());
+            field_squelch.set_style(Theme::getInstance()->option_active);
+            field_squelch.set_focusable(true);
+            receiver_model.set_squelch_level(field_squelch.value());
             audio::set_rate(audio::Rate::Hz_24000);
         } else {
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
             receiver_model.set_am_configuration(current_mode + 7);
             receiver_model.set_squelch_level(0);
+            field_squelch.set_style(Theme::getInstance()->fg_dark);
+            field_squelch.set_focusable(false);
             audio::set_rate(audio::Rate::Hz_12000);
         }
         baseband::set_moreserx_config(current_mode);
     };
-    options_mode.set_selected_index(current_mode, true);
-
+    field_squelch.set_value(receiver_model.squelch_level(), false);  // will be sent later, no need to send 2x
     field_squelch.on_change = [this](int32_t v) {
         if (current_mode == 0)
             receiver_model.set_squelch_level(v);
     };
+    options_mode.set_selected_index(current_mode, true);
 
     auto vol = field_volume.value();  // audio volume fix
     field_volume.set_value(0);
@@ -74,76 +78,70 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
 }
 
 void MorseLogger::init_daily_log(const std::filesystem::path& log_dir) {
-    /*    auto now = rtc_time::now();
-        std::string pattern = "morse_";
-        uint16_t y = now.year();
-        pattern += (char)('0' + (y / 1000) % 10);
-        pattern += (char)('0' + (y / 100) % 10);
-        pattern += (char)('0' + (y / 10) % 10);
-        pattern += (char)('0' + (y % 10));
+    auto now = rtc_time::now();
+    std::string pattern = "morse_";
+    uint16_t y = now.year();
+    pattern += (char)('0' + (y / 1000) % 10);
+    pattern += (char)('0' + (y / 100) % 10);
+    pattern += (char)('0' + (y / 10) % 10);
+    pattern += (char)('0' + (y % 10));
 
-        uint8_t m = now.month();
-        pattern += (char)('0' + (m / 10) % 10);
-        pattern += (char)('0' + (m % 10));
+    uint8_t m = now.month();
+    pattern += (char)('0' + (m / 10) % 10);
+    pattern += (char)('0' + (m % 10));
 
-        uint8_t d = now.day();
-        pattern += (char)('0' + (d / 10) % 10);
-        pattern += (char)('0' + (d % 10));
+    uint8_t d = now.day();
+    pattern += (char)('0' + (d / 10) % 10);
+    pattern += (char)('0' + (d % 10));
 
-        pattern += "_???.TXT";
+    pattern += "_???.TXT";
 
-        auto full_pattern_path = log_dir / pattern;
-        auto final_path = next_filename_matching_pattern(full_pattern_path);
-        if (!final_path.empty()) {
-            this->append(final_path);
-        }*/
+    auto full_pattern_path = log_dir / pattern;
+    auto final_path = next_filename_matching_pattern(full_pattern_path);
+    if (!final_path.empty()) {
+        this->append(final_path);
+    }
 }
-/*
+
 void MorseLogger::radio_set_log(uint8_t current_mode) {
     int64_t freq = receiver_model.target_frequency();
-    std::string header = "Freq:" + to_string_dec_int(freq / 1000000) + "." + to_string_dec_int((freq % 1000000) / 1000, 3);
-    header += "MHz SQ:" + to_string_dec_uint(receiver_model.squelch_level());
-    header += " LNA:" + to_string_dec_uint(receiver_model.lna());
-    header += " VGA:" + to_string_dec_uint(receiver_model.vga());
-    header += " AMP:" + std::string(receiver_model.rf_amp() ? "ON" : "OFF");
+    std::string header = "Freq:" + to_string_rounded_freq(freq, 4);
+    header += "MHz, ";
     header += "RX MODE:" + std::string(current_mode == 0 ? "CW/FM" : (current_mode == 1 ? "USB" : "LSB"));
-    header += "\r\nMessage:\r\n";
-
+    header += "\r\nMessage:";
     log_file.write_raw(header);
 }
-*/
+
 bool MorseLogger::on_packet(const std::string& content, bool time, uint8_t current_mode) {
-    /* if (!time) {
-         log_file.write_raw_no_newline("\r\n\r\n");
-         auto timestamp = to_string_datetime(rtc_time::now(), YMDHMS);
-         log_file.write_raw("[" + timestamp + "] ");
-         (void)current_mode;
-         // radio_set_log(current_mode);
+    if (!time) {
+        log_file.write_raw_no_newline("\r\n\r\n");
+        auto timestamp = to_string_datetime(rtc_time::now(), YMDHMS);
+        log_file.write_raw("[" + timestamp + "] ");
+        radio_set_log(current_mode);
+        char_count = 0;
+        time = true;
+    }
 
-         char_count = 0;
-         time = true;
-     }
+    if (content.empty()) return time;
+    std::string s;
+    for (char c : content) {
+        s = c;
+        if ((char_count >= 35 && c == ' ') || (char_count >= 47)) {
+            log_file.write_raw_no_newline("\r\n");
 
-     if (content.empty()) return time;
-     std::string s;
-     for (char c : content) {
-         s = c;
-         if ((char_count >= 35 && c == ' ') || (char_count >= 47)) {
-             log_file.write_raw_no_newline("\r\n");
+            if (c != ' ') {
+                log_file.write_raw_no_newline(s);
+                char_count = 1;
+            } else {
+                char_count = 0;
+            }
+        } else {
+            log_file.write_raw_no_newline(s);
+            char_count++;
+        }
+    }
 
-             if (c != ' ') {
-                 log_file.write_raw_no_newline(s);
-                 char_count = 1;
-             } else {
-                 char_count = 0;
-             }
-         } else {
-             log_file.write_raw_no_newline(s);
-             char_count++;
-         }
-     }
-
-     return time;*/
+    return time;
 }
 
 MorseRadioView::~MorseRadioView() {

@@ -55,7 +55,7 @@ class MorseLogger {
 
     void init_daily_log(const std::filesystem::path& log_dir);
     bool on_packet(const std::string& content, bool time, uint8_t current_mode);
-    // void radio_set_log(uint8_t current_mode);
+    void radio_set_log(uint8_t current_mode);
 
    private:
     LogFile log_file{};
@@ -81,10 +81,6 @@ class MorseRadioView : public ui::View {
     MorseDecoder morse_decoder_{};
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
-    app_settings::SettingsManager settings_{
-        "trx_morese_radio",
-        app_settings::Mode::RX,
-        {{"current_mode"sv, &current_mode}}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -141,6 +137,11 @@ class MorseRadioView : public ui::View {
     uint8_t space_timer{0};
     int32_t accumulator_us_{0};
     uint64_t last_activity_time{0};
+
+    app_settings::SettingsManager settings_{
+        "rx_morese_radio",
+        app_settings::Mode::RX,
+        {{"cwmode"sv, &current_mode}}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::MorseRXData,
