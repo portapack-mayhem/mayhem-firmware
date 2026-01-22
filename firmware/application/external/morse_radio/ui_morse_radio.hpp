@@ -74,6 +74,7 @@ class MorseRadioView : public ui::View {
    private:
     void writeCharToConsole(const std::string& ch, double confidence);
     void on_data(const MorseRXDataMessage* message);
+    void on_freq(const MorseRXfreqMessage* message);
     void on_message(const Message* const p);
     void check_for_timeout();
     int32_t ProcessSignal(int32_t sig_time_us);
@@ -81,6 +82,13 @@ class MorseRadioView : public ui::View {
     MorseDecoder morse_decoder_{};
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
+
+    uint8_t current_mode{0};  // 0=CW/FM, 1=USB, 2=LSB
+
+    app_settings::SettingsManager settings_{
+        "rx_morese_radio",
+        app_settings::Mode::RX,
+        {{"cwmode"sv, &current_mode}}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -106,7 +114,7 @@ class MorseRadioView : public ui::View {
     };
     ui::Text txt_speed{{UI_POS_X(23), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)}, "??"};
     ui::Text txt_last{{UI_POS_X(12), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(12), UI_POS_HEIGHT(1)}, ""};
-    ui::Text txt_freq{{UI_POS_X(21), UI_POS_Y(2), UI_POS_WIDTH(4), UI_POS_HEIGHT(1)}, "??"};
+    ui::Text txt_freq{{UI_POS_X(21), UI_POS_Y(2), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "??"};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(7)}};
     ui::Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Squelch:", Theme::getInstance()->fg_light->foreground},
@@ -114,7 +122,7 @@ class MorseRadioView : public ui::View {
         {{UI_POS_X(26), UI_POS_Y(1)}, "wpm", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(4)}, "Last seq.:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(15), UI_POS_Y(2)}, "Tone:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(26), UI_POS_Y(2)}, "Hz", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(27), UI_POS_Y(2)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     ui::OptionsField options_mode{
         {UI_POS_X(9), UI_POS_Y(2)},
@@ -130,7 +138,6 @@ class MorseRadioView : public ui::View {
     bool save_log{false};
     bool reset_triggered_{false};
     bool time_stamp{false};
-    uint8_t current_mode{0};
     uint8_t last_color_id{255};
     uint8_t color_id{255};
     int8_t last_sign_{0};
@@ -138,16 +145,18 @@ class MorseRadioView : public ui::View {
     int32_t accumulator_us_{0};
     uint64_t last_activity_time{0};
 
-    app_settings::SettingsManager settings_{
-        "rx_morese_radio",
-        app_settings::Mode::RX,
-        {{"cwmode"sv, &current_mode}}};
-
     MessageHandlerRegistration message_handler_packet{
         Message::ID::MorseRXData,
         [this](Message* const p) {
             const auto message = static_cast<const MorseRXDataMessage*>(p);
             this->on_data(message);
+        }};
+
+    MessageHandlerRegistration message_handler_freq{
+        Message::ID::MorseRXfreq,
+        [this](Message* const p) {
+            const auto message = static_cast<const MorseRXfreqMessage*>(p);
+            this->on_freq(message);
         }};
 
     MessageHandlerRegistration message_handler_framesync{

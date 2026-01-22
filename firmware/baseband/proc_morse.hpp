@@ -41,8 +41,9 @@ class MorseProcessor : public BasebandProcessor {
    private:
     void configure(uint8_t mode);
     buffer_f32_t demodulate(const buffer_c16_t& channel);
-    void set_decoder_freq(float freq);
+    void update_goertzel_coeff(float freq);
     void measure_frequency(int32_t sample);
+    void process_decoding(int32_t sample);
 
     BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
@@ -66,41 +67,33 @@ class MorseProcessor : public BasebandProcessor {
     bool configured{false};
 
     uint8_t modulation{0};  // 0=CW/FM, 1=USB, 2=LSB
-    bool squelch_is_open{false};
     int32_t user_squelch_level{0};
+    bool squelch_is_open{true};
+    int32_t squelch_hold{0};
 
-    // --- 1. CSOPORT: DEKÓDOLÁS VÁLTOZÓI (goog_decode logika) ---
-    // Ezeket a mérő rutin NEM módosíthatja!
-    int32_t dec_coeff_int{0};  // Goertzel koefficiens
-    int32_t dec_s_prev_i{0};
-    int32_t dec_s_prev2_i{0};
-    uint32_t dec_goertzel_count{0};
-    uint32_t dec_duration_samples{0};
-    bool dec_was_signaling{false};
-    int64_t dec_noise_floor{0};
-
-    // --- 2. CSOPORT: FREKVENCIA MÉRÉS VÁLTOZÓI (good_fequency_meas logika) ---
-    // Ezek csak a kijelzőt (measured_frequency) frissítik
-    int16_t meas_prev_sample{0};
-    uint32_t meas_zc_counter{0};
+    // frequency measurement variables
     uint32_t meas_samples_in_period{0};
     bool meas_signal_state_high{false};
-    float meas_avg_accumulator{0.0f};
-    uint32_t meas_avg_count{0};
     uint32_t meas_last_period_len{0};
     uint32_t meas_consistency_count{0};
-
-    int32_t meas_lpf{0};          // Aluláteresztő szűrő tároló
-    bool meas_state_high{false};  // Hiszterézis állapot (Fent/Lent)
-    uint32_t ui_update_timer{0};
-
     float meas_freq_accumulator{0.0f};
     uint32_t meas_freq_count{0};
+    uint32_t ui_update_timer{0};
 
-    // zajméréshez
-    int32_t trigger_level{500};
+    float current_freq{700.0f};
+
+    // --- Decoding variables (Goertzel) ---
+    int32_t coeff_int{0};
+    int32_t s_prev_i{0};
+    int32_t s_prev2_i{0};
+    uint32_t goertzel_count{0};
+    uint32_t duration_samples{0};
+    bool was_signaling{false};
+    int64_t noise_floor{5000};
+    int32_t startup_delay{20};
 
     MorseRXDataMessage message{};
+    MorseRXfreqMessage freq_message{};
 };
 
 #endif

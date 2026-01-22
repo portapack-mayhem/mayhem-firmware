@@ -203,33 +203,9 @@ int32_t MorseRadioView::ProcessSignal(int32_t sig_time_us) {
 }
 
 void MorseRadioView::on_data(const MorseRXDataMessage* message) {
-    uint16_t start = 0;
-    uint16_t stop = message->maxptr;
-    bool has_valid = false;
     int32_t r;
 
-    for (uint16_t i = 0; i <= message->maxptr; ++i) {
-        if (message->state_durations[i] >= 30000 || message->state_durations[i] <= -30000) {
-            if (!has_valid) {
-                start = i;
-            }
-        } else {
-            has_valid = true;
-            stop = i;
-        }
-    }
-    if (!has_valid) return;  // no valid data arrived
-
-    if (message->measured_frequency < 400 || message->measured_frequency > 1400)
-        txt_freq.set_style(Theme::getInstance()->fg_red);
-    else if (message->measured_frequency < 580 || message->measured_frequency > 1220)
-        txt_freq.set_style(Theme::getInstance()->fg_yellow);
-    else
-        txt_freq.set_style(Theme::getInstance()->fg_green);
-
-    txt_freq.set(to_string_dec_uint(message->measured_frequency));
-
-    for (uint16_t i = start; i <= stop; i++) {
+    for (uint8_t i = 0; i <= message->state_cnt; ++i) {
         r = ProcessSignal(message->state_durations[i]);
         auto result = morse_decoder_.handleInput((r != 0) ? r : 0);
         if (result.isValid()) {
@@ -245,6 +221,27 @@ void MorseRadioView::on_data(const MorseRXDataMessage* message) {
             }
         }
     }
+}
+
+void MorseRadioView::on_freq(const MorseRXfreqMessage* message) {
+    std::string ret = " ";
+    uint32_t freq = message->measured_frequency;
+    if (freq < 301) {
+        ret = "<";
+        freq = 300;
+    }
+    if (freq > 2299) {
+        freq = 2300;
+        ret = ">";
+    }
+    if (freq < 400 || freq > 1400)
+        txt_freq.set_style(Theme::getInstance()->fg_red);
+    else if (freq <= 580 || freq >= 1220)
+        txt_freq.set_style(Theme::getInstance()->fg_yellow);
+    else
+        txt_freq.set_style(Theme::getInstance()->fg_green);
+    ret += to_string_dec_uint(freq);
+    txt_freq.set(ret);
 }
 
 void MorseRadioView::writeCharToConsole(const std::string& ch, double confidence) {

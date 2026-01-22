@@ -28,7 +28,6 @@
 void MorseProcessor::configure(uint8_t mode) {
     configured = false;
 
-    // Szűrők beállítása (egyesítve a pontosabb konfigurációval)
     if (mode == 0) {  // CW/FM
         decim_0.configure(taps_11k0_decim_0.taps);
         decim_1.configure(taps_11k0_decim_1.taps);
@@ -58,65 +57,76 @@ void MorseProcessor::configure(uint8_t mode) {
     meas_freq_count = 0;
     ui_update_timer = 0;
 
-    set_decoder_freq(700.0f);
+    // Decoding reset
+    s_prev_i = 0;
+    s_prev2_i = 0;
+    goertzel_count = 0;
+    duration_samples = 0;
+    was_signaling = false;
+
+    // Thresholds
+    noise_floor = 5000;
+    startup_delay = 20;
+    squelch_is_open = true;
+    squelch_hold = 0;
+
+    current_freq = 700.0f;
+    update_goertzel_coeff(current_freq);
 
     configured = true;
 }
 
 inline buffer_f32_t MorseProcessor::demodulate(const buffer_c16_t& channel) {
     if (modulation > 0) {
+        // SSB always keeps squelch "technically" open for the demodulator
         squelch_is_open = true;
         return demod_ssb.execute(channel, audio_buffer);
     }
     return demod_cw_fm.execute(channel, audio_buffer);
 }
 
-void MorseProcessor::set_decoder_freq(float freq) {
+void MorseProcessor::update_goertzel_coeff(float freq) {
+    // limit to algo capacity min/max
+    if (freq < 300.0f) freq = 300.0f;
+    if (freq > 2300.0f) freq = 2300.0f;
+
     float sample_rate = (modulation == 0) ? 24000.0f : 12000.0f;
     float omega = 2.0f * M_PI * freq / sample_rate;
     float omega_sq = omega * omega;
     float cos_approx = 1.0f - (omega_sq * 0.5f);
-    dec_coeff_int = (int32_t)(2.0f * cos_approx * 16384.0f);
+    // 16384 is the scaling factor for the Goertzel integer math
+    coeff_int = (int32_t)(2.0f * cos_approx * 16384.0f);
 }
 
 void MorseProcessor::measure_frequency(int32_t sample) {
-    // Zajküszöb amplitúdóra
+    // Noise gate threshold
     const int32_t gate_threshold = (modulation == 0) ? 4000 : 2000;
 
     if (sample > gate_threshold || sample < -gate_threshold) {
         if (sample > 0 && !meas_signal_state_high) {
-            // --- Felfutó él (Egy periódus vége) ---
+            // Rising Edge (End of Period)
             meas_signal_state_high = true;
 
             if (meas_samples_in_period > 0) {
-                // --- SZIGORÚ STABILITÁS VIZSGÁLAT ---
-                // Megnézzük, hogy az aktuális periódus hossza EGYEZIK-E az előzővel.
-                // A zajnál ez véletlenszerű, CW jelnél konstans.
-
                 bool period_is_stable = false;
                 if (meas_last_period_len > 0) {
-                    // Kiszámoljuk a különbséget
                     int32_t diff = std::abs((int)meas_samples_in_period - (int)meas_last_period_len);
-
-                    // Nagyon szigorú tűrés: Max 1 minta eltérés engedélyezett!
                     if (diff <= 1) {
                         meas_consistency_count++;
                         period_is_stable = true;
                     } else {
-                        // Ha ugrál, nullázzuk a bizalmi számlálót
                         meas_consistency_count = 0;
                     }
                 }
                 meas_last_period_len = meas_samples_in_period;
 
-                // Csak akkor hiszünk a mérésnek, ha már LEGALÁBB 3 STABIL CIKLUS volt egymás után.
-                // Ez megöli az FM zaj véletlenszerű egyezéseit.
+                // Wait for AT LEAST 3 STABLE CYCLES
                 if (period_is_stable && meas_consistency_count > 3) {
                     float base_rate = (modulation == 0) ? 24000.0f : 12000.0f;
                     float inst_freq = base_rate / (float)meas_samples_in_period;
 
-                    // Frekvencia ablak szűrés (300Hz - 3000Hz)
-                    if (inst_freq > 300.0f && inst_freq < 3000.0f) {
+                    // Check for overflows
+                    if (inst_freq > 250 && inst_freq < 3000) {
                         meas_freq_accumulator += inst_freq;
                         meas_freq_count++;
                     }
@@ -128,7 +138,7 @@ void MorseProcessor::measure_frequency(int32_t sample) {
             meas_signal_state_high = false;
         }
     } else {
-        // Csend detektálás (reseteljük a stabilitást, ne ragadjon be)
+        // Silence detection
         if (meas_samples_in_period > 200) {
             meas_last_period_len = 0;
             meas_consistency_count = 0;
@@ -137,28 +147,91 @@ void MorseProcessor::measure_frequency(int32_t sample) {
 
     meas_samples_in_period++;
 
-    // --- UI FRISSÍTÉS ---
     ui_update_timer++;
     uint32_t update_limit = (modulation == 0) ? 4800 : 2400;  // ~200ms
 
     if (ui_update_timer > update_limit) {
         if (meas_freq_count > 0) {
             float avg_freq = meas_freq_accumulator / (float)meas_freq_count;
-
-            // Nincs SSB kompenzáció, nyers mérés megy ki
+            current_freq = avg_freq;
+            // Round to 5Hz for display
             uint32_t stable_disp = (uint32_t)avg_freq;
-
-            // Kerekítés 5Hz-re
             stable_disp = (stable_disp / 5) * 5;
 
-            message.measured_frequency = stable_disp;
-            message.state_cnt = 0;
-            shared_memory.application_queue.push(message);
+            freq_message.measured_frequency = stable_disp;
+            shared_memory.application_queue.push(freq_message);
         }
 
         meas_freq_accumulator = 0.0f;
         meas_freq_count = 0;
         ui_update_timer = 0;
+    }
+}
+
+void MorseProcessor::process_decoding(int32_t sample) {
+    update_goertzel_coeff(current_freq);
+
+    // 1. Goertzel Algorithm
+    int64_t s = (int64_t)sample + (((int64_t)coeff_int * s_prev_i) >> 14) - s_prev2_i;
+    s_prev2_i = s_prev_i;
+    s_prev_i = (int32_t)s;
+    goertzel_count++;
+
+    // 2. Evaluation every 60 samples
+    if (goertzel_count >= 60) {
+        if (startup_delay > 0) {
+            startup_delay--;
+            // Fast learning phase
+            int64_t pwr = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
+                          (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
+            noise_floor = (noise_floor * 15 + pwr) / 16;
+        } else {
+            // Power calculation
+            int64_t power = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
+                            (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
+
+            // Adaptive Noise Floor
+            if (!was_signaling) {
+                noise_floor = (noise_floor * 127 + power) / 128;
+            }
+
+            // Threshold Calculation
+            int64_t sensitivity = 4 + (user_squelch_level / 10);
+            int64_t base_pwr_threshold = noise_floor * sensitivity;
+            int64_t current_pwr_threshold = was_signaling ? (base_pwr_threshold / 2) : base_pwr_threshold;
+
+            // Tone Detection
+            bool is_tone = squelch_is_open && (power > current_pwr_threshold) && (power > 150000);
+
+            // State Change Logic
+            if (is_tone != was_signaling) {
+                int32_t time_base = 125;
+                int32_t duration_us = (int32_t)((int64_t)duration_samples * time_base / 3);
+
+                // Send message if significant
+                if (duration_us > 10000 || was_signaling) {
+                    message.state_durations[0] = was_signaling ? duration_us : -duration_us;
+                    message.state_cnt = 1;  // 1 indicates valid state duration data
+                    shared_memory.application_queue.push(message);
+                }
+                was_signaling = is_tone;
+                duration_samples = 0;
+            }
+
+            // Timeout Logic
+            if (!was_signaling && duration_samples > 28800) {
+                int32_t duration_us = (int32_t)((int64_t)duration_samples * 125 / 3);
+                message.state_durations[0] = -duration_us;
+                message.state_cnt = 1;
+                shared_memory.application_queue.push(message);
+                duration_samples = 0;
+            }
+        }
+
+        duration_samples += 60;
+        s_prev_i = 0;
+        s_prev2_i = 0;
+        goertzel_count = 0;
     }
 }
 
@@ -168,17 +241,49 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+
     auto audio_buf = demodulate(channel_out);
 
     for (size_t i = 0; i < audio_buf.count; i++) {
-        // Skálázás (Float -> Int32)
-        int32_t sample_int = (int32_t)(audio_buf.p[i] * 32768.0f);
+        float raw_audio = audio_buf.p[i];
 
-        // A proc_all logikáját tartalmazó függvény hívása
-        measure_frequency(sample_int);
+        // Squelch Logic
+        int32_t raw_int_abs = (int32_t)(raw_audio * 32768.0f);
+        if (raw_int_abs < 0) raw_int_abs = -raw_int_abs;
 
-        // Hang kimenet
-        // if (modulation == 0 && squelch_closed) audio_buf.p[i] = 0;
+        int32_t audio_threshold = (user_squelch_level * user_squelch_level) * 3;
+
+        if (raw_int_abs > audio_threshold || user_squelch_level == 0) {
+            squelch_is_open = true;
+            squelch_hold = (modulation == 0) ? 2400 : 1200;
+        } else {
+            if (squelch_hold > 0)
+                squelch_hold--;
+            else if (modulation == 0)
+                squelch_is_open = false;
+        }
+
+        measure_frequency((int32_t)(raw_audio * 32768.0f));
+
+        float decode_audio = raw_audio;
+        if (modulation > 0) {
+            const float gain = 6.0f;
+            decode_audio *= gain;
+
+            // Hard Limiting / Clipping
+            if (decode_audio > 1.0f)
+                decode_audio = 1.0f;
+            else if (decode_audio < -1.0f)
+                decode_audio = -1.0f;
+
+            audio_buf.p[i] = decode_audio;
+        }
+
+        process_decoding((int32_t)(decode_audio * 32768.0f));
+
+        if (modulation == 0 && !squelch_is_open) {
+            audio_buf.p[i] = 0.0f;  // mute nfm on squelch
+        }
     }
 
     audio_output.write(audio_buf);
