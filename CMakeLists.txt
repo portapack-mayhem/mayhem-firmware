@@ -30,7 +30,7 @@ add_compile_options(-fdiagnostics-color=always)
 #Flash size related options
 #This is the size of the flash memory we SUPPORT. Don't worry, the internl flash app has harder limits based on device type.
 if(NOT DEFINED FLASH_MB_SIZE)
-    set(FLASH_MB_SIZE 1) # Default to 1MB if not provided. For PortaRf this should be 2MB passed to cmake with -DFLASH_MB_SIZE=2
+    set(FLASH_MB_SIZE 2) # Default to 2MB if not provided. For PortaRf this should be 2MB passed to cmake with -DFLASH_MB_SIZE=2
 endif()
 message("Configuring for FLASH_MB_SIZE=${FLASH_MB_SIZE}MB")
 #This is the flash memory size we build. This can be less, so the FW size will be less, so can be flashed with older utils.
