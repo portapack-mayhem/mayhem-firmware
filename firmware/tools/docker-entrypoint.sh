@@ -21,35 +21,66 @@
 # Boston, MA 02110-1301, USA.
 #
 
-set -e # exit immediatelly on any failure
+set -e # exit immediately on any failure
+
+# 1. PARSE ARGUMENTS
+# We separate arguments into two lists: 
+# - CMAKE_OPTS: Anything starting with -D (e.g., -DFLASH_MB_SIZE=4)
+# - BUILD_ARGS: Everything else (e.g., make, ninja, -j20)
+
+CMAKE_OPTS=()
+BUILD_ARGS=()
+
+for arg in "$@"; do
+    if [[ "$arg" == -D* ]]; then
+        CMAKE_OPTS+=("$arg")
+    else
+        BUILD_ARGS+=("$arg")
+    fi
+done
+
+# Reset the script arguments ($1, $2...) to contain only the BUILD_ARGS. This allows the original logic below to work exactly as before.
+set -- "${BUILD_ARGS[@]}"
 
 build_make() {
    cd ..
    mkdir -p build
    cd build
-	cmake ..
+   cmake "${CMAKE_OPTS[@]}" ..
    make "$@"
-   exit 0 # Report success :)
+   exit 0 
 }
 
 build_ninja() {
    cd ..
    mkdir -p build
    cd build
-	cmake -G Ninja ..
+   cmake -G Ninja "${CMAKE_OPTS[@]}" ..
    ninja "$@"
-   exit 0 # Report success :)
+   exit 0 
 }
 
-if [ "$1" = 'make' ]; then # build the default (or specified) target with make
-   shift # remove the first item from $@ as we consumed it, we can then pass the rest on to make
+
+if [ "$1" = 'make' ]; then 
+   # User explicitly typed 'make'
+   shift 
    build_make "$@"
-elif [[ $1 == -j* ]]; then # allow passing -j without typing make_default
-   # dont shift here as we wanna pass the -j
+
+elif [[ $1 == -j* ]]; then 
+   # User passed -j20 directly (Implied make)
    build_make "$@"
-elif [ "$1" = 'ninja' ]; then # build the default (or specified) target with ninja
-   shift # remove the first item from $@ as we consumed it, we can then pass the rest on to make
+
+elif [ "$1" = 'ninja' ]; then 
+   # User explicitly typed 'ninja'
+   shift 
    build_ninja "$@"
+
+elif [ ${#CMAKE_OPTS[@]} -gt 0 ] && [ ${#BUILD_ARGS[@]} -eq 0 ]; then
+   # User passed ONLY CMake flags (e.g. "-DFLASH_MB_SIZE=4")
+   # We assume they want to run a default 'make' build.
+   build_make
+
 fi
 
+# Fallback for other commands (e.g. /bin/bash)
 exec "$@"

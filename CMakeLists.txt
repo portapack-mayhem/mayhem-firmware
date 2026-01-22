@@ -27,12 +27,26 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 add_compile_options(-fdiagnostics-color=always)
 
-#Flash size related add_link_options
+#Flash size related options
+#This is the size of the flash memory we SUPPORT. Don't worry, the internl flash app has harder limits based on device type.
 if(NOT DEFINED FLASH_MB_SIZE)
-    set(FLASH_MB_SIZE 1) # Default to 1MB if not provided
+    set(FLASH_MB_SIZE 1) # Default to 1MB if not provided. For PortaRf this should be 2MB passed to cmake with -DFLASH_MB_SIZE=2
 endif()
+message("Configuring for FLASH_MB_SIZE=${FLASH_MB_SIZE}MB")
+#This is the flash memory size we build. This can be less, so the FW size will be less, so can be flashed with older utils.
+if(NOT DEFINED FLASH_MB_LIMIT_SIZE)
+	set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
+endif()
+message("Configuring for FLASH_MB_LIMIT_SIZE=${FLASH_MB_LIMIT_SIZE}MB")
+
+if(FLASH_MB_SIZE LESS FLASH_MB_LIMIT_SIZE)
+    message(FATAL_ERROR "Error: The supported flash size is lower than the generated flash file. Build halted.")
+endif()
+
 math(EXPR FLASH_BYTES_SIZE "${FLASH_MB_SIZE} * 1024 * 1024")
-configure_file(flashsize.h.in firmware/flashsize.h)
+math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
+#generate h files
+configure_file(flashsize.h.in ${CMAKE_CURRENT_SOURCE_DIR}/firmware/flashsize.h)
 
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
