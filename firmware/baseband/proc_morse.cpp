@@ -25,184 +25,287 @@
 #include "event_m4.hpp"
 #include <cmath>
 
-void MorseProcessor::configure() {
+void MorseProcessor::configure(uint8_t mode) {
     configured = false;
-    baseband_fs = 3072000;
-    baseband_thread.set_sampling_rate(baseband_fs);
 
-    // 1. DSP filters
-    decim_0.configure(taps_11k0_decim_0.taps);
-    decim_1.configure(taps_11k0_decim_1.taps);
-    channel_filter.configure(taps_11k0_channel.taps, 2);
-    demod.configure(24000, 5000);
-    audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
+    if (mode == 0) {  // CW/FM
+        decim_0.configure(taps_11k0_decim_0.taps);
+        decim_1.configure(taps_11k0_decim_1.taps);
+        channel_filter.configure(taps_11k0_channel.taps, 2);
+        demod_cw_fm.configure(24000, 5000);
+    } else {  // USB, LSB
+        decim_0.configure(taps_6k0_decim_0.taps);
+        decim_1.configure(taps_6k0_decim_1.taps);
 
-    // 2. Resetting variables
-    dc_offset = 0;
-    lpf_sample = 0;
-    prev_sample = 0;
+        if (mode == 1)  // USB
+            channel_filter.configure(taps_2k8_usb_channel.taps, 4);
+        else  // LSB
+            channel_filter.configure(taps_2k8_lsb_channel.taps, 4);
+    }
 
-    // 3. Algorithm reset
-    zc_counter = 0;
-    last_zc_counter = 0;
-    current_freq = 700.0f;
-    update_goertzel_coeff(700.0f);
+    modulation = mode;
+    if (mode > 0)
+        audio_output.configure(audio_12k_hpf_300hz_config);
+    else
+        audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
 
-    goertzel_count = 0;
+    meas_samples_in_period = 0;
+    meas_last_period_len = 0;
+    meas_consistency_count = 0;
+    meas_signal_state_high = false;
+    meas_freq_accumulator = 0.0f;
+    meas_freq_count = 0;
+    ui_update_timer = 0;
+
+    // Decoding reset
     s_prev_i = 0;
     s_prev2_i = 0;
+    goertzel_count = 0;
     duration_samples = 0;
     was_signaling = false;
 
-    noise_floor = 5000;  // learning speed
-
+    // Thresholds
+    noise_floor = 5000;
     startup_delay = 20;
+    squelch_is_open = true;
+    squelch_hold = 0;
 
-    squelch_is_open = false;
+    current_freq = 700.0f;
+    update_goertzel_coeff(current_freq);
+
     configured = true;
 }
 
-void MorseProcessor::on_message(const Message* const p) {
-    if (p->id == Message::ID::MorseRXConfig) {
-        configure();
-    } else if (p->id == Message::ID::NBFMConfigure) {
-        auto nbfm_msg = *reinterpret_cast<const NBFMConfigureMessage*>(p);
-        user_squelch_level = nbfm_msg.squelch_level;
-        audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
+inline buffer_f32_t MorseProcessor::demodulate(const buffer_c16_t& channel) {
+    if (modulation > 0) {
+        // SSB always keeps squelch "technically" open for the demodulator
+        squelch_is_open = true;
+        return demod_ssb.execute(channel, audio_buffer);
     }
+    return demod_cw_fm.execute(channel, audio_buffer);
 }
 
 void MorseProcessor::update_goertzel_coeff(float freq) {
-    if (freq < 400.0f) freq = 400.0f;
-    if (freq > 1500.0f) freq = 1500.0f;  // limit to algo capacity min/max
-    float omega = 2.0f * M_PI * freq / 24000.0f;
-    coeff_int = (int32_t)(2.0f * cosf(omega) * 16384.0f);
+    // limit to algo capacity min/max
+    if (freq < 300.0f) freq = 300.0f;
+    if (freq > 2300.0f) freq = 2300.0f;
+
+    float sample_rate = (modulation == 0) ? 24000.0f : 12000.0f;
+    float omega = 2.0f * M_PI * freq / sample_rate;
+    float omega_sq = omega * omega;
+    float cos_approx = 1.0f - (omega_sq * 0.5f);
+    // 16384 is the scaling factor for the Goertzel integer math
+    coeff_int = (int32_t)(2.0f * cos_approx * 16384.0f);
+}
+
+void MorseProcessor::measure_frequency(int32_t sample) {
+    // Noise gate threshold
+    const int32_t gate_threshold = (modulation == 0) ? 4000 : 2000;
+
+    if (sample > gate_threshold || sample < -gate_threshold) {
+        if (sample > 0 && !meas_signal_state_high) {
+            // Rising Edge (End of Period)
+            meas_signal_state_high = true;
+
+            if (meas_samples_in_period > 0) {
+                bool period_is_stable = false;
+                if (meas_last_period_len > 0) {
+                    int32_t diff = std::abs((int)meas_samples_in_period - (int)meas_last_period_len);
+                    if (diff <= 1) {
+                        meas_consistency_count++;
+                        period_is_stable = true;
+                    } else {
+                        meas_consistency_count = 0;
+                    }
+                }
+                meas_last_period_len = meas_samples_in_period;
+
+                // Wait for AT LEAST 3 STABLE CYCLES
+                if (period_is_stable && meas_consistency_count > 3) {
+                    float base_rate = (modulation == 0) ? 24000.0f : 12000.0f;
+                    float inst_freq = base_rate / (float)meas_samples_in_period;
+
+                    // Check for overflows
+                    if (inst_freq > 250 && inst_freq < 3000) {
+                        meas_freq_accumulator += inst_freq;
+                        meas_freq_count++;
+                    }
+                }
+            }
+            meas_samples_in_period = 0;
+
+        } else if (sample < 0) {
+            meas_signal_state_high = false;
+        }
+    } else {
+        // Silence detection
+        if (meas_samples_in_period > 200) {
+            meas_last_period_len = 0;
+            meas_consistency_count = 0;
+        }
+    }
+
+    meas_samples_in_period++;
+
+    ui_update_timer++;
+    uint32_t update_limit = (modulation == 0) ? 4800 : 2400;  // ~200ms
+
+    if (ui_update_timer > update_limit) {
+        if (meas_freq_count > 0) {
+            float avg_freq = meas_freq_accumulator / (float)meas_freq_count;
+            current_freq = avg_freq;
+            // Round to 5Hz for display
+            uint32_t stable_disp = (uint32_t)avg_freq;
+            stable_disp = (stable_disp / 5) * 5;
+
+            freq_message.measured_frequency = stable_disp;
+            shared_memory.application_queue.push(freq_message);
+        }
+
+        meas_freq_accumulator = 0.0f;
+        meas_freq_count = 0;
+        ui_update_timer = 0;
+    }
+}
+
+void MorseProcessor::process_decoding(int32_t sample) {
+    update_goertzel_coeff(current_freq);
+
+    // 1. Goertzel Algorithm
+    int64_t s = (int64_t)sample + (((int64_t)coeff_int * s_prev_i) >> 14) - s_prev2_i;
+    s_prev2_i = s_prev_i;
+    s_prev_i = (int32_t)s;
+    goertzel_count++;
+
+    // 2. Evaluation every 60 samples
+    if (goertzel_count >= 60) {
+        if (startup_delay > 0) {
+            startup_delay--;
+            // Fast learning phase
+            int64_t pwr = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
+                          (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
+            noise_floor = (noise_floor * 15 + pwr) / 16;
+        } else {
+            // Power calculation
+            int64_t power = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
+                            (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
+
+            // Adaptive Noise Floor
+            if (!was_signaling) {
+                noise_floor = (noise_floor * 127 + power) / 128;
+            }
+
+            // Threshold Calculation
+            int64_t sensitivity = 4 + (user_squelch_level / 10);
+            int64_t base_pwr_threshold = noise_floor * sensitivity;
+            int64_t current_pwr_threshold = was_signaling ? (base_pwr_threshold / 2) : base_pwr_threshold;
+
+            // Tone Detection
+            bool is_tone = squelch_is_open && (power > current_pwr_threshold) && (power > 150000);
+            int32_t time_base = modulation == 0 ? 125 : 250;
+            // State Change Logic
+            if (is_tone != was_signaling) {
+                int32_t duration_us = (int32_t)((int64_t)duration_samples * time_base / 3);
+
+                // Send message if significant
+                if (duration_us > 10000 || was_signaling) {
+                    message.state_durations[0] = was_signaling ? duration_us : -duration_us;
+                    message.state_cnt = 1;  // 1 indicates valid state duration data
+                    shared_memory.application_queue.push(message);
+                }
+                was_signaling = is_tone;
+                duration_samples = 0;
+            }
+
+            // Timeout Logic
+            if (!was_signaling && duration_samples > 28800) {
+                int32_t duration_us = (int32_t)((int64_t)duration_samples * time_base / 3);
+                message.state_durations[0] = -duration_us;
+                message.state_cnt = 1;
+                shared_memory.application_queue.push(message);
+                duration_samples = 0;
+            }
+        }
+
+        duration_samples += 60;
+        s_prev_i = 0;
+        s_prev2_i = 0;
+        goertzel_count = 0;
+    }
 }
 
 void MorseProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    buffer_c16_t dst_buffer_c16(dst_buffer.data(), dst_buffer.size());
-    const auto decim_0_out = decim_0.execute(buffer, dst_buffer_c16);
-    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer_c16);
-    const auto channel = channel_filter.execute(decim_1_out, dst_buffer_c16);
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 
-    feed_channel_stats(channel);
-
-    buffer_s16_t audio_buffer_s16(audio_buffer.data(), audio_buffer.size());
-    auto audio_buf = demod.execute(channel, audio_buffer_s16);
+    auto audio_buf = demodulate(channel_out);
 
     for (size_t i = 0; i < audio_buf.count; i++) {
-        int32_t raw_sample = audio_buf.p[i];
+        float raw_audio = audio_buf.p[i];
 
-        // 1. DC & LPF
-        dc_offset += (raw_sample - dc_offset) / 32;
-        int32_t sample = raw_sample - dc_offset;
-        lpf_sample = (lpf_sample * 3 + sample) / 4;
+        // Squelch Logic
+        int32_t raw_int_abs = (int32_t)(raw_audio * 32768.0f);
+        if (raw_int_abs < 0) raw_int_abs = -raw_int_abs;
 
-        // 2. Squelch
-        int32_t abs_sample = (sample < 0) ? -sample : sample;
         int32_t audio_threshold = (user_squelch_level * user_squelch_level) * 3;
-        int32_t current_audio_threshold = squelch_is_open ? (audio_threshold / 2) : audio_threshold;
 
-        if (abs_sample > current_audio_threshold || user_squelch_level == 0) {
+        if (raw_int_abs > audio_threshold || user_squelch_level == 0) {
             squelch_is_open = true;
-            squelch_hold = 2400;
+            squelch_hold = (modulation == 0) ? 2400 : 1200;
         } else {
             if (squelch_hold > 0)
                 squelch_hold--;
-            else
+            else if (modulation == 0)
                 squelch_is_open = false;
         }
 
-        // 3. Frequency measurement (ZC)
-        if (squelch_is_open && !was_signaling) {
-            if ((lpf_sample >= 0 && prev_sample < 0) || (lpf_sample < 0 && prev_sample >= 0)) {
-                if (zc_counter >= 8 && zc_counter <= 32) {
-                    int32_t diff = zc_counter - last_zc_counter;
-                    if (diff >= -1 && diff <= 1) {
-                        float n_freq = 24000.0f / (zc_counter * 2.0f);
+        measure_frequency((int32_t)(raw_audio * 32768.0f));
 
-                        // Hybrid tracking
+        float decode_audio = raw_audio;
+        if (modulation > 0) {
+            const float gain = 6.0f;
+            decode_audio *= gain;
 
-                        if (zc_counter < 15) {
-                            // This stabilizes the 1000-1400 Hz range
-                            current_freq = (current_freq * 0.6f) + (n_freq * 0.4f);
-                        } else {
-                            current_freq = n_freq;
-                        }
+            // Hard Limiting / Clipping
+            if (decode_audio > 1.0f)
+                decode_audio = 1.0f;
+            else if (decode_audio < -1.0f)
+                decode_audio = -1.0f;
 
-                        update_goertzel_coeff(current_freq);
-                    }
-                    last_zc_counter = zc_counter;
-                } else {
-                    last_zc_counter = 0;
-                }
-                zc_counter = 0;
-            } else {
-                if (zc_counter < 100) zc_counter++;
-            }
-        }
-        prev_sample = (int16_t)lpf_sample;
-
-        // 4. Goertzel
-        int64_t s = (int64_t)sample + (((int64_t)coeff_int * s_prev_i) >> 14) - s_prev2_i;
-        s_prev2_i = s_prev_i;
-        s_prev_i = (int32_t)s;
-        goertzel_count++;
-
-        // 5. Detection
-        if (goertzel_count >= 60) {
-            if (startup_delay > 0) {
-                startup_delay--;
-                int64_t pwr = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
-                              (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
-                noise_floor = (noise_floor * 15 + pwr) / 16;
-            } else {
-                int64_t power = (int64_t)s_prev_i * s_prev_i + (int64_t)s_prev2_i * s_prev2_i -
-                                (((int64_t)s_prev_i * s_prev2_i * coeff_int) >> 14);
-
-                if (!was_signaling) {
-                    noise_floor = (noise_floor * 127 + power) / 128;
-                }
-
-                int64_t sensitivity = 4 + (user_squelch_level / 10);
-                int64_t base_pwr_threshold = noise_floor * sensitivity;
-                int64_t current_pwr_threshold = was_signaling ? (base_pwr_threshold / 2) : base_pwr_threshold;
-
-                bool is_tone = squelch_is_open && (power > current_pwr_threshold) && (power > 150000);
-
-                if (is_tone != was_signaling) {
-                    int32_t duration_us = (int32_t)((int64_t)duration_samples * 125 / 3);
-
-                    if (duration_us > 10000) {
-                        message.state_durations[0] = was_signaling ? duration_us : -duration_us;
-                        message.measured_frequency = (uint32_t)current_freq;
-                        message.state_cnt = 1;
-                        shared_memory.application_queue.push(message);
-                    }
-                    was_signaling = is_tone;
-                    duration_samples = 0;
-                }
-
-                if (!was_signaling && duration_samples > 28800) {
-                    int32_t duration_us = (int32_t)((int64_t)duration_samples * 125 / 3);
-                    message.state_durations[0] = -duration_us;
-                    message.state_cnt = 1;
-                    shared_memory.application_queue.push(message);
-                    duration_samples = 0;
-                }
-            }
-
-            duration_samples += 60;
-            s_prev_i = 0;
-            s_prev2_i = 0;
-            goertzel_count = 0;
+            audio_buf.p[i] = decode_audio;
         }
 
-        audio_buf.p[i] = squelch_is_open ? (int16_t)sample : 0;
+        process_decoding((int32_t)(decode_audio * 32768.0f));
+
+        if (modulation == 0 && !squelch_is_open) {
+            audio_buf.p[i] = 0.0f;  // mute nfm on squelch
+        }
     }
+
     audio_output.write(audio_buf);
+}
+
+void MorseProcessor::on_message(const Message* const p) {
+    switch (p->id) {
+        case Message::ID::MorseRXConfig: {
+            auto morse_rx_msg = *reinterpret_cast<const MorseRXConfigureMessage*>(p);
+            configure(morse_rx_msg.mode);
+            break;
+        }
+
+        case Message::ID::NBFMConfigure: {
+            auto nbfm_msg = *reinterpret_cast<const NBFMConfigureMessage*>(p);
+            user_squelch_level = nbfm_msg.squelch_level;
+            audio_output.configure(iir_config_passthrough, iir_config_passthrough, (float)user_squelch_level / 100.0f);
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 int main() {
