@@ -202,10 +202,9 @@ void MorseProcessor::process_decoding(int32_t sample) {
 
             // Tone Detection
             bool is_tone = squelch_is_open && (power > current_pwr_threshold) && (power > 150000);
-
+            int32_t time_base = modulation == 0 ? 125 : 250;
             // State Change Logic
             if (is_tone != was_signaling) {
-                int32_t time_base = 125;
                 int32_t duration_us = (int32_t)((int64_t)duration_samples * time_base / 3);
 
                 // Send message if significant
@@ -220,7 +219,7 @@ void MorseProcessor::process_decoding(int32_t sample) {
 
             // Timeout Logic
             if (!was_signaling && duration_samples > 28800) {
-                int32_t duration_us = (int32_t)((int64_t)duration_samples * 125 / 3);
+                int32_t duration_us = (int32_t)((int64_t)duration_samples * time_base / 3);
                 message.state_durations[0] = -duration_us;
                 message.state_cnt = 1;
                 shared_memory.application_queue.push(message);
