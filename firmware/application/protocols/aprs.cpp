@@ -35,12 +35,17 @@ void make_aprs_frame(const char* src_address, const uint32_t src_ssid, const cha
     AX25Frame frame;
 
     char address[14] = {0};
+    memset(address, ' ', 14);
 
-    memcpy(&address[0], dest_address, 6);
-    memcpy(&address[7], src_address, 6);
+    size_t dest_len = strlen(dest_address);
+    if (dest_len > 6) dest_len = 6;
+    memcpy(&address[0], dest_address, dest_len);
+    size_t src_len = strlen(src_address);
+    if (src_len > 6) src_len = 6;
+    memcpy(&address[7], src_address, src_len);
     // euquiq: According to ax.25 doc section 2.2.13.x.x and 2.4.1.2
-    //  SSID need bits 5.6 set, so later when shifted it will end up being 011xxxx0 (xxxx = SSID number)
-    //  Notice that if need to signal usage of AX.25 V2.0, (dest_ssid | 112); (MSb will need to be set at the end)
+    // SSID need bits 5.6 set, so later when shifted it will end up being 011xxxx0 (xxxx = SSID number)
+    // Notice that if need to signal usage of AX.25 V2.0, (dest_ssid | 112); (MSb will need to be set at the end)
     address[6] = (dest_ssid | 48);
     address[13] = (src_ssid | 48);
 
