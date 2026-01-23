@@ -89,6 +89,25 @@ APRSTXView::APRSTXView(NavigationView& nav) {
                   &button_set,
                   &tx_view});
 
+    sym_source.set_value(symsrc);
+    num_ssid_source.set_value(ssidsrc);
+    sym_dest.set_value(symdst);
+    num_ssid_dest.set_value(ssiddst);
+    text_payload.set(payload);
+
+    sym_source.on_change = [this](SymField&) {
+        symsrc = sym_source.to_string();
+    };
+    num_ssid_source.on_change = [this](int32_t v) {
+        ssidsrc = v;
+    };
+    sym_dest.on_change = [this](SymField&) {
+        symdst = sym_dest.to_string();
+    };
+    num_ssid_dest.on_change = [this](int32_t v) {
+        ssiddst = v;
+    };
+
     button_set.on_select = [this, &nav](Button&) {
         text_prompt(
             nav,

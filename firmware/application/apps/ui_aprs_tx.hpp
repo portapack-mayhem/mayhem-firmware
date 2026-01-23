@@ -50,10 +50,21 @@ class APRSTXView : public View {
         1750000 /* bandwidth */,
         AFSK_TX_SAMPLERATE /* sampling rate */
     };
-    app_settings::SettingsManager settings_{
-        "tx_aprs", app_settings::Mode::TX};
 
+    std::string symsrc = "";
+    std::string symdst = "";
     std::string payload{""};
+    int32_t ssidsrc = 0;
+    int32_t ssiddst = 0;
+
+    app_settings::SettingsManager settings_{
+        "tx_aprs",
+        app_settings::Mode::TX,
+        {{"symsrc"sv, &symsrc},
+         {"symdst"sv, &symdst},
+         {"ssidsrc"sv, &ssidsrc},
+         {"ssiddst"sv, &ssiddst},
+         {"payload"sv, &payload}}};
 
     void start_tx();
     void generate_frame();
