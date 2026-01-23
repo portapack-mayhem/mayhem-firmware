@@ -29,6 +29,7 @@
 #include "baseband_api.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "ui_geomap.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -49,10 +50,22 @@ APRSTXView::~APRSTXView() {
 
 void APRSTXView::start_tx() {
     // TODO: Clean up this API to take string_views to avoid allocations.
+    std::string new_payload = payload;
+
+    std::string gps = text_gps_coord.get();
+    const std::string token = "?GPS?";
+    size_t pos = 0;
+    while ((pos = new_payload.find(token, pos)) != std::string::npos) {
+        new_payload.replace(pos, token.size(), gps);
+        pos += gps.size();
+    }
+
+    text_payload.set(new_payload);
+
     make_aprs_frame(
         sym_source.to_string().c_str(), num_ssid_source.value(),
         sym_dest.to_string().c_str(), num_ssid_dest.value(),
-        payload);
+        new_payload);
 
     // uint8_t * bb_data_ptr = shared_memory.bb_data.data;
     // text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
@@ -77,6 +90,58 @@ void APRSTXView::on_tx_progress(const uint32_t progress, const bool done) {
     }
 }
 
+void APRSTXView::process_coordinates(float lat_, float lon_) {
+    std::string s;
+
+    char ns = lat_ >= 0 ? 'N' : 'S';
+    float lat = (lat_ >= 0) ? lat_ : -lat_;
+    uint32_t lat_d = (uint32_t)lat;
+    uint32_t lat_m = (uint32_t)((lat - lat_d) * 6000.0f + 0.5f);
+
+    if (lat_m >= 6000) {
+        lat_m = 0;
+        lat_d++;
+    }
+
+    s += to_string_dec_uint(lat_d, 2, '0');
+    s += to_string_dec_uint(lat_m / 100, 2, '0');
+    s += ".";
+    s += to_string_dec_uint(lat_m % 100, 2, '0');
+    s += ns;
+
+    s += "/";
+
+    char ew = lon_ >= 0 ? 'E' : 'W';
+    float lon = (lon_ >= 0) ? lon_ : -lon_;
+    uint32_t lon_d = (uint32_t)lon;
+    uint32_t lon_m = (uint32_t)((lon - lon_d) * 6000.0f + 0.5f);
+
+    if (lon_m >= 6000) {
+        lon_m = 0;
+        lon_d++;
+    }
+
+    s += to_string_dec_uint(lon_d, 3, '0');
+    s += to_string_dec_uint(lon_m / 100, 2, '0');
+    s += ".";
+    s += to_string_dec_uint(lon_m % 100, 2, '0');
+    s += ew;
+    text_gps_coord.set(s);
+}
+
+void APRSTXView::on_gps(const GPSPosDataMessage* message) {
+    if (manual_gps_mode) {
+        return;  // no more update once set manually
+    }
+    if (message->lat < -90.0 || message->lat > 90.0 ||
+        message->lon < -180.0 || message->lon > 180.0) {
+        return;
+    }
+    last_lat = message->lat;
+    last_lon = message->lon;
+    process_coordinates(message->lat, message->lon);
+}
+
 APRSTXView::APRSTXView(NavigationView& nav) {
     baseband::run_image(portapack::spi_flash::image_tag_afsk);
 
@@ -87,6 +152,8 @@ APRSTXView::APRSTXView(NavigationView& nav) {
                   &num_ssid_dest,
                   &text_payload,
                   &button_set,
+                  &text_gps_coord,
+                  &button_mangps,
                   &tx_view});
 
     sym_source.set_value(symsrc);
@@ -135,6 +202,22 @@ APRSTXView::APRSTXView(NavigationView& nav) {
         tx_view.set_transmitting(false);
         transmitter_model.disable();
     };
+
+    button_mangps.on_select = [this, &nav](Button&) {
+        nav.push<GeoMapView>(
+            0,
+            GeoPos::alt_unit::METERS,
+            GeoPos::spd_unit::HIDDEN,
+            last_lat,
+            last_lon,
+            [this](int32_t, float lat, float lon, int32_t) {
+                last_lat = lat;
+                last_lon = lon;
+                manual_gps_mode = true;
+                process_coordinates(lat, lon);
+            });
+    };
+    process_coordinates(last_lat, last_lon);
 }
 
 } /* namespace ui */

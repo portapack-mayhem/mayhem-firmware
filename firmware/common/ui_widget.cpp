@@ -384,6 +384,10 @@ void Text::set(std::string_view value) {
     set_dirty();
 }
 
+std::string Text::get() {
+    return text;
+}
+
 void Text::getAccessibilityText(std::string& result) {
     result = text;
 }
