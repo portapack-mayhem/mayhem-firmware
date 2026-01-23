@@ -34,16 +34,16 @@ project(pacman_app)
 set(USE_OPT "-Os -g --specs=nano.specs --specs=nosys.specs")
 
 # C specific options here (added to USE_OPT).
-set(USE_COPT "-std=gnu99")
+set(USE_COPT "-Os -std=gnu99 --specs=nosys.specs")
 
 # C++ specific options here (added to USE_OPT).
 check_cxx_compiler_flag("-std=c++20" cpp20_supported)
 if(cpp20_supported)
-	set(USE_CPPOPT "-std=c++20")
+	set(USE_CPPOPT "-Os -std=c++20")
 else()
-	set(USE_CPPOPT "-std=c++17")
+	set(USE_CPPOPT "-Os -std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -fno-use-cxa-atexit")
+set(USE_CPPOPT "${USE_CPPOPT} -Os -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -fno-use-cxa-atexit")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
