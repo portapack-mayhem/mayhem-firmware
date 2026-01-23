@@ -1,4 +1,4 @@
 [submodule "hackrf"]
 	path = hackrf
 	url = https://github.com/stafur/hackrf.git
-	branch = main
+	branch = toolchain-9.2.1-fix
