@@ -137,6 +137,9 @@ void APRSTXView::on_gps(const GPSPosDataMessage* message) {
         message->lon < -180.0 || message->lon > 180.0) {
         return;
     }
+    if (message->lat == 0.0f && message->lon == 0.0f) {
+        return;
+    }
     last_lat = message->lat;
     last_lon = message->lon;
     process_coordinates(message->lat, message->lon);

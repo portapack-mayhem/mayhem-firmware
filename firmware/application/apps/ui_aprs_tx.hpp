@@ -84,6 +84,8 @@ class APRSTXView : public View {
         {{UI_POS_X(0), UI_POS_Y(1)}, " Dest.:       SSID:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(3)}, "Info field:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(7)}, "GPS:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(24), UI_POS_Y(11)}, "Use ?GPS? in the payload", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(17), UI_POS_Y(12)}, "as a placeholder.", Theme::getInstance()->fg_light->foreground},
     };
 
     SymField sym_source{
