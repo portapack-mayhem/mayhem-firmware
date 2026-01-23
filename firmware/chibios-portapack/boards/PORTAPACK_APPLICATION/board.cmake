@@ -11,12 +11,15 @@ SET(PATH_PRALINE_FPGA_BIN ${HACKRF_PATH}/firmware/fpga/build/praline_fpga.bin)
 set(FPGA_OBJ ${CMAKE_CURRENT_BINARY_DIR}/fpga.o)
 add_custom_command(
 	OUTPUT  ${FPGA_OBJ}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMAND ${CMAKE_COMMAND} -E copy ${PATH_PRALINE_FPGA_BIN} "fpga.bin"
-	COMMAND ${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B armv7e-m 
-	        --rename-section .data=.rodata,alloc,load,readonly,data,contents 
+	COMMAND ${CMAKE_OBJCOPY} 
+		-I binary 
+		-O elf32-littlearm 
+		-B armv7e-m 
+		--rename-section .data=.rodata,alloc,load,readonly,data,contents #,.rom_only 
 		fpga.bin ${FPGA_OBJ}
-        WORKING_DIRECTORY ${HACKRF_PATH}/firmware/build-test/hackrf_usb/
-        DEPENDS ${HACKRF_PATH}/firmware/build-test/hackrf_usb/fpga.bin
+	DEPENDS ${PATH_PRALINE_FPGA_BIN}
 	)
 # This is an external object so we don't need to look for a .c file
 set_source_files_properties(${FPGA_OBJ} PROPERTIES EXTERNAL_OBJECT TRUE GENERATED TRUE)
