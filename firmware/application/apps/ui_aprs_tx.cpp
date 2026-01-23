@@ -157,6 +157,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
                   &button_set,
                   &text_gps_coord,
                   &button_mangps,
+                  &gps_is_manual,
                   &tx_view});
 
     sym_source.set_value(symsrc);
@@ -217,6 +218,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
                 last_lat = lat;
                 last_lon = lon;
                 manual_gps_mode = true;
+                gps_is_manual.set("MANUAL");
                 process_coordinates(lat, lon);
             });
     };

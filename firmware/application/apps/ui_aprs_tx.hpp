@@ -88,6 +88,11 @@ class APRSTXView : public View {
         {{UI_POS_X_CENTER(17), UI_POS_Y(12)}, "as a placeholder.", Theme::getInstance()->fg_light->foreground},
     };
 
+    Text gps_is_manual{
+        {UI_POS_X(6), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        "",
+    };
+
     SymField sym_source{
         {UI_POS_X(7), UI_POS_Y(0)},
         6,
