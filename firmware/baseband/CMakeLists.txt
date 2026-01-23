@@ -32,19 +32,20 @@ include(CheckCXXCompilerFlag)
 project(baseband_shared)
 
 # Compiler options here.
-set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
+# set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
+set(USE_OPT "-Os -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
-set(USE_COPT "-std=gnu99")
+set(USE_COPT "-Os -std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
 check_cxx_compiler_flag("-std=c++20" cpp20_supported)
 if(cpp20_supported)
-	set(USE_CPPOPT "-std=c++20")
+	set(USE_CPPOPT "-Os -std=c++20 ")
 else()
-	set(USE_CPPOPT "-std=c++17")
+	set(USE_CPPOPT "-Os -std=c++17 ")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -Os -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile ")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -213,7 +214,7 @@ set(CPPWARN "-Wall -Wextra")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
+set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -D${BOARD} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -314,7 +315,8 @@ macro(DeclareTargets chunk_tag name)
 endmacro()
 
 set(add_to_firmware TRUE)
-set(MODE_FLAGS "-O3")
+# set(MODE_FLAGS "-O3")
+set(MODE_FLAGS "-Os")
 
 
 ### ADS-B RX
@@ -518,6 +520,7 @@ DeclareTargets(PFUT flash_utility)
 set(MODE_INCDIR
 	${HACKRF_PATH}/firmware
 	${HACKRF_PATH}/firmware/common
+	${HACKRF_PATH}/firmware/hackrf_usb
 	${HACKRF_PATH}/firmware/libopencm3/include
 )
 set(MODE_CPPSRC
@@ -539,6 +542,8 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
 	${HACKRF_PATH}/firmware/common/firmware_info.c
 	${HACKRF_PATH}/firmware/common/si5351c.c
+	${HACKRF_PATH}/firmware/common/adc.c
+	${HACKRF_PATH}/firmware/common/selftest.c
 	${HACKRF_PATH}/firmware/common/i2c_bus.c
 	${HACKRF_PATH}/firmware/common/mixer.c
 	${HACKRF_PATH}/firmware/common/clkin.c
@@ -562,7 +567,8 @@ DeclareTargets(PUSB sd_over_usb)
 
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
-set(MODE_FLAGS "-O3")
+# set(MODE_FLAGS "-O3")
+set(MODE_FLAGS "-Os")
 
 ### ACARS RX
 

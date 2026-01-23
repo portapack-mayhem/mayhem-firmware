@@ -54,7 +54,7 @@ target_compile_options(baseband_test PRIVATE
 	-DLPC43XX
 	-DLPC43XX_M4
 	-D__NEWLIB__
-	-DHACKRF_ONE
+	-D${BOARD}
 	-DTOOLCHAIN_GCC
 	-DTOOLCHAIN_GCC_ARM
 	-D_RANDOM_TCC=0

@@ -63,17 +63,17 @@ uint32_t __strex(uint32_t val, volatile uint32_t* addr) {
     return 0;
 }
 
-void nvic_enable_irq(uint8_t irqn) {
-    NVIC_ISER(irqn / 32) = (1 << (irqn % 32));
-    thread_usb_event = chThdSelf();
-}
+//void nvic_enable_irq(uint8_t irqn) {
+//    NVIC_ISER(irqn / 32) = (1 << (irqn % 32));
+//    thread_usb_event = chThdSelf();
+//}
 
 void usb_configuration_changed(usb_device_t* const device) {
     (void)device;
 
-    usb_endpoint_init(&usb_endpoint_int_in);
-    usb_endpoint_init(&usb_endpoint_bulk_in);
-    usb_endpoint_init(&usb_endpoint_bulk_out);
+    usb_endpoint_init(&usb_endpoint_int_in, false);
+    usb_endpoint_init(&usb_endpoint_bulk_in, false);
+    usb_endpoint_init(&usb_endpoint_bulk_out, false);
 }
 
 void setup_usb_serial_controller(void) {
@@ -88,8 +88,8 @@ void setup_usb_serial_controller(void) {
     usb_queue_init(&usb_endpoint_bulk_out_queue);
     usb_queue_init(&usb_endpoint_bulk_in_queue);
 
-    usb_endpoint_init(&usb_endpoint_control_out);
-    usb_endpoint_init(&usb_endpoint_control_in);
+    usb_endpoint_init(&usb_endpoint_control_out, false);
+    usb_endpoint_init(&usb_endpoint_control_in, false);
 
     usb_run(&usb_device);
 }

@@ -15,12 +15,21 @@
     limitations under the License.
 */
 
+
 #include "ch.h"
 #include "hal.h"
 
 #include <array>
 
+// Declare wrapper function. board.cpp to avoid conflicting gpio_t definitions.
 bool hackrf_r9;
+
+// Declare the bridge function (no need to include HackRF headers here)
+#ifdef PRALINE
+extern "C" {
+    int fpga_bridge_init(void);
+}
+#endif
 
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /**
@@ -262,9 +271,9 @@ const PALConfig pal_default_config = {
     {  4,  7, scu_config_normal_drive_t { .mode=1, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=1 } }, /* GP_CLKIN/P72/MCU_CLK: SI5351C.CLK7(O) */
 
     /* HackRF: LEDs. Configured early so we can use them to indicate boot status. */
-    {  4,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* LED1: LED1.A(I) */
-    {  4,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* LED2: LED2.A(I) */
-    {  6, 12, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* LED3: LED3.A(I) */
+    {  4,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* LED1: LED1.A(I) */
+    {  4,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* LED2: LED2.A(I) */
+    {  6, 12, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* LED3: LED3.A(I) */
 
     /* Power control */
     {  6, 11, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* VREGMODE/P69: TPS62410.MODE/DATA(I) */
@@ -332,11 +341,23 @@ const PALConfig pal_default_config = {
     {  4,  9, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* SGPIO14/BANK2F3M4: CPLD.81/CPLD_P81 */
     {  4, 10, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* SGPIO15/BANK2F3M6: CPLD.78/CPLD_P78 */
 
+#ifdef PRALINE
+    /* HackRF Pro: FPGA Control Pins (Reusing CPLD JTAG pins) */
+    /* P6_1: FPGA_CRESET (GPIO3[0]) - Set as GPIO (Mode 0), Output */
+    {  6,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } },
+    /* P6_2: FPGA_SPI_CS (GPIO3[1]) - Set as GPIO (Mode 0), Output */
+    {  6,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } },
+    /* P6_5: FPGA_CDONE (GPIO3[4]) - Set as GPIO (Mode 0), Input */
+    {  6,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=1 } },
+    /* P9_5: Unused or Debug? Keep as-is or set to GPIO if needed */
+    {  9,  5, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } },
+#else
     /* HackRF: CPLD */
     {  6,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CPLD_TCK: CPLD.TCK(I), PortaPack CPLD.TCK(I) */
     {  6,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* CPLD_TDI: CPLD.TDI(I), PortaPack I2S0_RX_SDA(O), PortaPack CPLD.TDI(I) */
     {  6,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CPLD_TMS: CPLD.TMS(I) */
     {  9,  5, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* CPLD_TDO: CPLD.TDO(O) */
+#endif
 
     /* PortaPack CPLD */
     {  1,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* SD_POW: PortaPack CPLD.TDO(O) */
@@ -825,6 +846,9 @@ extern "C" void __late_init(void) {
  */
 extern "C" void boardInit(void) {
   /* Detect HackRF variant */
+  /* 1. Perform Standard Initialization first */
+  /* This configures VAA power, LED pins, and detects board revision */
+  // Note: If detect_hackrf_r9() hangs on the Pro, we might need to force one path.
   hackrf_r9 = detect_hackrf_r9();
   /* Configure variant-dependent pins. */
   if (hackrf_r9) {
@@ -834,12 +858,69 @@ extern "C" void boardInit(void) {
     setup_gpios(gpio_setup_og);
     setup_pins(pins_setup_og);
   }
+
+  /* 2. Turn on VAA (Critical for Radio/Transceiver) */
   vaa_power_on();
+
+  /* 3. Handle VAA Enable Pin Latching */
   if (hackrf_r9) {
     LPC_GPIO->W2[9] = 1;
   } else {
     LPC_GPIO->W3[6] = 1;
   }
+
+  /* 4. HackRF Pro Specific: Initialize and Load FPGA */
+  // The FPGA driver pins are set up as handled by ice40_spi_target_init.
+  // Note: Need to verify that SCU array changes are correct!
+
+
+#ifdef PRALINE
+  // Trigger FPGA bitstream loading via fpga bridge
+  // Attempt to load the FPGA bitstream
+  // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
+  // Use LEDs to check if initi is successful. 
+  
+  // Setup LED pin directions
+  LPC_GPIO->DIR[2] |= (1 << 1); // LED1, LED2
+  LPC_GPIO->DIR[2] |= (1 << 2); // LED1, LED2
+  LPC_GPIO->DIR[6] |= (1 << 12);           // LED3
+
+  // Clear all LEDs to start
+  LPC_GPIO->CLR[2] = (1 << 1);
+  LPC_GPIO->CLR[2] = (1 << 2);
+  LPC_GPIO->CLR[6] = (1 << 12);
+
+  int load_result = fpga_bridge_init(); 
+
+  if (load_result == 0) {
+        // SUCCESS: Blink A Success Pattern
+        // Note: Without a delay loop, this will happen very fast
+	LPC_GPIO->CLR[2] = (1 << 1);  // Physical P4_1 (LED1) USB
+	LPC_GPIO->CLR[2] = (1 << 2);  // Physical P4_2 (LED2) RX
+	LPC_GPIO->CLR[6] = (1 << 12); // Physical P6_12 (LED3) TX
+//	if (load_result != 0) {
+//		while(1) {
+//                        LPC_GPIO->NOT[6] = (1 << 2); // Toggle LED2 RX
+//                        // Approx 0.5 second delay at 204MHz
+//                        for(volatile int i=0; i<20000000; i++);
+//                }
+//        }
+  } else {
+        // FAILURE: Blink A Failure Pattern
+        // Note: Without a delay loop, this will happen very fast
+	LPC_GPIO->SET[2] = (1 << 1);  // Physical P4_1 (LED1) USB
+        LPC_GPIO->SET[2] = (1 << 2);  // Physical P4_2 (LED2) RX
+        LPC_GPIO->SET[6] = (1 << 12); // Physical P6_12 (LED3) TX
+//	if (load_result != 0) {
+//		while(1) {
+//			LPC_GPIO->NOT[2] = (1 << 1); // Toggle LED1 USB
+//	                // Approx 0.25 second delay at 204MHz
+//			for(volatile int i=0; i<10000000; i++);
+//		}	
+//	}
+  }
+#endif
+
 }
 
 extern "C" void _default_exit(void) {
@@ -848,10 +929,10 @@ extern "C" void _default_exit(void) {
     } else {
       LPC_GPIO->W3[6] = 0;
     }
+
     vaa_power_off();
 
     chSysDisable();
-
     systick_stop();
 
     /* Don't reset these peripherals, as they're operating during shutdown:

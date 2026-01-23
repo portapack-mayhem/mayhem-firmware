@@ -35,16 +35,16 @@ project(application)
 set(USE_OPT "-Os -g --specs=nano.specs -specs=nosys.specs")
 
 # C specific options here (added to USE_OPT).
-set(USE_COPT "-std=gnu99")
+set(USE_COPT "-Os -std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
 check_cxx_compiler_flag("-std=c++20" cpp20_supported)
 if(cpp20_supported)
-	set(USE_CPPOPT "-std=c++20")
+	set(USE_CPPOPT "-Os -std=c++20")
 else()
-	set(USE_CPPOPT "-std=c++17")
+	set(USE_CPPOPT "-Os -std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -Os -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -416,7 +416,7 @@ set(CPPWARN "-Wall -Wextra -Wno-psabi")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"' -DVERSION_MD5=${VERSION_MD5} -D'GCC_VERSION_MISMATCH=${GCC_VERSION_MISMATCH}'")
+set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -D${BOARD} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"' -DVERSION_MD5=${VERSION_MD5} -D'GCC_VERSION_MISMATCH=${GCC_VERSION_MISMATCH}'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)

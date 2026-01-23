@@ -18,6 +18,16 @@
 # Boston, MA 02110-1301, USA.
 #
 
+if(BOARD STREQUAL "PRALINE")
+	# Force these into the global cache so all submodules see them
+	set(BOARD "PRALINE" CACHE STRING "Force Board to Praline" FORCE)
+	set(PRALINE ON CACHE BOOL "Force Praline mode" FORCE)
+endif()
+
+
+# Apply to the global C flags as well to catch legacy Make-style subprojects
+add_compile_definitions(BOARD=PRALINE HACKRF_PRO=1 PRALINE=1)
+
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0005 NEW)
 
@@ -25,7 +35,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex
 
 set(CMAKE_COLOR_MAKEFILE ON)
 
-add_compile_options(-fdiagnostics-color=always)
+add_compile_options("-D${BOARD}" -fdiagnostics-color=always)
 
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
@@ -65,6 +75,7 @@ message("Building version: ${VERSION} MD5: ${VERSION_MD5}")
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
 set(HARDWARE_PATH ${CMAKE_CURRENT_LIST_DIR}/hardware)
 
+set(BOARD ${BOARD} CACHE STRING "" FORCE) # Ensure it's in the cache
 add_subdirectory(hackrf/firmware)
 
 set(HACKRF_FIRMWARE_DFU_FILENAME hackrf_usb.dfu)

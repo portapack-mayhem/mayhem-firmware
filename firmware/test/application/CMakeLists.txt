@@ -76,7 +76,7 @@ target_compile_options(application_test PRIVATE
 	-DLPC43XX
 	-DLPC43XX_M0
 	-D__NEWLIB__
-	-DHACKRF_ONE
+	-D${BOARD}
 	-DTOOLCHAIN_GCC
 	-DTOOLCHAIN_GCC_ARM
 	-D_RANDOM_TCC=0
