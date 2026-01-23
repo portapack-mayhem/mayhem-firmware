@@ -7,9 +7,11 @@ set(HACKRF_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../hackrf/)
 if(BOARD STREQUAL "PRALINE")
 # Need to tell the assembler to use Unified Syntax correctly choose the 16-bit or 32-bit version of the instructions.
 add_compile_options("-masm-syntax-unified")
+SET(PATH_PRALINE_FPGA_BIN ${HACKRF_PATH}/firmware/fpga/build/praline_fpga.bin)
 set(FPGA_OBJ ${CMAKE_CURRENT_BINARY_DIR}/fpga.o)
 add_custom_command(
 	OUTPUT  ${FPGA_OBJ}
+	COMMAND ${CMAKE_COMMAND} -E copy ${PATH_PRALINE_FPGA_BIN} "fpga.bin"
 	COMMAND ${CMAKE_OBJCOPY} -I binary -O elf32-littlearm -B armv7e-m 
 	        --rename-section .data=.rodata,alloc,load,readonly,data,contents 
 		fpga.bin ${FPGA_OBJ}
