@@ -36,6 +36,7 @@
 #include "ff.h"
 #include "portapack_persistent_memory.hpp"
 #include "irq_controls.hpp"
+#include "file.hpp"
 
 #include <cstdint>
 
@@ -343,77 +344,72 @@ class SetUIView : public View {
             {"1 hour", backlight_timeout_t::Timeout3600Sec},
         }};
 
-    Checkbox checkbox_showsplash{
-        {3 * 8, 6 * 16},
-        20,
-        "Show splash"};
-
     Checkbox checkbox_showclock{
-        {3 * 8, 8 * 16},
+        {3 * 8, 6 * 16},
         20,
         "Show clock with:"};
 
     OptionsField options_clockformat{
-        {60, 9 * 16 + 8},
+        {60, 7 * 16 + 8},
         20,
         {{"time only", 0},
          {"time and date", 1}}};
 
     Checkbox checkbox_guireturnflag{
-        {3 * 8, 11 * 16},
+        {3 * 8, 9 * 16},
         20,
         "Back button in menu"};
 
     Labels labels{
-        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 11 * 16}, "Show/Hide Status Icons", Theme::getInstance()->fg_light->foreground},
     };
 
     ImageToggle toggle_camera{
-        {2 * 8, 14 * 16 + 2, 16, 16},
+        {2 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_camera};
 
     ImageToggle toggle_sleep{
-        {4 * 8, 14 * 16 + 2, 16, 16},
+        {4 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {6 * 8, 14 * 16 + 2, 16, 16},
+        {6 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {8 * 8, 14 * 16 + 2, 16, 16},
+        {8 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {10 * 8, 14 * 16 + 2, 16, 16},
+        {10 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {12 * 8, 14 * 16 + 2, 8, 16},
+        {12 * 8, 12 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {13 * 8, 14 * 16 + 2, 16, 16},
+        {13 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {15 * 8, 14 * 16 + 2, 16, 16},
+        {15 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
     ImageToggle toggle_battery_icon{
-        {17 * 8, 14 * 16 + 2, 16, 16},
+        {17 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_batt_icon};
 
     ImageToggle toggle_battery_text{
-        {19 * 8, 14 * 16 + 2, 16, 16},
+        {19 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_batt_text};
 
     ImageToggle toggle_fake_brightness{
-        {21 * 8, 14 * 16 + 2, 16, 16},
+        {21 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_brightness};
 
     ImageToggle toggle_sd_card{
-        {23 * 8, 14 * 16 + 2, 16, 16},
+        {23 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -1067,6 +1063,44 @@ class SettingsMenuView : public BtnGridView {
     NavigationView& nav_;
 
     void on_populate() override;
+};
+
+class SetSpLash : public View {
+   public:
+    SetSpLash(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Splash"; };
+
+   private:
+    bool file_exists(const std::filesystem::path& path);
+    bool splash_bmp = false;
+    bool del = false;
+
+    Checkbox checkbox_showsplash{
+        {3 * 8, 1 * 16},
+        20,
+        "Show splash"};
+
+    Checkbox checkbox_randomsplash{
+        {3 * 8, 3 * 16},
+        20,
+        "Random splash on boot"};
+
+    Text message{{UI_POS_X(1), UI_POS_Y(6), UI_POS_WIDTH(26), UI_POS_HEIGHT(1)}, "Pick image to stop random."};
+
+    Button button_picture_select{
+        {UI_POS_X_CENTER(8) - UI_POS_WIDTH(4), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(13), UI_POS_HEIGHT(2)},
+        "Select pict."};
+
+    Button button_save{
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Save"};
+
+    Button button_cancel{
+        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Cancel"};
 };
 
 } /* namespace ui */
