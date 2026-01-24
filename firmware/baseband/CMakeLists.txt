@@ -45,7 +45,7 @@ if(cpp20_supported)
 else()
 	set(USE_CPPOPT "-Os -std=c++17 ")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -Os -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile ")
+set(USE_CPPOPT "${USE_CPPOPT} -Os -ffunction-sections -fdata-sections -Wl,--gc-sections -fshort-enums -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile ")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -563,7 +563,7 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
-DeclareTargets(PUSB sd_over_usb)
+DeclareTargets(PUSB sd_over_usb) #Removed to try to save space in for the firmware image.
 
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
