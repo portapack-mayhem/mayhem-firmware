@@ -103,8 +103,10 @@ class APRSPacket {
     std::string get_digipeaters_formatted() {
         uint8_t position = DIGIPEATER_START;
         bool has_more = parse_address(SOURCE_START, REPEATER);
-
-        std::string repeaters = "";
+        if (!has_more) {
+            return "";
+        }
+        std::string repeaters = ",";
         while (has_more) {
             has_more = parse_address(position, REPEATER);
             repeaters += std::string(address_buffer);
@@ -146,8 +148,8 @@ class APRSPacket {
     }
 
     std::string get_stream_text() {
-        std::string stream = get_source_formatted() + ">" + get_destination_formatted() + ";" + get_digipeaters_formatted() + ";" + get_information_text_formatted();
-
+        // get_digipeaters_formatted will add the "," to the beginning if there are digipeaters
+        std::string stream = get_source_formatted() + ">" + get_destination_formatted() + get_digipeaters_formatted() + ":" + get_information_text_formatted();
         return stream;
     }
 

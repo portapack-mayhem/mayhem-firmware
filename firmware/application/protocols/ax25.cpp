@@ -103,22 +103,22 @@ void AX25Frame::make_ui_frame(char* const address, const uint8_t control, const 
     ones_counter = 0;
     crc_ccitt.reset();
 
-    add_flag();
-    add_flag();
-    add_flag();
-    add_flag();
+    add_flag();  // 0x73
+    add_flag();  // 0x73
+    add_flag();  // 0x73
+    add_flag();  // 0x73
 
     make_extended_field(address, 14);
-    add_data(control);
-    add_data(protocol);
+    add_data(control);   // 0x03
+    add_data(protocol);  // 0xf0
 
     for (i = 0; i < info.size(); i++)
         add_data(info[i]);
 
-    add_checksum();
+    add_checksum();  // fcs
 
-    add_flag();
-    add_flag();
+    add_flag();  // 0x73
+    add_flag();  // 0x73
 
     flush();
 }
