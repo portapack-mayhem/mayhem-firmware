@@ -114,7 +114,7 @@ class APRSPacket {
             position += ADDRESS_SIZE;
 
             if (has_more) {
-                repeaters += ">";
+                repeaters += ",";
             }
         }
 

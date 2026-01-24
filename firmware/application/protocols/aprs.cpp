@@ -31,7 +31,7 @@ using namespace ax25;
 
 namespace aprs {
 
-void make_aprs_frame(const char* src_address, const uint32_t src_ssid, const char* dest_address, const uint32_t dest_ssid, const std::string& payload) {
+void make_aprs_frame(const char* src_address, const uint32_t src_ssid, const char* dest_address, const uint32_t dest_ssid, const std::string& payload, const std::string& path) {
     AX25Frame frame;
 
     char address[14] = {0};
@@ -49,7 +49,49 @@ void make_aprs_frame(const char* src_address, const uint32_t src_ssid, const cha
     address[6] = (dest_ssid | 0x30);
     address[13] = (src_ssid | 0x30);
 
-    frame.make_ui_frame(address, 0x03, protocol_id_t::NO_LAYER3, payload);
+    // fix path ssid bits. the result will be the same as above
+    std::string fixed_path = "";
+
+    const char* p = path.c_str();
+
+    while (*p) {
+        while (*p == ' ') p++;
+        if (!*p) break;
+
+        char call[6] = {' ', ' ', ' ', ' ', ' ', ' '};
+        int idx = 0;
+
+        while (*p && *p != '-' && *p != ',') {
+            if (*p != ' ') {
+                if (idx < 6) {
+                    char c = *p;
+                    if (c >= 'a' && c <= 'z') c -= 32;
+                    call[idx++] = c;
+                }
+            }
+            p++;
+        }
+
+        int ssid = 0;
+        if (*p == '-') {
+            p++;
+            while (*p == ' ') p++;
+            while (*p >= '0' && *p <= '9') {
+                ssid = ssid * 10 + (*p - '0');
+                p++;
+            }
+        }
+
+        if (ssid >= 0 && ssid <= 15) {
+            for (int i = 0; i < 6; i++) fixed_path += call[i];
+            fixed_path += (char)(ssid | 0x30);
+        }
+
+        while (*p && *p != ',') p++;
+        if (*p == ',') p++;
+    }
+
+    frame.make_ui_frame(address, 0x03, protocol_id_t::NO_LAYER3, payload, fixed_path);
 }
 
 } /* namespace aprs */

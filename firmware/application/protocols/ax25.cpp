@@ -26,13 +26,16 @@
 
 namespace ax25 {
 
-void AX25Frame::make_extended_field(char* const data, size_t length) {
+void AX25Frame::make_extended_field(char* const data, size_t length, bool is_last) {
     size_t i = 0;
 
     for (i = 0; i < length - 1; i++)
         add_data(data[i] << 1);
 
-    add_data((data[i] << 1) | 1);
+    if (is_last)
+        add_data((data[i] << 1) | 1);
+    else
+        add_data((data[i] << 1));
 }
 
 void AX25Frame::NRZI_add_bit(const uint32_t bit) {
@@ -92,7 +95,7 @@ void AX25Frame::add_checksum() {
     add_byte(checksum >> 8, false, false);
 }
 
-void AX25Frame::make_ui_frame(char* const address, const uint8_t control, const uint8_t protocol, const std::string& info) {
+void AX25Frame::make_ui_frame(char* const address, const uint8_t control, const uint8_t protocol, const std::string& info, const std::string& path) {
     size_t i;
 
     bb_data_ptr = (uint16_t*)shared_memory.bb_data.data;
@@ -108,7 +111,12 @@ void AX25Frame::make_ui_frame(char* const address, const uint8_t control, const 
     add_flag();  // 0x73
     add_flag();  // 0x73
 
-    make_extended_field(address, 14);
+    // path must not contain the - character! just the callsign and SSID next to each other
+    bool has_path = (path.size() > 0 && path.size() <= 63 && path.size() % 7 == 0);
+    make_extended_field(address, 14, !has_path);
+    if (has_path) {
+        make_extended_field(const_cast<char*>(path.data()), path.size(), true);
+    }
     add_data(control);   // 0x03
     add_data(protocol);  // 0xf0
 

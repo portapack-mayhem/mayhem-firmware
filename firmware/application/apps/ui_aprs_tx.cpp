@@ -53,7 +53,7 @@ void APRSTXView::start_tx() {
     std::string new_payload = payload;
 
     std::string gps = text_gps_coord.get();
-    const std::string token = "?GPS?";
+    std::string token = "?GPS?";
     size_t pos = 0;
     while ((pos = new_payload.find(token, pos)) != std::string::npos) {
         new_payload.replace(pos, token.size(), gps);
@@ -62,10 +62,12 @@ void APRSTXView::start_tx() {
 
     text_payload.set(new_payload);
 
+    std::string path = text_path.get();
+
     make_aprs_frame(
         sym_source.to_string().c_str(), num_ssid_source.value(),
         sym_dest.to_string().c_str(), num_ssid_dest.value(),
-        new_payload);
+        new_payload, path);
 
     // uint8_t * bb_data_ptr = shared_memory.bb_data.data;
     // text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
@@ -158,6 +160,8 @@ APRSTXView::APRSTXView(NavigationView& nav) {
                   &text_gps_coord,
                   &button_mangps,
                   &gps_is_manual,
+                  &text_path,
+                  &button_setpath,
                   &tx_view});
 
     sym_source.set_value(symsrc);
@@ -165,6 +169,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
     sym_dest.set_value(symdst);
     num_ssid_dest.set_value(ssiddst);
     text_payload.set(payload);
+    text_path.set(path_cache);
 
     sym_source.on_change = [this](SymField&) {
         symsrc = sym_source.to_string();
@@ -187,6 +192,17 @@ APRSTXView::APRSTXView(NavigationView& nav) {
             ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& s) {
                 text_payload.set(s);
+            });
+    };
+    button_setpath.on_select = [this, &nav](Button&) {
+        text_prompt(
+            nav,
+            path_cache,
+            60,
+            ENTER_KEYBOARD_MODE_ALPHA,
+            [this](std::string& s) {
+                text_path.set(s);
+                path_cache = s;
             });
     };
 

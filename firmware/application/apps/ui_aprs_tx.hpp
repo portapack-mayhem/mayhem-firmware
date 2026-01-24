@@ -54,6 +54,7 @@ class APRSTXView : public View {
     std::string symsrc = "";
     std::string symdst = "";
     std::string payload{""};
+    std::string path_cache = "";
     int32_t ssidsrc = 0;
     int32_t ssiddst = 0;
 
@@ -70,7 +71,8 @@ class APRSTXView : public View {
          {"ssiddst"sv, &ssiddst},
          {"payload"sv, &payload},
          {"last_lat"sv, &last_lat},
-         {"last_lon"sv, &last_lon}}};
+         {"last_lon"sv, &last_lon},
+         {"path"sv, &path_cache}}};
 
     void start_tx();
     void generate_frame();
@@ -82,14 +84,19 @@ class APRSTXView : public View {
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(0)}, "Source:       SSID:", Theme::getInstance()->fg_light->foreground},  // 6 alphanum + SSID
         {{UI_POS_X(0), UI_POS_Y(1)}, " Dest.:       SSID:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(3)}, "Info field:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(7)}, "GPS:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X_CENTER(24), UI_POS_Y(11)}, "Use ?GPS? in the payload", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X_CENTER(17), UI_POS_Y(12)}, "as a placeholder.", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Path: (ex.: WIDE1-1,WIDE2-1)", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(6)}, "Info field:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(10)}, "GPS:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(22), UI_POS_Y(14)}, "Use ?GPS? in the info", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(17), UI_POS_Y(15)}, "as a placeholder.", Theme::getInstance()->fg_light->foreground},
     };
 
+    Text text_path{
+        {UI_POS_X(0), UI_POS_Y(3), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)},
+        "WIDE1-1",
+    };
     Text gps_is_manual{
-        {UI_POS_X(6), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(6), UI_POS_Y(10), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "",
     };
 
@@ -118,20 +125,22 @@ class APRSTXView : public View {
         ' '};
 
     Text text_payload{
-        {UI_POS_X(0), UI_POS_Y(4), screen_width, 16},
-        " "};
+        {UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)},
+        ""};
     Button button_set{
-        {UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(2)},
+        {UI_POS_X(0), UI_POS_Y(8), UI_POS_WIDTH(10), UI_POS_HEIGHT(2)},
         "Set"};
 
     Text text_gps_coord{
-        {UI_POS_X(0), UI_POS_Y(8), UI_POS_WIDTH(20), UI_POS_HEIGHT(1)},
-        "--"};
+        {UI_POS_X(0), UI_POS_Y(11), UI_POS_WIDTH(20), UI_POS_HEIGHT(1)},
+        "-"};
 
     Button button_mangps{
-        {UI_POS_X(0), UI_POS_Y(9), UI_POS_WIDTH(14), UI_POS_HEIGHT(2)},
+        {UI_POS_X(0), UI_POS_Y(12), UI_POS_WIDTH(14), UI_POS_HEIGHT(2)},
         "Manual GPS"};
-
+    Button button_setpath{
+        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(14), UI_POS_HEIGHT(2)},
+        "Set Path"};
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
         5000,
