@@ -373,6 +373,16 @@ void set_moreserx_config(uint8_t mode) {
     send_message(&message);
 }
 
+void set_morsetx_config(uint8_t mode, uint32_t tone, uint32_t fm_delta, bool key_down) {
+    const MorseTXConfigureMessage message{mode, tone, fm_delta, key_down};
+    send_message(&message);
+}
+
+void set_morsetx_key(bool key_down) {
+    const MorseTXkeyMessage message{key_down};
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {

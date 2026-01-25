@@ -103,6 +103,8 @@ void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t d
 void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw);
 void set_subghzd_config(uint8_t modulation, uint32_t sampling_rate);
 void set_moreserx_config(uint8_t mode);
+void set_morsetx_config(uint8_t mode, uint32_t tone, uint32_t fm_delta, bool key_down);
+void set_morsetx_key(bool key_down);
 void set_wefax_config(uint8_t lpm, uint8_t ioc);
 void set_noaaapt_config();
 void set_flex_config();

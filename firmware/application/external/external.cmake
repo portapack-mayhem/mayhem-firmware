@@ -291,8 +291,12 @@ set(EXTCPPSRC
 
 
 	#morse_radio
-	external/morse_radio/main.cpp
-	external/morse_radio/ui_morse_radio.cpp
+#	external/morse_radio/main.cpp
+#	external/morse_radio/ui_morse_radio.cpp
+
+	#morse_radiotx
+	external/morse_radiotx/main.cpp
+	external/morse_radiotx/ui_morse_radiotx.cpp
 )
 
 set(EXTAPPLIST
@@ -365,5 +369,6 @@ set(EXTAPPLIST
 	subcarrx
 	siggen
 	sdusb
-	morse_radio
+#	morse_radio
+	morse_radiotx
 )

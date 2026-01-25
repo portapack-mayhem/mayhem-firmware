@@ -150,6 +150,8 @@ class Message {
         MorseRXfreq = 92,
         MorseRXConfig = 93,
         TXDisabled = 94,
+        MorseTXConfigure = 95,
+        MorseTXkey = 96,
         MAX
     };
 
@@ -1732,6 +1734,29 @@ class TXDisabledMessage : public Message {
     constexpr TXDisabledMessage()
         : Message{ID::TXDisabled} {
     }
+};
+
+class MorseTXConfigureMessage : public Message {
+   public:
+    constexpr MorseTXConfigureMessage(uint8_t modulation, uint32_t tone, uint32_t fm_delta, bool key_down)
+        : Message{ID::MorseTXConfigure},
+          modulation{modulation},
+          tone{tone},
+          fm_delta{fm_delta},
+          key_down{key_down} {}
+
+    uint8_t modulation = 0;
+    uint32_t tone = 0;
+    uint32_t fm_delta = 0;
+    bool key_down = false;
+};
+
+class MorseTXkeyMessage : public Message {
+   public:
+    constexpr MorseTXkeyMessage(bool key_down)
+        : Message{ID::MorseTXkey},
+          key_down{key_down} {}
+    bool key_down = false;
 };
 
 #endif /*__MESSAGE_H__*/
