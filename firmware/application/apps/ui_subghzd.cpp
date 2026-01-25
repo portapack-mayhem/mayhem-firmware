@@ -242,6 +242,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "GangQi";
         case FPS_MARANTEC24:
             return "Marantec24";
+        case FPS_HOLTEKHT6P20B:
+            return "Holtek HT6P20B";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -754,6 +756,12 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_MARANTEC24) {
         serial = (entry_.data >> 4);
         btn = entry_.data & 0xf;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_HOLTEKHT6P20B) {
+        serial = entry_.data >> 8;
+        btn = (entry_.data >> 4) & 0xF;
         return;
     }
 }
