@@ -217,6 +217,7 @@ class Text : public Widget {
     Text(Rect parent_rect);
 
     void set(std::string_view value);
+    std::string get();
 
     void paint(Painter& painter) override;
     void getAccessibilityText(std::string& result) override;
