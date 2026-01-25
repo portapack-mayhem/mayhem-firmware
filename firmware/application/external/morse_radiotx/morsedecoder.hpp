@@ -104,6 +104,17 @@ class MorseDecoder {
         pulse_gaps_.clear();
     }
 
+    const char* get_morse_pattern(char c) {
+        char upper_c = (c >= 'a' && c <= 'z') ? c - 32 : c;
+
+        for (size_t i = 0; i < morse_table_size_; ++i) {
+            if (morse_table_[i].letter[0] == upper_c) {
+                return morse_table_[i].code.c_str();
+            }
+        }
+        return nullptr;
+    }
+
     DecodeResult
     handleInput(int32_t duration_ms) {
         DecodeResult result = {"", 0.0};

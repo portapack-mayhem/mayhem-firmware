@@ -41,6 +41,7 @@
 #include "baseband_api.hpp"
 #include "external_app.hpp"
 #include <ch.h>
+#include <hal.h>
 
 namespace ui::external_app::morse_radiotx {
 
@@ -55,7 +56,21 @@ class MorseRadiotxView : public ui::View {
     void paint(Painter& painter) override;
 
    private:
+    struct MorseTimings {
+        uint32_t dot_ms;      // Rövid jel (dit) hossza
+        uint32_t dash_ms;     // Hosszú jel (dah) hossza
+        uint32_t symbol_gap;  // Jelek (dit/dah) közötti szünet egy karakteren belül
+        uint32_t char_gap;    // Betűk közötti szünet
+        uint32_t word_gap;    // Szavak (space) közötti szünet
+    };
+
+    MorseTimings current_timings{};
+
+    std::string msg_indicator{""};
     void on_set_text(NavigationView& nav);
+    void on_set_call(NavigationView& nav);
+    MorseTimings calculate_morse_timings(uint32_t wpm);
+    void transmit_morse_message();
     void onPress();
     void onRelease();
     void on_framesync();
@@ -69,6 +84,8 @@ class MorseRadiotxView : public ui::View {
     uint8_t current_mode{0};  // 0=AM, 1=FM, 2=DSB, 3=USB, 4=LSB
     uint8_t wpm{0};
     uint32_t tone{0};
+    uint8_t band{0};
+    std::string call_sign{"call sign?"};
 
     app_settings::SettingsManager settings_{
         "tx_morse_radio",
@@ -78,6 +95,8 @@ class MorseRadiotxView : public ui::View {
             {"tone"sv, &tone},
             {"wpm"sv, &wpm},
             {"message"sv, &msg_buffer},
+            {"bandwith"sv, &band},
+            {"call_sign"sv, &call_sign},
         }};
 
     RxFrequencyField field_frequency{
@@ -92,27 +111,28 @@ class MorseRadiotxView : public ui::View {
 
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_X(0)}};
     ui::OptionsField options_mode{
-        {UI_POS_X(6), UI_POS_Y(1)},
-        5,
+        {UI_POS_X(5), UI_POS_Y(1)},
+        3,
         {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
-    NumberField tone_{{UI_POS_X(16), UI_POS_Y(1)}, 4, {400, 1400}, 10, ' ', true};
-    NumberField wpm_{{UI_POS_X(16), UI_POS_Y(4)}, 4, {10, 45}, 1, ' ', true};
+    NumberField tone_{{UI_POS_X(14), UI_POS_Y(1)}, 4, {400, 1400}, 10, ' ', true};
+    NumberField wpm_{{UI_POS_X(18), UI_POS_Y(4)}, 2, {10, 45}, 1, ' ', true};
 
     ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
-    ui::Text msg_index{{UI_POS_X(1), UI_POS_Y(3), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(1)}, ""};
-    ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)}, "Set message"};
-    Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(5)}, 13, "Manual trans.", true};
-    ui::Text txt_last{{UI_POS_X(6), UI_POS_Y(6), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+    ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
+    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, call_sign};
+    Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(3)}, 13, "Manual trans.", true};
+    Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(5)}, 13, "Call sign", true};
+    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(6), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(8), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(7)}};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "CLR"};
     ui::Button btn_tt{{UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "KEY"};
 
     ui::Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Mode:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(11), UI_POS_Y(1)}, "Tone:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(21), UI_POS_Y(1)}, "Hz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(9), UI_POS_Y(1)}, "Tone:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(18), UI_POS_Y(1)}, "Hz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(14), UI_POS_Y(4)}, "WPM:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(6)}, "Last:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(6)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(7)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -125,10 +145,10 @@ class MorseRadiotxView : public ui::View {
     bool decode_timeout_calc{false};
     bool transmit{false};
 
+    uint8_t send_indicator{5};
     int64_t start_time{0};
     int64_t end_time{0};
     int64_t transmit_time{0};
-    std::string msg_indicator[27];
 
     MessageHandlerRegistration message_handler_framesync{
         Message::ID::DisplayFrameSync,
