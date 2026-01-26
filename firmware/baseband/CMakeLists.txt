@@ -563,7 +563,10 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
+# sd_over_usb has type conflicts with PRALINE (HackRF Pro) - disable for now
+if(NOT BOARD STREQUAL "PRALINE")
 DeclareTargets(PUSB sd_over_usb) #Removed to try to save space in for the firmware image.
+endif()
 
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)

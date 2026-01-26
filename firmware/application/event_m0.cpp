@@ -22,6 +22,8 @@
 #include "event_m0.hpp"
 
 #include "portapack.hpp"
+#include "hackrf_gpio.hpp"
+using namespace hackrf::one;
 #include "portapack_persistent_memory.hpp"
 #include "debug.hpp"
 
@@ -106,6 +108,7 @@ EventDispatcher::EventDispatcher(
 
     thread_event_loop = chThdSelf();
     is_running = true;
+
     touch_manager.on_event = [this](const ui::TouchEvent event) {
         this->on_touch_event(event);
     };

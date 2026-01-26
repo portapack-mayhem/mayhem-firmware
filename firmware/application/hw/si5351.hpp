@@ -361,8 +361,12 @@ class Si5351 {
     }
 
     void wait_for_device_ready() {
-        while (device_status() & 0x80)
-            ;
+        // Add timeout to prevent infinite loop if I2C communication fails
+        // (e.g., on PRALINE hardware with different configuration)
+        uint32_t timeout = 100000;
+        while ((device_status() & 0x80) && (timeout > 0)) {
+            timeout--;
+        }
     }
 
     bool plla_loss_of_signal() {

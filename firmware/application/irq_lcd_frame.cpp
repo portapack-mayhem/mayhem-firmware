@@ -53,9 +53,11 @@ extern "C" {
 CH_IRQ_HANDLER(PIN_INT4_IRQHandler) {
     CH_IRQ_PROLOGUE();
 
-    chSysLockFromIsr();
-    chEvtSignalI(thread_lcd_frame_event, EVT_MASK_LCD_FRAME_SYNC);
-    chSysUnlockFromIsr();
+    if (thread_lcd_frame_event) {
+        chSysLockFromIsr();
+        chEvtSignalI(thread_lcd_frame_event, EVT_MASK_LCD_FRAME_SYNC);
+        chSysUnlockFromIsr();
+    }
 
     LPC_GPIO_INT->IST = (1U << 4);
 

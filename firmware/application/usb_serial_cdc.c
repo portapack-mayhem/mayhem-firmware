@@ -37,9 +37,11 @@ CH_IRQ_HANDLER(USB0_IRQHandler) {
     usb0_isr();
 
     if (status & USB0_USBSTS_D_UI) {
-        chSysLockFromIsr();
-        chEvtSignalI(thread_usb_event, EVT_MASK_USB);
-        chSysUnlockFromIsr();
+        if (thread_usb_event) {
+            chSysLockFromIsr();
+            chEvtSignalI(thread_usb_event, EVT_MASK_USB);
+            chSysUnlockFromIsr();
+        }
     }
 
     if (status & USB0_USBSTS_D_SLI) {

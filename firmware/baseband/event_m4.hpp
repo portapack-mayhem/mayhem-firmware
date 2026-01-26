@@ -46,7 +46,9 @@ class EventDispatcher {
     }
 
     static inline void events_flag_isr(const eventmask_t events) {
-        chEvtSignalI(thread_event_loop, events);
+        if (thread_event_loop) {
+            chEvtSignalI(thread_event_loop, events);
+        }
     }
 
    private:

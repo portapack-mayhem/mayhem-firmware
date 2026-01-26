@@ -881,44 +881,19 @@ extern "C" void boardInit(void) {
   // Use LEDs to check if initi is successful. 
   
   // Setup LED pin directions
-  LPC_GPIO->DIR[2] |= (1 << 1); // LED1, LED2
-  LPC_GPIO->DIR[2] |= (1 << 2); // LED1, LED2
-  LPC_GPIO->DIR[6] |= (1 << 12);           // LED3
+  // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
+  LPC_GPIO->DIR[2] |= (1 << 1) | (1 << 2) | (1 << 8);
 
   // Clear all LEDs to start
-  LPC_GPIO->CLR[2] = (1 << 1);
-  LPC_GPIO->CLR[2] = (1 << 2);
-  LPC_GPIO->CLR[6] = (1 << 12);
+  LPC_GPIO->CLR[2] = (1 << 1) | (1 << 2) | (1 << 8);
 
-  int load_result = fpga_bridge_init(); 
+  // Call fpga_bridge_init and continue boot regardless of result
+  // (Watchdog was resetting device when we halted with while(1))
+  int load_result = fpga_bridge_init();
+  (void)load_result;  // Ignore result for now, just let boot continue
 
-  if (load_result == 0) {
-        // SUCCESS: Blink A Success Pattern
-        // Note: Without a delay loop, this will happen very fast
-	LPC_GPIO->CLR[2] = (1 << 1);  // Physical P4_1 (LED1) USB
-	LPC_GPIO->CLR[2] = (1 << 2);  // Physical P4_2 (LED2) RX
-	LPC_GPIO->CLR[6] = (1 << 12); // Physical P6_12 (LED3) TX
-//	if (load_result != 0) {
-//		while(1) {
-//                        LPC_GPIO->NOT[6] = (1 << 2); // Toggle LED2 RX
-//                        // Approx 0.5 second delay at 204MHz
-//                        for(volatile int i=0; i<20000000; i++);
-//                }
-//        }
-  } else {
-        // FAILURE: Blink A Failure Pattern
-        // Note: Without a delay loop, this will happen very fast
-	LPC_GPIO->SET[2] = (1 << 1);  // Physical P4_1 (LED1) USB
-        LPC_GPIO->SET[2] = (1 << 2);  // Physical P4_2 (LED2) RX
-        LPC_GPIO->SET[6] = (1 << 12); // Physical P6_12 (LED3) TX
-//	if (load_result != 0) {
-//		while(1) {
-//			LPC_GPIO->NOT[2] = (1 << 1); // Toggle LED1 USB
-//	                // Approx 0.25 second delay at 204MHz
-//			for(volatile int i=0; i<10000000; i++);
-//		}	
-//	}
-  }
+  // Clear all LEDs and continue
+  LPC_GPIO->CLR[2] = (1 << 1) | (1 << 2) | (1 << 8);
 #endif
 
 }

@@ -23,6 +23,7 @@
 
 #include "portapack_persistent_memory.hpp"
 #include "portapack_io.hpp"
+#include "portapack.hpp"
 
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
@@ -256,6 +257,26 @@ static void portapack_tcxo_disable() {
 using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
+#ifdef PRALINE
+    // PRALINE: Configure clock input mux GPIO
+    // GPIO0_15 (clkin_ctrl) selects GP_CLKIN source:
+    //   0 = P1 connector (external)
+    //   1 = P22 (internal Si5351 CLK2)
+    constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];
+    gpio_clkin_ctrl.output();
+    gpio_clkin_ctrl.write(1);  // CLKIN_SIGNAL_P22 = 1 = internal Si5351 CLK2
+
+    // Also enable MCU clock gate (GPIO0_8)
+    gpio_r9_mcu_clk_en.output();
+    gpio_r9_mcu_clk_en.write(1);
+#else
+    // HackRF One r9: GPIO0_8 (mcu_clk_en) gates Si5351 CLK2/CLK7 to GP_CLKIN
+    if (hackrf_r9) {
+        gpio_r9_mcu_clk_en.output();
+        gpio_r9_mcu_clk_en.write(1);
+    }
+#endif
+
     clock_generator.reset();
     clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
     clock_generator.enable_fanout();
@@ -323,14 +344,16 @@ void ClockManager::init_clock_generator() {
 
     clock_generator.reset_plls();
 
-    // Wait for PLL(s) to lock.
+    // Wait for PLL(s) to lock - with timeout to prevent hang on PRALINE
     uint8_t device_status_mask = hackrf_r9
                                      ? 0x20
                                  : (ref_pll == ClockControl::MultiSynthSource::PLLB)
                                      ? 0x40
                                      : 0x20;
-    while ((clock_generator.device_status() & device_status_mask) != 0)
-        ;
+    uint32_t pll_timeout = 100000;
+    while ((clock_generator.device_status() & device_status_mask) != 0 && pll_timeout > 0) {
+        pll_timeout--;
+    }
 
     clock_generator.set_clock_control(
         clock_generator_output_mcu_clkin,
@@ -513,8 +536,11 @@ void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_se
 
 void ClockManager::wait_For_frequency_monitor_measurement_done() {
     // FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
-    while (LPC_CGU->FREQ_MON.MEAS == 1)
-        ;
+    // PRALINE FIX: Add timeout to prevent infinite hang
+    uint32_t timeout = 100000;
+    while (LPC_CGU->FREQ_MON.MEAS == 1 && timeout > 0) {
+        timeout--;
+    }
 }
 
 uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
@@ -525,6 +551,35 @@ uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
 }
 
 void ClockManager::start_audio_pll() {
+#ifdef PRALINE
+    /* PRALINE: Use 12MHz XTAL for audio PLL
+     * For 12MHz XTAL input, 48kHz audio rate, 256Fs MCLK:
+     *   Fout=12.288MHz, Fcco=491.52MHz
+     *   12MHz * 1024 / 25 = 491.52MHz
+     *   MSEL=1024, NSEL=25, PSEL=20
+     */
+    cgu::pll0audio::ctrl({
+        .pd = 1,
+        .bypass = 0,
+        .directi = 0,
+        .directo = 0,
+        .clken = 0,
+        .frm = 0,
+        .autoblock = 1,
+        .pllfract_req = 0,
+        .sel_ext = 1,
+        .mod_pd = 1,
+        .clk_sel = cgu::CLK_SEL::XTAL,
+    });
+
+    cgu::pll0audio::mdiv({
+        .mdec = 22625UL,  // MDEC for MSEL=1024
+    });
+    cgu::pll0audio::np_div({
+        .pdec = 31,   // PSEL=20
+        .ndec = 69,   // NDEC for NSEL=25
+    });
+#else
     cgu::pll0audio::ctrl({
         .pd = 1,
         .bypass = 0,
@@ -553,14 +608,20 @@ void ClockManager::start_audio_pll() {
         .pdec = 31,
         .ndec = 45,
     });
+#endif
 
     cgu::pll0audio::frac({
         .pllfract_ctrl = 0,
     });
 
     cgu::pll0audio::power_up();
-    while (!cgu::pll0audio::is_locked())
-        ;
+    // PRALINE FIX: Add timeout to prevent infinite hang if GP_CLKIN not present
+    {
+        uint32_t timeout = 100000;
+        while (!cgu::pll0audio::is_locked() && timeout > 0) {
+            timeout--;
+        }
+    }
     cgu::pll0audio::clock_enable();
 
     set_base_audio_clock_divider(1);

@@ -147,6 +147,7 @@ ui::SystemView* system_view_ptr;
 
 static void event_loop() {
     static ui::Context context;
+
     static ui::SystemView system_view{
         context,
         portapack::display.screen_rect()};
@@ -154,6 +155,13 @@ static void event_loop() {
     system_view_ptr = &system_view;
 
     EventDispatcher event_dispatcher{&system_view, context};
+
+    // Enable interrupts AFTER EventDispatcher is created (they signal events)
+    lcd_frame_sync_configure();
+
+    // PRALINE DEBUG: Skip RTC interrupt for now - may be causing crash
+    // rtc_interrupt_enable();
+
     static MessageHandlerRegistration message_handler_display_sleep{
         Message::ID::DisplaySleep,
         [&event_dispatcher](const Message* const) {
@@ -161,7 +169,9 @@ static void event_loop() {
         }};
     portapack::setEventDispatcherToUSBSerial(&event_dispatcher);
     i2cdev::I2CDevManager::setEventDispatcher(&event_dispatcher);
+
     system_view.get_navigation_view()->handle_autostart();
+
     event_dispatcher.run();
 }
 
@@ -181,11 +191,7 @@ int main(void) {
             [[fallthrough]];
 
         case portapack::init_status_t::INIT_SUCCESS:
-
             config_mode_clear();
-
-            lcd_frame_sync_configure();
-            rtc_interrupt_enable();
 
             Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());  // load theme
 

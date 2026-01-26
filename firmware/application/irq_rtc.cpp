@@ -41,9 +41,11 @@ extern "C" {
 CH_IRQ_HANDLER(RTC_IRQHandler) {
     CH_IRQ_PROLOGUE();
 
-    chSysLockFromIsr();
-    chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
-    chSysUnlockFromIsr();
+    if (thread_rtc_event) {
+        chSysLockFromIsr();
+        chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
+        chSysUnlockFromIsr();
+    }
 
     rtc::interrupt::clear_all();
 
