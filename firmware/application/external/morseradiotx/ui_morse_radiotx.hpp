@@ -111,7 +111,7 @@ class MorseRadiotxView : public ui::View {
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
-        1750, false};
+        0, false};
 
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y_BOTTOM(5)}};
     ui::OptionsField options_mode{

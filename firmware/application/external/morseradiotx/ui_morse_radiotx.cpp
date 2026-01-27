@@ -168,6 +168,7 @@ void MorseRadiotxView::focus() {
 void MorseRadiotxView::on_set_text(NavigationView& nav) {
     text_prompt(nav, msg_buffer, 27, ENTER_KEYBOARD_MODE_ALPHA);
     txt_msg.set("[" + msg_buffer + "] ");
+    set_dirty();
 }
 
 void MorseRadiotxView::on_set_call(NavigationView& nav) {
@@ -176,6 +177,7 @@ void MorseRadiotxView::on_set_call(NavigationView& nav) {
         btn_calls.set_text("call sign?");
     else
         btn_calls.set_text(call_sign);
+    set_dirty();
 }
 
 MorseRadiotxView::MorseTimings MorseRadiotxView::calculate_morse_timings(uint32_t wpm) {
