@@ -24,24 +24,24 @@
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::morse_radiotx {
+namespace ui::external_app::morseradiotx {
 
 void initialize_app(NavigationView& nav) {
     nav.push<MorseRadiotxView>();
 }
 
-}  // namespace ui::external_app::morse_radiotx
+}  // namespace ui::external_app::morseradiotx
 
 extern "C" {
 
-__attribute__((section(".external_app.app_morse_radiotx.application_information"), used))
-application_information_t _application_information_morse_radiotx = {
+__attribute__((section(".external_app.app_morseradiotx.application_information"), used))
+application_information_t _application_information_morseradiotx = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::morse_radiotx::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::morseradiotx::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Morse tx",
+    /*.app_name = */ "Morse TX",
     /*.bitmap_data = */ {
         0x00,
         0x00,

@@ -20,12 +20,28 @@ void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
             sample_cos = 0;
         }
 
-        // modulation logic
+        // Audio output
+        audio_decimation_counter++;
+        if (audio_decimation_counter >= decimation_factor) {
+            audio_decimation_counter = 0;
 
+            float audio_sample = (float)sample_sin / 128.0f;
+            audio_sample *= 0.5f;
+
+            audio_buffer[audio_buffer_index] = audio_sample;
+            audio_buffer_index++;
+
+            if (audio_buffer_index >= audio_buffer.size()) {
+                audio_output.write(buffer_f32_t{audio_buffer.data(), audio_buffer.size()});
+                audio_buffer_index = 0;
+            }
+        }
+
+        // modulation logic
         if (modulation == 0) {  // AM modulation
             im = 0;
             if (key_down) {
-                re = 127;  // max. signed 8 bits value .   (-128 ...+127), max. amplitude ,  static phasor at 0º
+                re = 64 + (sample_sin >> 2);
             } else {
                 re = 0;
             }
@@ -34,7 +50,7 @@ void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
             // In FM, 'silence' means that the frequency is not oscillating.
             // continuous carrier wave
             if (key_down) {
-                delta = sample_sin * fm_delta;
+                delta = (int32_t)sample_sin * (int32_t)fm_delta;
             } else {
                 delta = 0;
             }
@@ -78,9 +94,8 @@ void MorseTXProcessor::on_message(const Message* const p) {
     switch (p->id) {
         case Message::ID::MorseTXConfigure: {
             auto message = *reinterpret_cast<const MorseTXConfigureMessage*>(p);
-            tone_delta = message.tone;
+            tone_delta = message.tone * 1398;  // to scale it
             modulation = message.modulation;
-            key_down = message.key_down;
             if (message.fm_delta == 0 && modulation == 1) {
                 fm_delta = 90000;
             } else {

@@ -4,6 +4,7 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "portapack_shared_memory.hpp"
+#include "audio_output.hpp"
 
 class MorseTXProcessor : public BasebandProcessor {
    public:
@@ -11,6 +12,14 @@ class MorseTXProcessor : public BasebandProcessor {
     void on_message(const Message* const msg) override;
 
    private:
+    AudioOutput audio_output{};
+
+    std::array<float, 32> audio_buffer{};
+    size_t audio_buffer_index{0};
+
+    uint32_t audio_decimation_counter{0};
+    const uint32_t decimation_factor{64};
+
     bool configured{false};
     bool key_down{false};
 

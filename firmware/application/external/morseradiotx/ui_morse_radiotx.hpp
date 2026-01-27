@@ -40,20 +40,27 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "external_app.hpp"
+#include "string_format.hpp"
 #include <ch.h>
 #include <hal.h>
 
-namespace ui::external_app::morse_radiotx {
+namespace ui::external_app::morseradiotx {
 
 class MorseRadiotxView : public ui::View {
    public:
     MorseRadiotxView(ui::NavigationView& nav);
     ~MorseRadiotxView();
 
-    std::string title() const override { return "Morse Radio Tx"; }
+    MorseRadiotxView(const MorseRadiotxView&) = delete;
+    MorseRadiotxView(MorseRadiotxView&&) = delete;
+    MorseRadiotxView& operator=(const MorseRadiotxView&) = delete;
+    MorseRadiotxView& operator=(MorseRadiotxView&&) = delete;
+
+    std::string title() const override { return "Morse Tx"; }
     void focus() override;
     void on_show() override;
     void paint(Painter& painter) override;
+    void transmit_morse_message();
 
    private:
     struct MorseTimings {
@@ -70,70 +77,71 @@ class MorseRadiotxView : public ui::View {
     void on_set_text(NavigationView& nav);
     void on_set_call(NavigationView& nav);
     MorseTimings calculate_morse_timings(uint32_t wpm);
-    void transmit_morse_message();
     void onPress();
     void onRelease();
     void on_framesync();
     void writeCharToConsole(const std::string& ch, double confidence);
+    void ui_toggle();
     bool tx_button_held();
 
     ui::NavigationView& nav_;
     MorseDecoder morse_decoder_{};
     TxRadioState radio_state_{};
+    Thread* tx_thread{nullptr};
+
     std::string msg_buffer{"PORTAPACK"};
     uint8_t current_mode{0};  // 0=AM, 1=FM, 2=DSB, 3=USB, 4=LSB
-    uint8_t wpm{0};
-    uint32_t tone{0};
-    uint8_t band{0};
+    uint8_t wpm{20};
+    uint32_t tone{700};
+    uint8_t band{12};
     std::string call_sign{"call sign?"};
 
     app_settings::SettingsManager settings_{
-        "tx_morse_radio",
+        "tx_morseradio",
         app_settings::Mode::TX,
         {
             {"cmode"sv, &current_mode},
-            {"tone"sv, &tone},
+            {"audtone"sv, &tone},
             {"wpm"sv, &wpm},
             {"message"sv, &msg_buffer},
             {"bandwith"sv, &band},
             {"call_sign"sv, &call_sign},
         }};
 
-    RxFrequencyField field_frequency{
-        {UI_POS_X(0), UI_POS_Y(0)},
-        nav_};
-    RFAmpField field_rf_amp{
-        {UI_POS_X(13), UI_POS_Y(0)}};
-    LNAGainField field_lna{
-        {UI_POS_X(15), UI_POS_Y(0)}};
-    VGAGainField field_vga{
-        {UI_POS_X(18), UI_POS_Y(0)}};
+    TransmitterView tx_view{
+        (int16_t)UI_POS_Y_BOTTOM(4),
+        10000,
+        0, false};
 
-    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_X(0)}};
+    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y_BOTTOM(5)}};
     ui::OptionsField options_mode{
-        {UI_POS_X(5), UI_POS_Y(1)},
+        {UI_POS_X(5), UI_POS_Y(0)},
         3,
         {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
-    NumberField tone_{{UI_POS_X(14), UI_POS_Y(1)}, 4, {400, 1400}, 10, ' ', true};
-    NumberField wpm_{{UI_POS_X(18), UI_POS_Y(4)}, 2, {10, 45}, 1, ' ', true};
+    NumberField tone_{{UI_POS_X(14), UI_POS_Y(0)}, 4, {400, 1400}, 10, ' ', true};
+    NumberField wpm_{{UI_POS_X(25), UI_POS_Y(0)}, 2, {10, 45}, 1, ' ', true};
+    FloatField bandwidt{{UI_POS_X(20), UI_POS_Y(3)}, 4, {0.1, 16.0}, 0.1, ' ', true, 1};
 
-    ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
-    ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
-    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, call_sign};
-    Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(3)}, 13, "Manual trans.", true};
-    Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(5)}, 13, "Call sign", true};
-    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(6), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
-    ui::Console console_text{{UI_POS_X(0), UI_POS_Y(8), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(7)}};
-    ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "CLR"};
-    ui::Button btn_tt{{UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "KEY"};
+    ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
+    ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
+    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, call_sign};
+    Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(2)}, 13, "Manual trans.", true};
+    Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(4)}, 13, "Call sign", true};
+    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+    ui::Console console_text{{UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(14)}};
+    ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "CLR"};
+    ui::Button btn_ptt{{UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "PTT"};
 
     ui::Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(1)}, "Mode:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(9), UI_POS_Y(1)}, "Tone:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(18), UI_POS_Y(1)}, "Hz", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(14), UI_POS_Y(4)}, "WPM:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(6)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(7)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Mode:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(9), UI_POS_Y(0)}, "Tone:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(18), UI_POS_Y(0)}, "Hz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(21), UI_POS_Y(0)}, "WPM:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(14), UI_POS_Y(3)}, "BandW:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(25), UI_POS_Y(3)}, "kHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(5)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(6)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(7), UI_POS_Y_BOTTOM(5)}, "Vol.:", Theme::getInstance()->fg_light->foreground},
     };
 
     uint8_t last_color_id{255};
@@ -144,6 +152,7 @@ class MorseRadiotxView : public ui::View {
     bool button_was_selected{false};
     bool decode_timeout_calc{false};
     bool transmit{false};
+    bool thread_running = false;
 
     uint8_t send_indicator{5};
     int64_t start_time{0};
@@ -158,6 +167,6 @@ class MorseRadiotxView : public ui::View {
         }};
 };
 
-}  // namespace ui::external_app::morse_radiotx
+}  // namespace ui::external_app::morseradiotx
 
 #endif  // __MORSE_RADIOTX_H__

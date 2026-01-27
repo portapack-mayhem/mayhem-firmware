@@ -26,7 +26,7 @@
 #include <string>
 #include "string_format.hpp"
 
-namespace ui::external_app::morse_radiotx {
+namespace ui::external_app::morseradiotx {
 
 class MorseRingBuffer {
    public:
@@ -384,6 +384,6 @@ class MorseDecoder {
         {".-.-.", "+"}};
 };
 
-}  // namespace ui::external_app::morse_radiotx
+}  // namespace ui::external_app::morseradiotx
 
 #endif  // __MORSEDECODER_HPP__
