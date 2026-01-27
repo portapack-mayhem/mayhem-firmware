@@ -1738,7 +1738,7 @@ class TXDisabledMessage : public Message {
 
 class MorseTXConfigureMessage : public Message {
    public:
-    constexpr MorseTXConfigureMessage(uint8_t modulation, uint32_t tone, uint32_t fm_delta)
+    constexpr MorseTXConfigureMessage(uint8_t modulation, uint32_t tone, float fm_delta)
         : Message{ID::MorseTXConfigure},
           modulation{modulation},
           tone{tone},
@@ -1746,7 +1746,7 @@ class MorseTXConfigureMessage : public Message {
 
     uint8_t modulation = 0;
     uint32_t tone = 0;
-    uint32_t fm_delta = 0;
+    float fm_delta = 0;
 };
 
 class MorseTXkeyMessage : public Message {

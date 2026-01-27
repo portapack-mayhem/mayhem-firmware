@@ -30,7 +30,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
                   &btn_message,
                   &btn_calls,
                   &chk_trans,
-                  &bandwidt,
+                  &bandwidth,
                   &chk_callsgn,
                   &txt_last,
                   &console_text,
@@ -60,15 +60,15 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
         current_timings = calculate_morse_timings(wpm);
     };
 
-    bandwidt.on_change = [this](float v) {
-        band = (uint32_t)(v * 1100);
+    bandwidth.on_change = [this](float v) {
+        band = v;
         baseband::set_morsetx_config(current_mode, tone, band);
     };
 
     options_mode.set_selected_index(current_mode, true);
     tone_.set_value(tone, true);
     wpm_.set_value(wpm, true);
-    bandwidt.set_value(band, true);
+    bandwidth.set_value(band, true);
 
     btn_ptt.on_select = [this](Button&) {
         if (button_touch) {
@@ -139,7 +139,6 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
         thread_running = false;
         tx_view.set_transmitting(false);
         ui_toggle();
-        set_dirty();
     };
 }
 
@@ -156,7 +155,7 @@ MorseRadiotxView::~MorseRadiotxView() {
 }
 
 void MorseRadiotxView::on_show() {
-    btn_ptt.hidden(true);
+    ptt_button_visibility(true);
     start_time = 0;
     end_time = 0;
     transmit_time = 0;
@@ -166,20 +165,17 @@ void MorseRadiotxView::focus() {
     options_mode.focus();
 }
 
-void MorseRadiotxView::paint(Painter&) {
-    txt_msg.set("[" + msg_buffer + "] ");
-    if (call_sign.empty())
-        btn_calls.set_text("call sign?");
-    else
-        btn_calls.set_text(call_sign);
-}
-
 void MorseRadiotxView::on_set_text(NavigationView& nav) {
     text_prompt(nav, msg_buffer, 27, ENTER_KEYBOARD_MODE_ALPHA);
+    txt_msg.set("[" + msg_buffer + "] ");
 }
 
 void MorseRadiotxView::on_set_call(NavigationView& nav) {
     text_prompt(nav, call_sign, 10, ENTER_KEYBOARD_MODE_ALPHA);
+    if (call_sign.empty())
+        btn_calls.set_text("call sign?");
+    else
+        btn_calls.set_text(call_sign);
 }
 
 MorseRadiotxView::MorseTimings MorseRadiotxView::calculate_morse_timings(uint32_t wpm) {
@@ -210,7 +206,7 @@ void MorseRadiotxView::transmit_morse_message() {
     }
 
     if (full_message.empty() && !chk_trans.value()) {
-        btn_ptt.hidden(false);
+        ptt_button_visibility(false);
         return;
     }
 
@@ -263,7 +259,7 @@ void MorseRadiotxView::transmit_morse_message() {
         }
     }
 
-    if (chk_trans.value()) btn_ptt.hidden(false);
+    if (chk_trans.value()) ptt_button_visibility(false);
     baseband::set_morsetx_key(false);
     transmit_time = chTimeNow();
     decode_timeout_calc = false;
@@ -333,6 +329,15 @@ void MorseRadiotxView::writeCharToConsole(const std::string& ch, double confiden
     console_text.write(color + ch);
 }
 
+void MorseRadiotxView::ptt_button_visibility(bool hidden) {
+    bool hiddenorig = btn_ptt.hidden();
+    if (hiddenorig != hidden) {
+        btn_ptt.hidden(hidden);
+        if (!hidden) btn_ptt.focus();
+        set_dirty();
+    }
+}
+
 void MorseRadiotxView::ui_toggle() {
     // 0=AM, 1=FM, 2=DSB, 3=USB, 4=LSB
 
@@ -347,8 +352,8 @@ void MorseRadiotxView::ui_toggle() {
         btn_calls.set_style(Theme::getInstance()->fg_dark);
         chk_trans.set_style(Theme::getInstance()->fg_dark);
         chk_trans.set_focusable(false);
-        bandwidt.set_style(Theme::getInstance()->fg_dark);
-        bandwidt.set_focusable(false);
+        bandwidth.set_style(Theme::getInstance()->fg_dark);
+        bandwidth.set_focusable(false);
         chk_callsgn.set_style(Theme::getInstance()->fg_dark);
         chk_callsgn.set_focusable(false);
         btn_clear.set_style(Theme::getInstance()->fg_dark);
@@ -365,16 +370,16 @@ void MorseRadiotxView::ui_toggle() {
         chk_callsgn.set_style(Theme::getInstance()->bg_darker);
         chk_callsgn.set_focusable(true);
         btn_clear.set_style(Theme::getInstance()->bg_darker);
-        btn_ptt.hidden(true);
+        ptt_button_visibility(true);
         tone_.set_style(Theme::getInstance()->bg_darker);
         tone_.set_focusable(true);
 
         if (current_mode == 1) {  // FM mode
-            bandwidt.set_style(Theme::getInstance()->bg_darker);
-            bandwidt.set_focusable(true);
+            bandwidth.set_style(Theme::getInstance()->bg_darker);
+            bandwidth.set_focusable(true);
         } else {
-            bandwidt.set_style(Theme::getInstance()->fg_dark);
-            bandwidt.set_focusable(false);
+            bandwidth.set_style(Theme::getInstance()->fg_dark);
+            bandwidth.set_focusable(false);
         }
     }  // transmit false
 }
@@ -419,7 +424,6 @@ void MorseRadiotxView::on_framesync() {
             tx_thread = nullptr;
             transmit_time = 0;
             ui_toggle();
-            set_dirty();
         }
     }
 }

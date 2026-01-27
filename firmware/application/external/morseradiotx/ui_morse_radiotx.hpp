@@ -59,16 +59,15 @@ class MorseRadiotxView : public ui::View {
     std::string title() const override { return "Morse Tx"; }
     void focus() override;
     void on_show() override;
-    void paint(Painter& painter) override;
     void transmit_morse_message();
 
    private:
     struct MorseTimings {
-        uint32_t dot_ms;      // Rövid jel (dit) hossza
-        uint32_t dash_ms;     // Hosszú jel (dah) hossza
-        uint32_t symbol_gap;  // Jelek (dit/dah) közötti szünet egy karakteren belül
-        uint32_t char_gap;    // Betűk közötti szünet
-        uint32_t word_gap;    // Szavak (space) közötti szünet
+        uint32_t dot_ms;
+        uint32_t dash_ms;
+        uint32_t symbol_gap;
+        uint32_t char_gap;
+        uint32_t word_gap;
     };
 
     MorseTimings current_timings{};
@@ -83,6 +82,7 @@ class MorseRadiotxView : public ui::View {
     void writeCharToConsole(const std::string& ch, double confidence);
     void ui_toggle();
     bool tx_button_held();
+    void ptt_button_visibility(bool hidden);
 
     ui::NavigationView& nav_;
     MorseDecoder morse_decoder_{};
@@ -93,7 +93,7 @@ class MorseRadiotxView : public ui::View {
     uint8_t current_mode{0};  // 0=AM, 1=FM, 2=DSB, 3=USB, 4=LSB
     uint8_t wpm{20};
     uint32_t tone{700};
-    uint8_t band{12};
+    float band{5.8};
     std::string call_sign{"call sign?"};
 
     app_settings::SettingsManager settings_{
@@ -111,7 +111,7 @@ class MorseRadiotxView : public ui::View {
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
-        0, false};
+        1750, false};
 
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y_BOTTOM(5)}};
     ui::OptionsField options_mode{
@@ -120,7 +120,7 @@ class MorseRadiotxView : public ui::View {
         {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
     NumberField tone_{{UI_POS_X(14), UI_POS_Y(0)}, 4, {400, 1400}, 10, ' ', true};
     NumberField wpm_{{UI_POS_X(25), UI_POS_Y(0)}, 2, {10, 45}, 1, ' ', true};
-    FloatField bandwidt{{UI_POS_X(20), UI_POS_Y(3)}, 4, {0.1, 16.0}, 0.1, ' ', true, 1};
+    FloatField bandwidth{{UI_POS_X(20), UI_POS_Y(3)}, 4, {0.1, 16.0}, 0.1, ' ', true, 1};
 
     ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
     ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
@@ -138,7 +138,7 @@ class MorseRadiotxView : public ui::View {
         {{UI_POS_X(18), UI_POS_Y(0)}, "Hz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(21), UI_POS_Y(0)}, "WPM:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(14), UI_POS_Y(3)}, "BandW:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(25), UI_POS_Y(3)}, "kHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(24), UI_POS_Y(3)}, "kHz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(5)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(6)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(7), UI_POS_Y_BOTTOM(5)}, "Vol.:", Theme::getInstance()->fg_light->foreground},

@@ -373,7 +373,7 @@ void set_moreserx_config(uint8_t mode) {
     send_message(&message);
 }
 
-void set_morsetx_config(uint8_t mode, uint32_t tone, uint32_t fm_delta) {
+void set_morsetx_config(uint8_t mode, uint32_t tone, float fm_delta) {
     const MorseTXConfigureMessage message{mode, tone, fm_delta};
     send_message(&message);
 }

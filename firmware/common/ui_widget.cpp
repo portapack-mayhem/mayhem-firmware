@@ -2481,6 +2481,7 @@ void FloatField::paint(Painter& painter) {
         size_t max_chars = (r.width() - 2) / style().font.char_width();
         text = text.substr(0, max_chars);
     }
+    painter.fill_rectangle(r, style().background);
     painter.draw_string(
         screen_pos(),
         paint_style,
