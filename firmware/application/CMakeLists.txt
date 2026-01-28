@@ -134,6 +134,7 @@ file(GLOB I2CDEV_SOURCES ${COMMON}/i2cdev_*.cpp)
 set(CPPSRC
 	main.cpp
 	shell.cpp
+	debug.cpp
 	${COMMON}/adsb.cpp
 	${COMMON}/adsb_frame.cpp
 	${COMMON}/ais_baseband.cpp
@@ -148,7 +149,6 @@ set(CPPSRC
 	${COMMON}/cpld_max5.cpp
 	${COMMON}/cpld_update.cpp
 	${COMMON}/cpld_xilinx.cpp
-	debug.cpp
 	${COMMON}/ert_packet.cpp
 	${COMMON}/event.cpp
 	${COMMON}/gcc.cpp
@@ -236,6 +236,7 @@ set(CPPSRC
 	tuning.cpp
 	hw/debounce.cpp
 	hw/encoder.cpp
+	hw/max2831.cpp
 	hw/max2837.cpp
 	hw/max2839.cpp
 	hw/max5864.cpp

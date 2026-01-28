@@ -45,7 +45,10 @@ if(BOARD STREQUAL "PRALINE")
 		${HACKRF_COMMON_DIR}/gpio_lpc.c
 		${HACKRF_COMMON_DIR}/lz4_blk.c
 		${HACKRF_COMMON_DIR}/mixer.c
+		${HACKRF_COMMON_DIR}/max2831.c
+		${HACKRF_COMMON_DIR}/max5864.c
 		${HACKRF_COMMON_DIR}/platform_detect.c
+		${HACKRF_COMMON_DIR}/radio.c
 		${HACKRF_COMMON_DIR}/rf_path.c
 		${HACKRF_COMMON_DIR}/rffc5071_spi.c
 		#${HACKRF_COMMON_DIR}/rffc5071.c
@@ -54,6 +57,7 @@ if(BOARD STREQUAL "PRALINE")
 		${HACKRF_COMMON_DIR}/spi_ssp.c
 		${HACKRF_COMMON_DIR}/spi_bus.c
 		${HACKRF_COMMON_DIR}/sgpio.c
+		${HACKRF_COMMON_DIR}/tuning.c
 		#${HACKRF_COMMON_DIR}/usb.c
 		#${HACKRF_COMMON_DIR}/usb_queue.c
 		#${HACKRF_COMMON_DIR}/usb_request.c

@@ -24,6 +24,7 @@
 #include "rf_path.hpp"
 
 #include "rffc507x.hpp"
+#include "max2831.hpp"
 #include "max2837.hpp"
 #include "max2839.hpp"
 #include "max5864.hpp"
@@ -60,9 +61,17 @@ static constexpr SPIConfig ssp_config_max283x = {
     .end_cb = NULL,
     .ssport = gpio_max283x_select.port(),
     .sspad = gpio_max283x_select.pad(),
+#ifdef PRALINE
+    // MAX2831: Send 18 bits as 2x 9-bit words. DSS must be 9-bit (Value 8).
+    .cr0 =
+        CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | (8UL << 0),
+#else
+    // MAX2837: Standard 16-bit words.
     .cr0 =
         CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS16BIT,
+#endif
     .cpsr = ssp1_cpsr,
+
 };
 
 static constexpr SPIConfig ssp_config_max5864 = {
@@ -87,6 +96,7 @@ static spi::arbiter::Target ssp1_target_max5864{
 static rf::path::Path rf_path;
 rffc507x::RFFC507x first_if;
 max283x::MAX283x* second_if;
+max2831::MAX2831 second_if_max2831{ssp1_target_max283x};
 max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
 max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
@@ -104,9 +114,13 @@ void init() {
     }
     rf_path.init();
     first_if.init();
+#ifdef PRALINE
+    second_if = (max283x::MAX283x*)&second_if_max2831; 
+#else
     second_if = hackrf_r9
                     ? (max283x::MAX283x*)&second_if_max2839
                     : (max283x::MAX283x*)&second_if_max2837;
+#endif
     second_if->init();
     baseband_codec.init();
     baseband_cpld.init();
@@ -274,7 +288,11 @@ void configure(Configuration configuration) {
 void disable() {
     set_antenna_bias(false);
     baseband_codec.set_mode(max5864::Mode::Shutdown);
+#ifdef PRALINE
+    second_if->set_mode(max2831::Mode::Standby);
+#else
     second_if->set_mode(max2837::Mode::Standby);
+#endif
     first_if.disable();
     set_rf_amp(false);
 
