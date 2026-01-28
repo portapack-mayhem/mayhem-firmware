@@ -888,7 +888,7 @@ class NumberField : public Widget {
 class FloatField : public Widget {
    public:
     std::function<void(FloatField&)> on_select{};
-    std::function<void(int32_t)> on_change{};
+    std::function<void(float)> on_change{};
     std::function<void(int32_t)> on_wrap{};
 
     using range_t = std::pair<float, float>;
@@ -896,11 +896,11 @@ class FloatField : public Widget {
     FloatField(Point parent_pos, int length, range_t range, float step, char fill_char, bool can_loop, uint8_t precision_ = 1);
 
     FloatField(Point parent_pos, int length, range_t range, float step, char fill_char)
-        : FloatField{parent_pos, length, range, step, fill_char, true} {
+        : FloatField{parent_pos, length, range, step, fill_char, true, 1} {
     }
 
     FloatField()
-        : FloatField{{0, 0}, 1, {0, 1}, 1, ' ', true} {
+        : FloatField{{0, 0}, 1, {0, 1}, 1, ' ', true, 1} {
     }
 
     FloatField(const FloatField&) = delete;

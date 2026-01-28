@@ -9,29 +9,29 @@ void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
     for (size_t i = 0; i < buffer.count; i++) {
+        // make sine
         int8_t sample_sin;
         int8_t sample_cos;
 
         sample_sin = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
-
         tone_phase += tone_delta;
 
-        audio_decimation_counter++;
-        if (audio_decimation_counter >= decimation_factor) {
-            audio_decimation_counter = 0;
+        static uint32_t divider = 0;
+        divider++;
+        // audio
+        if (divider >= 32) {
+            divider = 0;
 
-            float audio_sample = 0.0f;
-
+            int16_t audio_sample = 0;
             if (key_down) {
-                audio_sample = (float)sample_sin / 128.0f;
+                audio_sample = (int16_t)sample_sin << 8;
             }
 
-            audio_buffer[audio_buffer_index] = audio_sample;
-            audio_buffer_index++;
+            audio_buffer[audio_idx++] = audio_sample;
 
-            if (audio_buffer_index >= audio_buffer.size()) {
-                audio_output.write(buffer_f32_t{audio_buffer.data(), audio_buffer.size()});
-                audio_buffer_index = 0;
+            if (audio_idx >= audio_buffer.size()) {
+                audio_output.write({audio_buffer.data(), audio_buffer.size(), 48000});
+                audio_idx = 0;
             }
         }
 
@@ -97,7 +97,8 @@ void MorseTXProcessor::on_message(const Message* const p) {
             auto message = *reinterpret_cast<const MorseTXConfigureMessage*>(p);
             tone_delta = message.tone * 1398;  // scale
             modulation = message.modulation;
-            audio_output.configure(audio_12k_hpf_300hz_config);
+            audio_output.configure(false);
+            audio::dma::shrink_tx_buffer(false);
             if (message.fm_delta == 0 && modulation == 1) {
                 fm_delta = 90000;
             } else {
@@ -120,6 +121,7 @@ void MorseTXProcessor::on_message(const Message* const p) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<MorseTXProcessor>()};
     event_dispatcher.run();
     return 0;

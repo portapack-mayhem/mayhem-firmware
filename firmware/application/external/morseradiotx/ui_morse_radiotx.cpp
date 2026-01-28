@@ -37,7 +37,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
                   &btn_clear,
                   &btn_ptt});
 
-    audio::set_rate(audio::Rate::Hz_24000);
+    audio::set_rate(audio::Rate::Hz_48000);
 
     btn_clear.on_select = [this](Button&) {
         console_text.clear(true);
@@ -93,11 +93,23 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
     };
 
     btn_message.on_select = [this, &nav](Button&) {
-        if (!transmit) this->on_set_text(nav);
+        if (!transmit)
+            text_prompt(nav, msg_buffer, 27, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& buffer) {
+                msg_buffer = buffer;
+                txt_msg.set("[" + msg_buffer + "] ");
+            });
     };
 
     btn_calls.on_select = [this, &nav](Button&) {
-        if (!transmit) this->on_set_call(nav);
+        if (!transmit) {
+            text_prompt(nav, call_sign, 10, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& buffer) {
+                call_sign = buffer;
+                if (call_sign.empty())
+                    btn_calls.set_text("call sign?");
+                else
+                    btn_calls.set_text(call_sign);
+            });
+        }
     };
 
     audio::output::start();
@@ -110,7 +122,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
             tx_view.set_transmitting(false);
             return;
         }
-
+        tx_view.focus();
         if (!tx_thread && !thread_running) {
             thread_running = true;
             tx_thread = chThdCreateStatic(
@@ -163,21 +175,6 @@ void MorseRadiotxView::on_show() {
 
 void MorseRadiotxView::focus() {
     options_mode.focus();
-}
-
-void MorseRadiotxView::on_set_text(NavigationView& nav) {
-    text_prompt(nav, msg_buffer, 27, ENTER_KEYBOARD_MODE_ALPHA);
-    txt_msg.set("[" + msg_buffer + "] ");
-    set_dirty();
-}
-
-void MorseRadiotxView::on_set_call(NavigationView& nav) {
-    text_prompt(nav, call_sign, 10, ENTER_KEYBOARD_MODE_ALPHA);
-    if (call_sign.empty())
-        btn_calls.set_text("call sign?");
-    else
-        btn_calls.set_text(call_sign);
-    set_dirty();
 }
 
 MorseRadiotxView::MorseTimings MorseRadiotxView::calculate_morse_timings(uint32_t wpm) {
@@ -285,7 +282,6 @@ void MorseRadiotxView::onPress() {
     end_time = 0;
     transmit_time = 0;
     decode_timeout_calc = false;
-    baseband::request_audio_beep(1000, 24000, 2000);
 }
 
 void MorseRadiotxView::onRelease() {
@@ -336,7 +332,12 @@ void MorseRadiotxView::ptt_button_visibility(bool hidden) {
     if (hiddenorig != hidden) {
         btn_ptt.hidden(hidden);
         if (!hidden) btn_ptt.focus();
-        set_dirty();
+        if (hidden) {
+            // hack fix until widget hidig problem is not solved.
+            auto r = btn_ptt.screen_rect();
+            Painter p;
+            p.fill_rectangle_unrolled8(r, Theme::getInstance()->fg_light->background);
+        }
     }
 }
 
@@ -414,7 +415,7 @@ void MorseRadiotxView::on_framesync() {
     }
     if (transmit_time != 0 && transmit) {
         int64_t gap_delta = (chTimeNow() - transmit_time);
-        if (gap_delta >= (morse_decoder_.getInterWordThreshold() * 3)) {
+        if (gap_delta >= ((morse_decoder_.getInterWordThreshold() * ((chk_trans.value()) ? 5 : 1)))) {
             if (tx_thread) {
                 chThdTerminate(tx_thread);
                 chThdWait(tx_thread);
@@ -425,6 +426,7 @@ void MorseRadiotxView::on_framesync() {
             thread_running = false;
             tx_thread = nullptr;
             transmit_time = 0;
+            if (!chk_trans.value()) console_text.write(" ");
             ui_toggle();
         }
     }

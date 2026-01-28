@@ -73,8 +73,6 @@ class MorseRadiotxView : public ui::View {
     MorseTimings current_timings{};
 
     std::string msg_indicator{""};
-    void on_set_text(NavigationView& nav);
-    void on_set_call(NavigationView& nav);
     MorseTimings calculate_morse_timings(uint32_t wpm);
     void onPress();
     void onRelease();
@@ -94,7 +92,7 @@ class MorseRadiotxView : public ui::View {
     uint8_t wpm{20};
     uint32_t tone{700};
     float band{5.8};
-    std::string call_sign{"call sign?"};
+    std::string call_sign{""};
 
     app_settings::SettingsManager settings_{
         "tx_morseradio",
@@ -124,7 +122,7 @@ class MorseRadiotxView : public ui::View {
 
     ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
     ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
-    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, call_sign};
+    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, (call_sign.empty()) ? "call sign?" : call_sign};
     Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(2)}, 13, "Manual trans.", true};
     Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(4)}, 13, "Call sign", true};
     ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};

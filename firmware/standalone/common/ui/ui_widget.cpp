@@ -2375,14 +2375,14 @@ void FloatField::set_value(float new_value, bool trigger_change) {
 
     if (can_loop) {
         if (new_value > hi)
-            new_value = new_value - lo;
+            new_value = lo;
         else if (new_value < lo)
-            new_value = new_value + hi;
+            new_value = hi;
     }
     new_value = clip(new_value, lo, hi);
 
     // set final value if needed
-    if (new_value != value()) {
+    if (new_value != value_) {
         value_ = new_value;
         if (on_change && trigger_change) on_change(value_);
         set_dirty();
@@ -2392,7 +2392,7 @@ void FloatField::set_value(float new_value, bool trigger_change) {
 void FloatField::set_range(const float min, const float max) {
     range.first = min;
     range.second = max;
-    set_value(value(), false);
+    set_value(value_, false);
 }
 
 void FloatField::set_step(const float new_step) {
@@ -2405,10 +2405,16 @@ void FloatField::paint(Painter& painter) {
     // clip to widget size
     const auto r = screen_rect();
     auto label_r = style().font.size_of(text);
+    size_t max_chars = (r.width()) / style().font.char_width();
     if (label_r.width() > r.width()) {
-        size_t max_chars = (r.width() - 2) / style().font.char_width();
         text = text.substr(0, max_chars);
     }
+    size_t padneeded = max_chars - text.length();
+    if (padneeded > 0 && fill_char) {
+        std::string filler(fill_char, padneeded);
+        text = filler + text;
+    }
+    painter.fill_rectangle(r, style().background);
     painter.draw_string(
         screen_pos(),
         paint_style,
@@ -2429,12 +2435,12 @@ bool FloatField::on_key(const KeyEvent key) {
 
 bool FloatField::on_encoder(const EncoderEvent delta) {
     float old_value = value();
-    set_value(value() + (delta * step));
+    set_value(old_value + ((float)delta * step));
 
     if (on_wrap) {
-        if ((delta > 0) && (value() < old_value))
+        if ((delta > 0) && (value_ < old_value))
             on_wrap(1);
-        else if ((delta < 0) && (value() > old_value))
+        else if ((delta < 0) && (value_ > old_value))
             on_wrap(-1);
     }
     return true;
