@@ -8,30 +8,31 @@
 void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
+    buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, AUDIO_SAMPLING_RATE};
+
     for (size_t i = 0; i < buffer.count; i++) {
-        // make sine
         int8_t sample_sin;
         int8_t sample_cos;
 
         sample_sin = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
+
         tone_phase += tone_delta;
 
-        static uint32_t divider = 0;
-        divider++;
-        // audio
-        if (divider >= 32) {
-            divider = 0;
+        audio_decimation_counter++;
+        if (audio_decimation_counter >= decimation_factor) {
+            audio_decimation_counter = 0;
 
             int16_t audio_sample = 0;
+
             if (key_down) {
-                audio_sample = (int16_t)sample_sin << 8;
+                int32_t amplified = (int32_t)sample_sin * 258;
+                audio_sample = (int16_t)amplified;
             }
 
-            audio_buffer[audio_idx++] = audio_sample;
+            audio_data[i % AUDIO_OUTPUT_BUFFER_SIZE] = audio_sample;
 
-            if (audio_idx >= audio_buffer.size()) {
-                audio_output.write({audio_buffer.data(), audio_buffer.size(), 48000});
-                audio_idx = 0;
+            if ((i % AUDIO_OUTPUT_BUFFER_SIZE) == AUDIO_OUTPUT_BUFFER_SIZE - 1) {
+                audio_output.write(audio_buffer);
             }
         }
 
@@ -97,13 +98,12 @@ void MorseTXProcessor::on_message(const Message* const p) {
             auto message = *reinterpret_cast<const MorseTXConfigureMessage*>(p);
             tone_delta = message.tone * 1398;  // scale
             modulation = message.modulation;
-            audio_output.configure(false);
-            audio::dma::shrink_tx_buffer(false);
+            audio_output.configure(audio_12k_hpf_300hz_config);
             if (message.fm_delta == 0 && modulation == 1) {
                 fm_delta = 90000;
             } else {
                 uint64_t scale = 0xFFFFFFFFULL;  // 32-bit max
-                fm_delta = (uint32_t)((uint64_t)message.fm_delta * (scale / 1536000));
+                fm_delta = (uint32_t)(((uint64_t)message.fm_delta * scale) / 1536000);
             }
             break;
         }

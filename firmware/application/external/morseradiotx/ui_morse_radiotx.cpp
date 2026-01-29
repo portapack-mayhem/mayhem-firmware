@@ -37,7 +37,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
                   &btn_clear,
                   &btn_ptt});
 
-    audio::set_rate(audio::Rate::Hz_48000);
+    audio::set_rate(audio::Rate::Hz_12000);
 
     btn_clear.on_select = [this](Button&) {
         console_text.clear(true);
@@ -152,6 +152,13 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
         tx_view.set_transmitting(false);
         ui_toggle();
     };
+
+    tx_view.on_edit_frequency = [this, &nav]() {
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
+        new_view->on_changed = [this](rf::Frequency f) {
+            transmitter_model.set_target_frequency(f);
+        };
+    };
 }
 
 MorseRadiotxView::~MorseRadiotxView() {
@@ -208,6 +215,7 @@ void MorseRadiotxView::transmit_morse_message() {
         ptt_button_visibility(false);
         return;
     }
+    console_text.write(STR_COLOR_BLUE);
 
     // enable transmit
     if (!transmit) {
@@ -220,6 +228,7 @@ void MorseRadiotxView::transmit_morse_message() {
         if (chThdShouldTerminate()) break;
 
         char c = full_message[i];
+        if (!(c >= 32 && c <= 126)) continue;
 
         std::string s_char(1, c);
         // space
@@ -236,7 +245,7 @@ void MorseRadiotxView::transmit_morse_message() {
             txt_last.set(pattern);
 
             // write blue char to console
-            console_text.write(STR_COLOR_BLUE + s_char);
+            console_text.write(s_char);
 
             // Morze (dih/dah) send
             for (int j = 0; pattern[j] != '\0'; j++) {

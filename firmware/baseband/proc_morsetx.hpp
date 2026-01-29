@@ -7,6 +7,9 @@
 #include "audio_output.hpp"
 #include "audio_dma.hpp"
 
+#define AUDIO_OUTPUT_BUFFER_SIZE 32
+#define AUDIO_SAMPLING_RATE 12000
+
 class MorseTXProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
@@ -15,8 +18,10 @@ class MorseTXProcessor : public BasebandProcessor {
    private:
     AudioOutput audio_output{};
 
-    std::array<int16_t, 32> audio_buffer{};
-    uint8_t audio_idx{0};
+    int16_t audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
+
+    uint32_t audio_decimation_counter{0};
+    const uint32_t decimation_factor{32};
 
     bool configured{false};
     bool key_down{false};
