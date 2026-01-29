@@ -21,7 +21,7 @@ class MorseTXProcessor : public BasebandProcessor {
     int16_t audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
 
     uint32_t audio_decimation_counter{0};
-    const uint32_t decimation_factor{32};
+    const uint32_t decimation_factor{64};
 
     bool configured{false};
     bool key_down{false};

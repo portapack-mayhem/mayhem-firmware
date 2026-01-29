@@ -4,15 +4,10 @@ using namespace portapack;
 
 namespace ui::external_app::morseradiotx {
 
-static WORKING_AREA(tx_thread_wa, 1024);
-
 static msg_t tx_thread_fn(void* arg) {
     auto view = reinterpret_cast<MorseRadiotxView*>(arg);
-
     chRegSetThreadName("morse_tx_thread");
-
     view->transmit_morse_message();
-
     return 0;
 }
 
@@ -125,11 +120,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
         tx_view.focus();
         if (!tx_thread && !thread_running) {
             thread_running = true;
-            tx_thread = chThdCreateStatic(
-                tx_thread_wa, sizeof(tx_thread_wa),
-                NORMALPRIO + 10,
-                tx_thread_fn,
-                this);
+            tx_thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 5, tx_thread_fn, this);
             tx_view.set_transmitting(true);
         }
 
@@ -186,21 +177,20 @@ void MorseRadiotxView::focus() {
 
 MorseRadiotxView::MorseTimings MorseRadiotxView::calculate_morse_timings(uint32_t wpm) {
     MorseRadiotxView::MorseTimings t;
-
-    if (wpm == 0) wpm = 1;
-
+    if (wpm < 10) wpm = 10;
+    if (wpm > 45) wpm = 45;
     t.dot_ms = 1200 / wpm;
 
     t.dash_ms = 3 * t.dot_ms;
     t.symbol_gap = t.dot_ms;
     t.char_gap = 3 * t.dot_ms;
     t.word_gap = 7 * t.dot_ms;
-
     return t;
 }
 
 void MorseRadiotxView::transmit_morse_message() {
     std::string full_message = "";
+    std::string s_char = "";
     // cal sign
     if (chk_callsgn.value() && !call_sign.empty()) {
         full_message = call_sign;
@@ -215,8 +205,6 @@ void MorseRadiotxView::transmit_morse_message() {
         ptt_button_visibility(false);
         return;
     }
-    console_text.write(STR_COLOR_BLUE);
-
     // enable transmit
     if (!transmit) {
         transmit = true;
@@ -230,22 +218,20 @@ void MorseRadiotxView::transmit_morse_message() {
         char c = full_message[i];
         if (!(c >= 32 && c <= 126)) continue;
 
-        std::string s_char(1, c);
         // space
         if (c == ' ') {
-            console_text.write(" ");
+            writeCharToConsole(" ", 1.5, false);
             // space pause
             chThdSleepMilliseconds(current_timings.word_gap);
             continue;
         }
 
-        const char* pattern = morse_decoder_.get_morse_pattern(c);
+        auto pattern = morse_decoder_.get_morse_pattern(c);
+        s_char += c;
 
         if (pattern != nullptr) {
-            txt_last.set(pattern);
-
             // write blue char to console
-            console_text.write(s_char);
+            writeCharToConsole(s_char, 1.5, false);
 
             // Morze (dih/dah) send
             for (int j = 0; pattern[j] != '\0'; j++) {
@@ -285,7 +271,7 @@ void MorseRadiotxView::onPress() {
         int64_t gap_delta = (chTimeNow() - end_time);
         auto result = morse_decoder_.handleInput(-gap_delta);
         if (result.isValid()) {
-            writeCharToConsole(result.text, result.confidence);
+            writeCharToConsole(result.text, result.confidence, true);
         }
     }
     end_time = 0;
@@ -301,7 +287,7 @@ void MorseRadiotxView::onRelease() {
         int32_t press_delta = (end_time - start_time);
         auto result = morse_decoder_.handleInput(press_delta);
         if (result.isValid()) {
-            writeCharToConsole(result.text, result.confidence);
+            writeCharToConsole(result.text, result.confidence, true);
         }
     }
     start_time = 0;
@@ -309,12 +295,15 @@ void MorseRadiotxView::onRelease() {
     baseband::request_beep_stop();
 }
 
-void MorseRadiotxView::writeCharToConsole(const std::string& ch, double confidence) {
+void MorseRadiotxView::writeCharToConsole(const std::string& ch, double confidence, bool handle_meas) {
     if (ch.empty()) {
         return;
     }
 
-    txt_last.set(morse_decoder_.getLastSequence().c_str());
+    if (handle_meas)
+        txt_last.set(morse_decoder_.getLastSequence().c_str());
+    else
+        txt_last.set(morse_decoder_.get_morse_pattern(ch[0]));
 
     last_color_id = color_id;
     std::string color = "";
@@ -324,7 +313,9 @@ void MorseRadiotxView::writeCharToConsole(const std::string& ch, double confiden
     } else if (ch[0] == '{') {  // no match
         color_id = 0;
     } else {
-        if (confidence < 0.8)
+        if (confidence == 1.5)
+            color_id = 4;
+        else if (confidence < 0.8)
             color_id = 1;
         else if (confidence < 0.9)
             color_id = 2;
@@ -368,7 +359,6 @@ void MorseRadiotxView::ui_toggle() {
         bandwidth.set_focusable(false);
         chk_callsgn.set_style(Theme::getInstance()->fg_dark);
         chk_callsgn.set_focusable(false);
-        btn_clear.set_style(Theme::getInstance()->fg_dark);
 
     } else {
         options_mode.set_style(Theme::getInstance()->bg_darker);
@@ -381,7 +371,6 @@ void MorseRadiotxView::ui_toggle() {
         chk_trans.set_focusable(true);
         chk_callsgn.set_style(Theme::getInstance()->bg_darker);
         chk_callsgn.set_focusable(true);
-        btn_clear.set_style(Theme::getInstance()->bg_darker);
         ptt_button_visibility(true);
         tone_.set_style(Theme::getInstance()->bg_darker);
         tone_.set_focusable(true);
@@ -413,11 +402,11 @@ void MorseRadiotxView::on_framesync() {
         if (gap_delta >= morse_decoder_.getInterCharThreshold()) {
             auto result = morse_decoder_.handleInput(-(int32_t)gap_delta);
             if (result.isValid()) {
-                writeCharToConsole(result.text, result.confidence);
+                writeCharToConsole(result.text, result.confidence, true);
             }
         }
         if (gap_delta >= morse_decoder_.getInterWordThreshold()) {
-            writeCharToConsole(" ", 1.0);
+            writeCharToConsole(" ", 1.0, true);
             end_time = 0;
             decode_timeout_calc = false;
         }
@@ -435,7 +424,7 @@ void MorseRadiotxView::on_framesync() {
             thread_running = false;
             tx_thread = nullptr;
             transmit_time = 0;
-            if (!chk_trans.value()) console_text.write(" ");
+            if (!chk_trans.value()) writeCharToConsole(" ", 1.0, false);
             ui_toggle();
         }
     }

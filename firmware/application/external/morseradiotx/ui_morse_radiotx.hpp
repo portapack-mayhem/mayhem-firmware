@@ -77,7 +77,7 @@ class MorseRadiotxView : public ui::View {
     void onPress();
     void onRelease();
     void on_framesync();
-    void writeCharToConsole(const std::string& ch, double confidence);
+    void writeCharToConsole(const std::string& ch, double confidence, bool handle_meas);
     void ui_toggle();
     bool tx_button_held();
     void ptt_button_visibility(bool hidden);
@@ -125,7 +125,7 @@ class MorseRadiotxView : public ui::View {
     ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, (call_sign.empty()) ? "call sign?" : call_sign};
     Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(2)}, 13, "Manual trans.", true};
     Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(4)}, 13, "Call sign", true};
-    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)}, ""};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(14)}};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "CLR"};
     ui::Button btn_ptt{{UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "PTT"};
@@ -144,7 +144,7 @@ class MorseRadiotxView : public ui::View {
 
     uint8_t last_color_id{255};
     uint8_t color_id{255};
-    std::string arr_color[4] = {STR_COLOR_WHITE, STR_COLOR_RED, STR_COLOR_YELLOW, STR_COLOR_GREEN};
+    std::string arr_color[5] = {STR_COLOR_WHITE, STR_COLOR_RED, STR_COLOR_YELLOW, STR_COLOR_GREEN, STR_COLOR_BLUE};
 
     bool button_touch{false};
     bool button_was_selected{false};
