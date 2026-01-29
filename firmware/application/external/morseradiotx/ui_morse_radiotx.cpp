@@ -32,7 +32,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
                   &btn_clear,
                   &btn_ptt});
 
-    audio::set_rate(audio::Rate::Hz_12000);
+    audio::set_rate(audio::Rate::Hz_24000);
 
     btn_clear.on_select = [this](Button&) {
         console_text.clear(true);
@@ -190,7 +190,6 @@ MorseRadiotxView::MorseTimings MorseRadiotxView::calculate_morse_timings(uint32_
 
 void MorseRadiotxView::transmit_morse_message() {
     std::string full_message = "";
-    std::string s_char = "";
     // cal sign
     if (chk_callsgn.value() && !call_sign.empty()) {
         full_message = call_sign;
@@ -205,6 +204,7 @@ void MorseRadiotxView::transmit_morse_message() {
         ptt_button_visibility(false);
         return;
     }
+
     // enable transmit
     if (!transmit) {
         transmit = true;
@@ -216,22 +216,23 @@ void MorseRadiotxView::transmit_morse_message() {
         if (chThdShouldTerminate()) break;
 
         char c = full_message[i];
-        if (!(c >= 32 && c <= 126)) continue;
 
+        std::string s_char(1, c);
         // space
         if (c == ' ') {
-            writeCharToConsole(" ", 1.5, false);
+            console_text.write(" ");
             // space pause
             chThdSleepMilliseconds(current_timings.word_gap);
             continue;
         }
 
-        auto pattern = morse_decoder_.get_morse_pattern(c);
-        s_char += c;
+        const char* pattern = morse_decoder_.get_morse_pattern(c);
 
         if (pattern != nullptr) {
+            txt_last.set(pattern);
+
             // write blue char to console
-            writeCharToConsole(s_char, 1.5, false);
+            console_text.write(STR_COLOR_BLUE + s_char);
 
             // Morze (dih/dah) send
             for (int j = 0; pattern[j] != '\0'; j++) {
@@ -271,7 +272,7 @@ void MorseRadiotxView::onPress() {
         int64_t gap_delta = (chTimeNow() - end_time);
         auto result = morse_decoder_.handleInput(-gap_delta);
         if (result.isValid()) {
-            writeCharToConsole(result.text, result.confidence, true);
+            writeCharToConsole(result.text, result.confidence);
         }
     }
     end_time = 0;
@@ -287,7 +288,7 @@ void MorseRadiotxView::onRelease() {
         int32_t press_delta = (end_time - start_time);
         auto result = morse_decoder_.handleInput(press_delta);
         if (result.isValid()) {
-            writeCharToConsole(result.text, result.confidence, true);
+            writeCharToConsole(result.text, result.confidence);
         }
     }
     start_time = 0;
@@ -295,15 +296,12 @@ void MorseRadiotxView::onRelease() {
     baseband::request_beep_stop();
 }
 
-void MorseRadiotxView::writeCharToConsole(const std::string& ch, double confidence, bool handle_meas) {
+void MorseRadiotxView::writeCharToConsole(const std::string& ch, double confidence) {
     if (ch.empty()) {
         return;
     }
 
-    if (handle_meas)
-        txt_last.set(morse_decoder_.getLastSequence().c_str());
-    else
-        txt_last.set(morse_decoder_.get_morse_pattern(ch[0]));
+    txt_last.set(morse_decoder_.getLastSequence().c_str());
 
     last_color_id = color_id;
     std::string color = "";
@@ -402,18 +400,18 @@ void MorseRadiotxView::on_framesync() {
         if (gap_delta >= morse_decoder_.getInterCharThreshold()) {
             auto result = morse_decoder_.handleInput(-(int32_t)gap_delta);
             if (result.isValid()) {
-                writeCharToConsole(result.text, result.confidence, true);
+                writeCharToConsole(result.text, result.confidence);
             }
         }
         if (gap_delta >= morse_decoder_.getInterWordThreshold()) {
-            writeCharToConsole(" ", 1.0, true);
+            writeCharToConsole(" ", 1.0);
             end_time = 0;
             decode_timeout_calc = false;
         }
     }
     if (transmit_time != 0 && transmit) {
         int64_t gap_delta = (chTimeNow() - transmit_time);
-        if (gap_delta >= ((morse_decoder_.getInterWordThreshold() * ((chk_trans.value()) ? 5 : 1)))) {
+        if (gap_delta >= ((morse_decoder_.getInterWordThreshold() * ((chk_trans.value()) ? 10 : 1)))) {
             if (tx_thread) {
                 chThdTerminate(tx_thread);
                 chThdWait(tx_thread);
@@ -424,7 +422,7 @@ void MorseRadiotxView::on_framesync() {
             thread_running = false;
             tx_thread = nullptr;
             transmit_time = 0;
-            if (!chk_trans.value()) writeCharToConsole(" ", 1.0, false);
+            if (!chk_trans.value()) writeCharToConsole(" ", 1.0);
             ui_toggle();
         }
     }

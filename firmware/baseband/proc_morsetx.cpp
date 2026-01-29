@@ -8,33 +8,12 @@
 void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, AUDIO_SAMPLING_RATE};
-
     for (size_t i = 0; i < buffer.count; i++) {
         int8_t sample_sin;
         int8_t sample_cos;
 
         sample_sin = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
-
         tone_phase += tone_delta;
-
-        audio_decimation_counter++;
-        if (audio_decimation_counter >= decimation_factor) {
-            audio_decimation_counter = 0;
-
-            int16_t audio_sample = 0;
-
-            if (key_down) {
-                int32_t amplified = (int32_t)sample_sin * 258;
-                audio_sample = (int16_t)amplified;
-            }
-
-            audio_data[i % AUDIO_OUTPUT_BUFFER_SIZE] = audio_sample;
-
-            if ((i % AUDIO_OUTPUT_BUFFER_SIZE) == AUDIO_OUTPUT_BUFFER_SIZE - 1) {
-                audio_output.write(audio_buffer);
-            }
-        }
 
         // modulation logic
         if (modulation == 0) {  // AM modulation
@@ -97,13 +76,13 @@ void MorseTXProcessor::on_message(const Message* const p) {
         case Message::ID::MorseTXConfigure: {
             auto message = *reinterpret_cast<const MorseTXConfigureMessage*>(p);
             tone_delta = message.tone * 1398;  // scale
+            tone = message.tone;
             modulation = message.modulation;
-            audio_output.configure(audio_12k_hpf_300hz_config);
             if (message.fm_delta == 0 && modulation == 1) {
                 fm_delta = 90000;
             } else {
                 uint64_t scale = 0xFFFFFFFFULL;  // 32-bit max
-                fm_delta = (uint32_t)(((uint64_t)message.fm_delta * scale) / 1536000);
+                fm_delta = (uint32_t)((uint64_t)message.fm_delta * (scale / 1536000));
             }
             break;
         }
@@ -112,6 +91,10 @@ void MorseTXProcessor::on_message(const Message* const p) {
             auto key = *reinterpret_cast<const MorseTXkeyMessage*>(p);
             key_down = key.key_down;
             configured = true;
+            if (key_down)
+                audio::dma::beep_start(tone, 24000, 0);
+            else
+                audio::dma::beep_stop();
             break;
         }
 

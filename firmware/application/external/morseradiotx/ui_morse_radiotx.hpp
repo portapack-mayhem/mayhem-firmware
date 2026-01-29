@@ -77,7 +77,7 @@ class MorseRadiotxView : public ui::View {
     void onPress();
     void onRelease();
     void on_framesync();
-    void writeCharToConsole(const std::string& ch, double confidence, bool handle_meas);
+    void writeCharToConsole(const std::string& ch, double confidence);
     void ui_toggle();
     bool tx_button_held();
     void ptt_button_visibility(bool hidden);
@@ -118,7 +118,7 @@ class MorseRadiotxView : public ui::View {
         {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
     NumberField tone_{{UI_POS_X(14), UI_POS_Y(0)}, 4, {400, 1400}, 10, ' ', true};
     NumberField wpm_{{UI_POS_X(25), UI_POS_Y(0)}, 2, {10, 45}, 1, ' ', true};
-    FloatField bandwidth{{UI_POS_X(20), UI_POS_Y(3)}, 4, {0.1, 16.0}, 0.1, ' ', true, 1};
+    FloatField bandwidth{{UI_POS_X(20), UI_POS_Y(3)}, 4, {1.0, 16.0}, 0.1, ' ', true, 1};
 
     ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
     ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
