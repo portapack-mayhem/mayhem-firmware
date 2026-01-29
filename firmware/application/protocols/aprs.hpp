@@ -33,7 +33,8 @@ void make_aprs_frame(
     const uint32_t src_ssid,
     const char* dest_address,
     const uint32_t dest_ssid,
-    const std::string& payload);
+    const std::string& payload,
+    const std::string& path = "");
 
 } /* namespace aprs */
 

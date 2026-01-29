@@ -52,6 +52,7 @@ class BoundSetting {
         U8,
         String,
         Bool,
+        Float
     };
 
    public:
@@ -72,6 +73,9 @@ class BoundSetting {
 
     BoundSetting(std::string_view name, bool* target)
         : name_{name}, target_{target}, type_{SettingType::Bool} {}
+
+    BoundSetting(std::string_view name, float* target)
+        : name_{name}, target_{target}, type_{SettingType::Float} {}
 
     std::string_view name() const { return name_; }
     void parse(std::string_view value);

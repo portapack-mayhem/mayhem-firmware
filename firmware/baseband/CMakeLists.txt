@@ -663,6 +663,11 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSCD subcar)
 
+set(MODE_CPPSRC
+    proc_morse.cpp
+
+)
+DeclareTargets(PMRS morse)
 
 ### SD over USB
 
