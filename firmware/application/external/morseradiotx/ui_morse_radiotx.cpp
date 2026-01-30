@@ -35,7 +35,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
     initial_switch_config_ = get_switches_repeat_config();
 
     SwitchesState config = initial_switch_config_;
-    config[toUType(Switch::Sel)] = true;
+    config[toUType(Switch::Sel)] = false;
     set_switches_repeat_config(config);
 
     audio::set_rate(audio::Rate::Hz_24000);
