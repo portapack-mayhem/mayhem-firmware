@@ -77,6 +77,7 @@ class MorsePracticeView : public ui::View {
     bool button_touch = false;
     bool button_was_selected = false;
     bool decode_timeout_calc = false;
+    SwitchesState initial_switch_config_{};
 
     MessageHandlerRegistration message_handler_framesync{
         Message::ID::DisplayFrameSync,

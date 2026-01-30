@@ -156,6 +156,7 @@ class MorseRadiotxView : public ui::View {
     int64_t start_time{0};
     int64_t end_time{0};
     int64_t transmit_time{0};
+    SwitchesState initial_switch_config_{};
 
     MessageHandlerRegistration message_handler_framesync{
         Message::ID::DisplayFrameSync,
