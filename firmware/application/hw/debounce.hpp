@@ -43,6 +43,8 @@ class Debounce {
     bool feed(const uint8_t bit);
     uint8_t state();
     void enable_repeat();
+    void set_enable_repeat(bool enabled);
+    bool get_repeat_enabled();
     bool get_long_press_enabled() const;
     void set_long_press_enabled(bool v);
     bool long_press_occurred();

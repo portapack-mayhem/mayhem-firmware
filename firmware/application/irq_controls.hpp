@@ -48,6 +48,8 @@ uint8_t swizzled_switches();
 SwitchesState get_switches_state();
 EncoderPosition get_encoder_position();
 touch::Frame get_touch_frame();
+SwitchesState get_switches_repeat_config();
+void set_switches_repeat_config(SwitchesState switch_config);
 
 SwitchesState get_switches_long_press_config();
 void set_switches_long_press_config(SwitchesState switch_config);

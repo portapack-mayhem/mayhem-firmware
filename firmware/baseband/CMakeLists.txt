@@ -663,9 +663,10 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSCD subcar)
 
+### Morse RX Decoder
+
 set(MODE_CPPSRC
     proc_morse.cpp
-
 )
 DeclareTargets(PMRS morse)
 
@@ -676,6 +677,14 @@ set(MODE_INCDIR
 	${HACKRF_PATH}/firmware/common
 	${HACKRF_PATH}/firmware/libopencm3/include
 )
+
+### Morse TX
+
+set(MODE_CPPSRC
+    proc_morsetx.cpp
+)
+DeclareTargets(PMRT morsetx)
+
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 

@@ -2410,6 +2410,137 @@ bool NumberField::on_touch(const TouchEvent event) {
     return true;
 }
 
+/* FloatField ***********************************************************/
+
+FloatField::FloatField(
+    Point parent_pos,
+    int length,
+    range_t range,
+    float step,
+    char fill_char,
+    bool can_loop,
+    uint8_t precision_)
+    : Widget{{parent_pos, {8 * length, 16}}},
+      range{range},
+      step{step},
+      length_{length},
+      fill_char{fill_char},
+      can_loop{can_loop},
+      precision{precision_} {
+    set_focusable(true);
+}
+
+float FloatField::value() const {
+    return value_;
+}
+
+void FloatField::getAccessibilityText(std::string& result) {
+    result = to_string_decimal(value_, precision);
+}
+void FloatField::getWidgetName(std::string& result) {
+    result = "FloatField";
+}
+
+void FloatField::set_value(float new_value, bool trigger_change) {
+    const float lo = range.first;
+    const float hi = range.second;
+
+    if (can_loop) {
+        if (new_value > hi)
+            new_value = lo;
+        else if (new_value < lo)
+            new_value = hi;
+    }
+    new_value = clip(new_value, lo, hi);
+
+    // set final value if needed
+    if (new_value != value_) {
+        value_ = new_value;
+        if (on_change && trigger_change) on_change(value_);
+        set_dirty();
+    }
+}
+
+void FloatField::set_range(const float min, const float max) {
+    range.first = min;
+    range.second = max;
+    set_value(value_, false);
+}
+
+void FloatField::set_step(const float new_step) {
+    step = new_step;
+}
+
+void FloatField::paint(Painter& painter) {
+    auto text = to_string_decimal(value_, precision);
+    const auto paint_style = has_focus() ? style().invert() : style();
+    // clip to widget size
+    const auto r = screen_rect();
+    auto label_r = style().font.size_of(text);
+    size_t max_chars = (r.width()) / style().font.char_width();
+    if (label_r.width() > r.width()) {
+        text = text.substr(0, max_chars);
+    }
+    size_t padneeded = max_chars - text.length();
+    if (padneeded > 0 && fill_char) {
+        std::string filler(padneeded, fill_char);
+        text = filler + text;
+    }
+    painter.fill_rectangle(r, style().background);
+    painter.draw_string(
+        screen_pos(),
+        paint_style,
+        text);
+}
+
+bool FloatField::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Select) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        } else {
+            return on_encoder(1);
+        }
+    }
+    return false;
+}
+
+bool FloatField::on_encoder(const EncoderEvent delta) {
+    float old_value = value_;
+    set_value(value() + (delta * step));
+
+    if (on_wrap) {
+        if ((delta > 0) && (value_ < old_value))
+            on_wrap(1);
+        else if ((delta < 0) && (value_ > old_value))
+            on_wrap(-1);
+    }
+    return true;
+}
+
+bool FloatField::on_keyboard(const KeyboardEvent key) {
+    if (key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    if (key == '+' || key == ' ') {
+        return on_encoder(1);
+    }
+    if (key == '-' || key == 8) {
+        return on_encoder(-1);
+    }
+    return false;
+}
+
+bool FloatField::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
+    }
+    return true;
+}
+
 /* SymField **************************************************************/
 
 SymField::SymField(
