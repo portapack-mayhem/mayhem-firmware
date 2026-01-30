@@ -885,6 +885,53 @@ class NumberField : public Widget {
     bool can_loop{};
 };
 
+class FloatField : public Widget {
+   public:
+    std::function<void(FloatField&)> on_select{};
+    std::function<void(float)> on_change{};
+    std::function<void(int32_t)> on_wrap{};
+
+    using range_t = std::pair<float, float>;
+
+    FloatField(Point parent_pos, int length, range_t range, float step, char fill_char, bool can_loop, uint8_t precision_ = 1);
+
+    FloatField(Point parent_pos, int length, range_t range, float step, char fill_char)
+        : FloatField{parent_pos, length, range, step, fill_char, true, 1} {
+    }
+
+    FloatField()
+        : FloatField{{0, 0}, 1, {0, 1}, 1, ' ', true, 1} {
+    }
+
+    FloatField(const FloatField&) = delete;
+    FloatField(FloatField&&) = delete;
+
+    float value() const;
+    void set_value(float new_value, bool trigger_change = true);
+    void set_range(const float min, const float max);
+    void set_step(const float new_step);
+    void set_precision(uint8_t precision);
+
+    void paint(Painter& painter) override;
+
+    bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent delta) override;
+    bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    range_t range;
+    float step;
+    const int length_;
+    const char fill_char;
+    float value_{0};
+    bool can_loop{};
+    uint8_t precision = 1;
+};
+
 /* A widget that allows for character-by-character editing of its value. */
 class SymField : public Widget {
    public:
