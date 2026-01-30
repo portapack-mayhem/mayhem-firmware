@@ -24,8 +24,7 @@
 
 #include <cstdint>
 #include <string>
-
-#define MORSEDEC_ERROR "<ERR>"
+#include "string_format.hpp"
 
 namespace ui::external_app::morse_practice {
 
@@ -89,21 +88,28 @@ class MorseDecoder {
     };
 
     MorseDecoder() {}
-    DecodeResult handleInput(int32_t duration_ms) {
+
+    DecodeResult
+    handleInput(int32_t duration_ms) {
         DecodeResult result = {"", 0.0};
+
+        if (duration_ms < 5 && duration_ms > -5) return result;
+
         if (duration_ms > 0) {
             pulse_history_.push_back(duration_ms);
             double dah_prob = getDahProbability(duration_ms);
             current_sequence_ += (dah_prob > 0.5) ? '-' : '.';
             last_confidence_ = (dah_prob > 0.5) ? dah_prob : (1.0 - dah_prob);
             last_sequence_ = current_sequence_;
+
         } else {
             uint32_t gap_duration = -duration_ms;
             pulse_gaps_.push_back(gap_duration);
 
             if (gap_duration >= getInterCharThreshold() && !current_sequence_.empty()) {
                 result.text = lookupMorse(current_sequence_);
-                result.confidence = (result.text != MORSEDEC_ERROR) ? last_confidence_ : 0.0;
+
+                result.confidence = (result.text[0] != '{') ? last_confidence_ : 0.0;
                 if (gap_duration >= getInterWordThreshold()) {
                     result.text += " ";
                 }
@@ -116,9 +122,9 @@ class MorseDecoder {
         return result;
     }
 
-    inline double getInterElementThreshold() { return time_unit_ms_ * 2.0; }
-    inline double getInterCharThreshold() { return time_unit_ms_ * 4.0; }
-    inline double getInterWordThreshold() { return time_unit_ms_ * 7.0; }
+    inline double getInterElementThreshold() { return time_unit_ms_ * 0.8; }
+    inline double getInterCharThreshold() { return time_unit_ms_ * 2.5; }
+    inline double getInterWordThreshold() { return time_unit_ms_ * 6.0; }
 
     inline double getCurrentTimeUnit() { return time_unit_ms_; }
     inline std::string getLastSequence() { return last_sequence_; }
@@ -126,7 +132,7 @@ class MorseDecoder {
    private:
     std::string current_sequence_ = "";
     std::string last_sequence_ = "";
-    double time_unit_ms_ = 160.0;
+    double time_unit_ms_ = 119.0;
     double last_confidence_ = 0.0;
     MorseRingBuffer pulse_history_{};
     MorseRingBuffer pulse_gaps_{};
@@ -136,7 +142,7 @@ class MorseDecoder {
             if (seq == morse_table_[i].code)
                 return morse_table_[i].letter;
         }
-        return MORSEDEC_ERROR;  // not found
+        return "{" + seq + "}";  // not found
     }
 
     double getDahProbability(uint32_t duration_ms) {
@@ -298,8 +304,8 @@ class MorseDecoder {
         time_unit_ms_ = (time_unit_ms_ * (1.0 - learning_factor)) + (new_time_unit * learning_factor);
     }
 
-    size_t morse_table_size_ = 41;
-    MorseEntry morse_table_[41] = {
+    size_t morse_table_size_ = 50;
+    MorseEntry morse_table_[50] = {
         {".-", "A"},
         {"-...", "B"},
         {"-.-.", "C"},
@@ -340,7 +346,16 @@ class MorseDecoder {
         {"..--..", "?"},
         {"-.-.--", "!"},
         {"--..--", ","},
-        {"-...-", "="}};
+        {"-...-", "="},
+        {"-..-.", "/"},
+        {".--.-.", "@"},
+        {"---...", ":"},
+        {"-....-", "-"},
+        {".----.", "'"},
+        {".-..-.", "\""},
+        {"-.--.", "("},
+        {"-.--.-", ")"},
+        {".-.-.", "+"}};
 };
 
 }  // namespace ui::external_app::morse_practice

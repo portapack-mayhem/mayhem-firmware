@@ -47,7 +47,7 @@ class MorsePracticeView : public ui::View {
     MorsePracticeView(ui::NavigationView& nav);
     ~MorsePracticeView();
 
-    std::string title() { return "Morse P"; }
+    std::string title() const override { return "Morse Practice"; }
     void focus() override;
     void on_show() override;
 

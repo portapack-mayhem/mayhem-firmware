@@ -296,10 +296,8 @@ set(CPPSRC
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_sd_over_usb.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
-	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_standalone_view.cpp
@@ -469,6 +467,9 @@ add_custom_command(
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+target_link_options(${PROJECT_NAME}.elf PRIVATE
+    "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
+)
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})

@@ -222,7 +222,11 @@ set(EXTCPPSRC
 
 	#gfxEQ 80 byte
 	external/gfxeq/main.cpp
-	external/gfxeq/ui_gfxeq.cpp
+	external/gfxeq/ui_gfxeq.cpp	
+
+	#waterfall designer
+	external/waterfall_designer/main.cpp
+	external/waterfall_designer/ui_waterfall_designer.cpp
 
 	#detector_rx  168 byte
 	external/detector_rx/main.cpp
@@ -280,6 +284,19 @@ external/bugdetector/ui_bugdetector.cpp
 	#subcarrx
 	external/subcarrx/main.cpp
 	external/subcarrx/ui_subcar.cpp
+
+	#siggen
+	external/siggen/main.cpp
+	external/siggen/ui_siggen.cpp
+
+	#sdusb
+	external/sdusb/main.cpp
+	external/sdusb/ui_sd_over_usb.cpp
+
+
+	#morse_radio
+	external/morse_radio/main.cpp
+	external/morse_radio/ui_morse_radio.cpp
 )
 
 set(EXTAPPLIST
@@ -336,6 +353,7 @@ set(EXTAPPLIST
 	scanner
 	level
 	gfxeq
+	waterfall_designer
 	detector_rx
 	bugdetector
 	spaceinv
@@ -350,4 +368,7 @@ set(EXTAPPLIST
 	adult_toys_controller
 	flex_rx
 	subcarrx
+	siggen
+	sdusb
+	morse_radio
 )

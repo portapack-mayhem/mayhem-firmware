@@ -15,7 +15,7 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
         te_short = 400;
         te_long = 800;
         te_delta = 150;
-        min_count_bit_for_found = 64;
+        min_count_bit_for_found = 68;
     }
     uint8_t reverse8(uint8_t byte) {
         byte = (byte & 0xF0) >> 4 | (byte & 0x0F) << 4;
@@ -36,7 +36,7 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
         }
     }
     bool kia_v3_v4_process_buffer() {
-        if (raw_bit_count < 64) {
+        if (raw_bit_count < 68) {
             return false;
         }
 
@@ -56,7 +56,7 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
 
         uint8_t btn = (reverse8(b[7]) & 0xF0) >> 4;
         decode_data = serial;
-        decode_count_bit = 64;
+        decode_count_bit = 68;
         decode_data2 = btn;
         data_count_bit = decode_count_bit;
         if (callback)
@@ -93,8 +93,7 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
     void feed(bool level, uint32_t duration) {
         switch (parser_step) {
             case KiaV3V4DecoderStepReset:
-                if (level && DURATION_DIFF(duration, te_short) <
-                                 te_delta) {
+                if (level && DURATION_DIFF(duration, te_short) < te_delta) {
                     parser_step = KiaV3V4DecoderStepCheckPreamble;
                     te_last = duration;
                     header_count = 1;
@@ -103,8 +102,7 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
 
             case KiaV3V4DecoderStepCheckPreamble:
                 if (level) {
-                    if (DURATION_DIFF(duration, te_short) <
-                        te_delta) {
+                    if (DURATION_DIFF(duration, te_short) < te_delta) {
                         te_last = duration;
                     } else if (duration > 1000 && duration < 1500) {
                         // V4 style: Sync is LONG HIGH
@@ -130,11 +128,7 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
                         } else {
                             parser_step = KiaV3V4DecoderStepReset;
                         }
-                    } else if (
-                        DURATION_DIFF(duration, te_short) <
-                            te_delta &&
-                        DURATION_DIFF(te_last, te_short) <
-                            te_delta) {
+                    } else if (DURATION_DIFF(duration, te_short) < te_delta && DURATION_DIFF(te_last, te_short) < te_delta) {
                         header_count++;
                     } else if (duration > 1500) {
                         parser_step = KiaV3V4DecoderStepReset;
@@ -149,12 +143,10 @@ class FProtoSubCarKiaV3V4 : public FProtoSubCarBase {
                         kia_v3_v4_process_buffer();
                         parser_step = KiaV3V4DecoderStepReset;
                     } else if (
-                        DURATION_DIFF(duration, te_short) <
-                        te_delta) {
+                        DURATION_DIFF(duration, te_short) < te_delta) {
                         kia_v3_v4_add_raw_bit(false);
                     } else if (
-                        DURATION_DIFF(duration, te_long) <
-                        te_delta) {
+                        DURATION_DIFF(duration, te_long) < te_delta) {
                         kia_v3_v4_add_raw_bit(true);
                     } else {
                         parser_step = KiaV3V4DecoderStepReset;

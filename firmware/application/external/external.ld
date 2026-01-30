@@ -92,7 +92,8 @@ MEMORY
     ram_external_app_siggen  (rwx) : org = 0xADF30000, len = 32k
     ram_external_app_sdusb  (rwx) : org = 0xADF40000, len = 32k
     ram_external_app_morse_radio  (rwx) : org = 0xADF50000, len = 32k
-    ram_external_app_bugdetector  (rwx) : org = 0xADF60000, len = 32k
+    ram_external_app_waterfall_designer (rwx) : org = 0xADF60000, len = 32k
+    ram_external_app_bugdetector  (rwx) : org = 0xADF70000, len = 32k
 }
 
 SECTIONS
@@ -402,6 +403,12 @@ SECTIONS
         KEEP(*(.external_app.app_gfxeq.application_information));
         *(*ui*external_app*gfxeq*);
     } > ram_external_app_gfxeq
+
+    .external_app_waterfall_designer : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_waterfall_designer.application_information));
+        *(*ui*external_app*waterfall_designer*);
+    } > ram_external_app_waterfall_designer
 
     .external_app_detector_rx : ALIGN(4) SUBALIGN(4)
     {

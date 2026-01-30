@@ -65,8 +65,8 @@ const usb_request_handlers_t usb_request_handlers = {
 void usb_configuration_changed(usb_device_t* const device) {
     (void)device;
 
-    usb_endpoint_init(&usb_endpoint_bulk_in);
-    usb_endpoint_init(&usb_endpoint_bulk_out);
+    usb_endpoint_init(&usb_endpoint_bulk_in, false);
+    usb_endpoint_init(&usb_endpoint_bulk_out, false);
 }
 
 void start_usb(void) {
@@ -84,8 +84,8 @@ void start_usb(void) {
     usb_queue_init(&usb_endpoint_bulk_out_queue);
     usb_queue_init(&usb_endpoint_bulk_in_queue);
 
-    usb_endpoint_init(&usb_endpoint_control_out);
-    usb_endpoint_init(&usb_endpoint_control_in);
+    usb_endpoint_init(&usb_endpoint_control_out, false);
+    usb_endpoint_init(&usb_endpoint_control_in, false);
 
     nvic_set_priority(NVIC_USB0_IRQ, 255);
 

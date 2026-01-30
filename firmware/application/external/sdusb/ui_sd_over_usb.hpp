@@ -32,7 +32,7 @@
 
 #include <cstdint>
 
-namespace ui {
+namespace ui::external_app::sdusb {
 
 class SdOverUsbView : public View {
    public:
@@ -58,6 +58,6 @@ class SdOverUsbView : public View {
         "Run"};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::sdusb
 
 #endif /*__UI_SD_OVER_USB_H__*/

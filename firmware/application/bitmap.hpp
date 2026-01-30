@@ -4297,7 +4297,7 @@ static constexpr Bitmap bitmap_icon_tpms{
     {16, 16},
     bitmap_icon_tpms_data};
 
-static constexpr uint8_t bitmap_icon_tranceivers_data[] = {
+static constexpr uint8_t bitmap_icon_transceivers_data[] = {
     0x80,
     0x01,
     0xC0,
@@ -4331,9 +4331,9 @@ static constexpr uint8_t bitmap_icon_tranceivers_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_tranceivers{
+static constexpr Bitmap bitmap_icon_transceivers{
     {16, 16},
-    bitmap_icon_tranceivers_data};
+    bitmap_icon_transceivers_data};
 
 static constexpr uint8_t bitmap_icon_transmit_data[] = {
     0x80,

@@ -384,6 +384,10 @@ void Text::set(std::string_view value) {
     set_dirty();
 }
 
+std::string Text::get() {
+    return text;
+}
+
 void Text::getAccessibilityText(std::string& result) {
     result = text;
 }
@@ -1358,14 +1362,18 @@ void NewButton::paint(Painter& painter) {
         }
 
         if (!text_.empty()) {
-            const auto label_r = style.font.size_of(text_);
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
             if (bitmap_) {
                 y += spacing;
             }
-            painter.draw_string(
-                {r.left() + (r.width() - label_r.width()) / 2, y},
-                style,
-                text_);
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
         }
     } else {  // no valign
         if (bitmap_) {
@@ -1379,11 +1387,16 @@ void NewButton::paint(Painter& painter) {
         }
 
         if (!text_.empty()) {
-            const auto label_r = style.font.size_of(text_);
-            painter.draw_string(
-                {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-                style,
-                text_);
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
+                                text_to_draw);
         }
     }
 }
@@ -1732,6 +1745,14 @@ bool ImageOptionsField::on_keyboard(const KeyboardEvent key) {
     return false;
 }
 
+bool ImageOptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
+    return false;
+}
+
 bool ImageOptionsField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
@@ -1878,6 +1899,14 @@ bool OptionsField::on_encoder(const EncoderEvent delta) {
 bool OptionsField::on_keyboard(const KeyboardEvent key) {
     if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
     if (key == '-' || key == 8) return on_encoder(-1);
+    return false;
+}
+
+bool OptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
     return false;
 }
 
@@ -2269,20 +2298,44 @@ void NumberField::getWidgetName(std::string& result) {
 }
 
 void NumberField::set_value(int32_t new_value, bool trigger_change) {
+    const int32_t lo = range.first;
+    const int32_t hi = range.second;
+
+    // Helper: floor-div for negatives
+    auto floordiv = [](int64_t a, int64_t b) -> int64_t {  // b > 0
+        int64_t q = a / b;
+        int64_t r = a % b;
+        return (r < 0) ? (q - 1) : q;
+    };
+    // Helper: positive modulo
+    auto posmod = [](int64_t a, int64_t m) -> int64_t {  // m > 0
+        int64_t r = a % m;
+        return (r < 0) ? (r + m) : r;
+    };
+
     if (can_loop) {
-        if (new_value >= range.first)
-            new_value = new_value % (range.second + 1);
-        else
-            new_value = range.second + new_value + 1;
+        // number of discrete positions
+        const int64_t count = (int64_t)(hi - lo) / step + 1;
+
+        // map value -> step index (floor so negatives behave)
+        int64_t idx = floordiv((int64_t)new_value - lo, step);
+
+        // wrap index
+        idx = posmod(idx, count);
+
+        // rebuild value
+        new_value = (int32_t)(lo + idx * step);
+    } else {
+        new_value = clip(new_value, lo, hi);
+        // optionally snap to step here too
+        int64_t idx = floordiv((int64_t)new_value - lo, step);
+        new_value = (int32_t)(lo + idx * step);
     }
 
-    new_value = clip(new_value, range.first, range.second);
-
+    // set final value if needed
     if (new_value != value()) {
         value_ = new_value;
-        if (on_change && trigger_change) {
-            on_change(value_);
-        }
+        if (on_change && trigger_change) on_change(value_);
         set_dirty();
     }
 }
@@ -2313,6 +2366,8 @@ bool NumberField::on_key(const KeyEvent key) {
         if (on_select) {
             on_select(*this);
             return true;
+        } else {
+            return on_encoder(1);
         }
     }
 
