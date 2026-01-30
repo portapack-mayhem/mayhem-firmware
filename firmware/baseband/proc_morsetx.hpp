@@ -17,14 +17,16 @@ class MorseTXProcessor : public BasebandProcessor {
 
    private:
     bool configured{false};
-    bool key_down{false};
+    bool key_down{false};  // currently the virtual key is pressed or not.
 
-    int8_t sample{0}, re{0}, im{0};  // they have sign + and -.
-    uint8_t modulation{};
-    uint32_t tone_delta{0}, fm_delta{}, tone_phase{0}, tone{0};
-    int32_t phase{0}, sphase{0}, delta{0};  // they may have sign in the pseudo random sample generation.
+    int8_t sample{0}, re{0}, im{0};
+    uint8_t modulation{0};   // 0=AM, 1=FM, 2=DSB, 3=USB, 4=LSB
+    uint32_t tone_delta{0};  // shifting value by tone
+    uint32_t fm_delta{};
+    uint32_t tone_phase{0};
+    uint32_t tone{0};                       // audio tone frequeny
+    int32_t phase{0}, sphase{0}, delta{0};  // sample generation.
 
-    /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{1536000, this, baseband::Direction::Transmit};
 };
 

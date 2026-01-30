@@ -144,7 +144,7 @@ class MorseRadiotxView : public ui::View {
 
     uint8_t last_color_id{255};
     uint8_t color_id{255};
-    std::string arr_color[5] = {STR_COLOR_WHITE, STR_COLOR_RED, STR_COLOR_YELLOW, STR_COLOR_GREEN, STR_COLOR_BLUE};
+    std::string arr_color[4] = {STR_COLOR_WHITE, STR_COLOR_RED, STR_COLOR_YELLOW, STR_COLOR_GREEN};
 
     bool button_touch{false};
     bool button_was_selected{false};

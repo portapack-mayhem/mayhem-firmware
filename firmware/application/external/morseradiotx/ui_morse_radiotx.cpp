@@ -221,7 +221,6 @@ void MorseRadiotxView::transmit_morse_message() {
         // space
         if (c == ' ') {
             console_text.write(" ");
-            // space pause
             chThdSleepMilliseconds(current_timings.word_gap);
             continue;
         }
@@ -409,7 +408,7 @@ void MorseRadiotxView::on_framesync() {
             decode_timeout_calc = false;
         }
     }
-    if (transmit_time != 0 && transmit) {
+    if (transmit_time != 0 && transmit) {  // Tx disable if time is up
         int64_t gap_delta = (chTimeNow() - transmit_time);
         if (gap_delta >= ((morse_decoder_.getInterWordThreshold() * ((chk_trans.value()) ? 10 : 1)))) {
             if (tx_thread) {

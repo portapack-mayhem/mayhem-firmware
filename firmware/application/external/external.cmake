@@ -91,7 +91,7 @@ set(EXTCPPSRC
 	external/adsbtx/main.cpp
 	external/adsbtx/ui_adsb_tx.cpp
 
-	#morse_tx 768 bytes
+	#morse_tx 768 bytes -- disabled because of the new morse tx app with more functions
 	#external/morse_tx/main.cpp
 	#external/morse_tx/ui_morse.cpp
 

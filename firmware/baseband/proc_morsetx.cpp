@@ -15,18 +15,15 @@ void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
         sample_sin = (sine_table_i8[(tone_phase & 0xFF000000) >> 24]);
         tone_phase += tone_delta;
 
+        im = 0;
+        re = 0;
+
         // modulation logic
         if (modulation == 0) {  // AM modulation
-            im = 0;
             if (key_down) {
                 re = 64 + (sample_sin >> 2);
-            } else {
-                re = 0;
             }
-
         } else if (modulation == 1) {  // FM modulation
-            // In FM, 'silence' means that the frequency is not oscillating.
-            // continuous carrier wave
             if (key_down) {
                 delta = sample_sin * fm_delta;
             } else {
@@ -40,33 +37,22 @@ void MorseTXProcessor::execute(const buffer_c8_t& buffer) {
             im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
 
         } else if (modulation == 2) {  // DSB
-            im = 0;
             if (key_down) {
                 re = sample_sin;
-            } else
-                re = 0;
-
+            }
         } else if (modulation == 3) {  // USB
             if (key_down) {
                 sample_cos = (sine_table_i8[((tone_phase + 0x40000000) & 0xFF000000) >> 24]);
                 re = sample_cos;
                 im = sample_sin;
-            } else {
-                re = 0;
-                im = 0;
             }
-
         } else if (modulation == 4) {  // LSB
             if (key_down) {
                 sample_cos = (sine_table_i8[((tone_phase + 0x40000000) & 0xFF000000) >> 24]);
                 re = sample_cos;
                 im = (sine_table_i8[((tone_phase + 0x80000000) & 0xFF000000) >> 24]);
-            } else {
-                re = 0;
-                im = 0;
             }
         }
-
         buffer.p[i] = {re, im};
     }
 }
@@ -76,7 +62,7 @@ void MorseTXProcessor::on_message(const Message* const p) {
         case Message::ID::MorseTXConfigure: {
             auto message = *reinterpret_cast<const MorseTXConfigureMessage*>(p);
             tone_delta = message.tone * 1398;  // scale
-            tone = message.tone;
+            tone = message.tone;               // audio tone
             modulation = message.modulation;
             if (message.fm_delta == 0 && modulation == 1) {
                 fm_delta = 90000;
