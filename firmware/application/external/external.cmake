@@ -92,8 +92,8 @@ set(EXTCPPSRC
 	external/adsbtx/ui_adsb_tx.cpp
 
 	#morse_tx 768 bytes
-	external/morse_tx/main.cpp
-	external/morse_tx/ui_morse.cpp
+	#external/morse_tx/main.cpp
+	#external/morse_tx/ui_morse.cpp
 
 	#sstvtx 456 bytes
 	external/sstvtx/main.cpp
@@ -321,7 +321,7 @@ set(EXTAPPLIST
 	tpmsrx
 	protoview
 	adsbtx
-	morse_tx
+	#morse_tx
 	sstvtx
 	sstvrx
 	random_password
