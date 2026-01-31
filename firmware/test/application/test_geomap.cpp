@@ -132,33 +132,34 @@ TEST_CASE("Change detection should scale with zoom level") {
     }
 }
 
-TEST_CASE("Previous position tracking should work correctly") {
+TEST_CASE("Viewport position tracking should work correctly") {
     int zoom = 10;
     double initial_lat = 51.5074;  // London
     double initial_lon = -0.1278;
+    int viewport_width = 240;  // Typical screen width
 
-    // Simulate initial position
-    double prev_osm_px = lon_to_pixel_x_tile(initial_lon, zoom);
-    double prev_osm_py = lat_to_pixel_y_tile(initial_lat, zoom);
+    // Simulate initial viewport position (reusing viewport_top_left_px/py pattern)
+    double viewport_px = lon_to_pixel_x_tile(initial_lon, zoom) - (viewport_width / 2.0);
+    double viewport_py = lat_to_pixel_y_tile(initial_lat, zoom) - (viewport_width / 2.0);
 
     SUBCASE("Moving exactly 1 pixel should trigger redraw") {
         // Calculate exact 1-pixel movement
         double degrees_per_pixel = 360.0 / (pow(2.0, zoom) * TILE_SIZE);
         double new_lon = initial_lon + degrees_per_pixel;
 
-        double new_px = lon_to_pixel_x_tile(new_lon, zoom);
-        double diff = fabs(new_px - prev_osm_px);
+        double new_viewport_calc = lon_to_pixel_x_tile(new_lon, zoom) - (viewport_width / 2.0);
+        double diff = fabs(new_viewport_calc - viewport_px);
 
         CHECK(diff >= 1.0);
         CHECK(diff < 2.0);
     }
 
     SUBCASE("No movement should not trigger redraw") {
-        double new_px = lon_to_pixel_x_tile(initial_lon, zoom);
-        double new_py = lat_to_pixel_y_tile(initial_lat, zoom);
+        double new_viewport_calc_x = lon_to_pixel_x_tile(initial_lon, zoom) - (viewport_width / 2.0);
+        double new_viewport_calc_y = lat_to_pixel_y_tile(initial_lat, zoom) - (viewport_width / 2.0);
 
-        CHECK(fabs(new_px - prev_osm_px) < 0.001);
-        CHECK(fabs(new_py - prev_osm_py) < 0.001);
+        CHECK(fabs(new_viewport_calc_x - viewport_px) < 0.001);
+        CHECK(fabs(new_viewport_calc_y - viewport_py) < 0.001);
     }
 }
 
