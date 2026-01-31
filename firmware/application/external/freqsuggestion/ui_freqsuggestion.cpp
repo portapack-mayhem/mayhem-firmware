@@ -28,10 +28,14 @@
 #include "file_path.hpp"
 #include "receiver_model.hpp"
 #include "string_format.hpp"
+#include "freqman_db.hpp"
 #include <cstring>
 
 using namespace portapack;
 using namespace ui;
+
+// Use existing freqman modulations from freqman_db.cpp
+extern std::vector<std::pair<std::string_view, int32_t>> freqman_modulations;
 
 namespace ui::external_app::freqsuggestion {
 
@@ -39,29 +43,20 @@ void FreqSuggestionView::focus() {
     field_frequency.focus();
 }
 
-std::string FreqSuggestionView::demod_mode_to_string(DemodMode mode) {
-    switch (mode) {
-        case DemodMode::AM:
-            return "AM";
-        case DemodMode::NFM:
-            return "NFM";
-        case DemodMode::WFM:
-            return "WFM";
-        case DemodMode::USB:
-            return "USB";
-        case DemodMode::LSB:
-            return "LSB";
-        case DemodMode::DSB:
-            return "DSB";
-        case DemodMode::SPEC:
-            return "SPEC";
-        case DemodMode::DIGITAL:
-            return "DIGITAL";
-        case DemodMode::MULTI:
-            return "MULTI";
-        default:
-            return "UNKNOWN";
+std::string FreqSuggestionView::modulation_index_to_string(freqman_index_t mode) {
+    // Reuse existing freqman modulation names
+    if (is_valid(mode) && mode < freqman_modulations.size()) {
+        return std::string{freqman_modulations[mode].first};
     }
+
+    // Special cases for modes not in standard freqman list
+    if (mode == 6) return "USB";
+    if (mode == 7) return "LSB";
+    if (mode == 8) return "DSB";
+    if (mode == 9) return "DIGITAL";
+    if (mode == 10) return "MULTI";
+
+    return "UNKNOWN";
 }
 
 std::string FreqSuggestionView::format_bandwidth(uint32_t bw_min, uint32_t bw_max) {
@@ -94,20 +89,6 @@ std::string FreqSuggestionView::format_frequency_range(rf::Frequency start, rf::
         return to_string_dec_uint(start / 1000000, 1) + "-" + to_string_dec_uint(end / 1000000, 1) + " MHz";
     } else {
         return to_string_dec_uint(start / 1000, 1) + "-" + to_string_dec_uint(end / 1000, 1) + " kHz";
-    }
-}
-
-std::string FreqSuggestionView::assess_signal_quality(int8_t rssi_db) {
-    if (rssi_db > -60) {
-        return "EXCELLENT";
-    } else if (rssi_db > -80) {
-        return "GOOD";
-    } else if (rssi_db > -100) {
-        return "FAIR";
-    } else if (rssi_db > -120) {
-        return "POOR";
-    } else {
-        return "VERY POOR";
     }
 }
 
@@ -178,9 +159,9 @@ void FreqSuggestionView::update_suggestions() {
     text_usage.set(band->usage.length() > 17 ? band->usage.substr(0, 17) : band->usage);
 
     // Demod mode
-    std::string demod_str = demod_mode_to_string(band->primary_mode);
-    if (band->secondary_mode != DemodMode::MULTI && band->secondary_mode != band->primary_mode) {
-        demod_str += "/" + demod_mode_to_string(band->secondary_mode);
+    std::string demod_str = modulation_index_to_string(band->primary_mode);
+    if (band->secondary_mode != 10 && band->secondary_mode != band->primary_mode) {
+        demod_str += "/" + modulation_index_to_string(band->secondary_mode);
     }
     text_demod_mode.set(demod_str.length() > 17 ? demod_str.substr(0, 17) : demod_str);
 
@@ -203,9 +184,9 @@ void FreqSuggestionView::update_suggestions() {
 
     // Usage recommendations
     console.write("Recommended Settings:\n");
-    console.write("Mode: " + demod_mode_to_string(band->primary_mode));
-    if (band->secondary_mode != DemodMode::MULTI && band->secondary_mode != band->primary_mode) {
-        console.write(" or " + demod_mode_to_string(band->secondary_mode));
+    console.write("Mode: " + modulation_index_to_string(band->primary_mode));
+    if (band->secondary_mode != 10 && band->secondary_mode != band->primary_mode) {
+        console.write(" or " + modulation_index_to_string(band->secondary_mode));
     }
     console.write("\n");
 
@@ -309,38 +290,38 @@ void FreqSuggestionView::load_frequency_db() {
         band.region = std::string{cols[3]};
         band.usage = std::string{cols[4]};
 
-        // Parse demod modes
+        // Parse demod modes - reuse freqman modulation indexes
         auto mode_str = std::string{cols[5]};
         if (mode_str == "AM")
-            band.primary_mode = DemodMode::AM;
+            band.primary_mode = 0;  // AM index in freqman_modulations
         else if (mode_str == "NFM")
-            band.primary_mode = DemodMode::NFM;
+            band.primary_mode = 1;  // NFM index
         else if (mode_str == "WFM")
-            band.primary_mode = DemodMode::WFM;
+            band.primary_mode = 2;  // WFM index
         else if (mode_str == "USB")
-            band.primary_mode = DemodMode::USB;
+            band.primary_mode = 6;  // Extended mode
         else if (mode_str == "LSB")
-            band.primary_mode = DemodMode::LSB;
+            band.primary_mode = 7;  // Extended mode
         else if (mode_str == "DIGITAL")
-            band.primary_mode = DemodMode::DIGITAL;
+            band.primary_mode = 9;  // Extended mode
         else
-            band.primary_mode = DemodMode::SPEC;
+            band.primary_mode = 3;  // SPEC index
 
         auto sec_mode_str = std::string{cols[6]};
         if (sec_mode_str == "AM")
-            band.secondary_mode = DemodMode::AM;
+            band.secondary_mode = 0;
         else if (sec_mode_str == "NFM")
-            band.secondary_mode = DemodMode::NFM;
+            band.secondary_mode = 1;
         else if (sec_mode_str == "WFM")
-            band.secondary_mode = DemodMode::WFM;
+            band.secondary_mode = 2;
         else if (sec_mode_str == "USB")
-            band.secondary_mode = DemodMode::USB;
+            band.secondary_mode = 6;
         else if (sec_mode_str == "LSB")
-            band.secondary_mode = DemodMode::LSB;
+            band.secondary_mode = 7;
         else if (sec_mode_str == "DIGITAL")
-            band.secondary_mode = DemodMode::DIGITAL;
+            band.secondary_mode = 9;
         else
-            band.secondary_mode = DemodMode::MULTI;
+            band.secondary_mode = 10;  // MULTI
 
         // Parse bandwidths
         uint32_t bw_min = 0, bw_max = 0;
@@ -400,15 +381,15 @@ void FreqSuggestionView::load_antenna_list() {
 void FreqSuggestionView::add_default_bands() {
     // Add some essential default bands if database file not found
 
-    // AM Broadcast
+    // AM Broadcast (reusing freqman index: 0=AM, 10=MULTI)
     frequency_db.push_back({
         530000,                // 530 kHz
         1700000,               // 1.7 MHz
         "AM Broadcast",
         "GLOBAL",
         "AM Radio",
-        DemodMode::AM,
-        DemodMode::MULTI,
+        0,      // AM
+        10,     // MULTI
         5000,   // 5 kHz min
         10000,  // 10 kHz max
         24,     // LNA
@@ -417,32 +398,32 @@ void FreqSuggestionView::add_default_bands() {
         "Medium wave AM broadcasting"
     });
 
-    // FM Broadcast
+    // FM Broadcast (2=WFM)
     frequency_db.push_back({
         88000000,    // 88 MHz
         108000000,   // 108 MHz
         "FM Broadcast",
         "GLOBAL",
         "FM Radio",
-        DemodMode::WFM,
-        DemodMode::MULTI,
-        180000,   // 180 kHz
-        200000,   // 200 kHz
-        16,       // LNA
-        20,       // VGA
-        false,    // RF Amp
+        2,       // WFM
+        10,      // MULTI
+        180000,  // 180 kHz
+        200000,  // 200 kHz
+        16,      // LNA
+        20,      // VGA
+        false,   // RF Amp
         "VHF FM broadcasting, stereo audio"
     });
 
-    // 2m Amateur Band
+    // 2m Amateur Band (1=NFM, 6=USB)
     frequency_db.push_back({
         144000000,  // 144 MHz
         148000000,  // 148 MHz
         "2m Ham",
         "GLOBAL",
         "Amateur",
-        DemodMode::NFM,
-        DemodMode::USB,
+        1,       // NFM
+        6,       // USB
         12500,   // 12.5 kHz
         25000,   // 25 kHz
         24,      // LNA
@@ -451,15 +432,15 @@ void FreqSuggestionView::add_default_bands() {
         "2 meter amateur radio band, voice and digital"
     });
 
-    // Aircraft Band
+    // Aircraft Band (0=AM)
     frequency_db.push_back({
         118000000,  // 118 MHz
         137000000,  // 137 MHz
         "Airband",
         "GLOBAL",
         "Aviation",
-        DemodMode::AM,
-        DemodMode::MULTI,
+        0,       // AM
+        10,      // MULTI
         8333,    // 8.33 kHz
         25000,   // 25 kHz
         24,      // LNA
@@ -468,15 +449,15 @@ void FreqSuggestionView::add_default_bands() {
         "Civil aviation communications"
     });
 
-    // 70cm Amateur Band
+    // 70cm Amateur Band (1=NFM, 9=DIGITAL)
     frequency_db.push_back({
         420000000,  // 420 MHz
         450000000,  // 450 MHz
         "70cm Ham",
         "US",
         "Amateur",
-        DemodMode::NFM,
-        DemodMode::DIGITAL,
+        1,       // NFM
+        9,       // DIGITAL
         12500,   // 12.5 kHz
         25000,   // 25 kHz
         24,      // LNA
@@ -492,8 +473,8 @@ void FreqSuggestionView::add_default_bands() {
         "PMR446",
         "EU",
         "PMR Radio",
-        DemodMode::NFM,
-        DemodMode::MULTI,
+        1,       // NFM
+        10,      // MULTI
         12500,   // 12.5 kHz
         12500,   // 12.5 kHz
         24,      // LNA
@@ -509,8 +490,8 @@ void FreqSuggestionView::add_default_bands() {
         "FRS/GMRS",
         "US",
         "Two-way",
-        DemodMode::NFM,
-        DemodMode::MULTI,
+        1,       // NFM
+        10,      // MULTI
         12500,   // 12.5 kHz
         25000,   // 25 kHz
         24,      // LNA
@@ -526,13 +507,13 @@ void FreqSuggestionView::add_default_bands() {
         "ISM 433",
         "EU",
         "ISM/IoT",
-        DemodMode::NFM,
-        DemodMode::DIGITAL,
-        25000,    // 25 kHz
-        200000,   // 200 kHz
-        32,       // LNA
-        40,       // VGA
-        false,    // RF Amp
+        1,       // NFM
+        9,       // DIGITAL
+        25000,   // 25 kHz
+        200000,  // 200 kHz
+        32,      // LNA
+        40,      // VGA
+        false,   // RF Amp
         "ISM band, remote controls, IoT devices"
     });
 
@@ -543,13 +524,13 @@ void FreqSuggestionView::add_default_bands() {
         "ISM 868",
         "EU",
         "ISM/IoT",
-        DemodMode::NFM,
-        DemodMode::DIGITAL,
-        25000,    // 25 kHz
-        200000,   // 200 kHz
-        24,       // LNA
-        30,       // VGA
-        false,    // RF Amp
+        1,       // NFM
+        9,       // DIGITAL
+        25000,   // 25 kHz
+        200000,  // 200 kHz
+        24,      // LNA
+        30,      // VGA
+        false,   // RF Amp
         "ISM band, smart meters, LoRa, IoT"
     });
 
@@ -560,30 +541,30 @@ void FreqSuggestionView::add_default_bands() {
         "ISM 915",
         "US",
         "ISM/IoT",
-        DemodMode::NFM,
-        DemodMode::DIGITAL,
-        25000,    // 25 kHz
-        500000,   // 500 kHz
-        24,       // LNA
-        30,       // VGA
-        false,    // RF Amp
+        1,       // NFM
+        9,       // DIGITAL
+        25000,   // 25 kHz
+        500000,  // 500 kHz
+        24,      // LNA
+        30,      // VGA
+        false,   // RF Amp
         "ISM band, LoRa, ZigBee, RFID"
     });
 
-    // GPS L1
+    // GPS L1 (3=SPEC)
     frequency_db.push_back({
         1575000000,  // 1575.42 MHz
         1576000000,  // 1576 MHz
         "GPS L1",
         "GLOBAL",
         "GNSS",
-        DemodMode::SPEC,
-        DemodMode::DIGITAL,
-        2000000,   // 2 MHz
-        4000000,   // 4 MHz
-        32,        // LNA
-        40,        // VGA
-        true,      // RF Amp
+        3,       // SPEC
+        9,       // DIGITAL
+        2000000, // 2 MHz
+        4000000, // 4 MHz
+        32,      // LNA
+        40,      // VGA
+        true,    // RF Amp
         "GPS L1 C/A signal, GNSS"
     });
 }

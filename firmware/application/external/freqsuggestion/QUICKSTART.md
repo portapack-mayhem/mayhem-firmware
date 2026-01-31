@@ -1,4 +1,4 @@
-Why# Frequency Suggestion App - Quick Start Guide
+# Frequency Suggestion App - Quick Start Guide
 
 ## What is it?
 

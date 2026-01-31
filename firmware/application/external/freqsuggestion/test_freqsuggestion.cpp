@@ -64,29 +64,29 @@ std::vector<TestResult> test_results;
     return true;
 
 /**
- * Test: Demodulation mode to string conversion
+ * Test: Modulation index to string conversion
  */
-bool test_demod_mode_to_string() {
+bool test_modulation_index_to_string() {
     FreqSuggestionView view(nullptr);  // Note: In real test, would need proper mock
 
-    // Test all demod modes
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::AM) == "AM",
+    // Test all modulation modes using freqman indexes
+    TEST_ASSERT(view.modulation_index_to_string(0) == "AM",
                 "AM mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::NFM) == "NFM",
+    TEST_ASSERT(view.modulation_index_to_string(1) == "NFM",
                 "NFM mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::WFM) == "WFM",
+    TEST_ASSERT(view.modulation_index_to_string(2) == "WFM",
                 "WFM mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::USB) == "USB",
+    TEST_ASSERT(view.modulation_index_to_string(6) == "USB",
                 "USB mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::LSB) == "LSB",
+    TEST_ASSERT(view.modulation_index_to_string(7) == "LSB",
                 "LSB mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::DSB) == "DSB",
+    TEST_ASSERT(view.modulation_index_to_string(8) == "DSB",
                 "DSB mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::SPEC) == "SPEC",
+    TEST_ASSERT(view.modulation_index_to_string(3) == "SPEC",
                 "SPEC mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::DIGITAL) == "DIGITAL",
+    TEST_ASSERT(view.modulation_index_to_string(9) == "DIGITAL",
                 "DIGITAL mode conversion failed");
-    TEST_ASSERT(view.demod_mode_to_string(DemodMode::MULTI) == "MULTI",
+    TEST_ASSERT(view.modulation_index_to_string(10) == "MULTI",
                 "MULTI mode conversion failed");
 
     TEST_SUCCESS();
@@ -147,28 +147,15 @@ bool test_format_frequency_range() {
 /**
  * Test: Signal quality assessment
  */
+/**
+ * Test: Signal quality assessment
+ * Note: This function was removed in refactoring as it was unused
+ */
 bool test_signal_quality_assessment() {
-    FreqSuggestionView view(nullptr);
-
-    // Test quality levels
-    TEST_ASSERT(view.assess_signal_quality(-50) == "EXCELLENT",
-                "EXCELLENT quality assessment failed");
-    TEST_ASSERT(view.assess_signal_quality(-70) == "GOOD",
-                "GOOD quality assessment failed");
-    TEST_ASSERT(view.assess_signal_quality(-90) == "FAIR",
-                "FAIR quality assessment failed");
-    TEST_ASSERT(view.assess_signal_quality(-110) == "POOR",
-                "POOR quality assessment failed");
-    TEST_ASSERT(view.assess_signal_quality(-130) == "VERY POOR",
-                "VERY POOR quality assessment failed");
-
-    // Test boundary conditions
-    TEST_ASSERT(view.assess_signal_quality(-60) == "EXCELLENT",
-                "Boundary at -60 dB failed");
-    TEST_ASSERT(view.assess_signal_quality(-61) == "GOOD",
-                "Boundary at -61 dB failed");
-
-    TEST_SUCCESS();
+    // This test is deprecated - assess_signal_quality function was removed
+    // as it was not used in the actual implementation
+    test_results.push_back({__func__, true, "Deprecated - function removed"});
+    return true;
 }
 
 /**
@@ -177,15 +164,15 @@ bool test_signal_quality_assessment() {
 bool test_band_lookup_exact_match() {
     FreqSuggestionView view(nullptr);
 
-    // Add a test band
+    // Add a test band using freqman indexes
     FrequencyBand test_band = {
         144000000,  // 144 MHz
         148000000,  // 148 MHz
         "2m Ham",
         "GLOBAL",
         "Amateur",
-        DemodMode::NFM,
-        DemodMode::USB,
+        1,      // NFM (freqman index)
+        6,      // USB (extended index)
         12500,
         25000,
         24,
@@ -471,10 +458,10 @@ int main() {
     std::cout << "============================================\n\n";
 
     // Run all tests
-    test_demod_mode_to_string();
+    test_modulation_index_to_string();  // Updated function name
     test_format_bandwidth();
     test_format_frequency_range();
-    test_signal_quality_assessment();
+    test_signal_quality_assessment();  // Deprecated but kept for compatibility
     test_band_lookup_exact_match();
     test_band_lookup_range_matching();
     test_database_parsing_valid_line();

@@ -28,6 +28,7 @@
 #include "ui_freq_field.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include "freqman_db.hpp"
 #include <vector>
 #include <string>
 
@@ -35,36 +36,14 @@ using namespace ui;
 
 namespace ui::external_app::freqsuggestion {
 
-// Demodulation modes
-enum class DemodMode {
-    AM,
-    NFM,
-    WFM,
-    USB,
-    LSB,
-    DSB,
-    SPEC,  // Spectrum only
-    DIGITAL,
-    MULTI  // Multiple modes possible
-};
-
-// Signal quality assessment
-enum class SignalQuality {
-    UNKNOWN,
-    POOR,
-    FAIR,
-    GOOD,
-    EXCELLENT
-};
-
-// Frequency band entry structure
+// Extended frequency band entry - reuses freqman_entry fields
 struct FrequencyBand {
-    rf::Frequency freq_start;       // Starting frequency in Hz
-    rf::Frequency freq_end;         // Ending frequency in Hz
-    std::string band_name;          // e.g., "2m Amateur Band"
-    std::string description;        // Additional info
-    DemodMode primary_mode;         // Primary demodulation mode
-    DemodMode secondary_mode;       // Secondary mode (if applicable)
+    rf::Frequency freq_start;       // Starting frequency in Hz (maps to frequency_a)
+    rf::Frequency freq_end;         // Ending frequency in Hz (maps to frequency_b)
+    std::string band_name;          // Short band name (stored separately from description)
+    std::string description;        // Additional info (maps to freqman_entry.description)
+    freqman_index_t primary_mode;   // Primary demodulation mode (reuses freqman modulation)
+    freqman_index_t secondary_mode; // Secondary mode (reuses freqman modulation)
     uint32_t suggested_bw_min;      // Min bandwidth in Hz
     uint32_t suggested_bw_max;      // Max bandwidth in Hz
     std::string region;             // e.g., "US", "EU", "GLOBAL"
@@ -96,11 +75,10 @@ class FreqSuggestionView : public View {
     void load_antenna_list();
     void add_default_bands();
     FrequencyBand* find_band(rf::Frequency freq);
-    std::string demod_mode_to_string(DemodMode mode);
+    std::string modulation_index_to_string(freqman_index_t mode);
     std::string format_bandwidth(uint32_t bw_min, uint32_t bw_max);
     std::string format_frequency_range(rf::Frequency start, rf::Frequency end);
     AntennaRecommendation get_antenna_recommendation(rf::Frequency freq, const std::string& antenna_name);
-    std::string assess_signal_quality(int8_t rssi_db);
 
     // UI Components
     Labels labels{
