@@ -113,12 +113,12 @@ class GeoPos : public View {
     spd_unit speed_unit_{};
 
     Labels labels_position{
-        {{1 * 8, UI_POS_Y(0)}, "CoG:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, UI_POS_Y(0)}, "Alt:", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},  // 0xB0 is degree ° symbol in our 8x16 font
         {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},
     };
     Labels label_spd_position{
-        {{15 * 8, UI_POS_Y(0)}, "SoG:", Theme::getInstance()->fg_light->foreground},
+        {{15 * 8, UI_POS_Y(0)}, "Spd:", Theme::getInstance()->fg_light->foreground},
     };
     NumberField field_altitude{
         {6 * 8, UI_POS_Y(0)},
