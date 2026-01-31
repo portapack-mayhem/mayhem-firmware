@@ -59,11 +59,6 @@ class CWRadioView : public View {
     void on_tx_key_change(bool key_down);
     void update_button_state();
 
-    bool transmitting_{false};
-    bool key_is_down_{false};
-    bool button_held_{false};
-    uint8_t selected_modulation_{0};  // 0=AM, 1=FM, 2=DSB, 3=USB, 4=LSB
-
     static constexpr uint32_t default_frequency{7'040'000};  // 7.040 MHz (40m CW)
     static constexpr uint32_t default_tone{700};  // 700 Hz sidetone
     static constexpr uint32_t default_fm_delta{5000};  // FM deviation

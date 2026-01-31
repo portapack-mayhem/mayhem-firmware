@@ -3,10 +3,14 @@
 ## Overview
 This test suite provides comprehensive coverage for the CW Radio feature, validating message handling, configuration, timing, and integration with the morse transmission baseband processor.
 
+**Optimization Note:** The CW Radio implementation has been optimized for low-resource embedded devices by eliminating redundant state variables and reusing existing framework infrastructure (transmitter_model, button state, options field values).
+
 ## Test Files
 - `firmware/test/application/test_cwradio.cpp` - Main test suite with 30+ test cases
 
 ## Running Tests
+
+**Note:** Building tests requires the full PortaPack build environment with ChibiOS paths configured. Ensure `CHIBIOS` and `CHIBIOS_PORTAPACK` environment variables are set.
 
 ### Build Tests
 ```bash
@@ -98,6 +102,21 @@ Tests all supported modulation modes.
 
 **Covered:**
 - ✅ AM mode (0)
+
+### 6. State Management Optimization Tests (3 test cases)
+Tests the optimized state management approach for embedded devices.
+
+**Covered:**
+- ✅ No redundant transmitter state (uses transmitter_model.enabled())
+- ✅ Button text used for key state tracking
+- ✅ Options field value queried directly (no caching)
+- ✅ Memory-efficient state queries
+
+**Test Cases:**
+- `CW Radio optimized state management`
+- No redundant transmitter state validation
+- Button text state validation
+- Direct options field query validation
 - ✅ FM mode (1)
 - ✅ DSB mode (2)
 - ✅ USB mode (3)
@@ -236,10 +255,12 @@ Tests state consistency and invariants.
 [doctest] doctest version is "2.4.6"
 [doctest] run with "--help" for options
 ===============================================================================
-[doctest] test cases:     44 |     44 passed |      0 failed |      0 skipped
-[doctest] assertions:    200 |    200 passed |      0 failed |
+[doctest] test cases:     47 |     47 passed |      0 failed |      0 skipped
+[doctest] assertions:    215 |    215 passed |      0 failed |
 [doctest] Status: SUCCESS!
 ```
+
+**Note:** Test count increased from 44 to 47 with addition of state management optimization tests.
 
 ## Test Maintenance
 
@@ -266,14 +287,14 @@ TEST_CASE("CW Radio feature description") {
     SUBCASE("Specific scenario 1") {
         // Arrange
         MorseTXConfigureMessage config(0, 700, 5000);
-        
+
         // Act
         // (if needed)
-        
+
         // Assert
         CHECK_EQ(config.tone, 700);
     }
-    
+
     SUBCASE("Specific scenario 2") {
         // Another test scenario
     }

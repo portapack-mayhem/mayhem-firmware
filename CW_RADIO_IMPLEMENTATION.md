@@ -33,6 +33,15 @@ This implementation adds a complete CW (Morse code) transmitter feature to the P
 - **`firmware/application/CMakeLists.txt`**
   - Added `apps/ui_cwradio.cpp` to build sources
 
+## Memory Optimization
+
+**Low-Resource Embedded Device Optimization:**
+- No redundant state variables - reuses existing transmitter model state
+- Button text used for key state tracking instead of separate boolean
+- Options field value queried directly instead of cached
+- Minimal memory footprint suitable for resource-constrained hardware
+- Zero dynamic allocations in critical paths
+
 ## Key Features Implemented
 
 ### User Interface
@@ -97,10 +106,11 @@ RF Output
 ```
 
 ### State Management
-- `transmitting_`: TX enabled state
-- `key_is_down_`: Current key state
-- `button_held_`: Button press tracking
-- `selected_modulation_`: Active modulation mode
+**Optimized for embedded device - reuses existing infrastructure:**
+- Transmitter state: Uses `transmitter_model.enabled()` (no redundant tracking)
+- Key state: Uses button text state ("KEY DOWN" / "PRESS TO KEY")
+- Modulation: Uses `options_mode.selected_index_value()` (no separate variable)
+- Reduces memory footprint by reusing existing framework state
 
 ## Baseband Integration
 
@@ -227,10 +237,13 @@ dfu-util -d 1fc9:000c -D firmware.bin -R
 - Standard message patterns
 - Baseband API usage
 
-### Memory Safe
+### Memory Safe & Optimized
 - No dynamic allocations in critical paths
+- No redundant state variables - reuses existing framework state
+- Minimal memory footprint for embedded device
 - Proper cleanup in destructor
 - Message handlers properly registered/unregistered
+- Efficient state queries instead of caching
 
 ### Thread Safe
 - Uses ChibiOS primitives correctly

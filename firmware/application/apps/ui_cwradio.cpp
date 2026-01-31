@@ -71,7 +71,7 @@ CWRadioView::CWRadioView(NavigationView& nav)
     field_tone.set_value(default_tone);
     field_tone.on_change = [this](int32_t v) {
         (void)v;
-        if (transmitting_) {
+        if (transmitter_model.enabled()) {
             update_tx();
         }
     };
@@ -80,7 +80,7 @@ CWRadioView::CWRadioView(NavigationView& nav)
     field_fm_delta.set_value(default_fm_delta);
     field_fm_delta.on_change = [this](int32_t v) {
         (void)v;
-        if (transmitting_) {
+        if (transmitter_model.enabled()) {
             update_tx();
         }
     };
@@ -93,14 +93,13 @@ CWRadioView::CWRadioView(NavigationView& nav)
     options_mode.set_selected_index(0);  // Default to AM
     options_mode.on_change = [this](size_t index, int32_t value) {
         (void)index;
-        selected_modulation_ = value;
 
         // Show/hide FM delta controls based on mode
-        bool is_fm = (selected_modulation_ == 1);
+        bool is_fm = (value == 1);
         text_fm_delta_label.hidden(!is_fm);
         field_fm_delta.hidden(!is_fm);
 
-        if (transmitting_) {
+        if (transmitter_model.enabled()) {
             update_tx();
         }
     };
@@ -119,13 +118,11 @@ CWRadioView::CWRadioView(NavigationView& nav)
     };
 
     button_key.on_touch_press = [this](TouchEvent) {
-        button_held_ = true;
         on_button_change(true);
         return true;
     };
 
     button_key.on_touch_release = [this](TouchEvent) {
-        button_held_ = false;
         on_button_change(false);
         return true;
     };
@@ -151,10 +148,8 @@ void CWRadioView::on_show() {
 }
 
 void CWRadioView::start_tx() {
-    if (transmitting_)
+    if (transmitter_model.enabled())
         return;
-
-    transmitting_ = true;
 
     // Configure transmitter
     transmitter_model.set_target_frequency(settings_.target_frequency);
@@ -178,45 +173,42 @@ void CWRadioView::start_tx() {
 }
 
 void CWRadioView::stop_tx() {
-    if (!transmitting_)
+    if (!transmitter_model.enabled())
         return;
 
     // Make sure key is released
-    if (key_is_down_) {
+    if (button_key.text() == "KEY DOWN") {
         on_tx_key_change(false);
     }
 
-    transmitting_ = false;
     transmitter_model.disable();
 
     text_status.set("TX STOPPED");
 }
 
 void CWRadioView::update_tx() {
-    if (!transmitting_)
+    if (!transmitter_model.enabled())
         return;
 
     uint32_t tone = field_tone.value();
-    uint32_t fm_delta = (selected_modulation_ == 1) ? field_fm_delta.value() : default_fm_delta;
+    uint32_t fm_delta = (options_mode.selected_index_value() == 1) ? field_fm_delta.value() : default_fm_delta;
 
     baseband::set_morsetx_config(
-        selected_modulation_,
+        options_mode.selected_index_value(),
         tone,
         fm_delta);
 }
 
 void CWRadioView::on_button_change(bool pressed) {
-    if (!transmitting_)
+    if (!transmitter_model.enabled())
         return;
 
-    // Update key state
-    key_is_down_ = pressed;
     on_tx_key_change(pressed);
     update_button_state();
 }
 
 void CWRadioView::on_encoder_change(int32_t delta) {
-    if (!transmitting_)
+    if (!transmitter_model.enabled())
         return;
 
     // Use encoder for keying as well
@@ -229,30 +221,24 @@ void CWRadioView::on_encoder_change(int32_t delta) {
 }
 
 void CWRadioView::on_tx_key_change(bool key_down) {
-    if (!transmitting_)
+    if (!transmitter_model.enabled())
         return;
-
-    key_is_down_ = key_down;
 
     // Send key state to baseband
     baseband::set_morsetx_key(key_down);
 
-    // Update status display
+    // Update status and button display
     if (key_down) {
         text_status.set("TX - KEY DOWN");
+        button_key.set_text("KEY DOWN");
     } else {
         text_status.set("TX ENABLED - Key to transmit");
+        button_key.set_text("PRESS TO KEY");
     }
 }
 
 void CWRadioView::update_button_state() {
-    if (key_is_down_) {
-        button_key.set_text("KEY DOWN");
-        button_key.set_style(Theme::getInstance()->bg_dark);
-    } else {
-        button_key.set_text("PRESS TO KEY");
-        button_key.set_style(Theme::getInstance()->bg_dark);
-    }
+    // Button state is updated directly in on_tx_key_change
 }
 
 } /* namespace ui */
