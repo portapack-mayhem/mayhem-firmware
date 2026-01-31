@@ -535,10 +535,6 @@ void GeoMap::paint(Painter& painter) {
                 //  Convert center GPS to a global pixel coordinate
                 double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_real_zoom);
                 double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_real_zoom);
-                // Store current position and zoom level for change detection
-                prev_osm_px = global_center_px;
-                prev_osm_py = global_center_py;
-                prev_osm_zoom = map_osm_real_zoom;
 
                 // Find the top-left corner of the screen (viewport) in global pixel coordinates
                 viewport_top_left_px = global_center_px - (r.width() / 2.0);
@@ -666,10 +662,13 @@ void GeoMap::move(const float lon, const float lat) {
             if (map_osm_real_zoom != old_zoom) {
                 redraw_map = true;
             } else {
-                // Only compare pixel positions if zoom level stayed the same
-                double current_osm_px = lon_to_pixel_x_tile(lon_, map_osm_real_zoom);
-                double current_osm_py = lat_to_pixel_y_tile(lat_, map_osm_real_zoom);
-                if (abs(current_osm_px - prev_osm_px) >= 1.0 || abs(current_osm_py - prev_osm_py) >= 1.0) {
+                // Calculate new viewport position and compare with previous (stored in viewport_top_left_px/py)
+                double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_real_zoom);
+                double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_real_zoom);
+                double new_viewport_px = global_center_px - (r.width() / 2.0);
+                double new_viewport_py = global_center_py - (r.height() / 2.0);
+                // Redraw if viewport moved by at least 1 pixel
+                if (abs(new_viewport_px - viewport_top_left_px) >= 1.0 || abs(new_viewport_py - viewport_top_left_py) >= 1.0) {
                     redraw_map = true;
                 }
             }

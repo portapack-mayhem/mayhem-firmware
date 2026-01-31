@@ -271,9 +271,6 @@ class GeoMap : public Widget {
     uint8_t map_osm_zoom{3};
     double viewport_top_left_px = 0;
     double viewport_top_left_py = 0;
-    double prev_osm_px{-32767.0};  // Previous OSM pixel position for change detection
-    double prev_osm_py{-32767.0};
-    uint8_t prev_osm_zoom{0};  // Previous OSM zoom level for change detection
 
     bool manual_panning_{false};
     bool hide_center_marker_{false};
