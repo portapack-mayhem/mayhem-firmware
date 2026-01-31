@@ -451,7 +451,7 @@ class SystemView : public View {
     DfuMenu2 overlay2{navigation_view};
     NavigationView navigation_view{};
     Context& context_;
-    bool splash{false};
+    static inline bool splash{false};
 };
 
 /*class NotImplementedView : public View {
