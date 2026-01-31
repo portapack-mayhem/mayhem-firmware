@@ -256,4 +256,38 @@ TEST_CASE("Practical scenario: GPS updates") {
     }
 }
 
+TEST_CASE("Zoom level changes during pan") {
+    double base_lat = 40.7128;
+    double base_lon = -74.0060;
+
+    SUBCASE("Pixel comparison is invalid across different zoom levels") {
+        int zoom_low = 10;
+        int zoom_high = 15;
+
+        // Same location at different zoom levels produces different pixel coordinates
+        double px_low = lon_to_pixel_x_tile(base_lon, zoom_low);
+        double px_high = lon_to_pixel_x_tile(base_lon, zoom_high);
+
+        // Pixel coordinates scale by 2^zoom_diff
+        double expected_ratio = pow(2.0, zoom_high - zoom_low);
+        double actual_ratio = px_high / px_low;
+
+        CHECK(actual_ratio == doctest::Approx(expected_ratio));
+    }
+
+    SUBCASE("Zoom change requires redraw regardless of pixel difference") {
+        // This test documents that when zoom level changes, we must always redraw
+        // even if the new pixel position happens to be close to the old one
+        int zoom1 = 12;
+        int zoom2 = 13;
+
+        double px1 = lon_to_pixel_x_tile(base_lon, zoom1);
+        double px2 = lon_to_pixel_x_tile(base_lon, zoom2);
+
+        // Even though it's the same location, pixel values differ by zoom scaling
+        CHECK(px1 != px2);
+        CHECK(px2 == doctest::Approx(px1 * 2.0));
+    }
+}
+
 TEST_SUITE_END();
