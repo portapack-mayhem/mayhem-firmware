@@ -48,39 +48,41 @@ FoxhuntRxView::FoxhuntRxView(NavigationView& nav)
                   &field_volume,
                   &field_frequency,
                   &freq_stats_db,
-                  &pos_mode_text,
                   &rssi_graph,
                   &geomap,
                   &clear_markers,
-                  &add_current_marker,
-                  &button_set_pos});
+                  &add_current_marker});
 
     clear_markers.on_select = [this](Button&) {
         geomap.clear_markers();
     };
-    add_current_marker.on_select = [this](Button&) {
-        GeoMarker tmp{my_lat, my_lon, my_orientation};
-        geomap.store_marker(tmp);
-    };
-    button_set_pos.on_select = [this, &nav](Button&) {
-        // Start with current position if valid, otherwise use default coordinates
-        float start_lat = (my_lat != 200) ? my_lat : 0.0f;
-        float start_lon = (my_lon != 200) ? my_lon : 0.0f;
-        nav.push<GeoMapView>(
-            0,
-            GeoPos::alt_unit::METERS,
-            GeoPos::spd_unit::HIDDEN,
-            start_lat,
-            start_lon,
-            [this](int32_t, float lat, float lon, int32_t) {
-                my_lat = lat;
-                my_lon = lon;
-                manual_pos_mode = true;
-                pos_mode_text.set("MANUAL");
-                geomap.update_my_position(lat, lon, 0);
-                geomap.move(lon, lat);
-                geomap.set_dirty();
-            });
+    add_current_marker.on_select = [this, &nav](Button&) {
+        // Check if manual position mode is active (status_flags bit 0)
+        if (status_flags & 0x01) {
+            // In manual mode: mark current position
+            GeoMarker tmp{my_lat, my_lon, my_orientation};
+            geomap.store_marker(tmp);
+        } else {
+            // In GPS mode: open position picker to enter manual mode
+            float start_lat = (my_lat != 200) ? my_lat : 0.0f;
+            float start_lon = (my_lon != 200) ? my_lon : 0.0f;
+            nav.push<GeoMapView>(
+                0,
+                GeoPos::alt_unit::METERS,
+                GeoPos::spd_unit::HIDDEN,
+                start_lat,
+                start_lon,
+                [this](int32_t, float lat, float lon, int32_t) {
+                    my_lat = lat;
+                    my_lon = lon;
+                    status_flags |= 0x01;  // Set manual_pos_mode bit
+                    add_current_marker.set_text("Mark");
+                    update_position_display();
+                    geomap.update_my_position(lat, lon, 0);
+                    geomap.move(lon, lat);
+                    geomap.set_dirty();
+                });
+        }
     };
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
@@ -92,7 +94,8 @@ FoxhuntRxView::FoxhuntRxView(NavigationView& nav)
     receiver_model.enable();
     audio::output::start();
     rssi_graph.set_nb_columns(64);
-    pos_mode_text.set("GPS");
+    add_current_marker.set_text("SetPos");  // Initial text when in GPS mode
+    update_position_display();
     geomap.init();
 }
 
@@ -105,16 +108,16 @@ FoxhuntRxView::~FoxhuntRxView() {
 void FoxhuntRxView::on_statistics_update(const ChannelStatistics& statistics) {
     static int16_t last_max_db = -1000;
     rssi_graph.add_values(rssi.get_min(), rssi.get_avg(), rssi.get_max(), statistics.max_db);
-    // refresh db
+    // refresh db and position mode
     if (last_max_db != statistics.max_db) {
         last_max_db = statistics.max_db;
-        freq_stats_db.set("Power: " + to_string_dec_int(statistics.max_db) + " db");
+        update_position_display(statistics.max_db);
     }
 
 } /* on_statistic_updates */
 
 void FoxhuntRxView::on_gps(const GPSPosDataMessage* msg) {
-    if (!manual_pos_mode) {
+    if (!(status_flags & 0x01)) {  // Check manual_pos_mode bit
         my_lat = msg->lat;
         my_lon = msg->lon;
         geomap.update_my_position(msg->lat, msg->lon, msg->altitude);
@@ -130,6 +133,15 @@ void FoxhuntRxView::on_orientation(const OrientationDataMessage* msg) {
 
 void FoxhuntRxView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
+}
+
+void FoxhuntRxView::update_position_display(int16_t db) {
+    static int16_t cached_db = -1000;
+    if (db != -1000) {
+        cached_db = db;
+    }
+    const char* mode = (status_flags & 0x01) ? "MANUAL" : "GPS";
+    freq_stats_db.set("Power: " + to_string_dec_int(cached_db) + " db [" + std::string(mode) + "]");
 }
 
 }  // namespace ui::external_app::foxhunt_rx
