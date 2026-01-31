@@ -33,26 +33,53 @@ static constexpr std::array<uint8_t, 8> png_file_header{{
 }};
 
 static constexpr std::array<uint8_t, 25> png_ihdr_screen_capture{{
-    0x00, 0x00, 0x00, 0x0d,  // IHDR length
-    0x49, 0x48, 0x44, 0x52,  // IHDR type
-    0x00, 0x00, 0x00, 0xf0,  // width = 240
-    0x00, 0x00, 0x01, 0x40,  // height = 320
-    0x08,                    // bit_depth = 8
-    0x02,                    // color_type = 2
-    0x00,                    // compression_method = 0
-    0x00,                    // filter_method = 0
-    0x00,                    // interlace_method = 0
-    0x0d, 0x8a, 0x66, 0x04,  // CRC
+    0x00,
+    0x00,
+    0x00,
+    0x0d,  // IHDR length
+    0x49,
+    0x48,
+    0x44,
+    0x52,  // IHDR type
+    0x00,
+    0x00,
+    0x00,
+    0xf0,  // width = 240
+    0x00,
+    0x00,
+    0x01,
+    0x40,  // height = 320
+    0x08,  // bit_depth = 8
+    0x02,  // color_type = 2
+    0x00,  // compression_method = 0
+    0x00,  // filter_method = 0
+    0x00,  // interlace_method = 0
+    0x0d,
+    0x8a,
+    0x66,
+    0x04,  // CRC
 }};
 
 static constexpr std::array<uint8_t, 4> png_idat_chunk_type{{
-    0x49, 0x44, 0x41, 0x54,  // IDAT type
+    0x49,
+    0x44,
+    0x41,
+    0x54,  // IDAT type
 }};
 
 static constexpr std::array<uint8_t, 12> png_iend{{
-    0x00, 0x00, 0x00, 0x00,  // IEND length
-    0x49, 0x45, 0x4e, 0x44,  // IEND type
-    0xae, 0x42, 0x60, 0x82,  // CRC
+    0x00,
+    0x00,
+    0x00,
+    0x00,  // IEND length
+    0x49,
+    0x45,
+    0x4e,
+    0x44,  // IEND type
+    0xae,
+    0x42,
+    0x60,
+    0x82,  // CRC
 }};
 
 Optional<File::Error> PNGWriter::create(

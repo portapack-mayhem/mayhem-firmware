@@ -52,14 +52,14 @@ struct TestResult {
 std::vector<TestResult> test_results;
 
 // Helper macro for test assertions
-#define TEST_ASSERT(condition, message) \
-    if (!(condition)) { \
+#define TEST_ASSERT(condition, message)                     \
+    if (!(condition)) {                                     \
         test_results.push_back({__func__, false, message}); \
-        return false; \
+        return false;                                       \
     }
 
 // Helper macro for test success
-#define TEST_SUCCESS() \
+#define TEST_SUCCESS()                            \
     test_results.push_back({__func__, true, ""}); \
     return true;
 
@@ -171,15 +171,14 @@ bool test_band_lookup_exact_match() {
         "2m Ham",
         "GLOBAL",
         "Amateur",
-        1,      // NFM (freqman index)
-        6,      // USB (extended index)
+        1,  // NFM (freqman index)
+        6,  // USB (extended index)
         12500,
         25000,
         24,
         30,
         false,
-        "Test band"
-    };
+        "Test band"};
 
     // Note: In real test, would need to add band to view's database
     // For this example, we're testing the logic
@@ -338,14 +337,12 @@ bool test_overlapping_bands() {
     FrequencyBand band1 = {
         144000000, 148000000, "Band 1", "US", "Test",
         DemodMode::NFM, DemodMode::USB, 12500, 25000,
-        24, 30, false, "First band"
-    };
+        24, 30, false, "First band"};
 
     FrequencyBand band2 = {
         146000000, 147000000, "Band 2", "US", "Test",
         DemodMode::AM, DemodMode::MULTI, 8333, 25000,
-        24, 30, false, "Second band (subset)"
-    };
+        24, 30, false, "Second band (subset)"};
 
     // Test frequency in both bands
     rf::Frequency test_freq = 146500000;
@@ -371,8 +368,7 @@ bool test_boundary_frequencies() {
     FrequencyBand test_band = {
         min_freq, max_freq, "Test", "GLOBAL", "Test",
         DemodMode::SPEC, DemodMode::MULTI, 1000, 1000000,
-        24, 30, false, "Test band"
-    };
+        24, 30, false, "Test band"};
 
     TEST_ASSERT(test_band.freq_start == min_freq,
                 "Min frequency boundary test failed");
@@ -395,8 +391,7 @@ bool test_gain_boundaries() {
     FrequencyBand test_band = {
         144000000, 148000000, "Test", "GLOBAL", "Test",
         DemodMode::NFM, DemodMode::USB, 12500, 25000,
-        max_lna, max_vga, false, "Test band"
-    };
+        max_lna, max_vga, false, "Test band"};
 
     TEST_ASSERT(test_band.suggested_lna <= max_lna,
                 "LNA should be within valid range");
@@ -416,8 +411,7 @@ bool test_multiple_regions() {
         FrequencyBand test_band = {
             144000000, 148000000, "Test", region, "Test",
             DemodMode::NFM, DemodMode::USB, 12500, 25000,
-            24, 30, false, "Test for " + region
-        };
+            24, 30, false, "Test for " + region};
 
         TEST_ASSERT(test_band.region == region,
                     "Region " + region + " not properly stored");
@@ -433,15 +427,13 @@ bool test_usage_types() {
     std::vector<std::string> usage_types = {
         "Amateur", "Broadcasting", "Aviation", "Maritime",
         "Commercial", "Emergency", "Government", "ISM",
-        "Cellular", "Satellite", "GNSS"
-    };
+        "Cellular", "Satellite", "GNSS"};
 
     for (const auto& usage : usage_types) {
         FrequencyBand test_band = {
             100000000, 200000000, "Test", "GLOBAL", usage,
             DemodMode::NFM, DemodMode::USB, 12500, 25000,
-            24, 30, false, "Test for " + usage
-        };
+            24, 30, false, "Test for " + usage};
 
         TEST_ASSERT(test_band.usage == usage,
                     "Usage type " + usage + " not properly stored");

@@ -382,191 +382,169 @@ void FreqSuggestionView::add_default_bands() {
     // Add some essential default bands if database file not found
 
     // AM Broadcast (reusing freqman index: 0=AM, 10=MULTI)
-    frequency_db.push_back({
-        530000,                // 530 kHz
-        1700000,               // 1.7 MHz
-        "AM Broadcast",
-        "GLOBAL",
-        "AM Radio",
-        0,      // AM
-        10,     // MULTI
-        5000,   // 5 kHz min
-        10000,  // 10 kHz max
-        24,     // LNA
-        30,     // VGA
-        false,  // RF Amp
-        "Medium wave AM broadcasting"
-    });
+    frequency_db.push_back({530000,   // 530 kHz
+                            1700000,  // 1.7 MHz
+                            "AM Broadcast",
+                            "GLOBAL",
+                            "AM Radio",
+                            0,      // AM
+                            10,     // MULTI
+                            5000,   // 5 kHz min
+                            10000,  // 10 kHz max
+                            24,     // LNA
+                            30,     // VGA
+                            false,  // RF Amp
+                            "Medium wave AM broadcasting"});
 
     // FM Broadcast (2=WFM)
-    frequency_db.push_back({
-        88000000,    // 88 MHz
-        108000000,   // 108 MHz
-        "FM Broadcast",
-        "GLOBAL",
-        "FM Radio",
-        2,       // WFM
-        10,      // MULTI
-        180000,  // 180 kHz
-        200000,  // 200 kHz
-        16,      // LNA
-        20,      // VGA
-        false,   // RF Amp
-        "VHF FM broadcasting, stereo audio"
-    });
+    frequency_db.push_back({88000000,   // 88 MHz
+                            108000000,  // 108 MHz
+                            "FM Broadcast",
+                            "GLOBAL",
+                            "FM Radio",
+                            2,       // WFM
+                            10,      // MULTI
+                            180000,  // 180 kHz
+                            200000,  // 200 kHz
+                            16,      // LNA
+                            20,      // VGA
+                            false,   // RF Amp
+                            "VHF FM broadcasting, stereo audio"});
 
     // 2m Amateur Band (1=NFM, 6=USB)
-    frequency_db.push_back({
-        144000000,  // 144 MHz
-        148000000,  // 148 MHz
-        "2m Ham",
-        "GLOBAL",
-        "Amateur",
-        1,       // NFM
-        6,       // USB
-        12500,   // 12.5 kHz
-        25000,   // 25 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "2 meter amateur radio band, voice and digital"
-    });
+    frequency_db.push_back({144000000,  // 144 MHz
+                            148000000,  // 148 MHz
+                            "2m Ham",
+                            "GLOBAL",
+                            "Amateur",
+                            1,      // NFM
+                            6,      // USB
+                            12500,  // 12.5 kHz
+                            25000,  // 25 kHz
+                            24,     // LNA
+                            30,     // VGA
+                            false,  // RF Amp
+                            "2 meter amateur radio band, voice and digital"});
 
     // Aircraft Band (0=AM)
-    frequency_db.push_back({
-        118000000,  // 118 MHz
-        137000000,  // 137 MHz
-        "Airband",
-        "GLOBAL",
-        "Aviation",
-        0,       // AM
-        10,      // MULTI
-        8333,    // 8.33 kHz
-        25000,   // 25 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "Civil aviation communications"
-    });
+    frequency_db.push_back({118000000,  // 118 MHz
+                            137000000,  // 137 MHz
+                            "Airband",
+                            "GLOBAL",
+                            "Aviation",
+                            0,      // AM
+                            10,     // MULTI
+                            8333,   // 8.33 kHz
+                            25000,  // 25 kHz
+                            24,     // LNA
+                            30,     // VGA
+                            false,  // RF Amp
+                            "Civil aviation communications"});
 
     // 70cm Amateur Band (1=NFM, 9=DIGITAL)
-    frequency_db.push_back({
-        420000000,  // 420 MHz
-        450000000,  // 450 MHz
-        "70cm Ham",
-        "US",
-        "Amateur",
-        1,       // NFM
-        9,       // DIGITAL
-        12500,   // 12.5 kHz
-        25000,   // 25 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "70 centimeter amateur radio band"
-    });
+    frequency_db.push_back({420000000,  // 420 MHz
+                            450000000,  // 450 MHz
+                            "70cm Ham",
+                            "US",
+                            "Amateur",
+                            1,      // NFM
+                            9,      // DIGITAL
+                            12500,  // 12.5 kHz
+                            25000,  // 25 kHz
+                            24,     // LNA
+                            30,     // VGA
+                            false,  // RF Amp
+                            "70 centimeter amateur radio band"});
 
     // PMR446 (EU)
-    frequency_db.push_back({
-        446000000,  // 446.00625 MHz
-        446200000,  // 446.19375 MHz
-        "PMR446",
-        "EU",
-        "PMR Radio",
-        1,       // NFM
-        10,      // MULTI
-        12500,   // 12.5 kHz
-        12500,   // 12.5 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "Personal Mobile Radio, license-free EU"
-    });
+    frequency_db.push_back({446000000,  // 446.00625 MHz
+                            446200000,  // 446.19375 MHz
+                            "PMR446",
+                            "EU",
+                            "PMR Radio",
+                            1,      // NFM
+                            10,     // MULTI
+                            12500,  // 12.5 kHz
+                            12500,  // 12.5 kHz
+                            24,     // LNA
+                            30,     // VGA
+                            false,  // RF Amp
+                            "Personal Mobile Radio, license-free EU"});
 
     // FRS/GMRS (US)
-    frequency_db.push_back({
-        462000000,  // 462 MHz
-        467000000,  // 467 MHz
-        "FRS/GMRS",
-        "US",
-        "Two-way",
-        1,       // NFM
-        10,      // MULTI
-        12500,   // 12.5 kHz
-        25000,   // 25 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "Family Radio Service / General Mobile Radio Service"
-    });
+    frequency_db.push_back({462000000,  // 462 MHz
+                            467000000,  // 467 MHz
+                            "FRS/GMRS",
+                            "US",
+                            "Two-way",
+                            1,      // NFM
+                            10,     // MULTI
+                            12500,  // 12.5 kHz
+                            25000,  // 25 kHz
+                            24,     // LNA
+                            30,     // VGA
+                            false,  // RF Amp
+                            "Family Radio Service / General Mobile Radio Service"});
 
     // ISM 433 MHz
-    frequency_db.push_back({
-        433050000,  // 433.05 MHz
-        434790000,  // 434.79 MHz
-        "ISM 433",
-        "EU",
-        "ISM/IoT",
-        1,       // NFM
-        9,       // DIGITAL
-        25000,   // 25 kHz
-        200000,  // 200 kHz
-        32,      // LNA
-        40,      // VGA
-        false,   // RF Amp
-        "ISM band, remote controls, IoT devices"
-    });
+    frequency_db.push_back({433050000,  // 433.05 MHz
+                            434790000,  // 434.79 MHz
+                            "ISM 433",
+                            "EU",
+                            "ISM/IoT",
+                            1,       // NFM
+                            9,       // DIGITAL
+                            25000,   // 25 kHz
+                            200000,  // 200 kHz
+                            32,      // LNA
+                            40,      // VGA
+                            false,   // RF Amp
+                            "ISM band, remote controls, IoT devices"});
 
     // ISM 868 MHz (EU)
-    frequency_db.push_back({
-        863000000,  // 863 MHz
-        870000000,  // 870 MHz
-        "ISM 868",
-        "EU",
-        "ISM/IoT",
-        1,       // NFM
-        9,       // DIGITAL
-        25000,   // 25 kHz
-        200000,  // 200 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "ISM band, smart meters, LoRa, IoT"
-    });
+    frequency_db.push_back({863000000,  // 863 MHz
+                            870000000,  // 870 MHz
+                            "ISM 868",
+                            "EU",
+                            "ISM/IoT",
+                            1,       // NFM
+                            9,       // DIGITAL
+                            25000,   // 25 kHz
+                            200000,  // 200 kHz
+                            24,      // LNA
+                            30,      // VGA
+                            false,   // RF Amp
+                            "ISM band, smart meters, LoRa, IoT"});
 
     // ISM 915 MHz (US)
-    frequency_db.push_back({
-        902000000,  // 902 MHz
-        928000000,  // 928 MHz
-        "ISM 915",
-        "US",
-        "ISM/IoT",
-        1,       // NFM
-        9,       // DIGITAL
-        25000,   // 25 kHz
-        500000,  // 500 kHz
-        24,      // LNA
-        30,      // VGA
-        false,   // RF Amp
-        "ISM band, LoRa, ZigBee, RFID"
-    });
+    frequency_db.push_back({902000000,  // 902 MHz
+                            928000000,  // 928 MHz
+                            "ISM 915",
+                            "US",
+                            "ISM/IoT",
+                            1,       // NFM
+                            9,       // DIGITAL
+                            25000,   // 25 kHz
+                            500000,  // 500 kHz
+                            24,      // LNA
+                            30,      // VGA
+                            false,   // RF Amp
+                            "ISM band, LoRa, ZigBee, RFID"});
 
     // GPS L1 (3=SPEC)
-    frequency_db.push_back({
-        1575000000,  // 1575.42 MHz
-        1576000000,  // 1576 MHz
-        "GPS L1",
-        "GLOBAL",
-        "GNSS",
-        3,       // SPEC
-        9,       // DIGITAL
-        2000000, // 2 MHz
-        4000000, // 4 MHz
-        32,      // LNA
-        40,      // VGA
-        true,    // RF Amp
-        "GPS L1 C/A signal, GNSS"
-    });
+    frequency_db.push_back({1575000000,  // 1575.42 MHz
+                            1576000000,  // 1576 MHz
+                            "GPS L1",
+                            "GLOBAL",
+                            "GNSS",
+                            3,        // SPEC
+                            9,        // DIGITAL
+                            2000000,  // 2 MHz
+                            4000000,  // 4 MHz
+                            32,       // LNA
+                            40,       // VGA
+                            true,     // RF Amp
+                            "GPS L1 C/A signal, GNSS"});
 }
 
 }  // namespace ui::external_app::freqsuggestion

@@ -38,19 +38,19 @@ namespace ui::external_app::freqsuggestion {
 
 // Extended frequency band entry - reuses freqman_entry fields
 struct FrequencyBand {
-    rf::Frequency freq_start;       // Starting frequency in Hz (maps to frequency_a)
-    rf::Frequency freq_end;         // Ending frequency in Hz (maps to frequency_b)
-    std::string band_name;          // Short band name (stored separately from description)
-    std::string description;        // Additional info (maps to freqman_entry.description)
-    freqman_index_t primary_mode;   // Primary demodulation mode (reuses freqman modulation)
-    freqman_index_t secondary_mode; // Secondary mode (reuses freqman modulation)
-    uint32_t suggested_bw_min;      // Min bandwidth in Hz
-    uint32_t suggested_bw_max;      // Max bandwidth in Hz
-    std::string region;             // e.g., "US", "EU", "GLOBAL"
-    std::string usage;              // e.g., "Amateur Radio", "Commercial", "Aviation"
-    uint8_t suggested_lna;          // Suggested LNA gain (0-40)
-    uint8_t suggested_vga;          // Suggested VGA gain (0-62)
-    bool rf_amp_suggested;          // Whether to enable RF amp
+    rf::Frequency freq_start;        // Starting frequency in Hz (maps to frequency_a)
+    rf::Frequency freq_end;          // Ending frequency in Hz (maps to frequency_b)
+    std::string band_name;           // Short band name (stored separately from description)
+    std::string description;         // Additional info (maps to freqman_entry.description)
+    freqman_index_t primary_mode;    // Primary demodulation mode (reuses freqman modulation)
+    freqman_index_t secondary_mode;  // Secondary mode (reuses freqman modulation)
+    uint32_t suggested_bw_min;       // Min bandwidth in Hz
+    uint32_t suggested_bw_max;       // Max bandwidth in Hz
+    std::string region;              // e.g., "US", "EU", "GLOBAL"
+    std::string usage;               // e.g., "Amateur Radio", "Commercial", "Aviation"
+    uint8_t suggested_lna;           // Suggested LNA gain (0-40)
+    uint8_t suggested_vga;           // Suggested VGA gain (0-62)
+    bool rf_amp_suggested;           // Whether to enable RF amp
 };
 
 // Antenna recommendation
