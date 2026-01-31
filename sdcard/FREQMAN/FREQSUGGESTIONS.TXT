@@ -1,0 +1,238 @@
+# Frequency Suggestion Database
+# Format: freq_start,freq_end,band_name,region,usage,primary_mode,secondary_mode,bw_min,bw_max,lna,vga,rf_amp,description
+#
+# Frequencies in Hz
+# Modes: AM, NFM, WFM, USB, LSB, DSB, SPEC, DIGITAL, MULTI
+# rf_amp: 0 or 1 (OFF or ON)
+# Lines starting with # are comments
+
+# LF/VLF Bands
+10000,135700,VLF,GLOBAL,Navigation,SPEC,USB,100,3000,40,62,1,Very Low Frequency - Navigation beacons
+135700,137800,LF Amateur,GLOBAL,Amateur,USB,LSB,100,2700,40,62,1,LF amateur band - Experimental
+148500,283500,LW Broadcast,GLOBAL,Broadcast,AM,MULTI,9000,9000,32,40,0,Longwave broadcasting
+
+# Medium Wave / AM Broadcast
+530000,1700000,AM Broadcast,US,Broadcasting,AM,MULTI,5000,10000,24,30,0,Medium wave AM radio broadcasting
+531000,1602000,AM Broadcast,EU,Broadcasting,AM,MULTI,9000,9000,24,30,0,Medium wave AM radio broadcasting (EU)
+535000,1605000,AM Broadcast,JP,Broadcasting,AM,MULTI,9000,9000,24,30,0,Medium wave AM radio broadcasting (Japan)
+
+# 160m Amateur Band
+1800000,2000000,160m Ham,US,Amateur,USB,LSB,2700,2700,32,40,0,160 meter amateur radio band
+1810000,2000000,160m Ham,EU,Amateur,USB,LSB,2700,2700,32,40,0,160 meter amateur band (EU allocation)
+
+# Marine Band
+2000000,4000000,Marine MF,GLOBAL,Maritime,USB,DSB,2700,2700,24,30,0,Marine communications - Medium frequency
+
+# 80m/75m Amateur Band
+3500000,4000000,80m Ham,GLOBAL,Amateur,USB,LSB,2700,2700,24,30,0,80/75 meter amateur radio band
+
+# Shortwave Broadcast
+3200000,3400000,SW 90m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 90 meter band
+3900000,4000000,SW 75m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 75 meter band
+4750000,5060000,SW 60m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 60 meter band
+5900000,6200000,SW 49m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 49 meter band
+7200000,7450000,SW 41m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 41 meter band
+9400000,9900000,SW 31m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 31 meter band
+11600000,12100000,SW 25m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 25 meter band
+13570000,13870000,SW 22m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 22 meter band
+15100000,15800000,SW 19m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 19 meter band
+17480000,17900000,SW 16m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 16 meter band
+18900000,19020000,SW 15m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 15 meter band
+21450000,21850000,SW 13m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 13 meter band
+25600000,26100000,SW 11m,GLOBAL,Broadcasting,AM,USB,5000,10000,24,30,0,Shortwave broadcast - 11 meter band
+
+# 40m Amateur Band
+7000000,7300000,40m Ham,GLOBAL,Amateur,USB,LSB,2700,2700,24,30,0,40 meter amateur radio band
+
+# 30m Amateur Band
+10100000,10150000,30m Ham,GLOBAL,Amateur,USB,DIGITAL,500,2700,24,30,0,30 meter amateur band - CW/Digital only
+
+# 20m Amateur Band
+14000000,14350000,20m Ham,GLOBAL,Amateur,USB,DIGITAL,2700,2700,24,30,0,20 meter amateur radio band
+
+# 17m Amateur Band
+18068000,18168000,17m Ham,GLOBAL,Amateur,USB,DIGITAL,2700,2700,24,30,0,17 meter amateur radio band
+
+# 15m Amateur Band
+21000000,21450000,15m Ham,GLOBAL,Amateur,USB,DIGITAL,2700,2700,24,30,0,15 meter amateur radio band
+
+# CB Radio
+26965000,27405000,CB Radio,US,Personal,AM,NFM,4000,10000,24,30,0,Citizens Band radio (US 40 channels)
+26965000,27405000,CB Radio,EU,Personal,AM,NFM,4000,10000,24,30,0,Citizens Band radio (EU)
+27000000,27700000,CB Radio,JP,Personal,AM,NFM,4000,10000,24,30,0,Citizens Band radio (Japan extended)
+
+# 10m Amateur Band
+28000000,29700000,10m Ham,GLOBAL,Amateur,USB,NFM,2700,25000,24,30,0,10 meter amateur radio band
+
+# 6m Amateur Band
+50000000,54000000,6m Ham,GLOBAL,Amateur,USB,NFM,2700,25000,24,30,0,6 meter amateur radio band
+
+# VHF Low Band
+30000000,50000000,VHF Low,GLOBAL,Various,NFM,AM,12500,25000,24,30,0,VHF low band - Public safety, military
+
+# VHF Marine
+156000000,162000000,Marine VHF,GLOBAL,Maritime,NFM,MULTI,12500,25000,24,30,0,VHF marine communications - Channel 16: 156.800 MHz
+
+# VHF Weather
+162400000,162550000,Weather,US,Weather,NFM,MULTI,12500,25000,20,24,0,NOAA Weather Radio (US)
+
+# FM Broadcast
+87500000,108000000,FM Radio,GLOBAL,Broadcasting,WFM,MULTI,180000,200000,16,20,0,VHF FM broadcasting - Stereo audio
+88000000,108000000,FM Radio,US,Broadcasting,WFM,MULTI,180000,200000,16,20,0,VHF FM broadcasting (US allocation)
+87500000,108000000,FM Radio,EU,Broadcasting,WFM,MULTI,180000,200000,16,20,0,VHF FM broadcasting (EU allocation)
+76000000,95000000,FM Radio,JP,Broadcasting,WFM,MULTI,180000,200000,16,20,0,VHF FM broadcasting (Japan)
+
+# Aircraft Band
+118000000,137000000,Airband,GLOBAL,Aviation,AM,MULTI,8333,25000,24,30,0,Civil aviation communications - Voice
+108000000,117975000,Airband NAV,GLOBAL,Aviation,SPEC,AM,12500,25000,24,30,0,Aviation navigation - ILS/VOR
+
+# 2m Amateur Band
+144000000,148000000,2m Ham,GLOBAL,Amateur,NFM,USB,12500,25000,24,30,0,2 meter amateur radio band - FM/SSB/Digital
+144000000,146000000,2m Ham,US,Amateur,NFM,USB,12500,25000,24,30,0,2 meter amateur band (US allocation)
+144000000,148000000,2m Ham,EU,Amateur,NFM,USB,12500,25000,24,30,0,2 meter amateur band (EU allocation)
+
+# Government/Military VHF
+138000000,144000000,Govt VHF,GLOBAL,Government,NFM,MULTI,12500,25000,24,30,0,Government/Military VHF communications
+
+# Business Band
+150800000,157425000,Business VHF,GLOBAL,Commercial,NFM,MULTI,12500,25000,24,30,0,Business/Commercial VHF
+
+# Public Safety VHF
+154000000,156000000,Public Safety,US,Emergency,NFM,DIGITAL,12500,25000,24,30,0,Public safety VHF communications
+
+# Railroad
+160215000,161565000,Railroad,US,Rail,NFM,MULTI,12500,25000,24,30,0,Railroad communications
+
+# NOAA/Weather Satellites
+137000000,138000000,Weather Sat,GLOBAL,Satellite,NFM,WFM,25000,120000,32,40,0,Weather satellite downlinks - APT/LRPT
+
+# VHF High Band
+225000000,400000000,VHF High,GLOBAL,Military,AM,NFM,12500,25000,24,30,0,Military aircraft communications
+
+# ISM 315 MHz
+314000000,316000000,ISM 315,US,ISM,NFM,DIGITAL,25000,500000,32,40,0,ISM band - Tire pressure monitors, remote controls
+
+# UHF GMRS/FRS
+462000000,467000000,FRS/GMRS,US,Personal,NFM,MULTI,12500,25000,24,30,0,Family Radio Service / General Mobile Radio Service
+462562500,462725000,FRS,US,Personal,NFM,MULTI,12500,12500,24,30,0,FRS channels 1-14 (License-free)
+467562500,467725000,FRS,US,Personal,NFM,MULTI,12500,12500,24,30,0,FRS channels 15-22 (License-free)
+
+# PMR446
+446000000,446200000,PMR446,EU,Personal,NFM,DIGITAL,6250,12500,24,30,0,Personal Mobile Radio - License-free EU
+
+# UHF CB (Australia)
+476425000,477412500,UHF CB,AU,Personal,NFM,MULTI,12500,25000,24,30,0,UHF CB radio Australia - 80 channels
+
+# LPD433
+433075000,434775000,LPD433,EU,Personal,NFM,MULTI,12500,25000,24,30,0,Low Power Device band - License-free EU
+
+# ISM 433 MHz
+433050000,434790000,ISM 433,EU,ISM,NFM,DIGITAL,25000,200000,32,40,0,ISM band - Remote controls, IoT, LoRa
+433050000,434790000,ISM 433,GLOBAL,ISM,NFM,DIGITAL,25000,200000,32,40,0,ISM band - Widely used for remote devices
+
+# 70cm Amateur Band
+420000000,450000000,70cm Ham,US,Amateur,NFM,DIGITAL,12500,25000,24,30,0,70 centimeter amateur radio band
+430000000,440000000,70cm Ham,EU,Amateur,NFM,DIGITAL,12500,25000,24,30,0,70cm amateur band (EU allocation)
+430000000,450000000,70cm Ham,JP,Amateur,NFM,DIGITAL,12500,25000,24,30,0,70cm amateur band (Japan allocation)
+
+# UHF Public Safety
+450000000,470000000,Public Safety,US,Emergency,NFM,DIGITAL,12500,25000,24,30,0,UHF public safety communications
+
+# UHF Business
+470000000,512000000,UHF Business,GLOBAL,Commercial,NFM,DIGITAL,12500,25000,24,30,0,UHF business band communications
+
+# UHF TV (Legacy - may be reallocated)
+470000000,890000000,UHF TV,GLOBAL,Broadcasting,WFM,DIGITAL,6000000,8000000,16,20,0,UHF television broadcasting (Analog/Digital)
+
+# ISM 868 MHz
+863000000,870000000,ISM 868,EU,ISM,NFM,DIGITAL,25000,200000,24,30,0,ISM band - LoRa, smart meters, IoT
+
+# ISM 915 MHz
+902000000,928000000,ISM 915,US,ISM,NFM,DIGITAL,25000,500000,24,30,0,ISM band - LoRa, ZigBee, RFID, IoT
+902000000,928000000,ISM 915,GLOBAL,ISM,NFM,DIGITAL,25000,500000,24,30,0,ISM band - Widely used industrial/IoT
+
+# 33cm Amateur Band
+902000000,928000000,33cm Ham,US,Amateur,NFM,DIGITAL,12500,1000000,24,30,0,33 centimeter amateur radio band (shared with ISM)
+
+# GSM 900
+880000000,915000000,GSM 900 UL,EU,Cellular,DIGITAL,SPEC,200000,200000,24,30,0,GSM 900 Uplink - Mobile to base station
+925000000,960000000,GSM 900 DL,EU,Cellular,DIGITAL,SPEC,200000,200000,24,30,0,GSM 900 Downlink - Base station to mobile
+
+# TETRA
+380000000,400000000,TETRA,EU,Emergency,DIGITAL,MULTI,25000,25000,24,30,0,TETRA digital trunked radio - Public safety
+806000000,824000000,TETRA,US,Emergency,DIGITAL,MULTI,25000,25000,24,30,0,TETRA/P25 public safety
+
+# P25
+851000000,870000000,P25,US,Emergency,DIGITAL,MULTI,12500,12500,24,30,0,Project 25 digital public safety
+
+# GSM 1800 / DCS
+1710000000,1785000000,GSM 1800 UL,EU,Cellular,DIGITAL,SPEC,200000,200000,24,30,1,GSM 1800/DCS Uplink
+1805000000,1880000000,GSM 1800 DL,EU,Cellular,DIGITAL,SPEC,200000,200000,24,30,1,GSM 1800/DCS Downlink
+
+# GSM 1900 / PCS
+1850000000,1910000000,GSM 1900 UL,US,Cellular,DIGITAL,SPEC,200000,200000,24,30,1,GSM 1900/PCS Uplink
+1930000000,1990000000,GSM 1900 DL,US,Cellular,DIGITAL,SPEC,200000,200000,24,30,1,GSM 1900/PCS Downlink
+
+# DECT
+1880000000,1900000000,DECT,EU,Cordless,DIGITAL,SPEC,1728000,1728000,24,30,1,Digital Enhanced Cordless Telecommunications
+
+# LTE Bands (Selected common ones)
+2110000000,2170000000,LTE B1 DL,GLOBAL,Cellular,DIGITAL,SPEC,1400000,20000000,24,30,1,LTE Band 1 Downlink (2100 MHz)
+1920000000,1980000000,LTE B1 UL,GLOBAL,Cellular,DIGITAL,SPEC,1400000,20000000,24,30,1,LTE Band 1 Uplink
+2500000000,2570000000,LTE B7 UL,GLOBAL,Cellular,DIGITAL,SPEC,5000000,20000000,24,30,1,LTE Band 7 Uplink (2600 MHz)
+2620000000,2690000000,LTE B7 DL,GLOBAL,Cellular,DIGITAL,SPEC,5000000,20000000,24,30,1,LTE Band 7 Downlink
+
+# ISM 2.4 GHz
+2400000000,2483500000,ISM 2.4G,GLOBAL,ISM,DIGITAL,SPEC,1000000,20000000,24,30,1,2.4 GHz ISM - WiFi, Bluetooth, ZigBee
+2400000000,2500000000,WiFi 2.4,GLOBAL,WiFi,DIGITAL,SPEC,20000000,40000000,24,30,1,WiFi 2.4 GHz channels
+
+# Bluetooth
+2402000000,2480000000,Bluetooth,GLOBAL,Bluetooth,DIGITAL,SPEC,1000000,2000000,24,30,1,Bluetooth/BLE communications
+
+# 23cm Amateur Band
+1240000000,1300000000,23cm Ham,US,Amateur,NFM,DIGITAL,25000,6000000,24,30,1,23 centimeter amateur radio band
+1240000000,1300000000,23cm Ham,EU,Amateur,NFM,DIGITAL,25000,6000000,24,30,1,23cm amateur band (shared with other services)
+
+# GPS L1
+1575420000,1575420000,GPS L1,GLOBAL,GNSS,DIGITAL,SPEC,2000000,4000000,32,40,1,GPS L1 C/A signal at 1575.42 MHz
+1559000000,1592000000,GPS L1 Band,GLOBAL,GNSS,DIGITAL,SPEC,2000000,20000000,32,40,1,GPS L1 band - Multiple signals
+
+# GPS L2
+1227600000,1227600000,GPS L2,GLOBAL,GNSS,DIGITAL,SPEC,2000000,4000000,32,40,1,GPS L2 signal at 1227.60 MHz
+
+# GLONASS
+1598000000,1610000000,GLONASS L1,GLOBAL,GNSS,DIGITAL,SPEC,2000000,10000000,32,40,1,GLONASS L1 band
+1242000000,1256000000,GLONASS L2,GLOBAL,GNSS,DIGITAL,SPEC,2000000,10000000,32,40,1,GLONASS L2 band
+
+# Galileo
+1559000000,1592000000,Galileo E1,GLOBAL,GNSS,DIGITAL,SPEC,2000000,20000000,32,40,1,Galileo E1 band
+1164000000,1215000000,Galileo E5,GLOBAL,GNSS,DIGITAL,SPEC,2000000,50000000,32,40,1,Galileo E5 band
+
+# INMARSAT
+1525000000,1559000000,INMARSAT UL,GLOBAL,Satellite,DIGITAL,NFM,5000,25000,32,40,1,INMARSAT uplink - Mobile satellite
+1626500000,1660500000,INMARSAT DL,GLOBAL,Satellite,DIGITAL,NFM,5000,25000,32,40,1,INMARSAT downlink
+
+# Iridium
+1616000000,1626500000,Iridium,GLOBAL,Satellite,DIGITAL,SPEC,31500,31500,32,40,1,Iridium satellite communications
+
+# ADS-B
+1090000000,1090000000,ADS-B,GLOBAL,Aviation,DIGITAL,SPEC,1000000,2000000,32,40,1,ADS-B aircraft transponders at 1090 MHz
+
+# Pagers
+929000000,932000000,Pager,US,Paging,DIGITAL,NFM,12500,25000,24,30,0,Paging services (legacy)
+152000000,159000000,Pager VHF,GLOBAL,Paging,NFM,DIGITAL,12500,25000,24,30,0,VHF paging services
+
+# POCSAG/FLEX
+169400000,169800000,Pager EU,EU,Paging,DIGITAL,NFM,12500,25000,24,30,0,European paging services
+
+# Trunked Radio
+851000000,869000000,Trunked 800,US,Trunked,DIGITAL,NFM,12500,25000,24,30,0,800 MHz trunked radio systems
+
+# WiFi 5 GHz
+5150000000,5925000000,WiFi 5G,GLOBAL,WiFi,DIGITAL,SPEC,20000000,160000000,24,30,1,WiFi 5 GHz channels (device limit: ~2.7 GHz)
+
+# Ham 13cm (Note: Beyond typical HackRF range)
+2390000000,2450000000,13cm Ham,GLOBAL,Amateur,NFM,DIGITAL,25000,6000000,24,30,1,13cm amateur band (partial range)
+
+# Misc ISM
+5725000000,5875000000,ISM 5.8G,GLOBAL,ISM,DIGITAL,SPEC,20000000,100000000,24,30,1,5.8 GHz ISM band (beyond HackRF range typically)
