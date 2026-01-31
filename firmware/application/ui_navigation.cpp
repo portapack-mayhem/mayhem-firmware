@@ -969,8 +969,9 @@ SystemView::SystemView(
 
     navigation_view.push<SystemMenuView>();
 
-    if (pmem::config_splash()) {
+    if (pmem::config_splash() && !splash) {
         navigation_view.push<SplashScreenView>();
+        splash = true;  // Otherwise it will run infinitely.
     }
     status_view.set_back_enabled(false);
     status_view.set_title_image_enabled(true);

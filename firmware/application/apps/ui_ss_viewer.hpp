@@ -49,7 +49,6 @@ class SplashViewer : public View {
     SplashViewer(NavigationView& nav, const std::filesystem::path& path);
     bool on_key(KeyEvent key) override;
     void paint(Painter& painter) override;
-    void update_ss(void);
 
    private:
     NavigationView& nav_;

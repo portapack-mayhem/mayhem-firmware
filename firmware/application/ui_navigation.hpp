@@ -366,7 +366,6 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
-    // BMPViewer bmp_view{ {0, 0, screen_width, screen_height - 16}};
 };
 
 class ReceiversMenuView : public BtnGridView {
@@ -452,6 +451,7 @@ class SystemView : public View {
     DfuMenu2 overlay2{navigation_view};
     NavigationView navigation_view{};
     Context& context_;
+    bool splash{false};
 };
 
 /*class NotImplementedView : public View {
