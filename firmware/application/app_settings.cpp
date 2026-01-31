@@ -68,6 +68,9 @@ void BoundSetting::parse(std::string_view value) {
             as<bool>() = (parsed != 0);
             break;
         }
+        case SettingType::Float:
+            as<float>() = atof(value.data());
+            break;
     };
 }
 
@@ -101,6 +104,11 @@ void BoundSetting::write(File& file) const {
         case SettingType::Bool:
             file.write(as<bool>() ? "1" : "0", 1);
             break;
+
+        case SettingType::Float: {
+            auto float_str = to_string_decimal(as<float>(), 6);
+            file.write(float_str.c_str(), float_str.length());
+        }
     }
 
     file.write("\r\n", 2);

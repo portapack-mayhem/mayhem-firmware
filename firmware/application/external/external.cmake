@@ -91,9 +91,9 @@ set(EXTCPPSRC
 	external/adsbtx/main.cpp
 	external/adsbtx/ui_adsb_tx.cpp
 
-	#morse_tx 768 bytes
-	external/morse_tx/main.cpp
-	external/morse_tx/ui_morse.cpp
+	#morse_tx 768 bytes -- disabled because of the new morse tx app with more functions
+	#external/morse_tx/main.cpp
+	#external/morse_tx/ui_morse.cpp
 
 	#sstvtx 456 bytes
 	external/sstvtx/main.cpp
@@ -293,6 +293,10 @@ set(EXTCPPSRC
 	#morse_radio
 	external/morse_radio/main.cpp
 	external/morse_radio/ui_morse_radio.cpp
+
+	#morseradiotx
+	external/morseradiotx/main.cpp
+	external/morseradiotx/ui_morse_radiotx.cpp
 )
 
 set(EXTAPPLIST
@@ -317,7 +321,7 @@ set(EXTAPPLIST
 	tpmsrx
 	protoview
 	adsbtx
-	morse_tx
+	#morse_tx
 	sstvtx
 	sstvrx
 	random_password
@@ -366,4 +370,5 @@ set(EXTAPPLIST
 	siggen
 	sdusb
 	morse_radio
+	morseradiotx
 )
