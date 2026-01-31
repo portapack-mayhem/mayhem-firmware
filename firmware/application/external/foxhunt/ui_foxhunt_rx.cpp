@@ -48,10 +48,12 @@ FoxhuntRxView::FoxhuntRxView(NavigationView& nav)
                   &field_volume,
                   &field_frequency,
                   &freq_stats_db,
+                  &pos_mode_text,
                   &rssi_graph,
                   &geomap,
                   &clear_markers,
-                  &add_current_marker});
+                  &add_current_marker,
+                  &button_set_pos});
 
     clear_markers.on_select = [this](Button&) {
         geomap.clear_markers();
@@ -59,6 +61,26 @@ FoxhuntRxView::FoxhuntRxView(NavigationView& nav)
     add_current_marker.on_select = [this](Button&) {
         GeoMarker tmp{my_lat, my_lon, my_orientation};
         geomap.store_marker(tmp);
+    };
+    button_set_pos.on_select = [this, &nav](Button&) {
+        // Start with current position if valid, otherwise use default coordinates
+        float start_lat = (my_lat != 200) ? my_lat : 0.0f;
+        float start_lon = (my_lon != 200) ? my_lon : 0.0f;
+        nav.push<GeoMapView>(
+            0,
+            GeoPos::alt_unit::METERS,
+            GeoPos::spd_unit::HIDDEN,
+            start_lat,
+            start_lon,
+            [this](int32_t, float lat, float lon, int32_t) {
+                my_lat = lat;
+                my_lon = lon;
+                manual_pos_mode = true;
+                pos_mode_text.set("MANUAL");
+                geomap.update_my_position(lat, lon, 0);
+                geomap.move(lon, lat);
+                geomap.set_dirty();
+            });
     };
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
@@ -70,6 +92,7 @@ FoxhuntRxView::FoxhuntRxView(NavigationView& nav)
     receiver_model.enable();
     audio::output::start();
     rssi_graph.set_nb_columns(64);
+    pos_mode_text.set("GPS");
     geomap.init();
 }
 
@@ -91,11 +114,13 @@ void FoxhuntRxView::on_statistics_update(const ChannelStatistics& statistics) {
 } /* on_statistic_updates */
 
 void FoxhuntRxView::on_gps(const GPSPosDataMessage* msg) {
-    my_lat = msg->lat;
-    my_lon = msg->lon;
-    geomap.update_my_position(msg->lat, msg->lon, msg->altitude);
-    geomap.move(my_lon, my_lat);
-    geomap.set_dirty();
+    if (!manual_pos_mode) {
+        my_lat = msg->lat;
+        my_lon = msg->lon;
+        geomap.update_my_position(msg->lat, msg->lon, msg->altitude);
+        geomap.move(my_lon, my_lat);
+        geomap.set_dirty();
+    }
 }
 void FoxhuntRxView::on_orientation(const OrientationDataMessage* msg) {
     my_orientation = msg->angle;

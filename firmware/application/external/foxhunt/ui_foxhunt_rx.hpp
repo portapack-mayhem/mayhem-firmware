@@ -72,6 +72,9 @@ class FoxhuntRxView : public View {
     Text freq_stats_db{
         {UI_POS_X(0), 2 * 16 + 4, 14 * 8, 14},
     };
+    Text pos_mode_text{
+        {UI_POS_X(14), 2 * 16 + 4, 6 * 8, 14},
+    };
     RSSIGraph rssi_graph{
         {0, 50, screen_width, 30},
     };
@@ -83,6 +86,10 @@ class FoxhuntRxView : public View {
     Button add_current_marker{
         {2, 18, 7 * 8, 16},
         "Mark"};
+
+    Button button_set_pos{
+        {19 * 8, 18, 9 * 8, 16},
+        "Set Pos"};
 
     GeoMap geomap{{0, 80, screen_width, screen_height - 80}};
 
@@ -115,6 +122,7 @@ class FoxhuntRxView : public View {
     float my_lat = 200;
     float my_lon = 200;
     uint16_t my_orientation = 400;
+    bool manual_pos_mode = false;
 
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
