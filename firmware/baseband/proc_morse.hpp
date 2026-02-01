@@ -60,6 +60,7 @@ class MorseProcessor : public BasebandProcessor {
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    dsp::demodulate::AM demod_AM{};
     dsp::demodulate::FM demod_cw_fm{};
     dsp::demodulate::SSB demod_ssb{};
     AudioOutput audio_output{};
@@ -79,7 +80,6 @@ class MorseProcessor : public BasebandProcessor {
     float meas_freq_accumulator{0.0f};
     uint32_t meas_freq_count{0};
     uint32_t ui_update_timer{0};
-
     float current_freq{700.0f};
 
     // --- Decoding variables (Goertzel) ---
@@ -91,6 +91,9 @@ class MorseProcessor : public BasebandProcessor {
     bool was_signaling{false};
     int64_t noise_floor{5000};
     int32_t startup_delay{20};
+
+    float dc_average = 0.0f;  // DC level tracking
+    int32_t dc_average_int = 0;
 
     MorseRXDataMessage message{};
     MorseRXfreqMessage freq_message{};

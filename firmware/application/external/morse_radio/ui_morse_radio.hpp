@@ -127,7 +127,7 @@ class MorseRadioView : public ui::View {
     ui::OptionsField options_mode{
         {UI_POS_X(9), UI_POS_Y(2)},
         5,
-        {{"CW/FM", 0}, {"USB", 1}, {"LSB", 2}}};
+        {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
 
     Checkbox chk_log{{UI_POS_X(0), UI_POS_Y(2)}, 12, "Log", false};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};

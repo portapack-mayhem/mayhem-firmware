@@ -33,6 +33,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             logger->init_daily_log(logs_dir);
     };
 
+    audio::set_rate(audio::Rate::Hz_12000);
     audio::output::start();
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
@@ -41,26 +42,29 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     options_mode.on_change = [this](size_t, int32_t value) {
         current_mode = (uint8_t)value;
         morse_decoder_.resetLearning();
-        if (current_mode == 0) {
+        if (current_mode == 1) {
             receiver_model.set_am_configuration(4);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             field_squelch.set_style(Theme::getInstance()->option_active);
             field_squelch.set_focusable(true);
             receiver_model.set_squelch_level(field_squelch.value());
-            audio::set_rate(audio::Rate::Hz_24000);
         } else {
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-            receiver_model.set_am_configuration(current_mode + 7);
+            if (current_mode == 0 || current_mode == 2)
+                receiver_model.set_am_configuration(7);
+            else if (current_mode == 3)
+                receiver_model.set_am_configuration(9);
+            else
+                receiver_model.set_am_configuration(10);
             receiver_model.set_squelch_level(0);
             field_squelch.set_style(Theme::getInstance()->fg_dark);
             field_squelch.set_focusable(false);
-            audio::set_rate(audio::Rate::Hz_12000);
         }
         baseband::set_moreserx_config(current_mode);
     };
     field_squelch.set_value(receiver_model.squelch_level(), false);  // will be sent later, no need to send 2x
     field_squelch.on_change = [this](int32_t v) {
-        if (current_mode == 0)
+        if (current_mode == 1)
             receiver_model.set_squelch_level(v);
     };
     options_mode.set_selected_index(current_mode, true);
@@ -107,7 +111,7 @@ void MorseLogger::radio_set_log(uint8_t current_mode) {
     int64_t freq = receiver_model.target_frequency();
     std::string header = "Freq:" + to_string_rounded_freq(freq, 4);
     header += "MHz, ";
-    header += "RX MODE:" + std::string(current_mode == 0 ? "CW/FM" : (current_mode == 1 ? "USB" : "LSB"));
+    header += "RX MODE:" + std::string(current_mode == 0 ? "CW/FM" : (current_mode == 1 ? "USB" : "LSB"));  // ki kell majd javítani
     header += "\r\nMessage:";
     log_file.write_raw(header);
 }
