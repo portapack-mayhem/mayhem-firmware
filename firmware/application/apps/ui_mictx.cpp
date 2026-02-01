@@ -350,7 +350,13 @@ MicTXView::MicTXView(
                   &tx_button,
                   &tx_icon});
 
-    set_rxbw_options();
+    // disable key repeat on select
+    initial_switch_config_ = get_switches_repeat_config();
+    SwitchesState config = initial_switch_config_;
+    config[toUType(Switch::Sel)] = false;
+    set_switches_repeat_config(config);
+
+        set_rxbw_options();
     set_rxbw_defaults(settings_.loaded());
 
     tone_keys_populate(options_tone_key);
@@ -640,6 +646,9 @@ MicTXView::MicTXView(
 }
 
 MicTXView::~MicTXView() {
+    // restore select key repeat mode
+    set_switches_repeat_config(initial_switch_config_);
+
     audio::input::stop();
     if (rx_enabled) {  // Also turn off both (audio rx if enabled, and disable  mic_loop to HP)
         rxaudio(false);
