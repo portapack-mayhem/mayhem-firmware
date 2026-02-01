@@ -356,7 +356,7 @@ MicTXView::MicTXView(
     config[toUType(Switch::Sel)] = false;
     set_switches_repeat_config(config);
 
-        set_rxbw_options();
+    set_rxbw_options();
     set_rxbw_defaults(settings_.loaded());
 
     tone_keys_populate(options_tone_key);
