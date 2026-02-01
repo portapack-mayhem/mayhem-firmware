@@ -1711,6 +1711,7 @@ class MorseRXDataMessage : public Message {
         : Message{ID::MorseRXData} {}
     int32_t state_durations[5] = {0};  // positive: high, negative: low
     uint8_t state_cnt = 0;
+    bool clipped = false;
     const uint8_t maxptr = 4;
 };
 

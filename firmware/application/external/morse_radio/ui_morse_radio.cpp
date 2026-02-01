@@ -17,6 +17,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
                   &txt_last,
                   &txt_speed,
                   &txt_freq,
+                  &txt_clip,
                   &options_mode,
                   &btn_clear,
                   &console_text,
@@ -33,7 +34,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             logger->init_daily_log(logs_dir);
     };
 
-    audio::set_rate(audio::Rate::Hz_12000);
     audio::output::start();
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
@@ -48,7 +48,9 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             field_squelch.set_style(Theme::getInstance()->option_active);
             field_squelch.set_focusable(true);
             receiver_model.set_squelch_level(field_squelch.value());
+            audio::set_rate(audio::Rate::Hz_24000);
         } else {
+            audio::set_rate(audio::Rate::Hz_12000);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
             if (current_mode == ModulationMode::AM || current_mode == ModulationMode::DSB)
                 receiver_model.set_am_configuration(7);
@@ -229,6 +231,8 @@ int32_t MorseRadioView::ProcessSignal(int32_t sig_time_us) {
 
 void MorseRadioView::on_data(const MorseRXDataMessage* message) {
     int32_t r;
+
+    txt_clip.hidden(!message->clipped);
 
     for (uint8_t i = 0; i <= message->state_cnt; ++i) {
         r = ProcessSignal(message->state_durations[i]);

@@ -31,8 +31,8 @@ void MorseProcessor::configure(uint8_t mode) {
     if (mode == 1) {  // FM
         decim_0.configure(taps_11k0_decim_0.taps);
         decim_1.configure(taps_11k0_decim_1.taps);
-        channel_filter.configure(taps_11k0_channel.taps, 4);
-        demod_cw_fm.configure(12000, 5000);
+        channel_filter.configure(taps_11k0_channel.taps, 2);
+        demod_cw_fm.configure(24000, 5000);
     } else {
         decim_0.configure(taps_4k25_decim_0.taps);
         decim_1.configure(taps_4k25_decim_1.taps);
@@ -85,11 +85,11 @@ void MorseProcessor::configure(uint8_t mode) {
 
 inline buffer_f32_t MorseProcessor::demodulate(const buffer_c16_t& channel) {
     // AM,SSB,DSB always keeps squelch "technically" open for the demodulator
-    if (modulation == 0) {
+    if (modulation == 0 || modulation == 2) {
         squelch_is_open = true;
         return demod_AM.execute(channel, audio_buffer);
     } else {
-        if (modulation >= 2) {
+        if (modulation >= 3) {
             squelch_is_open = true;
             return demod_ssb.execute(channel, audio_buffer);
         }
@@ -102,7 +102,7 @@ void MorseProcessor::update_goertzel_coeff(float freq) {
     if (freq < 300.0f) freq = 300.0f;
     if (freq > 2300.0f) freq = 2300.0f;
 
-    float sample_rate = 12000.0f;
+    float sample_rate = (modulation == 1) ? 24000.0f : 12000.0f;
     float omega = 2.0f * M_PI * freq / sample_rate;
     float omega_sq = omega * omega;
     float cos_approx = 1.0f - (omega_sq * 0.5f);
@@ -112,7 +112,7 @@ void MorseProcessor::update_goertzel_coeff(float freq) {
 
 void MorseProcessor::measure_frequency(int32_t sample) {
     // Noise gate threshold
-    const int32_t gate_threshold = 1200;
+    const int32_t gate_threshold = (modulation == 1) ? 4000 : 2000;
 
     if (sample > gate_threshold || sample < -gate_threshold) {
         if (sample > 0 && !meas_signal_state_high) {
@@ -134,8 +134,11 @@ void MorseProcessor::measure_frequency(int32_t sample) {
 
                 // Wait for AT LEAST 3 STABLE CYCLES
                 if (period_is_stable && meas_consistency_count > 5) {
-                    float base_rate = 12000.0f;
+                    float base_rate = (modulation == 1) ? 24000.0f : 12000.0f;
                     float inst_freq = base_rate / (float)meas_samples_in_period;
+                    if (modulation == 2) {
+                        inst_freq /= 2.0f;
+                    }
                     // Check for overflows
                     if (inst_freq > 250 && inst_freq < 3000) {
                         meas_freq_accumulator += inst_freq;
@@ -159,7 +162,7 @@ void MorseProcessor::measure_frequency(int32_t sample) {
     meas_samples_in_period++;
 
     ui_update_timer++;
-    uint32_t update_limit = 2400;  // ~200ms
+    uint32_t update_limit = (modulation == 1) ? 4800 : 2400;  // ~200ms
 
     if (ui_update_timer > update_limit) {
         if (meas_freq_count > 0) {
@@ -265,7 +268,7 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
 
         if (raw_int_abs > audio_threshold || user_squelch_level == 0) {
             squelch_is_open = true;
-            squelch_hold = 1200;
+            squelch_hold = (modulation == 1) ? 2400 : 1200;
         } else {
             if (squelch_hold > 0)
                 squelch_hold--;
@@ -275,16 +278,19 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
 
         float decode_audio = raw_audio;
         if (modulation != 1) {
-            float gain = 13.0f;
+            float gain = 16.0f;
             if (modulation >= 3)
                 gain = 5.0f;
             decode_audio *= gain;
-            // Hard Limiting / Clipping
-            if (decode_audio > 1.0f)
-                decode_audio = 1.0f;
-            else if (decode_audio < -1.0f)
-                decode_audio = -1.0f;
 
+            // Hard Limiting / Clipping
+            message.clipped = false;
+            if (decode_audio > 1.0f) {
+                decode_audio = 1.0f;
+                message.clipped = true;
+            } else if (decode_audio < -1.0f) {
+                decode_audio = -1.0f;
+            }
             audio_buf.p[i] = decode_audio;
         }
 
