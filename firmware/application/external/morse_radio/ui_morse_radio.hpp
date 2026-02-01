@@ -83,12 +83,20 @@ class MorseRadioView : public ui::View {
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
 
-    uint8_t current_mode{0};  // 0=CW/FM, 1=USB, 2=LSB
+    enum class ModulationMode : uint8_t {
+        AM = 0,
+        FM = 1,
+        DSB = 2,
+        USB = 3,
+        LSB = 4
+    };
+
+    ModulationMode current_mode = ModulationMode::AM;
 
     app_settings::SettingsManager settings_{
         "rx_morese_radio",
         app_settings::Mode::RX,
-        {{"cwmode"sv, &current_mode}}};
+        {{"cwmode"sv, reinterpret_cast<uint8_t*>(&current_mode)}}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},

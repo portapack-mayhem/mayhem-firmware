@@ -28,23 +28,25 @@
 void MorseProcessor::configure(uint8_t mode) {
     configured = false;
 
-    decim_0.configure(taps_4k25_decim_0.taps);
-    decim_1.configure(taps_4k25_decim_1.taps);
-
-    if (mode == 0) {  // AM
-        channel_filter.configure(taps_2k0_am_lpf_channel.taps, 4);
-    } else if (mode == 1) {  // FM
-        channel_filter.configure(taps_1K5_FM_channel.taps, 4);
-        demod_cw_fm.configure(12000, 4250);
-    } else {            // SSB, DSB
-        if (mode == 2)  // DSB
-            channel_filter.configure(taps_1k5_dsb_lpf.taps, 4);
-        else if (mode == 3)  // USB
-            channel_filter.configure(taps_1k5_USB_channel.taps, 4);
-        else  // LSB
-            channel_filter.configure(taps_1k5_LSB_channel.taps, 4);
+    if (mode == 1) {  // FM
+        decim_0.configure(taps_11k0_decim_0.taps);
+        decim_1.configure(taps_11k0_decim_1.taps);
+        channel_filter.configure(taps_11k0_channel.taps, 4);
+        demod_cw_fm.configure(12000, 5000);
+    } else {
+        decim_0.configure(taps_4k25_decim_0.taps);
+        decim_1.configure(taps_4k25_decim_1.taps);
+        if (mode == 0) {  // AM
+            channel_filter.configure(taps_2k0_am_lpf_channel.taps, 4);
+        } else {            // SSB, DSB
+            if (mode == 2)  // DSB
+                channel_filter.configure(taps_1k5_dsb_lpf.taps, 4);
+            else if (mode == 3)  // USB
+                channel_filter.configure(taps_1k5_USB_channel.taps, 4);
+            else  // LSB
+                channel_filter.configure(taps_1k5_LSB_channel.taps, 4);
+        }
     }
-
     modulation = mode;
 
     if (mode == 1)
@@ -83,11 +85,11 @@ void MorseProcessor::configure(uint8_t mode) {
 
 inline buffer_f32_t MorseProcessor::demodulate(const buffer_c16_t& channel) {
     // AM,SSB,DSB always keeps squelch "technically" open for the demodulator
-    if (modulation == 0 || modulation == 2) {
+    if (modulation == 0) {
         squelch_is_open = true;
         return demod_AM.execute(channel, audio_buffer);
     } else {
-        if (modulation > 2) {
+        if (modulation >= 2) {
             squelch_is_open = true;
             return demod_ssb.execute(channel, audio_buffer);
         }
@@ -110,7 +112,7 @@ void MorseProcessor::update_goertzel_coeff(float freq) {
 
 void MorseProcessor::measure_frequency(int32_t sample) {
     // Noise gate threshold
-    const int32_t gate_threshold = 2000;
+    const int32_t gate_threshold = 1200;
 
     if (sample > gate_threshold || sample < -gate_threshold) {
         if (sample > 0 && !meas_signal_state_high) {
@@ -121,7 +123,7 @@ void MorseProcessor::measure_frequency(int32_t sample) {
                 bool period_is_stable = false;
                 if (meas_last_period_len > 0) {
                     int32_t diff = std::abs((int)meas_samples_in_period - (int)meas_last_period_len);
-                    if (diff <= 1) {
+                    if (diff <= 2) {
                         meas_consistency_count++;
                         period_is_stable = true;
                     } else {
@@ -131,10 +133,9 @@ void MorseProcessor::measure_frequency(int32_t sample) {
                 meas_last_period_len = meas_samples_in_period;
 
                 // Wait for AT LEAST 3 STABLE CYCLES
-                if (period_is_stable && meas_consistency_count > 3) {
+                if (period_is_stable && meas_consistency_count > 5) {
                     float base_rate = 12000.0f;
                     float inst_freq = base_rate / (float)meas_samples_in_period;
-
                     // Check for overflows
                     if (inst_freq > 250 && inst_freq < 3000) {
                         meas_freq_accumulator += inst_freq;
@@ -272,18 +273,11 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
                 squelch_is_open = false;
         }
 
-        // DC BLOCKING
-        if (modulation != 1) {
-            // Leaky integrator
-            dc_average = (dc_average * 0.99f) + (raw_audio * 0.01f);
-            measure_frequency((int32_t)((raw_audio - dc_average) * 32768.0f));
-        } else {
-            measure_frequency((int32_t)(raw_audio * 32768.0f));
-        }
-
         float decode_audio = raw_audio;
         if (modulation != 1) {
-            float gain = 5.0f;
+            float gain = 13.0f;
+            if (modulation >= 3)
+                gain = 5.0f;
             decode_audio *= gain;
             // Hard Limiting / Clipping
             if (decode_audio > 1.0f)
@@ -292,6 +286,14 @@ void MorseProcessor::execute(const buffer_c8_t& buffer) {
                 decode_audio = -1.0f;
 
             audio_buf.p[i] = decode_audio;
+        }
+
+        // DC BLOCKING
+        if (modulation != 1) {
+            dc_average = (dc_average * 0.95f) + (decode_audio * 0.05f);
+            measure_frequency((int32_t)((decode_audio - dc_average) * 32768.0f));
+        } else {
+            measure_frequency((int32_t)(raw_audio * 32768.0f));
         }
 
         process_decoding((int32_t)(decode_audio * 32768.0f));
