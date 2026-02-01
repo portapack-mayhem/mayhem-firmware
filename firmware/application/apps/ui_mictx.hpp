@@ -90,6 +90,9 @@ class MicTXView : public View {
         sampling_rate /* sampling rate */
     };
 
+    // structure used to control key repeat
+    SwitchesState initial_switch_config_{};
+
     enum Mic_Modulation : uint32_t {
         MIC_MOD_NFM = 0,
         MIC_MOD_WFM = 1,
