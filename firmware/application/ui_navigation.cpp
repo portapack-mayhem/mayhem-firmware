@@ -969,9 +969,8 @@ SystemView::SystemView(
 
     navigation_view.push<SystemMenuView>();
 
-    if (pmem::config_splash() && !splash) {
+    if (pmem::config_splash()) {
         navigation_view.push<SplashScreenView>();
-        splash = true;  // Otherwise it will run infinitely.
     }
     status_view.set_back_enabled(false);
     status_view.set_title_image_enabled(true);
@@ -1113,7 +1112,6 @@ bool SplashScreenView::on_touch(const TouchEvent event) {
         case TouchEvent::Type::Start:
             handle_pop();
             return false;
-
         default:
             break;
     }

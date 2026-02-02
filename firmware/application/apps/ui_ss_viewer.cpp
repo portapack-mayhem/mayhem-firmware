@@ -21,6 +21,7 @@
  */
 
 #include "ui_ss_viewer.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -44,7 +45,7 @@ bool ScreenshotViewer::on_key(KeyEvent) {
 
 void ScreenshotViewer::paint(Painter& painter) {
     File file{};
-
+    UsbSerialAsyncmsg::asyncmsg("paint");
     painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
 
     auto show_invalid = [&]() {
@@ -108,8 +109,11 @@ SplashViewer::SplashViewer(
 
 bool SplashViewer::on_key(const KeyEvent key) {
     if (valid_image && key == KeyEvent::Right) {
+        UsbSerialAsyncmsg::asyncmsg("delete: " + splash_dot_bmp.c_str());
+
         delete_file(splash_dot_bmp);
         copy_file(path_, splash_dot_bmp);
+        UsbSerialAsyncmsg::asyncmsg("copy: " + splash_dot_bmp);
     }
 
     nav_.pop();
