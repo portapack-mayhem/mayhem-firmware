@@ -64,7 +64,7 @@ class MorseLogger {
 
 class MorseRadioView : public ui::View {
    public:
-       enum class ModulationMode : uint8_t {
+    enum class ModulationMode : uint8_t {
         AM = 0,
         FM = 1,
         DSB = 2,
