@@ -40,29 +40,20 @@ message("Configuring for FLASH_MB_SIZE=${FLASH_MB_SIZE}MB")
 #This is the flash memory size we build. This can be less, so the FW size will be less, so can be flashed with older utils.
 if(NOT DEFINED FLASH_MB_LIMIT_SIZE)
 	if(BOARD STREQUAL "PRALINE")
-	    set(FLASH_MB_LIMIT_SIZE 1.5) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
+	    set(FLASH_MB_LIMIT_SIZE 4) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
 	else()
 	    set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
 	endif()
 endif()
 message("Configuring for FLASH_MB_LIMIT_SIZE=${FLASH_MB_LIMIT_SIZE}MB")
-# PRALINE: Final firmware size after FPGA bitstream is appended (2MB)
-if(BOARD STREQUAL "PRALINE")
-    math(EXPR PRALINE_FINAL_SIZE "2 * 1024 * 1024")
-endif()
 
 if(FLASH_MB_SIZE LESS FLASH_MB_LIMIT_SIZE)
     message(FATAL_ERROR "Error: The supported flash size is lower than the generated flash file. Build halted.")
 endif()
 
 math(EXPR FLASH_BYTES_SIZE "${FLASH_MB_SIZE} * 1024 * 1024")
+math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 
-# PRALINE: Base firmware can be 1.5MB (FPGA at 0x180000)
-if(BOARD STREQUAL "PRALINE")
-    math(EXPR FLASH_BYTES_LIMIT_SIZE "1536 * 1024")  #PRALINE equal 1.5MB = 1572864 bytes
-else()
-    math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
-endif()
 #generate h files
 configure_file(flashsize.h.in ${CMAKE_CURRENT_SOURCE_DIR}/firmware/flashsize.h)
 
