@@ -64,6 +64,14 @@ class MorseLogger {
 
 class MorseRadioView : public ui::View {
    public:
+    enum class ModulationMode : uint8_t {
+        AM = 0,
+        FM = 1,
+        DSB = 2,
+        USB = 3,
+        LSB = 4
+    };
+
     MorseRadioView(ui::NavigationView& nav);
     ~MorseRadioView();
     std::string title() const override {
@@ -83,12 +91,12 @@ class MorseRadioView : public ui::View {
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
 
-    uint8_t current_mode{0};  // 0=CW/FM, 1=USB, 2=LSB
+    ModulationMode current_mode = ModulationMode::AM;
 
     app_settings::SettingsManager settings_{
         "rx_morese_radio",
         app_settings::Mode::RX,
-        {{"cwmode"sv, &current_mode}}};
+        {{"cwmode"sv, reinterpret_cast<uint8_t*>(&current_mode)}}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -115,6 +123,7 @@ class MorseRadioView : public ui::View {
     ui::Text txt_speed{{UI_POS_X(23), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)}, "??"};
     ui::Text txt_last{{UI_POS_X(12), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(12), UI_POS_HEIGHT(1)}, ""};
     ui::Text txt_freq{{UI_POS_X(21), UI_POS_Y(2), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "??"};
+    ui::Text txt_clip{{UI_POS_X(15), UI_POS_Y(3), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "clipping"};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(7)}};
     ui::Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Squelch:", Theme::getInstance()->fg_light->foreground},
@@ -127,7 +136,7 @@ class MorseRadioView : public ui::View {
     ui::OptionsField options_mode{
         {UI_POS_X(9), UI_POS_Y(2)},
         5,
-        {{"CW/FM", 0}, {"USB", 1}, {"LSB", 2}}};
+        {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
 
     Checkbox chk_log{{UI_POS_X(0), UI_POS_Y(2)}, 12, "Log", false};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};
