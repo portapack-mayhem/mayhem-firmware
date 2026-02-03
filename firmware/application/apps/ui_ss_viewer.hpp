@@ -28,10 +28,9 @@
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
 #include "file.hpp"
+#include "file_path.hpp"
 
 namespace ui {
-
-extern const std::filesystem::path splash_dot_bmp;
 
 class ScreenshotViewer : public View {
    public:
