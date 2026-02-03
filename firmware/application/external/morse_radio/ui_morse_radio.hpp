@@ -64,6 +64,14 @@ class MorseLogger {
 
 class MorseRadioView : public ui::View {
    public:
+       enum class ModulationMode : uint8_t {
+        AM = 0,
+        FM = 1,
+        DSB = 2,
+        USB = 3,
+        LSB = 4
+    };
+
     MorseRadioView(ui::NavigationView& nav);
     ~MorseRadioView();
     std::string title() const override {
@@ -82,14 +90,6 @@ class MorseRadioView : public ui::View {
     MorseDecoder morse_decoder_{};
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
-
-    enum class ModulationMode : uint8_t {
-        AM = 0,
-        FM = 1,
-        DSB = 2,
-        USB = 3,
-        LSB = 4
-    };
 
     ModulationMode current_mode = ModulationMode::AM;
 

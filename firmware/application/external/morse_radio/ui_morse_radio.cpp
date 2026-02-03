@@ -112,20 +112,20 @@ void MorseLogger::init_daily_log(const std::filesystem::path& log_dir) {
 void MorseLogger::radio_set_log(uint8_t current_mode) {
     int64_t freq = receiver_model.target_frequency();
     std::string mode_str;
-    switch (current_mode) {
-        case 0:
+    switch (static_cast<MorseRadioView::ModulationMode>(current_mode)) {
+        case MorseRadioView::ModulationMode::AM:
             mode_str = "AM";
             break;
-        case 1:
+        case MorseRadioView::ModulationMode::FM:
             mode_str = "FM";
             break;
-        case 2:
+        case MorseRadioView::ModulationMode::DSB:
             mode_str = "DSB";
             break;
-        case 3:
+        case MorseRadioView::ModulationMode::USB:
             mode_str = "USB";
             break;
-        case 4:
+        case MorseRadioView::ModulationMode::LSB:
             mode_str = "LSB";
             break;
         default:
