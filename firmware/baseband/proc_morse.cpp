@@ -38,12 +38,12 @@ void MorseProcessor::configure(uint8_t mode) {
     } else {
         decim_0.configure(taps_4k25_decim_0.taps);
         decim_1.configure(taps_4k25_decim_1.taps);
-        if (mode == 0) {  // AM
+        if (modulation == ModulationMode::AM) {  // AM
             channel_filter.configure(taps_2k0_am_lpf_channel.taps, 4);
-        } else {            // SSB, DSB
-            if (mode == 2)  // DSB
+        } else {                                    // SSB, DSB
+            if (modulation == ModulationMode::DSB)  // DSB
                 channel_filter.configure(taps_1k5_dsb_lpf.taps, 4);
-            else if (mode == 3)  // USB
+            else if (modulation == ModulationMode::USB)  // USB
                 channel_filter.configure(taps_1k5_USB_channel.taps, 4);
             else  // LSB
                 channel_filter.configure(taps_1k5_LSB_channel.taps, 4);
