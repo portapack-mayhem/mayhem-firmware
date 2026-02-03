@@ -179,6 +179,8 @@ MorseRadioView::~MorseRadioView() {
 
 void MorseRadioView::focus() {
     field_frequency.focus();
+    txt_clip.set_style(Theme::getInstance()->fg_red);
+    txt_clip.hidden(true);
 }
 
 void MorseRadioView::check_for_timeout() {

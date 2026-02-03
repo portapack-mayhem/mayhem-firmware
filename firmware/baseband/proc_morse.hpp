@@ -67,7 +67,15 @@ class MorseProcessor : public BasebandProcessor {
 
     bool configured{false};
 
-    uint8_t modulation{0};  // 0=AM 1=FM, 2=DSB, 3=DSB 4=LSB
+    enum class ModulationMode : uint8_t {
+        AM = 0,
+        FM = 1,
+        DSB = 2,
+        USB = 3,
+        LSB = 4
+    };
+
+    ModulationMode modulation = ModulationMode::AM;
     int32_t user_squelch_level{0};
     bool squelch_is_open{true};
     int32_t squelch_hold{0};
