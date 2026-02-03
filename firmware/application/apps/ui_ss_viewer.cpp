@@ -108,12 +108,10 @@ SplashViewer::SplashViewer(
 }
 
 bool SplashViewer::on_key(const KeyEvent key) {
-    if (valid_image && key == KeyEvent::Right) {
-        UsbSerialAsyncmsg::asyncmsg("delete: " + splash_dot_bmp.c_str());
-
-        delete_file(splash_dot_bmp);
+    if (valid_image && key == KeyEvent::Right) {  // splash_dot_bmp
+        // delete_file(splash_dot_bmp);
         copy_file(path_, splash_dot_bmp);
-        UsbSerialAsyncmsg::asyncmsg("copy: " + splash_dot_bmp);
+        UsbSerialAsyncmsg::asyncmsg("copy");
     }
 
     nav_.pop();

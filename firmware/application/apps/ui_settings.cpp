@@ -1112,20 +1112,9 @@ void SetBatteryView::focus() {
     button_cancel.focus();
 }
 
-/* SetSpLash *********************************************/
+/* SetSpash *********************************************/
 
-bool SetSpLash::file_exists(const std::filesystem::path& path) {
-    File f;
-    auto error = f.open(path);
-
-    if (error.is_valid()) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-SetSpLash::SetSpLash(NavigationView& nav) {
+SetSpash::SetSpash(NavigationView& nav) {
     add_children({&checkbox_showsplash,
                   &checkbox_randomsplash,
                   &message,
@@ -1134,12 +1123,12 @@ SetSpLash::SetSpLash(NavigationView& nav) {
                   &button_cancel});
 
     checkbox_showsplash.set_value(pmem::config_splash());
-    splash_bmp = file_exists(splash_dot_bmp);
-    checkbox_randomsplash.set_value(!splash_bmp);
-    message.hidden(splash_bmp);
+    splash_bmp_exists = file_exists(splash_dot_bmp);
+    checkbox_randomsplash.set_value(!splash_bmp_exists);
+    message.hidden(splash_bmp_exists);
 
     checkbox_randomsplash.on_select = [this](Checkbox&, bool v) {
-        del = v;
+        random_enabled = v;
     };
 
     button_picture_select.on_select = [this, &nav](Button&) {
@@ -1148,7 +1137,7 @@ SetSpLash::SetSpLash(NavigationView& nav) {
     };
 
     button_save.on_select = [&nav, this](Button&) {
-        if (del == true) delete_file(splash_dot_bmp);
+        if (random_enabled == true) delete_file(splash_dot_bmp);
         pmem::set_config_splash(checkbox_showsplash.value());
         send_system_refresh();
         nav.pop();
@@ -1159,7 +1148,7 @@ SetSpLash::SetSpLash(NavigationView& nav) {
     };
 }
 
-void SetSpLash::focus() {
+void SetSpash::focus() {
     button_save.focus();
 }
 
@@ -1196,7 +1185,7 @@ void SettingsMenuView::on_populate() {
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
-        {"Splash settings", ui::Color::dark_cyan(), &bitmap_icon_file_image, [this]() { nav_.push<SetSpLash>(); }},
+        {"Splash settings", ui::Color::dark_cyan(), &bitmap_icon_file_image, [this]() { nav_.push<SetSpash>(); }},
     });
 
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});

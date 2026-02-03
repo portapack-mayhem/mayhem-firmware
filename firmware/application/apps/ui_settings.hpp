@@ -1065,18 +1065,17 @@ class SettingsMenuView : public BtnGridView {
     void on_populate() override;
 };
 
-class SetSpLash : public View {
+class SetSpash : public View {
    public:
-    SetSpLash(NavigationView& nav);
+    SetSpash(NavigationView& nav);
 
     void focus() override;
 
     std::string title() const override { return "Splash"; };
 
    private:
-    bool file_exists(const std::filesystem::path& path);
-    bool splash_bmp = false;
-    bool del = false;
+    bool splash_bmp_exists = false;
+    bool random_enabled = false;
 
     Checkbox checkbox_showsplash{
         {3 * 8, 1 * 16},
