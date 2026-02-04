@@ -54,8 +54,8 @@ class MorseLogger {
     }
 
     void init_daily_log(const std::filesystem::path& log_dir);
-    bool on_packet(const std::string& content, bool time, uint8_t current_mode);
-    void radio_set_log(uint8_t current_mode);
+    bool on_packet(const std::string& content, bool time,const std::string& morse_mode);
+    void radio_set_log(const std::string &morse_mode);
 
    private:
     LogFile log_file{};
@@ -64,13 +64,6 @@ class MorseLogger {
 
 class MorseRadioView : public ui::View {
    public:
-    enum class ModulationMode : uint8_t {
-        AM = 0,
-        FM = 1,
-        DSB = 2,
-        USB = 3,
-        LSB = 4
-    };
 
     MorseRadioView(ui::NavigationView& nav);
     ~MorseRadioView();
@@ -78,6 +71,9 @@ class MorseRadioView : public ui::View {
         return "Morse";
     }
     void focus() override;
+	const std::string& get_mode_name() const {
+        return options_mode.selected_index_name();
+    }
 
    private:
     void writeCharToConsole(const std::string& ch, double confidence);
@@ -91,12 +87,12 @@ class MorseRadioView : public ui::View {
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
 
-    ModulationMode current_mode = ModulationMode::AM;
+    uint8_t saved_mode= 0;
 
     app_settings::SettingsManager settings_{
         "rx_morese_radio",
         app_settings::Mode::RX,
-        {{"cwmode"sv, reinterpret_cast<uint8_t*>(&current_mode)}}};
+		{{"cwmode"sv, &saved_mode}}};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -136,7 +132,7 @@ class MorseRadioView : public ui::View {
     ui::OptionsField options_mode{
         {UI_POS_X(9), UI_POS_Y(2)},
         5,
-        {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
+        {}};
 
     Checkbox chk_log{{UI_POS_X(0), UI_POS_Y(2)}, 12, "Log", false};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};
