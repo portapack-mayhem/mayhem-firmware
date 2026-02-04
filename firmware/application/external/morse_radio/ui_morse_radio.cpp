@@ -34,6 +34,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             logger->init_daily_log(logs_dir);
     };
 
+    audio::output::start();
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.enable();
@@ -44,7 +45,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     };
 
     options_mode.on_change = [this](size_t, int32_t mode) {
-        audio::output::stop();
         morse_decoder_.resetLearning();
         if (mode == MORSE_NFM) {
             receiver_model.set_am_configuration(4);
@@ -68,7 +68,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
         }
         baseband::set_moreserx_config(mode);
         saved_mode = mode;
-        audio::output::start();
     };
     options_mode.set_selected_index(saved_mode);
 
