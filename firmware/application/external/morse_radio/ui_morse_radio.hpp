@@ -133,7 +133,7 @@ class MorseRadioView : public ui::View {
         {{UI_POS_X(27), UI_POS_Y(2)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     ui::OptionsField options_mode{
-        {UI_POS_X(8), UI_POS_Y(2)},
+        {UI_POS_X(8), UI_POS_Y(2) + 4},  // +4 to align with 'Log' checkbox text
         6,
         {
             {"AM/CW", MORSE_AM_CW},
