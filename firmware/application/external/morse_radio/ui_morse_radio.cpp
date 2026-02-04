@@ -41,7 +41,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
 
     field_squelch.on_change = [this](int32_t v) {
         receiver_model.set_squelch_level(v);
-        saved_squelch = v;
     };
 
     options_mode.on_change = [this](size_t, int32_t mode) {
@@ -51,7 +50,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             field_squelch.set_style(Theme::getInstance()->option_active);
             field_squelch.set_focusable(true);
-            field_squelch.set_value(saved_squelch);
+            field_squelch.set_value(receiver_model.squelch_level());
             audio::set_rate(audio::Rate::Hz_24000);
         } else {
             audio::set_rate(audio::Rate::Hz_12000);
@@ -62,7 +61,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
                 receiver_model.set_am_configuration(9);
             else  // LSB
                 receiver_model.set_am_configuration(10);
-            receiver_model.set_squelch_level(0);
             field_squelch.set_style(Theme::getInstance()->fg_dark);
             field_squelch.set_focusable(false);
         }

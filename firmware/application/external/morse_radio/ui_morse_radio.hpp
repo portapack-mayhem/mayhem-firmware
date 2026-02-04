@@ -98,7 +98,6 @@ class MorseRadioView : public ui::View {
         app_settings::Mode::RX,
         {
             {"cwmode"sv, &saved_mode},
-            {"squelch"sv, &saved_squelch},
         }};
 
     RxFrequencyField field_frequency{
