@@ -78,9 +78,6 @@ class MorseRadioView : public ui::View {
         return "Morse";
     }
     void focus() override;
-    const std::string& get_mode_name() const {
-        return options_mode.selected_index_name();
-    }
 
    private:
     void writeCharToConsole(const std::string& ch, double confidence);
@@ -97,7 +94,7 @@ class MorseRadioView : public ui::View {
     uint8_t saved_mode = 0;
 
     app_settings::SettingsManager settings_{
-        "rx_morese_radio",
+        "rx_morse_radio",
         app_settings::Mode::RX,
         {{"cwmode"sv, &saved_mode}}};
 
