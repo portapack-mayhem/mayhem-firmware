@@ -62,13 +62,14 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             field_squelch.set_focusable(false);
         }
         baseband::set_moreserx_config(mode);
+        saved_mode = mode;
     };
     field_squelch.set_value(receiver_model.squelch_level(), false);  // will be sent later, no need to send 2x
     field_squelch.on_change = [this](int32_t v) {
         if (options_mode.selected_index_value() == MORSE_NFM)
             receiver_model.set_squelch_level(v);
     };
-    options_mode.set_selected_index(saved_mode, true);
+    options_mode.set_selected_index(saved_mode);
 
     auto vol = field_volume.value();  // audio volume fix
     field_volume.set_value(0);
