@@ -45,6 +45,14 @@
 
 namespace ui::external_app::morse_radio {
 
+enum morse_modes : uint8_t {
+    MORSE_AM_CW = 0,
+    MORSE_NFM,
+    MORSE_AM_DSB,
+    MORSE_AM_USB,
+    MORSE_AM_LSB,
+};
+
 class MorseRadioView;
 
 class MorseLogger {
@@ -132,7 +140,12 @@ class MorseRadioView : public ui::View {
     ui::OptionsField options_mode{
         {UI_POS_X(9), UI_POS_Y(2)},
         5,
-        {}};
+        {   {"AM/CW", MORSE_AM_CW},
+    {"NFM", MORSE_NFM},
+	{"AM/DSB", MORSE_AM_DSB},
+	{"AM/USB", MORSE_AM_USB},
+	{"AM/LSB", MORSE_AM_LSB},
+		}};
 
     Checkbox chk_log{{UI_POS_X(0), UI_POS_Y(2)}, 12, "Log", false};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};

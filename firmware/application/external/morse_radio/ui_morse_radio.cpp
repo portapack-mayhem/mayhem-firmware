@@ -1,30 +1,7 @@
 #include "ui_morse_radio.hpp"
 #include "portapack_persistent_memory.hpp"
 
-
 using namespace portapack;
-
-// NB: Don't include UI headers to keep this code unit testable.
-using name_t = std::string;
-using value_t = int32_t;
-using option_t = std::pair<name_t, value_t>;
-using options_t = std::vector<option_t>;
-
-enum morse_modes : uint8_t {
-    MORSE_AM_CW = 0,
-    MORSE_NFM,
-    MORSE_AM_DSB,
-    MORSE_AM_USB,
-    MORSE_AM_LSB,
-};
-
-options_t morse_mode_options = {
-    {"AM/CW", MORSE_AM_CW},
-    {"NFM", MORSE_NFM},
-	{"AM/DSB", MORSE_AM_DSB},
-	{"AM/USB", MORSE_AM_USB},
-	{"AM/LSB", MORSE_AM_LSB},
-};
 
 namespace ui::external_app::morse_radio {
 
@@ -61,8 +38,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.enable();
-
-	options_mode.set_options( morse_mode_options );
 
     options_mode.on_change = [this](size_t, int32_t mode) {
         morse_decoder_.resetLearning();
