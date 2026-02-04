@@ -3,7 +3,7 @@
 
 // clang-format off
 //Allowed fw size in MB
-#define FLASH_SIZE_MB 4
+#define FLASH_SIZE_MB 2
 //Current compiled fw size in MB
-#define FLASH_SIZE_LIMIT_MB 4
+#define FLASH_SIZE_LIMIT_MB 1
 // clang-format on
