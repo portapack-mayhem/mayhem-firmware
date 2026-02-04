@@ -91,11 +91,15 @@ class MorseRadioView : public ui::View {
         MORSE_AM_LSB,
     };
     uint8_t saved_mode = MORSE_AM_CW;
+    uint8_t saved_squelch = 80;
 
     app_settings::SettingsManager settings_{
         "rx_morse_radio",
         app_settings::Mode::RX,
-        {{"cwmode"sv, &saved_mode}}};
+        {
+            {"cwmode"sv, &saved_mode},
+            {"squelch"sv, &saved_squelch},
+        }};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},

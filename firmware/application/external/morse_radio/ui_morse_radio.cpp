@@ -39,6 +39,11 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.enable();
 
+    field_squelch.on_change = [this](int32_t v) {
+        receiver_model.set_squelch_level(v);
+        saved_squelch = v;
+    };
+
     options_mode.on_change = [this](size_t, int32_t mode) {
         morse_decoder_.resetLearning();
         if (mode == MORSE_NFM) {
@@ -46,7 +51,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             field_squelch.set_style(Theme::getInstance()->option_active);
             field_squelch.set_focusable(true);
-            receiver_model.set_squelch_level(field_squelch.value());
+            receiver_model.set_squelch_level(saved_squelch);
             audio::set_rate(audio::Rate::Hz_24000);
         } else {
             audio::set_rate(audio::Rate::Hz_12000);
@@ -63,11 +68,6 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
         }
         baseband::set_moreserx_config(mode);
         saved_mode = mode;
-    };
-    field_squelch.set_value(receiver_model.squelch_level(), false);  // will be sent later, no need to send 2x
-    field_squelch.on_change = [this](int32_t v) {
-        if (options_mode.selected_index_value() == MORSE_NFM)
-            receiver_model.set_squelch_level(v);
     };
     options_mode.set_selected_index(saved_mode);
 
