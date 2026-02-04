@@ -91,7 +91,6 @@ class MorseRadioView : public ui::View {
         MORSE_AM_LSB,
     };
     uint8_t saved_mode = MORSE_AM_CW;
-    uint8_t saved_squelch = 80;
 
     app_settings::SettingsManager settings_{
         "rx_morse_radio",
