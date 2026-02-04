@@ -138,8 +138,8 @@ class MorseRadioView : public ui::View {
         {{UI_POS_X(27), UI_POS_Y(2)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     ui::OptionsField options_mode{
-        {UI_POS_X(9), UI_POS_Y(2)},
-        5,
+        {UI_POS_X(8), UI_POS_Y(2)},
+        6,
         {   {"AM/CW", MORSE_AM_CW},
     {"NFM", MORSE_NFM},
 	{"AM/DSB", MORSE_AM_DSB},
