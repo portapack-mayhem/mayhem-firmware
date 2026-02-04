@@ -45,14 +45,6 @@
 
 namespace ui::external_app::morse_radio {
 
-enum morse_modes : uint8_t {
-    MORSE_AM_CW = 0,
-    MORSE_NFM,
-    MORSE_AM_DSB,
-    MORSE_AM_USB,
-    MORSE_AM_LSB,
-};
-
 class MorseRadioView;
 
 class MorseLogger {
@@ -91,7 +83,14 @@ class MorseRadioView : public ui::View {
     RxRadioState radio_state_{};
     std::unique_ptr<MorseLogger> logger{};
 
-    uint8_t saved_mode = 0;
+    enum morse_modes : uint8_t {
+        MORSE_AM_CW = 0,
+        MORSE_NFM,
+        MORSE_AM_DSB,
+        MORSE_AM_USB,
+        MORSE_AM_LSB,
+    };
+    uint8_t saved_mode = MORSE_AM_CW;
 
     app_settings::SettingsManager settings_{
         "rx_morse_radio",
