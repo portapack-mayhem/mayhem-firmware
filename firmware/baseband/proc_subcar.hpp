@@ -56,8 +56,8 @@ class SubCarProcessor : public BasebandProcessor {
     uint32_t low_estimate = 100;
     uint32_t high_estimate = 12000;
     uint32_t min_high_level = 10;
-    uint8_t numg = 0;        // count of matched signals to filter spikes
-    size_t baseband_fs = 0;  // will be set later by configure message
+    uint8_t numg = 0;                // count of matched signals to filter spikes
+    size_t baseband_fs = 4'000'000;  // will be set later by configure message
     uint32_t nsPerDecSamp = 0;
 
     /* Array Buffer aux. used in decim0 and decim1 IQ c16 signed  data ; (decim0 defines the max length of the array) */
@@ -81,6 +81,7 @@ class SubCarProcessor : public BasebandProcessor {
         uint32_t buffer_count = 0;
         int16_t last_re = 0;  // Store previous Real sample
         int16_t last_im = 0;
+        int32_t smoothed_discrim = 0;
     };
     DemodFMState fm_state{};
 

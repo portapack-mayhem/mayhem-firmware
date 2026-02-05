@@ -45,7 +45,6 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
         int16_t re = decim_1_out.p[i].real();
         int16_t im = decim_1_out.p[i].imag();
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
-
         mag = (mag >> 10);
         int32_t const ook_low_delta = mag - low_estimate;
         bool meashl = currentHiLow;
@@ -113,20 +112,32 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
             currentHiLow = meashl;
         }
 
-        // --- FM Part (Simple 2-FSK) ---
         int32_t discrim = ((int32_t)im * fm_state.last_re) - ((int32_t)re * fm_state.last_im);
         fm_state.last_re = re;
         fm_state.last_im = im;
-        bool new_level = (discrim > 0);
-        if (new_level == fm_state.current_logic_level) {
-            fm_state.buffer_count++;
-        } else {
-            int32_t duration_us = (fm_state.buffer_count * nsPerDecSamp) / 1000;
-            if (duration_us > 5) {
-                if (protoListFm) protoListFm->feed(fm_state.current_logic_level, duration_us);
+        fm_state.smoothed_discrim += (discrim - fm_state.smoothed_discrim) >> 4;
+
+        // --- FM Part (Simple 2-FSK) ---
+        if (mag > (threshold / 2)) {
+            const int32_t fm_hysteresis = 2000;
+            bool new_level = fm_state.current_logic_level;
+            if (fm_state.smoothed_discrim > fm_hysteresis) {
+                new_level = true;
+            } else if (fm_state.smoothed_discrim < -fm_hysteresis) {
+                new_level = false;
             }
-            fm_state.current_logic_level = new_level;
-            fm_state.buffer_count = 1;
+            if (new_level == fm_state.current_logic_level) {
+                fm_state.buffer_count++;
+            } else {
+                int32_t duration_us = (fm_state.buffer_count * nsPerDecSamp) / 1000;
+                if (duration_us > 15) {
+                    if (protoListFm) protoListFm->feed(fm_state.current_logic_level, duration_us);
+                }
+                fm_state.current_logic_level = new_level;
+                fm_state.buffer_count = 1;
+            }
+        } else {
+            fm_state.buffer_count = 0;
         }
     }
 }
