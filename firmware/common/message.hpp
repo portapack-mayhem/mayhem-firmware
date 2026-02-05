@@ -1761,13 +1761,13 @@ class MorseTXkeyMessage : public Message {
 
 class StreamTXConfigurationMessage : public Message {
    public:
-    constexpr StreamTXConfigurationMessage(uint32_t bw, uint8_t mode)
+    constexpr StreamTXConfigurationMessage(uint32_t deviation, uint8_t mode)
         : Message{ID::StreamTXConfiguration},
-          bw{bw},
+          deviation{deviation},
           mode{mode} {}
 
-    uint32_t bw = 60000;  // used in 2fsk
-    uint8_t mode = 0;     // am = 0, 2fsk = 1
+    uint32_t deviation = 60000;  // used in 2fsk
+    uint8_t mode = 0;            // am = 0, 2fsk = 1
 };
 
 #endif /*__MESSAGE_H__*/

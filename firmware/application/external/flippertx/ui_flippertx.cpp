@@ -108,13 +108,13 @@ void FlipperTxView::stop() {
 bool FlipperTxView::start() {
     if (filename.empty()) return false;
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-    transmitter_model.set_sampling_rate(2280000U);
+    transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
     transmitter_model.enable();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     uint8_t mode = 0;
     if (preset == FLIPPER_PRESET_2FSK)
         mode = 1;
-    baseband::set_bitstream_config(60000, mode);
+    baseband::set_bitstream_config(FM_DEVIATION, mode);
     // start thread
     replay_thread = std::make_unique<FlipperPlayThread>(
         filename,

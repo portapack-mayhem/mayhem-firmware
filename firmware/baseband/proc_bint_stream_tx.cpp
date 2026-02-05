@@ -42,11 +42,11 @@ inline void BinaryTimedProcessorStreamed::write_sample(const buffer_c8_t& buffer
             im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
         }
     } else if (mode == 1) {
-        // calculate the re, im based on the bw uint32_t variable to get the re, im, to send out 2fsk signal. based on the bit_value
+        // calculate the re, im based on the deviation uint32_t variable to get the re, im, to send out 2fsk signal. based on the bit_value
         if (bit_value) {
-            phase += bw_delta;
+            phase += deviation_delta;
         } else {
-            phase -= bw_delta;
+            phase -= deviation_delta;
         }
         sphase = phase + (64 << 18);
         re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
@@ -119,9 +119,9 @@ void BinaryTimedProcessorStreamed::on_message(const Message* const message) {
 
 void BinaryTimedProcessorStreamed::streamtx_config(const StreamTXConfigurationMessage& message) {
     mode = message.mode;
-    bw = message.bw;
-    uint64_t big_calc = (uint64_t)message.bw << 26;
-    bw_delta = (uint32_t)(big_calc / OOK_SAMPLERATE);
+    deviation = message.deviation;
+    uint64_t big_calc = (uint64_t)message.deviation << 26;
+    deviation_delta = (uint32_t)(big_calc / OOK_SAMPLERATE);
 }
 
 void BinaryTimedProcessorStreamed::replay_config(const ReplayConfigMessage& message) {
