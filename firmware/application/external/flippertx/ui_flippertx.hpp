@@ -28,7 +28,7 @@ using namespace ui;
 namespace ui::external_app::flippertx {
 
 #define OOK_SAMPLERATE 2280000U
-#define FM_DEVIATION 50000U
+#define FM_DEVIATION 60000U
 
 class FlipperPlayThread;
 class FlipperTxView : public View {
