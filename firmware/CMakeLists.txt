@@ -70,7 +70,7 @@ add_custom_target(
 # PRALINE: Append FPGA bitstream to firmware at offset 0x180000
 # The base firmware is 1MB, FPGA goes at 1MB offset, final size is 2MB
 if(BOARD STREQUAL "PRALINE")
-	math(EXPR PRALINE_FINAL_SIZE "2 * 1024 * 1024")
+	math(EXPR PRALINE_FINAL_SIZE "4 * 1024 * 1024")
 	set(PRALINE_FPGA_BIN ${CMAKE_CURRENT_SOURCE_DIR}/../hackrf/firmware/fpga/build/praline_fpga.bin)
 	set(APPEND_FPGA_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tools/append_fpga_bitstream.py)
 	add_custom_command(

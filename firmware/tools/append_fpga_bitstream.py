@@ -34,8 +34,8 @@ def main():
     total_size = int(sys.argv[4], 0)
 
     # FPGA bitstream offset in flash
-    # PRALINE: Moved to 1.5MB to allow larger base firmware
-    FPGA_OFFSET = 0x180000  # 1.5MB (was 0x100000 = 1MB)
+    # PRALINE: Moved to 3.5MB to allow larger base firmware
+    FPGA_OFFSET = 0x380000  # 3.5MB (was 0x180000 = 1.5MB)
 
     # Read input files
     firmware = read_image(firmware_path)

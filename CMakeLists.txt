@@ -40,7 +40,7 @@ message("Configuring for FLASH_MB_SIZE=${FLASH_MB_SIZE}MB")
 #This is the flash memory size we build. This can be less, so the FW size will be less, so can be flashed with older utils.
 if(NOT DEFINED FLASH_MB_LIMIT_SIZE)
 	if(BOARD STREQUAL "PRALINE")
-	    set(FLASH_MB_LIMIT_SIZE 1.5) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
+	    set(FLASH_MB_LIMIT_SIZE 3.5) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
 	else()
 	    set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
 	endif()
@@ -53,7 +53,7 @@ endif()
 
 math(EXPR FLASH_BYTES_SIZE "${FLASH_MB_SIZE} * 1024 * 1024")
 if(BOARD STREQUAL "PRALINE")
-    math(EXPR FLASH_BYTES_LIMIT_SIZE "1536 * 1024")
+    math(EXPR FLASH_BYTES_LIMIT_SIZE "3584 * 1024")
 else()
     math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 endif()

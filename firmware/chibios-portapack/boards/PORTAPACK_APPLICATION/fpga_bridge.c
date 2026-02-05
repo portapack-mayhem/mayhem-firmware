@@ -18,10 +18,10 @@
 
   // SPIFI memory-mapped base address
   // Flash is mapped starting at 0x14000000
-  // FPGA bitstream at flash address 0x180000 = memory address 0x14180000
+  // FPGA bitstream at flash address 0x380000 = memory address 0x14380000
   // PRALINE: Moved to 1.5MB offset to allow larger base firmware
   #define SPIFI_DATA_BASE 0x14000000
-  #define FPGA_BITSTREAM_FLASH_ADDR 0x180000  // Was 0x100000 (1MB), now 0x180000 (1.5MB)
+  #define FPGA_BITSTREAM_FLASH_ADDR 0x380000  // Was 0x180000 (1.5MB), now 0x380000 (3.5MB)
   #define FPGA_BITSTREAM_MEM_ADDR (SPIFI_DATA_BASE + FPGA_BITSTREAM_FLASH_ADDR)
 
   // MMIO32 direct register access
