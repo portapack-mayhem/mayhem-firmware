@@ -618,12 +618,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADT adsbtx)
 
-### OOKStream
+### Binary Timed stream TX
 
 set(MODE_CPPSRC
-	proc_ook_stream_tx.cpp
+	proc_bint_stream_tx.cpp
 )
-DeclareTargets(POSK ookstream)
+DeclareTargets(POSK bintstream)
 
 
 ### Signal generator
