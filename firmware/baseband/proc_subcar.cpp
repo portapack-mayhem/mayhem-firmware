@@ -38,10 +38,6 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
     feed_channel_stats(decim_1_out);
 
-    // for fm
-    const int32_t DC_ALPHA = 5;  // Auto-centering speed
-    int32_t buffer_rotation_sum = 0;
-
     for (size_t i = 0; i < decim_1_out.count; i++) {
         // am
         threshold = (low_estimate + high_estimate) / 2;
@@ -125,7 +121,7 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
         if (new_level == fm_state.current_logic_level) {
             fm_state.buffer_count++;
         } else {
-                    int32_t duration_us = (fm_state.buffer_count * nsPerDecSamp) / 1000;
+            int32_t duration_us = (fm_state.buffer_count * nsPerDecSamp) / 1000;
             if (duration_us > 5) {
                 if (protoListFm) protoListFm->feed(fm_state.current_logic_level, duration_us);
             }
