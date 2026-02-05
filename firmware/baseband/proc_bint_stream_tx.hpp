@@ -34,7 +34,7 @@
 #include <memory>
 
 #define OOK_SAMPLERATE 2280000U
-#define FM_DEVIATION 50000U
+#define FM_DEVIATION 60000U
 
 class BinaryTimedProcessorStreamed : public BasebandProcessor {
    public:
