@@ -74,15 +74,13 @@ class SubCarProcessor : public BasebandProcessor {
     uint32_t threshold = 0x0630;
     bool currentHiLow = false;
     bool configured{false};
-    uint8_t mode = 0;  // 0 = am, 1 = fm
 
     // fm part:
     struct DemodFMState {
-        int prev_quad = 0;  // Stores 0, 1, 2, or 3
-        int32_t dc_offset = 0;
-        int32_t smoothed_error = 0;
         bool current_logic_level = false;
         uint32_t buffer_count = 0;
+        int16_t last_re = 0;  // Store previous Real sample
+        int16_t last_im = 0;
     };
     DemodFMState fm_state{};
 
