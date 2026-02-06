@@ -91,6 +91,7 @@ SubCarView::SubCarView(NavigationView& nav)
                   &button_clear_list,
                   &check_log,
                   &labels,
+                  &options_mode,
                   &recent_entries_view});
 
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
@@ -114,11 +115,17 @@ SubCarView::SubCarView(NavigationView& nav)
     recent_entries_view.on_select = [this](const SubCarRecentEntry& entry) {
         nav_.push<SubCarRecentEntryDetailView>(entry);
     };
-    baseband::set_subghzd_config(0, receiver_model.sampling_rate());  // 0=am
-    receiver_model.enable();
+
+    options_mode.on_change = [this](size_t, int32_t v) {
+        modulation = v;
+        chThdSleepMilliseconds(100);  // wait for the baseband thread to process the previous config, to avoid glitchy output when switching modes
+        baseband::set_subghzd_config(modulation, receiver_model.sampling_rate());
+    };
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();
     };
+    options_mode.set_selected_index(modulation, true);
+    receiver_model.enable();
 }
 
 void SubCarView::on_tick_second() {
@@ -176,6 +183,8 @@ const char* SubCarView::getSensorTypeName(FPROTO_SUBCAR_SENSOR type) {
             return "Fiat V0";
         case FPC_BMWV0:
             return "BMW V0";
+            /* case FPC_KIAV6:
+                 return "Kia V6";*/
 
         case FPC_Invalid:
         default:
@@ -490,6 +499,13 @@ void SubCarRecentEntryDetailView::parseProtocol() {
         cnt = (entry_.data >> 40) & 0xFFFF;
         btn = to_string_dec_uint(button);
     }
+
+    /*if (entry_.sensorType == FPC_KIAV6) {
+        // not decrypted!
+        serial = 0;
+        btn = "?";
+        cnt = 0;
+    }*/
 
     return;
 }
