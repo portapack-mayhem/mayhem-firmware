@@ -32,7 +32,9 @@
 #include "chprintf.h"
 #include "portapack.hpp"
 
+extern "C" {
 #include "platform_detect.h"
+}
 
 /**
  * @brief   Shell termination event source.
