@@ -1,5 +1,4 @@
 #include "gpio_lpc.h"
-#include "ch.h"
 
 typedef enum {
     LED1 = 0,
@@ -21,7 +20,7 @@ static struct gpio_t gpio_led[] = {
 void delay(uint32_t duration) {
     while (duration--) {
         /* cannot be optimized out */
-        __asm__ volatile("nop" ::: "memory");
+        __asm__ volatile("nop");
     }
 }
 
@@ -30,9 +29,7 @@ void delay_us_at_mhz(uint32_t us, uint32_t mhz) {
     uint64_t cycles64 = (uint64_t)us * (uint64_t)mhz;
     if (cycles64 > UINT32_MAX) cycles64 = UINT32_MAX;
 
-    chSysLock(); /* prevent thread preemption */
     delay((uint32_t)cycles64);
-    chSysUnlock();
 }
 
 void led_on(const led_t led) {
