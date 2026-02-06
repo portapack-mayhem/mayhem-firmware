@@ -58,7 +58,7 @@ class SpectrumInputImageView : public View {
     uint32_t data_start{0};
 
     Button button_load_image{
-        {0 * 8, 11 * 16 - 4, screen_width, 28},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(10), screen_width, 28},
         "Load Image ..."};
 
     bool drawBMP_scaled(const ui::Rect r, const std::string file);

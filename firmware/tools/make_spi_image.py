@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
 # Copyright (C) 2024 Mark Thompson
-# Copyleft (ɔ) 2024 zxkmm with the GPL license
+# copyleft 2025 zxkmm AKA zix aka sommermorgentraum
 #
 # This file is part of PortaPack.
 #
@@ -36,8 +36,9 @@ from pathlib import Path
 usage_message = """
 PortaPack SPI flash image generator
 
-Usage: <command> <application_path> <baseband_path> <output_path>
+Usage: <command> <application_path> <baseband_path> <output_path> <spi_size>
        Where paths refer to the .bin files for each component project.
+       spi_size is the total size of the target flash (e.g. 1048576).
 """
 
 
@@ -166,13 +167,14 @@ def get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(path):
 
 #^^^^^^^^gcc version check from elf file^^^^^^^^
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     print(usage_message)
     sys.exit(-1)
 
 application_image = read_image(sys.argv[1])
 baseband_image = read_image(sys.argv[2])
 output_path = sys.argv[3]
+spi_size = int(sys.argv[4], 0)
 
 print("\ncheck gcc versions from all elf target\n")
 application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
@@ -206,8 +208,6 @@ except Exception as e:
 
 #^^^^^^^^external app linker script address check worker^^^^^^^^
 
-
-spi_size = 1048576
 
 images = (
     {

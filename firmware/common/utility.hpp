@@ -90,6 +90,7 @@ float fast_log2(const float val);
 float fast_pow2(const float val);
 
 float mag2_to_dbv_norm(const float mag2);
+float mag2_to_dbm_8bit_normalized(int8_t real, int8_t imag, float v_ref, float R);
 
 inline float magnitude_squared(const std::complex<float> c) {
     const auto r = c.real();
@@ -126,9 +127,11 @@ struct is_flags_type {
 template <typename TEnum>
 constexpr bool is_flags_type_v = is_flags_type<TEnum>::value;
 
-#define ENABLE_FLAGS_OPERATORS(type) \
-    template <>                      \
-    struct is_flags_type<type> { static constexpr bool value = true; };
+#define ENABLE_FLAGS_OPERATORS(type)        \
+    template <>                             \
+    struct is_flags_type<type> {            \
+        static constexpr bool value = true; \
+    };
 
 template <typename TEnum>
 constexpr std::enable_if_t<is_flags_type_v<TEnum>, TEnum> operator|(TEnum a, TEnum b) {

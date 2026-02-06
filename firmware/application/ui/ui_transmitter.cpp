@@ -56,17 +56,21 @@ static const Style* get_style_for_gain(uint8_t tot_gain) {
 void TransmitterView::paint(Painter& painter) {
     size_t c;
     Point pos = {0, screen_pos().y()};
-
-    for (c = 0; c < 20; c++) {
+    Point pos2 = {0, screen_pos().y() + 32 + 8};
+    // 24*8 pxstripes
+    for (c = 0; c < (size_t)(screen_width / 24 + 1); c++) {
         painter.draw_bitmap(
             pos,
             bitmap_stripes,
             Theme::getInstance()->fg_yellow->foreground,
             Theme::getInstance()->fg_yellow->background);
-        if (c != 9)
-            pos += {24, 0};
-        else
-            pos = {0, screen_pos().y() + 32 + 8};
+        painter.draw_bitmap(
+            pos2,
+            bitmap_stripes,
+            Theme::getInstance()->fg_yellow->foreground,
+            Theme::getInstance()->fg_yellow->background);
+        pos += {24, 0};
+        pos2 += {24, 0};
     }
 }
 
@@ -225,16 +229,16 @@ TransmitterView2::TransmitterView2(Point pos, bool short_ui) {
     text_labels.set(short_ui ? "G:   A:" : "Gain:   Amp:");
     text_labels.set_parent_rect(
         short_ui
-            ? Rect{0 * 8, 0 * 16, 7 * 8, 1 * 16}
-            : Rect{0 * 8, 0 * 16, 12 * 8, 1 * 16});
+            ? Rect{UI_POS_X(0), UI_POS_Y(0), 7 * 8, 1 * 16}
+            : Rect{UI_POS_X(0), UI_POS_Y(0), 12 * 8, 1 * 16});
     field_gain.set_parent_rect(
         short_ui
-            ? Rect{2 * 8, 0 * 16, 2 * 8, 1 * 16}
-            : Rect{5 * 8, 0 * 16, 2 * 8, 1 * 16});
+            ? Rect{2 * 8, UI_POS_Y(0), 2 * 8, 1 * 16}
+            : Rect{5 * 8, UI_POS_Y(0), 2 * 8, 1 * 16});
     field_amp.set_parent_rect(
         short_ui
-            ? Rect{7 * 8, 0 * 16, 2 * 8, 1 * 16}
-            : Rect{12 * 8, 0 * 16, 2 * 8, 1 * 16});
+            ? Rect{7 * 8, UI_POS_Y(0), 2 * 8, 1 * 16}
+            : Rect{12 * 8, UI_POS_Y(0), 2 * 8, 1 * 16});
 
     field_gain.set_value(transmitter_model.tx_gain());
     field_gain.on_change = [this](uint32_t tx_gain) {

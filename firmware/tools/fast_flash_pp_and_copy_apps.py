@@ -1,4 +1,4 @@
-# Copyleft Whiterose from the Dark Army
+# copyleft 2024 zxkmm AKA zix aka sommermorgentraum
 #
 # This file is part of PortaPack.
 #

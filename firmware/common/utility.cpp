@@ -91,6 +91,26 @@ float mag2_to_dbv_norm(const float mag2) {
     return (fast_log2(mag2) - mag2_log2_max) * mag2_to_db_factor;
 }
 
+// Function to calculate dBm and normalize based on LNA and VGA settings
+float mag2_to_dbm_8bit_normalized(int8_t real, int8_t imag, float v_ref, float R) {
+    // Step 1: Normalize IQ values (convert 8-bit signed to -1.0 to +1.0)
+    float I = real / 127.0f;  // Map the 8-bit real part to the [-1, 1] range
+    float Q = imag / 127.0f;  // Map the 8-bit imaginary part to the [-1, 1] range
+
+    // Step 2: Compute the magnitude squared (I^2 + Q^2)
+    float mag2 = I * I + Q * Q;
+
+    // Step 3: Convert the magnitude squared to actual power (in watts)
+    float voltage_squared = mag2 * v_ref * v_ref;
+    float power_watts = voltage_squared / R;
+
+    // Step 4: Convert the power to dBm (multiply by 1000 to convert watts to milliwatts)
+    float power_milliwatts = power_watts * 1000.0f;
+    float dbm_measured = 10.0f * log10f(power_milliwatts);
+
+    return dbm_measured;
+}
+
 // Integer in and out approximation
 // >40 times faster float sqrt(x*x+y*y) on Cortex M0
 // derived from https://dspguru.com/dsp/tricks/magnitude-estimator/

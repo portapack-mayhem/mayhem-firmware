@@ -227,8 +227,8 @@ void controls_init() {
     gptStart(&GPTD1, &timer0_config);
     gptStartContinuous(&GPTD1, timer0_match_count);
 
-    // Enable repeat for directional switches only
-    for (auto i = Switch::Right; i <= Switch::Up; incr(i))
+    // Enable repeat for directional and Select switches only
+    for (auto i = Switch::Right; i <= Switch::Sel; incr(i))
         switch_debounce[toUType(i)].enable_repeat();
 }
 
@@ -248,6 +248,22 @@ SwitchesState get_switches_state() {
     }
 
     return result;
+}
+
+/* Gets the repeat enabled state for all the switches. */
+SwitchesState get_switches_repeat_config() {
+    SwitchesState result;
+
+    for (size_t i = 0; i < result.size(); i++)
+        result[i] = switch_debounce[i].get_repeat_enabled();
+
+    return result;
+}
+
+/* Configures which switches support repeat.*/
+void set_switches_repeat_config(SwitchesState switch_config) {
+    for (size_t i = 0; i < switch_config.size(); i++)
+        switch_debounce[i].set_enable_repeat(switch_config[i]);
 }
 
 /* Gets the long press enabled state for all the switches. */

@@ -84,6 +84,7 @@ class BitExtractor {
     void extract_bits(const buffer_f32_t& audio);
     void configure(uint32_t sample_rate);
     void reset();
+    void set_baud_config(int8_t baud_config);
     uint16_t baud_rate() const;
 
    private:
@@ -117,7 +118,7 @@ class BitExtractor {
         RateInfo{2400}};
 
     BitQueue& bits_;
-
+    int8_t baud_config_ = -1;
     uint32_t sample_rate_ = 0;
     RateInfo* current_rate_ = nullptr;
 };
@@ -207,7 +208,7 @@ class POCSAGProcessor : public BasebandProcessor {
     static constexpr uint32_t stat_update_threshold =
         baseband_fs / stat_update_interval;
 
-    void configure();
+    void configure(int8_t baud_config = -1);
     void flush();
     void reset();
     void send_stats() const;

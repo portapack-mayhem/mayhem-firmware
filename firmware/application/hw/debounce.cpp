@@ -37,6 +37,14 @@ void Debounce::enable_repeat() {
     repeat_enabled_ = true;
 }
 
+void Debounce::set_enable_repeat(bool enabled) {
+    repeat_enabled_ = enabled;
+}
+
+bool Debounce::get_repeat_enabled() {
+    return repeat_enabled_;
+}
+
 bool Debounce::get_long_press_enabled() const {
     return long_press_enabled_;
 }

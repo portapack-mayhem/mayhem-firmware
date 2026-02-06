@@ -28,13 +28,21 @@ Optional<File::Error> LogFile::write_entry(const std::string& entry) {
 
 Optional<File::Error> LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
     std::string timestamp = to_string_timestamp(datetime);
-    return write_line(timestamp + " " + entry);
+    return write_raw(timestamp + " " + entry);
 }
 
-Optional<File::Error> LogFile::write_line(const std::string& message) {
+Optional<File::Error> LogFile::write_raw(const std::string& message) {
     auto error = file.write_line(message);
     if (!error) {
         file.sync();
     }
     return error;
+}
+
+Optional<File::Error> LogFile::write_raw_no_newline(const std::string& message) {
+    auto result_s = file.write(message.c_str(), message.size());
+    if (!result_s.is_error()) {
+        file.sync();
+    }
+    return {result_s.error()};
 }

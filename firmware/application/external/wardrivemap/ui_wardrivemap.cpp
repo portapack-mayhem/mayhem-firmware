@@ -158,9 +158,10 @@ WardriveMapView::WardriveMapView(NavigationView& nav)
     }
 
     // never move this before the first load() bc that will mess load up
-    geomap.on_move = [this](float lon, float lat) {
+    geomap.on_move = [this](float lon, float lat, bool absolute) {
         (void)lon;
         (void)lat;
+        (void)absolute;
         load_markers();
     };
     btn_back.on_select = [this, &nav](Button&) {

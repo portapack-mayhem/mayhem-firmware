@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyleft Mr. Robot 2025
+ * copyleft 2025 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -51,10 +51,10 @@ class AudioSpectrumView : public View {
     int16_t audio_spectrum[128]{0};
 
     Labels labels{
-        {{6 * 8, 0 * 16}, "Hz", Theme::getInstance()->fg_light->foreground}};
+        {{6 * 8, UI_POS_Y(0)}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {0, 48000},
         48000 / 240,
@@ -146,11 +146,12 @@ class WaterfallView : public View {
 
     void set_parent_rect(const Rect new_parent_rect) override;
     void show_audio_spectrum_view(const bool show);
+    void load_gradient();
 
    private:
     void update_widgets_rect();
 
-    const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, screen_width, 2 * 16 + 20};
+    const Rect audio_spectrum_view_rect{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, 2 * 16 + 20};
     static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
     static constexpr Dim scale_height = 20;
 

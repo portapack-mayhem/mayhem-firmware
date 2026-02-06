@@ -49,10 +49,10 @@
  */
 
 #define LPC_ADC0_IRQ_PRIORITY 1
-//#define LPC_DMA_IRQ_PRIORITY                2
-//#define LPC_ADC1_IRQ_PRIORITY               3
+// #define LPC_DMA_IRQ_PRIORITY                2
+// #define LPC_ADC1_IRQ_PRIORITY               3
 #define LPC43XX_GPT_TIMER0_IRQ_PRIORITY 2
-//#define LPC43XX_GPT_TIMER1_IRQ_PRIORITY     2
+// #define LPC43XX_GPT_TIMER1_IRQ_PRIORITY     2
 #define LPC43XX_M0_I2C_I2C0_OR_I2C1_IRQ_PRIORITY 3
 #define LPC43XX_PIN_INT4_IRQ_PRIORITY 3
 
@@ -62,6 +62,6 @@
 #define LPC_RTC_IRQ_PRIORITY 3
 
 #define LPC43XX_GPT_USE_TIMER0 TRUE
-//#define LPC43XX_GPT_USE_TIMER1              TRUE
+// #define LPC43XX_GPT_USE_TIMER1              TRUE
 
 #define LPC43XX_M4TXEVENT_IRQ_PRIORITY 3

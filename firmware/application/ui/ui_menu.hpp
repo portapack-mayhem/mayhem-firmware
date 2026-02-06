@@ -99,6 +99,7 @@ class MenuView : public View {
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    bool on_touch(const TouchEvent event) override;
 
    private:
     void update_items();

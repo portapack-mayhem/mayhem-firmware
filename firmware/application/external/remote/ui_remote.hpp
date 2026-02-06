@@ -208,7 +208,7 @@ class RemoteEntryEditView : public View {
         {{2 * 8, 5 * 16}, "Icon:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 6 * 16}, "FG Color:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 7 * 16}, "BG Color:", Theme::getInstance()->fg_light->foreground},
-        {{8 * 8, 9 * 16}, "Button preview", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(14), 9 * 16}, "Button preview", Theme::getInstance()->fg_light->foreground},
     };
 
     TextField field_name{{8 * 8, 1 * 16, 20 * 8, 1 * 16}, {}};
@@ -244,7 +244,7 @@ class RemoteEntryEditView : public View {
         /*loop*/ true};
 
     RemoteButton button_preview{
-        {10 * 8, 11 * 16 - 8, 10 * 8, 50},
+        {UI_POS_X_CENTER(10), 11 * 16 - 8, 10 * 8, 50},
         &entry_};
 
     NewButton button_delete{
@@ -253,7 +253,7 @@ class RemoteEntryEditView : public View {
         &bitmap_icon_trash,
         Color::red()};
 
-    Button button_done{{11 * 8, 16 * 16, 8 * 8, 2 * 16}, "Done"};
+    Button button_done{{UI_POS_X_CENTER(10), 16 * 16, 10 * 8, 2 * 16}, "Done"};
 };
 
 /* App that allows for buttons to be bound to captures for playback. */
@@ -328,39 +328,39 @@ class RemoteAppView : public View {
     bool ready_signal_{};  // Used to signal ReplayThread ready.
 
     TextField field_title{
-        {0 * 8, 0 * 16 + 2, screen_width, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0) + 2, screen_width, 1 * 16},
         {}};
 
     TransmitterView2 tx_view{
-        {0 * 8, 17 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(3)},
         /*short_ui*/ true};
 
     Checkbox check_loop{
-        {10 * 8, 17 * 16},
+        {10 * 8, UI_POS_Y_BOTTOM(3)},
         4,
         "Loop",
         /*small*/ true};
 
     TextField field_filename{
-        {0 * 8, 18 * 16, 17 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(2), 17 * 8, 1 * 16},
         {}};
 
     NewButton button_add{
-        {17 * 8 + 4, 17 * 16, 4 * 8, 2 * 16},
+        {17 * 8 + 4, UI_POS_Y_BOTTOM(3), 4 * 8, 2 * 16},
         "",
         &bitmap_icon_add,
         Color::orange(),
         /*vcenter*/ true};
 
     NewButton button_new{
-        {22 * 8, 17 * 16, 4 * 8, 2 * 16},
+        {22 * 8, UI_POS_Y_BOTTOM(3), 4 * 8, 2 * 16},
         "",
         &bitmap_icon_new_file,
         Color::dark_blue(),
         /*vcenter*/ true};
 
     NewButton button_open{
-        {26 * 8, 17 * 16, 4 * 8, 2 * 16},
+        {26 * 8, UI_POS_Y_BOTTOM(3), 4 * 8, 2 * 16},
         "",
         &bitmap_icon_load,
         Color::dark_blue(),

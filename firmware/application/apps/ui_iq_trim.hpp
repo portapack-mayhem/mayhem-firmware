@@ -54,7 +54,7 @@ class TrimProgressUI {
     }
 
     void clear() {
-        p.fill_rectangle({0 * 8, 4 * 16, screen_width, 3 * 16}, Theme::getInstance()->bg_darkest->background);
+        p.fill_rectangle({UI_POS_X(0), 4 * 16, screen_width, 3 * 16}, Theme::getInstance()->bg_darkest->background);
     }
 
     auto get_callback() {
@@ -100,22 +100,22 @@ class IQTrimView : public View {
     TrimProgressUI progress_ui{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Capture File:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Start  :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "End    :", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Samples:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 9 * 16}, "Max Pwr:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 16}, "Cutoff :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Capture File:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Start  :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "End    :", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 8 * 16}, "Samples:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 9 * 16}, "Max Pwr:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 10 * 16}, "Cutoff :", Theme::getInstance()->fg_light->foreground},
         {{12 * 8, 10 * 16}, "%", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 12 * 16}, "Amplify:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 12 * 16}, "Amplify:", Theme::getInstance()->fg_light->foreground},
         {{10 * 8, 12 * 16}, "x", Theme::getInstance()->fg_light->foreground},
     };
 
     TextField field_path{
-        {0 * 8, 1 * 16, screen_width, 1 * 16},
+        {UI_POS_X(0), 1 * 16, screen_width, 1 * 16},
         "Open File..."};
 
-    Point pos_lines{0 * 8, 4 * 16};
+    Point pos_lines{UI_POS_X(0), 4 * 16};
     Dim height_lines{2 * 16};
 
     NumberField field_start{
@@ -155,7 +155,7 @@ class IQTrimView : public View {
         ' '};
 
     Button button_trim{
-        {20 * 8, 16 * 16, 8 * 8, 2 * 16},
+        {UI_POS_X_CENTER(8), UI_POS_Y_BOTTOM(3), 8 * 8, 2 * 16},
         "Trim"};
 };
 

@@ -145,10 +145,10 @@ class LCRView : public View {
         {2 * 8, 27 * 8 + 4, 26 * 8, 16},
         LanguageHelper::currentMessages[LANG_READY]};
     ProgressBar progress{
-        {2 * 8, 29 * 8 + 4, 26 * 8, 16}};
+        {2 * 8, 29 * 8 + 4, UI_POS_WIDTH_REMAINING(4), 16}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 

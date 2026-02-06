@@ -26,6 +26,7 @@
 #include "string_format.hpp"
 #include "ui_receiver.hpp"
 #include "ui_freqman.hpp"
+#include "audio.hpp"
 
 using namespace portapack;
 
@@ -256,6 +257,7 @@ bool FrequencyKeypadView::on_encoder(const EncoderEvent delta) {
 FrequencyKeypadView::FrequencyKeypadView(
     NavigationView& nav,
     const rf::Frequency value) {
+    button_w = screen_width / 3;
     add_child(&text_value);
 
     const auto button_fn = [this](Button& button) {
@@ -275,29 +277,63 @@ FrequencyKeypadView::FrequencyKeypadView(
         };
         button.on_select = button_fn;
         button.set_parent_rect({(n % 3) * button_w,
-                                (n / 3) * button_h + 24,
+                                (n / 3) * button_h + 25,
                                 button_w, button_h});
         button.set_text(label);
         n++;
     }
 
-    add_children({&button_save,
+    add_children({&button_save_ghz,
+                  &button_save_khz,
+                  &button_save_mhz,
                   &button_load,
-                  &button_close});
+                  &button_clear,
+                  &button_done_ghz,
+                  &button_done_mhz,
+                  &button_done_khz});
 
-    button_save.on_select = [this, &nav](Button&) {
-        nav.push<FrequencySaveView>(this->value());
+    button_save_mhz.on_select = [this, &nav](Button&) {
+        nav.push<FrequencySaveView>(this->value(FrequencyUnit::MHZ));  // pass as mhz and handle unit convert logic there, cuz idk if pass others would loss something
     };
+    button_save_ghz.on_select = [this, &nav](Button&) {
+        nav.push<FrequencySaveView>(this->value(FrequencyUnit::GHZ));
+    };
+    button_save_khz.on_select = [this, &nav](Button&) {
+        nav.push<FrequencySaveView>(this->value(FrequencyUnit::KHZ));
+    };
+
     button_load.on_select = [this, &nav](Button&) {
         auto load_view = nav.push<FrequencyLoadView>();
         load_view->on_frequency_loaded = [this](rf::Frequency value) {
             set_value(value);
         };
     };
+    button_clear.on_select = [this](Button&) {
+        mhz.clear();
+        submhz.clear();
+        clear_field_if_digits_entered = true;
+        if (state == State::DigitSubMHz) {
+            state = State::DigitMHz;
+        }
+        draw_input_hint();
+        update_text();
+    };
 
-    button_close.on_select = [this, &nav](Button&) {
+    button_done_ghz.on_select = [this, &nav](Button&) {
         if (on_changed)
-            on_changed(this->value());
+            on_changed(this->value(FrequencyUnit::GHZ));
+        nav.pop();
+    };
+
+    button_done_mhz.on_select = [this, &nav](Button&) {
+        if (on_changed)
+            on_changed(this->value(FrequencyUnit::MHZ));
+        nav.pop();
+    };
+
+    button_done_khz.on_select = [this, &nav](Button&) {
+        if (on_changed)
+            on_changed(this->value(FrequencyUnit::KHZ));
         nav.pop();
     };
 
@@ -305,11 +341,20 @@ FrequencyKeypadView::FrequencyKeypadView(
 }
 
 void FrequencyKeypadView::focus() {
-    button_close.focus();
+    button_done_mhz.focus();
 }
 
-rf::Frequency FrequencyKeypadView::value() const {
-    return mhz.as_int() * 1000000ULL + submhz.as_int() * submhz_base;
+rf::Frequency FrequencyKeypadView::value(FrequencyUnit frequency_uni) const {
+    switch (frequency_uni) {
+        case FrequencyUnit::GHZ:
+            return mhz.as_int() * 1000000000ULL + submhz.as_int() * submhz_base * 1000;
+        case FrequencyUnit::MHZ:
+            return mhz.as_int() * 1000000ULL + submhz.as_int() * submhz_base;
+        case FrequencyUnit::KHZ:
+            return mhz.as_int() * 1000ULL + submhz.as_int() * submhz_base / 1000;
+        default:
+            return mhz.as_int() * 1000000ULL + submhz.as_int() * submhz_base;
+    }
 }
 
 void FrequencyKeypadView::set_value(const rf::Frequency new_value) {
@@ -381,6 +426,25 @@ void FrequencyKeypadView::field_toggle() {
         state = State::DigitMHz;
         clear_field_if_digits_entered = true;
     }
+    draw_input_hint();
+}
+
+void FrequencyKeypadView::draw_input_hint() {
+    set_dirty();
+}
+
+void FrequencyKeypadView::paint(Painter& painter) {
+    View::paint(painter);
+
+    const bool s = state == State::DigitMHz;
+    painter.draw_hline(
+        {0, 36},
+        8 * 4,
+        s ? Color::white() : Color::black());
+    painter.draw_hline(
+        {5 * 8, 36},
+        8 * 4,
+        s ? Color::black() : Color::white());
 }
 
 void FrequencyKeypadView::update_text() {
@@ -528,8 +592,13 @@ AudioVolumeField::AudioVolumeField(
           /* fill char */ ' '} {
     set_value(receiver_model.normalized_headphone_volume());
 
-    on_change = [](int32_t v) {
-        receiver_model.set_normalized_headphone_volume(v);
+    on_change = [](int32_t vol) {
+        // don't call receiver model, because this widget shuld be able to handle volume settinsg from any app, regardless of the receiver model's enables state. like the tx apps should be able to set volume too.
+        // this is identical to the receiver model's method
+        uint8_t v = clip<uint8_t>(vol, 0, 99);
+        auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+        persistent_memory::set_headphone_volume(new_volume);
+        audio::headphone::set_volume(new_volume);
     };
 }
 

@@ -26,7 +26,9 @@
 #include <complex>
 #include <cmath>
 
-constexpr float pi{3.141592653589793238462643383279502884f};
+#include "mathdef.hpp"
+
+constexpr float pi{M_PI};
 
 namespace std {
 

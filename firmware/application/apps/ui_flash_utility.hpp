@@ -32,7 +32,9 @@
 #include "untar.hpp"
 #include <cstdint>
 
-#define FLASH_ROM_SIZE 1048576
+#include "../../flashsize.h"
+
+#define FLASH_ROM_SIZE (FLASH_SIZE_MB * 1024 * 1024)
 #define FLASH_STARTING_ADDRESS 0x00000000
 #define FLASH_EXPECTED_CHECKSUM 0x00000000
 #define FLASH_CHECKSUM_ERROR 0xFFFFFFFF
@@ -49,6 +51,7 @@ class FlashUtilityView : public View {
 
     std::string title() const override { return "Flash Utility"; };
     bool flash_firmware(std::filesystem::path::string_type path);
+    void wait_till_loaded();
 
    private:
     NavigationView& nav_;
@@ -60,13 +63,21 @@ class FlashUtilityView : public View {
         {{4, 4}, "Select firmware to flash:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
-        {0, 2 * 8, screen_width, 26 * 8},
+        {0, UI_POS_Y(1), screen_width, UI_POS_HEIGHT_REMAINING(2)},
         true};
 
     std::filesystem::path extract_tar(std::filesystem::path::string_type path, ui::Painter& painter);  // extracts the tar file, and returns the firmware.bin path from it. empty string if no fw
     void firmware_selected(std::filesystem::path::string_type path);
 
     bool endsWith(const std::u16string& str, const std::u16string& suffix);
+    bool isLoaded = false;
+    uint8_t refreshcnt = 0;
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            refreshcnt++;
+            if (refreshcnt > 5) isLoaded = true;
+        }};
 };
 
 } /* namespace ui */

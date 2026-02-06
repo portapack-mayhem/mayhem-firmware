@@ -115,7 +115,7 @@ class TransmitterView : public View {
         ' '};
 
     Button button_start{
-        {21 * 8, 1 * 8, 9 * 8, 32},
+        {UI_POS_X_RIGHT(9), 1 * 8, 9 * 8, 32},
         "START"};
 
     FrequencyStepView field_frequency_step{

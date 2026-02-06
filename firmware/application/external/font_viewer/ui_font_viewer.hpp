@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2023 Mark Thompson
- * copyleft Whiterose of the Dark Army
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -49,7 +49,7 @@ class DebugFontsView : public View {
     void paint_zoomed_text(Painter& painter);
 
     NumberField field_cursor{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         4,
         {0, 1000},
         1,
@@ -61,7 +61,7 @@ class DebugFontsView : public View {
         1,
         ' '};
     Text text_address{
-        {screen_width / 2, 0 * 16, screen_width / 2, 16},
+        {screen_width / 2, UI_POS_Y(0), screen_width / 2, 16},
         "0x20",
     };
     NavigationView& nav_;

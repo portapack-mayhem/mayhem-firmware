@@ -81,13 +81,13 @@ class TouchCalibrationView : public View {
         Color::black()};
 
     Image image_calibrate_1{
-        {240 - 32 - 16, (320 - 16) / 2 - 16, 32, 32},
+        {screen_width - 32 - 16, (screen_height - 16) / 2 - 16, 32, 32},
         &bitmap_target_calibrate,
         Color::white(),
         Color::black()};
 
     Image image_calibrate_2{
-        {240 / 2 - 16, (320 - 16) - 32 - 16, 32, 32},
+        {screen_width / 2 - 16, (screen_height - 16) - 32 - 16, 32, 32},
         &bitmap_target_calibrate,
         Color::white(),
         Color::black()};
@@ -99,13 +99,13 @@ class TouchCalibrationView : public View {
         Color::black()};
 
     Image image_verify_1{
-        {240 - 32 - 16, (320 - 16) / 2 - 16, 32, 32},
+        {screen_width - 32 - 16, (screen_height - 16) / 2 - 16, 32, 32},
         &bitmap_target_verify,
         Color::white(),
         Color::black()};
 
     Image image_verify_2{
-        {240 / 2 - 16, (320 - 16) - 32 - 16, 32, 32},
+        {screen_width / 2 - 16, (screen_height - 16) - 32 - 16, 32, 32},
         &bitmap_target_verify,
         Color::white(),
         Color::black()};
@@ -131,11 +131,11 @@ class TouchCalibrationView : public View {
         "Calibration failed. Retry?"};
 
     Button button_cancel{
-        {40, 200, 64, 24},
+        {40, 200, UI_POS_WIDTH(8), 24},
         "Cancel"};
 
     Button button_ok{
-        {136, 200, 64, 24},
+        {136, 200, UI_POS_WIDTH(8), 24},
         "OK"};
 
     void on_frame_sync();

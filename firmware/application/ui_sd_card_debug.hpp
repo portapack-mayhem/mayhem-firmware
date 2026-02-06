@@ -48,14 +48,14 @@ class SDCardDebugView : public View {
     std::string fetch_sdcard_format();
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Format", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "CSD", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Bus width", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Card type", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Block size", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 9 * 16}, "Block count", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 16}, "Capacity", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Bus width", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Format", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "CSD", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Bus width", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Card type", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 8 * 16}, "Block size", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 9 * 16}, "Block count", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 10 * 16}, "Capacity", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Bus width", Theme::getInstance()->fg_light->foreground},
 
     };
 

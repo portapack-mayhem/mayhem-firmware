@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2022 Arjan Onwezen
+ * Copyright (C) 2025 Tommaso Ventafridda
  *
  * This file is part of PortaPack.
  *
@@ -59,6 +60,12 @@ class database {
     };
 
     int retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term);
+
+    struct MacAddressDBRecord {
+        char vendor_name[64];  // vendor/manufacturer name
+    };
+
+    int retrieve_macaddress_record(MacAddressDBRecord* record, std::string search_term);
 
    private:
     std::filesystem::path file_path = "";  // path including filename

@@ -82,7 +82,7 @@ class RDSRadioTextView : public OptionTabView {
         {1 * 8, 4 * 16, 28 * 8, 16},
         "-"};
     Button button_set{
-        {88, 6 * 16, 64, 32},
+        {UI_POS_X_CENTER(8), 6 * 16, UI_POS_WIDTH(8), 32},
         "Set"};
 };
 
@@ -92,7 +92,7 @@ class RDSDateTimeView : public OptionTabView {
 
    private:
     Labels labels{
-        {{44, 5 * 16}, "Not yet implemented", Theme::getInstance()->error_dark->foreground}};
+        {{UI_POS_X_CENTER(19), 5 * 16}, "Not yet implemented", Theme::getInstance()->error_dark->foreground}};
 };
 
 class RDSAudioView : public OptionTabView {
@@ -101,7 +101,7 @@ class RDSAudioView : public OptionTabView {
 
    private:
     Labels labels{
-        {{44, 5 * 16}, "Not yet implemented", Theme::getInstance()->error_dark->foreground}};
+        {{UI_POS_X_CENTER(19), 5 * 16}, "Not yet implemented", Theme::getInstance()->error_dark->foreground}};
 };
 
 class RDSThread {
@@ -174,7 +174,7 @@ class RDSView : public View {
         {"Audio", Theme::getInstance()->fg_orange->foreground, &view_audio}};
 
     Labels labels{
-        {{0 * 8, 28}, "Program type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 28}, "Program type:", Theme::getInstance()->fg_light->foreground},
         //{ { 14 * 8, 16 + 8 }, "CC:", Theme::getInstance()->fg_light->foreground },
         {{2 * 8, 28 + 16}, "Program ID:", Theme::getInstance()->fg_light->foreground},
         //{ { 13 * 8, 32 + 8 }, "Cov:",Theme::getInstance()->fg_light->foreground },
@@ -319,7 +319,7 @@ class RDSView : public View {
         "TP"};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         50000,
         9};
 

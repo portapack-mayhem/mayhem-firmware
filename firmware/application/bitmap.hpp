@@ -415,6 +415,44 @@ static constexpr Bitmap bitmap_icon_adsb{
     {16, 16},
     bitmap_icon_adsb_data};
 
+static constexpr uint8_t bitmap_icon_adulttoys_data[] = {
+    0x00,
+    0x00,
+    0x30,
+    0x0C,
+    0x78,
+    0x1E,
+    0x7C,
+    0x3E,
+    0xFE,
+    0x7F,
+    0xFE,
+    0x7F,
+    0xFE,
+    0x7F,
+    0xFE,
+    0x7F,
+    0xFC,
+    0x3F,
+    0xFC,
+    0x3F,
+    0xF8,
+    0x1F,
+    0xF0,
+    0x0F,
+    0xE0,
+    0x07,
+    0xC0,
+    0x03,
+    0x80,
+    0x01,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_adulttoys{
+    {16, 16},
+    bitmap_icon_adulttoys_data};
+
 static constexpr uint8_t bitmap_icon_ais_data[] = {
     0x00,
     0x01,
@@ -4259,7 +4297,7 @@ static constexpr Bitmap bitmap_icon_tpms{
     {16, 16},
     bitmap_icon_tpms_data};
 
-static constexpr uint8_t bitmap_icon_tranceivers_data[] = {
+static constexpr uint8_t bitmap_icon_transceivers_data[] = {
     0x80,
     0x01,
     0xC0,
@@ -4293,9 +4331,9 @@ static constexpr uint8_t bitmap_icon_tranceivers_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_tranceivers{
+static constexpr Bitmap bitmap_icon_transceivers{
     {16, 16},
-    bitmap_icon_tranceivers_data};
+    bitmap_icon_transceivers_data};
 
 static constexpr uint8_t bitmap_icon_transmit_data[] = {
     0x80,

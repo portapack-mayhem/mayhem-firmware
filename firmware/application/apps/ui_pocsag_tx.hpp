@@ -85,7 +85,7 @@ class POCSAGTXView : public View {
         {{6 * 8, 8 * 8}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 8}, "Function:", Theme::getInstance()->fg_light->foreground},
         {{5 * 8, 12 * 8}, "Phase:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 14 * 8}, "Message:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 14 * 8}, "Message:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_bitrate{
         {11 * 8, 4 * 8},
@@ -122,21 +122,21 @@ class POCSAGTXView : public View {
         }};
 
     Text text_message{
-        {0 * 8, 16 * 8, screen_width, 16},
+        {UI_POS_X(0), 16 * 8, screen_width, 16},
         ""};
     Text text_message_l2{
-        {0 * 8, 18 * 8, screen_width, 16},
+        {UI_POS_X(0), 18 * 8, screen_width, 16},
         ""};
 
     Button button_message{
-        {0 * 8, 20 * 8, 14 * 8, 32},
+        {UI_POS_X(0), 20 * 8, 14 * 8, 32},
         "Set message"};
 
     ProgressBar progressbar{
-        {16, 210, 208, 16}};
+        {16, 210, UI_POS_WIDTH_REMAINING(4), 16}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         9};
 

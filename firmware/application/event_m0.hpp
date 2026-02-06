@@ -133,7 +133,7 @@ class EventDispatcher {
     void on_keyboard_event(ui::KeyboardEvent event);
 
     // void blink_timer();
-    void handle_lcd_frame_sync();
+    void handle_lcd_frame_sync(bool screen_on);
     void handle_switches();
     void handle_encoder();
     void handle_touch();

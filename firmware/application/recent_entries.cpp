@@ -24,12 +24,12 @@
 namespace ui {
 
 RecentEntriesColumns::RecentEntriesColumns(
-    const std::initializer_list<RecentEntriesColumn> columns)
+    std::initializer_list<RecentEntriesColumn> columns)
     : _columns{columns} {
 }
 
 RecentEntriesHeader::RecentEntriesHeader(
-    const RecentEntriesColumns& columns)
+    RecentEntriesColumns& columns)
     : _columns{columns} {
 }
 

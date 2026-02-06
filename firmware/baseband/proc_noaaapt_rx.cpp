@@ -157,7 +157,7 @@ void NoaaAptRx::configure(const NoaaAptRxConfigureMessage& message) {
     channel_filter_high_f = taps_38k_wfmam_decim_1.high_frequency_normalized * decim_1_input_fs;
     channel_filter_transition = taps_38k_wfmam_decim_1.transition_normalized * decim_1_input_fs;
     demod.configure(demod_input_fs, 17000);
-    audio_filter.configure(taps_64_lp_1875_2166.taps);
+    audio_filter.configure(taps_64_bpf_2k4_bw_2k.taps);
     audio_output.configure(apt_audio_12k_notch_2k4_config, apt_audio_12k_lpf_2000hz_config);
     // channel_spectrum.set_decimation_factor(1);
     update_params();

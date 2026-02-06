@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  * Copyright (C) 2024 u-foka
  * Copyright (C) 2024 Mark Thompson
  *
@@ -51,6 +51,12 @@ static const uint16_t darken_mask[4] = {
 #define UNDARKENED_PIXEL(pixel, shift) (pixel << shift)
 
 namespace portapack {
+
+enum DeviceType {
+    DEV_PORTAPACK,
+    DEV_PORTARF
+};
+extern DeviceType device_type;
 
 class IO {
    public:
@@ -140,12 +146,43 @@ class IO {
             lcd_write_data(d);
         }
     }
+    uint32_t lcd_read_data_raw() {
+        // NOTE: Assumes ADDR=1 from command phase.
+        dir_read();
+
+        /* Start read operation */
+        lcd_rd_assert();
+        /* Wait for passthrough data(15:8) to settle -- ~16ns (3 cycles) typical */
+        /* Wait for read control L duration (355ns) */
+        halPolledDelay(71);  // 355ns
+        const auto value_high = data_read();
+
+        /* Latch data[7:0] */
+        lcd_rd_deassert();
+        /* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
+        /* Wait for read control H duration (90ns) */
+        halPolledDelay(18);  // 90ns
+
+        const auto value_low = data_read();
+        uint32_t original_value = (value_high << 8) | value_low;
+
+        return original_value;
+    }
 
     void lcd_data_read_command_and_data(
         const uint_fast8_t command,
         uint16_t* const data,
         const size_t data_count) {
         lcd_command(command);
+        if (device_type == DEV_PORTARF) {
+            // dummy read
+            dir_read();
+            lcd_rd_assert();
+            halPolledDelay(71);
+            data_read();
+            lcd_rd_deassert();
+            halPolledDelay(71);
+        }
         for (size_t i = 0; i < data_count; i++) {
             data[i] = lcd_read_data();
         }
@@ -205,19 +242,7 @@ class IO {
         }
     }
 
-    void lcd_read_bytes(uint8_t* byte, size_t byte_count) {
-        size_t word_count = byte_count / 2;
-        while (word_count) {
-            const auto word = lcd_read_data();
-            *(byte++) = word >> 8;
-            *(byte++) = word >> 0;
-            word_count--;
-        }
-        if (byte_count & 1) {
-            const auto word = lcd_read_data();
-            *(byte++) = word >> 8;
-        }
-    }
+    void lcd_read_bytes(uint8_t* byte, size_t byte_count);
 
     uint32_t io_read() {
         io_stb_assert();
@@ -400,32 +425,40 @@ class IO {
     }
 
     uint32_t lcd_read_data() {
-        // NOTE: Assumes ADDR=1 from command phase.
         dir_read();
-
         /* Start read operation */
         lcd_rd_assert();
         /* Wait for passthrough data(15:8) to settle -- ~16ns (3 cycles) typical */
         /* Wait for read control L duration (355ns) */
         halPolledDelay(71);  // 355ns
-        const auto value_high = data_read();
+        if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+            const auto value_high = data_read();
+            /* Latch data[7:0] */
+            lcd_rd_deassert();
+            /* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
+            /* Wait for read control H duration (90ns) */
+            halPolledDelay(71);  // 90ns
+            const auto value_low = data_read();
+            uint32_t original_value = (value_high << 8) | value_low;
 
+            if (lcd_normally_black) return original_value;
+
+            if (dark_cover_enabled) {
+                // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,
+                // then shift to back side AKA UNDARKENED_PIXEL, to prevent read shifted darkern info
+                original_value = UNDARKENED_PIXEL(original_value, brightness);
+            }
+            return original_value;
+        }
+        const auto value_high = data_read();
         /* Latch data[7:0] */
         lcd_rd_deassert();
-        /* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
-        /* Wait for read control H duration (90ns) */
-        halPolledDelay(18);  // 90ns
-
+        halPolledDelay(71);
         const auto value_low = data_read();
-        uint32_t original_value = (value_high << 8) | value_low;
-
-        if (lcd_normally_black) return original_value;
-
-        if (dark_cover_enabled) {
-            // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,
-            // then shift to back side AKA UNDARKENED_PIXEL, to prevent read shifted darkern info
-            original_value = UNDARKENED_PIXEL(original_value, brightness);
-        }
+        lcd_rd_deassert();
+        halPolledDelay(71);
+        const auto value_last_low = data_read();
+        uint32_t original_value = (value_high << 16) | value_low << 8 | value_last_low;
         return original_value;
     }
 

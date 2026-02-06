@@ -241,7 +241,7 @@ w25q80bv_driver_t spi_flash = {
 
 sgpio_config_t sgpio_config = {
     .gpio_q_invert = &gpio_q_invert,
-    .gpio_hw_sync_enable = &gpio_hw_sync_enable,
+    .gpio_trigger_enable = &gpio_hw_sync_enable,
     .slice_mode_multislice = true,
 };
 
@@ -950,7 +950,7 @@ void pin_setup(void) {
 #ifdef HACKRF_ONE
     if (detected_platform() == BOARD_ID_HACKRF1_R9) {
         rf_path.gpio_rx = &gpio_h1r9_rx;
-        sgpio_config.gpio_hw_sync_enable = &gpio_h1r9_hw_sync_enable;
+        sgpio_config.gpio_trigger_enable = &gpio_h1r9_hw_sync_enable;
     }
 #endif
     rf_path_pin_setup(&rf_path);
@@ -1041,8 +1041,8 @@ void set_leds(const uint8_t state) {
     }
 }
 
-void hw_sync_enable(const hw_sync_mode_t hw_sync_mode) {
-    gpio_write(sgpio_config.gpio_hw_sync_enable, hw_sync_mode == 1);
+void trigger_enable(bool hw_sync_mode) {
+    gpio_write(sgpio_config.gpio_trigger_enable, hw_sync_mode == 1);
 }
 
 void halt_and_flash(const uint32_t duration) {

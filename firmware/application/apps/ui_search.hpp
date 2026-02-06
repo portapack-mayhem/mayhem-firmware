@@ -26,6 +26,8 @@
 #include "radio_state.hpp"
 #include "gradient.hpp"
 #include "ui_receiver.hpp"
+#include "log_file.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
@@ -69,6 +71,21 @@ struct SearchRecentEntry {
 };
 
 using SearchRecentEntries = RecentEntries<SearchRecentEntry>;
+
+class SearchLogger {
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_data(SearchRecentEntry& data);
+    void write_header() {
+        log_file.write_raw("Time;Freq;Duration;");
+    }
+
+   private:
+    LogFile log_file{};
+};
 
 class SearchView : public View {
    public:
@@ -126,7 +143,7 @@ class SearchView : public View {
     uint32_t bin_skip_acc = 0;
     uint32_t bin_skip_frac = 0;
     uint32_t pixel_index = 0;
-    std::array<Color, 240> spectrum_row{};
+    std::vector<Color> spectrum_row{};
     ChannelSpectrumFIFO* fifo = nullptr;
 
     uint8_t detect_timer = 0;
@@ -148,6 +165,8 @@ class SearchView : public View {
     uint16_t locked_bin = 0;
     uint8_t search_counter = 0;
     bool locked = false;
+    bool logging = false;
+    SearchLogger logger{};
 
     void do_detection();
     void do_timers();
@@ -155,75 +174,82 @@ class SearchView : public View {
     void on_range_changed();
     void add_spectrum_pixel(Color color);
 
-    const RecentEntriesColumns columns{{{"Frequency", 9},
-                                        {"Time", 8},
-                                        {"Duration", 11}}};
+    RecentEntriesColumns columns{{{"Frequency", 0},
+                                  {"Time", 8},
+                                  {"Duration", 11}}};
     SearchRecentEntries recent{};
     RecentEntriesView<RecentEntries<SearchRecentEntry>> recent_entries_view{columns, recent};
 
     Labels labels{
-        {{1 * 8, 0}, "Min:      Max:       LNA VGA", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 4 * 8}, "Trig:   /255    Mean:   /255", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 6 * 8}, "Slices:  /32      Rate:   Hz", Theme::getInstance()->fg_light->foreground},
-        {{6 * 8, 10 * 8}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
-        {{26 * 8, 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(1), UI_POS_Y(0)}, "Min:      Max:       ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(7), UI_POS_Y(0)}, "LNA VGA", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "Trig:   /255", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(12), UI_POS_Y(2)}, "Mean:   /255", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(3)}, "Slices:  /32", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(10), UI_POS_Y(3)}, "Rate:   Hz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(6), UI_POS_Y(5)}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(4), 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
+
+    Checkbox check_log{
+        {UI_POS_X_RIGHT(6), UI_POS_Y(5)},
+        3,
+        "LOG",
+        true};
 
     FrequencyField field_frequency_min{
-        {1 * 8, 1 * 16}};
+        {UI_POS_X(1), UI_POS_Y(1)}};
     FrequencyField field_frequency_max{
-        {11 * 8, 1 * 16}};
+        {UI_POS_X(11), UI_POS_Y(1)}};
 
     LNAGainField field_lna{
-        {22 * 8, 1 * 16}};
+        {UI_POS_X_RIGHT(7), UI_POS_Y(1)}};
     VGAGainField field_vga{
-        {26 * 8, 1 * 16}};
+        {UI_POS_X_RIGHT(3), UI_POS_Y(1)}};
 
     NumberField field_threshold{
-        {6 * 8, 2 * 16},
+        {UI_POS_X(6), UI_POS_Y(2)},
         3,
         {5, 255},
         5,
         ' '};
     Text text_mean{
-        {22 * 8, 2 * 16, 3 * 8, 16},
+        {UI_POS_X_RIGHT(7), UI_POS_Y(2), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
     Text text_slices{
-        {8 * 8, 3 * 16, 2 * 8, 16},
+        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
         "--"};
     Text text_rate{
-        {24 * 8, 3 * 16, 3 * 8, 16},
+        {UI_POS_X_RIGHT(5), UI_POS_Y(3), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
 
     VuMeter vu_max{
-        {1 * 8, 11 * 8 - 4, 3 * 8, 48},
+        {UI_POS_X(1), 11 * 8 - 4, 3 * 8, 48},
         18,
         false};
 
     ProgressBar progress_timers{
-        {6 * 8, 12 * 8, 6 * 8, 16}};
+        {UI_POS_X(6), UI_POS_Y(6), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}};
     Text text_infos{
-        {13 * 8, 12 * 8, 15 * 8, 16},
+        {UI_POS_X(13), UI_POS_Y(6), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)},
         "Listening"};
 
     Checkbox check_snap{
-        {6 * 8, 15 * 8},
+        {UI_POS_X(6), 15 * 8},
         7,
         "Snap to:",
         true};
     OptionsField options_snap{
-        {17 * 8, 15 * 8},  // Position
-        7,                 // Length
-        {                  // Options
+        {UI_POS_X(17), 15 * 8},  // Position
+        7,                       // Length
+        {                        // Options
          {"25kHz  ", 25'000},
          {"12.5kHz", 12'500},
          {"8.33kHz", 8'333},
          {"2.5kHz", 2'500},
          {"500Hz", 500}}};
 
-    BigFrequency big_display{
-        {4, 9 * 16, 28 * 8, 52},
-        0};
+    BigFrequency big_display{{UI_POS_X_CENTER(28), UI_POS_Y(9), UI_POS_WIDTH(28), 52}, 0};
 
     MessageHandlerRegistration message_handler_spectrum_config{
         Message::ID::ChannelSpectrumConfig,

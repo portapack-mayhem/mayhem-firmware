@@ -23,8 +23,8 @@
     Creator: @htotoo
 */
 
-#ifndef __PROC_WEATHER_H__
-#define __PROC_WEATHER_H__
+#ifndef __PROC_SUBGHZD_H__
+#define __PROC_SUBGHZD_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"

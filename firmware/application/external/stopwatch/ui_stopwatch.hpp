@@ -1,6 +1,6 @@
 /*
  * Copyright 2025 Mark Thompson
- * copyleft Mr. Robot of F.Society
+ * copyleft 2025 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -57,8 +57,8 @@ class StopwatchView : public View {
     /*                       m     m     s      s     ms   ms    ms*/
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "TOTAL:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "LAP:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "TOTAL:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "LAP:", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField options_ms_display_level{
@@ -71,15 +71,15 @@ class StopwatchView : public View {
     Painter painter;
 
     Button button_run_stop{
-        {72, 210, 96, 24},
+        {UI_POS_X_CENTER(12), 210, 96, 24},
         "START"};
 
     Button button_reset_lap{
-        {72, screen_height - 80, 96, 24},
+        {UI_POS_X_CENTER(12), screen_height - 80, 96, 24},
         "RESET"};
 
     Button button_done{
-        {72, screen_height - 50, 96, 24},
+        {UI_POS_X_CENTER(12), screen_height - 50, 96, 24},
         "EXIT"};
 
     MessageHandlerRegistration message_handler_frame_sync{

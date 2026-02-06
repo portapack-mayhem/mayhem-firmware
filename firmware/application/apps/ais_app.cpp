@@ -223,9 +223,9 @@ void AISRecentEntry::update(const ais::Packet& packet) {
             break;
 
         case 5:
-            call_sign = packet.text(70, 7);
-            name = packet.text(112, 20);
-            destination = packet.text(302, 20);
+            call_sign = trim(packet.text(70, 7));
+            name = trim(packet.text(112, 20));
+            destination = trim(packet.text(302, 20));
             break;
 
         case 18:
@@ -238,7 +238,7 @@ void AISRecentEntry::update(const ais::Packet& packet) {
             break;
 
         case 21:
-            name = packet.text(43, 20);
+            name = trim(packet.text(43, 20));
             last_position.timestamp = packet.received_at();
             last_position.latitude = packet.latitude(192);
             last_position.longitude = packet.longitude(164);
@@ -247,11 +247,11 @@ void AISRecentEntry::update(const ais::Packet& packet) {
         case 24:
             switch (packet.read(38, 2)) {
                 case 0:
-                    name = packet.text(40, 20);
+                    name = trim(packet.text(40, 20));
                     break;
 
                 case 1:
-                    call_sign = packet.text(90, 7);
+                    call_sign = trim(packet.text(90, 7));
                     break;
 
                 default:
@@ -272,14 +272,14 @@ void RecentEntriesTable<AISRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns&) {
     std::string line = ais::format::mmsi(entry.mmsi) + " ";
     if (!entry.name.empty()) {
         line += ais::format::text(entry.name);
     } else {
         line += ais::format::text(entry.call_sign);
     }
-
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
 }
@@ -301,7 +301,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
             ais::format::text(entry_.name),
             0,
             GeoPos::alt_unit::METERS,
-            GeoPos::spd_unit::NONE,
+            GeoPos::spd_unit::KNOTS,
             ais::format::latlon_float(entry_.last_position.latitude.normalized()),
             ais::format::latlon_float(entry_.last_position.longitude.normalized()),
             entry_.last_position.true_heading,
@@ -324,7 +324,31 @@ AISRecentEntryDetailView& AISRecentEntryDetailView::operator=(const AISRecentEnt
 
 void AISRecentEntryDetailView::update_position() {
     if (send_updates)
-        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground);
+        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground / 10);
+}
+
+bool AISRecentEntryDetailView::add_map_marker(const AISRecentEntry& entry) {
+    if (geomap_view && send_updates) {
+        GeoMarker marker{};
+        marker.lon = ais::format::latlon_float(entry.last_position.longitude.normalized());
+        marker.lat = ais::format::latlon_float(entry.last_position.latitude.normalized());
+        marker.angle = entry.last_position.true_heading;
+        marker.tag = entry.call_sign.empty() ? to_string_dec_uint(entry.mmsi) : entry.call_sign;
+        auto markerStored = geomap_view->store_marker(marker);
+        return markerStored == MARKER_STORED;
+    }
+    return false;
+}
+void AISRecentEntryDetailView::update_map_markers(AISRecentEntries& entries) {
+    if (geomap_view && send_updates) {
+        geomap_view->clear_markers();
+        for (const auto& entry : entries) {
+            // if (entry.last_position.latitude.is_valid() && entry.last_position.longitude.is_valid()) {
+            add_map_marker(entry);
+            // }
+        }
+        update_position();  // to update view
+    }
 }
 
 void AISRecentEntryDetailView::focus() {
@@ -415,12 +439,28 @@ AISAppView::AISAppView(NavigationView& nav)
         audio::set_rate(audio::Rate::Hz_24000);
         audio::output::start();
     }
+
+    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+        on_tick_second();
+    };
 }
 
 AISAppView::~AISAppView() {
+    rtc_time::signal_tick_second -= signal_token_tick_second;
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
+}
+
+void AISAppView::on_tick_second() {
+    ++timer_seconds;
+    if (timer_seconds % 10 == 0) {
+        if (recent_entry_detail_view.hidden()) return;
+        if (got_new_packet) {
+            got_new_packet = false;
+            recent_entry_detail_view.update_map_markers(recent);
+        }
+    }
 }
 
 void AISAppView::focus() {
@@ -438,7 +478,7 @@ void AISAppView::on_packet(const ais::Packet& packet) {
     if (logger) {
         logger->on_packet(packet);
     }
-
+    got_new_packet = true;
     auto& entry = ::on_packet(recent, packet.source_id());
     entry.update(packet);
     recent_entries_view.set_dirty();
@@ -461,6 +501,7 @@ void AISAppView::on_show_detail(const AISRecentEntry& entry) {
     recent_entry_detail_view.hidden(false);
     recent_entry_detail_view.set_entry(entry);
     recent_entry_detail_view.focus();
+    recent_entry_detail_view.update_map_markers(recent);
 }
 
 } /* namespace ui */

@@ -45,10 +45,15 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
     // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
     auto result = firmware_file.open(path.c_str());
     if (!result.is_valid()) {
+        uint64_t file_size = firmware_file.size();
+        if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK && file_size > 1 * 1024 * 1024) {
+            // Portapack firmware files must not be larger than 1MB
+            return false;
+        }
+        // May need to add a check to portarf and portarf pro too.
         checksum = 0;
-        for (uint32_t offset = 0; offset < FLASH_ROM_SIZE; offset += sizeof(read_buffer)) {
+        for (uint64_t offset = 0; offset < FLASH_ROM_SIZE && offset < file_size; offset += sizeof(read_buffer)) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
-
             if ((!readResult) || (readResult.value() != sizeof(read_buffer))) {
                 // File was smaller than 1MB:
                 // If version is such that the file SHOULD have been 1MB, call it a checksum error (otherwise say it's OK).
@@ -127,6 +132,12 @@ bool FlashUtilityView::endsWith(const std::u16string& str, const std::u16string&
         return endOfString == suffix;
     } else {
         return false;
+    }
+}
+
+void FlashUtilityView::wait_till_loaded() {
+    while (!isLoaded) {
+        chThdSleepMilliseconds(50);
     }
 }
 

@@ -29,6 +29,7 @@ namespace battery {
 #define BATTERY_MIN_VOLTAGE 3000.0
 #define BATTERY_MAX_VOLTAGE 4170.0
 #define BATTERY_DESIGN_CAP 2500
+#define BATTERY_DESIGN_CAP_PRF 3000
 
 // this will just hold the config and a calculation. also some defines above for the battery management. could be movet to the classes, but it is a bit more readeable i think.
 class BatteryManagement {

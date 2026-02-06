@@ -25,7 +25,7 @@
 #define __JAMMER_H__
 
 #define JAMMER_CH_WIDTH 1000000
-#define JAMMER_MAX_CH 24
+#define JAMMER_MAX_CH 80
 
 namespace jammer {
 

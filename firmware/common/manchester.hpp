@@ -47,7 +47,7 @@ class ManchesterBase {
 
     virtual size_t symbols_count() const;
 
-    virtual ~ManchesterBase(){};
+    virtual ~ManchesterBase() {};
 
    protected:
     const baseband::Packet& packet;

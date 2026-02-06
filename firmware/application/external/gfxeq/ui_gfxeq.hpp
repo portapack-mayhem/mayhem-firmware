@@ -22,6 +22,8 @@
 
 namespace ui::external_app::gfxeq {
 
+#include "external/ui_grapheq.hpp"
+
 class gfxEQView : public View {
    public:
     gfxEQView(NavigationView& nav);
@@ -32,46 +34,19 @@ class gfxEQView : public View {
 
     void focus() override;
     std::string title() const override { return "gfxEQ"; }
-    void on_show() override;
-    void on_hide() override;
 
-    void paint(Painter& painter) override;
     void on_freqchg(int64_t freq);
 
    private:
-    static constexpr ui::Dim header_height = 2 * 16;
-    static constexpr int RENDER_HEIGHT = 288;
-    static constexpr int NUM_BARS = 11;
-    static constexpr int BAR_SPACING = 2;
-    int BAR_WIDTH = (screen_width - (BAR_SPACING * (NUM_BARS - 1))) / NUM_BARS;
-    static constexpr int HORIZONTAL_OFFSET = 2;
-    static constexpr int SEGMENT_HEIGHT = 10;
-
-    static constexpr std::array<int, NUM_BARS + 1> FREQUENCY_BANDS = {
-        375,    // Bass warmth and low rumble (e.g., deep basslines, kick drum body)
-        750,    // Upper bass punch (e.g., bass guitar punch, kick drum attack)
-        1500,   // Lower midrange fullness (e.g., warmth in vocals, guitar body)
-        2250,   // Midrange clarity (e.g., vocal presence, snare crack)
-        3375,   // Upper midrange bite (e.g., instrument definition, vocal articulation)
-        4875,   // Presence and edge (e.g., guitar bite, vocal sibilance start)
-        6750,   // Lower brilliance (e.g., cymbal shimmer, vocal clarity)
-        9375,   // Brilliance and air (e.g., hi-hat crispness, breathy vocals)
-        13125,  // High treble sparkle (e.g., subtle overtones, synth shimmer)
-        16875,  // Upper treble airiness (e.g., faint harmonics, room ambiance)
-        20625,  // Top-end sheen (e.g., ultra-high harmonics, noise floor)
-        24375   // Extreme treble limit (e.g., inaudible overtones, signal cutoff, static)
-    };
-
     struct ColorTheme {
         Color base_color;
         Color peak_color;
     };
 
     NavigationView& nav_;
-    bool needs_background_redraw{false};
-    std::vector<int> bar_heights;
-    std::vector<int> prev_bar_heights;
+
     uint32_t current_theme{0};
+
     const std::array<ColorTheme, 20> themes{
         ColorTheme{Color(255, 0, 255), Color(255, 255, 255)},
         ColorTheme{Color(0, 255, 0), Color(255, 0, 0)},
@@ -94,12 +69,14 @@ class gfxEQView : public View {
         ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
         ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
-    ButtonWithEncoder button_frequency{{0 * 8, 0 * 16 + 4, 11 * 8, 1 * 8}, ""};
-    RFAmpField field_rf_amp{{13 * 8, 0 * 16}};
-    LNAGainField field_lna{{15 * 8, 0 * 16}};
-    VGAGainField field_vga{{18 * 8, 0 * 16}};
-    Button button_mood{{21 * 8, 0, 6 * 8, 16}, "MOOD"};
-    AudioVolumeField field_volume{{screen_width - 2 * 8, 0 * 16}};
+    // Widgets with positions using UI_POS macros
+    ButtonWithEncoder button_frequency{{UI_POS_X(0), UI_POS_Y(0) + 4, UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, ""};
+    RFAmpField field_rf_amp{{UI_POS_X(12), UI_POS_Y(0) + 4}};
+    LNAGainField field_lna{{UI_POS_X(14), UI_POS_Y(0) + 4}};
+    VGAGainField field_vga{{UI_POS_X(17), UI_POS_Y(0) + 4}};
+    Button button_mood{{UI_POS_X(21), UI_POS_Y(0) + 4, UI_POS_WIDTH(4), UI_POS_HEIGHT(1)}, "MOOD"};
+    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0) + 4}};
+    GraphEq gr{{2, UI_POS_Y(1) + 8, UI_POS_MAXWIDTH, UI_POS_Y_BOTTOM(1) - 28}, false};
 
     rf::Frequency frequency_value{93100000};
 
@@ -111,16 +88,13 @@ class gfxEQView : public View {
         {{"theme", &current_theme},
          {"frequency", &frequency_value}}};
 
-    void update_audio_spectrum(const AudioSpectrum& spectrum);
-    void render_equalizer(Painter& painter);
     void cycle_theme();
 
     MessageHandlerRegistration message_handler_audio_spectrum{
         Message::ID::AudioSpectrum,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
-            this->update_audio_spectrum(*message.data);
-            this->set_dirty();
+            this->gr.update_audio_spectrum(*message.data);
         }};
 
     MessageHandlerRegistration message_handler_freqchg{

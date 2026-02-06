@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 TJ Baginski
+ * Copyright (C) 2025 Tommaso Ventafridda
  *
  * This file is part of PortaPack.
  *
@@ -33,6 +34,7 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "database.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "usb_serial_thread.hpp"
@@ -69,24 +71,35 @@ typedef enum {
     RESERVED5 = 12,
     RESERVED6 = 13,
     RESERVED7 = 14,
-    RESERVED8 = 15
+    RESERVED8 = 15,
+    UNKNOWN = 16
 } ADV_PDU_TYPE;
+
+typedef enum {
+    MAC_VENDOR_UNKNOWN = 0,
+    MAC_VENDOR_FOUND = 1,
+    MAC_VENDOR_NOT_FOUND = 2,
+    MAC_DB_NOT_FOUND = 3
+} MAC_VENDOR_STATUS;
 
 struct BleRecentEntry {
     using Key = uint64_t;
 
-    static constexpr Key invalid_key = 0xffffffff;
+    static constexpr Key invalid_key = 0xFFFFFFFFFFFFF;
 
-    uint64_t macAddress;
+    uint64_t uniqueKey;
     int dbValue;
     BlePacketData packetData;
     std::string timestamp;
     std::string dataString;
     std::string nameString;
+    std::string informationString;
     bool include_name;
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
+    MAC_VENDOR_STATUS vendor_status;
+    std::string vendor_name;
     bool entryFound;
 
     BleRecentEntry()
@@ -94,22 +107,25 @@ struct BleRecentEntry {
     }
 
     BleRecentEntry(
-        const uint64_t macAddress)
-        : macAddress{macAddress},
+        const uint64_t uniqueKey)
+        : uniqueKey{uniqueKey},
           dbValue{},
           packetData{},
           timestamp{},
           dataString{},
           nameString{},
+          informationString{},
           include_name{},
           numHits{},
           pduType{},
           channelNumber{},
+          vendor_status{MAC_VENDOR_UNKNOWN},
+          vendor_name{},
           entryFound{} {
     }
 
     Key key() const {
-        return macAddress;
+        return uniqueKey;
     }
 };
 
@@ -126,11 +142,11 @@ class BleRecentEntryDetailView : public View {
     void update_data();
     void focus() override;
     void paint(Painter&) override;
+    static BLETxPacket build_packet(BleRecentEntry entry_);
 
    private:
     NavigationView& nav_;
     BleRecentEntry entry_{};
-    BLETxPacket build_packet();
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
@@ -139,35 +155,42 @@ class BleRecentEntryDetailView : public View {
     static constexpr uint8_t total_data_lines{5};
 
     Labels label_mac_address{
-        {{0 * 8, 0 * 16}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Mac Address:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_mac_address{
-        {12 * 8, 0 * 16, 17 * 8, 16},
+        {UI_POS_X(12), UI_POS_Y(0), UI_POS_WIDTH(17), UI_POS_HEIGHT(1)},
         "-"};
 
     Labels label_pdu_type{
-        {{0 * 8, 1 * 16}, "PDU Type:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "PDU Type:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_pdu_type{
-        {9 * 8, 1 * 16, 17 * 8, 16},
+        {9 * 8, UI_POS_Y(1), 17 * 8, UI_POS_HEIGHT(1)},
+        "-"};
+
+    Labels label_vendor{
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Vendor:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_vendor{
+        {7 * 8, UI_POS_Y(2), 23 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Labels labels{
-        {{0 * 8, 3 * 16}, "Len", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 3 * 16}, "Type", Theme::getInstance()->fg_light->foreground},
-        {{10 * 8, 3 * 16}, "Value", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(3)}, "Len", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, UI_POS_Y(3)}, "Type", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, UI_POS_Y(3)}, "Value", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_send{
-        {19, 224, 96, 24},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), 224, 96, 24},
         "Send"};
 
     Button button_done{
-        {125, 224, 96, 24},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), 224, 96, 24},
         "Done"};
 
     Button button_save{
-        {72, 264, 96, 24},
+        {UI_POS_X_CENTER(12), 264, 96, 24},
         "Save"};
 
     bool send_updates{false};
@@ -186,7 +209,7 @@ class BLERxView : public View {
     ~BLERxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
@@ -198,15 +221,19 @@ class BLERxView : public View {
     bool saveFile(const std::filesystem::path& path);
     std::unique_ptr<UsbSerialThread> usb_serial_thread{};
     void on_data(BlePacketData* packetData);
+    void log_ble_packet(BlePacketData* packet);
     void on_filter_change(std::string value);
     void on_file_changed(const std::filesystem::path& new_file_path);
     void file_error();
     void on_timer();
     void handle_entries_sort(uint8_t index);
-    void handle_filter_options(uint8_t index);
-    void updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
+    bool handle_filter_options(uint8_t index, const BleRecentEntry& entry);
+    bool updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
+    bool parse_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
+    bool parse_tracking_beacon_data(const uint8_t* data, uint8_t length, std::string& nameString, std::string& informationString);
 
     NavigationView& nav_;
+
     RxRadioState radio_state_{
         2402000000 /* frequency */,
         4000000 /* bandwidth */,
@@ -216,6 +243,8 @@ class BLERxView : public View {
     uint8_t channel_index{0};
     uint8_t sort_index{0};
     uint8_t filter_index{0};
+    bool uniqueParsing = false;
+    bool duplicatePackets = false;
     std::string filter{};
     bool logging{false};
     bool serial_logging{false};
@@ -234,6 +263,8 @@ class BLERxView : public View {
             // disabled to always start without USB serial activated until we can make it non blocking if not connected
             // {"serial_log"sv, &serial_logging},
             {"name"sv, &name_enable},
+            {"unique_parsing"sv, &uniqueParsing},
+            {"duplicate_packets"sv, &duplicatePackets},
         }};
 
     std::string str_console = "";
@@ -243,7 +274,7 @@ class BLERxView : public View {
     bool auto_channel = false;
 
     int16_t timer_count{0};
-    int16_t timer_period{6};  // 100ms
+    int16_t timer_period{1};  // 25ms
 
     std::string filterBuffer{};
     std::string listFileBuffer{};
@@ -259,11 +290,11 @@ class BLERxView : public View {
     std::filesystem::path log_packets_path{blerx_dir / u"Logs/????.TXT"};
     std::filesystem::path packet_save_path{blerx_dir / u"Lists/????.csv"};
 
-    static constexpr auto header_height = 9 * 8;
+    static constexpr auto header_height = 12 * 8;
     static constexpr auto switch_button_height = 3 * 16;
 
     OptionsField options_channel{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {{"Ch.37", 37},
          {"Ch.38", 38},
@@ -271,45 +302,50 @@ class BLERxView : public View {
          {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
-        {6 * 8, 0 * 16},
+        {UI_POS_X(6), UI_POS_Y(0)},
         nav_};
 
     RFAmpField field_rf_amp{
-        {16 * 8, 0 * 16}};
+        {UI_POS_X(16), UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {21 * 8, 0 * 16}};
+        {UI_POS_X(21), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {24 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(24), 0, UI_POS_WIDTH_REMAINING(6), 4}};
 
     Channel channel{
-        {24 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(24), 5, UI_POS_WIDTH_REMAINING(6), 4}};
 
     Labels label_sort{
-        {{0 * 8, 2 * 8}, "Sort:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Sort:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_sort{
-        {5 * 8, 2 * 8},
+        {5 * 8, UI_POS_Y(1)},
         4,
         {{"MAC", 0},
          {"Hits", 1},
          {"dB", 2},
          {"Time", 3},
-         {"Name", 4}}};
+         {"Name", 4},
+         {"Info", 5}}};
 
     Button button_filter{
-        {11 * 8, 2 * 8, 7 * 8, 16},
+        {11 * 8, UI_POS_Y(1), 7 * 8, 16},
         "Filter:"};
 
     OptionsField options_filter{
-        {18 * 8 + 2, 2 * 8},
-        4,
+        {18 * 8 + 2, UI_POS_Y(1)},
+        7,
         {{"Data", 0},
-         {"MAC", 1}}};
+         {"MAC", 1},
+         {"Name", 2},
+         {"Info", 3},
+         {"Vendor", 4},
+         {"Channel", 5}}};
 
     Checkbox check_log{
         {10 * 8, 4 * 8 + 2},
@@ -318,21 +354,10 @@ class BLERxView : public View {
         true};
 
     Checkbox check_name{
-        {0 * 8, 4 * 8 + 2},
+        {UI_POS_X(0), 4 * 8 + 2},
         3,
         "Name",
         true};
-
-    Button button_find{
-        {0 * 8, 7 * 8 - 2, 4 * 8, 16},
-        "Find"};
-
-    Labels label_found{
-        {{5 * 8, 7 * 8 - 2}, "Found:", Theme::getInstance()->fg_light->foreground}};
-
-    Text text_found_count{
-        {11 * 8, 7 * 8 - 2, 20 * 8, 16},
-        "0/0"};
 
     Checkbox check_serial_log{
         {18 * 8 + 2, 4 * 8 + 2},
@@ -340,19 +365,39 @@ class BLERxView : public View {
         "USB Log",
         true};
 
-    // Console console{
-    //     {0, 10 * 8, screen_height, screen_height-80}};
+    Checkbox check_unique{
+        {0 * 8 + 2, 7 * 8 + 2},
+        7,
+        "Unique",
+        true};
+
+    Checkbox check_duplicate_packets{
+        {10 * 8 + 2, 7 * 8 + 2},
+        7,
+        "Duplicate",
+        true};
+
+    Button button_find{
+        {UI_POS_X(0), 10 * 8 - 2, 4 * 8, 16},
+        "Find"};
+
+    Labels label_found{
+        {{5 * 8, 10 * 8 - 2}, "Found:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_found_count{
+        {11 * 8, 10 * 8 - 2, 20 * 8, 16},
+        "0/0"};
 
     Button button_clear_list{
         {2 * 8, screen_height - (16 + 32), 7 * 8, 32},
         "Clear"};
 
     Button button_save_list{
-        {11 * 8, screen_height - (16 + 32), 11 * 8, 32},
+        {UI_POS_X_CENTER(11), screen_height - (16 + 32), 11 * 8, 32},
         "Export CSV"};
 
     Button button_switch{
-        {screen_width - 6 * 8, screen_height - (16 + 32), 4 * 8, 32},
+        {UI_POS_X_RIGHT(6), screen_height - (16 + 32), 4 * 8, 32},
         "Tx"};
 
     std::string str_log{""};
@@ -361,10 +406,10 @@ class BLERxView : public View {
     BleRecentEntries recent{};
     BleRecentEntries tempList{};
 
-    const RecentEntriesColumns columns{{
-        {"Mac Address", 17},
+    RecentEntriesColumns columns{{
+        {"Name", 0},
         {"Hits", 7},
-        {"dB", 4},
+        {"dBm", 4},
     }};
 
     BleRecentEntriesView recent_entries_view{columns, recent};

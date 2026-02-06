@@ -51,7 +51,8 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     Color target_color;
     std::string entry_string;
 
@@ -70,9 +71,11 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
             target_color = Theme::getInstance()->fg_medium->foreground;
     };
 
-    entry_string +=
-        (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
-        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+    std::string ipc = (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ");
+    uint8_t firstcolwidth = columns.at(0).second;
+    ipc.resize(firstcolwidth, ' ');  // Make sure this is always match the first column's width that is dynamic.
+
+    entry_string += ipc + to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
 
     if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
         // It is generally accepted that for every thousand feet of altitude,
@@ -100,7 +103,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         entry_string);
 
     if (entry.pos.pos_valid)
-        painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0),
+        painter.draw_bitmap(target_rect.location() + Point(firstcolwidth * 8 - 8, 0),
                             bitmap_target, target_color, style.background);
 }
 
@@ -409,7 +412,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
          &status_good_frame,
          &field_volume});
 
-    recent_entries_view.set_parent_rect({0, 16, screen_width, 272});
+    recent_entries_view.set_parent_rect({0, 16, screen_width, UI_POS_HEIGHT_REMAINING(2)});
     recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
         detail_key = entry.key();
         details_view = nav.push<ADSBRxDetailsView>(entry);
@@ -635,14 +638,14 @@ void ADSBRxView::refresh_ui() {
 
         if (details_view->map_active()) {
             // Is it time to clear and refresh the map's markers?
-            if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {
+            if (ticks_since_marker_refresh >= (details_view->get_map_type() == MAP_TYPE_OSM ? MARKER_UPDATE_SECONDS_OSM : MARKER_UPDATE_SECONDS_BIN)) {
                 map_needs_update = true;
                 ticks_since_marker_refresh = 0;
                 details_view->clear_map_markers();
             }
         } else {
             // Refresh map immediately once active.
-            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS;
+            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS_OSM;  // this is the bigger, so set it to force
         }
 
         // Process the entries list.

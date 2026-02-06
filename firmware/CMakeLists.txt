@@ -56,7 +56,7 @@ add_subdirectory(test)
 # NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
 add_custom_command(
 	OUTPUT ${FIRMWARE_FILENAME}
-	COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME}
+	COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME} ${FLASH_BYTES_LIMIT_SIZE}
 	DEPENDS baseband application ${MAKE_SPI_IMAGE}
 		 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
 	VERBATIM

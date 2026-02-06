@@ -173,33 +173,37 @@ class ScannerView : public View {
     };
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(6), UI_POS_Y(0)}, "VOL:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(1)}, "BW:       SQ:    Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(13), UI_POS_Y(1)}, "Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(10)}, "SRCH START", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(10) + 8, UI_POS_Y(10)}, "SEARCH END", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(6), UI_POS_Y(10)}, "SWITCH", Theme::getInstance()->fg_light->foreground},
 
-        {{0 * 8, (26 * 8) + 4}, "MODE:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), (26 * 8) + 4}, "MODE:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, (26 * 8) + 4}, "STEP:", Theme::getInstance()->fg_light->foreground},
     };
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {UI_POS_X(4), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {UI_POS_X(11), UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {24 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     OptionsField field_bw{
-        {3 * 8, 1 * 16},
+        {UI_POS_X(3), UI_POS_Y(1)},
         6,
         {}};
 
     NumberField field_squelch{
-        {13 * 8, 1 * 16},
+        {UI_POS_X(13), UI_POS_Y(1)},
         3,
         {-90, 20},
         1,
@@ -208,7 +212,7 @@ class ScannerView : public View {
 
     NumberField field_browse_wait{
         // Signal-Active wait timer - time to wait before moving on even when signal locked
-        {21 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(9), UI_POS_Y(1)},
         2,
         {0, 99},
         1,
@@ -217,7 +221,7 @@ class ScannerView : public View {
 
     NumberField field_lock_wait{
         // Signal-Lost wait timer - time to wait before moving on after losing signal lock
-        {screen_width - 2 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(2), UI_POS_Y(1)},
         2,
         {0, 99},
         1,
@@ -225,20 +229,20 @@ class ScannerView : public View {
     };
 
     RSSI rssi{
-        {0 * 16, 2 * 16, 15 * 16, 8},
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(6), 8},
     };
 
     TextField field_current_index{
-        {0, 3 * 16, 3 * 8, 16},
+        {UI_POS_X(0), UI_POS_Y(3), 3 * 8, 16},
         {},
     };
 
     Text text_max_index{
-        {4 * 8, 3 * 16, 18 * 8, 16},
+        {UI_POS_X(4), UI_POS_Y(3), 18 * 8, 16},
     };
 
     Text text_current_desc{
-        {0, 4 * 16, screen_width - 6 * 8, 16},
+        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)},
     };
 
     BigFrequency big_display{
@@ -246,15 +250,15 @@ class ScannerView : public View {
         0};
 
     Button button_manual_start{
-        {0 * 8, 11 * 16, 11 * 8, 28},
+        {UI_POS_X(0), UI_POS_Y(11), UI_POS_WIDTH(10), 28},
         ""};
 
     Button button_manual_end{
-        {12 * 8, 11 * 16, 11 * 8, 28},
+        {UI_POS_X_CENTER(10) + 8, UI_POS_Y(11), UI_POS_WIDTH(10), 28},
         ""};
 
     Button button_manual_search{
-        {24 * 8, 11 * 16, 6 * 8, 28},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(11), UI_POS_WIDTH(6), 28},
         ""};
 
     OptionsField field_mode{
@@ -273,33 +277,33 @@ class ScannerView : public View {
         {0, (15 * 16) - 4, 72, 28},
         "<PAUSE>"};
 
+    Button button_audio_app{
+        {UI_POS_X_CENTER(9), (15 * 16) - 4, UI_POS_WIDTH(9), 28},
+        "AUDIO"};
+
+    Button button_add{
+        {UI_POS_X_RIGHT(9), (15 * 16) - 4, UI_POS_WIDTH(9), 28},
+        "ADD FQ"};
+
     Button button_dir{
         {0, (35 * 8) - 4, 72, 28},
         "REVERSE"};
 
-    Button button_audio_app{
-        {84, (15 * 16) - 4, 72, 28},
-        "AUDIO"};
-
     Button button_mic_app{
-        {84, (35 * 8) - 4, 72, 28},
+        {UI_POS_X_CENTER(9), (35 * 8) - 4, UI_POS_WIDTH(9), 28},
         "MIC TX"};
 
-    Button button_add{
-        {168, (15 * 16) - 4, 72, 28},
-        "ADD FQ"};
+    Button button_remove{
+        {UI_POS_X_RIGHT(9), (35 * 8) - 4, UI_POS_WIDTH(9), 28},
+        "DEL FQ"};
 
     Button button_load{
-        {24 * 8, 3 * 16 - 10, 6 * 8, 22},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(3) - 10, UI_POS_WIDTH(6), 22},
         "LOAD"};
 
     Button button_clear{
-        {24 * 8, 4 * 16, 6 * 8, 22},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(4), UI_POS_WIDTH(6), 22},
         "MCLR"};
-
-    Button button_remove{
-        {168, (35 * 8) - 4, 72, 28},
-        "DEL FQ"};
 
     std::unique_ptr<ScannerThread> scan_thread{};
 

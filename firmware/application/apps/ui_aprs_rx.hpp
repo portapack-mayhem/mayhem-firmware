@@ -134,14 +134,14 @@ class APRSDetailsView : public View {
     bool send_updates{false};
 
     Console console{
-        {0, 0 * 16, screen_width, 224}};
+        {UI_POS_X(0), UI_POS_Y(0), screen_width, screen_height - 80}};
 
     Button button_done{
-        {160, 14 * 16, 8 * 8, 3 * 16},
+        {UI_POS_X_CENTER(4) - UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "Close"};
 
     Button button_see_map{
-        {80, 14 * 16, 8 * 8, 3 * 16},
+        {UI_POS_X_CENTER(4) + UI_POS_WIDTH(8), UI_POS_Y(14), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "Map"};
 };
 
@@ -161,10 +161,10 @@ class APRSTableView : public View {
 
    private:
     NavigationView& nav_;
-    const RecentEntriesColumns columns{{{"Source", 9},
-                                        {"Loc", 6},
-                                        {"Hits", 4},
-                                        {"Time", 8}}};
+    RecentEntriesColumns columns{{{"Source", 0},
+                                  {"Loc", 6},
+                                  {"Hits", 4},
+                                  {"Time", 8}}};
     APRSRecentEntries recent{};
     RecentEntriesView<RecentEntries<APRSRecentEntry>> recent_entries_view{columns, recent};
     APRSDetailsView details_view{nav_};
@@ -209,21 +209,21 @@ class APRSRxView : public View {
     std::string str_log{""};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(21) - UI_POS_WIDTH(2), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(21) - UI_POS_WIDTH(2), 4}};
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     OptionsField options_region{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), UI_POS_Y(0)},
         3,
         {{"MAN", 0},
          {"NA ", 1},
@@ -237,11 +237,11 @@ class APRSRxView : public View {
          {"ISS", 9}}};
 
     FrequencyField field_frequency{
-        {3 * 8, 0 * 16}};
+        {UI_POS_X(3), UI_POS_Y(0)}};
 
     // DEBUG
     RecordView record_view{
-        {0 * 8, 1 * 16, screen_width, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)},
         u"AFS_????.WAV",
         aprs_dir,
         RecordView::FileType::WAV,
@@ -249,7 +249,7 @@ class APRSRxView : public View {
         4};
 
     Console console{
-        {0, 2 * 16, screen_width, screen_height - 80}};
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, screen_height - 80}};
 
     std::unique_ptr<APRSLogger> logger{};
 };
@@ -265,7 +265,7 @@ class APRSRXView : public View {
 
    private:
     NavigationView& nav_;
-    Rect view_rect = {0, 3 * 8, screen_width, screen_height - 40};
+    Rect view_rect = {UI_POS_X(0), 3 * 8, UI_POS_MAXWIDTH, screen_height - 40};
 
     APRSRxView view_stream{nav_, view_rect};
     APRSTableView view_table{nav_, view_rect};

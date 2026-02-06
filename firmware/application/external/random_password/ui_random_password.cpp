@@ -231,7 +231,7 @@ void RandomPasswordView::on_data(uint32_t value, bool is_data) {
 }
 
 void RandomPasswordView::clean_buffer() {
-    seeds_deque = {};
+    seeds_deque.clear();
 }
 
 void RandomPasswordView::on_freqchg(int64_t freq) {
@@ -245,6 +245,18 @@ void RandomPasswordView::set_random_freq() {
     auto random_freq = 100000000 + (std::rand() % 900000000);  // 100mhz to 1ghz
     receiver_model.set_target_frequency(random_freq);
     field_frequency.set_value(random_freq);
+}
+
+bool RandomPasswordView::islower(char c) {
+    return (c >= 'a' && c <= 'z');
+}
+
+bool RandomPasswordView::isupper(char c) {
+    return (c >= 'A' && c <= 'Z');
+}
+
+bool RandomPasswordView::isdigit(char c) {
+    return (c >= '0' && c <= '9');
 }
 
 void RandomPasswordView::new_password() {
@@ -261,20 +273,20 @@ void RandomPasswordView::new_password() {
     int password_length = field_digits.value();
 
     /// charset worker
-    if (check_digits.value())
-        charset += "0123456789";
-    if (check_latin_lower.value())
-        charset += "abcdefghijklmnopqrstuvwxyz";
-    if (check_latin_upper.value())
-        charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (check_digits.value()) {
+        charset += "23456789";
+        if (check_allow_confusable_chars.value()) charset += "01";
+    }
+    if (check_latin_lower.value()) {
+        charset += "abcdefghijkmnpqrstuvwxyz";
+        if (check_allow_confusable_chars.value()) charset += "ol";
+    }
+    if (check_latin_upper.value()) {
+        charset += "ABCDEFGHIJKLMNPQRSTUVWXYZ";
+        if (check_allow_confusable_chars.value()) charset += "O";
+    }
     if (check_punctuation.value())
         charset += ".,-!?";
-
-    if (!check_allow_confusable_chars.value()) {
-        charset.erase(std::remove_if(charset.begin(), charset.end(),
-                                     [](char c) { return c == '0' || c == 'O' || c == 'o' || c == '1' || c == 'l'; }),
-                      charset.end());
-    }
 
     if (charset.empty()) {
         text_generated_passwd.set("generate failed,");
@@ -306,11 +318,11 @@ void RandomPasswordView::new_password() {
     /// hint text worker
     for (char c : password_chars) {
         password += c;
-        if (std::isdigit(c)) {
+        if (isdigit(c)) {
             char_type_hints += "1";
-        } else if (std::islower(c)) {
+        } else if (islower(c)) {
             char_type_hints += "a";
-        } else if (std::isupper(c)) {
+        } else if (isupper(c)) {
             char_type_hints += "A";
         } else {
             char_type_hints += ",";
@@ -360,11 +372,11 @@ void RandomPasswordView::paint_password_hints() {
     for (size_t i = 0; i < password.length(); i++) {
         char c = password[i];
         Color color;
-        if (std::isdigit(c)) {
+        if (isdigit(c)) {
             color = Color::red();
-        } else if (std::islower(c)) {
+        } else if (islower(c)) {
             color = Color::green();
-        } else if (std::isupper(c)) {
+        } else if (isupper(c)) {
             color = Color::blue();
         } else {
             color = Color::white();
@@ -379,8 +391,8 @@ void RandomPasswordView::paint_password_hints() {
 
 std::string RandomPasswordView::generate_log_line() {
     std::string seeds_set = "";
-    for (auto seed : seeds_deque) {
-        seeds_set += std::to_string(seed);
+    for (unsigned int seed : seeds_deque) {
+        seeds_set += to_string_dec_uint(seed);
         seeds_set += " ";
     }
     std::string line = "\npassword=" + password +

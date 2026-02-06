@@ -4,7 +4,7 @@
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
  * Copyright (C) 2023 Mark Thompson
  * Copyright (C) 2024 u-foka
- * Copyleft (ↄ) 2024 zxkmm with the GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -37,7 +37,9 @@ BtnGridView::BtnGridView(
     : keep_highlight{keep_highlight} {
     set_parent_rect(new_parent_rect);
     set_focusable(true);
-
+    if (screen_height == 480) {
+        button_h = 64;
+    }
     button_pgup.set_focusable(false);
     button_pgup.on_select = [this](Button&) {
         if (arrow_up_enabled) {
@@ -76,30 +78,11 @@ int BtnGridView::rows() {
 void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
-    button_h = 48;  // btn_h_min;
-    /*
-    // DISABLED FOR NOW. TODO fix next, prev button pos
-    int min_remainder = parent_rect().size().height();
-    uint8_t max_button_count = 0;
-
-    for (int h = btn_h_min; h <= btn_h_max; ++h) {
-        int count = parent_rect().size().height() / h;
-        int remainder = parent_rect().size().height() % h;
-
-        // Prefer smaller remainder, then more buttons, then larger height
-        if (remainder < min_remainder ||
-            (remainder == min_remainder && count > max_button_count) ||
-            (remainder == min_remainder && count == max_button_count && h > button_h)) {
-            button_h = h;
-            min_remainder = remainder;
-            max_button_count = count;
-        }
-    }
-    */
+    int space_available = parent_rect().size().height() - 16;  // leave space for arrows
     displayed_max = (parent_rect().size().height() / button_h);
 
-    button_pgup.set_parent_rect({0, (Coord)(displayed_max * button_h), screen_width / 2, 16});
-    button_pgdown.set_parent_rect({screen_width / 2, (Coord)(displayed_max * button_h), screen_width / 2, 16});
+    button_pgup.set_parent_rect({0, (Coord)(space_available), screen_width / 2, 16});
+    button_pgdown.set_parent_rect({screen_width / 2, (Coord)(space_available), screen_width / 2, 16});
 
     displayed_max *= rows_;
 
@@ -115,10 +98,10 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     for (size_t c = 0; c < displayed_max; c++) {
         auto item = std::make_unique<NewButton>();
         add_child(item.get());
+        item->set_vertical_center(true);
         item->set_parent_rect({(int)(c % rows_) * button_w,
                                (int)(c / rows_) * button_h,
                                button_w, button_h});
-
         menu_item_views.push_back(std::move(item));
     }
     update_items();

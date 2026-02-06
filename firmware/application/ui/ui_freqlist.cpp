@@ -31,6 +31,7 @@ namespace ui {
 FreqManUIList::FreqManUIList(Rect parent_rect)
     : Widget{parent_rect},
       visible_lines_{(unsigned)parent_rect.height() / char_height} {
+    line_max_length = (parent_rect.width() - 8) / char_width;
     this->set_focusable(true);
 }
 
@@ -90,6 +91,33 @@ void FreqManUIList::on_focus() {
 
 void FreqManUIList::on_blur() {
     set_dirty();
+}
+
+bool FreqManUIList::on_touch(const TouchEvent event) {
+    if (!db_ || db_->empty())
+        return false;
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
+        set_dirty();
+        int16_t rel_y = event.point.y() - screen_rect().top();
+        size_t new_selected = rel_y / char_height;
+        if (new_selected + start_index_ >= db_->entry_count()) {
+            return true;  // clicked, where there is no entry, skip it
+        }
+        // selected_index_ is the current
+        if (selected_index_ == new_selected) {
+            // already selected, trigger on_select
+            if (on_select) {
+                // on_select(new_selected); //causes strange behavior, not so confident to use it
+            }
+            return true;
+        } else {
+            // just change selection
+            selected_index_ = new_selected;
+        }
+        return true;
+    }
+    return true;
 }
 
 bool FreqManUIList::on_keyboard(const KeyboardEvent key) {
