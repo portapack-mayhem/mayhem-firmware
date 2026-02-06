@@ -657,7 +657,13 @@ void GeoMap::move(const float lon, const float lat) {
     } else {
         if (is_changed) {
             set_osm_max_zoom();
-            redraw_map = true;
+            double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_real_zoom);
+            double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_real_zoom);
+            // Redraw if viewport moved by at least 1 pixel (includes zoom level changes)
+            if (abs(global_center_px - (r.width() / 2.0) - viewport_top_left_px) >= 1.0 ||
+                abs(global_center_py - (r.height() / 2.0) - viewport_top_left_py) >= 1.0) {
+                redraw_map = true;
+            }
         }
     }
 }
