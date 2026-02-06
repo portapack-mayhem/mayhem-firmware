@@ -94,6 +94,7 @@ MEMORY
     ram_external_app_morse_radio  (rwx) : org = 0xADF50000, len = 32k
     ram_external_app_waterfall_designer (rwx) : org = 0xADF60000, len = 32k
     ram_external_app_morseradiotx  (rwx) : org = 0xADF70000, len = 32k
+    ram_external_app_rtty_rx  (rwx) : org = 0xADF80000, len = 32k
 }
 
 SECTIONS
@@ -525,6 +526,14 @@ SECTIONS
         KEEP(*(.external_app.app_morseradiotx.application_information));
         *(*ui*external_app*morseradiotx*);
     } > ram_external_app_morseradiotx
+
+    .external_app_rtty_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_rtty_rx.application_information));
+        *(*ui*external_app*rtty_rx*);
+    } > ram_external_app_rtty_rx
+
+
 
 }
 
