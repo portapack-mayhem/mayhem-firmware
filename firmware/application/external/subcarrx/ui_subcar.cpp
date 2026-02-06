@@ -118,13 +118,14 @@ SubCarView::SubCarView(NavigationView& nav)
 
     options_mode.on_change = [this](size_t, int32_t v) {
         modulation = v;
+        chThdSleepMilliseconds(100);  // wait for the baseband thread to process the previous config, to avoid glitchy output when switching modes
         baseband::set_subghzd_config(modulation, receiver_model.sampling_rate());
-        receiver_model.enable();
     };
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();
     };
     options_mode.set_selected_index(modulation, true);
+    receiver_model.enable();
 }
 
 void SubCarView::on_tick_second() {
