@@ -122,13 +122,13 @@ class SubCarView : public View {
         app_settings::Mode::RX,
         {
             {"log"sv, &logging},
-            {"modulation"sv, &modulation},
+            {"modulationmode"sv, &modulation},
         }};
 
     SubCarRecentEntries recent{};
 
     RFAmpField field_rf_amp{
-        {UI_POS_X(7), UI_POS_Y(0)}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
         {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{

@@ -87,8 +87,7 @@ class SubCarProcessor : public BasebandProcessor {
 
     uint8_t modulation = 0;  // 0 am, 1 fm
 
-    FProtoListGeneral* protoList = new SubCarProtos();    // holds all the protocols we can parse
-    FProtoListGeneral* protoListFm = new SubCarProtos();  // holds all the protocols we can parse, but for fm (dupe, bc most of it is dual)
+    FProtoListGeneral* protoList = new SubCarProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);
 
     /* NB: Threads should be the last members in the class definition. */

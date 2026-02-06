@@ -133,7 +133,7 @@ void SubCarProcessor::execute(const buffer_c8_t& buffer) {
                 } else {
                     int32_t duration_us = (fm_state.buffer_count * nsPerDecSamp) / 1000;
                     if (duration_us > 15) {
-                        if (protoListFm) protoListFm->feed(fm_state.current_logic_level, duration_us);
+                        if (protoList) protoList->feed(fm_state.current_logic_level, duration_us);
                     }
                     fm_state.current_logic_level = new_level;
                     fm_state.buffer_count = 1;
@@ -154,6 +154,13 @@ void SubCarProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
     // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
 
+    if (modulation != message.modulation) {
+        // reload protos to reset them all
+        if (protoList) {
+            delete protoList;
+        }
+        protoList = new SubCarProtos();
+    }
     modulation = message.modulation;
     baseband_fs = message.sampling_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
