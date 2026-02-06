@@ -21,7 +21,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "c-ford_v0.hpp"
 #include "c-fiat_v0.hpp"
 #include "c-bmw_v0.hpp"
-#include "c-kia_v6.hpp"
+// #include "c-kia_v6.hpp"
 
 #ifndef __FPROTO_PROTOLISTCAR_H__
 #define __FPROTO_PROTOLISTCAR_H__
