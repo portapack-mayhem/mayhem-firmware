@@ -838,6 +838,7 @@ extern "C" void __late_init(void) {
  * @todo    Add your board-specific code, if any.
  */
 extern "C" void boardInit(void) {
+#ifndef PRALINE
   /* Detect HackRF variant */
   /* 1. Perform Standard Initialization first */
   /* This configures VAA power, LED pins, and detects board revision */
@@ -863,7 +864,8 @@ extern "C" void boardInit(void) {
   }
 
   /* 4. HackRF Pro Specific: Initialize and Load FPGA */
-#ifdef PRALINE
+#else
+  hackrf_r9 = false;
   /* Enable 3.3V aux power - P6_7 = GPIO5[15], active LOW (clear to enable) */
   LPC_SCU->SFSP[6][7] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->DIR[5] |= (1 << 15);
