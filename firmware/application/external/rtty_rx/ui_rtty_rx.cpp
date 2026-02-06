@@ -30,6 +30,8 @@
 using namespace portapack;
 using namespace ui;
 
+// todo add timeout, so add newline and time when new data arrives after a time.
+
 namespace ui::external_app::rtty_rx {
 
 void RttyRxView::focus() {
@@ -55,10 +57,10 @@ RttyRxView::RttyRxView(NavigationView& nav)
     receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
     receiver_model.enable();
     console.enable_scrolling(false);
+
     // todo send configure message
-    for (int i = 0; i < 90; i++) {
-        got_message("RTTY RX #" + to_string_dec_int(i) + "\n");
-    }
+
+    got_message("RTTY RX ready\n");
 }
 
 void RttyRxView::got_message(std::string msg) {
@@ -75,6 +77,16 @@ RttyRxView::~RttyRxView() {
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
+}
+
+void RttyRxView::on_data(const RTTYDataMessage* message) {
+    std::string msg = "";
+    for (size_t i = 0; i < message->data_len; i++) {
+        const auto c = baudot_decoder.decode(message->data[i]);
+        if (c != 0)
+            msg += c;
+    }
+    got_message(msg);
 }
 
 }  // namespace ui::external_app::rtty_rx

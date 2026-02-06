@@ -7,7 +7,7 @@ constexpr uint8_t CODE_FIGS = 0x1B;
 constexpr uint8_t CODE_LTRS = 0x1F;
 constexpr uint8_t CODE_SPACE = 0x04;
 
-char BaudotDecoder::get_char_mapping(bool is_figures, uint8_t index) const {
+char BaudotCoder::get_char_mapping(bool is_figures, uint8_t index) const {
     if (index >= 32) return 0;  // Safety check
 
     if (is_figures) {
@@ -30,7 +30,7 @@ char BaudotDecoder::get_char_mapping(bool is_figures, uint8_t index) const {
 }
 
 // --- DECODE ---
-char BaudotDecoder::decode(uint8_t baudotCode) {
+char BaudotCoder::decode(uint8_t baudotCode) {
     uint8_t code = baudotCode & 0x1F;
     if (code == CODE_FIGS) {
         shiftState = FIGURES;
@@ -47,7 +47,7 @@ char BaudotDecoder::decode(uint8_t baudotCode) {
     return get_char_mapping((shiftState == FIGURES), code);
 }
 
-void BaudotDecoder::encode(const std::string& src, uint8_t* dest, uint16_t* dest_length, uint16_t dest_max_size) {
+void BaudotCoder::encode(const std::string& src, uint8_t* dest, uint16_t* dest_length, uint16_t dest_max_size) {
     uint16_t idx = 0;
 
     for (char c : src) {

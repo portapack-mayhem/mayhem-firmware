@@ -75,8 +75,17 @@ class RttyRxView : public View {
         {0 * 8, 1 * 16, 32 * 8, 320 - 16 - 16}};
 
     std::string con_buff = "";
+    BaudotCoder baudot_decoder{};
 
+    void on_data(const RTTYDataMessage* message);
     void got_message(std::string msg);
+
+    MessageHandlerRegistration message_handler_data{
+        Message::ID::RTTYData,
+        [this](Message* const p) {
+            const auto message = static_cast<const RTTYDataMessage*>(p);
+            this->on_data(message);
+        }};
 };
 
 }  // namespace ui::external_app::rtty_rx

@@ -670,6 +670,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PMRS morse)
 
+
+### RTTY RX
+
+set(MODE_CPPSRC
+    proc_rtty_rx.cpp
+)
+DeclareTargets(PRTR rtty_rx)
+
+
 ### SD over USB
 
 set(MODE_INCDIR
