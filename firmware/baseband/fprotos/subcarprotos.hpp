@@ -43,7 +43,7 @@ class SubCarProtos : public FProtoListGeneral {
         protos[FPC_FORDV0] = new FProtoSubCarFordV0();
         protos[FPC_FIATV0] = new FProtoSubCarFiatV0();
         protos[FPC_BMWV0] = new FProtoSubCarBMWV0();
-        protos[FPC_KIAV6] = new FProtoSubCarKiaV6();
+        // protos[FPC_KIAV6] = new FProtoSubCarKiaV6(); //-- disabled, due to whole encrypted.
 
         for (uint8_t i = 0; i < FPC_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
