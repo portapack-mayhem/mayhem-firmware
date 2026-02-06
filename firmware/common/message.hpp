@@ -152,6 +152,7 @@ class Message {
         TXDisabled = 94,
         MorseTXConfigure = 95,
         MorseTXkey = 96,
+        StreamTXConfiguration = 97,
         MAX
     };
 
@@ -1756,6 +1757,17 @@ class MorseTXkeyMessage : public Message {
         : Message{ID::MorseTXkey},
           key_down{key_down} {}
     bool key_down = false;
+};
+
+class StreamTXConfigurationMessage : public Message {
+   public:
+    constexpr StreamTXConfigurationMessage(uint32_t deviation, uint8_t mode)
+        : Message{ID::StreamTXConfiguration},
+          deviation{deviation},
+          mode{mode} {}
+
+    uint32_t deviation = 60000;  // used in 2fsk
+    uint8_t mode = 0;            // am = 0, 2fsk = 1
 };
 
 #endif /*__MESSAGE_H__*/
