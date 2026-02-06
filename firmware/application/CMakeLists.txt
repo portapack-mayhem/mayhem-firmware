@@ -123,6 +123,7 @@ set(CSRC
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
+	${HACKRF_PATH}/firmware/common/platform_detect.c
 	${CHIBIOS}/os/various/chprintf.c
 )
 
