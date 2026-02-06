@@ -109,9 +109,9 @@ TPMSAppView::TPMSAppView(NavigationView&) {
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
-                  &text_db_stats,        // ADD
-                  &button_clear_db,      // ADD
-                  &checkbox_auto_save,   // ADD
+                  &text_db_stats,       // ADD
+                  &button_clear_db,     // ADD
+                  &checkbox_auto_save,  // ADD
                   &recent_entries_view});
 
     // Initialize database
@@ -195,7 +195,7 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 
         // Save to database if auto-save is enabled
         if (checkbox_auto_save.value()) {
-            uint32_t timestamp = 0; // TODO: Get proper timestamp
+            uint32_t timestamp = 0;  // TODO: Get proper timestamp
             database_.add_or_update_sensor(reading, timestamp, receiver_model.target_frequency());
             update_db_stats();
         }

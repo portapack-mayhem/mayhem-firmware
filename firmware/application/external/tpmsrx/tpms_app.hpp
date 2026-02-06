@@ -190,7 +190,7 @@ class TPMSAppView : public View {
 
     TPMSRecentEntries recent{};
     std::unique_ptr<TPMSLogger> logger{};
-	tpms::TPMSDatabase database_{};
+    tpms::TPMSDatabase database_{};
 
     RecentEntriesColumns columns{{
         {"Tp", 2},
@@ -205,7 +205,7 @@ class TPMSAppView : public View {
     void on_packet(const tpms::Packet& packet);
     void on_show_list();
     void update_view();
-	void update_db_stats(); 
+    void update_db_stats();
 };
 
 }  // namespace ui::external_app::tpmsrx
