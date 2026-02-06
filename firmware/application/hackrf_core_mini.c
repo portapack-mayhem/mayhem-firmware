@@ -27,8 +27,9 @@ void delay(uint32_t duration) {
 void delay_us_at_mhz(uint32_t us, uint32_t mhz) {
     /* overflow-safe multiply */
     uint64_t cycles64 = (uint64_t)us * (uint64_t)mhz;
-    if (cycles64 > UINT32_MAX) cycles64 = UINT32_MAX;
-
+    if (cycles64 > UINT32_MAX) {
+        cycles64 = UINT32_MAX;
+    }
     delay((uint32_t)cycles64);
 }
 
