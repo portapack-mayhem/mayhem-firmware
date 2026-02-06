@@ -104,6 +104,7 @@ static const char* get_board_revision_string(board_rev_t rev) {
 
 static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
+    
     if (argc > 0) {
         usage(chp, const_cast<char*>("info"));
         return;
@@ -130,7 +131,7 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "Mayhem Version:   %s\r\n", VERSION_STRING);
 #endif
 
-    // Usage
+    detect_hardware_platform();
     board_rev_t revision = detected_revision();
     const char* revision_string = get_board_revision_string(revision);
     chprintf(chp, "HackRF Board Rev: %s\r\n", revision_string);
