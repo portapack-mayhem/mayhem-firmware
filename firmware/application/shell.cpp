@@ -104,7 +104,7 @@ static const char* get_board_revision_string(board_rev_t rev) {
 
 static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
-    
+
     if (argc > 0) {
         usage(chp, const_cast<char*>("info"));
         return;

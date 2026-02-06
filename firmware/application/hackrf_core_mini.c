@@ -1,10 +1,10 @@
 #include "gpio_lpc.h"
 
 typedef enum {
-	LED1 = 0,
-	LED2 = 1,
-	LED3 = 2,
-	LED4 = 3,
+    LED1 = 0,
+    LED2 = 1,
+    LED3 = 2,
+    LED4 = 3,
 } led_t;
 
 /* GPIO Output PinMux */
@@ -18,7 +18,7 @@ static struct gpio_t gpio_led[] = {
 };
 
 void delay_us_at_mhz(uint32_t us, uint32_t mhz) {
-    delay(us * mhz); // shoot me! :D
+    delay(us * mhz);  // shoot me! :D
 }
 
 void delay(uint32_t duration) {
