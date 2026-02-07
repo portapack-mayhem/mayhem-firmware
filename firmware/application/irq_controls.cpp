@@ -194,7 +194,7 @@ void timer0_callback(GPTDriver* const) {
     if (encoder_update(switches_raw) || encoder_read())
         event_mask |= EVT_MASK_ENCODER;
 
-    /* Signal event loop */
+        /* Signal event loop */
 #ifdef PRALINE
     if (event_mask && thread_controls_event) {
 #else

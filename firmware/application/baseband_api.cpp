@@ -53,7 +53,7 @@ static void send_message(const Message* const message) {
 
     if constexpr (check_for_message_hang) {
 #ifdef PRALINE
-	  /* Timeout: ~3 seconds at typical clock speeds */
+        /* Timeout: ~3 seconds at typical clock speeds */
         auto count = 200'000'000u;
 #else
         auto count = UINT32_MAX;
