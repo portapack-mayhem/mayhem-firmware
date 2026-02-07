@@ -42,7 +42,13 @@ class EventDispatcher {
     void request_stop();
 
     static inline void events_flag(const eventmask_t events) {
+#ifdef PRALINE
+        if (thread_event_loop) {
+            chEvtSignalI(thread_event_loop, events);
+        }
+#else
         chEvtSignal(thread_event_loop, events);
+#endif
     }
 
     static inline void events_flag_isr(const eventmask_t events) {

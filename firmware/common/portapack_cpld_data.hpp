@@ -51,6 +51,18 @@ const Config config{block_0, block_1};
 
 } /* namespace rev_20170522 */
 
+#ifdef PRALINE
+namespace rev_h4m {
+
+extern const std::array<uint16_t, 3328> block_0;
+extern const std::array<uint16_t, 512> block_1;
+
+const Config config{block_0, block_1};
+
+} /* namespace rev_h4m */
+#endif
+
+
 } /* namespace cpld */
 } /* namespace portapack */
 

@@ -62,6 +62,10 @@ void set_rx_max283x_iq_phase_calibration(const size_t v);
 // void configure(Configuration configuration);
 void disable();
 
+#ifdef PRALINE
+    void invalidate_spi_config();
+#endif
+
 namespace debug {
 
 namespace first_if {
@@ -80,6 +84,22 @@ void register_write(const size_t register_number, uint32_t value);
 int8_t temp_sense();
 
 } /* namespace second_if */
+
+#ifdef PRALINE
+namespace fpga {
+
+uint32_t register_read(const size_t register_number);
+void register_write(const size_t register_number, uint32_t value);
+void init();
+
+} /* namespace fpga */
+#endif
+
+namespace sgpio {
+
+uint32_t register_read(const size_t register_number);
+
+} /* namespace sgpio */
 
 } /* namespace debug */
 

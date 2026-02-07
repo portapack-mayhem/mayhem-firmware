@@ -21,7 +21,7 @@
   // FPGA bitstream at flash address 0x380000 = memory address 0x14380000
   // PRALINE: Moved to 1.5MB offset to allow larger base firmware
   #define SPIFI_DATA_BASE 0x14000000
-  #define FPGA_BITSTREAM_FLASH_ADDR 0x380000  // Was 0x180000 (1.5MB), now 0x380000 (3.5MB)
+  #define FPGA_BITSTREAM_FLASH_ADDR 0x380000  // Was 0x100000 (1MB), then 0x180000 (1.5MB), now 0x380000 (3.5MB)
   #define FPGA_BITSTREAM_MEM_ADDR (SPIFI_DATA_BASE + FPGA_BITSTREAM_FLASH_ADDR)
 
   // MMIO32 direct register access
@@ -405,14 +405,14 @@
       // iCE40 uses Mode 3 (CPOL=1, CPHA=1), 8-bit
       // MAX2831 (PRALINE) uses Mode 0 (CPOL=0, CPHA=0), 9-bit (vs 16-bit for MAX283x on HackRF One)
       // Without this, RF communication will fail!
-      SSP1_CR1_LOCAL = 0;  // Disable SSP1
+      /*SSP1_CR1_LOCAL = 0;  // Disable SSP1
       SSP1_CR0_LOCAL = (0x08) |           // 9-bit data (DSS = 0x08) for MAX2831/PRALINE
                        (0x00) |           // SPI frame format
                        (0 << 6) |         // CPOL = 0 (Mode 0)
                        (0 << 7) |         // CPHA = 0 (Mode 0)
                        (21 << 8);         // SCR = 21 (same as ssp_config_max283x for PRALINE)
       SSP1_CPSR_LOCAL = 2;                // Clock prescaler
-      SSP1_CR1_LOCAL = SSP_CR1_SSE;       // Re-enable SSP1
+      SSP1_CR1_LOCAL = SSP_CR1_SSE;       // Re-enable SSP1*/
 
       return success;
   }
@@ -452,6 +452,19 @@
 
       // Full FPGA programming
       bool success = program_fpga_from_spifi(bitstream_start);
+
+      // Initialize FPGA registers immediately after programming
+      if (success) {
+          // Give FPGA 100us to stabilize after configuration
+          delay_us(100);
+      
+          // Initialize FPGA registers (DC_BLOCK, etc.)
+          fpga_register_init();
+      
+          // Now switch to MAX2831 mode
+          ssp1_set_mode_max2831();
+      }
+
       return success ? 0 : 2;
   }
 #else

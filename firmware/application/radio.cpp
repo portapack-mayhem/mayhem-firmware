@@ -26,6 +26,12 @@
 #include "rffc507x.hpp"
 #include "max2837.hpp"
 #include "max2839.hpp"
+#ifdef PRALINE
+#include "max2831.hpp"
+extern "C" {
+#include "fpga_bridge.h"
+}
+#endif
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
 
@@ -42,6 +48,10 @@ using namespace hackrf::one;
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
+#include "hal.h"  // For LPC_SGPIO
+
+#include <array>
+
 /* Direct access to the radio. Setting values incorrectly can damage
  * the device. Applications should use ReceiverModel or TransmitterModel
  * instead of calling these functions directly. */
@@ -56,6 +66,18 @@ static constexpr uint32_t ssp_scr(
     return static_cast<uint8_t>(pclk_f / cpsr / spi_f - 1);
 }
 
+#ifdef PRALINE
+/* MAX2831 uses 9-bit SPI transfers */
+static constexpr SPIConfig ssp_config_max283x = {
+    .end_cb = NULL,
+    .ssport = gpio_max283x_select.port(),
+    .sspad = gpio_max283x_select.pad(),
+    .cr0 =
+        CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS9BIT,
+    .cpsr = ssp1_cpsr,
+};
+#else
+/* MAX2837/MAX2839 use 16-bit SPI transfers */
 static constexpr SPIConfig ssp_config_max283x = {
     .end_cb = NULL,
     .ssport = gpio_max283x_select.port(),
@@ -64,6 +86,7 @@ static constexpr SPIConfig ssp_config_max283x = {
         CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS16BIT,
     .cpsr = ssp1_cpsr,
 };
+#endif
 
 static constexpr SPIConfig ssp_config_max5864 = {
     .end_cb = NULL,
@@ -89,6 +112,9 @@ rffc507x::RFFC507x first_if;
 max283x::MAX283x* second_if;
 max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
 max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
+#ifdef PRALINE
+max2831::MAX2831 second_if_max2831{ssp1_target_max283x};
+#endif
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
 static baseband::CPLD baseband_cpld;
 
@@ -98,18 +124,38 @@ static bool baseband_invert = false;
 static bool mixer_invert = false;
 
 void init() {
+#ifdef PRALINE
+    /* PRALINE uses MAX2831 transceiver */
+    second_if = (max283x::MAX283x*)&second_if_max2831;
+#else
     if (hackrf_r9) {
         gpio_r9_not_ant_pwr.write(1);
         gpio_r9_not_ant_pwr.output();
     }
-    rf_path.init();
-    first_if.init();
     second_if = hackrf_r9
                     ? (max283x::MAX283x*)&second_if_max2839
                     : (max283x::MAX283x*)&second_if_max2837;
+#endif
+    rf_path.init();
+    first_if.init();
     second_if->init();
     baseband_codec.init();
+#ifndef PRALINE
+    /* HackRF One uses CPLD for Q inversion control.
+     * PRALINE uses FPGA and the pin (P2_3) is used for LCD_TE on H4M. */
     baseband_cpld.init();
+#else
+    /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
+    //debug::fpga::init();
+    fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
+    fpga_debug_register_write(2, 0x00);  // RX_DECIM=0 (no decimation for testing)
+    fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
+    fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
+    fpga_debug_register_write(5, 0x00);  // TX_PSTEP=0
+    
+    ssp1_arbiter.invalidate();
+    chThdSleepMilliseconds(10);  // Let FPGA registers settle
+#endif
 }
 
 void set_direction(const rf::Direction new_direction) {
@@ -143,7 +189,18 @@ void set_direction(const rf::Direction new_direction) {
          */
         baseband_invert = false;
     }
+#ifndef PRALINE
     baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
+#else
+    // Praline: Control Q inversion via FPGA register
+    // Assuming register 1 bit 1 controls Q inversion
+    uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
+    if (mixer_invert ^ baseband_invert) {
+        ctrl_reg |= 0x02;  // Set Q_INVERT bit
+    }
+    fpga_debug_register_write(1, ctrl_reg);
+    ssp1_arbiter.invalidate();
+#endif
 
     second_if->set_mode((direction == rf::Direction::Transmit) ? max283x::Mode::Transmit : max283x::Mode::Receive);
     rf_path.set_direction(direction);
@@ -154,6 +211,17 @@ void set_direction(const rf::Direction new_direction) {
         led_rx.on();
     else
         led_tx.on();
+
+//#ifdef PRALINE
+    // Try with Q inversion OFF
+    //fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, Q_INVERT=0
+    //ssp1_arbiter.invalidate();
+    
+    // If no signals, try with Q inversion ON
+    //fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, Q_INVERT=1
+    //ssp1_arbiter.invalidate();
+//#endif
+
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -196,7 +264,9 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 
         rf_path.set_band(tuning_config.rf_path_band);
         mixer_invert = tuning_config.mixer_invert;
+#ifndef PRALINE
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
+#endif
 
         return result_second_if;
     } else {
@@ -235,11 +305,17 @@ void set_baseband_rate(const uint32_t rate) {
 
 void set_antenna_bias(const bool on) {
     /* Pull MOSFET gate low to turn on antenna bias. */
+#ifdef PRALINE
+    // Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW)
+    LPC_GPIO->CLR[1] = on ? (1 << 12) : 0;
+    LPC_GPIO->SET[1] = on ? 0 : (1 << 12);
+#else
     if (hackrf_r9) {
         gpio_r9_not_ant_pwr.write(on ? 0 : 1);
     } else {
         first_if.set_gpo1(on ? 0 : 1);
     }
+#endif
 }
 
 void set_tx_max283x_iq_phase_calibration(const size_t v) {
@@ -275,6 +351,13 @@ void disable() {
     led_tx.off();
 }
 
+#ifdef PRALINE
+void invalidate_spi_config() {
+    ssp1_arbiter.invalidate();
+}
+#endif
+
+
 namespace debug {
 
 namespace first_if {
@@ -304,6 +387,66 @@ int8_t temp_sense() {
 }
 
 } /* namespace second_if */
+
+#ifdef PRALINE
+namespace fpga {
+
+/* Use fpga_bridge.c functions for FPGA register access.
+ * These properly switch SPI mode between iCE40 (Mode 3, 8-bit)
+ * and MAX2831 (Mode 0, 9-bit). After each access, we must
+ * invalidate the SPI arbiter's cached config since fpga_bridge.c
+ * modifies SSP1 registers directly. */
+
+uint32_t register_read(const size_t register_number) {
+    uint32_t result = fpga_debug_register_read(static_cast<uint8_t>(register_number));
+    ssp1_arbiter.invalidate();  // Force arbiter to reconfigure on next transfer
+    return result;
+}
+
+void register_write(const size_t register_number, uint32_t value) {
+    fpga_debug_register_write(static_cast<uint8_t>(register_number), static_cast<uint8_t>(value));
+    ssp1_arbiter.invalidate();  // Force arbiter to reconfigure on next transfer
+}
+
+void init() {
+    // Initialize FPGA registers after bitstream load
+    // DC_BLOCK (bit 0) must be enabled for RX to work
+    fpga_debug_register_write(1, 0x01);  // CTRL: DC_BLOCK=1
+    fpga_debug_register_write(2, 0x00);  // RX_DECIM: no decimation
+    fpga_debug_register_write(3, 0x00);  // TX_CTRL: NCO disabled
+    fpga_debug_register_write(4, 0x00);  // TX_INTRP: no interpolation
+    fpga_debug_register_write(5, 0x00);  // TX_PSTEP: zero phase step
+    ssp1_arbiter.invalidate();  // Force arbiter to reconfigure on next transfer
+}
+
+} /* namespace fpga */
+#endif
+
+namespace sgpio {
+
+/* SGPIO register map for debug viewing
+ * We expose key registers for diagnosing data flow issues.
+ * Register numbers map to:
+ * 0: CTRL_ENABLE   - Which slices are enabled
+ * 1: GPIO_INREG    - GPIO input register (data pins state)
+ * 2: GPIO_OUTREG   - GPIO output register (direction, disable, etc)
+ * 3: GPIO_OENREG   - GPIO output enable register
+ * 4: STATUS_1      - Exchange interrupt status (slice A = bit 0)
+ * 5: REG_SS[0]     - Shadow register slice A (current sample data)
+ */
+uint32_t register_read(const size_t register_number) {
+    switch (register_number) {
+        case 0: return LPC_SGPIO->CTRL_ENABLE;
+        case 1: return LPC_SGPIO->GPIO_INREG;
+        case 2: return LPC_SGPIO->GPIO_OUTREG;
+        case 3: return LPC_SGPIO->GPIO_OENREG;
+        case 4: return LPC_SGPIO->STATUS_1;
+        case 5: return LPC_SGPIO->REG_SS[0];
+        default: return 0xFFFFFFFF;
+    }
+}
+
+} /* namespace sgpio */
 
 } /* namespace debug */
 

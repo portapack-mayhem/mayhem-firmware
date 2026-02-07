@@ -34,6 +34,12 @@
 #include "dsp_iir_config.hpp"
 #include "utility.hpp"
 
+#ifdef PRALINE
+extern "C" {
+#include "fpga_bridge.h"
+}
+#endif
+
 using namespace hackrf::one;
 using namespace portapack;
 
@@ -303,8 +309,20 @@ int32_t ReceiverModel::tuning_offset() {
 
 void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
-    if (enabled_)
+    if (enabled_) {
         radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
+
+#ifdef PRALINE
+        /* Praline: Must re-apply baseband filter after frequency change
+         * Reference: hackrf_usb radio.c radio_set_frequency()
+         *
+         * Different frequency ranges may use different quarter-shift modes,
+         * which affects the required LPF bandwidth. For now we just
+         * recalculate the filter to be safe.
+         */
+        update_baseband_bandwidth();
+#endif
+    }
 }
 
 void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
@@ -313,8 +331,28 @@ void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
 }
 
 void ReceiverModel::update_baseband_bandwidth() {
-    if (enabled_)
+    if (enabled_) {
+#ifdef PRALINE
+        /* Praline: LPF bandwidth calculation
+         * Reference: hackrf_usb radio.c radio_set_filter()
+         *
+         * LPF = (sample_rate * 3) / 8
+         * Plus additional offset if quarter-shift is enabled (not implemented yet)
+         */
+        uint32_t lpf_bandwidth = (sampling_rate() * 3) / 8;
+
+        // For now, quarter-shift is disabled, so no offset added
+        // When quarter-shift is implemented:
+        // if (quarter_shift_enabled) {
+        //     uint32_t offset = (sampling_rate() << decimation_n) / 8;
+        //     lpf_bandwidth += offset * 2;
+        // }
+
+        radio::set_baseband_filter_bandwidth_rx(lpf_bandwidth);
+#else
         radio::set_baseband_filter_bandwidth_rx(baseband_bandwidth());
+#endif
+    }
 }
 
 void ReceiverModel::update_sampling_rate() {
@@ -323,8 +361,39 @@ void ReceiverModel::update_sampling_rate() {
     // protocols that need quick RX/TX turn-around.
 
     // Disabling baseband while changing sampling rates seems like a good idea...
-    if (enabled_)
+    if (enabled_) {
+#ifdef PRALINE
+        /* Praline: Calculate FPGA decimation ratio based on sample rate
+         * Reference: hackrf_usb radio.c radio_set_sample_rate()
+         *
+         * The FPGA decimates the ADC sample rate down to the baseband rate.
+         * Si5351 must output at (sample_rate * 2^n) where n is decimation ratio.
+         */
+        #define MAX_AFE_RATE 40000000
+        #define MAX_N 5
+
+        uint8_t n = 1;  // Minimum decimation = 2x
+        uint32_t afe_rate_x2 = 2 * sampling_rate();
+        while ((afe_rate_x2 <= MAX_AFE_RATE) && (n < MAX_N)) {
+            afe_rate_x2 <<= 1;
+            n++;
+        }
+
+        // Set FPGA RX decimation register
+        fpga_debug_register_write(2, n);
+
+        // Store n for later use in filter calculations
+        static uint8_t current_decimation_n = n;
+        current_decimation_n = n;
+
+        // Si5351 must output at sample_rate * 2^n
+        // This is handled by clock_manager.set_sampling_frequency()
+        // which we'll fix separately
         radio::set_baseband_rate(sampling_rate());
+#else
+        radio::set_baseband_rate(sampling_rate());
+#endif
+    }
 
     update_tuning_frequency();
 }
