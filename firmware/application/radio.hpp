@@ -63,7 +63,7 @@ void set_rx_max283x_iq_phase_calibration(const size_t v);
 void disable();
 
 #ifdef PRALINE
-    void invalidate_spi_config();
+void invalidate_spi_config();
 #endif
 
 namespace debug {

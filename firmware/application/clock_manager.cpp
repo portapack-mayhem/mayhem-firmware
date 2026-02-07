@@ -558,8 +558,8 @@ void ClockManager::enable_codec_clocks() {
 #ifdef PRALINE
     /* PRALINE: CLK0 (AFE_CLK) for codec/FPGA, CLK1 (SCT_CLK) for FPGA timing.
      * Reference hackrf_core.c shows PRALINE needs both CLK0 and CLK1. */
-    clock_generator.enable_clock(clock_generator_output_og_codec);  /* CLK0 */
-    clock_generator.enable_clock(clock_generator_output_og_cpld);   /* CLK1 */
+    clock_generator.enable_clock(clock_generator_output_og_codec); /* CLK0 */
+    clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 */
     clock_generator.enable_output_mask(
         (1U << clock_generator_output_og_codec) |
         (1U << clock_generator_output_og_cpld));
@@ -656,17 +656,17 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
      * is divided by two.
      */
 #ifdef PRALINE
-    /* PRALINE: CLK0=AFE_CLK runs at sample rate (VCO/divider/2)
-     *          CLK1=SCT_CLK runs at 2x sample rate (VCO/divider/1)
-     * Reference: radio.c and
-     * Reference: hackrf_core.c sample_rate_frac_set() lines 580-582
-     */
-    //clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1);  //CLK0: r_div=1 (÷2)
-    //clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0);  //CLK1: r_div=0 (÷1) 
+/* PRALINE: CLK0=AFE_CLK runs at sample rate (VCO/divider/2)
+ *          CLK1=SCT_CLK runs at 2x sample rate (VCO/divider/1)
+ * Reference: radio.c and
+ * Reference: hackrf_core.c sample_rate_frac_set() lines 580-582
+ */
+// clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1);  //CLK0: r_div=1 (÷2)
+// clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0);  //CLK1: r_div=0 (÷1)
 
-    /* Praline: Calculate optimal decimation ratio */
-    #define MAX_AFE_RATE 40000000
-    #define MAX_N 5
+/* Praline: Calculate optimal decimation ratio */
+#define MAX_AFE_RATE 40000000
+#define MAX_N 5
 
     uint8_t n = 1;  // Minimum 2x decimation
     uint32_t afe_rate_x2 = 2 * frequency;
@@ -773,8 +773,8 @@ void ClockManager::start_audio_pll() {
         .mdec = 22625UL,  // MDEC for MSEL=1024
     });
     cgu::pll0audio::np_div({
-        .pdec = 31,   // PSEL=20
-        .ndec = 69,   // NDEC for NSEL=25
+        .pdec = 31,  // PSEL=20
+        .ndec = 69,  // NDEC for NSEL=25
     });
 #else
     cgu::pll0audio::ctrl({

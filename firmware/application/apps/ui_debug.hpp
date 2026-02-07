@@ -438,7 +438,6 @@ class RadioDiagnosticsView : public View {
         "Done"};
 };
 
-
 /* BasebandStatusView ***************************************************/
 
 class BasebandStatusView : public View {

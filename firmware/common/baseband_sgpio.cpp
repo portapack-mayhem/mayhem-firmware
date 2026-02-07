@@ -189,7 +189,7 @@ constexpr uint32_t gpio_outreg(const Direction direction) {
 
 constexpr uint32_t gpio_oenreg(const Direction direction) {
     return (0U << PIN_P78) | (0U << PIN_P81) | (0U << PIN_SYNC_EN) | (0U << PIN_INVERT) | (1U << PIN_DIRECTION) | (1U << PIN_DISABLE) | (0U << PIN_CAPTURE) | (0U << PIN_CLKIN) | ((direction == Direction::Transmit) ? 0xffU : 0x00U);
-    //                       ^^^^^^^^^^^^^ REVERTED: SGPIO14 must be DISABLED - enabling it blocks data capture!
+    // ^^^^^^^^^^^^^ REVERTED: SGPIO14 must be DISABLED - enabling it blocks data capture!
 }
 
 constexpr uint32_t out_mux_cfg(const P_OUT_CFG out, const P_OE_CFG oe) {
@@ -296,7 +296,7 @@ void SGPIO::configure(const Direction direction) {
     LPC_SGPIO->OUT_MUX_CFG[9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
 
 #ifndef PRALINE
-    //OUT_MUX_CFG[10] NOT configured for PRALINE - breaks PRALINE (HOST_DISABLE signal)
+    // OUT_MUX_CFG[10] NOT configured for PRALINE - breaks PRALINE (HOST_DISABLE signal)
     LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
 #endif
 

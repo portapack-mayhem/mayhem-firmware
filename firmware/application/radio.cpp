@@ -146,13 +146,13 @@ void init() {
     baseband_cpld.init();
 #else
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
-    //debug::fpga::init();
+    // debug::fpga::init();
     fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
     fpga_debug_register_write(2, 0x00);  // RX_DECIM=0 (no decimation for testing)
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
     fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
     fpga_debug_register_write(5, 0x00);  // TX_PSTEP=0
-    
+
     ssp1_arbiter.invalidate();
     chThdSleepMilliseconds(10);  // Let FPGA registers settle
 #endif
@@ -212,16 +212,15 @@ void set_direction(const rf::Direction new_direction) {
     else
         led_tx.on();
 
-//#ifdef PRALINE
-    // Try with Q inversion OFF
-    //fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, Q_INVERT=0
-    //ssp1_arbiter.invalidate();
-    
-    // If no signals, try with Q inversion ON
-    //fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, Q_INVERT=1
-    //ssp1_arbiter.invalidate();
-//#endif
+    // #ifdef PRALINE
+    //  Try with Q inversion OFF
+    // fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, Q_INVERT=0
+    // ssp1_arbiter.invalidate();
 
+    // If no signals, try with Q inversion ON
+    // fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, Q_INVERT=1
+    // ssp1_arbiter.invalidate();
+    // #endif
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -357,7 +356,6 @@ void invalidate_spi_config() {
 }
 #endif
 
-
 namespace debug {
 
 namespace first_if {
@@ -416,7 +414,7 @@ void init() {
     fpga_debug_register_write(3, 0x00);  // TX_CTRL: NCO disabled
     fpga_debug_register_write(4, 0x00);  // TX_INTRP: no interpolation
     fpga_debug_register_write(5, 0x00);  // TX_PSTEP: zero phase step
-    ssp1_arbiter.invalidate();  // Force arbiter to reconfigure on next transfer
+    ssp1_arbiter.invalidate();           // Force arbiter to reconfigure on next transfer
 }
 
 } /* namespace fpga */
@@ -436,13 +434,20 @@ namespace sgpio {
  */
 uint32_t register_read(const size_t register_number) {
     switch (register_number) {
-        case 0: return LPC_SGPIO->CTRL_ENABLE;
-        case 1: return LPC_SGPIO->GPIO_INREG;
-        case 2: return LPC_SGPIO->GPIO_OUTREG;
-        case 3: return LPC_SGPIO->GPIO_OENREG;
-        case 4: return LPC_SGPIO->STATUS_1;
-        case 5: return LPC_SGPIO->REG_SS[0];
-        default: return 0xFFFFFFFF;
+        case 0:
+            return LPC_SGPIO->CTRL_ENABLE;
+        case 1:
+            return LPC_SGPIO->GPIO_INREG;
+        case 2:
+            return LPC_SGPIO->GPIO_OUTREG;
+        case 3:
+            return LPC_SGPIO->GPIO_OENREG;
+        case 4:
+            return LPC_SGPIO->STATUS_1;
+        case 5:
+            return LPC_SGPIO->REG_SS[0];
+        default:
+            return 0xFFFFFFFF;
     }
 }
 

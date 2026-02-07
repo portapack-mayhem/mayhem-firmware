@@ -81,7 +81,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
     RSSIThread rssi_thread{};
 #else
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive,
-                                    /*auto_start*/ false};  // Phase 2: Manual start
+                                   /*auto_start*/ false};  // Phase 2: Manual start
     RSSIThread rssi_thread{/*auto_start*/ false};          // Phase 2: Manual start
 #endif
 

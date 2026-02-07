@@ -346,7 +346,7 @@ static void set_cpu_clock_speed() {
 
     /* Step 2: Wait for oscillator to stabilize (~250us at IRC speed) */
     volatile uint32_t delay = 3000;  // ~250us at 12MHz IRC
-    while (delay--) ;
+    while (delay--);
 
     /* Step 3: Configure PLL1 from XTAL
      *   Fclkin = 12M, /N=1 = 12M, Fcco = 12M * 17 = 204M
@@ -359,8 +359,8 @@ static void set_cpu_clock_speed() {
         .direct = 0,
         .psel = 0,
         .autoblock = 1,
-        .nsel = 0,      // N = 1
-        .msel = 16,     // M = 17, so 12MHz * 17 = 204MHz
+        .nsel = 0,   // N = 1
+        .msel = 16,  // M = 17, so 12MHz * 17 = 204MHz
         .clk_sel = cgu::CLK_SEL::XTAL,
     });
 #else

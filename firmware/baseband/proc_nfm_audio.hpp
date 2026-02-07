@@ -39,7 +39,6 @@
 #define Z_MIN_FILTER_COUNT 224
 #define Z_MIN_ZERO_CROSSINGS 20
 
-
 class NarrowbandFMAudio : public BasebandProcessor {
    public:
 #ifdef PRALINE
@@ -104,7 +103,7 @@ class NarrowbandFMAudio : public BasebandProcessor {
     /* NB: Threads should be the last members in the class definition. */
 #ifdef PRALINE
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive,
-                                    /*auto_start*/ false};  // Phase 2: Manual start
+                                   /*auto_start*/ false};  // Phase 2: Manual start
     RSSIThread rssi_thread{/*auto_start*/ false};          // Phase 2: Manual start
 #else
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

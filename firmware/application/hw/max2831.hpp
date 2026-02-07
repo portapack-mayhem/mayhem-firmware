@@ -74,12 +74,12 @@ constexpr uint16_t REG0_PLL_MODE_FRACTIONAL = 1;
 
 /* REG 3: Synthesizer Integer and Fractional Low */
 constexpr uint16_t REG3_SYN_INT_SHIFT = 0;
-constexpr uint16_t REG3_SYN_INT_MASK = 0x00FF;      /* D7:D0 - Integer divider (8 bits) */
+constexpr uint16_t REG3_SYN_INT_MASK = 0x00FF; /* D7:D0 - Integer divider (8 bits) */
 constexpr uint16_t REG3_SYN_FRAC_LO_SHIFT = 8;
-constexpr uint16_t REG3_SYN_FRAC_LO_MASK = 0x3F00;  /* D13:D8 - Low 6 bits of fractional divider */
+constexpr uint16_t REG3_SYN_FRAC_LO_MASK = 0x3F00; /* D13:D8 - Low 6 bits of fractional divider */
 
 /* REG 4: Synthesizer Fractional High */
-constexpr uint16_t REG4_SYN_FRAC_HI_MASK = 0x3FFF;  /* D13:D0 - High 14 bits of fractional divider */
+constexpr uint16_t REG4_SYN_FRAC_HI_MASK = 0x3FFF; /* D13:D0 - High 14 bits of fractional divider */
 
 /* REG 5: Reference Divider and Lock Detect */
 constexpr uint16_t REG5_SYN_REF_DIV_SHIFT = 2;
@@ -96,7 +96,7 @@ constexpr uint16_t REG6_TX_POWER_DETECT_EN = (1 << REG6_TX_POWER_DETECT_EN_SHIFT
 
 /* REG 7: LPF Fine Adjustment and RX HPF */
 constexpr uint16_t REG7_RX_LPF_FINE_SHIFT = 0;
-constexpr uint16_t REG7_RX_LPF_FINE_MASK = 0x0007;  /* D2:D0 */
+constexpr uint16_t REG7_RX_LPF_FINE_MASK = 0x0007; /* D2:D0 */
 constexpr uint16_t REG7_RX_LPF_FINE_90 = 0;
 constexpr uint16_t REG7_RX_LPF_FINE_95 = 1;
 constexpr uint16_t REG7_RX_LPF_FINE_100 = 2;
@@ -104,7 +104,7 @@ constexpr uint16_t REG7_RX_LPF_FINE_105 = 3;
 constexpr uint16_t REG7_RX_LPF_FINE_110 = 4;
 
 constexpr uint16_t REG7_TX_LPF_FINE_SHIFT = 3;
-constexpr uint16_t REG7_TX_LPF_FINE_MASK = 0x0038;  /* D5:D3 */
+constexpr uint16_t REG7_TX_LPF_FINE_MASK = 0x0038; /* D5:D3 */
 constexpr uint16_t REG7_TX_LPF_FINE_90 = (0 << REG7_TX_LPF_FINE_SHIFT);
 constexpr uint16_t REG7_TX_LPF_FINE_95 = (1 << REG7_TX_LPF_FINE_SHIFT);
 constexpr uint16_t REG7_TX_LPF_FINE_100 = (2 << REG7_TX_LPF_FINE_SHIFT);
@@ -113,14 +113,14 @@ constexpr uint16_t REG7_TX_LPF_FINE_110 = (4 << REG7_TX_LPF_FINE_SHIFT);
 constexpr uint16_t REG7_TX_LPF_FINE_115 = (5 << REG7_TX_LPF_FINE_SHIFT);
 
 constexpr uint16_t REG7_RX_HPF_SEL_SHIFT = 12;
-constexpr uint16_t REG7_RX_HPF_SEL_MASK = 0x3000;   /* D13:D12 */
+constexpr uint16_t REG7_RX_HPF_SEL_MASK = 0x3000; /* D13:D12 */
 constexpr uint16_t REG7_RX_HPF_100HZ = (0 << REG7_RX_HPF_SEL_SHIFT);
 constexpr uint16_t REG7_RX_HPF_4KHZ = (1 << REG7_RX_HPF_SEL_SHIFT);
 constexpr uint16_t REG7_RX_HPF_30KHZ = (2 << REG7_RX_HPF_SEL_SHIFT);
 
 /* REG 8: LPF Coarse, RSSI MUX, and RX VGA SPI Enable */
 constexpr uint16_t REG8_LPF_COARSE_SHIFT = 0;
-constexpr uint16_t REG8_LPF_COARSE_MASK = 0x0003;   /* D1:D0 */
+constexpr uint16_t REG8_LPF_COARSE_MASK = 0x0003; /* D1:D0 */
 /* RX and TX share the same coarse LPF setting bits */
 constexpr uint16_t REG8_RX_LPF_7_5M = 0;
 constexpr uint16_t REG8_RX_LPF_8_5M = 1;
@@ -132,7 +132,7 @@ constexpr uint16_t REG8_TX_LPF_16_5M = 2;
 constexpr uint16_t REG8_TX_LPF_22_5M = 3;
 
 constexpr uint16_t REG8_RSSI_MUX_SHIFT = 8;
-constexpr uint16_t REG8_RSSI_MUX_MASK = 0x0300;     /* D9:D8 */
+constexpr uint16_t REG8_RSSI_MUX_MASK = 0x0300; /* D9:D8 */
 constexpr uint16_t REG8_RSSI_MUX_RSSI = (0 << REG8_RSSI_MUX_SHIFT);
 constexpr uint16_t REG8_RSSI_MUX_TEMP = (1 << REG8_RSSI_MUX_SHIFT);
 constexpr uint16_t REG8_RSSI_MUX_TX_POWER = (2 << REG8_RSSI_MUX_SHIFT);
@@ -146,17 +146,17 @@ constexpr uint16_t REG9_TXVGA_GAIN_SPI_EN = (1 << REG9_TXVGA_GAIN_SPI_EN_SHIFT);
 
 /* REG 11: RX Gain */
 constexpr uint16_t REG11_RXVGA_GAIN_SHIFT = 0;
-constexpr uint16_t REG11_RXVGA_GAIN_MASK = 0x001F;  /* D4:D0 - 5 bits */
+constexpr uint16_t REG11_RXVGA_GAIN_MASK = 0x001F; /* D4:D0 - 5 bits */
 
 constexpr uint16_t REG11_LNA_GAIN_SHIFT = 5;
-constexpr uint16_t REG11_LNA_GAIN_MASK = 0x0060;    /* D6:D5 - 2 bits */
-constexpr uint16_t REG11_LNA_GAIN_M33 = (0 << REG11_LNA_GAIN_SHIFT);  /* -33 dB from max (min) */
-constexpr uint16_t REG11_LNA_GAIN_M16 = (2 << REG11_LNA_GAIN_SHIFT);  /* -16 dB from max */
-constexpr uint16_t REG11_LNA_GAIN_MAX = (3 << REG11_LNA_GAIN_SHIFT);  /* Maximum LNA gain */
+constexpr uint16_t REG11_LNA_GAIN_MASK = 0x0060;                     /* D6:D5 - 2 bits */
+constexpr uint16_t REG11_LNA_GAIN_M33 = (0 << REG11_LNA_GAIN_SHIFT); /* -33 dB from max (min) */
+constexpr uint16_t REG11_LNA_GAIN_M16 = (2 << REG11_LNA_GAIN_SHIFT); /* -16 dB from max */
+constexpr uint16_t REG11_LNA_GAIN_MAX = (3 << REG11_LNA_GAIN_SHIFT); /* Maximum LNA gain */
 
 /* REG 12: TX VGA Gain */
 constexpr uint16_t REG12_TXVGA_GAIN_SHIFT = 0;
-constexpr uint16_t REG12_TXVGA_GAIN_MASK = 0x003F;  /* D5:D0 - 6 bits */
+constexpr uint16_t REG12_TXVGA_GAIN_MASK = 0x003F; /* D5:D0 - 6 bits */
 
 /* REG 14: Clock Output */
 constexpr uint16_t REG14_CLKOUT_PIN_EN_SHIFT = 9;
@@ -164,11 +164,11 @@ constexpr uint16_t REG14_CLKOUT_PIN_EN = (1 << REG14_CLKOUT_PIN_EN_SHIFT);
 
 /* REG 15: RX IQ Common Mode */
 constexpr uint16_t REG15_RXIQ_VCM_SHIFT = 10;
-constexpr uint16_t REG15_RXIQ_VCM_MASK = 0x0C00;    /* D11:D10 - 2 bits */
-constexpr uint16_t REG15_RXIQ_VCM_1_1 = (0 << REG15_RXIQ_VCM_SHIFT);   /* 1.1V */
-constexpr uint16_t REG15_RXIQ_VCM_1_2 = (1 << REG15_RXIQ_VCM_SHIFT);   /* 1.2V */
-constexpr uint16_t REG15_RXIQ_VCM_1_3 = (2 << REG15_RXIQ_VCM_SHIFT);   /* 1.3V */
-constexpr uint16_t REG15_RXIQ_VCM_1_45 = (3 << REG15_RXIQ_VCM_SHIFT);  /* 1.45V */
+constexpr uint16_t REG15_RXIQ_VCM_MASK = 0x0C00;                      /* D11:D10 - 2 bits */
+constexpr uint16_t REG15_RXIQ_VCM_1_1 = (0 << REG15_RXIQ_VCM_SHIFT);  /* 1.1V */
+constexpr uint16_t REG15_RXIQ_VCM_1_2 = (1 << REG15_RXIQ_VCM_SHIFT);  /* 1.2V */
+constexpr uint16_t REG15_RXIQ_VCM_1_3 = (2 << REG15_RXIQ_VCM_SHIFT);  /* 1.3V */
+constexpr uint16_t REG15_RXIQ_VCM_1_45 = (3 << REG15_RXIQ_VCM_SHIFT); /* 1.45V */
 
 class MAX2831 : public MAX283x {
    public:
@@ -202,8 +202,8 @@ class MAX2831 : public MAX283x {
     spi::arbiter::Target& _target;
     Mode _mode{Mode::Standby};
     std::array<uint16_t, reg_count> _regs{default_regs};
-    uint16_t _regs_dirty{0xFFFF};  /* Track which registers need to be written */
-    uint32_t _desired_lpf_bw{0};   /* Desired LPF bandwidth in Hz */
+    uint16_t _regs_dirty{0xFFFF}; /* Track which registers need to be written */
+    uint32_t _desired_lpf_bw{0};  /* Desired LPF bandwidth in Hz */
 
     void write_reg(const uint8_t reg, const uint16_t value);
     void set_reg_field(const uint8_t reg, const uint16_t mask, const uint16_t value);

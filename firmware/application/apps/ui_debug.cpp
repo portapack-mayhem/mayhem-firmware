@@ -391,17 +391,27 @@ RadioDiagnosticsView::RadioDiagnosticsView(NavigationView& nav)
     : nav_(nav) {
     add_children({
         &text_title,
-        &text_lbl_rffc, &text_rffc_status,
-        &text_lbl_max, &text_max_status,
-        &text_lbl_adc, &text_adc_status,
-        &text_lbl_fpga, &text_fpga_status,
-        &text_lbl_sgpio, &text_sgpio_status,
-        &text_lbl_clock, &text_clock_status,
+        &text_lbl_rffc,
+        &text_rffc_status,
+        &text_lbl_max,
+        &text_max_status,
+        &text_lbl_adc,
+        &text_adc_status,
+        &text_lbl_fpga,
+        &text_fpga_status,
+        &text_lbl_sgpio,
+        &text_sgpio_status,
+        &text_lbl_clock,
+        &text_clock_status,
         &text_regs_title,
-        &text_lbl_rffc_reg, &text_rffc_reg,
-        &text_lbl_max_reg, &text_max_reg,
-        &text_lbl_fpga_reg, &text_fpga_reg,
-        &text_lbl_sgpio_reg, &text_sgpio_reg,
+        &text_lbl_rffc_reg,
+        &text_rffc_reg,
+        &text_lbl_max_reg,
+        &text_max_reg,
+        &text_lbl_fpga_reg,
+        &text_fpga_reg,
+        &text_lbl_sgpio_reg,
+        &text_sgpio_reg,
         &text_test_result,
         &button_refresh,
         &button_done,
@@ -506,11 +516,16 @@ BasebandStatusView::BasebandStatusView(NavigationView& nav)
     : nav_(nav) {
     add_children({
         &text_title,
-        &text_lbl_marker, &text_marker,
-        &text_lbl_loops, &text_loops,
-        &text_lbl_wait, &text_wait,
-        &text_lbl_xfr, &text_xfr,
-        &text_lbl_missed, &text_missed,
+        &text_lbl_marker,
+        &text_marker,
+        &text_lbl_loops,
+        &text_loops,
+        &text_lbl_wait,
+        &text_wait,
+        &text_lbl_xfr,
+        &text_xfr,
+        &text_lbl_missed,
+        &text_missed,
         &text_status_line1,
         &text_status_line2,
         &text_status_line3,
@@ -592,12 +607,18 @@ SGPIOLiveMonitorView::SGPIOLiveMonitorView(NavigationView& nav)
     : nav_(nav) {
     add_children({
         &text_title,
-        &text_lbl_ctrl, &text_ctrl,
-        &text_lbl_in, &text_in,
-        &text_lbl_ss, &text_ss,
-        &text_lbl_status, &text_status,
-        &text_lbl_out, &text_out,
-        &text_lbl_oen, &text_oen,
+        &text_lbl_ctrl,
+        &text_ctrl,
+        &text_lbl_in,
+        &text_in,
+        &text_lbl_ss,
+        &text_ss,
+        &text_lbl_status,
+        &text_status,
+        &text_lbl_out,
+        &text_out,
+        &text_lbl_oen,
+        &text_oen,
         &text_diag_line1,
         &text_diag_line2,
         &text_diag_line3,
@@ -627,9 +648,9 @@ void SGPIOLiveMonitorView::focus() {
 
 void SGPIOLiveMonitorView::update() {
     // Read SGPIO registers via radio debug namespace
-    uint32_t ctrl = radio::debug::sgpio::register_read(0);      // CTRL_ENABLE
-    uint32_t in_reg = radio::debug::sgpio::register_read(1);    // GPIO_INREG
-    uint32_t status = radio::debug::sgpio::register_read(4);    // STATUS_1
+    uint32_t ctrl = radio::debug::sgpio::register_read(0);    // CTRL_ENABLE
+    uint32_t in_reg = radio::debug::sgpio::register_read(1);  // GPIO_INREG
+    uint32_t status = radio::debug::sgpio::register_read(4);  // STATUS_1
 
     // Read registers directly from LPC_SGPIO peripheral
     uint32_t reg_ss = LPC_SGPIO->REG_SS[0];
@@ -650,7 +671,7 @@ void SGPIOLiveMonitorView::update() {
     bool disable_high = (out_reg & (1U << 10)) != 0;  // Bit 10 = DISABLE signal
     bool sgpio8_high = (in_reg & (1U << 8)) != 0;     // Bit 8 = SGPIO8 clock
     bool sgpio8_output = (oen_reg & (1U << 8)) != 0;  // Bit 8 = SGPIO8 direction (should be INPUT=0)
-    
+
     // Line 1: SGPIO8 direction check (CRITICAL - must be INPUT)
     if (sgpio8_output) {
         text_diag_line1.set("SGPIO8 OUTPUT! (bus conflict)");
@@ -872,22 +893,25 @@ void RadioRxTestView::run_sgpio_test() {
 
     // CRITICAL FIX: Set DISABLE=HIGH first (reference HackRF pattern)
     LPC_SGPIO->GPIO_OENREG = (1U << 10) | (1U << 11);  // SGPIO10,11 outputs
-    LPC_SGPIO->GPIO_OUTREG = (1U << 10);  // DISABLE=HIGH during config
+    LPC_SGPIO->GPIO_OUTREG = (1U << 10);               // DISABLE=HIGH during config
     log("Set DISABLE=HIGH");
 
     // Small delay for signals to settle
-    for (volatile int i = 0; i < 10000; i++) {}
+    for (volatile int i = 0; i < 10000; i++) {
+    }
 
     // NOW enable streaming (DISABLE=LOW)
     LPC_SGPIO->GPIO_OUTREG = 0;  // DISABLE=LOW, DIRECTION=LOW (RX)
     log("Set DISABLE=LOW (streaming)");
-    for (volatile int i = 0; i < 10000; i++) {}
+    for (volatile int i = 0; i < 10000; i++) {
+    }
 
     // Read raw GPIO_INREG multiple times
     uint32_t g[4];
     for (int i = 0; i < 4; i++) {
         g[i] = LPC_SGPIO->GPIO_INREG;
-        for (volatile int j = 0; j < 10000; j++) {}
+        for (volatile int j = 0; j < 10000; j++) {
+        }
     }
 
     log("GPIO_IN:");
@@ -938,11 +962,12 @@ void RadioRxTestView::run_full_test() {
     log("[5/6] Configure SGPIO...");
     // CRITICAL FIX: Set DISABLE=HIGH first
     LPC_SGPIO->GPIO_OENREG = (1U << 10) | (1U << 11);  // SGPIO10,11 as outputs
-    LPC_SGPIO->GPIO_OUTREG = (1U << 10);  // DISABLE=HIGH during config
+    LPC_SGPIO->GPIO_OUTREG = (1U << 10);               // DISABLE=HIGH during config
     log("  DISABLE=HIGH");
 
     // Delay for settle
-    for (volatile int i = 0; i < 10000; i++) {}
+    for (volatile int i = 0; i < 10000; i++) {
+    }
 
     // NOW enable streaming (DISABLE=LOW)
     LPC_SGPIO->GPIO_OUTREG = 0;  // DISABLE=LOW, DIRECTION=LOW (RX)
@@ -952,15 +977,19 @@ void RadioRxTestView::run_full_test() {
     log("[6/6] Check GPIO pins...");
 
     // Delay for stabilization
-    for (volatile int i = 0; i < 200000; i++) {}
+    for (volatile int i = 0; i < 200000; i++) {
+    }
 
     // Read raw GPIO_INREG multiple times
     uint32_t g1 = LPC_SGPIO->GPIO_INREG;
-    for (volatile int i = 0; i < 10000; i++) {}
+    for (volatile int i = 0; i < 10000; i++) {
+    }
     uint32_t g2 = LPC_SGPIO->GPIO_INREG;
-    for (volatile int i = 0; i < 10000; i++) {}
+    for (volatile int i = 0; i < 10000; i++) {
+    }
     uint32_t g3 = LPC_SGPIO->GPIO_INREG;
-    for (volatile int i = 0; i < 10000; i++) {}
+    for (volatile int i = 0; i < 10000; i++) {
+    }
     uint32_t g4 = LPC_SGPIO->GPIO_INREG;
 
     log("GPIO_IN readings:");
@@ -997,7 +1026,8 @@ bool RadioRxTestView::check_gpio_changing() {
     uint32_t g[4];
     for (int i = 0; i < 4; i++) {
         g[i] = LPC_SGPIO->GPIO_INREG;
-        for (volatile int j = 0; j < 10000; j++) {}
+        for (volatile int j = 0; j < 10000; j++) {
+        }
     }
     return (g[0] != g[1]) || (g[1] != g[2]) || (g[2] != g[3]);
 }
@@ -1019,22 +1049,28 @@ void RadioRxTestView::run_step_test() {
 
     // Step 0: Baseline with DISABLE=HIGH first
     log("[0] Baseline (DISABLE=HIGH)");
-    LPC_SGPIO->CTRL_ENABLE = 0;  // Disable all slices
-    LPC_SGPIO->GPIO_OENREG = 0x0C00;  // Bits 10, 11 outputs
+    LPC_SGPIO->CTRL_ENABLE = 0;           // Disable all slices
+    LPC_SGPIO->GPIO_OENREG = 0x0C00;      // Bits 10, 11 outputs
     LPC_SGPIO->GPIO_OUTREG = (1U << 10);  // DISABLE=HIGH first!
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
 
     // Now enable streaming to check baseline
     LPC_SGPIO->GPIO_OUTREG = 0x0000;  // DISABLE=LOW
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
     bool step0 = check_gpio_changing();
     log(step0 ? "  PASS: Data changing" : "  FAIL: Data static");
-    if (!step0) { log("ABORT: Baseline broken"); return; }
+    if (!step0) {
+        log("ABORT: Baseline broken");
+        return;
+    }
 
     // NOW disable streaming for configuration
     log("[Config] Set DISABLE=HIGH");
     LPC_SGPIO->GPIO_OUTREG = (1U << 10);  // DISABLE=HIGH
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
 
     // Step 1: OUT_MUX_CFG data pins - test individually
     log("[1] OUT_MUX_CFG[0-7] data");
@@ -1043,7 +1079,8 @@ void RadioRxTestView::run_step_test() {
     for (size_t i = 0; i < 8; i++) {
         uint32_t before = LPC_SGPIO->GPIO_INREG;
         LPC_SGPIO->OUT_MUX_CFG[i] = data_out_mux;
-        for (volatile int j = 0; j < 50000; j++) {}
+        for (volatile int j = 0; j < 50000; j++) {
+        }
         uint32_t after = LPC_SGPIO->GPIO_INREG;
         bool ok = check_gpio_changing();
 
@@ -1063,18 +1100,21 @@ void RadioRxTestView::run_step_test() {
     log("[2] OUT_MUX_CFG ctrl pins");
     log("  (skipping pin 10 - breaks)");
 
-    struct { int pin; uint32_t val; } ctrl_pins[] = {
+    struct {
+        int pin;
+        uint32_t val;
+    } ctrl_pins[] = {
         {8, (0U << 0) | (0U << 4)},
         {9, (0U << 0) | (0U << 4)},
         // {10, (4U << 0) | (0U << 4)},  // SKIP - causes failure
         {11, (4U << 0) | (0U << 4)},
-        {14, (0U << 0) | (0U << 4)}
-    };
+        {14, (0U << 0) | (0U << 4)}};
 
     for (auto& p : ctrl_pins) {
         uint32_t before = LPC_SGPIO->GPIO_INREG;
         LPC_SGPIO->OUT_MUX_CFG[p.pin] = p.val;
-        for (volatile int i = 0; i < 50000; i++) {}
+        for (volatile int i = 0; i < 50000; i++) {
+        }
         uint32_t after = LPC_SGPIO->GPIO_INREG;
         bool ok = check_gpio_changing();
 
@@ -1093,10 +1133,14 @@ void RadioRxTestView::run_step_test() {
     // Step 3: Set GPIO_OENREG for RX
     log("[3] GPIO_OENREG full RX");
     LPC_SGPIO->GPIO_OENREG = 0x0C00;  // Keep same as baseline
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
     bool step3 = check_gpio_changing();
     log(step3 ? "  PASS" : "  FAIL: Data stopped!");
-    if (!step3) { log("CULPRIT: GPIO_OENREG"); return; }
+    if (!step3) {
+        log("CULPRIT: GPIO_OENREG");
+        return;
+    }
 
     // Step 3.5: Configure slice D as clock source (CRITICAL!)
     log("[3.5] Slice D clock source");
@@ -1112,26 +1156,38 @@ void RadioRxTestView::run_step_test() {
     LPC_SGPIO->REG_SS[slice_d] = 0x11111111;
     // Enable slice D counter
     LPC_SGPIO->CTRL_ENABLE = (1U << slice_d);
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
     bool step3_5 = check_gpio_changing();
     log(step3_5 ? "  PASS" : "  FAIL: Data stopped!");
-    if (!step3_5) { log("CULPRIT: Slice D config"); return; }
+    if (!step3_5) {
+        log("CULPRIT: Slice D config");
+        return;
+    }
 
     // Step 4: SGPIO_MUX_CFG slice A
     log("[4] SGPIO_MUX_CFG[A]");
     LPC_SGPIO->SGPIO_MUX_CFG[0] = (1U << 0) | (0U << 1) | (3U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (0U << 11) | (0U << 12);  // Clock from slice D (bit3-4=3), external pin SGPIO8, qualifier SGPIO9
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
     bool step4 = check_gpio_changing();
     log(step4 ? "  PASS" : "  FAIL: Data stopped!");
-    if (!step4) { log("CULPRIT: SGPIO_MUX_CFG[A]"); return; }
+    if (!step4) {
+        log("CULPRIT: SGPIO_MUX_CFG[A]");
+        return;
+    }
 
     // Step 5: SLICE_MUX_CFG slice A
     log("[5] SLICE_MUX_CFG[A]");
     LPC_SGPIO->SLICE_MUX_CFG[0] = (0U << 0) | (0U << 1) | (1U << 2) | (0U << 3) | (1U << 4) | (3U << 6) | (0U << 8);  // CLKGEN_MODE=1 (external clock!), PARALLEL_MODE 1 byte
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
     bool step5 = check_gpio_changing();
     log(step5 ? "  PASS" : "  FAIL: Data stopped!");
-    if (!step5) { log("CULPRIT: SLICE_MUX_CFG[A]"); return; }
+    if (!step5) {
+        log("CULPRIT: SLICE_MUX_CFG[A]");
+        return;
+    }
 
     // Step 6: Slice A registers
     log("[6] Slice A registers");
@@ -1140,15 +1196,20 @@ void RadioRxTestView::run_step_test() {
     LPC_SGPIO->POS[0] = (0x1F << 0) | (0x1F << 8);  // pos, pos_reset
     LPC_SGPIO->REG[0] = 0;
     LPC_SGPIO->REG_SS[0] = 0;
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
     bool step6 = check_gpio_changing();
     log(step6 ? "  PASS" : "  FAIL: Data stopped!");
-    if (!step6) { log("CULPRIT: Slice A registers"); return; }
+    if (!step6) {
+        log("CULPRIT: Slice A registers");
+        return;
+    }
 
     // Step 7: Enable slice A counter (keep slice D enabled) - still with DISABLE=HIGH
     log("[7] Enable slices D+A");
     LPC_SGPIO->CTRL_ENABLE = (1U << 3) | (1U << 0);  // Slice D + Slice A
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
 
     // Check STATUS_1 BEFORE enabling streaming
     uint32_t status_pre = LPC_SGPIO->STATUS_1;
@@ -1157,7 +1218,8 @@ void RadioRxTestView::run_step_test() {
     // Step 8: Enable streaming (DISABLE=LOW) - THIS IS THE CRITICAL TEST
     log("[8] Enable streaming (DISABLE=LOW)");
     LPC_SGPIO->GPIO_OUTREG = 0;  // DISABLE=LOW
-    for (volatile int i = 0; i < 100000; i++) {}
+    for (volatile int i = 0; i < 100000; i++) {
+    }
 
     // Check if slices become active
     uint32_t status_post = LPC_SGPIO->STATUS_1;
@@ -1230,7 +1292,7 @@ void SGPIO8ClockDetectorView::sample_sgpio8() {
     // Count toggles (transitions 0→1 or 1→0)
     int toggles = 0;
     for (int i = 1; i < num_samples; i++) {
-        if (samples[i] != samples[i-1]) {
+        if (samples[i] != samples[i - 1]) {
             toggles++;
         }
     }
@@ -1255,7 +1317,7 @@ void SGPIO8ClockDetectorView::sample_sgpio8() {
         text_status.set_style(Theme::getInstance()->fg_orange);
     } else {
         text_status.set("NO CLOCK - Stuck " +
-                       std::string(samples[0] ? "HIGH" : "LOW"));
+                        std::string(samples[0] ? "HIGH" : "LOW"));
         text_status.set_style(Theme::getInstance()->fg_red);
     }
 }
@@ -1414,7 +1476,7 @@ void Si5351DebugView::refresh_status() {
 
 void Si5351DebugView::reset_pll() {
     // Reset both PLLs (write to reg 177)
-    portapack::clock_manager.si5351_read_register(177);  // Read first
+    portapack::clock_manager.si5351_read_register(177);         // Read first
     portapack::clock_manager.si5351_write_register(177, 0xAC);  // Reset both PLLs
 
     // Small delay for PLL to settle

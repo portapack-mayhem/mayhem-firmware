@@ -254,7 +254,7 @@ enum GPIOs {
     GPIO0_3,
     GPIO0_4,
     GPIO0_5,
-    /*GPIO0_6,*/ 
+    /*GPIO0_6,*/
     GPIO0_7,
     GPIO0_8,
     GPIO0_9,
@@ -321,7 +321,7 @@ enum GPIOs {
     GPIO5_7,
     GPIO5_8,
     GPIO5_9,
-    /*GPIO5_10, GPIO5_11,*/ 
+    /*GPIO5_10, GPIO5_11,*/
     GPIO5_12,
     GPIO5_13,
     GPIO5_14,
@@ -441,28 +441,28 @@ constexpr GPIO gpio[] = {
     [GPIO5_15] = {pins[P6_7], 5, 15, 4},
     [GPIO5_16] = {pins[P6_8], 5, 16, 4},
     [GPIO5_18] = {pins[P9_5], 5, 18, 4},
-    // PRALINE-specific GPIOs (use placeholder pins on non-PRALINE builds)
+// PRALINE-specific GPIOs (use placeholder pins on non-PRALINE builds)
 #ifdef PRALINE
-    [GPIO4_14] = {pins[P9_2], 4, 14, 0},    // RFFC5072 mixer data
-    [GPIO4_1] = {pins[P8_1], 4, 1, 0},      // VAA disable
-    [GPIO4_6] = {pins[P8_6], 4, 6, 0},      // LED4
-    [GPIO4_7] = {pins[P8_7], 4, 7, 0},      // 1V2 enable
-    [GPIO4_8] = {pins[PA_1], 4, 8, 0},      // LPF enable
-    [GPIO4_9] = {pins[PA_2], 4, 9, 0},      // RF amp enable
-    [GPIO7_1] = {pins[PE_1], 7, 1, 4},      // MAX2831 enable
-    [GPIO7_2] = {pins[PE_2], 7, 2, 4},      // MAX2831 RX enable
-    [GPIO7_3] = {pins[PE_3], 7, 3, 4},      // P2 port control 0
-    [GPIO7_4] = {pins[PE_4], 7, 4, 4},      // P2 port control 1
-    [GPIO6_25] = {pins[PD_11], 6, 25, 4},   // Mixer lock detect
-    [GPIO6_26] = {pins[PD_12], 6, 26, 4},   // Trigger input
-    [GPIO6_28] = {pins[PD_14], 6, 28, 4},   // MAX283x chip select
-    [GPIO6_29] = {pins[PD_15], 6, 29, 4},   // MAX2831 RXHP
-    [GPIO6_30] = {pins[PD_16], 6, 30, 4},   // MAX5864 chip select
+    [GPIO4_14] = {pins[P9_2], 4, 14, 0},   // RFFC5072 mixer data
+    [GPIO4_1] = {pins[P8_1], 4, 1, 0},     // VAA disable
+    [GPIO4_6] = {pins[P8_6], 4, 6, 0},     // LED4
+    [GPIO4_7] = {pins[P8_7], 4, 7, 0},     // 1V2 enable
+    [GPIO4_8] = {pins[PA_1], 4, 8, 0},     // LPF enable
+    [GPIO4_9] = {pins[PA_2], 4, 9, 0},     // RF amp enable
+    [GPIO7_1] = {pins[PE_1], 7, 1, 4},     // MAX2831 enable
+    [GPIO7_2] = {pins[PE_2], 7, 2, 4},     // MAX2831 RX enable
+    [GPIO7_3] = {pins[PE_3], 7, 3, 4},     // P2 port control 0
+    [GPIO7_4] = {pins[PE_4], 7, 4, 4},     // P2 port control 1
+    [GPIO6_25] = {pins[PD_11], 6, 25, 4},  // Mixer lock detect
+    [GPIO6_26] = {pins[PD_12], 6, 26, 4},  // Trigger input
+    [GPIO6_28] = {pins[PD_14], 6, 28, 4},  // MAX283x chip select
+    [GPIO6_29] = {pins[PD_15], 6, 29, 4},  // MAX2831 RXHP
+    [GPIO6_30] = {pins[PD_16], 6, 30, 4},  // MAX5864 chip select
 #else
     // Placeholder entries for non-PRALINE builds (use P0_0 as dummy)
     [GPIO4_14] = {pins[P0_0], 4, 14, 0},
     [GPIO4_1] = {pins[P0_0], 4, 1, 0},
-    [GPIO4_6] = {pins[P0_0], 4, 6, 0},      
+    [GPIO4_6] = {pins[P0_0], 4, 6, 0},
     [GPIO4_7] = {pins[P0_0], 4, 7, 0},
     [GPIO4_8] = {pins[P0_0], 4, 8, 0},
     [GPIO4_9] = {pins[P0_0], 4, 9, 0},

@@ -39,7 +39,6 @@ NarrowbandAMAudio::NarrowbandAMAudio() {
     rssi_thread.start();
 }
 
-
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     if (!configured) {
         return;

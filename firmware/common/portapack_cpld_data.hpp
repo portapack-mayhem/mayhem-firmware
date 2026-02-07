@@ -62,7 +62,6 @@ const Config config{block_0, block_1};
 } /* namespace rev_h4m */
 #endif
 
-
 } /* namespace cpld */
 } /* namespace portapack */
 

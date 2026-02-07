@@ -43,7 +43,6 @@ NarrowbandFMAudio::NarrowbandFMAudio() {
 }
 #endif
 
-
 void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
     // bool new_state;
 

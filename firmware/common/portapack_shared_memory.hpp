@@ -88,10 +88,10 @@ struct SharedMemory {
 
 #ifdef PRALINE
     // Phase 0 instrumentation counters for PRALINE radio debugging
-    uint32_t volatile m4_dma_xfr_count{0};      // DMA transfer_complete() calls
-    uint32_t volatile m4_dma_wait_count{0};     // wait_for_buffer() calls
-    uint32_t volatile m4_baseband_loops{0};     // Main loop iterations
-    uint8_t volatile m4_streaming_marker{0};    // Proves streaming_enable() called
+    uint32_t volatile m4_dma_xfr_count{0};    // DMA transfer_complete() calls
+    uint32_t volatile m4_dma_wait_count{0};   // wait_for_buffer() calls
+    uint32_t volatile m4_baseband_loops{0};   // Main loop iterations
+    uint8_t volatile m4_streaming_marker{0};  // Proves streaming_enable() called
 #endif
 };
 

@@ -91,7 +91,6 @@ void BasebandThread::run() {
     shared_memory.m4_streaming_marker = 0xAA;  // Phase 0 instrumentation
 #endif
 
-
     while (!chThdShouldTerminate()) {
 #ifdef PRALINE
         shared_memory.m4_baseband_loops++;  // Phase 0 instrumentation

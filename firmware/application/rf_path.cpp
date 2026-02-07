@@ -41,10 +41,10 @@ namespace {
  */
 struct PralineConfig {
     bool tx_en;
-    bool mix_en_n;      // Inverted: 0 = mixer enabled
+    bool mix_en_n;  // Inverted: 0 = mixer enabled
     bool lpf_en;
     bool rf_amp_en;
-    bool ant_bias_en_n; // Inverted: 0 = bias enabled
+    bool ant_bias_en_n;  // Inverted: 0 = bias enabled
 
     static void gpio_init() {
         gpio_tx_enable.output();
@@ -239,10 +239,10 @@ void Path::init() {
     /* Set safe initial state: RX mode, mixer enabled, LPF on, amp off, no bias */
     PralineConfig config = {
         .tx_en = false,
-        .mix_en_n = false,    // Mixer enabled (inverted)
-        .lpf_en = true,       // LPF on for low band
-        .rf_amp_en = false,   // Amp off
-        .ant_bias_en_n = true // Bias off (inverted)
+        .mix_en_n = false,     // Mixer enabled (inverted)
+        .lpf_en = true,        // LPF on for low band
+        .rf_amp_en = false,    // Amp off
+        .ant_bias_en_n = true  // Bias off (inverted)
     };
     config.apply();
 #else
