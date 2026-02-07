@@ -195,7 +195,11 @@ void timer0_callback(GPTDriver* const) {
         event_mask |= EVT_MASK_ENCODER;
 
     /* Signal event loop */
+#ifdef PRALINE
+    if (event_mask && thread_controls_event) {
+#else
     if (event_mask) {
+#endif
         chSysLockFromIsr();
         chEvtSignalI(thread_controls_event, event_mask);
         chSysUnlockFromIsr();
@@ -227,8 +231,13 @@ void controls_init() {
     gptStart(&GPTD1, &timer0_config);
     gptStartContinuous(&GPTD1, timer0_match_count);
 
+#ifdef PRALINE
+    // Enable repeat for directional switches only
+    for (auto i = Switch::Right; i <= Switch::Up; incr(i))
+#else
     // Enable repeat for directional and Select switches only
     for (auto i = Switch::Right; i <= Switch::Sel; incr(i))
+#endif
         switch_debounce[toUType(i)].enable_repeat();
 }
 
