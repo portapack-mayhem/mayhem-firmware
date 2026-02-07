@@ -383,6 +383,11 @@ void set_morsetx_key(bool key_down) {
     send_message(&message);
 }
 
+void set_bitstream_config(uint32_t deviation, uint8_t mode) {
+    const StreamTXConfigurationMessage message{deviation, mode};
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {

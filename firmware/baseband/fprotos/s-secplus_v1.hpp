@@ -76,7 +76,7 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
                                 packet_accepted |= SECPLUS_V1_PACKET_2_ACCEPTED;
 
                             if (packet_accepted == (SECPLUS_V1_PACKET_1_ACCEPTED | SECPLUS_V1_PACKET_2_ACCEPTED)) {
-                                // subghz_protocol_secplus_v1_decode();  // disabled doe to lack of flash
+                                // subghz_protocol_secplus_v1_decode();  // disabled due to lack of flash
                                 //  controller
                                 // uint32_t fixed = (data >> 32) & 0xFFFFFFFF;
                                 // cnt = data & 0xFFFFFFFF;

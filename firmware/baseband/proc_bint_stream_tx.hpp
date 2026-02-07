@@ -34,10 +34,11 @@
 #include <memory>
 
 #define OOK_SAMPLERATE 2280000U
+#define FM_DEVIATION 60000U
 
-class OOKProcessorStreamed : public BasebandProcessor {
+class BinaryTimedProcessorStreamed : public BasebandProcessor {
    public:
-    OOKProcessorStreamed();
+    BinaryTimedProcessorStreamed();
 
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
@@ -53,6 +54,11 @@ class OOKProcessorStreamed : public BasebandProcessor {
     std::unique_ptr<StreamOutput> stream{};
     bool configured{false};
     void replay_config(const ReplayConfigMessage& message);
+    void streamtx_config(const StreamTXConfigurationMessage& message);
+
+    uint8_t mode = 0;                   // am = 0, 2fsk = 1
+    uint32_t deviation = FM_DEVIATION;  // used in 2fsk
+    uint32_t deviation_delta = (FM_DEVIATION * 4294967296ULL) / OOK_SAMPLERATE;
 
     int32_t endsignals[3] = {0, 42069, 613379};  // 0 is skipped, count from 1, don't ask...
     uint8_t readerrs = 0;                        // to count in the array

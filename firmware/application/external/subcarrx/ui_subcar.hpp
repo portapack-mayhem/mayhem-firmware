@@ -116,25 +116,27 @@ class SubCarView : public View {
         4'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
     bool logging = false;
+    uint8_t modulation = 0;
     app_settings::SettingsManager settings_{
         "rx_subcar",
         app_settings::Mode::RX,
         {
             {"log"sv, &logging},
+            {"modulationmode"sv, &modulation},
         }};
 
     SubCarRecentEntries recent{};
 
     RFAmpField field_rf_amp{
-        {13 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, UI_POS_WIDTH_REMAINING(24), 4},
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -143,18 +145,22 @@ class SubCarView : public View {
     SignalToken signal_token_tick_second{};
 
     Button button_clear_list{
-        {0, 16, 7 * 8, 32},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_HEIGHT(2)},
         "Clear"};
 
     Checkbox check_log{
-        {10 * 8, 18},
+        {UI_POS_X(8), UI_POS_Y(1)},
         3,
         "Log",
         true};
 
     Labels labels{
-        {{UI_POS_X_RIGHT(14), UI_POS_Y(1)}, "no fm yet :(", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(15), UI_POS_Y(1)}, "Mode:", Theme::getInstance()->fg_light->foreground},
     };
+    ui::OptionsField options_mode{
+        {UI_POS_X(22), UI_POS_Y(1)},
+        3,
+        {{"AM", 0}, {"FM", 1}}};
 
     static constexpr auto header_height = 3 * 16;
 
@@ -198,16 +204,16 @@ class SubCarRecentEntryDetailView : public View {
     std::string btn = "";
     uint32_t cnt = SD_NO_CNT;
 
-    Text text_type{{UI_POS_X(0), 1 * 16, 15 * 8, 16}, "?"};
-    Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
+    Text text_type{{UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "?"};
+    Text text_id{{UI_POS_X(6), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)}, "?"};
 
     Console console{
-        {0, 4 * 16, screen_width, screen_height - (4 * 16) - 36}};
+        {UI_POS_X(0), UI_POS_Y(4), UI_POS_MAXWIDTH, screen_height - (4 * 16) - 36}};
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(0)}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), 2 * 16}, "Serial: ", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), 3 * 16}, "Data:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Serial: ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(3)}, "Data:", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_done{

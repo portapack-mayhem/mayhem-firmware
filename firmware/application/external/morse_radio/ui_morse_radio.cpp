@@ -17,6 +17,7 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
                   &txt_last,
                   &txt_speed,
                   &txt_freq,
+                  &txt_clip,
                   &options_mode,
                   &btn_clear,
                   &console_text,
@@ -33,41 +34,44 @@ MorseRadioView::MorseRadioView(ui::NavigationView& nav)
             logger->init_daily_log(logs_dir);
     };
 
-    audio::output::start();
-    receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_baseband_bandwidth(1750000);
-    receiver_model.enable();
+    field_squelch.on_change = [this](int32_t v) {
+        receiver_model.set_squelch_level(v);
+    };
 
-    options_mode.on_change = [this](size_t, int32_t value) {
-        current_mode = (uint8_t)value;
+    options_mode.on_change = [this](size_t, int32_t mode) {
+        audio::output::stop();
+        receiver_model.disable();
         morse_decoder_.resetLearning();
-        if (current_mode == 0) {
+        if (mode == MORSE_NFM) {
             receiver_model.set_am_configuration(4);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             field_squelch.set_style(Theme::getInstance()->option_active);
             field_squelch.set_focusable(true);
-            receiver_model.set_squelch_level(field_squelch.value());
+            field_squelch.set_value(receiver_model.squelch_level());
             audio::set_rate(audio::Rate::Hz_24000);
         } else {
+            audio::set_rate(audio::Rate::Hz_12000);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-            receiver_model.set_am_configuration(current_mode + 7);
-            receiver_model.set_squelch_level(0);
+            if (mode == MORSE_AM_CW || mode == MORSE_AM_DSB)
+                receiver_model.set_am_configuration(7);
+            else if (mode == MORSE_AM_USB)
+                receiver_model.set_am_configuration(9);
+            else  // LSB
+                receiver_model.set_am_configuration(10);
             field_squelch.set_style(Theme::getInstance()->fg_dark);
             field_squelch.set_focusable(false);
-            audio::set_rate(audio::Rate::Hz_12000);
         }
-        baseband::set_moreserx_config(current_mode);
-    };
-    field_squelch.set_value(receiver_model.squelch_level(), false);  // will be sent later, no need to send 2x
-    field_squelch.on_change = [this](int32_t v) {
-        if (current_mode == 0)
-            receiver_model.set_squelch_level(v);
-    };
-    options_mode.set_selected_index(current_mode, true);
+        baseband::set_moreserx_config(mode);
+        saved_mode = mode;
 
-    auto vol = field_volume.value();  // audio volume fix
-    field_volume.set_value(0);
-    field_volume.set_value(vol);
+        audio::output::start();
+        receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
+
+        receiver_model.set_sampling_rate(3072000);
+        receiver_model.set_baseband_bandwidth(1750000);
+        receiver_model.enable();
+    };
+    options_mode.set_selected_index(saved_mode);
 
     logger = std::make_unique<MorseLogger>();
     chk_log.on_select = [this](Checkbox&, bool save) {
@@ -103,21 +107,21 @@ void MorseLogger::init_daily_log(const std::filesystem::path& log_dir) {
     }
 }
 
-void MorseLogger::radio_set_log(uint8_t current_mode) {
+void MorseLogger::radio_set_log(const std::string& morse_mode) {
     int64_t freq = receiver_model.target_frequency();
     std::string header = "Freq:" + to_string_rounded_freq(freq, 4);
     header += "MHz, ";
-    header += "RX MODE:" + std::string(current_mode == 0 ? "CW/FM" : (current_mode == 1 ? "USB" : "LSB"));
+    header += "RX MODE:" + morse_mode;
     header += "\r\nMessage:";
     log_file.write_raw(header);
 }
 
-bool MorseLogger::on_packet(const std::string& content, bool time, uint8_t current_mode) {
+bool MorseLogger::on_packet(const std::string& content, bool time, const std::string& morse_mode) {
     if (!time) {
         log_file.write_raw_no_newline("\r\n\r\n");
         auto timestamp = to_string_datetime(rtc_time::now(), YMDHMS);
         log_file.write_raw("[" + timestamp + "] ");
-        radio_set_log(current_mode);
+        radio_set_log(morse_mode);
         char_count = 0;
         time = true;
     }
@@ -152,6 +156,8 @@ MorseRadioView::~MorseRadioView() {
 
 void MorseRadioView::focus() {
     field_frequency.focus();
+    txt_clip.set_style(Theme::getInstance()->fg_red);
+    txt_clip.hidden(true);
 }
 
 void MorseRadioView::check_for_timeout() {
@@ -205,6 +211,8 @@ int32_t MorseRadioView::ProcessSignal(int32_t sig_time_us) {
 void MorseRadioView::on_data(const MorseRXDataMessage* message) {
     int32_t r;
 
+    txt_clip.hidden(!message->clipped);
+
     for (uint8_t i = 0; i <= message->state_cnt; ++i) {
         r = ProcessSignal(message->state_durations[i]);
         auto result = morse_decoder_.handleInput((r != 0) ? r : 0);
@@ -212,7 +220,7 @@ void MorseRadioView::on_data(const MorseRXDataMessage* message) {
             last_activity_time = chTimeNow();  // start reset timer on valid input
             writeCharToConsole(result.text, result.confidence);
             if (logger && save_log) {
-                time_stamp = logger->on_packet(result.text, time_stamp, current_mode);
+                time_stamp = logger->on_packet(result.text, time_stamp, options_mode.selected_index_name());
             }
             float dah_time = morse_decoder_.getCurrentTimeUnit() * 3.0f;
             if (dah_time > 0) {
