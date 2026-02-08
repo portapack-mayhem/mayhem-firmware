@@ -651,74 +651,12 @@ void ClockManager::disable_if_clocks() {
 
 void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 #ifdef PRALINE
-    #define MAX_AFE_RATE 40000000
-    #define MAX_N 5
-
-    uint8_t n = 1;
-    uint32_t afe_rate = frequency << 1;
-
-    while ((afe_rate <= MAX_AFE_RATE) && (n < MAX_N)) {
-        n++;
-        afe_rate = frequency << n;
-    }
-
-    if (afe_rate > MAX_AFE_RATE) {
-        n--;
-        afe_rate = frequency << n;
-    }
-
-    // Set FPGA decimation
-    fpga_debug_register_write(2, n);
-    radio::invalidate_spi_config();
-
-    // Calculate MS divider for the desired AFE rate
-    // We want the MS to output afe_rate before r_div
-    // So: MS_freq = afe_rate * 2 (because r_div=1 will divide by 2)
-    uint32_t ms_freq = afe_rate * 2;
-    uint32_t ms_a = 800000000 / ms_freq;
-
-    // CRITICAL: Directly create and write the multisynth configs
-    // Do NOT use set_ms_frequency() - it has issues on PRALINE
-    const si5351::MultisynthFractional ms_clk0 = {
-        .f_src = 800000000,
-        .a = ms_a,
-        .b = 0,
-        .c = 1,
-        .r_div = 1,
-    };
-
-    const si5351::MultisynthFractional ms_clk1 = {
-        .f_src = 800000000,
-        .a = ms_a,
-        .b = 0,
-        .c = 1,
-        .r_div = 0,
-    };
-
-    // Use write_ms_single_byte (proven to work at init)
-    clock_generator.write_ms_single_byte(0, ms_clk0);
-    clock_generator.write_ms_single_byte(1, ms_clk1);
-
-    // Update the clock control array to ensure fractional mode
-    // is preserved when enable_clock() is called later
-    clock_generator.set_clock_control(0, si5351::ClockControl(
-        si5351::ClockControl::ClockCurrentDrive::_6mA,
-        si5351::ClockControl::ClockSource::MS_Self,
-        si5351::ClockControl::ClockInvert::Normal,
-        si5351::ClockControl::MultiSynthSource::PLLA,
-        si5351::ClockControl::MultiSynthMode::Fractional,
-        si5351::ClockControl::ClockPowerDown::Power_On
-    ));
-    
-    clock_generator.set_clock_control(1, si5351::ClockControl(
-        si5351::ClockControl::ClockCurrentDrive::_4mA,
-        si5351::ClockControl::ClockSource::MS_Self,
-        si5351::ClockControl::ClockInvert::Normal,
-        si5351::ClockControl::MultiSynthSource::PLLA,
-        si5351::ClockControl::MultiSynthMode::Fractional,
-        si5351::ClockControl::ClockPowerDown::Power_On
-    ));
-
+    /* PRALINE: CLK0=AFE_CLK runs at sample rate (VCO/divider/2)
+     *          CLK1=SCT_CLK runs at 2x sample rate (VCO/divider/1)
+     * Reference: hackrf_core.c sample_rate_frac_set() lines 580-582
+     */
+    clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1);  /* CLK0: r_div=1 (÷2) */
+    clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0);  /* CLK1: r_div=0 (÷1) */
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only
