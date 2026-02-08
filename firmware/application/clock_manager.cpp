@@ -655,8 +655,37 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
      *          CLK1=SCT_CLK runs at 2x sample rate (VCO/divider/1)
      * Reference: hackrf_core.c sample_rate_frac_set() lines 580-582
      */
-    clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1);  /* CLK0: r_div=1 (÷2) */
-    clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0);  /* CLK1: r_div=0 (÷1) */
+
+    /* PRALINE: CLK0 stays at fixed 8 MHz for MAX5864 codec.
+     * FPGA decimates to get the desired sample rate.
+     * Reference: HackRF USB firmware keeps codec clock constant. */
+
+    // Calculate FPGA decimation ratio
+    // Decimation = 2^n, where n is chosen to keep AFE rate reasonable
+    uint8_t n = 0;
+    uint32_t afe_clock = 8000000;  // Codec clock is fixed at 8 MHz
+
+    // Calculate required decimation: 8 MHz / desired_sample_rate
+    // For 8 MHz: decimation = 1 (n=0)
+    // For 4 MHz: decimation = 2 (n=1)
+    // For 1 MHz: decimation = 8 (n=3)
+    if (frequency > 0) {
+        uint32_t decimation = afe_clock / frequency;
+        // Find n such that 2^n = decimation
+        while ((1U << n) < decimation && n < 5) {
+            n++;
+        }
+    }
+
+    // Set FPGA decimation register
+    fpga_debug_register_write(2, n);
+    radio::invalidate_spi_config();
+
+    // CLK0 and CLK1 stay at their initialized values (8 MHz and 16 MHz)
+    // Don't call set_ms_frequency - leave Si5351 at boot configuration!
+
+    //clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1); // CLK0: r_div=1 (÷2)
+    //clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0); // CLK1: r_div=0 (÷1)
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only
