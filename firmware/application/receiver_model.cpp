@@ -362,39 +362,8 @@ void ReceiverModel::update_sampling_rate() {
 
     // Disabling baseband while changing sampling rates seems like a good idea...
     if (enabled_) {
-#ifdef PRALINE
-/* Praline: Calculate FPGA decimation ratio based on sample rate
- * Reference: hackrf_usb radio.c radio_set_sample_rate()
- *
- * The FPGA decimates the ADC sample rate down to the baseband rate.
- * Si5351 must output at (sample_rate * 2^n) where n is decimation ratio.
- */
-#define MAX_AFE_RATE 40000000
-#define MAX_N 5
-
-        uint8_t n = 1;  // Minimum decimation = 2x
-        uint32_t afe_rate_x2 = 2 * sampling_rate();
-        while ((afe_rate_x2 <= MAX_AFE_RATE) && (n < MAX_N)) {
-            afe_rate_x2 <<= 1;
-            n++;
-        }
-
-        // Set FPGA RX decimation register
-        fpga_debug_register_write(2, n);
-
-        // Store n for later use in filter calculations
-        static uint8_t current_decimation_n = n;
-        current_decimation_n = n;
-
-        // Si5351 must output at sample_rate * 2^n
-        // This is handled by clock_manager.set_sampling_frequency()
-        // which we'll fix separately
         radio::set_baseband_rate(sampling_rate());
-#else
-        radio::set_baseband_rate(sampling_rate());
-#endif
     }
-
     update_tuning_frequency();
 }
 
