@@ -659,6 +659,10 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     /* PRALINE: Match HackRF USB  sample_rate_frac_set()
      * Reference: hackrf_usb radio.c lines 29-91, hackrf_core.c lines 501-685 */
 
+    // Set FPGA decimation to 0 (no decimation) for direct passthrough
+    fpga_debug_register_write(2, 0);
+    radio::invalidate_spi_config();
+
     // The following was originally from @kitty. Adopting for testing radio.
     clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1); // CLK0: r_div=1 (÷2)
     clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0); // CLK1: r_div=0 (÷1)

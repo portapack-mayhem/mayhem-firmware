@@ -93,6 +93,12 @@ void register_write(const size_t register_number, uint32_t value);
 void init();
 
 } /* namespace fpga */
+
+/* State tracking - GPIO pins are write-only so we cache last known state */
+rf::Direction get_cached_direction();
+bool get_cached_rf_amp();
+int_fast8_t get_cached_lna_gain();
+int_fast8_t get_cached_vga_gain();
 #endif
 
 namespace sgpio {

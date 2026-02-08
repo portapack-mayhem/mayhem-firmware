@@ -1485,6 +1485,156 @@ void Si5351DebugView::reset_pll() {
     // Refresh status to show new lock state
     refresh_status();
 }
+
+#ifdef PRALINE
+/* SignalPathStatusView *************************************************/
+
+SignalPathStatusView::SignalPathStatusView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({
+        &text_title,
+        &text_lbl_max_enable,
+        &text_max_enable,
+        &text_lbl_max_mode,
+        &text_max_mode,
+        &text_lbl_rf_path,
+        &text_rf_path,
+        &text_lbl_rf_amp,
+        &text_rf_amp,
+        &text_lbl_lna,
+        &text_lna,
+        &text_lbl_vga,
+        &text_vga,
+        &text_lbl_fpga_decim,
+        &text_fpga_decim,
+        &text_status,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh_status();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    // Initial update
+    refresh_status();
+}
+
+void SignalPathStatusView::focus() {
+    button_refresh.focus();
+}
+
+void SignalPathStatusView::refresh_status() {
+    // Get cached state from radio driver
+    rf::Direction direction = radio::debug::get_cached_direction();
+    bool rf_amp = radio::debug::get_cached_rf_amp();
+    int_fast8_t cached_lna = radio::debug::get_cached_lna_gain();
+    int_fast8_t cached_vga = radio::debug::get_cached_vga_gain();
+
+    // Read actual register values to verify
+    uint32_t max_r11 = radio::debug::second_if::register_read(11);
+
+    // Decode actual LNA gain from register (bits 6:5)
+    uint8_t lna_bits = (max_r11 >> 5) & 0x03;
+    int actual_lna_db;
+    switch (lna_bits) {
+        case 0: actual_lna_db = 0; break;    // -33 dB from max
+        case 2: actual_lna_db = 17; break;   // -16 dB from max
+        case 3: actual_lna_db = 33; break;   // Maximum
+        default: actual_lna_db = -1; break;  // Invalid
+    }
+
+    // Decode actual VGA gain from register (bits 4:0)
+    uint8_t vga_bits = (max_r11 >> 0) & 0x1F;
+    int actual_vga_db = vga_bits * 2;  // 0-31 → 0-62 dB
+
+    // MAX2831 Enable/Mode (GPIO-controlled, show cached state)
+    bool rx_mode = (direction == rf::Direction::Receive);
+
+    text_max_enable.set("ENABLED cached");
+    text_max_enable.set_style(Theme::getInstance()->fg_green);
+
+    text_max_mode.set(rx_mode ? "RX cached" : "TX cached");
+    text_max_mode.set_style(rx_mode ? Theme::getInstance()->fg_green
+                                    : Theme::getInstance()->fg_orange);
+
+    // RF path direction
+    text_rf_path.set(rx_mode ? "RECEIVE" : "TRANSMIT");
+    text_rf_path.set_style(rx_mode ? Theme::getInstance()->fg_green
+                                   : Theme::getInstance()->fg_orange);
+
+    // RF amp (GPIO-controlled, show cached state)
+    text_rf_amp.set(rf_amp ? "ON cached" : "OFF cached");
+    text_rf_amp.set_style(rf_amp ? Theme::getInstance()->fg_green
+                                 : Theme::getInstance()->fg_orange);
+
+    // LNA gain - show both cached and actual
+    if (actual_lna_db == cached_lna) {
+        text_lna.set(to_string_dec_uint(actual_lna_db) + " dB");
+        text_lna.set_style(Theme::getInstance()->fg_green);
+    } else if (actual_lna_db >= 0) {
+        // MAX2831 has discrete steps: 0, 17, 33 dB
+        // Allow ±8 dB tolerance for rounding
+        int diff = (actual_lna_db > cached_lna) ? (actual_lna_db - cached_lna) : (cached_lna - actual_lna_db);
+
+        if (diff <= 8) {
+            // Within rounding tolerance - show as OK with note
+            text_lna.set(to_string_dec_uint(actual_lna_db) + " dB (req:" +
+                         to_string_dec_uint(cached_lna) + ")");
+            text_lna.set_style(Theme::getInstance()->fg_green);
+        } else {
+            // Genuine mismatch
+            text_lna.set(to_string_dec_uint(actual_lna_db) + " dB (!" +
+                         to_string_dec_uint(cached_lna) + ")");
+            text_lna.set_style(Theme::getInstance()->fg_red);
+        }
+    } else {
+        text_lna.set("INVALID");
+        text_lna.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // VGA gain - show both cached and actual
+    if (actual_vga_db == cached_vga) {
+        text_vga.set(to_string_dec_uint(actual_vga_db) + " dB");
+        text_vga.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_vga.set(to_string_dec_uint(actual_vga_db) + " dB (!" +
+                     to_string_dec_uint(cached_vga) + ")");
+        text_vga.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // FPGA decimation register
+    uint8_t fpga_decim = radio::debug::fpga::register_read(2);
+    text_fpga_decim.set("n=" + to_string_dec_uint(fpga_decim) +
+                       " (/" + to_string_dec_uint(1 << fpga_decim) + ")");
+
+    // Summary status
+    // Summary status - update to account for rounding tolerance
+    int lna_diff = (actual_lna_db > cached_lna) ? (actual_lna_db - cached_lna) : (cached_lna - actual_lna_db);
+    bool lna_ok = (actual_lna_db == cached_lna) || (lna_diff <= 8);
+    bool gains_match = lna_ok && (actual_vga_db == cached_vga);
+    if (rx_mode && gains_match) {
+        text_status.set("RX mode, gains verified!");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else if (rx_mode && !gains_match) {
+        text_status.set("RX mode, gain MISMATCH!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (gains_match) {
+        text_status.set("TX mode, gains verified ✓");
+        text_status.set_style(Theme::getInstance()->fg_orange);
+    } else {
+        text_status.set("TX mode, gain MISMATCH!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    }
+}
+#endif
+
 #endif
 /* DebugPeripheralsMenuView **********************************************/
 
@@ -1551,6 +1701,7 @@ void DebugMenuView::on_populate() {
         {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
         {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
         {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
+	{"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},

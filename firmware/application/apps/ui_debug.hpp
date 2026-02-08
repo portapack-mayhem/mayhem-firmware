@@ -680,6 +680,48 @@ class Si5351DebugView : public View {
     void reset_pll();
 };
 
+#ifdef PRALINE
+/* SignalPathStatusView *************************************************/
+class SignalPathStatusView : public View {
+   public:
+    SignalPathStatusView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Signal Path"; };
+
+   private:
+    NavigationView& nav_;
+    void refresh_status();
+
+    Text text_title{{0, 0, 240, 16}, "=== Signal Path Status ==="};
+
+    Text text_lbl_max_enable{{0, 20, 1114, 16}, "MAX2831:"};
+    Text text_max_enable{{116, 20, 124, 16}, "---"};
+
+    Text text_lbl_max_mode{{0, 36, 114, 16}, "RX Mode:"};
+    Text text_max_mode{{116, 36, 124, 16}, "---"};
+
+    Text text_lbl_rf_path{{0, 52, 114, 16}, "RF Path:"};
+    Text text_rf_path{{116, 52, 124, 16}, "---"};
+
+    Text text_lbl_rf_amp{{0, 68, 114, 16}, "RF Amp:"};
+    Text text_rf_amp{{116, 68, 124, 16}, "---"};
+
+    Text text_lbl_lna{{0, 84, 114, 16}, "LNA Gain:"};
+    Text text_lna{{116, 84, 124, 16}, "---"};
+
+    Text text_lbl_vga{{0, 100, 114, 16}, "VGA Gain:"};
+    Text text_vga{{116, 100, 124, 16}, "---"};
+
+    Text text_lbl_fpga_decim{{0, 116, 114, 16}, "FPGA Decim:"};
+    Text text_fpga_decim{{116, 116, 124, 16}, "---"};
+
+    Text text_status{{0, 140, 240, 32}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+#endif
+
 class DebugPeripheralsMenuView : public BtnGridView {
    public:
     DebugPeripheralsMenuView(NavigationView& nav);

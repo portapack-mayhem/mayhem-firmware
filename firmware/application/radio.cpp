@@ -26,12 +26,14 @@
 #include "rffc507x.hpp"
 #include "max2837.hpp"
 #include "max2839.hpp"
+
 #ifdef PRALINE
 #include "max2831.hpp"
 extern "C" {
 #include "fpga_bridge.h"
 }
 #endif
+
 #include "max5864.hpp"
 #include "baseband_cpld.hpp"
 
@@ -123,6 +125,13 @@ static rf::Direction direction{rf::Direction::Receive};
 static bool baseband_invert = false;
 static bool mixer_invert = false;
 
+#ifdef PRALINE
+static rf::Direction cached_direction = rf::Direction::Receive;
+static bool cached_rf_amp = false;
+static int_fast8_t cached_lna_gain = 0;
+static int_fast8_t cached_vga_gain = 0;
+#endif
+
 void init() {
 #ifdef PRALINE
     /* PRALINE uses MAX2831 transceiver */
@@ -165,6 +174,11 @@ void set_direction(const rf::Direction new_direction) {
     // That below code line , was used to prevent RX interf ghosting when switching back to RX from any TX mode, but in recent code. it seems not necessary.
     // Deleting that load_sram_no_verify() (or the original , load_sram() ), solves random TX swap I/Q  problem in H1R1 , others OK- (and no side effects to all).
     // hackrf::cpld::load_sram_no_verify();  // After commit "removed the use of the hackrf cpld eeprom #1732", in a H1R1,  Mic App wrong SSB TX with random USB/LSB change.
+
+#ifdef PRALINE
+    cached_direction = new_direction;  // Track state for debug and potentially other purposes.
+#endif
+
 
     direction = new_direction;
 
@@ -274,14 +288,23 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 }
 
 void set_rf_amp(const bool rf_amp) {
+#ifdef PRALINE
+    cached_rf_amp = rf_amp;  // Track state for debug and potentialy other purposes.
+#endif
     rf_path.set_rf_amp(rf_amp);
 }
 
 void set_lna_gain(const int_fast8_t db) {
+#ifdef PRALINE
+    cached_lna_gain = db;  // Track state for debug and potentially other purposes.
+#endif
     second_if->set_lna_gain(db);
 }
 
 void set_vga_gain(const int_fast8_t db) {
+#ifdef PRALINE
+    cached_vga_gain = db;  // Track state for debug and potentially other purposes.
+#endif
     second_if->set_vga_gain(db);
 }
 
@@ -357,6 +380,24 @@ void invalidate_spi_config() {
 #endif
 
 namespace debug {
+
+#ifdef PRALINE
+rf::Direction get_cached_direction() {
+    return cached_direction;
+}
+
+bool get_cached_rf_amp() {
+    return cached_rf_amp;
+}
+
+int_fast8_t get_cached_lna_gain() {
+    return cached_lna_gain;
+}
+
+int_fast8_t get_cached_vga_gain() {
+    return cached_vga_gain;
+}
+#endif
 
 namespace first_if {
 
