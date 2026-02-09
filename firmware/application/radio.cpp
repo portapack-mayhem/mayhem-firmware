@@ -179,7 +179,6 @@ void set_direction(const rf::Direction new_direction) {
     cached_direction = new_direction;  // Track state for debug and potentially other purposes.
 #endif
 
-
     direction = new_direction;
 
     if (hackrf_r9) {
@@ -411,19 +410,19 @@ void register_write(const size_t register_number, uint32_t value) {
 
 #ifdef PRALINE
 extern "C" {
-    extern struct rffc507x_debug_t {
-        uint32_t requested_freq_mhz;
-	uint32_t calculated_vco_mhz;
-        uint32_t expected_n;
-        uint8_t expected_lodiv;
-        uint8_t expected_presc;
-        bool was_called;
-	uint32_t calc_lo_freq_mhz;
-        uint32_t calc_vco_inside_mhz;
-        uint8_t calc_lodiv_log2;
-        uint8_t calc_presc_log2;
-        uint64_t calc_n_q24;
-    } rffc507x_debug_info;
+extern struct rffc507x_debug_t {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_vco_mhz;
+    uint32_t expected_n;
+    uint8_t expected_lodiv;
+    uint8_t expected_presc;
+    bool was_called;
+    uint32_t calc_lo_freq_mhz;
+    uint32_t calc_vco_inside_mhz;
+    uint8_t calc_lodiv_log2;
+    uint8_t calc_presc_log2;
+    uint64_t calc_n_q24;
+} rffc507x_debug_info;
 }
 
 /*struct TuningInfo {
@@ -437,7 +436,7 @@ extern "C" {
 TuningInfo get_tuning_info() {
     return {
         rffc507x_debug_info.requested_freq_mhz,
-	rffc507x_debug_info.calculated_vco_mhz,
+        rffc507x_debug_info.calculated_vco_mhz,
         rffc507x_debug_info.expected_n,
         rffc507x_debug_info.expected_lodiv,
         rffc507x_debug_info.expected_presc,

@@ -664,8 +664,8 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     radio::invalidate_spi_config();
 
     // The following was originally from @kitty. Adopting for testing radio.
-    clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1); // CLK0: r_div=1 (÷2)
-    clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0); // CLK1: r_div=0 (÷1)
+    clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1);  // CLK0: r_div=1 (÷2)
+    clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0);  // CLK1: r_div=0 (÷1)
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only

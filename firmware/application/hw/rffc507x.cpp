@@ -40,11 +40,11 @@ struct rffc507x_debug_t {
     uint8_t expected_lodiv;
     uint8_t expected_presc;
     bool was_called;
-    uint32_t calc_lo_freq_mhz;         // Input to calculate()
-    uint32_t calc_vco_inside_mhz;      // VCO calculated inside calculate()
-    uint8_t calc_lodiv_log2;            // LO divider log2
-    uint8_t calc_presc_log2;            // Prescaler log2
-    uint64_t calc_n_q24;                // N in Q24 format before shift
+    uint32_t calc_lo_freq_mhz;     // Input to calculate()
+    uint32_t calc_vco_inside_mhz;  // VCO calculated inside calculate()
+    uint8_t calc_lodiv_log2;       // LO divider log2
+    uint8_t calc_presc_log2;       // Prescaler log2
+    uint64_t calc_n_q24;           // N in Q24 format before shift
 };
 rffc507x_debug_t rffc507x_debug_info = {0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0};
 #endif
@@ -168,14 +168,14 @@ struct SynthConfig {
 #endif
         const uint64_t n_divider_q24 = prescaled_lo_q24 / reference_frequency;
 
-	#ifdef PRALINE
+#ifdef PRALINE
         // DEBUG: Track everything
         rffc507x_debug_info.calc_lo_freq_mhz = lo_frequency / 1000000;
         rffc507x_debug_info.calc_vco_inside_mhz = vco_frequency / 1000000;
         rffc507x_debug_info.calc_lodiv_log2 = lo_divider_log2;
         rffc507x_debug_info.calc_presc_log2 = prescaler_divider_log2;
         rffc507x_debug_info.calc_n_q24 = n_divider_q24;
-        #endif
+#endif
 
         return {
             lo_divider_log2,
@@ -286,7 +286,7 @@ void RFFC507x::set_mixer_current(const uint8_t value) {
 void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     const SynthConfig synth_config = SynthConfig::calculate(lo_frequency);
 
-    #ifdef PRALINE
+#ifdef PRALINE
     // Calculate VCO frequency from LO frequency and divider
     const size_t lo_divider = 1U << synth_config.lo_divider_log2;  // 2^lodiv_log2
     const rf::Frequency vco_freq = lo_frequency * lo_divider;
@@ -298,7 +298,7 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     rffc507x_debug_info.expected_lodiv = synth_config.lo_divider_log2;
     rffc507x_debug_info.expected_presc = synth_config.prescaler_divider_log2;
     rffc507x_debug_info.was_called = true;
-    #endif
+#endif
 
     /* Boost charge pump leakage if VCO frequency > 3.2GHz, indicated by
      * prescaler divider set to 4 (log2=2) instead of 2 (log2=1).
