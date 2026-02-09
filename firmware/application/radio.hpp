@@ -73,6 +73,24 @@ namespace first_if {
 uint32_t register_read(const size_t register_number);
 void register_write(const size_t register_number, uint32_t value);
 
+#ifdef PRALINE
+struct TuningInfo {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_vco_mhz;
+    uint32_t expected_n;
+    uint8_t expected_lodiv;
+    uint8_t expected_presc;
+    bool was_called;
+    uint32_t calc_lo_freq_mhz;
+    uint32_t calc_vco_inside_mhz;
+    uint8_t calc_lodiv_log2;
+    uint8_t calc_presc_log2;
+    uint64_t calc_n_q24;
+};
+
+TuningInfo get_tuning_info();
+#endif
+
 } /* namespace first_if */
 
 namespace second_if {

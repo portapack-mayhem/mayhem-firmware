@@ -1635,6 +1635,247 @@ void SignalPathStatusView::refresh_status() {
 }
 #endif
 
+#ifdef PRALINE
+/* RFFC5072StatusView *************************************************/
+
+RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({
+        &text_title,
+        &text_lbl_enabled,
+        &text_enabled,
+        &text_lbl_freq,
+        &text_freq,
+        &text_lbl_path,
+        &text_path,
+        &text_lbl_mixer,
+        &text_mixer,
+        &text_lbl_r0,
+        &text_r0,
+        &text_lbl_r1,
+        &text_r1,
+        &text_lbl_r2,
+        &text_r2,
+        &text_lbl_decode,
+        &text_lbl_n,
+        &text_n,
+        &text_lbl_lodiv,
+        &text_lodiv,
+        &text_lbl_calc,
+        &text_calc,
+        &text_status,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_decode.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh_status();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    // Initial update
+    refresh_status();
+}
+
+void RFFC5072StatusView::focus() {
+    button_refresh.focus();
+}
+
+void RFFC5072StatusView::refresh_status() {
+    // Read CORRECT registers for Path 2 (active path!)
+    uint32_t r0 = radio::debug::first_if::register_read(0);    // Control
+    uint32_t r15 = radio::debug::first_if::register_read(15);  // P2_FREQ1
+    uint32_t r16 = radio::debug::first_if::register_read(16);  // P2_FREQ2
+    uint32_t r17 = radio::debug::first_if::register_read(17);  // P2_FREQ3
+
+    // Display
+    text_r0.set(to_string_hex(r0, 4));
+    text_r1.set(to_string_hex(r15, 4) + " (R15)");
+    text_r2.set(to_string_hex(r16, 4) + " (R16)");
+
+    // Check enabled (R0 bit 4)
+    bool enabled = (r0 & 0x0010) != 0;
+    text_enabled.set(enabled ? "ENABLED" : "DISABLED");
+    text_enabled.set_style(enabled ? Theme::getInstance()->fg_green
+                                   : Theme::getInstance()->fg_red);
+
+    // Decode from P2_FREQ1 (R15) using struct layout:
+    // bits [1:0]   = p2vcosel
+    // bits [3:2]   = p2presc (prescaler)
+    // bits [6:4]   = p2lodiv (LO divider)
+    // bits [15:7]  = p2n (N divider integer)
+
+    uint16_t n_int = (r15 >> 7) & 0x1FF;        // 9 bits
+    uint8_t lodiv_sel = (r15 >> 4) & 0x07;      // 3 bits
+    uint8_t presc_sel = (r15 >> 2) & 0x03;      // 2 bits
+    uint8_t vcosel = r15 & 0x03;                // 2 bits
+
+    text_n.set(to_string_dec_uint(n_int));
+
+    // LO divider: 0=÷2, 1=÷4, 2=÷8, 3=÷16, 4=÷32, 5=÷64
+    uint16_t lodiv_val = 1u << lodiv_sel;
+
+    // Prescaler: 0=÷2, 1=÷4 (but code only uses 1 or 2 per rffc507x.cpp)
+    uint16_t presc_val = 1u << presc_sel;
+
+    text_lodiv.set("/" + to_string_dec_uint(lodiv_val) +
+                   " (P: /" + to_string_dec_uint(presc_val) + ")");
+
+    // Calculate frequencies
+    // F_VCO = (F_ref × N) / Prescaler
+    // F_LO = F_VCO / LODIV
+    const uint32_t f_ref_mhz = 40;
+
+    // N divider is 24-bit fractional
+    // For quick calc, use integer part only
+    uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
+    uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
+
+    text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
+    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
+
+    // Check ranges
+    bool vco_ok = (f_vco_mhz >= 2700) && (f_vco_mhz <= 5400);
+    bool lo_ok = (f_lo_mhz >= 2300) && (f_lo_mhz <= 2700);
+
+    text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
+                              : Theme::getInstance()->fg_red);
+    text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
+                               : Theme::getInstance()->fg_red);
+
+    // Check mixer mode (R0 bit 5 = MODE, 0=path1, 1=path2)
+    bool path2_active = (r0 & 0x0020) != 0;
+    text_path.set(path2_active ? "PATH2" : "PATH1");
+    text_mixer.set(path2_active ? "ACTIVE" : "INACTIVE");
+    text_mixer.set_style(path2_active ? Theme::getInstance()->fg_green
+                                      : Theme::getInstance()->fg_orange);
+
+    // Summary
+    if (!enabled) {
+        text_status.set("DISABLED!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!path2_active) {
+        text_status.set("Path 2 not selected!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!vco_ok) {
+        text_status.set("VCO " + to_string_dec_uint(f_vco_mhz) + "MHz OOR");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!lo_ok) {
+        text_status.set("LO " + to_string_dec_uint(f_lo_mhz) + "MHz OOR");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else {
+        text_status.set(to_string_dec_uint(f_ref_mhz) + "x" +
+                       to_string_dec_uint(n_int) + "/" +
+                       to_string_dec_uint(presc_val) + "/" +
+                       to_string_dec_uint(lodiv_val) + "=" +
+                       to_string_dec_uint(f_lo_mhz) + "MHz.");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    }
+}
+
+/* RFFCTuningDebugView *************************************************/
+RFFCTuningDebugView::RFFCTuningDebugView(NavigationView& nav) {
+    add_children({
+        &text_title,
+        &text_lbl_called, &text_called,
+        &text_lbl_req, &text_req,
+        &text_lbl_exp_n, &text_exp_n,
+        &text_lbl_act_n, &text_act_n,
+        &text_lbl_exp_div, &text_exp_div,
+        &text_lbl_act_div, &text_act_div,
+        &text_lbl_calc, &text_calc,
+        &text_lbl_calc_lo, &text_calc_lo,
+        &text_lbl_calc_vco, &text_calc_vco,
+        &text_lbl_vco, &text_vco,
+        &text_lbl_n_q24, &text_n_q24,
+        &text_status,
+        &button_refresh,
+        &button_done,
+    });
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void RFFCTuningDebugView::focus() {
+    button_refresh.focus();
+}
+
+void RFFCTuningDebugView::refresh() {
+    // Get expected values from last tuning attempt
+    auto tuning = radio::debug::first_if::get_tuning_info();
+    
+    // Show if set_frequency was ever called
+    if (tuning.was_called) {
+        text_called.set("YES");
+        text_called.set_style(Theme::getInstance()->fg_green);
+        
+        text_req.set(to_string_dec_uint(tuning.requested_freq_mhz) + " MHz");
+        text_exp_n.set(to_string_dec_uint(tuning.expected_n));
+        
+        uint16_t exp_lo = 1 << tuning.expected_lodiv;
+        uint16_t exp_pr = 1 << tuning.expected_presc;
+        text_exp_div.set(to_string_dec_uint(exp_lo) + " / " + to_string_dec_uint(exp_pr));
+    } else {
+        text_called.set("NO");
+        text_called.set_style(Theme::getInstance()->fg_red);
+        text_req.set("---");
+        text_exp_n.set("---");
+        text_exp_div.set("---");
+    }
+    
+    // Read actual hardware values
+    uint32_t r15 = radio::debug::first_if::register_read(15);
+    
+    uint16_t act_n = (r15 >> 7) & 0x1FF;
+    uint8_t act_lo_sel = (r15 >> 4) & 0x07;
+    uint8_t act_pr_sel = (r15 >> 2) & 0x03;
+    
+    uint16_t act_lo = 1 << act_lo_sel;
+    uint16_t act_pr = 1 << act_pr_sel;
+    
+    text_act_n.set(to_string_dec_uint(act_n));
+    text_act_div.set(to_string_dec_uint(act_lo) + " / " + to_string_dec_uint(act_pr));
+    
+    // Calculate what this produces
+    uint32_t calc_vco = (40 * act_n) / act_pr;
+    uint32_t calc_lo = calc_vco / act_lo;
+    text_calc.set(to_string_dec_uint(calc_lo) + " MHz");
+    text_vco.set(to_string_dec_uint(tuning.calculated_vco_mhz) + " MHz");
+
+    text_calc_lo.set(to_string_dec_uint(tuning.calc_lo_freq_mhz) + " MHz");
+    text_calc_vco.set(to_string_dec_uint(tuning.calc_vco_inside_mhz) + " MHz");
+    text_n_q24.set(to_string_dec_uint(tuning.calc_n_q24 >> 24));  // Show integer part
+    
+    // Status comparison
+    if (!tuning.was_called) {
+        text_status.set("RFFC Freq set NEVER called!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (act_n == tuning.expected_n) {
+        text_status.set("MATCH! Hardware as expected!");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_status.set("MISMATCH! Exp:" + to_string_dec_uint(tuning.expected_n) +
+                       " Act:" + to_string_dec_uint(act_n));
+        text_status.set_style(Theme::getInstance()->fg_red);
+    }
+}
+
+#endif
+
 #endif
 /* DebugPeripheralsMenuView **********************************************/
 
@@ -1702,6 +1943,8 @@ void DebugMenuView::on_populate() {
         {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
         {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
 	{"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
+	{"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
+	{"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
         {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},

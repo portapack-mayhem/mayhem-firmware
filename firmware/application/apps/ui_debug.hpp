@@ -722,6 +722,114 @@ class SignalPathStatusView : public View {
 };
 #endif
 
+#ifdef PRALINE
+/* RFFC5072StatusView *************************************************/
+class RFFC5072StatusView : public View {
+   public:
+    RFFC5072StatusView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "RFFC5072 Status"; };
+
+   private:
+    NavigationView& nav_;
+    void refresh_status();
+
+    Text text_title{{0, 0, 240, 16}, "=== RFFC5072 (1st IF) ==="};
+
+    Text text_lbl_enabled{{0, 20, 114, 16}, "Status:"};
+    Text text_enabled{{116, 20, 124, 16}, "---"};
+
+    Text text_lbl_freq{{0, 36, 114, 16}, "LO Freq:"};
+    Text text_freq{{116, 36, 124, 16}, "---"};
+
+    Text text_lbl_path{{0, 52, 114, 16}, "Path:"};
+    Text text_path{{116, 52, 124, 16}, "---"};
+
+    Text text_lbl_mixer{{0, 68, 114, 16}, "Mixer:"};
+    Text text_mixer{{116, 68, 124, 16}, "---"};
+
+    Text text_lbl_r0{{0, 92, 114, 16}, "Reg 0:"};
+    Text text_r0{{116, 92, 124, 16}, "---"};
+
+    Text text_lbl_r1{{0, 108, 114, 16}, "Reg 1 (N):"};
+    Text text_r1{{116, 108, 124, 16}, "---"};
+
+    Text text_lbl_r2{{0, 124, 114, 16}, "Reg 2:"};
+    Text text_r2{{116, 124, 124, 16}, "---"};
+
+    Text text_lbl_decode{{0, 148, 240, 16}, "--- Decoded Values ---"};
+
+    Text text_lbl_n{{0, 168, 114, 16}, "N divider:"};
+    Text text_n{{116, 168, 124, 16}, "---"};
+
+    Text text_lbl_lodiv{{0, 184, 114, 16}, "LO divider:"};
+    Text text_lodiv{{116, 184, 124, 16}, "---"};
+
+    Text text_lbl_calc{{0, 200, 114, 16}, "Calc freq:"};
+    Text text_calc{{116, 200, 124, 16}, "---"};
+
+    Text text_status{{0, 224, 240, 32}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+
+#ifdef PRALINE
+/* RFFCTuningDebugView *************************************************/
+class RFFCTuningDebugView : public View {
+   public:
+    RFFCTuningDebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "RFFC Tuning Debug"; };
+
+   private:
+    void refresh();
+
+    Text text_title{{0, 0, 240, 16}, "RFFC5072 Tuning Debug"};
+
+    Text text_lbl_called{{0, 18, 120, 16}, "Freq Set:"};
+    Text text_called{{122, 18, 118, 16}, "NO"};
+
+    Text text_lbl_req{{0, 38, 120, 16}, "Requested:"};
+    Text text_req{{122, 38, 118, 16}, "---"};
+
+    Text text_lbl_exp_n{{0, 56, 120, 16}, "Expected N:"};
+    Text text_exp_n{{122, 56, 118, 16}, "---"};
+
+    Text text_lbl_act_n{{0, 74, 120, 16}, "Actual N:"};
+    Text text_act_n{{122, 74, 118, 16}, "---"};
+
+    Text text_lbl_exp_div{{0, 92, 120, 16}, "Exp LO/Pres:"};
+    Text text_exp_div{{122, 92, 118, 16}, "---"};
+
+    Text text_lbl_act_div{{0, 110, 120, 16}, "Act LO/Pres:"};
+    Text text_act_div{{122, 110, 118, 16}, "---"};
+
+    Text text_lbl_calc{{0, 128, 120, 16}, "Calc LO freq:"};
+    Text text_calc{{122, 128, 118, 16}, "---"};
+
+    Text text_lbl_calc_lo{{0, 146, 120, 16}, "Calc input:"};
+    Text text_calc_lo{{122, 146, 118, 16}, "---"};
+
+    Text text_lbl_calc_vco{{0, 164, 120, 16}, "In Calc VCO:"};
+    Text text_calc_vco{{122, 164, 118, 16}, "---"};
+
+    Text text_lbl_vco{{0, 182, 120, 16}, "Calc VCO:"};
+    Text text_vco{{122, 182, 118, 16}, "---"};
+
+    Text text_lbl_n_q24{{0, 200, 120, 16}, "N (Q24):"};
+    Text text_n_q24{{122, 200, 118, 16}, "---"};
+
+    Text text_status{{0, 224, 240, 48}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+
+#endif
+
+#endif
+
 class DebugPeripheralsMenuView : public BtnGridView {
    public:
     DebugPeripheralsMenuView(NavigationView& nav);
