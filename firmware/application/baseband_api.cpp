@@ -399,6 +399,10 @@ void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload, uint16_t p
     send_message(&message);
 }
 
+void set_rtty_config(RTTYDataMessage& message) {
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {

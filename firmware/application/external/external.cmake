@@ -302,6 +302,11 @@ set(EXTCPPSRC
 	external/rtty_rx/main.cpp
 	external/rtty_rx/ui_rtty_rx.cpp
 	external/rtty_rx/baudot.cpp
+
+	#rtty_tx
+	external/rtty_tx/main.cpp
+	external/rtty_tx/ui_rtty_tx.cpp
+	external/rtty_tx/baudot.cpp
 )
 
 set(EXTAPPLIST
@@ -377,4 +382,5 @@ set(EXTAPPLIST
 	morse_radio
 	morseradiotx
 	rtty_rx
+	rtty_tx
 )
