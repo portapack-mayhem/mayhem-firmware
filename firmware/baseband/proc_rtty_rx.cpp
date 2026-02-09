@@ -25,7 +25,6 @@
 #include "event_m4.hpp"
 
 // RTTY Timing Limits (at 24kHz)
-// 45.45 baud = ~528 samples
 static constexpr uint32_t MIN_VALID_PULSE = 200;
 static constexpr uint32_t MAX_VALID_PULSE = 800;
 
@@ -40,13 +39,13 @@ void RTTYRxProcessor::configure() {
     // 2. 384k -> 48k
     decim_1.configure(taps_4k25_decim_1.taps);
 
-    // 3. 48k -> 24k (Matches NFM/Morse FM pipeline)
+    // 3. 48k -> 24k
     channel_filter.configure(taps_11k0_channel.taps, 2);
 
-    // FM Demodulator (24k fs, 9k deviation approx)
+    // FM Demodulator
     demod.configure(24000, 9000);
 
-    // Audio Output (Standard passthrough)
+    // Audio Output
     audio_output.configure(iir_config_passthrough, iir_config_passthrough, 1.0f);
 
     // Reset State
@@ -66,45 +65,66 @@ void RTTYRxProcessor::configure() {
 uint32_t candidate_width = 0;
 uint8_t candidate_hits = 0;
 uint32_t squelch_closed_timer = 0;
+bool is_squelched = true;
 
 void RTTYRxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
-    // 1. Decimate 3.072M -> 384k (/8)
+
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-    // 2. Decimate 384k -> 48k (/8)
     buffer_c16_t decim_1_target{dst_buffer_data.data() + 256, 256};
     const auto decim_1_out = decim_1.execute(decim_0_out, decim_1_target);
-    // 3. Decimate 48k -> 24k (/2)
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
-    // 4. FM Demodulate (IQ -> Int16 Audio)
+
     auto audio = demod.execute(channel_out, audio_buffer);
 
     feed_channel_stats(channel_out);
 
     for (size_t i = 0; i < audio.count; i++) {
         int16_t sample = audio.p[i];
-        int32_t fm_val = (int32_t)sample * 16;
-        // Heavy LPF
-        fm_val_smoothed += (fm_val - fm_val_smoothed) >> LPF_ALPHA_SHIFT;
-        // Min/Max Tracker with Decay
+
+        // DECODER
+        int32_t fm_val = (int32_t)sample * 32;
+
+        // Attack: Instant
+        if (fm_val > val_max) val_max = fm_val;
+        if (fm_val < val_min) val_min = fm_val;
+
+        // Decay: Exponential
+        // Large values decay fast, small values decay slow.
         if (++decay_timer == 0) {
-            if (val_max > 0) val_max -= 4;  // Faster decay to handle fading
-            if (val_min < 0) val_min += 4;
+            if (val_max > 0) val_max -= (val_max >> 6) + 1;
+            if (val_min < 0) val_min += ((-val_min) >> 6) + 1;
         }
 
-        if (fm_val_smoothed > val_max) val_max = fm_val_smoothed;
-        if (fm_val_smoothed < val_min) val_min = fm_val_smoothed;
+        // LPF for Slicer
+        fm_val_smoothed += (fm_val - fm_val_smoothed) >> LPF_ALPHA_SHIFT;
+
+        // SQUELCH
+        // Calculate spread to determine if we have a signal
+        int32_t spread = val_max - val_min;
+
+        // Hysteresis: Open at 600, Close at 400
+        if (is_squelched) {
+            if (spread > 600) is_squelched = false;
+        } else {
+            if (spread < 400) is_squelched = true;
+        }
 
         process_demodulated_sample(fm_val_smoothed);
 
-        int32_t audio_boost = (int32_t)sample * 48;
-
-        if (audio_boost > 32767)
-            audio_boost = 32767;
-        else if (audio_boost < -32768)
-            audio_boost = -32768;
-
-        audio.p[i] = (int16_t)audio_boost;
+        // --- AUDIO PATH ---
+        if (is_squelched) {
+            // Mute audio when processing is off
+            audio.p[i] = 0;
+        } else {
+            // Play audio when signal is valid
+            int32_t audio_boost = (int32_t)sample * 48;
+            if (audio_boost > 32767)
+                audio_boost = 32767;
+            else if (audio_boost < -32768)
+                audio_boost = -32768;
+            audio.p[i] = (int16_t)audio_boost;
+        }
     }
 
     audio_output.write(audio);
@@ -132,11 +152,10 @@ void RTTYRxProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
-    // 1. Squelch
-    if ((val_max - val_min) < 400) {
-        // Silence detected
+    // 1. Squelch Check
+    if (is_squelched) {
         squelch_closed_timer++;
-        if (squelch_closed_timer > 12000) {  // ~0.5s timeout
+        if (squelch_closed_timer > 12000) {
             uart_state = WAIT_START;
             current_slicer_bit = 1;
             pulse_measure_counter = 0;
@@ -149,10 +168,11 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
         return;
     }
 
-    squelch_closed_timer = 0;  // Signal is present
-    // 2. Schmitt Trigger (Hysteresis)
+    squelch_closed_timer = 0;
+
+    // 2. Schmitt Trigger
     int32_t midpoint = (val_max + val_min) / 2;
-    int32_t hysteresis = (val_max - val_min) / 8;  // 12.5% zone
+    int32_t hysteresis = (val_max - val_min) / 8;
 
     uint8_t raw_bit = current_slicer_bit;
     if (inverted_polarity) raw_bit = !raw_bit;
@@ -161,6 +181,7 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
         raw_bit = 1;
     else if (sample < (midpoint - hysteresis))
         raw_bit = 0;
+
     // Polarity Check
     if (raw_bit == 0) {
         if (++polarity_timer > 7200) {
@@ -175,6 +196,7 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
     }
 
     current_slicer_bit = inverted_polarity ? !raw_bit : raw_bit;
+
     // 3. Auto Baud
     if (baud_rate == 0) {
         pulse_measure_counter++;
@@ -184,6 +206,7 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
             last_bit_state = current_slicer_bit;
         }
     }
+
     // 4. UART State Machine
     switch (uart_state) {
         case WAIT_START:
@@ -283,7 +306,6 @@ void RTTYRxProcessor::on_message(const Message* const message) {
             uart_state = WAIT_START;
         }
         shift_hz = rtty_msg.shift;
-
         if (!configured) {
             configure();
         }

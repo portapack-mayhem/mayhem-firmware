@@ -48,6 +48,8 @@ RttyRxView::RttyRxView(NavigationView& nav)
         &field_vga,
         &field_volume,
         &field_frequency,
+        &labels,
+        &options_baud,
         &console,
     });
     field_frequency.set_step(100);
@@ -60,9 +62,14 @@ RttyRxView::RttyRxView(NavigationView& nav)
     receiver_model.enable();
     console.enable_scrolling(false);
 
-    baseband::set_rtty_config(0, 170);  // default to auto baud, 170Hz shift
-
-    got_message("RTTY RX ready\n");
+    options_baud.on_change = [this](size_t, int32_t value) {
+        baseband::set_rtty_config(value, 170);
+        baud_conf = value;
+    };
+    options_baud.set_by_value(baud_conf);
+    if (baud_conf == 0) {  // to trigger it when not changed
+        baseband::set_rtty_config(0, 170);
+    }
 }
 
 void RttyRxView::got_message(std::string msg) {

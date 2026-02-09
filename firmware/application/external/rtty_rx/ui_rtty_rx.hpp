@@ -51,28 +51,45 @@ class RttyRxView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{};
+    uint32_t baud_conf = 0;
     app_settings::SettingsManager settings_{
         "rx_rtty",
         app_settings::Mode::RX,
-        {}};
-
-    RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
-    LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
-    VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
-    RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
-    AudioVolumeField field_volume{
-        {28 * 8, 0 * 16}};
+        {
+            {"baud_conf"sv, &baud_conf},
+        }};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
+    RFAmpField field_rf_amp{
+        {UI_POS_X(13), UI_POS_Y(0)}};
+    LNAGainField field_lna{
+        {UI_POS_X(15), UI_POS_Y(0)}};
+    VGAGainField field_vga{
+        {UI_POS_X(18), UI_POS_Y(0)}};
+    RSSI rssi{
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
+    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
+
+    Labels labels{
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Baud:", Theme::getInstance()->fg_light->foreground}};
+
+    OptionsField options_baud{
+        {UI_POS_X(7), UI_POS_Y(1)},
+        5,
+        {{"Auto", 0},
+         {"45", 4500},
+         {"45.45", 4545},
+         {"50", 5000},
+         {"75", 7500},
+         {"100", 10000},
+         {"110", 11000},
+         {"150", 15000},
+         {"200", 20000}}};
 
     Console console{
-        {0 * 8, 1 * 16, 32 * 8, 320 - 16 - 16}};
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(3)}};
 
     BaudotCoder baudot_decoder{};
 
