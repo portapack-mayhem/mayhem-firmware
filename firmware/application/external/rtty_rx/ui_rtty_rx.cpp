@@ -51,25 +51,22 @@ RttyRxView::RttyRxView(NavigationView& nav)
         &console,
     });
     field_frequency.set_step(100);
+    audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
+
     receiver_model.set_hidden_offset(0);
     receiver_model.set_sampling_rate(3072000);       // set the needed baseband SR.
     receiver_model.set_baseband_bandwidth(1750000);  // set  the front-end RF BW filter.
     receiver_model.enable();
     console.enable_scrolling(false);
 
-    // todo send configure message
+    baseband::set_rtty_config(0, 170);  // default to auto baud, 170Hz shift
 
     got_message("RTTY RX ready\n");
 }
 
 void RttyRxView::got_message(std::string msg) {
-    con_buff = con_buff + msg;
-    if (con_buff.size() > 600) {
-        con_buff.erase(0, con_buff.size() - 600);
-    }
-    console.clear(true);
-    console.write(con_buff);
+    console.write(msg);
 }
 
 RttyRxView::~RttyRxView() {

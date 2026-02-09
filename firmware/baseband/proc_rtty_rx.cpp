@@ -21,96 +21,195 @@
 
 #include "proc_rtty_rx.hpp"
 #include "portapack_shared_memory.hpp"
+#include "audio_dma.hpp"
 #include "event_m4.hpp"
+
+// RTTY Timing Limits (at 24kHz)
+// 45.45 baud = ~528 samples
+static constexpr uint32_t MIN_VALID_PULSE = 200;
+static constexpr uint32_t MAX_VALID_PULSE = 800;
+
+void RTTYRxProcessor::configure() {
+    configured = false;
+
+    baseband_thread.set_sampling_rate(baseband_fs);
+
+    // 1. 3.072M -> 384k
+    decim_0.configure(taps_4k25_decim_0.taps);
+
+    // 2. 384k -> 48k
+    decim_1.configure(taps_4k25_decim_1.taps);
+
+    // 3. 48k -> 24k (Matches NFM/Morse FM pipeline)
+    channel_filter.configure(taps_11k0_channel.taps, 2);
+
+    // FM Demodulator (24k fs, 9k deviation approx)
+    demod.configure(24000, 9000);
+
+    // Audio Output (Standard passthrough)
+    audio_output.configure(iir_config_passthrough, iir_config_passthrough, 1.0f);
+
+    // Reset State
+    val_max = 0;
+    val_min = 0;
+    uart_state = WAIT_START;
+
+    // Default to standard 45.45 baud
+    estimated_bit_width = 528;
+    samples_per_bit = 528;
+    pulse_measure_counter = 0;
+
+    configured = true;
+}
+
+// Variables for Fast-Lock Auto Baud
+uint32_t candidate_width = 0;
+uint8_t candidate_hits = 0;
+uint32_t squelch_closed_timer = 0;
 
 void RTTYRxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
+    // 1. Decimate 3.072M -> 384k (/8)
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    // 2. Decimate 384k -> 48k (/8)
+    buffer_c16_t decim_1_target{dst_buffer_data.data() + 256, 256};
+    const auto decim_1_out = decim_1.execute(decim_0_out, decim_1_target);
+    // 3. Decimate 48k -> 24k (/2)
+    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+    // 4. FM Demodulate (IQ -> Int16 Audio)
+    auto audio = demod.execute(channel_out, audio_buffer);
 
-    // Reset message payload counters for this cycle.
-    // We do NOT reset configuration (baud/shift) here, only the data container.
-    tx_message.data_len = 0;
+    feed_channel_stats(channel_out);
 
-    // 1. Decimate 4MHz -> 500kHz
-    // decim_0 output: 2048 / 8 = 256 complex samples
-    auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    for (size_t i = 0; i < audio.count; i++) {
+        int16_t sample = audio.p[i];
+        int32_t fm_val = (int32_t)sample * 16;
+        // Heavy LPF
+        fm_val_smoothed += (fm_val - fm_val_smoothed) >> LPF_ALPHA_SHIFT;
+        // Min/Max Tracker with Decay
+        if (++decay_timer == 0) {
+            if (val_max > 0) val_max -= 4;  // Faster decay to handle fading
+            if (val_min < 0) val_min += 4;
+        }
 
-    // 2. Decimate 500kHz -> 62.5kHz
-    // decim_1 output: 256 / 8 = 32 complex samples
-    // We execute frequently with small blocks, so efficiency here is key.
-    auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-
-    feed_channel_stats(decim_1_out);
-
-    // 3. FM Demodulation & Processing Loop
-    // Loop runs ~32 times per execute call.
-    for (size_t i = 0; i < decim_1_out.count; i++) {
-        const complex16_t sample = decim_1_out.p[i];
-
-        // Quadrature Product Discriminator: (I[n] * Q[n-1] - I[n-1] * Q[n])
-        // Efficient approximation of instantaneous frequency
-        int32_t fm_val = ((int32_t)sample.real() * sample_prev.imag()) -
-                         ((int32_t)sample.imag() * sample_prev.real());
-
-        sample_prev = sample;
-        fm_val *= DISCRIM_GAIN;
-
-        // DC Blocker (IIR High Pass)
-        // Removes carrier frequency offset / tuning error.
-        fm_dc_val += (fm_val - fm_dc_val) >> DC_ALPHA_SHIFT;
-        int32_t val_centered = fm_val - fm_dc_val;
-
-        // Low Pass Filter (IIR)
-        // Smooths the signal for the slicer.
-        fm_val_smoothed += (val_centered - fm_val_smoothed) >> LPF_ALPHA_SHIFT;
+        if (fm_val_smoothed > val_max) val_max = fm_val_smoothed;
+        if (fm_val_smoothed < val_min) val_min = fm_val_smoothed;
 
         process_demodulated_sample(fm_val_smoothed);
+
+        int32_t audio_boost = (int32_t)sample * 48;
+
+        if (audio_boost > 32767)
+            audio_boost = 32767;
+        else if (audio_boost < -32768)
+            audio_boost = -32768;
+
+        audio.p[i] = (int16_t)audio_boost;
     }
 
-    // 4. Dispatch Message
-    // Only send if we actually decoded one or more characters in this pass.
+    audio_output.write(audio);
+
+    // UI Update
     if (tx_message.data_len > 0) {
-        // Re-attach config data to message just in case receiver needs it
-        tx_message.baud = baud_rate;
+        if (baud_rate == 0 && samples_per_bit > 0) {
+            uint32_t b = (final_fs * 100) / samples_per_bit;
+            if (b > 4300 && b < 4700)
+                b = 4500;
+            else if (b > 4800 && b < 5200)
+                b = 5000;
+            else if (b > 7200 && b < 7800)
+                b = 7500;
+            tx_message.baud = (uint16_t)b;
+        } else {
+            tx_message.baud = baud_rate;
+        }
         tx_message.shift = shift_hz;
-        shared_memory.application_queue.push(tx_message);
+
+        if (shared_memory.application_queue.push(tx_message)) {
+            tx_message.data_len = 0;
+        }
     }
 }
 
 void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
-    // Slicer
-    // Mark (1) > 0, Space (0) < 0
-    // This assumes standard USB demodulation mapping.
-    const uint8_t current_bit = (sample > 0) ? 1 : 0;
+    // 1. Squelch
+    if ((val_max - val_min) < 400) {
+        // Silence detected
+        squelch_closed_timer++;
+        if (squelch_closed_timer > 12000) {  // ~0.5s timeout
+            uart_state = WAIT_START;
+            current_slicer_bit = 1;
+            pulse_measure_counter = 0;
+            // Reset auto-baud on silence
+            if (baud_rate == 0) {
+                estimated_bit_width = 528;
+                samples_per_bit = 528;
+            }
+        }
+        return;
+    }
 
-    // Soft-UART State Machine
+    squelch_closed_timer = 0;  // Signal is present
+    // 2. Schmitt Trigger (Hysteresis)
+    int32_t midpoint = (val_max + val_min) / 2;
+    int32_t hysteresis = (val_max - val_min) / 8;  // 12.5% zone
+
+    uint8_t raw_bit = current_slicer_bit;
+    if (inverted_polarity) raw_bit = !raw_bit;
+
+    if (sample > (midpoint + hysteresis))
+        raw_bit = 1;
+    else if (sample < (midpoint - hysteresis))
+        raw_bit = 0;
+    // Polarity Check
+    if (raw_bit == 0) {
+        if (++polarity_timer > 7200) {
+            inverted_polarity = !inverted_polarity;
+            polarity_timer = 0;
+            val_max = 0;
+            val_min = 0;
+            uart_state = WAIT_START;
+        }
+    } else {
+        polarity_timer = 0;
+    }
+
+    current_slicer_bit = inverted_polarity ? !raw_bit : raw_bit;
+    // 3. Auto Baud
+    if (baud_rate == 0) {
+        pulse_measure_counter++;
+        if (current_slicer_bit != last_bit_state) {
+            update_baud_estimation(pulse_measure_counter);
+            pulse_measure_counter = 0;
+            last_bit_state = current_slicer_bit;
+        }
+    }
+    // 4. UART State Machine
     switch (uart_state) {
         case WAIT_START:
-            // Idle is Mark (1). Start bit is Space (0).
-            if (current_bit == 0) {
-                phase_counter = samples_per_bit / 2;  // Align to center of bit
-                uart_state = WAIT_MID_START;
+            if (current_slicer_bit == 0) {
+                phase_counter = samples_per_bit / 2;
+                uart_state = CHECK_START;
             }
             break;
 
-        case WAIT_MID_START:
+        case CHECK_START:
             if (--phase_counter == 0) {
-                if (current_bit == 0) {  // Valid Start Bit confirmed
+                if (current_slicer_bit == 0) {
                     phase_counter = samples_per_bit;
                     bit_counter = 0;
                     shift_reg = 0;
                     uart_state = READ_BITS;
                 } else {
-                    uart_state = WAIT_START;  // Glitch
+                    uart_state = WAIT_START;
                 }
             }
             break;
 
         case READ_BITS:
             if (--phase_counter == 0) {
-                // RTTY LSB First
-                if (current_bit) {
-                    shift_reg |= (1 << bit_counter);
-                }
+                if (current_slicer_bit) shift_reg |= (1 << bit_counter);
+
                 phase_counter = samples_per_bit;
                 bit_counter++;
 
@@ -122,11 +221,41 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
 
         case WAIT_STOP:
             if (--phase_counter == 0) {
-                // We expect Stop bit (Mark/1), but we take the char regardless.
-                append_data(shift_reg & 0x1F);
+                if (current_slicer_bit == 1) {
+                    append_data(shift_reg & 0x1F);
+                }
                 uart_state = WAIT_START;
             }
             break;
+    }
+}
+
+void RTTYRxProcessor::update_baud_estimation(uint32_t pulse_width) {
+    if (pulse_width < MIN_VALID_PULSE || pulse_width > MAX_VALID_PULSE) return;
+
+    int32_t diff = (int32_t)pulse_width - (int32_t)estimated_bit_width;
+    if (diff < 0) diff = -diff;
+
+    if (diff < (int32_t)(estimated_bit_width / 6)) {
+        estimated_bit_width = (estimated_bit_width * 7 + pulse_width) / 8;
+        samples_per_bit = estimated_bit_width;
+        candidate_hits = 0;
+    } else {
+        int32_t cand_diff = (int32_t)pulse_width - (int32_t)candidate_width;
+        if (cand_diff < 0) cand_diff = -cand_diff;
+
+        if (cand_diff < (int32_t)(candidate_width / 8)) {
+            candidate_hits++;
+            if (candidate_hits >= 3) {
+                estimated_bit_width = (candidate_width + pulse_width) / 2;
+                samples_per_bit = estimated_bit_width;
+                candidate_hits = 0;
+                uart_state = WAIT_START;
+            }
+        } else {
+            candidate_width = pulse_width;
+            candidate_hits = 1;
+        }
     }
 }
 
@@ -138,38 +267,31 @@ void RTTYRxProcessor::append_data(uint8_t raw_baudot_code) {
 }
 
 void RTTYRxProcessor::on_message(const Message* const message) {
-    // Handling "Simplified Config": Configuration comes via RTTYData message ID
     if (message->id == Message::ID::RTTYData) {
         const auto& rtty_msg = static_cast<const RTTYDataMessage&>(*message);
 
-        bool reconfigure_timing = false;
-
         if (rtty_msg.baud != baud_rate) {
             baud_rate = rtty_msg.baud;
-            reconfigure_timing = true;
+            if (baud_rate > 0) {
+                const float real_baud = (float)baud_rate / 100.0f;
+                samples_per_bit = (uint32_t)((float)final_fs / real_baud);
+                estimated_bit_width = samples_per_bit;
+            } else {
+                estimated_bit_width = 528;
+                samples_per_bit = 528;
+            }
+            uart_state = WAIT_START;
         }
         shift_hz = rtty_msg.shift;
 
         if (!configured) {
-            // First time setup
-            decim_0.configure(taps_4k25_decim_0.taps);
-            decim_1.configure(taps_4k25_decim_1.taps);
-            configured = true;
-            reconfigure_timing = true;
-        }
-
-        if (reconfigure_timing && baud_rate > 0) {
-            // baud_rate is stored as (Baud * 100). E.g. 4545 -> 45.45 Baud.
-            const float real_baud = (float)baud_rate / 100.0f;
-            samples_per_bit = (uint32_t)((float)decim_1_out_fs / real_baud);
-
-            // Reset UART state to ensure clean sync on rate change
-            uart_state = WAIT_START;
+            configure();
         }
     }
 }
 
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<RTTYRxProcessor>()};
     event_dispatcher.run();
     return 0;

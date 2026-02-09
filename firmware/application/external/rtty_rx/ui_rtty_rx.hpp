@@ -74,7 +74,6 @@ class RttyRxView : public View {
     Console console{
         {0 * 8, 1 * 16, 32 * 8, 320 - 16 - 16}};
 
-    std::string con_buff = "";
     BaudotCoder baudot_decoder{};
 
     void on_data(const RTTYDataMessage* message);
