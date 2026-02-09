@@ -31,6 +31,24 @@ using namespace hackrf::one;
 
 #include "hal.h"
 
+#ifdef PRALINE
+// Global debug tracking - visible to other files
+struct rffc507x_debug_t {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_vco_mhz;
+    uint32_t expected_n;
+    uint8_t expected_lodiv;
+    uint8_t expected_presc;
+    bool was_called;
+    uint32_t calc_lo_freq_mhz;         // Input to calculate()
+    uint32_t calc_vco_inside_mhz;      // VCO calculated inside calculate()
+    uint8_t calc_lodiv_log2;            // LO divider log2
+    uint8_t calc_presc_log2;            // Prescaler log2
+    uint64_t calc_n_q24;                // N in Q24 format before shift
+};
+rffc507x_debug_t rffc507x_debug_info = {0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0};
+#endif
+
 namespace rffc507x {
 
 /* Empirical tests indicate no minimum reset pulse width, but the speed
@@ -96,9 +114,31 @@ constexpr size_t divider_min = 1U << divider_log2_min;
 constexpr size_t divider_max = 1U << divider_log2_max;
 
 constexpr size_t divider_log2(const rf::Frequency vco_frequency) {
+#ifdef PRALINE
+    // PRALINE FIX: Avoid N register overflow (9-bit max = 511)
+    // With 40 MHz reference:
+    // - For VCO=5400 MHz, presc=÷2: N = (5400×2)/40 = 270 ✓
+    // - For VCO=5400 MHz, presc=÷4: N = (5400×4)/40 = 540 ✗ OVERFLOW!
+    //
+    // Maximum safe VCO for ÷4 prescaler:
+    // N_max = 511, so VCO_max = (511 × 40) / 4 = 5110 MHz
+    //
+    // Use ÷4 only if VCO < 5110 MHz AND VCO > 3200 MHz
+    // Use ÷2 for VCO >= 5110 MHz to avoid overflow
+
+    constexpr rf::Frequency overflow_threshold = 5110000000ULL;  // Max VCO for ÷4
+    constexpr rf::Frequency min_presc4_freq = 3200000000ULL;     // Min VCO for ÷4
+
+    if ((vco_frequency > min_presc4_freq) && (vco_frequency < overflow_threshold)) {
+        return divider_log2_max;  // ÷4 prescaler
+    } else {
+        return divider_log2_min;  // ÷2 prescaler
+    }
+#else
     return (vco_frequency > (prescaler::divider_min * prescaler::max_frequency))
                ? prescaler::divider_log2_max
                : prescaler::divider_log2_min;
+#endif
 }
 
 } /* namespace prescaler */
@@ -121,8 +161,21 @@ struct SynthConfig {
 
         const size_t prescaler_divider_log2 = prescaler::divider_log2(vco_frequency);
 
+#ifndef PRALINE
         const uint64_t prescaled_lo_q24 = vco_frequency << (24 - prescaler_divider_log2);
+#else
+        const uint64_t prescaled_lo_q24 = vco_frequency << (24 + prescaler_divider_log2);
+#endif
         const uint64_t n_divider_q24 = prescaled_lo_q24 / reference_frequency;
+
+	#ifdef PRALINE
+        // DEBUG: Track everything
+        rffc507x_debug_info.calc_lo_freq_mhz = lo_frequency / 1000000;
+        rffc507x_debug_info.calc_vco_inside_mhz = vco_frequency / 1000000;
+        rffc507x_debug_info.calc_lodiv_log2 = lo_divider_log2;
+        rffc507x_debug_info.calc_presc_log2 = prescaler_divider_log2;
+        rffc507x_debug_info.calc_n_q24 = n_divider_q24;
+        #endif
 
         return {
             lo_divider_log2,
@@ -232,6 +285,20 @@ void RFFC507x::set_mixer_current(const uint8_t value) {
 
 void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     const SynthConfig synth_config = SynthConfig::calculate(lo_frequency);
+
+    #ifdef PRALINE
+    // Calculate VCO frequency from LO frequency and divider
+    const size_t lo_divider = 1U << synth_config.lo_divider_log2;  // 2^lodiv_log2
+    const rf::Frequency vco_freq = lo_frequency * lo_divider;
+
+    // Track what we calculated
+    rffc507x_debug_info.requested_freq_mhz = lo_frequency / 1000000;
+    rffc507x_debug_info.calculated_vco_mhz = vco_freq / 1000000;
+    rffc507x_debug_info.expected_n = synth_config.n_divider_q24 >> 24;
+    rffc507x_debug_info.expected_lodiv = synth_config.lo_divider_log2;
+    rffc507x_debug_info.expected_presc = synth_config.prescaler_divider_log2;
+    rffc507x_debug_info.was_called = true;
+    #endif
 
     /* Boost charge pump leakage if VCO frequency > 3.2GHz, indicated by
      * prescaler divider set to 4 (log2=2) instead of 2 (log2=1).

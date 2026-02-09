@@ -409,6 +409,48 @@ void register_write(const size_t register_number, uint32_t value) {
     radio::first_if.write(register_number, value);
 }
 
+#ifdef PRALINE
+extern "C" {
+    extern struct rffc507x_debug_t {
+        uint32_t requested_freq_mhz;
+	uint32_t calculated_vco_mhz;
+        uint32_t expected_n;
+        uint8_t expected_lodiv;
+        uint8_t expected_presc;
+        bool was_called;
+	uint32_t calc_lo_freq_mhz;
+        uint32_t calc_vco_inside_mhz;
+        uint8_t calc_lodiv_log2;
+        uint8_t calc_presc_log2;
+        uint64_t calc_n_q24;
+    } rffc507x_debug_info;
+}
+
+/*struct TuningInfo {
+    uint32_t requested_freq_mhz;
+    uint32_t expected_n;
+    uint8_t expected_lodiv;
+    uint8_t expected_presc;
+    bool was_called;
+};*/
+
+TuningInfo get_tuning_info() {
+    return {
+        rffc507x_debug_info.requested_freq_mhz,
+	rffc507x_debug_info.calculated_vco_mhz,
+        rffc507x_debug_info.expected_n,
+        rffc507x_debug_info.expected_lodiv,
+        rffc507x_debug_info.expected_presc,
+        rffc507x_debug_info.was_called,
+        rffc507x_debug_info.calc_lo_freq_mhz,
+        rffc507x_debug_info.calc_vco_inside_mhz,
+        rffc507x_debug_info.calc_lodiv_log2,
+        rffc507x_debug_info.calc_presc_log2,
+        rffc507x_debug_info.calc_n_q24,
+    };
+}
+#endif
+
 } /* namespace first_if */
 
 namespace second_if {
