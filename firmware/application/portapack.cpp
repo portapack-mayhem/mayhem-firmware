@@ -56,9 +56,11 @@ using asahi_kasei::ak4951::AK4951;
 #include "i2cdevmanager.hpp"
 #include "battery.hpp"
 
+#ifndef PRALINE
 extern "C" {
 #include "platform_detect.h"
 }
+#endif
 
 namespace portapack {
 
@@ -553,10 +555,12 @@ init_status_t init() {
 
     chThdSleepMilliseconds(100);
 
+#ifndef PRALINE
     detect_hardware_platform();
     finalize_detect_hardware_platform();
 
     chThdSleepMilliseconds(100);
+#endif
 
     configure_pins_portapack();
 
