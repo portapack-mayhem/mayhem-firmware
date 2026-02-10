@@ -554,7 +554,7 @@ init_status_t init() {
     chThdSleepMilliseconds(100);
 
     detect_hardware_platform();
-    finalize_detect_hardware_platform();
+    //finalize_detect_hardware_platform();
 
     chThdSleepMilliseconds(100);
 

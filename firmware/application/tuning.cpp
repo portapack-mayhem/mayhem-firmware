@@ -38,7 +38,7 @@ constexpr rf::Frequency low_band_second_lo_frequency(const rf::Frequency target_
     // Use a fixed second_lo that:
     // 1. Falls in MAX2831's sweet spot (2.3-2.6 GHz)
     // 2. Gives RFFC5072 a VCO frequency in its range (2700-5400 MHz)
-    
+
     // For most low-band frequencies, use 2500 MHz as second_lo
     // This gives RFFC5072 plenty of headroom
     (void)target_frequency;  // Unused in fixed formula
