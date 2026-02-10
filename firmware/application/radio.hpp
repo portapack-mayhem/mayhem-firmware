@@ -114,6 +114,12 @@ int8_t temp_sense();
 
 } /* namespace second_if */
 
+namespace rf_path_info {
+
+rf::path::Band get_current_band();
+
+} /* namespace rf_path_info */
+
 #ifdef PRALINE
 namespace fpga {
 

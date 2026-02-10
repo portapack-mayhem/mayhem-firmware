@@ -703,19 +703,25 @@ class SignalPathStatusView : public View {
     Text text_lbl_rf_path{{0, 52, 114, 16}, "RF Path:"};
     Text text_rf_path{{116, 52, 124, 16}, "---"};
 
-    Text text_lbl_rf_amp{{0, 68, 114, 16}, "RF Amp:"};
-    Text text_rf_amp{{116, 68, 124, 16}, "---"};
+    Text text_lbl_filter{{0, 68, 114, 16}, "Filter Band:"};
+    Text text_filter{{116, 68, 124, 16}, "---"};
 
-    Text text_lbl_lna{{0, 84, 114, 16}, "LNA Gain:"};
-    Text text_lna{{116, 84, 124, 16}, "---"};
+    Text text_lbl_mixer{{0, 84, 114, 16}, "Mixer Enable:"};
+    Text text_mixer{{116, 84, 124, 16}, "---"};
 
-    Text text_lbl_vga{{0, 100, 114, 16}, "VGA Gain:"};
-    Text text_vga{{116, 100, 124, 16}, "---"};
+    Text text_lbl_rf_amp{{0, 100, 114, 16}, "RF Amp:"};
+    Text text_rf_amp{{116, 100, 124, 16}, "---"};
 
-    Text text_lbl_fpga_decim{{0, 116, 114, 16}, "FPGA Decim:"};
-    Text text_fpga_decim{{116, 116, 124, 16}, "---"};
+    Text text_lbl_lna{{0, 116, 114, 16}, "LNA Gain:"};
+    Text text_lna{{116, 116, 124, 16}, "---"};
 
-    Text text_status{{0, 140, 240, 32}, ""};
+    Text text_lbl_vga{{0, 132, 114, 16}, "VGA Gain:"};
+    Text text_vga{{116, 132, 124, 16}, "---"};
+
+    Text text_lbl_fpga_decim{{0, 148, 114, 16}, "FPGA Decim:"};
+    Text text_fpga_decim{{116, 148, 124, 16}, "---"};
+
+    Text text_status{{0, 172, 240, 32}, ""};
 
     Button button_refresh{{8, 280, 72, 24}, "Refresh"};
     Button button_done{{168, 280, 64, 24}, "Done"};

@@ -258,6 +258,7 @@ void Path::set_direction(const Direction new_direction) {
 
 void Path::set_band(const Band new_band) {
     band = new_band;
+    _band = new_band;
     update();
 }
 

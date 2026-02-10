@@ -1499,6 +1499,8 @@ SignalPathStatusView::SignalPathStatusView(NavigationView& nav)
         &text_max_mode,
         &text_lbl_rf_path,
         &text_rf_path,
+	&text_lbl_filter, &text_filter,
+        &text_lbl_mixer, &text_mixer,
         &text_lbl_rf_amp,
         &text_rf_amp,
         &text_lbl_lna,
@@ -1536,6 +1538,39 @@ void SignalPathStatusView::refresh_status() {
     bool rf_amp = radio::debug::get_cached_rf_amp();
     int_fast8_t cached_lna = radio::debug::get_cached_lna_gain();
     int_fast8_t cached_vga = radio::debug::get_cached_vga_gain();
+
+    // Get current band.
+    auto current_band = radio::debug::rf_path_info::get_current_band();
+    switch (current_band) {
+        case rf::path::Band::Low:
+            text_filter.set("LOW PASS");
+            text_filter.set_style(Theme::getInstance()->fg_green);
+            text_mixer.set("ENABLED");
+            text_mixer.set_style(Theme::getInstance()->fg_green);
+            break;
+
+        case rf::path::Band::Mid:
+            text_filter.set("BYPASS");
+            text_filter.set_style(Theme::getInstance()->fg_green);
+            text_mixer.set("DISABLED");
+            text_mixer.set_style(Theme::getInstance()->fg_orange);
+            break;
+
+        case rf::path::Band::High:
+            text_filter.set("HIGH PASS");
+            text_filter.set_style(Theme::getInstance()->fg_green);
+            text_mixer.set("ENABLED");
+            text_mixer.set_style(Theme::getInstance()->fg_green);
+            break;
+
+        default:
+            text_filter.set("UNKNOWN");
+            text_filter.set_style(Theme::getInstance()->fg_red);
+            text_mixer.set("UNKNOWN");
+            text_mixer.set_style(Theme::getInstance()->fg_red);
+    }
+
+
 
     // Read actual register values to verify
     uint32_t max_r11 = radio::debug::second_if::register_read(11);

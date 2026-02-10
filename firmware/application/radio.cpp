@@ -205,14 +205,17 @@ void set_direction(const rf::Direction new_direction) {
 #ifndef PRALINE
     baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #else
+    // TEST: Force baseband invert for Praline (like r9)
+    baseband_invert = (direction == rf::Direction::Receive);
+
     // Praline: Control Q inversion via FPGA register
     // Assuming register 1 bit 1 controls Q inversion
-    uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
-    if (mixer_invert ^ baseband_invert) {
-        ctrl_reg |= 0x02;  // Set Q_INVERT bit
-    }
-    fpga_debug_register_write(1, ctrl_reg);
-    ssp1_arbiter.invalidate();
+    //uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
+    //if (mixer_invert ^ baseband_invert) {
+    //    ctrl_reg |= 0x02;  // Set Q_INVERT bit
+    //}
+    //fpga_debug_register_write(1, ctrl_reg);
+    //ssp1_arbiter.invalidate();
 #endif
 
     second_if->set_mode((direction == rf::Direction::Transmit) ? max283x::Mode::Transmit : max283x::Mode::Receive);
@@ -278,6 +281,14 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         mixer_invert = tuning_config.mixer_invert;
 #ifndef PRALINE
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
+#else
+	// PRALINE: Update FPGA Q inversion when tuning changes
+	uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
+	if (mixer_invert ^ baseband_invert) {
+		ctrl_reg |= 0x02;  // Set Q_INVERT bit
+	}
+	fpga_debug_register_write(1, ctrl_reg);
+	ssp1_arbiter.invalidate();
 #endif
 
         return result_second_if;
@@ -489,6 +500,12 @@ int8_t temp_sense() {
 }
 
 } /* namespace second_if */
+
+namespace rf_path_info {
+rf::path::Band get_current_band() {
+    return radio::rf_path.get_band();
+}
+} /* namespace rf_path_info */
 
 #ifdef PRALINE
 namespace fpga {

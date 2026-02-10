@@ -58,12 +58,17 @@ class Path {
     void set_band(const Band band);
     void set_rf_amp(const bool rf_amp);
 
+    Band get_band() const{return _band;}
+
+
    private:
     Direction direction{Direction::Receive};
     Band band{Band::Mid};
     bool rf_amp{false};
 
     void update();
+
+    Band _band{Band::Mid};
 };
 
 }  // namespace path
