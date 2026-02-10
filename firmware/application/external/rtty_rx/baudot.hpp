@@ -11,7 +11,8 @@ class BaudotCoder {
     enum ShiftState { LETTERS,
                       FIGURES };
 
-    BaudotCoder() : shiftState(LETTERS) {}
+    BaudotCoder()
+        : shiftState(LETTERS) {}
     char decode(uint8_t baudotCode);
     void encode(const std::string& src, uint8_t* dest, uint16_t* dest_length, uint16_t dest_max_size);
     void set_usos(bool enable) { usos_enabled = enable; }  // shift == set to letters too
