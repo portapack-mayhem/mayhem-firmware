@@ -39,11 +39,13 @@ class RTTYTXProcessor : public BasebandProcessor {
 
     // RTTY Configuration
     uint32_t samples_per_bit{0};
-    uint32_t samples_per_stop{0};
+
+    // Stop bits configuration: 2=1.0, 3=1.5, 4=2.0
+    uint8_t configured_stop_bits{2};
 
     // FSK State
-    uint32_t delta_mark{0};     // +Shift
-    uint32_t delta_space{0};    // 0 Hz
+    uint32_t delta_mark{0};     // Phase step for Mark
+    uint32_t delta_space{0};    // Phase step for Space
     uint32_t current_delta{0};  // Smoothed delta
     uint32_t slew_rate{0};      // Max change per sample
     uint32_t phase{0};          // Phase accumulator
@@ -51,6 +53,7 @@ class RTTYTXProcessor : public BasebandProcessor {
     // Precision Timing
     uint32_t baud_phase{0};
     uint32_t baud_phase_increment{0};
+    uint32_t base_baud_phase_increment{0};  // Store the standard 1.0 bit rate
 
     // State Machine
     enum class State {
@@ -66,14 +69,13 @@ class RTTYTXProcessor : public BasebandProcessor {
     uint32_t lead_counter{0};
     uint8_t current_char{0};
     uint8_t bit_pos{0};
-    bool stop_bit_extended{false};
 
     // Ring Buffer
     std::array<uint8_t, 1024> data_buffer{};
     volatile size_t head{0};
     volatile size_t tail{0};
 
-    void configure(uint16_t baud, uint16_t shift);
+    void configure(uint16_t baud, uint16_t shift, int16_t mark_tone_, int16_t space_tone_, uint8_t stop_bits_, bool inverted_);
     void advance_state();
 
     bool buffer_push(uint8_t byte);

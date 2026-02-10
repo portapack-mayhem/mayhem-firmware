@@ -49,12 +49,16 @@ class RttyTxView : public View {
    private:
     void on_tx_progress(bool done);
     void stop();
+    void refresh_tones();
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
     uint32_t baud_conf = 4545;  // default to 45.45 baud, which is common for RTTY.
     uint32_t shift = 170;       // 170 hz
-    std::string message = "";
+    std::string message = "PORTAPACK";
+    int32_t mark_tone = 0;  // for option
+    int16_t mark = 0, space = 170;
+    uint8_t stop_bits = 3;  // 2=1.0, 3=1.5, 4=2.0
     app_settings::SettingsManager settings_{
         "tx_rtty",
         app_settings::Mode::TX,
@@ -62,11 +66,13 @@ class RttyTxView : public View {
             {"baud_conf"sv, &baud_conf},
             {"shift"sv, &shift},
             {"message"sv, &message},
+            {"mark_tone"sv, &mark_tone},
         }};
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(0)}, "Baud:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(14), UI_POS_Y(0)}, "Shift:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(15), UI_POS_Y(1)}, "Mark t:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(3)}, "Message:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_baud{
@@ -90,12 +96,32 @@ class RttyTxView : public View {
          {"450", 450},
          {"850", 850}}};
 
+    Checkbox check_inverted{
+        {UI_POS_X(0), UI_POS_Y(1)},
+        10,
+        "Inverted",
+        true};
+
+    OptionsField options_tone{
+        {UI_POS_X(25), UI_POS_Y(1)},
+        5,
+        {{"CNT", -32000},
+         {"0", 0},
+         {"2125", 2125},
+         {"-2125", -2125},
+         {"1275", 1275},
+         {"-1275", -1275}}};
+
+    Text text_tones{
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)},
+        "-"};
+
     Button btn_message{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(2)},
+        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_HEIGHT(2)},
         "Set message"};
 
     Text text_message{
-        {UI_POS_X(0), UI_POS_Y(4), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)},
         ""};
 
     TransmitterView tx_view{
