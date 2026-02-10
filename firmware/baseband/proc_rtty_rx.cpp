@@ -49,10 +49,12 @@ void RTTYRxProcessor::configure() {
     audio_output.configure(iir_config_passthrough, iir_config_passthrough, 1.0f);
 
     // Reset State
-    val_max = 0;
-    val_min = 0;
+    val_max = -200000;
+    val_min = 200000;
+
     uart_state = WAIT_START;
 
+    inverted_polarity = false;
     // Default to standard 45.45 baud
     estimated_bit_width = 528;
     samples_per_bit = 528;
@@ -82,43 +84,55 @@ void RTTYRxProcessor::execute(const buffer_c8_t& buffer) {
     for (size_t i = 0; i < audio.count; i++) {
         int16_t sample = audio.p[i];
 
-        // DECODER
+        // DECODER INPUT
         int32_t fm_val = (int32_t)sample * 32;
 
-        // Attack: Instant
+        // 1. ENVELOPE TRACKING (Floating)
+        //  Allow trackers to follow signal anywhere (even at +2125Hz)
         if (fm_val > val_max) val_max = fm_val;
         if (fm_val < val_min) val_min = fm_val;
 
-        // Decay: Exponential
-        // Large values decay fast, small values decay slow.
+        // 2. DECAY
+        // Shrink the envelope spread (Max - Min) slowly.
         if (++decay_timer == 0) {
-            if (val_max > 0) val_max -= (val_max >> 6) + 1;
-            if (val_min < 0) val_min += ((-val_min) >> 6) + 1;
+            int32_t spread = val_max - val_min;
+            if (spread > 200) {                     // Only decay if we have a valid signal spread
+                int32_t decay = (spread >> 7) + 1;  // Approx 1% decay
+                // Move both edges towards the center
+                if (val_max > val_min + decay) val_max -= decay;
+                if (val_min < val_max - decay) val_min += decay;
+            }
         }
 
-        // LPF for Slicer
-        fm_val_smoothed += (fm_val - fm_val_smoothed) >> LPF_ALPHA_SHIFT;
+        // 3. OFFSET CALCULATION
+        // Calculate the dynamic DC offset (e.g., 2125 Hz)
+        int32_t midpoint = (val_max + val_min) / 2;
 
-        // SQUELCH
-        // Calculate spread to determine if we have a signal
+        // 4. SIGNAL CENTERING
+        int32_t centered_val = fm_val - midpoint;
+
+        // LPF for Slicer
+        // Use centered value. Increased alpha slightly for stability.
+        fm_val_smoothed += (centered_val - fm_val_smoothed) >> LPF_ALPHA_SHIFT;
+
+        // 5. SQUELCH
         int32_t spread = val_max - val_min;
 
-        // Hysteresis: Open at 600, Close at 400
+        // Hysteresis: Open at 600, Close at 300
         if (is_squelched) {
             if (spread > 600) is_squelched = false;
         } else {
-            if (spread < 400) is_squelched = true;
+            if (spread < 300) is_squelched = true;
         }
 
         process_demodulated_sample(fm_val_smoothed);
 
-        // --- AUDIO PATH ---
+        // 6. AUDIO PATH
         if (is_squelched) {
             // Mute audio when processing is off
             audio.p[i] = 0;
         } else {
-            // Play audio when signal is valid
-            int32_t audio_boost = (int32_t)sample * 48;
+            int32_t audio_boost = sample * 48;
             if (audio_boost > 32767)
                 audio_boost = 32767;
             else if (audio_boost < -32768)
@@ -159,6 +173,7 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
             uart_state = WAIT_START;
             current_slicer_bit = 1;
             pulse_measure_counter = 0;
+            inverted_polarity = false;
             // Reset auto-baud on silence
             if (baud_rate == 0) {
                 estimated_bit_width = 528;
@@ -170,16 +185,15 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
 
     squelch_closed_timer = 0;
 
-    // 2. Schmitt Trigger
-    int32_t midpoint = (val_max + val_min) / 2;
+    // 2. Schmitt Trigger (Simplified)
     int32_t hysteresis = (val_max - val_min) / 8;
 
     uint8_t raw_bit = current_slicer_bit;
     if (inverted_polarity) raw_bit = !raw_bit;
 
-    if (sample > (midpoint + hysteresis))
+    if (sample > hysteresis)
         raw_bit = 1;
-    else if (sample < (midpoint - hysteresis))
+    else if (sample < -hysteresis)
         raw_bit = 0;
 
     // Polarity Check
@@ -187,8 +201,9 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
         if (++polarity_timer > 7200) {
             inverted_polarity = !inverted_polarity;
             polarity_timer = 0;
-            val_max = 0;
-            val_min = 0;
+            // Reset trackers on polarity flip to be safe
+            val_max = -200000;
+            val_min = 200000;
             uart_state = WAIT_START;
         }
     } else {
@@ -244,9 +259,11 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
 
         case WAIT_STOP:
             if (--phase_counter == 0) {
-                if (current_slicer_bit == 1) {
-                    append_data(shift_reg & 0x1F);
-                }
+                // Accept data even if stop bit is noisy (0)
+                // This improves reception during fades
+                // if (current_slicer_bit == 1) {
+                append_data(shift_reg & 0x1F);
+                //}
                 uart_state = WAIT_START;
             }
             break;
