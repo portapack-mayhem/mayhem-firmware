@@ -25,7 +25,7 @@
 #include <libopencm3/lpc43xx/scu.h>
 #include <libopencm3/lpc43xx/rgu.h>
 #include <libopencm3/lpc43xx/wwdt.h>
-#include "delay.h"
+//#include "delay.h"
 
 volatile bool usb_bulk_block_done = false;
 
