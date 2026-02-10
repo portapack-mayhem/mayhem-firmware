@@ -454,6 +454,28 @@ TuningInfo get_tuning_info() {
 
 namespace second_if {
 
+#ifdef PRALINE
+extern "C" {
+    extern struct max2831_debug_t {
+        uint32_t requested_freq_mhz;
+        uint32_t calculated_n;
+        uint32_t calculated_frac;
+        bool set_frequency_called;
+        bool frequency_valid;
+    } max2831_debug_info;
+}
+
+MAX2831Info get_max2831_info() {
+    return {
+        max2831_debug_info.requested_freq_mhz,
+        max2831_debug_info.calculated_n,
+        max2831_debug_info.calculated_frac,
+        max2831_debug_info.set_frequency_called,
+        max2831_debug_info.frequency_valid
+    };
+}
+#endif
+
 uint32_t register_read(const size_t register_number) {
     return radio::second_if->read(register_number);
 }

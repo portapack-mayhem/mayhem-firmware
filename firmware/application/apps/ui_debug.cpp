@@ -1893,6 +1893,115 @@ void RFFCTuningDebugView::refresh() {
     }
 }
 
+/* MAX2831DebugView *************************************************/
+MAX2831DebugView::MAX2831DebugView(NavigationView& nav) {
+    add_children({
+        &text_title,
+        &text_lbl_called, &text_called,
+        &text_lbl_valid, &text_valid,
+        &text_lbl_req, &text_req,
+        &text_lbl_calc_n, &text_calc_n,
+        &text_lbl_calc_frac, &text_calc_frac,
+        &text_spacer,
+        &text_lbl_r3, &text_r3,
+        &text_lbl_r4, &text_r4,
+        &text_lbl_act_n, &text_act_n,
+        &text_lbl_act_frac, &text_act_frac,
+        &text_lbl_calc_freq, &text_calc_freq,
+        &text_status,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_spacer.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void MAX2831DebugView::focus() {
+    button_refresh.focus();
+}
+
+void MAX2831DebugView::refresh() {
+    auto info = radio::debug::second_if::get_max2831_info();
+    
+    // Show if set_frequency was called
+    if (info.set_frequency_called) {
+        text_called.set("YES");
+        text_called.set_style(Theme::getInstance()->fg_green);
+        
+        if (info.frequency_valid) {
+            text_valid.set("YES (2.3-2.6G)");
+            text_valid.set_style(Theme::getInstance()->fg_green);
+        } else {
+            text_valid.set("NO - OUT OF RANGE!");
+            text_valid.set_style(Theme::getInstance()->fg_red);
+        }
+        
+        text_req.set(to_string_dec_uint(info.requested_freq_mhz) + " MHz");
+        text_calc_n.set(to_string_dec_uint(info.calculated_n));
+        text_calc_frac.set(to_string_hex(info.calculated_frac, 5));
+    } else {
+        text_called.set("NO");
+        text_called.set_style(Theme::getInstance()->fg_red);
+        text_valid.set("---");
+        text_req.set("---");
+        text_calc_n.set("---");
+        text_calc_frac.set("---");
+    }
+    
+    // Read actual hardware registers
+    uint32_t r3 = radio::debug::second_if::register_read(3);
+    uint32_t r4 = radio::debug::second_if::register_read(4);
+    
+    text_r3.set(to_string_hex(r3, 4));
+    text_r4.set(to_string_hex(r4, 4));
+    
+    // Decode actual values from registers
+    uint16_t act_n = r3 & 0xFF;
+    uint32_t act_frac_lo = (r3 >> 8) & 0x3F;
+    uint32_t act_frac_hi = r4 & 0x3FFF;
+    uint32_t act_frac = (act_frac_hi << 6) | act_frac_lo;
+    
+    text_act_n.set(to_string_dec_uint(act_n));
+    text_act_frac.set(to_string_hex(act_frac, 5));
+    
+    // Calculate actual frequency from registers
+    // F_LO = 20 MHz × (N + Frac/2^20)
+    // For display, show integer part only
+    uint32_t calc_freq_mhz = 20 * act_n;
+    // Add fractional contribution (approximate)
+    uint32_t frac_contribution = (act_frac * 20) >> 20;
+    calc_freq_mhz += frac_contribution;
+    
+    text_calc_freq.set(to_string_dec_uint(calc_freq_mhz) + " MHz");
+    
+    // Status
+    if (!info.set_frequency_called) {
+        text_status.set("MAX2831 set_frequency\nNEVER called!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!info.frequency_valid) {
+        text_status.set("Freq " + to_string_dec_uint(info.requested_freq_mhz) +
+                       " MHz OUT OF RANGE!\n(need 2300-2600)");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (act_n == info.calculated_n && act_frac == info.calculated_frac) {
+        text_status.set("MATCH!\nHardware = Expected");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_status.set("MISMATCH!\nN: exp=" + to_string_dec_uint(info.calculated_n) +
+                       " act=" + to_string_dec_uint(act_n));
+        text_status.set_style(Theme::getInstance()->fg_red);
+    }
+}
+
 #endif
 
 #endif
@@ -1964,6 +2073,7 @@ void DebugMenuView::on_populate() {
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
         {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
+	{"MAX2831 Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
         {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},

@@ -38,6 +38,16 @@ using namespace hackrf::one;
 #include <algorithm>
 #include <cstring>
 
+// Global debug tracking for MAX2831
+struct max2831_debug_t {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_n;
+    uint32_t calculated_frac;
+    bool set_frequency_called;
+    bool frequency_valid;
+};
+max2831_debug_t max2831_debug_info = {0, 0, 0, false, false};
+
 namespace max2831 {
 
 using namespace max283x;
@@ -359,6 +369,19 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
         return false;
     }
 
+    bool valid = (lo_frequency >= 2300000000ULL && lo_frequency <= 2600000000ULL);
+
+    // TRACK REQUEST IMMEDIATELY
+    max2831_debug_info.requested_freq_mhz = lo_frequency / 1000000;
+    max2831_debug_info.set_frequency_called = true;
+    max2831_debug_info.frequency_valid = valid;
+
+    if (!valid) {
+        max2831_debug_info.calculated_n = 0;
+        max2831_debug_info.calculated_frac = 0;
+        return false;
+    }
+
     /* From GSG reference: ASSUME 40MHz PLL. Ratio = F*R/40,000,000.
      * TODO: fixed to R=2. Check if it's worth exploring R=1. */
     uint32_t freq = lo_frequency;
@@ -376,6 +399,10 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
             div_rem -= div_cmp;
         }
     }
+
+    // TRACK CALCULATED VALUES
+    max2831_debug_info.calculated_n = div_int;
+    max2831_debug_info.calculated_frac = div_frac;
 
     /* Write order matters - matches GSG reference */
     /* REG 3: SYN_INT (bits 7:0) and SYN_FRAC_LO (bits 13:8) */

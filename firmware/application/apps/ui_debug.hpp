@@ -828,6 +828,59 @@ class RFFCTuningDebugView : public View {
 
 #endif
 
+#ifdef PRALINE
+/* MAX2831DebugView *************************************************/
+
+class MAX2831DebugView : public View {
+   public:
+    MAX2831DebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "MAX2831 Debug"; };
+
+   private:
+    void refresh();
+
+    Text text_title{{0, 0, 240, 16}, "MAX2831 (2nd IF) Debug"};
+
+    Text text_lbl_called{{0, 24, 120, 16}, "Freq Set:"};
+    Text text_called{{122, 24, 118, 16}, "NO"};
+
+    Text text_lbl_valid{{0, 42, 120, 16}, "In Range:"};
+    Text text_valid{{122, 42, 118, 16}, "---"};
+
+    Text text_lbl_req{{0, 60, 120, 16}, "Requested:"};
+    Text text_req{{122, 60, 118, 16}, "---"};
+
+    Text text_lbl_calc_n{{0, 78, 120, 16}, "Calc N:"};
+    Text text_calc_n{{122, 78, 118, 16}, "---"};
+
+    Text text_lbl_calc_frac{{0, 96, 120, 16}, "Calc Frac:"};
+    Text text_calc_frac{{122, 96, 118, 16}, "---"};
+
+    Text text_spacer{{0, 114, 240, 16}, "--- Hardware Regs ---"};
+
+    Text text_lbl_r3{{0, 132, 120, 16}, "Reg 3:"};
+    Text text_r3{{122, 132, 118, 16}, "---"};
+
+    Text text_lbl_r4{{0, 150, 120, 16}, "Reg 4:"};
+    Text text_r4{{122, 150, 118, 16}, "---"};
+
+    Text text_lbl_act_n{{0, 168, 120, 16}, "Actual N:"};
+    Text text_act_n{{122, 168, 118, 16}, "---"};
+
+    Text text_lbl_act_frac{{0, 186, 120, 16}, "Actual Frac:"};
+    Text text_act_frac{{122, 186, 118, 16}, "---"};
+
+    Text text_lbl_calc_freq{{0, 204, 120, 16}, "Calc Freq:"};
+    Text text_calc_freq{{122, 204, 118, 16}, "---"};
+
+    Text text_status{{0, 228, 240, 44}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+#endif
+
 #endif
 
 class DebugPeripheralsMenuView : public BtnGridView {
