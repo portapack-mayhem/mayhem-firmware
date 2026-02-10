@@ -56,6 +56,10 @@ using asahi_kasei::ak4951::AK4951;
 #include "i2cdevmanager.hpp"
 #include "battery.hpp"
 
+extern "C" {
+#include "platform_detect.h"
+}
+
 namespace portapack {
 
 const char* init_error = nullptr;
@@ -546,6 +550,11 @@ init_status_t init() {
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
+
+    chThdSleepMilliseconds(100);
+
+    detect_hardware_platform();
+    finalize_detect_hardware_platform();
 
     chThdSleepMilliseconds(100);
 
