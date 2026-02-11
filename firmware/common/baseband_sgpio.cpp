@@ -189,6 +189,7 @@ constexpr uint32_t gpio_outreg(const Direction direction) {
 
 constexpr uint32_t gpio_oenreg(const Direction direction) {
     return (0U << PIN_P78) | (0U << PIN_P81) | (0U << PIN_SYNC_EN) | (0U << PIN_INVERT) | (1U << PIN_DIRECTION) | (1U << PIN_DISABLE) | (0U << PIN_CAPTURE) | (0U << PIN_CLKIN) | ((direction == Direction::Transmit) ? 0xffU : 0x00U);
+    // ^^^^^^^^^^^^^ REVERTED: SGPIO14 must be DISABLED - enabling it blocks data capture!
 }
 
 constexpr uint32_t out_mux_cfg(const P_OUT_CFG out, const P_OE_CFG oe) {
@@ -198,13 +199,23 @@ constexpr uint32_t out_mux_cfg(const P_OUT_CFG out, const P_OE_CFG oe) {
 constexpr uint32_t data_sgpio_mux_cfg(
     const CONCAT_ENABLE concat_enable,
     const CONCAT_ORDER concat_order) {
+#ifndef PRALINE
     return (1U << 0) | (0U << 1) | (0U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (toUType(concat_enable) << 11) | (toUType(concat_order) << 12);
+#else
+    return (1U << 0) | (0U << 1) | (3U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (toUType(concat_enable) << 11) | (toUType(concat_order) << 12);
+    // Bits 3-4: CLK_SOURCE_SLICE_MODE = 3 (slice D as clock source for data slices)
+#endif
 }
 
 constexpr uint32_t data_slice_mux_cfg(
     const PARALLEL_MODE parallel_mode,
     const CLK_CAPTURE_MODE clk_capture_mode) {
+#ifndef PRALINE
     return (0U << 0) | (toUType(clk_capture_mode) << 1) | (1U << 2) | (0U << 3) | (0U << 4) | (toUType(parallel_mode) << 6) | (0U << 8);
+#else
+    return (0U << 0) | (toUType(clk_capture_mode) << 1) | (1U << 2) | (0U << 3) | (1U << 4) | (toUType(parallel_mode) << 6) | (0U << 8);
+    // Bit 4 CLKGEN_MODE: 0=internal counter, 1=external clock (REQUIRED for PRALINE!)
+#endif
 }
 
 constexpr uint32_t pos(
@@ -264,28 +275,54 @@ void SGPIO::init() {
 void SGPIO::configure(const Direction direction) {
     disable_all_slice_counters();
 
+#ifndef PRALINE
     // Set data pins as input, temporarily.
     LPC_SGPIO->GPIO_OENREG = gpio_oenreg(Direction::Receive);
 
     // Now that data pins are inputs, safe to change CPLD direction.
+#endif
+
+    // HackRF reference: Set GPIO_OUTREG first (DISABLE=HIGH during config)
     LPC_SGPIO->GPIO_OUTREG = gpio_outreg(direction);
+
+#ifdef PRALINE
+    // HackRF reference: Set GPIO_OENREG ONCE before OUT_MUX_CFG (not twice!)
+    LPC_SGPIO->GPIO_OENREG = gpio_oenreg(direction);
+
+    // Now configure OUT_MUX_CFG (HackRF order: control pins first, then data pins)
+#endif
 
     LPC_SGPIO->OUT_MUX_CFG[8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
     LPC_SGPIO->OUT_MUX_CFG[9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
+
+#ifndef PRALINE
+    // OUT_MUX_CFG[10] NOT configured for PRALINE - breaks PRALINE (HOST_DISABLE signal)
     LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+#endif
+
     LPC_SGPIO->OUT_MUX_CFG[11] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+#ifndef PRALINE
+    // SGPIO 12 and 13 are NOT configured - not used per HackRF reference for PRALINE
     LPC_SGPIO->OUT_MUX_CFG[12] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
     LPC_SGPIO->OUT_MUX_CFG[13] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+#endif
+
     LPC_SGPIO->OUT_MUX_CFG[14] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
+
+#ifndef PRALINE
+    // SGPIO 15 is NOT configured - not used per HackRF reference for PRALINE
     LPC_SGPIO->OUT_MUX_CFG[15] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
+#endif
 
     const auto data_out_mux_cfg = out_mux_cfg(data_p_out_cfg(slice_mode_multislice), P_OE_CFG::GPIO_OE);
     for (size_t i = 0; i < 8; i++) {
         LPC_SGPIO->OUT_MUX_CFG[i] = data_out_mux_cfg;
     }
 
+#ifndef PRALINE
     // Now that output enable sources are set, enable data bus in correct direction.
     LPC_SGPIO->GPIO_OENREG = gpio_oenreg(direction);
+#endif
 
     const auto slice_gpdma = Slice::H;
 
@@ -293,7 +330,25 @@ void SGPIO::configure(const Direction direction) {
     const auto clk_capture_mode = data_clk_capture_mode(direction);
     const auto single_slice = !slice_mode_multislice;
 
+#ifndef PRALINE
     uint32_t slice_enable_mask = 0;
+#endif
+
+#ifdef PRALINE
+    // Configure slice D as clock generator (REQUIRED for PRALINE!)
+    // Reference: HackRF sgpio.c line 193
+    const auto slice_d = toUType(Slice::D);
+    LPC_SGPIO->SGPIO_MUX_CFG[slice_d] = (1U << 0) | (0U << 1) | (0U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (0U << 11) | (0U << 12);
+    LPC_SGPIO->SLICE_MUX_CFG[slice_d] = (0U << 0) | (0U << 1) | (0U << 2) | (0U << 3) | (1U << 4) | (0U << 6) | (0U << 8);  // CLKGEN_MODE=1
+    LPC_SGPIO->PRESET[slice_d] = 0;
+    LPC_SGPIO->COUNT[slice_d] = 0;
+    LPC_SGPIO->POS[slice_d] = pos(0x1f, 0x1f);
+    LPC_SGPIO->REG[slice_d] = 0x11111111;
+    LPC_SGPIO->REG_SS[slice_d] = 0x11111111;
+
+    uint32_t slice_enable_mask = (1U << slice_d);  // Start with slice D enabled
+#endif
+
     for (size_t i = 0; i < slice_count; i++) {
         const auto slice = slice_order[i];
         const auto slice_index = toUType(slice);

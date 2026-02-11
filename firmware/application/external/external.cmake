@@ -285,11 +285,6 @@ set(EXTCPPSRC
 	external/siggen/main.cpp
 	external/siggen/ui_siggen.cpp
 
-	#sdusb
-	external/sdusb/main.cpp
-	external/sdusb/ui_sd_over_usb.cpp
-
-
 	#morse_radio
 	external/morse_radio/main.cpp
 	external/morse_radio/ui_morse_radio.cpp
@@ -368,7 +363,16 @@ set(EXTAPPLIST
 	flex_rx
 	subcarrx
 	siggen
-	sdusb
 	morse_radio
 	morseradiotx
 )
+
+# sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
+if(NOT BOARD STREQUAL "PRALINE")
+       list(APPEND EXTCPPSRC
+               external/sdusb/main.cpp
+               external/sdusb/ui_sd_over_usb.cpp
+       )
+       list(APPEND EXTAPPLIST sdusb)
+endif()
+

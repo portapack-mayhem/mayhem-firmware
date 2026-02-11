@@ -62,8 +62,16 @@ constexpr size_t clock_generator_output_og_codec = 0;
 constexpr size_t clock_generator_output_og_cpld = 1;
 constexpr size_t clock_generator_output_og_sgpio = 2;
 constexpr size_t clock_generator_output_og_clkout = 3;
+#ifdef PRALINE
+/* PRALINE has swapped CLK4/CLK5 vs HackRF One OG:
+ * CLK4 = XCVR_CLK (MAX2831) = second IF
+ * CLK5 = MIX_CLK (RFFC5072) = first IF */
+constexpr size_t clock_generator_output_og_first_if = 5;   // RFFC5072 on CLK5
+constexpr size_t clock_generator_output_og_second_if = 4;  // MAX2831 on CLK4
+#else
 constexpr size_t clock_generator_output_og_first_if = 4;
 constexpr size_t clock_generator_output_og_second_if = 5;
+#endif
 constexpr size_t clock_generator_output_og_mcu_clkin = 7;
 
 constexpr size_t clock_generator_output_r9_if = 0;

@@ -99,6 +99,9 @@ void EventDispatcher::on_message(const Message* const message) {
     switch (message->id) {
         case Message::ID::Shutdown:
             on_message_shutdown(*reinterpret_cast<const ShutdownMessage*>(message));
+#ifdef PRALINE
+            shared_memory.baseband_message = nullptr;  // Must clear before M4 exits!
+#endif
             break;
 
         default:

@@ -93,6 +93,10 @@ typedef enum {
     CT_SI5351,
     CT_AUDIO,
     CT_MAX17055,
+#ifdef PRALINE
+    CT_FPGA,
+#endif
+    CT_SGPIO,
 } chip_type_t;
 
 struct RegistersWidgetConfig {
@@ -372,6 +376,459 @@ private:
                 "Exit"
         };
 };*/
+
+/* Radio Signal Path Diagnostics View
+ * Shows status of each component in the RX/TX signal chain:
+ * Antenna -> RF Path -> RFFC5072 -> MAX283x -> MAX5864 -> FPGA -> SGPIO -> MCU
+ */
+class RadioDiagnosticsView : public View {
+   public:
+    RadioDiagnosticsView(NavigationView& nav);
+
+    void focus() override;
+    std::string title() const override { return "Radio Diag"; };
+
+   private:
+    NavigationView& nav_;
+
+    void update_status();
+
+    Text text_title{{0, 0, 240, 16}, "=== Signal Path Status ==="};
+
+    Text text_lbl_rffc{{0, 20, 140, 16}, "RFFC5072 (1st IF):"};
+    Text text_rffc_status{{144, 20, 96, 16}, "---"};
+
+    Text text_lbl_max{{0, 36, 140, 16}, "MAX283x (2nd IF):"};
+    Text text_max_status{{144, 36, 96, 16}, "---"};
+
+    Text text_lbl_adc{{0, 52, 140, 16}, "MAX5864 (ADC):"};
+    Text text_adc_status{{144, 52, 96, 16}, "---"};
+
+    Text text_lbl_fpga{{0, 68, 140, 16}, "FPGA/CPLD:"};
+    Text text_fpga_status{{144, 68, 96, 16}, "---"};
+
+    Text text_lbl_sgpio{{0, 84, 140, 16}, "SGPIO:"};
+    Text text_sgpio_status{{144, 84, 96, 16}, "---"};
+
+    Text text_lbl_clock{{0, 100, 140, 16}, "Si5351 Clocks:"};
+    Text text_clock_status{{144, 100, 96, 16}, "---"};
+
+    Text text_regs_title{{0, 124, 240, 16}, "=== Key Registers ==="};
+
+    Text text_lbl_rffc_reg{{0, 144, 80, 16}, "RFFC R0:"};
+    Text text_rffc_reg{{80, 144, 160, 16}, "---"};
+
+    Text text_lbl_max_reg{{0, 160, 80, 16}, "MAX R0:"};
+    Text text_max_reg{{80, 160, 160, 16}, "---"};
+
+    Text text_lbl_fpga_reg{{0, 176, 80, 16}, "FPGA:"};
+    Text text_fpga_reg{{80, 176, 160, 16}, "---"};
+
+    Text text_lbl_sgpio_reg{{0, 192, 80, 16}, "SGPIO:"};
+    Text text_sgpio_reg{{80, 192, 160, 16}, "---"};
+
+    Text text_test_result{{0, 220, 240, 32}, ""};
+
+    Button button_refresh{
+        {8, 280, 72, 24},
+        "Refresh"};
+
+    Button button_done{
+        {168, 280, 64, 24},
+        "Done"};
+};
+
+/* BasebandStatusView ***************************************************/
+
+class BasebandStatusView : public View {
+   public:
+    BasebandStatusView(NavigationView& nav);
+
+    void focus() override;
+    std::string title() const override { return "Baseband Status"; };
+
+   private:
+    NavigationView& nav_;
+
+    void update();
+
+    Text text_title{{0, 0, 240, 16}, "=== Baseband Counters ==="};
+
+    Text text_lbl_marker{{0, 20, 140, 16}, "Streaming Marker:"};
+    Text text_marker{{144, 20, 96, 16}, "---"};
+
+    Text text_lbl_loops{{0, 36, 140, 16}, "Baseband Loops:"};
+    Text text_loops{{144, 36, 96, 16}, "---"};
+
+    Text text_lbl_wait{{0, 52, 140, 16}, "DMA Wait Count:"};
+    Text text_wait{{144, 52, 96, 16}, "---"};
+
+    Text text_lbl_xfr{{0, 68, 140, 16}, "DMA Xfr Count:"};
+    Text text_xfr{{144, 68, 96, 16}, "---"};
+
+    Text text_lbl_missed{{0, 84, 140, 16}, "Buffer Missed:"};
+    Text text_missed{{144, 84, 96, 16}, "---"};
+
+    Text text_status_line1{{0, 110, 240, 16}, ""};
+    Text text_status_line2{{0, 126, 240, 16}, ""};
+    Text text_status_line3{{0, 142, 240, 16}, ""};
+
+    Button button_refresh{
+        {8, 280, 72, 24},
+        "Refresh"};
+
+    Button button_done{
+        {168, 280, 64, 24},
+        "Done"};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) { this->update(); }};
+};
+
+/* SGPIOLiveMonitorView ***************************************************/
+
+class SGPIOLiveMonitorView : public View {
+   public:
+    SGPIOLiveMonitorView(NavigationView& nav);
+
+    void focus() override;
+    std::string title() const override { return "SGPIO Live"; };
+
+   private:
+    NavigationView& nav_;
+
+    void update();
+
+    Text text_title{{0, 0, 240, 16}, "=== SGPIO Registers ==="};
+
+    Text text_lbl_ctrl{{0, 20, 140, 16}, "CTRL_ENABLE:"};
+    Text text_ctrl{{144, 20, 96, 16}, "---"};
+
+    Text text_lbl_in{{0, 36, 140, 16}, "GPIO_INREG:"};
+    Text text_in{{144, 36, 96, 16}, "---"};
+
+    Text text_lbl_ss{{0, 52, 140, 16}, "REG_SS[0]:"};
+    Text text_ss{{144, 52, 96, 16}, "---"};
+
+    Text text_lbl_status{{0, 68, 140, 16}, "STATUS_1:"};
+    Text text_status{{144, 68, 96, 16}, "---"};
+
+    Text text_lbl_out{{0, 84, 140, 16}, "GPIO_OUTREG:"};
+    Text text_out{{144, 84, 96, 16}, "---"};
+
+    Text text_lbl_oen{{0, 100, 140, 16}, "GPIO_OENREG:"};
+    Text text_oen{{144, 100, 96, 16}, "---"};
+
+    Text text_diag_line1{{0, 126, 240, 16}, ""};
+    Text text_diag_line2{{0, 142, 240, 16}, ""};
+    Text text_diag_line3{{0, 158, 240, 16}, ""};
+    Text text_diag_line4{{0, 174, 240, 16}, ""};
+
+    Button button_refresh{
+        {8, 280, 72, 24},
+        "Refresh"};
+
+    Button button_done{
+        {168, 280, 64, 24},
+        "Done"};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) { this->update(); }};
+};
+
+/* Radio RX Step-by-Step Test View
+ * Tests radio hardware directly without M0 baseband involvement.
+ * Logs each step to help isolate where the signal chain breaks.
+ */
+class RadioRxTestView : public View {
+   public:
+    RadioRxTestView(NavigationView& nav);
+
+    void focus() override;
+    std::string title() const override { return "RX Test"; };
+
+   private:
+    NavigationView& nav_;
+    bool radio_initialized_{false};
+    uint32_t test_frequency_{433000000};  // 433 MHz default
+
+    void log(const std::string& msg);
+    void log_registers(const std::string& label);
+    void run_init_test();
+    void run_rx_mode_test();
+    void run_freq_test();
+    void run_sgpio_test();
+    void run_full_test();
+    void run_step_test();
+    bool check_gpio_changing();
+
+    Labels labels{
+        {{0, 0}, "=== Radio RX Test ===", Theme::getInstance()->fg_yellow->foreground}};
+
+    Console console{
+        {0, 20, 240, 200}};
+
+    Button button_init{
+        {0, 224, 56, 24},
+        "Init"};
+
+    Button button_rx{
+        {60, 224, 56, 24},
+        "RX"};
+
+    Button button_freq{
+        {120, 224, 56, 24},
+        "Freq"};
+
+    Button button_sgpio{
+        {180, 224, 56, 24},
+        "SGPIO"};
+
+    Button button_full{
+        {0, 252, 56, 24},
+        "Full"};
+
+    Button button_step{
+        {60, 252, 56, 24},
+        "Step"};
+
+    Button button_done{
+        {120, 252, 112, 24},
+        "Done"};
+};
+
+/* SGPIO8 Clock Detector View
+ * Samples SGPIO8 pin to verify external clock is present.
+ * Shows toggle count and estimated frequency.
+ */
+class SGPIO8ClockDetectorView : public View {
+   public:
+    SGPIO8ClockDetectorView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "SGPIO8 Clock"; };
+
+   private:
+    NavigationView& nav_;
+
+    Text text_title{{8, 16, 224, 16}, "SGPIO8 Clock Detector"};
+    Text text_lbl_samples{{8, 48, 160, 16}, "Samples (first 20):"};
+    Text text_samples{{8, 64, 224, 16}, "                    "};
+    Text text_lbl_toggles{{8, 96, 160, 16}, "Toggle count:"};
+    Text text_toggles{{8, 112, 224, 16}, "                         "};
+    Text text_status{{8, 144, 224, 32}, "                              "};
+
+    Button button_sample{{8, 200, 96, 24}, "Sample"};
+    Button button_done{{128, 200, 96, 24}, "Done"};
+
+    void sample_sgpio8();
+};
+
+/* Slice Status View
+ * Shows SGPIO slice status: which slices are enabled vs active,
+ * counter values, and data capture status.
+ */
+
+/* Si5351 Debug View
+ * Dedicated diagnostic tool for Si5351 clock generator.
+ * Shows PLL lock status, clock configurations, and allows testing.
+ */
+class Si5351DebugView : public View {
+   public:
+    Si5351DebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Si5351 Clocks"; };
+
+   private:
+    NavigationView& nav_;
+
+    Text text_title{{8, 16, 200, 16}, "Si5351 Clock Generator"};
+
+    Text text_status_label{{8, 40, 80, 16}, "Status Reg:"};
+    Text text_status_value{{96, 40, 144, 16}, ""};
+
+    Text text_pll_a_label{{8, 60, 80, 16}, "PLL A:"};
+    Text text_pll_a_status{{96, 60, 144, 16}, ""};
+
+    Text text_pll_b_label{{8, 80, 80, 16}, "PLL B:"};
+    Text text_pll_b_status{{96, 80, 144, 16}, ""};
+
+    Text text_sys_init_label{{8, 100, 80, 16}, "SYS_INIT:"};
+    Text text_sys_init_status{{96, 100, 144, 16}, ""};
+
+    Text text_xtal_cap_label{{8, 120, 80, 16}, "XTAL Cap:"};
+    Text text_xtal_cap_value{{96, 120, 144, 16}, ""};
+
+    Text text_clk0_label{{8, 150, 72, 16}, "CLK0:"};
+    Text text_clk0_status{{88, 150, 152, 16}, ""};
+
+    Text text_clk0_freq_label{{8, 170, 72, 16}, "  Freq:"};
+    Text text_clk0_freq_value{{88, 170, 152, 16}, ""};
+
+    Text text_clk0_div_label{{8, 190, 72, 16}, "  Div:"};
+    Text text_clk0_div_value{{88, 190, 152, 16}, ""};
+
+    Text text_clk1_label{{8, 210, 96, 16}, "CLK1 (SCT):"};
+    Text text_clk1_status{{112, 210, 128, 16}, ""};
+
+    Button button_refresh{{8, 240, 72, 24}, "Refresh"};
+    Button button_reset_pll{{88, 240, 72, 24}, "Reset PLL"};
+    Button button_done{{168, 240, 64, 24}, "Done"};
+
+    void refresh_status();
+    void reset_pll();
+};
+
+#ifdef PRALINE
+/* SignalPathStatusView *************************************************/
+class SignalPathStatusView : public View {
+   public:
+    SignalPathStatusView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Signal Path"; };
+
+   private:
+    NavigationView& nav_;
+    void refresh_status();
+
+    Text text_title{{0, 0, 240, 16}, "=== Signal Path Status ==="};
+
+    Text text_lbl_max_enable{{0, 20, 1114, 16}, "MAX2831:"};
+    Text text_max_enable{{116, 20, 124, 16}, "---"};
+
+    Text text_lbl_max_mode{{0, 36, 114, 16}, "RX Mode:"};
+    Text text_max_mode{{116, 36, 124, 16}, "---"};
+
+    Text text_lbl_rf_path{{0, 52, 114, 16}, "RF Path:"};
+    Text text_rf_path{{116, 52, 124, 16}, "---"};
+
+    Text text_lbl_rf_amp{{0, 68, 114, 16}, "RF Amp:"};
+    Text text_rf_amp{{116, 68, 124, 16}, "---"};
+
+    Text text_lbl_lna{{0, 84, 114, 16}, "LNA Gain:"};
+    Text text_lna{{116, 84, 124, 16}, "---"};
+
+    Text text_lbl_vga{{0, 100, 114, 16}, "VGA Gain:"};
+    Text text_vga{{116, 100, 124, 16}, "---"};
+
+    Text text_lbl_fpga_decim{{0, 116, 114, 16}, "FPGA Decim:"};
+    Text text_fpga_decim{{116, 116, 124, 16}, "---"};
+
+    Text text_status{{0, 140, 240, 32}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+#endif
+
+#ifdef PRALINE
+/* RFFC5072StatusView *************************************************/
+class RFFC5072StatusView : public View {
+   public:
+    RFFC5072StatusView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "RFFC5072 Status"; };
+
+   private:
+    NavigationView& nav_;
+    void refresh_status();
+
+    Text text_title{{0, 0, 240, 16}, "=== RFFC5072 (1st IF) ==="};
+
+    Text text_lbl_enabled{{0, 20, 114, 16}, "Status:"};
+    Text text_enabled{{116, 20, 124, 16}, "---"};
+
+    Text text_lbl_freq{{0, 36, 114, 16}, "LO Freq:"};
+    Text text_freq{{116, 36, 124, 16}, "---"};
+
+    Text text_lbl_path{{0, 52, 114, 16}, "Path:"};
+    Text text_path{{116, 52, 124, 16}, "---"};
+
+    Text text_lbl_mixer{{0, 68, 114, 16}, "Mixer:"};
+    Text text_mixer{{116, 68, 124, 16}, "---"};
+
+    Text text_lbl_r0{{0, 92, 114, 16}, "Reg 0:"};
+    Text text_r0{{116, 92, 124, 16}, "---"};
+
+    Text text_lbl_r1{{0, 108, 114, 16}, "Reg 1 (N):"};
+    Text text_r1{{116, 108, 124, 16}, "---"};
+
+    Text text_lbl_r2{{0, 124, 114, 16}, "Reg 2:"};
+    Text text_r2{{116, 124, 124, 16}, "---"};
+
+    Text text_lbl_decode{{0, 148, 240, 16}, "--- Decoded Values ---"};
+
+    Text text_lbl_n{{0, 168, 114, 16}, "N divider:"};
+    Text text_n{{116, 168, 124, 16}, "---"};
+
+    Text text_lbl_lodiv{{0, 184, 114, 16}, "LO divider:"};
+    Text text_lodiv{{116, 184, 124, 16}, "---"};
+
+    Text text_lbl_calc{{0, 200, 114, 16}, "Calc freq:"};
+    Text text_calc{{116, 200, 124, 16}, "---"};
+
+    Text text_status{{0, 224, 240, 32}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+
+#ifdef PRALINE
+/* RFFCTuningDebugView *************************************************/
+class RFFCTuningDebugView : public View {
+   public:
+    RFFCTuningDebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "RFFC Tuning Debug"; };
+
+   private:
+    void refresh();
+
+    Text text_title{{0, 0, 240, 16}, "RFFC5072 Tuning Debug"};
+
+    Text text_lbl_called{{0, 18, 120, 16}, "Freq Set:"};
+    Text text_called{{122, 18, 118, 16}, "NO"};
+
+    Text text_lbl_req{{0, 38, 120, 16}, "Requested:"};
+    Text text_req{{122, 38, 118, 16}, "---"};
+
+    Text text_lbl_exp_n{{0, 56, 120, 16}, "Expected N:"};
+    Text text_exp_n{{122, 56, 118, 16}, "---"};
+
+    Text text_lbl_act_n{{0, 74, 120, 16}, "Actual N:"};
+    Text text_act_n{{122, 74, 118, 16}, "---"};
+
+    Text text_lbl_exp_div{{0, 92, 120, 16}, "Exp LO/Pres:"};
+    Text text_exp_div{{122, 92, 118, 16}, "---"};
+
+    Text text_lbl_act_div{{0, 110, 120, 16}, "Act LO/Pres:"};
+    Text text_act_div{{122, 110, 118, 16}, "---"};
+
+    Text text_lbl_calc{{0, 128, 120, 16}, "Calc LO freq:"};
+    Text text_calc{{122, 128, 118, 16}, "---"};
+
+    Text text_lbl_calc_lo{{0, 146, 120, 16}, "Calc input:"};
+    Text text_calc_lo{{122, 146, 118, 16}, "---"};
+
+    Text text_lbl_calc_vco{{0, 164, 120, 16}, "In Calc VCO:"};
+    Text text_calc_vco{{122, 164, 118, 16}, "---"};
+
+    Text text_lbl_vco{{0, 182, 120, 16}, "Calc VCO:"};
+    Text text_vco{{122, 182, 118, 16}, "---"};
+
+    Text text_lbl_n_q24{{0, 200, 120, 16}, "N (Q24):"};
+    Text text_n_q24{{122, 200, 118, 16}, "---"};
+
+    Text text_status{{0, 224, 240, 48}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+
+#endif
+
+#endif
 
 class DebugPeripheralsMenuView : public BtnGridView {
    public:

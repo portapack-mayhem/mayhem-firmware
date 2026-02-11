@@ -56,9 +56,11 @@ using asahi_kasei::ak4951::AK4951;
 #include "i2cdevmanager.hpp"
 #include "battery.hpp"
 
+#ifndef PRALINE
 extern "C" {
 #include "platform_detect.h"
 }
+#endif
 
 namespace portapack {
 
@@ -341,14 +343,37 @@ static void set_cpu_clock_speed() {
      */
 
     /* Step into the 90-110MHz M4 clock range */
+#ifdef PRALINE
+    /* PRALINE: Enable and use 12MHz XTAL directly (no GP_CLKIN from Si5351) */
+
+    /* Step 1: Enable the crystal oscillator */
+    LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;  // 0 = enable (active low)
+    LPC_CGU->XTAL_OSC_CTRL.HF = 0;      // 0 = low frequency mode (1-20MHz)
+
+    /* Step 2: Wait for oscillator to stabilize (~250us at IRC speed) */
+    volatile uint32_t delay = 3000;  // ~250us at 12MHz IRC
+    while (delay--);
+
+    /* Step 3: Configure PLL1 from XTAL
+     *   Fclkin = 12M, /N=1 = 12M, Fcco = 12M * 17 = 204M
+     *   Fclk = Fcco / (2*(P=1)) = 102M
+     */
+    cgu::pll1::ctrl({
+        .pd = 1,
+        .bypass = 0,
+        .fbsel = 0,
+        .direct = 0,
+        .psel = 0,
+        .autoblock = 1,
+        .nsel = 0,   // N = 1
+        .msel = 16,  // M = 17, so 12MHz * 17 = 204MHz
+        .clk_sel = cgu::CLK_SEL::XTAL,
+    });
+#else
     /* OG:
-     * 	Fclkin = 40M
-     * 		/N=2 = 20M = PFDin
-     * 	Fcco = PFDin * (M=10) = 200M
+     * 	Fclkin = 40M, /N=2 = 20M, Fcco = 20M * 10 = 200M
      * r9:
-     * 	Fclkin = 10M
-     * 		/N=1 = 10M = PFDin
-     * 	Fcco = PFDin * (M=20) = 200M
+     * 	Fclkin = 10M, /N=1 = 10M, Fcco = 10M * 20 = 200M
      * Fclk = Fcco / (2*(P=1)) = 100M
      */
     cgu::pll1::ctrl({
@@ -362,20 +387,41 @@ static void set_cpu_clock_speed() {
         .msel = hackrf_r9 ? 19UL : 9UL,
         .clk_sel = cgu::CLK_SEL::GP_CLKIN,
     });
+#endif
 
     cgu::pll1::enable();
+#ifndef PRALINE
     while (!cgu::pll1::is_locked());
 
     set_clock_config(clock_config_pll1_step);
-
     /* Delay >50us at 90-110MHz clock speed */
     volatile uint32_t delay = 1400;
     while (delay--);
-
     set_clock_config(clock_config_pll1);
 
     /* Remove /2P divider from PLL1 output to achieve full speed */
     cgu::pll1::direct();
+#else
+    // Wait for PLL1 to lock with timeout
+    {
+        uint32_t timeout = 100000;
+        while (!cgu::pll1::is_locked() && timeout > 0) {
+            timeout--;
+        }
+    }
+
+    if (cgu::pll1::is_locked()) {
+        set_clock_config(clock_config_pll1_step);
+
+        /* Delay >50us at 90-110MHz clock speed */
+        volatile uint32_t delay = 1400;
+        while (delay--);
+        set_clock_config(clock_config_pll1);
+
+        /* Remove /2P divider from PLL1 output to achieve full speed */
+        cgu::pll1::direct();
+    }
+#endif
 }
 
 static void draw_splash_screen_icon(int16_t n, const ui::Bitmap& bitmap) {
@@ -509,10 +555,12 @@ init_status_t init() {
 
     chThdSleepMilliseconds(100);
 
+#ifndef PRALINE
     detect_hardware_platform();
     finalize_detect_hardware_platform();
 
     chThdSleepMilliseconds(100);
+#endif
 
     configure_pins_portapack();
 
@@ -543,11 +591,11 @@ init_status_t init() {
     cgu::pll1::disable();
 
     set_cpu_clock_speed();
-
     /* sample max: 1023 sample_t AKA uint16_t
      * touch_sensitivity: range: 1 to 128
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
+
     touch_threshold = portapack::persistent_memory::touchscreen_threshold();
 
     if (lcd_fast_setup)
@@ -570,8 +618,10 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
+
     clock_manager.enable_if_clocks();
     clock_manager.enable_codec_clocks();
+
     radio::init();
 
     sdcStart(&SDCD1, nullptr);
@@ -583,12 +633,18 @@ init_status_t init() {
         draw_splash_screen_icon(2, ui::bitmap_icon_sd);
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
+#ifndef PRALINE
+    // HackRF One uses CPLD - load it via JTAG
     if (!hackrf::cpld::load_sram()) {
         if (lcd_fast_setup)
             chDbgPanic("HACKRF CPLD FAILED");
 
         return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
+#else
+    // HackRF Pro (PRALINE) uses FPGA - already loaded in board.cpp __early_init()
+    // via fpga_bridge_init(), so nothing to do here
+#endif
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(3, ui::bitmap_icon_hackrf);
@@ -601,6 +657,7 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
+
     battery::BatteryManagement::set_calc_override(persistent_memory::ui_override_batt_calc());
     i2cdev::I2CDevManager::init();
 
