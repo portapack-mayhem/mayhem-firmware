@@ -283,12 +283,12 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #else
 	// PRALINE: Update FPGA Q inversion when tuning changes
-	uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
-	if (mixer_invert ^ baseband_invert) {
-		ctrl_reg |= 0x02;  // Set Q_INVERT bit
-	}
-	fpga_debug_register_write(1, ctrl_reg);
-	ssp1_arbiter.invalidate();
+	//uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
+	//if (mixer_invert ^ baseband_invert) {
+	//	ctrl_reg |= 0x02;  // Set Q_INVERT bit
+	//}
+	//fpga_debug_register_write(1, ctrl_reg);
+	//ssp1_arbiter.invalidate();
 #endif
 
         return result_second_if;

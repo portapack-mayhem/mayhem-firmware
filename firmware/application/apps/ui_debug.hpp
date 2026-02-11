@@ -721,10 +721,17 @@ class SignalPathStatusView : public View {
     Text text_lbl_fpga_decim{{0, 148, 114, 16}, "FPGA Decim:"};
     Text text_fpga_decim{{116, 148, 124, 16}, "---"};
 
-    Text text_status{{0, 172, 240, 32}, ""};
+    Text text_lbl_fpga_ctrl_dc_q{{0, 164, 114, 16}, "FPGA Ctrl:"};
+    Text text_fpga_ctrl_dc_q{{116, 164, 124, 16}, "---"};
 
-    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
-    Button button_done{{168, 280, 64, 24}, "Done"};
+    Text text_lbl_fpga_ctrl_qs{{0, 180, 114, 16}, ""};
+    Text text_fpga_ctrl_qs{{116, 180, 124, 16}, "---"};
+
+    Text text_status{{0, 200, 240, 32}, ""};
+
+    Button button_refresh{{0, 280, 72, 24}, "Refresh"};
+    Button button_toggle_q{{88, 280, 72, 24}, "Q Inv"};
+    Button button_done{{176, 280, 64, 24}, "Done"};
 };
 #endif
 

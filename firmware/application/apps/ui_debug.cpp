@@ -1509,14 +1509,34 @@ SignalPathStatusView::SignalPathStatusView(NavigationView& nav)
         &text_vga,
         &text_lbl_fpga_decim,
         &text_fpga_decim,
+	&text_lbl_fpga_ctrl_dc_q,
+	&text_fpga_ctrl_dc_q,
+	&text_lbl_fpga_ctrl_qs,
+	&text_fpga_ctrl_qs,
         &text_status,
         &button_refresh,
+	&button_toggle_q,
         &button_done,
     });
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
+        refresh_status();
+    };
+
+    button_toggle_q.on_select = [this](Button&) {
+        static bool q_override = false;
+        q_override = !q_override;
+
+        uint8_t ctrl_reg = 0x01;  // DC_BLOCK always on
+        if (q_override) {
+            ctrl_reg |= 0x02;  // Force Q_INVERT ON
+        }
+
+        radio::debug::fpga::register_write(1, ctrl_reg);
+        radio::invalidate_spi_config();
+
         refresh_status();
     };
 
@@ -1533,6 +1553,7 @@ void SignalPathStatusView::focus() {
 }
 
 void SignalPathStatusView::refresh_status() {
+
     // Get cached state from radio driver
     rf::Direction direction = radio::debug::get_cached_direction();
     bool rf_amp = radio::debug::get_cached_rf_amp();
@@ -1569,8 +1590,6 @@ void SignalPathStatusView::refresh_status() {
             text_mixer.set("UNKNOWN");
             text_mixer.set_style(Theme::getInstance()->fg_red);
     }
-
-
 
     // Read actual register values to verify
     uint32_t max_r11 = radio::debug::second_if::register_read(11);
@@ -1656,6 +1675,25 @@ void SignalPathStatusView::refresh_status() {
     uint8_t fpga_decim = radio::debug::fpga::register_read(2);
     text_fpga_decim.set("n=" + to_string_dec_uint(fpga_decim) +
                         " (/" + to_string_dec_uint(1 << fpga_decim) + ")");
+
+    // FPGA Register Ctrl Info
+    uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+    //text_fpga_ctrl_dc_q.set(to_string_hex(fpga_ctrl, 2));
+    //text_fpga_ctrl_qs.set(to_string_hex(fpga_ctrl, 2));
+
+    // Decode bits
+    bool dc_block = fpga_ctrl & 0x01;
+    bool q_invert = fpga_ctrl & 0x02;
+    bool quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+    // Display human-readable
+    std::string fpga_status_dc_q = "DC:" + std::string(dc_block ? "ON" : "OFF") +
+                                   " Q:" + std::string(q_invert ? "INV" : "NOR"); 
+
+    std::string fpga_status_qs = "QS:" + to_string_dec_uint(quarter_shift);
+
+    text_fpga_ctrl_dc_q.set(fpga_status_dc_q);
+    text_fpga_ctrl_qs.set(fpga_status_qs);
 
     // Summary status
     // Summary status - update to account for rounding tolerance
