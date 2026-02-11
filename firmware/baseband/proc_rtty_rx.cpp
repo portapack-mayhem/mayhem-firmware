@@ -100,10 +100,9 @@ void RTTYRxProcessor::execute(const buffer_c8_t& buffer) {
                 if (val_max > val_min + decay) val_max -= decay;
                 if (val_min < val_max - decay) val_min += decay;
             } else {
-                // SAFETY: If spread collapsed (signal was constant DC), force it open slightly
-                // This allows the tracker to "re-learn" when data starts.
-                val_max += 100;
-                val_min -= 100;
+                // val_max += 100;
+                // val_min -= 100;
+                // temp off. but kept it for memory
             }
         }
 
