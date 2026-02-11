@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_RTTY_RX_H__
-#define __UI_RTTY_RX_H__
+#ifndef __UI_RTTY_TX_H__
+#define __UI_RTTY_TX_H__
 
 #include "ui.hpp"
 #include "ui_language.hpp"
@@ -142,4 +142,4 @@ class RttyTxView : public View {
 
 }  // namespace ui::external_app::rtty_tx
 
-#endif /*__UI_RTTY_RX_H__*/
+#endif /*__UI_RTTY_TX_H__*/
