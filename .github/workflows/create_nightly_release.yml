@@ -26,17 +26,21 @@ jobs:
     needs: check_date
     if: ${{ needs.check_date.outputs.should_run != 'false' }}
     runs-on: ubuntu-latest
+    name: build (${{ matrix.device_name }})
     strategy:
       fail-fast: false
       matrix:
         include:
           - device: default
+            device_name: HackRF
             cmake_args: ""
             artifact_suffix: ""
           - device: portarf
+            device_name: PortaRF
             cmake_args: "-DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=2"
             artifact_suffix: "_portarf"
           - device: hpro
+            device_name: HackRF Pro
             cmake_args: "-DBOARD=PRALINE"
             artifact_suffix: "_hpro"
     steps:
