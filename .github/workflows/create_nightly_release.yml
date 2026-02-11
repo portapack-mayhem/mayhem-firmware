@@ -34,7 +34,7 @@ jobs:
           - device: default
             device_name: HackRF
             cmake_args: ""
-            artifact_suffix: ""
+            artifact_suffix: "_hackrf"
           - device: portarf
             device_name: PortaRF
             cmake_args: "-DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=2"
@@ -153,7 +153,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/oci-tar-default/portapack-mayhem_OCI.ppfw.tar
-          asset_name: OCI_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
+          asset_name: OCI_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
           asset_content_type: application/x-tar
       - name: Upload Default Firmware Asset
         uses: actions/upload-release-asset@v1
@@ -162,7 +162,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/firmware-default/firmware.zip
-          asset_name: FIRMWARE_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
+          asset_name: FIRMWARE_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload Default SD Card Asset
         uses: actions/upload-release-asset@v1
@@ -171,7 +171,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-default/sdcard.zip
-          asset_name: COPY_TO_SDCARD_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
+          asset_name: COPY_TO_SDCARD_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload Default SD Card Asset - No Map
         uses: actions/upload-release-asset@v1
@@ -180,7 +180,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-no-map-default/sdcard-no-map.zip
-          asset_name: COPY_TO_SDCARD_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
+          asset_name: COPY_TO_SDCARD_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
           asset_content_type: application/zip
       # PortaRF device assets
       - name: Upload PortaRF Firmware TAR Asset
