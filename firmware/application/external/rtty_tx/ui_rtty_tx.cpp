@@ -106,6 +106,8 @@ RttyTxView::RttyTxView(NavigationView& nav)
     tx_view.on_stop = [this]() {
         stop();
     };
+
+    refresh_tones();
 }
 
 void RttyTxView::refresh_tones() {
