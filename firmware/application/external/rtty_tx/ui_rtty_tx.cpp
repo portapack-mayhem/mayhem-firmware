@@ -93,7 +93,7 @@ RttyTxView::RttyTxView(NavigationView& nav)
         transmitter_model.enable();
         rtty_message.baud = baud_conf;
         rtty_message.shift = shift;
-        rtty_message.inverted = false;  // check_inverted.value(); //i already invert ib with the mark and space calculation
+        rtty_message.inverted = false;  // check_inverted.value(); //i already invert it with the mark and space calculation
         rtty_message.mark_tone = mark;
         rtty_message.space_tone = space;
         rtty_message.stopbits = stop_bits;

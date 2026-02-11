@@ -1790,7 +1790,7 @@ class RTTYDataMessage : public Message {
     int16_t space_tone = 170;  // hz
     bool inverted = false;     // for tx, if true, mark and space tones are swapped.
     uint8_t stopbits = 3;      // doubled value is stored here, so stop 2 = 1 stop bit, 3 = 1.5, 4 = 2.
-    const uint16_t max_len = 490;
+    static constexpr uint16_t max_len = 490;
 };
 
 #endif /*__MESSAGE_H__*/
