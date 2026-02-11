@@ -316,6 +316,7 @@ void RTTYRxProcessor::on_message(const Message* const message) {
             } else {
                 estimated_bit_width = 528;
                 samples_per_bit = 528;
+                inverted_polarity = false;
             }
             uart_state = WAIT_START;
         }
