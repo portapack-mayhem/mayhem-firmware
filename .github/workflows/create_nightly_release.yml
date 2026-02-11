@@ -153,7 +153,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/oci-tar-default/portapack-mayhem_OCI.ppfw.tar
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_OCI.ppfw.tar
+          asset_name: OCI_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
           asset_content_type: application/x-tar
       - name: Upload Default Firmware Asset
         uses: actions/upload-release-asset@v1
@@ -162,7 +162,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/firmware-default/firmware.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_FIRMWARE.zip
+          asset_name: FIRMWARE_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload Default SD Card Asset
         uses: actions/upload-release-asset@v1
@@ -171,7 +171,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-default/sdcard.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_COPY_TO_SDCARD.zip
+          asset_name: COPY_TO_SDCARD_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload Default SD Card Asset - No Map
         uses: actions/upload-release-asset@v1
@@ -180,7 +180,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-no-map-default/sdcard-no-map.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_COPY_TO_SDCARD-no-world-map.zip
+          asset_name: COPY_TO_SDCARD_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
           asset_content_type: application/zip
       # PortaRF device assets
       - name: Upload PortaRF Firmware TAR Asset
@@ -190,7 +190,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/oci-tar-portarf/portapack-mayhem_OCI.ppfw.tar
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_portarf_OCI.ppfw.tar
+          asset_name: OCI_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
           asset_content_type: application/x-tar
       - name: Upload PortaRF Firmware Asset
         uses: actions/upload-release-asset@v1
@@ -199,7 +199,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/firmware-portarf/firmware.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_portarf_FIRMWARE.zip
+          asset_name: FIRMWARE_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload PortaRF SD Card Asset
         uses: actions/upload-release-asset@v1
@@ -208,7 +208,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-portarf/sdcard.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_portarf_COPY_TO_SDCARD.zip
+          asset_name: COPY_TO_SDCARD_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload PortaRF SD Card Asset - No Map
         uses: actions/upload-release-asset@v1
@@ -217,7 +217,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-no-map-portarf/sdcard-no-map.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_portarf_COPY_TO_SDCARD-no-world-map.zip
+          asset_name: COPY_TO_SDCARD_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
           asset_content_type: application/zip
       # HPro device assets
       - name: Upload HPro Firmware TAR Asset
@@ -227,7 +227,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/oci-tar-hpro/portapack-mayhem_OCI.ppfw.tar
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_hpro_OCI.ppfw.tar
+          asset_name: OCI_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
           asset_content_type: application/x-tar
       - name: Upload HPro Firmware Asset
         uses: actions/upload-release-asset@v1
@@ -236,7 +236,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/firmware-hpro/firmware.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_hpro_FIRMWARE.zip
+          asset_name: FIRMWARE_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload HPro SD Card Asset
         uses: actions/upload-release-asset@v1
@@ -245,7 +245,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-hpro/sdcard.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_hpro_COPY_TO_SDCARD.zip
+          asset_name: COPY_TO_SDCARD_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
           asset_content_type: application/zip
       - name: Upload HPro SD Card Asset - No Map
         uses: actions/upload-release-asset@v1
@@ -254,5 +254,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/sdcard-no-map-hpro/sdcard-no-map.zip
-          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_hpro_COPY_TO_SDCARD-no-world-map.zip
+          asset_name: COPY_TO_SDCARD_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
           asset_content_type: application/zip
