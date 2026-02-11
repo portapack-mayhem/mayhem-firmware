@@ -18,8 +18,8 @@
 // 2^32 / 3072000 = 1398.101
 static constexpr uint32_t PHASE_DELTA_COEFF = 1398;
 
-// Lead-in: 1.0 Second (3,072,000 samples)
-static constexpr uint32_t LEAD_IN_SAMPLES = 3072000;
+// We need a short sync, then data.
+static constexpr uint32_t LEAD_IN_SAMPLES = 60000;
 
 void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) {
@@ -40,7 +40,7 @@ void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
             }
         } else if (state == State::LeadOut) {
             lead_counter++;
-            if (lead_counter >= 460000) {
+            if (lead_counter >= 24000) {
                 txprogress_message.done = true;
                 shared_memory.application_queue.push(txprogress_message);
                 configured = false;
@@ -211,7 +211,10 @@ void RTTYTXProcessor::on_message(const Message* const msg) {
                   rtty_msg.stopbits,
                   rtty_msg.inverted);
 
-        buffer_push(0x1F);  // LTRS
+        for (int i = 0; i < 15; i++) {
+            buffer_push(0x1F);  // LTRS
+        }
+
         buffer_push(0x08);  // CR
         buffer_push(0x02);  // LF
 
