@@ -894,6 +894,67 @@ class MAX2831DebugView : public View {
 };
 #endif
 
+#ifdef PRALINE
+class SystemDiagnosticsView : public View {
+   public:
+    SystemDiagnosticsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "System Diagnostics"; };
+
+   private:
+    void refresh();
+    void read_gpio_states();
+    void set_sample_rate(uint32_t rate);
+
+    Text text_title{{0, 0, 240, 16}, "System Diagnostics"};
+
+    // Sample Rate Section
+    Text text_lbl_sample{{0, 24, 42, 16}, "Rate:"};
+    Text text_sample_rate{{44, 24, 50, 16}, "---"};
+    Text text_lbl_fpga_decode{{96, 24, 144, 16}, "DC:? Q:? QS:?"};
+
+    Button button_sample_2m{{2, 44, 56, 24}, "2 MSPS"};
+    Button button_sample_4m{{62, 44, 56, 24}, "4 MSPS"};
+    Button button_sample_8m{{122, 44, 56, 24}, "8 MSPS"};
+    Button button_sample_20m{{182, 44, 56, 24}, "20 MSPS"};
+
+    // Baseband Filter Section
+    Text text_lbl_bb_filter{{0, 76, 114, 16}, "BB Filter BW:"};
+    Text text_bb_filter{{116, 76, 124, 16}, "---"};
+
+    Text text_lbl_reg8{{0, 94, 114, 16}, "MAX2831 R8:"};
+    Text text_reg8{{116, 94, 124, 16}, "---"};
+
+    // GPIO States Section
+    Text text_lbl_gpio{{0, 118, 240, 16}, "--- GPIO Pin States ---"};
+
+    Text text_lbl_lpf{{0, 136, 56, 16}, "LPF:"};
+    Text text_gpio_lpf{{58, 136, 181, 16}, "---"};
+
+    Text text_lbl_mix{{0, 154, 56, 16}, "Mixer:"};
+    Text text_gpio_mix{{58, 154, 181, 16}, "---"};
+
+    Text text_lbl_amp{{0, 172, 56, 16}, "RF Amp:"};
+    Text text_gpio_amp{{58, 172, 181, 16}, "---"};
+
+    // FPGA Control Section
+    Text text_lbl_fpga{{0, 196, 240, 16}, "--- FPGA Control ---"};
+
+    Text text_lbl_fpga_ctrl{{0, 214, 114, 16}, "FPGA Reg 1:"};
+    Text text_fpga_ctrl{{116, 214, 124, 16}, "---"};
+
+    Text text_lbl_band{{0, 232, 48, 16}, "Band:"};
+    Text text_band{{50, 232, 190, 16}, "---"};
+
+    Button button_toggle_q{{2, 252, 110, 24}, "Toggle Q Inv"};
+    Button button_toggle_dc{{122, 252, 110, 24}, "Toggle DC Blk"};
+
+    // Control Buttons
+    Button button_refresh{{2, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+#endif
+
 #endif
 
 class DebugPeripheralsMenuView : public BtnGridView {

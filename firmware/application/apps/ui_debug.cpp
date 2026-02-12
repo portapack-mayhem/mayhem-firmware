@@ -1717,6 +1717,198 @@ void SignalPathStatusView::refresh_status() {
 #endif
 
 #ifdef PRALINE
+/* SystemDiagnosticsView *************************************************/
+SystemDiagnosticsView::SystemDiagnosticsView(NavigationView& nav) {
+    add_children({
+        &text_title,
+        &text_lbl_sample, 
+	&text_sample_rate,
+	&text_lbl_band, 
+	&text_band,
+        &button_sample_2m, 
+	&button_sample_4m,
+        &button_sample_8m, 
+	&button_sample_20m,
+        &text_lbl_bb_filter, 
+	&text_bb_filter,
+        &text_lbl_reg8, 
+	&text_reg8,
+        &text_lbl_gpio,
+        &text_lbl_lpf, 
+	&text_gpio_lpf,
+        &text_lbl_mix, 
+	&text_gpio_mix,
+        &text_lbl_amp, 
+	&text_gpio_amp,
+        &text_lbl_fpga,
+        &text_lbl_fpga_ctrl, &text_fpga_ctrl,
+        &text_lbl_fpga_decode,
+        &button_toggle_q, &button_toggle_dc,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_gpio.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_fpga.set_style(Theme::getInstance()->fg_yellow);
+
+    // Sample rate buttons
+    button_sample_2m.on_select = [this](Button&) {
+        set_sample_rate(2000000);
+    };
+
+    button_sample_4m.on_select = [this](Button&) {
+        set_sample_rate(4000000);
+    };
+
+    button_sample_8m.on_select = [this](Button&) {
+        set_sample_rate(8000000);
+    };
+
+    button_sample_20m.on_select = [this](Button&) {
+        set_sample_rate(20000000);
+    };
+
+    // Q inversion toggle
+    button_toggle_q.on_select = [this](Button&) {
+        uint32_t current = radio::debug::fpga::register_read(1);
+        uint8_t new_val = current ^ 0x02;  // Toggle Q_INVERT bit
+        radio::debug::fpga::register_write(1, new_val);
+        radio::invalidate_spi_config();
+        refresh();
+    };
+
+    // DC block toggle
+    button_toggle_dc.on_select = [this](Button&) {
+        uint32_t current = radio::debug::fpga::register_read(1);
+        uint8_t new_val = current ^ 0x01;  // Toggle DC_BLOCK bit
+        radio::debug::fpga::register_write(1, new_val);
+        radio::invalidate_spi_config();
+        refresh();
+    };
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void SystemDiagnosticsView::focus() {
+    button_refresh.focus();
+}
+
+void SystemDiagnosticsView::set_sample_rate(uint32_t rate) {
+    portapack::clock_manager.set_sampling_frequency(rate);
+    refresh();
+}
+
+void SystemDiagnosticsView::read_gpio_states() {
+    // Read actual GPIO port states
+    uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
+    uint32_t gpio4_state = LPC_GPIO->PIN[4];  // GPIO4 for LPF and amp
+
+    // Extract specific pins based on hackrf_gpio.hpp definitions:
+    // gpio_mix_enable_n = GPIO3_2 (P6_3) - bit 2 of port 3, INVERTED
+    // gpio_lpf_enable = GPIO4_8 (PA_1) - bit 8 of port 4
+    // gpio_rf_amp_enable = GPIO4_9 (PA_2) - bit 9 of port 4
+
+    bool mix_n_actual = (gpio3_state >> 2) & 1;   // GPIO3[2]
+    bool lpf_actual = (gpio4_state >> 8) & 1;     // GPIO4[8]
+    bool amp_actual = (gpio4_state >> 9) & 1;     // GPIO4[9]
+
+    // Mixer is active LOW, so invert for display
+    bool mixer_enabled = !mix_n_actual;
+
+    // Display with GPIO pin numbers
+    text_gpio_lpf.set(
+        std::string(lpf_actual ? "ON" : "OFF") +
+        " (GPIO4[8]=" + to_string_dec_uint(lpf_actual ? 1 : 0) + ")"
+    );
+
+    text_gpio_mix.set(
+        std::string(mixer_enabled ? "ENABLED" : "BYPASSED") +
+        " (GPIO3[2]=" + to_string_dec_uint(mix_n_actual ? 1 : 0) + ")"
+    );
+
+    text_gpio_amp.set(
+        std::string(amp_actual ? "ON" : "OFF") +
+        " (GPIO4[9]=" + to_string_dec_uint(amp_actual ? 1 : 0) + ")"
+    );
+
+    // Color code
+    text_gpio_lpf.set_style(lpf_actual ?
+        Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_gpio_mix.set_style(mixer_enabled ?
+        Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_gpio_amp.set_style(amp_actual ?
+        Theme::getInstance()->fg_green : Theme::getInstance()->fg_orange);
+}
+
+void SystemDiagnosticsView::refresh() {
+    // Sample rate
+    uint32_t sample_rate = portapack::clock_manager.get_sampling_frequency();
+    if (sample_rate >= 1000000) {
+        text_sample_rate.set(to_string_dec_uint(sample_rate / 1000000) + " MSS");
+    } else {
+        text_sample_rate.set(to_string_dec_uint(sample_rate / 1000) + " kSS");
+    }
+
+    // Baseband filter bandwidth
+    uint32_t reg8 = radio::debug::second_if::register_read(8);
+    text_reg8.set("0x" + to_string_hex(reg8, 4));
+
+    uint8_t lpf_coarse = reg8 & 0x03;  // Bits 1:0
+    const char* bw_names[] = {"7.5 MHz", "8.5 MHz", "15 MHz", "18 MHz"};
+    text_bb_filter.set(bw_names[lpf_coarse]);
+
+    // Color code - green if >= 8 MHz, red otherwise
+    if (lpf_coarse >= 1) {
+        text_bb_filter.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_bb_filter.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // Read actual GPIO pin states
+    read_gpio_states();
+
+    auto current_band = radio::debug::rf_path_info::get_current_band();
+    switch (current_band) {
+        case rf::path::Band::Low:
+            text_band.set("LOW (0-2320 MHz)");
+            text_band.set_style(Theme::getInstance()->fg_green);
+            break;
+        case rf::path::Band::Mid:
+            text_band.set("MID (2320-2740 MHz)");
+            text_band.set_style(Theme::getInstance()->fg_green);
+            break;
+        case rf::path::Band::High:
+            text_band.set("HIGH (2740-7250 MHz)");
+            text_band.set_style(Theme::getInstance()->fg_green);
+            break;
+    }
+    // FPGA control register
+    uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+    text_fpga_ctrl.set("0x" + to_string_hex(fpga_ctrl, 2));
+
+    // Decode FPGA register bits
+    bool dc_block = fpga_ctrl & 0x01;
+    bool q_invert = fpga_ctrl & 0x02;
+    uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+    text_lbl_fpga_decode.set(
+        "|DC:" + std::string(dc_block ? "ON" : "OFF") +
+        " Q:" + std::string(q_invert ? "INV" : "NOR") +
+        " QS:" + to_string_dec_uint(quarter_shift)
+    );
+}
+#endif
+
+#ifdef PRALINE
 /* RFFC5072StatusView *************************************************/
 
 RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
@@ -2138,15 +2330,16 @@ void DebugMenuView::on_populate() {
     }
     add_items({
 #ifdef PRALINE
+	{"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
-        {"Baseband Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
-        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
-        {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
-        {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
         {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
 	{"MAX2831 Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
+        {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
+        {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
+        {"Baseband Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
+        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
         {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},

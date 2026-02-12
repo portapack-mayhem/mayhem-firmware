@@ -299,10 +299,13 @@ void Path::update() {
 
     /* Move to the final state by turning on required signals. */
     /* LPF for low band */
-    config.lpf_en = (band == Band::Low);
+
+    //config.lpf_en = (band == Band::Low);
+    config.lpf_en = true;
 
     /* RF amp when amplification requested */
-    config.rf_amp_en = rf_amp;
+    //config.rf_amp_en = rf_amp;
+    config.rf_amp_en = true;
 
     /* Antenna bias off by default */
     config.ant_bias_en_n = true;

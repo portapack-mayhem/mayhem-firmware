@@ -130,7 +130,8 @@ void MAX2831::init() {
     // set_reg_field(11, REG11_RXVGA_GAIN_MASK, 0x1F);  // 62 dB VGA = MAX
 
     /* Configure baseband filter for 8 MHz TX - matches GSG reference */
-    set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_7_5M);
+    //set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_7_5M);
+    set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_15M);
     set_reg_field(7, REG7_RX_LPF_FINE_MASK, REG7_RX_LPF_FINE_100);
     set_reg_field(7, REG7_TX_LPF_FINE_MASK, REG7_TX_LPF_FINE_100);
 
