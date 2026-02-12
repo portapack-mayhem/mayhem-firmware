@@ -35,6 +35,6 @@ struct KeeloqData {
 };
 
 bool read_keeloq_file(const std::filesystem::path&, KeeloqData&);
-bool write_keeloq_file(const std::filesystem::path&, KeeloqData&);
+bool write_keeloq_file(const std::filesystem::path&, const KeeloqData&);
 
 #endif
