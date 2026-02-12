@@ -25,6 +25,8 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "file_path.hpp"
+#include "../keeloq_keystore.hpp"
+#include "../keeloq_file.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -56,6 +58,39 @@ void SubGhzDRecentEntryDetailView::update_data() {
     if (cnt != SD_NO_CNT) console.writeln("Cnt: " + to_string_dec_uint(cnt));
 
     if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
+
+    if (entry_.sensorType == FPS_KEELOQ) {
+        console.writeln("Fix: " + to_string_hex(fix));
+        console.writeln("Encrypted: " + to_string_hex(encrypted));
+        console.writeln("Manufacturer: " + mf_name);
+
+        if (hop != SD_NO_HOP) {
+            console.writeln("Hop: " + to_string_hex(hop));
+
+            add_children({&button_save});
+
+            button_save.on_select = [this](const Button&) {
+                keeloq_file_buffer.clear();
+
+                text_prompt(
+                    nav_,
+                    keeloq_file_buffer,
+                    64,
+                    ENTER_KEYBOARD_MODE_ALPHA,
+                    [this](std::string& buffer) {
+                        KeeloqData params{
+                            mf_name,
+                            serial,
+                            cnt,
+                            btn
+                        };
+
+                        ensure_directory(keeloq_remotes_dir);
+                        write_keeloq_file(keeloq_remotes_dir / buffer + ".KEELOQ", params);
+                    });
+            };
+        }
+    }
 }
 
 SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, const SubGhzDRecentEntry& entry)
@@ -301,6 +336,51 @@ void atomo_decrypt(uint8_t* buff) {
 
         bitCnt++;
     }
+}
+
+bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt(uint32_t decrypt) {
+    uint16_t end_serial = serial & 0xFF;
+
+    if((decrypt >> 28 == btn) && (((((uint16_t)(decrypt >> 16)) & 0xFF) == end_serial) ||
+                                  ((((uint16_t)(decrypt >> 16)) & 0xFF) == 0))) {
+        cnt = decrypt & 0xFFFF; 
+
+        return true;
+    }
+
+    return false;
+}
+
+bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt_centurion(uint32_t decrypt) {
+    if((decrypt >> 28 == btn) && ((((uint16_t)(decrypt >> 16)) & 0x3FF) == 0x1CE)) {
+        cnt = decrypt & 0xFFFF;
+
+        return true;
+    }
+
+    return false;
+}
+
+uint32_t keeloq_decrypt(const uint32_t data, const uint64_t key) {
+    uint32_t x = data, r;
+    for(r = 0; r < 528; r++)
+        x = (x << 1) ^ bit(x, 31) ^ bit(x, 15) ^ (uint32_t)bit(key, (15 - r) & 63) ^
+            bit(KEELOQ_NLF, g5(x, 0, 8, 19, 25, 30));
+    return x;
+}
+
+uint64_t keeloq_normal_learning(uint32_t data, const uint64_t key) {
+    uint32_t k1, k2;
+
+    data &= 0x0FFFFFFF;
+    data |= 0x20000000;
+    k1 = keeloq_decrypt(data, key);
+
+    data &= 0x0FFFFFFF;
+    data |= 0x60000000;
+    k2 = keeloq_decrypt(data, key);
+
+    return ((uint64_t)k2 << 32) | k1; 
 }
 
 const uint32_t came_twee_magic_numbers_xor[15] = {
@@ -591,7 +671,59 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     }
 
     if (entry_.sensorType == FPS_KEELOQ) {
-        // too many sub protocol versions, skipping. maybe in future when we'll have much more fw space
+        uint64_t data_rev = FProtoGeneral::subghz_protocol_blocks_reverse_key(entry_.data, 64);
+
+        btn = data_rev >> 60;
+        serial = (data_rev >> 32) & 0xFFFFFFF;
+        fix = data_rev >> 32;
+        encrypted = data_rev & 0xFFFFFFFF;
+
+        KeeloqKeystore keystore{};
+        
+        const auto& keys = keystore.get_keys();
+
+        if (keys.empty()) {
+            return;
+        }
+
+        for (const auto& key : keys) {
+            switch (key.type) {
+                case KEELOQ_SIMPLE_LEARNING: {
+                    uint32_t decrypted = keeloq_decrypt(encrypted, key.key);
+            
+                    if (keeloq_check_decrypt(decrypted)) {
+                        mf_name = key.mf_name;
+                        hop = decrypted;
+
+                        return;
+                    }
+
+                    break;
+                }
+
+                case KEELOQ_NORMAL_LEARNING: {
+                    uint64_t man = keeloq_normal_learning(fix, key.key);
+                    uint32_t decrypted = keeloq_decrypt(encrypted, man);
+                
+                    if (key.mf_name == "Centurion"
+                        && keeloq_check_decrypt_centurion(decrypted)
+                    ) {
+                        mf_name = "Centurion";
+                        hop = decrypted;
+
+                        return;
+                    } else if (keeloq_check_decrypt(decrypted)) {
+                        mf_name = key.mf_name;
+                        hop = decrypted;
+
+                        return;
+                    }
+
+                    break;
+                }
+            }
+        }
+
         return;
     }
 
