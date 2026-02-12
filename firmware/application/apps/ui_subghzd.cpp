@@ -25,6 +25,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "file_path.hpp"
+#include "ui_textentry.hpp"
 #include "../keeloq_keystore.hpp"
 #include "../keeloq_file.hpp"
 #include "portapack_persistent_memory.hpp"
