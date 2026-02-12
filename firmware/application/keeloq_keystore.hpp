@@ -40,7 +40,7 @@ class KeeloqKeystore {
    public:
     KeeloqKeystore();
 
-    const std::vector<KeeloqKey>& get_keys() const;
+    const std::vector<KeeloqKey>& get_keys();
 
    private:
     std::vector<KeeloqKey> keys{};
