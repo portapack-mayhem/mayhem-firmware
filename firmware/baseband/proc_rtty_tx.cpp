@@ -14,12 +14,13 @@
 #include "event_m4.hpp"
 #include <algorithm>
 
-// Coefficient for 3.072 MHz
-// 2^32 / 3072000 = 1398.101
-static constexpr uint32_t PHASE_DELTA_COEFF = 1398;
+// Coefficient for 2.4576 MHz
+// 2^32 / 2457600 = 1747.626...
+// We use 1748.
+static constexpr uint32_t PHASE_DELTA_COEFF = 1748;
 
-// We need a short sync, then data.
-static constexpr uint32_t LEAD_IN_SAMPLES = 60000;
+// Lead-in: ~20ms at 2.4576MHz
+static constexpr uint32_t LEAD_IN_SAMPLES = 49152;
 
 void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) {
@@ -40,7 +41,7 @@ void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
             }
         } else if (state == State::LeadOut) {
             lead_counter++;
-            if (lead_counter >= 24000) {
+            if (lead_counter >= 29500) {
                 txprogress_message.done = true;
                 shared_memory.application_queue.push(txprogress_message);
                 configured = false;
