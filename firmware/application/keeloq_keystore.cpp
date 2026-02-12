@@ -38,7 +38,7 @@ KeeloqKeystore::KeeloqKeystore() {
         if (cols.size() != 3) {
             return;
         }
-        
+
         KeeloqKey key{
             std::string{cols[0]},
             std::strtoull(cols[1].data(), NULL, 16),
