@@ -35,6 +35,10 @@ KeeloqKeystore::KeeloqKeystore() {
     for (const std::string& line : reader) {
         auto cols = split_string(line, ';');
 
+        if (cols.size() != 3) {
+            return;
+        }
+        
         KeeloqKey key{
             std::string{cols[0]},
             std::strtoull(cols[1].data(), NULL, 16),
