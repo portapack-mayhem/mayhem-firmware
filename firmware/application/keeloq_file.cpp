@@ -49,7 +49,7 @@ bool read_keeloq_file(const fs::path& path, KeeloqData& data) {
     return true;
 }
 
-bool write_keeloq_file(const fs::path& path, KeeloqData& data) {
+bool write_keeloq_file(const fs::path& path, const KeeloqData& data) {
     delete_file(path);
 
     File file{};
