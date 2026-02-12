@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 lifegame1lu111 
+ * Copyright (C) 2026 lifegame1lu111
  *
  * This file is part of PortaPack.
  *
@@ -19,7 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
 #ifndef __KEELOQ_KEYSTORE__
 #define __KEELOQ_KEYSTORE__
 
@@ -38,12 +37,12 @@ struct KeeloqKey {
 };
 
 class KeeloqKeystore {
-public:
+   public:
     KeeloqKeystore();
 
     const std::vector<KeeloqKey>& get_keys();
 
-private:
+   private:
     std::vector<KeeloqKey> keys{};
 };
 

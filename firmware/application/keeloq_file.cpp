@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 lifegame1lu111 
+ * Copyright (C) 2026 lifegame1lu111
  *
  * This file is part of PortaPack.
  *
@@ -19,7 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
 #include "keeloq_file.hpp"
 
 namespace fs = std::filesystem;
@@ -33,7 +32,7 @@ bool read_keeloq_file(const fs::path& path, KeeloqData& data) {
         return false;
     }
 
-    FileLineReader reader{ file };
+    FileLineReader reader{file};
 
     std::string raw = *reader.begin();
     auto chunks = split_string(raw, ';');
@@ -42,7 +41,7 @@ bool read_keeloq_file(const fs::path& path, KeeloqData& data) {
         return false;
     }
 
-    data.mf_name = std::string{ chunks[0] };
+    data.mf_name = std::string{chunks[0]};
     data.serial = std::strtoul(chunks[1].data(), NULL, 16);
     data.counter = (uint16_t)std::atoi(chunks[2].data());
     data.btn = (uint8_t)std::atoi(chunks[3].data());
@@ -61,10 +60,7 @@ bool write_keeloq_file(const fs::path& path, KeeloqData& data) {
         return false;
     }
 
-    std::string formatted = data.mf_name + ";"
-                          + to_string_hex(data.serial) + ";"
-                          + to_string_dec_uint(data.counter) + ";"
-                          + to_string_dec_uint(data.btn);
+    std::string formatted = data.mf_name + ";" + to_string_hex(data.serial) + ";" + to_string_dec_uint(data.counter) + ";" + to_string_dec_uint(data.btn);
 
     file.write_line(formatted);
     file.close();

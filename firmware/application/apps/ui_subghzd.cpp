@@ -82,8 +82,7 @@ void SubGhzDRecentEntryDetailView::update_data() {
                             mf_name,
                             serial,
                             cnt,
-                            btn
-                        };
+                            btn};
 
                         ensure_directory(keeloq_remotes_dir);
                         write_keeloq_file(keeloq_remotes_dir / buffer + ".KEELOQ", params);
@@ -341,9 +340,9 @@ void atomo_decrypt(uint8_t* buff) {
 bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt(uint32_t decrypt) {
     uint16_t end_serial = serial & 0xFF;
 
-    if((decrypt >> 28 == btn) && (((((uint16_t)(decrypt >> 16)) & 0xFF) == end_serial) ||
-                                  ((((uint16_t)(decrypt >> 16)) & 0xFF) == 0))) {
-        cnt = decrypt & 0xFFFF; 
+    if ((decrypt >> 28 == btn) && (((((uint16_t)(decrypt >> 16)) & 0xFF) == end_serial) ||
+                                   ((((uint16_t)(decrypt >> 16)) & 0xFF) == 0))) {
+        cnt = decrypt & 0xFFFF;
 
         return true;
     }
@@ -352,7 +351,7 @@ bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt(uint32_t decrypt) {
 }
 
 bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt_centurion(uint32_t decrypt) {
-    if((decrypt >> 28 == btn) && ((((uint16_t)(decrypt >> 16)) & 0x3FF) == 0x1CE)) {
+    if ((decrypt >> 28 == btn) && ((((uint16_t)(decrypt >> 16)) & 0x3FF) == 0x1CE)) {
         cnt = decrypt & 0xFFFF;
 
         return true;
@@ -363,7 +362,7 @@ bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt_centurion(uint32_t decry
 
 uint32_t keeloq_decrypt(const uint32_t data, const uint64_t key) {
     uint32_t x = data, r;
-    for(r = 0; r < 528; r++)
+    for (r = 0; r < 528; r++)
         x = (x << 1) ^ bit(x, 31) ^ bit(x, 15) ^ (uint32_t)bit(key, (15 - r) & 63) ^
             bit(KEELOQ_NLF, g5(x, 0, 8, 19, 25, 30));
     return x;
@@ -380,7 +379,7 @@ uint64_t keeloq_normal_learning(uint32_t data, const uint64_t key) {
     data |= 0x60000000;
     k2 = keeloq_decrypt(data, key);
 
-    return ((uint64_t)k2 << 32) | k1; 
+    return ((uint64_t)k2 << 32) | k1;
 }
 
 const uint32_t came_twee_magic_numbers_xor[15] = {
@@ -679,7 +678,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
         encrypted = data_rev & 0xFFFFFFFF;
 
         KeeloqKeystore keystore{};
-        
+
         const auto& keys = keystore.get_keys();
 
         if (keys.empty()) {
@@ -690,7 +689,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
             switch (key.type) {
                 case KEELOQ_SIMPLE_LEARNING: {
                     uint32_t decrypted = keeloq_decrypt(encrypted, key.key);
-            
+
                     if (keeloq_check_decrypt(decrypted)) {
                         mf_name = key.mf_name;
                         hop = decrypted;
@@ -704,10 +703,8 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
                 case KEELOQ_NORMAL_LEARNING: {
                     uint64_t man = keeloq_normal_learning(fix, key.key);
                     uint32_t decrypted = keeloq_decrypt(encrypted, man);
-                
-                    if (key.mf_name == "Centurion"
-                        && keeloq_check_decrypt_centurion(decrypted)
-                    ) {
+
+                    if (key.mf_name == "Centurion" && keeloq_check_decrypt_centurion(decrypted)) {
                         mf_name = "Centurion";
                         hop = decrypted;
 

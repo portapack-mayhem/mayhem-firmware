@@ -233,7 +233,7 @@ class SubGhzDRecentEntryDetailView : public View {
     Button button_save{
         {4, screen_height - 32 - 12, 96, 32},
         "Save"};
-        
+
     void parseProtocol();
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 lifegame1lu111 
+ * Copyright (C) 2026 lifegame1lu111
  *
  * This file is part of PortaPack.
  *
@@ -30,16 +30,15 @@ KeeloqKeystore::KeeloqKeystore() {
         return;
     }
 
-    FileLineReader reader{ keeloq_keys_file };
+    FileLineReader reader{keeloq_keys_file};
 
     for (const std::string& line : reader) {
         auto cols = split_string(line, ';');
 
-        KeeloqKey key{ 
-            std::string{ cols[0] }, 
-            std::strtoull(cols[1].data(), NULL, 16), 
-            (uint8_t)std::atoi(cols[2].data()) 
-        };
+        KeeloqKey key{
+            std::string{cols[0]},
+            std::strtoull(cols[1].data(), NULL, 16),
+            (uint8_t)std::atoi(cols[2].data())};
 
         keys.push_back(key);
     }
