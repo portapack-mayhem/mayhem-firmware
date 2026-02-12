@@ -25,7 +25,7 @@
 
 #define SD_NO_SERIAL 0xFFFFFFFF
 #define SD_NO_BTN 0xFF
-#define SD_NO_CNT 0xFF
+#define SD_NO_CNT 0xFFFFFFFF
 
 #define SD_NO_HOP 0xFFFFFFFF
 #define SD_NO_FIX 0xFFFFFFFF
