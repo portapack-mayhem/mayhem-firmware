@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 lifegame1lu111 
+ * Copyright (C) 2026 lifegame1lu111
  *
  * This file is part of PortaPack.
  *
