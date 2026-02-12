@@ -23,12 +23,21 @@
 
 #include "portapack_persistent_memory.hpp"
 #include "portapack_io.hpp"
+#include "portapack.hpp"
 
 #include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
+
+#ifdef PRALINE
+extern "C" {
+#include "fpga_bridge.h"
+}
+// Need access to ssp1_arbiter from radio namespace
+#include "radio.hpp"
+#endif
 
 constexpr uint32_t si5351_vco_f = 800000000;
 
@@ -54,6 +63,12 @@ constexpr si5351::PLL si5351_pll_xtal_25m{
     .c = 1,
 };
 constexpr auto si5351_pll_a_xtal_reg = si5351_pll_xtal_25m.reg(0);
+#ifdef PRALINE
+static_assert(si5351_pll_xtal_25m.f_vco() == si5351_vco_f, "PLL XTAL frequency wrong");
+static_assert(si5351_pll_xtal_25m.p1() == 3584, "PLL XTAL P1 wrong");
+static_assert(si5351_pll_xtal_25m.p2() == 0, "PLL XTAL P2 wrong");
+static_assert(si5351_pll_xtal_25m.p3() == 1, "PLL XTAL P3 wrong");
+#endif
 
 constexpr si5351::PLL si5351_pll_clkin_10m{
     .f_in = si5351_inputs.f_clkin_out(),
@@ -64,10 +79,12 @@ constexpr si5351::PLL si5351_pll_clkin_10m{
 constexpr auto si5351c_pll_b_clkin_reg = si5351_pll_clkin_10m.reg(1);
 constexpr auto si5351a_pll_a_clkin_reg = si5351_pll_clkin_10m.reg(0);
 
+#ifndef PRALINE
 static_assert(si5351_pll_xtal_25m.f_vco() == si5351_vco_f, "PLL XTAL frequency wrong");
 static_assert(si5351_pll_xtal_25m.p1() == 3584, "PLL XTAL P1 wrong");
 static_assert(si5351_pll_xtal_25m.p2() == 0, "PLL XTAL P2 wrong");
 static_assert(si5351_pll_xtal_25m.p3() == 1, "PLL XTAL P3 wrong");
+#endif
 
 static_assert(si5351_pll_clkin_10m.f_vco() == si5351_vco_f, "PLL CLKIN frequency wrong");
 static_assert(si5351_pll_clkin_10m.p1() == 9728, "PLL CLKIN P1 wrong");
@@ -100,6 +117,22 @@ constexpr si5351::MultisynthFractional si5351_ms_0_8m{
     .r_div = 1,
 };
 constexpr auto si5351c_ms_0_8m_reg = si5351_ms_0_8m.reg(clock_generator_output_og_codec);
+
+#ifdef PRALINE
+// Verify compile-time values for 8 MHz config
+static_assert(si5351_ms_0_8m.p1() == 5888, "MS0 8MHz P1 should be 5888 (0x1700)");
+static_assert(si5351_ms_0_8m.p2() == 0, "MS0 8MHz P2 should be 0");
+static_assert(si5351_ms_0_8m.p3() == 1, "MS0 8MHz P3 should be 1");
+static_assert(si5351_ms_0_8m.f_out() == 8000000, "MS0 should output 8 MHz");
+
+// Verify register array encoding
+static_assert(si5351c_ms_0_8m_reg[0] == 42, "MS0 base register should be 42");
+static_assert(si5351c_ms_0_8m_reg[1] == 0x00, "MS0 reg43 P3[15:8] should be 0x00");
+static_assert(si5351c_ms_0_8m_reg[2] == 0x01, "MS0 reg44 P3[7:0] should be 0x01");
+static_assert(si5351c_ms_0_8m_reg[3] == 0x10, "MS0 reg45 R_DIV should be 0x10");
+static_assert(si5351c_ms_0_8m_reg[4] == 0x17, "MS0 reg46 P1[15:8] should be 0x17");
+static_assert(si5351c_ms_0_8m_reg[5] == 0x00, "MS0 reg47 P1[7:0] should be 0x00");
+#endif
 
 constexpr si5351::MultisynthFractional si5351_ms_group{
     .f_src = si5351_vco_f,
@@ -204,7 +237,11 @@ constexpr ClockControls si5351c_clock_control_common{{
 }};
 
 constexpr ClockControls si5351a_clock_control_common{{
+#ifndef PRALINE
     {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+#else
+    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},  // CLK0: MUST be Fractional for 8 MHz!
+#endif
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
     {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
@@ -255,9 +292,48 @@ static void portapack_tcxo_disable() {
 using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
+#ifdef PRALINE
+    // PRALINE: Configure clock input mux GPIO
+    // GPIO0_15 (clkin_ctrl) selects GP_CLKIN source:
+    //   0 = P1 connector (external)
+    //   1 = P22 (internal Si5351 CLK2)
+    constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];
+    gpio_clkin_ctrl.output();
+    gpio_clkin_ctrl.write(1);  // CLKIN_SIGNAL_P22 = 1 = internal Si5351 CLK2
+
+    // Also enable MCU clock gate (GPIO0_8)
+    gpio_r9_mcu_clk_en.output();
+    gpio_r9_mcu_clk_en.write(1);
+#else
+    // HackRF One r9: GPIO0_8 (mcu_clk_en) gates Si5351 CLK2/CLK7 to GP_CLKIN
+    if (hackrf_r9) {
+        gpio_r9_mcu_clk_en.output();
+        gpio_r9_mcu_clk_en.write(1);
+    }
+#endif
+
     clock_generator.reset();
     clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
     clock_generator.enable_fanout();
+
+#ifdef PRALINE
+    /* PRALINE has Si5351A (NOT Si5351C like HackRF One OG).
+     * Must use Si5351A configuration: PLLA only, no CLKIN support.
+     *
+     * IMPORTANT: Follow HackRF reference sequence:
+     * 1. Set PLL input sources
+     * 2. Configure PLL and multisynths
+     * 3. Set clock control registers (AFTER multisynths!)
+     * 4. Reset PLLs
+     * 5. Enable outputs
+     */
+    clock_generator.set_pll_input_sources(si5351a_pll_input_sources);
+
+    /* Skip MCU CLKIN setup and reference detection for PRALINE - not applicable */
+    reference = Reference{ReferenceSource::Xtal, 0};
+
+    /* Clock control will be set AFTER multisynth configuration - see below */
+#else
     clock_generator.set_pll_input_sources(hackrf_r9
                                               ? si5351a_pll_input_sources
                                               : si5351c_pll_input_sources);
@@ -298,7 +374,62 @@ void ClockManager::init_clock_generator() {
         si5351_clock_control_common[7].ms_src(ref_pll),
     }};
     clock_generator.set_clock_control(si5351_clock_control);
+#endif
 
+#ifdef PRALINE
+    /* PRALINE uses Si5351A with:
+     * CLK0 = AFE_CLK (codec/FPGA sample clock)
+     * CLK1 = SCT_CLK (FPGA timing clock at 2x sample rate)
+     * CLK4 = first IF (RFFC5072)
+     * CLK5 = second IF (MAX2831)
+     * Uses PLLA on XTAL only (no CLKIN support).
+     */
+
+    /* Step 1: Write PLL A configuration (800 MHz VCO from 25 MHz XTAL) */
+    /* Use single-byte writes to debug I2C issues */
+    {
+        const auto& pll_regs = si5351_pll_a_xtal_reg;
+        const uint8_t base_reg = pll_regs[0];
+        for (size_t i = 1; i < pll_regs.size(); i++) {
+            clock_generator.write_register(base_reg + i - 1, pll_regs[i]);
+        }
+    }
+
+    /* Step 2: Write multisynth configurations using single-byte writes */
+    clock_generator.write_ms_single_byte(0, si5351_ms_0_8m);  // MS0 = divider 50, r_div=1 for 8 MHz
+    clock_generator.write_ms_single_byte(1, si5351_ms_16m);   // MS1 = divider 50, r_div=0 for 16 MHz
+
+    /* CLK4 and CLK5 - use single-byte writes too */
+    {
+        const auto& ms4_regs = si5351c_ms_4_reg;
+        const uint8_t base_reg = ms4_regs[0];
+        for (size_t i = 1; i < ms4_regs.size(); i++) {
+            clock_generator.write_register(base_reg + i - 1, ms4_regs[i]);
+        }
+    }
+    {
+        const auto& ms5_regs = si5351c_ms_5_reg;
+        const uint8_t base_reg = ms5_regs[0];
+        for (size_t i = 1; i < ms5_regs.size(); i++) {
+            clock_generator.write_register(base_reg + i - 1, ms5_regs[i]);
+        }
+    }
+    clock_generator.write(si5351a_ms6_7_off_reg);  // MS6/7 off - short write is OK
+
+    /* Step 3: NOW set clock control registers (AFTER multisynths per HackRF reference) */
+    const auto ref_pll = ClockControl::MultiSynthSource::PLLA;
+    const ClockControls si5351_clock_control = ClockControls{{
+        si5351a_clock_control_common[0].ms_src(ref_pll),
+        si5351a_clock_control_common[1].ms_src(ref_pll),
+        si5351a_clock_control_common[2].ms_src(ref_pll),
+        si5351a_clock_control_common[3].ms_src(ref_pll),
+        si5351a_clock_control_common[4].ms_src(ref_pll),
+        si5351a_clock_control_common[5].ms_src(ref_pll),
+        si5351a_clock_control_common[6].ms_src(ref_pll),
+        si5351a_clock_control_common[7].ms_src(ref_pll),
+    }};
+    clock_generator.set_clock_control(si5351_clock_control);
+#else
     if (hackrf_r9) {
         const PLLReg pll_reg = (reference.source == ReferenceSource::Xtal)
                                    ? si5351_pll_a_xtal_reg
@@ -319,21 +450,45 @@ void ClockManager::init_clock_generator() {
         clock_generator.write(si5351c_ms_5_reg);
         clock_generator.write(si5351c_ms6_7_off_mcu_clkin_reg);
     }
+#endif
 
     clock_generator.reset_plls();
 
     // Wait for PLL(s) to lock.
+#ifdef PRALINE
+    // PRALINE: Wait for PLLA to lock (0x20 = LOL_A bit)
+    uint8_t device_status_mask = 0x20;
+    uint32_t pll_timeout = 100000;
+    while ((clock_generator.device_status() & device_status_mask) != 0 && pll_timeout > 0) {
+        pll_timeout--;
+    }
+    // Store PLL lock status for debugging
+    static volatile uint32_t pll_lock_timeout = pll_timeout;
+    (void)pll_lock_timeout;
+
+    // CRITICAL: Add delay to ensure Si5351 writes complete before I2C bus stops
+    chThdSleepMilliseconds(100);
+#else
+    // Wait for PLL(s) to lock - with timeout to prevent hang
     uint8_t device_status_mask = hackrf_r9
                                      ? 0x20
                                  : (ref_pll == ClockControl::MultiSynthSource::PLLB)
                                      ? 0x40
                                      : 0x20;
+#ifndef PRALINE
     while ((clock_generator.device_status() & device_status_mask) != 0);
+#else
+    uint32_t pll_timeout = 100000;
+    while ((clock_generator.device_status() & device_status_mask) != 0 && pll_timeout > 0) {
+        pll_timeout--;
+    }
+#endif
 
     clock_generator.set_clock_control(
         clock_generator_output_mcu_clkin,
         si5351_clock_control_common[clock_generator_output_mcu_clkin].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On));
     clock_generator.enable_output(clock_generator_output_mcu_clkin);
+#endif
 }
 
 uint32_t ClockManager::measure_gp_clkin_frequency() {
@@ -400,6 +555,15 @@ void ClockManager::shutdown() {
 }
 
 void ClockManager::enable_codec_clocks() {
+#ifdef PRALINE
+    /* PRALINE: CLK0 (AFE_CLK) for codec/FPGA, CLK1 (SCT_CLK) for FPGA timing.
+     * Reference hackrf_core.c shows PRALINE needs both CLK0 and CLK1. */
+    clock_generator.enable_clock(clock_generator_output_og_codec); /* CLK0 */
+    clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 */
+    clock_generator.enable_output_mask(
+        (1U << clock_generator_output_og_codec) |
+        (1U << clock_generator_output_og_cpld));
+#else
     if (hackrf_r9) {
         clock_generator.enable_clock(clock_generator_output_r9_sgpio);
     } else {
@@ -417,6 +581,7 @@ void ClockManager::enable_codec_clocks() {
         clock_generator.enable_output_mask(
             (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
     }
+#endif
 }
 
 void ClockManager::disable_codec_clocks() {
@@ -424,6 +589,14 @@ void ClockManager::disable_codec_clocks() {
      * be enabled for the output to come to rest at the state specified by
      * CLKx_DISABLE_STATE.
      */
+#ifdef PRALINE
+    /* PRALINE: CLK0 (AFE_CLK) and CLK1 (SCT_CLK) used for codec/FPGA */
+    clock_generator.disable_output_mask(
+        (1U << clock_generator_output_og_codec) |
+        (1U << clock_generator_output_og_cpld));
+    clock_generator.disable_clock(clock_generator_output_og_codec);
+    clock_generator.disable_clock(clock_generator_output_og_cpld);
+#else
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_sgpio);
         clock_generator.disable_clock(clock_generator_output_r9_sgpio);
@@ -434,9 +607,17 @@ void ClockManager::disable_codec_clocks() {
         clock_generator.disable_clock(clock_generator_output_og_cpld);
         clock_generator.disable_clock(clock_generator_output_og_sgpio);
     }
+#endif
 }
 
 void ClockManager::enable_if_clocks() {
+#ifdef PRALINE
+    /* PRALINE uses CLK4 (first IF) and CLK5 (second IF) like original HackRF One */
+    clock_generator.enable_clock(clock_generator_output_og_first_if);
+    clock_generator.enable_output_mask(1U << clock_generator_output_og_first_if);
+    clock_generator.enable_clock(clock_generator_output_og_second_if);
+    clock_generator.enable_output_mask(1U << clock_generator_output_og_second_if);
+#else
     if (hackrf_r9) {
         clock_generator.enable_clock(clock_generator_output_r9_if);
         clock_generator.enable_output_mask(1U << clock_generator_output_r9_if);
@@ -446,9 +627,16 @@ void ClockManager::enable_if_clocks() {
         clock_generator.enable_clock(clock_generator_output_og_second_if);
         clock_generator.enable_output_mask(1U << clock_generator_output_og_second_if);
     }
+#endif
 }
 
 void ClockManager::disable_if_clocks() {
+#ifdef PRALINE
+    clock_generator.disable_output_mask(1U << clock_generator_output_og_first_if);
+    clock_generator.disable_clock(clock_generator_output_og_first_if);
+    clock_generator.disable_output_mask(1U << clock_generator_output_og_second_if);
+    clock_generator.disable_clock(clock_generator_output_og_second_if);
+#else
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_if);
         clock_generator.disable_clock(clock_generator_output_r9_if);
@@ -458,19 +646,39 @@ void ClockManager::disable_if_clocks() {
         clock_generator.disable_output_mask(1U << clock_generator_output_og_second_if);
         clock_generator.disable_clock(clock_generator_output_og_second_if);
     }
+#endif
 }
 
 void ClockManager::set_sampling_frequency(const uint32_t frequency) {
+#ifdef PRALINE
+    /* PRALINE: CLK0=AFE_CLK runs at sample rate (VCO/divider/2)
+     *          CLK1=SCT_CLK runs at 2x sample rate (VCO/divider/1)
+     * Reference: hackrf_core.c sample_rate_frac_set() lines 580-582
+     */
+
+    /* PRALINE: Match HackRF USB  sample_rate_frac_set()
+     * Reference: hackrf_usb radio.c lines 29-91, hackrf_core.c lines 501-685 */
+
+    // Set FPGA decimation to 0 (no decimation) for direct passthrough
+    fpga_debug_register_write(2, 0);
+    radio::invalidate_spi_config();
+
+    // The following was originally from @kitty. Adopting for testing radio.
+    clock_generator.set_ms_frequency(0, frequency * 2, si5351_vco_f, 1);  // CLK0: r_div=1 (÷2)
+    clock_generator.set_ms_frequency(1, frequency * 2, si5351_vco_f, 0);  // CLK1: r_div=0 (÷1)
+#else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only
      * necessary to change the MS0 synth frequency, and ensure the output
      * is divided by two.
      */
+
     if (hackrf_r9) {
         clock_generator.set_ms_frequency(clock_generator_output_r9_sgpio, frequency * 2, si5351_vco_f, 0);
     } else {
         clock_generator.set_ms_frequency(clock_generator_output_og_codec, frequency * 2, si5351_vco_f, 1);
     }
+#endif
 }
 
 void ClockManager::set_reference_ppb(const int32_t ppb) {
@@ -510,7 +718,15 @@ void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_se
 
 void ClockManager::wait_For_frequency_monitor_measurement_done() {
     // FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
+#ifndef PRALINE
     while (LPC_CGU->FREQ_MON.MEAS == 1);
+#else
+    // PRALINE FIX: Add timeout to prevent infinite hang
+    uint32_t timeout = 100000;
+    while (LPC_CGU->FREQ_MON.MEAS == 1 && timeout > 0) {
+        timeout--;
+    }
+#endif
 }
 
 uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
@@ -521,6 +737,35 @@ uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
 }
 
 void ClockManager::start_audio_pll() {
+#ifdef PRALINE
+    /* PRALINE: Use 12MHz XTAL for audio PLL
+     * For 12MHz XTAL input, 48kHz audio rate, 256Fs MCLK:
+     *   Fout=12.288MHz, Fcco=491.52MHz
+     *   12MHz * 1024 / 25 = 491.52MHz
+     *   MSEL=1024, NSEL=25, PSEL=20
+     */
+    cgu::pll0audio::ctrl({
+        .pd = 1,
+        .bypass = 0,
+        .directi = 0,
+        .directo = 0,
+        .clken = 0,
+        .frm = 0,
+        .autoblock = 1,
+        .pllfract_req = 0,
+        .sel_ext = 1,
+        .mod_pd = 1,
+        .clk_sel = cgu::CLK_SEL::XTAL,
+    });
+
+    cgu::pll0audio::mdiv({
+        .mdec = 22625UL,  // MDEC for MSEL=1024
+    });
+    cgu::pll0audio::np_div({
+        .pdec = 31,  // PSEL=20
+        .ndec = 69,  // NDEC for NSEL=25
+    });
+#else
     cgu::pll0audio::ctrl({
         .pd = 1,
         .bypass = 0,
@@ -549,13 +794,24 @@ void ClockManager::start_audio_pll() {
         .pdec = 31,
         .ndec = 45,
     });
+#endif
 
     cgu::pll0audio::frac({
         .pllfract_ctrl = 0,
     });
 
     cgu::pll0audio::power_up();
+#ifndef PRALINE
     while (!cgu::pll0audio::is_locked());
+#else
+    // PRALINE FIX: Add timeout to prevent infinite hang if GP_CLKIN not present
+    {
+        uint32_t timeout = 100000;
+        while (!cgu::pll0audio::is_locked() && timeout > 0) {
+            timeout--;
+        }
+    }
+#endif
     cgu::pll0audio::clock_enable();
 
     set_base_audio_clock_divider(1);

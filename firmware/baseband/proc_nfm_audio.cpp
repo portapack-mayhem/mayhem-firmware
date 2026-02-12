@@ -31,6 +31,18 @@
 #include <cstdint>
 #include <cstddef>
 
+#ifdef PRALINE
+// Phase 2: Constructor to start threads AFTER object is fully initialized
+NarrowbandFMAudio::NarrowbandFMAudio() {
+    // Initialize members that threads might access
+    channel_spectrum.set_decimation_factor(1);
+
+    // Start threads AFTER everything initialized
+    baseband_thread.start();
+    rssi_thread.start();
+}
+#endif
+
 void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
     // bool new_state;
 

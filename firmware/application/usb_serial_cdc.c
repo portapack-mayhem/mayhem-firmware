@@ -37,9 +37,17 @@ CH_IRQ_HANDLER(USB0_IRQHandler) {
     usb0_isr();
 
     if (status & USB0_USBSTS_D_UI) {
+#ifdef PRALINE
+        if (thread_usb_event) {
+            chSysLockFromIsr();
+            chEvtSignalI(thread_usb_event, EVT_MASK_USB);
+            chSysUnlockFromIsr();
+        }
+#else
         chSysLockFromIsr();
         chEvtSignalI(thread_usb_event, EVT_MASK_USB);
         chSysUnlockFromIsr();
+#endif
     }
 
     if (status & USB0_USBSTS_D_SLI) {
