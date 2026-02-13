@@ -47,7 +47,11 @@ std::string id(tpms::TransponderID id) {
 }
 
 std::string pressure(Pressure pressure) {
-    return to_string_dec_int(units_psi ? pressure.psi() : pressure.kilopascal(), 3);
+    return to_string_dec_int(
+        format::units_pressure == format::PressureUnit::PSI ? pressure.psi() :
+        format::units_pressure == format::PressureUnit::BAR ? pressure.bar() :
+        pressure.kilopascal(),
+        3);
 }
 
 std::string temperature(Temperature temperature) {
@@ -122,10 +126,10 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     options_band.set_by_value(receiver_model.target_frequency());
 
     options_pressure.on_change = [this](size_t, int32_t i) {
-        format::units_psi = (bool)i;
+        format::units_pressure = static_cast<format::PressureUnit>(i);
         update_view();
     };
-    options_pressure.set_selected_index(format::units_psi, true);
+    options_pressure.set_selected_index(static_cast<int>(format::units_pressure), true);
 
     options_temperature.on_change = [this](size_t, int32_t i) {
         format::units_fahr = (bool)i;
