@@ -52,12 +52,21 @@ static void send_message(const Message* const message) {
     creg::m0apptxevent::assert_event();
 
     if constexpr (check_for_message_hang) {
+#ifdef PRALINE
+        /* Timeout: ~3 seconds at typical clock speeds */
+        auto count = 200'000'000u;
+#else
         auto count = UINT32_MAX;
+#endif
         while (shared_memory.baseband_message && --count)
             /* spin */;
 
         if (count == 0)
+#ifdef PRALINE
+            chDbgPanic("BB Msg Timeout");
+#else
             chDbgPanic("Baseband Send Fail");
+#endif
     } else {
         while (shared_memory.baseband_message)
             /* spin */;

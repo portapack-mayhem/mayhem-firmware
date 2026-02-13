@@ -25,7 +25,17 @@
 
 #define SD_NO_SERIAL 0xFFFFFFFF
 #define SD_NO_BTN 0xFF
-#define SD_NO_CNT 0xFF
+#define SD_NO_CNT 0xFFFFFFFF
+
+#define SD_NO_HOP 0xFFFFFFFF
+#define SD_NO_FIX 0xFFFFFFFF
+#define SD_NO_ENCRYPTED 0xFFFFFFFF
+
+#define bit(x, n) (((x) >> (n)) & 1)
+#define g5(x, a, b, c, d, e) \
+    (bit(x, a) + bit(x, b) * 2 + bit(x, c) * 4 + bit(x, d) * 8 + bit(x, e) * 16)
+
+#define KEELOQ_NLF 0x3A5C742E
 
 #include "ui.hpp"
 #include "ui_navigation.hpp"
@@ -191,6 +201,19 @@ class SubGhzDRecentEntryDetailView : public View {
     uint32_t cnt = SD_NO_CNT;
     uint32_t seed = 0;
 
+    // keeloq specific
+    std::string keeloq_file_buffer{};
+
+    uint32_t hop = SD_NO_HOP;
+    uint32_t fix = SD_NO_FIX;
+    uint32_t encrypted = SD_NO_ENCRYPTED;
+
+    std::string mf_name = "Unknown";
+
+    bool keeloq_check_decrypt(uint32_t decrypt);
+    bool keeloq_check_decrypt_centurion(uint32_t decrypt);
+    // end keeloq specific
+
     Text text_type{{UI_POS_X(0), 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
 
@@ -206,6 +229,10 @@ class SubGhzDRecentEntryDetailView : public View {
     Button button_done{
         {screen_width - 96 - 4, screen_height - 32 - 12, 96, 32},
         "Done"};
+
+    Button button_save{
+        {4, screen_height - 32 - 12, 96, 32},
+        "Save"};
 
     void parseProtocol();
 };

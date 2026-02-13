@@ -40,10 +40,17 @@ extern "C" {
 
 CH_IRQ_HANDLER(RTC_IRQHandler) {
     CH_IRQ_PROLOGUE();
-
+#ifdef PRALINE
+    if (thread_rtc_event) {
+        chSysLockFromIsr();
+        chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
+        chSysUnlockFromIsr();
+    }
+#else
     chSysLockFromIsr();
     chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
     chSysUnlockFromIsr();
+#endif
 
     rtc::interrupt::clear_all();
 

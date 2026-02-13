@@ -109,6 +109,29 @@ enum Pins {
     P7_7,
     P9_5,
     P9_6,
+#ifdef PRALINE
+    P9_2,
+    // Port A pins (PRALINE RF path control)
+    PA_1,
+    PA_2,
+    // Port 8 pins (PRALINE power control and LED4)
+    P8_1,
+    P8_6,
+    P8_7,
+    // Port E pins (PRALINE transceiver control)
+    PE_1,
+    PE_2,
+    PE_3,
+    PE_4,
+    // Port D pins (PRALINE - GPIO-only high-drive pins)
+    // These use SCU_SFSPD registers, not normal SFSP
+    // SCU configuration must be done separately in board.cpp
+    PD_11,
+    PD_12,
+    PD_14,
+    PD_15,
+    PD_16,
+#endif
     PF_4,
     CLK0,
     CLK2,
@@ -197,6 +220,28 @@ constexpr Pin pins[]{
     [P7_7] = {7, 7},
     [P9_5] = {9, 5},
     [P9_6] = {9, 6},
+#ifdef PRALINE
+    [P9_2] = {9, 2},
+    // Port A pins (function 0 = GPIO)
+    [PA_1] = {0xA, 1},
+    [PA_2] = {0xA, 2},
+    // Port 8 pins
+    [P8_1] = {8, 1},
+    [P8_6] = {8, 6},
+    [P8_7] = {8, 7},
+    // Port E pins (function 4 = GPIO)
+    [PE_1] = {0xE, 1},
+    [PE_2] = {0xE, 2},
+    [PE_3] = {0xE, 3},
+    [PE_4] = {0xE, 4},
+    // Port D pins - GPIO-only, no pin mux needed
+    // Using 0xD as marker for Port D (SCU_SFSPD registers)
+    [PD_11] = {0xD, 11},
+    [PD_12] = {0xD, 12},
+    [PD_14] = {0xD, 14},
+    [PD_15] = {0xD, 15},
+    [PD_16] = {0xD, 16},
+#endif
     [PF_4] = {15, 4},
     [CLK0] = {24, 0},
     [CLK2] = {24, 2},
@@ -209,7 +254,8 @@ enum GPIOs {
     GPIO0_3,
     GPIO0_4,
     GPIO0_5,
-    /*GPIO0_6,*/ GPIO0_7,
+    /*GPIO0_6,*/
+    GPIO0_7,
     GPIO0_8,
     GPIO0_9,
     GPIO0_10,
@@ -275,12 +321,35 @@ enum GPIOs {
     GPIO5_7,
     GPIO5_8,
     GPIO5_9,
-    /*GPIO5_10, GPIO5_11,*/ GPIO5_12,
+    /*GPIO5_10, GPIO5_11,*/
+    GPIO5_12,
     GPIO5_13,
     GPIO5_14,
     GPIO5_15,
     GPIO5_16,
     GPIO5_18,
+    // PRALINE-specific GPIOs (always defined to avoid compile-time array gaps)
+    // RFFC5072 mixer data
+    GPIO4_14,
+    // Power control and LED4
+    GPIO4_1,
+    GPIO4_6,
+    GPIO4_7,
+    // RF path control
+    GPIO4_8,
+    GPIO4_9,
+    // Transceiver (MAX2831) control
+    GPIO7_1,
+    GPIO7_2,
+    // Dual port control
+    GPIO7_3,
+    GPIO7_4,
+    // GPIO6 (Port D pins)
+    GPIO6_25,
+    GPIO6_26,
+    GPIO6_28,
+    GPIO6_29,
+    GPIO6_30,
 };
 
 constexpr GPIO gpio[] = {
@@ -372,6 +441,41 @@ constexpr GPIO gpio[] = {
     [GPIO5_15] = {pins[P6_7], 5, 15, 4},
     [GPIO5_16] = {pins[P6_8], 5, 16, 4},
     [GPIO5_18] = {pins[P9_5], 5, 18, 4},
+// PRALINE-specific GPIOs (use placeholder pins on non-PRALINE builds)
+#ifdef PRALINE
+    [GPIO4_14] = {pins[P9_2], 4, 14, 0},   // RFFC5072 mixer data
+    [GPIO4_1] = {pins[P8_1], 4, 1, 0},     // VAA disable
+    [GPIO4_6] = {pins[P8_6], 4, 6, 0},     // LED4
+    [GPIO4_7] = {pins[P8_7], 4, 7, 0},     // 1V2 enable
+    [GPIO4_8] = {pins[PA_1], 4, 8, 0},     // LPF enable
+    [GPIO4_9] = {pins[PA_2], 4, 9, 0},     // RF amp enable
+    [GPIO7_1] = {pins[PE_1], 7, 1, 4},     // MAX2831 enable
+    [GPIO7_2] = {pins[PE_2], 7, 2, 4},     // MAX2831 RX enable
+    [GPIO7_3] = {pins[PE_3], 7, 3, 4},     // P2 port control 0
+    [GPIO7_4] = {pins[PE_4], 7, 4, 4},     // P2 port control 1
+    [GPIO6_25] = {pins[PD_11], 6, 25, 4},  // Mixer lock detect
+    [GPIO6_26] = {pins[PD_12], 6, 26, 4},  // Trigger input
+    [GPIO6_28] = {pins[PD_14], 6, 28, 4},  // MAX283x chip select
+    [GPIO6_29] = {pins[PD_15], 6, 29, 4},  // MAX2831 RXHP
+    [GPIO6_30] = {pins[PD_16], 6, 30, 4},  // MAX5864 chip select
+#else
+    // Placeholder entries for non-PRALINE builds (use P0_0 as dummy)
+    [GPIO4_14] = {pins[P0_0], 4, 14, 0},
+    [GPIO4_1] = {pins[P0_0], 4, 1, 0},
+    [GPIO4_6] = {pins[P0_0], 4, 6, 0},
+    [GPIO4_7] = {pins[P0_0], 4, 7, 0},
+    [GPIO4_8] = {pins[P0_0], 4, 8, 0},
+    [GPIO4_9] = {pins[P0_0], 4, 9, 0},
+    [GPIO7_1] = {pins[P0_0], 7, 1, 0},
+    [GPIO7_2] = {pins[P0_0], 7, 2, 0},
+    [GPIO7_3] = {pins[P0_0], 7, 3, 0},
+    [GPIO7_4] = {pins[P0_0], 7, 4, 0},
+    [GPIO6_25] = {pins[P0_0], 6, 25, 0},
+    [GPIO6_26] = {pins[P0_0], 6, 26, 0},
+    [GPIO6_28] = {pins[P0_0], 6, 28, 0},
+    [GPIO6_29] = {pins[P0_0], 6, 29, 0},
+    [GPIO6_30] = {pins[P0_0], 6, 30, 0},
+#endif
 };
 
 }  // namespace lpc43xx

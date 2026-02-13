@@ -35,6 +35,36 @@ namespace path {
 
 namespace {
 
+#ifdef PRALINE
+/* PRALINE uses a simplified RF path with only 5 control signals.
+ * The RF path architecture is completely different from HackRF One.
+ */
+struct PralineConfig {
+    bool tx_en;
+    bool mix_en_n;  // Inverted: 0 = mixer enabled
+    bool lpf_en;
+    bool rf_amp_en;
+    bool ant_bias_en_n;  // Inverted: 0 = bias enabled
+
+    static void gpio_init() {
+        gpio_tx_enable.output();
+        gpio_mix_enable_n.output();
+        gpio_lpf_enable.output();
+        gpio_rf_amp_enable.output();
+        gpio_ant_bias_disable.output();
+    }
+
+    void apply() const {
+        gpio_tx_enable.write(tx_en);
+        gpio_mix_enable_n.write(mix_en_n);
+        gpio_lpf_enable.write(lpf_en);
+        gpio_rf_amp_enable.write(rf_amp_en);
+        gpio_ant_bias_disable.write(ant_bias_en_n);
+    }
+};
+
+#else
+/* HackRF One uses 11 GPIOs for RF path control */
 using GPIOs = std::array<GPIO, 11>;
 
 /* TODO: ARM GCC 4.8 2014q3 doesn't like this array inside struct Config.
@@ -53,7 +83,10 @@ constexpr GPIOs gpios{
     gpio_rx_amp,
     gpio_not_rx_amp_pwr,
 };
+#endif
 
+#ifndef PRALINE
+/* HackRF One Config struct - not used on PRALINE */
 struct Config {
     using base_type = uint16_t;
 
@@ -153,7 +186,10 @@ struct Config {
         }
     }
 };
+#endif /* !PRALINE */
 
+#ifndef PRALINE
+/* HackRF One config table - not used on PRALINE */
 using ConfigAmp = std::array<Config, 2>;
 using ConfigDirection = std::array<ConfigAmp, 2>;
 using ConfigBand = std::array<ConfigDirection, 3>;
@@ -193,12 +229,26 @@ constexpr Config get_config(
     const bool amplify) {
     return config_table[toUType(band)][toUType(direction)][amplify ? 1 : 0];
 }
+#endif /* !PRALINE */
 
 } /* namespace */
 
 void Path::init() {
+#ifdef PRALINE
+    PralineConfig::gpio_init();
+    /* Set safe initial state: RX mode, mixer enabled, LPF on, amp off, no bias */
+    PralineConfig config = {
+        .tx_en = false,
+        .mix_en_n = false,     // Mixer enabled (inverted)
+        .lpf_en = true,        // LPF on for low band
+        .rf_amp_en = false,    // Amp off
+        .ant_bias_en_n = true  // Bias off (inverted)
+    };
+    config.apply();
+#else
     update();
     Config::gpio_init();
+#endif
 }
 
 void Path::set_direction(const Direction new_direction) {
@@ -220,10 +270,20 @@ void Path::update() {
     /* 0 ^ 0 => 0 & 0 = 0 ^ 0 = 0 (no change)
      * 0 ^ 1 => 1 & 0 = 0 ^ 0 = 0 (ignore change to 1)
      * 1 ^ 0 => 1 & 1 = 1 ^ 1 = 0 (allow change to 0)
-     * 1 ^ 1 => 0 & 1 = 0 ^ 1 = 1 (no change)
+     * 1 ^ 1 => 0 & 1 = 0 ^ 1 = 1 (no change) */
+
+#ifdef PRALINE
+    /* PRALINE RF path control:
+     * - tx_en: 1 for TX, 0 for RX
+     * - mix_en_n: 0 to enable mixer (inverted), 1 to bypass
+     * - lpf_en: 1 for low band (< 2.4 GHz), 0 for high band
+     * - rf_amp_en: 1 to enable RF amplifier
+     * - ant_bias_en_n: 0 to enable antenna bias (inverted)
      */
     // const Config changed = _config ^ config_next;
     // const Config turned_off = _config & changed;
+
+    PralineConfig config;
 
     /* In transition, ignore the bits that are turning on. So this transition phase
      * only turns off signals. It doesn't turn on signals.
@@ -231,9 +291,27 @@ void Path::update() {
     // const Config transition_config = _config ^ turned_off;
     // update_signals(transition_config);
 
+    config.tx_en = (direction == Direction::Transmit);
+
+    /* Mixer bypass for mid band (2.3-2.7 GHz direct to MAX2831) */
+    config.mix_en_n = (band == Band::Mid);  // 1 = bypass (disabled)
+
     /* Move to the final state by turning on required signals. */
+    /* LPF for low band */
+    config.lpf_en = (band == Band::Low);
+
+    /* RF amp when amplification requested */
+    config.rf_amp_en = rf_amp;
+
+    /* Antenna bias off by default */
+    config.ant_bias_en_n = true;
+
+    config.apply();
+#else
+    /* HackRF One RF path control */
     const auto config = get_config(direction, band, rf_amp);
     config.apply();
+#endif
 }
 
 }  // namespace path

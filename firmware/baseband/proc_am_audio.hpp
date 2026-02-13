@@ -37,6 +37,8 @@
 
 class NarrowbandAMAudio : public BasebandProcessor {
    public:
+    NarrowbandAMAudio();  // Phase 2: Explicit constructor for manual thread start
+
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
@@ -74,8 +76,14 @@ class NarrowbandAMAudio : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
 
     /* NB: Threads should be the last members in the class definition. */
+#ifndef PRALINE
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
+#else
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive,
+                                   /*auto_start*/ false};  // Phase 2: Manual start
+    RSSIThread rssi_thread{/*auto_start*/ false};          // Phase 2: Manual start
+#endif
 
     void configure(const AMConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
