@@ -16,8 +16,6 @@
 
 namespace ui::external_app::ui_keeloqtx {
 
-const std::string keeloq_fragments[2] = { "110", "100" };
-
 class KeeloqTXView : public View {
    public:
     KeeloqTXView(NavigationView& nav);
@@ -30,6 +28,8 @@ class KeeloqTXView : public View {
     }
 
    private:
+    const std::string keeloq_fragments[2] = { "110", "100" };
+
     NavigationView& nav_;
 
     TxRadioState radio_state_{
