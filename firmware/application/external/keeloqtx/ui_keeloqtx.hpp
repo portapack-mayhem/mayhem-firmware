@@ -73,7 +73,7 @@ class KeeloqTXView : public View {
     NumberField field_counter{
         { 10 * 8, 8 * 8 },
         5,
-        { 0, 65536 },
+        { 0, 65535 },
         1,
         ' '
     };
