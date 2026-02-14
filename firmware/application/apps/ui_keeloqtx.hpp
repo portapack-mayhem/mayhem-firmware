@@ -115,7 +115,6 @@ class KeeloqTXView : public View {
     void encode_data();
  
     uint32_t repeat = 4;
-    uint32_t repeat_idx = 0;
     uint32_t pause_duration = 0;
 
     void start_tx();
