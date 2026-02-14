@@ -69,6 +69,7 @@
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "pocsag_app.hpp"
+#include "ui_keeloqtx.hpp"
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -139,6 +140,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
+    {"keeloqtx", "KeeLoq TX", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<KeeloqTXView>()},
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     /* UTILITIES *************************************************************/

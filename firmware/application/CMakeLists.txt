@@ -213,6 +213,7 @@ set(CPPSRC
 	irq_controls.cpp
 	irq_lcd_frame.cpp
 	irq_rtc.cpp
+    keeloq_common.cpp
 	keeloq_file.cpp
 	keeloq_keystore.cpp
 	log_file.cpp
@@ -318,6 +319,7 @@ set(CPPSRC
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
 	apps/ui_weatherstation.cpp
+    apps/ui_keeloqtx.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/dcs.cpp
