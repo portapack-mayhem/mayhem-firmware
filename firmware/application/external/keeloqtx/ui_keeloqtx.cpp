@@ -1,15 +1,15 @@
 #include "ui_keeloqtx.hpp"
 #include "ui_fileman.hpp"
 #include "baseband_api.hpp"
-#include "../keeloq_common.hpp"
-#include "../baseband/fprotos/fprotogeneral.hpp"
+#include "../../keeloq_common.hpp"
+#include "../../baseband/fprotos/fprotogeneral.hpp"
 
 using namespace portapack;
 using namespace ui;
 
 namespace fs = std::filesystem;
 
-namespace ui {
+namespace ui::external_app::ui_keeloqtx {
 
 void KeeloqTXView::focus() {
     button_open.focus();

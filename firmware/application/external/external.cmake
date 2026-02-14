@@ -292,6 +292,9 @@ set(EXTCPPSRC
 	#morseradiotx
 	external/morseradiotx/main.cpp
 	external/morseradiotx/ui_morse_radiotx.cpp
+
+    external/keeloqtx/main.cpp
+    external/keeloqtx/ui_keeloqtx.cpp
 )
 
 set(EXTAPPLIST
@@ -365,6 +368,7 @@ set(EXTAPPLIST
 	siggen
 	morse_radio
 	morseradiotx
+    keeloqtx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
