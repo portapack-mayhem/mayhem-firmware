@@ -26,8 +26,8 @@ if [[ ! -x "$BIN" ]]; then
 fi
 
 # Fix Ubuntu-built clang-format runtime deps on Debian/Arch by vendoring needed libs
-if [[ "$OS_ID" == "linux" && "$ARCH_ID" == "x86_64" ]]; then
-  LIBDIR="$ROOT/tools/clang-format-bin/$VER/linux-x86_64/lib"
+if [[ "$OS_ID" == "linux" ]]; then
+  LIBDIR="$ROOT/tools/clang-format-bin/$VER/$OS_ID-$ARCH_ID/lib"
   if [[ -d "$LIBDIR" ]]; then
     export LD_LIBRARY_PATH="$LIBDIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   fi
