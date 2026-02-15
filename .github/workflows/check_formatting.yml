@@ -23,6 +23,7 @@ jobs:
       - name: clang-format check
         run: |
           set -euo pipefail
+          clang-format-18 --version
           ROOT="${{ matrix.path }}"
           find "$ROOT" -type f \( \
               -name '*.c' -o -name '*.cpp' -o \
