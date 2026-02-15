@@ -15,18 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install clang-format-18
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-format-18
-
-      - name: clang-format check
+      - name: clang-format check (repo pinned)
         run: |
           set -euo pipefail
-          clang-format-18 --version
+
+          CF="./tools/clang-format.sh"
+          chmod +x "$CF" || true
+
+          "$CF" --version
+
           ROOT="${{ matrix.path }}"
           find "$ROOT" -type f \( \
               -name '*.c' -o -name '*.cpp' -o \
               -name '*.h' -o -name '*.hpp' \
             \) -print0 \
-            | xargs -0 -r clang-format-18 --dry-run --Werror --style=file --fallback-style=Chromium
+            | xargs -0 -r "$CF" --dry-run --Werror --style=file --fallback-style=Chromium
