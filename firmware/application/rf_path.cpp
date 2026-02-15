@@ -299,6 +299,7 @@ void Path::update() {
 
     /* Move to the final state by turning on required signals. */
     /* LPF for low band */
+
     config.lpf_en = (band == Band::Low);
 
     /* RF amp when amplification requested */

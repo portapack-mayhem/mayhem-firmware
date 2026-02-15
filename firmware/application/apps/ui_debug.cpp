@@ -2002,7 +2002,7 @@ void GPIODebugView::refresh() {
     uint32_t gpio4_dir = LPC_GPIO->DIR[4];   // Direction: 1=output, 0=input
     uint32_t gpio4_pin = LPC_GPIO->PIN[4];   // Actual pin state
     uint32_t gpio4_set = LPC_GPIO->SET[4];   // What we're trying to output
-					     //
+
     // Display full registers
     text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
     text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
