@@ -206,7 +206,7 @@ void set_direction(const rf::Direction new_direction) {
     baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #else
     // TEST: Force baseband invert for Praline (like r9)
-    //baseband_invert = (direction == rf::Direction::Receive);
+    // baseband_invert = (direction == rf::Direction::Receive);
 
     // Praline: Control Q inversion via FPGA register
     uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
@@ -271,16 +271,16 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 #ifndef PRALINE
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #else
-    // TEST: Force baseband invert for Praline (like r9)
-    //baseband_invert = (direction == rf::Direction::Receive);
+        // TEST: Force baseband invert for Praline (like r9)
+        // baseband_invert = (direction == rf::Direction::Receive);
 
-    // PRALINE: Update FPGA Q inversion when tuning changes
-    uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
-    if (mixer_invert ^ baseband_invert) {
-        ctrl_reg |= 0x02;  // Set Q_INVERT bit
-    }
-    fpga_debug_register_write(1, ctrl_reg);
-    ssp1_arbiter.invalidate();
+        // PRALINE: Update FPGA Q inversion when tuning changes
+        uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
+        if (mixer_invert ^ baseband_invert) {
+            ctrl_reg |= 0x02;  // Set Q_INVERT bit
+        }
+        fpga_debug_register_write(1, ctrl_reg);
+        ssp1_arbiter.invalidate();
 #endif
 
         return result_second_if;
@@ -459,13 +459,13 @@ namespace second_if {
 
 #ifdef PRALINE
 extern "C" {
-    extern struct max2831_debug_t {
-        uint32_t requested_freq_mhz;
-        uint32_t calculated_n;
-        uint32_t calculated_frac;
-        bool set_frequency_called;
-        bool frequency_valid;
-    } max2831_debug_info;
+extern struct max2831_debug_t {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_n;
+    uint32_t calculated_frac;
+    bool set_frequency_called;
+    bool frequency_valid;
+} max2831_debug_info;
 }
 
 MAX2831Info get_max2831_info() {
@@ -474,8 +474,7 @@ MAX2831Info get_max2831_info() {
         max2831_debug_info.calculated_n,
         max2831_debug_info.calculated_frac,
         max2831_debug_info.set_frequency_called,
-        max2831_debug_info.frequency_valid
-    };
+        max2831_debug_info.frequency_valid};
 }
 #endif
 

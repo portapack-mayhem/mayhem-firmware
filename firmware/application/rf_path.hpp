@@ -58,8 +58,7 @@ class Path {
     void set_band(const Band band);
     void set_rf_amp(const bool rf_amp);
 
-    Band get_band() const{return _band;}
-
+    Band get_band() const { return _band; }
 
    private:
     Direction direction{Direction::Receive};

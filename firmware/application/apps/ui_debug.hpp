@@ -790,7 +790,6 @@ class GPIODebugView : public View {
 };
 #endif
 
-
 #ifdef PRALINE
 /* RFFC5072StatusView *************************************************/
 class RFFC5072StatusView : public View {

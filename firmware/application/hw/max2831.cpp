@@ -130,7 +130,7 @@ void MAX2831::init() {
     // set_reg_field(11, REG11_RXVGA_GAIN_MASK, 0x1F);  // 62 dB VGA = MAX
 
     /* Configure baseband filter for 8 MHz TX - matches GSG reference */
-    //set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_7_5M);
+    // set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_7_5M);
     set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_15M);
     set_reg_field(7, REG7_RX_LPF_FINE_MASK, REG7_RX_LPF_FINE_100);
     set_reg_field(7, REG7_TX_LPF_FINE_MASK, REG7_TX_LPF_FINE_100);
@@ -378,9 +378,9 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
      */
 
     /* MAX2831 supports 2.3-2.6 GHz */
-    //if (lo_frequency < 2300000000ULL || lo_frequency > 2600000000ULL) {
-    //    return false;
-    //}
+    // if (lo_frequency < 2300000000ULL || lo_frequency > 2600000000ULL) {
+    //     return false;
+    // }
 
     bool valid = (lo_frequency >= 2300000000ULL && lo_frequency <= 2600000000ULL);
 
