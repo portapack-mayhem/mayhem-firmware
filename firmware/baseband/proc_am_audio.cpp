@@ -29,6 +29,16 @@
 #include <array>
 #include "dsp_hilbert.hpp"
 
+// Phase 2: Constructor to start threads AFTER object is fully initialized
+NarrowbandAMAudio::NarrowbandAMAudio() {
+    // Initialize members that threads might access
+    channel_spectrum.set_decimation_factor(1);
+
+    // Start threads AFTER everything initialized
+    baseband_thread.start();
+    rssi_thread.start();
+}
+
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     if (!configured) {
         return;

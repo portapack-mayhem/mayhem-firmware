@@ -55,6 +55,8 @@ extern const std::filesystem::path hopper_dir;
 extern const std::filesystem::path subghz_dir;
 extern const std::filesystem::path waterfalls_dir;
 extern const std::filesystem::path macaddress_dir;
+extern const std::filesystem::path keeloq_keys_dir;
+extern const std::filesystem::path keeloq_remotes_dir;
 
 extern const std::filesystem::path splash_dot_bmp;
 

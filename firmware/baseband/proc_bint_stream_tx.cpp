@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_ook_stream_tx.hpp"
+#include "proc_bint_stream_tx.hpp"
 #include "sine_table_int8.hpp"
 #include "portapack_shared_memory.hpp"
 
@@ -27,27 +27,35 @@
 
 #include "utility.hpp"
 
-OOKProcessorStreamed::OOKProcessorStreamed() {
+BinaryTimedProcessorStreamed::BinaryTimedProcessorStreamed() {
     configured = false;
     baseband_thread.start();
 }
 
-inline void OOKProcessorStreamed::write_sample(const buffer_c8_t& buffer, bool bit_value, size_t i) {
-    int8_t re, im;
-
-    if (bit_value) {
-        phase = (phase + 200);  // What ?
+inline void BinaryTimedProcessorStreamed::write_sample(const buffer_c8_t& buffer, bool bit_value, size_t i) {
+    int8_t re = 0, im = 0;
+    if (mode == 0) {
+        if (bit_value) {
+            phase = (phase + 200);
+            sphase = phase + (64 << 18);
+            re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
+            im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+        }
+    } else if (mode == 1) {
+        // calculate the re, im based on the deviation uint32_t variable to get the re, im, to send out 2fsk signal. based on the bit_value
+        if (bit_value) {
+            phase += deviation_delta;
+        } else {
+            phase -= deviation_delta;
+        }
         sphase = phase + (64 << 18);
         re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
         im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
-    } else {
-        re = 0;
-        im = 0;
     }
     buffer.p[i] = {re, im};
 }
 
-void OOKProcessorStreamed::execute(const buffer_c8_t& buffer) {
+void BinaryTimedProcessorStreamed::execute(const buffer_c8_t& buffer) {
     if (!configured || !stream) return;
 
     for (size_t i = 0; i < buffer.count; i++) {
@@ -87,7 +95,7 @@ void OOKProcessorStreamed::execute(const buffer_c8_t& buffer) {
     }
 }
 
-void OOKProcessorStreamed::on_message(const Message* const message) {
+void BinaryTimedProcessorStreamed::on_message(const Message* const message) {
     switch (message->id) {
         case Message::ID::ReplayConfig:
             configured = false;
@@ -100,12 +108,23 @@ void OOKProcessorStreamed::on_message(const Message* const message) {
             shared_memory.application_queue.push(txprogress_message);
             break;
 
+        case Message::ID::StreamTXConfiguration:
+            streamtx_config(*reinterpret_cast<const StreamTXConfigurationMessage*>(message));
+            break;
+
         default:
             break;
     }
 }
 
-void OOKProcessorStreamed::replay_config(const ReplayConfigMessage& message) {
+void BinaryTimedProcessorStreamed::streamtx_config(const StreamTXConfigurationMessage& message) {
+    mode = message.mode;
+    deviation = message.deviation;
+    uint64_t big_calc = (uint64_t)message.deviation << 26;
+    deviation_delta = (uint32_t)(big_calc / OOK_SAMPLERATE);
+}
+
+void BinaryTimedProcessorStreamed::replay_config(const ReplayConfigMessage& message) {
     if (message.config) {
         txprogress_message.progress = -2;
         shared_memory.application_queue.push(txprogress_message);
@@ -121,7 +140,7 @@ void OOKProcessorStreamed::replay_config(const ReplayConfigMessage& message) {
 }
 
 int main() {
-    EventDispatcher event_dispatcher{std::make_unique<OOKProcessorStreamed>()};
+    EventDispatcher event_dispatcher{std::make_unique<BinaryTimedProcessorStreamed>()};
     event_dispatcher.run();
     return 0;
 }

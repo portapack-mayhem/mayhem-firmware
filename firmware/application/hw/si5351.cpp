@@ -57,7 +57,15 @@ void Si5351::reset() {
     write_register(Register::CrystalInternalLoadCapacitance, 0b11010010);
     write_register(Register::FanoutEnable, 0x00);
 
+#ifndef PRALINE
     reset_plls();
+#endif
+    // NOTE: Do NOT call reset_plls() here!
+    // Multisynth registers are not yet configured at this point.
+    // Resetting PLLs with power-on default multisynth values (divider=6)
+    // causes Si5351 to output wrong frequencies (66.666 MHz instead of 8 MHz).
+    // The PLL reset should happen in init_clock_generator() AFTER multisynths
+    // are properly configured. This matches HackRF reference firmware.
 }
 
 Si5351::regvalue_t Si5351::read_register(const uint8_t reg) {
@@ -93,7 +101,16 @@ void Si5351::set_ms_frequency(
         .r_div = r_div,
     };
     const auto regs = ms.reg(ms_number);
+
+#ifdef PRALINE
+    /* PRALINE: Use single-byte writes - multi-byte I2C writes seem to fail */
+    const uint8_t base_reg = regs[0];
+    for (size_t i = 1; i < regs.size(); i++) {
+        write_register(base_reg + i - 1, regs[i]);
+    }
+#else
     write(regs);
+#endif
 }
 
 } /* namespace si5351 */

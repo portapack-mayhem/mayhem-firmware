@@ -46,7 +46,13 @@ class EventDispatcher {
     }
 
     static inline void events_flag_isr(const eventmask_t events) {
+#ifdef PRALINE
+        if (thread_event_loop) {
+            chEvtSignalI(thread_event_loop, events);
+        }
+#else
         chEvtSignalI(thread_event_loop, events);
+#endif
     }
 
    private:

@@ -30,12 +30,20 @@ add_compile_options(-fdiagnostics-color=always)
 #Flash size related options
 #This is the size of the flash memory we SUPPORT. Don't worry, the internl flash app has harder limits based on device type.
 if(NOT DEFINED FLASH_MB_SIZE)
-    set(FLASH_MB_SIZE 2) # Default to 2MB if not provided. For PortaRf this should be 2MB passed to cmake with -DFLASH_MB_SIZE=2
+    if(BOARD STREQUAL "PRALINE")
+        set(FLASH_MB_SIZE 4) # PRALINE has 4MB flash
+    else()
+        set(FLASH_MB_SIZE 2) # Default to 2MB if not provided. For PortaRf this should be 2MB passed to cmake with -DFLASH_MB_SIZE=2
+    endif()
 endif()
 message("Configuring for FLASH_MB_SIZE=${FLASH_MB_SIZE}MB")
 #This is the flash memory size we build. This can be less, so the FW size will be less, so can be flashed with older utils.
 if(NOT DEFINED FLASH_MB_LIMIT_SIZE)
-	set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
+	if(BOARD STREQUAL "PRALINE")
+		set(FLASH_MB_LIMIT_SIZE 3.5) #PRALINE 4 MB = 3.5 firmware + 0.5 MB fpga bitstream.
+	else()
+	    set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
+	endif()
 endif()
 message("Configuring for FLASH_MB_LIMIT_SIZE=${FLASH_MB_LIMIT_SIZE}MB")
 
@@ -44,7 +52,12 @@ if(FLASH_MB_SIZE LESS FLASH_MB_LIMIT_SIZE)
 endif()
 
 math(EXPR FLASH_BYTES_SIZE "${FLASH_MB_SIZE} * 1024 * 1024")
-math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
+if(BOARD STREQUAL "PRALINE")
+	math(EXPR FLASH_BYTES_LIMIT_SIZE "3584 * 1024") #4 MB = 3.5 firmware + 0.5 MB fpga bitstream.
+else()
+    math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
+endif()
+
 #generate h files
 configure_file(flashsize.h.in ${CMAKE_CURRENT_SOURCE_DIR}/firmware/flashsize.h)
 

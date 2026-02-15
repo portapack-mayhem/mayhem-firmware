@@ -80,7 +80,7 @@ bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
         return false;
     }
     preset = submeta.value().preset;
-    if (preset != FLIPPER_PRESET_OOK) {
+    if (preset != FLIPPER_PRESET_OOK && preset != FLIPPER_PRESET_2FSK) {
         field_filename.set_text("File: err, not supp. preset");
         return false;
     }
@@ -108,8 +108,13 @@ void FlipperTxView::stop() {
 bool FlipperTxView::start() {
     if (filename.empty()) return false;
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
     transmitter_model.enable();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);
+    uint8_t mode = 0;
+    if (preset == FLIPPER_PRESET_2FSK)
+        mode = 1;
+    baseband::set_bitstream_config(FM_DEVIATION, mode);
     // start thread
     replay_thread = std::make_unique<FlipperPlayThread>(
         filename,
