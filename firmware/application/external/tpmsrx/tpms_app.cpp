@@ -48,9 +48,8 @@ std::string id(tpms::TransponderID id) {
 
 std::string pressure(Pressure pressure) {
     return to_string_dec_int(
-        format::units_pressure == format::PressureUnit::PSI ? pressure.psi() :
-        format::units_pressure == format::PressureUnit::BAR ? pressure.bar() :
-        pressure.kilopascal(),
+        format::units_pressure == format::PressureUnit::PSI ? pressure.psi() : format::units_pressure == format::PressureUnit::BAR ? pressure.bar()
+                                                                                                                                   : pressure.kilopascal(),
         3);
 }
 
