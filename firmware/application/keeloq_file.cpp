@@ -43,7 +43,7 @@ bool read_keeloq_file(const fs::path& path, KeeloqData& data) {
 
     data.mf_name = std::string{chunks[0]};
     data.serial = std::strtoul(chunks[1].data(), NULL, 16);
-    data.counter = (uint16_t)std::atoi(chunks[2].data());
+    data.counter = std::atoi(chunks[2].data());
     data.btn = (uint8_t)std::atoi(chunks[3].data());
 
     return true;
