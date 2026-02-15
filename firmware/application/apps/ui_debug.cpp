@@ -1909,6 +1909,149 @@ void SystemDiagnosticsView::refresh() {
 #endif
 
 #ifdef PRALINE
+/* GPIODebugView *************************************************/
+GPIODebugView::GPIODebugView(NavigationView& nav) {
+    add_children({
+        &text_lbl_gpio4,
+        &text_lbl_dir4, &text_dir4,
+        &text_lbl_pin4, &text_pin4,
+        &text_lbl_set4, &text_set4,
+        &text_lbl_lpf_bit,
+        &text_lpf_dir, &text_lpf_pin, &text_lpf_set,
+        &button_lpf_toggle, &button_lpf_on, &button_lpf_off,
+        &text_lbl_amp_bit,
+        &text_amp_dir, &text_amp_pin, &text_amp_set,
+        &button_amp_toggle, &button_amp_on, &button_amp_off,
+        &text_lbl_gpio3,
+        &text_lbl_mix_bit,
+        &text_mix_dir, &text_mix_pin, &text_mix_set,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_lbl_gpio4.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_gpio3.set_style(Theme::getInstance()->fg_yellow);
+
+    // LPF control buttons
+    button_lpf_toggle.on_select = [this](Button&) {
+        // Read current state
+        uint32_t current = LPC_GPIO->PIN[4];
+        bool current_state = (current >> 8) & 1;
+
+        // Toggle
+        if (current_state) {
+            LPC_GPIO->CLR[4] = (1 << 8);  // Clear bit 8
+        } else {
+            LPC_GPIO->SET[4] = (1 << 8);  // Set bit 8
+        }
+
+        refresh();
+    };
+
+    button_lpf_on.on_select = [this](Button&) {
+        LPC_GPIO->SET[4] = (1 << 8);  // Force ON
+        refresh();
+    };
+
+    button_lpf_off.on_select = [this](Button&) {
+        LPC_GPIO->CLR[4] = (1 << 8);  // Force OFF
+        refresh();
+    };
+
+    // RF Amp control buttons
+    button_amp_toggle.on_select = [this](Button&) {
+        uint32_t current = LPC_GPIO->PIN[4];
+        bool current_state = (current >> 9) & 1;
+
+        if (current_state) {
+            LPC_GPIO->CLR[4] = (1 << 9);
+        } else {
+            LPC_GPIO->SET[4] = (1 << 9);
+        }
+
+        refresh();
+    };
+
+    button_amp_on.on_select = [this](Button&) {
+        LPC_GPIO->SET[4] = (1 << 9);  // Force ON
+        refresh();
+    };
+
+    button_amp_off.on_select = [this](Button&) {
+        LPC_GPIO->CLR[4] = (1 << 9);  // Force OFF
+        refresh();
+    };
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void GPIODebugView::focus() {
+    button_refresh.focus();
+}
+
+void GPIODebugView::refresh() {
+    // Read GPIO4 registers
+    uint32_t gpio4_dir = LPC_GPIO->DIR[4];   // Direction: 1=output, 0=input
+    uint32_t gpio4_pin = LPC_GPIO->PIN[4];   // Actual pin state
+    uint32_t gpio4_set = LPC_GPIO->SET[4];   // What we're trying to output
+
+    // Display full registers
+    text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
+    text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
+    text_set4.set("0x" + to_string_hex(gpio4_set, 8));
+
+    // Extract bit 8 (LPF)
+    bool lpf_dir = (gpio4_dir >> 8) & 1;
+    bool lpf_pin = (gpio4_pin >> 8) & 1;
+    bool lpf_set = (gpio4_set >> 8) & 1;
+
+    text_lpf_dir.set("DIR: " + std::string(lpf_dir ? "OUT" : "IN"));
+    text_lpf_pin.set("PIN: " + std::string(lpf_pin ? "1" : "0"));
+    text_lpf_set.set("SET: " + std::string(lpf_set ? "1" : "0"));
+
+    // Color code
+    text_lpf_dir.set_style(lpf_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_lpf_pin.set_style(lpf_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Extract bit 9 (RF Amp)
+    bool amp_dir = (gpio4_dir >> 9) & 1;
+    bool amp_pin = (gpio4_pin >> 9) & 1;
+    bool amp_set = (gpio4_set >> 9) & 1;
+
+    text_amp_dir.set("DIR: " + std::string(amp_dir ? "OUT" : "IN"));
+    text_amp_pin.set("PIN: " + std::string(amp_pin ? "1" : "0"));
+    text_amp_set.set("SET: " + std::string(amp_set ? "1" : "0"));
+
+    text_amp_dir.set_style(amp_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_amp_pin.set_style(amp_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Read GPIO3 (Mixer) - bit 2
+    uint32_t gpio3_dir = LPC_GPIO->DIR[3];
+    uint32_t gpio3_pin = LPC_GPIO->PIN[3];
+    uint32_t gpio3_set = LPC_GPIO->SET[3];
+
+    bool mix_dir = (gpio3_dir >> 2) & 1;
+    bool mix_pin = (gpio3_pin >> 2) & 1;
+    bool mix_set = (gpio3_set >> 2) & 1;
+
+    text_mix_dir.set("DIR: " + std::string(mix_dir ? "OUT" : "IN"));
+    text_mix_pin.set("PIN: " + std::string(mix_pin ? "1" : "0"));
+    text_mix_set.set("SET: " + std::string(mix_set ? "1" : "0"));
+
+    text_mix_dir.set_style(mix_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_mix_pin.set_style(mix_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+}
+#endif
+
+#ifdef PRALINE
 /* RFFC5072StatusView *************************************************/
 
 RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
@@ -2333,6 +2476,7 @@ void DebugMenuView::on_populate() {
 	{"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
+        {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
         {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
 	{"MAX2831 Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},

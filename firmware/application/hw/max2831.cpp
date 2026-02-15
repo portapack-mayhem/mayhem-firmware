@@ -340,9 +340,21 @@ uint32_t MAX2831::set_lpf_bandwidth_internal(const uint32_t bandwidth_hz) {
 
 void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
     _desired_lpf_bw = bandwidth_minimum;
+#ifdef PRALINE
+    uint32_t actual_bw = bandwidth_minimum;
+    if (actual_bw < 22000000) {
+        actual_bw = 22000000;  // Never go below 15 MHz
+    }
+
+    _desired_lpf_bw = actual_bw;
+    if (_mode == Mode::Receive || _mode == Mode::Rx_Calibration) {
+        set_lpf_bandwidth_internal(actual_bw);
+    }
+#else
     if (_mode == Mode::Receive || _mode == Mode::Rx_Calibration) {
         set_lpf_bandwidth_internal(bandwidth_minimum);
     }
+#endif
 }
 
 void MAX2831::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {

@@ -927,11 +927,11 @@ extern "C" void boardInit(void) {
 
   /* Configure Port A pins for RF path control */
   /* PA_1 = GPIO4[8] LPF enable */
-  LPC_SCU->SFSP[0xA][1] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
+  LPC_SCU->SFSP[0xA][1] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->SET[4] = (1 << 8);  /* LPF enabled by default (low band) */
   LPC_GPIO->DIR[4] |= (1 << 8);  /* Output */
   /* PA_2 = GPIO4[9] RF amp enable */
-  LPC_SCU->SFSP[0xA][2] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
+  LPC_SCU->SFSP[0xA][2] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->CLR[4] = (1 << 9);  /* RF amp off by default */
   LPC_GPIO->DIR[4] |= (1 << 9);  /* Output */
 
