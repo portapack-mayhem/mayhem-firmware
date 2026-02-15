@@ -310,12 +310,6 @@ void Path::update() {
 
     config.apply();
 
-    // FORCE GPIO states after apply (bypass config struct)
-    if (band == Band::Low) {
-        gpio_lpf_enable.set();  // Force LPF ON for low band
-    }
-    gpio_rf_amp_enable.set();  // Always try to turn on amp
-
 #else
     /* HackRF One RF path control */
     const auto config = get_config(direction, band, rf_amp);

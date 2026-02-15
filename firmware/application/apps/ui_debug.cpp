@@ -1876,18 +1876,24 @@ void SystemDiagnosticsView::refresh() {
     // Read actual GPIO pin states
     read_gpio_states();
 
+    uint32_t gpio6_pin = LPC_GPIO->PIN[6];
+    bool rffc_locked = (gpio6_pin >> 25) & 1;
+
+    // Display it by changing one of the existing fields temporarily
+    // For example, modify the band display to show lock status:
+
     auto current_band = radio::debug::rf_path_info::get_current_band();
     switch (current_band) {
         case rf::path::Band::Low:
-            text_band.set("LOW (0-2320 MHz)");
-            text_band.set_style(Theme::getInstance()->fg_green);
+            text_band.set("LOW(0-2320MHz)|"+ std::string(rffc_locked ? "LCK)" : "ULCK)"));
+	    text_band.set_style(rffc_locked ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
             break;
         case rf::path::Band::Mid:
-            text_band.set("MID (2320-2740 MHz)");
+            text_band.set("MID(2320-2740MHz)");
             text_band.set_style(Theme::getInstance()->fg_green);
             break;
         case rf::path::Band::High:
-            text_band.set("HIGH (2740-7250 MHz)");
+            text_band.set("HIGH(2740-7250MHz)");
             text_band.set_style(Theme::getInstance()->fg_green);
             break;
     }
@@ -2058,6 +2064,10 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
     : nav_(nav) {
     add_children({
         &text_title,
+	&text_lbl_lock,
+	&text_lock,
+	&text_lbl_ctrl,
+	&text_ctrl,
         &text_lbl_enabled,
         &text_enabled,
         &text_lbl_freq,
@@ -2072,7 +2082,6 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_r1,
         &text_lbl_r2,
         &text_r2,
-        &text_lbl_decode,
         &text_lbl_n,
         &text_n,
         &text_lbl_lodiv,
@@ -2085,7 +2094,6 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
     });
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
-    text_lbl_decode.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
         refresh_status();
@@ -2104,11 +2112,41 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
+    // === READ RAW GPIO STATES FOR DEBUGGING ===
+    uint32_t gpio2_dir = LPC_GPIO->DIR[2];
+    uint32_t gpio2_pin = LPC_GPIO->PIN[2];
+    uint32_t gpio2_set = LPC_GPIO->SET[2];
+
+    // Check if the pins are even configured as outputs
+    bool enx_is_output = (gpio2_dir >> 13) & 1;
+    bool resetx_is_output = (gpio2_dir >> 14) & 1;
+
+    // === LOCK DETECT ===
+    uint32_t gpio6_pin = LPC_GPIO->PIN[6];
+    bool rffc_locked = (gpio6_pin >> 25) & 1;
+
+    text_lock.set(rffc_locked ? "LOCKED" : "UNLOCKED");
+    text_lock.set_style(rffc_locked ? Theme::getInstance()->fg_green
+                                    : Theme::getInstance()->fg_red);
+
+    // === CONTROL PINS ===
+    // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
+    // RESETX = GPIO2[14] (P5_5) - active LOW (0 = reset)
+    bool enx = (gpio2_pin >> 13) & 1;
+    bool resetx = (gpio2_pin >> 14) & 1;
+
+    text_ctrl.set(std::string(enx ? "DIS" : "EN") + " " +
+                  std::string(resetx ? "RUN" : "RST")+ " " +
+		  "O:" + std::string(resetx_is_output ? "Y" : "N")
+		  );
+    text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
+                                                   : Theme::getInstance()->fg_red);
+
+    // === REGISTERS ===
     // Read CORRECT registers for Path 2 (active path!)
     uint32_t r0 = radio::debug::first_if::register_read(0);    // Control
     uint32_t r15 = radio::debug::first_if::register_read(15);  // P2_FREQ1
     uint32_t r16 = radio::debug::first_if::register_read(16);  // P2_FREQ2
-    uint32_t r17 = radio::debug::first_if::register_read(17);  // P2_FREQ3
 
     // Display
     text_r0.set(to_string_hex(r0, 4));
@@ -2121,35 +2159,22 @@ void RFFC5072StatusView::refresh_status() {
     text_enabled.set_style(enabled ? Theme::getInstance()->fg_green
                                    : Theme::getInstance()->fg_red);
 
-    // Decode from P2_FREQ1 (R15) using struct layout:
-    // bits [1:0]   = p2vcosel
-    // bits [3:2]   = p2presc (prescaler)
-    // bits [6:4]   = p2lodiv (LO divider)
-    // bits [15:7]  = p2n (N divider integer)
-
+    // Decode from P2_FREQ1 (R15)
     uint16_t n_int = (r15 >> 7) & 0x1FF;    // 9 bits
     uint8_t lodiv_sel = (r15 >> 4) & 0x07;  // 3 bits
     uint8_t presc_sel = (r15 >> 2) & 0x03;  // 2 bits
-    uint8_t vcosel = r15 & 0x03;            // 2 bits
 
     text_n.set(to_string_dec_uint(n_int));
 
     // LO divider: 0=÷2, 1=÷4, 2=÷8, 3=÷16, 4=÷32, 5=÷64
     uint16_t lodiv_val = 1u << lodiv_sel;
-
-    // Prescaler: 0=÷2, 1=÷4 (but code only uses 1 or 2 per rffc507x.cpp)
     uint16_t presc_val = 1u << presc_sel;
 
     text_lodiv.set("/" + to_string_dec_uint(lodiv_val) +
-                   " (P: /" + to_string_dec_uint(presc_val) + ")");
+                   " (P:/" + to_string_dec_uint(presc_val) + ")");
 
     // Calculate frequencies
-    // F_VCO = (F_ref × N) / Prescaler
-    // F_LO = F_VCO / LODIV
     const uint32_t f_ref_mhz = 40;
-
-    // N divider is 24-bit fractional
-    // For quick calc, use integer part only
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
@@ -2165,32 +2190,37 @@ void RFFC5072StatusView::refresh_status() {
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 
-    // Check mixer mode (R0 bit 5 = MODE, 0=path1, 1=path2)
+    // Check mixer mode
     bool path2_active = (r0 & 0x0020) != 0;
     text_path.set(path2_active ? "PATH2" : "PATH1");
     text_mixer.set(path2_active ? "ACTIVE" : "INACTIVE");
     text_mixer.set_style(path2_active ? Theme::getInstance()->fg_green
                                       : Theme::getInstance()->fg_orange);
 
-    // Summary
-    if (!enabled) {
-        text_status.set("DISABLED!");
+    // === SUMMARY STATUS ===
+    if (!rffc_locked) {
+        text_status.set("PLL UNLOCKED!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (enx == 1) {
+        text_status.set("DISABLED (ENX=1)!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (resetx == 0) {
+        text_status.set("IN RESET (RESETX=0)!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!enabled) {
+        text_status.set("R0 bit 4 = 0 (disabled)");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else if (!path2_active) {
         text_status.set("Path 2 not selected!");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else if (!vco_ok) {
-        text_status.set("VCO " + to_string_dec_uint(f_vco_mhz) + "MHz OOR");
+        text_status.set("VCO out of range!");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else if (!lo_ok) {
-        text_status.set("LO " + to_string_dec_uint(f_lo_mhz) + "MHz OOR");
+        text_status.set("LO out of range!");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else {
-        text_status.set(to_string_dec_uint(f_ref_mhz) + "x" +
-                        to_string_dec_uint(n_int) + "/" +
-                        to_string_dec_uint(presc_val) + "/" +
-                        to_string_dec_uint(lodiv_val) + "=" +
-                        to_string_dec_uint(f_lo_mhz) + "MHz.");
+        text_status.set("All checks passed!");
         text_status.set_style(Theme::getInstance()->fg_green);
     }
 }

@@ -805,39 +805,43 @@ class RFFC5072StatusView : public View {
 
     Text text_title{{0, 0, 240, 16}, "=== RFFC5072 (1st IF) ==="};
 
-    Text text_lbl_enabled{{0, 20, 114, 16}, "Status:"};
-    Text text_enabled{{116, 20, 124, 16}, "---"};
+    Text text_lbl_lock{{0, 20, 114, 16}, "Lock Detect:"};
+    Text text_lock{{116, 20, 124, 16}, "---"};
 
-    Text text_lbl_freq{{0, 36, 114, 16}, "LO Freq:"};
-    Text text_freq{{116, 36, 124, 16}, "---"};
+    Text text_lbl_ctrl{{0, 36, 114, 16}, "Control:"};
+    Text text_ctrl{{116, 36, 124, 16}, "---"};
 
-    Text text_lbl_path{{0, 52, 114, 16}, "Path:"};
-    Text text_path{{116, 52, 124, 16}, "---"};
+    Text text_lbl_enabled{{0, 52, 114, 16}, "Status:"};
+    Text text_enabled{{116, 52, 124, 16}, "---"};
+
+    Text text_lbl_freq{{0, 68, 114, 16}, "LO Freq:"};
+    Text text_freq{{116, 68, 124, 16}, "---"};
+
+    Text text_lbl_path{{0, 84, 114, 16}, "Path:"};
+    Text text_path{{116, 84, 124, 16}, "---"};
 
     Text text_lbl_mixer{{0, 68, 114, 16}, "Mixer:"};
     Text text_mixer{{116, 68, 124, 16}, "---"};
 
-    Text text_lbl_r0{{0, 92, 114, 16}, "Reg 0:"};
-    Text text_r0{{116, 92, 124, 16}, "---"};
+    Text text_lbl_r0{{0, 100, 114, 16}, "Reg 0:"};
+    Text text_r0{{116, 100, 124, 16}, "---"};
 
-    Text text_lbl_r1{{0, 108, 114, 16}, "Reg 1 (N):"};
-    Text text_r1{{116, 108, 124, 16}, "---"};
+    Text text_lbl_r1{{0, 116, 114, 16}, "Reg 1 (N):"};
+    Text text_r1{{116, 116, 124, 16}, "---"};
 
-    Text text_lbl_r2{{0, 124, 114, 16}, "Reg 2:"};
-    Text text_r2{{116, 124, 124, 16}, "---"};
+    Text text_lbl_r2{{0, 132, 114, 16}, "Reg 2:"};
+    Text text_r2{{116, 132, 124, 16}, "---"};
 
-    Text text_lbl_decode{{0, 148, 240, 16}, "--- Decoded Values ---"};
+    Text text_lbl_n{{0, 148, 114, 16}, "N divider:"};
+    Text text_n{{116, 148, 124, 16}, "---"};
 
-    Text text_lbl_n{{0, 168, 114, 16}, "N divider:"};
-    Text text_n{{116, 168, 124, 16}, "---"};
+    Text text_lbl_lodiv{{0, 164, 114, 16}, "LO divider:"};
+    Text text_lodiv{{116, 164, 124, 16}, "---"};
 
-    Text text_lbl_lodiv{{0, 184, 114, 16}, "LO divider:"};
-    Text text_lodiv{{116, 184, 124, 16}, "---"};
+    Text text_lbl_calc{{0, 180, 114, 16}, "Calc freq:"};
+    Text text_calc{{116, 180, 124, 16}, "---"};
 
-    Text text_lbl_calc{{0, 200, 114, 16}, "Calc freq:"};
-    Text text_calc{{116, 200, 124, 16}, "---"};
-
-    Text text_status{{0, 224, 240, 32}, ""};
+    Text text_status{{0, 196, 240, 32}, ""};
 
     Button button_refresh{{8, 280, 72, 24}, "Refresh"};
     Button button_done{{168, 280, 64, 24}, "Done"};

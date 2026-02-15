@@ -935,6 +935,42 @@ extern "C" void boardInit(void) {
   LPC_GPIO->CLR[4] = (1 << 9);  /* RF amp off by default */
   LPC_GPIO->DIR[4] |= (1 << 9);  /* Output */
 
+  /* Configure RFFC5072 control pins for PRALINE */
+  /* P5_4 = GPIO2[13] RFFC5072 ENX (active low: 0=enabled) */
+  LPC_SCU->SFSP[5][4] = 0x10;  /* FUNCTION0 (GPIO), no pulls */
+
+  /* P5_5 = GPIO2[14] RFFC5072 RESETX (active low: 0=reset, 1=run) */
+  LPC_SCU->SFSP[5][5] = 0x10;  /* FUNCTION0 (GPIO), no pulls */
+
+  /* PD_11 = GPIO6[25] RFFC5072 Lock Detect (input) */
+  LPC_SCU->SFSP[0xD][11] = 0x10;  /* FUNCTION0 (GPIO), no pulls */
+
+  /* Initialize the GPIO registers directly */
+  LPC_GPIO->DIR[2] |= (1 << 13);  /* ENX: output */
+  LPC_GPIO->DIR[2] |= (1 << 14);  /* RESETX: output */
+  LPC_GPIO->DIR[6] &= ~(1 << 25); /* Lock Detect: input */
+
+  /* Set initial values */
+  LPC_GPIO->CLR[2] = (1 << 13);  /* ENX = 0 (enabled) */
+  LPC_GPIO->SET[2] = (1 << 14);  /* RESETX = 1 (running) */
+  LPC_GPIO->DIR[6] &= ~(1 << 25); /* Lock Detect: input */
+
+  /* Use direct bit access (more reliable than SET/CLR) */
+  LPC_GPIO->W2[13] = 0;  /* ENX = 0 (enabled) */
+  LPC_GPIO->W2[14] = 1;  /* RESETX = 1 (running) */
+
+  /* Multiple writes to ensure it takes */
+  for (volatile int i = 0; i < 10; i++) {
+    LPC_GPIO->W2[14] = 1;  /* Force RESETX high */
+  }
+
+  /* Small delay for signals to stabilize */
+  for (volatile int i = 0; i < 10000; i++) {}
+
+  /* Verify the write worked (optional debug) */
+  volatile uint32_t resetx_state = LPC_GPIO->PIN[2] & (1 << 14);
+  (void)resetx_state;  // Should be non-zero if working
+
   /* Configure PRALINE-specific SGPIO pins for FPGA sample interface.
    * These override the HackRF One pin config from pins_setup.
    * PRALINE uses different pins than HackRF One for SGPIO4/8/9/10.
