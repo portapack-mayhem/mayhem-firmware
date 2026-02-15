@@ -1,4 +1,18 @@
 #!/bin/sh
+set -eu
+
+# Run from repo root (script is in repo root)
+CF="./tools/clang-format.sh"
+
+# Sanity check
+if [ ! -x "$CF" ]; then
+  echo "ERROR: $CF not found or not executable." >&2
+  echo "Did you commit the pinned clang-format binaries and wrappers under tools/ ?" >&2
+  exit 2
+fi
+
+# Print version for traceability
+"$CF" --version
 
 find firmware/common \
      firmware/baseband \
@@ -7,5 +21,4 @@ find firmware/common \
      firmware/test/baseband \
      \( -iname '*.h' -o -iname '*.hpp' -o -iname '*.c' -o -iname '*.cpp' \) \
      -print0 | \
-     xargs -0 clang-format-18 -style=file -i
-
+     xargs -0 -r "$CF" -style=file -i
