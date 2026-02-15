@@ -3,7 +3,7 @@ name: Check formatting
 on: [pull_request]
 
 jobs:
-  check_date:
+  check_format:
     runs-on: ubuntu-latest
     name: Check formatting
     strategy:
@@ -14,11 +14,18 @@ jobs:
           - "firmware/baseband"
     steps:
       - uses: actions/checkout@v4
-      - name: print latest_commit
-        run: echo ${{ github.sha }}
-      - name: clang-format Check
-        uses: jidicula/clang-format-action@v4.16.0
-        with:
-          clang-format-version: '18'
-          check-path: ${{ matrix.path }}
-          fallback-style: Chromium
+
+      - name: Install clang-format-18
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-18
+
+      - name: clang-format check
+        run: |
+          set -euo pipefail
+          ROOT="${{ matrix.path }}"
+          find "$ROOT" -type f \( \
+              -name '*.c' -o -name '*.cpp' -o \
+              -name '*.h' -o -name '*.hpp' \
+            \) -print0 \
+            | xargs -0 -r clang-format-18 --dry-run --Werror --style=file --fallback-style=Chromium
