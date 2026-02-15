@@ -29,4 +29,4 @@ jobs:
               -name '*.c' -o -name '*.cpp' -o \
               -name '*.h' -o -name '*.hpp' \
             \) -print0 \
-            | xargs -0 -r "$CF" --dry-run --Werror --style=file --fallback-style=Chromium
+            | xargs -0 -r "$CF" --dry-run --Werror --style=file
