@@ -30,7 +30,7 @@
 struct KeeloqData {
     std::string mf_name{};
     uint32_t serial = 0;
-    uint16_t counter = 0;
+    uint32_t counter = 0;
     uint8_t btn = 0;
 };
 
