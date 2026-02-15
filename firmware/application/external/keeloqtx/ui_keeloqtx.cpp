@@ -16,9 +16,7 @@ void KeeloqTXView::focus() {
 }
 
 void KeeloqTXView::update_hop() {
-    hop = data.btn << 28 
-        | (data.serial & 0x3FF) << 16
-        | data.counter;
+    hop = data.btn << 28 | (data.serial & 0x3FF) << 16 | data.counter;
 
     if (data.mf_name == "Aprimatic") {
         uint32_t apri_serial = data.serial;
@@ -29,58 +27,31 @@ void KeeloqTXView::update_hop() {
         }
 
         apri_serial &= 0b00001111111111;
-                
+
         if (apr1 % 2 == 0) {
             apri_serial |= 0b110000000000;
         }
-        
-        hop = data.btn << 28 
-            | (apri_serial & 0xFFF) << 16 
-            | data.counter;
+
+        hop = data.btn << 28 | (apri_serial & 0xFFF) << 16 | data.counter;
     } else if (
-        data.mf_name == "DTM_Neo"
-        || data.mf_name == "FAAC_RC,XT"
-        || data.mf_name == "Mutanco_Mutancode" 
-        || data.mf_name == "Came_Space"
-        || data.mf_name == "Genius_Bravo"        
-        || data.mf_name == "GSN"        
-        || data.mf_name == "Rosh"
-        || data.mf_name == "Rossi"        
-        || data.mf_name == "Peccinin"      
-        || data.mf_name == "Steelmate"        
-        || data.mf_name == "Cardin_S449") {
-        hop = data.btn << 28 
-            | (data.serial & 0xFFF) << 16 
-            | data.counter;
+        data.mf_name == "DTM_Neo" || data.mf_name == "FAAC_RC,XT" || data.mf_name == "Mutanco_Mutancode" || data.mf_name == "Came_Space" || data.mf_name == "Genius_Bravo" || data.mf_name == "GSN" || data.mf_name == "Rosh" || data.mf_name == "Rossi" || data.mf_name == "Peccinin" || data.mf_name == "Steelmate" || data.mf_name == "Cardin_S449") {
+        hop = data.btn << 28 | (data.serial & 0xFFF) << 16 | data.counter;
     } else if (
-        data.mf_name == "NICE_Smilo"        
-        || data.mf_name == "NICE_MHOUSE"        
-        || data.mf_name == "JCM_Tech") {
-        hop = data.btn << 28 
-            | (data.serial & 0xFF) << 16 
-            | data.counter;
+        data.mf_name == "NICE_Smilo" || data.mf_name == "NICE_MHOUSE" || data.mf_name == "JCM_Tech") {
+        hop = data.btn << 28 | (data.serial & 0xFF) << 16 | data.counter;
     } else if (data.mf_name == "Merlin") {
-        hop = data.btn << 28 
-            | (0x000) << 16 
-            | data.counter;
+        hop = data.btn << 28 | (0x000) << 16 | data.counter;
     } else if (data.mf_name == "Centurion") {
-        hop = data.btn << 28 
-            | (0x1CE) << 16 
-            | data.counter;
+        hop = data.btn << 28 | (0x1CE) << 16 | data.counter;
     } else if (data.mf_name == "Monarch") {
-        hop = data.btn << 28 
-            | (0x100) << 16 
-            | data.counter;
+        hop = data.btn << 28 | (0x100) << 16 | data.counter;
     } else if (data.mf_name == "Dea_Mio") {
         uint8_t first_disc_num = (data.serial >> 8) & 0xF;
         uint8_t result_disc = (0xC + (first_disc_num % 4));
 
-        uint32_t dea_serial = (data.serial & 0xFF) 
-                            | (((uint32_t)result_disc) << 8);
-        
-        hop = data.btn << 28 
-            | (dea_serial & 0xFFF) << 16 
-            | data.counter;
+        uint32_t dea_serial = (data.serial & 0xFF) | (((uint32_t)result_disc) << 8);
+
+        hop = data.btn << 28 | (dea_serial & 0xFFF) << 16 | data.counter;
     }
 
     text_hop.set(to_string_hex(hop));
@@ -106,8 +77,8 @@ void KeeloqTXView::update_payload() {
 
     payload = (uint64_t)fix << 32 | encrypt;
 
-    uint64_t preview_payload = FProtoGeneral::subghz_protocol_blocks_reverse_key(payload, 64); 
-                
+    uint64_t preview_payload = FProtoGeneral::subghz_protocol_blocks_reverse_key(payload, 64);
+
     text_payload.set(to_string_hex(preview_payload));
     encode_data();
 }
@@ -120,7 +91,7 @@ void KeeloqTXView::encode_data() {
     }
 
     encoded_data = KEELOQ_HEADER + fragments + "1001";
-    
+
     if (data.mf_name == "Sommer") {
         pause_duration = 28;
     } else {
@@ -128,30 +99,29 @@ void KeeloqTXView::encode_data() {
     }
 }
 
-KeeloqTXView::KeeloqTXView(NavigationView& nav) : nav_{ nav } {
+KeeloqTXView::KeeloqTXView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
-    add_children({
-        &labels,
-        &text_mf_name,
-        &text_serial,
-        &text_fix,
-        &text_hop,
-        &field_counter,
-        &field_button,
-        &field_repeat,
-        &text_payload,
-        &button_open,
-        &text_status,
-        &progressbar,
-        &tx_view
-    });
+    add_children({&labels,
+                  &text_mf_name,
+                  &text_serial,
+                  &text_fix,
+                  &text_hop,
+                  &field_counter,
+                  &field_button,
+                  &field_repeat,
+                  &text_payload,
+                  &button_open,
+                  &text_status,
+                  &progressbar,
+                  &tx_view});
 
     field_counter.on_change = [this](uint32_t value) {
         data.counter = (uint16_t)value;
-        
+
         update_hop();
-        update_payload(); 
+        update_payload();
     };
 
     field_button.on_change = [this](uint32_t value) {
@@ -208,9 +178,9 @@ KeeloqTXView::KeeloqTXView(NavigationView& nav) : nav_{ nav } {
                         break;
                     }
                 }
-                
+
                 fix = data.btn << 28 | data.serial;
-                
+
                 update_hop();
 
                 text_mf_name.set(data.mf_name);
@@ -219,7 +189,7 @@ KeeloqTXView::KeeloqTXView(NavigationView& nav) : nav_{ nav } {
 
                 field_counter.set_value(data.counter, false);
                 field_button.set_value(data.btn, false);
-                
+
                 update_payload();
 
                 field_counter.focus();
@@ -240,8 +210,7 @@ void KeeloqTXView::start_tx() {
         bitstream_length,
         OOK_SAMPLERATE * (400.0 / 1000000.0),
         repeat,
-        pause_duration
-    );
+        pause_duration);
 }
 
 void KeeloqTXView::stop_tx() {
@@ -259,7 +228,7 @@ void KeeloqTXView::stop_tx() {
 
     write_keeloq_file(file_path, data);
 }
-  
+
 void KeeloqTXView::on_tx_progress(uint32_t progress, bool done) {
     if (!done) {
         text_status.set(to_string_dec_uint(progress + 1) + "/" + to_string_dec_uint(repeat));
@@ -276,4 +245,4 @@ KeeloqTXView::~KeeloqTXView() {
     baseband::shutdown();
 }
 
-}
+}  // namespace ui::external_app::ui_keeloqtx

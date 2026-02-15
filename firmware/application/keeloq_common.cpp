@@ -3,7 +3,7 @@
 uint32_t keeloq_encrypt(const uint32_t data, const uint64_t key) {
     uint32_t x = data, r;
 
-    for (r = 0; r < 528; r++) 
+    for (r = 0; r < 528; r++)
         x = (x >> 1) ^ ((bit(x, 0) ^ bit(x, 16) ^ (uint32_t)bit(key, r & 63) ^
                          bit(KEELOQ_NLF, g5(x, 1, 9, 20, 26, 31)))
                         << 31);
@@ -34,4 +34,3 @@ uint64_t keeloq_normal_learning(uint32_t data, const uint64_t key) {
 
     return ((uint64_t)k2 << 32) | k1;
 }
-

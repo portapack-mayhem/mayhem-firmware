@@ -28,7 +28,7 @@ namespace ui::external_app::ui_keeloqtx {
 void initialize_app(ui::NavigationView& nav) {
     nav.push<KeeloqTXView>();
 }
-}  // namespace ui::external_app::ui_new_external_app
+}  // namespace ui::external_app::ui_keeloqtx
 
 extern "C" {
 
@@ -71,7 +71,7 @@ __attribute__((section(".external_app.app_keeloqtx.application_information"), us
         0x0F,
         0xE0,
         0x07,
-    },   
+    },
     /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
