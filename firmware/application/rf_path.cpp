@@ -299,18 +299,22 @@ void Path::update() {
 
     /* Move to the final state by turning on required signals. */
     /* LPF for low band */
-
-    //config.lpf_en = (band == Band::Low);
-    config.lpf_en = true;
+    config.lpf_en = (band == Band::Low);
 
     /* RF amp when amplification requested */
-    //config.rf_amp_en = rf_amp;
-    config.rf_amp_en = true;
+    config.rf_amp_en = rf_amp;
 
     /* Antenna bias off by default */
     config.ant_bias_en_n = true;
 
     config.apply();
+
+    // FORCE GPIO states after apply (bypass config struct)
+    if (band == Band::Low) {
+        gpio_lpf_enable.set();  // Force LPF ON for low band
+    }
+    gpio_rf_amp_enable.set();  // Always try to turn on amp
+
 #else
     /* HackRF One RF path control */
     const auto config = get_config(direction, band, rf_amp);

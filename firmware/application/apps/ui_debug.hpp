@@ -955,6 +955,61 @@ class SystemDiagnosticsView : public View {
 };
 #endif
 
+#ifdef PRALINE
+class GPIODebugView : public View {
+   public:
+    GPIODebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "GPIO Debug"; };
+
+   private:
+    void refresh();
+    
+    // GPIO4 (LPF and RF Amp)
+    Text text_lbl_gpio4{{0, 0, 240, 16}, "Pin Diag: GPIO4 (LPF|Amp|Mix)"};
+    
+    Text text_lbl_dir4{{0, 18, 114, 16}, "DIR[4]:"};
+    Text text_dir4{{116, 18, 124, 16}, "---"};
+    
+    Text text_lbl_pin4{{0, 36, 114, 16}, "PIN[4] (read):"};
+    Text text_pin4{{116, 36, 124, 16}, "---"};
+    
+    Text text_lbl_set4{{0, 54, 114, 16}, "SET[4] (write):"};
+    Text text_set4{{116, 54, 124, 16}, "---"};
+    
+    // Bit 8 (LPF)
+    Text text_lbl_lpf_bit{{0, 78, 240, 16}, "Bit 8 (LPF - GPIO4[8]):"};
+    Text text_lpf_dir{{0, 96, 80, 16}, "DIR: ?"};
+    Text text_lpf_pin{{82, 96, 78, 16}, "PIN: ?"};
+    Text text_lpf_set{{162, 96, 78, 16}, "SET: ?"};
+    
+    Button button_lpf_toggle{{8, 114, 110, 24}, "Toggle LPF"};
+    Button button_lpf_on{{122, 114, 50, 24}, "ON"};
+    Button button_lpf_off{{176, 114, 50, 24}, "OFF"};
+    
+    // Bit 9 (RF Amp)
+    Text text_lbl_amp_bit{{0, 146, 240, 16}, "Bit 9 (Amp - GPIO4[9]):"};
+    Text text_amp_dir{{0, 164, 80, 16}, "DIR: ?"};
+    Text text_amp_pin{{82, 164, 78, 16}, "PIN: ?"};
+    Text text_amp_set{{162, 164, 78, 16}, "SET: ?"};
+    
+    Button button_amp_toggle{{8, 182, 110, 24}, "Toggle Amp"};
+    Button button_amp_on{{122, 182, 50, 24}, "ON"};
+    Button button_amp_off{{176, 182, 50, 24}, "OFF"};
+    
+    // GPIO3 (Mixer)
+    Text text_lbl_gpio3{{0, 214, 240, 16}, "--- GPIO3 (Mixer) ---"};
+    Text text_lbl_mix_bit{{0, 232, 240, 16}, "Bit 2 (MIX - GPIO3[2]):"};
+    Text text_mix_dir{{0, 250, 80, 16}, "DIR: ?"};
+    Text text_mix_pin{{82, 250, 78, 16}, "PIN: ?"};
+    Text text_mix_set{{162, 250, 78, 16}, "SET: ?"};
+    
+    // Controls
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+#endif
+
 #endif
 
 class DebugPeripheralsMenuView : public BtnGridView {
