@@ -53,50 +53,50 @@ class KeeloqTXView : public View {
     void update_hop();
 
     Labels labels{
-        {{1 * 8, 0}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 8}, "Serial:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 4 * 8}, "Fix:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 6 * 8}, "Hop:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 8 * 8}, "Counter:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 10 * 8}, "Button:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 12 * 8}, "Repeat:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 16 * 8}, "Payload:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(0)}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(1)}, "Serial:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "Fix:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(3)}, "Hop:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(4)}, "Counter:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(5)}, "Button:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(6)}, "Repeat:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(8)}, "Payload:", Theme::getInstance()->fg_light->foreground},
     };
 
-    Text text_mf_name{{15 * 8, 0, 128, 16}, ""};
-    Text text_serial{{9 * 8, 2 * 8, 64, 16}, "00000000"};
-    Text text_fix{{6 * 8, 4 * 8, 64, 16}, "00000000"};
-    Text text_hop{{6 * 8, 6 * 8, 64, 16}, "00000000"};
+    Text text_mf_name{{UI_POS_X(15), UI_POS_Y(0), 128, 16}, ""};
+    Text text_serial{{UI_POS_X(9), UI_POS_Y(1), 64, 16}, "00000000"};
+    Text text_fix{{UI_POS_X(6), UI_POS_Y(2), 64, 16}, "00000000"};
+    Text text_hop{{UI_POS_X(6), UI_POS_Y(3), 64, 16}, "00000000"};
 
     NumberField field_counter{
-        {10 * 8, 8 * 8},
+        {UI_POS_X(10), UI_POS_Y(4)},
         5,
         {0, 65535},
         1,
         ' '};
     NumberField field_button{
-        {9 * 8, 10 * 8},
+        {UI_POS_X(9), UI_POS_Y(5)},
         2,
         {0, 15},
         1,
         ' '};
     NumberField field_repeat{
-        {9 * 8, 12 * 8},
+        {UI_POS_X(10), UI_POS_Y(6)},
         3,
         {0, 100},
         1,
         ' '};
 
-    Text text_payload{{2 * 8, 18 * 8, 128, 16}, "0000000000000000"};
+    Text text_payload{{UI_POS_X(2), UI_POS_Y(9), 128, 16}, "0000000000000000"};
 
     void update_payload();
 
-    Button button_open{{0, 22 * 8, screen_width, 32}, "Open file"};
+    Button button_open{{UI_POS_X(0), UI_POS_Y(11), screen_width, 32}, "Open file"};
 
-    Text text_status{{2 * 8, 26 * 8, 128, 16}, "Ready"};
+    Text text_status{{UI_POS_X(2), UI_POS_Y_BOTTOM(7), 128, 16}, "Ready"};
 
     ProgressBar progressbar{
-        {2 * 8, 13 * 16 + 20, UI_POS_WIDTH_REMAINING(4), 16}};
+        {UI_POS_X(2), UI_POS_Y_BOTTOM(7) + 20, UI_POS_WIDTH_REMAINING(4), 16}};
 
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
