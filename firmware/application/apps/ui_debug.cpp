@@ -1685,7 +1685,7 @@ void SignalPathStatusView::refresh_status() {
     // Decode bits
     bool dc_block = fpga_ctrl & 0x01;
     bool q_invert = fpga_ctrl & 0x02;
-    bool quarter_shift = (fpga_ctrl >> 2) & 0x03;
+    uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
 
     // Display human-readable
     std::string fpga_status_dc_q = "DC:" + std::string(dc_block ? "ON" : "OFF") +
@@ -2098,6 +2098,8 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_calc,
         &text_calc,
         &text_status,
+	&text_lbl_regs_status,
+	&text_regs_status,
         &button_refresh,
         &button_done,
     });
@@ -2124,7 +2126,6 @@ void RFFC5072StatusView::refresh_status() {
     // === READ RAW GPIO STATES FOR DEBUGGING ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
-    uint32_t gpio2_set = LPC_GPIO->SET[2];
 
     // Check if the pins are even configured as outputs
     bool enx_is_output = (gpio2_dir >> 13) & 1;
@@ -2138,6 +2139,14 @@ void RFFC5072StatusView::refresh_status() {
     text_lock.set_style(rffc_locked ? Theme::getInstance()->fg_green
                                     : Theme::getInstance()->fg_red);
 
+    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);  // CTRL register
+    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);  // RX_DECIM
+   
+    text_regs_status.set(
+        "FPGA R1:" + to_string_hex(fpga_reg1, 2) +
+        " R2:" + to_string_hex(fpga_reg2, 2)
+    );
+
     // === CONTROL PINS ===
     // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
     // RESETX = GPIO2[14] (P5_5) - active LOW (0 = reset)
@@ -2147,6 +2156,7 @@ void RFFC5072StatusView::refresh_status() {
     text_ctrl.set(std::string(enx ? "DIS" : "EN") + " " +
                   std::string(resetx ? "RUN" : "RST") + " " +
                   "O:" + std::string(resetx_is_output ? "Y" : "N"));
+
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
 

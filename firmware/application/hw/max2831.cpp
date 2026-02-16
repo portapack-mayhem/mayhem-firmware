@@ -46,7 +46,7 @@ struct max2831_debug_t {
     bool set_frequency_called;
     bool frequency_valid;
 };
-max2831_debug_t max2831_debug_info = {0, 0, 0, false, false};
+extern "C" max2831_debug_t max2831_debug_info = {0, 0, 0, false, false};
 
 namespace max2831 {
 

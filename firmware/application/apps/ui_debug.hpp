@@ -804,46 +804,49 @@ class RFFC5072StatusView : public View {
 
     Text text_title{{0, 0, 240, 16}, "=== RFFC5072 (1st IF) ==="};
 
-    Text text_lbl_lock{{0, 20, 114, 16}, "Lock Detect:"};
-    Text text_lock{{116, 20, 124, 16}, "---"};
+    Text text_lbl_lock{{0, 16, 114, 16}, "Lock Detect:"};
+    Text text_lock{{116, 16, 124, 16}, "---"};
 
-    Text text_lbl_ctrl{{0, 36, 114, 16}, "Control:"};
-    Text text_ctrl{{116, 36, 124, 16}, "---"};
+    Text text_lbl_ctrl{{0, 32, 114, 16}, "Control:"};
+    Text text_ctrl{{116, 32, 124, 16}, "---"};
 
-    Text text_lbl_enabled{{0, 52, 114, 16}, "Status:"};
-    Text text_enabled{{116, 52, 124, 16}, "---"};
+    Text text_lbl_enabled{{0, 48, 114, 16}, "Status:"};
+    Text text_enabled{{116, 48, 124, 16}, "---"};
 
-    Text text_lbl_freq{{0, 68, 114, 16}, "LO Freq:"};
-    Text text_freq{{116, 68, 124, 16}, "---"};
+    Text text_lbl_freq{{0, 64, 114, 16}, "LO Freq:"};
+    Text text_freq{{116, 64, 124, 16}, "---"};
 
-    Text text_lbl_path{{0, 84, 114, 16}, "Path:"};
-    Text text_path{{116, 84, 124, 16}, "---"};
+    Text text_lbl_path{{0, 80, 114, 16}, "Path:"};
+    Text text_path{{116, 80, 124, 16}, "---"};
 
-    Text text_lbl_mixer{{0, 68, 114, 16}, "Mixer:"};
-    Text text_mixer{{116, 68, 124, 16}, "---"};
+    Text text_lbl_mixer{{0, 96, 114, 16}, "Mixer:"};
+    Text text_mixer{{116, 96, 124, 16}, "---"};
 
-    Text text_lbl_r0{{0, 100, 114, 16}, "Reg 0:"};
-    Text text_r0{{116, 100, 124, 16}, "---"};
+    Text text_lbl_r0{{0, 112, 114, 16}, "Reg 0:"};
+    Text text_r0{{116, 112, 124, 16}, "---"};
 
-    Text text_lbl_r1{{0, 116, 114, 16}, "Reg 1 (N):"};
-    Text text_r1{{116, 116, 124, 16}, "---"};
+    Text text_lbl_r1{{0, 128, 114, 16}, "Reg 1 (N):"};
+    Text text_r1{{116, 128, 124, 16}, "---"};
 
-    Text text_lbl_r2{{0, 132, 114, 16}, "Reg 2:"};
-    Text text_r2{{116, 132, 124, 16}, "---"};
+    Text text_lbl_r2{{0, 144, 114, 16}, "Reg 2:"};
+    Text text_r2{{116, 144, 124, 16}, "---"};
 
-    Text text_lbl_n{{0, 148, 114, 16}, "N divider:"};
-    Text text_n{{116, 148, 124, 16}, "---"};
+    Text text_lbl_n{{0, 160, 114, 16}, "N divider:"};
+    Text text_n{{116, 160, 124, 16}, "---"};
 
-    Text text_lbl_lodiv{{0, 164, 114, 16}, "LO divider:"};
-    Text text_lodiv{{116, 164, 124, 16}, "---"};
+    Text text_lbl_lodiv{{0, 176, 114, 16}, "LO divider:"};
+    Text text_lodiv{{116, 176, 124, 16}, "---"};
 
-    Text text_lbl_calc{{0, 180, 114, 16}, "Calc freq:"};
-    Text text_calc{{116, 180, 124, 16}, "---"};
+    Text text_lbl_calc{{0, 192, 114, 16}, "Calc freq:"};
+    Text text_calc{{116, 192, 124, 16}, "---"};
 
-    Text text_status{{0, 196, 240, 32}, ""};
+    Text text_status{{0, 208, 240, 16}, ""};
 
-    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
-    Button button_done{{168, 280, 64, 24}, "Done"};
+    Text text_lbl_regs_status{{0, 224, 48, 16}, "Regs:"};
+    Text text_regs_status{{50, 224, 190, 16}, "---"};
+
+    Button button_refresh{{2, 280, 56, 24}, "Rfrsh"};
+    Button button_done{{182, 280, 56, 24}, "Done"};
 };
 
 #ifdef PRALINE
