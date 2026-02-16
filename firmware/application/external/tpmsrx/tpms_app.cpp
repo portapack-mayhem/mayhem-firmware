@@ -127,13 +127,13 @@ TPMSAppView::TPMSAppView(NavigationView&) {
         format::pressure_unit = (uint8_t)i;
         update_view();
     };
-    options_pressure.set_selected_index(format::pressure_unit, true);
+    options_pressure.set_by_value(format::pressure_unit);
 
     options_temperature.on_change = [this](size_t, int32_t i) {
         format::temp_unit = (uint8_t)i;
         update_view();
     };
-    options_temperature.set_selected_index(format::temp_unit, true);
+    options_temperature.set_by_value(format::temp_unit);
 
     logger = std::make_unique<TPMSLogger>();
     if (logger) {
