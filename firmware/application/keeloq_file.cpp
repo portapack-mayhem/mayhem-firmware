@@ -60,9 +60,9 @@ bool write_keeloq_file(const fs::path& path, const KeeloqData& data) {
         return false;
     }
 
-    std::string formatted = data.mf_name + ";" + 
-                            to_string_hex(data.serial) + ";" + 
-                            to_string_dec_uint(data.counter) + ";" + 
+    std::string formatted = data.mf_name + ";" +
+                            to_string_hex(data.serial) + ";" +
+                            to_string_dec_uint(data.counter) + ";" +
                             to_string_dec_uint(data.btn);
 
     file.write_line(formatted);
