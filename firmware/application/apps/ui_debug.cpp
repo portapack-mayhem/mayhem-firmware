@@ -2098,8 +2098,8 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_calc,
         &text_calc,
         &text_status,
-	&text_lbl_regs_status,
-	&text_regs_status,
+        &text_lbl_regs_status,
+        &text_regs_status,
         &button_refresh,
         &button_done,
     });
@@ -2141,11 +2141,10 @@ void RFFC5072StatusView::refresh_status() {
 
     uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);  // CTRL register
     uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);  // RX_DECIM
-   
+
     text_regs_status.set(
         "FPGA R1:" + to_string_hex(fpga_reg1, 2) +
-        " R2:" + to_string_hex(fpga_reg2, 2)
-    );
+        " R2:" + to_string_hex(fpga_reg2, 2));
 
     // === CONTROL PINS ===
     // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
