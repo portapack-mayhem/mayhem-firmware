@@ -366,7 +366,8 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
-    // BMPViewer bmp_view{ {0, 0, screen_width, screen_height - 16}};
+    uint32_t myrand(uint32_t* state);
+    void get_random_splash_file(std::filesystem::path& path);
 };
 
 class ReceiversMenuView : public BtnGridView {
