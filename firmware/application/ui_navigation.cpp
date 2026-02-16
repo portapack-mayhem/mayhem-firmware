@@ -1060,22 +1060,23 @@ void SplashScreenView::paint(Painter&) {
     if (portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp)) return;
     // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
 
-    uint8_t file_number = 0;
+    uint16_t file_number = 0;
     {
         for (const auto& entry : std::filesystem::directory_iterator(splash_dir, u"*.bmp")) {
+            (void)entry;
             file_number++;
         }
     }
     std::srand(LPC_RTC->CTIME0);  // seed random with current time
-    std::filesystem::path path = "";
+    std::filesystem::path path = u"";
 
     if (file_number > 0) {
-        uint8_t n = std::rand() % file_number;
-        uint8_t i = 0;
+        uint16_t n = std::rand() % file_number;
+        uint16_t i = 0;
         {
             for (const auto& entry : std::filesystem::directory_iterator(splash_dir, u"*.bmp")) {
                 if (i == n) {
-                    path = splash_dir + u"/" + entry.path();
+                    path = splash_dir / entry.path();
                     break;
                 }
                 i++;
