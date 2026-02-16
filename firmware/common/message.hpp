@@ -153,6 +153,7 @@ class Message {
         MorseTXConfigure = 95,
         MorseTXkey = 96,
         StreamTXConfiguration = 97,
+        RTTYData = 98,
         MAX
     };
 
@@ -1768,6 +1769,28 @@ class StreamTXConfigurationMessage : public Message {
 
     uint32_t deviation = 60000;  // used in 2fsk
     uint8_t mode = 0;            // am = 0, 2fsk = 1
+};
+
+class RTTYDataMessage : public Message {
+   public:
+    constexpr RTTYDataMessage(uint16_t baud = 4545, uint16_t shift = 170, int16_t mark_tone = -85, int16_t space_tone = 85, uint8_t stopbits = 3, bool inverted = false)
+        : Message{ID::RTTYData},
+          baud(baud),
+          shift(shift),
+          mark_tone(mark_tone),
+          space_tone(space_tone),
+          inverted(inverted),
+          stopbits(stopbits) {
+    }
+    uint8_t data[490]{0};      // 5bit data, stored on 8 bits.
+    uint16_t data_len = 0;     // count of data sent
+    uint16_t baud = 4545;      // /100 baud 45.45 = 4545
+    uint16_t shift = 170;      // hz
+    int16_t mark_tone = 0;     // for tx., hz
+    int16_t space_tone = 170;  // hz
+    bool inverted = false;     // for tx, if true, mark and space tones are swapped.
+    uint8_t stopbits = 3;      // doubled value is stored here, so stop 2 = 1 stop bit, 3 = 1.5, 4 = 2.
+    static constexpr uint16_t max_len = 490;
 };
 
 #endif /*__MESSAGE_H__*/
