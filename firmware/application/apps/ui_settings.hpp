@@ -36,7 +36,6 @@
 #include "ff.h"
 #include "portapack_persistent_memory.hpp"
 #include "irq_controls.hpp"
-#include "file.hpp"
 
 #include <cstdint>
 
@@ -1065,9 +1064,9 @@ class SettingsMenuView : public BtnGridView {
     void on_populate() override;
 };
 
-class SetSpash : public View {
+class SetSplash : public View {
    public:
-    SetSpash(NavigationView& nav);
+    SetSplash(NavigationView& nav);
 
     void focus() override;
 
