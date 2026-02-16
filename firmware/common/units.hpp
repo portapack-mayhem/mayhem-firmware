@@ -22,6 +22,12 @@
 #ifndef __UNITS_H__
 #define __UNITS_H__
 
+#define TEMP_UNIT_CELSIUS 0
+#define TEMP_UNIT_FAHRENHEIT 1
+#define PRESSURE_UNIT_KPA 2
+#define PRESSURE_UNIT_BAR 3
+#define PRESSURE_UNIT_PSI 4
+
 #include <cstdint>
 
 #define STR_DEGREES_C "\xB0\x43"  // ºC - 0xB0 is degree ° symbol in our 8x16 font, 0x43 is "C"
