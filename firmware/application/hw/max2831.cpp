@@ -343,7 +343,7 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
 #ifdef PRALINE
     uint32_t actual_bw = bandwidth_minimum;
     if (actual_bw < 22000000) {
-        actual_bw = 22000000;  // Never go below 15 MHz
+        actual_bw = 22000000;  // Never go below 15 MHz, set by choosing 22.6 MHz bandwidth
     }
 
     _desired_lpf_bw = actual_bw;
