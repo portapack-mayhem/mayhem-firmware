@@ -14,13 +14,12 @@
 #include "event_m4.hpp"
 #include <algorithm>
 
-// Coefficient for 2.4576 MHz
-// 2^32 / 2457600 = 1747.626...
-// We use 1748.
-static constexpr uint32_t PHASE_DELTA_COEFF = 1748;
+static constexpr uint32_t LEAD_IN_SAMPLES = 204800;
 
-// Lead-in: ~20ms at 2.4576MHz
-static constexpr uint32_t LEAD_IN_SAMPLES = 49152;
+static inline uint32_t hz_to_delta(int32_t hz, uint32_t fs) {
+    int64_t delta = ((int64_t)hz * (int64_t)UINT32_MAX) / (int64_t)fs;
+    return (uint32_t)delta;
+}
 
 void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) {
@@ -31,7 +30,6 @@ void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
     }
 
     for (size_t i = 0; i < buffer.count; i++) {
-        // 1. PRECISION TIMING
         bool advance = false;
 
         if (state == State::LeadIn) {
@@ -41,7 +39,7 @@ void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
             }
         } else if (state == State::LeadOut) {
             lead_counter++;
-            if (lead_counter >= 29500) {
+            if (lead_counter >= 460000) {
                 txprogress_message.done = true;
                 shared_memory.application_queue.push(txprogress_message);
                 configured = false;
@@ -60,46 +58,35 @@ void RTTYTXProcessor::execute(const buffer_c8_t& buffer) {
             advance_state();
         }
 
-        // 2. TONE SELECTION
+        // Tone selection
         uint32_t target_delta;
         bool is_mark = true;
 
         switch (state) {
             case State::StartBit:
-                is_mark = false;  // Space
+                is_mark = false;
                 break;
             case State::DataBits:
-                is_mark = (current_char >> bit_pos) & 1;  // LSB First
+                is_mark = (current_char >> bit_pos) & 1;
                 break;
-            case State::Idle:
-            case State::LeadIn:
-            case State::LeadOut:
-            case State::StopBit:
             default:
-                is_mark = true;  // Mark
+                is_mark = true;
                 break;
         }
 
-        if (is_mark)
-            target_delta = delta_mark;
-        else
-            target_delta = delta_space;
+        target_delta = is_mark ? delta_mark : delta_space;
 
-        // 3. LINEAR SLEW RATE LIMITING
+        // Slew limiter
         int32_t diff = (int32_t)target_delta - (int32_t)current_delta;
+        int32_t abs_diff = diff < 0 ? -diff : diff;
 
-        if (abs(diff) <= (int32_t)slew_rate) {
+        if (abs_diff <= (int32_t)slew_rate) {
             current_delta = target_delta;
         } else {
-            if (diff > 0)
-                current_delta += slew_rate;
-            else
-                current_delta -= slew_rate;
+            current_delta += (diff > 0) ? slew_rate : -slew_rate;
         }
 
-        // 4. GENERATION
         phase += current_delta;
-
         int8_t re = sine_table_i8[((phase + 0x40000000) & 0xFF000000) >> 24];
         int8_t im = sine_table_i8[(phase & 0xFF000000) >> 24];
 
@@ -134,14 +121,10 @@ void RTTYTXProcessor::advance_state() {
             bit_pos++;
             if (bit_pos >= 5) {
                 state = State::StopBit;
-                if (configured_stop_bits > 0) {
-                    baud_phase_increment = (base_baud_phase_increment * 2) / configured_stop_bits;
-                }
             }
             break;
 
         case State::StopBit:
-            baud_phase_increment = base_baud_phase_increment;
             if (buffer_pop(current_char)) {
                 state = State::StartBit;
             } else {
@@ -155,17 +138,22 @@ void RTTYTXProcessor::advance_state() {
     }
 }
 
-void RTTYTXProcessor::configure(uint16_t baud, uint16_t shift, int16_t mark_tone_, int16_t space_tone_, uint8_t stop_bits_, bool inverted_) {
+void RTTYTXProcessor::configure(
+    uint16_t baud,
+    uint16_t shift,
+    int16_t mark_tone_,
+    int16_t space_tone_,
+    uint8_t stop_bits_,
+    bool inverted_) {
     if (baud == 0) return;
-    // Baud Rate
-    uint64_t calc = (uint64_t)baud * 13981;
-    uint32_t new_base_baud_inc = (uint32_t)(calc / 1000);
 
-    // Stop Bits
+    // baud phase increment
+    uint32_t new_base_baud_inc = (uint32_t)((uint64_t)baud * UINT32_MAX / (baseband_fs * 100ULL));
+
+    // Stop bits
     configured_stop_bits = stop_bits_;
     if (configured_stop_bits < 2) configured_stop_bits = 2;
 
-    // Frequencies
     int32_t freq_mark = mark_tone_;
     int32_t freq_space = space_tone_;
 
@@ -173,17 +161,15 @@ void RTTYTXProcessor::configure(uint16_t baud, uint16_t shift, int16_t mark_tone
         std::swap(freq_mark, freq_space);
     }
 
-    // Convert Frequencies to Phase Deltas
-    uint32_t new_delta_mark = (uint32_t)(freq_mark * (int32_t)PHASE_DELTA_COEFF);
-    uint32_t new_delta_space = (uint32_t)(freq_space * (int32_t)PHASE_DELTA_COEFF);
+    uint32_t new_delta_mark = hz_to_delta(freq_mark, baseband_fs);
+    uint32_t new_delta_space = hz_to_delta(freq_space, baseband_fs);
 
-    // Slew Rate Calculation
-    // We aim for the transition to take about 1/15th of a bit width
-    uint32_t samples_per_bit = (baseband_fs * 100) / baud;
-    uint32_t transition_samples = samples_per_bit / 15;
+    // Slew rate
+    uint32_t samples_per_bit = (uint32_t)((uint64_t)UINT32_MAX / new_base_baud_inc);
+    uint32_t transition_samples = samples_per_bit / 10;
     if (transition_samples == 0) transition_samples = 1;
 
-    uint32_t shift_delta = (uint32_t)((uint32_t)shift * PHASE_DELTA_COEFF);
+    uint32_t shift_delta = hz_to_delta(shift, baseband_fs);
     uint32_t new_slew_rate = shift_delta / transition_samples;
     if (new_slew_rate == 0) new_slew_rate = 1;
 
@@ -222,6 +208,8 @@ void RTTYTXProcessor::on_message(const Message* const msg) {
         for (uint16_t i = 0; i < rtty_msg.data_len && i < rtty_msg.max_len; i++) {
             buffer_push(rtty_msg.data[i]);
         }
+        buffer_push(0x08);  // CR
+        buffer_push(0x02);  // LF
 
         if (state == State::Idle) {
             state = State::LeadIn;

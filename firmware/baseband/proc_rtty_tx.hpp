@@ -33,7 +33,7 @@ class RTTYTXProcessor : public BasebandProcessor {
     void on_message(const Message* const msg) override;
 
    private:
-    static constexpr uint32_t baseband_fs = 2457600;
+    static constexpr uint32_t baseband_fs = 2048000;
 
     bool configured{false};
 

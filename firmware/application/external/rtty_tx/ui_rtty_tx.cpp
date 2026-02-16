@@ -88,10 +88,10 @@ RttyTxView::RttyTxView(NavigationView& nav)
             return;
         }
         baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-        transmitter_model.set_baseband_bandwidth(2457600);
-        baseband::set_sample_rate(250000, OversampleRate::x8);
-        transmitter_model.set_sampling_rate(250000 * 8);
-        transmitter_model.set_channel_bandwidth(250000);
+        transmitter_model.set_baseband_bandwidth(2048000);
+        baseband::set_sample_rate(2048000, OversampleRate::None);
+        transmitter_model.set_sampling_rate(2048000);
+        transmitter_model.set_baseband_bandwidth(2048000);
         transmitter_model.enable();
         rtty_message.baud = baud_conf;
         rtty_message.shift = shift;
