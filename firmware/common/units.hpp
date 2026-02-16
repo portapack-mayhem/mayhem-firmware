@@ -48,6 +48,10 @@ class Pressure {
         return kpa_ * 1000 / 6895;
     }
 
+    int bar() const {
+        return kpa_ / 100;
+    }
+
    private:
     int16_t kpa_;
 };

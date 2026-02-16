@@ -42,7 +42,13 @@ namespace ui::external_app::tpmsrx {
 
 namespace format {
 
-static bool units_psi{false};
+enum class PressureUnit : int {
+    kPa = 0,
+    PSI = 1,
+    BAR = 2,
+};
+
+static PressureUnit units_pressure{PressureUnit::kPa};
 static bool units_fahr{false};
 
 } /* namespace format */
@@ -117,7 +123,7 @@ class TPMSAppView : public View {
         "rx_tpms",
         app_settings::Mode::RX,
         {
-            {"units_psi"sv, &format::units_psi},
+            {"units_pressure"sv, &format::units_pressure},
             {"units_fahr"sv, &format::units_fahr},
         }};
 
@@ -154,9 +160,10 @@ class TPMSAppView : public View {
 
     OptionsField options_pressure{
         {6 * 8, UI_POS_Y(0)},
-        3,
-        {{"kPa", 0},
-         {"PSI", 1}}};
+        4,
+        {{"kPa", static_cast<int>(PressureUnit::kPa)},
+         {"PSI", static_cast<int>(PressureUnit::PSI)},
+         {"BAR", static_cast<int>(PressureUnit::BAR)}}};
 
     OptionsField options_temperature{
         {10 * 8, UI_POS_Y(0)},
