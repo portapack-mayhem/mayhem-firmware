@@ -1112,9 +1112,9 @@ void SetBatteryView::focus() {
     button_cancel.focus();
 }
 
-/* SetSpash *********************************************/
+/* SetSlpash *********************************************/
 
-SetSpash::SetSpash(NavigationView& nav) {
+SetSplash::SetSplash(NavigationView& nav) {
     add_children({&checkbox_showsplash,
                   &checkbox_randomsplash,
                   &message,
@@ -1148,7 +1148,7 @@ SetSpash::SetSpash(NavigationView& nav) {
     };
 }
 
-void SetSpash::focus() {
+void SetSplash::focus() {
     button_save.focus();
 }
 
@@ -1185,7 +1185,7 @@ void SettingsMenuView::on_populate() {
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
-        {"Splash settings", ui::Color::dark_cyan(), &bitmap_icon_file_image, [this]() { nav_.push<SetSpash>(); }},
+        {"Splash settings", ui::Color::dark_cyan(), &bitmap_icon_file_image, [this]() { nav_.push<SetSplash>(); }},
     });
 
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});
