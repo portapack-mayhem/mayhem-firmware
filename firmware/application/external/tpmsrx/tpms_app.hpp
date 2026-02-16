@@ -42,16 +42,9 @@ namespace ui::external_app::tpmsrx {
 
 namespace format {
 
-enum class PressureUnit : int {
-    kPa = 0,
-    PSI = 1,
-    BAR = 2,
-};
-
-static PressureUnit units_pressure{PressureUnit::kPa};
-static bool units_fahr{false};
-
-} /* namespace format */
+static uint8_t pressure_unit{PRESSURE_UNIT_KPA};
+static uint8_t temp_unit{TEMP_UNIT_CELSIUS};
+}  // namespace format
 
 struct TPMSRecentEntry {
     using Key = std::pair<tpms::Reading::Type, tpms::TransponderID>;
@@ -123,8 +116,8 @@ class TPMSAppView : public View {
         "rx_tpms",
         app_settings::Mode::RX,
         {
-            {"units_pressure"sv, &format::units_pressure},
-            {"units_fahr"sv, &format::units_fahr},
+            {"pressure_unit"sv, &format::pressure_unit},
+            {"temp_unit"sv, &format::temp_unit},
         }};
 
     MessageHandlerRegistration message_handler_packet{
@@ -161,15 +154,15 @@ class TPMSAppView : public View {
     OptionsField options_pressure{
         {6 * 8, UI_POS_Y(0)},
         4,
-        {{"kPa", static_cast<int>(PressureUnit::kPa)},
-         {"PSI", static_cast<int>(PressureUnit::PSI)},
-         {"BAR", static_cast<int>(PressureUnit::BAR)}}};
+        {{"kPa", PRESSURE_UNIT_KPA},
+         {"PSI", PRESSURE_UNIT_PSI},
+         {"BAR", PRESSURE_UNIT_BAR}}};
 
     OptionsField options_temperature{
         {10 * 8, UI_POS_Y(0)},
         2,
-        {{STR_DEGREES_C, 0},
-         {STR_DEGREES_F, 1}}};
+        {{STR_DEGREES_C, TEMP_UNIT_CELSIUS},
+         {STR_DEGREES_F, TEMP_UNIT_FAHRENHEIT}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, UI_POS_Y(0)}};
