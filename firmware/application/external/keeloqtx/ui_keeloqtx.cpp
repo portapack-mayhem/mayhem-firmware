@@ -67,7 +67,7 @@ void KeeloqTXView::update_payload() {
             break;
         }
         case KEELOQ_NORMAL_LEARNING: {
-            uint64_t man = keeloq_normal_learning(hop, current_key.key);
+            uint64_t man = keeloq_normal_learning(fix, current_key.key);
 
             encrypt = keeloq_encrypt(hop, man);
 
