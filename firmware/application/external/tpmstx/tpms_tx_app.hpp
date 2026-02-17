@@ -1,0 +1,180 @@
+/*
+ * Copyright (C) 2026
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#ifndef __TPMS_TX_APP_H__
+#define __TPMS_TX_APP_H__
+
+#include "ui_widget.hpp"
+#include "ui_navigation.hpp"
+#include "ui_transmitter.hpp"
+#include "transmitter_model.hpp"
+#include "app_settings.hpp"
+#include "radio_state.hpp"
+#include "portapack.hpp"
+#include "message.hpp"
+#include "tpms_packet.hpp"
+#include "file_path.hpp"
+#include "string_format.hpp"
+
+namespace ui::external_app::tpmstx {
+
+class TPMSTXView : public View {
+   public:
+    TPMSTXView(NavigationView& nav);
+    ~TPMSTXView();
+
+    void focus() override;
+
+    std::string title() const override { return "TPMS TX"; };
+
+   private:
+    NavigationView& nav_;
+
+    TxRadioState radio_state_{
+        314900000,  /* frequency */
+        1750000,    /* bandwidth */
+        2457600     /* sampling rate */
+    };
+
+    app_settings::SettingsManager settings_{
+        "tx_tpms",
+        app_settings::Mode::TX};
+
+    // TPMS packet data
+    tpms::Reading::Type packet_type_{tpms::Reading::Type::Schrader};
+    uint32_t transponder_id_{0x12345678};
+    uint16_t pressure_kpa_{240};     // Default ~35 PSI
+    int16_t temperature_c_{25};       // Default 25°C
+    uint8_t flags_{0x00};
+    tpms::SignalType signal_type_{tpms::SignalType::FSK_19k2_Schrader};
+
+    uint8_t repeat_count_{5};
+    uint32_t pause_duration_{50};  // ms between repeats
+
+    bool is_transmitting_{false};
+    uint8_t current_repeat_{0};
+
+    void start_tx();
+    void stop_tx();
+    void send_packet();
+    void encode_and_transmit();
+    void update_packet_display();
+
+    MessageHandlerRegistration message_handler_tx_progress{
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            if (message.done) {
+                handle_tx_complete();
+            }
+        }};
+
+    void handle_tx_complete();
+
+    Labels labels{
+        {{2 * 8, 2 * 16}, "Packet Type:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 4 * 16}, "Transponder ID:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 6 * 16}, "Pressure (kPa):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "Temperature (C):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 16}, "Flags (hex):", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 12 * 16}, "Signal Type:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 14 * 16}, "Repeat:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    OptionsField options_packet_type{
+        {18 * 8, 2 * 16},
+        10,
+        {
+            {"Schrader", (int32_t)tpms::Reading::Type::Schrader},
+            {"FLM_64", (int32_t)tpms::Reading::Type::FLM_64},
+            {"FLM_72", (int32_t)tpms::Reading::Type::FLM_72},
+            {"FLM_80", (int32_t)tpms::Reading::Type::FLM_80},
+            {"GMC_96", (int32_t)tpms::Reading::Type::GMC_96},
+        }};
+
+    SymField field_transponder_id{
+        {18 * 8, 4 * 16},
+        8,
+        SymField::Type::Hex};
+
+    NumberField field_pressure{
+        {18 * 8, 6 * 16},
+        4,
+        {0, 9999},
+        1,
+        ' '};
+
+    NumberField field_temperature{
+        {18 * 8, 8 * 16},
+        4,
+        {-99, 999},
+        1,
+        ' '};
+
+    SymField field_flags{
+        {18 * 8, 10 * 16},
+        2,
+        SymField::Type::Hex};
+
+    OptionsField options_signal_type{
+        {18 * 8, 12 * 16},
+        12,
+        {
+            {"FSK 19k2", (int32_t)tpms::SignalType::FSK_19k2_Schrader},
+            {"OOK 8k192", (int32_t)tpms::SignalType::OOK_8k192_Schrader},
+            {"OOK 8k4", (int32_t)tpms::SignalType::OOK_8k4_Schrader},
+        }};
+
+    NumberField field_repeat{
+        {18 * 8, 14 * 16},
+        3,
+        {1, 100},
+        1,
+        ' '};
+
+    Button button_load{
+        {2 * 8, 17 * 16, 10 * 8, 32},
+        "Load"};
+
+    Button button_save{
+        {13 * 8, 17 * 16, 10 * 8, 32},
+        "Save"};
+
+    TransmitterView2 tx_view{
+        {16 * 8, 0 * 16},
+        true  // Short UI format
+    };
+
+    Button button_transmit{
+        {2 * 8, 20 * 16, 21 * 8, 48},
+        "START TX"};
+
+    Text text_status{
+        {2 * 8, 24 * 16, 26 * 8, 16},
+        "Ready"};
+
+    ProgressBar progressbar{
+        {2 * 8, 25 * 16, 26 * 8, 16}};
+};
+
+}  // namespace ui::external_app::tpmstx
+
+#endif /*__TPMS_TX_APP_H__*/
