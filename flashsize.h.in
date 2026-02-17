@@ -6,6 +6,4 @@
 #define FLASH_SIZE_MB @FLASH_MB_SIZE@
 //Current compiled fw size in MB
 #define FLASH_SIZE_LIMIT_MB @FLASH_MB_LIMIT_SIZE@
-//Current compiled fw + bitstream size in MB
-#define FLASH_SIZE_LIMIT_WITH_BITSTREAM_MB @FLASH_MB_LIMIT_WITH_BITSTREAM_SIZE@
 // clang-format on

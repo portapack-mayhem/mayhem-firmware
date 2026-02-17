@@ -41,10 +41,8 @@ message("Configuring for FLASH_MB_SIZE=${FLASH_MB_SIZE}MB")
 if(NOT DEFINED FLASH_MB_LIMIT_SIZE)
 	if(BOARD STREQUAL "PRALINE")
 		set(FLASH_MB_LIMIT_SIZE 3.5) #PRALINE 4 MB = 3.5 firmware + 0.5 MB fpga bitstream.
-		set(FLASH_MB_LIMIT_WITH_BITSTREAM_SIZE 4) #PRALINE 4 MB = 3.5 firmware + 0.5 MB fpga bitstream.
 	else()
 	    set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
-		set(FLASH_MB_LIMIT_WITH_BITSTREAM_SIZE 1) # the hackrf one ain't have bitstream. this is to satisfy the FLASH ERR checker.
 		endif()
 endif()
 message("Configuring for FLASH_MB_LIMIT_SIZE=${FLASH_MB_LIMIT_SIZE}MB")
