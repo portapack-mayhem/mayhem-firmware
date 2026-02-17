@@ -70,6 +70,9 @@ class TPMSTXView : public View {
     uint32_t pause_duration_{50};  // ms between repeats
 
     bool is_transmitting_{false};
+    bool advanced_mode_{false};
+
+    void update_signal_type_from_packet();
 
     void start_tx();
     void stop_tx();
@@ -96,9 +99,15 @@ class TPMSTXView : public View {
         {{0 * 8, 3 * 16}, "Pres:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 4 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 5 * 16}, "Flag:", Theme::getInstance()->fg_light->foreground},
+        {{17 * 8, 1 * 16}, "Adv", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 6 * 16}, "Sig:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
+
+    Checkbox checkbox_advanced{
+        {21 * 8, 1 * 16},
+        3,
+        ""};  // Empty text, label is next to it
 
     OptionsField options_frequency{
         {6 * 8, 0 * 16},

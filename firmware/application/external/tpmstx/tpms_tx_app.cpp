@@ -38,6 +38,30 @@ void TPMSTXView::focus() {
     options_packet_type.focus();
 }
 
+void TPMSTXView::update_signal_type_from_packet() {
+    // Auto-select signal type based on packet type
+    switch (packet_type_) {
+        case tpms::Reading::Type::Schrader:
+            signal_type_ = tpms::SignalType::OOK_8k192_Schrader;
+            options_signal_type.set_selected_index(1);  // OOK 8k192
+            break;
+        case tpms::Reading::Type::FLM_64:
+        case tpms::Reading::Type::FLM_72:
+        case tpms::Reading::Type::FLM_80:
+            signal_type_ = tpms::SignalType::FSK_19k2_Schrader;
+            options_signal_type.set_selected_index(0);  // FSK 19k2
+            break;
+        case tpms::Reading::Type::GMC_96:
+            signal_type_ = tpms::SignalType::OOK_8k4_Schrader;
+            options_signal_type.set_selected_index(2);  // OOK 8k4
+            break;
+        default:
+            signal_type_ = tpms::SignalType::OOK_8k192_Schrader;
+            options_signal_type.set_selected_index(1);
+            break;
+    }
+}
+
 void TPMSTXView::update_packet_display() {
     // Only update status text - field values are already set by user interaction
     // or by explicit set_value calls when loading from file
@@ -60,7 +84,7 @@ void TPMSTXView::encode_and_transmit() {
         // Preamble: 11*2, 01*14, 11, 10
         // Data: 3 bits flags, 24 bits ID, 8 bits pressure, 2 bits checksum
         // Total: 37 Manchester symbols (74 bits after encoding)
-        
+
         symbol_rate = 8192;
 
         // Preamble as expected by RX decoder
@@ -72,19 +96,19 @@ void TPMSTXView::encode_and_transmit() {
 
         // Build data bits (pre-Manchester)
         uint64_t data = 0;
-        
+
         // 3-bit flags
         uint8_t flags_3bit = flags_ & 0x07;
         data |= ((uint64_t)flags_3bit << 34);
-        
+
         // 24-bit ID (only use lower 24 bits)
         uint32_t id_24bit = transponder_id_ & 0x00FFFFFF;
         data |= ((uint64_t)id_24bit << 10);
-        
+
         // 8-bit pressure (convert kPa to raw: kPa * 3/4)
         uint8_t pressure_raw = (pressure_kpa_ * 3 / 4) & 0xFF;
         data |= ((uint64_t)pressure_raw << 2);
-        
+
         // Calculate 2-bit checksum: sum all 2-bit pairs, result & 3 must equal 3
         uint32_t checksum_calc = (data >> 36) & 1;  // First bit
         for (size_t i = 1; i < 37; i += 2) {
@@ -101,25 +125,25 @@ void TPMSTXView::encode_and_transmit() {
                 binary_string += "01";  // '0' = 01 in Manchester
             }
         }
-        
+
     } else if (signal_type_ == tpms::SignalType::OOK_8k4_Schrader) {
         // GMC_96 OOK 8k4 format
         symbol_rate = 8400;
-        
+
         // Preamble: 01*40
         for (int i = 0; i < 40; i++) {
             binary_string += "01";
         }
-        
+
         // System ID: first nibble is 0x4, then 20 more bits
         binary_string += "01";  // 0
-        binary_string += "10";  // 1 
+        binary_string += "10";  // 1
         binary_string += "01";  // 0
         binary_string += "01";  // 0  (0100 = 0x4)
         for (int i = 0; i < 20; i++) {
             binary_string += "01";  // Padding
         }
-        
+
         // 32-bit ID (Manchester encoded)
         for (int i = 31; i >= 0; i--) {
             if ((transponder_id_ >> i) & 1) {
@@ -128,7 +152,7 @@ void TPMSTXView::encode_and_transmit() {
                 binary_string += "01";
             }
         }
-        
+
         // Pressure: kPa * 4/11
         uint8_t pressure_gmc = (pressure_kpa_ * 4 / 11) & 0xFF;
         for (int i = 7; i >= 0; i--) {
@@ -138,7 +162,7 @@ void TPMSTXView::encode_and_transmit() {
                 binary_string += "01";
             }
         }
-        
+
         // Temperature: temp + 61
         uint8_t temp_gmc = (temperature_c_ + 61) & 0xFF;
         for (int i = 7; i >= 0; i--) {
@@ -148,7 +172,7 @@ void TPMSTXView::encode_and_transmit() {
                 binary_string += "01";
             }
         }
-        
+
         // Checksum: sum of all bytes
         uint8_t checksum = 0x44;  // First nibble 0x4 << 4 | next nibble
         checksum += pressure_gmc;
@@ -160,7 +184,7 @@ void TPMSTXView::encode_and_transmit() {
                 binary_string += "01";
             }
         }
-        
+
     } else {
         // FSK_19k2_Schrader - not properly supported yet
         symbol_rate = 19200;
@@ -183,8 +207,7 @@ void TPMSTXView::encode_and_transmit() {
         bitstream_length,
         samples_per_bit,
         repeat_count_,
-        pause_duration_
-    );
+        pause_duration_);
 }
 
 void TPMSTXView::handle_tx_complete() {
@@ -231,6 +254,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
     add_children({&labels,
                   &options_frequency,
+                  &checkbox_advanced,
                   &options_packet_type,
                   &field_transponder_id,
                   &field_pressure,
@@ -247,9 +271,16 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
     // Initialize values
     options_frequency.set_by_value(transmitter_model.target_frequency());
+    checkbox_advanced.set_value(advanced_mode_);
     options_packet_type.set_selected_index(0);
     options_signal_type.set_selected_index(0);
     field_repeat.set_value(repeat_count_);
+
+    // Set initial signal type based on packet type if in basic mode
+    if (!advanced_mode_) {
+        update_signal_type_from_packet();
+        options_signal_type.hidden(true);
+    }
 
     // Initialize field values from default member variables
     field_transponder_id.set_value(transponder_id_);
@@ -264,8 +295,20 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
         transmitter_model.set_target_frequency(v);
     };
 
+    checkbox_advanced.on_select = [this](Checkbox&, bool v) {
+        advanced_mode_ = v;
+        options_signal_type.hidden(!v);
+        if (!v) {
+            // Switching to basic mode - auto-select signal type
+            update_signal_type_from_packet();
+        }
+    };
+
     options_packet_type.on_change = [this](size_t, int32_t value) {
         packet_type_ = static_cast<tpms::Reading::Type>(value);
+        if (!advanced_mode_) {
+            update_signal_type_from_packet();
+        }
         update_packet_display();
     };
 
