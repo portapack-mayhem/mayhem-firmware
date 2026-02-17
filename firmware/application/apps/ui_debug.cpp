@@ -1910,8 +1910,8 @@ void SystemDiagnosticsView::refresh() {
 GPIODebugView::GPIODebugView(NavigationView& nav) {
     add_children({
         &text_lbl_gpio4,
-        &text_lbl_dir4,
-        &text_dir4,
+	&text_lbl_mixr1,
+	&text_mixr1,
         &text_lbl_pin4,
         &text_pin4,
         &text_lbl_set4,
@@ -2014,7 +2014,7 @@ void GPIODebugView::refresh() {
     uint32_t gpio4_set = LPC_GPIO->SET[4];  // What we're trying to output
 
     // Display full registers
-    text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
+    //text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
     text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
     text_set4.set("0x" + to_string_hex(gpio4_set, 8));
 
@@ -2058,6 +2058,22 @@ void GPIODebugView::refresh() {
 
     text_mix_dir.set_style(mix_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
     text_mix_pin.set_style(mix_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Read GPIO5 (Mixer R1) - bit 2
+    uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
+    bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
+    uint32_t gpio5_state = LPC_GPIO->PIN[5];
+    bool mix_r10_pin = (gpio5_state >> 6) & 1;  // GPIO5[6] = P2_6
+    // Mixer is active LOW, so invert for display
+    bool mixer_enabled = !mix_n_actual;
+
+    // Append to existing mixer display:
+    text_mixr1.set(
+        std::string(mixer_enabled ? "ENABLED" : "BYPASSED") +
+        " P6_3=" + to_string_dec_uint(mix_n_actual ? 1 : 0) +
+        " P2_6=" + to_string_dec_uint(mix_r10_pin ? 1 : 0));
+
+    text_mixr1.set_style(mixer_enabled ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
 }
 #endif
 

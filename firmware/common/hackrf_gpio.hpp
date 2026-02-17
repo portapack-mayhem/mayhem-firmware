@@ -54,6 +54,7 @@ constexpr GPIO gpio_rx_mix_bp = gpio[GPIO2_12];
 constexpr GPIO gpio_tx_mix_bp = gpio[GPIO2_11];
 #ifdef PRALINE
 constexpr GPIO gpio_mix_bypass = gpio[GPIO3_2];         // P6_3: PRALINE RF path mixer bypass inverted
+constexpr GPIO gpio_mix_en_n_r1_0 = gpio[GPIO5_6];      // P2_6: R1.0 board mixer bypass
 #else
 constexpr GPIO gpio_mix_bypass = gpio[GPIO5_16];
 #endif
@@ -78,7 +79,8 @@ constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];
 
 #ifdef PRALINE
 constexpr GPIO gpio_rffc5072_enx = gpio[GPIO2_13];      // P5_4: RFFC5072 ENX (active LOW)
-constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_7];   // P5_7: PRALINE CS
+constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];   // P5_4: ENX doubles as SPI strobe
+//constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_7];   // P5_7: PRALINE CS
 #else
 constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];
 #endif
@@ -116,7 +118,7 @@ constexpr GPIO gpio_max2839_rxtx = gpio[GPIO2_5];
 #endif
 
 #ifdef PRALINE
-constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];
+constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];  // PD_16: PRALINE MAX5864 CS
 constexpr GPIO gpio_fpga_select = gpio[GPIO2_10];  // FPGA SPI CS (P5_1)
 #else
 constexpr GPIO gpio_max5864_select = gpio[GPIO2_7];
@@ -157,9 +159,17 @@ constexpr GPIO gpio_trigger_out = gpio[GPIO5_6];  // Trigger output (P2_6)
 constexpr GPIO gpio_pps_out = gpio[GPIO5_5];      // PPS output (P2_5)
 #endif
 
+#ifdef PRALINE
+/* PRALINE has no HackRF CPLD. These pins are used for RFFC5072 and TX_EN instead.
+ * Dummy assignments here allow cpld_update.cpp to compile; the functions
+ * that use them are never called on PRALINE. */
+constexpr GPIO gpio_cpld_tdo = gpio[GPIO3_0];  // dummy: reuse TCK pin
+constexpr GPIO gpio_cpld_tms = gpio[GPIO3_1];  // dummy: reuse TDI pin
+#else
 constexpr GPIO gpio_cpld_tdo = gpio[GPIO5_18];
-constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];
 constexpr GPIO gpio_cpld_tms = gpio[GPIO3_4];
+#endif
+constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];
 constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];
 
 constexpr GPIO gpio_r9_clkin_en = gpio[GPIO5_15];

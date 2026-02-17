@@ -694,7 +694,7 @@ class SignalPathStatusView : public View {
 
     Text text_title{{0, 0, 240, 16}, "=== Signal Path Status ==="};
 
-    Text text_lbl_max_enable{{0, 20, 1114, 16}, "MAX2831:"};
+    Text text_lbl_max_enable{{0, 20, 114, 16}, "MAX2831:"};
     Text text_max_enable{{116, 20, 124, 16}, "---"};
 
     Text text_lbl_max_mode{{0, 36, 114, 16}, "RX Mode:"};
@@ -748,8 +748,8 @@ class GPIODebugView : public View {
     // GPIO4 (LPF and RF Amp)
     Text text_lbl_gpio4{{0, 0, 240, 16}, "Pin Diag: GPIO4 (LPF|Amp|Mix)"};
 
-    Text text_lbl_dir4{{0, 18, 114, 16}, "DIR[4]:"};
-    Text text_dir4{{116, 18, 124, 16}, "---"};
+    Text text_lbl_mixr1{{0, 18, 56, 16}, "MixR1:"};
+    Text text_mixr1{{58, 18, 180, 16}, "---"};
 
     Text text_lbl_pin4{{0, 36, 114, 16}, "PIN[4] (read):"};
     Text text_pin4{{116, 36, 124, 16}, "---"};
