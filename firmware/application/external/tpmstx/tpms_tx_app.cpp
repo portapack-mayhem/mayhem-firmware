@@ -27,6 +27,7 @@
 #include "manchester.hpp"
 #include "rtc_time.hpp"
 #include "file_path.hpp"
+#include "encoders.hpp"
 
 using namespace portapack;
 using namespace tpms;
@@ -52,79 +53,96 @@ void TPMSTXView::update_packet_display() {
 }
 
 void TPMSTXView::encode_and_transmit() {
-    if (is_transmitting_) {
-        // Build TPMS packet data
-        // This is a simplified encoder - actual TPMS encoding is protocol-specific
-        // For Schrader FSK protocol as an example:
-        
-        // Create a basic packet structure (this would need to be protocol-specific)
-        std::vector<uint8_t> packet_data;
-        
-        // Schrader format (simplified):
-        // Byte 0: Flags/Status
-        // Bytes 1-4: Transponder ID
-        // Bytes 5-6: Pressure (8-bit value in kPa / 4)
-        // Byte 7: Temperature (8-bit signed, offset by 50)
-        // Byte 8: Checksum
-        
-        packet_data.push_back(flags_);
-        packet_data.push_back((transponder_id_ >> 24) & 0xFF);
-        packet_data.push_back((transponder_id_ >> 16) & 0xFF);
-        packet_data.push_back((transponder_id_ >> 8) & 0xFF);
-        packet_data.push_back(transponder_id_ & 0xFF);
-        
-        // Pressure: convert kPa to protocol format (typically kPa/4 for Schrader)
-        uint8_t pressure_byte = (pressure_kpa_ / 4) & 0xFF;
-        packet_data.push_back(pressure_byte);
-        
-        // Temperature: offset by 50 degrees (common in TPMS)
-        int8_t temp_offset = temperature_c_ + 50;
-        packet_data.push_back((uint8_t)temp_offset);
-        
-        // Simple checksum (sum of all bytes)
-        uint8_t checksum = 0;
-        for (auto byte : packet_data) {
-            checksum += byte;
+    if (!is_transmitting_) return;
+
+    // Build TPMS packet data
+    // This is a simplified encoder - actual TPMS encoding is protocol-specific
+    // For Schrader protocol as an example:
+    
+    // Create packet_data structure (this would need to be protocol-specific)
+    std::vector<uint8_t> packet_data;
+    
+    // Schrader format (simplified):
+    // Byte 0: Flags/Status
+    // Bytes 1-4: Transponder ID
+    // Byte 5: Pressure (8-bit value in kPa / 4)
+    // Byte 6: Temperature (8-bit signed, offset by 50)
+    // Byte 7: Checksum
+    
+    packet_data.push_back(flags_);
+    packet_data.push_back((transponder_id_ >> 24) & 0xFF);
+    packet_data.push_back((transponder_id_ >> 16) & 0xFF);
+    packet_data.push_back((transponder_id_ >> 8) & 0xFF);
+    packet_data.push_back(transponder_id_ & 0xFF);
+    
+    // Pressure: convert kPa to protocol format (typically kPa/4 for Schrader)
+    uint8_t pressure_byte = (pressure_kpa_ / 4) & 0xFF;
+    packet_data.push_back(pressure_byte);
+    
+    // Temperature: offset by 50 degrees (common in TPMS)
+    int8_t temp_offset = temperature_c_ + 50;
+    packet_data.push_back((uint8_t)temp_offset);
+    
+    // Simple checksum (sum of all bytes)
+    uint8_t checksum = 0;
+    for (auto byte : packet_data) {
+        checksum += byte;
+    }
+    packet_data.push_back(checksum);
+
+    // Manchester encode the data
+    std::vector<uint8_t> encoded_data;
+    encoded_data.resize(packet_data.size() * 2);
+    manchester_encode(encoded_data.data(), packet_data.data(), packet_data.size(), 0);
+
+    // Convert to binary string for OOK transmission
+    std::string binary_string;
+    for (auto byte : encoded_data) {
+        for (int i = 7; i >= 0; i--) {
+            binary_string += ((byte >> i) & 1) ? '1' : '0';
         }
-        packet_data.push_back(checksum);
+    }
 
-        // Manchester encode the data
-        std::vector<uint8_t> encoded_data;
-        encoded_data.resize(packet_data.size() * 2);
-        manchester_encode(encoded_data.data(), packet_data.data(), packet_data.size(), 0);
+    // Set up transmission parameters based on signal type
+    uint32_t symbol_rate;
+    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        symbol_rate = 19200;  // FSK mode
+    } else if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
+        symbol_rate = 8192;   // OOK mode
+    } else {
+        symbol_rate = 8400;   // OOK 8k4 mode
+    }
 
-        // Send to baseband for transmission
-        if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
-            // FSK transmission
-            baseband::set_fsk_data(
-                encoded_data.size() * 8,  // Number of bits
-                9600,                      // Symbol rate
-                19200,                     // Deviation
-                50                         // Pause between repeats (ms)
-            );
-        } else {
-            // OOK transmission
-            baseband::set_ook_data(
-                encoded_data.size() * 8,  // Number of bits
-                2000,                     // Samples per bit
-                current_repeat_,          // Repeat count (handled manually)
-                pause_duration_          // Pause between repeats (ms)
-            );
-        }
+    // Convert binary string to bitstream
+    size_t bitstream_length = encoders::make_bitstream(binary_string);
 
-        current_repeat_++;
-        progressbar.set_value(current_repeat_);
+    // Calculate samples per bit
+    uint32_t samples_per_bit = transmitter_model.sampling_rate() / symbol_rate;
 
-        if (current_repeat_ >= repeat_count_) {
-            stop_tx();
-        }
+    // Send via OOK baseband
+    baseband::set_ook_data(
+        bitstream_length,
+        samples_per_bit,
+        1,                // Single transmission (we handle repeats manually)
+        pause_duration_   // Pause between repeats
+    );
+
+    current_repeat_++;
+    progressbar.set_value(current_repeat_);
+
+    if (current_repeat_ >= repeat_count_) {
+        // All repeats done
+        chThdSleepMilliseconds(pause_duration_);
+        stop_tx();
+    } else {
+        // More repeats to go, schedule next one
+        chThdSleepMilliseconds(pause_duration_);
     }
 }
 
 void TPMSTXView::handle_tx_complete() {
     if (is_transmitting_ && current_repeat_ < repeat_count_) {
         // Continue with next repeat
-        chThdSleepMilliseconds(pause_duration_);
         encode_and_transmit();
     }
 }
@@ -240,37 +258,64 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
             File f;
             auto error = f.open(file_path);
             if (!error.is_valid()) {
-                char buffer[256];
+                char buffer[512];
                 auto result = f.read(buffer, sizeof(buffer) - 1);
                 if (result.is_ok()) {
                     buffer[result.value()] = 0;
                     
-                    // Parse the file format (simple text format)
-                    // Format: ID=<hex> P=<kPa> T=<C> F=<hex>
+                    // Parse the file format (key=value format, one per line)
                     std::string content(buffer);
+                    size_t pos = 0;
                     
-                    // Simple parsing (you could make this more robust)
-                    size_t id_pos = content.find("ID=");
-                    size_t p_pos = content.find("P=");
-                    size_t t_pos = content.find("T=");
-                    size_t f_pos = content.find("F=");
+                    auto parse_line = [&content, &pos](const std::string& key) -> std::string {
+                        size_t key_pos = content.find(key + "=", pos);
+                        if (key_pos != std::string::npos) {
+                            size_t value_start = key_pos + key.length() + 1;
+                            size_t value_end = content.find('\n', value_start);
+                            if (value_end == std::string::npos) value_end = content.length();
+                            return content.substr(value_start, value_end - value_start);
+                        }
+                        return "";
+                    };
                     
-                    if (id_pos != std::string::npos) {
-                        transponder_id_ = std::stoul(content.substr(id_pos + 3, 8), nullptr, 16);
+                    std::string type_str = parse_line("Type");
+                    std::string id_str = parse_line("ID");
+                    std::string pressure_str = parse_line("Pressure");
+                    std::string temp_str = parse_line("Temperature");
+                    std::string flags_str = parse_line("Flags");
+                    
+                    if (!type_str.empty()) {
+                        int type = std::stoi(type_str);
+                        if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) && 
+                            type <= static_cast<int>(tpms::Reading::Type::GMC_96)) {
+                            packet_type_ = static_cast<tpms::Reading::Type>(type);
+                            options_packet_type.set_selected_index(type - 1);
+                        }
                     }
-                    if (p_pos != std::string::npos) {
-                        pressure_kpa_ = std::stoi(content.substr(p_pos + 2));
+                    
+                    if (!id_str.empty()) {
+                        transponder_id_ = std::stoul(id_str, nullptr, 16);
                     }
-                    if (t_pos != std::string::npos) {
-                        temperature_c_ = std::stoi(content.substr(t_pos + 2));
+                    
+                    if (!pressure_str.empty()) {
+                        pressure_kpa_ = std::stoi(pressure_str);
                     }
-                    if (f_pos != std::string::npos) {
-                        flags_ = std::stoul(content.substr(f_pos + 2, 2), nullptr, 16);
+                    
+                    if (!temp_str.empty()) {
+                        temperature_c_ = std::stoi(temp_str);
+                    }
+                    
+                    if (!flags_str.empty()) {
+                        flags_ = std::stoul(flags_str, nullptr, 16);
                     }
                     
                     update_packet_display();
-                    text_status.set("Loaded from file");
+                    text_status.set("Loaded: " + file_path.filename().string());
+                } else {
+                    text_status.set("Error reading file");
                 }
+            } else {
+                text_status.set("Error opening file");
             }
         };
     };
@@ -279,16 +324,17 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
         // Save current TPMS packet to file
         auto timestamp = to_string_timestamp(rtc_time::now());
         std::string file_name = "TPMS_" + timestamp + ".TXT";
-        std::string file_path = logs_dir.string() + "/" + file_name;
+        ensure_directory(tpms_dir);
+        auto file_path = tpms_dir / file_name;
         
         File f;
         auto error = f.create(file_path);
         if (!error.is_valid()) {
-            std::string content = "ID=" + to_string_hex(transponder_id_, 8);
-            content += " P=" + to_string_dec_uint(pressure_kpa_);
-            content += " T=" + to_string_dec_int(temperature_c_);
-            content += " F=" + to_string_hex(flags_, 2);
-            content += "\n";
+            std::string content = "Type=" + to_string_dec_uint(toUType(packet_type_), 1) + "\n";
+            content += "ID=" + to_string_hex(transponder_id_, 8) + "\n";
+            content += "Pressure=" + to_string_dec_uint(pressure_kpa_) + "\n";
+            content += "Temperature=" + to_string_dec_int(temperature_c_) + "\n";
+            content += "Flags=" + to_string_hex(flags_, 2) + "\n";
             
             f.write(content.c_str(), content.length());
             text_status.set("Saved: " + file_name);

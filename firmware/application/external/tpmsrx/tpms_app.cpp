@@ -101,7 +101,8 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
     }
 }
 
-TPMSAppView::TPMSAppView(NavigationView&) {
+TPMSAppView::TPMSAppView(NavigationView& nav)
+    : nav_{nav} {
     // baseband::run_image(portapack::spi_flash::image_tag_tpms);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
@@ -134,6 +135,11 @@ TPMSAppView::TPMSAppView(NavigationView&) {
         update_view();
     };
     options_temperature.set_by_value(format::temp_unit);
+
+    // Add on_select handler for entries
+    recent_entries_view.on_select = [this](const TPMSRecentEntry& entry) {
+        on_show_detail(entry);
+    };
 
     logger = std::make_unique<TPMSLogger>();
     if (logger) {
@@ -189,6 +195,110 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 void TPMSAppView::on_show_list() {
     recent_entries_view.hidden(false);
     recent_entries_view.focus();
+}
+
+void TPMSAppView::on_show_detail(const TPMSRecentEntry& entry) {
+    nav_.push<TPMSRecentEntryDetailView>(entry);
+}
+
+// Detail view implementation
+TPMSRecentEntryDetailView::TPMSRecentEntryDetailView(NavigationView& nav, const TPMSRecentEntry& entry)
+    : nav_{nav},
+      entry_{entry} {
+    add_children({&labels,
+                  &text_type,
+                  &text_id,
+                  &text_pressure,
+                  &text_temperature,
+                  &text_flags,
+                  &text_count,
+                  &button_done,
+                  &button_save});
+
+    // Display entry data
+    text_type.set(to_string_dec_uint(toUType(entry.type), 2));
+    text_id.set(to_string_hex(entry.id.value(), 8));
+
+    if (entry.last_pressure.is_valid()) {
+        text_pressure.set(to_string_dec_int(entry.last_pressure.value().kilopascal(), 3) + " kPa");
+    } else {
+        text_pressure.set("---");
+    }
+
+    if (entry.last_temperature.is_valid()) {
+        text_temperature.set(to_string_dec_int(entry.last_temperature.value().celsius(), 3) + " C");
+    } else {
+        text_temperature.set("---");
+    }
+
+    if (entry.last_flags.is_valid()) {
+        text_flags.set(to_string_hex(entry.last_flags.value(), 2));
+    } else {
+        text_flags.set("--");
+    }
+
+    text_count.set(to_string_dec_uint(entry.received_count, 4));
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    button_save.on_select = [this](Button&) {
+        on_save();
+    };
+}
+
+void TPMSRecentEntryDetailView::focus() {
+    button_done.focus();
+}
+
+void TPMSRecentEntryDetailView::set_entry(const TPMSRecentEntry& entry) {
+    entry_ = entry;
+}
+
+void TPMSRecentEntryDetailView::on_save() {
+    auto timestamp = to_string_timestamp(rtc_time::now());
+    std::string file_name = "TPMS_" + timestamp + ".TXT";
+    ensure_directory(tpms_dir);
+    auto file_path = tpms_dir / file_name;
+
+    if (save_file(file_path)) {
+        nav_.display_modal("Saved", "Packet saved to:\n" + file_name);
+    } else {
+        nav_.display_modal("Error", "Failed to save\npacket");
+    }
+}
+
+bool TPMSRecentEntryDetailView::save_file(const std::filesystem::path& path) {
+    File f;
+    auto error = f.create(path);
+    if (error.is_valid())
+        return false;
+
+    // Save in format compatible with TX app
+    std::string content = "Type=" + to_string_dec_uint(toUType(entry_.type), 1) + "\n";
+    content += "ID=" + to_string_hex(entry_.id.value(), 8) + "\n";
+
+    if (entry_.last_pressure.is_valid()) {
+        content += "Pressure=" + to_string_dec_int(entry_.last_pressure.value().kilopascal(), 1) + "\n";
+    } else {
+        content += "Pressure=240\n";  // Default value
+    }
+
+    if (entry_.last_temperature.is_valid()) {
+        content += "Temperature=" + to_string_dec_int(entry_.last_temperature.value().celsius(), 1) + "\n";
+    } else {
+        content += "Temperature=25\n";  // Default value
+    }
+
+    if (entry_.last_flags.is_valid()) {
+        content += "Flags=" + to_string_hex(entry_.last_flags.value(), 2) + "\n";
+    } else {
+        content += "Flags=00\n";
+    }
+
+    f.write(content.c_str(), content.length());
+    return true;
 }
 
 }  // namespace ui::external_app::tpmsrx
