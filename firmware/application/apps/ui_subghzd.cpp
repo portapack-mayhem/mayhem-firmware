@@ -28,6 +28,7 @@
 #include "ui_textentry.hpp"
 #include "../keeloq_keystore.hpp"
 #include "../keeloq_file.hpp"
+#include "../keeloq_common.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -82,7 +83,7 @@ void SubGhzDRecentEntryDetailView::update_data() {
                         KeeloqData params{
                             mf_name,
                             serial,
-                            cnt,
+                            (uint16_t)cnt,
                             btn};
 
                         ensure_directory(keeloq_remotes_dir);
@@ -359,28 +360,6 @@ bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt_centurion(uint32_t decry
     }
 
     return false;
-}
-
-uint32_t keeloq_decrypt(const uint32_t data, const uint64_t key) {
-    uint32_t x = data, r;
-    for (r = 0; r < 528; r++)
-        x = (x << 1) ^ bit(x, 31) ^ bit(x, 15) ^ (uint32_t)bit(key, (15 - r) & 63) ^
-            bit(KEELOQ_NLF, g5(x, 0, 8, 19, 25, 30));
-    return x;
-}
-
-uint64_t keeloq_normal_learning(uint32_t data, const uint64_t key) {
-    uint32_t k1, k2;
-
-    data &= 0x0FFFFFFF;
-    data |= 0x20000000;
-    k1 = keeloq_decrypt(data, key);
-
-    data &= 0x0FFFFFFF;
-    data |= 0x60000000;
-    k2 = keeloq_decrypt(data, key);
-
-    return ((uint64_t)k2 << 32) | k1;
 }
 
 const uint32_t came_twee_magic_numbers_xor[15] = {
