@@ -71,7 +71,6 @@ class NotificationView : public View {
    public:
     NotificationView(NavigationView& nav);
     ~NotificationView();
-    void paint(Painter& painter) override;
 
     void add_notification(NotificationEntry& entry);
     void remove_notification(uint16_t id);

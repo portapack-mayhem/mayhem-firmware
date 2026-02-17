@@ -66,11 +66,6 @@ void NotificationView::on_tick_second() {
     }
 }
 
-void NotificationView::paint(Painter&) {
-    // Parent paint logic handled by View system usually,
-    // but explicit empty paint or base paint is fine.
-}
-
 void NotificationView::rearrange_notifications() {
     size_t count = children().size();
     while (children().size() > 0) {
