@@ -607,7 +607,14 @@ bool InformationView::firmware_checksum_error() {
 
     // only checking firmware checksum once per boot
     if (!fw_checksum_checked) {
-        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_SIZE_LIMIT_WITH_BITSTREAM_MB * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+#ifdef PRALINE
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, 4 * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+        // TODO: This is a minimal workaround to fix the FLASH ERR checksum, bc GSG's cmake doesn't define the PortaRF board,
+        // so if we do, we need to patch many codes. so we can't define the PortaRF board currently in our cmake.
+        // discuss needed to find a better way but currently we need CI works and make hackrf pro works as much as possible.
+#else
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_SIZE_LIMIT_MB * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+#endif
     }
     return fw_checksum_error;
 }
