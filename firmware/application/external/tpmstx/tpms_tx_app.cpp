@@ -70,13 +70,13 @@ void TPMSTXView::switch_baseband() {
     // Must shutdown first to avoid BBRunning error
     baseband::shutdown();
     chThdSleepMilliseconds(100);
-    
+
     if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
         baseband::run_image(portapack::spi_flash::image_tag_fsktx);
     } else {
         baseband::run_image(portapack::spi_flash::image_tag_ook);
     }
-    
+
     chThdSleepMilliseconds(100);
 }
 
@@ -84,14 +84,14 @@ void TPMSTXView::update_packet_display() {
     // Only update status text - field values are already set by user interaction
     // or by explicit set_value calls when loading from file
     std::string status = "ID:" + to_string_hex(transponder_id_, 8);
-    
+
     // Note protocol-specific limitations
     if (packet_type_ == tpms::Reading::Type::Schrader) {
         status = "ID:" + to_string_hex(transponder_id_ & 0x00FFFFFF, 6) + " (24bit)";
     }
-    
+
     status += " " + to_string_dec_uint(pressure_kpa_) + "kPa";
-    
+
     // Temperature note for protocols that support it
     if (packet_type_ == tpms::Reading::Type::GMC_96 ||
         packet_type_ == tpms::Reading::Type::FLM_64 ||
@@ -101,7 +101,7 @@ void TPMSTXView::update_packet_display() {
     } else {
         status += " (no temp)";
     }
-    
+
     text_status.set(status);
 }
 
@@ -228,17 +228,17 @@ void TPMSTXView::encode_and_transmit() {
         uint8_t checksum = 0x40;  // First byte of system ID
         checksum += 0x00;         // Second byte of system ID
         checksum += 0x00;         // Third byte of system ID
-        
+
         // Add all 4 bytes of the ID
         checksum += (transponder_id_ >> 24) & 0xFF;
         checksum += (transponder_id_ >> 16) & 0xFF;
         checksum += (transponder_id_ >> 8) & 0xFF;
         checksum += transponder_id_ & 0xFF;
-        
+
         // Add pressure and temperature
         checksum += pressure_gmc;
         checksum += temp_gmc;
-        
+
         for (int i = 7; i >= 0; i--) {
             if ((checksum >> i) & 1) {
                 binary_string += "10";
@@ -252,18 +252,18 @@ void TPMSTXView::encode_and_transmit() {
         // Data is Manchester encoded: each data bit becomes two FSK symbols
         // Preamble: 14 x '01' + '10' = 30 bits (matches RX pattern exactly)
         // Payload: 160 Manchester-encoded bits (80 data bits max)
-        
+
         symbol_rate = 19200;
-        
+
         // Build preamble: 14 pairs of "01" followed by "10"
         for (int i = 0; i < 14; i++) {
             binary_string += "01";
         }
         binary_string += "10";
-        
+
         std::array<uint8_t, 20> data_bytes = {0};  // 160 bits = 20 bytes max
         size_t num_data_bits = 0;
-        
+
         if (packet_type_ == tpms::Reading::Type::FLM_64) {
             // FLM_64: 64 bits (8 bytes)
             // Bytes 0-3: ID (32 bits)
@@ -271,24 +271,24 @@ void TPMSTXView::encode_and_transmit() {
             // Byte 5: Temperature (8 bits, LSB 7 bits used)
             // Byte 6: Padding
             // Byte 7: Sum checksum of bytes 0-6 (low 8 bits)
-            
+
             num_data_bits = 64;
-            
+
             data_bytes[0] = (transponder_id_ >> 24) & 0xFF;
             data_bytes[1] = (transponder_id_ >> 16) & 0xFF;
             data_bytes[2] = (transponder_id_ >> 8) & 0xFF;
             data_bytes[3] = transponder_id_ & 0xFF;
             data_bytes[4] = (pressure_kpa_ * 3 / 4) & 0xFF;
             data_bytes[5] = ((temperature_c_ + 56) & 0x7F);  // LSB 7 bits only
-            data_bytes[6] = 0x00;  // Padding
-            
+            data_bytes[6] = 0x00;                            // Padding
+
             // Addition checksum over bytes 0-6
             uint32_t checksum = 0;
             for (int i = 0; i < 7; i++) {
                 checksum += data_bytes[i];
             }
             data_bytes[7] = checksum & 0xFF;
-            
+
         } else if (packet_type_ == tpms::Reading::Type::FLM_72) {
             // FLM_72: 72 bits (9 bytes)
             // Bytes 0-3: ID (32 bits)
@@ -296,9 +296,9 @@ void TPMSTXView::encode_and_transmit() {
             // Byte 5: Pressure (8 bits)
             // Byte 6: Temperature (8 bits)
             // Bytes 7-8: CRC field - RX processes ALL 9 bytes and expects CRC result = 0
-            
+
             num_data_bits = 72;
-            
+
             data_bytes[0] = (transponder_id_ >> 24) & 0xFF;
             data_bytes[1] = (transponder_id_ >> 16) & 0xFF;
             data_bytes[2] = (transponder_id_ >> 8) & 0xFF;
@@ -307,7 +307,7 @@ void TPMSTXView::encode_and_transmit() {
             data_bytes[5] = (pressure_kpa_ * 3 / 4) & 0xFF;
             data_bytes[6] = (temperature_c_ + 56) & 0xFF;
             data_bytes[7] = 0x00;  // Set to 0 initially
-            
+
             // Calculate CRC over bytes 0-7, place result in byte 8
             // When RX calculates CRC over bytes 0-8, it should get residual 0
             CRC<8> crc{0x01, 0x00};
@@ -315,7 +315,7 @@ void TPMSTXView::encode_and_transmit() {
                 crc.process_byte(data_bytes[i]);
             }
             data_bytes[8] = crc.checksum() & 0xFF;
-            
+
         } else if (packet_type_ == tpms::Reading::Type::FLM_80) {
             // FLM_80: 80 bits (10 bytes)
             // Byte 0: Padding
@@ -324,9 +324,9 @@ void TPMSTXView::encode_and_transmit() {
             // Byte 6: Pressure (8 bits)
             // Byte 7: Temperature (8 bits)
             // Bytes 8-9: CRC field - RX processes bytes 1-9 and expects CRC result = 0
-            
+
             num_data_bits = 80;
-            
+
             data_bytes[0] = 0x00;  // Padding (not included in CRC)
             data_bytes[1] = (transponder_id_ >> 24) & 0xFF;
             data_bytes[2] = (transponder_id_ >> 16) & 0xFF;
@@ -337,7 +337,7 @@ void TPMSTXView::encode_and_transmit() {
             data_bytes[7] = (temperature_c_ + 56) & 0xFF;
             data_bytes[8] = 0x00;  // Padding/Reserved
             data_bytes[9] = 0x00;  // CRC byte
-            
+
             // Calculate CRC over bytes 1-8 (all bytes except 0 and 9)
             // When RX calculates CRC over bytes 1-9, it should get residual 0
             CRC<8> crc{0x01, 0x00};
@@ -346,7 +346,7 @@ void TPMSTXView::encode_and_transmit() {
             }
             data_bytes[9] = crc.checksum() & 0xFF;
         }
-        
+
         // Manchester-encode data bits for FSK
         // RX ManchesterDecoder with sense=0: '1' = "10", '0' = "01"
         size_t num_bytes = num_data_bits / 8;
@@ -360,13 +360,13 @@ void TPMSTXView::encode_and_transmit() {
                 }
             }
         }
-        
+
         // Pad payload to 160 bits with valid Manchester pairs ("01" = 0)
         // Using proper Manchester encoding maintains clock recovery sync
         while (binary_string.length() < 190) {  // 30 preamble + 160 payload
-            binary_string += "01";  // Manchester-encoded zero
+            binary_string += "01";              // Manchester-encoded zero
         }
-        
+
     } else {
         text_status.set("Unknown signal type");
         stop_tx();
@@ -405,16 +405,16 @@ void TPMSTXView::handle_tx_complete() {
     // OOK repeats are handled by the baseband processor
     if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
         fsk_repeat_counter_++;
-        
+
         if (fsk_repeat_counter_ < repeat_count_) {
             // More repeats needed - send the next one
             // Update progress bar
             progressbar.set_value(fsk_repeat_counter_);
-            
+
             // Wait for FSK processor to fully complete and reset
             // This allows the shared memory bitstream to be safely rewritten
             chThdSleepMilliseconds(50);
-            
+
             encode_and_transmit();
         } else {
             // All FSK repeats complete
@@ -443,7 +443,7 @@ void TPMSTXView::start_tx() {
 
     // Switch to appropriate baseband before transmission
     switch_baseband();
-    
+
     // Configure transmitter based on modulation type
     if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
         // FSK configuration
@@ -454,7 +454,7 @@ void TPMSTXView::start_tx() {
         transmitter_model.set_sampling_rate(2000000);  // 2 MHz for OOK
         transmitter_model.set_baseband_bandwidth(1750000);
     }
-    
+
     transmitter_model.enable();
 
     // Start transmission
