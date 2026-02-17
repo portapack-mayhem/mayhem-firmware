@@ -49,9 +49,9 @@ class TPMSTXView : public View {
     NavigationView& nav_;
 
     TxRadioState radio_state_{
-        314900000,  /* frequency */
-        1750000,    /* bandwidth */
-        2457600     /* sampling rate */
+        314900000, /* frequency */
+        1750000,   /* bandwidth */
+        2457600    /* sampling rate */
     };
 
     app_settings::SettingsManager settings_{
@@ -61,8 +61,8 @@ class TPMSTXView : public View {
     // TPMS packet data
     tpms::Reading::Type packet_type_{tpms::Reading::Type::Schrader};
     uint32_t transponder_id_{0x12345678};
-    uint16_t pressure_kpa_{240};     // Default ~35 PSI
-    int16_t temperature_c_{25};       // Default 25°C
+    uint16_t pressure_kpa_{240};  // Default ~35 PSI
+    int16_t temperature_c_{25};   // Default 25°C
     uint8_t flags_{0x00};
     tpms::SignalType signal_type_{tpms::SignalType::FSK_19k2_Schrader};
 
@@ -90,17 +90,17 @@ class TPMSTXView : public View {
     void handle_tx_complete();
 
     Labels labels{
-        {{2 * 8, 2 * 16}, "Packet Type:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 4 * 16}, "Transponder ID:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 6 * 16}, "Pressure (kPa):", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 8 * 16}, "Temperature (C):", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 10 * 16}, "Flags (hex):", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 12 * 16}, "Signal Type:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 14 * 16}, "Repeat:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Pres:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Flag:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Sig:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField options_packet_type{
-        {18 * 8, 2 * 16},
+        {6 * 8, 1 * 16},
         10,
         {
             {"Schrader", (int32_t)tpms::Reading::Type::Schrader},
@@ -111,31 +111,31 @@ class TPMSTXView : public View {
         }};
 
     SymField field_transponder_id{
-        {18 * 8, 4 * 16},
+        {6 * 8, 2 * 16},
         8,
         SymField::Type::Hex};
 
     NumberField field_pressure{
-        {18 * 8, 6 * 16},
+        {6 * 8, 3 * 16},
         4,
         {0, 9999},
         1,
         ' '};
 
     NumberField field_temperature{
-        {18 * 8, 8 * 16},
+        {6 * 8, 4 * 16},
         4,
         {-99, 999},
         1,
         ' '};
 
     SymField field_flags{
-        {18 * 8, 10 * 16},
+        {6 * 8, 5 * 16},
         2,
         SymField::Type::Hex};
 
     OptionsField options_signal_type{
-        {18 * 8, 12 * 16},
+        {6 * 8, 6 * 16},
         12,
         {
             {"FSK 19k2", (int32_t)tpms::SignalType::FSK_19k2_Schrader},
@@ -144,18 +144,18 @@ class TPMSTXView : public View {
         }};
 
     NumberField field_repeat{
-        {18 * 8, 14 * 16},
+        {6 * 8, 7 * 16},
         3,
         {1, 100},
         1,
         ' '};
 
     Button button_load{
-        {2 * 8, 17 * 16, 10 * 8, 32},
+        {0 * 8, 8 * 16 + 4, 7 * 8, 24},
         "Load"};
 
     Button button_save{
-        {13 * 8, 17 * 16, 10 * 8, 32},
+        {8 * 8, 8 * 16 + 4, 7 * 8, 24},
         "Save"};
 
     TransmitterView2 tx_view{
@@ -164,15 +164,15 @@ class TPMSTXView : public View {
     };
 
     Button button_transmit{
-        {2 * 8, 20 * 16, 21 * 8, 48},
+        {0 * 8, 10 * 16, 15 * 8, 32},
         "START TX"};
 
     Text text_status{
-        {2 * 8, 24 * 16, 26 * 8, 16},
+        {0 * 8, 12 * 16 + 4, 30 * 8, 16},
         "Ready"};
 
     ProgressBar progressbar{
-        {2 * 8, 25 * 16, 26 * 8, 16}};
+        {0 * 8, 13 * 16 + 8, 30 * 8, 16}};
 };
 
 }  // namespace ui::external_app::tpmstx

@@ -39,16 +39,11 @@ void TPMSTXView::focus() {
 }
 
 void TPMSTXView::update_packet_display() {
-    // Update display fields
-    field_transponder_id.set_value(transponder_id_);
-    field_pressure.set_value(pressure_kpa_);
-    field_temperature.set_value(temperature_c_);
-    field_flags.set_value(flags_);
-
-    // Update status
-    std::string status = "ID: " + to_string_hex(transponder_id_, 8);
-    status += " P:" + to_string_dec_uint(pressure_kpa_) + "kPa";
-    status += " T:" + to_string_dec_int(temperature_c_) + "C";
+    // Only update status text - field values are already set by user interaction
+    // or by explicit set_value calls when loading from file
+    std::string status = "ID:" + to_string_hex(transponder_id_, 8);
+    status += " " + to_string_dec_uint(pressure_kpa_) + "kPa";
+    status += " " + to_string_dec_int(temperature_c_) + "C";
     text_status.set(status);
 }
 
@@ -58,31 +53,31 @@ void TPMSTXView::encode_and_transmit() {
     // Build TPMS packet data
     // This is a simplified encoder - actual TPMS encoding is protocol-specific
     // For Schrader protocol as an example:
-    
+
     // Create packet_data structure (this would need to be protocol-specific)
     std::vector<uint8_t> packet_data;
-    
+
     // Schrader format (simplified):
     // Byte 0: Flags/Status
     // Bytes 1-4: Transponder ID
     // Byte 5: Pressure (8-bit value in kPa / 4)
     // Byte 6: Temperature (8-bit signed, offset by 50)
     // Byte 7: Checksum
-    
+
     packet_data.push_back(flags_);
     packet_data.push_back((transponder_id_ >> 24) & 0xFF);
     packet_data.push_back((transponder_id_ >> 16) & 0xFF);
     packet_data.push_back((transponder_id_ >> 8) & 0xFF);
     packet_data.push_back(transponder_id_ & 0xFF);
-    
+
     // Pressure: convert kPa to protocol format (typically kPa/4 for Schrader)
     uint8_t pressure_byte = (pressure_kpa_ / 4) & 0xFF;
     packet_data.push_back(pressure_byte);
-    
+
     // Temperature: offset by 50 degrees (common in TPMS)
     int8_t temp_offset = temperature_c_ + 50;
     packet_data.push_back((uint8_t)temp_offset);
-    
+
     // Simple checksum (sum of all bytes)
     uint8_t checksum = 0;
     for (auto byte : packet_data) {
@@ -108,9 +103,9 @@ void TPMSTXView::encode_and_transmit() {
     if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
         symbol_rate = 19200;  // FSK mode
     } else if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
-        symbol_rate = 8192;   // OOK mode
+        symbol_rate = 8192;  // OOK mode
     } else {
-        symbol_rate = 8400;   // OOK 8k4 mode
+        symbol_rate = 8400;  // OOK 8k4 mode
     }
 
     // Convert binary string to bitstream
@@ -123,8 +118,8 @@ void TPMSTXView::encode_and_transmit() {
     baseband::set_ook_data(
         bitstream_length,
         samples_per_bit,
-        1,                // Single transmission (we handle repeats manually)
-        pause_duration_   // Pause between repeats
+        1,               // Single transmission (we handle repeats manually)
+        pause_duration_  // Pause between repeats
     );
 
     current_repeat_++;
@@ -153,10 +148,10 @@ void TPMSTXView::start_tx() {
 
     is_transmitting_ = true;
     current_repeat_ = 0;
-    
+
     progressbar.set_max(repeat_count_);
     progressbar.set_value(0);
-    
+
     button_transmit.set_text("STOP TX");
     text_status.set("Transmitting...");
 
@@ -174,7 +169,7 @@ void TPMSTXView::stop_tx() {
 
     is_transmitting_ = false;
     transmitter_model.disable();
-    
+
     button_transmit.set_text("START TX");
     text_status.set("Transmission complete");
     progressbar.set_value(0);
@@ -182,31 +177,34 @@ void TPMSTXView::stop_tx() {
 
 TPMSTXView::TPMSTXView(NavigationView& nav)
     : nav_{nav} {
-    
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
-    add_children({
-        &labels,
-        &options_packet_type,
-        &field_transponder_id,
-        &field_pressure,
-        &field_temperature,
-        &field_flags,
-        &options_signal_type,
-        &field_repeat,
-        &button_load,
-        &button_save,
-        &tx_view,
-        &button_transmit,
-        &text_status,
-        &progressbar
-    });
+    add_children({&labels,
+                  &options_packet_type,
+                  &field_transponder_id,
+                  &field_pressure,
+                  &field_temperature,
+                  &field_flags,
+                  &options_signal_type,
+                  &field_repeat,
+                  &button_load,
+                  &button_save,
+                  &tx_view,
+                  &button_transmit,
+                  &text_status,
+                  &progressbar});
 
     // Initialize values
     options_packet_type.set_selected_index(0);
     options_signal_type.set_selected_index(0);
     field_repeat.set_value(repeat_count_);
     
+    // Initialize field values from default member variables
+    field_transponder_id.set_value(transponder_id_);
+    field_pressure.set_value(pressure_kpa_);
+    field_temperature.set_value(temperature_c_);
+    field_flags.set_value(flags_);
+
     update_packet_display();
 
     // Event handlers
@@ -262,11 +260,11 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                 auto result = f.read(buffer, sizeof(buffer) - 1);
                 if (result.is_ok()) {
                     buffer[result.value()] = 0;
-                    
+
                     // Parse the file format (key=value format, one per line)
                     std::string content(buffer);
                     size_t pos = 0;
-                    
+
                     auto parse_line = [&content, &pos](const std::string& key) -> std::string {
                         size_t key_pos = content.find(key + "=", pos);
                         if (key_pos != std::string::npos) {
@@ -277,38 +275,42 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                         }
                         return "";
                     };
-                    
+
                     std::string type_str = parse_line("Type");
                     std::string id_str = parse_line("ID");
                     std::string pressure_str = parse_line("Pressure");
                     std::string temp_str = parse_line("Temperature");
                     std::string flags_str = parse_line("Flags");
-                    
+
                     if (!type_str.empty()) {
                         int type = std::stoi(type_str);
-                        if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) && 
+                        if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) &&
                             type <= static_cast<int>(tpms::Reading::Type::GMC_96)) {
                             packet_type_ = static_cast<tpms::Reading::Type>(type);
                             options_packet_type.set_selected_index(type - 1);
                         }
                     }
-                    
+
                     if (!id_str.empty()) {
                         transponder_id_ = std::stoul(id_str, nullptr, 16);
+                        field_transponder_id.set_value(transponder_id_);
                     }
-                    
+
                     if (!pressure_str.empty()) {
                         pressure_kpa_ = std::stoi(pressure_str);
+                        field_pressure.set_value(pressure_kpa_);
                     }
-                    
+
                     if (!temp_str.empty()) {
                         temperature_c_ = std::stoi(temp_str);
+                        field_temperature.set_value(temperature_c_);
                     }
-                    
+
                     if (!flags_str.empty()) {
                         flags_ = std::stoul(flags_str, nullptr, 16);
+                        field_flags.set_value(flags_);
                     }
-                    
+
                     update_packet_display();
                     text_status.set("Loaded: " + file_path.filename().string());
                 } else {
@@ -326,7 +328,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
         std::string file_name = "TPMS_" + timestamp + ".TXT";
         ensure_directory(tpms_dir);
         auto file_path = tpms_dir / file_name;
-        
+
         File f;
         auto error = f.create(file_path);
         if (!error.is_valid()) {
@@ -335,7 +337,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
             content += "Pressure=" + to_string_dec_uint(pressure_kpa_) + "\n";
             content += "Temperature=" + to_string_dec_int(temperature_c_) + "\n";
             content += "Flags=" + to_string_hex(flags_, 2) + "\n";
-            
+
             f.write(content.c_str(), content.length());
             text_status.set("Saved: " + file_name);
         } else {
