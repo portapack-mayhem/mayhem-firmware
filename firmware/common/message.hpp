@@ -1796,9 +1796,10 @@ class RTTYDataMessage : public Message {
 
 class NotificationDataMessage : public Message {
    public:
-    constexpr NotificationDataMessage(const char* source_app, const char* title, const char* message, uint8_t icon = 0, uint16_t timeout = 10000) : Message{ID::NotificationData},
-                                                                                                                                                    icon(icon),
-                                                                                                                                                    timeout(timeout) {
+    constexpr NotificationDataMessage(const char* source_app, const char* title, const char* message, uint8_t icon = 0, uint16_t timeout = 10000)
+        : Message{ID::NotificationData},
+          icon(icon),
+          timeout(timeout) {
         if (source_app) {
             size_t len = std::min(strlen(source_app), (size_t)19);
             memcpy(this->source_app, source_app, len);
