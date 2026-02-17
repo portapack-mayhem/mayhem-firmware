@@ -56,4 +56,6 @@ extern const std::filesystem::path subghz_dir;
 extern const std::filesystem::path waterfalls_dir;
 extern const std::filesystem::path macaddress_dir;
 
+extern const std::filesystem::path splash_dot_bmp;
+
 #endif /* __FILE_PATH_H__ */

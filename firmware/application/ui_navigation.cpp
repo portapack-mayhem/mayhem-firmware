@@ -607,7 +607,14 @@ bool InformationView::firmware_checksum_error() {
 
     // only checking firmware checksum once per boot
     if (!fw_checksum_checked) {
+#ifdef PRALINE
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, 4 * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+        // TODO: This is a minimal workaround to fix the FLASH ERR checksum, bc GSG's cmake doesn't define the PortaRF board,
+        // so if we do, we need to patch many codes. so we can't define the PortaRF board currently in our cmake.
+        // discuss needed to find a better way but currently we need CI works and make hackrf pro works as much as possible.
+#else
         fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_SIZE_LIMIT_MB * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+#endif
     }
     return fw_checksum_error;
 }
@@ -1054,17 +1061,66 @@ SplashScreenView::SplashScreenView(NavigationView& nav)
     };
 }
 
+uint32_t SplashScreenView::myrand(uint32_t* state) {
+    uint32_t x = *state;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    *state = x;
+    return x;
+}
+
+void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
+    path = u"";
+
+    uint32_t rng_state = LPC_RTC->CTIME0;
+    if (rng_state == 0) rng_state = 0xABBACAFE;
+
+    DIR dir;
+    FILINFO fno;
+    int32_t valid_count = 0;
+
+    // Open directory
+    if (f_opendir(&dir, (const TCHAR*)splash_dir.c_str()) == FR_OK) {
+        while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0] != 0) {
+            // Skip directories
+            if (fno.fattrib & AM_DIR) continue;
+            int len = 0;
+            while (fno.fname[len]) len++;  // Get length
+            if (len >= 4) {
+                const TCHAR* ext = &fno.fname[len - 4];
+                // Check extension case-insensitively
+                if (ext[0] == '.' &&
+                    (ext[1] == 'B' || ext[1] == 'b') &&
+                    (ext[2] == 'M' || ext[2] == 'm') &&
+                    (ext[3] == 'P' || ext[3] == 'p')) {
+                    valid_count++;
+                    // Reservoir Sampling:
+                    if (((rng_state = myrand(&rng_state)) % valid_count) == 0) {
+                        path = splash_dir / fno.fname;
+                    }
+                }
+            }
+        }
+        f_closedir(&dir);
+    }
+}
+
 void SplashScreenView::paint(Painter&) {
-    constexpr const uint8_t zoom = 3;
+    set_clean();
     // if (!bmp_view.load_bmp(splash_dot_bmp)) { //--too slow drawing, bc of the more bmp format support, and up-> down drawing
-    if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
-        // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
-        portapack::display.draw_bitmap({screen_width / 2 - ((bitmap_titlebar_image.size.width() * zoom) / 2),
-                                        screen_height / 2},
-                                       bitmap_titlebar_image.size,
-                                       bitmap_titlebar_image.data,
-                                       Theme::getInstance()->bg_darkest->foreground,
-                                       Theme::getInstance()->bg_darkest->background, zoom);
+    if (portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp)) return;
+    // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
+
+    std::filesystem::path path{};
+    get_random_splash_file(path);
+    if (portapack::display.draw_bmp_from_sdcard_file({0, 0}, path)) return;
+    portapack::display.draw_bitmap({screen_width / 2 - ((bitmap_titlebar_image.size.width() * 3) / 2),
+                                    screen_height / 2},
+                                   bitmap_titlebar_image.size,
+                                   bitmap_titlebar_image.data,
+                                   Theme::getInstance()->bg_darkest->foreground,
+                                   Theme::getInstance()->bg_darkest->background, 3);
     // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
@@ -1082,7 +1138,6 @@ bool SplashScreenView::on_touch(const TouchEvent event) {
         case TouchEvent::Type::Start:
             handle_pop();
             return false;
-
         default:
             break;
     }

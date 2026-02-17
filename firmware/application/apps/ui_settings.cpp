@@ -33,6 +33,8 @@
 #include "ui_touch_calibration.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_external_items_menu_loader.hpp"
+#include "ui_ss_viewer.hpp"
+#include "ui_fileman.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -348,7 +350,6 @@ SetUIView::SetUIView(NavigationView& nav) {
     add_children({&checkbox_disable_touchscreen,
                   &checkbox_bloff,
                   &options_bloff,
-                  &checkbox_showsplash,
                   &checkbox_showclock,
                   &options_clockformat,
                   &checkbox_guireturnflag,
@@ -375,7 +376,6 @@ SetUIView::SetUIView(NavigationView& nav) {
     }
 
     checkbox_disable_touchscreen.set_value(pmem::disable_touchscreen());
-    checkbox_showsplash.set_value(pmem::config_splash());
     checkbox_showclock.set_value(!pmem::hide_clock());
     checkbox_guireturnflag.set_value(pmem::show_gui_return_icon());
 
@@ -414,7 +414,6 @@ SetUIView::SetUIView(NavigationView& nav) {
                 pmem::set_clock_with_date(false);
         }
 
-        pmem::set_config_splash(checkbox_showsplash.value());
         pmem::set_clock_hidden(!checkbox_showclock.value());
         pmem::set_gui_return_icon(checkbox_guireturnflag.value());
         pmem::set_disable_touchscreen(checkbox_disable_touchscreen.value());
@@ -1113,6 +1112,46 @@ void SetBatteryView::focus() {
     button_cancel.focus();
 }
 
+/* SetSlpash *********************************************/
+
+SetSplash::SetSplash(NavigationView& nav) {
+    add_children({&checkbox_showsplash,
+                  &checkbox_randomsplash,
+                  &message,
+                  &button_picture_select,
+                  &button_save,
+                  &button_cancel});
+
+    checkbox_showsplash.set_value(pmem::config_splash());
+    splash_bmp_exists = file_exists(splash_dot_bmp);
+    checkbox_randomsplash.set_value(!splash_bmp_exists);
+    message.hidden(splash_bmp_exists);
+
+    checkbox_randomsplash.on_select = [this](Checkbox&, bool v) {
+        random_enabled = v;
+    };
+
+    button_picture_select.on_select = [this, &nav](Button&) {
+        auto ret = nav.push<FileManagerView>();
+        ret->push_dir(splash_dir);
+    };
+
+    button_save.on_select = [&nav, this](Button&) {
+        if (random_enabled == true) delete_file(splash_dot_bmp);
+        pmem::set_config_splash(checkbox_showsplash.value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetSplash::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -1146,6 +1185,7 @@ void SettingsMenuView::on_populate() {
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
+        {"Splash settings", ui::Color::dark_cyan(), &bitmap_icon_file_image, [this]() { nav_.push<SetSplash>(); }},
     });
 
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});

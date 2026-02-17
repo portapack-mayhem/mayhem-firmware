@@ -213,6 +213,7 @@ set(CPPSRC
 	irq_controls.cpp
 	irq_lcd_frame.cpp
 	irq_rtc.cpp
+    keeloq_common.cpp
 	keeloq_file.cpp
 	keeloq_keystore.cpp
 	log_file.cpp

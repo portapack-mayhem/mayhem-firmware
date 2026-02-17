@@ -43,7 +43,7 @@ bool read_keeloq_file(const fs::path& path, KeeloqData& data) {
 
     data.mf_name = std::string{chunks[0]};
     data.serial = std::strtoul(chunks[1].data(), NULL, 16);
-    data.counter = std::atoi(chunks[2].data());
+    data.counter = (uint16_t)std::atoi(chunks[2].data());
     data.btn = (uint8_t)std::atoi(chunks[3].data());
 
     return true;
@@ -60,7 +60,10 @@ bool write_keeloq_file(const fs::path& path, const KeeloqData& data) {
         return false;
     }
 
-    std::string formatted = data.mf_name + ";" + to_string_hex(data.serial) + ";" + to_string_dec_uint(data.counter) + ";" + to_string_dec_uint(data.btn);
+    std::string formatted = data.mf_name + ";" +
+                            to_string_hex(data.serial) + ";" +
+                            to_string_dec_uint(data.counter) + ";" +
+                            to_string_dec_uint(data.btn);
 
     file.write_line(formatted);
     file.close();
