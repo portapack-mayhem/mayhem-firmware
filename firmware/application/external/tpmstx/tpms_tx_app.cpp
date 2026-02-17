@@ -50,96 +50,146 @@ void TPMSTXView::update_packet_display() {
 void TPMSTXView::encode_and_transmit() {
     if (!is_transmitting_) return;
 
-    // Build TPMS packet data
-    // This is a simplified encoder - actual TPMS encoding is protocol-specific
-    // For Schrader protocol as an example:
-
-    // Create packet_data structure (this would need to be protocol-specific)
-    std::vector<uint8_t> packet_data;
-
-    // Schrader format (simplified):
-    // Byte 0: Flags/Status
-    // Bytes 1-4: Transponder ID
-    // Byte 5: Pressure (8-bit value in kPa / 4)
-    // Byte 6: Temperature (8-bit signed, offset by 50)
-    // Byte 7: Checksum
-
-    packet_data.push_back(flags_);
-    packet_data.push_back((transponder_id_ >> 24) & 0xFF);
-    packet_data.push_back((transponder_id_ >> 16) & 0xFF);
-    packet_data.push_back((transponder_id_ >> 8) & 0xFF);
-    packet_data.push_back(transponder_id_ & 0xFF);
-
-    // Pressure: convert kPa to protocol format (typically kPa/4 for Schrader)
-    uint8_t pressure_byte = (pressure_kpa_ / 4) & 0xFF;
-    packet_data.push_back(pressure_byte);
-
-    // Temperature: offset by 50 degrees (common in TPMS)
-    int8_t temp_offset = temperature_c_ + 50;
-    packet_data.push_back((uint8_t)temp_offset);
-
-    // Simple checksum (sum of all bytes)
-    uint8_t checksum = 0;
-    for (auto byte : packet_data) {
-        checksum += byte;
-    }
-    packet_data.push_back(checksum);
-
-    // Manchester encode the data
-    std::vector<uint8_t> encoded_data;
-    encoded_data.resize(packet_data.size() * 2);
-    manchester_encode(encoded_data.data(), packet_data.data(), packet_data.size(), 0);
-
-    // Convert to binary string for OOK transmission
+    // Build TPMS packet based on signal type
     std::string binary_string;
-    for (auto byte : encoded_data) {
-        for (int i = 7; i >= 0; i--) {
-            binary_string += ((byte >> i) & 1) ? '1' : '0';
-        }
-    }
-
-    // Set up transmission parameters based on signal type
     uint32_t symbol_rate;
-    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
-        symbol_rate = 19200;  // FSK mode
-    } else if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
-        symbol_rate = 8192;  // OOK mode
+    uint32_t sample_rate = 2000000;  // 2 MHz sample rate
+
+    if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
+        // Schrader OOK 8k192 format (Type = Schrader)
+        // Preamble: 11*2, 01*14, 11, 10
+        // Data: 3 bits flags, 24 bits ID, 8 bits pressure, 2 bits checksum
+        // Total: 37 Manchester symbols (74 bits after encoding)
+        
+        symbol_rate = 8192;
+
+        // Preamble as expected by RX decoder
+        binary_string = "1111";  // 11*2
+        for (int i = 0; i < 14; i++) {
+            binary_string += "01";
+        }
+        binary_string += "1110";  // 11, 10
+
+        // Build data bits (pre-Manchester)
+        uint64_t data = 0;
+        
+        // 3-bit flags
+        uint8_t flags_3bit = flags_ & 0x07;
+        data |= ((uint64_t)flags_3bit << 34);
+        
+        // 24-bit ID (only use lower 24 bits)
+        uint32_t id_24bit = transponder_id_ & 0x00FFFFFF;
+        data |= ((uint64_t)id_24bit << 10);
+        
+        // 8-bit pressure (convert kPa to raw: kPa * 3/4)
+        uint8_t pressure_raw = (pressure_kpa_ * 3 / 4) & 0xFF;
+        data |= ((uint64_t)pressure_raw << 2);
+        
+        // Calculate 2-bit checksum: sum all 2-bit pairs, result & 3 must equal 3
+        uint32_t checksum_calc = (data >> 36) & 1;  // First bit
+        for (size_t i = 1; i < 37; i += 2) {
+            checksum_calc += (data >> (37 - i - 2)) & 3;
+        }
+        uint8_t checksum_2bit = (3 - (checksum_calc & 3)) & 3;
+        data |= checksum_2bit;
+
+        // Manchester encode the 37 data bits
+        for (int i = 36; i >= 0; i--) {
+            if ((data >> i) & 1) {
+                binary_string += "10";  // '1' = 10 in Manchester
+            } else {
+                binary_string += "01";  // '0' = 01 in Manchester
+            }
+        }
+        
+    } else if (signal_type_ == tpms::SignalType::OOK_8k4_Schrader) {
+        // GMC_96 OOK 8k4 format
+        symbol_rate = 8400;
+        
+        // Preamble: 01*40
+        for (int i = 0; i < 40; i++) {
+            binary_string += "01";
+        }
+        
+        // System ID: first nibble is 0x4, then 20 more bits
+        binary_string += "01";  // 0
+        binary_string += "10";  // 1 
+        binary_string += "01";  // 0
+        binary_string += "01";  // 0  (0100 = 0x4)
+        for (int i = 0; i < 20; i++) {
+            binary_string += "01";  // Padding
+        }
+        
+        // 32-bit ID (Manchester encoded)
+        for (int i = 31; i >= 0; i--) {
+            if ((transponder_id_ >> i) & 1) {
+                binary_string += "10";
+            } else {
+                binary_string += "01";
+            }
+        }
+        
+        // Pressure: kPa * 4/11
+        uint8_t pressure_gmc = (pressure_kpa_ * 4 / 11) & 0xFF;
+        for (int i = 7; i >= 0; i--) {
+            if ((pressure_gmc >> i) & 1) {
+                binary_string += "10";
+            } else {
+                binary_string += "01";
+            }
+        }
+        
+        // Temperature: temp + 61
+        uint8_t temp_gmc = (temperature_c_ + 61) & 0xFF;
+        for (int i = 7; i >= 0; i--) {
+            if ((temp_gmc >> i) & 1) {
+                binary_string += "10";
+            } else {
+                binary_string += "01";
+            }
+        }
+        
+        // Checksum: sum of all bytes
+        uint8_t checksum = 0x44;  // First nibble 0x4 << 4 | next nibble
+        checksum += pressure_gmc;
+        checksum += temp_gmc;
+        for (int i = 7; i >= 0; i--) {
+            if ((checksum >> i) & 1) {
+                binary_string += "10";
+            } else {
+                binary_string += "01";
+            }
+        }
+        
     } else {
-        symbol_rate = 8400;  // OOK 8k4 mode
+        // FSK_19k2_Schrader - not properly supported yet
+        symbol_rate = 19200;
+        text_status.set("FSK not implemented");
+        stop_tx();
+        return;
     }
 
     // Convert binary string to bitstream
     size_t bitstream_length = encoders::make_bitstream(binary_string);
 
     // Calculate samples per bit
-    uint32_t samples_per_bit = transmitter_model.sampling_rate() / symbol_rate;
+    uint32_t samples_per_bit = sample_rate / symbol_rate;
+
+    // Update status to show we're sending
+    text_status.set("TX: " + to_string_dec_uint(binary_string.length()) + " bits");
 
     // Send via OOK baseband
     baseband::set_ook_data(
         bitstream_length,
         samples_per_bit,
-        1,               // Single transmission (we handle repeats manually)
-        pause_duration_  // Pause between repeats
+        repeat_count_,
+        pause_duration_
     );
-
-    current_repeat_++;
-    progressbar.set_value(current_repeat_);
-
-    if (current_repeat_ >= repeat_count_) {
-        // All repeats done
-        chThdSleepMilliseconds(pause_duration_);
-        stop_tx();
-    } else {
-        // More repeats to go, schedule next one
-        chThdSleepMilliseconds(pause_duration_);
-    }
 }
 
 void TPMSTXView::handle_tx_complete() {
-    if (is_transmitting_ && current_repeat_ < repeat_count_) {
-        // Continue with next repeat
-        encode_and_transmit();
-    }
+    // Transmission complete
+    stop_tx();
 }
 
 void TPMSTXView::start_tx() {
@@ -147,7 +197,6 @@ void TPMSTXView::start_tx() {
         return;
 
     is_transmitting_ = true;
-    current_repeat_ = 0;
 
     progressbar.set_max(repeat_count_);
     progressbar.set_value(0);
@@ -155,11 +204,12 @@ void TPMSTXView::start_tx() {
     button_transmit.set_text("STOP TX");
     text_status.set("Transmitting...");
 
-    transmitter_model.set_sampling_rate(2457600);
+    // Configure transmitter
+    transmitter_model.set_sampling_rate(2000000);  // 2 MHz
     transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
-    // Start first transmission
+    // Start transmission
     encode_and_transmit();
 }
 
@@ -180,6 +230,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
     add_children({&labels,
+                  &options_frequency,
                   &options_packet_type,
                   &field_transponder_id,
                   &field_pressure,
@@ -195,6 +246,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                   &progressbar});
 
     // Initialize values
+    options_frequency.set_by_value(transmitter_model.target_frequency());
     options_packet_type.set_selected_index(0);
     options_signal_type.set_selected_index(0);
     field_repeat.set_value(repeat_count_);
@@ -208,6 +260,10 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     update_packet_display();
 
     // Event handlers
+    options_frequency.on_change = [this](size_t, OptionsField::value_t v) {
+        transmitter_model.set_target_frequency(v);
+    };
+
     options_packet_type.on_change = [this](size_t, int32_t value) {
         packet_type_ = static_cast<tpms::Reading::Type>(value);
         update_packet_display();
@@ -344,8 +400,6 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
             text_status.set("Error saving file");
         }
     };
-
-    transmitter_model.set_target_frequency(314900000);
 }
 
 TPMSTXView::~TPMSTXView() {

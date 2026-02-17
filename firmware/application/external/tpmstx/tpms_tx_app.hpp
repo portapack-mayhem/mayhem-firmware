@@ -70,7 +70,6 @@ class TPMSTXView : public View {
     uint32_t pause_duration_{50};  // ms between repeats
 
     bool is_transmitting_{false};
-    uint8_t current_repeat_{0};
 
     void start_tx();
     void stop_tx();
@@ -82,6 +81,7 @@ class TPMSTXView : public View {
         Message::ID::TXProgress,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            progressbar.set_value(message.progress);
             if (message.done) {
                 handle_tx_complete();
             }
@@ -90,6 +90,7 @@ class TPMSTXView : public View {
     void handle_tx_complete();
 
     Labels labels{
+        {{0 * 8, 0 * 16}, "Freq:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Pres:", Theme::getInstance()->fg_light->foreground},
@@ -98,6 +99,15 @@ class TPMSTXView : public View {
         {{0 * 8, 6 * 16}, "Sig:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 7 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
+
+    OptionsField options_frequency{
+        {6 * 8, 0 * 16},
+        5,
+        {
+            {"314.9", 314900000},
+            {"315.0", 315000000},
+            {"433.9", 433920000},
+        }};
 
     OptionsField options_packet_type{
         {6 * 8, 1 * 16},
