@@ -13,13 +13,13 @@ NotificationEntryView::NotificationEntryView(const NotificationEntry& entry, Not
     if (entry_.icon != NOTIF_ICON_NONE) {
         add_child(&icon_image);
         icon_image.set_parent_rect({UI_POS_X(0) + 2, UI_POS_Y(1), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)});
-        message_text.set_parent_rect({UI_POS_X(2) + 2, UI_POS_Y(1), UI_POS_WIDTH_REMAINING(2) - 2, UI_POS_HEIGHT(2)});
+        message_text.set_parent_rect({UI_POS_X(2) + 2, UI_POS_Y(1), UI_POS_WIDTH_REMAINING(6) - 2, UI_POS_HEIGHT(2)});
         if (entry_.icon == NOTIF_ICON_MESSAGE) {
             icon_image.set_bitmap(&bitmap_icon_pocsag);
         }
 
     } else {
-        message_text.set_parent_rect({UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(1) - 1, UI_POS_HEIGHT(2)});
+        message_text.set_parent_rect({UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(5) - 1, UI_POS_HEIGHT(2)});
     }
     title_text.set_style(Theme::getInstance()->bg_dark);
     title_text.set(entry_.title);
@@ -35,9 +35,10 @@ NotificationEntryView::NotificationEntryView(const NotificationEntry& entry, Not
     message_text.on_select = [this](Text&) {
         if (!entry_.source_app.empty() && notifhandler_) {
             notifhandler_->open_notification(entry_.source_app);
-            notifhandler_->remove_notification(entry_.id);
+            // notifhandler_->remove_notification(entry_.id);
         }
     };
+    title_text.on_select = message_text.on_select;
 }
 
 NotificationView::NotificationView(NavigationView& nav)

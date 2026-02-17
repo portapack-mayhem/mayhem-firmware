@@ -54,10 +54,10 @@ class NotificationEntryView : public View {
 
     ui::Rectangle background{{1, 1, UI_POS_MAXWIDTH - 2, UI_POS_HEIGHT(3) - 2}, Theme::getInstance()->bg_darkest->background};
     ui::Rectangle border{{0, 0, UI_POS_MAXWIDTH, UI_POS_HEIGHT(3) + 1}, Theme::getInstance()->bg_light->background};
-    ui::Text title_text{{UI_POS_X(0) + 1, UI_POS_Y(0) + 1, UI_POS_WIDTH_REMAINING(2) - 3, UI_POS_HEIGHT(1)}, ""};
-    ui::Text message_text{{UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(1) - 1, UI_POS_HEIGHT(2)}, ""};
+    ui::Text title_text{{UI_POS_X(0) + 1, UI_POS_Y(0) + 1, UI_POS_WIDTH_REMAINING(4) - 3, UI_POS_HEIGHT(1)}, ""};
+    ui::Text message_text{{UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(5) - 1, UI_POS_HEIGHT(2)}, ""};
     ui::Image icon_image{};  // 16*16 bitmap
-    ui::Button close_button{{UI_POS_X_RIGHT(2) - 2, UI_POS_Y(0) + 1, UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "X"};
+    ui::Button close_button{{UI_POS_X_RIGHT(4) - 2, UI_POS_Y(0) + 1, UI_POS_WIDTH(4), UI_POS_HEIGHT(2)}, "X"};
 
     uint16_t id() const { return entry_.id; }
     NotificationEntry* entry() { return &entry_; }
