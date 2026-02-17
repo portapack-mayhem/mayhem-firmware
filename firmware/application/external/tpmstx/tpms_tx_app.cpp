@@ -411,9 +411,10 @@ void TPMSTXView::handle_tx_complete() {
             // Update progress bar
             progressbar.set_value(fsk_repeat_counter_);
             
-            // Schedule next transmission (with minimal delay to match OOK behavior)
-            // Note: A more sophisticated implementation could add pause_duration delay here
-            // using a timer mechanism, but for now we send back-to-back
+            // Wait for FSK processor to fully complete and reset
+            // This allows the shared memory bitstream to be safely rewritten
+            chThdSleepMilliseconds(50);
+            
             encode_and_transmit();
         } else {
             // All FSK repeats complete
