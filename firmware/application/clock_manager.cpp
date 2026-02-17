@@ -659,6 +659,8 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     /* PRALINE: Match HackRF USB  sample_rate_frac_set()
      * Reference: hackrf_usb radio.c lines 29-91, hackrf_core.c lines 501-685 */
 
+    _base_band_frequency = frequency;
+
     // Set FPGA decimation to 0 (no decimation) for direct passthrough
     fpga_debug_register_write(2, 0);
     radio::invalidate_spi_config();

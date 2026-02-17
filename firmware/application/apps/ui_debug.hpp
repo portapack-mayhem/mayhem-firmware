@@ -703,20 +703,88 @@ class SignalPathStatusView : public View {
     Text text_lbl_rf_path{{0, 52, 114, 16}, "RF Path:"};
     Text text_rf_path{{116, 52, 124, 16}, "---"};
 
-    Text text_lbl_rf_amp{{0, 68, 114, 16}, "RF Amp:"};
-    Text text_rf_amp{{116, 68, 124, 16}, "---"};
+    Text text_lbl_filter{{0, 68, 114, 16}, "Filter Band:"};
+    Text text_filter{{116, 68, 124, 16}, "---"};
 
-    Text text_lbl_lna{{0, 84, 114, 16}, "LNA Gain:"};
-    Text text_lna{{116, 84, 124, 16}, "---"};
+    Text text_lbl_mixer{{0, 84, 114, 16}, "Mixer Enable:"};
+    Text text_mixer{{116, 84, 124, 16}, "---"};
 
-    Text text_lbl_vga{{0, 100, 114, 16}, "VGA Gain:"};
-    Text text_vga{{116, 100, 124, 16}, "---"};
+    Text text_lbl_rf_amp{{0, 100, 114, 16}, "RF Amp:"};
+    Text text_rf_amp{{116, 100, 124, 16}, "---"};
 
-    Text text_lbl_fpga_decim{{0, 116, 114, 16}, "FPGA Decim:"};
-    Text text_fpga_decim{{116, 116, 124, 16}, "---"};
+    Text text_lbl_lna{{0, 116, 114, 16}, "LNA Gain:"};
+    Text text_lna{{116, 116, 124, 16}, "---"};
 
-    Text text_status{{0, 140, 240, 32}, ""};
+    Text text_lbl_vga{{0, 132, 114, 16}, "VGA Gain:"};
+    Text text_vga{{116, 132, 124, 16}, "---"};
 
+    Text text_lbl_fpga_decim{{0, 148, 114, 16}, "FPGA Decim:"};
+    Text text_fpga_decim{{116, 148, 124, 16}, "---"};
+
+    Text text_lbl_fpga_ctrl_dc_q{{0, 164, 114, 16}, "FPGA Ctrl:"};
+    Text text_fpga_ctrl_dc_q{{116, 164, 124, 16}, "---"};
+
+    Text text_lbl_fpga_ctrl_qs{{0, 180, 114, 16}, ""};
+    Text text_fpga_ctrl_qs{{116, 180, 124, 16}, "---"};
+
+    Text text_status{{0, 200, 240, 32}, ""};
+
+    Button button_refresh{{0, 280, 72, 24}, "Refresh"};
+    Button button_toggle_q{{88, 280, 72, 24}, "Q Inv"};
+    Button button_done{{176, 280, 64, 24}, "Done"};
+};
+#endif
+
+#ifdef PRALINE
+class GPIODebugView : public View {
+   public:
+    GPIODebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "GPIO Debug"; };
+
+   private:
+    void refresh();
+
+    // GPIO4 (LPF and RF Amp)
+    Text text_lbl_gpio4{{0, 0, 240, 16}, "Pin Diag: GPIO4 (LPF|Amp|Mix)"};
+
+    Text text_lbl_dir4{{0, 18, 114, 16}, "DIR[4]:"};
+    Text text_dir4{{116, 18, 124, 16}, "---"};
+
+    Text text_lbl_pin4{{0, 36, 114, 16}, "PIN[4] (read):"};
+    Text text_pin4{{116, 36, 124, 16}, "---"};
+
+    Text text_lbl_set4{{0, 54, 114, 16}, "SET[4] (write):"};
+    Text text_set4{{116, 54, 124, 16}, "---"};
+
+    // Bit 8 (LPF)
+    Text text_lbl_lpf_bit{{0, 78, 240, 16}, "Bit 8 (LPF - GPIO4[8]):"};
+    Text text_lpf_dir{{0, 96, 80, 16}, "DIR: ?"};
+    Text text_lpf_pin{{82, 96, 78, 16}, "PIN: ?"};
+    Text text_lpf_set{{162, 96, 78, 16}, "SET: ?"};
+
+    Button button_lpf_toggle{{8, 114, 110, 24}, "Toggle LPF"};
+    Button button_lpf_on{{122, 114, 50, 24}, "ON"};
+    Button button_lpf_off{{176, 114, 50, 24}, "OFF"};
+
+    // Bit 9 (RF Amp)
+    Text text_lbl_amp_bit{{0, 146, 240, 16}, "Bit 9 (Amp - GPIO4[9]):"};
+    Text text_amp_dir{{0, 164, 80, 16}, "DIR: ?"};
+    Text text_amp_pin{{82, 164, 78, 16}, "PIN: ?"};
+    Text text_amp_set{{162, 164, 78, 16}, "SET: ?"};
+
+    Button button_amp_toggle{{8, 182, 110, 24}, "Toggle Amp"};
+    Button button_amp_on{{122, 182, 50, 24}, "ON"};
+    Button button_amp_off{{176, 182, 50, 24}, "OFF"};
+
+    // GPIO3 (Mixer)
+    Text text_lbl_gpio3{{0, 214, 240, 16}, "--- GPIO3 (Mixer) ---"};
+    Text text_lbl_mix_bit{{0, 232, 240, 16}, "Bit 2 (MIX - GPIO3[2]):"};
+    Text text_mix_dir{{0, 250, 80, 16}, "DIR: ?"};
+    Text text_mix_pin{{82, 250, 78, 16}, "PIN: ?"};
+    Text text_mix_set{{162, 250, 78, 16}, "SET: ?"};
+
+    // Controls
     Button button_refresh{{8, 280, 72, 24}, "Refresh"};
     Button button_done{{168, 280, 64, 24}, "Done"};
 };
@@ -736,42 +804,49 @@ class RFFC5072StatusView : public View {
 
     Text text_title{{0, 0, 240, 16}, "=== RFFC5072 (1st IF) ==="};
 
-    Text text_lbl_enabled{{0, 20, 114, 16}, "Status:"};
-    Text text_enabled{{116, 20, 124, 16}, "---"};
+    Text text_lbl_lock{{0, 16, 114, 16}, "Lock Detect:"};
+    Text text_lock{{116, 16, 124, 16}, "---"};
 
-    Text text_lbl_freq{{0, 36, 114, 16}, "LO Freq:"};
-    Text text_freq{{116, 36, 124, 16}, "---"};
+    Text text_lbl_ctrl{{0, 32, 114, 16}, "Control:"};
+    Text text_ctrl{{116, 32, 124, 16}, "---"};
 
-    Text text_lbl_path{{0, 52, 114, 16}, "Path:"};
-    Text text_path{{116, 52, 124, 16}, "---"};
+    Text text_lbl_enabled{{0, 48, 114, 16}, "Status:"};
+    Text text_enabled{{116, 48, 124, 16}, "---"};
 
-    Text text_lbl_mixer{{0, 68, 114, 16}, "Mixer:"};
-    Text text_mixer{{116, 68, 124, 16}, "---"};
+    Text text_lbl_freq{{0, 64, 114, 16}, "LO Freq:"};
+    Text text_freq{{116, 64, 124, 16}, "---"};
 
-    Text text_lbl_r0{{0, 92, 114, 16}, "Reg 0:"};
-    Text text_r0{{116, 92, 124, 16}, "---"};
+    Text text_lbl_path{{0, 80, 114, 16}, "Path:"};
+    Text text_path{{116, 80, 124, 16}, "---"};
 
-    Text text_lbl_r1{{0, 108, 114, 16}, "Reg 1 (N):"};
-    Text text_r1{{116, 108, 124, 16}, "---"};
+    Text text_lbl_mixer{{0, 96, 114, 16}, "Mixer:"};
+    Text text_mixer{{116, 96, 124, 16}, "---"};
 
-    Text text_lbl_r2{{0, 124, 114, 16}, "Reg 2:"};
-    Text text_r2{{116, 124, 124, 16}, "---"};
+    Text text_lbl_r0{{0, 112, 114, 16}, "Reg 0:"};
+    Text text_r0{{116, 112, 124, 16}, "---"};
 
-    Text text_lbl_decode{{0, 148, 240, 16}, "--- Decoded Values ---"};
+    Text text_lbl_r1{{0, 128, 114, 16}, "Reg 1 (N):"};
+    Text text_r1{{116, 128, 124, 16}, "---"};
 
-    Text text_lbl_n{{0, 168, 114, 16}, "N divider:"};
-    Text text_n{{116, 168, 124, 16}, "---"};
+    Text text_lbl_r2{{0, 144, 114, 16}, "Reg 2:"};
+    Text text_r2{{116, 144, 124, 16}, "---"};
 
-    Text text_lbl_lodiv{{0, 184, 114, 16}, "LO divider:"};
-    Text text_lodiv{{116, 184, 124, 16}, "---"};
+    Text text_lbl_n{{0, 160, 114, 16}, "N divider:"};
+    Text text_n{{116, 160, 124, 16}, "---"};
 
-    Text text_lbl_calc{{0, 200, 114, 16}, "Calc freq:"};
-    Text text_calc{{116, 200, 124, 16}, "---"};
+    Text text_lbl_lodiv{{0, 176, 114, 16}, "LO divider:"};
+    Text text_lodiv{{116, 176, 124, 16}, "---"};
 
-    Text text_status{{0, 224, 240, 32}, ""};
+    Text text_lbl_calc{{0, 192, 114, 16}, "Calc freq:"};
+    Text text_calc{{116, 192, 124, 16}, "---"};
 
-    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
-    Button button_done{{168, 280, 64, 24}, "Done"};
+    Text text_status{{0, 208, 240, 16}, ""};
+
+    Text text_lbl_regs_status{{0, 224, 48, 16}, "Regs:"};
+    Text text_regs_status{{50, 224, 190, 16}, "---"};
+
+    Button button_refresh{{2, 280, 56, 24}, "Rfrsh"};
+    Button button_done{{182, 280, 56, 24}, "Done"};
 };
 
 #ifdef PRALINE
@@ -826,6 +901,120 @@ class RFFCTuningDebugView : public View {
     Button button_done{{168, 280, 64, 24}, "Done"};
 };
 
+#endif
+
+#ifdef PRALINE
+/* MAX2831DebugView *************************************************/
+
+class MAX2831DebugView : public View {
+   public:
+    MAX2831DebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "MAX2831 Debug"; };
+
+   private:
+    void refresh();
+
+    Text text_title{{0, 0, 240, 16}, "MAX2831 (2nd IF) Debug"};
+
+    Text text_lbl_called{{0, 24, 120, 16}, "Freq Set:"};
+    Text text_called{{122, 24, 118, 16}, "NO"};
+
+    Text text_lbl_valid{{0, 42, 120, 16}, "In Range:"};
+    Text text_valid{{122, 42, 118, 16}, "---"};
+
+    Text text_lbl_req{{0, 60, 120, 16}, "Requested:"};
+    Text text_req{{122, 60, 118, 16}, "---"};
+
+    Text text_lbl_calc_n{{0, 78, 120, 16}, "Calc N:"};
+    Text text_calc_n{{122, 78, 118, 16}, "---"};
+
+    Text text_lbl_calc_frac{{0, 96, 120, 16}, "Calc Frac:"};
+    Text text_calc_frac{{122, 96, 118, 16}, "---"};
+
+    Text text_spacer{{0, 114, 240, 16}, "--- Hardware Regs ---"};
+
+    Text text_lbl_r3{{0, 132, 120, 16}, "Reg 3:"};
+    Text text_r3{{122, 132, 118, 16}, "---"};
+
+    Text text_lbl_r4{{0, 150, 120, 16}, "Reg 4:"};
+    Text text_r4{{122, 150, 118, 16}, "---"};
+
+    Text text_lbl_act_n{{0, 168, 120, 16}, "Actual N:"};
+    Text text_act_n{{122, 168, 118, 16}, "---"};
+
+    Text text_lbl_act_frac{{0, 186, 120, 16}, "Actual Frac:"};
+    Text text_act_frac{{122, 186, 118, 16}, "---"};
+
+    Text text_lbl_calc_freq{{0, 204, 120, 16}, "Calc Freq:"};
+    Text text_calc_freq{{122, 204, 118, 16}, "---"};
+
+    Text text_status{{0, 228, 240, 44}, ""};
+
+    Button button_refresh{{8, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
+#endif
+
+#ifdef PRALINE
+class SystemDiagnosticsView : public View {
+   public:
+    SystemDiagnosticsView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "System Diagnostics"; };
+
+   private:
+    void refresh();
+    void read_gpio_states();
+    void set_sample_rate(uint32_t rate);
+
+    Text text_title{{0, 0, 240, 16}, "System Diagnostics"};
+
+    // Sample Rate Section
+    Text text_lbl_sample{{0, 24, 42, 16}, "Rate:"};
+    Text text_sample_rate{{44, 24, 50, 16}, "---"};
+    Text text_lbl_fpga_decode{{96, 24, 144, 16}, "DC:? Q:? QS:?"};
+
+    Button button_sample_2m{{2, 44, 56, 24}, "2 MSPS"};
+    Button button_sample_4m{{62, 44, 56, 24}, "4 MSPS"};
+    Button button_sample_8m{{122, 44, 56, 24}, "8 MSPS"};
+    Button button_sample_20m{{182, 44, 56, 24}, "20 MSPS"};
+
+    // Baseband Filter Section
+    Text text_lbl_bb_filter{{0, 76, 114, 16}, "BB Filter BW:"};
+    Text text_bb_filter{{116, 76, 124, 16}, "---"};
+
+    Text text_lbl_reg8{{0, 94, 114, 16}, "MAX2831 R8:"};
+    Text text_reg8{{116, 94, 124, 16}, "---"};
+
+    // GPIO States Section
+    Text text_lbl_gpio{{0, 118, 240, 16}, "--- GPIO Pin States ---"};
+
+    Text text_lbl_lpf{{0, 136, 56, 16}, "LPF:"};
+    Text text_gpio_lpf{{58, 136, 181, 16}, "---"};
+
+    Text text_lbl_mix{{0, 154, 56, 16}, "Mixer:"};
+    Text text_gpio_mix{{58, 154, 181, 16}, "---"};
+
+    Text text_lbl_amp{{0, 172, 56, 16}, "RF Amp:"};
+    Text text_gpio_amp{{58, 172, 181, 16}, "---"};
+
+    // FPGA Control Section
+    Text text_lbl_fpga{{0, 196, 240, 16}, "--- FPGA Control ---"};
+
+    Text text_lbl_fpga_ctrl{{0, 214, 114, 16}, "FPGA Reg 1:"};
+    Text text_fpga_ctrl{{116, 214, 124, 16}, "---"};
+
+    Text text_lbl_band{{0, 232, 48, 16}, "Band:"};
+    Text text_band{{50, 232, 190, 16}, "---"};
+
+    Button button_toggle_q{{2, 252, 110, 24}, "Toggle Q Inv"};
+    Button button_toggle_dc{{122, 252, 110, 24}, "Toggle DC Blk"};
+
+    // Control Buttons
+    Button button_refresh{{2, 280, 72, 24}, "Refresh"};
+    Button button_done{{168, 280, 64, 24}, "Done"};
+};
 #endif
 
 #endif
