@@ -969,6 +969,8 @@ SystemView::SystemView(
 
     navigation_view.push<SystemMenuView>();
 
+    add_child(&notification_view);
+
     if (pmem::config_splash()) {
         navigation_view.push<SplashScreenView>();
     }

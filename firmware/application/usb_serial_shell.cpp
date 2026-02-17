@@ -1402,6 +1402,17 @@ static void cmd_getdevtype(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, res.c_str());
 }
 
+static void cmd_testnotification(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
+    NotificationDataMessage msg{"audio", "Test Notification", "This is a test notification sent from the shell command."};
+    EventDispatcher::send_message(msg);
+
+    std::string res = "\r\nok\r\n";
+    chprintf(chp, res.c_str());
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1440,6 +1451,7 @@ static const ShellCommand commands[] = {
     {"getres", cmd_getres},
     {"getflash", cmd_getflash},
     {"getdevtype", cmd_getdevtype},
+    {"testnotif", cmd_testnotification},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

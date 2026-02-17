@@ -42,7 +42,7 @@
 #include "ui_audio.hpp"
 #include "ui_sd_card_status_view.hpp"
 #include "ui_dfu_menu.hpp"
-
+#include "ui_notifications.hpp"
 #include "bitmap.hpp"
 #include "ui_bmpview.hpp"
 #include "ff.h"
@@ -449,6 +449,7 @@ class SystemView : public View {
 
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
+    NotificationView notification_view{navigation_view};
     DfuMenu overlay{navigation_view};
     DfuMenu2 overlay2{navigation_view};
     NavigationView navigation_view{};
