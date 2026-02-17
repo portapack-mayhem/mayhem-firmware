@@ -78,6 +78,6 @@ __attribute__((section(".external_app.app_tpmstx.application_information"), used
     /*.desired_menu_position = */ -1,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_ook */ {'P', 'O', 'O', 'K'},
-    /*.m4_app_offset = */ 0x00000000  // will be filled at compile time
+    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
