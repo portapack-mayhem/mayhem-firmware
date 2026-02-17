@@ -401,8 +401,28 @@ void TPMSTXView::encode_and_transmit() {
 }
 
 void TPMSTXView::handle_tx_complete() {
-    // Transmission complete
-    stop_tx();
+    // For FSK (FLM packets), handle repeats at application level
+    // OOK repeats are handled by the baseband processor
+    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        fsk_repeat_counter_++;
+        
+        if (fsk_repeat_counter_ < repeat_count_) {
+            // More repeats needed - send the next one
+            // Update progress bar
+            progressbar.set_value(fsk_repeat_counter_);
+            
+            // Schedule next transmission (with minimal delay to match OOK behavior)
+            // Note: A more sophisticated implementation could add pause_duration delay here
+            // using a timer mechanism, but for now we send back-to-back
+            encode_and_transmit();
+        } else {
+            // All FSK repeats complete
+            stop_tx();
+        }
+    } else {
+        // OOK repeats are handled by baseband, just stop here
+        stop_tx();
+    }
 }
 
 void TPMSTXView::start_tx() {
@@ -416,6 +436,9 @@ void TPMSTXView::start_tx() {
 
     button_transmit.set_text("STOP TX");
     text_status.set("Transmitting...");
+
+    // Initialize FSK repeat counter for application-level repeat handling
+    fsk_repeat_counter_ = 0;
 
     // Switch to appropriate baseband before transmission
     switch_baseband();

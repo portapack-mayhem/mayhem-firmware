@@ -71,6 +71,10 @@ class TPMSTXView : public View {
 
     bool is_transmitting_{false};
     bool advanced_mode_{false};
+    
+    // FSK-specific repeat tracking (OOK repeats are handled by baseband)
+    uint8_t fsk_repeat_counter_{0};
+    uint32_t fsk_repeat_timer_id_{0};
 
     void update_signal_type_from_packet();
     void switch_baseband();
