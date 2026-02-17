@@ -198,7 +198,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     options_packet_type.set_selected_index(0);
     options_signal_type.set_selected_index(0);
     field_repeat.set_value(repeat_count_);
-    
+
     // Initialize field values from default member variables
     field_transponder_id.set_value(transponder_id_);
     field_pressure.set_value(pressure_kpa_);
