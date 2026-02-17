@@ -66,8 +66,24 @@ void TPMSTXView::update_packet_display() {
     // Only update status text - field values are already set by user interaction
     // or by explicit set_value calls when loading from file
     std::string status = "ID:" + to_string_hex(transponder_id_, 8);
+    
+    // Note protocol-specific limitations
+    if (packet_type_ == tpms::Reading::Type::Schrader) {
+        status = "ID:" + to_string_hex(transponder_id_ & 0x00FFFFFF, 6) + " (24bit)";
+    }
+    
     status += " " + to_string_dec_uint(pressure_kpa_) + "kPa";
-    status += " " + to_string_dec_int(temperature_c_) + "C";
+    
+    // Temperature note for protocols that support it
+    if (packet_type_ == tpms::Reading::Type::GMC_96 ||
+        packet_type_ == tpms::Reading::Type::FLM_64 ||
+        packet_type_ == tpms::Reading::Type::FLM_72 ||
+        packet_type_ == tpms::Reading::Type::FLM_80) {
+        status += " " + to_string_dec_int(temperature_c_) + "C";
+    } else {
+        status += " (no temp)";
+    }
+    
     text_status.set(status);
 }
 
@@ -84,6 +100,8 @@ void TPMSTXView::encode_and_transmit() {
         // Preamble: 11*2, 01*14, 11, 10
         // Data: 3 bits flags, 24 bits ID, 8 bits pressure, 2 bits checksum
         // Total: 37 Manchester symbols (74 bits after encoding)
+        // NOTE: This protocol does NOT support temperature transmission
+        // NOTE: Only lower 24 bits of ID are transmitted
 
         symbol_rate = 8192;
 
@@ -101,7 +119,7 @@ void TPMSTXView::encode_and_transmit() {
         uint8_t flags_3bit = flags_ & 0x07;
         data |= ((uint64_t)flags_3bit << 34);
 
-        // 24-bit ID (only use lower 24 bits)
+        // 24-bit ID (only use lower 24 bits - protocol limitation)
         uint32_t id_24bit = transponder_id_ & 0x00FFFFFF;
         data |= ((uint64_t)id_24bit << 10);
 
@@ -135,13 +153,18 @@ void TPMSTXView::encode_and_transmit() {
             binary_string += "01";
         }
 
-        // System ID: first nibble is 0x4, then 20 more bits
+        // First nibble of System ID (0x4) - part of preamble pattern match
+        // RX looks for pattern ending with: 01010101...01100101
+        // The "01100101" = Manchester for 0x4, and is consumed by pattern matcher
         binary_string += "01";  // 0
         binary_string += "10";  // 1
         binary_string += "01";  // 0
         binary_string += "01";  // 0  (0100 = 0x4)
+
+        // Remaining 20 bits of system ID (padding with zeros)
+        // These are the first 20 bits of the 76-bit payload
         for (int i = 0; i < 20; i++) {
-            binary_string += "01";  // Padding
+            binary_string += "01";  // All zeros for padding
         }
 
         // 32-bit ID (Manchester encoded)
@@ -173,10 +196,24 @@ void TPMSTXView::encode_and_transmit() {
             }
         }
 
-        // Checksum: sum of all bytes
-        uint8_t checksum = 0x44;  // First nibble 0x4 << 4 | next nibble
+        // Checksum: sum of all data bytes (system ID + ID + pressure + temp)
+        // System ID byte 0: (0x4 << 4) | 0x0 = 0x40
+        // System ID byte 1: 0x00
+        // System ID byte 2: 0x00
+        uint8_t checksum = 0x40;  // First byte of system ID
+        checksum += 0x00;         // Second byte of system ID
+        checksum += 0x00;         // Third byte of system ID
+        
+        // Add all 4 bytes of the ID
+        checksum += (transponder_id_ >> 24) & 0xFF;
+        checksum += (transponder_id_ >> 16) & 0xFF;
+        checksum += (transponder_id_ >> 8) & 0xFF;
+        checksum += transponder_id_ & 0xFF;
+        
+        // Add pressure and temperature
         checksum += pressure_gmc;
         checksum += temp_gmc;
+        
         for (int i = 7; i >= 0; i--) {
             if ((checksum >> i) & 1) {
                 binary_string += "10";
