@@ -1406,7 +1406,7 @@ static void cmd_testnotification(BaseSequentialStream* chp, int argc, char* argv
     (void)argc;
     (void)argv;
 
-    NotificationDataMessage msg{"audio", "Test Notification", "This is a test notification sent from the shell command."};
+    NotificationDataMessage msg{"audio", "Test Notification", "This is a test notification sent from the shell command.", 1};
     EventDispatcher::send_message(msg);
 
     std::string res = "\r\nok\r\n";

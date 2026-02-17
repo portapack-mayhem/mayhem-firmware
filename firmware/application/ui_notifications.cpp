@@ -12,17 +12,18 @@ NotificationEntryView::NotificationEntryView(const NotificationEntry& entry, Not
     border.set_outline(true);
     if (entry_.icon != NOTIF_ICON_NONE) {
         add_child(&icon_image);
-        icon_image.set_parent_rect({UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(4), UI_POS_HEIGHT(2)});
-        message_text.set_parent_rect({UI_POS_X(4), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(4) - 1, UI_POS_HEIGHT(2)});
+        icon_image.set_parent_rect({UI_POS_X(0) + 2, UI_POS_Y(1), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)});
+        message_text.set_parent_rect({UI_POS_X(2) + 2, UI_POS_Y(1), UI_POS_WIDTH_REMAINING(2) - 2, UI_POS_HEIGHT(2)});
         if (entry_.icon == NOTIF_ICON_MESSAGE) {
-            icon_image.set_bitmap(&bitmap_icon_burger);
+            icon_image.set_bitmap(&bitmap_icon_pocsag);
         }
+
     } else {
-        message_text.set_parent_rect({UI_POS_X(1), UI_POS_Y(1), UI_POS_MAXWIDTH - 1, UI_POS_HEIGHT(2)});
+        message_text.set_parent_rect({UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(1) - 1, UI_POS_HEIGHT(2)});
     }
-    // title_text.set_style(Theme::getInstance()->option_active); //ugly
+    title_text.set_style(Theme::getInstance()->bg_dark);
     title_text.set(entry_.title);
-    // message_text.set_style(Theme::getInstance()->bg_darkest_small); //not readable
+    message_text.set_style(Theme::getInstance()->bg_darkest);
     message_text.set(entry_.message);
 
     close_button.on_select = [this](Button&) {
@@ -123,7 +124,7 @@ void NotificationView::remove_notification(uint16_t id) {
 
 void NotificationView::open_notification(std::string app_name) {
     if (app_name.empty()) return;
-    // nav_.push ... implementation dependent
+    nav_.StartAppByName(app_name.c_str());
 }
 
 }  // namespace ui
