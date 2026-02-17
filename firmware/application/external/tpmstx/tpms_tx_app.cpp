@@ -22,12 +22,14 @@
 #include "tpms_tx_app.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
+#include "spi_image.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "manchester.hpp"
 #include "rtc_time.hpp"
 #include "file_path.hpp"
 #include "encoders.hpp"
+#include "crc.hpp"
 
 using namespace portapack;
 using namespace tpms;
@@ -60,6 +62,22 @@ void TPMSTXView::update_signal_type_from_packet() {
             options_signal_type.set_selected_index(1);
             break;
     }
+    // Note: Don't call switch_baseband() here - it's called when needed
+}
+
+void TPMSTXView::switch_baseband() {
+    // Switch baseband image based on signal type
+    // Must shutdown first to avoid BBRunning error
+    baseband::shutdown();
+    chThdSleepMilliseconds(100);
+    
+    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        baseband::run_image(portapack::spi_flash::image_tag_fsktx);
+    } else {
+        baseband::run_image(portapack::spi_flash::image_tag_ook);
+    }
+    
+    chThdSleepMilliseconds(100);
 }
 
 void TPMSTXView::update_packet_display() {
@@ -93,7 +111,14 @@ void TPMSTXView::encode_and_transmit() {
     // Build TPMS packet based on signal type
     std::string binary_string;
     uint32_t symbol_rate;
-    uint32_t sample_rate = 2000000;  // 2 MHz sample rate
+    uint32_t sample_rate;
+
+    // Set sample rate based on signal type to match transmitter config
+    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        sample_rate = 2280000;  // 2.28 MHz for FSK (matches transmitter_model config)
+    } else {
+        sample_rate = 2000000;  // 2 MHz for OOK
+    }
 
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
         // Schrader OOK 8k192 format (Type = Schrader)
@@ -222,10 +247,128 @@ void TPMSTXView::encode_and_transmit() {
             }
         }
 
-    } else {
-        // FSK_19k2_Schrader - not properly supported yet
+    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        // FSK 19.2k for FLM variants
+        // Data is Manchester encoded: each data bit becomes two FSK symbols
+        // Preamble: 14 x '01' + '10' = 30 bits (matches RX pattern exactly)
+        // Payload: 160 Manchester-encoded bits (80 data bits max)
+        
         symbol_rate = 19200;
-        text_status.set("FSK not implemented");
+        
+        // Build preamble: 14 pairs of "01" followed by "10"
+        for (int i = 0; i < 14; i++) {
+            binary_string += "01";
+        }
+        binary_string += "10";
+        
+        std::array<uint8_t, 20> data_bytes = {0};  // 160 bits = 20 bytes max
+        size_t num_data_bits = 0;
+        
+        if (packet_type_ == tpms::Reading::Type::FLM_64) {
+            // FLM_64: 64 bits (8 bytes)
+            // Bytes 0-3: ID (32 bits)
+            // Byte 4: Pressure (8 bits)
+            // Byte 5: Temperature (8 bits, LSB 7 bits used)
+            // Byte 6: Padding
+            // Byte 7: Sum checksum of bytes 0-6 (low 8 bits)
+            
+            num_data_bits = 64;
+            
+            data_bytes[0] = (transponder_id_ >> 24) & 0xFF;
+            data_bytes[1] = (transponder_id_ >> 16) & 0xFF;
+            data_bytes[2] = (transponder_id_ >> 8) & 0xFF;
+            data_bytes[3] = transponder_id_ & 0xFF;
+            data_bytes[4] = (pressure_kpa_ * 3 / 4) & 0xFF;
+            data_bytes[5] = ((temperature_c_ + 56) & 0x7F);  // LSB 7 bits only
+            data_bytes[6] = 0x00;  // Padding
+            
+            // Addition checksum over bytes 0-6
+            uint32_t checksum = 0;
+            for (int i = 0; i < 7; i++) {
+                checksum += data_bytes[i];
+            }
+            data_bytes[7] = checksum & 0xFF;
+            
+        } else if (packet_type_ == tpms::Reading::Type::FLM_72) {
+            // FLM_72: 72 bits (9 bytes)
+            // Bytes 0-3: ID (32 bits)
+            // Byte 4: Padding
+            // Byte 5: Pressure (8 bits)
+            // Byte 6: Temperature (8 bits)
+            // Bytes 7-8: CRC field - RX processes ALL 9 bytes and expects CRC result = 0
+            
+            num_data_bits = 72;
+            
+            data_bytes[0] = (transponder_id_ >> 24) & 0xFF;
+            data_bytes[1] = (transponder_id_ >> 16) & 0xFF;
+            data_bytes[2] = (transponder_id_ >> 8) & 0xFF;
+            data_bytes[3] = transponder_id_ & 0xFF;
+            data_bytes[4] = 0x00;  // Padding
+            data_bytes[5] = (pressure_kpa_ * 3 / 4) & 0xFF;
+            data_bytes[6] = (temperature_c_ + 56) & 0xFF;
+            data_bytes[7] = 0x00;  // Set to 0 initially
+            
+            // Calculate CRC over bytes 0-7, place result in byte 8
+            // When RX calculates CRC over bytes 0-8, it should get residual 0
+            CRC<8> crc{0x01, 0x00};
+            for (int i = 0; i < 8; i++) {
+                crc.process_byte(data_bytes[i]);
+            }
+            data_bytes[8] = crc.checksum() & 0xFF;
+            
+        } else if (packet_type_ == tpms::Reading::Type::FLM_80) {
+            // FLM_80: 80 bits (10 bytes)
+            // Byte 0: Padding
+            // Bytes 1-4: ID (32 bits)
+            // Byte 5: Padding
+            // Byte 6: Pressure (8 bits)
+            // Byte 7: Temperature (8 bits)
+            // Bytes 8-9: CRC field - RX processes bytes 1-9 and expects CRC result = 0
+            
+            num_data_bits = 80;
+            
+            data_bytes[0] = 0x00;  // Padding (not included in CRC)
+            data_bytes[1] = (transponder_id_ >> 24) & 0xFF;
+            data_bytes[2] = (transponder_id_ >> 16) & 0xFF;
+            data_bytes[3] = (transponder_id_ >> 8) & 0xFF;
+            data_bytes[4] = transponder_id_ & 0xFF;
+            data_bytes[5] = 0x00;  // Padding
+            data_bytes[6] = (pressure_kpa_ * 3 / 4) & 0xFF;
+            data_bytes[7] = (temperature_c_ + 56) & 0xFF;
+            data_bytes[8] = 0x00;  // Padding/Reserved
+            data_bytes[9] = 0x00;  // CRC byte
+            
+            // Calculate CRC over bytes 1-8 (all bytes except 0 and 9)
+            // When RX calculates CRC over bytes 1-9, it should get residual 0
+            CRC<8> crc{0x01, 0x00};
+            for (int i = 1; i <= 8; i++) {
+                crc.process_byte(data_bytes[i]);
+            }
+            data_bytes[9] = crc.checksum() & 0xFF;
+        }
+        
+        // Manchester-encode data bits for FSK
+        // RX ManchesterDecoder with sense=0: '1' = "10", '0' = "01"
+        size_t num_bytes = num_data_bits / 8;
+        for (size_t byte_idx = 0; byte_idx < num_bytes; byte_idx++) {
+            uint8_t byte_val = data_bytes[byte_idx];
+            for (int bit_idx = 7; bit_idx >= 0; bit_idx--) {
+                if ((byte_val >> bit_idx) & 1) {
+                    binary_string += "10";  // Manchester '1'
+                } else {
+                    binary_string += "01";  // Manchester '0'
+                }
+            }
+        }
+        
+        // Pad payload to 160 bits with valid Manchester pairs ("01" = 0)
+        // Using proper Manchester encoding maintains clock recovery sync
+        while (binary_string.length() < 190) {  // 30 preamble + 160 payload
+            binary_string += "01";  // Manchester-encoded zero
+        }
+        
+    } else {
+        text_status.set("Unknown signal type");
         stop_tx();
         return;
     }
@@ -233,18 +376,28 @@ void TPMSTXView::encode_and_transmit() {
     // Convert binary string to bitstream
     size_t bitstream_length = encoders::make_bitstream(binary_string);
 
-    // Calculate samples per bit
-    uint32_t samples_per_bit = sample_rate / symbol_rate;
+    // Calculate samples per bit (round to nearest for best timing accuracy)
+    uint32_t samples_per_bit = (sample_rate + symbol_rate / 2) / symbol_rate;
 
     // Update status to show we're sending
     text_status.set("TX: " + to_string_dec_uint(binary_string.length()) + " bits");
 
-    // Send via OOK baseband
-    baseband::set_ook_data(
-        bitstream_length,
-        samples_per_bit,
-        repeat_count_,
-        pause_duration_);
+    // Send via appropriate baseband (OOK or FSK)
+    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        // FSK mode: 19.2 kbaud, 38.4 kHz shift
+        baseband::set_fsk_data(
+            bitstream_length,
+            samples_per_bit,
+            38400,  // 38.4 kHz shift
+            256);   // Progress notice interval
+    } else {
+        // OOK mode
+        baseband::set_ook_data(
+            bitstream_length,
+            samples_per_bit,
+            repeat_count_,
+            pause_duration_);
+    }
 }
 
 void TPMSTXView::handle_tx_complete() {
@@ -264,9 +417,20 @@ void TPMSTXView::start_tx() {
     button_transmit.set_text("STOP TX");
     text_status.set("Transmitting...");
 
-    // Configure transmitter
-    transmitter_model.set_sampling_rate(2000000);  // 2 MHz
-    transmitter_model.set_baseband_bandwidth(1750000);
+    // Switch to appropriate baseband before transmission
+    switch_baseband();
+    
+    // Configure transmitter based on modulation type
+    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+        // FSK configuration
+        transmitter_model.set_sampling_rate(2280000);  // 2.28 MHz for FSK
+        transmitter_model.set_baseband_bandwidth(1750000);
+    } else {
+        // OOK configuration
+        transmitter_model.set_sampling_rate(2000000);  // 2 MHz for OOK
+        transmitter_model.set_baseband_bandwidth(1750000);
+    }
+    
     transmitter_model.enable();
 
     // Start transmission
@@ -287,6 +451,7 @@ void TPMSTXView::stop_tx() {
 
 TPMSTXView::TPMSTXView(NavigationView& nav)
     : nav_{nav} {
+    // Start with OOK baseband (will switch if needed)
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
     add_children({&labels,
@@ -371,6 +536,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
     options_signal_type.on_change = [this](size_t, int32_t value) {
         signal_type_ = static_cast<tpms::SignalType>(value);
+        // Baseband will be switched when starting transmission
     };
 
     field_repeat.on_change = [this](int32_t value) {

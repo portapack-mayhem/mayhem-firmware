@@ -73,6 +73,7 @@ class TPMSTXView : public View {
     bool advanced_mode_{false};
 
     void update_signal_type_from_packet();
+    void switch_baseband();
 
     void start_tx();
     void stop_tx();
