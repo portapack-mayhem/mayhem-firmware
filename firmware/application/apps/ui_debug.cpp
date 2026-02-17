@@ -1815,11 +1815,6 @@ void SystemDiagnosticsView::read_gpio_states() {
     uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
     uint32_t gpio4_state = LPC_GPIO->PIN[4];  // GPIO4 for LPF and amp
 
-    // Extract specific pins based on hackrf_gpio.hpp definitions:
-    // gpio_mix_enable_n = GPIO3_2 (P6_3) - bit 2 of port 3, INVERTED
-    // gpio_lpf_enable = GPIO4_8 (PA_1) - bit 8 of port 4
-    // gpio_rf_amp_enable = GPIO4_9 (PA_2) - bit 9 of port 4
-
     bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
     bool lpf_actual = (gpio4_state >> 8) & 1;    // GPIO4[8]
     bool amp_actual = (gpio4_state >> 9) & 1;    // GPIO4[9]
@@ -2075,7 +2070,6 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_title,
         &text_lbl_lock,
         &text_lock,
-        &text_lbl_ctrl,
         &text_ctrl,
         &text_lbl_enabled,
         &text_enabled,
@@ -2101,12 +2095,21 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_regs_status,
         &text_regs_status,
         &button_refresh,
+	&button_force_enx,
         &button_done,
     });
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
+        refresh_status();
+    };
+
+    button_force_enx.on_select = [this](Button&) {
+        // Force ENX to OUTPUT and drive LOW
+        LPC_GPIO->DIR[2] |= (1 << 13);   // Set as OUTPUT
+        LPC_GPIO->CLR[2] = (1 << 13);    // Drive LOW (enabled)
+    
         refresh_status();
     };
 
@@ -2152,9 +2155,10 @@ void RFFC5072StatusView::refresh_status() {
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
 
-    text_ctrl.set(std::string(enx ? "DIS" : "EN") + " " +
-                  std::string(resetx ? "RUN" : "RST") + " " +
-                  "O:" + std::string(resetx_is_output ? "Y" : "N"));
+    text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") + 
+		  " O:" + std::string(enx_is_output ? "Y" : "N") +
+                  " | RST: "+ std::string(resetx ? "RUN" : "RST") + 
+                  " O:" + std::string(resetx_is_output ? "Y" : "N"));
 
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);

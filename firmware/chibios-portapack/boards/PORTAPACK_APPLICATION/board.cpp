@@ -137,7 +137,11 @@ const PALConfig pal_default_config = {
         .data
             = (0 << 15) // P5_6:  TX_AMP
             | (1 << 14) // P5_5:  MIXER_RESETX, 10K PU
+#ifdef PRALINE
+            | (0 << 13) // P5_4:  MIXER_ENX, 10K PU
+#else
             | (1 << 13) // P5_4:  MIXER_ENX, 10K PU
+#endif
             | (1 << 12) // P5_3:  RX_MIX_BP
             | (0 << 11) // P5_2:  TX_MIX_BP
             | (0 << 10) // P5_1:  LP
@@ -154,8 +158,12 @@ const PALConfig pal_default_config = {
             ,
         .dir
             = (1 << 15) // P5_6:  TX_AMP
-            | (1 << 14) // P5_5:  MIXER_RESETX, 10K PU
-            | (1 << 13) // P5_4:  MIXER_ENX, 10K PU
+#ifdef PRALINE
+	    | (0 << 14) // P5_5:  MIXER_RESETX, 10K PU
+#else
+	    | (1 << 14) // P5_5:  MIXER_RESETX, 10K PU
+#endif
+	    | (1 << 13) // P5_4:  MIXER_ENX, 10K PU
             | (1 << 12) // P5_3:  RX_MIX_BP
             | (1 << 11) // P5_2:  TX_MIX_BP
             | (1 << 10) // P5_1:  LP
@@ -306,7 +314,10 @@ const PALConfig pal_default_config = {
     {  1,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !MIX_BYPASS/P35: U1.VCTL1(I), U11.VCTL2(I), U9.V2(I) */
     {  1, 19, scu_config_normal_drive_t { .mode=1, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* SSP1_SCK/P39: MAX2837.SCLK(I), MAX5864.SCLK(I) */
     {  1, 20, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CS_XCVR/P53: MAX2837.CS(I) */
+#ifndef PRALINE
+    /* HackRF One RFFC5072 SPI pins - NOT used on PRALINE */
     {  2,  6, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
+#endif
     {  2, 10, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* AMP_BYPASS/P50: U14.V2(I), U12.V2(I) */
     {  2, 11, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
     {  2, 12, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
@@ -319,10 +330,20 @@ const PALConfig pal_default_config = {
     {  5,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIXER_ENX/P32: 10K PU, 33pF, RFFC5072.ENX(I) */
     {  5,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIXER_RESETX/P33: 10K PU, 33pF, RFFC5072.RESETX(I) */
     {  5,  6, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* TX_AMP/P48: U12.V3(I), U14.V1(I) */
+#ifndef PRALINE
+/* HackRF One RFFC5072 SPI pins - NOT used on PRALINE */
     {  5,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CS_AD/P54: MAX5864.CS(I) */
     {  6,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* MIXER_SDATA/P27: 33pF, RFFC5072.SDATA(IO) */
+#endif
     {  6,  8, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIX_BYPASS/P34: U1.VCTL2(I), U11.VCTL1(I) */
     {  6,  9, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !TX_AMP_PWR/P51: 10K PU, Q2.G(I), power to U25 (TX amp) */
+
+#ifdef PRALINE
+    /* PRALINE RFFC5072 SPI pins - different from HackRF One */
+    {  5,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* P5_7: GPIO2[7], RFFC5072 CS */
+    {  9,  5, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=1, .ezi=0, .zif=0 } }, /* P9_5: GPIO5[18], RFFC5072 SCLK */
+    {  9,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=1, .ezi=1, .zif=0 } }, /* P9_2: GPIO4[14], RFFC5072 SDATA (bidirectional) */
+#endif
 
     /* SGPIO for sample transfer interface to HackRF CPLD. */
     {  0,  0, scu_config_normal_drive_t { .mode=3, .epd=0, .epun=1, .ehs=1, .ezi=1, .zif=1 } }, /* SGPIO0/P75/BANK2F3M3: CPLD.89/HOST_DATA0(IO) */
@@ -346,7 +367,9 @@ const PALConfig pal_default_config = {
     {  6,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CPLD_TCK: PortaPack CPLD.TCK(I) */
     {  6,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* CPLD_TDI: PortaPack CPLD.TDI(I), I2S0_RX_SDA(O) */
     {  6,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CPLD_TMS: HackRF CPLD.TMS(I) */
+#ifndef PRALINE
     {  9,  5, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* CPLD_TDO: HackRF CPLD.TDO(O) */
+#endif
 
     /* PortaPack CPLD */
     {  1,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* SD_POW: PortaPack CPLD.TDO(O) */
@@ -886,20 +909,34 @@ extern "C" void boardInit(void) {
 
   /* Configure RFFC5072 pins for PRALINE */
   /* P9_2 = GPIO4[14] RFFC5072 data (SCU_GPIO_FAST | FUNCTION0 = 0xF0) */
-  LPC_SCU->SFSP[9][2] = 0xF0;
+  //LPC_SCU->SFSP[9][2] = 0xF0;
   /* P9_5 = GPIO5[18] RFFC5072 clock (SCU_GPIO_FAST | FUNCTION4 = 0xF4) */
-  LPC_SCU->SFSP[9][5] = 0xF4;
-  LPC_GPIO->DIR[5] |= (1 << 18);  /* Clock as output */
+  //LPC_SCU->SFSP[9][5] = 0xF4;
+  //LPC_GPIO->DIR[5] |= (1 << 18);  // Clock as output
+  
+  /* Set GPIO directions for RFFC5072 SPI pins */
+  /* P5_7 = GPIO2[7] RFFC5072 CS */
+  LPC_GPIO->SET[2] = (1 << 7);    /* CS high (deselected) */
+  LPC_GPIO->DIR[2] |= (1 << 7);   /* CS as output */
+
+  /* P9_5 = GPIO5[18] RFFC5072 SCLK */
+  LPC_GPIO->CLR[5] = (1 << 18);   /* CLK low */
+  LPC_GPIO->DIR[5] |= (1 << 18);  /* CLK as output */
+
+  /* P9_2 = GPIO4[14] RFFC5072 DATA (bidirectional) */
+  LPC_GPIO->DIR[4] |= (1 << 14);  /* DATA as output initially */
 
   /* Configure Port D pins for PRALINE (use SFSPD registers) */
   /* PD_14 = GPIO6[28] MAX2831 chip select */
   LPC_SCU->SFSPD[14] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->SET[6] = (1 << 28);  /* CS high (inactive) */
   LPC_GPIO->DIR[6] |= (1 << 28);  /* Output */
+
   /* PD_15 = GPIO6[29] MAX2831 RXHP control */
   LPC_SCU->SFSPD[15] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->CLR[6] = (1 << 29);  /* RXHP low = 100 Hz HPF */
   LPC_GPIO->DIR[6] |= (1 << 29);  /* Output */
+
   /* PD_16 = GPIO6[30] MAX5864 chip select */
   LPC_SCU->SFSPD[16] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->SET[6] |= (1 << 30);  /* CS high (inactive) */
@@ -938,7 +975,8 @@ extern "C" void boardInit(void) {
   /* Configure RFFC5072 control pins for PRALINE */
   /* P5_4 = GPIO2[13] RFFC5072 ENX (active low: 0=enabled) */
   LPC_SCU->SFSP[5][4] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
-  LPC_GPIO->DIR[2] &= ~(1 << 13);  /* ENX: INPUT (let FPGA control) */
+  LPC_GPIO->DIR[2] |= (1 << 13);   /* ENX: OUTPUT */
+  LPC_GPIO->CLR[2] = (1 << 13);    /* ENX = 0 (ENABLED) */
 
   /* P5_5 = GPIO2[14] RFFC5072 RESETX - FPGA controlled, MCU should not touch */
   LPC_SCU->SFSP[5][5] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
@@ -978,9 +1016,6 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[6][6] = 0xF2;   /* SGPIO5: P6_6 function 2, HOST_DATA5 */
   LPC_SCU->SFSP[2][2] = 0xF0;   /* SGPIO6: P2_2 function 0, HOST_DATA6 */
   LPC_SCU->SFSP[1][0] = 0xF6;   /* SGPIO7: P1_0 function 6, HOST_DATA7 */
-
-  /* NOTE: P9_5 is RFFC5072 mixer clock (SCU_MIXER_SCLK), NOT SGPIO!
-   * Do NOT override P9_5 here. */
 
   // Trigger FPGA bitstream loading via fpga bridge
   // Attempt to load the FPGA bitstream

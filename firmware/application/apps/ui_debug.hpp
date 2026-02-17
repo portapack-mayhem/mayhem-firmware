@@ -807,8 +807,7 @@ class RFFC5072StatusView : public View {
     Text text_lbl_lock{{0, 16, 114, 16}, "Lock Detect:"};
     Text text_lock{{116, 16, 124, 16}, "---"};
 
-    Text text_lbl_ctrl{{0, 32, 114, 16}, "Control:"};
-    Text text_ctrl{{116, 32, 124, 16}, "---"};
+    Text text_ctrl{{0, 32, 240, 16}, "---"};
 
     Text text_lbl_enabled{{0, 48, 114, 16}, "Status:"};
     Text text_enabled{{116, 48, 124, 16}, "---"};
@@ -845,7 +844,8 @@ class RFFC5072StatusView : public View {
     Text text_lbl_regs_status{{0, 224, 48, 16}, "Regs:"};
     Text text_regs_status{{50, 224, 190, 16}, "---"};
 
-    Button button_refresh{{2, 280, 56, 24}, "Rfrsh"};
+    Button button_refresh{{2, 280, 72, 24}, "Refresh"};
+    Button button_force_enx{{98, 280, 60, 24}, "T_ENX"};
     Button button_done{{182, 280, 56, 24}, "Done"};
 };
 
