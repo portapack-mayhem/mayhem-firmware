@@ -1089,7 +1089,7 @@ void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
                     (ext[3] == 'P' || ext[3] == 'p')) {
                     valid_count++;
                     // Reservoir Sampling:
-                    if ((myrand(&rng_state) % valid_count) == 0) {
+                    if (((rng_state = myrand(&rng_state)) % valid_count) == 0) {
                         path = splash_dir / fno.fname;
                     }
                 }
