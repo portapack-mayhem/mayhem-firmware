@@ -38,6 +38,16 @@ using namespace hackrf::one;
 #include <algorithm>
 #include <cstring>
 
+// Global debug tracking for MAX2831
+struct max2831_debug_t {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_n;
+    uint32_t calculated_frac;
+    bool set_frequency_called;
+    bool frequency_valid;
+};
+extern "C" max2831_debug_t max2831_debug_info = {0, 0, 0, false, false};
+
 namespace max2831 {
 
 using namespace max283x;
@@ -120,7 +130,8 @@ void MAX2831::init() {
     // set_reg_field(11, REG11_RXVGA_GAIN_MASK, 0x1F);  // 62 dB VGA = MAX
 
     /* Configure baseband filter for 8 MHz TX - matches GSG reference */
-    set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_7_5M);
+    // set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_7_5M);
+    set_reg_field(8, REG8_LPF_COARSE_MASK, REG8_RX_LPF_15M);
     set_reg_field(7, REG7_RX_LPF_FINE_MASK, REG7_RX_LPF_FINE_100);
     set_reg_field(7, REG7_TX_LPF_FINE_MASK, REG7_TX_LPF_FINE_100);
 
@@ -329,9 +340,21 @@ uint32_t MAX2831::set_lpf_bandwidth_internal(const uint32_t bandwidth_hz) {
 
 void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
     _desired_lpf_bw = bandwidth_minimum;
+#ifdef PRALINE
+    uint32_t actual_bw = bandwidth_minimum;
+    if (actual_bw < 22000000) {
+        actual_bw = 22000000;  // Never go below 15 MHz, set by choosing 22.6 MHz bandwidth
+    }
+
+    _desired_lpf_bw = actual_bw;
+    if (_mode == Mode::Receive || _mode == Mode::Rx_Calibration) {
+        set_lpf_bandwidth_internal(actual_bw);
+    }
+#else
     if (_mode == Mode::Receive || _mode == Mode::Rx_Calibration) {
         set_lpf_bandwidth_internal(bandwidth_minimum);
     }
+#endif
 }
 
 void MAX2831::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {
@@ -355,7 +378,20 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
      */
 
     /* MAX2831 supports 2.3-2.6 GHz */
-    if (lo_frequency < 2300000000ULL || lo_frequency > 2600000000ULL) {
+    // if (lo_frequency < 2300000000ULL || lo_frequency > 2600000000ULL) {
+    //     return false;
+    // }
+
+    bool valid = (lo_frequency >= 2300000000ULL && lo_frequency <= 2600000000ULL);
+
+    // TRACK REQUEST IMMEDIATELY
+    max2831_debug_info.requested_freq_mhz = lo_frequency / 1000000;
+    max2831_debug_info.set_frequency_called = true;
+    max2831_debug_info.frequency_valid = valid;
+
+    if (!valid) {
+        max2831_debug_info.calculated_n = 0;
+        max2831_debug_info.calculated_frac = 0;
         return false;
     }
 
@@ -376,6 +412,10 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
             div_rem -= div_cmp;
         }
     }
+
+    // TRACK CALCULATED VALUES
+    max2831_debug_info.calculated_n = div_int;
+    max2831_debug_info.calculated_frac = div_frac;
 
     /* Write order matters - matches GSG reference */
     /* REG 3: SYN_INT (bits 7:0) and SYN_FRAC_LO (bits 13:8) */

@@ -197,9 +197,11 @@ struct SynthConfig {
  */
 
 void RFFC507x::init() {
+#ifndef PRALINE
     gpio_rffc5072_resetx.set();
     gpio_rffc5072_resetx.output();
     reset();
+#endif
 
     _bus.init();
 
@@ -211,10 +213,12 @@ void RFFC507x::reset() {
     /* TODO: Is RESETB pin ignored if sdi_ctrl.sipin=1? Programming guide
      * description of sdi_ctrl.sipin suggests the pin is not ignored.
      */
+#ifndef PRALINE
     gpio_rffc5072_resetx.clear();
     halPolledDelay(ticks_during_reset);
     gpio_rffc5072_resetx.set();
     halPolledDelay(ticks_after_reset);
+#endif
 }
 
 void RFFC507x::flush() {

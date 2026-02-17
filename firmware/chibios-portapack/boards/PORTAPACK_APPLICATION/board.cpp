@@ -927,13 +927,28 @@ extern "C" void boardInit(void) {
 
   /* Configure Port A pins for RF path control */
   /* PA_1 = GPIO4[8] LPF enable */
-  LPC_SCU->SFSP[0xA][1] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
+  LPC_SCU->SFSP[0xA][1] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION0 */
   LPC_GPIO->SET[4] = (1 << 8);  /* LPF enabled by default (low band) */
   LPC_GPIO->DIR[4] |= (1 << 8);  /* Output */
   /* PA_2 = GPIO4[9] RF amp enable */
-  LPC_SCU->SFSP[0xA][2] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
+  LPC_SCU->SFSP[0xA][2] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION0 */
   LPC_GPIO->CLR[4] = (1 << 9);  /* RF amp off by default */
   LPC_GPIO->DIR[4] |= (1 << 9);  /* Output */
+
+  /* Configure RFFC5072 control pins for PRALINE */
+  /* P5_4 = GPIO2[13] RFFC5072 ENX (active low: 0=enabled) */
+  LPC_SCU->SFSP[5][4] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
+  LPC_GPIO->DIR[2] &= ~(1 << 13);  /* ENX: INPUT (let FPGA control) */
+
+  /* P5_5 = GPIO2[14] RFFC5072 RESETX - FPGA controlled, MCU should not touch */
+  LPC_SCU->SFSP[5][5] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
+  LPC_GPIO->DIR[2] &= ~(1 << 14);  /* RESETX: INPUT (let FPGA control) */
+
+  /* PD_11 = GPIO6[25] RFFC5072 Lock Detect (input) */
+  LPC_SCU->SFSP[0xD][11] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
+
+  /* Small delay for signals to stabilize */
+  for (volatile int i = 0; i < 10000; i++) {}
 
   /* Configure PRALINE-specific SGPIO pins for FPGA sample interface.
    * These override the HackRF One pin config from pins_setup.

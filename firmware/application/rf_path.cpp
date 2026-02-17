@@ -258,6 +258,7 @@ void Path::set_direction(const Direction new_direction) {
 
 void Path::set_band(const Band new_band) {
     band = new_band;
+    _band = new_band;
     update();
 }
 
@@ -298,6 +299,7 @@ void Path::update() {
 
     /* Move to the final state by turning on required signals. */
     /* LPF for low band */
+
     config.lpf_en = (band == Band::Low);
 
     /* RF amp when amplification requested */
@@ -307,6 +309,7 @@ void Path::update() {
     config.ant_bias_en_n = true;
 
     config.apply();
+
 #else
     /* HackRF One RF path control */
     const auto config = get_config(direction, band, rf_amp);

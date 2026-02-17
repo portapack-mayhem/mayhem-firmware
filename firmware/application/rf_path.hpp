@@ -58,12 +58,16 @@ class Path {
     void set_band(const Band band);
     void set_rf_amp(const bool rf_amp);
 
+    Band get_band() const { return _band; }  //_band is used solely for debugging purposes.
+
    private:
     Direction direction{Direction::Receive};
     Band band{Band::Mid};
     bool rf_amp{false};
 
     void update();
+
+    Band _band{Band::Mid};  //_band is solely used of debugging purposes
 };
 
 }  // namespace path

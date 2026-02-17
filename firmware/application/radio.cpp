@@ -205,8 +205,10 @@ void set_direction(const rf::Direction new_direction) {
 #ifndef PRALINE
     baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #else
+    // TEST: Force baseband invert for Praline (like r9)
+    // baseband_invert = (direction == rf::Direction::Receive);
+
     // Praline: Control Q inversion via FPGA register
-    // Assuming register 1 bit 1 controls Q inversion
     uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
     if (mixer_invert ^ baseband_invert) {
         ctrl_reg |= 0x02;  // Set Q_INVERT bit
@@ -224,16 +226,6 @@ void set_direction(const rf::Direction new_direction) {
         led_rx.on();
     else
         led_tx.on();
-
-    // #ifdef PRALINE
-    //  Try with Q inversion OFF
-    // fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, Q_INVERT=0
-    // ssp1_arbiter.invalidate();
-
-    // If no signals, try with Q inversion ON
-    // fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, Q_INVERT=1
-    // ssp1_arbiter.invalidate();
-    // #endif
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -278,6 +270,17 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         mixer_invert = tuning_config.mixer_invert;
 #ifndef PRALINE
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
+#else
+        // TEST: Force baseband invert for Praline (like r9)
+        // baseband_invert = (direction == rf::Direction::Receive);
+
+        // PRALINE: Update FPGA Q inversion when tuning changes
+        uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
+        if (mixer_invert ^ baseband_invert) {
+            ctrl_reg |= 0x02;  // Set Q_INVERT bit
+        }
+        fpga_debug_register_write(1, ctrl_reg);
+        ssp1_arbiter.invalidate();
 #endif
 
         return result_second_if;
@@ -454,6 +457,27 @@ TuningInfo get_tuning_info() {
 
 namespace second_if {
 
+#ifdef PRALINE
+extern "C" {
+extern struct max2831_debug_t {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_n;
+    uint32_t calculated_frac;
+    bool set_frequency_called;
+    bool frequency_valid;
+} max2831_debug_info;
+}
+
+MAX2831Info get_max2831_info() {
+    return {
+        max2831_debug_info.requested_freq_mhz,
+        max2831_debug_info.calculated_n,
+        max2831_debug_info.calculated_frac,
+        max2831_debug_info.set_frequency_called,
+        max2831_debug_info.frequency_valid};
+}
+#endif
+
 uint32_t register_read(const size_t register_number) {
     return radio::second_if->read(register_number);
 }
@@ -467,6 +491,12 @@ int8_t temp_sense() {
 }
 
 } /* namespace second_if */
+
+namespace rf_path_info {
+rf::path::Band get_current_band() {
+    return radio::rf_path.get_band();
+}
+} /* namespace rf_path_info */
 
 #ifdef PRALINE
 namespace fpga {

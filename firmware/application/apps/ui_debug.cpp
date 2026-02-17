@@ -1499,6 +1499,10 @@ SignalPathStatusView::SignalPathStatusView(NavigationView& nav)
         &text_max_mode,
         &text_lbl_rf_path,
         &text_rf_path,
+        &text_lbl_filter,
+        &text_filter,
+        &text_lbl_mixer,
+        &text_mixer,
         &text_lbl_rf_amp,
         &text_rf_amp,
         &text_lbl_lna,
@@ -1507,14 +1511,34 @@ SignalPathStatusView::SignalPathStatusView(NavigationView& nav)
         &text_vga,
         &text_lbl_fpga_decim,
         &text_fpga_decim,
+        &text_lbl_fpga_ctrl_dc_q,
+        &text_fpga_ctrl_dc_q,
+        &text_lbl_fpga_ctrl_qs,
+        &text_fpga_ctrl_qs,
         &text_status,
         &button_refresh,
+        &button_toggle_q,
         &button_done,
     });
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
+        refresh_status();
+    };
+
+    button_toggle_q.on_select = [this](Button&) {
+        static bool q_override = false;
+        q_override = !q_override;
+
+        uint8_t ctrl_reg = 0x01;  // DC_BLOCK always on
+        if (q_override) {
+            ctrl_reg |= 0x02;  // Force Q_INVERT ON
+        }
+
+        radio::debug::fpga::register_write(1, ctrl_reg);
+        radio::invalidate_spi_config();
+
         refresh_status();
     };
 
@@ -1536,6 +1560,37 @@ void SignalPathStatusView::refresh_status() {
     bool rf_amp = radio::debug::get_cached_rf_amp();
     int_fast8_t cached_lna = radio::debug::get_cached_lna_gain();
     int_fast8_t cached_vga = radio::debug::get_cached_vga_gain();
+
+    // Get current band.
+    auto current_band = radio::debug::rf_path_info::get_current_band();
+    switch (current_band) {
+        case rf::path::Band::Low:
+            text_filter.set("LOW PASS");
+            text_filter.set_style(Theme::getInstance()->fg_green);
+            text_mixer.set("ENABLED");
+            text_mixer.set_style(Theme::getInstance()->fg_green);
+            break;
+
+        case rf::path::Band::Mid:
+            text_filter.set("BYPASS");
+            text_filter.set_style(Theme::getInstance()->fg_green);
+            text_mixer.set("DISABLED");
+            text_mixer.set_style(Theme::getInstance()->fg_orange);
+            break;
+
+        case rf::path::Band::High:
+            text_filter.set("HIGH PASS");
+            text_filter.set_style(Theme::getInstance()->fg_green);
+            text_mixer.set("ENABLED");
+            text_mixer.set_style(Theme::getInstance()->fg_green);
+            break;
+
+        default:
+            text_filter.set("UNKNOWN");
+            text_filter.set_style(Theme::getInstance()->fg_red);
+            text_mixer.set("UNKNOWN");
+            text_mixer.set_style(Theme::getInstance()->fg_red);
+    }
 
     // Read actual register values to verify
     uint32_t max_r11 = radio::debug::second_if::register_read(11);
@@ -1622,6 +1677,25 @@ void SignalPathStatusView::refresh_status() {
     text_fpga_decim.set("n=" + to_string_dec_uint(fpga_decim) +
                         " (/" + to_string_dec_uint(1 << fpga_decim) + ")");
 
+    // FPGA Register Ctrl Info
+    uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+    // text_fpga_ctrl_dc_q.set(to_string_hex(fpga_ctrl, 2));
+    // text_fpga_ctrl_qs.set(to_string_hex(fpga_ctrl, 2));
+
+    // Decode bits
+    bool dc_block = fpga_ctrl & 0x01;
+    bool q_invert = fpga_ctrl & 0x02;
+    uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+    // Display human-readable
+    std::string fpga_status_dc_q = "DC:" + std::string(dc_block ? "ON" : "OFF") +
+                                   " Q:" + std::string(q_invert ? "INV" : "NOR");
+
+    std::string fpga_status_qs = "QS:" + to_string_dec_uint(quarter_shift);
+
+    text_fpga_ctrl_dc_q.set(fpga_status_dc_q);
+    text_fpga_ctrl_qs.set(fpga_status_qs);
+
     // Summary status
     // Summary status - update to account for rounding tolerance
     int lna_diff = (actual_lna_db > cached_lna) ? (actual_lna_db - cached_lna) : (cached_lna - actual_lna_db);
@@ -1644,12 +1718,365 @@ void SignalPathStatusView::refresh_status() {
 #endif
 
 #ifdef PRALINE
+/* SystemDiagnosticsView *************************************************/
+SystemDiagnosticsView::SystemDiagnosticsView(NavigationView& nav) {
+    add_children({
+        &text_title,
+        &text_lbl_sample,
+        &text_sample_rate,
+        &text_lbl_band,
+        &text_band,
+        &button_sample_2m,
+        &button_sample_4m,
+        &button_sample_8m,
+        &button_sample_20m,
+        &text_lbl_bb_filter,
+        &text_bb_filter,
+        &text_lbl_reg8,
+        &text_reg8,
+        &text_lbl_gpio,
+        &text_lbl_lpf,
+        &text_gpio_lpf,
+        &text_lbl_mix,
+        &text_gpio_mix,
+        &text_lbl_amp,
+        &text_gpio_amp,
+        &text_lbl_fpga,
+        &text_lbl_fpga_ctrl,
+        &text_fpga_ctrl,
+        &text_lbl_fpga_decode,
+        &button_toggle_q,
+        &button_toggle_dc,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_gpio.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_fpga.set_style(Theme::getInstance()->fg_yellow);
+
+    // Sample rate buttons
+    button_sample_2m.on_select = [this](Button&) {
+        set_sample_rate(2000000);
+    };
+
+    button_sample_4m.on_select = [this](Button&) {
+        set_sample_rate(4000000);
+    };
+
+    button_sample_8m.on_select = [this](Button&) {
+        set_sample_rate(8000000);
+    };
+
+    button_sample_20m.on_select = [this](Button&) {
+        set_sample_rate(20000000);
+    };
+
+    // Q inversion toggle
+    button_toggle_q.on_select = [this](Button&) {
+        uint32_t current = radio::debug::fpga::register_read(1);
+        uint8_t new_val = current ^ 0x02;  // Toggle Q_INVERT bit
+        radio::debug::fpga::register_write(1, new_val);
+        radio::invalidate_spi_config();
+        refresh();
+    };
+
+    // DC block toggle
+    button_toggle_dc.on_select = [this](Button&) {
+        uint32_t current = radio::debug::fpga::register_read(1);
+        uint8_t new_val = current ^ 0x01;  // Toggle DC_BLOCK bit
+        radio::debug::fpga::register_write(1, new_val);
+        radio::invalidate_spi_config();
+        refresh();
+    };
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void SystemDiagnosticsView::focus() {
+    button_refresh.focus();
+}
+
+void SystemDiagnosticsView::set_sample_rate(uint32_t rate) {
+    portapack::clock_manager.set_sampling_frequency(rate);
+    refresh();
+}
+
+void SystemDiagnosticsView::read_gpio_states() {
+    // Read actual GPIO port states
+    uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
+    uint32_t gpio4_state = LPC_GPIO->PIN[4];  // GPIO4 for LPF and amp
+
+    // Extract specific pins based on hackrf_gpio.hpp definitions:
+    // gpio_mix_enable_n = GPIO3_2 (P6_3) - bit 2 of port 3, INVERTED
+    // gpio_lpf_enable = GPIO4_8 (PA_1) - bit 8 of port 4
+    // gpio_rf_amp_enable = GPIO4_9 (PA_2) - bit 9 of port 4
+
+    bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
+    bool lpf_actual = (gpio4_state >> 8) & 1;    // GPIO4[8]
+    bool amp_actual = (gpio4_state >> 9) & 1;    // GPIO4[9]
+
+    // Mixer is active LOW, so invert for display
+    bool mixer_enabled = !mix_n_actual;
+
+    // Display with GPIO pin numbers
+    text_gpio_lpf.set(
+        std::string(lpf_actual ? "ON" : "OFF") +
+        " (GPIO4[8]=" + to_string_dec_uint(lpf_actual ? 1 : 0) + ")");
+
+    text_gpio_mix.set(
+        std::string(mixer_enabled ? "ENABLED" : "BYPASSED") +
+        " (GPIO3[2]=" + to_string_dec_uint(mix_n_actual ? 1 : 0) + ")");
+
+    text_gpio_amp.set(
+        std::string(amp_actual ? "ON" : "OFF") +
+        " (GPIO4[9]=" + to_string_dec_uint(amp_actual ? 1 : 0) + ")");
+
+    // Color code
+    text_gpio_lpf.set_style(lpf_actual ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_gpio_mix.set_style(mixer_enabled ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_gpio_amp.set_style(amp_actual ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_orange);
+}
+
+void SystemDiagnosticsView::refresh() {
+    // Sample rate
+    uint32_t sample_rate = portapack::clock_manager.get_sampling_frequency();
+    if (sample_rate >= 1000000) {
+        text_sample_rate.set(to_string_dec_uint(sample_rate / 1000000) + " MSS");
+    } else {
+        text_sample_rate.set(to_string_dec_uint(sample_rate / 1000) + " kSS");
+    }
+
+    // Baseband filter bandwidth
+    uint32_t reg8 = radio::debug::second_if::register_read(8);
+    text_reg8.set("0x" + to_string_hex(reg8, 4));
+
+    uint8_t lpf_coarse = reg8 & 0x03;  // Bits 1:0
+    const char* bw_names[] = {"7.5 MHz", "8.5 MHz", "15 MHz", "18 MHz"};
+    text_bb_filter.set(bw_names[lpf_coarse]);
+
+    // Color code - green if >= 8 MHz, red otherwise
+    if (lpf_coarse >= 1) {
+        text_bb_filter.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_bb_filter.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // Read actual GPIO pin states
+    read_gpio_states();
+
+    uint32_t gpio6_pin = LPC_GPIO->PIN[6];
+    bool rffc_locked = (gpio6_pin >> 25) & 1;
+
+    // Display it by changing one of the existing fields temporarily
+    // For example, modify the band display to show lock status:
+
+    auto current_band = radio::debug::rf_path_info::get_current_band();
+    switch (current_band) {
+        case rf::path::Band::Low:
+            text_band.set("LOW(0-2320MHz)|" + std::string(rffc_locked ? "LCK)" : "ULCK)"));
+            text_band.set_style(rffc_locked ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+            break;
+        case rf::path::Band::Mid:
+            text_band.set("MID(2320-2740MHz)");
+            text_band.set_style(Theme::getInstance()->fg_green);
+            break;
+        case rf::path::Band::High:
+            text_band.set("HIGH(2740-7250MHz)");
+            text_band.set_style(Theme::getInstance()->fg_green);
+            break;
+    }
+    // FPGA control register
+    uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+    text_fpga_ctrl.set("0x" + to_string_hex(fpga_ctrl, 2));
+
+    // Decode FPGA register bits
+    bool dc_block = fpga_ctrl & 0x01;
+    bool q_invert = fpga_ctrl & 0x02;
+    uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+    text_lbl_fpga_decode.set(
+        "|DC:" + std::string(dc_block ? "ON" : "OFF") +
+        " Q:" + std::string(q_invert ? "INV" : "NOR") +
+        " QS:" + to_string_dec_uint(quarter_shift));
+}
+#endif
+
+#ifdef PRALINE
+/* GPIODebugView *************************************************/
+GPIODebugView::GPIODebugView(NavigationView& nav) {
+    add_children({
+        &text_lbl_gpio4,
+        &text_lbl_dir4,
+        &text_dir4,
+        &text_lbl_pin4,
+        &text_pin4,
+        &text_lbl_set4,
+        &text_set4,
+        &text_lbl_lpf_bit,
+        &text_lpf_dir,
+        &text_lpf_pin,
+        &text_lpf_set,
+        &button_lpf_toggle,
+        &button_lpf_on,
+        &button_lpf_off,
+        &text_lbl_amp_bit,
+        &text_amp_dir,
+        &text_amp_pin,
+        &text_amp_set,
+        &button_amp_toggle,
+        &button_amp_on,
+        &button_amp_off,
+        &text_lbl_gpio3,
+        &text_lbl_mix_bit,
+        &text_mix_dir,
+        &text_mix_pin,
+        &text_mix_set,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_lbl_gpio4.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_gpio3.set_style(Theme::getInstance()->fg_yellow);
+
+    // LPF control buttons
+    button_lpf_toggle.on_select = [this](Button&) {
+        // Read current state
+        uint32_t current = LPC_GPIO->PIN[4];
+        bool current_state = (current >> 8) & 1;
+
+        // Toggle
+        if (current_state) {
+            LPC_GPIO->CLR[4] = (1 << 8);  // Clear bit 8
+        } else {
+            LPC_GPIO->SET[4] = (1 << 8);  // Set bit 8
+        }
+
+        refresh();
+    };
+
+    button_lpf_on.on_select = [this](Button&) {
+        LPC_GPIO->SET[4] = (1 << 8);  // Force ON
+        refresh();
+    };
+
+    button_lpf_off.on_select = [this](Button&) {
+        LPC_GPIO->CLR[4] = (1 << 8);  // Force OFF
+        refresh();
+    };
+
+    // RF Amp control buttons
+    button_amp_toggle.on_select = [this](Button&) {
+        uint32_t current = LPC_GPIO->PIN[4];
+        bool current_state = (current >> 9) & 1;
+
+        if (current_state) {
+            LPC_GPIO->CLR[4] = (1 << 9);
+        } else {
+            LPC_GPIO->SET[4] = (1 << 9);
+        }
+
+        refresh();
+    };
+
+    button_amp_on.on_select = [this](Button&) {
+        LPC_GPIO->SET[4] = (1 << 9);  // Force ON
+        refresh();
+    };
+
+    button_amp_off.on_select = [this](Button&) {
+        LPC_GPIO->CLR[4] = (1 << 9);  // Force OFF
+        refresh();
+    };
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void GPIODebugView::focus() {
+    button_refresh.focus();
+}
+
+void GPIODebugView::refresh() {
+    // Read GPIO4 registers
+    uint32_t gpio4_dir = LPC_GPIO->DIR[4];  // Direction: 1=output, 0=input
+    uint32_t gpio4_pin = LPC_GPIO->PIN[4];  // Actual pin state
+    uint32_t gpio4_set = LPC_GPIO->SET[4];  // What we're trying to output
+
+    // Display full registers
+    text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
+    text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
+    text_set4.set("0x" + to_string_hex(gpio4_set, 8));
+
+    // Extract bit 8 (LPF)
+    bool lpf_dir = (gpio4_dir >> 8) & 1;
+    bool lpf_pin = (gpio4_pin >> 8) & 1;
+    bool lpf_set = (gpio4_set >> 8) & 1;
+
+    text_lpf_dir.set("DIR: " + std::string(lpf_dir ? "OUT" : "IN"));
+    text_lpf_pin.set("PIN: " + std::string(lpf_pin ? "1" : "0"));
+    text_lpf_set.set("SET: " + std::string(lpf_set ? "1" : "0"));
+
+    // Color code
+    text_lpf_dir.set_style(lpf_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_lpf_pin.set_style(lpf_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Extract bit 9 (RF Amp)
+    bool amp_dir = (gpio4_dir >> 9) & 1;
+    bool amp_pin = (gpio4_pin >> 9) & 1;
+    bool amp_set = (gpio4_set >> 9) & 1;
+
+    text_amp_dir.set("DIR: " + std::string(amp_dir ? "OUT" : "IN"));
+    text_amp_pin.set("PIN: " + std::string(amp_pin ? "1" : "0"));
+    text_amp_set.set("SET: " + std::string(amp_set ? "1" : "0"));
+
+    text_amp_dir.set_style(amp_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_amp_pin.set_style(amp_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Read GPIO3 (Mixer) - bit 2
+    uint32_t gpio3_dir = LPC_GPIO->DIR[3];
+    uint32_t gpio3_pin = LPC_GPIO->PIN[3];
+    uint32_t gpio3_set = LPC_GPIO->SET[3];
+
+    bool mix_dir = (gpio3_dir >> 2) & 1;
+    bool mix_pin = (gpio3_pin >> 2) & 1;
+    bool mix_set = (gpio3_set >> 2) & 1;
+
+    text_mix_dir.set("DIR: " + std::string(mix_dir ? "OUT" : "IN"));
+    text_mix_pin.set("PIN: " + std::string(mix_pin ? "1" : "0"));
+    text_mix_set.set("SET: " + std::string(mix_set ? "1" : "0"));
+
+    text_mix_dir.set_style(mix_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    text_mix_pin.set_style(mix_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+}
+#endif
+
+#ifdef PRALINE
 /* RFFC5072StatusView *************************************************/
 
 RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
     : nav_(nav) {
     add_children({
         &text_title,
+        &text_lbl_lock,
+        &text_lock,
+        &text_lbl_ctrl,
+        &text_ctrl,
         &text_lbl_enabled,
         &text_enabled,
         &text_lbl_freq,
@@ -1664,7 +2091,6 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_r1,
         &text_lbl_r2,
         &text_r2,
-        &text_lbl_decode,
         &text_lbl_n,
         &text_n,
         &text_lbl_lodiv,
@@ -1672,12 +2098,13 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_calc,
         &text_calc,
         &text_status,
+        &text_lbl_regs_status,
+        &text_regs_status,
         &button_refresh,
         &button_done,
     });
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
-    text_lbl_decode.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
         refresh_status();
@@ -1696,11 +2123,47 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
+    // === READ RAW GPIO STATES FOR DEBUGGING ===
+    uint32_t gpio2_dir = LPC_GPIO->DIR[2];
+    uint32_t gpio2_pin = LPC_GPIO->PIN[2];
+
+    // Check if the pins are even configured as outputs
+    bool enx_is_output = (gpio2_dir >> 13) & 1;
+    bool resetx_is_output = (gpio2_dir >> 14) & 1;
+
+    // === LOCK DETECT ===
+    uint32_t gpio6_pin = LPC_GPIO->PIN[6];
+    bool rffc_locked = (gpio6_pin >> 25) & 1;
+
+    text_lock.set(rffc_locked ? "LOCKED" : "UNLOCKED");
+    text_lock.set_style(rffc_locked ? Theme::getInstance()->fg_green
+                                    : Theme::getInstance()->fg_red);
+
+    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);  // CTRL register
+    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);  // RX_DECIM
+
+    text_regs_status.set(
+        "FPGA R1:" + to_string_hex(fpga_reg1, 2) +
+        " R2:" + to_string_hex(fpga_reg2, 2));
+
+    // === CONTROL PINS ===
+    // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
+    // RESETX = GPIO2[14] (P5_5) - active LOW (0 = reset)
+    bool enx = (gpio2_pin >> 13) & 1;
+    bool resetx = (gpio2_pin >> 14) & 1;
+
+    text_ctrl.set(std::string(enx ? "DIS" : "EN") + " " +
+                  std::string(resetx ? "RUN" : "RST") + " " +
+                  "O:" + std::string(resetx_is_output ? "Y" : "N"));
+
+    text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
+                                                  : Theme::getInstance()->fg_red);
+
+    // === REGISTERS ===
     // Read CORRECT registers for Path 2 (active path!)
     uint32_t r0 = radio::debug::first_if::register_read(0);    // Control
     uint32_t r15 = radio::debug::first_if::register_read(15);  // P2_FREQ1
     uint32_t r16 = radio::debug::first_if::register_read(16);  // P2_FREQ2
-    uint32_t r17 = radio::debug::first_if::register_read(17);  // P2_FREQ3
 
     // Display
     text_r0.set(to_string_hex(r0, 4));
@@ -1713,35 +2176,22 @@ void RFFC5072StatusView::refresh_status() {
     text_enabled.set_style(enabled ? Theme::getInstance()->fg_green
                                    : Theme::getInstance()->fg_red);
 
-    // Decode from P2_FREQ1 (R15) using struct layout:
-    // bits [1:0]   = p2vcosel
-    // bits [3:2]   = p2presc (prescaler)
-    // bits [6:4]   = p2lodiv (LO divider)
-    // bits [15:7]  = p2n (N divider integer)
-
+    // Decode from P2_FREQ1 (R15)
     uint16_t n_int = (r15 >> 7) & 0x1FF;    // 9 bits
     uint8_t lodiv_sel = (r15 >> 4) & 0x07;  // 3 bits
     uint8_t presc_sel = (r15 >> 2) & 0x03;  // 2 bits
-    uint8_t vcosel = r15 & 0x03;            // 2 bits
 
     text_n.set(to_string_dec_uint(n_int));
 
     // LO divider: 0=÷2, 1=÷4, 2=÷8, 3=÷16, 4=÷32, 5=÷64
     uint16_t lodiv_val = 1u << lodiv_sel;
-
-    // Prescaler: 0=÷2, 1=÷4 (but code only uses 1 or 2 per rffc507x.cpp)
     uint16_t presc_val = 1u << presc_sel;
 
     text_lodiv.set("/" + to_string_dec_uint(lodiv_val) +
-                   " (P: /" + to_string_dec_uint(presc_val) + ")");
+                   " (P:/" + to_string_dec_uint(presc_val) + ")");
 
     // Calculate frequencies
-    // F_VCO = (F_ref × N) / Prescaler
-    // F_LO = F_VCO / LODIV
     const uint32_t f_ref_mhz = 40;
-
-    // N divider is 24-bit fractional
-    // For quick calc, use integer part only
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
@@ -1757,32 +2207,37 @@ void RFFC5072StatusView::refresh_status() {
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 
-    // Check mixer mode (R0 bit 5 = MODE, 0=path1, 1=path2)
+    // Check mixer mode
     bool path2_active = (r0 & 0x0020) != 0;
     text_path.set(path2_active ? "PATH2" : "PATH1");
     text_mixer.set(path2_active ? "ACTIVE" : "INACTIVE");
     text_mixer.set_style(path2_active ? Theme::getInstance()->fg_green
                                       : Theme::getInstance()->fg_orange);
 
-    // Summary
-    if (!enabled) {
-        text_status.set("DISABLED!");
+    // === SUMMARY STATUS ===
+    if (!rffc_locked) {
+        text_status.set("PLL UNLOCKED!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (enx == 1) {
+        text_status.set("DISABLED (ENX=1)!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (resetx == 0) {
+        text_status.set("IN RESET (RESETX=0)!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!enabled) {
+        text_status.set("R0 bit 4 = 0 (disabled)");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else if (!path2_active) {
         text_status.set("Path 2 not selected!");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else if (!vco_ok) {
-        text_status.set("VCO " + to_string_dec_uint(f_vco_mhz) + "MHz OOR");
+        text_status.set("VCO out of range!");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else if (!lo_ok) {
-        text_status.set("LO " + to_string_dec_uint(f_lo_mhz) + "MHz OOR");
+        text_status.set("LO out of range!");
         text_status.set_style(Theme::getInstance()->fg_red);
     } else {
-        text_status.set(to_string_dec_uint(f_ref_mhz) + "x" +
-                        to_string_dec_uint(n_int) + "/" +
-                        to_string_dec_uint(presc_val) + "/" +
-                        to_string_dec_uint(lodiv_val) + "=" +
-                        to_string_dec_uint(f_lo_mhz) + "MHz.");
+        text_status.set("All checks passed!");
         text_status.set_style(Theme::getInstance()->fg_green);
     }
 }
@@ -1893,6 +2348,125 @@ void RFFCTuningDebugView::refresh() {
     }
 }
 
+/* MAX2831DebugView *************************************************/
+MAX2831DebugView::MAX2831DebugView(NavigationView& nav) {
+    add_children({
+        &text_title,
+        &text_lbl_called,
+        &text_called,
+        &text_lbl_valid,
+        &text_valid,
+        &text_lbl_req,
+        &text_req,
+        &text_lbl_calc_n,
+        &text_calc_n,
+        &text_lbl_calc_frac,
+        &text_calc_frac,
+        &text_spacer,
+        &text_lbl_r3,
+        &text_r3,
+        &text_lbl_r4,
+        &text_r4,
+        &text_lbl_act_n,
+        &text_act_n,
+        &text_lbl_act_frac,
+        &text_act_frac,
+        &text_lbl_calc_freq,
+        &text_calc_freq,
+        &text_status,
+        &button_refresh,
+        &button_done,
+    });
+
+    text_spacer.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void MAX2831DebugView::focus() {
+    button_refresh.focus();
+}
+
+void MAX2831DebugView::refresh() {
+    auto info = radio::debug::second_if::get_max2831_info();
+
+    // Show if set_frequency was called
+    if (info.set_frequency_called) {
+        text_called.set("YES");
+        text_called.set_style(Theme::getInstance()->fg_green);
+
+        if (info.frequency_valid) {
+            text_valid.set("YES (2.3-2.6G)");
+            text_valid.set_style(Theme::getInstance()->fg_green);
+        } else {
+            text_valid.set("NO - OUT OF RANGE!");
+            text_valid.set_style(Theme::getInstance()->fg_red);
+        }
+
+        text_req.set(to_string_dec_uint(info.requested_freq_mhz) + " MHz");
+        text_calc_n.set(to_string_dec_uint(info.calculated_n));
+        text_calc_frac.set(to_string_hex(info.calculated_frac, 5));
+    } else {
+        text_called.set("NO");
+        text_called.set_style(Theme::getInstance()->fg_red);
+        text_valid.set("---");
+        text_req.set("---");
+        text_calc_n.set("---");
+        text_calc_frac.set("---");
+    }
+
+    // Read actual hardware registers
+    uint32_t r3 = radio::debug::second_if::register_read(3);
+    uint32_t r4 = radio::debug::second_if::register_read(4);
+
+    text_r3.set(to_string_hex(r3, 4));
+    text_r4.set(to_string_hex(r4, 4));
+
+    // Decode actual values from registers
+    uint16_t act_n = r3 & 0xFF;
+    uint32_t act_frac_lo = (r3 >> 8) & 0x3F;
+    uint32_t act_frac_hi = r4 & 0x3FFF;
+    uint32_t act_frac = (act_frac_hi << 6) | act_frac_lo;
+
+    text_act_n.set(to_string_dec_uint(act_n));
+    text_act_frac.set(to_string_hex(act_frac, 5));
+
+    // Calculate actual frequency from registers
+    // F_LO = 20 MHz × (N + Frac/2^20)
+    // For display, show integer part only
+    uint32_t calc_freq_mhz = 20 * act_n;
+    // Add fractional contribution (approximate)
+    uint32_t frac_contribution = (act_frac * 20) >> 20;
+    calc_freq_mhz += frac_contribution;
+
+    text_calc_freq.set(to_string_dec_uint(calc_freq_mhz) + " MHz");
+
+    // Status
+    if (!info.set_frequency_called) {
+        text_status.set("MAX2831 set_frequency\nNEVER called!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (!info.frequency_valid) {
+        text_status.set("Freq " + to_string_dec_uint(info.requested_freq_mhz) +
+                        " MHz OUT OF RANGE!\n(need 2300-2600)");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (act_n == info.calculated_n && act_frac == info.calculated_frac) {
+        text_status.set("MATCH!\nHardware = Expected");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_status.set("MISMATCH!\nN: exp=" + to_string_dec_uint(info.calculated_n) +
+                        " act=" + to_string_dec_uint(act_n));
+        text_status.set_style(Theme::getInstance()->fg_red);
+    }
+}
+
 #endif
 
 #endif
@@ -1956,14 +2530,17 @@ void DebugMenuView::on_populate() {
     }
     add_items({
 #ifdef PRALINE
+        {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
-        {"Baseband Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
-        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
-        {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
-        {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
+        {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
         {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
+        {"MAX2831 Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
+        {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
+        {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
+        {"Baseband Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
+        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
         {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
