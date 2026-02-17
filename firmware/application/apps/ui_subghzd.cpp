@@ -280,6 +280,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Marantec24";
         case FPS_HOLTEKHT6P20B:
             return "Holtek HT6P20B";
+        case FPS_RESTAURANT_PAGER:
+            return "Rest. Pager";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -871,6 +873,14 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_HOLTEKHT6P20B) {
         serial = entry_.data >> 8;
         btn = (entry_.data >> 4) & 0xF;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        // 25-bit EV1527-variant: [sysid:16][pager:4][func:4][stop:1]
+        serial = (entry_.data >> 9) & 0xFFFF;  // System ID
+        btn = (entry_.data >> 1) & 0x0F;       // Function (0xD=Buzz, 0xF=Sync)
+        cnt = (entry_.data >> 5) & 0x0F;       // Pager address
         return;
     }
 }

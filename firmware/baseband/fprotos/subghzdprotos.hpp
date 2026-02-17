@@ -55,6 +55,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-marantec24.hpp"
 // GENIE FROM PR
 #include "s-holtek_ht6p20b.hpp"
+#include "s-restaurant_pager.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -109,6 +110,7 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_GANGQI] = new FProtoSubGhzDGangqi();
         protos[FPS_MARANTEC24] = new FProtoSubGhzDMarantec24();
         protos[FPS_HOLTEKHT6P20B] = new FProtoSubGhzDHoltekHt6p20b();
+        protos[FPS_RESTAURANT_PAGER] = new FProtoSubGhzDRestaurantPager();
 
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
