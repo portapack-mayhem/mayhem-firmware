@@ -447,12 +447,12 @@ class SystemView : public View {
    private:
     uint8_t overlay_active{0};
 
+    NavigationView navigation_view{};
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
     NotificationView notification_view{navigation_view};
     DfuMenu overlay{navigation_view};
     DfuMenu2 overlay2{navigation_view};
-    NavigationView navigation_view{};
     Context& context_;
 };
 

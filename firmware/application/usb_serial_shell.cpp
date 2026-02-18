@@ -1410,7 +1410,7 @@ static void cmd_notification(BaseSequentialStream* chp, int argc, char* argv[]) 
     }
     int iconindex = atoi(argv[0]);
     std::string appname = (argc > 1) ? argv[1] : "";
-    chprintf(chp, "Send title, and a newline\r\n");
+    chprintf(chp, "Send title, and a <CR>\r\n");
     std::string title{};
     uint8_t msg[1]{0};
     do {
@@ -1423,7 +1423,7 @@ static void cmd_notification(BaseSequentialStream* chp, int argc, char* argv[]) 
         title += (char)msg[0];
     } while (title.size() < 48);
     std::string message{};
-    chprintf(chp, "Send message, and a newline\r\n");
+    chprintf(chp, "Send message, and a <CR>\r\n");
     do {
         size_t bytes_read = chSequentialStreamRead(chp, &msg[0], 1);
         if (bytes_read != 1)

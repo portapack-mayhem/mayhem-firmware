@@ -402,6 +402,7 @@ void Text::paint(Painter& painter) {
     const int line_height = s.font.line_height();
     if (char_width == 0 || line_height == 0) return;
     const size_t chars_per_line = rect.width() / char_width;
+    if (chars_per_line == 0) return;
     size_t lines_capacity = rect.height() / line_height;
     if (lines_capacity == 0) lines_capacity = 1;  // at least one line, even if it overflows vertically
     auto text_view = std::string_view{text};
