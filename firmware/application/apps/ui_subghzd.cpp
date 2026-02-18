@@ -324,7 +324,8 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     if (entry.sensorType == FPS_RESTAURANT_PAGER) {
         uint8_t pgr = (entry.data >> 5) & 0x0F;
         uint8_t func = (entry.data >> 1) & 0x0F;
-        line += " P:" + to_string_dec_uint(pgr) + (func == 0x0D ? " Buzz" : func == 0x0F ? " Sync" : "");
+        line += " P:" + to_string_dec_uint(pgr) + (func == 0x0D ? " Buzz" : func == 0x0F ? " Sync"
+                                                                                         : "");
     } else {
         line = line + " " + to_string_hex(entry.data << 32);
     }
