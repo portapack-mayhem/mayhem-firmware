@@ -53,6 +53,7 @@ struct TPMSRecentEntry {
 
     tpms::Reading::Type type{invalid_key.first};
     tpms::TransponderID id{invalid_key.second};
+    tpms::SignalType signal_type{tpms::SignalType::OOK_8k192_Schrader};
 
     size_t received_count{0};
 
@@ -138,13 +139,13 @@ class TPMSRecentEntryDetailView : public View {
         {8 * 8, 11 * 16, 20 * 8, 16},
         ""};
 
-    Button button_done{
-        {9 * 8, 15 * 16, 10 * 8, 32},
-        "Done"};
-
     Button button_save{
-        {9 * 8, 19 * 16, 10 * 8, 32},
+        {0 * 8, 13 * 16, 14 * 8, 32},
         "Save"};
+
+    Button button_done{
+        {16 * 8, 13 * 16, 14 * 8, 32},
+        "Done"};
 };
 
 class TPMSAppView : public View {

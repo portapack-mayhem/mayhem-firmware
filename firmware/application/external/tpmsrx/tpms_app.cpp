@@ -42,6 +42,25 @@ std::string type(tpms::Reading::Type type) {
     return to_string_dec_uint(toUType(type), 2);
 }
 
+std::string type_name(tpms::Reading::Type type) {
+    switch (type) {
+        case tpms::Reading::Type::None:
+            return "None";
+        case tpms::Reading::Type::FLM_64:
+            return "FLM_64";
+        case tpms::Reading::Type::FLM_72:
+            return "FLM_72";
+        case tpms::Reading::Type::FLM_80:
+            return "FLM_80";
+        case tpms::Reading::Type::Schrader:
+            return "Schrader";
+        case tpms::Reading::Type::GMC_96:
+            return "GMC_96";
+        default:
+            return "Unknown";
+    }
+}
+
 std::string id(tpms::TransponderID id) {
     return to_string_hex(id.value(), 8);
 }
@@ -184,6 +203,7 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
         const auto reading = reading_opt.value();
         auto& entry = ::on_packet(recent, TPMSRecentEntry::Key{reading.type(), reading.id()});
         entry.update(reading);
+        entry.signal_type = packet.signal_type();
         recent_entries_view.set_dirty();
     }
 
@@ -216,11 +236,14 @@ TPMSRecentEntryDetailView::TPMSRecentEntryDetailView(NavigationView& nav, const 
                   &button_save});
 
     // Display entry data
-    text_type.set(to_string_dec_uint(toUType(entry.type), 2));
+    text_type.set(format::type_name(entry.type));
     text_id.set(to_string_hex(entry.id.value(), 8));
 
     if (entry.last_pressure.is_valid()) {
-        text_pressure.set(to_string_dec_int(entry.last_pressure.value().kilopascal(), 3) + " kPa");
+        std::string pressure_str = format::pressure(entry.last_pressure.value());
+        std::string unit_str = format::pressure_unit == PRESSURE_UNIT_PSI ? " PSI" :
+                               format::pressure_unit == PRESSURE_UNIT_BAR ? " BAR" : " kPa";
+        text_pressure.set(pressure_str + unit_str);
     } else {
         text_pressure.set("---");
     }
@@ -296,6 +319,9 @@ bool TPMSRecentEntryDetailView::save_file(const std::filesystem::path& path) {
     } else {
         content += "Flags=00\n";
     }
+
+    // Save signal type for proper retransmission
+    content += "SignalType=" + to_string_dec_uint(toUType(entry_.signal_type), 1) + "\n";
 
     f.write(content.c_str(), content.length());
     return true;

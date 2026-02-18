@@ -673,13 +673,14 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                     std::string pressure_str = parse_line("Pressure");
                     std::string temp_str = parse_line("Temperature");
                     std::string flags_str = parse_line("Flags");
+                    std::string signal_type_str = parse_line("SignalType");
 
                     if (!type_str.empty()) {
                         int type = std::stoi(type_str);
                         if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) &&
                             type <= static_cast<int>(tpms::Reading::Type::GMC_96)) {
                             packet_type_ = static_cast<tpms::Reading::Type>(type);
-                            options_packet_type.set_selected_index(type - 1);
+                            options_packet_type.set_by_value(type);
                         }
                     }
 
@@ -690,7 +691,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
                     if (!pressure_str.empty()) {
                         pressure_kpa_ = std::stoi(pressure_str);
-                        field_pressure.set_value(pressure_kpa_);
+                        on_pressure_unit_change();
                     }
 
                     if (!temp_str.empty()) {
@@ -705,7 +706,22 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                         field_flags.set_value(flags_);
                     }
 
+                    // Load signal type if available, otherwise auto-select based on packet type
+                    if (!signal_type_str.empty()) {
+                        int signal_type = std::stoi(signal_type_str);
+                        if (signal_type >= 1 && signal_type <= 3) {
+                            signal_type_ = static_cast<tpms::SignalType>(signal_type);
+                        } else {
+                            // Fall back to auto-detect
+                            update_signal_type_from_packet();
+                        }
+                    } else {
+                        // Fall back to auto-detect for backwards compatibility
+                        update_signal_type_from_packet();
+                    }
+
                     update_packet_display();
+                    update_field_visibility();
                     text_status.set("Loaded: " + file_path.filename().string());
                 } else {
                     text_status.set("Error reading file");
