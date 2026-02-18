@@ -1386,18 +1386,32 @@ static void cmd_getres(BaseSequentialStream* chp, int argc, char* argv[]) {
 static void cmd_getflash(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
-    uint8_t allowrun = FLASH_SIZE_MB;
-    if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
-        allowrun = 1;
+    // Note: FLASH_SIZE_MB is set by cmake per-device and is the reliable HPro indicator
+    // since detected_platform() does not work in the PortaPack M0 application context.
+    // FLASH_SIZE_LIMIT_MB may be a float (e.g. 3.5 for HPro), always cast explicitly.
+    uint8_t allowrun;
+    if (FLASH_SIZE_MB >= 4) {
+        allowrun = 4;  // HackRF Pro
+    } else if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+        allowrun = 1;  // PortaPack classic
+    } else {
+        allowrun = FLASH_SIZE_MB;  // PortaRF
     }
-    std::string res = "ALLOWEDFW:" + to_string_dec_uint(FLASH_SIZE_MB) + "\r\nALLOWEDRUNTIME:" + to_string_dec_uint(allowrun) + "\r\nCURRENT:" + to_string_dec_uint(FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
+    std::string res = "ALLOWEDFW:" + to_string_dec_uint((uint32_t)FLASH_SIZE_MB) + "\r\nALLOWEDRUNTIME:" + to_string_dec_uint((uint32_t)allowrun) + "\r\nCURRENT:" + to_string_dec_uint((uint32_t)FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
     chprintf(chp, res.c_str());
 }
 
 static void cmd_getdevtype(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
-    std::string res = portapack::device_type == portapack::DeviceType::DEV_PORTARF ? "PORTARF" : "PORTAPACK";
+    std::string res;
+    if (FLASH_SIZE_MB >= 4) {
+        res = "HPRO";
+    } else if (portapack::device_type == portapack::DeviceType::DEV_PORTARF) {
+        res = "PORTARF";
+    } else {
+        res = "PORTAPACK";
+    }
     res += "\r\nok\r\n";
     chprintf(chp, res.c_str());
 }

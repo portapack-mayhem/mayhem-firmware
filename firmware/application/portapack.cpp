@@ -56,11 +56,9 @@ using asahi_kasei::ak4951::AK4951;
 #include "i2cdevmanager.hpp"
 #include "battery.hpp"
 
-#ifndef PRALINE
 extern "C" {
 #include "platform_detect.h"
 }
-#endif
 
 namespace portapack {
 
@@ -555,7 +553,11 @@ init_status_t init() {
 
     chThdSleepMilliseconds(100);
 
-#ifndef PRALINE
+#ifdef PRALINE
+    // PRALINE: full pin-probing detection conflicts with hardware init;
+    // use ADC-only revision detection instead.
+    detect_praline_board_revision();
+#else
     detect_hardware_platform();
     finalize_detect_hardware_platform();
 
