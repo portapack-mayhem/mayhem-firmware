@@ -78,6 +78,20 @@ class Reading {
         FLM_80 = 3,
         Schrader = 4,
         GMC_96 = 5,
+        Toyota = 6,
+        Ford = 7,
+        Citroen = 8,
+        Renault = 9,
+        Hyundai_VDO = 10,
+        Nissan = 11,
+        Abarth124 = 12,
+        Jansite = 13,
+        Jansite_Solar = 14,
+        Kia = 15,
+        Elantra2012 = 16,
+        PMV107J = 17,
+        Renault_0435R = 18,
+        AVE = 19,
     };
 
     constexpr Reading()
@@ -162,6 +176,21 @@ class Packet {
     Optional<Reading> reading_fsk_19k2_schrader() const;
     Optional<Reading> reading_ook_8k192_schrader() const;
     Optional<Reading> reading_ook_8k4_schrader() const;
+
+    Optional<Reading> reading_toyota() const;
+    Optional<Reading> reading_ford() const;
+    Optional<Reading> reading_citroen() const;
+    Optional<Reading> reading_renault() const;
+    Optional<Reading> reading_hyundai_vdo() const;
+    Optional<Reading> reading_nissan() const;
+    Optional<Reading> reading_abarth124() const;
+    Optional<Reading> reading_jansite() const;
+    Optional<Reading> reading_jansite_solar() const;
+    Optional<Reading> reading_kia() const;
+    Optional<Reading> reading_elantra2012() const;
+    Optional<Reading> reading_pmv107j() const;
+    Optional<Reading> reading_renault_0435r() const;
+    Optional<Reading> reading_ave() const;
 
     size_t crc_valid_length() const;
 };
