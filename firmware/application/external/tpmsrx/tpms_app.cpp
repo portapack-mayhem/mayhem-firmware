@@ -241,8 +241,8 @@ TPMSRecentEntryDetailView::TPMSRecentEntryDetailView(NavigationView& nav, const 
 
     if (entry.last_pressure.is_valid()) {
         std::string pressure_str = format::pressure(entry.last_pressure.value());
-        std::string unit_str = format::pressure_unit == PRESSURE_UNIT_PSI ? " PSI" :
-                               format::pressure_unit == PRESSURE_UNIT_BAR ? " BAR" : " kPa";
+        std::string unit_str = format::pressure_unit == PRESSURE_UNIT_PSI ? " PSI" : format::pressure_unit == PRESSURE_UNIT_BAR ? " BAR"
+                                                                                                                                : " kPa";
         text_pressure.set(pressure_str + unit_str);
     } else {
         text_pressure.set("---");
