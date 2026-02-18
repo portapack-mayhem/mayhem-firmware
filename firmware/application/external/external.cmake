@@ -83,6 +83,10 @@ set(EXTCPPSRC
 	external/tpmsrx/main.cpp
 	external/tpmsrx/tpms_app.cpp
 
+	#tpmstx 800 bytes - TPMS transmit with editable fields
+	external/tpmstx/main.cpp
+	external/tpmstx/tpms_tx_app.cpp
+
 	#protoview 8 byte
 	external/protoview/main.cpp
 	external/protoview/ui_protoview.cpp
@@ -326,6 +330,7 @@ set(EXTAPPLIST
 	audio_test
 	wardrivemap
 	tpmsrx
+	tpmstx
 	protoview
 	adsbtx
 	#morse_tx
