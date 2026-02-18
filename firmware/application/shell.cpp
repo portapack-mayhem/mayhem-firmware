@@ -31,6 +31,7 @@
 #include "shell.hpp"
 #include "chprintf.h"
 #include "portapack.hpp"
+#include "../flashsize.h"
 
 extern "C" {
 #include "platform_detect.h"
@@ -152,30 +153,28 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "HackRF Board Rev: %s\r\n", revision_string);
 
     // Determine device type string
+    // Note: detected_platform() does not work in the PortaPack M0 application context;
+    // FLASH_SIZE_MB is set by cmake per-device and is the reliable indicator.
     const char* device_str;
-#ifdef PRALINE
-    device_str = "HackRF Pro";
-#else
-    if (portapack::device_type == portapack::DEV_PORTARF) {
+    if (FLASH_SIZE_MB >= 4) {
+        device_str = "HackRF Pro";
+    } else if (portapack::device_type == portapack::DEV_PORTARF) {
         device_str = "PortaRF";
     } else {
         device_str = "HackRF One";
     }
-#endif
     chprintf(chp, "Device:           %s\r\n", device_str);
 
     // Flash info: build-time allowed MB, runtime-detected limit, current firmware size
     // Use explicit uint32_t cast: FLASH_SIZE_LIMIT_MB may be a float (e.g. 3.5 for HPro)
     uint8_t flash_allowrun;
-#ifdef PRALINE
-    flash_allowrun = 4;  // HackRF Pro
-#else
-    if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+    if (FLASH_SIZE_MB >= 4) {
+        flash_allowrun = 4;  // HackRF Pro
+    } else if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
         flash_allowrun = 1;  // PortaPack classic
     } else {
         flash_allowrun = FLASH_SIZE_MB;  // PortaRF
     }
-#endif
     chprintf(chp, "Flash Allowed:    %dMB\r\n", (uint32_t)FLASH_SIZE_MB);
     chprintf(chp, "Flash Runtime:    %dMB\r\n", (uint32_t)flash_allowrun);
     chprintf(chp, "Flash Current:    %dMB\r\n", (uint32_t)FLASH_SIZE_LIMIT_MB);
