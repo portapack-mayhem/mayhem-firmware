@@ -158,7 +158,12 @@ class TPMSTXView : public View {
         {{STR_DEGREES_C, TEMP_UNIT_CELSIUS},
          {STR_DEGREES_F, TEMP_UNIT_FAHRENHEIT}}};
 
-    SymField field_transponder_id{
+    SymField field_transponder_id_24{
+        {6 * 8, 2 * 16},
+        6,
+        SymField::Type::Hex};
+
+    SymField field_transponder_id_32{
         {6 * 8, 2 * 16},
         8,
         SymField::Type::Hex};

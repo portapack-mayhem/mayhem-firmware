@@ -88,6 +88,17 @@ void TPMSTXView::update_packet_display() {
 
     status += " " + to_string_dec_uint(pressure_kpa_) + "kPa";
 
+    // Check for pressure overflow and warn user
+    if (packet_type_ == tpms::Reading::Type::GMC_96) {
+        if (pressure_kpa_ > 701) {
+            status += " !MAX";  // GMC_96 max is 701 kPa (101.7 PSI)
+        }
+    } else {
+        if (pressure_kpa_ > 340) {
+            status += " !MAX";  // Schrader/FLM max is 340 kPa (49.3 PSI)
+        }
+    }
+
     // Temperature note for protocols that support it
     if (packet_type_ == tpms::Reading::Type::GMC_96 ||
         packet_type_ == tpms::Reading::Type::FLM_64 ||
@@ -112,6 +123,9 @@ void TPMSTXView::update_field_visibility() {
         label_temperature.hidden(true);
         field_temperature.hidden(true);
         options_temperature.hidden(true);
+        // Show 24-bit ID field, hide 32-bit ID field
+        field_transponder_id_24.hidden(false);
+        field_transponder_id_32.hidden(true);
     } else {
         // Hide Func field and label
         label_flags.hidden(true);
@@ -120,6 +134,9 @@ void TPMSTXView::update_field_visibility() {
         label_temperature.hidden(false);
         field_temperature.hidden(false);
         options_temperature.hidden(false);
+        // Show 32-bit ID field, hide 24-bit ID field
+        field_transponder_id_24.hidden(true);
+        field_transponder_id_32.hidden(false);
     }
     // Force screen refresh to clear hidden widgets
     set_dirty();
@@ -201,7 +218,9 @@ void TPMSTXView::encode_and_transmit() {
         data |= ((uint64_t)id_24bit << 10);
 
         // 8-bit pressure (convert kPa to raw: kPa * 3/4)
-        uint8_t pressure_raw = (pressure_kpa_ * 3 / 4) & 0xFF;
+        // Clamp to prevent overflow: max raw = 255, max kPa = 255 * 4/3 = 340 (49.3 PSI)
+        uint16_t pressure_clamped = (pressure_kpa_ > 340) ? 340 : pressure_kpa_;
+        uint8_t pressure_raw = (pressure_clamped * 3 / 4);
         data |= ((uint64_t)pressure_raw << 2);
 
         // Calculate 2-bit checksum: sum all 2-bit pairs, result & 3 must equal 3
@@ -254,7 +273,9 @@ void TPMSTXView::encode_and_transmit() {
         }
 
         // Pressure: kPa * 4/11
-        uint8_t pressure_gmc = (pressure_kpa_ * 4 / 11) & 0xFF;
+        // Clamp to prevent overflow: max raw = 255, max kPa = 255 * 11/4 = 701.25 (101.7 PSI)
+        uint16_t pressure_clamped = (pressure_kpa_ > 701) ? 701 : pressure_kpa_;
+        uint8_t pressure_gmc = (pressure_clamped * 4 / 11);
         for (int i = 7; i >= 0; i--) {
             if ((pressure_gmc >> i) & 1) {
                 binary_string += "10";
@@ -330,7 +351,9 @@ void TPMSTXView::encode_and_transmit() {
             data_bytes[1] = (transponder_id_ >> 16) & 0xFF;
             data_bytes[2] = (transponder_id_ >> 8) & 0xFF;
             data_bytes[3] = transponder_id_ & 0xFF;
-            data_bytes[4] = (pressure_kpa_ * 3 / 4) & 0xFF;
+            // Clamp pressure to prevent overflow: max 340 kPa (49.3 PSI)
+            uint16_t pressure_clamped_flm64 = (pressure_kpa_ > 340) ? 340 : pressure_kpa_;
+            data_bytes[4] = (pressure_clamped_flm64 * 3 / 4);
             data_bytes[5] = ((temperature_c_ + 56) & 0x7F);  // LSB 7 bits only
             data_bytes[6] = 0x00;                            // Padding
 
@@ -356,7 +379,9 @@ void TPMSTXView::encode_and_transmit() {
             data_bytes[2] = (transponder_id_ >> 8) & 0xFF;
             data_bytes[3] = transponder_id_ & 0xFF;
             data_bytes[4] = 0x00;  // Padding
-            data_bytes[5] = (pressure_kpa_ * 3 / 4) & 0xFF;
+            // Clamp pressure to prevent overflow: max 340 kPa (49.3 PSI)
+            uint16_t pressure_clamped_flm = (pressure_kpa_ > 340) ? 340 : pressure_kpa_;
+            data_bytes[5] = (pressure_clamped_flm * 3 / 4);
             data_bytes[6] = (temperature_c_ + 56) & 0xFF;
             data_bytes[7] = 0x00;  // Set to 0 initially
 
@@ -385,7 +410,9 @@ void TPMSTXView::encode_and_transmit() {
             data_bytes[3] = (transponder_id_ >> 8) & 0xFF;
             data_bytes[4] = transponder_id_ & 0xFF;
             data_bytes[5] = 0x00;  // Padding
-            data_bytes[6] = (pressure_kpa_ * 3 / 4) & 0xFF;
+            // Clamp pressure to prevent overflow: max 340 kPa (49.3 PSI)
+            uint16_t pressure_clamped_flm80 = (pressure_kpa_ > 340) ? 340 : pressure_kpa_;
+            data_bytes[6] = (pressure_clamped_flm80 * 3 / 4);
             data_bytes[7] = (temperature_c_ + 56) & 0xFF;
             data_bytes[8] = 0x00;  // Padding/Reserved
             data_bytes[9] = 0x00;  // CRC byte
@@ -535,7 +562,8 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                   &label_flags,
                   &options_frequency,
                   &options_packet_type,
-                  &field_transponder_id,
+                  &field_transponder_id_24,
+                  &field_transponder_id_32,
                   &field_pressure,
                   &options_pressure,
                   &field_temperature,
@@ -567,7 +595,8 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
     // Initialize field values from default member variables
     // For pressure and temperature, use unit conversion to display in selected units
-    field_transponder_id.set_value(transponder_id_);
+    field_transponder_id_24.set_value(transponder_id_ & 0x00FFFFFF);
+    field_transponder_id_32.set_value(transponder_id_);
     on_pressure_unit_change();
     on_temperature_unit_change();
     field_flags.set_value(flags_);
@@ -583,6 +612,18 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     options_packet_type.on_change = [this](size_t, int32_t value) {
         packet_type_ = static_cast<tpms::Reading::Type>(value);
         update_signal_type_from_packet();
+
+        // Sync field values when switching packet types
+        if (packet_type_ == tpms::Reading::Type::Schrader) {
+            // Switching to Schrader: copy from 32-bit field to 24-bit field (masked)
+            transponder_id_ = field_transponder_id_32.to_integer() & 0x00FFFFFF;
+            field_transponder_id_24.set_value(transponder_id_);
+        } else {
+            // Switching from Schrader: copy from 24-bit field to 32-bit field
+            transponder_id_ = field_transponder_id_24.to_integer();
+            field_transponder_id_32.set_value(transponder_id_);
+        }
+
         update_field_visibility();
         update_packet_display();
     };
@@ -597,8 +638,13 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
         on_temperature_unit_change();
     };
 
-    field_transponder_id.on_change = [this](SymField&) {
-        transponder_id_ = field_transponder_id.to_integer();
+    field_transponder_id_24.on_change = [this](SymField&) {
+        transponder_id_ = field_transponder_id_24.to_integer() & 0x00FFFFFF;
+        update_packet_display();
+    };
+
+    field_transponder_id_32.on_change = [this](SymField&) {
+        transponder_id_ = field_transponder_id_32.to_integer();
         update_packet_display();
     };
 
@@ -686,7 +732,8 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
                     if (!id_str.empty()) {
                         transponder_id_ = std::stoul(id_str, nullptr, 16);
-                        field_transponder_id.set_value(transponder_id_);
+                        field_transponder_id_24.set_value(transponder_id_ & 0x00FFFFFF);
+                        field_transponder_id_32.set_value(transponder_id_);
                     }
 
                     if (!pressure_str.empty()) {
