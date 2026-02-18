@@ -270,6 +270,7 @@ class ADSBRxDetailsView : public View {
     void focus() override;
     void update(const AircraftRecentEntry& entry);
 
+    void get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* g, uint8_t* b);
     /* Calls forwarded to map view if shown. */
     bool map_active() const { return geomap_view_; }
     void clear_map_markers();

@@ -320,6 +320,43 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
     }
 }
 
+void ADSBRxDetailsView::get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* g, uint8_t* b) {
+    static const struct {
+        int32_t alt;
+        uint8_t r, g, b;
+    } stops[] = {
+        {0, 220, 220, 220},    // 0 ft:     White/Grey (Ground)
+        {2000, 255, 255, 0},   // 2k ft:    Yellow
+        {10000, 0, 255, 0},    // 10k ft:   Green
+        {20000, 0, 255, 255},  // 20k ft:   Cyan
+        {30000, 60, 60, 255},  // 30k ft:   Blue (Lightened for visibility on Black)
+        {40000, 255, 0, 255}   // 40k+ ft:  Magenta
+    };
+    if (alt_ft <= stops[0].alt) {
+        *r = stops[0].r;
+        *g = stops[0].g;
+        *b = stops[0].b;
+        return;
+    }
+    const int count = sizeof(stops) / sizeof(stops[0]);
+    if (alt_ft >= stops[count - 1].alt) {
+        *r = stops[count - 1].r;
+        *g = stops[count - 1].g;
+        *b = stops[count - 1].b;
+        return;
+    }
+    for (int i = 0; i < count - 1; i++) {
+        if (alt_ft < stops[i + 1].alt) {
+            float t = (float)(alt_ft - stops[i].alt) / (stops[i + 1].alt - stops[i].alt);
+
+            *r = (uint8_t)(stops[i].r + (stops[i + 1].r - stops[i].r) * t);
+            *g = (uint8_t)(stops[i].g + (stops[i + 1].g - stops[i].g) * t);
+            *b = (uint8_t)(stops[i].b + (stops[i + 1].b - stops[i].b) * t);
+            return;
+        }
+    }
+}
+
 void ADSBRxDetailsView::clear_map_markers() {
     if (geomap_view_)
         geomap_view_->clear_markers();
@@ -335,6 +372,9 @@ bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
     marker.lat = entry.pos.latitude;
     marker.angle = entry.velo.heading;
     marker.tag = get_map_tag(entry);
+    uint8_t r, g, b;
+    get_altitude_color(entry.pos.altitude, &r, &g, &b);
+    marker.color = Color(r, g, b);
 
     auto markerStored = geomap_view_->store_marker(marker);
     return markerStored == MARKER_STORED;

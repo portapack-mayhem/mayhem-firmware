@@ -62,13 +62,14 @@ struct GeoMarker {
     float lon{0};
     uint16_t angle{0};
     std::string tag{""};
+    Color color{Color::blue()};
 
     GeoMarker& operator=(GeoMarker& rhs) {
         lat = rhs.lat;
         lon = rhs.lon;
         angle = rhs.angle;
         tag = rhs.tag;
-
+        color = rhs.color;
         return *this;
     }
 };
