@@ -553,16 +553,10 @@ init_status_t init() {
 
     chThdSleepMilliseconds(100);
 
-#ifdef PRALINE
-    // PRALINE: full pin-probing detection conflicts with hardware init;
-    // use ADC-only revision detection instead.
-    detect_praline_board_revision();
-#else
     detect_hardware_platform();
     finalize_detect_hardware_platform();
 
     chThdSleepMilliseconds(100);
-#endif
 
     configure_pins_portapack();
 
