@@ -45,21 +45,17 @@ void TPMSTXView::update_signal_type_from_packet() {
     switch (packet_type_) {
         case tpms::Reading::Type::Schrader:
             signal_type_ = tpms::SignalType::OOK_8k192_Schrader;
-            options_signal_type.set_selected_index(1);  // OOK 8k192
             break;
         case tpms::Reading::Type::FLM_64:
         case tpms::Reading::Type::FLM_72:
         case tpms::Reading::Type::FLM_80:
             signal_type_ = tpms::SignalType::FSK_19k2_Schrader;
-            options_signal_type.set_selected_index(0);  // FSK 19k2
             break;
         case tpms::Reading::Type::GMC_96:
             signal_type_ = tpms::SignalType::OOK_8k4_Schrader;
-            options_signal_type.set_selected_index(2);  // OOK 8k4
             break;
         default:
             signal_type_ = tpms::SignalType::OOK_8k192_Schrader;
-            options_signal_type.set_selected_index(1);
             break;
     }
     // Note: Don't call switch_baseband() here - it's called when needed
@@ -103,6 +99,36 @@ void TPMSTXView::update_packet_display() {
     }
 
     text_status.set(status);
+}
+
+void TPMSTXView::on_pressure_unit_change() {
+    // Convert displayed pressure to new unit and update field
+    units::Pressure pressure(pressure_kpa_);
+    int display_value = 0;
+
+    if (format::pressure_unit == PRESSURE_UNIT_PSI) {
+        display_value = pressure.psi();
+    } else if (format::pressure_unit == PRESSURE_UNIT_BAR) {
+        display_value = pressure.bar();
+    } else {
+        display_value = pressure.kilopascal();
+    }
+
+    field_pressure.set_value(display_value);
+}
+
+void TPMSTXView::on_temperature_unit_change() {
+    // Convert displayed temperature to new unit and update field
+    units::Temperature temperature(temperature_c_);
+    int display_value = 0;
+
+    if (format::temp_unit == TEMP_UNIT_FAHRENHEIT) {
+        display_value = temperature.fahrenheit();
+    } else {
+        display_value = temperature.celsius();
+    }
+
+    field_temperature.set_value(display_value);
 }
 
 void TPMSTXView::encode_and_transmit() {
@@ -480,13 +506,13 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
     add_children({&labels,
                   &options_frequency,
-                  &checkbox_advanced,
                   &options_packet_type,
                   &field_transponder_id,
                   &field_pressure,
+                  &options_pressure,
                   &field_temperature,
+                  &options_temperature,
                   &field_flags,
-                  &options_signal_type,
                   &field_repeat,
                   &button_load,
                   &button_save,
@@ -497,21 +523,21 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
     // Initialize values
     options_frequency.set_by_value(transmitter_model.target_frequency());
-    checkbox_advanced.set_value(advanced_mode_);
     options_packet_type.set_selected_index(0);
-    options_signal_type.set_selected_index(0);
     field_repeat.set_value(repeat_count_);
 
-    // Set initial signal type based on packet type if in basic mode
-    if (!advanced_mode_) {
-        update_signal_type_from_packet();
-        options_signal_type.hidden(true);
-    }
+    // Set initial signal type based on packet type
+    update_signal_type_from_packet();
+
+    // Initialize unit selection
+    options_pressure.set_by_value(format::pressure_unit);
+    options_temperature.set_by_value(format::temp_unit);
 
     // Initialize field values from default member variables
+    // For pressure and temperature, use unit conversion to display in selected units
     field_transponder_id.set_value(transponder_id_);
-    field_pressure.set_value(pressure_kpa_);
-    field_temperature.set_value(temperature_c_);
+    on_pressure_unit_change();
+    on_temperature_unit_change();
     field_flags.set_value(flags_);
 
     update_packet_display();
@@ -521,21 +547,20 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
         transmitter_model.set_target_frequency(v);
     };
 
-    checkbox_advanced.on_select = [this](Checkbox&, bool v) {
-        advanced_mode_ = v;
-        options_signal_type.hidden(!v);
-        if (!v) {
-            // Switching to basic mode - auto-select signal type
-            update_signal_type_from_packet();
-        }
-    };
-
     options_packet_type.on_change = [this](size_t, int32_t value) {
         packet_type_ = static_cast<tpms::Reading::Type>(value);
-        if (!advanced_mode_) {
-            update_signal_type_from_packet();
-        }
+        update_signal_type_from_packet();
         update_packet_display();
+    };
+
+    options_pressure.on_change = [this](size_t, int32_t i) {
+        format::pressure_unit = (uint8_t)i;
+        on_pressure_unit_change();
+    };
+
+    options_temperature.on_change = [this](size_t, int32_t i) {
+        format::temp_unit = (uint8_t)i;
+        on_temperature_unit_change();
     };
 
     field_transponder_id.on_change = [this](SymField&) {
@@ -544,23 +569,30 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     };
 
     field_pressure.on_change = [this](int32_t value) {
-        pressure_kpa_ = value;
+        // Convert from displayed unit to kPa for internal storage
+        if (format::pressure_unit == PRESSURE_UNIT_PSI) {
+            pressure_kpa_ = value * 6895 / 1000;
+        } else if (format::pressure_unit == PRESSURE_UNIT_BAR) {
+            pressure_kpa_ = value * 100;
+        } else {
+            pressure_kpa_ = value;
+        }
         update_packet_display();
     };
 
     field_temperature.on_change = [this](int32_t value) {
-        temperature_c_ = value;
+        // Convert from displayed unit to Celsius for internal storage
+        if (format::temp_unit == TEMP_UNIT_FAHRENHEIT) {
+            temperature_c_ = (value - 32) * 5 / 9;
+        } else {
+            temperature_c_ = value;
+        }
         update_packet_display();
     };
 
     field_flags.on_change = [this](SymField&) {
         flags_ = field_flags.to_integer() & 0xFF;
         update_packet_display();
-    };
-
-    options_signal_type.on_change = [this](size_t, int32_t value) {
-        signal_type_ = static_cast<tpms::SignalType>(value);
-        // Baseband will be switched when starting transmission
     };
 
     field_repeat.on_change = [this](int32_t value) {

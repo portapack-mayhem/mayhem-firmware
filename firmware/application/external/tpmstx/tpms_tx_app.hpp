@@ -33,8 +33,14 @@
 #include "tpms_packet.hpp"
 #include "file_path.hpp"
 #include "string_format.hpp"
+#include "units.hpp"
 
 namespace ui::external_app::tpmstx {
+
+namespace format {
+static uint8_t pressure_unit{PRESSURE_UNIT_PSI};
+static uint8_t temp_unit{TEMP_UNIT_CELSIUS};
+}  // namespace format
 
 class TPMSTXView : public View {
    public:
@@ -56,7 +62,11 @@ class TPMSTXView : public View {
 
     app_settings::SettingsManager settings_{
         "tx_tpms",
-        app_settings::Mode::TX};
+        app_settings::Mode::TX,
+        {
+            {"pressure_unit"sv, &format::pressure_unit},
+            {"temp_unit"sv, &format::temp_unit},
+        }};
 
     // TPMS packet data
     tpms::Reading::Type packet_type_{tpms::Reading::Type::Schrader};
@@ -70,7 +80,6 @@ class TPMSTXView : public View {
     uint32_t pause_duration_{50};  // ms between repeats
 
     bool is_transmitting_{false};
-    bool advanced_mode_{false};
 
     // FSK-specific repeat tracking (OOK repeats are handled by baseband)
     uint8_t fsk_repeat_counter_{0};
@@ -84,6 +93,8 @@ class TPMSTXView : public View {
     void send_packet();
     void encode_and_transmit();
     void update_packet_display();
+    void on_pressure_unit_change();
+    void on_temperature_unit_change();
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
@@ -104,15 +115,8 @@ class TPMSTXView : public View {
         {{0 * 8, 3 * 16}, "Pres:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 4 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 5 * 16}, "Flag:", Theme::getInstance()->fg_light->foreground},
-        {{17 * 8, 1 * 16}, "Adv", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Sig:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
-
-    Checkbox checkbox_advanced{
-        {21 * 8, 1 * 16},
-        3,
-        ""};  // Empty text, label is next to it
 
     OptionsField options_frequency{
         {6 * 8, 0 * 16},
@@ -133,6 +137,19 @@ class TPMSTXView : public View {
             {"FLM_80", (int32_t)tpms::Reading::Type::FLM_80},
             {"GMC_96", (int32_t)tpms::Reading::Type::GMC_96},
         }};
+
+    OptionsField options_pressure{
+        {11 * 8, 3 * 16},
+        4,
+        {{"kPa", PRESSURE_UNIT_KPA},
+         {"PSI", PRESSURE_UNIT_PSI},
+         {"BAR", PRESSURE_UNIT_BAR}}};
+
+    OptionsField options_temperature{
+        {11 * 8, 4 * 16},
+        2,
+        {{STR_DEGREES_C, TEMP_UNIT_CELSIUS},
+         {STR_DEGREES_F, TEMP_UNIT_FAHRENHEIT}}};
 
     SymField field_transponder_id{
         {6 * 8, 2 * 16},
@@ -158,15 +175,6 @@ class TPMSTXView : public View {
         2,
         SymField::Type::Hex};
 
-    OptionsField options_signal_type{
-        {6 * 8, 6 * 16},
-        12,
-        {
-            {"FSK 19k2", (int32_t)tpms::SignalType::FSK_19k2_Schrader},
-            {"OOK 8k192", (int32_t)tpms::SignalType::OOK_8k192_Schrader},
-            {"OOK 8k4", (int32_t)tpms::SignalType::OOK_8k4_Schrader},
-        }};
-
     NumberField field_repeat{
         {6 * 8, 7 * 16},
         3,
@@ -188,15 +196,15 @@ class TPMSTXView : public View {
     };
 
     Button button_transmit{
-        {0 * 8, 10 * 16, 15 * 8, 32},
+        {0 * 8, 11 * 16, 15 * 8, 32},
         "START TX"};
 
     Text text_status{
-        {0 * 8, 12 * 16 + 4, 30 * 8, 16},
+        {0 * 8, 13 * 16 + 4, 30 * 8, 16},
         "Ready"};
 
     ProgressBar progressbar{
-        {0 * 8, 13 * 16 + 8, 30 * 8, 16}};
+        {0 * 8, 14 * 16 + 8, 30 * 8, 16}};
 };
 
 }  // namespace ui::external_app::tpmstx
