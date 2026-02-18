@@ -101,6 +101,30 @@ void TPMSTXView::update_packet_display() {
     text_status.set(status);
 }
 
+void TPMSTXView::update_field_visibility() {
+    // Schrader: Show Func, Hide Temp (no temperature support)
+    // GMC_96, FLM_xx: Hide Func, Show Temp (temperature supported, no func field)
+    if (packet_type_ == tpms::Reading::Type::Schrader) {
+        // Show Func field and label
+        label_flags.hidden(false);
+        field_flags.hidden(false);
+        // Hide Temp field, label, and unit selector
+        label_temperature.hidden(true);
+        field_temperature.hidden(true);
+        options_temperature.hidden(true);
+    } else {
+        // Hide Func field and label
+        label_flags.hidden(true);
+        field_flags.hidden(true);
+        // Show Temp field, label, and unit selector
+        label_temperature.hidden(false);
+        field_temperature.hidden(false);
+        options_temperature.hidden(false);
+    }
+    // Force screen refresh to clear hidden widgets
+    set_dirty();
+}
+
 void TPMSTXView::on_pressure_unit_change() {
     // Convert displayed pressure to new unit and update field
     units::Pressure pressure(pressure_kpa_);
@@ -149,10 +173,12 @@ void TPMSTXView::encode_and_transmit() {
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
         // Schrader OOK 8k192 format (Type = Schrader)
         // Preamble: 11*2, 01*14, 11, 10
-        // Data: 3 bits flags, 24 bits ID, 8 bits pressure, 2 bits checksum
+        // Data: 3 bits function code, 24 bits ID, 8 bits pressure, 2 bits checksum
         // Total: 37 Manchester symbols (74 bits after encoding)
         // NOTE: This protocol does NOT support temperature transmission
         // NOTE: Only lower 24 bits of ID are transmitted
+        // NOTE: Function code (flags_) is stored as 3-bit value (0-7)
+        //       RX will display it combined with checksum in upper nibble
 
         symbol_rate = 8192;
 
@@ -166,7 +192,7 @@ void TPMSTXView::encode_and_transmit() {
         // Build data bits (pre-Manchester)
         uint64_t data = 0;
 
-        // 3-bit flags
+        // 3-bit flags (0-7, stored directly)
         uint8_t flags_3bit = flags_ & 0x07;
         data |= ((uint64_t)flags_3bit << 34);
 
@@ -505,6 +531,8 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
     add_children({&labels,
+                  &label_temperature,
+                  &label_flags,
                   &options_frequency,
                   &options_packet_type,
                   &field_transponder_id,
@@ -520,6 +548,10 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                   &button_transmit,
                   &text_status,
                   &progressbar});
+
+    // Set label styles to match other labels (light grey)
+    label_temperature.set_style(Theme::getInstance()->fg_light);
+    label_flags.set_style(Theme::getInstance()->fg_light);
 
     // Initialize values
     options_frequency.set_by_value(transmitter_model.target_frequency());
@@ -540,6 +572,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     on_temperature_unit_change();
     field_flags.set_value(flags_);
 
+    update_field_visibility();
     update_packet_display();
 
     // Event handlers
@@ -550,6 +583,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
     options_packet_type.on_change = [this](size_t, int32_t value) {
         packet_type_ = static_cast<tpms::Reading::Type>(value);
         update_signal_type_from_packet();
+        update_field_visibility();
         update_packet_display();
     };
 
@@ -590,8 +624,8 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
         update_packet_display();
     };
 
-    field_flags.on_change = [this](SymField&) {
-        flags_ = field_flags.to_integer() & 0xFF;
+    field_flags.on_change = [this](int32_t value) {
+        flags_ = value & 0x07;
         update_packet_display();
     };
 
@@ -665,7 +699,9 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                     }
 
                     if (!flags_str.empty()) {
-                        flags_ = std::stoul(flags_str, nullptr, 16);
+                        uint8_t loaded_flags = std::stoul(flags_str, nullptr, 16);
+                        // Handle old format files: extract bits 6-4 if value > 7
+                        flags_ = (loaded_flags > 7) ? ((loaded_flags >> 4) & 0x07) : (loaded_flags & 0x07);
                         field_flags.set_value(flags_);
                     }
 
@@ -694,7 +730,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
             content += "ID=" + to_string_hex(transponder_id_, 8) + "\n";
             content += "Pressure=" + to_string_dec_uint(pressure_kpa_) + "\n";
             content += "Temperature=" + to_string_dec_int(temperature_c_) + "\n";
-            content += "Flags=" + to_string_hex(flags_, 2) + "\n";
+            content += "Flags=" + to_string_hex(flags_ & 0x07, 1) + "\n";
 
             f.write(content.c_str(), content.length());
             text_status.set("Saved: " + file_name);

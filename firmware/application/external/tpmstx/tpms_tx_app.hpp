@@ -73,7 +73,7 @@ class TPMSTXView : public View {
     uint32_t transponder_id_{0x12345678};
     uint16_t pressure_kpa_{240};  // Default ~35 PSI
     int16_t temperature_c_{25};   // Default 25°C
-    uint8_t flags_{0x00};
+    uint8_t flags_{0x00};         // 3-bit function code (0-7), checksum is auto-calculated
     tpms::SignalType signal_type_{tpms::SignalType::FSK_19k2_Schrader};
 
     uint8_t repeat_count_{5};
@@ -95,6 +95,7 @@ class TPMSTXView : public View {
     void update_packet_display();
     void on_pressure_unit_change();
     void on_temperature_unit_change();
+    void update_field_visibility();
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
@@ -113,10 +114,16 @@ class TPMSTXView : public View {
         {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Pres:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Flag:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
+
+    Text label_temperature{
+        {0 * 8, 4 * 16, 5 * 8, 16},
+        "Temp:"};
+
+    Text label_flags{
+        {0 * 8, 4 * 16, 5 * 8, 16},
+        "Func:"};
 
     OptionsField options_frequency{
         {6 * 8, 0 * 16},
@@ -170,13 +177,15 @@ class TPMSTXView : public View {
         1,
         ' '};
 
-    SymField field_flags{
-        {6 * 8, 5 * 16},
-        2,
-        SymField::Type::Hex};
+    NumberField field_flags{
+        {6 * 8, 4 * 16},
+        1,
+        {0, 7},
+        1,
+        ' '};
 
     NumberField field_repeat{
-        {6 * 8, 7 * 16},
+        {6 * 8, 5 * 16},
         3,
         {1, 100},
         1,
