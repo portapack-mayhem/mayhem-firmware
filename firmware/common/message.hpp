@@ -1801,17 +1801,17 @@ class NotificationDataMessage : public Message {
           icon(icon),
           timeout(timeout) {
         if (source_app) {
-            size_t len = std::min(strnlen(source_app, 19), (size_t)19);
+            size_t len = std::min(strlen(source_app), (size_t)19);
             memcpy(this->source_app, source_app, len);
             this->source_app[len] = '\0';
         }
         if (title) {
-            size_t len = std::min(strnlen(title, 49), (size_t)49);
+            size_t len = std::min(strlen(title), (size_t)49);
             memcpy(this->title, title, len);
             this->title[len] = '\0';
         }
         if (message) {
-            size_t len = std::min(strnlen(message, 299), (size_t)299);
+            size_t len = std::min(strlen(message), (size_t)299);
             memcpy(this->message, message, len);
             this->message[len] = '\0';
         }
