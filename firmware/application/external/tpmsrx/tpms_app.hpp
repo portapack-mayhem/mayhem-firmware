@@ -53,6 +53,7 @@ struct TPMSRecentEntry {
 
     tpms::Reading::Type type{invalid_key.first};
     tpms::TransponderID id{invalid_key.second};
+    tpms::SignalType signal_type{tpms::SignalType::OOK_8k192_Schrader};
 
     size_t received_count{0};
 
@@ -89,6 +90,64 @@ class TPMSLogger {
 
 using TPMSRecentEntriesView = RecentEntriesView<TPMSRecentEntries>;
 
+class TPMSRecentEntryDetailView : public View {
+   public:
+    TPMSRecentEntryDetailView(NavigationView& nav, const TPMSRecentEntry& entry);
+
+    void set_entry(const TPMSRecentEntry& entry);
+    const TPMSRecentEntry& entry() const { return entry_; }
+
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+    TPMSRecentEntry entry_;
+
+    void on_save();
+    bool save_file(const std::filesystem::path& path);
+
+    Labels labels{
+        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Pressure:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Temperature:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 9 * 16}, "Flags:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 11 * 16}, "Count:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    Text text_type{
+        {8 * 8, 1 * 16, 20 * 8, 16},
+        ""};
+
+    Text text_id{
+        {8 * 8, 3 * 16, 20 * 8, 16},
+        ""};
+
+    Text text_pressure{
+        {12 * 8, 5 * 16, 16 * 8, 16},
+        ""};
+
+    Text text_temperature{
+        {14 * 8, 7 * 16, 14 * 8, 16},
+        ""};
+
+    Text text_flags{
+        {8 * 8, 9 * 16, 20 * 8, 16},
+        ""};
+
+    Text text_count{
+        {8 * 8, 11 * 16, 20 * 8, 16},
+        ""};
+
+    Button button_save{
+        {0 * 8, 13 * 16, 14 * 8, 32},
+        "Save"};
+
+    Button button_done{
+        {16 * 8, 13 * 16, 14 * 8, 32},
+        "Done"};
+};
+
 class TPMSAppView : public View {
    public:
     TPMSAppView(NavigationView& nav);
@@ -105,6 +164,8 @@ class TPMSAppView : public View {
     std::string title() const override { return "TPMS RX"; };
 
    private:
+    NavigationView& nav_;
+
     RxRadioState radio_state_{
         314900000 /* frequency*/
         ,
@@ -188,6 +249,7 @@ class TPMSAppView : public View {
 
     void on_packet(const tpms::Packet& packet);
     void on_show_list();
+    void on_show_detail(const TPMSRecentEntry& entry);
     void update_view();
 };
 
