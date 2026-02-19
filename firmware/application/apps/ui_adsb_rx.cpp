@@ -355,6 +355,10 @@ void ADSBRxDetailsView::get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* 
             return;
         }
     }
+    // Fallback: in case no interval matched, default to ground color.
+    *r = stops[0].r;
+    *g = stops[0].g;
+    *b = stops[0].b;
 }
 
 void ADSBRxDetailsView::clear_map_markers() {
