@@ -643,34 +643,36 @@ class Si5351DebugView : public View {
    private:
     NavigationView& nav_;
 
-    Text text_title{{8, 16, 200, 16}, "Si5351 Clock Generator"};
+    Text text_title{{0, 0, 200, 16}, "Si5351 Clock Generator"};
 
-    Text text_status_label{{8, 40, 80, 16}, "Status Reg:"};
-    Text text_status_value{{96, 40, 144, 16}, ""};
+    Text text_status_label{{0, 16, 80, 16}, "Status Reg:"};
+    Text text_status_value{{96, 16, 144, 16}, ""};
 
-    Text text_pll_a_label{{8, 60, 80, 16}, "PLL A:"};
-    Text text_pll_a_status{{96, 60, 144, 16}, ""};
+    Text text_pll_a_label{{0, 32, 80, 16}, "PLL A:"};
+    Text text_pll_a_status{{96, 32, 144, 16}, ""};
 
-    Text text_pll_b_label{{8, 80, 80, 16}, "PLL B:"};
-    Text text_pll_b_status{{96, 80, 144, 16}, ""};
+    Text text_pll_b_label{{0, 48, 80, 16}, "PLL B:"};
+    Text text_pll_b_status{{96, 48, 144, 16}, ""};
 
-    Text text_sys_init_label{{8, 100, 80, 16}, "SYS_INIT:"};
-    Text text_sys_init_status{{96, 100, 144, 16}, ""};
+    Text text_sys_init_label{{0, 64, 80, 16}, "SYS_INIT:"};
+    Text text_sys_init_status{{96, 64, 144, 16}, ""};
 
-    Text text_xtal_cap_label{{8, 120, 80, 16}, "XTAL Cap:"};
-    Text text_xtal_cap_value{{96, 120, 144, 16}, ""};
+    Text text_xtal_cap_label{{0, 80, 80, 16}, "XTAL Cap:"};
+    Text text_xtal_cap_value{{96, 80, 144, 16}, ""};
 
-    Text text_clk0_label{{8, 150, 72, 16}, "CLK0:"};
-    Text text_clk0_status{{88, 150, 152, 16}, ""};
+    Text text_clk0_label{{0, 96, 48, 16}, "CLK0:"};
+    Text text_clk0_status{{50, 96, 28, 16}, ""};
+    Text text_clk0_freq_value{{80, 96, 160, 16}, ""};
+    Text text_clk0_div_value{{50, 112, 190, 16}, ""};
 
-    Text text_clk0_freq_label{{8, 170, 72, 16}, "  Freq:"};
-    Text text_clk0_freq_value{{88, 170, 152, 16}, ""};
+    Text text_clk1_label{{0, 128, 96, 16}, "CLK1 (SCT):"};
+    Text text_clk1_status{{112, 128, 128, 16}, ""};
 
-    Text text_clk0_div_label{{8, 190, 72, 16}, "  Div:"};
-    Text text_clk0_div_value{{88, 190, 152, 16}, ""};
+    Text text_clk4_label{{0, 144, 96, 16}, "CLK4 (MAX):"};
+    Text text_clk4_status{{112, 144, 128, 16}, ""};
 
-    Text text_clk1_label{{8, 210, 96, 16}, "CLK1 (SCT):"};
-    Text text_clk1_status{{112, 210, 128, 16}, ""};
+    Text text_clk5_label{{0, 160, 96, 16}, "CLK5 (RFFC):"};
+    Text text_clk5_status{{112, 160, 128, 16}, ""};
 
     Button button_refresh{{8, 240, 72, 24}, "Refresh"};
     Button button_reset_pll{{88, 240, 72, 24}, "Reset PLL"};
