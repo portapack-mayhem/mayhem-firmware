@@ -366,7 +366,6 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
-    uint32_t myrand(uint32_t* state);
     void get_random_splash_file(std::filesystem::path& path);
 };
 
