@@ -1418,6 +1418,44 @@ static void cmd_getdevtype(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, res.c_str());
 }
 
+static void cmd_notification(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: notif <iconindex> [appname]\r\n";
+    if (argc < 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    int iconindex = atoi(argv[0]);
+    std::string appname = (argc > 1) ? argv[1] : "";
+    chprintf(chp, "Send title, and a <CR>\r\n");
+    std::string title{};
+    uint8_t msg[1]{0};
+    do {
+        size_t bytes_read = chSequentialStreamRead(chp, &msg[0], 1);
+        if (bytes_read != 1)
+            break;
+        if (msg[0] == '\r')  // end of title
+            break;
+        if (msg[0] == '\n') continue;
+        title += (char)msg[0];
+    } while (title.size() < 48);
+    std::string message{};
+    chprintf(chp, "Send message, and a <CR>\r\n");
+    do {
+        size_t bytes_read = chSequentialStreamRead(chp, &msg[0], 1);
+        if (bytes_read != 1)
+            break;
+        if (msg[0] == '\r')  // end of message
+            break;
+        if (msg[0] == '\n') continue;
+        message += (char)msg[0];
+    } while (message.size() < 298);
+
+    NotificationDataMessage msgn{appname.c_str(), title.c_str(), message.c_str(), (uint8_t)iconindex};
+    EventDispatcher::send_message(msgn);
+
+    chprintf(chp, "ok\r\n");
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1456,6 +1494,7 @@ static const ShellCommand commands[] = {
     {"getres", cmd_getres},
     {"getflash", cmd_getflash},
     {"getdevtype", cmd_getdevtype},
+    {"notif", cmd_notification},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

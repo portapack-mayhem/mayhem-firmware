@@ -42,7 +42,7 @@
 #include "ui_audio.hpp"
 #include "ui_sd_card_status_view.hpp"
 #include "ui_dfu_menu.hpp"
-
+#include "ui_notifications.hpp"
 #include "bitmap.hpp"
 #include "ui_bmpview.hpp"
 #include "ff.h"
@@ -366,7 +366,6 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
-    uint32_t myrand(uint32_t* state);
     void get_random_splash_file(std::filesystem::path& path);
 };
 
@@ -447,11 +446,12 @@ class SystemView : public View {
    private:
     uint8_t overlay_active{0};
 
+    NavigationView navigation_view{};
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
+    NotificationView notification_view{navigation_view};
     DfuMenu overlay{navigation_view};
     DfuMenu2 overlay2{navigation_view};
-    NavigationView navigation_view{};
     Context& context_;
 };
 

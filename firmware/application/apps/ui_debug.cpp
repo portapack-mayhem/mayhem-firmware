@@ -2640,7 +2640,7 @@ void DebugPmemView::update() {
 DebugScreenTest::DebugScreenTest(NavigationView& nav)
     : nav_{nav} {
     set_focusable(true);
-    std::srand(LPC_RTC->CTIME0);
+    srand(LPC_RTC->CTIME0);
 }
 
 bool DebugScreenTest::on_key(const KeyEvent key) {
@@ -2650,10 +2650,10 @@ bool DebugScreenTest::on_key(const KeyEvent key) {
             nav_.pop();
             break;
         case KeyEvent::Down:
-            painter.fill_rectangle({0, 0, screen_width, screen_height}, std::rand());
+            painter.fill_rectangle({0, 0, screen_width, screen_height}, rand());
             break;
         case KeyEvent::Left:
-            pen_color = std::rand();
+            pen_color = rand();
             break;
         default:
             break;
@@ -2676,7 +2676,7 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
 void DebugScreenTest::paint(Painter& painter) {
     painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Theme::getInstance()->bg_darkest->foreground);
     painter.draw_string({10 * 8, screen_height / 2}, *Theme::getInstance()->bg_darkest, "Use Stylus");
-    pen_color = std::rand();
+    pen_color = rand();
 }
 
 /* DebugLCRView *******************************************************/
