@@ -976,6 +976,8 @@ SystemView::SystemView(
 
     navigation_view.push<SystemMenuView>();
 
+    add_child(&notification_view);
+
     if (pmem::config_splash()) {
         navigation_view.push<SplashScreenView>();
     }
@@ -1061,20 +1063,10 @@ SplashScreenView::SplashScreenView(NavigationView& nav)
     };
 }
 
-uint32_t SplashScreenView::myrand(uint32_t* state) {
-    uint32_t x = *state;
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
-    *state = x;
-    return x;
-}
-
 void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
     path = u"";
 
-    uint32_t rng_state = LPC_RTC->CTIME0;
-    if (rng_state == 0) rng_state = 0xABBACAFE;
+    srand(LPC_RTC->CTIME0);
 
     DIR dir;
     FILINFO fno;
@@ -1096,7 +1088,7 @@ void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
                     (ext[3] == 'P' || ext[3] == 'p')) {
                     valid_count++;
                     // Reservoir Sampling:
-                    if (((rng_state = myrand(&rng_state)) % valid_count) == 0) {
+                    if ((rand() % valid_count) == 0) {
                         path = splash_dir / fno.fname;
                     }
                 }

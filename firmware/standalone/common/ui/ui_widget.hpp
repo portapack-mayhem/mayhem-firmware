@@ -210,6 +210,7 @@ class Rectangle : public Widget {
 
 class Text : public Widget {
    public:
+    std::function<void(Text&)> on_select{};
     Text()
         : text{""} {
     }
@@ -218,10 +219,13 @@ class Text : public Widget {
     Text(Rect parent_rect);
 
     void set(std::string_view value);
+    std::string get();
 
     void paint(Painter& painter) override;
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
+
+    bool on_touch(const TouchEvent event) override;
 
    protected:
     // NB: Don't truncate this string. The UI will only render

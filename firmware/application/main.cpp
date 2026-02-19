@@ -145,6 +145,21 @@ Continuous (Fox-oring)
 rffc507x::RFFC507x first_if;
 ui::SystemView* system_view_ptr;
 
+static uint32_t random_seed_state = 123456789;
+extern "C" int rand(void) {
+    random_seed_state ^= random_seed_state << 13;
+    random_seed_state ^= random_seed_state >> 17;
+    random_seed_state ^= random_seed_state << 5;
+    return (int)(random_seed_state & 0x7FFFFFFF);
+}
+extern "C" void srand(unsigned int seed) {
+    if (seed == 0) {
+        random_seed_state = 123456789;
+    } else {
+        random_seed_state = seed;
+    }
+}
+
 static void event_loop() {
     static ui::Context context;
     static ui::SystemView system_view{
