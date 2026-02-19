@@ -320,7 +320,7 @@ void Rotate() {
         {{0, 0}, {-1, 0}, {-1, -1}, {0, 2}, {-1, 2}}};
 
     bool is_I_tetromino = (colorIndex == 1);
-    const short (*kick_tests)[5][2] = is_I_tetromino ? kick_tests_I : kick_tests_other;
+    const short(*kick_tests)[5][2] = is_I_tetromino ? kick_tests_I : kick_tests_other;
 
     for (int test = 0; test < 5; test++) {
         short kickX = kick_tests[rotation_state][test][0];
