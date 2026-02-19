@@ -413,21 +413,27 @@ class RadioDiagnosticsView : public View {
     Text text_lbl_clock{{0, 100, 140, 16}, "Si5351 Clocks:"};
     Text text_clock_status{{144, 100, 96, 16}, "---"};
 
-    Text text_regs_title{{0, 124, 240, 16}, "=== Key Registers ==="};
+    Text text_lbl_touch{{0, 116, 140, 16}, "Touch ADC:"};
+    Text text_touch_status{{144, 116, 96, 16}, "---"};
 
-    Text text_lbl_rffc_reg{{0, 144, 80, 16}, "RFFC R0:"};
-    Text text_rffc_reg{{80, 144, 160, 16}, "---"};
+    Text text_regs_title{{0, 132, 240, 16}, "=== Key Registers ==="};
 
-    Text text_lbl_max_reg{{0, 160, 80, 16}, "MAX R0:"};
-    Text text_max_reg{{80, 160, 160, 16}, "---"};
+    Text text_lbl_rffc_reg{{0, 150, 80, 16}, "RFFC R0:"};
+    Text text_rffc_reg{{80, 150, 160, 16}, "---"};
 
-    Text text_lbl_fpga_reg{{0, 176, 80, 16}, "FPGA:"};
-    Text text_fpga_reg{{80, 176, 160, 16}, "---"};
+    Text text_lbl_max_reg{{0, 166, 80, 16}, "MAX R0:"};
+    Text text_max_reg{{80, 166, 160, 16}, "---"};
 
-    Text text_lbl_sgpio_reg{{0, 192, 80, 16}, "SGPIO:"};
-    Text text_sgpio_reg{{80, 192, 160, 16}, "---"};
+    Text text_lbl_fpga_reg{{0, 182, 80, 16}, "FPGA:"};
+    Text text_fpga_reg{{80, 182, 160, 16}, "---"};
 
-    Text text_test_result{{0, 220, 240, 32}, ""};
+    Text text_lbl_sgpio_reg{{0, 198, 80, 16}, "SGPIO:"};
+    Text text_sgpio_reg{{80, 198, 160, 16}, "---"};
+
+    Text text_lbl_touch_val{{0, 214, 80, 16}, "Touch:"};
+    Text text_touch_val{{50, 214, 190, 16}, "---"};
+
+    Text text_test_result{{0, 234, 240, 32}, ""};
 
     Button button_refresh{
         {8, 280, 72, 24},
@@ -1369,6 +1375,29 @@ class PralineClockDebugView : public View {
 #endif
 
 #endif
+
+/* TouchADCDiagView — reads raw ADC0 DR registers for all 8 channels so the
+ * user can identify which channels respond to touch on a given hardware target
+ * (e.g., HackRF Pro / PRALINE where the connector routing may differ). */
+class TouchADCDiagView : public View {
+   public:
+    TouchADCDiagView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Touch ADC Diag"; };
+
+   private:
+    void refresh();
+    void on_frame_sync();
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_frame_sync();
+        }};
+
+    Console console{{0, 0, 240, 288}};
+    Button button_done{{80, 292, 80, 24}, "Done"};
+};
 
 class DebugPeripheralsMenuView : public BtnGridView {
    public:

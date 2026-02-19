@@ -601,6 +601,17 @@ init_status_t init() {
 
     touch_threshold = portapack::persistent_memory::touchscreen_threshold();
 
+#ifdef PRALINE
+    /* On PRALINE (HackRF Pro), touch is detected via z1=XP-XN only (z2 is
+     * permanently biased high by hardware pull-down on YN electrode).
+     * z1 baseline without touch is ~182. Reset threshold to 220 if the stored
+     * value is outside a sensible range for PRALINE's z1 signal. */
+    if (touch_threshold < 183 || touch_threshold > 600) {
+        touch_threshold = 220;
+        portapack::persistent_memory::set_touchscreen_threshold(touch_threshold);
+    }
+#endif
+
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);
 

@@ -77,15 +77,31 @@ static uint32_t touch_debounce_mask = (1U << 4) - 1;
 static bool touch_detected = false;
 static bool touch_cycle = false;
 
+/* Debug: last raw pressure-phase samples and z1/z2 for TouchADCDiagView */
+static touch::Samples dbg_pressure_samples{};
+static touch::Samples dbg_last_samples{};
+static int32_t dbg_z1{0}, dbg_z2{0};
+
 static bool touch_update() {
     const auto samples = touch::adc::get();
+    dbg_last_samples = samples;
     const auto current_phase = touch_pins_configs[touch_phase];
 
     switch (current_phase) {
         case IO::TouchPinsConfig::SensePressure: {
-            const auto z1 = samples.xp - samples.xn;
-            const auto z2 = samples.yp - samples.yn;
+            const auto z1 = (int32_t)samples.xp - (int32_t)samples.xn;
+            const auto z2 = (int32_t)samples.yp - (int32_t)samples.yn;
+            dbg_pressure_samples = samples;
+            dbg_z1 = z1;
+            dbg_z2 = z2;
+#ifdef PRALINE
+            /* On PRALINE (HackRF Pro), the YN electrode has a hardware pull-down
+             * that keeps z2=YP-YN permanently at ~910 regardless of touch.
+             * Use only z1=XP-XN for pressure detection; z1~182 untouch, rises when pressed. */
+            const auto touch_raw = (z1 > portapack::touch_threshold);
+#else
             const auto touch_raw = (z1 > portapack::touch_threshold) || (z2 > portapack::touch_threshold);
+#endif
             touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
             touch_detected = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
             if (!touch_detected && !touch_cycle) {
@@ -303,6 +319,18 @@ EncoderPosition get_encoder_position() {
 touch::Frame get_touch_frame() {
     return touch_frame;
 }
+
+touch::Samples get_touch_pressure_samples() {
+    return dbg_pressure_samples;
+}
+
+touch::Samples get_touch_last_samples() {
+    return dbg_last_samples;
+}
+
+int32_t get_touch_z1() { return dbg_z1; }
+int32_t get_touch_z2() { return dbg_z2; }
+bool get_touch_detected() { return touch_detected; }
 
 namespace control {
 namespace debug {

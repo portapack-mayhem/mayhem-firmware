@@ -48,6 +48,11 @@ uint8_t swizzled_switches();
 SwitchesState get_switches_state();
 EncoderPosition get_encoder_position();
 touch::Frame get_touch_frame();
+touch::Samples get_touch_pressure_samples();
+touch::Samples get_touch_last_samples();
+int32_t get_touch_z1();
+int32_t get_touch_z2();
+bool get_touch_detected();
 SwitchesState get_switches_repeat_config();
 void set_switches_repeat_config(SwitchesState switch_config);
 

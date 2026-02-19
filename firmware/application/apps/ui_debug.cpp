@@ -408,6 +408,8 @@ RadioDiagnosticsView::RadioDiagnosticsView(NavigationView& nav)
         &text_sgpio_status,
         &text_lbl_clock,
         &text_clock_status,
+        &text_lbl_touch,
+        &text_touch_status,
         &text_regs_title,
         &text_lbl_rffc_reg,
         &text_rffc_reg,
@@ -417,6 +419,8 @@ RadioDiagnosticsView::RadioDiagnosticsView(NavigationView& nav)
         &text_fpga_reg,
         &text_lbl_sgpio_reg,
         &text_sgpio_reg,
+        &text_lbl_touch_val,
+        &text_touch_val,
         &text_test_result,
         &button_refresh,
         &button_done,
@@ -501,6 +505,17 @@ void RadioDiagnosticsView::update_status() {
     text_clock_status.set("(assumed OK)");
     text_clock_status.set_style(Theme::getInstance()->fg_medium);
 
+    // Touch status
+    const auto touch_samples = get_touch_last_samples();
+    const auto z1 = get_touch_z1();
+    const auto z2 = get_touch_z2();
+    text_touch_status.set("Touch ADC:");
+    text_touch_val.set("XP:" + to_string_dec_uint(touch_samples.xp, 3) +
+                       " XN:" + to_string_dec_uint(touch_samples.xn, 3) +
+                       " YP:" + to_string_dec_uint(touch_samples.yp, 3) +
+                       " YN:" + to_string_dec_uint(touch_samples.yn, 3) +
+                       " Z1:" + to_string_dec_int(z1, 4));
+    
     // Summary
     bool all_ok = rffc_ok && max_ok;
 #ifdef PRALINE
@@ -3420,6 +3435,73 @@ void MAX2831DebugView::refresh() {
 #endif
 
 #endif
+
+/* TouchADCDiagView **************************************************/
+TouchADCDiagView::TouchADCDiagView(NavigationView& nav) {
+    add_children({
+        &console,
+        &button_done,
+    });
+
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    refresh();
+}
+
+void TouchADCDiagView::focus() {
+    button_done.focus();
+}
+
+void TouchADCDiagView::on_frame_sync() {
+    refresh();
+}
+
+void TouchADCDiagView::refresh() {
+    /* Show pressure-phase raw samples + z1/z2 (exact values used by the
+     * touch scanner) alongside the ADC0 burst register snapshot.
+     * In SensePressure: CPLD drives YP HIGH (~1023) and XN LOW (~0).
+     * z1=XP-XN should be >thr if touch detected on X axis.
+     * z2=YP-YN should be >thr if touch detected on Y axis.
+     * If YP reads small here → CPLD is not driving the electrode. */
+    auto ps = get_touch_pressure_samples();
+    int32_t z1 = get_touch_z1();
+    int32_t z2 = get_touch_z2();
+    uint16_t thr = portapack::touch_threshold;
+    bool det = get_touch_detected();
+
+    console.clear(true);
+    console.writeln("=SensePressure samples=");
+    console.writeln(" YP:CH0 YN:CH2 XP:CH5 XN:CH6");
+    console.writeln(
+        " " + to_string_dec_uint(ps.yp, 4) +
+        "   " + to_string_dec_uint(ps.yn, 4) +
+        "   " + to_string_dec_uint(ps.xp, 4) +
+        "   " + to_string_dec_uint(ps.xn, 4));
+    console.writeln(" z1=XP-XN:" + to_string_dec_int(z1, 5) +
+                    (z1 > thr ? " HIT" : " ---"));
+    console.writeln(" z2=YP-YN:" + to_string_dec_int(z2, 5) +
+                    (z2 > thr ? " HIT" : " ---"));
+    console.writeln(" thr=" + to_string_dec_uint(thr) +
+                    "  det=" + (det ? "YES***" : "no"));
+    console.writeln("=ADC0 burst snapshot=");
+    static const char* chan_names[8] = {
+        "YP", "--", "YN", "--", "--", "XP", "XN", "--"};
+    for (int ch = 0; ch < 8; ch++) {
+        uint32_t dr = LPC_ADC0->DR[ch];
+        bool done = (dr >> 31) & 1;
+        uint16_t val = (dr >> 6) & 0x3FF;
+        console.writeln(
+            " CH" + to_string_dec_uint(ch) + " " +
+            (done ? "Y " : "n ") +
+            to_string_dec_uint(val, 4) + " " +
+            chan_names[ch]);
+    }
+    uint32_t scu = LPC_SCU->SFSP[4][3];
+    console.writeln("P4_3 SCU=0x" + to_string_hex(scu, 2) +
+                    " CR=0x" + to_string_hex(LPC_ADC0->CR, 5));
+    console.writeln("Touch screen to test");
+}
+
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav)
@@ -3506,6 +3588,7 @@ void DebugMenuView::on_populate() {
         {"Pers. Memory", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
         {"SD Card", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
         {"Touch Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
+        {"Touch ADC", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_notepad, [this]() { nav_.push<TouchADCDiagView>(); }},
         {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
         {"Ext Module", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<ExternalModuleView>(); }},
     });
