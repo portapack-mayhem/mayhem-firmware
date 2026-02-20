@@ -105,26 +105,23 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
     (void)argc;
     (void)argv;
-
-    ui::Painter painter;
-    painter.fill_rectangle(
-        {0, 0, portapack::display.width(), portapack::display.height()},
-        Theme::getInstance()->fg_yellow->background);
-
-    painter.draw_bitmap(
-        {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
-        ui::bitmap_icon_hackrf,
-        Theme::getInstance()->fg_yellow->foreground,
-        Theme::getInstance()->fg_yellow->background);
-
-    sdcDisconnect(&SDCD1);
-    sdcStop(&SDCD1);
-
-    m4_request_shutdown();
-    chThdSleepMilliseconds(50);
-    portapack::shutdown(true);
-    m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
-    m0_halt();
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    nav->home(false);
+    std::string appwithpath = "/" + apps_dir.string() + "/";
+    appwithpath += "sdusb.ppma";
+    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));
+    if (ret) {
+        chprintf(chp, "ok\r\n");
+    } else {
+        chprintf(chp, "Failed to start SD over USB\r\n");
+    }
+    evtd->wait_finish_frame();
+    evtd->emulateKeyboard('\n');
 }
 
 bool strEndsWith(const std::u16string& str, const std::u16string& suffix) {
