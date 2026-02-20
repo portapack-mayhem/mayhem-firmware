@@ -46,7 +46,7 @@ struct max2831_debug_t {
     bool set_frequency_called;
     bool frequency_valid;
 };
-extern "C" max2831_debug_t max2831_debug_info = {0, 0, 0, false, false};
+extern "C" max2831_debug_t max2831_debug_info ;
 
 namespace max2831 {
 
@@ -382,7 +382,7 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
     //     return false;
     // }
 
-    bool valid = (lo_frequency >= 2300000000ULL && lo_frequency <= 2600000000ULL);
+    bool valid = (lo_frequency >= 2300000000LL && lo_frequency <= 2600000000LL);
 
     // TRACK REQUEST IMMEDIATELY
     max2831_debug_info.requested_freq_mhz = lo_frequency / 1000000;
