@@ -379,11 +379,11 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
      */
 
     /* MAX2831 supports 2.3-2.6 GHz */
-    // if (lo_frequency < 2300000000ULL || lo_frequency > 2600000000ULL) {
+    // if (lo_frequency < MAX2831_MIN_LO_FREQUENCY_HZ || lo_frequency > MAX2831_MAX_LO_FREQUENCY_HZ) {
     //     return false;
     // }
 
-    bool valid = (lo_frequency >= 2300000000LL && lo_frequency <= 2600000000LL);
+    bool valid = (lo_frequency >= MAX2831_MIN_LO_FREQUENCY_HZ && lo_frequency <= MAX2831_MAX_LO_FREQUENCY_HZ);
 
     // TRACK REQUEST IMMEDIATELY
     max2831_info.requested_freq_mhz = lo_frequency / 1000000;
