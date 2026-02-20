@@ -46,6 +46,11 @@ using namespace portapack;
 
 #include "irq_controls.hpp"
 
+#ifdef PRALINE
+#include "max2831.hpp"
+using namespace max2831;
+#endif
+
 namespace ui {
 
 /* DebugMemoryView *******************************************************/
@@ -1337,6 +1342,8 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_sys_init_status,
                   &text_xtal_cap_label,
                   &text_xtal_cap_value,
+                  &text_clkin_label,
+                  &text_clkin_status,
                   &text_clk0_label,
                   &text_clk0_status,
                   &text_clk0_freq_label,
@@ -1416,6 +1423,11 @@ void Si5351DebugView::refresh_status() {
 
     // Read clock output enables (reg 16-23 control, reg 3 for output enable mask)
     uint8_t output_enable_mask = portapack::clock_manager.si5351_read_register(3);
+
+    // CLKIN
+    text_clkin_status.set(los_clkin ? "LOS" : "CLOCK SIGNAL");
+    text_clkin_status.set_style(los_clkin ? Theme::getInstance()->fg_red
+                                          : Theme::getInstance()->fg_green);
 
     // CLK0 (bit 0 of reg 3, reg 16 for control)
     uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
@@ -2152,9 +2164,11 @@ void RFFC5072StatusView::refresh_status() {
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
 
-    text_ctrl.set(std::string(enx ? "DIS" : "EN") + " " +
-                  std::string(resetx ? "RUN" : "RST") + " " +
-                  "O:" + std::string(resetx_is_output ? "Y" : "N"));
+    text_ctrl.set(
+        std::string(enx ? "DIS" : "EN") + " " +
+        std::string(resetx ? "RUN" : "RST") + " " +
+        "EO:" + std::string(enx_is_output ? "Y" : "N") + " " +
+        "RO:" + std::string(resetx_is_output ? "Y" : "N"));
 
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
@@ -2396,7 +2410,7 @@ void MAX2831DebugView::focus() {
 }
 
 void MAX2831DebugView::refresh() {
-    auto info = radio::debug::second_if::get_max2831_info();
+    auto info = get_max2831_info();
 
     // Show if set_frequency was called
     if (info.set_frequency_called) {
