@@ -23,63 +23,67 @@
 
 set -e # exit immediately on any failure
 
-# 1. PARSE ARGUMENTS
-# We separate arguments into two lists: 
-# - CMAKE_OPTS: Anything starting with -D (e.g., -DFLASH_MB_SIZE=4)
-# - BUILD_ARGS: Everything else (e.g., make, ninja, -j20)
-
-CMAKE_OPTS=()
+BUILD_DIR="build"
+CMAKE_ARGS=()
 BUILD_ARGS=()
 
-for arg in "$@"; do
-    if [[ "$arg" == -D* ]]; then
-        CMAKE_OPTS+=("$arg")
-    else
-        BUILD_ARGS+=("$arg")
-    fi
-done
+parse_build_args() {
+   # 1. PARSE BUILD ARGUMENTS
+   # We separate arguments into two lists, and possibly get an override for the build dir:
+   # - BUILD_DIR: Defaults to build, can be overriden (e.g., -B build-4mb, --workdir build-praline)
+   # - CMAKE_ARGS: Anything starting with -D (e.g., -DFLASH_MB_SIZE=4)
+   # - BUILD_ARGS: Everything else (e.g., make, ninja, -j20)
 
-# Reset the script arguments ($1, $2...) to contain only the BUILD_ARGS. This allows the original logic below to work exactly as before.
-set -- "${BUILD_ARGS[@]}"
+   while [[ $# -gt 0 ]]; do
+      if [[ "$1" == -B ]] || [[ "$1" == "--workdir" ]]; then
+         shift
+         BUILD_DIR=$1
+         shift
+      elif [[ "$1" == -D* ]]; then
+         CMAKE_ARGS+=("$1")
+         shift
+      else
+         BUILD_ARGS+=("$1")
+         shift
+      fi
+   done
+}
 
 build_make() {
+   parse_build_args "$@"
+   echo "Building in workdir: \"$BUILD_DIR\" using CMake options: \"${CMAKE_ARGS[@]}\" and make options: \"${BUILD_ARGS[@]}\""
    cd ..
-   mkdir -p build
-   cd build
-   cmake "${CMAKE_OPTS[@]}" ..
-   make "$@"
+   mkdir -p "$BUILD_DIR"
+   cd "$BUILD_DIR"
+   cmake "${CMAKE_ARGS[@]}" ..
+   make "${BUILD_ARGS[@]}"
    exit 0 
 }
 
 build_ninja() {
+   parse_build_args "$@"
+   echo "Building in workdir: \"$BUILD_DIR\" using CMake options: \"${CMAKE_ARGS[@]}\" and ninja options: \"${BUILD_ARGS[@]}\""
    cd ..
-   mkdir -p build
-   cd build
-   cmake -G Ninja "${CMAKE_OPTS[@]}" ..
-   ninja "$@"
+   mkdir -p "$BUILD_DIR"
+   cd "$BUILD_DIR"
+   cmake -G Ninja "${CMAKE_ARGS[@]}" ..
+   ninja "${BUILD_ARGS[@]}"
    exit 0 
 }
-
 
 if [ "$1" = 'make' ]; then 
    # User explicitly typed 'make'
    shift 
    build_make "$@"
 
-elif [[ $1 == -j* ]]; then 
-   # User passed -j20 directly (Implied make)
+elif [[ $1 == -* ]]; then 
+   # User passed a switch not a command as first argument. Assuming make. (e.g., -j20)
    build_make "$@"
 
 elif [ "$1" = 'ninja' ]; then 
    # User explicitly typed 'ninja'
    shift 
    build_ninja "$@"
-
-elif [ ${#CMAKE_OPTS[@]} -gt 0 ] && [ ${#BUILD_ARGS[@]} -eq 0 ]; then
-   # User passed ONLY CMake flags (e.g. "-DFLASH_MB_SIZE=4")
-   # We assume they want to run a default 'make' build.
-   build_make
-
 fi
 
 # Fallback for other commands (e.g. /bin/bash)
