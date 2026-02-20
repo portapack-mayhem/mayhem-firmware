@@ -660,20 +660,20 @@ class Si5351DebugView : public View {
     Text text_xtal_cap_label{{8, 120, 80, 16}, "XTAL Cap:"};
     Text text_xtal_cap_value{{96, 120, 144, 16}, ""};
 
-    Text text_clkin_label{{8, 150, 72, 16}, "CLKIN:"};
-    Text text_clkin_status{{88, 150, 160, 16}, ""};
+    Text text_clkin_label{{8, 140, 72, 16}, "CLKIN:"};
+    Text text_clkin_status{{88, 140, 160, 16}, ""};
 
-    Text text_clk0_label{{8, 150, 72, 16}, "CLK0:"};
-    Text text_clk0_status{{88, 150, 152, 16}, ""};
+    Text text_clk0_label{{8, 160, 72, 16}, "CLK0:"};
+    Text text_clk0_status{{88, 160, 152, 16}, ""};
 
-    Text text_clk0_freq_label{{8, 170, 72, 16}, "  Freq:"};
-    Text text_clk0_freq_value{{88, 170, 152, 16}, ""};
+    Text text_clk0_freq_label{{8, 180, 72, 16}, "  Freq:"};
+    Text text_clk0_freq_value{{88, 180, 152, 16}, ""};
 
-    Text text_clk0_div_label{{8, 190, 72, 16}, "  Div:"};
-    Text text_clk0_div_value{{88, 190, 152, 16}, ""};
+    Text text_clk0_div_label{{8, 200, 72, 16}, "  Div:"};
+    Text text_clk0_div_value{{88, 200, 152, 16}, ""};
 
-    Text text_clk1_label{{8, 210, 96, 16}, "CLK1 (SCT):"};
-    Text text_clk1_status{{112, 210, 128, 16}, ""};
+    Text text_clk1_label{{8, 220, 96, 16}, "CLK1 (SCT):"};
+    Text text_clk1_status{{112, 220, 128, 16}, ""};
 
     Button button_refresh{{8, 240, 72, 24}, "Refresh"};
     Button button_reset_pll{{88, 240, 72, 24}, "Reset PLL"};
