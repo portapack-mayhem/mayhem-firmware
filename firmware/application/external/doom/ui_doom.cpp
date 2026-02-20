@@ -1081,7 +1081,7 @@ void DoomView::paint(Painter& painter) {
             int hud_y = RENDER_HEIGHT + 5;
             painter.draw_string({5, hud_y}, style_yellow, "Health: " + std::to_string(player.health));
             painter.draw_string({UI_POS_X_CENTER(15), hud_y}, style_red, "Kills: " + std::to_string(kills));
-            painter.draw_string({UI_POS_X_RIGHT(80), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            painter.draw_string({UI_POS_X_RIGHT(10), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
 
             prev_velocity_moving = (player.velocity != 0);
             needs_redraw = false;
@@ -1113,7 +1113,7 @@ void DoomView::paint(Painter& painter) {
             int hud_y = RENDER_HEIGHT + 5;
             painter.draw_string({5, hud_y}, style_yellow, "Health: " + std::to_string(player.health));
             painter.draw_string({UI_POS_X_CENTER(15), hud_y}, style_red, "Kills: " + std::to_string(kills));
-            painter.draw_string({UI_POS_X_RIGHT(80), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            painter.draw_string({UI_POS_X_RIGHT(10), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
 
             needs_gun_redraw = false;
         }
