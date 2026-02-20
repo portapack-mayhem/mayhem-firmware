@@ -3,7 +3,6 @@
 
 // Check if PRALINE was passed from CMake
 #ifdef PRALINE
-  #warning "Building for HackRF_PRO with FPGA."
 
   // Necessary headers
   #include "lz4_blk.h"
@@ -297,7 +296,6 @@
 
   // Cached register values for debug reads (since reads may require mode switch)
   static uint8_t fpga_reg_cache[6] = {0, 0x01, 0x00, 0x00, 0x00, 0x00};
-  static uint8_t fpga_reg_cache_valid = 0;
 
   // Public function to read FPGA register (callable from C++ application code)
   // Switches SPI mode, reads register, switches back
