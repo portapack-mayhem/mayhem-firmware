@@ -32,10 +32,11 @@
 extern "C" {
 #include "fpga_bridge.h"
 }
+#else
+#include "baseband_cpld.hpp"
 #endif
 
 #include "max5864.hpp"
-#include "baseband_cpld.hpp"
 
 #include "tuning.hpp"
 
@@ -116,9 +117,10 @@ max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
 max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 #ifdef PRALINE
 max2831::MAX2831 second_if_max2831{ssp1_target_max283x};
+#else
+static baseband::CPLD baseband_cpld;
 #endif
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
-static baseband::CPLD baseband_cpld;
 
 // load_sram() is called at boot in portapack.cpp, including verify CPLD part, so default direction is Receive
 static rf::Direction direction{rf::Direction::Receive};
@@ -456,27 +458,6 @@ TuningInfo get_tuning_info() {
 } /* namespace first_if */
 
 namespace second_if {
-
-#ifdef PRALINE
-extern "C" {
-extern struct max2831_debug_t {
-    uint32_t requested_freq_mhz;
-    uint32_t calculated_n;
-    uint32_t calculated_frac;
-    bool set_frequency_called;
-    bool frequency_valid;
-} max2831_debug_info;
-}
-
-MAX2831Info get_max2831_info() {
-    return {
-        max2831_debug_info.requested_freq_mhz,
-        max2831_debug_info.calculated_n,
-        max2831_debug_info.calculated_frac,
-        max2831_debug_info.set_frequency_called,
-        max2831_debug_info.frequency_valid};
-}
-#endif
 
 uint32_t register_read(const size_t register_number) {
     return radio::second_if->read(register_number);

@@ -38,6 +38,17 @@ namespace max2831 {
 
 using namespace max283x;
 
+// Global debug tracking for MAX2831
+struct MAX2831Info {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_n;
+    uint32_t calculated_frac;
+    bool set_frequency_called;
+    bool frequency_valid;
+};
+
+MAX2831Info get_max2831_info();
+
 /* MAX2831 has 16 registers, each containing 14 bits of data */
 constexpr size_t reg_count = 16;
 

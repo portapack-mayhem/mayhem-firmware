@@ -46,6 +46,11 @@ using namespace portapack;
 
 #include "irq_controls.hpp"
 
+#ifdef PRALINE
+#include "max2831.hpp"
+using namespace max2831;
+#endif
+
 namespace ui {
 
 /* DebugMemoryView *******************************************************/
@@ -2405,7 +2410,7 @@ void MAX2831DebugView::focus() {
 }
 
 void MAX2831DebugView::refresh() {
-    auto info = radio::debug::second_if::get_max2831_info();
+    auto info = get_max2831_info();
 
     // Show if set_frequency was called
     if (info.set_frequency_called) {
