@@ -695,14 +695,15 @@ void ADSBRxView::refresh_ui() {
         // Process the entries list.
         for (const auto& entry : recent) {
             // Found the entry being shown in details view. Update it.
-            if (entry.key() == detail_key) {
+            if (entry.key() == detail_key) {  // we don't add it to the markers, since this is the currently selected and shown in the middle one. This eliminates the "shadow" marker, and saves ram
                 details_view->update(entry);
                 current_updated = true;
-            }
-
-            // NB: current entry also gets a marker so it shows up if map is panned.
-            if (map_needs_update && entry.pos.pos_valid && entry.state <= ADSBAgeState::Recent) {
-                map_needs_update = details_view->add_map_marker(entry);
+            } else {
+                // Add others only
+                // NB: current entry also gets a marker so it shows up if map is panned.
+                if (map_needs_update && entry.pos.pos_valid && entry.state <= ADSBAgeState::Recent) {
+                    map_needs_update = details_view->add_map_marker(entry);
+                }
             }
 
             // Any work left to do?
