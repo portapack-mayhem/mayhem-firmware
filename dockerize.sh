@@ -17,7 +17,7 @@
 # - Give additional parameters to the container:
 #   Additional parameters to make:        ./dockerize.sh -j10
 #   Use ninja instead of make:            ./dockerize.sh ninja -j10
-#   Addotopnal CMake parameters:          ./dockerize.sh -DBOARD=praline
+#   Addotopnal CMake parameters:          ./dockerize.sh -DBOARD=PRALINE
 #   Change the default build directory:   ./dockerize.sh -B build-alt
 #                                         (Alternatively --workdir works as well)
 # - Use a different dockerfile:
