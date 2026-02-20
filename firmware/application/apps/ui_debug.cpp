@@ -1427,7 +1427,7 @@ void Si5351DebugView::refresh_status() {
     // CLKIN
     text_clkin_status.set(los_clkin ? "LOS" : "CLOCK SIGNAL");
     text_clkin_status.set_style(los_clkin ? Theme::getInstance()->fg_red
-                                            : Theme::getInstance()->fg_green);
+                                          : Theme::getInstance()->fg_green);
 
     // CLK0 (bit 0 of reg 3, reg 16 for control)
     uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
@@ -2165,10 +2165,10 @@ void RFFC5072StatusView::refresh_status() {
     bool resetx = (gpio2_pin >> 14) & 1;
 
     text_ctrl.set(
-    std::string(enx ? "DIS" : "EN") + " " +
-    std::string(resetx ? "RUN" : "RST") + " " +
-    "EO:" + std::string(enx_is_output ? "Y" : "N") + " " +
-    "RO:" + std::string(resetx_is_output ? "Y" : "N"));
+        std::string(enx ? "DIS" : "EN") + " " +
+        std::string(resetx ? "RUN" : "RST") + " " +
+        "EO:" + std::string(enx_is_output ? "Y" : "N") + " " +
+        "RO:" + std::string(resetx_is_output ? "Y" : "N"));
 
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
