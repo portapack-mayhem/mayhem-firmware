@@ -660,6 +660,9 @@ class Si5351DebugView : public View {
     Text text_xtal_cap_label{{8, 120, 80, 16}, "XTAL Cap:"};
     Text text_xtal_cap_value{{96, 120, 144, 16}, ""};
 
+    Text text_clkin_label{{8, 150, 72, 16}, "CLKIN:"};
+    Text text_clkin_status{{88, 150, 160, 16}, ""};
+
     Text text_clk0_label{{8, 150, 72, 16}, "CLK0:"};
     Text text_clk0_status{{88, 150, 152, 16}, ""};
 
