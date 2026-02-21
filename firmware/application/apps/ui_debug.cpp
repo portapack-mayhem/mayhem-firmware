@@ -1342,16 +1342,16 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_sys_init_status,
                   &text_xtal_cap_label,
                   &text_xtal_cap_value,
-                  &text_clkin_label,
-                  &text_clkin_status,
                   &text_clk0_label,
                   &text_clk0_status,
-                  &text_clk0_freq_label,
                   &text_clk0_freq_value,
-                  &text_clk0_div_label,
                   &text_clk0_div_value,
                   &text_clk1_label,
                   &text_clk1_status,
+                  &text_clk4_label,
+                  &text_clk4_status,
+                  &text_clk5_label,
+                  &text_clk5_status,
                   &button_refresh,
                   &button_reset_pll,
                   &button_done});
@@ -1424,11 +1424,6 @@ void Si5351DebugView::refresh_status() {
     // Read clock output enables (reg 16-23 control, reg 3 for output enable mask)
     uint8_t output_enable_mask = portapack::clock_manager.si5351_read_register(3);
 
-    // CLKIN
-    text_clkin_status.set(los_clkin ? "LOS" : "CLOCK SIGNAL");
-    text_clkin_status.set_style(los_clkin ? Theme::getInstance()->fg_red
-                                          : Theme::getInstance()->fg_green);
-
     // CLK0 (bit 0 of reg 3, reg 16 for control)
     uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
     bool clk0_enabled = !(output_enable_mask & 0x01) && !(clk0_ctrl & 0x80);
@@ -1465,8 +1460,8 @@ void Si5351DebugView::refresh_status() {
     uint32_t freq_khz = 800000 / ms_div / r_div;  // Result in kHz
 
     // Show P1 value and R45 for debugging
-    text_clk0_freq_value.set(to_string_dec_uint(freq_khz) + " kHz (P1:" + to_string_hex(p1, 4) + ")");
-    text_clk0_div_value.set("MS=" + to_string_dec_uint(ms_div) +
+    text_clk0_freq_value.set("F:" + to_string_dec_uint(freq_khz / 1000) + "MHz (P1:" + to_string_hex(p1, 4) + ")");
+    text_clk0_div_value.set("DIV: MS=" + to_string_dec_uint(ms_div) +
                             " R=" + to_string_dec_uint(r_div));
 
     // Color code based on expected 8 MHz
@@ -1483,6 +1478,20 @@ void Si5351DebugView::refresh_status() {
     bool clk1_enabled = !(output_enable_mask & 0x02) && !(clk1_ctrl & 0x80);
     text_clk1_status.set(clk1_enabled ? "ON" : "OFF");
     text_clk1_status.set_style(clk1_enabled ? Theme::getInstance()->fg_green
+                                            : Theme::getInstance()->fg_red);
+
+    // CLK4 (MAX2831 reference - bit 4 of reg 3, reg 20 for control)
+    uint8_t clk4_ctrl = portapack::clock_manager.si5351_read_register(20);
+    bool clk4_enabled = !(output_enable_mask & 0x10) && !(clk4_ctrl & 0x80);
+    text_clk4_status.set(clk4_enabled ? "ON (40MHz)" : "OFF");
+    text_clk4_status.set_style(clk4_enabled ? Theme::getInstance()->fg_green
+                                            : Theme::getInstance()->fg_red);
+
+    // CLK5 (RFFC5072 reference - bit 5 of reg 3, reg 21 for control)
+    uint8_t clk5_ctrl = portapack::clock_manager.si5351_read_register(21);
+    bool clk5_enabled = !(output_enable_mask & 0x20) && !(clk5_ctrl & 0x80);
+    text_clk5_status.set(clk5_enabled ? "ON (40MHz)" : "OFF");
+    text_clk5_status.set_style(clk5_enabled ? Theme::getInstance()->fg_green
                                             : Theme::getInstance()->fg_red);
 }
 
@@ -1827,11 +1836,6 @@ void SystemDiagnosticsView::read_gpio_states() {
     uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
     uint32_t gpio4_state = LPC_GPIO->PIN[4];  // GPIO4 for LPF and amp
 
-    // Extract specific pins based on hackrf_gpio.hpp definitions:
-    // gpio_mix_enable_n = GPIO3_2 (P6_3) - bit 2 of port 3, INVERTED
-    // gpio_lpf_enable = GPIO4_8 (PA_1) - bit 8 of port 4
-    // gpio_rf_amp_enable = GPIO4_9 (PA_2) - bit 9 of port 4
-
     bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
     bool lpf_actual = (gpio4_state >> 8) & 1;    // GPIO4[8]
     bool amp_actual = (gpio4_state >> 9) & 1;    // GPIO4[9]
@@ -1927,8 +1931,8 @@ void SystemDiagnosticsView::refresh() {
 GPIODebugView::GPIODebugView(NavigationView& nav) {
     add_children({
         &text_lbl_gpio4,
-        &text_lbl_dir4,
-        &text_dir4,
+        &text_lbl_mixr1,
+        &text_mixr1,
         &text_lbl_pin4,
         &text_pin4,
         &text_lbl_set4,
@@ -2031,7 +2035,7 @@ void GPIODebugView::refresh() {
     uint32_t gpio4_set = LPC_GPIO->SET[4];  // What we're trying to output
 
     // Display full registers
-    text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
+    // text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
     text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
     text_set4.set("0x" + to_string_hex(gpio4_set, 8));
 
@@ -2075,6 +2079,22 @@ void GPIODebugView::refresh() {
 
     text_mix_dir.set_style(mix_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
     text_mix_pin.set_style(mix_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Read GPIO5 (Mixer R1) - bit 2
+    uint32_t gpio3_state = LPC_GPIO->PIN[3];     // GPIO3 for mixer
+    bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
+    uint32_t gpio5_state = LPC_GPIO->PIN[5];
+    bool mix_r10_pin = (gpio5_state >> 6) & 1;  // GPIO5[6] = P2_6
+    // Mixer is active LOW, so invert for display
+    bool mixer_enabled = !mix_n_actual;
+
+    // Append to existing mixer display:
+    text_mixr1.set(
+        std::string(mixer_enabled ? "ENABLED" : "BYPASSED") +
+        " P6_3=" + to_string_dec_uint(mix_n_actual ? 1 : 0) +
+        " P2_6=" + to_string_dec_uint(mix_r10_pin ? 1 : 0));
+
+    text_mixr1.set_style(mixer_enabled ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
 }
 #endif
 
@@ -2087,7 +2107,6 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_title,
         &text_lbl_lock,
         &text_lock,
-        &text_lbl_ctrl,
         &text_ctrl,
         &text_lbl_enabled,
         &text_enabled,
@@ -2113,12 +2132,21 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_regs_status,
         &text_regs_status,
         &button_refresh,
+        &button_force_enx,
         &button_done,
     });
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
+        refresh_status();
+    };
+
+    button_force_enx.on_select = [this](Button&) {
+        // Force ENX to OUTPUT and drive LOW
+        LPC_GPIO->DIR[2] |= (1 << 13);  // Set as OUTPUT
+        LPC_GPIO->CLR[2] = (1 << 13);   // Drive LOW (enabled)
+
         refresh_status();
     };
 
@@ -2135,6 +2163,10 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
+    // === DEBUG: Capture GPIO state BEFORE any operations ===
+    uint32_t gpio2_before = LPC_GPIO->PIN[2];
+    bool enx_before = (gpio2_before >> 13) & 1;
+
     // === READ RAW GPIO STATES FOR DEBUGGING ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
@@ -2164,11 +2196,10 @@ void RFFC5072StatusView::refresh_status() {
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
 
-    text_ctrl.set(
-        std::string(enx ? "DIS" : "EN") + " " +
-        std::string(resetx ? "RUN" : "RST") + " " +
-        "EO:" + std::string(enx_is_output ? "Y" : "N") + " " +
-        "RO:" + std::string(resetx_is_output ? "Y" : "N"));
+    text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") +
+                  " O:" + std::string(enx_is_output ? "Y" : "N") +
+                  " | RST: " + std::string(resetx ? "RUN" : "RST") +
+                  " O:" + std::string(resetx_is_output ? "Y" : "N"));
 
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
@@ -2209,15 +2240,25 @@ void RFFC5072StatusView::refresh_status() {
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
-    text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
-    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
-
     // Check ranges
+    // RFFC5072 datasheet: Output 85-4200 MHz, VCO 2700-5400 MHz
     bool vco_ok = (f_vco_mhz >= 2700) && (f_vco_mhz <= 5400);
-    bool lo_ok = (f_lo_mhz >= 2300) && (f_lo_mhz <= 2700);
+    bool lo_ok = (f_lo_mhz >= 85) && (f_lo_mhz <= 4200);
 
-    text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
-                              : Theme::getInstance()->fg_red);
+    // PRALINE mid-band (2320-2740 MHz) uses direct path, not RFFC5072
+    bool in_bypass_range = (f_lo_mhz >= 2320) && (f_lo_mhz <= 2740);
+
+    // Display with range annotation
+    if (in_bypass_range) {
+        text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz (MID)");
+        text_calc.set_style(Theme::getInstance()->fg_orange);  // Orange = bypass band
+    } else {
+        text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
+        text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
+                                  : Theme::getInstance()->fg_red);
+    }
+
+    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 

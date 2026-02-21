@@ -197,7 +197,15 @@ struct SynthConfig {
  */
 
 void RFFC507x::init() {
-#ifndef PRALINE
+#ifdef PRALINE
+    // CRITICAL: Enable RFFC5072 BEFORE any SPI communication!
+    // Without this, SPI writes are ignored when ENX=1 (disabled)
+    gpio_rffc5072_enx.output();
+    gpio_rffc5072_enx.clear();  // ENX=0 (enabled)
+
+    // Small delay for chip to power up
+    chThdSleepMilliseconds(1);
+#else
     gpio_rffc5072_resetx.set();
     gpio_rffc5072_resetx.output();
     reset();
@@ -291,6 +299,9 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     const SynthConfig synth_config = SynthConfig::calculate(lo_frequency);
 
 #ifdef PRALINE
+    // Ensure RFFC5072 is enabled before SPI writes
+    gpio_rffc5072_enx.clear();  // ENX=0 (enabled)
+
     // Calculate VCO frequency from LO frequency and divider
     const size_t lo_divider = 1U << synth_config.lo_divider_log2;  // 2^lodiv_log2
     const rf::Frequency vco_freq = lo_frequency * lo_divider;

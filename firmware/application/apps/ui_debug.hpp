@@ -643,37 +643,36 @@ class Si5351DebugView : public View {
    private:
     NavigationView& nav_;
 
-    Text text_title{{8, 16, 200, 16}, "Si5351 Clock Generator"};
+    Text text_title{{0, 0, 200, 16}, "Si5351 Clock Generator"};
 
-    Text text_status_label{{8, 40, 80, 16}, "Status Reg:"};
-    Text text_status_value{{96, 40, 144, 16}, ""};
+    Text text_status_label{{0, 16, 80, 16}, "Status Reg:"};
+    Text text_status_value{{96, 16, 144, 16}, ""};
 
-    Text text_pll_a_label{{8, 60, 80, 16}, "PLL A:"};
-    Text text_pll_a_status{{96, 60, 144, 16}, ""};
+    Text text_pll_a_label{{0, 32, 80, 16}, "PLL A:"};
+    Text text_pll_a_status{{96, 32, 144, 16}, ""};
 
-    Text text_pll_b_label{{8, 80, 80, 16}, "PLL B:"};
-    Text text_pll_b_status{{96, 80, 144, 16}, ""};
+    Text text_pll_b_label{{0, 48, 80, 16}, "PLL B:"};
+    Text text_pll_b_status{{96, 48, 144, 16}, ""};
 
-    Text text_sys_init_label{{8, 100, 80, 16}, "SYS_INIT:"};
-    Text text_sys_init_status{{96, 100, 144, 16}, ""};
+    Text text_sys_init_label{{0, 64, 80, 16}, "SYS_INIT:"};
+    Text text_sys_init_status{{96, 64, 144, 16}, ""};
 
-    Text text_xtal_cap_label{{8, 120, 80, 16}, "XTAL Cap:"};
-    Text text_xtal_cap_value{{96, 120, 144, 16}, ""};
+    Text text_xtal_cap_label{{0, 80, 80, 16}, "XTAL Cap:"};
+    Text text_xtal_cap_value{{96, 80, 144, 16}, ""};
 
-    Text text_clkin_label{{8, 140, 72, 16}, "CLKIN:"};
-    Text text_clkin_status{{88, 140, 160, 16}, ""};
+    Text text_clk0_label{{0, 96, 48, 16}, "CLK0:"};
+    Text text_clk0_status{{50, 96, 28, 16}, ""};
+    Text text_clk0_freq_value{{80, 96, 160, 16}, ""};
+    Text text_clk0_div_value{{50, 112, 190, 16}, ""};
 
-    Text text_clk0_label{{8, 160, 72, 16}, "CLK0:"};
-    Text text_clk0_status{{88, 160, 152, 16}, ""};
+    Text text_clk1_label{{0, 128, 96, 16}, "CLK1 (SCT):"};
+    Text text_clk1_status{{112, 128, 128, 16}, ""};
 
-    Text text_clk0_freq_label{{8, 180, 72, 16}, "  Freq:"};
-    Text text_clk0_freq_value{{88, 180, 152, 16}, ""};
+    Text text_clk4_label{{0, 144, 96, 16}, "CLK4 (MAX):"};
+    Text text_clk4_status{{112, 144, 128, 16}, ""};
 
-    Text text_clk0_div_label{{8, 200, 72, 16}, "  Div:"};
-    Text text_clk0_div_value{{88, 200, 152, 16}, ""};
-
-    Text text_clk1_label{{8, 220, 96, 16}, "CLK1 (SCT):"};
-    Text text_clk1_status{{112, 220, 128, 16}, ""};
+    Text text_clk5_label{{0, 160, 96, 16}, "CLK5 (RFFC):"};
+    Text text_clk5_status{{112, 160, 128, 16}, ""};
 
     Button button_refresh{{8, 240, 72, 24}, "Refresh"};
     Button button_reset_pll{{88, 240, 72, 24}, "Reset PLL"};
@@ -697,7 +696,7 @@ class SignalPathStatusView : public View {
 
     Text text_title{{0, 0, 240, 16}, "=== Signal Path Status ==="};
 
-    Text text_lbl_max_enable{{0, 20, 1114, 16}, "MAX2831:"};
+    Text text_lbl_max_enable{{0, 20, 114, 16}, "MAX2831:"};
     Text text_max_enable{{116, 20, 124, 16}, "---"};
 
     Text text_lbl_max_mode{{0, 36, 114, 16}, "RX Mode:"};
@@ -751,8 +750,8 @@ class GPIODebugView : public View {
     // GPIO4 (LPF and RF Amp)
     Text text_lbl_gpio4{{0, 0, 240, 16}, "Pin Diag: GPIO4 (LPF|Amp|Mix)"};
 
-    Text text_lbl_dir4{{0, 18, 114, 16}, "DIR[4]:"};
-    Text text_dir4{{116, 18, 124, 16}, "---"};
+    Text text_lbl_mixr1{{0, 18, 56, 16}, "MixR1:"};
+    Text text_mixr1{{58, 18, 180, 16}, "---"};
 
     Text text_lbl_pin4{{0, 36, 114, 16}, "PIN[4] (read):"};
     Text text_pin4{{116, 36, 124, 16}, "---"};
@@ -810,8 +809,7 @@ class RFFC5072StatusView : public View {
     Text text_lbl_lock{{0, 16, 114, 16}, "Lock Detect:"};
     Text text_lock{{116, 16, 124, 16}, "---"};
 
-    Text text_lbl_ctrl{{0, 32, 114, 16}, "Control:"};
-    Text text_ctrl{{116, 32, 124, 16}, "---"};
+    Text text_ctrl{{0, 32, 240, 16}, "---"};
 
     Text text_lbl_enabled{{0, 48, 114, 16}, "Status:"};
     Text text_enabled{{116, 48, 124, 16}, "---"};
@@ -848,7 +846,8 @@ class RFFC5072StatusView : public View {
     Text text_lbl_regs_status{{0, 224, 48, 16}, "Regs:"};
     Text text_regs_status{{50, 224, 190, 16}, "---"};
 
-    Button button_refresh{{2, 280, 56, 24}, "Rfrsh"};
+    Button button_refresh{{2, 280, 72, 24}, "Refresh"};
+    Button button_force_enx{{98, 280, 60, 24}, "T_ENX"};
     Button button_done{{182, 280, 56, 24}, "Done"};
 };
 
