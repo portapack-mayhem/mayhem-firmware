@@ -32,8 +32,6 @@
 #include "untar.hpp"
 #include <cstdint>
 
-#include "../../flashsize.h"
-
 #define FLASH_ROM_SIZE (FLASH_SIZE_MB * 1024 * 1024)
 #define FLASH_STARTING_ADDRESS 0x00000000
 #define FLASH_EXPECTED_CHECKSUM 0x00000000

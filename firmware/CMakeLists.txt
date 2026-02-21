@@ -48,42 +48,50 @@ if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
 	set(GCC_VERSION_MISMATCH 1)
 endif()
 
+#generate h files
+configure_file(flashsize.h.in flashsize.h)
+add_definitions(-include "\"${CMAKE_CURRENT_BINARY_DIR}/flashsize.h\"")
+
 add_subdirectory(application)
 add_subdirectory(baseband)
 add_subdirectory(standalone)
 add_subdirectory(test)
 
-# NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
-add_custom_command(
-	OUTPUT ${FIRMWARE_FILENAME}
-	COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME} ${FLASH_BYTES_LIMIT_SIZE}
-	DEPENDS baseband application ${MAKE_SPI_IMAGE}
-		 ${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
-	VERBATIM
-)
-
-add_custom_target(
-	firmware
-	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} ${HACKRF_FIRMWARE_FILENAME}
-)
-
-# PRALINE: Append FPGA bitstream to firmware at offset 0x180000
-# The base firmware is 1MB, FPGA goes at 1MB offset, final size is 2MB
 if(BOARD STREQUAL "PRALINE")
 	math(EXPR PRALINE_FINAL_SIZE "4 * 1024 * 1024")
 	set(PRALINE_FPGA_BIN ${CMAKE_CURRENT_SOURCE_DIR}/../hackrf/firmware/fpga/build/praline_fpga.bin)
 	set(APPEND_FPGA_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tools/append_fpga_bitstream.py)
+
+	# NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
 	add_custom_command(
-		TARGET firmware POST_BUILD
+		OUTPUT ${FIRMWARE_FILENAME}
+		COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME} ${FLASH_BYTES_LIMIT_SIZE}
+		# PRALINE: Append FPGA bitstream to firmware at offset 0x180000
+		# The base firmware is 1MB, FPGA goes at 1MB offset, final size is 2MB
 		COMMAND ${CMAKE_COMMAND} -E echo "Appending PRALINE FPGA bitstream to firmware..."
 		COMMAND python3 ${APPEND_FPGA_SCRIPT} ${FIRMWARE_FILENAME} ${PRALINE_FPGA_BIN} ${FIRMWARE_FILENAME}.tmp ${PRALINE_FINAL_SIZE}
 		COMMAND ${CMAKE_COMMAND} -E rename ${FIRMWARE_FILENAME}.tmp ${FIRMWARE_FILENAME}
 		COMMAND ${CMAKE_COMMAND} -E echo "PRALINE firmware with FPGA bitstream created:"
 		COMMAND ls -la ${FIRMWARE_FILENAME}
-		COMMENT "Appending PRALINE FPGA bitstream"
+		DEPENDS baseband application ${MAKE_SPI_IMAGE}
+			${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
+		VERBATIM
+	)
+else() # Sadly this part had to be duplicated (or at least I couldn't find a better way to do it)
+	# NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
+	add_custom_command(
+		OUTPUT ${FIRMWARE_FILENAME}
+		COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME} ${FLASH_BYTES_LIMIT_SIZE}
+		DEPENDS baseband application ${MAKE_SPI_IMAGE}
+			${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
 		VERBATIM
 	)
 endif()
+
+add_custom_target(
+	firmware
+	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} ${HACKRF_FIRMWARE_FILENAME}
+)
 
 if(${GCC_VERSION_MISMATCH})
 	set(COMPILER_MISMATCH_MESSAGE "WARNING: Compiler version mismatch, please use the official compiler version ${EXPECTED_GCC_VERSION} when sharing builds! Current compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
