@@ -204,8 +204,7 @@ void RFFC507x::init() {
     gpio_rffc5072_enx.clear();  // ENX=0 (enabled)
 
     // Small delay for chip to power up
-    for (volatile int i = 0; i < 10000; i++) {
-    }
+    chThdSleepMilliseconds(1);
 #else
     gpio_rffc5072_resetx.set();
     gpio_rffc5072_resetx.output();
