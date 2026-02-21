@@ -383,8 +383,13 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
 
     if (!pos_history.empty()) {
         const auto& last_pos = pos_history.back();
-        if (last_pos.lat == entry.pos.latitude && last_pos.lon == entry.pos.longitude) {
-            return;  // same position, skip adding to trail
+        const float THRESH_DEG = 0.0045f;
+        const float THRESH_SQ = THRESH_DEG * THRESH_DEG;  // 0.00002025f
+
+        float d_lat = entry.pos.latitude - last_pos.lat;
+        float d_lon = entry.pos.longitude - last_pos.lon;
+        if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
+            return;  // Moved less than ~500m, skip
         }
     }
 
