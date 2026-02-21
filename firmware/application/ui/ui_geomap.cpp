@@ -876,8 +876,10 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
     geopos.set_report_change(true);
 
     geomap.set_angle(angle);
-    if (is_changed) geomap.move(lon_, lat_);
-    geomap.set_dirty();
+    if (is_changed) {
+        geomap.move(lon_, lat_);
+        geomap.set_dirty();
+    }
 }
 
 void GeoMapView::update_tag(const std::string tag) {
