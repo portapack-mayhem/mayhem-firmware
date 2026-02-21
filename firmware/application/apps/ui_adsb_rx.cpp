@@ -389,7 +389,7 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
         float d_lat = entry.pos.latitude - last_pos.lat;
         float d_lon = entry.pos.longitude - last_pos.lon;
         if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
-            return;  // Moved less than ~500m, skip
+            return;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
         }
     }
 
