@@ -2158,6 +2158,10 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
+    // === DEBUG: Capture GPIO state BEFORE any operations ===
+    uint32_t gpio2_before = LPC_GPIO->PIN[2];
+    bool enx_before = (gpio2_before >> 13) & 1;
+
     // === READ RAW GPIO STATES FOR DEBUGGING ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
@@ -2286,6 +2290,7 @@ void RFFC5072StatusView::refresh_status() {
         text_status.set("All checks passed!");
         text_status.set_style(Theme::getInstance()->fg_green);
     }
+
 }
 
 /* RFFCTuningDebugView *************************************************/

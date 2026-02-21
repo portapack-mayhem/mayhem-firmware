@@ -304,9 +304,6 @@ void Path::update() {
 
     config.tx_en = (direction == Direction::Transmit);
 
-    /* Mixer bypass for mid band (2.3-2.7 GHz direct to MAX2831) */
-    //config.mix_en_n = (band == Band::Mid);  // 1 = bypass (disabled)
-
     // RFFC5072 ENX: Active LOW, so invert the band check
     // ENX=0 (enabled) for Low/High, ENX=1 (disabled) for Mid
     config.rffc_enx = (band == Band::Mid);  // 0=enabled, 1=disabled
