@@ -380,8 +380,9 @@ void ADSBRxDetailsView::clear_map_markers() {
 void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
     if (!geomap_view_)
         return;
+    bool add = true;
     if (entry.pos.pos_valid == false)
-        return;
+        add = false;
 
     if (!pos_history.empty()) {
         const auto& last_pos = pos_history.back();
@@ -391,7 +392,7 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
         float d_lat = entry.pos.latitude - last_pos.lat;
         float d_lon = entry.pos.longitude - last_pos.lon;
         if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
-            return;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
+            add = false;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
         }
     }
 
@@ -399,7 +400,7 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
     if (pos_history.size() >= 30)
         pos_history.erase(pos_history.begin());
     geomap_view_->clear_markers();  // clear existing markers before re-adding the trail, bc of the shift
-    pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
+    if (add) pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
 
     for (const auto& pos : pos_history) {
         GeoMarker marker{};
