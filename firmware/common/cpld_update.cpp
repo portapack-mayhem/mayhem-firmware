@@ -216,10 +216,18 @@ namespace cpld {
 #ifdef PRALINE
 
 /* PRALINE has no HackRF CPLD - stub these functions out */
-bool load_sram() { return true; }
-void load_sram_no_verify() { return; }
-bool verify_eeprom() { return true; }
-void init_from_eeprom() { return; }
+bool load_sram() {
+    return true;
+}
+void load_sram_no_verify() {
+    return;
+}
+bool verify_eeprom() {
+    return true;
+}
+void init_from_eeprom() {
+    return;
+}
 
 #else
 
@@ -272,7 +280,7 @@ void init_from_eeprom() {
     hackrf_cpld.init_from_eeprom();
 }
 
-#endif //PRALINE
+#endif  // PRALINE
 
 } /* namespace cpld */
 } /* namespace hackrf */

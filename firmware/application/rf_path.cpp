@@ -41,18 +41,18 @@ namespace {
  */
 struct PralineConfig {
     bool tx_en;
-    //bool mix_en_n;        // Inverted: 0 = mixer enabled
-    bool rffc_enx;        // RFFC5072 ENX (GPIO2[13])
-    bool mix_bypass;      // RF path mixer bypass (GPIO3[2])
+    // bool mix_en_n;        // Inverted: 0 = mixer enabled
+    bool rffc_enx;    // RFFC5072 ENX (GPIO2[13])
+    bool mix_bypass;  // RF path mixer bypass (GPIO3[2])
     bool lpf_en;
     bool rf_amp_en;
     bool ant_bias_en_n;  // Inverted: 0 = bias enabled
 
     static void gpio_init() {
         gpio_tx_enable.output();
-        //gpio_mix_enable_n.output();
-        gpio_rffc5072_enx.output();      
-        gpio_mix_bypass.output();        
+        // gpio_mix_enable_n.output();
+        gpio_rffc5072_enx.output();
+        gpio_mix_bypass.output();
         gpio_lpf_enable.output();
         gpio_rf_amp_enable.output();
         gpio_ant_bias_disable.output();
@@ -60,9 +60,9 @@ struct PralineConfig {
 
     void apply() const {
         gpio_tx_enable.write(tx_en);
-        //gpio_mix_enable_n.write(mix_en_n);
-	gpio_rffc5072_enx.write(rffc_enx);      // Control RFFC5072 ENX
-        gpio_mix_bypass.write(mix_bypass);      // Control RF path mixer
+        // gpio_mix_enable_n.write(mix_en_n);
+        gpio_rffc5072_enx.write(rffc_enx);  // Control RFFC5072 ENX
+        gpio_mix_bypass.write(mix_bypass);  // Control RF path mixer
         gpio_lpf_enable.write(lpf_en);
         gpio_rf_amp_enable.write(rf_amp_en);
         gpio_ant_bias_disable.write(ant_bias_en_n);
@@ -246,9 +246,9 @@ void Path::init() {
     PralineConfig config = {
         .tx_en = false,
         //.mix_en_n = false,     // Mixer enabled (inverted)
-        .rffc_enx = false,        // RFFC5072 ENX (GPIO2[13])
-        .mix_bypass = false,      // RF path mixer bypass (GPIO3[2])
-	.lpf_en = true,        // LPF on for low band
+        .rffc_enx = false,     // RFFC5072 ENX (GPIO2[13])
+        .mix_bypass = false,   // RF path mixer bypass (GPIO3[2])
+        .lpf_en = true,        // LPF on for low band
         .rf_amp_en = false,    // Amp off
         .ant_bias_en_n = true  // Bias off (inverted)
     };

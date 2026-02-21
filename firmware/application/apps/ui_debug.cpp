@@ -1348,10 +1348,10 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_clk0_div_value,
                   &text_clk1_label,
                   &text_clk1_status,
-		  &text_clk4_label,
-		  &text_clk4_status,
-		  &text_clk5_label,
-		  &text_clk5_status,
+                  &text_clk4_label,
+                  &text_clk4_status,
+                  &text_clk5_label,
+                  &text_clk5_status,
                   &button_refresh,
                   &button_reset_pll,
                   &button_done});
@@ -1460,7 +1460,7 @@ void Si5351DebugView::refresh_status() {
     uint32_t freq_khz = 800000 / ms_div / r_div;  // Result in kHz
 
     // Show P1 value and R45 for debugging
-    text_clk0_freq_value.set("F:"+to_string_dec_uint(freq_khz / 1000) + "MHz (P1:" + to_string_hex(p1, 4) + ")");
+    text_clk0_freq_value.set("F:" + to_string_dec_uint(freq_khz / 1000) + "MHz (P1:" + to_string_hex(p1, 4) + ")");
     text_clk0_div_value.set("DIV: MS=" + to_string_dec_uint(ms_div) +
                             " R=" + to_string_dec_uint(r_div));
 
@@ -1931,8 +1931,8 @@ void SystemDiagnosticsView::refresh() {
 GPIODebugView::GPIODebugView(NavigationView& nav) {
     add_children({
         &text_lbl_gpio4,
-	&text_lbl_mixr1,
-	&text_mixr1,
+        &text_lbl_mixr1,
+        &text_mixr1,
         &text_lbl_pin4,
         &text_pin4,
         &text_lbl_set4,
@@ -2035,7 +2035,7 @@ void GPIODebugView::refresh() {
     uint32_t gpio4_set = LPC_GPIO->SET[4];  // What we're trying to output
 
     // Display full registers
-    //text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
+    // text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
     text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
     text_set4.set("0x" + to_string_hex(gpio4_set, 8));
 
@@ -2081,7 +2081,7 @@ void GPIODebugView::refresh() {
     text_mix_pin.set_style(mix_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
 
     // Read GPIO5 (Mixer R1) - bit 2
-    uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
+    uint32_t gpio3_state = LPC_GPIO->PIN[3];     // GPIO3 for mixer
     bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
     uint32_t gpio5_state = LPC_GPIO->PIN[5];
     bool mix_r10_pin = (gpio5_state >> 6) & 1;  // GPIO5[6] = P2_6
@@ -2132,7 +2132,7 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_regs_status,
         &text_regs_status,
         &button_refresh,
-	&button_force_enx,
+        &button_force_enx,
         &button_done,
     });
 
@@ -2144,9 +2144,9 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
 
     button_force_enx.on_select = [this](Button&) {
         // Force ENX to OUTPUT and drive LOW
-        LPC_GPIO->DIR[2] |= (1 << 13);   // Set as OUTPUT
-        LPC_GPIO->CLR[2] = (1 << 13);    // Drive LOW (enabled)
-    
+        LPC_GPIO->DIR[2] |= (1 << 13);  // Set as OUTPUT
+        LPC_GPIO->CLR[2] = (1 << 13);   // Drive LOW (enabled)
+
         refresh_status();
     };
 
@@ -2196,9 +2196,9 @@ void RFFC5072StatusView::refresh_status() {
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
 
-    text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") + 
-		  " O:" + std::string(enx_is_output ? "Y" : "N") +
-                  " | RST: "+ std::string(resetx ? "RUN" : "RST") + 
+    text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") +
+                  " O:" + std::string(enx_is_output ? "Y" : "N") +
+                  " | RST: " + std::string(resetx ? "RUN" : "RST") +
                   " O:" + std::string(resetx_is_output ? "Y" : "N"));
 
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
@@ -2295,7 +2295,6 @@ void RFFC5072StatusView::refresh_status() {
         text_status.set("All checks passed!");
         text_status.set_style(Theme::getInstance()->fg_green);
     }
-
 }
 
 /* RFFCTuningDebugView *************************************************/

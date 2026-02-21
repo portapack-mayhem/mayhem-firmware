@@ -267,7 +267,7 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
             first_if.set_frequency(tuning_config.first_lo_frequency);
             first_if.enable();
 #ifdef PRALINE
-            first_if.flush();  // Force register write with reference clock present
+            first_if.flush();            // Force register write with reference clock present
             chThdSleepMilliseconds(10);  // Allow PLL to settle
 #endif
         }
