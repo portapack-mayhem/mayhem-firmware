@@ -155,6 +155,7 @@ struct AircraftRecentEntry {
         if (velo.type == SPD_GND)
             return velo.speed;
         else if (velo.type == SPD_IAS) {
+            if (!pos.alt_valid) return velo.speed;  // can't correct without altitude, so just return IAS
             return (int32_t)(velo.speed * (1.0f + (0.02f * (pos.altitude / 1000.0f))));
         } else if (velo.type == SPD_TAS)
             return velo.speed;  // We don't know the wind speed
@@ -311,11 +312,12 @@ class ADSBRxDetailsView : public View {
     // if removed from the recent entries list.
     AircraftRecentEntry entry_{AircraftRecentEntry::invalid_key};
     bool airline_checked{false};
-    uint8_t map_filter{0};  // 0: all, 1: only this, 2: only others. set by opt_map_list.
+    uint8_t map_filter{0};  // 0: all, 1: only this, set by opt_map_list.
     struct PosHistory {
         float lat;
         float lon;
         uint16_t heading;
+        int32_t altitude;
     };
     std::vector<PosHistory> pos_history{};
 

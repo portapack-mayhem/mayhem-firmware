@@ -380,6 +380,8 @@ void ADSBRxDetailsView::clear_map_markers() {
 void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
     if (!geomap_view_)
         return;
+    if (entry.pos.pos_valid == false)
+        return;
 
     if (!pos_history.empty()) {
         const auto& last_pos = pos_history.back();
@@ -397,7 +399,7 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
     if (pos_history.size() >= 30)
         pos_history.erase(pos_history.begin());
     geomap_view_->clear_markers();  // clear existing markers before re-adding the trail, bc of the shift
-    pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading});
+    pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
 
     for (const auto& pos : pos_history) {
         GeoMarker marker{};
@@ -406,7 +408,7 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
         marker.angle = pos.heading;
         marker.tag = "";  // No tag for trail points
         uint8_t r, g, b;
-        get_altitude_color(entry.pos.altitude, &r, &g, &b);
+        get_altitude_color(pos.altitude, &r, &g, &b);
         marker.color = Color(r, g, b);
         geomap_view_->store_marker(marker);
     }
