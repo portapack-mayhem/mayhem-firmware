@@ -1426,11 +1426,6 @@ void Si5351DebugView::refresh_status() {
     // Read clock output enables (reg 16-23 control, reg 3 for output enable mask)
     uint8_t output_enable_mask = portapack::clock_manager.si5351_read_register(3);
 
-    // CLKIN
-    text_clkin_status.set(los_clkin ? "LOS" : "CLOCK SIGNAL");
-    text_clkin_status.set_style(los_clkin ? Theme::getInstance()->fg_red
-                                          : Theme::getInstance()->fg_green);
-
     // CLK0 (bit 0 of reg 3, reg 16 for control)
     uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
     bool clk0_enabled = !(output_enable_mask & 0x01) && !(clk0_ctrl & 0x80);
