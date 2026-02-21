@@ -1342,8 +1342,6 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_sys_init_status,
                   &text_xtal_cap_label,
                   &text_xtal_cap_value,
-                  &text_clkin_label,
-                  &text_clkin_status,
                   &text_clk0_label,
                   &text_clk0_status,
                   &text_clk0_freq_value,
