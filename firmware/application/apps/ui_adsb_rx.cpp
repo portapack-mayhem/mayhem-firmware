@@ -375,33 +375,15 @@ void ADSBRxDetailsView::get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* 
 void ADSBRxDetailsView::clear_map_markers() {
     if (geomap_view_)
         geomap_view_->clear_markers();
+    if (map_filter == 1)
+        refresh_trail_markers();  // re add trail
 }
 
-void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
+void ADSBRxDetailsView::refresh_trail_markers() {
     if (!geomap_view_)
         return;
-    bool add = true;
-    if (entry.pos.pos_valid == false)
-        add = false;
 
-    if (!pos_history.empty()) {
-        const auto& last_pos = pos_history.back();
-        const float THRESH_DEG = 0.009f;
-        const float THRESH_SQ = THRESH_DEG * THRESH_DEG;  // 0.00002025f
-
-        float d_lat = entry.pos.latitude - last_pos.lat;
-        float d_lon = entry.pos.longitude - last_pos.lon;
-        if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
-            add = false;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
-        }
-    }
-
-    // Only keep the last 30 positions in the trail.
-    if (pos_history.size() >= 30)
-        pos_history.erase(pos_history.begin());
-    geomap_view_->clear_markers();  // clear existing markers before re-adding the trail, bc of the shift
-    if (add) pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
-
+    geomap_view_->clear_markers();
     for (const auto& pos : pos_history) {
         GeoMarker marker{};
         marker.lon = pos.lon;
@@ -413,6 +395,31 @@ void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
         marker.color = Color(r, g, b);
         geomap_view_->store_marker(marker);
     }
+}
+
+void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
+    if (!geomap_view_)
+        return;
+    if (entry.pos.pos_valid == false)
+        return;
+
+    if (!pos_history.empty()) {
+        const auto& last_pos = pos_history.back();
+        const float THRESH_DEG = 0.009f;
+        const float THRESH_SQ = THRESH_DEG * THRESH_DEG;  // 0.00002025f
+
+        float d_lat = entry.pos.latitude - last_pos.lat;
+        float d_lon = entry.pos.longitude - last_pos.lon;
+        if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
+            return;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
+        }
+    }
+
+    // Only keep the last 30 positions in the trail.
+    if (pos_history.size() >= 30)
+        pos_history.erase(pos_history.begin());
+    pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
+    refresh_trail_markers();
 }
 
 bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {

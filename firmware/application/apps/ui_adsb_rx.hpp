@@ -290,6 +290,7 @@ class ADSBRxDetailsView : public View {
     /* Adds a marker for the entry to the map. Returns true on success. */
     bool add_map_marker(const AircraftRecentEntry& entry);
     void add_map_trail(const AircraftRecentEntry& entry);
+    void refresh_trail_markers();
 
     std::string title() const override { return "Details"; }
 
