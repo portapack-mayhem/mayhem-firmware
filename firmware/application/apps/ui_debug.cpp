@@ -2104,7 +2104,6 @@ void GPIODebugView::refresh() {
 RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
     : nav_(nav) {
     add_children({
-        &text_title,
         &text_lbl_lock,
         &text_lock,
         &text_ctrl,
@@ -2129,14 +2128,13 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_calc,
         &text_calc,
         &text_status,
-        &text_lbl_regs_status,
+        &text_status2,
+        &text_status3,
         &text_regs_status,
         &button_refresh,
         &button_force_enx,
         &button_done,
     });
-
-    text_title.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
         refresh_status();
@@ -2163,95 +2161,100 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
-    // === DEBUG: Capture GPIO state BEFORE any operations ===
-    uint32_t gpio2_before = LPC_GPIO->PIN[2];
-    bool enx_before = (gpio2_before >> 13) & 1;
+    // === DIAGNOSTIC: Capture initial GPIO state ===
+    uint32_t gpio2_initial = LPC_GPIO->PIN[2];
+    uint32_t dir2_initial = LPC_GPIO->DIR[2];
+    bool enx_initial = (gpio2_initial >> 13) & 1;
 
-    // === READ RAW GPIO STATES FOR DEBUGGING ===
+    // === READ RAW GPIO STATES FOR DISPLAY ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
-
-    // Check if the pins are even configured as outputs
     bool enx_is_output = (gpio2_dir >> 13) & 1;
     bool resetx_is_output = (gpio2_dir >> 14) & 1;
+
 
     // === LOCK DETECT ===
     uint32_t gpio6_pin = LPC_GPIO->PIN[6];
     bool rffc_locked = (gpio6_pin >> 25) & 1;
-
     text_lock.set(rffc_locked ? "LOCKED" : "UNLOCKED");
     text_lock.set_style(rffc_locked ? Theme::getInstance()->fg_green
                                     : Theme::getInstance()->fg_red);
 
-    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);  // CTRL register
-    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);  // RX_DECIM
-
-    text_regs_status.set(
-        "FPGA R1:" + to_string_hex(fpga_reg1, 2) +
-        " R2:" + to_string_hex(fpga_reg2, 2));
+    // === FPGA REGISTERS (non-SPI) ===
+    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);
+    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);
+    uint8_t fpga_reg3 = radio::debug::fpga::register_read(3);
+    text_regs_status.set("FPGA R1:" + to_string_hex(fpga_reg1, 2) +
+                         " R2:" + to_string_hex(fpga_reg2, 2) +
+                         " R3:" + to_string_hex(fpga_reg3, 2) 
+			 );
 
     // === CONTROL PINS ===
-    // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
-    // RESETX = GPIO2[14] (P5_5) - active LOW (0 = reset)
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
-
     text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") +
                   " O:" + std::string(enx_is_output ? "Y" : "N") +
-                  " | RST: " + std::string(resetx ? "RUN" : "RST") +
+                  " | RSTX: " + std::string(resetx ? "H" : "L") +
                   " O:" + std::string(resetx_is_output ? "Y" : "N"));
-
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
 
-    // === REGISTERS ===
-    // Read CORRECT registers for Path 2 (active path!)
-    uint32_t r0 = radio::debug::first_if::register_read(0);    // Control
-    uint32_t r15 = radio::debug::first_if::register_read(15);  // P2_FREQ1
-    uint32_t r16 = radio::debug::first_if::register_read(16);  // P2_FREQ2
+    // === DIAGNOSTIC: Check BEFORE first RFFC5072 SPI read ===
+    uint32_t gpio2_before_spi = LPC_GPIO->PIN[2];
+    bool enx_before_spi = (gpio2_before_spi >> 13) & 1;
 
-    // Display
+    // === RFFC5072 REGISTERS (SPI reads - this is where corruption happens) ===
+    uint32_t r0 = radio::debug::first_if::register_read(0);
+
+    // === DIAGNOSTIC: Check AFTER first read ===
+    uint32_t gpio2_after_r0 = LPC_GPIO->PIN[2];
+    bool enx_after_r0 = (gpio2_after_r0 >> 13) & 1;
+
+    uint32_t r15 = radio::debug::first_if::register_read(15);
+
+    // === DIAGNOSTIC: Check AFTER second read ===
+    uint32_t gpio2_after_r15 = LPC_GPIO->PIN[2];
+    bool enx_after_r15 = (gpio2_after_r15 >> 13) & 1;
+
+    uint32_t r16 = radio::debug::first_if::register_read(16);
+
+    // === DIAGNOSTIC: Check AFTER third read ===
+    uint32_t gpio2_final = LPC_GPIO->PIN[2];
+    uint32_t dir2_final = LPC_GPIO->DIR[2];
+    bool enx_final = (gpio2_final >> 13) & 1;
+
+    // === Display register values ===
     text_r0.set(to_string_hex(r0, 4));
     text_r1.set(to_string_hex(r15, 4) + " (R15)");
     text_r2.set(to_string_hex(r16, 4) + " (R16)");
 
-    // Check enabled (R0 bit 4)
     bool enabled = (r0 & 0x0010) != 0;
     text_enabled.set(enabled ? "ENABLED" : "DISABLED");
     text_enabled.set_style(enabled ? Theme::getInstance()->fg_green
                                    : Theme::getInstance()->fg_red);
 
-    // Decode from P2_FREQ1 (R15)
-    uint16_t n_int = (r15 >> 7) & 0x1FF;    // 9 bits
-    uint8_t lodiv_sel = (r15 >> 4) & 0x07;  // 3 bits
-    uint8_t presc_sel = (r15 >> 2) & 0x03;  // 2 bits
-
+    // === Decode frequency info (keeping existing code) ===
+    uint16_t n_int = (r15 >> 7) & 0x1FF;
+    uint8_t lodiv_sel = (r15 >> 4) & 0x07;
+    uint8_t presc_sel = (r15 >> 2) & 0x03;
     text_n.set(to_string_dec_uint(n_int));
 
-    // LO divider: 0=÷2, 1=÷4, 2=÷8, 3=÷16, 4=÷32, 5=÷64
     uint16_t lodiv_val = 1u << lodiv_sel;
     uint16_t presc_val = 1u << presc_sel;
-
     text_lodiv.set("/" + to_string_dec_uint(lodiv_val) +
                    " (P:/" + to_string_dec_uint(presc_val) + ")");
 
-    // Calculate frequencies
     const uint32_t f_ref_mhz = 40;
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
-    // Check ranges
-    // RFFC5072 datasheet: Output 85-4200 MHz, VCO 2700-5400 MHz
     bool vco_ok = (f_vco_mhz >= 2700) && (f_vco_mhz <= 5400);
     bool lo_ok = (f_lo_mhz >= 85) && (f_lo_mhz <= 4200);
-
-    // PRALINE mid-band (2320-2740 MHz) uses direct path, not RFFC5072
     bool in_bypass_range = (f_lo_mhz >= 2320) && (f_lo_mhz <= 2740);
 
-    // Display with range annotation
     if (in_bypass_range) {
         text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz (MID)");
-        text_calc.set_style(Theme::getInstance()->fg_orange);  // Orange = bypass band
+        text_calc.set_style(Theme::getInstance()->fg_orange);
     } else {
         text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
         text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
@@ -2262,38 +2265,60 @@ void RFFC5072StatusView::refresh_status() {
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 
-    // Check mixer mode
     bool path2_active = (r0 & 0x0020) != 0;
     text_path.set(path2_active ? "PATH2" : "PATH1");
     text_mixer.set(path2_active ? "ACTIVE" : "INACTIVE");
     text_mixer.set_style(path2_active ? Theme::getInstance()->fg_green
                                       : Theme::getInstance()->fg_orange);
 
-    // === SUMMARY STATUS ===
-    if (!rffc_locked) {
-        text_status.set("PLL UNLOCKED!");
+    // === DIAGNOSTIC STATUS (replaces normal status) ===
+    // Read RFFC5072 device ID register (should be 0x1140)
+    uint32_t device_id = radio::debug::first_if::register_read(127);
+
+    // Check if RFFC5072 SPI pins are in GPIO mode
+    uint32_t p9_5_config = LPC_SCU->SFSP[9][5];  // SCLK
+    uint32_t p9_2_config = LPC_SCU->SFSP[9][2];  // SDATA
+    uint32_t p5_4_config = LPC_SCU->SFSP[5][4];  // CS
+
+    text_status2.set("P9_5:" + to_string_hex(p9_5_config, 8) +
+                    " P9_2:" + to_string_hex(p9_2_config, 8));
+    text_status3.set("P5_4:" + to_string_hex(p5_4_config, 8));
+
+    if (enx_initial != enx_final || dir2_initial != dir2_final) {
+        // ENX or DIR changed - report which operation caused it
+        std::string diag = "CHG: ";
+        if (enx_initial != enx_before_spi) diag += "pre ";
+        if (enx_before_spi != enx_after_r0) diag += "R0 ";
+        if (enx_after_r0 != enx_after_r15) diag += "R15 ";
+        if (enx_after_r15 != enx_final) diag += "R16 ";
+        diag += std::to_string(enx_initial) + "->" + std::to_string(enx_final);
+
+        if (dir2_initial != dir2_final) {
+            diag += " DIR!";
+        }
+
+        text_status.set(diag);
         text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (enx == 1) {
-        text_status.set("DISABLED (ENX=1)!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (resetx == 0) {
-        text_status.set("IN RESET (RESETX=0)!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!enabled) {
-        text_status.set("R0 bit 4 = 0 (disabled)");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!path2_active) {
-        text_status.set("Path 2 not selected!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!vco_ok) {
-        text_status.set("VCO out of range!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!lo_ok) {
-        text_status.set("LO out of range!");
-        text_status.set_style(Theme::getInstance()->fg_red);
+
+        // Blink LED
+        /*for (int i = 0; i < 3; i++) {
+            hackrf::one::led_rx.on();
+            chThdSleepMilliseconds(100);
+            hackrf::one::led_rx.off();
+            chThdSleepMilliseconds(100);
+        }*/
     } else {
-        text_status.set("All checks passed!");
-        text_status.set_style(Theme::getInstance()->fg_green);
+        // No change - normal status
+        if (!rffc_locked) {
+            text_status.set("ID 0x"+to_string_hex(device_id, 4)+" PLL UNLOCKED!");
+            text_status.set_style(Theme::getInstance()->fg_red);
+        } else if (enx == 1) {
+            text_status.set("ID 0x"+to_string_hex(device_id, 4)+" DSBLD,ENX=1!");
+            text_status.set_style(Theme::getInstance()->fg_red);
+        } else {
+            text_status.set("ID 0x"+to_string_hex(device_id, 4)+" Passed!");
+            text_status.set_style(Theme::getInstance()->fg_green);
+        }
     }
 }
 

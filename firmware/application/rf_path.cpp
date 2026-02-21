@@ -41,8 +41,6 @@ namespace {
  */
 struct PralineConfig {
     bool tx_en;
-    // bool mix_en_n;        // Inverted: 0 = mixer enabled
-    bool rffc_enx;    // RFFC5072 ENX (GPIO2[13])
     bool mix_bypass;  // RF path mixer bypass (GPIO3[2])
     bool lpf_en;
     bool rf_amp_en;
@@ -50,8 +48,6 @@ struct PralineConfig {
 
     static void gpio_init() {
         gpio_tx_enable.output();
-        // gpio_mix_enable_n.output();
-        gpio_rffc5072_enx.output();
         gpio_mix_bypass.output();
         gpio_lpf_enable.output();
         gpio_rf_amp_enable.output();
@@ -60,8 +56,6 @@ struct PralineConfig {
 
     void apply() const {
         gpio_tx_enable.write(tx_en);
-        // gpio_mix_enable_n.write(mix_en_n);
-        gpio_rffc5072_enx.write(rffc_enx);  // Control RFFC5072 ENX
         gpio_mix_bypass.write(mix_bypass);  // Control RF path mixer
         gpio_lpf_enable.write(lpf_en);
         gpio_rf_amp_enable.write(rf_amp_en);
@@ -245,8 +239,6 @@ void Path::init() {
     /* Set safe initial state: RX mode, mixer enabled, LPF on, amp off, no bias */
     PralineConfig config = {
         .tx_en = false,
-        //.mix_en_n = false,     // Mixer enabled (inverted)
-        .rffc_enx = false,     // RFFC5072 ENX (GPIO2[13])
         .mix_bypass = false,   // RF path mixer bypass (GPIO3[2])
         .lpf_en = true,        // LPF on for low band
         .rf_amp_en = false,    // Amp off
@@ -284,8 +276,6 @@ void Path::update() {
 #ifdef PRALINE
     /* PRALINE RF path control:
      * - tx_en: 1 for TX, 0 for RX
-     * // - mix_en_n: 0 to enable mixer (inverted), 1 to bypass
-     * - rffc_enx: 0 to enable RFFC5072 ENX (GPIO2[13])
      * - mix_bypass: 0 to enable RF path mixer bypass (GPIO3[2])
      * - lpf_en: 1 for low band (< 2.4 GHz), 0 for high band
      * - rf_amp_en: 1 to enable RF amplifier
@@ -303,10 +293,6 @@ void Path::update() {
     // update_signals(transition_config);
 
     config.tx_en = (direction == Direction::Transmit);
-
-    // RFFC5072 ENX: Active LOW, so invert the band check
-    // ENX=0 (enabled) for Low/High, ENX=1 (disabled) for Mid
-    config.rffc_enx = (band == Band::Mid);  // 0=enabled, 1=disabled
 
     // RF path mixer bypass: 0=enabled, 1=bypassed
     config.mix_bypass = (band == Band::Mid);

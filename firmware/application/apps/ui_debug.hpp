@@ -804,7 +804,7 @@ class RFFC5072StatusView : public View {
     NavigationView& nav_;
     void refresh_status();
 
-    Text text_title{{0, 0, 240, 16}, "=== RFFC5072 (1st IF) ==="};
+    Text text_status{{0, 0, 240, 16}, "---"};
 
     Text text_lbl_lock{{0, 16, 114, 16}, "Lock Detect:"};
     Text text_lock{{116, 16, 124, 16}, "---"};
@@ -841,10 +841,10 @@ class RFFC5072StatusView : public View {
     Text text_lbl_calc{{0, 192, 114, 16}, "Calc freq:"};
     Text text_calc{{116, 192, 124, 16}, "---"};
 
-    Text text_status{{0, 208, 240, 16}, ""};
+    Text text_regs_status{{0, 208, 240, 16}, "---"};
 
-    Text text_lbl_regs_status{{0, 224, 48, 16}, "Regs:"};
-    Text text_regs_status{{50, 224, 190, 16}, "---"};
+    Text text_status2{{0, 224, 240, 16}, ""};
+    Text text_status3{{0, 240, 240, 16}, ""};
 
     Button button_refresh{{2, 280, 72, 24}, "Refresh"};
     Button button_force_enx{{98, 280, 60, 24}, "T_ENX"};

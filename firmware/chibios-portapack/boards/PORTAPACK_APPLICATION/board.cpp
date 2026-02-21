@@ -985,17 +985,24 @@ extern "C" void boardInit(void) {
   LPC_GPIO->DIR[4] |= (1 << 9);  /* Output */
 
   /* Configure RFFC5072 control pins for PRALINE */
-  /* P5_4 = GPIO2[13] RFFC5072 ENX (active low: 0=enabled) */
-  LPC_SCU->SFSP[5][4] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
+  /* P5_4 = GPIO2[13] RFFC5072 ENX - SPI chip select (managed by SPI driver) */
+  LPC_SCU->SFSP[5][4] = 0x10;  /* FUNCTION0 (GPIO), pull-up, slow mode (matches HackRF USB) */
   LPC_GPIO->DIR[2] |= (1 << 13);   /* ENX: OUTPUT */
-  LPC_GPIO->CLR[2] = (1 << 13);    /* ENX = 0 (ENABLED) */
-
-  /* P5_5 = GPIO2[14] RFFC5072 RESETX - FPGA controlled, MCU should not touch */
-  LPC_SCU->SFSP[5][5] = 0xF0;  /* FUNCTION0 (GPIO), no pulls */
-  LPC_GPIO->DIR[2] &= ~(1 << 14);  /* RESETX: INPUT (let FPGA control) */
-
+  LPC_GPIO->SET[2] = (1 << 13);    /* ENX = 1 (deselected initially) */
+  
+  /* P5_5 = GPIO2[14] RFFC5072 RESETX (active high: 1=running) */
+  LPC_SCU->SFSP[5][5] = 0x10;  /* FUNCTION0 (GPIO), pull-up, slow mode (matches HackRF USB) */
+  LPC_GPIO->DIR[2] |= (1 << 14);   /* RESETX: OUTPUT */
+  LPC_GPIO->SET[2] = (1 << 14);    /* RESETX = 1 (RUNNING) */
+  
+  /* Ensure RESETX is stable */
+  for (volatile int i = 0; i < 10; i++) {
+    LPC_GPIO->W2[14] = 1;
+  }
+  
   /* PD_11 = GPIO6[25] RFFC5072 Lock Detect (input) */
-  LPC_SCU->SFSP[0xD][11] = 0xF4;  /* FUNCTION4 (GPIO), no pulls */
+  LPC_SCU->SFSPD[11] = 0x10;  /* FUNCTION0 (GPIO), pull-up (matches HackRF USB) */
+  LPC_GPIO->DIR[6] &= ~(1 << 25);  /* LD: INPUT */
 
   /* Small delay for signals to stabilize */
   for (volatile int i = 0; i < 10000; i++) {}
