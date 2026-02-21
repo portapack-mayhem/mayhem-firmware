@@ -61,6 +61,19 @@ void SubGhzDRecentEntryDetailView::update_data() {
 
     if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
 
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        uint8_t pager_addr = (entry_.data >> 5) & 0x0F;
+        uint8_t func_code = (entry_.data >> 1) & 0x0F;
+        console.writeln("Station: 0x" + to_string_hex(serial) + " (" + to_string_dec_uint(serial) + ")");
+        console.writeln("Pager: " + to_string_dec_uint(pager_addr));
+        if (func_code == 0x0D)
+            console.writeln("Action: Buzz");
+        else if (func_code == 0x0F)
+            console.writeln("Action: Sync");
+        else
+            console.writeln("Action: 0x" + to_string_hex(func_code));
+    }
+
     if (entry_.sensorType == FPS_KEELOQ) {
         console.writeln("Fix: " + to_string_hex(fix));
         console.writeln("Encrypted: " + to_string_hex(encrypted));
@@ -280,6 +293,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Marantec24";
         case FPS_HOLTEKHT6P20B:
             return "Holtek HT6P20B";
+        case FPS_RESTAURANT_PAGER:
+            return "Rest. Pager";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -306,7 +321,14 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    line = line + " " + to_string_hex(entry.data << 32);
+    if (entry.sensorType == FPS_RESTAURANT_PAGER) {
+        uint8_t pgr = (entry.data >> 5) & 0x0F;
+        uint8_t func = (entry.data >> 1) & 0x0F;
+        line += " P:" + to_string_dec_uint(pgr) + (func == 0x0D ? " Buzz" : func == 0x0F ? " Sync"
+                                                                                         : "");
+    } else {
+        line = line + " " + to_string_hex(entry.data << 32);
+    }
     line.resize(columns.at(0).second, ' ');
     std::string ageStr = to_string_dec_uint(entry.age);
     std::string bitsStr = to_string_dec_uint(entry.bits);
@@ -871,6 +893,13 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_HOLTEKHT6P20B) {
         serial = entry_.data >> 8;
         btn = (entry_.data >> 4) & 0xF;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        // 25-bit EV1527-variant: [sysid:16][pager:4][func:4][stop:1]
+        serial = (entry_.data >> 9) & 0xFFFF;  // System ID
+        // btn/cnt left as SD_NO values; friendly output in update_data()
         return;
     }
 }

@@ -46,11 +46,10 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
     auto result = firmware_file.open(path.c_str());
     if (!result.is_valid()) {
         uint64_t file_size = firmware_file.size();
-        if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK && file_size > 1 * 1024 * 1024) {
-            // Portapack firmware files must not be larger than 1MB
+        if (file_size > FLASH_ROM_SIZE) {
+            // Firmware file is larger than the flash size for this device
             return false;
         }
-        // May need to add a check to portarf and portarf pro too.
         checksum = 0;
         for (uint64_t offset = 0; offset < FLASH_ROM_SIZE && offset < file_size; offset += sizeof(read_buffer)) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));

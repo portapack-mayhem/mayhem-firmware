@@ -256,7 +256,9 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
     if (!w->hidden()) {
         // To achieve reverse depth ordering (last object drawn is
         // considered "top"), descend first.
-        for (const auto child : w->children()) {
+        auto& children = w->children();
+        for (auto it = children.rbegin(); it != children.rend(); ++it) {  // reverse, bc the lastly added will be "top" if overlaps
+            const auto& child = *it;
             const auto touched_widget = touch_widget(child, event);
             if (touched_widget) {
                 return touched_widget;

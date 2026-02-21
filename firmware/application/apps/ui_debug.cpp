@@ -46,6 +46,11 @@ using namespace portapack;
 
 #include "irq_controls.hpp"
 
+#ifdef PRALINE
+#include "max2831.hpp"
+using namespace max2831;
+#endif
+
 namespace ui {
 
 /* DebugMemoryView *******************************************************/
@@ -1337,6 +1342,8 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_sys_init_status,
                   &text_xtal_cap_label,
                   &text_xtal_cap_value,
+                  &text_clkin_label,
+                  &text_clkin_status,
                   &text_clk0_label,
                   &text_clk0_status,
                   &text_clk0_freq_value,
@@ -1418,6 +1425,11 @@ void Si5351DebugView::refresh_status() {
 
     // Read clock output enables (reg 16-23 control, reg 3 for output enable mask)
     uint8_t output_enable_mask = portapack::clock_manager.si5351_read_register(3);
+
+    // CLKIN
+    text_clkin_status.set(los_clkin ? "LOS" : "CLOCK SIGNAL");
+    text_clkin_status.set_style(los_clkin ? Theme::getInstance()->fg_red
+                                          : Theme::getInstance()->fg_green);
 
     // CLK0 (bit 0 of reg 3, reg 16 for control)
     uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
@@ -2447,7 +2459,7 @@ void MAX2831DebugView::focus() {
 }
 
 void MAX2831DebugView::refresh() {
-    auto info = radio::debug::second_if::get_max2831_info();
+    auto info = get_max2831_info();
 
     // Show if set_frequency was called
     if (info.set_frequency_called) {
@@ -2691,7 +2703,7 @@ void DebugPmemView::update() {
 DebugScreenTest::DebugScreenTest(NavigationView& nav)
     : nav_{nav} {
     set_focusable(true);
-    std::srand(LPC_RTC->CTIME0);
+    srand(LPC_RTC->CTIME0);
 }
 
 bool DebugScreenTest::on_key(const KeyEvent key) {
@@ -2701,10 +2713,10 @@ bool DebugScreenTest::on_key(const KeyEvent key) {
             nav_.pop();
             break;
         case KeyEvent::Down:
-            painter.fill_rectangle({0, 0, screen_width, screen_height}, std::rand());
+            painter.fill_rectangle({0, 0, screen_width, screen_height}, rand());
             break;
         case KeyEvent::Left:
-            pen_color = std::rand();
+            pen_color = rand();
             break;
         default:
             break;
@@ -2727,7 +2739,7 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
 void DebugScreenTest::paint(Painter& painter) {
     painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Theme::getInstance()->bg_darkest->foreground);
     painter.draw_string({10 * 8, screen_height / 2}, *Theme::getInstance()->bg_darkest, "Use Stylus");
-    pen_color = std::rand();
+    pen_color = rand();
 }
 
 /* DebugLCRView *******************************************************/
