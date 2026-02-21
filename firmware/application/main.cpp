@@ -181,7 +181,9 @@ static void event_loop() {
 }
 
 int main(void) {
+#ifndef PRALINE //Do not perform quick set up of GP01_RFF507X = 1 for PRALINE
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
+#endif
 
     if (config_mode_should_enter()) {
         config_mode_clear();

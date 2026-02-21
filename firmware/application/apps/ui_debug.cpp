@@ -1346,12 +1346,14 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_clkin_status,
                   &text_clk0_label,
                   &text_clk0_status,
-                  &text_clk0_freq_label,
                   &text_clk0_freq_value,
-                  &text_clk0_div_label,
                   &text_clk0_div_value,
                   &text_clk1_label,
                   &text_clk1_status,
+		  &text_clk4_label,
+		  &text_clk4_status,
+		  &text_clk5_label,
+		  &text_clk5_status,
                   &button_refresh,
                   &button_reset_pll,
                   &button_done});
@@ -1465,8 +1467,8 @@ void Si5351DebugView::refresh_status() {
     uint32_t freq_khz = 800000 / ms_div / r_div;  // Result in kHz
 
     // Show P1 value and R45 for debugging
-    text_clk0_freq_value.set(to_string_dec_uint(freq_khz) + " kHz (P1:" + to_string_hex(p1, 4) + ")");
-    text_clk0_div_value.set("MS=" + to_string_dec_uint(ms_div) +
+    text_clk0_freq_value.set("F:"+to_string_dec_uint(freq_khz / 1000) + "MHz (P1:" + to_string_hex(p1, 4) + ")");
+    text_clk0_div_value.set("DIV: MS=" + to_string_dec_uint(ms_div) +
                             " R=" + to_string_dec_uint(r_div));
 
     // Color code based on expected 8 MHz
@@ -1483,6 +1485,20 @@ void Si5351DebugView::refresh_status() {
     bool clk1_enabled = !(output_enable_mask & 0x02) && !(clk1_ctrl & 0x80);
     text_clk1_status.set(clk1_enabled ? "ON" : "OFF");
     text_clk1_status.set_style(clk1_enabled ? Theme::getInstance()->fg_green
+                                            : Theme::getInstance()->fg_red);
+
+    // CLK4 (MAX2831 reference - bit 4 of reg 3, reg 20 for control)
+    uint8_t clk4_ctrl = portapack::clock_manager.si5351_read_register(20);
+    bool clk4_enabled = !(output_enable_mask & 0x10) && !(clk4_ctrl & 0x80);
+    text_clk4_status.set(clk4_enabled ? "ON (40MHz)" : "OFF");
+    text_clk4_status.set_style(clk4_enabled ? Theme::getInstance()->fg_green
+                                            : Theme::getInstance()->fg_red);
+
+    // CLK5 (RFFC5072 reference - bit 5 of reg 3, reg 21 for control)
+    uint8_t clk5_ctrl = portapack::clock_manager.si5351_read_register(21);
+    bool clk5_enabled = !(output_enable_mask & 0x20) && !(clk5_ctrl & 0x80);
+    text_clk5_status.set(clk5_enabled ? "ON (40MHz)" : "OFF");
+    text_clk5_status.set_style(clk5_enabled ? Theme::getInstance()->fg_green
                                             : Theme::getInstance()->fg_red);
 }
 
@@ -2154,6 +2170,10 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
+    // === DEBUG: Capture GPIO state BEFORE any operations ===
+    uint32_t gpio2_before = LPC_GPIO->PIN[2];
+    bool enx_before = (gpio2_before >> 13) & 1;
+
     // === READ RAW GPIO STATES FOR DEBUGGING ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
@@ -2227,15 +2247,25 @@ void RFFC5072StatusView::refresh_status() {
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
-    text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
-    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
-
     // Check ranges
+    // RFFC5072 datasheet: Output 85-4200 MHz, VCO 2700-5400 MHz
     bool vco_ok = (f_vco_mhz >= 2700) && (f_vco_mhz <= 5400);
-    bool lo_ok = (f_lo_mhz >= 2300) && (f_lo_mhz <= 2700);
+    bool lo_ok = (f_lo_mhz >= 85) && (f_lo_mhz <= 4200);
 
-    text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
-                              : Theme::getInstance()->fg_red);
+    // PRALINE mid-band (2320-2740 MHz) uses direct path, not RFFC5072
+    bool in_bypass_range = (f_lo_mhz >= 2320) && (f_lo_mhz <= 2740);
+
+    // Display with range annotation
+    if (in_bypass_range) {
+        text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz (MID)");
+        text_calc.set_style(Theme::getInstance()->fg_orange);  // Orange = bypass band
+    } else {
+        text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
+        text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
+                                  : Theme::getInstance()->fg_red);
+    }
+
+    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 
@@ -2272,6 +2302,7 @@ void RFFC5072StatusView::refresh_status() {
         text_status.set("All checks passed!");
         text_status.set_style(Theme::getInstance()->fg_green);
     }
+
 }
 
 /* RFFCTuningDebugView *************************************************/
