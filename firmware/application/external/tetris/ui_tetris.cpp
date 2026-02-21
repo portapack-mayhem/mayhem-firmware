@@ -605,7 +605,7 @@ void pause_game() {
 }
 
 int main() {
-    std::srand(GenerateRandomSeed());
+    srand(GenerateRandomSeed());
     Init();
     ShowLevelMenu();
     joystick.attach(&ReadJoystickForLevel, 0.3);

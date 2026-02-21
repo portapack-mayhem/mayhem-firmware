@@ -339,7 +339,7 @@ void AdultToysView::randomizeMac() {
 }
 
 void AdultToysView::randomChn() {
-    channel_number = 37 + std::rand() % (39 - 37 + 1);
+    channel_number = 37 + rand() % (39 - 37 + 1);
     field_frequency.set_value(get_freq_by_channel_number(channel_number));
 }
 
