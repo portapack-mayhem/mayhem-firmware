@@ -315,6 +315,7 @@ class ADSBRxDetailsView : public View {
     struct PosHistory {
         float lat;
         float lon;
+        uint16_t heading;
     };
     std::vector<PosHistory> pos_history{};
 
