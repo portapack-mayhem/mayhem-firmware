@@ -112,7 +112,8 @@ void ACARSAppView::on_packet(const ACARSPacketMessage* packet) {
         rtc_time::now(datetime);
         console_info = to_string_datetime(datetime, HMS);
         console_info += ": ";
-        AcarsDecoded decoded = acars_decode(packet->message);
+        std::string message{packet->message, packet->message + packet->msg_len};
+        AcarsDecoded decoded = acars_decode(message);
         console_info += acars_format(decoded);
         console.writeln(console_info);
         if (logger && logging)
