@@ -284,8 +284,8 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 #ifdef PRALINE
         // TEST: Force baseband invert for Praline (like r9)
         // baseband_invert = (direction == rf::Direction::Receive);
-	
-	// CORRECT: FPGA register 1 only controls DC_BLOCK
+
+        // CORRECT: FPGA register 1 only controls DC_BLOCK
         fpga_debug_register_write(1, 0x01);  // DC_BLOCK only, no QUARTER_SHIFT!
 
         // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register

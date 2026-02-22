@@ -35,9 +35,9 @@ Config high_band(const rf::Frequency target_frequency);
 /*
  * PRALINE Tuning Configuration
  * ============================
- * 
+ *
  * Reference: hackrf_usb/common/tune_config.h praline_tune_config_rx[]
- * 
+ *
  * The hackrf_usb firmware uses a table-driven approach where each entry
  * specifies:
  *   - rf_range_end_mhz: Upper frequency limit for this config
@@ -66,20 +66,18 @@ Config high_band(const rf::Frequency target_frequency);
 // Returns the IF frequency in Hz for a given target frequency
 constexpr rf::Frequency praline_get_if_frequency(const rf::Frequency target_frequency) {
     const uint32_t freq_mhz = target_frequency / 1'000'000;
-    
+
     // Based on hackrf_usb tune_config_rx table
     if (freq_mhz < 2100) {
         // Most low-band frequencies: use 2375 MHz IF
         // This keeps VCO around 4750-4950 MHz for FM band
         return 2375'000'000;
-    }
-    else if (freq_mhz < 2320) {
+    } else if (freq_mhz < 2320) {
         // Transition zone: use varying IF to avoid VCO edges
         // These frequencies are tricky - near MAX2831 minimum
         // Use 2425 MHz to give some margin
         return 2425'000'000;
-    }
-    else {
+    } else {
         // Bypass mode or high-band - IF not used for mixer
         return 0;
     }
@@ -88,28 +86,25 @@ constexpr rf::Frequency praline_get_if_frequency(const rf::Frequency target_freq
 // Returns true for high-side injection, false for low-side
 constexpr bool praline_use_high_side_injection(const rf::Frequency target_frequency) {
     const uint32_t freq_mhz = target_frequency / 1'000'000;
-    
+
     // Based on hackrf_usb tune_config_rx table
     if (freq_mhz < 2100) {
         // Standard low-band: high-side injection
         // LO = IF + RF, mixer inverts spectrum
         return true;
-    }
-    else if (freq_mhz < 2105) {
+    } else if (freq_mhz < 2105) {
         // Narrow transition: still high-side
         return true;
-    }
-    else if (freq_mhz < 2320) {
+    } else if (freq_mhz < 2320) {
         // Near MAX2831 minimum: use low-side injection
         // LO = IF - RF, no spectrum inversion
         return false;
-    }
-    else {
+    } else {
         // Bypass/high-band - doesn't matter, mixer bypassed
         return false;
     }
 }
-#endif // PRALINE
+#endif  // PRALINE
 
 // Low band <2170 Mhz (HackRF One) or <2320 MHz (PRALINE):
 constexpr rf::Frequency low_band_second_lo_frequency(const rf::Frequency target_frequency) {
@@ -123,11 +118,11 @@ constexpr rf::Frequency low_band_second_lo_frequency(const rf::Frequency target_
 
 Config low_band(const rf::Frequency target_frequency) {
     const rf::Frequency second_lo_frequency = low_band_second_lo_frequency(target_frequency);
-    
+
 #ifdef PRALINE
     rf::Frequency first_lo_frequency;
     bool mixer_invert;
-    
+
     if (praline_use_high_side_injection(target_frequency)) {
         // High-side injection: LO = IF + RF
         first_lo_frequency = second_lo_frequency + target_frequency;
@@ -137,7 +132,7 @@ Config low_band(const rf::Frequency target_frequency) {
         first_lo_frequency = second_lo_frequency - target_frequency;
         mixer_invert = false;
     }
-    
+
     return {first_lo_frequency, second_lo_frequency, rf::path::Band::Low, mixer_invert};
 #else
     const rf::Frequency first_lo_frequency = target_frequency + second_lo_frequency;
@@ -180,7 +175,7 @@ constexpr rf::Frequency high_band_second_lo_frequency(const rf::Frequency target
 #ifdef PRALINE
     // Praline formula tuned for MAX2831 (2.3-2.6 GHz range)
     // Keep second_lo in MAX2831's range while allowing RFFC5072 to work
-    // 
+    //
     // For high-band, we use LOW-side injection: LO = RF - IF
     // So IF should be chosen to keep LO (and thus VCO) in a good range
     //
