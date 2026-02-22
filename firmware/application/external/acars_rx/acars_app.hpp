@@ -33,7 +33,9 @@
 
 namespace ui::external_app::acars_rx {
 
-// ACARS decoded structure, simulating libacars core fields
+// Decoded ACARS message fields extracted from a raw frame.
+// CRC-16/CCITT (poly 0x1021, init 0x0000) is verified against the two
+// trailing bytes of the raw frame; crc_ok reflects that result.
 struct AcarsDecoded {
     bool crc_ok{false};
     std::string reg{};
@@ -44,10 +46,11 @@ struct AcarsDecoded {
     std::string txt{};
 };
 
-// ACARS decode function (simulated libacars logic)
+// Decode a raw ACARS frame: verify CRC-16/CCITT and extract fixed-offset fields.
+// Returns a partially-filled AcarsDecoded (txt error only) if the frame is too short.
 AcarsDecoded acars_decode(const std::string& raw);
 
-// ACARS format function for output
+// Format a decoded ACARS message for display or logging.
 std::string acars_format(const AcarsDecoded& msg);
 
 class ACARSLogger {
