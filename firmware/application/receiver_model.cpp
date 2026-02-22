@@ -63,9 +63,10 @@ static constexpr std::array<baseband::AMConfig, 12> am_configs{{
     {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, apt_audio_12k_lpf_1500hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax with waterfall zoom x 2 (we need taps_6k0_narrow_decim_1 to minimize aliasing)
 }};
 
-static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs{{
+static constexpr std::array<baseband::NBFMConfig, 4> nbfm_configs{{
     {taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500},
     {taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500},
+    {taps_12k5_decim_0, taps_12k5_decim_1, taps_12k5_channel, 2500},
     {taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000},
 }};
 
