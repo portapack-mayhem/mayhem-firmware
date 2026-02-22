@@ -31,17 +31,6 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "utility.hpp"
 
-// ACARS structured decoding (minimal, direct C++ implementation)
-struct AcarsDecoded {
-    bool crc_ok;
-    std::string reg;
-    std::string label;
-    std::string flight_id;
-    std::string msg_num;
-    char block_id;
-    std::string txt;
-};
-
 namespace ui::external_app::acars_rx {
 
 // Minimal ACARS decode function
