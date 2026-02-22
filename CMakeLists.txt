@@ -58,9 +58,6 @@ else()
     math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 endif()
 
-#generate h files
-configure_file(flashsize.h.in ${CMAKE_CURRENT_SOURCE_DIR}/firmware/flashsize.h)
-
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
 project(portapack-h1)

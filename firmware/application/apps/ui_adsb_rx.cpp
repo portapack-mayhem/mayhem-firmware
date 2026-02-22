@@ -271,9 +271,16 @@ ADSBRxDetailsView::ADSBRxDetailsView(
          &text_frame_pos_even,
          &text_frame_pos_odd,
          &button_aircraft_details,
-         &button_see_map});
+         &button_see_map,
+         &opt_map_list});
 
     text_icao_address.set(entry_.icao_str);
+
+    opt_map_list.on_change = [this](size_t, uint32_t mf) {
+        map_filter = mf;
+        clear_map_markers();  // reset them
+        pos_history.clear();  // erase the trail
+    };
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
         aircraft_details_view_ = nav.push<ADSBRxAircraftDetailsView>(entry_);
@@ -288,7 +295,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
-            GeoPos::spd_unit::HIDDEN,
+            GeoPos::spd_unit::KNOTS,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
@@ -312,8 +319,12 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
         // AC Details view is showing, nothing to update.
     } else if (geomap_view_) {
         // Map is showing, update the current item.
+        if (map_filter == 1) {
+            // add to map trail history
+            add_map_trail(entry);
+        }
         geomap_view_->update_tag(get_map_tag(entry_));
-        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude, entry.velo.speed);
+        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude, entry.get_ground_speed());
     } else {
         // Details is showing, update details.
         refresh_ui();
@@ -364,12 +375,59 @@ void ADSBRxDetailsView::get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* 
 void ADSBRxDetailsView::clear_map_markers() {
     if (geomap_view_)
         geomap_view_->clear_markers();
+    if (map_filter == 1)
+        refresh_trail_markers();  // re add trail
+}
+
+void ADSBRxDetailsView::refresh_trail_markers() {
+    if (!geomap_view_)
+        return;
+
+    geomap_view_->clear_markers();
+    for (const auto& pos : pos_history) {
+        GeoMarker marker{};
+        marker.lon = pos.lon;
+        marker.lat = pos.lat;
+        marker.angle = pos.heading;
+        marker.tag = "";  // No tag for trail points
+        uint8_t r, g, b;
+        get_altitude_color(pos.altitude, &r, &g, &b);
+        marker.color = Color(r, g, b);
+        geomap_view_->store_marker(marker);
+    }
+}
+
+void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
+    if (!geomap_view_)
+        return;
+    if (entry.pos.pos_valid == false)
+        return;
+
+    if (!pos_history.empty()) {
+        const auto& last_pos = pos_history.back();
+        const float THRESH_DEG = 0.009f;
+        const float THRESH_SQ = THRESH_DEG * THRESH_DEG;  // 0.00002025f
+
+        float d_lat = entry.pos.latitude - last_pos.lat;
+        float d_lon = entry.pos.longitude - last_pos.lon;
+        if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
+            return;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
+        }
+    }
+
+    // Only keep the last 30 positions in the trail.
+    if (pos_history.size() >= 30)
+        pos_history.erase(pos_history.begin());
+    pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
+    refresh_trail_markers();
 }
 
 bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
     // Map not shown, can't add markers.
     if (!geomap_view_)
         return false;
+
+    if (map_filter == 1) return false;  // this is the 'only me' option, so skip all others
 
     GeoMarker marker{};
     marker.lon = entry.pos.longitude;

@@ -113,8 +113,8 @@ set(EXTCPPSRC
 	external/random_password/sha512.cpp
 
 	#acars
-	#external/acars_rx/main.cpp
-	#external/acars_rx/acars_app.cpp
+	external/acars_rx/main.cpp
+	external/acars_rx/acars_app.cpp
 
 	#wefax_rx 192 bytes
 	external/wefax_rx/main.cpp
@@ -337,7 +337,7 @@ set(EXTAPPLIST
 	sstvtx
 	sstvrx
 	random_password
-	# acars_rx --not working
+	acars_rx
 	wefax_rx
 	noaaapt_rx
 	shoppingcart_lock
