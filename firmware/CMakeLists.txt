@@ -50,7 +50,7 @@ endif()
 
 #generate h files
 configure_file(flashsize.h.in flashsize.h)
-add_definitions(-include "\"${CMAKE_CURRENT_BINARY_DIR}/flashsize.h\"")
+add_compile_options(-include ${CMAKE_CURRENT_BINARY_DIR}/flashsize.h)
 
 add_subdirectory(application)
 add_subdirectory(baseband)
