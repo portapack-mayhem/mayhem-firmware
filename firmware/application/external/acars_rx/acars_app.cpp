@@ -50,7 +50,6 @@ AcarsDecoded acars_decode(const std::string& raw) {
     result.flight_id = raw.substr(15, 6);
     result.txt = raw.substr(21);
     return result;
-    return result;
 }
 
 std::string acars_format(const AcarsDecoded& msg) {
