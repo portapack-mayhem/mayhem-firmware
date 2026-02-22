@@ -71,8 +71,6 @@ if(BOARD STREQUAL "PRALINE")
 		COMMAND ${CMAKE_COMMAND} -E echo "Appending PRALINE FPGA bitstream to firmware..."
 		COMMAND python3 ${APPEND_FPGA_SCRIPT} ${FIRMWARE_FILENAME} ${PRALINE_FPGA_BIN} ${FIRMWARE_FILENAME}.tmp ${PRALINE_FINAL_SIZE}
 		COMMAND ${CMAKE_COMMAND} -E rename ${FIRMWARE_FILENAME}.tmp ${FIRMWARE_FILENAME}
-		COMMAND ${CMAKE_COMMAND} -E echo "PRALINE firmware with FPGA bitstream created:"
-		COMMAND ls -la ${FIRMWARE_FILENAME}
 		DEPENDS baseband application ${MAKE_SPI_IMAGE}
 			${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
 			${PRALINE_FPGA_BIN} ${APPEND_FPGA_SCRIPT}
