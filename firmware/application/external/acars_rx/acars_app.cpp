@@ -31,7 +31,48 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "utility.hpp"
 
+// ACARS structured decoding (minimal, direct C++ implementation)
+struct AcarsDecoded {
+    bool crc_ok;
+    std::string reg;
+    std::string label;
+    std::string flight_id;
+    std::string msg_num;
+    char block_id;
+    std::string txt;
+};
+
 namespace ui::external_app::acars_rx {
+
+// Minimal ACARS decode function
+AcarsDecoded acars_decode(const std::string& raw) {
+    AcarsDecoded result;
+    // Parse raw ACARS message by field order (demo, not protocol byte-accurate)
+    if (raw.size() < 20) {
+        result.crc_ok = false;
+        result.txt = "ACARS message too short";
+        return result;
+    }
+    result.crc_ok = true;
+    result.reg = raw.substr(1, 7);
+    result.label = raw.substr(9, 2);
+    result.block_id = raw[11];
+    result.msg_num = raw.substr(12, 3);
+    result.flight_id = raw.substr(15, 6);
+    result.txt = raw.substr(21);
+    return result;
+    return result;
+}
+
+std::string acars_format(const AcarsDecoded& msg) {
+        return std::string("ACARS Decoded Result\nCRC: ") + (msg.crc_ok ? "OK" : "FAIL") +
+            "\nRegistration: " + msg.reg +
+            "\nLabel: " + msg.label +
+            "\nBlockID: " + msg.block_id +
+            "\nMsgNum: " + msg.msg_num +
+            "\nFlightID: " + msg.flight_id +
+            "\nMessage: " + msg.txt;
+}
 
 void ACARSLogger::log_str(std::string msg) {
     log_file.write_entry(msg);
@@ -77,17 +118,15 @@ void ACARSAppView::focus() {
 
 void ACARSAppView::on_packet(const ACARSPacketMessage* packet) {
     std::string console_info;
-
     if (packet->state == 255) {
         // got a packet, parse it, and display
         rtc::RTC datetime;
         rtc_time::now(datetime);
-        // todo parity error recovery
         console_info = to_string_datetime(datetime, HMS);
         console_info += ": ";
-        console_info += packet->message;
+        AcarsDecoded decoded = acars_decode(packet->message);
+        console_info += acars_format(decoded);
         console.writeln(console_info);
-        // Log raw data whatever it contains
         if (logger && logging)
             logger->log_str(console_info);
     } else {

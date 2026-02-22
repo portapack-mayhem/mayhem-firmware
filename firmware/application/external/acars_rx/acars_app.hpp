@@ -33,6 +33,23 @@
 
 namespace ui::external_app::acars_rx {
 
+// ACARS decoded structure, simulating libacars core fields
+struct AcarsDecoded {
+    bool crc_ok;
+    std::string reg;
+    std::string label;
+    std::string flight_id;
+    std::string msg_num;
+    char block_id;
+    std::string txt;
+};
+
+// ACARS decode function (simulated libacars logic)
+AcarsDecoded acars_decode(const std::string& raw);
+
+// ACARS format function for output
+std::string acars_format(const AcarsDecoded& msg);
+
 class ACARSLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
