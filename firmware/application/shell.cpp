@@ -31,7 +31,6 @@
 #include "shell.hpp"
 #include "chprintf.h"
 #include "portapack.hpp"
-#include "../flashsize.h"
 
 extern "C" {
 #include "platform_detect.h"
