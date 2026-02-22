@@ -35,13 +35,13 @@ namespace ui::external_app::acars_rx {
 
 // ACARS decoded structure, simulating libacars core fields
 struct AcarsDecoded {
-    bool crc_ok;
-    std::string reg;
-    std::string label;
-    std::string flight_id;
-    std::string msg_num;
-    char block_id;
-    std::string txt;
+    bool crc_ok{false};
+    std::string reg{};
+    std::string label{};
+    std::string flight_id{};
+    std::string msg_num{};
+    char block_id{'\0'};
+    std::string txt{};
 };
 
 // ACARS decode function (simulated libacars logic)
