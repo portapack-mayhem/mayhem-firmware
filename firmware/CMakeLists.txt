@@ -66,8 +66,8 @@ if(BOARD STREQUAL "PRALINE")
 	add_custom_command(
 		OUTPUT ${FIRMWARE_FILENAME}
 		COMMAND ${MAKE_SPI_IMAGE} ${application_BINARY_DIR}/application.bin ${baseband_BINARY_DIR}/baseband.img ${FIRMWARE_FILENAME} ${FLASH_BYTES_LIMIT_SIZE}
-		# PRALINE: Append FPGA bitstream to firmware at offset 0x180000
-		# The base firmware is 1MB, FPGA goes at 1MB offset, final size is 2MB
+		# PRALINE: Append FPGA bitstream to firmware at offset 0x380000
+		# The base firmware is 3.5MB, FPGA bitstream gets appended at the end of it, final size is 4MB
 		COMMAND ${CMAKE_COMMAND} -E echo "Appending PRALINE FPGA bitstream to firmware..."
 		COMMAND python3 ${APPEND_FPGA_SCRIPT} ${FIRMWARE_FILENAME} ${PRALINE_FPGA_BIN} ${FIRMWARE_FILENAME}.tmp ${PRALINE_FINAL_SIZE}
 		COMMAND ${CMAKE_COMMAND} -E rename ${FIRMWARE_FILENAME}.tmp ${FIRMWARE_FILENAME}
