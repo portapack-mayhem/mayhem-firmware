@@ -53,13 +53,13 @@ AcarsDecoded acars_decode(const std::string& raw) {
 }
 
 std::string acars_format(const AcarsDecoded& msg) {
-        return std::string("ACARS Decoded Result\nCRC: ") + (msg.crc_ok ? "OK" : "FAIL") +
-            "\nRegistration: " + msg.reg +
-            "\nLabel: " + msg.label +
-            "\nBlockID: " + msg.block_id +
-            "\nMsgNum: " + msg.msg_num +
-            "\nFlightID: " + msg.flight_id +
-            "\nMessage: " + msg.txt;
+    return std::string("ACARS Decoded Result\nCRC: ") + (msg.crc_ok ? "OK" : "FAIL") +
+           "\nRegistration: " + msg.reg +
+           "\nLabel: " + msg.label +
+           "\nBlockID: " + msg.block_id +
+           "\nMsgNum: " + msg.msg_num +
+           "\nFlightID: " + msg.flight_id +
+           "\nMessage: " + msg.txt;
 }
 
 void ACARSLogger::log_str(std::string msg) {
