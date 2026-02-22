@@ -75,6 +75,7 @@ if(BOARD STREQUAL "PRALINE")
 		COMMAND ls -la ${FIRMWARE_FILENAME}
 		DEPENDS baseband application ${MAKE_SPI_IMAGE}
 			${baseband_BINARY_DIR}/baseband.img ${application_BINARY_DIR}/application.bin
+			${PRALINE_FPGA_BIN} ${APPEND_FPGA_SCRIPT}
 		VERBATIM
 	)
 else() # Sadly this part had to be duplicated (or at least I couldn't find a better way to do it)
