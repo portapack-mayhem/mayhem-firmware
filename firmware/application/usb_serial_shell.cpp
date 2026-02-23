@@ -1141,7 +1141,7 @@ static void cmd_gotenv(BaseSequentialStream* chp, int argc, char* argv[]) {
     uint16_t light = 0;
     if (argc > 1) humi = atof(argv[1]);
     if (argc > 2) pressure = atof(argv[2]);
-    if (argc > 3) light = strtol(argv[0], NULL, 10);
+    if (argc > 3) light = strtol(argv[3], NULL, 10);
     EnvironmentDataMessage msg{temp, humi, pressure};
     EventDispatcher::send_message(msg);
     // compatibility:
