@@ -496,11 +496,11 @@ void ClockManager::init_clock_generator() {
     // This ensures the registers have correct values even if enable_if_clocks()
     // is not called or fails. The clocks will still be powered off until
     // enable_if_clocks() enables the outputs.
-    
+
     // CLK5: OFF (for now), Integer, PLLA, INVERTED, MS_Self, 6mA = 0xDE
     // (Same as 0x5E but with bit 7 set for power off)
     clock_generator.write_register(21, 0xDE);
-    
+
     // CLK4: OFF (for now), Integer, PLLA, INVERTED, MS_Self, 4mA = 0xDD
     clock_generator.write_register(20, 0xDD);
     // ===== END SAFETY BLOCK =====
@@ -593,7 +593,7 @@ void ClockManager::enable_codec_clocks() {
     clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 iCE40 FPGA*/
     clock_generator.enable_clock(clock_generator_output_og_sgpio); /* CLK2 LPC43xx*/
     clock_generator.enable_output_mask(
-            (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
 #else
     if (hackrf_r9) {
         clock_generator.enable_clock(clock_generator_output_r9_sgpio);
@@ -622,11 +622,11 @@ void ClockManager::disable_codec_clocks() {
      */
 #ifdef PRALINE
     /* PRALINE: CLK0 (AFE_CLK), CLK1 (SCT_CLK), and CLK2 MCU used for codec/FPGA */
-        clock_generator.disable_output_mask(
-            (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
-        clock_generator.disable_clock(clock_generator_output_og_codec);
-        clock_generator.disable_clock(clock_generator_output_og_cpld);
-        clock_generator.disable_clock(clock_generator_output_og_sgpio);
+    clock_generator.disable_output_mask(
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
+    clock_generator.disable_clock(clock_generator_output_og_codec);
+    clock_generator.disable_clock(clock_generator_output_og_cpld);
+    clock_generator.disable_clock(clock_generator_output_og_sgpio);
 #else
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_sgpio);
@@ -644,24 +644,24 @@ void ClockManager::disable_codec_clocks() {
 void ClockManager::enable_if_clocks() {
 #ifdef PRALINE
     /* PRALINE: CLK4=MAX2831, CLK5=RFFC5072
-     * 
+     *
      * Force-write complete configuration to guarantee correct setup.
      * The enable_clock() function may not preserve all settings.
      */
-    
+
     // Configure and enable CLK4 (MAX2831)
     // Register 20: ON, Integer, PLLA, INVERTED, MS_Self, 4mA = 0x5D
     clock_generator.write_register(20, 0x5D);
-    
+
     // Configure and enable CLK5 (RFFC5072) - CRITICAL!
     // Register 21: ON, Integer, PLLA, INVERTED, MS_Self, 6mA = 0x5E
     clock_generator.write_register(21, 0x5E);
-    
+
     // Enable outputs (register 3, bits 4 and 5 = 0)
     uint8_t reg3 = clock_generator.read_register(3);
     reg3 &= ~0x30;
     clock_generator.write_register(3, reg3);
-    
+
     chThdSleepMilliseconds(10);
 
     /* PRALINE uses CLK4 (first IF) and CLK5 (second IF) like original HackRF One */

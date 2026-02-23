@@ -60,7 +60,7 @@ extern "C" {
 #include "platform_detect.h"
 
 #ifdef PRALINE
-    int fpga_bridge_init(void);
+int fpga_bridge_init(void);
 #endif
 }
 
@@ -702,10 +702,13 @@ init_status_t init() {
     // (Watchdog was resetting device when we halted with while(1))
     int load_result = fpga_bridge_init();
     (void)load_result;  // Ignore result for now, just let boot continue
-    { volatile uint32_t delay = 200000; while(delay--); }
+    {
+        volatile uint32_t delay = 200000;
+        while (delay--);
+    }
     // Keep LEDs off after FPGA load
     LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
-#endif 
+#endif
 
     return return_code;
 }
