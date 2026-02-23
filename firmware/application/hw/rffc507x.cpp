@@ -287,8 +287,6 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     const SynthConfig synth_config = SynthConfig::calculate(lo_frequency);
 
 #ifdef PRALINE
-    // Ensure RFFC5072 is enabled before SPI writes
-    // gpio_rffc5072_enx.clear();  // ENX=0 (enabled)
 
     // Calculate VCO frequency from LO frequency and divider
     const size_t lo_divider = 1U << synth_config.lo_divider_log2;  // 2^lodiv_log2
