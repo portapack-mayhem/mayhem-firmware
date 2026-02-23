@@ -308,6 +308,10 @@ set(EXTCPPSRC
 	external/rtty_tx/main.cpp
 	external/rtty_tx/ui_rtty_tx.cpp
 	external/rtty_tx/baudot.cpp
+
+    #pocsag_tx
+	external/pocsag_tx/main.cpp
+	external/pocsag_tx/ui_pocsag_tx.cpp
 )
 
 set(EXTAPPLIST
@@ -385,6 +389,7 @@ set(EXTAPPLIST
   keeloqtx
 	rtty_rx
 	rtty_tx
+	pocsag_tx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
