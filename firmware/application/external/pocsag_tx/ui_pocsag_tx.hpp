@@ -37,7 +37,7 @@
 
 using namespace pocsag;
 
-namespace ui {
+namespace ui::external_app::pocsag_tx {
 
 class POCSAGTXView : public View {
    public:
@@ -155,6 +155,6 @@ class POCSAGTXView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::pocsag_tx */
 
 #endif /*__POCSAG_TX_H__*/
