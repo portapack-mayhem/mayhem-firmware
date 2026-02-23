@@ -1905,6 +1905,7 @@ void OptionsField::on_focus() {
 }
 
 bool OptionsField::on_encoder(const EncoderEvent delta) {
+    if (options_.empty()) return false;
     int32_t new_value = selected_index() + delta;
     if (new_value < 0)
         new_value = options_.size() - 1;
