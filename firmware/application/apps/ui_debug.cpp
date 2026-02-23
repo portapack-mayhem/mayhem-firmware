@@ -1387,7 +1387,7 @@ void Si5351DebugView::refresh_status() {
     bool pll_a_locked = !(status & 0x20);  // Bit 5: LOL_A (Loss of Lock A)
     bool pll_b_locked = !(status & 0x40);  // Bit 6: LOL_B (Loss of Lock B)
     bool sys_init = (status & 0x80);       // Bit 7: SYS_INIT
-    bool los_clkin = (status & 0x10);      // Bit 4: LOS (Loss of Signal)
+    // bool los_clkin = (status & 0x10);      // Bit 4: LOS (Loss of Signal) (quoted as it's computed but unused)
 
     // PLL A status
     if (pll_a_locked) {
