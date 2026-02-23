@@ -208,15 +208,18 @@ void set_direction(const rf::Direction new_direction) {
     }
 
 #ifdef PRALINE
-    // TEST: Force baseband invert for Praline (like r9)
-    // baseband_invert = (direction == rf::Direction::Receive);
 
-    // Praline: Control Q inversion via FPGA register
-    uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
-    if (mixer_invert ^ baseband_invert) {
-        ctrl_reg |= 0x02;  // Set Q_INVERT bit
+    // CORRECT: FPGA register 1 only controls DC_BLOCK
+    fpga_debug_register_write(1, 0x01);  // DC_BLOCK only, no QUARTER_SHIFT!
+
+    // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
+    bool q_invert = mixer_invert ^ baseband_invert;
+    if (q_invert) {
+        LPC_GPIO->SET[0] = (1 << 13);  // SGPIO12 = 1 (Q inverted)
+    } else {
+        LPC_GPIO->CLR[0] = (1 << 13);  // SGPIO12 = 0 (Q normal)
     }
-    fpga_debug_register_write(1, ctrl_reg);
+
     ssp1_arbiter.invalidate();
 #else
     baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
@@ -282,13 +285,19 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         // TEST: Force baseband invert for Praline (like r9)
         // baseband_invert = (direction == rf::Direction::Receive);
 
-        // PRALINE: Update FPGA Q inversion when tuning changes
-        uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
-        if (mixer_invert ^ baseband_invert) {
-            ctrl_reg |= 0x02;  // Set Q_INVERT bit
+        // CORRECT: FPGA register 1 only controls DC_BLOCK
+        fpga_debug_register_write(1, 0x01);  // DC_BLOCK only, no QUARTER_SHIFT!
+
+        // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
+        bool q_invert = mixer_invert ^ baseband_invert;
+        if (q_invert) {
+            LPC_GPIO->SET[0] = (1 << 13);  // SGPIO12 = 1 (Q inverted)
+        } else {
+            LPC_GPIO->CLR[0] = (1 << 13);  // SGPIO12 = 0 (Q normal)
         }
-        fpga_debug_register_write(1, ctrl_reg);
+
         ssp1_arbiter.invalidate();
+
         // Log this value somewhere you can see it
         uint32_t written_r15 = first_if.read(15);
 #else

@@ -197,19 +197,9 @@ struct SynthConfig {
  */
 
 void RFFC507x::init() {
-#ifdef PRALINE
-    // CRITICAL: Enable RFFC5072 BEFORE any SPI communication!
-    // Without this, SPI writes are ignored when ENX=1 (disabled)
-    gpio_rffc5072_enx.output();
-    gpio_rffc5072_enx.clear();  // ENX=0 (enabled)
-
-    // Small delay for chip to power up
-    chThdSleepMilliseconds(1);
-#else
     gpio_rffc5072_resetx.set();
     gpio_rffc5072_resetx.output();
     reset();
-#endif
 
     _bus.init();
 
@@ -221,12 +211,10 @@ void RFFC507x::reset() {
     /* TODO: Is RESETB pin ignored if sdi_ctrl.sipin=1? Programming guide
      * description of sdi_ctrl.sipin suggests the pin is not ignored.
      */
-#ifndef PRALINE
     gpio_rffc5072_resetx.clear();
     halPolledDelay(ticks_during_reset);
     gpio_rffc5072_resetx.set();
     halPolledDelay(ticks_after_reset);
-#endif
 }
 
 void RFFC507x::flush() {
@@ -299,8 +287,6 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     const SynthConfig synth_config = SynthConfig::calculate(lo_frequency);
 
 #ifdef PRALINE
-    // Ensure RFFC5072 is enabled before SPI writes
-    gpio_rffc5072_enx.clear();  // ENX=0 (enabled)
 
     // Calculate VCO frequency from LO frequency and divider
     const size_t lo_divider = 1U << synth_config.lo_divider_log2;  // 2^lodiv_log2

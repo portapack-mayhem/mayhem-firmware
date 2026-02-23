@@ -2104,9 +2104,7 @@ void GPIODebugView::refresh() {
 RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
     : nav_(nav) {
     add_children({
-        &text_title,
-        &text_lbl_lock,
-        &text_lock,
+        &text_gpio4,
         &text_ctrl,
         &text_lbl_enabled,
         &text_enabled,
@@ -2129,25 +2127,133 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_calc,
         &text_calc,
         &text_status,
-        &text_lbl_regs_status,
+        &text_status2,
+        &text_status3,
         &text_regs_status,
         &button_refresh,
-        &button_force_enx,
+        &button_force,
         &button_done,
     });
-
-    text_title.set_style(Theme::getInstance()->fg_yellow);
 
     button_refresh.on_select = [this](Button&) {
         refresh_status();
     };
 
-    button_force_enx.on_select = [this](Button&) {
+    button_force.on_select = [this](Button&) {
         // Force ENX to OUTPUT and drive LOW
-        LPC_GPIO->DIR[2] |= (1 << 13);  // Set as OUTPUT
-        LPC_GPIO->CLR[2] = (1 << 13);   // Drive LOW (enabled)
+        // LPC_GPIO->DIR[2] |= (1 << 13);  // Set as OUTPUT
+        // LPC_GPIO->CLR[2] = (1 << 13);   // Drive LOW (enabled)
 
-        refresh_status();
+        // refresh_status();
+
+        // Disable RFFC5072
+        // uint32_t r0 = radio::debug::first_if::register_read(0);
+        // radio::debug::first_if::register_write(0, r0 & ~0x0010);  // Clear ENBL
+
+        // Wait 1ms
+        // chThdSleepMilliseconds(1);
+
+        // Re-enable - this triggers new calibration
+        // radio::debug::first_if::register_write(0, r0 | 0x0010);  // Set ENBL
+
+        // Wait for calibration
+        // chThdSleepMilliseconds(10);
+
+        // refresh_status();
+
+        // Force lodiv=4 (log2=2) instead of lodiv=2 (log2=1)
+        // This gives VCO = LO × 4 = 2595 × 4 = 10380 MHz - TOO HIGH!
+
+        // Actually, we need lodiv=1 which gives VCO = 2595 MHz - TOO LOW (below 2700)
+
+        // Let's try a different approach: manually write registers for VCO ~ 3500 MHz
+        // LO = 3500/2 = 1750 MHz (not useful for FM, but tests if VCO can lock)
+
+        // VCO = 3500 MHz, lodiv=2, presc=2, f_ref=40
+        // N = (VCO × presc) / f_ref = (3500 × 2) / 40 = 175
+
+        // Write P2_FREQ1: N=175, lodiv=1 (log2), presc=1 (log2)
+        // uint16_t p2_freq1 = (175 << 7) | (1 << 4) | (1 << 2);
+        // radio::debug::first_if::register_write(15, p2_freq1);
+
+        // Clear fractional part
+        // radio::debug::first_if::register_write(16, 0);
+        // radio::debug::first_if::register_write(17, 0);
+
+        // Trigger recalibration by toggling ENBL
+        // uint32_t r0 = radio::debug::first_if::register_read(0);
+        // radio::debug::first_if::register_write(0, r0 & ~0x0010);
+        // chThdSleepMilliseconds(1);
+        // radio::debug::first_if::register_write(0, r0 | 0x0010);
+        // chThdSleepMilliseconds(20);
+
+        // refresh_status();
+
+        // Test SPI SDATA direction switching
+        // PRALINE: SDATA = P9_2 = GPIO4[14]
+
+        // Check current direction
+        uint32_t dir_before = LPC_GPIO->DIR[4];
+        bool sdata_output_before = (dir_before >> 14) & 1;
+
+        // Try a register read
+        uint32_t dummy = radio::debug::first_if::register_read(0);
+        (void)dummy;
+
+        // Check direction after read
+        uint32_t dir_after = LPC_GPIO->DIR[4];
+        bool sdata_output_after = (dir_after >> 14) & 1;
+
+        // Read the actual SDATA pin state
+        uint32_t pin_state = LPC_GPIO->PIN[4];
+        bool sdata_pin = (pin_state >> 14) & 1;
+
+        text_status.set("SDATA: dir_b=" + to_string_dec_uint(sdata_output_before) +
+                        " dir_a=" + to_string_dec_uint(sdata_output_after) +
+                        " pin=" + to_string_dec_uint(sdata_pin) + "        ");
+
+        // If both are 1 (OUTPUT), the read direction switch isn't happening
+        // if (sdata_output_before && sdata_output_after) {
+        //    text_status2.set("ERROR: SDATA stuck as OUTPUT!            ");
+        //    text_status2.set_style(Theme::getInstance()->fg_red);
+        //} else {
+        //    text_status2.set("SDATA direction OK            ");
+        //    text_status2.set_style(Theme::getInstance()->fg_green);
+        //}
+
+        // Test: Write a known pattern to register 0, then read back
+        // Register 0 (DEV_CTRL) default = 0xBEFA
+
+        // Step 1: Read current value
+        uint32_t before = radio::debug::first_if::register_read(0);
+
+        // Step 2: Write a different value (change ENBL bit to toggle)
+        uint32_t test_val = before ^ 0x0010;  // Toggle ENBL bit
+        radio::debug::first_if::register_write(0, test_val);
+
+        // Step 3: Read back
+        uint32_t after = radio::debug::first_if::register_read(0);
+
+        // Step 4: Restore original
+        radio::debug::first_if::register_write(0, before);
+
+        // Display results
+        text_status.set("WR TEST: " + to_string_hex(before, 4) +
+                        "->" + to_string_hex(test_val, 4) +
+                        " rb:" + to_string_hex(after, 4));
+
+        // If after == before (not test_val), reads are broken
+        // If after == test_val, reads work
+        if (after == test_val) {
+            text_status2.set("READ-AFTER-WRITE: PASS!          ");
+            text_status2.set_style(Theme::getInstance()->fg_green);
+        } else if (after == before) {
+            text_status2.set("READ-AFTER-WRITE: FAIL (no change)          ");
+            text_status2.set_style(Theme::getInstance()->fg_red);
+        } else {
+            text_status2.set("READ-AFTER-WRITE: CORRUPT " + to_string_hex(after, 4) + "         ");
+            text_status2.set_style(Theme::getInstance()->fg_red);
+        }
     };
 
     button_done.on_select = [&nav](Button&) {
@@ -2163,15 +2269,14 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
-    // === DEBUG: Capture GPIO state BEFORE any operations ===
-    uint32_t gpio2_before = LPC_GPIO->PIN[2];
-    bool enx_before = (gpio2_before >> 13) & 1;
+    // === DIAGNOSTIC: Capture initial GPIO state ===
+    uint32_t gpio2_initial = LPC_GPIO->PIN[2];
+    uint32_t dir2_initial = LPC_GPIO->DIR[2];
+    bool enx_initial = (gpio2_initial >> 13) & 1;
 
-    // === READ RAW GPIO STATES FOR DEBUGGING ===
+    // === READ RAW GPIO STATES FOR DISPLAY ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
-
-    // Check if the pins are even configured as outputs
     bool enx_is_output = (gpio2_dir >> 13) & 1;
     bool resetx_is_output = (gpio2_dir >> 14) & 1;
 
@@ -2179,79 +2284,80 @@ void RFFC5072StatusView::refresh_status() {
     uint32_t gpio6_pin = LPC_GPIO->PIN[6];
     bool rffc_locked = (gpio6_pin >> 25) & 1;
 
-    text_lock.set(rffc_locked ? "LOCKED" : "UNLOCKED");
-    text_lock.set_style(rffc_locked ? Theme::getInstance()->fg_green
-                                    : Theme::getInstance()->fg_red);
-
-    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);  // CTRL register
-    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);  // RX_DECIM
-
-    text_regs_status.set(
-        "FPGA R1:" + to_string_hex(fpga_reg1, 2) +
-        " R2:" + to_string_hex(fpga_reg2, 2));
+    // === FPGA REGISTERS (non-SPI) ===
+    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);
+    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);
+    uint8_t fpga_reg3 = radio::debug::fpga::register_read(3);
+    text_regs_status.set("FPGA R1:" + to_string_hex(fpga_reg1, 2) +
+                         " R2:" + to_string_hex(fpga_reg2, 2) +
+                         " R3:" + to_string_hex(fpga_reg3, 2));
 
     // === CONTROL PINS ===
-    // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
-    // RESETX = GPIO2[14] (P5_5) - active LOW (0 = reset)
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
-
     text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") +
                   " O:" + std::string(enx_is_output ? "Y" : "N") +
-                  " | RST: " + std::string(resetx ? "RUN" : "RST") +
+                  " | RSTX: " + std::string(resetx ? "H" : "L") +
                   " O:" + std::string(resetx_is_output ? "Y" : "N"));
-
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
 
-    // === REGISTERS ===
-    // Read CORRECT registers for Path 2 (active path!)
-    uint32_t r0 = radio::debug::first_if::register_read(0);    // Control
-    uint32_t r15 = radio::debug::first_if::register_read(15);  // P2_FREQ1
-    uint32_t r16 = radio::debug::first_if::register_read(16);  // P2_FREQ2
+    // === DIAGNOSTIC: Check BEFORE first RFFC5072 SPI read ===
+    uint32_t gpio2_before_spi = LPC_GPIO->PIN[2];
+    bool enx_before_spi = (gpio2_before_spi >> 13) & 1;
 
-    // Display
+    // === RFFC5072 REGISTERS (SPI reads - this is where corruption happens) ===
+    uint32_t r0 = radio::debug::first_if::register_read(0);
+
+    // === DIAGNOSTIC: Check AFTER first read ===
+    uint32_t gpio2_after_r0 = LPC_GPIO->PIN[2];
+    bool enx_after_r0 = (gpio2_after_r0 >> 13) & 1;
+
+    uint32_t r15 = radio::debug::first_if::register_read(15);
+
+    // === DIAGNOSTIC: Check AFTER second read ===
+    uint32_t gpio2_after_r15 = LPC_GPIO->PIN[2];
+    bool enx_after_r15 = (gpio2_after_r15 >> 13) & 1;
+
+    uint32_t r16 = radio::debug::first_if::register_read(16);
+
+    // === DIAGNOSTIC: Check AFTER third read ===
+    uint32_t gpio2_final = LPC_GPIO->PIN[2];
+    uint32_t dir2_final = LPC_GPIO->DIR[2];
+    bool enx_final = (gpio2_final >> 13) & 1;
+
+    // === Display register values ===
     text_r0.set(to_string_hex(r0, 4));
     text_r1.set(to_string_hex(r15, 4) + " (R15)");
     text_r2.set(to_string_hex(r16, 4) + " (R16)");
 
-    // Check enabled (R0 bit 4)
     bool enabled = (r0 & 0x0010) != 0;
     text_enabled.set(enabled ? "ENABLED" : "DISABLED");
     text_enabled.set_style(enabled ? Theme::getInstance()->fg_green
                                    : Theme::getInstance()->fg_red);
 
-    // Decode from P2_FREQ1 (R15)
-    uint16_t n_int = (r15 >> 7) & 0x1FF;    // 9 bits
-    uint8_t lodiv_sel = (r15 >> 4) & 0x07;  // 3 bits
-    uint8_t presc_sel = (r15 >> 2) & 0x03;  // 2 bits
-
+    // === Decode frequency info (keeping existing code) ===
+    uint16_t n_int = (r15 >> 7) & 0x1FF;
+    uint8_t lodiv_sel = (r15 >> 4) & 0x07;
+    uint8_t presc_sel = (r15 >> 2) & 0x03;
     text_n.set(to_string_dec_uint(n_int));
 
-    // LO divider: 0=÷2, 1=÷4, 2=÷8, 3=÷16, 4=÷32, 5=÷64
     uint16_t lodiv_val = 1u << lodiv_sel;
     uint16_t presc_val = 1u << presc_sel;
-
     text_lodiv.set("/" + to_string_dec_uint(lodiv_val) +
                    " (P:/" + to_string_dec_uint(presc_val) + ")");
 
-    // Calculate frequencies
     const uint32_t f_ref_mhz = 40;
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
-    // Check ranges
-    // RFFC5072 datasheet: Output 85-4200 MHz, VCO 2700-5400 MHz
     bool vco_ok = (f_vco_mhz >= 2700) && (f_vco_mhz <= 5400);
     bool lo_ok = (f_lo_mhz >= 85) && (f_lo_mhz <= 4200);
-
-    // PRALINE mid-band (2320-2740 MHz) uses direct path, not RFFC5072
     bool in_bypass_range = (f_lo_mhz >= 2320) && (f_lo_mhz <= 2740);
 
-    // Display with range annotation
     if (in_bypass_range) {
         text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz (MID)");
-        text_calc.set_style(Theme::getInstance()->fg_orange);  // Orange = bypass band
+        text_calc.set_style(Theme::getInstance()->fg_orange);
     } else {
         text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
         text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
@@ -2262,38 +2368,93 @@ void RFFC5072StatusView::refresh_status() {
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 
-    // Check mixer mode
     bool path2_active = (r0 & 0x0020) != 0;
     text_path.set(path2_active ? "PATH2" : "PATH1");
     text_mixer.set(path2_active ? "ACTIVE" : "INACTIVE");
     text_mixer.set_style(path2_active ? Theme::getInstance()->fg_green
                                       : Theme::getInstance()->fg_orange);
 
-    // === SUMMARY STATUS ===
-    if (!rffc_locked) {
-        text_status.set("PLL UNLOCKED!");
+    // === DIAGNOSTIC STATUS (replaces normal status) ===
+    // Read register 31 with readsel=0 (device ID)
+    radio::debug::first_if::register_write(0, (r0 & 0xFFF0) | 0x0000);  // readsel=0
+    uint32_t device_id = radio::debug::first_if::register_read(31);
+
+    // Read calibration status (readback register 1)
+    // First, set DEV_CTRL.readsel = 1, then read READBACK register
+    uint32_t dev_ctrl_orig = radio::debug::first_if::register_read(0);  // Save original
+
+    // Write DEV_CTRL with readsel=1 (bits 3:0)
+    radio::debug::first_if::register_write(0, (dev_ctrl_orig & 0xFFF0) | 0x0001);
+
+    // Now read the READBACK register (register address for readback)
+    uint32_t cal_status = radio::debug::first_if::register_read(31);  // READBACK is at reg 31
+
+    // Decode calibration status:
+    // Bit 15: lock (should be 1)
+    // Bits 14:8: ct_cal (coarse tune calibration value, 0-127)
+    // Bits 7:1: cp_cal (charge pump calibration value)
+    // Bit 0: ctfail (1 = calibration FAILED)
+
+    bool lock_bit = (cal_status >> 15) & 1;
+    uint8_t ct_cal = (cal_status >> 8) & 0x7F;
+    uint8_t cp_cal = (cal_status >> 1) & 0x7F;
+    bool ct_fail = cal_status & 1;
+
+    // Add to refresh_status():
+    uint32_t r6 = radio::debug::first_if::register_read(6);
+    uint32_t r5 = radio::debug::first_if::register_read(5);
+    uint32_t r3 = radio::debug::first_if::register_read(3);  // VCO_CTRL
+
+    // Check SDATA (GPIO4[14]) direction
+    uint32_t gpio4_dir = LPC_GPIO->DIR[4];
+    bool sdata_is_output = (gpio4_dir >> 14) & 1;
+    text_gpio4.set("GPIO4 DIR: " + to_string_hex(gpio4_dir, 8) +
+                   " SDATA=" + std::string(sdata_is_output ? "OUT" : "IN"));
+
+    // Display these values
+    text_status2.set("CAL ct=" + to_string_dec_uint(ct_cal) +
+                     " cp=" + to_string_dec_uint(cp_cal) +
+                     (ct_fail ? " FAIL!" : " OK") +
+                     " lck_b=" + to_string_dec_uint(lock_bit));
+    text_status3.set("R3:" + to_string_hex(r3, 4) +
+                     " R5:" + to_string_hex(r5, 4) +
+                     " R6:" + to_string_hex(r6, 4));
+
+    if (enx_initial != enx_final || dir2_initial != dir2_final) {
+        // ENX or DIR changed - report which operation caused it
+        std::string diag = "CHG: ";
+        if (enx_initial != enx_before_spi) diag += "pre ";
+        if (enx_before_spi != enx_after_r0) diag += "R0 ";
+        if (enx_after_r0 != enx_after_r15) diag += "R15 ";
+        if (enx_after_r15 != enx_final) diag += "R16 ";
+        diag += std::to_string(enx_initial) + "->" + std::to_string(enx_final);
+
+        if (dir2_initial != dir2_final) {
+            diag += " DIR!";
+        }
+
+        text_status.set(diag);
         text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (enx == 1) {
-        text_status.set("DISABLED (ENX=1)!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (resetx == 0) {
-        text_status.set("IN RESET (RESETX=0)!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!enabled) {
-        text_status.set("R0 bit 4 = 0 (disabled)");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!path2_active) {
-        text_status.set("Path 2 not selected!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!vco_ok) {
-        text_status.set("VCO out of range!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!lo_ok) {
-        text_status.set("LO out of range!");
-        text_status.set_style(Theme::getInstance()->fg_red);
+
+        // Blink LED
+        /*for (int i = 0; i < 3; i++) {
+            hackrf::one::led_rx.on();
+            chThdSleepMilliseconds(100);
+            hackrf::one::led_rx.off();
+            chThdSleepMilliseconds(100);
+        }*/
     } else {
-        text_status.set("All checks passed!");
-        text_status.set_style(Theme::getInstance()->fg_green);
+        // No change - normal status
+        if (!rffc_locked) {
+            text_status.set("ID 0x" + to_string_hex(device_id, 4) + " PLL UNLOCKED!");
+            text_status.set_style(Theme::getInstance()->fg_red);
+        } else if (enx == 1) {
+            text_status.set("ID 0x" + to_string_hex(device_id, 4) + " DSBLD,ENX=1!");
+            text_status.set_style(Theme::getInstance()->fg_red);
+        } else {
+            text_status.set("ID 0x" + to_string_hex(device_id, 4) + " Passed!");
+            text_status.set_style(Theme::getInstance()->fg_green);
+        }
     }
 }
 
