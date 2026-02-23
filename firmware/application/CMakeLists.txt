@@ -305,7 +305,6 @@ set(CPPSRC
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_playlist.cpp
-	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
