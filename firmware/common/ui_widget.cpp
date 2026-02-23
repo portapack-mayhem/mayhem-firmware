@@ -1268,7 +1268,7 @@ bool ButtonWithEncoder::on_encoder(const EncoderEvent delta) {
     if (delta != 0) {
         encoder_delta += delta;
         delta_change = true;
-        on_change();
+        if (on_change) on_change();
     } else
         delta_change = 0;
     return true;
