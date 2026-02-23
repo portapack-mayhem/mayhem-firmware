@@ -26,7 +26,7 @@
 
 namespace ui::external_app::pocsag_tx {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<MorseView>();
+    nav.push<POCSAGTXView>();
 }
 }  // namespace ui::external_app::pocsag_tx
 
