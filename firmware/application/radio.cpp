@@ -297,9 +297,6 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         }
 
         ssp1_arbiter.invalidate();
-
-        // Log this value somewhere you can see it
-        uint32_t written_r15 = first_if.read(15);
 #else
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #endif
