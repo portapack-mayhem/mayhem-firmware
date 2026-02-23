@@ -31,7 +31,7 @@
 using namespace portapack;
 using namespace pocsag;
 
-namespace ui {
+namespace ui::external_app::pocsag_tx {
 
 #define MAX_POCSAG_LENGTH 80
 
@@ -205,4 +205,4 @@ POCSAGTXView::POCSAGTXView(
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::pocsag_tx */
