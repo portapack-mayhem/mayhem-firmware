@@ -24,13 +24,6 @@
 // Declare wrapper function. board.cpp to avoid conflicting gpio_t definitions.
 bool hackrf_r9;
 
-// Declare the bridge function (no need to include HackRF headers here)
-#ifdef PRALINE
-extern "C" {
-    int fpga_bridge_init(void);
-}
-#endif
-
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /**
  * @brief   PAL setup.
@@ -1043,10 +1036,8 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[1][0] = 0xF6;   /* SGPIO7: P1_0 function 6, HOST_DATA7 */
   { volatile uint32_t delay = 200000; while(delay--); }
 
-  // Trigger FPGA bitstream loading via fpga bridge
-  // Attempt to load the FPGA bitstream
-  // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
-  // Use LEDs to check if initi is successful. 
+  // Trigger FPGA bitstream loading via fpga bridge in portapack.cpp
+  // Use LEDs to check if boardInit initialization is successful. 
   
   // Setup LED pin directions
   // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
@@ -1057,14 +1048,6 @@ extern "C" void boardInit(void) {
   LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
   { volatile uint32_t delay = 200000; while(delay--); }
 
-  // Call fpga_bridge_init and continue boot regardless of result
-  // (Watchdog was resetting device when we halted with while(1))
-  int load_result = fpga_bridge_init();
-  (void)load_result;  // Ignore result for now, just let boot continue
-  { volatile uint32_t delay = 200000; while(delay--); }
-
-  // Keep LEDs off after FPGA load
-  LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
 #endif
 
 }

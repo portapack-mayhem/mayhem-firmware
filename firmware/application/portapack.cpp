@@ -58,6 +58,10 @@ using asahi_kasei::ak4951::AK4951;
 
 extern "C" {
 #include "platform_detect.h"
+
+#ifdef PRALINE
+    int fpga_bridge_init(void);
+#endif
 }
 
 namespace portapack {
@@ -547,6 +551,12 @@ static void initialize_boot_splash_screen() {
  */
 
 init_status_t init() {
+#ifdef PRALINE
+    /* 1. HOLD FPGA IN RESET (Active Low) */
+    // P2_11 is GPIO1[11]
+    palClearPad(GPIO1, 11);
+#endif
+
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
@@ -578,6 +588,25 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     clock_manager.init_clock_generator();
+
+#ifdef PRALINE
+    // Force CLK4/CLK5 configuration BEFORE I2C bus stops
+    // This ensures the inversion bits are written while I2C is still active
+
+    // CLK4 (MAX2831): ON, Integer, PLLA, INVERTED, MS_Self, 4mA = 0x5D
+    clock_manager.si5351_write_register(20, 0x5D);
+
+    // CLK5 (RFFC5072): ON, Integer, PLLA, INVERTED, MS_Self, 6mA = 0x5E
+    clock_manager.si5351_write_register(21, 0x5E);
+
+    // Enable CLK4 and CLK5 outputs NOW (before I2C stops)
+    uint8_t reg3 = clock_manager.si5351_read_register(3);
+    reg3 &= ~0x30;  // Clear bits 4 and 5 to enable
+    clock_manager.si5351_write_register(3, reg3);
+
+    // Wait for clocks to stabilize
+    chThdSleepMilliseconds(10);
+#endif
 
     i2c0.stop();
 
@@ -637,9 +666,6 @@ init_status_t init() {
 
         return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
-#else
-    // HackRF Pro (PRALINE) uses FPGA - already loaded in board.cpp __early_init()
-    // via fpga_bridge_init(), so nothing to do here
 #endif
 
     if (lcd_fast_setup)
@@ -663,6 +689,23 @@ init_status_t init() {
         portapack::display.init();
         portapack::backlight()->on();
     }
+
+#ifdef PRALINE
+    /* 4. RELEASE FPGA RESET */
+    // FPGA wakes up and latches the stable 40MHz CLK1
+    palSetPad(GPIO1, 11);
+
+    chThdSleepMilliseconds(10);
+
+    // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
+    // Call fpga_bridge_init and continue boot regardless of result
+    // (Watchdog was resetting device when we halted with while(1))
+    int load_result = fpga_bridge_init();
+    (void)load_result;  // Ignore result for now, just let boot continue
+    { volatile uint32_t delay = 200000; while(delay--); }
+    // Keep LEDs off after FPGA load
+    LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
+#endif 
 
     return return_code;
 }
