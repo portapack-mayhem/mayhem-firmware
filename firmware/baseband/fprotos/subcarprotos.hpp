@@ -28,8 +28,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 
 class SubCarProtos : public FProtoListGeneral {
    public:
-    SubCarProtos(const SubCarProtos&) { SubCarProtos(); };          // won't use, but makes compiler happy
-    SubCarProtos& operator=(const SubCarProtos&) { return *this; }  // won't use, but makes compiler happy
+    SubCarProtos(const SubCarProtos&) = delete;             // won't use, but makes compiler happy
+    SubCarProtos& operator=(const SubCarProtos&) = delete;  // won't use, but makes compiler happy
     SubCarProtos() {
         // add protos
         protos[FPC_SUZUKI] = new FProtoSubCarSuzuki();

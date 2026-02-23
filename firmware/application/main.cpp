@@ -91,7 +91,7 @@ Continuous (Fox-oring)
 // TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
 // TODO: RDS multiple groups (sequence)
 // TODO: Use ModalMessageView confirmation for TX ?
-// TODO: Use msgpack for settings, lists... on sd card
+// TODO: Use msgpack for settings, lists... on sd card. and make it safe, since now it has a lot of oob potentials
 
 // Multimon-style stuff:
 // TODO: DMR detector

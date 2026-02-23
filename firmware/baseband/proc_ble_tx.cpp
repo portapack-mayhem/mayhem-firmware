@@ -195,7 +195,7 @@ void BTLETxProcessor::scramble(char* bit_in, int num_bit, int channel_number, ch
 void BTLETxProcessor::disp_bit_in_hex(char* bit, int num_bit) {
     int i, a;
 
-    for (i = 0; i < num_bit; i = i + 8) {
+    for (i = 0; i + 7 < num_bit; i = i + 8) {
         a = bit[i] + bit[i + 1] * 2 + bit[i + 2] * 4 + bit[i + 3] * 8 + bit[i + 4] * 16 + bit[i + 5] * 32 + bit[i + 6] * 64 + bit[i + 7] * 128;
 
         data_message.is_data = true;

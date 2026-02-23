@@ -36,8 +36,11 @@ WipeSDView::WipeSDView(NavigationView& nav)
 }
 
 WipeSDView::~WipeSDView() {
-    if (thread)
+    if (thread) {
         chThdTerminate(thread);
+        chThdWait(thread);
+        thread = nullptr;
+    }
 }
 
 void WipeSDView::focus() {
