@@ -272,9 +272,8 @@ void View::add_child(Widget* const widget) {
 }
 
 void View::add_children(const std::initializer_list<Widget*> children) {
-    children_.insert(std::end(children_), children);
     for (auto child : children) {
-        child->set_parent(this);
+        add_child(child);
     }
 }
 
