@@ -312,6 +312,10 @@ set(EXTCPPSRC
     #pocsag_tx
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
+
+    #pocsag_tx
+	external/subghzd/main.cpp
+	external/subghzd/ui_subghzd.cpp
 )
 
 set(EXTAPPLIST
@@ -390,6 +394,7 @@ set(EXTAPPLIST
 	rtty_rx
 	rtty_tx
 	pocsag_tx
+	subghzd
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
