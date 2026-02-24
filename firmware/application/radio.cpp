@@ -156,7 +156,7 @@ void init() {
 #ifdef PRALINE
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
     // debug::fpga::init();
-    // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation. 
+    // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
     fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, QUARTER_SHIFT=1, Q_INVERT=0
     fpga_debug_register_write(2, 0x03);  // RX_DECIM=8 (2^3 decimation for testing 20 MHz -> 2.5 MHz with audio for now)
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
@@ -210,7 +210,7 @@ void set_direction(const rf::Direction new_direction) {
 
 #ifdef PRALINE
 
-    // This FPGA registers fix DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation. 
+    // This FPGA registers fix DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
     fpga_debug_register_write(1, 0x03);  // DC_BLOCK, Q-Inv, no-QUARTER_SHIFT.
     fpga_debug_register_write(2, 0x03);  // RX_DECIM=8 (2^3 decimation for testing 20 MHz -> 2.5 MHz with audio for now)
 
