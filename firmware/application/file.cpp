@@ -231,7 +231,7 @@ static std::filesystem::path increment_filename_ordinal(
     const std::filesystem::path& path,
     pattern_range range) {
     auto name = path.filename().native();
-    if (range.end == 0 || range.start == std::string::npos || range.end == std::string::npos || range.start > range.end) return {name};
+    if (range.start == std::string::npos || range.end == std::string::npos || range.start > range.end) return {name};
     for (auto i = range.end; i >= range.start; --i) {
         auto& c = name[i];
 
