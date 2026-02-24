@@ -308,7 +308,6 @@ set(CPPSRC
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_search.cpp
 	apps/ui_settings.cpp
 	apps/ui_sonde.cpp
 	apps/ui_ss_viewer.cpp
