@@ -201,12 +201,12 @@ void BtnGridView::show_hide_arrows() {
 
 void BtnGridView::reload_items() {
     menu_items.clear();
-    on_populate();     
-    offset = 0;        
+    on_populate();
+    offset = 0;
     highlighted_item = 0;
-    update_items();      
-    show_hide_arrows();  
-    
+    update_items();
+    show_hide_arrows();
+
     if (visible() && !menu_items.empty()) {
         item_view(0)->focus();
     }
