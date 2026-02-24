@@ -438,6 +438,50 @@ class RadioDiagnosticsView : public View {
         "Done"};
 };
 
+#ifdef PRALINE
+/* Praline-Specific Radio Debug View
+ * Monitors Mixer Lock, SPI Bit Depth, and toggles Si5351 CLK5
+ */
+class PralineRadioDebugView : public View {
+   public:
+    PralineRadioDebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Pro Radio Debug"; };
+
+   private:
+    void refresh();
+    void toggle_clk5();
+
+    Text text_title{{0, 0, 240, 16}, "=== Pro Radio Debug ==="};
+
+    // Mixer Lock (PD_11 / GPIO6[25])
+    Text text_lbl_lock{{0, 24, 124, 16}, "Mix Lock (LD):"};
+    Text text_lock_status{{126, 24, 114, 16}, "---"};
+
+    // Si5351 CLK5 (Mixer Reference)
+    Text text_lbl_clk5{{0, 40, 124, 16}, "Si5351 CLK5(Mix):"};
+    Text text_clk5_status{{126, 40, 114, 16}, "---"};
+
+    // SPI Bus configuration check
+    Text text_lbl_spi{{0, 56, 124, 16}, "SPI Bit Mode:"};
+    Text text_spi_status{{126, 56, 118, 16}, "---"};
+
+    // FPGA DC Block (Reg 1)
+    Text text_lbl_fpga_ctrl{{0, 72, 124, 16}, "FPGA Reg 1:"};
+    Text text_fpga_ctrl{{126, 72, 118, 16}, "---"};
+
+    // VAA Power Rail (P8_1 / GPIO4[1])
+    Text text_lbl_vaa{{0, 88, 124, 16}, "VAA RF Power:"};
+    Text text_vaa_status{{126, 88, 118, 16}, "---"};
+
+    Text text_status_msg{{0, 110, 240, 48}, ""};
+
+    Button button_refresh{{8, 240, 72, 24}, "Refresh"};
+    Button button_toggle_clk5{{88, 240, 72, 24}, "CLK5_T"};
+    Button button_done{{168, 240, 64, 24}, "Done"};
+};
+#endif
+
 /* BasebandStatusView ***************************************************/
 
 class BasebandStatusView : public View {

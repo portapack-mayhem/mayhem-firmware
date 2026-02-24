@@ -691,10 +691,6 @@ init_status_t init() {
     }
 
 #ifdef PRALINE
-    /* 4. RELEASE FPGA RESET */
-    // FPGA wakes up and latches the stable 40MHz CLK1
-    palSetPad(GPIO1, 11);
-
     chThdSleepMilliseconds(10);
 
     // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
@@ -708,6 +704,9 @@ init_status_t init() {
     }
     // Keep LEDs off after FPGA load
     LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
+    /* RELEASE FPGA RESET */
+    // FPGA wakes up and latches the stable 40MHz CLK1
+    palSetPad(GPIO1, 11);
 #endif
 
     return return_code;

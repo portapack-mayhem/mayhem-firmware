@@ -515,6 +515,81 @@ void RadioDiagnosticsView::update_status() {
     }
 }
 
+#ifdef PRALINE
+PralineRadioDebugView::PralineRadioDebugView(NavigationView& nav) {
+    add_children({&text_title, &text_lbl_lock, &text_lock_status,
+                  &text_lbl_clk5, &text_clk5_status,
+                  &text_lbl_spi, &text_spi_status, &text_lbl_fpga_ctrl, &text_fpga_ctrl,
+                  &text_lbl_vaa, &text_vaa_status, &text_status_msg,
+                  &button_refresh, &button_toggle_clk5, &button_done});
+
+    button_refresh.on_select = [this](Button&) { this->refresh(); };
+    button_toggle_clk5.on_select = [this](Button&) { this->toggle_clk5(); };
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    refresh();
+}
+
+void PralineRadioDebugView::focus() {
+    button_refresh.focus();
+}
+
+void PralineRadioDebugView::toggle_clk5() {
+    // Si5351 Register 3 is the Output Enable mask. Bit 5 = CLK5.
+    // 0 = Enabled, 1 = Disabled.
+    uint8_t reg3 = portapack::clock_manager.si5351_read_register(3);
+    reg3 ^= 0x20;  // Toggle Bit 5 (CLK5)
+    portapack::clock_manager.si5351_write_register(3, reg3);
+    refresh();
+}
+
+void PralineRadioDebugView::refresh() {
+    // 1. Check Mixer Lock Detect (GPIO6[25] / PD_11) [cite: 16, 17]
+    uint32_t gpio6_state = LPC_GPIO->PIN[6];
+    bool locked = (gpio6_state >> 25) & 1;
+    text_lock_status.set(locked ? "LOCKED (OK)" : "UNLOCKED!");
+    text_lock_status.set_style(locked ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 2. Check Si5351 CLK5 Status (Reg 3, Bit 5) - 0 = ON, 1 = OFF
+    uint8_t si_reg3 = portapack::clock_manager.si5351_read_register(3);
+    bool clk5_on = !(si_reg3 & 0x20);
+    text_clk5_status.set(clk5_on ? "ON (40MHz)" : "OFF");
+    text_clk5_status.set_style(clk5_on ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 3. Check SPI Bit Mode (SSP1 CR0)
+    // DSS (Data Size Select) is Bit 3:0. 0x8 = 9-bit (MAX2831), 0xF = 16-bit (Classic)
+    uint32_t cr0 = LPC_SSP1->CR0;
+    uint8_t dss = cr0 & 0x0F;
+    if (dss == 0x08)
+        text_spi_status.set("9-Bit (Pro)");
+    else
+        text_spi_status.set("Other (Err)");
+    text_spi_status.set_style((dss == 0x08) ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 4. Check FPGA Register 1 (DC Block status) [cite: 12, 13]
+    uint8_t fpga_r1 = radio::debug::fpga::register_read(1);
+    text_fpga_ctrl.set(to_string_hex(fpga_r1, 2));
+
+    // 5. Check VAA RF Power (GPIO4[1] / P8_1) - Active LOW [cite: 16, 17]
+    uint32_t gpio4_state = LPC_GPIO->PIN[4];
+    bool vaa_on = !((gpio4_state >> 1) & 1);
+    text_vaa_status.set(vaa_on ? "ON" : "OFF");
+    text_vaa_status.set_style(vaa_on ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Diagnostic Summary
+    if (!locked && clk5_on && vaa_on) {
+        text_status_msg.set("Clock/Pwr OK. PLL No Lock.        \nCheck tuning registers.");
+        text_status_msg.set_style(Theme::getInstance()->fg_red);
+    } else if (!clk5_on) {
+        text_status_msg.set("Mixer Clock is OFF.           \nPLL cannot lock.");
+        text_status_msg.set_style(Theme::getInstance()->fg_red);
+    } else {
+        text_status_msg.set("Hardware Link Active.");
+        text_status_msg.set_style(Theme::getInstance()->fg_green);
+    }
+}
+#endif
+
 /* BasebandStatusView ******************************************************/
 
 BasebandStatusView::BasebandStatusView(NavigationView& nav)
@@ -2748,6 +2823,7 @@ void DebugMenuView::on_populate() {
 #ifdef PRALINE
         {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
+        {"ProRadio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
