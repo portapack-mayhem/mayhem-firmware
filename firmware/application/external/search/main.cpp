@@ -77,7 +77,7 @@ __attribute__((section(".external_app.app_search.application_information"), used
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_tones */ {'P', 'S', 'P', 'E'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_wideband_spectrum */ {'P', 'S', 'P', 'E'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
