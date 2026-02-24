@@ -200,9 +200,16 @@ void BtnGridView::show_hide_arrows() {
 }
 
 void BtnGridView::reload_items() {
-    clear();
-    update_items();
-    on_populate();
+    menu_items.clear();
+    on_populate();     
+    offset = 0;        
+    highlighted_item = 0;
+    update_items();      
+    show_hide_arrows();  
+    
+    if (visible() && !menu_items.empty()) {
+        item_view(0)->focus();
+    }
 }
 
 void BtnGridView::update_items() {
@@ -299,7 +306,7 @@ void BtnGridView::on_blur() {
 }
 
 void BtnGridView::on_show() {
-    sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status status) {
+    sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status /*status*/) {
         this->reload_items();
     };
 
