@@ -31,7 +31,7 @@
 using namespace portapack;
 namespace pmem = portapack::persistent_memory;
 
-namespace ui {
+namespace ui::external_app::search {
 
 void SearchLogger::log_data(SearchRecentEntry& data) {
     log_file.write_entry(";" + to_string_short_freq(data.frequency) + ";" + std::to_string(data.duration));
@@ -404,4 +404,4 @@ void SearchView::add_spectrum_pixel(Color color) {
         spectrum_row[pixel_index++] = color;
 }
 
-} /* namespace ui */
+} /* namespace uiui::external_app::search */
