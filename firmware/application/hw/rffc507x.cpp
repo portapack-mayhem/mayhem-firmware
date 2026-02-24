@@ -65,7 +65,11 @@ constexpr halrtcnt_t ticks_during_reset = (base_m4_clk_f * seconds_during_reset 
 constexpr float seconds_after_reset = 5.0e-6;
 constexpr halrtcnt_t ticks_after_reset = (base_m4_clk_f * seconds_after_reset + 1);
 
+#ifdef PRALINE
+constexpr rf::Frequency reference_frequency = 40000000ULL;
+#else
 constexpr auto reference_frequency = rffc5072_reference_f;
+#endif
 
 namespace vco {
 
@@ -114,31 +118,9 @@ constexpr size_t divider_min = 1U << divider_log2_min;
 constexpr size_t divider_max = 1U << divider_log2_max;
 
 constexpr size_t divider_log2(const rf::Frequency vco_frequency) {
-#ifdef PRALINE
-    // PRALINE FIX: Avoid N register overflow (9-bit max = 511)
-    // With 40 MHz reference:
-    // - For VCO=5400 MHz, presc=÷2: N = (5400×2)/40 = 270 ✓
-    // - For VCO=5400 MHz, presc=÷4: N = (5400×4)/40 = 540 ✗ OVERFLOW!
-    //
-    // Maximum safe VCO for ÷4 prescaler:
-    // N_max = 511, so VCO_max = (511 × 40) / 4 = 5110 MHz
-    //
-    // Use ÷4 only if VCO < 5110 MHz AND VCO > 3200 MHz
-    // Use ÷2 for VCO >= 5110 MHz to avoid overflow
-
-    constexpr rf::Frequency overflow_threshold = 5110000000ULL;  // Max VCO for ÷4
-    constexpr rf::Frequency min_presc4_freq = 3200000000ULL;     // Min VCO for ÷4
-
-    if ((vco_frequency > min_presc4_freq) && (vco_frequency < overflow_threshold)) {
-        return divider_log2_max;  // ÷4 prescaler
-    } else {
-        return divider_log2_min;  // ÷2 prescaler
-    }
-#else
     return (vco_frequency > (prescaler::divider_min * prescaler::max_frequency))
                ? prescaler::divider_log2_max
                : prescaler::divider_log2_min;
-#endif
 }
 
 } /* namespace prescaler */
@@ -161,11 +143,7 @@ struct SynthConfig {
 
         const size_t prescaler_divider_log2 = prescaler::divider_log2(vco_frequency);
 
-#ifndef PRALINE
         const uint64_t prescaled_lo_q24 = vco_frequency << (24 - prescaler_divider_log2);
-#else
-        const uint64_t prescaled_lo_q24 = vco_frequency << (24 + prescaler_divider_log2);
-#endif
         const uint64_t n_divider_q24 = prescaled_lo_q24 / reference_frequency;
 
 #ifdef PRALINE

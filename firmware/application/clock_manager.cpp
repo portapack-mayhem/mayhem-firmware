@@ -246,11 +246,11 @@ constexpr ClockControls si5351a_clock_control_common{{
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
     // CLK3: CLKOUT (optional) SMA Port P1
     {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-    // CLK4: PRALINE RFFC5072 reference (40 MHz) - INVERTED, 6mA, Integer mode
+    // CLK4: PRALINE MAX2831 reference (40 MHz) - INVERTED per hackrf_usb, 4mA, Integer mode
+    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+    // CLK5: PRALINE RFFC5072 reference (40 MHz) - INVERTED, 6mA, Integer mode
     // This matches HackRF One OG configuration for RFFC5072
     {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-    // CLK5: PRALINE MAX2831 reference (40 MHz) - INVERTED per hackrf_usb, 4mA, Integer mode
-    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
     // CLK6: SMA Port P2
     {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
 #else
@@ -401,8 +401,8 @@ void ClockManager::init_clock_generator() {
     /* PRALINE uses Si5351A with:
      * CLK0 = AFE_CLK (codec/FPGA sample clock)
      * CLK1 = SCT_CLK (FPGA timing clock at 2x sample rate)
-     * CLK4 = first IF (RFFC5072)
-     * CLK5 = second IF (MAX2831)
+     * CLK4 = second IF (MAX2831)
+     * CLK5 = first IF (RFFC5072)
      * Uses PLLA on XTAL only (no CLKIN support).
      */
 
@@ -489,6 +489,21 @@ void ClockManager::init_clock_generator() {
 
     // CRITICAL: Add delay to ensure Si5351 writes complete before I2C bus stops
     chThdSleepMilliseconds(100);
+
+    // ===== ADD THIS SAFETY BLOCK =====
+    // Pre-configure CLK4/CLK5 with correct settings including inversion.
+    // This ensures the registers have correct values even if enable_if_clocks()
+    // is not called or fails. The clocks will still be powered off until
+    // enable_if_clocks() enables the outputs.
+
+    // CLK5: OFF (for now), Integer, PLLA, INVERTED, MS_Self, 6mA = 0xDE
+    // (Same as 0x5E but with bit 7 set for power off)
+    clock_generator.write_register(21, 0xDE);
+
+    // CLK4: OFF (for now), Integer, PLLA, INVERTED, MS_Self, 4mA = 0xDD
+    clock_generator.write_register(20, 0xDD);
+    // ===== END SAFETY BLOCK =====
+
 #else
     // Wait for PLL(s) to lock - with timeout to prevent hang
     uint8_t device_status_mask = hackrf_r9
@@ -496,14 +511,8 @@ void ClockManager::init_clock_generator() {
                                  : (ref_pll == ClockControl::MultiSynthSource::PLLB)
                                      ? 0x40
                                      : 0x20;
-#ifndef PRALINE
+
     while ((clock_generator.device_status() & device_status_mask) != 0);
-#else
-    uint32_t pll_timeout = 100000;
-    while ((clock_generator.device_status() & device_status_mask) != 0 && pll_timeout > 0) {
-        pll_timeout--;
-    }
-#endif
 
     clock_generator.set_clock_control(
         clock_generator_output_mcu_clkin,
@@ -579,11 +588,11 @@ void ClockManager::enable_codec_clocks() {
 #ifdef PRALINE
     /* PRALINE: CLK0 (AFE_CLK) for codec/FPGA, CLK1 (SCT_CLK) for FPGA timing.
      * Reference hackrf_core.c shows PRALINE needs both CLK0 and CLK1. */
-    clock_generator.enable_clock(clock_generator_output_og_codec); /* CLK0 */
-    clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 */
+    clock_generator.enable_clock(clock_generator_output_og_codec); /* CLK0 MAX5864*/
+    clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 iCE40 FPGA*/
+    clock_generator.enable_clock(clock_generator_output_og_sgpio); /* CLK2 LPC43xx*/
     clock_generator.enable_output_mask(
-        (1U << clock_generator_output_og_codec) |
-        (1U << clock_generator_output_og_cpld));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
 #else
     if (hackrf_r9) {
         clock_generator.enable_clock(clock_generator_output_r9_sgpio);
@@ -611,12 +620,12 @@ void ClockManager::disable_codec_clocks() {
      * CLKx_DISABLE_STATE.
      */
 #ifdef PRALINE
-    /* PRALINE: CLK0 (AFE_CLK) and CLK1 (SCT_CLK) used for codec/FPGA */
+    /* PRALINE: CLK0 (AFE_CLK), CLK1 (SCT_CLK), and CLK2 MCU used for codec/FPGA */
     clock_generator.disable_output_mask(
-        (1U << clock_generator_output_og_codec) |
-        (1U << clock_generator_output_og_cpld));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
     clock_generator.disable_clock(clock_generator_output_og_codec);
     clock_generator.disable_clock(clock_generator_output_og_cpld);
+    clock_generator.disable_clock(clock_generator_output_og_sgpio);
 #else
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_sgpio);
@@ -633,7 +642,28 @@ void ClockManager::disable_codec_clocks() {
 
 void ClockManager::enable_if_clocks() {
 #ifdef PRALINE
-    /* PRALINE uses CLK4 (first IF) and CLK5 (second IF) like original HackRF One */
+    /* PRALINE: CLK4=MAX2831, CLK5=RFFC5072
+     *
+     * Force-write complete configuration to guarantee correct setup.
+     * Added force-write to verify correct registers are applying necessary register clock settings.
+     */
+
+    // Configure and enable CLK4 (MAX2831)
+    // Register 20: ON, Integer, PLLA, INVERTED, MS_Self, 4mA = 0x5D
+    clock_generator.write_register(20, 0x5D);
+
+    // Configure and enable CLK5 (RFFC5072) - CRITICAL!
+    // Register 21: ON, Integer, PLLA, INVERTED, MS_Self, 6mA = 0x5E
+    clock_generator.write_register(21, 0x5E);
+
+    // Enable outputs (register 3, bits 4 and 5 = 0)
+    uint8_t reg3 = clock_generator.read_register(3);
+    reg3 &= ~0x30;
+    clock_generator.write_register(3, reg3);
+
+    chThdSleepMilliseconds(10);
+
+    /* PRALINE uses CLK5 (first IF) and CLK4 (second IF) */
     clock_generator.enable_clock(clock_generator_output_og_first_if);
     clock_generator.enable_output_mask(1U << clock_generator_output_og_first_if);
     clock_generator.enable_clock(clock_generator_output_og_second_if);
