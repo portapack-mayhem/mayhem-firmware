@@ -205,7 +205,7 @@ uint16_t I2cDev::read16_1(uint8_t reg) {
 }
 uint32_t I2cDev::read24_1(uint8_t reg) {
     uint8_t buffer[3];
-    i2c_read(&reg, 1, buffer, 2);
+    i2c_read(&reg, 1, buffer, 3);
     return uint32_t(buffer[0]) << 16 | uint32_t(buffer[1]) << 8 | uint32_t(buffer[2]);
 }
 

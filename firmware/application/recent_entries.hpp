@@ -108,9 +108,10 @@ void resetFilteredEntries(ContainerType& entries, KeySelector keySelector) {
     auto it = entries.begin();
     while (it != entries.end()) {
         if (keySelector(*it)) {
-            entries.erase(it);  // Add a new entry to filteredEntries
+            it = entries.erase(it);  // Add a new entry to filteredEntries
+        } else {
+            ++it;  // Move to the next element, outside of the if block
         }
-        ++it;  // Move to the next element, outside of the if block
     }
 }
 

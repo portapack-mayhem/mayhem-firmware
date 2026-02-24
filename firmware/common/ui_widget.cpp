@@ -272,9 +272,8 @@ void View::add_child(Widget* const widget) {
 }
 
 void View::add_children(const std::initializer_list<Widget*> children) {
-    children_.insert(std::end(children_), children);
     for (auto child : children) {
-        child->set_parent(this);
+        add_child(child);
     }
 }
 
@@ -622,8 +621,8 @@ ProgressBar::ProgressBar(
 void ProgressBar::set_max(const uint32_t max) {
     if (max == _max) return;
 
-    if (_value > _max)
-        _value = _max;
+    if (_value > max)
+        _value = max;
 
     _max = max;
     set_dirty();
@@ -651,9 +650,11 @@ void ProgressBar::paint(Painter& painter) {
 
     const auto sr = screen_rect();
     const auto s = style();
-
-    v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
-
+    if (_max == 0) {
+        v_scaled = 0;
+    } else {
+        v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
+    }
     painter.fill_rectangle({sr.location(), {v_scaled, sr.size().height()}}, style().foreground);
     painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
 
@@ -1267,7 +1268,7 @@ bool ButtonWithEncoder::on_encoder(const EncoderEvent delta) {
     if (delta != 0) {
         encoder_delta += delta;
         delta_change = true;
-        on_change();
+        if (on_change) on_change();
     } else
         delta_change = 0;
     return true;
@@ -1904,6 +1905,7 @@ void OptionsField::on_focus() {
 }
 
 bool OptionsField::on_encoder(const EncoderEvent delta) {
+    if (options_.empty()) return false;
     int32_t new_value = selected_index() + delta;
     if (new_value < 0)
         new_value = options_.size() - 1;

@@ -148,7 +148,11 @@ void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
     auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
     shell_file = new File();
     auto error = shell_file->open(path, false, true);
-    if (report_on_error(chp, error)) return;
+    if (report_on_error(chp, error)) {
+        delete shell_file;
+        shell_file = nullptr;
+        return;
+    }
 
     chprintf(chp, "ok\r\n");
 }

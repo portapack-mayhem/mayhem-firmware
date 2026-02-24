@@ -161,7 +161,7 @@ Optional<File::Error> File::sync() {
 
 File::Result<std::string> File::read_file(const std::filesystem::path& filename) {
     constexpr size_t buffer_size = 0x80;
-    char* buffer[buffer_size];
+    char buffer[buffer_size];
 
     File f;
     auto error = f.open(filename);
@@ -205,6 +205,7 @@ static std::filesystem::path find_last_ordinal_match(
     const std::filesystem::path& pattern,
     pattern_range range) {
     auto last_match = std::filesystem::path();
+    if (range.start == std::string::npos || range.end == std::string::npos || range.start > range.end) return last_match;
     auto can_increment = [range](const auto& path) {
         for (auto i = range.start; i <= range.end; ++i)
             if (!isdigit(path.native()[i]))
@@ -230,7 +231,7 @@ static std::filesystem::path increment_filename_ordinal(
     const std::filesystem::path& path,
     pattern_range range) {
     auto name = path.filename().native();
-
+    if (range.start == std::string::npos || range.end == std::string::npos || range.start > range.end) return {name};
     for (auto i = range.end; i >= range.start; --i) {
         auto& c = name[i];
 

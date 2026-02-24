@@ -34,7 +34,7 @@
 namespace ui {
 
 void create_thread(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority) {
-    // TODO: collect memory on terminate, once this is used
+    // TODO: collect memory on terminate, once this is used. This is a HUGE TODO! need to call chThdWait on all of them!
     chThdCreateFromHeap(NULL, stack_size, priority, fn, arg);
 }
 

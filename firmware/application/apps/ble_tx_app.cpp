@@ -199,6 +199,7 @@ void BLETxView::send_packet() {
     generateRandomMacAddress(randomMac);
 
     char advertisementData[63] = {0};
+    packets[current_packet].advertisementData[62] = '\0';
     strcpy(advertisementData, packets[current_packet].advertisementData);
 
     // TODO: Make this a checkbox.
