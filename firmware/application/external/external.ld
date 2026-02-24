@@ -99,6 +99,7 @@ MEMORY
     ram_external_app_rtty_tx  (rwx) : org = 0xADFA0000, len = 32k
     ram_external_app_tpmstx   (rwx) : org = 0xADFB0000, len = 32k
     ram_external_app_pocsag_tx (rwx) : org = 0xADFC0000, len = 32k
+    ram_external_app_search (rwx) : org = 0xADFD0000, len = 32k
 }
 
 SECTIONS
@@ -559,5 +560,12 @@ SECTIONS
         KEEP(*(.external_app.app_pocsag_tx.application_information));
         *(*ui*external_app*pocsag_tx*);
     } > ram_external_app_pocsag_tx
+
+    .external_app_search : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_search.application_information));
+        *(*ui*external_app*search*);
+    } > ram_external_app_search
+
 }
 
