@@ -51,6 +51,8 @@ class StandaloneView : public View {
 
     void frame_sync();
 
+    void exit();
+
    private:
     bool initialized = false;
     NavigationView& nav_;

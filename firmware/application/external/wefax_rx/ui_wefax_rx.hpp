@@ -84,18 +84,18 @@ class WeFaxRxView : public View {
         }};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     Labels labels{
@@ -124,11 +124,11 @@ class WeFaxRxView : public View {
         }};
 
     Text txt_status{
-        {0 * 8, 2 * 16, 20 * 8, 16},
+        {UI_POS_X(0), 2 * 16, 20 * 8, 16},
     };
 
     Button button_ss{
-        {190, 2 * 16, 5 * 8, 16},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)},
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{

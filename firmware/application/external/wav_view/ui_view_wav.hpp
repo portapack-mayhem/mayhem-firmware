@@ -73,8 +73,8 @@ class ViewWavView : public View {
 
     std::unique_ptr<WAVFileReader> wav_reader{};
 
-    int16_t waveform_buffer[240]{};
-    uint8_t amplitude_buffer[240]{};
+    std::vector<int16_t> waveform_buffer{};
+    std::vector<uint8_t> amplitude_buffer{};
     int32_t scale{1};
     uint64_t ns_per_pixel{};
     uint64_t position{};
@@ -83,53 +83,54 @@ class ViewWavView : public View {
     bool waveform_update_needed{false};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "File:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "File:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 1 * 16}, "-bit mono", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Title:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Duration:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "  Sample:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 14 * 16}, "Cursor A:", Theme::getInstance()->fg_darkcyan->foreground},
-        {{0 * 8, 15 * 16}, "Cursor B:", Theme::getInstance()->fg_magenta->foreground},
-        {{0 * 8, 16 * 16}, "Delta:", Theme::getInstance()->fg_light->foreground},
-        {{24 * 8, 18 * 16}, "Vol:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 2 * 16}, "Title:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Duration:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 12 * 16}, "Position:    .   s Scale:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 13 * 16}, "  Sample:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 14 * 16}, "Cursor A:", Theme::getInstance()->fg_darkcyan->foreground},
+        {{UI_POS_X(0), 15 * 16}, "Cursor B:", Theme::getInstance()->fg_magenta->foreground},
+        {{UI_POS_X(0), 16 * 16}, "Delta:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(6), UI_POS_Y_BOTTOM(2)}, "Vol:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_filename{
-        {5 * 8, 0 * 16, 18 * 8, 16},
+        {UI_POS_X(5), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(12), UI_POS_HEIGHT(1)},
         ""};
     Text text_samplerate{
-        {12 * 8, 1 * 16, 10 * 8, 16},
+        {12 * 8, 1 * 16, 10 * 8, UI_POS_HEIGHT(1)},
         ""};
     Text text_title{
-        {6 * 8, 2 * 16, 17 * 8, 16},
+        {6 * 8, 2 * 16, 17 * 8, UI_POS_HEIGHT(1)},
         ""};
     Text text_duration{
-        {9 * 8, 3 * 16, 20 * 8, 16},
+        {9 * 8, 3 * 16, 20 * 8, UI_POS_HEIGHT(1)},
         ""};
     Text text_bits_per_sample{
-        {0 * 8, 1 * 16, 2 * 8, 16},
+        {UI_POS_X(0), 1 * 16, 2 * 8, UI_POS_HEIGHT(1)},
         "16"};
     Button button_open{
-        {24 * 8, 8, 6 * 8, 2 * 16},
+        {UI_POS_X_RIGHT(6), 8, UI_POS_WIDTH(6), UI_POS_HEIGHT(2)},
         "Open"};
     ImageButton button_play{
-        {24 * 8, 17 * 16, 2 * 8, 1 * 16},
+        {UI_POS_X_RIGHT(6), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
+
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 18 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y_BOTTOM(2)}};
 
     Waveform waveform{
-        {0, 5 * 16, screen_width, 64},
-        waveform_buffer,
+        {0, UI_POS_Y(5), screen_width, UI_POS_HEIGHT(4)},
+        waveform_buffer.data(),
         240,
         0,
         false,
         Theme::getInstance()->bg_darkest->foreground};
 
     ProgressBar progressbar{
-        {0 * 8, 11 * 16, screen_width, 4}};
+        {UI_POS_X(0), 11 * 16, screen_width, 4}};
 
     NumberField field_pos_seconds{
         {9 * 8, 12 * 16},

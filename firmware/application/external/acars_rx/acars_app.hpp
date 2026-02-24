@@ -33,6 +33,26 @@
 
 namespace ui::external_app::acars_rx {
 
+// Decoded ACARS message fields extracted from a raw frame.
+// CRC-16/CCITT (poly 0x1021, init 0x0000) is verified against the two
+// trailing bytes of the raw frame; crc_ok reflects that result.
+struct AcarsDecoded {
+    bool crc_ok{false};
+    std::string reg{};
+    std::string label{};
+    std::string flight_id{};
+    std::string msg_num{};
+    char block_id{'\0'};
+    std::string txt{};
+};
+
+// Decode a raw ACARS frame: verify CRC-16/CCITT and extract fixed-offset fields.
+// Returns a partially-filled AcarsDecoded (txt error only) if the frame is too short.
+AcarsDecoded acars_decode(const std::string& raw);
+
+// Format a decoded ACARS message for display or logging.
+std::string acars_format(const AcarsDecoded& msg);
+
 class ACARSLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -67,18 +87,18 @@ class ACARSAppView : public View {
     uint32_t packet_counter{0};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 8},
+        {UI_POS_X(0), 0 * 8},
         nav_};
     Checkbox check_log{
         {16 * 8, 1 * 16},

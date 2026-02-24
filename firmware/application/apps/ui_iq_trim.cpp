@@ -171,7 +171,7 @@ void IQTrimView::update_range_controls(iq::TrimRange trim_range) {
 }
 
 void IQTrimView::profile_capture() {
-    power_buckets_ = {};
+    power_buckets_.clear();
     iq::PowerBuckets buckets{
         .p = power_buckets_.data(),
         .size = power_buckets_.size()};

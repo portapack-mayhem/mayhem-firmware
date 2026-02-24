@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Copyleft (ɔ) 2024 Whiterose from the Dark Army
+# copyleft 2025 zxkmm AKA zix aka sommermorgentraum
 #
 # This file is part of PortaPack.
 #

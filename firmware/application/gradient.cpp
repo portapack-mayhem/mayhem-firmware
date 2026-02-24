@@ -84,8 +84,7 @@ void Gradient::step(int16_t index, int16_t r, int16_t g, int16_t b) {
         int16_t new_r = prev_r * y + r * x;
         int16_t new_g = prev_g * y + g * x;
         int16_t new_b = prev_b * y + b * x;
-
-        lut[i] = ui::Color(new_r, new_g, new_b);
+        if (i <= 255) lut[i] = ui::Color(new_r, new_g, new_b);
     }
 
     prev_index = index;

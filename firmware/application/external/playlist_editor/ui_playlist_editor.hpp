@@ -1,6 +1,5 @@
 /*
- * copyleft Elliot Alderson from F society
- * copyleft Darlene Alderson from F society
+ * copyleft 2025 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -49,40 +48,40 @@ class PlaylistEditorView : public View {
     bool ever_opened = false;
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "PPL file:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_new{
-        {(sizeof("PPL file:") + 1) * 8, 0 * 16, 8 * 5, 16},
+        {(sizeof("PPL file:") + 1) * 8, UI_POS_Y(0), 8 * 5, 16},
         "New"};
 
     Text text_current_ppl_file{
-        {sizeof("PPL file:") * 8, 0 * 16, screen_width - (int)sizeof("PPL file:") * 8, 16},
+        {sizeof("PPL file:") * 8, UI_POS_Y(0), screen_width - (int)sizeof("PPL file:") * 8, 16},
         ""};
 
     MenuView menu_view{};
 
     Text text_hint{
-        {0, 27 * 8, screen_width, 16},
+        {0, UI_POS_Y_BOTTOM(6), screen_width, 16},
         "Open a PPL file"};
 
     Text text_ppl_name{
-        {0, 27 * 8, screen_width, 16},
+        {0, UI_POS_Y_BOTTOM(6), screen_width, 16},
         "Highlight an app"};
 
     Button button_open_playlist{
-        {0, 29 * 8, screen_width / 2 - 1, 32},
+        {0, UI_POS_Y_BOTTOM(5), screen_width / 2 - 1, 32},
         "Open PPL"};
 
     Button button_edit{
-        {screen_width / 2 + 2, 29 * 8, screen_width / 2 - 2, 32},
+        {screen_width / 2 + 2, UI_POS_Y_BOTTOM(5), screen_width / 2 - 2, 32},
         "Edit Item"};
 
     Button button_insert{
-        {0, screen_height - 32 - 16, screen_width / 2 - 1, 32},
+        {0, UI_POS_Y_BOTTOM(3), screen_width / 2 - 1, 32},
         "Ins. After"};
 
     Button button_save_playlist{
-        {screen_width / 2 + 2, screen_height - 32 - 16, screen_width / 2 - 2, 32},
+        {screen_width / 2 + 2, UI_POS_Y_BOTTOM(3), screen_width / 2 - 2, 32},
         "Save PPL"};
 
     void open_file();
@@ -123,7 +122,7 @@ class PlaylistItemEditView : public View {
     std::string build_item() const;
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Path:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 5 * 16}, "Delay(ms):", Theme::getInstance()->fg_light->foreground}};
 
     TextField field_path{

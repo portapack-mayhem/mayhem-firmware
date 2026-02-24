@@ -41,29 +41,6 @@ enum {
     Black,
 };
 
-// Game constants
-#define DINO_WIDTH 34
-#define DINO_HEIGHT 36
-#define DINO_DUCK_WIDTH 45
-#define DINO_DUCK_HEIGHT 22
-#define BIRD_WIDTH 34
-#define BIRD_HEIGHT 27
-#define GROUND_HEIGHT 10
-#define GAME_AREA_TOP 78
-#define GAME_AREA_HEIGHT 160
-#define DINO_X 30
-#define DINO_Y (GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT - DINO_HEIGHT)
-#define DINO_DUCK_Y (GAME_AREA_TOP + GAME_AREA_HEIGHT - GROUND_HEIGHT - DINO_DUCK_HEIGHT)
-#define BIRD_Y_UP (GAME_AREA_TOP + 20)
-#define BIRD_Y_DOWN (GAME_AREA_TOP + 60)
-#define JUMP_MAX_HEIGHT 70
-#define JUMP_SPEED 3
-#define GAME_SPEED_BASE 3
-#define SPRITE_COLOR 0x528A
-#define TRANSPARENT_COLOR 0xFFFF
-#define MIN_OBSTACLE_DISTANCE 300
-#define MAX_OBSTACLE_DISTANCE 600
-
 // Game states
 enum class GameState {
     MENU,
@@ -159,6 +136,33 @@ class DinoGameView : public View {
     bool initialized = false;
     NavigationView& nav_;
 
+    // Dynamic screen dimensions
+    int SCREEN_WIDTH = 240;
+    int SCREEN_HEIGHT = 320;
+    int DINO_WIDTH = 34;
+    int DINO_HEIGHT = 36;
+    int DINO_DUCK_WIDTH = 45;
+    int DINO_DUCK_HEIGHT = 22;
+    int BIRD_WIDTH = 34;
+    int BIRD_HEIGHT = 27;
+    int GROUND_HEIGHT = 10;
+    int GAME_AREA_TOP = 78;
+    int GAME_AREA_HEIGHT = 160;
+    int DINO_X = 30;
+    int DINO_Y = 0;       // Will be calculated
+    int DINO_DUCK_Y = 0;  // Will be calculated
+    int BIRD_Y_UP = 0;    // Will be calculated
+    int BIRD_Y_DOWN = 0;  // Will be calculated
+    int JUMP_MAX_HEIGHT = 70;
+    int JUMP_SPEED = 3;
+    int GAME_SPEED_BASE = 3;
+    int MIN_OBSTACLE_DISTANCE = 300;
+    int MAX_OBSTACLE_DISTANCE = 600;
+
+    // Sprite constants
+    static constexpr uint16_t SPRITE_COLOR = 0x528A;
+    static constexpr uint16_t TRANSPARENT_COLOR = 0xFFFF;
+
     // Game variables
     static constexpr uint8_t MAX_OBSTACLES = 1;
     SimpleObstacle obstacles[MAX_OBSTACLES];
@@ -185,7 +189,7 @@ class DinoGameView : public View {
     int32_t obstacle_spawn_timer = 0;
 
     // Position tracking for minimal redraw
-    int16_t last_dino_y = DINO_Y;
+    int16_t last_dino_y = 0;
     int16_t last_bird_x = -1;
     int16_t last_bird_y = -1;
     uint8_t duck_timer = 0;
@@ -202,6 +206,7 @@ class DinoGameView : public View {
     Ticker game_timer;
 
     // Private methods
+    void init_dimensions();
     void init_game();
     void new_game();
     void update_obstacles();
@@ -239,7 +244,7 @@ class DinoGameView : public View {
          {"easy_mode"sv, &easy_mode}}};
 
     Button dummy{
-        {screen_width, 0, 0, 0},
+        {240, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

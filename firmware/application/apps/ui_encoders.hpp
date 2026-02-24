@@ -216,10 +216,10 @@ class EncodersView : public View {
         "Ready"};
 
     ProgressBar progressbar{
-        {2 * 8, 13 * 16 + 20, 208, 16}};
+        {2 * 8, 13 * 16 + 20, UI_POS_WIDTH_REMAINING(4), 16}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         50000,
         9};
 

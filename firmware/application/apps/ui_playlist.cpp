@@ -387,7 +387,6 @@ PlaylistView::PlaylistView(
         &button_next,
         &waterfall,
     });
-
     ensure_directory(playlist_dir);
     waterfall.show_audio_spectrum_view(false);
 

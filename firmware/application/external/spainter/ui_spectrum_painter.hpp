@@ -89,57 +89,57 @@ class SpectrumPainterView : public View {
 
     static constexpr int32_t footer_location = 15 * 16 + 8;
     ProgressBar progressbar{
-        {4, footer_location - 16, screen_width - 8, 16}};
+        {4, UI_POS_Y_BOTTOM(6) - 3, screen_width - 8, 16}};
 
     Labels labels{
-        {{10 * 8, footer_location + 1 * 16}, "GAIN   A:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, footer_location + 2 * 16}, "BW:      Du:    P:", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, UI_POS_Y_BOTTOM(4)}, "GAIN   A:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, UI_POS_Y_BOTTOM(3)}, "BW:      Du:    P:", Theme::getInstance()->fg_light->foreground},
     };
 
     TxFrequencyField field_frequency{
-        {0 * 8, footer_location + 1 * 16},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(4)},
         nav_};
 
     NumberField field_rfgain{
-        {14 * 8, footer_location + 1 * 16},
+        {14 * 8, UI_POS_Y_BOTTOM(4)},
         2,
         {0, 47},
         1,
         ' '};
 
     NumberField field_rfamp{
-        {19 * 8, footer_location + 1 * 16},
+        {19 * 8, UI_POS_Y_BOTTOM(4)},
         2,
         {0, 14},
         14,
         ' '};
 
     Checkbox check_loop{
-        {21 * 8, footer_location + 1 * 16},
+        {21 * 8, UI_POS_Y_BOTTOM(4)},
         4,
         LanguageHelper::currentMessages[LANG_LOOP],
         true};
 
     ImageButton button_play{
-        {screen_width - 2 * 8, footer_location + 1 * 16, 2 * 8, 1 * 16},
+        {screen_width - 2 * 8, UI_POS_Y_BOTTOM(4), 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
 
     OptionsField option_bandwidth{
-        {4 * 8, footer_location + 2 * 16},
+        {4 * 8, UI_POS_Y_BOTTOM(3)},
         5,
         {}};
 
     NumberField field_duration{
-        {13 * 8, footer_location + 2 * 16},
+        {13 * 8, UI_POS_Y_BOTTOM(3)},
         3,
         {1, 999},
         1,
         ' '};
 
     NumberField field_pause{
-        {19 * 8, footer_location + 2 * 16},
+        {19 * 8, UI_POS_Y_BOTTOM(3)},
         2,
         {0, 99},
         1,

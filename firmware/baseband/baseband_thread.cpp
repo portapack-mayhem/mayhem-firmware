@@ -87,8 +87,15 @@ void BasebandThread::run() {
     baseband_sgpio.configure(direction());
     baseband::dma::enable(direction());
     baseband_sgpio.streaming_enable();
+#ifdef PRALINE
+    shared_memory.m4_streaming_marker = 0xAA;  // Phase 0 instrumentation
+#endif
 
     while (!chThdShouldTerminate()) {
+#ifdef PRALINE
+        shared_memory.m4_baseband_loops++;  // Phase 0 instrumentation
+#endif
+
         // TODO: Place correct sampling rate into buffer returned here:
         const auto buffer_tmp = baseband::dma::wait_for_buffer();
         if (buffer_tmp) {

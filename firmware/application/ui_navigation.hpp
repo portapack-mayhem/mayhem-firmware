@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2024 u-foka
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -42,8 +42,9 @@
 #include "ui_audio.hpp"
 #include "ui_sd_card_status_view.hpp"
 #include "ui_dfu_menu.hpp"
-
+#include "ui_notifications.hpp"
 #include "bitmap.hpp"
+#include "ui_bmpview.hpp"
 #include "ff.h"
 #include "diskio.h"
 #include "lfsr_random.hpp"
@@ -60,7 +61,7 @@ using namespace sd_card;
 namespace ui {
 
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
-void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos);
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile = true);
 bool verify_sdcard_format();
 
 enum modal_t {
@@ -205,11 +206,11 @@ class SystemStatusView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0 * 8, 0 * 16, ui::screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(0), ui::screen_width, 16},
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_back{
-        {0, 0 * 16, 12 * 8, 16},  // Back button also covers the title for easier touch.
+        {0, UI_POS_Y(0), 12 * 8, 16},  // Back button also covers the title for easier touch.
         &bitmap_icon_previous,
         Theme::getInstance()->bg_dark->foreground,
         Theme::getInstance()->bg_dark->background};
@@ -279,7 +280,7 @@ class SystemStatusView : public View {
         Theme::getInstance()->bg_dark->background};
 
     ImageButton button_clock_status{
-        {0, 0 * 16, 8, 1 * 16},
+        {0, UI_POS_Y(0), 8, 1 * 16},
         &bitmap_icon_clk_int,
         Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_dark->background};
@@ -291,7 +292,7 @@ class SystemStatusView : public View {
         Theme::getInstance()->bg_dark->background};
 
     SDCardStatusView sd_card_status_view{
-        {0, 0 * 16, 2 * 8, 1 * 16}};
+        {0, UI_POS_Y(0), 2 * 8, 1 * 16}};
 
     BatteryTextField battery_text{{0, 0, 2 * 8, 1 * 16}, 102};
     BatteryIcon battery_icon{{0, 0, 10, 1 * 16}, 102};
@@ -302,6 +303,7 @@ class SystemStatusView : public View {
     void on_title();
     void refresh();
     void on_clk();
+    void on_tx_disabled();
     void rtc_battery_workaround();
     void on_battery_data(const BatteryStateMessage* msg);
     void on_battery_details();
@@ -311,6 +313,13 @@ class SystemStatusView : public View {
         [this](const Message* const p) {
             (void)p;
             this->refresh();
+        }};
+
+    MessageHandlerRegistration message_handler_tx_disabled{
+        Message::ID::TXDisabled,
+        [this](const Message* const p) {
+            (void)p;
+            this->on_tx_disabled();
         }};
 
     MessageHandlerRegistration message_handler_battery{
@@ -357,6 +366,7 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
+    void get_random_splash_file(std::filesystem::path& path);
 };
 
 class ReceiversMenuView : public BtnGridView {
@@ -379,10 +389,10 @@ class TransmittersMenuView : public BtnGridView {
     void on_populate() override;
 };
 
-class TranceiversMenuView : public BtnGridView {
+class TransceiversMenuView : public BtnGridView {
    public:
-    TranceiversMenuView(NavigationView& nav);
-    std::string title() const override { return "Tranceiver"; };
+    TransceiversMenuView(NavigationView& nav);
+    std::string title() const override { return "Transceiver"; };
 
    private:
     NavigationView& nav_;
@@ -436,11 +446,12 @@ class SystemView : public View {
    private:
     uint8_t overlay_active{0};
 
+    NavigationView navigation_view{};
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
+    NotificationView notification_view{navigation_view};
     DfuMenu overlay{navigation_view};
     DfuMenu2 overlay2{navigation_view};
-    NavigationView navigation_view{};
     Context& context_;
 };
 
@@ -485,17 +496,17 @@ class ModalMessageView : public View {
     const bool compact;
 
     Button button_ok{
-        {10 * 8, 14 * 16, 10 * 8, 48},
+        {UI_POS_X_CENTER(10), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(3)},
         "OK",
     };
 
     Button button_yes{
-        {5 * 8, 14 * 16, 8 * 8, 48},
+        {UI_POS_X_CENTER(8) - UI_POS_WIDTH(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "YES",
     };
 
     Button button_no{
-        {17 * 8, 14 * 16, 8 * 8, 48},
+        {UI_POS_X_CENTER(8) + UI_POS_WIDTH(6), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(8), UI_POS_HEIGHT(3)},
         "NO",
     };
 };

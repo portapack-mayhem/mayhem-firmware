@@ -25,6 +25,10 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "file_path.hpp"
+#include "ui_textentry.hpp"
+#include "../keeloq_keystore.hpp"
+#include "../keeloq_file.hpp"
+#include "../keeloq_common.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -56,6 +60,51 @@ void SubGhzDRecentEntryDetailView::update_data() {
     if (cnt != SD_NO_CNT) console.writeln("Cnt: " + to_string_dec_uint(cnt));
 
     if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
+
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        uint8_t pager_addr = (entry_.data >> 5) & 0x0F;
+        uint8_t func_code = (entry_.data >> 1) & 0x0F;
+        console.writeln("Station: 0x" + to_string_hex(serial) + " (" + to_string_dec_uint(serial) + ")");
+        console.writeln("Pager: " + to_string_dec_uint(pager_addr));
+        if (func_code == 0x0D)
+            console.writeln("Action: Buzz");
+        else if (func_code == 0x0F)
+            console.writeln("Action: Sync");
+        else
+            console.writeln("Action: 0x" + to_string_hex(func_code));
+    }
+
+    if (entry_.sensorType == FPS_KEELOQ) {
+        console.writeln("Fix: " + to_string_hex(fix));
+        console.writeln("Encrypted: " + to_string_hex(encrypted));
+        console.writeln("Manufacturer: " + mf_name);
+
+        if (hop != SD_NO_HOP) {
+            console.writeln("Hop: " + to_string_hex(hop));
+
+            add_children({&button_save});
+
+            button_save.on_select = [this](const Button&) {
+                keeloq_file_buffer.clear();
+
+                text_prompt(
+                    nav_,
+                    keeloq_file_buffer,
+                    64,
+                    ENTER_KEYBOARD_MODE_ALPHA,
+                    [this](std::string& buffer) {
+                        KeeloqData params{
+                            mf_name,
+                            serial,
+                            (uint16_t)cnt,
+                            btn};
+
+                        ensure_directory(keeloq_remotes_dir);
+                        write_keeloq_file(keeloq_remotes_dir / buffer + ".KEELOQ", params);
+                    });
+            };
+        }
+    }
 }
 
 SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, const SubGhzDRecentEntry& entry)
@@ -242,6 +291,10 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "GangQi";
         case FPS_MARANTEC24:
             return "Marantec24";
+        case FPS_HOLTEKHT6P20B:
+            return "Holtek HT6P20B";
+        case FPS_RESTAURANT_PAGER:
+            return "Rest. Pager";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -262,17 +315,21 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     std::string line{};
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    line = line + " " + to_string_hex(entry.data << 32);
-    if (line.length() < 19) {
-        line += SubGhzDView::pad_string_with_spaces(19 - line.length());
+    if (entry.sensorType == FPS_RESTAURANT_PAGER) {
+        uint8_t pgr = (entry.data >> 5) & 0x0F;
+        uint8_t func = (entry.data >> 1) & 0x0F;
+        line += " P:" + to_string_dec_uint(pgr) + (func == 0x0D ? " Buzz" : func == 0x0F ? " Sync"
+                                                                                         : "");
     } else {
-        line = truncate(line, 19);
+        line = line + " " + to_string_hex(entry.data << 32);
     }
+    line.resize(columns.at(0).second, ' ');
     std::string ageStr = to_string_dec_uint(entry.age);
     std::string bitsStr = to_string_dec_uint(entry.bits);
     line += SubGhzDView::pad_string_with_spaces(5 - bitsStr.length()) + bitsStr;
@@ -302,6 +359,29 @@ void atomo_decrypt(uint8_t* buff) {
 
         bitCnt++;
     }
+}
+
+bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt(uint32_t decrypt) {
+    uint16_t end_serial = serial & 0xFF;
+
+    if ((decrypt >> 28 == btn) && (((((uint16_t)(decrypt >> 16)) & 0xFF) == end_serial) ||
+                                   ((((uint16_t)(decrypt >> 16)) & 0xFF) == 0))) {
+        cnt = decrypt & 0xFFFF;
+
+        return true;
+    }
+
+    return false;
+}
+
+bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt_centurion(uint32_t decrypt) {
+    if ((decrypt >> 28 == btn) && ((((uint16_t)(decrypt >> 16)) & 0x3FF) == 0x1CE)) {
+        cnt = decrypt & 0xFFFF;
+
+        return true;
+    }
+
+    return false;
 }
 
 const uint32_t came_twee_magic_numbers_xor[15] = {
@@ -342,7 +422,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_CAMEATOMO) {
         entry_.data ^= 0xFFFFFFFFFFFFFFFF;
         entry_.data <<= 4;
-        uint8_t pack[8] = {};
+        uint8_t pack[8];
         pack[0] = (entry_.data >> 56);
         pack[1] = ((entry_.data >> 48) & 0xFF);
         pack[2] = ((entry_.data >> 40) & 0xFF);
@@ -592,7 +672,57 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     }
 
     if (entry_.sensorType == FPS_KEELOQ) {
-        // too many sub protocol versions, skipping. maybe in future when we'll have much more fw space
+        uint64_t data_rev = FProtoGeneral::subghz_protocol_blocks_reverse_key(entry_.data, 64);
+
+        btn = data_rev >> 60;
+        serial = (data_rev >> 32) & 0xFFFFFFF;
+        fix = data_rev >> 32;
+        encrypted = data_rev & 0xFFFFFFFF;
+
+        KeeloqKeystore keystore{};
+
+        const auto& keys = keystore.get_keys();
+
+        if (keys.empty()) {
+            return;
+        }
+
+        for (const auto& key : keys) {
+            switch (key.type) {
+                case KEELOQ_SIMPLE_LEARNING: {
+                    uint32_t decrypted = keeloq_decrypt(encrypted, key.key);
+
+                    if (keeloq_check_decrypt(decrypted)) {
+                        mf_name = key.mf_name;
+                        hop = decrypted;
+
+                        return;
+                    }
+
+                    break;
+                }
+
+                case KEELOQ_NORMAL_LEARNING: {
+                    uint64_t man = keeloq_normal_learning(fix, key.key);
+                    uint32_t decrypted = keeloq_decrypt(encrypted, man);
+
+                    if (key.mf_name == "Centurion" && keeloq_check_decrypt_centurion(decrypted)) {
+                        mf_name = "Centurion";
+                        hop = decrypted;
+
+                        return;
+                    } else if (keeloq_check_decrypt(decrypted)) {
+                        mf_name = key.mf_name;
+                        hop = decrypted;
+
+                        return;
+                    }
+
+                    break;
+                }
+            }
+        }
+
         return;
     }
 
@@ -757,6 +887,19 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_MARANTEC24) {
         serial = (entry_.data >> 4);
         btn = entry_.data & 0xf;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_HOLTEKHT6P20B) {
+        serial = entry_.data >> 8;
+        btn = (entry_.data >> 4) & 0xF;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        // 25-bit EV1527-variant: [sysid:16][pager:4][func:4][stop:1]
+        serial = (entry_.data >> 9) & 0xFFFF;  // System ID
+        // btn/cnt left as SD_NO values; friendly output in update_data()
         return;
     }
 }

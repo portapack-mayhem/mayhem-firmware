@@ -121,18 +121,18 @@ class FmRadioView : public View {
          {"theme"sv, &current_theme}}};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     OptionsField field_bw{
@@ -171,16 +171,16 @@ class FmRadioView : public View {
 
     GraphEq gr{{2, FMR_BTNGRID_TOP, UI_POS_MAXWIDTH - 4, UI_POS_MAXHEIGHT - FMR_BTNGRID_TOP}, true};
 
-    Button btn_fav_0{{2, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_1{{2 + 15 * 8, FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_2{{2, FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_3{{2 + 15 * 8, FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_4{{2, FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_5{{2 + 15 * 8, FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_6{{2, FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_7{{2 + 15 * 8, FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_8{{2, FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
-    Button btn_fav_9{{2 + 15 * 8, FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_0{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_1{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 0 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_2{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_3{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 1 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_4{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_5{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 2 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_6{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_7{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 3 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_8{{UI_POS_X_CENTER(10) - UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
+    Button btn_fav_9{{UI_POS_X_CENTER(10) + UI_POS_WIDTH(8), FMR_BTNGRID_TOP + 4 * 34, 10 * 8, 28}, "---"};
 
     Button btn_fav_save{{2, FMR_BTNGRID_TOP + 6 * 34, 7 * 8, 1 * 28}, "Save"};
     bool save_fav = false;

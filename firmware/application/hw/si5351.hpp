@@ -361,8 +361,16 @@ class Si5351 {
     }
 
     void wait_for_device_ready() {
-        while (device_status() & 0x80)
-            ;
+#ifndef PRALINE
+        while (device_status() & 0x80);
+#else
+        // Add timeout to prevent infinite loop if I2C communication fails
+        // (e.g., on PRALINE hardware with different configuration)
+        uint32_t timeout = 100000;
+        while ((device_status() & 0x80) && (timeout > 0)) {
+            timeout--;
+        }
+#endif
     }
 
     bool plla_loss_of_signal() {
@@ -378,10 +386,15 @@ class Si5351 {
     }
 
     void reset_plls() {
+#ifndef PRALINE
         // Datasheet recommends value 0xac, though the low nibble bits are not defined in AN619.
         write_register(Register::PLLReset, 0xac);
+#else
+        // Reset both PLLA and PLLB. Use 0xA0 to match HackRF reference firmware.
+        // The low nibble bits are reserved/undefined in AN619.
+        write_register(Register::PLLReset, 0xa0);
+#endif
     }
-
     regvalue_t read_register(const uint8_t reg);
 
     template <size_t N>
@@ -397,6 +410,18 @@ class Si5351 {
     void write(const size_t ms_number, const MultisynthFractional& config) {
         write(config.reg(ms_number));
     }
+
+#ifdef PRALINE
+    /* Write multisynth config using single-byte writes for debugging */
+    void write_ms_single_byte(const size_t ms_number, const MultisynthFractional& config) {
+        const auto regs = config.reg(ms_number);
+        // regs[0] is the base register address, regs[1-8] are the data bytes
+        const uint8_t base_reg = regs[0];
+        for (size_t i = 1; i < regs.size(); i++) {
+            write_register(base_reg + i - 1, regs[i]);
+        }
+    }
+#endif
 
     void set_ms_frequency(
         const size_t ms_number,
@@ -481,7 +506,6 @@ class Si5351 {
                                                    }});
     }
 };
-
 }  // namespace si5351
 
 #endif /*__SI5351_H__*/

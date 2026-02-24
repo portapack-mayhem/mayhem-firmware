@@ -86,6 +86,9 @@ set(CPLD_20150901_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_20150901_d
 set(CPLD_20170522_SVF_PATH ${HARDWARE_PATH}/portapack_h1/cpld/20170522/output_files/portapack_h1_cpld.svf)
 set(CPLD_20170522_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_20170522_data.cpp)
 
+set(CPLD_H4M_SVF_PATH ${HARDWARE_PATH}/portapack_h4m/CPLD/AG256SL100/output_files/portapack_h4m_cpld.svf)
+set(CPLD_H4M_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/portapack_cpld_h4m_data.cpp)
+
 set(HACKRF_CPLD_DATA_HPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.hpp)
 set(HACKRF_CPLD_DATA_CPP ${CMAKE_CURRENT_BINARY_DIR}/hackrf_cpld_data.cpp)
 
@@ -118,11 +121,16 @@ set(CSRC
 	usb_serial_endpoints.c
 	usb_serial_device_to_host.c
 	i2c_device_to_host.c
+	hackrf_core_mini.c
+	${HACKRF_PATH}/firmware/common/adc.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
+	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/scu.c
+	${HACKRF_PATH}/firmware/common/gpio_lpc.c
+	${HACKRF_PATH}/firmware/common/platform_detect.c
 	${CHIBIOS}/os/various/chprintf.c
 )
 
@@ -192,7 +200,6 @@ set(CPPSRC
 	core_control.cpp
 	database.cpp
 	gradient.cpp
-	rfm69.cpp
 	event_m0.cpp
 	file_reader.cpp
 	file.cpp
@@ -206,6 +213,9 @@ set(CPPSRC
 	irq_controls.cpp
 	irq_lcd_frame.cpp
 	irq_rtc.cpp
+    keeloq_common.cpp
+	keeloq_file.cpp
+	keeloq_keystore.cpp
 	log_file.cpp
 	metadata_file.cpp
 	flipper_subfile.cpp
@@ -238,6 +248,7 @@ set(CPPSRC
 	hw/encoder.cpp
 	hw/max2837.cpp
 	hw/max2839.cpp
+	hw/max2831.cpp
 	hw/max5864.cpp
 	hw/rffc507x.cpp
 	hw/rffc507x_spi.cpp
@@ -247,6 +258,7 @@ set(CPPSRC
 	ook_file.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
+	ui_notifications.cpp
 	ui_record_view.cpp
 	ui_sd_card_status_view.cpp
 	ui/ui_alphanum.cpp
@@ -261,7 +273,6 @@ set(CPPSRC
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
 	ui/ui_freqlist.cpp
-	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
@@ -270,19 +281,15 @@ set(CPPSRC
 	ui/ui_bmpview.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
-	apps/ble_comm_app.cpp
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
-	apps/ert_app.cpp
 	apps/pocsag_app.cpp
-	apps/soundboard_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp
 	apps/ui_aprs_rx.cpp
 	apps/ui_aprs_tx.cpp
 	apps/ui_battinfo.cpp
-	apps/ui_bht_tx.cpp
 	apps/ui_bmp_file_viewer.cpp
 	apps/ui_btle_rx.cpp
 	apps/ui_debug.cpp
@@ -298,14 +305,11 @@ set(CPPSRC
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_playlist.cpp
-	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_sd_over_usb.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
-	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_standalone_view.cpp
@@ -317,7 +321,6 @@ set(CPPSRC
 	apps/ui_weatherstation.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
-	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/encoders.cpp
 	protocols/modems.cpp
@@ -326,6 +329,7 @@ set(CPPSRC
 	config_mode.cpp
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
+	${CPLD_H4M_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
 	ui_external_items_menu_loader.cpp
 	view_factory_base.cpp
@@ -411,7 +415,11 @@ set(CPPWARN "-Wall -Wextra -Wno-psabi")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"' -DVERSION_MD5=${VERSION_MD5} -D'GCC_VERSION_MISMATCH=${GCC_VERSION_MISMATCH}'")
+# Use BOARD variable if set, otherwise default to HACKRF_ONE
+if(NOT DEFINED BOARD)
+    set(BOARD "HACKRF_ONE")
+endif()
+set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -D${BOARD} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"' -DVERSION_MD5=${VERSION_MD5} -D'GCC_VERSION_MISMATCH=${GCC_VERSION_MISMATCH}'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -470,12 +478,21 @@ add_custom_command(
 )
 
 add_custom_command(
+	OUTPUT ${CPLD_H4M_DATA_CPP}
+	COMMAND ${EXTRACT_CPLD_DATA} ${CPLD_H4M_SVF_PATH} rev_h4m >${CPLD_H4M_DATA_CPP}
+	DEPENDS ${EXTRACT_CPLD_DATA} ${CPLD_H4M_SVF_PATH}
+)
+
+add_custom_command(
 	OUTPUT ${HACKRF_CPLD_DATA_CPP}
 	COMMAND ${HACKRF_CPLD_TOOL} --xsvf ${HACKRF_CPLD_XSVF_PATH} --portapack-data ${HACKRF_CPLD_DATA_CPP}
 	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH}
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+target_link_options(${PROJECT_NAME}.elf PRIVATE
+    "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
+)
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})

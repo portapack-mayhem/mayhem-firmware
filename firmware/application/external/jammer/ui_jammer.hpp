@@ -57,7 +57,7 @@ class RangeView : public View {
         "Load range"};
 
     Button button_start{
-        {0 * 8, 11 * 8, 11 * 8, 28},
+        {UI_POS_X(0), 11 * 8, 11 * 8, 28},
         ""};
 
     Button button_stop{
@@ -144,7 +144,7 @@ class JammerView : public View {
         {{3 * 8, 27 * 8}, "Hop:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 29 * 8}, "TX:", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 31 * 8}, "Sleep:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 29 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 31 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
         {{11 * 8, 33 * 8}, "/60", Theme::getInstance()->fg_light->foreground},

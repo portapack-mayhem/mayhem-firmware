@@ -51,7 +51,8 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
-    const Style& style) {
+    const Style& style,
+    RecentEntriesColumns& columns) {
     Color target_color;
     std::string entry_string;
 
@@ -70,9 +71,11 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
             target_color = Theme::getInstance()->fg_medium->foreground;
     };
 
-    entry_string +=
-        (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
-        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+    std::string ipc = (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ");
+    uint8_t firstcolwidth = columns.at(0).second;
+    ipc.resize(firstcolwidth, ' ');  // Make sure this is always match the first column's width that is dynamic.
+
+    entry_string += ipc + to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
 
     if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
         // It is generally accepted that for every thousand feet of altitude,
@@ -100,7 +103,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         entry_string);
 
     if (entry.pos.pos_valid)
-        painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0),
+        painter.draw_bitmap(target_rect.location() + Point(firstcolwidth * 8 - 8, 0),
                             bitmap_target, target_color, style.background);
 }
 
@@ -268,9 +271,16 @@ ADSBRxDetailsView::ADSBRxDetailsView(
          &text_frame_pos_even,
          &text_frame_pos_odd,
          &button_aircraft_details,
-         &button_see_map});
+         &button_see_map,
+         &opt_map_list});
 
     text_icao_address.set(entry_.icao_str);
+
+    opt_map_list.on_change = [this](size_t, uint32_t mf) {
+        map_filter = mf;
+        clear_map_markers();  // reset them
+        pos_history.clear();  // erase the trail
+    };
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
         aircraft_details_view_ = nav.push<ADSBRxAircraftDetailsView>(entry_);
@@ -285,7 +295,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
-            GeoPos::spd_unit::HIDDEN,
+            GeoPos::spd_unit::KNOTS,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
@@ -309,17 +319,107 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
         // AC Details view is showing, nothing to update.
     } else if (geomap_view_) {
         // Map is showing, update the current item.
+        if (map_filter == 1) {
+            // add to map trail history
+            add_map_trail(entry);
+        }
         geomap_view_->update_tag(get_map_tag(entry_));
-        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude, entry.velo.speed);
+        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude, entry.get_ground_speed());
     } else {
         // Details is showing, update details.
         refresh_ui();
     }
 }
 
+void ADSBRxDetailsView::get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* g, uint8_t* b) {
+    static const struct {
+        int32_t alt;
+        uint8_t r, g, b;
+    } stops[] = {
+        {0, 220, 220, 220},    // 0 ft:     White/Grey (Ground)
+        {2000, 255, 255, 0},   // 2k ft:    Yellow
+        {10000, 0, 255, 0},    // 10k ft:   Green
+        {20000, 0, 255, 255},  // 20k ft:   Cyan
+        {30000, 60, 60, 255},  // 30k ft:   Blue (Lightened for visibility on Black)
+        {40000, 255, 0, 255}   // 40k+ ft:  Magenta
+    };
+    if (alt_ft <= stops[0].alt) {
+        *r = stops[0].r;
+        *g = stops[0].g;
+        *b = stops[0].b;
+        return;
+    }
+    const int count = sizeof(stops) / sizeof(stops[0]);
+    if (alt_ft >= stops[count - 1].alt) {
+        *r = stops[count - 1].r;
+        *g = stops[count - 1].g;
+        *b = stops[count - 1].b;
+        return;
+    }
+    for (int i = 0; i < count - 1; i++) {
+        if (alt_ft < stops[i + 1].alt) {
+            float t = (float)(alt_ft - stops[i].alt) / (stops[i + 1].alt - stops[i].alt);
+
+            *r = (uint8_t)(stops[i].r + (stops[i + 1].r - stops[i].r) * t);
+            *g = (uint8_t)(stops[i].g + (stops[i + 1].g - stops[i].g) * t);
+            *b = (uint8_t)(stops[i].b + (stops[i + 1].b - stops[i].b) * t);
+            return;
+        }
+    }
+    // Fallback: in case no interval matched, default to ground color.
+    *r = stops[0].r;
+    *g = stops[0].g;
+    *b = stops[0].b;
+}
+
 void ADSBRxDetailsView::clear_map_markers() {
     if (geomap_view_)
         geomap_view_->clear_markers();
+    if (map_filter == 1)
+        refresh_trail_markers();  // re add trail
+}
+
+void ADSBRxDetailsView::refresh_trail_markers() {
+    if (!geomap_view_)
+        return;
+
+    geomap_view_->clear_markers();
+    for (const auto& pos : pos_history) {
+        GeoMarker marker{};
+        marker.lon = pos.lon;
+        marker.lat = pos.lat;
+        marker.angle = pos.heading;
+        marker.tag = "";  // No tag for trail points
+        uint8_t r, g, b;
+        get_altitude_color(pos.altitude, &r, &g, &b);
+        marker.color = Color(r, g, b);
+        geomap_view_->store_marker(marker);
+    }
+}
+
+void ADSBRxDetailsView::add_map_trail(const AircraftRecentEntry& entry) {
+    if (!geomap_view_)
+        return;
+    if (entry.pos.pos_valid == false)
+        return;
+
+    if (!pos_history.empty()) {
+        const auto& last_pos = pos_history.back();
+        const float THRESH_DEG = 0.009f;
+        const float THRESH_SQ = THRESH_DEG * THRESH_DEG;  // 0.00002025f
+
+        float d_lat = entry.pos.latitude - last_pos.lat;
+        float d_lon = entry.pos.longitude - last_pos.lon;
+        if ((d_lat * d_lat) + (d_lon * d_lon) < THRESH_SQ) {
+            return;  // Moved less than ~1000m, skip (rough estimate, varies with latitude but good enough for our purposes). This prevents adding too many points when the plane is circling or taxiing.
+        }
+    }
+
+    // Only keep the last 30 positions in the trail.
+    if (pos_history.size() >= 30)
+        pos_history.erase(pos_history.begin());
+    pos_history.push_back({entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude});
+    refresh_trail_markers();
 }
 
 bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
@@ -327,11 +427,16 @@ bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
     if (!geomap_view_)
         return false;
 
+    if (map_filter == 1) return false;  // this is the 'only me' option, so skip all others
+
     GeoMarker marker{};
     marker.lon = entry.pos.longitude;
     marker.lat = entry.pos.latitude;
     marker.angle = entry.velo.heading;
     marker.tag = get_map_tag(entry);
+    uint8_t r, g, b;
+    get_altitude_color(entry.pos.altitude, &r, &g, &b);
+    marker.color = Color(r, g, b);
 
     auto markerStored = geomap_view_->store_marker(marker);
     return markerStored == MARKER_STORED;
@@ -409,7 +514,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
          &status_good_frame,
          &field_volume});
 
-    recent_entries_view.set_parent_rect({0, 16, screen_width, 272});
+    recent_entries_view.set_parent_rect({0, 16, screen_width, UI_POS_HEIGHT_REMAINING(2)});
     recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
         detail_key = entry.key();
         details_view = nav.push<ADSBRxDetailsView>(entry);
@@ -635,27 +740,28 @@ void ADSBRxView::refresh_ui() {
 
         if (details_view->map_active()) {
             // Is it time to clear and refresh the map's markers?
-            if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {
+            if (ticks_since_marker_refresh >= (details_view->get_map_type() == MAP_TYPE_OSM ? MARKER_UPDATE_SECONDS_OSM : MARKER_UPDATE_SECONDS_BIN)) {
                 map_needs_update = true;
                 ticks_since_marker_refresh = 0;
                 details_view->clear_map_markers();
             }
         } else {
             // Refresh map immediately once active.
-            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS;
+            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS_OSM;  // this is the bigger, so set it to force
         }
 
         // Process the entries list.
         for (const auto& entry : recent) {
             // Found the entry being shown in details view. Update it.
-            if (entry.key() == detail_key) {
+            if (entry.key() == detail_key) {  // we don't add it to the markers, since this is the currently selected and shown in the middle one. This eliminates the "shadow" marker, and saves ram
                 details_view->update(entry);
                 current_updated = true;
-            }
-
-            // NB: current entry also gets a marker so it shows up if map is panned.
-            if (map_needs_update && entry.pos.pos_valid && entry.state <= ADSBAgeState::Recent) {
-                map_needs_update = details_view->add_map_marker(entry);
+            } else {
+                // Add others only
+                // NB: current entry also gets a marker so it shows up if map is panned.
+                if (map_needs_update && entry.pos.pos_valid && entry.state <= ADSBAgeState::Recent) {
+                    map_needs_update = details_view->add_map_marker(entry);
+                }
             }
 
             // Any work left to do?

@@ -1,5 +1,5 @@
 /*
- * copyleft 2024 sommermorgentraum
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -60,13 +60,13 @@ class MetronomeView : public View {
     uint32_t current_beat_{0};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "BPM:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Accent Beep Tune:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Unaccent Beep Tune:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Rhythm:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "BPM:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 2 * 16}, "Accent Beep Tune:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Unaccent Beep Tune:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "Rhythm:", Theme::getInstance()->fg_light->foreground},
         {{(sizeof("Rhythm:") + 1) * 8 + 4 * 8, 4 * 16}, "/", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Beep Flash Duration:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 5 * 16}, "Beep Flash Duration:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_bpm{
         {(sizeof("BPM:") + 1) * 8, 1 * 16},

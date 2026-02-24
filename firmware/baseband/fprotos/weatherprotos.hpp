@@ -41,8 +41,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 
 class WeatherProtos : public FProtoListGeneral {
    public:
-    WeatherProtos(const WeatherProtos&) { WeatherProtos(); };         // won't use, but makes compiler happy
-    WeatherProtos& operator=(const WeatherProtos&) { return *this; }  // won't use, but makes compiler happy
+    WeatherProtos(const WeatherProtos&) = delete;
+    WeatherProtos& operator=(const WeatherProtos&) = delete;
     WeatherProtos() {
         // add protos
         protos[FPW_NexusTH] = new FProtoWeatherNexusTH();
@@ -71,6 +71,7 @@ class WeatherProtos : public FProtoListGeneral {
         protos[FPW_Bresser3CH] = new FProtoWeatheBresser3CH();
         protos[FPW_Bresser3CH_V1] = nullptr;  // done by FProtoWeatheBresser3CH
         protos[FPW_Vauno_EN8822] = new FProtoWeatherVaunoEN8822();
+        protos[FPW_OREGON2B] = nullptr;  // done by FProtoWeatherOregon2
 
         // set callback for them
         for (uint8_t i = 0; i < FPW_COUNT; ++i) {

@@ -1,5 +1,5 @@
 /*
- * copyleft 2024 sommermorgentraum
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -69,11 +69,11 @@ class TunerView : public View {
     bool current_note_playing{false};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Instrument:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Note:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Note Frequency:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Note Octave Shift:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), 1 * 16}, "Instrument:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 2 * 16}, "Note:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Note Frequency:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "Note Octave Shift:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Volume:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_note_frequency{
         {(sizeof("Note Frequency:") + 1) * 8, 3 * 16, (int)screen_width - (int)(sizeof("Note Frequency:") + 1) * 8, 16},
@@ -102,7 +102,7 @@ class TunerView : public View {
         {}};
 
     NewButton button_play_stop{
-        {0 * 8, 16 * 16, screen_width, screen_height - 16 * 16},
+        {UI_POS_X(0), 16 * 16, screen_width, screen_height - 16 * 16},
         {},
         &bitmap_icon_replay,
         Theme::getInstance()->fg_red->foreground};

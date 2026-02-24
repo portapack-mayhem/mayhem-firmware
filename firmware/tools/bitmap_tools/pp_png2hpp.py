@@ -4,7 +4,7 @@
 #  make_bitmap.py - Copyright (C) 2016 Furrtek
 # Convert bitmap.hpp to icons inspired by
 #  bitmap_arr_reverse_decode.py - Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
-#  bitmap_arr_reverse_decode.py - Copyleft (ɔ) 2024 zxkmm with the GPL license
+#  bitmap_arr_reverse_decode.py - copyleft 2024 zxkmm AKA zix aka sommermorgentraum
 # Copysomething (c) 2024 LupusE with the license, needed by the PortaPack project
 # 
 # This program is free software; you can redistribute it and/or modify

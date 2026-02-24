@@ -127,9 +127,11 @@ struct is_flags_type {
 template <typename TEnum>
 constexpr bool is_flags_type_v = is_flags_type<TEnum>::value;
 
-#define ENABLE_FLAGS_OPERATORS(type) \
-    template <>                      \
-    struct is_flags_type<type> { static constexpr bool value = true; };
+#define ENABLE_FLAGS_OPERATORS(type)        \
+    template <>                             \
+    struct is_flags_type<type> {            \
+        static constexpr bool value = true; \
+    };
 
 template <typename TEnum>
 constexpr std::enable_if_t<is_flags_type_v<TEnum>, TEnum> operator|(TEnum a, TEnum b) {

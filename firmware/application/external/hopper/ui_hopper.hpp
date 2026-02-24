@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2020 euquiq
- * copyleft mr.r0b0t from the F society
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -88,55 +88,55 @@ class HopperView : public View {
         false};
 
     NewButton button_load_list{
-        {0 * 8, 9 * 16 + 4, 4 * 8, 32},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(10), 4 * 8, 32},
         {},
         &bitmap_icon_load,
         Color::dark_blue(),
         /*vcenter*/ true};
 
     NewButton button_save_list{
-        {4 * 8, 9 * 16 + 4, 4 * 8, 32},
+        {4 * 8, UI_POS_Y_BOTTOM(10), 4 * 8, 32},
         {},
         &bitmap_icon_save,
         Color::dark_blue(),
         /*vcenter*/ true};
 
     NewButton button_add_freq{
-        {8 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
+        {8 * 8 + 4, UI_POS_Y_BOTTOM(10), 4 * 8, 32},
         {},
         &bitmap_icon_add,
         Color::dark_green(),
         /*vcenter*/ true};
 
     NewButton button_delete_freq{
-        {12 * 8 + 4, 9 * 16 + 4, 4 * 8, 32},
+        {12 * 8 + 4, UI_POS_Y_BOTTOM(10), 4 * 8, 32},
         {},
         &bitmap_icon_trash,
         Color::dark_red(),
         /*vcenter*/ true};
 
     NewButton button_clear{
-        {screen_width - 4 * 8, 9 * 16 + 4, 4 * 8, 32},
+        {screen_width - 4 * 8, UI_POS_Y_BOTTOM(10), 4 * 8, 32},
         {},
         &bitmap_icon_tools_wipesd,
         Color::red(),
         /*vcenter*/ true};
 
     Labels labels{
-        {{2 * 8, 23 * 8}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 25 * 8}, "Speed:", Theme::getInstance()->fg_light->foreground},
-        {{3 * 8, 27 * 8}, "Hop:", Theme::getInstance()->fg_light->foreground},
-        {{4 * 8, 29 * 8}, "TX:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 31 * 8}, "Sle3p:", Theme::getInstance()->fg_light->foreground},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
-        {{0 * 8, 33 * 8}, "Jitter:", Theme::getInstance()->fg_light->foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
-        {{11 * 8, 29 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
-        {{11 * 8, 31 * 8}, "Secs.", Theme::getInstance()->fg_light->foreground},
-        {{11 * 8, 33 * 8}, "/60", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 35 * 8}, "Gain:", Theme::getInstance()->fg_light->foreground},
-        {{11 * 8, 35 * 8}, "A:", Theme::getInstance()->fg_light->foreground}};
+        {{2 * 8, UI_POS_Y_BOTTOM(8)}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, UI_POS_Y_BOTTOM(7)}, "Speed:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, UI_POS_Y_BOTTOM(6)}, "Hop:", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, UI_POS_Y_BOTTOM(5)}, "TX:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, UI_POS_Y_BOTTOM(4)}, "Sle3p:", Theme::getInstance()->fg_light->foreground},         // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
+        {{UI_POS_X(0), UI_POS_Y_BOTTOM(3)}, "Jitter:", Theme::getInstance()->fg_light->foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
+        {{11 * 8, UI_POS_Y_BOTTOM(5)}, "Secs.", Theme::getInstance()->fg_light->foreground},
+        {{11 * 8, UI_POS_Y_BOTTOM(4)}, "Secs.", Theme::getInstance()->fg_light->foreground},
+        {{11 * 8, UI_POS_Y_BOTTOM(3)}, "/60", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, UI_POS_Y_BOTTOM(2)}, "Gain:", Theme::getInstance()->fg_light->foreground},
+        {{11 * 8, UI_POS_Y_BOTTOM(2)}, "A:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_type{
-        {7 * 8, 23 * 8},
+        {7 * 8, UI_POS_Y_BOTTOM(8)},
         8,
         {
             {"Rand FSK", 0},
@@ -153,14 +153,14 @@ class HopperView : public View {
         }};
 
     Text text_range_number{
-        {16 * 8, 23 * 8, 2 * 8, 16},
+        {16 * 8, UI_POS_Y_BOTTOM(8), 2 * 8, 16},
         "--"};
     Text text_range_total{
-        {18 * 8, 23 * 8, 3 * 8, 16},
+        {18 * 8, UI_POS_Y_BOTTOM(8), 3 * 8, 16},
         "/--"};
 
     OptionsField options_speed{
-        {7 * 8, 25 * 8},
+        {7 * 8, UI_POS_Y_BOTTOM(7)},
         6,
         {{"10Hz  ", 10},
          {"100Hz ", 100},
@@ -169,7 +169,7 @@ class HopperView : public View {
          {"100kHz", 100000}}};
 
     OptionsField options_hop{
-        {7 * 8, 27 * 8},
+        {7 * 8, UI_POS_Y_BOTTOM(6)},
         6,
         {{"0ms !!", 0},
          {"1ms  ", 1},
@@ -182,7 +182,7 @@ class HopperView : public View {
          {"10s  ", 10000}}};
 
     NumberField field_timetx{
-        {7 * 8, 29 * 8},
+        {7 * 8, UI_POS_Y_BOTTOM(5)},
         3,
         {1, 180},
         1,
@@ -190,7 +190,7 @@ class HopperView : public View {
     };
 
     NumberField field_timepause{
-        {8 * 8, 31 * 8},
+        {8 * 8, UI_POS_Y_BOTTOM(4)},
         2,
         {1, 60},
         1,
@@ -198,7 +198,7 @@ class HopperView : public View {
     };
 
     NumberField field_jitter{
-        {8 * 8, 33 * 8},
+        {8 * 8, UI_POS_Y_BOTTOM(3)},
         2,
         {1, 60},
         1,
@@ -206,7 +206,7 @@ class HopperView : public View {
     };
 
     NumberField field_gain{
-        {8 * 8, 35 * 8},
+        {8 * 8, UI_POS_Y_BOTTOM(2)},
         2,
         {0, 47},
         1,
@@ -214,7 +214,7 @@ class HopperView : public View {
     };
 
     NumberField field_amp{
-        {13 * 8, 35 * 8},
+        {13 * 8, UI_POS_Y_BOTTOM(2)},
         1,
         {0, 1},
         1,
@@ -222,7 +222,7 @@ class HopperView : public View {
     };
 
     Button button_transmit{
-        {148, 216, 80, 80},
+        {148, UI_POS_Y_BOTTOM(6), 80, 80},
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_retune{

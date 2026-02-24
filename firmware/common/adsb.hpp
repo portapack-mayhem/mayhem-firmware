@@ -91,7 +91,7 @@ const float adsb_lat_lut[58] = {
     83.07199445, 83.99173563, 84.89166191, 85.75541621,
     86.53536998, 87.00000000};
 
-const float PI = 3.14159265358979323846;
+#include "mathdef.hpp"
 
 const float NZ = 15.0;
 

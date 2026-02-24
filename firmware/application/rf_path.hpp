@@ -39,9 +39,17 @@ enum class Direction {
 
 namespace path {
 
+#ifdef PRALINE
+/* PRALINE: MAX2831 direct path is 2320-2740 MHz */
+constexpr FrequencyRange band_low{0, 2320'000'000};
+constexpr FrequencyRange band_high{2740'000'000, 7250'000'000};
+constexpr FrequencyRange band_mid{band_low.maximum, band_high.minimum};
+#else
+/* HackRF One: Original band boundaries */
 constexpr FrequencyRange band_low{0, 2170'000'000};
 constexpr FrequencyRange band_high{2740'000'000, 7250'000'000};
 constexpr FrequencyRange band_mid{band_low.maximum, band_high.minimum};
+#endif
 
 enum class Band {
     /* Zero-based, used as index into frequency_bands table */
@@ -58,12 +66,16 @@ class Path {
     void set_band(const Band band);
     void set_rf_amp(const bool rf_amp);
 
+    Band get_band() const { return _band; }  //_band is used solely for debugging purposes.
+
    private:
     Direction direction{Direction::Receive};
     Band band{Band::Mid};
     bool rf_amp{false};
 
     void update();
+
+    Band _band{Band::Mid};  //_band is solely used of debugging purposes
 };
 
 }  // namespace path

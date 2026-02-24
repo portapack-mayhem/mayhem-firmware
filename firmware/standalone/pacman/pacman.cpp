@@ -39,8 +39,36 @@ void initialize(const standalone_application_api_t& api) {
     _api = &api;
 }
 
+bool on_key_event(uint8_t key_val) {
+    ui::KeyEvent key = (ui::KeyEvent)key_val;
+    if (key == ui::KeyEvent::Right) {
+        but_RIGHT = true;
+        but_LEFT = false;
+        but_DOWN = false;
+        but_UP = false;
+    } else if (key == ui::KeyEvent::Left) {
+        but_LEFT = true;
+        but_RIGHT = false;
+        but_DOWN = false;
+        but_UP = false;
+    } else if (key == ui::KeyEvent::Down) {
+        but_DOWN = true;
+        but_RIGHT = false;
+        but_LEFT = false;
+        but_UP = false;
+    } else if (key == ui::KeyEvent::Up) {
+        but_UP = true;
+        but_RIGHT = false;
+        but_LEFT = false;
+        but_DOWN = false;
+    } else if (key == ui::KeyEvent::Select) {
+        but_A = true;
+    }
+    return true;
+}
+
 void on_event(const uint32_t& events) {
-    static bool wait_for_button_release{false};
+    // static bool wait_for_button_release{false};
 
     if (!_playfield) {
         _playfield = std::make_unique<Playfield>();
@@ -48,29 +76,30 @@ void on_event(const uint32_t& events) {
     }
 
     if (events & 1) {
-        auto switches_raw = _api->swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu));
-        auto switches_debounced = _api->get_switches_state();
+        /*
+            auto switches_raw = _api->swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu));
+            auto switches_debounced = _api->get_switches_state();
 
-        // For the Select (Start/Pause) button, wait for release to avoid repeat
-        uint8_t buttons_to_wait_for = (1 << (int)Switch::Sel);
-        if (wait_for_button_release) {
-            if ((switches_debounced & buttons_to_wait_for) == 0)
-                wait_for_button_release = false;
-            switches_debounced &= ~buttons_to_wait_for;
-        } else {
-            if (switches_debounced & buttons_to_wait_for)
-                wait_for_button_release = true;
-        }
+            // For the Select (Start/Pause) button, wait for release to avoid repeat
+            uint8_t buttons_to_wait_for = (1 << (int)Switch::Sel);
+            if (wait_for_button_release) {
+                if ((switches_debounced & buttons_to_wait_for) == 0)
+                    wait_for_button_release = false;
+                switches_debounced &= ~buttons_to_wait_for;
+            } else {
+                if (switches_debounced & buttons_to_wait_for)
+                    wait_for_button_release = true;
+            }
 
-        // For the directional buttons, use the raw inputs for fastest response time
-        but_RIGHT = (switches_raw & (1 << (int)Switch::Right)) != 0;
-        but_LEFT = (switches_raw & (1 << (int)Switch::Left)) != 0;
-        but_DOWN = (switches_raw & (1 << (int)Switch::Down)) != 0;
-        but_UP = (switches_raw & (1 << (int)Switch::Up)) != 0;
+            // For the directional buttons, use the raw inputs for fastest response time
+            but_RIGHT = (switches_raw & (1 << (int)Switch::Right)) != 0;
+            but_LEFT = (switches_raw & (1 << (int)Switch::Left)) != 0;
+            but_DOWN = (switches_raw & (1 << (int)Switch::Down)) != 0;
+            but_UP = (switches_raw & (1 << (int)Switch::Up)) != 0;
 
-        // For the pause button, use the debounced input to avoid glitches, and OR in the value to make sure that we don't clear it before it's seen
-        but_A |= (switches_debounced & (1 << (int)Switch::Sel)) != 0;
-
+            // For the pause button, use the debounced input to avoid glitches, and OR in the value to make sure that we don't clear it before it's seen
+            but_A |= (switches_debounced & (1 << (int)Switch::Sel)) != 0;
+        */
         _playfield->Step();
     }
 }

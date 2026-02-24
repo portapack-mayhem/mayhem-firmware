@@ -42,10 +42,9 @@ namespace ui::external_app::tpmsrx {
 
 namespace format {
 
-static bool units_psi{false};
-static bool units_fahr{false};
-
-} /* namespace format */
+static uint8_t pressure_unit{PRESSURE_UNIT_KPA};
+static uint8_t temp_unit{TEMP_UNIT_CELSIUS};
+}  // namespace format
 
 struct TPMSRecentEntry {
     using Key = std::pair<tpms::Reading::Type, tpms::TransponderID>;
@@ -54,6 +53,7 @@ struct TPMSRecentEntry {
 
     tpms::Reading::Type type{invalid_key.first};
     tpms::TransponderID id{invalid_key.second};
+    tpms::SignalType signal_type{tpms::SignalType::OOK_8k192_Schrader};
 
     size_t received_count{0};
 
@@ -90,6 +90,64 @@ class TPMSLogger {
 
 using TPMSRecentEntriesView = RecentEntriesView<TPMSRecentEntries>;
 
+class TPMSRecentEntryDetailView : public View {
+   public:
+    TPMSRecentEntryDetailView(NavigationView& nav, const TPMSRecentEntry& entry);
+
+    void set_entry(const TPMSRecentEntry& entry);
+    const TPMSRecentEntry& entry() const { return entry_; }
+
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+    TPMSRecentEntry entry_;
+
+    void on_save();
+    bool save_file(const std::filesystem::path& path);
+
+    Labels labels{
+        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "Pressure:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "Temperature:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 9 * 16}, "Flags:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 11 * 16}, "Count:", Theme::getInstance()->fg_light->foreground},
+    };
+
+    Text text_type{
+        {8 * 8, 1 * 16, 20 * 8, 16},
+        ""};
+
+    Text text_id{
+        {8 * 8, 3 * 16, 20 * 8, 16},
+        ""};
+
+    Text text_pressure{
+        {12 * 8, 5 * 16, 16 * 8, 16},
+        ""};
+
+    Text text_temperature{
+        {14 * 8, 7 * 16, 14 * 8, 16},
+        ""};
+
+    Text text_flags{
+        {8 * 8, 9 * 16, 20 * 8, 16},
+        ""};
+
+    Text text_count{
+        {8 * 8, 11 * 16, 20 * 8, 16},
+        ""};
+
+    Button button_save{
+        {0 * 8, 13 * 16, 14 * 8, 32},
+        "Save"};
+
+    Button button_done{
+        {16 * 8, 13 * 16, 14 * 8, 32},
+        "Done"};
+};
+
 class TPMSAppView : public View {
    public:
     TPMSAppView(NavigationView& nav);
@@ -99,13 +157,15 @@ class TPMSAppView : public View {
 
     // Prevent painting of region covered entirely by a child.
     // TODO: Add flag to View that specifies view does not need to be cleared before painting.
-    void paint(Painter&) override{};
+    void paint(Painter&) override {};
 
     void focus() override;
 
     std::string title() const override { return "TPMS RX"; };
 
    private:
+    NavigationView& nav_;
+
     RxRadioState radio_state_{
         314900000 /* frequency*/
         ,
@@ -117,8 +177,8 @@ class TPMSAppView : public View {
         "rx_tpms",
         app_settings::Mode::RX,
         {
-            {"units_psi"sv, &format::units_psi},
-            {"units_fahr"sv, &format::units_fahr},
+            {"pressure_unit"sv, &format::pressure_unit},
+            {"temp_unit"sv, &format::temp_unit},
         }};
 
     MessageHandlerRegistration message_handler_packet{
@@ -134,19 +194,17 @@ class TPMSAppView : public View {
     ui::Rect view_normal_rect{};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4},
     };
-
-    AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
-
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
+    AudioVolumeField field_volume{
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     // "315 MHz" TPMS sensors transmit at either 314.9 or 315 MHz but we should pick up either
     OptionsField options_band{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         5,
         {
             {"314.9", 314900000},
@@ -155,32 +213,33 @@ class TPMSAppView : public View {
         }};
 
     OptionsField options_pressure{
-        {6 * 8, 0 * 16},
-        3,
-        {{"kPa", 0},
-         {"PSI", 1}}};
+        {6 * 8, UI_POS_Y(0)},
+        4,
+        {{"kPa", PRESSURE_UNIT_KPA},
+         {"PSI", PRESSURE_UNIT_PSI},
+         {"BAR", PRESSURE_UNIT_BAR}}};
 
     OptionsField options_temperature{
-        {10 * 8, 0 * 16},
+        {10 * 8, UI_POS_Y(0)},
         2,
-        {{STR_DEGREES_C, 0},
-         {STR_DEGREES_F, 1}}};
+        {{STR_DEGREES_C, TEMP_UNIT_CELSIUS},
+         {STR_DEGREES_F, TEMP_UNIT_FAHRENHEIT}}};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
 
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     TPMSRecentEntries recent{};
     std::unique_ptr<TPMSLogger> logger{};
 
-    const RecentEntriesColumns columns{{
+    RecentEntriesColumns columns{{
         {"Tp", 2},
-        {"ID", 8},
+        {"ID", 0},
         {"Pres", 4},
         {"Temp", 4},
         {"Cnt", 3},
@@ -190,6 +249,7 @@ class TPMSAppView : public View {
 
     void on_packet(const tpms::Packet& packet);
     void on_show_list();
+    void on_show_detail(const TPMSRecentEntry& entry);
     void update_view();
 };
 

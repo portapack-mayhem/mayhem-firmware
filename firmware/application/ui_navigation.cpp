@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2024 u-foka
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *
@@ -33,7 +33,6 @@
 #include "ui_adsb_rx.hpp"
 #include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
-#include "ui_bht_tx.hpp"
 #include "ui_btle_rx.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
@@ -46,14 +45,10 @@
 #include "ui_mictx.hpp"
 
 #include "ui_playlist.hpp"
-#include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_recon.hpp"
-// #include "ui_scanner.hpp"
-#include "ui_sd_over_usb.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
-#include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
@@ -66,13 +61,10 @@
 
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-// #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
-#include "ert_app.hpp"
 #include "pocsag_app.hpp"
-#include "soundboard_app.hpp"
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -117,7 +109,7 @@ const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
     {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
     {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
-    {nullptr, "Tranceiver", HOME, Color::cyan(), &bitmap_icon_tranceivers, new ViewFactory<TranceiversMenuView>()},
+    {nullptr, "Transceiver", HOME, Color::cyan(), &bitmap_icon_transceivers, new ViewFactory<TransceiversMenuView>()},
     {"recon", "Recon", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
@@ -131,7 +123,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
-    {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
@@ -139,14 +130,10 @@ const NavigationView::AppList NavigationView::appList = {
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     /* TX ********************************************************************/
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
-    {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
-    {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
-    {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
-    {"signalgen", "SignalGen", TX, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     /* UTILITIES *************************************************************/
@@ -154,7 +141,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
-    {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
@@ -324,6 +310,14 @@ SystemStatusView::SystemStatusView(
     audio::output::update_audio_mute();
 
     refresh();
+}
+
+void SystemStatusView::on_tx_disabled() {
+    if (!nav_.is_valid())
+        return;
+
+    nav_.pop();
+    nav_.display_modal("Error", "RF transmit disabled.\nApplication closed.");
 }
 
 // when battery icon / text is clicked
@@ -607,7 +601,14 @@ bool InformationView::firmware_checksum_error() {
 
     // only checking firmware checksum once per boot
     if (!fw_checksum_checked) {
-        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_ROM_SIZE) != FLASH_EXPECTED_CHECKSUM);
+#ifdef PRALINE
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, 4 * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+        // TODO: This is a minimal workaround to fix the FLASH ERR checksum, bc GSG's cmake doesn't define the PortaRF board,
+        // so if we do, we need to patch many codes. so we can't define the PortaRF board currently in our cmake.
+        // discuss needed to find a better way but currently we need CI works and make hackrf pro works as much as possible.
+#else
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_SIZE_LIMIT_MB * 1024 * 1024) != FLASH_EXPECTED_CHECKSUM);
+#endif
     }
     return fw_checksum_error;
 }
@@ -764,7 +765,7 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() { 
+                           [&nav, &app]() {
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
                             nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
                           true);
@@ -775,9 +776,9 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
 }
 
 // clang-format off
-void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos) {
+void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile ) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
-    if (externalItems.empty()) {
+    if (externalItems.empty() && show_error_tile) {
         grid.insert_item({"ExtAppErr",
                           Theme::getInstance()->error_dark->foreground,
                           nullptr,
@@ -791,8 +792,8 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                          error_tile_pos);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
-        { 
-            return a.desired_position < b.desired_position; 
+        {
+            return a.desired_position < b.desired_position;
         });
 
         for (auto const& gridItem : externalItems) {
@@ -801,7 +802,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             } else {
                 grid.insert_item(gridItem, gridItem.desired_position, true);
             }
-            
+
         }
 
         grid.update_items();
@@ -843,19 +844,18 @@ void TransmittersMenuView::on_populate() {
     add_external_items(nav_, app_location_t::TX, *this, return_icon ? 1 : 0);
 }
 
-/* TranceiversMenuView **************************************************/
+/* TransceiversMenuView **************************************************/
 
-TranceiversMenuView::TranceiversMenuView(NavigationView& nav)
+TransceiversMenuView::TransceiversMenuView(NavigationView& nav)
     : nav_(nav) {}
 
-void TranceiversMenuView::on_populate() {
+void TransceiversMenuView::on_populate() {
     bool return_icon = pmem::show_gui_return_icon();
     if (return_icon) {
         add_items({{"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_apps(nav_, *this, TRX);
-    // add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0);
-    // this folder doesn't have external apps, comment to prevent pop the err msg.
+    add_external_items(nav_, app_location_t::TRX, *this, return_icon ? 1 : 0, false);  // this folder doesn't have external apps, so don't show error for it.
     // NB: when has external app someday, uncomment this.
 }
 
@@ -907,7 +907,8 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 
 SystemMenuView::SystemMenuView(NavigationView& nav)
     : nav_(nav) {
-    set_max_rows(2);  // allow wider buttons
+    set_btn_height_fixed((screen_height - 16 - 16) / 6);  // this is for main menu height, to fill the screen
+    set_max_rows(2);                                      // allow wider buttons
     show_arrows_enabled(false);
 }
 
@@ -968,6 +969,8 @@ SystemView::SystemView(
     };
 
     navigation_view.push<SystemMenuView>();
+
+    add_child(&notification_view);
 
     if (pmem::config_splash()) {
         navigation_view.push<SplashScreenView>();
@@ -1045,22 +1048,65 @@ void SplashScreenView::focus() {
 
 SplashScreenView::SplashScreenView(NavigationView& nav)
     : nav_(nav) {
-    add_children({&button_done});
-
+    add_children({
+        &button_done,
+        // &bmp_view
+    });
     button_done.on_select = [this](Button&) {
         handle_pop();
     };
 }
 
+void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
+    path = u"";
+
+    srand(LPC_RTC->CTIME0);
+
+    DIR dir;
+    FILINFO fno;
+    int32_t valid_count = 0;
+
+    // Open directory
+    if (f_opendir(&dir, (const TCHAR*)splash_dir.c_str()) == FR_OK) {
+        while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0] != 0) {
+            // Skip directories
+            if (fno.fattrib & AM_DIR) continue;
+            int len = 0;
+            while (fno.fname[len]) len++;  // Get length
+            if (len >= 4) {
+                const TCHAR* ext = &fno.fname[len - 4];
+                // Check extension case-insensitively
+                if (ext[0] == '.' &&
+                    (ext[1] == 'B' || ext[1] == 'b') &&
+                    (ext[2] == 'M' || ext[2] == 'm') &&
+                    (ext[3] == 'P' || ext[3] == 'p')) {
+                    valid_count++;
+                    // Reservoir Sampling:
+                    if ((rand() % valid_count) == 0) {
+                        path = splash_dir / fno.fname;
+                    }
+                }
+            }
+        }
+        f_closedir(&dir);
+    }
+}
+
 void SplashScreenView::paint(Painter&) {
-    if (!portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp))
-        // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
-        portapack::display.draw_bitmap({0,
-                                        screen_height / 2},
-                                       bitmap_titlebar_image.size,
-                                       bitmap_titlebar_image.data,
-                                       Theme::getInstance()->bg_darkest->foreground,
-                                       Theme::getInstance()->bg_darkest->background, 3);
+    set_clean();
+    // if (!bmp_view.load_bmp(splash_dot_bmp)) { //--too slow drawing, bc of the more bmp format support, and up-> down drawing
+    if (portapack::display.draw_bmp_from_sdcard_file({0, 0}, splash_dot_bmp)) return;
+    // ^ try draw bmp file from sdcard at (0,0), and the (0,0) already bypassed the status bar, so actual pos is (0, STATUS_BAR_HEIGHT)
+
+    std::filesystem::path path{};
+    get_random_splash_file(path);
+    if (portapack::display.draw_bmp_from_sdcard_file({0, 0}, path)) return;
+    portapack::display.draw_bitmap({screen_width / 2 - ((bitmap_titlebar_image.size.width() * 3) / 2),
+                                    screen_height / 2},
+                                   bitmap_titlebar_image.size,
+                                   bitmap_titlebar_image.data,
+                                   Theme::getInstance()->bg_darkest->foreground,
+                                   Theme::getInstance()->bg_darkest->background, 3);
     // ^ draw BMP HEX arr in firmware, note that the BMP HEX arr only cover the image part (instead of fill the screen with background, this position is located it in the center)
 }
 
@@ -1078,7 +1124,6 @@ bool SplashScreenView::on_touch(const TouchEvent event) {
         case TouchEvent::Type::Start:
             handle_pop();
             return false;
-
         default:
             break;
     }
@@ -1155,8 +1200,8 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (!compact) portapack::display.draw_bitmap({screen_width / 2 - 3 * 16 / 2,
-                                                  screen_height / 2 - 3 * 16 / 2 - 100},
+    if (!compact) portapack::display.draw_bitmap({UI_POS_X_CENTER(6),
+                                                  UI_POS_Y(4)},
                                                  bitmap_icon_utilities.size,
                                                  bitmap_icon_utilities.data,
                                                  Theme::getInstance()->bg_darkest->foreground,

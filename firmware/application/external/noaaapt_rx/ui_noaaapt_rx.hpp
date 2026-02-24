@@ -87,7 +87,7 @@ class NoaaAptRxView : public View {
     VGAGainField field_vga{
         {UI_POS_X(18), UI_POS_Y(0)}};
     RSSI rssi{
-        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH(6), 4}};
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
@@ -114,7 +114,7 @@ class NoaaAptRxView : public View {
     };
 
     Button button_ss{
-        {UI_POS_X_RIGHT(6), UI_POS_Y(1), UI_POS_WIDTH(5), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X_RIGHT(6), UI_POS_Y(1), UI_POS_WIDTH(6), UI_POS_HEIGHT(2)},
         LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_stats{

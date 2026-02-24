@@ -44,6 +44,12 @@ extern options_db_t freqman_steps;
 
 namespace ui {
 
+enum FrequencyUnit {
+    GHZ = 0,
+    MHZ,
+    KHZ,
+};
+
 class FrequencyField : public Widget {
    public:
     std::function<void(rf::Frequency)> on_change{};
@@ -207,38 +213,53 @@ class FrequencyKeypadView : public View {
         const rf::Frequency value);
 
     void focus() override;
+    void paint(Painter& painter) override;
 
-    rf::Frequency value() const;
+    rf::Frequency value(FrequencyUnit frequency_uni) const;
     void set_value(const rf::Frequency new_value);
     bool on_encoder(const EncoderEvent delta) override;
     bool on_keyboard(const KeyboardEvent key) override;
 
    private:
     int16_t focused_button = 0;
-    static constexpr int button_w = 240 / 3;
+    int button_w = 240 / 3;
     static constexpr int button_h = 48;
 
     static constexpr int mhz_digits = 4;
     static constexpr int submhz_digits = 4;
-
     static constexpr int mhz_mod = pow(10, mhz_digits);
     static constexpr int submhz_base = pow(10, 6 - submhz_digits);
     static constexpr int text_digits = mhz_digits + 1 + submhz_digits;
 
     Text text_value{
-        {0, 4, screen_width, 16}};
+        {UI_POS_X(0), 4, screen_width, 16}};
 
     std::array<Button, 12> buttons{};
 
-    Button button_save{
-        {0, button_h * 5, 60, button_h},
-        "Save"};
+    Button button_save_ghz{
+        {UI_POS_X(0), 14 * 16, UI_POS_WIDTH_PERCENT(16) + 1, UI_POS_HEIGHT(2)},
+        "GHz"};
+    Button button_save_khz{
+        {UI_POS_X(0) + UI_POS_WIDTH_PERCENT(16) + 1, 14 * 16, UI_POS_WIDTH_PERCENT(16) + 2, UI_POS_HEIGHT(2)},
+        "kHz"};
+    Button button_save_mhz{
+        {UI_POS_X(0), 16 * 16, UI_POS_WIDTH_PERCENT(33), UI_POS_HEIGHT(3)},
+        "Save MHz"};
     Button button_load{
-        {60, button_h * 5, 60, button_h},
+        {UI_POS_WIDTH_PERCENT(33) + 1, 14 * 16, UI_POS_WIDTH_PERCENT(33), 40},
         "Load"};
-    Button button_close{
-        {128, button_h * 5, 112, button_h},
-        "Done"};
+    Button button_clear{
+        {UI_POS_WIDTH_PERCENT(33) + 1, 264, UI_POS_WIDTH_PERCENT(33), 40},
+        "Clear"};
+    Button button_done_ghz{
+        {UI_POS_WIDTH_PERCENT(66) + 1, 14 * 16, UI_POS_WIDTH_PERCENT(16) + 1, UI_POS_HEIGHT(2)},
+        "GHz"};
+    Button button_done_khz{
+        {UI_POS_WIDTH_PERCENT(82) + 2, 14 * 16, UI_POS_WIDTH_PERCENT(16) + 2, UI_POS_HEIGHT(2)},
+        "kHz"};
+    Button button_done_mhz{
+        {UI_POS_WIDTH_PERCENT(66) + 1, 16 * 16, UI_POS_WIDTH_PERCENT(33), UI_POS_HEIGHT(3)},
+        "Done MHz"};
 
     /* TODO: Template arg required in enum?! */
     FieldString<mhz_digits> mhz{FieldString<4>::Justify::Right};
@@ -253,6 +274,8 @@ class FrequencyKeypadView : public View {
     bool clear_field_if_digits_entered{true};
 
     void on_button(Button& button);
+
+    void draw_input_hint();
 
     void digit_add(const char c);
     void digit_delete();
@@ -289,29 +312,29 @@ class FrequencyOptionsView : public View {
 
    private:
     Text text_step{
-        {0 * 8, 0 * 16, 4 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 4 * 8, 1 * 16},
         "Step"};
 
     FrequencyStepView field_step{
-        {5 * 8, 0 * 16},
+        {5 * 8, UI_POS_Y(0)},
     };
 
     void on_step_changed(rf::Frequency v);
     void on_reference_ppm_correction_changed(int32_t v);
 
     NumberField field_ppm{
-        {23 * 8, 0 * 16},
+        {23 * 8, UI_POS_Y(0)},
         3,
         {-99, 99},
         1,
         '0',
     };
     Text text_ext{
-        {23 * 8, 0 * 16, 3 * 8, 1 * 16},
+        {23 * 8, UI_POS_Y(0), 3 * 8, 1 * 16},
         "EXT",
     };
     Text text_ppm{
-        {27 * 8, 0 * 16, 3 * 8, 16},
+        {27 * 8, UI_POS_Y(0), 3 * 8, 16},
         "PPM",
     };
 };
@@ -327,11 +350,11 @@ class RadioGainOptionsView : public View {
 
    private:
     Text label_rf_amp{
-        {0 * 8, 0 * 16, 3 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 3 * 8, 1 * 16},
         "Amp"};
 
     RFAmpField field_rf_amp{
-        {4 * 8, 0 * 16},
+        {4 * 8, UI_POS_Y(0)},
     };
 };
 

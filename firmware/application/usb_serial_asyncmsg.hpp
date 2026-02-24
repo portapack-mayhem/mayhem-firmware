@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
- * Copyleft (ɔ) 2024 zxkmm with the GPL license
+ * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
  * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.

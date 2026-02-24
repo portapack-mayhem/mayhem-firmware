@@ -133,39 +133,111 @@ const byte _initSprites[] =
 // Ghost colors
 const byte _palette2[] =
     {
-        0, 11, 1, 15,   // BINKY red
-        0, 11, 3, 15,   // PINKY pink
-        0, 11, 5, 15,   // INKY cyan
-        0, 11, 7, 15,   // CLYDE brown
-        0, 11, 9, 9,    // PACMAN yellow
-        0, 11, 15, 15,  // FRIGHTENED
-        0, 11, 0, 15,   // DEADEYES
+        0,
+        11,
+        1,
+        15,  // BINKY red
+        0,
+        11,
+        3,
+        15,  // PINKY pink
+        0,
+        11,
+        5,
+        15,  // INKY cyan
+        0,
+        11,
+        7,
+        15,  // CLYDE brown
+        0,
+        11,
+        9,
+        9,  // PACMAN yellow
+        0,
+        11,
+        15,
+        15,  // FRIGHTENED
+        0,
+        11,
+        0,
+        15,  // DEADEYES
 
-        0, 1, 15, 2,   // cherry
-        0, 1, 15, 12,  // strawberry
-        0, 7, 2, 12,   // peach
-        0, 9, 15, 0,   // bell
+        0,
+        1,
+        15,
+        2,  // cherry
+        0,
+        1,
+        15,
+        12,  // strawberry
+        0,
+        7,
+        2,
+        12,  // peach
+        0,
+        9,
+        15,
+        0,  // bell
 
-        0, 15, 1, 2,   // apple
-        0, 12, 15, 5,  // grape
-        0, 11, 9, 1,   // galaxian
-        0, 5, 15, 15,  // key
+        0,
+        15,
+        1,
+        2,  // apple
+        0,
+        12,
+        15,
+        5,  // grape
+        0,
+        11,
+        9,
+        1,  // galaxian
+        0,
+        5,
+        15,
+        15,  // key
 
 };
 
 const byte _paletteIcon2[] =
     {
-        0, 9, 9, 9,  // PACMAN
+        0,
+        9,
+        9,
+        9,  // PACMAN
 
-        0, 2, 15, 1,   // cherry
-        0, 12, 15, 1,  // strawberry
-        0, 12, 2, 7,   // peach
-        0, 0, 15, 9,   // bell
+        0,
+        2,
+        15,
+        1,  // cherry
+        0,
+        12,
+        15,
+        1,  // strawberry
+        0,
+        12,
+        2,
+        7,  // peach
+        0,
+        0,
+        15,
+        9,  // bell
 
-        0, 2, 15, 1,   // apple
-        0, 12, 15, 5,  // grape
-        0, 1, 9, 11,   // galaxian
-        0, 5, 15, 15,  // key
+        0,
+        2,
+        15,
+        1,  // apple
+        0,
+        12,
+        15,
+        5,  // grape
+        0,
+        1,
+        9,
+        11,  // galaxian
+        0,
+        5,
+        15,
+        15,  // key
 };
 
 #define PACMANICON 1
@@ -571,7 +643,7 @@ class Playfield {
       }
 #endif
 
-        x += (240 - 224) / 2;
+        x += (*(_api->screen_width) - 224) / 2;
         y += (320 - 288) / 2 + 8;
 
         // Should be a direct Graphics call

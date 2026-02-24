@@ -124,12 +124,12 @@ void EventDispatcher::request_stop() {
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
     // TODO: Distribute display sleep message more broadly, shut down data generation
-    // on baseband side, since all that data is being discarded during sleep.
+    // on baseband side, since all that data is being discarded during sleep.  -- DON'T TODO it, sincethe stealth mode want to send with screen off!
     if (sleep) {
         portapack::backlight()->off();
-        portapack::display.sleep();
+        portapack::display.sleep(false);  // when called the hw_sleep = true, the irq wont fire, so the EVT_MASK_LCD_FRAME_SYNC won't set.
     } else {
-        portapack::display.wake();
+        portapack::display.wake(true);  // not important, command not affect if already hw waken up
         // Don't turn on backlight here.
         // Let frame sync handler turn on backlight after repaint.
     }
@@ -180,12 +180,10 @@ void EventDispatcher::dispatch(const eventmask_t events) {
     /*if( events & EVT_MASK_LCD_FRAME_SYNC ) {
                 blink_timer();
         }*/
-
+    if (events & EVT_MASK_LCD_FRAME_SYNC) {
+        handle_lcd_frame_sync(!EventDispatcher::display_sleep);
+    }
     if (!EventDispatcher::display_sleep) {
-        if (events & EVT_MASK_LCD_FRAME_SYNC) {
-            handle_lcd_frame_sync();
-        }
-
         if (events & EVT_MASK_ENCODER) {
             handle_encoder();
         }
@@ -258,7 +256,9 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
     if (!w->hidden()) {
         // To achieve reverse depth ordering (last object drawn is
         // considered "top"), descend first.
-        for (const auto child : w->children()) {
+        auto& children = w->children();
+        for (auto it = children.rbegin(); it != children.rend(); ++it) {  // reverse, bc the lastly added will be "top" if overlaps
+            const auto& child = *it;
             const auto touched_widget = touch_widget(child, event);
             if (touched_widget) {
                 return touched_widget;
@@ -328,17 +328,16 @@ ui::Widget* EventDispatcher::getFocusedWidget() {
     return context.focus_manager().focus_widget();
 }
 
-void EventDispatcher::handle_lcd_frame_sync() {
+void EventDispatcher::handle_lcd_frame_sync(bool screen_on) {
     bool waiting_for_frame = this->waiting_for_frame;
 
-    DisplayFrameSyncMessage message;
+    DisplayFrameSyncMessage message;  // send framesync msg all the time, bc some apps relay on it
     message_map.send(&message);
-
-    static_cast<ui::SystemView*>(top_widget)->paint_overlay();
-    painter.paint_widget_tree(top_widget);
-
-    portapack::backlight()->on();
-
+    if (screen_on) {  // only draw when screen is on
+        static_cast<ui::SystemView*>(top_widget)->paint_overlay();
+        painter.paint_widget_tree(top_widget);
+        portapack::backlight()->on();
+    }
     if (waiting_for_frame)
         this->waiting_for_frame = false;
 }

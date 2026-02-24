@@ -1,6 +1,6 @@
 /*
  * Copyright 2025 Mark Thompson
- * copyleft Mr. Robot of F.Society
+ * copyleft 2025 zxkmm AKA zix aka sommermorgentraum
  *
  * This file is part of PortaPack.
  *

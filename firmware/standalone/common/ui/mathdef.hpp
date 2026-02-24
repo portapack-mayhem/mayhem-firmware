@@ -1,0 +1,4 @@
+#pragma once
+
+#define PI 3.1415926535897932384626433832795
+#define M_PI PI

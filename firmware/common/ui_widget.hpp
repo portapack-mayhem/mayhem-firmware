@@ -209,6 +209,7 @@ class Rectangle : public Widget {
 
 class Text : public Widget {
    public:
+    std::function<void(Text&)> on_select{};
     Text()
         : text{""} {
     }
@@ -217,10 +218,13 @@ class Text : public Widget {
     Text(Rect parent_rect);
 
     void set(std::string_view value);
+    std::string get();
 
     void paint(Painter& painter) override;
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
+
+    bool on_touch(const TouchEvent event) override;
 
    protected:
     // NB: Don't truncate this string. The UI will only render
@@ -666,6 +670,8 @@ class ImageOptionsField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    bool on_key(const KeyEvent event) override;
+
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
 
@@ -674,6 +680,7 @@ class ImageOptionsField : public Widget {
     size_t selected_index_{0};
     Color foreground_;
     Color background_;
+    bool is_activated = false;
 };
 
 class OptionsField : public Widget {
@@ -706,6 +713,7 @@ class OptionsField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    bool on_key(const KeyEvent event) override;
 
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
@@ -715,6 +723,7 @@ class OptionsField : public Widget {
     options_t options_;
     size_t selected_index_{0};
     bool centered_{false};  // e.g.: length as screen_width/8, x position as 0, it will be centered in x axis
+    bool is_activated = false;
 };
 
 // A TextEdit is bound to a string reference and allows the string
@@ -851,11 +860,11 @@ class NumberField : public Widget {
     NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char, bool can_loop);
 
     NumberField(Point parent_pos, int length, range_t range, int32_t step, char fill_char)
-        : NumberField{parent_pos, length, range, step, fill_char, false} {
+        : NumberField{parent_pos, length, range, step, fill_char, true} {
     }
 
     NumberField()
-        : NumberField{{0, 0}, 1, {0, 1}, 1, ' ', false} {
+        : NumberField{{0, 0}, 1, {0, 1}, 1, ' ', true} {
     }
 
     NumberField(const NumberField&) = delete;
@@ -883,6 +892,53 @@ class NumberField : public Widget {
     const char fill_char;
     int32_t value_{0};
     bool can_loop{};
+};
+
+class FloatField : public Widget {
+   public:
+    std::function<void(FloatField&)> on_select{};
+    std::function<void(float)> on_change{};
+    std::function<void(int32_t)> on_wrap{};
+
+    using range_t = std::pair<float, float>;
+
+    FloatField(Point parent_pos, int length, range_t range, float step, char fill_char, bool can_loop, uint8_t precision_ = 1);
+
+    FloatField(Point parent_pos, int length, range_t range, float step, char fill_char)
+        : FloatField{parent_pos, length, range, step, fill_char, true, 1} {
+    }
+
+    FloatField()
+        : FloatField{{0, 0}, 1, {0, 1}, 1, ' ', true, 1} {
+    }
+
+    FloatField(const FloatField&) = delete;
+    FloatField(FloatField&&) = delete;
+
+    float value() const;
+    void set_value(float new_value, bool trigger_change = true);
+    void set_range(const float min, const float max);
+    void set_step(const float new_step);
+    void set_precision(uint8_t precision);
+
+    void paint(Painter& painter) override;
+
+    bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent delta) override;
+    bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    range_t range;
+    float step;
+    const int length_;
+    const char fill_char;
+    float value_{0};
+    bool can_loop{};
+    uint8_t precision = 1;
 };
 
 /* A widget that allows for character-by-character editing of its value. */
@@ -989,7 +1045,7 @@ class Waveform : public Widget {
     void set_offset(const uint32_t new_offset);
     void set_length(const uint32_t new_length);
     void set_cursor(const uint32_t i, const int16_t position);
-
+    void set_data(int16_t* new_data);
     bool is_paused() const;
     void set_paused(bool paused);
     bool is_clickable() const;
@@ -1110,7 +1166,7 @@ class OptionTabView : public View {
 
    private:
     Checkbox check_enable{
-        {2 * 8, 0 * 16},
+        {2 * 8, UI_POS_Y(0)},
         20,
         "",
         false};

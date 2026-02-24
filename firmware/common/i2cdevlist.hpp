@@ -34,14 +34,18 @@ enum I2C_DEVMDL {
     I2CDEVMDL_SHT3X,
     I2CDEVMDL_BMP280,
     I2CDEVMDL_BME280,
-    I2CDECMDL_BH1750,
+    I2CDEVMDL_BH1750,
     I2CDECMDL_PPMOD,
+    I2CDEVMDL_SHT4X,
 };
 
 #define I2CDEV_BMX280_ADDR_1 0x76
 #define I2CDEV_BMX280_ADDR_2 0x77
 #define I2CDEV_SHT3X_ADDR_1 0x44
 #define I2CDEV_SHT3X_ADDR_2 0x45
+// sadly sht4x uses the same addr as sht3x, but the init script can decide which is which
+#define I2CDEV_SHT4X_ADDR_1 0x44
+#define I2CDEV_SHT4X_ADDR_2 0x45
 
 #define I2CDEV_MAX17055_ADDR_1 0x36
 #define I2CDEV_ADS1110_ADDR_1 0x48

@@ -52,12 +52,21 @@ static void send_message(const Message* const message) {
     creg::m0apptxevent::assert_event();
 
     if constexpr (check_for_message_hang) {
+#ifdef PRALINE
+        /* Timeout: ~3 seconds at typical clock speeds */
+        auto count = 200'000'000u;
+#else
         auto count = UINT32_MAX;
+#endif
         while (shared_memory.baseband_message && --count)
             /* spin */;
 
         if (count == 0)
+#ifdef PRALINE
+            chDbgPanic("BB Msg Timeout");
+#else
             chDbgPanic("Baseband Send Fail");
+#endif
     } else {
         while (shared_memory.baseband_message)
             /* spin */;
@@ -144,6 +153,19 @@ void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
     const SSTVConfigureMessage message{
         vis_code,
         pixel_duration};
+    send_message(&message);
+}
+
+void set_sstvrx_data(const uint8_t code) {
+    const SSTVRXConfigureMessage message{
+        code};
+    send_message(&message);
+}
+
+void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant) {
+    const SSTVRXPhaseSlantMessage message{
+        phase,
+        slant};
     send_message(&message);
 }
 
@@ -288,8 +310,8 @@ void set_fsk_data(const uint32_t stream_length, const uint32_t samples_per_bit, 
     send_message(&message);
 }
 
-void set_pocsag() {
-    const POCSAGConfigureMessage message{};
+void set_pocsag(int8_t baud_config) {
+    const POCSAGConfigureMessage message{baud_config};
     send_message(&message);
 }
 
@@ -328,6 +350,11 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_flex_config() {
+    const FlexConfigureMessage message{};
+    send_message(&message);
+}
+
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};
@@ -347,6 +374,41 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 
 void set_subghzd_config(uint8_t modulation = 0, uint32_t sampling_rate = 0) {
     const SubGhzFPRxConfigureMessage message{modulation, sampling_rate};
+    send_message(&message);
+}
+
+void set_moreserx_config(uint8_t mode) {
+    const MorseRXConfigureMessage message{mode};
+    send_message(&message);
+}
+
+void set_morsetx_config(uint8_t mode, uint32_t tone, float fm_delta) {
+    const MorseTXConfigureMessage message{mode, tone, fm_delta};
+    send_message(&message);
+}
+
+void set_morsetx_key(bool key_down) {
+    const MorseTXkeyMessage message{key_down};
+    send_message(&message);
+}
+
+void set_bitstream_config(uint32_t deviation, uint8_t mode) {
+    const StreamTXConfigurationMessage message{deviation, mode};
+    send_message(&message);
+}
+
+void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload, uint16_t payload_length) {
+    RTTYDataMessage message{baud, shift};
+    if (payload && payload_length > 0) {
+        message.data_len = payload_length > message.max_len ? message.max_len : payload_length;
+        for (size_t i = 0; i < message.data_len; ++i) {
+            message.data[i] = payload[i];
+        }
+    }
+    send_message(&message);
+}
+
+void set_rtty_config(RTTYDataMessage& message) {
     send_message(&message);
 }
 
@@ -411,7 +473,12 @@ void shutdown() {
     send_message(&message);
 
     shared_memory.application_queue.reset();
-
+    // Allow time for the shutdown message to be processed and for the baseband
+    // core to stop before starting another image. Otherwise, the M4 may still be
+    // running and cause a crash when the next image is started.
+#ifdef PRALINE
+    chThdSleepMilliseconds(20);
+#endif
     baseband_image_running = false;
 }
 

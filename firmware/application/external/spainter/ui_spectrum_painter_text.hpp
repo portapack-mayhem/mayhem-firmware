@@ -53,43 +53,43 @@ class SpectrumInputTextView : public View {
     void on_set_text(NavigationView& nav);
 
     Text text_message_0{
-        {0 * 8, 0 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(0), screen_width, 16},
         ""};
 
     Text text_message_1{
-        {0 * 8, 1 * 16, screen_width, 16},
+        {UI_POS_X(0), 1 * 16, screen_width, 16},
         ""};
 
     Text text_message_2{
-        {0 * 8, 2 * 16, screen_width, 16},
+        {UI_POS_X(0), 2 * 16, screen_width, 16},
         ""};
 
     Text text_message_3{
-        {0 * 8, 3 * 16, screen_width, 16},
+        {UI_POS_X(0), 3 * 16, screen_width, 16},
         ""};
 
     Text text_message_4{
-        {0 * 8, 4 * 16, screen_width, 16},
+        {UI_POS_X(0), 4 * 16, screen_width, 16},
         ""};
 
     Text text_message_5{
-        {0 * 8, 5 * 16, screen_width, 16},
+        {UI_POS_X(0), 5 * 16, screen_width, 16},
         ""};
 
     Text text_message_6{
-        {0 * 8, 6 * 16, screen_width, 16},
+        {UI_POS_X(0), 6 * 16, screen_width, 16},
         ""};
 
     Text text_message_7{
-        {0 * 8, 7 * 16, screen_width, 16},
+        {UI_POS_X(0), 7 * 16, screen_width, 16},
         ""};
 
     Text text_message_8{
-        {0 * 8, 8 * 16, screen_width, 16},
+        {UI_POS_X(0), 8 * 16, screen_width, 16},
         ""};
 
     Text text_message_9{
-        {0 * 8, 9 * 16, screen_width, 16},
+        {UI_POS_X(0), 9 * 16, screen_width, 16},
         ""};
 
     std::array<Text*, 10> text_message{{
@@ -106,7 +106,7 @@ class SpectrumInputTextView : public View {
     }};
 
     Button button_message{
-        {0 * 8, 11 * 16 - 4, screen_width, 28},
+        {UI_POS_X(0), UI_POS_Y_BOTTOM(10), screen_width, 28},
         "Set message"};
 };
 

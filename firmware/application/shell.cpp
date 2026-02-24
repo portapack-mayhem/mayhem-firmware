@@ -32,6 +32,10 @@
 #include "chprintf.h"
 #include "portapack.hpp"
 
+extern "C" {
+#include "platform_detect.h"
+}
+
 /**
  * @brief   Shell termination event source.
  */
@@ -65,8 +69,58 @@ static void list_commands(BaseSequentialStream* chp, const ShellCommand* scp) {
     }
 }
 
+static const char* get_board_revision_string(board_rev_t rev) {
+    switch (rev) {
+        case BOARD_REV_HACKRF1_OLD:
+            return "HackRF R1-R5";
+        case BOARD_REV_HACKRF1_R6:
+            return "HackRF R6";
+        case BOARD_REV_HACKRF1_R7:
+            return "HackRF R7";
+        case BOARD_REV_HACKRF1_R8:
+            return "HackRF R8";
+        case BOARD_REV_HACKRF1_R9:
+            return "HackRF R9";
+        case BOARD_REV_HACKRF1_R10:
+            return "HackRF R10";
+        case BOARD_REV_GSG_HACKRF1_R6:
+            return "GSG HackRF R6";
+        case BOARD_REV_GSG_HACKRF1_R7:
+            return "GSG HackRF R7";
+        case BOARD_REV_GSG_HACKRF1_R8:
+            return "GSG HackRF R8";
+        case BOARD_REV_GSG_HACKRF1_R9:
+            return "GSG HackRF R9";
+        case BOARD_REV_GSG_HACKRF1_R10:
+            return "GSG HackRF R10";
+        case BOARD_REV_PRALINE_R0_1:
+        case BOARD_REV_PRALINE_R0_2:
+        case BOARD_REV_PRALINE_R0_3:
+            return "HackRF Pro R0";
+        case BOARD_REV_PRALINE_R1_0:
+        case BOARD_REV_PRALINE_R1_1:
+        case BOARD_REV_PRALINE_R1_2:
+            return "HackRF Pro R1";
+        case BOARD_REV_GSG_PRALINE_R0_1:
+        case BOARD_REV_GSG_PRALINE_R0_2:
+        case BOARD_REV_GSG_PRALINE_R0_3:
+            return "GSG HackRF Pro R0";
+        case BOARD_REV_GSG_PRALINE_R1_0:
+        case BOARD_REV_GSG_PRALINE_R1_1:
+        case BOARD_REV_GSG_PRALINE_R1_2:
+            return "GSG HackRF Pro R1";
+        case BOARD_REV_UNRECOGNIZED:
+            return "Unrecognized";
+        case BOARD_REV_UNDETECTED:
+            return "Undetected";
+        default:
+            return "Unknown";
+    }
+}
+
 static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
+
     if (argc > 0) {
         usage(chp, const_cast<char*>("info"));
         return;
@@ -92,7 +146,40 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
 #ifdef VERSION_STRING
     chprintf(chp, "Mayhem Version:   %s\r\n", VERSION_STRING);
 #endif
-    chprintf(chp, "HackRF Board Rev: %s\r\n", hackrf_r9 ? "R9" : "R1-R8");
+
+    board_rev_t revision = detected_revision();
+    const char* revision_string = get_board_revision_string(revision);
+    chprintf(chp, "HackRF Board Rev: %s\r\n", revision_string);
+
+    // Determine device type string
+    const char* device_str;
+#ifdef PRALINE
+    device_str = "HackRF Pro";
+#else
+    if (portapack::device_type == portapack::DEV_PORTARF) {
+        device_str = "PortaRF";
+    } else {
+        device_str = "HackRF One";
+    }
+#endif
+    chprintf(chp, "Device:           %s\r\n", device_str);
+
+    // Flash info: build-time allowed MB, runtime-detected limit, current firmware size
+    // Use explicit uint32_t cast: FLASH_SIZE_LIMIT_MB may be a float (e.g. 3.5 for HPro)
+    uint8_t flash_allowrun;
+#ifdef PRALINE
+    flash_allowrun = 4;  // HackRF Pro
+#else
+    if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
+        flash_allowrun = 1;  // PortaPack classic
+    } else {
+        flash_allowrun = FLASH_SIZE_MB;  // PortaRF
+    }
+#endif
+    chprintf(chp, "Flash Allowed:    %dMB\r\n", (uint32_t)FLASH_SIZE_MB);
+    chprintf(chp, "Flash Runtime:    %dMB\r\n", (uint32_t)flash_allowrun);
+    chprintf(chp, "Flash Current:    %dMB\r\n", (uint32_t)FLASH_SIZE_LIMIT_MB);
+
     chprintf(chp, "Reference Source: %s\r\n", portapack::clock_manager.get_source().c_str());
     chprintf(chp, "Reference Freq:   %s\r\n", portapack::clock_manager.get_freq().c_str());
 #ifdef __DATE__

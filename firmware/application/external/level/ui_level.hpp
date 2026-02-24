@@ -80,21 +80,21 @@ class LevelView : public View {
         }};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "BW:       MODE:    S:   ", Theme::getInstance()->fg_light->foreground},
     };
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {4 * 8, UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {11 * 8, UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
 
     AudioVolumeField field_volume{
-        {24 * 8, 0 * 16}};
+        {24 * 8, UI_POS_Y(0)}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},
@@ -112,7 +112,7 @@ class LevelView : public View {
         {}};
 
     ButtonWithEncoder button_frequency{
-        {0 * 8, 2 * 16 + 8, 15 * 8, 1 * 8},
+        {UI_POS_X(0), 2 * 16 + 8, 15 * 8, 1 * 8},
         ""};
 
     OptionsField field_audio_mode{
@@ -135,12 +135,12 @@ class LevelView : public View {
 
     // RSSI: XX/XX/XXX
     Text freq_stats_rssi{
-        {0 * 8, 3 * 16 + 4, 15 * 8, 1 * 16},
+        {UI_POS_X(0), 3 * 16 + 4, 15 * 8, 1 * 16},
     };
 
     // Power: -XXX db
     Text freq_stats_db{
-        {0 * 8, 4 * 16 + 4, 15 * 8, 1 * 16},
+        {UI_POS_X(0), 4 * 16 + 4, 15 * 8, 1 * 16},
     };
 
     OptionsField peak_mode{
@@ -169,7 +169,7 @@ class LevelView : public View {
 
     // RxSat: XX%
     Text freq_stats_rx{
-        {0 * 8, 5 * 16 + 4, 10 * 8, 1 * 16},
+        {UI_POS_X(0), 5 * 16 + 4, 10 * 8, 1 * 16},
     };
 
     Text text_ctcss{

@@ -77,6 +77,12 @@ class BlackjackView : public View {
     NavigationView& nav_;
     bool initialized = false;
 
+    // Screen dimensions (set dynamically)
+    int screen_w = 0;
+    int screen_h = 0;
+    int card_width = 60;
+    int card_height = 80;
+
     // Game variables
     static constexpr uint8_t MAX_CARDS_IN_HAND = 11;  // Maximum possible cards before bust
     uint8_t deck[52];
@@ -141,7 +147,7 @@ class BlackjackView : public View {
          {"highscore"sv, &high_score}}};
 
     Button dummy{
-        {240, 0, 0, 0},
+        {0, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

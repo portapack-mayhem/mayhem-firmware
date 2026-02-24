@@ -47,7 +47,7 @@ static uint8_t calfrchk[51];        // so subframes are preserved while populate
 #define pos_GPSecefY 0x114  // 0x118  // 4 byte (not actually used since Y and Z are following X, and grabbed in that same loop)
 #define pos_GPSecefZ 0x118  // 0x11C  // 4 byte (same as Y)
 
-#define PI 3.1415926535897932384626433832795  // 3.1416 //(3.1415926535897932384626433832795)
+#include "mathdef.hpp"
 
 Packet::Packet(
     const baseband::Packet& packet,
@@ -64,7 +64,7 @@ Packet::Packet(
             type_ = Type::Meteomodem_M10;
         else if (id_byte == 0x648F)
             type_ = Type::Meteomodem_M2K2;
-        else if (id_byte == 0x4520)  // https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+        else if (id_byte == 0x4520 || id_byte == 0x4320)  // https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
             type_ = Type::Meteomodem_M20;
     }
 }
@@ -110,7 +110,7 @@ GPS_data Packet::get_GPS_data() const {
         result.alt = reader_bi_m.read(8 * 8, 24) / 100.0;       // <|
         result.lat = reader_bi_m.read(28 * 8, 32) / 1000000.0;  // <| Inspired by https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
         result.lon = reader_bi_m.read(32 * 8, 32) / 1000000.0;  // <|
-    } else if (type_ == Type::Vaisala_RS41_SG) {
+    } else if (type_ == Type::Vaisala_RS41_SG && crc16rs41(block_gpspos)) {
         uint8_t XYZ_bytes[4];
         int32_t XYZ;  // 32bit
         double_t X[3];
@@ -145,7 +145,7 @@ uint32_t Packet::battery_voltage() const {
     if (type_ == Type::Meteomodem_M10)
         return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
     else if (type_ == Type::Meteomodem_M20) {
-        return 0;  // NOT SUPPPORTED YET
+        return reader_bi_m.read(0x26 * 8, 8) * (3.3f / 255.0) * 1000;  // based on https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
     } else if (type_ == Type::Meteomodem_M2K2)
         return reader_bi_m.read(69 * 8, 8) * 66;  // Actually 65.8
     else if (type_ == Type::Vaisala_RS41_SG) {
@@ -160,9 +160,45 @@ uint32_t Packet::frame() const {
     if (type_ == Type::Vaisala_RS41_SG) {
         uint32_t frame_number = vaisala_descramble(pos_FrameNb) | (vaisala_descramble(pos_FrameNb + 1) << 8);
         return frame_number;
+    } else if (type_ == Type::Meteomodem_M20) {
+        return reader_bi_m.read(0x15 * 8, 8);
     } else {
         return 0;  // Unknown
     }
+}
+uint8_t Packet::getFwVerM20() const {
+    size_t pos_fw = 0x43;
+    int flen = reader_bi_m.read(0, 8);
+    if (flen != 0x45) {
+        int auxLen = flen - 0x45;
+        if (auxLen < 0) {
+            pos_fw = flen - 2;
+        }
+    }
+    return reader_bi_m.read(pos_fw, 8);
+}
+
+float Packet::get_pressure() const {
+    float pressure = 0.0f;
+    if (type_ == Type::Meteomodem_M20) {
+        float hPa = 0.0f;
+        uint32_t val = ((uint32_t)reader_bi_m.read(0x25 * 8, 8) << 8) | (uint32_t)reader_bi_m.read(0x24 * 8, 8);  // cf. DF9DQ
+        uint8_t p0 = 0x00;
+        uint8_t fwVer = getFwVerM20();
+        if (fwVer >= 0x07) {  // SPI1_P[0]
+            p0 = reader_bi_m.read(0x16 * 8, 8);
+        }
+        val = (val << 8) | p0;
+
+        if (val > 0) {
+            hPa = val / (float)(16 * 256);  // 4096=0x1000
+        }
+        if (hPa > 2560.0f) {  // val > 0xA00000
+            hPa = -1.0f;
+        }
+        pressure = hPa;
+    }
+    return pressure;
 }
 
 temp_humid Packet::get_temp_humid() const {
@@ -245,7 +281,7 @@ temp_humid Packet::get_temp_humid() const {
         }
     }
 
-    if (type_ == Type::Vaisala_RS41_SG && crc_ok_RS41())  // Only process if packet is healthy
+    if (type_ == Type::Vaisala_RS41_SG && crc16rs41(block_meas))  // Only process if packet is healthy
     {
         // memset(calfrchk, 0, 51); // is this necessary ? only if the sondeID changes (new sonde)
         // original code from https://github.com/rs1729/RS/blob/master/rs41/rs41ptu.c
@@ -331,6 +367,78 @@ temp_humid Packet::get_temp_humid() const {
             result.humid = rh;
         }
     }
+
+    if (type_ == Type::Meteomodem_M20) {
+        float p0 = 1.07303516e-03,
+              p1 = 2.41296733e-04,
+              p2 = 2.26744154e-06,
+              p3 = 6.52855181e-08;
+        float Rs[3] = {12.1e3, 36.5e3, 475.0e3};  // bias/series
+        float Rp[3] = {1e20, 330.0e3, 2000.0e3};  // parallel, Rp[0]=inf
+        uint8_t scT = 0;                          // {0,1,2}, range/scale voltage divider
+        uint16_t ADC_RT;                          // ADC12
+        // ui16_t Tcal[2];
+
+        float x, R;
+        float T = 0;  // T/Kelvin
+        uint32_t b2 = reader_bi_m.read(0x5 * 8, 8);
+        uint32_t b1 = reader_bi_m.read(0x4 * 8, 8);
+        ADC_RT = (b2 << 8) | b1;
+        if (ADC_RT > 8191) {
+            scT = 2;
+            ADC_RT -= 8192;
+        } else if (ADC_RT > 4095) {
+            scT = 1;
+            ADC_RT -= 4096;
+        } else {
+            scT = 0;
+        }  // also if (ADC_RT>>12)&3 == 3
+        // ADC12 , 4096 = 1<<12, max: 4095
+        x = (4095.0 - ADC_RT) / ADC_RT;  // (Vcc-Vout)/Vout = Vcc/Vout - 1
+        R = Rs[scT] / (x - Rs[scT] / Rp[scT]);
+        if (R > 0) T = 1.0 / (p0 + p1 * log(R) + p2 * log(R) * log(R) + p3 * log(R) * log(R) * log(R));
+        if (T - 273.15 < -120.0 || T - 273.15 > 60.0) T = 0;  // T < -120C, T > 60C invalid
+        result.temp = T - 273.15;                             // celsius
+
+        // humidity
+        // humi helper tntc2:
+        float Rsq = 22.1e3;         // P5.6=Vcc
+        float R25 = 2.2e3;          // 0.119e3; //2.2e3;
+        float b = 3650.0;           // B/Kelvin
+        float T25 = 25.0 + 273.15;  // T0=25C, R0=R25=5k
+        // -> Steinhart-Hart coefficients (polyfit):
+        T = 0.0;            // T/Kelvin
+        uint16_t ADC_ntc0;  // M10: ADC12 P6.4(A4)
+        float xq, Rq;
+        uint32_t bq2 = reader_bi_m.read(0x7 * 8, 8);
+        uint32_t bq1 = reader_bi_m.read(0x6 * 8, 8);
+        ADC_ntc0 = (bq2 << 8) | bq1;          // M10: 0x40,0x3F
+        xq = (4095.0 - ADC_ntc0) / ADC_ntc0;  // (Vcc-Vout)/Vout
+        Rq = Rsq / xq;
+        if (Rq > 0) T = 1.0 / (1.0 / T25 + 1.0 / b * log(Rq / R25));
+
+        // really the humidity
+        float TU = T - 273.15;
+        float RH = -1.0f;
+        float xqq;
+
+        uint16_t humval = ((uint32_t)reader_bi_m.read(0x03 * 8, 8) << 8) | (uint32_t)reader_bi_m.read(0x02 * 8, 8);
+        uint16_t rh_cal = ((uint32_t)reader_bi_m.read(0x30 * 8, 8) << 8) | (uint32_t)reader_bi_m.read(0x2F * 8, 8);
+        float humidityCalibration = 6.4e8f / (rh_cal + 80000.0f);
+        xqq = (humval + 80000.0f) * humidityCalibration * (1.0f - 5.8e-4f * (TU - 25.0f));
+        xqq = 4.16e9f / xqq;
+        xqq = 10.087f * xqq * xqq * xqq - 211.62f * xqq * xqq + 1388.2f * xqq - 2797.0f;
+        RH = -1.0f;
+        if (humval < 48000) {
+            if (xqq > -20.0f && xqq < 120.f) {
+                RH = xqq;
+                if (RH < 0.0f) RH = 0.0f;
+                if (RH > 100.0f) RH = 100.0f;
+            }
+        }
+        result.humid = RH;
+    }
+
     return result;
 }
 
@@ -371,11 +479,17 @@ std::string Packet::serial_number() const {
         uint8_t achar;
         for (uint8_t i = 0; i < 8; i++) {  // euquiq: Serial ID is 8 bytes long, each byte a char
             achar = vaisala_descramble(pos_SondeID + i);
-            if (achar < 32 || achar > 126)
-                return "?";  // Maybe there are ids with less than 8 bytes and this is not OK.
-            serial_id += (char)achar;
+            if (achar < 32 || achar > 126) {
+                serial_id += "?";  // Maybe there are ids with less than 8 bytes and this is not OK.
+            } else {
+                serial_id += (char)achar;
+            }
         }
         return serial_id;
+    } else if (type_ == Type::Meteomodem_M20) {
+        // Inspired by https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+        uint32_t sn = reader_bi_m.read(0x12 * 8, 8) | (reader_bi_m.read(0x13 * 8, 8) << 8) | (reader_bi_m.read(0x14 * 8, 8) << 16);
+        return to_string_dec_uint(sn);  // Serial is 3 bytes at byte #12
     } else {
         return "?";
     }
@@ -402,9 +516,21 @@ bool Packet::crc_ok() const {
             return crc_ok_M10();
         case Type::Vaisala_RS41_SG:
             return crc_ok_RS41();
+        case Type::Meteomodem_M20:
+            return check_ok_M20();
         default:
             return true;  // euquiq: it was false, but if no crc routine, then no way to check
     }
+}
+
+bool Packet::check_ok_M20() const {
+    uint8_t b1 = reader_bi_m.read(0, 8);
+    uint8_t b2 = reader_bi_m.read(8, 8);
+    if ((b1 != 0x45 && b1 != 0x43) || b2 != 0x20)
+        return false;
+    if (packet_.size() / 8 < b1)
+        return false;
+    return true;
 }
 
 // each data block has a 2 byte header, data, and 2 byte tail:
@@ -414,15 +540,9 @@ bool Packet::crc_ok() const {
 //  2 bytes CRC16 over the data.
 bool Packet::crc_ok_RS41() const  // check CRC for the data blocks we need
 {
-    if (!crc16rs41(block_status))
-        return false;
-
-    if (!crc16rs41(block_gpspos))
-        return false;
-
-    if (!crc16rs41(block_meas))
-        return false;
-
+    if (!crc16rs41(block_status)) return false;
+    if (!crc16rs41(block_gpspos)) return false;
+    if (!crc16rs41(block_meas)) return false;
     return true;
 }
 
@@ -451,8 +571,7 @@ bool Packet::crc16rs41(uint32_t field_start) const {
         }
     }
     // Check calculated CRC against packet's one
-    pos++;
-    int crcok = vaisala_descramble(pos) | (vaisala_descramble(pos + 1) << 8);
+    int crcok = vaisala_descramble(field_start + 2 + length) | (vaisala_descramble(field_start + 2 + length + 1) << 8);
     if (crcok != rem)
         return false;
     return true;

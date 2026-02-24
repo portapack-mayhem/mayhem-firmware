@@ -35,6 +35,7 @@
 #include "adsb_frame.hpp"
 #include "ert_packet.hpp"
 #include "pocsag_packet.hpp"
+#include "flex_defs.hpp"
 #include "aprs_packet.hpp"
 #include "sonde_packet.hpp"
 #include "tpms_packet.hpp"
@@ -135,6 +136,25 @@ class Message {
         NoaaAptRxStatusData = 78,
         NoaaAptRxImageData = 79,
         FSKPacket = 80,
+        EPIRBPacket = 81,
+        FlexPacket = 82,
+        FlexStats = 83,
+        FlexConfigure = 84,
+        FlexDebug = 85,
+        SSTVRXConfigure = 86,
+        SSTVRXProgress = 87,
+        SSTVRXPhaseSlant = 88,
+        SSTVRXCalibration = 89,
+        SubCarData = 90,
+        MorseRXData = 91,
+        MorseRXfreq = 92,
+        MorseRXConfig = 93,
+        TXDisabled = 94,
+        MorseTXConfigure = 95,
+        MorseTXkey = 96,
+        StreamTXConfiguration = 97,
+        RTTYData = 98,
+        NotificationData = 99,
         MAX
     };
 
@@ -333,6 +353,17 @@ class AISPacketMessage : public Message {
     constexpr AISPacketMessage(
         const baseband::Packet& packet)
         : Message{ID::AISPacket},
+          packet{packet} {
+    }
+
+    baseband::Packet packet;
+};
+
+class EPIRBPacketMessage : public Message {
+   public:
+    constexpr EPIRBPacketMessage(
+        const baseband::Packet& packet)
+        : Message{ID::EPIRBPacket},
           packet{packet} {
     }
 
@@ -1127,6 +1158,62 @@ class SSTVConfigureMessage : public Message {
     const uint32_t pixel_duration;
 };
 
+class SSTVRXConfigureMessage : public Message {
+   public:
+    constexpr SSTVRXConfigureMessage(
+        const uint8_t code)
+        : Message{id : ID::SSTVRXConfigure},
+          code(code) {
+    }
+
+    const uint8_t code;
+};
+
+class SSTVRXProgressMessage : public Message {
+   public:
+    constexpr SSTVRXProgressMessage(
+        const uint16_t line,
+        const uint16_t total_lines)
+        : Message{ID::SSTVRXProgress},
+          line(line),
+          total_lines(total_lines) {
+    }
+
+    const uint16_t line;
+    const uint16_t total_lines;
+};
+
+class SSTVRXPhaseSlantMessage : public Message {
+   public:
+    constexpr SSTVRXPhaseSlantMessage(
+        const int16_t phase,
+        const int16_t slant)
+        : Message{ID::SSTVRXPhaseSlant},
+          phase(phase),
+          slant(slant) {
+    }
+
+    const int16_t phase;
+    const int16_t slant;
+};
+
+class SSTVRXCalibrationMessage : public Message {
+   public:
+    constexpr SSTVRXCalibrationMessage(
+        const int16_t suggested_phase,
+        const int16_t suggested_slant,
+        const uint16_t sync_count)
+        : Message{ID::SSTVRXCalibration},
+          suggested_phase(suggested_phase),
+          suggested_slant(suggested_slant),
+          sync_count(sync_count) {
+    }
+
+    const int16_t suggested_phase;  // Suggested phase correction in pixels
+    const int16_t suggested_slant;  // Suggested slant correction in 0.1% units
+    const uint16_t sync_count;      // Number of syncs analyzed
+};
+
 class FSKConfigureMessage : public Message {
    public:
     constexpr FSKConfigureMessage(
@@ -1175,9 +1262,10 @@ class FSKRxConfigureMessage : public Message {
 
 class POCSAGConfigureMessage : public Message {
    public:
-    constexpr POCSAGConfigureMessage()
-        : Message{ID::POCSAGConfigure} {
+    constexpr POCSAGConfigureMessage(int8_t baud_config = -1)
+        : Message{ID::POCSAGConfigure}, baud_config(baud_config) {
     }
+    int8_t baud_config;  //-1 auto, 0=512,1=1200,2=2400
 };
 
 class APRSPacketMessage : public Message {
@@ -1554,6 +1642,185 @@ class NoaaAptRxImageDataMessage : public Message {
         : Message{ID::NoaaAptRxImageData} {}
     uint8_t image[400]{0};
     uint32_t cnt = 0;
+};
+
+class FlexPacketMessage : public Message {
+   public:
+    constexpr FlexPacketMessage(const flex::FlexPacket& packet)
+        : Message{ID::FlexPacket},
+          packet{packet} {
+    }
+    flex::FlexPacket packet;
+};
+
+class FlexStatsMessage : public Message {
+   public:
+    constexpr FlexStatsMessage(const flex::FlexStats& stats)
+        : Message{ID::FlexStats},
+          stats{stats} {
+    }
+    flex::FlexStats stats;
+};
+
+class FlexConfigureMessage : public Message {
+   public:
+    constexpr FlexConfigureMessage()
+        : Message{ID::FlexConfigure} {
+    }
+};
+
+class FlexDebugMessage : public Message {
+   public:
+    constexpr FlexDebugMessage(const uint32_t val1, const uint32_t val2, const char* msg)
+        : Message{ID::FlexDebug},
+          val1{val1},
+          val2{val2},
+          text{} {
+        size_t i = 0;
+        while (i < sizeof(text) - 1 && msg[i] != '\0') {
+            text[i] = msg[i];
+            i++;
+        }
+        text[i] = '\0';
+    }
+
+    uint32_t val1;
+    uint32_t val2;
+    char text[64];
+};
+
+class SubCarDataMessage : public Message {
+   public:
+    constexpr SubCarDataMessage(
+        uint8_t sensorType = 0,
+        uint16_t bits = 0,
+        uint64_t data = 0,
+        uint64_t data2 = 0)
+        : Message{ID::SubCarData},
+          sensorType{sensorType},
+          bits{bits},
+          data{data},
+          data2{data2} {
+    }
+    uint8_t sensorType = 0;
+    uint16_t bits = 0;
+    uint64_t data = 0;
+    uint64_t data2 = 0;
+};
+
+class MorseRXDataMessage : public Message {
+   public:
+    constexpr MorseRXDataMessage()
+        : Message{ID::MorseRXData} {}
+    int32_t state_durations[5] = {0};  // positive: high, negative: low
+    uint8_t state_cnt = 0;
+    bool clipped = false;
+    const uint8_t maxptr = 4;
+};
+
+class MorseRXfreqMessage : public Message {
+   public:
+    constexpr MorseRXfreqMessage()
+        : Message{ID::MorseRXfreq} {}
+    uint32_t measured_frequency = 0;
+};
+
+class MorseRXConfigureMessage : public Message {
+   public:
+    constexpr MorseRXConfigureMessage(uint8_t mode)
+        : Message{ID::MorseRXConfig},
+          mode{mode} {}
+    uint8_t mode = 0;
+};
+
+class TXDisabledMessage : public Message {
+   public:
+    constexpr TXDisabledMessage()
+        : Message{ID::TXDisabled} {
+    }
+};
+
+class MorseTXConfigureMessage : public Message {
+   public:
+    constexpr MorseTXConfigureMessage(uint8_t modulation, uint32_t tone, float fm_delta)
+        : Message{ID::MorseTXConfigure},
+          modulation{modulation},
+          tone{tone},
+          fm_delta{fm_delta} {}
+
+    uint8_t modulation = 0;
+    uint32_t tone = 0;
+    float fm_delta = 0;
+};
+
+class MorseTXkeyMessage : public Message {
+   public:
+    constexpr MorseTXkeyMessage(bool key_down)
+        : Message{ID::MorseTXkey},
+          key_down{key_down} {}
+    bool key_down = false;
+};
+
+class StreamTXConfigurationMessage : public Message {
+   public:
+    constexpr StreamTXConfigurationMessage(uint32_t deviation, uint8_t mode)
+        : Message{ID::StreamTXConfiguration},
+          deviation{deviation},
+          mode{mode} {}
+
+    uint32_t deviation = 60000;  // used in 2fsk
+    uint8_t mode = 0;            // am = 0, 2fsk = 1
+};
+
+class RTTYDataMessage : public Message {
+   public:
+    constexpr RTTYDataMessage(uint16_t baud = 4545, uint16_t shift = 170, int16_t mark_tone = -85, int16_t space_tone = 85, uint8_t stopbits = 3, bool inverted = false)
+        : Message{ID::RTTYData},
+          baud(baud),
+          shift(shift),
+          mark_tone(mark_tone),
+          space_tone(space_tone),
+          inverted(inverted),
+          stopbits(stopbits) {
+    }
+    uint8_t data[490]{0};      // 5bit data, stored on 8 bits.
+    uint16_t data_len = 0;     // count of data sent
+    uint16_t baud = 4545;      // /100 baud 45.45 = 4545
+    uint16_t shift = 170;      // hz
+    int16_t mark_tone = 0;     // for tx., hz
+    int16_t space_tone = 170;  // hz
+    bool inverted = false;     // for tx, if true, mark and space tones are swapped.
+    uint8_t stopbits = 3;      // doubled value is stored here, so stop 2 = 1 stop bit, 3 = 1.5, 4 = 2.
+    static constexpr uint16_t max_len = 490;
+};
+
+class NotificationDataMessage : public Message {
+   public:
+    constexpr NotificationDataMessage(const char* source_app, const char* title, const char* message, uint8_t icon = 0, uint16_t timeout = 10000)
+        : Message{ID::NotificationData},
+          icon(icon),
+          timeout(timeout) {
+        if (source_app) {
+            size_t len = std::min(strlen(source_app), (size_t)19);
+            memcpy(this->source_app, source_app, len);
+            this->source_app[len] = '\0';
+        }
+        if (title) {
+            size_t len = std::min(strlen(title), (size_t)49);
+            memcpy(this->title, title, len);
+            this->title[len] = '\0';
+        }
+        if (message) {
+            size_t len = std::min(strlen(message), (size_t)299);
+            memcpy(this->message, message, len);
+            this->message[len] = '\0';
+        }
+    }
+    char source_app[20]{0};  // source application name, null-terminated, max 19 chars + null
+    char title[50]{0};       // title, null-terminated, max 49 chars + null
+    char message[300]{0};    // message, null-terminated, max 299 chars + null
+    uint8_t icon = 0;
+    uint16_t timeout = 10000;
 };
 
 #endif /*__MESSAGE_H__*/

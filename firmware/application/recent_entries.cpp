@@ -29,7 +29,7 @@ RecentEntriesColumns::RecentEntriesColumns(
 }
 
 RecentEntriesHeader::RecentEntriesHeader(
-    const RecentEntriesColumns& columns)
+    RecentEntriesColumns& columns)
     : _columns{columns} {
 }
 

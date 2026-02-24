@@ -66,7 +66,8 @@ options_t freqman_bandwidths[6] = {
         // NFM
         {"8k5", 0},
         {"11k", 1},
-        {"16k", 2},
+        {"12k5", 2},
+        {"16k", 3},
     },
     {
         // WFM
@@ -122,7 +123,7 @@ options_t freqman_steps = {
     {"1kHz        ", 1000},
     {"5kHz (SA AM)", 5000},
     {"6.25kHz(NFM)", 6250},
-    {"8.33kHz(AIR)", 8330},
+    {"8.33kHz(AIR)", 8333},
     {"9kHz (EU AM)", 9000},
     {"10kHz(US AM)", 10000},
     {"12.5kHz(NFM)", 12500},
@@ -144,7 +145,7 @@ options_t freqman_steps_short = {
     {"1kHz", 1000},
     {"5kHz", 5000},
     {"6.25kHz", 6250},
-    {"8.33kHz", 8330},
+    {"8.33kHz", 8333},
     {"9kHz", 9000},
     {"10kHz", 10000},
     {"12.5kHz", 12500},

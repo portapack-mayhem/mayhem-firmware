@@ -194,8 +194,12 @@ void timer0_callback(GPTDriver* const) {
     if (encoder_update(switches_raw) || encoder_read())
         event_mask |= EVT_MASK_ENCODER;
 
-    /* Signal event loop */
+        /* Signal event loop */
+#ifdef PRALINE
+    if (event_mask && thread_controls_event) {
+#else
     if (event_mask) {
+#endif
         chSysLockFromIsr();
         chEvtSignalI(thread_controls_event, event_mask);
         chSysUnlockFromIsr();
@@ -227,8 +231,13 @@ void controls_init() {
     gptStart(&GPTD1, &timer0_config);
     gptStartContinuous(&GPTD1, timer0_match_count);
 
+#ifdef PRALINE
     // Enable repeat for directional switches only
     for (auto i = Switch::Right; i <= Switch::Up; incr(i))
+#else
+    // Enable repeat for directional and Select switches only
+    for (auto i = Switch::Right; i <= Switch::Sel; incr(i))
+#endif
         switch_debounce[toUType(i)].enable_repeat();
 }
 
@@ -248,6 +257,22 @@ SwitchesState get_switches_state() {
     }
 
     return result;
+}
+
+/* Gets the repeat enabled state for all the switches. */
+SwitchesState get_switches_repeat_config() {
+    SwitchesState result;
+
+    for (size_t i = 0; i < result.size(); i++)
+        result[i] = switch_debounce[i].get_repeat_enabled();
+
+    return result;
+}
+
+/* Configures which switches support repeat.*/
+void set_switches_repeat_config(SwitchesState switch_config) {
+    for (size_t i = 0; i < switch_config.size(); i++)
+        switch_debounce[i].set_enable_repeat(switch_config[i]);
 }
 
 /* Gets the long press enabled state for all the switches. */

@@ -70,7 +70,18 @@ class ClockManager {
 
     void set_sampling_frequency(const uint32_t frequency);
 
+    uint32_t get_sampling_frequency() const {
+        return _base_band_frequency;
+    };
+
     void set_reference_ppb(const int32_t ppb);
+
+#ifdef PRALINE
+    // Si5351 diagnostic methods
+    uint8_t si5351_read_status() { return clock_generator.device_status(); }
+    uint8_t si5351_read_register(uint8_t reg) { return clock_generator.read_register(reg); }
+    void si5351_write_register(uint8_t reg, uint8_t value) { clock_generator.write_register(reg, value); }
+#endif
 
     uint32_t get_frequency_monitor_measurement_in_hertz();
 
@@ -84,6 +95,8 @@ class ClockManager {
     I2C& i2c0;
     si5351::Si5351& clock_generator;
     Reference reference;
+
+    uint32_t _base_band_frequency{20000000};
 
     void set_gp_clkin_to_clkin_direct();
 

@@ -92,7 +92,7 @@ void BMPViewer::get_line(ui::Color* line, uint32_t bx, uint32_t by, uint32_t cnt
     for (uint32_t x = 0; x < cnt; x++) {
         uint32_t targetx = (zoom < 0) ? bx + x * -1 * zoom : bx + x / zoom;  // on zoom out could probably avg the pixels, or apply some smoothing, but this is way faster.
         if (last_targetx == targetx) {
-            line[x] = line[x - 1];
+            if (x > 0) line[x] = line[x - 1];
             continue;
         }
         last_targetx = targetx;
@@ -123,7 +123,7 @@ void BMPViewer::paint(Painter& painter) {
         last_by = by;
         portapack::display.draw_pixels({rect.left(), rect.top() + y, d_width, 1}, line, d_width);
     }
-    delete line;
+    delete[] line;
 }
 
 int8_t BMPViewer::get_zoom() {

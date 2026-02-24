@@ -110,7 +110,7 @@ class MorseView : public View {
     bool run{false};
 
     Labels labels{
-        {{4 * 8, 6 * 8}, "Speed:   wps", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 6 * 8}, "Speed:   wpm", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 8 * 8}, "Tone:    Hz", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 10 * 8}, "Modulation:", Theme::getInstance()->fg_light->foreground},
         {{4 * 8, 12 * 8}, "Loop:", Theme::getInstance()->fg_light->foreground},
@@ -171,10 +171,10 @@ class MorseView : public View {
         "Set message"};
 
     ProgressBar progressbar{
-        {2 * 8, 28 * 8, 208, 16}};
+        {2 * 8, 28 * 8, UI_POS_WIDTH_REMAINING(4), 16}};
 
     TransmitterView tx_view{
-        16 * 16,
+        (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
 

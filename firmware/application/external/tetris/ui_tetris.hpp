@@ -86,10 +86,16 @@ extern bool gameStarted;
 extern unsigned char nextFigure;
 extern short board[20][10];
 extern const int colors[8];
-extern const short DIMENSION;
-extern const short DIMENSION_NEXT;
+extern short DIMENSION;
+extern short DIMENSION_NEXT;
 extern short figuresX[7][4];
 extern short figuresY[7][4];
+
+// Dynamic screen values
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
+extern int BOARD_RIGHT;
+extern int INFO_LEFT;
 
 unsigned int GenerateRandomSeed();
 void Init();
@@ -148,7 +154,7 @@ class TetrisView : public View {
     NavigationView& nav_;
 
     Button dummy{
-        {screen_width, 0, 0, 0},
+        {240, 0, 0, 0},
         ""};
 
     MessageHandlerRegistration message_handler_frame_sync{

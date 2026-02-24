@@ -64,8 +64,9 @@ namespace ui {
 #define VEL_AIR_SUBSONIC 3
 #define VEL_AIR_SUPERSONIC 4
 
-#define O_E_FRAME_TIMEOUT 20     // timeout between odd and even frames
-#define MARKER_UPDATE_SECONDS 5  // "other" map marker redraw interval
+#define O_E_FRAME_TIMEOUT 20         // timeout between odd and even frames
+#define MARKER_UPDATE_SECONDS_OSM 8  // "other" map marker redraw interval for osm
+#define MARKER_UPDATE_SECONDS_BIN 5  // "other" map marker redraw interval for bin map
 
 /* Thresholds (in seconds) that define the transition between ages. */
 struct ADSBAgeLimit {
@@ -149,6 +150,19 @@ struct AircraftRecentEntry {
         age = 0;
     }
 
+    int32_t get_ground_speed() const {
+        if (velo.valid == false) return 0;
+        if (velo.type == SPD_GND)
+            return velo.speed;
+        else if (velo.type == SPD_IAS) {
+            if (!pos.alt_valid) return velo.speed;  // can't correct without altitude, so just return IAS
+            return (int32_t)(velo.speed * (1.0f + (0.02f * (pos.altitude / 1000.0f))));
+        } else if (velo.type == SPD_TAS)
+            return velo.speed;  // We don't know the wind speed
+        else
+            return 0;
+    }
+
     void inc_age(int delta) {
         age += delta;
 
@@ -207,54 +221,54 @@ class ADSBRxAircraftDetailsView : public View {
 
    private:
     Labels labels{
-        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Registration:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Model:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 8 * 16}, "Number of engines:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 9 * 16}, "Engine type:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 11 * 16}, "Owner:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "Operator:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "ICAO:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Registration:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(3)}, "Manufacturer:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(5)}, "Model:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(7)}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(8)}, "Number of engines:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(9)}, "Engine type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(11)}, "Owner:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(13)}, "Operator:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
-        {5 * 8, 1 * 16, 6 * 8, 16},
+        {UI_POS_X(5), UI_POS_Y(1), 6 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_registration{
-        {13 * 8, 2 * 16, 8 * 8, 16},
+        {UI_POS_X(13), UI_POS_Y(2), 8 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_manufacturer{
-        {0 * 8, 4 * 16, 19 * 8, 16},
+        {UI_POS_X(0), UI_POS_Y(4), 19 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_model{
-        {0 * 8, 6 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(6), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_type{
-        {5 * 8, 7 * 16, 22 * 8, 16},
+        {UI_POS_X(5), UI_POS_Y(7), 22 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_number_of_engines{
-        {18 * 8, 8 * 16, screen_width, 16},
+        {UI_POS_X(18), UI_POS_Y(8), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_engine_type{
-        {0 * 8, 10 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(10), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_owner{
-        {0 * 8, 12 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(12), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_operator{
-        {0 * 8, 14 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(14), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Button button_close{
-        {9 * 8, 16 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12), UI_POS_Y(16), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "Back"};
 };
 
@@ -269,13 +283,23 @@ class ADSBRxDetailsView : public View {
     void focus() override;
     void update(const AircraftRecentEntry& entry);
 
+    void get_altitude_color(int32_t alt_ft, uint8_t* r, uint8_t* g, uint8_t* b);
     /* Calls forwarded to map view if shown. */
     bool map_active() const { return geomap_view_; }
     void clear_map_markers();
     /* Adds a marker for the entry to the map. Returns true on success. */
     bool add_map_marker(const AircraftRecentEntry& entry);
+    void add_map_trail(const AircraftRecentEntry& entry);
+    void refresh_trail_markers();
 
     std::string title() const override { return "Details"; }
+
+    MapType get_map_type() {
+        if (geomap_view_)
+            return geomap_view_->get_map_type();
+        else
+            return MapType::MAP_TYPE_BIN;  // default
+    }
 
    private:
     void refresh_ui();
@@ -289,57 +313,72 @@ class ADSBRxDetailsView : public View {
     // if removed from the recent entries list.
     AircraftRecentEntry entry_{AircraftRecentEntry::invalid_key};
     bool airline_checked{false};
+    uint8_t map_filter{0};  // 0: all, 1: only this, set by opt_map_list.
+    struct PosHistory {
+        float lat;
+        float lon;
+        uint16_t heading;
+        int32_t altitude;
+    };
+    std::vector<PosHistory> pos_history{};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
-        {{13 * 8, 1 * 16}, "Callsign:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Last seen:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Airline:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Country:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 13 * 16}, "Even position frame:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 15 * 16}, "Odd position frame:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "ICAO:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(13), UI_POS_Y(0)}, "Callsign:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Last seen:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Airline:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(4)}, "Country:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(7)}, "Map filter:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(13)}, "Even position frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(15)}, "Odd position frame:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_icao_address{
-        {5 * 8, 1 * 16, 6 * 8, 16},
+        {UI_POS_X(5), UI_POS_Y(0), 6 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_callsign{
-        {22 * 8, 1 * 16, 8 * 8, 16},
+        {UI_POS_X(22), UI_POS_Y(0), 8 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_last_seen{
-        {11 * 8, 2 * 16, 19 * 8, 16},
+        {UI_POS_X(11), UI_POS_Y(1), 19 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_airline{
-        {0 * 8, 4 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(3), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_country{
-        {8 * 8, 5 * 16, 22 * 8, 16},
+        {UI_POS_X(8), UI_POS_Y(4), 22 * 8, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_infos{
-        {0 * 8, 6 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(5), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_info2{
-        {0 * 8, 7 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(6), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_frame_pos_even{
-        {0 * 8, 14 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(14), screen_width, UI_POS_HEIGHT(1)},
         "-"};
     Text text_frame_pos_odd{
-        {0 * 8, 16 * 16, screen_width, 16},
+        {UI_POS_X(0), UI_POS_Y(16), screen_width, UI_POS_HEIGHT(1)},
         "-"};
 
     Button button_aircraft_details{
-        {2 * 8, 9 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) - UI_POS_X(8), UI_POS_Y(8), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "A/C details"};
 
+    OptionsField opt_map_list{
+        {UI_POS_X_CENTER(12) + UI_POS_X(8), UI_POS_Y(7)},
+        12,
+        {{"All", 0},
+         {"Only this", 1}}};
+
     Button button_see_map{
-        {16 * 8, 9 * 16, 12 * 8, 3 * 16},
+        {UI_POS_X_CENTER(12) + UI_POS_X(8), UI_POS_Y(8), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)},
         "See on map"};
 
     MessageHandlerRegistration message_handler_gps{
@@ -388,15 +427,15 @@ class ADSBRxView : public View {
 
     SignalToken signal_token_tick_second{};
     uint8_t tick_count = 0;
-    uint16_t ticks_since_marker_refresh{MARKER_UPDATE_SECONDS};
+    uint16_t ticks_since_marker_refresh{MARKER_UPDATE_SECONDS_OSM};
 
     /* Max number of entries that can be updated in a single pass.
      * 16 is one screen of recent entries. */
     static constexpr uint8_t max_update_entries = 16;
 
     /* Recent Entries */
-    const RecentEntriesColumns columns{
-        {{"ICAO/Call", 9},
+    RecentEntriesColumns columns{
+        {{"ICAO/Call", 0},
          {"Lvl", 3},
          {"Spd", 3},
          {"Amp", 3},
@@ -416,33 +455,33 @@ class ADSBRxView : public View {
     ADSBRxDetailsView* details_view{nullptr};
 
     Labels labels{
-        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(0)}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
-        {4 * 8, 0 * 16}};
+        {UI_POS_X(4), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {11 * 8, 0 * 16}};
+        {UI_POS_X(11), UI_POS_Y(0)}};
 
     RFAmpField field_rf_amp{
-        {18 * 8, 0 * 16}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {20 * 8, 4, 7 * 8, 8},
+        {UI_POS_X(20), 4, UI_POS_WIDTH_REMAINING(23), 8},
     };
 
     ActivityDot status_frame{
-        {27 * 8 + 2, 5, 2, 2},
+        {UI_POS_X_RIGHT(3) + 2, 5, 2, 2},
         Theme::getInstance()->bg_darkest->foreground,
     };
 
     ActivityDot status_good_frame{
-        {27 * 8 + 2, 9, 2, 2},
+        {UI_POS_X_RIGHT(3) + 2, 9, 2, 2},
         Theme::getInstance()->fg_green->foreground,
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     MessageHandlerRegistration message_handler_frame{
         Message::ID::ADSBFrame,

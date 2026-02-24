@@ -42,6 +42,7 @@ enum FPROTO_WEATHER_SENSOR {
     FPW_Bresser3CH = 24,
     FPW_Bresser3CH_V1 = 25,
     FPW_Vauno_EN8822 = 26,
+    FPW_OREGON2B = 27,
     FPW_COUNT  // this must be the last
 };
 

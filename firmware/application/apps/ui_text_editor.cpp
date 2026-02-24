@@ -427,7 +427,7 @@ void TextViewer::set_font_zoom(bool zoom) {
 /* TextEditorMenu ***************************************************/
 
 TextEditorMenu::TextEditorMenu()
-    : View{{7 * 4, 9 * 4, 25 * 8, 25 * 8}} {
+    : View{{UI_POS_X_CENTER(25), 9 * 4, 25 * 8, 25 * 8}} {
     add_children(
         {
             &rect_frame,
@@ -612,7 +612,7 @@ void TextEditorView::open_file(const fs::path& path) {
     viewer.clear_file();
     delete_temp_file(path_);
 
-    path_ = {};
+    path_ = "";
     file_dirty_ = false;
     has_temp_file_ = false;
     auto result = FileWrapper::open(

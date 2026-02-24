@@ -213,6 +213,24 @@ CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Confi
 namespace hackrf {
 namespace cpld {
 
+#ifdef PRALINE
+
+/* PRALINE has no HackRF CPLD - stub these functions out */
+bool load_sram() {
+    return true;
+}
+void load_sram_no_verify() {
+    return;
+}
+bool verify_eeprom() {
+    return true;
+}
+void init_from_eeprom() {
+    return;
+}
+
+#else
+
 static jtag::GPIOTarget jtag_target_hackrf() {
     return {
         hackrf::one::gpio_cpld_tck,
@@ -261,6 +279,8 @@ void init_from_eeprom() {
 
     hackrf_cpld.init_from_eeprom();
 }
+
+#endif  // PRALINE
 
 } /* namespace cpld */
 } /* namespace hackrf */

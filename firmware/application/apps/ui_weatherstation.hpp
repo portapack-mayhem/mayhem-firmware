@@ -114,6 +114,7 @@ class WeatherView : public View {
 
    private:
     void on_tick_second();
+    uint16_t bcd_decode_short(uint32_t data);
     void on_data(const WeatherDataMessage* data);
     WeatherRecentEntry process_data(const WeatherDataMessage* data);
     NavigationView& nav_;
@@ -134,28 +135,28 @@ class WeatherView : public View {
     WeatherRecentEntries recent{};
 
     OptionsField options_temperature{
-        {10 * 8, 0 * 16},
+        {10 * 8, UI_POS_Y(0)},
         2,
         {{STR_DEGREES_C, 0},
          {STR_DEGREES_F, 1}}};
 
     RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
+        {13 * 8, UI_POS_Y(0)}};
     LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
+        {15 * 8, UI_POS_Y(0)}};
     VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
+        {18 * 8, UI_POS_Y(0)}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
+        {21 * 8, 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
+        {21 * 8, 5, UI_POS_WIDTH_REMAINING(24), 4},
     };
 
     AudioVolumeField field_volume{
-        {screen_width - 2 * 8, 0 * 16}};
+        {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{
-        {0 * 8, 0 * 16},
+        {UI_POS_X(0), UI_POS_Y(0)},
         nav_};
 
     SignalToken signal_token_tick_second{};
@@ -174,8 +175,8 @@ class WeatherView : public View {
 
     std::unique_ptr<WeatherLogger> logger{};
 
-    const RecentEntriesColumns columns{{
-        {"Type", 10},
+    RecentEntriesColumns columns{{
+        {"Type", 0},
         {"Temp", 5},
         {"Hum", 4},
         {"Ch", 3},
@@ -218,14 +219,14 @@ class WeatherRecentEntryDetailView : public View {
     Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Weather Station", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Id: ", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 3 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 4 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Channel:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 6 * 16}, "Battery:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 7 * 16}, "Age:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Weather Station", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 2 * 16}, "Id: ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 3 * 16}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 4 * 16}, "Humidity:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 5 * 16}, "Channel:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 6 * 16}, "Battery:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), 7 * 16}, "Age:", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_done{

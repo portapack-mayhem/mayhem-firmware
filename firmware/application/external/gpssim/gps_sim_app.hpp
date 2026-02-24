@@ -82,24 +82,24 @@ class GpsSimAppView : public View {
     bool ready_signal{false};
 
     Button button_open{
-        {0 * 8, 0 * 16, 10 * 8, 2 * 16},
+        {UI_POS_X(0), UI_POS_Y(0), 10 * 8, 2 * 16},
         "Open file"};
 
     Text text_filename{
-        {11 * 8, 0 * 16, 12 * 8, 16},
+        {11 * 8, UI_POS_Y(0), 12 * 8, 16},
         "-"};
     Text text_sample_rate{
-        {24 * 8, 0 * 16, 6 * 8, 16},
+        {24 * 8, UI_POS_Y(0), 6 * 8, 16},
         "-"};
 
     Text text_duration{
         {11 * 8, 1 * 16, 6 * 8, 16},
         "-"};
     ProgressBar progressbar{
-        {18 * 8, 1 * 16, 12 * 8, 16}};
+        {18 * 8, 1 * 16, UI_POS_WIDTH_REMAINING(18), 16}};
 
     TxFrequencyField field_frequency{
-        {0 * 8, 2 * 16},
+        {UI_POS_X(0), 2 * 16},
         nav_};
 
     TransmitterView2 tx_view{

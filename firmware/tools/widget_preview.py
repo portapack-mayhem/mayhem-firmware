@@ -1,6 +1,5 @@
 #
-# copyleft Elliot Alderson from F society
-# copyleft Darlene Alderson from F society
+# copyleft 2025 zxkmm AKA zix aka sommermorgentraum
 #
 # This file is part of PortaPack.
 #

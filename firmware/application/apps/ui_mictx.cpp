@@ -350,6 +350,12 @@ MicTXView::MicTXView(
                   &tx_button,
                   &tx_icon});
 
+    // disable key repeat on select
+    initial_switch_config_ = get_switches_repeat_config();
+    SwitchesState config = initial_switch_config_;
+    config[toUType(Switch::Sel)] = false;
+    set_switches_repeat_config(config);
+
     set_rxbw_options();
     set_rxbw_defaults(settings_.loaded());
 
@@ -446,6 +452,8 @@ MicTXView::MicTXView(
     field_frequency.set_value(tx_frequency);
 
     // TODO: would be nice if frequency step was configurable in this app
+    // but now, make it a bit lower
+    receiver_model.set_frequency_step(12'500);  // set freq step to 12.5kHz
     field_frequency.set_step(receiver_model.frequency_step());
 
     // WARNING: transmitter_model.set_target_frequency() and receiver_model.set_target_frequency() both update the same tuning freq, but one has an offset!
@@ -638,6 +646,9 @@ MicTXView::MicTXView(
 }
 
 MicTXView::~MicTXView() {
+    // restore select key repeat mode
+    set_switches_repeat_config(initial_switch_config_);
+
     audio::input::stop();
     if (rx_enabled) {  // Also turn off both (audio rx if enabled, and disable  mic_loop to HP)
         rxaudio(false);

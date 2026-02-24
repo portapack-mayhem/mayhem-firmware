@@ -54,7 +54,7 @@ class SpaceInvadersView : public View {
     NavigationView& nav_;
 
     Button button_difficulty{
-        {70, 285, 100, 20},
+        {70, 275, 100, 20},
         "Mode: HARD"};
 
     app_settings::SettingsManager settings_{
