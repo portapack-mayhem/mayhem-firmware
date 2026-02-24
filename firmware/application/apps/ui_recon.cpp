@@ -1261,6 +1261,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             else
                 v = SPEC_MODULATION;
             field_mode.set_selected_index(v);
+            return;
         }
         last_mode = v;
         change_mode(v);
