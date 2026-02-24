@@ -404,4 +404,4 @@ void SearchView::add_spectrum_pixel(Color color) {
         spectrum_row[pixel_index++] = color;
 }
 
-} /* namespace uiui::external_app::search */
+} /* namespace ui::external_app::search */
