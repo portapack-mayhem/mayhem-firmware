@@ -60,7 +60,7 @@ extern "C" {
 #include "platform_detect.h"
 
 #ifdef PRALINE
-int fpga_bridge_init(void);
+#include "fpga_bridge.h"
 #endif
 }
 
@@ -553,8 +553,8 @@ static void initialize_boot_splash_screen() {
 init_status_t init() {
 #ifdef PRALINE
     /* 1. HOLD FPGA IN RESET (Active Low) */
-    // P2_11 is GPIO1[11]
-    palClearPad(GPIO1, 11);
+    // P5_2 is GPIO2[11] (FPGA CRESET)
+    palClearPad(GPIO2, 11);
 #endif
 
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
@@ -656,14 +656,16 @@ init_status_t init() {
     int load_result = fpga_bridge_init();
     (void)load_result;  // Ignore result for now, just let boot continue
 
+    /* RELEASE FPGA RESET */
+    // FPGA wakes up and latches the stable 40MHz CLK1
+    // P5_2 is GPIO2[11] (FPGA CRESET)
+    palSetPad(GPIO2, 11);
+
     // Allow FPGA and related logic a brief stabilization period without busy-waiting
     chThdSleepMilliseconds(10);
 
     // Keep LEDs off after FPGA load
     LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
-    /* RELEASE FPGA RESET */
-    // FPGA wakes up and latches the stable 40MHz CLK1
-    palSetPad(GPIO1, 11);
 #endif
 
     radio::init();

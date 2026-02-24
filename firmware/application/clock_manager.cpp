@@ -349,7 +349,6 @@ void ClockManager::init_clock_generator() {
      * 5. Enable outputs
      */
     clock_generator.set_pll_input_sources(si5351a_pll_input_sources);
-    auto si5351_clock_control_common = si5351a_clock_control_common;
 
     /* Skip MCU CLKIN setup and reference detection for PRALINE - not applicable */
     reference = Reference{ReferenceSource::Xtal, 0};
@@ -646,7 +645,7 @@ void ClockManager::enable_if_clocks() {
     /* PRALINE: CLK4=MAX2831, CLK5=RFFC5072
      *
      * Force-write complete configuration to guarantee correct setup.
-     * The enable_clock() function may not preserve all settings.
+     * Added force-write to verify correct registers are applying necessary register clock settings.
      */
 
     // Configure and enable CLK4 (MAX2831)
@@ -664,7 +663,7 @@ void ClockManager::enable_if_clocks() {
 
     chThdSleepMilliseconds(10);
 
-    /* PRALINE uses CLK4 (first IF) and CLK5 (second IF) like original HackRF One */
+    /* PRALINE uses CLK5 (first IF) and CLK4 (second IF) */
     clock_generator.enable_clock(clock_generator_output_og_first_if);
     clock_generator.enable_output_mask(1U << clock_generator_output_og_first_if);
     clock_generator.enable_clock(clock_generator_output_og_second_if);

@@ -578,10 +578,10 @@ void PralineRadioDebugView::refresh() {
 
     // Diagnostic Summary
     if (!locked && clk5_on && vaa_on) {
-        text_status_msg.set("Clock/Pwr OK. PLL No Lock.        \nCheck tuning registers.");
+        text_status_msg.set("Clock/Pwr OK. PLL not locked.   Check tuning registers.");
         text_status_msg.set_style(Theme::getInstance()->fg_red);
     } else if (!clk5_on) {
-        text_status_msg.set("Mixer Clock is OFF.           \nPLL cannot lock.");
+        text_status_msg.set("Mixer Clock is OFF.            PLL cannot lock.");
         text_status_msg.set_style(Theme::getInstance()->fg_red);
     } else {
         text_status_msg.set("Hardware Link Active.");
