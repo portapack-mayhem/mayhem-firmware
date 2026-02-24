@@ -63,7 +63,7 @@ SearchView::SearchView(
     NavigationView& nav)
     : nav_(nav) {
     spectrum_row.resize(240);
-    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base);
 
     if (!gradient.load_file(default_gradient_file)) {
         gradient.set_default();
