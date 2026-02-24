@@ -29,7 +29,7 @@
 #include "log_file.hpp"
 #include "file_path.hpp"
 
-namespace ui {
+namespace ui::external_app::search {
 
 #define SEARCH_SLICE_WIDTH 2500000                // Search slice bandwidth
 #define SEARCH_BIN_NB 256                         // FFT power bins
@@ -271,4 +271,4 @@ class SearchView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::search */
