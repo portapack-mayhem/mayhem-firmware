@@ -647,6 +647,25 @@ init_status_t init() {
     clock_manager.enable_if_clocks();
     clock_manager.enable_codec_clocks();
 
+#ifdef PRALINE
+    chThdSleepMilliseconds(20);
+
+    // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
+    // Call fpga_bridge_init and continue boot regardless of result
+    // (Watchdog was resetting device when we halted with while(1))
+    int load_result = fpga_bridge_init();
+    (void)load_result;  // Ignore result for now, just let boot continue
+
+    // Allow FPGA and related logic a brief stabilization period without busy-waiting
+    chThdSleepMilliseconds(10);
+
+    // Keep LEDs off after FPGA load
+    LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
+    /* RELEASE FPGA RESET */
+    // FPGA wakes up and latches the stable 40MHz CLK1
+    palSetPad(GPIO1, 11);
+#endif
+
     radio::init();
 
     sdcStart(&SDCD1, nullptr);
@@ -689,25 +708,6 @@ init_status_t init() {
         portapack::display.init();
         portapack::backlight()->on();
     }
-
-#ifdef PRALINE
-    chThdSleepMilliseconds(10);
-
-    // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
-    // Call fpga_bridge_init and continue boot regardless of result
-    // (Watchdog was resetting device when we halted with while(1))
-    int load_result = fpga_bridge_init();
-    (void)load_result;  // Ignore result for now, just let boot continue
-    {
-        volatile uint32_t delay = 200000;
-        while (delay--);
-    }
-    // Keep LEDs off after FPGA load
-    LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
-    /* RELEASE FPGA RESET */
-    // FPGA wakes up and latches the stable 40MHz CLK1
-    palSetPad(GPIO1, 11);
-#endif
 
     return return_code;
 }
