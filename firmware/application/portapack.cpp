@@ -594,12 +594,10 @@ init_status_t init() {
     // This ensures the inversion bits are written while I2C is still active
 
     // CLK4 (MAX2831): ON, Integer, PLLA, INVERTED, MS_Self, 4mA = 0x5D
-    // 0x4D/0x4E = 2mA, 0x55/0x56 = 4mA  Testing due to ringing
-    clock_manager.si5351_write_register(20, 0x4D);
+    clock_manager.si5351_write_register(20, 0x5D);
 
     // CLK5 (RFFC5072): ON, Integer, PLLA, INVERTED, MS_Self, 6mA = 0x5E
-    // 0x4D/0x4E = 2mA, 0x55/0x56 = 4mA Testing due to ringing
-    clock_manager.si5351_write_register(21, 0x4E);
+    clock_manager.si5351_write_register(21, 0x5E);
 
     // Enable CLK4 and CLK5 outputs NOW (before I2C stops)
     uint8_t reg3 = clock_manager.si5351_read_register(3);
