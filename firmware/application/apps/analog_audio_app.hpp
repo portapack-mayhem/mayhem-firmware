@@ -37,6 +37,38 @@ namespace ui {
 
 class AnalogAudioView;
 
+#ifdef PRALINE
+class PralineOptionsView : public View {
+   public:
+    PralineOptionsView(Rect parent_rect, const Style* style);
+
+   private:
+    // Layout: SR (Sample Rate), DC (DC Block), QI (Q-Invert), QS (Quarter Shift), D (Decim)
+    Text label_sr{{UI_POS_X(0), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "SR"};
+    OptionsField options_sr{{UI_POS_X(3), UI_POS_Y(0)}, 4, {
+                                                               {"2.0M", 2000000},  // 800 / 200 = 4.0 (x2 for IQ = 8)
+                                                               {"2.5M", 2500000},  // 800 / 160 = 5.0 (x2 for IQ = 10)
+                                                               {"4.0M", 4000000},  // 800 / 100 = 8.0 (x2 for IQ = 16)
+                                                               {"5.0M", 5000000}   // 800 / 80 = 10.0 (x2 for IQ = 20)
+                                                           }};
+
+    Text label_dc{{UI_POS_X(8), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "DC"};
+    OptionsField options_dc{{UI_POS_X(11), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+
+    Text label_qi{{UI_POS_X(14), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "QI"};
+    OptionsField options_qi{{UI_POS_X(17), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+
+    Text label_qs{{UI_POS_X(20), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "QS"};
+    OptionsField options_qs{{UI_POS_X(23), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+
+    Text label_dec{{UI_POS_X(26), UI_POS_Y(0), UI_POS_WIDTH(1), UI_POS_HEIGHT(1)}, "D"};
+    OptionsField options_dec{{UI_POS_X(28), UI_POS_Y(0)}, 2, {{" 1", 0}, {" 2", 1}, {" 4", 2}, {" 8", 3}, {"16", 4}}};
+
+    uint8_t fpga_reg_1{0x03};  // Tracks DC, QI, QS bits
+    void update_fpga_ctrl();
+};
+#endif
+
 class AMOptionsView : public View {
    public:
     AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
@@ -221,6 +253,11 @@ class AnalogAudioView : public View {
 
     uint8_t get_previous_zoom_option();
     void set_previous_zoom_option(uint8_t zoom);
+
+#ifdef PRALINE
+    Button button_pro{{UI_POS_X(12), UI_POS_Y(2), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)}, "PRO"};
+    void on_show_options_praline();
+#endif
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;

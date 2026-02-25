@@ -154,17 +154,34 @@ void init() {
     baseband_codec.init();
 
 #ifdef PRALINE
-    /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
-    // debug::fpga::init();
-    // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
+
+    /* Praline-Specific Bus and Gateware Configuration */
+
+    // SYNC SGPIO TO FPGA CLOCK:
+    // Configure all 16 SGPIO slices to use the external clock (SGPIO8)
+    // provided by the FPGA. This allows the MCU to stay at 40MHz
+    // while the data bus scales to the RF sample rate.
+    // Bit 2:1 of SGPIO_MUX_CFG = 01 (External clock from SGPIO8)
+    // SYNC SGPIO TO FPGA CLOCK WITH FALLING EDGE LATCH
+    for (int i = 0; i < 16; i++) {
+        // (1 << 1) = External clock from SGPIO8
+        // (1 << 3) = Sample on the FALLING edge of the clock
+        LPC_SGPIO->SGPIO_MUX_CFG[i] = (1 << 1) | (1 << 3);
+    }
+
+    // FPGA Register Setup:
+    //   These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
+    //   Reg 1: 0x03 = DC_BLOCK (Bit 0) + Q_INVERT (Bit 1).
+    //   Reg 2: RX_DECIM (0 = bypass, 1 = decimate by 2 , or 3 = decimate by 8 for testing)
     fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, QUARTER_SHIFT=1, Q_INVERT=0
-    fpga_debug_register_write(2, 0x03);  // RX_DECIM=8 (2^3 decimation for testing 20 MHz -> 2.5 MHz with audio for now)
+    fpga_debug_register_write(2, 0x01);  // RX_DECIM (1 = decimate by 2)
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
     fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
     fpga_debug_register_write(5, 0x00);  // TX_PSTEP=0
 
     ssp1_arbiter.invalidate();
-    chThdSleepMilliseconds(10);  // Let FPGA registers settle
+    chThdSleepMilliseconds(10);  // Stability delay for FPGA registers
+
 #else
     /* HackRF One uses CPLD for Q inversion control.
      * PRALINE uses FPGA and the pin (P2_3) is used for LCD_TE on H4M. */
@@ -210,17 +227,17 @@ void set_direction(const rf::Direction new_direction) {
 
 #ifdef PRALINE
 
-    // This FPGA registers fix DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
+    // This FPGA registers set DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
     fpga_debug_register_write(1, 0x03);  // DC_BLOCK, Q-Inv, no-QUARTER_SHIFT.
-    fpga_debug_register_write(2, 0x03);  // RX_DECIM=8 (2^3 decimation for testing 20 MHz -> 2.5 MHz with audio for now)
+    // fpga_debug_register_write(2, 0x01);  // RX_DECIM=1 (Decimate by 2)
 
     // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
-    bool q_invert = mixer_invert ^ baseband_invert;
+    /*bool q_invert = mixer_invert ^ baseband_invert;
     if (q_invert) {
         LPC_GPIO->SET[0] = (1 << 13);  // SGPIO12 = 1 (Q inverted)
     } else {
         LPC_GPIO->CLR[0] = (1 << 13);  // SGPIO12 = 0 (Q normal)
-    }
+    }*/
 
     ssp1_arbiter.invalidate();
 #else
@@ -284,19 +301,16 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         mixer_invert = tuning_config.mixer_invert;
 
 #ifdef PRALINE
-        // TEST: Force baseband invert for Praline (like r9)
-        // baseband_invert = (direction == rf::Direction::Receive);
-
-        // CORRECT: FPGA register 1 only controls DC_BLOCK
-        fpga_debug_register_write(1, 0x01);  // DC_BLOCK only, no QUARTER_SHIFT!
+        // FPGA register 2 DC_BLOCK=1, and Q Invert = 1
+        fpga_debug_register_write(1, 0x03);  // DC_BLOCK, Q_Invert, no QUARTER_SHIFT
 
         // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
-        bool q_invert = mixer_invert ^ baseband_invert;
+        /*bool q_invert = mixer_invert ^ baseband_invert;
         if (q_invert) {
             LPC_GPIO->SET[0] = (1 << 13);  // SGPIO12 = 1 (Q inverted)
         } else {
             LPC_GPIO->CLR[0] = (1 << 13);  // SGPIO12 = 0 (Q normal)
-        }
+        }*/
 
         ssp1_arbiter.invalidate();
 #else
@@ -505,9 +519,9 @@ void register_write(const size_t register_number, uint32_t value) {
 
 void init() {
     // Initialize FPGA registers after bitstream load
-    // DC_BLOCK (bit 0) must be enabled for RX to work
-    fpga_debug_register_write(1, 0x01);  // CTRL: DC_BLOCK=1
-    fpga_debug_register_write(2, 0x00);  // RX_DECIM: no decimation
+    // DC_BLOCK must be enabled for RX to work
+    fpga_debug_register_write(1, 0x03);  // CTRL: DC_BLOCK=1, Q-INV=1
+    fpga_debug_register_write(2, 0x01);  // RX_DECIM: Decimate by 2
     fpga_debug_register_write(3, 0x00);  // TX_CTRL: NCO disabled
     fpga_debug_register_write(4, 0x00);  // TX_INTRP: no interpolation
     fpga_debug_register_write(5, 0x00);  // TX_PSTEP: zero phase step
