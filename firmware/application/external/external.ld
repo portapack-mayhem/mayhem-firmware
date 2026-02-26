@@ -564,7 +564,7 @@ SECTIONS
     .external_app_opera_cake : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_opera_cake.application_information));
-        *(*ui*external_app*pocsag_tx*);
+        *(*ui*external_app*opera_cake*);
     } > ram_external_app_opera_cake
 }
 
