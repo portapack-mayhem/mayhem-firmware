@@ -48,11 +48,11 @@ class PralineOptionsView : public View {
 
     // Parameters: Position, Length (in chars), Range, Step, and default value
     NumberField options_sr{
-        {UI_POS_X(3), UI_POS_Y(0)}, 
-	5,                          // Number of digits to show
-        {0, 40000},                 // Range: 0 to 40,000 kHz
-        1,                          // Step: 1 kHz
-        'k'                         // Fix: Single quotes for char
+        {UI_POS_X(3), UI_POS_Y(0)},
+        5,           // Number of digits to show
+        {0, 40000},  // Range: 0 to 40,000 kHz
+        1,           // Step: 1 kHz
+        'k'          // Fix: Single quotes for char
     };
 
     Text label_dc{{UI_POS_X(8), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "DC"};
