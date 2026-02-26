@@ -50,16 +50,6 @@ fallback** for any frequency that does not match A1–A3.  B0 always mirrors A0
 
 Press **Apply** to evaluate the current receiver frequency once and switch.
 
-#### Monitor
-
-When **Monitor: On** is selected (Frequency mode only), the app re-evaluates
-the current receiver frequency **once per second** and switches ports
-automatically.  This is useful when scanning or tuning across bands.
-
-> **Note:** Monitor only activates when both Mode = Frequency **and** an Opera
-> Cake board is detected.  If no board is found at boot, Monitor does nothing
-> and will not freeze the device.
-
 ---
 
 ## Buttons
@@ -155,5 +145,3 @@ Port-B bit patterns (U3CTRL1:U3CTRL0):
 - Time-based automatic switching is **not supported**: the required timer GPIO
   pins conflict with PortaPack hardware.
 - Only the first Opera Cake board (I²C address 0x18) is supported.
-- In Frequency mode at boot the board defaults to A4/B4 until the receiver is
-  tuned and the app is opened (or Monitor is enabled from the app).

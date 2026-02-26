@@ -47,8 +47,6 @@
  *   Frequency — four frequency bands are mapped to ports A1-A4; A4 is the
  *               fallback for unmatched frequencies.  Whenever A0 switches to
  *               Ax, B0 mirrors it to Bx (original Opera Cake behaviour).
- *               With "Monitor: On" the app re-evaluates the current receiver
- *               frequency once per second and switches automatically.
  *
  * Time-based switching is NOT supported: the required timer GPIO pins conflict
  * with PortaPack hardware.
@@ -104,7 +102,6 @@ OperaCakeView::OperaCakeView(NavigationView& nav)
         &field_max_a4,
         &options_port_a,
         &options_port_b,
-        &options_monitor,
         &button_apply,
         &button_rescan,
         &text_result,
@@ -114,13 +111,11 @@ OperaCakeView::OperaCakeView(NavigationView& nav)
     if (setting_mode > 1) setting_mode = 0;
     if (setting_port_a > 3) setting_port_a = 0;
     if (setting_port_b > 3) setting_port_b = 0;
-    if (setting_monitor > 1) setting_monitor = 0;
 
     // Apply loaded settings to widgets
     options_mode.set_selected_index(setting_mode, false);
     options_port_a.set_selected_index(setting_port_a, false);
     options_port_b.set_selected_index(setting_port_b, false);
-    options_monitor.set_selected_index(setting_monitor, false);
 
     field_min_a1.set_value(static_cast<int32_t>(setting_min_a1), false);
     field_max_a1.set_value(static_cast<int32_t>(setting_max_a1), false);
@@ -142,9 +137,6 @@ OperaCakeView::OperaCakeView(NavigationView& nav)
     };
     options_port_b.on_change = [this](size_t idx, int32_t) {
         setting_port_b = static_cast<uint8_t>(idx);
-    };
-    options_monitor.on_change = [this](size_t idx, int32_t) {
-        setting_monitor = static_cast<uint8_t>(idx);
     };
 
     field_min_a1.on_change = [this](int32_t v) { setting_min_a1 = static_cast<uint32_t>(v); };
@@ -233,20 +225,6 @@ void OperaCakeView::apply_frequency() {
     } else {
         text_result.set("Err: board not found");
     }
-}
-
-// ---- Frame-sync handler (auto-monitor) ---------------------------------
-
-void OperaCakeView::on_frame_sync() {
-    if (setting_monitor == 0 || setting_mode != 1 || !board_detected_)
-        return;
-
-    // Fire at ~1 Hz (DisplayFrameSync fires at ~60 Hz)
-    if (++frame_counter_ < 60)
-        return;
-
-    frame_counter_ = 0;
-    apply_frequency();
 }
 
 // ---- Focus -------------------------------------------------------------

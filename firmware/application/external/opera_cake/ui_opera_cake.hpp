@@ -42,10 +42,9 @@ class OperaCakeView : public View {
     static constexpr uint8_t OPERACAKE_I2C_ADDRESS = 0x18;
 
     // --- Persisted settings (declared before SettingsStore) ---
-    uint8_t setting_mode{0};     // 0 = Manual, 1 = Frequency
-    uint8_t setting_port_a{0};   // Manual: 0=A1 … 3=A4
-    uint8_t setting_port_b{0};   // Manual: 0=B1 … 3=B4
-    uint8_t setting_monitor{0};  // Frequency: 0=off, 1=on (auto-switch)
+    uint8_t setting_mode{0};    // 0 = Manual, 1 = Frequency
+    uint8_t setting_port_a{0};  // Manual: 0=A1 … 3=A4
+    uint8_t setting_port_b{0};  // Manual: 0=B1 … 3=B4
     // Frequency ranges per port (MHz). A4 also acts as fallback.
     uint32_t setting_min_a1{1};
     uint32_t setting_max_a1{30};
@@ -62,7 +61,6 @@ class OperaCakeView : public View {
             {"mode"sv, &setting_mode},
             {"port_a"sv, &setting_port_a},
             {"port_b"sv, &setting_port_b},
-            {"monitor"sv, &setting_monitor},
             {"min_a1"sv, &setting_min_a1},
             {"max_a1"sv, &setting_max_a1},
             {"min_a2"sv, &setting_min_a2},
@@ -97,7 +95,6 @@ class OperaCakeView : public View {
     //  Row 5  y= 80  A3   [min]- [max] MHz
     //  Row 6  y= 96  A4   [min]- [max] MHz  (also freq-mode fallback)
     //  Row 7  y=112  A0: <portA>  B0: <portB>   (manual override)
-    //  Row 8  y=128  Monitor: <Off|On>           (freq mode auto-apply)
     //  Row 9  y=144  [Apply]
     //  Row 10 y=160  [Re-scan board]
     //  Row 11 y=176  <result text>
@@ -127,8 +124,6 @@ class OperaCakeView : public View {
         // manual port selectors row
         {{0 * 8, 7 * 16}, "A0:", Theme::getInstance()->fg_light->foreground},
         {{8 * 8, 7 * 16}, "B0:", Theme::getInstance()->fg_light->foreground},
-        // monitor toggle row
-        {{0 * 8, 8 * 16}, "Monitor:", Theme::getInstance()->fg_light->foreground},
     };
 
     Text text_status{
@@ -162,12 +157,6 @@ class OperaCakeView : public View {
         2,
         {{"B1", 0}, {"B2", 1}, {"B3", 2}, {"B4", 3}}};
 
-    // Frequency-mode auto-switch toggle
-    OptionsField options_monitor{
-        {9 * 8, 8 * 16},
-        3,
-        {{"Off", 0}, {"On ", 1}}};
-
     Button button_apply{
         {4 * 8, 9 * 16, 22 * 8, 32},
         "Apply"};
@@ -179,13 +168,6 @@ class OperaCakeView : public View {
     Text text_result{
         {0 * 8, 14 * 16, 30 * 8, 16},
         ""};
-
-    // Fires at ~60 Hz; used to auto-apply frequency mode every second
-    MessageHandlerRegistration message_handler_frame_sync{
-        Message::ID::DisplayFrameSync,
-        [this](const Message* const) {
-            this->on_frame_sync();
-        }};
 };
 
 }  // namespace ui::external_app::opera_cake

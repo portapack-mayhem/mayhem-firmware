@@ -95,10 +95,14 @@ void restore_at_boot() {
         {"mode"sv, &setting_mode},
         {"port_a"sv, &setting_port_a},
         {"port_b"sv, &setting_port_b},
-        {"min_a1"sv, &setting_min_a1}, {"max_a1"sv, &setting_max_a1},
-        {"min_a2"sv, &setting_min_a2}, {"max_a2"sv, &setting_max_a2},
-        {"min_a3"sv, &setting_min_a3}, {"max_a3"sv, &setting_max_a3},
-        {"min_a4"sv, &setting_min_a4}, {"max_a4"sv, &setting_max_a4},
+        {"min_a1"sv, &setting_min_a1},
+        {"max_a1"sv, &setting_max_a1},
+        {"min_a2"sv, &setting_min_a2},
+        {"max_a2"sv, &setting_max_a2},
+        {"min_a3"sv, &setting_min_a3},
+        {"max_a3"sv, &setting_max_a3},
+        {"min_a4"sv, &setting_min_a4},
+        {"max_a4"sv, &setting_max_a4},
     };
     load_settings("opera_cake"sv, bindings);
 
