@@ -74,6 +74,11 @@ class OperaCakeView : public View {
         }};
 
     uint8_t frame_counter_{0};
+    bool board_detected_{false};
+
+    // I2C timeout used for all Opera Cake transactions (prevents UI freeze
+    // when the board is absent or the bus is in a bad state).
+    static constexpr systime_t I2C_TIMEOUT_TICKS = MS2ST(50);
 
     // --- Private methods ---
     void detect_board();

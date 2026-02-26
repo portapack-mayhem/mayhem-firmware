@@ -193,6 +193,7 @@ set(CPPSRC
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
 	app_settings.cpp
+	opera_cake_app_boot.cpp
 	audio.cpp
 	baseband_api.cpp
 	capture_thread.cpp

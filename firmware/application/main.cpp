@@ -137,6 +137,7 @@ Continuous (Fox-oring)
 #include "gcc.hpp"
 
 #include "sd_card.hpp"
+#include "opera_cake_app_boot.hpp"
 
 #include <string.h>
 #include "i2cdevmanager.hpp"
@@ -205,6 +206,10 @@ int main(void) {
             rtc_interrupt_enable();
 
             Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());
+
+            // Restore Opera Cake board state from saved settings before the
+            // UI starts, so the antenna switch is configured on every boot.
+            opera_cake::restore_at_boot();
 
             event_loop();
 
