@@ -172,7 +172,8 @@ OperaCakeView::OperaCakeView(NavigationView& nav)
 // ---- Board detection ---------------------------------------------------
 
 void OperaCakeView::detect_board() {
-    if (i2c0.probe(OPERACAKE_I2C_ADDRESS)) {
+    board_detected_ = i2c0.probe(OPERACAKE_I2C_ADDRESS, I2C_TIMEOUT_TICKS);
+    if (board_detected_) {
         text_status.set("Found at 0x18");
     } else {
         text_status.set("Not detected");
@@ -184,7 +185,7 @@ void OperaCakeView::detect_board() {
 bool OperaCakeView::write_ports(uint8_t port_a_idx, uint8_t port_b_idx) {
     // Configure all PCA9557 pins as outputs
     const uint8_t cfg[] = {REG_CONFIG, 0x00};
-    if (!i2c0.transmit(OPERACAKE_I2C_ADDRESS, cfg, 2))
+    if (!i2c0.transmit(OPERACAKE_I2C_ADDRESS, cfg, 2, I2C_TIMEOUT_TICKS))
         return false;
 
     // Build and write output byte
@@ -192,7 +193,7 @@ bool OperaCakeView::write_ports(uint8_t port_a_idx, uint8_t port_b_idx) {
                            PORT_B_BITS[port_b_idx & 3] |
                            OUTPUT_BASE;
     const uint8_t out[] = {REG_OUTPUT, output};
-    return i2c0.transmit(OPERACAKE_I2C_ADDRESS, out, 2);
+    return i2c0.transmit(OPERACAKE_I2C_ADDRESS, out, 2, I2C_TIMEOUT_TICKS);
 }
 
 // ---- Manual mode -------------------------------------------------------
@@ -237,7 +238,7 @@ void OperaCakeView::apply_frequency() {
 // ---- Frame-sync handler (auto-monitor) ---------------------------------
 
 void OperaCakeView::on_frame_sync() {
-    if (setting_monitor == 0 || setting_mode != 1)
+    if (setting_monitor == 0 || setting_mode != 1 || !board_detected_)
         return;
 
     // Fire at ~1 Hz (DisplayFrameSync fires at ~60 Hz)
