@@ -42,10 +42,10 @@ class OperaCakeView : public View {
     static constexpr uint8_t OPERACAKE_I2C_ADDRESS = 0x18;
 
     // --- Persisted settings (declared before SettingsStore) ---
-    uint8_t  setting_mode{0};         // 0 = Manual, 1 = Frequency
-    uint8_t  setting_port_a{0};       // Manual: 0=A1 … 3=A4
-    uint8_t  setting_port_b{0};       // Manual: 0=B1 … 3=B4
-    uint8_t  setting_monitor{0};      // Frequency: 0=off, 1=on (auto-switch)
+    uint8_t setting_mode{0};     // 0 = Manual, 1 = Frequency
+    uint8_t setting_port_a{0};   // Manual: 0=A1 … 3=A4
+    uint8_t setting_port_b{0};   // Manual: 0=B1 … 3=B4
+    uint8_t setting_monitor{0};  // Frequency: 0=off, 1=on (auto-switch)
     // Frequency ranges per port (MHz). A4 also acts as fallback.
     uint32_t setting_min_a1{1};
     uint32_t setting_max_a1{30};
@@ -59,18 +59,18 @@ class OperaCakeView : public View {
     SettingsStore settings_{
         "opera_cake"sv,
         {
-            {"mode"sv,    &setting_mode},
-            {"port_a"sv,  &setting_port_a},
-            {"port_b"sv,  &setting_port_b},
+            {"mode"sv, &setting_mode},
+            {"port_a"sv, &setting_port_a},
+            {"port_b"sv, &setting_port_b},
             {"monitor"sv, &setting_monitor},
-            {"min_a1"sv,  &setting_min_a1},
-            {"max_a1"sv,  &setting_max_a1},
-            {"min_a2"sv,  &setting_min_a2},
-            {"max_a2"sv,  &setting_max_a2},
-            {"min_a3"sv,  &setting_min_a3},
-            {"max_a3"sv,  &setting_max_a3},
-            {"min_a4"sv,  &setting_min_a4},
-            {"max_a4"sv,  &setting_max_a4},
+            {"min_a1"sv, &setting_min_a1},
+            {"max_a1"sv, &setting_max_a1},
+            {"min_a2"sv, &setting_min_a2},
+            {"max_a2"sv, &setting_max_a2},
+            {"min_a3"sv, &setting_min_a3},
+            {"max_a3"sv, &setting_max_a3},
+            {"min_a4"sv, &setting_min_a4},
+            {"max_a4"sv, &setting_max_a4},
         }};
 
     uint8_t frame_counter_{0};
@@ -97,33 +97,33 @@ class OperaCakeView : public View {
     //  Row 10 y=160  [Re-scan board]
     //  Row 11 y=176  <result text>
     Labels labels{
-        {{0 * 8, 0 * 16}, "Board:",    Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "Mode:",     Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 0 * 16}, "Board:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "Mode:", Theme::getInstance()->fg_light->foreground},
         // column headers for frequency ranges
-        {{0 * 8, 2 * 16}, "Port",      Theme::getInstance()->fg_medium->foreground},
-        {{3 * 8, 2 * 16}, "From",      Theme::getInstance()->fg_medium->foreground},
-        {{8 * 8, 2 * 16}, "To",        Theme::getInstance()->fg_medium->foreground},
+        {{0 * 8, 2 * 16}, "Port", Theme::getInstance()->fg_medium->foreground},
+        {{3 * 8, 2 * 16}, "From", Theme::getInstance()->fg_medium->foreground},
+        {{8 * 8, 2 * 16}, "To", Theme::getInstance()->fg_medium->foreground},
         // row A1
-        {{0 * 8, 3 * 16}, "A1",        Theme::getInstance()->fg_light->foreground},
-        {{7 * 8, 3 * 16}, "-",         Theme::getInstance()->fg_light->foreground},
-        {{12 * 8, 3 * 16}, "MHz",      Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "A1", Theme::getInstance()->fg_light->foreground},
+        {{7 * 8, 3 * 16}, "-", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, 3 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
         // row A2
-        {{0 * 8, 4 * 16}, "A2",        Theme::getInstance()->fg_light->foreground},
-        {{7 * 8, 4 * 16}, "-",         Theme::getInstance()->fg_light->foreground},
-        {{12 * 8, 4 * 16}, "MHz",      Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "A2", Theme::getInstance()->fg_light->foreground},
+        {{7 * 8, 4 * 16}, "-", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, 4 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
         // row A3
-        {{0 * 8, 5 * 16}, "A3",        Theme::getInstance()->fg_light->foreground},
-        {{7 * 8, 5 * 16}, "-",         Theme::getInstance()->fg_light->foreground},
-        {{12 * 8, 5 * 16}, "MHz",      Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "A3", Theme::getInstance()->fg_light->foreground},
+        {{7 * 8, 5 * 16}, "-", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, 5 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
         // row A4
-        {{0 * 8, 6 * 16}, "A4",        Theme::getInstance()->fg_light->foreground},
-        {{7 * 8, 6 * 16}, "-",         Theme::getInstance()->fg_light->foreground},
-        {{12 * 8, 6 * 16}, "MHz",      Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "A4", Theme::getInstance()->fg_light->foreground},
+        {{7 * 8, 6 * 16}, "-", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, 6 * 16}, "MHz", Theme::getInstance()->fg_light->foreground},
         // manual port selectors row
-        {{0 * 8, 7 * 16}, "A0:",       Theme::getInstance()->fg_light->foreground},
-        {{8 * 8, 7 * 16}, "B0:",       Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "A0:", Theme::getInstance()->fg_light->foreground},
+        {{8 * 8, 7 * 16}, "B0:", Theme::getInstance()->fg_light->foreground},
         // monitor toggle row
-        {{0 * 8, 8 * 16}, "Monitor:",  Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Monitor:", Theme::getInstance()->fg_light->foreground},
     };
 
     Text text_status{
@@ -148,16 +148,19 @@ class OperaCakeView : public View {
 
     // Manual port selectors
     OptionsField options_port_a{
-        {4 * 8, 7 * 16}, 2,
+        {4 * 8, 7 * 16},
+        2,
         {{"A1", 0}, {"A2", 1}, {"A3", 2}, {"A4", 3}}};
 
     OptionsField options_port_b{
-        {12 * 8, 7 * 16}, 2,
+        {12 * 8, 7 * 16},
+        2,
         {{"B1", 0}, {"B2", 1}, {"B3", 2}, {"B4", 3}}};
 
     // Frequency-mode auto-switch toggle
     OptionsField options_monitor{
-        {9 * 8, 8 * 16}, 3,
+        {9 * 8, 8 * 16},
+        3,
         {{"Off", 0}, {"On ", 1}}};
 
     Button button_apply{
