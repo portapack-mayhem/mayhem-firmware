@@ -132,8 +132,8 @@ namespace ui {
 
                 gridItem.on_select = [&nav, appInfo, i]() {
                     auto dev2 = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
-                    dev2->lockDevice();
                     if (dev2) {
+                        dev2->lockDevice();
                         // auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.end() - appInfo->binary_size);
                         auto app_image = reinterpret_cast<uint8_t*>(portapack::memory::map::local_sram_0.base());
                         uint8_t errorcnt = 0;

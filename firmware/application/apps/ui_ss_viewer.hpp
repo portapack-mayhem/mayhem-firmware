@@ -28,10 +28,9 @@
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
 #include "file.hpp"
+#include "file_path.hpp"
 
 namespace ui {
-
-extern const std::filesystem::path splash_dot_bmp;
 
 class ScreenshotViewer : public View {
    public:
@@ -49,7 +48,6 @@ class SplashViewer : public View {
     SplashViewer(NavigationView& nav, const std::filesystem::path& path);
     bool on_key(KeyEvent key) override;
     void paint(Painter& painter) override;
-    void update_ss(void);
 
    private:
     NavigationView& nav_;

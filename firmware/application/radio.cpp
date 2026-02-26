@@ -32,10 +32,11 @@
 extern "C" {
 #include "fpga_bridge.h"
 }
+#else
+#include "baseband_cpld.hpp"
 #endif
 
 #include "max5864.hpp"
-#include "baseband_cpld.hpp"
 
 #include "tuning.hpp"
 
@@ -116,9 +117,10 @@ max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
 max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 #ifdef PRALINE
 max2831::MAX2831 second_if_max2831{ssp1_target_max283x};
+#else
+static baseband::CPLD baseband_cpld;
 #endif
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
-static baseband::CPLD baseband_cpld;
 
 // load_sram() is called at boot in portapack.cpp, including verify CPLD part, so default direction is Receive
 static rf::Direction direction{rf::Direction::Receive};
@@ -145,25 +147,43 @@ void init() {
                     ? (max283x::MAX283x*)&second_if_max2839
                     : (max283x::MAX283x*)&second_if_max2837;
 #endif
+
     rf_path.init();
     first_if.init();
     second_if->init();
     baseband_codec.init();
-#ifndef PRALINE
-    /* HackRF One uses CPLD for Q inversion control.
-     * PRALINE uses FPGA and the pin (P2_3) is used for LCD_TE on H4M. */
-    baseband_cpld.init();
-#else
+
+#ifdef PRALINE
+
+    /* Praline-Specific Bus and Gateware Configuration */
+
+    // SYNC SGPIO TO FPGA CLOCK:
+    // Configure all 16 SGPIO slices to use the external clock (SGPIO8)
+    // provided by the FPGA. This allows the MCU to stay at 40MHz
+    // while the data bus scales to the RF sample rate.
+    // Bit 2:1 of SGPIO_MUX_CFG = 01 (External clock from SGPIO8)
+    // SYNC SGPIO TO FPGA CLOCK WITH FALLING EDGE LATCH
+    for (int i = 0; i < 16; i++) {
+        // (1 << 1) = External clock from SGPIO8
+        // (1 << 3) = Sample on the FALLING edge of the clock
+        LPC_SGPIO->SGPIO_MUX_CFG[i] = (1 << 1) | (1 << 3);
+    }
+
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
     // debug::fpga::init();
+    // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
     fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
-    fpga_debug_register_write(2, 0x00);  // RX_DECIM=0 (no decimation for testing)
+    fpga_debug_register_write(2, 0x00);  // RX_DECIM=No Decim
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
     fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
     fpga_debug_register_write(5, 0x00);  // TX_PSTEP=0
 
     ssp1_arbiter.invalidate();
     chThdSleepMilliseconds(10);  // Let FPGA registers settle
+#else
+    /* HackRF One uses CPLD for Q inversion control.
+     * PRALINE uses FPGA and the pin (P2_3) is used for LCD_TE on H4M. */
+    baseband_cpld.init();
 #endif
 }
 
@@ -202,17 +222,20 @@ void set_direction(const rf::Direction new_direction) {
          */
         baseband_invert = false;
     }
-#ifndef PRALINE
-    baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
-#else
-    // Praline: Control Q inversion via FPGA register
-    // Assuming register 1 bit 1 controls Q inversion
-    uint8_t ctrl_reg = 0x01;  // DC_BLOCK enabled
-    if (mixer_invert ^ baseband_invert) {
-        ctrl_reg |= 0x02;  // Set Q_INVERT bit
+
+#ifdef PRALINE
+
+    // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
+    bool q_invert = mixer_invert ^ baseband_invert;
+    if (q_invert) {
+        LPC_GPIO->SET[0] = (1 << 13);  // SGPIO12 = 1 (Q inverted)
+    } else {
+        LPC_GPIO->CLR[0] = (1 << 13);  // SGPIO12 = 0 (Q normal)
     }
-    fpga_debug_register_write(1, ctrl_reg);
+
     ssp1_arbiter.invalidate();
+#else
+    baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #endif
 
     second_if->set_mode((direction == rf::Direction::Transmit) ? max283x::Mode::Transmit : max283x::Mode::Receive);
@@ -224,16 +247,6 @@ void set_direction(const rf::Direction new_direction) {
         led_rx.on();
     else
         led_tx.on();
-
-    // #ifdef PRALINE
-    //  Try with Q inversion OFF
-    // fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, Q_INVERT=0
-    // ssp1_arbiter.invalidate();
-
-    // If no signals, try with Q inversion ON
-    // fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, Q_INVERT=1
-    // ssp1_arbiter.invalidate();
-    // #endif
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -269,6 +282,10 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         if (tuning_config.first_lo_frequency) {
             first_if.set_frequency(tuning_config.first_lo_frequency);
             first_if.enable();
+#ifdef PRALINE
+            first_if.flush();            // Force register write with reference clock present
+            chThdSleepMilliseconds(10);  // Allow PLL to settle
+#endif
         }
 
         // Program second local oscillator frequency into MAX283x
@@ -276,7 +293,19 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
 
         rf_path.set_band(tuning_config.rf_path_band);
         mixer_invert = tuning_config.mixer_invert;
-#ifndef PRALINE
+
+#ifdef PRALINE
+
+        // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
+        bool q_invert = mixer_invert ^ baseband_invert;
+        if (q_invert) {
+            LPC_GPIO->SET[0] = (1 << 13);  // SGPIO12 = 1 (Q inverted)
+        } else {
+            LPC_GPIO->CLR[0] = (1 << 13);  // SGPIO12 = 0 (Q normal)
+        }
+
+        ssp1_arbiter.invalidate();
+#else
         baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
 #endif
 
@@ -346,20 +375,6 @@ void set_tx_max283x_iq_phase_calibration(const size_t v) {
 void set_rx_max283x_iq_phase_calibration(const size_t v) {
     second_if->set_rx_LO_iq_phase_calibration(v);
 }
-
-/*void enable(Configuration configuration) {
-    configure(configuration);
-}
-
-void configure(Configuration configuration) {
-    set_tuning_frequency(configuration.tuning_frequency);
-    set_rf_amp(configuration.rf_amp);
-    set_lna_gain(configuration.lna_gain);
-    set_vga_gain(configuration.vga_gain);
-    set_baseband_rate(configuration.baseband_rate);
-    set_baseband_filter_bandwidth(configuration.baseband_filter_bandwidth);
-    set_direction(configuration.direction);
-}*/
 
 void disable() {
     set_antenna_bias(false);
@@ -467,6 +482,12 @@ int8_t temp_sense() {
 }
 
 } /* namespace second_if */
+
+namespace rf_path_info {
+rf::path::Band get_current_band() {
+    return radio::rf_path.get_band();
+}
+} /* namespace rf_path_info */
 
 #ifdef PRALINE
 namespace fpga {

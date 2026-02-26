@@ -125,7 +125,7 @@ class DigitalRain {
 
    public:
     DigitalRain() {
-        std::srand(0);
+        srand(0);
         WIDTH = screen_width;
         HEIGHT = screen_height + 5;
         COLS = WIDTH / CHAR_WIDTH;

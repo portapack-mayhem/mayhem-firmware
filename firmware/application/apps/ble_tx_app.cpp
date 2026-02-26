@@ -199,6 +199,7 @@ void BLETxView::send_packet() {
     generateRandomMacAddress(randomMac);
 
     char advertisementData[63] = {0};
+    packets[current_packet].advertisementData[62] = '\0';
     strcpy(advertisementData, packets[current_packet].advertisementData);
 
     // TODO: Make this a checkbox.
@@ -225,7 +226,7 @@ void BLETxView::send_packet() {
                         uint8_t min = 0x00;
                         uint8_t max = 0x0F;
 
-                        hexDigit = min + std::rand() % (max - min + 1);
+                        hexDigit = min + rand() % (max - min + 1);
                     } break;
                     default:
                         hexDigit = 0;

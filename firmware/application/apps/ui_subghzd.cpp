@@ -28,6 +28,7 @@
 #include "ui_textentry.hpp"
 #include "../keeloq_keystore.hpp"
 #include "../keeloq_file.hpp"
+#include "../keeloq_common.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -60,6 +61,19 @@ void SubGhzDRecentEntryDetailView::update_data() {
 
     if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
 
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        uint8_t pager_addr = (entry_.data >> 5) & 0x0F;
+        uint8_t func_code = (entry_.data >> 1) & 0x0F;
+        console.writeln("Station: 0x" + to_string_hex(serial) + " (" + to_string_dec_uint(serial) + ")");
+        console.writeln("Pager: " + to_string_dec_uint(pager_addr));
+        if (func_code == 0x0D)
+            console.writeln("Action: Buzz");
+        else if (func_code == 0x0F)
+            console.writeln("Action: Sync");
+        else
+            console.writeln("Action: 0x" + to_string_hex(func_code));
+    }
+
     if (entry_.sensorType == FPS_KEELOQ) {
         console.writeln("Fix: " + to_string_hex(fix));
         console.writeln("Encrypted: " + to_string_hex(encrypted));
@@ -82,7 +96,7 @@ void SubGhzDRecentEntryDetailView::update_data() {
                         KeeloqData params{
                             mf_name,
                             serial,
-                            cnt,
+                            (uint16_t)cnt,
                             btn};
 
                         ensure_directory(keeloq_remotes_dir);
@@ -279,6 +293,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Marantec24";
         case FPS_HOLTEKHT6P20B:
             return "Holtek HT6P20B";
+        case FPS_RESTAURANT_PAGER:
+            return "Rest. Pager";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -305,7 +321,14 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    line = line + " " + to_string_hex(entry.data << 32);
+    if (entry.sensorType == FPS_RESTAURANT_PAGER) {
+        uint8_t pgr = (entry.data >> 5) & 0x0F;
+        uint8_t func = (entry.data >> 1) & 0x0F;
+        line += " P:" + to_string_dec_uint(pgr) + (func == 0x0D ? " Buzz" : func == 0x0F ? " Sync"
+                                                                                         : "");
+    } else {
+        line = line + " " + to_string_hex(entry.data << 32);
+    }
     line.resize(columns.at(0).second, ' ');
     std::string ageStr = to_string_dec_uint(entry.age);
     std::string bitsStr = to_string_dec_uint(entry.bits);
@@ -359,28 +382,6 @@ bool SubGhzDRecentEntryDetailView::keeloq_check_decrypt_centurion(uint32_t decry
     }
 
     return false;
-}
-
-uint32_t keeloq_decrypt(const uint32_t data, const uint64_t key) {
-    uint32_t x = data, r;
-    for (r = 0; r < 528; r++)
-        x = (x << 1) ^ bit(x, 31) ^ bit(x, 15) ^ (uint32_t)bit(key, (15 - r) & 63) ^
-            bit(KEELOQ_NLF, g5(x, 0, 8, 19, 25, 30));
-    return x;
-}
-
-uint64_t keeloq_normal_learning(uint32_t data, const uint64_t key) {
-    uint32_t k1, k2;
-
-    data &= 0x0FFFFFFF;
-    data |= 0x20000000;
-    k1 = keeloq_decrypt(data, key);
-
-    data &= 0x0FFFFFFF;
-    data |= 0x60000000;
-    k2 = keeloq_decrypt(data, key);
-
-    return ((uint64_t)k2 << 32) | k1;
 }
 
 const uint32_t came_twee_magic_numbers_xor[15] = {
@@ -892,6 +893,13 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
     if (entry_.sensorType == FPS_HOLTEKHT6P20B) {
         serial = entry_.data >> 8;
         btn = (entry_.data >> 4) & 0xF;
+        return;
+    }
+
+    if (entry_.sensorType == FPS_RESTAURANT_PAGER) {
+        // 25-bit EV1527-variant: [sysid:16][pager:4][func:4][stop:1]
+        serial = (entry_.data >> 9) & 0xFFFF;  // System ID
+        // btn/cnt left as SD_NO values; friendly output in update_data()
         return;
     }
 }

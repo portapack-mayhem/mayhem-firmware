@@ -52,7 +52,12 @@ constexpr GPIO gpio_r9_vaa_disable = gpio[GPIO3_6];
 
 constexpr GPIO gpio_rx_mix_bp = gpio[GPIO2_12];
 constexpr GPIO gpio_tx_mix_bp = gpio[GPIO2_11];
+#ifdef PRALINE
+constexpr GPIO gpio_mix_bypass = gpio[GPIO3_2];     // P6_3: PRALINE RF path mixer bypass inverted
+constexpr GPIO gpio_mix_en_n_r1_0 = gpio[GPIO5_6];  // P2_6: R1.0 board mixer bypass
+#else
 constexpr GPIO gpio_mix_bypass = gpio[GPIO5_16];
+#endif
 constexpr GPIO gpio_not_mix_bypass = gpio[GPIO1_0];
 
 constexpr GPIO gpio_og_rx = gpio[GPIO5_5];
@@ -68,8 +73,15 @@ constexpr GPIO gpio_amp_bypass = gpio[GPIO0_14];
 constexpr GPIO gpio_not_rx_amp_pwr = gpio[GPIO1_12];
 constexpr GPIO gpio_not_tx_amp_pwr = gpio[GPIO3_5];
 
-constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];
+#ifdef PRALINE
+// PRALINE: GPIO2[13] is SPI CS only, FPGA controls ENX/RESETX
+constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];  // P5_4: SPI CS (ENX)
+constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];  // P5_5: LPC43xx controls directly
+#else
 constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];
+constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];
+#endif
+
 #ifdef PRALINE
 constexpr GPIO gpio_rffc5072_clock = gpio[GPIO5_18];
 constexpr GPIO gpio_rffc5072_data = gpio[GPIO4_14];
@@ -103,8 +115,8 @@ constexpr GPIO gpio_max2839_rxtx = gpio[GPIO2_5];
 #endif
 
 #ifdef PRALINE
-constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];
-constexpr GPIO gpio_fpga_select = gpio[GPIO2_10];  // FPGA SPI CS (P5_1)
+constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];  // PD_16: PRALINE MAX5864 CS
+constexpr GPIO gpio_fpga_select = gpio[GPIO2_10];     // FPGA SPI CS (P5_1)
 #else
 constexpr GPIO gpio_max5864_select = gpio[GPIO2_7];
 #endif
@@ -118,8 +130,8 @@ constexpr GPIO gpio_1v2_enable = gpio[GPIO4_7];       // 1V2 enable (P8_7)
 constexpr GPIO gpio_3v3aux_disable = gpio[GPIO5_15];  // 3V3 aux disable (P6_7)
 
 // PRALINE RF path control
-constexpr GPIO gpio_tx_enable = gpio[GPIO3_4];          // TX enable (P6_5)
-constexpr GPIO gpio_mix_enable_n = gpio[GPIO3_2];       // Mixer enable inverted (P6_3)
+constexpr GPIO gpio_tx_enable = gpio[GPIO3_4];  // TX enable (P6_5)
+// constexpr GPIO gpio_mix_enable_n = gpio[GPIO3_2];       // Mixer enable inverted (P6_3)
 constexpr GPIO gpio_lpf_enable = gpio[GPIO4_8];         // LPF enable (PA_1)
 constexpr GPIO gpio_rf_amp_enable = gpio[GPIO4_9];      // RF amp enable (PA_2)
 constexpr GPIO gpio_ant_bias_disable = gpio[GPIO1_12];  // Antenna bias disable (P2_12)
@@ -144,9 +156,17 @@ constexpr GPIO gpio_trigger_out = gpio[GPIO5_6];  // Trigger output (P2_6)
 constexpr GPIO gpio_pps_out = gpio[GPIO5_5];      // PPS output (P2_5)
 #endif
 
+#ifdef PRALINE
+/* PRALINE has no HackRF CPLD. These pins are used for RFFC5072 and TX_EN instead.
+ * Dummy assignments here allow cpld_update.cpp to compile; the functions
+ * that use them are never called on PRALINE. */
+constexpr GPIO gpio_cpld_tdo = gpio[GPIO3_0];  // dummy: reuse TCK pin
+constexpr GPIO gpio_cpld_tms = gpio[GPIO3_1];  // dummy: reuse TDI pin
+#else
 constexpr GPIO gpio_cpld_tdo = gpio[GPIO5_18];
-constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];
 constexpr GPIO gpio_cpld_tms = gpio[GPIO3_4];
+#endif
+constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];
 constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];
 
 constexpr GPIO gpio_r9_clkin_en = gpio[GPIO5_15];

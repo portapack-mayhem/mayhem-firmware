@@ -53,3 +53,5 @@ const std::filesystem::path hopper_dir = u"HOPPER";
 const std::filesystem::path subghz_dir = u"SUBGHZ";
 const std::filesystem::path waterfalls_dir = u"WATERFALLS";
 const std::filesystem::path macaddress_dir = u"MACADDRESS";
+
+const std::filesystem::path splash_dot_bmp = u"/splash.bmp";

@@ -153,6 +153,8 @@ class Message {
         MorseTXConfigure = 95,
         MorseTXkey = 96,
         StreamTXConfiguration = 97,
+        RTTYData = 98,
+        NotificationData = 99,
         MAX
     };
 
@@ -1768,6 +1770,57 @@ class StreamTXConfigurationMessage : public Message {
 
     uint32_t deviation = 60000;  // used in 2fsk
     uint8_t mode = 0;            // am = 0, 2fsk = 1
+};
+
+class RTTYDataMessage : public Message {
+   public:
+    constexpr RTTYDataMessage(uint16_t baud = 4545, uint16_t shift = 170, int16_t mark_tone = -85, int16_t space_tone = 85, uint8_t stopbits = 3, bool inverted = false)
+        : Message{ID::RTTYData},
+          baud(baud),
+          shift(shift),
+          mark_tone(mark_tone),
+          space_tone(space_tone),
+          inverted(inverted),
+          stopbits(stopbits) {
+    }
+    uint8_t data[490]{0};      // 5bit data, stored on 8 bits.
+    uint16_t data_len = 0;     // count of data sent
+    uint16_t baud = 4545;      // /100 baud 45.45 = 4545
+    uint16_t shift = 170;      // hz
+    int16_t mark_tone = 0;     // for tx., hz
+    int16_t space_tone = 170;  // hz
+    bool inverted = false;     // for tx, if true, mark and space tones are swapped.
+    uint8_t stopbits = 3;      // doubled value is stored here, so stop 2 = 1 stop bit, 3 = 1.5, 4 = 2.
+    static constexpr uint16_t max_len = 490;
+};
+
+class NotificationDataMessage : public Message {
+   public:
+    constexpr NotificationDataMessage(const char* source_app, const char* title, const char* message, uint8_t icon = 0, uint16_t timeout = 10000)
+        : Message{ID::NotificationData},
+          icon(icon),
+          timeout(timeout) {
+        if (source_app) {
+            size_t len = std::min(strlen(source_app), (size_t)19);
+            memcpy(this->source_app, source_app, len);
+            this->source_app[len] = '\0';
+        }
+        if (title) {
+            size_t len = std::min(strlen(title), (size_t)49);
+            memcpy(this->title, title, len);
+            this->title[len] = '\0';
+        }
+        if (message) {
+            size_t len = std::min(strlen(message), (size_t)299);
+            memcpy(this->message, message, len);
+            this->message[len] = '\0';
+        }
+    }
+    char source_app[20]{0};  // source application name, null-terminated, max 19 chars + null
+    char title[50]{0};       // title, null-terminated, max 49 chars + null
+    char message[300]{0};    // message, null-terminated, max 299 chars + null
+    uint8_t icon = 0;
+    uint16_t timeout = 10000;
 };
 
 #endif /*__MESSAGE_H__*/

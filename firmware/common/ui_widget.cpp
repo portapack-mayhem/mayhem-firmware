@@ -272,9 +272,8 @@ void View::add_child(Widget* const widget) {
 }
 
 void View::add_children(const std::initializer_list<Widget*> children) {
-    children_.insert(std::end(children_), children);
     for (auto child : children) {
-        child->set_parent(this);
+        add_child(child);
     }
 }
 
@@ -397,18 +396,35 @@ void Text::getWidgetName(std::string& result) {
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
-    auto max_len = (unsigned)rect.width() / s.font.char_width();
-    auto text_view = std::string_view{text};
-
     painter.fill_rectangle(rect, s.background);
+    const int char_width = s.font.char_width();
+    const int line_height = s.font.line_height();
+    if (char_width == 0 || line_height == 0) return;
+    const size_t chars_per_line = rect.width() / char_width;
+    if (chars_per_line == 0) return;
+    size_t lines_capacity = rect.height() / line_height;
+    if (lines_capacity == 0) lines_capacity = 1;  // at least one line, even if it overflows vertically
+    auto text_view = std::string_view{text};
+    size_t current_offset = 0;
+    for (size_t line_idx = 0; line_idx < lines_capacity; ++line_idx) {
+        if (current_offset >= text_view.length()) break;
+        size_t chunk_len = std::min(chars_per_line, text_view.length() - current_offset);
+        painter.draw_string(
+            rect.location() + Point(0, line_idx * line_height),
+            s,
+            text_view.substr(current_offset, chunk_len));
+        current_offset += chunk_len;
+    }
+}
 
-    if (text_view.length() > max_len)
-        text_view = text_view.substr(0, max_len);
-
-    painter.draw_string(
-        rect.location(),
-        s,
-        text_view);
+bool Text::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    return false;
 }
 
 /* Labels ****************************************************************/
@@ -605,8 +621,8 @@ ProgressBar::ProgressBar(
 void ProgressBar::set_max(const uint32_t max) {
     if (max == _max) return;
 
-    if (_value > _max)
-        _value = _max;
+    if (_value > max)
+        _value = max;
 
     _max = max;
     set_dirty();
@@ -634,9 +650,11 @@ void ProgressBar::paint(Painter& painter) {
 
     const auto sr = screen_rect();
     const auto s = style();
-
-    v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
-
+    if (_max == 0) {
+        v_scaled = 0;
+    } else {
+        v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
+    }
     painter.fill_rectangle({sr.location(), {v_scaled, sr.size().height()}}, style().foreground);
     painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
 
@@ -1250,7 +1268,7 @@ bool ButtonWithEncoder::on_encoder(const EncoderEvent delta) {
     if (delta != 0) {
         encoder_delta += delta;
         delta_change = true;
-        on_change();
+        if (on_change) on_change();
     } else
         delta_change = 0;
     return true;
@@ -1887,6 +1905,7 @@ void OptionsField::on_focus() {
 }
 
 bool OptionsField::on_encoder(const EncoderEvent delta) {
+    if (options_.empty()) return false;
     int32_t new_value = selected_index() + delta;
     if (new_value < 0)
         new_value = options_.size() - 1;

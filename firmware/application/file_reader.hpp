@@ -117,7 +117,7 @@ class BufferLineReader {
             std::strncpy(&it.line_data_[offset], buf, len);
             offset += len;
 
-            if (len < buf_size)
+            if (len < buf_size || buf[len - 1] == '\n')
                 break;
         }
 

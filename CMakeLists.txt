@@ -43,7 +43,7 @@ if(NOT DEFINED FLASH_MB_LIMIT_SIZE)
 		set(FLASH_MB_LIMIT_SIZE 3.5) #PRALINE 4 MB = 3.5 firmware + 0.5 MB fpga bitstream.
 	else()
 	    set(FLASH_MB_LIMIT_SIZE 1) #TODO: should be ${FLASH_MB_SIZE} remove once we got a stable build for all devices we support with bigger than 1 mb flash
-	endif()
+		endif()
 endif()
 message("Configuring for FLASH_MB_LIMIT_SIZE=${FLASH_MB_LIMIT_SIZE}MB")
 
@@ -57,9 +57,6 @@ if(BOARD STREQUAL "PRALINE")
 else()
     math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 endif()
-
-#generate h files
-configure_file(flashsize.h.in ${CMAKE_CURRENT_SOURCE_DIR}/firmware/flashsize.h)
 
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 

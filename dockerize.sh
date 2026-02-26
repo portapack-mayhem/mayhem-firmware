@@ -15,8 +15,11 @@
 # - Get a shell inside the build image to
 #   inspect problems: ./dockerize.sh shell
 # - Give additional parameters to the container:
-#   ./dockerize.sh -j10
-#   ./dockerize.sh ninja -j10
+#   Additional parameters to make:        ./dockerize.sh -j10
+#   Use ninja instead of make:            ./dockerize.sh ninja -j10
+#   Addotopnal CMake parameters:          ./dockerize.sh -DBOARD=PRALINE
+#   Change the default build directory:   ./dockerize.sh -B build-alt
+#                                         (Alternatively --workdir works as well)
 # - Use a different dockerfile:
 #   ./dockerize.sh build dockerfile-other
 # - Use a different cpu architecture:

@@ -27,8 +27,6 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
-const std::filesystem::path splash_dot_bmp{u"/splash.bmp"};
-
 ScreenshotViewer::ScreenshotViewer(
     NavigationView& nav,
     const std::filesystem::path& path)
@@ -44,7 +42,6 @@ bool ScreenshotViewer::on_key(KeyEvent) {
 
 void ScreenshotViewer::paint(Painter& painter) {
     File file{};
-
     painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
 
     auto show_invalid = [&]() {

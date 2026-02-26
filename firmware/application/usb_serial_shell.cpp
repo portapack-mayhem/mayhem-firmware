@@ -105,26 +105,23 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
     (void)argc;
     (void)argv;
-
-    ui::Painter painter;
-    painter.fill_rectangle(
-        {0, 0, portapack::display.width(), portapack::display.height()},
-        Theme::getInstance()->fg_yellow->background);
-
-    painter.draw_bitmap(
-        {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
-        ui::bitmap_icon_hackrf,
-        Theme::getInstance()->fg_yellow->foreground,
-        Theme::getInstance()->fg_yellow->background);
-
-    sdcDisconnect(&SDCD1);
-    sdcStop(&SDCD1);
-
-    m4_request_shutdown();
-    chThdSleepMilliseconds(50);
-    portapack::shutdown(true);
-    m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
-    m0_halt();
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    nav->home(false);
+    std::string appwithpath = "/" + apps_dir.string() + "/";
+    appwithpath += "sdusb.ppma";
+    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));
+    if (ret) {
+        chprintf(chp, "ok\r\n");
+    } else {
+        chprintf(chp, "Failed to start SD over USB\r\n");
+    }
+    evtd->wait_finish_frame();
+    evtd->emulateKeyboard('\n');
 }
 
 bool strEndsWith(const std::u16string& str, const std::u16string& suffix) {
@@ -1144,7 +1141,7 @@ static void cmd_gotenv(BaseSequentialStream* chp, int argc, char* argv[]) {
     uint16_t light = 0;
     if (argc > 1) humi = atof(argv[1]);
     if (argc > 2) pressure = atof(argv[2]);
-    if (argc > 3) light = strtol(argv[0], NULL, 10);
+    if (argc > 3) light = strtol(argv[3], NULL, 10);
     EnvironmentDataMessage msg{temp, humi, pressure};
     EventDispatcher::send_message(msg);
     // compatibility:
@@ -1386,20 +1383,74 @@ static void cmd_getres(BaseSequentialStream* chp, int argc, char* argv[]) {
 static void cmd_getflash(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
-    uint8_t allowrun = FLASH_SIZE_MB;
+    // FLASH_SIZE_LIMIT_MB may be a float (e.g. 3.5 for HPro), always cast explicitly.
+    uint8_t allowrun;
+#ifdef PRALINE
+    allowrun = 4;  // HackRF Pro
+#else
     if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
-        allowrun = 1;
+        allowrun = 1;  // PortaPack classic
+    } else {
+        allowrun = FLASH_SIZE_MB;  // PortaRF
     }
-    std::string res = "ALLOWEDFW:" + to_string_dec_uint(FLASH_SIZE_MB) + "\r\nALLOWEDRUNTIME:" + to_string_dec_uint(allowrun) + "\r\nCURRENT:" + to_string_dec_uint(FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
+#endif
+    std::string res = "ALLOWEDFW:" + to_string_dec_uint((uint32_t)FLASH_SIZE_MB) + "\r\nALLOWEDRUNTIME:" + to_string_dec_uint((uint32_t)allowrun) + "\r\nCURRENT:" + to_string_dec_uint((uint32_t)FLASH_SIZE_LIMIT_MB) + "\r\nok\r\n";
     chprintf(chp, res.c_str());
 }
 
 static void cmd_getdevtype(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
-    std::string res = portapack::device_type == portapack::DeviceType::DEV_PORTARF ? "PORTARF" : "PORTAPACK";
+    std::string res;
+#ifdef PRALINE
+    res = "HPRO";
+#else
+    if (portapack::device_type == portapack::DeviceType::DEV_PORTARF) {
+        res = "PORTARF";
+    } else {
+        res = "PORTAPACK";
+    }
+#endif
     res += "\r\nok\r\n";
     chprintf(chp, res.c_str());
+}
+
+static void cmd_notification(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: notif <iconindex> [appname]\r\n";
+    if (argc < 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    int iconindex = atoi(argv[0]);
+    std::string appname = (argc > 1) ? argv[1] : "";
+    chprintf(chp, "Send title, and a <CR>\r\n");
+    std::string title{};
+    uint8_t msg[1]{0};
+    do {
+        size_t bytes_read = chSequentialStreamRead(chp, &msg[0], 1);
+        if (bytes_read != 1)
+            break;
+        if (msg[0] == '\r')  // end of title
+            break;
+        if (msg[0] == '\n') continue;
+        title += (char)msg[0];
+    } while (title.size() < 48);
+    std::string message{};
+    chprintf(chp, "Send message, and a <CR>\r\n");
+    do {
+        size_t bytes_read = chSequentialStreamRead(chp, &msg[0], 1);
+        if (bytes_read != 1)
+            break;
+        if (msg[0] == '\r')  // end of message
+            break;
+        if (msg[0] == '\n') continue;
+        message += (char)msg[0];
+    } while (message.size() < 298);
+
+    NotificationDataMessage msgn{appname.c_str(), title.c_str(), message.c_str(), (uint8_t)iconindex};
+    EventDispatcher::send_message(msgn);
+
+    chprintf(chp, "ok\r\n");
 }
 
 static const ShellCommand commands[] = {
@@ -1440,6 +1491,7 @@ static const ShellCommand commands[] = {
     {"getres", cmd_getres},
     {"getflash", cmd_getflash},
     {"getdevtype", cmd_getdevtype},
+    {"notif", cmd_notification},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

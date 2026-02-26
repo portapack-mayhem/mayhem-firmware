@@ -31,7 +31,7 @@
 using namespace portapack;
 using namespace pocsag;
 
-namespace ui {
+namespace ui::external_app::pocsag_tx {
 
 #define MAX_POCSAG_LENGTH 80
 
@@ -159,7 +159,7 @@ void POCSAGTXView::on_set_text(NavigationView& nav) {
 POCSAGTXView::POCSAGTXView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_fsktx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &options_bitrate,
@@ -205,4 +205,4 @@ POCSAGTXView::POCSAGTXView(
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::pocsag_tx */

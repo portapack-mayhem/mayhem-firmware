@@ -265,7 +265,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
 
 void GeoMap::draw_markers(Painter& painter) {
     for (int i = 0; i < markerListLen; ++i) {
-        draw_marker_item(painter, markerList[i], Color::blue(), Color::blue(), Color::magenta());
+        draw_marker_item(painter, markerList[i], markerList[i].color, markerList[i].color, Color::black());
     }
 }
 
@@ -826,7 +826,7 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     my_pos.lat = lat;
     my_pos.lon = lon;
     my_altitude = altitude;
-    redraw_map = is_changed;
+    redraw_map |= is_changed;
     set_dirty();
 }
 
@@ -876,8 +876,10 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
     geopos.set_report_change(true);
 
     geomap.set_angle(angle);
-    if (is_changed) geomap.move(lon_, lat_);
-    geomap.set_dirty();
+    if (is_changed) {
+        geomap.move(lon_, lat_);
+        geomap.set_dirty();
+    }
 }
 
 void GeoMapView::update_tag(const std::string tag) {

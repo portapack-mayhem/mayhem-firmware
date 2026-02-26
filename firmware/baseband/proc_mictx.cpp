@@ -101,6 +101,10 @@ void MicTXProcessor::on_message(const Message* const msg) {
 
     switch (msg->id) {
         case Message::ID::AudioTXConfig:
+            if (modulator) {
+                delete modulator;
+                modulator = NULL;
+            }
             if (fm_enabled) {
                 dsp::modulate::FM* fm = new dsp::modulate::FM();
 

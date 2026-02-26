@@ -204,11 +204,11 @@ void spawn_entity(uint8_t type, uint8_t x, uint8_t y) {
 
 void spawn_random_entity(uint8_t type) {
     if (num_entities >= MAX_ENTITIES) return;
-    std::srand(LPC_RTC->CTIME0);
+    srand(LPC_RTC->CTIME0);
     uint8_t spawn_x, spawn_y;
     do {
-        spawn_x = std::rand() % LEVEL_WIDTH;
-        spawn_y = std::rand() % LEVEL_HEIGHT;
+        spawn_x = rand() % LEVEL_WIDTH;
+        spawn_y = rand() % LEVEL_HEIGHT;
     } while (get_block_at(spawn_x, spawn_y) == 0xF ||
              (spawn_x == (uint8_t)player.pos.x && spawn_y == (uint8_t)player.pos.y));
 
@@ -227,9 +227,9 @@ void remove_entity(uint8_t index) {
         bool spawned = false;
 
         while (!spawned && attempts < 50) {
-            std::srand(LPC_RTC->CTIME0 + attempts);
-            uint8_t spawn_x = std::rand() % LEVEL_WIDTH;
-            uint8_t spawn_y = std::rand() % LEVEL_HEIGHT;
+            srand(LPC_RTC->CTIME0 + attempts);
+            uint8_t spawn_x = rand() % LEVEL_WIDTH;
+            uint8_t spawn_y = rand() % LEVEL_HEIGHT;
 
             int16_t dx = (int16_t)spawn_x - (int16_t)player.pos.x;
             int16_t dy = (int16_t)spawn_y - (int16_t)player.pos.y;
@@ -270,9 +270,9 @@ void initialize_level() {
     uint8_t attempts = 0;
 
     while (initial_enemies < 2 && num_entities < MAX_ENTITIES && attempts < 50) {
-        std::srand(LPC_RTC->CTIME0 + attempts);
-        int8_t offset_x = (std::rand() % 11) - 5;
-        int8_t offset_y = (std::rand() % 11) - 5;
+        srand(LPC_RTC->CTIME0 + attempts);
+        int8_t offset_x = (rand() % 11) - 5;
+        int8_t offset_y = (rand() % 11) - 5;
 
         if (abs(offset_x) < 3 && abs(offset_y) < 3) {
             attempts++;
@@ -307,10 +307,10 @@ void initialize_level() {
 
     attempts = 0;
     while (num_entities < MIN_ENTITIES && attempts < 100) {
-        std::srand(LPC_RTC->CTIME0 + attempts + 100);
+        srand(LPC_RTC->CTIME0 + attempts + 100);
 
-        uint8_t spawn_x = std::rand() % LEVEL_WIDTH;
-        uint8_t spawn_y = std::rand() % LEVEL_HEIGHT;
+        uint8_t spawn_x = rand() % LEVEL_WIDTH;
+        uint8_t spawn_y = rand() % LEVEL_HEIGHT;
 
         int16_t dx = (int16_t)spawn_x - (int16_t)player.pos.x;
         int16_t dy = (int16_t)spawn_y - (int16_t)player.pos.y;
@@ -1045,7 +1045,7 @@ void DoomView::on_show() {
 void DoomView::paint(Painter& painter) {
     if (!initialized) {
         initialized = true;
-        std::srand(LPC_RTC->CTIME0);
+        srand(LPC_RTC->CTIME0);
         scene = 0;
         up = down = left = right = fired = false;
         jogging = view_height = 0;
@@ -1081,7 +1081,7 @@ void DoomView::paint(Painter& painter) {
             int hud_y = RENDER_HEIGHT + 5;
             painter.draw_string({5, hud_y}, style_yellow, "Health: " + std::to_string(player.health));
             painter.draw_string({UI_POS_X_CENTER(15), hud_y}, style_red, "Kills: " + std::to_string(kills));
-            painter.draw_string({UI_POS_X_RIGHT(80), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            painter.draw_string({UI_POS_X_RIGHT(10), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
 
             prev_velocity_moving = (player.velocity != 0);
             needs_redraw = false;
@@ -1113,7 +1113,7 @@ void DoomView::paint(Painter& painter) {
             int hud_y = RENDER_HEIGHT + 5;
             painter.draw_string({5, hud_y}, style_yellow, "Health: " + std::to_string(player.health));
             painter.draw_string({UI_POS_X_CENTER(15), hud_y}, style_red, "Kills: " + std::to_string(kills));
-            painter.draw_string({UI_POS_X_RIGHT(80), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
+            painter.draw_string({UI_POS_X_RIGHT(10), hud_y}, style_blue, "Ammo: " + std::to_string(player.ammo));
 
             needs_gun_redraw = false;
         }

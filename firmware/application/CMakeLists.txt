@@ -213,6 +213,7 @@ set(CPPSRC
 	irq_controls.cpp
 	irq_lcd_frame.cpp
 	irq_rtc.cpp
+    keeloq_common.cpp
 	keeloq_file.cpp
 	keeloq_keystore.cpp
 	log_file.cpp
@@ -257,6 +258,7 @@ set(CPPSRC
 	ook_file.cpp
 	ui_baseband_stats_view.cpp
 	ui_navigation.cpp
+	ui_notifications.cpp
 	ui_record_view.cpp
 	ui_sd_card_status_view.cpp
 	ui/ui_alphanum.cpp
@@ -303,7 +305,6 @@ set(CPPSRC
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_playlist.cpp
-	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp

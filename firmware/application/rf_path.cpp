@@ -41,14 +41,14 @@ namespace {
  */
 struct PralineConfig {
     bool tx_en;
-    bool mix_en_n;  // Inverted: 0 = mixer enabled
+    bool mix_bypass;  // RF path mixer bypass (GPIO3[2])
     bool lpf_en;
     bool rf_amp_en;
     bool ant_bias_en_n;  // Inverted: 0 = bias enabled
 
     static void gpio_init() {
         gpio_tx_enable.output();
-        gpio_mix_enable_n.output();
+        gpio_mix_bypass.output();
         gpio_lpf_enable.output();
         gpio_rf_amp_enable.output();
         gpio_ant_bias_disable.output();
@@ -56,7 +56,7 @@ struct PralineConfig {
 
     void apply() const {
         gpio_tx_enable.write(tx_en);
-        gpio_mix_enable_n.write(mix_en_n);
+        gpio_mix_bypass.write(mix_bypass);  // Control RF path mixer
         gpio_lpf_enable.write(lpf_en);
         gpio_rf_amp_enable.write(rf_amp_en);
         gpio_ant_bias_disable.write(ant_bias_en_n);
@@ -239,7 +239,7 @@ void Path::init() {
     /* Set safe initial state: RX mode, mixer enabled, LPF on, amp off, no bias */
     PralineConfig config = {
         .tx_en = false,
-        .mix_en_n = false,     // Mixer enabled (inverted)
+        .mix_bypass = false,   // RF path mixer bypass (GPIO3[2])
         .lpf_en = true,        // LPF on for low band
         .rf_amp_en = false,    // Amp off
         .ant_bias_en_n = true  // Bias off (inverted)
@@ -258,6 +258,7 @@ void Path::set_direction(const Direction new_direction) {
 
 void Path::set_band(const Band new_band) {
     band = new_band;
+    _band = new_band;
     update();
 }
 
@@ -275,7 +276,7 @@ void Path::update() {
 #ifdef PRALINE
     /* PRALINE RF path control:
      * - tx_en: 1 for TX, 0 for RX
-     * - mix_en_n: 0 to enable mixer (inverted), 1 to bypass
+     * - mix_bypass: 0 to enable RF path mixer bypass (GPIO3[2])
      * - lpf_en: 1 for low band (< 2.4 GHz), 0 for high band
      * - rf_amp_en: 1 to enable RF amplifier
      * - ant_bias_en_n: 0 to enable antenna bias (inverted)
@@ -293,11 +294,12 @@ void Path::update() {
 
     config.tx_en = (direction == Direction::Transmit);
 
-    /* Mixer bypass for mid band (2.3-2.7 GHz direct to MAX2831) */
-    config.mix_en_n = (band == Band::Mid);  // 1 = bypass (disabled)
+    // RF path mixer bypass: 0=enabled, 1=bypassed
+    config.mix_bypass = (band == Band::Mid);
 
     /* Move to the final state by turning on required signals. */
     /* LPF for low band */
+
     config.lpf_en = (band == Band::Low);
 
     /* RF amp when amplification requested */
@@ -307,6 +309,7 @@ void Path::update() {
     config.ant_bias_en_n = true;
 
     config.apply();
+
 #else
     /* HackRF One RF path control */
     const auto config = get_config(direction, band, rf_amp);

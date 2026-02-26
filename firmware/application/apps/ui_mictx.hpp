@@ -304,7 +304,8 @@ class MicTXView : public View {
         {
             {" 8k5  ", 0},  // Initial dynamic values when we start Mic App.
             {" 11k  ", 1},
-            {" 16k  ", 2},
+            {" 12k5  ", 2},
+            {" 16k  ", 3},
         }};
 
     NumberField field_squelch{

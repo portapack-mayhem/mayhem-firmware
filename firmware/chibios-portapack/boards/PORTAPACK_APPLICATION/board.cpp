@@ -24,13 +24,6 @@
 // Declare wrapper function. board.cpp to avoid conflicting gpio_t definitions.
 bool hackrf_r9;
 
-// Declare the bridge function (no need to include HackRF headers here)
-#ifdef PRALINE
-extern "C" {
-    int fpga_bridge_init(void);
-}
-#endif
-
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /**
  * @brief   PAL setup.
@@ -61,7 +54,11 @@ const PALConfig pal_default_config = {
   .P = {
     {   // GPIO0
         .data
+#ifdef PRALINE
+            = (0 << 15) // P1_20: CLKIN_CTRL - start low 
+#else
             = (1 << 15) // P1_20: CS_XCVR
+#endif
             | (1 << 14) // P2_10: AMP_BYPASS
             | (0 << 13) // P1_18: SGPIO12, HOST_Q_INVERT
             | (0 << 12) // P1_17: SGPIO11, HOST_DIRECTION
@@ -79,8 +76,12 @@ const PALConfig pal_default_config = {
             | (1 <<  0) // P0_0:  SGPIO0, HOST_DATA0
             ,
         .dir
+#ifdef PRALINE
+            = (1 << 15) // P1_20: CLKIN_CTRL - output 
+#else
             = (1 << 15) // P1_20: CS_XCVR
-            | (1 << 14) // P2_10: AMP_BYPASS
+#endif
+    	    | (1 << 14) // P2_10: AMP_BYPASS
             | (1 << 13) // P1_18: SGPIO12, HOST_Q_INVERT
             | (0 << 12) // P1_17: SGPIO11, HOST_DIRECTION
             | (0 << 11) // P1_4:  SSP1_MOSI
@@ -137,7 +138,11 @@ const PALConfig pal_default_config = {
         .data
             = (0 << 15) // P5_6:  TX_AMP
             | (1 << 14) // P5_5:  MIXER_RESETX, 10K PU
+#ifdef PRALINE
+            | (0 << 13) // P5_4:  MIXER_ENX, 10K PU
+#else
             | (1 << 13) // P5_4:  MIXER_ENX, 10K PU
+#endif
             | (1 << 12) // P5_3:  RX_MIX_BP
             | (0 << 11) // P5_2:  TX_MIX_BP
             | (0 << 10) // P5_1:  LP
@@ -154,11 +159,19 @@ const PALConfig pal_default_config = {
             ,
         .dir
             = (1 << 15) // P5_6:  TX_AMP
-            | (1 << 14) // P5_5:  MIXER_RESETX, 10K PU
-            | (1 << 13) // P5_4:  MIXER_ENX, 10K PU
+#ifdef PRALINE
+	    | (0 << 14) // P5_5:  MIXER_RESETX, 10K PU
+            | (1 << 13) // P5_4:  MIXER_ENX - OUTPUT (MCU controlled)
+            | (0 << 12) // P5_3:  RX_MIX_BP - unused on PRALINE
+            | (0 << 11) // P5_2:  FPGA_CRESET - INPUT initially
+            | (0 << 10) // P5_1:  FPGA_SPI_CS - INPUT initially
+#else
+	    | (1 << 14) // P5_5:  MIXER_RESETX, 10K PU
+	    | (1 << 13) // P5_4:  MIXER_ENX, 10K PU
             | (1 << 12) // P5_3:  RX_MIX_BP
             | (1 << 11) // P5_2:  TX_MIX_BP
             | (1 << 10) // P5_1:  LP
+#endif
             | (0 <<  9) // P5_0:  Varies by revision, float until detection
             | (1 <<  8) // P6_12: LED3 (TX)
             | (1 <<  7) // P5_7:  CS_AD
@@ -306,7 +319,13 @@ const PALConfig pal_default_config = {
     {  1,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !MIX_BYPASS/P35: U1.VCTL1(I), U11.VCTL2(I), U9.V2(I) */
     {  1, 19, scu_config_normal_drive_t { .mode=1, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=0 } }, /* SSP1_SCK/P39: MAX2837.SCLK(I), MAX5864.SCLK(I) */
     {  1, 20, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CS_XCVR/P53: MAX2837.CS(I) */
+
+#ifdef PRALINE
+    {  2,  6, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=1, .ezi=0, .zif=1 } }, /* TRIGGER_OUT / MIX_EN_N_R1_0: GPIO5[6] - PRALINE */
+#else
+    /* HackRF One RFFC5072 SPI pins */
     {  2,  6, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) */
+#endif
     {  2, 10, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* AMP_BYPASS/P50: U14.V2(I), U12.V2(I) */
     {  2, 11, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
     {  2, 12, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
@@ -319,8 +338,16 @@ const PALConfig pal_default_config = {
     {  5,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIXER_ENX/P32: 10K PU, 33pF, RFFC5072.ENX(I) */
     {  5,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIXER_RESETX/P33: 10K PU, 33pF, RFFC5072.RESETX(I) */
     {  5,  6, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* TX_AMP/P48: U12.V3(I), U14.V1(I) */
+#ifdef PRALINE
+    /* PRALINE RFFC5072 SPI pins - different from HackRF One */
+    {  5,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* P5_7: GPIO2[7], RFFC5072 CS */
+    {  9,  5, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=1, .ezi=0, .zif=0 } }, /* P9_5: GPIO5[18], RFFC5072 SCLK */
+    {  9,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=1, .ezi=1, .zif=0 } }, /* P9_2: GPIO4[14], RFFC5072 SDATA (bidirectional) */
+#else
+/* HackRF One RFFC5072 SPI pins - NOT used on PRALINE */
     {  5,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CS_AD/P54: MAX5864.CS(I) */
     {  6,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* MIXER_SDATA/P27: 33pF, RFFC5072.SDATA(IO) */
+#endif
     {  6,  8, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* MIX_BYPASS/P34: U1.VCTL2(I), U11.VCTL1(I) */
     {  6,  9, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !TX_AMP_PWR/P51: 10K PU, Q2.G(I), power to U25 (TX amp) */
 
@@ -346,7 +373,9 @@ const PALConfig pal_default_config = {
     {  6,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CPLD_TCK: PortaPack CPLD.TCK(I) */
     {  6,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* CPLD_TDI: PortaPack CPLD.TDI(I), I2S0_RX_SDA(O) */
     {  6,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* CPLD_TMS: HackRF CPLD.TMS(I) */
+#ifndef PRALINE
     {  9,  5, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* CPLD_TDO: HackRF CPLD.TDO(O) */
+#endif
 
     /* PortaPack CPLD */
     {  1,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* SD_POW: PortaPack CPLD.TDO(O) */
@@ -870,40 +899,55 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[6][7] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->DIR[5] |= (1 << 15);
   LPC_GPIO->CLR[5] = (1 << 15);  /* Clear = enable 3.3V aux */
-  { volatile uint32_t delay = 100000; while(delay--); }
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Enable 1.2V for FPGA - P8_7 = GPIO4[7], active high */
   LPC_SCU->SFSP[8][7] = 0x10;
   LPC_GPIO->DIR[4] |= (1 << 7);
   LPC_GPIO->SET[4] = (1 << 7);
-  { volatile uint32_t delay = 100000; while(delay--); }
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Enable VAA for RF - P8_1 = GPIO4[1], active low */
   LPC_SCU->SFSP[8][1] = 0x10;
   LPC_GPIO->DIR[4] |= (1 << 1);
   LPC_GPIO->CLR[4] = (1 << 1);
-  { volatile uint32_t delay = 100000; while(delay--); }
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Configure RFFC5072 pins for PRALINE */
-  /* P9_2 = GPIO4[14] RFFC5072 data (SCU_GPIO_FAST | FUNCTION0 = 0xF0) */
-  LPC_SCU->SFSP[9][2] = 0xF0;
-  /* P9_5 = GPIO5[18] RFFC5072 clock (SCU_GPIO_FAST | FUNCTION4 = 0xF4) */
-  LPC_SCU->SFSP[9][5] = 0xF4;
-  LPC_GPIO->DIR[5] |= (1 << 18);  /* Clock as output */
+  /* Set GPIO directions for RFFC5072 SPI pins */
+  /* P5_7 = GPIO2[7] RFFC5072 CS */
+  LPC_GPIO->SET[2] = (1 << 7);    /* CS high (deselected) */
+  LPC_GPIO->DIR[2] |= (1 << 7);   /* CS as output */
+
+  /* P9_5 = GPIO5[18] RFFC5072 SCLK */
+  LPC_GPIO->CLR[5] = (1 << 18);   /* CLK low */
+  LPC_GPIO->DIR[5] |= (1 << 18);  /* CLK as output */
+
+  /* P9_2 = GPIO4[14] RFFC5072 DATA (bidirectional) */
+  LPC_GPIO->DIR[4] |= (1 << 14);  /* DATA as output initially */
+
+  /* P2_6 = GPIO5[6] TRIGGER_OUT / MIX_EN_N_R1_0 (PRALINE R1.0 mixer bypass) */
+  /* SCU configured in PAL array above with mode=4 */
+  LPC_GPIO->CLR[5] = (1 << 6);    /* Default low (mixer enabled) */
+  LPC_GPIO->DIR[5] |= (1 << 6);   /* Output */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Configure Port D pins for PRALINE (use SFSPD registers) */
   /* PD_14 = GPIO6[28] MAX2831 chip select */
   LPC_SCU->SFSPD[14] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->SET[6] = (1 << 28);  /* CS high (inactive) */
   LPC_GPIO->DIR[6] |= (1 << 28);  /* Output */
+
   /* PD_15 = GPIO6[29] MAX2831 RXHP control */
   LPC_SCU->SFSPD[15] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->CLR[6] = (1 << 29);  /* RXHP low = 100 Hz HPF */
   LPC_GPIO->DIR[6] |= (1 << 29);  /* Output */
+
   /* PD_16 = GPIO6[30] MAX5864 chip select */
   LPC_SCU->SFSPD[16] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->SET[6] |= (1 << 30);  /* CS high (inactive) */
   LPC_GPIO->DIR[6] |= (1 << 30);  /* Output */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Configure Port E pins for MAX2831 control (use SFSPE registers) */
   /* PE_1 = GPIO7[1] MAX2831 ENABLE */
@@ -914,6 +958,7 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSPE[2] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
   LPC_GPIO->CLR[7] = (1 << 2);  /* Start in shutdown mode */
   LPC_GPIO->DIR[7] |= (1 << 2);  /* Output */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Configure Port 6 pins for RF path control */
   /* P6_3 = GPIO3[2] Mixer enable (inverted: 0 = mixer ON) */
@@ -924,16 +969,41 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[6][5] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION0 */
   LPC_GPIO->CLR[3] = (1 << 4);  /* TX off by default (RX mode) */
   LPC_GPIO->DIR[3] |= (1 << 4);  /* Output */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Configure Port A pins for RF path control */
   /* PA_1 = GPIO4[8] LPF enable */
-  LPC_SCU->SFSP[0xA][1] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
+  LPC_SCU->SFSP[0xA][1] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION0 */
   LPC_GPIO->SET[4] = (1 << 8);  /* LPF enabled by default (low band) */
   LPC_GPIO->DIR[4] |= (1 << 8);  /* Output */
   /* PA_2 = GPIO4[9] RF amp enable */
-  LPC_SCU->SFSP[0xA][2] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
+  LPC_SCU->SFSP[0xA][2] = 0xF0;  /* SCU_GPIO_FAST | FUNCTION0 */
   LPC_GPIO->CLR[4] = (1 << 9);  /* RF amp off by default */
   LPC_GPIO->DIR[4] |= (1 << 9);  /* Output */
+  { volatile uint32_t delay = 200000; while(delay--); }
+
+  /* Configure RFFC5072 control pins for PRALINE */
+  /* P5_4 = GPIO2[13] RFFC5072 ENX - SPI chip select (managed by SPI driver) */
+  LPC_SCU->SFSP[5][4] = 0x10;  /* FUNCTION0 (GPIO), pull-up, slow mode (matches HackRF USB) */
+  LPC_GPIO->DIR[2] |= (1 << 13);   /* ENX: OUTPUT */
+  LPC_GPIO->SET[2] = (1 << 13);    /* ENX = 1 (deselected initially) */
+  { volatile uint32_t delay = 200000; while(delay--); }
+  
+  /* P5_5 = GPIO2[14] RFFC5072 RESETX (active high: 1=running) */
+  LPC_SCU->SFSP[5][5] = 0x10;  /* FUNCTION0 (GPIO), pull-up, slow mode (matches HackRF USB) */
+  LPC_GPIO->DIR[2] |= (1 << 14);   /* RESETX: OUTPUT */
+  LPC_GPIO->SET[2] = (1 << 14);    /* RESETX = 1 (RUNNING) */
+  { volatile uint32_t delay = 200000; while(delay--); }
+  
+  /* Ensure RESETX is stable */
+  for (volatile int i = 0; i < 10; i++) {
+    LPC_GPIO->W2[14] = 1;
+  }
+  
+  /* PD_11 = GPIO6[25] RFFC5072 Lock Detect (input) */
+  LPC_SCU->SFSPD[11] = 0x10;  /* FUNCTION0 (GPIO), pull-up (matches HackRF USB) */
+  LPC_GPIO->DIR[6] &= ~(1 << 25);  /* LD: INPUT */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* Configure PRALINE-specific SGPIO pins for FPGA sample interface.
    * These override the HackRF One pin config from pins_setup.
@@ -953,6 +1023,7 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[8][2] = 0xF4;  /* SCU_GPIO_FAST | func 4 */
   /* SGPIO11 = P1_17 function 6 (HOST_DIRECTION - output to FPGA, tells FPGA TX vs RX) */
   LPC_SCU->SFSP[1][17] = 0xF6;  /* SCU_GPIO_FAST | func 6 */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
   /* SGPIO data pins (SGPIO0-7) - all 8 bits required for sample data */
   LPC_SCU->SFSP[0][0] = 0xF3;   /* SGPIO0: P0_0 function 3, HOST_DATA0 */
@@ -963,14 +1034,10 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[6][6] = 0xF2;   /* SGPIO5: P6_6 function 2, HOST_DATA5 */
   LPC_SCU->SFSP[2][2] = 0xF0;   /* SGPIO6: P2_2 function 0, HOST_DATA6 */
   LPC_SCU->SFSP[1][0] = 0xF6;   /* SGPIO7: P1_0 function 6, HOST_DATA7 */
+  { volatile uint32_t delay = 200000; while(delay--); }
 
-  /* NOTE: P9_5 is RFFC5072 mixer clock (SCU_MIXER_SCLK), NOT SGPIO!
-   * Do NOT override P9_5 here. */
-
-  // Trigger FPGA bitstream loading via fpga bridge
-  // Attempt to load the FPGA bitstream
-  // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
-  // Use LEDs to check if initi is successful. 
+  // Trigger FPGA bitstream loading via fpga bridge in portapack.cpp
+  // Use LEDs to check if boardInit initialization is successful. 
   
   // Setup LED pin directions
   // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
@@ -979,14 +1046,8 @@ extern "C" void boardInit(void) {
   // Turn off all LEDs to start
   // PRALINE LEDs are active-low: SET (HIGH) = OFF, CLR (LOW) = ON
   LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
+  { volatile uint32_t delay = 200000; while(delay--); }
 
-  // Call fpga_bridge_init and continue boot regardless of result
-  // (Watchdog was resetting device when we halted with while(1))
-  int load_result = fpga_bridge_init();
-  (void)load_result;  // Ignore result for now, just let boot continue
-
-  // Keep LEDs off after FPGA load
-  LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
 #endif
 
 }
