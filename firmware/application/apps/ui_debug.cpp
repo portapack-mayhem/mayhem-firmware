@@ -3005,7 +3005,7 @@ void DebugMenuView::on_populate() {
         {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
         {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
-	{"ProRadio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
+        {"ProRadio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},

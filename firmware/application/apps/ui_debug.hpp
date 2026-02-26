@@ -486,59 +486,59 @@ class PralineRadioDebugView : public View {
 
 #ifdef PRALINE
 class WFMAudioDebugView : public View {
-public:
+   public:
     WFMAudioDebugView(NavigationView& nav);
     void focus() override;
     std::string title() const override { return "WFM Audio Debug"; }
 
-private:
+   private:
     void refresh();
-    
+
     NavigationView& nav_;
-    
+
     Text text_title{{0, 0, 240, 16}, "=== WFM Audio Debug ==="};
-    
+
     // Sample rates section
     Text text_lbl_clk0{{0, 20, 140, 16}, "Si5351 CLK0 Rate:"};
     Text text_clk0{{150, 20, 90, 16}, "---"};
-    
+
     Text text_lbl_fpga_dec{{0, 36, 140, 16}, "FPGA Decimation:"};
     Text text_fpga_dec{{150, 36, 90, 16}, "---"};
-    
+
     Text text_lbl_post_fpga{{0, 52, 140, 16}, "Post-FPGA Rate:"};
     Text text_post_fpga{{150, 52, 90, 16}, "---"};
-    
+
     // MAX2831 section
     Text text_section1{{0, 72, 240, 16}, "--- MAX2831 LPF ---"};
-    
+
     Text text_lbl_reg8{{0, 88, 140, 16}, "Reg8 (LPF RX):"};
     Text text_reg8{{150, 88, 90, 16}, "---"};
-    
+
     Text text_lbl_lpf_bw{{0, 104, 140, 16}, "LPF Bandwidth:"};
     Text text_lpf_bw{{150, 104, 90, 16}, "---"};
-    
-    // FPGA section  
+
+    // FPGA section
     Text text_section2{{0, 124, 240, 16}, "--- FPGA Control ---"};
-    
+
     Text text_lbl_fpga_r1{{0, 140, 140, 16}, "Reg1 (Ctrl):"};
     Text text_fpga_r1{{150, 140, 90, 16}, "---"};
-    
+
     Text text_lbl_dc_q{{0, 156, 140, 16}, "DC/Q/QS:"};
     Text text_dc_q{{150, 156, 90, 16}, "---"};
-    
+
     // Audio section
     Text text_section3{{0, 176, 240, 16}, "--- Audio Path ---"};
-    
+
     Text text_lbl_expected{{0, 192, 140, 16}, "Expected Audio:"};
     Text text_expected{{150, 192, 90, 16}, "---"};
-    
+
     Text text_lbl_deemph{{0, 208, 140, 16}, "De-emph Config:"};
     Text text_deemph{{150, 208, 90, 16}, "---"};
-    
+
     // Status
     Text text_status{{0, 228, 240, 16}, "---"};
     Text text_status2{{0, 244, 240, 16}, "---"};
-    
+
     Button button_refresh{{10, 268, 70, 24}, "Refresh"};
     Button button_toggle_q{{90, 268, 70, 24}, "Toggle Q"};
     Button button_done{{170, 268, 60, 24}, "Done"};
