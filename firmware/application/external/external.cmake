@@ -390,7 +390,7 @@ set(EXTAPPLIST
 	siggen
 	morse_radio
 	morseradiotx
-  keeloqtx
+	keeloqtx
 	rtty_rx
 	rtty_tx
 	pocsag_tx
