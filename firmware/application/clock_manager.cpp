@@ -713,7 +713,7 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     _base_band_frequency = frequency;
 
     // Set FPGA decimation to 0 (no decimation) for direct passthrough
-    fpga_debug_register_write(2, 0);
+    fpga_debug_register_write(2, 0x00);
     radio::invalidate_spi_config();
 
     // The following was originally from @kitty. Adopting for testing radio.
