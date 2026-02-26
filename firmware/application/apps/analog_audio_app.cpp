@@ -208,7 +208,6 @@ PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
                   &label_qi, &options_qi, &label_qs, &options_qs,
                   &label_dec, &options_dec});
 
-
     options_sr.set_value(receiver_model.sampling_rate() / 1000);
     options_dc.set_by_value(1);
     options_qi.set_by_value(1);
