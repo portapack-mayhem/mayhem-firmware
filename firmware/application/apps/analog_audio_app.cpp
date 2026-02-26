@@ -208,13 +208,13 @@ PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
                   &label_qi, &options_qi, &label_qs, &options_qs,
                   &label_dec, &options_dec});
 
-    options_sr.set_by_value(receiver_model.sampling_rate());
+    options_sr.set_value(receiver_model.sampling_rate() / 1000);
     options_dc.set_by_value(1);
-    options_qi.set_by_value(1);
+    options_qi.set_by_value(0);
     options_qs.set_by_value(0);
     options_dec.set_by_value(0);
 
-    options_sr.on_change = [this](size_t, OptionsField::value_t v) { receiver_model.set_sampling_rate(v); };
+    options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v) * 1000); };
     options_dc.on_change = [this](size_t, OptionsField::value_t v) { if (v) fpga_reg_1 |= 0x01; else fpga_reg_1 &= ~0x01; update_fpga_ctrl(); };
     options_qi.on_change = [this](size_t, OptionsField::value_t v) { if (v) fpga_reg_1 |= 0x02; else fpga_reg_1 &= ~0x02; update_fpga_ctrl(); };
     options_qs.on_change = [this](size_t, OptionsField::value_t v) { if (v) fpga_reg_1 |= 0x04; else fpga_reg_1 &= ~0x04; update_fpga_ctrl(); };

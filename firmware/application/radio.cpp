@@ -154,11 +154,26 @@ void init() {
     baseband_codec.init();
 
 #ifdef PRALINE
+
+    /* Praline-Specific Bus and Gateware Configuration */
+
+    // SYNC SGPIO TO FPGA CLOCK:
+    // Configure all 16 SGPIO slices to use the external clock (SGPIO8)
+    // provided by the FPGA. This allows the MCU to stay at 40MHz
+    // while the data bus scales to the RF sample rate.
+    // Bit 2:1 of SGPIO_MUX_CFG = 01 (External clock from SGPIO8)
+    // SYNC SGPIO TO FPGA CLOCK WITH FALLING EDGE LATCH
+    for (int i = 0; i < 16; i++) {
+        // (1 << 1) = External clock from SGPIO8
+        // (1 << 3) = Sample on the FALLING edge of the clock
+        LPC_SGPIO->SGPIO_MUX_CFG[i] = (1 << 1) | (1 << 3);
+    }
+
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
     // debug::fpga::init();
     // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
-    fpga_debug_register_write(1, 0x03);  // DC_BLOCK=1, QUARTER_SHIFT=1, Q_INVERT=0
-    fpga_debug_register_write(2, 0x03);  // RX_DECIM=8 (2^3 decimation for testing 20 MHz -> 2.5 MHz with audio for now)
+    fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
+    fpga_debug_register_write(2, 0x00);  // RX_DECIM=No Decim
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
     fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
     fpga_debug_register_write(5, 0x00);  // TX_PSTEP=0
@@ -209,10 +224,6 @@ void set_direction(const rf::Direction new_direction) {
     }
 
 #ifdef PRALINE
-
-    // This FPGA registers fix DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
-    fpga_debug_register_write(1, 0x03);  // DC_BLOCK, Q-Inv, no-QUARTER_SHIFT.
-    fpga_debug_register_write(2, 0x03);  // RX_DECIM=8 (2^3 decimation for testing 20 MHz -> 2.5 MHz with audio for now)
 
     // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
     bool q_invert = mixer_invert ^ baseband_invert;
@@ -284,11 +295,6 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
         mixer_invert = tuning_config.mixer_invert;
 
 #ifdef PRALINE
-        // TEST: Force baseband invert for Praline (like r9)
-        // baseband_invert = (direction == rf::Direction::Receive);
-
-        // CORRECT: FPGA register 1 only controls DC_BLOCK
-        fpga_debug_register_write(1, 0x01);  // DC_BLOCK only, no QUARTER_SHIFT!
 
         // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
         bool q_invert = mixer_invert ^ baseband_invert;

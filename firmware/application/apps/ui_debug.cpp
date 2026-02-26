@@ -590,6 +590,187 @@ void PralineRadioDebugView::refresh() {
 }
 #endif
 
+#ifdef PRALINE
+/* WFMAudioDebugView *************************************************/
+
+WFMAudioDebugView::WFMAudioDebugView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({
+        &text_title,
+        &text_lbl_clk0,
+        &text_clk0,
+        &text_lbl_fpga_dec,
+        &text_fpga_dec,
+        &text_lbl_post_fpga,
+        &text_post_fpga,
+        &text_section1,
+        &text_lbl_reg8,
+        &text_reg8,
+        &text_lbl_lpf_bw,
+        &text_lpf_bw,
+        &text_section2,
+        &text_lbl_fpga_r1,
+        &text_fpga_r1,
+        &text_lbl_dc_q,
+        &text_dc_q,
+        &text_section3,
+        &text_lbl_expected,
+        &text_expected,
+        &text_lbl_deemph,
+        &text_deemph,
+        &text_status,
+        &text_status2,
+        &button_refresh,
+        &button_toggle_q,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_section1.set_style(Theme::getInstance()->fg_yellow);
+    text_section2.set_style(Theme::getInstance()->fg_yellow);
+    text_section3.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_toggle_q.on_select = [this](Button&) {
+        uint32_t current = radio::debug::fpga::register_read(1);
+        uint8_t new_val = current ^ 0x02;  // Toggle Q_INVERT bit
+        radio::debug::fpga::register_write(1, new_val);
+        radio::invalidate_spi_config();
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void WFMAudioDebugView::focus() {
+    button_refresh.focus();
+}
+
+void WFMAudioDebugView::refresh() {
+    // === Si5351 CLK0 Sample Rate ===
+    // Read MS0 parameters to calculate frequency
+    uint8_t reg44 = portapack::clock_manager.si5351_read_register(44);
+    uint8_t reg45 = portapack::clock_manager.si5351_read_register(45);
+    uint8_t reg46 = portapack::clock_manager.si5351_read_register(46);
+
+    uint8_t r_div_encoded = (reg44 >> 4) & 0x07;
+    uint32_t r_div = 1 << r_div_encoded;
+    uint32_t p1 = ((uint32_t)(reg44 & 0x03) << 16) | ((uint32_t)reg45 << 8) | reg46;
+    uint32_t ms_div = (p1 + 512) / 128;
+
+    // PLL A is 800 MHz
+    uint32_t clk0_khz = 800000 / ms_div / r_div;
+    uint32_t clk0_mhz_int = clk0_khz / 1000;
+    uint32_t clk0_khz_frac = clk0_khz % 1000;
+
+    text_clk0.set(to_string_dec_uint(clk0_mhz_int) + "." +
+                  to_string_dec_uint(clk0_khz_frac / 100) +
+                  to_string_dec_uint((clk0_khz_frac / 10) % 10) +
+                  to_string_dec_uint(clk0_khz_frac % 10) + " MHz");
+
+    if (clk0_khz >= 3000 && clk0_khz <= 3200) {
+        text_clk0.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_clk0.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // === FPGA Decimation ===
+    uint8_t fpga_decim = radio::debug::fpga::register_read(2);
+    uint32_t fpga_div = 1 << fpga_decim;
+    text_fpga_dec.set("/" + to_string_dec_uint(fpga_div) + " (n=" + to_string_dec_uint(fpga_decim) + ")");
+
+    // === Post-FPGA Rate ===
+    uint32_t post_fpga_khz = clk0_khz / fpga_div;
+    text_post_fpga.set(to_string_dec_uint(post_fpga_khz) + " kHz");
+
+    // For WFM, post-FPGA should be >= 384 kHz for proper audio decimation
+    if (post_fpga_khz >= 384) {
+        text_post_fpga.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_post_fpga.set_style(Theme::getInstance()->fg_orange);
+    }
+
+    // === MAX2831 LPF ===
+    uint32_t reg8 = radio::debug::second_if::register_read(8);
+    text_reg8.set("0x" + to_string_hex(reg8, 4));
+
+    uint8_t lpf_coarse = reg8 & 0x03;
+    const char* lpf_names[] = {"7.5 MHz", "8.5 MHz", "15 MHz", "18 MHz"};
+    text_lpf_bw.set(lpf_names[lpf_coarse]);
+
+    // 7.5 MHz is minimum, OK for mono WFM but tight for stereo
+    if (lpf_coarse >= 1) {
+        text_lpf_bw.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_lpf_bw.set_style(Theme::getInstance()->fg_orange);
+    }
+
+    // === FPGA Control Register ===
+    uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+    text_fpga_r1.set("0x" + to_string_hex(fpga_ctrl, 2));
+
+    bool dc_block = fpga_ctrl & 0x01;
+    bool q_invert = fpga_ctrl & 0x02;
+    uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+    text_dc_q.set(std::string(dc_block ? "DC:ON" : "DC:OFF") +
+                  " Q:" + std::string(q_invert ? "INV" : "NOR") +
+                  " QS:" + to_string_dec_uint(quarter_shift));
+
+    if (dc_block) {
+        text_dc_q.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_dc_q.set_style(Theme::getInstance()->fg_orange);
+    }
+
+    // === Expected Audio Rate ===
+    // WFM typically: 3072 kHz / 64 = 48 kHz audio
+    // Or: 3072 kHz → /8 (channel) → 384 kHz → /8 (audio) → 48 kHz
+    uint32_t expected_audio = post_fpga_khz / 64;  // Simplified assumption
+    text_expected.set(to_string_dec_uint(expected_audio) + " kHz (est)");
+
+    if (expected_audio >= 44 && expected_audio <= 50) {
+        text_expected.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_expected.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // === De-emphasis Status ===
+    // We can't directly read the M4 de-emphasis config, but we can indicate what SHOULD be set
+    // 75µs for USA, 50µs for Europe
+    text_deemph.set("Check M4 config");
+    text_deemph.set_style(Theme::getInstance()->fg_orange);
+
+    // === Status Summary ===
+    bool sample_rate_ok = (clk0_khz >= 3000 && clk0_khz <= 3200);
+    bool lpf_ok = (lpf_coarse >= 0);  // 7.5 MHz minimum is technically OK
+    bool dc_ok = dc_block;
+
+    if (sample_rate_ok && lpf_ok && dc_ok) {
+        text_status.set("Hardware config looks OK.");
+        text_status.set_style(Theme::getInstance()->fg_green);
+        text_status2.set("If ringy: Check de-emphasis in M4!");
+        text_status2.set_style(Theme::getInstance()->fg_orange);
+    } else {
+        std::string issues = "Issues: ";
+        if (!sample_rate_ok) issues += "SampleRate ";
+        if (!lpf_ok) issues += "LPF ";
+        if (!dc_ok) issues += "DC_Block ";
+        text_status.set(issues);
+        text_status.set_style(Theme::getInstance()->fg_red);
+        text_status2.set("Fix above before checking audio.");
+        text_status2.set_style(Theme::getInstance()->fg_red);
+    }
+}
+#endif
+
 /* BasebandStatusView ******************************************************/
 
 BasebandStatusView::BasebandStatusView(NavigationView& nav)
@@ -2823,6 +3004,7 @@ void DebugMenuView::on_populate() {
 #ifdef PRALINE
         {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
+        {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
         {"ProRadio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
