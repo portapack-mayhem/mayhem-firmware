@@ -172,7 +172,7 @@ void init() {
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
     // debug::fpga::init();
     // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
-    fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=1, Q_INVERT=0
+    fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
     fpga_debug_register_write(2, 0x00);  // RX_DECIM=No Decim
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
     fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
@@ -224,10 +224,6 @@ void set_direction(const rf::Direction new_direction) {
     }
 
 #ifdef PRALINE
-
-    // This FPGA registers fix DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
-    fpga_debug_register_write(1, 0x01);  // DC_BLOCK, Q-Inv, no-QUARTER_SHIFT.
-    fpga_debug_register_write(2, 0x00);  // RX_DECIM=No Decim
 
     // Q inversion controlled by GPIO0[13] (SGPIO12), not FPGA register
     bool q_invert = mixer_invert ^ baseband_invert;

@@ -52,7 +52,7 @@ class PralineOptionsView : public View {
         5,           // Number of digits to show
         {0, 40000},  // Range: 0 to 40,000 kHz
         1,           // Step: 1 kHz
-        'k'          // Fix: Single quotes for char
+        ' '          // Fix: Single quotes for char
     };
 
     Text label_dc{{UI_POS_X(8), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "DC"};
@@ -67,7 +67,7 @@ class PralineOptionsView : public View {
     Text label_dec{{UI_POS_X(26), UI_POS_Y(0), UI_POS_WIDTH(1), UI_POS_HEIGHT(1)}, "D"};
     OptionsField options_dec{{UI_POS_X(28), UI_POS_Y(0)}, 2, {{" 1", 0}, {" 2", 1}, {" 4", 2}, {" 8", 3}, {"16", 4}}};
 
-    uint8_t fpga_reg_1{0x03};  // Tracks DC, QI, QS bits
+    uint8_t fpga_reg_1{0x01};  // Tracks DC, QI, QS bits
     void update_fpga_ctrl();
 };
 #endif
