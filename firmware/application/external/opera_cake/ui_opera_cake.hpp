@@ -83,7 +83,6 @@ class OperaCakeView : public View {
     bool write_ports(uint8_t port_a_idx, uint8_t port_b_idx);
     void apply_manual();
     void apply_frequency();
-    void on_frame_sync();
 
     // --- Static labels ---
     // Screen pixel layout (8px/char, 16px/row):
