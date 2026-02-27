@@ -34,12 +34,6 @@
 #include "dsp_iir_config.hpp"
 #include "utility.hpp"
 
-#ifdef PRALINE
-extern "C" {
-#include "fpga_bridge.h"
-}
-#endif
-
 using namespace hackrf::one;
 using namespace portapack;
 
@@ -312,17 +306,6 @@ void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
     if (enabled_) {
         radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
-
-#ifdef PRALINE
-        /* Praline: Must re-apply baseband filter after frequency change
-         * Reference: hackrf_usb radio.c radio_set_frequency()
-         *
-         * Different frequency ranges may use different quarter-shift modes,
-         * which affects the required LPF bandwidth. For now we just
-         * recalculate the filter to be safe.
-         */
-        update_baseband_bandwidth();
-#endif
     }
 }
 
@@ -334,20 +317,25 @@ void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
 void ReceiverModel::update_baseband_bandwidth() {
     if (enabled_) {
 #ifdef PRALINE
-        /* Praline: LPF bandwidth calculation
-         * Reference: hackrf_usb radio.c radio_set_filter()
+        /*
+         * PRALINE LPF bandwidth calculation from GSG hackrf_usb radio.c:
          *
-         * LPF = (sample_rate * 3) / 8
-         * Plus additional offset if quarter-shift is enabled (not implemented yet)
+         * Base: (sample_rate * 3) / 8
+         * If quarter-shift enabled: add (AFE_rate / 8) * 2
          */
-        uint32_t lpf_bandwidth = (sampling_rate() * 3) / 8;
+        uint32_t sample_rate = sampling_rate();
+        uint32_t lpf_bandwidth = (sample_rate * 3) / 8;
 
-        // For now, quarter-shift is disabled, so no offset added
-        // When quarter-shift is implemented:
-        // if (quarter_shift_enabled) {
-        //     uint32_t offset = (sampling_rate() << decimation_n) / 8;
-        //     lpf_bandwidth += offset * 2;
-        // }
+        // Check if quarter-shift is enabled (FPGA register 1, bits 2-3)
+        uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+        uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+        if (quarter_shift != 0) {
+            // Get resampling factor from clock manager
+            uint8_t resampling_n = portapack::clock_manager.get_resampling_n();
+            uint32_t offset = (sample_rate << resampling_n) / 8;  // AFE_rate / 8
+            lpf_bandwidth += offset * 2;
+        }
 
         radio::set_baseband_filter_bandwidth_rx(lpf_bandwidth);
 #else
@@ -366,6 +354,13 @@ void ReceiverModel::update_sampling_rate() {
         radio::set_baseband_rate(sampling_rate());
     }
     update_tuning_frequency();
+
+#ifdef PRALINE
+    // GSG reference: re-apply frequency after sample rate change
+    // This reconfigures LPF bandwidth based on new decimation
+    update_baseband_bandwidth();
+#endif
+
 }
 
 void ReceiverModel::update_lna() {

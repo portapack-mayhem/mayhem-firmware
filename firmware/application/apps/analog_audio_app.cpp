@@ -208,16 +208,32 @@ PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
                   &label_qi, &options_qi, &label_qs, &options_qs,
                   &label_dec, &options_dec});
 
+    // 1. READ the current state from hardware
+    fpga_reg_1 = radio::debug::fpga::register_read(1);
+    uint32_t fpga_reg_2 = radio::debug::fpga::register_read(2);
+
+    // 2. INITIALIZE UI WIDGETS based on read bits
+    options_dc.set_by_value((fpga_reg_1 & 0x01) ? 1 : 0); // Bit 0
+    options_qi.set_by_value((fpga_reg_1 & 0x02) ? 1 : 0); // Bit 1
+    options_qs.set_by_value((fpga_reg_1 & 0x04) ? 1 : 0); // Bit 2
+    options_dec.set_by_value(fpga_reg_2);
     options_sr.set_value(receiver_model.sampling_rate() / 1000);
-    options_dc.set_by_value(1);
-    options_qi.set_by_value(0);
-    options_qs.set_by_value(0);
-    options_dec.set_by_value(0);
 
     options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v) * 1000); };
-    options_dc.on_change = [this](size_t, OptionsField::value_t v) { if (v) fpga_reg_1 |= 0x01; else fpga_reg_1 &= ~0x01; update_fpga_ctrl(); };
-    options_qi.on_change = [this](size_t, OptionsField::value_t v) { if (v) fpga_reg_1 |= 0x02; else fpga_reg_1 &= ~0x02; update_fpga_ctrl(); };
-    options_qs.on_change = [this](size_t, OptionsField::value_t v) { if (v) fpga_reg_1 |= 0x04; else fpga_reg_1 &= ~0x04; update_fpga_ctrl(); };
+    options_dc.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v) fpga_reg_1 |= 0x01; else fpga_reg_1 &= ~0x01;
+        update_fpga_ctrl();
+    };
+
+    options_qi.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v) fpga_reg_1 |= 0x02; else fpga_reg_1 &= ~0x02;
+        update_fpga_ctrl();
+    };
+
+    options_qs.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v) fpga_reg_1 |= 0x04; else fpga_reg_1 &= ~0x04;
+        update_fpga_ctrl();
+    };
     options_dec.on_change = [this](size_t, OptionsField::value_t v) { radio::debug::fpga::register_write(2, v); };
 }
 
@@ -549,13 +565,8 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.set_modulation(modulation);
 
-#ifdef PRALINE
-    receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 4000000);
-    receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 2000000);
-#else
     receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
     receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
-#endif
 
     receiver_model.set_hidden_offset(modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);  // wefax needs to be shifted, see wefax rx app.
 

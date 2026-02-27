@@ -81,11 +81,7 @@ class WidebandFMAudio : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-#ifdef PRALINE
-    static constexpr size_t baseband_fs = 2000000;
-#else
     static constexpr size_t baseband_fs = 3072000;
-#endif
     static constexpr auto spectrum_rate_hz = 50.0f;
 
     std::array<complex16_t, 512> dst{};
