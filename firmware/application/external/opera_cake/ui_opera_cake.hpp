@@ -25,6 +25,7 @@
 #include "ui_navigation.hpp"
 #include "ui_widget.hpp"
 #include "app_settings.hpp"
+#include "opera_cake_app_boot.hpp"
 #include "message.hpp"
 
 namespace ui::external_app::opera_cake {
@@ -37,9 +38,6 @@ class OperaCakeView : public View {
 
    private:
     NavigationView& nav_;
-
-    // PCA9557 I2C address for the first Opera Cake board (address pins = 0)
-    static constexpr uint8_t OPERACAKE_I2C_ADDRESS = 0x18;
 
     // --- Persisted settings (declared before SettingsStore) ---
     uint8_t setting_mode{0};    // 0 = Manual, 1 = Frequency
@@ -71,16 +69,11 @@ class OperaCakeView : public View {
             {"max_a4"sv, &setting_max_a4},
         }};
 
-    uint8_t frame_counter_{0};
     bool board_detected_{false};
-
-    // I2C timeout used for all Opera Cake transactions (prevents UI freeze
-    // when the board is absent or the bus is in a bad state).
-    static constexpr systime_t I2C_TIMEOUT_TICKS = MS2ST(50);
 
     // --- Private methods ---
     void detect_board();
-    bool write_ports(uint8_t port_a_idx, uint8_t port_b_idx);
+    void build_ranges(::opera_cake::FreqRanges& ranges);
     void apply_manual();
     void apply_frequency();
 

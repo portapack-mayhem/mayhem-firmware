@@ -23,66 +23,27 @@
  * Opera Cake is an antenna-switching add-on board for HackRF One.
  * It uses a PCA9557 I/O expander (8-bit output port) at I2C address 0x18.
  *
- * PCA9557 register map:
- *   0x00 - Input port   (read-only)
- *   0x01 - Output port  (controls the RF switches)
- *   0x02 - Polarity inversion
- *   0x03 - Configuration (0 = output, 1 = input; default all inputs)
- *
- * Output port bit assignments:
- *   Bit 7: /OE     — Output Enable, active-low (0 = switches active)
- *   Bit 6: U2CTRL1 — Port-A mux select bit 1
- *   Bit 5: U2CTRL0 — Port-A mux select bit 0
- *   Bit 4: U3CTRL1 — Port-B mux select bit 1
- *   Bit 3: U3CTRL0 — Port-B mux select bit 0
- *   Bit 2: U1CTRL  — Through-switch (A-side to B-side, for 1×8 mode)
- *   Bit 1: LEDEN2  — LED enable 2
- *   Bit 0: LEDEN   — LED enable 1
- *
- * Port A0 → A1-A4  controlled by U2CTRL1:U2CTRL0 = 00, 01, 10, 11
- * Port B0 → B1-B4  controlled by U3CTRL1:U3CTRL0 = 00, 01, 10, 11
- *
  * Supported modes:
- *   Manual    — user directly chooses Port A0 and Port B0 connections.
- *   Frequency — four frequency bands are mapped to ports A1-A4; A4 is the
- *               fallback for unmatched frequencies.  Whenever A0 switches to
- *               Ax, B0 mirrors it to Bx (original Opera Cake behaviour).
+ *   Manual    -- user directly chooses Port A0 and Port B0 connections.
+ *   Frequency -- four frequency bands are mapped to ports A1-A4; the
+ *                antenna is switched automatically whenever the receiver
+ *                retunes (mirroring HackRF firmware behaviour where
+ *                operacake_set_range() is called from tuning.c on every
+ *                frequency change).  A4 is the catch-all fallback for
+ *                unmatched frequencies.  B mirrors A.
  *
- * Time-based switching is NOT supported: the required timer GPIO pins conflict
- * with PortaPack hardware.
+ * Time-based switching is NOT supported: the required timer GPIO pins
+ * conflict with PortaPack hardware.
  */
 
 #include "ui_opera_cake.hpp"
+#include "opera_cake_app_boot.hpp"
 #include "portapack.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
 
 namespace ui::external_app::opera_cake {
-
-// ---- PCA9557 register addresses ----------------------------------------
-static constexpr uint8_t REG_OUTPUT = 0x01;
-static constexpr uint8_t REG_CONFIG = 0x03;
-
-// ---- Port bit patterns -------------------------------------------------
-// Port A0→A1-A4: U2CTRL1 (bit 6) and U2CTRL0 (bit 5)
-static constexpr uint8_t PORT_A_BITS[4] = {
-    0x00,  // A1: U2CTRL1=0 U2CTRL0=0
-    0x20,  // A2: U2CTRL1=0 U2CTRL0=1
-    0x40,  // A3: U2CTRL1=1 U2CTRL0=0
-    0x60,  // A4: U2CTRL1=1 U2CTRL0=1
-};
-
-// Port B0→B1-B4: U3CTRL1 (bit 4) and U3CTRL0 (bit 3)
-static constexpr uint8_t PORT_B_BITS[4] = {
-    0x00,  // B1: U3CTRL1=0 U3CTRL0=0
-    0x08,  // B2: U3CTRL1=0 U3CTRL0=1
-    0x10,  // B3: U3CTRL1=1 U3CTRL0=0
-    0x18,  // B4: U3CTRL1=1 U3CTRL0=1
-};
-
-// Base output byte: /OE=0 (enabled), U1CTRL=0, LEDEN2=1, LEDEN=1
-static constexpr uint8_t OUTPUT_BASE = 0x03;
 
 // ---- Constructor -------------------------------------------------------
 
@@ -164,34 +125,34 @@ OperaCakeView::OperaCakeView(NavigationView& nav)
 // ---- Board detection ---------------------------------------------------
 
 void OperaCakeView::detect_board() {
-    board_detected_ = i2c0.probe(OPERACAKE_I2C_ADDRESS, I2C_TIMEOUT_TICKS);
-    if (board_detected_) {
-        text_status.set("Found at 0x18");
-    } else {
-        text_status.set("Not detected");
-    }
+    // Re-probe the board (it may have been connected after boot).
+    // update_config will probe and apply the current mode/ranges.
+    ::opera_cake::FreqRanges ranges;
+    build_ranges(ranges);
+    board_detected_ = ::opera_cake::update_config(
+        setting_mode, setting_port_a, setting_port_b, ranges);
+    text_status.set(board_detected_ ? "Found at 0x18" : "Not detected");
 }
 
-// ---- Low-level I2C write -----------------------------------------------
+// ---- Build ranges from UI settings -------------------------------------
 
-bool OperaCakeView::write_ports(uint8_t port_a_idx, uint8_t port_b_idx) {
-    // Configure all PCA9557 pins as outputs
-    const uint8_t cfg[] = {REG_CONFIG, 0x00};
-    if (!i2c0.transmit(OPERACAKE_I2C_ADDRESS, cfg, 2, I2C_TIMEOUT_TICKS))
-        return false;
-
-    // Build and write output byte
-    const uint8_t output = PORT_A_BITS[port_a_idx & 3] |
-                           PORT_B_BITS[port_b_idx & 3] |
-                           OUTPUT_BASE;
-    const uint8_t out[] = {REG_OUTPUT, output};
-    return i2c0.transmit(OPERACAKE_I2C_ADDRESS, out, 2, I2C_TIMEOUT_TICKS);
+void OperaCakeView::build_ranges(::opera_cake::FreqRanges& ranges) {
+    ranges.mins[0] = static_cast<uint16_t>(setting_min_a1);
+    ranges.maxs[0] = static_cast<uint16_t>(setting_max_a1);
+    ranges.mins[1] = static_cast<uint16_t>(setting_min_a2);
+    ranges.maxs[1] = static_cast<uint16_t>(setting_max_a2);
+    ranges.mins[2] = static_cast<uint16_t>(setting_min_a3);
+    ranges.maxs[2] = static_cast<uint16_t>(setting_max_a3);
+    ranges.mins[3] = static_cast<uint16_t>(setting_min_a4);
+    ranges.maxs[3] = static_cast<uint16_t>(setting_max_a4);
 }
 
 // ---- Manual mode -------------------------------------------------------
 
 void OperaCakeView::apply_manual() {
-    if (write_ports(setting_port_a, setting_port_b))
+    ::opera_cake::FreqRanges ranges;
+    build_ranges(ranges);
+    if (::opera_cake::update_config(0, setting_port_a, setting_port_b, ranges))
         text_result.set("Applied OK");
     else
         text_result.set("Err: board not found");
@@ -200,28 +161,10 @@ void OperaCakeView::apply_manual() {
 // ---- Frequency mode ----------------------------------------------------
 
 void OperaCakeView::apply_frequency() {
-    // Read current receiver frequency (Hz) and convert to MHz
-    const uint32_t freq_mhz =
-        static_cast<uint32_t>(receiver_model.target_frequency() / 1'000'000ULL);
-
-    // Check A1–A3 ranges in priority order; A4 is the catch-all fallback
-    uint8_t port_idx = 3;  // default: A4/B4
-
-    const uint32_t mins[4] = {setting_min_a1, setting_min_a2, setting_min_a3, setting_min_a4};
-    const uint32_t maxs[4] = {setting_max_a1, setting_max_a2, setting_max_a3, setting_max_a4};
-
-    for (uint8_t i = 0; i < 3; ++i) {
-        if (freq_mhz >= mins[i] && freq_mhz < maxs[i]) {
-            port_idx = i;
-            break;
-        }
-    }
-
-    // In frequency mode B mirrors A: A1↔B1, A2↔B2, A3↔B3, A4↔B4
-    if (write_ports(port_idx, port_idx)) {
-        const char port_name[] = {'A', static_cast<char>('1' + port_idx), '\0'};
-        text_result.set(std::string("Freq→") + port_name +
-                        " (" + to_string_dec_uint(freq_mhz) + "MHz)");
+    ::opera_cake::FreqRanges ranges;
+    build_ranges(ranges);
+    if (::opera_cake::update_config(1, setting_port_a, setting_port_b, ranges)) {
+        text_result.set("Auto-switch active");
     } else {
         text_result.set("Err: board not found");
     }

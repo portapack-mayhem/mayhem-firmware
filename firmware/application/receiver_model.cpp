@@ -33,6 +33,7 @@
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
 #include "utility.hpp"
+#include "opera_cake_app_boot.hpp"
 
 #ifdef PRALINE
 extern "C" {
@@ -312,6 +313,10 @@ void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
     if (enabled_) {
         radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
+
+        // Automatic Opera Cake antenna switching on retune, mirroring
+        // HackRF firmware's operacake_set_range() call in tuning.c.
+        opera_cake::on_frequency_changed(target_frequency());
 
 #ifdef PRALINE
         /* Praline: Must re-apply baseband filter after frequency change
