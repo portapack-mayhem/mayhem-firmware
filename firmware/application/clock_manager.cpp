@@ -247,21 +247,20 @@ constexpr ClockControls si5351c_clock_control_common{{
 
 constexpr ClockControls si5351a_clock_control_common{{
 #ifdef PRALINE
-    // CLK0: MAX5864 (ADC)
-    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
-    // CLK1: SCT_CLK - iCE40 FPGA timing clock
-    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
-    // CLK2: LPC43xx MCU
-    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-    // CLK3: CLKOUT (optional) SMA Port P1
-    {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-    // CLK4: PRALINE MAX2831 reference (40 MHz) - INVERTED per hackrf_usb, 4mA, Integer mode
-    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-    // CLK5: PRALINE RFFC5072 reference (40 MHz) - INVERTED, 6mA, Integer mode
-    // This matches HackRF One OG configuration for RFFC5072
-    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-    // CLK6: SMA Port P2
-    {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+    // CLK0: MAX5864 (ADC) - 4mA, Inverted (Standard for Praline sync)
+    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_On},
+    // CLK1: SCT_CLK (iCE40 FPGA) - 6mA, Inverted (Fixes 30-60Hz Drumming)
+    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK2: LPC43xx MCU - 4mA, Normal (Must be Integer for MCU stability)
+    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK3: CLKOUT SMA Port P1 - 8mA, Normal
+    {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK4: MAX2831 reference (40 MHz) - Inverted (Required for mixer lock)
+    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK5: RFFC5072 reference (40 MHz) - Inverted (Required for mixer lock)
+    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK6: SMA Port P2 - 8mA, Normal
+    {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
 #else
     {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
@@ -274,7 +273,6 @@ constexpr ClockControls si5351a_clock_control_common{{
     // CLK6: Not used
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
 #endif
-
     // CLK7: Not used
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
 
@@ -469,7 +467,9 @@ void ClockManager::init_clock_generator() {
         si5351a_clock_control_common[6].ms_src(ref_pll),
         si5351a_clock_control_common[7].ms_src(ref_pll),
     }};
-    clock_generator.set_clock_control(si5351_clock_control);
+    // clock_generator.set_clock_control(si5351_clock_control);
+    //  Use single-byte writes instead of multi-byte
+    clock_generator.set_clock_control_single_byte(si5351_clock_control);
 #else
     if (hackrf_r9) {
         const PLLReg pll_reg = (reference.source == ReferenceSource::Xtal)
@@ -721,18 +721,6 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     // CLK1: SCT_CLK (with r_div=0 for ÷1, runs at 2× AFE for FPGA timing)
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_f, 1);
     clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_f, 0);
-
-    // CRITICAL: Re-assert fractional mode on CLK0 and CLK1
-    // Bit 6 (0x40) = MS_INT: 0=fractional, 1=integer
-    // Read current value, clear MS_INT bit, write back
-    uint8_t clk0_ctrl = clock_generator.read_register(16);
-    clk0_ctrl &= ~0x40;  // Clear MS_INT bit (set fractional mode)
-    clock_generator.write_register(16, clk0_ctrl);
-
-    uint8_t clk1_ctrl = clock_generator.read_register(17);
-    clk1_ctrl &= ~0x40;  // Clear MS_INT bit (set fractional mode)
-    clock_generator.write_register(17, clk1_ctrl);
-
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only

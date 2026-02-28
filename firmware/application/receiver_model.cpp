@@ -362,7 +362,7 @@ void ReceiverModel::update_baseband_bandwidth() {
 
         // Use the larger of: signal bandwidth requirement OR Nyquist protection
         // (but MAX2831 driver will clamp to its available settings anyway)
-        if (lpf_bandwidth < afe_nyquist && afe_nyquist < 28000000) {
+        if (lpf_bandwidth < afe_nyquist) {
             // Set LPF close to Nyquist for maximum alias rejection
             lpf_bandwidth = (afe_nyquist * 9) / 10;  // 90% of Nyquist
         }

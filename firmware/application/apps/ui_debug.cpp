@@ -750,7 +750,7 @@ void WFMAudioDebugView::refresh() {
 
     // === Status Summary ===
     bool sample_rate_ok = (clk0_khz >= 3000 && clk0_khz <= 3200);
-    bool lpf_ok = (lpf_coarse >= 0);  // 7.5 MHz minimum is technically OK
+    bool lpf_ok = (lpf_coarse <= 0x0F);  // check against the 4-bit max
     bool dc_ok = dc_block;
 
     if (sample_rate_ok && lpf_ok && dc_ok) {
@@ -2183,6 +2183,78 @@ void SystemDiagnosticsView::refresh() {
 #endif
 
 #ifdef PRALINE
+PralineClockDebugView::PralineClockDebugView(NavigationView& nav)
+    : View(),
+      rows{
+          {&t0_id, &t0_ma, &t0_mode, &t0_ph, &t0_st},
+          {&t1_id, &t1_ma, &t1_mode, &t1_ph, &t1_st},
+          {&t2_id, &t2_ma, &t2_mode, &t2_ph, &t2_st},
+          {&t3_id, &t3_ma, &t3_mode, &t3_ph, &t3_st},
+          {&t4_id, &t4_ma, &t4_mode, &t4_ph, &t4_st},
+          {&t5_id, &t5_ma, &t5_mode, &t5_ph, &t5_st}} {
+    add_children({&text_title, &text_lbl_pll, &text_pll_status,
+                  &text_lbl_afe, &text_afe_rate, &text_lbl_n, &text_n_val,
+                  &text_header,
+                  &t0_id, &t0_ma, &t0_mode, &t0_ph, &t0_st,
+                  &t1_id, &t1_ma, &t1_mode, &t1_ph, &t1_st,
+                  &t2_id, &t2_ma, &t2_mode, &t2_ph, &t2_st,
+                  &t3_id, &t3_ma, &t3_mode, &t3_ph, &t3_st,
+                  &t4_id, &t4_ma, &t4_mode, &t4_ph, &t4_st,
+                  &t5_id, &t5_ma, &t5_mode, &t5_ph, &t5_st,
+                  &button_refresh, &button_done});
+
+    button_refresh.on_select = [this](Button&) { this->refresh(); };
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    refresh();
+}
+
+void PralineClockDebugView::focus() {
+    button_refresh.focus();
+}
+
+void PralineClockDebugView::refresh() {
+    // 1. System Status
+    uint8_t status = portapack::clock_manager.si5351_read_status();
+    bool pll_a = !(status & 0x20);
+    bool pll_b = !(status & 0x40);
+    text_pll_status.set(std::string(pll_a ? "A:OK " : "A:ERR ") + (pll_b ? "B:OK" : "B:ERR"));
+    text_pll_status.set_style((pll_a && pll_b) ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 2. AFE & Decimation Info
+    uint32_t base_rate = portapack::clock_manager.get_sampling_frequency();
+    uint8_t n = portapack::clock_manager.get_resampling_n();
+    text_afe_rate.set(to_string_dec_uint(base_rate << n) + " Hz");
+    text_n_val.set(to_string_dec_uint(n));
+
+    // 3. Clock Table Decoding
+    uint8_t output_en = portapack::clock_manager.si5351_read_register(3);
+    const char* ma_lookup[] = {"2m", "4m", "6m", "8m"};
+
+    for (size_t i = 0; i < 6; i++) {
+        uint8_t ctrl = portapack::clock_manager.si5351_read_register(16 + i);
+
+        // mA (Bits 1:0)
+        rows[i].ma->set(ma_lookup[ctrl & 0x03]);
+
+        // Mode (Bit 6: 1=Integer, 0=Fractional)
+        rows[i].mode->set((ctrl & 0x40) ? "INT" : "FRAC");
+        rows[i].mode->set_style((ctrl & 0x40) ? Theme::getInstance()->fg_blue : Theme::getInstance()->fg_yellow);
+
+        // Phase (Bit 4: 1=Inverted, 0=Normal)
+        // Use 0x10 (Bit 4)
+        rows[i].phase->set((ctrl & 0x10) ? "INVRT" : "NORM ");
+        rows[i].phase->set_style((ctrl & 0x10) ? Theme::getInstance()->fg_orange : Theme::getInstance()->fg_light);
+
+        // Status (Powered On and Output Enabled)
+        bool is_on = !(ctrl & 0x80) && !(output_en & (1 << i));
+        rows[i].stat->set(is_on ? "ON" : "OFF");
+        rows[i].stat->set_style(is_on ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    }
+}
+#endif
+
+#ifdef PRALINE
 /* GPIODebugView *************************************************/
 GPIODebugView::GPIODebugView(NavigationView& nav) {
     add_children({
@@ -3003,6 +3075,7 @@ void DebugMenuView::on_populate() {
     add_items({
 #ifdef PRALINE
         {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
+        {"PRO Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
         {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
         {"ProRadio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
