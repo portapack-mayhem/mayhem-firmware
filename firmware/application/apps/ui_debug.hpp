@@ -1125,6 +1125,79 @@ class SystemDiagnosticsView : public View {
 };
 #endif
 
+#ifdef PRALINE
+class PralineClockDebugView : public View {
+   public:
+    PralineClockDebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Pro Clock Status"; };
+
+   private:
+    void refresh();
+
+    Text text_title{{0, 0, 240, 16}, "=== Pro Clock Dashboard ==="};
+
+    // System Status
+    Text text_lbl_pll{{0, 20, 80, 16}, "PLL Lock:"};
+    Text text_pll_status{{88, 20, 152, 16}, "---"};
+
+    Text text_lbl_afe{{0, 36, 80, 16}, "AFE Rate:"};
+    Text text_afe_rate{{88, 36, 152, 16}, "---"};
+
+    Text text_lbl_n{{0, 52, 80, 16}, "Decim (n):"};
+    Text text_n_val{{88, 52, 152, 16}, "-"};
+
+    // Table Header
+    Text text_header{{0, 72, 240, 16}, "ID  mA   Mode   Phase  Stat"};
+
+    // Helper structure to group row widgets for CLK0-CLK5
+    struct ClockRow {
+        Text* id;
+        Text* ma;
+        Text* mode;
+        Text* phase;
+        Text* stat;
+    };
+    std::vector<ClockRow> rows;
+
+    // We define the actual widgets for 6 clocks
+    // Note: Layout uses 16px vertical spacing per row
+    Text t0_id{{0, 88, 24, 16}, "C0:"};
+    Text t0_ma{{32, 88, 24, 16}, "-"};
+    Text t0_mode{{64, 88, 48, 16}, "-"};
+    Text t0_ph{{128, 88, 56, 16}, "-"};
+    Text t0_st{{192, 88, 48, 16}, "-"};
+    Text t1_id{{0, 104, 24, 16}, "C1:"};
+    Text t1_ma{{32, 104, 24, 16}, "-"};
+    Text t1_mode{{64, 104, 48, 16}, "-"};
+    Text t1_ph{{128, 104, 56, 16}, "-"};
+    Text t1_st{{192, 104, 48, 16}, "-"};
+    Text t2_id{{0, 120, 24, 16}, "C2:"};
+    Text t2_ma{{32, 120, 24, 16}, "-"};
+    Text t2_mode{{64, 120, 48, 16}, "-"};
+    Text t2_ph{{128, 120, 56, 16}, "-"};
+    Text t2_st{{192, 120, 48, 16}, "-"};
+    Text t3_id{{0, 136, 24, 16}, "C3:"};
+    Text t3_ma{{32, 136, 24, 16}, "-"};
+    Text t3_mode{{64, 136, 48, 16}, "-"};
+    Text t3_ph{{128, 136, 56, 16}, "-"};
+    Text t3_st{{192, 136, 48, 16}, "-"};
+    Text t4_id{{0, 152, 24, 16}, "C4:"};
+    Text t4_ma{{32, 152, 24, 16}, "-"};
+    Text t4_mode{{64, 152, 48, 16}, "-"};
+    Text t4_ph{{128, 152, 56, 16}, "-"};
+    Text t4_st{{192, 152, 48, 16}, "-"};
+    Text t5_id{{0, 168, 24, 16}, "C5:"};
+    Text t5_ma{{32, 168, 24, 16}, "-"};
+    Text t5_mode{{64, 168, 48, 16}, "-"};
+    Text t5_ph{{128, 168, 56, 16}, "-"};
+    Text t5_st{{192, 168, 48, 16}, "-"};
+
+    Button button_refresh{{8, 260, 100, 24}, "Refresh"};
+    Button button_done{{132, 260, 100, 24}, "Done"};
+};
+#endif
+
 #endif
 
 class DebugPeripheralsMenuView : public BtnGridView {

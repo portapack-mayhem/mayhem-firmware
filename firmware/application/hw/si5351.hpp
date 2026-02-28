@@ -373,6 +373,16 @@ class Si5351 {
 #endif
     }
 
+#ifdef PRALINE
+    void set_clock_control_single_byte(const ClockControls& clock_control) {
+        _clock_control = clock_control;
+        // Use single-byte writes for PRALINE (multi-byte I2C fails)
+        for (size_t i = 0; i < 8; i++) {
+            write_register(Register::CLKControl_Base + i, _clock_control[i]);
+        }
+    }
+#endif
+
     bool plla_loss_of_signal() {
         return (device_status() >> 5) & 1;
     }
