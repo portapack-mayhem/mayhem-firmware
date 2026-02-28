@@ -360,7 +360,6 @@ void ReceiverModel::update_sampling_rate() {
     // This reconfigures LPF bandwidth based on new decimation
     update_baseband_bandwidth();
 #endif
-
 }
 
 void ReceiverModel::update_lna() {

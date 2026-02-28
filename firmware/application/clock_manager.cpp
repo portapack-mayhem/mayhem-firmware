@@ -111,11 +111,11 @@ constexpr auto si5351_ms_0_20m_reg = si5351_ms_0_20m.reg(0);
 */
 
 constexpr si5351::MultisynthFractional si5351_ms_0_4m{
-    .f_src = si5351_vco_f, // 800,000,000 Hz
-    .a = 100,              // Integer divider 100
+    .f_src = si5351_vco_f,  // 800,000,000 Hz
+    .a = 100,               // Integer divider 100
     .b = 0,
     .c = 1,
-    .r_div = 1             // Final R-divider: 2^1 = 2
+    .r_div = 1  // Final R-divider: 2^1 = 2
 };
 
 constexpr si5351::MultisynthFractional si5351_ms_0_8m{
@@ -450,12 +450,12 @@ void ClockManager::init_clock_generator() {
 
     /* Step 2: Write multisynth configurations using single-byte writes */
     // These cover all active channels on the Praline board
-    clock_generator.write_ms_single_byte(0, si5351_ms_0_4m); // CLK0: Codec (4 MHz)
-    clock_generator.write_ms_single_byte(1, si5351_ms_10m); // CLK1: FPGA Timing (10 MHz)
-    clock_generator.write_ms_single_byte(2, si5351_ms_10m); // CLK2: MCU Input (10 MHz)
-    clock_generator.write_ms_single_byte(3, si5351_ms_10m); // CLK3: Logic Sync (10 MHz)
-    clock_generator.write_ms_single_byte(4, si5351_ms_40m); // CLK4: First IF (40 MHz)
-    clock_generator.write_ms_single_byte(5, si5351_ms_40m); // CLK5: Second IF (40 MHz)
+    clock_generator.write_ms_single_byte(0, si5351_ms_0_4m);  // CLK0: Codec (4 MHz)
+    clock_generator.write_ms_single_byte(1, si5351_ms_10m);   // CLK1: FPGA Timing (10 MHz)
+    clock_generator.write_ms_single_byte(2, si5351_ms_10m);   // CLK2: MCU Input (10 MHz)
+    clock_generator.write_ms_single_byte(3, si5351_ms_10m);   // CLK3: Logic Sync (10 MHz)
+    clock_generator.write_ms_single_byte(4, si5351_ms_40m);   // CLK4: First IF (40 MHz)
+    clock_generator.write_ms_single_byte(5, si5351_ms_40m);   // CLK5: Second IF (40 MHz)
 
     /* Step 3: NOW set clock control registers (AFTER multisynths per HackRF reference) */
     const auto ref_pll = ClockControl::MultiSynthSource::PLLA;
@@ -694,41 +694,41 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     /* PRALINE: Match HackRF USB  sample_rate_frac_set()
      * Reference: hackrf_usb radio.c lines 29-91, hackrf_core.c lines 501-685 */
 
-    _base_band_frequency = frequency; // Store frequency for StatusViews
+    _base_band_frequency = frequency;  // Store frequency for StatusViews
 
     /*
      * PRALINE sample rate strategy from GSG hackrf_usb radio.c:
-     * 
+     *
      * 1. Run ADC at the highest rate possible (up to 40 MHz)
      * 2. Use FPGA decimation to achieve desired output rate
      * 3. This makes the analog LPF effective at rejecting aliases
      * 4. Re-apply frequency after to reconfigure LPF bandwidth
      */
-   
-    // 20 MHz, since GSG reference of 40MHz caused shifts at certain values. 
-    constexpr uint32_t MAX_AFE_RATE = 20000000; 
-    constexpr uint8_t MAX_N = 5;                  // Max decimation = 2^5 = 32
-    
+
+    // 20 MHz, since GSG reference of 40MHz caused shifts at certain values.
+    constexpr uint32_t MAX_AFE_RATE = 20000000;
+    constexpr uint8_t MAX_N = 5;  // Max decimation = 2^5 = 32
+
     // Calculate optimal decimation factor for RX
     // Start with n=1 (minimum decimation of 2) per reference
     uint8_t n = 1;
     uint32_t afe_rate_x2 = 2 * frequency;
-    
+
     while ((afe_rate_x2 <= MAX_AFE_RATE) && (n < MAX_N)) {
         afe_rate_x2 <<= 1;
         n++;
     }
-    
+
     // Store decimation factor for potential use elsewhere
     _resampling_n = n;
-    
+
     // The actual AFE rate = frequency * 2^n
     uint32_t afe_rate = frequency << n;
-    
+
     // Set FPGA RX decimation register
     fpga_debug_register_write(2, n);
     radio::invalidate_spi_config();
-    
+
     // Configure Si5351 clocks
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_f, 1);  // CLK0: AFE_CLK
     clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_f, 0);  // CLK1: SCT_CLK
@@ -811,27 +811,37 @@ void ClockManager::start_audio_pll() {
      *   12MHz * 1024 / 25 = 491.52MHz
      *   MSEL=1024, NSEL=25, PSEL=20
      */
-    cgu::pll0audio::ctrl({
-        .pd = 1,
-        .bypass = 0,
-        .directi = 0,
-        .directo = 0,
-        .clken = 0,
-        .frm = 0,
-        .autoblock = 1,
-        .pllfract_req = 0,
-        .sel_ext = 1,
-        .mod_pd = 1,
-        .clk_sel = cgu::CLK_SEL::XTAL,
-    });
 
     cgu::pll0audio::mdiv({
-        .mdec = 22625UL,  // MDEC for MSEL=1024
+        .mdec = 22625UL,  // Encoded value for MSEL=1024
     });
     cgu::pll0audio::np_div({
-        .pdec = 31,  // PSEL=20
-        .ndec = 69,  // NDEC for NSEL=25
+        .pdec = 31,  // Encoded value for PSEL=20
+        .ndec = 69,  // Encoded value for NSEL=25
     });
+
+    cgu::pll0audio::frac({
+        .pllfract_ctrl = 0,
+    });
+
+    cgu::pll0audio::power_up();
+
+    // Praline Fix: Wait for lock with a safety timeout
+    {
+        uint32_t timeout = 100000;
+        while (!cgu::pll0audio::is_locked() && timeout > 0) {
+            timeout--;
+        }
+    }
+
+    cgu::pll0audio::clock_enable();
+
+    /* Route the 12.288MHz PLL to the Base Audio Clock */
+    // PD = 0 enables the clock; AUTOBLOCK = 1 prevents glitches during clock switching
+    LPC_CGU->BASE_AUDIO_CLK.PD = 0;
+    LPC_CGU->BASE_AUDIO_CLK.AUTOBLOCK = 1;
+    LPC_CGU->BASE_AUDIO_CLK.CLK_SEL = toUType(cgu::CLK_SEL::PLL0AUDIO);
+
 #else
     cgu::pll0audio::ctrl({
         .pd = 1,
