@@ -242,6 +242,14 @@ void ReceiverModel::set_normalized_headphone_volume(uint8_t v) {
 void ReceiverModel::enable() {
     enabled_ = true;
     radio::set_direction(rf::Direction::Receive);
+
+#ifdef PRALINE
+    /* Anchor the Common Mode Voltage (VCM) to 1.2V.
+     * This stabilizes the electrical floor of the I/Q signals.
+     */
+    radio::set_rx_buff_vcm(1);
+#endif
+
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();

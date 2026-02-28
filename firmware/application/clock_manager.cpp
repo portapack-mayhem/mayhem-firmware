@@ -730,8 +730,8 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     radio::invalidate_spi_config();
 
     // Configure Si5351 clocks
-    clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_f, 1);  // CLK0: AFE_CLK
-    clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_f, 0);  // CLK1: SCT_CLK
+    clock_generator.set_ms_frequency(0, afe_rate * 4, si5351_vco_f, 2);  // CLK0: AFE_CLK
+    clock_generator.set_ms_frequency(1, afe_rate * 4, si5351_vco_f, 1);  // CLK1: SCT_CLK
 
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at

@@ -79,6 +79,15 @@ static constexpr SPIConfig ssp_config_max283x = {
         CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS9BIT,
     .cpsr = ssp1_cpsr,
 };
+
+static max283x::MAX283x* transceiver = nullptr;
+
+void set_rx_buff_vcm(const size_t v) {
+    if (transceiver) {
+        transceiver->set_rx_buff_vcm(v);
+    }
+}
+
 #else
 /* MAX2837/MAX2839 use 16-bit SPI transfers */
 static constexpr SPIConfig ssp_config_max283x = {

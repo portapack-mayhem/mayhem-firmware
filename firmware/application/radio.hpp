@@ -64,6 +64,7 @@ void disable();
 
 #ifdef PRALINE
 void invalidate_spi_config();
+void set_rx_buff_vcm(const size_t v);
 #endif
 
 namespace debug {
