@@ -570,7 +570,11 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.set_modulation(modulation);
 
+#ifdef PRALINE
+    receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3023000);
+#else
     receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
+#endif
     receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
 
     receiver_model.set_hidden_offset(modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);  // wefax needs to be shifted, see wefax rx app.
