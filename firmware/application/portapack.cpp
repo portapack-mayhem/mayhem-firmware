@@ -589,25 +589,6 @@ init_status_t init() {
 
     clock_manager.init_clock_generator();
 
-#ifdef PRALINE
-    // Force CLK4/CLK5 configuration BEFORE I2C bus stops
-    // This ensures the inversion bits are written while I2C is still active
-
-    // CLK4 (MAX2831): ON, Integer, PLLA, INVERTED, MS_Self, 4mA = 0x5D
-    clock_manager.si5351_write_register(20, 0x5D);
-
-    // CLK5 (RFFC5072): ON, Integer, PLLA, INVERTED, MS_Self, 6mA = 0x5E
-    clock_manager.si5351_write_register(21, 0x5E);
-
-    // Enable CLK4 and CLK5 outputs NOW (before I2C stops)
-    uint8_t reg3 = clock_manager.si5351_read_register(3);
-    reg3 &= ~0x30;  // Clear bits 4 and 5 to enable
-    clock_manager.si5351_write_register(3, reg3);
-
-    // Wait for clocks to stabilize
-    chThdSleepMilliseconds(10);
-#endif
-
     i2c0.stop();
 
     chThdSleepMilliseconds(10);

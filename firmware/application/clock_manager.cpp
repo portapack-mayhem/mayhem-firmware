@@ -248,9 +248,9 @@ constexpr ClockControls si5351c_clock_control_common{{
 constexpr ClockControls si5351a_clock_control_common{{
 #ifdef PRALINE
     // CLK0: MAX5864 (ADC)
-    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
     // CLK1: SCT_CLK - iCE40 FPGA timing clock
-    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
     // CLK2: LPC43xx MCU
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
     // CLK3: CLKOUT (optional) SMA Port P1
@@ -686,52 +686,52 @@ void ClockManager::disable_if_clocks() {
 
 void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 #ifdef PRALINE
-    /* PRALINE: CLK0=AFE_CLK runs at sample rate (VCO/divider/2)
-     *          CLK1=SCT_CLK runs at 2x sample rate (VCO/divider/1)
-     * Reference: hackrf_core.c sample_rate_frac_set() lines 580-582
-     */
-
-    /* PRALINE: Match HackRF USB  sample_rate_frac_set()
-     * Reference: hackrf_usb radio.c lines 29-91, hackrf_core.c lines 501-685 */
-
-    _base_band_frequency = frequency;  // Store frequency for StatusViews
-
     /*
-     * PRALINE sample rate strategy from GSG hackrf_usb radio.c:
-     *
-     * 1. Run ADC at the highest rate possible (up to 40 MHz)
+     * PRALINE sample rate strategy:
+     * 1. Maximize AFE rate to push Nyquist above MAX2831's 11.6 MHz LPF minimum
      * 2. Use FPGA decimation to achieve desired output rate
-     * 3. This makes the analog LPF effective at rejecting aliases
-     * 4. Re-apply frequency after to reconfigure LPF bandwidth
+     * 3. Ensure AFE rate is achievable by Si5351 (clean division from 800 MHz VCO)
      */
 
-    // 20 MHz, since GSG reference of 40MHz caused shifts at certain values.
-    constexpr uint32_t MAX_AFE_RATE = 20000000;
-    constexpr uint8_t MAX_N = 5;  // Max decimation = 2^5 = 32
+    constexpr uint32_t MAX_AFE_RATE = 40000000;  // Use 40 MHz per GSG reference
+    constexpr uint8_t MAX_N = 5;
 
-    // Calculate optimal decimation factor for RX
-    // Start with n=1 (minimum decimation of 2) per reference
-    uint8_t n = 1;
-    uint32_t afe_rate_x2 = 2 * frequency;
+    _base_band_frequency = frequency;
 
-    while ((afe_rate_x2 <= MAX_AFE_RATE) && (n < MAX_N)) {
-        afe_rate_x2 <<= 1;
+    uint8_t n = 0;
+    uint32_t afe_rate = frequency;
+
+    // Find the largest n where AFE rate stays within limit
+    // Start at n=0 and work up
+    while (n < MAX_N) {
+        uint32_t next_rate = afe_rate << 1;
+        if (next_rate > MAX_AFE_RATE) break;
+        afe_rate = next_rate;
         n++;
     }
 
-    // Store decimation factor for potential use elsewhere
     _resampling_n = n;
-
-    // The actual AFE rate = frequency * 2^n
-    uint32_t afe_rate = frequency << n;
 
     // Set FPGA RX decimation register
     fpga_debug_register_write(2, n);
     radio::invalidate_spi_config();
 
     // Configure Si5351 clocks
-    clock_generator.set_ms_frequency(0, afe_rate * 4, si5351_vco_f, 2);  // CLK0: AFE_CLK
-    clock_generator.set_ms_frequency(1, afe_rate * 4, si5351_vco_f, 1);  // CLK1: SCT_CLK
+    // CLK0: AFE_CLK (with r_div=1 for ÷2)
+    // CLK1: SCT_CLK (with r_div=0 for ÷1, runs at 2× AFE for FPGA timing)
+    clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_f, 1);
+    clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_f, 0);
+
+    // CRITICAL: Re-assert fractional mode on CLK0 and CLK1
+    // Bit 6 (0x40) = MS_INT: 0=fractional, 1=integer
+    // Read current value, clear MS_INT bit, write back
+    uint8_t clk0_ctrl = clock_generator.read_register(16);
+    clk0_ctrl &= ~0x40;  // Clear MS_INT bit (set fractional mode)
+    clock_generator.write_register(16, clk0_ctrl);
+
+    uint8_t clk1_ctrl = clock_generator.read_register(17);
+    clk1_ctrl &= ~0x40;  // Clear MS_INT bit (set fractional mode)
+    clock_generator.write_register(17, clk1_ctrl);
 
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
