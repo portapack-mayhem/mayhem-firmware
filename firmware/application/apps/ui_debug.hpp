@@ -523,17 +523,17 @@ class WFMAudioDebugView : public View {
     Text text_lbl_fpga_r1{{0, 140, 140, 16}, "Reg1 (Ctrl):"};
     Text text_fpga_r1{{150, 140, 90, 16}, "---"};
 
-    Text text_lbl_dc_q{{0, 156, 140, 16}, "DC/Q/QS:"};
-    Text text_dc_q{{150, 156, 90, 16}, "---"};
+    Text text_lbl_dc_q{{0, 156, 70, 16}, "DC/Q/QS:"};
+    Text text_dc_q{{72, 156, 168, 16}, "---"};
 
     // Audio section
     Text text_section3{{0, 176, 240, 16}, "--- Audio Path ---"};
 
-    Text text_lbl_expected{{0, 192, 140, 16}, "Expected Audio:"};
-    Text text_expected{{150, 192, 90, 16}, "---"};
+    Text text_lbl_expected{{0, 192, 96, 16}, "Expctd Aud:"};
+    Text text_expected{{98, 192, 142, 16}, "---"};
 
-    Text text_lbl_deemph{{0, 208, 140, 16}, "De-emph Config:"};
-    Text text_deemph{{150, 208, 90, 16}, "---"};
+    Text text_lbl_deemph{{0, 208, 96, 16}, "D-emph Cfg:"};
+    Text text_deemph{{98, 208, 132, 16}, "---"};
 
     // Status
     Text text_status{{0, 228, 240, 16}, "---"};

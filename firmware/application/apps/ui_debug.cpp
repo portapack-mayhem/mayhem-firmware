@@ -745,7 +745,7 @@ void WFMAudioDebugView::refresh() {
     // === De-emphasis Status ===
     // We can't directly read the M4 de-emphasis config, but we can indicate what SHOULD be set
     // 75µs for USA, 50µs for Europe
-    text_deemph.set("Check M4 config");
+    text_deemph.set("Chk M4 cfg.");
     text_deemph.set_style(Theme::getInstance()->fg_orange);
 
     // === Status Summary ===
@@ -756,7 +756,7 @@ void WFMAudioDebugView::refresh() {
     if (sample_rate_ok && lpf_ok && dc_ok) {
         text_status.set("Hardware config looks OK.");
         text_status.set_style(Theme::getInstance()->fg_green);
-        text_status2.set("If ringy: Check de-emphasis in M4!");
+        text_status2.set("If ringy: Chk d-emph in M4!");
         text_status2.set_style(Theme::getInstance()->fg_orange);
     } else {
         std::string issues = "Issues: ";
@@ -765,7 +765,7 @@ void WFMAudioDebugView::refresh() {
         if (!dc_ok) issues += "DC_Block ";
         text_status.set(issues);
         text_status.set_style(Theme::getInstance()->fg_red);
-        text_status2.set("Fix above before checking audio.");
+        text_status2.set("Fix before checking audio.");
         text_status2.set_style(Theme::getInstance()->fg_red);
     }
 }

@@ -172,7 +172,7 @@ void init() {
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
     // debug::fpga::init();
     // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
-    fpga_debug_register_write(1, 0x01);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
+    fpga_debug_register_write(1, 0x00);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
     fpga_debug_register_write(2, 0x00);  // RX_DECIM=No Decim
     fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
     fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
@@ -512,7 +512,7 @@ void register_write(const size_t register_number, uint32_t value) {
 void init() {
     // Initialize FPGA registers after bitstream load
     // DC_BLOCK (bit 0) must be enabled for RX to work
-    fpga_debug_register_write(1, 0x01);  // CTRL: DC_BLOCK=1
+    fpga_debug_register_write(1, 0x00);  // CTRL: DC_BLOCK=1
     fpga_debug_register_write(2, 0x00);  // RX_DECIM: no decimation
     fpga_debug_register_write(3, 0x00);  // TX_CTRL: NCO disabled
     fpga_debug_register_write(4, 0x00);  // TX_INTRP: no interpolation

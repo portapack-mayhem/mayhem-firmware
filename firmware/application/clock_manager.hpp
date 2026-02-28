@@ -77,6 +77,8 @@ class ClockManager {
     void set_reference_ppb(const int32_t ppb);
 
 #ifdef PRALINE
+    uint8_t get_resampling_n() const { return _resampling_n; }
+
     // Si5351 diagnostic methods
     uint8_t si5351_read_status() { return clock_generator.device_status(); }
     uint8_t si5351_read_register(uint8_t reg) { return clock_generator.read_register(reg); }
@@ -112,6 +114,10 @@ class ClockManager {
     ReferenceSource detect_reference_source();
     Reference choose_reference();
     bool loss_of_signal();
+
+#ifdef PRALINE
+    uint8_t _resampling_n{0};  // Current decimation factor (log2)
+#endif
 };
 
 #endif /*__CLOCK_MANAGER_H__*/
