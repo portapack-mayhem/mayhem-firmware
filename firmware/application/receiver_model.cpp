@@ -245,9 +245,9 @@ void ReceiverModel::enable() {
 
 #ifdef PRALINE
     /* Anchor the Common Mode Voltage (VCM) to 1.2V.
-     * This stabilizes the electrical floor of the I/Q signals. 
+     * This stabilizes the electrical floor of the I/Q signals.
      */
-    radio::set_rx_buff_vcm(1); 
+    radio::set_rx_buff_vcm(1);
 #endif
 
     update_tuning_frequency();
