@@ -1126,6 +1126,75 @@ class SystemDiagnosticsView : public View {
 #endif
 
 #ifdef PRALINE
+/* Si5351MultiSynthDebugView - Debug fractional register values for MS0 */
+class Si5351MultiSynthDebugView : public View {
+   public:
+    Si5351MultiSynthDebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Si5351 MS0 Debug"; };
+
+   private:
+    NavigationView& nav_;
+    void refresh();
+    void force_pll_reset();
+    void force_fractional_mode();
+
+    Text text_title{{0, 0, 240, 16}, "===MS0 Fractional Debug==="};
+
+    // Clock Control Register 16 (CLK0)
+    Text text_lbl_clk_ctrl{{0, 18, 100, 16}, "CLK0 Ctrl:"};
+    Text text_clk_ctrl{{102, 18, 138, 16}, "---"};
+
+    Text text_lbl_ms_int{{0, 34, 100, 16}, "MS_INT bit:"};
+    Text text_ms_int{{102, 34, 138, 16}, "---"};
+
+    // Raw register values
+    Text text_lbl_raw{{0, 54, 240, 16}, "---Raw Registers (42-49)---"};
+
+    Text text_lbl_r42_43{{0, 70, 80, 16}, "R42-43:"};
+    Text text_r42_43{{82, 70, 158, 16}, "---"};
+
+    Text text_lbl_r44_46{{0, 86, 80, 16}, "R44-46:"};
+    Text text_r44_46{{82, 86, 158, 16}, "---"};
+
+    Text text_lbl_r47_49{{0, 102, 80, 16}, "R47-49:"};
+    Text text_r47_49{{82, 102, 158, 16}, "---"};
+
+    // Decoded values
+    Text text_lbl_decoded{{0, 122, 240, 16}, "---Decoded Values---"};
+
+    Text text_lbl_p1{{0, 138, 48, 16}, "P1:"};
+    Text text_p1{{50, 138, 190, 16}, "---"};
+
+    Text text_lbl_p2{{0, 154, 48, 16}, "P2:"};
+    Text text_p2{{50, 154, 190, 16}, "---"};
+
+    Text text_lbl_p3{{0, 170, 48, 16}, "P3:"};
+    Text text_p3{{50, 170, 190, 16}, "---"};
+
+    Text text_lbl_rdiv{{0, 186, 48, 16}, "R_DIV:"};
+    Text text_rdiv{{50, 186, 190, 16}, "---"};
+
+    // Calculated frequency
+    Text text_lbl_calc{{0, 206, 240, 16}, "---Calculated Output---"};
+
+    Text text_lbl_div{{0, 222, 80, 16}, "MS Div:"};
+    Text text_div{{82, 222, 158, 16}, "---"};
+
+    Text text_lbl_freq{{0, 238, 80, 16}, "CLK0 Out:"};
+    Text text_freq{{82, 238, 158, 16}, "---"};
+
+    // Status
+    Text text_status{{0, 258, 240, 16}, ""};
+
+    Button button_refresh{{2, 280, 56, 24}, "Refresh"};
+    Button button_reset{{62, 280, 56, 24}, "PLL Rst"};
+    Button button_frac{{122, 280, 56, 24}, "Frac"};
+    Button button_done{{182, 280, 56, 24}, "Done"};
+};
+#endif
+
+#ifdef PRALINE
 class PralineClockDebugView : public View {
    public:
     PralineClockDebugView(NavigationView& nav);
