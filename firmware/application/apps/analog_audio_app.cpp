@@ -274,7 +274,6 @@ AnalogAudioView::AnalogAudioView(
                   &button_pro
 #else
                   &waterfall
-
 #endif
     });
 

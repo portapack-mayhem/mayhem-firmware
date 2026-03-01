@@ -2183,6 +2183,260 @@ void SystemDiagnosticsView::refresh() {
 #endif
 
 #ifdef PRALINE
+/* Si5351MultiSynthDebugView *************************************************/
+
+Si5351MultiSynthDebugView::Si5351MultiSynthDebugView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({
+        &text_title,
+        &text_lbl_clk_ctrl,
+        &text_clk_ctrl,
+        &text_lbl_ms_int,
+        &text_ms_int,
+        &text_lbl_raw,
+        &text_lbl_r42_43,
+        &text_r42_43,
+        &text_lbl_r44_46,
+        &text_r44_46,
+        &text_lbl_r47_49,
+        &text_r47_49,
+        &text_lbl_decoded,
+        &text_lbl_p1,
+        &text_p1,
+        &text_lbl_p2,
+        &text_p2,
+        &text_lbl_p3,
+        &text_p3,
+        &text_lbl_rdiv,
+        &text_rdiv,
+        &text_lbl_calc,
+        &text_lbl_div,
+        &text_div,
+        &text_lbl_freq,
+        &text_freq,
+        &text_status,
+        &button_refresh,
+        &button_reset,
+        &button_frac,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_raw.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_decoded.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_calc.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_reset.on_select = [this](Button&) {
+        force_pll_reset();
+    };
+
+    button_frac.on_select = [this](Button&) {
+        force_fractional_mode();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void Si5351MultiSynthDebugView::focus() {
+    button_refresh.focus();
+}
+
+void Si5351MultiSynthDebugView::force_pll_reset() {
+    // Reset PLL A (bit 5)
+    portapack::clock_manager.si5351_write_register(177, 0x20);
+
+    // Wait for PLL to settle
+    chThdSleepMilliseconds(10);
+
+    refresh();
+}
+
+void Si5351MultiSynthDebugView::force_fractional_mode() {
+    // Force CLK0 to fractional mode
+    // Read current control register
+    uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
+
+    // Clear MS_INT bit (bit 6) to enable fractional mode
+    clk0_ctrl &= ~0x40;
+
+    // Write back
+    portapack::clock_manager.si5351_write_register(16, clk0_ctrl);
+
+    // Reset PLL to apply
+    portapack::clock_manager.si5351_write_register(177, 0x20);
+
+    chThdSleepMilliseconds(10);
+
+    refresh();
+}
+
+void Si5351MultiSynthDebugView::refresh() {
+    // === Clock Control Register 16 (CLK0) ===
+    uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
+    text_clk_ctrl.set("0x" + to_string_hex(clk0_ctrl, 2) +
+                      " (" + to_string_bin(clk0_ctrl, 8) + ")");
+
+    // Decode MS_INT bit (bit 6)
+    bool ms_int = (clk0_ctrl >> 6) & 1;
+    if (ms_int) {
+        text_ms_int.set("1:INT MODE!");
+        text_ms_int.set_style(Theme::getInstance()->fg_red);
+    } else {
+        text_ms_int.set("0:Fract Mode");
+        text_ms_int.set_style(Theme::getInstance()->fg_green);
+    }
+
+    // === Read Raw MS0 Registers (42-49) ===
+    uint8_t r42 = portapack::clock_manager.si5351_read_register(42);
+    uint8_t r43 = portapack::clock_manager.si5351_read_register(43);
+    uint8_t r44 = portapack::clock_manager.si5351_read_register(44);
+    uint8_t r45 = portapack::clock_manager.si5351_read_register(45);
+    uint8_t r46 = portapack::clock_manager.si5351_read_register(46);
+    uint8_t r47 = portapack::clock_manager.si5351_read_register(47);
+    uint8_t r48 = portapack::clock_manager.si5351_read_register(48);
+    uint8_t r49 = portapack::clock_manager.si5351_read_register(49);
+
+    // Display raw registers
+    text_r42_43.set(to_string_hex(r42, 2) + " " + to_string_hex(r43, 2) +
+                    " (P3[15:0])");
+    text_r44_46.set(to_string_hex(r44, 2) + " " + to_string_hex(r45, 2) +
+                    " " + to_string_hex(r46, 2) + " (R|P1)");
+    text_r47_49.set(to_string_hex(r47, 2) + " " + to_string_hex(r48, 2) +
+                    " " + to_string_hex(r49, 2) + " (P3|P2)");
+
+    // === Decode P1, P2, P3 ===
+    // Si5351 MS Register Layout:
+    // Reg 42: P3[15:8]
+    // Reg 43: P3[7:0]
+    // Reg 44: bits 6:4 = R_DIV[2:0], bits 1:0 = P1[17:16]
+    // Reg 45: P1[15:8]
+    // Reg 46: P1[7:0]
+    // Reg 47: bits 7:4 = P3[19:16], bits 3:0 = P2[19:16]
+    // Reg 48: P2[15:8]
+    // Reg 49: P2[7:0]
+
+    // Decode R_DIV
+    uint8_t r_div_encoded = (r44 >> 4) & 0x07;
+    uint32_t r_div = 1 << r_div_encoded;
+    text_rdiv.set("/" + to_string_dec_uint(r_div) + " (enc=" + to_string_dec_uint(r_div_encoded) + ")");
+
+    // Decode P1 (18-bit)
+    uint32_t p1 = ((uint32_t)(r44 & 0x03) << 16) | ((uint32_t)r45 << 8) | r46;
+    text_p1.set(to_string_dec_uint(p1) + " (0x" + to_string_hex(p1, 5) + ")");
+
+    // Decode P2 (20-bit)
+    uint32_t p2 = ((uint32_t)(r47 & 0x0F) << 16) | ((uint32_t)r48 << 8) | r49;
+    text_p2.set(to_string_dec_uint(p2) + " (0x" + to_string_hex(p2, 5) + ")");
+
+    // Decode P3 (20-bit)
+    uint32_t p3 = ((uint32_t)(r47 >> 4) << 16) | ((uint32_t)r42 << 8) | r43;
+    text_p3.set(to_string_dec_uint(p3) + " (0x" + to_string_hex(p3, 5) + ")");
+
+    // Color code P2/P3 based on whether fractional is being used
+    if (p2 == 0 && p3 == 1) {
+        text_p2.set_style(Theme::getInstance()->fg_orange);
+        text_p3.set_style(Theme::getInstance()->fg_orange);
+    } else if (p3 > 1) {
+        text_p2.set_style(Theme::getInstance()->fg_green);
+        text_p3.set_style(Theme::getInstance()->fg_green);
+    }
+
+    // === Calculate Output Frequency ===
+    //
+    // === Calculate Multisynth Divider ===
+    // Correct Si5351 formula:
+    // MS_DIV = (P2+P3 × (P1 + 512)) / (128 × P3)
+    // MS_DIV = P2/(128*P3) + P1+512/(128*P3)
+    // a = (P1 + 512) / 128
+    // b = P2/128
+    // c = P3
+    // f_out = f_vco / MS_DIV / R_DIV
+    // For integer division: b=0, c=1, so MS_DIV = a
+
+    uint64_t ms_div_numerator = (uint64_t)p2 + (uint64_t)p3 * (p1 + 512);
+    uint64_t ms_div_denominator = 128ULL * p3;
+
+    uint32_t a = (p1 + 512) / 128;
+    uint32_t b = p2 / 128;
+    uint32_t c = p3;
+
+    // For display, show the full fractional value
+    // MS_DIV = (a+b)/c
+    if (p3 > 1 && p2 > 0) {
+        std::string div_str = "(" + to_string_dec_uint(a) + "+" + to_string_dec_uint(b) + ")/" + to_string_dec_uint(c);
+        text_div.set(div_str);
+    } else {
+        std::string div_str = to_string_dec_uint(a);
+        text_div.set(div_str);
+    }
+
+    // === Calculate Output Frequency ===
+
+    // f_vco = 800,000,000 (PLL A)
+    // f_out in kHz = 800,000,000 / MS_DIV / r_div / 1000
+    //              = 800,000 × ms_div_denominator / ms_div_numerator / r_div
+
+    uint32_t freq_khz = 0;
+    if (ms_div_numerator > 0) {
+        freq_khz = (uint32_t)((800000ULL * ms_div_denominator) / ms_div_numerator / r_div);
+    }
+
+    uint32_t freq_mhz = freq_khz / 1000;
+    uint32_t freq_frac = freq_khz % 1000;
+
+    text_freq.set(to_string_dec_uint(freq_mhz) + "." +
+                  to_string_dec_uint(freq_frac / 100) +
+                  to_string_dec_uint((freq_frac / 10) % 10) +
+                  to_string_dec_uint(freq_frac % 10) + " MHz");
+
+    // Color code based on expected ~24.576 MHz for WFM stereo
+    if (freq_khz >= 24500 && freq_khz <= 24700) {
+        text_freq.set_style(Theme::getInstance()->fg_green);
+    } else if (freq_khz >= 24000 && freq_khz <= 26000) {
+        text_freq.set_style(Theme::getInstance()->fg_orange);
+    } else {
+        text_freq.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // === Status Summary ===
+    // Expected values for 24.576 MHz (3.072 MHz * 8 decimation):
+    // VCO = 800 MHz
+    // Target freq = 49.152 MHz (before R_DIV=/2)
+    // MS_DIV = 800M / 49.152M = 16.276...
+    // a = 16, b = 53, c = 192
+    // P1 = 128*16 + floor(128*53/192) - 512 = 2048 + 35 - 512 = 1571
+    // P2 = 128*53 - 192*35 = 6784 - 6720 = 64
+    // P3 = 192
+
+    if (ms_int) {
+        text_status.set("ERROR: Integer mode! P2/P3 ignored!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (p2 == 0 && p3 == 1) {
+        text_status.set("WARN P2:0,P3:1 INT Equiv");
+        text_status.set_style(Theme::getInstance()->fg_orange);
+    } else if (p3 == 192 && p2 == 64) {
+        text_status.set("GOOD Exp 3.072M values!");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else if (freq_khz >= 24500 && freq_khz <= 24700) {
+        text_status.set("OK: Freq in range");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_status.set("CHECK: P2=" + to_string_dec_uint(p2) +
+                        " P3=" + to_string_dec_uint(p3));
+        text_status.set_style(Theme::getInstance()->fg_orange);
+    }
+}
+#endif
+
+#ifdef PRALINE
 PralineClockDebugView::PralineClockDebugView(NavigationView& nav)
     : View(),
       rows{
@@ -3075,10 +3329,11 @@ void DebugMenuView::on_populate() {
     add_items({
 #ifdef PRALINE
         {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
-        {"PRO Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
+        {"Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
+        {"MSynth Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351MultiSynthDebugView>(); }},
         {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
         {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
-        {"ProRadio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
+        {"Radio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
