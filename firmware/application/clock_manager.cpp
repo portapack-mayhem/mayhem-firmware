@@ -250,7 +250,7 @@ constexpr ClockControls si5351a_clock_control_common{{
     // CLK0: MAX5864 (ADC) - 4mA, Inverted (Standard for Praline sync)
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_On},
     // CLK1: SCT_CLK (iCE40 FPGA) - 6mA, Inverted (Fixes 30-60Hz Drumming)
-    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_On},
     // CLK2: LPC43xx MCU - 4mA, Normal (Must be Integer for MCU stability)
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
     // CLK3: CLKOUT SMA Port P1 - 8mA, Normal
@@ -721,6 +721,9 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     // CLK1: SCT_CLK (with r_div=0 for ÷1, runs at 2× AFE for FPGA timing)
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_f, 1);
     clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_f, 0);
+
+    radio::invalidate_spi_config(); // Triggers the MAX2831 to recalibrate 
+
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only
