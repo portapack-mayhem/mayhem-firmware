@@ -722,7 +722,7 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_f, 1);
     clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_f, 0);
 
-    radio::invalidate_spi_config(); // Triggers the MAX2831 to recalibrate 
+    radio::invalidate_spi_config();  // Triggers the MAX2831 to recalibrate
 
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at

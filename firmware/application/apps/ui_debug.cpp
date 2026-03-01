@@ -2396,7 +2396,7 @@ void Si5351MultiSynthDebugView::refresh() {
                   to_string_dec_uint(freq_frac / 100) +
                   to_string_dec_uint((freq_frac / 10) % 10) +
                   to_string_dec_uint(freq_frac % 10) + " MHz");
-    
+
     // Color code based on expected ~24.576 MHz for WFM stereo
     if (freq_khz >= 24500 && freq_khz <= 24700) {
         text_freq.set_style(Theme::getInstance()->fg_green);
