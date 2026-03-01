@@ -914,14 +914,14 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 }
 
 void SystemMenuView::on_populate() {
-    if (!verify_sdcard_format()) {
-        add_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
-                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
-                  }});
-    }
     add_apps(nav_, *this, HOME);
     add_external_items(nav_, app_location_t::HOME, *this, 0);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
+    if (!verify_sdcard_format()) { // Moved to the end... after sd status change event, fstype wasn't populated fast enough..
+        insert_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
+                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
+                  }}, 0, true);
+    }
 }
 
 /* SystemView ************************************************************/
