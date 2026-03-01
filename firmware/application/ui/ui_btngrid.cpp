@@ -210,6 +210,8 @@ void BtnGridView::reload_items() {
     if (visible() && !menu_items.empty()) {
         item_view(0)->focus();
     }
+
+    set_dirty(); // Redraw the now potentially empty space as well
 }
 
 void BtnGridView::update_items() {
