@@ -1126,12 +1126,12 @@ class SystemDiagnosticsView : public View {
 #endif
 
 #ifdef PRALINE
-/* Si5351MultiSynthDebugView - Debug fractional register values for MS0/MS1 */
+/* Si5351MultiSynthDebugView - Debug fractional register values for MS0 */
 class Si5351MultiSynthDebugView : public View {
    public:
     Si5351MultiSynthDebugView(NavigationView& nav);
     void focus() override;
-    std::string title() const override { return "Si5351 MS Debug"; };
+    std::string title() const override { return "Si5351 MS0 Debug"; };
 
    private:
     NavigationView& nav_;
@@ -1139,7 +1139,7 @@ class Si5351MultiSynthDebugView : public View {
     void force_pll_reset();
     void force_fractional_mode();
 
-    Text text_title{{0, 0, 240, 16}, "=== MS0 Fractional Debug ==="};
+    Text text_title{{0, 0, 240, 16}, "===MS0 Fractional Debug==="};
 
     // Clock Control Register 16 (CLK0)
     Text text_lbl_clk_ctrl{{0, 18, 100, 16}, "CLK0 Ctrl:"};
@@ -1149,7 +1149,7 @@ class Si5351MultiSynthDebugView : public View {
     Text text_ms_int{{102, 34, 138, 16}, "---"};
 
     // Raw register values
-    Text text_lbl_raw{{0, 54, 240, 16}, "--- Raw Registers (42-49) ---"};
+    Text text_lbl_raw{{0, 54, 240, 16}, "---Raw Registers (42-49)---"};
 
     Text text_lbl_r42_43{{0, 70, 80, 16}, "R42-43:"};
     Text text_r42_43{{82, 70, 158, 16}, "---"};
@@ -1161,7 +1161,7 @@ class Si5351MultiSynthDebugView : public View {
     Text text_r47_49{{82, 102, 158, 16}, "---"};
 
     // Decoded values
-    Text text_lbl_decoded{{0, 122, 240, 16}, "--- Decoded Values ---"};
+    Text text_lbl_decoded{{0, 122, 240, 16}, "---Decoded Values---"};
 
     Text text_lbl_p1{{0, 138, 48, 16}, "P1:"};
     Text text_p1{{50, 138, 190, 16}, "---"};
@@ -1176,7 +1176,7 @@ class Si5351MultiSynthDebugView : public View {
     Text text_rdiv{{50, 186, 190, 16}, "---"};
 
     // Calculated frequency
-    Text text_lbl_calc{{0, 206, 240, 16}, "--- Calculated Output ---"};
+    Text text_lbl_calc{{0, 206, 240, 16}, "---Calculated Output---"};
 
     Text text_lbl_div{{0, 222, 80, 16}, "MS Div:"};
     Text text_div{{82, 222, 158, 16}, "---"};
