@@ -825,7 +825,7 @@ void ReceiversMenuView::on_populate() {
     bool return_icon = pmem::show_gui_return_icon();
     if (return_icon) {
         add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }},
-            true);
+                 true);
     }
     add_apps(nav_, *this, RX);
     add_external_items(nav_, app_location_t::RX, *this, return_icon ? 1 : 0);
@@ -917,10 +917,11 @@ void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
     add_external_items(nav_, app_location_t::HOME, *this, 0);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
-    if (!verify_sdcard_format()) { // Moved to the end... after sd status change event, fstype wasn't populated fast enough..
+    if (!verify_sdcard_format()) {  // Moved to the end... after sd status change event, fstype wasn't populated fast enough..
         insert_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
-                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
-                  }}, 0, true);
+                         nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
+                     }},
+                    0, true);
     }
 }
 

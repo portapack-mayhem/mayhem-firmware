@@ -211,7 +211,7 @@ void BtnGridView::reload_items() {
         item_view(0)->focus();
     }
 
-    set_dirty(); // Redraw the now potentially empty space as well
+    set_dirty();  // Redraw the now potentially empty space as well
 }
 
 void BtnGridView::update_items() {
