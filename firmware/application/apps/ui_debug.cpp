@@ -2347,34 +2347,42 @@ void Si5351MultiSynthDebugView::refresh() {
     } else if (p3 > 1) {
         text_p2.set_style(Theme::getInstance()->fg_green);
         text_p3.set_style(Theme::getInstance()->fg_green);
+    } else {
+        // Default/neutral style when P2/P3 don't match known patterns
+        text_p2.set_style(Theme::getInstance()->fg_light);
+        text_p3.set_style(Theme::getInstance()->fg_light);
     }
 
     // === Calculate Output Frequency ===
-    //
+
     // === Calculate Multisynth Divider ===
     // Correct Si5351 formula:
     // MS_DIV = (P2+P3 × (P1 + 512)) / (128 × P3)
     // MS_DIV = P2/(128*P3) + P1+512/(128*P3)
-    // a = (P1 + 512) / 128
-    // b = P2/128
-    // c = P3
+    // x = (P1 + 512) / 128
+    // y = P2/128
+    // z = P3
     // f_out = f_vco / MS_DIV / R_DIV
-    // For integer division: b=0, c=1, so MS_DIV = a
+    // a = floor((P1 + 512) / 128)
+    // k = (P1 + 512) - 128*a
+    // b = b = (P2 + c*k) / 128
+    // c = P3
+    // In the case of integer division: b=0, c=1, so MS_DIV = a
 
     uint64_t ms_div_numerator = (uint64_t)p2 + (uint64_t)p3 * (p1 + 512);
     uint64_t ms_div_denominator = 128ULL * p3;
 
-    uint32_t a = (p1 + 512) / 128;
-    uint32_t b = p2 / 128;
-    uint32_t c = p3;
+    uint32_t x = (p1 + 512) / 128;
+    uint32_t y = p2 / 128;
+    uint32_t z = p3;
 
     // For display, show the full fractional value
     // MS_DIV = (a+b)/c
     if (p3 > 1 && p2 > 0) {
-        std::string div_str = "(" + to_string_dec_uint(a) + "+" + to_string_dec_uint(b) + ")/" + to_string_dec_uint(c);
+        std::string div_str = "(" + to_string_dec_uint(x) + "+" + to_string_dec_uint(y) + ")/" + to_string_dec_uint(z);
         text_div.set(div_str);
     } else {
-        std::string div_str = to_string_dec_uint(a);
+        std::string div_str = to_string_dec_uint(x);
         text_div.set(div_str);
     }
 
