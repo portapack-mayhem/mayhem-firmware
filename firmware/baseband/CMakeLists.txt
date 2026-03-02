@@ -467,12 +467,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
-### Time Sink
-
-set(MODE_CPPSRC
-	proc_time_sink.cpp
-)
-DeclareTargets(PTSK time_sink)
 
 ### WFM Audio
 
@@ -711,6 +705,13 @@ set(MODE_CPPSRC
     proc_morsetx.cpp
 )
 DeclareTargets(PMRT morsetx)
+
+### Time Sink
+
+set(MODE_CPPSRC
+	proc_time_sink.cpp
+)
+DeclareTargets(PTSK time_sink)
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp

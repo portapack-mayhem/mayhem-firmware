@@ -53,7 +53,7 @@ class TimeSinkWaveformWidget : public Widget {
 
    private:
     static constexpr size_t max_columns = time_sink_waveform_points;
-    static constexpr size_t max_persistence_frames = 16; // this is sad that we cant have 32 histories in ext app due to memory constraints
+    static constexpr size_t max_persistence_frames = 16;  // this is sad that we cant have 32 histories in ext app due to memory constraints
 
     void reset_cache();
     Coord sample_to_y(const Rect& r, int16_t sample) const;
