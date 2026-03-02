@@ -41,25 +41,40 @@ EPIRBTXAppView::~EPIRBTXAppView() {
     baseband::shutdown();
 }
 
-void EPIRBTXAppView::update_config() {
-    if (checkbox_stop.value())
-        baseband::set_siggen_config(transmitter_model.channel_bandwidth(), (options_mod.selected_index_value() << 4) + options_shape.selected_index_value(), field_stop.value());
-    else
-        baseband::set_siggen_config(transmitter_model.channel_bandwidth(), (options_mod.selected_index_value() << 4) + options_shape.selected_index_value(), 0);
+uint8_t EPIRBTXAppView::hexval(char c)
+{
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    return 0;
 }
 
-void EPIRBTXAppView::update_tone() {
-    baseband::set_siggen_tone(symfield_tone.to_integer());
+uint8_t EPIRBTXAppView::hexToByte(char high, char low)
+{
+    return (hexval(high) << 4) | hexval(low);
+}
+
+
+
+static const char* hex_string = "FFFED0D6E6202820000C29FF51041775302D";
+static const size_t hex_len = 18;
+
+void EPIRBTXAppView::update_config() {
+    // TODO
+    epirb_tx_message.pre_count = (500 * TONES_SAMPLERATE)/1000; // 500 ms
+    epirb_tx_message.post_count = (100 * TONES_SAMPLERATE)/1000; // 100 ms
+    epirb_tx_message.data_len = hex_len;
+    for(uint8_t i = 0 ; i < hex_len ; i++)
+    {
+        epirb_tx_message.data[i] = hexToByte(
+            hex_string[2*i],
+            hex_string[2*i + 1]);
+    }
+    baseband::set_epirb_tx_config(epirb_tx_message);
 }
 
 void EPIRBTXAppView::start_tx() {
     transmitter_model.enable();
-
-    update_tone();
-
-    /*auto duration = field_stop.value();
-        if (!checkbox_auto.value())
-                duration = 0;*/
     update_config();
 }
 
@@ -133,12 +148,9 @@ EPIRBTXAppView::EPIRBTXAppView(
 
     symfield_tone.set_value(1000);  // Default: 1000 Hz
     symfield_tone.on_change = [this](SymField&) {
-        if (auto_update)
-            update_tone();
     };
 
     button_update.on_select = [this](Button&) {
-        update_tone();
         update_config();
     };
 

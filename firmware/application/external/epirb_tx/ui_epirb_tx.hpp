@@ -31,6 +31,7 @@
 
 #include "portapack.hpp"
 #include "message.hpp"
+#include "tonesets.hpp"
 
 namespace ui::external_app::epirb_tx {
 
@@ -46,13 +47,16 @@ class EPIRBTXAppView : public View {
    private:
     void start_tx();
     void update_config();
-    void update_tone();
     void on_tx_progress(const uint32_t progress, const bool done);
+
+    uint8_t hexval(char c);
+
+    uint8_t hexToByte(char high, char low);
 
     TxRadioState radio_state_{
         0 /* frequency */,
         1750000 /* bandwidth */,
-        1536000 /* sampling rate */
+        TONES_SAMPLERATE /* sampling rate */
     };
     app_settings::SettingsManager settings_{
         "tx_epirb", app_settings::Mode::TX};
@@ -66,6 +70,9 @@ class EPIRBTXAppView : public View {
                                           "Pseudo Noise"};
 
     bool auto_update{false};
+
+    EPIRBTXDataMessage epirb_tx_message{};
+
 
     Labels labels{
         {{3 * 8, 2 * 8}, "Modulation:", Theme::getInstance()->fg_light->foreground},

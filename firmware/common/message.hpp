@@ -155,6 +155,7 @@ class Message {
         StreamTXConfiguration = 97,
         RTTYData = 98,
         NotificationData = 99,
+        EPIRBTXData = 100,
         MAX
     };
 
@@ -1093,6 +1094,18 @@ class SigGenToneMessage : public Message {
     }
 
     const uint32_t tone_delta;
+};
+
+class EPIRBTXDataMessage : public Message {
+   public:
+    constexpr EPIRBTXDataMessage()
+        : Message{ID::EPIRBTXData} {
+    }
+    uint8_t data[18]{0};
+    uint8_t data_len = 0;
+    uint32_t pre_count = 0;
+    uint32_t post_count = 0;
+    static constexpr uint8_t max_len = 18;
 };
 
 class AFSKTxConfigureMessage : public Message {

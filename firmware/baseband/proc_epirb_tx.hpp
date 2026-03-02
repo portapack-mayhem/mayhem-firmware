@@ -34,17 +34,17 @@ class EPIRBTXProcessor : public BasebandProcessor {
    private:
     bool configured{false};
 
-    uint32_t tone_delta{0}, fm_delta{}, tone_phase{0};
-    uint8_t tone_shape{}, modulation{};
-    uint32_t sample_count{0};
-    bool auto_off{};
-    int32_t phase{0}, sphase{0}, delta{0};  // they may have sign in the pseudo random sample generation.
-    int8_t sample{0}, re{0}, im{0};         // they have sign + and -.
-    uint16_t seed_value_16 = {0xACE1};      // seed 16 bits lfsr : any nonzero start state will work.
-    uint16_t lfsr_16{}, bit_16{};           // bit must be 16-bit to allow bit<<15 later in the code */
-    uint8_t counter{0};
-    // uint8_t seed_value = {0x56}; 					// Finally not used lfsr of 8 bits , seed 8blfsr : any nonzero start state will work.
-    // uint8_t lfsr { }, bit { };  						// Finally not used lfsr of 8 bits , bit must be 8-bit to allow bit<<7 later in the code */
+    bool end_of_transmission{};
+    int8_t re{0}, im{0};         // they have sign + and -.
+
+    // Config
+    uint32_t config_pre_count = 0;
+    uint32_t config_post_count = 0;
+
+    // Data
+    uint8_t frame_data[18]{0};
+    uint8_t frame_data_len = 0;
+
 
     // BPSK parameters
     float phase_deg = 63.0f; // Target phase +/-63°
@@ -68,22 +68,6 @@ class EPIRBTXProcessor : public BasebandProcessor {
     uint8_t current_bit = 0;
 
     bool manchester_half = false; // false = first half
-
-    const char* hex_string = "FFFED0D6E6202820000C29FF51041775302D";
-    size_t hex_len = 36;
-
-    uint8_t hexval(char c)
-    {
-        if (c >= '0' && c <= '9') return c - '0';
-        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-        return 0;
-    };
-
-    uint8_t hexToByte(char high, char low)
-    {
-        return (hexval(high) << 4) | hexval(low);
-    };
 
     TXProgressMessage txprogress_message{};
 

@@ -412,6 +412,10 @@ void set_rtty_config(RTTYDataMessage& message) {
     send_message(&message);
 }
 
+void set_epirb_tx_config(EPIRBTXDataMessage& message) {
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {
