@@ -27,6 +27,7 @@
 #include "ui_btngrid.hpp"
 #include "rtc_time.hpp"
 #include "sd_card.hpp"
+#include <algorithm>
 
 namespace ui {
 
@@ -43,19 +44,12 @@ BtnGridView::BtnGridView(
     }
     button_pgup.set_focusable(false);
     button_pgup.on_select = [this](Button&) {
-        if (arrow_up_enabled) {
-            if (((int64_t)highlighted_item - displayed_max) > 0)
-                set_highlighted(highlighted_item - displayed_max);
-            else
-                set_highlighted(0);
-        }
+        page_up();
     };
 
     button_pgdown.set_focusable(false);
     button_pgdown.on_select = [this](Button&) {
-        if (arrow_down_enabled) {
-            set_highlighted(highlighted_item + displayed_max);
-        }
+        page_down();
     };
 
     button_pgup.set_style(Theme::getInstance()->bg_darkest_small);
@@ -301,7 +295,11 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
 
     // Normalize offset to show maximum items when count decreased
     if (offset + displayed_max > item_count && item_count > 0) {
-        offset = (item_count >= displayed_max) ? item_count - displayed_max : 0;
+        if (item_count >= displayed_max) {
+            offset = item_count - displayed_max;
+        } else {
+            offset = 0;
+        }
         needs_update = true;
     }
 
@@ -424,6 +422,82 @@ bool BtnGridView::blacklisted_app(GridItem new_item) {
         return false;
 
     return std::search(blacklist_ptr.get(), blacklist_ptr.get() + blacklist_len, app_name.begin(), app_name.end()) < blacklist_ptr.get() + blacklist_len;
+}
+
+void BtnGridView::page_up() {
+    if (arrow_up_enabled) {
+        size_t item_count = menu_items.size();
+        if (item_count == 0)
+            return;
+
+        size_t new_offset;
+        if (offset > displayed_max) {
+            new_offset = offset - displayed_max;
+        } else {
+            new_offset = 0;
+        }
+
+        // If we can't move further, just move highlight to start
+        if (new_offset == offset) {
+            set_highlighted(0);
+            return;
+        }
+
+        bool was_visible = (highlighted_item >= new_offset && highlighted_item < new_offset + displayed_max);
+
+        offset = new_offset;
+        update_items();
+
+        if (was_visible) {
+            if (visible()) {
+                size_t idx = highlighted_item - offset;
+                if (idx < menu_item_views.size())
+                    item_view(idx)->focus();
+            }
+        } else {
+            // focus last item on the new page (clamp to last item overall)
+            size_t last_on_page = std::min(new_offset + displayed_max, item_count) - 1;
+            set_highlighted((int)last_on_page);
+        }
+    }
+}
+
+void BtnGridView::page_down() {
+    if (arrow_down_enabled) {
+        size_t item_count = menu_items.size();
+        if (item_count == 0)
+            return;
+
+        size_t max_offset;
+        if (item_count > displayed_max) {
+            max_offset = item_count - displayed_max;
+        } else {
+            max_offset = 0;
+        }
+        size_t new_offset = std::min(offset + displayed_max, max_offset);
+
+        // If we can't move further, just move highlight to last
+        if (new_offset == offset) {
+            set_highlighted((int)(item_count - 1));
+            return;
+        }
+
+        bool was_visible = (highlighted_item >= new_offset && highlighted_item < new_offset + displayed_max);
+
+        offset = new_offset;
+        update_items();
+
+        if (was_visible) {
+            if (visible()) {
+                size_t idx = highlighted_item - offset;
+                if (idx < menu_item_views.size())
+                    item_view(idx)->focus();
+            }
+        } else {
+            // focus first item on the new page
+            set_highlighted((int)new_offset);
+        }
+    }
 }
 
 } /* namespace ui */

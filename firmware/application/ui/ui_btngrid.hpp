@@ -94,6 +94,9 @@ class BtnGridView : public View {
         button_h = h;
     }
 
+    void page_up();
+    void page_down();
+
    protected:
     virtual void on_populate() = 0;
 
