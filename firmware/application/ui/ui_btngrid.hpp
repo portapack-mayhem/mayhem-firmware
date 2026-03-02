@@ -71,7 +71,7 @@ class BtnGridView : public View {
     bool show_arrows{true};  // flag used to hide arrows in main menu
     void show_arrows_enabled(bool enabled);
 
-    bool set_highlighted(int32_t new_value);
+    bool set_highlighted(int32_t new_value, bool force_update = false);
     uint32_t highlighted_index();
 
     void set_parent_rect(const Rect new_parent_rect) override;
@@ -88,6 +88,7 @@ class BtnGridView : public View {
     bool on_encoder(const EncoderEvent event) override;
     bool blacklisted_app(GridItem new_item);
 
+    void reload_items();
     void update_items();
     void set_btn_height_fixed(uint8_t h) {
         button_h = h;
@@ -116,6 +117,7 @@ class BtnGridView : public View {
     size_t displayed_max{0};
     size_t highlighted_item{0};
     size_t offset{0};
+    SignalToken sd_card_status_signal_token{};
 };
 
 } /* namespace ui */

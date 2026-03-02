@@ -26,6 +26,7 @@
 
 #include "ui_btngrid.hpp"
 #include "rtc_time.hpp"
+#include "sd_card.hpp"
 
 namespace ui {
 
@@ -143,6 +144,7 @@ void BtnGridView::clear() {
     // clear vector and release memory, not using swap since it's causing capture to glitch/fault
     menu_items.clear();
 
+    // TODO(u-foka): Clean up my mess, move this somewhere to clear memory when the view is not visible, but not to be confused with clearing the menu items...
     for (auto& item : menu_item_views)
         remove_child(item.get());
 
@@ -198,6 +200,15 @@ void BtnGridView::show_hide_arrows() {
     }
 }
 
+void BtnGridView::reload_items() {
+    menu_items.clear();
+    on_populate();
+    set_highlighted(highlighted_item, true);
+    show_hide_arrows();
+
+    set_dirty();  // Redraw the now potentially empty space as well
+}
+
 void BtnGridView::update_items() {
     size_t i = 0;
 
@@ -237,7 +248,7 @@ void BtnGridView::show_arrows_enabled(bool enabled) {
     }
 }
 
-bool BtnGridView::set_highlighted(int32_t new_value) {
+bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
     int32_t item_count = (int32_t)menu_items.size();
 
     if (new_value < 0)
@@ -247,13 +258,15 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
         new_value = item_count - 1;
     }
 
+    bool needs_update = false;
+
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
         highlighted_item = new_value;
         // rounding up new offset to next multiple of rows
         offset = new_value - displayed_max + rows_;
         offset -= (offset % rows_);
-        update_items();
+        needs_update = true;
         // refresh whole screen (display flickers) only if scrolling last row up and a blank button is needed at the bottom
         if ((new_value + rows_ >= item_count) && (item_count % rows_) != 0)
             set_dirty();
@@ -261,11 +274,21 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
         // Shift BtnGridView down
         highlighted_item = new_value;
         offset = (new_value / rows_) * rows_;
-        update_items();
+        needs_update = true;
         // no need to set_dirty() here since all buttons have been repainted
     } else {
         // Just update highlight
         highlighted_item = new_value;
+    }
+
+    // Normalize offset to show maximum items when count decreased
+    if (offset + displayed_max > item_count && item_count > 0) {
+        offset = (item_count >= displayed_max) ? item_count - displayed_max : 0;
+        needs_update = true;
+    }
+
+    if (needs_update || force_update) {
+        update_items();
     }
 
     if (visible())
@@ -292,12 +315,18 @@ void BtnGridView::on_blur() {
 }
 
 void BtnGridView::on_show() {
-    on_populate();
     View::on_show();
-    set_highlighted(highlighted_item);
+
+    sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status /*status*/) {
+        this->reload_items();
+    };
+
+    reload_items();
 }
 
 void BtnGridView::on_hide() {
+    sd_card::status_signal -= sd_card_status_signal_token;
+
     View::on_hide();
     clear();
     set_arrow_up_enabled(false);
