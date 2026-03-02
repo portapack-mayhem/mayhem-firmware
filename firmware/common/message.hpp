@@ -155,7 +155,8 @@ class Message {
         StreamTXConfiguration = 97,
         RTTYData = 98,
         NotificationData = 99,
-        EPIRBTXData = 100,
+        TimeSinkConfig = 100,
+        EPIRBTXData = 101,
         MAX
     };
 
@@ -302,6 +303,20 @@ class WidebandSpectrumConfigMessage : public Message {
         size_t sampling_rate,
         size_t trigger)
         : Message{ID::WidebandSpectrumConfig},
+          sampling_rate{sampling_rate},
+          trigger{trigger} {
+    }
+
+    size_t sampling_rate{0};
+    size_t trigger{0};
+};
+
+class TimeSinkConfigMessage : public Message {
+   public:
+    constexpr TimeSinkConfigMessage(
+        size_t sampling_rate,
+        size_t trigger)
+        : Message{ID::TimeSinkConfig},
           sampling_rate{sampling_rate},
           trigger{trigger} {
     }

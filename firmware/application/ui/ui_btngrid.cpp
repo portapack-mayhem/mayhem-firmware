@@ -26,6 +26,8 @@
 
 #include "ui_btngrid.hpp"
 #include "rtc_time.hpp"
+#include "sd_card.hpp"
+#include <algorithm>
 
 namespace ui {
 
@@ -42,19 +44,12 @@ BtnGridView::BtnGridView(
     }
     button_pgup.set_focusable(false);
     button_pgup.on_select = [this](Button&) {
-        if (arrow_up_enabled) {
-            if (((int64_t)highlighted_item - displayed_max) > 0)
-                set_highlighted(highlighted_item - displayed_max);
-            else
-                set_highlighted(0);
-        }
+        page_up();
     };
 
     button_pgdown.set_focusable(false);
     button_pgdown.on_select = [this](Button&) {
-        if (arrow_down_enabled) {
-            set_highlighted(highlighted_item + displayed_max);
-        }
+        page_down();
     };
 
     button_pgup.set_style(Theme::getInstance()->bg_darkest_small);
@@ -143,6 +138,7 @@ void BtnGridView::clear() {
     // clear vector and release memory, not using swap since it's causing capture to glitch/fault
     menu_items.clear();
 
+    // TODO(u-foka): Clean up my mess, move this somewhere to clear memory when the view is not visible, but not to be confused with clearing the menu items...
     for (auto& item : menu_item_views)
         remove_child(item.get());
 
@@ -186,6 +182,13 @@ void BtnGridView::insert_item(const GridItem& new_item, size_t position, bool in
 }
 
 void BtnGridView::show_hide_arrows() {
+    // if there are no menu items, disable both arrows and avoid size-1 underflow
+    if (menu_items.empty()) {
+        set_arrow_up_enabled(false);
+        set_arrow_down_enabled(false);
+        return;
+    }
+
     if (highlighted_item == 0) {
         set_arrow_up_enabled(false);
     } else {
@@ -196,6 +199,15 @@ void BtnGridView::show_hide_arrows() {
     } else {
         set_arrow_down_enabled(true);
     }
+}
+
+void BtnGridView::reload_items() {
+    menu_items.clear();
+    on_populate();
+    set_highlighted(highlighted_item, true);
+    show_hide_arrows();
+
+    set_dirty();  // Redraw the now potentially empty space as well
 }
 
 void BtnGridView::update_items() {
@@ -237,8 +249,19 @@ void BtnGridView::show_arrows_enabled(bool enabled) {
     }
 }
 
-bool BtnGridView::set_highlighted(int32_t new_value) {
+bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
     int32_t item_count = (int32_t)menu_items.size();
+
+    // nothing to highlight when the list is empty
+    if (item_count == 0) {
+        highlighted_item = 0;
+        offset = 0;
+        show_hide_arrows();
+        if (force_update) {
+            update_items();
+        }
+        return false;
+    }
 
     if (new_value < 0)
         return false;
@@ -247,13 +270,15 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
         new_value = item_count - 1;
     }
 
+    bool needs_update = false;
+
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
         highlighted_item = new_value;
         // rounding up new offset to next multiple of rows
         offset = new_value - displayed_max + rows_;
         offset -= (offset % rows_);
-        update_items();
+        needs_update = true;
         // refresh whole screen (display flickers) only if scrolling last row up and a blank button is needed at the bottom
         if ((new_value + rows_ >= item_count) && (item_count % rows_) != 0)
             set_dirty();
@@ -261,15 +286,32 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
         // Shift BtnGridView down
         highlighted_item = new_value;
         offset = (new_value / rows_) * rows_;
-        update_items();
+        needs_update = true;
         // no need to set_dirty() here since all buttons have been repainted
     } else {
         // Just update highlight
         highlighted_item = new_value;
     }
 
-    if (visible())
-        item_view(highlighted_item - offset)->focus();
+    // Normalize offset to show maximum items when count decreased
+    if (offset + displayed_max > item_count && item_count > 0) {
+        if (item_count >= displayed_max) {
+            offset = item_count - displayed_max;
+        } else {
+            offset = 0;
+        }
+        needs_update = true;
+    }
+
+    if (needs_update || force_update) {
+        update_items();
+    }
+
+    if (visible()) {
+        size_t idx = highlighted_item - offset;
+        if (idx < menu_item_views.size())
+            item_view(idx)->focus();
+    }
 
     show_hide_arrows();
 
@@ -281,7 +323,11 @@ uint32_t BtnGridView::highlighted_index() {
 }
 
 void BtnGridView::on_focus() {
-    item_view(highlighted_item - offset)->focus();
+    if (!menu_items.empty()) {
+        size_t idx = highlighted_item - offset;
+        if (idx < menu_item_views.size())
+            item_view(idx)->focus();
+    }
 }
 
 void BtnGridView::on_blur() {
@@ -292,12 +338,18 @@ void BtnGridView::on_blur() {
 }
 
 void BtnGridView::on_show() {
-    on_populate();
     View::on_show();
-    set_highlighted(highlighted_item);
+
+    sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status /*status*/) {
+        this->reload_items();
+    };
+
+    reload_items();
 }
 
 void BtnGridView::on_hide() {
+    sd_card::status_signal -= sd_card_status_signal_token;
+
     View::on_hide();
     clear();
     set_arrow_up_enabled(false);
@@ -319,8 +371,10 @@ bool BtnGridView::on_key(const KeyEvent key) {
             return set_highlighted(highlighted_item - 1);
 
         case KeyEvent::Select:
-            if (menu_items[highlighted_item].on_select) {
-                menu_items[highlighted_item].on_select();
+            if (!menu_items.empty() && highlighted_item < menu_items.size()) {
+                if (menu_items[highlighted_item].on_select) {
+                    menu_items[highlighted_item].on_select();
+                }
             }
             return true;
 
@@ -368,6 +422,82 @@ bool BtnGridView::blacklisted_app(GridItem new_item) {
         return false;
 
     return std::search(blacklist_ptr.get(), blacklist_ptr.get() + blacklist_len, app_name.begin(), app_name.end()) < blacklist_ptr.get() + blacklist_len;
+}
+
+void BtnGridView::page_up() {
+    if (arrow_up_enabled) {
+        size_t item_count = menu_items.size();
+        if (item_count == 0)
+            return;
+
+        size_t new_offset;
+        if (offset > displayed_max) {
+            new_offset = offset - displayed_max;
+        } else {
+            new_offset = 0;
+        }
+
+        // If we can't move further, just move highlight to start
+        if (new_offset == offset) {
+            set_highlighted(0);
+            return;
+        }
+
+        bool was_visible = (highlighted_item >= new_offset && highlighted_item < new_offset + displayed_max);
+
+        offset = new_offset;
+        update_items();
+
+        if (was_visible) {
+            if (visible()) {
+                size_t idx = highlighted_item - offset;
+                if (idx < menu_item_views.size())
+                    item_view(idx)->focus();
+            }
+        } else {
+            // focus last item on the new page (clamp to last item overall)
+            size_t last_on_page = std::min(new_offset + displayed_max, item_count) - 1;
+            set_highlighted((int)last_on_page);
+        }
+    }
+}
+
+void BtnGridView::page_down() {
+    if (arrow_down_enabled) {
+        size_t item_count = menu_items.size();
+        if (item_count == 0)
+            return;
+
+        size_t max_offset;
+        if (item_count > displayed_max) {
+            max_offset = item_count - displayed_max;
+        } else {
+            max_offset = 0;
+        }
+        size_t new_offset = std::min(offset + displayed_max, max_offset);
+
+        // If we can't move further, just move highlight to last
+        if (new_offset == offset) {
+            set_highlighted((int)(item_count - 1));
+            return;
+        }
+
+        bool was_visible = (highlighted_item >= new_offset && highlighted_item < new_offset + displayed_max);
+
+        offset = new_offset;
+        update_items();
+
+        if (was_visible) {
+            if (visible()) {
+                size_t idx = highlighted_item - offset;
+                if (idx < menu_item_views.size())
+                    item_view(idx)->focus();
+            }
+        } else {
+            // focus first item on the new page
+            set_highlighted((int)new_offset);
+        }
+    }
 }
 
 } /* namespace ui */
