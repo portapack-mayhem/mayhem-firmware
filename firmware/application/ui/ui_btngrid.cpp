@@ -144,6 +144,7 @@ void BtnGridView::clear() {
     // clear vector and release memory, not using swap since it's causing capture to glitch/fault
     menu_items.clear();
 
+    // TODO(u-foka): Clean up my mess, move this somewhere to clear memory when the view is not visible, but not to be confused with clearing the menu items...
     for (auto& item : menu_item_views)
         remove_child(item.get());
 
@@ -202,14 +203,8 @@ void BtnGridView::show_hide_arrows() {
 void BtnGridView::reload_items() {
     menu_items.clear();
     on_populate();
-    offset = 0;
-    highlighted_item = 0;
-    update_items();
+    set_highlighted(highlighted_item, true);
     show_hide_arrows();
-
-    if (visible() && !menu_items.empty()) {
-        item_view(0)->focus();
-    }
 
     set_dirty();  // Redraw the now potentially empty space as well
 }
@@ -253,7 +248,7 @@ void BtnGridView::show_arrows_enabled(bool enabled) {
     }
 }
 
-bool BtnGridView::set_highlighted(int32_t new_value) {
+bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
     int32_t item_count = (int32_t)menu_items.size();
 
     if (new_value < 0)
@@ -282,6 +277,10 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
     } else {
         // Just update highlight
         highlighted_item = new_value;
+
+        if (force_update) {
+            update_items();
+        }
     }
 
     if (visible())
@@ -308,14 +307,13 @@ void BtnGridView::on_blur() {
 }
 
 void BtnGridView::on_show() {
+    View::on_show();
+
     sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status /*status*/) {
         this->reload_items();
     };
 
-    on_populate();
-    update_items();
-    View::on_show();
-    set_highlighted(highlighted_item);
+    reload_items();
 }
 
 void BtnGridView::on_hide() {

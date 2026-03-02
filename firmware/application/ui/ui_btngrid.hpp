@@ -71,7 +71,7 @@ class BtnGridView : public View {
     bool show_arrows{true};  // flag used to hide arrows in main menu
     void show_arrows_enabled(bool enabled);
 
-    bool set_highlighted(int32_t new_value);
+    bool set_highlighted(int32_t new_value, bool force_update = false);
     uint32_t highlighted_index();
 
     void set_parent_rect(const Rect new_parent_rect) override;
