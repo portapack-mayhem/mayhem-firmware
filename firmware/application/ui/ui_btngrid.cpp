@@ -263,6 +263,9 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
         highlighted_item = 0;
         offset = 0;
         show_hide_arrows();
+        if (force_update) {
+            update_items();
+        }
         return false;
     }
 
