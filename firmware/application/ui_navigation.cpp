@@ -771,8 +771,6 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
                           true);
         }
     };
-
-    grid.update_items();
 }
 
 // clang-format off
@@ -804,8 +802,6 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             }
 
         }
-
-        grid.update_items();
     }
 }
 // clang-format on

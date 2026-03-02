@@ -313,6 +313,7 @@ void BtnGridView::on_show() {
     };
 
     on_populate();
+    update_items();
     View::on_show();
     set_highlighted(highlighted_item);
 }
