@@ -258,13 +258,15 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
         new_value = item_count - 1;
     }
 
+    bool needs_update = false;
+
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
         highlighted_item = new_value;
         // rounding up new offset to next multiple of rows
         offset = new_value - displayed_max + rows_;
         offset -= (offset % rows_);
-        update_items();
+        needs_update = true;
         // refresh whole screen (display flickers) only if scrolling last row up and a blank button is needed at the bottom
         if ((new_value + rows_ >= item_count) && (item_count % rows_) != 0)
             set_dirty();
@@ -272,15 +274,21 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
         // Shift BtnGridView down
         highlighted_item = new_value;
         offset = (new_value / rows_) * rows_;
-        update_items();
+        needs_update = true;
         // no need to set_dirty() here since all buttons have been repainted
     } else {
         // Just update highlight
         highlighted_item = new_value;
+    }
 
-        if (force_update) {
-            update_items();
-        }
+    // Normalize offset to show maximum items when count decreased
+    if (offset + displayed_max > item_count && item_count > 0) {
+        offset = (item_count >= displayed_max) ? item_count - displayed_max : 0;
+        needs_update = true;
+    }
+
+    if (needs_update || force_update) {
+        update_items();
     }
 
     if (visible())
