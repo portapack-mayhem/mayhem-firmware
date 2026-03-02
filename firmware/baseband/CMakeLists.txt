@@ -483,10 +483,10 @@ DeclareTargets(PWFM wfm_audio)
 
 ### SubGhz Decoders
 
-# set(MODE_CPPSRC
-# 	proc_subghzd.cpp
-# )
-# DeclareTargets(PSGD subghzd)  # temporarily disabled while iterating on Time Sink
+set(MODE_CPPSRC
+	proc_subghzd.cpp
+)
+DeclareTargets(PSGD subghzd)
 
 
 ### Weather Stations
