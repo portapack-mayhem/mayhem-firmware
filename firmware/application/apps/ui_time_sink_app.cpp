@@ -247,8 +247,7 @@ void TimeSinkView::apply_spectrum_config() {
 
     baseband::set_spectrum(
         sampling_rate,
-        trigger,
-        WidebandSpectrumConfigMessage::OutputMode::TimeDomain);
+        trigger);
 }
 
 size_t TimeSinkView::find_stable_trigger_index(const ChannelSpectrum& spectrum) {

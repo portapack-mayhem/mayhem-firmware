@@ -297,24 +297,16 @@ class SpectrumStreamingConfigMessage : public Message {
 
 class WidebandSpectrumConfigMessage : public Message {
    public:
-    enum class OutputMode : uint32_t {
-        Frequency = 0,
-        TimeDomain = 1,
-    };
-
     constexpr WidebandSpectrumConfigMessage(
         size_t sampling_rate,
-        size_t trigger,
-        OutputMode output_mode = OutputMode::Frequency)
+        size_t trigger)
         : Message{ID::WidebandSpectrumConfig},
           sampling_rate{sampling_rate},
-          trigger{trigger},
-          output_mode{output_mode} {
+          trigger{trigger} {
     }
 
     size_t sampling_rate{0};
     size_t trigger{0};
-    OutputMode output_mode{OutputMode::Frequency};
 };
 
 struct AudioSpectrum {
