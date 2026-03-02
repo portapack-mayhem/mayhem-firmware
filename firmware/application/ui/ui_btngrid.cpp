@@ -449,9 +449,11 @@ void BtnGridView::page_up() {
         update_items();
 
         if (was_visible) {
-            size_t idx = highlighted_item - offset;
-            if (idx < menu_item_views.size())
-                item_view(idx)->focus();
+            if (visible()) {
+                size_t idx = highlighted_item - offset;
+                if (idx < menu_item_views.size())
+                    item_view(idx)->focus();
+            }
         } else {
             // focus last item on the new page (clamp to last item overall)
             size_t last_on_page = std::min(new_offset + displayed_max, item_count) - 1;
@@ -486,9 +488,11 @@ void BtnGridView::page_down() {
         update_items();
 
         if (was_visible) {
-            size_t idx = highlighted_item - offset;
-            if (idx < menu_item_views.size())
-                item_view(idx)->focus();
+            if (visible()) {
+                size_t idx = highlighted_item - offset;
+                if (idx < menu_item_views.size())
+                    item_view(idx)->focus();
+            }
         } else {
             // focus first item on the new page
             set_highlighted((int)new_offset);
