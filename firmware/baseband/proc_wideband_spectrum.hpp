@@ -43,7 +43,6 @@ class WidebandSpectrum : public BasebandProcessor {
     bool configured = false;
     size_t baseband_fs = 20000000;
 
-    void execute_frequency_domain(const buffer_c8_t& buffer);
     void on_beep_message(const AudioBeepMessage& message);
     void on_signal_message(const RequestSignalMessage& message);
 

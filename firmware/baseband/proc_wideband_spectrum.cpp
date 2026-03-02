@@ -23,8 +23,6 @@
 #include "audio_dma.hpp"
 
 #include "event_m4.hpp"
-
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -35,10 +33,6 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 
     if (!configured) return;
 
-    execute_frequency_domain(buffer);
-}
-
-void WidebandSpectrum::execute_frequency_domain(const buffer_c8_t& buffer) {
     if (phase == 0) {
         std::fill(spectrum.begin(), spectrum.end(), 0);
     }
@@ -88,29 +82,25 @@ void WidebandSpectrum::on_message(const Message* const msg) {
             break;
     }
 
+    const WidebandSpectrumConfigMessage message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
+
     switch (msg->id) {
         case Message::ID::UpdateSpectrum:
-            channel_spectrum.on_message(msg);
-            break;
-
         case Message::ID::SpectrumStreamingConfig:
             channel_spectrum.on_message(msg);
             break;
 
-        case Message::ID::WidebandSpectrumConfig: {
-            const auto& message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
+        case Message::ID::WidebandSpectrumConfig:
             baseband_fs = message.sampling_rate;
             trigger = message.trigger;
             baseband_thread.set_sampling_rate(baseband_fs);
             phase = 0;
             configured = true;
             break;
-        }
 
         default:
             break;
     }
-
 }
 
 int main() {
