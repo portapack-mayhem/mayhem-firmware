@@ -23,9 +23,11 @@
 #include "audio_dma.hpp"
 
 #include "event_m4.hpp"
-#include <array>
-#include <cstddef>
+
 #include <cstdint>
+#include <cstddef>
+
+#include <array>
 
 void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
     // 2048 complex8_t samples per buffer.

@@ -47,6 +47,7 @@ class WidebandSpectrum : public BasebandProcessor {
     void on_signal_message(const RequestSignalMessage& message);
 
     SpectrumCollector channel_spectrum{};
+
     std::array<complex16_t, 256> spectrum{};
     size_t phase = 0, trigger = 127;
 
