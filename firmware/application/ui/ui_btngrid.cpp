@@ -188,6 +188,13 @@ void BtnGridView::insert_item(const GridItem& new_item, size_t position, bool in
 }
 
 void BtnGridView::show_hide_arrows() {
+    // if there are no menu items, disable both arrows and avoid size-1 underflow
+    if (menu_items.empty()) {
+        set_arrow_up_enabled(false);
+        set_arrow_down_enabled(false);
+        return;
+    }
+
     if (highlighted_item == 0) {
         set_arrow_up_enabled(false);
     } else {
@@ -251,6 +258,14 @@ void BtnGridView::show_arrows_enabled(bool enabled) {
 bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
     int32_t item_count = (int32_t)menu_items.size();
 
+    // nothing to highlight when the list is empty
+    if (item_count == 0) {
+        highlighted_item = 0;
+        offset = 0;
+        show_hide_arrows();
+        return false;
+    }
+
     if (new_value < 0)
         return false;
 
@@ -291,8 +306,11 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
         update_items();
     }
 
-    if (visible())
-        item_view(highlighted_item - offset)->focus();
+    if (visible()) {
+        size_t idx = highlighted_item - offset;
+        if (idx < menu_item_views.size())
+            item_view(idx)->focus();
+    }
 
     show_hide_arrows();
 
@@ -304,7 +322,11 @@ uint32_t BtnGridView::highlighted_index() {
 }
 
 void BtnGridView::on_focus() {
-    item_view(highlighted_item - offset)->focus();
+    if (!menu_items.empty()) {
+        size_t idx = highlighted_item - offset;
+        if (idx < menu_item_views.size())
+            item_view(idx)->focus();
+    }
 }
 
 void BtnGridView::on_blur() {
@@ -348,8 +370,10 @@ bool BtnGridView::on_key(const KeyEvent key) {
             return set_highlighted(highlighted_item - 1);
 
         case KeyEvent::Select:
-            if (menu_items[highlighted_item].on_select) {
-                menu_items[highlighted_item].on_select();
+            if (!menu_items.empty() && highlighted_item < menu_items.size()) {
+                if (menu_items[highlighted_item].on_select) {
+                    menu_items[highlighted_item].on_select();
+                }
             }
             return true;
 
