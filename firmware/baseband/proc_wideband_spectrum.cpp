@@ -23,7 +23,6 @@
 #include "audio_dma.hpp"
 
 #include "event_m4.hpp"
-#include "portapack_shared_memory.hpp"
 
 #include <algorithm>
 #include <array>
@@ -36,11 +35,7 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
 
     if (!configured) return;
 
-    if (output_mode == WidebandSpectrumConfigMessage::OutputMode::TimeDomain) {
-        execute_time_domain(buffer);
-    } else {
-        execute_frequency_domain(buffer);
-    }
+    execute_frequency_domain(buffer);
 }
 
 void WidebandSpectrum::execute_frequency_domain(const buffer_c8_t& buffer) {
@@ -69,43 +64,6 @@ void WidebandSpectrum::execute_frequency_domain(const buffer_c8_t& buffer) {
     }
 }
 
-void WidebandSpectrum::execute_time_domain(const buffer_c8_t& buffer) {
-    if (!time_streaming || buffer.count == 0) {
-        return;
-    }
-
-    // In time mode, keep samples from a single snapshot instead of averaging
-    // across multiple buffers so the trace reflects instantaneous waveform shape.
-    if (phase < trigger) {
-        phase++;
-        return;
-    }
-
-    phase = 0;
-
-    if (time_domain_request_update) {
-        return;
-    }
-
-    const size_t stride = std::max<size_t>(1, buffer.count / time_domain_spectrum.db.size());
-    time_domain_spectrum.sampling_rate = buffer.sampling_rate / stride;
-    time_domain_spectrum.channel_filter_low_frequency = 0;
-    time_domain_spectrum.channel_filter_high_frequency = 0;
-    time_domain_spectrum.channel_filter_transition = 0;
-
-    for (size_t i = 0; i < time_domain_spectrum.db.size(); i++) {
-        const size_t sample_index = std::min(i * stride, buffer.count - 1);
-        const int32_t normalized = std::clamp<int32_t>(
-            static_cast<int32_t>(buffer.p[sample_index].real()) + 128,
-            0,
-            255);
-        time_domain_spectrum.db[i] = static_cast<uint8_t>(normalized);
-    }
-
-    time_domain_request_update = true;
-    EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
-}
-
 void WidebandSpectrum::on_signal_message(const RequestSignalMessage& message) {
     if (message.signal == RequestSignalMessage::Signal::BeepStopRequest) {
         audio::dma::beep_stop();
@@ -114,46 +72,6 @@ void WidebandSpectrum::on_signal_message(const RequestSignalMessage& message) {
 
 void WidebandSpectrum::on_beep_message(const AudioBeepMessage& message) {
     audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
-}
-
-void WidebandSpectrum::set_time_streaming_state(const SpectrumStreamingConfigMessage& message) {
-    if (message.mode == SpectrumStreamingConfigMessage::Mode::Running) {
-        time_streaming = true;
-        ChannelSpectrumConfigMessage fifo_message{&fifo};
-        shared_memory.application_queue.push(fifo_message);
-    } else {
-        time_streaming = false;
-        time_domain_request_update = false;
-        fifo.reset_in();
-    }
-}
-
-void WidebandSpectrum::update_time_domain() {
-    if (time_streaming && time_domain_request_update) {
-        fifo.in(time_domain_spectrum);
-    }
-
-    time_domain_request_update = false;
-}
-
-void WidebandSpectrum::apply_streaming_state() {
-    const SpectrumStreamingConfigMessage message{
-        spectrum_streaming
-            ? SpectrumStreamingConfigMessage::Mode::Running
-            : SpectrumStreamingConfigMessage::Mode::Stopped};
-
-    if (output_mode == WidebandSpectrumConfigMessage::OutputMode::TimeDomain) {
-        // Ensure only one producer is active while in time-domain mode.
-        const SpectrumStreamingConfigMessage stop_message{
-            SpectrumStreamingConfigMessage::Mode::Stopped};
-        channel_spectrum.on_message(&stop_message);
-        set_time_streaming_state(message);
-    } else {
-        channel_spectrum.on_message(&message);
-        time_streaming = false;
-        time_domain_request_update = false;
-        fifo.reset_in();
-    }
 }
 
 void WidebandSpectrum::on_message(const Message* const msg) {
@@ -172,27 +90,19 @@ void WidebandSpectrum::on_message(const Message* const msg) {
 
     switch (msg->id) {
         case Message::ID::UpdateSpectrum:
-            if (output_mode == WidebandSpectrumConfigMessage::OutputMode::TimeDomain) {
-                update_time_domain();
-            } else {
-                channel_spectrum.on_message(msg);
-            }
+            channel_spectrum.on_message(msg);
             break;
 
         case Message::ID::SpectrumStreamingConfig:
-            spectrum_streaming = reinterpret_cast<const SpectrumStreamingConfigMessage*>(msg)->mode ==
-                                 SpectrumStreamingConfigMessage::Mode::Running;
-            apply_streaming_state();
+            channel_spectrum.on_message(msg);
             break;
 
         case Message::ID::WidebandSpectrumConfig: {
             const auto& message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
             baseband_fs = message.sampling_rate;
             trigger = message.trigger;
-            output_mode = message.output_mode;
             baseband_thread.set_sampling_rate(baseband_fs);
             phase = 0;
-            time_domain_request_update = false;
             configured = true;
             break;
         }
@@ -201,9 +111,6 @@ void WidebandSpectrum::on_message(const Message* const msg) {
             break;
     }
 
-    if (msg->id == Message::ID::WidebandSpectrumConfig) {
-        apply_streaming_state();
-    }
 }
 
 int main() {

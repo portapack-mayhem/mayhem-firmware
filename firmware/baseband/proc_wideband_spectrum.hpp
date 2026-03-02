@@ -44,25 +44,12 @@ class WidebandSpectrum : public BasebandProcessor {
     size_t baseband_fs = 20000000;
 
     void execute_frequency_domain(const buffer_c8_t& buffer);
-    void execute_time_domain(const buffer_c8_t& buffer);
     void on_beep_message(const AudioBeepMessage& message);
     void on_signal_message(const RequestSignalMessage& message);
-    void set_time_streaming_state(const SpectrumStreamingConfigMessage& message);
-    void update_time_domain();
-    void apply_streaming_state();
 
     SpectrumCollector channel_spectrum{};
-    ChannelSpectrum time_domain_spectrum{};
-    ChannelSpectrum fifo_data[1 << ChannelSpectrumConfigMessage::fifo_k]{};
-    ChannelSpectrumFIFO fifo{fifo_data, ChannelSpectrumConfigMessage::fifo_k};
-
     std::array<complex16_t, 256> spectrum{};
     size_t phase = 0, trigger = 127;
-    bool spectrum_streaming = false;
-    bool time_streaming = false;
-    volatile bool time_domain_request_update = false;
-    WidebandSpectrumConfigMessage::OutputMode output_mode{
-        WidebandSpectrumConfigMessage::OutputMode::Frequency};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
