@@ -467,6 +467,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
+### Time Sink
+
+set(MODE_CPPSRC
+	proc_time_sink.cpp
+)
+DeclareTargets(PTSK time_sink)
+
 ### WFM Audio
 
 set(MODE_CPPSRC
@@ -476,10 +483,10 @@ DeclareTargets(PWFM wfm_audio)
 
 ### SubGhz Decoders
 
-set(MODE_CPPSRC
-	proc_subghzd.cpp
-)
-DeclareTargets(PSGD subghzd)
+# set(MODE_CPPSRC
+# 	proc_subghzd.cpp
+# )
+# DeclareTargets(PSGD subghzd)  # temporarily disabled while iterating on Time Sink
 
 
 ### Weather Stations

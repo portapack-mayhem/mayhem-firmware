@@ -157,7 +157,7 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
 
 TimeSinkView::TimeSinkView(NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+    baseband::run_image(portapack::spi_flash::image_tag_time_sink);
 
     add_children({
         &labels,
