@@ -105,8 +105,8 @@ void TimeSinkProcessor::on_message(const Message* const msg) {
             set_time_streaming_state(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(msg));
             break;
 
-        case Message::ID::WidebandSpectrumConfig: {
-            const auto& message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
+        case Message::ID::TimeSinkConfig: {
+            const auto& message = *reinterpret_cast<const TimeSinkConfigMessage*>(msg);
             baseband_fs = message.sampling_rate;
             trigger = message.trigger;
             baseband_thread.set_sampling_rate(baseband_fs);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026
+ * Copyleft zxkmm (>) 2026
  *
  * This file is part of PortaPack.
  *
@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_time_sink_app.hpp"
+#include "ui_time_sink.hpp"
 
 #include "baseband_api.hpp"
 #include "portapack.hpp"
@@ -29,7 +29,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::time_sink {
 
 TimeSinkWaveformWidget::TimeSinkWaveformWidget(
     Rect parent_rect,
@@ -245,7 +245,7 @@ void TimeSinkView::apply_spectrum_config() {
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(sampling_rate));
 
-    baseband::set_spectrum(
+    baseband::set_time_sink(
         sampling_rate,
         trigger);
 }
@@ -349,4 +349,4 @@ void TimeSinkView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
 }
 
-}  // namespace ui
+}  // namespace ui::external_app::time_sink

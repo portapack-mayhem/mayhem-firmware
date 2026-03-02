@@ -34,7 +34,7 @@
 
 #include <array>
 
-namespace ui {
+namespace ui::external_app::time_sink {
 
 constexpr size_t time_sink_waveform_points = 240;
 
@@ -53,7 +53,7 @@ class TimeSinkWaveformWidget : public Widget {
 
    private:
     static constexpr size_t max_columns = time_sink_waveform_points;
-    static constexpr size_t max_persistence_frames = 32;
+    static constexpr size_t max_persistence_frames = 16; // this is sad that we cant have 32 histories in ext app due to memory constraints
 
     void reset_cache();
     Coord sample_to_y(const Rect& r, int16_t sample) const;
@@ -174,7 +174,6 @@ class TimeSinkView : public View {
             {"4  ", 4},
             {"8  ", 8},
             {"16 ", 16},
-            {"32 ", 32},
         }};
 
     OptionsField options_trigger_mode{
@@ -234,6 +233,6 @@ class TimeSinkView : public View {
     void on_freqchg(int64_t freq);
 };
 
-}  // namespace ui
+}  // namespace ui::external_app::time_sink
 
 #endif  // __UI_TIME_SINK_APP_H__

@@ -342,6 +342,14 @@ void set_spectrum(
     send_message(&message);
 }
 
+void set_time_sink(
+    const size_t sampling_rate,
+    const size_t trigger) {
+    const TimeSinkConfigMessage message{
+        sampling_rate, trigger};
+    send_message(&message);
+}
+
 void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
     const WeFaxRxConfigureMessage message{lpm, ioc};
     send_message(&message);

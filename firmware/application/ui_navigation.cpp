@@ -43,7 +43,6 @@
 #include "ui_iq_trim.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
-#include "ui_time_sink_app.hpp"
 
 #include "ui_playlist.hpp"
 #include "ui_rds.hpp"
@@ -115,7 +114,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
     {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
     {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
-    {"timesink", "Time Sink", HOME, Color::green(), &bitmap_icon_modem, new ViewFactory<TimeSinkView>()},
     {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
     {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
