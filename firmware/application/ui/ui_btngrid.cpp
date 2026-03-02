@@ -424,7 +424,6 @@ bool BtnGridView::blacklisted_app(GridItem new_item) {
     return std::search(blacklist_ptr.get(), blacklist_ptr.get() + blacklist_len, app_name.begin(), app_name.end()) < blacklist_ptr.get() + blacklist_len;
 }
 
-
 void BtnGridView::page_up() {
     if (arrow_up_enabled) {
         size_t item_count = menu_items.size();
