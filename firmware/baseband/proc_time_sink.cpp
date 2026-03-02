@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft zxkmm (>) 2026
  *
  * This file is part of PortaPack.
  *
