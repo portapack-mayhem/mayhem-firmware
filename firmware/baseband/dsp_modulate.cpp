@@ -175,9 +175,15 @@ void FM::set_tone_gen_configure(const uint32_t set_delta, const float set_tone_m
 void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider) {
     int32_t sample = 0;
     int8_t re, im;
+    const size_t audio_last_index = audio.count ? (audio.count - 1) : 0;
+    const uint32_t sample_over = (over == 0) ? 1 : over;
 
     for (size_t counter = 0; counter < buffer.count; counter++) {
-        sample = audio.p[counter >> 6] >> audio_shift_bits_s16_FM;  // Orig. >>8 , 	sample = audio.p[counter / over] >> 8;   (not enough efficient running code, over = 1536000/240000= 64 )
+        size_t audio_index = counter / sample_over;
+        if (audio_index > audio_last_index) {
+            audio_index = audio_last_index;
+        }
+        sample = audio.p[audio_index] >> audio_shift_bits_s16_FM;
         sample *= audio_gain;                                       // Apply GAIN  Scale factor to the audio TX modulation.
 
         if (play_beep) {

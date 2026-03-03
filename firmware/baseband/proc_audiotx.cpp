@@ -22,19 +22,19 @@
 
 #include "proc_audiotx.hpp"
 #include "portapack_shared_memory.hpp"
-#include "sine_table_int8.hpp"
 #include "event_m4.hpp"
 #include "audio_dma.hpp"
 
 #include <cstdint>
 
 void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
-    if (!configured) return;
+    if (!configured || !modulator) return;
+    if (buffer.count > modulation_audio_data.size()) return;
 
     buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, sampling_rate};
     int16_t audio_sample_s16;
 
-    // Zero-order hold (poop)
+    // Zero-order hold.
     for (size_t i = 0; i < buffer.count; i++) {
         resample_acc += resample_inc;
         if (resample_acc >= 0x10000) {
@@ -43,16 +43,18 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
                 audio_sample = 0;
                 stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
                 samples_read++;
+            } else {
+                audio_sample = 0;
             }
         }
 
         if (bytes_per_sample == 1) {
-            sample = audio_sample - 0x80;
+            const int32_t sample = static_cast<int32_t>(audio_sample) - 0x80;
             audio_sample_s16 = sample * 256;
         } else {
             audio_sample_s16 = (int16_t)audio_sample;
-            sample = audio_sample_s16 / 256;
         }
+        modulation_audio_data[i] = audio_sample_s16;
 
         // Output to speaker too
         if (!tone_key_enabled) {
@@ -62,28 +64,41 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
                 audio_output.write_unprocessed(audio_buffer);
         }
 
-        sample = tone_gen.process(sample);
-
-        // FM
-        delta = sample * fm_delta;
-
-        phase += delta;
-        sphase = phase + (64 << 24);
-
-        re = sine_table_i8[(sphase & 0xFF000000U) >> 24];
-        im = sine_table_i8[(phase & 0xFF000000U) >> 24];
-
-        buffer.p[i] = {(int8_t)re, (int8_t)im};
     }
 
+    buffer_s16_t modulation_audio{modulation_audio_data.data(), buffer.count, sampling_rate};
+    modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, false);
+    modulator->execute(modulation_audio, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider);
+
     progress_samples += buffer.count;
-    if (progress_samples >= progress_interval_samples) {
+    if (progress_interval_samples && (progress_samples >= progress_interval_samples)) {
         progress_samples -= progress_interval_samples;
 
         txprogress_message.progress = samples_read;  // Inform UI about progress
         txprogress_message.done = false;
         shared_memory.application_queue.push(txprogress_message);
     }
+}
+
+void AudioTXProcessor::configure_modulator(const AudioTXConfigMessage& message) {
+    if (usb_enabled || lsb_enabled) {
+        auto ssb = std::make_unique<dsp::modulate::SSB>();
+        ssb->set_fs_div_factor(message.deviation_hz);
+        ssb->set_mode(usb_enabled ? dsp::modulate::Mode::USB : dsp::modulate::Mode::LSB);
+        modulator = std::move(ssb);
+    } else if (am_enabled || dsb_enabled) {
+        auto am = std::make_unique<dsp::modulate::AM>();
+        am->set_mode(dsb_enabled ? dsp::modulate::Mode::DSB : dsp::modulate::Mode::AM);
+        modulator = std::move(am);
+    } else {
+        auto fm = std::make_unique<dsp::modulate::FM>();
+        fm->set_fm_delta(message.deviation_hz * (0xFFFFFFULL / baseband_fs));
+        fm->set_tone_gen_configure(message.tone_key_delta, message.tone_key_mix_weight);
+        modulator = std::move(fm);
+    }
+
+    // Audio is already resampled to baseband-rate samples in this processor.
+    modulator->set_over(1);
 }
 
 void AudioTXProcessor::on_message(const Message* const message) {
@@ -112,15 +127,26 @@ void AudioTXProcessor::on_message(const Message* const message) {
 }
 
 void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
-    fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
-    tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
+    am_enabled = message.am_enabled;
+    dsb_enabled = message.dsb_enabled;
+    usb_enabled = message.usb_enabled;
+    lsb_enabled = message.lsb_enabled;
+
+    audio_gain = (message.audio_gain > 0.0f) ? message.audio_gain : 1.0f;
+    audio_shift_bits_s16 = message.audio_shift_bits_s16;
+
     progress_interval_samples = message.divider;
+    divider = message.divider;
+    power_acc_count = 0;
+
     resample_acc = 0;
     bytes_per_sample = message.bits_per_sample / 8;
     audio_output.configure(false);
 
     tone_key_enabled = (message.tone_key_delta != 0);
     audio::dma::shrink_tx_buffer(!tone_key_enabled);
+
+    configure_modulator(message);
 }
 
 void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
