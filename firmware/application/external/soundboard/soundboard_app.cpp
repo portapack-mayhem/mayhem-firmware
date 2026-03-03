@@ -119,18 +119,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
         });
 
     // TODO: Delete all this and use tx model.
-    baseband::set_audiotx_config(
-        1536000 / 20,  // Update vu-meter at 20Hz
-        transmitter_model.channel_bandwidth(),
-        0,  // Gain is unused
-        8,  // shift_bits_s16, default 8 bits, but also unused
-        bits_per_sample,
-        TONES_F2D(tone_key_frequency(tone_key_index), TONES_SAMPLERATE),
-        false,  // AM
-        false,  // DSB
-        false,  // USB
-        false   // LSB
-    );
+    update_config();
     baseband::set_sample_rate(sample_rate);
 
     transmitter_model.enable();
@@ -156,6 +145,8 @@ void SoundBoardView::on_tx_progress(const uint32_t progress) {
 void SoundBoardView::update_config() {
     // NB: this were called by the on_bandwidth_changed() callback,
     // so other val would be updated too when bw changed. currently it's safe but be careful.
+    const bool usb_mode = (modulation_mode_ == modulation_mode_t::USB);
+    const bool lsb_mode = (modulation_mode_ == modulation_mode_t::LSB);
     baseband::set_audiotx_config(
         1536000 / 20,  // Update vu-meter at 20Hz
         transmitter_model.channel_bandwidth(),
@@ -165,9 +156,38 @@ void SoundBoardView::update_config() {
         TONES_F2D(tone_key_frequency(tone_key_index), TONES_SAMPLERATE),
         false,  // AM
         false,  // DSB
-        false,  // USB
-        false   // LSB
+        usb_mode,
+        lsb_mode
     );
+}
+
+void SoundBoardView::update_modulation_indicator() {
+    char indicator = 0;
+
+    if (modulation_mode_ == modulation_mode_t::USB) {
+        indicator = '+';
+    } else if (modulation_mode_ == modulation_mode_t::LSB) {
+        indicator = '-';
+    }
+
+    tx_view.set_bandwidth_mode_indicator(indicator);
+}
+
+void SoundBoardView::cycle_modulation_mode() {
+    switch (modulation_mode_) {
+        case modulation_mode_t::BROADBAND:
+            modulation_mode_ = modulation_mode_t::USB;
+            break;
+        case modulation_mode_t::USB:
+            modulation_mode_ = modulation_mode_t::LSB;
+            break;
+        case modulation_mode_t::LSB:
+            modulation_mode_ = modulation_mode_t::BROADBAND;
+            break;
+    }
+
+    update_modulation_indicator();
+    update_config();
 }
 
 void SoundBoardView::on_select_entry() {
@@ -307,6 +327,9 @@ SoundBoardView::SoundBoardView(
     tx_view.on_bandwidth_changed = [this]() {
         update_config();
     };
+    tx_view.on_bandwidth_select = [this]() {
+        cycle_modulation_mode();
+    };
 
     tx_view.on_start = [this]() {
         start_tx(menu_view.highlighted_index());
@@ -316,6 +339,8 @@ SoundBoardView::SoundBoardView(
         tx_view.set_transmitting(false);
         stop();
     };
+
+    update_modulation_indicator();
 }
 
 SoundBoardView::~SoundBoardView() {

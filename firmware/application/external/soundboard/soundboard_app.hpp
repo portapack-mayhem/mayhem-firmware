@@ -65,7 +65,14 @@ class SoundBoardView : public View {
         RANDOM
     };
 
+    enum class modulation_mode_t : uint8_t {
+        BROADBAND = 0,
+        USB,
+        LSB
+    };
+
     tx_modes tx_mode = NORMAL;
+    modulation_mode_t modulation_mode_ = modulation_mode_t::BROADBAND;
 
     uint32_t playing_id{};
     uint32_t page = 1;
@@ -93,6 +100,8 @@ class SoundBoardView : public View {
     void refresh_list();
     void on_select_entry();
     void update_config();
+    void cycle_modulation_mode();
+    void update_modulation_indicator();
 
     Labels labels{
         {{24 * 8, UI_POS_Y_BOTTOM(9)}, "Vol:", Theme::getInstance()->fg_light->foreground},

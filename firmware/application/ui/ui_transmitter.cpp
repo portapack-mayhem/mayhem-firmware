@@ -93,6 +93,16 @@ void TransmitterView::on_tx_amp_changed(bool rf_amp) {
     update_gainlevel_styles();
 }
 
+void TransmitterView::update_bandwidth_label() {
+    if (bandwidth_mode_indicator_ == '+') {
+        text_bw.set("kH+");
+    } else if (bandwidth_mode_indicator_ == '-') {
+        text_bw.set("kH-");
+    } else {
+        text_bw.set("kHz");
+    }
+}
+
 void TransmitterView::update_gainlevel_styles() {
     int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
     auto style = get_style_for_gain(tot_gain);
@@ -113,6 +123,19 @@ void TransmitterView::set_transmitting(const bool transmitting) {
     }
 
     transmitting_ = transmitting;
+}
+
+void TransmitterView::set_bandwidth_mode_indicator(char indicator) {
+    if ((indicator != '+') && (indicator != '-')) {
+        indicator = 0;
+    }
+
+    if (bandwidth_mode_indicator_ == indicator) {
+        return;
+    }
+
+    bandwidth_mode_indicator_ = indicator;
+    update_bandwidth_label();
 }
 
 void TransmitterView::on_show() {
@@ -163,7 +186,15 @@ TransmitterView::TransmitterView(
                     on_bandwidth_changed();
                 }
             };
+            field_bw.on_select = [this](NumberField& field) {
+                if (on_bandwidth_select) {
+                    on_bandwidth_select();
+                } else {
+                    field.on_encoder(1);
+                }
+            };
             field_bw.set_value(channel_bandwidth);
+            update_bandwidth_label();
         }
     }
 

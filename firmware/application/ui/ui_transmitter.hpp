@@ -51,6 +51,7 @@ class TransmitterView : public View {
     std::function<void(void)> on_start{};
     std::function<void(void)> on_stop{};
     std::function<void(void)> on_bandwidth_changed{};
+    std::function<void(void)> on_bandwidth_select{};
     // TODO: this is a workaround because in the message system,
     // we change bw by different message for different m4 bb, so have to callback
     // and change in the instance(for instance SigGen app) with calling the instance's bb opration func
@@ -70,6 +71,7 @@ class TransmitterView : public View {
     void focus() override;
 
     void set_transmitting(const bool transmitting);
+    void set_bandwidth_mode_indicator(char indicator);
 
    private:
     const Style& style_start = *Theme::getInstance()->fg_green;
@@ -126,8 +128,10 @@ class TransmitterView : public View {
     void on_channel_bandwidth_changed(uint32_t channel_bandwidth);
     void on_tx_gain_changed(int32_t tx_gain);
     void on_tx_amp_changed(bool rf_amp);
+    void update_bandwidth_label();
 
     void update_gainlevel_styles(void);
+    char bandwidth_mode_indicator_{0};
 };
 
 /* Simpler transmitter view that only renders TX Gain and Amp.
