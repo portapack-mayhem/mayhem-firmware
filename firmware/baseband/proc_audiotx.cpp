@@ -22,52 +22,98 @@
 
 #include "proc_audiotx.hpp"
 #include "portapack_shared_memory.hpp"
+#include "sine_table_int8.hpp"
 #include "event_m4.hpp"
 #include "audio_dma.hpp"
 
 #include <cstdint>
 
 void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
-    if (!configured || !modulator) return;
-    if (buffer.count > modulation_audio_data.size()) return;
+    if (!configured) return;
 
     buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, sampling_rate};
     int16_t audio_sample_s16;
 
-    // Zero-order hold.
-    for (size_t i = 0; i < buffer.count; i++) {
-        resample_acc += resample_inc;
-        if (resample_acc >= 0x10000) {
-            resample_acc -= 0x10000;
-            if (stream) {
-                audio_sample = 0;
-                stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
-                samples_read++;
+    if (!use_alternate_modulator) {
+        // Keep original FM path intact for backward compatibility.
+        for (size_t i = 0; i < buffer.count; i++) {
+            resample_acc += resample_inc;
+            if (resample_acc >= 0x10000) {
+                resample_acc -= 0x10000;
+                if (stream) {
+                    audio_sample = 0;
+                    stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
+                    samples_read++;
+                }
+            }
+
+            if (bytes_per_sample == 1) {
+                sample = audio_sample - 0x80;
+                audio_sample_s16 = sample * 256;
             } else {
-                audio_sample = 0;
+                audio_sample_s16 = (int16_t)audio_sample;
+                sample = audio_sample_s16 / 256;
+            }
+
+            // Output to speaker too
+            if (!tone_key_enabled) {
+                uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
+                audio_data[imod32] = audio_sample_s16;
+                if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
+                    audio_output.write_unprocessed(audio_buffer);
+            }
+
+            sample = tone_gen.process(sample);
+
+            // FM
+            delta = sample * fm_delta;
+
+            phase += delta;
+            sphase = phase + (64 << 24);
+
+            re = sine_table_i8[(sphase & 0xFF000000U) >> 24];
+            im = sine_table_i8[(phase & 0xFF000000U) >> 24];
+
+            buffer.p[i] = {(int8_t)re, (int8_t)im};
+        }
+    } else {
+        if (!modulator) return;
+        if (buffer.count > modulation_audio_data.size()) return;
+
+        for (size_t i = 0; i < buffer.count; i++) {
+            resample_acc += resample_inc;
+            if (resample_acc >= 0x10000) {
+                resample_acc -= 0x10000;
+                if (stream) {
+                    audio_sample = 0;
+                    stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
+                    samples_read++;
+                } else {
+                    audio_sample = 0;
+                }
+            }
+
+            if (bytes_per_sample == 1) {
+                const int32_t sample = static_cast<int32_t>(audio_sample) - 0x80;
+                audio_sample_s16 = sample * 256;
+            } else {
+                audio_sample_s16 = (int16_t)audio_sample;
+            }
+            modulation_audio_data[i] = audio_sample_s16;
+
+            // Output to speaker too
+            if (!tone_key_enabled) {
+                uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
+                audio_data[imod32] = audio_sample_s16;
+                if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
+                    audio_output.write_unprocessed(audio_buffer);
             }
         }
 
-        if (bytes_per_sample == 1) {
-            const int32_t sample = static_cast<int32_t>(audio_sample) - 0x80;
-            audio_sample_s16 = sample * 256;
-        } else {
-            audio_sample_s16 = (int16_t)audio_sample;
-        }
-        modulation_audio_data[i] = audio_sample_s16;
-
-        // Output to speaker too
-        if (!tone_key_enabled) {
-            uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
-            audio_data[imod32] = audio_sample_s16;
-            if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
-                audio_output.write_unprocessed(audio_buffer);
-        }
+        buffer_s16_t modulation_audio{modulation_audio_data.data(), buffer.count, sampling_rate};
+        modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, false);
+        modulator->execute(modulation_audio, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider);
     }
-
-    buffer_s16_t modulation_audio{modulation_audio_data.data(), buffer.count, sampling_rate};
-    modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, false);
-    modulator->execute(modulation_audio, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider);
 
     progress_samples += buffer.count;
     if (progress_interval_samples && (progress_samples >= progress_interval_samples)) {
@@ -145,7 +191,14 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
     tone_key_enabled = (message.tone_key_delta != 0);
     audio::dma::shrink_tx_buffer(!tone_key_enabled);
 
-    configure_modulator(message);
+    use_alternate_modulator = am_enabled || dsb_enabled || usb_enabled || lsb_enabled;
+    if (use_alternate_modulator) {
+        configure_modulator(message);
+    } else {
+        modulator.reset();
+        fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
+        tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
+    }
 }
 
 void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {

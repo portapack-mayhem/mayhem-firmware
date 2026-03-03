@@ -25,6 +25,7 @@
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "tone_gen.hpp"
 #include "stream_output.hpp"
 #include "audio_output.hpp"
 #include "audio_dma.hpp"
@@ -44,9 +45,14 @@ class AudioTXProcessor : public BasebandProcessor {
     static constexpr size_t baseband_fs = 1536000;
 
     std::unique_ptr<StreamOutput> stream{};
+    ToneGen tone_gen{};
 
     uint32_t resample_inc{}, resample_acc{};
+    uint32_t fm_delta{0};
+    uint32_t phase{0}, sphase{0};
     uint32_t audio_sample{};
+    int32_t sample{0}, delta{};
+    int8_t re{0}, im{0};
     uint8_t bytes_per_sample{1};
     uint32_t sampling_rate{48000};
     uint8_t audio_shift_bits_s16{8};
@@ -69,6 +75,7 @@ class AudioTXProcessor : public BasebandProcessor {
     bool dsb_enabled{false};
     bool usb_enabled{false};
     bool lsb_enabled{false};
+    bool use_alternate_modulator{false};
 
     void sample_rate_config(const SampleRateConfigMessage& message);
     void audio_config(const AudioTXConfigMessage& message);
