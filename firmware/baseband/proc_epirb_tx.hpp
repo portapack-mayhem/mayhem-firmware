@@ -25,6 +25,7 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "portapack_shared_memory.hpp"
+#include "tonesets.hpp"
 
 class EPIRBTXProcessor : public BasebandProcessor {
    public:
@@ -47,7 +48,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
 
 
     // BPSK parameters
-    float phase_deg = 63.0f; // Target phase +/-63°
+    float phase_deg = 63.0f; // Target phase +/-63° as per COSPAS/SARSAT specifications
     float phase_rad = phase_deg * M_PI / 180.0f; // Convert to radian
 
     // I/Q values for BPSK
@@ -56,7 +57,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     int8_t i_neg = i_pos;
     int8_t q_neg = -q_pos;
 
-    uint32_t samples_per_halfbit = 1920;  // 1536000 / 400 / 2
+    uint32_t samples_per_halfbit = TONES_SAMPLERATE / 400 / 2; // COSPAS/SARSAT signal is manchester encoded 400 bit/sec
     uint32_t sample_counter = 0;
     uint32_t bpsk_pre_count = 0;
     uint32_t bpsk_post_count = 0;
@@ -72,7 +73,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     TXProgressMessage txprogress_message{};
 
     /* NB: Threads should be the last members in the class definition. */
-    BasebandThread baseband_thread{1536000, this, baseband::Direction::Transmit};
+    BasebandThread baseband_thread{TONES_SAMPLERATE, this, baseband::Direction::Transmit};
 };
 
 #endif

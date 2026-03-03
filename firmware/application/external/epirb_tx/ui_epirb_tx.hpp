@@ -33,6 +33,10 @@
 #include "message.hpp"
 #include "tonesets.hpp"
 
+#define BEACON_HEXA_SIZE        36
+#define BEACON_HEXA_HALF_SIZE   18
+#define BEACON_SIZE             18
+
 namespace ui::external_app::epirb_tx {
 
 class EPIRBTXAppView : public View {
@@ -46,9 +50,21 @@ class EPIRBTXAppView : public View {
 
    private:
     void start_tx();
+    void stop_tx();
     void update_config();
     void on_tx_progress(const uint32_t progress, const bool done);
+    void on_timer();
+    void load_beacons();
 
+    struct Beacon {
+        std::string title{};
+        std::string description{};
+        std::string frame{};
+    };
+    std::vector<Beacon> beacons{};
+    Beacon default_beacon {"Self test","Serial User Location Protocol","FFFED0D6E6202820000C29FF51041775302D"};
+
+    size_t  selected_beacon{0};
     uint8_t hexval(char c);
 
     uint8_t hexToByte(char high, char low);
@@ -61,77 +77,56 @@ class EPIRBTXAppView : public View {
     app_settings::SettingsManager settings_{
         "tx_epirb", app_settings::Mode::TX};
 
-    const std::string shape_strings[6] = {// max 15 character text space.
-                                          "Sine",
-                                          "Triangle",
-                                          "Saw up",
-                                          "Saw down",
-                                          "Square",
-                                          "Pseudo Noise"};
-
-    bool auto_update{false};
+    bool loop{false};
+    uint32_t last_frame_time{0};
 
     EPIRBTXDataMessage epirb_tx_message{};
 
+    const size_t max_text_width = UI_POS_WIDTH_REMAINING(6)/UI_POS_DEFAULT_WIDTH;
+    const size_t max_text_width_ext = UI_POS_WIDTH_REMAINING(0)/UI_POS_DEFAULT_WIDTH;
 
     Labels labels{
-        {{3 * 8, 2 * 8}, "Modulation:", Theme::getInstance()->fg_light->foreground},
-        {{3 * 8, 3 * 8 + 8 + 10}, "Shape:", Theme::getInstance()->fg_light->foreground},
-        {{6 * 8, 2 * 8 + 7 * 8}, "Tone:      Hz", Theme::getInstance()->fg_light->foreground},
-        {{22 * 8, 2 * 8 + 15 * 8 + 4}, "s.", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Beacon:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Desc.:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(5)}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(9)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(17), UI_POS_Y(8)}, "s.", Theme::getInstance()->fg_light->foreground}};
 
-    ImageOptionsField options_shape{
-        {10 * 8, 3 * 8 + 8, 32, 32},
-        Theme::getInstance()->bg_darkest->foreground,
-        Theme::getInstance()->bg_darkest->background,
-        {{&bitmap_sig_sine, 0},
-         {&bitmap_sig_tri, 1},
-         {&bitmap_sig_saw_up, 2},
-         {&bitmap_sig_saw_down, 3},
-         {&bitmap_sig_square, 4},
-         {&bitmap_sig_noise, 5}}};
+    Text text_description {
+        { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+        ""};        
 
-    Text text_shape{
-        {15 * 8, 3 * 8 + 8 + 10, 15 * 8, 16},
-        ""};
+    Text text_description_end {
+        { UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+        ""};        
 
-    SymField symfield_tone{
-        {12 * 8, 2 * 8 + 7 * 8},
-        5};
+    Text text_frame {
+        { UI_POS_X(6), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
+        ""};        
+    Text text_frame_end {
+        { UI_POS_X(6), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
+        ""};        
 
-    Button button_update{
-        {5 * 8, 2 * 8 + 10 * 8, 8 * 8, 3 * 8},
-        "Update"};
+    Text text_timeout {
+        { UI_POS_X(13), UI_POS_Y(9), UI_POS_WIDTH(2), UI_POS_DEFAULT_HEIGHT},
+        ""};        
 
-    Checkbox checkbox_auto{
-        {15 * 8, 2 * 8 + 10 * 8},
-        4,
-        "Auto"};
-
-    Checkbox checkbox_stop{
-        {5 * 8, 2 * 8 + 15 * 8},
+    Checkbox checkbox_loop{
+        {UI_POS_X(0), UI_POS_Y(8)},
         10,
-        "Stop after"};
+        "Resend every",true};
 
-    NumberField field_stop{
-        {20 * 8, 2 * 8 + 15 * 8 + 4},
+    NumberField field_delay{
+        {UI_POS_X(15), UI_POS_Y(8)},
         2,
         {1, 99},
         1,
         ' '};
 
-    OptionsField options_mod{
-        {15 * 8, 2 * 8},
-        12,
-        {{"CW (No mod.)", 0},
-         {"FM", 1},
-         {"BPSK", 2},
-         {"QPSK", 3},
-         {"DSB", 4},
-         {"AM 100% dep.", 5},
-         {"AM 50% depth", 6},
-         {"Pulse CW 25%", 7},
-         {"BPSK Mnchstr", 8}}};
+    OptionsField options_frame{
+        {UI_POS_X(7), UI_POS_Y(1)},
+        30,
+        {}};
 
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
@@ -143,6 +138,12 @@ class EPIRBTXAppView : public View {
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.progress, message.done);
+        }};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_timer();
         }};
 };
 
