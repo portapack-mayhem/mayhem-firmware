@@ -307,7 +307,7 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
         update_items();
     }
 
-    if (visible()) {
+    if (drawn()) {
         size_t idx = highlighted_item - offset;
         if (idx < menu_item_views.size())
             item_view(idx)->focus();
@@ -449,7 +449,7 @@ void BtnGridView::page_up() {
         update_items();
 
         if (was_visible) {
-            if (visible()) {
+            if (drawn()) {
                 size_t idx = highlighted_item - offset;
                 if (idx < menu_item_views.size())
                     item_view(idx)->focus();
@@ -488,7 +488,7 @@ void BtnGridView::page_down() {
         update_items();
 
         if (was_visible) {
-            if (visible()) {
+            if (drawn()) {
                 size_t idx = highlighted_item - offset;
                 if (idx < menu_item_views.size())
                     item_view(idx)->focus();
