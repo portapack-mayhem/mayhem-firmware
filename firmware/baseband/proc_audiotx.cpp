@@ -28,6 +28,23 @@
 
 #include <cstdint>
 
+namespace {
+void write_silence(const buffer_c8_t& buffer) {
+    for (size_t i = 0; i < buffer.count; ++i) {
+        buffer.p[i] = {0, 0};
+    }
+}
+
+int16_t apply_tone_and_expand(ToneGen& tone_gen, int16_t input_s16) {
+    const int32_t sample_s8 = static_cast<int32_t>(input_s16) / 256;
+    const int32_t toned_s8 = tone_gen.process(sample_s8);
+    int32_t toned_s16 = toned_s8 * 256;
+    if (toned_s16 > 32767) toned_s16 = 32767;
+    if (toned_s16 < -32768) toned_s16 = -32768;
+    return static_cast<int16_t>(toned_s16);
+}
+}  // namespace
+
 void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
@@ -77,42 +94,48 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
             buffer.p[i] = {(int8_t)re, (int8_t)im};
         }
     } else {
-        if (!modulator) return;
-        if (buffer.count > modulation_audio_data.size()) return;
+        if (!modulator || (buffer.count > modulation_audio_data.size())) {
+            // Avoid leaving stale I/Q samples in DMA buffers on guard-condition failure.
+            write_silence(buffer);
+        } else {
+            for (size_t i = 0; i < buffer.count; i++) {
+                resample_acc += resample_inc;
+                if (resample_acc >= 0x10000) {
+                    resample_acc -= 0x10000;
+                    if (stream) {
+                        audio_sample = 0;
+                        stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
+                        samples_read++;
+                    } else {
+                        audio_sample = 0;
+                    }
+                }
 
-        for (size_t i = 0; i < buffer.count; i++) {
-            resample_acc += resample_inc;
-            if (resample_acc >= 0x10000) {
-                resample_acc -= 0x10000;
-                if (stream) {
-                    audio_sample = 0;
-                    stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
-                    samples_read++;
+                if (bytes_per_sample == 1) {
+                    const int32_t sample = static_cast<int32_t>(audio_sample) - 0x80;
+                    audio_sample_s16 = sample * 256;
                 } else {
-                    audio_sample = 0;
+                    audio_sample_s16 = (int16_t)audio_sample;
+                }
+                const int16_t speaker_sample_s16 = audio_sample_s16;
+
+                // Apply tone/keying path for alternate modes too (USB/LSB/AM/DSB).
+                audio_sample_s16 = apply_tone_and_expand(tone_gen, audio_sample_s16);
+                modulation_audio_data[i] = audio_sample_s16;
+
+                // Output to speaker too
+                if (!tone_key_enabled) {
+                    uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
+                    audio_data[imod32] = speaker_sample_s16;
+                    if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
+                        audio_output.write_unprocessed(audio_buffer);
                 }
             }
 
-            if (bytes_per_sample == 1) {
-                const int32_t sample = static_cast<int32_t>(audio_sample) - 0x80;
-                audio_sample_s16 = sample * 256;
-            } else {
-                audio_sample_s16 = (int16_t)audio_sample;
-            }
-            modulation_audio_data[i] = audio_sample_s16;
-
-            // Output to speaker too
-            if (!tone_key_enabled) {
-                uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
-                audio_data[imod32] = audio_sample_s16;
-                if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
-                    audio_output.write_unprocessed(audio_buffer);
-            }
+            buffer_s16_t modulation_audio{modulation_audio_data.data(), buffer.count, sampling_rate};
+            modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, false);
+            modulator->execute(modulation_audio, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider);
         }
-
-        buffer_s16_t modulation_audio{modulation_audio_data.data(), buffer.count, sampling_rate};
-        modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, false);
-        modulator->execute(modulation_audio, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider);
     }
 
     progress_samples += buffer.count;
@@ -190,6 +213,7 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
 
     tone_key_enabled = (message.tone_key_delta != 0);
     audio::dma::shrink_tx_buffer(!tone_key_enabled);
+    tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
 
     use_alternate_modulator = am_enabled || dsb_enabled || usb_enabled || lsb_enabled;
     if (use_alternate_modulator) {
@@ -197,7 +221,6 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
     } else {
         modulator.reset();
         fm_delta = message.deviation_hz * (0xFFFFFFULL / baseband_fs);
-        tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
     }
 }
 
