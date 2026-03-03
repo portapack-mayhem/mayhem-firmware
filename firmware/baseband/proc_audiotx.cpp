@@ -63,7 +63,6 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
             if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
                 audio_output.write_unprocessed(audio_buffer);
         }
-
     }
 
     buffer_s16_t modulation_audio{modulation_audio_data.data(), buffer.count, sampling_rate};

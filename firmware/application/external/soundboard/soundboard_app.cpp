@@ -157,8 +157,7 @@ void SoundBoardView::update_config() {
         false,  // AM
         false,  // DSB
         usb_mode,
-        lsb_mode
-    );
+        lsb_mode);
 }
 
 void SoundBoardView::update_modulation_indicator() {

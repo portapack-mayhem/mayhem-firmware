@@ -184,7 +184,7 @@ void FM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& con
             audio_index = audio_last_index;
         }
         sample = audio.p[audio_index] >> audio_shift_bits_s16_FM;
-        sample *= audio_gain;                                       // Apply GAIN  Scale factor to the audio TX modulation.
+        sample *= audio_gain;  // Apply GAIN  Scale factor to the audio TX modulation.
 
         if (play_beep) {
             sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message);  // Apply beep -if selected - atom ,sample by sample.
