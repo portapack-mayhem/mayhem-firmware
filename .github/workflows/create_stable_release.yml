@@ -154,8 +154,8 @@ jobs:
           unzip -j artifacts/firmware-hpro/firmware.zip portapack-mayhem-firmware.bin -d firmware_combined/firmware
           mv firmware_combined/firmware/portapack-mayhem-firmware.bin firmware_combined/firmware/firmware_hpro.bin
           unzip -j artifacts/firmware-hpro/firmware.zip firmware/hackrf_usb.dfu firmware/hackrf_usb.bin -d firmware_combined_hpro
-          mv firmware_combined_hpro/firmware/hackrf_usb.dfu firmware_combined/firmware/hackrf_usb_hpro.dfu
-          mv firmware_combined_hpro/firmware/hackrf_usb.bin firmware_combined/firmware/hackrf_usb_hpro.bin
+          mv firmware_combined_hpro/firmware/hackrf_usb.dfu firmware_combined/firmware/hackrf_hpro_usb.dfu
+          mv firmware_combined_hpro/firmware/hackrf_usb.bin firmware_combined/firmware/hackrf_hpro_usb.bin
           cd firmware_combined && zip -r ../firmware_all_devices.zip . && cd ..
       # Default device assets
       - name: Upload Default Firmware TAR Asset

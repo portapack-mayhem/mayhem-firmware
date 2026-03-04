@@ -102,7 +102,7 @@ echo   3. Then release the DFU button.
 echo.
 
 if "%DEVICE_CHOICE%"=="3" (
-    set DFU_FILE=firmware\hackrf_usb_hpro.dfu
+    set DFU_FILE=firmware\hackrf_hpro_usb.dfu
 ) else (
     set DFU_FILE=firmware\hackrf_usb.dfu
 )
@@ -134,7 +134,7 @@ echo PortaPack functionality will no longer be available after this.
 echo.
 
 if "%DEVICE_CHOICE%"=="3" (
-    set FACTORY_BIN=firmware\hackrf_usb_hpro.bin
+    set FACTORY_BIN=firmware\hackrf_hpro_usb.bin
 ) else (
     set FACTORY_BIN=firmware\hackrf_usb.bin
 )
