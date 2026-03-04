@@ -35,6 +35,8 @@ class EPIRBTXProcessor : public BasebandProcessor {
    private:
     bool configured{false};
 
+    bool mode_bpsk{false};
+
     bool end_of_transmission{};
     int8_t re{0}, im{0};         // they have sign + and -.
 
@@ -69,6 +71,24 @@ class EPIRBTXProcessor : public BasebandProcessor {
     uint8_t current_bit = 0;
 
     bool manchester_half = false; // false = first half
+
+    // 127.5 AM signal parameters
+    static const uint32_t sample_rate = TONES_SAMPLERATE;
+    static const uint32_t sweep_rate = 3;          // 2 Hz
+    static const uint32_t f_min = 300;             // Sweep min frequency
+    static const uint32_t f_max = 1600;            // Sweep max frequency
+    static const uint8_t modulation_index = 100;   // ~0.8 on 127 scale
+    // Phase accumulators
+    uint32_t sweep_phase = 0;
+    uint32_t audio_phase = 0;
+
+    // Increments
+    uint32_t sweep_inc = 0;
+
+    // Frequency
+    uint32_t freq_scale = 0;
+    int32_t center_freq = 0;
+    int32_t freq_dev = 0;      // = freq_span / 256
 
     TXProgressMessage txprogress_message{};
 

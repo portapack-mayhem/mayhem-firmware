@@ -38,68 +38,98 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
             shared_memory.application_queue.push(txprogress_message);
         }
 
-        // BPSK Manchester
-        if (bpsk_pre_count < config_pre_count) {
-            bpsk_pre_count++;
-            re = i_neg;
-            im = q_neg;
-        } else if (bpsk_post_count > 0) {
-            bpsk_post_count++;
-            re = i_neg;
-            im = q_neg;
-            if (bpsk_post_count >= config_post_count) {  // End of transmission
-                byte_index = 0;                      // Stop here
-                bpsk_post_count = 0;
-                bpsk_pre_count = 0;
-                end_of_transmission = true;
-            }
-        } else {
-            if (sample_counter == 0 && manchester_half == false) {
-                if (bit_index == 0) {
-                    if (byte_index >= frame_data_len) {  // End of frame => move to postcount
-                        bpsk_post_count = 1;
-                    }
-                    current_byte = frame_data[byte_index];
-                    byte_index ++;
-                }
-
-                current_bit = (current_byte >> (7 - bit_index)) & 0x01;
-            }
-
-            // Manchester encoding
-            if (current_bit == 1) {
-                // 1 = falling signal
-                if (manchester_half == false) {
-                    re = i_pos;
-                    im = q_pos;
-                } else {
-                    re = i_neg;
-                    im = q_neg;
+        if(mode_bpsk)
+        {
+            // BPSK Manchester
+            if (bpsk_pre_count < config_pre_count) {
+                bpsk_pre_count++;
+                re = i_neg;
+                im = q_neg;
+            } else if (bpsk_post_count > 0) {
+                bpsk_post_count++;
+                re = i_neg;
+                im = q_neg;
+                if (bpsk_post_count >= config_post_count) {  // End of transmission
+                    byte_index = 0;                      // Stop here
+                    bpsk_post_count = 0;
+                    bpsk_pre_count = 0;
+                    end_of_transmission = true;
                 }
             } else {
-                // 0 = rising signal
-                if (manchester_half == false) {
-                    re = i_neg;
-                    im = q_neg;
+                if (sample_counter == 0 && manchester_half == false) {
+                    if (bit_index == 0) {
+                        if (byte_index >= frame_data_len) {  // End of frame => move to postcount
+                            bpsk_post_count = 1;
+                        }
+                        current_byte = frame_data[byte_index];
+                        byte_index ++;
+                    }
+
+                    current_bit = (current_byte >> (7 - bit_index)) & 0x01;
+                }
+
+                // Manchester encoding
+                if (current_bit == 1) {
+                    // 1 = falling signal
+                    if (manchester_half == false) {
+                        re = i_pos;
+                        im = q_pos;
+                    } else {
+                        re = i_neg;
+                        im = q_neg;
+                    }
                 } else {
-                    re = i_pos;
-                    im = q_pos;
+                    // 0 = rising signal
+                    if (manchester_half == false) {
+                        re = i_neg;
+                        im = q_neg;
+                    } else {
+                        re = i_pos;
+                        im = q_pos;
+                    }
+                }
+
+                sample_counter++;
+
+                if (sample_counter >= samples_per_halfbit) {
+                    sample_counter = 0;
+                    manchester_half = !manchester_half;
+
+                    // Next bit aftoer to half bits
+                    if (manchester_half == false) {
+                        bit_index++;
+                        if (bit_index >= 8)
+                            bit_index = 0;
+                    }
                 }
             }
+        }
+        else
+        {   // AM 127.5 MHz sine swee
+            // ---- 2 Hz Sweep ----
+            sweep_phase += sweep_inc;
+            uint8_t sweep_index = (sweep_phase & 0xFF000000) >> 24;
+            int8_t sweep = sine_table_i8[sweep_index];   // -128..127
 
-            sample_counter++;
+            // Fréquence instantanée
+            int32_t audio_freq = center_freq + sweep * freq_dev;
 
-            if (sample_counter >= samples_per_halfbit) {
-                sample_counter = 0;
-                manchester_half = !manchester_half;
+            // ---- Audio ----
+            uint32_t audio_inc = audio_freq * freq_scale;
+            audio_phase += audio_inc;
 
-                // Next bit aftoer to half bits
-                if (manchester_half == false) {
-                    bit_index++;
-                    if (bit_index >= 8)
-                        bit_index = 0;
-                }
-            }
+            uint8_t audio_index = (audio_phase & 0xFF000000) >> 24;
+            int8_t audio = sine_table_i8[audio_index];
+
+            // ---- AM ----
+            // int16_t amplitude = 64 + (audio >> 1);  // 64 = 127 - (127 >> 1): carrier level without modulating signal //127 + ((modulation_index * audio) >> 7);   // /128 via shift
+            int16_t amplitude = 74 + ((100 * audio) >> 7);   // /128 via shift
+
+            if (amplitude > 127) amplitude = 127;
+            if (amplitude < -128) amplitude = -128;
+
+            re = (int8_t)amplitude;
+            im = 0;
         }
         buffer.p[i] = {re, im};
     }
@@ -114,6 +144,21 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
             config_post_count = message.post_count;
             frame_data_len = message.data_len;
             memcpy(frame_data,message.data,frame_data_len);
+            // Configure am
+            {
+                uint32_t freq_span = f_max - f_min;
+                center_freq = f_min + (freq_span / 2);
+                // Pré-calcul deviation par unité de sweep
+                freq_dev = freq_span / 256;
+                // Conversion fréquence → phase increment
+                freq_scale = (1ULL << 32) / sample_rate;
+
+                sweep_inc = sweep_rate * freq_scale;
+
+                sweep_phase = 0;
+                audio_phase = 0;  
+            }                      
+
             configured = true;
             break;
 
