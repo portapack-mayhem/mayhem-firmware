@@ -227,7 +227,7 @@ void Widget::drawn(bool v) {
         } else {
             on_hide();
 
-            // Set all children invisible too.
+            // Mark all children as not drawn too.
             for (const auto child : children()) {
                 child->drawn(false);
             }
