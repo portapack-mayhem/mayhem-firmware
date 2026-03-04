@@ -141,6 +141,17 @@ jobs:
             For certain functionality, like external apps, the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
           draft: true
           prerelease: false
+      # Combine all 3 device firmware bins into a single zip with device selector bat
+      - name: Create Combined Firmware ZIP
+        run: |
+          mkdir -p firmware_combined
+          unzip artifacts/firmware-default/firmware.zip -d firmware_combined
+          mv firmware_combined/portapack-mayhem-firmware.bin firmware_combined/firmware_hackrf.bin
+          unzip -j artifacts/firmware-portarf/firmware.zip portapack-mayhem-firmware.bin -d firmware_combined
+          mv firmware_combined/portapack-mayhem-firmware.bin firmware_combined/firmware_portarf.bin
+          unzip -j artifacts/firmware-hpro/firmware.zip portapack-mayhem-firmware.bin -d firmware_combined
+          mv firmware_combined/portapack-mayhem-firmware.bin firmware_combined/firmware_hpro.bin
+          cd firmware_combined && zip -r ../firmware_all_devices.zip . && cd ..
       # Default device assets
       - name: Upload Default Firmware TAR Asset
         uses: actions/upload-release-asset@v1
@@ -151,14 +162,14 @@ jobs:
           asset_path: artifacts/oci-tar-default/portapack-mayhem_OCI.ppfw.tar
           asset_name: OCI_hackrf_mayhem_${{ steps.version.outputs.version }}.ppfw.tar
           asset_content_type: application/x-tar
-      - name: Upload Default Firmware Asset
+      - name: Upload Combined Firmware Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/firmware-default/firmware.zip
-          asset_name: FIRMWARE_hackrf_mayhem_${{ steps.version.outputs.version }}.zip
+          asset_path: ./firmware_all_devices.zip
+          asset_name: FIRMWARE_mayhem_${{ steps.version.outputs.version }}.zip
           asset_content_type: application/zip
       - name: Upload Default SD Card Asset
         uses: actions/upload-release-asset@v1
@@ -188,15 +199,6 @@ jobs:
           asset_path: artifacts/oci-tar-portarf/portapack-mayhem_OCI.ppfw.tar
           asset_name: OCI_portarf_mayhem_${{ steps.version.outputs.version }}.ppfw.tar
           asset_content_type: application/x-tar
-      - name: Upload PortaRF Firmware Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/firmware-portarf/firmware.zip
-          asset_name: FIRMWARE_portarf_mayhem_${{ steps.version.outputs.version }}.zip
-          asset_content_type: application/zip
       - name: Upload PortaRF SD Card Asset
         uses: actions/upload-release-asset@v1
         env:
@@ -225,15 +227,6 @@ jobs:
           asset_path: artifacts/oci-tar-hpro/portapack-mayhem_OCI.ppfw.tar
           asset_name: OCI_hpro_mayhem_${{ steps.version.outputs.version }}.ppfw.tar
           asset_content_type: application/x-tar
-      - name: Upload HPro Firmware Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/firmware-hpro/firmware.zip
-          asset_name: FIRMWARE_hpro_mayhem_${{ steps.version.outputs.version }}.zip
-          asset_content_type: application/zip
       - name: Upload HPro SD Card Asset
         uses: actions/upload-release-asset@v1
         env:
