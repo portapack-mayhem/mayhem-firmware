@@ -10,9 +10,9 @@ echo.
 REM ── Step 1: Select device ─────────────────────────────────
 echo What is your device?
 echo.
-echo   1. HackRF / PortaPack
+echo   1. HackRF One / PortaPack
 echo   2. PortaRF
-echo   3. HackRF Pro
+echo   3. HackRF Pro / PortaPack
 echo.
 set /p DEVICE_CHOICE="Enter your choice (1, 2 or 3): "
 
@@ -154,4 +154,5 @@ echo.
 echo.
 pause
 exit /b
+
 
