@@ -144,4 +144,12 @@ void Painter::paint_widget(Widget* w) {
     }
 }
 
+#ifdef PRALINE
+void Painter::draw_pixels_dma(const ui::Rect r, const ui::Color* const colors, const size_t count) {
+    // Safety check: Never start a new DMA transfer if one is already in progress
+    display.wait_for_transmit_complete();
+    display.draw_pixels_dma(r, colors, count);
+}
+#endif
+
 } /* namespace ui */

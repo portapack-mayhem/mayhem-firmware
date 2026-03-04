@@ -86,6 +86,10 @@ class Painter {
     void draw_hline(Point p, int width, Color c);
     void draw_vline(Point p, int height, Color c);
 
+#ifdef PRALINE
+    void draw_pixels_dma(const ui::Rect r, const ui::Color* const colors, const size_t count);
+#endif
+
    private:
     void paint_widget(Widget* w);
 };

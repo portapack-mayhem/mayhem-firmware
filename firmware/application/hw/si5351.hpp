@@ -423,9 +423,19 @@ class Si5351 {
 
 #ifdef PRALINE
     /* Write multisynth config using single-byte writes for debugging */
+
     void write_ms_single_byte(const size_t ms_number, const MultisynthFractional& config) {
         const auto regs = config.reg(ms_number);
         // regs[0] is the base register address, regs[1-8] are the data bytes
+        const uint8_t base_reg = regs[0];
+        for (size_t i = 1; i < regs.size(); i++) {
+            write_register(base_reg + i - 1, regs[i]);
+        }
+    }
+
+    void write_pll_single_byte(const uint8_t pll_n, const PLL& pll_config) {
+        const auto regs = pll_config.reg(pll_n);
+        // regs[0] is base register address, regs[1-8] are data
         const uint8_t base_reg = regs[0];
         for (size_t i = 1; i < regs.size(); i++) {
             write_register(base_reg + i - 1, regs[i]);

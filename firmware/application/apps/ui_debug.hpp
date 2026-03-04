@@ -1126,6 +1126,85 @@ class SystemDiagnosticsView : public View {
 #endif
 
 #ifdef PRALINE
+/* Si5351PLLADebugView - Debug fractional parameters for PLL A */
+class Si5351PLLADebugView : public View {
+   public:
+    Si5351PLLADebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Si5351 PLL A Debug"; };
+
+   private:
+    NavigationView& nav_;
+    void refresh();
+
+    Text text_title{{0, 0, 240, 16}, "===PLL A Fractional Debug==="};
+
+    // Raw register values
+    Text text_lbl_raw{{0, 24, 240, 16}, "---Raw Registers (26-33)---"};
+    Text text_r26_27{{8, 40, 224, 16}, "---"};
+    Text text_r28_30{{8, 56, 224, 16}, "---"};
+    Text text_r31_33{{8, 72, 224, 16}, "---"};
+
+    // Decoded values
+    Text text_lbl_decoded{{0, 96, 240, 16}, "---Decoded Parameters---"};
+    Text text_lbl_p1{{0, 112, 48, 16}, "P1:"};
+    Text text_p1{{50, 112, 190, 16}, "---"};
+    Text text_lbl_p2{{0, 128, 48, 16}, "P2:"};
+    Text text_p2{{50, 128, 190, 16}, "---"};
+    Text text_lbl_p3{{0, 144, 48, 16}, "P3:"};
+    Text text_p3{{50, 144, 190, 16}, "---"};
+
+    // Calculated VCO
+    Text text_lbl_calc{{0, 168, 240, 16}, "---Calculated VCO---"};
+    Text text_lbl_mult{{0, 184, 80, 16}, "Multiplier:"};
+    Text text_mult{{82, 184, 158, 16}, "---"};
+    Text text_lbl_vco{{0, 200, 80, 16}, "VCO Freq:"};
+    Text text_vco{{82, 200, 158, 16}, "---"};
+
+    Text text_status{{0, 224, 240, 32}, ""};
+
+    Button button_refresh{{8, 280, 100, 24}, "Refresh"};
+    Button button_done{{132, 280, 100, 24}, "Done"};
+};
+#endif
+
+#ifdef PRALINE
+class Si5351PLLBDebugView : public View {
+   public:
+    Si5351PLLBDebugView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Si5351 PLL B Debug"; };
+
+   private:
+    void refresh();
+    NavigationView& nav_;
+
+    Text text_title{{0, 0, 240, 16}, "=== PLL B Fractional Debug ==="};
+
+    Text text_lbl_raw{{0, 24, 240, 16}, "--- Raw Registers (34-41) ---"};
+    Text text_r34_35{{8, 40, 224, 16}, "---"};
+    Text text_r36_38{{8, 56, 224, 16}, "---"};
+    Text text_r39_41{{8, 72, 224, 16}, "---"};
+
+    Text text_lbl_decoded{{0, 96, 240, 16}, "--- Decoded Parameters ---"};
+    Text text_lbl_p1{{0, 112, 48, 16}, "P1:"}; 
+    Text text_p1{{50, 112, 190, 16}, "---"};
+    Text text_lbl_p2{{0, 128, 48, 16}, "P2:"}; 
+    Text text_p2{{50, 128, 190, 16}, "---"};
+    Text text_lbl_p3{{0, 144, 48, 16}, "P3:"}; 
+    Text text_p3{{50, 144, 190, 16}, "---"};
+
+    Text text_lbl_calc{{0, 168, 240, 16}, "--- Calculated VCO ---"};
+    Text text_lbl_vco{{0, 200, 80, 16}, "VCO Freq:"}; 
+    Text text_vco{{82, 200, 158, 16}, "---"};
+
+    Text text_status{{0, 224, 240, 32}, ""};
+    Button button_refresh{{8, 280, 100, 24}, "Refresh"};
+    Button button_done{{132, 280, 100, 24}, "Done"};
+};
+#endif
+
+#ifdef PRALINE
 /* Si5351MultiSynthDebugView - Debug fractional register values for MS0 */
 class Si5351MultiSynthDebugView : public View {
    public:
@@ -1216,14 +1295,15 @@ class PralineClockDebugView : public View {
     Text text_lbl_n{{0, 52, 80, 16}, "Decim (n):"};
     Text text_n_val{{88, 52, 152, 16}, "-"};
 
-    // Table Header
-    Text text_header{{0, 72, 240, 16}, "ID  mA   Mode   Phase  Stat"};
+    // Table Header (Width 240px, 30 characters)
+    Text text_header{{0, 72, 240, 16}, "ID  mA  Mode  Src   Phase Stat"};
 
     // Helper structure to group row widgets for CLK0-CLK5
     struct ClockRow {
         Text* id;
         Text* ma;
         Text* mode;
+        Text* src; //PLL A, or B
         Text* phase;
         Text* stat;
     };
@@ -1231,36 +1311,57 @@ class PralineClockDebugView : public View {
 
     // We define the actual widgets for 6 clocks
     // Note: Layout uses 16px vertical spacing per row
-    Text t0_id{{0, 88, 24, 16}, "C0:"};
-    Text t0_ma{{32, 88, 24, 16}, "-"};
-    Text t0_mode{{64, 88, 48, 16}, "-"};
-    Text t0_ph{{128, 88, 56, 16}, "-"};
-    Text t0_st{{192, 88, 48, 16}, "-"};
+
+    // Full list of clock row entries (C0 through C5)
+    // Layout: Y starts at 88, increments by 16 per row.
+    
+    // C0: MAX5864 (AFE/Sampling)
+    Text t0_id{{0, 88, 24, 16}, "C0:"};       // Column 0
+    Text t0_ma{{32, 88, 24, 16}, "-"};       // Column 4 (mA)
+    Text t0_mode{{64, 88, 48, 16}, "-"};     // Column 8 (Mode)
+    Text t0_src{{112, 88, 32, 16}, "-"};     // Column 14 (Src)
+    Text t0_ph{{160, 88, 48, 16}, "-"};      // Column 20 (Phase)
+    Text t0_st{{208, 88, 32, 16}, "-"};      // Column 26 (Stat)
+
+    // C1: iCE40 FPGA Timing
     Text t1_id{{0, 104, 24, 16}, "C1:"};
     Text t1_ma{{32, 104, 24, 16}, "-"};
     Text t1_mode{{64, 104, 48, 16}, "-"};
-    Text t1_ph{{128, 104, 56, 16}, "-"};
-    Text t1_st{{192, 104, 48, 16}, "-"};
+    Text t1_src{{112, 104, 32, 16}, "-"};
+    Text t1_ph{{160, 104, 48, 16}, "-"};
+    Text t1_st{{208, 104, 32, 16}, "-"};
+
+    // C2: LPC43xx MCU Input
     Text t2_id{{0, 120, 24, 16}, "C2:"};
     Text t2_ma{{32, 120, 24, 16}, "-"};
     Text t2_mode{{64, 120, 48, 16}, "-"};
-    Text t2_ph{{128, 120, 56, 16}, "-"};
-    Text t2_st{{192, 120, 48, 16}, "-"};
+    Text t2_src{{112, 120, 32, 16}, "-"};
+    Text t2_ph{{160, 120, 48, 16}, "-"};
+    Text t2_st{{208, 120, 32, 16}, "-"};
+
+    // C3: SG_CLK (Switching Regulator/Logic Sync)
     Text t3_id{{0, 136, 24, 16}, "C3:"};
     Text t3_ma{{32, 136, 24, 16}, "-"};
     Text t3_mode{{64, 136, 48, 16}, "-"};
-    Text t3_ph{{128, 136, 56, 16}, "-"};
-    Text t3_st{{192, 136, 48, 16}, "-"};
+    Text t3_src{{112, 136, 32, 16}, "-"};
+    Text t3_ph{{160, 136, 48, 16}, "-"};
+    Text t3_st{{208, 136, 32, 16}, "-"};
+
+    // C4: P_CLK (Peripheral/Expansion Clock)
     Text t4_id{{0, 152, 24, 16}, "C4:"};
     Text t4_ma{{32, 152, 24, 16}, "-"};
     Text t4_mode{{64, 152, 48, 16}, "-"};
-    Text t4_ph{{128, 152, 56, 16}, "-"};
-    Text t4_st{{192, 152, 48, 16}, "-"};
+    Text t4_src{{112, 152, 32, 16}, "-"};
+    Text t4_ph{{160, 152, 48, 16}, "-"};
+    Text t4_st{{208, 152, 32, 16}, "-"};
+
+    // C5: AUX_CLK (Auxiliary Reference)
     Text t5_id{{0, 168, 24, 16}, "C5:"};
     Text t5_ma{{32, 168, 24, 16}, "-"};
     Text t5_mode{{64, 168, 48, 16}, "-"};
-    Text t5_ph{{128, 168, 56, 16}, "-"};
-    Text t5_st{{192, 168, 48, 16}, "-"};
+    Text t5_src{{112, 168, 32, 16}, "-"};
+    Text t5_ph{{160, 168, 48, 16}, "-"};
+    Text t5_st{{208, 168, 32, 16}, "-"};
 
     Button button_refresh{{8, 260, 100, 24}, "Refresh"};
     Button button_done{{132, 260, 100, 24}, "Done"};
