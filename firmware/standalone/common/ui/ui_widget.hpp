@@ -128,7 +128,7 @@ class Widget {
     void set_clean();
 
     void drawn(bool v);
-    bool drawn() { return flags.drawn; };
+    bool drawn() const { return flags.drawn; };
 
     bool highlighted() const;
     void set_highlighted(const bool value);
