@@ -127,8 +127,8 @@ class Widget {
     bool dirty() const;
     void set_clean();
 
-    void visible(bool v);
-    bool visible() { return flags.visible; };
+    void drawn(bool v);
+    bool drawn() const { return flags.drawn; };
 
     bool highlighted() const;
     void set_highlighted(const bool value);
@@ -147,7 +147,7 @@ class Widget {
         bool hidden : 1;       // Hide widget and children.
         bool focusable : 1;    // Widget can receive focus.
         bool highlighted : 1;  // Show in a highlighted style.
-        bool visible : 1;      // Object was visible during last paint.
+        bool drawn : 1;        // Object was drawn during last paint.
     };
 
     flags_t flags{
@@ -155,7 +155,7 @@ class Widget {
         .hidden = false,
         .focusable = false,
         .highlighted = false,
-        .visible = false,
+        .drawn = false,
     };
 
     static const std::vector<Widget*> no_children;
