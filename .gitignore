@@ -2,7 +2,6 @@
 /firmware/application/application.bin
 /CMakeCache.txt
 /Makefile
-/firmware/flash.h
 /firmware/Makefile
 /firmware/baseband/Makefile
 /firmware/bootstrap/Makefile
