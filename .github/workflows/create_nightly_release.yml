@@ -131,22 +131,6 @@ jobs:
             echo EOF
           } >> "$GITHUB_OUTPUT"
         id: changelog
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: nightly-tag-${{ steps.date.outputs.date }}
-          release_name: Nightly Release - ${{ steps.date.outputs.date }}
-          body: |
-            **Nightly release - ${{ steps.date.outputs.date }}**
-            This build is the latest and greatest, although may not be the most stable as this is a nightly release.
-            ## Release notes
-            ###  Revision (${{ steps.version_date.outputs.date }}):
-            ${{ steps.changelog.outputs.content }}
-          draft: false
-          prerelease: true
       # Combine all 3 device firmware bins into a single zip with device selector bat
       - name: Create Combined Firmware ZIP
         run: |
@@ -161,96 +145,34 @@ jobs:
           mv firmware_combined_hpro/firmware/hackrf_usb.dfu firmware_combined/firmware/hackrf_hpro_usb.dfu
           mv firmware_combined_hpro/firmware/hackrf_usb.bin firmware_combined/firmware/hackrf_hpro_usb.bin
           cd firmware_combined && zip -r ../firmware_all_devices.zip . && cd ..
-      # Default device assets
-      - name: Upload Default Firmware TAR Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare release assets
+        run: |
+          VER="${{ steps.version_date.outputs.date }}"
+          mkdir -p release_assets
+          # OCI tar assets
+          cp artifacts/oci-tar-default/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_hackrf_mayhem_nightly_${VER}.ppfw.tar"
+          cp artifacts/oci-tar-portarf/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_portarf_mayhem_nightly_${VER}.ppfw.tar"
+          cp artifacts/oci-tar-hpro/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_hpro_mayhem_nightly_${VER}.ppfw.tar"
+          # Combined firmware
+          cp firmware_all_devices.zip "release_assets/FIRMWARE_mayhem_nightly_${VER}.zip"
+          # SD card assets
+          cp artifacts/sdcard-default/sdcard.zip "release_assets/COPY_TO_SDCARD_hackrf_mayhem_nightly_${VER}.zip"
+          cp artifacts/sdcard-no-map-default/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_hackrf_mayhem_nightly_${VER}-no-world-map.zip"
+          cp artifacts/sdcard-portarf/sdcard.zip "release_assets/COPY_TO_SDCARD_portarf_mayhem_nightly_${VER}.zip"
+          cp artifacts/sdcard-no-map-portarf/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_portarf_mayhem_nightly_${VER}-no-world-map.zip"
+          cp artifacts/sdcard-hpro/sdcard.zip "release_assets/COPY_TO_SDCARD_hpro_mayhem_nightly_${VER}.zip"
+          cp artifacts/sdcard-no-map-hpro/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_hpro_mayhem_nightly_${VER}-no-world-map.zip"
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/oci-tar-default/portapack-mayhem_OCI.ppfw.tar
-          asset_name: OCI_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
-          asset_content_type: application/x-tar
-      - name: Upload Combined Firmware Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./firmware_all_devices.zip
-          asset_name: FIRMWARE_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
-          asset_content_type: application/zip
-      - name: Upload Default SD Card Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/sdcard-default/sdcard.zip
-          asset_name: COPY_TO_SDCARD_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
-          asset_content_type: application/zip
-      - name: Upload Default SD Card Asset - No Map
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/sdcard-no-map-default/sdcard-no-map.zip
-          asset_name: COPY_TO_SDCARD_hackrf_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
-          asset_content_type: application/zip
-      # PortaRF device assets
-      - name: Upload PortaRF Firmware TAR Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/oci-tar-portarf/portapack-mayhem_OCI.ppfw.tar
-          asset_name: OCI_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
-          asset_content_type: application/x-tar
-      - name: Upload PortaRF SD Card Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/sdcard-portarf/sdcard.zip
-          asset_name: COPY_TO_SDCARD_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
-          asset_content_type: application/zip
-      - name: Upload PortaRF SD Card Asset - No Map
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/sdcard-no-map-portarf/sdcard-no-map.zip
-          asset_name: COPY_TO_SDCARD_portarf_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
-          asset_content_type: application/zip
-      # HPro device assets
-      - name: Upload HPro Firmware TAR Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/oci-tar-hpro/portapack-mayhem_OCI.ppfw.tar
-          asset_name: OCI_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}.ppfw.tar
-          asset_content_type: application/x-tar
-      - name: Upload HPro SD Card Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/sdcard-hpro/sdcard.zip
-          asset_name: COPY_TO_SDCARD_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}.zip
-          asset_content_type: application/zip
-      - name: Upload HPro SD Card Asset - No Map
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/sdcard-no-map-hpro/sdcard-no-map.zip
-          asset_name: COPY_TO_SDCARD_hpro_mayhem_nightly_${{ steps.version_date.outputs.date }}-no-world-map.zip
-          asset_content_type: application/zip
+          tag_name: nightly-tag-${{ steps.date.outputs.date }}
+          name: Nightly Release - ${{ steps.date.outputs.date }}
+          body: |
+            **Nightly release - ${{ steps.date.outputs.date }}**
+            This build is the latest and greatest, although may not be the most stable as this is a nightly release.
+            ## Release notes
+            ###  Revision (${{ steps.version_date.outputs.date }}):
+            ${{ steps.changelog.outputs.content }}
+          draft: false
+          prerelease: true
+          files: release_assets/*
