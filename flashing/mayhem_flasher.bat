@@ -37,7 +37,7 @@ echo What would you like to do?
 echo.
 echo   1. Flash Mayhem firmware
 echo   2. Flash via DFU  (unbrick - run HackRF firmware from RAM)
-echo   3. Flash factory HackRF firmware
+echo   3. Flash factory HackRF firmware  (HackRF only - removes PortaPack support)
 echo.
 set /p ACTION_CHOICE="Enter your choice (1, 2 or 3): "
 
@@ -55,14 +55,16 @@ exit /b
 REM ── Action 1: Flash Mayhem ─────────────────────────────────
 :flash_mayhem
 echo.
-if "%DEVICE_CHOICE%"=="1" set FIRMWARE=firmware_hackrf.bin
-if "%DEVICE_CHOICE%"=="2" set FIRMWARE=firmware_portarf.bin
-if "%DEVICE_CHOICE%"=="3" set FIRMWARE=firmware_hpro.bin
+if "%DEVICE_CHOICE%"=="1" set FIRMWARE=firmware\firmware_hackrf.bin
+if "%DEVICE_CHOICE%"=="2" set FIRMWARE=firmware\firmware_portarf.bin
+if "%DEVICE_CHOICE%"=="3" set FIRMWARE=firmware\firmware_hpro.bin
 
-echo If using a PortaPack, put the PortaPack in HackRF mode by selecting
-echo the "HackRF" option from the main menu.
-echo.
-echo Firmware file: %FIRMWARE%
+if "%DEVICE_CHOICE%"=="1" (
+    echo If your device has a PortaPack attached, switch it to HackRF mode first by
+    echo selecting the "HackRF" option from the main menu.
+    echo.
+)
+echo Firmware: %FIRMWARE%
 echo.
 
 if not exist %FIRMWARE% (
@@ -78,9 +80,8 @@ pause
 echo.
 "utils/hackrf_spiflash.exe" -w %FIRMWARE%
 echo.
-echo If your device never boots after flashing, see the won't boot article:
-echo   click-to-open  : https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won%%27t-boot
-echo   copy-and-paste : https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won't-boot
+echo If your device does not boot after flashing, see the troubleshooting wiki:
+echo   https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won%27t-boot
 echo.
 pause
 exit /b
@@ -89,18 +90,25 @@ exit /b
 REM ── Action 2: DFU unbrick ──────────────────────────────────
 :flash_dfu
 echo.
-echo *** Run HackRF firmware in RAM via LPC DFU ***
+echo *** Load HackRF firmware into RAM via LPC DFU ***
 echo.
-echo This is used to "unbrick" your HackRF if you are no longer able to use
-echo HackRF tools to flash or operate your device.
+echo Use this to unbrick your device if you can no longer use HackRF tools
+echo to flash or communicate with it.
 echo.
-echo   1. Hold down both the DFU and RESET buttons on the HackRF.
-echo   2. Release the RESET button (closest to the edge).
-echo   3. Release the DFU button.
+echo Before pressing any key, put your device into DFU mode:
+echo   1. Hold down both the DFU and RESET buttons.
+echo   2. Release the RESET button first (the one closest to the edge).
+echo   3. Then release the DFU button.
 echo.
 
-if not exist "utils/hackrf_usb.dfu" (
-    echo ERROR: "utils/hackrf_usb.dfu" was not found.
+if "%DEVICE_CHOICE%"=="3" (
+    set DFU_FILE=firmware\hackrf_usb_hpro.dfu
+) else (
+    set DFU_FILE=firmware\hackrf_usb.dfu
+)
+
+if not exist "%DFU_FILE%" (
+    echo ERROR: "%DFU_FILE%" was not found.
     echo Please ensure you have downloaded the latest release from:
     echo   https://github.com/portapack-mayhem/mayhem-firmware/releases/
     echo.
@@ -110,7 +118,7 @@ if not exist "utils/hackrf_usb.dfu" (
 
 pause
 echo.
-"utils/dfu-util-static.exe" --device 1fc9:000c --download "utils/hackrf_usb.dfu" --reset
+"utils/dfu-util-static.exe" --device 1fc9:000c --download "%DFU_FILE%" --reset
 echo.
 pause
 exit /b
@@ -119,13 +127,20 @@ exit /b
 REM ── Action 3: Flash factory HackRF firmware ────────────────
 :flash_factory
 echo.
-echo *** Re-flash with factory HackRF firmware ***
+echo *** Restore factory HackRF firmware ***
 echo.
-echo This will restore your device to the original HackRF firmware.
+echo This will remove Mayhem and restore the original HackRF firmware.
+echo PortaPack functionality will no longer be available after this.
 echo.
 
-if not exist "utils/hackrf_usb.bin" (
-    echo ERROR: "utils/hackrf_usb.bin" was not found.
+if "%DEVICE_CHOICE%"=="3" (
+    set FACTORY_BIN=firmware\hackrf_usb_hpro.bin
+) else (
+    set FACTORY_BIN=firmware\hackrf_usb.bin
+)
+
+if not exist "%FACTORY_BIN%" (
+    echo ERROR: "%FACTORY_BIN%" was not found.
     echo Please ensure you have downloaded the latest release from:
     echo   https://github.com/portapack-mayhem/mayhem-firmware/releases/
     echo.
@@ -135,7 +150,7 @@ if not exist "utils/hackrf_usb.bin" (
 
 pause
 echo.
-"utils/hackrf_spiflash.exe" -w "utils/hackrf_usb.bin"
+"utils/hackrf_spiflash.exe" -w "%FACTORY_BIN%"
 echo.
 pause
 exit /b
