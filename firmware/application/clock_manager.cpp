@@ -71,7 +71,7 @@ constexpr si5351::PLL si5351_pll_xtal_25m{
 constexpr auto si5351_pll_a_xtal_reg = si5351_pll_xtal_25m.reg(0);
 
 #ifdef PRALINE
-// PLL A: 800 MHz VCO (30.72x Multiplier for jitter-free 3.072 MHz sampling)
+// PLL A: 800 MHz VCO (32x Multiplier for jitter-free 3.072 MHz sampling)
 constexpr si5351::PLL si5351_pll_xtal_800m{
     .f_in = si5351_inputs.f_xtal,
     .a = 32,
@@ -306,7 +306,7 @@ constexpr ClockControls si5351a_clock_control_common{{
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
     // CLK5: RFFC5072 reference (40 MHz) - Inverted PLLA Integer (Required for mixer lock)
     {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK6: SMA Port P2 - 8mA, Normal PLLB
+    // CLK6: Not used (disabled) 2mA, Normal PLLB, Power_Off
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLB, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
 #else
     {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},

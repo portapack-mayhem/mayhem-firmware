@@ -157,17 +157,6 @@ class ILI9341 {
     void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
     void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
 
-#ifdef PRALINE
-    // Initiates a non-blocking DMA transfer for a block of pixels
-    void draw_pixels_dma(const ui::Rect r, const ui::Color* const colors, const size_t count);
-
-    // Checks if the DMA/SPI bridge is currently busy
-    bool is_transmit_busy() const;
-
-    // Standard wait for previous transfer to complete
-    void wait_for_transmit_complete() const;
-#endif
-
    private:
     struct scroll_t {
         ui::Coord top_area;

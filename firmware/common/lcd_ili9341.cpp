@@ -837,43 +837,4 @@ void ILI9341::scroll_disable() {
     }
 }
 
-#ifdef PRALINE
-void ILI9341::draw_pixels_dma(const ui::Rect r, const ui::Color* const colors, const size_t count) {
-    // 1. Set the drawing window and start RAM write using functions already in your file
-    // This replaces caset, paset, and ramwr_start
-    lcd_start_ram_write(r);
-
-    // 2. Configure GPDMA Channel 0 for the SPI transfer
-    // Ensure the DMA controller is globally enabled
-    LPC_GPDMA->CONFIG = 1;
-
-    // Clear any previous interrupt or error status for this channel
-    LPC_GPDMA->INTTCCLR = (1 << 0);
-    LPC_GPDMA->INTERRCLR = (1 << 0);
-
-    // Source: Your color buffer in RAM
-    LPC_GPDMA->CH[0].SRCADDR = (uint32_t)colors;
-    // Destination: The SPI Data Register (SSP1)
-    LPC_GPDMA->CH[0].DESTADDR = (uint32_t)&LPC_SSP1->DR;
-    // No linked-list (single block transfer)
-    LPC_GPDMA->CH[0].LLI = 0;
-
-    // CONTROL: Size, Burst Size=1, 16-bit Width, Increment Source
-    LPC_GPDMA->CH[0].CONTROL = (count & 0xFFF) | (1 << 12) | (1 << 15) | (1 << 18) | (1 << 21) | (1 << 26);
-
-    // CONFIG: Enable, Destination=SSP1 TX (15), Flow=Memory-to-Peripheral (1)
-    LPC_GPDMA->CH[0].CONFIG = 1 | (15 << 6) | (1 << 11);
-}
-
-bool ILI9341::is_transmit_busy() const {
-    // Check if GPDMA Channel 0 is active OR if the SPI FIFO is still busy
-    // Fixed register name: ENBLDCHNS
-    return (LPC_GPDMA->ENBLDCHNS & (1 << 0)) || (LPC_SSP1->SR & (1 << 4));
-}
-
-void ILI9341::wait_for_transmit_complete() const {
-    while (is_transmit_busy());
-}
-#endif
-
 } /* namespace lcd */
