@@ -16,9 +16,9 @@ echo   3. HackRF Pro
 echo.
 set /p DEVICE_CHOICE="Enter your choice (1, 2 or 3): "
 
-if "%DEVICE_CHOICE%"=="1" set DEVICE_NAME=HackRF / PortaPack
+if "%DEVICE_CHOICE%"=="1" set DEVICE_NAME=HackRF One / PortaPack
 if "%DEVICE_CHOICE%"=="2" set DEVICE_NAME=PortaRF
-if "%DEVICE_CHOICE%"=="3" set DEVICE_NAME=HackRF Pro
+if "%DEVICE_CHOICE%"=="3" set DEVICE_NAME=HackRF Pro / PortaPack
 
 if not defined DEVICE_NAME (
     echo.
@@ -154,3 +154,4 @@ echo.
 echo.
 pause
 exit /b
+
