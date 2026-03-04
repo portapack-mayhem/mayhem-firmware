@@ -118,11 +118,11 @@ void Painter::paint_widget_tree(Widget* w) {
 
 void Painter::paint_widget(Widget* w) {
     if (w->hidden()) {
-        // Mark widget (and all children) as invisible.
-        w->visible(false);
+        // Mark widget (and all children) as not drawn.
+        w->drawn(false);
     } else {
-        // Mark this widget as visible and recurse.
-        w->visible(true);
+        // Mark this widget as drawn and recurse.
+        w->drawn(true);
 
         if (w->dirty()) {
             w->paint(*this);

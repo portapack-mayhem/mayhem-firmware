@@ -91,9 +91,9 @@ void Widget::set_parent(Widget* const widget) {
     }
 
     if (parent_ && !widget) {
-        // We have a parent, but are losing it. Update visible status.
+        // We have a parent, but are losing it. Update drawn status.
         dirty_overlapping_children_in_rect(screen_rect());
-        visible(false);
+        drawn(false);
     }
 
     parent_ = widget;
@@ -212,9 +212,9 @@ const Style& Widget::style() const {
     }
 }
 
-void Widget::visible(bool v) {
-    if (v != flags.visible) {
-        flags.visible = v;
+void Widget::drawn(bool v) {
+    if (v != flags.drawn) {
+        flags.drawn = v;
 
         /* TODO: This on_show/on_hide implementation seems inelegant.
          * But I need *some* way to take/configure resources when
@@ -227,9 +227,9 @@ void Widget::visible(bool v) {
         } else {
             on_hide();
 
-            // Set all children invisible too.
+            // Mark all children as not drawn too.
             for (const auto child : children()) {
-                child->visible(false);
+                child->drawn(false);
             }
         }
     }
@@ -701,7 +701,7 @@ void Console::clear(bool clear_buffer = false) {
     if (clear_buffer)
         buffer.clear();
 
-    if (!hidden() && visible()) {
+    if (!hidden() && drawn()) {
         _api->fill_rectangle(screen_rect().left(), screen_rect().top(), screen_rect().width(), screen_rect().height(), Theme::getInstance()->bg_darkest->background.v);
     }
 
@@ -711,7 +711,7 @@ void Console::clear(bool clear_buffer = false) {
 void Console::write(std::string message) {
     bool escape = false;
 
-    if (!hidden() && visible()) {
+    if (!hidden() && drawn()) {
         const Style& s = style();
         const Font& font = s.font;
         auto rect = screen_rect();
@@ -803,7 +803,7 @@ void Console::on_hide() {
 }
 
 void Console::crlf() {
-    if (hidden() || !visible())
+    if (hidden() || !drawn())
         return;
 
     const auto& s = style();
