@@ -113,13 +113,13 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
                 fft_c_preswapped(audio_spectrum, fft_step, fft_step + 1);
                 fft_step++;
             } else {
+                constexpr float mag_scale = 5.0f;
                 const size_t spectrum_end = spectrum.db.size();
                 for (size_t i = 0; i < spectrum_end; i++) {
                     // const auto corrected_sample = spectrum_window_hamming_3(audio_spectrum, i);
                     const auto corrected_sample = audio_spectrum[i];
                     const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));
                     const float db = mag2_to_dbv_norm(mag2);
-                    constexpr float mag_scale = 5.0f;
                     const unsigned int v = (db * mag_scale) + 255.0f;
                     spectrum.db[i] = std::max(0U, std::min(255U, v));
                 }

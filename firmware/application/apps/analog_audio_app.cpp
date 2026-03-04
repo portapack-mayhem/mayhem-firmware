@@ -205,8 +205,7 @@ SPECOptionsView::SPECOptionsView(
 PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
     set_parent_rect(parent_rect);
     add_children({&label_sr, &options_sr, &label_dc, &options_dc,
-                  &label_qi, &options_qi, &label_qs, &options_qs,
-                  &label_dec, &options_dec});
+                  &label_qi, &options_qi, &label_qs, &options_qs});
 
     // 1. READ the current state from hardware
     fpga_reg_1 = radio::debug::fpga::register_read(1);
@@ -216,10 +215,9 @@ PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
     options_dc.set_by_value((fpga_reg_1 & 0x01) ? 1 : 0);  // Bit 0
     options_qi.set_by_value((fpga_reg_1 & 0x02) ? 1 : 0);  // Bit 1
     options_qs.set_by_value((fpga_reg_1 & 0x04) ? 1 : 0);  // Bit 2
-    options_dec.set_by_value(fpga_reg_2);
-    options_sr.set_value(receiver_model.sampling_rate() / 1000);
+    options_sr.set_value(receiver_model.sampling_rate());
 
-    options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v) * 1000); };
+    options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v)); };
     options_dc.on_change = [this](size_t, OptionsField::value_t v) {
         if (v)
             fpga_reg_1 |= 0x01;
@@ -243,7 +241,6 @@ PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
             fpga_reg_1 &= ~0x04;
         update_fpga_ctrl();
     };
-    options_dec.on_change = [this](size_t, OptionsField::value_t v) { radio::debug::fpga::register_write(2, v); };
 }
 
 void PralineOptionsView::update_fpga_ctrl() {
@@ -573,11 +570,7 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.set_modulation(modulation);
 
-#ifdef PRALINE
-    receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3023000);
-#else
     receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
-#endif
     receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
 
     receiver_model.set_hidden_offset(modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);  // wefax needs to be shifted, see wefax rx app.
