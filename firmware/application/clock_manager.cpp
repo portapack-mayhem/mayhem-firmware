@@ -552,13 +552,6 @@ void ClockManager::init_clock_generator() {
     static volatile uint32_t pll_lock_timeout = pll_timeout;
     (void)pll_lock_timeout;
 
-    // CALIBRATION FIX for PRALINE
-    // Tell the system that the 25MHz crystal is actually 25,000,171 Hz
-    // (based on Error = 49 / 3,072,000 ≈  = 15951 PPB calculation).
-    set_reference_ppb(-15951);
-
-    // CRITICAL: Add delay to ensure Si5351 writes complete before I2C bus stops
-    chThdSleepMilliseconds(100);
 #else
     // Wait for PLL(s) to lock - with timeout to prevent hang
     uint8_t device_status_mask = hackrf_r9
