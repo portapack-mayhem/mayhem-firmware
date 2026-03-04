@@ -118,7 +118,7 @@ if not exist "%DFU_FILE%" (
 
 pause
 echo.
-"utils/dfu-util-static.exe" --device 1fc9:000c --download "%DFU_FILE%" --reset
+"utils/dfu-util-static.exe" --device 1fc9:000c --download "%DFU_FILE%"
 echo.
 pause
 exit /b
@@ -154,6 +154,7 @@ echo.
 echo.
 pause
 exit /b
+
 
 
 
