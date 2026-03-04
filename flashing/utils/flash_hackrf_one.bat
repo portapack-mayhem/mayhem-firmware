@@ -10,6 +10,6 @@ echo.
 pause
 
 echo.
-"utils/hackrf_update.exe" "utils/hackrf_one_usb.bin"
+"utils/hackrf_spiflash.exe" -w "utils/hackrf_usb.bin"
 echo.
 pause

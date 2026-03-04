@@ -21,12 +21,12 @@ if not exist portapack-mayhem-firmware.bin (
     exit /b
 )
 
-"utils/hackrf_update.exe" portapack-mayhem-firmware.bin
+"utils/hackrf_spiflash.exe" -w portapack-mayhem-firmware.bin
 echo.
-echo If your device never boot after flashing, please refer to won't boot article"
+echo "If your device never boot after flashing, please refer to won't boot article"
 echo.
 echo "click-to-open url: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won%%27t-boot"
-echo "or
+echo "or"
 echo "copy-and-paste url: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won't-boot"
 echo.
 pause
