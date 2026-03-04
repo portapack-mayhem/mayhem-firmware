@@ -165,7 +165,7 @@ FmRadioView::FmRadioView(NavigationView& nav)
                   &gr});
 
     txt_save_help.set_focusable(false);
-    txt_save_help.drawn(false);
+    txt_save_help.hidden(true);
     for (uint8_t i = 0; i < 12; ++i) {
         if (freq_fav_list[i].frequency == 0) {
             freq_fav_list[i].frequency = 87000000;
@@ -195,7 +195,7 @@ FmRadioView::FmRadioView(NavigationView& nav)
     btn_fav_save.on_select = [this](Button&) {
         save_fav = !save_fav;
         txt_save_help.set_text(save_fav ? "Select slot" : "");
-        txt_save_help.drawn(save_fav);
+        txt_save_help.hidden(!save_fav);
         txt_save_help.set_dirty();
     };
 
@@ -229,9 +229,9 @@ void FmRadioView::on_btn_clicked(uint8_t i) {
         freq_fav_list[i].modulation = field_modulation.selected_index_value();
         freq_fav_list[i].bandwidth = radio_bw;
         update_fav_btn_texts();
-        txt_save_help.drawn(save_fav);
+        txt_save_help.hidden(true);
         txt_save_help.set_text("");
-        txt_save_help.set_dirty();
+        set_dirty();
         return;
     }
     field_frequency.set_value(freq_fav_list[i].frequency);
