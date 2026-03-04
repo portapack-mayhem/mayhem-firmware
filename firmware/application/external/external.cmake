@@ -312,6 +312,10 @@ set(EXTCPPSRC
     #pocsag_tx
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
+
+	#time_sink
+	external/time_sink/main.cpp
+	external/time_sink/ui_time_sink.cpp
 )
 
 set(EXTAPPLIST
@@ -386,10 +390,11 @@ set(EXTAPPLIST
 	siggen
 	morse_radio
 	morseradiotx
-  keeloqtx
+	keeloqtx
 	rtty_rx
 	rtty_tx
 	pocsag_tx
+	time_sink
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
