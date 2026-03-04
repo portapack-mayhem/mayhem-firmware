@@ -1187,15 +1187,15 @@ class Si5351PLLBDebugView : public View {
     Text text_r39_41{{8, 72, 224, 16}, "---"};
 
     Text text_lbl_decoded{{0, 96, 240, 16}, "--- Decoded Parameters ---"};
-    Text text_lbl_p1{{0, 112, 48, 16}, "P1:"}; 
+    Text text_lbl_p1{{0, 112, 48, 16}, "P1:"};
     Text text_p1{{50, 112, 190, 16}, "---"};
-    Text text_lbl_p2{{0, 128, 48, 16}, "P2:"}; 
+    Text text_lbl_p2{{0, 128, 48, 16}, "P2:"};
     Text text_p2{{50, 128, 190, 16}, "---"};
-    Text text_lbl_p3{{0, 144, 48, 16}, "P3:"}; 
+    Text text_lbl_p3{{0, 144, 48, 16}, "P3:"};
     Text text_p3{{50, 144, 190, 16}, "---"};
 
     Text text_lbl_calc{{0, 168, 240, 16}, "--- Calculated VCO ---"};
-    Text text_lbl_vco{{0, 200, 80, 16}, "VCO Freq:"}; 
+    Text text_lbl_vco{{0, 200, 80, 16}, "VCO Freq:"};
     Text text_vco{{82, 200, 158, 16}, "---"};
 
     Text text_status{{0, 224, 240, 32}, ""};
@@ -1303,7 +1303,7 @@ class PralineClockDebugView : public View {
         Text* id;
         Text* ma;
         Text* mode;
-        Text* src; //PLL A, or B
+        Text* src;  // PLL A, or B
         Text* phase;
         Text* stat;
     };
@@ -1314,14 +1314,14 @@ class PralineClockDebugView : public View {
 
     // Full list of clock row entries (C0 through C5)
     // Layout: Y starts at 88, increments by 16 per row.
-    
+
     // C0: MAX5864 (AFE/Sampling)
-    Text t0_id{{0, 88, 24, 16}, "C0:"};       // Column 0
-    Text t0_ma{{32, 88, 24, 16}, "-"};       // Column 4 (mA)
-    Text t0_mode{{64, 88, 48, 16}, "-"};     // Column 8 (Mode)
-    Text t0_src{{112, 88, 32, 16}, "-"};     // Column 14 (Src)
-    Text t0_ph{{160, 88, 48, 16}, "-"};      // Column 20 (Phase)
-    Text t0_st{{208, 88, 32, 16}, "-"};      // Column 26 (Stat)
+    Text t0_id{{0, 88, 24, 16}, "C0:"};   // Column 0
+    Text t0_ma{{32, 88, 24, 16}, "-"};    // Column 4 (mA)
+    Text t0_mode{{64, 88, 48, 16}, "-"};  // Column 8 (Mode)
+    Text t0_src{{112, 88, 32, 16}, "-"};  // Column 14 (Src)
+    Text t0_ph{{160, 88, 48, 16}, "-"};   // Column 20 (Phase)
+    Text t0_st{{208, 88, 32, 16}, "-"};   // Column 26 (Stat)
 
     // C1: iCE40 FPGA Timing
     Text t1_id{{0, 104, 24, 16}, "C1:"};

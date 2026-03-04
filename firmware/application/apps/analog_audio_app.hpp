@@ -51,7 +51,7 @@ class PralineOptionsView : public View {
         {UI_POS_X(3), UI_POS_Y(0)},
         8,              // Number of digits to show
         {0, 40000000},  // Range: 0 to 40,000 kHz
-        100,              // Step: 100 Hz
+        100,            // Step: 100 Hz
         ' '             // Fix: Single quotes for char
     };
 

@@ -843,7 +843,6 @@ void ILI9341::draw_pixels_dma(const ui::Rect r, const ui::Color* const colors, c
     // This replaces caset, paset, and ramwr_start
     lcd_start_ram_write(r);
 
-
     // 2. Configure GPDMA Channel 0 for the SPI transfer
     // Ensure the DMA controller is globally enabled
     LPC_GPDMA->CONFIG = 1;

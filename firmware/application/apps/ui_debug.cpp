@@ -1713,8 +1713,8 @@ void Si5351DebugView::refresh_status() {
     uint32_t ms_div = (p1 + 512) / 128;  // Integer divider value
 
     // Calculate frequency: f_out = 800 or 800 MHz / ms_div / r_div
-    uint32_t vco_khz = (clk0_ctrl & 0x20) ? 800000 : 800000; // PLLB vs PLLA
-    uint32_t freq_khz = vco_khz / ms_div / r_div;  // Result in kHz
+    uint32_t vco_khz = (clk0_ctrl & 0x20) ? 800000 : 800000;  // PLLB vs PLLA
+    uint32_t freq_khz = vco_khz / ms_div / r_div;             // Result in kHz
 
     // Show P1 value and R45 for debugging
     text_clk0_freq_value.set("F:" + to_string_dec_uint(freq_khz / 1000) + "MHz (P1:" + to_string_hex(p1, 4) + ")");
@@ -2188,12 +2188,10 @@ void SystemDiagnosticsView::refresh() {
 
 Si5351PLLADebugView::Si5351PLLADebugView(NavigationView& nav)
     : nav_(nav) {
-    add_children({
-        &text_title, &text_lbl_raw, &text_r26_27, &text_r28_30, &text_r31_33,
-        &text_lbl_decoded, &text_lbl_p1, &text_p1, &text_lbl_p2, &text_p2,
-        &text_lbl_p3, &text_p3, &text_lbl_calc, &text_lbl_mult, &text_mult,
-        &text_lbl_vco, &text_vco, &text_status, &button_refresh, &button_done
-    });
+    add_children({&text_title, &text_lbl_raw, &text_r26_27, &text_r28_30, &text_r31_33,
+                  &text_lbl_decoded, &text_lbl_p1, &text_p1, &text_lbl_p2, &text_p2,
+                  &text_lbl_p3, &text_p3, &text_lbl_calc, &text_lbl_mult, &text_mult,
+                  &text_lbl_vco, &text_vco, &text_status, &button_refresh, &button_done});
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
     text_lbl_raw.set_style(Theme::getInstance()->fg_yellow);
@@ -2238,7 +2236,7 @@ void Si5351PLLADebugView::refresh() {
     // Calculate Multiplier: M = (128 * P3 + P1 * 128 + 512 + P2) / (128 * P3)
     // Simplified as: Multiplier = ((P1 + 512) / 128) + (P2 / P3)
     uint32_t a = (pll_p1 + 512) / 128;
-    
+
     if (pll_p3 > 0) {
         text_mult.set(to_string_dec_uint(a) + " + " + to_string_dec_uint(pll_p2) + "/" + to_string_dec_uint(pll_p3));
     } else {
@@ -2251,9 +2249,9 @@ void Si5351PLLADebugView::refresh() {
         uint64_t vco_num = (uint64_t)pll_p2 + (uint64_t)pll_p3 * (pll_p1 + 512);
         uint64_t vco_den = 128ULL * pll_p3;
         uint32_t vco_khz = (uint32_t)((25000ULL * vco_num) / vco_den);
-        
+
         text_vco.set(to_string_dec_uint(vco_khz / 1000) + "." + to_string_dec_uint(vco_khz % 1000, 3) + " MHz");
-        
+
         // Si5351 VCO range is 600-900 MHz
         if (vco_khz >= 600000 && vco_khz <= 900000) {
             text_vco.set_style(Theme::getInstance()->fg_green);
@@ -2269,13 +2267,11 @@ void Si5351PLLADebugView::refresh() {
 #ifdef PRALINE
 Si5351PLLBDebugView::Si5351PLLBDebugView(NavigationView& nav)
     : nav_(nav) {
-    add_children({
-        &text_title,
-        &text_lbl_raw, &text_r34_35, &text_r36_38, &text_r39_41,
-        &text_lbl_decoded, &text_lbl_p1, &text_p1, &text_lbl_p2, &text_p2, &text_lbl_p3, &text_p3,
-        &text_lbl_calc, &text_lbl_vco, &text_vco,
-        &text_status, &button_refresh, &button_done
-    });
+    add_children({&text_title,
+                  &text_lbl_raw, &text_r34_35, &text_r36_38, &text_r39_41,
+                  &text_lbl_decoded, &text_lbl_p1, &text_p1, &text_lbl_p2, &text_p2, &text_lbl_p3, &text_p3,
+                  &text_lbl_calc, &text_lbl_vco, &text_vco,
+                  &text_status, &button_refresh, &button_done});
 
     text_title.set_style(Theme::getInstance()->fg_yellow);
     text_lbl_raw.set_style(Theme::getInstance()->fg_yellow);
@@ -2287,17 +2283,19 @@ Si5351PLLBDebugView::Si5351PLLBDebugView(NavigationView& nav)
     refresh();
 }
 
-void Si5351PLLBDebugView::focus() { button_refresh.focus(); }
+void Si5351PLLBDebugView::focus() {
+    button_refresh.focus();
+}
 
 void Si5351PLLBDebugView::refresh() {
-    uint8_t r34 = portapack::clock_manager.si5351_read_register(34); // P3[15:8]
-    uint8_t r35 = portapack::clock_manager.si5351_read_register(35); // P3[7:0]
-    uint8_t r36 = portapack::clock_manager.si5351_read_register(36); // P1[17:16]
-    uint8_t r37 = portapack::clock_manager.si5351_read_register(37); // P1[15:8]
-    uint8_t r38 = portapack::clock_manager.si5351_read_register(38); // P1[7:0]
-    uint8_t r39 = portapack::clock_manager.si5351_read_register(39); // P3[19:16] | P2[19:16]
-    uint8_t r40 = portapack::clock_manager.si5351_read_register(40); // P2[15:8]
-    uint8_t r41 = portapack::clock_manager.si5351_read_register(41); // P2[7:0]
+    uint8_t r34 = portapack::clock_manager.si5351_read_register(34);  // P3[15:8]
+    uint8_t r35 = portapack::clock_manager.si5351_read_register(35);  // P3[7:0]
+    uint8_t r36 = portapack::clock_manager.si5351_read_register(36);  // P1[17:16]
+    uint8_t r37 = portapack::clock_manager.si5351_read_register(37);  // P1[15:8]
+    uint8_t r38 = portapack::clock_manager.si5351_read_register(38);  // P1[7:0]
+    uint8_t r39 = portapack::clock_manager.si5351_read_register(39);  // P3[19:16] | P2[19:16]
+    uint8_t r40 = portapack::clock_manager.si5351_read_register(40);  // P2[15:8]
+    uint8_t r41 = portapack::clock_manager.si5351_read_register(41);  // P2[7:0]
 
     text_r34_35.set("R34-35: " + to_string_hex(r34, 2) + " " + to_string_hex(r35, 2));
     text_r36_38.set("R36-38: " + to_string_hex(r36, 2) + " " + to_string_hex(r37, 2) + " " + to_string_hex(r38, 2));
@@ -2590,7 +2588,7 @@ void Si5351MultiSynthDebugView::refresh() {
 PralineClockDebugView::PralineClockDebugView(NavigationView& nav)
     : View(),
       rows{
-	  {&t0_id, &t0_ma, &t0_mode, &t0_src, &t0_ph, &t0_st},
+          {&t0_id, &t0_ma, &t0_mode, &t0_src, &t0_ph, &t0_st},
           {&t1_id, &t1_ma, &t1_mode, &t1_src, &t1_ph, &t1_st},
           {&t2_id, &t2_ma, &t2_mode, &t2_src, &t2_ph, &t2_st},
           {&t3_id, &t3_ma, &t3_mode, &t3_src, &t3_ph, &t3_st},
@@ -2645,7 +2643,7 @@ void PralineClockDebugView::refresh() {
         rows[i].mode->set((ctrl & 0x40) ? "INT" : "FRAC");
         rows[i].mode->set_style((ctrl & 0x40) ? Theme::getInstance()->fg_blue : Theme::getInstance()->fg_yellow);
 
-	// PLL Source (Bit 5: 0=PLLA, 1=PLLB)
+        // PLL Source (Bit 5: 0=PLLA, 1=PLLB)
         rows[i].src->set((ctrl & 0x20) ? "PLLB" : "PLLA");
         rows[i].src->set_style((ctrl & 0x20) ? Theme::getInstance()->fg_blue : Theme::getInstance()->fg_green);
 
@@ -3489,8 +3487,8 @@ void DebugMenuView::on_populate() {
         {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
         {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
         {"Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
-	{"PLL A Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLADebugView>(); }},
-	{"PLL B Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLBDebugView>(); }},
+        {"PLL A Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLADebugView>(); }},
+        {"PLL B Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLBDebugView>(); }},
         {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
         {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
         {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},

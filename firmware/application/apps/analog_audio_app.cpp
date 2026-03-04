@@ -205,8 +205,7 @@ SPECOptionsView::SPECOptionsView(
 PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
     set_parent_rect(parent_rect);
     add_children({&label_sr, &options_sr, &label_dc, &options_dc,
-                  &label_qi, &options_qi, &label_qs, &options_qs
-                  });
+                  &label_qi, &options_qi, &label_qs, &options_qs});
 
     // 1. READ the current state from hardware
     fpga_reg_1 = radio::debug::fpga::register_read(1);
