@@ -78,7 +78,7 @@ if not exist %FIRMWARE% (
 
 pause
 echo.
-"utils/hackrf_spiflash.exe" -w %FIRMWARE%
+"utils/hackrf_spiflash.exe" -R -w %FIRMWARE%
 echo.
 echo If your device does not boot after flashing, see the troubleshooting wiki:
 echo   https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won%27t-boot
@@ -150,9 +150,10 @@ if not exist "%FACTORY_BIN%" (
 
 pause
 echo.
-"utils/hackrf_spiflash.exe" -w "%FACTORY_BIN%"
+"utils/hackrf_spiflash.exe" -R -w "%FACTORY_BIN%"
 echo.
 pause
 exit /b
+
 
 
