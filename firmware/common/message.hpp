@@ -1116,6 +1116,7 @@ class EPIRBTXDataMessage : public Message {
     constexpr EPIRBTXDataMessage()
         : Message{ID::EPIRBTXData} {
     }
+    bool mode_bpsk = true;
     uint8_t data[18]{0};
     uint8_t data_len = 0;
     uint32_t pre_count = 0;

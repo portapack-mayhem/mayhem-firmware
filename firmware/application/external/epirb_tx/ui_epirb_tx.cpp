@@ -82,6 +82,7 @@ void EPIRBTXAppView::on_timer() {
 
 
 void EPIRBTXAppView::update_config() {
+    epirb_tx_message.mode_bpsk = true;
     epirb_tx_message.pre_count = (500 * TONES_SAMPLERATE)/1000; // 500 ms
     epirb_tx_message.post_count = (100 * TONES_SAMPLERATE)/1000; // 100 ms
     Beacon& beacon = beacons[selected_beacon];
@@ -117,8 +118,16 @@ void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     (void)progress;
 
     if (done) {
-        transmitter_model.disable();
-        tx_view.set_transmitting(false);
+        if(loop)
+        {   // BPSK frame sent, switch back to 121.5 signal
+            epirb_tx_message.mode_bpsk = false;
+            baseband::set_epirb_tx_config(epirb_tx_message);
+        }
+        else
+        {
+            transmitter_model.disable();
+            tx_view.set_transmitting(false);
+        }
     }
 }
 
@@ -206,14 +215,9 @@ void EPIRBTXAppView::load_beacons() {
             beacons.emplace_back(std::move(beacon));
         }
     }
-    //if(beacons.empty())
+    if(beacons.empty())
     {   // No beacons file or empty flile: just add default beacon
         beacons.push_back(default_beacon);
-        Beacon beacon{};
-        beacon.title = "Test2";
-        beacon.description =  "Mon test 2";
-        beacon.frame = "FFFE2F8E0D0990014710021963C85C7009F5";
-        beacons.emplace_back(std::move(beacon));
     }
 }
 

@@ -50,8 +50,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
 
 
     // BPSK parameters
-    float phase_deg = 63.0f; // Target phase +/-63° as per COSPAS/SARSAT specifications
-    float phase_rad = phase_deg * M_PI / 180.0f; // Convert to radian
+    static constexpr float phase_rad = 63.0f * M_PI / 180.0f; // Target phase +/-63° as per COSPAS/SARSAT specifications
 
     // I/Q values for BPSK
     int8_t i_pos = (int8_t)(cos(phase_rad) * 127);
@@ -59,7 +58,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     int8_t i_neg = i_pos;
     int8_t q_neg = -q_pos;
 
-    uint32_t samples_per_halfbit = TONES_SAMPLERATE / 400 / 2; // COSPAS/SARSAT signal is manchester encoded 400 bit/sec
+    static const uint32_t samples_per_halfbit = TONES_SAMPLERATE / 400 / 2; // COSPAS/SARSAT signal is manchester encoded 400 bit/sec
     uint32_t sample_counter = 0;
     uint32_t bpsk_pre_count = 0;
     uint32_t bpsk_post_count = 0;
@@ -73,22 +72,21 @@ class EPIRBTXProcessor : public BasebandProcessor {
     bool manchester_half = false; // false = first half
 
     // 127.5 AM signal parameters
-    static const uint32_t sample_rate = TONES_SAMPLERATE;
-    static const uint32_t sweep_rate = 3;          // 2 Hz
-    static const uint32_t f_min = 300;             // Sweep min frequency
-    static const uint32_t f_max = 1600;            // Sweep max frequency
-    static const uint8_t modulation_index = 100;   // ~0.8 on 127 scale
+    static const uint32_t sweep_rate = 3;           // 2 Hz
+    static const uint32_t f_min = 300;              // Sweep min frequency
+    static const uint32_t f_max = 1600;             // Sweep max frequency
+    static const uint8_t  modulation_index = 100;   // ~0.8 on 127 scale
+    static const uint32_t freq_span = f_max - f_min;
+    // Frequency
+    static const uint32_t freq_scale = (1ULL << 32) / TONES_SAMPLERATE;
+    static const int32_t center_freq = f_min + (freq_span / 2);
+    static const int32_t freq_dev = freq_span / 256;
+    // Increments
+    static const uint32_t sweep_inc = sweep_rate * freq_scale;
+
     // Phase accumulators
     uint32_t sweep_phase = 0;
     uint32_t audio_phase = 0;
-
-    // Increments
-    uint32_t sweep_inc = 0;
-
-    // Frequency
-    uint32_t freq_scale = 0;
-    int32_t center_freq = 0;
-    int32_t freq_dev = 0;      // = freq_span / 256
 
     TXProgressMessage txprogress_message{};
 

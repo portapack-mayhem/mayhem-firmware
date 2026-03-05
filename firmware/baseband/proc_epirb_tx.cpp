@@ -140,25 +140,27 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
 
     switch (msg->id) {
         case Message::ID::EPIRBTXData :
-            config_pre_count = message.pre_count;
-            config_post_count = message.post_count;
-            frame_data_len = message.data_len;
-            memcpy(frame_data,message.data,frame_data_len);
-            // Configure am
-            {
-                uint32_t freq_span = f_max - f_min;
-                center_freq = f_min + (freq_span / 2);
-                // Pré-calcul deviation par unité de sweep
-                freq_dev = freq_span / 256;
-                // Conversion fréquence → phase increment
-                freq_scale = (1ULL << 32) / sample_rate;
-
-                sweep_inc = sweep_rate * freq_scale;
-
+            mode_bpsk = message.mode_bpsk;
+            if(mode_bpsk)
+            {   // BPSK mode for 406 frame
+                config_pre_count = message.pre_count;
+                config_post_count = message.post_count;
+                frame_data_len = message.data_len;
+                memcpy(frame_data,message.data,frame_data_len);
+                // Init BPSK
+                sample_counter = 0;
+                bpsk_pre_count = 0;
+                bpsk_post_count = 0;
+                bit_index = 0;
+                byte_index = 0;
+                current_byte = 0;
+                current_bit = 0;
+            }
+            else
+            {   // AM mode for 121.5 signal
                 sweep_phase = 0;
                 audio_phase = 0;  
-            }                      
-
+            }
             configured = true;
             break;
 
