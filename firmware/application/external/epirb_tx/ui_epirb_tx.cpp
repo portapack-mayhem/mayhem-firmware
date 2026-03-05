@@ -82,6 +82,14 @@ void EPIRBTXAppView::on_timer() {
 
 
 void EPIRBTXAppView::update_config() {
+    if(epirb_tx_message.mode_bpsk)
+    {   // Backup bpsk frequency
+        bpsk_frequency = transmitter_model.target_frequency();
+    }
+    else
+    {   // Restore bpsk frequency
+        transmitter_model.set_target_frequency(bpsk_frequency);
+    }
     epirb_tx_message.mode_bpsk = true;
     epirb_tx_message.pre_count = (500 * TONES_SAMPLERATE)/1000; // 500 ms
     epirb_tx_message.post_count = (100 * TONES_SAMPLERATE)/1000; // 100 ms
@@ -121,6 +129,9 @@ void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
         if(loop)
         {   // BPSK frame sent, switch back to 121.5 signal
             epirb_tx_message.mode_bpsk = false;
+            // Backup bpsk frequency 
+            bpsk_frequency = transmitter_model.target_frequency();
+            transmitter_model.set_target_frequency(am_frequency);
             baseband::set_epirb_tx_config(epirb_tx_message);
         }
         else

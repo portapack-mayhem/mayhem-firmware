@@ -65,6 +65,10 @@ class EPIRBTXAppView : public View {
     Beacon default_beacon {"Self test","Serial User Location Protocol","FFFED0D6E6202820000C29FF51041775302D"};
 
     size_t  selected_beacon{0};
+
+    rf::Frequency am_frequency{127500000};
+    rf::Frequency bpsk_frequency{406025000};
+
     uint8_t hexval(char c);
 
     uint8_t hexToByte(char high, char low);
