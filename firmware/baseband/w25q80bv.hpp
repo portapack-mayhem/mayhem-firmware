@@ -83,6 +83,7 @@
 
 #define W25Q80BV_DEVICE_ID_RES 0x13 /* Expected device_id for W25Q80BV */
 #define W25Q16DV_DEVICE_ID_RES 0x14 /* Expected device_id for W25Q16DV */
+#define W25Q32JV_DEVICE_ID_RES 0x15 /* Expected device_id for W25Q32JV (Praline) */
 
 #define SSP_CR1(port) MMIO32(port + 0x004)
 #define PERIPH_BASE_APB0 0x40080000
