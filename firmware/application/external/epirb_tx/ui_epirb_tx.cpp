@@ -40,6 +40,8 @@ void EPIRBTXAppView::focus() {
 }
 
 EPIRBTXAppView::~EPIRBTXAppView() {
+    // Restore bpsk fequency
+    transmitter_model.set_target_frequency(bpsk_frequency);
     transmitter_model.disable();
     baseband::shutdown();
 }
@@ -80,7 +82,6 @@ void EPIRBTXAppView::on_timer() {
     }
 }
 
-
 void EPIRBTXAppView::update_config() {
     if(epirb_tx_message.mode_bpsk)
     {   // Backup bpsk frequency
@@ -108,25 +109,36 @@ void EPIRBTXAppView::update_config() {
     baseband::set_epirb_tx_config(epirb_tx_message);
 }
 
+void EPIRBTXAppView::set_tx_button_state(bool active)
+{
+    button_tx.set_text(active ? "START" : "STOP");
+    button_tx.set_style(active ? &style_tx_start : &style_tx_stop);
+}
+
+
 void EPIRBTXAppView::start_tx() {
     last_frame_time = chTimeNow();
     update_config();
     loop = checkbox_loop.value();
     transmitter_model.enable();
     tx_view.set_transmitting(true);
+    set_tx_button_state(false);
+    transmitting = true;
 }
 
 void EPIRBTXAppView::stop_tx() {
     loop = false;
     transmitter_model.disable();
     tx_view.set_transmitting(false);
+    set_tx_button_state(true);
+    transmitting = false;
 }
 
 void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     (void)progress;
 
     if (done) {
-        if(loop)
+        if(checkbox_am.value())
         {   // BPSK frame sent, switch back to 121.5 signal
             epirb_tx_message.mode_bpsk = false;
             // Backup bpsk frequency 
@@ -138,6 +150,11 @@ void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
         {
             transmitter_model.disable();
             tx_view.set_transmitting(false);
+            if(!loop)
+            {
+                set_tx_button_state(true);
+                transmitting = false;  
+            }
         }
     }
 }
@@ -147,6 +164,7 @@ EPIRBTXAppView::EPIRBTXAppView(
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
+                  &options_mode,
                   &options_frame,
                   &text_description,
                   &text_description_end,
@@ -155,7 +173,28 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_timeout,
                   &checkbox_loop,
                   &field_delay,
+                  &button_tx,
+                  &checkbox_am,
+                  &field_am_frequency,
                   &tx_view});
+
+    options_mode.on_change = [this](size_t index, OptionsField::value_t) {
+        if(index == 0)
+        {   // File mode
+
+        }
+        else
+        {   // Manual mode
+
+        }
+        set_dirty();
+    };
+
+    field_am_frequency.set_value(am_frequency);
+    field_am_frequency.on_change = [this](rf::Frequency freq) {
+        am_frequency = freq;
+    };
+
     load_beacons();  // Load available beacons from TXT files (or default).
 
     using option_t = std::pair<std::string, int32_t>;
@@ -198,6 +237,13 @@ EPIRBTXAppView::EPIRBTXAppView(
     tx_view.on_stop = [this]() {
         stop_tx();
     };
+
+    button_tx.on_select = [this](Button&) {
+        if (!transmitting)
+            start_tx();
+        else
+            stop_tx();
+    };    
 }
 
 void EPIRBTXAppView::load_beacons() {

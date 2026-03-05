@@ -55,6 +55,7 @@ class EPIRBTXAppView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
     void on_timer();
     void load_beacons();
+    void set_tx_button_state(bool active);
 
     struct Beacon {
         std::string title{};
@@ -66,7 +67,7 @@ class EPIRBTXAppView : public View {
 
     size_t  selected_beacon{0};
 
-    rf::Frequency am_frequency{127500000};
+    rf::Frequency am_frequency{121500000};
     rf::Frequency bpsk_frequency{406025000};
 
     uint8_t hexval(char c);
@@ -83,6 +84,7 @@ class EPIRBTXAppView : public View {
 
     bool loop{false};
     uint32_t last_frame_time{0};
+    bool transmitting{false};
 
     EPIRBTXDataMessage epirb_tx_message{};
 
@@ -90,11 +92,19 @@ class EPIRBTXAppView : public View {
     const size_t max_text_width_ext = UI_POS_WIDTH_REMAINING(0)/UI_POS_DEFAULT_WIDTH;
 
     Labels labels{
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Source:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(1)}, "Beacon:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(2)}, "Desc.:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Description:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(5)}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(9)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(11)}, "AM frequency          MHz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(17), UI_POS_Y(8)}, "s.", Theme::getInstance()->fg_light->foreground}};
+
+    OptionsField options_mode{
+        {UI_POS_X(7), UI_POS_Y(0)},
+        30,
+        {{"File (BEACONS.TXT)", 0},
+         {"Manual (Editor)", 1}}};
 
     Text text_description {
         { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
@@ -112,7 +122,7 @@ class EPIRBTXAppView : public View {
         ""};        
 
     Text text_timeout {
-        { UI_POS_X(13), UI_POS_Y(9), UI_POS_WIDTH(2), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(14), UI_POS_Y(9), UI_POS_WIDTH(2), UI_POS_DEFAULT_HEIGHT},
         ""};        
 
     Checkbox checkbox_loop{
@@ -127,10 +137,25 @@ class EPIRBTXAppView : public View {
         1,
         ' '};
 
+    Checkbox checkbox_am{
+        {UI_POS_X(0), UI_POS_Y(10)},
+        10,
+        "AM signal",true};
+
+    FrequencyField field_am_frequency{
+        {UI_POS_X(13), UI_POS_Y(11)}};
+
     OptionsField options_frame{
         {UI_POS_X(7), UI_POS_Y(1)},
         30,
         {}};
+
+    Button button_tx{
+        { UI_POS_X_RIGHT(9), UI_POS_Y(8), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
+        "START"
+    };        
+    const Style& style_tx_start = *Theme::getInstance()->fg_green;
+    const Style& style_tx_stop = *Theme::getInstance()->fg_red;
 
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
