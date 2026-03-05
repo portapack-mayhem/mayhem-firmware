@@ -159,9 +159,11 @@ if !PORT_COUNT! equ 1 (
     )
     echo.
     set /p PORT_CHOICE="Enter your choice (1-!PORT_COUNT!): "
-    if defined PORT_!PORT_CHOICE! (
-        set COM_PORT=!PORT_%PORT_CHOICE%!
-    ) else (
+    set COM_PORT=
+    for /l %%I in (1,1,!PORT_COUNT!) do (
+        if "!PORT_CHOICE!"=="%%I" set COM_PORT=!PORT_%%I!
+    )
+    if not defined COM_PORT (
         echo Invalid selection.
         goto :eof
     )
