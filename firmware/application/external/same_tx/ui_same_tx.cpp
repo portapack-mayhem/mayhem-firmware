@@ -1,7 +1,22 @@
 /*
- * SAME TX - Specific Area Message Encoding Transmitter
- * Protocol: 16×0xAB preamble + "ZCZC-ORG-EVT-SSPCCC+HHMM-JJJHHMM-STATION-"
- * AFSK: mark=2083Hz, space=1563Hz, 520.833 baud, repeat×3
+ * Copyright (C) 2024 HTotoo
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
  */
 #include "ui_same_tx.hpp"
 #include "theme.hpp"
@@ -207,7 +222,12 @@ SameTxView::SameTxView(NavigationView& nav)
 
     update_msg_preview();
 
-    tx_view.on_start = [this]() { start_tx(); };
+    tx_view.on_start = [this]() {
+        if (!tx_active_) {
+            start_tx();
+            tx_view.set_transmitting(true);
+        }
+    };
     tx_view.on_stop = [this]() { stop_tx(); };
 }
 
