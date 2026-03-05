@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 
 echo =========================================================
 echo   PortaPack Mayhem - Device Flasher
@@ -57,10 +58,7 @@ exit /b
 REM ── Action 1: Flash Mayhem ─────────────────────────────────
 :flash_mayhem
 echo.
-if "%DEVICE_CHOICE%"=="1" set FIRMWARE=firmware\firmware_hackrf.bin
-if "%DEVICE_CHOICE%"=="2" set FIRMWARE=firmware\firmware_portarf.bin
-if "%DEVICE_CHOICE%"=="3" set FIRMWARE=firmware\firmware_hpro.bin
-
+call :set_firmware
 if "%DEVICE_CHOICE%"=="1" (
     echo If your device has a PortaPack attached, switch it to HackRF mode first by
     echo selecting the "HackRF" option from the main menu.
@@ -68,22 +66,9 @@ if "%DEVICE_CHOICE%"=="1" (
 )
 echo Firmware: %FIRMWARE%
 echo.
-
-if not exist %FIRMWARE% (
-    echo ERROR: The firmware file "%FIRMWARE%" was not found.
-    echo Please ensure you have downloaded the latest release from:
-    echo   https://release.hackrf.app/
-    echo.
-    pause
-    exit /b
-)
-
-echo.
-"utils/hackrf_spiflash.exe" -R -w %FIRMWARE%
-echo.
-echo If your device does not boot after flashing, see the troubleshooting wiki:
-echo   https://github.com/portapack-mayhem/mayhem-firmware/wiki/Wont-boot
-echo.
+call :check_file_exists "%FIRMWARE%" "firmware file" || (pause & exit /b)
+call :do_flash
+if "!FLASH_OK!"=="1" call :print_success
 pause
 exit /b
 
@@ -101,24 +86,10 @@ echo   1. Hold down both the DFU and RESET buttons.
 echo   2. Release the RESET button first (the one closest to the edge).
 echo   3. Then release the DFU button.
 echo.
-
-if "%DEVICE_CHOICE%"=="3" (
-    set DFU_FILE=firmware\hackrf_hpro_usb.dfu
-) else (
-    set DFU_FILE=firmware\hackrf_usb.dfu
-)
-
-if not exist "%DFU_FILE%" (
-    echo ERROR: "%DFU_FILE%" was not found.
-    echo Please ensure you have downloaded the latest release from:
-    echo   https://release.hackrf.app/
-    echo.
-    pause
-    exit /b
-)
-
+call :set_dfu_file
+call :check_file_exists "%DFU_FILE%" "DFU file" || (pause & exit /b)
 echo.
-"utils/dfu-util-static.exe" --device 1fc9:000c --download "%DFU_FILE%"
+call :do_dfu
 echo.
 pause
 exit /b
@@ -136,53 +107,76 @@ echo   1. Hold down both the DFU and RESET buttons.
 echo   2. Release the RESET button first (the one closest to the edge).
 echo   3. Then release the DFU button.
 echo.
-
-if "%DEVICE_CHOICE%"=="3" (
-    set DFU_FILE=firmware\hackrf_hpro_usb.dfu
-) else (
-    set DFU_FILE=firmware\hackrf_usb.dfu
-)
-
-if not exist "%DFU_FILE%" (
-    echo ERROR: "%DFU_FILE%" was not found.
-    echo Please ensure you have downloaded the latest release from:
-    echo   https://release.hackrf.app/
-    echo.
-    pause
-    exit /b
-)
-
-if "%DEVICE_CHOICE%"=="1" set FIRMWARE=firmware\firmware_hackrf.bin
-if "%DEVICE_CHOICE%"=="2" set FIRMWARE=firmware\firmware_portarf.bin
-if "%DEVICE_CHOICE%"=="3" set FIRMWARE=firmware\firmware_hpro.bin
-
-if not exist "%FIRMWARE%" (
-    echo ERROR: The firmware file "%FIRMWARE%" was not found.
-    echo Please ensure you have downloaded the latest release from:
-    echo   https://release.hackrf.app/
-    echo.
-    pause
-    exit /b
-)
+call :set_dfu_file
+call :check_file_exists "%DFU_FILE%" "DFU file" || (pause & exit /b)
+call :set_firmware
+call :check_file_exists "%FIRMWARE%" "firmware file" || (pause & exit /b)
 
 echo Step 1 of 2: Loading HackRF firmware via DFU...
 echo.
-"utils/dfu-util-static.exe" --device 1fc9:000c --download "%DFU_FILE%"
+call :do_dfu
 
 echo.
-echo DFU complete. Waiting 5 seconds for device to re-enumerate...
+echo DFU complete. Waiting 5 seconds for device to reconnect...
 timeout /t 5 /nobreak >nul
 
 echo.
 echo Step 2 of 2: Flashing Mayhem firmware (%FIRMWARE%)...
 echo.
-"utils/hackrf_spiflash.exe" -R -w "%FIRMWARE%"
-echo.
-echo If your device does not boot after flashing, see the troubleshooting wiki:
-echo   https://github.com/portapack-mayhem/mayhem-firmware/wiki/Wont-boot
-echo.
+call :do_flash
+if "!FLASH_OK!"=="1" call :print_success
 pause
 exit /b
+
+
+REM ── Serial fallback: boot device into HackRF mode via serial ──
+:serial_fallback
+set SERIAL_OK=0
+set COM_PORT=
+echo.
+
+REM Enumerate available COM ports into a temp file
+powershell -NoProfile -Command "[System.IO.Ports.SerialPort]::GetPortNames() | Sort-Object | ForEach-Object { $_ }" > "%TEMP%\mayhem_comports.txt" 2>nul
+
+REM Count and index ports
+set PORT_COUNT=0
+for /f "usebackq tokens=*" %%P in ("%TEMP%\mayhem_comports.txt") do (
+    set /a PORT_COUNT+=1
+    set PORT_!PORT_COUNT!=%%P
+)
+
+if !PORT_COUNT! equ 0 (
+    goto :eof
+)
+
+if !PORT_COUNT! equ 1 (
+    set COM_PORT=!PORT_1!
+) else (
+    echo Multiple COM ports detected. Select the one your device is on:
+    echo.
+    for /l %%I in (1,1,!PORT_COUNT!) do (
+        echo   %%I. !PORT_%%I!
+    )
+    echo.
+    set /p PORT_CHOICE="Enter your choice (1-!PORT_COUNT!): "
+    if defined PORT_!PORT_CHOICE! (
+        set COM_PORT=!PORT_%PORT_CHOICE%!
+    ) else (
+        echo Invalid selection.
+        goto :eof
+    )
+)
+
+echo Connecting to !COM_PORT!...
+powershell -NoProfile -Command "$p = New-Object System.IO.Ports.SerialPort('!COM_PORT!', 115200, [System.IO.Ports.Parity]::None, 8, [System.IO.Ports.StopBits]::One); try { $p.Open(); $p.Write('hackrf' + [char]13 + [char]10); Start-Sleep -Milliseconds 500 } catch { Write-Host ('Serial error: ' + $_.Exception.Message); exit 1 }; try { $p.Close() } catch {}; exit 0"
+if %ERRORLEVEL% equ 0 (
+    set SERIAL_OK=1
+    echo Switching to HackRF mode, waiting for device...
+    timeout /t 7 /nobreak >nul
+) else (
+    echo Could not open !COM_PORT!. Make sure the port is not in use.
+)
+goto :eof
 
 
 REM ── Action 4: Flash factory HackRF firmware ────────────────
@@ -200,17 +194,110 @@ if "%DEVICE_CHOICE%"=="3" (
     set FACTORY_BIN=firmware\hackrf_usb.bin
 )
 
-if not exist "%FACTORY_BIN%" (
-    echo ERROR: "%FACTORY_BIN%" was not found.
-    echo Please ensure you have downloaded the latest release from:
-    echo   https://release.hackrf.app/
-    echo.
-    pause
-    exit /b
-)
-
+call :check_file_exists "%FACTORY_BIN%" "factory firmware" || (pause & exit /b)
 echo.
 "utils/hackrf_spiflash.exe" -R -w "%FACTORY_BIN%"
 echo.
 pause
 exit /b
+
+
+REM ── Helper: Set FIRMWARE based on DEVICE_CHOICE ─────────────
+:set_firmware
+if "%DEVICE_CHOICE%"=="1" set FIRMWARE=firmware\firmware_hackrf.bin
+if "%DEVICE_CHOICE%"=="2" set FIRMWARE=firmware\firmware_portarf.bin
+if "%DEVICE_CHOICE%"=="3" set FIRMWARE=firmware\firmware_hpro.bin
+goto :eof
+
+
+REM ── Helper: Set DFU_FILE based on DEVICE_CHOICE ─────────────
+:set_dfu_file
+if "%DEVICE_CHOICE%"=="3" (
+    set DFU_FILE=firmware\hackrf_hpro_usb.dfu
+) else (
+    set DFU_FILE=firmware\hackrf_usb.dfu
+)
+goto :eof
+
+
+REM ── Helper: Check a required file exists ─────────────────────
+REM   %1 = quoted file path   %2 = human-readable label
+:check_file_exists
+if not exist %1 (
+    echo ERROR: The %~2 file %1 was not found.
+    echo Please ensure you have downloaded the latest release from:
+    echo   https://release.hackrf.app/
+    echo.
+    exit /b 1
+)
+exit /b 0
+
+
+REM ── Helper: Flash FIRMWARE with serial fallback ───────────────
+:do_flash
+set FLASH_OK=0
+"utils/hackrf_spiflash.exe" -R -w "%FIRMWARE%"
+if %ERRORLEVEL% equ 0 (
+    set FLASH_OK=1
+    goto :eof
+)
+call :serial_fallback
+if "!SERIAL_OK!"=="1" (
+    echo.
+    echo Device should now be in HackRF mode. Retrying flash...
+    echo.
+    "utils/hackrf_spiflash.exe" -R -w "%FIRMWARE%"
+    if !ERRORLEVEL! equ 0 set FLASH_OK=1
+) else (
+    echo.
+    call :print_error
+)
+goto :eof
+
+
+REM ── Helper: Run DFU flash ────────────────────────────────────
+:do_dfu
+"utils/dfu-util-static.exe" --device 1fc9:000c --download "%DFU_FILE%"
+goto :eof
+
+
+REM ── Helper: Print error banner ──────────────────────────────
+:print_error
+echo.
+echo  $$$$$$\                                
+echo $$  __$$\                               
+echo $$ /  $$ ^| $$$$$$\   $$$$$$\   $$$$$$$\ 
+echo $$ ^|  $$ ^|$$  __$$\ $$  __$$\ $$  _____^|
+echo $$ ^|  $$ ^|$$ /  $$ ^|$$ /  $$ ^|\$$$$$$\  
+echo $$ ^|  $$ ^|$$ ^|  $$ ^|$$ ^|  $$ ^| \____$$\ 
+echo  $$$$$$  ^|\$$$$$$  ^|$$$$$$$  ^|$$$$$$$  ^|
+echo  \______/  \______/ $$  ____/ \_______/ 
+echo                     $$ ^|                
+echo                     $$ ^|                
+echo                     \__^|                
+echo.
+echo   ERROR: Device not found. Make sure your device is connected,
+echo   powered on, and in HackRF mode, then try again.
+echo.
+goto :eof
+
+
+REM ── Helper: Print success banner ─────────────────────────────
+:print_success
+echo.
+echo   ______   __    __   ______    ______   ________   ______    ______
+echo  /      \ ^|  \  ^|  \ /      \  /      \ ^|        \ /      \  /      \
+echo ^|  $$$$$$\^| $$  ^| $$^|  $$$$$$\^|  $$$$$$\^| $$$$$$$$^|  $$$$$$\^|  $$$$$$\
+echo ^| $$___\$$^| $$  ^| $$^| $$   \$$^| $$   \$$^| $$__    ^| $$___\$$^| $$___\$$
+echo  \$$    \ ^| $$  ^| $$^| $$      ^| $$      ^| $$  \    \$$    \  \$$    \
+echo  _\$$$$$$\^| $$  ^| $$^| $$   __ ^| $$   __ ^| $$$$$    _\$$$$$$\ _\$$$$$$\
+echo ^|  \__^| $$^| $$__/ $$^| $$__/  \^| $$__/  \^| $$_____ ^|  \__^| $$^|  \__^| $$
+echo  \$$    $$ \$$    $$ \$$    $$ \$$    $$^| $$     \ \$$    $$ \$$    $$
+echo   \$$$$$$   \$$$$$$   \$$$$$$   \$$$$$$  \$$$$$$$$  \$$$$$$   \$$$$$$
+echo.
+echo   Firmware flashed successfully. Your device is rebooting...
+echo.
+echo If your device does not boot after flashing, see the troubleshooting wiki:
+echo   https://github.com/portapack-mayhem/mayhem-firmware/wiki/Wont-boot
+echo.
+goto :eof
