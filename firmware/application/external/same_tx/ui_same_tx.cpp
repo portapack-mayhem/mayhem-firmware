@@ -22,13 +22,32 @@ static constexpr uint8_t SAME_REPEAT = 3;
 
 static constexpr char SAME_ORG_CODES[][4] = {"WXR", "EAS", "CIV", "PEP"};
 static constexpr char SAME_EVT_CODES[][4] = {
-    "RWT", "RMT", "NPT", "NST", "NMT",
-    "EAN", "EAT", "NIC", "ADR",
-    "AVA", "AVW", "BZW",
-    "CFW", "CFS", "DSW", "EQW",
-    "EVI", "FFW", "FFS", "FFH",
-    "FRW", "HLS", "HUW", "HUH",
-    "SVR", "TOR",
+    "RWT",
+    "RMT",
+    "NPT",
+    "NST",
+    "NMT",
+    "EAN",
+    "EAT",
+    "NIC",
+    "ADR",
+    "AVA",
+    "AVW",
+    "BZW",
+    "CFW",
+    "CFS",
+    "DSW",
+    "EQW",
+    "EVI",
+    "FFW",
+    "FFS",
+    "FFH",
+    "FRW",
+    "HLS",
+    "HUW",
+    "HUH",
+    "SVR",
+    "TOR",
 };
 
 static uint8_t bitrev8(uint8_t b) {
@@ -62,12 +81,16 @@ void SameTxView::update_msg_preview() {
     *p++ = '-';
     for (const char* s = evt; *s; s++) *p++ = *s;
     *p++ = '-';
-    fmt2d(p, ss); p += 2;
+    fmt2d(p, ss);
+    p += 2;
     *p++ = '0';
-    fmt3d(p, ccc); p += 3;
+    fmt3d(p, ccc);
+    p += 3;
     *p++ = '+';
-    fmt2d(p, dh); p += 2;
-    fmt2d(p, dm); p += 2;
+    fmt2d(p, dh);
+    p += 2;
+    fmt2d(p, dm);
+    p += 2;
     *p = '\0';
     text_msg.set(buf);
 }
@@ -89,12 +112,16 @@ void SameTxView::start_tx() {
     *p++ = '-';
     for (const char* s = evt; *s; s++) *p++ = *s;
     *p++ = '-';
-    fmt2d(p, ss); p += 2;
+    fmt2d(p, ss);
+    p += 2;
     *p++ = '0';
-    fmt3d(p, ccc); p += 3;
+    fmt3d(p, ccc);
+    p += 3;
     *p++ = '+';
-    fmt2d(p, dh); p += 2;
-    fmt2d(p, dm); p += 2;
+    fmt2d(p, dh);
+    p += 2;
+    fmt2d(p, dm);
+    p += 2;
     *p++ = '-';
     // Issue time: fixed 0010000 (placeholder), station: SAME-TX
     const char* tail = "0010000-SAMETX--";
@@ -143,7 +170,8 @@ void SameTxView::focus() {
     field_org.focus();
 }
 
-SameTxView::SameTxView(NavigationView& nav) : nav_{nav} {
+SameTxView::SameTxView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_afsk);
 
     add_children({

@@ -39,7 +39,8 @@ class SameTxView : public View {
         {{16 * 8, 1 * 16}, "Dur:", ui::Theme::getInstance()->fg_light->foreground},
     }};
     OptionsField field_org{
-        {4 * 8, 0 * 16}, 3,
+        {4 * 8, 0 * 16},
+        3,
         {{"WXR", 0}, {"EAS", 1}, {"CIV", 2}, {"PEP", 3}}};
     NumberField field_event_idx{{12 * 8, 0 * 16}, 2, {0, 25}, 1, '0', true};
     Text text_evt{{15 * 8, 0 * 16, 3 * 8, 16}, "RWT"};
