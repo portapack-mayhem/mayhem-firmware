@@ -249,7 +249,12 @@ if "!SERIAL_OK!"=="1" (
     echo Device should now be in HackRF mode. Retrying flash...
     echo.
     "utils/hackrf_spiflash.exe" -R -w "%FIRMWARE%"
-    if !ERRORLEVEL! equ 0 set FLASH_OK=1
+    if !ERRORLEVEL! equ 0 (
+        set FLASH_OK=1
+    ) else (
+        echo.
+        call :print_error
+    )
 ) else (
     echo.
     call :print_error
