@@ -26,10 +26,11 @@
 #include "theme.hpp"
 #include "ui_widget.hpp"
 #include "sd_card.hpp"
+#include <functional>
 
 namespace ui {
 
-class SDCardStatusView : public Image {
+class SDCardStatusView : public ImageButton {
    public:
     SDCardStatusView(const Rect parent_rect);
 

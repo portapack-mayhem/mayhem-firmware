@@ -57,6 +57,7 @@
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
 #include "ui_battinfo.hpp"
+#include "ui_sd_card_debug.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
 #include "ais_app.hpp"
@@ -301,6 +302,10 @@ SystemStatusView::SystemStatusView(
         this->on_clk();
     };
 
+    sd_card_status_view.on_select = [this](ImageButton&) {
+        this->on_sd_card();
+    };
+
     // Initialize toggle buttons
     toggle_speaker.set_value(pmem::config_speaker_disable());
     toggle_mute.set_value(pmem::config_audio_mute());
@@ -505,6 +510,16 @@ void SystemStatusView::on_clk() {
     pmem::set_clkout_enabled(!pmem::clkout_enabled());
     portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());
     refresh();
+}
+
+void SystemStatusView::on_sd_card() {
+    if (!nav_.is_valid()) return;
+    if (batt_info_up) return;
+    batt_info_up = true;
+    nav_.push<SDCardDebugView>();
+    nav_.set_on_pop([this]() {
+        batt_info_up = false;
+    });
 }
 
 void SystemStatusView::on_title() {

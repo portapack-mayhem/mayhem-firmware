@@ -303,6 +303,7 @@ class SystemStatusView : public View {
     void on_title();
     void refresh();
     void on_clk();
+    void on_sd_card();
     void on_tx_disabled();
     void rtc_battery_workaround();
     void on_battery_data(const BatteryStateMessage* msg);
