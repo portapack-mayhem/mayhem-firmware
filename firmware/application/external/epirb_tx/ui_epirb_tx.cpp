@@ -32,6 +32,8 @@
 #include <cstring>
 #include <stdio.h>
 
+#include "beacon.hpp"
+
 using namespace portapack;
 
 namespace ui::external_app::epirb_tx {
@@ -60,269 +62,15 @@ static uint8_t hexToByte(char high, char low)
     return (hexval(high) << 4) | hexval(low);
 }
 
-static uint64_t get_bits(uint8_t *data, int startBit, int endBit)
-{
-    uint64_t result = 0;
-    // 0 bases bit count
-    startBit--;
-    int numBits = endBit - startBit;
-
-    // get a pointer to the starting byte...
-    const uint8_t *pData = &(data[startBit / 8]);
-    uint8_t b = *pData;
-
-    // calculate the starting bit within that byte...
-    int bitOffset = 7 - (startBit % 8);
-
-    // iterate for the desired number of bits...
-    for(int i = 0; i < numBits; ++i)
-    {
-        // make room for the next bit...
-        result <<= 1;
-        // copy the bit...
-        result |= ((b >> bitOffset) & 0x01);
-        // reached the end of the current byte?
-        if (--bitOffset < 0)
-        {
-            b = *(++pData); // go to the next byte...
-            bitOffset = 7; // restart at the first bit in that byte...
-        }
-    }
-
-    // all done...
-    return result;
-}
-
-static uint64_t compute_bch(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength)
-{   // Length of data to be checked (not including the BCH code)
-    int dataLength = endBit-startBit+1;
-    // Total lengh (including the BCH code that will be padded to zeros (BCH code length is polyLengh-1))
-    int totalLength = dataLength+polyLength-1;
-    // Start with the first polyLength bits
-    uint64_t result = get_bits(frame, startBit,startBit+polyLength-1);
-    for (int i = polyLength; i <= totalLength; i++) 
-    {   // Iterate on each bit after the first polyLength batch
-        bool firstBit = result >> (polyLength-1);
-        if(firstBit)
-        {   // We have a leading 1 => xor the result with the poly
-            result = result^poly;
-        }
-        if(i<totalLength)
-        {   // Move to next bit
-            result = result << 1;
-            if(i<dataLength)
-            {   // Append next bit
-                result |= get_bits(frame,startBit+i,startBit+i);
-            } // else : 0 padding after data length
-        }
-    }
-    return result;
-}
-
-// 21 bits BCH polynomial
-#define BCH_21_POLYNOMIAL   0b1001101101100111100011UL 
-#define BCH_21_POLY_LENGTH  22
-// 12 bits BCH polynomial
-#define BCH_12_POLYNOMIAL   0b1010100111001UL
-#define BCH_12_POLY_LENGTH  13
-
-static uint64_t compute_bch1(uint8_t* frame)
-{
-    return compute_bch(frame,25,85,BCH_21_POLYNOMIAL,BCH_21_POLY_LENGTH);
-}
-
-static uint64_t compute_bch2(uint8_t* frame)
-{
-    return compute_bch(frame,107,132,BCH_12_POLYNOMIAL,BCH_12_POLY_LENGTH);
-}
-
-static void maidenhead_to_latlon(const std::string& loc, float& lat, float& lon)
-{
-    static const double lon_step[] =
-    {
-        20.0,
-        2.0,
-        1.0/12.0,
-        1.0/120.0,
-        1.0/2880.0
-    };
-
-    static const double lat_step[] =
-    {
-        10.0,
-        1.0,
-        1.0/24.0,
-        1.0/240.0,
-        1.0/5760.0
-    };
-
-    lon = -180.0;
-    lat = -90.0;
-
-    int pairs = loc.size() / 2;
-    if(pairs > 5)
-        pairs = 5;
-
-    for(int i=0;i<pairs;i++)
-    {
-        char c1 = std::toupper(loc[i*2]);
-        char c2 = std::toupper(loc[i*2+1]);
-
-        double lon_size = lon_step[i];
-        double lat_size = lat_step[i];
-
-        int v1, v2;
-
-        if(i % 2 == 0) // letters
-        {
-            v1 = c1 - 'A';
-            v2 = c2 - 'A';
-        }
-        else // digits
-        {
-            v1 = c1 - '0';
-            v2 = c2 - '0';
-        }
-
-        lon += v1 * lon_size;
-        lat += v2 * lat_size;
-    }
-
-    // Cell center
-    lon += lon_step[pairs-1] / 2.0;
-    lat += lat_step[pairs-1] / 2.0;
-}
-
-static uint16_t encode_lat(float lat)
-{
-    return (uint16_t)(((lat + 90.0f)/180.0f) * 32767);
-}
-
-static uint16_t encode_lon(float lon)
-{
-    return (uint16_t)(((lon + 180.0f)/360.0f) * 65535);
-}
-
-static void set_bit(uint8_t* buf, int bit, bool v)
-{
-/*    if (v)
-        buf[bit/8] |=  (1 << (bit%8));
-    else
-        buf[bit/8] &= ~(1 << (bit%8));*/
-    int byte = bit >> 3;
-    int off  = 7 - (bit & 7);
-
-    if(v)
-        buf[byte] |= (1 << off);
-}
-
-static void push_bits(uint8_t* buf, int& pos, uint64_t v, int n)
-{
-    for(int i=n-1;i>=0;i--)
-        set_bit(buf,pos++, (v>>i)&1);
-}
-
 std::string EPIRBTXAppView::frame_to_hex_string(bool start)
 {
-    static const char hex[] = "0123456789ABCDEF";
-
-    std::string out;
-    out.resize(18);
-
-    int offset = start ? 0 : 9;
-
-    for(int i = 0; i < 9; i++)
-    {
-        uint8_t b = epirb_tx_message.data[offset + i];
-
-        out[i*2]     = hex[b >> 4];
-        out[i*2 + 1] = hex[b & 0x0F];
-    }
-
-    return out;
+    return beacon_to_hex_string(epirb_tx_message.data,start);
 }
 
 void EPIRBTXAppView::generate_frame(BeaconParams params)
 {
-    memset(epirb_tx_message.data,0,18);
-
-    int pos = 0;
-
-    /* bit sync */
-    for(int i=0;i<15;i++)
-        push_bits(epirb_tx_message.data,pos,1,1);
-
-    /* frame sync (test) */
-    push_bits(epirb_tx_message.data,pos,params.is_test ? 0b011010000 : 0b000101111,9);
-
-    /* ----------------
-       PDF-1
-       ---------------- */
-
-    int pdf1_start = pos;
-
-    push_bits(epirb_tx_message.data,pos,1,1);  // format flag (long)
-    push_bits(epirb_tx_message.data,pos,1,1);  // protocol flag
-    push_bits(epirb_tx_message.data,pos,227,10); // country code example
-    switch(params.type)
-    {
-        case BeaconType::EPIRB:
-            push_bits(epirb_tx_message.data,pos,0b010,3);
-            break;
-        case BeaconType::PLB:
-            push_bits(epirb_tx_message.data,pos,0b011,3);
-            break;
-        case BeaconType::ELT:
-        default:
-            push_bits(epirb_tx_message.data,pos,0b001,3);
-            break;
-    }
-
-    while(pos < pdf1_start + 61)
-        push_bits(epirb_tx_message.data,pos,0,1);
-
-    if(params.type == BeaconType::PLB)
-    {
-        set_bit(epirb_tx_message.data,40-1,1);
-        set_bit(epirb_tx_message.data,41-1,1);
-        set_bit(epirb_tx_message.data,42-1,0);
-    }
-
-    set_bit(epirb_tx_message.data,85-1,params.has_121_5);
-
-    /* BCH1 */
-
-    uint64_t bch1 = compute_bch1(epirb_tx_message.data);
-
-    push_bits(epirb_tx_message.data,pos,bch1,21);
-
-    /* ----------------
-       PDF-2 position
-       ---------------- */
-    int pdf2_start = pos;
-
-    push_bits(epirb_tx_message.data,pos,params.is_internal,1);
-
-    float lat,lon;
-    maidenhead_to_latlon(params.locator,lat,lon);
-
-    uint16_t lat_e = encode_lat(lat);
-    uint16_t lon_e = encode_lon(lon);
-
-    push_bits(epirb_tx_message.data,pos,lat_e,14);
-    push_bits(epirb_tx_message.data,pos,lon_e,11);  // reste des 26 bits
-
-    while(pos < pdf2_start + 26)
-        push_bits(epirb_tx_message.data,pos,0,1);
-
-    /* BCH2 */
-
-    uint64_t bch2 = compute_bch2(epirb_tx_message.data);
-
-    push_bits(epirb_tx_message.data,pos,bch2,12);
-    epirb_tx_message.data_len = 18;
+    epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data,params);
 }
-
 
 void EPIRBTXAppView::on_timer() {
     if(loop)
@@ -467,6 +215,8 @@ EPIRBTXAppView::EPIRBTXAppView(
     text_beacon_type.set_style(Theme::getInstance()->fg_light);
     text_beacon_locator.set_style(Theme::getInstance()->fg_light);
 
+    init_from_locator(beacon_params.location);
+
     options_mode.on_change = [this](size_t index, OptionsField::value_t) {
         mode_file = (index == 0);
         text_beacon.hidden(!mode_file);
@@ -491,7 +241,8 @@ EPIRBTXAppView::EPIRBTXAppView(
     };
 
     text_field_beacon_locator.on_change = [this](TextField&) {
-        beacon_params.locator = text_field_beacon_locator.get_text();
+        beacon_params.location.locator = text_field_beacon_locator.get_text();
+        init_from_locator(beacon_params.location);
         update_frame();
         set_dirty();
     };
@@ -594,6 +345,5 @@ void EPIRBTXAppView::load_beacons() {
         beacons.push_back(default_beacon);
     }
 }
-
 
 }  // namespace ui::external_app::epirb_tx

@@ -46,13 +46,29 @@ enum class BeaconType
     PLB = 2
 };
 
+
+struct Location
+{
+    std::string locator;
+    bool south;
+    uint16_t lat_deg;
+    uint8_t lat_min;
+    uint8_t lat_sec;
+    float latitude;
+    bool west;
+    uint16_t long_deg;
+    uint8_t long_min;
+    uint8_t long_sec;
+    float longitude;
+};
+
 struct BeaconParams
 {
     BeaconType type;
     bool is_test;
     bool is_internal;
     bool has_121_5;
-    std::string locator;
+    Location location;
 };
 
 class EPIRBTXAppView : public View {
@@ -84,7 +100,7 @@ class EPIRBTXAppView : public View {
     std::vector<Beacon> beacons{};
     Beacon default_beacon {"Self test","Serial User Location Protocol","FFFED0D6E6202820000C29FF51041775302D"};
 
-    BeaconParams beacon_params { BeaconType::ELT , true, true, true, "JN03RO"};
+    BeaconParams beacon_params { BeaconType::ELT , true, true, true, {"JN03RO",false,0,0,0,0,false,0,0,0,0}};
 
     size_t  selected_beacon{0};
 
