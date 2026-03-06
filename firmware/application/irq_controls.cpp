@@ -81,6 +81,8 @@ static bool touch_cycle = false;
 static touch::Samples dbg_pressure_samples{};
 static touch::Samples dbg_last_samples{};
 static int32_t dbg_z1{0}, dbg_z2{0};
+static touch::Samples dbg_x_samples{};
+static touch::Samples dbg_y_samples{};
 
 static bool touch_update() {
     const auto samples = touch::adc::get();
@@ -113,10 +115,12 @@ static bool touch_update() {
         } break;
 
         case IO::TouchPinsConfig::SenseX:
+            dbg_x_samples = samples;
             temp_frame.x += samples;
             break;
 
         case IO::TouchPinsConfig::SenseY:
+            dbg_y_samples = samples;
             temp_frame.y += samples;
             break;
 
@@ -336,6 +340,12 @@ int32_t get_touch_z2() {
 }
 bool get_touch_detected() {
     return touch_detected;
+}
+touch::Samples get_touch_x_samples() {
+    return dbg_x_samples;
+}
+touch::Samples get_touch_y_samples() {
+    return dbg_y_samples;
 }
 
 namespace control {

@@ -62,9 +62,10 @@ class TouchCalibrationView : public View {
     void touch_complete();
     void on_ok();
     void on_cancel();
+    void on_reset();
 
     const uint32_t samples_limit{40};
-    const uint32_t verify_d_sq_max = 10 * 10;
+    const uint32_t verify_d_sq_max = 30 * 30;
 
     uint32_t samples_count{0};
 
@@ -81,7 +82,7 @@ class TouchCalibrationView : public View {
         Color::black()};
 
     Image image_calibrate_1{
-        {screen_width - 32 - 16, (screen_height - 16) / 2 - 16, 32, 32},
+        {screen_width - 32 - 16, 32 - 16, 32, 32},
         &bitmap_target_calibrate,
         Color::white(),
         Color::black()};
@@ -99,7 +100,7 @@ class TouchCalibrationView : public View {
         Color::black()};
 
     Image image_verify_1{
-        {screen_width - 32 - 16, (screen_height - 16) / 2 - 16, 32, 32},
+        {screen_width - 32 - 16, 32 - 16, 32, 32},
         &bitmap_target_verify,
         Color::white(),
         Color::black()};
@@ -137,6 +138,10 @@ class TouchCalibrationView : public View {
     Button button_ok{
         {136, 200, UI_POS_WIDTH(8), 24},
         "OK"};
+
+    Button button_reset{
+        {40, 232, 160, 24},
+        "Reset to Default"};
 
     void on_frame_sync();
 

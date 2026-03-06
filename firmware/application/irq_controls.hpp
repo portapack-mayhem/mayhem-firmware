@@ -53,6 +53,8 @@ touch::Samples get_touch_last_samples();
 int32_t get_touch_z1();
 int32_t get_touch_z2();
 bool get_touch_detected();
+touch::Samples get_touch_x_samples();
+touch::Samples get_touch_y_samples();
 SwitchesState get_switches_repeat_config();
 void set_switches_repeat_config(SwitchesState switch_config);
 

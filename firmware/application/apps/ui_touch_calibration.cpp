@@ -48,10 +48,12 @@ TouchCalibrationView::TouchCalibrationView(
         &label_failure,
         &button_cancel,
         &button_ok,
+        &button_reset,
     });
 
     button_cancel.on_select = [this](Button&) { this->on_cancel(); };
     button_ok.on_select = [this](Button&) { this->on_ok(); };
+    button_reset.on_select = [this](Button&) { this->on_reset(); };
 
     set_phase(Phase::Calibrate0);
 
@@ -85,6 +87,7 @@ void TouchCalibrationView::update_target() {
     label_failure.hidden(phase != Phase::Failure);
 
     button_ok.hidden((phase != Phase::Success) && (phase != Phase::Failure));
+    button_reset.hidden((phase != Phase::Calibrate0) && (phase != Phase::Failure));
 
     /* TODO: Such a hack to get around a poor repaint implementation! This "technique"
      * occurs in other places...
@@ -139,6 +142,11 @@ void TouchCalibrationView::touch_complete() {
         }};
 
         calibration = {digitizer_points, display_points};
+#ifdef PRALINE
+        /* Skip verify phase on PRALINE: touch variance makes re-touching
+         * the same spot within the required tolerance unreliable. */
+        next_phase = Phase::Success;
+#endif
     }
 
     if (phase == Phase::Verify2) {
@@ -175,6 +183,11 @@ void TouchCalibrationView::on_cancel() {
     nav.pop();
 }
 
+void TouchCalibrationView::on_reset() {
+    persistent_memory::set_touch_calibration(touch::Calibration());
+    nav.pop();
+}
+
 void TouchCalibrationView::on_frame_sync() {
     switch (phase) {
         case Phase::Calibrate0:
@@ -194,7 +207,11 @@ void TouchCalibrationView::on_frame_sync() {
     const auto x = metrics.x * 1024;
     const auto y = metrics.y * 1024;
 
-    if (metrics.r < 640.0f) {
+    /* PRALINE: YN has a hardware pull-down that inflates z2_norm, causing
+     * r_touch to be ~670 even for a good touch. Use higher threshold to match
+     * the Manager's touch_down_pressure threshold. H1/H2 r_touch is typically
+     * well below this value for confirmed good contact. */
+    if (metrics.r < 3200.0f) {
         if (samples_count > 0) {
             average.x = ((average.x * 7) + x) / 8;
             average.y = ((average.y * 7) + y) / 8;

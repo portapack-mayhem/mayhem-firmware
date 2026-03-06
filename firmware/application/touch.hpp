@@ -129,12 +129,31 @@ struct Calibration {
 
     constexpr Calibration()
         : Calibration(
+#ifdef PRALINE
+              /* Estimated defaults for HackRF Pro (PRALINE).
+               * Y-axis is inverted vs H1/H2: digitizer Y increases going DOWN.
+               * Derived from measured data point (screen 220,300 -> digitizer 922,811).
+               * Run Settings->Calibration to obtain exact values for your unit. */
+              {{{177, 172}, {874, 476}, {526, 781}}},
+              {{{32, 48}, {208, 168}, {120, 288}}})
+            //   The above is AI generated and not quite correct. it needs to be replaced with readl numbers once we have a good calibration
+#else
               /* Values derived from one PortaPack H1 unit. */
               {{{256, 731}, {880, 432}, {568, 146}}},
-              {{{32, 48}, {208, 168}, {120, 288}}}) {
+              {{{32, 48}, {208, 168}, {120, 288}}})
+#endif
+    {
     }
 
     ui::Point translate(const DigitizerPoint& p) const;
+
+    int32_t get_k() const { return k; }
+    int32_t get_a() const { return a; }
+    int32_t get_b() const { return b; }
+    int32_t get_c() const { return c; }
+    int32_t get_d() const { return d; }
+    int32_t get_e() const { return e; }
+    int32_t get_f() const { return f; }
 
    private:
     int32_t k;
