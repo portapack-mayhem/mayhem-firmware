@@ -541,7 +541,7 @@ static const std::array<scu_setup_t, 9> pins_setup_r9 { {
 } };
 
 #endif
-//额外增加4个
+// 4 additional entries added
 static const std::array<scu_setup_t, 30> pins_setup_portapack { {
     {  2,  0, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
     {  2,  1, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* U0_RXD: PortaPack P2_1/ADDR */
@@ -573,14 +573,14 @@ static const std::array<scu_setup_t, 30> pins_setup_portapack { {
     {  1, 11, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=1 } }, /* SD_DAT2: PortaPack SD.DAT2(IO) */
     {  1, 12, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=1 } }, /* SD_DAT3: PortaPack SD.DAT3(IO) */
     {  1, 13, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* SD_CD: PortaPack SD.CD(O) */
-    // //debug测试
+    // // debug test
     // /* PortaPack: Touch ADC pins - ADC0_0=PB_6, ADC0_2=P4_5, ADC0_5=P4_4, ADC0_6=PF_4 */
     // xn xp seem right?
     { 11,  6, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* PB_6:  ADC0_0 yp*/
     {  4,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* P4_4:  ADC0_5 xp */
     {  4,  5, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* P4_5:  ADC0_2 yn*/
     { 15,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* PF_4:  ADC0_6 xn*/
-    // 根据手册重新整理一下逻辑
+    // Re-organized logic according to the datasheet
     // {  4,  3, scu_config_normal_drive_t { .mode=2, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* P4_3:  ADC0_0 */
     // { 15,  8, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* PF_8   ADC0_2 */
     // { 15,  10, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* PF_10   ADC0_5 */
