@@ -516,7 +516,7 @@ void SystemStatusView::on_sd_card() {
     if (!nav_.is_valid()) return;
     if (batt_info_up) return;
     batt_info_up = true;
-    nav_.push<SDCardDebugView>();
+    nav_.push<SetSDCardView>();
     nav_.set_on_pop([this]() {
         batt_info_up = false;
     });

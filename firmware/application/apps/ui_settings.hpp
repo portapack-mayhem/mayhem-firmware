@@ -34,6 +34,7 @@
 #include "ui_navigation.hpp"
 #include "bitmap.hpp"
 #include "ff.h"
+#include "sd_card.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "irq_controls.hpp"
 
@@ -424,36 +425,58 @@ class SetSDCardView : public View {
    public:
     SetSDCardView(NavigationView& nav);
 
+    void on_show() override;
+    void on_hide() override;
+
     void focus() override;
 
     std::string title() const override { return "SD Card"; };
 
    private:
+    SignalToken sd_card_status_signal_token{};
+    // Status section (top half)
+    Labels status_labels{
+        {{10, 24}, "Card Status:", Theme::getInstance()->fg_light->foreground},
+        {{10, 48}, "Filesystem:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_card_status{
+        {120, 24, 110, 16}, ""};
+
+    Text text_filesystem_type{
+        {120, 48, 110, 16}, ""};
+
+    Button button_more_info{
+        {UI_POS_X_CENTER(20), 90, UI_POS_WIDTH(20), UI_POS_HEIGHT(2)},
+        "More Info"};
+
+    // Settings section (bottom half)
     Labels labels{
         // 01234567890123456789012345678
-        {{UI_POS_X_CENTER(26), 120 - 48}, "  HIGH SPEED SDCARD IO   ", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X_CENTER(26), 120 - 32}, " May or may not work !!  ", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X_CENTER(26), 140}, "  HIGH SPEED SDCARD IO   ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(26), 156}, " May or may not work !!  ", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox checkbox_sdcard_speed{
-        {UI_POS_X_CENTER(26), 120},
+        {UI_POS_X_CENTER(26), 180},
         20,
         "enable high speed IO"};
 
     Button button_test_sdcard_high_speed{
-        {UI_POS_X_CENTER(27), 152, UI_POS_WIDTH(27), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(27), 210, UI_POS_WIDTH(27), UI_POS_HEIGHT(2)},
         "TEST BUTTON (NO PMEM SAVE)"};
 
     Text text_sdcard_test_status{
-        {UI_POS_X_CENTER(28), 198, UI_POS_WIDTH(28), UI_POS_HEIGHT(1)},
+        {UI_POS_X_CENTER(28), 256, UI_POS_WIDTH(28), UI_POS_HEIGHT(1)},
         ""};
 
     Button button_save{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel"};
+
+    void update_sd_card_status();
 };
 
 class SetConverterSettingsView : public View {

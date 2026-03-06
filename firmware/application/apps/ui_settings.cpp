@@ -35,6 +35,7 @@
 #include "ui_external_items_menu_loader.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_fileman.hpp"
+#include "ui_sd_card_debug.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -446,14 +447,24 @@ void SetUIView::focus() {
 /* SetSDCardView *********************************************/
 
 SetSDCardView::SetSDCardView(NavigationView& nav) {
-    add_children({&labels,
+    add_children({&status_labels,
+                  &text_card_status,
+                  &text_filesystem_type,
+                  &button_more_info,
+                  &labels,
                   &checkbox_sdcard_speed,
                   &button_test_sdcard_high_speed,
                   &text_sdcard_test_status,
                   &button_save,
                   &button_cancel});
 
+    update_sd_card_status();
+
     checkbox_sdcard_speed.set_value(pmem::config_sdcard_high_speed_io());
+
+    button_more_info.on_select = [&nav, this](Button&) {
+        nav.push<SDCardDebugView>();
+    };
 
     button_test_sdcard_high_speed.on_select = [&nav, this](Button&) {
         pmem::set_config_sdcard_high_speed_io(true, false);
@@ -472,8 +483,79 @@ SetSDCardView::SetSDCardView(NavigationView& nav) {
 }
 
 void SetSDCardView::focus() {
-    button_save.focus();
+    button_cancel.focus();
 }
+
+void SetSDCardView::on_show() {
+    sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status) {
+        update_sd_card_status();
+    };
+}
+
+void SetSDCardView::on_hide() {
+    sd_card::status_signal -= sd_card_status_signal_token;
+}
+
+void SetSDCardView::update_sd_card_status() {
+    using sd_card::Status;
+    
+    const auto status = sd_card::status();
+    
+    // Update card status text
+    switch (status) {
+        case Status::NotPresent:
+            text_card_status.set("Not Inserted");
+            text_filesystem_type.set("---");
+            break;
+        case Status::Present:
+            text_card_status.set("Inserted");
+            text_filesystem_type.set("---");
+            break;
+        case Status::Mounted:
+            text_card_status.set("Mounted");
+            // Determine filesystem type
+            {
+                const auto fs_type = sd_card::fs.fs_type;
+                std::string fs_name;
+                switch (fs_type) {
+                    case 1:  // FS_FAT12
+                        fs_name = "FAT12";
+                        break;
+                    case 2:  // FS_FAT16
+                        fs_name = "FAT16";
+                        break;
+                    case 3:  // FS_FAT32
+                        fs_name = "FAT32";
+                        break;
+                    case 4:  // FS_EXFAT
+                        fs_name = "exFAT";
+                        break;
+                    default:
+                        fs_name = "Unknown";
+                        break;
+                }
+                text_filesystem_type.set(fs_name);
+            }
+            break;
+        case Status::ConnectError:
+            text_card_status.set("Connect Error");
+            text_filesystem_type.set("---");
+            break;
+        case Status::MountError:
+            text_card_status.set("Mount Error");
+            text_filesystem_type.set("---");
+            break;
+        case Status::IOError:
+            text_card_status.set("I/O Error");
+            text_filesystem_type.set("---");
+            break;
+        default:
+            text_card_status.set("Unknown");
+            text_filesystem_type.set("---");
+            break;
+    }
+}
+
 
 /* SetConverterSettingsView ******************************/
 
