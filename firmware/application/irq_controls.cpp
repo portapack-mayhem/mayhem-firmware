@@ -328,9 +328,15 @@ touch::Samples get_touch_last_samples() {
     return dbg_last_samples;
 }
 
-int32_t get_touch_z1() { return dbg_z1; }
-int32_t get_touch_z2() { return dbg_z2; }
-bool get_touch_detected() { return touch_detected; }
+int32_t get_touch_z1() {
+    return dbg_z1;
+}
+int32_t get_touch_z2() {
+    return dbg_z2;
+}
+bool get_touch_detected() {
+    return touch_detected;
+}
 
 namespace control {
 namespace debug {

@@ -515,7 +515,7 @@ void RadioDiagnosticsView::update_status() {
                        " YP:" + to_string_dec_uint(touch_samples.yp, 3) +
                        " YN:" + to_string_dec_uint(touch_samples.yn, 3) +
                        " Z1:" + to_string_dec_int(z1, 4));
-    
+
     // Summary
     bool all_ok = rffc_ok && max_ok;
 #ifdef PRALINE
