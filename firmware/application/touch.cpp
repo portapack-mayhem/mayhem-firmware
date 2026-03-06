@@ -22,6 +22,9 @@
 #include "touch.hpp"
 
 #include "portapack_persistent_memory.hpp"
+
+#include "usb_serial_asyncmsg.hpp"
+
 using namespace portapack;
 
 #include "utility.hpp"
@@ -33,19 +36,71 @@ Metrics calculate_metrics(const Frame& frame) {
      * expensive! On the other hand, it seems to be working well (and
      * fast *enough*?), so maybe leave it alone at least for now.
      */
-
+    // source
     const auto x_max = frame.x.xp;
     const auto x_min = frame.x.xn;
-    const auto x_range = x_max - x_min;
     const float x_position = (frame.x.yp + frame.x.yn) * 0.5f;
+
+    // const auto x_max = frame.x.yp;   
+    // const auto x_min = frame.x.yn;   
+    // const float x_position = (frame.x.xp + frame.x.xn) * 0.5f; 
+    
+    const auto x_range = x_max - x_min;
     const float x_norm = (x_position - x_min) / x_range;
 
-    const auto y_max = frame.y.yn;
-    const auto y_min = frame.y.yp;
-    const auto y_range = y_max - y_min;
-    const float y_position = (frame.y.xp + frame.y.xn) * 0.5f;
-    const float y_norm = (y_position - y_min) / y_range;
+    UsbSerialAsyncmsg::asyncmsg("x_norm:");
+    UsbSerialAsyncmsg::asyncmsg(x_norm);
+    // UsbSerialAsyncmsg::asyncmsg("\r\n");
 
+    // char tmp_string[64];
+    // snprintf(tmp_string,64,"####xp:%u xn:%u yp:%u yn:%u\n",frame.x.xp,frame.x.xn,frame.x.yp,frame.x.yn);
+    // std::string test_string = tmp_string;
+    // UsbSerialAsyncmsg::asyncmsg(test_string);
+    // UsbSerialAsyncmsg::asyncmsg(x_norm);
+
+    // char tmp_string[64];
+    // snprintf(tmp_string,64,"frame y: xp:%u\txn:%u\typ:%u\tyn:%u\r\n",frame.y.xp,frame.y.xn,frame.y.yp,frame.y.yn);
+    // std::string test_string = tmp_string;
+    // UsbSerialAsyncmsg::asyncmsg(test_string);
+
+    // source
+    // const auto y_max = frame.y.yn;
+    // const auto y_min = frame.y.yp;
+    // const auto y_range = y_max - y_min;
+    // const float y_position = (frame.y.xp + frame.y.xn) * 0.5f;
+    // const float y_norm = (y_position - y_min) / y_range;
+
+    auto y_top = 8;
+    auto y_bottom = 150;
+
+    const float y_position = (frame.y.xp + frame.y.xn) * 0.5f;
+
+    float y_norm = (y_position - y_top) / (y_bottom - y_top);
+
+    if(y_norm >=1.0)
+        y_norm = 1.0;
+    if(y_norm <=0.0)
+        y_norm = 0.0;
+
+    // // 目前观测到的 SENSEY xp xn是正常变化，但是 yp yn一直是定值不变？
+    // const auto y_max = frame.y.yp;   // 978，驱动高电平
+    // const auto y_min = frame.y.yn;    // 12，驱动低电平
+
+     
+    // 因为这里是定制所以，就不考虑？
+    // const auto y_range = y_max - y_min;
+    // const float y_position = (frame.y.xp + frame.y.xn) * 0.5f;  // 采样端，会随触摸变化
+    // // from top to bottom 0~360 frame.y.xp
+    // // from left to right 0~50 frame.y.xn
+    // // (360 + 50) / 2 = 205
+    // const float y_norm = y_position / 205.0f; 
+    
+
+    UsbSerialAsyncmsg::asyncmsg("\ty_norm:");
+    UsbSerialAsyncmsg::asyncmsg(y_norm);
+    UsbSerialAsyncmsg::asyncmsg("\r\n");
+
+    //压力检测也有错误？
     const auto z_max = frame.pressure.yp;
     const auto z_min = frame.pressure.xn;
     const auto z_range = z_max - z_min;
@@ -53,10 +108,25 @@ Metrics calculate_metrics(const Frame& frame) {
     const float z1_norm = float(z1_position - z_min) / z_range;
     const auto z2_position = frame.pressure.yn;
     const float z2_norm = float(z2_position - z_min) / z_range;
-
     const float r_x_plate = 330.0f;
     // const float r_y_plate = 600.0f;
     const float r_touch = r_x_plate * x_norm * (z2_norm / z1_norm - 1.0f);
+
+    // UsbSerialAsyncmsg::asyncmsg("p.yp:");
+    // UsbSerialAsyncmsg::asyncmsg(frame.pressure.yp);
+    // UsbSerialAsyncmsg::asyncmsg("\tp.yn:");
+    // UsbSerialAsyncmsg::asyncmsg(frame.pressure.yn);
+    // UsbSerialAsyncmsg::asyncmsg("\tp.xp:");
+    // UsbSerialAsyncmsg::asyncmsg(frame.pressure.xp);
+    // UsbSerialAsyncmsg::asyncmsg("\tp.xn:");
+    // UsbSerialAsyncmsg::asyncmsg(frame.pressure.xn);
+    // UsbSerialAsyncmsg::asyncmsg("\tz1:");
+    // UsbSerialAsyncmsg::asyncmsg(z1_norm);
+    // UsbSerialAsyncmsg::asyncmsg("\tz2:");
+    // UsbSerialAsyncmsg::asyncmsg(z2_norm);
+    // UsbSerialAsyncmsg::asyncmsg("\tr_touch");
+    // UsbSerialAsyncmsg::asyncmsg(r_touch);
+    // UsbSerialAsyncmsg::asyncmsg("\r\n");
 
     return {
         .x = x_norm,

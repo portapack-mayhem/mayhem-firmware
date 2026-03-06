@@ -77,8 +77,7 @@ void wait_for_device() {
     do {
         device_id = get_device_id();
     } while (device_id != W25Q80BV_DEVICE_ID_RES &&
-             device_id != W25Q16DV_DEVICE_ID_RES &&
-             device_id != W25Q32JV_DEVICE_ID_RES);
+             device_id != W25Q16DV_DEVICE_ID_RES);
 }
 
 void wait_not_busy() {

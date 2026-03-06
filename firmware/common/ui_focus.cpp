@@ -171,7 +171,7 @@ void FocusManager::update(Widget* const top_widget, const KeyEvent event) {
         const auto focus_screen_rect = focus_widget()->screen_rect();
 
         const auto test_fn = [&focus_screen_rect, event](ui::Widget* const w) -> test_result_t {
-            // if( w->drawn() && w->focusable() ) {
+            // if( w->visible() && w->focusable() ) {
             if (w->focusable()) {
                 const auto distance = rect_distances(event, focus_screen_rect, w->screen_rect());
                 if (distance >= 0) {

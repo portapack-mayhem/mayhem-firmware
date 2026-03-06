@@ -91,9 +91,9 @@ void Widget::set_parent(Widget* const widget) {
     }
 
     if (parent_ && !widget) {
-        // We have a parent, but are losing it. Update drawn status.
+        // We have a parent, but are losing it. Update visible status.
         dirty_overlapping_children_in_rect(screen_rect());
-        drawn(false);
+        visible(false);
     }
 
     if (widget == nullptr)
@@ -209,9 +209,9 @@ const Style& Widget::style() const {
     return style_ ? *style_ : parent()->style();
 }
 
-void Widget::drawn(bool v) {
-    if (v != flags.drawn) {
-        flags.drawn = v;
+void Widget::visible(bool v) {
+    if (v != flags.visible) {
+        flags.visible = v;
 
         /* TODO: This on_show/on_hide implementation seems inelegant.
          * But I need *some* way to take/configure resources when
@@ -224,9 +224,9 @@ void Widget::drawn(bool v) {
         } else {
             on_hide();
 
-            // Set all children not drawn too.
+            // Set all children invisible too.
             for (const auto child : children()) {
-                child->drawn(false);
+                child->visible(false);
             }
         }
     }
@@ -694,7 +694,7 @@ void Console::clear(bool clear_buffer = false) {
     if (clear_buffer)
         buffer.clear();
 
-    if (!hidden() && drawn()) {
+    if (!hidden() && visible()) {
         display.fill_rectangle(
             screen_rect(),
             Theme::getInstance()->bg_darkest->background);
@@ -706,7 +706,7 @@ void Console::clear(bool clear_buffer = false) {
 void Console::write(std::string message) {
     bool escape = false;
 
-    if (!hidden() && drawn()) {
+    if (!hidden() && visible()) {
         const Style& s = style();
         const Font& font = s.font;
         auto rect = screen_rect();
@@ -797,7 +797,7 @@ void Console::on_hide() {
 }
 
 void Console::crlf() {
-    if (hidden() || !drawn()) return;
+    if (hidden() || !visible()) return;
 
     const auto& s = style();
     auto sr = screen_rect();
@@ -3232,7 +3232,7 @@ void GraphEq::update_audio_spectrum(const AudioSpectrum& spectrum) {
 }
 
 void GraphEq::paint(Painter& painter) {
-    if (!drawn()) return;
+    if (!visible()) return;
     if (!is_calculated) {  // calc positions first
         calculate_params();
         is_calculated = true;

@@ -32,7 +32,7 @@ void UsbSerialAsyncmsg::asyncmsg<int64_t>(const int64_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -40,7 +40,7 @@ void UsbSerialAsyncmsg::asyncmsg<int32_t>(const int32_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -48,7 +48,7 @@ void UsbSerialAsyncmsg::asyncmsg<int16_t>(const int16_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -56,7 +56,7 @@ void UsbSerialAsyncmsg::asyncmsg<int8_t>(const int8_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -64,7 +64,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint8_t>(const uint8_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -72,7 +72,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint16_t>(const uint16_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -80,7 +80,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint32_t>(const uint32_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -88,7 +88,7 @@ void UsbSerialAsyncmsg::asyncmsg<uint64_t>(const uint64_t& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_dec_int(data).c_str());
 }
 
 template <>
@@ -96,7 +96,7 @@ void UsbSerialAsyncmsg::asyncmsg<float>(const float& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_decimal(data, 7).c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", to_string_decimal(data, 7).c_str());
 }
 
 /// fs things
@@ -129,7 +129,7 @@ void UsbSerialAsyncmsg::asyncmsg<std::string>(const std::string& data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data.c_str());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", data.c_str());
 }
 
 // string literal AKA char[]
@@ -138,7 +138,9 @@ void UsbSerialAsyncmsg::asyncmsg(const char* data) {
     if (!portapack::async_tx_enabled || !portapack::usb_serial.serial_connected()) {
         return;
     }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data);
+    // chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data);
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s", data);
+
 }
 
 /// bool

@@ -103,10 +103,6 @@ set(EXTCPPSRC
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
 
-	#same_tx
-	external/same_tx/main.cpp
-	external/same_tx/ui_same_tx.cpp
-
 	#sstvrx
 	external/sstvrx/main.cpp
 	external/sstvrx/ui_sstvrx.cpp
@@ -316,10 +312,6 @@ set(EXTCPPSRC
     #pocsag_tx
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
-
-	#time_sink
-	external/time_sink/main.cpp
-	external/time_sink/ui_time_sink.cpp
 )
 
 set(EXTAPPLIST
@@ -347,7 +339,6 @@ set(EXTAPPLIST
 	adsbtx
 	#morse_tx
 	sstvtx
-	same_tx
 	sstvrx
 	random_password
 	acars_rx
@@ -395,11 +386,10 @@ set(EXTAPPLIST
 	siggen
 	morse_radio
 	morseradiotx
-	keeloqtx
+  keeloqtx
 	rtty_rx
 	rtty_tx
 	pocsag_tx
-	time_sink
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

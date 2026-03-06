@@ -37,6 +37,8 @@
 #include "portapack_io.hpp"
 #include "hackrf_hal.hpp"
 
+#include "usb_serial_asyncmsg.hpp"
+
 using namespace hackrf::one;
 using namespace portapack;
 
@@ -77,15 +79,27 @@ static uint32_t touch_debounce_mask = (1U << 4) - 1;
 static bool touch_detected = false;
 static bool touch_cycle = false;
 
+static touch::Samples dbg_pressure_samples{};
+static touch::Samples dbg_last_samples{};
+static int32_t dbg_z1{0}, dbg_z2{0};
+
+
 static bool touch_update() {
     const auto samples = touch::adc::get();
     const auto current_phase = touch_pins_configs[touch_phase];
 
     switch (current_phase) {
-        case IO::TouchPinsConfig::SensePressure: {
+        case IO::TouchPinsConfig::SensePressure: 
+        {
             const auto z1 = samples.xp - samples.xn;
             const auto z2 = samples.yp - samples.yn;
-            const auto touch_raw = (z1 > portapack::touch_threshold) || (z2 > portapack::touch_threshold);
+
+            dbg_pressure_samples = samples;
+            dbg_z1 = z1;
+            dbg_z2 = z2;
+            // 目前查看xp xn 会好一点
+            // const auto touch_raw = (z1 > portapack::touch_threshold) || (z2 > portapack::touch_threshold);
+            const auto touch_raw = (z1 > portapack::touch_threshold);
             touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
             touch_detected = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
             if (!touch_detected && !touch_cycle) {
@@ -97,12 +111,33 @@ static bool touch_update() {
         } break;
 
         case IO::TouchPinsConfig::SenseX:
+        {
+            // const auto z1 = samples.xp - samples.xn;
+            // const auto z2 = samples.yp - samples.yn;
+            
+            // dbg_pressure_samples = samples;
+            // dbg_z1 = z1;
+            // dbg_z2 = z2;
             temp_frame.x += samples;
             break;
+        }
+            
 
         case IO::TouchPinsConfig::SenseY:
+        {
+            // sense Y debug不太对？
+            // debug for Y sense ok now lets X sense
+            // const auto z1 = samples.xp - samples.xn;
+            // const auto z2 = samples.yp - samples.yn;
+            
+            // dbg_pressure_samples = samples;
+            // dbg_z1 = z1;
+            // dbg_z2 = z2;
+
             temp_frame.y += samples;
             break;
+        }
+            
 
         default:
             break;
@@ -304,6 +339,13 @@ touch::Frame get_touch_frame() {
     return touch_frame;
 }
 
+touch::Samples get_touch_pressure_samples() {
+    return dbg_pressure_samples;
+}
+
+int32_t get_touch_z1() { return dbg_z1; }
+int32_t get_touch_z2() { return dbg_z2; }
+
 namespace control {
 namespace debug {
 
@@ -317,6 +359,8 @@ void inject_switch(uint8_t button) {
     else if (button > 6)
         injected_encoder = button - 6;
 }
+
+
 
 }  // namespace debug
 }  // namespace control

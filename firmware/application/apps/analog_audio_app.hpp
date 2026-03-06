@@ -49,20 +49,23 @@ class PralineOptionsView : public View {
     // Parameters: Position, Length (in chars), Range, Step, and default value
     NumberField options_sr{
         {UI_POS_X(3), UI_POS_Y(0)},
-        8,              // Number of digits to show
-        {0, 40000000},  // Range: 0 to 40,000 kHz
-        100,            // Step: 100 Hz
-        ' '             // Fix: Single quotes for char
+        5,           // Number of digits to show
+        {0, 40000},  // Range: 0 to 40,000 kHz
+        1,           // Step: 1 kHz
+        ' '          // Fix: Single quotes for char
     };
 
-    Text label_dc{{UI_POS_X(14), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "DC"};
-    OptionsField options_dc{{UI_POS_X(16), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+    Text label_dc{{UI_POS_X(8), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "DC"};
+    OptionsField options_dc{{UI_POS_X(11), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
 
-    Text label_qi{{UI_POS_X(20), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "QI"};
-    OptionsField options_qi{{UI_POS_X(22), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+    Text label_qi{{UI_POS_X(14), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "QI"};
+    OptionsField options_qi{{UI_POS_X(17), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
 
-    Text label_qs{{UI_POS_X(26), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "QS"};
-    OptionsField options_qs{{UI_POS_X(28), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+    Text label_qs{{UI_POS_X(20), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)}, "QS"};
+    OptionsField options_qs{{UI_POS_X(23), UI_POS_Y(0)}, 2, {{"Of", 0}, {"On", 1}}};
+
+    Text label_dec{{UI_POS_X(26), UI_POS_Y(0), UI_POS_WIDTH(1), UI_POS_HEIGHT(1)}, "D"};
+    OptionsField options_dec{{UI_POS_X(28), UI_POS_Y(0)}, 2, {{" 1", 0}, {" 2", 1}, {" 4", 2}, {" 8", 3}, {"16", 4}}};
 
     uint8_t fpga_reg_1{0x00};  // Tracks DC, QI, QS bits
     void update_fpga_ctrl();

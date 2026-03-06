@@ -28,10 +28,28 @@ namespace portapack {
 
 /* ADC0 */
 
+//现在观察到  xp:968  xn:26   yp:994  yn:12
+// 代码逻辑 xp > xn  yn > yp
+
+// xp:968  xn:26   yp:994  yn:12 改为 yp:968(xp) yn:994(yp) yn:26(xn) xp
+
 constexpr size_t adc0_touch_yp_input = 0;
+// 官方手册提示需要PF_8进行ANALOGSEL才可以？
 constexpr size_t adc0_touch_yn_input = 2;
+// 对应P44-好用
 constexpr size_t adc0_touch_xp_input = 5;
 constexpr size_t adc0_touch_xn_input = 6;
+
+// error
+// constexpr size_t adc0_touch_yp_input = 2;  
+// constexpr size_t adc0_touch_yn_input = 6;  
+// constexpr size_t adc0_touch_xp_input = 0;  
+// constexpr size_t adc0_touch_xn_input = 5;  
+
+// constexpr size_t adc0_touch_yp_input = 2;
+// constexpr size_t adc0_touch_yn_input = 0;
+// constexpr size_t adc0_touch_xp_input = 5;
+// constexpr size_t adc0_touch_xn_input = 6;
 
 /* ADC1 */
 

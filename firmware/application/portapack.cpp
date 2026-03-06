@@ -103,7 +103,7 @@ TemperatureLogger temperature_logger;
 
 bool antenna_bias{false};
 uint32_t bl_tick_counter{0};
-uint16_t touch_threshold{32};
+uint16_t touch_threshold{6};
 
 void set_antenna_bias(const bool v) {
     antenna_bias = v;
@@ -586,7 +586,7 @@ init_status_t init() {
     /* Cache some configuration data from persistent memory. */
     rtc_time::dst_init();
     chThdSleepMilliseconds(10);
-
+    // 初始化时钟
     clock_manager.init_clock_generator();
 
     i2c0.stop();
@@ -602,7 +602,7 @@ init_status_t init() {
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
      */
 
-    touch_threshold = portapack::persistent_memory::touchscreen_threshold();
+    // touch_threshold = portapack::persistent_memory::touchscreen_threshold();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(0, ui::bitmap_icon_memory);

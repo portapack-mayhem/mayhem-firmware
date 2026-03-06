@@ -24,6 +24,7 @@
 #include "irq_controls.hpp"
 
 #include "portapack_persistent_memory.hpp"
+#include "usb_serial_asyncmsg.hpp"
 using namespace portapack;
 
 extern ui::SystemView* system_view_ptr;
@@ -139,17 +140,50 @@ void TouchCalibrationView::touch_complete() {
         }};
 
         calibration = {digitizer_points, display_points};
+
+        for(int i=0;i<3;i++)
+        {
+            char tmp_string[64];
+            snprintf(tmp_string,64,"idx:%d (%d,%d)\r\n",i,digitizer_points[i].x,digitizer_points[i].y);
+            std::string test_string = tmp_string;
+            UsbSerialAsyncmsg::asyncmsg(test_string);
+        }
     }
 
     if (phase == Phase::Verify2) {
         const auto calibrated_0 = calibration.translate(digitizer_points[0]);
+        
         const auto d_sq_0 = distance_squared(calibrated_0, image_verify_0);
+
+        if(1)
+        {
+            char tmp_string[64];
+            snprintf(tmp_string,64,"calibrated_0 (%d,%d) d_sq:%d\r\n",calibrated_0.x(),calibrated_0.y(),d_sq_0);
+            std::string test_string = tmp_string;
+            UsbSerialAsyncmsg::asyncmsg(test_string);
+        }
 
         const auto calibrated_1 = calibration.translate(digitizer_points[1]);
         const auto d_sq_1 = distance_squared(calibrated_1, image_verify_1);
 
+        if(1)
+        {
+            char tmp_string[64];
+            snprintf(tmp_string,64,"calibrated_0 (%d,%d) d_sq:%d\r\n",calibrated_1.x(),calibrated_1.y(),d_sq_1);
+            std::string test_string = tmp_string;
+            UsbSerialAsyncmsg::asyncmsg(test_string);
+        }
+
         const auto calibrated_2 = calibration.translate(digitizer_points[2]);
         const auto d_sq_2 = distance_squared(calibrated_2, image_verify_2);
+
+        if(1)
+        {
+            char tmp_string[64];
+            snprintf(tmp_string,64,"calibrated_0 (%d,%d) d_sq:%d\r\n",calibrated_2.x(),calibrated_2.y(),d_sq_2);
+            std::string test_string = tmp_string;
+            UsbSerialAsyncmsg::asyncmsg(test_string);
+        }
 
         if ((d_sq_0 < verify_d_sq_max) && (d_sq_1 < verify_d_sq_max) && (d_sq_2 < verify_d_sq_max)) {
             next_phase = Phase::Success;
@@ -188,27 +222,74 @@ void TouchCalibrationView::on_frame_sync() {
         default:
             return;
     }
+    // if(1)
+    // {
+    //     // 目的是计算实际的yn yp xn xp的值
+    //     const auto frame = get_touch_frame();
+    //     if(frame.touch)
+    //     // if(1)
+    //     {
 
+    //         // char tmp_string[64];
+    //         // snprintf(tmp_string,64,"frame x: xp:%u\txn:%u\typ:%u\tyn:%u\r\n",frame.x.xp,frame.x.xn,frame.x.yp,frame.x.yn);
+    //         // std::string test_string = tmp_string;
+    //         // UsbSerialAsyncmsg::asyncmsg(test_string);
+    //         // snprintf(tmp_string,64,"frame y: xp:%u\txn:%u\typ:%u\tyn:%u\r\n",frame.y.xp,frame.y.xn,frame.y.yp,frame.y.yn);
+    //         // test_string = tmp_string;
+    //         // UsbSerialAsyncmsg::asyncmsg(test_string);
+
+    //         const auto metrics = touch::calculate_metrics(frame);
+    //         const auto x = metrics.x * 1024;
+    //         const auto y = metrics.y * 1024;
+            
+    //     }
+
+        
+    //     return;
+    // }
     const auto frame = get_touch_frame();
-    const auto metrics = touch::calculate_metrics(frame);
-    const auto x = metrics.x * 1024;
-    const auto y = metrics.y * 1024;
+    // 修改逻辑
+    if(frame.touch)
+    {
+        // 需要检测到touch再进行探测？
+        const auto metrics = touch::calculate_metrics(frame);
+        const auto x = metrics.x * 1024;
+        const auto y = metrics.y * 1024;
 
-    if (metrics.r < 640.0f) {
-        if (samples_count > 0) {
-            average.x = ((average.x * 7) + x) / 8;
-            average.y = ((average.y * 7) + y) / 8;
-        } else {
-            average.x = x;
-            average.y = y;
-        }
+        // if (metrics.r < 640.0f) {
+        //     if (samples_count > 0) {
+        //         average.x = ((average.x * 7) + x) / 8;
+        //         average.y = ((average.y * 7) + y) / 8;
+        //     } else {
+        //         average.x = x;
+        //         average.y = y;
+        //     }
 
-        samples_count += 1;
-    } else {
-        if (samples_count >= samples_limit) {
+        //     samples_count += 1;
+        // } else {
+        //     if (samples_count >= samples_limit) {
+        //         touch_complete();
+        //     }
+        //     samples_count = 0;
+        // }
+        if(samples_count >= samples_limit)
+        {
             touch_complete();
+            samples_count = 0;
         }
-        samples_count = 0;
+        else
+        {
+            if (samples_count > 0) 
+            {
+                average.x = ((average.x * 7) + x) / 8;
+                average.y = ((average.y * 7) + y) / 8;
+            } 
+            else {
+                average.x = x;
+                average.y = y;
+            }
+            samples_count += 1;
+        }
     }
 }
 

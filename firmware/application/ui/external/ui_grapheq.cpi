@@ -185,7 +185,7 @@ void GraphEq::update_audio_spectrum(const AudioSpectrum& spectrum) {
 }
 
 void GraphEq::paint(Painter& painter) {
-    if (!drawn()) return;
+    if (!visible()) return;
     if (!is_calculated) {  // calc positions first
         calculate_params();
         is_calculated = true;
