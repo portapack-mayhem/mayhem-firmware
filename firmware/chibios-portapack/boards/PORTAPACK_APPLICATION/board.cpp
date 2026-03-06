@@ -659,10 +659,6 @@ void configure_pins_portapack(void) {
     LPC_GPIO->DIR[3] |= (0xff << 8);
     LPC_GPIO->DIR[5] |= (1 <<  4) | (1 <<  1) | (1 <<  0);
     setup_pins(pins_setup_portapack);
-    // LPC_SCU->ENAIO0 |= (1U << 0);
-    // LPC_SCU->ENAIO0 |= (1U << 2);
-    // LPC_SCU->ENAIO0 |= (1U << 5);
-    // LPC_SCU->ENAIO0 |= (1U << 6);
 }
 
 static const motocon_pwm_resources_t motocon_pwm_resources = {
