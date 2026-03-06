@@ -39,6 +39,22 @@
 
 namespace ui::external_app::epirb_tx {
 
+enum class BeaconType
+{
+    EPIRB = 0,
+    ELT = 1,
+    PLB = 2
+};
+
+struct BeaconParams
+{
+    BeaconType type;
+    bool is_test;
+    bool is_internal;
+    bool has_121_5;
+    std::string locator;
+};
+
 class EPIRBTXAppView : public View {
    public:
     EPIRBTXAppView(NavigationView& nav);
@@ -56,6 +72,9 @@ class EPIRBTXAppView : public View {
     void on_timer();
     void load_beacons();
     void set_tx_button_state(bool active);
+    std::string frame_to_hex_string(bool start);
+    void generate_frame(BeaconParams params);
+    void update_frame();
 
     struct Beacon {
         std::string title{};
@@ -65,14 +84,12 @@ class EPIRBTXAppView : public View {
     std::vector<Beacon> beacons{};
     Beacon default_beacon {"Self test","Serial User Location Protocol","FFFED0D6E6202820000C29FF51041775302D"};
 
+    BeaconParams beacon_params { BeaconType::ELT , true, true, true, "JN03RO"};
+
     size_t  selected_beacon{0};
 
     rf::Frequency am_frequency{121500000};
     rf::Frequency bpsk_frequency{406025000};
-
-    uint8_t hexval(char c);
-
-    uint8_t hexToByte(char high, char low);
 
     TxRadioState radio_state_{
         0 /* frequency */,
@@ -85,6 +102,7 @@ class EPIRBTXAppView : public View {
     bool loop{false};
     uint32_t last_frame_time{0};
     bool transmitting{false};
+    bool mode_file{true};
 
     EPIRBTXDataMessage epirb_tx_message{};
 
@@ -93,12 +111,35 @@ class EPIRBTXAppView : public View {
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(0)}, "Source:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(1)}, "Beacon:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(2)}, "Description:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(5)}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(9)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(11)}, "AM frequency          MHz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(17), UI_POS_Y(8)}, "s.", Theme::getInstance()->fg_light->foreground}};
+
+    // For file mode
+    Text text_beacon {
+        { UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
+        "Beacon:"};        
+    Text text_description_label {
+        { UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+        "Description:"};        
+
+    // For manual mode
+    Text text_beacon_type {
+        { UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        "Type:"};        
+    Text text_beacon_locator {
+        { UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        "Locator:"};        
+    OptionsField options_beacon_type{
+        {UI_POS_X(9), UI_POS_Y(1)},
+        30,
+        {{"EPIRB", 0},
+         {"ELT", 1},
+         {"PLB", 2}}};
+    TextField text_field_beacon_locator {
+        { UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
+        "JN03RO"};        
 
     OptionsField options_mode{
         {UI_POS_X(7), UI_POS_Y(0)},
