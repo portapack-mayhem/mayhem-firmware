@@ -178,7 +178,11 @@ void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_
     send_message(&message);
 }
 
-void set_aprs(const uint32_t baudrate) {
+// __attribute__((used)) prevents the linker from dead-stripping this function.
+// It is called exclusively from the KISS TNC external app; without this
+// attribute the linker removes it since no built-in app references it,
+// causing a null-veneer hard fault when the external app calls it.
+__attribute__((used)) void set_aprs(const uint32_t baudrate) {
     const APRSRxConfigureMessage message{
         baudrate};
     send_message(&message);

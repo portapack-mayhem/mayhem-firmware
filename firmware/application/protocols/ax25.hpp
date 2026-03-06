@@ -44,6 +44,7 @@ enum protocol_id_t {
 class AX25Frame {
    public:
     void make_ui_frame(char* const address, const uint8_t control, const uint8_t protocol, const std::string& info, const std::string& path = "");
+    void make_frame_from_raw(const uint8_t* data, size_t len);
 
    private:
     void NRZI_add_bit(const uint32_t bit);

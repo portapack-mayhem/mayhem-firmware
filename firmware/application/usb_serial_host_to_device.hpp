@@ -33,4 +33,20 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
 void schedule_host_to_device_transfer();
 void complete_host_to_device_transfer();
 
+typedef void (*kiss_raw_handler_t)(const uint8_t* data, size_t len);
+
+/**
+ * Register a handler for raw bytes received over the USB bulk endpoint.
+ *
+ * When set, all incoming USB serial bytes are routed to this handler instead
+ * of the normal shell iqueue. The handler:
+ * - Is called from the USB transfer completion context (main event loop thread).
+ * - Must return quickly; long or blocking work will stall the USB event loop.
+ * - Receives a pointer into an internal reusable USB bulk buffer; the pointer
+ *   is only valid for the duration of the call and must not be retained.
+ *
+ * Pass nullptr to restore normal shell routing.
+ */
+void set_kiss_raw_handler(kiss_raw_handler_t handler);
+
 #endif

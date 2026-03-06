@@ -320,6 +320,10 @@ set(EXTCPPSRC
 	#time_sink
 	external/time_sink/main.cpp
 	external/time_sink/ui_time_sink.cpp
+
+	#kiss_tnc
+	external/kiss_tnc/main.cpp
+	external/kiss_tnc/ui_kiss_tnc.cpp
 )
 
 set(EXTAPPLIST
@@ -400,6 +404,7 @@ set(EXTAPPLIST
 	rtty_tx
 	pocsag_tx
 	time_sink
+	kiss_tnc
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
