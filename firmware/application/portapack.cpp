@@ -58,6 +58,10 @@ using asahi_kasei::ak4951::AK4951;
 
 extern "C" {
 #include "platform_detect.h"
+
+#ifdef PRALINE
+#include "fpga_bridge.h"
+#endif
 }
 
 namespace portapack {
@@ -561,7 +565,6 @@ init_status_t init() {
 
     detect_hardware_platform();
     finalize_detect_hardware_platform();
-#endif
 
     chThdSleepMilliseconds(100);
 
