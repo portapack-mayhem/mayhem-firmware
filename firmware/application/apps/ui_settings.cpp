@@ -498,9 +498,9 @@ void SetSDCardView::on_hide() {
 
 void SetSDCardView::update_sd_card_status() {
     using sd_card::Status;
-    
+
     const auto status = sd_card::status();
-    
+
     // Update card status text
     switch (status) {
         case Status::NotPresent:
@@ -555,7 +555,6 @@ void SetSDCardView::update_sd_card_status() {
             break;
     }
 }
-
 
 /* SetConverterSettingsView ******************************/
 

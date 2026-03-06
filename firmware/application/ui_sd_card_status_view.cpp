@@ -109,6 +109,4 @@ void SDCardStatusView::on_status(const sd_card::Status) {
     set_dirty();
 }
 
-
-
 } /* namespace ui */

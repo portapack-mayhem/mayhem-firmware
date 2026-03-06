@@ -440,10 +440,12 @@ class SetSDCardView : public View {
         {{10, 48}, "Filesystem:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_card_status{
-        {120, 24, 110, 16}, ""};
+        {120, 24, 110, 16},
+        ""};
 
     Text text_filesystem_type{
-        {120, 48, 110, 16}, ""};
+        {120, 48, 110, 16},
+        ""};
 
     Button button_more_info{
         {UI_POS_X_CENTER(20), 90, UI_POS_WIDTH(20), UI_POS_HEIGHT(2)},
