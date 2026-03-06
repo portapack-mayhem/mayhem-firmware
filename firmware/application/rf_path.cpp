@@ -83,9 +83,7 @@ constexpr GPIOs gpios{
     gpio_rx_amp,
     gpio_not_rx_amp_pwr,
 };
-#endif
 
-#ifndef PRALINE
 /* HackRF One Config struct - not used on PRALINE */
 struct Config {
     using base_type = uint16_t;
@@ -186,9 +184,7 @@ struct Config {
         }
     }
 };
-#endif /* !PRALINE */
 
-#ifndef PRALINE
 /* HackRF One config table - not used on PRALINE */
 using ConfigAmp = std::array<Config, 2>;
 using ConfigDirection = std::array<ConfigAmp, 2>;
@@ -229,7 +225,7 @@ constexpr Config get_config(
     const bool amplify) {
     return config_table[toUType(band)][toUType(direction)][amplify ? 1 : 0];
 }
-#endif /* !PRALINE */
+#endif /* PRALINE */
 
 } /* namespace */
 

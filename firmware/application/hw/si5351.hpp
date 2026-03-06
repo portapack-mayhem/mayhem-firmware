@@ -361,15 +361,15 @@ class Si5351 {
     }
 
     void wait_for_device_ready() {
-#ifndef PRALINE
-        while (device_status() & 0x80);
-#else
+#ifdef PRALINE
         // Add timeout to prevent infinite loop if I2C communication fails
         // (e.g., on PRALINE hardware with different configuration)
         uint32_t timeout = 100000;
         while ((device_status() & 0x80) && (timeout > 0)) {
             timeout--;
         }
+#else
+        while (device_status() & 0x80);
 #endif
     }
 
@@ -396,13 +396,14 @@ class Si5351 {
     }
 
     void reset_plls() {
-#ifndef PRALINE
-        // Datasheet recommends value 0xac, though the low nibble bits are not defined in AN619.
-        write_register(Register::PLLReset, 0xac);
-#else
+#ifdef PRALINE
         // Reset both PLLA and PLLB. Use 0xA0 to match HackRF reference firmware.
         // The low nibble bits are reserved/undefined in AN619.
         write_register(Register::PLLReset, 0xa0);
+#else
+        // Datasheet recommends value 0xac, though the low nibble bits are not defined in AN619.
+        write_register(Register::PLLReset, 0xac);
+
 #endif
     }
     regvalue_t read_register(const uint8_t reg);
