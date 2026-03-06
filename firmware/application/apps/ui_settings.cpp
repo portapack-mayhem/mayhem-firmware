@@ -458,8 +458,6 @@ SetSDCardView::SetSDCardView(NavigationView& nav) {
                   &button_save,
                   &button_cancel});
 
-    update_sd_card_status();
-
     checkbox_sdcard_speed.set_value(pmem::config_sdcard_high_speed_io());
 
     button_more_info.on_select = [&nav, this](Button&) {
@@ -490,6 +488,8 @@ void SetSDCardView::on_show() {
     sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status) {
         update_sd_card_status();
     };
+
+    update_sd_card_status();
 }
 
 void SetSDCardView::on_hide() {
@@ -518,16 +518,16 @@ void SetSDCardView::update_sd_card_status() {
                 const auto fs_type = sd_card::fs.fs_type;
                 std::string fs_name;
                 switch (fs_type) {
-                    case 1:  // FS_FAT12
+                    case FS_FAT12:
                         fs_name = "FAT12";
                         break;
-                    case 2:  // FS_FAT16
+                    case FS_FAT16:
                         fs_name = "FAT16";
                         break;
-                    case 3:  // FS_FAT32
+                    case FS_FAT32:
                         fs_name = "FAT32";
                         break;
-                    case 4:  // FS_EXFAT
+                    case FS_EXFAT:
                         fs_name = "exFAT";
                         break;
                     default:

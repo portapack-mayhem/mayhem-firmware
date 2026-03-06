@@ -62,7 +62,6 @@ namespace ui {
 
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
 void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile = true);
-bool verify_sdcard_format();
 
 enum modal_t {
     INFO = 0,
@@ -202,6 +201,7 @@ class SystemStatusView : public View {
     static constexpr auto default_title = "";
     bool batt_was_inited = false;  // if the battery was off on tart, but later turned on.
     bool batt_info_up = false;     // to prevent show multiple batt info dialog
+    bool sd_info_up = false;       // to prevent show multiple sd info dialog
 
     NavigationView& nav_;
 

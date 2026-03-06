@@ -57,7 +57,6 @@
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
 #include "ui_battinfo.hpp"
-#include "ui_sd_card_debug.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
 #include "ais_app.hpp"
@@ -514,11 +513,11 @@ void SystemStatusView::on_clk() {
 
 void SystemStatusView::on_sd_card() {
     if (!nav_.is_valid()) return;
-    if (batt_info_up) return;
-    batt_info_up = true;
+    if (sd_info_up) return;
+    sd_info_up = true;
     nav_.push<SetSDCardView>();
     nav_.set_on_pop([this]() {
-        batt_info_up = false;
+        sd_info_up = false;
     });
 }
 
@@ -820,12 +819,6 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
     }
 }
 // clang-format on
-
-bool verify_sdcard_format() {
-    FATFS* fs = &sd_card::fs;
-    return (fs->fs_type == FS_FAT32 || fs->fs_type == FS_EXFAT) || !(sd_card::status() == sd_card::Status::Mounted);
-    /*                                                             ^ to satisfy those users that not use an sd*/
-}
 
 /* ReceiversMenuView *****************************************************/
 
