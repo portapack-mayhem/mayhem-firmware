@@ -152,12 +152,7 @@ const PALConfig pal_default_config = {
             | (0 <<  6) // P4_6:  XCVR_EN, 10K PD
             | (0 <<  5) // P4_5:  RXENABLE
             | (0 <<  4) // P4_4:  Varies by revision, float until detection
-#ifdef PRALINE
-// ADC0_CH0 — touch YP: mode=0, EPUN=1, ZIF=1
-            | (0 <<  3) // P4_3:  ADC0_CH0, Touch YP
-#else
             | (1 <<  3) // P4_3:  SGPIO9, HOST_CAPTURE
-#endif
             | (0 <<  2) // P4_2:  LED2 (RX)
             | (0 <<  1) // P4_1:  LED1 (USB)
             | (1 <<  0) // P4_0:  HP
@@ -183,11 +178,7 @@ const PALConfig pal_default_config = {
             | (1 <<  6) // P4_6:  XCVR_EN, 10K PD
             | (1 <<  5) // P4_5:  RXENABLE
             | (0 <<  4) // P4_4:  Varies by revision, float until detection
-#ifdef PRALINE
-            | (0 <<  3) // P4_3:  ADC0_CH0, Touch YP (INPUT)
-#else
             | (0 <<  3) // P4_3:  SGPIO9, HOST_CAPTURE
-#endif
             | (1 <<  2) // P4_2:  LED2 (RX)
             | (1 <<  1) // P4_1:  LED1 (USB)
             | (1 <<  0) // P4_0:  HP
@@ -339,14 +330,8 @@ const PALConfig pal_default_config = {
     {  2, 11, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* RX_AMP/P49: U12.V1(I), U14.V3(I) */
     {  2, 12, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* !RX_AMP_PWR/P52: 10K PU, Q1.G(I), power to U13 (RX amp) */
     {  4,  0, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* HP/P44: U6.VCTL1(I), U5.VCTL2(I) */
-#ifdef PRALINE
-    // PRALINE: P4_5/P4_6 are free (MAX2831 used instead of MAX2837). Re-purpose for Touch ADC.
-    {  4,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* ADC0_CH5 — touch XP */
-    {  4,  6, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* ADC0_CH6 — touch XN */
-#else
     {  4,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* RXENABLE/P56: MAX2837.RXENABLE(I) */
     {  4,  6, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* XCVR_EN: 10K PD, MAX2837.ENABLE(I) */
-#endif
     {  5,  1, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* LP/P45: U6.VCTL2(I), U5.VCTL1(I) */
     {  5,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* TX_MIX_BP/P46: U9.V1(I) */
     {  5,  3, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* RX_MIX_BP/P47: U9.V3(I) */
@@ -376,12 +361,7 @@ const PALConfig pal_default_config = {
     {  2,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=1, .ezi=1, .zif=1 } }, /* SGPIO6/BANK2F3M16: CPLD.61/HOST_DATA6(IO) */
     {  1,  0, scu_config_normal_drive_t { .mode=6, .epd=0, .epun=1, .ehs=1, .ezi=1, .zif=1 } }, /* SGPIO7/P76/BANK2F3M7: CPLD.77/HOST_DATA7(IO) */
     {  9,  6, scu_config_normal_drive_t { .mode=6, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=1 } }, /* SGPIO8/SGPIO_CLK/P60: SI5351C.CLK2(O) */
-#ifdef PRALINE
-    // PRALINE: P4_3 used for Touch ADC YP (ADC0_CH0). SGPIO9 moved to P9_3.
-    {  4,  3, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* ADC0_CH0 — touch YP */
-#else
     {  4,  3, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=1 } }, /* SGPIO9/P77/BANK2F3M1: CPLD.91/HOST_CAPTURE(O) */
-#endif
     {  1, 14, scu_config_normal_drive_t { .mode=6, .epd=0, .epun=0, .ehs=1, .ezi=0, .zif=0 } }, /* SGPIO10/P78/BANK2F3M8: CPLD.76/HOST_DISABLE(I) */
     {  1, 17, scu_config_normal_drive_t { .mode=6, .epd=1, .epun=1, .ehs=1, .ezi=0, .zif=0 } }, /* SGPIO11/P79/BANK2F3M11: CPLD.71/HOST_DIRECTION(I) */
     {  1, 18, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } }, /* SGPIO12/BANK2F3M12: CPLD.70/HOST_INVERT(I) */
@@ -410,12 +390,7 @@ const PALConfig pal_default_config = {
     {  1,  2, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
     {  2,  5, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
     {  2,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
-#ifdef PRALINE
-    // PRALINE: P4_4 used for Touch ADC YN (ADC0_CH2)
-    {  4,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* ADC0_CH2 — touch YN */
-#else
     {  4,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
-#endif
     {  4,  8, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
     {  5,  0, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
     {  6,  7, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=0 } },
@@ -566,8 +541,8 @@ static const std::array<scu_setup_t, 9> pins_setup_r9 { {
 } };
 
 #endif
-
-static const std::array<scu_setup_t, 26> pins_setup_portapack { {
+//额外增加4个
+static const std::array<scu_setup_t, 30> pins_setup_portapack { {
     {  2,  0, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* U0_TXD: PortaPack P2_0/IO_STBX */
     {  2,  1, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* U0_RXD: PortaPack P2_1/ADDR */
     {  2,  3, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=1, .ehs=0, .ezi=1, .zif=0 } }, /* I2C1_SDA: PortaPack P2_3/LCD_TE */
@@ -598,6 +573,18 @@ static const std::array<scu_setup_t, 26> pins_setup_portapack { {
     {  1, 11, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=1 } }, /* SD_DAT2: PortaPack SD.DAT2(IO) */
     {  1, 12, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=1 } }, /* SD_DAT3: PortaPack SD.DAT3(IO) */
     {  1, 13, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=0, .ehs=0, .ezi=1, .zif=0 } }, /* SD_CD: PortaPack SD.CD(O) */
+    // //debug测试
+    // /* PortaPack: Touch ADC pins - ADC0_0=PB_6, ADC0_2=P4_5, ADC0_5=P4_4, ADC0_6=PF_4 */
+    // xn xp seem right?
+    { 11,  6, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* PB_6:  ADC0_0 yp*/
+    {  4,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* P4_4:  ADC0_5 xp */
+    {  4,  5, scu_config_normal_drive_t { .mode=7, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* P4_5:  ADC0_2 yn*/
+    { 15,  4, scu_config_normal_drive_t { .mode=0, .epd=0, .epun=1, .ehs=0, .ezi=0, .zif=1 } }, /* PF_4:  ADC0_6 xn*/
+    // 根据手册重新整理一下逻辑
+    // {  4,  3, scu_config_normal_drive_t { .mode=2, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* P4_3:  ADC0_0 */
+    // { 15,  8, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* PF_8   ADC0_2 */
+    // { 15,  10, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* PF_10   ADC0_5 */
+    // { 11,  6, scu_config_normal_drive_t { .mode=4, .epd=0, .epun=0, .ehs=0, .ezi=0, .zif=1 } }, /* PB_6:  ADC0_6*/
 } };
 
 static const std::array<scu_setup_t, 6> pins_setup_spifi { {
@@ -672,6 +659,10 @@ void configure_pins_portapack(void) {
     LPC_GPIO->DIR[3] |= (0xff << 8);
     LPC_GPIO->DIR[5] |= (1 <<  4) | (1 <<  1) | (1 <<  0);
     setup_pins(pins_setup_portapack);
+    // LPC_SCU->ENAIO0 |= (1U << 0);
+    // LPC_SCU->ENAIO0 |= (1U << 2);
+    // LPC_SCU->ENAIO0 |= (1U << 5);
+    // LPC_SCU->ENAIO0 |= (1U << 6);
 }
 
 static const motocon_pwm_resources_t motocon_pwm_resources = {
@@ -1044,11 +1035,6 @@ extern "C" void boardInit(void) {
   LPC_SCU->SFSP[8][0] = 0xF4;  /* SCU_GPIO_FAST | func 4 */
   /* SGPIO9 = P9_3 function 6 (HOST_CAPTURE) */
   LPC_SCU->SFSP[9][3] = 0xF6;  /* SCU_GPIO_FAST | func 6 */
-  /* Release P4_3 from SGPIO9: the common pin setup assigns SGPIO9 to P4_3 (mode=7),
-   * but on PRALINE (HackRF Pro) SGPIO9 is remapped above to P9_3.
-   * NOTE: The correct configuration for P4_3/P4_4/P4_5/P4_6 is now handled in
-   * pal_default_config above to ensure it persists after palInit().
-   */
   /* SGPIO10 = P8_2 function 4 (HOST_DISABLE - output to FPGA) */
   LPC_SCU->SFSP[8][2] = 0xF4;  /* SCU_GPIO_FAST | func 4 */
   /* SGPIO11 = P1_17 function 6 (HOST_DIRECTION - output to FPGA, tells FPGA TX vs RX) */
