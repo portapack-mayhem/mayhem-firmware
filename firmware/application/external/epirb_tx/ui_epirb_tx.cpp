@@ -288,7 +288,7 @@ void EPIRBTXAppView::generate_frame(BeaconParams params)
         set_bit(epirb_tx_message.data,42-1,0);
     }
 
-    set_bit(epirb_tx_message.data,85/*-1*/,params.has_121_5);
+    set_bit(epirb_tx_message.data,85-1,params.has_121_5);
 
     /* BCH1 */
 
@@ -299,6 +299,8 @@ void EPIRBTXAppView::generate_frame(BeaconParams params)
     /* ----------------
        PDF-2 position
        ---------------- */
+    int pdf2_start = pos;
+
     push_bits(epirb_tx_message.data,pos,params.is_internal,1);
 
     float lat,lon;
@@ -307,9 +309,7 @@ void EPIRBTXAppView::generate_frame(BeaconParams params)
     uint16_t lat_e = encode_lat(lat);
     uint16_t lon_e = encode_lon(lon);
 
-    int pdf2_start = pos;
-
-    push_bits(epirb_tx_message.data,pos,lat_e,15);
+    push_bits(epirb_tx_message.data,pos,lat_e,14);
     push_bits(epirb_tx_message.data,pos,lon_e,11);  // reste des 26 bits
 
     while(pos < pdf2_start + 26)
