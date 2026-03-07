@@ -41,9 +41,12 @@ namespace ui::external_app::epirb_tx {
 
 enum class BeaconType
 {
-    EPIRB = 0,
-    ELT = 1,
-    PLB = 2
+    EPIRB_NATIONAL = 0,
+    ELT_NATIONAL = 1,
+    PLB_NATIONAL = 2,
+    EPIRB_USER = 3,
+    ELT_USER = 4,
+    PLB_USER = 5
 };
 
 
@@ -102,7 +105,7 @@ class EPIRBTXAppView : public View {
     std::vector<Beacon> beacons{};
     Beacon default_beacon {"Self test","Serial User Location Protocol","FFFED0D6E6202820000C29FF51041775302D"};
 
-    BeaconParams beacon_params { BeaconType::ELT , true, true, true, {"JN03RO",false,0,0,0,0,false,0,0,0,0}};
+    BeaconParams beacon_params { BeaconType::ELT_USER , true, true, true, {"JN03RO",false,0,0,0,0,false,0,0,0,0}};
 
     uint32_t selected_beacon{0};
 
@@ -182,9 +185,12 @@ class EPIRBTXAppView : public View {
     OptionsField options_beacon_type{
         {UI_POS_X(9), UI_POS_Y(1)},
         30,
-        {{"EPIRB", 0},
-         {"ELT", 1},
-         {"PLB", 2}}};
+        {{"EPIRB National", 0},
+         {"ELT National", 1},
+         {"PLB National", 2},
+         {"EPIRB User", 3},
+         {"ELT User", 4},
+         {"PLB User", 5}}};
     TextField text_field_beacon_locator {
         { UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
         "JN03RO"};        

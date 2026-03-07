@@ -118,9 +118,9 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         text_frame.set(frame_to_hex_string(true));
         text_frame_end.set(frame_to_hex_string(false));
     }
-    if(updateConfig && send_on_change)
+    if(updateConfig && send_on_change && loop)
     {   // Need to update config / send new beacon
-        if(transmitting)
+        if(am_enabled)
         {   // Already transmitting => update config
             last_frame_time = chTimeNow();
             update_config();
