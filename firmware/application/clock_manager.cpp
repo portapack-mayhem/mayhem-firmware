@@ -79,6 +79,11 @@ constexpr si5351::PLL si5351_pll_a_afe_800m{
 // PLL A: registers (Base 34) 800 MHz VCO (For jitter-free AFE sampling frequencies)
 constexpr auto si5351_pll_a_800_reg = si5351_pll_a_afe_800m.reg(0);  // Base 26
 
+static_assert(si5351_pll_a_afe_800m.f_vco() == si5351_vco_f, "PLL A XTAL frequency wrong");
+static_assert(si5351_pll_a_afe_800m.p1() == 3584, "PLL A XTAL P1 wrong");
+static_assert(si5351_pll_a_afe_800m.p2() == 0, "PLL A XTAL P2 wrong");
+static_assert(si5351_pll_a_afe_800m.p3() == 1, "PLL A XTAL P3 wrong");
+
 // Define pll_b 25MHz clock for stable PLL B
 // PLL B: 800 MHz VCO (32x Multiplier for (For stable Digital/SGPIO bus)
 constexpr si5351::PLL si5351_pll_b_800m{
@@ -90,10 +95,10 @@ constexpr si5351::PLL si5351_pll_b_800m{
 // PLL B: registers (Base 34) 800 MHz VCO (For stable Digital/SGPIO bus)
 constexpr auto si5351_pll_b_800_reg = si5351_pll_b_800m.reg(1);  // Base 34
 
-static_assert(si5351_pll_xtal_25m.f_vco() == si5351_vco_f, "PLL XTAL frequency wrong");
-static_assert(si5351_pll_xtal_25m.p1() == 3584, "PLL XTAL P1 wrong");
-static_assert(si5351_pll_xtal_25m.p2() == 0, "PLL XTAL P2 wrong");
-static_assert(si5351_pll_xtal_25m.p3() == 1, "PLL XTAL P3 wrong");
+static_assert(si5351_pll_b_800m.f_vco() == si5351_vco_f, "PLL B XTAL frequency wrong");
+static_assert(si5351_pll_b_800m.p1() == 3584, "PLL B XTAL P1 wrong");
+static_assert(si5351_pll_b_800m.p2() == 0, "PLL B XTAL P2 wrong");
+static_assert(si5351_pll_b_800m.p3() == 1, "PLL B XTAL P3 wrong");
 
 #else
 
