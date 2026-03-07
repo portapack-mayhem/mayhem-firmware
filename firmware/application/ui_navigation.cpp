@@ -301,6 +301,10 @@ SystemStatusView::SystemStatusView(
         this->on_clk();
     };
 
+    sd_card_status_view.on_select = [this](ImageButton&) {
+        this->on_sd_card();
+    };
+
     // Initialize toggle buttons
     toggle_speaker.set_value(pmem::config_speaker_disable());
     toggle_mute.set_value(pmem::config_audio_mute());
@@ -505,6 +509,16 @@ void SystemStatusView::on_clk() {
     pmem::set_clkout_enabled(!pmem::clkout_enabled());
     portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());
     refresh();
+}
+
+void SystemStatusView::on_sd_card() {
+    if (!nav_.is_valid()) return;
+    if (sd_info_up) return;
+    sd_info_up = true;
+    nav_.push<SetSDCardView>();
+    nav_.set_on_pop([this]() {
+        sd_info_up = false;
+    });
 }
 
 void SystemStatusView::on_title() {
@@ -806,12 +820,6 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
 }
 // clang-format on
 
-bool verify_sdcard_format() {
-    FATFS* fs = &sd_card::fs;
-    return (fs->fs_type == FS_FAT32 || fs->fs_type == FS_EXFAT) || !(sd_card::status() == sd_card::Status::Mounted);
-    /*                                                             ^ to satisfy those users that not use an sd*/
-}
-
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
@@ -913,12 +921,6 @@ void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
     add_external_items(nav_, app_location_t::HOME, *this, 0);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
-    if (!verify_sdcard_format()) {  // Moved to the end... after sd status change event, fstype wasn't populated fast enough..
-        insert_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
-                         nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
-                     }},
-                    0, true);
-    }
 }
 
 /* SystemView ************************************************************/
