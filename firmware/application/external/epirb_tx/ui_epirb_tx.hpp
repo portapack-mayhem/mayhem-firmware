@@ -90,7 +90,9 @@ class EPIRBTXAppView : public View {
     void set_tx_button_state(bool active);
     std::string frame_to_hex_string(bool start);
     void generate_frame(BeaconParams params);
-    void update_frame();
+    void update_frame(bool updateConfig = true);
+    void update_mode();
+    void update_location(bool updateLocatorField = true);
 
     struct Beacon {
         std::string title{};
@@ -102,10 +104,18 @@ class EPIRBTXAppView : public View {
 
     BeaconParams beacon_params { BeaconType::ELT , true, true, true, {"JN03RO",false,0,0,0,0,false,0,0,0,0}};
 
-    size_t  selected_beacon{0};
+    uint32_t selected_beacon{0};
 
     rf::Frequency am_frequency{121500000};
     rf::Frequency bpsk_frequency{406025000};
+
+    bool mode_file{true};
+    bool loop_enabled{true};
+    bool am_enabled{true};
+    bool send_on_change{false};
+    std::string locator{"JN03RO"};
+    uint32_t delay{50};
+    uint8_t beacon_type{0};
 
     TxRadioState radio_state_{
         0 /* frequency */,
@@ -113,12 +123,22 @@ class EPIRBTXAppView : public View {
         TONES_SAMPLERATE /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "tx_epirb", app_settings::Mode::TX};
+        "tx_epirb", app_settings::Mode::TX,
+        {{"sbeacon"sv, &selected_beacon},
+         {"amfreq"sv, &am_frequency},
+         {"bpskfreq"sv, &bpsk_frequency},
+         {"loop"sv, &loop_enabled},
+         {"delay"sv, &delay},
+         {"file"sv, &mode_file},
+         {"am"sv, &am_enabled},
+         {"soc"sv, &send_on_change},
+         {"type"sv, &beacon_type},
+         {"locator"sv, &locator},
+        }};
 
-    bool loop{false};
     uint32_t last_frame_time{0};
     bool transmitting{false};
-    bool mode_file{true};
+    bool loop{false};
 
     EPIRBTXDataMessage epirb_tx_message{};
 
@@ -147,17 +167,17 @@ class EPIRBTXAppView : public View {
     Text text_beacon_locator {
         { UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Locator:"};        
-    Text text_beacon_longitude {
-        { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
-        "Long.:"};        
     Text text_beacon_latitude {
-        { UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Lat.:"};        
-    Text text_beacon_longitude_value {
-        { UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
-        ""};        
+    Text text_beacon_longitude {
+        { UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        "Long.:"};        
     Text text_beacon_latitude_value {
-        { UI_POS_X(9), UI_POS_Y(4), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(7), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+        ""};        
+    Text text_beacon_longitude_value {
+        { UI_POS_X(7), UI_POS_Y(4), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
         ""};        
     OptionsField options_beacon_type{
         {UI_POS_X(9), UI_POS_Y(1)},
@@ -216,6 +236,11 @@ class EPIRBTXAppView : public View {
 
     FrequencyField field_am_frequency{
         {UI_POS_X(13), UI_POS_Y(11)}};
+
+    Checkbox checkbox_send_on_change{
+        {UI_POS_X(0), UI_POS_Y(12)},
+        14,
+        "Send on change",true};
 
     OptionsField options_frame{
         {UI_POS_X(7), UI_POS_Y(1)},

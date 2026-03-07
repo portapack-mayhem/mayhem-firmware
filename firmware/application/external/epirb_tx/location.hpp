@@ -218,6 +218,22 @@ void init_from_dms(Location& loc)
     loc.locator = decimal_to_maidenhead(loc.latitude, loc.longitude);
 }
 
+std::string to_latitude_string(const Location& location)
+{
+    char buffer[16];
+    // Format :  <xxx°yy'zz"N>
+    snprintf(buffer,sizeof(buffer), "%3d\260%02d'%02d\"%c", location.lat_deg,location.lat_min, location.lat_sec, location.south ? 'S' : 'N');
+    return std::string(buffer);
+}
+
+std::string to_longitude_string(const Location& location)
+{
+    char buffer[16];
+    // Format :  <xxx°yy'zz"W>
+    snprintf(buffer,sizeof(buffer), "%3d\260%02d'%02d\"%c", location.long_deg, location.long_min, location.long_sec, location.west ? 'W' : 'E');
+    return std::string(buffer);
+}
+
 }  // namespace ui::external_app::epirb_tx
 
 #endif /*__LOCATION_H__*/

@@ -76,15 +76,15 @@ void EPIRBTXAppView::generate_frame(BeaconParams params)
 void EPIRBTXAppView::on_timer() {
     if(loop)
     {
-        if(checkbox_loop.value())
+        if(loop_enabled)
         {
             auto now = chTimeNow();
-            std::string timeout = std::to_string((uint32_t)(field_delay.value() - ((now - last_frame_time)/1000)));
+            std::string timeout = std::to_string((uint32_t)(delay - ((now - last_frame_time)/1000)));
             if(timeout != text_timeout.get())
             {
                 text_timeout.set(timeout);
             }
-            if(now > (last_frame_time + (field_delay.value()*1000)))
+            if(now > (last_frame_time + (delay*1000)))
             {
                 start_tx();
             }
@@ -96,7 +96,7 @@ void EPIRBTXAppView::on_timer() {
     }
 }
 
-void EPIRBTXAppView::update_frame() {
+void EPIRBTXAppView::update_frame(bool updateConfig) {
     if(mode_file)
     {
         Beacon& beacon = beacons[selected_beacon];
@@ -115,13 +115,20 @@ void EPIRBTXAppView::update_frame() {
     else
     {
         generate_frame(beacon_params);
-        //text_field_beacon_locator.set_text(beacon_params.location.locator);
-        text_beacon_latitude_value.set(to_string_dec_int(beacon_params.location.lat_deg)+"\260"+to_string_dec_int(beacon_params.location.lat_min)+"'"+to_string_dec_int(beacon_params.location.lat_sec)+"\""+(beacon_params.location.south ? "S" : "N"));
-        text_beacon_longitude_value.set(to_string_dec_int(beacon_params.location.long_deg)+"\260"+to_string_dec_int(beacon_params.location.long_min)+"'"+to_string_dec_int(beacon_params.location.lat_sec)+"\""+(beacon_params.location.west ? "W" : "E"));
         text_frame.set(frame_to_hex_string(true));
         text_frame_end.set(frame_to_hex_string(false));
     }
-    update_config();
+    if(updateConfig && send_on_change)
+    {   // Need to update config / send new beacon
+        if(transmitting)
+        {   // Already transmitting => update config
+            update_config();
+        }
+        else
+        {   // Not yet transmitting => start tx
+            start_tx();
+        }
+    } 
 }
 
 void EPIRBTXAppView::update_config() {
@@ -149,7 +156,7 @@ void EPIRBTXAppView::set_tx_button_state(bool active)
 void EPIRBTXAppView::start_tx() {
     last_frame_time = chTimeNow();
     update_config();
-    loop = checkbox_loop.value();
+    loop = loop_enabled;
     transmitter_model.enable();
     tx_view.set_transmitting(true);
     set_tx_button_state(false);
@@ -189,6 +196,32 @@ void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     }
 }
 
+void EPIRBTXAppView::update_location(bool updateLocatorField)
+{
+    locator = beacon_params.location.locator;
+    if(updateLocatorField) text_field_beacon_locator.set_text(beacon_params.location.locator);
+    text_beacon_latitude_value.set(to_latitude_string(beacon_params.location));
+    text_beacon_longitude_value.set(to_longitude_string(beacon_params.location));
+}
+
+void EPIRBTXAppView::update_mode()
+{
+    text_beacon.hidden(!mode_file);
+    text_description_label.hidden(!mode_file);
+    options_frame.hidden(!mode_file);
+    text_description.hidden(!mode_file);
+    text_description_end.hidden(!mode_file);
+    text_beacon_type.hidden(mode_file);
+    text_beacon_locator.hidden(mode_file);
+    text_beacon_latitude.hidden(mode_file);
+    text_beacon_latitude_value.hidden(mode_file);
+    text_beacon_longitude.hidden(mode_file);
+    text_beacon_longitude_value.hidden(mode_file);
+    button_mangps.hidden(mode_file);
+    options_beacon_type.hidden(mode_file);
+    text_field_beacon_locator.hidden(mode_file);
+}
+
 EPIRBTXAppView::EPIRBTXAppView(
     NavigationView& nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
@@ -217,6 +250,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &button_tx,
                   &checkbox_am,
                   &field_am_frequency,
+                  &checkbox_send_on_change,
                   &tx_view});
 
     text_beacon.set_style(Theme::getInstance()->fg_light);
@@ -226,45 +260,43 @@ EPIRBTXAppView::EPIRBTXAppView(
     text_beacon_latitude.set_style(Theme::getInstance()->fg_light);
     text_beacon_longitude.set_style(Theme::getInstance()->fg_light);
 
+    // Restore settings
+    checkbox_am.set_value(am_enabled);
+    checkbox_loop.set_value(loop_enabled);
+    checkbox_send_on_change.set_value(send_on_change);
+    options_mode.set_by_value(!mode_file);
+    transmitter_model.set_target_frequency(bpsk_frequency);
+    field_am_frequency.set_value(am_frequency);
+    field_delay.set_value(delay);
+    options_beacon_type.set_by_value(beacon_type);
+    beacon_params.type = (BeaconType)beacon_type;
+    beacon_params.has_121_5 = am_enabled;
+    beacon_params.location.locator = locator;
     init_from_locator(beacon_params.location);
+    update_mode();
+    update_location();
 
     options_mode.on_change = [this](size_t index, OptionsField::value_t) {
         mode_file = (index == 0);
-        text_beacon.hidden(!mode_file);
-        text_description_label.hidden(!mode_file);
-        options_frame.hidden(!mode_file);
-        text_description.hidden(!mode_file);
-        text_description_end.hidden(!mode_file);
-        text_beacon_type.hidden(mode_file);
-        text_beacon_locator.hidden(mode_file);
-        text_beacon_latitude.hidden(mode_file);
-        text_beacon_latitude_value.hidden(mode_file);
-        text_beacon_longitude.hidden(mode_file);
-        text_beacon_longitude_value.hidden(mode_file);
-        button_mangps.hidden(mode_file);
-        options_beacon_type.hidden(mode_file);
-        text_field_beacon_locator.hidden(mode_file);
+        update_mode();
         update_frame();
         set_dirty();
     };
-    // Default to file mode
-    options_mode.set_by_value(mode_file ? 0 : 1);
 
     options_beacon_type.on_change = [this](size_t index, OptionsField::value_t) {
         beacon_params.type = (BeaconType)index;
+        beacon_type = index;
         update_frame();
         set_dirty();
     };
 
-    text_field_beacon_locator.on_change = [this](TextField&) {
-        beacon_params.location.locator = text_field_beacon_locator.get_text();
+    bind(text_field_beacon_locator, locator, nav, [this](std::string value) {
+        beacon_params.location.locator = value;
         init_from_locator(beacon_params.location);
+        update_location(false);
         update_frame();
         set_dirty();
-    };
-
-    std::string locator = text_field_beacon_locator.get_text();
-    bind(text_field_beacon_locator, locator, nav);
+    });
 
     button_mangps.on_select = [this, &nav](Button&) {
         nav.push<GeoMapView>(
@@ -277,13 +309,13 @@ EPIRBTXAppView::EPIRBTXAppView(
                 beacon_params.location.latitude = lat;
                 beacon_params.location.longitude = lon;
                 init_from_decimal(beacon_params.location);
+                // Update locator field
+                update_location();
                 update_frame();
                 set_dirty();
             });
     };
 
-
-    field_am_frequency.set_value(am_frequency);
     field_am_frequency.on_change = [this](rf::Frequency freq) {
         am_frequency = freq;
     };
@@ -298,20 +330,26 @@ EPIRBTXAppView::EPIRBTXAppView(
         entries.emplace_back(beacon.title, entries.size());
 
     options_frame.set_options(std::move(entries));
+    options_frame.set_selected_index(selected_beacon);
     options_frame.on_change = [this](size_t index, OptionsField::value_t) {
         selected_beacon = index;
         update_frame();
         set_dirty();
     };
-    options_frame.set_selected_index(selected_beacon);
-    update_frame();
+    update_frame(false);
 
-    field_delay.set_value(30);
-    checkbox_loop.set_value(true);
+    checkbox_loop.on_select = [this](Checkbox&, bool v) {
+        loop_enabled = v;
+    };
+
+    field_delay.on_change = [this](int32_t v) {
+        delay = v;
+    };
 
     checkbox_am.on_select = [this](Checkbox&, bool v) {
         beacon_params.has_121_5 = v;
-        if(!mode_file) update_frame();
+        am_enabled = v;
+        if(!mode_file) update_frame(false);
     };
 
     // AM frequency field edit
@@ -323,11 +361,15 @@ EPIRBTXAppView::EPIRBTXAppView(
         };
     };
 
+    checkbox_send_on_change.on_select = [this](Checkbox&, bool v) {
+        send_on_change = v;
+    };
 
     tx_view.on_edit_frequency = [this, &nav]() {
         auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
             transmitter_model.set_target_frequency(f);
+            bpsk_frequency = f;
         };
     };
 
