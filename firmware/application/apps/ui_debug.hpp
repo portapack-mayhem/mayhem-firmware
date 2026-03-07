@@ -1339,7 +1339,7 @@ class PralineClockDebugView : public View {
     Text t2_ph{{160, 120, 48, 16}, "-"};
     Text t2_st{{208, 120, 32, 16}, "-"};
 
-    // C3: SG_CLK (Switching Regulator/Logic Sync)
+    // C3: SG_CLK PORT 1 (Switching Regulator/Logic Sync)
     Text t3_id{{0, 136, 24, 16}, "C3:"};
     Text t3_ma{{32, 136, 24, 16}, "-"};
     Text t3_mode{{64, 136, 48, 16}, "-"};
@@ -1362,6 +1362,22 @@ class PralineClockDebugView : public View {
     Text t5_src{{112, 168, 32, 16}, "-"};
     Text t5_ph{{160, 168, 48, 16}, "-"};
     Text t5_st{{208, 168, 32, 16}, "-"};
+
+    // C6: SG_CLK PORT 2 (Switching Regulator/Logic Sync)
+    Text t6_id{{0, 184, 24, 16}, "C6:"};
+    Text t6_ma{{32, 184, 24, 16}, "-"};
+    Text t6_mode{{64, 184, 48, 16}, "-"};
+    Text t6_src{{112, 184, 32, 16}, "-"};
+    Text t6_ph{{160, 184, 48, 16}, "-"};
+    Text t6_st{{208, 184, 32, 16}, "-"};
+
+    // C7: UNUSED_CLK (Internal Expansion)
+    Text t7_id{{0, 200, 24, 16}, "C7:"};
+    Text t7_ma{{32, 200, 24, 16}, "-"};
+    Text t7_mode{{64, 200, 48, 16}, "-"};
+    Text t7_src{{112, 200, 32, 16}, "-"};
+    Text t7_ph{{160, 200, 48, 16}, "-"};
+    Text t7_st{{208, 200, 32, 16}, "-"};
 
     Button button_refresh{{8, 260, 100, 24}, "Refresh"};
     Button button_done{{132, 260, 100, 24}, "Done"};

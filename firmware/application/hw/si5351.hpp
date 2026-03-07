@@ -367,6 +367,9 @@ class Si5351 {
         uint32_t timeout = 100000;
         while ((device_status() & 0x80) && (timeout > 0)) {
             timeout--;
+            if (timeout == 0) {
+                chDbgAssert(false, "si5351: wait_for_device_ready timeout", nullptr);
+            }
         }
 #else
         while (device_status() & 0x80);
