@@ -122,6 +122,7 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
     {   // Need to update config / send new beacon
         if(transmitting)
         {   // Already transmitting => update config
+            last_frame_time = chTimeNow();
             update_config();
         }
         else
