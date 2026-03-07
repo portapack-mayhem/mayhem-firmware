@@ -28,6 +28,7 @@
 #include "file_reader.hpp"
 #include "file_path.hpp"
 #include "binder.hpp"
+#include "ui_geomap.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -114,6 +115,9 @@ void EPIRBTXAppView::update_frame() {
     else
     {
         generate_frame(beacon_params);
+        //text_field_beacon_locator.set_text(beacon_params.location.locator);
+        text_beacon_latitude_value.set(to_string_dec_int(beacon_params.location.lat_deg)+"\260"+to_string_dec_int(beacon_params.location.lat_min)+"'"+to_string_dec_int(beacon_params.location.lat_sec)+"\""+(beacon_params.location.south ? "S" : "N"));
+        text_beacon_longitude_value.set(to_string_dec_int(beacon_params.location.long_deg)+"\260"+to_string_dec_int(beacon_params.location.long_min)+"'"+to_string_dec_int(beacon_params.location.lat_sec)+"\""+(beacon_params.location.west ? "W" : "E"));
         text_frame.set(frame_to_hex_string(true));
         text_frame_end.set(frame_to_hex_string(false));
     }
@@ -196,6 +200,11 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_beacon_type,
                   &options_beacon_type,
                   &text_beacon_locator,
+                  &text_beacon_latitude,
+                  &text_beacon_latitude_value,
+                  &text_beacon_longitude,
+                  &text_beacon_longitude_value,
+                  &button_mangps,
                   &text_field_beacon_locator,
                   &options_frame,
                   &text_description,
@@ -214,6 +223,8 @@ EPIRBTXAppView::EPIRBTXAppView(
     text_description_label.set_style(Theme::getInstance()->fg_light);
     text_beacon_type.set_style(Theme::getInstance()->fg_light);
     text_beacon_locator.set_style(Theme::getInstance()->fg_light);
+    text_beacon_latitude.set_style(Theme::getInstance()->fg_light);
+    text_beacon_longitude.set_style(Theme::getInstance()->fg_light);
 
     init_from_locator(beacon_params.location);
 
@@ -226,6 +237,11 @@ EPIRBTXAppView::EPIRBTXAppView(
         text_description_end.hidden(!mode_file);
         text_beacon_type.hidden(mode_file);
         text_beacon_locator.hidden(mode_file);
+        text_beacon_latitude.hidden(mode_file);
+        text_beacon_latitude_value.hidden(mode_file);
+        text_beacon_longitude.hidden(mode_file);
+        text_beacon_longitude_value.hidden(mode_file);
+        button_mangps.hidden(mode_file);
         options_beacon_type.hidden(mode_file);
         text_field_beacon_locator.hidden(mode_file);
         update_frame();
@@ -249,6 +265,23 @@ EPIRBTXAppView::EPIRBTXAppView(
 
     std::string locator = text_field_beacon_locator.get_text();
     bind(text_field_beacon_locator, locator, nav);
+
+    button_mangps.on_select = [this, &nav](Button&) {
+        nav.push<GeoMapView>(
+            0,
+            GeoPos::alt_unit::METERS,
+            GeoPos::spd_unit::HIDDEN,
+            beacon_params.location.latitude,
+            beacon_params.location.longitude,
+            [this](int32_t, float lat, float lon, int32_t) {
+                beacon_params.location.latitude = lat;
+                beacon_params.location.longitude = lon;
+                init_from_decimal(beacon_params.location);
+                update_frame();
+                set_dirty();
+            });
+    };
+
 
     field_am_frequency.set_value(am_frequency);
     field_am_frequency.on_change = [this](rf::Frequency freq) {

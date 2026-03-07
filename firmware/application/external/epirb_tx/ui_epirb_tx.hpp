@@ -147,6 +147,18 @@ class EPIRBTXAppView : public View {
     Text text_beacon_locator {
         { UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Locator:"};        
+    Text text_beacon_longitude {
+        { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        "Long.:"};        
+    Text text_beacon_latitude {
+        { UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        "Lat.:"};        
+    Text text_beacon_longitude_value {
+        { UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
+        ""};        
+    Text text_beacon_latitude_value {
+        { UI_POS_X(9), UI_POS_Y(4), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
+        ""};        
     OptionsField options_beacon_type{
         {UI_POS_X(9), UI_POS_Y(1)},
         30,
@@ -156,6 +168,9 @@ class EPIRBTXAppView : public View {
     TextField text_field_beacon_locator {
         { UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
         "JN03RO"};        
+    Button button_mangps{
+        {UI_POS_X_RIGHT(9), UI_POS_Y(2), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
+        "Set pos."};
 
     OptionsField options_mode{
         {UI_POS_X(7), UI_POS_Y(0)},

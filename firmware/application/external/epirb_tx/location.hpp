@@ -195,6 +195,8 @@ void init_from_decimal(Location& loc)
                    loc.long_deg,
                    loc.long_min,
                    loc.long_sec);
+
+    loc.locator = decimal_to_maidenhead(loc.latitude, loc.longitude);
 }
 
 void init_from_dms(Location& loc)

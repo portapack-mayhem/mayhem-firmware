@@ -213,7 +213,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
     // Latitude minutes (4 bits, 4 minutes precision)
     uint8_t min = params.location.lat_min/4;
     for(int i = 3; i >= 0; i--)
-        push_bits(frame, pos, (params.location.lat_min >> i) & 1,1);
+        push_bits(frame, pos, (min >> i) & 1,1);
 
     // Longitude E/W
     push_bits(frame, pos, params.location.west,1);
