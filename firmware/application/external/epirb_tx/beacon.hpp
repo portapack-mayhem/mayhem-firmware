@@ -27,6 +27,13 @@
 
 namespace ui::external_app::epirb_tx {
 
+/**
+ * Get bits frop the provided frame
+ * @param data the frame data
+ * @param startBit the start bit number (one based to match documentation)
+ * @param endBit the end bit number (one based to match documentation)
+ * @return the selected bits (max 64)
+ */
 static uint64_t get_bits(uint8_t* data, int startBit, int endBit) {
     uint64_t result = 0;
     // 0 bases bit count
@@ -57,6 +64,15 @@ static uint64_t get_bits(uint8_t* data, int startBit, int endBit) {
     return result;
 }
 
+/**
+ * Compute a BCH code
+ * @param frame the frame data
+ * @param startBit the bit to start BCH calculation
+ * @param endBit the bit to stop calculation
+ * @param poly the BCH polynome
+ * @param polyLength the BCH polynome length
+ * @return the BCH code
+ */
 static uint64_t compute_bch(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {  // Length of data to be checked (not including the BCH code)
     int dataLength = endBit - startBit + 1;
     // Total lengh (including the BCH code that will be padded to zeros (BCH code length is polyLengh-1))
@@ -85,14 +101,26 @@ static uint64_t compute_bch(uint8_t* frame, int startBit, int endBit, unsigned l
 #define BCH_12_POLYNOMIAL 0b1010100111001UL
 #define BCH_12_POLY_LENGTH 13
 
+/**
+ * Combyte BCH1 code for the provided frame
+ */
 static uint64_t compute_bch1(uint8_t* frame) {
     return compute_bch(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH);
 }
 
+/**
+ * Combyte BCH2 code for the provided frame
+ */
 static uint64_t compute_bch2(uint8_t* frame) {
     return compute_bch(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH);
 }
 
+/**
+ * Set a bit in the provided frame
+ * @param buf the frame
+ * @param bit the position of the bit to set (0 based)
+ * @param v the bit value
+ */
 static void set_bit(uint8_t* buf, int bit, bool v) {
     int byte = bit >> 3;
     int off = 7 - (bit & 7);
@@ -103,11 +131,24 @@ static void set_bit(uint8_t* buf, int bit, bool v) {
         buf[byte] &= ~(1 << off);
 }
 
+/**
+ * Push bits to the provided frame
+ * @param buf the frame
+ * @param pos the current frame possition (in/out, will be incremented during the opreration)
+ * @param v the bits to push (max 64)
+ * @param n the number of bits to push
+ */
 static void push_bits(uint8_t* buf, int& pos, uint64_t v, int n) {
     for (int i = n - 1; i >= 0; i--)
         set_bit(buf, pos++, (v >> i) & 1);
 }
 
+/**
+ * Convert a beacon to hex string representation
+ * @param frame the frame to convert
+ * @param start true for the first half of the frame, false for the second half
+ * @return the hex string representation of the specieid half of the frame
+ */
 std::string beacon_to_hex_string(const uint8_t* frame, bool start) {
     static const char hex[] = "0123456789ABCDEF";
 
@@ -126,23 +167,27 @@ std::string beacon_to_hex_string(const uint8_t* frame, bool start) {
     return out;
 }
 
+/**
+ * Generate a beacon in the provided buffer
+ * @param frame the buffer to generate the frame in
+ * @param params the beacon parameters
+ * @return the size of the generated frame
+ */
 size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
+    // Clear the content of the frame
     memset(frame, 0, 18);
 
     int pos = 0;
     uint32_t deg, min, sec;
 
-    /* bit sync */
+    // bit sync
     for (int i = 0; i < 15; i++)
         push_bits(frame, pos, 1, 1);
 
-    /* frame sync (test) */
+    // frame sync
     push_bits(frame, pos, params.is_test ? 0b011010000 : 0b000101111, 9);
 
-    /* ----------------
-       PDF-1
-       ---------------- */
-
+    // PDF-1 (Protexted Data field 1)
     int pdf1_start = pos;
 
     push_bits(frame, pos, 1, 1);  // format flag (long)
@@ -178,18 +223,22 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
             break;
     }
 
+    // Fill the rest of PDF 1 with zeros
     while (pos < pdf1_start + 61)
         push_bits(frame, pos, 0, 1);
 
     if (is_user) {
+        // User Location Protocol: no position in PDF1
         if (params.type == BeaconType::PLB) {
+            // Set bits for PLB
             set_bit(frame, 40 - 1, 1);
             set_bit(frame, 41 - 1, 1);
             set_bit(frame, 42 - 1, 0);
         }
 
         set_bit(frame, 85 - 1, params.has_121_5);
-    } else if (is_standard) {  // National location
+    } else if (is_standard) {
+        // Standard  Location Protocol
         // North / south
         set_bit(frame, 65 - 1, params.location.south);
         // E / W
@@ -203,7 +252,8 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         deg = (params.location.long_deg << 2) + (params.location.long_min / 15);
         push_bits(frame, pos, deg, 10);
         pos = pdf1_start + 61;
-    } else {  // National location
+    } else {
+        // National Location Protocol
         // North / south
         set_bit(frame, 59 - 1, params.location.south);
         // E / W
@@ -223,44 +273,35 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         pos = pdf1_start + 61;
     }
 
-    /* BCH1 */
-
+    // Set BCH1
     uint64_t bch1 = compute_bch1(frame);
-
     push_bits(frame, pos, bch1, 21);
 
-    /* ----------------
-       PDF-2 position
-       ---------------- */
+    // PDF-2 (Protexted Data Field 2)
     int pdf2_start = pos;
-
     if (is_user) {
+        // User Location Protocol
         push_bits(frame, pos, params.is_internal, 1);
-
         // Latitude N/S
         push_bits(frame, pos, params.location.south, 1);
-
         // Latitude degrees (7 bits)
         push_bits(frame, pos, params.location.lat_deg, 7);
-
         // Latitude minutes (4 bits, 4 minutes precision)
         min = params.location.lat_min / 4;
         push_bits(frame, pos, min, 4);
-
         // Longitude E/W
         push_bits(frame, pos, params.location.west, 1);
-
         // Longitude degrees (8 bits)
         push_bits(frame, pos, params.location.long_deg, 8);
-
         // Longitude minutes (4 bits, 4 minutes precision)
         min = params.location.long_min / 4;
         push_bits(frame, pos, min, 4);
-    } else if (is_standard) {  // National location
+    } else if (is_standard) {
+        // Standard Location Protocol
         push_bits(frame, pos, 0b1101, 4);
         push_bits(frame, pos, params.is_internal, 1);
         push_bits(frame, pos, params.has_121_5, 1);
-        // Lat
+        // Latiitude
         // +
         push_bits(frame, pos, 1, 1);
         // Min
@@ -269,7 +310,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         // Sec (4 bits, 4 sec precision)
         sec = params.location.lat_sec / 4;
         push_bits(frame, pos, sec, 4);
-        // LLon
+        // Longitude
         // +
         push_bits(frame, pos, 1, 1);
         // Min
@@ -278,7 +319,8 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         // Sec (4 bits, 4 sec precision)
         sec = params.location.long_sec / 4;
         push_bits(frame, pos, sec, 4);
-    } else {  // National location
+    } else {
+        // National Location Protocol
         push_bits(frame, pos, 0b1101, 4);
         push_bits(frame, pos, params.is_internal, 1);
         push_bits(frame, pos, params.has_121_5, 1);
@@ -303,10 +345,8 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
     while (pos < pdf2_start + 26)
         push_bits(frame, pos, 0, 1);
 
-    /* BCH2 */
-
+    // Compute BCH 2
     uint64_t bch2 = compute_bch2(frame);
-
     push_bits(frame, pos, bch2, 12);
     return 18;
 }
