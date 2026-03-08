@@ -41,14 +41,17 @@ namespace ui::external_app::epirb_tx {
 
 enum class BeaconType
 {
-    EPIRB_NATIONAL = 0,
-    ELT_NATIONAL = 1,
-    PLB_NATIONAL = 2,
-    EPIRB_USER = 3,
-    ELT_USER = 4,
-    PLB_USER = 5
+    EPIRB = 0,
+    ELT = 1,
+    PLB = 2
 };
 
+enum class BeaconProtocol
+{
+    USER = 0,
+    STANDARD = 1,
+    NATIONAL = 2
+};
 
 struct Location
 {
@@ -68,6 +71,8 @@ struct Location
 struct BeaconParams
 {
     BeaconType type;
+    BeaconProtocol protocol;
+    uint32_t country;
     bool is_test;
     bool is_internal;
     bool has_121_5;
@@ -105,7 +110,7 @@ class EPIRBTXAppView : public View {
     std::vector<Beacon> beacons{};
     Beacon default_beacon {"Self test","Serial User Location Protocol","FFFED0D6E6202820000C29FF51041775302D"};
 
-    BeaconParams beacon_params { BeaconType::ELT_USER , true, true, true, {"JN03RO",false,0,0,0,0,false,0,0,0,0}};
+    BeaconParams beacon_params { BeaconType::ELT, BeaconProtocol::STANDARD, 227, true, true, true, {"JN03RO",false,0,0,0,0,false,0,0,0,0}};
 
     uint32_t selected_beacon{0};
 
@@ -119,6 +124,8 @@ class EPIRBTXAppView : public View {
     std::string locator{"JN03RO"};
     uint32_t delay{50};
     uint8_t beacon_type{0};
+    uint8_t beacon_protocol{0};
+    uint32_t beacon_country{227};
 
     TxRadioState radio_state_{
         0 /* frequency */,
@@ -136,6 +143,8 @@ class EPIRBTXAppView : public View {
          {"am"sv, &am_enabled},
          {"soc"sv, &send_on_change},
          {"type"sv, &beacon_type},
+         {"proto"sv, &beacon_protocol},
+         {"country"sv, &beacon_country},
          {"locator"sv, &locator},
         }};
 
@@ -150,10 +159,10 @@ class EPIRBTXAppView : public View {
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(0)}, "Source:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(5)}, "Frame:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(9)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(11)}, "AM frequency          MHz", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(17), UI_POS_Y(8)}, "s.", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(10)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(12)}, "AM frequency          MHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
 
     // For file mode
     Text text_beacon {
@@ -167,35 +176,51 @@ class EPIRBTXAppView : public View {
     Text text_beacon_type {
         { UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Type:"};        
-    Text text_beacon_locator {
+    Text text_beacon_country {
         { UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        "Country:"};        
+    Text text_beacon_locator {
+        { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Locator:"};        
     Text text_beacon_latitude {
-        { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Lat.:"};        
     Text text_beacon_longitude {
-        { UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Long.:"};        
     Text text_beacon_latitude_value {
-        { UI_POS_X(7), UI_POS_Y(3), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(7), UI_POS_Y(4), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
         ""};        
     Text text_beacon_longitude_value {
-        { UI_POS_X(7), UI_POS_Y(4), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(7), UI_POS_Y(5), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
         ""};        
     OptionsField options_beacon_type{
         {UI_POS_X(9), UI_POS_Y(1)},
+        7,
+        {{"EPIRB", 0},
+         {"ELT", 1},
+         {"PLB", 2}}};
+    OptionsField options_beacon_protocol{
+        {UI_POS_X(9+7), UI_POS_Y(1)},
         30,
-        {{"EPIRB National", 0},
-         {"ELT National", 1},
-         {"PLB National", 2},
-         {"EPIRB User", 3},
-         {"ELT User", 4},
-         {"PLB User", 5}}};
+        {{"User", 0},
+         {"Standard", 1},
+         {"National", 2}}};
+    OptionsField options_beacon_country{
+        {UI_POS_X(9), UI_POS_Y(2)},
+        7,
+        {{"France", 227},
+         {"USA", 366},
+         {"Germany", 211},
+         {"Russia", 273},
+         {"Spain", 224},
+         {"Japan", 431},
+         {"UK", 232}}};
     TextField text_field_beacon_locator {
-        { UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH(10), UI_POS_DEFAULT_HEIGHT},
         "JN03RO"};        
     Button button_mangps{
-        {UI_POS_X_RIGHT(9), UI_POS_Y(2), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
+        {UI_POS_X_RIGHT(9), UI_POS_Y(3), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
         "Set pos."};
 
     OptionsField options_mode{
@@ -213,38 +238,38 @@ class EPIRBTXAppView : public View {
         ""};        
 
     Text text_frame {
-        { UI_POS_X(6), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(6), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
         ""};        
     Text text_frame_end {
-        { UI_POS_X(6), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(6), UI_POS_Y(7), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
         ""};        
 
     Text text_timeout {
-        { UI_POS_X(14), UI_POS_Y(9), UI_POS_WIDTH(2), UI_POS_DEFAULT_HEIGHT},
+        { UI_POS_X(14), UI_POS_Y(10), UI_POS_WIDTH(2), UI_POS_DEFAULT_HEIGHT},
         ""};        
 
     Checkbox checkbox_loop{
-        {UI_POS_X(0), UI_POS_Y(8)},
+        {UI_POS_X(0), UI_POS_Y(9)},
         10,
         "Resend every",true};
 
     NumberField field_delay{
-        {UI_POS_X(15), UI_POS_Y(8)},
+        {UI_POS_X(15), UI_POS_Y(9)},
         2,
         {1, 99},
         1,
         ' '};
 
     Checkbox checkbox_am{
-        {UI_POS_X(0), UI_POS_Y(10)},
+        {UI_POS_X(0), UI_POS_Y(11)},
         10,
         "AM signal",true};
 
     FrequencyField field_am_frequency{
-        {UI_POS_X(13), UI_POS_Y(11)}};
+        {UI_POS_X(13), UI_POS_Y(12)}};
 
     Checkbox checkbox_send_on_change{
-        {UI_POS_X(0), UI_POS_Y(12)},
+        {UI_POS_X(0), UI_POS_Y(13)},
         14,
         "Send on change",true};
 
@@ -254,7 +279,7 @@ class EPIRBTXAppView : public View {
         {}};
 
     Button button_tx{
-        { UI_POS_X_RIGHT(9), UI_POS_Y(8), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
+        { UI_POS_X_RIGHT(9), UI_POS_Y(9), UI_POS_WIDTH(9), UI_POS_HEIGHT(2)},
         "START"
     };        
     const Style& style_tx_start = *Theme::getInstance()->fg_green;

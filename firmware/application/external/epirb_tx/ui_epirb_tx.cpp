@@ -213,6 +213,7 @@ void EPIRBTXAppView::update_mode()
     text_description.hidden(!mode_file);
     text_description_end.hidden(!mode_file);
     text_beacon_type.hidden(mode_file);
+    text_beacon_country.hidden(mode_file);
     text_beacon_locator.hidden(mode_file);
     text_beacon_latitude.hidden(mode_file);
     text_beacon_latitude_value.hidden(mode_file);
@@ -220,6 +221,8 @@ void EPIRBTXAppView::update_mode()
     text_beacon_longitude_value.hidden(mode_file);
     button_mangps.hidden(mode_file);
     options_beacon_type.hidden(mode_file);
+    options_beacon_protocol.hidden(mode_file);
+    options_beacon_country.hidden(mode_file);
     text_field_beacon_locator.hidden(mode_file);
 }
 
@@ -233,6 +236,9 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_description_label,
                   &text_beacon_type,
                   &options_beacon_type,
+                  &options_beacon_protocol,
+                  &text_beacon_country,
+                  &options_beacon_country,
                   &text_beacon_locator,
                   &text_beacon_latitude,
                   &text_beacon_latitude_value,
@@ -257,6 +263,7 @@ EPIRBTXAppView::EPIRBTXAppView(
     text_beacon.set_style(Theme::getInstance()->fg_light);
     text_description_label.set_style(Theme::getInstance()->fg_light);
     text_beacon_type.set_style(Theme::getInstance()->fg_light);
+    text_beacon_country.set_style(Theme::getInstance()->fg_light);
     text_beacon_locator.set_style(Theme::getInstance()->fg_light);
     text_beacon_latitude.set_style(Theme::getInstance()->fg_light);
     text_beacon_longitude.set_style(Theme::getInstance()->fg_light);
@@ -270,6 +277,8 @@ EPIRBTXAppView::EPIRBTXAppView(
     field_am_frequency.set_value(am_frequency);
     field_delay.set_value(delay);
     options_beacon_type.set_by_value(beacon_type);
+    options_beacon_protocol.set_by_value(beacon_protocol);
+    options_beacon_country.set_by_value(beacon_country);
     beacon_params.type = (BeaconType)beacon_type;
     beacon_params.has_121_5 = am_enabled;
     beacon_params.location.locator = locator;
@@ -287,6 +296,21 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_beacon_type.on_change = [this](size_t index, OptionsField::value_t) {
         beacon_params.type = (BeaconType)index;
         beacon_type = index;
+        update_frame();
+        set_dirty();
+    };
+
+    options_beacon_protocol.on_change = [this](size_t index, OptionsField::value_t) {
+        beacon_params.protocol = (BeaconProtocol)index;
+        beacon_protocol = index;
+        update_frame();
+        set_dirty();
+    };
+
+
+    options_beacon_country.on_change = [this](size_t, OptionsField::value_t v) {
+        beacon_params.country = v;
+        beacon_country = v;
         update_frame();
         set_dirty();
     };

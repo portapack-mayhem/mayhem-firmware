@@ -161,29 +161,29 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
     int pdf1_start = pos;
 
     push_bits(frame,pos,1,1);  // format flag (long)
-    bool is_user = (params.type == BeaconType::EPIRB_USER || params.type == BeaconType::ELT_USER || params.type == BeaconType::PLB_USER);
+    bool is_user = (params.protocol == BeaconProtocol::USER);
     push_bits(frame,pos,is_user,1);  // protocol flag
-    push_bits(frame,pos,227,10); // country code example
+    push_bits(frame,pos,(uint64_t)params.country,10); // country code
     switch(params.type)
     {
-        case BeaconType::EPIRB_NATIONAL:
-            push_bits(frame,pos,0b1010,4);
+        case BeaconType::EPIRB:
+            if(is_user)
+                push_bits(frame,pos,0b010,3);
+            else
+                push_bits(frame,pos,0b1010,4);
             break;
-        case BeaconType::EPIRB_USER:
-            push_bits(frame,pos,0b010,3);
+        case BeaconType::PLB:
+            if(is_user)
+                push_bits(frame,pos,0b011,3);
+            else
+                push_bits(frame,pos,0b1011,4);
             break;
-        case BeaconType::PLB_NATIONAL:
-            push_bits(frame,pos,0b1011,4);
-            break;
-        case BeaconType::PLB_USER:
-            push_bits(frame,pos,0b011,3);
-            break;
-        case BeaconType::ELT_NATIONAL:
-            push_bits(frame,pos,0b1000,4);
-            break;
-        case BeaconType::ELT_USER:
         default:
-            push_bits(frame,pos,0b001,3);
+        case BeaconType::ELT:
+            if(is_user)
+                push_bits(frame,pos,0b001,3);
+            else
+                push_bits(frame,pos,0b1000,4);
             break;
     }
 
@@ -192,7 +192,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
 
     if(is_user)
     {
-        if(params.type == BeaconType::PLB_NATIONAL || params.type == BeaconType::PLB_USER)
+        if(params.type == BeaconType::PLB)
         {
             set_bit(frame,40-1,1);
             set_bit(frame,41-1,1);
