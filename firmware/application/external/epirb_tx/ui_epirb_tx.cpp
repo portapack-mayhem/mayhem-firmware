@@ -214,6 +214,7 @@ void EPIRBTXAppView::update_mode()
     text_description_end.hidden(!mode_file);
     text_beacon_type.hidden(mode_file);
     text_beacon_country.hidden(mode_file);
+    checkbox_beacon_internal.hidden(mode_file);
     text_beacon_locator.hidden(mode_file);
     text_beacon_latitude.hidden(mode_file);
     text_beacon_latitude_value.hidden(mode_file);
@@ -239,6 +240,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &options_beacon_protocol,
                   &text_beacon_country,
                   &options_beacon_country,
+                  &checkbox_beacon_internal,
                   &text_beacon_locator,
                   &text_beacon_latitude,
                   &text_beacon_latitude_value,
@@ -279,9 +281,11 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_beacon_type.set_by_value(beacon_type);
     options_beacon_protocol.set_by_value(beacon_protocol);
     options_beacon_country.set_by_value(beacon_country);
+    checkbox_beacon_internal.set_value(beacon_internal);
     beacon_params.type = (BeaconType)beacon_type;
     beacon_params.has_121_5 = am_enabled;
     beacon_params.location.locator = locator;
+    beacon_params.is_internal = beacon_internal;
     init_from_locator(beacon_params.location);
     update_mode();
     update_location();
@@ -311,6 +315,13 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_beacon_country.on_change = [this](size_t, OptionsField::value_t v) {
         beacon_params.country = v;
         beacon_country = v;
+        update_frame();
+        set_dirty();
+    };
+
+    checkbox_beacon_internal.on_select = [this](Checkbox&, bool v) {
+        beacon_internal = v;
+        beacon_params.is_internal = v;
         update_frame();
         set_dirty();
     };

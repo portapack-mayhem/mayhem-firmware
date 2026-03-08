@@ -145,7 +145,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
     memset(frame,0,18);
 
     int pos = 0;
-    uint8_t min, sec;
+    uint32_t deg, min, sec;
 
     /* bit sync */
     for(int i=0;i<15;i++)
@@ -162,19 +162,24 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
 
     push_bits(frame,pos,1,1);  // format flag (long)
     bool is_user = (params.protocol == BeaconProtocol::USER);
+    bool is_standard = (params.protocol == BeaconProtocol::STANDARD);
     push_bits(frame,pos,is_user,1);  // protocol flag
-    push_bits(frame,pos,(uint64_t)params.country,10); // country code
+    push_bits(frame,pos,params.country,10); // country code
     switch(params.type)
     {
         case BeaconType::EPIRB:
             if(is_user)
                 push_bits(frame,pos,0b010,3);
+            else if(is_standard)
+                push_bits(frame,pos,0b0010,4);
             else
                 push_bits(frame,pos,0b1010,4);
             break;
         case BeaconType::PLB:
             if(is_user)
                 push_bits(frame,pos,0b011,3);
+            else if(is_standard)
+                push_bits(frame,pos,0b0111,4);
             else
                 push_bits(frame,pos,0b1011,4);
             break;
@@ -182,6 +187,8 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
         case BeaconType::ELT:
             if(is_user)
                 push_bits(frame,pos,0b001,3);
+            else if(is_standard)
+                push_bits(frame,pos,0b0011,4);
             else
                 push_bits(frame,pos,0b1000,4);
             break;
@@ -200,6 +207,24 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
         }
 
         set_bit(frame,85-1,params.has_121_5);
+    }
+    else if (is_standard)
+    {   // National location
+        // North / south
+        set_bit(frame,65-1,params.location.south);
+        // E / W
+        set_bit(frame,75-1,params.location.west);
+        pos = 66-1;
+        // Latitude 1/4 degrees (9 bits)
+        deg = (params.location.lat_deg << 2) + (params.location.lat_min / 15);
+        for(int i = 8; i >= 0; i--)
+            push_bits(frame, pos, (deg >> i) & 1,1);
+        pos = 76-1;
+        // Longitude 1/4 degrees (10 bits)
+        deg = (params.location.long_deg << 2) + (params.location.long_min / 15);
+        for(int i = 9; i >= 0; i--)
+            push_bits(frame, pos, (deg >> i) & 1,1);
+        pos = pdf1_start + 61;
     }
     else
     {   // National location
@@ -264,6 +289,32 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params)
         min = params.location.long_min/4;
         for(int i = 3; i >= 0; i--)
             push_bits(frame, pos, (min >> i) & 1,1);
+    }
+    else if(is_standard)
+    {   // National location
+        push_bits(frame,pos,0b1101,4);
+        push_bits(frame,pos,params.is_internal,1);
+        push_bits(frame,pos,params.has_121_5,1);
+        // Lat
+        // +
+        push_bits(frame,pos,1,1);
+        // Min
+        min = params.location.lat_min % 15;
+        push_bits(frame,pos,min,5);
+        // Sec (4 bits, 4 sec precision)
+        sec = params.location.lat_sec/4;
+        for(int i = 3; i >= 0; i--)
+            push_bits(frame, pos, (sec >> i) & 1,1);
+        // LLon
+        // +
+        push_bits(frame,pos,1,1);
+        // Min
+        min = params.location.long_min % 15;
+        push_bits(frame,pos,min,5);
+        // Sec (4 bits, 4 sec precision)
+        sec = params.location.long_sec/4;
+        for(int i = 3; i >= 0; i--)
+            push_bits(frame, pos, (sec >> i) & 1,1);
     }
     else
     {   // National location

@@ -126,6 +126,7 @@ class EPIRBTXAppView : public View {
     uint8_t beacon_type{0};
     uint8_t beacon_protocol{0};
     uint32_t beacon_country{227};
+    bool beacon_internal{true};
 
     TxRadioState radio_state_{
         0 /* frequency */,
@@ -145,6 +146,7 @@ class EPIRBTXAppView : public View {
          {"type"sv, &beacon_type},
          {"proto"sv, &beacon_protocol},
          {"country"sv, &beacon_country},
+         {"internal"sv, &beacon_internal},
          {"locator"sv, &locator},
         }};
 
@@ -178,7 +180,11 @@ class EPIRBTXAppView : public View {
         "Type:"};        
     Text text_beacon_country {
         { UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
-        "Country:"};        
+        "Country:"};
+    Checkbox checkbox_beacon_internal{
+        {UI_POS_X_RIGHT(12), UI_POS_Y(2)},
+        12,
+        "Internal",true};
     Text text_beacon_locator {
         { UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT},
         "Locator:"};        
