@@ -197,13 +197,11 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         pos = 66 - 1;
         // Latitude 1/4 degrees (9 bits)
         deg = (params.location.lat_deg << 2) + (params.location.lat_min / 15);
-        for (int i = 8; i >= 0; i--)
-            push_bits(frame, pos, (deg >> i) & 1, 1);
+        push_bits(frame, pos, deg, 9);
         pos = 76 - 1;
         // Longitude 1/4 degrees (10 bits)
         deg = (params.location.long_deg << 2) + (params.location.long_min / 15);
-        for (int i = 9; i >= 0; i--)
-            push_bits(frame, pos, (deg >> i) & 1, 1);
+        push_bits(frame, pos, deg, 10);
         pos = pdf1_start + 61;
     } else {  // National location
         // North / south
@@ -212,20 +210,16 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         set_bit(frame, 72 - 1, params.location.west);
         pos = 60 - 1;
         // Latitude degrees (7 bits)
-        for (int i = 6; i >= 0; i--)
-            push_bits(frame, pos, (params.location.lat_deg >> i) & 1, 1);
+        push_bits(frame, pos, params.location.lat_deg, 7);
         // Latitude min (5 bits, 2 min increment)
         min = params.location.lat_min / 2;
-        for (int i = 4; i >= 0; i--)
-            push_bits(frame, pos, (min >> i) & 1, 1);
+        push_bits(frame, pos, min, 5);
         pos = 73 - 1;
         // Longitude degrees (8 bits)
-        for (int i = 7; i >= 0; i--)
-            push_bits(frame, pos, (params.location.long_deg >> i) & 1, 1);
+        push_bits(frame, pos, params.location.long_deg, 8);
         // Longiitude min (5 bits, 2 min increment)
         min = params.location.long_min / 2;
-        for (int i = 4; i >= 0; i--)
-            push_bits(frame, pos, (min >> i) & 1, 1);
+        push_bits(frame, pos, min, 5);
         pos = pdf1_start + 61;
     }
 
@@ -247,25 +241,21 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         push_bits(frame, pos, params.location.south, 1);
 
         // Latitude degrees (7 bits)
-        for (int i = 6; i >= 0; i--)
-            push_bits(frame, pos, (params.location.lat_deg >> i) & 1, 1);
+        push_bits(frame, pos, params.location.lat_deg, 7);
 
         // Latitude minutes (4 bits, 4 minutes precision)
         min = params.location.lat_min / 4;
-        for (int i = 3; i >= 0; i--)
-            push_bits(frame, pos, (min >> i) & 1, 1);
+        push_bits(frame, pos, min, 4);
 
         // Longitude E/W
         push_bits(frame, pos, params.location.west, 1);
 
         // Longitude degrees (8 bits)
-        for (int i = 7; i >= 0; i--)
-            push_bits(frame, pos, (params.location.long_deg >> i) & 1, 1);
+        push_bits(frame, pos, params.location.long_deg, 8);
 
         // Longitude minutes (4 bits, 4 minutes precision)
         min = params.location.long_min / 4;
-        for (int i = 3; i >= 0; i--)
-            push_bits(frame, pos, (min >> i) & 1, 1);
+        push_bits(frame, pos, min, 4);
     } else if (is_standard) {  // National location
         push_bits(frame, pos, 0b1101, 4);
         push_bits(frame, pos, params.is_internal, 1);
@@ -278,8 +268,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         push_bits(frame, pos, min, 5);
         // Sec (4 bits, 4 sec precision)
         sec = params.location.lat_sec / 4;
-        for (int i = 3; i >= 0; i--)
-            push_bits(frame, pos, (sec >> i) & 1, 1);
+        push_bits(frame, pos, sec, 4);
         // LLon
         // +
         push_bits(frame, pos, 1, 1);
@@ -288,8 +277,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         push_bits(frame, pos, min, 5);
         // Sec (4 bits, 4 sec precision)
         sec = params.location.long_sec / 4;
-        for (int i = 3; i >= 0; i--)
-            push_bits(frame, pos, (sec >> i) & 1, 1);
+        push_bits(frame, pos, sec, 4);
     } else {  // National location
         push_bits(frame, pos, 0b1101, 4);
         push_bits(frame, pos, params.is_internal, 1);
@@ -301,8 +289,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         push_bits(frame, pos, (params.location.lat_min % 2), 2);
         // Sec (4 bits, 4 sec precision)
         sec = params.location.lat_sec / 4;
-        for (int i = 3; i >= 0; i--)
-            push_bits(frame, pos, (sec >> i) & 1, 1);
+        push_bits(frame, pos, sec, 4);
         // LLon
         // +
         push_bits(frame, pos, 1, 1);
@@ -310,8 +297,7 @@ size_t generate_beacon(uint8_t* frame, const BeaconParams& params) {
         push_bits(frame, pos, (params.location.long_min % 2), 2);
         // Sec (4 bits, 4 sec precision)
         sec = params.location.long_sec / 4;
-        for (int i = 3; i >= 0; i--)
-            push_bits(frame, pos, (sec >> i) & 1, 1);
+        push_bits(frame, pos, sec, 4);
     }
 
     while (pos < pdf2_start + 26)
