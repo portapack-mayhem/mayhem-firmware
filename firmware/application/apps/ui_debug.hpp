@@ -439,6 +439,18 @@ class RadioDiagnosticsView : public View {
 };
 
 #ifdef PRALINE
+
+// Add this in ui_debug.hpp (inside namespace ui)
+class PralineDebugMenuView : public BtnGridView {
+   public:
+    PralineDebugMenuView(NavigationView& nav);
+    std::string title() const override { return "Pro Debug"; };
+
+   private:
+    NavigationView& nav_;
+    void on_populate() override;
+};
+
 /* Praline-Specific Radio Debug View
  * Monitors Mixer Lock, SPI Bit Depth, and toggles Si5351 CLK5
  */
