@@ -26,8 +26,7 @@
 
 namespace ui::external_app::epirb_tx {
 
-static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t& min, uint8_t& sec)
-{
+static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t& min, uint8_t& sec) {
     negative = value < 0;
     value = std::fabs(value);
 
@@ -39,66 +38,60 @@ static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t&
     double s = (m - min) * 60.0;
     sec = (uint8_t)(s + 0.5);
 
-    if(sec == 60) {
+    if (sec == 60) {
         sec = 0;
         min++;
     }
 
-    if(min == 60) {
+    if (min == 60) {
         min = 0;
         deg++;
     }
 }
 
-static double dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t sec)
-{
+static double dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t sec) {
     double v = deg + min / 60.0 + sec / 3600.0;
     return negative ? -v : v;
 }
 
-static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon)
-{
+static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon) {
     static const double lon_step[] =
-    {
-        20.0,
-        2.0,
-        1.0/12.0,
-        1.0/120.0,
-        1.0/2880.0
-    };
+        {
+            20.0,
+            2.0,
+            1.0 / 12.0,
+            1.0 / 120.0,
+            1.0 / 2880.0};
 
     static const double lat_step[] =
-    {
-        10.0,
-        1.0,
-        1.0/24.0,
-        1.0/240.0,
-        1.0/5760.0
-    };
+        {
+            10.0,
+            1.0,
+            1.0 / 24.0,
+            1.0 / 240.0,
+            1.0 / 5760.0};
 
     lon = -180.0;
     lat = -90.0;
 
     int pairs = loc.size() / 2;
-    if(pairs > 5)
+    if (pairs > 5)
         pairs = 5;
 
-    for(int i=0;i<pairs;i++)
-    {
-        char c1 = std::toupper(loc[i*2]);
-        char c2 = std::toupper(loc[i*2+1]);
+    for (int i = 0; i < pairs; i++) {
+        char c1 = std::toupper(loc[i * 2]);
+        char c2 = std::toupper(loc[i * 2 + 1]);
 
         double lon_size = lon_step[i];
         double lat_size = lat_step[i];
 
         int v1, v2;
 
-        if(i % 2 == 0) // letters
+        if (i % 2 == 0)  // letters
         {
             v1 = c1 - 'A';
             v2 = c2 - 'A';
-        }
-        else // digits
+        } else  // digits
         {
             v1 = c1 - '0';
             v2 = c2 - '0';
@@ -109,12 +102,11 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
     }
 
     // Cell center
-    lon += lon_step[pairs-1] / 2.0;
-    lat += lat_step[pairs-1] / 2.0;
+    lon += lon_step[pairs - 1] / 2.0;
+    lat += lat_step[pairs - 1] / 2.0;
 }
 
-static std::string decimal_to_maidenhead(double lat, double lon, int precision = 8)
-{
+static std::string decimal_to_maidenhead(double lat, double lon, int precision = 8) {
     lon += 180.0;
     lat += 90.0;
 
@@ -144,20 +136,17 @@ static std::string decimal_to_maidenhead(double lat, double lon, int precision =
     locator += char('A' + A);
     locator += char('A' + B);
 
-    if(precision >= 4)
-    {
+    if (precision >= 4) {
         locator += char('0' + C);
         locator += char('0' + D);
     }
 
-    if(precision >= 6)
-    {
+    if (precision >= 6) {
         locator += char('a' + E);
         locator += char('a' + F);
     }
 
-    if(precision >= 8)
-    {
+    if (precision >= 8) {
         locator += char('0' + G);
         locator += char('0' + H);
     }
@@ -165,8 +154,7 @@ static std::string decimal_to_maidenhead(double lat, double lon, int precision =
     return locator;
 }
 
-void init_from_locator(Location& loc)
-{
+void init_from_locator(Location& loc) {
     maidenhead_to_decimal(loc.locator, loc.latitude, loc.longitude);
 
     decimal_to_dms(loc.latitude,
@@ -182,8 +170,7 @@ void init_from_locator(Location& loc)
                    loc.long_sec);
 }
 
-void init_from_decimal(Location& loc)
-{
+void init_from_decimal(Location& loc) {
     decimal_to_dms(loc.latitude,
                    loc.south,
                    loc.lat_deg,
@@ -199,38 +186,33 @@ void init_from_decimal(Location& loc)
     loc.locator = decimal_to_maidenhead(loc.latitude, loc.longitude);
 }
 
-void init_from_dms(Location& loc)
-{
+void init_from_dms(Location& loc) {
     loc.latitude = dms_to_decimal(
         loc.south,
         loc.lat_deg,
         loc.lat_min,
-        loc.lat_sec
-    );
+        loc.lat_sec);
 
     loc.longitude = dms_to_decimal(
         loc.west,
         loc.long_deg,
         loc.long_min,
-        loc.long_sec
-    );
+        loc.long_sec);
 
     loc.locator = decimal_to_maidenhead(loc.latitude, loc.longitude);
 }
 
-std::string to_latitude_string(const Location& location)
-{
+std::string to_latitude_string(const Location& location) {
     char buffer[16];
     // Format :  <xxx°yy'zz"N>
-    snprintf(buffer,sizeof(buffer), "%3d\260%02d'%02d\"%c", location.lat_deg,location.lat_min, location.lat_sec, location.south ? 'S' : 'N');
+    snprintf(buffer, sizeof(buffer), "%3d\260%02d'%02d\"%c", location.lat_deg, location.lat_min, location.lat_sec, location.south ? 'S' : 'N');
     return std::string(buffer);
 }
 
-std::string to_longitude_string(const Location& location)
-{
+std::string to_longitude_string(const Location& location) {
     char buffer[16];
     // Format :  <xxx°yy'zz"W>
-    snprintf(buffer,sizeof(buffer), "%3d\260%02d'%02d\"%c", location.long_deg, location.long_min, location.long_sec, location.west ? 'W' : 'E');
+    snprintf(buffer, sizeof(buffer), "%3d\260%02d'%02d\"%c", location.long_deg, location.long_min, location.long_sec, location.west ? 'W' : 'E');
     return std::string(buffer);
 }
 

@@ -50,109 +50,86 @@ EPIRBTXAppView::~EPIRBTXAppView() {
     baseband::shutdown();
 }
 
-static uint8_t hexval(char c)
-{
+static uint8_t hexval(char c) {
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'A' && c <= 'F') return c - 'A' + 10;
     if (c >= 'a' && c <= 'f') return c - 'a' + 10;
     return 0;
 }
 
-static uint8_t hexToByte(char high, char low)
-{
+static uint8_t hexToByte(char high, char low) {
     return (hexval(high) << 4) | hexval(low);
 }
 
-std::string EPIRBTXAppView::frame_to_hex_string(bool start)
-{
-    return beacon_to_hex_string(epirb_tx_message.data,start);
+std::string EPIRBTXAppView::frame_to_hex_string(bool start) {
+    return beacon_to_hex_string(epirb_tx_message.data, start);
 }
 
-void EPIRBTXAppView::generate_frame(BeaconParams params)
-{
-    epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data,params);
+void EPIRBTXAppView::generate_frame(BeaconParams params) {
+    epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data, params);
 }
 
 void EPIRBTXAppView::on_timer() {
-    if(loop)
-    {
-        if(loop_enabled)
-        {
+    if (loop) {
+        if (loop_enabled) {
             auto now = chTimeNow();
-            std::string timeout = std::to_string((uint32_t)(delay - ((now - last_frame_time)/1000)));
-            if(timeout != text_timeout.get())
-            {
+            std::string timeout = std::to_string((uint32_t)(delay - ((now - last_frame_time) / 1000)));
+            if (timeout != text_timeout.get()) {
                 text_timeout.set(timeout);
             }
-            if(now > (last_frame_time + (delay*1000)))
-            {
+            if (now > (last_frame_time + (delay * 1000))) {
                 start_tx();
             }
-        }
-        else
-        {
+        } else {
             loop = false;
         }
     }
 }
 
 void EPIRBTXAppView::update_frame(bool updateConfig) {
-    if(mode_file)
-    {
+    if (mode_file) {
         Beacon& beacon = beacons[selected_beacon];
-        text_description.set(beacon.description.substr(0,max_text_width_ext));
-        text_description_end.set(beacon.description.size()>max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext,max_text_width_ext+max_text_width_ext-1) : "");
-        text_frame.set(beacon.frame.substr(0,18));
-        text_frame_end.set(beacon.frame.size()>18 ? beacon.frame.substr(18,36) : "");
-        epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size()/2),18);
-        for(uint8_t i = 0 ; i < epirb_tx_message.data_len ; i++)
-        {
+        text_description.set(beacon.description.substr(0, max_text_width_ext));
+        text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
+        text_frame.set(beacon.frame.substr(0, 18));
+        text_frame_end.set(beacon.frame.size() > 18 ? beacon.frame.substr(18, 36) : "");
+        epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size() / 2), 18);
+        for (uint8_t i = 0; i < epirb_tx_message.data_len; i++) {
             epirb_tx_message.data[i] = hexToByte(
-                beacon.frame[2*i],
-                beacon.frame[2*i + 1]);
+                beacon.frame[2 * i],
+                beacon.frame[2 * i + 1]);
         }
-    }
-    else
-    {
+    } else {
         generate_frame(beacon_params);
         text_frame.set(frame_to_hex_string(true));
         text_frame_end.set(frame_to_hex_string(false));
     }
-    if(updateConfig && send_on_change && loop)
-    {   // Need to update config / send new beacon
-        if(am_enabled)
-        {   // Already transmitting => update config
+    if (updateConfig && send_on_change && loop) {  // Need to update config / send new beacon
+        if (am_enabled) {                          // Already transmitting => update config
             last_frame_time = chTimeNow();
             update_config();
-        }
-        else
-        {   // Not yet transmitting => start tx
+        } else {  // Not yet transmitting => start tx
             start_tx();
         }
-    } 
+    }
 }
 
 void EPIRBTXAppView::update_config() {
-    if(epirb_tx_message.mode_bpsk)
-    {   // Backup bpsk frequency
+    if (epirb_tx_message.mode_bpsk) {  // Backup bpsk frequency
         bpsk_frequency = transmitter_model.target_frequency();
-    }
-    else
-    {   // Restore bpsk frequency
+    } else {  // Restore bpsk frequency
         transmitter_model.set_target_frequency(bpsk_frequency);
     }
     epirb_tx_message.mode_bpsk = true;
-    epirb_tx_message.pre_count = (500 * TONES_SAMPLERATE)/1000; // 500 ms
-    epirb_tx_message.post_count = (100 * TONES_SAMPLERATE)/1000; // 100 ms
+    epirb_tx_message.pre_count = (500 * TONES_SAMPLERATE) / 1000;   // 500 ms
+    epirb_tx_message.post_count = (100 * TONES_SAMPLERATE) / 1000;  // 100 ms
     baseband::set_epirb_tx_config(epirb_tx_message);
 }
 
-void EPIRBTXAppView::set_tx_button_state(bool active)
-{
+void EPIRBTXAppView::set_tx_button_state(bool active) {
     button_tx.set_text(active ? "START" : "STOP");
     button_tx.set_style(active ? &style_tx_start : &style_tx_stop);
 }
-
 
 void EPIRBTXAppView::start_tx() {
     last_frame_time = chTimeNow();
@@ -176,37 +153,31 @@ void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     (void)progress;
 
     if (done) {
-        if(checkbox_am.value())
-        {   // BPSK frame sent, switch back to 121.5 signal
+        if (checkbox_am.value()) {  // BPSK frame sent, switch back to 121.5 signal
             epirb_tx_message.mode_bpsk = false;
-            // Backup bpsk frequency 
+            // Backup bpsk frequency
             bpsk_frequency = transmitter_model.target_frequency();
             transmitter_model.set_target_frequency(am_frequency);
             baseband::set_epirb_tx_config(epirb_tx_message);
-        }
-        else
-        {
+        } else {
             transmitter_model.disable();
             tx_view.set_transmitting(false);
-            if(!loop)
-            {
+            if (!loop) {
                 set_tx_button_state(true);
-                transmitting = false;  
+                transmitting = false;
             }
         }
     }
 }
 
-void EPIRBTXAppView::update_location(bool updateLocatorField)
-{
+void EPIRBTXAppView::update_location(bool updateLocatorField) {
     locator = beacon_params.location.locator;
-    if(updateLocatorField) text_field_beacon_locator.set_text(beacon_params.location.locator);
+    if (updateLocatorField) text_field_beacon_locator.set_text(beacon_params.location.locator);
     text_beacon_latitude_value.set(to_latitude_string(beacon_params.location));
     text_beacon_longitude_value.set(to_longitude_string(beacon_params.location));
 }
 
-void EPIRBTXAppView::update_mode()
-{
+void EPIRBTXAppView::update_mode() {
     text_beacon.hidden(!mode_file);
     text_description_label.hidden(!mode_file);
     options_frame.hidden(!mode_file);
@@ -311,7 +282,6 @@ EPIRBTXAppView::EPIRBTXAppView(
         set_dirty();
     };
 
-
     options_beacon_country.on_change = [this](size_t, OptionsField::value_t v) {
         beacon_params.country = v;
         beacon_country = v;
@@ -385,7 +355,7 @@ EPIRBTXAppView::EPIRBTXAppView(
     checkbox_am.on_select = [this](Checkbox&, bool v) {
         beacon_params.has_121_5 = v;
         am_enabled = v;
-        if(!mode_file) update_frame(false);
+        if (!mode_file) update_frame(false);
     };
 
     // AM frequency field edit
@@ -422,7 +392,7 @@ EPIRBTXAppView::EPIRBTXAppView(
             start_tx();
         else
             stop_tx();
-    };    
+    };
 }
 
 void EPIRBTXAppView::load_beacons() {
@@ -444,15 +414,14 @@ void EPIRBTXAppView::load_beacons() {
             beacon.title = trim(cols[0]);
             beacon.description = trim(cols[1]);
             // Make sure frame is not longer tha 18 bytes / 36 hex character
-            beacon.frame = trim(cols[2]).substr(0,36);
+            beacon.frame = trim(cols[2]).substr(0, 36);
             size_t size = beacon.frame.size();
             if (size <= 0)
                 continue;  // Invalid line.
             beacons.emplace_back(std::move(beacon));
         }
     }
-    if(beacons.empty())
-    {   // No beacons file or empty flile: just add default beacon
+    if (beacons.empty()) {  // No beacons file or empty flile: just add default beacon
         beacons.push_back(default_beacon);
     }
 }

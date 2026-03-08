@@ -38,7 +38,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     bool mode_bpsk{false};
 
     bool end_of_transmission{};
-    int8_t re{0}, im{0};         // they have sign + and -.
+    int8_t re{0}, im{0};  // they have sign + and -.
 
     // Config
     uint32_t config_pre_count = 0;
@@ -48,9 +48,8 @@ class EPIRBTXProcessor : public BasebandProcessor {
     uint8_t frame_data[18]{0};
     uint8_t frame_data_len = 0;
 
-
     // BPSK parameters
-    static constexpr float phase_rad = 63.0f * M_PI / 180.0f; // Target phase +/-63° as per COSPAS/SARSAT specifications
+    static constexpr float phase_rad = 63.0f * M_PI / 180.0f;  // Target phase +/-63° as per COSPAS/SARSAT specifications
 
     // I/Q values for BPSK
     int8_t i_pos = (int8_t)(cos(phase_rad) * 127);
@@ -58,7 +57,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     int8_t i_neg = i_pos;
     int8_t q_neg = -q_pos;
 
-    static const uint32_t samples_per_halfbit = TONES_SAMPLERATE / 400 / 2; // COSPAS/SARSAT signal is manchester encoded 400 bit/sec
+    static const uint32_t samples_per_halfbit = TONES_SAMPLERATE / 400 / 2;  // COSPAS/SARSAT signal is manchester encoded 400 bit/sec
     uint32_t sample_counter = 0;
     uint32_t bpsk_pre_count = 0;
     uint32_t bpsk_post_count = 0;
@@ -69,13 +68,13 @@ class EPIRBTXProcessor : public BasebandProcessor {
     uint8_t current_byte = 0;
     uint8_t current_bit = 0;
 
-    bool manchester_half = false; // false = first half
+    bool manchester_half = false;  // false = first half
 
     // 127.5 AM signal parameters
-    static const uint32_t sweep_rate = 3;           // 2 Hz
-    static const uint32_t f_min = 300;              // Sweep min frequency
-    static const uint32_t f_max = 1600;             // Sweep max frequency
-    static const uint8_t  modulation_index = 100;   // ~0.8 on 127 scale
+    static const uint32_t sweep_rate = 3;         // 2 Hz
+    static const uint32_t f_min = 300;            // Sweep min frequency
+    static const uint32_t f_max = 1600;           // Sweep max frequency
+    static const uint8_t modulation_index = 100;  // ~0.8 on 127 scale
     static const uint32_t freq_span = f_max - f_min;
     // Frequency
     static const uint32_t freq_scale = (1ULL << 32) / TONES_SAMPLERATE;
