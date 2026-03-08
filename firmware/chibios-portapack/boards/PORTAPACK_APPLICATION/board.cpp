@@ -867,33 +867,8 @@ extern "C" void __late_init(void) {
  * @todo    Add your board-specific code, if any.
  */
 extern "C" void boardInit(void) {
-#ifndef PRALINE
-  /* Detect HackRF variant */
-  /* 1. Perform Standard Initialization first */
-  /* This configures VAA power, LED pins, and detects board revision */
-  /* Let detect_hackrf_r9() run - don't force for PRALINE */
-  hackrf_r9 = detect_hackrf_r9();
-  /* Configure variant-dependent pins. */
-  if (hackrf_r9) {
-    setup_gpios(gpio_setup_r9);
-    setup_pins(pins_setup_r9);
-  } else {
-    setup_gpios(gpio_setup_og);
-    setup_pins(pins_setup_og);
-  }
-
-  /* 2. Turn on VAA (Critical for Radio/Transceiver) */
-  vaa_power_on();
-
-  /* 3. Handle VAA Enable Pin Latching */
-  if (hackrf_r9) {
-    LPC_GPIO->W2[9] = 1;
-  } else {
-    LPC_GPIO->W3[6] = 1;
-  }
-
-  /* 4. HackRF Pro Specific: Initialize and Load FPGA */
-#else
+#ifdef PRALINE
+  /* HackRF Pro Specific: Initialize and Load FPGA */
   hackrf_r9 = false;
   /* Enable 3.3V aux power - P6_7 = GPIO5[15], active LOW (clear to enable) */
   LPC_SCU->SFSP[6][7] = 0xF4;  /* SCU_GPIO_FAST | FUNCTION4 */
@@ -1047,6 +1022,32 @@ extern "C" void boardInit(void) {
   // PRALINE LEDs are active-low: SET (HIGH) = OFF, CLR (LOW) = ON
   LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
   { volatile uint32_t delay = 200000; while(delay--); }
+
+#else
+
+  /* Detect HackRF variant */
+  /* 1. Perform Standard Initialization first */
+  /* This configures VAA power, LED pins, and detects board revision */
+  /* Let detect_hackrf_r9() run - don't force for PRALINE */
+  hackrf_r9 = detect_hackrf_r9();
+  /* Configure variant-dependent pins. */
+  if (hackrf_r9) {
+    setup_gpios(gpio_setup_r9);
+    setup_pins(pins_setup_r9);
+  } else {
+    setup_gpios(gpio_setup_og);
+    setup_pins(pins_setup_og);
+  }
+
+  /* 2. Turn on VAA (Critical for Radio/Transceiver) */
+  vaa_power_on();
+
+  /* 3. Handle VAA Enable Pin Latching */
+  if (hackrf_r9) {
+    LPC_GPIO->W2[9] = 1;
+  } else {
+    LPC_GPIO->W3[6] = 1;
+  }
 
 #endif
 
