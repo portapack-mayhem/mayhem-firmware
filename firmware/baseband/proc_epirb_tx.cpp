@@ -26,9 +26,13 @@
 
 #include <cstdint>
 
+/**
+ * Processing method for this processor
+ */
 void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
+    // Iterate on each sample of the buffer
     for (size_t i = 0; i < buffer.count; i++) {
         if (end_of_transmission) {
             // Stop transmission
@@ -39,17 +43,20 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
         }
 
         if (mode_bpsk) {
-            // BPSK Manchester
+            // BPSK Manchester beacon signal
             if (bpsk_pre_count < config_pre_count) {
+                // Pre-count state: send a negative phase carrier during pre-count
                 bpsk_pre_count++;
                 re = i_neg;
                 im = q_neg;
             } else if (bpsk_post_count > 0) {
+                // Post-count: send a negative phase carrier during post-count
                 bpsk_post_count++;
                 re = i_neg;
                 im = q_neg;
-                if (bpsk_post_count >= config_post_count) {  // End of transmission
-                    byte_index = 0;                          // Stop here
+                if (bpsk_post_count >= config_post_count) {
+                    // End transmission here
+                    byte_index = 0;
                     bpsk_post_count = 0;
                     bpsk_pre_count = 0;
                     end_of_transmission = true;
@@ -57,13 +64,15 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
             } else {
                 if (sample_counter == 0 && manchester_half == false) {
                     if (bit_index == 0) {
-                        if (byte_index >= frame_data_len) {  // End of frame => move to postcount
+                        if (byte_index >= frame_data_len) {
+                            // End of frame => move to post-count
                             bpsk_post_count = 1;
                         }
+                        // Move to next byte
                         current_byte = frame_data[byte_index];
                         byte_index++;
                     }
-
+                    // Get current bit
                     current_bit = (current_byte >> (7 - bit_index)) & 0x01;
                 }
 
@@ -87,31 +96,35 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
                         im = q_pos;
                     }
                 }
-
+                // Move to next sample
                 sample_counter++;
 
                 if (sample_counter >= samples_per_halfbit) {
+                    // Move to next half-bit
                     sample_counter = 0;
                     manchester_half = !manchester_half;
 
-                    // Next bit aftoer to half bits
+                    // Next bit after two half bits
                     if (manchester_half == false) {
+                        // Move to next bit
                         bit_index++;
                         if (bit_index >= 8)
+                            // End of byte
                             bit_index = 0;
                     }
                 }
             }
-        } else {  // AM 127.5 MHz sine swee
-            // ---- 2 Hz Sweep ----
+        } else {
+            // AM 127.5 MHz sine sweep
+            // ---- 3 Hz Sweep ----
             sweep_phase += sweep_inc;
             uint8_t sweep_index = (sweep_phase & 0xFF000000) >> 24;
             int8_t sweep = sine_table_i8[sweep_index];  // -128..127
 
-            // Fréquence instantanée
+            // Audio frequency based on sweep
             int32_t audio_freq = center_freq + sweep * freq_dev;
 
-            // ---- Audio ----
+            // ---- Audio signal (sine wave) ----
             uint32_t audio_inc = audio_freq * freq_scale;
             audio_phase += audio_inc;
 
@@ -119,8 +132,8 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
             int8_t audio = sine_table_i8[audio_index];
 
             // ---- AM ----
-            // int16_t amplitude = 64 + (audio >> 1);  // 64 = 127 - (127 >> 1): carrier level without modulating signal //127 + ((modulation_index * audio) >> 7);   // /128 via shift
-            int16_t amplitude = 74 + ((100 * audio) >> 7);  // /128 via shift
+            // Double Side Band modulation with modulation index of ~80% (100/128) + offset (74)
+            int16_t amplitude = 74 + ((100 * audio) >> 7);  // 1/128 via shift
 
             if (amplitude > 127) amplitude = 127;
             if (amplitude < -128) amplitude = -128;
@@ -133,17 +146,21 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
 };
 
 void EPIRBTXProcessor::on_message(const Message* const msg) {
+    // Configure the processor
     const auto message = *reinterpret_cast<const EPIRBTXDataMessage*>(msg);
 
     switch (msg->id) {
         case Message::ID::EPIRBTXData:
+            // Check transmission mode
             mode_bpsk = message.mode_bpsk;
-            if (mode_bpsk) {  // BPSK mode for 406 frame
+            if (mode_bpsk) {
+                // BPSK mode for 406 frame
                 config_pre_count = message.pre_count;
                 config_post_count = message.post_count;
                 frame_data_len = message.data_len;
+                // Get the frame data from the message
                 memcpy(frame_data, message.data, frame_data_len);
-                // Init BPSK
+                // Init BPSK sequencer
                 sample_counter = 0;
                 bpsk_pre_count = 0;
                 bpsk_post_count = 0;
@@ -151,10 +168,12 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
                 byte_index = 0;
                 current_byte = 0;
                 current_bit = 0;
-            } else {  // AM mode for 121.5 signal
+            } else {
+                // AM mode for 121.5 signal => init AM sequencer
                 sweep_phase = 0;
                 audio_phase = 0;
             }
+            // Tell the processor to start
             configured = true;
             break;
 
