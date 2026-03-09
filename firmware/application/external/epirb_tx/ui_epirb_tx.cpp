@@ -40,16 +40,19 @@ using namespace portapack;
 namespace ui::external_app::epirb_tx {
 
 void EPIRBTXAppView::focus() {
-    options_frame.focus();
+    button_tx.focus();
 }
 
 EPIRBTXAppView::~EPIRBTXAppView() {
-    // Restore bpsk fequency
-    transmitter_model.set_target_frequency(bpsk_frequency);
+    // Restore original frequency before leaving
+    transmitter_model.set_target_frequency(original_frequency);
     transmitter_model.disable();
     baseband::shutdown();
 }
 
+/**
+ * Conversion from hex char to half byte
+ */
 static uint8_t hexval(char c) {
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'A' && c <= 'F') return c - 'A' + 10;
@@ -57,6 +60,9 @@ static uint8_t hexval(char c) {
     return 0;
 }
 
+/**
+ * Convert from hex chars to uint8_t
+ */
 static uint8_t hexToByte(char high, char low) {
     return (hexval(high) << 4) | hexval(low);
 }
@@ -70,17 +76,22 @@ void EPIRBTXAppView::generate_frame(BeaconParams params) {
 }
 
 void EPIRBTXAppView::on_timer() {
+    // Timer is called on display refresh
     if (loop) {
         if (loop_enabled) {
+            // chTimeNow() returns milliseconds on our version of ChibiOS / Hardware
             auto now = chTimeNow();
             std::string timeout = std::to_string((uint32_t)(delay - ((now - last_frame_time) / 1000)));
             if (timeout != text_timeout.get()) {
+                // Update timeout text every seconds
                 text_timeout.set(timeout);
             }
             if (now > (last_frame_time + (delay * 1000))) {
+                // Send a new frame after the delay
                 start_tx();
             }
         } else {
+            // Stop send loop
             loop = false;
         }
     }
@@ -88,11 +99,15 @@ void EPIRBTXAppView::on_timer() {
 
 void EPIRBTXAppView::update_frame(bool updateConfig) {
     if (mode_file) {
+        // In file mode, currently selected beacon has changed => load the new one
         Beacon& beacon = beacons[selected_beacon];
+        // Set desciption
         text_description.set(beacon.description.substr(0, max_text_width_ext));
         text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
+        // Udapte frame content on display
         text_frame.set(beacon.frame.substr(0, 18));
         text_frame_end.set(beacon.frame.size() > 18 ? beacon.frame.substr(18, 36) : "");
+        // Prepare tx configuration
         epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size() / 2), 18);
         for (uint8_t i = 0; i < epirb_tx_message.data_len; i++) {
             epirb_tx_message.data[i] = hexToByte(
@@ -100,29 +115,39 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
                 beacon.frame[2 * i + 1]);
         }
     } else {
+        // In manual mode, generate frame content for current beacon params
         generate_frame(beacon_params);
+        // Update frame content on display
         text_frame.set(frame_to_hex_string(true));
         text_frame_end.set(frame_to_hex_string(false));
     }
-    if (updateConfig && send_on_change && loop) {  // Need to update config / send new beacon
-        if (am_enabled) {                          // Already transmitting => update config
+    if (updateConfig && send_on_change && loop) {
+        // Need to update config / send new beacon
+        if (am_enabled) {
+            // Already transmitting => update config
             last_frame_time = chTimeNow();
             update_config();
-        } else {  // Not yet transmitting => start tx
+        } else {
+            // Not yet transmitting => start tx
             start_tx();
         }
     }
 }
 
 void EPIRBTXAppView::update_config() {
-    if (epirb_tx_message.mode_bpsk) {  // Backup bpsk frequency
+    if (epirb_tx_message.mode_bpsk) {
+        // Already in BPSK mode => backup bpsk frequency
         bpsk_frequency = transmitter_model.target_frequency();
-    } else {  // Restore bpsk frequency
+    } else {
+        // Previously in AM mode => restore bpsk frequency
         transmitter_model.set_target_frequency(bpsk_frequency);
     }
+    // Set mode to bpsk
     epirb_tx_message.mode_bpsk = true;
-    epirb_tx_message.pre_count = (500 * TONES_SAMPLERATE) / 1000;   // 500 ms
+    // Set pre/post count
+    epirb_tx_message.pre_count = (150 * TONES_SAMPLERATE) / 1000;   // 150 ms
     epirb_tx_message.post_count = (100 * TONES_SAMPLERATE) / 1000;  // 100 ms
+    // Send config to baseband
     baseband::set_epirb_tx_config(epirb_tx_message);
 }
 
@@ -151,18 +176,22 @@ void EPIRBTXAppView::stop_tx() {
 
 void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     (void)progress;
-
     if (done) {
-        if (checkbox_am.value()) {  // BPSK frame sent, switch back to 121.5 signal
+        if (checkbox_am.value()) {
+            // BPSK frame sent, switch back to 121.5 AM signal
             epirb_tx_message.mode_bpsk = false;
-            // Backup bpsk frequency
+            // Backup bpsk frequency for next run
             bpsk_frequency = transmitter_model.target_frequency();
+            // Restore am frequency
             transmitter_model.set_target_frequency(am_frequency);
+            // Send config to baseband
             baseband::set_epirb_tx_config(epirb_tx_message);
         } else {
+            // End of BPSK frame
             transmitter_model.disable();
             tx_view.set_transmitting(false);
             if (!loop) {
+                // Not looping => update transmission state
                 set_tx_button_state(true);
                 transmitting = false;
             }
@@ -178,6 +207,7 @@ void EPIRBTXAppView::update_location(bool updateLocatorField) {
 }
 
 void EPIRBTXAppView::update_mode() {
+    // Hide / show widgets for file mode or manual mode
     text_beacon.hidden(!mode_file);
     text_description_label.hidden(!mode_file);
     options_frame.hidden(!mode_file);
@@ -326,12 +356,12 @@ EPIRBTXAppView::EPIRBTXAppView(
         am_frequency = freq;
     };
 
-    load_beacons();  // Load available beacons from TXT files (or default).
-
+    // Load available beacons from BEACONS.TXT files (or default).
+    load_beacons();
+    // Setup options_frame content with loaded beacons
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t entries;
-
     for (const auto& beacon : beacons)
         entries.emplace_back(beacon.title, entries.size());
 
@@ -342,6 +372,8 @@ EPIRBTXAppView::EPIRBTXAppView(
         update_frame();
         set_dirty();
     };
+
+    // Init frame content / baseband param with currently setup beacon
     update_frame(false);
 
     checkbox_loop.on_select = [this](Checkbox&, bool v) {
@@ -395,21 +427,28 @@ EPIRBTXAppView::EPIRBTXAppView(
     };
 }
 
+/**
+ * Load beacons from /EPIRB/BEACONS.TXT file on sd card
+ */
 void EPIRBTXAppView::load_beacons() {
     File beacons_file;
     auto error = beacons_file.open(epirb_dir / u"BEACONS.TXT");
     beacons.clear();
 
     if (!error) {
+        // BEACONS.TXT file exists
         auto reader = FileLineReader(beacons_file);
         for (const auto& line : reader) {
+            // Skip comment lines
             if (line.length() == 0 || line[0] == '#')
                 continue;
 
+            // Split line with ';' separator
             auto cols = split_string(line, ';');
             if (cols.size() != 3)
                 continue;
 
+            // Read current beacon
             Beacon beacon{};
             beacon.title = trim(cols[0]);
             beacon.description = trim(cols[1]);
@@ -418,10 +457,12 @@ void EPIRBTXAppView::load_beacons() {
             size_t size = beacon.frame.size();
             if (size <= 0)
                 continue;  // Invalid line.
+            // Beacon is valid, add it to the list
             beacons.emplace_back(std::move(beacon));
         }
     }
-    if (beacons.empty()) {  // No beacons file or empty flile: just add default beacon
+    if (beacons.empty()) {
+        // No beacons file or empty flile: just add default beacon
         beacons.push_back(default_beacon);
     }
 }
