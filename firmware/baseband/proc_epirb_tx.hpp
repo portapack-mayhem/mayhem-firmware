@@ -31,7 +31,7 @@
  * Processor used by epirb_tx app to simulate a COSPAS/SARSAT emergency beacon
  * The processor will alternatively:
  * - Send a 406 MHz Manchester encoded BPSK signal containing the beacon information
- * - Send a 127/ MHz AM distress audio signal
+ * - Send a 127.5 MHz AM distress audio signal
  */
 class EPIRBTXProcessor : public BasebandProcessor {
    public:
