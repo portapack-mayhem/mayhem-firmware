@@ -17,9 +17,13 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-[<img alt="The Latest HackRF & Portapak Combo - H4M The Flipper Zero Killer?" src="https://img.youtube.com/vi/Ew2qDgm2hf0/maxresdefault.jpg" width="701">](https://share.hackrf.app/6HKX9A)
+[<img alt="PortaPack H4M Crash Course" src="https://img.youtube.com/vi/CjI-nUzdpas/maxresdefault.jpg" width="701">](https://share.hackrf.app/SPFOZO)
 
-[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">](https://share.hackrf.app/X4D5TF) [<img alt="HackRF Portapack H4M - Getting Started Guide" src="https://img.youtube.com/vi/wzP0zWi85SI/maxresdefault.jpg" width="172">](https://share.hackrf.app/F9MPOO) [<img alt="The new HackRF Portapack H4M" src="https://img.youtube.com/vi/onQRdCITmuk/maxresdefault.jpg" width="172">](https://share.hackrf.app/0JUHZ6) [<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="172">](https://share.hackrf.app/C0J6ZR)
+[<img alt="The Latest HackRF & Portapak Combo - H4M The Flipper Zero Killer?" src="https://img.youtube.com/vi/Ew2qDgm2hf0/maxresdefault.jpg" width="172">](https://share.hackrf.app/6HKX9A)
+[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">](https://share.hackrf.app/X4D5TF)
+[<img alt="HackRF Portapack H4M - Getting Started Guide" src="https://img.youtube.com/vi/wzP0zWi85SI/maxresdefault.jpg" width="172">](https://share.hackrf.app/F9MPOO)
+[<img alt="The new HackRF Portapack H4M" src="https://img.youtube.com/vi/onQRdCITmuk/maxresdefault.jpg" width="172">](https://share.hackrf.app/0JUHZ6)
+
 
 # Frequently Asked Questions
 
