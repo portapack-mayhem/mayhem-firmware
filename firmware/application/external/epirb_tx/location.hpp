@@ -26,6 +26,14 @@
 
 namespace ui::external_app::epirb_tx {
 
+/**
+ * Convert decimal coordinates to sexagesimal coordinates
+ * @param value the decimal value
+ * @param negative output N(false)/S(true) or E(false)/W(true) value
+ * @param deg output degrees value
+ * @param min output minutes value
+ * @param sec output seconds value
+ */
 static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t& min, uint8_t& sec) {
     negative = value < 0;
     value = std::fabs(value);
@@ -49,11 +57,25 @@ static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t&
     }
 }
 
+/**
+ * Convert sexagesimal coordinates to decimal
+ * @param negative N(false)/S(true) or E(false)/W(true) value
+ * @param deg degrees value
+ * @param min minutes value
+ * @param sec seconds value
+ * @return value the decimal value
+ */
 static double dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t sec) {
     double v = deg + min / 60.0 + sec / 3600.0;
     return negative ? -v : v;
 }
 
+/**
+ * Convert maidenhead locator to decima coordinates
+ * @param loc the locator
+ * @param lat output latitude
+ * @param lon output longitude
+ */
 static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon) {
     static const double lon_step[] =
         {
@@ -106,6 +128,13 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
     lat += lat_step[pairs - 1] / 2.0;
 }
 
+/**
+ * Convert decimal coordinates to maidenhead locator
+ * @param lat the latitude
+ * @param lon the longitude
+ * @param precision (optional, defaults to 8) the number of charater for the maidenhead locator
+ * @return the locator
+ */
 static std::string decimal_to_maidenhead(double lat, double lon, int precision = 8) {
     lon += 180.0;
     lat += 90.0;
@@ -154,6 +183,9 @@ static std::string decimal_to_maidenhead(double lat, double lon, int precision =
     return locator;
 }
 
+/**
+ * Init the provided Location values from its locator
+ */
 void init_from_locator(Location& loc) {
     maidenhead_to_decimal(loc.locator, loc.latitude, loc.longitude);
 
@@ -170,6 +202,9 @@ void init_from_locator(Location& loc) {
                    loc.long_sec);
 }
 
+/**
+ * Init the provided Location values from its decimal coordinates
+ */
 void init_from_decimal(Location& loc) {
     decimal_to_dms(loc.latitude,
                    loc.south,
@@ -186,6 +221,9 @@ void init_from_decimal(Location& loc) {
     loc.locator = decimal_to_maidenhead(loc.latitude, loc.longitude);
 }
 
+/**
+ * Init the provided Location values from its sexagesimal coordinates
+ */
 void init_from_dms(Location& loc) {
     loc.latitude = dms_to_decimal(
         loc.south,
@@ -202,6 +240,9 @@ void init_from_dms(Location& loc) {
     loc.locator = decimal_to_maidenhead(loc.latitude, loc.longitude);
 }
 
+/**
+ * Convert the provided Loaction to it's latitude string (format <xxx°yy'zz"N>)
+ */
 std::string to_latitude_string(const Location& location) {
     char buffer[16];
     // Format :  <xxx°yy'zz"N>
@@ -209,6 +250,9 @@ std::string to_latitude_string(const Location& location) {
     return std::string(buffer);
 }
 
+/**
+ * Convert the provided Loaction to it's longitude string (format <xxx°yy'zz"W>)
+ */
 std::string to_longitude_string(const Location& location) {
     char buffer[16];
     // Format :  <xxx°yy'zz"W>
