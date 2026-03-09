@@ -24,6 +24,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "usb_serial_device_to_host.h"
 
 #define USB_BULK_BUFFER_SIZE 64
 
@@ -53,6 +54,9 @@ extern usb_serial_input_handler_t usb_serial_active_input_handler;
  * The handler is called from the USB transfer completion context (main event
  * loop thread). It must return quickly; blocking will stall USB/UI servicing.
  * The data pointer is only valid for the duration of the call.
+ *
+ * Use write() to send data to the host; bytes are dropped if the TX queue
+ * is full rather than blocking.
  */
 class UsbSerialInputHandler {
    public:
@@ -65,6 +69,11 @@ class UsbSerialInputHandler {
     }
     UsbSerialInputHandler(const UsbSerialInputHandler&) = delete;
     UsbSerialInputHandler& operator=(const UsbSerialInputHandler&) = delete;
+
+    // Send bytes to the USB host. Drops data rather than blocking if queue is full.
+    void write(const uint8_t* data, size_t len) {
+        chOQWriteTimeout(&SUSBD1.oqueue, data, len, TIME_IMMEDIATE);
+    }
 };
 
 #endif

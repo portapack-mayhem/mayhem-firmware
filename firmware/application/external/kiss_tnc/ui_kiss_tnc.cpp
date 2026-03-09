@@ -109,8 +109,8 @@ void KissTncView::send_kiss_frame(const uint8_t* data, size_t len) {
         }
     }
     buf[i++] = 0xC0;  // FEND
-    // Drop frame rather than block if USB TX queue is full
-    chOQWriteTimeout(&SUSBD1.oqueue, buf, i, TIME_IMMEDIATE);
+    if (usb_input_handler_)
+        usb_input_handler_->write(buf, i);
 }
 
 void KissTncView::on_packet(const APRSPacketMessage* message) {
