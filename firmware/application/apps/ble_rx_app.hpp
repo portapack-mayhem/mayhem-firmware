@@ -42,6 +42,15 @@
 
 #include "recent_entries.hpp"
 
+#ifdef PRALINE
+// Add for heap debugging
+// For ChibiOS core functions
+#include "ch.h"
+#include "chcore.h"
+#include "chheap.h"
+static constexpr size_t max_recent_entries = 64;  // Limit entries
+#endif
+
 class BLELogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -90,6 +99,7 @@ struct BleRecentEntry {
     uint64_t uniqueKey;
     int dbValue;
     BlePacketData packetData;
+
     std::string timestamp;
     std::string dataString;
     std::string nameString;

@@ -892,7 +892,6 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
 
 #ifdef PRALINE
     clock_generator.write_pll_single_byte(0, pll);
-    clock_generator.reset_plls();
 #else
     const auto pll_a_reg = pll.reg(0);
     clock_generator.write(pll_a_reg);
