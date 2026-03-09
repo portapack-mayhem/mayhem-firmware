@@ -2593,7 +2593,9 @@ PralineClockDebugView::PralineClockDebugView(NavigationView& nav)
           {&t2_id, &t2_ma, &t2_mode, &t2_src, &t2_ph, &t2_st},
           {&t3_id, &t3_ma, &t3_mode, &t3_src, &t3_ph, &t3_st},
           {&t4_id, &t4_ma, &t4_mode, &t4_src, &t4_ph, &t4_st},
-          {&t5_id, &t5_ma, &t5_mode, &t5_src, &t5_ph, &t5_st}} {
+          {&t5_id, &t5_ma, &t5_mode, &t5_src, &t5_ph, &t5_st},
+          {&t6_id, &t6_ma, &t6_mode, &t6_src, &t6_ph, &t6_st},
+          {&t7_id, &t7_ma, &t7_mode, &t7_src, &t7_ph, &t7_st}} {
     add_children({&text_title, &text_lbl_pll, &text_pll_status,
                   &text_lbl_afe, &text_afe_rate, &text_lbl_n, &text_n_val,
                   &text_header,
@@ -2603,6 +2605,8 @@ PralineClockDebugView::PralineClockDebugView(NavigationView& nav)
                   &t3_id, &t3_ma, &t3_mode, &t3_src, &t3_ph, &t3_st,
                   &t4_id, &t4_ma, &t4_mode, &t4_src, &t4_ph, &t4_st,
                   &t5_id, &t5_ma, &t5_mode, &t5_src, &t5_ph, &t5_st,
+                  &t6_id, &t6_ma, &t6_mode, &t6_src, &t6_ph, &t6_st,
+                  &t7_id, &t7_ma, &t7_mode, &t7_src, &t7_ph, &t7_st,
                   &button_refresh, &button_done});
 
     button_refresh.on_select = [this](Button&) { this->refresh(); };
@@ -2633,7 +2637,7 @@ void PralineClockDebugView::refresh() {
     uint8_t output_en = portapack::clock_manager.si5351_read_register(3);
     const char* ma_lookup[] = {"2m", "4m", "6m", "8m"};
 
-    for (size_t i = 0; i < 6; i++) {
+    for (size_t i = 0; i < 8; i++) {
         uint8_t ctrl = portapack::clock_manager.si5351_read_register(16 + i);
 
         // mA (Bits 1:0)

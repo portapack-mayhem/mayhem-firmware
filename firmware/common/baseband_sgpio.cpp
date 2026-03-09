@@ -199,22 +199,22 @@ constexpr uint32_t out_mux_cfg(const P_OUT_CFG out, const P_OE_CFG oe) {
 constexpr uint32_t data_sgpio_mux_cfg(
     const CONCAT_ENABLE concat_enable,
     const CONCAT_ORDER concat_order) {
-#ifndef PRALINE
-    return (1U << 0) | (0U << 1) | (0U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (toUType(concat_enable) << 11) | (toUType(concat_order) << 12);
-#else
+#ifdef PRALINE
     return (1U << 0) | (0U << 1) | (3U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (toUType(concat_enable) << 11) | (toUType(concat_order) << 12);
     // Bits 3-4: CLK_SOURCE_SLICE_MODE = 3 (slice D as clock source for data slices)
+#else
+    return (1U << 0) | (0U << 1) | (0U << 3) | (3U << 5) | (1U << 7) | (0U << 9) | (toUType(concat_enable) << 11) | (toUType(concat_order) << 12);
 #endif
 }
 
 constexpr uint32_t data_slice_mux_cfg(
     const PARALLEL_MODE parallel_mode,
     const CLK_CAPTURE_MODE clk_capture_mode) {
-#ifndef PRALINE
-    return (0U << 0) | (toUType(clk_capture_mode) << 1) | (1U << 2) | (0U << 3) | (0U << 4) | (toUType(parallel_mode) << 6) | (0U << 8);
-#else
+#ifdef PRALINE
     return (0U << 0) | (toUType(clk_capture_mode) << 1) | (1U << 2) | (0U << 3) | (1U << 4) | (toUType(parallel_mode) << 6) | (0U << 8);
     // Bit 4 CLKGEN_MODE: 0=internal counter, 1=external clock (REQUIRED for PRALINE!)
+#else
+    return (0U << 0) | (toUType(clk_capture_mode) << 1) | (1U << 2) | (0U << 3) | (0U << 4) | (toUType(parallel_mode) << 6) | (0U << 8);
 #endif
 }
 
@@ -330,10 +330,6 @@ void SGPIO::configure(const Direction direction) {
     const auto clk_capture_mode = data_clk_capture_mode(direction);
     const auto single_slice = !slice_mode_multislice;
 
-#ifndef PRALINE
-    uint32_t slice_enable_mask = 0;
-#endif
-
 #ifdef PRALINE
     // Configure slice D as clock generator (REQUIRED for PRALINE!)
     // Reference: HackRF sgpio.c line 193
@@ -347,6 +343,8 @@ void SGPIO::configure(const Direction direction) {
     LPC_SGPIO->REG_SS[slice_d] = 0x11111111;
 
     uint32_t slice_enable_mask = (1U << slice_d);  // Start with slice D enabled
+#else
+    uint32_t slice_enable_mask = 0;
 #endif
 
     for (size_t i = 0; i < slice_count; i++) {

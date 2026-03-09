@@ -203,15 +203,15 @@ SPECOptionsView::SPECOptionsView(
 
 #ifdef PRALINE
 PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
+    set_style(style);
     set_parent_rect(parent_rect);
     add_children({&label_sr, &options_sr, &label_dc, &options_dc,
                   &label_qi, &options_qi, &label_qs, &options_qs});
 
-    // 1. READ the current state from hardware
+    // READ the current state from hardware
     fpga_reg_1 = radio::debug::fpga::register_read(1);
-    uint32_t fpga_reg_2 = radio::debug::fpga::register_read(2);
 
-    // 2. INITIALIZE UI WIDGETS based on read bits
+    // INITIALIZE UI WIDGETS based on read bits
     options_dc.set_by_value((fpga_reg_1 & 0x01) ? 1 : 0);  // Bit 0
     options_qi.set_by_value((fpga_reg_1 & 0x02) ? 1 : 0);  // Bit 1
     options_qs.set_by_value((fpga_reg_1 & 0x04) ? 1 : 0);  // Bit 2

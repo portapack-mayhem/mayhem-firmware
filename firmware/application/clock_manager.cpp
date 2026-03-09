@@ -35,14 +35,14 @@ using namespace lpc43xx;
 extern "C" {
 #include "fpga_bridge.h"
 }
-// Need access to ssp1_arbiter from radio namespace
+// Need access to ssp1_arbiter from radio namespace for FPGA related radio method dependencies.
 #include "radio.hpp"
 #endif
 
 constexpr uint32_t si5351_vco_f = 800000000;
 
 #ifdef PRALINE
-constexpr uint32_t si5351_vco_afe_f = 800000000;  // Optimal for 3.072 MHz sample frequencies commonly used by apps
+constexpr uint32_t si5351_vco_afe_f = 800000000;  // If necessary may be changed to 768 MHz for optimal for 3.072 MHz sample frequencies commonly used by apps
 #endif
 
 constexpr si5351::Inputs si5351_inputs{
@@ -67,23 +67,43 @@ constexpr si5351::PLL si5351_pll_xtal_25m{
     .c = 1,
 };
 
-// PLL A registers (Base 26)
-constexpr auto si5351_pll_a_xtal_reg = si5351_pll_xtal_25m.reg(0);
-
 #ifdef PRALINE
+// Define pll_a from 25MHz clock for stable PLL A, and AFE locked reference
 // PLL A: 800 MHz VCO (32x Multiplier for jitter-free 3.072 MHz sampling)
-constexpr si5351::PLL si5351_pll_xtal_800m{
-    .f_in = si5351_inputs.f_xtal,
-    .a = 32,
+constexpr si5351::PLL si5351_pll_a_afe_800m{
+    .f_in = si5351_inputs.f_xtal,  // 25,000,000 Hz
+    .a = 32,                       // Multiplier: 25 * 32 = 800
     .b = 0,
     .c = 1,
 };
-constexpr auto si5351_pll_a_800_reg = si5351_pll_xtal_800m.reg(0);  // Base 26
+// PLL A: registers (Base 34) 800 MHz VCO (For jitter-free AFE sampling frequencies)
+constexpr auto si5351_pll_a_800_reg = si5351_pll_a_afe_800m.reg(0);  // Base 26
 
-// PLL B: registers (Base 34) 800 MHz VCO (32x Multiplier for stable Digital/SGPIO bus)
-constexpr auto si5351_pll_b_800_reg = si5351_pll_xtal_25m.reg(1);  // Base 34
-constexpr auto si5351_pll_b_xtal_reg = si5351_pll_xtal_25m.reg(1);
+static_assert(si5351_pll_a_afe_800m.f_vco() == si5351_vco_f, "PLL A XTAL frequency wrong");
+static_assert(si5351_pll_a_afe_800m.p1() == 3584, "PLL A XTAL P1 wrong");
+static_assert(si5351_pll_a_afe_800m.p2() == 0, "PLL A XTAL P2 wrong");
+static_assert(si5351_pll_a_afe_800m.p3() == 1, "PLL A XTAL P3 wrong");
 
+// Define pll_b 25MHz clock for stable PLL B
+// PLL B: 800 MHz VCO (32x Multiplier for (For stable Digital/SGPIO bus)
+constexpr si5351::PLL si5351_pll_b_800m{
+    .f_in = si5351_inputs.f_xtal,  // 25,000,000 Hz
+    .a = 32,                       // Multiplier: 25 * 32 = 800
+    .b = 0,
+    .c = 1,
+};
+// PLL B: registers (Base 34) 800 MHz VCO (For stable Digital/SGPIO bus)
+constexpr auto si5351_pll_b_800_reg = si5351_pll_b_800m.reg(1);  // Base 34
+
+static_assert(si5351_pll_b_800m.f_vco() == si5351_vco_f, "PLL B XTAL frequency wrong");
+static_assert(si5351_pll_b_800m.p1() == 3584, "PLL B XTAL P1 wrong");
+static_assert(si5351_pll_b_800m.p2() == 0, "PLL B XTAL P2 wrong");
+static_assert(si5351_pll_b_800m.p3() == 1, "PLL B XTAL P3 wrong");
+
+#else
+
+// PLL A registers (Base 26)
+constexpr auto si5351_pll_a_xtal_reg = si5351_pll_xtal_25m.reg(0);
 static_assert(si5351_pll_xtal_25m.f_vco() == si5351_vco_f, "PLL XTAL frequency wrong");
 static_assert(si5351_pll_xtal_25m.p1() == 3584, "PLL XTAL P1 wrong");
 static_assert(si5351_pll_xtal_25m.p2() == 0, "PLL XTAL P2 wrong");
@@ -98,13 +118,6 @@ constexpr si5351::PLL si5351_pll_clkin_10m{
 };
 constexpr auto si5351c_pll_b_clkin_reg = si5351_pll_clkin_10m.reg(1);
 constexpr auto si5351a_pll_a_clkin_reg = si5351_pll_clkin_10m.reg(0);
-
-#ifndef PRALINE
-static_assert(si5351_pll_xtal_25m.f_vco() == si5351_vco_f, "PLL XTAL frequency wrong");
-static_assert(si5351_pll_xtal_25m.p1() == 3584, "PLL XTAL P1 wrong");
-static_assert(si5351_pll_xtal_25m.p2() == 0, "PLL XTAL P2 wrong");
-static_assert(si5351_pll_xtal_25m.p3() == 1, "PLL XTAL P3 wrong");
-#endif
 
 static_assert(si5351_pll_clkin_10m.f_vco() == si5351_vco_f, "PLL CLKIN frequency wrong");
 static_assert(si5351_pll_clkin_10m.p1() == 9728, "PLL CLKIN P1 wrong");
@@ -153,6 +166,26 @@ constexpr si5351::MultisynthFractional si5351_ms_afe_10m{
     .b = 0,
     .c = 1,
     .r_div = 0};
+
+// (20 MHz from 800 MHz VCO: 800 / 40 = 20)
+constexpr si5351::MultisynthFractional si5351_ms_afe_20m{
+    .f_src = si5351_vco_afe_f,
+    .a = 40,
+    .b = 0,
+    .c = 1,
+    .r_div = 0,
+};
+
+// (25 MHz from 800 MHz VCO: 800 / 32 = 25)
+// Define xtal MultiSynth 25MHz clock for stable PLL A, and AFE locked XTAL reference
+constexpr si5351::MultisynthFractional si5351_ms_afe_25m{
+    .f_src = si5351_vco_afe_f,  // 800,000,000 Hz
+    .a = 32,                    // 800 / 32 = 25 MHz
+    .b = 0,
+    .c = 1,
+    .r_div = 0  // No final bit-shifting
+};
+
 // (40 MHz from 800 MHz VCO: 800 / 20 = 40)
 constexpr si5351::MultisynthFractional si5351_ms_afe_40m{
     .f_src = si5351_vco_afe_f,  // 800 MHz
@@ -170,6 +203,17 @@ constexpr si5351::MultisynthFractional si5351_ms_20m{
     .r_div = 0,
 };
 // constexpr auto si5351_ms_20m_reg = si5351_ms_20m.reg(0);
+
+// (25 MHz from 800 MHz VCO: 800 / 32 = 25)
+// Define xtal MultiSynth 25MHz clock for stable PLL B, and XTAL reference
+constexpr si5351::MultisynthFractional si5351_ms_25m{
+    .f_src = si5351_vco_f,  // 800,000,000 Hz
+    .a = 32,                // 800 / 32 = 25 MHz
+    .b = 0,
+    .c = 1,
+    .r_div = 0  // No final bit-shifting
+};
+
 #endif
 
 constexpr auto si5351c_ms_0_8m_reg = si5351_ms_0_8m.reg(clock_generator_output_og_codec);
@@ -294,19 +338,21 @@ constexpr ClockControls si5351c_clock_control_common{{
 
 constexpr ClockControls si5351a_clock_control_common{{
 #ifdef PRALINE
-    // CLK0: MAX5864 (ADC) - 4mA, Normal PLLA Integer (Standard for Praline sync)
+    // CLK0: MAX5864 (ADC) - 4mA, Normal PLLA Integer
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK1: SCT_CLK (iCE40 FPGA) - 6mA, PLLA Normal Integer
-    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK2: LPC43xx MCU - 4mA, Normal PLLB (Must be Integer for MCU stability)
+    // CLK1: SCT_CLK (iCE40 FPGA) - 4mA, Normal PLLB Integer
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLB, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK3: CLKOUT SMA Port P1 - 8mA, Normal PLLB Integer
-    {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLB, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK4: MAX2831 reference (40 MHz) - Inverted PLLA Integer (Required for mixer lock)
+    // CLK2: LPC43xx MCU - 2mA, Normal PLLA (Must be Integer for MCU stability)
+    {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK3: CLKOUT SMA Port P1 - 2mA, Normal PLLB Integer Power_Off
+    {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLB, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+    // CLK4: MAX2831 reference (40 MHz) - 4mA, Invert PLLA Integer (Required for mixer lock)
     {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK5: RFFC5072 reference (40 MHz) - Inverted PLLA Integer (Required for mixer lock)
-    {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
-    // CLK6: Not used (disabled) 2mA, Normal PLLB, Power_Off
+    // CLK5: RFFC5072 reference (40 MHz) - 4mA, Invert PLLA Integer (Required for mixer lock)
+    {ClockControl::ClockCurrentDrive::_4mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Invert, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_On},
+    // CLK6: Not used (disabled) 2mA, Normal PLLB Integer, Power_Off
+    {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLB, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+    // CLK7: Not used (disabled) 2mA, Normal PLLB Integer, Power_Off
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLB, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
 #else
     {ClockControl::ClockCurrentDrive::_6mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
@@ -319,9 +365,9 @@ constexpr ClockControls si5351a_clock_control_common{{
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
     // CLK6: Not used
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
-#endif
     // CLK7: Not used
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, ClockControl::MultiSynthSource::PLLA, ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
+#endif
 
 }};
 
@@ -461,20 +507,24 @@ void ClockManager::init_clock_generator() {
      *  - Note: Timing for SGPIO data bus; scales to 2x SR in wideband modes.
      * * CLK2: MCU_CLKIN (LPC43xx MCU External Clock Input)
      *  - Note: Synchronizes MCU processing to the RF clock tree.
-     * * CLK3: SG_CLK (Switching Regulator/Internal Logic Sync)
+     * * CLK3: SG_CLK (Switching Regulator/Internal Logic Sync) SMA Port 1
      *  - Note: Used for internal FPGA logic/gateware synchronization.
-     * * CLK4: P_CLK (Peripheral/Expansion Clock)
+     * * CLK4: P_CLK (MAX2831 Peripheral/Expansion Clock)
      *  - Note: Routed to expansion headers for external hardware sync.
-     * * CLK5: AUX_CLK (Auxiliary reference for secondary logic)
+     * * CLK5: AUX_CLK (RFFC5371 Auxiliary reference for secondary logic)
      *  - Note: Provides additional timing flexibility for the iCE40 FPGA.
-     * * CLK6/7: Unused / Power-Down
+     * * CLK6: SG_CLK (Switching Regulator/Internal Logic Sync) SMA Port 2
+     *  - Note: Used for internal FPGA logic/gateware synchronization.
+     * * CLK7: Unused / Power-Down
      *  - State: Disabled (si5351a_ms6_7_off_reg)
      *  - Note: Kept OFF to reduce EMI/RFI near the RF front-end.
      * * CLKOUT: Optional external clock output on the header.
      */
 
-    /* Step 1: Write PLL A (800 MHz for RF) and PLL B (800 MHz for Digital) */
-    /* Use single-byte writes to debug I2C issues */
+    /* Write PLL A (800 MHz based on 25 MHz xtal for RF) and
+     * PLL B (800 MHZ based on 25 MHz xtalfor Digital)
+     * Use single-byte writes to debug I2C issues
+     */
     {
         // Write PLLA (Registers 26-33)
         /* Write PLL A configuration (Base 26) */
@@ -484,28 +534,31 @@ void ClockManager::init_clock_generator() {
         }
 
         // Write PLLB (Registers 34-41)
+        /* Write PLL B configuration (Base 34) */
         const auto& pll_b = si5351_pll_b_800_reg;
         for (size_t i = 1; i < pll_b.size(); i++) {
             clock_generator.write_register(pll_b[0] + i - 1, pll_b[i]);
         }
     }
 
-    /* Step 2: Write multisynth configurations using single-byte writes */
+    /* Write multisynth configurations using single-byte writes */
     // These cover all active channels on the Praline board
-    clock_generator.write_ms_single_byte(0, si5351_ms_afe_40m);  // CLK0: PLL A Codec (40 MHz)
-    clock_generator.write_ms_single_byte(1, si5351_ms_afe_40m);  // CLK1: PLL A FPGA Timing (40 MHz)
-    clock_generator.write_ms_single_byte(2, si5351_ms_40m);      // CLK2: PLL B MCU Input (40 MHz)
-    clock_generator.write_ms_single_byte(3, si5351_ms_10m);      // CLK3: PLL B Logic Sync (10 MHz)
-    clock_generator.write_ms_single_byte(4, si5351_ms_afe_40m);  // CLK4: PLL A Second IF (40 MHz)
-    clock_generator.write_ms_single_byte(5, si5351_ms_afe_40m);  // CLK5: PLL A First IF (40 MHz)
+    clock_generator.write_ms_single_byte(0, si5351_ms_afe_4m);   // CLK0: PLL A AFE Codec (4 MHz)
+    clock_generator.write_ms_single_byte(1, si5351_ms_10m);      // CLK1: PLL B SGPIO/FPGA Timing (10 MHz)
+    clock_generator.write_ms_single_byte(2, si5351_ms_afe_40m);  // CLK2: PLL A Audio and MCU Input (40 MHz)
+    clock_generator.write_ms_single_byte(3, si5351_ms_0_4m);     // CLK3: PLL B SMA Port 1 Logic Sync (4 MHz or 10 MHz)
+    clock_generator.write_ms_single_byte(4, si5351_ms_afe_40m);  // CLK4: PLL A MAX2831 Second IF (40 MHz)
+    clock_generator.write_ms_single_byte(5, si5351_ms_afe_40m);  // CLK5: PLL A RFFC5071First IF (40 MHz)
+    clock_generator.write_ms_single_byte(6, si5351_ms_0_4m);     // CLK6: PLL B SMA Port 2 Logic Sync (4 MHz or 10 MHz)
+    clock_generator.write_ms_single_byte(7, si5351_ms_0_4m);     // CLK7: PLL B Unused (4 MHz)
 
-    /* Step 3: NOW set clock control registers (AFTER multisynths per HackRF reference) */
+    /* NOW set clock control registers (AFTER multisynths per HackRF reference) */
     const auto ref_pll_a = ClockControl::MultiSynthSource::PLLA;
     const auto ref_pll_b = ClockControl::MultiSynthSource::PLLB;
     const ClockControls si5351_clock_control = ClockControls{{
         si5351a_clock_control_common[0].ms_src(ref_pll_a),
-        si5351a_clock_control_common[1].ms_src(ref_pll_a),
-        si5351a_clock_control_common[2].ms_src(ref_pll_b),
+        si5351a_clock_control_common[1].ms_src(ref_pll_b),
+        si5351a_clock_control_common[2].ms_src(ref_pll_a),
         si5351a_clock_control_common[3].ms_src(ref_pll_b),
         si5351a_clock_control_common[4].ms_src(ref_pll_a),
         si5351a_clock_control_common[5].ms_src(ref_pll_a),
@@ -515,6 +568,16 @@ void ClockManager::init_clock_generator() {
     // clock_generator.set_clock_control(si5351_clock_control);
     //  Use single-byte writes instead of multi-byte
     clock_generator.set_clock_control_single_byte(si5351_clock_control);
+
+    // Don't write CLKS 3, 6, and 7 multisynth
+    // Ensure CLK3 clock control has Power_Off
+    // Verify output is disabled
+    clock_generator.disable_output(3);
+    clock_generator.disable_clock(3);
+    clock_generator.disable_output(6);
+    clock_generator.disable_clock(6);
+    clock_generator.disable_output(7);
+    clock_generator.disable_clock(7);
 #else
     if (hackrf_r9) {
         const PLLReg pll_reg = (reference.source == ReferenceSource::Xtal)
@@ -755,6 +818,9 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 
     _resampling_n = n;
 
+    // === Stop FPGA processing and flush filters ===
+    fpga_debug_register_write(1, 0x00);  // Disable FPGA filters (resets CIC accumulators)
+
     // Set FPGA RX decimation register
     fpga_debug_register_write(2, n);
     radio::invalidate_spi_config();
@@ -765,6 +831,17 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     // Configure Si5351 clocks using the correct AFE VCO
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_afe_f, 1);
     clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_afe_f, 0);
+
+    // === Reset PLL A for phase alignment ===
+    clock_generator.write_register(si5351::Register::PLLReset, 0x20);
+
+    // Brief delay for PLL lock and clock stability ===
+    // ~1ms at 96MHz = ~96000 cycles, use 10ms for safety
+    volatile uint32_t delay = 240000;  // ~2.5ms
+    while (delay--);
+
+    // Re-enable FPGA processing with clean state ===
+    fpga_debug_register_write(1, 0x01);
 
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
@@ -796,7 +873,7 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
     if (reference.source == ReferenceSource::External) {
         return;
     }
-    constexpr uint32_t pll_multiplier = si5351_pll_xtal_800m.a;
+    constexpr uint32_t pll_multiplier = si5351_pll_a_afe_800m.a;
 #else
     constexpr uint32_t pll_multiplier = si5351_pll_xtal_25m.a;
 #endif
@@ -834,15 +911,15 @@ void ClockManager::start_frequency_monitor_measurement(const cgu::CLK_SEL clk_se
 }
 
 void ClockManager::wait_For_frequency_monitor_measurement_done() {
-    // FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
-#ifndef PRALINE
-    while (LPC_CGU->FREQ_MON.MEAS == 1);
-#else
+// FREQ_MON mechanism fails to finish if there's no clock present on selected input?!
+#ifdef PRALINE
     // PRALINE FIX: Add timeout to prevent infinite hang
     uint32_t timeout = 100000;
     while (LPC_CGU->FREQ_MON.MEAS == 1 && timeout > 0) {
         timeout--;
     }
+#else
+    while (LPC_CGU->FREQ_MON.MEAS == 1);
 #endif
 }
 
@@ -855,7 +932,8 @@ uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
 
 void ClockManager::start_audio_pll() {
 #ifdef PRALINE
-    // Comprehensive init matches non-PRALINE for stability and source selection
+
+    // Control Block
     cgu::pll0audio::ctrl({
         .pd = 1,            // Start powered down
         .bypass = 0,        // Use the PLL
@@ -864,19 +942,66 @@ void ClockManager::start_audio_pll() {
         .clken = 0,         // Disable output initially
         .frm = 0,           // Normal mode
         .autoblock = 1,     // Glitchless switching
-        .pllfract_req = 0,  // Integer mode
-        .sel_ext = 1,       // MUST BE 1 to use clk_sel GP_CLKIN
-        .mod_pd = 1,        // Power down modulator (Reduces noise/hiss)
+        .pllfract_req = 1,  // Integer, Disabled
+        .sel_ext = 1,       // Use GP_CLKIN (CLK2)
+        .mod_pd = 0,        // Modulator OFF
         .clk_sel = cgu::CLK_SEL::GP_CLKIN,
     });
 
-    cgu::pll0audio::mdiv({.mdec = 30542UL});
-    cgu::pll0audio::np_div({.pdec = 31, .ndec = 45});
-    cgu::pll0audio::frac({.pllfract_ctrl = 0});
+    /*
+     * Audio PLL Configuration for 48 kHz audio with 256Fs MCLK
+     * Target output: Fout = 12.288 MHz
+     *
+     * Formulas:
+     *   Fout = Fin × MSEL / (NSEL × PSEL)
+     *   FCO  = 2 × Fin × MSEL / NSEL  (must be 275-550 MHz)
+     */
 
+    /*
+     * ┌─────────────────────────────────────────────────────────────────┐
+     * │ 10 MHz INPUT (HackRF r9 compatible but interfere with fm band)  │
+     * ├─────────────────────────────────────────────────────────────────┤
+     * │ MSEL=3072, NSEL=125, PSEL=20                                    │
+     * │ Fout = 10 × 3072 / (125 × 20) = 30720 / 2500 = 12.288 MHz ✓     │
+     * │ FCO  = 2 × 10 × 3072 / 125 = 61440 / 125 = 491.52 MHz ✓         │
+     * │                                                                 │
+     * │ Encoded values: MDEC=8308, NDEC=45, PDEC=31                     │
+     * │ CLK2 harmonics: 90, 100, 110 MHz (interfere with FM band!)      │
+     * └─────────────────────────────────────────────────────────────────┘
+     */
+
+    /*
+    // Math: (10 MHz * 3072) / (125 * 20) * 2 = 12.288MHz
+    cgu::pll0audio::mdiv({.mdec = 8308UL});  // MSEL = 3072
+    cgu::pll0audio::np_div({
+        .pdec = 31,  // PSEL = 20 for 10 MHz
+        .ndec = 45   // NSEL = 125 for 10 MHz
+    });
+    */
+
+    /*
+     * ┌─────────────────────────────────────────────────────────────────┐
+     * │ 40 MHz INPUT (Recommended - avoids FM band harmonics)           │
+     * ├─────────────────────────────────────────────────────────────────┤
+     * │ MSEL=768, NSEL=125, PSEL=20                                     │
+     * │ Fout = 40 × 768 / (125 × 20) = 30720 / 2500 = 12.288 MHz ✓      │
+     * │ FCO  = 2 × 40 × 768 / 125 = 61440 / 125 = 491.52 MHz ✓          │
+     * │                                                                 │
+     * │ Encoded values: MDEC=30542, NDEC=45, PDEC=31                    │
+     * │ CLK2 harmonics: 80, 120, 160 MHz (none in FM 88-108 MHz band)   │
+     * └─────────────────────────────────────────────────────────────────┘
+     */
+
+    // 40 MHz input → 12.288 MHz output (same as HackRF OG)
+    // Math: (40MHz * 768) / (125 * 20) * 2 = 12.288MHz
+    cgu::pll0audio::mdiv({.mdec = 30542UL});  // MSEL = 768
+    cgu::pll0audio::np_div({.pdec = 31,
+                            .ndec = 45});
+
+    cgu::pll0audio::frac({.pllfract_ctrl = 0});
     cgu::pll0audio::power_up();
 
-    // Safety timeout prevents boot hang if Si5351 clock is missing
+    // Lock and Routing (Keep as is)
     {
         uint32_t timeout = 100000;
         while (!cgu::pll0audio::is_locked() && timeout > 0) {
@@ -889,6 +1014,7 @@ void ClockManager::start_audio_pll() {
 
     LPC_CGU->BASE_AUDIO_CLK.AUTOBLOCK = 1;
     LPC_CGU->BASE_AUDIO_CLK.CLK_SEL = toUType(cgu::CLK_SEL::IDIVD);
+
 #else
     cgu::pll0audio::ctrl({
         .pd = 1,

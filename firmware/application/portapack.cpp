@@ -392,18 +392,8 @@ static void set_cpu_clock_speed() {
 #endif
 
     cgu::pll1::enable();
-#ifndef PRALINE
-    while (!cgu::pll1::is_locked());
 
-    set_clock_config(clock_config_pll1_step);
-    /* Delay >50us at 90-110MHz clock speed */
-    volatile uint32_t delay = 1400;
-    while (delay--);
-    set_clock_config(clock_config_pll1);
-
-    /* Remove /2P divider from PLL1 output to achieve full speed */
-    cgu::pll1::direct();
-#else
+#ifdef PRALINE
     // Wait for PLL1 to lock with timeout
     {
         uint32_t timeout = 100000;
@@ -423,6 +413,18 @@ static void set_cpu_clock_speed() {
         /* Remove /2P divider from PLL1 output to achieve full speed */
         cgu::pll1::direct();
     }
+#else
+    while (!cgu::pll1::is_locked());
+
+    set_clock_config(clock_config_pll1_step);
+    /* Delay >50us at 90-110MHz clock speed */
+    volatile uint32_t delay = 1400;
+    while (delay--);
+    set_clock_config(clock_config_pll1);
+
+    /* Remove /2P divider from PLL1 output to achieve full speed */
+    cgu::pll1::direct();
+
 #endif
 }
 
@@ -660,6 +662,7 @@ init_status_t init() {
         draw_splash_screen_icon(2, ui::bitmap_icon_sd);
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
+
 #ifndef PRALINE
     // HackRF One uses CPLD - load it via JTAG
     if (!hackrf::cpld::load_sram()) {
