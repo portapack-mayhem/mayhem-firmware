@@ -33,12 +33,7 @@ extern "C" {
 #include <vector>
 
 static Thread* thread_usb_event = NULL;
-static kiss_raw_handler_t kiss_raw_handler = nullptr;
-
-// __attribute__((used)) prevents dead-stripping; called only from KISS TNC external app.
-__attribute__((used)) void set_kiss_raw_handler(kiss_raw_handler_t handler) {
-    kiss_raw_handler = handler;
-}
+usb_serial_input_handler_t usb_serial_active_input_handler = nullptr;
 
 struct usb_bulk_buffer_t {
     uint8_t* data;
@@ -116,10 +111,10 @@ void complete_host_to_device_transfer() {
             return;
 
         chSysLock();
-        if (kiss_raw_handler) {
-            // KISS TNC is active: route raw bytes directly to the handler
+        if (usb_serial_active_input_handler) {
+            // An input handler is active: route raw bytes directly to it
             chSysUnlock();
-            kiss_raw_handler(transfer_data->data, transfer_data->length);
+            usb_serial_active_input_handler(transfer_data->data, transfer_data->length);
         } else {
             // Normal operation: feed bytes into the shell iqueue
             for (unsigned int i = 0; i < transfer_data->length; i++) {

@@ -33,20 +33,38 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
 void schedule_host_to_device_transfer();
 void complete_host_to_device_transfer();
 
-typedef void (*kiss_raw_handler_t)(const uint8_t* data, size_t len);
+typedef void (*usb_serial_input_handler_t)(const uint8_t* data, size_t len);
 
 /**
- * Register a handler for raw bytes received over the USB bulk endpoint.
+ * Global storing the currently active USB serial input handler.
+ * When non-null, all incoming USB bytes are routed to this handler
+ * instead of the normal shell iqueue.
  *
- * When set, all incoming USB serial bytes are routed to this handler instead
- * of the normal shell iqueue. The handler:
- * - Is called from the USB transfer completion context (main event loop thread).
- * - Must return quickly; long or blocking work will stall the USB event loop.
- * - Receives a pointer into an internal reusable USB bulk buffer; the pointer
- *   is only valid for the duration of the call and must not be retained.
- *
- * Pass nullptr to restore normal shell routing.
+ * Managed via UsbSerialInputHandler RAII below — do not write directly.
  */
-void set_kiss_raw_handler(kiss_raw_handler_t handler);
+extern usb_serial_input_handler_t usb_serial_active_input_handler;
+
+/**
+ * RAII wrapper that registers a USB serial input handler on construction
+ * and automatically deregisters it on destruction.
+ *
+ * Only one handler may be active at a time.
+ *
+ * The handler is called from the USB transfer completion context (main event
+ * loop thread). It must return quickly; blocking will stall USB/UI servicing.
+ * The data pointer is only valid for the duration of the call.
+ */
+class UsbSerialInputHandler {
+   public:
+    UsbSerialInputHandler() = delete;
+    explicit UsbSerialInputHandler(usb_serial_input_handler_t handler) {
+        usb_serial_active_input_handler = handler;
+    }
+    ~UsbSerialInputHandler() {
+        usb_serial_active_input_handler = nullptr;
+    }
+    UsbSerialInputHandler(const UsbSerialInputHandler&) = delete;
+    UsbSerialInputHandler& operator=(const UsbSerialInputHandler&) = delete;
+};
 
 #endif

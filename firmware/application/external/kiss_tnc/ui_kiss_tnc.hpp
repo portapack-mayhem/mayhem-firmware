@@ -33,6 +33,9 @@
 #include "portapack.hpp"
 #include "receiver_model.hpp"
 #include "aprs_packet.hpp"
+#include "usb_serial_host_to_device.hpp"
+
+#include <optional>
 
 namespace ui::external_app::kiss_tnc {
 
@@ -106,7 +109,8 @@ class KissTncView : public View {
 
     uint32_t frame_counter_{0};
 
-    static void kiss_trampoline(const uint8_t* data, size_t len);
+    static void kiss_input_trampoline(const uint8_t* data, size_t len);
+    std::optional<UsbSerialInputHandler> usb_input_handler_{};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::APRSPacket,

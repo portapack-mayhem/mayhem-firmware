@@ -28,7 +28,6 @@
 #include "memory_map.hpp"
 #include "ax25.hpp"
 #include "spi_image.hpp"
-#include "usb_serial_host_to_device.hpp"
 
 extern "C" {
 #include "usb_serial_device_to_host.h"
@@ -42,7 +41,7 @@ namespace {
 KissTncView* g_kiss_tnc_instance = nullptr;
 }
 
-void KissTncView::kiss_trampoline(const uint8_t* data, size_t len) {
+void KissTncView::kiss_input_trampoline(const uint8_t* data, size_t len) {
     if (g_kiss_tnc_instance) g_kiss_tnc_instance->on_kiss_bytes(data, len);
 }
 
@@ -64,13 +63,13 @@ KissTncView::KissTncView(NavigationView& nav)
     receiver_model.enable();
     baseband::set_aprs(1200);
     g_kiss_tnc_instance = this;
-    set_kiss_raw_handler(kiss_trampoline);
+    usb_input_handler_.emplace(kiss_input_trampoline);
     update_stats();
 }
 
 KissTncView::~KissTncView() {
-    set_kiss_raw_handler(nullptr);
     g_kiss_tnc_instance = nullptr;
+    usb_input_handler_.reset();
     if (tx_active_) {
         transmitter_model.disable();
     } else {
@@ -95,19 +94,23 @@ void KissTncView::send_kiss_frame(const uint8_t* data, size_t len) {
     size_t i = 0;
     buf[i++] = 0xC0;  // FEND
     buf[i++] = 0x00;  // data command
-    for (size_t j = 0; j < len && i < (sizeof(buf) - 2); j++) {
+    for (size_t j = 0; j < len; j++) {
         if (data[j] == 0xC0) {
+            if (i + 3 > sizeof(buf)) break;  // need 2 for escape + 1 for final FEND
             buf[i++] = 0xDB;
             buf[i++] = 0xDC;
         } else if (data[j] == 0xDB) {
+            if (i + 3 > sizeof(buf)) break;  // need 2 for escape + 1 for final FEND
             buf[i++] = 0xDB;
             buf[i++] = 0xDD;
         } else {
+            if (i + 2 > sizeof(buf)) break;  // need 1 for data + 1 for final FEND
             buf[i++] = data[j];
         }
     }
     buf[i++] = 0xC0;  // FEND
-    fillOBuffer(&SUSBD1.oqueue, buf, i);
+    // Drop frame rather than block if USB TX queue is full
+    chOQWriteTimeout(&SUSBD1.oqueue, buf, i, TIME_IMMEDIATE);
 }
 
 void KissTncView::on_packet(const APRSPacketMessage* message) {
@@ -185,11 +188,7 @@ void KissTncView::start_tx() {
     receiver_model.disable();
     baseband::shutdown();
 
-    chThdSleepMilliseconds(100);
-
     baseband::run_image(portapack::spi_flash::image_tag_afsk);
-
-    chThdSleepMilliseconds(100);
 
     transmitter_model.set_target_frequency(rx_frequency_);
     transmitter_model.set_sampling_rate(AFSK_SAMPLE_RATE);
@@ -207,12 +206,8 @@ void KissTncView::finish_tx() {
     transmitter_model.disable();
     baseband::shutdown();
 
-    chThdSleepMilliseconds(100);
-
     // Must reload from SPI flash — run_image(afsk) overwrote m4_code.base()
     baseband::run_image(portapack::spi_flash::image_tag_aprs_rx);
-
-    chThdSleepMilliseconds(100);
 
     receiver_model.set_target_frequency(rx_frequency_);
     receiver_model.set_sampling_rate(APRS_RX_SAMPLE_RATE);
