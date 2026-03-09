@@ -39,6 +39,17 @@ mbtenv_check_linux() {
         mbtenv_log "error: mbt currently supports Linux only."
         return 1
     fi
+
+    arch="$(uname -m)"
+    case "$arch" in
+        x86_64|amd64)
+            # Supported architecture for the default x86_64 Linux toolchain archive.
+            ;;
+        *)
+            mbtenv_log "error: unsupported architecture '$arch'. mbt currently supports x86_64 Linux only for the bundled toolchain."
+            return 1
+            ;;
+    esac
     return 0
 }
 
