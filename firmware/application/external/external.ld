@@ -101,7 +101,7 @@ MEMORY
     ram_external_app_pocsag_tx (rwx) : org = 0xADFC0000, len = 32k
     ram_external_app_time_sink (rwx) : org = 0xADFD0000, len = 32k
     ram_external_app_same_tx   (rwx) : org = 0xADFE0000, len = 32k
-
+    ram_external_app_epirb_tx  (rwx) : org = 0xADFF0000, len = 32k
 }
 
 SECTIONS
@@ -574,5 +574,11 @@ SECTIONS
         KEEP(*(.external_app.app_same_tx.application_information));
         *(*ui*external_app*same_tx*);
     } > ram_external_app_same_tx
+
+    .external_app_epirb_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_epirb_tx.application_information));
+        *(*ui*external_app*epirb_tx*);
+    } > ram_external_app_epirb_tx
 }
 
