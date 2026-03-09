@@ -375,6 +375,7 @@ mbt_build() {
     mbt_log "the bare binary (for hackrf_spiflash host tool) exclude external apps is located at $build_dir/firmware/portapack-mayhem-firmware.bin"
     mbt_log "the full tar.gz package (for MayhemHub and Flash Utilty OTA app) incluing external apps and firmware file is located in $build_dir/firmware/portapack-mayhem_OCI.ppfw.tar"
     mbt_log "if you have dev's sdcard switcher hardware, the fast flash scripts is in $build_dir/flash.py"
+    # have to hard code the name here cuz it's too expensive to read cmake for just a file name.
 }
 
 main() {
