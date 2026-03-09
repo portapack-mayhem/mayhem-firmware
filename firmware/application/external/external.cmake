@@ -260,10 +260,6 @@ set(EXTCPPSRC
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
 
-	#epirb_tx
-	external/epirb_tx/main.cpp
-	external/epirb_tx/ui_epirb_tx.cpp
-
 	#soundboard  272byte  - 1236 bytes
 	external/soundboard/main.cpp
 	external/soundboard/soundboard_app.cpp
@@ -389,7 +385,6 @@ set(EXTAPPLIST
 	battleship
 	ert
 	epirb_rx
-	epirb_tx
 	soundboard
 	game2048
 	bht_tx
