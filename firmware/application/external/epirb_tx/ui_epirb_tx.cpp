@@ -27,8 +27,8 @@
 #include "string_format.hpp"
 #include "file_reader.hpp"
 #include "file_path.hpp"
-#include "binder.hpp"
 #include "ui_geomap.hpp"
+#include "ui_alphanum.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -326,13 +326,16 @@ EPIRBTXAppView::EPIRBTXAppView(
         set_dirty();
     };
 
-    bind(text_field_beacon_locator, locator, nav, [this](std::string value) {
-        beacon_params.location.locator = value;
-        init_from_locator(beacon_params.location);
-        update_location(false);
-        update_frame();
-        set_dirty();
-    });
+    text_field_beacon_locator.on_select = [this, &nav](TextField&) mutable {
+        auto te_view = nav.push<AlphanumView>(locator, 10, ENTER_KEYBOARD_MODE_ALPHA);
+        te_view->on_changed = [this](std::string& value) {
+            beacon_params.location.locator = value;
+            init_from_locator(beacon_params.location);
+            update_location();
+            update_frame();
+            set_dirty();
+        };
+    };
 
     button_mangps.on_select = [this, &nav](Button&) {
         nav.push<GeoMapView>(
