@@ -185,7 +185,7 @@ void init() {
 
     // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
     fpga_debug_register_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
-    fpga_debug_register_write(FPGA_REG_DECIM, 0x00);  // RX_DECIM=No Decim
+    fpga_debug_register_write(FPGA_REG_DECIM, 0x00);                  // RX_DECIM=No Decim
 
     // RX Mode: Register 3 is RX Digital Gain. Start with 0dB (no shift).
     fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, FPGA_RX_DEFAULT_DIGITAL_GAIN);
@@ -220,19 +220,19 @@ void set_direction(const rf::Direction new_direction) {
         fpga_set_mode(FPGA_MODE_TX);
         // TX Mode: Clear RX gain and ensure NCO is off initially
         fpga_debug_register_write(FPGA_REG_TX_CONTROL, 0x00);
-	// Placeholder: Set TX-specific interpolation and phase
+        // Placeholder: Set TX-specific interpolation and phase
         fpga_debug_register_write(FPGA_REG_TX_INTERP, 0x00);
         fpga_debug_register_write(FPGA_REG_TX_PHASE_STEP, 0x00);
     } else {
-	fpga_set_mode(FPGA_MODE_RX); 
+        fpga_set_mode(FPGA_MODE_RX);
         // RX Mode: Ensure NCO is disabled and reset digital gain
         fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, FPGA_RX_DEFAULT_DIGITAL_GAIN);
-	/* RX Mode: Initialize DC Block parameters to standard Praline values.
+        /* RX Mode: Initialize DC Block parameters to standard Praline values.
          * 0x04 Width and 0x08 Adapt Rate are typical for 40MHz stability.
          */
         fpga_debug_register_write(FPGA_REG_RX_DC_BLOCK_WIDTH, FPGA_RX_DEFAULT_DC_WIDTH);
         fpga_debug_register_write(FPGA_REG_RX_DC_ADAPT_RATE, FPGA_RX_DEFAULT_ADAPT_RATE);
-    }				      
+    }
 #endif
 
     direction = new_direction;
@@ -546,12 +546,11 @@ void register_write(const size_t register_number, uint32_t value) {
 }
 
 void init() {
-
     fpga_set_mode(FPGA_MODE_RX);
 
     // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
     fpga_debug_register_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
-    fpga_debug_register_write(FPGA_REG_DECIM, 0x00);  // RX_DECIM=No Decim
+    fpga_debug_register_write(FPGA_REG_DECIM, 0x00);                  // RX_DECIM=No Decim
 
     // RX Mode: Register 3 is RX Digital Gain. Start with 0dB (no shift).
     fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, FPGA_RX_DEFAULT_DIGITAL_GAIN);
@@ -562,7 +561,7 @@ void init() {
     fpga_debug_register_write(FPGA_REG_RX_DC_BLOCK_WIDTH, FPGA_RX_DEFAULT_DC_WIDTH);
     fpga_debug_register_write(FPGA_REG_RX_DC_ADAPT_RATE, FPGA_RX_DEFAULT_ADAPT_RATE);
 
-    ssp1_arbiter.invalidate();           // Force arbiter to reconfigure on next transfer
+    ssp1_arbiter.invalidate();  // Force arbiter to reconfigure on next transfer
 }
 
 } /* namespace fpga */
