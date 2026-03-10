@@ -108,10 +108,10 @@ class EPIRBTXAppView : public View {
 
     BeaconParams beacon_params{BeaconType::ELT, BeaconProtocol::STANDARD, 227, true, true, true, {"JN03RO", false, 0, 0, 0, 0, false, 0, 0, 0, 0}};
 
-    // Currently selected beacon idex (from BEACONS.TXT file / options_frame combo)
+    // Currently selected beacon index (from BEACONS.TXT file / options_frame combo)
     uint32_t selected_beacon{0};
 
-    // Frequency of the tramnsmitter before starting the app (used to restore frequency when leaving)
+    // Frequency of the transmitter before starting the app (used to restore frequency when leaving)
     rf::Frequency original_frequency{0};
     // Frequency of the AM emergency signal
     rf::Frequency am_frequency{121500000};
@@ -164,7 +164,7 @@ class EPIRBTXAppView : public View {
 
     // Time of the last sent frame
     uint32_t last_frame_time{0};
-    // True when tnransmission is enabled
+    // True when transmission is enabled
     bool transmitting{false};
     // True when currently looping on sending beacons
     bool loop{false};

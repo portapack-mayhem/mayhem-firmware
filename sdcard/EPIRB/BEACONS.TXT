@@ -1,4 +1,4 @@
-#Title; Desciption; Frame (Hex format : 18 Bytes / 36 Hex char)
+#Title; Description; Frame (Hex format : 18 Bytes / 36 Hex char)
 Selftest; Serial user Location Protocol; FFFED0D6E6202820000C29FF51041775302D
 Standard Test; ADRASEC02 30/11/2014 N49d16m32s/E3d16m32s; FFFED08e3e0425a8318074fe44b735cd7b46
 User protocol KO; Radio call sign (wrong BCH1); FFFED03EF613523F81FE0

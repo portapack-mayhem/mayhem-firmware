@@ -26,6 +26,7 @@
 #include "baseband_thread.hpp"
 #include "portapack_shared_memory.hpp"
 #include "tonesets.hpp"
+#include <cmath>
 
 /**
  * Processor used by epirb_tx app to simulate a COSPAS/SARSAT emergency beacon
@@ -44,14 +45,14 @@ class EPIRBTXProcessor : public BasebandProcessor {
     // True when in BPSK transmission mode, false for AM transmission mode
     bool mode_bpsk{false};
 
-    // True when the trnamission has to be stopped (e.g. at the end of a frame)
+    // True when the transmission has to be stopped (e.g. at the end of a frame)
     bool end_of_transmission{};
     // I/Q values for current sample (ranging from -128 to 127)
     int8_t re{0}, im{0};
 
-    // Configured prec-ount value: used to generate a carrier for config_pre_count samples before starting a frame
+    // Configured pre-count value: used to generate a carrier for config_pre_count samples before starting a frame
     uint32_t config_pre_count = 0;
-    // Configured post-count value: used to continue the carrier for config_ost_count samples after the end of a frame
+    // Configured post-count value: used to continue the carrier for config_post_count samples after the end of a frame
     uint32_t config_post_count = 0;
 
     // Data of the frame to send in BPSK mode

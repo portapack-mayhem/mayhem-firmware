@@ -23,6 +23,9 @@
 
 #include "portapack.hpp"
 #include "ui_epirb_tx.hpp"
+#include <cmath>
+#include <cctype>
+#include <cstdio>
 
 namespace ui::external_app::epirb_tx {
 

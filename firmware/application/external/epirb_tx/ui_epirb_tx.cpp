@@ -81,7 +81,8 @@ void EPIRBTXAppView::on_timer() {
         if (loop_enabled) {
             // chTimeNow() returns milliseconds on our version of ChibiOS / Hardware
             auto now = chTimeNow();
-            std::string timeout = std::to_string((uint32_t)(delay - ((now - last_frame_time) / 1000)));
+            auto elapsed = ((now - last_frame_time) / 1000);
+            std::string timeout = std::to_string((uint32_t)(delay > elapsed ? delay - elapsed : 0));
             if (timeout != text_timeout.get()) {
                 // Update timeout text every seconds
                 text_timeout.set(timeout);
@@ -177,7 +178,7 @@ void EPIRBTXAppView::stop_tx() {
 void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     (void)progress;
     if (done) {
-        if (checkbox_am.value()) {
+        if (am_enabled) {
             // BPSK frame sent, switch back to 121.5 AM signal
             epirb_tx_message.mode_bpsk = false;
             // Backup bpsk frequency for next run
@@ -357,6 +358,9 @@ EPIRBTXAppView::EPIRBTXAppView(
 
     field_am_frequency.on_change = [this](rf::Frequency freq) {
         am_frequency = freq;
+        if (transmitting && !epirb_tx_message.mode_bpsk && am_enabled)
+            // Update transmitter frequency
+            transmitter_model.set_target_frequency(am_frequency);
     };
 
     // Load available beacons from BEACONS.TXT files (or default).
@@ -369,6 +373,9 @@ EPIRBTXAppView::EPIRBTXAppView(
         entries.emplace_back(beacon.title, entries.size());
 
     options_frame.set_options(std::move(entries));
+    if (selected_beacon >= beacons.size())
+        // BEACONS.TXT file has changed since last launch, default index to 0
+        selected_beacon = 0;
     options_frame.set_selected_index(selected_beacon);
     options_frame.on_change = [this](size_t index, OptionsField::value_t) {
         selected_beacon = index;
@@ -398,7 +405,6 @@ EPIRBTXAppView::EPIRBTXAppView(
         auto new_view = nav.push<FrequencyKeypadView>(field_am_frequency.value());
         new_view->on_changed = [this](rf::Frequency f) {
             field_am_frequency.set_value(f);
-            update_config();
         };
     };
 

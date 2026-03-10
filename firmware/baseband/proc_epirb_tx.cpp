@@ -25,6 +25,7 @@
 #include "event_m4.hpp"
 
 #include <cstdint>
+#include <cstring>
 
 /**
  * Processing method for this processor
@@ -64,12 +65,9 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
             } else {
                 if (sample_counter == 0 && manchester_half == false) {
                     if (bit_index == 0) {
-                        if (byte_index >= frame_data_len) {
-                            // End of frame => move to post-count
-                            bpsk_post_count = 1;
-                        }
-                        // Move to next byte
+                        // Read current byte
                         current_byte = frame_data[byte_index];
+                        // Move to next byte
                         byte_index++;
                     }
                     // Get current bit
@@ -108,9 +106,14 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
                     if (manchester_half == false) {
                         // Move to next bit
                         bit_index++;
-                        if (bit_index >= 8)
+                        if (bit_index >= 8) {
                             // End of byte
                             bit_index = 0;
+                            if (byte_index >= frame_data_len) {
+                                // End of frame => move to post-count
+                                bpsk_post_count = 1;
+                            }
+                        }
                     }
                 }
             }
@@ -147,10 +150,9 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
 
 void EPIRBTXProcessor::on_message(const Message* const msg) {
     // Configure the processor
-    const auto message = *reinterpret_cast<const EPIRBTXDataMessage*>(msg);
-
     switch (msg->id) {
-        case Message::ID::EPIRBTXData:
+        case Message::ID::EPIRBTXData: {
+            const auto message = *reinterpret_cast<const EPIRBTXDataMessage*>(msg);
             // Check transmission mode
             mode_bpsk = message.mode_bpsk;
             if (mode_bpsk) {
@@ -159,7 +161,7 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
                 config_post_count = message.post_count;
                 frame_data_len = message.data_len;
                 // Get the frame data from the message
-                memcpy(frame_data, message.data, frame_data_len);
+                memcpy(frame_data, message.data, std::min(frame_data_len, EPIRBTXDataMessage::max_len));
                 // Init BPSK sequencer
                 sample_counter = 0;
                 bpsk_pre_count = 0;
@@ -175,7 +177,7 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
             }
             // Tell the processor to start
             configured = true;
-            break;
+        } break;
 
         default:
             break;
