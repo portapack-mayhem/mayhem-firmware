@@ -55,8 +55,8 @@ extern usb_serial_input_handler_t usb_serial_active_input_handler;
  * loop thread). It must return quickly; blocking will stall USB/UI servicing.
  * The data pointer is only valid for the duration of the call.
  *
- * Use write() to send data to the host; bytes are dropped if the TX queue
- * is full rather than blocking.
+ * Use write() to send data to the host. By default bytes are dropped if the
+ * TX queue is full (TIME_IMMEDIATE); pass a timeout in ticks to block instead.
  */
 class UsbSerialInputHandler {
    public:
@@ -70,9 +70,9 @@ class UsbSerialInputHandler {
     UsbSerialInputHandler(const UsbSerialInputHandler&) = delete;
     UsbSerialInputHandler& operator=(const UsbSerialInputHandler&) = delete;
 
-    // Send bytes to the USB host. Drops data rather than blocking if queue is full.
-    void write(const uint8_t* data, size_t len) {
-        chOQWriteTimeout(&SUSBD1.oqueue, data, len, TIME_IMMEDIATE);
+    // Send bytes to the USB host. timeout defaults to TIME_IMMEDIATE (drop if full).
+    void write(const uint8_t* data, size_t len, systime_t timeout = TIME_IMMEDIATE) {
+        chOQWriteTimeout(&SUSBD1.oqueue, data, len, timeout);
     }
 };
 

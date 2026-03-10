@@ -27,11 +27,7 @@
 
 #include "event_m4.hpp"
 
-#include "stdio.h"
-
 APRSRxProcessor::APRSRxProcessor() {
-    const APRSRxConfigureMessage default_config{1200};
-    configure(default_config);
 }
 
 void APRSRxProcessor::execute(const buffer_c8_t& buffer) {
