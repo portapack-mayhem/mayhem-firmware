@@ -26,8 +26,8 @@ MEMORY
     flash (rx)  : org = 0x00000000, len = LD_FLASH_SIZE /* SPIFI flash @ 0x140????? */
     
     /* HackRF One (Standard): 64KB AHB SRAM @ 0x20000000
-     * HackRF Pro (Praline): Expanded to 128KB to support high-throughput buffers.
-     * We use LD_RAM_SIZE to allow 128k for Praline and 64k for HackRF One
+     * HackRF Pro (Praline): Hardware supports 128KB high-throughput buffers.
+     * The actual size is controlled by LD_RAM_SIZE (set in rules.cmake).
      * AHB SRAM @ 0x20000000 (stacks, data, bss) */
     ram   (rwx) : org = 0x20000000, len = LD_RAM_SIZE
     

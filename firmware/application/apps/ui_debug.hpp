@@ -439,8 +439,6 @@ class RadioDiagnosticsView : public View {
 };
 
 #ifdef PRALINE
-
-// Add this in ui_debug.hpp (inside namespace ui)
 class PralineDebugMenuView : public BtnGridView {
    public:
     PralineDebugMenuView(NavigationView& nav);

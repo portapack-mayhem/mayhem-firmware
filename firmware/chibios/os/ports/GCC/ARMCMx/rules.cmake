@@ -107,20 +107,26 @@ set(CMAKE_AS_FLAGS "${ASFLAGS} ${TOPT}")
 
 if(BOARD STREQUAL "PRALINE")
     # Praline (LPC4330) - Expanded Memory
-   # AHB SRAM: 32KB + 32KB = 64KB
+    # AHB SRAM: 32KB + 32KB = 64KB
+    # Left M0_RAM_SIZE as 64k and USB_RAM_SIZE as 32k for
+    # backwards consistenct with hackrf one setup. 
+    # Recommend revisit by devs. 
     # Local SRAM: 128KB (Bank 1) + 72KB (Bank 2)
-    set(M0_RAM_SIZE           "64k")         # All AHB SRAM for M0 (stacks, data, bss)
-    set(M0_LOCAL_HEAP_SIZE    "32k")         # Local SRAM slice for extended heap
+    set(M0_RAM_SIZE           "64k")         # AHB SRAM Bank 0 for M0 (stacks, data, bss)
+    set(M0_LOCAL_HEAP_SIZE    "32k")         # Local SRAM heap for additional 16-bit IQ
     set(M0_LOCAL_HEAP_ORIGIN  "0x10018000")  # After M4's 96KB
     set(M4_RAM_SIZE           "96k")         # Local SRAM Bank 1 (same as HackRF One)
     set(M4_FLASH_SIZE         "72k")         # Local SRAM Bank 2
-    set(USB_RAM_SIZE          "32k")         # Standard 32k/32k split with AHB SRAM
+    set(USB_RAM_SIZE          "32k")         # AHB SRAM shared with M0
     set(FLASH_SIZE            "4M")
 else() 
     # HackRF One (LPC4320) - Standard Memory
     # AHB SRAM: 32KB + 16KB = 48KB (split between M0 and USB)
+    # Left M0_RAM_SIZE as 64k and USB_RAM_SIZE as 32k to keep 
+    # original hackrf one settings intact. 
+    # Recommend revisit by devs.
     # Local SRAM: 96KB (Bank 1) + 40KB (Bank 2)
-    set(M0_RAM_SIZE           "64k")   # Standard AHB SRAM
+    set(M0_RAM_SIZE           "64k")   # Standard AHB SRAM for M0
     set(M0_LOCAL_HEAP_SIZE    "0k")    # No local heap available
     set(M0_LOCAL_HEAP_ORIGIN  "0")     # Not used
     set(M4_RAM_SIZE           "96k")   # Standard Local SRAM Bank 1

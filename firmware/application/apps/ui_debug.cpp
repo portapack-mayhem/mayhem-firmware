@@ -3487,6 +3487,9 @@ PralineDebugMenuView::PralineDebugMenuView(NavigationView& nav)
 }
 
 void PralineDebugMenuView::on_populate() {
+    if (portapack::persistent_memory::show_gui_return_icon()) {
+        add_items({{"..", ui::Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+    }
     add_items({
         {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
         {"Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},

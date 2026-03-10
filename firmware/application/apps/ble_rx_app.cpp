@@ -822,7 +822,7 @@ void BLERxView::on_data(BlePacketData* packet) {
 #ifdef PRALINE
         // Enforce limit
         while (recent.size() >= max_recent_entries) {
-              recent.pop_back();
+            recent.pop_back();
         }
 #endif
         recent.emplace_front(key);
@@ -894,7 +894,7 @@ void BLERxView::on_filter_change(std::string value) {
 
 void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
 #ifdef PRALINE
-    // Clear searchList 
+    // Clear searchList
     searchList.clear();
 #endif
 
@@ -967,10 +967,10 @@ void BLERxView::on_timer() {
         size_t heap_free = chCoreStatus();
         if (heap_free < 4096) {  // Less than 4KB free
             // Emergency: clear old entries
-            while (recent.size() > (max_recent_entries-1)) {
+            while (recent.size() > (max_recent_entries - 1)) {
                 recent.pop_back();
             }
-	    recent_entries_view.set_dirty();
+            recent_entries_view.set_dirty();
         }
     }
 #endif
