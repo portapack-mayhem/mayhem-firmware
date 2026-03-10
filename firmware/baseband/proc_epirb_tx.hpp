@@ -87,9 +87,9 @@ class EPIRBTXProcessor : public BasebandProcessor {
     bool manchester_half = false;  // false = first half
 
     // 127.5 AM signal parameters
-    static const uint32_t sweep_rate = 3;         // 3 Hz
-    static const uint32_t f_min = 300;            // Sweep min frequency (Hz)
-    static const uint32_t f_max = 1600;           // Sweep max frequency (Hz)
+    static const uint32_t sweep_rate = 3;  // 3 Hz
+    static const uint32_t f_min = 300;     // Sweep min frequency (Hz)
+    static const uint32_t f_max = 1600;    // Sweep max frequency (Hz)
     static const uint32_t freq_span = f_max - f_min;
     // Frequency
     static const uint32_t freq_scale = (1ULL << 32) / TONES_SAMPLERATE;
