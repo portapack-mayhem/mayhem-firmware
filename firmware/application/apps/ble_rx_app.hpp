@@ -48,7 +48,7 @@
 #include "ch.h"
 #include "chcore.h"
 #include "chheap.h"
-static constexpr size_t max_recent_entries = 64;  // Limit entries
+static constexpr size_t max_recent_entries = 32;  // Limit entries
 #endif
 
 class BLELogger {

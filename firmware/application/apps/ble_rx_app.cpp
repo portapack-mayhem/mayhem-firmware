@@ -820,9 +820,9 @@ void BLERxView::on_data(BlePacketData* packet) {
         recent.erase(it);
     } else {
 #ifdef PRALINE
-        // Enforce limit BEFORE adding
+        // Enforce limit
         while (recent.size() >= max_recent_entries) {
-            recent.pop_back();
+              recent.pop_back();
         }
 #endif
         recent.emplace_front(key);
@@ -893,8 +893,10 @@ void BLERxView::on_filter_change(std::string value) {
 }
 
 void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
-    // Clear and release previous memory
+#ifdef PRALINE
+    // Clear searchList 
     searchList.clear();
+#endif
 
     file_path = new_file_path;
     found_count = 0;
@@ -914,11 +916,6 @@ void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
         uint64_t bytePos = 0;
         char currentLine[maxLineLength];
 
-#ifdef PRALINE
-        // Add search items limit
-        static constexpr size_t max_search_items = 100;
-#endif
-
         do {
             memset(currentLine, 0, maxLineLength);
 
@@ -934,7 +931,7 @@ void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
             }
 
 #ifdef PRALINE
-            if (searchList.size() < max_search_items) {
+            if (searchList.size() < max_recent_entries) {
                 searchList.push_back(currentLine);
                 total_count++;
             }
@@ -970,9 +967,10 @@ void BLERxView::on_timer() {
         size_t heap_free = chCoreStatus();
         if (heap_free < 4096) {  // Less than 4KB free
             // Emergency: clear old entries
-            while (recent.size() > 8) {
+            while (recent.size() > (max_recent_entries-1)) {
                 recent.pop_back();
             }
+	    recent_entries_view.set_dirty();
         }
     }
 #endif
