@@ -131,4 +131,30 @@ void AX25Frame::make_ui_frame(char* const address, const uint8_t control, const 
     flush();
 }
 
+// __attribute__((used)) prevents dead-stripping; called only from KISS TNC external app.
+__attribute__((used)) void AX25Frame::make_frame_from_raw(const uint8_t* data, size_t len) {
+    bb_data_ptr = (uint16_t*)shared_memory.bb_data.data;
+    memset(bb_data_ptr, 0, sizeof(shared_memory.bb_data.data));
+    bit_counter = 0;
+    current_bit = 0;
+    current_byte = 0;
+    ones_counter = 0;
+    crc_ccitt.reset();
+
+    add_flag();
+    add_flag();
+    add_flag();
+    add_flag();
+
+    for (size_t i = 0; i < len; i++)
+        add_data(data[i]);
+
+    add_checksum();
+
+    add_flag();
+    add_flag();
+
+    flush();
+}
+
 } /* namespace ax25 */

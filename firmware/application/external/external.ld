@@ -102,6 +102,8 @@ MEMORY
     ram_external_app_time_sink (rwx) : org = 0xADFD0000, len = 32k
     ram_external_app_same_tx   (rwx) : org = 0xADFE0000, len = 32k
     ram_external_app_epirb_tx  (rwx) : org = 0xADFF0000, len = 32k
+    ram_external_app_kiss_tnc  (rwx) : org = 0xADFF0000, len = 32k
+
 }
 
 SECTIONS
@@ -580,5 +582,11 @@ SECTIONS
         KEEP(*(.external_app.app_epirb_tx.application_information));
         *(*ui*external_app*epirb_tx*);
     } > ram_external_app_epirb_tx
+    .external_app_kiss_tnc : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_kiss_tnc.application_information));
+        *(*ui*external_app*kiss_tnc*);
+    } > ram_external_app_kiss_tnc
+
 }
 

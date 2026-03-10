@@ -74,6 +74,7 @@ static uint16_t crc_ccitt_tab[256] = {
 
 class APRSRxProcessor : public BasebandProcessor {
    public:
+    APRSRxProcessor();
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
