@@ -33,6 +33,7 @@ extern "C" {
 #include <vector>
 
 static Thread* thread_usb_event = NULL;
+usb_serial_input_handler_t usb_serial_active_input_handler = nullptr;
 
 struct usb_bulk_buffer_t {
     uint8_t* data;
@@ -110,20 +111,27 @@ void complete_host_to_device_transfer() {
             return;
 
         chSysLock();
-        for (unsigned int i = 0; i < transfer_data->length; i++) {
-            msg_t ret;
-            do {
-                ret = chIQPutI(&SUSBD1.iqueue, transfer_data->data[i]);
+        if (usb_serial_active_input_handler) {
+            // An input handler is active: route raw bytes directly to it
+            chSysUnlock();
+            usb_serial_active_input_handler(transfer_data->data, transfer_data->length);
+        } else {
+            // Normal operation: feed bytes into the shell iqueue
+            for (unsigned int i = 0; i < transfer_data->length; i++) {
+                msg_t ret;
+                do {
+                    ret = chIQPutI(&SUSBD1.iqueue, transfer_data->data[i]);
 
-                if (ret == Q_FULL) {
-                    chSysUnlock();
-                    chThdSleepMilliseconds(1);  // wait for shell thread when buffer is full
-                    chSysLock();
-                }
+                    if (ret == Q_FULL) {
+                        chSysUnlock();
+                        chThdSleepMilliseconds(1);  // wait for shell thread when buffer is full
+                        chSysLock();
+                    }
 
-            } while (ret == Q_FULL);
+                } while (ret == Q_FULL);
+            }
+            chSysUnlock();
         }
-        chSysUnlock();
 
         usb_bulk_buffer_spare.push(transfer_data);
     }
