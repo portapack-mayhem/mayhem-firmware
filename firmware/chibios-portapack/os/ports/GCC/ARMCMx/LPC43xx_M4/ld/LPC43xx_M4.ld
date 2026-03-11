@@ -23,12 +23,23 @@ __process_stack_size__  = 0x1000;   /* main() stack */
 
 MEMORY
 {
-    flash (rx)  : org = 0x00000000, len = 32752	/* Local SRAM @ 0x10080000 */
-    ram   (rwx) : org = 0x10000000, len = 96k   /* Local SRAM @ 0x10000000 */
-	ram_usb (rwx) : org = 0x20008000, len = 32K
+    /* flash (rx) is actually Local SRAM Bank 2 (shadowed to 0x0 code/rodata) */
+    flash (rx)  : org = 0x00000000, len = LD_M4_FLASH_LEN /* Local SRAM @ 0x10080000 */
+    
+    /* ram (rwx) is
+     * Local SRAM Bank 1 @ 0x10000000 (data/bss/stacks)
+     * Note: On Praline, M0 local heap uses 0x10018000-0x1001FFFF */
+    ram   (rwx) : org = 0x10000000, len = LD_M4_RAM_LEN /* Local SRAM @ 0x10000000 */
+    
+    /* ram_usb is AHB SRAM Bank 1 @ 0x20008000 (USB buffer)
+     * HackRF One: 16KB?? originally set to 32KB, so left alone
+     * Praline: same configuration as HackRF One, while M0 uses all AHB SRAM) */
+    ram_usb (rwx) : org = 0x20008000, len = LD_USB_RAM_LEN
 }
 
+/* Only meaningful if LD_USB_RAM_LEN > 0 */
 usb_bulk_buffer         = ORIGIN(ram_usb);
+
 __ram_start__           = ORIGIN(ram);
 __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;
