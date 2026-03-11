@@ -42,15 +42,12 @@
 
 #include "recent_entries.hpp"
 
-#ifdef PRALINE
 
 // Add for heap debugging
 // For ChibiOS core functions
 #include "ch.h"
 #include "chcore.h"
 #include "chheap.h"
-
-#endif
 
 class BLELogger {
    public:
@@ -438,8 +435,7 @@ class BLERxView : public View {
             this->on_timer();
         }};
 
-#ifdef PRALINE
-    // New widget to control the list limit
+    // Widget to control the list limit
     Labels label_max_entries{
     {{UI_POS_X(22), 10 * 8 - 2 }, "List:", Theme::getInstance()->fg_light->foreground}
     };
@@ -453,7 +449,6 @@ class BLERxView : public View {
 
     // Variable to store the current limit
     size_t max_recent_entries = 32;
-#endif
 }; /* BLERxView */
 
 } /* namespace ui */

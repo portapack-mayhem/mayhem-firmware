@@ -645,7 +645,6 @@ BLERxView::BLERxView(NavigationView& nav)
     options_sort.set_selected_index(sort_index, true);
     options_filter.set_selected_index(filter_index, true);
 
-#ifdef PRALINE
     // ------------------------------------------------------------------------------
     // Handle Max Recent Entries 
     // ------------------------------------------------------------------------------
@@ -659,7 +658,6 @@ BLERxView::BLERxView(NavigationView& nav)
     field_max_entries.on_change = [this](int32_t v) {
         max_recent_entries = (size_t)v;
     };
-#endif
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_btlerx(channel_number);
@@ -835,12 +833,10 @@ void BLERxView::on_data(BlePacketData* packet) {
         recent.push_front(*it);
         recent.erase(it);
     } else {
-#ifdef PRALINE
         // Enforce limit
         while (recent.size() >= max_recent_entries) {
             recent.pop_back();
         }
-#endif
         recent.emplace_front(key);
         truncate_entries(recent);
     }
@@ -909,10 +905,8 @@ void BLERxView::on_filter_change(std::string value) {
 }
 
 void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
-#ifdef PRALINE
     // Clear searchList
     searchList.clear();
-#endif
 
     file_path = new_file_path;
     found_count = 0;
@@ -946,15 +940,10 @@ void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
                 break;
             }
 
-#ifdef PRALINE
             if (searchList.size() < max_recent_entries) {
                 searchList.push_back(currentLine);
                 total_count++;
             }
-#else
-            searchList.push_back(currentLine);
-            total_count++;
-#endif
 
             bytePos += bytesRead;
 
@@ -975,7 +964,6 @@ void BLERxView::on_timer() {
         }
     }
 
-#ifdef PRALINE
     // Debug: Check heap status every ~1 second
     static int heap_check_counter = 0;
     if (++heap_check_counter >= 60) {
@@ -989,7 +977,6 @@ void BLERxView::on_timer() {
             recent_entries_view.set_dirty();
         }
     }
-#endif
 
     if (ble_rx_error != BLE_RX_NO_ERROR) {
         if (ble_rx_error == BLE_RX_LIST_FILENAME_EMPTY_ERROR) {
