@@ -645,6 +645,22 @@ BLERxView::BLERxView(NavigationView& nav)
     options_sort.set_selected_index(sort_index, true);
     options_filter.set_selected_index(filter_index, true);
 
+#ifdef PRALINE
+    // ------------------------------------------------------------------------------
+    // Handle Max Recent Entries 
+    // ------------------------------------------------------------------------------
+
+    // Max Recent Entries UI widget
+    add_child(&label_max_entries);
+    add_child(&field_max_entries);
+    field_max_entries.set_value(max_recent_entries);
+
+    // Define what happens when the user changes the number
+    field_max_entries.on_change = [this](int32_t v) {
+        max_recent_entries = (size_t)v;
+    };
+#endif
+
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_btlerx(channel_number);
 
