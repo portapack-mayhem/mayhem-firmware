@@ -646,7 +646,7 @@ BLERxView::BLERxView(NavigationView& nav)
     options_filter.set_selected_index(filter_index, true);
 
     // ------------------------------------------------------------------------------
-    // Handle Max Recent Entries 
+    // Handle Max Recent Entries
     // ------------------------------------------------------------------------------
 
     // Max Recent Entries UI widget
