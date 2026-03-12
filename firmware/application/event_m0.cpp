@@ -93,7 +93,8 @@ class MessageHandlerMap {
 
 static MessageHandlerMap message_map;
 
-/* Global latest channel statistics, updated on every M4→M0 dispatch.
+/* Global latest channel statistics, updated when handling
+ * Message::ID::ChannelStatistics from M4→M0.
  * Readable from serial shell thread via cmd_rssi. */
 volatile int32_t global_last_max_db = -120;
 volatile uint32_t global_stats_update_count = 0;

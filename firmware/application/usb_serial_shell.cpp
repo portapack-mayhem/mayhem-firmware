@@ -1361,9 +1361,10 @@ static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
         return;
     }
-    int64_t freq = atol(argv[0]);
+    char* endptr;
+    int64_t freq = strtoll(argv[0], &endptr, 10);
 
-    if (freq <= 0) {
+    if (*endptr != '\0' || freq <= 0) {
         chprintf(chp, usage);
         return;
     }
@@ -1416,8 +1417,9 @@ static void cmd_rxstart(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
 
-    int64_t freq = atol(argv[0]);
-    if (freq <= 0 || freq > 7200000000LL) {
+    char* endptr;
+    int64_t freq = strtoll(argv[0], &endptr, 10);
+    if (*endptr != '\0' || freq <= 0 || freq > 7200000000LL) {
         chprintf(chp, "error: invalid frequency\r\n");
         return;
     }
@@ -1432,6 +1434,10 @@ static void cmd_rxstart(BaseSequentialStream* chp, int argc, char* argv[]) {
             return;
         }
     }
+
+    /* Shut down any running baseband before starting a new one */
+    portapack::receiver_model.disable();
+    baseband::shutdown();
 
     /* Configure receiver directly — no app view, no race condition */
     switch (mode) {
@@ -1458,8 +1464,11 @@ static void cmd_rxstart(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 static void cmd_rxstop(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)argc;
     (void)argv;
+    if (argc != 0) {
+        chprintf(chp, "usage: rxstop\r\n");
+        return;
+    }
     portapack::receiver_model.disable();
     baseband::shutdown();
     chprintf(chp, "ok\r\n");
