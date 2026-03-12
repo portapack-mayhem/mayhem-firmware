@@ -156,6 +156,7 @@ class Message {
         RTTYData = 98,
         NotificationData = 99,
         TimeSinkConfig = 100,
+        EPIRBTXData = 101,
         MAX
     };
 
@@ -1108,6 +1109,19 @@ class SigGenToneMessage : public Message {
     }
 
     const uint32_t tone_delta;
+};
+
+class EPIRBTXDataMessage : public Message {
+   public:
+    static constexpr uint8_t max_len = 18;
+    constexpr EPIRBTXDataMessage()
+        : Message{ID::EPIRBTXData} {
+    }
+    bool mode_bpsk = true;
+    uint8_t data[max_len]{0};
+    uint8_t data_len = 0;
+    uint32_t pre_count = 0;
+    uint32_t post_count = 0;
 };
 
 class AFSKTxConfigureMessage : public Message {
