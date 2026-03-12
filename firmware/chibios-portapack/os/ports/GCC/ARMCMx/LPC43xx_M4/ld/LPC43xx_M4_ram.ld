@@ -23,8 +23,15 @@ __process_stack_size__  = 0x1000;   /* main() stack */
 
 MEMORY
 {
-    flash   : org = 0x00000000, len = 96k   /* Local SRAM @ 0x10000000 */
-    ram     : org = 0x10080000, len = 32k   /* Local SRAM @ 0x10080000 */
+    /* Local SRAM Bank 1 shadowed to 0x0 (code)
+     * HackRF One: 96KB
+     * Praline: 96KB (M0 local heap uses remaining 32KB) */
+    flash   : org = 0x00000000, len = LD_M4_RAM_LEN /* Local SRAM @ 0x10000000 */
+
+    /* Local SRAM Bank 2 @ 0x10080000 (data/bss/stacks)
+     * HackRF One: ~32KB
+     * Praline: 72KB */
+    ram     : org = 0x10080000, len = LD_M4_FLASH_LEN /* Local SRAM @ 0x10080000 */ 
 }
 
 __ram_start__           = ORIGIN(ram);

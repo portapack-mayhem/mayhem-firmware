@@ -821,8 +821,26 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     // === Stop FPGA processing and flush filters ===
     fpga_debug_register_write(1, 0x00);  // Disable FPGA filters (resets CIC accumulators)
 
+    // Verify we're in RX mode before writing RX registers
+    if (fpga_get_mode() != FPGA_MODE_RX) {
+        // Either set mode or return error
+        fpga_set_mode(FPGA_MODE_RX);
+    }
+
     // Set FPGA RX decimation register
-    fpga_debug_register_write(2, n);
+    fpga_debug_register_write(FPGA_REG_DECIM, n);
+
+    /* RX Mode: Register 3 is FPGA_REG_RX_DIGITAL_GAIN.
+     * We shift up by (3 * n) to compensate for CIC bit-growth.
+     * Relationship: ds = (Stages * n) - Offset
+     * For a 3-stage filter, every increment of n grows the signal by 3 bits.
+     * We subtract a baseline offset to keep the signal within 8-bit bounds.
+     * Add a baseline shift to ensure the signal isn't too quiet
+     */
+    uint8_t ds = (3 * n);
+    ds += 2;
+    fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, ds);
+
     radio::invalidate_spi_config();
 
     // Configure Si5351 clocks
@@ -892,7 +910,6 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
 
 #ifdef PRALINE
     clock_generator.write_pll_single_byte(0, pll);
-    clock_generator.reset_plls();
 #else
     const auto pll_a_reg = pll.reg(0);
     clock_generator.write(pll_a_reg);

@@ -3478,30 +3478,48 @@ DebugMenuView::DebugMenuView(NavigationView& nav)
     set_max_rows(2);  // allow wider buttons
 }
 
+#ifdef PRALINE
+/* PralineDebugMenuView *************************************************/
+
+PralineDebugMenuView::PralineDebugMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);  // Allows wider buttons for descriptive titles
+}
+
+void PralineDebugMenuView::on_populate() {
+    if (portapack::persistent_memory::show_gui_return_icon()) {
+        add_items({{"..", ui::Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+    }
+    add_items({
+        {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
+        {"Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
+        {"MSynth", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351MultiSynthDebugView>(); }},
+        {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
+        {"Radio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
+        {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
+        {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
+        {"PLL A", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLADebugView>(); }},
+        {"PLL B", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLBDebugView>(); }},
+        {"GPIO", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
+        {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
+        {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
+        {"MAX2831", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
+        {"Si5351", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
+        {"SGPIO Clk", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
+        {"Baseband", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
+        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
+        {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
+    });
+}
+#endif
+
 void DebugMenuView::on_populate() {
     if (portapack::persistent_memory::show_gui_return_icon()) {
         add_items({{"..", ui::Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
 #ifdef PRALINE
-        {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
-        {"MSynth Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351MultiSynthDebugView>(); }},
-        {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
-        {"Radio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
-        {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
-        {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
-        {"Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
-        {"PLL A Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLADebugView>(); }},
-        {"PLL B Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLBDebugView>(); }},
-        {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
-        {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
-        {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
-        {"MAX2831 Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
-        {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
-        {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
-        {"Baseband Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
-        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
-        {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
+        {"Pro Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_setup, [this]() { nav_.push<PralineDebugMenuView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
         {"M0 Stack Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { stack_dump(); }},
