@@ -92,6 +92,11 @@ class MessageHandlerMap {
 };
 
 static MessageHandlerMap message_map;
+
+/* Global latest channel statistics, updated on every M4→M0 dispatch.
+ * Readable from serial shell thread via cmd_rssi. */
+volatile int32_t global_last_max_db = -120;
+volatile uint32_t global_stats_update_count = 0;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 bool EventDispatcher::is_running = false;
 bool EventDispatcher::display_sleep = false;
@@ -196,6 +201,11 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 
 void EventDispatcher::handle_application_queue() {
     shared_memory.application_queue.handle([](Message* const message) {
+        if (message->id == Message::ID::ChannelStatistics) {
+            auto stats_msg = static_cast<const ChannelStatisticsMessage*>(message);
+            global_last_max_db = stats_msg->statistics.max_db;
+            global_stats_update_count++;
+        }
         message_map.send(message);
     });
 }

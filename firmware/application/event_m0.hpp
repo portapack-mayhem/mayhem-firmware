@@ -156,4 +156,8 @@ class MessageHandlerRegistration {
     const Message::ID message_id;
 };
 
+/* Global channel statistics from M4 baseband, readable from any thread. */
+extern volatile int32_t global_last_max_db;
+extern volatile uint32_t global_stats_update_count;
+
 #endif /*__EVENT_M0_H__*/
