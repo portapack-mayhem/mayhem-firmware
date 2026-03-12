@@ -1367,9 +1367,101 @@ static void cmd_setfreq(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
         return;
     }
+    if (freq > 7200000000LL) {
+        chprintf(chp, "error: frequency exceeds maximum 7200 MHz\r\n");
+        return;
+    }
     // radio::set_tuning_frequency(freq); // sadly this doesn't update any widget, just change the frequency.
     FreqChangeCommandMessage message{freq};
     EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_rssi(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argv;
+    if (argc > 1) {
+        chprintf(chp, "usage: rssi [count]\r\n");
+        return;
+    }
+
+    int count = 1;
+    if (argc == 1) {
+        count = atoi(argv[0]);
+        if (count < 1) count = 1;
+        if (count > 100) count = 100;
+    }
+
+    uint32_t prev_update = global_stats_update_count;
+    for (int i = 0; i < count; i++) {
+        /* Wait up to 500ms for a fresh stats update from M4 baseband */
+        int wait_ms = 0;
+        while (global_stats_update_count == prev_update && wait_ms < 500) {
+            chThdSleepMilliseconds(10);
+            wait_ms += 10;
+        }
+        if (global_stats_update_count == prev_update) {
+            chprintf(chp, "error: no baseband active\r\n");
+            return;
+        }
+        prev_update = global_stats_update_count;
+        chprintf(chp, "%d\r\n", (int)global_last_max_db);
+    }
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_rxstart(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: rxstart freq_hz [am|nfm|wfm]\r\n";
+    if (argc < 1 || argc > 2) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    int64_t freq = atol(argv[0]);
+    if (freq <= 0 || freq > 7200000000LL) {
+        chprintf(chp, "error: invalid frequency\r\n");
+        return;
+    }
+
+    /* Default to AM for broadest signal detection */
+    int mode = 0;  /* 0=AM, 1=NFM, 2=WFM */
+    if (argc == 2) {
+        if (strcmp(argv[1], "nfm") == 0) mode = 1;
+        else if (strcmp(argv[1], "wfm") == 0) mode = 2;
+        else if (strcmp(argv[1], "am") != 0) {
+            chprintf(chp, usage);
+            return;
+        }
+    }
+
+    /* Configure receiver directly — no app view, no race condition */
+    switch (mode) {
+        case 0:
+            baseband::run_image(portapack::spi_flash::image_tag_am_audio);
+            portapack::receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
+            portapack::receiver_model.set_am_configuration(0);
+            break;
+        case 1:
+            baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
+            portapack::receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
+            portapack::receiver_model.set_nbfm_configuration(2);
+            break;
+        case 2:
+            baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
+            portapack::receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
+            portapack::receiver_model.set_wfm_configuration(0);
+            break;
+    }
+
+    portapack::receiver_model.set_target_frequency(freq);
+    portapack::receiver_model.enable();
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_rxstop(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    portapack::receiver_model.disable();
+    baseband::shutdown();
     chprintf(chp, "ok\r\n");
 }
 
@@ -1488,6 +1580,9 @@ static const ShellCommand commands[] = {
     {"sendpocsag", cmd_sendpocsag},
     {"asyncmsg", cmd_asyncmsg},
     {"setfreq", cmd_setfreq},
+    {"rssi", cmd_rssi},
+    {"rxstart", cmd_rxstart},
+    {"rxstop", cmd_rxstop},
     {"getres", cmd_getres},
     {"getflash", cmd_getflash},
     {"getdevtype", cmd_getdevtype},
