@@ -267,10 +267,10 @@ void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     int size = (int)strtol(argv[0], NULL, 10);
 
-    uint8_t buffer[62];
+    uint8_t buffer[32];
 
     do {
-        File::Size bytes_to_read = size > 62 ? 62 : size;
+        File::Size bytes_to_read = size > 32 ? 32 : size;
         auto bytes_read = shell_file->read(buffer, bytes_to_read);
         if (report_on_error(chp, bytes_read)) return;
 
