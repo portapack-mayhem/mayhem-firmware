@@ -29,6 +29,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "message.hpp"
+#include "modems.hpp"
 
 namespace ui::external_app::mdc_tx {
 
@@ -55,16 +56,16 @@ class MdcTxView : public View {
         app_settings::Mode::TX};
 
     Labels labels_{{
-        {{0 * 8, 0 * 16}, "Op:", ui::Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 1 * 16}, "ID:", ui::Theme::getInstance()->fg_light->foreground},
-        {{13 * 8, 1 * 16}, "Arg:", ui::Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 2 * 16}, "Src:", ui::Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Op:", ui::Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(1)}, "ID:", ui::Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(13), UI_POS_Y(1)}, "Arg:", ui::Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "Src:", ui::Theme::getInstance()->fg_light->foreground},
     }};
 
     // Only one OptionsField allowed per external app
     // Stun=Op 0x2B Arg 0x00, Unstun=Op 0x2B Arg 0x0C (auto-set via on_change)
     OptionsField field_op{
-        {4 * 8, 0 * 16},
+        {UI_POS_X(4), UI_POS_Y(0)},
         14,
         {{"PTT ID", 0x01},
          {"Emergency", 0x00},
@@ -79,22 +80,22 @@ class MdcTxView : public View {
          {"Rem Monitor", 0x11},
          {"Message", 0x07}}};
 
-    // Unit ID: two 3-digit hex bytes displayed together
-    NumberField field_id_hi{{4 * 8, 1 * 16}, 3, {0, 255}, 1, '0'};
-    NumberField field_id_lo{{7 * 8, 1 * 16}, 3, {0, 255}, 1, '0'};
+    // Unit ID: two decimal bytes (0-255) combined into a 16-bit ID
+    NumberField field_id_hi{{UI_POS_X(4), UI_POS_Y(1)}, 3, {0, 255}, 1, '0'};
+    NumberField field_id_lo{{UI_POS_X(7), UI_POS_Y(1)}, 3, {0, 255}, 1, '0'};
 
-    // Argument byte
-    NumberField field_arg{{17 * 8, 1 * 16}, 3, {0, 255}, 1, '0'};
+    // Argument byte (decimal 0-255, auto-set by op selection)
+    NumberField field_arg{{UI_POS_X(17), UI_POS_Y(1)}, 3, {0, 255}, 1, '0'};
 
-    // Source ID (used as second packet's unit ID in double-packet ops)
-    NumberField field_src_hi{{4 * 8, 2 * 16}, 3, {0, 255}, 1, '0'};
-    NumberField field_src_lo{{7 * 8, 2 * 16}, 3, {0, 255}, 1, '0'};
+    // Source ID: two decimal bytes (0-255) combined into a 16-bit ID
+    NumberField field_src_hi{{UI_POS_X(4), UI_POS_Y(2)}, 3, {0, 255}, 1, '0'};
+    NumberField field_src_lo{{UI_POS_X(7), UI_POS_Y(2)}, 3, {0, 255}, 1, '0'};
 
-    Text text_status{{0, 3 * 16, 240, 16}, "Ready"};
+    Text text_status{{0, UI_POS_Y(3), UI_POS_MAXWIDTH, UI_POS_DEFAULT_HEIGHT}, "Ready"};
 
     TransmitterView tx_view{
         (int16_t)UI_POS_Y_BOTTOM(4),
-        1750000,
+        12500,
         0};
 
     bool tx_active_{false};

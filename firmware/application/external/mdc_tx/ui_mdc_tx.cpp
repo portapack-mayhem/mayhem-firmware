@@ -28,14 +28,14 @@
 
 using namespace portapack;
 
-namespace {
+namespace ui::external_app::mdc_tx {
 
-static constexpr uint32_t MDC_SAMPLES_PER_BIT = 1536000U / 1200U;
+static constexpr uint32_t MDC_SAMPLES_PER_BIT = AFSK_TX_SAMPLERATE / 1200U;
 static constexpr uint32_t MDC_MARK_FREQ = 1800U;
 static constexpr uint32_t MDC_SPACE_FREQ = 1200U;
 static constexpr uint32_t MDC_FM_DEVIATION = 2500U;
 
-static constexpr uint8_t MDC_PREAMBLE[7] = {0x00, 0x00, 0x00, 0xAA, 0xAA, 0xAA, 0xAA};
+static constexpr uint8_t MDC_PREAMBLE[7] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 static constexpr uint8_t MDC_SYNC[5] = {0x07, 0x09, 0x2A, 0x44, 0x6F};
 static constexpr int MDC_NUM_PREAMBLES = 3;
 
@@ -76,10 +76,6 @@ static uint16_t mdc_crc(const uint8_t* data, int length) {
     crc ^= 0xFFFF;
     return crc;
 }
-
-}  // anonymous namespace
-
-namespace ui::external_app::mdc_tx {
 
 // CRC + convolutional encoding + bit interleaving for a 14-byte codeword.
 // Uses lbits_ (class member) so no large allocation hits the stack.
