@@ -27,6 +27,7 @@
 #include "ui_freq_field.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "message.hpp"
 
 namespace ui::external_app::p25_tx {
 
@@ -39,6 +40,9 @@ class P25TxView : public View {
     std::string title() const override { return "P25 TX"; }
 
    private:
+    void start_tx();
+    void stop_tx();
+    void on_tx_progress(const uint32_t progress, const bool done);
     NavigationView& nav_;
 
     TxRadioState radio_state_{
@@ -74,6 +78,15 @@ class P25TxView : public View {
         (int16_t)UI_POS_Y_BOTTOM(5),
         12500,
         0};
+
+    bool transmitting{false};
+
+    MessageHandlerRegistration message_handler_tx_progress{
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            this->on_tx_progress(message.progress, message.done);
+        }};
 };
 
 }  // namespace ui::external_app::p25_tx

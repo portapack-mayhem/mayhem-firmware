@@ -426,6 +426,15 @@ void set_epirb_tx_config(EPIRBTXDataMessage& message) {
     send_message(&message);
 }
 
+void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
+    const size_t max_len = sizeof(shared_memory.bb_data.data);
+    if (frame_length > max_len) frame_length = max_len;
+    memcpy(shared_memory.bb_data.data, dibits, frame_length);
+    P25TxConfigureMessage msg{};
+    msg.frame_length = frame_length;
+    send_message(&msg);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {

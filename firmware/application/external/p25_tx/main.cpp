@@ -61,7 +61,7 @@ application_information_t _application_information_p25_tx = {
     /*.icon_color         = */ ui::Color::blue().v,
     /*.menu_location      = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
-    /*.m4_app_tag         = */ {0, 0, 0, 0},
+    /*.m4_app_tag         = */ {'P', '2', '5', 'T'},
     /*.m4_app_offset      = */ 0x00000000,
 };
 }
