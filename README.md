@@ -52,7 +52,7 @@ The current **stable release** is on the [![GitHub release (latest by date)](htt
 
 ## How can I collaborate
 
-We warmly welcome your contributions! To avoid wasting your valuable time and effort, we have simple guidelines depending on the type of contribution you want to make. Please refer to our **[Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines)** for details.
+We warmly welcome your contributions! Please refer to our **[Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines)** for details.
 
 You can write [documentation](https://github.com/portapack-mayhem/mayhem-firmware/wiki), fix bugs and [answer issues](https://github.com/portapack-mayhem/mayhem-firmware/issues) or add new functionality. Please also check the following [guide](https://github.com/portapack-mayhem/mayhem-firmware/wiki/How-to-collaborate) with details.
 
