@@ -80,6 +80,7 @@ class P25TxView : public View {
         0};
 
     bool transmitting{false};
+    int tsbk_idx_{0};
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
