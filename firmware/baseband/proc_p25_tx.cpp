@@ -32,16 +32,20 @@
 static constexpr int8_t dibit_to_level[4] = {1, 3, -1, -3};
 
 void P25TxProcessor::execute(const buffer_c8_t& buffer) {
-    if (!configured) return;
+    if (!configured) {
+        // Zero output - never emit garbage while idle
+        for (size_t i = 0; i < buffer.count; i++)
+            buffer.p[i] = {0, 0};
+        return;
+    }
 
     for (size_t i = 0; i < buffer.count; i++) {
         if (sample_count == 0) {
             if (dibit_index >= frame_length) {
-                // Frame complete — notify application and zero remaining buffer
+                // Frame complete - notify A7 and stop
                 txprogress_message.done = true;
                 shared_memory.application_queue.push(txprogress_message);
                 configured = false;
-                // Zero the rest of the buffer
                 for (size_t j = i; j < buffer.count; j++)
                     buffer.p[j] = {0, 0};
                 return;
