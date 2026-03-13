@@ -6,7 +6,8 @@
 > Different types of contributions (from one-line fixes to new features) have different requirements and expectations. The guidelines will help you understand the process and prepare your PR properly.
 
 ## Brief description what you did
-<!-- Please describe your changes in detail here -->
+<!-- Please describe your changes in detail here. What problem does this PR solve? What features does it add or fix? -->
+
 
 ## Checklist
 - [ ] Kept changes minimal and limited to necessary files
