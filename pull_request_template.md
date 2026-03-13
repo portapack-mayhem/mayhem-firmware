@@ -1,9 +1,9 @@
 <!--
-👋 Thank you for your contribution! We greatly appreciate your effort to make Mayhem better.
+👋 Thank you for your contribution!
 
-⚠️ To avoid sadness that we request too much changes or maybe rejected at the end, we have simple guidelines here: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines. Please review our Contributing Guidelines before submitting:
+⚠️ To avoid sadness that we request too much changes or maybe rejected at the end, we have simple guidelines here: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines. Please review our Contributing Guidelines before started coding on it, to avoid sadness if we rejected your changes due to not meeting the guidelines.
 
-Thank you!
+Thank you again for considering contributing!
 -->
 
 ## Brief description what you did
