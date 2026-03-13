@@ -294,8 +294,8 @@ bool BtnGridView::set_highlighted(int32_t new_value, bool force_update) {
     }
 
     // Normalize offset to show maximum items when count decreased
-    if (offset + displayed_max > item_count && item_count > 0) {
-        if (item_count >= displayed_max) {
+    if (offset + displayed_max > (size_t)item_count && item_count > 0) {
+        if ((size_t)item_count >= displayed_max) {
             offset = item_count - displayed_max;
         } else {
             offset = 0;

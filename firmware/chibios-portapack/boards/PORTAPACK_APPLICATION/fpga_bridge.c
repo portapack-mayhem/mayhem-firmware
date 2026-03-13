@@ -342,7 +342,7 @@
   // ============================================================================
 
   uint8_t fpga_register_read(uint8_t reg) {
-      if (reg == 0 || reg > 5) return;
+      if (reg == 0 || reg > 5) return 0;
 
       ssp1_set_mode_ice40();
       uint8_t val = fpga_spi_read(reg);
