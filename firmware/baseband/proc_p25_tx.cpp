@@ -56,7 +56,7 @@ void P25TxProcessor::execute(const buffer_c8_t& buffer) {
         phase += (uint32_t)((int32_t)level * (int32_t)base_phase_step);
 
         int8_t re = sine_table_i8[(phase + 0x40000000) >> 24];  // cos
-        int8_t im = sine_table_i8[phase >> 24];                  // sin
+        int8_t im = sine_table_i8[phase >> 24];                 // sin
         buffer.p[i] = {re, im};
 
         sample_count++;

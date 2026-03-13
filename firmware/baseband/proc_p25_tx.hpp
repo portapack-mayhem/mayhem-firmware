@@ -35,9 +35,9 @@ class P25TxProcessor : public BasebandProcessor {
 
    private:
     bool configured{false};
-    uint16_t frame_length{0};   // total dibits in frame
-    uint16_t dibit_index{0};    // current dibit being transmitted
-    uint32_t sample_count{0};   // samples emitted for current dibit
+    uint16_t frame_length{0};  // total dibits in frame
+    uint16_t dibit_index{0};   // current dibit being transmitted
+    uint32_t sample_count{0};  // samples emitted for current dibit
 
     // FM phase accumulator (32-bit wrapping)
     uint32_t phase{0};
