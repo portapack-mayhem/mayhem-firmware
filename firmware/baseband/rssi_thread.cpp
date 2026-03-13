@@ -61,7 +61,17 @@ void RSSIThread::run() {
 
     rf::rssi::start();
 
+#ifdef PRALINE
+    // Debug: Mark that RSSI thread has started
+    shared_memory.m4_rssi_thread_running = 1;
+    shared_memory.m4_rssi_dma_count = 0;
+    shared_memory.m4_rssi_msg_count = 0;
+#endif
+
     while (!chThdShouldTerminate()) {
+#ifdef PRALINE
+        shared_memory.m4_rssi_dma_count++;
+#endif
         // TODO: Place correct sampling rate into buffer returned here:
         const auto buffer_tmp = rf::rssi::dma::wait_for_buffer();
         const rf::rssi::buffer_t buffer{
@@ -70,6 +80,12 @@ void RSSIThread::run() {
         stats.process(
             buffer,
             [](const RSSIStatistics& statistics) {
+#ifdef PRALINE
+                shared_memory.m4_rssi_msg_count++;
+                // Also store raw values for debugging
+                shared_memory.m4_rssi_min = statistics.min;
+                shared_memory.m4_rssi_max = statistics.max;
+#endif
                 const RSSIStatisticsMessage message{statistics};
                 shared_memory.application_queue.push(message);
             });

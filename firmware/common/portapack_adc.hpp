@@ -35,7 +35,17 @@ constexpr size_t adc0_touch_xn_input = 6;
 
 /* ADC1 */
 
+/*
+ * RSSI input channel differs between platforms:
+ * - HackRF One (MAX2837): RSSI routed to ADC1 Channel 1
+ * - HackRF Pro/PRALINE (MAX2831): RSSI routed to ADC1 Channel 0
+ */
+
+#ifdef PRALINE
+constexpr size_t adc1_rssi_input = 0;
+#else
 constexpr size_t adc1_rssi_input = 1;
+#endif
 
 } /* namespace portapack */
 

@@ -55,6 +55,15 @@ struct ToneData {
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
+#ifdef PRALINE
+    // DEBUG PRALINE m4 Shared memory
+    volatile uint32_t m4_rssi_thread_running{0};
+    volatile uint32_t m4_rssi_dma_count{0};
+    volatile uint32_t m4_rssi_msg_count{0};
+    volatile uint8_t m4_rssi_min{0};
+    volatile uint8_t m4_rssi_max{0};
+#endif
+
     static constexpr size_t application_queue_k = 11;
     static constexpr size_t app_local_queue_k = 11;
 

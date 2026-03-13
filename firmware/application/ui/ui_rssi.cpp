@@ -34,6 +34,15 @@
 // If it does not change, then all graph min values are is zero
 #define GRAPH_MIN_ALL_ZERO_FLAG 666
 
+// Debug variables for PRALINE RSSI diagnostics
+#ifdef PRALINE
+static volatile uint32_t g_rssi_stats_calls = 0;
+static volatile uint32_t g_rssi_accumulator = 0;
+static volatile uint32_t g_rssi_count = 0;
+static volatile uint8_t g_rssi_raw_min = 0;
+static volatile uint8_t g_rssi_raw_max = 0;
+#endif
+
 namespace ui {
 
 RSSI::RSSI(
@@ -46,14 +55,25 @@ RSSI::RSSI(
 void RSSI::paint(Painter& painter) {
     const auto r = screen_rect();
 
+#ifdef PRALINE
+    /* PRALINE MAX2831 RSSI characteristics:
+     * - ADC Channel 0 reads MAX2831 RSSI output
+     * - Observed range: 0-255 (full ADC range)
+     * - Typical avg with signal: ~165-170
+     */
+    constexpr int raw_min = 155;
+    constexpr int raw_max = 185;
+    constexpr int raw_delta = raw_max - raw_min;
+#else
     constexpr int rssi_sample_range = 256;
     // constexpr float rssi_voltage_min = 0.4;
     constexpr float rssi_voltage_max = 2.2;
-    constexpr float adc_voltage_max = 3.3;
     // constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
     constexpr int raw_min = 0;
+    constexpr float adc_voltage_max = 3.3;
     constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
     constexpr int raw_delta = raw_max - raw_min;
+#endif
 
     if (!vertical_rssi_enabled) {
         // horizontal left to right level meters
@@ -113,6 +133,44 @@ void RSSI::paint(Painter& painter) {
         const Rect r_db{r.left() + x_db, r.top(), 1, r.height()};
 
         if (db_) painter.fill_rectangle(r_db, Color::green());
+
+#ifdef PRALINE
+        // ========== DEBUG: Draw raw RSSI values as text ==========
+        // Line 1: min/avg/max values from widget (cast to uint8_t since they're stored as int8_t)
+        const auto debug_str = to_string_dec_uint(static_cast<uint8_t>(min_), 3) + "/" +
+                               to_string_dec_uint(static_cast<uint8_t>(avg_), 3) + "/" +
+                               to_string_dec_uint(static_cast<uint8_t>(max_), 3);
+
+        const Rect text_bg{120, 42, 100, 10};
+        painter.fill_rectangle(text_bg, Color::black());
+        painter.draw_string(
+            Point{120, 42},
+            {ui::font::fixed_5x8, Color::yellow(), Color::black()},
+            debug_str);
+
+        // Line 2: stats call count (shows if on_statistics_update is being called)
+        const auto calls_str = "c:" + to_string_dec_uint(g_rssi_stats_calls % 10000, 4);
+        const Rect text_bg2{120, 52, 50, 10};
+        painter.fill_rectangle(text_bg2, Color::black());
+        painter.draw_string(
+            Point{120, 52},
+            {ui::font::fixed_5x8, Color::cyan(), Color::black()},
+            calls_str);
+
+        // Line 3: M4 RSSI thread debug (from shared_memory)
+        // Shows: thread running flag, DMA count, message count
+        const auto m4_str = "T:" + to_string_dec_uint(shared_memory.m4_rssi_thread_running, 1) +
+                            " D:" + to_string_dec_uint(shared_memory.m4_rssi_dma_count % 10000, 4) +
+                            " M:" + to_string_dec_uint(shared_memory.m4_rssi_msg_count % 10000, 4);
+        const Rect text_bg3{100, 62, 130, 10};
+        painter.fill_rectangle(text_bg3, Color::black());
+        painter.draw_string(
+            Point{100, 62},
+            {ui::font::fixed_5x8, Color::green(), Color::black()},
+            m4_str);
+        // ==========================================================
+#endif
+
     } else {
         // vertical bottom to top level meters
         const range_t<int> y_avg_range{0, r.height() - 1};
@@ -218,6 +276,15 @@ void RSSI::set_peak(bool enabled, size_t duration) {
 }
 
 void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
+#ifdef PRALINE
+    // Debug: Track raw incoming values
+    g_rssi_stats_calls++;
+    g_rssi_accumulator = statistics.accumulator;
+    g_rssi_count = statistics.count;
+    g_rssi_raw_min = statistics.min;
+    g_rssi_raw_max = statistics.max;
+#endif
+
     min_ = statistics.min;
     avg_ = statistics.accumulator / statistics.count;
     max_ = statistics.max;
@@ -428,14 +495,25 @@ void RSSIGraph::paint(Painter& painter) {
 void RSSIGraph::add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max, int16_t db) {
     const auto r = screen_rect();
 
+#ifdef PRALINE
+        /* PRALINE MAX2831 RSSI characteristics:
+     * - ADC Channel 0 reads MAX2831 RSSI output
+     * - Observed range: 0-255 (full ADC range)
+     * - Typical avg with signal: ~165-170
+     */
+    constexpr int raw_min = 155;
+    constexpr int raw_max = 185;
+    constexpr int raw_delta = raw_max - raw_min;
+#else
     constexpr int rssi_sample_range = 256;
     // constexpr float rssi_voltage_min = 0.4;
     constexpr float rssi_voltage_max = 2.2;
-    constexpr float adc_voltage_max = 3.3;
     // constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
     constexpr int raw_min = 0;
+    constexpr float adc_voltage_max = 3.3;
     constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
     constexpr int raw_delta = raw_max - raw_min;
+#endif
 
     // vertical bottom to top level meters
     const range_t<int> y_avg_range{0, r.height() - 1};
@@ -523,6 +601,12 @@ bool RSSI::on_touch(const TouchEvent event) {
 }
 
 void RSSI::set_db(int16_t db) {
+#ifdef PRALINE
+    /* Add a +30dB global boost to align 40MHz/1.2V VCM data
+    with the UI's existing display scale. */
+    db_ = db + 30;
+#else
     db_ = db;
+#endif
 }
 } /* namespace ui */
