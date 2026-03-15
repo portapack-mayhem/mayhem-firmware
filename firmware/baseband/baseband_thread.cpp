@@ -102,6 +102,30 @@ void BasebandThread::run() {
             buffer_c8_t buffer{
                 buffer_tmp.p, buffer_tmp.count, sampling_rate_};
 
+#ifdef PRALINE
+            /*
+             * Software RSSI: Copy 8 I/Q samples spread across buffer.
+             *
+             * Just pack and copy - no computation here.
+             * rssi_thread does __SMUAD power calculation and peak detection.
+             * 8 samples avoids zero-crossing artifacts.
+             */
+            if (direction_ == baseband::Direction::Receive && buffer_tmp.count >= 32) {
+                const size_t step = buffer_tmp.count / 8;
+
+                for (size_t i = 0; i < 8; i++) {
+                    const size_t idx = i * step + (step / 2);
+                    const auto sample = buffer_tmp.p[idx];
+
+                    // Pack into 32 bits: Q in high 16 bits, I in low 16 bits
+                    const int16_t i16 = sample.real();
+                    const int16_t q16 = sample.imag();
+                    shared_memory.software_rssi_iq[i] =
+                        static_cast<uint32_t>((q16 << 16) | (i16 & 0xFFFF));
+                }
+            }
+#endif
+
             if (shared_memory.request_m4_performance_counter == 0x02) {
                 uint8_t max = shared_memory.m4_performance_counter;
                 for (size_t i = 0; i < buffer_tmp.count; i++) {

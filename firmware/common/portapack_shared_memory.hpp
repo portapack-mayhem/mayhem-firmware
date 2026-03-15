@@ -56,12 +56,16 @@ struct ToneData {
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
 #ifdef PRALINE
-    // DEBUG PRALINE m4 Shared memory
-    volatile uint32_t m4_rssi_thread_running{0};
-    volatile uint32_t m4_rssi_dma_count{0};
-    volatile uint32_t m4_rssi_msg_count{0};
-    volatile uint8_t m4_rssi_min{0};
-    volatile uint8_t m4_rssi_max{0};
+    /*
+     * Software RSSI: 8 packed I/Q samples from baseband_thread.
+     *
+     * baseband_thread copies 8 samples spread across buffer (no computation).
+     * Each sample is packed: Q in high 16 bits, I in low 16 bits.
+     * rssi_thread uses __SMUAD on each to compute I²+Q², finds peak.
+     *
+     * 8 samples avoids zero-crossing artifacts from single-sample approach.
+     */
+    volatile uint32_t software_rssi_iq[8]{0};  // 8 packed I/Q samples
 #endif
 
     static constexpr size_t application_queue_k = 11;
