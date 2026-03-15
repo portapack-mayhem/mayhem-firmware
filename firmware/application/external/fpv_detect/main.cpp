@@ -1,21 +1,21 @@
 // Author: berkeozkir (Berke Özkır)
 
 #include "ui.hpp"
-#include "ui_fpv_rx.hpp"
+#include "ui_fpv_detect.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::fpv_rx {
+namespace ui::external_app::fpv_detect {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<FpvRxView>();
+    nav.push<FpvDetectView>();
 }
-}  // namespace ui::external_app::fpv_rx
+}  // namespace ui::external_app::fpv_detect
 
 extern "C" {
 
-__attribute__((section(".external_app.app_fpv_rx.application_information"), used)) application_information_t _application_information_fpv_rx = {
+__attribute__((section(".external_app.app_fpv_detect.application_information"), used)) application_information_t _application_information_fpv_detect = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::fpv_rx::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::fpv_detect::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 

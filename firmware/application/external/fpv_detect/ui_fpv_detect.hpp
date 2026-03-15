@@ -1,7 +1,7 @@
 // Author: berkeozkir (Berke Özkır)
 
-#ifndef _UI_FPV_RX
-#define _UI_FPV_RX
+#ifndef _UI_FPV_DETECT
+#define _UI_FPV_DETECT
 
 #include <array>
 #include <cstdint>
@@ -17,7 +17,7 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 
-namespace ui::external_app::fpv_rx {
+namespace ui::external_app::fpv_detect {
 
 static constexpr uint8_t FPV_NUM_BANDS = 5;
 static constexpr uint8_t FPV_CHANNELS_PER_BAND = 8;
@@ -36,10 +36,10 @@ static constexpr char band_labels[] = {'A', 'B', 'E', 'F', 'R'};
 
 #define FPV_RX_BW 750000
 
-class FpvRxView : public View {
+class FpvDetectView : public View {
    public:
-    explicit FpvRxView(NavigationView& nav);
-    ~FpvRxView();
+    explicit FpvDetectView(NavigationView& nav);
+    ~FpvDetectView();
 
     void focus() override;
     std::string title() const override { return "FPV DETECT"; };
@@ -195,6 +195,6 @@ class FpvRxView : public View {
         }};
 };
 
-}  // namespace ui::external_app::fpv_rx
+}  // namespace ui::external_app::fpv_detect
 
 #endif

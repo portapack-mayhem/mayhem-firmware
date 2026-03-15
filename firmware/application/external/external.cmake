@@ -329,9 +329,9 @@ set(EXTCPPSRC
 	external/kiss_tnc/main.cpp
 	external/kiss_tnc/ui_kiss_tnc.cpp
 
-	#fpv_rx
-	external/fpv_rx/main.cpp
-	external/fpv_rx/ui_fpv_rx.cpp
+	#fpv_detect
+	external/fpv_detect/main.cpp
+	external/fpv_detect/ui_fpv_detect.cpp
 )
 
 set(EXTAPPLIST
@@ -392,7 +392,7 @@ set(EXTAPPLIST
 	gfxeq
 	waterfall_designer
 	detector_rx
-	fpv_rx
+	fpv_detect
 	spaceinv
 	blackjack
 	battleship

@@ -28,7 +28,7 @@
  *    LOCK_HOLD_MAX), so brief fades don't drop lock.
  */
 
-#include "ui_fpv_rx.hpp"
+#include "ui_fpv_detect.hpp"
 
 #include <cstdio>
 
@@ -37,7 +37,7 @@
 
 using namespace portapack;
 
-namespace ui::external_app::fpv_rx {
+namespace ui::external_app::fpv_detect {
 
 static constexpr uint8_t SCAN_DWELL_FRAMES = 1;
 static constexpr uint8_t VERIFY_SAMPLE_TARGET = 5;
@@ -50,52 +50,52 @@ static constexpr uint8_t LOCK_CONFIDENCE_MIN = 72;
 static constexpr int32_t MIN_NEIGHBOR_MARGIN_FOR_LOCK_DB = 3;
 static constexpr uint8_t BEEP_GUARD_FRAMES = 8;
 
-int32_t FpvRxView::clamp_value(int32_t value, int32_t low, int32_t high) {
+int32_t FpvDetectView::clamp_value(int32_t value, int32_t low, int32_t high) {
     if (value < low) return low;
     if (value > high) return high;
     return value;
 }
 
-int32_t FpvRxView::map_value(int32_t value, int32_t from_low, int32_t from_high, int32_t to_low, int32_t to_high) {
+int32_t FpvDetectView::map_value(int32_t value, int32_t from_low, int32_t from_high, int32_t to_low, int32_t to_high) {
     const auto clamped = clamp_value(value, from_low, from_high);
     return to_low + (clamped - from_low) * (to_high - to_low) / (from_high - from_low);
 }
 
-void FpvRxView::focus() {
+void FpvDetectView::focus() {
     field_lna.focus();
 }
 
-FpvRxView::~FpvRxView() {
+FpvDetectView::~FpvDetectView() {
     shared_memory.request_m4_performance_counter = 0;
     receiver_model.disable();
     audio::output::stop();
     baseband::shutdown();
 }
 
-uint8_t FpvRxView::channel_index(uint8_t band, uint8_t ch) const {
+uint8_t FpvDetectView::channel_index(uint8_t band, uint8_t ch) const {
     return static_cast<uint8_t>(band * FPV_CHANNELS_PER_BAND + ch);
 }
 
-uint8_t FpvRxView::current_channel_index() const {
+uint8_t FpvDetectView::current_channel_index() const {
     return channel_index(scan_band, scan_ch);
 }
 
-int16_t FpvRxView::detect_threshold_db() const {
+int16_t FpvDetectView::detect_threshold_db() const {
     return static_cast<int16_t>(detect_threshold_db_);
 }
 
-int16_t FpvRxView::unlock_threshold_db() const {
+int16_t FpvDetectView::unlock_threshold_db() const {
     return static_cast<int16_t>(detect_threshold_db() - 6);
 }
 
-int16_t FpvRxView::candidate_average_db() const {
+int16_t FpvDetectView::candidate_average_db() const {
     if (!verify_samples_) {
         return -120;
     }
     return static_cast<int16_t>(verify_sum_db_ / verify_samples_);
 }
 
-int16_t FpvRxView::neighbor_best_db() const {
+int16_t FpvDetectView::neighbor_best_db() const {
     int16_t best = -120;
 
     if (candidate_ch_ > 0) {
@@ -115,7 +115,7 @@ int16_t FpvRxView::neighbor_best_db() const {
     return best;
 }
 
-void FpvRxView::request_event_beep(uint32_t hz, uint32_t duration_ms) {
+void FpvDetectView::request_event_beep(uint32_t hz, uint32_t duration_ms) {
     if ((frame_counter_ - last_beep_frame_) < BEEP_GUARD_FRAMES) {
         return;
     }
@@ -123,7 +123,7 @@ void FpvRxView::request_event_beep(uint32_t hz, uint32_t duration_ms) {
     baseband::request_audio_beep(hz, 24000, duration_ms);
 }
 
-void FpvRxView::retune_to(uint8_t band, uint8_t ch) {
+void FpvDetectView::retune_to(uint8_t band, uint8_t ch) {
     scan_band = band;
     scan_ch = ch;
     freq_ = fpv_frequencies[band][ch];
@@ -131,7 +131,7 @@ void FpvRxView::retune_to(uint8_t band, uint8_t ch) {
     update_freq_display();
 }
 
-void FpvRxView::step_scan() {
+void FpvDetectView::step_scan() {
     if (band_mode < FPV_NUM_BANDS) {
         scan_band = band_mode;
         scan_ch = static_cast<uint8_t>((scan_ch + 1) % FPV_CHANNELS_PER_BAND);
@@ -150,7 +150,7 @@ void FpvRxView::step_scan() {
     scan_dwell_frames_ = SCAN_DWELL_FRAMES;
 }
 
-void FpvRxView::reset_detector(bool retune_current) {
+void FpvDetectView::reset_detector(bool retune_current) {
     detect_state_ = DetectState::Scanning;
     candidate_band_ = scan_band;
     candidate_ch_ = scan_ch;
@@ -177,11 +177,11 @@ void FpvRxView::reset_detector(bool retune_current) {
     }
 }
 
-bool FpvRxView::is_possible_analog_carrier(const ChannelStatistics& statistics) const {
+bool FpvDetectView::is_possible_analog_carrier(const ChannelStatistics& statistics) const {
     return statistics.max_db >= detect_threshold_db();
 }
 
-uint8_t FpvRxView::compute_candidate_confidence() const {
+uint8_t FpvDetectView::compute_candidate_confidence() const {
     if (!verify_samples_) {
         return 0;
     }
@@ -213,7 +213,7 @@ uint8_t FpvRxView::compute_candidate_confidence() const {
     return static_cast<uint8_t>(clamp_value(score, 0, 99));
 }
 
-void FpvRxView::enter_candidate(const ChannelStatistics& statistics) {
+void FpvDetectView::enter_candidate(const ChannelStatistics& statistics) {
     detect_state_ = DetectState::Candidate;
     candidate_band_ = scan_band;
     candidate_ch_ = scan_ch;
@@ -236,7 +236,7 @@ void FpvRxView::enter_candidate(const ChannelStatistics& statistics) {
     request_event_beep(1150, 60);
 }
 
-void FpvRxView::evaluate_candidate_sample(const ChannelStatistics& statistics) {
+void FpvDetectView::evaluate_candidate_sample(const ChannelStatistics& statistics) {
     if (detect_state_ != DetectState::Candidate) {
         return;
     }
@@ -315,7 +315,7 @@ void FpvRxView::evaluate_candidate_sample(const ChannelStatistics& statistics) {
     update_visual_state();
 }
 
-void FpvRxView::enter_lock() {
+void FpvDetectView::enter_lock() {
     detect_state_ = DetectState::Locked;
     lock_hold_ = LOCK_HOLD_MAX;
     candidate_confidence_ = static_cast<uint8_t>(clamp_value(candidate_confidence_, LOCK_CONFIDENCE_MIN, 99));
@@ -331,7 +331,7 @@ void FpvRxView::enter_lock() {
     request_event_beep(1850, 180);
 }
 
-void FpvRxView::update_lock(const ChannelStatistics& statistics) {
+void FpvDetectView::update_lock(const ChannelStatistics& statistics) {
     if (detect_state_ != DetectState::Locked) {
         return;
     }
@@ -377,7 +377,7 @@ void FpvRxView::update_lock(const ChannelStatistics& statistics) {
     request_event_beep(650, 90);
 }
 
-void FpvRxView::update_freq_display() {
+void FpvDetectView::update_freq_display() {
     char buf[28];
     std::snprintf(buf, sizeof(buf), "%c%d  %ld MHz",
                   band_labels[scan_band],
@@ -386,7 +386,7 @@ void FpvRxView::update_freq_display() {
     text_freq.set(buf);
 }
 
-void FpvRxView::update_state_badge() {
+void FpvDetectView::update_state_badge() {
     switch (detect_state_) {
         case DetectState::Scanning:
             text_state.set("SCANNING");
@@ -400,13 +400,13 @@ void FpvRxView::update_state_badge() {
     }
 }
 
-void FpvRxView::update_confidence_text() {
+void FpvDetectView::update_confidence_text() {
     char buf[16];
     std::snprintf(buf, sizeof(buf), "Conf %u%%", static_cast<unsigned>(candidate_confidence_));
     text_confidence.set(buf);
 }
 
-void FpvRxView::update_status_text() {
+void FpvDetectView::update_status_text() {
     char buf[40];
 
     switch (detect_state_) {
@@ -436,7 +436,7 @@ void FpvRxView::update_status_text() {
     text_status.set(buf);
 }
 
-void FpvRxView::update_detail_text() {
+void FpvDetectView::update_detail_text() {
     char buf[40];
 
     switch (detect_state_) {
@@ -464,7 +464,7 @@ void FpvRxView::update_detail_text() {
     text_detail.set(buf);
 }
 
-void FpvRxView::update_visual_state() {
+void FpvDetectView::update_visual_state() {
     auto* theme = Theme::getInstance();
 
     /*
@@ -496,7 +496,7 @@ void FpvRxView::update_visual_state() {
     text_confidence.set_style(normal_style);
 }
 
-void FpvRxView::update_stats_text(const ChannelStatistics& statistics) {
+void FpvDetectView::update_stats_text(const ChannelStatistics& statistics) {
     rssi_graph.add_values(rssi.get_min(), rssi.get_avg(), rssi.get_max(), statistics.max_db);
 
     auto& mem = channel_memory_[current_channel_index()];
@@ -537,7 +537,7 @@ void FpvRxView::update_stats_text(const ChannelStatistics& statistics) {
     }
 }
 
-void FpvRxView::on_timer() {
+void FpvDetectView::on_timer() {
     ++frame_counter_;
 
     if (detect_state_ != DetectState::Scanning) {
@@ -552,7 +552,7 @@ void FpvRxView::on_timer() {
     step_scan();
 }
 
-FpvRxView::FpvRxView(NavigationView& nav)
+FpvDetectView::FpvDetectView(NavigationView& nav)
     : nav_{nav} {
     add_children({
         &labels,
@@ -596,7 +596,7 @@ FpvRxView::FpvRxView(NavigationView& nav)
     reset_detector(true);
 }
 
-void FpvRxView::on_statistics_update(const ChannelStatistics& statistics) {
+void FpvDetectView::on_statistics_update(const ChannelStatistics& statistics) {
     const bool is_sampling_neighbor =
         (detect_state_ == DetectState::Candidate && (neighbor_phase_ == 1 || neighbor_phase_ == 2));
     if (!is_sampling_neighbor) {
@@ -641,7 +641,7 @@ void FpvRxView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 }
 
-size_t FpvRxView::change_mode() {
+size_t FpvDetectView::change_mode() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -663,4 +663,4 @@ size_t FpvRxView::change_mode() {
     return 0;
 }
 
-}  // namespace ui::external_app::fpv_rx
+}  // namespace ui::external_app::fpv_detect
