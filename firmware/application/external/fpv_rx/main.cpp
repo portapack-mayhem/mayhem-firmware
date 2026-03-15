@@ -19,7 +19,7 @@ __attribute__((section(".external_app.app_fpv_rx.application_information"), used
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "FPV RX",
+    /*.app_name = */ "FPV DETECT",
     /*.bitmap_data = */
     {
         0x00,

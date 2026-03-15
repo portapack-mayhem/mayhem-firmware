@@ -18,6 +18,8 @@
  *    - Neighbor check: we only lock if the center channel is at least
  *      MIN_NEIGHBOR_MARGIN_FOR_LOCK_DB above both adjacent channels. That
  *      avoids locking on wide/noise that looks strong on many channels.
+ *      During Candidate we re-sample left/right adjacent channels so the
+ *      margin is based on current measurements, not stale scan data.
  *    - Lock requires: enough hits, confidence ≥ LOCK_CONFIDENCE_MIN, and
  *      center stronger than neighbors (strong lock path has same requirement).
  *
@@ -159,6 +161,8 @@ void FpvRxView::reset_detector(bool retune_current) {
     verify_peak_db_ = -120;
     candidate_confidence_ = 0;
     lock_hold_ = 0;
+    neighbor_phase_ = 0;
+    neighbors_fresh_ = false;
     scan_dwell_frames_ = 0;
 
     update_state_badge();
@@ -219,6 +223,8 @@ void FpvRxView::enter_candidate(const ChannelStatistics& statistics) {
     verify_sum_db_ = statistics.max_db;
     verify_peak_db_ = statistics.max_db;
     candidate_confidence_ = compute_candidate_confidence();
+    neighbor_phase_ = 0;
+    neighbors_fresh_ = false;
 
     retune_to(candidate_band_, candidate_ch_);
 
@@ -250,6 +256,24 @@ void FpvRxView::evaluate_candidate_sample(const ChannelStatistics& statistics) {
     candidate_confidence_ = compute_candidate_confidence();
     update_confidence_text();
     update_detail_text();
+
+    /* Refresh adjacent channel power so neighbor_best_db() uses current
+     * measurements instead of stale scan data. Do this before any lock decision. */
+    if (verify_samples_ >= 2 && !neighbors_fresh_) {
+        if (candidate_ch_ > 0) {
+            neighbor_phase_ = 1;
+            retune_to(candidate_band_, static_cast<uint8_t>(candidate_ch_ - 1));
+        } else {
+            neighbor_phase_ = 2;
+            retune_to(candidate_band_, static_cast<uint8_t>(candidate_ch_ + 1));
+        }
+        return;
+    }
+
+    /* Lock decisions use neighbor margin; only run when we have fresh neighbor data. */
+    if (!neighbors_fresh_) {
+        return;
+    }
 
     const bool strong_lock =
         verify_samples_ >= 3 &&
@@ -448,9 +472,9 @@ void FpvRxView::update_visual_state() {
      * If your branch has explicit blue/red banner theme styles,
      * swap the styles in this function only.
      */
-     auto normal_style = theme->bg_darkest;
-     auto attention_style = theme->fg_red;
- 
+    auto normal_style = theme->bg_darkest;
+    auto attention_style = theme->fg_red;
+
     switch (detect_state_) {
         case DetectState::Scanning:
             text_state.set_style(normal_style);
@@ -573,7 +597,11 @@ FpvRxView::FpvRxView(NavigationView& nav)
 }
 
 void FpvRxView::on_statistics_update(const ChannelStatistics& statistics) {
-    update_stats_text(statistics);
+    const bool is_sampling_neighbor =
+        (detect_state_ == DetectState::Candidate && (neighbor_phase_ == 1 || neighbor_phase_ == 2));
+    if (!is_sampling_neighbor) {
+        update_stats_text(statistics);
+    }
 
     switch (detect_state_) {
         case DetectState::Scanning:
@@ -583,6 +611,27 @@ void FpvRxView::on_statistics_update(const ChannelStatistics& statistics) {
             break;
 
         case DetectState::Candidate:
+            if (neighbor_phase_ == 1) {
+                const auto idx = channel_index(candidate_band_, static_cast<uint8_t>(candidate_ch_ - 1));
+                channel_memory_[idx].last_db = statistics.max_db;
+                if (candidate_ch_ + 1 < FPV_CHANNELS_PER_BAND) {
+                    neighbor_phase_ = 2;
+                    retune_to(candidate_band_, static_cast<uint8_t>(candidate_ch_ + 1));
+                } else {
+                    neighbor_phase_ = 0;
+                    neighbors_fresh_ = true;
+                    retune_to(candidate_band_, candidate_ch_);
+                }
+                break;
+            }
+            if (neighbor_phase_ == 2) {
+                const auto idx = channel_index(candidate_band_, static_cast<uint8_t>(candidate_ch_ + 1));
+                channel_memory_[idx].last_db = statistics.max_db;
+                neighbor_phase_ = 0;
+                neighbors_fresh_ = true;
+                retune_to(candidate_band_, candidate_ch_);
+                break;
+            }
             evaluate_candidate_sample(statistics);
             break;
 

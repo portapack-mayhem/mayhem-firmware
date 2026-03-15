@@ -42,7 +42,7 @@ class FpvRxView : public View {
     ~FpvRxView();
 
     void focus() override;
-    std::string title() const override { return "FPV RX"; };
+    std::string title() const override { return "FPV DETECT"; };
 
    private:
     enum class DetectState : uint8_t {
@@ -110,6 +110,10 @@ class FpvRxView : public View {
     int16_t verify_peak_db_ = -120;
     uint8_t candidate_confidence_ = 0;
     uint8_t lock_hold_ = 0;
+    /** During Candidate: 0=center, 1=left neighbor, 2=right neighbor. Used to
+     * re-sample adjacent channels so neighbor_margin uses current measurements. */
+    uint8_t neighbor_phase_ = 0;
+    bool neighbors_fresh_ = false;
 
     uint8_t scan_dwell_frames_ = 0;
     uint32_t frame_counter_ = 0;

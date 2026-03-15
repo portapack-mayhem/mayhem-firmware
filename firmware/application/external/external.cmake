@@ -392,6 +392,7 @@ set(EXTAPPLIST
 	gfxeq
 	waterfall_designer
 	detector_rx
+	fpv_rx
 	spaceinv
 	blackjack
 	battleship
