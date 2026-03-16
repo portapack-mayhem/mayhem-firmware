@@ -24,8 +24,6 @@
 #include "rf_path.hpp"
 
 #include "rffc507x.hpp"
-#include "max2837.hpp"
-#include "max2839.hpp"
 
 #ifdef PRALINE
 #include "max2831.hpp"
@@ -33,6 +31,8 @@ extern "C" {
 #include "fpga_bridge.h"
 }
 #else
+#include "max2837.hpp"
+#include "max2839.hpp"
 #include "baseband_cpld.hpp"
 #endif
 
@@ -122,11 +122,11 @@ static spi::arbiter::Target ssp1_target_max5864{
 static rf::path::Path rf_path;
 rffc507x::RFFC507x first_if;
 max283x::MAX283x* second_if;
-max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
-max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 #ifdef PRALINE
 max2831::MAX2831 second_if_max2831{ssp1_target_max283x};
 #else
+max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
+max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 static baseband::CPLD baseband_cpld;
 #endif
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
@@ -415,7 +415,11 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 void disable() {
     set_antenna_bias(false);
     baseband_codec.set_mode(max5864::Mode::Shutdown);
+#ifdef PRALINE
+    second_if->set_mode(max283x::Mode::Standby);
+#else
     second_if->set_mode(max2837::Mode::Standby);
+#endif
     first_if.disable();
     set_rf_amp(false);
 
