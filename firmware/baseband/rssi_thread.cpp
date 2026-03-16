@@ -36,7 +36,7 @@
  *
  * Architecture:
  * - baseband_thread: Copies 8 packed I/Q samples (no computation)
- * - rssi_thread: __SMUAD power calc, peak detection, LUT, trackers
+ * - rssi_thread: __SMUAD power calc, avg power, LUT, trackers
  *
  * All DSP happens here to keep baseband_thread minimal.
  */
@@ -47,9 +47,9 @@
  * Maps I²+Q² power to RSSI (0-255) using logarithmic scaling.
  * For 8-bit I/Q: max |I|=|Q|=127, so max I²+Q² = 32258
  *
- * Formula: rssi = 32 * log2((index * 8) + 1), clamped to 255
+ * For example, the formula: rssi = 32 * log2((index * 8) + 1), clamped to 255
+ * where using  >> 8 scaling provide 4x more sensitive than >> 10:
  *
- * With >> 8 scaling (4x more sensitive than >> 10):
  * The trade-off: more sensitivity means the meter saturates (hits max) at lower signal levels.
  * We'll want the bar to be mid-range at typical signal levels, not pegged at max.
  * - Index 0: power 0-255 (I/Q magnitude ~11)
@@ -63,8 +63,8 @@ static constexpr uint8_t power_to_rssi_lut[32] = {
 
 /*
  * Convert power to RSSI using 32-entry LUT.
- * Uses >> 8 scaling for 4x more sensitivity than original >> 10.
- * If more sensitivity is needed:
+ * If more sensitivity thank >> 10 is needed:
+ *     use power >= 8192 & >> 8, yields 4x more sensitivity than >> 10.
  *     use power >= 4096 & >> 7, yields 8x more sensitivity than >> 10
  *     use power >= 2048 & >> 6, yields 16x more sensitivity than >> 10
  *     use power >= 1024 & >> 5, yields 32x more sensitivity than >> 10
@@ -166,8 +166,8 @@ void RSSIThread::run() {
      * Hardware ADC-based RSSI doesn't work on HackRF Pro.
      *
      * baseband_thread copies 8 packed I/Q samples.
-     * We use __SMUAD to compute power for each, find peak,
-     * then apply LUT and maintain running stats.
+     * We use __SMUAD to compute power, then apply LUT and
+     * maintain running stats.
      */
 
     IIRFilter avg_filter;

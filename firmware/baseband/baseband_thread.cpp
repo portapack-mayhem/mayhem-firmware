@@ -107,7 +107,7 @@ void BasebandThread::run() {
              * Software RSSI: Copy 8 I/Q samples spread across buffer.
              *
              * Just pack and copy - no computation here.
-             * rssi_thread does __SMUAD power calculation and peak detection.
+             * rssi_thread does __SMUAD power and rssi calculation.
              * 8 samples avoids zero-crossing artifacts.
              */
             if (direction_ == baseband::Direction::Receive && buffer_tmp.count >= 32) {
@@ -117,11 +117,12 @@ void BasebandThread::run() {
                     const size_t idx = i * step + (step / 2);
                     const auto sample = buffer_tmp.p[idx];
 
-                    // Pack into 32 bits: Q in high 16 bits, I in low 16 bits
-                    const int16_t i16 = sample.real();
-                    const int16_t q16 = sample.imag();
-                    shared_memory.software_rssi_iq[i] =
-                        static_cast<uint32_t>((q16 << 16) | (i16 & 0xFFFF));
+                    // Pack into 32 bits: Q in high 16 bits, I in low 16 bits, the safe approach:
+                    // 1. Cast to uint16_t to capture the raw 16-bit pattern (e.g., -1 becomes 0xFFFF)
+                    // 2. OR them together. The uint16_t will be promoted to uint32_t cleanly.
+                    // This is accomplished with the specific hardware instruction designed
+                    // for this __PKHBT (Pack Halfword Bottom Top).
+                    shared_memory.software_rssi_iq[i] = __PKHBT(sample.real(), sample.imag(), 16);
                 }
             }
 #endif
