@@ -305,8 +305,8 @@ set(EXTCPPSRC
 	external/morseradiotx/main.cpp
 	external/morseradiotx/ui_morse_radiotx.cpp
 
-  external/keeloqtx/main.cpp
-  external/keeloqtx/ui_keeloqtx.cpp
+  	external/keeloqtx/main.cpp
+  	external/keeloqtx/ui_keeloqtx.cpp
 	#rtty_rx
 	external/rtty_rx/main.cpp
 	external/rtty_rx/ui_rtty_rx.cpp
@@ -328,6 +328,10 @@ set(EXTCPPSRC
 	#kiss_tnc
 	external/kiss_tnc/main.cpp
 	external/kiss_tnc/ui_kiss_tnc.cpp
+
+	#fpv_detect
+	external/fpv_detect/main.cpp
+	external/fpv_detect/ui_fpv_detect.cpp
 )
 
 set(EXTAPPLIST
@@ -388,6 +392,7 @@ set(EXTAPPLIST
 	gfxeq
 	waterfall_designer
 	detector_rx
+	fpv_detect
 	spaceinv
 	blackjack
 	battleship
