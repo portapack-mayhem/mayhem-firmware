@@ -66,8 +66,8 @@ static constexpr uint8_t power_to_rssi_lut[32] = {
  * Uses >> 8 scaling for 4x more sensitivity than original >> 10.
  * If more sensitivity is needed:
  *     use power >= 4096 & >> 7, yields 8x more sensitivity than >> 10
- *     use power >= 2048 & >> 6, yields 16x more sensitiviy than >> 10
- *     use power >= 1024 & >> 5, yields 32x more sensitiviy than >> 10
+ *     use power >= 2048 & >> 6, yields 16x more sensitivity than >> 10
+ *     use power >= 1024 & >> 5, yields 32x more sensitivity than >> 10
  */
 static inline uint8_t power_to_rssi(uint32_t power) {
     // uint8_t index = (power >= 32768) ? 31 : static_cast<uint8_t>(power >> 10);
