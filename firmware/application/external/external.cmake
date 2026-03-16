@@ -107,6 +107,10 @@ set(EXTCPPSRC
 	external/same_tx/main.cpp
 	external/same_tx/ui_same_tx.cpp
 
+	#mdc_tx
+	external/mdc_tx/main.cpp
+	external/mdc_tx/ui_mdc_tx.cpp
+
 	#sstvrx
 	external/sstvrx/main.cpp
 	external/sstvrx/ui_sstvrx.cpp
@@ -360,6 +364,7 @@ set(EXTAPPLIST
 	#morse_tx
 	sstvtx
 	same_tx
+	mdc_tx
 	sstvrx
 	random_password
 	acars_rx
