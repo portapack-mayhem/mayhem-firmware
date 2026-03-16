@@ -114,7 +114,7 @@ class EPIRBTXAppView : public View {
     // Frequency of the transmitter before starting the app (used to restore frequency when leaving)
     rf::Frequency original_frequency{0};
     // Frequency of the AM emergency signal
-    rf::Frequency am_frequency{121500000};
+    rf::Frequency am_frequency{121375000};
     // Frequency of the 406 MHz BPSK signal
     rf::Frequency bpsk_frequency{406025000};
 
