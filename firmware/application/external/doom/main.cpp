@@ -58,7 +58,7 @@ __attribute__((section(".external_app.app_doom.application_information"), used))
         0x00,
         0x00,
     },
-    ui::Color::red().v,
+    ui::Color::green().v,
     app_location_t::GAMES,
     -1,
     {0, 0, 0, 0},
