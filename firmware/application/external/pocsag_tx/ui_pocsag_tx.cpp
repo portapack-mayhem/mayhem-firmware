@@ -44,7 +44,7 @@ POCSAGTXView::~POCSAGTXView() {
     baseband::shutdown();
 }
 
-void POCSAGTXView::on_remote(const PocsagTosendMessage data) {
+void POCSAGTXView::on_remete(const PocsagTosendMessage data) {
     // check if still sending or not
     size_t tmp = 0;
     if (data.baud == 1200) tmp = 1;
