@@ -74,7 +74,7 @@ application_information_t _application_information_p25_tx = {
         0x00,
         0x00,
     },
-    /*.icon_color         = */ ui::Color::blue().v,
+    /*.icon_color         = */ ui::Color::orange().v,
     /*.menu_location      = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
     /*.m4_app_tag         = */ {'P', '2', '5', 'T'},

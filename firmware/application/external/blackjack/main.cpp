@@ -43,7 +43,7 @@ __attribute__((section(".external_app.app_blackjack.application_information"), u
         0x80, 0x01,  // .......##.......
         0x00, 0x00,  // ................
     },
-    ui::Color::red().v,  // Red color for diamonds
+    ui::Color::green().v,  // Red color for diamonds
     app_location_t::GAMES,
     -1,
 
