@@ -352,13 +352,13 @@ class EPIRBTXAppView : public View {
     const Style& style_tx_stop = *Theme::getInstance()->fg_red;
     OptionsField options_am_channel{
         {UI_POS_X(14), UI_POS_Y(14)},
-        18,
+        20,
         {{"121.375 MHz (Test)", 0},
-         {"121.500 MHz (Real)", 1},
+         {"121.500 MHz (!Real!)", 1},
          {"Manual", 2}}};
     OptionsField options_bpsk_channel{
         {UI_POS_X(14), UI_POS_Y(15)},
-        18,
+        20,
         {{"406.025 MHz (B)", (uint8_t)BpskChannel::B},
          {"406.028 MHz (C)", (uint8_t)BpskChannel::C},
          {"406.037 MHz (F)", (uint8_t)BpskChannel::F},
