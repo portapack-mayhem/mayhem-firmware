@@ -446,7 +446,7 @@ class BLERxView : public View {
     };
 
     // Variable to store the current limit
-    size_t max_recent_entries = 32;
+    size_t max_recent_entries = 25;
 }; /* BLERxView */
 
 } /* namespace ui */
