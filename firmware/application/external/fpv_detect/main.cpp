@@ -55,7 +55,7 @@ __attribute__((section(".external_app.app_fpv_detect.application_information"), 
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::cyan().v,
+    /*.icon_color = */ ui::Color::orange().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
