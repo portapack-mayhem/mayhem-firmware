@@ -19,7 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#ifndef __UI_P25_TX
+#define __UI_P25_TX
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -91,3 +92,5 @@ class P25TxView : public View {
 };
 
 }  // namespace ui::external_app::p25_tx
+
+#endif /* __UI_P25_TX */
