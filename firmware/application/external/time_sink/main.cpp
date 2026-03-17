@@ -72,7 +72,7 @@ __attribute__((section(".external_app.app_time_sink.application_information"), u
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::cyan().v,
+    /*.icon_color = */ ui::Color::green().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
