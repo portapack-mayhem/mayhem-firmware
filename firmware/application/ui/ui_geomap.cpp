@@ -265,7 +265,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
 
 void GeoMap::draw_markers(Painter& painter) {
     for (int i = 0; i < markerListLen; ++i) {
-        draw_marker_item(painter, markerList[i], markerList[i].color, markerList[i].color, Color::black());
+        draw_marker_item(painter, markerList[i], markerList[i].color, markerList[i].color, Color::magenta());
     }
 }
 
