@@ -262,6 +262,8 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &checkbox_am,
                   &field_am_frequency,
                   &checkbox_send_on_change,
+                  &options_am_channel,
+                  &options_bpsk_channel,
                   &tx_view});
 
     text_beacon.set_style(Theme::getInstance()->fg_light);
@@ -279,6 +281,10 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_mode.set_by_value(!mode_file);
     transmitter_model.set_target_frequency(bpsk_frequency);
     field_am_frequency.set_value(am_frequency);
+    options_am_channel.set_by_value(am_channel);
+    manual_am_frequency = am_frequency;
+    options_bpsk_channel.set_by_value(bpsk_channel);
+    manual_bpsk_frequency = bpsk_frequency;
     field_delay.set_value(delay);
     options_beacon_type.set_by_value(beacon_type);
     options_beacon_protocol.set_by_value(beacon_protocol);
@@ -292,23 +298,23 @@ EPIRBTXAppView::EPIRBTXAppView(
     update_mode();
     update_location();
 
-    options_mode.on_change = [this](size_t index, OptionsField::value_t) {
-        mode_file = (index == 0);
+    options_mode.on_change = [this](size_t, OptionsField::value_t value) {
+        mode_file = (((BeaconMode)value) == BeaconMode::FILE);
         update_mode();
         update_frame();
         set_dirty();
     };
 
-    options_beacon_type.on_change = [this](size_t index, OptionsField::value_t) {
-        beacon_params.type = (BeaconType)index;
-        beacon_type = index;
+    options_beacon_type.on_change = [this](size_t, OptionsField::value_t value) {
+        beacon_params.type = (BeaconType)value;
+        beacon_type = value;
         update_frame();
         set_dirty();
     };
 
-    options_beacon_protocol.on_change = [this](size_t index, OptionsField::value_t) {
-        beacon_params.protocol = (BeaconProtocol)index;
-        beacon_protocol = index;
+    options_beacon_protocol.on_change = [this](size_t, OptionsField::value_t value) {
+        beacon_params.protocol = (BeaconProtocol)value;
+        beacon_protocol = value;
         update_frame();
         set_dirty();
     };
@@ -317,6 +323,67 @@ EPIRBTXAppView::EPIRBTXAppView(
         beacon_params.country = v;
         beacon_country = v;
         update_frame();
+        set_dirty();
+    };
+
+    options_am_channel.on_change = [this](size_t, OptionsField::value_t v) {
+        switch((AmChannel)v)
+        {
+            case AmChannel::REAL :
+                am_frequency = AM_REAL_FREQUENCY;
+                break;
+            case AmChannel::MANUAL :
+                am_frequency = manual_am_frequency;
+                break;
+            default:
+                v = (uint8_t)AmChannel::TEST; 
+                //fallthrough
+            case AmChannel::TEST :
+                am_frequency = AM_TEST_FREQUENCY;
+                break;
+        }
+        field_am_frequency.set_value(am_frequency);
+        am_channel = v;
+        set_dirty();
+    };
+
+    options_bpsk_channel.on_change = [this](size_t, OptionsField::value_t v) {
+        switch((BpskChannel)v)
+        {
+            case BpskChannel::MANUAL :
+                bpsk_frequency = manual_bpsk_frequency;
+                break;
+            case BpskChannel::C :
+                bpsk_frequency = BPSK_FREQUENCY_C;
+                break;
+            case BpskChannel::F :
+                bpsk_frequency = BPSK_FREQUENCY_F;
+                break;
+            case BpskChannel::G :
+                bpsk_frequency = BPSK_FREQUENCY_G;
+                break;
+            case BpskChannel::J :
+                bpsk_frequency = BPSK_FREQUENCY_J;
+                break;
+            case BpskChannel::K :
+                bpsk_frequency = BPSK_FREQUENCY_K;
+                break;
+            case BpskChannel::N :
+                bpsk_frequency = BPSK_FREQUENCY_N;
+                break;
+            case BpskChannel::O :
+                bpsk_frequency = BPSK_FREQUENCY_O;
+                break;
+            default:
+                v = (uint8_t)BpskChannel::B;
+                //fallthrough
+            case BpskChannel::B :
+                bpsk_frequency = BPSK_FREQUENCY_B;
+                break;
+        }
+        bpsk_channel = v;
+        // TODO : check that
+        transmitter_model.set_target_frequency(bpsk_frequency);
         set_dirty();
     };
 
@@ -404,7 +471,23 @@ EPIRBTXAppView::EPIRBTXAppView(
     field_am_frequency.on_edit = [this, &nav]() {
         auto new_view = nav.push<FrequencyKeypadView>(field_am_frequency.value());
         new_view->on_changed = [this](rf::Frequency f) {
-            field_am_frequency.set_value(f);
+            // TODO => check
+            // field_am_frequency.set_value(f);
+            switch(f)
+            {
+                case AM_REAL_FREQUENCY:
+                    am_channel = (uint8_t)AmChannel::REAL;
+                    break;
+                case AM_TEST_FREQUENCY:
+                    am_channel = (uint8_t)AmChannel::TEST;
+                    break;
+                default:
+                    manual_am_frequency = f;
+                    am_channel = (uint8_t)AmChannel::MANUAL;
+                    break;
+            }
+            options_am_channel.set_by_value(am_channel);
+            set_dirty();
         };
     };
 
@@ -417,6 +500,38 @@ EPIRBTXAppView::EPIRBTXAppView(
         new_view->on_changed = [this](rf::Frequency f) {
             transmitter_model.set_target_frequency(f);
             bpsk_frequency = f;
+            switch(f)
+            {
+                case BPSK_FREQUENCY_B:
+                    bpsk_channel = (uint8_t)BpskChannel::B;
+                    break;
+                case BPSK_FREQUENCY_C:
+                    bpsk_channel = (uint8_t)BpskChannel::C;
+                    break;
+                case BPSK_FREQUENCY_F:
+                    bpsk_channel = (uint8_t)BpskChannel::F;
+                    break;
+                case BPSK_FREQUENCY_G:
+                    bpsk_channel = (uint8_t)BpskChannel::G;
+                    break;
+                case BPSK_FREQUENCY_J:
+                    bpsk_channel = (uint8_t)BpskChannel::J;
+                    break;
+                case BPSK_FREQUENCY_K:
+                    bpsk_channel = (uint8_t)BpskChannel::K;
+                    break;
+                case BPSK_FREQUENCY_N:
+                    bpsk_channel = (uint8_t)BpskChannel::N;
+                    break;
+                case BPSK_FREQUENCY_O:
+                    bpsk_channel = (uint8_t)BpskChannel::O;
+                    break;
+                default:
+                    bpsk_channel = (uint8_t)BpskChannel::MANUAL;
+                    break;
+            }
+            options_bpsk_channel.set_by_value(bpsk_channel);
+            set_dirty();
         };
     };
 
