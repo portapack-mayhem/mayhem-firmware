@@ -336,6 +336,10 @@ set(EXTCPPSRC
 	#fpv_detect
 	external/fpv_detect/main.cpp
 	external/fpv_detect/ui_fpv_detect.cpp
+
+	#p25_tx
+	external/p25_tx/main.cpp
+	external/p25_tx/ui_p25_tx.cpp
 )
 
 set(EXTAPPLIST
@@ -420,6 +424,7 @@ set(EXTAPPLIST
 	pocsag_tx
 	time_sink
 	kiss_tnc
+	p25_tx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
