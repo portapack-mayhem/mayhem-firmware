@@ -64,13 +64,13 @@ class P25TxView : public View {
         {{UI_POS_X(9), UI_POS_Y(3)}, "VCH:", ui::Theme::getInstance()->fg_light->foreground},
     }};
 
-    NumberField field_nac{{UI_POS_X(4), UI_POS_Y(0)}, 4, {0, 4095}, 1, '0'};
-    NumberField field_sysid{{UI_POS_X(13), UI_POS_Y(0)}, 4, {0, 4095}, 1, '0'};
-    NumberField field_wacn{{UI_POS_X(5), UI_POS_Y(1)}, 7, {0, 1048575}, 1, '0'};
-    NumberField field_rfssid{{UI_POS_X(5), UI_POS_Y(2)}, 3, {0, 255}, 1, '0'};
-    NumberField field_siteid{{UI_POS_X(14), UI_POS_Y(2)}, 3, {0, 255}, 1, '0'};
-    NumberField field_tg{{UI_POS_X(3), UI_POS_Y(3)}, 5, {0, 65535}, 1, '0'};
-    NumberField field_vch{{UI_POS_X(13), UI_POS_Y(3)}, 4, {0, 4095}, 1, '0'};
+    SymField field_nac{{UI_POS_X(4), UI_POS_Y(0)}, 3, SymField::Type::Hex};
+    SymField field_sysid{{UI_POS_X(13), UI_POS_Y(0)}, 3, SymField::Type::Hex};
+    SymField field_wacn{{UI_POS_X(5), UI_POS_Y(1)}, 5, SymField::Type::Hex};
+    SymField field_rfssid{{UI_POS_X(5), UI_POS_Y(2)}, 2, SymField::Type::Hex};
+    SymField field_siteid{{UI_POS_X(14), UI_POS_Y(2)}, 2, SymField::Type::Hex};
+    SymField field_tg{{UI_POS_X(3), UI_POS_Y(3)}, 4, SymField::Type::Hex};
+    SymField field_vch{{UI_POS_X(13), UI_POS_Y(3)}, 3, SymField::Type::Hex};
 
     Text text_status{{0, UI_POS_Y(4), UI_POS_MAXWIDTH, UI_POS_DEFAULT_HEIGHT}, "Ready"};
 

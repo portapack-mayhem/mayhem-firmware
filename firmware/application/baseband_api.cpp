@@ -21,6 +21,7 @@
  */
 
 #include "baseband_api.hpp"
+#include <cstring>
 
 #include "audio.hpp"
 #include "tonesets.hpp"

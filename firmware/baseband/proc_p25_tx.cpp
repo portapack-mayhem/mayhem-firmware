@@ -81,6 +81,7 @@ void P25TxProcessor::on_message(const Message* const msg) {
         frame_length = m.frame_length;
         dibit_index = 0;
         sample_count = 0;
+        txprogress_message.done = false;
         configured = true;
     }
 }

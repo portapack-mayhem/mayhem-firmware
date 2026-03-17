@@ -144,6 +144,13 @@ static void tsbk_iden_up(uint8_t* out12, uint64_t freq_hz) {
 static void tsbk_net_status(uint8_t* out12, uint32_t wacn, uint16_t sysid) {
     build_tsbk(out12, 0x3B, ((uint64_t)(wacn & 0xFFFFF) << 36) | ((uint64_t)(sysid & 0xFFF) << 24));
 }
+
+static void tsbk_grp_v_grant(uint8_t* out12, uint8_t chan_id, uint16_t chan_num, uint16_t tg) {
+    uint64_t ch = ((uint64_t)(chan_id & 0xF) << 12) | (chan_num & 0xFFF);
+    // opts: bit1=group
+    uint64_t args = ((uint64_t)0x02 << 56) | (ch << 40) | ((uint64_t)tg << 24);
+    build_tsbk(out12, 0x00, args);
+}
 static void tsbk_rfss_status(uint8_t* out12, uint16_t sysid, uint8_t rfssid, uint8_t siteid) {
     build_tsbk(out12, 0x3A, ((uint64_t)(sysid & 0xFFF) << 40) | ((uint64_t)rfssid << 32) | ((uint64_t)siteid << 24));
 }
@@ -172,12 +179,12 @@ static int build_frame(uint8_t* out, uint16_t nac, const uint8_t* tsbk12) {
 
 static constexpr int TX_BUF_SIZE = 512;
 
-static int fill_tx_buffer(uint8_t* buf, uint16_t nac, uint32_t wacn, uint16_t sysid, uint8_t rfssid, uint8_t siteid, uint64_t freq_hz, int& tsbk_idx) {
+static int fill_tx_buffer(uint8_t* buf, uint16_t nac, uint32_t wacn, uint16_t sysid, uint8_t rfssid, uint8_t siteid, uint64_t freq_hz, uint16_t tg, uint16_t vch, int& tsbk_idx) {
     memset(buf, 0, TX_BUF_SIZE);
     int total = 0;
     uint8_t tsbk[12];
     while (true) {
-        switch (tsbk_idx % 4) {
+        switch (tsbk_idx % 5) {
             case 0:
                 tsbk_iden_up(tsbk, freq_hz);
                 break;
@@ -186,6 +193,9 @@ static int fill_tx_buffer(uint8_t* buf, uint16_t nac, uint32_t wacn, uint16_t sy
                 break;
             case 2:
                 tsbk_rfss_status(tsbk, sysid, rfssid, siteid);
+                break;
+            case 3:
+                tsbk_grp_v_grant(tsbk, 0, vch, tg);
                 break;
             default:
                 tsbk_net_status(tsbk, wacn, sysid);
@@ -204,9 +214,10 @@ static int fill_tx_buffer(uint8_t* buf, uint16_t nac, uint32_t wacn, uint16_t sy
 void P25TxView::start_tx() {
     uint8_t dibits[TX_BUF_SIZE];
     int len = fill_tx_buffer(dibits,
-                             (uint16_t)field_nac.value(), (uint32_t)field_wacn.value(),
-                             (uint16_t)field_sysid.value(), (uint8_t)field_rfssid.value(),
-                             (uint8_t)field_siteid.value(), (uint64_t)transmitter_model.target_frequency(),
+                             (uint16_t)field_nac.to_integer(), (uint32_t)field_wacn.to_integer(),
+                             (uint16_t)field_sysid.to_integer(), (uint8_t)field_rfssid.to_integer(),
+                             (uint8_t)field_siteid.to_integer(), (uint64_t)transmitter_model.target_frequency(),
+                             (uint16_t)field_tg.to_integer(), (uint16_t)field_vch.to_integer(),
                              tsbk_idx_);
     transmitter_model.enable();
     tx_view.set_transmitting(true);
@@ -218,7 +229,6 @@ void P25TxView::start_tx() {
 void P25TxView::stop_tx() {
     transmitting = false;
     transmitter_model.disable();
-    baseband::shutdown();
     tx_view.set_transmitting(false);
     text_status.set("Ready");
     tsbk_idx_ = 0;
@@ -228,9 +238,10 @@ void P25TxView::on_tx_progress(const uint32_t, const bool done) {
     if (done && transmitting) {
         uint8_t dibits[TX_BUF_SIZE];
         int len = fill_tx_buffer(dibits,
-                                 (uint16_t)field_nac.value(), (uint32_t)field_wacn.value(),
-                                 (uint16_t)field_sysid.value(), (uint8_t)field_rfssid.value(),
-                                 (uint8_t)field_siteid.value(), (uint64_t)transmitter_model.target_frequency(),
+                                 (uint16_t)field_nac.to_integer(), (uint32_t)field_wacn.to_integer(),
+                                 (uint16_t)field_sysid.to_integer(), (uint8_t)field_rfssid.to_integer(),
+                                 (uint8_t)field_siteid.to_integer(), (uint64_t)transmitter_model.target_frequency(),
+                                 (uint16_t)field_tg.to_integer(), (uint16_t)field_vch.to_integer(),
                                  tsbk_idx_);
         baseband::set_p25tx_data(dibits, (uint16_t)len);
     }
@@ -260,8 +271,8 @@ P25TxView::P25TxView(NavigationView& nav)
 P25TxView::~P25TxView() {
     if (transmitting)
         stop_tx();
-    else
-        baseband::shutdown();
+    transmitter_model.disable();
+    baseband::shutdown();
 }
 
 void P25TxView::focus() {
