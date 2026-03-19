@@ -37,17 +37,17 @@
 #define BEACON_HEXA_HALF_SIZE 18
 #define BEACON_SIZE 18
 
-#define AM_TEST_FREQUENCY   121375000
-#define AM_REAL_FREQUENCY   121500000
+#define AM_TEST_FREQUENCY 121375000
+#define AM_REAL_FREQUENCY 121500000
 
-#define BPSK_FREQUENCY_B    406025000
-#define BPSK_FREQUENCY_C    406028000
-#define BPSK_FREQUENCY_F    406037000
-#define BPSK_FREQUENCY_G    406040000
-#define BPSK_FREQUENCY_J    406049000
-#define BPSK_FREQUENCY_K    406052000
-#define BPSK_FREQUENCY_N    406061000
-#define BPSK_FREQUENCY_O    406064000
+#define BPSK_FREQUENCY_B 406025000
+#define BPSK_FREQUENCY_C 406028000
+#define BPSK_FREQUENCY_F 406037000
+#define BPSK_FREQUENCY_G 406040000
+#define BPSK_FREQUENCY_J 406049000
+#define BPSK_FREQUENCY_K 406052000
+#define BPSK_FREQUENCY_N 406061000
+#define BPSK_FREQUENCY_O 406064000
 
 namespace ui::external_app::epirb_tx {
 
@@ -130,6 +130,8 @@ class EPIRBTXAppView : public View {
     std::string frame_to_hex_string(bool start);
     void generate_frame(BeaconParams params);
     void update_frame(bool updateConfig = true);
+    void update_bpsk_frequency();
+    void update_am_transmission();
     void update_mode();
     void update_location(bool updateLocatorField = true);
 
@@ -193,6 +195,8 @@ class EPIRBTXAppView : public View {
             {"sbeacon"sv, &selected_beacon},
             {"amfreq"sv, &am_frequency},
             {"bpskfreq"sv, &bpsk_frequency},
+            {"amchan"sv, &am_channel},
+            {"bpskchan"sv, &bpsk_channel},
             {"loop"sv, &loop_enabled},
             {"delay"sv, &delay},
             {"file"sv, &mode_file},
@@ -209,6 +213,8 @@ class EPIRBTXAppView : public View {
     uint32_t last_frame_time{0};
     // True when transmission is enabled
     bool transmitting{false};
+    // True when transmitting a BPSK frame
+    bool transmitting_bpsk{false};
     // True when currently looping on sending beacons
     bool loop{false};
 
@@ -223,8 +229,8 @@ class EPIRBTXAppView : public View {
         {{UI_POS_X(0), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(10)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(12)}, "AM frequency:         MHz", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(14)}, "AM   channel:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(15)}, "BPSK channel:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(14)}, "AM   chan.:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(15)}, "BPSK chan.:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
 
     // For file mode
@@ -351,13 +357,13 @@ class EPIRBTXAppView : public View {
     const Style& style_tx_start = *Theme::getInstance()->fg_green;
     const Style& style_tx_stop = *Theme::getInstance()->fg_red;
     OptionsField options_am_channel{
-        {UI_POS_X(14), UI_POS_Y(14)},
+        {UI_POS_X(11), UI_POS_Y(14)},
         20,
         {{"121.375 MHz (Test)", 0},
-         {"121.500 MHz (!Real!)", 1},
+         {"121.500 MHz /!\\Real", 1},
          {"Manual", 2}}};
     OptionsField options_bpsk_channel{
-        {UI_POS_X(14), UI_POS_Y(15)},
+        {UI_POS_X(11), UI_POS_Y(15)},
         20,
         {{"406.025 MHz (B)", (uint8_t)BpskChannel::B},
          {"406.028 MHz (C)", (uint8_t)BpskChannel::C},
