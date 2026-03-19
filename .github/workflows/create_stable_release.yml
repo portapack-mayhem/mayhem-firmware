@@ -43,7 +43,7 @@ jobs:
       - name: Make build folder
         run: mkdir ${{ github.workspace }}/build
       - name: Run the Docker image
-        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev ninja ${{ matrix.cmake_args }}
+        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev ${{ matrix.cmake_args }}
       - name: Create Small SD Card ZIP - No World Map
         run: |
           mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_${{ steps.version.outputs.version }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
