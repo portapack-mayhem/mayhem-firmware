@@ -29,5 +29,5 @@ RUN mkdir /opt/build \
 ADD firmware/tools/docker-entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# replace ninja with make if you prefer to use that by default
-CMD ["ninja"]
+# replace make with ninja temporarily while building your image if you prefer to use that by default
+CMD ["make"]
