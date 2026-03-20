@@ -24,8 +24,6 @@
 #include "rf_path.hpp"
 
 #include "rffc507x.hpp"
-#include "max2837.hpp"
-#include "max2839.hpp"
 
 #ifdef PRALINE
 #include "max2831.hpp"
@@ -33,6 +31,8 @@ extern "C" {
 #include "fpga_bridge.h"
 }
 #else
+#include "max2837.hpp"
+#include "max2839.hpp"
 #include "baseband_cpld.hpp"
 #endif
 
@@ -122,11 +122,11 @@ static spi::arbiter::Target ssp1_target_max5864{
 static rf::path::Path rf_path;
 rffc507x::RFFC507x first_if;
 max283x::MAX283x* second_if;
-max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
-max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 #ifdef PRALINE
 max2831::MAX2831 second_if_max2831{ssp1_target_max283x};
 #else
+max2837::MAX2837 second_if_max2837{ssp1_target_max283x};
+max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 static baseband::CPLD baseband_cpld;
 #endif
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
@@ -180,12 +180,21 @@ void init() {
 
     /* Initialize FPGA registers - DC_BLOCK must be enabled for RX */
     // debug::fpga::init();
+
+    fpga_set_mode(FPGA_MODE_RX);
+
     // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
-    fpga_debug_register_write(1, 0x00);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
-    fpga_debug_register_write(2, 0x00);  // RX_DECIM=No Decim
-    fpga_debug_register_write(3, 0x00);  // TX_CTRL=0
-    fpga_debug_register_write(4, 0x00);  // TX_INTRP=0
-    fpga_debug_register_write(5, 0x00);  // TX_PSTEP=0
+    fpga_debug_register_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
+    fpga_debug_register_write(FPGA_REG_DECIM, 0x00);                  // RX_DECIM=No Decim
+
+    // RX Mode: Register 3 is RX Digital Gain. Start with 0dB (no shift).
+    fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, FPGA_RX_DEFAULT_DIGITAL_GAIN);
+
+    /* RX Mode: Initialize DC Block parameters to standard Praline values.
+     * 0x04 Width and 0x08 Adapt Rate are typical for 40MHz stability.
+     */
+    fpga_debug_register_write(FPGA_REG_RX_DC_BLOCK_WIDTH, FPGA_RX_DEFAULT_DC_WIDTH);
+    fpga_debug_register_write(FPGA_REG_RX_DC_ADAPT_RATE, FPGA_RX_DEFAULT_ADAPT_RATE);
 
     ssp1_arbiter.invalidate();
     chThdSleepMilliseconds(10);  // Let FPGA registers settle
@@ -206,6 +215,24 @@ void set_direction(const rf::Direction new_direction) {
 
 #ifdef PRALINE
     cached_direction = new_direction;  // Track state for debug and potentially other purposes.
+
+    if (new_direction == rf::Direction::Transmit) {
+        fpga_set_mode(FPGA_MODE_TX);
+        // TX Mode: Clear RX gain and ensure NCO is off initially
+        fpga_debug_register_write(FPGA_REG_TX_CONTROL, 0x00);
+        // Placeholder: Set TX-specific interpolation and phase
+        fpga_debug_register_write(FPGA_REG_TX_INTERP, 0x00);
+        fpga_debug_register_write(FPGA_REG_TX_PHASE_STEP, 0x00);
+    } else {
+        fpga_set_mode(FPGA_MODE_RX);
+        // RX Mode: Ensure NCO is disabled and reset digital gain
+        fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, FPGA_RX_DEFAULT_DIGITAL_GAIN);
+        /* RX Mode: Initialize DC Block parameters to standard Praline values.
+         * 0x04 Width and 0x08 Adapt Rate are typical for 40MHz stability.
+         */
+        fpga_debug_register_write(FPGA_REG_RX_DC_BLOCK_WIDTH, FPGA_RX_DEFAULT_DC_WIDTH);
+        fpga_debug_register_write(FPGA_REG_RX_DC_ADAPT_RATE, FPGA_RX_DEFAULT_ADAPT_RATE);
+    }
 #endif
 
     direction = new_direction;
@@ -388,7 +415,11 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 void disable() {
     set_antenna_bias(false);
     baseband_codec.set_mode(max5864::Mode::Shutdown);
+#ifdef PRALINE
+    second_if->set_mode(max283x::Mode::Standby);
+#else
     second_if->set_mode(max2837::Mode::Standby);
+#endif
     first_if.disable();
     set_rf_amp(false);
 
@@ -519,14 +550,22 @@ void register_write(const size_t register_number, uint32_t value) {
 }
 
 void init() {
-    // Initialize FPGA registers after bitstream load
-    // DC_BLOCK (bit 0) must be enabled for RX to work
-    fpga_debug_register_write(1, 0x00);  // CTRL: DC_BLOCK=1
-    fpga_debug_register_write(2, 0x00);  // RX_DECIM: no decimation
-    fpga_debug_register_write(3, 0x00);  // TX_CTRL: NCO disabled
-    fpga_debug_register_write(4, 0x00);  // TX_INTRP: no interpolation
-    fpga_debug_register_write(5, 0x00);  // TX_PSTEP: zero phase step
-    ssp1_arbiter.invalidate();           // Force arbiter to reconfigure on next transfer
+    fpga_set_mode(FPGA_MODE_RX);
+
+    // These FPGA registers control DC_BLOCK, Q-Inv, QUARTER SHIFT, and Decimation.
+    fpga_debug_register_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);  // DC_BLOCK=1, QUARTER_SHIFT=0, Q_INVERT=0
+    fpga_debug_register_write(FPGA_REG_DECIM, 0x00);                  // RX_DECIM=No Decim
+
+    // RX Mode: Register 3 is RX Digital Gain. Start with 0dB (no shift).
+    fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, FPGA_RX_DEFAULT_DIGITAL_GAIN);
+
+    /* RX Mode: Initialize DC Block parameters to standard Praline values.
+     * 0x04 Width and 0x08 Adapt Rate are typical for 40MHz stability.
+     */
+    fpga_debug_register_write(FPGA_REG_RX_DC_BLOCK_WIDTH, FPGA_RX_DEFAULT_DC_WIDTH);
+    fpga_debug_register_write(FPGA_REG_RX_DC_ADAPT_RATE, FPGA_RX_DEFAULT_ADAPT_RATE);
+
+    ssp1_arbiter.invalidate();  // Force arbiter to reconfigure on next transfer
 }
 
 } /* namespace fpga */

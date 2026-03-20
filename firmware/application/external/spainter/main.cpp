@@ -73,7 +73,7 @@ __attribute__((section(".external_app.app_spainter.application_information"), us
         0xC0,
         0x01,
     },
-    /*.icon_color = */ ui::Color::orange().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
 

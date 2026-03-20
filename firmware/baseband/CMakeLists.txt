@@ -535,6 +535,21 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PEPI epirb_rx)
 
+### EPIRB TX
+
+set(MODE_CPPSRC
+	proc_epirb_tx.cpp
+)
+DeclareTargets(PEPT epirb_tx)
+
+
+### P25 TX
+
+set(MODE_CPPSRC
+	proc_p25_tx.cpp
+)
+DeclareTargets(P25T p25_tx)
+
 
 ### NRF RX
 

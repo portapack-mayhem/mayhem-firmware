@@ -91,7 +91,7 @@ class SDCardTestThread {
     }
 
    private:
-    static constexpr File::Size write_size = 16384;
+    static constexpr File::Size write_size = 4096;  // will call it 4 times
     static constexpr File::Size bytes_to_write = 16 * 1024 * 1024;
     static constexpr File::Size bytes_to_read = bytes_to_write;
 
@@ -160,12 +160,14 @@ class SDCardTestThread {
                       sizeof(*buffer.get()) / sizeof(lfsr_word_t));
 
             const halrtcnt_t write_start = halGetCounterValue();
-            const auto result_write = file.write(buffer->data(), buffer->size());
-            if (result_write.is_error()) {
-                break;
+            for (uint8_t i = 0; i < 4; i++) {
+                const auto result_write = file.write(buffer->data(), buffer->size());
+                if (result_write.is_error()) {
+                    break;
+                }
+                _stats.write_bytes += buffer->size();
             }
             const halrtcnt_t write_end = halGetCounterValue();
-            _stats.write_bytes += buffer->size();
             _stats.write_count++;
 
             const halrtcnt_t write_duration = write_end - write_start;
@@ -202,12 +204,14 @@ class SDCardTestThread {
         const halrtcnt_t test_start = halGetCounterValue();
         while (!chThdShouldTerminate() && (_stats.read_bytes < bytes_to_read)) {
             const halrtcnt_t read_start = halGetCounterValue();
-            const auto result_read = file.read(buffer->data(), buffer->size());
-            if (result_read.is_error()) {
-                break;
+            for (uint8_t i = 0; i < 4; i++) {
+                const auto result_read = file.read(buffer->data(), buffer->size());
+                if (result_read.is_error()) {
+                    break;
+                }
+                _stats.read_bytes += buffer->size();
             }
             const halrtcnt_t read_end = halGetCounterValue();
-            _stats.read_bytes += buffer->size();
             _stats.read_count++;
 
             const halrtcnt_t read_duration = read_end - read_start;

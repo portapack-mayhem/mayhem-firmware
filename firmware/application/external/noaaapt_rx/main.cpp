@@ -73,7 +73,7 @@ __attribute__((section(".external_app.app_noaaapt_rx.application_information"), 
         0x78,
         0x00,
     },
-    /*.icon_color = */ ui::Color::orange().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 

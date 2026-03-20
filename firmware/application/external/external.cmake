@@ -107,6 +107,10 @@ set(EXTCPPSRC
 	external/same_tx/main.cpp
 	external/same_tx/ui_same_tx.cpp
 
+	#mdc_tx
+	external/mdc_tx/main.cpp
+	external/mdc_tx/ui_mdc_tx.cpp
+
 	#sstvrx
 	external/sstvrx/main.cpp
 	external/sstvrx/ui_sstvrx.cpp
@@ -260,6 +264,10 @@ set(EXTCPPSRC
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
 
+	#epirb_tx
+	external/epirb_tx/main.cpp
+	external/epirb_tx/ui_epirb_tx.cpp
+
 	#soundboard  272byte  - 1236 bytes
 	external/soundboard/main.cpp
 	external/soundboard/soundboard_app.cpp
@@ -301,8 +309,8 @@ set(EXTCPPSRC
 	external/morseradiotx/main.cpp
 	external/morseradiotx/ui_morse_radiotx.cpp
 
-  external/keeloqtx/main.cpp
-  external/keeloqtx/ui_keeloqtx.cpp
+  	external/keeloqtx/main.cpp
+  	external/keeloqtx/ui_keeloqtx.cpp
 	#rtty_rx
 	external/rtty_rx/main.cpp
 	external/rtty_rx/ui_rtty_rx.cpp
@@ -320,6 +328,18 @@ set(EXTCPPSRC
 	#time_sink
 	external/time_sink/main.cpp
 	external/time_sink/ui_time_sink.cpp
+
+	#kiss_tnc
+	external/kiss_tnc/main.cpp
+	external/kiss_tnc/ui_kiss_tnc.cpp
+
+	#fpv_detect
+	external/fpv_detect/main.cpp
+	external/fpv_detect/ui_fpv_detect.cpp
+
+	#p25_tx
+	external/p25_tx/main.cpp
+	external/p25_tx/ui_p25_tx.cpp
 )
 
 set(EXTAPPLIST
@@ -348,6 +368,7 @@ set(EXTAPPLIST
 	#morse_tx
 	sstvtx
 	same_tx
+	mdc_tx
 	sstvrx
 	random_password
 	acars_rx
@@ -380,11 +401,13 @@ set(EXTAPPLIST
 	gfxeq
 	waterfall_designer
 	detector_rx
+	fpv_detect
 	spaceinv
 	blackjack
 	battleship
 	ert
 	epirb_rx
+	epirb_tx
 	soundboard
 	game2048
 	bht_tx
@@ -400,6 +423,8 @@ set(EXTAPPLIST
 	rtty_tx
 	pocsag_tx
 	time_sink
+	kiss_tnc
+	p25_tx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
