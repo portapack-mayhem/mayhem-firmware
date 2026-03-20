@@ -319,12 +319,21 @@ static_assert(si5351a_ms_int_mcu_clkin.f_out() == mcu_clkin_r9_f, "MS int MCU CL
 
 using namespace si5351;
 
+#ifdef PRALINE
+static constexpr ClockControl::MultiSynthSource get_si5351a_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source) {
+    return (reference_source == ClockManager::ReferenceSource::Xtal)
+               ? ClockControl::MultiSynthSource::PLLA
+               : ClockControl::MultiSynthSource::PLLB;
+}
+#else
 static constexpr ClockControl::MultiSynthSource get_si5351c_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source) {
     return (reference_source == ClockManager::ReferenceSource::Xtal)
                ? ClockControl::MultiSynthSource::PLLA
                : ClockControl::MultiSynthSource::PLLB;
 }
+#endif
 
+#ifndef PRALINE
 constexpr ClockControls si5351c_clock_control_common{{
     {ClockControl::ClockCurrentDrive::_8mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, get_si5351c_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Group, ClockControl::ClockInvert::Invert, get_si5351c_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
@@ -335,6 +344,7 @@ constexpr ClockControls si5351c_clock_control_common{{
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, get_si5351c_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Fractional, ClockControl::ClockPowerDown::Power_Off},
     {ClockControl::ClockCurrentDrive::_2mA, ClockControl::ClockSource::MS_Self, ClockControl::ClockInvert::Normal, get_si5351c_reference_clock_generator_pll(ClockManager::ReferenceSource::Xtal), ClockControl::MultiSynthMode::Integer, ClockControl::ClockPowerDown::Power_Off},
 }};
+#endif
 
 constexpr ClockControls si5351a_clock_control_common{{
 #ifdef PRALINE
@@ -451,7 +461,7 @@ void ClockManager::init_clock_generator() {
     clock_generator.set_pll_input_sources(si5351a_pll_input_sources);
 
     /* Skip MCU CLKIN setup and reference detection for PRALINE - not applicable */
-    reference = Reference{ReferenceSource::Xtal, 0};
+    reference = Reference{ReferenceSource::Xtal, 0};  // PLLA
 
     /* Clock control will be set AFTER multisynth configuration - see below */
 #else
@@ -640,12 +650,16 @@ uint32_t ClockManager::measure_gp_clkin_frequency() {
 }
 
 bool ClockManager::loss_of_signal() {
+#ifdef PRALINE
+    return clock_generator.clkin_loss_of_signal();
+#else
     if (hackrf_r9) {
         const auto frequency = measure_gp_clkin_frequency();
         return (frequency < 9850000) || (frequency > 10150000);
     } else {
         return clock_generator.clkin_loss_of_signal();
     }
+#endif
 }
 
 ClockManager::ReferenceSource ClockManager::detect_reference_source() {
@@ -668,6 +682,17 @@ ClockManager::ReferenceSource ClockManager::detect_reference_source() {
 }
 
 ClockManager::Reference ClockManager::choose_reference() {
+#ifdef PRALINE
+    const auto detected_reference = detect_reference_source();
+
+    if ((detected_reference == ReferenceSource::External) ||
+        (detected_reference == ReferenceSource::PortaPack)) {
+        const auto frequency = measure_gp_clkin_frequency();
+        if ((frequency >= 9850000) && (frequency <= 10150000)) {
+            return {detected_reference, 10000000};
+        }
+    }
+#else
     if (hackrf_r9) {
         gpio_r9_clkin_en.write(1);
         volatile uint32_t delay = 240000 + 24000;
@@ -686,6 +711,7 @@ ClockManager::Reference ClockManager::choose_reference() {
     if (hackrf_r9) {
         gpio_r9_clkin_en.write(0);
     }
+#endif
 
     portapack_tcxo_disable();
     return {ReferenceSource::Xtal, 25000000};
@@ -881,10 +907,6 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
      * It is assumed an external clock coming in to CLKIN/PLLB is sufficiently accurate as to not need adjustment.
      * TODO: Revisit the above policy. It may be good to allow adjustment of the external reference too.
      */
-    if (hackrf_r9 && reference.source != ReferenceSource::Xtal) {
-        return;
-    }
-
 #ifdef PRALINE
     // On Praline, only apply if we aren't locked to a superior external 10MHz source
     // (Assuming you have a way to detect the 10MHz presence on Praline)
@@ -893,6 +915,10 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
     }
     constexpr uint32_t pll_multiplier = si5351_pll_a_afe_800m.a;
 #else
+    if (hackrf_r9 && reference.source != ReferenceSource::Xtal) {
+        return;
+    }
+
     constexpr uint32_t pll_multiplier = si5351_pll_xtal_25m.a;
 #endif
 
@@ -1105,6 +1131,25 @@ void ClockManager::stop_audio_pll() {
 }
 
 void ClockManager::enable_clock_output(bool enable) {
+#ifdef PRALINE
+    auto clkout_select = clock_generator_output_og_clkout;
+
+    if (enable) {
+        clock_generator.enable_output(clkout_select);
+        if (portapack::persistent_memory::clkout_freq() < 1000) {
+            clock_generator.set_ms_frequency(clkout_select, portapack::persistent_memory::clkout_freq() * 128000, si5351_vco_f, 7);
+        } else {
+            clock_generator.set_ms_frequency(clkout_select, portapack::persistent_memory::clkout_freq() * 1000, si5351_vco_f, 0);
+        }
+
+        auto si5351_clock_control_common = si5351a_clock_control_common;
+        const auto ref_pll = get_si5351a_reference_clock_generator_pll(reference.source);
+        clock_generator.set_clock_control(clkout_select, si5351_clock_control_common[clkout_select].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On));
+    } else {
+        clock_generator.disable_output(clkout_select);
+        clock_generator.set_clock_control(clkout_select, ClockControl::power_off());
+    }
+#else
     if (hackrf_r9) {
         gpio_r9_clkout_en.output();
         gpio_r9_clkout_en.write(enable);
@@ -1133,4 +1178,5 @@ void ClockManager::enable_clock_output(bool enable) {
         clock_generator.disable_output(clkout_select);
         clock_generator.set_clock_control(clkout_select, ClockControl::power_off());
     }
+#endif
 }

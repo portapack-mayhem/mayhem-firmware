@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 HTotoo
+ * Copyright (C) 2025 Sarah Rose
  *
  * This file is part of PortaPack.
  *
@@ -20,26 +20,27 @@
  */
 
 #include "ui.hpp"
-#include "ui_flex_rx.hpp"
+#include "ui_p25_tx.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::flex_rx {
+namespace ui::external_app::p25_tx {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<FlexAppView>();
+    nav.push<P25TxView>();
 }
-}  // namespace ui::external_app::flex_rx
+}  // namespace ui::external_app::p25_tx
 
 extern "C" {
 
-__attribute__((section(".external_app.app_flex_rx.application_information"), used)) application_information_t _application_information_flex_rx = {
-    /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::flex_rx::initialize_app,
-    /*.header_version = */ CURRENT_HEADER_VERSION,
-    /*.app_version = */ VERSION_MD5,
+__attribute__((section(".external_app.app_p25_tx.application_information"), used))
+application_information_t _application_information_p25_tx = {
+    /*.memory_location    = */ (uint8_t*)0x00000000,
+    /*.externalAppEntry   = */ ui::external_app::p25_tx::initialize_app,
+    /*.header_version     = */ CURRENT_HEADER_VERSION,
+    /*.app_version        = */ VERSION_MD5,
 
-    /*.app_name = */ "FLEX RX",
-    /*.bitmap_data = */ {
+    /*.app_name           = */ "P25 TX",
+    /*.bitmap_data        = */ {
         0x00,
         0x00,
         0xFE,
@@ -48,36 +49,35 @@ __attribute__((section(".external_app.app_flex_rx.application_information"), use
         0x40,
         0xFA,
         0x5F,
+        0x0A,
+        0x50,
+        0x0A,
+        0x50,
+        0xFA,
+        0x5F,
         0x02,
         0x40,
-        0xF2,
-        0x4F,
         0x02,
         0x40,
         0xE2,
         0x47,
+        0x22,
+        0x44,
+        0xE2,
+        0x47,
         0x02,
         0x40,
-        0xC2,
-        0x43,
-        0x02,
-        0x40,
-        0x82,
-        0x41,
         0x02,
         0x40,
         0xFE,
         0x7F,
         0x00,
         0x00,
-        0x00,
-        0x00,
     },
-    /*.icon_color = */ ui::Color::yellow().v,
-    /*.menu_location = */ app_location_t::RX,
+    /*.icon_color         = */ ui::Color::orange().v,
+    /*.menu_location      = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
-
-    /*.m4_app_tag = portapack::spi_flash::image_tag_flex */ {'P', 'F', 'L', 'X'},
-    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+    /*.m4_app_tag         = */ {'P', '2', '5', 'T'},
+    /*.m4_app_offset      = */ 0x00000000,
 };
 }

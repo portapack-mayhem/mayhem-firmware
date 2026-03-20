@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 EPIRB Decoder Implementation
+ * Copyright (C) 2025 Sarah Rose
  *
  * This file is part of PortaPack.
  *
@@ -20,64 +20,64 @@
  */
 
 #include "ui.hpp"
-#include "ui_epirb_rx.hpp"
+#include "ui_mdc_tx.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::epirb_rx {
+namespace ui::external_app::mdc_tx {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<EPIRBAppView>();
+    nav.push<MdcTxView>();
 }
-}  // namespace ui::external_app::epirb_rx
+}  // namespace ui::external_app::mdc_tx
 
 extern "C" {
 
-__attribute__((section(".external_app.app_epirb_rx.application_information"), used)) application_information_t _application_information_epirb_rx = {
-    /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::epirb_rx::initialize_app,
-    /*.header_version = */ CURRENT_HEADER_VERSION,
-    /*.app_version = */ VERSION_MD5,
+__attribute__((section(".external_app.app_mdc_tx.application_information"), used))
+application_information_t _application_information_mdc_tx = {
+    /*.memory_location    = */ (uint8_t*)0x00000000,
+    /*.externalAppEntry   = */ ui::external_app::mdc_tx::initialize_app,
+    /*.header_version     = */ CURRENT_HEADER_VERSION,
+    /*.app_version        = */ VERSION_MD5,
 
-    /*.app_name = */ "EPIRB RX",
-    /*.bitmap_data = */ {
+    /*.app_name           = */ "MDC-1200 TX",
+    /*.bitmap_data        = */ {
         0x00,
         0x00,
-        0x00,
-        0x00,
-        0x7C,
-        0x3E,
         0xFE,
         0x7F,
         0xFF,
         0xFF,
-        0xF7,
-        0xEF,
-        0xE3,
-        0xC7,
-        0xE3,
-        0xC7,
-        0xE3,
-        0xC7,
-        0xE3,
-        0xC7,
-        0xF7,
-        0xEF,
+        0xBB,
+        0xD0,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0x0B,
+        0xE1,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xEB,
+        0xD0,
         0xFF,
         0xFF,
         0xFE,
         0x7F,
-        0x7C,
-        0x3E,
+        0x70,
         0x00,
+        0x30,
+        0x00,
+        0x10,
         0x00,
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::orange().v,
-    /*.menu_location = */ app_location_t::RX,
+    /*.icon_color         = */ ui::Color::orange().v,
+    /*.menu_location      = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
-
-    /*.m4_app_tag = portapack::spi_flash::image_tag_epirb_rx */ {'P', 'E', 'P', 'I'},
-    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+    /*.m4_app_tag         = */ {'P', 'A', 'F', 'T'},
+    /*.m4_app_offset      = */ 0x00000000,
 };
 }

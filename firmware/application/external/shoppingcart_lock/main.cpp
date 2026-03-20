@@ -58,7 +58,7 @@ __attribute__((section(".external_app.app_shoppingcart_lock.application_informat
         0x7E,
         0x00,
     },
-    /*.icon_color = */ ui::Color::red().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::UTILITIES,
     /*.desired_menu_position = */ -1,
 

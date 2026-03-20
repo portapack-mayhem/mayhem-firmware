@@ -112,10 +112,11 @@ if(BOARD STREQUAL "PRALINE")
     # backwards consistenct with hackrf one setup. 
     # Recommend revisit by devs. 
     # Local SRAM: 128KB (Bank 1) + 72KB (Bank 2)
+    # Bank 1 can also be allocated as 96KB for M4, and 32KB for M0
     set(M0_RAM_SIZE           "64k")         # AHB SRAM Bank 0 for M0 (stacks, data, bss)
-    set(M0_LOCAL_HEAP_SIZE    "32k")         # Local SRAM heap for additional 16-bit IQ
-    set(M0_LOCAL_HEAP_ORIGIN  "0x10018000")  # After M4's 96KB
-    set(M4_RAM_SIZE           "96k")         # Local SRAM Bank 1 (same as HackRF One)
+    set(M0_LOCAL_HEAP_SIZE    "0")           # No Local SRAM, could be 32k heap for additional 16-bit IQ
+    set(M0_LOCAL_HEAP_ORIGIN  "0x10020000")  # 0x10018000 if allocating 32k heap for M0 after M4's 96KB 
+    set(M4_RAM_SIZE           "128k")        # Local SRAM Bank 1 Fully allocated to M4 (HackRF One is 96k)
     set(M4_FLASH_SIZE         "72k")         # Local SRAM Bank 2
     set(USB_RAM_SIZE          "32k")         # AHB SRAM shared with M0
     set(FLASH_SIZE            "4M")
