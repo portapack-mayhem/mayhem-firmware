@@ -106,6 +106,10 @@ mbtenv_download_and_unpack_toolchain() {
     }
 
     mbtenv_log "installing toolchain into $MBT_TOOLCHAIN_DIR"
+    if [ -d "$MBT_TOOLCHAIN_DIR" ] && [ ! -f "$MBT_TOOLCHAIN_DIR/bin/arm-none-eabi-gcc-9.2.1" ]; then
+        mbtenv_log "Sorry, i can't verify if the toolchain dir is legit to delete. it either could be becasue you failed to download the full toolchain last time, or the enviroment var were pointed to something else, which is not safe for me to remove. please check if it's safe to remove $MBT_TOOLCHAIN_DIR and manually remove $MBT_TOOLCHAIN_DIR"
+        return 1
+    fi
     rm -rf "$MBT_TOOLCHAIN_DIR"
     mkdir -p "$MBT_TOOLCHAIN_DIR"
     tar --strip-components=1 -xjf "$MBT_TMP_ARCHIVE" -C "$MBT_TOOLCHAIN_DIR" || {
