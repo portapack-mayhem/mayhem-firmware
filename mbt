@@ -236,8 +236,17 @@ mbt_doctor() {
             printf "  [warn] expected arm-none-eabi-gcc 9.2.1\n"
         fi
     else
-        printf "  [missing] %s\n" "$toolchain_cc"
-        missing=1
+        if mbt_command_exists arm-none-eabi-gcc; then
+            toolchain_cc="arm-none-eabi-gcc"
+            toolchain_version="$("$toolchain_cc" -dumpfullversion 2>/dev/null || "$toolchain_cc" -dumpversion 2>/dev/null || true)"
+            printf "  [ok] arm-none-eabi-gcc %s (%s)\n" "$toolchain_version" "$toolchain_cc"
+            if [[ "$toolchain_version" != "9.2.1" ]]; then
+                printf "  [warn] expected arm-none-eabi-gcc 9.2.1\n"
+            fi
+        else
+            printf "  [missing] %s\n" "$toolchain_cc"
+            missing=1
+        fi
     fi
 
     if git -C "$SCRIPT_PATH" submodule status --recursive | grep -q '^-'; then
