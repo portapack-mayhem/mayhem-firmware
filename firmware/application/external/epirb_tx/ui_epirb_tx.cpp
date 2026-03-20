@@ -357,9 +357,10 @@ EPIRBTXAppView::EPIRBTXAppView(
     };
 
     options_am_channel.on_change = [this](size_t, OptionsField::value_t v) {
+        bool is_real = false;
         switch ((AmChannel)v) {
             case AmChannel::REAL:
-                // TODO change color to red
+                is_real = true;
                 am_frequency = AM_REAL_FREQUENCY;
                 break;
             case AmChannel::MANUAL:
@@ -375,6 +376,7 @@ EPIRBTXAppView::EPIRBTXAppView(
         // Actual frequecy change will be done by field_am_frequency.on_change()
         field_am_frequency.set_value(am_frequency);
         am_channel = v;
+        options_am_channel.set_style(is_real ? Theme::getInstance()->fg_red : Theme::getInstance()->bg_darkest);
         set_dirty();
     };
 
