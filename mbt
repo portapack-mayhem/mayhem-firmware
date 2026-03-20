@@ -127,10 +127,10 @@ mbt_normalize_device() {
     raw="$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')"
 
     case "$raw" in
-    1|one|hackrf|hackrf-one|h1)
+    1|one|hackrf|hackrf-one)
         printf "hackrf-one"
         ;;
-    2|pro|hackrf-pro|praline|h4m)
+    2|pro|hackrf-pro|praline)
         printf "hackrf-pro"
         ;;
     3|portarf|porta-rf|porta_rf)
