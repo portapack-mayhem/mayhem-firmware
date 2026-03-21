@@ -98,8 +98,16 @@ mbt_enable_toolchain_env() {
     export MBT_TOOLCHAIN_DIR="${MBT_TOOLCHAIN_DIR:-$SCRIPT_PATH/armbin}"
     export MBT_TOOLCHAIN_URL="${MBT_TOOLCHAIN_URL:-$DEFAULT_TOOLCHAIN_URL}"
     export MBT_EXPECTED_GCC_VERSION="${MBT_EXPECTED_GCC_VERSION:-9.2.1}"
-    export MBT_FORCE_TOOLCHAIN="${FORCE_TOOLCHAIN:-0}"
-    export MBT_NO_TOOLCHAIN_DOWNLOAD="${NO_TOOLCHAIN_DOWNLOAD:-0}"
+
+    if [[ -z "${MBT_FORCE_TOOLCHAIN+x}" ]]; then
+        MBT_FORCE_TOOLCHAIN="${FORCE_TOOLCHAIN:-0}"
+    fi
+    export MBT_FORCE_TOOLCHAIN
+
+    if [[ -z "${MBT_NO_TOOLCHAIN_DOWNLOAD+x}" ]]; then
+        MBT_NO_TOOLCHAIN_DOWNLOAD="${NO_TOOLCHAIN_DOWNLOAD:-0}"
+    fi
+    export MBT_NO_TOOLCHAIN_DOWNLOAD
     export MBT_VERBOSE="${MBT_VERBOSE:-}"
 
     # shellcheck source=/dev/null
