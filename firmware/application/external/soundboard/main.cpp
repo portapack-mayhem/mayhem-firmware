@@ -73,7 +73,7 @@ __attribute__((section(".external_app.app_soundboard.application_information"), 
         0xF0,
         0xFF,
     },
-    /*.icon_color = */ ui::Color::orange().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
 

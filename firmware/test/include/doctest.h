@@ -6996,7 +6996,7 @@ int Context::run() {
         } else if (p->order_by.compare("name", true) == 0) {
             std::sort(testArray.begin(), testArray.end(), nameOrderComparator);
         } else if (p->order_by.compare("rand", true) == 0) {
-            std::srand(p->rand_seed);
+            srand(p->rand_seed);
 
             // random_shuffle implementation
             const auto first = &testArray[0];

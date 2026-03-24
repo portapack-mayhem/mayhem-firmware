@@ -62,19 +62,24 @@ AppManagerView::AppManagerView(NavigationView& nav)
         auto app_name = get_app_info(menu_view.highlighted_index(), true);
         auto app_id = get_app_info(menu_view.highlighted_index(), false);
 
-        info += "Hidden:";
+        if (!app_name.empty()) {
+            info += "Hidden:";
 
-        if (is_blacklisted(app_name)) {
-            info += "Yes ";
-        } else {
-            info += "No ";
+            if (is_blacklisted(app_name)) {
+                info += "Yes ";
+            } else {
+                info += "No ";
+            }
         }
 
-        info += "Autostart:";
-        if (is_autostart_app(app_id)) {
-            info += "Yes";
-        } else {
-            info += "No";
+        if (!app_id.empty()) {
+            info += "Autostart:";
+
+            if (is_autostart_app(app_id)) {
+                info += "Yes";
+            } else {
+                info += "No";
+            }
         }
 
         if (info.empty()) {
@@ -82,6 +87,8 @@ AppManagerView::AppManagerView(NavigationView& nav)
         }
 
         text_app_info.set(info);
+        button_hide_unhide.set_focusable(!app_name.empty());
+        button_set_cancel_autostart.set_focusable(!app_id.empty());
     };
 
     button_hide_unhide.on_select = [this](Button&) {
@@ -120,27 +127,23 @@ void AppManagerView::refresh_list() {
     };
 
     for (auto& app : NavigationView::appList) {
-        if (app.id == nullptr) continue;
-
         app_list_index++;
 
-        menu_view.add_item({app.displayName + std::string(is_autostart_app(app.id) ? padding(app.displayName) : ""),
+        menu_view.add_item({app.displayName + std::string((app.id != nullptr && is_autostart_app(app.id)) ? padding(app.displayName) : ""),
                             app.iconColor,
                             app.icon,
-                            [this, app_id = std::string(app.id)](KeyEvent) {
+                            [this, app_id = std::string(app.id != nullptr ? app.id : "")](KeyEvent) {
                                 button_hide_unhide.focus();
                             }});
     }
 
     ExternalItemsMenuLoader::load_all_external_items_callback([this, &index, &padding](ui::AppInfoConsole& app) {
-        if (app.appCallName == nullptr) return;
-
         app_list_index++;
 
-        menu_view.add_item({app.appFriendlyName + std::string(is_autostart_app(app.appCallName) ? padding(app.appFriendlyName) : ""),
+        menu_view.add_item({app.appFriendlyName + std::string((app.appCallName != nullptr && is_autostart_app(app.appCallName)) ? padding(app.appFriendlyName) : ""),
                             ui::Color::light_grey(),
                             &bitmap_icon_sdcard,
-                            [this, app_id = std::string(app.appCallName)](KeyEvent) {
+                            [this, app_id = std::string(app.appCallName != nullptr ? app.appCallName : "")](KeyEvent) {
                                 button_hide_unhide.focus();
                             }});
     });
@@ -156,19 +159,29 @@ void AppManagerView::hide_app() {
     std::vector<std::string> blacklist;
     get_blacklist(blacklist);
 
-    blacklist.push_back(get_app_info(menu_view.highlighted_index(), true));
+    auto app_name = get_app_info(menu_view.highlighted_index(), true);
+    if (app_name.empty()) return;
+
+    blacklist.push_back(app_name);
     write_blacklist(blacklist);
 }
 
 void AppManagerView::unhide_app() {
     std::vector<std::string> blacklist;
     get_blacklist(blacklist);
-    blacklist.erase(std::remove(blacklist.begin(), blacklist.end(), get_app_info(menu_view.highlighted_index(), true)), blacklist.end());
+
+    auto app_name = get_app_info(menu_view.highlighted_index(), true);
+    if (app_name.empty()) return;
+
+    blacklist.erase(std::remove(blacklist.begin(), blacklist.end(), app_name), blacklist.end());
     write_blacklist(blacklist);
 }
 
 void AppManagerView::hide_unhide_app() {
-    if (is_blacklisted(get_app_info(menu_view.highlighted_index(), true)))
+    auto app_name = get_app_info(menu_view.highlighted_index(), true);
+    if (app_name.empty()) return;
+
+    if (is_blacklisted(app_name))
         unhide_app();
     else
         hide_app();
@@ -218,6 +231,7 @@ void AppManagerView::set_auto_start() {
     if (app_index >= app_list_index) return;
 
     auto id_aka_app_call_name = get_app_info(app_index, false);
+    if (id_aka_app_call_name.empty()) return;
 
     autostart_app = id_aka_app_call_name;
 
@@ -234,6 +248,7 @@ void AppManagerView::set_unset_autostart_app() {
     if (app_index >= app_list_index) return;
 
     auto id_aka_friendly_name = get_app_info(app_index, false);
+    if (id_aka_friendly_name.empty()) return;
 
     if (is_autostart_app(id_aka_friendly_name))
         unset_auto_start();
@@ -254,17 +269,15 @@ std::string AppManagerView::get_app_info(uint16_t index, bool is_display_name) {
     std::string result;
 
     for (auto& app : NavigationView::appList) {
-        if (app.id == nullptr) continue;
         if (current_index == index) {
-            return is_display_name ? std::string(app.displayName) : std::string(app.id);
+            return is_display_name ? std::string(app.displayName != nullptr ? app.displayName : "") : std::string(app.id != nullptr ? app.id : "");
         }
         current_index++;
     }
 
     ExternalItemsMenuLoader::load_all_external_items_callback([&current_index, &index, &result, &is_display_name](ui::AppInfoConsole& app) {
-        if (app.appCallName == nullptr) return;
         if (current_index == index) {
-            result = is_display_name ? app.appFriendlyName : app.appCallName;
+            result = is_display_name ? (app.appFriendlyName != nullptr ? app.appFriendlyName : "") : (app.appCallName != nullptr ? app.appCallName : "");
         }
         current_index++;
     });

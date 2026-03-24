@@ -100,7 +100,8 @@ std::string to_string_dec_uint(uint64_t n) {
 
 std::string to_string_bin(
     const uint32_t n,
-    const uint8_t l) {
+    uint8_t l) {
+    if (l >= 33) l = 32;
     char p[33];
     for (uint8_t c = 0; c < l; c++) {
         if (n & (1 << (l - 1 - c)))

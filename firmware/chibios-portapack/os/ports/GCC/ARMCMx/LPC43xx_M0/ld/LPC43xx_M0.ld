@@ -23,8 +23,16 @@ __process_stack_size__  = 0x1000;   /* main() stack */
 
 MEMORY
 {
-    flash (rx)  : org = 0x00000000, len = 1024k /* SPIFI flash @ 0x140????? */
-    ram   (rwx) : org = 0x20000000, len = 64k   /* AHB SRAM @ 0x20000000 */
+    flash (rx)  : org = 0x00000000, len = LD_FLASH_SIZE /* SPIFI flash @ 0x140????? */
+    
+    /* HackRF One (Standard): 64KB AHB SRAM @ 0x20000000
+     * HackRF Pro (Praline): Hardware supports 128KB high-throughput buffers.
+     * The actual size is controlled by LD_RAM_SIZE (set in rules.cmake).
+     * AHB SRAM @ 0x20000000 (stacks, data, bss) */
+    ram   (rwx) : org = 0x20000000, len = LD_RAM_SIZE
+    
+    /* Local SRAM slice for extended heap (0 length on HackRF One) */
+    ram_local (rwx) : org = LD_M0_LOCAL_HEAP_ORIGIN, len = LD_M0_LOCAL_HEAP_SIZE
 }
 
 __ram_start__           = ORIGIN(ram);
@@ -151,5 +159,10 @@ SECTIONS
 PROVIDE(end = .);
 _end            = .;
 
-__heap_base__   = _end;
-__heap_end__    = __ram_end__;
+/*
+ * Heap configuration:
+ * - If ram_local has size > 0: use Local SRAM for heap (larger, Praline)
+ * - Otherwise: use remaining AHB SRAM after bss (HackRF One)
+ */
+__heap_base__ = (LD_M0_LOCAL_HEAP_SIZE > 0) ? ORIGIN(ram_local) : _end;
+__heap_end__  = (LD_M0_LOCAL_HEAP_SIZE > 0) ? (ORIGIN(ram_local) + LENGTH(ram_local)) : __ram_end__;

@@ -127,8 +127,8 @@ class Widget {
     bool dirty() const;
     void set_clean();
 
-    void visible(bool v);
-    bool visible() { return flags.visible; };
+    void drawn(bool v);
+    bool drawn() const { return flags.drawn; };
 
     bool highlighted() const;
     void set_highlighted(const bool value);
@@ -147,7 +147,7 @@ class Widget {
         bool hidden : 1;       // Hide widget and children.
         bool focusable : 1;    // Widget can receive focus.
         bool highlighted : 1;  // Show in a highlighted style.
-        bool visible : 1;      // Object was visible during last paint.
+        bool drawn : 1;        // Object was drawn during last paint.
     };
 
     flags_t flags{
@@ -155,7 +155,7 @@ class Widget {
         .hidden = false,
         .focusable = false,
         .highlighted = false,
-        .visible = false,
+        .drawn = false,
     };
 
     static const std::vector<Widget*> no_children;
@@ -210,6 +210,7 @@ class Rectangle : public Widget {
 
 class Text : public Widget {
    public:
+    std::function<void(Text&)> on_select{};
     Text()
         : text{""} {
     }
@@ -218,10 +219,13 @@ class Text : public Widget {
     Text(Rect parent_rect);
 
     void set(std::string_view value);
+    std::string get();
 
     void paint(Painter& painter) override;
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
+
+    bool on_touch(const TouchEvent event) override;
 
    protected:
     // NB: Don't truncate this string. The UI will only render
@@ -883,6 +887,53 @@ class NumberField : public Widget {
     const char fill_char;
     int32_t value_{0};
     bool can_loop{};
+};
+
+class FloatField : public Widget {
+   public:
+    std::function<void(FloatField&)> on_select{};
+    std::function<void(float)> on_change{};
+    std::function<void(int32_t)> on_wrap{};
+
+    using range_t = std::pair<float, float>;
+
+    FloatField(Point parent_pos, int length, range_t range, float step, char fill_char, bool can_loop, uint8_t precision_ = 1);
+
+    FloatField(Point parent_pos, int length, range_t range, float step, char fill_char)
+        : FloatField{parent_pos, length, range, step, fill_char, true, 1} {
+    }
+
+    FloatField()
+        : FloatField{{0, 0}, 1, {0, 1}, 1, ' ', true, 1} {
+    }
+
+    FloatField(const FloatField&) = delete;
+    FloatField(FloatField&&) = delete;
+
+    float value() const;
+    void set_value(float new_value, bool trigger_change = true);
+    void set_range(const float min, const float max);
+    void set_step(const float new_step);
+    void set_precision(uint8_t precision);
+
+    void paint(Painter& painter) override;
+
+    bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent delta) override;
+    bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    range_t range;
+    float step;
+    const int length_;
+    const char fill_char;
+    float value_{0};
+    bool can_loop{};
+    uint8_t precision = 1;
 };
 
 /* A widget that allows for character-by-character editing of its value. */

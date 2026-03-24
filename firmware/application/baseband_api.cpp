@@ -21,6 +21,7 @@
  */
 
 #include "baseband_api.hpp"
+#include <cstring>
 
 #include "audio.hpp"
 #include "tonesets.hpp"
@@ -52,12 +53,21 @@ static void send_message(const Message* const message) {
     creg::m0apptxevent::assert_event();
 
     if constexpr (check_for_message_hang) {
+#ifdef PRALINE
+        /* Timeout: ~3 seconds at typical clock speeds */
+        auto count = 200'000'000u;
+#else
         auto count = UINT32_MAX;
+#endif
         while (shared_memory.baseband_message && --count)
             /* spin */;
 
         if (count == 0)
+#ifdef PRALINE
+            chDbgPanic("BB Msg Timeout");
+#else
             chDbgPanic("Baseband Send Fail");
+#endif
     } else {
         while (shared_memory.baseband_message)
             /* spin */;
@@ -325,8 +335,18 @@ void set_rds_data(const uint16_t message_length) {
     send_message(&message);
 }
 
-void set_spectrum(const size_t sampling_rate, const size_t trigger) {
+void set_spectrum(
+    const size_t sampling_rate,
+    const size_t trigger) {
     const WidebandSpectrumConfigMessage message{
+        sampling_rate, trigger};
+    send_message(&message);
+}
+
+void set_time_sink(
+    const size_t sampling_rate,
+    const size_t trigger) {
+    const TimeSinkConfigMessage message{
         sampling_rate, trigger};
     send_message(&message);
 }
@@ -366,6 +386,54 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 void set_subghzd_config(uint8_t modulation = 0, uint32_t sampling_rate = 0) {
     const SubGhzFPRxConfigureMessage message{modulation, sampling_rate};
     send_message(&message);
+}
+
+void set_moreserx_config(uint8_t mode) {
+    const MorseRXConfigureMessage message{mode};
+    send_message(&message);
+}
+
+void set_morsetx_config(uint8_t mode, uint32_t tone, float fm_delta) {
+    const MorseTXConfigureMessage message{mode, tone, fm_delta};
+    send_message(&message);
+}
+
+void set_morsetx_key(bool key_down) {
+    const MorseTXkeyMessage message{key_down};
+    send_message(&message);
+}
+
+void set_bitstream_config(uint32_t deviation, uint8_t mode) {
+    const StreamTXConfigurationMessage message{deviation, mode};
+    send_message(&message);
+}
+
+void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload, uint16_t payload_length) {
+    RTTYDataMessage message{baud, shift};
+    if (payload && payload_length > 0) {
+        message.data_len = payload_length > message.max_len ? message.max_len : payload_length;
+        for (size_t i = 0; i < message.data_len; ++i) {
+            message.data[i] = payload[i];
+        }
+    }
+    send_message(&message);
+}
+
+void set_rtty_config(RTTYDataMessage& message) {
+    send_message(&message);
+}
+
+void set_epirb_tx_config(EPIRBTXDataMessage& message) {
+    send_message(&message);
+}
+
+void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
+    const size_t max_len = sizeof(shared_memory.bb_data.data);
+    if (frame_length > max_len) frame_length = max_len;
+    memcpy(shared_memory.bb_data.data, dibits, frame_length);
+    P25TxConfigureMessage msg{};
+    msg.frame_length = frame_length;
+    send_message(&msg);
 }
 
 static bool baseband_image_running = false;
@@ -429,7 +497,12 @@ void shutdown() {
     send_message(&message);
 
     shared_memory.application_queue.reset();
-
+    // Allow time for the shutdown message to be processed and for the baseband
+    // core to stop before starting another image. Otherwise, the M4 may still be
+    // running and cause a crash when the next image is started.
+#ifdef PRALINE
+    chThdSleepMilliseconds(20);
+#endif
     baseband_image_running = false;
 }
 

@@ -91,7 +91,7 @@ Continuous (Fox-oring)
 // TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
 // TODO: RDS multiple groups (sequence)
 // TODO: Use ModalMessageView confirmation for TX ?
-// TODO: Use msgpack for settings, lists... on sd card
+// TODO: Use msgpack for settings, lists... on sd card. and make it safe, since now it has a lot of oob potentials
 
 // Multimon-style stuff:
 // TODO: DMR detector
@@ -145,6 +145,21 @@ Continuous (Fox-oring)
 rffc507x::RFFC507x first_if;
 ui::SystemView* system_view_ptr;
 
+static uint32_t random_seed_state = 123456789;
+extern "C" int rand(void) {
+    random_seed_state ^= random_seed_state << 13;
+    random_seed_state ^= random_seed_state >> 17;
+    random_seed_state ^= random_seed_state << 5;
+    return (int)(random_seed_state & 0x7FFFFFFF);
+}
+extern "C" void srand(unsigned int seed) {
+    if (seed == 0) {
+        random_seed_state = 123456789;
+    } else {
+        random_seed_state = seed;
+    }
+}
+
 static void event_loop() {
     static ui::Context context;
     static ui::SystemView system_view{
@@ -166,7 +181,9 @@ static void event_loop() {
 }
 
 int main(void) {
+#ifndef PRALINE      // Do not perform quick set up of GP01_RFF507X = 1 for PRALINE
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
+#endif
 
     if (config_mode_should_enter()) {
         config_mode_clear();
@@ -187,7 +204,7 @@ int main(void) {
             lcd_frame_sync_configure();
             rtc_interrupt_enable();
 
-            Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());  // load theme
+            Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());
 
             event_loop();
 

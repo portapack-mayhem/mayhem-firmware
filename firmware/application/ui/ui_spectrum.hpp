@@ -146,6 +146,7 @@ class WaterfallView : public View {
 
     void set_parent_rect(const Rect new_parent_rect) override;
     void show_audio_spectrum_view(const bool show);
+    void load_gradient();
 
    private:
     void update_widgets_rect();

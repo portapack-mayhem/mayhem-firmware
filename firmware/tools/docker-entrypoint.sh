@@ -21,35 +21,70 @@
 # Boston, MA 02110-1301, USA.
 #
 
-set -e # exit immediatelly on any failure
+set -e # exit immediately on any failure
+
+BUILD_DIR="build"
+CMAKE_ARGS=()
+BUILD_ARGS=()
+
+parse_build_args() {
+   # 1. PARSE BUILD ARGUMENTS
+   # We separate arguments into two lists, and possibly get an override for the build dir:
+   # - BUILD_DIR: Defaults to build, can be overriden (e.g., -B build-4mb, --workdir build-praline)
+   # - CMAKE_ARGS: Anything starting with -D (e.g., -DFLASH_MB_SIZE=4)
+   # - BUILD_ARGS: Everything else (e.g., make, ninja, -j20)
+
+   while [[ $# -gt 0 ]]; do
+      if [[ "$1" == -B ]] || [[ "$1" == "--workdir" ]]; then
+         shift
+         BUILD_DIR=$1
+         shift
+      elif [[ "$1" == -D* ]]; then
+         CMAKE_ARGS+=("$1")
+         shift
+      else
+         BUILD_ARGS+=("$1")
+         shift
+      fi
+   done
+}
 
 build_make() {
+   parse_build_args "$@"
+   echo "Building in workdir: \"$BUILD_DIR\" using CMake options: \"${CMAKE_ARGS[@]}\" and make options: \"${BUILD_ARGS[@]}\""
    cd ..
-   mkdir -p build
-   cd build
-	cmake ..
-   make "$@"
-   exit 0 # Report success :)
+   mkdir -p "$BUILD_DIR"
+   cd "$BUILD_DIR"
+   cmake "${CMAKE_ARGS[@]}" ..
+   make "${BUILD_ARGS[@]}"
+   exit 0 
 }
 
 build_ninja() {
+   parse_build_args "$@"
+   echo "Building in workdir: \"$BUILD_DIR\" using CMake options: \"${CMAKE_ARGS[@]}\" and ninja options: \"${BUILD_ARGS[@]}\""
    cd ..
-   mkdir -p build
-   cd build
-	cmake -G Ninja ..
-   ninja "$@"
-   exit 0 # Report success :)
+   mkdir -p "$BUILD_DIR"
+   cd "$BUILD_DIR"
+   cmake -G Ninja "${CMAKE_ARGS[@]}" ..
+   ninja "${BUILD_ARGS[@]}"
+   exit 0 
 }
 
-if [ "$1" = 'make' ]; then # build the default (or specified) target with make
-   shift # remove the first item from $@ as we consumed it, we can then pass the rest on to make
+if [ "$1" = 'make' ]; then 
+   # User explicitly typed 'make'
+   shift 
    build_make "$@"
-elif [[ $1 == -j* ]]; then # allow passing -j without typing make_default
-   # dont shift here as we wanna pass the -j
+
+elif [[ $1 == -* ]]; then 
+   # User passed a switch not a command as first argument. Assuming make. (e.g., -j20)
    build_make "$@"
-elif [ "$1" = 'ninja' ]; then # build the default (or specified) target with ninja
-   shift # remove the first item from $@ as we consumed it, we can then pass the rest on to make
+
+elif [ "$1" = 'ninja' ]; then 
+   # User explicitly typed 'ninja'
+   shift 
    build_ninja "$@"
 fi
 
+# Fallback for other commands (e.g. /bin/bash)
 exec "$@"

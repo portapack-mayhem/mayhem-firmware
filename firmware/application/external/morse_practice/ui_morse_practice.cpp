@@ -12,6 +12,13 @@ MorsePracticeView::MorsePracticeView(ui::NavigationView& nav)
                   &btn_clear,
                   &console_text,
                   &field_volume});
+
+    initial_switch_config_ = get_switches_repeat_config();
+
+    SwitchesState config = initial_switch_config_;
+    config[toUType(Switch::Sel)] = false;
+    set_switches_repeat_config(config);
+
     audio::set_rate(audio::Rate::Hz_24000);
 
     btn_tt.on_select = [this](Button&) {
@@ -43,6 +50,7 @@ MorsePracticeView::MorsePracticeView(ui::NavigationView& nav)
 }
 
 MorsePracticeView::~MorsePracticeView() {
+    set_switches_repeat_config(initial_switch_config_);
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
@@ -98,7 +106,7 @@ void MorsePracticeView::writeCharToConsole(const std::string& ch, double confide
 
     if (ch == " ") {
         color_id = 0;
-    } else if (ch == MORSEDEC_ERROR) {
+    } else if (ch[0] == '{') {  // no match
         color_id = 0;
     } else {
         if (confidence < 0.8)

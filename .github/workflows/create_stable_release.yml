@@ -1,25 +1,36 @@
 name: Stable Release
 
-on:    
+on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: build (${{ matrix.device_name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: default
+            device_name: HackRF
+            cmake_args: ""
+            artifact_suffix: "_hackrf"
+          - device: portarf
+            device_name: PortaRF
+            cmake_args: "-DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=2"
+            artifact_suffix: "_portarf"
+          - device: hpro
+            device_name: HackRF Pro
+            cmake_args: "-DBOARD=PRALINE"
+            artifact_suffix: "_hpro"
     steps:
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      - name: Checkout 
+      - name: Checkout
         uses: actions/checkout@master
         with:
           fetch-depth: 0
-          #ref: next
-          # The branch, tag or SHA to checkout. When checking out the repository that
-          # triggered a workflow, this defaults to the reference or SHA for that event.
-          # Otherwise, uses the default branch.
-          # https://github.com/actions/checkout
-          # So scheduled runs will use the default branch (next) but its now possible to trigger a workflow from another branch
           submodules: true
       - name: Git Sumbodule Update
         run: |
@@ -27,18 +38,15 @@ jobs:
       - name: Get version
         id: version
         run: echo "version=$(cat .github/workflows/version.txt)" >> $GITHUB_OUTPUT
-      - name: Get past version
-        id: past_version
-        run: echo "past_version=$(cat .github/workflows/past_version.txt)" >> $GITHUB_OUTPUT
       - name: Build the Docker image
         run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
       - name: Make build folder
         run: mkdir ${{ github.workspace }}/build
       - name: Run the Docker image
-        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev
+        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev ${{ matrix.cmake_args }}
       - name: Create Small SD Card ZIP - No World Map
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_${{ steps.version.outputs.version }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_${{ steps.version.outputs.version }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
       - name: Download world map
         run: |
           wget https://github.com/portapack-mayhem/mayhem-firmware/releases/download/world_map/world_map.zip
@@ -47,13 +55,58 @@ jobs:
           unzip world_map.zip -d sdcard/ADSB
       - name: Prepare Firmware ZIP
         run: |
-          cp build/hackrf/firmware/hackrf_usb/hackrf_usb.dfu flashing/utils/hackrf_one_usb.dfu && cp build/hackrf/firmware/hackrf_usb/hackrf_usb.bin flashing/utils/hackrf_one_usb.bin
+          mkdir -p flashing/firmware && cp build/hackrf/firmware/hackrf_usb/hackrf_usb.dfu flashing/firmware/hackrf_usb.dfu && cp build/hackrf/firmware/hackrf_usb/hackrf_usb.bin flashing/firmware/hackrf_usb.bin
       - name: Create Firmware ZIP
         run: |
           zip -j firmware.zip build/firmware/portapack-mayhem-firmware.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_${{ steps.version.outputs.version }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard.zip . && cd ..
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_${{ steps.version.outputs.version }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard.zip . && cd ..
+      - name: Upload firmware zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.device }}
+          path: ./firmware.zip
+      - name: Upload SD card artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdcard-${{ matrix.device }}
+          path: ./sdcard.zip
+      - name: Upload SD card no-map artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdcard-no-map-${{ matrix.device }}
+          path: ./sdcard-no-map.zip
+      - name: Upload OCI tar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oci-tar-${{ matrix.device }}
+          path: build/firmware/portapack-mayhem_OCI.ppfw.tar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Get version
+        id: version
+        run: echo "version=$(cat .github/workflows/version.txt)" >> $GITHUB_OUTPUT
+      - name: Get past version
+        id: past_version
+        run: echo "past_version=$(cat .github/workflows/past_version.txt)" >> $GITHUB_OUTPUT
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
       - name: Create changelog
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,21 +117,49 @@ jobs:
             echo EOF
           } >> "$GITHUB_OUTPUT"
         id: changelog
+      # Combine all 3 device firmware bins into a single zip with device selector bat
+      - name: Create Combined Firmware ZIP
+        run: |
+          mkdir -p firmware_combined
+          unzip artifacts/firmware-default/firmware.zip -d firmware_combined
+          mv firmware_combined/portapack-mayhem-firmware.bin firmware_combined/firmware/firmware_hackrf.bin
+          unzip -j artifacts/firmware-portarf/firmware.zip portapack-mayhem-firmware.bin -d firmware_combined/firmware
+          mv firmware_combined/firmware/portapack-mayhem-firmware.bin firmware_combined/firmware/firmware_portarf.bin
+          unzip -j artifacts/firmware-hpro/firmware.zip portapack-mayhem-firmware.bin -d firmware_combined/firmware
+          mv firmware_combined/firmware/portapack-mayhem-firmware.bin firmware_combined/firmware/firmware_hpro.bin
+          unzip -j artifacts/firmware-hpro/firmware.zip firmware/hackrf_usb.dfu firmware/hackrf_usb.bin -d firmware_combined_hpro
+          mv firmware_combined_hpro/hackrf_usb.dfu firmware_combined/firmware/hackrf_hpro_usb.dfu
+          mv firmware_combined_hpro/hackrf_usb.bin firmware_combined/firmware/hackrf_hpro_usb.bin
+          cd firmware_combined && zip -r ../firmware_all_devices.zip . && cd ..
+      - name: Prepare release assets
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          mkdir -p release_assets
+          # OCI tar assets
+          cp artifacts/oci-tar-default/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_hackrf_mayhem_${VER}.ppfw.tar"
+          cp artifacts/oci-tar-portarf/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_portarf_mayhem_${VER}.ppfw.tar"
+          cp artifacts/oci-tar-hpro/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_hpro_mayhem_${VER}.ppfw.tar"
+          # Combined firmware
+          cp firmware_all_devices.zip "release_assets/FIRMWARE_mayhem_${VER}.zip"
+          # SD card assets
+          cp artifacts/sdcard-default/sdcard.zip "release_assets/COPY_TO_SDCARD_hackrf_mayhem_${VER}.zip"
+          cp artifacts/sdcard-no-map-default/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_hackrf_mayhem_${VER}-no-world-map.zip"
+          cp artifacts/sdcard-portarf/sdcard.zip "release_assets/COPY_TO_SDCARD_portarf_mayhem_${VER}.zip"
+          cp artifacts/sdcard-no-map-portarf/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_portarf_mayhem_${VER}-no-world-map.zip"
+          cp artifacts/sdcard-hpro/sdcard.zip "release_assets/COPY_TO_SDCARD_hpro_mayhem_${VER}.zip"
+          cp artifacts/sdcard-no-map-hpro/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_hpro_mayhem_${VER}-no-world-map.zip"
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          release_name: Mayhem firmware ${{ steps.version.outputs.version }}
+          name: Mayhem firmware ${{ steps.version.outputs.version }}
           body: |
             **Stable release - ${{ steps.version.outputs.version }}**
             This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/portapack-mayhem/mayhem-firmware/blob/master/README.md) for details.
             ## Release notes
             ###  Revision (${{ steps.version.outputs.version }}):
             ${{ steps.changelog.outputs.content }}
-            
+
             **Full Changelog**: https://github.com/portapack-mayhem/mayhem-firmware/compare/${{ steps.past_version.outputs.past_version }}...${{ steps.version.outputs.version }}
 
             ## Installation
@@ -90,44 +171,4 @@ jobs:
             For certain functionality, like external apps, the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
           draft: true
           prerelease: false
-      - name: Upload Firmware TAR Asset
-        id: upload-firmware-tar-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/firmware/portapack-mayhem_OCI.ppfw.tar
-          asset_name: mayhem_${{ steps.version.outputs.version }}_OCI.ppfw.tar
-          asset_content_type: application/x-tar
-      - name: Upload Firmware Asset
-        id: upload-firmware-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./firmware.zip
-          asset_name: mayhem_${{ steps.version.outputs.version }}_FIRMWARE.zip
-          asset_content_type: application/zip
-      - name: Upload SD Card Assets
-        id: upload-sd-card-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sdcard.zip
-          asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD.zip
-          asset_content_type: application/zip
-      - name: Upload SD Card Assets - No Map
-        id: upload-sd-card-asset-no-map 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sdcard-no-map.zip
-          asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD-no-world-map.zip
-          asset_content_type: application/zip
-     
+          files: release_assets/*

@@ -33,6 +33,9 @@
 #include "ui_touch_calibration.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_external_items_menu_loader.hpp"
+#include "ui_ss_viewer.hpp"
+#include "ui_fileman.hpp"
+#include "ui_sd_card_debug.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -309,13 +312,45 @@ SetFrequencyCorrectionModel SetRadioView::form_collect() {
     };
 }
 
+/* SetTXLimitView ************************************/
+
+SetTXLimitView::SetTXLimitView(NavigationView& nav) {
+    add_children({
+        &labels,
+        &tx_gain_max_db,
+        &tx_disable_switch,
+        &tx_amp_disable_switch,
+        &button_save,
+        &button_cancel,
+    });
+
+    tx_disable_switch.set_value(pmem::config_tx_disabled());
+    tx_amp_disable_switch.set_value(pmem::config_tx_amp_disabled());
+    tx_gain_max_db.set_value(pmem::config_tx_gain_max_db());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_config_tx_disabled(tx_disable_switch.value());
+        pmem::set_config_tx_amp_disabled(tx_amp_disable_switch.value());
+        pmem::set_config_tx_gain_max_db(tx_gain_max_db.value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetTXLimitView::focus() {
+    button_save.focus();
+}
+
 /* SetUIView *********************************************/
 
 SetUIView::SetUIView(NavigationView& nav) {
     add_children({&checkbox_disable_touchscreen,
                   &checkbox_bloff,
                   &options_bloff,
-                  &checkbox_showsplash,
                   &checkbox_showclock,
                   &options_clockformat,
                   &checkbox_guireturnflag,
@@ -342,7 +377,6 @@ SetUIView::SetUIView(NavigationView& nav) {
     }
 
     checkbox_disable_touchscreen.set_value(pmem::disable_touchscreen());
-    checkbox_showsplash.set_value(pmem::config_splash());
     checkbox_showclock.set_value(!pmem::hide_clock());
     checkbox_guireturnflag.set_value(pmem::show_gui_return_icon());
 
@@ -381,7 +415,6 @@ SetUIView::SetUIView(NavigationView& nav) {
                 pmem::set_clock_with_date(false);
         }
 
-        pmem::set_config_splash(checkbox_showsplash.value());
         pmem::set_clock_hidden(!checkbox_showclock.value());
         pmem::set_gui_return_icon(checkbox_guireturnflag.value());
         pmem::set_disable_touchscreen(checkbox_disable_touchscreen.value());
@@ -414,7 +447,11 @@ void SetUIView::focus() {
 /* SetSDCardView *********************************************/
 
 SetSDCardView::SetSDCardView(NavigationView& nav) {
-    add_children({&labels,
+    add_children({&status_labels,
+                  &text_card_status,
+                  &text_filesystem_type,
+                  &button_more_info,
+                  &labels,
                   &checkbox_sdcard_speed,
                   &button_test_sdcard_high_speed,
                   &text_sdcard_test_status,
@@ -422,6 +459,10 @@ SetSDCardView::SetSDCardView(NavigationView& nav) {
                   &button_cancel});
 
     checkbox_sdcard_speed.set_value(pmem::config_sdcard_high_speed_io());
+
+    button_more_info.on_select = [&nav, this](Button&) {
+        nav.push<SDCardDebugView>();
+    };
 
     button_test_sdcard_high_speed.on_select = [&nav, this](Button&) {
         pmem::set_config_sdcard_high_speed_io(true, false);
@@ -440,7 +481,79 @@ SetSDCardView::SetSDCardView(NavigationView& nav) {
 }
 
 void SetSDCardView::focus() {
-    button_save.focus();
+    button_cancel.focus();
+}
+
+void SetSDCardView::on_show() {
+    sd_card_status_signal_token = sd_card::status_signal += [this](const sd_card::Status) {
+        update_sd_card_status();
+    };
+
+    update_sd_card_status();
+}
+
+void SetSDCardView::on_hide() {
+    sd_card::status_signal -= sd_card_status_signal_token;
+}
+
+void SetSDCardView::update_sd_card_status() {
+    using sd_card::Status;
+
+    const auto status = sd_card::status();
+
+    // Update card status text
+    switch (status) {
+        case Status::NotPresent:
+            text_card_status.set("Not Inserted");
+            text_filesystem_type.set("---");
+            break;
+        case Status::Present:
+            text_card_status.set("Inserted");
+            text_filesystem_type.set("---");
+            break;
+        case Status::Mounted:
+            text_card_status.set("Mounted");
+            // Determine filesystem type
+            {
+                const auto fs_type = sd_card::fs.fs_type;
+                std::string fs_name;
+                switch (fs_type) {
+                    case FS_FAT12:
+                        fs_name = "FAT12";
+                        break;
+                    case FS_FAT16:
+                        fs_name = "FAT16";
+                        break;
+                    case FS_FAT32:
+                        fs_name = "FAT32";
+                        break;
+                    case FS_EXFAT:
+                        fs_name = "exFAT";
+                        break;
+                    default:
+                        fs_name = "Unknown";
+                        break;
+                }
+                text_filesystem_type.set(fs_name);
+            }
+            break;
+        case Status::ConnectError:
+            text_card_status.set("Connect Error");
+            text_filesystem_type.set("---");
+            break;
+        case Status::MountError:
+            text_card_status.set("Mount Error");
+            text_filesystem_type.set("---");
+            break;
+        case Status::IOError:
+            text_card_status.set("I/O Error");
+            text_filesystem_type.set("---");
+            break;
+        default:
+            text_card_status.set("Unknown");
+            text_filesystem_type.set("---");
+            break;
+    }
 }
 
 /* SetConverterSettingsView ******************************/
@@ -1080,6 +1193,46 @@ void SetBatteryView::focus() {
     button_cancel.focus();
 }
 
+/* SetSlpash *********************************************/
+
+SetSplash::SetSplash(NavigationView& nav) {
+    add_children({&checkbox_showsplash,
+                  &checkbox_randomsplash,
+                  &message,
+                  &button_picture_select,
+                  &button_save,
+                  &button_cancel});
+
+    checkbox_showsplash.set_value(pmem::config_splash());
+    splash_bmp_exists = file_exists(splash_dot_bmp);
+    checkbox_randomsplash.set_value(!splash_bmp_exists);
+    message.hidden(splash_bmp_exists);
+
+    checkbox_randomsplash.on_select = [this](Checkbox&, bool v) {
+        random_enabled = v;
+    };
+
+    button_picture_select.on_select = [this, &nav](Button&) {
+        auto ret = nav.push<FileManagerView>();
+        ret->push_dir(splash_dir);
+    };
+
+    button_save.on_select = [&nav, this](Button&) {
+        if (random_enabled == true) delete_file(splash_dot_bmp);
+        pmem::set_config_splash(checkbox_showsplash.value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetSplash::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -1107,11 +1260,13 @@ void SettingsMenuView::on_populate() {
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
+        {"TX Limit", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetTXLimitView>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
         {"Display", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetDisplayView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
         {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
+        {"Splash settings", ui::Color::dark_cyan(), &bitmap_icon_file_image, [this]() { nav_.push<SetSplash>(); }},
     });
 
     if (battery::BatteryManagement::isDetected()) add_item({"Battery", ui::Color::dark_cyan(), &bitmap_icon_batt_icon, [this]() { nav_.push<SetBatteryView>(); }});

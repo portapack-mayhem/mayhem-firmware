@@ -83,7 +83,7 @@ const Color color_sd_card(const sd_card::Status status) {
 
 SDCardStatusView::SDCardStatusView(
     const Rect parent_rect)
-    : Image{parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Theme::getInstance()->bg_dark->background} {
+    : ImageButton{parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Theme::getInstance()->bg_dark->background} {
 }
 
 void SDCardStatusView::on_show() {
@@ -101,7 +101,7 @@ void SDCardStatusView::paint(Painter& painter) {
     set_bitmap(&detail::bitmap_sd_card(status));
     set_foreground(detail::color_sd_card(status));
 
-    Image::paint(painter);
+    ImageButton::paint(painter);
 }
 
 void SDCardStatusView::on_status(const sd_card::Status) {

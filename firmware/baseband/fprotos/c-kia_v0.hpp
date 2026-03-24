@@ -59,20 +59,26 @@ class FProtoSubCarKiaV0 : public FProtoSubCarBase {
                 break;
             case KIADecoderStepSaveDuration:
                 if (level) {
-                    if (duration >=
-                        (te_long + te_delta * 2UL)) {
-                        // Signal ended too early!
-                        // FURI_LOG_W(TAG, "Signal ended at %u bits (expected 61). Duration: %lu", decode_count_bit, duration);
-
+                    if (duration >= (te_long + te_delta * 2UL)) {
+                        // End of transmission detected
                         parser_step = KIADecoderStepReset;
+
                         if (decode_count_bit == min_count_bit_for_found) {
-                            // instance->generic.data = decode_data;
+                            // data = decode_data;
                             data_count_bit = decode_count_bit;
+                            // just used for log yet, so skip
+                            //  if (kia_verify_crc()) {
+                            //   FURI_LOG_I(TAG, "Valid signal received with correct CRC");
+                            // } else {
+                            //  FURI_LOG_W(TAG, "Signal received but CRC mismatch!");
+                            // }
+
                             if (callback)
                                 callback(this);
                         } else {
-                            // FURI_LOG_E(TAG, "Incomplete signal: only %u bits", decode_count_bit);
+                            // FURI_LOG_E(TAG, "Incomplete signal: only %u bits", instance->decoder.decode_count_bit);
                         }
+
                         decode_data = 0;
                         decode_count_bit = 0;
                         break;
@@ -80,26 +86,19 @@ class FProtoSubCarKiaV0 : public FProtoSubCarBase {
                         te_last = duration;
                         parser_step = KIADecoderStepCheckDuration;
                     }
+
                 } else {
                     parser_step = KIADecoderStepReset;
                 }
                 break;
             case KIADecoderStepCheckDuration:
                 if (!level) {
-                    if ((DURATION_DIFF(te_last, te_short) < te_delta) &&
-                        (DURATION_DIFF(duration, te_short) < te_delta)) {
+                    if ((DURATION_DIFF(te_last, te_short) < te_delta) && (DURATION_DIFF(duration, te_short) < te_delta)) {
                         subghz_protocol_blocks_add_bit(0);
-                        if (decode_count_bit % 10 == 0) {
-                            // FURI_LOG_D(TAG, "Decoded %u bits so far", decode_count_bit);
-                        }
                         parser_step = KIADecoderStepSaveDuration;
                     } else if (
-                        (DURATION_DIFF(te_last, te_long) < te_delta) &&
-                        (DURATION_DIFF(duration, te_long) < te_delta)) {
+                        (DURATION_DIFF(te_last, te_long) < te_delta) && (DURATION_DIFF(duration, te_long) < te_delta)) {
                         subghz_protocol_blocks_add_bit(1);
-                        if (decode_count_bit % 10 == 0) {
-                            // FURI_LOG_D(TAG, "Decoded %u bits so far", decode_count_bit);
-                        }
                         parser_step = KIADecoderStepSaveDuration;
                     } else {
                         // FURI_LOG_W(TAG, "Timing mismatch at bit %u. Last: %lu, Current: %lu", decode_count_bit, te_last, duration);

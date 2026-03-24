@@ -72,7 +72,7 @@ void BlackjackView::paint(Painter& painter) {
 
     if (!initialized) {
         initialized = true;
-        std::srand(LPC_RTC->CTIME0);
+        srand(LPC_RTC->CTIME0);
         init_deck();
     }
 }

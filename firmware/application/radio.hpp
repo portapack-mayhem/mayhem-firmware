@@ -62,12 +62,35 @@ void set_rx_max283x_iq_phase_calibration(const size_t v);
 // void configure(Configuration configuration);
 void disable();
 
+#ifdef PRALINE
+void invalidate_spi_config();
+void set_rx_buff_vcm(const size_t v);
+#endif
+
 namespace debug {
 
 namespace first_if {
 
 uint32_t register_read(const size_t register_number);
 void register_write(const size_t register_number, uint32_t value);
+
+#ifdef PRALINE
+struct TuningInfo {
+    uint32_t requested_freq_mhz;
+    uint32_t calculated_vco_mhz;
+    uint32_t expected_n;
+    uint8_t expected_lodiv;
+    uint8_t expected_presc;
+    bool was_called;
+    uint32_t calc_lo_freq_mhz;
+    uint32_t calc_vco_inside_mhz;
+    uint8_t calc_lodiv_log2;
+    uint8_t calc_presc_log2;
+    uint64_t calc_n_q24;
+};
+
+TuningInfo get_tuning_info();
+#endif
 
 } /* namespace first_if */
 
@@ -80,6 +103,34 @@ void register_write(const size_t register_number, uint32_t value);
 int8_t temp_sense();
 
 } /* namespace second_if */
+
+namespace rf_path_info {
+
+rf::path::Band get_current_band();
+
+} /* namespace rf_path_info */
+
+#ifdef PRALINE
+namespace fpga {
+
+uint32_t register_read(const size_t register_number);
+void register_write(const size_t register_number, uint32_t value);
+void init();
+
+} /* namespace fpga */
+
+/* State tracking - GPIO pins are write-only so we cache last known state */
+rf::Direction get_cached_direction();
+bool get_cached_rf_amp();
+int_fast8_t get_cached_lna_gain();
+int_fast8_t get_cached_vga_gain();
+#endif
+
+namespace sgpio {
+
+uint32_t register_read(const size_t register_number);
+
+} /* namespace sgpio */
 
 } /* namespace debug */
 

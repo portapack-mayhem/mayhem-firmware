@@ -90,6 +90,9 @@ class MicTXView : public View {
         sampling_rate /* sampling rate */
     };
 
+    // structure used to control key repeat
+    SwitchesState initial_switch_config_{};
+
     enum Mic_Modulation : uint32_t {
         MIC_MOD_NFM = 0,
         MIC_MOD_WFM = 1,
@@ -301,7 +304,8 @@ class MicTXView : public View {
         {
             {" 8k5  ", 0},  // Initial dynamic values when we start Mic App.
             {" 11k  ", 1},
-            {" 16k  ", 2},
+            {" 12k5  ", 2},
+            {" 16k  ", 3},
         }};
 
     NumberField field_squelch{

@@ -34,6 +34,7 @@
 #include "ui_navigation.hpp"
 #include "bitmap.hpp"
 #include "ff.h"
+#include "sd_card.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "irq_controls.hpp"
 
@@ -264,6 +265,51 @@ class SetRadioView : public View {
     SetFrequencyCorrectionModel form_collect();
 };
 
+class SetTXLimitView : public View {
+   public:
+    SetTXLimitView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "TX Limit"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Limits RF TX Gain", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "(This may affect", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 3 * 16}, "all applications.)", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 12 * 16}, "TX Max Gain:", Theme::getInstance()->fg_light->foreground},
+
+    };
+
+    Checkbox tx_disable_switch{
+        {1 * 8, 6 * 16},
+        23,
+        "Disable TX"};
+
+    Checkbox tx_amp_disable_switch{
+        {1 * 8, 8 * 16},
+        23,
+        "Disable TX Amp"};
+
+    NumberField tx_gain_max_db{
+        {20 * 8, 12 * 16},
+        6,
+        {0, 47},
+        1,
+        ' ',
+    };
+
+    Button button_save{
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Save"};
+
+    Button button_cancel{
+        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Cancel",
+    };
+};
+
 using portapack::persistent_memory::backlight_timeout_t;
 
 class SetUIView : public View {
@@ -298,77 +344,72 @@ class SetUIView : public View {
             {"1 hour", backlight_timeout_t::Timeout3600Sec},
         }};
 
-    Checkbox checkbox_showsplash{
-        {3 * 8, 6 * 16},
-        20,
-        "Show splash"};
-
     Checkbox checkbox_showclock{
-        {3 * 8, 8 * 16},
+        {3 * 8, 6 * 16},
         20,
         "Show clock with:"};
 
     OptionsField options_clockformat{
-        {60, 9 * 16 + 8},
+        {60, 7 * 16 + 8},
         20,
         {{"time only", 0},
          {"time and date", 1}}};
 
     Checkbox checkbox_guireturnflag{
-        {3 * 8, 11 * 16},
+        {3 * 8, 9 * 16},
         20,
         "Back button in menu"};
 
     Labels labels{
-        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 11 * 16}, "Show/Hide Status Icons", Theme::getInstance()->fg_light->foreground},
     };
 
     ImageToggle toggle_camera{
-        {2 * 8, 14 * 16 + 2, 16, 16},
+        {2 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_camera};
 
     ImageToggle toggle_sleep{
-        {4 * 8, 14 * 16 + 2, 16, 16},
+        {4 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {6 * 8, 14 * 16 + 2, 16, 16},
+        {6 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {8 * 8, 14 * 16 + 2, 16, 16},
+        {8 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {10 * 8, 14 * 16 + 2, 16, 16},
+        {10 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {12 * 8, 14 * 16 + 2, 8, 16},
+        {12 * 8, 12 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {13 * 8, 14 * 16 + 2, 16, 16},
+        {13 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {15 * 8, 14 * 16 + 2, 16, 16},
+        {15 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
     ImageToggle toggle_battery_icon{
-        {17 * 8, 14 * 16 + 2, 16, 16},
+        {17 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_batt_icon};
 
     ImageToggle toggle_battery_text{
-        {19 * 8, 14 * 16 + 2, 16, 16},
+        {19 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_batt_text};
 
     ImageToggle toggle_fake_brightness{
-        {21 * 8, 14 * 16 + 2, 16, 16},
+        {21 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_icon_brightness};
 
     ImageToggle toggle_sd_card{
-        {23 * 8, 14 * 16 + 2, 16, 16},
+        {23 * 8, 12 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -384,36 +425,60 @@ class SetSDCardView : public View {
    public:
     SetSDCardView(NavigationView& nav);
 
+    void on_show() override;
+    void on_hide() override;
+
     void focus() override;
 
     std::string title() const override { return "SD Card"; };
 
    private:
+    SignalToken sd_card_status_signal_token{};
+    // Status section (top half)
+    Labels status_labels{
+        {{10, 24}, "Card Status:", Theme::getInstance()->fg_light->foreground},
+        {{10, 48}, "Filesystem:", Theme::getInstance()->fg_light->foreground}};
+
+    Text text_card_status{
+        {120, 24, 110, 16},
+        ""};
+
+    Text text_filesystem_type{
+        {120, 48, 110, 16},
+        ""};
+
+    Button button_more_info{
+        {UI_POS_X_CENTER(20), 90, UI_POS_WIDTH(20), UI_POS_HEIGHT(2)},
+        "More Info"};
+
+    // Settings section (bottom half)
     Labels labels{
         // 01234567890123456789012345678
-        {{UI_POS_X_CENTER(26), 120 - 48}, "  HIGH SPEED SDCARD IO   ", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X_CENTER(26), 120 - 32}, " May or may not work !!  ", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X_CENTER(26), 140}, "  HIGH SPEED SDCARD IO   ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_CENTER(26), 156}, " May or may not work !!  ", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox checkbox_sdcard_speed{
-        {UI_POS_X_CENTER(26), 120},
+        {UI_POS_X_CENTER(26), 180},
         20,
         "enable high speed IO"};
 
     Button button_test_sdcard_high_speed{
-        {UI_POS_X_CENTER(27), 152, UI_POS_WIDTH(27), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(27), 210, UI_POS_WIDTH(27), UI_POS_HEIGHT(2)},
         "TEST BUTTON (NO PMEM SAVE)"};
 
     Text text_sdcard_test_status{
-        {UI_POS_X_CENTER(28), 198, UI_POS_WIDTH(28), UI_POS_HEIGHT(1)},
+        {UI_POS_X_CENTER(28), 256, UI_POS_WIDTH(28), UI_POS_HEIGHT(1)},
         ""};
 
     Button button_save{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Save"};
 
     Button button_cancel{
-        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
         "Cancel"};
+
+    void update_sd_card_status();
 };
 
 class SetConverterSettingsView : public View {
@@ -1022,6 +1087,43 @@ class SettingsMenuView : public BtnGridView {
     NavigationView& nav_;
 
     void on_populate() override;
+};
+
+class SetSplash : public View {
+   public:
+    SetSplash(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Splash"; };
+
+   private:
+    bool splash_bmp_exists = false;
+    bool random_enabled = false;
+
+    Checkbox checkbox_showsplash{
+        {3 * 8, 1 * 16},
+        20,
+        "Show splash"};
+
+    Checkbox checkbox_randomsplash{
+        {3 * 8, 3 * 16},
+        20,
+        "Random splash on boot"};
+
+    Text message{{UI_POS_X(1), UI_POS_Y(6), UI_POS_WIDTH(26), UI_POS_HEIGHT(1)}, "Pick image to stop random."};
+
+    Button button_picture_select{
+        {UI_POS_X_CENTER(8) - UI_POS_WIDTH(4), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(13), UI_POS_HEIGHT(2)},
+        "Select pict."};
+
+    Button button_save{
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Save"};
+
+    Button button_cancel{
+        {UI_POS_X_CENTER(16) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Cancel"};
 };
 
 } /* namespace ui */

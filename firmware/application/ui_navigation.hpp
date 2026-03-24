@@ -42,7 +42,7 @@
 #include "ui_audio.hpp"
 #include "ui_sd_card_status_view.hpp"
 #include "ui_dfu_menu.hpp"
-
+#include "ui_notifications.hpp"
 #include "bitmap.hpp"
 #include "ui_bmpview.hpp"
 #include "ff.h"
@@ -62,7 +62,6 @@ namespace ui {
 
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
 void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile = true);
-bool verify_sdcard_format();
 
 enum modal_t {
     INFO = 0,
@@ -202,6 +201,7 @@ class SystemStatusView : public View {
     static constexpr auto default_title = "";
     bool batt_was_inited = false;  // if the battery was off on tart, but later turned on.
     bool batt_info_up = false;     // to prevent show multiple batt info dialog
+    bool sd_info_up = false;       // to prevent show multiple sd info dialog
 
     NavigationView& nav_;
 
@@ -303,6 +303,8 @@ class SystemStatusView : public View {
     void on_title();
     void refresh();
     void on_clk();
+    void on_sd_card();
+    void on_tx_disabled();
     void rtc_battery_workaround();
     void on_battery_data(const BatteryStateMessage* msg);
     void on_battery_details();
@@ -312,6 +314,13 @@ class SystemStatusView : public View {
         [this](const Message* const p) {
             (void)p;
             this->refresh();
+        }};
+
+    MessageHandlerRegistration message_handler_tx_disabled{
+        Message::ID::TXDisabled,
+        [this](const Message* const p) {
+            (void)p;
+            this->on_tx_disabled();
         }};
 
     MessageHandlerRegistration message_handler_battery{
@@ -358,7 +367,7 @@ class SplashScreenView : public View {
     Button button_done{
         {screen_width, 0, 1, 1},
         ""};
-    // BMPViewer bmp_view{ {0, 0, screen_width, screen_height - 16}};
+    void get_random_splash_file(std::filesystem::path& path);
 };
 
 class ReceiversMenuView : public BtnGridView {
@@ -381,10 +390,10 @@ class TransmittersMenuView : public BtnGridView {
     void on_populate() override;
 };
 
-class TranceiversMenuView : public BtnGridView {
+class TransceiversMenuView : public BtnGridView {
    public:
-    TranceiversMenuView(NavigationView& nav);
-    std::string title() const override { return "Tranceiver"; };
+    TransceiversMenuView(NavigationView& nav);
+    std::string title() const override { return "Transceiver"; };
 
    private:
     NavigationView& nav_;
@@ -438,11 +447,12 @@ class SystemView : public View {
    private:
     uint8_t overlay_active{0};
 
+    NavigationView navigation_view{};
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
+    NotificationView notification_view{navigation_view};
     DfuMenu overlay{navigation_view};
     DfuMenu2 overlay2{navigation_view};
-    NavigationView navigation_view{};
     Context& context_;
 };
 

@@ -91,9 +91,9 @@ void Widget::set_parent(Widget* const widget) {
     }
 
     if (parent_ && !widget) {
-        // We have a parent, but are losing it. Update visible status.
+        // We have a parent, but are losing it. Update drawn status.
         dirty_overlapping_children_in_rect(screen_rect());
-        visible(false);
+        drawn(false);
     }
 
     if (widget == nullptr)
@@ -209,9 +209,9 @@ const Style& Widget::style() const {
     return style_ ? *style_ : parent()->style();
 }
 
-void Widget::visible(bool v) {
-    if (v != flags.visible) {
-        flags.visible = v;
+void Widget::drawn(bool v) {
+    if (v != flags.drawn) {
+        flags.drawn = v;
 
         /* TODO: This on_show/on_hide implementation seems inelegant.
          * But I need *some* way to take/configure resources when
@@ -224,9 +224,9 @@ void Widget::visible(bool v) {
         } else {
             on_hide();
 
-            // Set all children invisible too.
+            // Set all children not drawn too.
             for (const auto child : children()) {
-                child->visible(false);
+                child->drawn(false);
             }
         }
     }
@@ -272,9 +272,8 @@ void View::add_child(Widget* const widget) {
 }
 
 void View::add_children(const std::initializer_list<Widget*> children) {
-    children_.insert(std::end(children_), children);
     for (auto child : children) {
-        child->set_parent(this);
+        add_child(child);
     }
 }
 
@@ -384,6 +383,10 @@ void Text::set(std::string_view value) {
     set_dirty();
 }
 
+std::string Text::get() {
+    return text;
+}
+
 void Text::getAccessibilityText(std::string& result) {
     result = text;
 }
@@ -393,18 +396,35 @@ void Text::getWidgetName(std::string& result) {
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
-    auto max_len = (unsigned)rect.width() / s.font.char_width();
-    auto text_view = std::string_view{text};
-
     painter.fill_rectangle(rect, s.background);
+    const int char_width = s.font.char_width();
+    const int line_height = s.font.line_height();
+    if (char_width == 0 || line_height == 0) return;
+    const size_t chars_per_line = rect.width() / char_width;
+    if (chars_per_line == 0) return;
+    size_t lines_capacity = rect.height() / line_height;
+    if (lines_capacity == 0) lines_capacity = 1;  // at least one line, even if it overflows vertically
+    auto text_view = std::string_view{text};
+    size_t current_offset = 0;
+    for (size_t line_idx = 0; line_idx < lines_capacity; ++line_idx) {
+        if (current_offset >= text_view.length()) break;
+        size_t chunk_len = std::min(chars_per_line, text_view.length() - current_offset);
+        painter.draw_string(
+            rect.location() + Point(0, line_idx * line_height),
+            s,
+            text_view.substr(current_offset, chunk_len));
+        current_offset += chunk_len;
+    }
+}
 
-    if (text_view.length() > max_len)
-        text_view = text_view.substr(0, max_len);
-
-    painter.draw_string(
-        rect.location(),
-        s,
-        text_view);
+bool Text::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    return false;
 }
 
 /* Labels ****************************************************************/
@@ -601,8 +621,8 @@ ProgressBar::ProgressBar(
 void ProgressBar::set_max(const uint32_t max) {
     if (max == _max) return;
 
-    if (_value > _max)
-        _value = _max;
+    if (_value > max)
+        _value = max;
 
     _max = max;
     set_dirty();
@@ -630,9 +650,11 @@ void ProgressBar::paint(Painter& painter) {
 
     const auto sr = screen_rect();
     const auto s = style();
-
-    v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
-
+    if (_max == 0) {
+        v_scaled = 0;
+    } else {
+        v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
+    }
     painter.fill_rectangle({sr.location(), {v_scaled, sr.size().height()}}, style().foreground);
     painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
 
@@ -672,7 +694,7 @@ void Console::clear(bool clear_buffer = false) {
     if (clear_buffer)
         buffer.clear();
 
-    if (!hidden() && visible()) {
+    if (!hidden() && drawn()) {
         display.fill_rectangle(
             screen_rect(),
             Theme::getInstance()->bg_darkest->background);
@@ -684,7 +706,7 @@ void Console::clear(bool clear_buffer = false) {
 void Console::write(std::string message) {
     bool escape = false;
 
-    if (!hidden() && visible()) {
+    if (!hidden() && drawn()) {
         const Style& s = style();
         const Font& font = s.font;
         auto rect = screen_rect();
@@ -775,7 +797,7 @@ void Console::on_hide() {
 }
 
 void Console::crlf() {
-    if (hidden() || !visible()) return;
+    if (hidden() || !drawn()) return;
 
     const auto& s = style();
     auto sr = screen_rect();
@@ -1246,7 +1268,7 @@ bool ButtonWithEncoder::on_encoder(const EncoderEvent delta) {
     if (delta != 0) {
         encoder_delta += delta;
         delta_change = true;
-        on_change();
+        if (on_change) on_change();
     } else
         delta_change = 0;
     return true;
@@ -1358,14 +1380,18 @@ void NewButton::paint(Painter& painter) {
         }
 
         if (!text_.empty()) {
-            const auto label_r = style.font.size_of(text_);
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
             if (bitmap_) {
                 y += spacing;
             }
-            painter.draw_string(
-                {r.left() + (r.width() - label_r.width()) / 2, y},
-                style,
-                text_);
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
         }
     } else {  // no valign
         if (bitmap_) {
@@ -1379,11 +1405,16 @@ void NewButton::paint(Painter& painter) {
         }
 
         if (!text_.empty()) {
-            const auto label_r = style.font.size_of(text_);
-            painter.draw_string(
-                {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-                style,
-                text_);
+            auto label_r = style.font.size_of(text_);
+            std::string text_to_draw = text_;
+            if (label_r.width() > r.width() - 2) {
+                // Truncate text to fit
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+            }
+            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
+                                text_to_draw);
         }
     }
 }
@@ -1732,6 +1763,14 @@ bool ImageOptionsField::on_keyboard(const KeyboardEvent key) {
     return false;
 }
 
+bool ImageOptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
+    return false;
+}
+
 bool ImageOptionsField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
@@ -1866,6 +1905,7 @@ void OptionsField::on_focus() {
 }
 
 bool OptionsField::on_encoder(const EncoderEvent delta) {
+    if (options_.empty()) return false;
     int32_t new_value = selected_index() + delta;
     if (new_value < 0)
         new_value = options_.size() - 1;
@@ -1878,6 +1918,14 @@ bool OptionsField::on_encoder(const EncoderEvent delta) {
 bool OptionsField::on_keyboard(const KeyboardEvent key) {
     if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
     if (key == '-' || key == 8) return on_encoder(-1);
+    return false;
+}
+
+bool OptionsField::on_key(const KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        on_encoder(1);
+        return true;
+    }
     return false;
 }
 
@@ -2269,20 +2317,44 @@ void NumberField::getWidgetName(std::string& result) {
 }
 
 void NumberField::set_value(int32_t new_value, bool trigger_change) {
+    const int32_t lo = range.first;
+    const int32_t hi = range.second;
+
+    // Helper: floor-div for negatives
+    auto floordiv = [](int64_t a, int64_t b) -> int64_t {  // b > 0
+        int64_t q = a / b;
+        int64_t r = a % b;
+        return (r < 0) ? (q - 1) : q;
+    };
+    // Helper: positive modulo
+    auto posmod = [](int64_t a, int64_t m) -> int64_t {  // m > 0
+        int64_t r = a % m;
+        return (r < 0) ? (r + m) : r;
+    };
+
     if (can_loop) {
-        if (new_value >= range.first)
-            new_value = new_value % (range.second + 1);
-        else
-            new_value = range.second + new_value + 1;
+        // number of discrete positions
+        const int64_t count = (int64_t)(hi - lo) / step + 1;
+
+        // map value -> step index (floor so negatives behave)
+        int64_t idx = floordiv((int64_t)new_value - lo, step);
+
+        // wrap index
+        idx = posmod(idx, count);
+
+        // rebuild value
+        new_value = (int32_t)(lo + idx * step);
+    } else {
+        new_value = clip(new_value, lo, hi);
+        // optionally snap to step here too
+        int64_t idx = floordiv((int64_t)new_value - lo, step);
+        new_value = (int32_t)(lo + idx * step);
     }
 
-    new_value = clip(new_value, range.first, range.second);
-
+    // set final value if needed
     if (new_value != value()) {
         value_ = new_value;
-        if (on_change && trigger_change) {
-            on_change(value_);
-        }
+        if (on_change && trigger_change) on_change(value_);
         set_dirty();
     }
 }
@@ -2313,6 +2385,8 @@ bool NumberField::on_key(const KeyEvent key) {
         if (on_select) {
             on_select(*this);
             return true;
+        } else {
+            return on_encoder(1);
         }
     }
 
@@ -2349,6 +2423,137 @@ bool NumberField::on_keyboard(const KeyboardEvent key) {
 }
 
 bool NumberField::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
+    }
+    return true;
+}
+
+/* FloatField ***********************************************************/
+
+FloatField::FloatField(
+    Point parent_pos,
+    int length,
+    range_t range,
+    float step,
+    char fill_char,
+    bool can_loop,
+    uint8_t precision_)
+    : Widget{{parent_pos, {8 * length, 16}}},
+      range{range},
+      step{step},
+      length_{length},
+      fill_char{fill_char},
+      can_loop{can_loop},
+      precision{precision_} {
+    set_focusable(true);
+}
+
+float FloatField::value() const {
+    return value_;
+}
+
+void FloatField::getAccessibilityText(std::string& result) {
+    result = to_string_decimal(value_, precision);
+}
+void FloatField::getWidgetName(std::string& result) {
+    result = "FloatField";
+}
+
+void FloatField::set_value(float new_value, bool trigger_change) {
+    const float lo = range.first;
+    const float hi = range.second;
+
+    if (can_loop) {
+        if (new_value > hi)
+            new_value = lo;
+        else if (new_value < lo)
+            new_value = hi;
+    }
+    new_value = clip(new_value, lo, hi);
+
+    // set final value if needed
+    if (new_value != value_) {
+        value_ = new_value;
+        if (on_change && trigger_change) on_change(value_);
+        set_dirty();
+    }
+}
+
+void FloatField::set_range(const float min, const float max) {
+    range.first = min;
+    range.second = max;
+    set_value(value_, false);
+}
+
+void FloatField::set_step(const float new_step) {
+    step = new_step;
+}
+
+void FloatField::paint(Painter& painter) {
+    auto text = to_string_decimal(value_, precision);
+    const auto paint_style = has_focus() ? style().invert() : style();
+    // clip to widget size
+    const auto r = screen_rect();
+    auto label_r = style().font.size_of(text);
+    size_t max_chars = (r.width()) / style().font.char_width();
+    if (label_r.width() > r.width()) {
+        text = text.substr(0, max_chars);
+    }
+    size_t padneeded = max_chars - text.length();
+    if (padneeded > 0 && fill_char) {
+        std::string filler(padneeded, fill_char);
+        text = filler + text;
+    }
+    painter.fill_rectangle(r, style().background);
+    painter.draw_string(
+        screen_pos(),
+        paint_style,
+        text);
+}
+
+bool FloatField::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Select) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        } else {
+            return on_encoder(1);
+        }
+    }
+    return false;
+}
+
+bool FloatField::on_encoder(const EncoderEvent delta) {
+    float old_value = value_;
+    set_value(value() + (delta * step));
+
+    if (on_wrap) {
+        if ((delta > 0) && (value_ < old_value))
+            on_wrap(1);
+        else if ((delta < 0) && (value_ > old_value))
+            on_wrap(-1);
+    }
+    return true;
+}
+
+bool FloatField::on_keyboard(const KeyboardEvent key) {
+    if (key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    if (key == '+' || key == ' ') {
+        return on_encoder(1);
+    }
+    if (key == '-' || key == 8) {
+        return on_encoder(-1);
+    }
+    return false;
+}
+
+bool FloatField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
     }
@@ -3027,7 +3232,7 @@ void GraphEq::update_audio_spectrum(const AudioSpectrum& spectrum) {
 }
 
 void GraphEq::paint(Painter& painter) {
-    if (!visible()) return;
+    if (!drawn()) return;
     if (!is_calculated) {  // calc positions first
         calculate_params();
         is_calculated = true;

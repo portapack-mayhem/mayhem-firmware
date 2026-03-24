@@ -265,7 +265,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
 
 void GeoMap::draw_markers(Painter& painter) {
     for (int i = 0; i < markerListLen; ++i) {
-        draw_marker_item(painter, markerList[i], Color::blue(), Color::blue(), Color::magenta());
+        draw_marker_item(painter, markerList[i], markerList[i].color, markerList[i].color, Color::magenta());
     }
 }
 
@@ -657,7 +657,13 @@ void GeoMap::move(const float lon, const float lat) {
     } else {
         if (is_changed) {
             set_osm_max_zoom();
-            redraw_map = true;
+            double global_center_px = lon_to_pixel_x_tile(lon_, map_osm_real_zoom);
+            double global_center_py = lat_to_pixel_y_tile(lat_, map_osm_real_zoom);
+            // Redraw if viewport moved by at least 1 pixel (includes zoom level changes)
+            if (abs(global_center_px - (r.width() / 2.0) - viewport_top_left_px) >= 1.0 ||
+                abs(global_center_py - (r.height() / 2.0) - viewport_top_left_py) >= 1.0) {
+                redraw_map = true;
+            }
         }
     }
 }
@@ -820,7 +826,7 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     my_pos.lat = lat;
     my_pos.lon = lon;
     my_altitude = altitude;
-    redraw_map = is_changed;
+    redraw_map |= is_changed;
     set_dirty();
 }
 
@@ -870,8 +876,10 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
     geopos.set_report_change(true);
 
     geomap.set_angle(angle);
-    if (is_changed) geomap.move(lon_, lat_);
-    geomap.set_dirty();
+    if (is_changed) {
+        geomap.move(lon_, lat_);
+        geomap.set_dirty();
+    }
 }
 
 void GeoMapView::update_tag(const std::string tag) {

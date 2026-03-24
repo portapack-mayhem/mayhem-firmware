@@ -47,7 +47,7 @@ class MorsePracticeView : public ui::View {
     MorsePracticeView(ui::NavigationView& nav);
     ~MorsePracticeView();
 
-    std::string title() { return "Morse P"; }
+    std::string title() const override { return "Morse Practice"; }
     void focus() override;
     void on_show() override;
 
@@ -68,7 +68,7 @@ class MorsePracticeView : public ui::View {
     ui::Text txt_last{{UI_POS_X(0), UI_POS_Y(6), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(2), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)}, "CLR"};
     ui::Console console_text{{UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(10)}};
-    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_X(0)}};
+    AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     uint8_t last_color_id = 255;
     uint8_t color_id = 255;
@@ -77,6 +77,7 @@ class MorsePracticeView : public ui::View {
     bool button_touch = false;
     bool button_was_selected = false;
     bool decode_timeout_calc = false;
+    SwitchesState initial_switch_config_{};
 
     MessageHandlerRegistration message_handler_framesync{
         Message::ID::DisplayFrameSync,

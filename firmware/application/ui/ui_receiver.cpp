@@ -27,6 +27,10 @@
 #include "ui_receiver.hpp"
 #include "ui_freqman.hpp"
 
+#ifndef PRALINE
+#include "audio.hpp"
+#endif
+
 using namespace portapack;
 
 namespace ui {
@@ -591,8 +595,18 @@ AudioVolumeField::AudioVolumeField(
           /* fill char */ ' '} {
     set_value(receiver_model.normalized_headphone_volume());
 
+#ifdef PRALINE
     on_change = [](int32_t v) {
         receiver_model.set_normalized_headphone_volume(v);
+#else
+    on_change = [](int32_t vol) {
+        // don't call receiver model, because this widget shuld be able to handle volume settinsg from any app, regardless of the receiver model's enables state. like the tx apps should be able to set volume too.
+        // this is identical to the receiver model's method
+        uint8_t v = clip<uint8_t>(vol, 0, 99);
+        auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+        persistent_memory::set_headphone_volume(new_volume);
+        audio::headphone::set_volume(new_volume);
+#endif
     };
 }
 

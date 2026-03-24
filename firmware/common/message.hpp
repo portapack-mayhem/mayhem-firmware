@@ -146,6 +146,18 @@ class Message {
         SSTVRXPhaseSlant = 88,
         SSTVRXCalibration = 89,
         SubCarData = 90,
+        MorseRXData = 91,
+        MorseRXfreq = 92,
+        MorseRXConfig = 93,
+        TXDisabled = 94,
+        MorseTXConfigure = 95,
+        MorseTXkey = 96,
+        StreamTXConfiguration = 97,
+        RTTYData = 98,
+        NotificationData = 99,
+        TimeSinkConfig = 100,
+        EPIRBTXData = 101,
+        P25TxConfigure = 102,
         MAX
     };
 
@@ -292,6 +304,20 @@ class WidebandSpectrumConfigMessage : public Message {
         size_t sampling_rate,
         size_t trigger)
         : Message{ID::WidebandSpectrumConfig},
+          sampling_rate{sampling_rate},
+          trigger{trigger} {
+    }
+
+    size_t sampling_rate{0};
+    size_t trigger{0};
+};
+
+class TimeSinkConfigMessage : public Message {
+   public:
+    constexpr TimeSinkConfigMessage(
+        size_t sampling_rate,
+        size_t trigger)
+        : Message{ID::TimeSinkConfig},
           sampling_rate{sampling_rate},
           trigger{trigger} {
     }
@@ -1086,6 +1112,27 @@ class SigGenToneMessage : public Message {
     const uint32_t tone_delta;
 };
 
+class EPIRBTXDataMessage : public Message {
+   public:
+    static constexpr uint8_t max_len = 18;
+    constexpr EPIRBTXDataMessage()
+        : Message{ID::EPIRBTXData} {
+    }
+    bool mode_bpsk = true;
+    uint8_t data[max_len]{0};
+    uint8_t data_len = 0;
+    uint32_t pre_count = 0;
+    uint32_t post_count = 0;
+};
+
+class P25TxConfigureMessage : public Message {
+   public:
+    constexpr P25TxConfigureMessage()
+        : Message{ID::P25TxConfigure} {
+    }
+    uint16_t frame_length{0};
+};
+
 class AFSKTxConfigureMessage : public Message {
    public:
     constexpr AFSKTxConfigureMessage(
@@ -1697,6 +1744,121 @@ class SubCarDataMessage : public Message {
     uint16_t bits = 0;
     uint64_t data = 0;
     uint64_t data2 = 0;
+};
+
+class MorseRXDataMessage : public Message {
+   public:
+    constexpr MorseRXDataMessage()
+        : Message{ID::MorseRXData} {}
+    int32_t state_durations[5] = {0};  // positive: high, negative: low
+    uint8_t state_cnt = 0;
+    bool clipped = false;
+    const uint8_t maxptr = 4;
+};
+
+class MorseRXfreqMessage : public Message {
+   public:
+    constexpr MorseRXfreqMessage()
+        : Message{ID::MorseRXfreq} {}
+    uint32_t measured_frequency = 0;
+};
+
+class MorseRXConfigureMessage : public Message {
+   public:
+    constexpr MorseRXConfigureMessage(uint8_t mode)
+        : Message{ID::MorseRXConfig},
+          mode{mode} {}
+    uint8_t mode = 0;
+};
+
+class TXDisabledMessage : public Message {
+   public:
+    constexpr TXDisabledMessage()
+        : Message{ID::TXDisabled} {
+    }
+};
+
+class MorseTXConfigureMessage : public Message {
+   public:
+    constexpr MorseTXConfigureMessage(uint8_t modulation, uint32_t tone, float fm_delta)
+        : Message{ID::MorseTXConfigure},
+          modulation{modulation},
+          tone{tone},
+          fm_delta{fm_delta} {}
+
+    uint8_t modulation = 0;
+    uint32_t tone = 0;
+    float fm_delta = 0;
+};
+
+class MorseTXkeyMessage : public Message {
+   public:
+    constexpr MorseTXkeyMessage(bool key_down)
+        : Message{ID::MorseTXkey},
+          key_down{key_down} {}
+    bool key_down = false;
+};
+
+class StreamTXConfigurationMessage : public Message {
+   public:
+    constexpr StreamTXConfigurationMessage(uint32_t deviation, uint8_t mode)
+        : Message{ID::StreamTXConfiguration},
+          deviation{deviation},
+          mode{mode} {}
+
+    uint32_t deviation = 60000;  // used in 2fsk
+    uint8_t mode = 0;            // am = 0, 2fsk = 1
+};
+
+class RTTYDataMessage : public Message {
+   public:
+    constexpr RTTYDataMessage(uint16_t baud = 4545, uint16_t shift = 170, int16_t mark_tone = -85, int16_t space_tone = 85, uint8_t stopbits = 3, bool inverted = false)
+        : Message{ID::RTTYData},
+          baud(baud),
+          shift(shift),
+          mark_tone(mark_tone),
+          space_tone(space_tone),
+          inverted(inverted),
+          stopbits(stopbits) {
+    }
+    uint8_t data[490]{0};      // 5bit data, stored on 8 bits.
+    uint16_t data_len = 0;     // count of data sent
+    uint16_t baud = 4545;      // /100 baud 45.45 = 4545
+    uint16_t shift = 170;      // hz
+    int16_t mark_tone = 0;     // for tx., hz
+    int16_t space_tone = 170;  // hz
+    bool inverted = false;     // for tx, if true, mark and space tones are swapped.
+    uint8_t stopbits = 3;      // doubled value is stored here, so stop 2 = 1 stop bit, 3 = 1.5, 4 = 2.
+    static constexpr uint16_t max_len = 490;
+};
+
+class NotificationDataMessage : public Message {
+   public:
+    constexpr NotificationDataMessage(const char* source_app, const char* title, const char* message, uint8_t icon = 0, uint16_t timeout = 10000)
+        : Message{ID::NotificationData},
+          icon(icon),
+          timeout(timeout) {
+        if (source_app) {
+            size_t len = std::min(strlen(source_app), (size_t)19);
+            memcpy(this->source_app, source_app, len);
+            this->source_app[len] = '\0';
+        }
+        if (title) {
+            size_t len = std::min(strlen(title), (size_t)49);
+            memcpy(this->title, title, len);
+            this->title[len] = '\0';
+        }
+        if (message) {
+            size_t len = std::min(strlen(message), (size_t)299);
+            memcpy(this->message, message, len);
+            this->message[len] = '\0';
+        }
+    }
+    char source_app[20]{0};  // source application name, null-terminated, max 19 chars + null
+    char title[50]{0};       // title, null-terminated, max 49 chars + null
+    char message[300]{0};    // message, null-terminated, max 299 chars + null
+    uint8_t icon = 0;
+    uint16_t timeout = 10000;
 };
 
 #endif /*__MESSAGE_H__*/

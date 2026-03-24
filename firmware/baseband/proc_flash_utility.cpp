@@ -29,7 +29,7 @@
 #include "portapack_shared_memory.hpp"
 
 #define PAGE_LEN 256U
-#define NUM_PAGES 4096U
+#define NUM_PAGES (4096U * FLASH_SIZE_MB)
 
 void initialize_flash();
 void erase_flash();

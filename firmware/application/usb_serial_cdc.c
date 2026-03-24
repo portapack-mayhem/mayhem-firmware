@@ -37,9 +37,17 @@ CH_IRQ_HANDLER(USB0_IRQHandler) {
     usb0_isr();
 
     if (status & USB0_USBSTS_D_UI) {
+#ifdef PRALINE
+        if (thread_usb_event) {
+            chSysLockFromIsr();
+            chEvtSignalI(thread_usb_event, EVT_MASK_USB);
+            chSysUnlockFromIsr();
+        }
+#else
         chSysLockFromIsr();
         chEvtSignalI(thread_usb_event, EVT_MASK_USB);
         chSysUnlockFromIsr();
+#endif
     }
 
     if (status & USB0_USBSTS_D_SLI) {
@@ -71,9 +79,9 @@ void nvic_enable_irq(uint8_t irqn) {
 void usb_configuration_changed(usb_device_t* const device) {
     (void)device;
 
-    usb_endpoint_init(&usb_endpoint_int_in);
-    usb_endpoint_init(&usb_endpoint_bulk_in);
-    usb_endpoint_init(&usb_endpoint_bulk_out);
+    usb_endpoint_init(&usb_endpoint_int_in, false);
+    usb_endpoint_init(&usb_endpoint_bulk_in, false);
+    usb_endpoint_init(&usb_endpoint_bulk_out, false);
 }
 
 void setup_usb_serial_controller(void) {
@@ -88,8 +96,8 @@ void setup_usb_serial_controller(void) {
     usb_queue_init(&usb_endpoint_bulk_out_queue);
     usb_queue_init(&usb_endpoint_bulk_in_queue);
 
-    usb_endpoint_init(&usb_endpoint_control_out);
-    usb_endpoint_init(&usb_endpoint_control_in);
+    usb_endpoint_init(&usb_endpoint_control_out, false);
+    usb_endpoint_init(&usb_endpoint_control_in, false);
 
     usb_run(&usb_device);
 }

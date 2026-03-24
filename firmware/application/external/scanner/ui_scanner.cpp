@@ -461,6 +461,7 @@ ScannerView::ScannerView(
             else
                 v = WFM_MODULATION;
             field_mode.set_selected_index(v);
+            return;  // Important ! Guru will occur if you don't return when modifying field from within on_change !
         }
         last_mode = v;
         receiver_model.disable();

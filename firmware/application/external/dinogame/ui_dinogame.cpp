@@ -125,7 +125,7 @@ void DinoGameView::paint(Painter& painter) {
 
     if (!initialized) {
         initialized = true;
-        std::srand(LPC_RTC->CTIME0);
+        srand(LPC_RTC->CTIME0);
         init_game();
     }
 }
@@ -789,8 +789,8 @@ void DinoGameView::draw_current_score() {
 
 void DinoGameView::draw_high_score() {
     auto style = *ui::Theme::getInstance()->fg_light;
-    painter.fill_rectangle({UI_POS_X_RIGHT(90), 28, 90, 18}, Color::black());
-    painter.draw_string({UI_POS_X_RIGHT(90), 30}, style, "HI " + score_to_string(highScore));
+    painter.fill_rectangle({UI_POS_X_RIGHT(10), 28, 90, 18}, Color::black());
+    painter.draw_string({UI_POS_X_RIGHT(10), 30}, style, "HI " + score_to_string(highScore));
 }
 
 void DinoGameView::jump() {

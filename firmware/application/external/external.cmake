@@ -83,6 +83,10 @@ set(EXTCPPSRC
 	external/tpmsrx/main.cpp
 	external/tpmsrx/tpms_app.cpp
 
+	#tpmstx 800 bytes - TPMS transmit with editable fields
+	external/tpmstx/main.cpp
+	external/tpmstx/tpms_tx_app.cpp
+
 	#protoview 8 byte
 	external/protoview/main.cpp
 	external/protoview/ui_protoview.cpp
@@ -91,13 +95,21 @@ set(EXTCPPSRC
 	external/adsbtx/main.cpp
 	external/adsbtx/ui_adsb_tx.cpp
 
-	#morse_tx 768 bytes
-	external/morse_tx/main.cpp
-	external/morse_tx/ui_morse.cpp
+	#morse_tx 768 bytes -- disabled because of the new morse tx app with more functions
+	#external/morse_tx/main.cpp
+	#external/morse_tx/ui_morse.cpp
 
 	#sstvtx 456 bytes
 	external/sstvtx/main.cpp
 	external/sstvtx/ui_sstvtx.cpp
+
+	#same_tx
+	external/same_tx/main.cpp
+	external/same_tx/ui_same_tx.cpp
+
+	#mdc_tx
+	external/mdc_tx/main.cpp
+	external/mdc_tx/ui_mdc_tx.cpp
 
 	#sstvrx
 	external/sstvrx/main.cpp
@@ -109,8 +121,8 @@ set(EXTCPPSRC
 	external/random_password/sha512.cpp
 
 	#acars
-	#external/acars_rx/main.cpp
-	#external/acars_rx/acars_app.cpp
+	external/acars_rx/main.cpp
+	external/acars_rx/acars_app.cpp
 
 	#wefax_rx 192 bytes
 	external/wefax_rx/main.cpp
@@ -222,7 +234,11 @@ set(EXTCPPSRC
 
 	#gfxEQ 80 byte
 	external/gfxeq/main.cpp
-	external/gfxeq/ui_gfxeq.cpp
+	external/gfxeq/ui_gfxeq.cpp	
+
+	#waterfall designer
+	external/waterfall_designer/main.cpp
+	external/waterfall_designer/ui_waterfall_designer.cpp
 
 	#detector_rx  168 byte
 	external/detector_rx/main.cpp
@@ -247,6 +263,10 @@ set(EXTCPPSRC
 	#epirb_rx 168 byte flash 
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
+
+	#epirb_tx
+	external/epirb_tx/main.cpp
+	external/epirb_tx/ui_epirb_tx.cpp
 
 	#soundboard  272byte  - 1236 bytes
 	external/soundboard/main.cpp
@@ -276,6 +296,50 @@ set(EXTCPPSRC
 	#subcarrx
 	external/subcarrx/main.cpp
 	external/subcarrx/ui_subcar.cpp
+
+	#siggen
+	external/siggen/main.cpp
+	external/siggen/ui_siggen.cpp
+
+	#morse_radio
+	external/morse_radio/main.cpp
+	external/morse_radio/ui_morse_radio.cpp
+
+	#morseradiotx
+	external/morseradiotx/main.cpp
+	external/morseradiotx/ui_morse_radiotx.cpp
+
+  	external/keeloqtx/main.cpp
+  	external/keeloqtx/ui_keeloqtx.cpp
+	#rtty_rx
+	external/rtty_rx/main.cpp
+	external/rtty_rx/ui_rtty_rx.cpp
+	external/rtty_rx/baudot.cpp
+
+	#rtty_tx
+	external/rtty_tx/main.cpp
+	external/rtty_tx/ui_rtty_tx.cpp
+	external/rtty_tx/baudot.cpp
+
+    #pocsag_tx
+	external/pocsag_tx/main.cpp
+	external/pocsag_tx/ui_pocsag_tx.cpp
+
+	#time_sink
+	external/time_sink/main.cpp
+	external/time_sink/ui_time_sink.cpp
+
+	#kiss_tnc
+	external/kiss_tnc/main.cpp
+	external/kiss_tnc/ui_kiss_tnc.cpp
+
+	#fpv_detect
+	external/fpv_detect/main.cpp
+	external/fpv_detect/ui_fpv_detect.cpp
+
+	#p25_tx
+	external/p25_tx/main.cpp
+	external/p25_tx/ui_p25_tx.cpp
 )
 
 set(EXTAPPLIST
@@ -298,13 +362,16 @@ set(EXTAPPLIST
 	audio_test
 	wardrivemap
 	tpmsrx
+	tpmstx
 	protoview
 	adsbtx
-	morse_tx
+	#morse_tx
 	sstvtx
+	same_tx
+	mdc_tx
 	sstvrx
 	random_password
-	# acars_rx --not working
+	acars_rx
 	wefax_rx
 	noaaapt_rx
 	shoppingcart_lock
@@ -332,12 +399,15 @@ set(EXTAPPLIST
 	scanner
 	level
 	gfxeq
+	waterfall_designer
 	detector_rx
+	fpv_detect
 	spaceinv
 	blackjack
 	battleship
 	ert
 	epirb_rx
+	epirb_tx
 	soundboard
 	game2048
 	bht_tx
@@ -345,4 +415,24 @@ set(EXTAPPLIST
 	adult_toys_controller
 	flex_rx
 	subcarrx
+	siggen
+	morse_radio
+	morseradiotx
+	keeloqtx
+	rtty_rx
+	rtty_tx
+	pocsag_tx
+	time_sink
+	kiss_tnc
+	p25_tx
 )
+
+# sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
+if(NOT BOARD STREQUAL "PRALINE")
+       list(APPEND EXTCPPSRC
+               external/sdusb/main.cpp
+               external/sdusb/ui_sd_over_usb.cpp
+       )
+       list(APPEND EXTAPPLIST sdusb)
+endif()
+

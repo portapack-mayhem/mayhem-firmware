@@ -239,10 +239,10 @@ void RandomPasswordView::on_freqchg(int64_t freq) {
 }
 
 void RandomPasswordView::set_random_freq() {
-    std::srand(LPC_RTC->CTIME0);
+    srand(LPC_RTC->CTIME0);
     // this is only for seed to visit random freq, the radio is still real random
 
-    auto random_freq = 100000000 + (std::rand() % 900000000);  // 100mhz to 1ghz
+    auto random_freq = 100000000 + (rand() % 900000000);  // 100mhz to 1ghz
     receiver_model.set_target_frequency(random_freq);
     field_frequency.set_value(random_freq);
 }
@@ -297,12 +297,12 @@ void RandomPasswordView::new_password() {
     /// roll worker
     for (int i = 0; i < password_length * 2; i += 2) {
         unsigned int seed = seeds_deque[i];
-        std::srand(seed);
+        srand(seed);
         uint8_t rollnum = (uint8_t)(seeds_deque[i + 1] % 128);
         uint8_t nu = 0;
-        for (uint8_t o = 0; o < rollnum; ++o) nu = std::rand();
+        for (uint8_t o = 0; o < rollnum; ++o) nu = rand();
         nu++;
-        char c = charset[std::rand() % charset.length()];
+        char c = charset[rand() % charset.length()];
         initial_password += c;
     }
 

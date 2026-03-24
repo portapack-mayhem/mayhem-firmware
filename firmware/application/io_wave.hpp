@@ -81,7 +81,8 @@ struct header_t {
 struct tags_t {
     constexpr tags_t(
         const std::string& title_str) {
-        strcpy(title, title_str.c_str());
+        strncpy(title, title_str.c_str(), sizeof(title) - 1);
+        title[sizeof(title) - 1] = '\0';
         cksize = sizeof(tags_t) - 8;
     }
 
