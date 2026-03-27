@@ -379,17 +379,17 @@ void MorseRadiotxView::ui_toggle() {
         wpm_.set_style(Theme::getInstance()->fg_dark);
         wpm_.set_focusable(false);
         btn_message.set_style(Theme::getInstance()->fg_dark);
+        btn_message.set_focusable(false);
         btn_calls.set_style(Theme::getInstance()->fg_dark);
+        btn_calls.set_focusable(false);
         chk_trans.set_style(Theme::getInstance()->fg_dark);
-        chk_trans.set_focusable(false);
-        chk_loop.set_style(Theme::getInstance()->fg_dark);
-        chk_loop.set_focusable(false);
+        chk_trans.hidden(true);
+        chk_callsgn.set_style(Theme::getInstance()->fg_dark);
+        chk_callsgn.hidden(true);
         loop_time.set_style(Theme::getInstance()->fg_dark);
         loop_time.set_focusable(false);
         bandwidth.set_style(Theme::getInstance()->fg_dark);
         bandwidth.set_focusable(false);
-        chk_callsgn.set_style(Theme::getInstance()->fg_dark);
-        chk_callsgn.set_focusable(false);
 
     } else {
         options_mode.set_style(Theme::getInstance()->bg_darker);
@@ -397,13 +397,13 @@ void MorseRadiotxView::ui_toggle() {
         wpm_.set_style(Theme::getInstance()->bg_darker);
         wpm_.set_focusable(true);
         btn_message.set_style(Theme::getInstance()->bg_darker);
+        btn_message.set_focusable(true);
         btn_calls.set_style(Theme::getInstance()->bg_darker);
+        btn_calls.set_focusable(true);
         chk_trans.set_style(Theme::getInstance()->bg_darker);
-        chk_trans.set_focusable(true);
+        chk_trans.hidden(false);
         chk_callsgn.set_style(Theme::getInstance()->bg_darker);
-        chk_callsgn.set_focusable(true);
-        chk_loop.set_style(Theme::getInstance()->bg_darker);
-        chk_loop.set_focusable(true);
+        chk_callsgn.hidden(false);
         loop_time.set_style(Theme::getInstance()->bg_darker);
         loop_time.set_focusable(true);
         ptt_button_visibility(true);
