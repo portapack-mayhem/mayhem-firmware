@@ -28,7 +28,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
                   &bandwidth,
                   &chk_callsgn,
                   &chk_loop,
-                  &loop_time,
+                  &wait_time,
                   &progressbar,
                   &txt_last,
                   &console_text,
@@ -72,7 +72,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
     options_mode.set_selected_index(current_mode, true);
     tone_.set_value(tone, true);
     wpm_.set_value(wpm, true);
-    loop_time.set_value(1, true);
+    wait_time.set_value(1, true);
     bandwidth.set_value(band, true);
 
     btn_ptt.on_select = [this](Button&) {
@@ -123,7 +123,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
     field_volume.set_value(vol);
 
     tx_view.on_start = [this]() {
-        if (chk_trans.value() && msg_buffer.empty()) {
+        if (!chk_trans.value() && msg_buffer.empty()) {
             tx_view.set_transmitting(false);
             return;
         }
@@ -210,12 +210,12 @@ MorseRadiotxView::MorseTimings MorseRadiotxView::calculate_morse_timings(uint32_
 void MorseRadiotxView::transmit_morse_message() {
     std::string full_message = "";
 
-    if (full_message.empty() && chk_trans.value()) {
+    if (chk_trans.value()) {
         ptt_button_visibility(false);
         return;
     } else {
         full_message = msg_buffer;
-        if (chk_callsgn.value() && !call_sign.empty()) {  // cal sign
+        if (chk_callsgn.value() && !call_sign.empty()) {  // call sign
             full_message += " " + call_sign;
         }
     }
@@ -227,7 +227,7 @@ void MorseRadiotxView::transmit_morse_message() {
         ui_toggle();
     }
 
-    uint8_t loop_seconds = static_cast<uint8_t>(loop_time.value());
+    uint8_t loop_seconds = static_cast<uint8_t>(wait_time.value());
     progressbar.set_max(loop_seconds * 2);
 
     do {
@@ -388,8 +388,8 @@ void MorseRadiotxView::ui_toggle() {
         chk_trans.set_focusable(false);
         chk_callsgn.set_style(Theme::getInstance()->fg_dark);
         chk_callsgn.set_focusable(false);
-        loop_time.set_style(Theme::getInstance()->fg_dark);
-        loop_time.set_focusable(false);
+        wait_time.set_style(Theme::getInstance()->fg_dark);
+        wait_time.set_focusable(false);
         bandwidth.set_style(Theme::getInstance()->fg_dark);
         bandwidth.set_focusable(false);
 
@@ -406,8 +406,8 @@ void MorseRadiotxView::ui_toggle() {
         chk_trans.set_focusable(true);
         chk_callsgn.set_style(Theme::getInstance()->bg_darker);
         chk_callsgn.set_focusable(true);
-        loop_time.set_style(Theme::getInstance()->bg_darker);
-        loop_time.set_focusable(true);
+        wait_time.set_style(Theme::getInstance()->bg_darker);
+        wait_time.set_focusable(true);
         ptt_button_visibility(true);
         tone_.set_style(Theme::getInstance()->bg_darker);
         tone_.set_focusable(true);

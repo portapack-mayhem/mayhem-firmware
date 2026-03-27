@@ -118,7 +118,7 @@ class MorseRadiotxView : public ui::View {
         {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
     NumberField tone_{{UI_POS_X(14), UI_POS_Y(0)}, 4, {400, 1400}, 10, ' ', true};
     NumberField wpm_{{UI_POS_X(25), UI_POS_Y(0)}, 2, {10, 45}, 1, ' ', true};
-    NumberField loop_time{{UI_POS_X(10), UI_POS_Y(4)}, 3, {1, 99}, 1, ' ', true};
+    NumberField wait_time{{UI_POS_X(10), UI_POS_Y(4)}, 3, {1, 99}, 1, ' ', true};  // wait between tx-es in loop mode (sec)
     FloatField bandwidth{{UI_POS_X(6), UI_POS_Y(5)}, 4, {1.0, 16.0}, 0.1, ' ', true, 1};
 
     ProgressBar progressbar{
@@ -142,7 +142,7 @@ class MorseRadiotxView : public ui::View {
         {{UI_POS_X(21), UI_POS_Y(0)}, "WPM:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(5)}, "BandW:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(10), UI_POS_Y(5)}, "kHz", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(4)}, "Loop time: ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(4)}, "Wait time: ", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(7)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(8)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(7), UI_POS_Y_BOTTOM(5)}, "Vol.:", Theme::getInstance()->fg_light->foreground},
