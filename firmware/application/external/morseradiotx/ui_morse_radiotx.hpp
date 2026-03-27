@@ -118,15 +118,20 @@ class MorseRadiotxView : public ui::View {
         {{"AM", 0}, {"FM", 1}, {"DSB", 2}, {"USB", 3}, {"LSB", 4}}};
     NumberField tone_{{UI_POS_X(14), UI_POS_Y(0)}, 4, {400, 1400}, 10, ' ', true};
     NumberField wpm_{{UI_POS_X(25), UI_POS_Y(0)}, 2, {10, 45}, 1, ' ', true};
-    FloatField bandwidth{{UI_POS_X(20), UI_POS_Y(3)}, 4, {1.0, 16.0}, 0.1, ' ', true, 1};
+    NumberField wait_time{{UI_POS_X(10), UI_POS_Y(4)}, 3, {1, 99}, 1, ' ', true};  // wait between tx-es in loop mode (sec)
+    FloatField bandwidth{{UI_POS_X(6), UI_POS_Y(5)}, 4, {1.0, 16.0}, 0.1, ' ', true, 1};
+
+    ProgressBar progressbar{
+        {UI_POS_X(0), UI_POS_Y(6), screen_width, 16}};
 
     ui::Text txt_msg{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "[" + msg_buffer + "] "};
     ui::Button btn_message{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, "Message"};
-    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, (call_sign.empty()) ? "call sign?" : call_sign};
+    ui::Button btn_calls{{UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, (call_sign.empty()) ? "call sign?" : call_sign};
     Checkbox chk_trans{{UI_POS_X(14), UI_POS_Y(2)}, 13, "Manual trans.", true};
-    Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(4)}, 13, "Call sign", true};
-    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)}, ""};
-    ui::Console console_text{{UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(14)}};
+    Checkbox chk_callsgn{{UI_POS_X(14), UI_POS_Y(3)}, 9, "Call sign", true};
+    Checkbox chk_loop{{UI_POS_X(14), UI_POS_Y(4)}, 4, "loop", true};
+    ui::Text txt_last{{UI_POS_X(10), UI_POS_Y(7), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)}, ""};
+    ui::Console console_text{{UI_POS_X(0), UI_POS_Y(9), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(14)}};
     ui::Button btn_clear{{UI_POS_X(0), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)}, "CLR"};
     ui::Button btn_ptt{{UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(7), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "PTT"};
 
@@ -135,10 +140,11 @@ class MorseRadiotxView : public ui::View {
         {{UI_POS_X(9), UI_POS_Y(0)}, "Tone:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(18), UI_POS_Y(0)}, "Hz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(21), UI_POS_Y(0)}, "WPM:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(14), UI_POS_Y(3)}, "BandW:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(24), UI_POS_Y(3)}, "kHz", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(5)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(6)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(5)}, "BandW:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(10), UI_POS_Y(5)}, "kHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(4)}, "Wait time: ", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(7)}, "Last seq:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(8)}, "Sent Message:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(7), UI_POS_Y_BOTTOM(5)}, "Vol.:", Theme::getInstance()->fg_light->foreground},
     };
 
