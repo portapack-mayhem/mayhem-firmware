@@ -419,10 +419,10 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 }
 
 void AnalogAudioView::on_modulation_changed(ReceiverModel::Mode modulation) {
-    baseband::spectrum_streaming_stop();
+    waterfall.stop();
     update_modulation(modulation);
     on_show_options_modulation();
-    baseband::spectrum_streaming_start();
+    waterfall.start();
 }
 
 void AnalogAudioView::remove_options_widget() {
