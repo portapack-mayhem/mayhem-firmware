@@ -90,7 +90,7 @@ MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
         onPress();
     };
     btn_ptt.on_touch_release = [this](Button&) {
-        if (!chk_trans.value() && transmit) {
+        if (chk_trans.value() && transmit) {
             button_touch = true;
             button_was_selected = false;
             onRelease();
@@ -277,10 +277,12 @@ void MorseRadiotxView::transmit_morse_message() {
             for (uint8_t s = 0; s < (loop_seconds * 2); s++) {
                 if (chThdShouldTerminate()) break;
                 progressbar.set_value(s + 1);
+                if (!chk_loop.value()) break;
                 chThdSleepMilliseconds(500);
             }
             progressbar.set_value(0);
         }
+        if (!chk_loop.value()) break;
     } while (chk_loop.value() && !chThdShouldTerminate());
 
     if (chk_trans.value()) ptt_button_visibility(false);
@@ -383,9 +385,9 @@ void MorseRadiotxView::ui_toggle() {
         btn_calls.set_style(Theme::getInstance()->fg_dark);
         btn_calls.set_focusable(false);
         chk_trans.set_style(Theme::getInstance()->fg_dark);
-        chk_trans.hidden(true);
+        chk_trans.set_focusable(false);
         chk_callsgn.set_style(Theme::getInstance()->fg_dark);
-        chk_callsgn.hidden(true);
+        chk_callsgn.set_focusable(false);
         loop_time.set_style(Theme::getInstance()->fg_dark);
         loop_time.set_focusable(false);
         bandwidth.set_style(Theme::getInstance()->fg_dark);
@@ -401,9 +403,9 @@ void MorseRadiotxView::ui_toggle() {
         btn_calls.set_style(Theme::getInstance()->bg_darker);
         btn_calls.set_focusable(true);
         chk_trans.set_style(Theme::getInstance()->bg_darker);
-        chk_trans.hidden(false);
+        chk_trans.set_focusable(true);
         chk_callsgn.set_style(Theme::getInstance()->bg_darker);
-        chk_callsgn.hidden(false);
+        chk_callsgn.set_focusable(true);
         loop_time.set_style(Theme::getInstance()->bg_darker);
         loop_time.set_focusable(true);
         ptt_button_visibility(true);
