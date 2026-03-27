@@ -361,6 +361,8 @@ void WaterfallView::stop() {
         baseband::spectrum_streaming_stop();
         running_ = false;
     }
+    this->channel_fifo = nullptr;
+    this->audio_spectrum_data = nullptr;
 }
 
 void WaterfallView::show_audio_spectrum_view(const bool show) {
