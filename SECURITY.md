@@ -12,3 +12,6 @@ If you discover a vulnerability within this tool itself, please submit a report.
 
 ## Research Attribution
 If you utilize this tool to successfully discover vulnerabilities in external systems, we would greatly appreciate it if you credit or mention our project in your published research or write-ups.
+
+## Legal and Security Disclaimer  
+For comprehensive guidelines regarding the legal and secure usage of this tool, as well as our full liability disclaimer, please refer to: [Intended-Use-and-Legality](https://github.com/portapack-mayhem/mayhem-firmware/wiki/). Users are expected to comply with all applicable laws and regulations when using this software and/or hardware.
