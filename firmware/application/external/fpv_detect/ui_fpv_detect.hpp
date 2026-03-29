@@ -72,7 +72,7 @@ class FpvDetectView : public View {
     void step_scan();
     void reset_detector(bool retune_current);
 
-    bool is_possible_analog_carrier(const ChannelStatistics& statistics) const;
+    bool is_possible_freq_spike(const ChannelStatistics& statistics) const;
     void enter_candidate(const ChannelStatistics& statistics);
     void evaluate_candidate_sample(const ChannelStatistics& statistics);
     void enter_lock();
@@ -162,7 +162,7 @@ class FpvDetectView : public View {
     Text text_freq{{UI_POS_X_RIGHT(20), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT}, ""};
 
     Text text_state{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT}, "SCANNING"};
-    Text text_confidence{{UI_POS_X(12), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT}, "Conf 0%"};
+    Text text_confidence{{UI_POS_X(12), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_DEFAULT_HEIGHT}, "Posi 0%"};
     Text text_detect_label{{UI_POS_X_RIGHT(10), UI_POS_Y(2), UI_POS_WIDTH(5), UI_POS_DEFAULT_HEIGHT}, "Thr>"};
 
     NumberField field_detect_threshold{
@@ -176,8 +176,8 @@ class FpvDetectView : public View {
     Text freq_stats_rssi{{UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT}, "RSSI 0/0/0"};
     Text freq_stats_db{{UI_POS_X_RIGHT(14), UI_POS_Y(3), UI_POS_WIDTH(14), UI_POS_DEFAULT_HEIGHT}, "PWR -120 dB"};
 
-    Text text_status{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(30), UI_POS_DEFAULT_HEIGHT}, "SCANNING FOR ANALOG FPV"};
-    Text text_detail{{UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(30), UI_POS_DEFAULT_HEIGHT}, "Waiting for FPV-like carrier"};
+    Text text_status{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(30), UI_POS_DEFAULT_HEIGHT}, "SCANNING FOR FREQS"};
+    Text text_detail{{UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(30), UI_POS_DEFAULT_HEIGHT}, "Waiting for FPV FREQ"};
 
     RSSIGraph rssi_graph{{UI_POS_X(0), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT_REMAINING(7)}};
     RSSI rssi{{UI_POS_X_RIGHT(5), UI_POS_Y(6), UI_POS_WIDTH(5), UI_POS_HEIGHT_REMAINING(7)}};

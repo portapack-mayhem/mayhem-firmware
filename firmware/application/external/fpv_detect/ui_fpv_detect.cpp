@@ -3,13 +3,11 @@
 /*
  * FPV RX — how frequency search and lock work
  *
- * 1. Power metric: We use channelized power (baseband IQ magnitude² in the
- *    capture bandwidth), not raw RF RSSI. Stats come from ChannelStatsCollector
- *    over filtered IQ, so we see power in the tuned channel, not wideband.
+ * 1. Power metric: We use channelized power that portapack RSSI algo included.
  *
  * 2. Scanning: We step through FPV bands/channels (A/B/E/F/R, 8 ch each). When
  *    power on the current channel exceeds the detect threshold, we enter
- *    "Candidate" and run verification — we do not lock on a single peak.
+ *    "Candidate" and run verification - with some edge detecting algo.
  *
  * 3. Verification (making sure the drone is on that freq):
  *    - Multiple samples: verify_hits / verify_misses over several updates.
@@ -177,7 +175,7 @@ void FpvDetectView::reset_detector(bool retune_current) {
     }
 }
 
-bool FpvDetectView::is_possible_analog_carrier(const ChannelStatistics& statistics) const {
+bool FpvDetectView::is_possible_freq_spike(const ChannelStatistics& statistics) const {
     return statistics.max_db >= detect_threshold_db();
 }
 
@@ -392,17 +390,17 @@ void FpvDetectView::update_state_badge() {
             text_state.set("SCANNING");
             break;
         case DetectState::Candidate:
-            text_state.set("VERIFY FPV");
+            text_state.set("CHECKING");
             break;
         case DetectState::Locked:
-            text_state.set("DRONE FOUND");
+            text_state.set("FREQ FOUND");
             break;
     }
 }
 
 void FpvDetectView::update_confidence_text() {
     char buf[16];
-    std::snprintf(buf, sizeof(buf), "Conf %u%%", static_cast<unsigned>(candidate_confidence_));
+    std::snprintf(buf, sizeof(buf), "Posi %u%%", static_cast<unsigned>(candidate_confidence_));
     text_confidence.set(buf);
 }
 
@@ -412,21 +410,21 @@ void FpvDetectView::update_status_text() {
     switch (detect_state_) {
         case DetectState::Scanning:
             if (band_mode < FPV_NUM_BANDS) {
-                std::snprintf(buf, sizeof(buf), "Scanning band %c for analog FPV", band_labels[band_mode]);
+                std::snprintf(buf, sizeof(buf), "Scanning band %c", band_labels[band_mode]);
             } else {
-                std::snprintf(buf, sizeof(buf), "Scanning all FPV bands");
+                std::snprintf(buf, sizeof(buf), "Scanning all from list");
             }
             break;
 
         case DetectState::Candidate:
-            std::snprintf(buf, sizeof(buf), "VERIFYING %c%d  %ld MHz",
+            std::snprintf(buf, sizeof(buf), "CHKING %c%d  %ld MHz",
                           band_labels[candidate_band_],
                           static_cast<int>(candidate_ch_ + 1),
                           static_cast<long>(fpv_frequencies[candidate_band_][candidate_ch_] / 1000000LL));
             break;
 
         case DetectState::Locked:
-            std::snprintf(buf, sizeof(buf), "!!! DRONE FOUND !!! %c%d  %ld",
+            std::snprintf(buf, sizeof(buf), "FREQ FOUND %c%d  %ld",
                           band_labels[candidate_band_],
                           static_cast<int>(candidate_ch_ + 1),
                           static_cast<long>(fpv_frequencies[candidate_band_][candidate_ch_] / 1000000LL));
@@ -453,7 +451,7 @@ void FpvDetectView::update_detail_text() {
             break;
 
         case DetectState::Locked:
-            std::snprintf(buf, sizeof(buf), "LOCKED %c%d  conf %u%%  hold %u",
+            std::snprintf(buf, sizeof(buf), "LOCKED %c%d  posi %u%%  hold %u",
                           band_labels[candidate_band_],
                           static_cast<int>(candidate_ch_ + 1),
                           static_cast<unsigned>(candidate_confidence_),
@@ -605,7 +603,7 @@ void FpvDetectView::on_statistics_update(const ChannelStatistics& statistics) {
 
     switch (detect_state_) {
         case DetectState::Scanning:
-            if (is_possible_analog_carrier(statistics)) {
+            if (is_possible_freq_spike(statistics)) {
                 enter_candidate(statistics);
             }
             break;
