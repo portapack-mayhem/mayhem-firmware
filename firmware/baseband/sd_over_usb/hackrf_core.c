@@ -453,7 +453,7 @@ fp_40_24_t sample_rate_set(const fp_40_24_t sample_rate, const bool program) {
         p2 = n / d;
         p3 = 1 << 24;
 
-        unsigned int shift = p2 ? __builtin_ctz(p2) : 24;
+        unsigned int shift = p2 ? __builtin_ctzll(p2) : 24;
         p2 >>= shift;
         p3 >>= shift;
 
