@@ -438,8 +438,7 @@ bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom) {
  * Can be called with program=false for a dry run that returns the resultant
  * frequency without actually configuring the clock generator.
  */
-fp_40_24_t sample_rate_set(const fp_40_24_t sample_rate, const bool program)
-{
+fp_40_24_t sample_rate_set(const fp_40_24_t sample_rate, const bool program) {
     const fp_40_24_t vco = 800 * FP_ONE_MHZ;
     uint64_t p1, p2, p3;
     uint64_t n, d, q;
