@@ -35,6 +35,9 @@
 #include "i2c_lpc.h"
 #include "cpld_jtag.h"
 #include "platform_detect.h"
+#include "platform_gpio.h"
+#include "platform_scu.h"
+#include "fixed_point.h"
 #include "clkin.h"
 #include <libopencm3/lpc43xx/cgu.h>
 #include <libopencm3/lpc43xx/ccu.h>
@@ -48,7 +51,7 @@
 #include "gpio_lpc.h"
 
 /* GPIO Output PinMux */
-static struct gpio_t gpio_led[] = {
+static struct gpio gpio_led[] = {
     GPIO(2, 1),
     GPIO(2, 2),
     GPIO(2, 8),
@@ -58,90 +61,90 @@ static struct gpio_t gpio_led[] = {
 };
 
 // clang-format off
-static struct gpio_t gpio_1v8_enable        = GPIO(3,  6);
+static struct gpio gpio_1v8_enable        = GPIO(3,  6);
 
 /* MAX283x GPIO (XCVR_CTL) PinMux */
-static struct gpio_t gpio_max283x_select    = GPIO(0, 15);
+static struct gpio gpio_max283x_select    = GPIO(0, 15);
 
 /* MAX5864 SPI chip select (AD_CS) GPIO PinMux */
-static struct gpio_t gpio_max5864_select    = GPIO(2,  7);
+static struct gpio gpio_max5864_select    = GPIO(2,  7);
 
 /* RFFC5071 GPIO serial interface PinMux */
 // #ifdef RAD1O
-// static struct gpio_t gpio_rffc5072_select   = GPIO(2, 13);
-// static struct gpio_t gpio_rffc5072_clock    = GPIO(5,  6);
-// static struct gpio_t gpio_rffc5072_data     = GPIO(3,  3);
-// static struct gpio_t gpio_rffc5072_reset    = GPIO(2, 14);
+// static struct gpio gpio_rffc5072_select   = GPIO(2, 13);
+// static struct gpio gpio_rffc5072_clock    = GPIO(5,  6);
+// static struct gpio gpio_rffc5072_data     = GPIO(3,  3);
+// static struct gpio gpio_rffc5072_reset    = GPIO(2, 14);
 // #endif
 
 /* RF supply (VAA) control */
 #ifdef HACKRF_ONE
-static struct gpio_t gpio_vaa_disable       = GPIO(2, 9);
+static struct gpio gpio_vaa_disable       = GPIO(2, 9);
 #endif
 #ifdef RAD1O
-static struct gpio_t gpio_vaa_enable        = GPIO(2, 9);
+static struct gpio gpio_vaa_enable        = GPIO(2, 9);
 #endif
 
-static struct gpio_t gpio_w25q80bv_hold     = GPIO(1, 14);
-static struct gpio_t gpio_w25q80bv_wp       = GPIO(1, 15);
-static struct gpio_t gpio_w25q80bv_select   = GPIO(5, 11);
+static struct gpio gpio_w25q80bv_hold     = GPIO(1, 14);
+static struct gpio gpio_w25q80bv_wp       = GPIO(1, 15);
+static struct gpio gpio_w25q80bv_select   = GPIO(5, 11);
 
 /* RF switch control */
 #ifdef HACKRF_ONE
-static struct gpio_t gpio_hp                = GPIO(2,  0);
-static struct gpio_t gpio_lp                = GPIO(2, 10);
-static struct gpio_t gpio_tx_mix_bp         = GPIO(2, 11);
-static struct gpio_t gpio_no_mix_bypass     = GPIO(1,  0);
-static struct gpio_t gpio_rx_mix_bp         = GPIO(2, 12);
-static struct gpio_t gpio_tx_amp            = GPIO(2, 15);
-static struct gpio_t gpio_tx                = GPIO(5, 15);
-static struct gpio_t gpio_mix_bypass        = GPIO(5, 16);
-static struct gpio_t gpio_rx                = GPIO(5,  5);
-static struct gpio_t gpio_no_tx_amp_pwr     = GPIO(3,  5);
-static struct gpio_t gpio_amp_bypass        = GPIO(0, 14);
-static struct gpio_t gpio_rx_amp            = GPIO(1, 11);
-static struct gpio_t gpio_no_rx_amp_pwr     = GPIO(1, 12);
+static struct gpio gpio_hp                = GPIO(2,  0);
+static struct gpio gpio_lp                = GPIO(2, 10);
+static struct gpio gpio_tx_mix_bp         = GPIO(2, 11);
+static struct gpio gpio_no_mix_bypass     = GPIO(1,  0);
+static struct gpio gpio_rx_mix_bp         = GPIO(2, 12);
+static struct gpio gpio_tx_amp            = GPIO(2, 15);
+static struct gpio gpio_tx                = GPIO(5, 15);
+static struct gpio gpio_mix_bypass        = GPIO(5, 16);
+static struct gpio gpio_rx                = GPIO(5,  5);
+static struct gpio gpio_no_tx_amp_pwr     = GPIO(3,  5);
+static struct gpio gpio_amp_bypass        = GPIO(0, 14);
+static struct gpio gpio_rx_amp            = GPIO(1, 11);
+static struct gpio gpio_no_rx_amp_pwr     = GPIO(1, 12);
 #endif
 #ifdef RAD1O
-static struct gpio_t gpio_tx_rx_n           = GPIO(1,  11);
-static struct gpio_t gpio_tx_rx             = GPIO(0,  14);
-static struct gpio_t gpio_by_mix            = GPIO(1,  12);
-static struct gpio_t gpio_by_mix_n          = GPIO(2,  10);
-static struct gpio_t gpio_by_amp            = GPIO(1,  0);
-static struct gpio_t gpio_by_amp_n          = GPIO(5,  5);
-static struct gpio_t gpio_mixer_en          = GPIO(5,  16);
-static struct gpio_t gpio_low_high_filt     = GPIO(2,  11);
-static struct gpio_t gpio_low_high_filt_n   = GPIO(2,  12);
-static struct gpio_t gpio_tx_amp            = GPIO(2,  15);
-static struct gpio_t gpio_rx_lna            = GPIO(5,  15);
+static struct gpio gpio_tx_rx_n           = GPIO(1,  11);
+static struct gpio gpio_tx_rx             = GPIO(0,  14);
+static struct gpio gpio_by_mix            = GPIO(1,  12);
+static struct gpio gpio_by_mix_n          = GPIO(2,  10);
+static struct gpio gpio_by_amp            = GPIO(1,  0);
+static struct gpio gpio_by_amp_n          = GPIO(5,  5);
+static struct gpio gpio_mixer_en          = GPIO(5,  16);
+static struct gpio gpio_low_high_filt     = GPIO(2,  11);
+static struct gpio gpio_low_high_filt_n   = GPIO(2,  12);
+static struct gpio gpio_tx_amp            = GPIO(2,  15);
+static struct gpio gpio_rx_lna            = GPIO(5,  15);
 #endif
 
 /* CPLD JTAG interface GPIO pins */
-static struct gpio_t gpio_cpld_tdo          = GPIO(5, 18);
-static struct gpio_t gpio_cpld_tck          = GPIO(3,  0);
+static struct gpio gpio_cpld_tdo          = GPIO(5, 18);
+static struct gpio gpio_cpld_tck          = GPIO(3,  0);
 #if (defined HACKRF_ONE || defined RAD1O)
-static struct gpio_t gpio_cpld_tms          = GPIO(3,  4);
-static struct gpio_t gpio_cpld_tdi          = GPIO(3,  1);
+static struct gpio gpio_cpld_tms          = GPIO(3,  4);
+static struct gpio gpio_cpld_tdi          = GPIO(3,  1);
 #else
-static struct gpio_t gpio_cpld_tms          = GPIO(3,  1);
-static struct gpio_t gpio_cpld_tdi          = GPIO(3,  4);
+static struct gpio gpio_cpld_tms          = GPIO(3,  1);
+static struct gpio gpio_cpld_tdi          = GPIO(3,  4);
 #endif
 
 #ifdef HACKRF_ONE
-static struct gpio_t gpio_cpld_pp_tms       = GPIO(1,  1);
-static struct gpio_t gpio_cpld_pp_tdo       = GPIO(1,  8);
+static struct gpio gpio_cpld_pp_tms       = GPIO(1,  1);
+static struct gpio gpio_cpld_pp_tdo       = GPIO(1,  8);
 #endif
 
 /* other CPLD interface GPIO pins */
-static struct gpio_t gpio_hw_sync_enable    = GPIO(5, 12);
-static struct gpio_t gpio_q_invert          = GPIO(0, 13);
+static struct gpio gpio_hw_sync_enable    = GPIO(5, 12);
+static struct gpio gpio_q_invert          = GPIO(0, 13);
 
 /* HackRF One r9 */
 #ifdef HACKRF_ONE
-static struct gpio_t gpio_h1r9_rx             = GPIO(0, 7);
-static struct gpio_t gpio_h1r9_1v8_enable     = GPIO(2, 9);
-static struct gpio_t gpio_h1r9_vaa_disable    = GPIO(3, 6);
-static struct gpio_t gpio_h1r9_hw_sync_enable = GPIO(5, 5);
+static struct gpio gpio_h1r9_rx             = GPIO(0, 7);
+static struct gpio gpio_h1r9_1v8_enable     = GPIO(2, 9);
+static struct gpio gpio_h1r9_vaa_disable    = GPIO(3, 6);
+static struct gpio gpio_h1r9_hw_sync_enable = GPIO(5, 5);
 #endif
 // clang-format on
 
@@ -216,11 +219,10 @@ max5864_driver_t max5864 = {
     .target_init = max5864_target_init,
 };
 
-const ssp_config_t ssp_config_w25q80bv = {
+ssp_config_t ssp_config_w25q80bv = {
     .data_bits = SSP_DATA_8BITS,
     .serial_clock_rate = 2,
     .clock_prescale_rate = 2,
-    .gpio_select = &gpio_w25q80bv_select,
 };
 
 spi_bus_t spi_bus_ssp0 = {
@@ -431,96 +433,106 @@ bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom) {
     return true;
 }
 
-bool sample_rate_set(const uint32_t sample_rate_hz) {
-    uint32_t p1 = 4608;
-    uint32_t p2 = 0;
-    uint32_t p3 = 0;
+/*
+ * Configure clock generator to produce sample clock in units of 1/(2**24) Hz.
+ * Can be called with program=false for a dry run that returns the resultant
+ * frequency without actually configuring the clock generator.
+ */
+fp_40_24_t sample_rate_set(const fp_40_24_t sample_rate, const bool program)
+{
+    const fp_40_24_t vco = 800 * FP_ONE_MHZ;
+    uint64_t p1, p2, p3;
+    uint64_t n, d, q;
+    fp_40_24_t remainder, resultant_rate;
 
-    switch (sample_rate_hz) {
-        case 8000000:
-            p1 = SI_INTDIV(50);  // 800MHz / 50 = 16 MHz (SGPIO), 8 MHz (codec)
-            break;
+    fp_40_24_t rate = sample_rate * 2;
 
-        case 9216000:
-            // 43.40277777777778: a = 43; b = 29; c = 72
-            p1 = 5043;
-            p2 = 40;
-            p3 = 72;
-            break;
+    p1 = ((128 * vco) / rate) - 512;
+    if (vco % rate) {
+        n = (128 * vco) - (rate * (p1 + 512));
+        d = rate / FP_ONE_HZ;
+        n += (d / 2);
+        p2 = n / d;
+        p3 = 1 << 24;
 
-        case 10000000:
-            p1 = SI_INTDIV(40);  // 800MHz / 40 = 20 MHz (SGPIO), 10 MHz (codec)
-            break;
+        unsigned int shift = p2 ? __builtin_ctz(p2) : 24;
+        p2 >>= shift;
+        p3 >>= shift;
 
-        case 12288000:
-            // 32.552083333333336: a = 32; b = 159; c = 288
-            p1 = 3654;
-            p2 = 192;
-            p3 = 288;
-            break;
+        const uint64_t p3_max = 0xfffff;
+        if (p3 > p3_max) {
+            p2 *= p3_max;
+            p2 += (p3 / 2);
+            p2 /= p3;
+            p3 = p3_max;
+        }
 
-        case 12500000:
-            p1 = SI_INTDIV(32);  // 800MHz / 32 = 25 MHz (SGPIO), 12.5 MHz (codec)
-            break;
+        if (p2 >= p3) {
+            p1++;
+            p2 = 0;
+        }
+    } else {
+        p2 = 0;
+    }
 
-        case 16000000:
-            p1 = SI_INTDIV(25);  // 800MHz / 25 = 32 MHz (SGPIO), 16 MHz (codec)
-            break;
+    if (p1 > 0x3fe00) {
+        p1 = 0x3fe00;
+        p2 = 0;
+    }
 
-        case 18432000:
-            // 21.70138888889: a = 21; b = 101; c = 144
-            p1 = 2265;
-            p2 = 112;
-            p3 = 144;
-            break;
+    if (p2 == 0) {
+        p3 = 1;
+        n = (vco * 128);
+        d = (p1 + 512);
+        n += (d / 2);
+        resultant_rate = n / d;
+    } else {
+        const uint64_t vco_hz = vco / FP_ONE_HZ;
+        n = p3 * vco_hz * 128;
+        d = p3 * (p1 + 512) + p2;
+        const uint64_t rate_hz = n / d;
+        remainder = (n - (d * rate_hz)) * FP_ONE_HZ;
+        remainder += (d / 2);
+        q = remainder / d;
+        resultant_rate = (rate_hz * FP_ONE_HZ) + q;
+    }
 
-        case 20000000:
-            p1 = SI_INTDIV(20);  // 800MHz / 20 = 40 MHz (SGPIO), 20 MHz (codec)
-            break;
+    resultant_rate = (resultant_rate + 1) / 2;
 
-        default:
-            return false;
+    if (!program) {
+        return resultant_rate;
+    }
+
+    bool streaming = sgpio_cpld_stream_is_enabled(&sgpio_config);
+
+    if (streaming) {
+        sgpio_cpld_stream_disable(&sgpio_config);
+    }
+
+    if (p1 & 0x1 || p2) {
+        si5351c_set_int_mode(&clock_gen, 0, 0);
+    } else {
+        si5351c_set_int_mode(&clock_gen, 0, 1);
     }
 
     if (detected_platform() == BOARD_ID_HACKRF1_R9) {
-        /*
-         * On HackRF One r9 all sample clocks are externally derived
-         * from MS1/CLK1 operating at twice the sample rate.
-         */
         si5351c_configure_multisynth(&clock_gen, 1, p1, p2, p3, 0);
     } else {
-        /*
-         * On other platforms the clock generator produces three
-         * different sample clocks, all derived from multisynth 0.
-         */
-        /* MS0/CLK0 is the source for the MAX5864/CPLD (CODEC_CLK). */
         si5351c_configure_multisynth(&clock_gen, 0, p1, p2, p3, 1);
-
-        /* MS0/CLK1 is the source for the CPLD (CODEC_X2_CLK). */
-        si5351c_configure_multisynth(
-            &clock_gen,
-            1,
-            p1,
-            0,
-            1,
-            0);  // p1 doesn't matter
-
-        /* MS0/CLK2 is the source for SGPIO (CODEC_X2_CLK) */
-        si5351c_configure_multisynth(
-            &clock_gen,
-            2,
-            p1,
-            0,
-            1,
-            0);  // p1 doesn't matter
+        si5351c_configure_multisynth(&clock_gen, 1, 0, 0, 0, 0);
+        si5351c_configure_multisynth(&clock_gen, 2, 0, 0, 0, 0);
     }
 
-    return true;
+    if (streaming) {
+        sgpio_cpld_stream_enable(&sgpio_config);
+    }
+
+    return resultant_rate;
 }
 
 bool baseband_filter_bandwidth_set(const uint32_t bandwidth_hz) {
     uint32_t bandwidth_hz_real;
-    bandwidth_hz_real = max283x_set_lpf_bandwidth(&max283x, bandwidth_hz);
+    bandwidth_hz_real = max283x_set_lpf_bandwidth(&max283x, MAX283x_MODE_RX, bandwidth_hz);
 
     if (bandwidth_hz_real) {
         hackrf_ui()->set_filter_bw(bandwidth_hz_real);
@@ -615,8 +627,8 @@ void cpu_clock_init(void) {
     si5351c_power_down_all_clocks(&clock_gen);
     si5351c_set_crystal_configuration(&clock_gen);
     si5351c_enable_xo_and_ms_fanout(&clock_gen);
-    si5351c_configure_pll_sources(&clock_gen);
-    si5351c_configure_pll_multisynth(&clock_gen);
+    si5351c_configure_pll_sources(&clock_gen, PLL_SOURCE_XTAL);
+    si5351c_configure_pll_multisynth(&clock_gen, PLL_SOURCE_XTAL);
 
     /*
      * Clocks on HackRF One r9:
@@ -667,7 +679,7 @@ void cpu_clock_init(void) {
     /* MS7/CLK7 is unused. */
 
     /* Set to 10 MHz, the common rate between Jawbreaker and HackRF One. */
-    sample_rate_set(10000000);
+    sample_rate_set(10000000 * (fp_40_24_t)FP_ONE_HZ, true);
 
     si5351c_set_clock_source(&clock_gen, PLL_SOURCE_XTAL);
     // soft reset
@@ -854,6 +866,8 @@ void ssp1_set_mode_max5864(void) {
 }
 
 void pin_setup(void) {
+    const platform_scu_t* scu = platform_scu();
+
     /* Configure all GPIO as Input (safe state) */
     // gpio_init();
 
@@ -872,26 +886,26 @@ void pin_setup(void) {
      * LPC43xx pull-up and pull-down resistors are approximately 53K.
      */
 #ifdef HACKRF_ONE
-    scu_pinmux(SCU_PINMUX_PP_TMS, SCU_GPIO_PUP | SCU_CONF_FUNCTION0);
-    scu_pinmux(SCU_PINMUX_PP_TDO, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_PP_TMS, SCU_GPIO_PUP | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_PP_TDO, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
 #endif
-    scu_pinmux(SCU_PINMUX_CPLD_TMS, SCU_GPIO_NOPULL | SCU_CONF_FUNCTION0);
-    scu_pinmux(SCU_PINMUX_CPLD_TDI, SCU_GPIO_NOPULL | SCU_CONF_FUNCTION0);
-    scu_pinmux(SCU_PINMUX_CPLD_TDO, SCU_GPIO_PDN | SCU_CONF_FUNCTION4);
-    scu_pinmux(SCU_PINMUX_CPLD_TCK, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_CPLD_TMS, SCU_GPIO_NOPULL | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_CPLD_TDI, SCU_GPIO_NOPULL | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_CPLD_TDO, SCU_GPIO_PDN | SCU_CONF_FUNCTION4);
+    scu_pinmux(scu->PINMUX_CPLD_TCK, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
 
     /* Configure SCU Pin Mux as GPIO */
-    scu_pinmux(SCU_PINMUX_LED1, SCU_GPIO_NOPULL);
-    scu_pinmux(SCU_PINMUX_LED2, SCU_GPIO_NOPULL);
-    scu_pinmux(SCU_PINMUX_LED3, SCU_GPIO_NOPULL);
+    scu_pinmux(scu->PINMUX_LED1, SCU_GPIO_NOPULL);
+    scu_pinmux(scu->PINMUX_LED2, SCU_GPIO_NOPULL);
+    scu_pinmux(scu->PINMUX_LED3, SCU_GPIO_NOPULL);
 #ifdef RAD1O
-    scu_pinmux(SCU_PINMUX_LED4, SCU_GPIO_NOPULL | SCU_CONF_FUNCTION4);
+    scu_pinmux(scu->PINMUX_LED4, SCU_GPIO_NOPULL | SCU_CONF_FUNCTION4);
 #endif
 
     /* Configure USB indicators */
 #ifdef JAWBREAKER
-    scu_pinmux(SCU_PINMUX_USB_LED0, SCU_CONF_FUNCTION3);
-    scu_pinmux(SCU_PINMUX_USB_LED1, SCU_CONF_FUNCTION3);
+    scu_pinmux(scu->PINMUX_USB_LED0, SCU_CONF_FUNCTION3);
+    scu_pinmux(scu->PINMUX_USB_LED1, SCU_CONF_FUNCTION3);
 #endif
 
     gpio_output(&gpio_led[0]);
@@ -905,11 +919,11 @@ void pin_setup(void) {
     if (detected_platform() == BOARD_ID_HACKRF1_R9) {
 #ifdef HACKRF_ONE
         gpio_output(&gpio_h1r9_1v8_enable);
-        scu_pinmux(SCU_H1R9_EN1V8, SCU_GPIO_FAST | SCU_CONF_FUNCTION0);
+        scu_pinmux(scu->H1R9_EN1V8, SCU_GPIO_FAST | SCU_CONF_FUNCTION0);
 #endif
     } else {
         gpio_output(&gpio_1v8_enable);
-        scu_pinmux(SCU_PINMUX_EN1V8, SCU_GPIO_FAST | SCU_CONF_FUNCTION0);
+        scu_pinmux(scu->PINMUX_EN1V8, SCU_GPIO_FAST | SCU_CONF_FUNCTION0);
     }
 
 #ifdef HACKRF_ONE
@@ -935,8 +949,8 @@ void pin_setup(void) {
     scu_pinmux(CLK0, SCU_CLK_IN | SCU_CONF_FUNCTION7);
     scu_pinmux(CLK2, SCU_CLK_IN | SCU_CONF_FUNCTION7);
 
-    scu_pinmux(SCU_PINMUX_GPIO3_10, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
-    scu_pinmux(SCU_PINMUX_GPIO3_11, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_GPIO3_10, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
+    scu_pinmux(scu->PINMUX_GPIO3_11, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);
 
 #endif
 
@@ -956,7 +970,7 @@ void pin_setup(void) {
     rf_path_pin_setup(&rf_path);
 
     /* Configure external clock in */
-    scu_pinmux(SCU_PINMUX_GP_CLKIN, SCU_CLK_IN | SCU_CONF_FUNCTION1);
+    scu_pinmux(scu->PINMUX_GP_CLKIN, SCU_CLK_IN | SCU_CONF_FUNCTION1);
 
     sgpio_configure_pin_functions(&sgpio_config);
 }
