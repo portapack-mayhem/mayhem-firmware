@@ -87,7 +87,6 @@ static struct gpio gpio_vaa_enable        = GPIO(2, 9);
 
 static struct gpio gpio_w25q80bv_hold     = GPIO(1, 14);
 static struct gpio gpio_w25q80bv_wp       = GPIO(1, 15);
-static struct gpio gpio_w25q80bv_select   = GPIO(5, 11);
 
 /* RF switch control */
 #ifdef HACKRF_ONE
