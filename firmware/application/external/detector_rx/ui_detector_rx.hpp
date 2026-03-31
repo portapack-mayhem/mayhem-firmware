@@ -76,6 +76,7 @@ class DetectorRxView : public View {
     int32_t current_step{DETECTOR_BW};
     std::string freq_file_stem{"DETECTOR"};
     bool auto_scan{true};
+    bool auto_advance{false};
 
     int32_t beep_squelch = 0;
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
@@ -86,6 +87,8 @@ class DetectorRxView : public View {
         {
             {"beep_squelch"sv, &beep_squelch},
             {"freq_file"sv, &freq_file_stem},
+            {"auto_scan"sv, &auto_scan},
+            {"auto_advance"sv, &auto_advance},
         }};
 
     Labels labels{
@@ -105,16 +108,16 @@ class DetectorRxView : public View {
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
-    // Row 1: FILE button + filename
+    // Row 1: filename + auto advance
     Button button_file{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(5), UI_POS_DEFAULT_HEIGHT},
-        "FILE"};
-
-    Text text_filename{
-        {UI_POS_X(6), UI_POS_Y(1), UI_POS_WIDTH(24), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
         ""};
 
-    // Row 2: index encoder + description + Bip> squelch
+    Button button_auto_advance{
+        {UI_POS_X_RIGHT(9), UI_POS_Y(1), UI_POS_WIDTH(9), UI_POS_DEFAULT_HEIGHT},
+        "NO ADV"};
+
+    // Row 2: index encoder + description + auto scan
     ButtonWithEncoder button_index{
         {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(4), UI_POS_DEFAULT_HEIGHT},
         ""};
@@ -123,35 +126,35 @@ class DetectorRxView : public View {
         {UI_POS_X(4), UI_POS_Y(2), UI_POS_WIDTH(17), UI_POS_DEFAULT_HEIGHT},
         ""};
 
+    Button button_auto_scan{
+        {UI_POS_X_RIGHT(9), UI_POS_Y(2), UI_POS_WIDTH(9), UI_POS_DEFAULT_HEIGHT},
+        "AUTO SCAN"};
+
+    // Row 3: frequency encoder + bip level
+    ButtonWithEncoder button_freq{
+        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
+        ""};
+
     Text text_beep_squelch{
-        {UI_POS_X_RIGHT(9), UI_POS_Y(2), UI_POS_WIDTH(4), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X_RIGHT(9), UI_POS_Y(3), UI_POS_WIDTH(4), UI_POS_DEFAULT_HEIGHT},
         "Bip>"};
 
     NumberField field_beep_squelch{
-        {UI_POS_X_RIGHT(5), UI_POS_Y(2)},
+        {UI_POS_X_RIGHT(5), UI_POS_Y(3)},
         4,
         {-100, 20},
         1,
         ' ',
     };
 
-    // Row 3: Power + RSSI on same line
+    // Row 4: Power + RSSI on same line
     Text freq_stats_db{
-        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
     };
 
     Text freq_stats_rssi{
-        {UI_POS_X(15), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X(15), UI_POS_Y(4), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
     };
-
-    // Row 4: frequency encoder + auto-scan toggle
-    ButtonWithEncoder button_freq{
-        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(18), UI_POS_DEFAULT_HEIGHT},
-        ""};
-
-    Button button_auto_scan{
-        {UI_POS_X(19), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_DEFAULT_HEIGHT},
-        "AUTO SCAN"};
 
     // Row 5+: RSSI graph + vertical bar
     RSSIGraph rssi_graph{

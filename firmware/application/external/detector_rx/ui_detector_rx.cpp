@@ -65,7 +65,7 @@ void DetectorRxView::load_freqman() {
     options.load_repeaters = false;
 
     if (!load_freqman_file(freq_file_stem, frequency_list, options) || frequency_list.empty()) {
-        text_filename.set("No file!");
+        button_file.set_text("No file!");
         button_index.set_text("");
         text_entry_desc.set("");
         button_freq.set_text("");
@@ -75,7 +75,7 @@ void DetectorRxView::load_freqman() {
 
     current_index = 0;
     init_current_entry();
-    text_filename.set(freq_file_stem);
+    button_file.set_text(freq_file_stem);
 }
 
 void DetectorRxView::init_current_entry() {
@@ -110,23 +110,39 @@ void DetectorRxView::update_entry_display() {
 }
 
 void DetectorRxView::update_freq_display() {
-    button_freq.set_text(format_freq_mhz(current_freq));
+    static uint8_t last_update_was_auto_range_type = -1;
+    if (auto_scan && (minfreq != maxfreq)) {
+        if (last_update_was_auto_range_type != 1) {
+            button_freq.set_text("RANGE SCAN...");
+            last_update_was_auto_range_type = 1;
+        }
+    } else {
+        button_freq.set_text(format_freq_mhz(current_freq));
+        last_update_was_auto_range_type = 0;
+    }
 }
 
 void DetectorRxView::on_timer() {
     if (frequency_list.empty() || !auto_scan) return;
 
     auto& entry = *frequency_list[current_index];
-
     if (entry.type == freqman_type::Range) {
         current_freq += current_step;
         if (current_freq > maxfreq) {
+            if (auto_advance) {
+                current_index = (current_index + 1) % frequency_list.size();
+                init_current_entry();
+                return;
+            }
             current_freq = minfreq;
         }
         receiver_model.set_target_frequency(current_freq);
         update_freq_display();
+    } else if (auto_advance) {
+        // Single frequency: advance to next entry
+        current_index = (current_index + 1) % frequency_list.size();
+        init_current_entry();
     }
-    // Single: stay on same frequency, no advancement
 }
 
 DetectorRxView::DetectorRxView(NavigationView& nav)
@@ -138,7 +154,6 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         &field_rf_amp,
         &field_volume,
         &button_file,
-        &text_filename,
         &button_index,
         &text_entry_desc,
         &text_beep_squelch,
@@ -147,6 +162,7 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         &freq_stats_rssi,
         &button_freq,
         &button_auto_scan,
+        &button_auto_advance,
         &rssi,
         &rssi_graph,
     });
@@ -165,28 +181,8 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         auto open_view = nav_.push<FileLoadView>(".TXT");
         open_view->push_dir(freqman_dir);
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            // Ensure the selected file is under freqman_dir to avoid loading
-            // an unintended file with the same stem from /FREQMAN.
-            std::filesystem::path freqman_path(freqman_dir);
-            auto freqman_norm = freqman_path.lexically_normal();
-            auto file_norm = new_file_path.lexically_normal();
-
-            bool under_freqman = true;
-            auto dir_it = freqman_norm.begin();
-            auto dir_end = freqman_norm.end();
-            auto file_it = file_norm.begin();
-            auto file_end = file_norm.end();
-
-            for (; dir_it != dir_end; ++dir_it, ++file_it) {
-                if (file_it == file_end || *dir_it != *file_it) {
-                    under_freqman = false;
-                    break;
-                }
-            }
-
-            if (!under_freqman) {
-                // Selected file is outside the allowed directory; show an error and abort.
-                text_filename.set("Invalid file");
+            if (new_file_path.native().find((u"/" / freqman_dir).native()) != 0) {
+                button_file.set_text("Invalid file");
                 return;
             }
             freq_file_stem = new_file_path.stem().string();
@@ -238,8 +234,17 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
     // Auto-scan toggle
     button_auto_scan.on_select = [this](Button&) {
         auto_scan = !auto_scan;
-        button_auto_scan.set_text(auto_scan ? "AUTO SCAN" : "MANUAL");
+        button_auto_scan.set_text(auto_scan ? "AUTOSCAN" : "NO SCAN");
+        update_freq_display();
     };
+    button_auto_scan.set_text(auto_scan ? "AUTOSCAN" : "NO SCAN");
+
+    // Auto-advance toggle
+    button_auto_advance.on_select = [this](Button&) {
+        auto_advance = !auto_advance;
+        button_auto_advance.set_text(auto_advance ? "AUTOADV" : "NO ADV");
+    };
+    button_auto_advance.set_text(auto_advance ? "AUTOADV" : "NO ADV");
 
     change_mode();
     rssi.set_peak(true, 3000);
