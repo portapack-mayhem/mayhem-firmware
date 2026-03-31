@@ -177,10 +177,12 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         button_index.set_encoder_delta(0);
         if (delta == 0) return;
 
+        // Use signed arithmetic for index wraparound to avoid unsigned promotion issues.
+        const int32_t list_size = static_cast<int32_t>(frequency_list.size());
         if (delta > 0) {
-            current_index = (current_index + 1) % frequency_list.size();
+            current_index = (current_index + 1) % list_size;
         } else {
-            current_index = (current_index - 1 + frequency_list.size()) % frequency_list.size();
+            current_index = (current_index - 1 + list_size) % list_size;
         }
         init_current_entry();
     };
