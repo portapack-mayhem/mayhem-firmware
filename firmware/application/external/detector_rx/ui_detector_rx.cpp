@@ -26,6 +26,7 @@
 #include "ui_freqman.hpp"
 #include "baseband_api.hpp"
 #include "file.hpp"
+#include "file_path.hpp"
 #include "oversample.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
@@ -35,36 +36,97 @@ using portapack::memory::map::backup_ram;
 
 namespace ui::external_app::detector_rx {
 
-// Function to map the value from one range to another
 int32_t DetectorRxView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
     return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
 }
 
 void DetectorRxView::focus() {
-    field_lna.focus();
+    button_index.focus();
 }
 
 DetectorRxView::~DetectorRxView() {
-    // reset performance counters request to default
     shared_memory.request_m4_performance_counter = 0;
     receiver_model.disable();
     audio::output::stop();
     baseband::shutdown();
 }
 
-void DetectorRxView::on_timer() {
-    freq_index++;
-    if (freq_mode == 0 && freq_index >= tetra_uplink_monitoring_frequencies_hz.size()) freq_index = 0;  // TETRA UP
-    if (freq_mode == 1 && freq_index >= lora_monitoring_frequencies_hz.size()) freq_index = 0;          // Lora
-    if (freq_mode == 2 && freq_index >= remotes_monitoring_frequencies_hz.size()) freq_index = 0;       // Remotes
+std::string DetectorRxView::format_freq_mhz(int64_t freq_hz) {
+    int64_t mhz = freq_hz / 1000000;
+    int64_t khz_frac = (freq_hz % 1000000) / 1000;
+    return "< " + to_string_dec_uint(mhz) + "." + to_string_dec_uint(khz_frac, 3, '0') + " MHz >";
+}
 
-    if (freq_mode == 2)
-        freq_ = remotes_monitoring_frequencies_hz[freq_index];
-    else if (freq_mode == 1)
-        freq_ = lora_monitoring_frequencies_hz[freq_index];
-    else
-        freq_ = tetra_uplink_monitoring_frequencies_hz[freq_index];
-    receiver_model.set_target_frequency(freq_);
+void DetectorRxView::load_freqman() {
+    freqman_load_options options{};
+    options.load_freqs = true;
+    options.load_ranges = true;
+    options.load_hamradios = false;
+    options.load_repeaters = false;
+
+    if (!load_freqman_file(freq_file_stem, frequency_list, options) || frequency_list.empty()) {
+        text_filename.set("No file!");
+        button_index.set_text("");
+        text_entry_desc.set("");
+        button_freq.set_text("");
+        frequency_list.clear();
+        return;
+    }
+
+    current_index = 0;
+    init_current_entry();
+    text_filename.set(freq_file_stem);
+}
+
+void DetectorRxView::init_current_entry() {
+    if (frequency_list.empty()) return;
+
+    auto& entry = *frequency_list[current_index];
+    if (entry.type == freqman_type::Range) {
+        minfreq = entry.frequency_a;
+        maxfreq = entry.frequency_b;
+        current_freq = minfreq;
+        current_step = is_valid(entry.step) ? freqman_entry_get_step_value(entry.step) : DETECTOR_BW;
+    } else {
+        current_freq = entry.frequency_a;
+        minfreq = current_freq;
+        maxfreq = current_freq;
+        current_step = DETECTOR_BW;
+    }
+
+    update_entry_display();
+    update_freq_display();
+    receiver_model.set_target_frequency(current_freq);
+}
+
+void DetectorRxView::update_entry_display() {
+    if (frequency_list.empty()) return;
+
+    auto& entry = *frequency_list[current_index];
+    button_index.set_text(
+        to_string_dec_uint(current_index + 1) + "/" +
+        to_string_dec_uint(frequency_list.size()));
+    text_entry_desc.set(entry.description);
+}
+
+void DetectorRxView::update_freq_display() {
+    button_freq.set_text(format_freq_mhz(current_freq));
+}
+
+void DetectorRxView::on_timer() {
+    if (frequency_list.empty() || !auto_scan) return;
+
+    auto& entry = *frequency_list[current_index];
+
+    if (entry.type == freqman_type::Range) {
+        current_freq += current_step;
+        if (current_freq > maxfreq) {
+            current_freq = minfreq;
+        }
+        receiver_model.set_target_frequency(current_freq);
+        update_freq_display();
+    }
+    // Single: stay on same frequency, no advancement
 }
 
 DetectorRxView::DetectorRxView(NavigationView& nav)
@@ -75,20 +137,21 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         &field_vga,
         &field_rf_amp,
         &field_volume,
-        &text_frequency,
-        &freq_stats_rssi,
-        &freq_stats_db,
+        &button_file,
+        &text_filename,
+        &button_index,
+        &text_entry_desc,
         &text_beep_squelch,
         &field_beep_squelch,
+        &freq_stats_db,
+        &freq_stats_rssi,
+        &button_freq,
+        &button_auto_scan,
         &rssi,
         &rssi_graph,
-        &field_mode,
     });
 
-    // activate vertical bar mode
     rssi.set_vertical_rssi(true);
-
-    freq_ = receiver_model.target_frequency();
 
     field_beep_squelch.set_value(beep_squelch);
     field_beep_squelch.on_change = [this](int32_t v) {
@@ -97,29 +160,68 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
 
     rssi_graph.set_nb_columns(256);
 
+    // FILE button opens file picker
+    button_file.on_select = [this](Button&) {
+        auto open_view = nav_.push<FileLoadView>(".TXT");
+        open_view->push_dir(freqman_dir);
+        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            freq_file_stem = new_file_path.stem().string();
+            load_freqman();
+        };
+    };
+
+    // Index encoder: rotate to change entry, click does nothing
+    button_index.on_change = [this]() {
+        if (frequency_list.empty()) return;
+        int32_t delta = button_index.get_encoder_delta();
+        button_index.set_encoder_delta(0);
+        if (delta == 0) return;
+
+        if (delta > 0) {
+            current_index = (current_index + 1) % frequency_list.size();
+        } else {
+            current_index = (current_index - 1 + frequency_list.size()) % frequency_list.size();
+        }
+        init_current_entry();
+    };
+
+    // Frequency encoder: rotate to step within range
+    button_freq.on_change = [this]() {
+        if (frequency_list.empty()) return;
+        auto& entry = *frequency_list[current_index];
+        if (entry.type != freqman_type::Range) {
+            button_freq.set_encoder_delta(0);
+            return;
+        }
+
+        int32_t delta = button_freq.get_encoder_delta();
+        button_freq.set_encoder_delta(0);
+        if (delta == 0) return;
+
+        if (delta > 0) {
+            current_freq += current_step;
+            if (current_freq > maxfreq) current_freq = minfreq;
+        } else {
+            current_freq -= current_step;
+            if (current_freq < minfreq) current_freq = maxfreq;
+        }
+        receiver_model.set_target_frequency(current_freq);
+        update_freq_display();
+    };
+
+    // Auto-scan toggle
+    button_auto_scan.on_select = [this](Button&) {
+        auto_scan = !auto_scan;
+        button_auto_scan.set_text(auto_scan ? "AUTO SCAN" : "MANUAL");
+    };
+
     change_mode();
     rssi.set_peak(true, 3000);
 
-    // FILL STEP OPTIONS
     freq_stats_rssi.set_style(Theme::getInstance()->bg_darkest);
     freq_stats_db.set_style(Theme::getInstance()->bg_darkest);
 
-    field_mode.on_change = [this](size_t, int32_t value) {
-        freq_mode = value;
-        freq_index = 0;
-        switch (value) {
-            case 1:  // Lora
-                text_frequency.set("   433, 868, 915 Mhz");
-                break;
-            case 2:  // Remotes
-                text_frequency.set("        433, 315 Mhz");
-                break;
-            default:
-            case 0:  // TETRA UP
-                text_frequency.set("         380-390 Mhz");
-                break;
-        }
-    };
+    load_freqman();
 }
 
 void DetectorRxView::on_statistics_update(const ChannelStatistics& statistics) {
@@ -130,25 +232,23 @@ void DetectorRxView::on_statistics_update(const ChannelStatistics& statistics) {
 
     rssi_graph.add_values(rssi.get_min(), rssi.get_avg(), rssi.get_max(), statistics.max_db);
 
-    // refresh db
     if (last_max_db != statistics.max_db) {
         last_max_db = statistics.max_db;
         freq_stats_db.set("Power: " + to_string_dec_int(statistics.max_db) + " db");
         rssi.set_db(statistics.max_db);
     }
-    // refresh rssi
+
     if (last_min_rssi != rssi_graph.get_graph_min() || last_avg_rssi != rssi_graph.get_graph_avg() || last_max_rssi != rssi_graph.get_graph_max()) {
         last_min_rssi = rssi_graph.get_graph_min();
         last_avg_rssi = rssi_graph.get_graph_avg();
         last_max_rssi = rssi_graph.get_graph_max();
-        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi));
+        freq_stats_rssi.set("RSSI:" + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi));
     }
 
     if (statistics.max_db > beep_squelch) {
         baseband::request_audio_beep(map(statistics.max_db, -100, 20, 400, 2600), 24000, 150);
     }
-
-} /* on_statistic_updates */
+}
 
 size_t DetectorRxView::change_mode() {
     audio::output::stop();
@@ -160,14 +260,13 @@ size_t DetectorRxView::change_mode() {
     receiver_model.set_modulation(ReceiverModel::Mode::Capture);
 
     baseband::set_sample_rate(DETECTOR_BW, get_oversample_rate(DETECTOR_BW));
-    // The radio needs to know the effective sampling rate.
     auto actual_sampling_rate = get_actual_sample_rate(DETECTOR_BW);
     receiver_model.set_sampling_rate(actual_sampling_rate);
     receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(actual_sampling_rate));
 
     audio::set_rate(audio_sampling_rate);
     audio::output::start();
-    receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
+    receiver_model.set_headphone_volume(receiver_model.headphone_volume());
 
     receiver_model.enable();
 
