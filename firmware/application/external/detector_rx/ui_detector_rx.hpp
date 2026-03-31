@@ -69,7 +69,7 @@ class DetectorRxView : public View {
     std::string format_freq_mhz(int64_t freq_hz);
 
     freqman_db frequency_list{};
-    int32_t current_index{0};
+    size_t current_index{0};
     int64_t current_freq{0};
     int64_t minfreq{0};
     int64_t maxfreq{0};
