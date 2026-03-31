@@ -40,7 +40,7 @@
 #define AM_TEST_FREQUENCY 121375000
 #define AM_REAL_FREQUENCY 121500000
 
-#define BPSK_FREQUENCY_H 433025000
+#define BPSK_FREQUENCY_HAM 433025000
 #define BPSK_FREQUENCY_B 406025000
 #define BPSK_FREQUENCY_C 406028000
 #define BPSK_FREQUENCY_F 406037000
@@ -76,7 +76,7 @@ enum class AmChannel {
 };
 
 enum class BpskChannel {
-    H = 0,
+    HAM = 0,
     B = 1,
     C = 2,
     F = 3,
@@ -155,15 +155,15 @@ class EPIRBTXAppView : public View {
     // Frequency of the AM emergency signal
     rf::Frequency am_frequency{AM_TEST_FREQUENCY};
     // Frequency of the 406 MHz BPSK signal
-    rf::Frequency bpsk_frequency{BPSK_FREQUENCY_H};
+    rf::Frequency bpsk_frequency{BPSK_FREQUENCY_HAM};
     // Selected am channel
     uint8_t am_channel{(uint8_t)AmChannel::TEST};
     // Selected bpsk channel
-    uint8_t bpsk_channel{(uint8_t)BpskChannel::H};
+    uint8_t bpsk_channel{(uint8_t)BpskChannel::HAM};
     // Manual AM frequency value
     rf::Frequency manual_am_frequency{AM_TEST_FREQUENCY};
     // Manual BPSK frequency value
-    rf::Frequency manual_bpsk_frequency{BPSK_FREQUENCY_H};
+    rf::Frequency manual_bpsk_frequency{BPSK_FREQUENCY_HAM};
 
     // True when using a beacon from the BEACONS.TXT file
     bool mode_file{false};
@@ -367,7 +367,7 @@ class EPIRBTXAppView : public View {
     OptionsField options_bpsk_channel{
         {UI_POS_X(11), UI_POS_Y(15)},
         20,
-        {{"433.025 MHz (Ham)", (uint8_t)BpskChannel::H},
+        {{"433.025 MHz (Ham)", (uint8_t)BpskChannel::HAM},
          {"406.025 MHz (B)", (uint8_t)BpskChannel::B},
          {"406.028 MHz (C)", (uint8_t)BpskChannel::C},
          {"406.037 MHz (F)", (uint8_t)BpskChannel::F},
