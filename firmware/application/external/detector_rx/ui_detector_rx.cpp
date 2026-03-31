@@ -199,11 +199,13 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
 
         // Use signed arithmetic for index wraparound to avoid unsigned promotion issues.
         const int32_t list_size = static_cast<int32_t>(frequency_list.size());
+        int32_t idx = static_cast<int32_t>(current_index);
         if (delta > 0) {
-            current_index = (current_index + 1) % list_size;
+            idx = (idx + 1) % list_size;
         } else {
-            current_index = (current_index - 1 + list_size) % list_size;
+            idx = (idx - 1 + list_size) % list_size;
         }
+        current_index = static_cast<size_t>(idx);
         init_current_entry();
     };
 
