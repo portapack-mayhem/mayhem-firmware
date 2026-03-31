@@ -165,6 +165,30 @@ DetectorRxView::DetectorRxView(NavigationView& nav)
         auto open_view = nav_.push<FileLoadView>(".TXT");
         open_view->push_dir(freqman_dir);
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            // Ensure the selected file is under freqman_dir to avoid loading
+            // an unintended file with the same stem from /FREQMAN.
+            std::filesystem::path freqman_path(freqman_dir);
+            auto freqman_norm = freqman_path.lexically_normal();
+            auto file_norm = new_file_path.lexically_normal();
+
+            bool under_freqman = true;
+            auto dir_it = freqman_norm.begin();
+            auto dir_end = freqman_norm.end();
+            auto file_it = file_norm.begin();
+            auto file_end = file_norm.end();
+
+            for (; dir_it != dir_end; ++dir_it, ++file_it) {
+                if (file_it == file_end || *dir_it != *file_it) {
+                    under_freqman = false;
+                    break;
+                }
+            }
+
+            if (!under_freqman) {
+                // Selected file is outside the allowed directory; show an error and abort.
+                text_filename.set("Invalid file");
+                return;
+            }
             freq_file_stem = new_file_path.stem().string();
             load_freqman();
         };
