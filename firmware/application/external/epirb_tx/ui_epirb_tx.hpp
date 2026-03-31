@@ -163,7 +163,7 @@ class EPIRBTXAppView : public View {
     // Manual AM frequency value
     rf::Frequency manual_am_frequency{AM_TEST_FREQUENCY};
     // Manual BPSK frequency value
-    rf::Frequency manual_bpsk_frequency{BPSK_FREQUENCY_B};
+    rf::Frequency manual_bpsk_frequency{BPSK_FREQUENCY_H};
 
     // True when using a beacon from the BEACONS.TXT file
     bool mode_file{false};
