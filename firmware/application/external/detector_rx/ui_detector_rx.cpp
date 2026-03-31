@@ -110,7 +110,6 @@ void DetectorRxView::update_entry_display() {
 }
 
 void DetectorRxView::update_freq_display() {
-    static uint8_t last_update_was_auto_range_type = -1;
     if (auto_scan && (minfreq != maxfreq)) {
         if (last_update_was_auto_range_type != 1) {
             button_freq.set_text("RANGE SCAN...");

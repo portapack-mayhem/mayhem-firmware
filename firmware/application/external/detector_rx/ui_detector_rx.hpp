@@ -77,6 +77,7 @@ class DetectorRxView : public View {
     std::string freq_file_stem{"DETECTOR"};
     bool auto_scan{true};
     bool auto_advance{false};
+    uint8_t last_update_was_auto_range_type = -1;
 
     int32_t beep_squelch = 0;
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
