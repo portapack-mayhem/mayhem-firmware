@@ -40,6 +40,7 @@
 #define AM_TEST_FREQUENCY 121375000
 #define AM_REAL_FREQUENCY 121500000
 
+#define BPSK_FREQUENCY_H 433025000
 #define BPSK_FREQUENCY_B 406025000
 #define BPSK_FREQUENCY_C 406028000
 #define BPSK_FREQUENCY_F 406037000
@@ -75,14 +76,15 @@ enum class AmChannel {
 };
 
 enum class BpskChannel {
-    B = 0,
-    C = 1,
-    F = 2,
-    G = 3,
-    J = 4,
-    K = 5,
-    N = 6,
-    O = 7,
+    H = 0,
+    B = 1,
+    C = 2,
+    F = 3,
+    G = 4,
+    J = 5,
+    K = 6,
+    N = 7,
+    O = 8,
     MANUAL = 10
 };
 
@@ -153,24 +155,24 @@ class EPIRBTXAppView : public View {
     // Frequency of the AM emergency signal
     rf::Frequency am_frequency{AM_TEST_FREQUENCY};
     // Frequency of the 406 MHz BPSK signal
-    rf::Frequency bpsk_frequency{BPSK_FREQUENCY_B};
+    rf::Frequency bpsk_frequency{BPSK_FREQUENCY_H};
     // Selected am channel
     uint8_t am_channel{(uint8_t)AmChannel::TEST};
     // Selected bpsk channel
-    uint8_t bpsk_channel{(uint8_t)BpskChannel::B};
+    uint8_t bpsk_channel{(uint8_t)BpskChannel::H};
     // Manual AM frequency value
     rf::Frequency manual_am_frequency{AM_TEST_FREQUENCY};
     // Manual BPSK frequency value
     rf::Frequency manual_bpsk_frequency{BPSK_FREQUENCY_B};
 
     // True when using a beacon from the BEACONS.TXT file
-    bool mode_file{true};
+    bool mode_file{false};
     // True when looping on sending beacons is enabled
     bool loop_enabled{true};
     // True if AM emergency signal transmission is enabled
     bool am_enabled{true};
     // True if we want to send a new frame each time the user changes the current beacon
-    bool send_on_change{false};
+    bool send_on_change{true};
     // The current locator string
     std::string locator{"JN03RO"};
     // The delay between each frame when on loop mode
@@ -365,7 +367,8 @@ class EPIRBTXAppView : public View {
     OptionsField options_bpsk_channel{
         {UI_POS_X(11), UI_POS_Y(15)},
         20,
-        {{"406.025 MHz (B)", (uint8_t)BpskChannel::B},
+        {{"433.025 MHz (Ham)", (uint8_t)BpskChannel::H},
+         {"406.025 MHz (B)", (uint8_t)BpskChannel::B},
          {"406.028 MHz (C)", (uint8_t)BpskChannel::C},
          {"406.037 MHz (F)", (uint8_t)BpskChannel::F},
          {"406.040 MHz (G)", (uint8_t)BpskChannel::G},

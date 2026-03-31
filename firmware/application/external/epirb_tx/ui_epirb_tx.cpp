@@ -385,6 +385,9 @@ EPIRBTXAppView::EPIRBTXAppView(
             case BpskChannel::MANUAL:
                 bpsk_frequency = manual_bpsk_frequency;
                 break;
+            case BpskChannel::B:
+                bpsk_frequency = BPSK_FREQUENCY_B;
+                break;
             case BpskChannel::C:
                 bpsk_frequency = BPSK_FREQUENCY_C;
                 break;
@@ -407,10 +410,10 @@ EPIRBTXAppView::EPIRBTXAppView(
                 bpsk_frequency = BPSK_FREQUENCY_O;
                 break;
             default:
-                v = (uint8_t)BpskChannel::B;
+                v = (uint8_t)BpskChannel::H;
                 // fallthrough
-            case BpskChannel::B:
-                bpsk_frequency = BPSK_FREQUENCY_B;
+            case BpskChannel::H:
+                bpsk_frequency = BPSK_FREQUENCY_H;
                 break;
         }
         bpsk_channel = v;
@@ -531,6 +534,9 @@ EPIRBTXAppView::EPIRBTXAppView(
         new_view->on_changed = [this](rf::Frequency f) {
             bpsk_frequency = f;
             switch (f) {
+                case BPSK_FREQUENCY_H:
+                    bpsk_channel = (uint8_t)BpskChannel::H;
+                    break;
                 case BPSK_FREQUENCY_B:
                     bpsk_channel = (uint8_t)BpskChannel::B;
                     break;
