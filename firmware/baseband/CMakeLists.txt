@@ -746,6 +746,8 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
 	${HACKRF_PATH}/firmware/common/platform_detect.c
+	${HACKRF_PATH}/firmware/common/platform_gpio.c
+	${HACKRF_PATH}/firmware/common/platform_scu.c
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
 	${HACKRF_PATH}/firmware/common/firmware_info.c
 	${HACKRF_PATH}/firmware/common/si5351c.c
