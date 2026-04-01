@@ -154,6 +154,10 @@ class Message {
         MorseTXkey = 96,
         StreamTXConfiguration = 97,
         RTTYData = 98,
+        NotificationData = 99,
+        TimeSinkConfig = 100,
+        EPIRBTXData = 101,
+        P25TxConfigure = 102,
         MAX
     };
 
@@ -300,6 +304,20 @@ class WidebandSpectrumConfigMessage : public Message {
         size_t sampling_rate,
         size_t trigger)
         : Message{ID::WidebandSpectrumConfig},
+          sampling_rate{sampling_rate},
+          trigger{trigger} {
+    }
+
+    size_t sampling_rate{0};
+    size_t trigger{0};
+};
+
+class TimeSinkConfigMessage : public Message {
+   public:
+    constexpr TimeSinkConfigMessage(
+        size_t sampling_rate,
+        size_t trigger)
+        : Message{ID::TimeSinkConfig},
           sampling_rate{sampling_rate},
           trigger{trigger} {
     }
@@ -1094,6 +1112,27 @@ class SigGenToneMessage : public Message {
     const uint32_t tone_delta;
 };
 
+class EPIRBTXDataMessage : public Message {
+   public:
+    static constexpr uint8_t max_len = 18;
+    constexpr EPIRBTXDataMessage()
+        : Message{ID::EPIRBTXData} {
+    }
+    bool mode_bpsk = true;
+    uint8_t data[max_len]{0};
+    uint8_t data_len = 0;
+    uint32_t pre_count = 0;
+    uint32_t post_count = 0;
+};
+
+class P25TxConfigureMessage : public Message {
+   public:
+    constexpr P25TxConfigureMessage()
+        : Message{ID::P25TxConfigure} {
+    }
+    uint16_t frame_length{0};
+};
+
 class AFSKTxConfigureMessage : public Message {
    public:
     constexpr AFSKTxConfigureMessage(
@@ -1791,6 +1830,35 @@ class RTTYDataMessage : public Message {
     bool inverted = false;     // for tx, if true, mark and space tones are swapped.
     uint8_t stopbits = 3;      // doubled value is stored here, so stop 2 = 1 stop bit, 3 = 1.5, 4 = 2.
     static constexpr uint16_t max_len = 490;
+};
+
+class NotificationDataMessage : public Message {
+   public:
+    constexpr NotificationDataMessage(const char* source_app, const char* title, const char* message, uint8_t icon = 0, uint16_t timeout = 10000)
+        : Message{ID::NotificationData},
+          icon(icon),
+          timeout(timeout) {
+        if (source_app) {
+            size_t len = std::min(strlen(source_app), (size_t)19);
+            memcpy(this->source_app, source_app, len);
+            this->source_app[len] = '\0';
+        }
+        if (title) {
+            size_t len = std::min(strlen(title), (size_t)49);
+            memcpy(this->title, title, len);
+            this->title[len] = '\0';
+        }
+        if (message) {
+            size_t len = std::min(strlen(message), (size_t)299);
+            memcpy(this->message, message, len);
+            this->message[len] = '\0';
+        }
+    }
+    char source_app[20]{0};  // source application name, null-terminated, max 19 chars + null
+    char title[50]{0};       // title, null-terminated, max 49 chars + null
+    char message[300]{0};    // message, null-terminated, max 299 chars + null
+    uint8_t icon = 0;
+    uint16_t timeout = 10000;
 };
 
 #endif /*__MESSAGE_H__*/

@@ -46,6 +46,11 @@ using namespace portapack;
 
 #include "irq_controls.hpp"
 
+#ifdef PRALINE
+#include "max2831.hpp"
+using namespace max2831;
+#endif
+
 namespace ui {
 
 /* DebugMemoryView *******************************************************/
@@ -509,6 +514,262 @@ void RadioDiagnosticsView::update_status() {
         text_test_result.set_style(Theme::getInstance()->fg_red);
     }
 }
+
+#ifdef PRALINE
+PralineRadioDebugView::PralineRadioDebugView(NavigationView& nav) {
+    add_children({&text_title, &text_lbl_lock, &text_lock_status,
+                  &text_lbl_clk5, &text_clk5_status,
+                  &text_lbl_spi, &text_spi_status, &text_lbl_fpga_ctrl, &text_fpga_ctrl,
+                  &text_lbl_vaa, &text_vaa_status, &text_status_msg,
+                  &button_refresh, &button_toggle_clk5, &button_done});
+
+    button_refresh.on_select = [this](Button&) { this->refresh(); };
+    button_toggle_clk5.on_select = [this](Button&) { this->toggle_clk5(); };
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    refresh();
+}
+
+void PralineRadioDebugView::focus() {
+    button_refresh.focus();
+}
+
+void PralineRadioDebugView::toggle_clk5() {
+    // Si5351 Register 3 is the Output Enable mask. Bit 5 = CLK5.
+    // 0 = Enabled, 1 = Disabled.
+    uint8_t reg3 = portapack::clock_manager.si5351_read_register(3);
+    reg3 ^= 0x20;  // Toggle Bit 5 (CLK5)
+    portapack::clock_manager.si5351_write_register(3, reg3);
+    refresh();
+}
+
+void PralineRadioDebugView::refresh() {
+    // 1. Check Mixer Lock Detect (GPIO6[25] / PD_11) [cite: 16, 17]
+    uint32_t gpio6_state = LPC_GPIO->PIN[6];
+    bool locked = (gpio6_state >> 25) & 1;
+    text_lock_status.set(locked ? "LOCKED (OK)" : "UNLOCKED!");
+    text_lock_status.set_style(locked ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 2. Check Si5351 CLK5 Status (Reg 3, Bit 5) - 0 = ON, 1 = OFF
+    uint8_t si_reg3 = portapack::clock_manager.si5351_read_register(3);
+    bool clk5_on = !(si_reg3 & 0x20);
+    text_clk5_status.set(clk5_on ? "ON (40MHz)" : "OFF");
+    text_clk5_status.set_style(clk5_on ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 3. Check SPI Bit Mode (SSP1 CR0)
+    // DSS (Data Size Select) is Bit 3:0. 0x8 = 9-bit (MAX2831), 0xF = 16-bit (Classic)
+    uint32_t cr0 = LPC_SSP1->CR0;
+    uint8_t dss = cr0 & 0x0F;
+    if (dss == 0x08)
+        text_spi_status.set("9-Bit (Pro)");
+    else
+        text_spi_status.set("Other (Err)");
+    text_spi_status.set_style((dss == 0x08) ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 4. Check FPGA Register 1 (DC Block status) [cite: 12, 13]
+    uint8_t fpga_r1 = radio::debug::fpga::register_read(1);
+    text_fpga_ctrl.set(to_string_hex(fpga_r1, 2));
+
+    // 5. Check VAA RF Power (GPIO4[1] / P8_1) - Active LOW [cite: 16, 17]
+    uint32_t gpio4_state = LPC_GPIO->PIN[4];
+    bool vaa_on = !((gpio4_state >> 1) & 1);
+    text_vaa_status.set(vaa_on ? "ON" : "OFF");
+    text_vaa_status.set_style(vaa_on ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Diagnostic Summary
+    if (!locked && clk5_on && vaa_on) {
+        text_status_msg.set("Clock/Pwr OK. PLL not locked.   Check tuning registers.");
+        text_status_msg.set_style(Theme::getInstance()->fg_red);
+    } else if (!clk5_on) {
+        text_status_msg.set("Mixer Clock is OFF.            PLL cannot lock.");
+        text_status_msg.set_style(Theme::getInstance()->fg_red);
+    } else {
+        text_status_msg.set("Hardware Link Active.");
+        text_status_msg.set_style(Theme::getInstance()->fg_green);
+    }
+}
+#endif
+
+#ifdef PRALINE
+/* WFMAudioDebugView *************************************************/
+
+WFMAudioDebugView::WFMAudioDebugView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({
+        &text_title,
+        &text_lbl_clk0,
+        &text_clk0,
+        &text_lbl_fpga_dec,
+        &text_fpga_dec,
+        &text_lbl_post_fpga,
+        &text_post_fpga,
+        &text_section1,
+        &text_lbl_reg8,
+        &text_reg8,
+        &text_lbl_lpf_bw,
+        &text_lpf_bw,
+        &text_section2,
+        &text_lbl_fpga_r1,
+        &text_fpga_r1,
+        &text_lbl_dc_q,
+        &text_dc_q,
+        &text_section3,
+        &text_lbl_expected,
+        &text_expected,
+        &text_lbl_deemph,
+        &text_deemph,
+        &text_status,
+        &text_status2,
+        &button_refresh,
+        &button_toggle_q,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_section1.set_style(Theme::getInstance()->fg_yellow);
+    text_section2.set_style(Theme::getInstance()->fg_yellow);
+    text_section3.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_toggle_q.on_select = [this](Button&) {
+        uint32_t current = radio::debug::fpga::register_read(1);
+        uint8_t new_val = current ^ 0x02;  // Toggle Q_INVERT bit
+        radio::debug::fpga::register_write(1, new_val);
+        radio::invalidate_spi_config();
+        refresh();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void WFMAudioDebugView::focus() {
+    button_refresh.focus();
+}
+
+void WFMAudioDebugView::refresh() {
+    // === Si5351 CLK0 Sample Rate ===
+    // Read MS0 parameters to calculate frequency
+    uint8_t reg44 = portapack::clock_manager.si5351_read_register(44);
+    uint8_t reg45 = portapack::clock_manager.si5351_read_register(45);
+    uint8_t reg46 = portapack::clock_manager.si5351_read_register(46);
+
+    uint8_t r_div_encoded = (reg44 >> 4) & 0x07;
+    uint32_t r_div = 1 << r_div_encoded;
+    uint32_t p1 = ((uint32_t)(reg44 & 0x03) << 16) | ((uint32_t)reg45 << 8) | reg46;
+    uint32_t ms_div = (p1 + 512) / 128;
+
+    // PLL A is 800 MHz
+    uint32_t clk0_khz = 800000 / ms_div / r_div;
+    uint32_t clk0_mhz_int = clk0_khz / 1000;
+    uint32_t clk0_khz_frac = clk0_khz % 1000;
+
+    text_clk0.set(to_string_dec_uint(clk0_mhz_int) + "." +
+                  to_string_dec_uint(clk0_khz_frac / 100) +
+                  to_string_dec_uint((clk0_khz_frac / 10) % 10) +
+                  to_string_dec_uint(clk0_khz_frac % 10) + " MHz");
+
+    if (clk0_khz >= 3000 && clk0_khz <= 3200) {
+        text_clk0.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_clk0.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // === FPGA Decimation ===
+    uint8_t fpga_decim = radio::debug::fpga::register_read(2);
+    uint32_t fpga_div = 1 << fpga_decim;
+    text_fpga_dec.set("/" + to_string_dec_uint(fpga_div) + " (n=" + to_string_dec_uint(fpga_decim) + ")");
+
+    // === Post-FPGA Rate ===
+    uint32_t post_fpga_khz = clk0_khz / fpga_div;
+    text_post_fpga.set(to_string_dec_uint(post_fpga_khz) + " kHz");
+
+    // For WFM, post-FPGA should be >= 384 kHz for proper audio decimation
+    if (post_fpga_khz >= 384) {
+        text_post_fpga.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_post_fpga.set_style(Theme::getInstance()->fg_orange);
+    }
+
+    // === MAX2831 LPF ===
+    uint32_t reg8 = radio::debug::second_if::register_read(8);
+    text_reg8.set("0x" + to_string_hex(reg8, 4));
+
+    uint8_t lpf_coarse = reg8 & 0x03;
+    const char* lpf_names[] = {"7.5 MHz", "8.5 MHz", "15 MHz", "18 MHz"};
+    text_lpf_bw.set(lpf_names[lpf_coarse]);
+
+    // 7.5 MHz is minimum, OK for mono WFM but tight for stereo
+    if (lpf_coarse >= 1) {
+        text_lpf_bw.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_lpf_bw.set_style(Theme::getInstance()->fg_orange);
+    }
+
+    // === FPGA Control Register ===
+    uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+    text_fpga_r1.set("0x" + to_string_hex(fpga_ctrl, 2));
+
+    bool dc_block = fpga_ctrl & 0x01;
+    bool q_invert = fpga_ctrl & 0x02;
+    uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+    text_dc_q.set(std::string(dc_block ? "DC:ON" : "DC:OFF") +
+                  " Q:" + std::string(q_invert ? "INV" : "NOR") +
+                  " QS:" + to_string_dec_uint(quarter_shift));
+
+    if (dc_block) {
+        text_dc_q.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_dc_q.set_style(Theme::getInstance()->fg_orange);
+    }
+
+    // === Expected Audio Rate ===
+    // WFM typically: 3072 kHz / 64 = 48 kHz audio
+    // Or: 3072 kHz → /8 (channel) → 384 kHz → /8 (audio) → 48 kHz
+    uint32_t expected_audio = post_fpga_khz / 64;  // Simplified assumption
+    text_expected.set(to_string_dec_uint(expected_audio) + " kHz (est)");
+
+    if (expected_audio >= 44 && expected_audio <= 50) {
+        text_expected.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_expected.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // === De-emphasis Status ===
+    // We can't directly read the M4 de-emphasis config, but we can indicate what SHOULD be set
+    // 75µs for USA, 50µs for Europe
+    text_deemph.set("Chk M4 cfg.");
+    text_deemph.set_style(Theme::getInstance()->fg_orange);
+
+    // === Status Summary ===
+    bool sample_rate_ok = (clk0_khz >= 3000 && clk0_khz <= 3200);
+    bool lpf_ok = (lpf_coarse <= 0x0F);  // check against the 4-bit max
+    bool dc_ok = dc_block;
+
+    if (sample_rate_ok && lpf_ok && dc_ok) {
+        text_status.set("Hardware config looks OK.");
+        text_status.set_style(Theme::getInstance()->fg_green);
+        text_status2.set("If ringy: Chk d-emph in M4!");
+        text_status2.set_style(Theme::getInstance()->fg_orange);
+    } else {
+        std::string issues = "Issues: ";
+        if (!sample_rate_ok) issues += "SampleRate ";
+        if (!lpf_ok) issues += "LPF ";
+        if (!dc_ok) issues += "DC_Block ";
+        text_status.set(issues);
+        text_status.set_style(Theme::getInstance()->fg_red);
+        text_status2.set("Fix before checking audio.");
+        text_status2.set_style(Theme::getInstance()->fg_red);
+    }
+}
+#endif
 
 /* BasebandStatusView ******************************************************/
 
@@ -1339,12 +1600,14 @@ Si5351DebugView::Si5351DebugView(NavigationView& nav)
                   &text_xtal_cap_value,
                   &text_clk0_label,
                   &text_clk0_status,
-                  &text_clk0_freq_label,
                   &text_clk0_freq_value,
-                  &text_clk0_div_label,
                   &text_clk0_div_value,
                   &text_clk1_label,
                   &text_clk1_status,
+                  &text_clk4_label,
+                  &text_clk4_status,
+                  &text_clk5_label,
+                  &text_clk5_status,
                   &button_refresh,
                   &button_reset_pll,
                   &button_done});
@@ -1380,7 +1643,7 @@ void Si5351DebugView::refresh_status() {
     bool pll_a_locked = !(status & 0x20);  // Bit 5: LOL_A (Loss of Lock A)
     bool pll_b_locked = !(status & 0x40);  // Bit 6: LOL_B (Loss of Lock B)
     bool sys_init = (status & 0x80);       // Bit 7: SYS_INIT
-    bool los_clkin = (status & 0x10);      // Bit 4: LOS (Loss of Signal)
+    // bool los_clkin = (status & 0x10);      // Bit 4: LOS (Loss of Signal) (quoted as it's computed but unused)
 
     // PLL A status
     if (pll_a_locked) {
@@ -1449,12 +1712,13 @@ void Si5351DebugView::refresh_status() {
     // Expected for 8 MHz: P1=5888 (0x1700), a=50
     uint32_t ms_div = (p1 + 512) / 128;  // Integer divider value
 
-    // Calculate frequency: f_out = 800 MHz / ms_div / r_div
-    uint32_t freq_khz = 800000 / ms_div / r_div;  // Result in kHz
+    // Calculate frequency: f_out = 800 or 800 MHz / ms_div / r_div
+    uint32_t vco_khz = (clk0_ctrl & 0x20) ? 800000 : 800000;  // PLLB vs PLLA
+    uint32_t freq_khz = vco_khz / ms_div / r_div;             // Result in kHz
 
     // Show P1 value and R45 for debugging
-    text_clk0_freq_value.set(to_string_dec_uint(freq_khz) + " kHz (P1:" + to_string_hex(p1, 4) + ")");
-    text_clk0_div_value.set("MS=" + to_string_dec_uint(ms_div) +
+    text_clk0_freq_value.set("F:" + to_string_dec_uint(freq_khz / 1000) + "MHz (P1:" + to_string_hex(p1, 4) + ")");
+    text_clk0_div_value.set("DIV: MS=" + to_string_dec_uint(ms_div) +
                             " R=" + to_string_dec_uint(r_div));
 
     // Color code based on expected 8 MHz
@@ -1471,6 +1735,20 @@ void Si5351DebugView::refresh_status() {
     bool clk1_enabled = !(output_enable_mask & 0x02) && !(clk1_ctrl & 0x80);
     text_clk1_status.set(clk1_enabled ? "ON" : "OFF");
     text_clk1_status.set_style(clk1_enabled ? Theme::getInstance()->fg_green
+                                            : Theme::getInstance()->fg_red);
+
+    // CLK4 (MAX2831 reference - bit 4 of reg 3, reg 20 for control)
+    uint8_t clk4_ctrl = portapack::clock_manager.si5351_read_register(20);
+    bool clk4_enabled = !(output_enable_mask & 0x10) && !(clk4_ctrl & 0x80);
+    text_clk4_status.set(clk4_enabled ? "ON (40MHz)" : "OFF");
+    text_clk4_status.set_style(clk4_enabled ? Theme::getInstance()->fg_green
+                                            : Theme::getInstance()->fg_red);
+
+    // CLK5 (RFFC5072 reference - bit 5 of reg 3, reg 21 for control)
+    uint8_t clk5_ctrl = portapack::clock_manager.si5351_read_register(21);
+    bool clk5_enabled = !(output_enable_mask & 0x20) && !(clk5_ctrl & 0x80);
+    text_clk5_status.set(clk5_enabled ? "ON (40MHz)" : "OFF");
+    text_clk5_status.set_style(clk5_enabled ? Theme::getInstance()->fg_green
                                             : Theme::getInstance()->fg_red);
 }
 
@@ -1815,11 +2093,6 @@ void SystemDiagnosticsView::read_gpio_states() {
     uint32_t gpio3_state = LPC_GPIO->PIN[3];  // GPIO3 for mixer
     uint32_t gpio4_state = LPC_GPIO->PIN[4];  // GPIO4 for LPF and amp
 
-    // Extract specific pins based on hackrf_gpio.hpp definitions:
-    // gpio_mix_enable_n = GPIO3_2 (P6_3) - bit 2 of port 3, INVERTED
-    // gpio_lpf_enable = GPIO4_8 (PA_1) - bit 8 of port 4
-    // gpio_rf_amp_enable = GPIO4_9 (PA_2) - bit 9 of port 4
-
     bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
     bool lpf_actual = (gpio4_state >> 8) & 1;    // GPIO4[8]
     bool amp_actual = (gpio4_state >> 9) & 1;    // GPIO4[9]
@@ -1911,12 +2184,493 @@ void SystemDiagnosticsView::refresh() {
 #endif
 
 #ifdef PRALINE
+/* Si5351PLLADebugView *******************************************************/
+
+Si5351PLLADebugView::Si5351PLLADebugView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({&text_title, &text_lbl_raw, &text_r26_27, &text_r28_30, &text_r31_33,
+                  &text_lbl_decoded, &text_lbl_p1, &text_p1, &text_lbl_p2, &text_p2,
+                  &text_lbl_p3, &text_p3, &text_lbl_calc, &text_lbl_mult, &text_mult,
+                  &text_lbl_vco, &text_vco, &text_status, &button_refresh, &button_done});
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_raw.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_decoded.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_calc.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) { refresh(); };
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    refresh();
+}
+
+void Si5351PLLADebugView::focus() {
+    button_refresh.focus();
+}
+
+void Si5351PLLADebugView::refresh() {
+    // Read PLL A parameters
+    uint8_t r26 = portapack::clock_manager.si5351_read_register(26);
+    uint8_t r27 = portapack::clock_manager.si5351_read_register(27);
+    uint8_t r28 = portapack::clock_manager.si5351_read_register(28);
+    uint8_t r29 = portapack::clock_manager.si5351_read_register(29);
+    uint8_t r30 = portapack::clock_manager.si5351_read_register(30);
+    uint8_t r31 = portapack::clock_manager.si5351_read_register(31);
+    uint8_t r32 = portapack::clock_manager.si5351_read_register(32);
+    uint8_t r33 = portapack::clock_manager.si5351_read_register(33);
+
+    // Display Raw registers
+    text_r26_27.set("R26-27 (P3 LO): " + to_string_hex(r26, 2) + " " + to_string_hex(r27, 2));
+    text_r28_30.set("R28-30 (P1):    " + to_string_hex(r28, 2) + " " + to_string_hex(r29, 2) + " " + to_string_hex(r30, 2));
+    text_r31_33.set("R31-33 (P3H|P2):" + to_string_hex(r31, 2) + " " + to_string_hex(r32, 2) + " " + to_string_hex(r33, 2));
+
+    // Decode parameters
+    uint32_t pll_p1 = ((uint32_t)(r28 & 0x03) << 16) | ((uint32_t)r29 << 8) | r30;
+    uint32_t pll_p2 = ((uint32_t)(r31 & 0x0F) << 16) | ((uint32_t)r32 << 8) | r33;
+    uint32_t pll_p3 = ((uint32_t)(r31 >> 4) << 16) | ((uint32_t)r26 << 8) | r27;
+
+    text_p1.set(to_string_dec_uint(pll_p1) + " (0x" + to_string_hex(pll_p1, 5) + ")");
+    text_p2.set(to_string_dec_uint(pll_p2) + " (0x" + to_string_hex(pll_p2, 5) + ")");
+    text_p3.set(to_string_dec_uint(pll_p3) + " (0x" + to_string_hex(pll_p3, 5) + ")");
+
+    // Calculate Multiplier: M = (128 * P3 + P1 * 128 + 512 + P2) / (128 * P3)
+    // Simplified as: Multiplier = ((P1 + 512) / 128) + (P2 / P3)
+    uint32_t a = (pll_p1 + 512) / 128;
+
+    if (pll_p3 > 0) {
+        text_mult.set(to_string_dec_uint(a) + " + " + to_string_dec_uint(pll_p2) + "/" + to_string_dec_uint(pll_p3));
+    } else {
+        text_mult.set("ERR: P3=0");
+    }
+
+    // Calculate VCO Frequency (f_vco = f_xtal * Multiplier)
+    // The HackRF crystal (f_xtal) is 25 MHz.
+    if (pll_p3 > 0) {
+        uint64_t vco_num = (uint64_t)pll_p2 + (uint64_t)pll_p3 * (pll_p1 + 512);
+        uint64_t vco_den = 128ULL * pll_p3;
+        uint32_t vco_khz = (uint32_t)((25000ULL * vco_num) / vco_den);
+
+        text_vco.set(to_string_dec_uint(vco_khz / 1000) + "." + to_string_dec_uint(vco_khz % 1000, 3) + " MHz");
+
+        // Si5351 VCO range is 600-900 MHz
+        if (vco_khz >= 600000 && vco_khz <= 900000) {
+            text_vco.set_style(Theme::getInstance()->fg_green);
+            text_status.set("VCO within valid range.");
+        } else {
+            text_vco.set_style(Theme::getInstance()->fg_red);
+            text_status.set("VCO OUT OF RANGE (600-900)!");
+        }
+    }
+}
+#endif
+
+#ifdef PRALINE
+Si5351PLLBDebugView::Si5351PLLBDebugView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({&text_title,
+                  &text_lbl_raw, &text_r34_35, &text_r36_38, &text_r39_41,
+                  &text_lbl_decoded, &text_lbl_p1, &text_p1, &text_lbl_p2, &text_p2, &text_lbl_p3, &text_p3,
+                  &text_lbl_calc, &text_lbl_vco, &text_vco,
+                  &text_status, &button_refresh, &button_done});
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_raw.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_decoded.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_calc.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) { refresh(); };
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+    refresh();
+}
+
+void Si5351PLLBDebugView::focus() {
+    button_refresh.focus();
+}
+
+void Si5351PLLBDebugView::refresh() {
+    uint8_t r34 = portapack::clock_manager.si5351_read_register(34);  // P3[15:8]
+    uint8_t r35 = portapack::clock_manager.si5351_read_register(35);  // P3[7:0]
+    uint8_t r36 = portapack::clock_manager.si5351_read_register(36);  // P1[17:16]
+    uint8_t r37 = portapack::clock_manager.si5351_read_register(37);  // P1[15:8]
+    uint8_t r38 = portapack::clock_manager.si5351_read_register(38);  // P1[7:0]
+    uint8_t r39 = portapack::clock_manager.si5351_read_register(39);  // P3[19:16] | P2[19:16]
+    uint8_t r40 = portapack::clock_manager.si5351_read_register(40);  // P2[15:8]
+    uint8_t r41 = portapack::clock_manager.si5351_read_register(41);  // P2[7:0]
+
+    text_r34_35.set("R34-35: " + to_string_hex(r34, 2) + " " + to_string_hex(r35, 2));
+    text_r36_38.set("R36-38: " + to_string_hex(r36, 2) + " " + to_string_hex(r37, 2) + " " + to_string_hex(r38, 2));
+    text_r39_41.set("R39-41: " + to_string_hex(r39, 2) + " " + to_string_hex(r40, 2) + " " + to_string_hex(r41, 2));
+
+    uint32_t p1 = ((uint32_t)(r36 & 0x03) << 16) | ((uint32_t)r37 << 8) | r38;
+    uint32_t p2 = ((uint32_t)(r39 & 0x0F) << 16) | ((uint32_t)r40 << 8) | r41;
+    uint32_t p3 = ((uint32_t)(r39 >> 4) << 16) | ((uint32_t)r34 << 8) | r35;
+
+    text_p1.set(to_string_dec_uint(p1) + " (0x" + to_string_hex(p1, 5) + ")");
+    text_p2.set(to_string_dec_uint(p2) + " (0x" + to_string_hex(p2, 5) + ")");
+    text_p3.set(to_string_dec_uint(p3) + " (0x" + to_string_hex(p3, 5) + ")");
+
+    if (p3 > 0) {
+        uint64_t vco_num = (uint64_t)p2 + (uint64_t)p3 * (p1 + 512);
+        uint64_t vco_den = 128ULL * p3;
+        uint32_t vco_khz = (uint32_t)((25000ULL * vco_num) / vco_den);
+        text_vco.set(to_string_dec_uint(vco_khz / 1000) + "." + to_string_dec_uint(vco_khz % 1000, 3) + " MHz");
+
+        bool ok = (vco_khz >= 600000 && vco_khz <= 900000);
+        text_vco.set_style(ok ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+        text_status.set(ok ? "PLL B VCO OK" : "VCO OUT OF RANGE!");
+    }
+}
+#endif
+
+#ifdef PRALINE
+/* Si5351MultiSynthDebugView *************************************************/
+
+Si5351MultiSynthDebugView::Si5351MultiSynthDebugView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({
+        &text_title,
+        &text_lbl_clk_ctrl,
+        &text_clk_ctrl,
+        &text_lbl_ms_int,
+        &text_ms_int,
+        &text_lbl_raw,
+        &text_lbl_r42_43,
+        &text_r42_43,
+        &text_lbl_r44_46,
+        &text_r44_46,
+        &text_lbl_r47_49,
+        &text_r47_49,
+        &text_lbl_decoded,
+        &text_lbl_p1,
+        &text_p1,
+        &text_lbl_p2,
+        &text_p2,
+        &text_lbl_p3,
+        &text_p3,
+        &text_lbl_rdiv,
+        &text_rdiv,
+        &text_lbl_calc,
+        &text_lbl_div,
+        &text_div,
+        &text_lbl_freq,
+        &text_freq,
+        &text_status,
+        &button_refresh,
+        &button_reset,
+        &button_frac,
+        &button_done,
+    });
+
+    text_title.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_raw.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_decoded.set_style(Theme::getInstance()->fg_yellow);
+    text_lbl_calc.set_style(Theme::getInstance()->fg_yellow);
+
+    button_refresh.on_select = [this](Button&) {
+        refresh();
+    };
+
+    button_reset.on_select = [this](Button&) {
+        force_pll_reset();
+    };
+
+    button_frac.on_select = [this](Button&) {
+        force_fractional_mode();
+    };
+
+    button_done.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    refresh();
+}
+
+void Si5351MultiSynthDebugView::focus() {
+    button_refresh.focus();
+}
+
+void Si5351MultiSynthDebugView::force_pll_reset() {
+    // Reset PLL A (bit 5)
+    portapack::clock_manager.si5351_write_register(177, 0x20);
+
+    // Wait for PLL to settle
+    chThdSleepMilliseconds(10);
+
+    refresh();
+}
+
+void Si5351MultiSynthDebugView::force_fractional_mode() {
+    // Force CLK0 to fractional mode
+    // Read current control register
+    uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
+
+    // Clear MS_INT bit (bit 6) to enable fractional mode
+    clk0_ctrl &= ~0x40;
+
+    // Write back
+    portapack::clock_manager.si5351_write_register(16, clk0_ctrl);
+
+    // Reset PLL to apply
+    portapack::clock_manager.si5351_write_register(177, 0x20);
+
+    chThdSleepMilliseconds(10);
+
+    refresh();
+}
+
+void Si5351MultiSynthDebugView::refresh() {
+    // === Clock Control Register 16 (CLK0) ===
+    uint8_t clk0_ctrl = portapack::clock_manager.si5351_read_register(16);
+    text_clk_ctrl.set("0x" + to_string_hex(clk0_ctrl, 2) +
+                      " (" + to_string_bin(clk0_ctrl, 8) + ")");
+
+    // Decode MS_INT bit (bit 6)
+    bool ms_int = (clk0_ctrl >> 6) & 1;
+    if (ms_int) {
+        text_ms_int.set("1:INT MODE!");
+        text_ms_int.set_style(Theme::getInstance()->fg_red);
+    } else {
+        text_ms_int.set("0:Fract Mode");
+        text_ms_int.set_style(Theme::getInstance()->fg_green);
+    }
+
+    // === Read Raw MS0 Registers (42-49) ===
+    uint8_t r42 = portapack::clock_manager.si5351_read_register(42);
+    uint8_t r43 = portapack::clock_manager.si5351_read_register(43);
+    uint8_t r44 = portapack::clock_manager.si5351_read_register(44);
+    uint8_t r45 = portapack::clock_manager.si5351_read_register(45);
+    uint8_t r46 = portapack::clock_manager.si5351_read_register(46);
+    uint8_t r47 = portapack::clock_manager.si5351_read_register(47);
+    uint8_t r48 = portapack::clock_manager.si5351_read_register(48);
+    uint8_t r49 = portapack::clock_manager.si5351_read_register(49);
+
+    // Display raw registers
+    text_r42_43.set(to_string_hex(r42, 2) + " " + to_string_hex(r43, 2) +
+                    " (P3[15:0])");
+    text_r44_46.set(to_string_hex(r44, 2) + " " + to_string_hex(r45, 2) +
+                    " " + to_string_hex(r46, 2) + " (R|P1)");
+    text_r47_49.set(to_string_hex(r47, 2) + " " + to_string_hex(r48, 2) +
+                    " " + to_string_hex(r49, 2) + " (P3|P2)");
+
+    // === Decode P1, P2, P3 ===
+    // Si5351 MS Register Layout:
+    // Reg 42: P3[15:8]
+    // Reg 43: P3[7:0]
+    // Reg 44: bits 6:4 = R_DIV[2:0], bits 1:0 = P1[17:16]
+    // Reg 45: P1[15:8]
+    // Reg 46: P1[7:0]
+    // Reg 47: bits 7:4 = P3[19:16], bits 3:0 = P2[19:16]
+    // Reg 48: P2[15:8]
+    // Reg 49: P2[7:0]
+
+    // Decode R_DIV
+    uint8_t r_div_encoded = (r44 >> 4) & 0x07;
+    uint32_t r_div = 1 << r_div_encoded;
+    text_rdiv.set("/" + to_string_dec_uint(r_div) + " (enc=" + to_string_dec_uint(r_div_encoded) + ")");
+
+    // Decode P1 (18-bit)
+    uint32_t p1 = ((uint32_t)(r44 & 0x03) << 16) | ((uint32_t)r45 << 8) | r46;
+    text_p1.set(to_string_dec_uint(p1) + " (0x" + to_string_hex(p1, 5) + ")");
+
+    // Decode P2 (20-bit)
+    uint32_t p2 = ((uint32_t)(r47 & 0x0F) << 16) | ((uint32_t)r48 << 8) | r49;
+    text_p2.set(to_string_dec_uint(p2) + " (0x" + to_string_hex(p2, 5) + ")");
+
+    // Decode P3 (20-bit)
+    uint32_t p3 = ((uint32_t)(r47 >> 4) << 16) | ((uint32_t)r42 << 8) | r43;
+    text_p3.set(to_string_dec_uint(p3) + " (0x" + to_string_hex(p3, 5) + ")");
+
+    // Color code P2/P3 based on whether fractional is being used
+    if (p2 == 0 && p3 == 1) {
+        text_p2.set_style(Theme::getInstance()->fg_orange);
+        text_p3.set_style(Theme::getInstance()->fg_orange);
+    } else if (p3 > 1) {
+        text_p2.set_style(Theme::getInstance()->fg_green);
+        text_p3.set_style(Theme::getInstance()->fg_green);
+    } else {
+        // Default/neutral style when P2/P3 don't match known patterns
+        text_p2.set_style(Theme::getInstance()->fg_light);
+        text_p3.set_style(Theme::getInstance()->fg_light);
+    }
+
+    // === Calculate Output Frequency ===
+
+    // === Calculate Multisynth Divider ===
+    // Correct Si5351 formula:
+    // MS_DIV = (P2+P3 × (P1 + 512)) / (128 × P3)
+    // MS_DIV = P2/(128*P3) + P1+512/(128*P3)
+    // x = (P1 + 512) / 128
+    // y = P2/128
+    // z = P3
+    // f_out = f_vco / MS_DIV / R_DIV
+    // a = floor((P1 + 512) / 128)
+    // k = (P1 + 512) - 128*a
+    // b = b = (P2 + c*k) / 128
+    // c = P3
+    // In the case of integer division: b=0, c=1, so MS_DIV = a
+
+    uint64_t ms_div_numerator = (uint64_t)p2 + (uint64_t)p3 * (p1 + 512);
+    uint64_t ms_div_denominator = 128ULL * p3;
+
+    uint32_t x = (p1 + 512) / 128;
+    uint32_t y = p2 / 128;
+    uint32_t z = p3;
+
+    // For display, show the full fractional value
+    // MS_DIV = (a+b)/c
+    if (p3 > 1 && p2 > 0) {
+        std::string div_str = "(" + to_string_dec_uint(x) + "+" + to_string_dec_uint(y) + ")/" + to_string_dec_uint(z);
+        text_div.set(div_str);
+    } else {
+        std::string div_str = to_string_dec_uint(x);
+        text_div.set(div_str);
+    }
+
+    // === Calculate Output Frequency ===
+
+    // f_vco = 800,000,000 (PLL A)
+    // f_out in kHz = 800,000,000 / MS_DIV / r_div / 1000
+    //              = 800,000 × ms_div_denominator / ms_div_numerator / r_div
+
+    uint32_t freq_khz = 0;
+    if (ms_div_numerator > 0) {
+        freq_khz = (uint32_t)((800000ULL * ms_div_denominator) / ms_div_numerator / r_div);
+    }
+
+    uint32_t freq_mhz = freq_khz / 1000;
+    uint32_t freq_frac = freq_khz % 1000;
+
+    text_freq.set(to_string_dec_uint(freq_mhz) + "." +
+                  to_string_dec_uint(freq_frac / 100) +
+                  to_string_dec_uint((freq_frac / 10) % 10) +
+                  to_string_dec_uint(freq_frac % 10) + " MHz");
+
+    // Color code based on expected ~24.576 MHz for WFM stereo
+    if (freq_khz >= 24500 && freq_khz <= 24700) {
+        text_freq.set_style(Theme::getInstance()->fg_green);
+    } else if (freq_khz >= 24000 && freq_khz <= 26000) {
+        text_freq.set_style(Theme::getInstance()->fg_orange);
+    } else {
+        text_freq.set_style(Theme::getInstance()->fg_red);
+    }
+
+    // === Status Summary ===
+    // Expected values for 24.576 MHz (3.072 MHz * 8 decimation):
+    // VCO = 800 MHz
+    // Target freq = 49.152 MHz (before R_DIV=/2)
+    // MS_DIV = 800M / 49.152M = 16.276...
+    // a = 16, b = 53, c = 192
+    // P1 = 128*16 + floor(128*53/192) - 512 = 2048 + 35 - 512 = 1571
+    // P2 = 128*53 - 192*35 = 6784 - 6720 = 64
+    // P3 = 192
+
+    if (ms_int) {
+        text_status.set("ERROR: Integer mode! P2/P3 ignored!");
+        text_status.set_style(Theme::getInstance()->fg_red);
+    } else if (p2 == 0 && p3 == 1) {
+        text_status.set("WARN P2:0,P3:1 INT Equiv");
+        text_status.set_style(Theme::getInstance()->fg_orange);
+    } else if (p3 == 192 && p2 == 64) {
+        text_status.set("GOOD Exp 3.072M values!");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else if (freq_khz >= 24500 && freq_khz <= 24700) {
+        text_status.set("OK: Freq in range");
+        text_status.set_style(Theme::getInstance()->fg_green);
+    } else {
+        text_status.set("CHECK: P2=" + to_string_dec_uint(p2) +
+                        " P3=" + to_string_dec_uint(p3));
+        text_status.set_style(Theme::getInstance()->fg_orange);
+    }
+}
+#endif
+
+#ifdef PRALINE
+PralineClockDebugView::PralineClockDebugView(NavigationView& nav)
+    : View(),
+      rows{
+          {&t0_id, &t0_ma, &t0_mode, &t0_src, &t0_ph, &t0_st},
+          {&t1_id, &t1_ma, &t1_mode, &t1_src, &t1_ph, &t1_st},
+          {&t2_id, &t2_ma, &t2_mode, &t2_src, &t2_ph, &t2_st},
+          {&t3_id, &t3_ma, &t3_mode, &t3_src, &t3_ph, &t3_st},
+          {&t4_id, &t4_ma, &t4_mode, &t4_src, &t4_ph, &t4_st},
+          {&t5_id, &t5_ma, &t5_mode, &t5_src, &t5_ph, &t5_st},
+          {&t6_id, &t6_ma, &t6_mode, &t6_src, &t6_ph, &t6_st},
+          {&t7_id, &t7_ma, &t7_mode, &t7_src, &t7_ph, &t7_st}} {
+    add_children({&text_title, &text_lbl_pll, &text_pll_status,
+                  &text_lbl_afe, &text_afe_rate, &text_lbl_n, &text_n_val,
+                  &text_header,
+                  &t0_id, &t0_ma, &t0_mode, &t0_src, &t0_ph, &t0_st,
+                  &t1_id, &t1_ma, &t1_mode, &t1_src, &t1_ph, &t1_st,
+                  &t2_id, &t2_ma, &t2_mode, &t2_src, &t2_ph, &t2_st,
+                  &t3_id, &t3_ma, &t3_mode, &t3_src, &t3_ph, &t3_st,
+                  &t4_id, &t4_ma, &t4_mode, &t4_src, &t4_ph, &t4_st,
+                  &t5_id, &t5_ma, &t5_mode, &t5_src, &t5_ph, &t5_st,
+                  &t6_id, &t6_ma, &t6_mode, &t6_src, &t6_ph, &t6_st,
+                  &t7_id, &t7_ma, &t7_mode, &t7_src, &t7_ph, &t7_st,
+                  &button_refresh, &button_done});
+
+    button_refresh.on_select = [this](Button&) { this->refresh(); };
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    refresh();
+}
+
+void PralineClockDebugView::focus() {
+    button_refresh.focus();
+}
+
+void PralineClockDebugView::refresh() {
+    // 1. System Status
+    uint8_t status = portapack::clock_manager.si5351_read_status();
+    bool pll_a = !(status & 0x20);
+    bool pll_b = !(status & 0x40);
+    text_pll_status.set(std::string(pll_a ? "A:OK " : "A:ERR ") + (pll_b ? "B:OK" : "B:ERR"));
+    text_pll_status.set_style((pll_a && pll_b) ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // 2. AFE & Decimation Info
+    uint32_t base_rate = portapack::clock_manager.get_sampling_frequency();
+    uint8_t n = portapack::clock_manager.get_resampling_n();
+    text_afe_rate.set(to_string_dec_uint(base_rate << n) + " Hz");
+    text_n_val.set(to_string_dec_uint(n));
+
+    // 3. Clock Table Decoding
+    uint8_t output_en = portapack::clock_manager.si5351_read_register(3);
+    const char* ma_lookup[] = {"2m", "4m", "6m", "8m"};
+
+    for (size_t i = 0; i < 8; i++) {
+        uint8_t ctrl = portapack::clock_manager.si5351_read_register(16 + i);
+
+        // mA (Bits 1:0)
+        rows[i].ma->set(ma_lookup[ctrl & 0x03]);
+
+        // Mode (Bit 6: 1=Integer, 0=Fractional)
+        rows[i].mode->set((ctrl & 0x40) ? "INT" : "FRAC");
+        rows[i].mode->set_style((ctrl & 0x40) ? Theme::getInstance()->fg_blue : Theme::getInstance()->fg_yellow);
+
+        // PLL Source (Bit 5: 0=PLLA, 1=PLLB)
+        rows[i].src->set((ctrl & 0x20) ? "PLLB" : "PLLA");
+        rows[i].src->set_style((ctrl & 0x20) ? Theme::getInstance()->fg_blue : Theme::getInstance()->fg_green);
+
+        // Phase (Bit 4: 1=Inverted, 0=Normal)
+        // Use 0x10 (Bit 4)
+        rows[i].phase->set((ctrl & 0x10) ? "INVRT" : "NORM ");
+        rows[i].phase->set_style((ctrl & 0x10) ? Theme::getInstance()->fg_orange : Theme::getInstance()->fg_light);
+
+        // Status (Powered On and Output Enabled)
+        bool is_on = !(ctrl & 0x80) && !(output_en & (1 << i));
+        rows[i].stat->set(is_on ? "ON" : "OFF");
+        rows[i].stat->set_style(is_on ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+    }
+}
+#endif
+
+#ifdef PRALINE
 /* GPIODebugView *************************************************/
 GPIODebugView::GPIODebugView(NavigationView& nav) {
     add_children({
         &text_lbl_gpio4,
-        &text_lbl_dir4,
-        &text_dir4,
+        &text_lbl_mixr1,
+        &text_mixr1,
         &text_lbl_pin4,
         &text_pin4,
         &text_lbl_set4,
@@ -2019,7 +2773,7 @@ void GPIODebugView::refresh() {
     uint32_t gpio4_set = LPC_GPIO->SET[4];  // What we're trying to output
 
     // Display full registers
-    text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
+    // text_dir4.set("0x" + to_string_hex(gpio4_dir, 8));
     text_pin4.set("0x" + to_string_hex(gpio4_pin, 8));
     text_set4.set("0x" + to_string_hex(gpio4_set, 8));
 
@@ -2063,6 +2817,22 @@ void GPIODebugView::refresh() {
 
     text_mix_dir.set_style(mix_dir ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
     text_mix_pin.set_style(mix_pin ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
+
+    // Read GPIO5 (Mixer R1) - bit 2
+    uint32_t gpio3_state = LPC_GPIO->PIN[3];     // GPIO3 for mixer
+    bool mix_n_actual = (gpio3_state >> 2) & 1;  // GPIO3[2]
+    uint32_t gpio5_state = LPC_GPIO->PIN[5];
+    bool mix_r10_pin = (gpio5_state >> 6) & 1;  // GPIO5[6] = P2_6
+    // Mixer is active LOW, so invert for display
+    bool mixer_enabled = !mix_n_actual;
+
+    // Append to existing mixer display:
+    text_mixr1.set(
+        std::string(mixer_enabled ? "ENABLED" : "BYPASSED") +
+        " P6_3=" + to_string_dec_uint(mix_n_actual ? 1 : 0) +
+        " P2_6=" + to_string_dec_uint(mix_r10_pin ? 1 : 0));
+
+    text_mixr1.set_style(mixer_enabled ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_red);
 }
 #endif
 
@@ -2072,10 +2842,7 @@ void GPIODebugView::refresh() {
 RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
     : nav_(nav) {
     add_children({
-        &text_title,
-        &text_lbl_lock,
-        &text_lock,
-        &text_lbl_ctrl,
+        &text_gpio4,
         &text_ctrl,
         &text_lbl_enabled,
         &text_enabled,
@@ -2098,16 +2865,133 @@ RFFC5072StatusView::RFFC5072StatusView(NavigationView& nav)
         &text_lbl_calc,
         &text_calc,
         &text_status,
-        &text_lbl_regs_status,
+        &text_status2,
+        &text_status3,
         &text_regs_status,
         &button_refresh,
+        &button_force,
         &button_done,
     });
 
-    text_title.set_style(Theme::getInstance()->fg_yellow);
-
     button_refresh.on_select = [this](Button&) {
         refresh_status();
+    };
+
+    button_force.on_select = [this](Button&) {
+        // Force ENX to OUTPUT and drive LOW
+        // LPC_GPIO->DIR[2] |= (1 << 13);  // Set as OUTPUT
+        // LPC_GPIO->CLR[2] = (1 << 13);   // Drive LOW (enabled)
+
+        // refresh_status();
+
+        // Disable RFFC5072
+        // uint32_t r0 = radio::debug::first_if::register_read(0);
+        // radio::debug::first_if::register_write(0, r0 & ~0x0010);  // Clear ENBL
+
+        // Wait 1ms
+        // chThdSleepMilliseconds(1);
+
+        // Re-enable - this triggers new calibration
+        // radio::debug::first_if::register_write(0, r0 | 0x0010);  // Set ENBL
+
+        // Wait for calibration
+        // chThdSleepMilliseconds(10);
+
+        // refresh_status();
+
+        // Force lodiv=4 (log2=2) instead of lodiv=2 (log2=1)
+        // This gives VCO = LO × 4 = 2595 × 4 = 10380 MHz - TOO HIGH!
+
+        // Actually, we need lodiv=1 which gives VCO = 2595 MHz - TOO LOW (below 2700)
+
+        // Let's try a different approach: manually write registers for VCO ~ 3500 MHz
+        // LO = 3500/2 = 1750 MHz (not useful for FM, but tests if VCO can lock)
+
+        // VCO = 3500 MHz, lodiv=2, presc=2, f_ref=40
+        // N = (VCO × presc) / f_ref = (3500 × 2) / 40 = 175
+
+        // Write P2_FREQ1: N=175, lodiv=1 (log2), presc=1 (log2)
+        // uint16_t p2_freq1 = (175 << 7) | (1 << 4) | (1 << 2);
+        // radio::debug::first_if::register_write(15, p2_freq1);
+
+        // Clear fractional part
+        // radio::debug::first_if::register_write(16, 0);
+        // radio::debug::first_if::register_write(17, 0);
+
+        // Trigger recalibration by toggling ENBL
+        // uint32_t r0 = radio::debug::first_if::register_read(0);
+        // radio::debug::first_if::register_write(0, r0 & ~0x0010);
+        // chThdSleepMilliseconds(1);
+        // radio::debug::first_if::register_write(0, r0 | 0x0010);
+        // chThdSleepMilliseconds(20);
+
+        // refresh_status();
+
+        // Test SPI SDATA direction switching
+        // PRALINE: SDATA = P9_2 = GPIO4[14]
+
+        // Check current direction
+        uint32_t dir_before = LPC_GPIO->DIR[4];
+        bool sdata_output_before = (dir_before >> 14) & 1;
+
+        // Try a register read
+        uint32_t dummy = radio::debug::first_if::register_read(0);
+        (void)dummy;
+
+        // Check direction after read
+        uint32_t dir_after = LPC_GPIO->DIR[4];
+        bool sdata_output_after = (dir_after >> 14) & 1;
+
+        // Read the actual SDATA pin state
+        uint32_t pin_state = LPC_GPIO->PIN[4];
+        bool sdata_pin = (pin_state >> 14) & 1;
+
+        text_status.set("SDATA: dir_b=" + to_string_dec_uint(sdata_output_before) +
+                        " dir_a=" + to_string_dec_uint(sdata_output_after) +
+                        " pin=" + to_string_dec_uint(sdata_pin) + "        ");
+
+        // If both are 1 (OUTPUT), the read direction switch isn't happening
+        // if (sdata_output_before && sdata_output_after) {
+        //    text_status2.set("ERROR: SDATA stuck as OUTPUT!            ");
+        //    text_status2.set_style(Theme::getInstance()->fg_red);
+        //} else {
+        //    text_status2.set("SDATA direction OK            ");
+        //    text_status2.set_style(Theme::getInstance()->fg_green);
+        //}
+
+        // Test: Write a known pattern to register 0, then read back
+        // Register 0 (DEV_CTRL) default = 0xBEFA
+
+        // Step 1: Read current value
+        uint32_t before = radio::debug::first_if::register_read(0);
+
+        // Step 2: Write a different value (change ENBL bit to toggle)
+        uint32_t test_val = before ^ 0x0010;  // Toggle ENBL bit
+        radio::debug::first_if::register_write(0, test_val);
+
+        // Step 3: Read back
+        uint32_t after = radio::debug::first_if::register_read(0);
+
+        // Step 4: Restore original
+        radio::debug::first_if::register_write(0, before);
+
+        // Display results
+        text_status.set("WR TEST: " + to_string_hex(before, 4) +
+                        "->" + to_string_hex(test_val, 4) +
+                        " rb:" + to_string_hex(after, 4));
+
+        // If after == before (not test_val), reads are broken
+        // If after == test_val, reads work
+        if (after == test_val) {
+            text_status2.set("READ-AFTER-WRITE: PASS!          ");
+            text_status2.set_style(Theme::getInstance()->fg_green);
+        } else if (after == before) {
+            text_status2.set("READ-AFTER-WRITE: FAIL (no change)          ");
+            text_status2.set_style(Theme::getInstance()->fg_red);
+        } else {
+            text_status2.set("READ-AFTER-WRITE: CORRUPT " + to_string_hex(after, 4) + "         ");
+            text_status2.set_style(Theme::getInstance()->fg_red);
+        }
     };
 
     button_done.on_select = [&nav](Button&) {
@@ -2123,11 +3007,14 @@ void RFFC5072StatusView::focus() {
 }
 
 void RFFC5072StatusView::refresh_status() {
-    // === READ RAW GPIO STATES FOR DEBUGGING ===
+    // === DIAGNOSTIC: Capture initial GPIO state ===
+    uint32_t gpio2_initial = LPC_GPIO->PIN[2];
+    uint32_t dir2_initial = LPC_GPIO->DIR[2];
+    bool enx_initial = (gpio2_initial >> 13) & 1;
+
+    // === READ RAW GPIO STATES FOR DISPLAY ===
     uint32_t gpio2_dir = LPC_GPIO->DIR[2];
     uint32_t gpio2_pin = LPC_GPIO->PIN[2];
-
-    // Check if the pins are even configured as outputs
     bool enx_is_output = (gpio2_dir >> 13) & 1;
     bool resetx_is_output = (gpio2_dir >> 14) & 1;
 
@@ -2135,110 +3022,177 @@ void RFFC5072StatusView::refresh_status() {
     uint32_t gpio6_pin = LPC_GPIO->PIN[6];
     bool rffc_locked = (gpio6_pin >> 25) & 1;
 
-    text_lock.set(rffc_locked ? "LOCKED" : "UNLOCKED");
-    text_lock.set_style(rffc_locked ? Theme::getInstance()->fg_green
-                                    : Theme::getInstance()->fg_red);
-
-    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);  // CTRL register
-    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);  // RX_DECIM
-
-    text_regs_status.set(
-        "FPGA R1:" + to_string_hex(fpga_reg1, 2) +
-        " R2:" + to_string_hex(fpga_reg2, 2));
+    // === FPGA REGISTERS (non-SPI) ===
+    uint8_t fpga_reg1 = radio::debug::fpga::register_read(1);
+    uint8_t fpga_reg2 = radio::debug::fpga::register_read(2);
+    uint8_t fpga_reg3 = radio::debug::fpga::register_read(3);
+    text_regs_status.set("FPGA R1:" + to_string_hex(fpga_reg1, 2) +
+                         " R2:" + to_string_hex(fpga_reg2, 2) +
+                         " R3:" + to_string_hex(fpga_reg3, 2));
 
     // === CONTROL PINS ===
-    // ENX = GPIO2[13] (P5_4) - active LOW (0 = enabled)
-    // RESETX = GPIO2[14] (P5_5) - active LOW (0 = reset)
     bool enx = (gpio2_pin >> 13) & 1;
     bool resetx = (gpio2_pin >> 14) & 1;
-
-    text_ctrl.set(std::string(enx ? "DIS" : "EN") + " " +
-                  std::string(resetx ? "RUN" : "RST") + " " +
-                  "O:" + std::string(resetx_is_output ? "Y" : "N"));
-
+    text_ctrl.set("ENX: " + std::string(enx ? "DIS" : "EN") +
+                  " O:" + std::string(enx_is_output ? "Y" : "N") +
+                  " | RSTX: " + std::string(resetx ? "H" : "L") +
+                  " O:" + std::string(resetx_is_output ? "Y" : "N"));
     text_ctrl.set_style((enx == 0 && resetx == 1) ? Theme::getInstance()->fg_green
                                                   : Theme::getInstance()->fg_red);
 
-    // === REGISTERS ===
-    // Read CORRECT registers for Path 2 (active path!)
-    uint32_t r0 = radio::debug::first_if::register_read(0);    // Control
-    uint32_t r15 = radio::debug::first_if::register_read(15);  // P2_FREQ1
-    uint32_t r16 = radio::debug::first_if::register_read(16);  // P2_FREQ2
+    // === DIAGNOSTIC: Check BEFORE first RFFC5072 SPI read ===
+    uint32_t gpio2_before_spi = LPC_GPIO->PIN[2];
+    bool enx_before_spi = (gpio2_before_spi >> 13) & 1;
 
-    // Display
+    // === RFFC5072 REGISTERS (SPI reads - this is where corruption happens) ===
+    uint32_t r0 = radio::debug::first_if::register_read(0);
+
+    // === DIAGNOSTIC: Check AFTER first read ===
+    uint32_t gpio2_after_r0 = LPC_GPIO->PIN[2];
+    bool enx_after_r0 = (gpio2_after_r0 >> 13) & 1;
+
+    uint32_t r15 = radio::debug::first_if::register_read(15);
+
+    // === DIAGNOSTIC: Check AFTER second read ===
+    uint32_t gpio2_after_r15 = LPC_GPIO->PIN[2];
+    bool enx_after_r15 = (gpio2_after_r15 >> 13) & 1;
+
+    uint32_t r16 = radio::debug::first_if::register_read(16);
+
+    // === DIAGNOSTIC: Check AFTER third read ===
+    uint32_t gpio2_final = LPC_GPIO->PIN[2];
+    uint32_t dir2_final = LPC_GPIO->DIR[2];
+    bool enx_final = (gpio2_final >> 13) & 1;
+
+    // === Display register values ===
     text_r0.set(to_string_hex(r0, 4));
     text_r1.set(to_string_hex(r15, 4) + " (R15)");
     text_r2.set(to_string_hex(r16, 4) + " (R16)");
 
-    // Check enabled (R0 bit 4)
     bool enabled = (r0 & 0x0010) != 0;
     text_enabled.set(enabled ? "ENABLED" : "DISABLED");
     text_enabled.set_style(enabled ? Theme::getInstance()->fg_green
                                    : Theme::getInstance()->fg_red);
 
-    // Decode from P2_FREQ1 (R15)
-    uint16_t n_int = (r15 >> 7) & 0x1FF;    // 9 bits
-    uint8_t lodiv_sel = (r15 >> 4) & 0x07;  // 3 bits
-    uint8_t presc_sel = (r15 >> 2) & 0x03;  // 2 bits
-
+    // === Decode frequency info (keeping existing code) ===
+    uint16_t n_int = (r15 >> 7) & 0x1FF;
+    uint8_t lodiv_sel = (r15 >> 4) & 0x07;
+    uint8_t presc_sel = (r15 >> 2) & 0x03;
     text_n.set(to_string_dec_uint(n_int));
 
-    // LO divider: 0=÷2, 1=÷4, 2=÷8, 3=÷16, 4=÷32, 5=÷64
     uint16_t lodiv_val = 1u << lodiv_sel;
     uint16_t presc_val = 1u << presc_sel;
-
     text_lodiv.set("/" + to_string_dec_uint(lodiv_val) +
                    " (P:/" + to_string_dec_uint(presc_val) + ")");
 
-    // Calculate frequencies
     const uint32_t f_ref_mhz = 40;
     uint32_t f_vco_mhz = (f_ref_mhz * n_int) / presc_val;
     uint32_t f_lo_mhz = f_vco_mhz / lodiv_val;
 
-    text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
-    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
-
-    // Check ranges
     bool vco_ok = (f_vco_mhz >= 2700) && (f_vco_mhz <= 5400);
-    bool lo_ok = (f_lo_mhz >= 2300) && (f_lo_mhz <= 2700);
+    bool lo_ok = (f_lo_mhz >= 85) && (f_lo_mhz <= 4200);
+    bool in_bypass_range = (f_lo_mhz >= 2320) && (f_lo_mhz <= 2740);
 
-    text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
-                              : Theme::getInstance()->fg_red);
+    if (in_bypass_range) {
+        text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz (MID)");
+        text_calc.set_style(Theme::getInstance()->fg_orange);
+    } else {
+        text_calc.set(to_string_dec_uint(f_lo_mhz) + " MHz");
+        text_calc.set_style(lo_ok ? Theme::getInstance()->fg_green
+                                  : Theme::getInstance()->fg_red);
+    }
+
+    text_freq.set(to_string_dec_uint(f_vco_mhz) + " MHz VCO");
     text_freq.set_style(vco_ok ? Theme::getInstance()->fg_green
                                : Theme::getInstance()->fg_red);
 
-    // Check mixer mode
     bool path2_active = (r0 & 0x0020) != 0;
     text_path.set(path2_active ? "PATH2" : "PATH1");
     text_mixer.set(path2_active ? "ACTIVE" : "INACTIVE");
     text_mixer.set_style(path2_active ? Theme::getInstance()->fg_green
                                       : Theme::getInstance()->fg_orange);
 
-    // === SUMMARY STATUS ===
-    if (!rffc_locked) {
-        text_status.set("PLL UNLOCKED!");
+    // === DIAGNOSTIC STATUS (replaces normal status) ===
+    // Read register 31 with readsel=0 (device ID)
+    radio::debug::first_if::register_write(0, (r0 & 0xFFF0) | 0x0000);  // readsel=0
+    uint32_t device_id = radio::debug::first_if::register_read(31);
+
+    // Read calibration status (readback register 1)
+    // First, set DEV_CTRL.readsel = 1, then read READBACK register
+    uint32_t dev_ctrl_orig = radio::debug::first_if::register_read(0);  // Save original
+
+    // Write DEV_CTRL with readsel=1 (bits 3:0)
+    radio::debug::first_if::register_write(0, (dev_ctrl_orig & 0xFFF0) | 0x0001);
+
+    // Now read the READBACK register (register address for readback)
+    uint32_t cal_status = radio::debug::first_if::register_read(31);  // READBACK is at reg 31
+
+    // Decode calibration status:
+    // Bit 15: lock (should be 1)
+    // Bits 14:8: ct_cal (coarse tune calibration value, 0-127)
+    // Bits 7:1: cp_cal (charge pump calibration value)
+    // Bit 0: ctfail (1 = calibration FAILED)
+
+    bool lock_bit = (cal_status >> 15) & 1;
+    uint8_t ct_cal = (cal_status >> 8) & 0x7F;
+    uint8_t cp_cal = (cal_status >> 1) & 0x7F;
+    bool ct_fail = cal_status & 1;
+
+    // Add to refresh_status():
+    uint32_t r6 = radio::debug::first_if::register_read(6);
+    uint32_t r5 = radio::debug::first_if::register_read(5);
+    uint32_t r3 = radio::debug::first_if::register_read(3);  // VCO_CTRL
+
+    // Check SDATA (GPIO4[14]) direction
+    uint32_t gpio4_dir = LPC_GPIO->DIR[4];
+    bool sdata_is_output = (gpio4_dir >> 14) & 1;
+    text_gpio4.set("GPIO4 DIR: " + to_string_hex(gpio4_dir, 8) +
+                   " SDATA=" + std::string(sdata_is_output ? "OUT" : "IN"));
+
+    // Display these values
+    text_status2.set("CAL ct=" + to_string_dec_uint(ct_cal) +
+                     " cp=" + to_string_dec_uint(cp_cal) +
+                     (ct_fail ? " FAIL!" : " OK") +
+                     " lck_b=" + to_string_dec_uint(lock_bit));
+    text_status3.set("R3:" + to_string_hex(r3, 4) +
+                     " R5:" + to_string_hex(r5, 4) +
+                     " R6:" + to_string_hex(r6, 4));
+
+    if (enx_initial != enx_final || dir2_initial != dir2_final) {
+        // ENX or DIR changed - report which operation caused it
+        std::string diag = "CHG: ";
+        if (enx_initial != enx_before_spi) diag += "pre ";
+        if (enx_before_spi != enx_after_r0) diag += "R0 ";
+        if (enx_after_r0 != enx_after_r15) diag += "R15 ";
+        if (enx_after_r15 != enx_final) diag += "R16 ";
+        diag += std::to_string(enx_initial) + "->" + std::to_string(enx_final);
+
+        if (dir2_initial != dir2_final) {
+            diag += " DIR!";
+        }
+
+        text_status.set(diag);
         text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (enx == 1) {
-        text_status.set("DISABLED (ENX=1)!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (resetx == 0) {
-        text_status.set("IN RESET (RESETX=0)!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!enabled) {
-        text_status.set("R0 bit 4 = 0 (disabled)");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!path2_active) {
-        text_status.set("Path 2 not selected!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!vco_ok) {
-        text_status.set("VCO out of range!");
-        text_status.set_style(Theme::getInstance()->fg_red);
-    } else if (!lo_ok) {
-        text_status.set("LO out of range!");
-        text_status.set_style(Theme::getInstance()->fg_red);
+
+        // Blink LED
+        /*for (int i = 0; i < 3; i++) {
+            hackrf::one::led_rx.on();
+            chThdSleepMilliseconds(100);
+            hackrf::one::led_rx.off();
+            chThdSleepMilliseconds(100);
+        }*/
     } else {
-        text_status.set("All checks passed!");
-        text_status.set_style(Theme::getInstance()->fg_green);
+        // No change - normal status
+        if (!rffc_locked) {
+            text_status.set("ID 0x" + to_string_hex(device_id, 4) + " PLL UNLOCKED!");
+            text_status.set_style(Theme::getInstance()->fg_red);
+        } else if (enx == 1) {
+            text_status.set("ID 0x" + to_string_hex(device_id, 4) + " DSBLD,ENX=1!");
+            text_status.set_style(Theme::getInstance()->fg_red);
+        } else {
+            text_status.set("ID 0x" + to_string_hex(device_id, 4) + " Passed!");
+            text_status.set_style(Theme::getInstance()->fg_green);
+        }
     }
 }
 
@@ -2396,7 +3350,7 @@ void MAX2831DebugView::focus() {
 }
 
 void MAX2831DebugView::refresh() {
-    auto info = radio::debug::second_if::get_max2831_info();
+    auto info = get_max2831_info();
 
     // Show if set_frequency was called
     if (info.set_frequency_called) {
@@ -2524,24 +3478,48 @@ DebugMenuView::DebugMenuView(NavigationView& nav)
     set_max_rows(2);  // allow wider buttons
 }
 
+#ifdef PRALINE
+/* PralineDebugMenuView *************************************************/
+
+PralineDebugMenuView::PralineDebugMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);  // Allows wider buttons for descriptive titles
+}
+
+void PralineDebugMenuView::on_populate() {
+    if (portapack::persistent_memory::show_gui_return_icon()) {
+        add_items({{"..", ui::Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+    }
+    add_items({
+        {"WFM Audio", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<WFMAudioDebugView>(); }},
+        {"Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<ui::PralineClockDebugView>(); }},
+        {"MSynth", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351MultiSynthDebugView>(); }},
+        {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
+        {"Radio Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<PralineRadioDebugView>(); }},
+        {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
+        {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
+        {"PLL A", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLADebugView>(); }},
+        {"PLL B", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351PLLBDebugView>(); }},
+        {"GPIO", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
+        {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
+        {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
+        {"MAX2831", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
+        {"Si5351", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
+        {"SGPIO Clk", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
+        {"Baseband", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
+        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
+        {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
+    });
+}
+#endif
+
 void DebugMenuView::on_populate() {
     if (portapack::persistent_memory::show_gui_return_icon()) {
         add_items({{"..", ui::Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
 #ifdef PRALINE
-        {"System Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SystemDiagnosticsView>(); }},
-        {"Radio Diag", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioDiagnosticsView>(); }},
-        {"Signal Path", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SignalPathStatusView>(); }},
-        {"GPIO Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<GPIODebugView>(); }},
-        {"RFFC Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFC5072StatusView>(); }},
-        {"RFFC Tuning", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RFFCTuningDebugView>(); }},
-        {"MAX2831 Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<MAX2831DebugView>(); }},
-        {"Si5351 Clocks", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<Si5351DebugView>(); }},
-        {"SGPIO8 Clock", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIO8ClockDetectorView>(); }},
-        {"Baseband Status", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<BasebandStatusView>(); }},
-        {"SGPIO Live", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<SGPIOLiveMonitorView>(); }},
-        {"RX Test", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<RadioRxTestView>(); }},
+        {"Pro Debug", ui::Theme::getInstance()->fg_yellow->foreground, &bitmap_icon_setup, [this]() { nav_.push<PralineDebugMenuView>(); }},
 #endif
         {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
         {"M0 Stack Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { stack_dump(); }},
@@ -2640,7 +3618,7 @@ void DebugPmemView::update() {
 DebugScreenTest::DebugScreenTest(NavigationView& nav)
     : nav_{nav} {
     set_focusable(true);
-    std::srand(LPC_RTC->CTIME0);
+    srand(LPC_RTC->CTIME0);
 }
 
 bool DebugScreenTest::on_key(const KeyEvent key) {
@@ -2650,10 +3628,10 @@ bool DebugScreenTest::on_key(const KeyEvent key) {
             nav_.pop();
             break;
         case KeyEvent::Down:
-            painter.fill_rectangle({0, 0, screen_width, screen_height}, std::rand());
+            painter.fill_rectangle({0, 0, screen_width, screen_height}, rand());
             break;
         case KeyEvent::Left:
-            pen_color = std::rand();
+            pen_color = rand();
             break;
         default:
             break;
@@ -2676,7 +3654,7 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
 void DebugScreenTest::paint(Painter& painter) {
     painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Theme::getInstance()->bg_darkest->foreground);
     painter.draw_string({10 * 8, screen_height / 2}, *Theme::getInstance()->bg_darkest, "Use Stylus");
-    pen_color = std::rand();
+    pen_color = rand();
 }
 
 /* DebugLCRView *******************************************************/

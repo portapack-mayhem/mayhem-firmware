@@ -88,6 +88,8 @@ constexpr image_tag_t image_tag_am_tv{'P', 'A', 'M', 'T'};
 constexpr image_tag_t image_tag_capture{'P', 'C', 'A', 'P'};
 constexpr image_tag_t image_tag_ert{'P', 'E', 'R', 'T'};
 constexpr image_tag_t image_tag_epirb_rx{'P', 'E', 'P', 'I'};
+constexpr image_tag_t image_tag_epirb_tx{'P', 'E', 'P', 'T'};
+constexpr image_tag_t image_tag_p25_tx{'P', '2', '5', 'T'};
 constexpr image_tag_t image_tag_nfm_audio{'P', 'N', 'F', 'M'};
 constexpr image_tag_t image_tag_pocsag{'P', 'P', 'O', 'C'};
 constexpr image_tag_t image_tag_pocsag2{'P', 'P', 'O', '2'};
@@ -96,6 +98,7 @@ constexpr image_tag_t image_tag_sonde{'P', 'S', 'O', 'N'};
 constexpr image_tag_t image_tag_tpms{'P', 'T', 'P', 'M'};
 constexpr image_tag_t image_tag_wfm_audio{'P', 'W', 'F', 'M'};
 constexpr image_tag_t image_tag_wideband_spectrum{'P', 'S', 'P', 'E'};
+constexpr image_tag_t image_tag_time_sink{'P', 'T', 'S', 'K'};
 constexpr image_tag_t image_tag_test{'P', 'T', 'S', 'T'};
 
 constexpr image_tag_t image_tag_adsb_tx{'P', 'A', 'D', 'T'};

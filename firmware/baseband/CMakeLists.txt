@@ -467,6 +467,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
+
 ### WFM Audio
 
 set(MODE_CPPSRC
@@ -533,6 +534,21 @@ set(MODE_CPPSRC
 	proc_epirb.cpp
 )
 DeclareTargets(PEPI epirb_rx)
+
+### EPIRB TX
+
+set(MODE_CPPSRC
+	proc_epirb_tx.cpp
+)
+DeclareTargets(PEPT epirb_tx)
+
+
+### P25 TX
+
+set(MODE_CPPSRC
+	proc_p25_tx.cpp
+)
+DeclareTargets(P25T p25_tx)
 
 
 ### NRF RX
@@ -705,6 +721,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PMRT morsetx)
 
+### Time Sink
+
+set(MODE_CPPSRC
+	proc_time_sink.cpp
+)
+DeclareTargets(PTSK time_sink)
+
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 
@@ -723,6 +746,8 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
 	${HACKRF_PATH}/firmware/common/platform_detect.c
+	${HACKRF_PATH}/firmware/common/platform_gpio.c
+	${HACKRF_PATH}/firmware/common/platform_scu.c
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
 	${HACKRF_PATH}/firmware/common/firmware_info.c
 	${HACKRF_PATH}/firmware/common/si5351c.c

@@ -22,6 +22,7 @@
 #include "utility.hpp"
 
 #include <cstdint>
+#include <string.h>
 
 #if 0
 uint32_t gcd(const uint32_t u, const uint32_t v) {
@@ -257,8 +258,23 @@ std::string join(char c, std::initializer_list<std::string_view> strings) {
 }
 
 uint32_t simple_checksum(uint32_t buffer_address, uint32_t length) {
+    if (buffer_address == 0 || length == 0) {
+        return 0;
+    }
     uint32_t checksum = 0;
-    for (uint32_t i = 0; i < length; i += 4)
-        checksum += *(uint32_t*)(buffer_address + i);
+    const uint8_t* ptr = (const uint8_t*)(uintptr_t)buffer_address;
+    uint32_t i = 0;
+    for (; i + 3 < length; i += 4) {
+        uint32_t chunk;
+        // memcpy prevents unaligned access hard-faults on embedded processors
+        memcpy(&chunk, ptr + i, 4);
+        checksum += chunk;
+    }
+    // Leftover bytes (won't happen hopefully)
+    if (i < length) {
+        uint32_t remainder = 0;
+        memcpy(&remainder, ptr + i, length - i);
+        checksum += remainder;
+    }
     return checksum;
 }

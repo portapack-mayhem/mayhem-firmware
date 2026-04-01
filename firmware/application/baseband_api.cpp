@@ -21,6 +21,7 @@
  */
 
 #include "baseband_api.hpp"
+#include <cstring>
 
 #include "audio.hpp"
 #include "tonesets.hpp"
@@ -334,8 +335,18 @@ void set_rds_data(const uint16_t message_length) {
     send_message(&message);
 }
 
-void set_spectrum(const size_t sampling_rate, const size_t trigger) {
+void set_spectrum(
+    const size_t sampling_rate,
+    const size_t trigger) {
     const WidebandSpectrumConfigMessage message{
+        sampling_rate, trigger};
+    send_message(&message);
+}
+
+void set_time_sink(
+    const size_t sampling_rate,
+    const size_t trigger) {
+    const TimeSinkConfigMessage message{
         sampling_rate, trigger};
     send_message(&message);
 }
@@ -410,6 +421,19 @@ void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload, uint16_t p
 
 void set_rtty_config(RTTYDataMessage& message) {
     send_message(&message);
+}
+
+void set_epirb_tx_config(EPIRBTXDataMessage& message) {
+    send_message(&message);
+}
+
+void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
+    const size_t max_len = sizeof(shared_memory.bb_data.data);
+    if (frame_length > max_len) frame_length = max_len;
+    memcpy(shared_memory.bb_data.data, dibits, frame_length);
+    P25TxConfigureMessage msg{};
+    msg.frame_length = frame_length;
+    send_message(&msg);
 }
 
 static bool baseband_image_running = false;

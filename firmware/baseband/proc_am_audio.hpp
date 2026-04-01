@@ -76,13 +76,13 @@ class NarrowbandAMAudio : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
 
     /* NB: Threads should be the last members in the class definition. */
-#ifndef PRALINE
-    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
-    RSSIThread rssi_thread{};
-#else
+#ifdef PRALINE
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive,
                                    /*auto_start*/ false};  // Phase 2: Manual start
     RSSIThread rssi_thread{/*auto_start*/ false};          // Phase 2: Manual start
+#else
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 #endif
 
     void configure(const AMConfigureMessage& message);

@@ -62,8 +62,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 
 class SubGhzDProtos : public FProtoListGeneral {
    public:
-    SubGhzDProtos(const SubGhzDProtos&) { SubGhzDProtos(); };         // won't use, but makes compiler happy
-    SubGhzDProtos& operator=(const SubGhzDProtos&) { return *this; }  // won't use, but makes compiler happy
+    SubGhzDProtos(const SubGhzDProtos&) = delete;
+    SubGhzDProtos& operator=(const SubGhzDProtos&) = delete;
     SubGhzDProtos() {
         // add protos
         protos[FPS_PRINCETON] = new FProtoSubGhzDPrinceton();

@@ -50,7 +50,7 @@ char* to_string_dec_uint(uint64_t n, StringFormatBuffer& buffer, size_t& length)
 std::string to_string_dec_int(int64_t n);
 std::string to_string_dec_uint(uint64_t n);
 
-std::string to_string_bin(const uint32_t n, const uint8_t l = 0);
+std::string to_string_bin(const uint32_t n, uint8_t l = 0);
 std::string to_string_dec_uint(const uint32_t n, const int32_t l, const char fill = ' ');
 std::string to_string_dec_int(const int32_t n, const int32_t l, const char fill = 0);
 std::string to_string_decimal(float decimal, int8_t precision);

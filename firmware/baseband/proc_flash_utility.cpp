@@ -28,8 +28,6 @@
 #include "debug.hpp"
 #include "portapack_shared_memory.hpp"
 
-#include "../flashsize.h"
-
 #define PAGE_LEN 256U
 #define NUM_PAGES (4096U * FLASH_SIZE_MB)
 

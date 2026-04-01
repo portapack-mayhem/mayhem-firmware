@@ -58,6 +58,10 @@ using asahi_kasei::ak4951::AK4951;
 
 extern "C" {
 #include "platform_detect.h"
+
+#ifdef PRALINE
+#include "fpga_bridge.h"
+#endif
 }
 
 namespace portapack {
@@ -388,18 +392,8 @@ static void set_cpu_clock_speed() {
 #endif
 
     cgu::pll1::enable();
-#ifndef PRALINE
-    while (!cgu::pll1::is_locked());
 
-    set_clock_config(clock_config_pll1_step);
-    /* Delay >50us at 90-110MHz clock speed */
-    volatile uint32_t delay = 1400;
-    while (delay--);
-    set_clock_config(clock_config_pll1);
-
-    /* Remove /2P divider from PLL1 output to achieve full speed */
-    cgu::pll1::direct();
-#else
+#ifdef PRALINE
     // Wait for PLL1 to lock with timeout
     {
         uint32_t timeout = 100000;
@@ -419,6 +413,18 @@ static void set_cpu_clock_speed() {
         /* Remove /2P divider from PLL1 output to achieve full speed */
         cgu::pll1::direct();
     }
+#else
+    while (!cgu::pll1::is_locked());
+
+    set_clock_config(clock_config_pll1_step);
+    /* Delay >50us at 90-110MHz clock speed */
+    volatile uint32_t delay = 1400;
+    while (delay--);
+    set_clock_config(clock_config_pll1);
+
+    /* Remove /2P divider from PLL1 output to achieve full speed */
+    cgu::pll1::direct();
+
 #endif
 }
 
@@ -547,6 +553,12 @@ static void initialize_boot_splash_screen() {
  */
 
 init_status_t init() {
+#ifdef PRALINE
+    /* 1. HOLD FPGA IN RESET (Active Low) */
+    // P5_2 is GPIO2[11] (FPGA CRESET)
+    palClearPad(GPIO2, 11);
+#endif
+
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
@@ -618,6 +630,27 @@ init_status_t init() {
     clock_manager.enable_if_clocks();
     clock_manager.enable_codec_clocks();
 
+#ifdef PRALINE
+    chThdSleepMilliseconds(20);
+
+    // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
+    // Call fpga_bridge_init and continue boot regardless of result
+    // (Watchdog was resetting device when we halted with while(1))
+    int load_result = fpga_bridge_init();
+    (void)load_result;  // Ignore result for now, just let boot continue
+
+    /* RELEASE FPGA RESET */
+    // FPGA wakes up and latches the stable 40MHz CLK1
+    // P5_2 is GPIO2[11] (FPGA CRESET)
+    palSetPad(GPIO2, 11);
+
+    // Allow FPGA and related logic a brief stabilization period without busy-waiting
+    chThdSleepMilliseconds(10);
+
+    // Keep LEDs off after FPGA load
+    LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
+#endif
+
     radio::init();
 
     sdcStart(&SDCD1, nullptr);
@@ -629,6 +662,7 @@ init_status_t init() {
         draw_splash_screen_icon(2, ui::bitmap_icon_sd);
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
+
 #ifndef PRALINE
     // HackRF One uses CPLD - load it via JTAG
     if (!hackrf::cpld::load_sram()) {
@@ -637,9 +671,6 @@ init_status_t init() {
 
         return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
-#else
-    // HackRF Pro (PRALINE) uses FPGA - already loaded in board.cpp __early_init()
-    // via fpga_bridge_init(), so nothing to do here
 #endif
 
     if (lcd_fast_setup)

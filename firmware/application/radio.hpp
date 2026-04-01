@@ -64,6 +64,7 @@ void disable();
 
 #ifdef PRALINE
 void invalidate_spi_config();
+void set_rx_buff_vcm(const size_t v);
 #endif
 
 namespace debug {
@@ -94,17 +95,6 @@ TuningInfo get_tuning_info();
 } /* namespace first_if */
 
 namespace second_if {
-
-#ifdef PRALINE
-struct MAX2831Info {
-    uint32_t requested_freq_mhz;
-    uint32_t calculated_n;
-    uint32_t calculated_frac;
-    bool set_frequency_called;
-    bool frequency_valid;
-};
-MAX2831Info get_max2831_info();
-#endif
 
 uint32_t register_read(const size_t register_number);
 void register_write(const size_t register_number, uint32_t value);

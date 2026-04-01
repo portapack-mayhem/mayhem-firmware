@@ -34,12 +34,6 @@
 #include "dsp_iir_config.hpp"
 #include "utility.hpp"
 
-#ifdef PRALINE
-extern "C" {
-#include "fpga_bridge.h"
-}
-#endif
-
 using namespace hackrf::one;
 using namespace portapack;
 
@@ -63,9 +57,10 @@ static constexpr std::array<baseband::AMConfig, 12> am_configs{{
     {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, apt_audio_12k_lpf_1500hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax with waterfall zoom x 2 (we need taps_6k0_narrow_decim_1 to minimize aliasing)
 }};
 
-static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs{{
+static constexpr std::array<baseband::NBFMConfig, 4> nbfm_configs{{
     {taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500},
     {taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500},
+    {taps_12k5_decim_0, taps_12k5_decim_1, taps_12k5_channel, 2500},
     {taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000},
 }};
 
@@ -247,6 +242,14 @@ void ReceiverModel::set_normalized_headphone_volume(uint8_t v) {
 void ReceiverModel::enable() {
     enabled_ = true;
     radio::set_direction(rf::Direction::Receive);
+
+#ifdef PRALINE
+    /* Anchor the Common Mode Voltage (VCM) to 1.2V.
+     * This stabilizes the electrical floor of the I/Q signals.
+     */
+    radio::set_rx_buff_vcm(1);
+#endif
+
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();
@@ -311,17 +314,6 @@ void ReceiverModel::update_tuning_frequency() {
     // TODO: use positive offset if freq < offset.
     if (enabled_) {
         radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
-
-#ifdef PRALINE
-        /* Praline: Must re-apply baseband filter after frequency change
-         * Reference: hackrf_usb radio.c radio_set_frequency()
-         *
-         * Different frequency ranges may use different quarter-shift modes,
-         * which affects the required LPF bandwidth. For now we just
-         * recalculate the filter to be safe.
-         */
-        update_baseband_bandwidth();
-#endif
     }
 }
 
@@ -333,20 +325,47 @@ void ReceiverModel::set_hidden_offset(rf::Frequency offset) {
 void ReceiverModel::update_baseband_bandwidth() {
     if (enabled_) {
 #ifdef PRALINE
-        /* Praline: LPF bandwidth calculation
-         * Reference: hackrf_usb radio.c radio_set_filter()
+        /*
+         * PRALINE LPF bandwidth calculation from GSG hackrf_usb radio.c
          *
-         * LPF = (sample_rate * 3) / 8
-         * Plus additional offset if quarter-shift is enabled (not implemented yet)
+         * The LPF should be set to capture the desired signal bandwidth
+         * while the FPGA decimation filter handles anti-aliasing.
+         *
+         * For most modes: LPF = (output_sample_rate * 3) / 8
+         * For quarter-shift: add offset for shifted spectrum
+         *
+         * Note: MAX2831 minimum LPF is 11.6 MHz, so for narrow sample rates
+         * the hardware limit applies and FPGA filter does the real work.
          */
-        uint32_t lpf_bandwidth = (sampling_rate() * 3) / 8;
 
-        // For now, quarter-shift is disabled, so no offset added
-        // When quarter-shift is implemented:
-        // if (quarter_shift_enabled) {
-        //     uint32_t offset = (sampling_rate() << decimation_n) / 8;
-        //     lpf_bandwidth += offset * 2;
-        // }
+        uint32_t sample_rate = sampling_rate();
+        uint8_t resampling_n = portapack::clock_manager.get_resampling_n();
+        uint32_t afe_rate = sample_rate << resampling_n;
+
+        // Base LPF: enough to capture desired bandwidth
+        uint32_t lpf_bandwidth = (sample_rate * 3) / 8;
+
+        // Check if quarter-shift is enabled (FPGA register 1, bits 2-3)
+        uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
+        uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
+
+        if (quarter_shift != 0) {
+            // Quarter-shift moves spectrum by AFE_rate/4, need wider LPF
+            uint32_t offset = afe_rate / 8;
+            lpf_bandwidth += offset * 2;
+        }
+
+        // For best anti-alias performance, also consider AFE Nyquist
+        // If our calculated LPF is below MAX2831 minimum, it doesn't matter
+        // But if we can set LPF to just below AFE Nyquist, that's optimal
+        uint32_t afe_nyquist = afe_rate / 2;
+
+        // Use the larger of: signal bandwidth requirement OR Nyquist protection
+        // (but MAX2831 driver will clamp to its available settings anyway)
+        if (lpf_bandwidth < afe_nyquist) {
+            // Set LPF close to Nyquist for maximum alias rejection
+            lpf_bandwidth = (afe_nyquist * 9) / 10;  // 90% of Nyquist
+        }
 
         radio::set_baseband_filter_bandwidth_rx(lpf_bandwidth);
 #else
@@ -365,6 +384,12 @@ void ReceiverModel::update_sampling_rate() {
         radio::set_baseband_rate(sampling_rate());
     }
     update_tuning_frequency();
+
+#ifdef PRALINE
+    // GSG reference: re-apply frequency after sample rate change
+    // This reconfigures LPF bandwidth based on new decimation
+    update_baseband_bandwidth();
+#endif
 }
 
 void ReceiverModel::update_lna() {

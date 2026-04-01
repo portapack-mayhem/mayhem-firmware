@@ -66,7 +66,8 @@ options_t freqman_bandwidths[6] = {
         // NFM
         {"8k5", 0},
         {"11k", 1},
-        {"16k", 2},
+        {"12k5", 2},
+        {"16k", 3},
     },
     {
         // WFM

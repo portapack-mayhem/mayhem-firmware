@@ -91,9 +91,9 @@ void Widget::set_parent(Widget* const widget) {
     }
 
     if (parent_ && !widget) {
-        // We have a parent, but are losing it. Update visible status.
+        // We have a parent, but are losing it. Update drawn status.
         dirty_overlapping_children_in_rect(screen_rect());
-        visible(false);
+        drawn(false);
     }
 
     parent_ = widget;
@@ -212,9 +212,9 @@ const Style& Widget::style() const {
     }
 }
 
-void Widget::visible(bool v) {
-    if (v != flags.visible) {
-        flags.visible = v;
+void Widget::drawn(bool v) {
+    if (v != flags.drawn) {
+        flags.drawn = v;
 
         /* TODO: This on_show/on_hide implementation seems inelegant.
          * But I need *some* way to take/configure resources when
@@ -227,9 +227,9 @@ void Widget::visible(bool v) {
         } else {
             on_hide();
 
-            // Set all children invisible too.
+            // Mark all children as not drawn too.
             for (const auto child : children()) {
-                child->visible(false);
+                child->drawn(false);
             }
         }
     }
@@ -386,7 +386,9 @@ void Text::set(std::string_view value) {
     text = std::string{value};
     set_dirty();
 }
-
+std::string Text::get() {
+    return text;
+}
 void Text::getAccessibilityText(std::string& result) {
     result = text;
 }
@@ -396,18 +398,35 @@ void Text::getWidgetName(std::string& result) {
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
-    auto max_len = (unsigned)rect.width() / s.font.char_width();
-    auto text_view = std::string_view{text};
-
     painter.fill_rectangle(rect, s.background);
+    const int char_width = s.font.char_width();
+    const int line_height = s.font.line_height();
+    if (char_width == 0 || line_height == 0) return;
+    const size_t chars_per_line = rect.width() / char_width;
+    if (chars_per_line == 0) return;
+    size_t lines_capacity = rect.height() / line_height;
+    if (lines_capacity == 0) lines_capacity = 1;  // at least one line, even if it overflows vertically
+    auto text_view = std::string_view{text};
+    size_t current_offset = 0;
+    for (size_t line_idx = 0; line_idx < lines_capacity; ++line_idx) {
+        if (current_offset >= text_view.length()) break;
+        size_t chunk_len = std::min(chars_per_line, text_view.length() - current_offset);
+        painter.draw_string(
+            rect.location() + Point(0, line_idx * line_height),
+            s,
+            text_view.substr(current_offset, chunk_len));
+        current_offset += chunk_len;
+    }
+}
 
-    if (text_view.length() > max_len)
-        text_view = text_view.substr(0, max_len);
-
-    painter.draw_string(
-        rect.location(),
-        s,
-        text_view);
+bool Text::on_touch(const TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    return false;
 }
 
 /* Labels ****************************************************************/
@@ -682,7 +701,7 @@ void Console::clear(bool clear_buffer = false) {
     if (clear_buffer)
         buffer.clear();
 
-    if (!hidden() && visible()) {
+    if (!hidden() && drawn()) {
         _api->fill_rectangle(screen_rect().left(), screen_rect().top(), screen_rect().width(), screen_rect().height(), Theme::getInstance()->bg_darkest->background.v);
     }
 
@@ -692,7 +711,7 @@ void Console::clear(bool clear_buffer = false) {
 void Console::write(std::string message) {
     bool escape = false;
 
-    if (!hidden() && visible()) {
+    if (!hidden() && drawn()) {
         const Style& s = style();
         const Font& font = s.font;
         auto rect = screen_rect();
@@ -784,7 +803,7 @@ void Console::on_hide() {
 }
 
 void Console::crlf() {
-    if (hidden() || !visible())
+    if (hidden() || !drawn())
         return;
 
     const auto& s = style();

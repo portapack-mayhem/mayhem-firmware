@@ -33,7 +33,7 @@ Game2048View::Game2048View(NavigationView& nav)
 
 void Game2048View::on_show() {
     if (!initialized) {
-        std::srand(LPC_RTC->CTIME0);
+        srand(LPC_RTC->CTIME0);
         reset_game();
         initialized = true;
     }

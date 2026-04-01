@@ -126,8 +126,8 @@ class Widget {
     bool dirty() const;
     void set_clean();
 
-    void visible(bool v);
-    bool visible() { return flags.visible; };
+    void drawn(bool v);
+    bool drawn() { return flags.drawn; };
 
     bool highlighted() const;
     void set_highlighted(const bool value);
@@ -146,7 +146,7 @@ class Widget {
         bool hidden : 1;       // Hide widget and children.
         bool focusable : 1;    // Widget can receive focus.
         bool highlighted : 1;  // Show in a highlighted style.
-        bool visible : 1;      // Object was visible during last paint.
+        bool drawn : 1;        // Object was drawn during last paint.
     };
 
     flags_t flags{
@@ -154,7 +154,7 @@ class Widget {
         .hidden = false,
         .focusable = false,
         .highlighted = false,
-        .visible = false,
+        .drawn = false,
     };
 
     static const std::vector<Widget*> no_children;
@@ -209,6 +209,7 @@ class Rectangle : public Widget {
 
 class Text : public Widget {
    public:
+    std::function<void(Text&)> on_select{};
     Text()
         : text{""} {
     }
@@ -222,6 +223,8 @@ class Text : public Widget {
     void paint(Painter& painter) override;
     void getAccessibilityText(std::string& result) override;
     void getWidgetName(std::string& result) override;
+
+    bool on_touch(const TouchEvent event) override;
 
    protected:
     // NB: Don't truncate this string. The UI will only render

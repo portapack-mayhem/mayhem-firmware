@@ -199,6 +199,55 @@ SPECOptionsView::SPECOptionsView(
     view->set_spec_iq_phase_calibration_value(view->get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
 }
 
+/* PralineOptionsView *******************************************************/
+
+#ifdef PRALINE
+PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
+    set_style(style);
+    set_parent_rect(parent_rect);
+    add_children({&label_sr, &options_sr, &label_dc, &options_dc,
+                  &label_qi, &options_qi, &label_qs, &options_qs});
+
+    // READ the current state from hardware
+    fpga_reg_1 = radio::debug::fpga::register_read(1);
+
+    // INITIALIZE UI WIDGETS based on read bits
+    options_dc.set_by_value((fpga_reg_1 & 0x01) ? 1 : 0);  // Bit 0
+    options_qi.set_by_value((fpga_reg_1 & 0x02) ? 1 : 0);  // Bit 1
+    options_qs.set_by_value((fpga_reg_1 & 0x04) ? 1 : 0);  // Bit 2
+    options_sr.set_value(receiver_model.sampling_rate());
+
+    options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v)); };
+    options_dc.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v)
+            fpga_reg_1 |= 0x01;
+        else
+            fpga_reg_1 &= ~0x01;
+        update_fpga_ctrl();
+    };
+
+    options_qi.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v)
+            fpga_reg_1 |= 0x02;
+        else
+            fpga_reg_1 &= ~0x02;
+        update_fpga_ctrl();
+    };
+
+    options_qs.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v)
+            fpga_reg_1 |= 0x04;
+        else
+            fpga_reg_1 &= ~0x04;
+        update_fpga_ctrl();
+    };
+}
+
+void PralineOptionsView::update_fpga_ctrl() {
+    radio::debug::fpga::register_write(1, fpga_reg_1);
+}
+#endif
+
 /* AnalogAudioView *******************************************************/
 
 AnalogAudioView::AnalogAudioView(
@@ -217,7 +266,13 @@ AnalogAudioView::AnalogAudioView(
                   &field_volume,
                   &text_ctcss,
                   &record_view,
-                  &waterfall});
+#ifdef PRALINE
+                  &waterfall,
+                  &button_pro
+#else
+                  &waterfall
+#endif
+    });
 
     // Filename Datetime and Frequency
     record_view.set_filename_date_frequency(true);
@@ -255,6 +310,10 @@ AnalogAudioView::AnalogAudioView(
     waterfall.on_select = [this](int32_t offset) {
         field_frequency.set_value(receiver_model.target_frequency() + offset);
     };
+
+#ifdef PRALINE
+    button_pro.on_select = [this](Button&) { this->on_show_options_praline(); };
+#endif
 
     audio::output::start();
 
@@ -360,10 +419,10 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
 }
 
 void AnalogAudioView::on_modulation_changed(ReceiverModel::Mode modulation) {
-    baseband::spectrum_streaming_stop();
+    waterfall.stop();
     update_modulation(modulation);
     on_show_options_modulation();
-    baseband::spectrum_streaming_start();
+    waterfall.start();
 }
 
 void AnalogAudioView::remove_options_widget() {
@@ -553,4 +612,11 @@ void AnalogAudioView::handle_coded_squelch(uint32_t value) {
 void AnalogAudioView::on_freqchg(int64_t freq) {
     field_frequency.set_value(freq);
 }
+
+#ifdef PRALINE
+void AnalogAudioView::on_show_options_praline() {
+    set_options_widget(std::make_unique<PralineOptionsView>(options_view_rect, Theme::getInstance()->option_active));
+}
+#endif
+
 } /* namespace ui */

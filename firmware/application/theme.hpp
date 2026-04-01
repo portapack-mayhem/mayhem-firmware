@@ -32,40 +32,40 @@ namespace ui {
 
 class ThemeTemplate {
    public:
-    ~ThemeTemplate();
-    Style* bg_lightest;
-    Style* bg_lightest_small;
-    Style* bg_light;
-    Style* bg_medium;
-    Style* bg_dark;
-    Style* bg_darker;
+    virtual ~ThemeTemplate();
+    Style* bg_lightest = nullptr;
+    Style* bg_lightest_small = nullptr;
+    Style* bg_light = nullptr;
+    Style* bg_medium = nullptr;
+    Style* bg_dark = nullptr;
+    Style* bg_darker = nullptr;
 
-    Style* bg_darkest;
-    Style* bg_darkest_small;
+    Style* bg_darkest = nullptr;
+    Style* bg_darkest_small = nullptr;
 
-    Style* bg_important_small;
+    Style* bg_important_small = nullptr;
 
-    Style* error_dark;
-    Style* warning_dark;
-    Style* ok_dark;
+    Style* error_dark = nullptr;
+    Style* warning_dark = nullptr;
+    Style* ok_dark = nullptr;
 
-    Style* fg_dark;
-    Style* fg_medium;
-    Style* fg_light;
+    Style* fg_dark = nullptr;
+    Style* fg_medium = nullptr;
+    Style* fg_light = nullptr;
 
-    Style* fg_red;
-    Style* fg_green;
-    Style* fg_yellow;
-    Style* fg_orange;
-    Style* fg_blue;
-    Style* fg_cyan;
-    Style* fg_darkcyan;
-    Style* fg_magenta;
+    Style* fg_red = nullptr;
+    Style* fg_green = nullptr;
+    Style* fg_yellow = nullptr;
+    Style* fg_orange = nullptr;
+    Style* fg_blue = nullptr;
+    Style* fg_cyan = nullptr;
+    Style* fg_darkcyan = nullptr;
+    Style* fg_magenta = nullptr;
 
-    Style* option_active;
+    Style* option_active = nullptr;
 
-    Color* status_active;  // green, the status bar icons when active
-    Color* bg_table_header;
+    Color* status_active = nullptr;  // green, the status bar icons when active
+    Color* bg_table_header = nullptr;
 };
 
 class ThemeDefault : public ThemeTemplate {

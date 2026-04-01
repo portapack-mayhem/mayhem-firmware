@@ -3,7 +3,7 @@
 
 // Check if PRALINE was passed from CMake
 #ifdef PRALINE
-  #warning "Building for HackRF_PRO with FPGA."
+  #include "fpga_bridge.h"
 
   // Necessary headers
   #include "lz4_blk.h"
@@ -121,6 +121,27 @@
   #define FPGA_CDONE_PIN   14
   #define FPGA_SPI_CS_PORT 2
   #define FPGA_SPI_CS_PIN  10
+ 
+  // ============================================================================
+  // Canonical Default Values - SINGLE SOURCE OF TRUTH
+  // ============================================================================
+  /* Define the canonical RX defaults in ONE place */
+  #define FPGA_RX_DEFAULT_DC_WIDTH     0x04  /* Typical for 40MHz stability */
+  #define FPGA_RX_DEFAULT_ADAPT_RATE   0x08  /* Typical for 40MHz stability */
+  #define FPGA_RX_DEFAULT_DIGITAL_GAIN 0x00  /* No shift initially */
+  
+  /* Define TX defaults */
+  #define FPGA_TX_DEFAULT_NCO_CTRL     0x00  /* NCO disabled */
+  #define FPGA_TX_DEFAULT_INTERP       0x00  /* No interpolation */
+  #define FPGA_TX_DEFAULT_PHASE_STEP   0x00  /* Zero phase step */
+
+
+  // ============================================================================
+  // Static Variables - Declare BEFORE use
+  // ============================================================================
+  static fpga_mode_t current_mode = FPGA_MODE_OFF;
+  // Cached register values for debug reads (since reads may require mode switch)
+  static uint8_t fpga_reg_cache[6] = {0, 0x01, 0x00, 0x00, 0x00, 0x00};
 
   // Context structure for SPIFI-based reading
   struct spifi_fpga_read_ctx {
@@ -129,6 +150,10 @@
       uint8_t init_flag;
       uint8_t buffer[4096 + 2];  // Compressed block + next size
   };
+
+  // ============================================================================
+  // Low-Level Helper Functions
+  // ============================================================================
 
   // Simple delay loop
   static void delay_cycles(volatile uint32_t count) {
@@ -225,13 +250,18 @@
   // FPGA Register Map:
   //   Reg 1 (CTRL):    DC_BLOCK(b0), QUARTER_SHIFT_EN(b1), QUARTER_SHIFT_UP(b2), PRBS(b6), TRIGGER_EN(b7)
   //   Reg 2 (RX_DECIM): Decimation ratio [2:0]
-  //   Reg 3 (TX_CTRL):  NCO_EN(b0)
-  //   Reg 4 (TX_INTRP): Interpolation ratio [2:0]
-  //   Reg 5 (TX_PSTEP): NCO phase step [7:0]
+  //   Reg 3 (RX/TX):    RX Digital Shift OR TX NCO Control
+  //   Reg 4 (RX_DC_BLOCK_WIDTH/TX_INTERP) [2:0]
+  //   Reg 5 (RX_DC_ADAPT_RATE/TX_PSTEP)  [7:0]
   //
   // SPI Protocol:
   //   Read:  Send [reg & 0x7F, 0x00, 0x00] -> value in byte 3
   //   Write: Send [(reg | 0x80), value, 0x00]
+
+
+  // ============================================================================
+  // SPI Mode Switching
+  // ============================================================================
 
   // Configure SSP1 for iCE40 FPGA register access (Mode 3, 8-bit)
   static void ssp1_set_mode_ice40(void) {
@@ -253,6 +283,11 @@
       SSP1_CR1_LOCAL = SSP_CR1_SSE;  // Enable SSP1
   }
 
+
+  // ============================================================================
+  // Low-Level SPI Register Access (internal, no mode switch)
+  // ============================================================================
+
   // Read an FPGA register via SPI
   static uint8_t fpga_spi_read(uint8_t reg) {
       uint8_t value;
@@ -272,32 +307,10 @@
       ssp1_transfer_byte(0x00);  // Dummy byte
       fpga_cs_high();
   }
-
-  // Initialize FPGA registers after bitstream load
-  // This is equivalent to fpga_init() in the reference HackRF firmware
-  static void fpga_register_init(void) {
-      // Already in iCE40 mode after programming, so we can directly access registers
-
-      // Register 1 (CTRL): Enable DC block (bit 0), disable everything else
-      // DC_BLOCK is CRITICAL for RX to work!
-      fpga_spi_write(1, 0x01);  // DC_BLOCK = 1
-
-      // Register 2 (RX_DECIM): No decimation
-      fpga_spi_write(2, 0x00);
-
-      // Register 3 (TX_CTRL): Disable NCO
-      fpga_spi_write(3, 0x00);
-
-      // Register 4 (TX_INTRP): No interpolation
-      fpga_spi_write(4, 0x00);
-
-      // Register 5 (TX_PSTEP): Zero phase step
-      fpga_spi_write(5, 0x00);
-  }
-
-  // Cached register values for debug reads (since reads may require mode switch)
-  static uint8_t fpga_reg_cache[6] = {0, 0x01, 0x00, 0x00, 0x00, 0x00};
-  static uint8_t fpga_reg_cache_valid = 0;
+  
+  // ============================================================================
+  // Public Debug Functions (switch SPI mode, access register, switch back)
+  // ============================================================================
 
   // Public function to read FPGA register (callable from C++ application code)
   // Switches SPI mode, reads register, switches back
@@ -323,6 +336,139 @@
 
       fpga_reg_cache[reg] = value;
   }
+
+  // ============================================================================
+  // Public Register Access (wraps debug functions)
+  // ============================================================================
+
+  uint8_t fpga_register_read(uint8_t reg) {
+      if (reg == 0 || reg > 5) return 0xFF;
+
+      ssp1_set_mode_ice40();
+      uint8_t val = fpga_spi_read(reg);
+      ssp1_set_mode_max2831();
+
+      fpga_reg_cache[reg] = val;
+      return val;
+  }
+
+  void fpga_register_write(uint8_t reg, uint8_t value) {
+      if (reg == 0 || reg > 5) return;
+
+      ssp1_set_mode_ice40();
+      fpga_spi_write(reg, value);
+      ssp1_set_mode_max2831();
+
+      fpga_reg_cache[reg] = value;
+  }
+
+  // ============================================================================
+  // Mode Management
+  // ============================================================================
+
+  fpga_mode_t fpga_get_mode(void) {
+      return current_mode;
+  }  
+
+  /* fpga_set_mode with consistent values */
+  void fpga_set_mode(fpga_mode_t mode) {
+      current_mode = mode;
+  }
+ 
+  // ============================================================================
+  // RX Mode Functions (with mode assertion)
+  // ============================================================================
+
+  /* RX decimation */
+  void fpga_rx_set_decimation(uint8_t ratio) {
+      if (current_mode != FPGA_MODE_RX) return;
+      fpga_register_write(FPGA_REG_DECIM, ratio & 0x07);
+  }
+
+  /* RX DC block enable (bit 0 of register 1) */
+  void fpga_rx_enable_dc_block(bool enable) {
+      if (current_mode != FPGA_MODE_RX) return;
+      uint8_t ctrl = fpga_register_read(FPGA_REG_CTRL);
+      if (enable)
+          ctrl |= FPGA_CTRL_DC_BLOCK_EN;
+      else
+          ctrl &= ~FPGA_CTRL_DC_BLOCK_EN;
+      fpga_register_write(FPGA_REG_CTRL, ctrl);
+  }
+
+  /* RX Functions with mode assertion */
+  void fpga_rx_set_digital_gain(uint8_t shift) {
+      if (current_mode != FPGA_MODE_RX) {
+          /* Log error or assert - wrong mode! */
+          return;
+      }
+      fpga_register_write(FPGA_REG_SHARED_3, shift & FPGA_RX_GAIN_SHIFT_MASK);
+  }
+
+  void fpga_rx_set_dc_block_width(uint8_t width) {
+      if (current_mode != FPGA_MODE_RX) return;
+      fpga_register_write(FPGA_REG_SHARED_4, width & FPGA_RX_DC_WIDTH_MASK);
+  }
+
+  void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
+      if (current_mode != FPGA_MODE_RX) return;
+      fpga_register_write(FPGA_REG_SHARED_5, rate);
+  }
+ 
+  // ============================================================================
+  // TX Mode Functions (with mode assertion)
+  // ============================================================================
+
+  /* TX Functions with mode assertion */
+  void fpga_tx_set_nco_enable(bool enable) {
+      if (current_mode != FPGA_MODE_TX) return;
+      uint8_t val = fpga_register_read(FPGA_REG_SHARED_3);
+      if (enable)
+          val |= FPGA_TX_NCO_EN;
+      else
+          val &= ~FPGA_TX_NCO_EN;
+      fpga_register_write(FPGA_REG_SHARED_3, val);
+  }
+
+  void fpga_tx_set_interpolation(uint8_t ratio) {
+      if (current_mode != FPGA_MODE_TX) return;
+      fpga_register_write(FPGA_REG_SHARED_4, ratio & FPGA_TX_INTERP_MASK);
+  }
+
+  void fpga_tx_set_phase_step(uint8_t step) {
+      if (current_mode != FPGA_MODE_TX) return;
+      fpga_register_write(FPGA_REG_SHARED_5, step);
+  }
+
+  // ============================================================================
+  // FPGA Register Initialization (called after bitstream load)
+  // ============================================================================
+
+  // Initialize FPGA registers after bitstream load
+  // This is equivalent to fpga_init() in the reference HackRF firmware
+  /* fpga_register_init with consistent values */
+  static void fpga_register_init(void) {
+
+      /* Boot into RX mode */
+      current_mode = FPGA_MODE_RX;
+  
+      fpga_spi_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);
+      fpga_spi_write(FPGA_REG_DECIM, 0x00);
+      fpga_spi_write(FPGA_REG_SHARED_3, FPGA_RX_DEFAULT_DIGITAL_GAIN);
+      fpga_spi_write(FPGA_REG_SHARED_4, FPGA_RX_DEFAULT_DC_WIDTH);
+      fpga_spi_write(FPGA_REG_SHARED_5, FPGA_RX_DEFAULT_ADAPT_RATE);
+  
+      /* Update cache */
+      fpga_reg_cache[1] = FPGA_CTRL_DC_BLOCK_EN;
+      fpga_reg_cache[2] = 0x00;
+      fpga_reg_cache[3] = FPGA_RX_DEFAULT_DIGITAL_GAIN;
+      fpga_reg_cache[4] = FPGA_RX_DEFAULT_DC_WIDTH;
+      fpga_reg_cache[5] = FPGA_RX_DEFAULT_ADAPT_RATE;
+  }
+
+  // ============================================================================
+  // LZ4 Decompression for FPGA Bitstream
+  // ============================================================================
 
   // SPIFI-based read callback for LZ4 decompression
   // Reads from SPIFI memory-mapped address instead of using SPI flash driver
@@ -416,6 +562,10 @@
 
       return success;
   }
+
+  // ============================================================================
+  // Main Initialization Entry Point
+  // ============================================================================
 
   int fpga_bridge_init(void) {
       // Enable SSP1 clock for FPGA programming

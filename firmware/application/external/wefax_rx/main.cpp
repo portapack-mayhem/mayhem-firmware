@@ -73,7 +73,7 @@ __attribute__((section(".external_app.app_wefax_rx.application_information"), us
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::orange().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 

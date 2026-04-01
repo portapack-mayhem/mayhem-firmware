@@ -33,6 +33,26 @@
 
 namespace ui::external_app::acars_rx {
 
+// Decoded ACARS message fields extracted from a raw frame.
+// CRC-16/CCITT (poly 0x1021, init 0x0000) is verified against the two
+// trailing bytes of the raw frame; crc_ok reflects that result.
+struct AcarsDecoded {
+    bool crc_ok{false};
+    std::string reg{};
+    std::string label{};
+    std::string flight_id{};
+    std::string msg_num{};
+    char block_id{'\0'};
+    std::string txt{};
+};
+
+// Decode a raw ACARS frame: verify CRC-16/CCITT and extract fixed-offset fields.
+// Returns a partially-filled AcarsDecoded (txt error only) if the frame is too short.
+AcarsDecoded acars_decode(const std::string& raw);
+
+// Format a decoded ACARS message for display or logging.
+std::string acars_format(const AcarsDecoded& msg);
+
 class ACARSLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {

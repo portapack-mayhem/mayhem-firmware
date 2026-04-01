@@ -45,11 +45,8 @@
 #include "ui_mictx.hpp"
 
 #include "ui_playlist.hpp"
-#include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_recon.hpp"
-// #include "ui_scanner.hpp"
-// #include "ui_sd_over_usb.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
 #include "ui_sonde.hpp"
@@ -64,7 +61,6 @@
 
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-// #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
@@ -136,7 +132,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
-    {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* TRX ********************************************************************/
@@ -146,7 +141,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
-    //{nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
@@ -305,6 +299,10 @@ SystemStatusView::SystemStatusView(
 
     button_clock_status.on_select = [this](ImageButton&) {
         this->on_clk();
+    };
+
+    sd_card_status_view.on_select = [this](ImageButton&) {
+        this->on_sd_card();
     };
 
     // Initialize toggle buttons
@@ -511,6 +509,16 @@ void SystemStatusView::on_clk() {
     pmem::set_clkout_enabled(!pmem::clkout_enabled());
     portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());
     refresh();
+}
+
+void SystemStatusView::on_sd_card() {
+    if (!nav_.is_valid()) return;
+    if (sd_info_up) return;
+    sd_info_up = true;
+    nav_.push<SetSDCardView>();
+    nav_.set_on_pop([this]() {
+        sd_info_up = false;
+    });
 }
 
 void SystemStatusView::on_title() {
@@ -777,8 +785,6 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
                           true);
         }
     };
-
-    grid.update_items();
 }
 
 // clang-format off
@@ -795,7 +801,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
                                   "Check SD card\n"
                                   "Update SD card content\n");
                           }},
-                         error_tile_pos);
+                         error_tile_pos, true);
     } else {
         std::sort(externalItems.begin(), externalItems.end(), [](const auto &a, const auto &b)
         {
@@ -810,17 +816,9 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             }
 
         }
-
-        grid.update_items();
     }
 }
 // clang-format on
-
-bool verify_sdcard_format() {
-    FATFS* fs = &sd_card::fs;
-    return (fs->fs_type == FS_FAT32 || fs->fs_type == FS_EXFAT) || !(sd_card::status() == sd_card::Status::Mounted);
-    /*                                                             ^ to satisfy those users that not use an sd*/
-}
 
 /* ReceiversMenuView *****************************************************/
 
@@ -830,7 +828,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
 void ReceiversMenuView::on_populate() {
     bool return_icon = pmem::show_gui_return_icon();
     if (return_icon) {
-        add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
+        add_item({"..", Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }},
+                 true);
     }
     add_apps(nav_, *this, RX);
     add_external_items(nav_, app_location_t::RX, *this, return_icon ? 1 : 0);
@@ -919,11 +918,6 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 }
 
 void SystemMenuView::on_populate() {
-    if (!verify_sdcard_format()) {
-        add_item({"SDCard Error", Theme::getInstance()->error_dark->foreground, nullptr, [this]() {
-                      nav_.display_modal("Error", "SD Card is not exFAT/FAT32");
-                  }});
-    }
     add_apps(nav_, *this, HOME);
     add_external_items(nav_, app_location_t::HOME, *this, 0);
     add_item({"HackRF", Theme::getInstance()->fg_cyan->foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
@@ -975,6 +969,8 @@ SystemView::SystemView(
     };
 
     navigation_view.push<SystemMenuView>();
+
+    add_child(&notification_view);
 
     if (pmem::config_splash()) {
         navigation_view.push<SplashScreenView>();
@@ -1061,20 +1057,10 @@ SplashScreenView::SplashScreenView(NavigationView& nav)
     };
 }
 
-uint32_t SplashScreenView::myrand(uint32_t* state) {
-    uint32_t x = *state;
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
-    *state = x;
-    return x;
-}
-
 void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
     path = u"";
 
-    uint32_t rng_state = LPC_RTC->CTIME0;
-    if (rng_state == 0) rng_state = 0xABBACAFE;
+    srand(LPC_RTC->CTIME0);
 
     DIR dir;
     FILINFO fno;
@@ -1096,7 +1082,7 @@ void SplashScreenView::get_random_splash_file(std::filesystem::path& path) {
                     (ext[3] == 'P' || ext[3] == 'p')) {
                     valid_count++;
                     // Reservoir Sampling:
-                    if (((rng_state = myrand(&rng_state)) % valid_count) == 0) {
+                    if ((rand() % valid_count) == 0) {
                         path = splash_dir / fno.fname;
                     }
                 }

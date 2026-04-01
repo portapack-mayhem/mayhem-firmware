@@ -27,7 +27,8 @@
 
 #include "event_m4.hpp"
 
-#include "stdio.h"
+APRSRxProcessor::APRSRxProcessor() {
+}
 
 void APRSRxProcessor::execute(const buffer_c8_t& buffer) {
     // This is called at 3072000 / 2048 = 1500Hz

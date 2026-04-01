@@ -29,7 +29,6 @@
 using namespace lpc43xx;
 
 #include "utility.hpp"
-#include "../flashsize.h"
 
 namespace portapack {
 namespace memory {

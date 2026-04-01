@@ -46,12 +46,16 @@ RSSI::RSSI(
 void RSSI::paint(Painter& painter) {
     const auto r = screen_rect();
 
+    /* RSSI scaling based on transceiver output voltage range.
+     * MAX2837 (HackRF One): 0.4V to 2.2V
+     * MAX2831 (HackRF Pro): 0.5V to 2.0V (similar enough to use same scaling)
+     */
     constexpr int rssi_sample_range = 256;
     // constexpr float rssi_voltage_min = 0.4;
     constexpr float rssi_voltage_max = 2.2;
-    constexpr float adc_voltage_max = 3.3;
     // constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
     constexpr int raw_min = 0;
+    constexpr float adc_voltage_max = 3.3;
     constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
     constexpr int raw_delta = raw_max - raw_min;
 
@@ -113,6 +117,7 @@ void RSSI::paint(Painter& painter) {
         const Rect r_db{r.left() + x_db, r.top(), 1, r.height()};
 
         if (db_) painter.fill_rectangle(r_db, Color::green());
+
     } else {
         // vertical bottom to top level meters
         const range_t<int> y_avg_range{0, r.height() - 1};
@@ -221,6 +226,7 @@ void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
     min_ = statistics.min;
     avg_ = statistics.accumulator / statistics.count;
     max_ = statistics.max;
+
     if (peak_enabled) {
         peak_duration_ = peak_duration_ + 100;
         if (max_ > peak_) {
@@ -431,9 +437,9 @@ void RSSIGraph::add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max,
     constexpr int rssi_sample_range = 256;
     // constexpr float rssi_voltage_min = 0.4;
     constexpr float rssi_voltage_max = 2.2;
-    constexpr float adc_voltage_max = 3.3;
     // constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
     constexpr int raw_min = 0;
+    constexpr float adc_voltage_max = 3.3;
     constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
     constexpr int raw_delta = raw_max - raw_min;
 
@@ -523,6 +529,12 @@ bool RSSI::on_touch(const TouchEvent event) {
 }
 
 void RSSI::set_db(int16_t db) {
+#ifdef PRALINE
+    /* Add a +30dB global boost to align 40MHz/1.2V VCM data
+    with the UI's existing display scale. */
+    db_ = db + 30;
+#else
     db_ = db;
+#endif
 }
 } /* namespace ui */
