@@ -312,6 +312,7 @@ EPIRBTXAppView::EPIRBTXAppView(
     transmitter_model.set_target_frequency(bpsk_frequency);
     field_am_frequency.set_value(am_frequency);
     options_am_channel.set_by_value(am_channel);
+    options_am_channel.set_style((am_channel == (uint8_t)AmChannel::REAL) ? Theme::getInstance()->fg_red : Theme::getInstance()->bg_darkest);
     manual_am_frequency = am_frequency;
     options_bpsk_channel.set_by_value(bpsk_channel);
     manual_bpsk_frequency = bpsk_frequency;
@@ -373,7 +374,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                 am_frequency = AM_TEST_FREQUENCY;
                 break;
         }
-        // Actual frequecy change will be done by field_am_frequency.on_change()
+        // Actual frequency change will be done by field_am_frequency.on_change()
         field_am_frequency.set_value(am_frequency);
         am_channel = v;
         options_am_channel.set_style(is_real ? Theme::getInstance()->fg_red : Theme::getInstance()->bg_darkest);
@@ -519,7 +520,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                     am_channel = (uint8_t)AmChannel::MANUAL;
                     break;
             }
-            // Actual frequecy change will be done by options_am_channel.on_change()
+            // Actual frequency change will be done by options_am_channel.on_change()
             options_am_channel.set_by_value(am_channel);
             set_dirty();
         };
@@ -566,7 +567,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                     manual_bpsk_frequency = bpsk_frequency;
                     break;
             }
-            // Actual frequecy change will be done by options_bpsk_channel.on_change()
+            // Actual frequency change will be done by options_bpsk_channel.on_change()
             options_bpsk_channel.set_by_value(bpsk_channel);
             set_dirty();
         };
