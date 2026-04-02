@@ -29,6 +29,7 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "file.hpp"
+#include "freqman.hpp"
 #include "freqman_db.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "radio_state.hpp"
@@ -60,20 +61,35 @@ class DetectorRxView : public View {
     int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     size_t change_mode();
     void on_statistics_update(const ChannelStatistics& statistics);
-    void set_display_freq(int64_t freq);
     void on_timer();
+    void load_freqman();
+    void init_current_entry();
+    void update_entry_display();
+    void update_freq_display();
+    std::string format_freq_mhz(int64_t freq_hz);
 
-    uint8_t freq_index = 0;
-    rf::Frequency freq_ = {433920000};
+    freqman_db frequency_list{};
+    size_t current_index{0};
+    int64_t current_freq{0};
+    int64_t minfreq{0};
+    int64_t maxfreq{0};
+    int32_t current_step{DETECTOR_BW};
+    std::string freq_file_stem{"DETECTOR"};
+    bool auto_scan{true};
+    bool auto_advance{false};
+    uint8_t last_update_was_auto_range_type = -1;
+
     int32_t beep_squelch = 0;
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
-    uint8_t freq_mode = 0;
 
     app_settings::SettingsManager settings_{
         "rx_detector",
         app_settings::Mode::RX,
         {
             {"beep_squelch"sv, &beep_squelch},
+            {"freq_file"sv, &freq_file_stem},
+            {"auto_scan"sv, &auto_scan},
+            {"auto_advance"sv, &auto_advance},
         }};
 
     Labels labels{
@@ -93,41 +109,55 @@ class DetectorRxView : public View {
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
-    OptionsField field_mode{
-        {UI_POS_X(0), UI_POS_Y(1)},
-        9,
-        {
-            {"TETRA UP", 0},
-            {"Lora", 1},
-            {"Remotes", 2},
-        }};
+    // Row 1: filename + auto advance
+    Button button_file{
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
+        ""};
 
-    Text text_frequency{
-        {UI_POS_X_RIGHT(20), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
+    Button button_auto_advance{
+        {UI_POS_X_RIGHT(9), UI_POS_Y(1), UI_POS_WIDTH(9), UI_POS_DEFAULT_HEIGHT},
+        "NO ADV"};
+
+    // Row 2: index encoder + description + auto scan
+    ButtonWithEncoder button_index{
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(4), UI_POS_DEFAULT_HEIGHT},
+        ""};
+
+    Text text_entry_desc{
+        {UI_POS_X(4), UI_POS_Y(2), UI_POS_WIDTH(17), UI_POS_DEFAULT_HEIGHT},
+        ""};
+
+    Button button_auto_scan{
+        {UI_POS_X_RIGHT(9), UI_POS_Y(2), UI_POS_WIDTH(9), UI_POS_DEFAULT_HEIGHT},
+        "AUTO SCAN"};
+
+    // Row 3: frequency encoder + bip level
+    ButtonWithEncoder button_freq{
+        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(20), UI_POS_DEFAULT_HEIGHT},
         ""};
 
     Text text_beep_squelch{
-        {UI_POS_X_RIGHT(9), UI_POS_Y(2), UI_POS_WIDTH(4), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X_RIGHT(9), UI_POS_Y(3), UI_POS_WIDTH(4), UI_POS_DEFAULT_HEIGHT},
         "Bip>"};
 
     NumberField field_beep_squelch{
-        {UI_POS_X_RIGHT(5), UI_POS_Y(2)},
+        {UI_POS_X_RIGHT(5), UI_POS_Y(3)},
         4,
         {-100, 20},
         1,
         ' ',
     };
 
-    // RSSI: XX/XX/XXX
-    Text freq_stats_rssi{
-        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
-    };
-
-    // Power: -XXX db
+    // Row 4: Power + RSSI on same line
     Text freq_stats_db{
-        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
+        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
     };
 
+    Text freq_stats_rssi{
+        {UI_POS_X(15), UI_POS_Y(4), UI_POS_WIDTH(15), UI_POS_DEFAULT_HEIGHT},
+    };
+
+    // Row 5+: RSSI graph + vertical bar
     RSSIGraph rssi_graph{
         {UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT_REMAINING(6)},
     };
@@ -147,55 +177,6 @@ class DetectorRxView : public View {
         [this](const Message* const) {
             this->on_timer();
         }};
-
-    const std::vector<uint32_t> remotes_monitoring_frequencies_hz = {
-        // Around 315 MHz (common for older remotes, key fobs in some regions)
-        // Window centered on 315 MHz, covers 314.625 - 315.375 MHz
-        315000000,
-
-        // Around 433.92 MHz (very common for remotes, sensors, key fobs globally)
-        // Window centered on 433.92 MHz, covers 433.545 - 434.295 MHz
-        433920000,
-    };
-    const std::vector<uint32_t> lora_monitoring_frequencies_hz = {
-        // EU433 Band (Europe, typically 433.05 MHz to 434.79 MHz)
-        // Scanning the approximate range 433.0 MHz to 434.8 MHz with 750kHz steps
-        433375000,  // Covers 433.000 - 433.750 MHz
-        434125000,  // Covers 433.750 - 434.500 MHz (includes 433.92 MHz)
-        434875000,  // Covers 434.500 - 435.250 MHz (covers up to 434.79 MHz)
-
-        // EU868 Band (Europe, typically 863 MHz to 870 MHz, specific channels around 868 MHz)
-        // Targeting common LoRaWAN channel groups (approx 867.0 - 868.6 MHz) with 750kHz steps
-        867375000,  // Covers 867.000 - 867.750 MHz
-        868125000,  // Covers 867.750 - 868.500 MHz
-        868875000,  // Covers 868.500 - 869.250 MHz (covers up to 868.6 MHz)
-
-        // US915 Band (North America, typically 902 MHz to 928 MHz, specific channels around 915 MHz)
-        // Providing a few sample windows around the 915 MHz area with 750kHz steps.
-        // This band is wide; a full scan would require many more frequencies.
-        914250000,  // Covers 913.875 - 914.625 MHz
-        915000000,  // Covers 914.625 - 915.375 MHz (Centered on 915 MHz)
-        915750000,  // Covers 915.375 - 916.125 MHz
-    };
-    const std::vector<uint32_t> tetra_uplink_monitoring_frequencies_hz = {
-        // Band starts at 380,000,000 Hz, ends at 390,000,000 Hz.
-        // First center: 380,000,000 + 375,000 = 380,375,000 Hz
-        // Last center:  380,375,000 + 13 * 750,000 = 390,125,000 Hz (14 frequencies total for this band)
-        380375000,  // Covers 380.000 - 380.750 MHz
-        381125000,  // Covers 380.750 - 381.500 MHz
-        381875000,  // Covers 381.500 - 382.250 MHz
-        382625000,  // Covers 382.250 - 383.000 MHz
-        383375000,  // Covers 383.000 - 383.750 MHz
-        384125000,  // Covers 383.750 - 384.500 MHz
-        384875000,  // Covers 384.500 - 385.250 MHz
-        385625000,  // Covers 385.250 - 386.000 MHz
-        386375000,  // Covers 386.000 - 386.750 MHz
-        387125000,  // Covers 386.750 - 387.500 MHz
-        387875000,  // Covers 387.500 - 388.250 MHz
-        388625000,  // Covers 388.250 - 389.000 MHz
-        389375000,  // Covers 389.000 - 389.750 MHz
-        390125000,  // Covers 389.750 - 390.500 MHz
-    };
 };
 
 }  // namespace ui::external_app::detector_rx
