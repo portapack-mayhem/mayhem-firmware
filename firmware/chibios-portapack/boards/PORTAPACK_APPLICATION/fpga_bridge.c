@@ -524,7 +524,8 @@ static bool program_fpga_from_spifi(const uint8_t* bitstream_start, uint8_t* mem
     // Use  buffers to avoid stack overflow (~8KB would be needed)
     uint8_t* out_buffer = mem_base;
     struct spifi_fpga_read_ctx* ctx = (struct spifi_fpga_read_ctx*)(out_buffer + 4096);
-
+    memset(ctx, 0, sizeof(struct spifi_fpga_read_ctx));
+    memset(out_buffer, 0, 4096);
     ctx->mem_ptr = bitstream_start;
     ctx->next_block_sz = 0;
     ctx->init_flag = 0;
