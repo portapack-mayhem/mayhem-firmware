@@ -36,6 +36,9 @@
 
 #include "baseband_packet.hpp"
 
+#include "audio.hpp"
+
+
 /* #include <cstdint>
 #include <cstddef>
 #include <string>
@@ -251,9 +254,24 @@ class EPIRBAppView : public ui::View {
         {8 * 8, 2 * 16, 22 * 8, 1 * 16},
         ""};
 
+    // Current EPIRBTXDataMessage for baseband
+    EPIRBTXDataMessage epirb_tx_message{};
+
+    ui::OptionsField options_algo{
+        {5 * 8, UI_POS_Y(4)},
+        7,
+        {
+            {"1", 1},
+            {"2", 2},
+            {"3", 3},
+            {"4", 4},
+            {"5", 5},
+        }};
+
+
     // Beacon list
     ui::Console console{
-        {0, 4 * 16, 240, 152}};
+        {0, 5 * 16, 240, 152-16}};
 
     ui::Button button_map{
         {0, 224, 60, 24},
@@ -290,6 +308,7 @@ class EPIRBAppView : public ui::View {
     void update_display();
     std::string format_beacon_summary(const EPIRBBeacon& beacon);
     std::string format_location(const EPIRBLocation& location);
+    std::string beacon_to_hex_string(const baseband::Packet& packet);
 };
 
 }  // namespace ui::external_app::epirb_rx

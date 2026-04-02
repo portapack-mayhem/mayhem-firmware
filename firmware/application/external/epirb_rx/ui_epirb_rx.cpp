@@ -33,7 +33,31 @@ using namespace portapack;
 
 #include "message.hpp"
 
+#include "usb_serial_asyncmsg.hpp"
+
 namespace ui::external_app::epirb_rx {
+
+std::string EPIRBAppView::beacon_to_hex_string(const baseband::Packet& packet) {
+    const char hex[] = "0123456789ABCDEF";
+
+    std::string out;
+    out.resize(36);
+    size_t frame_size = std::min(packet.size(), (size_t)144);
+
+    for (size_t i = 0; i < frame_size / 8; i++) {
+        uint8_t byte_val = 0;
+        for (size_t bit = 0; bit < 8 && (i * 8 + bit) < frame_size; bit++) {
+            if (packet[i * 8 + bit]) {
+                byte_val |= (1 << (7 - bit));
+            }
+        }
+
+        out[i * 2] = hex[byte_val >> 4];
+        out[i * 2 + 1] = hex[byte_val & 0x0F];
+    }
+
+    return frame_size > 64 ? "FF" + out : out;
+}
 
 EPIRBBeacon EPIRBDecoder::decode_packet(const baseband::Packet& packet) {
     EPIRBBeacon beacon;
@@ -465,6 +489,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &label_latest,
                   &text_latest_info,
                   &label_packet_stats,
+                  &options_algo,
                   &console,
                   &button_map,
                   &button_clear,
@@ -491,23 +516,38 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         this->on_tick_second();
     };
 
+    options_algo.on_change = [this](size_t, ui::OptionsField::value_t v) {
+        // Send config to baseband
+        epirb_tx_message.data_len = v;
+
+        baseband::set_epirb_tx_config(epirb_tx_message);
+    };
+
     // Configure receiver for default EPIRB frequency (406.028 MHz)
     receiver_model.set_target_frequency(406028000);
     receiver_model.set_rf_amp(true);
     receiver_model.set_lna(32);
     receiver_model.set_vga(32);
-    receiver_model.set_sampling_rate(2457600);
+    receiver_model.set_sampling_rate(3072000);
+    // receiver_model.set_sampling_rate(2457600);
+    // receiver_model.set_baseband_bandwidth(10000);
+
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+
     receiver_model.enable();
 
     logger = std::make_unique<EPIRBLogger>();
     if (logger) {
         logger->append(logs_dir / "epirb_rx.txt");
     }
+    std::string mess = "EPIRB App Started!\n";
+    UsbSerialAsyncmsg::asyncmsg(mess);
 }
 
 EPIRBAppView::~EPIRBAppView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
-
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -532,12 +572,16 @@ void EPIRBAppView::focus() {
 }
 
 void EPIRBAppView::on_packet(const baseband::Packet& packet) {
+    std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
+    // std::string beacon_string = "Message Received!\n";
+    UsbSerialAsyncmsg::asyncmsg(beacon_string);
+
     // Decode the EPIRB packet
-    auto beacon = EPIRBDecoder::decode_packet(packet);
+    /*auto beacon = EPIRBDecoder::decode_packet(packet);
 
     if (beacon.beacon_id != 0) {  // Valid beacon decoded
         on_beacon_decoded(beacon);
-    }
+    }*/
 }
 
 void EPIRBAppView::on_beacon_decoded(const EPIRBBeacon& beacon) {
