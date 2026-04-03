@@ -156,8 +156,7 @@ struct misc_config_t {
     bool tx_amp_disabled : 1;
 
     uint8_t tx_gain_max_db;
-    uint8_t PLACEHOLDER_1;
-    uint8_t PLACEHOLDER_2;
+    uint16_t batt_cap_mah;
 };
 static_assert(sizeof(misc_config_t) == sizeof(uint32_t));
 
@@ -445,6 +444,8 @@ void defaults() {
     set_config_tx_disabled(false);
     set_config_tx_amp_disabled(false);
     set_config_tx_gain_max_db(47);
+
+    set_battery_cap_mah(0);
 }
 
 void init() {
@@ -1241,6 +1242,32 @@ int load_persistent_settings_from_file() {
 
     infile.read(reinterpret_cast<char*>(&cached_backup_ram), sizeof(backup_ram_t));
     return true;
+}
+
+bool battery_cap_valid() {
+    return (data->misc_config.batt_cap_mah >= BATT_18650_MIN_MAH && data->misc_config.batt_cap_mah <= BATT_18650_MAX_MAH);
+}
+
+void set_battery_cap_mah(uint16_t mah) {
+    if ((mah < BATT_18650_MIN_MAH || mah > BATT_18650_MAX_MAH) && mah != 0) {
+        // Invalid value, ignore it.
+        return;
+    }
+    if (data->misc_config.batt_cap_mah != mah) {
+        data->misc_config.batt_cap_mah = mah;
+    }
+}
+
+uint32_t battery_cap_mah() {
+    if (battery_cap_valid()) {
+        return data->misc_config.batt_cap_mah;
+    }
+    // we don't know, need to assume.
+    if (portapack::device_type == portapack::DEV_PORTARF) return 3000;
+#ifdef PRALINE
+    return 2000;  // with h4 + pro and h4pro + pro it is ~safe
+#endif
+    return 2500;  // h4 + one
 }
 
 // Pmem size helper

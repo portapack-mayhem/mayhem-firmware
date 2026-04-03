@@ -636,7 +636,7 @@ init_status_t init() {
     // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
     // Call fpga_bridge_init and continue boot regardless of result
     // (Watchdog was resetting device when we halted with while(1))
-    int load_result = fpga_bridge_init();
+    int load_result = fpga_bridge_init(&shared_memory.bb_data.data[0]);
     (void)load_result;  // Ignore result for now, just let boot continue
 
     /* RELEASE FPGA RESET */

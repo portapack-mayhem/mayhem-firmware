@@ -17,16 +17,16 @@ extern "C" {
 #ifdef PRALINE
 
 /* FPGA Register Map Address 0x03 (Dual Purpose) */
-#define FPGA_REG_RX_DIGITAL_GAIN   0x03  /* Digital Shift / scaling (RX Mode) */
-#define FPGA_REG_TX_CONTROL        0x03  /* NCO_EN and TX flags (TX Mode) */
+#define FPGA_REG_RX_DIGITAL_GAIN 0x03 /* Digital Shift / scaling (RX Mode) */
+#define FPGA_REG_TX_CONTROL 0x03      /* NCO_EN and TX flags (TX Mode) */
 
 /* FPGA Register Map Address 0x04 (Shared) */
-#define FPGA_REG_RX_DC_BLOCK_WIDTH  0x04  /* Notch filter cutoff (RX Mode) */
-#define FPGA_REG_TX_INTERP           0x04  /* Interpolation ratio (TX Mode) */
+#define FPGA_REG_RX_DC_BLOCK_WIDTH 0x04 /* Notch filter cutoff (RX Mode) */
+#define FPGA_REG_TX_INTERP 0x04         /* Interpolation ratio (TX Mode) */
 
 /* FPGA Register Map Address 0x05 (Shared) */
-#define FPGA_REG_RX_DC_ADAPT_RATE   0x05  /* Settle time/Integration (RX Mode) */
-#define FPGA_REG_TX_PHASE_STEP      0x05  /* NCO frequency step (TX Mode) */
+#define FPGA_REG_RX_DC_ADAPT_RATE 0x05 /* Settle time/Integration (RX Mode) */
+#define FPGA_REG_TX_PHASE_STEP 0x05    /* NCO frequency step (TX Mode) */
 
 /*
  * FPGA Operating Mode
@@ -41,60 +41,60 @@ typedef enum {
  * FPGA Register Addresses
  * Note: Registers 3-5 are dual-purpose (meaning depends on RX/TX mode)
  */
-#define FPGA_REG_CTRL              0x01  /* Control register */
-#define FPGA_REG_DECIM             0x02  /* Decimation (RX) / unused (TX) */
-#define FPGA_REG_SHARED_3          0x03  /* Dual-purpose register */
-#define FPGA_REG_SHARED_4          0x04  /* Dual-purpose register */
-#define FPGA_REG_SHARED_5          0x05  /* Dual-purpose register */
+#define FPGA_REG_CTRL 0x01     /* Control register */
+#define FPGA_REG_DECIM 0x02    /* Decimation (RX) / unused (TX) */
+#define FPGA_REG_SHARED_3 0x03 /* Dual-purpose register */
+#define FPGA_REG_SHARED_4 0x04 /* Dual-purpose register */
+#define FPGA_REG_SHARED_5 0x05 /* Dual-purpose register */
 
 /*
  * Register 1 (CTRL) Bit Definitions
  */
-#define FPGA_CTRL_DC_BLOCK_EN      (1 << 0)  /* DC block enable */
-#define FPGA_CTRL_QUARTER_SHIFT_EN (1 << 1)  /* Quarter-rate shift enable */
-#define FPGA_CTRL_QUARTER_SHIFT_UP (1 << 2)  /* Shift direction: 1=up, 0=down */
-#define FPGA_CTRL_TX_MODE          (1 << 5)  /* TX mode indicator (if applicable) */
-#define FPGA_CTRL_PRBS_EN          (1 << 6)  /* PRBS test mode */
-#define FPGA_CTRL_TRIGGER_EN       (1 << 7)  /* External trigger enable */
+#define FPGA_CTRL_DC_BLOCK_EN (1 << 0)      /* DC block enable */
+#define FPGA_CTRL_QUARTER_SHIFT_EN (1 << 1) /* Quarter-rate shift enable */
+#define FPGA_CTRL_QUARTER_SHIFT_UP (1 << 2) /* Shift direction: 1=up, 0=down */
+#define FPGA_CTRL_TX_MODE (1 << 5)          /* TX mode indicator (if applicable) */
+#define FPGA_CTRL_PRBS_EN (1 << 6)          /* PRBS test mode */
+#define FPGA_CTRL_TRIGGER_EN (1 << 7)       /* External trigger enable */
 
 /*
  * Register 3 Dual-Purpose Definitions
  */
 /* RX Mode: Digital gain/shift */
-#define FPGA_REG3_RX_DIGITAL_GAIN  0x03
-#define FPGA_RX_GAIN_SHIFT_MASK    0x0F  /* Bits [3:0] - shift amount */
+#define FPGA_REG3_RX_DIGITAL_GAIN 0x03
+#define FPGA_RX_GAIN_SHIFT_MASK 0x0F /* Bits [3:0] - shift amount */
 
 /* TX Mode: NCO control */
-#define FPGA_REG3_TX_NCO_CTRL      0x03
-#define FPGA_TX_NCO_EN             (1 << 0)  /* NCO enable */
-#define FPGA_TX_NCO_INVERT         (1 << 1)  /* Invert spectrum */
+#define FPGA_REG3_TX_NCO_CTRL 0x03
+#define FPGA_TX_NCO_EN (1 << 0)     /* NCO enable */
+#define FPGA_TX_NCO_INVERT (1 << 1) /* Invert spectrum */
 
 /*
  * Register 4 Dual-Purpose Definitions
  */
 /* RX Mode: DC block notch width */
-#define FPGA_REG4_RX_DC_WIDTH      0x04
-#define FPGA_RX_DC_WIDTH_MASK      0x07  /* Bits [2:0] */
+#define FPGA_REG4_RX_DC_WIDTH 0x04
+#define FPGA_RX_DC_WIDTH_MASK 0x07 /* Bits [2:0] */
 
 /* TX Mode: Interpolation ratio */
-#define FPGA_REG4_TX_INTERP        0x04
-#define FPGA_TX_INTERP_MASK        0x07  /* Bits [2:0] */
+#define FPGA_REG4_TX_INTERP 0x04
+#define FPGA_TX_INTERP_MASK 0x07 /* Bits [2:0] */
 
 /*
  * Register 5 Dual-Purpose Definitions
  */
 /* RX Mode: DC block adaptation rate */
-#define FPGA_REG5_RX_DC_RATE       0x05
-#define FPGA_RX_DC_RATE_MASK       0xFF  /* Bits [7:0] */
+#define FPGA_REG5_RX_DC_RATE 0x05
+#define FPGA_RX_DC_RATE_MASK 0xFF /* Bits [7:0] */
 
 /* TX Mode: NCO phase step (frequency) */
-#define FPGA_REG5_TX_PHASE_STEP    0x05
-#define FPGA_TX_PHASE_STEP_MASK    0xFF  /* Bits [7:0] */
+#define FPGA_REG5_TX_PHASE_STEP 0x05
+#define FPGA_TX_PHASE_STEP_MASK 0xFF /* Bits [7:0] */
 
 /* Export default values so other methods can use them */
 #define FPGA_RX_DEFAULT_DIGITAL_GAIN 0x00
-#define FPGA_RX_DEFAULT_DC_WIDTH     0x04
-#define FPGA_RX_DEFAULT_ADAPT_RATE   0x08
+#define FPGA_RX_DEFAULT_DC_WIDTH 0x04
+#define FPGA_RX_DEFAULT_ADAPT_RATE 0x08
 
 /*
  * Core Functions
@@ -102,7 +102,7 @@ typedef enum {
 
 /* Initialize the FPGA - loads bitstream from SPIFI flash
  * Returns: 0 on success, non-zero on failure */
-int fpga_bridge_init(void);
+int fpga_bridge_init(uint8_t* mem_base);
 
 /* Set operating mode - MUST be called before using mode-specific functions
  * This ensures registers 3-5 are interpreted correctly */

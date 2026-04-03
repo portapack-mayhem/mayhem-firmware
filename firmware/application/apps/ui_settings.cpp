@@ -1160,6 +1160,8 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
+                  &field_battcap,
+                  &button_help_cap,
                   &checkbox_overridebatt,
                   &checkbox_battery_charge_hint});
 
@@ -1169,20 +1171,43 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
         pmem::set_ui_battery_charge_hint(checkbox_battery_charge_hint.value());
         battery::BatteryManagement::set_calc_override(checkbox_overridebatt.value());
+        if (((uint32_t)field_battcap.value() != pmem::battery_cap_mah()) || (!pmem::battery_cap_valid())) {
+            pmem::set_battery_cap_mah(field_battcap.value());
+            i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+            if (dev && !dev->reInit()) {
+                nav.display_modal("Error", "Battery gauge re-init failed");
+                return;
+            }
+        }
         send_system_refresh();
         nav.pop();
     };
 
     button_reset.on_select = [&nav, this](Button&) {
         auto dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
-        if (dev->reset_learned())
+        if (dev && dev->reset_learned())
             nav.display_modal("Reset", "Battery parameters reset");
         else
             nav.display_modal("Error", "Error parameter reset");
     };
 
+    button_help_cap.on_select = [&nav, this](Button&) {
+        nav.display_modal("Battery Capacity",
+                          "Only change default, if you\n"
+                          "   changed the battery!\n"
+                          "Defaults:\n"
+                          "H4 + Hackrf One: 2500\n"
+                          "H4 + Hackrf Pro: 2000\n"
+                          "H4Pro + Hackrf Pro: custom\n"
+                          "PortaRf: 3000\n"
+
+        );
+    };
+
     checkbox_overridebatt.set_value(pmem::ui_override_batt_calc());
     checkbox_battery_charge_hint.set_value(pmem::ui_battery_charge_hint());
+
+    field_battcap.set_value(pmem::battery_cap_mah());
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
