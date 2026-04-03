@@ -340,6 +340,10 @@ set(EXTCPPSRC
 	#p25_tx
 	external/p25_tx/main.cpp
 	external/p25_tx/ui_p25_tx.cpp
+
+	#two_tone_pager
+	external/two_tone_pager/main.cpp
+	external/two_tone_pager/ui_two_tone_pager.cpp
 )
 
 set(EXTAPPLIST
@@ -425,6 +429,7 @@ set(EXTAPPLIST
 	time_sink
 	kiss_tnc
 	p25_tx
+	two_tone_pager
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

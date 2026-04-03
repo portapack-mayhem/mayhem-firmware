@@ -106,6 +106,7 @@ MEMORY
     ram_external_app_epirb_tx              (rwx) : org = 0xAE010000, len = 32k
     ram_external_app_fpv_detect            (rwx) : org = 0xAE020000, len = 32k
     ram_external_app_p25_tx                (rwx) : org = 0xAE030000, len = 32k
+    ram_external_app_two_tone_pager        (rwx) : org = 0xAE040000, len = 32k
 }
 
 SECTIONS
@@ -607,4 +608,10 @@ SECTIONS
         KEEP(*(.external_app.app_p25_tx.application_information));
         *(*ui*external_app*p25_tx*);
     } > ram_external_app_p25_tx
+
+    .external_app_two_tone_pager : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_two_tone_pager.application_information));
+        *(*ui*external_app*two_tone_pager*);
+    } > ram_external_app_two_tone_pager
 }
