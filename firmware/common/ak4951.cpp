@@ -608,7 +608,7 @@ bool AK4951::update(const Register reg) {
 
 bool AK4951::write(const address_t reg_address, const reg_t value) {
     const std::array<uint8_t, 2> tx{reg_address, value};
-    return  bus.transmit(bus_address, tx.data(), tx.size());
+    return bus.transmit(bus_address, tx.data(), tx.size());
 }
 
 } /* namespace ak4951 */

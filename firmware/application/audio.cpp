@@ -226,11 +226,11 @@ volume_range_t volume_range() {
 }
 
 bool set_volume(const volume_t volume) {
-    // add reset method 
+    // add reset method
     for (int i = 0; i < 100; ++i) {
-          if (audio_codec->set_headphone_volume(volume))
-              return true;
-          chThdSleepMilliseconds(2);
+        if (audio_codec->set_headphone_volume(volume))
+            return true;
+        chThdSleepMilliseconds(2);
     }
     return false;
 }

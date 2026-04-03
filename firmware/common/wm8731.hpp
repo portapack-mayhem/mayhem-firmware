@@ -306,13 +306,11 @@ class WM8731 : public audio::Codec {
         });
     }
 
-    bool set_wm_headphone_volume(const volume_t volume) 
-    {
-        
+    bool set_wm_headphone_volume(const volume_t volume) {
         const auto normalized = headphone_gain_range().normalize(volume);
         auto n = normalized.centibel() / 10;
 
-        bool tag =  write(LeftHeadphoneOut{
+        bool tag = write(LeftHeadphoneOut{
             .lhpvol = static_cast<reg_t>(n),
             .lzcen = 0,
             .lrhpboth = 1,
@@ -320,7 +318,6 @@ class WM8731 : public audio::Codec {
         });
         return tag;
     }
-
 
     bool set_headphone_volume(const volume_t volume) override {
         headphone_volume = volume;
