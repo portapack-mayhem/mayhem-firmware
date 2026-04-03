@@ -392,7 +392,7 @@ uint32_t pmem_stored_checksum(void);
 uint32_t pmem_calculated_checksum(void);
 
 // battery capacity settings
-void set_battery_cap_mah(uint16_t mah);  // 0 is not known, determine by hw
+void set_battery_cap_mah(uint16_t mah);  // 0 is not known; use assumed default based on device type/build config
 uint32_t battery_cap_mah();
 bool battery_cap_valid();
 

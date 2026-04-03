@@ -57,14 +57,14 @@ class BattinfoView : public View {
         {{UI_POS_X(2), UI_POS_Y(1)}, "Percent:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(2)}, "Voltage:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(3)}, "Method:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(4)}, "Capacity:", Theme::getInstance()->fg_light->foreground},
     };
 
     Labels labels_opt{
-        {{UI_POS_X(2), UI_POS_Y(4)}, "Current:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(2), UI_POS_Y(5)}, "Charge:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(2), UI_POS_Y(6)}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(2), UI_POS_Y(7)}, "Capacity:", Theme::getInstance()->fg_light->foreground},
-        // {{UI_POS_X(2), UI_POS_Y(7)}, "Cycles:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(5)}, "Current:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(6)}, "Charge:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(7)}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
+        // {{UI_POS_X(2), UI_POS_Y(8)}, "Cycles:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(10)}, "Change settings:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -77,24 +77,25 @@ class BattinfoView : public View {
     Text text_method{
         {UI_POS_X(13), UI_POS_Y(3), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
-    Text text_current{
+    Text text_capacity{
         {UI_POS_X(13), UI_POS_Y(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
-    Text text_charge{
+    Text text_current{
         {UI_POS_X(13), UI_POS_Y(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
-    Text text_ttef{
+    Text text_charge{
         {UI_POS_X(13), UI_POS_Y(6), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
-    Text text_capacity{
-        {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
-        "-"};
-    /* Text text_cycles{
+    Text text_ttef{
         {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
 
+    /* Text text_cycles{
+        {UI_POS_X(13), UI_POS_Y(8), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        "-"};
+
     Text text_warn{
-        {UI_POS_X(1), UI_POS_Y(8), screen_width, UI_POS_HEIGHT(2)},
+        {UI_POS_X(1), UI_POS_Y(9), screen_width, UI_POS_HEIGHT(2)},
         ""}; */
 
     Button button_settings{

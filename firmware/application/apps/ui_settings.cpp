@@ -1174,7 +1174,10 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
         if (((uint32_t)field_battcap.value() != pmem::battery_cap_mah()) || (!pmem::battery_cap_valid())) {
             pmem::set_battery_cap_mah(field_battcap.value());
             i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
-            if (dev) dev->reInit();
+            if (dev && !dev->reInit()) {
+                nav.display_modal("Error", "Battery gauge re-init failed");
+                return;
+            }
         }
         send_system_refresh();
         nav.pop();

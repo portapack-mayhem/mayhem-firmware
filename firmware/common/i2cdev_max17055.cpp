@@ -215,7 +215,11 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
 }
 
 bool I2cDev_MAX17055::reInit() {
-    return full_reset_and_init();
+    if (!full_reset_and_init()) {
+        return false;
+    }
+    partialInit();
+    return true;
 }
 
 bool I2cDev_MAX17055::full_reset_and_init() {
