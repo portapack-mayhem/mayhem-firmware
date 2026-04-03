@@ -201,6 +201,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 }
                 if (frame_sample_count > FRAME_MAX_SAMPLES) {
                     current_state = POST_FRAME;
+                    packet_builder.flush();
                 }
             } break;
             case POST_FRAME:

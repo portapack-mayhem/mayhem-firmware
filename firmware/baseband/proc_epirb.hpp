@@ -68,25 +68,25 @@ static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60
 static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
 static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
 static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 10;  // Accumulate phase change across 6 samples
-static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;  // Frame max length (add 1% error margin)
+static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Frame max length (add 1% error margin)
 
 static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
 static constexpr size_t CARRIER_MAX_SAMPLES = 0.900f * SAMPLE_RATE;          // Carrier + frame lasts 160ms + 520ms + 100ms post carrier = 880ms
 static constexpr size_t FRAME_MAX_SAMPLES = SAMPLES_PER_BIT * (144 * 1.1f);  // Frame max length (add 1% error margin)
 
-template <typename PreambleMatcher, typename EndMatcher>
+#define COSPAS_PREAMBLE_SIZE 24
+#define COSPAS_LONG_FRAME_SIZE 144
+#define COSPAS_SHORT_FRAME_SIZE 112
+#define COSPAS_REAL_PREAMBLE 0b1111'1111'1111'1110'0010'1111
+#define COSPAS_TEST_PREAMBLE 0b1111'1111'1111'1110'1101'0000
 class EPIRBPacketBuilder {
    public:
     using EPIRBHandler = void (*)(void* context, const baseband::Packet& packet);
 
     EPIRBPacketBuilder(
-        const PreambleMatcher preamble_matcher,
-        const EndMatcher end_matcher,
         void* context,
         EPIRBHandler handler)
-        : preamble(preamble_matcher),
-          end(end_matcher),
-          context(context),
+        : context(context),
           handler(handler) {
     }
 
@@ -96,22 +96,31 @@ class EPIRBPacketBuilder {
 
         switch (state) {
             case State::Preamble:
-                if (preamble(bit_history, packet.size())) {
-                    // TODO
-                    /*for (size_t i = 0; i < preamble.size(); ++i) {
-                        packet.add(bit_history.at_index(i));
-                    }*/
-                    state = State::Payload;
+                {
+                    bool is_real = real_sync_matcher(bit_history, packet.size());
+                    bool is_test = test_sync_matcher(bit_history, packet.size());
+                    if (is_real || is_test) {
+                        // Append preamble to the begining of the packet
+                        uint64_t preamble = is_real ? COSPAS_REAL_PREAMBLE : COSPAS_TEST_PREAMBLE;
+                        for (int8_t i = (COSPAS_PREAMBLE_SIZE-1); i >= 0; i--) {
+                            packet.add((preamble >> i) & 0x1);
+                        }
+                        state = State::Format;
+                    }
                 }
                 break;
+            case State::Format:
+                packet.add(symbol);
+                // 144 bits for long frames and 112 for short frames
+                size = symbol ? COSPAS_LONG_FRAME_SIZE : COSPAS_SHORT_FRAME_SIZE;
+                state = State::Payload;
 
+                break;
             case State::Payload:
                 packet.add(symbol);
 
-                if (end(bit_history, packet.size())) {
-                    packet.set_timestamp(Timestamp::now());
-                    if (handler) handler(context, packet);
-                    reset_state();
+                if (packet.size() >= size) {
+                    flush();
                 } else {
                     if (packet_truncated()) {
                         reset_state();
@@ -125,6 +134,12 @@ class EPIRBPacketBuilder {
         }
     }
 
+    void flush() {
+        packet.set_timestamp(Timestamp::now());
+        if (handler) handler(context, packet);
+        reset_state();
+    }
+
     void reset_state() {
         packet.clear();
         bit_history = BitHistory();
@@ -134,6 +149,7 @@ class EPIRBPacketBuilder {
    private:
     enum State {
         Preamble,
+        Format,
         Payload,
     };
 
@@ -141,12 +157,12 @@ class EPIRBPacketBuilder {
         return packet.size() >= packet.capacity();
     }
 
-
     BitHistory bit_history{};
-    PreambleMatcher preamble{};
-    EndMatcher end{};
+    BitPattern real_sync_matcher{COSPAS_REAL_PREAMBLE, COSPAS_PREAMBLE_SIZE};
+    BitPattern test_sync_matcher{COSPAS_TEST_PREAMBLE, COSPAS_PREAMBLE_SIZE};
     void* context;
     EPIRBHandler handler;
+    uint8_t size{0};
 
     State state{State::Preamble};
     baseband::Packet packet{};
@@ -182,7 +198,7 @@ class EPIRBProcessor : public BasebandProcessor {
     enum State { IDLE,
                  CARRIER_LOCKED,
                  DATA_SYNC,
-                 POST_FRAME};
+                 POST_FRAME };
     State current_state = IDLE;
 
     uint32_t stability_counter = 0;
@@ -226,9 +242,7 @@ class EPIRBProcessor : public BasebandProcessor {
                 this->payload_handler(packet);
             }};*/
 
-    EPIRBPacketBuilder<BitPattern, FixedLength> packet_builder{
-        {0b11111111, 8, 0},
-        {144 - 8},
+    EPIRBPacketBuilder packet_builder{
         this,
         [](void* ctx, const baseband::Packet& p) {
             static_cast<EPIRBProcessor*>(ctx)->payload_handler(p);

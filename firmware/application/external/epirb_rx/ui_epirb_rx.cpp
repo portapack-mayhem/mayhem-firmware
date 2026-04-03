@@ -56,7 +56,7 @@ std::string EPIRBAppView::beacon_to_hex_string(const baseband::Packet& packet) {
         out[i * 2 + 1] = hex[byte_val & 0x0F];
     }
 
-    return frame_size > 64 ? "FF" + out : out;
+    return out;
 }
 
 EPIRBBeacon EPIRBDecoder::decode_packet(const baseband::Packet& packet) {
@@ -67,6 +67,8 @@ EPIRBBeacon EPIRBDecoder::decode_packet(const baseband::Packet& packet) {
     }
 
     // Convert packet bits to byte array for easier processing
+    UsbSerialAsyncmsg::asyncmsg("Start Decode");
+
     std::array<uint8_t, 16> data{};
     for (size_t i = 0; i < std::min(packet.size() / 8, data.size()); i++) {
         uint8_t byte_val = 0;
@@ -78,32 +80,39 @@ EPIRBBeacon EPIRBDecoder::decode_packet(const baseband::Packet& packet) {
         data[i] = byte_val;
     }
 
+    UsbSerialAsyncmsg::asyncmsg("Start bch check");
     // Perform BCH error detection and correction
     uint8_t error_count = 0;
     beacon.packet_status = perform_bch_check(data, error_count);
     beacon.error_count = error_count;
 
     // Extract beacon ID (bits 26-85, 15 hex digits)
+    UsbSerialAsyncmsg::asyncmsg("Get beacon Id");
     beacon.beacon_id = 0;
     for (int i = 3; i < 11; i++) {
         beacon.beacon_id = (beacon.beacon_id << 8) | data[i];
     }
 
     // Extract beacon type (bits 86-88)
+    UsbSerialAsyncmsg::asyncmsg("Get beacon type");
     uint8_t type_bits = (data[10] >> 5) & 0x07;
     beacon.beacon_type = decode_beacon_type(type_bits);
 
     // Extract emergency type (bits 91-94 for some beacon types)
+    UsbSerialAsyncmsg::asyncmsg("Get eamercency type");
     uint8_t emergency_bits = (data[11] >> 4) & 0x0F;
     beacon.emergency_type = decode_emergency_type(emergency_bits);
 
     // Extract location if encoded (depends on beacon type and protocol)
+    UsbSerialAsyncmsg::asyncmsg("Get location");
     beacon.location = decode_location(data);
 
     // Extract country code (bits 1-10)
+    UsbSerialAsyncmsg::asyncmsg("Get country code");
     beacon.country_code = decode_country_code(data);
 
     // Set timestamp
+    UsbSerialAsyncmsg::asyncmsg("Get time");
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
     beacon.timestamp = datetime;
@@ -489,7 +498,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &label_latest,
                   &text_latest_info,
                   &label_packet_stats,
-                  &options_algo,
+                  //&options_algo,
                   &console,
                   &button_map,
                   &button_clear,
@@ -577,11 +586,11 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
     UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
-    /*auto beacon = EPIRBDecoder::decode_packet(packet);
+    auto beacon = EPIRBDecoder::decode_packet(packet);
 
     if (beacon.beacon_id != 0) {  // Valid beacon decoded
         on_beacon_decoded(beacon);
-    }*/
+    }
 }
 
 void EPIRBAppView::on_beacon_decoded(const EPIRBBeacon& beacon) {
@@ -600,12 +609,8 @@ void EPIRBAppView::on_beacon_decoded(const EPIRBBeacon& beacon) {
             break;
     }
 
-    recent_beacons.push_back(beacon);
-
-    // Keep only last 50 beacons
-    if (recent_beacons.size() > 50) {
-        recent_beacons.erase(recent_beacons.begin());
-    }
+    recent_beacons[recent_beacon_pos++ % BEACON_HISTORY_SIZE] = beacon;
+    recent_beacon_full |= (recent_beacon_pos == 0);
 
     // Update display
     update_display();
@@ -647,18 +652,21 @@ void EPIRBAppView::on_beacon_decoded(const EPIRBBeacon& beacon) {
 }
 
 void EPIRBAppView::on_show_map() {
-    if (!recent_beacons.empty()) {
+    if (recent_beacon_full || recent_beacon_pos > 0) {
         // Find latest beacon with valid location
-        for (auto it = recent_beacons.rbegin(); it != recent_beacons.rend(); ++it) {
-            if (it->location.valid) {
+        size_t size = recent_beacon_full ? BEACON_HISTORY_SIZE : recent_beacon_pos;
+        for (size_t i = 1; i <= size; i++) {
+            int8_t pos = (recent_beacon_pos - i);
+            if(pos < 0) pos = BEACON_HISTORY_SIZE + pos;
+            if (recent_beacons[pos].location.valid) {
                 // Create a GeoMapView with all beacon locations
                 auto map_view = nav_.push<ui::GeoMapView>(
                     "EPIRB",  // tag
                     0,        // altitude
                     ui::GeoPos::alt_unit::METERS,
                     ui::GeoPos::spd_unit::NONE,
-                    it->location.latitude,
-                    it->location.longitude,
+                    recent_beacons[pos].location.latitude,
+                    recent_beacons[pos].location.longitude,
                     0  // angle
                 );
 
@@ -684,7 +692,7 @@ void EPIRBAppView::on_show_map() {
 }
 
 void EPIRBAppView::on_clear_beacons() {
-    recent_beacons.clear();
+    recent_beacon_pos = 0;
     beacons_received = 0;
     packets_valid = 0;
     packets_corrected = 0;
@@ -723,8 +731,8 @@ void EPIRBAppView::update_display() {
                         STR_COLOR_RED + to_string_dec_uint(packets_error) + "ERR" + STR_COLOR_WHITE;
     label_packet_stats.set(stats);
 
-    if (!recent_beacons.empty()) {
-        const auto& latest = recent_beacons.back();
+    if (recent_beacon_pos > 0) {
+        const auto& latest = recent_beacons[recent_beacon_pos - 1];
         text_latest_info.set(format_beacon_summary(latest));
     }
 }

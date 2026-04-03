@@ -38,11 +38,7 @@
 
 #include "audio.hpp"
 
-
-/* #include <cstdint>
-#include <cstddef>
-#include <string>
-#include <array> */
+#define BEACON_HISTORY_SIZE 32
 
 namespace ui::external_app::epirb_rx {
 
@@ -192,7 +188,9 @@ class EPIRBAppView : public ui::View {
 
     ui::NavigationView& nav_;
 
-    std::vector<EPIRBBeacon> recent_beacons{};
+    EPIRBBeacon recent_beacons[BEACON_HISTORY_SIZE];
+    int8_t recent_beacon_pos{0};
+    bool recent_beacon_full{false};
     std::unique_ptr<EPIRBLogger> logger{};
 
     EPIRBBeaconDetailView beacon_detail_view{nav_};
@@ -268,10 +266,9 @@ class EPIRBAppView : public ui::View {
             {"5", 5},
         }};
 
-
     // Beacon list
     ui::Console console{
-        {0, 5 * 16, 240, 152-16}};
+        {0, 4 * 16, 240, 152}};
 
     ui::Button button_map{
         {0, 224, 60, 24},
