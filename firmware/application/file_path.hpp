@@ -26,7 +26,8 @@
 
 extern const std::filesystem::path adsb_dir;
 extern const std::filesystem::path ais_dir;
-extern const std::filesystem::path apps_dir;
+extern std::filesystem::path apps_dir;
+void init_apps_dir();
 extern const std::filesystem::path aprs_dir;
 extern const std::filesystem::path audio_dir;
 extern const std::filesystem::path blerx_dir;

@@ -137,6 +137,7 @@ Continuous (Fox-oring)
 #include "gcc.hpp"
 
 #include "sd_card.hpp"
+#include "file_path.hpp"
 
 #include <string.h>
 #include "i2cdevmanager.hpp"
@@ -199,6 +200,7 @@ int main(void) {
 
         case portapack::init_status_t::INIT_SUCCESS:
 
+            init_apps_dir();
             config_mode_clear();
 
             lcd_frame_sync_configure();

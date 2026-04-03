@@ -110,23 +110,33 @@ add_custom_target(
 	DEPENDS firmware ${FIRMWARE_FILENAME}
 )
 
+# Determine device subdirectory for per-device APPS layout
+if(BOARD STREQUAL "PRALINE")
+	set(DEVICE_SUBDIR "hpro")
+else()
+	if(NOT DEFINED DEVICE_SUBDIR)
+		set(DEVICE_SUBDIR "hackrf")
+	endif()
+endif()
+message("Using DEVICE_SUBDIR=${DEVICE_SUBDIR}")
+
 add_custom_target(
 	program-external-apps
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	COMMAND ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
+	COMMAND ${CMAKE_COMMAND} -E env DEVICE_SUBDIR=${DEVICE_SUBDIR} ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
 	DEPENDS program standalone_apps
 )
 
 add_custom_command(
 	OUTPUT ${PPFW_FILENAME}
-	
+
 	COMMAND rm -rf firmware_tar
 	COMMAND mkdir -p firmware_tar/FIRMWARE
 	# Using VERSION_NOHASH to avoid dev builds piling up in the FIRMWARE folder of the sd card of testers in #test-drive
 	COMMAND cp ${FIRMWARE_FILENAME} firmware_tar/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
-	COMMAND mkdir -p firmware_tar/APPS
-	COMMAND cp application/*.ppma firmware_tar/APPS
-	COMMAND cp standalone/*/*.ppmp firmware_tar/APPS
+	COMMAND mkdir -p firmware_tar/APPS/${DEVICE_SUBDIR}
+	COMMAND cp application/*.ppma firmware_tar/APPS/${DEVICE_SUBDIR}
+	COMMAND cp standalone/*/*.ppmp firmware_tar/APPS/${DEVICE_SUBDIR}
 	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
 	DEPENDS firmware ${FIRMWARE_FILENAME} standalone_apps
 	# Dont use VERBATIM here as it prevents usage of globbing (*)
