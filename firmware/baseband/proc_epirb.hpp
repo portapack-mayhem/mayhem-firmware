@@ -68,8 +68,9 @@ static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60
 static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
 static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
 static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 10;  // Accumulate phase change across 6 samples
+static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;  // Frame max length (add 1% error margin)
 
-static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.100f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 20ms
+static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
 static constexpr size_t CARRIER_MAX_SAMPLES = 0.900f * SAMPLE_RATE;          // Carrier + frame lasts 160ms + 520ms + 100ms post carrier = 880ms
 static constexpr size_t FRAME_MAX_SAMPLES = SAMPLES_PER_BIT * (144 * 1.1f);  // Frame max length (add 1% error margin)
 
@@ -176,6 +177,7 @@ class EPIRBProcessor : public BasebandProcessor {
     uint16_t sample_count{0};
     uint16_t frame_sample_count{0};
     bool last_phase_positive = false;
+    uint16_t rise_detection_count{0};
 
     enum State { IDLE,
                  CARRIER_LOCKED,
@@ -236,6 +238,7 @@ class EPIRBProcessor : public BasebandProcessor {
     void send_packet(uint64_t data);
     float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);
     void frame_end();
+    bool filtered_rise_detect(bool condition);
 
     // Statistics
     uint32_t packets_received = 0;

@@ -55,6 +55,20 @@ float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16
     return phase_diff;
 }
 
+bool EPIRBProcessor::filtered_rise_detect(bool condition) {
+    bool result = false;
+    if (condition) {
+        rise_detection_count++;
+        if (rise_detection_count >= RISE_FILTER_SAMPLES) {
+            result = true;
+            rise_detection_count = 0;
+        }
+    } else {
+        rise_detection_count = 0;
+    }
+    return result;
+}
+
 void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
     // First decimation stage: 3.072000 MHz / 8 -> 384 kHz
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
@@ -69,7 +83,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
     feed_channel_stats(decimator_out);
 
     auto audio = demod.execute(channel_out, audio_buffer);
-    //auto audio = demod.execute(decimator_out, audio_buffer);
+    // auto audio = demod.execute(decimator_out, audio_buffer);
     audio_output.write(audio);
 
     // Process each decimated sample through the matched filter
@@ -94,39 +108,37 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         switch (current_state) {
             case IDLE:
                 // We are waiting for a 160ms empty carrier => phase shouls be stable during this period
-                if (phase_delta < 0.9f) {
+                if (filtered_rise_detect(phase_delta >= 0.6f)) {
+                    stability_counter = 0;
+                } else {
                     stability_counter++;
                     if (stability_counter > CARRIER_SAMPLES_THRESHOLD) {
                         send_packet(0xFED0000000000001);
                         current_state = CARRIER_LOCKED;
                         frame_sample_count = 0;
                     }
-                } else {
-                    stability_counter = 0;
                 }
                 break;
 
             case CARRIER_LOCKED:
                 // Carrier is locked, we now wait for a phase 1.1 rad phase jump corresponding to the befining of the frame
 
-                if (phase_delta > 0.9f) {  // Jump detected (1.1 rad)
+                if (filtered_rise_detect(phase_delta > 0.8f)) {
+                    // Jump detected (1.1 rad)
                     frame_sample_count = 0;
-                    //send_packet(0xFED0000000000002);
+                    // send_packet(0xFED0000000000002);
                     send_packet(0xFEE0000000000000 | CONF_FLOAT(phase_delta));
                     current_state = DATA_SYNC;
                     // send_packet(0xFEA0000000000000 | CONF_FLOAT(avg_phase));
                     // send_packet((((phase - avg_phase)>=0) ? 0xFEA0000000000000 : 0xFEB0000000000000) | CONF_FLOAT(phase));
                     last_phase_positive = true;
                     last_bit = true;
-                }
-                else if (frame_sample_count > CARRIER_MAX_SAMPLES)
-                {
+                } else if (frame_sample_count > CARRIER_MAX_SAMPLES) {
                     frame_end();
                 }
                 break;
 
-            case DATA_SYNC:
-                {
+            case DATA_SYNC: {
                 float abs_phase_delta = fabsf(phase_delta);
 
                 if (abs_phase_delta >= 1.6f) {
@@ -155,7 +167,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                         } else if (sample_count > (SAMPLES_PER_SYMBOL * 2 + SAMPLES_MARGIN)) {
                             // We missed something...
                             send_packet(0xFED0000000000003);
-                            // send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
+                            send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
                             //  TODO
                             cur_bit = last_bit;
                         } else if (sample_count >= (SAMPLES_PER_SYMBOL * 2 - SAMPLES_MARGIN)) {
@@ -180,25 +192,19 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                         bit_history.add(cur_bit);
                         history_size++;
                         if (history_size >= 64) {
-                            // last_frame_time = now;
                             history_size = 0;
                             // Create and send EPIRB packet message to application layer
                             send_packet(bit_history.value());
                             bit_history = BitHistory();
                         }
-                        /*  auto now = chTimeNow();
-                        auto elapsed = (now - last_frame_time);
-                        if(elapsed > 1000)*/
                     }
                 }
-                if(frame_sample_count > FRAME_MAX_SAMPLES)
-                {
+                if (frame_sample_count > FRAME_MAX_SAMPLES) {
                     current_state = POST_FRAME;
                 }
             } break;
             case POST_FRAME:
-                if(frame_sample_count > CARRIER_MAX_SAMPLES)
-                {
+                if (frame_sample_count > CARRIER_MAX_SAMPLES) {
                     frame_end();
                 }
             default:
@@ -208,20 +214,20 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void EPIRBProcessor::frame_end() {
-        //uint16_t old_count = frame_sample_count;
-        sample_count = 0;
-        frame_sample_count = 0;
-        stability_counter = 0;
-        last_phase_positive = false;
-        last_bit = false;
-        current_state = IDLE;
-        //send_packet(0xFED0000000000000);
-        //send_packet(0xFEA0000000000000 | old_count);
-        if (history_size > 0) send_packet(bit_history.value());
-        history_size = 0;
-        bit_history = BitHistory();
-        // Reset packet builder
-        packet_builder.reset_state();
+    // uint16_t old_count = frame_sample_count;
+    sample_count = 0;
+    frame_sample_count = 0;
+    stability_counter = 0;
+    last_phase_positive = false;
+    last_bit = false;
+    current_state = IDLE;
+    // send_packet(0xFED0000000000000);
+    // send_packet(0xFEA0000000000000 | old_count);
+    if (history_size > 0) send_packet(bit_history.value());
+    history_size = 0;
+    bit_history = BitHistory();
+    // Reset packet builder
+    packet_builder.reset_state();
 }
 
 void EPIRBProcessor::send_packet(uint64_t data) {
@@ -239,8 +245,8 @@ void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
         packets_received++;
         last_packet_timestamp = Timestamp::now();
 
-        //send_packet(0xFEC0000000000000 | frame_sample_count);
-        // Create and send EPIRB packet message to application layer
+        // send_packet(0xFEC0000000000000 | frame_sample_count);
+        //  Create and send EPIRB packet message to application layer
         const EPIRBPacketMessage message{packet};
         shared_memory.application_queue.push(message);
     }
