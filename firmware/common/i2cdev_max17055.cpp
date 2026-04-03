@@ -214,6 +214,10 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
     return false;
 }
 
+bool I2cDev_MAX17055::reInit() {
+    return full_reset_and_init();
+}
+
 bool I2cDev_MAX17055::full_reset_and_init() {
     if (!soft_reset()) {
         return false;
@@ -235,12 +239,12 @@ bool I2cDev_MAX17055::soft_reset() {
 }
 
 bool I2cDev_MAX17055::initialize_custom_parameters() {
-    if (!write_register(0xD0, 0x03E8)) return false;                                                                                                  // Unknown register, possibly related to battery profile
-    if (!write_register(0xDB, 0x0000)) return false;                                                                                                  // ModelCfg
-    if (!write_register(0x05, 0x0000)) return false;                                                                                                  // RepCap
-    uint32_t designcap = portapack::device_type == portapack::DEV_PORTARF ? __MAX17055_Design_Capacity_PRF__ * 2 : __MAX17055_Design_Capacity__ * 2;  // the original design has a 2x multiplier here, so i keep it
-    if (!write_register(0x18, designcap)) return false;                                                                                               // DesignCap
-    if (!write_register(0x45, designcap / 32)) return false;                                                                                          // dQAcc  =  DesignCap / 32
+    if (!write_register(0xD0, 0x03E8)) return false;                           // Unknown register, possibly related to battery profile
+    if (!write_register(0xDB, 0x0000)) return false;                           // ModelCfg
+    if (!write_register(0x05, 0x0000)) return false;                           // RepCap
+    uint32_t designcap = portapack::persistent_memory::battery_cap_mah() * 2;  // the original design has a 2x multiplier here, so i keep it
+    if (!write_register(0x18, designcap)) return false;                        // DesignCap
+    if (!write_register(0x45, designcap / 32)) return false;                   // dQAcc  =  DesignCap / 32
 
     if (!write_register(0x1E, 0x03C0)) return false;                                  // IChgTerm
     if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty

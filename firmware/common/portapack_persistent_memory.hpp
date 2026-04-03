@@ -45,6 +45,10 @@
 #define PMEM_SIZE_BYTES 256  // total amount of pmem space in bytes, including checksum
 #define PMEM_SIZE_WORDS (PMEM_SIZE_BYTES / 4)
 
+// to check battery mins and maxes in pmem, and validity
+#define BATT_18650_MIN_MAH 1000
+#define BATT_18650_MAX_MAH 5000
+
 using namespace modems;
 using namespace serializer;
 using namespace ui;
@@ -386,6 +390,11 @@ uint32_t get_data_structure_version();
 uint32_t pmem_data_word(uint32_t index);
 uint32_t pmem_stored_checksum(void);
 uint32_t pmem_calculated_checksum(void);
+
+// battery capacity settings
+void set_battery_cap_mah(uint16_t mah);  // 0 is not known, determine by hw
+uint32_t battery_cap_mah();
+bool battery_cap_valid();
 
 size_t data_size();
 

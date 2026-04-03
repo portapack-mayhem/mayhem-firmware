@@ -54,48 +54,52 @@ class BattinfoView : public View {
     int32_t current = 0;
 
     Labels labels{
-        {{2 * 8, 1 * 16}, "Percent:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 2 * 16}, "Voltage:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 3 * 16}, "Method:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(1)}, "Percent:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(2)}, "Voltage:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(3)}, "Method:", Theme::getInstance()->fg_light->foreground},
     };
 
     Labels labels_opt{
-        {{2 * 8, 4 * 16}, "Current:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 5 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 6 * 16}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
-        // {{2 * 8, 7 * 16}, "Cycles:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 10 * 16}, "Change method:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(4)}, "Current:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(5)}, "Charge:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(6)}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(7)}, "Capacity:", Theme::getInstance()->fg_light->foreground},
+        // {{UI_POS_X(2), UI_POS_Y(7)}, "Cycles:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(10)}, "Change settings:", Theme::getInstance()->fg_light->foreground},
     };
 
     Text text_percent{
-        {13 * 8, 1 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
     Text text_voltage{
-        {13 * 8, 2 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
     Text text_method{
-        {13 * 8, 3 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(3), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
     Text text_current{
-        {13 * 8, 4 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
     Text text_charge{
-        {13 * 8, 5 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
     Text text_ttef{
-        {13 * 8, 6 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(6), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        "-"};
+    Text text_capacity{
+        {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
     /* Text text_cycles{
-        {13 * 8, 7 * 16, 10 * 16, 16},
+        {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_warn{
-        {1 * 8, 8 * 16, screen_width, 2 * 16},
+        {UI_POS_X(1), UI_POS_Y(8), screen_width, UI_POS_HEIGHT(2)},
         ""}; */
 
-    Button button_mode{
-        {2 * 8, 11 * 16 + 5, 5 * 16, 32},
-        "Volt"};
+    Button button_settings{
+        {UI_POS_X(2), UI_POS_Y(11) + 5, UI_POS_WIDTH(10), UI_POS_HEIGHT(2)},
+        "Settings"};
 
     Button button_exit{
         {UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
