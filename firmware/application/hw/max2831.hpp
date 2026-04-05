@@ -213,6 +213,8 @@ class MAX2831 : public MAX283x {
     reg_t read(const address_t reg_num) override;
     void write(const address_t reg_num, const reg_t value) override;
 
+    void set_rssi_mux(const uint8_t mode);
+
    private:
     spi::arbiter::Target& _target;
     Mode _mode{Mode::Standby};

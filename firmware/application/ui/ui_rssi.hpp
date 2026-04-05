@@ -64,18 +64,11 @@ class RSSI : public Widget {
     void set_db(int16_t db);
 
    private:
-#ifdef PRALINE
-    // Changed from int8_t to uint8_t:
-    uint8_t min_ = 0;
-    uint8_t avg_ = 0;
-    uint8_t max_ = 0;
-    uint8_t peak_ = 0;
-#else
     int8_t min_ = 0;
     int8_t avg_ = 0;
     int8_t max_ = 0;
     int8_t peak_ = 0;
-#endif
+
     size_t peak_duration_ = 0;
     int16_t db_ = 0;
     bool instant_exec_{false};

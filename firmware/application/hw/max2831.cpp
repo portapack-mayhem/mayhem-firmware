@@ -191,11 +191,13 @@ void MAX2831::set_mode(const Mode mode) {
         case Mode::Tx_Calibration:
             gpio_max2831_rx_enable.write(1); /* RXTX=1 for TX */
             gpio_max283x_enable.write(1);    /* ENABLE=1 */
+            set_rssi_mux(2);
             break;
         case Mode::Receive:
         case Mode::Rx_Calibration:
             gpio_max2831_rx_enable.write(0); /* RXTX=0 for RX */
             gpio_max283x_enable.write(1);    /* ENABLE=1 */
+            set_rssi_mux(0);
             break;
     }
 
@@ -473,6 +475,17 @@ void MAX2831::write(const address_t reg_num, const reg_t value) {
         write_reg(reg_num, _regs[reg_num]);
         mark_clean(reg_num);
     }
+}
+
+void MAX2831::set_rssi_mux(const uint8_t mode) {
+    /* * RSSI MUX allows switching the RSSI output between different internal signals.
+     * 0 = RSSI (REG8_RSSI_MUX_RSSI)
+     * 1 = (REG8_RSSI_MUX_TEMP)
+     * 2 = (REG8_RSSI_MUX_TX_POWER)
+     */
+    uint16_t mux_val = (mode & 0x03) << REG8_RSSI_MUX_SHIFT;
+    set_reg_field(8, REG8_RSSI_MUX_MASK, mux_val);
+    flush_reg(8);
 }
 
 }  // namespace max2831
