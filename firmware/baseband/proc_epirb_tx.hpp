@@ -60,14 +60,17 @@ class EPIRBTXProcessor : public BasebandProcessor {
     // Size of the frame to send in BPSK mode
     uint8_t frame_data_len = 0;
 
-    // BPSK parameters: Target phase +/-63° as per COSPAS/SARSAT specifications
-    static constexpr float phase_rad = 63.0f * M_PI / 180.0f;
+    // BPSK parameters: Target phase +/-1.1 RAD as per COSPAS/SARSAT specifications
+    static constexpr float phase_rad = 1.1f;
 
     // I/Q values for BPSK (positive phase and negative phase)
     int8_t i_pos = (int8_t)(cos(phase_rad) * 127);
     int8_t q_pos = (int8_t)(sin(phase_rad) * 127);
     int8_t i_neg = i_pos;
     int8_t q_neg = -q_pos;
+    // I/Q values for carrier only
+    static constexpr int8_t i_carrier = 127;
+    static constexpr int8_t q_carrier = 0;
 
     // COSPAS/SARSAT signal is manchester (2 states per bit) encoded 400 bit/sec
     static const uint32_t samples_per_halfbit = TONES_SAMPLERATE / 400 / 2;

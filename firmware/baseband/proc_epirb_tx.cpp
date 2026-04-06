@@ -46,15 +46,15 @@ void EPIRBTXProcessor::execute(const buffer_c8_t& buffer) {
         if (mode_bpsk) {
             // BPSK Manchester beacon signal
             if (bpsk_pre_count < config_pre_count) {
-                // Pre-count state: send a negative phase carrier during pre-count
+                // Pre-count state: send carrier only during pre-count
                 bpsk_pre_count++;
-                re = i_neg;
-                im = q_neg;
+                re = i_carrier;
+                im = q_carrier;
             } else if (bpsk_post_count > 0) {
-                // Post-count: send a negative phase carrier during post-count
+                // Post-count: send carrier only during post-count
                 bpsk_post_count++;
-                re = i_neg;
-                im = q_neg;
+                re = i_carrier;
+                im = q_carrier;
                 if (bpsk_post_count >= config_post_count) {
                     // End transmission here
                     byte_index = 0;
