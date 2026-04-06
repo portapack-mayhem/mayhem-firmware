@@ -290,7 +290,7 @@ class I2cDev_MAX17055 : public I2cDev {
     uint16_t averageMVoltage(void);
     int32_t instantCurrent(void);
     uint16_t stateOfCharge(void);
-
+    bool reInit();  // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
    private:
     const RegisterEntry* findEntry(const char* name) const;
 
