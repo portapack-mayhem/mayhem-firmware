@@ -451,7 +451,7 @@ void RSSIGraph::add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max,
     constexpr int raw_delta = raw_max - raw_min;
 
     // vertical bottom to top level meters
-    // y_avf
+    // y_avg
     const range_t<int> y_avg_range{0, r.height() - 1};
     const int16_t y_avg = y_avg_range.clip((rssi_avg - raw_min) * r.height() / raw_delta);
     // y_min
