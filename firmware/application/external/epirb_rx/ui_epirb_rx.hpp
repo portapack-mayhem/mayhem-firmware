@@ -38,44 +38,12 @@
 
 #include "audio.hpp"
 
-#define BEACON_HISTORY_SIZE 32
+#include "beacon.hpp"
 
 namespace ui::external_app::epirb_rx {
 
-// EPIRB 406 MHz beacon types
-enum class BeaconType : uint8_t {
-    OrbitingLocationBeacon = 0,
-    PersonalLocatorBeacon = 1,
-    EmergencyLocatorTransmitter = 2,
-    SerialELT = 3,
-    NationalELT = 4,
-    Other = 15
-};
+#define BEACON_HISTORY_SIZE 16
 
-// EPIRB distress and emergency types
-enum class EmergencyType : uint8_t {
-    Fire = 0,
-    Flooding = 1,
-    Collision = 2,
-    Grounding = 3,
-    Sinking = 4,
-    Disabled = 5,
-    Abandoning = 6,
-    Piracy = 7,
-    Man_Overboard = 8,
-    Other = 15
-};
-
-struct EPIRBLocation {
-    float latitude;   // degrees, -90 to +90
-    float longitude;  // degrees, -180 to +180
-    bool valid;
-
-    EPIRBLocation()
-        : latitude(0.0f), longitude(0.0f), valid(false) {}
-    EPIRBLocation(float lat, float lon)
-        : latitude(lat), longitude(lon), valid(true) {}
-};
 
 enum class PacketStatus : uint8_t {
     Valid = 0,
@@ -83,30 +51,11 @@ enum class PacketStatus : uint8_t {
     Error = 2
 };
 
-struct EPIRBBeacon {
-    uint32_t beacon_id;
-    BeaconType beacon_type;
-    EmergencyType emergency_type;
-    EPIRBLocation location;
-    uint32_t country_code;
-    std::string vessel_name;
-    rtc::RTC timestamp;
-    uint32_t sequence_number;
-    PacketStatus packet_status;
-    uint8_t error_count;
-
-    EPIRBBeacon()
-        : beacon_id(0), beacon_type(BeaconType::Other), emergency_type(EmergencyType::Other), location(), country_code(0), vessel_name(), timestamp(), sequence_number(0), packet_status(PacketStatus::Error), error_count(0) {}
-};
-
 class EPIRBDecoder {
    public:
-    static EPIRBBeacon decode_packet(const baseband::Packet& packet);
+    static Beacon decode_packet(const baseband::Packet& packet);
 
    private:
-    static EPIRBLocation decode_location(const std::array<uint8_t, 16>& data);
-    static BeaconType decode_beacon_type(uint8_t type_bits);
-    static EmergencyType decode_emergency_type(uint8_t emergency_bits);
     static uint32_t decode_country_code(const std::array<uint8_t, 16>& data);
     static std::string decode_vessel_name(const std::array<uint8_t, 16>& data);
 
@@ -123,17 +72,17 @@ class EPIRBLogger {
         return log_file.append(filename);
     }
 
-    void on_packet(const EPIRBBeacon& beacon);
+    void on_packet(Beacon& beacon);
 
    private:
     LogFile log_file{};
 };
 
 // Forward declarations of formatting functions
-std::string format_beacon_type(BeaconType type);
-std::string format_emergency_type(EmergencyType type);
-std::string format_packet_status(PacketStatus status);
-ui::Color get_packet_status_color(PacketStatus status);
+std::string format_beacon_type(Beacon& beacon);
+std::string format_emergency_type(Beacon& beacon);
+std::string format_packet_status(Beacon& beacon);
+ui::Color get_packet_status_color(Beacon& beacon);
 
 class EPIRBBeaconDetailView : public ui::View {
    public:
@@ -143,8 +92,8 @@ class EPIRBBeaconDetailView : public ui::View {
     EPIRBBeaconDetailView(const EPIRBBeaconDetailView&) = delete;
     EPIRBBeaconDetailView& operator=(const EPIRBBeaconDetailView&) = delete;
 
-    void set_beacon(const EPIRBBeacon& beacon);
-    const EPIRBBeacon& beacon() const { return beacon_; }
+    void set_beacon(const Beacon& beacon);
+    const Beacon& beacon() const { return beacon_; }
 
     void focus() override;
     void paint(ui::Painter&) override;
@@ -152,7 +101,7 @@ class EPIRBBeaconDetailView : public ui::View {
     ui::GeoMapView* get_geomap_view() { return geomap_view; }
 
    private:
-    EPIRBBeacon beacon_{};
+    Beacon beacon_{};
 
     ui::Button button_done{
         {125, 224, 96, 24},
@@ -188,12 +137,12 @@ class EPIRBAppView : public ui::View {
 
     ui::NavigationView& nav_;
 
-    EPIRBBeacon recent_beacons[BEACON_HISTORY_SIZE];
+    Beacon recent_beacons[BEACON_HISTORY_SIZE];
     int8_t recent_beacon_pos{0};
     bool recent_beacon_full{false};
     std::unique_ptr<EPIRBLogger> logger{};
 
-    EPIRBBeaconDetailView beacon_detail_view{nav_};
+    //EPIRBBeaconDetailView beacon_detail_view{nav_};
 
     static constexpr auto header_height = 4 * 16;
 
@@ -296,15 +245,15 @@ class EPIRBAppView : public ui::View {
         }};
 
     void on_packet(const baseband::Packet& packet);
-    void on_beacon_decoded(const EPIRBBeacon& beacon);
+    void on_beacon_decoded(Beacon& beacon);
     void on_show_map();
     void on_clear_beacons();
     void on_toggle_log();
     void on_tick_second();
 
     void update_display();
-    std::string format_beacon_summary(const EPIRBBeacon& beacon);
-    std::string format_location(const EPIRBLocation& location);
+    std::string format_beacon_summary(Beacon& beacon);
+    std::string format_location(Location& location);
     std::string beacon_to_hex_string(const baseband::Packet& packet);
 };
 
