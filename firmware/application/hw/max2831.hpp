@@ -151,6 +151,7 @@ constexpr uint16_t REG8_RSSI_MUX_MASK = 0x0300; /* D9:D8 */
 constexpr uint16_t REG8_RSSI_MUX_RSSI = (0 << REG8_RSSI_MUX_SHIFT);
 constexpr uint16_t REG8_RSSI_MUX_TEMP = (1 << REG8_RSSI_MUX_SHIFT);
 constexpr uint16_t REG8_RSSI_MUX_TX_POWER = (2 << REG8_RSSI_MUX_SHIFT);
+constexpr uint16_t REG8_RSSI_EN = (1 << 10);
 
 constexpr uint16_t REG8_RXVGA_GAIN_SPI_EN_SHIFT = 12;
 constexpr uint16_t REG8_RXVGA_GAIN_SPI_EN = (1 << REG8_RXVGA_GAIN_SPI_EN_SHIFT);

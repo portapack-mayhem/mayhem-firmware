@@ -191,13 +191,13 @@ void MAX2831::set_mode(const Mode mode) {
         case Mode::Tx_Calibration:
             gpio_max2831_rx_enable.write(1); /* RXTX=1 for TX */
             gpio_max283x_enable.write(1);    /* ENABLE=1 */
-            set_rssi_mux(2);
+            set_rssi_mux(2);                 // transmitt power
             break;
         case Mode::Receive:
         case Mode::Rx_Calibration:
             gpio_max2831_rx_enable.write(0); /* RXTX=0 for RX */
             gpio_max283x_enable.write(1);    /* ENABLE=1 */
-            set_rssi_mux(0);
+            set_rssi_mux(0);                 // RSSI
             break;
     }
 
@@ -479,12 +479,28 @@ void MAX2831::write(const address_t reg_num, const reg_t value) {
 
 void MAX2831::set_rssi_mux(const uint8_t mode) {
     /* * RSSI MUX allows switching the RSSI output between different internal signals.
-     * 0 = RSSI (REG8_RSSI_MUX_RSSI)
-     * 1 = (REG8_RSSI_MUX_TEMP)
-     * 2 = (REG8_RSSI_MUX_TX_POWER)
+     * 0 = RSSI
+     * 1 = TEMP
+     * 2 = TX_POWER
      */
-    uint16_t mux_val = (mode & 0x03) << REG8_RSSI_MUX_SHIFT;
-    set_reg_field(8, REG8_RSSI_MUX_MASK, mux_val);
+    uint16_t mux_val = 0;
+
+    // A megfelelő konstans kiválasztása a bemeneti mód alapján
+    switch (mode) {
+        case 1:
+            mux_val = REG8_RSSI_MUX_TEMP;
+            break;
+        case 2:
+            mux_val = REG8_RSSI_MUX_TX_POWER;
+            break;
+        case 0:
+        default:
+            mux_val = REG8_RSSI_MUX_RSSI;
+            break;
+    }
+    mux_val |= REG8_RSSI_EN;
+
+    set_reg_field(8, REG8_RSSI_MUX_MASK | REG8_RSSI_EN, mux_val);
     flush_reg(8);
 }
 
