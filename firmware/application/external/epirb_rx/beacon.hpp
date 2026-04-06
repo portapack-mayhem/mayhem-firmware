@@ -90,6 +90,12 @@ class Beacon {
     uint8_t frame[BEACON_DATA_SIZE];
     Location location{};
     uint64_t identifier{0};
+    static uint64_t getBits(uint8_t* data, int startBit, int endBit);
+    static uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength);
+    static uint64_t computeBCH1(uint8_t* frame);
+    static uint64_t computeBCH2(uint8_t* frame);
+    static std::string toHexString(uint32_t data);
+    static std::string toHexString(uint8_t* frame, bool withSpace, int start, int end);
     Beacon();
     Beacon(const Beacon& other);
     Beacon& operator=(const Beacon& other) { setFrame(other.frame); return *this; };

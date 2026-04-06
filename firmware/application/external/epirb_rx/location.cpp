@@ -32,11 +32,11 @@ bool Location::isUnknown() {
     return (latitude.degrees >= 255 || longitude.degrees >= 255);
 }
 
-static char gps_letterize(int x) {
+char Location::gps_letterize(int x) {
     return (char)x + 65;
 }
 
-static void gps_compute_locator(double lat, double lon, char* gps_locator) {  // Sanity check
+void Location::gps_compute_locator(double lat, double lon, char* gps_locator) {  // Sanity check
     if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {                   // Invalid values
         gps_locator[0] = 0;
     } else {

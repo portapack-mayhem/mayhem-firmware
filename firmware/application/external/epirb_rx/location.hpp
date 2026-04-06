@@ -53,6 +53,8 @@ class Location {
     Angle longitude = Angle(255);
     void clear();
     bool isUnknown();
+    static char gps_letterize(int x);
+    static void gps_compute_locator(double lat, double lon, char* gps_locator);
     std::string toString(LocationFormat format);
     void formatFloatLocation(char* buffer, size_t size, const char* format);
 

@@ -31,7 +31,7 @@ namespace ui::external_app::epirb_rx {
 using std::string;
 
 /* Baudot code matrix */
-static char BAUDOT_CODE[64] = {' ', '5', ' ', '9', ' ', ' ', ' ', ' ', ' ', ' ', '4', ' ', '8', '0', ' ', ' ',
+constexpr char BAUDOT_CODE[64] = {' ', '5', ' ', '9', ' ', ' ', ' ', ' ', ' ', ' ', '4', ' ', '8', '0', ' ', ' ',
                                '3', ' ', ' ', ' ', ' ', '6', ' ', '/', '-', '2', ' ', ' ', '7', '1', ' ', ' ',
                                ' ', 'T', ' ', 'O', ' ', 'H', 'N', 'M', ' ', 'L', 'R', 'G', 'I', 'P', 'C', 'V',
                                'E', 'Z', 'D', 'B', 'S', 'Y', 'F', 'X', 'A', 'W', 'J', ' ', 'U', 'Q', 'K', '\0'};
@@ -98,7 +98,7 @@ string Beacon::Protocol::getTypeName(bool longFrame) const {
     }
 }
 
-static uint64_t getBits(uint8_t* data, int startBit, int endBit) {
+uint64_t Beacon::getBits(uint8_t* data, int startBit, int endBit) {
     uint64_t result = 0;
     // 0 bases bit count
     startBit--;
@@ -128,7 +128,7 @@ static uint64_t getBits(uint8_t* data, int startBit, int endBit) {
     return result;
 }
 
-static uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {  // Length of data to be checked (not including the BCH code)
+uint64_t Beacon::computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {  // Length of data to be checked (not including the BCH code)
     int dataLength = endBit - startBit + 1;
     // Total lengh (including the BCH code that will be padded to zeros (BCH code length is polyLengh-1))
     int totalLength = dataLength + polyLength - 1;
@@ -169,15 +169,15 @@ static uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned lo
     return result;
 }
 
-static uint64_t computeBCH1(uint8_t* frame) {
+uint64_t Beacon::computeBCH1(uint8_t* frame) {
     return computeBCH(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH);
 }
 
-static uint64_t computeBCH2(uint8_t* frame) {
+uint64_t Beacon::computeBCH2(uint8_t* frame) {
     return computeBCH(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH);
 }
 
-static string toHexString(uint32_t data) {
+string Beacon::toHexString(uint32_t data) {
     char buffer[11];  // 8 chars + '0x' + '\0'
     std::sprintf(buffer, "0x%08lX", data);
     return string(buffer);
@@ -192,7 +192,7 @@ static string toHexString(uint32_t data) {
  * @param end end byte
  * @return String
  */
-static string toHexString(uint8_t* frame, bool withSpace, int start, int end) {
+string Beacon::toHexString(uint8_t* frame, bool withSpace, int start, int end) {
     char buffer[4];
     string result = "";
     for (uint8_t i = start; i < end; i++) {

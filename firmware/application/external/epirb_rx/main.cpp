@@ -23,6 +23,7 @@
 #include "ui_epirb_rx.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
+#include "beacon.hpp"
 
 namespace ui::external_app::epirb_rx {
 void initialize_app(ui::NavigationView& nav) {
