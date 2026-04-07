@@ -481,10 +481,10 @@ void MAX2831::write(const address_t reg_num, const reg_t value) {
 
 void MAX2831::set_rssi_mux(const uint8_t mode) {
     /* RSSI MUX allows switching the RSSI output between different internal signals.
-     * 0 = disable mux (0V output)
+     * 0 = disable mux
      * 1 = RSSI
-     * 2 = TEMP
-     * 3 = TX_POWER
+     * 2 = TX_POWER
+     * 3 = TEMP
      */
     uint16_t mux_val = 0;
 
