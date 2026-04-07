@@ -1863,7 +1863,7 @@ class NotificationDataMessage : public Message {
     uint16_t timeout = 10000;
 };
 
-// Sent M4→M0: a tone detection event (tone ended, or periodic update while active)
+// Sent M0→M4: a tone detection event (tone ended, or periodic update while active)
 class ToneDetectDataMessage : public Message {
    public:
     constexpr ToneDetectDataMessage()
@@ -1873,7 +1873,7 @@ class ToneDetectDataMessage : public Message {
     bool tone_end{false};     // True = tone just ended; False = tone still active (periodic update)
 };
 
-// Sent M0→M4: configure the tone detector
+// Sent M4→M0: configure the tone detector
 class ToneDetectConfigureMessage : public Message {
    public:
     constexpr ToneDetectConfigureMessage(uint8_t squelch = 0, uint32_t ctcss_freq_x10 = 0)

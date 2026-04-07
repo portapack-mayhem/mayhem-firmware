@@ -101,7 +101,7 @@ class TwoToneRxView : public View {
 
     // ── Two-tone detection state machine ─────────────────────────────────────
     //
-    // Each 20 ms measurement window from the baseband arrives as tone_end=false.
+    // Each 40 ms measurement window from the baseband arrives as tone_end=false.
     // tone_end=true signals that the CTCSS gate closed (end of transmission).
     //
     // Collection rule: discard first and last window of each phase.

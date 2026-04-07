@@ -70,13 +70,13 @@ class ToneDetectProcessor : public BasebandProcessor {
     bool carrier_is_open{false};
     uint32_t carrier_hold{0};
 
-    // CTCSS gate via Goertzel algorithm (per 20 ms window)
+    // CTCSS gate via Goertzel algorithm (per 40 ms window)
     uint32_t ctcss_freq_x10{0};  // 0 = None → fall back to FMSquelch gate
     float goertzel_coeff{0.0f};  // 2 * cos(2π * k / WINDOW_SAMPLES)
     float goertzel_s1{0.0f};
     float goertzel_s2{0.0f};
 
-    // 20 ms measurement window
+    // 40 ms measurement window
     uint32_t window_sample_count{0};
     bool was_ctcss_detected{false};
     uint32_t tone_duration_windows{0};

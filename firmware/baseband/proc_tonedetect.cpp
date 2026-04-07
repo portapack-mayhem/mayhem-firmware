@@ -56,7 +56,7 @@ static constexpr float MOTO_ENERGY_THRESHOLD = 1000.0f;
 static constexpr float CARRIER_DETECT_THRESHOLD = 0.20f;
 
 // Goertzel energy threshold for CTCSS detection.
-// Pure CTCSS at 5% amplitude over 480 samples → energy ≈ (0.05 × 240)² = 144.
+// Pure CTCSS at 5% amplitude over 960 samples → energy ≈ (0.05 × 480)² = 576.
 static constexpr float CTCSS_ENERGY_THRESHOLD = 30.0f;
 
 void ToneDetectProcessor::configure(uint8_t squelch, uint32_t ctcss_f_x10) {
