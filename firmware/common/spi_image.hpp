@@ -131,6 +131,7 @@ constexpr image_tag_t image_tag_morse{'P', 'M', 'R', 'S'};
 constexpr image_tag_t image_tag_morsetx{'P', 'M', 'R', 'T'};
 constexpr image_tag_t image_tag_rttyrx{'P', 'R', 'T', 'R'};
 constexpr image_tag_t image_tag_rttytx{'P', 'R', 'T', 'T'};
+constexpr image_tag_t image_tag_tonedetect{'P', 'T', 'N', 'E'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 
