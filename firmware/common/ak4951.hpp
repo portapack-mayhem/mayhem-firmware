@@ -841,7 +841,7 @@ class AK4951 : public audio::Codec {
         return true;
     }
 
-    void set_headphone_volume(const volume_t volume) override;
+    bool set_headphone_volume(const volume_t volume) override;
     void headphone_mute();
 
     void microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled);  // added user GUI parameter , to set up AK4951 ALC mode, and mic_to_HP_enabled to control "Hear to Mic"
@@ -879,15 +879,15 @@ class AK4951 : public audio::Codec {
     void configure_digital_interface_i2s();
     void configure_digital_interface_external_slave();
     void configure_digital_interface_external_master();
-    void set_digtal_volume_control(const reg_t value);
+    bool set_digtal_volume_control(const reg_t value);
     void set_dac_power(const bool enable);
     void set_headphone_power(const bool enable);
     void set_speaker_power(const bool enable);
     void select_line_out(const LineOutSelect value);
 
     reg_t read(const address_t reg_address);
-    void update(const Register reg);
-    void write(const address_t reg_address, const reg_t value);
+    bool update(const Register reg);
+    bool write(const address_t reg_address, const reg_t value);
 };
 
 } /* namespace ak4951 */
