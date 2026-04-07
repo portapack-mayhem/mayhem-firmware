@@ -168,7 +168,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                             // We missed something...
                             send_packet(0xFED0000000000003);
                             send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
-                            //  TODO
+                            // TODO
                             cur_bit = last_bit;
                         } else if (sample_count >= (SAMPLES_PER_SYMBOL * 2 - SAMPLES_MARGIN)) {
                             // 2 symbols since last change => bit value changes

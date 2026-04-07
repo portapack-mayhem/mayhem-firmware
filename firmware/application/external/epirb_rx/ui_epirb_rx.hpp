@@ -44,13 +44,13 @@ namespace ui::external_app::epirb_rx {
 
 #define BEACON_HISTORY_SIZE 16
 
-
 enum class PacketStatus : uint8_t {
     Valid = 0,
     Corrected = 1,
     Error = 2
 };
 
+/*
 class EPIRBDecoder {
    public:
     static Beacon decode_packet(const baseband::Packet& packet);
@@ -65,7 +65,7 @@ class EPIRBDecoder {
     static bool correct_single_error(std::array<uint8_t, 16>& data, uint32_t syndrome);
     static uint8_t count_bit_errors(const std::array<uint8_t, 16>& original, const std::array<uint8_t, 16>& corrected);
 };
-
+*/
 class EPIRBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -83,7 +83,7 @@ std::string format_beacon_type(Beacon& beacon);
 std::string format_emergency_type(Beacon& beacon);
 std::string format_packet_status(Beacon& beacon);
 ui::Color get_packet_status_color(Beacon& beacon);
-
+/*
 class EPIRBBeaconDetailView : public ui::View {
    public:
     std::function<void(void)> on_close{};
@@ -119,8 +119,8 @@ class EPIRBBeaconDetailView : public ui::View {
         const std::string& label,
         const std::string& value);
 };
-
-class EPIRBAppView : public ui::View {
+*/
+class EPIRBAppView final : public ui::View {
    public:
     EPIRBAppView(ui::NavigationView& nav);
     ~EPIRBAppView();
@@ -140,9 +140,9 @@ class EPIRBAppView : public ui::View {
     Beacon recent_beacons[BEACON_HISTORY_SIZE];
     int8_t recent_beacon_pos{0};
     bool recent_beacon_full{false};
-    std::unique_ptr<EPIRBLogger> logger{};
+    // std::unique_ptr<EPIRBLogger> logger{};
 
-    //EPIRBBeaconDetailView beacon_detail_view{nav_};
+    // EPIRBBeaconDetailView beacon_detail_view{nav_};
 
     static constexpr auto header_height = 4 * 16;
 
@@ -244,6 +244,7 @@ class EPIRBAppView : public ui::View {
             this->on_packet(message->packet);
         }};
 
+    static Beacon decode_packet(const baseband::Packet& packet);
     void on_packet(const baseband::Packet& packet);
     void on_beacon_decoded(Beacon& beacon);
     void on_show_map();

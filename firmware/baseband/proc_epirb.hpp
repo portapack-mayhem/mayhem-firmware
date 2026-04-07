@@ -48,32 +48,6 @@ namespace baseband {
 class Packet;
 }
 
-// On travaille à 38400 Hz après décimation par 8
-/*static constexpr uint32_t BASEBAND_SAMPLE_RATE = 3072000;//2457600;
-static constexpr uint32_t SAMPLE_RATE = BASEBAND_SAMPLE_RATE / 8 / 4; //8;                 // = 38400
-static constexpr uint32_t SYMBOL_RATE = 800;                             // 400 bps + Manchester (2 1/2 bits per symbol) => 800
-static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE / 2;  // = 48 samples
-static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2 * 2;  // = 48 samples
-static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;  // = 48 samples
-static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 20 * 2;  // = 48 samples
-
-static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.001f * SAMPLE_RATE; // 120ms de stabilité requise
-static constexpr size_t CARRIER_MAX_SAMPLES = 0.200f * SAMPLE_RATE; // 120ms de stabilité requise*/
-
-// Baseband frequency is 3,072,000 samples / sec
-static constexpr uint32_t BASEBAND_SAMPLE_RATE = 3072000;
-static constexpr uint32_t SAMPLE_RATE = BASEBAND_SAMPLE_RATE / 8 / 8;    // We use to decimators with factor 8 each
-static constexpr uint32_t SYMBOL_RATE = 800;                             // 400 bps + Manchester (2 1/2 bits per symbol) => 800
-static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60 samples per symbol
-static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
-static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
-static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 10;  // Accumulate phase change across 6 samples
-static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Frame max length (add 1% error margin)
-
-static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
-static constexpr size_t CARRIER_MAX_SAMPLES = 0.900f * SAMPLE_RATE;          // Carrier + frame lasts 160ms + 520ms + 100ms post carrier = 880ms
-static constexpr size_t FRAME_MAX_SAMPLES = SAMPLES_PER_BIT * (144 * 1.1f);  // Frame max length (add 1% error margin)
-
 #define COSPAS_PREAMBLE_SIZE 24
 #define COSPAS_LONG_FRAME_SIZE 144
 #define COSPAS_SHORT_FRAME_SIZE 112
@@ -95,20 +69,18 @@ class EPIRBPacketBuilder {
         bit_history.add(symbol);
 
         switch (state) {
-            case State::Preamble:
-                {
-                    bool is_real = real_sync_matcher(bit_history, packet.size());
-                    bool is_test = test_sync_matcher(bit_history, packet.size());
-                    if (is_real || is_test) {
-                        // Append preamble to the begining of the packet
-                        uint64_t preamble = is_real ? COSPAS_REAL_PREAMBLE : COSPAS_TEST_PREAMBLE;
-                        for (int8_t i = (COSPAS_PREAMBLE_SIZE-1); i >= 0; i--) {
-                            packet.add((preamble >> i) & 0x1);
-                        }
-                        state = State::Format;
+            case State::Preamble: {
+                bool is_real = real_sync_matcher(bit_history, packet.size());
+                bool is_test = test_sync_matcher(bit_history, packet.size());
+                if (is_real || is_test) {
+                    // Append preamble to the begining of the packet
+                    uint64_t preamble = is_real ? COSPAS_REAL_PREAMBLE : COSPAS_TEST_PREAMBLE;
+                    for (int8_t i = (COSPAS_PREAMBLE_SIZE - 1); i >= 0; i--) {
+                        packet.add((preamble >> i) & 0x1);
                     }
+                    state = State::Format;
                 }
-                break;
+            } break;
             case State::Format:
                 packet.add(symbol);
                 // 144 bits for long frames and 112 for short frames
@@ -177,6 +149,20 @@ class EPIRBProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
+    // Baseband frequency is 3,072,000 samples / sec
+    static constexpr uint32_t BASEBAND_SAMPLE_RATE = 3072000;
+    static constexpr uint32_t SAMPLE_RATE = BASEBAND_SAMPLE_RATE / 8 / 8;    // We use to decimators with factor 8 each
+    static constexpr uint32_t SYMBOL_RATE = 800;                             // 400 bps + Manchester (2 1/2 bits per symbol) => 800
+    static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60 samples per symbol
+    static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
+    static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
+    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 10;  // Accumulate phase change across 6 samples
+    static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Frame max length (add 1% error margin)
+
+    static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
+    static constexpr size_t CARRIER_MAX_SAMPLES = 0.900f * SAMPLE_RATE;          // Carrier + frame lasts 160ms + 520ms + 100ms post carrier = 880ms
+    static constexpr size_t FRAME_MAX_SAMPLES = SAMPLES_PER_BIT * (144 * 1.1f);  // Frame max length (add 1% error margin)
+
     AudioOutput audio_output{};
 
     std::array<float, 32> audio{};

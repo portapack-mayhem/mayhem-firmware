@@ -37,17 +37,17 @@ namespace ui::external_app::epirb_tx {
  * @param min output minutes value
  * @param sec output seconds value
  */
-static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t& min, uint8_t& sec) {
+static void decimal_to_dms(float value, bool& negative, uint16_t& deg, uint8_t& min, uint8_t& sec) {
     negative = value < 0;
     value = std::fabs(value);
 
     deg = (uint16_t)value;
 
-    double m = (value - deg) * 60.0;
+    float m = (value - deg) * 60.0f;
     min = (uint8_t)m;
 
-    double s = (m - min) * 60.0;
-    sec = (uint8_t)(s + 0.5);
+    float s = (m - min) * 60.0f;
+    sec = (uint8_t)(s + 0.5f);
 
     if (sec == 60) {
         sec = 0;
@@ -68,8 +68,8 @@ static void decimal_to_dms(double value, bool& negative, uint16_t& deg, uint8_t&
  * @param sec seconds value
  * @return value the decimal value
  */
-static double dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t sec) {
-    double v = deg + min / 60.0 + sec / 3600.0;
+static float dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t sec) {
+    float v = deg + min / 60.0f + sec / 3600.0f;
     return negative ? -v : v;
 }
 
@@ -80,24 +80,24 @@ static double dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t s
  * @param lon output longitude
  */
 static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon) {
-    static const double lon_step[] =
+    static const float lon_step[] =
         {
-            20.0,
-            2.0,
-            1.0 / 12.0,
-            1.0 / 120.0,
-            1.0 / 2880.0};
+            20.0f,
+            2.0f,
+            1.0f / 12.0f,
+            1.0f / 120.0f,
+            1.0f / 2880.0f};
 
-    static const double lat_step[] =
+    static const float lat_step[] =
         {
-            10.0,
-            1.0,
-            1.0 / 24.0,
-            1.0 / 240.0,
-            1.0 / 5760.0};
+            10.0f,
+            1.0f,
+            1.0f / 24.0f,
+            1.0f / 240.0f,
+            1.0f / 5760.0f};
 
-    lon = -180.0;
-    lat = -90.0;
+    lon = -180.0f;
+    lat = -90.0f;
 
     int pairs = loc.size() / 2;
     if (pairs > 5)
@@ -107,8 +107,8 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
         char c1 = std::toupper(loc[i * 2]);
         char c2 = std::toupper(loc[i * 2 + 1]);
 
-        double lon_size = lon_step[i];
-        double lat_size = lat_step[i];
+        float lon_size = lon_step[i];
+        float lat_size = lat_step[i];
 
         int v1, v2;
 
@@ -127,8 +127,8 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
     }
 
     // Cell center
-    lon += lon_step[pairs - 1] / 2.0;
-    lat += lat_step[pairs - 1] / 2.0;
+    lon += lon_step[pairs - 1] / 2.0f;
+    lat += lat_step[pairs - 1] / 2.0f;
 }
 
 /**
@@ -138,9 +138,9 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
  * @param precision (optional, defaults to 8) the number of charater for the maidenhead locator
  * @return the locator
  */
-static std::string decimal_to_maidenhead(double lat, double lon, int precision = 8) {
-    lon += 180.0;
-    lat += 90.0;
+static std::string decimal_to_maidenhead(float lat, float lon, int precision = 8) {
+    lon += 180.0f;
+    lat += 90.0f;
 
     int A = lon / 20;
     int B = lat / 10;
@@ -154,14 +154,14 @@ static std::string decimal_to_maidenhead(double lat, double lon, int precision =
     lon -= C * 2;
     lat -= D * 1;
 
-    int E = lon / (5.0 / 60.0);
-    int F = lat / (2.5 / 60.0);
+    int E = lon / (5.0f / 60.0f);
+    int F = lat / (2.5f / 60.0f);
 
-    lon -= E * (5.0 / 60.0);
-    lat -= F * (2.5 / 60.0);
+    lon -= E * (5.0f / 60.0f);
+    lat -= F * (2.5f / 60.0f);
 
-    int G = lon / (5.0 / 600.0);
-    int H = lat / (2.5 / 600.0);
+    int G = lon / (5.0f / 600.0f);
+    int H = lat / (2.5f / 600.0f);
 
     std::string locator;
 

@@ -19,6 +19,12 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/*
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
+ *
+ * This file is part of PortaPack.
+ */
+
 #ifndef __BEACON_RX_H__
 #define __BEACON_RX_H__
 
@@ -28,13 +34,18 @@
 
 #include <cstdint>
 #include <string>
+#include <cstring>
+#include <cctype>
+#include <cstdio>
 
 namespace ui::external_app::epirb_rx {
 
 #define BEACON_DATA_SIZE 18  // Max 144 bits => 18 bytes
 
-// Enable BCH debuging
-// #define DEBUG_BCH
+#define BCH_21_POLYNOMIAL 0b1001101101100111100011UL
+#define BCH_21_POLY_LENGTH 22
+#define BCH_12_POLYNOMIAL 0b1010100111001UL
+#define BCH_12_POLY_LENGTH 13
 
 class Beacon {
    public:
@@ -50,6 +61,7 @@ class Beacon {
                                    OTHER,
                                    MHZ121_5,
                                    SART };
+
     class Protocol {
        public:
         enum class Type { STANDARD_LOCATION,
@@ -60,25 +72,42 @@ class Beacon {
                           SPARE,
                           UNKNOWN };
         Type type;
+
+        Protocol(Type type) : type(type) {}
+
         bool isUser() const { return (type == Type::USER); };
         bool isNational() const { return (type == Type::NATIONAL_LOCATION); };
         bool isStandard() const { return (type == Type::STANDARD_LOCATION); };
         bool isRls() const { return (type == Type::RLS_LOCATION); };
         bool isRlsOrElt() const { return (type == Type::RLS_LOCATION || type == Type::ELT_DT_LOCATION); };
         bool isUnknown() const { return (type == Type::UNKNOWN); };
-        std::string getTypeName(bool longFrame) const;
-        Protocol(Type type) : type(type) {}
-        static const Protocol
-            // User
-            USER_EPIRB_MARITIME,
-            USER_EPIRB_RADIO, USER_ELT, USER_SERIAL, USER_TEST, USER_ORB, USER_NAT, USER_2G,
-            // Standard
-            STD_EPIRB, STD_ELT_24, STD_ELT_SERIAL, STD_ELT_AIRCRAFT, STD_EPIRB_SERIAL, STD_PLB_SERIAL, STD_SHIP, STD_TEST,
-            // National
-            NAT_ELT, NAT_EPIRB, NAT_PLB, NAT_TEST,
-            // RLS / ELT / Spare
-            RLS, ELT_DT, SPARE, UNKNOWN;
+
+        inline const char* getTypeName(bool longFrame) const {
+            switch (type) {
+                case Type::STANDARD_LOCATION:
+                    return "Standard Protocol";
+                case Type::NATIONAL_LOCATION:
+                    return "National Protocol";
+                case Type::RLS_LOCATION:
+                    return "RLS";
+                case Type::ELT_DT_LOCATION:
+                    return "ELT(DT)";
+                case Type::USER:
+                    return longFrame ? "User Location Protocol" : "User Protocol";
+                case Type::SPARE:
+                    return "Spare Protocol";
+                default:
+                    return "Unknown Protocol";
+            }
+        }
+
+        // Déclarations des membres statiques (définis en bas de fichier)
+        static const Protocol USER_EPIRB_MARITIME, USER_EPIRB_RADIO, USER_ELT, USER_SERIAL, USER_TEST, USER_ORB, USER_NAT, USER_2G;
+        static const Protocol STD_EPIRB, STD_ELT_24, STD_ELT_SERIAL, STD_ELT_AIRCRAFT, STD_EPIRB_SERIAL, STD_PLB_SERIAL, STD_SHIP, STD_TEST;
+        static const Protocol NAT_ELT, NAT_EPIRB, NAT_PLB, NAT_TEST;
+        static const Protocol RLS, ELT_DT, SPARE, UNKNOWN;
     };
+
     bool longFrame{true};
     bool protocolFlag{false};
     FrameMode frameMode{FrameMode::UNKNOWN};
@@ -90,25 +119,7 @@ class Beacon {
     uint8_t frame[BEACON_DATA_SIZE];
     Location location{};
     uint64_t identifier{0};
-    static uint64_t getBits(uint8_t* data, int startBit, int endBit);
-    static uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength);
-    static uint64_t computeBCH1(uint8_t* frame);
-    static uint64_t computeBCH2(uint8_t* frame);
-    static std::string toHexString(uint32_t data);
-    static std::string toHexString(uint8_t* frame, bool withSpace, int start, int end);
-    Beacon();
-    Beacon(const Beacon& other);
-    Beacon& operator=(const Beacon& other) { setFrame(other.frame); return *this; };
-    void setFrame(const uint8_t* frameBuffer);
-    // Beacon(volatile uint8_t frameBuffer[]) : Beacon(frameBuffer/*,Rtc::getRtc()->getDate()*/) {}
     rtc::RTC date{};
-    std::string getFrameTitle();
-    std::string getProtocolName();
-    std::string getProtocolDesciption();
-    bool hasMainLocatingDevice();
-    std::string getMainLocatingDeviceName();
-    bool hasAuxLocatingDevice();
-    std::string getAuxLocatingDeviceName();
     bool hasAdditionalData{false};
     std::string additionalData{};
     bool hasSerialNumber{false};
@@ -116,24 +127,572 @@ class Beacon {
     std::string hexId{};
     uint32_t bch1{};
     uint32_t computedBch1{};
-    bool isBch1Valid();
     bool hasBch2{false};
     uint32_t bch2{};
     uint32_t computedBch2{};
     bool isEmpty{true};
-    bool isBch2Valid();
-    bool isFrameValid();
-    bool isOrbito();
-    std::string toKvpString();
-    std::string hexString(bool withHeader);
+
+    static inline uint64_t getBits(uint8_t* data, int startBit, int endBit) {
+        uint64_t result = 0;
+        startBit--;
+        int numBits = endBit - startBit;
+        const uint8_t* pData = &(data[startBit / 8]);
+        uint8_t b = *pData;
+        int bitOffset = 7 - (startBit % 8);
+        for (int i = 0; i < numBits; ++i) {
+            result <<= 1;
+            result |= ((b >> bitOffset) & 0x01);
+            if (--bitOffset < 0) {
+                b = *(++pData);
+                bitOffset = 7;
+            }
+        }
+        return result;
+    }
+
+    static inline uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {
+        int dataLength = endBit - startBit + 1;
+        int totalLength = dataLength + polyLength - 1;
+        uint64_t result = getBits(frame, startBit, startBit + polyLength - 1);
+        for (int i = polyLength; i <= totalLength; i++) {
+            bool firstBit = result >> (polyLength - 1);
+            if (firstBit) result = result ^ poly;
+            if (i < totalLength) {
+                result = result << 1;
+                if (i < dataLength) result |= getBits(frame, startBit + i, startBit + i);
+            }
+        }
+        return result;
+    }
+
+    static inline uint64_t computeBCH1(uint8_t* frame) { return computeBCH(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
+    static inline uint64_t computeBCH2(uint8_t* frame) { return computeBCH(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
+
+    static inline std::string toHexString(uint32_t data) {
+        char buffer[11];
+        std::sprintf(buffer, "0x%08lX", data);
+        return std::string(buffer);
+    }
+
+    static inline std::string toHexString(uint8_t* frame, bool withSpace, int start, int end) {
+        char buffer[4];
+        std::string result = "";
+        for (uint8_t i = start; i < end; i++) {
+            std::snprintf(buffer, sizeof(buffer), "%02X", frame[i]);
+            if (withSpace && i > start) result += " ";
+            result += buffer;
+        }
+        return result;
+    }
+
+    // --- Constructeurs et méthodes membres ---
+
+    Beacon() {}
+    Beacon(const Beacon& other) { setFrame(other.frame); }
+    Beacon& operator=(const Beacon& other) {
+        setFrame(other.frame);
+        return *this;
+    }
+
+    inline void setFrame(const uint8_t* frameBuffer) {
+        std::memcpy(frame, (const void*)frameBuffer, BEACON_DATA_SIZE);
+        parseFrame();
+    }
+
+    inline const char* getFrameTitle() {
+        if (frameMode == FrameMode::SELF_TEST) return "Self-test 406";
+        if (frameMode == FrameMode::NORMAL) {
+            if (protocol == &Protocol::USER_SERIAL) return "Serial 406";
+            if (protocol == &Protocol::USER_TEST) return "User Test 406";
+            if (protocol == &Protocol::USER_ORB) return "Orbitography 406";
+            if (protocol == &Protocol::USER_NAT) return "National 406";
+            if (protocol == &Protocol::STD_TEST) return "Test Std. 406";
+            if (protocol == &Protocol::NAT_TEST) return "Test Nat. 406";
+            if (protocol == &Protocol::SPARE) return "Spare 406";
+            return "Distress 406";
+        }
+        return "Unknown 406";
+    }
+
+    inline const char* getProtocolName() { return protocol->getTypeName(longFrame); }
+
+    inline const char* getProtocolDesciption() {
+        if (protocol == &Protocol::USER_EPIRB_MARITIME) return "EPIRB - Maritime";
+        if (protocol == &Protocol::USER_EPIRB_RADIO) return "EPIRB - Radio Call Sign";
+        if (protocol == &Protocol::USER_ELT) return "ELT - Aviation";
+        if (protocol == &Protocol::USER_SERIAL) return "Serial User Protocol";
+        if (protocol == &Protocol::USER_TEST) return "Test User Protocol";
+        if (protocol == &Protocol::USER_ORB) return "Orbitography Protocol";
+        if (protocol == &Protocol::USER_NAT) return "National User Protocol";
+        if (protocol == &Protocol::USER_2G) return "2nd Generation Beacons";
+        if (protocol == &Protocol::STD_EPIRB) return "EPIRB - MMSI / Location";
+        if (protocol == &Protocol::STD_ELT_24) return "ELT-24-bit Address / Location";
+        if (protocol == &Protocol::STD_ELT_SERIAL) return "ELT Serial Location";
+        if (protocol == &Protocol::STD_ELT_AIRCRAFT) return "ELT Serial Aircradt Location";
+        if (protocol == &Protocol::STD_EPIRB_SERIAL) return "EPIRB Serial Location";
+        if (protocol == &Protocol::STD_PLB_SERIAL) return "PLB Serial Location";
+        if (protocol == &Protocol::STD_SHIP) return "Ship Security Location";
+        if (protocol == &Protocol::STD_TEST) return "Test Standard Location";
+        if (protocol == &Protocol::NAT_ELT) return "ELT National Location";
+        if (protocol == &Protocol::NAT_EPIRB) return "EPIRB National Location";
+        if (protocol == &Protocol::NAT_PLB) return "PLB National Location";
+        if (protocol == &Protocol::NAT_TEST) return "Test National Location";
+        if (protocol == &Protocol::RLS) return "RLS Location Protocol";
+        if (protocol == &Protocol::ELT_DT) return "ELT(DT) Location Protocol";
+        if (protocol == &Protocol::SPARE) return "Spare";
+        return "Unknown Protocol";
+    }
+
+    inline bool hasMainLocatingDevice() { return (mainLocatingDevice != MainLocatingDevice::UNDEFINED); }
+    inline const char* getMainLocatingDeviceName() {
+        if (mainLocatingDevice == MainLocatingDevice::EXTERNAL_NAV) return "Exernal";
+        if (mainLocatingDevice == MainLocatingDevice::INTERNAL_NAV) return "Internal";
+        return "Undefined";
+    }
+
+    inline bool hasAuxLocatingDevice() { return (auxLocatingDevice != AuxLocatingDevice::UNDEFINED); }
+    inline const char* getAuxLocatingDeviceName() {
+        switch (auxLocatingDevice) {
+            case AuxLocatingDevice::NONE:
+                return "No device";
+            case AuxLocatingDevice::NONE_OR_OTHER:
+                return "Other or no device";
+            case AuxLocatingDevice::OTHER:
+                return "Other device";
+            case AuxLocatingDevice::MHZ121_5:
+                return "121.5 MHz";
+            case AuxLocatingDevice::SART:
+                return "Maritime locating: 9 GHz SART";
+            default:
+                return "Undefined";
+        }
+    }
+
+    inline void setSerialNumber(uint32_t serial) {
+        serialNumber = to_string_dec_uint(serial) + " (0x" + toHexString(serial) + ")";
+    }
+
+    inline bool isBch1Valid() { return (bch1 == computedBch1); }
+    inline bool isBch2Valid() { return (bch2 == computedBch2); }
+    inline bool isFrameValid() { return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty); }
+    inline bool isOrbito() { return (protocol == &Protocol::USER_ORB); }
+
+    inline std::string hexString(bool withHeader) {
+        return toHexString(frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
+    }
 
    private:
-    void parseFrame();
-    void parseProtocol();
-    void parseAdditionalData();
-    void parseLocatingDevices();
-    void setSerialNumber(uint32_t serial);
+    /* Baudot code matrix */
+    static constexpr char BAUDOT_CODE[64] = {' ', '5', ' ', '9', ' ', ' ', ' ', ' ', ' ', ' ', '4', ' ', '8', '0', ' ', ' ',
+                                             '3', ' ', ' ', ' ', ' ', '6', ' ', '/', '-', '2', ' ', ' ', '7', '1', ' ', ' ',
+                                             ' ', 'T', ' ', 'O', ' ', 'H', 'N', 'M', ' ', 'L', 'R', 'G', 'I', 'P', 'C', 'V',
+                                             'E', 'Z', 'D', 'B', 'S', 'Y', 'F', 'X', 'A', 'W', 'J', ' ', 'U', 'Q', 'K', '\0'};
+
+    inline void parseProtocol() {
+        protocolFlag = getBits(frame, 26, 26);
+        if (protocolFlag)
+            protocolCode = getBits(frame, 37, 39);
+        else
+            protocolCode = getBits(frame, 37, 40);
+
+        if (!longFrame || protocolFlag == 1) {
+            switch (protocolCode) {
+                case 0b000:
+                    protocol = &Protocol::USER_ORB;
+                    break;
+                case 0b001:
+                    protocol = &Protocol::USER_ELT;
+                    break;
+                case 0b010:
+                    protocol = &Protocol::USER_EPIRB_MARITIME;
+                    break;
+                case 0b011:
+                    protocol = &Protocol::USER_SERIAL;
+                    break;
+                case 0b100:
+                    protocol = &Protocol::USER_NAT;
+                    break;
+                case 0b101:
+                    protocol = &Protocol::USER_2G;
+                    break;
+                case 0b110:
+                    protocol = &Protocol::USER_EPIRB_RADIO;
+                    break;
+                case 0b111:
+                    protocol = &Protocol::USER_TEST;
+                    break;
+                default:
+                    protocol = &Protocol::UNKNOWN;
+            }
+        } else {
+            switch (protocolCode) {
+                case 0b0010:
+                    protocol = &Protocol::STD_EPIRB;
+                    break;
+                case 0b0011:
+                    protocol = &Protocol::STD_ELT_24;
+                    break;
+                case 0b0100:
+                    protocol = &Protocol::STD_ELT_SERIAL;
+                    break;
+                case 0b0101:
+                    protocol = &Protocol::STD_ELT_AIRCRAFT;
+                    break;
+                case 0b0110:
+                    protocol = &Protocol::STD_EPIRB_SERIAL;
+                    break;
+                case 0b0111:
+                    protocol = &Protocol::STD_PLB_SERIAL;
+                    break;
+                case 0b1000:
+                    protocol = &Protocol::NAT_ELT;
+                    break;
+                case 0b1001:
+                    protocol = &Protocol::ELT_DT;
+                    break;
+                case 0b1010:
+                    protocol = &Protocol::NAT_EPIRB;
+                    break;
+                case 0b1011:
+                    protocol = &Protocol::NAT_PLB;
+                    break;
+                case 0b1100:
+                    protocol = &Protocol::STD_SHIP;
+                    break;
+                case 0b1101:
+                    protocol = &Protocol::RLS;
+                    break;
+                case 0b1110:
+                    protocol = &Protocol::STD_TEST;
+                    break;
+                case 0b1111:
+                    protocol = &Protocol::NAT_TEST;
+                    break;
+                default:
+                    protocol = &Protocol::UNKNOWN;
+            }
+        }
+    }
+
+    inline void parseAdditionalData() {
+        hasAdditionalData = false;
+        hasSerialNumber = false;
+        if (protocolFlag) {
+            if (protocolCode == 0b011) {
+                uint8_t serialUserProtocol = getBits(frame, 40, 42);
+                hasAdditionalData = true;
+                switch (serialUserProtocol) {
+                    case 0b000:
+                        additionalData = "ELTs/serial identification number";
+                        break;
+                    case 0b001:
+                        additionalData = "ELTs/aircraft operator & serial #";
+                        break;
+                    case 0b010:
+                        additionalData = "Float free EPIRBs/serial #";
+                        break;
+                    case 0b011:
+                        additionalData = "ELTs with aircraft 24-bit address";
+                        break;
+                    case 0b100:
+                        additionalData = "Non float free EPIRBs/serial #";
+                        break;
+                    case 0b110:
+                        additionalData = "PLBs/serial identification #";
+                        break;
+                    default:
+                        hasAdditionalData = false;
+                }
+                hasSerialNumber = true;
+                setSerialNumber(getBits(frame, 44, 67));
+            }
+        } else if (longFrame) {
+            switch (protocolCode) {
+                case 0b0010:
+                    hasSerialNumber = true;
+                    setSerialNumber(getBits(frame, 61, 64));
+                    break;
+                case 0b1100: {
+                    hasAdditionalData = true;
+                    uint32_t mmsi = getBits(frame, 41, 60);
+                    additionalData = "MMSI=" + toHexString(mmsi) + " MID=" + to_string_dec_uint(mmsi);
+                } break;
+                case 0b0011: {
+                    hasAdditionalData = true;
+                    hasSerialNumber = true;
+                    setSerialNumber(getBits(frame, 41, 64));
+                    additionalData = "24 bits aircraft address";
+                } break;
+                case 0b0100:
+                case 0b0110:
+                case 0b0111: {
+                    hasAdditionalData = true;
+                    hasSerialNumber = true;
+                    uint32_t csTaNumber = getBits(frame, 41, 50);
+                    additionalData = "C/S TA #=" + to_string_dec_uint(csTaNumber);
+                    setSerialNumber(getBits(frame, 51, 64));
+                } break;
+                case 0b0101: {
+                    hasAdditionalData = true;
+                    hasSerialNumber = true;
+                    uint32_t data = getBits(frame, 41, 45);
+                    additionalData = BAUDOT_CODE[data + 32];
+                    data = getBits(frame, 46, 50);
+                    additionalData += BAUDOT_CODE[data + 32];
+                    data = getBits(frame, 51, 55);
+                    additionalData += BAUDOT_CODE[data + 32];
+                    additionalData = "Op Design.=" + additionalData;
+                    setSerialNumber(getBits(frame, 56, 64));
+                } break;
+                case 0b1000:
+                case 0b1010:
+                case 0b1011:
+                case 0b1111: {
+                    hasSerialNumber = true;
+                    hasAdditionalData = true;
+                    setSerialNumber(getBits(frame, 41, 58));
+                    uint32_t natNum = getBits(frame, 127, 132);
+                    additionalData = "National data=" + to_string_dec_uint(natNum);
+                } break;
+            }
+        }
+    }
+
+    inline void parseLocatingDevices() {
+        bool mainLoc;
+        if (protocol->isStandard() || protocol->isNational()) {
+            mainLoc = getBits(frame, 111, 111);
+            mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
+        } else if (protocol->isUser() || protocol->isRls()) {
+            mainLoc = getBits(frame, 107, 107);
+            mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
+        }
+        if (protocol->isStandard() || protocol->isNational()) {
+            auxLocatingDevice = getBits(frame, 112, 112) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
+        } else if (protocol->isRls()) {
+            auxLocatingDevice = getBits(frame, 108, 108) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
+        } else if (protocol->isUser() && protocolCode != 0b100) {
+            uint8_t aux = getBits(frame, 84, 85);
+            if (aux == 0b00)
+                auxLocatingDevice = AuxLocatingDevice::NONE;
+            else if (aux == 0b01)
+                auxLocatingDevice = AuxLocatingDevice::MHZ121_5;
+            else if (aux == 0b10)
+                auxLocatingDevice = AuxLocatingDevice::SART;
+            else
+                auxLocatingDevice = AuxLocatingDevice::OTHER;
+        }
+    }
+
+    inline void parseFrame() {
+        long latofmin, latofsec, lonofmin, lonofsec;
+        bool latoffset, lonoffset;
+
+        longFrame = getBits(frame, 25, 25);
+        parseProtocol();
+        country = Country::getCountry(getBits(frame, 27, 36));
+
+        if (frame[2] == 0xD0)
+            frameMode = FrameMode::SELF_TEST;
+        else if (frame[2] == 0x2F)
+            frameMode = FrameMode::NORMAL;
+        else
+            frameMode = FrameMode::UNKNOWN;
+
+        identifier = getBits(frame, 26, 85);
+        char buffer[32];
+        std::snprintf(buffer, sizeof(buffer), "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
+        hexId = std::string(buffer);
+
+        if (longFrame) {
+            if (protocol->isUser() && !isOrbito()) {
+                location.latitude.orientation = (frame[13] & 0x10) >> 4;
+                location.latitude.degrees = ((frame[13] & 0x0F) << 3 | (frame[14] & 0xE0) >> 5);
+                location.latitude.minutes = ((frame[14] & 0x1E) >> 1) * 4;
+                location.longitude.orientation = (frame[14] & 0x01);
+                location.longitude.degrees = (frame[15]);
+                location.longitude.minutes = ((frame[16] & 0xF0) >> 4) * 4;
+            } else if (protocol->isNational()) {
+                latoffset = (frame[14] & 0x80) >> 7;
+                location.latitude.orientation = (frame[7] & 0x20) >> 5;
+                location.latitude.degrees = ((frame[7] & 0x1F) << 2 | (frame[8] & 0xC0) >> 6);
+                location.latitude.minutes = ((frame[8] & 0x3E) >> 1) * 2;
+                latofmin = (frame[14] & 0x60) >> 5;
+                latofsec = ((frame[14] & 0x1E) >> 1) * 4;
+                if (latoffset) {
+                    location.latitude.minutes += latofmin;
+                    location.latitude.seconds += latofsec;
+                } else {
+                    location.latitude.minutes -= latofmin;
+                    if (location.latitude.minutes < 0) {
+                        location.latitude.minutes += 60;
+                        location.latitude.degrees -= 1;
+                    }
+                    location.latitude.seconds -= latofsec;
+                    if (location.latitude.seconds < 0) {
+                        location.latitude.seconds += 60;
+                        location.latitude.minutes -= 1;
+                    }
+                }
+                lonoffset = (frame[14] & 0x01);
+                location.longitude.orientation = (frame[8] & 0x01);
+                location.longitude.degrees = (frame[9]);
+                location.longitude.minutes = ((frame[10] & 0xF8) >> 3) * 2;
+                lonofmin = (frame[15] & 0xC0) >> 6;
+                lonofsec = ((frame[15] & 0x3C) >> 2) * 4;
+                if (lonoffset) {
+                    location.longitude.minutes += lonofmin;
+                    location.longitude.seconds += lonofsec;
+                } else {
+                    location.longitude.minutes -= lonofmin;
+                    if (location.longitude.minutes < 0) {
+                        location.longitude.minutes += 60;
+                        location.longitude.degrees -= 1;
+                    }
+                    location.longitude.seconds -= lonofsec;
+                    if (location.longitude.seconds < 0) {
+                        location.longitude.seconds += 60;
+                        location.longitude.minutes -= 1;
+                    }
+                }
+            } else if (protocol->isStandard()) {
+                latoffset = (frame[14] & 0x80) >> 7;
+                location.latitude.orientation = (frame[8] & 0x80) >> 7;
+                location.latitude.degrees = (frame[8] & 0x7F);
+                location.latitude.minutes = ((frame[9] & 0xC0) >> 6) * 15;
+                latofmin = (frame[14] & 0x7C) >> 2;
+                latofsec = ((frame[14] & 0x03) << 2 | (frame[15] & 0xC0) >> 6) * 4;
+                if (latoffset) {
+                    location.latitude.minutes += latofmin;
+                    location.latitude.seconds += latofsec;
+                } else {
+                    location.latitude.minutes -= latofmin;
+                    if (location.latitude.minutes < 0) {
+                        location.latitude.minutes += 60;
+                        location.latitude.degrees -= 1;
+                    }
+                    location.latitude.seconds -= latofsec;
+                    if (location.latitude.seconds < 0) {
+                        location.latitude.seconds += 60;
+                        location.latitude.minutes -= 1;
+                    }
+                }
+                lonoffset = (frame[15] & 0x20) >> 5;
+                location.longitude.orientation = (frame[9] & 0x20) >> 5;
+                location.longitude.degrees = ((frame[9] & 0x1F) << 3 | (frame[10] & 0xE0) >> 5);
+                location.longitude.minutes = ((frame[10] & 0x18) >> 3) * 15;
+                lonofmin = (frame[15] & 0x1F);
+                lonofsec = ((frame[16] & 0xF0) >> 4) * 4;
+                if (lonoffset) {
+                    location.longitude.minutes += lonofmin;
+                    location.longitude.seconds += lonofsec;
+                } else {
+                    location.longitude.minutes -= lonofmin;
+                    if (location.longitude.minutes < 0) {
+                        location.longitude.minutes += 60;
+                        location.longitude.degrees -= 1;
+                    }
+                    location.longitude.seconds -= lonofsec;
+                    if (location.longitude.seconds < 0) {
+                        location.longitude.seconds += 60;
+                        location.longitude.minutes -= 1;
+                    }
+                }
+            } else if (protocol->isRlsOrElt()) {
+                latoffset = (frame[14] & 0x20) >> 5;
+                location.latitude.orientation = (frame[8] & 0x20) >> 5;
+                location.latitude.degrees = ((frame[8] & 0x1F) << 2) | ((frame[9] & 0xC0) >> 6);
+                location.latitude.minutes = ((frame[9] & 0x20) >> 5) * 30;
+                latofmin = (frame[14] & 0x1E) >> 1;
+                latofsec = ((frame[14] & 0x01) << 3 | (frame[15] & 0xE0) >> 5) * 4;
+                if (latoffset) {
+                    location.latitude.minutes += latofmin;
+                    location.latitude.seconds += latofsec;
+                } else {
+                    location.latitude.minutes -= latofmin;
+                    if (location.latitude.minutes < 0) {
+                        location.latitude.minutes += 60;
+                        location.latitude.degrees -= 1;
+                    }
+                    location.latitude.seconds -= latofsec;
+                    if (location.latitude.seconds < 0) {
+                        location.latitude.seconds += 60;
+                        location.latitude.minutes -= 1;
+                    }
+                }
+                lonoffset = (frame[15] & 0x10) >> 4;
+                location.longitude.orientation = (frame[9] & 0x10) >> 4;
+                location.longitude.degrees = ((frame[9] & 0x0F) << 4 | (frame[10] & 0xF0) >> 4);
+                location.longitude.minutes = ((frame[10] & 0x08) >> 3) * 30;
+                lonofmin = (frame[15] & 0x0F);
+                lonofsec = ((frame[16] & 0xF0) >> 4) * 4;
+                if (lonoffset) {
+                    location.longitude.minutes += lonofmin;
+                    location.longitude.seconds += lonofsec;
+                } else {
+                    location.longitude.minutes -= lonofmin;
+                    if (location.longitude.minutes < 0) {
+                        location.longitude.minutes += 60;
+                        location.longitude.degrees -= 1;
+                    }
+                    location.longitude.seconds -= lonofsec;
+                    if (location.longitude.seconds < 0) {
+                        location.longitude.seconds += 60;
+                        location.longitude.minutes -= 1;
+                    }
+                }
+            }
+        }
+
+        parseAdditionalData();
+        parseLocatingDevices();
+
+        if (isOrbito() && !longFrame) {
+            isEmpty = true;
+            for (size_t i = 3; i < BEACON_DATA_SIZE; i++) {
+                if (frame[i] != 0) {
+                    isEmpty = false;
+                    break;
+                }
+            }
+        } else
+            isEmpty = false;
+
+        bch1 = getBits(frame, 86, 106);
+        computedBch1 = computeBCH1(frame);
+        hasBch2 = !isOrbito();
+        if (hasBch2) {
+            bch2 = getBits(frame, 133, 144);
+            computedBch2 = computeBCH2(frame);
+        }
+    }
 };
+
+// Initialisation des membres statiques hors de la classe avec 'inline' pour éviter les erreurs de type incomplet
+inline const Beacon::Protocol Beacon::Protocol::USER_EPIRB_MARITIME{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_EPIRB_RADIO{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_ELT{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_SERIAL{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_TEST{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_ORB{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_NAT{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::USER_2G{Type::USER};
+inline const Beacon::Protocol Beacon::Protocol::STD_EPIRB{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_ELT_24{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_ELT_SERIAL{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_ELT_AIRCRAFT{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_EPIRB_SERIAL{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_PLB_SERIAL{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_SHIP{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::STD_TEST{Type::STANDARD_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::NAT_ELT{Type::NATIONAL_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::NAT_EPIRB{Type::NATIONAL_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::NAT_PLB{Type::NATIONAL_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::NAT_TEST{Type::NATIONAL_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::RLS{Type::RLS_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::ELT_DT{Type::ELT_DT_LOCATION};
+inline const Beacon::Protocol Beacon::Protocol::SPARE{Type::SPARE};
+inline const Beacon::Protocol Beacon::Protocol::UNKNOWN{Type::UNKNOWN};
 
 }  // namespace ui::external_app::epirb_rx
 
