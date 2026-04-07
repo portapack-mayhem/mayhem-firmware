@@ -195,11 +195,11 @@ class TwoTonePagerView : public View {
     OptionsField options_timing{
         {8 * 8, 5 * 16},
         12,
-        {{"Moto Std",    0},
+        {{"Moto Std", 0},
          {"Short Alert", 1},
-         {"Fire Std",    2},
-         {"Long Alert",  3},
-         {"Custom",      4}}};
+         {"Fire Std", 2},
+         {"Long Alert", 3},
+         {"Custom", 4}}};
 
     NumberField field_slot{
         {7 * 8, 6 * 16},

@@ -26,21 +26,60 @@
 #include <cmath>
 
 static constexpr float SAMPLE_RATE = 24000.0f;
-static constexpr uint32_t WINDOW_SAMPLES = 960;       // 40 ms at 24 kHz (30 execute() calls)
+static constexpr uint32_t WINDOW_SAMPLES = 960;  // 40 ms at 24 kHz (30 execute() calls)
 static constexpr uint32_t WINDOW_MS = (1000 * WINDOW_SAMPLES) / (uint32_t)SAMPLE_RATE;
-static constexpr uint32_t AUDIO_BLOCK_SAMPLES = 32;   // demod_fm emits 32 audio samples per execute()
+static constexpr uint32_t AUDIO_BLOCK_SAMPLES = 32;  // demod_fm emits 32 audio samples per execute()
 static constexpr uint32_t SQUELCH_HOLD_BLOCKS =
     (100 * (uint32_t)SAMPLE_RATE) / (1000 * AUDIO_BLOCK_SAMPLES);  // 100 ms hold at execute() block rate
 static constexpr float PI_F = 3.14159265f;
 
 // Motorola/EIA QCII paging frequencies (×10 to avoid float in table)
 static constexpr uint32_t MOTO_FREQS_X10[45] = {
-     2885,  3047,  3217,  3396,  3586,  3786,  3998,  4221,
-     4457,  4705,  4968,  5246,  5539,  5848,  6174,  6519,
-     6883,  7268,  7674,  8102,  8555,  9032,  9537, 10073,
-    10642, 11225, 11247, 11534, 11852, 11885, 12178, 12514,
-    12555, 12858, 13258, 13576, 13950, 13996, 14768, 15579,
-    16430, 17325, 18262, 19245, 20275,
+    2885,
+    3047,
+    3217,
+    3396,
+    3586,
+    3786,
+    3998,
+    4221,
+    4457,
+    4705,
+    4968,
+    5246,
+    5539,
+    5848,
+    6174,
+    6519,
+    6883,
+    7268,
+    7674,
+    8102,
+    8555,
+    9032,
+    9537,
+    10073,
+    10642,
+    11225,
+    11247,
+    11534,
+    11852,
+    11885,
+    12178,
+    12514,
+    12555,
+    12858,
+    13258,
+    13576,
+    13950,
+    13996,
+    14768,
+    15579,
+    16430,
+    17325,
+    18262,
+    19245,
+    20275,
 };
 
 // Minimum coherent Goertzel energy for MOTO tone detection.
@@ -188,8 +227,7 @@ void ToneDetectProcessor::execute(const buffer_c8_t& buffer) {
             // be present.  This is the standard two-condition squelch used in real radios.
             bool gate_open;
             if (ctcss_freq_x10 > 0) {
-                const float power = goertzel_s1 * goertzel_s1 + goertzel_s2 * goertzel_s2
-                                  - goertzel_coeff * goertzel_s1 * goertzel_s2;
+                const float power = goertzel_s1 * goertzel_s1 + goertzel_s2 * goertzel_s2 - goertzel_coeff * goertzel_s1 * goertzel_s2;
                 gate_open = carrier_is_open && (power > CTCSS_ENERGY_THRESHOLD);
                 goertzel_s1 = 0.0f;
                 goertzel_s2 = 0.0f;
@@ -204,9 +242,7 @@ void ToneDetectProcessor::execute(const buffer_c8_t& buffer) {
             uint32_t best_idx = 45;  // 45 = sentinel (no match)
             float best_energy = MOTO_ENERGY_THRESHOLD;
             for (size_t j = 0; j < 45; j++) {
-                const float pwr = moto_s1[j] * moto_s1[j]
-                                + moto_s2[j] * moto_s2[j]
-                                - moto_coeff[j] * moto_s1[j] * moto_s2[j];
+                const float pwr = moto_s1[j] * moto_s1[j] + moto_s2[j] * moto_s2[j] - moto_coeff[j] * moto_s1[j] * moto_s2[j];
                 energies[j] = pwr;
                 moto_s1[j] = 0.0f;
                 moto_s2[j] = 0.0f;

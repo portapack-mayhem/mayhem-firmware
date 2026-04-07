@@ -42,22 +42,106 @@ static constexpr Rect tone_log_rect{0, tone_log_top, 30 * 8, waterfall_top - ton
 // ---------------------------------------------------------------------------
 
 static const uint32_t MOTO_FREQS[45] = {
-     2885,  3047,  3217,  3396,  3586,  3786,  3998,  4221,
-     4457,  4705,  4968,  5246,  5539,  5848,  6174,  6519,
-     6883,  7268,  7674,  8102,  8555,  9032,  9537, 10073,
-    10642, 11225, 11247, 11534, 11852, 11885, 12178, 12514,
-    12555, 12858, 13258, 13576, 13950, 13996, 14768, 15579,
-    16430, 17325, 18262, 19245, 20275,
+    2885,
+    3047,
+    3217,
+    3396,
+    3586,
+    3786,
+    3998,
+    4221,
+    4457,
+    4705,
+    4968,
+    5246,
+    5539,
+    5848,
+    6174,
+    6519,
+    6883,
+    7268,
+    7674,
+    8102,
+    8555,
+    9032,
+    9537,
+    10073,
+    10642,
+    11225,
+    11247,
+    11534,
+    11852,
+    11885,
+    12178,
+    12514,
+    12555,
+    12858,
+    13258,
+    13576,
+    13950,
+    13996,
+    14768,
+    15579,
+    16430,
+    17325,
+    18262,
+    19245,
+    20275,
 };
 
 // Index 0 = None (0), indices 1–50 = standard CTCSS tones (freq × 10)
 static const uint32_t CTCSS_FREQS[51] = {
-       0,
-     670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
-     974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
-    1365, 1413, 1462, 1500, 1514, 1567, 1598, 1622, 1655, 1679,
-    1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
-    2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
+    0,
+    670,
+    719,
+    744,
+    770,
+    797,
+    825,
+    854,
+    885,
+    915,
+    948,
+    974,
+    1000,
+    1035,
+    1072,
+    1109,
+    1148,
+    1188,
+    1230,
+    1273,
+    1318,
+    1365,
+    1413,
+    1462,
+    1500,
+    1514,
+    1567,
+    1598,
+    1622,
+    1655,
+    1679,
+    1713,
+    1738,
+    1773,
+    1799,
+    1835,
+    1862,
+    1899,
+    1928,
+    1966,
+    1995,
+    2035,
+    2065,
+    2107,
+    2181,
+    2257,
+    2291,
+    2336,
+    2418,
+    2503,
+    2541,
 };
 
 static std::string ctcss_name(uint32_t freq_x10) {
@@ -71,9 +155,9 @@ static std::string ctcss_name(uint32_t freq_x10) {
 // ---------------------------------------------------------------------------
 
 static constexpr uint32_t MOTO_NONE = 255;
-static constexpr uint32_t MOTO_TRANSITION_SNAP_HZ = 30;  // stricter live transition tolerance
-static constexpr uint32_t MOTO_FINAL_MATCH_HZ = 60;      // looser phase-end/logging tolerance
-static constexpr uint32_t MOTO_TRANSITION_DELTA_HZ = 25; // raw shift needed to confirm close-in A→B handoff
+static constexpr uint32_t MOTO_TRANSITION_SNAP_HZ = 30;   // stricter live transition tolerance
+static constexpr uint32_t MOTO_FINAL_MATCH_HZ = 60;       // looser phase-end/logging tolerance
+static constexpr uint32_t MOTO_TRANSITION_DELTA_HZ = 25;  // raw shift needed to confirm close-in A→B handoff
 
 static uint32_t abs_diff_u32(uint32_t a, uint32_t b) {
     return (a > b) ? (a - b) : (b - a);
@@ -266,8 +350,8 @@ void TwoToneRxView::apply_bias_t(bool active) {
 
 void TwoToneRxView::debug_log(const std::string& line) {
     const std::string trace_prefix = debug_trace_active_
-                                   ? ("#" + to_string_dec_uint(debug_trace_id_) + " ")
-                                   : "";
+                                         ? ("#" + to_string_dec_uint(debug_trace_id_) + " ")
+                                         : "";
     const std::string entry = "[D] " + trace_prefix + line;
     debug_file_.write_entry(entry);
 }
@@ -323,8 +407,8 @@ void TwoToneRxView::on_tone_data(const ToneDetectDataMessage* msg) {
         if (detect_state_ == DetectState::T2_COLLECTING) {
             // phase_last_freq_ is the last T2 window → discard it
             uint32_t t2_avg = (phase_valid_windows_ > 0)
-                            ? (phase_freq_accum_ / phase_valid_windows_)
-                            : phase_last_freq_;
+                                  ? (phase_freq_accum_ / phase_valid_windows_)
+                                  : phase_last_freq_;
             uint32_t t2_dur = phase_window_count_ * DETECT_WINDOW_MS;
             finalize_detected_pair(t2_avg, t2_dur, "tone_end");
         } else if (debug_trace_active_) {
@@ -340,8 +424,8 @@ void TwoToneRxView::on_tone_data(const ToneDetectDataMessage* msg) {
     if (freq == 0) {
         if (detect_state_ == DetectState::T2_COLLECTING) {
             const uint32_t t2_avg = (phase_valid_windows_ > 0)
-                                  ? (phase_freq_accum_ / phase_valid_windows_)
-                                  : phase_last_freq_;
+                                        ? (phase_freq_accum_ / phase_valid_windows_)
+                                        : phase_last_freq_;
             const uint32_t t2_dur = phase_window_count_ * DETECT_WINDOW_MS;
 
             if (t2_avg > 0 && t2_dur >= 2000) {
@@ -392,8 +476,8 @@ void TwoToneRxView::on_tone_data(const ToneDetectDataMessage* msg) {
             // marked for discard and must not trigger a false transition.
             if (freq > 0 && phase_last_freq_ > 0 && !phase_last_is_first_) {
                 const uint32_t t1_ref_freq = (phase_valid_windows_ > 0)
-                                           ? (phase_freq_accum_ / phase_valid_windows_)
-                                           : phase_last_freq_;
+                                                 ? (phase_freq_accum_ / phase_valid_windows_)
+                                                 : phase_last_freq_;
                 const uint32_t idx_ref = moto_index(t1_ref_freq, MOTO_FINAL_MATCH_HZ);
                 const uint32_t idx_last = moto_index(phase_last_freq_);
                 const uint32_t idx_cur = moto_index(freq);
@@ -429,8 +513,8 @@ void TwoToneRxView::on_tone_data(const ToneDetectDataMessage* msg) {
                     // Transition detected.
                     // phase_last_freq_ is the last T1 window → discard.
                     t1_avg_freq_ = (phase_valid_windows_ > 0)
-                                 ? (phase_freq_accum_ / phase_valid_windows_)
-                                 : phase_last_freq_;
+                                       ? (phase_freq_accum_ / phase_valid_windows_)
+                                       : phase_last_freq_;
                     t1_window_count_ = phase_window_count_;
 
                     // Start T2 with current window as first (also discarded)
@@ -465,8 +549,8 @@ void TwoToneRxView::on_tone_data(const ToneDetectDataMessage* msg) {
                 phase_window_count_ >= 3 &&
                 moto_index(phase_last_freq_, MOTO_FINAL_MATCH_HZ) != MOTO_NONE) {
                 const uint32_t t1_ref_freq = (phase_valid_windows_ > 0)
-                                           ? (phase_freq_accum_ / phase_valid_windows_)
-                                           : phase_last_freq_;
+                                                 ? (phase_freq_accum_ / phase_valid_windows_)
+                                                 : phase_last_freq_;
                 debug_trace_begin("T1 start " + format_tone(t1_ref_freq, phase_window_count_ * DETECT_WINDOW_MS));
             }
 

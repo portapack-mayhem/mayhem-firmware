@@ -114,15 +114,17 @@ class TwoToneRxView : public View {
     // table entries trigger T1→T2. The transition window becomes T2's first
     // window (also discarded as T2's first).
 
-    enum class DetectState : uint8_t { IDLE, T1_COLLECTING, T2_COLLECTING };
+    enum class DetectState : uint8_t { IDLE,
+                                       T1_COLLECTING,
+                                       T2_COLLECTING };
     DetectState detect_state_{DetectState::IDLE};
 
     // Per-phase window collection
-    uint32_t phase_window_count_{0};    // total windows seen in this phase (including first)
-    uint32_t phase_freq_accum_{0};      // sum of non-first, non-last window frequencies
-    uint32_t phase_valid_windows_{0};   // count of windows in phase_freq_accum_
-    uint32_t phase_last_freq_{0};       // pending window (not yet added; discarded if last)
-    bool phase_last_is_first_{true};    // true when phase_last_freq_ is window 1 (discard)
+    uint32_t phase_window_count_{0};   // total windows seen in this phase (including first)
+    uint32_t phase_freq_accum_{0};     // sum of non-first, non-last window frequencies
+    uint32_t phase_valid_windows_{0};  // count of windows in phase_freq_accum_
+    uint32_t phase_last_freq_{0};      // pending window (not yet added; discarded if last)
+    bool phase_last_is_first_{true};   // true when phase_last_freq_ is window 1 (discard)
 
     // T1 result (stored at T1→T2 transition for use when pair is logged)
     uint32_t t1_avg_freq_{0};

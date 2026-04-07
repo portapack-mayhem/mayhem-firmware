@@ -40,22 +40,106 @@ namespace ui::external_app::two_tone_pager {
 // ---------------------------------------------------------------------------
 
 static const uint32_t MOTO_FREQS[45] = {
-     2885,  3047,  3217,  3396,  3586,  3786,  3998,  4221,
-     4457,  4705,  4968,  5246,  5539,  5848,  6174,  6519,
-     6883,  7268,  7674,  8102,  8555,  9032,  9537, 10073,
-    10642, 11225, 11247, 11534, 11852, 11885, 12178, 12514,
-    12555, 12858, 13258, 13576, 13950, 13996, 14768, 15579,
-    16430, 17325, 18262, 19245, 20275,
+    2885,
+    3047,
+    3217,
+    3396,
+    3586,
+    3786,
+    3998,
+    4221,
+    4457,
+    4705,
+    4968,
+    5246,
+    5539,
+    5848,
+    6174,
+    6519,
+    6883,
+    7268,
+    7674,
+    8102,
+    8555,
+    9032,
+    9537,
+    10073,
+    10642,
+    11225,
+    11247,
+    11534,
+    11852,
+    11885,
+    12178,
+    12514,
+    12555,
+    12858,
+    13258,
+    13576,
+    13950,
+    13996,
+    14768,
+    15579,
+    16430,
+    17325,
+    18262,
+    19245,
+    20275,
 };
 
 // Index 0 = None (0), indices 1-50 = standard CTCSS tones
 static const uint32_t CTCSS_FREQS[51] = {
-       0,
-     670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
-     974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
-    1365, 1413, 1462, 1500, 1514, 1567, 1598, 1622, 1655, 1679,
-    1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
-    2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
+    0,
+    670,
+    719,
+    744,
+    770,
+    797,
+    825,
+    854,
+    885,
+    915,
+    948,
+    974,
+    1000,
+    1035,
+    1072,
+    1109,
+    1148,
+    1188,
+    1230,
+    1273,
+    1318,
+    1365,
+    1413,
+    1462,
+    1500,
+    1514,
+    1567,
+    1598,
+    1622,
+    1655,
+    1679,
+    1713,
+    1738,
+    1773,
+    1799,
+    1835,
+    1862,
+    1899,
+    1928,
+    1966,
+    1995,
+    2035,
+    2065,
+    2107,
+    2181,
+    2257,
+    2291,
+    2336,
+    2418,
+    2503,
+    2541,
 };
 
 // Generate a display name from a freq×10 value ("288.5Hz", "None" for 0)
@@ -74,7 +158,7 @@ struct TimingPreset {
 
 static const TimingPreset TIMING_PRESETS[4] = {
     {1000, 3000, 0},  // Moto Std
-    { 700, 1000, 0},  // Short Alert
+    {700, 1000, 0},   // Short Alert
     {2000, 1000, 0},  // Fire Std
     {3000, 3000, 0},  // Long Alert
 };
@@ -136,11 +220,11 @@ void TwoTonePagerView::decode_preset(const std::string& s) {
     uint32_t cfa = (*p != '\0') ? parse_uint_field(p) : 405;
     uint32_t cfb = (*p != '\0') ? parse_uint_field(p) : 814;
 
-    ctcss_idx  = std::min(ci, static_cast<uint32_t>(CTCSS_COUNT - 1));
+    ctcss_idx = std::min(ci, static_cast<uint32_t>(CTCSS_COUNT - 1));
     tone_a_idx = std::min(ai, CUSTOM_TONE_IDX);
     tone_b_idx = std::min(bi, CUSTOM_TONE_IDX);
-    dur_a  = std::max(uint32_t{100}, std::min(da, uint32_t{9900}));
-    dur_b  = std::max(uint32_t{100}, std::min(db, uint32_t{9900}));
+    dur_a = std::max(uint32_t{100}, std::min(da, uint32_t{9900}));
+    dur_b = std::max(uint32_t{100}, std::min(db, uint32_t{9900}));
     gap_ms = std::min(gp, uint32_t{9900});
     custom_freq_a_hz = std::max(uint32_t{100}, std::min(cfa, uint32_t{9999}));
     custom_freq_b_hz = std::max(uint32_t{100}, std::min(cfb, uint32_t{9999}));
@@ -148,21 +232,31 @@ void TwoTonePagerView::decode_preset(const std::string& s) {
 
 std::string& TwoTonePagerView::slot_ref(uint32_t slot) {
     switch (slot) {
-        case 2: return preset_2;
-        case 3: return preset_3;
-        case 4: return preset_4;
-        case 5: return preset_5;
-        default: return preset_1;
+        case 2:
+            return preset_2;
+        case 3:
+            return preset_3;
+        case 4:
+            return preset_4;
+        case 5:
+            return preset_5;
+        default:
+            return preset_1;
     }
 }
 
 std::string& TwoTonePagerView::slot_name_ref(uint32_t slot) {
     switch (slot) {
-        case 2: return preset_name_2;
-        case 3: return preset_name_3;
-        case 4: return preset_name_4;
-        case 5: return preset_name_5;
-        default: return preset_name_1;
+        case 2:
+            return preset_name_2;
+        case 3:
+            return preset_name_3;
+        case 4:
+            return preset_name_4;
+        case 5:
+            return preset_name_5;
+        default:
+            return preset_name_1;
     }
 }
 
@@ -205,7 +299,7 @@ size_t TwoTonePagerView::detect_timing_preset() const {
     for (size_t i = 0; i < 4; i++) {
         if (TIMING_PRESETS[i].dur_a == dur_a &&
             TIMING_PRESETS[i].dur_b == dur_b &&
-            TIMING_PRESETS[i].gap  == gap_ms)
+            TIMING_PRESETS[i].gap == gap_ms)
             return i;
     }
     return 4;  // "Custom"
@@ -213,8 +307,8 @@ size_t TwoTonePagerView::detect_timing_preset() const {
 
 void TwoTonePagerView::apply_timing_preset(size_t idx) {
     if (idx >= 4) return;  // "Custom" — do not override current values
-    dur_a  = TIMING_PRESETS[idx].dur_a;
-    dur_b  = TIMING_PRESETS[idx].dur_b;
+    dur_a = TIMING_PRESETS[idx].dur_a;
+    dur_b = TIMING_PRESETS[idx].dur_b;
     gap_ms = TIMING_PRESETS[idx].gap;
     field_dur_a.set_value(static_cast<int32_t>(dur_a), false);
     field_dur_b.set_value(static_cast<int32_t>(dur_b), false);
@@ -229,11 +323,11 @@ void TwoTonePagerView::apply_timing_preset(size_t idx) {
 void TwoTonePagerView::update_tx_time() {
     uint32_t total_ms = dur_a + gap_ms + dur_b;
     std::string name_a = (tone_a_idx == CUSTOM_TONE_IDX)
-        ? to_string_dec_uint(custom_freq_a_hz) + "Hz"
-        : freq_name(MOTO_FREQS[tone_a_idx]);
+                             ? to_string_dec_uint(custom_freq_a_hz) + "Hz"
+                             : freq_name(MOTO_FREQS[tone_a_idx]);
     std::string name_b = (tone_b_idx == CUSTOM_TONE_IDX)
-        ? to_string_dec_uint(custom_freq_b_hz) + "Hz"
-        : freq_name(MOTO_FREQS[tone_b_idx]);
+                             ? to_string_dec_uint(custom_freq_b_hz) + "Hz"
+                             : freq_name(MOTO_FREQS[tone_b_idx]);
     text_time.set("TX time: " +
                   to_string_dec_uint(total_ms / 1000) + "." +
                   to_string_dec_uint((total_ms / 100) % 10) + "s" +
@@ -248,18 +342,18 @@ bool TwoTonePagerView::start_tx() {
     auto& td = shared_memory.bb_data.tones_data;
 
     const uint32_t freq_a_x10 = (tone_a_idx == CUSTOM_TONE_IDX)
-        ? custom_freq_a_hz * 10
-        : MOTO_FREQS[tone_a_idx];
+                                    ? custom_freq_a_hz * 10
+                                    : MOTO_FREQS[tone_a_idx];
     const uint32_t freq_b_x10 = (tone_b_idx == CUSTOM_TONE_IDX)
-        ? custom_freq_b_hz * 10
-        : MOTO_FREQS[tone_b_idx];
+                                    ? custom_freq_b_hz * 10
+                                    : MOTO_FREQS[tone_b_idx];
     const uint32_t delta_a = tone_delta(freq_a_x10);
     const uint32_t delta_b = tone_delta(freq_b_x10);
     const uint32_t delta_c = tone_delta(CTCSS_FREQS[ctcss_idx]);
-    const uint32_t samp_a  = ms_to_samples(dur_a);
-    const uint32_t samp_b  = ms_to_samples(dur_b);
-    const uint32_t samp_g  = ms_to_samples(gap_ms);
-    const bool     with_ctcss = (ctcss_idx > 0);
+    const uint32_t samp_a = ms_to_samples(dur_a);
+    const uint32_t samp_b = ms_to_samples(dur_b);
+    const uint32_t samp_g = ms_to_samples(gap_ms);
+    const bool with_ctcss = (ctcss_idx > 0);
 
     // Clear tone defs we'll use
     memset(&td, 0, sizeof(td));
@@ -269,20 +363,20 @@ bool TwoTonePagerView::start_tx() {
     if (!with_ctcss) {
         // Single-tone sequential mode
         // tone_defs[0] = Tone A,  tone_defs[1] = Tone B
-        td.tone_defs[0].delta    = delta_a;
+        td.tone_defs[0].delta = delta_a;
         td.tone_defs[0].duration = samp_a;
-        td.tone_defs[1].delta    = delta_b;
+        td.tone_defs[1].delta = delta_b;
         td.tone_defs[1].duration = samp_b;
 
         if (gap_ms > 0) {
-            td.silence    = samp_g;
+            td.silence = samp_g;
             td.message[0] = 0;    // Tone A
             td.message[1] = 255;  // Silence (any index ≥ 32 triggers silence)
             td.message[2] = 1;    // Tone B
             tone_count = 3;
         } else {
-            td.message[0] = 0;    // Tone A
-            td.message[1] = 1;    // Tone B
+            td.message[0] = 0;  // Tone A
+            td.message[1] = 1;  // Tone B
             tone_count = 2;
         }
     } else {
@@ -295,17 +389,17 @@ bool TwoTonePagerView::start_tx() {
         //
         // digit 0 → Tone A (main) + CTCSS (sub),  duration from tone_defs[0]
         // digit 1 → Tone B (main) + CTCSS (sub),  duration from tone_defs[1]
-        td.tone_defs[0].delta    = delta_a;  // digit 0 main
+        td.tone_defs[0].delta = delta_a;  // digit 0 main
         td.tone_defs[0].duration = samp_a;
-        td.tone_defs[1].delta    = delta_c;  // digit 0 sub (CTCSS); also digit 1 duration source
+        td.tone_defs[1].delta = delta_c;  // digit 0 sub (CTCSS); also digit 1 duration source
         td.tone_defs[1].duration = samp_b;
-        td.tone_defs[2].delta    = delta_b;  // digit 1 main (Tone B)
-        td.tone_defs[2].duration = 0;        // duration for digit 1 comes from tone_defs[1]
-        td.tone_defs[3].delta    = delta_c;  // digit 1 sub (CTCSS)
+        td.tone_defs[2].delta = delta_b;  // digit 1 main (Tone B)
+        td.tone_defs[2].duration = 0;     // duration for digit 1 comes from tone_defs[1]
+        td.tone_defs[3].delta = delta_c;  // digit 1 sub (CTCSS)
         td.tone_defs[3].duration = 0;
 
         if (gap_ms > 0) {
-            td.silence    = samp_g;
+            td.silence = samp_g;
             td.message[0] = 0;
             td.message[1] = 255;
             td.message[2] = 1;
@@ -325,7 +419,7 @@ bool TwoTonePagerView::start_tx() {
 
     baseband::set_tones_config(
         transmitter_model.channel_bandwidth(),
-        0,           // no pre-silence
+        0,  // no pre-silence
         tone_count,
         with_ctcss,  // dual_tone flag
         false);      // no audio monitor output
@@ -369,12 +463,12 @@ TwoTonePagerView::TwoTonePagerView(NavigationView& nav)
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     // Clamp restored settings to valid ranges before touching UI
-    ctcss_idx  = std::min(ctcss_idx,  static_cast<uint32_t>(CTCSS_COUNT - 1));
+    ctcss_idx = std::min(ctcss_idx, static_cast<uint32_t>(CTCSS_COUNT - 1));
     tone_a_idx = std::min(tone_a_idx, CUSTOM_TONE_IDX);
     tone_b_idx = std::min(tone_b_idx, CUSTOM_TONE_IDX);
-    dur_a      = std::max(uint32_t{100}, std::min(dur_a, uint32_t{9900}));
-    dur_b      = std::max(uint32_t{100}, std::min(dur_b, uint32_t{9900}));
-    gap_ms     = std::min(gap_ms, uint32_t{9900});
+    dur_a = std::max(uint32_t{100}, std::min(dur_a, uint32_t{9900}));
+    dur_b = std::max(uint32_t{100}, std::min(dur_b, uint32_t{9900}));
+    gap_ms = std::min(gap_ms, uint32_t{9900});
     preset_slot = std::max(uint32_t{1}, std::min(preset_slot, uint32_t{5}));
     custom_freq_a_hz = std::max(uint32_t{100}, std::min(custom_freq_a_hz, uint32_t{9999}));
     custom_freq_b_hz = std::max(uint32_t{100}, std::min(custom_freq_b_hz, uint32_t{9999}));

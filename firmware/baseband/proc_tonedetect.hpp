@@ -59,8 +59,8 @@ class ToneDetectProcessor : public BasebandProcessor {
 
     bool configured{false};
     uint8_t user_squelch_level{0};
-    FMSquelch fm_squelch{};     // user-adjustable: drives audio muting only
-    FMSquelch carrier_sq{};     // fixed threshold: drives detection gate
+    FMSquelch fm_squelch{};  // user-adjustable: drives audio muting only
+    FMSquelch carrier_sq{};  // fixed threshold: drives detection gate
 
     // Audio muting squelch state (user-adjustable level, has hold for smooth audio)
     bool squelch_is_open{false};
