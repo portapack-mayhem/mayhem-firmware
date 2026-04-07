@@ -306,22 +306,21 @@ class WM8731 : public audio::Codec {
         });
     }
 
-    bool set_wm_headphone_volume(const volume_t volume) {
+    void set_wm_headphone_volume(const volume_t volume) {
         const auto normalized = headphone_gain_range().normalize(volume);
         auto n = normalized.centibel() / 10;
 
-        bool tag = write(LeftHeadphoneOut{
+        write(LeftHeadphoneOut{
             .lhpvol = static_cast<reg_t>(n),
             .lzcen = 0,
             .lrhpboth = 1,
             .reserved0 = 0,
         });
-        return tag;
     }
 
-    bool set_headphone_volume(const volume_t volume) override {
+    void set_headphone_volume(const volume_t volume) override {
         headphone_volume = volume;
-        return set_wm_headphone_volume(volume);
+        set_wm_headphone_volume(volume);
     }
 
     volume_range_t headphone_gain_range() const override {
@@ -423,7 +422,7 @@ class WM8731 : public audio::Codec {
 
     void write(const LeftLineIn value);
     void write(const RightLineIn value);
-    bool write(const LeftHeadphoneOut value);
+    void write(const LeftHeadphoneOut value);
     void write(const RightHeadphoneOut value);
     void write(const AnalogAudioPathControl value);
     void write(const DigitalAudioPathControl value);
