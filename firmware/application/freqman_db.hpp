@@ -102,6 +102,7 @@ enum class freqman_type : uint8_t {
     _100kHz,
     _250kHz,
     _500kHz,
+    _750kHz,
     _1MHz,
     Unknown,
  * };
@@ -130,6 +131,7 @@ enum class freqman_type : uint8_t {
     freqman_step_info{ freqman_step::_100kHz,  "100kHz",  "100kHz (FM2)", 100'000 },
     freqman_step_info{ freqman_step::_250kHz,  "250kHz",  "250kHz  (N2)", 250'000 },
     freqman_step_info{ freqman_step::_500kHz,  "500kHz",  "500kHz (WFM)", 500'000 },
+    freqman_step_info{ freqman_step::_750kHz,  "750kHz",  "750kHz      ", 750'000 },
     freqman_step_info{ freqman_step::_1MHz,    "1MHz",    "1MHz        ", 1'000'000 },
     freqman_step_info{ freqman_step::Unknown,  "Unknown", "Unknown     ", 0 },
  * };
