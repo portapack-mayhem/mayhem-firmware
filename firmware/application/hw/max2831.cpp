@@ -182,20 +182,24 @@ void MAX2831::set_mode(const Mode mode) {
         case Mode::Shutdown:
             gpio_max2831_rx_enable.write(0); /* RXTX=0 */
             gpio_max283x_enable.write(0);    /* ENABLE=0 */
+            set_rssi_mux(0);
             break;
         case Mode::Standby:
             gpio_max2831_rx_enable.write(1); /* RXTX=1 */
             gpio_max283x_enable.write(0);    /* ENABLE=0 */
+            set_rssi_mux(0);
             break;
         case Mode::Transmit:
         case Mode::Tx_Calibration:
             gpio_max2831_rx_enable.write(1); /* RXTX=1 for TX */
             gpio_max283x_enable.write(1);    /* ENABLE=1 */
+            set_rssi_mux(2);                 // transmit power
             break;
         case Mode::Receive:
         case Mode::Rx_Calibration:
             gpio_max2831_rx_enable.write(0); /* RXTX=0 for RX */
             gpio_max283x_enable.write(1);    /* ENABLE=1 */
+            set_rssi_mux(1);                 // RSSI
             break;
     }
 
@@ -473,6 +477,40 @@ void MAX2831::write(const address_t reg_num, const reg_t value) {
         write_reg(reg_num, _regs[reg_num]);
         mark_clean(reg_num);
     }
+}
+
+void MAX2831::set_rssi_mux(const uint8_t mode) {
+    /* RSSI MUX allows switching the RSSI output between different internal signals.
+     * 0 = disable mux
+     * 1 = RSSI
+     * 2 = TX_POWER
+     * 3 = TEMP
+     */
+    uint16_t mux_val = 0;
+
+    // Select the appropriate constant based on the input mode.
+    if (mode == 0) {
+        mux_val = 0;
+    } else {
+        // Select the appropriate constant based on the input mode.
+        switch (mode) {
+            case 3:
+                mux_val = REG8_RSSI_MUX_TEMP;
+                break;
+            case 2:
+                mux_val = REG8_RSSI_MUX_TX_POWER;
+                break;
+            case 1:
+            default:
+                mux_val = REG8_RSSI_MUX_RSSI;
+                break;
+        }
+        mux_val |= REG8_RSSI_EN;
+    }
+
+    set_reg_field(8, REG8_RSSI_MUX_MASK | REG8_RSSI_EN, mux_val);
+    flush_reg(8);
+}
 }
 
 }  // namespace max2831
