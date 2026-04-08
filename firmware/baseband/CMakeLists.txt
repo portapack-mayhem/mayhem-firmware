@@ -683,6 +683,14 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSCD subcar)
 
+### Tone Detect RX
+
+set(MODE_CPPSRC
+    proc_tonedetect.cpp
+)
+DeclareTargets(PTNE tonedetect)
+
+
 ### Morse RX Decoder
 
 set(MODE_CPPSRC
