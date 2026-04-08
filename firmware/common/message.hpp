@@ -158,6 +158,8 @@ class Message {
         TimeSinkConfig = 100,
         EPIRBTXData = 101,
         P25TxConfigure = 102,
+        ToneDetectData = 103,
+        ToneDetectConfig = 104,
         MAX
     };
 
@@ -1859,6 +1861,27 @@ class NotificationDataMessage : public Message {
     char message[300]{0};    // message, null-terminated, max 299 chars + null
     uint8_t icon = 0;
     uint16_t timeout = 10000;
+};
+
+// Sent M0→M4: a tone detection event (tone ended, or periodic update while active)
+class ToneDetectDataMessage : public Message {
+   public:
+    constexpr ToneDetectDataMessage()
+        : Message{ID::ToneDetectData} {}
+    uint32_t freq_hz{0};      // Dominant audio frequency in Hz (0 = silence)
+    uint32_t duration_ms{0};  // How long the tone lasted in milliseconds
+    bool tone_end{false};     // True = tone just ended; False = tone still active (periodic update)
+};
+
+// Sent M4→M0: configure the tone detector
+class ToneDetectConfigureMessage : public Message {
+   public:
+    constexpr ToneDetectConfigureMessage(uint8_t squelch = 0, uint32_t ctcss_freq_x10 = 0)
+        : Message{ID::ToneDetectConfig},
+          squelch_level{squelch},
+          ctcss_freq_x10{ctcss_freq_x10} {}
+    uint8_t squelch_level{0};
+    uint32_t ctcss_freq_x10{0};  // CTCSS frequency × 10 (e.g. 1000 = 100.0 Hz); 0 = None
 };
 
 #endif /*__MESSAGE_H__*/
