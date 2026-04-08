@@ -91,14 +91,14 @@ enum class BpskChannel {
 struct Location {
     std::string locator;
     bool south;
-    uint16_t lat_deg;
-    uint8_t lat_min;
-    uint8_t lat_sec;
+    int16_t lat_deg;
+    int8_t lat_min;
+    int8_t lat_sec;
     float latitude;
     bool west;
-    uint16_t long_deg;
-    uint8_t long_min;
-    uint8_t long_sec;
+    int16_t long_deg;
+    int8_t long_min;
+    int8_t long_sec;
     float longitude;
 };
 

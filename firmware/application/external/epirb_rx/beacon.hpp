@@ -229,7 +229,7 @@ class Beacon {
         char buffer[4];
         std::string result = "";
         for (uint8_t i = start; i < end; i++) {
-            std::snprintf(buffer, sizeof(buffer), "%02X", frame[i]);
+            std::sprintf(buffer, "%02X", frame[i]);
             if (withSpace && i > start) result += " ";
             result += buffer;
         }
@@ -588,7 +588,7 @@ class Beacon {
 
         identifier = getBits(frame, 26, 85);
         char buffer[32];
-        std::snprintf(buffer, sizeof(buffer), "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
+        std::sprintf(buffer, "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
         hexId = std::string(buffer);
 
         if (longFrame) {

@@ -24,7 +24,6 @@
 #include "portapack.hpp"
 #include "ui_epirb_tx.hpp"
 #include <cmath>
-#include <cctype>
 #include <cstdio>
 
 namespace ui::external_app::epirb_tx {
@@ -37,17 +36,17 @@ namespace ui::external_app::epirb_tx {
  * @param min output minutes value
  * @param sec output seconds value
  */
-static void decimal_to_dms(float value, bool& negative, uint16_t& deg, uint8_t& min, uint8_t& sec) {
+static void decimal_to_dms(float value, bool& negative, int16_t& deg, int8_t& min, int8_t& sec) {
     negative = value < 0;
     value = std::fabs(value);
 
-    deg = (uint16_t)value;
+    deg = (int16_t)value;
 
     float m = (value - deg) * 60.0f;
-    min = (uint8_t)m;
+    min = (int8_t)m;
 
     float s = (m - min) * 60.0f;
-    sec = (uint8_t)(s + 0.5f);
+    sec = (int8_t)(s + 0.5f);
 
     if (sec == 60) {
         sec = 0;
@@ -68,7 +67,7 @@ static void decimal_to_dms(float value, bool& negative, uint16_t& deg, uint8_t& 
  * @param sec seconds value
  * @return value the decimal value
  */
-static float dms_to_decimal(bool negative, uint16_t deg, uint8_t min, uint8_t sec) {
+static float dms_to_decimal(bool negative, int16_t deg, int8_t min, int8_t sec) {
     float v = deg + min / 60.0f + sec / 3600.0f;
     return negative ? -v : v;
 }
@@ -104,8 +103,10 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
         pairs = 5;
 
     for (int i = 0; i < pairs; i++) {
-        char c1 = std::toupper(loc[i * 2]);
-        char c2 = std::toupper(loc[i * 2 + 1]);
+        char c1 = loc[i * 2];
+        char c2 = loc[i * 2 + 1];
+        if (c1 >= 'a' && c1 <= 'z') c1 -= ('a' - 'A');
+        if (c2 >= 'a' && c2 <= 'z') c2 -= ('a' - 'A');
 
         float lon_size = lon_step[i];
         float lat_size = lat_step[i];
@@ -247,9 +248,9 @@ void init_from_dms(Location& loc) {
  * Convert the provided Loaction to it's latitude string (format <xxx°yy'zz"N>)
  */
 std::string to_latitude_string(const Location& location) {
-    char buffer[16];
+    char buffer[20];
     // Format :  <xxx°yy'zz"N>
-    snprintf(buffer, sizeof(buffer), "%3d\260%02d'%02d\"%c", location.lat_deg, location.lat_min, location.lat_sec, location.south ? 'S' : 'N');
+    sprintf(buffer, "%3d\260%02d'%02d\"%c", location.lat_deg, location.lat_min, location.lat_sec, location.south ? 'S' : 'N');
     return std::string(buffer);
 }
 
@@ -257,9 +258,9 @@ std::string to_latitude_string(const Location& location) {
  * Convert the provided Loaction to it's longitude string (format <xxx°yy'zz"W>)
  */
 std::string to_longitude_string(const Location& location) {
-    char buffer[16];
+    char buffer[20];
     // Format :  <xxx°yy'zz"W>
-    snprintf(buffer, sizeof(buffer), "%3d\260%02d'%02d\"%c", location.long_deg, location.long_min, location.long_sec, location.west ? 'W' : 'E');
+    sprintf(buffer, "%3d\260%02d'%02d\"%c", location.long_deg, location.long_min, location.long_sec, location.west ? 'W' : 'E');
     return std::string(buffer);
 }
 
