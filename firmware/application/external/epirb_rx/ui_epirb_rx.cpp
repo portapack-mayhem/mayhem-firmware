@@ -81,6 +81,8 @@ Beacon EPIRBAppView::decode_packet(const baseband::Packet& packet) {
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
     beacon.date = datetime;
+    // Set timestamp
+    UsbSerialAsyncmsg::asyncmsg("End decode");
 
     return beacon;
     /*
@@ -394,29 +396,39 @@ void EPIRBAppView::focus() {
 }
 
 void EPIRBAppView::on_packet(const baseband::Packet& packet) {
+    std::string beacon_size = "Data size :" + to_string_dec_int(packet.size()) + "\n";
+    UsbSerialAsyncmsg::asyncmsg(beacon_size);
     std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
     // std::string beacon_string = "Message Received!\n";
     UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
-    auto beacon = decode_packet(packet);
+    if (packet.size() > 64) {  
+        // Actual beacon
+        auto beacon = decode_packet(packet);
 
-    on_beacon_decoded(beacon);
+        UsbSerialAsyncmsg::asyncmsg("On beacon decoded");
+
+        on_beacon_decoded(beacon);
+    }
 }
 
 void EPIRBAppView::on_beacon_decoded(Beacon& beacon) {
     beacons_received++;
 
     // Track packet statistics
+    UsbSerialAsyncmsg::asyncmsg("Frame valid");
     if (beacon.isFrameValid())
         packets_valid++;
     else
         packets_error++;
 
+    UsbSerialAsyncmsg::asyncmsg("Update decent");
     recent_beacons[recent_beacon_pos++ % BEACON_HISTORY_SIZE] = beacon;
     recent_beacon_full |= (recent_beacon_pos == 0);
 
     // Update display
+    UsbSerialAsyncmsg::asyncmsg("Display");
     update_display();
 
     // Log the beacon
@@ -442,6 +454,7 @@ void EPIRBAppView::on_beacon_decoded(Beacon& beacon) {
         beacon_info += " (" + to_string_dec_uint(beacon.error_count) + "e)";
     }*/
 
+    UsbSerialAsyncmsg::asyncmsg("Write console");
     console.write(beacon_info + "\n");
 }
 
@@ -526,6 +539,7 @@ void EPIRBAppView::update_display() {
     label_packet_stats.set(stats);
 
     if (recent_beacon_pos > 0) {
+        UsbSerialAsyncmsg::asyncmsg("Update latest");
         auto& latest = recent_beacons[recent_beacon_pos - 1];
         text_latest_info.set(format_beacon_summary(latest));
     }
