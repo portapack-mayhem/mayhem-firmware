@@ -50,6 +50,148 @@ enum class PacketStatus : uint8_t {
     Error = 2
 };
 
+/*#define BEACON_DATA_SIZE 18  // Max 144 bits => 18 bytes
+class Location {
+   public:
+    class Angle {
+       public:
+        long degrees = 0;
+        long minutes = 0;
+        long seconds = 0;
+        bool orientation = false;  // false = N/E, true = S/W
+
+        Angle() {}
+        Angle(long degrees) : degrees(degrees) {}
+
+        inline void clear() {
+            degrees = 255;
+            minutes = 0;
+            seconds = 0;
+            orientation = false;
+            floatValue = 255;
+        }
+
+        inline float getFloatValue() {
+            if (floatValue >= 255) {
+                floatValue = (float)degrees;
+                floatValue += ((float)minutes / 60.0f);
+                floatValue += ((float)seconds / 3600.0f);
+                if (orientation) {
+                    floatValue = -floatValue;
+                }
+            }
+            return floatValue;
+        }
+
+        inline void toFloatString(char* angleStr) {
+            std::sprintf(angleStr, "%015.6f\n", getFloatValue());
+        }
+
+       private:
+        float floatValue = 255.0f;
+    };
+
+    enum class LocationFormat { DECIMAL,
+                                SEXAGESIMAL,
+                                MAIDENHEAD_LOCATOR };
+
+    Angle latitude = Angle(127);
+    Angle longitude = Angle(255);
+    inline bool isUnknown() {
+        return false;
+    }
+};
+class Beacon {
+   public:
+    enum class FrameMode { NORMAL,
+                           SELF_TEST,
+                           UNKNOWN };
+    enum class MainLocatingDevice { UNDEFINED,
+                                    INTERNAL_NAV,
+                                    EXTERNAL_NAV };
+    enum class AuxLocatingDevice { UNDEFINED,
+                                   NONE,
+                                   NONE_OR_OTHER,
+                                   OTHER,
+                                   MHZ121_5,
+                                   SART };
+
+    class Protocol {
+       public:
+        enum class Type { STANDARD_LOCATION,
+                          NATIONAL_LOCATION,
+                          RLS_LOCATION,
+                          ELT_DT_LOCATION,
+                          USER,
+                          SPARE,
+                          UNKNOWN };
+        Type type;
+
+        Protocol(Type type) : type(type) {}
+
+        bool isUser() const { return (type == Type::USER); };
+        bool isNational() const { return (type == Type::NATIONAL_LOCATION); };
+        bool isStandard() const { return (type == Type::STANDARD_LOCATION); };
+        bool isRls() const { return (type == Type::RLS_LOCATION); };
+        bool isRlsOrElt() const { return (type == Type::RLS_LOCATION || type == Type::ELT_DT_LOCATION); };
+        bool isUnknown() const { return (type == Type::UNKNOWN); };
+
+        inline const char* getTypeName(bool longFrame) const {
+            switch (type) {
+                case Type::STANDARD_LOCATION:
+                    return "Standard Protocol";
+                case Type::NATIONAL_LOCATION:
+                    return "National Protocol";
+                case Type::RLS_LOCATION:
+                    return "RLS";
+                case Type::ELT_DT_LOCATION:
+                    return "ELT(DT)";
+                case Type::USER:
+                    return longFrame ? "User Location Protocol" : "User Protocol";
+                case Type::SPARE:
+                    return "Spare Protocol";
+                default:
+                    return "Unknown Protocol";
+            }
+        }
+
+        // Déclarations des membres statiques (définis en bas de fichier)
+        static const Protocol USER_EPIRB_MARITIME, USER_EPIRB_RADIO, USER_ELT, USER_SERIAL, USER_TEST, USER_ORB, USER_NAT, USER_2G;
+        static const Protocol STD_EPIRB, STD_ELT_24, STD_ELT_SERIAL, STD_ELT_AIRCRAFT, STD_EPIRB_SERIAL, STD_PLB_SERIAL, STD_SHIP, STD_TEST;
+        static const Protocol NAT_ELT, NAT_EPIRB, NAT_PLB, NAT_TEST;
+        static const Protocol RLS, ELT_DT, SPARE, UNKNOWN;
+    };
+
+    bool longFrame{true};
+    bool protocolFlag{false};
+    FrameMode frameMode{FrameMode::UNKNOWN};
+    MainLocatingDevice mainLocatingDevice{MainLocatingDevice::UNDEFINED};
+    AuxLocatingDevice auxLocatingDevice{AuxLocatingDevice::UNDEFINED};
+    long protocolCode{0};
+    //const Protocol* protocol{&Protocol::UNKNOWN};
+    //Country country{};
+    uint8_t frame[18];
+    Location location{};
+    uint64_t identifier{0};
+    rtc::RTC date{};
+    bool hasAdditionalData{false};
+    std::string additionalData{};
+    bool hasSerialNumber{false};
+    std::string serialNumber{};
+    std::string hexId{};
+    uint32_t bch1{};
+    uint32_t computedBch1{};
+    bool hasBch2{false};
+    uint32_t bch2{};
+    uint32_t computedBch2{};
+    bool isEmpty{true};
+    inline bool isFrameValid() { return true; }
+    inline const char* getProtocolName() { return "Test Protocol"; }
+    inline const char* getProtocolDesciption() { return "Test Protocol Descr"; }
+
+};
+//inline const Beacon::Protocol Beacon::Protocol::UNKNOWN{Type::UNKNOWN};
+*/
 /*
 class EPIRBDecoder {
    public:

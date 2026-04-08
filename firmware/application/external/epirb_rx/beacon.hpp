@@ -35,8 +35,6 @@
 #include <cstdint>
 #include <string>
 #include <cstring>
-#include <cctype>
-#include <cstdio>
 
 namespace ui::external_app::epirb_rx {
 
@@ -62,51 +60,104 @@ class Beacon {
                                    MHZ121_5,
                                    SART };
 
-    class Protocol {
-       public:
-        enum class Type { STANDARD_LOCATION,
-                          NATIONAL_LOCATION,
-                          RLS_LOCATION,
-                          ELT_DT_LOCATION,
-                          USER,
-                          SPARE,
-                          UNKNOWN };
-        Type type;
-
-        Protocol(Type type) : type(type) {}
-
-        bool isUser() const { return (type == Type::USER); };
-        bool isNational() const { return (type == Type::NATIONAL_LOCATION); };
-        bool isStandard() const { return (type == Type::STANDARD_LOCATION); };
-        bool isRls() const { return (type == Type::RLS_LOCATION); };
-        bool isRlsOrElt() const { return (type == Type::RLS_LOCATION || type == Type::ELT_DT_LOCATION); };
-        bool isUnknown() const { return (type == Type::UNKNOWN); };
-
-        inline const char* getTypeName(bool longFrame) const {
-            switch (type) {
-                case Type::STANDARD_LOCATION:
-                    return "Standard Protocol";
-                case Type::NATIONAL_LOCATION:
-                    return "National Protocol";
-                case Type::RLS_LOCATION:
-                    return "RLS";
-                case Type::ELT_DT_LOCATION:
-                    return "ELT(DT)";
-                case Type::USER:
-                    return longFrame ? "User Location Protocol" : "User Protocol";
-                case Type::SPARE:
-                    return "Spare Protocol";
-                default:
-                    return "Unknown Protocol";
-            }
-        }
-
-        // Déclarations des membres statiques (définis en bas de fichier)
-        static const Protocol USER_EPIRB_MARITIME, USER_EPIRB_RADIO, USER_ELT, USER_SERIAL, USER_TEST, USER_ORB, USER_NAT, USER_2G;
-        static const Protocol STD_EPIRB, STD_ELT_24, STD_ELT_SERIAL, STD_ELT_AIRCRAFT, STD_EPIRB_SERIAL, STD_PLB_SERIAL, STD_SHIP, STD_TEST;
-        static const Protocol NAT_ELT, NAT_EPIRB, NAT_PLB, NAT_TEST;
-        static const Protocol RLS, ELT_DT, SPARE, UNKNOWN;
+    enum class ProtocolType {
+        UNKNOWN,
+        USER,
+        STANDARD_LOCATION,
+        NATIONAL_LOCATION,
+        RLS_LOCATION,
+        ELT_DT_LOCATION,
+        SPARE
     };
+
+    enum class Protocol {
+        USER_EPIRB_MARITIME,
+        USER_EPIRB_RADIO,
+        USER_ELT,
+        USER_SERIAL,
+        USER_TEST,
+        USER_ORB,
+        USER_NAT,
+        USER_2G,
+        STD_EPIRB,
+        STD_ELT_24,
+        STD_ELT_SERIAL,
+        STD_ELT_AIRCRAFT,
+        STD_EPIRB_SERIAL,
+        STD_PLB_SERIAL,
+        STD_SHIP,
+        STD_TEST,
+        NAT_ELT,
+        NAT_EPIRB,
+        NAT_PLB,
+        NAT_TEST,
+        RLS,
+        ELT_DT,
+        SPARE,
+        UNKNOWN
+    };
+
+    static bool protocolIsUser(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::USER); };
+    static bool protocolIsNational(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::NATIONAL_LOCATION); };
+    static bool protocolIsStandard(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::STANDARD_LOCATION); };
+    static bool protocolIsRls(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::RLS_LOCATION); };
+    static bool protocolIsRlsOrElt(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::RLS_LOCATION || getProtocolType(protocol) == ProtocolType::ELT_DT_LOCATION); };
+    static bool protocolIsUnknown(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::UNKNOWN); };
+
+    static inline const char* getProtocolTypeName(Protocol protocol, bool longFrame) {
+        switch (getProtocolType(protocol)) {
+            case ProtocolType::STANDARD_LOCATION:
+                return "Standard Protocol";
+            case ProtocolType::NATIONAL_LOCATION:
+                return "National Protocol";
+            case ProtocolType::RLS_LOCATION:
+                return "RLS";
+            case ProtocolType::ELT_DT_LOCATION:
+                return "ELT(DT)";
+            case ProtocolType::USER:
+                return longFrame ? "User Location Protocol" : "User Protocol";
+            case ProtocolType::SPARE:
+                return "Spare Protocol";
+            default:
+                return "Unknown Protocol";
+        }
+    }
+
+    static inline ProtocolType getProtocolType(Protocol protocol) {
+        switch (protocol) {
+            case Protocol::USER_EPIRB_MARITIME:
+            case Protocol::USER_EPIRB_RADIO:
+            case Protocol::USER_ELT:
+            case Protocol::USER_SERIAL:
+            case Protocol::USER_TEST:
+            case Protocol::USER_ORB:
+            case Protocol::USER_NAT:
+            case Protocol::USER_2G:
+                return ProtocolType::USER;
+            case Protocol::STD_EPIRB:
+            case Protocol::STD_ELT_24:
+            case Protocol::STD_ELT_SERIAL:
+            case Protocol::STD_ELT_AIRCRAFT:
+            case Protocol::STD_PLB_SERIAL:
+            case Protocol::STD_SHIP:
+            case Protocol::STD_TEST:
+                return ProtocolType::STANDARD_LOCATION;
+            case Protocol::NAT_ELT:
+            case Protocol::NAT_EPIRB:
+            case Protocol::NAT_PLB:
+            case Protocol::NAT_TEST:
+                return ProtocolType::NATIONAL_LOCATION;
+            case Protocol::RLS:
+                return ProtocolType::RLS_LOCATION;
+            case Protocol::ELT_DT:
+                return ProtocolType::ELT_DT_LOCATION;
+            case Protocol::SPARE:
+                return ProtocolType::SPARE;
+            case Protocol::UNKNOWN:
+            default:
+                return ProtocolType::UNKNOWN;
+        }
+    }
 
     bool longFrame{true};
     bool protocolFlag{false};
@@ -114,7 +165,7 @@ class Beacon {
     MainLocatingDevice mainLocatingDevice{MainLocatingDevice::UNDEFINED};
     AuxLocatingDevice auxLocatingDevice{AuxLocatingDevice::UNDEFINED};
     long protocolCode{0};
-    const Protocol* protocol{&Protocol::UNKNOWN};
+    Protocol protocol{Protocol::UNKNOWN};
     Country country{};
     uint8_t frame[BEACON_DATA_SIZE];
     Location location{};
@@ -202,44 +253,44 @@ class Beacon {
     inline const char* getFrameTitle() {
         if (frameMode == FrameMode::SELF_TEST) return "Self-test 406";
         if (frameMode == FrameMode::NORMAL) {
-            if (protocol == &Protocol::USER_SERIAL) return "Serial 406";
-            if (protocol == &Protocol::USER_TEST) return "User Test 406";
-            if (protocol == &Protocol::USER_ORB) return "Orbitography 406";
-            if (protocol == &Protocol::USER_NAT) return "National 406";
-            if (protocol == &Protocol::STD_TEST) return "Test Std. 406";
-            if (protocol == &Protocol::NAT_TEST) return "Test Nat. 406";
-            if (protocol == &Protocol::SPARE) return "Spare 406";
+            if (protocol == Protocol::USER_SERIAL) return "Serial 406";
+            if (protocol == Protocol::USER_TEST) return "User Test 406";
+            if (protocol == Protocol::USER_ORB) return "Orbitography 406";
+            if (protocol == Protocol::USER_NAT) return "National 406";
+            if (protocol == Protocol::STD_TEST) return "Test Std. 406";
+            if (protocol == Protocol::NAT_TEST) return "Test Nat. 406";
+            if (protocol == Protocol::SPARE) return "Spare 406";
             return "Distress 406";
         }
         return "Unknown 406";
     }
 
-    inline const char* getProtocolName() { return protocol->getTypeName(longFrame); }
+    inline const char* getProtocolName() { return getProtocolTypeName(protocol,longFrame); }
 
     inline const char* getProtocolDesciption() {
-        if (protocol == &Protocol::USER_EPIRB_MARITIME) return "EPIRB - Maritime";
-        if (protocol == &Protocol::USER_EPIRB_RADIO) return "EPIRB - Radio Call Sign";
-        if (protocol == &Protocol::USER_ELT) return "ELT - Aviation";
-        if (protocol == &Protocol::USER_SERIAL) return "Serial User Protocol";
-        if (protocol == &Protocol::USER_TEST) return "Test User Protocol";
-        if (protocol == &Protocol::USER_ORB) return "Orbitography Protocol";
-        if (protocol == &Protocol::USER_NAT) return "National User Protocol";
-        if (protocol == &Protocol::USER_2G) return "2nd Generation Beacons";
-        if (protocol == &Protocol::STD_EPIRB) return "EPIRB - MMSI / Location";
-        if (protocol == &Protocol::STD_ELT_24) return "ELT-24-bit Address / Location";
-        if (protocol == &Protocol::STD_ELT_SERIAL) return "ELT Serial Location";
-        if (protocol == &Protocol::STD_ELT_AIRCRAFT) return "ELT Serial Aircradt Location";
-        if (protocol == &Protocol::STD_EPIRB_SERIAL) return "EPIRB Serial Location";
-        if (protocol == &Protocol::STD_PLB_SERIAL) return "PLB Serial Location";
-        if (protocol == &Protocol::STD_SHIP) return "Ship Security Location";
-        if (protocol == &Protocol::STD_TEST) return "Test Standard Location";
-        if (protocol == &Protocol::NAT_ELT) return "ELT National Location";
-        if (protocol == &Protocol::NAT_EPIRB) return "EPIRB National Location";
-        if (protocol == &Protocol::NAT_PLB) return "PLB National Location";
-        if (protocol == &Protocol::NAT_TEST) return "Test National Location";
-        if (protocol == &Protocol::RLS) return "RLS Location Protocol";
-        if (protocol == &Protocol::ELT_DT) return "ELT(DT) Location Protocol";
-        if (protocol == &Protocol::SPARE) return "Spare";
+        if (protocol == Protocol::USER_EPIRB_MARITIME) return "EPIRB - Maritime";
+        if (protocol == Protocol::USER_EPIRB_RADIO) return "EPIRB - Radio Call Sign";
+        if (protocol == Protocol::USER_ELT) return "ELT - Aviation";
+        if (protocol == Protocol::USER_SERIAL) return "Serial User Protocol";
+        if (protocol == Protocol::USER_TEST) return "Test User Protocol";
+        if (protocol == Protocol::USER_ORB) return "Orbitography Protocol";
+        if (protocol == Protocol::USER_NAT) return "National User Protocol";
+        if (protocol == Protocol::USER_2G) return "2nd Generation Beacons";
+        if (protocol == Protocol::STD_EPIRB) return "EPIRB - MMSI / Location";
+        if (protocol == Protocol::STD_ELT_24) return "ELT-24-bit Address / Location";
+        if (protocol == Protocol::STD_ELT_SERIAL) return "ELT Serial Location";
+        if (protocol == Protocol::STD_ELT_AIRCRAFT) return "ELT Serial Aircradt Location";
+        if (protocol == Protocol::STD_EPIRB_SERIAL) return "EPIRB Serial Location";
+        if (protocol == Protocol::STD_PLB_SERIAL) return "PLB Serial Location";
+        if (protocol == Protocol::STD_SHIP) return "Ship Security Location";
+        if (protocol == Protocol::STD_TEST) return "Test Standard Location";
+        if (protocol == Protocol::NAT_ELT) return "ELT National Location";
+        if (protocol == Protocol::NAT_EPIRB) return "EPIRB National Location";
+        if (protocol == Protocol::NAT_PLB) return "PLB National Location";
+        if (protocol == Protocol::NAT_TEST) return "Test National Location";
+        if (protocol == Protocol::RLS) return "RLS Location Protocol";
+        if (protocol == Protocol::ELT_DT) return "ELT(DT) Location Protocol";
+        if (protocol == Protocol::SPARE) return "Spare";
         return "Unknown Protocol";
     }
 
@@ -275,7 +326,7 @@ class Beacon {
     inline bool isBch1Valid() { return (bch1 == computedBch1); }
     inline bool isBch2Valid() { return (bch2 == computedBch2); }
     inline bool isFrameValid() { return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty); }
-    inline bool isOrbito() { return (protocol == &Protocol::USER_ORB); }
+    inline bool isOrbito() { return (protocol == Protocol::USER_ORB); }
 
     inline std::string hexString(bool withHeader) {
         return toHexString(frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
@@ -298,78 +349,78 @@ class Beacon {
         if (!longFrame || protocolFlag == 1) {
             switch (protocolCode) {
                 case 0b000:
-                    protocol = &Protocol::USER_ORB;
+                    protocol = Protocol::USER_ORB;
                     break;
                 case 0b001:
-                    protocol = &Protocol::USER_ELT;
+                    protocol = Protocol::USER_ELT;
                     break;
                 case 0b010:
-                    protocol = &Protocol::USER_EPIRB_MARITIME;
+                    protocol = Protocol::USER_EPIRB_MARITIME;
                     break;
                 case 0b011:
-                    protocol = &Protocol::USER_SERIAL;
+                    protocol = Protocol::USER_SERIAL;
                     break;
                 case 0b100:
-                    protocol = &Protocol::USER_NAT;
+                    protocol = Protocol::USER_NAT;
                     break;
                 case 0b101:
-                    protocol = &Protocol::USER_2G;
+                    protocol = Protocol::USER_2G;
                     break;
                 case 0b110:
-                    protocol = &Protocol::USER_EPIRB_RADIO;
+                    protocol = Protocol::USER_EPIRB_RADIO;
                     break;
                 case 0b111:
-                    protocol = &Protocol::USER_TEST;
+                    protocol = Protocol::USER_TEST;
                     break;
                 default:
-                    protocol = &Protocol::UNKNOWN;
+                    protocol = Protocol::UNKNOWN;
             }
         } else {
             switch (protocolCode) {
                 case 0b0010:
-                    protocol = &Protocol::STD_EPIRB;
+                    protocol = Protocol::STD_EPIRB;
                     break;
                 case 0b0011:
-                    protocol = &Protocol::STD_ELT_24;
+                    protocol = Protocol::STD_ELT_24;
                     break;
                 case 0b0100:
-                    protocol = &Protocol::STD_ELT_SERIAL;
+                    protocol = Protocol::STD_ELT_SERIAL;
                     break;
                 case 0b0101:
-                    protocol = &Protocol::STD_ELT_AIRCRAFT;
+                    protocol = Protocol::STD_ELT_AIRCRAFT;
                     break;
                 case 0b0110:
-                    protocol = &Protocol::STD_EPIRB_SERIAL;
+                    protocol = Protocol::STD_EPIRB_SERIAL;
                     break;
                 case 0b0111:
-                    protocol = &Protocol::STD_PLB_SERIAL;
+                    protocol = Protocol::STD_PLB_SERIAL;
                     break;
                 case 0b1000:
-                    protocol = &Protocol::NAT_ELT;
+                    protocol = Protocol::NAT_ELT;
                     break;
                 case 0b1001:
-                    protocol = &Protocol::ELT_DT;
+                    protocol = Protocol::ELT_DT;
                     break;
                 case 0b1010:
-                    protocol = &Protocol::NAT_EPIRB;
+                    protocol = Protocol::NAT_EPIRB;
                     break;
                 case 0b1011:
-                    protocol = &Protocol::NAT_PLB;
+                    protocol = Protocol::NAT_PLB;
                     break;
                 case 0b1100:
-                    protocol = &Protocol::STD_SHIP;
+                    protocol = Protocol::STD_SHIP;
                     break;
                 case 0b1101:
-                    protocol = &Protocol::RLS;
+                    protocol = Protocol::RLS;
                     break;
                 case 0b1110:
-                    protocol = &Protocol::STD_TEST;
+                    protocol = Protocol::STD_TEST;
                     break;
                 case 0b1111:
-                    protocol = &Protocol::NAT_TEST;
+                    protocol = Protocol::NAT_TEST;
                     break;
                 default:
-                    protocol = &Protocol::UNKNOWN;
+                    protocol = Protocol::UNKNOWN;
             }
         }
     }
@@ -460,18 +511,18 @@ class Beacon {
 
     inline void parseLocatingDevices() {
         bool mainLoc;
-        if (protocol->isStandard() || protocol->isNational()) {
+        if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
             mainLoc = getBits(frame, 111, 111);
             mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
-        } else if (protocol->isUser() || protocol->isRls()) {
+        } else if (protocolIsUser(protocol) || protocolIsRls(protocol)) {
             mainLoc = getBits(frame, 107, 107);
             mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
         }
-        if (protocol->isStandard() || protocol->isNational()) {
+        if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
             auxLocatingDevice = getBits(frame, 112, 112) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
-        } else if (protocol->isRls()) {
+        } else if (protocolIsRls(protocol)) {
             auxLocatingDevice = getBits(frame, 108, 108) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
-        } else if (protocol->isUser() && protocolCode != 0b100) {
+        } else if (protocolIsUser(protocol) && protocolCode != 0b100) {
             uint8_t aux = getBits(frame, 84, 85);
             if (aux == 0b00)
                 auxLocatingDevice = AuxLocatingDevice::NONE;
@@ -505,14 +556,14 @@ class Beacon {
         hexId = std::string(buffer);
 
         if (longFrame) {
-            if (protocol->isUser() && !isOrbito()) {
+            if (protocolIsUser(protocol) && !isOrbito()) {
                 location.latitude.orientation = (frame[13] & 0x10) >> 4;
                 location.latitude.degrees = ((frame[13] & 0x0F) << 3 | (frame[14] & 0xE0) >> 5);
                 location.latitude.minutes = ((frame[14] & 0x1E) >> 1) * 4;
                 location.longitude.orientation = (frame[14] & 0x01);
                 location.longitude.degrees = (frame[15]);
                 location.longitude.minutes = ((frame[16] & 0xF0) >> 4) * 4;
-            } else if (protocol->isNational()) {
+            } else if (protocolIsNational(protocol)) {
                 latoffset = (frame[14] & 0x80) >> 7;
                 location.latitude.orientation = (frame[7] & 0x20) >> 5;
                 location.latitude.degrees = ((frame[7] & 0x1F) << 2 | (frame[8] & 0xC0) >> 6);
@@ -555,7 +606,7 @@ class Beacon {
                         location.longitude.minutes -= 1;
                     }
                 }
-            } else if (protocol->isStandard()) {
+            } else if (protocolIsStandard(protocol)) {
                 latoffset = (frame[14] & 0x80) >> 7;
                 location.latitude.orientation = (frame[8] & 0x80) >> 7;
                 location.latitude.degrees = (frame[8] & 0x7F);
@@ -598,7 +649,7 @@ class Beacon {
                         location.longitude.minutes -= 1;
                     }
                 }
-            } else if (protocol->isRlsOrElt()) {
+            } else if (protocolIsRlsOrElt(protocol)) {
                 latoffset = (frame[14] & 0x20) >> 5;
                 location.latitude.orientation = (frame[8] & 0x20) >> 5;
                 location.latitude.degrees = ((frame[8] & 0x1F) << 2) | ((frame[9] & 0xC0) >> 6);
@@ -667,33 +718,6 @@ class Beacon {
         }
     }
 };
-
-// Initialisation des membres statiques hors de la classe avec 'inline' pour éviter les erreurs de type incomplet
-inline const Beacon::Protocol Beacon::Protocol::USER_EPIRB_MARITIME{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_EPIRB_RADIO{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_ELT{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_SERIAL{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_TEST{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_ORB{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_NAT{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::USER_2G{Type::USER};
-inline const Beacon::Protocol Beacon::Protocol::STD_EPIRB{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_ELT_24{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_ELT_SERIAL{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_ELT_AIRCRAFT{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_EPIRB_SERIAL{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_PLB_SERIAL{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_SHIP{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::STD_TEST{Type::STANDARD_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::NAT_ELT{Type::NATIONAL_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::NAT_EPIRB{Type::NATIONAL_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::NAT_PLB{Type::NATIONAL_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::NAT_TEST{Type::NATIONAL_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::RLS{Type::RLS_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::ELT_DT{Type::ELT_DT_LOCATION};
-inline const Beacon::Protocol Beacon::Protocol::SPARE{Type::SPARE};
-inline const Beacon::Protocol Beacon::Protocol::UNKNOWN{Type::UNKNOWN};
-
 }  // namespace ui::external_app::epirb_rx
 
 #endif  // __BEACON_RX_H__

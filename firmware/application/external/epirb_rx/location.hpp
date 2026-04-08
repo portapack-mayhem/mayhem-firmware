@@ -24,7 +24,6 @@
 #include <cstdint>
 #include <string>
 #include <cmath>
-#include <cstdio>
 
 namespace ui::external_app::epirb_rx {
 
