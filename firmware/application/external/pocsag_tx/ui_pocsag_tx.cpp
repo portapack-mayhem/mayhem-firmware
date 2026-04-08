@@ -56,7 +56,8 @@ void POCSAGTXView::on_remete(const PocsagTosendMessage data) {
     if (data.function == 'C') tmp = 2;
     if (data.function == 'D') tmp = 3;
     options_function.set_selected_index(tmp);
-    options_phase.set_selected_index(data.phase == 'P' ? 0 : 1);
+    /* 'S' = Standard (CCIR Rec. 584 polarity), 'I' = Inverted */
+    options_polarity.set_selected_index(data.polarity == 'S' ? 0 : 1);
     field_address.set_value(data.addr);
     message = (char*)data.msg;
     buffer = message;
@@ -64,7 +65,7 @@ void POCSAGTXView::on_remete(const PocsagTosendMessage data) {
     options_bitrate.dirty();
     options_type.dirty();
     options_function.dirty();
-    options_phase.dirty();
+    options_polarity.dirty();
     field_address.dirty();
     text_message.dirty();
     tx_view.focus();
@@ -100,7 +101,17 @@ bool POCSAGTXView::start_tx() {
             return false;
         }
     }
-    MessageType phase = (MessageType)options_phase.selected_index_value();
+    /*
+     * TX polarity inversion (CCIR Rec. 584):
+     *
+     * The FSK modulator (proc_fsk.cpp) maps bit 1 to positive deviation.
+     * Standard POCSAG requires bit 1 to negative deviation.
+     *
+     * "Standard" (value 0): invert codewords so that original bit 1 becomes
+     *   bit 0 in the modulator, producing negative deviation. This is the standard.
+     * "Inverted" (value 1): send codewords as-is. Bit 1 produces positive deviation.
+     */
+    bool invert_polarity = (options_polarity.selected_index_value() == 0);
 
     pocsag_encode(type, BCH_code, options_function.selected_index_value(), message, address, codewords);
 
@@ -118,10 +129,7 @@ bool POCSAGTXView::start_tx() {
 
     bi = 0;
     for (i = 0; i < codewords.size(); i++) {
-        if (phase == 0)
-            codeword = ~(codewords[i]);
-        else
-            codeword = codewords[i];
+        codeword = invert_polarity ? ~(codewords[i]) : codewords[i];
 
         data_ptr[bi++] = (codeword >> 24) & 0xFF;
         data_ptr[bi++] = (codeword >> 16) & 0xFF;
@@ -166,15 +174,17 @@ POCSAGTXView::POCSAGTXView(
                   &field_address,
                   &options_type,
                   &options_function,
-                  &options_phase,
+                  &options_polarity,
                   &text_message,
                   &text_message_l2,
                   &button_message,
                   &progressbar,
                   &tx_view});
 
-    options_bitrate.set_selected_index(1);  // 1200bps
-    options_type.set_selected_index(0);     // Address only
+    options_bitrate.set_selected_index(1);   // 1200 bps
+    options_type.set_selected_index(2);      // Alphanumeric
+    options_function.set_selected_index(0);  // Function A
+    options_polarity.set_selected_index(0);  // Standard (CCIR Rec. 584)
 
     field_address.set_value(persistent_memory::pocsag_last_address());
 

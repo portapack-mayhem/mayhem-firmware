@@ -35,8 +35,7 @@ enum BitRate : uint32_t {
     UNKNOWN,
     FSK512 = 512,
     FSK1200 = 1200,
-    FSK2400 = 2400,
-    FSK3200 = 3200
+    FSK2400 = 2400
 };
 
 enum PacketFlag : uint32_t {
@@ -88,15 +87,25 @@ class POCSAGPacket {
         return flag_;
     }
 
+    void set_inverted(bool inverted) {
+        inverted_ = inverted;
+    }
+
+    bool inverted() const {
+        return inverted_;
+    }
+
     void clear() {
         codewords.fill(0);
         bitrate_ = 0u;
         flag_ = NORMAL;
+        inverted_ = false;
     }
 
    private:
     uint16_t bitrate_{0};
     PacketFlag flag_{NORMAL};
+    bool inverted_{false};
     batch_t codewords{};
     Timestamp timestamp_{};
 };

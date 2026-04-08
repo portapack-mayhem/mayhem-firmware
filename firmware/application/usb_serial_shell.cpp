@@ -1262,7 +1262,7 @@ static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[])
 }
 
 static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [phase] \r\n";
+    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [polarity:S|I] \r\n";
     (void)argv;
     if (argc < 2) {
         chprintf(chp, usage);
@@ -1293,34 +1293,48 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         }
     }
 
-    char function = 'D';
+    char function = 'A';
     if (argc >= 5) {
         function = *argv[4];
-        if (function < 'A' && function > 'D') {
+        if (function < 'A' || function > 'D') {
             chprintf(chp, "error, function can be A, B, C or D\r\n");
             return;
         }
     }
 
-    char phase = 'P';
+    char polarity = 'S'; /* Standard = CCIR Rec. 584 (bit 1 = negative deviation) */
     if (argc >= 6) {
-        phase = *argv[5];
-        if (phase != 'P' && phase != 'N') {
-            chprintf(chp, "error, phase can be P or N\r\n");
+        polarity = *argv[5];
+        /*
+         * Legacy compatibility: old firmware used 'P'/'N' with opposite semantics.
+         *   Old 'P' (phase=positive) = inverted codewords = standard POCSAG = new 'S' (Standard)
+         *   Old 'N' (phase=negative) = no inversion = inverted POCSAG = new 'I' (Inverted)
+         * New firmware uses 'S'/'I':
+         *   'S' = Standard (CCIR Rec. 584, bit 1 = negative deviation)
+         *   'I' = Inverted (bit 1 = positive deviation)
+         */
+        if (polarity == 'P') polarity = 'S'; /* legacy 'P' maps to Standard */
+        if (polarity == 'N') polarity = 'I'; /* legacy 'N' maps to Inverted */
+        if (polarity != 'S' && polarity != 'I') {
+            chprintf(chp, "error, polarity can be S (Standard) or I (Inverted)\r\n");
             return;
         }
     }
 
-    uint8_t msg[81] = {0};
-    if (msglen > 0) {
-        chprintf(chp, "send %d bytes\r\n", msglen);
-        do {
-            size_t bytes_to_read = msglen > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : msglen;
-            size_t bytes_read = chSequentialStreamRead(chp, &msg[0], bytes_to_read);
+    uint8_t msg[31] = {0};
+    uint8_t original_msglen = (msglen > 31) ? 31 : msglen;
+    if (original_msglen > 0) {
+        chprintf(chp, "send %d bytes\r\n", original_msglen);
+        size_t offset = 0;
+        size_t remaining = original_msglen;
+        while (remaining > 0) {
+            size_t bytes_to_read = remaining > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : remaining;
+            size_t bytes_read = chSequentialStreamRead(chp, &msg[offset], bytes_to_read);
             if (bytes_read != bytes_to_read)
                 return;
-            msglen -= bytes_read;
-        } while (msglen > 0);
+            offset += bytes_read;
+            remaining -= bytes_read;
+        }
     }
 
     auto evtd = getEventDispatcherInstance();
@@ -1334,7 +1348,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
     chThdSleepMilliseconds(1000);  // wait for app to start
-    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, phase, (uint8_t)msglen, msg, addr};
+    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, polarity, original_msglen, msg, addr};
     EventDispatcher::send_message(message);
     chprintf(chp, "ok\r\n");
 }

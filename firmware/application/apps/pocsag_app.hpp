@@ -125,6 +125,7 @@ struct POCSAGSettings {
     bool enable_raw_log = false;
     bool hide_bad_data = false;
     bool hide_addr_only = false;
+    bool enable_numeric_detect = true; /* heuristic alpha/numeric type detection */
     uint8_t filter_mode = false;
     int32_t baud_rate = -1;
     uint32_t filter_address = 0;
@@ -150,8 +151,8 @@ class POCSAGSettingsView : public View {
 
     Labels labels{
         {{2 * 8, 0 * 16}, "Baud:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 12 * 16}, "Filter Mode:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 13 * 16}, "Filter Addr:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 14 * 16}, "Filter Mode:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 15 * 16}, "Filter Addr:", Theme::getInstance()->fg_light->foreground},
     };
 
     Checkbox check_log{
@@ -179,21 +180,26 @@ class POCSAGSettingsView : public View {
         22,
         "Hide Addr Only"};
 
+    Checkbox check_numeric_detect{
+        {2 * 8, 12 * 16},
+        22,
+        "Detect Numeric"};
+
     OptionsField opt_filter_mode{
-        {15 * 8, 12 * 16},
+        {15 * 8, 14 * 16},
         4,
         {{"None", FILTER_NONE},
          {"Drop", FILTER_DROP},
          {"Keep", FILTER_KEEP}}};
 
     SymField field_filter_address{
-        {15 * 8, 13 * 16},
+        {15 * 8, 15 * 16},
         7,
         SymField::Type::Dec,
         true /*explicit_edit*/};
 
     Button button_save{
-        {UI_POS_X_CENTER(10), UI_POS_Y(16), 10 * 8, 2 * 16},
+        {UI_POS_X_CENTER(10), UI_POS_Y(17), 10 * 8, 2 * 16},
         "Save"};
 };
 
@@ -231,6 +237,7 @@ class POCSAGAppView : public View {
             {"filter_address"sv, &settings_.filter_address},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
+            {"numeric_detect"sv, &settings_.enable_numeric_detect},
             {"baud_rate"sv, &settings_.baud_rate},
         }};
 
@@ -241,6 +248,10 @@ class POCSAGAppView : public View {
     void on_stats(const POCSAGStatsMessage* stats);
 
     uint32_t last_address = 0;
+    uint16_t current_bitrate = 0;    /* bitrate of current packet being decoded */
+    bool current_inverted = false;   /* polarity of current packet being decoded */
+    uint8_t serial_numeric_sent = 0; /* numeric chars already sent to serial/GUI */
+
     pocsag::EccContainer ecc{};
     pocsag::POCSAGState pocsag_state{&ecc};
     POCSAGLogger logger{};
