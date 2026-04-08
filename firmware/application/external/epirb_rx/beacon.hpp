@@ -236,8 +236,6 @@ class Beacon {
         return result;
     }
 
-    // --- Constructeurs et méthodes membres ---
-
     Beacon() {}
     Beacon(const Beacon& other) { setFrame(other.frame); }
     Beacon& operator=(const Beacon& other) {
@@ -292,6 +290,21 @@ class Beacon {
         if (protocol == Protocol::ELT_DT) return "ELT(DT) Location Protocol";
         if (protocol == Protocol::SPARE) return "Spare";
         return "Unknown Protocol";
+    }
+
+    inline const char* getType() {
+        if ((protocol == Protocol::USER_EPIRB_MARITIME)||(protocol == Protocol::USER_EPIRB_RADIO)||(protocol == Protocol::STD_EPIRB)||(protocol == Protocol::STD_EPIRB_SERIAL)||(protocol == Protocol::NAT_EPIRB)) return "EPIRB";
+        if ((protocol == Protocol::USER_ELT)||(protocol == Protocol::STD_ELT_24)||(protocol == Protocol::STD_ELT_SERIAL)||(protocol == Protocol::STD_ELT_AIRCRAFT)||(protocol == Protocol::NAT_ELT)||(protocol == Protocol::ELT_DT)) return "ELT";
+        if ((protocol == Protocol::STD_PLB_SERIAL)||(protocol == Protocol::NAT_PLB)) return "PLB";
+        if ((protocol == Protocol::USER_TEST)||(protocol == Protocol::STD_TEST)||(protocol == Protocol::NAT_TEST)) return "TEST";
+        if (protocol == Protocol::USER_SERIAL) return "SERIAL";
+        if (protocol == Protocol::USER_ORB) return "ORB";
+        if (protocol == Protocol::USER_NAT) return "NAT";
+        if (protocol == Protocol::USER_2G) return "2G";
+        if (protocol == Protocol::STD_SHIP) return "SHIP";
+        if (protocol == Protocol::RLS) return "RLS";
+        if (protocol == Protocol::SPARE) return "SPARE";
+        return "UNK.";
     }
 
     inline bool hasMainLocatingDevice() { return (mainLocatingDevice != MainLocatingDevice::UNDEFINED); }
@@ -457,6 +470,29 @@ class Beacon {
                 hasSerialNumber = true;
                 setSerialNumber(getBits(frame, 44, 67));
             }
+            // TODO Get emergency info out of bits 107-112 (see spec page 54: "Non protected data fields")
+            /*switch (EmergencyType::Fire) {
+                case EmergencyType::Fire:
+                    return "Fire";
+                case EmergencyType::Flooding:
+                    return "Flooding";
+                case EmergencyType::Collision:
+                    return "Collision";
+                case EmergencyType::Grounding:
+                    return "Grounding";
+                case EmergencyType::Sinking:
+                    return "Sinking";
+                case EmergencyType::Disabled:
+                    return "Disabled";
+                case EmergencyType::Abandoning:
+                    return "Abandoning";
+                case EmergencyType::Piracy:
+                    return "Piracy";
+                case EmergencyType::Man_Overboard:
+                    return "MOB";
+                default:
+                    return "Other";
+            }*/
         } else if (longFrame) {
             switch (protocolCode) {
                 case 0b0010:

@@ -50,164 +50,6 @@ enum class PacketStatus : uint8_t {
     Error = 2
 };
 
-/*#define BEACON_DATA_SIZE 18  // Max 144 bits => 18 bytes
-class Location {
-   public:
-    class Angle {
-       public:
-        long degrees = 0;
-        long minutes = 0;
-        long seconds = 0;
-        bool orientation = false;  // false = N/E, true = S/W
-
-        Angle() {}
-        Angle(long degrees) : degrees(degrees) {}
-
-        inline void clear() {
-            degrees = 255;
-            minutes = 0;
-            seconds = 0;
-            orientation = false;
-            floatValue = 255;
-        }
-
-        inline float getFloatValue() {
-            if (floatValue >= 255) {
-                floatValue = (float)degrees;
-                floatValue += ((float)minutes / 60.0f);
-                floatValue += ((float)seconds / 3600.0f);
-                if (orientation) {
-                    floatValue = -floatValue;
-                }
-            }
-            return floatValue;
-        }
-
-        inline void toFloatString(char* angleStr) {
-            std::sprintf(angleStr, "%015.6f\n", getFloatValue());
-        }
-
-       private:
-        float floatValue = 255.0f;
-    };
-
-    enum class LocationFormat { DECIMAL,
-                                SEXAGESIMAL,
-                                MAIDENHEAD_LOCATOR };
-
-    Angle latitude = Angle(127);
-    Angle longitude = Angle(255);
-    inline bool isUnknown() {
-        return false;
-    }
-};
-class Beacon {
-   public:
-    enum class FrameMode { NORMAL,
-                           SELF_TEST,
-                           UNKNOWN };
-    enum class MainLocatingDevice { UNDEFINED,
-                                    INTERNAL_NAV,
-                                    EXTERNAL_NAV };
-    enum class AuxLocatingDevice { UNDEFINED,
-                                   NONE,
-                                   NONE_OR_OTHER,
-                                   OTHER,
-                                   MHZ121_5,
-                                   SART };
-
-    class Protocol {
-       public:
-        enum class Type { STANDARD_LOCATION,
-                          NATIONAL_LOCATION,
-                          RLS_LOCATION,
-                          ELT_DT_LOCATION,
-                          USER,
-                          SPARE,
-                          UNKNOWN };
-        Type type;
-
-        Protocol(Type type) : type(type) {}
-
-        bool isUser() const { return (type == Type::USER); };
-        bool isNational() const { return (type == Type::NATIONAL_LOCATION); };
-        bool isStandard() const { return (type == Type::STANDARD_LOCATION); };
-        bool isRls() const { return (type == Type::RLS_LOCATION); };
-        bool isRlsOrElt() const { return (type == Type::RLS_LOCATION || type == Type::ELT_DT_LOCATION); };
-        bool isUnknown() const { return (type == Type::UNKNOWN); };
-
-        inline const char* getTypeName(bool longFrame) const {
-            switch (type) {
-                case Type::STANDARD_LOCATION:
-                    return "Standard Protocol";
-                case Type::NATIONAL_LOCATION:
-                    return "National Protocol";
-                case Type::RLS_LOCATION:
-                    return "RLS";
-                case Type::ELT_DT_LOCATION:
-                    return "ELT(DT)";
-                case Type::USER:
-                    return longFrame ? "User Location Protocol" : "User Protocol";
-                case Type::SPARE:
-                    return "Spare Protocol";
-                default:
-                    return "Unknown Protocol";
-            }
-        }
-
-        // Déclarations des membres statiques (définis en bas de fichier)
-        static const Protocol USER_EPIRB_MARITIME, USER_EPIRB_RADIO, USER_ELT, USER_SERIAL, USER_TEST, USER_ORB, USER_NAT, USER_2G;
-        static const Protocol STD_EPIRB, STD_ELT_24, STD_ELT_SERIAL, STD_ELT_AIRCRAFT, STD_EPIRB_SERIAL, STD_PLB_SERIAL, STD_SHIP, STD_TEST;
-        static const Protocol NAT_ELT, NAT_EPIRB, NAT_PLB, NAT_TEST;
-        static const Protocol RLS, ELT_DT, SPARE, UNKNOWN;
-    };
-
-    bool longFrame{true};
-    bool protocolFlag{false};
-    FrameMode frameMode{FrameMode::UNKNOWN};
-    MainLocatingDevice mainLocatingDevice{MainLocatingDevice::UNDEFINED};
-    AuxLocatingDevice auxLocatingDevice{AuxLocatingDevice::UNDEFINED};
-    long protocolCode{0};
-    //const Protocol* protocol{&Protocol::UNKNOWN};
-    //Country country{};
-    uint8_t frame[18];
-    Location location{};
-    uint64_t identifier{0};
-    rtc::RTC date{};
-    bool hasAdditionalData{false};
-    std::string additionalData{};
-    bool hasSerialNumber{false};
-    std::string serialNumber{};
-    std::string hexId{};
-    uint32_t bch1{};
-    uint32_t computedBch1{};
-    bool hasBch2{false};
-    uint32_t bch2{};
-    uint32_t computedBch2{};
-    bool isEmpty{true};
-    inline bool isFrameValid() { return true; }
-    inline const char* getProtocolName() { return "Test Protocol"; }
-    inline const char* getProtocolDesciption() { return "Test Protocol Descr"; }
-
-};
-//inline const Beacon::Protocol Beacon::Protocol::UNKNOWN{Type::UNKNOWN};
-*/
-/*
-class EPIRBDecoder {
-   public:
-    static Beacon decode_packet(const baseband::Packet& packet);
-
-   private:
-    static uint32_t decode_country_code(const std::array<uint8_t, 16>& data);
-    static std::string decode_vessel_name(const std::array<uint8_t, 16>& data);
-
-    // BCH error correction methods
-    static PacketStatus perform_bch_check(std::array<uint8_t, 16>& data, uint8_t& error_count);
-    static uint32_t calculate_bch_syndrome(const std::array<uint8_t, 16>& data);
-    static bool correct_single_error(std::array<uint8_t, 16>& data, uint32_t syndrome);
-    static uint8_t count_bit_errors(const std::array<uint8_t, 16>& original, const std::array<uint8_t, 16>& corrected);
-};
-*/
 class EPIRBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -221,8 +63,6 @@ class EPIRBLogger {
 };
 
 // Forward declarations of formatting functions
-std::string format_beacon_type(Beacon& beacon);
-std::string format_emergency_type(Beacon& beacon);
 std::string format_packet_status(Beacon& beacon);
 ui::Color get_packet_status_color(Beacon& beacon);
 /*
@@ -282,9 +122,9 @@ class EPIRBAppView final : public ui::View {
     Beacon recent_beacons[BEACON_HISTORY_SIZE];
     int8_t recent_beacon_pos{0};
     bool recent_beacon_full{false};
-    // std::unique_ptr<EPIRBLogger> logger{};
+    std::unique_ptr<EPIRBLogger> logger{};
 
-    // EPIRBBeaconDetailView beacon_detail_view{nav_};
+//    EPIRBBeaconDetailView beacon_detail_view{nav_};
 
     static constexpr auto header_height = 4 * 16;
 
@@ -388,7 +228,6 @@ class EPIRBAppView final : public ui::View {
 
     static Beacon decode_packet(const baseband::Packet& packet);
     void on_packet(const baseband::Packet& packet);
-    void on_beacon_decoded(Beacon& beacon);
     void on_show_map();
     void on_clear_beacons();
     void on_toggle_log();

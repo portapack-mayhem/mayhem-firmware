@@ -63,8 +63,6 @@ Beacon EPIRBAppView::decode_packet(const baseband::Packet& packet) {
     Beacon beacon;
 
     // Convert packet bits to byte array for easier processing
-    UsbSerialAsyncmsg::asyncmsg("Start Decode");
-
     uint8_t data[18];
     for (size_t i = 0; i < std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE); i++) {
         uint8_t byte_val = 0;
@@ -77,109 +75,32 @@ Beacon EPIRBAppView::decode_packet(const baseband::Packet& packet) {
     }
     beacon.setFrame(data);
     // Set timestamp
-    UsbSerialAsyncmsg::asyncmsg("Get time");
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
     beacon.date = datetime;
-    // Set timestamp
-    UsbSerialAsyncmsg::asyncmsg("End decode");
-
     return beacon;
-    /*
-    UsbSerialAsyncmsg::asyncmsg("Start bch check");
-    // Perform BCH error detection and correction
-    uint8_t error_count = 0;
-    beacon.packet_status = perform_bch_check(data, error_count);
-    beacon.error_count = error_count;
-
-    // Extract beacon ID (bits 26-85, 15 hex digits)
-    UsbSerialAsyncmsg::asyncmsg("Get beacon Id");
-    beacon.beacon_id = 0;
-    for (int i = 3; i < 11; i++) {
-        beacon.beacon_id = (beacon.beacon_id << 8) | data[i];
-    }
-
-    // Extract beacon type (bits 86-88)
-    UsbSerialAsyncmsg::asyncmsg("Get beacon type");
-    uint8_t type_bits = (data[10] >> 5) & 0x07;
-    beacon.beacon_type = decode_beacon_type(type_bits);
-
-    // Extract emergency type (bits 91-94 for some beacon types)
-    UsbSerialAsyncmsg::asyncmsg("Get eamercency type");
-    uint8_t emergency_bits = (data[11] >> 4) & 0x0F;
-    beacon.emergency_type = decode_emergency_type(emergency_bits);
-
-    // Extract location if encoded (depends on beacon type and protocol)
-    UsbSerialAsyncmsg::asyncmsg("Get location");
-    beacon.location = decode_location(data);
-
-    // Extract country code (bits 1-10)
-    UsbSerialAsyncmsg::asyncmsg("Get country code");
-    beacon.country_code = decode_country_code(data);
-
-    // Set timestamp
-    UsbSerialAsyncmsg::asyncmsg("Get time");
-    rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
-    beacon.timestamp = datetime;
-
-    return beacon;*/
 }
 
 void EPIRBLogger::on_packet(Beacon& beacon) {
-    std::string entry = "EPIRB," +
+    std::string entry = std::string(beacon.getType()) + "EPIRB," +
                         beacon.hexId + "," +
-                        beacon.getProtocolName() + ",";  // ;
-                                                         // to_string_dec_uint(static_cast<uint8_t>(beacon.emergency_type)) + ",";
-
+                        beacon.getProtocolName();  // + ",";
+                                                   // to_string_dec_uint(static_cast<uint8_t>(beacon.emergency_type)) + ",";
     if (!beacon.location.isUnknown()) {
         entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
     } else {
         entry += ",";
     }
-
-    entry += "," + std::string(beacon.country.alphaCode) + "," +
+    entry += "," + beacon.country.toString() + "," +
              format_packet_status(beacon) + "\n";
-
     log_file.write_entry(beacon.date, entry);
-}
-
-std::string format_beacon_type(Beacon& beacon) {
-    return beacon.getProtocolDesciption();
-}
-
-std::string format_emergency_type(Beacon& /*beacon*/) {
-    // TODO
-    /*switch (EmergencyType::Fire) {
-        case EmergencyType::Fire:
-            return "Fire";
-        case EmergencyType::Flooding:
-            return "Flooding";
-        case EmergencyType::Collision:
-            return "Collision";
-        case EmergencyType::Grounding:
-            return "Grounding";
-        case EmergencyType::Sinking:
-            return "Sinking";
-        case EmergencyType::Disabled:
-            return "Disabled";
-        case EmergencyType::Abandoning:
-            return "Abandoning";
-        case EmergencyType::Piracy:
-            return "Piracy";
-        case EmergencyType::Man_Overboard:
-            return "MOB";
-        default:
-            return "Other";
-    }*/
-    return "other";
 }
 
 std::string format_packet_status(Beacon& beacon) {
     if (beacon.isFrameValid())
         return "OK";
     else
-        return "ERR";
+        return "KO";
 }
 
 ui::Color get_packet_status_color(PacketStatus status) {
@@ -247,7 +168,7 @@ void EPIRBBeaconDetailView::paint(ui::Painter& painter) {
                       .location();
 
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Emergency", format_emergency_type(beacon_))
+                             "Emergency", "None" )//format_emergency_type(beacon_)
                       .location();
 
     if (!beacon_.location.isUnknown()) {
@@ -274,9 +195,9 @@ void EPIRBBeaconDetailView::paint(ui::Painter& painter) {
 
     // Show packet status with appropriate color
     std::string status_text = format_packet_status(beacon_);
-    //if (beacon_.error_count > 0 && beacon_.packet_status == PacketStatus::Corrected) {
-    //    status_text += " (" + to_string_dec_uint(beacon_.error_count) + " err)";
-    //}
+    // if (beacon_.error_count > 0 && beacon_.packet_status == PacketStatus::Corrected) {
+    //     status_text += " (" + to_string_dec_uint(beacon_.error_count) + " err)";
+    // }
     draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
                              "Status", status_text)
                       .location();
@@ -348,7 +269,8 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     };
 
     // Configure receiver for default EPIRB frequency (406.028 MHz)
-    receiver_model.set_target_frequency(406028000);
+    // TODO : Load from conf
+    receiver_model.set_target_frequency(406025000);
     receiver_model.set_rf_amp(true);
     receiver_model.set_lna(32);
     receiver_model.set_vga(32);
@@ -361,12 +283,10 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 
     receiver_model.enable();
 
-    /*logger = std::make_unique<EPIRBLogger>();
+    logger = std::make_unique<EPIRBLogger>();
     if (logger) {
         logger->append(logs_dir / "epirb_rx.txt");
-    }*/
-    std::string mess = "EPIRB App Started!\n";
-    UsbSerialAsyncmsg::asyncmsg(mess);
+    }
 }
 
 EPIRBAppView::~EPIRBAppView() {
@@ -403,59 +323,50 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
     UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
-    if (packet.size() > 64) {  
+    if (packet.size() > 64) {
         // Actual beacon
         auto beacon = decode_packet(packet);
+        beacons_received++;
 
-        UsbSerialAsyncmsg::asyncmsg("On beacon decoded");
+        // Track packet statistics
+        if (beacon.isFrameValid())
+            packets_valid++;
+        else
+            packets_error++;
 
-        on_beacon_decoded(beacon);
+        recent_beacons[recent_beacon_pos++ % BEACON_HISTORY_SIZE] = beacon;
+        recent_beacon_full |= (recent_beacon_pos == 0);
+
+        // Update display
+        UsbSerialAsyncmsg::asyncmsg("Display");
+        update_display();
+
+        // Log the beacon
+        if (logger) {
+            logger->on_packet(beacon);
+        }
+
+        // Display in console with full details and colored status
+        std::string beacon_info = format_beacon_summary(beacon);
+        /*if (beacon.emergency_type != EmergencyType::Other) {
+            beacon_info += " [" + format_emergency_type(beacon.emergency_type) + "]";
+        }*/
+
+        // Add colored status indicator
+        std::string status_color;
+        if (beacon.isFrameValid())
+            status_color = STR_COLOR_GREEN;
+        else
+            status_color = STR_COLOR_RED;
+
+        beacon_info += " [" + status_color + format_packet_status(beacon) + STR_COLOR_WHITE + "]";
+        /*if (beacon.error_count > 0 && beacon.packet_status == PacketStatus::Corrected) {
+            beacon_info += " (" + to_string_dec_uint(beacon.error_count) + "e)";
+        }*/
+
+        UsbSerialAsyncmsg::asyncmsg("Write console");
+        console.write(beacon_info + "\n");
     }
-}
-
-void EPIRBAppView::on_beacon_decoded(Beacon& beacon) {
-    beacons_received++;
-
-    // Track packet statistics
-    UsbSerialAsyncmsg::asyncmsg("Frame valid");
-    if (beacon.isFrameValid())
-        packets_valid++;
-    else
-        packets_error++;
-
-    UsbSerialAsyncmsg::asyncmsg("Update decent");
-    recent_beacons[recent_beacon_pos++ % BEACON_HISTORY_SIZE] = beacon;
-    recent_beacon_full |= (recent_beacon_pos == 0);
-
-    // Update display
-    UsbSerialAsyncmsg::asyncmsg("Display");
-    update_display();
-
-    // Log the beacon
-    // if (logger) {
-    //    logger->on_packet(beacon);
-    //}
-
-    // Display in console with full details and colored status
-    std::string beacon_info = format_beacon_summary(beacon);
-    /*if (beacon.emergency_type != EmergencyType::Other) {
-        beacon_info += " [" + format_emergency_type(beacon.emergency_type) + "]";
-    }*/
-
-    // Add colored status indicator
-    std::string status_color;
-    if (beacon.isFrameValid())
-        status_color = STR_COLOR_GREEN;
-    else
-        status_color = STR_COLOR_RED;
-
-    beacon_info += " [" + status_color + format_packet_status(beacon) + STR_COLOR_WHITE + "]";
-    /*if (beacon.error_count > 0 && beacon.packet_status == PacketStatus::Corrected) {
-        beacon_info += " (" + to_string_dec_uint(beacon.error_count) + "e)";
-    }*/
-
-    UsbSerialAsyncmsg::asyncmsg("Write console");
-    console.write(beacon_info + "\n");
 }
 
 void EPIRBAppView::on_show_map() {
@@ -484,8 +395,7 @@ void EPIRBAppView::on_show_map() {
                         marker.lat = beacon.location.latitude.getFloatValue();
                         marker.lon = beacon.location.longitude.getFloatValue();
                         marker.angle = 0;
-                        marker.tag = beacon.hexId + " " +
-                                     format_beacon_type(beacon);
+                        marker.tag = beacon.hexId + " " + beacon.getType();
                         map_view->store_marker(marker);
                     }
                 }
@@ -510,14 +420,14 @@ void EPIRBAppView::on_clear_beacons() {
 
 void EPIRBAppView::on_toggle_log() {
     // Toggle logging functionality
-    /*if (logger) {
+    if (logger) {
         logger.reset();
         button_log.set_text("Log");
     } else {
         logger = std::make_unique<EPIRBLogger>();
         logger->append("epirb_rx.txt");
         button_log.set_text("Stop");
-    }*/
+    }
 }
 
 void EPIRBAppView::on_tick_second() {
@@ -546,16 +456,19 @@ void EPIRBAppView::update_display() {
 }
 
 std::string EPIRBAppView::format_beacon_summary(Beacon& beacon) {
-    std::string summary = beacon.hexId + " " +
-                          format_beacon_type(beacon);
+    std::string summary = to_string_dec_uint(beacon.date.hour(), 2, '0') + ":" +
+                          to_string_dec_uint(beacon.date.minute(), 2, '0') + ":" +
+                          to_string_dec_uint(beacon.date.second(), 2, '0') + "-";
+    summary += beacon.hexId.substr(0,4);
+    summary += "-";
+    std::string type = beacon.getType();
+    while(type.size()<6) type = " "+type;
 
     if (!beacon.location.isUnknown()) {
-        summary += " " + format_location(beacon.location);
+        summary += "-" + beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR);
+    } else {
+        summary += "-      ";
     }
-
-    // Add status indicator for summary display
-    summary += " " + format_packet_status(beacon);
-
     return summary;
 }
 
