@@ -511,7 +511,6 @@ void MAX2831::set_rssi_mux(const uint8_t mode) {
     set_reg_field(8, REG8_RSSI_MUX_MASK | REG8_RSSI_EN, mux_val);
     flush_reg(8);
 }
-}
 
 }  // namespace max2831
 #endif
