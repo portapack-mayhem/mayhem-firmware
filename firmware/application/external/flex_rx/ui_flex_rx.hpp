@@ -26,9 +26,16 @@ class FlexAppView : public View {
     NavigationView& nav_;
 
     // Saved settings
-    rf::Frequency frequency_value{931740000};  // Default FLEX frequency
+    rf::Frequency frequency_value{931740000};
 
     RxRadioState radio_state_{};
+
+    // Status bar state (updated from BIW packets)
+    char status_time_[12]{};  // "HH:MM:SS"
+    char status_tz_[12]{};    // "UTC+N"
+    uint16_t status_lid_{0};
+    uint16_t status_cz_{0};
+    uint16_t status_cc_{0};
 
     // Message storage for console redraw
     static constexpr size_t MAX_MESSAGES = 20;
@@ -54,9 +61,17 @@ class FlexAppView : public View {
     RSSI rssi{
         {UI_POS_X(21), 0, UI_POS_WIDTH(9), 4}};
 
-    // Message display area (below controls, account for status bar)
+    // Status rows (rows 1-2)
+    Text text_status1{
+        {0, 1 * 16, screen_width, 16},
+        ""};
+    Text text_status2{
+        {0, 2 * 16, screen_width, 16},
+        ""};
+
+    // Message display area (below status rows)
     Console console{
-        {0, 1 * 16, screen_width, screen_height - 2 * 16}};
+        {0, 3 * 16, screen_width, screen_height - 4 * 16}};
 
     // Persistent settings manager
     app_settings::SettingsManager settings_{
