@@ -234,7 +234,7 @@ class EPIRBAppView final : public ui::View {
     void on_tick_second();
 
     void update_display();
-    std::string format_beacon_summary(Beacon& beacon);
+    std::string format_beacon_summary(Beacon& beacon, bool with_time);
     std::string format_location(Location& location);
     std::string beacon_to_hex_string(const baseband::Packet& packet);
 };

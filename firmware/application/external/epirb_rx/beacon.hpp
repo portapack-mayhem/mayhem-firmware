@@ -297,7 +297,7 @@ class Beacon {
         if ((protocol == Protocol::USER_ELT)||(protocol == Protocol::STD_ELT_24)||(protocol == Protocol::STD_ELT_SERIAL)||(protocol == Protocol::STD_ELT_AIRCRAFT)||(protocol == Protocol::NAT_ELT)||(protocol == Protocol::ELT_DT)) return "ELT";
         if ((protocol == Protocol::STD_PLB_SERIAL)||(protocol == Protocol::NAT_PLB)) return "PLB";
         if ((protocol == Protocol::USER_TEST)||(protocol == Protocol::STD_TEST)||(protocol == Protocol::NAT_TEST)) return "TEST";
-        if (protocol == Protocol::USER_SERIAL) return "SERIAL";
+        if (protocol == Protocol::USER_SERIAL) return "SRIAL";
         if (protocol == Protocol::USER_ORB) return "ORB";
         if (protocol == Protocol::USER_NAT) return "NAT";
         if (protocol == Protocol::USER_2G) return "2G";
@@ -343,6 +343,10 @@ class Beacon {
 
     inline std::string hexString(bool withHeader) {
         return toHexString(frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
+    }
+
+    inline std::string shortId() {
+        return (hexId.size() >= 4) ? hexId.substr(0,4) : hexId;
     }
 
    private:
