@@ -237,13 +237,32 @@ class Beacon {
     }
 
     Beacon() {}
-    Beacon(const Beacon& other) { setFrame(other.frame); }
-    Beacon& operator=(const Beacon& other) {
-        setFrame(other.frame);
-        return *this;
-    }
+    Beacon(const Beacon& other) = delete;
+    Beacon& operator=(const Beacon& other) = delete;
 
     inline void setFrame(const uint8_t* frameBuffer) {
+        frameMode = FrameMode::UNKNOWN;
+        mainLocatingDevice = MainLocatingDevice::UNDEFINED;
+        auxLocatingDevice = AuxLocatingDevice::UNDEFINED;
+        protocolCode = 0;
+        protocol = Protocol::UNKNOWN;
+        country.code = 0;
+        country.alphaCode = "";
+        country.longName = "";
+        country.shortName = "";
+        location.clear();
+        identifier = 0;
+        hasAdditionalData = false;
+        additionalData = "";
+        hasSerialNumber = false;
+        serialNumber = "";
+        hexId = "";
+        bch1 = 0;
+        computedBch1 = 0;
+        hasBch2 = false;
+        bch2 = 0;
+        computedBch2 = 0;
+        isEmpty = true;
         std::memcpy(frame, (const void*)frameBuffer, BEACON_DATA_SIZE);
         parseFrame();
     }
@@ -263,7 +282,7 @@ class Beacon {
         return "Unknown 406";
     }
 
-    inline const char* getProtocolName() { return getProtocolTypeName(protocol,longFrame); }
+    inline const char* getProtocolName() { return getProtocolTypeName(protocol, longFrame); }
 
     inline const char* getProtocolDesciption() {
         if (protocol == Protocol::USER_EPIRB_MARITIME) return "EPIRB - Maritime";
@@ -293,10 +312,10 @@ class Beacon {
     }
 
     inline const char* getType() {
-        if ((protocol == Protocol::USER_EPIRB_MARITIME)||(protocol == Protocol::USER_EPIRB_RADIO)||(protocol == Protocol::STD_EPIRB)||(protocol == Protocol::STD_EPIRB_SERIAL)||(protocol == Protocol::NAT_EPIRB)) return "EPIRB";
-        if ((protocol == Protocol::USER_ELT)||(protocol == Protocol::STD_ELT_24)||(protocol == Protocol::STD_ELT_SERIAL)||(protocol == Protocol::STD_ELT_AIRCRAFT)||(protocol == Protocol::NAT_ELT)||(protocol == Protocol::ELT_DT)) return "ELT";
-        if ((protocol == Protocol::STD_PLB_SERIAL)||(protocol == Protocol::NAT_PLB)) return "PLB";
-        if ((protocol == Protocol::USER_TEST)||(protocol == Protocol::STD_TEST)||(protocol == Protocol::NAT_TEST)) return "TEST";
+        if ((protocol == Protocol::USER_EPIRB_MARITIME) || (protocol == Protocol::USER_EPIRB_RADIO) || (protocol == Protocol::STD_EPIRB) || (protocol == Protocol::STD_EPIRB_SERIAL) || (protocol == Protocol::NAT_EPIRB)) return "EPIRB";
+        if ((protocol == Protocol::USER_ELT) || (protocol == Protocol::STD_ELT_24) || (protocol == Protocol::STD_ELT_SERIAL) || (protocol == Protocol::STD_ELT_AIRCRAFT) || (protocol == Protocol::NAT_ELT) || (protocol == Protocol::ELT_DT)) return "ELT";
+        if ((protocol == Protocol::STD_PLB_SERIAL) || (protocol == Protocol::NAT_PLB)) return "PLB";
+        if ((protocol == Protocol::USER_TEST) || (protocol == Protocol::STD_TEST) || (protocol == Protocol::NAT_TEST)) return "TEST";
         if (protocol == Protocol::USER_SERIAL) return "SRIAL";
         if (protocol == Protocol::USER_ORB) return "ORB";
         if (protocol == Protocol::USER_NAT) return "NAT";
@@ -346,7 +365,50 @@ class Beacon {
     }
 
     inline std::string shortId() {
-        return (hexId.size() >= 4) ? hexId.substr(0,4) : hexId;
+        return (hexId.size() >= 4) ? hexId.substr(0, 4) : hexId;
+    }
+
+    inline std::string getSatus() {
+        if (isFrameValid())
+            return "OK";
+        else
+            return "KO";
+    }
+
+    inline ui::Color getColor() {
+        if (isFrameValid())
+            return ui::Color::green();
+        else
+            return ui::Color::red();
+    }
+
+    inline std::string formatSummary(bool with_time) {
+        std::string summary;
+        if (with_time) {
+            summary = to_string_dec_uint(date.hour(), 2, '0') + ":" +
+                      to_string_dec_uint(date.minute(), 2, '0') + ":" +
+                      to_string_dec_uint(date.second(), 2, '0') + "-";
+        }
+        std::string id = shortId();
+        while (id.size() < 4) id = "_" + id;
+        summary += id;
+        summary += "-";
+        std::string type = getType();
+        while (type.size() < 5) type = "_" + type;
+        summary += type;
+        if (!location.isUnknown()) {
+            summary += "-" + location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR);
+        } else {
+            summary += "-      ";
+        }
+        std::string status_color;
+        if (isFrameValid())
+            status_color = STR_COLOR_GREEN;
+        else
+            status_color = STR_COLOR_RED;
+
+        summary += "[" + status_color + getSatus() + STR_COLOR_WHITE + "]";
+        return summary;
     }
 
    private:

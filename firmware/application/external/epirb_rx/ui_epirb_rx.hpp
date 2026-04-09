@@ -39,10 +39,10 @@
 #include "audio.hpp"
 
 #include "beacon.hpp"
+#include "beacon_db.hpp"
+#include "ui_beaconlist.hpp"
 
 namespace ui::external_app::epirb_rx {
-
-#define BEACON_HISTORY_SIZE 16
 
 enum class PacketStatus : uint8_t {
     Valid = 0,
@@ -62,9 +62,6 @@ class EPIRBLogger {
     LogFile log_file{};
 };
 
-// Forward declarations of formatting functions
-std::string format_packet_status(Beacon& beacon);
-ui::Color get_packet_status_color(Beacon& beacon);
 /*
 class EPIRBBeaconDetailView : public ui::View {
    public:
@@ -119,10 +116,9 @@ class EPIRBAppView final : public ui::View {
 
     ui::NavigationView& nav_;
 
-    Beacon recent_beacons[BEACON_HISTORY_SIZE];
-    int8_t recent_beacon_pos{0};
-    bool recent_beacon_full{false};
-    std::unique_ptr<EPIRBLogger> logger{};
+    BeaconDB beacon_db{};
+
+    EPIRBLogger logger{};
 
 //    EPIRBBeaconDetailView beacon_detail_view{nav_};
 
@@ -198,8 +194,10 @@ class EPIRBAppView final : public ui::View {
         }};
 
     // Beacon list
-    ui::Console console{
-        {0, 4 * 16, 240, 152}};
+    //ui::Console console{
+    //    {0, 4 * 16, 240, 152}};
+    BeaconUIList beaconlist_view{
+        {0, 4 * 16, screen_width, 152/*12 * 16 + 2*/ /* 2 Keeps text out of border. */}};
 
     ui::Button button_map{
         {0, 224, 60, 24},
@@ -226,7 +224,7 @@ class EPIRBAppView final : public ui::View {
             this->on_packet(message->packet);
         }};
 
-    static Beacon decode_packet(const baseband::Packet& packet);
+    static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
     void on_packet(const baseband::Packet& packet);
     void on_show_map();
     void on_clear_beacons();
@@ -234,7 +232,6 @@ class EPIRBAppView final : public ui::View {
     void on_tick_second();
 
     void update_display();
-    std::string format_beacon_summary(Beacon& beacon, bool with_time);
     std::string format_location(Location& location);
     std::string beacon_to_hex_string(const baseband::Packet& packet);
 };

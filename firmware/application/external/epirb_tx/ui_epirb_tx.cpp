@@ -82,7 +82,7 @@ void EPIRBTXAppView::on_timer() {
             // chTimeNow() returns milliseconds on our version of ChibiOS / Hardware
             auto now = chTimeNow();
             auto elapsed = ((now - last_frame_time) / 1000);
-            std::string timeout = std::to_string((uint32_t)(delay > elapsed ? delay - elapsed : 0));
+            std::string timeout = to_string_dec_uint((uint32_t)(delay > elapsed ? delay - elapsed : 0));
             if (timeout != text_timeout.get()) {
                 // Update timeout text every seconds
                 text_timeout.set(timeout);
