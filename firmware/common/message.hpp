@@ -158,6 +158,7 @@ class Message {
         TimeSinkConfig = 100,
         EPIRBTXData = 101,
         P25TxConfigure = 102,
+        FlexTosend = 103,
         MAX
     };
 
@@ -1859,6 +1860,25 @@ class NotificationDataMessage : public Message {
     char message[300]{0};    // message, null-terminated, max 299 chars + null
     uint8_t icon = 0;
     uint16_t timeout = 10000;
+};
+
+class FlexTosendMessage : public Message {
+   public:
+    constexpr FlexTosendMessage(
+        uint64_t capcode = 0,
+        uint8_t type = 0,
+        uint8_t msglen = 0,
+        uint8_t msg[240] = {0})
+        : Message{ID::FlexTosend},
+          capcode{capcode},
+          type{type},
+          msglen{msglen} {
+        memcpy(this->msg, msg, 240);
+    }
+    uint64_t capcode = 0;
+    uint8_t type = 0;   // 0=alpha, 1=numeric, 2=tone
+    uint8_t msglen = 0;
+    uint8_t msg[240] = {0};
 };
 
 #endif /*__MESSAGE_H__*/

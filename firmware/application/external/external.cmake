@@ -325,6 +325,10 @@ set(EXTCPPSRC
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
 
+	#flex_tx
+	external/flex_tx/main.cpp
+	external/flex_tx/ui_flex_tx.cpp
+
 	#time_sink
 	external/time_sink/main.cpp
 	external/time_sink/ui_time_sink.cpp
@@ -422,6 +426,7 @@ set(EXTAPPLIST
 	rtty_rx
 	rtty_tx
 	pocsag_tx
+	flex_tx
 	time_sink
 	kiss_tnc
 	p25_tx
