@@ -455,7 +455,7 @@ static size_t build_frame(uint8_t* buf, uint64_t capcode, int msg_type, const st
         mwc = flex_encode_numeric(msg, mw, 84, &num_k);
 
     // Address encoding
-    int is_long = (capcode > 1933312);
+    int is_long = (capcode >= 2101249ULL);
     int addr_words = is_long ? 2 : 1;
     int vec_words = is_long ? 2 : 1;
     int astart = 1 + extra_count;
@@ -799,27 +799,28 @@ void FlexTXView::paint(Painter&) {
         info = "Invalid";
     } else if (cap <= 1933312ULL) {
         info = "Short addr";
-    } else if (cap >= 2101249ULL && cap <= 4297068542ULL) {
-        info = "Long addr";
     } else if (cap >= 2062336ULL && cap <= 2062351ULL) {
-        info = "Temp group #" + to_string_dec_uint(cap - 2062336ULL);
+        info = "Temp grp #" + to_string_dec_uint(cap - 2062336ULL);
     } else if (cap >= 2062352ULL && cap <= 2062367ULL) {
-        info = "Operator message";
+        info = "Operator msg";
     } else if (cap >= 2058240ULL && cap <= 2062335ULL) {
         info = "Network addr";
     } else if (cap >= 2041856ULL && cap <= 2058239ULL) {
         info = "Info service";
-    } else {
+    } else if (cap > 1933312ULL && cap < 2101249ULL) {
         info = "Reserved";
+    } else if (cap >= 2101249ULL && cap <= 4297068542ULL) {
+        info = "Long addr";
+    } else {
+        info = "Invalid";
     }
-    // Computed frame/phase for pager addresses
-    if ((cap >= 1 && cap <= 1933312ULL) ||
-        (cap >= 2101249ULL && cap <= 4297068542ULL)) {
+    // Computed frame/phase for all valid addresses
+    if (cap >= 1 && cap <= 4297068542ULL) {
         static const char ph[] = "ABCD";
         int frame = (int)((cap / 16) % 128);
         int phase = (int)((cap / 4) % 4);
-        info += ", frame " + to_string_dec_uint(frame) +
-                " phase " + std::string(1, ph[phase]);
+        info += ", F" + to_string_dec_uint(frame) +
+                " " + std::string(1, ph[phase]);
     }
     text_capinfo.set(info);
 }

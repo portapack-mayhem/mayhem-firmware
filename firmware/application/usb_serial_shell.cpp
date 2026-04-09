@@ -1345,7 +1345,7 @@ static void cmd_sendflex(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
         return;
     }
-    uint64_t capcode = (uint64_t)atol(argv[0]);
+    uint64_t capcode = strtoull(argv[0], nullptr, 10);
     if (capcode < 1 || capcode > 4297068542ULL) {
         chprintf(chp, "error, capcode 1-4297068542\r\n");
         return;
