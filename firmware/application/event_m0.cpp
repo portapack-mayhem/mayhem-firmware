@@ -37,6 +37,10 @@
 
 #include "ch.h"
 
+#include "hackrf_gpio.hpp"
+using namespace hackrf::one;
+#include "gpio.hpp"
+
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
@@ -123,18 +127,58 @@ void EventDispatcher::request_stop() {
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
-    // TODO: Distribute display sleep message more broadly, shut down data generation
-    // on baseband side, since all that data is being discarded during sleep.  -- DON'T TODO it, sincethe stealth mode want to send with screen off!
+    uint8_t valid_mask = 0;
+    uint8_t percent = 0;
+    uint16_t voltage = 0;
+    int32_t current = 0;
+
     if (sleep) {
         portapack::backlight()->off();
-        portapack::display.sleep(false);  // when called the hw_sleep = true, the irq wont fire, so the EVT_MASK_LCD_FRAME_SYNC won't set.
+        portapack::display.sleep(false);
+
+        radio::disable();
+        portapack::clock_manager.shutdown();
+
+#ifdef PRALINE
+        gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
+        gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
+        gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
+        gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
+        gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
+#else
+        gpio_og_vaa_disable.set();    // VAA ->HIGH
+        gpio_r9_vaa_disable.clear();  // 1V8 ->LOW
+
+#endif
+
+        while (1) {
+            battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
+            // ha áram kisebb mint 0
+            if (percent > 100) {
+                percent = 100;
+            }
+
+            if (percent == 100) {
+                radio::ledfasz(true);
+                chThdSleepMilliseconds(1000);
+            } else {
+                uint32_t delay_ms = 150 + (percent * 8);
+
+                radio::ledfasz(true);
+                chThdSleepMilliseconds(delay_ms);
+                radio::ledfasz(false);
+                chThdSleepMilliseconds(delay_ms);
+            }
+        }  // END while
     } else {
-        portapack::display.wake(true);  // not important, command not affect if already hw waken up
+        portapack::display.wake(true);
+        // not important, command not affect if already hw waken up
         // Don't turn on backlight here.
         // Let frame sync handler turn on backlight after repaint.
     }
+
     EventDispatcher::display_sleep = sleep;
-};
+}
 
 eventmask_t EventDispatcher::wait() {
     return chEvtWaitAny(ALL_EVENTS);

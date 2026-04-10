@@ -62,6 +62,9 @@ void set_rx_max283x_iq_phase_calibration(const size_t v);
 // void configure(Configuration configuration);
 void disable();
 
+void kill_everything_for_power_saving();
+void ledfasz(bool on);
+
 #ifdef PRALINE
 void invalidate_spi_config();
 void set_rx_buff_vcm(const size_t v);
