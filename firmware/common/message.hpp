@@ -1569,8 +1569,8 @@ class PocsagTosendMessage : public Message {
     constexpr PocsagTosendMessage(
         uint16_t baud = 1200,
         uint8_t type = 2,
-        char function = 'D',
-        char phase = 'N',
+        char function = 'A',
+        char polarity = 'S', /* 'S' = Standard (CCIR Rec. 584), 'I' = Inverted */
         uint8_t msglen = 0,
         uint8_t msg[31] = {0},
         uint64_t addr = 0)
@@ -1578,15 +1578,15 @@ class PocsagTosendMessage : public Message {
           baud{baud},
           type{type},
           function{function},
-          phase{phase},
+          polarity{polarity},
           msglen{msglen},
           addr{addr} {
         memcpy(this->msg, msg, 31);
     }
     uint16_t baud = 1200;
     uint8_t type = 2;
-    char function = 'D';
-    char phase = 'N';
+    char function = 'A';
+    char polarity = 'S'; /* 'S' = Standard, 'I' = Inverted */
     uint8_t msglen = 0;
     uint8_t msg[31] = {0};
     uint64_t addr = 0;

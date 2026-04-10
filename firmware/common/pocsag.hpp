@@ -77,6 +77,17 @@ class EccContainer {
     uint32_t bch[1025];
 };
 
+/* Detected message type from heuristic scoring. */
+enum DetectedType : uint8_t {
+    DET_UNKNOWN,
+    DET_TONE,
+    DET_ALPHA,
+    DET_NUMERIC
+};
+
+/* Max numeric nibbles per batch: 16 codewords * 5 nibbles. */
+constexpr uint8_t max_batch_nibbles = 80;
+
 struct POCSAGState {
     EccContainer* ecc = nullptr;
     uint8_t codeword_index = 0;
@@ -84,17 +95,28 @@ struct POCSAGState {
     uint32_t address = 0;
     Mode mode = STATE_CLEAR;
     OutputType out_type = EMPTY;
-    uint32_t ascii_data = 0;
+    uint64_t ascii_data = 0;  // Was uint32_t — fixed overflow for long messages.
     uint32_t ascii_idx = 0;
     uint32_t errors = 0;
-    std::string output{};
+    uint8_t prev_cw_err = 0;    // Error level of previous codeword (for chars spanning boundary).
+    uint8_t cur_cw_err = 0;     // Error level of current codeword being decoded.
+    bool new_message = false;   // True when decoder starts a new address.
+    bool type_decided = false;  // True after first-batch heuristic runs.
+    DetectedType detected = DET_UNKNOWN;
+    uint8_t msg_codewords = 0;  // Message codewords in current batch (for heuristic).
+    std::string output{};       // Alpha decode (always populated, with color escapes).
+    // Numeric output is built into a separate local in pocsag_decode_batch
+    // and stored here only when heuristic detects numeric.
+    // Using a fixed buffer to avoid std::string overhead in external apps
+    // that embed POCSAGState (e.g. battleship).
+    char numeric_buf[80]{};
+    uint8_t numeric_len = 0;
 };
 
-const pocsag::BitRate pocsag_bitrates[4] = {
+const pocsag::BitRate pocsag_bitrates[3] = {
     pocsag::BitRate::FSK512,
     pocsag::BitRate::FSK1200,
     pocsag::BitRate::FSK2400,
-    pocsag::BitRate::FSK3200,
 };
 
 std::string bitrate_str(BitRate bitrate);
@@ -106,6 +128,10 @@ void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t fun
 
 // Returns true if the batch has more to process.
 bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state);
+
+// Heuristic: detect whether message content is numeric or alpha.
+// Called once after first batch of a new message.
+DetectedType detect_message_type(const std::string& alpha, const uint8_t* nibbles, uint8_t nibble_count, uint8_t msg_codewords);
 
 } /* namespace pocsag */
 
