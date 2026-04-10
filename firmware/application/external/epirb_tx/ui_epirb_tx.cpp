@@ -136,8 +136,8 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         // In file mode, currently selected beacon has changed => load the new one
         Beacon& beacon = beacons[selected_beacon];
         // Set desciption
-        text_description.set(beacon.description.substr(0, max_text_width_ext));
-        text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
+        file_mode_ui->text_description.set(beacon.description.substr(0, max_text_width_ext));
+        file_mode_ui->text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
         // Udapte frame content on display
         text_frame.set(beacon.frame.substr(0, 18));
         text_frame_end.set(beacon.frame.size() > 18 ? beacon.frame.substr(18, 36) : "");
@@ -239,11 +239,50 @@ void EPIRBTXAppView::update_location(bool updateLocatorField) {
 
 void EPIRBTXAppView::update_mode() {
     // Hide / show widgets for file mode or manual mode
-    text_beacon.hidden(!mode_file);
-    text_description_label.hidden(!mode_file);
-    options_frame.hidden(!mode_file);
-    text_description.hidden(!mode_file);
-    text_description_end.hidden(!mode_file);
+    using option_t = std::pair<std::string, int32_t>;
+    using options_t = std::vector<option_t>;
+    if (mode_file) {
+        // Load available beacons from BEACONS.TXT files (or default).
+        load_beacons();
+        if (!file_mode_ui) {
+            file_mode_ui = std::make_unique<FileModeWidgets>();
+            // Setup options_frame content with loaded beacons
+            options_t entries;
+            for (const auto& beacon : beacons)
+                entries.emplace_back(beacon.title, entries.size());
+
+            file_mode_ui->options_frame.set_options(entries);
+            if (selected_beacon >= beacons.size())
+                // BEACONS.TXT file has changed since last launch, default index to 0
+                selected_beacon = 0;
+            file_mode_ui->options_frame.set_selected_index(selected_beacon);
+
+            file_mode_ui->options_frame.on_change = [this](size_t index, OptionsField::value_t) {
+                selected_beacon = index;
+                update_frame();
+                set_dirty();
+            };
+            file_mode_ui->text_beacon.set_style(Theme::getInstance()->fg_light);
+            file_mode_ui->text_description_label.set_style(Theme::getInstance()->fg_light);
+            add_child(&file_mode_ui->text_beacon);
+            add_child(&file_mode_ui->options_frame);
+            add_child(&file_mode_ui->text_description_label);
+            add_child(&file_mode_ui->text_description);
+            add_child(&file_mode_ui->text_description_end);
+        }
+    } else {
+        // Clear beacons to save ram for Map display and Locatior editor
+        if (file_mode_ui) {
+            remove_child(&file_mode_ui->text_beacon);
+            remove_child(&file_mode_ui->options_frame);
+            remove_child(&file_mode_ui->text_description_label);
+            remove_child(&file_mode_ui->text_description);
+            remove_child(&file_mode_ui->text_description_end);
+            file_mode_ui.reset();
+        }
+        beacons.clear();
+        beacons.shrink_to_fit();
+    }
     text_beacon_type.hidden(mode_file);
     text_beacon_country.hidden(mode_file);
     checkbox_beacon_internal.hidden(mode_file);
@@ -257,28 +296,6 @@ void EPIRBTXAppView::update_mode() {
     options_beacon_protocol.hidden(mode_file);
     options_beacon_country.hidden(mode_file);
     text_field_beacon_locator.hidden(mode_file);
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    if (mode_file) {
-        // Load available beacons from BEACONS.TXT files (or default).
-        load_beacons();
-        // Setup options_frame content with loaded beacons
-        options_t entries;
-        for (const auto& beacon : beacons)
-            entries.emplace_back(beacon.title, entries.size());
-
-        options_frame.set_options(entries);
-        if (selected_beacon >= beacons.size())
-            // BEACONS.TXT file has changed since last launch, default index to 0
-            selected_beacon = 0;
-        options_frame.set_selected_index(selected_beacon);
-    } else {
-        // Clear beacons to save ram for Map display and Locatior editor
-        beacons.clear();
-        beacons.shrink_to_fit();
-        options_t entries;
-        options_frame.set_options(entries);
-    }
 }
 
 EPIRBTXAppView::EPIRBTXAppView(
@@ -287,8 +304,6 @@ EPIRBTXAppView::EPIRBTXAppView(
 
     add_children({&labels,
                   &options_mode,
-                  &text_beacon,
-                  &text_description_label,
                   &text_beacon_type,
                   &options_beacon_type,
                   &options_beacon_protocol,
@@ -302,9 +317,6 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_beacon_longitude_value,
                   &button_mangps,
                   &text_field_beacon_locator,
-                  &options_frame,
-                  &text_description,
-                  &text_description_end,
                   &text_frame,
                   &text_frame_end,
                   &text_timeout,
@@ -318,8 +330,6 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &options_bpsk_channel,
                   &tx_view});
 
-    text_beacon.set_style(Theme::getInstance()->fg_light);
-    text_description_label.set_style(Theme::getInstance()->fg_light);
     text_beacon_type.set_style(Theme::getInstance()->fg_light);
     text_beacon_country.set_style(Theme::getInstance()->fg_light);
     text_beacon_locator.set_style(Theme::getInstance()->fg_light);
@@ -485,12 +495,6 @@ EPIRBTXAppView::EPIRBTXAppView(
         if (transmitting && !transmitting_bpsk && am_enabled)
             // Update transmitter frequency
             transmitter_model.set_target_frequency(am_frequency);
-    };
-
-    options_frame.on_change = [this](size_t index, OptionsField::value_t) {
-        selected_beacon = index;
-        update_frame();
-        set_dirty();
     };
 
     // Init frame content / baseband param with currently setup beacon

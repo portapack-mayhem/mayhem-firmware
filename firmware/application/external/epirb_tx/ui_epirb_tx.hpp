@@ -238,23 +238,26 @@ class EPIRBTXAppView : public View {
         {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
 
     // For file mode
-    Text text_beacon{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
-        "Beacon:"};
-    // Beacon selection from BEACONS.TXT
-    OptionsField options_frame{
-        {UI_POS_X(7), UI_POS_Y(1)},
-        30,
-        {}};
-    Text text_description_label{
-        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
-        "Description:"};
-    Text text_description{
-        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
-        ""};
-    Text text_description_end{
-        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
-        ""};
+    struct FileModeWidgets {
+        Text text_beacon{
+            {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
+            "Beacon:"};
+        // Beacon selection from BEACONS.TXT
+        OptionsField options_frame{
+            {UI_POS_X(7), UI_POS_Y(1)},
+            30,
+            {}};
+        Text text_description_label{
+            {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+            "Description:"};
+        Text text_description{
+            {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+            ""};
+        Text text_description_end{
+            {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+            ""};
+    };
+    std::unique_ptr<FileModeWidgets> file_mode_ui { };
 
     // For manual mode
     Text text_beacon_type{
