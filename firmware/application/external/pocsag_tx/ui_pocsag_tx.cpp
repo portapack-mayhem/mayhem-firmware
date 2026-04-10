@@ -96,7 +96,19 @@ bool POCSAGTXView::start_tx() {
 
     if (type == MessageType::NUMERIC_ONLY) {
         // Check for invalid characters
-        if (message.find_first_not_of("0123456789SU -][") != std::string::npos) {
+        const char* p = message.c_str();
+        bool is_valid = true;
+        while (*p != '\0') {
+            const char c = *p;
+            // Check if char is NOT in the allowed set
+            if (!((c >= '0' && c <= '9') || c == 'S' || c == 'U' ||
+                  c == ' ' || c == '-' || c == '[' || c == ']')) {
+                is_valid = false;
+                break;
+            }
+            p++;
+        }
+        if (!is_valid) {
             nav_.display_modal("Bad message", "A numeric only message must\nonly contain:\n0123456789SU][- or space.");
             return false;
         }
