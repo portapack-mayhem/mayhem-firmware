@@ -142,6 +142,8 @@ class EPIRBTXAppView : public View {
         std::string description{};
         std::string frame{};
     };
+    NavigationView& nav_;
+
     std::vector<Beacon> beacons{};
     Beacon default_beacon{"Self test", "Serial User Location Protocol", "FFFED0D6E6202820000C29FF51041775302D"};
 

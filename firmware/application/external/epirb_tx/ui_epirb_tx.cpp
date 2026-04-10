@@ -257,10 +257,32 @@ void EPIRBTXAppView::update_mode() {
     options_beacon_protocol.hidden(mode_file);
     options_beacon_country.hidden(mode_file);
     text_field_beacon_locator.hidden(mode_file);
+    using option_t = std::pair<std::string, int32_t>;
+    using options_t = std::vector<option_t>;
+    if (mode_file) {
+        // Load available beacons from BEACONS.TXT files (or default).
+        load_beacons();
+        // Setup options_frame content with loaded beacons
+        options_t entries;
+        for (const auto& beacon : beacons)
+            entries.emplace_back(beacon.title, entries.size());
+
+        options_frame.set_options(entries);
+        if (selected_beacon >= beacons.size())
+            // BEACONS.TXT file has changed since last launch, default index to 0
+            selected_beacon = 0;
+        options_frame.set_selected_index(selected_beacon);
+    } else {
+        // Clear beacons to save ram for Map display and Locatior editor
+        beacons.clear();
+        beacons.shrink_to_fit();
+        options_t entries;
+        options_frame.set_options(entries);
+    }
 }
 
 EPIRBTXAppView::EPIRBTXAppView(
-    NavigationView& nav) {
+    NavigationView& nav): nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
@@ -429,8 +451,8 @@ EPIRBTXAppView::EPIRBTXAppView(
         set_dirty();
     };
 
-    text_field_beacon_locator.on_select = [this, &nav](TextField&) mutable {
-        auto te_view = nav.push<AlphanumView>(locator, 10, ENTER_KEYBOARD_MODE_ALPHA);
+    text_field_beacon_locator.on_select = [this](TextField&) mutable {
+        auto te_view = nav_.push<AlphanumView>(locator, 10, ENTER_KEYBOARD_MODE_ALPHA);
         te_view->on_changed = [this](std::string& value) {
             beacon_params.location.locator = value;
             init_from_locator(beacon_params.location);
@@ -440,8 +462,8 @@ EPIRBTXAppView::EPIRBTXAppView(
         };
     };
 
-    button_mangps.on_select = [this, &nav](Button&) {
-        nav.push<GeoMapView>(
+    button_mangps.on_select = [this](Button&) {
+        nav_.push<GeoMapView>(
             0,
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::HIDDEN,
@@ -465,20 +487,6 @@ EPIRBTXAppView::EPIRBTXAppView(
             transmitter_model.set_target_frequency(am_frequency);
     };
 
-    // Load available beacons from BEACONS.TXT files (or default).
-    load_beacons();
-    // Setup options_frame content with loaded beacons
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    options_t entries;
-    for (const auto& beacon : beacons)
-        entries.emplace_back(beacon.title, entries.size());
-
-    options_frame.set_options(std::move(entries));
-    if (selected_beacon >= beacons.size())
-        // BEACONS.TXT file has changed since last launch, default index to 0
-        selected_beacon = 0;
-    options_frame.set_selected_index(selected_beacon);
     options_frame.on_change = [this](size_t index, OptionsField::value_t) {
         selected_beacon = index;
         update_frame();
@@ -505,8 +513,8 @@ EPIRBTXAppView::EPIRBTXAppView(
     };
 
     // AM frequency field edit
-    field_am_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(field_am_frequency.value());
+    field_am_frequency.on_edit = [this]() {
+        auto new_view = nav_.push<FrequencyKeypadView>(field_am_frequency.value());
         new_view->on_changed = [this](rf::Frequency f) {
             switch (f) {
                 case AM_REAL_FREQUENCY:
@@ -530,8 +538,8 @@ EPIRBTXAppView::EPIRBTXAppView(
         send_on_change = v;
     };
 
-    tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
+    tx_view.on_edit_frequency = [this]() {
+        auto new_view = nav_.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
             bpsk_frequency = f;
             switch (f) {
