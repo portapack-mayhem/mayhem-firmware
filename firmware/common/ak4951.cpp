@@ -130,15 +130,15 @@ bool AK4951::reset() {
     return true;
 }
 
-void AK4951::set_digtal_volume_control(const reg_t value) {
+bool AK4951::set_digtal_volume_control(const reg_t value) {
     map.r.l_ch_digital_volume_control.DV = value;
-    update(Register::LchDigitalVolumeControl);
+    return update(Register::LchDigitalVolumeControl);
 }
 
-void AK4951::set_headphone_volume(const volume_t volume) {
+bool AK4951::set_headphone_volume(const volume_t volume) {
     const auto normalized = headphone_gain_range().normalize(volume);
     auto n = normalized.centibel() / 5;
-    set_digtal_volume_control(0xcb - n);
+    return set_digtal_volume_control(0xcb - n);
 }
 
 void AK4951::headphone_mute() {
@@ -602,13 +602,13 @@ reg_t AK4951::read(const address_t reg_address) {
     return rx[0];
 }
 
-void AK4951::update(const Register reg) {
-    write(toUType(reg), map.w[toUType(reg)]);
+bool AK4951::update(const Register reg) {
+    return write(toUType(reg), map.w[toUType(reg)]);
 }
 
-void AK4951::write(const address_t reg_address, const reg_t value) {
+bool AK4951::write(const address_t reg_address, const reg_t value) {
     const std::array<uint8_t, 2> tx{reg_address, value};
-    bus.transmit(bus_address, tx.data(), tx.size());
+    return bus.transmit(bus_address, tx.data(), tx.size());
 }
 
 } /* namespace ak4951 */

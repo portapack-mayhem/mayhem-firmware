@@ -145,14 +145,14 @@ void WM8731::write(const RightLineIn value) {
     write(Register::RightLineIn);
 }
 
-void WM8731::write(const LeftHeadphoneOut value) {
+bool WM8731::write(const LeftHeadphoneOut value) {
     map.r.left_headphone_out = value;
-    write(Register::LeftHeadphoneOut);
+    return write(Register::LeftHeadphoneOut);
 }
 
-void WM8731::write(const RightHeadphoneOut value) {
+bool WM8731::write(const RightHeadphoneOut value) {
     map.r.right_headphone_out = value;
-    write(Register::RightHeadphoneOut);
+    return write(Register::RightHeadphoneOut);
 }
 
 void WM8731::write(const AnalogAudioPathControl value) {

@@ -225,8 +225,15 @@ volume_range_t volume_range() {
     return audio_codec->headphone_gain_range();
 }
 
-void set_volume(const volume_t volume) {
-    audio_codec->set_headphone_volume(volume);
+bool set_volume(const volume_t volume) {
+    // add retry method
+    for (int i = 0; i < 100; ++i) {
+        if (audio_codec->set_headphone_volume(volume)) {
+            return true;
+        }
+        chThdSleepMilliseconds(2);
+    }
+    return false;
 }
 
 } /* namespace headphone */
