@@ -424,7 +424,7 @@ class WM8731 : public audio::Codec {
     void write(const LeftLineIn value);
     void write(const RightLineIn value);
     bool write(const LeftHeadphoneOut value);
-    void write(const RightHeadphoneOut value);
+    bool write(const RightHeadphoneOut value);
     void write(const AnalogAudioPathControl value);
     void write(const DigitalAudioPathControl value);
     void write(const PowerDownControl value);
