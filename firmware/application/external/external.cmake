@@ -309,8 +309,10 @@ set(EXTCPPSRC
 	external/morseradiotx/main.cpp
 	external/morseradiotx/ui_morse_radiotx.cpp
 
+	#keeloqtx
   	external/keeloqtx/main.cpp
   	external/keeloqtx/ui_keeloqtx.cpp
+
 	#rtty_rx
 	external/rtty_rx/main.cpp
 	external/rtty_rx/ui_rtty_rx.cpp
@@ -351,7 +353,7 @@ set(EXTCPPSRC
 
 	#two_tone_rx
 	external/two_tone_rx/main.cpp
-	external/two_tone_rx/ui_two_tone_rx.cpp
+	external/two_tone_rx/ui_two_tone_rx.cpp 
 )
 
 set(EXTAPPLIST
