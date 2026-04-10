@@ -1353,6 +1353,53 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_sendflex(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: sendflex <capcode> <type> <msglen>\r\n  type: 0=alpha 1=numeric 2=short/tone 3=short numeric\r\n";
+    if (argc < 3) {
+        chprintf(chp, usage);
+        return;
+    }
+    uint64_t capcode = strtoull(argv[0], nullptr, 10);
+    if (capcode < 1 || capcode > 4297068542ULL) {
+        chprintf(chp, "error, capcode 1-4297068542\r\n");
+        return;
+    }
+    int type = atoi(argv[1]);
+    if (type < 0 || type > 3) {
+        chprintf(chp, "error, type 0=alpha 1=numeric 2=short/tone 3=short numeric\r\n");
+        return;
+    }
+    int msglen = atoi(argv[2]);
+    if (msglen < 0 || msglen > 240) {
+        chprintf(chp, "error, msglen max 240\r\n");
+        return;
+    }
+
+    uint8_t msg[240] = {0};
+    if (msglen > 0) {
+        chprintf(chp, "send %d bytes\r\n", msglen);
+        int offset = 0;
+        do {
+            size_t bytes_to_read = (msglen - offset) > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : (msglen - offset);
+            size_t bytes_read = chSequentialStreamRead(chp, &msg[offset], bytes_to_read);
+            if (bytes_read != bytes_to_read)
+                return;
+            offset += bytes_read;
+        } while (offset < msglen);
+    }
+
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+
+    FlexTosendMessage message{capcode, (uint8_t)type, (uint8_t)msglen, msg};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
 static void cmd_asyncmsg(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage = "usage: asyncmsg x, x can be enable or disable\r\n";
     if (argc != 1) {
@@ -1500,6 +1547,7 @@ static const ShellCommand commands[] = {
     {"pmemreset", cmd_pmemreset},
     {"settingsreset", cmd_settingsreset},
     {"sendpocsag", cmd_sendpocsag},
+    {"sendflex", cmd_sendflex},
     {"asyncmsg", cmd_asyncmsg},
     {"setfreq", cmd_setfreq},
     {"getres", cmd_getres},

@@ -160,6 +160,7 @@ class Message {
         P25TxConfigure = 102,
         ToneDetectData = 103,
         ToneDetectConfig = 104,
+        FlexTosend = 105,
         MAX
     };
 
@@ -1882,6 +1883,26 @@ class ToneDetectConfigureMessage : public Message {
           ctcss_freq_x10{ctcss_freq_x10} {}
     uint8_t squelch_level{0};
     uint32_t ctcss_freq_x10{0};  // CTCSS frequency × 10 (e.g. 1000 = 100.0 Hz); 0 = None
+};
+
+class FlexTosendMessage : public Message {
+   public:
+    constexpr FlexTosendMessage(
+        uint64_t capcode = 0,
+        uint8_t type = 0,
+        uint8_t msglen = 0,
+        const uint8_t* msg = nullptr)
+        : Message{ID::FlexTosend},
+          capcode{capcode},
+          type{type},
+          msglen{msglen} {
+        if (msg)
+            memcpy(this->msg, msg, 240);
+    }
+    uint64_t capcode = 0;
+    uint8_t type = 0;
+    uint8_t msglen = 0;
+    uint8_t msg[240] = {0};
 };
 
 #endif /*__MESSAGE_H__*/

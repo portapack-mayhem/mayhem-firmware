@@ -108,6 +108,7 @@ MEMORY
     ram_external_app_p25_tx                (rwx) : org = 0xAE030000, len = 32k
     ram_external_app_two_tone_pager        (rwx) : org = 0xAE040000, len = 32k
     ram_external_app_two_tone_rx           (rwx) : org = 0xAE050000, len = 32k
+    ram_external_app_flex_tx               (rwx) : org = 0xAE060000, len = 32k
 }
 
 SECTIONS
@@ -621,4 +622,10 @@ SECTIONS
         KEEP(*(.external_app.app_two_tone_rx.application_information));
         *(*ui*external_app*two_tone_rx*);
     } > ram_external_app_two_tone_rx
+
+    .external_app_flex_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_flex_tx.application_information));
+        *(*ui*external_app*flex_tx*);
+    } > ram_external_app_flex_tx
 }
