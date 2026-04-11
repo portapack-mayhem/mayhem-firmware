@@ -137,7 +137,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         portapack::display.sleep(false);
 
         radio::disable();
-        portapack::clock_manager.shutdown();
+        // portapack::clock_manager.shutdown();
 
 #ifdef PRALINE
         gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
