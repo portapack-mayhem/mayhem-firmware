@@ -347,11 +347,11 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
         // Only show charging modal when transitioning to charging state
         nav_.display_modal(
             "CHARGING",
-            "Screen on while charging?",
+            "Device on while charging?",
             YESNO,
             [this](bool keep_screen_on) {
                 if (!keep_screen_on) {
-                    EventDispatcher::set_display_sleep(true);
+                    EventDispatcher::charge_deep_sleep(true);
                 }
             });
     }

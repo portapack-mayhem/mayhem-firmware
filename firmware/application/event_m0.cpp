@@ -40,7 +40,9 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 #include "gpio.hpp"
-#include "hal.h"  // For LPC_SGPIO
+
+#include "si5351.hpp"
+using namespace si5351;
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -128,6 +130,20 @@ void EventDispatcher::request_stop() {
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
+    // TODO: Distribute display sleep message more broadly, shut down data generation
+    // on baseband side, since all that data is being discarded during sleep.  -- DON'T TODO it, sincethe stealth mode want to send with screen off!
+    if (sleep) {
+        portapack::backlight()->off();
+        portapack::display.sleep(false);  // when called the hw_sleep = true, the irq wont fire, so the EVT_MASK_LCD_FRAME_SYNC won't set.
+    } else {
+        portapack::display.wake(true);  // not important, command not affect if already hw waken up
+        // Don't turn on backlight here.
+        // Let frame sync handler turn on backlight after repaint.
+    }
+    EventDispatcher::display_sleep = sleep;
+}
+
+void EventDispatcher::charge_deep_sleep(const bool sleep) {
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
@@ -141,7 +157,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
         request_stop();
         chThdSleepMilliseconds(50);
-        // portapack::clock_manager.shutdown();
+
 #ifdef PRALINE
         gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
         gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
@@ -149,50 +165,36 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
         gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
 #else
-        // 1. CHIP SELECT és ENABLE vonalak (Fantom-áram ellen)
-        LPC_GPIO->DIR[0] |= (1 << 15);
-        LPC_GPIO->CLR[0] = (1 << 15);
-        LPC_GPIO->DIR[2] |= (1 << 7);
-        LPC_GPIO->CLR[2] = (1 << 7);
-        LPC_GPIO->DIR[2] |= (1 << 13);
-        LPC_GPIO->CLR[2] = (1 << 13);
-        LPC_GPIO->DIR[2] |= (1 << 14);
-        LPC_GPIO->CLR[2] = (1 << 14);
-        LPC_GPIO->DIR[2] |= (1 << 6);
+        // 2. ADC leállítása (Regiszter szinten, mert az lpc43xx::adc hívás hibás)
+        LPC_ADC0->CR &= ~(1 << 0);  // ADC0 kikapcsolása
+        LPC_ADC1->CR &= ~(1 << 0);  // ADC1 kikapcsolása
+
+        // 3. SGPIO / CPLD busz lezárása (A szivárgás megállítása)
+        // Az összes SGPIO lábat (GPIO0-GPIO1 bankok) alacsony szintre húzzuk
+        LPC_GPIO->CLR[0] = 0xFFFFFFFF;
+        LPC_GPIO->CLR[1] = 0xFFFFFFFF;
+        LPC_GPIO->CLR[2] = (1 << 13);  // RFFC5072 ENX lehúzása
         LPC_GPIO->CLR[2] = (1 << 6);
-        LPC_GPIO->DIR[2] |= (1 << 5);
-        LPC_GPIO->CLR[2] = (1 << 5);
 
-        // 2. RF ÚTVONAL KAPCSOLÓK LELÖVÉSE
-        LPC_GPIO->DIR[2] |= (1 << 11);
-        LPC_GPIO->CLR[2] = (1 << 11);
-        LPC_GPIO->DIR[2] |= (1 << 12);
-        LPC_GPIO->CLR[2] = (1 << 12);
-        LPC_GPIO->DIR[0] |= (1 << 14);
-        LPC_GPIO->CLR[0] = (1 << 14);
-        LPC_GPIO->DIR[1] |= (1 << 0);
-        LPC_GPIO->CLR[1] = (1 << 0);
+        gpio_max283x_select.clear();
+        gpio_max5864_select.clear();
 
-        // 3. ERŐSÍTŐK FIZIKAI TÁPJÁNAK LEVÁGÁSA (Invertált, OFF = HIGH)
-        LPC_GPIO->DIR[3] |= (1 << 5);
-        LPC_GPIO->SET[3] = (1 << 5);
-        LPC_GPIO->DIR[1] |= (1 << 12);
-        LPC_GPIO->SET[1] = (1 << 12);
+        // Erősítők és főtápok lelövése
+        gpio_tx_amp.clear();
+        gpio_rx_amp.clear();
+
         gpio_og_vaa_disable.set();    // VAA ->HIGH
         gpio_r9_vaa_disable.clear();  // 1V8 ->LOW
 
 #endif
-
+        // portapack::clock_generator.reset();
+        led_usb.on();  // a szivárgó áram miatt be kell kapcsolni!
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
-            // ha áram kisebb mint 0
-            if (valid_mask && current > 0) {
-                if (percent > 100) {
-                    percent = 100;
-                }
 
-                if (percent == 100) {
-                    led_tx.on();
+            if (valid_mask && current > 0) {
+                if (percent >= 100 && current <= 5) {
+                    led_tx.off();
                     chThdSleepMilliseconds(1000);
                 } else {
                     uint32_t delay_ms = 150 + (percent * 8);
@@ -202,7 +204,6 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
                     led_tx.off();
                     chThdSleepMilliseconds(delay_ms);
                 }
-                timeSinceLastCharge = 0;
             } else {
                 led_tx.off();
                 chThdSleepMilliseconds(1000);
@@ -210,12 +211,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         }  // END while
     } else {
         portapack::display.wake(true);
-        // not important, command not affect if already hw waken up
-        // Don't turn on backlight here.
-        // Let frame sync handler turn on backlight after repaint.
     }
-
-    EventDispatcher::display_sleep = sleep;
 }
 
 eventmask_t EventDispatcher::wait() {
