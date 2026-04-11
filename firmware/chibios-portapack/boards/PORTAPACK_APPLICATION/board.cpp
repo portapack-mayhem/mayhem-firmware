@@ -332,11 +332,9 @@ const PALConfig pal_default_config = {
         {5, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  /* TX_AMP/P48: U12.V3(I), U14.V1(I) */
 #ifdef PRALINE
         /* PRALINE RFFC5072 SPI pins - different from HackRF One */
-        {5, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  /* P5_7: GPIO2[7], RFFC5072 CS */
-        {9, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}},  /* P9_5: GPIO5[18], RFFC5072 SCLK */
-        {9, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 1, .ezi = 1, .zif = 0}},  /* P9_2: GPIO4[14], RFFC5072 SDATA (bidirectional) */
-        {8, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // VBUS_IN_EN
-        {8, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // VIN_IN_EN
+        {5, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* P5_7: GPIO2[7], RFFC5072 CS */
+        {9, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}}, /* P9_5: GPIO5[18], RFFC5072 SCLK */
+        {9, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 1, .ezi = 1, .zif = 0}}, /* P9_2: GPIO4[14], RFFC5072 SDATA (bidirectional) */
 #else
         /* HackRF One RFFC5072 SPI pins - NOT used on PRALINE */
         {5, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* CS_AD/P54: MAX5864.CS(I) */

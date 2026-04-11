@@ -40,6 +40,7 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 #include "gpio.hpp"
+#include "hal.h"  // For LPC_SGPIO
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -137,8 +138,10 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         portapack::display.sleep(false);
 
         radio::disable();
+        chThdSleepMilliseconds(50);
+        request_stop();
+        chThdSleepMilliseconds(50);
         // portapack::clock_manager.shutdown();
-
 #ifdef PRALINE
         gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
         gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
@@ -146,6 +149,35 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
         gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
 #else
+        // 1. CHIP SELECT és ENABLE vonalak (Fantom-áram ellen)
+        LPC_GPIO->DIR[0] |= (1 << 15);
+        LPC_GPIO->CLR[0] = (1 << 15);
+        LPC_GPIO->DIR[2] |= (1 << 7);
+        LPC_GPIO->CLR[2] = (1 << 7);
+        LPC_GPIO->DIR[2] |= (1 << 13);
+        LPC_GPIO->CLR[2] = (1 << 13);
+        LPC_GPIO->DIR[2] |= (1 << 14);
+        LPC_GPIO->CLR[2] = (1 << 14);
+        LPC_GPIO->DIR[2] |= (1 << 6);
+        LPC_GPIO->CLR[2] = (1 << 6);
+        LPC_GPIO->DIR[2] |= (1 << 5);
+        LPC_GPIO->CLR[2] = (1 << 5);
+
+        // 2. RF ÚTVONAL KAPCSOLÓK LELÖVÉSE
+        LPC_GPIO->DIR[2] |= (1 << 11);
+        LPC_GPIO->CLR[2] = (1 << 11);
+        LPC_GPIO->DIR[2] |= (1 << 12);
+        LPC_GPIO->CLR[2] = (1 << 12);
+        LPC_GPIO->DIR[0] |= (1 << 14);
+        LPC_GPIO->CLR[0] = (1 << 14);
+        LPC_GPIO->DIR[1] |= (1 << 0);
+        LPC_GPIO->CLR[1] = (1 << 0);
+
+        // 3. ERŐSÍTŐK FIZIKAI TÁPJÁNAK LEVÁGÁSA (Invertált, OFF = HIGH)
+        LPC_GPIO->DIR[3] |= (1 << 5);
+        LPC_GPIO->SET[3] = (1 << 5);
+        LPC_GPIO->DIR[1] |= (1 << 12);
+        LPC_GPIO->SET[1] = (1 << 12);
         gpio_og_vaa_disable.set();    // VAA ->HIGH
         gpio_r9_vaa_disable.clear();  // 1V8 ->LOW
 
@@ -154,20 +186,26 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
             // ha áram kisebb mint 0
-            if (percent > 100) {
-                percent = 100;
-            }
+            if (valid_mask && current > 0) {
+                if (percent > 100) {
+                    percent = 100;
+                }
 
-            if (percent == 100) {
-                radio::ledfasz(true);
-                chThdSleepMilliseconds(1000);
+                if (percent == 100) {
+                    led_tx.on();
+                    chThdSleepMilliseconds(1000);
+                } else {
+                    uint32_t delay_ms = 150 + (percent * 8);
+
+                    led_tx.on();
+                    chThdSleepMilliseconds(delay_ms);
+                    led_tx.off();
+                    chThdSleepMilliseconds(delay_ms);
+                }
+                timeSinceLastCharge = 0;
             } else {
-                uint32_t delay_ms = 150 + (percent * 8);
-
-                radio::ledfasz(true);
-                chThdSleepMilliseconds(delay_ms);
-                radio::ledfasz(false);
-                chThdSleepMilliseconds(delay_ms);
+                led_tx.off();
+                chThdSleepMilliseconds(1000);
             }
         }  // END while
     } else {
