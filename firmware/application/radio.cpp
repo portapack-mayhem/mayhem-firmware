@@ -425,8 +425,42 @@ void disable() {
 
     led_rx.off();
     led_tx.off();
-    LPC_GPIO->DIR[2] |= (1 << 9);  // Kimenet engedélyezése
-    LPC_GPIO->SET[2] = (1 << 9);   // Magas szintre húzás -> VAA OFF
+
+    // --- INNENTŐL JÖN A TE BEÉPÍTETT HACKED ---
+
+    // 1. CHIP SELECT és ENABLE vonalak (Fantom-áram ellen)
+    LPC_GPIO->DIR[0] |= (1 << 15);
+    LPC_GPIO->CLR[0] = (1 << 15);
+    LPC_GPIO->DIR[2] |= (1 << 7);
+    LPC_GPIO->CLR[2] = (1 << 7);
+    LPC_GPIO->DIR[2] |= (1 << 13);
+    LPC_GPIO->CLR[2] = (1 << 13);
+    LPC_GPIO->DIR[2] |= (1 << 14);
+    LPC_GPIO->CLR[2] = (1 << 14);
+    LPC_GPIO->DIR[2] |= (1 << 6);
+    LPC_GPIO->CLR[2] = (1 << 6);
+    LPC_GPIO->DIR[2] |= (1 << 5);
+    LPC_GPIO->CLR[2] = (1 << 5);
+
+    // 2. RF ÚTVONAL KAPCSOLÓK LELÖVÉSE
+    LPC_GPIO->DIR[2] |= (1 << 11);
+    LPC_GPIO->CLR[2] = (1 << 11);
+    LPC_GPIO->DIR[2] |= (1 << 12);
+    LPC_GPIO->CLR[2] = (1 << 12);
+    LPC_GPIO->DIR[0] |= (1 << 14);
+    LPC_GPIO->CLR[0] = (1 << 14);
+    LPC_GPIO->DIR[1] |= (1 << 0);
+    LPC_GPIO->CLR[1] = (1 << 0);
+
+    // 3. ERŐSÍTŐK FIZIKAI TÁPJÁNAK LEVÁGÁSA (Invertált, OFF = HIGH)
+    LPC_GPIO->DIR[3] |= (1 << 5);
+    LPC_GPIO->SET[3] = (1 << 5);
+    LPC_GPIO->DIR[1] |= (1 << 12);
+    LPC_GPIO->SET[1] = (1 << 12);
+
+    // 4. FŐ RÁDIÓS TÁP (VAA) KIKAPCSOLÁSA (Invertált, OFF = HIGH)
+    LPC_GPIO->DIR[2] |= (1 << 9);
+    LPC_GPIO->SET[2] = (1 << 9);
 }
 
 void kill_everything_for_power_saving() {

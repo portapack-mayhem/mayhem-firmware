@@ -312,46 +312,46 @@ set(EXTCPPSRC
   	external/keeloqtx/main.cpp
   	external/keeloqtx/ui_keeloqtx.cpp
 	#rtty_rx
-#	external/rtty_rx/main.cpp
-#	external/rtty_rx/ui_rtty_rx.cpp
-#	external/rtty_rx/baudot.cpp
+	external/rtty_rx/main.cpp
+	external/rtty_rx/ui_rtty_rx.cpp
+	external/rtty_rx/baudot.cpp
 
 	#rtty_tx
-#	external/rtty_tx/main.cpp
-#	external/rtty_tx/ui_rtty_tx.cpp
-#	external/rtty_tx/baudot.cpp
+	external/rtty_tx/main.cpp
+	external/rtty_tx/ui_rtty_tx.cpp
+	external/rtty_tx/baudot.cpp
 
     #pocsag_tx
-#	external/pocsag_tx/main.cpp
-#	external/pocsag_tx/ui_pocsag_tx.cpp
+	external/pocsag_tx/main.cpp
+	external/pocsag_tx/ui_pocsag_tx.cpp
 
 	#flex_tx
-#	external/flex_tx/main.cpp
-#	external/flex_tx/ui_flex_tx.cpp
+	external/flex_tx/main.cpp
+	external/flex_tx/ui_flex_tx.cpp
 
 	#time_sink
-#	external/time_sink/main.cpp
-#	external/time_sink/ui_time_sink.cpp
+	external/time_sink/main.cpp
+	external/time_sink/ui_time_sink.cpp
 
 	#kiss_tnc
-#	external/kiss_tnc/main.cpp
-#	external/kiss_tnc/ui_kiss_tnc.cpp
+	external/kiss_tnc/main.cpp
+	external/kiss_tnc/ui_kiss_tnc.cpp
 
 	#fpv_detect
-#	external/fpv_detect/main.cpp
-#	external/fpv_detect/ui_fpv_detect.cpp
+	external/fpv_detect/main.cpp
+	external/fpv_detect/ui_fpv_detect.cpp
 
 	#p25_tx
-#	external/p25_tx/main.cpp
-#	external/p25_tx/ui_p25_tx.cpp
+	external/p25_tx/main.cpp
+	external/p25_tx/ui_p25_tx.cpp
 
 	#two_tone_pager
-#	external/two_tone_pager/main.cpp
-#	external/two_tone_pager/ui_two_tone_pager.cpp
+	external/two_tone_pager/main.cpp
+	external/two_tone_pager/ui_two_tone_pager.cpp
 
 	#two_tone_rx
-#	external/two_tone_rx/main.cpp
-#	external/two_tone_rx/ui_two_tone_rx.cpp
+	external/two_tone_rx/main.cpp
+	external/two_tone_rx/ui_two_tone_rx.cpp
 )
 
 set(EXTAPPLIST
@@ -413,7 +413,7 @@ set(EXTAPPLIST
 	gfxeq
 	waterfall_designer
 	detector_rx
-#	fpv_detect
+	fpv_detect
 	spaceinv
 	blackjack
 	battleship
@@ -431,15 +431,15 @@ set(EXTAPPLIST
 	morse_radio
 	morseradiotx
 	keeloqtx
-#	rtty_rx
-#	rtty_tx
-#	pocsag_tx
-#	flex_tx
-#	time_sink
-#	kiss_tnc
-#	p25_tx
-#	two_tone_pager
-#	two_tone_rx
+	rtty_rx
+	rtty_tx
+	pocsag_tx
+	flex_tx
+	time_sink
+	kiss_tnc
+	p25_tx
+	two_tone_pager
+	two_tone_rx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
