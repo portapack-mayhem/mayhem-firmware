@@ -100,7 +100,7 @@ namespace ui::external_app::ert_app {
 
 ERTAppView::ERTAppView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_image(portapack::spi_flash::image_tag_ert);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({
         &field_frequency,
