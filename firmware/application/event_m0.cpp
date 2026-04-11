@@ -44,6 +44,8 @@ using namespace hackrf::one;
 
 #include "adc.hpp"
 
+#include "audio.hpp"
+
 #include "si5351.hpp"
 using namespace si5351;
 
@@ -158,9 +160,11 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
         radio::disable();
         chThdSleepMilliseconds(50);
+        audio::output::stop();
+        chThdSleepMilliseconds(50);
         request_stop();
         chThdSleepMilliseconds(50);
-
+        sdcDisconnect(&SDCD1);  // lófaszt nem csinált
 #ifdef PRALINE
 // TODO: It's not ready yet!
 //   gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
@@ -169,24 +173,42 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 //   gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
 //   gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
 #else
-        // 2. ADC leállítása (Regiszter szinten, mert az lpc43xx::adc hívás hibás)
+        // 1. ADC leállítása (Könyvtári hívás)
         lpc43xx::adc::ADC<LPC_ADC0_BASE>::disable();
         lpc43xx::adc::ADC<LPC_ADC1_BASE>::disable();
 
-        // 3. RFFC5072 és MAX2837 hardveres leállítása
-        LPC_GPIO->CLR[2] = (1 << 13);  // RFFC5072 ENX lehúzása
-        LPC_GPIO->CLR[2] = (1 << 14);  // RFFC5072 RESETX lehúzása
-        LPC_GPIO->CLR[2] = (1 << 6);   // MAX2837 XCVR_EN lehúzása
+        // ---------------------------------------------------------
+        // 2. A VÁMPÍR LELÖVÉSE: USB 2.0 PHY Chip
+        // A CREG0 regiszter 5. bitje (USB0PHYPD) fizikailag áramtalanítja az USB chipet!
+        // Ezzel verhetjük meg a 114mA-es DFU módot!
+        LPC_CREG->CREG0 |= (1 << 5);
+        // ---------------------------------------------------------
 
-        gpio_max283x_select.set();
-        gpio_max5864_select.set();
+        // 3. FANTOMÁRAM MEGSZÜNTETÉSE (Rádiós lábak Földre)
+        LPC_GPIO->CLR[2] = (1 << 13);  // RFFC5072 ENX
+        LPC_GPIO->CLR[2] = (1 << 14);  // RFFC5072 RESETX
+        LPC_GPIO->CLR[2] = (1 << 15);  // MIXER_SCLK
+        LPC_GPIO->CLR[2] = (1 << 7);   // MIXER_SDATA
 
-        // Erősítők és főtápok lelövése
+        LPC_GPIO->CLR[2] = (1 << 6);   // MAX2837 XCVR_EN
+        LPC_GPIO->CLR[2] = (1 << 11);  // TXENABLE
+        LPC_GPIO->CLR[2] = (1 << 12);  // RXENABLE
+
+        // 4. BELSŐ PERIFÉRIÁK HARDVERES ÁRAMTALANÍTÁSA
+        // A sikeresen leforduló SPI órajelek lekapcsolása (Megakadályozza a VAA szivárgást)
+        LPC_CCU1->CLK_M4_SSP0_CFG.RUN = 0;  // SPI0 leállítása
+        LPC_CCU1->CLK_M4_SSP1_CFG.RUN = 0;  // SPI1 leállítása
+
+        // 5. CHIP SELECT LÁBAK (A kettős szabály)
+        gpio_max283x_select.clear();  // MAX2837 (VAA táp) -> LOW (Nincs szivárgás)
+        gpio_max5864_select.set();    // Codec (3.3V táp) -> HIGH (Alszik)
+
+        // 6. Erősítők és főtápok lelövése
         gpio_tx_amp.clear();
         gpio_rx_amp.clear();
 
-        gpio_og_vaa_disable.set();    // VAA ->HIGH
-        gpio_r9_vaa_disable.clear();  // 1V8 ->LOW
+        gpio_og_vaa_disable.set();    // VAA -> HIGH (Kikapcsol)
+        gpio_r9_vaa_disable.clear();  // 1V8 -> LOW (Kikapcsol)
 
 #endif
 
