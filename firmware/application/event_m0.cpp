@@ -39,7 +39,10 @@
 
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
+
 #include "gpio.hpp"
+
+#include "adc.hpp"
 
 #include "si5351.hpp"
 using namespace si5351;
@@ -151,7 +154,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
     if (sleep) {
         portapack::backlight()->off();
-        portapack::display.sleep(false);
+        portapack::display.sleep(true);
 
         radio::disable();
         chThdSleepMilliseconds(50);
@@ -159,25 +162,24 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
 
 #ifdef PRALINE
-        gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
-        gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
-        gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
-        gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
-        gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
+// TODO: It's not ready yet!
+//   gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
+//   gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
+//   gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
+//   gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
+//   gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
 #else
         // 2. ADC leállítása (Regiszter szinten, mert az lpc43xx::adc hívás hibás)
-        LPC_ADC0->CR &= ~(1 << 0);  // ADC0 kikapcsolása
-        LPC_ADC1->CR &= ~(1 << 0);  // ADC1 kikapcsolása
+        lpc43xx::adc::ADC<LPC_ADC0_BASE>::disable();
+        lpc43xx::adc::ADC<LPC_ADC1_BASE>::disable();
 
-        // 3. SGPIO / CPLD busz lezárása (A szivárgás megállítása)
-        // Az összes SGPIO lábat (GPIO0-GPIO1 bankok) alacsony szintre húzzuk
-        LPC_GPIO->CLR[0] = 0xFFFFFFFF;
-        LPC_GPIO->CLR[1] = 0xFFFFFFFF;
+        // 3. RFFC5072 és MAX2837 hardveres leállítása
         LPC_GPIO->CLR[2] = (1 << 13);  // RFFC5072 ENX lehúzása
-        LPC_GPIO->CLR[2] = (1 << 6);
+        LPC_GPIO->CLR[2] = (1 << 14);  // RFFC5072 RESETX lehúzása
+        LPC_GPIO->CLR[2] = (1 << 6);   // MAX2837 XCVR_EN lehúzása
 
-        gpio_max283x_select.clear();
-        gpio_max5864_select.clear();
+        gpio_max283x_select.set();
+        gpio_max5864_select.set();
 
         // Erősítők és főtápok lelövése
         gpio_tx_amp.clear();
@@ -187,7 +189,9 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         gpio_r9_vaa_disable.clear();  // 1V8 ->LOW
 
 #endif
-        // portapack::clock_generator.reset();
+
+        portapack::clock_generator.disable_rf_clocks();
+
         led_usb.on();  // a szivárgó áram miatt be kell kapcsolni!
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);

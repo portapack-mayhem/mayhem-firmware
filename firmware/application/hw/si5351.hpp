@@ -355,6 +355,7 @@ class Si5351 {
     }
 
     void reset();
+    void disable_rf_clocks();
 
     uint8_t device_status() {
         return read_register(Register::DeviceStatus);
