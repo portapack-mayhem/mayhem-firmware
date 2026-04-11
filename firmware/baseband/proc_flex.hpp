@@ -121,8 +121,6 @@ struct FlexDecode {
     int long_address = 0;
     int64_t capcode = 0;
     AddrType addr_type = AddrType::SHORT;
-    int is_group = 0;
-    int is_temp_group = 0;
     int is_priority = 0;
 };
 

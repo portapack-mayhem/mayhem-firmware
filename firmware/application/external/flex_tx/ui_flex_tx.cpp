@@ -211,7 +211,7 @@ static uint32_t flex_numeric_vector(uint32_t type, uint32_t mw_start, uint32_t m
 // Short addr: 3 digits in d0-d11. Long addr: 3 + 5 in 2nd word.
 // Tone-only: call with empty string (all digits become space 0xC).
 static uint32_t flex_short_vector(int is_long, const std::string& msg, uint32_t* vy_out) {
-    static const char bcd_chars[20] = "0123456789 U -][";
+    static const char bcd_chars[20] = "0123456789.U -][";
     auto to_bcd = [&](char c) -> uint8_t {
         for (int k = 0; k < 16; k++)
             if (bcd_chars[k] == c) return k;
@@ -321,7 +321,7 @@ static int flex_encode_alpha(const std::string& msg, uint32_t* words, int max_wo
 // ===== Numeric BCD encoding =====
 
 static int flex_encode_numeric(const std::string& msg, uint32_t* words, int max_words, uint32_t* k_out) {
-    static const char bcd[20] = "0123456789 U -][";
+    static const char bcd[20] = "0123456789.U -][";
     uint32_t mw[8] = {0};
     int bit = 2;
     int word_idx = 0;
@@ -719,8 +719,8 @@ bool FlexTXView::start_tx() {
 
     int msg_type = options_type.selected_index();
     if (msg_type == 1) {
-        if (message.find_first_not_of("0123456789 U-][") != std::string::npos) {
-            nav_.display_modal("Bad message", "Numeric: 0-9 U - ] [ space");
+        if (message.find_first_not_of("0123456789.U -][") != std::string::npos) {
+            nav_.display_modal("Bad message", "Numeric: 0-9 . U - ] [ space");
             return false;
         }
     }

@@ -10,6 +10,9 @@ using namespace portapack;
 
 namespace ui::external_app::flex_rx {
 
+static const int flex_tz_table[] = {0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720,
+                                    210, 270, 330, 0, 345, 390, 570, -210, -660, -600, -540, -480, -420, -360, -300, -240, -180, -120, -60};
+
 FlexAppView::FlexAppView(NavigationView& nav)
     : nav_{nav} {
     // Load baseband image for FLEX decoding
@@ -42,6 +45,7 @@ FlexAppView::FlexAppView(NavigationView& nav)
     // Initialize FLEX baseband
     baseband::set_flex_config();
 
+    text_status1.set("No signal");
     console.writeln("Ready");
 }
 
@@ -54,42 +58,9 @@ void FlexAppView::focus() {
     field_frequency.focus();
 }
 
-// Redraw all messages to console
-void FlexAppView::redraw_console() {
-    console.clear(true);
-    for (const auto& msg : messages) {
-        console.writeln(msg);
-    }
-}
-
-// Add message to log with automatic line wrapping
+// Add message to console
 void FlexAppView::log_message(const std::string& message) {
-    const size_t chars_per_line = screen_width / 8;
-    // Console height matches widget: starts at 3*16, height = screen_height - 4*16
-    const size_t console_lines = (screen_height - 4 * 16) / 16;
-
-    messages.push_back(message);
-
-    size_t total_lines = 0;
-    for (size_t i = 0; i < messages.size(); i++) {
-        size_t msg_lines = (messages[i].length() + chars_per_line - 1) / chars_per_line;
-        if (msg_lines == 0) msg_lines = 1;
-        total_lines += msg_lines;
-    }
-
-    // If console would overflow, remove oldest messages and redraw
-    if (total_lines > console_lines) {
-        while (total_lines > console_lines && !messages.empty()) {
-            const auto& oldest = messages.front();
-            size_t oldest_lines = (oldest.length() + chars_per_line - 1) / chars_per_line;
-            if (oldest_lines == 0) oldest_lines = 1;
-            total_lines -= oldest_lines;
-            messages.erase(messages.begin());
-        }
-        redraw_console();
-    } else {
-        console.writeln(message);
-    }
+    console.writeln(message);
 }
 
 // Update frequency and save for persistence
@@ -118,7 +89,7 @@ static const char* flex_type_tag(uint32_t type) {
         case 7:
             return "NNUM";
         case 8:
-            return "SMSG";
+            return "SHORT";
         case 9:
             return "BIW";
         default:
@@ -168,10 +139,8 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
             }
             case 5: {  // SysInfo (timezone)
                 if (pkt.biw_v1 == 4 || pkt.biw_v1 == 5) {
-                    static const int tz[] = {0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720,
-                                             210, 270, 330, 0, 345, 390, 570, -210, -660, -600, -540, -480, -420, -360, -300, -240, -180, -120, -60};
                     uint16_t zone = pkt.biw_v2 & 0x1F;
-                    int ofs = (zone < 32) ? tz[zone] : 0;
+                    int ofs = (zone < 32) ? flex_tz_table[zone] : 0;
                     auto tzs = std::string("UTC") + (ofs >= 0 ? "+" : "") +
                                to_string_dec_int(ofs / 60);
                     memcpy(status_tz_, tzs.c_str(), tzs.size() + 1);
@@ -197,8 +166,10 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
         text_status2.set(s2);
     }
 
-    // Console: skip BIW events (shown in status bar), show messages only
-    if (pkt.type != 9) {
+    // Console: skip BIW, tone-only (V=010), SHORT reserved (t=3)
+    bool skip_gui = (pkt.type == 9 || pkt.type == 2);
+    if (pkt.type == 8 && pkt.function == 3) skip_gui = true;
+    if (!skip_gui) {
         auto cf = to_string_dec_uint(pkt.cycle) + "/" + to_string_dec_uint(pkt.frame);
         std::string line = cf + " " + to_string_dec_uint(pkt.bitrate) +
                            " " + pol + " " + std::string(1, pkt.phase) + " ";
@@ -206,7 +177,7 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
         if (pkt.type == 1 && pkt.message[0] == 'i' && pkt.message[2] == 't') {
             // INS temp group: "1234567 +GRP5@F42"
             line += to_string_dec_uint(pkt.capcode);
-            line += " +GRP";
+            line += " +TG";
             line += to_string_dec_uint(pkt.biw_v1);
             line += "@F";
             line += to_string_dec_uint(pkt.biw_v2);
@@ -216,9 +187,9 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
             line += " INS ";
             line += pkt.message;
         } else if (pkt.addr_type == 2) {
-            // Temp address delivery: "GRP5 ALN message"
+            // Temp group delivery: "GRP5 ALN message"
             uint32_t slot = (uint32_t)(pkt.capcode + 0x8000 - 0x1F7800) & 0x0F;
-            line += "GRP";
+            line += "TG";
             line += to_string_dec_uint(slot);
             line += " ";
             line += type;
@@ -228,7 +199,6 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
             }
         } else {
             line += to_string_dec_uint(pkt.capcode);
-            if (pkt.is_group) line += pkt.is_temp_group ? " TG" : " G";
             if (pkt.is_priority) line += " P";
             line += " ";
             line += type;
@@ -243,7 +213,6 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
     // Serial: pipe-delimited
     if (portapack::usb_serial.serial_connected()) {
         std::string s;
-        s.reserve(320);
         s = "FLEX|";
         s += to_string_dec_uint(pkt.cycle);
         s += '/';
@@ -256,76 +225,21 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
         s += pkt.phase;
 
         if (pkt.type == 9) {
-            // BIW: format from raw values for serial
-            s += "|BIW";
+            s += "|BIW|w=";
             s += to_string_dec_uint(pkt.function);
-            switch (pkt.biw_field) {
-                case 0:
-                    s += "|SSID|lid=";
-                    s += to_string_dec_uint(pkt.biw_v1);
-                    s += "|cz=";
-                    s += to_string_dec_uint(pkt.biw_v2);
-                    break;
-                case 1:
-                    s += "|DATE|";
-                    s += to_string_dec_uint(pkt.biw_v1);
-                    s += '-';
-                    s += to_string_dec_uint(pkt.biw_v2, 2, '0');
-                    s += '-';
-                    s += to_string_dec_uint(pkt.biw_v3, 2, '0');
-                    break;
-                case 2: {
-                    uint32_t si = (pkt.biw_v3 * 75) / 10;
-                    s += "|TIME|";
-                    s += to_string_dec_uint(pkt.biw_v1, 2, '0');
-                    s += ':';
-                    s += to_string_dec_uint(pkt.biw_v2, 2, '0');
-                    s += ':';
-                    s += to_string_dec_uint(si, 2, '0');
-                    break;
-                }
-                case 5: {
-                    uint16_t a = pkt.biw_v1, info = pkt.biw_v2;
-                    if (a == 4 || a == 5) {
-                        static const int tz[] = {0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720,
-                                                 210, 270, 330, 0, 345, 390, 570, -210, -660, -600, -540, -480, -420, -360, -300, -240, -180, -120, -60};
-                        uint16_t zone = info & 0x1F;
-                        int ofs = (zone < 32) ? tz[zone] : 0;
-                        int dst = (info >> 5) & 1;
-                        s += "|TZ|UTC";
-                        s += (ofs >= 0 ? "+" : "");
-                        s += to_string_dec_int(ofs / 60);
-                        s += "h";
-                        int m = (ofs < 0 ? -ofs : ofs) % 60;
-                        if (m) {
-                            s += to_string_dec_uint(m, 2, '0');
-                            s += "m";
-                        }
-                        s += "|dst=";
-                        s += dst ? "no" : "yes";
-                    } else if (a <= 3) {
-                        static const char* t[] = {"all", "home", "roaming", "ssid"};
-                        s += "|SYSMSG|target=";
-                        s += t[a];
-                    } else if (a == 6) {
-                        s += "|CHAN|ofs=";
-                        s += to_string_dec_uint(info & 0x3F);
-                    }
-                    break;
-                }
-                case 7:
-                    s += "|SSID2|cc=";
-                    s += to_string_dec_uint(pkt.biw_v1);
-                    s += "|tmf=";
-                    s += to_string_dec_uint(pkt.biw_v2);
-                    break;
-            }
+            s += "|t=";
+            s += to_string_dec_uint(pkt.biw_field);
+            s += '|';
+            s += to_string_dec_uint(pkt.biw_v1);
+            s += '|';
+            s += to_string_dec_uint(pkt.biw_v2);
+            s += '|';
+            s += to_string_dec_uint(pkt.biw_v3);
         } else {
             s += '|';
             s += type;
             s += "|cap=";
             s += to_string_dec_uint(pkt.capcode);
-            if (pkt.is_group) s += pkt.is_temp_group ? "|grp=temp" : "|grp=1";
             if (pkt.is_priority) s += "|pri=1";
             if (pkt.addr_type == 2) {
                 // Temporary address: show slot number
