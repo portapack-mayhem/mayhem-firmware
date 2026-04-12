@@ -622,6 +622,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTPE tpmseu)
 
+### TPMS All (combined EU + World protocols)
+
+set(MODE_CPPSRC
+	proc_tpms_all.cpp
+)
+DeclareTargets(PTPA tpmsall)
+
 
 ### ADS-B TX
 
