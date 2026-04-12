@@ -52,6 +52,8 @@ using namespace si5351;
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
+#include "core_control.hpp"
+
 #include <array>
 
 #include "ui_navigation.hpp"
@@ -162,9 +164,9 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
         audio::output::stop();
         chThdSleepMilliseconds(50);
-        request_stop();
+        m4_request_shutdown();
         chThdSleepMilliseconds(50);
-        sdcDisconnect(&SDCD1);  // SD card disconnect
+
 #ifdef PRALINE
 // TODO: It's not ready yet!
 //   gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
@@ -206,35 +208,24 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         portapack::clock_generator.disable_rf_clocks();
         // portapack::clock_generator.reset();
         // portapack::clock_manager.init_clock_generator();
-        // ------------------------------------------------------------------
-        // AZ ÓRAJELEK SZÉTBASZÁSA (VÁLTÁS 12 MHz-re)
-        // ------------------------------------------------------------------
-        /*
-                // 1. Átkötünk MINDEN alapvető buszt a 12 MHz-es belső oszcillátorra (CLK_SEL = 1)
-                LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;      // Fő processzor
-                LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;   // Flash memória (Hogy ne fagyjon ki!)
-                LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;    // I2C periféria 1 (Hogy menjen az akku olvasás)
-                LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;    // I2C periféria 2
-                LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;  // Alap perifériák
+        // Hagyunk időt a request_stop()-nak, hogy az M4 mag lezárja a folyamatokat
+        chThdSleepMilliseconds(100);
 
-                // Rövid várakozás, hogy a hardver átkapcsoljon
-                for (volatile int i = 0; i < 1000; i++);
+        // -------------------------------------------------------------
+        // AZ ALAPMŰKÖDÉS BEÁLLÍTÁSA 12 MHZ-RE (IRC = 1)
+        // A portapack.cpp alapján minden létfontosságú buszt átkötünk!
+        // -------------------------------------------------------------
 
-                // 2. KINYÍRJUK A 200 MHz-es PLL1-et! (Itt fog bezuhanni a fogyasztás)
-                lpc43xx::cgu::pll1::disable();
-        */
-        // ------------------------------------------------------------------
-        LPC_CCU1->CLK_M4_M4CORE_CFG.RUN = 0;
+        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash memória (Hogy a kód ne fagyjon le!)
+        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Főbusz és processzor magok
+        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C0 (Akku olvasáshoz kell!)
+        LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;   // I2C1 és egyéb lassú perifériák
+        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;
+
+        // MOST MÁR BIZTONSÁGOSAN KINYÍRHATÓ A 200 MHz-es PLL1!
+        lpc43xx::cgu::pll1::disable();
+
         while (1) {
-            // --- 2. ÉBREDÉS: ÓRAJELEK VISSZAÁLLÍTÁSA 200 MHz-RE ---
-            // Ezzel az I2C és a CPLD normálisan fog működni
-            lpc43xx::cgu::pll1::enable();
-            while (!lpc43xx::cgu::pll1::is_locked());
-
-            // A JAVÍTOTT REGISZTEREK: IDIVB (0x0A) és IDIVC (0x0B)
-            LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 0x0A;
-            LPC_CGU->BASE_M4_CLK.CLK_SEL = 0x0B;
-
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
             if (valid_mask && current > 0) {
@@ -244,6 +235,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                     led_rx.off();
                 } else {
                     // chargeing, led_tx on to indicate charging
+                    led_rx.off();
                     led_tx.on();
                 }
 
@@ -251,25 +243,9 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                 // charge problem, led_rx on to indicate error
                 led_tx.off();
                 led_rx.on();
-                // --- KÁBEL KIHÚZVA: KŐKEMÉNY WATCHDOG ÚJRAINDÍTÁS ---
-                /*          __disable_irq();        // Megszakítások letiltása a halál előtt
-                          LPC_WWDT->MOD = 3;      // Watchdog és Reset engedélyezése
-                          LPC_WWDT->TC = 0xFF;    // Minimális időzítés
-                          LPC_WWDT->FEED = 0xAA;  // Watchdog "etetése" a halálos szekvenciával
-                          LPC_WWDT->FEED = 0x55;
-                          while (1);*/
             }
 
-            // --- 4. VISSZA ALUDNI: ÁTKAPCSOLÁS 12 MHz-RE ---
-            LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // 12 MHz belső RC
-            LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // 12 MHz belső RC
-
-            lpc43xx::cgu::pll1::disable();  // A 200 MHz-es PLL energiavámpír lelövése
-
-            // --- 5. IDŐTORZÍTOTT ALVÁS ---
-            // Mivel 12 MHz-en vagyunk (kb. 16.6x lassulás),
-            // az 5000 ms a valóságban durván 80 MÁSODPERC alvás lesz minimális fogyasztással!
-            chThdSleepMilliseconds(5000);
+            chThdSleepMilliseconds(300);
 
         }  // END while
     } else {
