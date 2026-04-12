@@ -28,6 +28,7 @@
 #include "string_format.hpp"
 #include "utility.hpp"
 #include "file_path.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 using namespace pocsag;
@@ -62,6 +63,7 @@ POCSAGSettingsView::POCSAGSettingsView(
          &check_small_font,
          &check_hide_bad,
          &check_hide_addr_only,
+         &check_numeric_detect,
          &opt_filter_mode,
          &field_filter_address,
          &button_save});
@@ -72,6 +74,7 @@ POCSAGSettingsView::POCSAGSettingsView(
     check_small_font.set_value(settings_.enable_small_font);
     check_hide_bad.set_value(settings_.hide_bad_data);
     check_hide_addr_only.set_value(settings_.hide_addr_only);
+    check_numeric_detect.set_value(settings_.enable_numeric_detect);
     opt_filter_mode.set_by_value(settings_.filter_mode);
     field_filter_address.set_value(settings_.filter_address);
 
@@ -81,6 +84,7 @@ POCSAGSettingsView::POCSAGSettingsView(
         settings_.enable_small_font = check_small_font.value();
         settings_.hide_bad_data = check_hide_bad.value();
         settings_.hide_addr_only = check_hide_addr_only.value();
+        settings_.enable_numeric_detect = check_numeric_detect.value();
         settings_.filter_mode = opt_filter_mode.selected_index_value();
         settings_.filter_address = field_filter_address.to_integer();
         settings_.baud_rate = opt_baud_rate.selected_index_value();
@@ -219,12 +223,24 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
         return;
     }
 
-    // Color indicates the message has a lot of decoding errors.
-    std::string color = bad_data ? STR_COLOR_MAGENTA : STR_COLOR_WHITE;
+    // Type indicator with its own color.
+    std::string type_str;
+    bool numeric_detect = settings_.enable_numeric_detect;
+    if (numeric_detect && pocsag_state.detected == pocsag::DET_NUMERIC)
+        type_str = STR_COLOR_GREEN "n";
+    else if (numeric_detect && pocsag_state.detected == pocsag::DET_ALPHA)
+        type_str = STR_COLOR_LIGHT_GREY "a";
+    else if (pocsag_state.out_type == ADDRESS)
+        type_str = STR_COLOR_DARK_YELLOW "t";
+    else
+        type_str = "";
 
-    std::string console_info = "\n" + color + prefix;
-    console_info += " #" + to_string_dec_uint(pocsag_state.address);
+    // Header: timestamp+baud in light grey, capcode+function in white.
+    std::string console_info = "\n" STR_COLOR_LIGHT_GREY + prefix;
+    console_info += STR_COLOR_WHITE " #" + to_string_dec_uint(pocsag_state.address);
     console_info += " F" + to_string_dec_uint(pocsag_state.function);
+    if (!type_str.empty())
+        console_info += " " + type_str;
 
     if (pocsag_state.out_type == ADDRESS) {
         last_address = pocsag_state.address;
@@ -240,23 +256,110 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
             }
         }
 
+        /* Serial: tone-only page */
+        if (portapack::usb_serial.serial_connected()) {
+            std::string s = "\r\nPOCSAG " + to_string_dec_uint(current_bitrate) + " " + to_string_dec_uint(pocsag_state.address) + " " + std::string(1, 'A' + pocsag_state.function) + (current_inverted ? " I" : " S") + " tone";
+            UsbSerialAsyncmsg::asyncmsg(s);
+        }
+
     } else if (pocsag_state.out_type == MESSAGE) {
-        if (pocsag_state.address != last_address) {
-            // New message
+        if (pocsag_state.new_message) {
             last_address = pocsag_state.address;
+            serial_numeric_sent = 0;
             console.writeln(console_info);
-            console.write(color + pocsag_state.output);
+
+            // If heuristic chose numeric, show numeric line first (green).
+            if (numeric_detect &&
+                pocsag_state.detected == pocsag::DET_NUMERIC &&
+                pocsag_state.numeric_len > 0) {
+                std::string num_str(pocsag_state.numeric_buf, pocsag_state.numeric_len);
+                console.write(STR_COLOR_GREEN + num_str);
+                console.writeln("");
+            }
+
+            // Alpha decode (already has per-char color escapes from decoder).
+            console.write(pocsag_state.output);
+
+            /* Serial: header + first chunk.
+             * hex field contains rendered alpha as hex bytes (color escapes
+             * stripped).  Non-printable and uncorrectable chars show as '.'
+             * (0x2E) — original 7-bit values are not preserved.
+             * Numeric decode goes in the quoted message field only. */
+            if (portapack::usb_serial.serial_connected()) {
+                /* Build hex representation of decoded alpha characters. */
+                std::string raw;
+                for (size_t i = 0; i < pocsag_state.output.size(); ++i)
+                    raw += to_string_hex((uint8_t)pocsag_state.output[i], 2);
+
+                std::string s = "\r\nPOCSAG " + to_string_dec_uint(current_bitrate) + " " + to_string_dec_uint(pocsag_state.address) + " " + std::string(1, 'A' + pocsag_state.function) + (current_inverted ? " I" : " S");
+
+                if (numeric_detect && pocsag_state.detected == pocsag::DET_NUMERIC) {
+                    s += " numeric \"";
+                    if (pocsag_state.numeric_len > 0)
+                        s += std::string(pocsag_state.numeric_buf, pocsag_state.numeric_len);
+                    s += "\"";
+                    serial_numeric_sent = pocsag_state.numeric_len;
+                } else {
+                    /* For alpha, the quoted text is the same chars as raw but as ASCII.
+                     * Escape " and \ to avoid breaking the quoted field. */
+                    s += " alpha \"";
+                    for (size_t i = 0; i < pocsag_state.output.size(); ++i) {
+                        if (pocsag_state.output[i] == '"' || pocsag_state.output[i] == '\\') {
+                            s += '\\';
+                        }
+                        s += pocsag_state.output[i];
+                    }
+                    s += "\"";
+                }
+                s += " hex:" + raw;
+                UsbSerialAsyncmsg::asyncmsg(s);
+            }
         } else {
-            // Message continues...
-            console.write(color + pocsag_state.output);
+            // Message continues from previous batch.
+            bool is_numeric = numeric_detect && pocsag_state.detected == pocsag::DET_NUMERIC;
+
+            // GUI: show numeric continuation if applicable.
+            if (is_numeric && pocsag_state.numeric_len > serial_numeric_sent) {
+                std::string num_str(pocsag_state.numeric_buf + serial_numeric_sent,
+                                    pocsag_state.numeric_len - serial_numeric_sent);
+                console.write(STR_COLOR_GREEN + num_str);
+            }
+            console.write(pocsag_state.output);
+
+            /* Serial: continuation chunk with full header.
+             * Type label carries over from first batch (numeric+ or alpha+). */
+            if (portapack::usb_serial.serial_connected()) {
+                std::string raw;
+                std::string decoded;
+                for (size_t i = 0; i < pocsag_state.output.size(); ++i) {
+                    if (pocsag_state.output[i] == '"' || pocsag_state.output[i] == '\\')
+                        decoded += '\\';
+                    decoded += pocsag_state.output[i];
+                    raw += to_string_hex((uint8_t)pocsag_state.output[i], 2);
+                }
+                if (!decoded.empty() || pocsag_state.numeric_len > serial_numeric_sent) {
+                    std::string s = "\r\nPOCSAG " + to_string_dec_uint(current_bitrate) + " " + to_string_dec_uint(pocsag_state.address) + " " + std::string(1, 'A' + pocsag_state.function) + (current_inverted ? " I" : " S") + (is_numeric ? " numeric+" : " alpha+") + " \"";
+                    if (is_numeric && pocsag_state.numeric_len > serial_numeric_sent)
+                        s += std::string(pocsag_state.numeric_buf + serial_numeric_sent,
+                                         pocsag_state.numeric_len - serial_numeric_sent);
+                    else
+                        s += decoded;
+                    s += "\" hex:" + raw;
+                    UsbSerialAsyncmsg::asyncmsg(s);
+                }
+            }
+            serial_numeric_sent = pocsag_state.numeric_len;
         }
 
         if (logging()) {
-            logger.log_decoded(
-                timestamp,
-                to_string_dec_uint(pocsag_state.address) +
-                    " F" + to_string_dec_uint(pocsag_state.function) +
-                    " " + pocsag_state.output);
+            std::string log_entry = to_string_dec_uint(pocsag_state.address) +
+                                    " F" + to_string_dec_uint(pocsag_state.function);
+            if (numeric_detect &&
+                pocsag_state.detected == pocsag::DET_NUMERIC &&
+                pocsag_state.numeric_len > 0)
+                log_entry += " N:" + std::string(pocsag_state.numeric_buf, pocsag_state.numeric_len);
+            log_entry += " " + pocsag_state.output;
+            logger.log_decoded(timestamp, log_entry);
         }
     }
 }
@@ -300,13 +403,19 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         image_status.set_foreground(Theme::getInstance()->fg_magenta->foreground);
         pocsag_state.codeword_index = 0;
         pocsag_state.errors = 0;
+        current_bitrate = message->packet.bitrate();
+        current_inverted = message->packet.inverted();
 
         // Handle multiple messages (if any).
         while (pocsag_decode_batch(message->packet, pocsag_state))
             handle_decoded(message->packet.timestamp(), prefix);
 
-        // Handle the remainder.
-        handle_decoded(message->packet.timestamp(), prefix);
+        // Handle the remainder. Skip if decoder is still in
+        // STATE_HAVE_ADDRESS — the address was at the end of this
+        // batch and we can't yet tell if it's tone-only or has
+        // message data in the next batch.
+        if (pocsag_state.mode != STATE_HAVE_ADDRESS)
+            handle_decoded(message->packet.timestamp(), prefix);
     }
 
     // Set status icon color to indicate state machine state.

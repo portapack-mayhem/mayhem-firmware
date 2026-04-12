@@ -380,13 +380,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PCAP capture)
 
-### ERT
-
-set(MODE_CPPSRC
-	proc_ert.cpp
-)
-DeclareTargets(PERT ert)
-
 ### Radiosonde
 
 set(MODE_CPPSRC
@@ -451,13 +444,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PREP replay)
 
-
-### Tones
-
-set(MODE_CPPSRC
-	proc_tones.cpp
-)
-DeclareTargets(PTON tones)
 
 
 ### Wideband Spectrum
@@ -707,6 +693,15 @@ set(MODE_CPPSRC
 DeclareTargets(PRTR rtty_rx)
 
 
+
+### ERT
+
+set(MODE_CPPSRC
+	proc_ert.cpp
+)
+DeclareTargets(PERT ert)
+
+
 ### RTTY TX
 
 set(MODE_CPPSRC
@@ -728,6 +723,15 @@ set(MODE_CPPSRC
     proc_morsetx.cpp
 )
 DeclareTargets(PMRT morsetx)
+
+### Tones
+
+set(MODE_CPPSRC
+	proc_tones.cpp
+)
+DeclareTargets(PTON tones)
+
+
 
 ### Time Sink
 

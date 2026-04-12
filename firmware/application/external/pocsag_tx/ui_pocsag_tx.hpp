@@ -84,7 +84,7 @@ class POCSAGTXView : public View {
         {{3 * 8, 6 * 8}, "Address:", Theme::getInstance()->fg_light->foreground},
         {{6 * 8, 8 * 8}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 10 * 8}, "Function:", Theme::getInstance()->fg_light->foreground},
-        {{5 * 8, 12 * 8}, "Phase:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 12 * 8}, "Polarity:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), 14 * 8}, "Message:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_bitrate{
@@ -113,12 +113,20 @@ class POCSAGTXView : public View {
          {"C", 2},
          {"D", 3}}};
 
-    OptionsField options_phase{
+    /*
+     * TX polarity (CCIR Rec. 584):
+     *   "Standard" (value 0): bit 1 = negative deviation (CCIR Rec. 584 standard).
+     *              Codewords are bitwise-inverted before the FSK modulator
+     *              because the modulator maps bit 1 to positive deviation.
+     *   "Inverted" (value 1): bit 1 = positive deviation (non-standard).
+     *              Codewords are sent as-is to the modulator.
+     */
+    OptionsField options_polarity{
         {11 * 8, 12 * 8},
-        1,
+        8,
         {
-            {"P", 0},
-            {"N", 1},
+            {"Standard", 0},
+            {"Inverted", 1},
         }};
 
     Text text_message{
