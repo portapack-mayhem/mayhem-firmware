@@ -1,0 +1,68 @@
+name: Build on Push
+
+on:
+  push:
+    branches:
+      - next
+    paths:
+      - "firmware/**"
+      - ".github/workflows/build_on_push.yml"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build (${{ matrix.device_name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: default
+            device_name: HackRF
+            cmake_args: ""
+            artifact_suffix: "_hackrf"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Git Submodule Update
+        run: git submodule update --init --recursive
+
+      - name: Build the Docker image
+        run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
+
+      - name: Make build folder
+        run: mkdir ${{ github.workspace }}/build
+
+      - name: Run the Docker image
+        run: >
+          docker run
+          -e VERSION_STRING=dev_$(git rev-parse --short HEAD)
+          -i
+          -v ${{ github.workspace }}:/havoc
+          portapack-dev
+          ${{ matrix.cmake_args }}
+
+      - name: Collect external apps
+        run: |
+          mkdir -p apps
+          cp build/firmware/application/*.ppma apps/ || true
+
+      - name: Upload external apps
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpms-eu-apps-${{ github.sha }}
+          path: apps/
+          retention-days: 7
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ github.sha }}
+          path: build/firmware/portapack-mayhem-firmware.bin
+          retention-days: 7
