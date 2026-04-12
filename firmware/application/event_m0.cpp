@@ -205,26 +205,24 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
 #endif
         // RF clock generator disable
-        portapack::clock_generator.disable_rf_clocks();
+        // portapack::clock_generator.disable_rf_clocks();
         // portapack::clock_generator.reset();
         // portapack::clock_manager.init_clock_generator();
         // Hagyunk időt a request_stop()-nak, hogy az M4 mag lezárja a folyamatokat
-        chThdSleepMilliseconds(100);
 
         // -------------------------------------------------------------
         // AZ ALAPMŰKÖDÉS BEÁLLÍTÁSA 12 MHZ-RE (IRC = 1)
         // A portapack.cpp alapján minden létfontosságú buszt átkötünk!
         // -------------------------------------------------------------
-
-        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash memória (Hogy a kód ne fagyjon le!)
-        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Főbusz és processzor magok
-        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C0 (Akku olvasáshoz kell!)
-        LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;   // I2C1 és egyéb lassú perifériák
-        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;
+        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash memória
+        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Processzor mag
+        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C busz
+        LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
+        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;  // GPIO vezérlő
 
         // MOST MÁR BIZTONSÁGOSAN KINYÍRHATÓ A 200 MHz-es PLL1!
         lpc43xx::cgu::pll1::disable();
-
+        portapack::clock_generator.reset();
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
