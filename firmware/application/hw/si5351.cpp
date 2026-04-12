@@ -113,11 +113,4 @@ void Si5351::set_ms_frequency(
 #endif
 }
 
-void Si5351::disable_rf_clocks() {
-    // Disable CLK0 (MAX5864 Codec) and CLK2 (CPLD) outputs to save power.
-    // Register 3: Output Enable Control (1 = Disable output).
-    // Bit 0 (0x01) -> CLK0, Bit 2 (0x04) -> CLK2. (0x01 | 0x04 = 0x05)
-    write_register(3, 0x05);
-}
-
 } /* namespace si5351 */

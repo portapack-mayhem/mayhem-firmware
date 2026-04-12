@@ -54,6 +54,8 @@ using namespace lpc43xx;
 
 #include "core_control.hpp"
 
+#include "irq_rtc.hpp"
+
 #include <array>
 
 #include "ui_navigation.hpp"
@@ -168,7 +170,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
 
 #ifdef PRALINE
-// TODO: It's not ready yet!
+// TODO: It's not ready yet! (Pezsma)
 //   gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
 //   gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
 //   gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
@@ -204,16 +206,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
 
 #endif
-        // RF clock generator disable
-        // portapack::clock_generator.disable_rf_clocks();
-        // portapack::clock_generator.reset();
-        // portapack::clock_manager.init_clock_generator();
-        // Hagyunk időt a request_stop()-nak, hogy az M4 mag lezárja a folyamatokat
 
-        // -------------------------------------------------------------
-        // AZ ALAPMŰKÖDÉS BEÁLLÍTÁSA 12 MHZ-RE (IRC = 1)
-        // A portapack.cpp alapján minden létfontosságú buszt átkötünk!
-        // -------------------------------------------------------------
         LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash memória
         LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Processzor mag
         LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C busz
@@ -223,27 +216,33 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         // MOST MÁR BIZTONSÁGOSAN KINYÍRHATÓ A 200 MHz-es PLL1!
         lpc43xx::cgu::pll1::disable();
         portapack::clock_generator.reset();
+
+        rtc_interrupt_enable();
+        LPC_RTC->CIIR = (1 << 1);  // IMIN (1 perc)
+        LPC_RTC->ILR = 3;          // Meglévő flagek törlése
+
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
-            if (valid_mask && current > 0) {
-                if (percent >= 100 && current <= 5) {
-                    // cahrge complete, led off to indicate full charged
+            if (valid_mask) {
+                if (current > 0) {
+                    if (percent >= 100 && current <= 5) {
+                        led_tx.off();
+                        led_rx.off();
+                    } else {
+                        led_rx.off();
+                        led_tx.on();  // chargeing, led_tx on to indicate charging
+                    }
+                } else {
                     led_tx.off();
                     led_rx.off();
-                } else {
-                    // chargeing, led_tx on to indicate charging
-                    led_rx.off();
-                    led_tx.on();
                 }
-
             } else {
-                // charge problem, led_rx on to indicate error
                 led_tx.off();
-                led_rx.on();
+                led_rx.on();  // charge problem, led_rx on to indicate error
             }
 
-            chThdSleepMilliseconds(300);
+            chEvtWaitAny(EVT_MASK_RTC_TICK);
 
         }  // END while
     } else {
