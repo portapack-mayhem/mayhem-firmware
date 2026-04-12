@@ -22,8 +22,6 @@
 #ifndef __COUNTRY_RX_H__
 #define __COUNTRY_RX_H__
 
-#include <cstdint>
-#include <string>
 #include "string_format.hpp"
 
 namespace ui::external_app::epirb_rx {
@@ -32,19 +30,19 @@ class Country {
    public:
     int code{0};
     const char* alphaCode{};
-    const char* longName{};
+    //const char* longName{};
     const char* shortName{};
 
-    inline void setValues(int code, const char* alphaCode, const char* longName, const char* shortName) {
+    inline void setValues(int code, const char* alphaCode, /*const char* longName, */const char* shortName) {
         this->code = code;
         this->alphaCode = alphaCode;
-        this->longName = longName;
+        //this->longName = longName;
         this->shortName = shortName;
     }
 
     inline std::string toString() {
         std::string result = alphaCode;
-        result = result + "(" + to_string_dec_int(code) + " - " + longName + ")";
+        result = result + "(" + to_string_dec_int(code) + " - " + shortName + ")";
         return result;
     }
 
@@ -62,11 +60,11 @@ class Country {
                 break;
             case 204:
                 result.setValues(204, "AZR", "Azores", "Azores");
-                break;*/
+                break;
             case 205:
                 result.setValues(205, "BEL", "Belgium", "Belgium");
                 break;
-            /*case 206:
+            case 206:
                 result.setValues(206, "BLR", "Belarus", "Belarus");
                 break;
             case 207:
@@ -82,7 +80,8 @@ class Country {
                 result.setValues(210, "CYP", "Cyprus", "Cyprus");
                 break;*/
             case 211:
-                result.setValues(211, "GER", "Germany (Federal Republic of)", "Germany");
+            case 218:
+                result.setValues(211, "GER", /*"Germany (Federal Republic of)",*/ "Germany");
                 break;
             /*case 212:
                 result.setValues(212, "DEN", "Denmark", "Denmark");
@@ -98,30 +97,24 @@ class Country {
                 break;
             case 216:
                 result.setValues(216, "ARM", "Armenia", "Armenia");
-                break;*/
+                break;
             case 218:
                 result.setValues(218, "GER", "Germany (Federal Republic of)", "Germany");
                 break;
-            /*case 219:
+            case 219:
                 result.setValues(219, "DEN", "Denmark", "Denmark");
                 break;
             case 220:
                 result.setValues(220, "DEN", "Denmark", "Denmark");
                 break;*/
             case 224:
-                result.setValues(224, "ESP", "Spain", "Spain");
-                break;
             case 225:
-                result.setValues(225, "ESP", "Spain", "Spain");
+                result.setValues(224, "ESP", /*"Spain",*/ "Spain");
                 break;
             case 226:
-                result.setValues(226, "FRA", "France", "France");
-                break;
             case 227:
-                result.setValues(227, "FRA", "France", "France");
-                break;
             case 228:
-                result.setValues(228, "FRA", "France", "France");
+                result.setValues(226, "FRA", /*"France",*/ "France");
                 break;
             /*case 229:
                 result.setValues(229, "MLT", "Malta", "Malta");
@@ -133,16 +126,10 @@ class Country {
                 result.setValues(231, "FRO", "Faroe Islands", "Faroe Is");
                 break;*/
             case 232:
-                result.setValues(232, "GBR", "United Kingdom", "UK");
-                break;
             case 233:
-                result.setValues(233, "GBR", "United Kingdom", "UK");
-                break;
             case 234:
-                result.setValues(234, "GBR", "United Kingdom", "UK");
-                break;
             case 235:
-                result.setValues(235, "GBR", "United Kingdom", "UK");
+                result.setValues(232, "GBR", /*"United Kingdom",*/ "UK");
                 break;
             /*case 236:
                 result.setValues(236, "GIB", "Gibraltar", "Gibraltar");
@@ -212,14 +199,14 @@ class Country {
                 break;
             case 258:
                 result.setValues(258, "NOR", "Norway", "Norway");
-                break;*/
+                break;
             case 259:
                 result.setValues(259, "NOR", "Norway", "Norway");
                 break;
             case 261:
                 result.setValues(261, "POL", "Poland (Republic of)", "Poland");
                 break;
-            /*case 262:
+            case 262:
                 result.setValues(262, "MNE", "Montenegro (Republic of)", "Monteneg.");
                 break;
             case 263:
@@ -239,21 +226,21 @@ class Country {
                 break;
             case 268:
                 result.setValues(268, "SMR", "San Marino (Republic of)", "San Marino");
-                break;*/
+                break;
             case 269:
                 result.setValues(269, "SUI", "Switzerland (Confederation of)", "Switzerl.");
                 break;
-            /*case 270:
+            case 270:
                 result.setValues(270, "CZE", "Czech Republic", "Czech Rep");
                 break;
-            case 271:*/
+            case 271:
                 result.setValues(271, "TUR", "Turkey", "Turkey");
-                break;
+                break;*/
             case 272:
-                result.setValues(272, "UKR", "Ukraine", "Ukraine");
+                result.setValues(272, "UKR", /*"Ukraine",*/ "Ukraine");
                 break;
             case 273:
-                result.setValues(273, "RUS", "Russian Federation", "Russia");
+                result.setValues(273, "RUS", /*"Russian Federation",*/ "Russia");
                 break;
             /*case 274:
                 result.setValues(274, "MKD", "Macedonia (Former Yugoslav Rep)", "Macedonia");
@@ -310,7 +297,7 @@ class Country {
                 result.setValues(314, "BRV", "British Virgin Islands", "Virg. IsB");
                 break;*/
             case 316:
-                result.setValues(316, "CAN", "Canada", "Canada");
+                result.setValues(316, "CAN", /*"Canada",*/ "Canada");
                 break;
             /*case 319:
                 result.setValues(319, "CAY", "Cayman Islands", "Cayman Is");
@@ -346,7 +333,11 @@ class Country {
                 result.setValues(336, "HAI", "Haiti (Republic of)", "Haiti");
                 break;*/
             case 338:
-                result.setValues(338, "USA", "United States of America", "USA");
+            case 366:
+            case 367:
+            case 368:
+            case 369:
+                result.setValues(338, "USA", /*"United States of America",*/ "USA");
                 break;
             /*case 339:
                 result.setValues(339, "JAM", "Jamaica", "Jamaica");
@@ -356,11 +347,11 @@ class Country {
                 break;
             case 343:
                 result.setValues(343, "LCA", "Saint Lucia", "St Lucia");
-                break;*/
+                break;
             case 345:
                 result.setValues(345, "MEX", "Mexico", "Mexico");
                 break;
-            /*case 347:
+            case 347:
                 result.setValues(347, "MTQ", "Martinique (French Dept. of)", "Martin.");
                 break;
             case 348:
@@ -404,7 +395,7 @@ class Country {
                 break;
             case 364:
                 result.setValues(364, "TCA", "Turks and Caicos Islands", "Turks Is");
-                break;*/
+                break;
             case 366:
                 result.setValues(366, "USA", "United States of America", "USA");
                 break;
@@ -417,7 +408,7 @@ class Country {
             case 369:
                 result.setValues(369, "USA", "United States of America", "USA");
                 break;
-            /*case 375:
+            case 375:
                 result.setValues(375, "VIN", "Saint Vincent and Grenadines", "St Vincent");
                 break;
             case 376:
@@ -428,11 +419,11 @@ class Country {
                 break;
             case 378:
                 result.setValues(378, "IVB", "British Virgin Islands", "Virg. IsI");
-                break;*/
+                break;
             case 379:
                 result.setValues(379, "USA", "United States Virgin Islands", "Virg. IsU");
                 break;
-            /*case 401:
+            case 401:
                 result.setValues(401, "AFG", "Afghanistan", "Afghan.");
                 break;
             case 403:
@@ -463,7 +454,7 @@ class Country {
                 result.setValues(417, "SRI", "Sri Lanka (Democratic Socialist Rep of)", "Sri Lanka");
                 break;*/
             case 419:
-                result.setValues(419, "IND", "India (Republic of)", "India");
+                result.setValues(419, "IND", /*"India (Republic of)",*/ "India");
                 break;
             /*case 422:
                 result.setValues(422, "INS", "Indonesia (Republic of)", "Indonesia");
@@ -476,11 +467,11 @@ class Country {
                 break;
             case 428:
                 result.setValues(428, "IRQ", "Iraq (Republic of)", "Iraq");
-                break;*/
+                break;
             case 431:
                 result.setValues(431, "ISR", "Israel (State of)", "Israel");
                 break;
-            /*case 432:
+            case 432:
                 result.setValues(432, "JAP", "Japan", "Japan");
                 break;
             case 434:
@@ -533,11 +524,11 @@ class Country {
                 break;
             case 466:
                 result.setValues(466, "PHI", "Philippines (Republic of the)", "Philip.");
-                break;*/
+                break;
             case 468:
                 result.setValues(468, "QAT", "Qatar (State of)", "Qatar");
                 break;
-            /*case 470:
+            case 470:
                 result.setValues(470, "UAE", "United Arab Emirates", "UAE");
                 break;
             case 472:
@@ -559,7 +550,7 @@ class Country {
                 result.setValues(501, "ADE", "Adélie Land", "Adelie L");
                 break;*/
             case 503:
-                result.setValues(503, "AUS", "Australia", "Australia");
+                result.setValues(503, "AUS", /*"Australia",*/ "Australia");
                 break;
             /*case 506:
                 result.setValues(506, "FIJ", "Fiji (Republic of)", "Fiji");
@@ -925,7 +916,7 @@ class Country {
                 result.setValues(775, "VEN", "Venezuela (Bolivarian Republic of)", "Venezuela");
                 break;*/
             default:
-                result.setValues(code, "UNK", "Unknown", "Unknown");
+                result.setValues(code, "UNK", /*"Unknown",*/ "Unknown");
                 break;
         }
         return result;

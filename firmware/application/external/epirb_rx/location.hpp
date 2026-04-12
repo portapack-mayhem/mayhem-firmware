@@ -21,10 +21,6 @@
 #ifndef __LOCATION_RX_H__
 #define __LOCATION_RX_H__
 
-#include <cstdint>
-#include <string>
-#include <cmath>
-
 namespace ui::external_app::epirb_rx {
 
 class Location {

@@ -33,7 +33,7 @@ using namespace portapack;
 
 #include "message.hpp"
 
-#include "usb_serial_asyncmsg.hpp"
+//#include "usb_serial_asyncmsg.hpp"
 
 namespace ui::external_app::epirb_rx {
 
@@ -77,7 +77,7 @@ void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon)
     rtcGetTime(&RTCD1, &datetime);
     beacon.date = datetime;
 }
-
+/*
 void EPIRBLogger::on_packet(Beacon& beacon) {
     std::string entry = std::string(beacon.getType()) + "," +
                         beacon.hexId + "," +
@@ -94,7 +94,7 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
              beacon.getSatus() + "\n";
     log_file.write_entry(beacon.date, entry);
 }
-
+*/
 /*
 EPIRBBeaconDetailView::EPIRBBeaconDetailView(ui::NavigationView& nav) {
     add_children({&button_done,
@@ -197,11 +197,94 @@ ui::Rect EPIRBBeaconDetailView::draw_field(
     return {draw_rect.location() + ui::Point{0, draw_rect.height()}, draw_rect.size()};
 }
 */
+EPIRBListView::EPIRBListView(
+    Rect parent_rect)
+    : View(parent_rect) {
+
+    add_children({&beaconlist_view,
+                  /*&button_map,
+                  &button_clear,
+                  &button_log*/});
+
+    /*button_map.on_select = [this](Button&) {
+        // this->on_show_map();
+    };
+
+    button_clear.on_select = [this](Button&) {
+        // this->on_clear_beacons();
+    };
+
+    button_log.on_select = [this](Button&) {
+        // this->on_toggle_log();
+    };*/
+}
+
+void EPIRBListView::set_db(BeaconDB& db) {
+    beaconlist_view.set_db(db);
+}
+
+void EPIRBListView::refresh() {
+    beaconlist_view.set_dirty();
+}
+
+EPIRBDetailView::EPIRBDetailView(
+    Rect parent_rect)
+    : View(parent_rect) {
+
+    add_children({&labels});
+}
+
+EPIRBMapView::EPIRBMapView(
+    Rect parent_rect)
+    : View(parent_rect) {
+
+    add_children({&geomap/*,&geopos*/});
+    geomap.set_mode(DISPLAY);
+    geomap.set_manual_panning(false);
+    geomap.set_tag(NO_BEACON);
+    // geomap.set_hide_center_marker(true); //todo test if needed
+    geomap.init();
+    geomap.set_focusable(true);
+    geomap.clear_markers();
+    geomap.move(lon_, lat_);
+}
+
+void EPIRBMapView::set_main_marker(const std::string& label, float lat, float lon){
+    geomap.set_tag(label);
+    lat_ = lat;
+    lon_ = lon;
+    geomap.move(lon_, lat_);
+}
+
+void EPIRBMapView::clear_main_marker() {
+    set_main_marker(NO_BEACON,EPIRB_RX_DEFAULT_LATITUDE,EPIRB_RX_DEFAULT_LONGITUDE);
+}
+
+void EPIRBMapView::clear_markers() {
+    geomap.clear_markers();
+}
+
+void EPIRBMapView::add_marker(GeoMarker& marker) {
+    geomap.store_marker(marker);
+}
+
+EPIRBRxView::EPIRBRxView(
+    Rect parent_rect)
+    : View(parent_rect) {
+    Coord waterfall_top = 13 * 16;
+    Coord waterfall_height = 6 * 16;
+    ui::Rect waterfall_rect{0, waterfall_top, screen_width, waterfall_height};
+
+    add_child(&waterfall);
+    waterfall.set_parent_rect(waterfall_rect);
+}
+
 EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
-    add_children({&label_frequency,
+    add_children({
+                  &label_frequency,
                   &options_frequency,
                   &field_rf_amp,
                   &field_lna,
@@ -214,24 +297,11 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &label_latest,
                   &text_latest_info,
                   &label_packet_stats,
-                  //&options_algo,
-                  //&console,
-                  &beaconlist_view,
-                  &button_map,
-                  &button_clear,
-                  &button_log});
-
-    button_map.on_select = [this](Button&) {
-        this->on_show_map();
-    };
-
-    button_clear.on_select = [this](Button&) {
-        this->on_clear_beacons();
-    };
-
-    button_log.on_select = [this](Button&) {
-        this->on_toggle_log();
-    };
+                  &tab_view,
+                  &view_list,
+                  &view_detail,
+                  &view_map,
+                  &view_rx});
 
     options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
         receiver_model.set_target_frequency(v);
@@ -241,15 +311,16 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
+    tab_view.set_parent_rect(Rect(0,UI_POS_HEIGHT(4),screen_width,3*8));
 
-    options_algo.on_change = [this](size_t, ui::OptionsField::value_t v) {
+    /*options_algo.on_change = [this](size_t, ui::OptionsField::value_t v) {
         // Send config to baseband
         epirb_tx_message.data_len = v;
 
         baseband::set_epirb_tx_config(epirb_tx_message);
-    };
+    };*/
 
-    beaconlist_view.set_db(beacon_db);
+    view_list.set_db(beacon_db);
 
     // Configure receiver for default EPIRB frequency (406.028 MHz)
     // TODO : Load from conf
@@ -299,16 +370,16 @@ void EPIRBAppView::focus() {
 }
 
 void EPIRBAppView::on_packet(const baseband::Packet& packet) {
-    std::string beacon_size = "Data size :" + to_string_dec_int(packet.size()) + "\n";
-    UsbSerialAsyncmsg::asyncmsg(beacon_size);
-    std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
-    UsbSerialAsyncmsg::asyncmsg(beacon_string);
+    //std::string beacon_size = "Data size :" + to_string_dec_int(packet.size()) + "\n";
+    //UsbSerialAsyncmsg::asyncmsg(beacon_size);
+    //std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
+    //UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
     if (packet.size() > 64) {
         // Actual beacon
         Beacon& beacon = beacon_db.add_beacon();
-        decode_packet(packet,beacon);
+        decode_packet(packet, beacon);
         beacons_received++;
 
         // Track packet statistics
@@ -317,13 +388,13 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
         else
             packets_error++;
 
-        
+        if(!beacon.location.isUnknown()) {
+            update_map();
+        }
 
         // Update display
-        UsbSerialAsyncmsg::asyncmsg("Display");
         update_display();
 
-        UsbSerialAsyncmsg::asyncmsg("Log");
         // Log the beacon
         /*if (logger) {
             logger->on_packet(beacon);
@@ -339,31 +410,23 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
             beacon_info += " (" + to_string_dec_uint(beacon.error_count) + "e)";
         }*/
 
-        UsbSerialAsyncmsg::asyncmsg("Write console");
         // console.write(beacon_info + "\n");
         //  TODO update beacon list
-        beaconlist_view.set_dirty();
+        view_list.refresh();
     }
 }
 
-void EPIRBAppView::on_show_map() {
+void EPIRBAppView::update_map() {
     size_t size = beacon_db.size();
     if (size > 0) {
         // Find latest beacon with valid location
         for (size_t i = 0; i < size; i++) {
             Beacon& beacon = beacon_db.get_beacon(i);
             if (!beacon.location.isUnknown()) {
-                // Create a GeoMapView with all beacon locations
-                auto map_view = nav_.push<ui::GeoMapView>(
-                    std::string(beacon.getType()) + "-" + beacon.shortId(),  // tag
-                    0,                                                       // altitude
-                    ui::GeoPos::alt_unit::METERS,
-                    ui::GeoPos::spd_unit::NONE,
-                    beacon.location.latitude.getFloatValue(),
-                    beacon.location.longitude.getFloatValue(),
-                    0  // angle
-                );
-
+                // Clear previously saved markers
+                view_map.clear_markers();
+                // Set new position
+                view_map.set_main_marker(std::string(beacon.getType()) + "-" + beacon.shortId(), beacon.location.latitude.getFloatValue(),beacon.location.longitude.getFloatValue());
                 // Add all beacons with valid locations as markers
                 for (size_t j = 0; j < size; j++) {
                     if (i != j) {
@@ -374,7 +437,7 @@ void EPIRBAppView::on_show_map() {
                             marker.lon = other_beacon.location.longitude.getFloatValue();
                             marker.angle = 0;
                             marker.tag = std::string(other_beacon.getType()) + "-" + other_beacon.shortId();
-                            map_view->store_marker(marker);
+                            view_map.add_marker(marker);
                         }
                     }
                 }
@@ -382,9 +445,6 @@ void EPIRBAppView::on_show_map() {
             }
         }
     }
-
-    // No valid location found
-    nav_.display_modal("No Location", "No beacons with valid\nlocation data found.");
 }
 
 void EPIRBAppView::on_clear_beacons() {
@@ -393,6 +453,8 @@ void EPIRBAppView::on_clear_beacons() {
     packets_valid = 0;
     packets_corrected = 0;
     packets_error = 0;
+    view_map.clear_markers();
+    view_map.clear_main_marker();
     // console.clear(true);
     //  TODO update beacon list
     update_display();
@@ -429,7 +491,6 @@ void EPIRBAppView::update_display() {
     label_packet_stats.set(stats);
 
     if (beacon_db.size() > 0) {
-        UsbSerialAsyncmsg::asyncmsg("Update latest");
         auto& latest = beacon_db.get_latest_beacon();
         text_latest_info.set(latest.formatSummary(false));
     }

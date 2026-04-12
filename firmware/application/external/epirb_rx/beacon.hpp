@@ -32,10 +32,6 @@
 #include "location.hpp"
 #include "rtc_time.hpp"
 
-#include <cstdint>
-#include <string>
-#include <cstring>
-
 namespace ui::external_app::epirb_rx {
 
 #define BEACON_DATA_SIZE 18  // Max 144 bits => 18 bytes
@@ -248,7 +244,7 @@ class Beacon {
         protocol = Protocol::UNKNOWN;
         country.code = 0;
         country.alphaCode = "";
-        country.longName = "";
+        //country.longName = "";
         country.shortName = "";
         location.clear();
         identifier = 0;
@@ -339,13 +335,13 @@ class Beacon {
             case AuxLocatingDevice::NONE:
                 return "No device";
             case AuxLocatingDevice::NONE_OR_OTHER:
-                return "Other or no device";
+                return "Other/no device";
             case AuxLocatingDevice::OTHER:
                 return "Other device";
             case AuxLocatingDevice::MHZ121_5:
                 return "121.5 MHz";
             case AuxLocatingDevice::SART:
-                return "Maritime locating: 9 GHz SART";
+                return "SART";
             default:
                 return "Undefined";
         }
@@ -513,22 +509,22 @@ class Beacon {
                 hasAdditionalData = true;
                 switch (serialUserProtocol) {
                     case 0b000:
-                        additionalData = "ELTs/serial identification number";
+                        additionalData = "ELTs/SN";
                         break;
                     case 0b001:
-                        additionalData = "ELTs/aircraft operator & serial #";
+                        additionalData = "ELTs/AC op & SN";
                         break;
                     case 0b010:
-                        additionalData = "Float free EPIRBs/serial #";
+                        additionalData = "FF EPIRBs/SN";
                         break;
                     case 0b011:
-                        additionalData = "ELTs with aircraft 24-bit address";
+                        additionalData = "ELTs+AC 24-bit ad.";
                         break;
                     case 0b100:
-                        additionalData = "Non float free EPIRBs/serial #";
+                        additionalData = "NFF EPIRBs/SN";
                         break;
                     case 0b110:
-                        additionalData = "PLBs/serial identification #";
+                        additionalData = "PLBs/SN";
                         break;
                     default:
                         hasAdditionalData = false;
@@ -574,7 +570,7 @@ class Beacon {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
                     setSerialNumber(getBits(frame, 41, 64));
-                    additionalData = "24 bits aircraft address";
+                    additionalData = "24 bits AC ad.";
                 } break;
                 case 0b0100:
                 case 0b0110:
@@ -605,7 +601,7 @@ class Beacon {
                     hasAdditionalData = true;
                     setSerialNumber(getBits(frame, 41, 58));
                     uint32_t natNum = getBits(frame, 127, 132);
-                    additionalData = "National data=" + to_string_dec_uint(natNum);
+                    additionalData = "Nati. data=" + to_string_dec_uint(natNum);
                 } break;
             }
         }

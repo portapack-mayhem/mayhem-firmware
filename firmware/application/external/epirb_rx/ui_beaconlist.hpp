@@ -25,10 +25,7 @@
 #include "ui.hpp"
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
-#include "event_m0.hpp"
 #include "beacon_db.hpp"
-#include "message.hpp"
-#include <cstdint>
 
 namespace ui::external_app::epirb_rx {
 

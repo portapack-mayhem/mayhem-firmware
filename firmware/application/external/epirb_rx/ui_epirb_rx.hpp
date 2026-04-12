@@ -28,9 +28,10 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
+#include "ui_spectrum.hpp"
+#include "ui_tabview.hpp"
 
 #include "event_m0.hpp"
-#include "signal.hpp"
 #include "message.hpp"
 #include "log_file.hpp"
 
@@ -50,7 +51,10 @@ enum class PacketStatus : uint8_t {
     Error = 2
 };
 
-class EPIRBLogger {
+#define EPIRB_TAB_POS_Y (UI_POS_Y(4) + 3 * 8)
+#define EPIRB_TAB_HEIGTH (screen_height - EPIRB_TAB_POS_Y)
+
+/*class EPIRBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
@@ -60,6 +64,76 @@ class EPIRBLogger {
 
    private:
     LogFile log_file{};
+};*/
+
+class EPIRBListView : public View {
+   public:
+    EPIRBListView(Rect parent_rect);
+    void set_db(BeaconDB& db);
+    void refresh();
+
+   private:
+    // Beacon list
+    BeaconUIList beaconlist_view{
+        {0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+
+    /*ui::Button button_map{
+        {0, 180, 60, 24},
+        "Map"};
+
+    ui::Button button_clear{
+        {64, 180, 60, 24},
+        "Clear"};
+
+    ui::Button button_log{
+        {128, 180, 60, 24},
+        "Log"};*/
+};
+
+class EPIRBDetailView : public View {
+   public:
+    EPIRBDetailView(Rect parent_rect);
+
+   private:
+    Labels labels{
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Source:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(10)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(12)}, "AM frequency:         MHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(14)}, "AM   chan.:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(15)}, "BPSK chan.:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
+};
+
+#define EPIRB_RX_DEFAULT_LATITUDE 43.604f
+#define EPIRB_RX_DEFAULT_LONGITUDE 1.458f
+
+class EPIRBMapView : public View {
+   public:
+    EPIRBMapView(Rect parent_rect);
+    //void hidden(bool hide) override;
+    void clear_main_marker();
+    void set_main_marker(const std::string& label, float lat, float lon);
+    void clear_markers();
+    void add_marker(GeoMarker& marker);
+
+   private:
+    const std::string NO_BEACON {"No beacon"};
+    /*GeoPos geopos{
+        {0, 0},
+        ui::GeoPos::alt_unit::METERS,
+        ui::GeoPos::spd_unit::NONE};*/
+    GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+    float lat_{EPIRB_RX_DEFAULT_LATITUDE};
+    float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
+};
+
+class EPIRBRxView : public View {
+   public:
+    EPIRBRxView(Rect parent_rect);
+
+   private:
+    spectrum::WaterfallView waterfall{};
 };
 
 /*
@@ -118,9 +192,7 @@ class EPIRBAppView final : public ui::View {
 
     BeaconDB beacon_db{};
 
-    EPIRBLogger logger{};
-
-//    EPIRBBeaconDetailView beacon_detail_view{nav_};
+//    EPIRBLogger logger{};
 
     static constexpr auto header_height = 4 * 16;
 
@@ -129,7 +201,7 @@ class EPIRBAppView final : public ui::View {
         "Freq"};
 
     ui::OptionsField options_frequency{
-        {5 * 8, UI_POS_Y(0)},
+        {UI_POS_X(5), UI_POS_Y(0)},
         7,
         {
             {"406.028", 406028000},
@@ -140,76 +212,61 @@ class EPIRBAppView final : public ui::View {
         }};
 
     ui::RFAmpField field_rf_amp{
-        {13 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
 
     ui::LNAGainField field_lna{
-        {15 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(15), UI_POS_Y(0)}};
 
     ui::VGAGainField field_vga{
-        {18 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(18), UI_POS_Y(0)}};
 
     ui::RSSI rssi{
-        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
 
     ui::Channel channel{
-        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(21), UI_POS_Y(0) + 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
     ui::AudioVolumeField field_volume{
-        {screen_width - 2 * 8, UI_POS_Y(0)}};
+        {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
 
     // Status display
     ui::Text label_status{
-        {UI_POS_X(0), 1 * 16, 15 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)},
         "Listening..."};
 
     ui::Text label_beacons_count{
-        {16 * 8, 1 * 16, 14 * 8, 1 * 16},
+        {UI_POS_X(16), UI_POS_Y(1), UI_POS_WIDTH(14), UI_POS_HEIGHT(1)},
         "Beacons: 0"};
 
     ui::Text label_packet_stats{
-        {UI_POS_X(0), 3 * 16, 29 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(29), UI_POS_HEIGHT(1)},
         ""};
 
     // Latest beacon info display
     ui::Text label_latest{
-        {UI_POS_X(0), 2 * 16, 8 * 8, 1 * 16},
+        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
         "Latest:"};
 
     ui::Text text_latest_info{
-        {8 * 8, 2 * 16, 22 * 8, 1 * 16},
+        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
         ""};
+
+    // Tab View
+    Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH};
+
+    EPIRBListView view_list{view_rect};
+    EPIRBDetailView view_detail{view_rect};
+    EPIRBMapView view_map{view_rect};
+    EPIRBRxView view_rx{view_rect};
+
+    TabView tab_view{
+        {"List", Theme::getInstance()->fg_cyan->foreground, &view_list},
+        {"Detail", Theme::getInstance()->fg_green->foreground, &view_detail},
+        {"Map", Theme::getInstance()->fg_yellow->foreground, &view_map},
+        {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx}};
 
     // Current EPIRBTXDataMessage for baseband
     EPIRBTXDataMessage epirb_tx_message{};
-
-    ui::OptionsField options_algo{
-        {5 * 8, UI_POS_Y(4)},
-        7,
-        {
-            {"1", 1},
-            {"2", 2},
-            {"3", 3},
-            {"4", 4},
-            {"5", 5},
-        }};
-
-    // Beacon list
-    //ui::Console console{
-    //    {0, 4 * 16, 240, 152}};
-    BeaconUIList beaconlist_view{
-        {0, 4 * 16, screen_width, 152/*12 * 16 + 2*/ /* 2 Keeps text out of border. */}};
-
-    ui::Button button_map{
-        {0, 224, 60, 24},
-        "Map"};
-
-    ui::Button button_clear{
-        {64, 224, 60, 24},
-        "Clear"};
-
-    ui::Button button_log{
-        {128, 224, 60, 24},
-        "Log"};
 
     SignalToken signal_token_tick_second{};
     uint32_t beacons_received = 0;
@@ -226,7 +283,7 @@ class EPIRBAppView final : public ui::View {
 
     static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
     void on_packet(const baseband::Packet& packet);
-    void on_show_map();
+    void update_map();
     void on_clear_beacons();
     void on_toggle_log();
     void on_tick_second();

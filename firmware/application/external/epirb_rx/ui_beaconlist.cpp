@@ -21,9 +21,6 @@
 
 #include "ui_beaconlist.hpp"
 
-#include "baseband_api.hpp"
-#include "utility.hpp"
-
 namespace ui::external_app::epirb_rx {
 
 BeaconUIList::BeaconUIList(Rect parent_rect)
@@ -52,7 +49,7 @@ void BeaconUIList::paint(Painter& painter) {
         // is redrawn even when `text` just left empty.
         auto text = std::string{};
         auto index = start_index_ + offset;
-        auto line_position = rect.location() + Point{1, 1 + (int)offset * char_height};
+        auto line_position = rect.location() + Point{0, 1 + (int)offset * char_height};
         auto is_selected = offset == selected_index_;
         auto style = base_style;
 
@@ -63,8 +60,8 @@ void BeaconUIList::paint(Painter& painter) {
 
         // Pad right with ' ' so trailing chars are cleaned up.
         // draw_glyph has less flicker than fill_rect when drawing.
-        if (text.length() < line_max_length)
-            text.resize(line_max_length, ' ');
+        /*if (text.length() < line_max_length)
+            text.resize(line_max_length, ' ');*/
 
         painter.draw_string(
             line_position, (is_selected ? style->invert() : *style), text);
