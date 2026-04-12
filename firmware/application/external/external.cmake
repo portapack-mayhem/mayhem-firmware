@@ -82,6 +82,9 @@ set(EXTCPPSRC
 	#tpmsrx 920 byte- possible shared part with baseband
 	external/tpmsrx/main.cpp
 	external/tpmsrx/tpms_app.cpp
+	#tpmseu - EU 433.92 MHz: Ford/VDO, Citroen/PSA, Renault, BMW Gen4/5, Gen2/3, Porsche 987
+	external/tpmseu/main.cpp
+	external/tpmseu/tpms_eu_app.cpp
 
 	#tpmstx 800 bytes - TPMS transmit with editable fields
 	external/tpmstx/main.cpp
@@ -376,6 +379,7 @@ set(EXTAPPLIST
 	audio_test
 	wardrivemap
 	tpmsrx
+	tpmseu
 	tpmstx
 	protoview
 	adsbtx
