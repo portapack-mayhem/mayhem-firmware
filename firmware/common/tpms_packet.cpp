@@ -123,7 +123,7 @@ Optional<Reading> Packet::reading_fsk_19k2_renault() const {
     const int pressure_raw = (static_cast<int>(b[0] & 0x03) << 8) | b[1];
     return Reading{Reading::Type::Renault, id,
         Pressure{pressure_raw * 3 / 4},
-        Temperature{static_cast<int>(b[2]) - 30}, Flags{static_cast<uint8_t>(b[0] >> 2)};
+        Temperature{static_cast<int>(b[2]) - 30}, Flags{static_cast<uint8_t>(b[0] >> 2)}};
 }
 
 // ---------------------------------------------------------------------------
