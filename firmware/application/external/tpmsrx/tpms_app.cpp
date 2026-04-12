@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2023 Mark Thompson
+ * Copyright (C) 2025 Speedster04 (EU + World protocol extensions)
  *
  * This file is part of PortaPack.
  *
@@ -44,20 +45,28 @@ std::string type(tpms::Reading::Type type) {
 
 std::string type_name(tpms::Reading::Type type) {
     switch (type) {
-        case tpms::Reading::Type::None:
-            return "None";
-        case tpms::Reading::Type::FLM_64:
-            return "FLM_64";
-        case tpms::Reading::Type::FLM_72:
-            return "FLM_72";
-        case tpms::Reading::Type::FLM_80:
-            return "FLM_80";
-        case tpms::Reading::Type::Schrader:
-            return "Schrader";
-        case tpms::Reading::Type::GMC_96:
-            return "GMC_96";
-        default:
-            return "Unknown";
+        // Original protocols
+        case tpms::Reading::Type::None:       return "None";
+        case tpms::Reading::Type::FLM_64:     return "FLM_64";
+        case tpms::Reading::Type::FLM_72:     return "FLM_72";
+        case tpms::Reading::Type::FLM_80:     return "FLM_80";
+        case tpms::Reading::Type::Schrader:   return "Schrader";
+        case tpms::Reading::Type::GMC_96:     return "GMC_96";
+        // EU 433 MHz (same FSK 19k2 path)
+        case tpms::Reading::Type::Ford:       return "Ford/VDO";
+        case tpms::Reading::Type::Citroen_PSA:return "Cit/PSA";
+        case tpms::Reading::Type::Renault:    return "Renault";
+        // EU 433 MHz (new M4 paths)
+        case tpms::Reading::Type::BMW_G45:    return "BMW G4/5";
+        case tpms::Reading::Type::BMW_G23:    return "BMW G2/3";
+        case tpms::Reading::Type::Porsche:    return "Porsche";
+        // World 315 MHz
+        case tpms::Reading::Type::Toyota:     return "Toyota";
+        case tpms::Reading::Type::Elantra:    return "Elantra";
+        case tpms::Reading::Type::Jansite:    return "Jansite";
+        case tpms::Reading::Type::SolarTruck: return "Solar";
+        case tpms::Reading::Type::JansiteSolar:return "JanSolar";
+        default:                              return "Unknown";
     }
 }
 
