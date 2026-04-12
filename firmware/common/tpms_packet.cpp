@@ -123,7 +123,7 @@ Optional<Reading> Packet::reading_fsk_19k2_renault() const {
     const int pressure_raw = (static_cast<int>(b[0] & 0x03) << 8) | b[1];
     return Reading{Reading::Type::Renault, id,
         Pressure{pressure_raw * 3 / 4},
-        Temperature{static_cast<int>(b[2]) - 30}, Flags{b[0] >> 2}};
+        Temperature{static_cast<int>(b[2]) - 30}, Flags{static_cast<uint8_t>(b[0] >> 2)};
 }
 
 // ---------------------------------------------------------------------------
@@ -264,7 +264,7 @@ Optional<Reading> Packet::reading_fsk_19k2_toyota() const {
     const int temp_c = temp8 - 40;
     return Reading{Reading::Type::Toyota, id,
         Pressure{pressure_kpa > 0 ? pressure_kpa : 0},
-        Temperature{temp_c}, Flags{b[4] >> 7}};
+        Temperature{temp_c}, Flags{static_cast<uint8_t>(b[4] >> 7)};
 }
 
 // ---------------------------------------------------------------------------
@@ -308,7 +308,7 @@ Optional<Reading> Packet::reading_fsk_19k2_jansite_solar() const {
     // CRC-16/BUYPASS poly=0x8005 init=0x0000 over b[2..8]
     CRC<16> crc{0x8005, 0x0000};
     for (size_t i = 2; i < 9; i++) crc.process_byte(b[i]);
-    if (crc.checksum() != (static_cast<uint16_t>(b[9]) << 8 | b[10])) return {};
+    if (crc.checksum() != static_cast<uint32_t>((static_cast<uint16_t>(b[9]) << 8) | b[10])) return {};
     const uint32_t id = ((uint32_t)b[2] << 16) | ((uint32_t)b[3] << 8) | b[4];
     if (id == 0) return {};
     const int pressure_kpa = static_cast<int>(b[7]) * 8 / 5;
