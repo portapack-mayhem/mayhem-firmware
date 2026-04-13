@@ -110,7 +110,9 @@ struct standalone_application_api_t {
     uint16_t* screen_height;
     uint16_t* screen_width;
 
-    // Version 5 — chThdWait releases heap working areas from chThdCreateFromHeap (see chdynamic.c)
+    // Version 5 — chThdWait releases heap working areas from chThdCreateFromHeap (see chdynamic.c).
+    // Callers that use thread_create_heap must arrange to thread_wait(handle) after the worker
+    // finishes; the firmware does not auto-reap heap threads (no extra RAM for a global reaper).
     void (*thread_wait)(void* thread);
 
     // TODO: add baseband access functions
