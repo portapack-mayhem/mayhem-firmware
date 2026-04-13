@@ -30,7 +30,6 @@ extern "C" {
 }
 
 #include <queue>
-#include <vector>
 
 static Thread* thread_usb_event = NULL;
 usb_serial_input_handler_t usb_serial_active_input_handler = nullptr;
@@ -44,6 +43,17 @@ struct usb_bulk_buffer_t {
 std::queue<usb_bulk_buffer_t*> usb_bulk_buffer_queue;
 std::queue<usb_bulk_buffer_t*> usb_bulk_buffer_spare;
 
+/* Next bulk buffer to submit in schedule_host_to_device_transfer(); must be cleared in reset_transfer_queues(). */
+static usb_bulk_buffer_t* pending_transfer_data = nullptr;
+
+static void free_usb_bulk_buffer(usb_bulk_buffer_t* p) {
+    if (p == nullptr) {
+        return;
+    }
+    delete[] p->data;
+    delete p;
+}
+
 void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred) {
     usb_bulk_buffer_t* transfer_data = (usb_bulk_buffer_t*)user_data;
 
@@ -55,31 +65,38 @@ void init_host_to_device() {
     thread_usb_event = chThdSelf();
 }
 
+/* Thread context only (USBSerial::dispatch_transfer); not safe from ISR — performs delete. */
 void reset_transfer_queues() {
-    while (usb_bulk_buffer_queue.empty() == false)
-        usb_bulk_buffer_queue.pop();
+    /* Drop primed TDs and software queue entries so buffers are not freed while USB may still reference them. */
+    usb_endpoint_flush(&usb_endpoint_bulk_out);
 
-    while (usb_bulk_buffer_spare.empty() == false)
+    while (usb_bulk_buffer_queue.empty() == false) {
+        free_usb_bulk_buffer(usb_bulk_buffer_queue.front());
+        usb_bulk_buffer_queue.pop();
+    }
+    while (usb_bulk_buffer_spare.empty() == false) {
+        free_usb_bulk_buffer(usb_bulk_buffer_spare.front());
         usb_bulk_buffer_spare.pop();
+    }
+    free_usb_bulk_buffer(pending_transfer_data);
+    pending_transfer_data = nullptr;
 }
 
 void schedule_host_to_device_transfer() {
     if (usb_bulk_buffer_queue.size() >= 8)
         return;
 
-    static usb_bulk_buffer_t* transfer_data = nullptr;
-
     int ret;
 
     do {
-        if (transfer_data == nullptr) {
+        if (pending_transfer_data == nullptr) {
             if (usb_bulk_buffer_spare.empty() == false) {
-                transfer_data = usb_bulk_buffer_spare.front();
-                transfer_data->length = 0;
-                transfer_data->completed = false;
+                pending_transfer_data = usb_bulk_buffer_spare.front();
+                pending_transfer_data->length = 0;
+                pending_transfer_data->completed = false;
                 usb_bulk_buffer_spare.pop();
             } else {
-                transfer_data = new usb_bulk_buffer_t{
+                pending_transfer_data = new usb_bulk_buffer_t{
                     .data = new uint8_t[USB_BULK_BUFFER_SIZE],
                     .length = 0,
                     .completed = false};
@@ -88,14 +105,14 @@ void schedule_host_to_device_transfer() {
 
         ret = usb_transfer_schedule(
             &usb_endpoint_bulk_out,
-            transfer_data->data,
+            pending_transfer_data->data,
             USB_BULK_BUFFER_SIZE,
             serial_bulk_transfer_complete,
-            transfer_data);
+            pending_transfer_data);
 
         if (ret != -1) {
-            usb_bulk_buffer_queue.push(transfer_data);
-            transfer_data = nullptr;
+            usb_bulk_buffer_queue.push(pending_transfer_data);
+            pending_transfer_data = nullptr;
 
             if (usb_bulk_buffer_queue.size() >= 8)
                 return;

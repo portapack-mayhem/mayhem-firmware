@@ -40,7 +40,16 @@ void USBSerial::dispatch() {
     schedule_host_to_device_transfer();
 }
 
+void USBSerial::run_pending_host_to_device_reset() {
+    if (!host_to_device_reset_pending) {
+        return;
+    }
+    host_to_device_reset_pending = false;
+    reset_transfer_queues();
+}
+
 void USBSerial::dispatch_transfer() {
+    run_pending_host_to_device_reset();
     complete_host_to_device_transfer();
 }
 
@@ -49,7 +58,8 @@ void USBSerial::on_channel_opened() {
 }
 
 void USBSerial::on_channel_closed() {
-    reset_transfer_queues();
+    /* ISR context: do not call reset_transfer_queues() (heap free); defer to dispatch_transfer(). */
+    host_to_device_reset_pending = true;
     connected = false;
 }
 

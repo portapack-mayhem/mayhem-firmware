@@ -48,7 +48,11 @@ class USBSerial {
 
     void setup_usb_clock();
 
-    bool connected{false};
+    /* Set from USB IRQ on suspend-line (channel closed); cleared in dispatch_transfer() thread context. */
+    void run_pending_host_to_device_reset();
+
+    volatile bool host_to_device_reset_pending{false};
+    volatile bool connected{false};
     bool shell_created{false};
 
     EventDispatcher* _eventDispatcher = NULL;
