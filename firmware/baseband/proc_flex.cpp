@@ -944,7 +944,7 @@ void FlexProcessor::decode_phase(char PhaseNo) {
                 parse_alphanumeric(phaseptr, word_bad, PhaseNo, mw1, mw2, 0);
             }
         } else if (decode.type == flex::PageType::STANDARD_NUMERIC || decode.type == flex::PageType::SPECIAL_NUMERIC || decode.type == flex::PageType::NUMBERED_NUMERIC) {
-            parse_numeric(phaseptr, PhaseNo, j);
+            parse_numeric(phaseptr, word_bad, PhaseNo, j);
         } else if (decode.type == flex::PageType::TONE) {
             /* Vector type 2: Short Message (3.9.2).
              * Sub-type t1t0 in bits 7-8, data d0-d11 in bits 9-20. */
@@ -964,10 +964,20 @@ void FlexProcessor::decode_phase(char PhaseNo) {
             packet.is_priority = decode.is_priority;
             packet.type = 8;  // SHORT
 
-            if (t == 0 && d == 0) {
-                /* Tone-only (all digits are space-padded) */
-                strcpy(packet.message, "TONE");
+            if (t == 0 && d == 0xCCC) {
+                /* Tone-only: all digits are space (0xC) per STD-43A
+                 * Table 3.9.2-1 note. For long addresses, also check Vy. */
+                bool tone = true;
+                if (decode.long_address && j + 1 < 88) {
+                    uint32_t vy = phaseptr[j + 1] & 0xFFFFF;
+                    if (vy != 0xCCCCC) tone = false;
+                }
+                if (tone)
+                    strcpy(packet.message, "TONE");
+                else
+                    goto short_numeric;
             } else if (t == 0) {
+            short_numeric:
                 /* Numeric: 3 BCD digits from Vx (d0-d11).
                  * Long addresses: 5 more digits from Vy (d12-d31),
                  * 8 digits total. d32 is spare (set to 0). */
@@ -1281,7 +1291,7 @@ void FlexProcessor::parse_alphanumeric(uint32_t* phaseptr, const uint8_t* word_b
     send_packet(packet);
 }
 
-void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
+void FlexProcessor::parse_numeric(uint32_t* phaseptr, const uint8_t* word_bad, char PhaseNo, int j) {
     char message[256] = {0};
 
     /* Extract NNUM header fields from first message word if applicable.
@@ -1332,15 +1342,25 @@ void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
     /* Phase 1: decode body[0] bits.
      * For short addresses, body[0] is at w1 and we advance to w1+1.
      * For long addresses, body[0] is at Vy (j+1), then we continue from w1. */
-    for (int k = 0; k < 21; k++) {
-        digit = (digit >> 1) & 0x0F;
-        if (dw & 0x01) digit ^= 0x08;
-        dw >>= 1;
-        if (--count == 0) {
-            if (digit != 0x0C && idx < 255) {
-                message[idx++] = flex_bcd[digit];
+    if (word_bad[body0_idx]) {
+        /* Uncorrectable word — emit '?' for each digit slot */
+        int data_bits = 21 - (count - 4); /* bits available after skip */
+        int lost_digits = data_bits / 4;
+        while (lost_digits-- > 0 && idx < 255)
+            message[idx++] = '?';
+        count = 4; /* reset for next word */
+        digit = 0;
+    } else {
+        for (int k = 0; k < 21; k++) {
+            digit = (digit >> 1) & 0x0F;
+            if (dw & 0x01) digit ^= 0x08;
+            dw >>= 1;
+            if (--count == 0) {
+                if (idx < 255) {
+                    message[idx++] = flex_bcd[digit];
+                }
+                count = 4;
             }
-            count = 4;
         }
     }
 
@@ -1357,19 +1377,33 @@ void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
         end = w2;
     }
     for (int i = start; i <= end && i < 88; i++) {
+        if (word_bad[i]) {
+            /* Uncorrectable word — emit '?' for each digit slot (5 per word) */
+            int lost_digits = 21 / 4; /* 5 digits per 21-bit word */
+            while (lost_digits-- > 0 && idx < 255)
+                message[idx++] = '?';
+            count = 4;
+            digit = 0;
+            continue;
+        }
         dw = phaseptr[i];
         for (int k = 0; k < 21; k++) {
             digit = (digit >> 1) & 0x0F;
             if (dw & 0x01) digit ^= 0x08;
             dw >>= 1;
             if (--count == 0) {
-                if (digit != 0x0C && idx < 255) {
+                if (idx < 255) {
                     message[idx++] = flex_bcd[digit];
                 }
                 count = 4;
             }
         }
     }
+
+    /* Trim trailing BCD space padding (0x0C = ' ').
+     * The encoder pads unused nibble slots with 0x0C */
+    while (idx > 0 && message[idx - 1] == ' ')
+        idx--;
     message[idx] = '\0';
 
     flex::FlexPacket packet{};

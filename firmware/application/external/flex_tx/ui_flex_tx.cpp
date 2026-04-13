@@ -673,6 +673,7 @@ void FlexTXView::on_serial_msg(const FlexTosendMessage data) {
 
 void FlexTXView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
+        if (tx_phase_ == 0) return;  // stopped by user
         int ers_n = tx_steps_total_ - 2;
         if (tx_phase_ == 1 && ers_remaining_ > 0) {
             tx_step_++;
@@ -705,7 +706,8 @@ void FlexTXView::on_tx_progress(const uint32_t progress, const bool done) {
             set_dirty();  // repaint capcode info
         }
     } else {
-        progressbar.set_value(progress);
+        if (tx_phase_ != 0)
+            progressbar.set_value(progress);
     }
 }
 
@@ -890,8 +892,11 @@ FlexTXView::FlexTXView(NavigationView& nav)
     };
 
     tx_view.on_stop = [this]() {
+        tx_phase_ = 0;
         tx_view.set_transmitting(false);
         transmitter_model.disable();
+        progressbar.set_value(0);
+        set_dirty();  // repaint capcode info
     };
 }
 

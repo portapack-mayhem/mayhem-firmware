@@ -141,8 +141,12 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
                 if (pkt.biw_v1 == 4 || pkt.biw_v1 == 5) {
                     uint16_t zone = pkt.biw_v2 & 0x1F;
                     int ofs = (zone < 32) ? flex_tz_table[zone] : 0;
+                    int hrs = ofs / 60;
+                    int mins = (ofs < 0 ? -ofs : ofs) % 60;
                     auto tzs = std::string("UTC") + (ofs >= 0 ? "+" : "") +
-                               to_string_dec_int(ofs / 60);
+                               to_string_dec_int(hrs);
+                    if (mins != 0)
+                        tzs += ":" + to_string_dec_int(mins, 2, '0');
                     memcpy(status_tz_, tzs.c_str(), tzs.size() + 1);
                 }
                 break;
