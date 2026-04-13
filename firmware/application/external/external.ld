@@ -628,8 +628,4 @@ SECTIONS
         KEEP(*(.external_app.app_flex_tx.application_information));
         *(*ui*external_app*flex_tx*);
     } > ram_external_app_flex_tx
-    {
-        KEEP(*(.external_app.app_tpmseu.application_information));
-        *(*ui*external_app*tpmseu*);
-    } > ram_external_app_tpmseu
 }
