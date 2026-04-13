@@ -615,12 +615,6 @@ set(MODE_CPPSRC
 	proc_tpms.cpp
 )
 DeclareTargets(PTPM tpms)
-### TPMS EU (extended: BMW Gen4/5, Gen2/3, Porsche 987)
-
-set(MODE_CPPSRC
-	proc_tpms_eu.cpp
-)
-DeclareTargets(PTPE tpmseu)
 
 ### TPMS All (combined EU + World protocols)
 
