@@ -672,6 +672,8 @@ void FlexTXView::on_serial_msg(const FlexTosendMessage data) {
 // ===== TX =====
 
 void FlexTXView::on_tx_progress(const uint32_t progress, const bool done) {
+    if (tx_phase_ == 0)
+        return;
     if (done) {
         int ers_n = tx_steps_total_ - 2;
         if (tx_phase_ == 1 && ers_remaining_ > 0) {
@@ -890,6 +892,7 @@ FlexTXView::FlexTXView(NavigationView& nav)
     };
 
     tx_view.on_stop = [this]() {
+        tx_phase_ = 0;
         tx_view.set_transmitting(false);
         transmitter_model.disable();
     };
