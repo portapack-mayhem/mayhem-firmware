@@ -29,7 +29,7 @@
 #include "ui.hpp"
 #include "file.hpp"
 
-#define CURRENT_STANDALONE_APPLICATION_API_VERSION 4
+#define CURRENT_STANDALONE_APPLICATION_API_VERSION 5
 
 struct standalone_application_api_t {
     // Version 1
@@ -37,7 +37,7 @@ struct standalone_application_api_t {
     void* (*calloc)(size_t num, size_t size);
     void* (*realloc)(void* p, size_t size);
     void (*free)(void* p);
-    void (*create_thread)(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority);
+    void* (*thread_create_heap)(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority);
     void (*fill_rectangle)(int x, int y, int width, int height, uint16_t color);
     uint8_t (*swizzled_switches)();
     uint64_t (*get_switches_state)();
@@ -109,6 +109,9 @@ struct standalone_application_api_t {
     // Version 4
     uint16_t* screen_height;
     uint16_t* screen_width;
+
+    // Version 5 — chThdWait releases heap working areas from chThdCreateFromHeap (see chdynamic.c)
+    void (*thread_wait)(void* thread);
 
     // TODO: add baseband access functions
 

@@ -86,15 +86,17 @@ set(LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/external.ld)
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 FILE(GLOB_RECURSE Sources_C ${CMAKE_CURRENT_LIST_DIR}/*.c)
+FILE(GLOB_RECURSE Sources_C_COMMON ${CMAKE_CURRENT_LIST_DIR}/../common/*.c)
 set(CSRC
-	${Sources_C}
+	${Sources_C} ${Sources_C_COMMON}
 )
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 FILE(GLOB_RECURSE Sources_CPP ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
+FILE(GLOB_RECURSE Sources_CPP_COMMON ${CMAKE_CURRENT_LIST_DIR}/../common/*.cpp)
 set(CPPSRC
-	${Sources_CPP}
+	${Sources_CPP} ${Sources_CPP_COMMON}
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -120,11 +122,24 @@ set(TCPPSRC)
 # List ASM source files here
 set(ASMSRC)
 
+# Kernel + M0 port includes (required for e.g. standalone_heap_thread.cpp and ch.h)
+set(STANDALONE_CHIBIOS_KERNINC ${CHIBIOS}/os/kernel/include)
+set(STANDALONE_CHIBIOS_PORTINC
+	${CHIBIOS}/os/ports/common/ARMCMx/CMSIS/include
+	${CHIBIOS}/os/ports/common/ARMCMx
+	${CHIBIOS}/os/ports/GCC/ARMCMx
+	${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M0
+)
+
 set(INCDIR
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../common
+	${CMAKE_CURRENT_SOURCE_DIR}/../common/ui
 	${COMMON}
 	${COMMON}/../application
 	${COMMON}/../application/hw
+	${STANDALONE_CHIBIOS_KERNINC}
+	${STANDALONE_CHIBIOS_PORTINC}
 )
 
 #

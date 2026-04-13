@@ -27,7 +27,7 @@ const standalone_application_api_t* _api;
 
 extern "C" {
 __attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {
-    /*.header_version = */ 2,
+    /*.header_version = */ 5,
 
     /*.app_name = */ "DigitalRain",
     /*.bitmap_data = */ {

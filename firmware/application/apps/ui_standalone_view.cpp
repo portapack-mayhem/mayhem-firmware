@@ -31,11 +31,21 @@
 
 #include "file.hpp"
 
+#include "ch.h"
+
+#include <cstdint>
+
 namespace ui {
 
-void create_thread(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority) {
-    // TODO: collect memory on terminate, once this is used. This is a HUGE TODO! need to call chThdWait on all of them!
-    chThdCreateFromHeap(NULL, stack_size, priority, fn, arg);
+void* thread_create_heap(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority) {
+    Thread* tp = chThdCreateFromHeap(NULL, stack_size, priority, fn, arg);
+    if (tp == nullptr)
+        chDbgPanic("Out of Memory");
+    return tp;
+}
+
+void thread_wait(void* tp) {
+    chThdWait(reinterpret_cast<Thread*>(tp));
 }
 
 void fill_rectangle(int x, int y, int width, int height, uint16_t color) {
@@ -190,7 +200,7 @@ standalone_application_api_t api = {
     /* .calloc = */ &calloc,
     /* .realloc = */ &realloc,
     /* .free = */ &chHeapFree,
-    /* .create_thread = */ &create_thread,
+    /* .thread_create_heap = */ &thread_create_heap,
     /* .fill_rectangle = */ &fill_rectangle,
     /* .swizzled_switches = */ &swizzled_switches,
     /* .get_switches_state = */ &get_switches_state_ulong,
@@ -236,6 +246,8 @@ standalone_application_api_t api = {
     // version 4
     .screen_height = &screen_height,
     .screen_width = &screen_width,
+    // version 5
+    .thread_wait = &thread_wait,
 };
 
 StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)

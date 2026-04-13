@@ -122,6 +122,15 @@ set(TCPPSRC)
 # List ASM source files here
 set(ASMSRC)
 
+# Kernel + M0 port includes (required for e.g. standalone_heap_thread.cpp and ch.h)
+set(STANDALONE_CHIBIOS_KERNINC ${CHIBIOS}/os/kernel/include)
+set(STANDALONE_CHIBIOS_PORTINC
+	${CHIBIOS}/os/ports/common/ARMCMx/CMSIS/include
+	${CHIBIOS}/os/ports/common/ARMCMx
+	${CHIBIOS}/os/ports/GCC/ARMCMx
+	${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M0
+)
+
 set(INCDIR
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../common
@@ -129,6 +138,8 @@ set(INCDIR
 	${COMMON}
 	${COMMON}/../application
 	${COMMON}/../application/hw
+	${STANDALONE_CHIBIOS_KERNINC}
+	${STANDALONE_CHIBIOS_PORTINC}
 )
 
 #
