@@ -210,7 +210,6 @@ class TPMSAppView : public View {
             {"315.0 ", 315000000},
             {"314.9 ", 314900000},
             {"433.92", 433920000},
-            {"433.9 ", 433900000},
         }};
 
     OptionsField options_pressure{
