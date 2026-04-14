@@ -170,81 +170,88 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
 
 #ifdef PRALINE
-        // TODO: It's not ready yet! (Pezsma)
-        // gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
-        // gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
-        // gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
-        // gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
-        // gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
+        // Shut down dedicated PRALINE regulators
+        gpio_vaa_disable.set();     // VAA_ENABLE P8_1 -> HIGH
+        gpio_1v2_enable.clear();    // 1V2_E P8_7 -> LOW
+        gpio_3v3aux_disable.set();  // 3V3 aux P6_7 -> HIGH
+        gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 -> LOW
+        gpio_VIN_enable.set();      // VIN_IN_EN P8_5 -> HIGH
+
+        // Set all unneeded RF/FPGA control pins to INPUT (High-Z)
+        // This prevents current sink/source leakage (saves ~6mA)
+        LPC_GPIO->DIR[0] &= ~0xFFFF4000;
+        LPC_GPIO->DIR[1] &= ~0xFFFF1000;
+        LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
+        LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
+
+        // Disable MIX_BYPASS and Praline extra LEDs by making them inputs
+        LPC_GPIO->DIR[5] &= ~((1 << 16) | (1 << 2) | (1 << 1) | (1 << 0));
 #else
-
-        // Power leakage GPIO optimalization
-
-        // TPS62410 PSM and TX_AMP_PWR
-        LPC_GPIO->DIR[3] |= (1 << 7) | (1 << 5);
-        LPC_GPIO->CLR[3] = (1 << 7);
-        LPC_GPIO->SET[3] = (1 << 5);
-
-        // Port 0: AMP_BYPASS
-        LPC_GPIO->DIR[0] |= 0xFFFF4000;
-        LPC_GPIO->CLR[0] = 0xFFFF4000;
-
-        // Port 1: !RX_AMP_PWR
-        LPC_GPIO->DIR[1] |= 0xFFFF1000;
-        LPC_GPIO->CLR[1] = 0xFFFF0000;
-        LPC_GPIO->SET[1] = (1 << 12);
-
-        // Port 2: Mixers and filtetrs disable
-        LPC_GPIO->DIR[2] |= (1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0);
-        LPC_GPIO->CLR[2] = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0);  // TX_MIX_BP, RX_MIX_BP, LP, HP, XCVR_EN -> LOW
-        LPC_GPIO->SET[2] = (1 << 14) | (1 << 13);                                    // MIXER_ENX, MIXER_RESETX -> HIGH
-
-        // Port 5: MIX_BYPASS disable
-        LPC_GPIO->DIR[5] |= (1 << 16);
-        LPC_GPIO->CLR[5] = (1 << 16);
-
-        led_usb.off();
+        // Set all unneeded RF control pins to INPUT (High-Z) to prevent leakage
+        LPC_GPIO->DIR[0] &= ~0xFFFF4000;
+        LPC_GPIO->DIR[1] &= ~0xFFFF1000;
+        LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
+        LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
+        LPC_GPIO->DIR[5] &= ~(1 << 16);
 #endif
 
-        // USB0 PHY Power Down
+        // Turn off USB LED via software
+        led_usb.off();
+
+        // Turn off USB0 PHY (hardware disable)
         LPC_CREG->CREG0 |= (1 << 5);
 
-        // ADC stop
+        // Stop ADCs
         lpc43xx::adc::ADC<LPC_ADC0_BASE>::disable();
         lpc43xx::adc::ADC<LPC_ADC1_BASE>::disable();
 
-        // SPI disable
-        LPC_CCU1->CLK_M4_SSP0_CFG.RUN = 0;
-        LPC_CCU1->CLK_M4_SSP1_CFG.RUN = 0;
+        // -----------------------------------------------------------------
+        // AGGRESSIVE DEEP SLEEP CLOCK/PERIPHERAL POWER DOWN
+        // -----------------------------------------------------------------
+        // NOTE: SPI (SSP0/SSP1) clock shutdown was removed here because
+        // the OS/drivers configure it elsewhere and killing the bus
+        // hardware might cause hard faults upon waking up.
 
-        // CHIP SELECT pins
-        gpio_max283x_select.clear();  // MAX2837
-        gpio_max5864_select.clear();  // Codec
+        // Stop heavy peripheral clocks in CCU1 (Saves dynamic power)
+        LPC_CCU1->CLK_M4_LCD_CFG.RUN = 0;    // LCD hardware branch
+        LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 0;   // SD card M4 branch
+        LPC_CCU1->CLK_M4_DMA_CFG.RUN = 0;    // DMA controller
+        LPC_CCU1->CLK_APB1_I2S_CFG.RUN = 0;  // I2S audio bus
 
-        // Amplifier disable
-        gpio_tx_amp.clear();
-        gpio_rx_amp.clear();
+        // Stop heavy peripheral clocks in CCU2
+        LPC_CCU2->CLK_SDIO_CFG.RUN = 0;   // SD card peripheral branch
+        LPC_CCU2->CLK_AUDIO_CFG.RUN = 0;  // Audio hardware branch
 
-        // power disable of RF front end
-        gpio_og_vaa_disable.set();    // VAA -> HIGH
-        gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
+        // Force shutdown of PLL0 (USB and Audio PLLs)
+        LPC_CGU->PLL0USB_CTRL.PD = 1;  // Itt a C++ struktúrát használjuk
+        LPC_CGU->PLL0AUDIO_CTRL |= 1;  // Set Power Down bit
 
+        // Switch main system buses to ultra-low power 12MHz IRC
         LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash
-        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Proc
+        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Core
         LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C
         LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
         LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;  // GPIO
 
-        // SysTick disable
+        // Set Chip Select pins (MAX2837, Codec) to High-Z (Inputs) to stop leakage
+        LPC_GPIO->DIR[1] &= ~((1 << 11) | (1 << 14));
+
+        // Power disable of RF front end (Using standard portapack methods)
+        gpio_og_vaa_disable.set();    // VAA -> HIGH
+        gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
+
+        // SysTick and PLL1 disable
         SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
         lpc43xx::cgu::pll1::disable();
 
+        // Shut down external clock generator completely
+        portapack::clock_generator.reset();
+
+        // Setup RTC wake up parameters
         rtc_interrupt_enable();
         LPC_RTC->CIIR = (1 << 1);  // IMIN (1 minute interrupt enable)
-        LPC_RTC->ILR = 3;          // clear all RTC interrupts
-
-        portapack::clock_generator.reset();
+        LPC_RTC->ILR = 3;          // Clear all RTC interrupts
 
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
@@ -256,7 +263,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                         led_rx.off();
                     } else {
                         led_rx.off();
-                        led_tx.on();  // charging, led_tx on to indicate charging
+                        led_tx.on();  // Charging indication
                     }
                 } else {
                     led_tx.off();
@@ -264,48 +271,58 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                 }
             } else {
                 led_tx.off();
-                led_rx.on();  // charge problem, led_rx on to indicate error
+                led_rx.on();  // Error indication
             }
 
-            // ---------------Run sleep------------------------------------
+            // --------------- Run sleep ------------------------------------
 
-            // clear RTC flag
+            // Clear RTC flag
             LPC_RTC->ILR = 3;
 
-            // Save IRQ settings
+            // Save IRQ settings to restore after sleep
             uint32_t saved_iser0 = NVIC->ISER[0];
             uint32_t saved_iser1 = NVIC->ISER[1];
 
+            // Disable all IRQs in NVIC to protect WFI
             NVIC->ICER[0] = 0xFFFFFFFF;
             NVIC->ICER[1] = 0xFFFFFFFF;
 
-            // clear all IRQ flag
+            // Clear all pending garbage IRQs
             NVIC->ICPR[0] = 0xFFFFFFFF;
             NVIC->ICPR[1] = 0xFFFFFFFF;
 
+            // Enable only RTC wake up
             NVIC_EnableIRQ(RTC_IRQn);
 
             // Event Router (LPC43xx datasheet Chapter 12)
-            *(volatile uint32_t*)(0x40044008) = 0xFFFFFFFF;  // CLR_EN: old events disable
-            *(volatile uint32_t*)(0x4004400C) = (1 << 5);    // SET_EN: RTC alarm (Bit 5!)
-            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;  // CLR_STAT: Flagek clear
+            *(volatile uint32_t*)(0x40044008) = 0xFFFFFFFF;  // CLR_EN
+            *(volatile uint32_t*)(0x4004400C) = (1 << 5);    // SET_EN
+            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;  // CLR_STAT
 
+            // Safely prepare CPU for sleep (Does not consume power)
             __disable_irq();
 
-            // Deep Sleep Bit
+            // Set Deep Sleep Bit
             SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
+            // Synchronize memory and pipeline before sleep
             __DSB();
             __ISB();
-            // Sleep
+
+            // Sleep! (CPU turns off here)
             __WFI();
 
-            SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
-            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;  // Event Router stat clear
+            // --- WAKE UP ---
 
+            // Clear Deep Sleep Bit
+            SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
+
+            // Restore normal operation IRQs (e.g. I2C)
             NVIC->ISER[0] = saved_iser0;
             NVIC->ISER[1] = saved_iser1;
 
+            // Safely wake CPU core
             __enable_irq();
 
             chEvtGetAndClearEvents(ALL_EVENTS);
