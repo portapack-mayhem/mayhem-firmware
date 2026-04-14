@@ -170,103 +170,85 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
 
 #ifdef PRALINE
-// TODO: It's not ready yet! (Pezsma)
-//   gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
-//   gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
-//   gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
-//   gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
-//   gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
+        // TODO: It's not ready yet! (Pezsma)
+        // gpio_vaa_disable.set();     // VAA_ENABLE P8_1 ->HIGH
+        // gpio_1v2_enable.clear();    // 1V2_E P8_7 ->LOW
+        // gpio_3v3aux_disable.set();  // 3V3 aux P6_7 ->HIGH
+        // gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 ->LOW
+        // gpio_VIN_enable.set();      // VIN_IN_EN P8_5 ->HIGH
 #else
-        // 1. ADC stop
+
+        // Power leakage GPIO optimalization
+
+        // TPS62410 PSM and TX_AMP_PWR
+        LPC_GPIO->DIR[3] |= (1 << 7) | (1 << 5);
+        LPC_GPIO->CLR[3] = (1 << 7);
+        LPC_GPIO->SET[3] = (1 << 5);
+
+        // Port 0: AMP_BYPASS
+        LPC_GPIO->DIR[0] |= 0xFFFF4000;
+        LPC_GPIO->CLR[0] = 0xFFFF4000;
+
+        // Port 1: !RX_AMP_PWR
+        LPC_GPIO->DIR[1] |= 0xFFFF1000;
+        LPC_GPIO->CLR[1] = 0xFFFF0000;
+        LPC_GPIO->SET[1] = (1 << 12);
+
+        // Port 2: Mixers and filtetrs disable
+        LPC_GPIO->DIR[2] |= (1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0);
+        LPC_GPIO->CLR[2] = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0);  // TX_MIX_BP, RX_MIX_BP, LP, HP, XCVR_EN -> LOW
+        LPC_GPIO->SET[2] = (1 << 14) | (1 << 13);                                    // MIXER_ENX, MIXER_RESETX -> HIGH
+
+        // Port 5: MIX_BYPASS disable
+        LPC_GPIO->DIR[5] |= (1 << 16);
+        LPC_GPIO->CLR[5] = (1 << 16);
+
+        led_usb.off();
+#endif
+
+        // USB0 PHY Power Down
+        LPC_CREG->CREG0 |= (1 << 5);
+
+        // ADC stop
         lpc43xx::adc::ADC<LPC_ADC0_BASE>::disable();
         lpc43xx::adc::ADC<LPC_ADC1_BASE>::disable();
 
-        // 2. USB0 PHY Power Down
-        LPC_CREG->CREG0 |= (1 << 5);
-
-        // 3. Power leakage GPIO optimalizálás és VREG PSM bekapcsolása
-
-        // a) Feszültségszabályzó (TPS62410) Power Save Mode (PSM) bekapcsolása.
-        LPC_GPIO->CLR[3] = (1 << 7);  // VREGMODE (GPIO3[7]) -> LOW
-        LPC_GPIO->DIR[3] |= (1 << 7);
-
-        // b) RF Erősítők és Bypass kapcsolók letiltása
-        LPC_GPIO->CLR[0] = (1 << 14);                                                            // AMP_BYPASS
-        LPC_GPIO->CLR[1] = (1 << 11);                                                            // RX_AMP
-        LPC_GPIO->CLR[2] = (1 << 15) | (1 << 11) | (1 << 12) | (1 << 10) | (1 << 0) | (1 << 6);  // TX_AMP, TX_MIX_BP, RX_MIX_BP, LP, HP, XCVR_EN
-        LPC_GPIO->CLR[5] = (1 << 16);                                                            // MIX_BYPASS
-
-        // c) Aktív ALACSONY (!PWR) és fizikai 10K Pull-Up ellenállásos lábak.
-        LPC_GPIO->SET[1] = (1 << 12);              // !RX_AMP_PWR
-        LPC_GPIO->SET[2] = (1 << 13) | (1 << 14);  // MIXER_ENX, MIXER_RESETX
-        LPC_GPIO->SET[3] = (1 << 5);               // !TX_AMP_PWR
-
-        // d) IRÁNY (DIR) beállítása KIMENETRE (Output).
-        LPC_GPIO->DIR[0] |= (1 << 14);
-        LPC_GPIO->DIR[1] |= (1 << 11) | (1 << 12);
-        LPC_GPIO->DIR[2] |= (1 << 15) | (1 << 11) | (1 << 12) | (1 << 10) | (1 << 0) | (1 << 6) | (1 << 13) | (1 << 14);
-        LPC_GPIO->DIR[3] |= (1 << 5);
-        LPC_GPIO->DIR[5] |= (1 << 16);
-
-        // VAA Phantom Power és felesleges hardverek végleges lekapcsolása
-        LPC_GPIO->CLR[0] = 0xFFFF0000;
-        LPC_GPIO->CLR[1] = 0xFFFF0000;
-
-        led_usb.off();
-
-        // 4. SPI disable
+        // SPI disable
         LPC_CCU1->CLK_M4_SSP0_CFG.RUN = 0;
         LPC_CCU1->CLK_M4_SSP1_CFG.RUN = 0;
 
-        // 5. CHIP SELECT LÁBAK
+        // CHIP SELECT pins
         gpio_max283x_select.clear();  // MAX2837
-        gpio_max5864_select.clear();  // Codec (VAA szivárgás megszüntetése)
+        gpio_max5864_select.clear();  // Codec
 
-        // 6. Amplifier disable
+        // Amplifier disable
         gpio_tx_amp.clear();
         gpio_rx_amp.clear();
 
-        // 7. power disable of RF front end
+        // power disable of RF front end
         gpio_og_vaa_disable.set();    // VAA -> HIGH
         gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
 
-#endif
-        /*
-                LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash memória
-                LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Processzor mag
-                LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C busz
-                LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
-                LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;  // GPIO vezérlő
-        */
-        // lpc43xx::cgu::pll1::disable();
-        portapack::clock_generator.reset();
+        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash
+        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Proc
+        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C
+        LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
+        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;  // GPIO
+
+        // SysTick disable
+        SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
+        SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
+        lpc43xx::cgu::pll1::disable();
 
         rtc_interrupt_enable();
-        LPC_RTC->CIIR = (1 << 1);  // IMIN (1 perc)
-        LPC_RTC->ILR = 3;          // Meglévő flagek törlése
+        LPC_RTC->CIIR = (1 << 1);  // IMIN (1 minute interrupt enable)
+        LPC_RTC->ILR = 3;          // clear all RTC interrupts
+
+        portapack::clock_generator.reset();
 
         while (1) {
-            // 1. NORMÁL ÜZEMMÓD VISSZAÁLLÍTÁSA
-            SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
-
-            // Hagyjunk 10ms-ot az operációs rendszernek (ChibiOS), hogy
-            // feldolgozza az ébredést, és az I2C busz stabilizálódjon.
-            chThdSleepMilliseconds(10);
-
-            // 2. AKKU KIOLVASÁSA
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
-            // 3. VAA Phantom Power Megszüntetése (MINDENT LEHÚZ 0V-ra)
-            uint32_t saved_dir0 = LPC_GPIO->DIR[0];
-            uint32_t saved_dir1 = LPC_GPIO->DIR[1];
-
-            LPC_GPIO->DIR[0] |= 0xFFFF0000;
-            LPC_GPIO->DIR[1] |= 0xFFFF0000;
-            LPC_GPIO->CLR[0] = 0xFFFF0000;
-            LPC_GPIO->CLR[1] = 0xFFFF0000;
-
-            // 4. LEDEK BEÁLLÍTÁSA
-            // (Mivel ez a CLR parancs után van, garantáltan világítva marad alvás alatt is!)
             if (valid_mask) {
                 if (current > 0) {
                     if (percent >= 100 && current <= 5) {
@@ -274,7 +256,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                         led_rx.off();
                     } else {
                         led_rx.off();
-                        led_tx.on();  // Töltés folyamatban -> TX LED BE
+                        led_tx.on();  // charging, led_tx on to indicate charging
                     }
                 } else {
                     led_tx.off();
@@ -282,31 +264,49 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                 }
             } else {
                 led_tx.off();
-                led_rx.on();  // Hiba -> RX LED BE
+                led_rx.on();  // charge problem, led_rx on to indicate error
             }
 
-            // 5. DEEP SLEEP ELŐKÉSZÍTÉSE
-            SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;  // OS leállítása alváshoz
+            // ---------------Run sleep------------------------------------
 
+            // clear RTC flag
             LPC_RTC->ILR = 3;
-            NVIC_ClearPendingIRQ(RTC_IRQn);
 
-            *(volatile uint32_t*)(0x40044008) = 0xFFFFFFFF;
-            *(volatile uint32_t*)(0x4004400C) = (1 << 5);  // RTC (Bit 5)
-            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
+            // Save IRQ settings
+            uint32_t saved_iser0 = NVIC->ISER[0];
+            uint32_t saved_iser1 = NVIC->ISER[1];
 
+            NVIC->ICER[0] = 0xFFFFFFFF;
+            NVIC->ICER[1] = 0xFFFFFFFF;
+
+            // clear all IRQ flag
+            NVIC->ICPR[0] = 0xFFFFFFFF;
+            NVIC->ICPR[1] = 0xFFFFFFFF;
+
+            NVIC_EnableIRQ(RTC_IRQn);
+
+            // Event Router (LPC43xx datasheet Chapter 12)
+            *(volatile uint32_t*)(0x40044008) = 0xFFFFFFFF;  // CLR_EN: old events disable
+            *(volatile uint32_t*)(0x4004400C) = (1 << 5);    // SET_EN: RTC alarm (Bit 5!)
+            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;  // CLR_STAT: Flagek clear
+
+            __disable_irq();
+
+            // Deep Sleep Bit
             SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
-            // 6. ALVÁS 1 PERCIG (57mA-es fogyasztással!)
+            __DSB();
+            __ISB();
+            // Sleep
             __WFI();
 
-            // --- PONTOSAN 1 PERC MÚLVA ITT ÉBREDÜNK FEL ---
             SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
-            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
+            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;  // Event Router stat clear
 
-            // GPIO Irányok visszaállítása (hogy az I2C működjön a következő körben)
-            LPC_GPIO->DIR[0] = saved_dir0;
-            LPC_GPIO->DIR[1] = saved_dir1;
+            NVIC->ISER[0] = saved_iser0;
+            NVIC->ISER[1] = saved_iser1;
+
+            __enable_irq();
 
             chEvtGetAndClearEvents(ALL_EVENTS);
         }  // END while
