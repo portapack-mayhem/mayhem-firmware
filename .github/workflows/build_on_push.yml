@@ -5,6 +5,7 @@ on:
     branches:
       - next
       - tpms-combined
+      - TPMS-Final
     paths:
       - "firmware/**"
       - ".github/workflows/build_on_push.yml"
