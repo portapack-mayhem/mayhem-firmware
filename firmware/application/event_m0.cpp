@@ -170,24 +170,25 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         chThdSleepMilliseconds(50);
 
 #ifdef PRALINE
-        // Shut down dedicated PRALINE regulators
+        // 1. TÁPVONALAK LEKAPCSOLÁSA (A te bevált szoftveres logikáddal)
         gpio_vaa_disable.set();     // VAA_ENABLE P8_1 -> HIGH
         gpio_1v2_enable.clear();    // 1V2_E P8_7 -> LOW
         gpio_3v3aux_disable.set();  // 3V3 aux P6_7 -> HIGH
         gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 -> LOW
         gpio_VIN_enable.set();      // VIN_IN_EN P8_5 -> HIGH
 
-        // Set all unneeded RF/FPGA control pins to INPUT (High-Z)
-        // This prevents current sink/source leakage (saves ~6mA)
+        // 2. FANTOMÁRAM (VISSZATÁPLÁLÁS) MEGSZÜNTETÉSE
+        // Bemenetre (High-Z) állítjuk a lábakat, hogy ne folyjon áram a lekapcsolt VAA felé.
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
         LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
 
-        // Disable MIX_BYPASS and Praline extra LEDs by making them inputs
-        LPC_GPIO->DIR[5] &= ~((1 << 16) | (1 << 2) | (1 << 1) | (1 << 0));
+        // JAVÍTÁS: A LED-eket (bit 0,1,2) BÉKÉN HAGYJUK, hogy működjön az RX/TX!
+        // Csak a bit 16-ot (MIX_BYPASS) tesszük bemenetté.
+        LPC_GPIO->DIR[5] &= ~(1 << 16);
 #else
-        // Set all unneeded RF control pins to INPUT (High-Z) to prevent leakage
+        // Sima HackRF Fantomáram védelem
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
@@ -206,52 +207,46 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         lpc43xx::adc::ADC<LPC_ADC1_BASE>::disable();
 
         // -----------------------------------------------------------------
-        // AGGRESSIVE DEEP SLEEP CLOCK/PERIPHERAL POWER DOWN
+        // HARDVERES ÓRAJEL ÉS PLL LEKAPCSOLÁSOK (Extra megtakarítás)
         // -----------------------------------------------------------------
-        // NOTE: SPI (SSP0/SSP1) clock shutdown was removed here because
-        // the OS/drivers configure it elsewhere and killing the bus
-        // hardware might cause hard faults upon waking up.
-
-        // Stop heavy peripheral clocks in CCU1 (Saves dynamic power)
         LPC_CCU1->CLK_M4_LCD_CFG.RUN = 0;    // LCD hardware branch
         LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 0;   // SD card M4 branch
         LPC_CCU1->CLK_M4_DMA_CFG.RUN = 0;    // DMA controller
         LPC_CCU1->CLK_APB1_I2S_CFG.RUN = 0;  // I2S audio bus
 
-        // Stop heavy peripheral clocks in CCU2
         LPC_CCU2->CLK_SDIO_CFG.RUN = 0;   // SD card peripheral branch
         LPC_CCU2->CLK_AUDIO_CFG.RUN = 0;  // Audio hardware branch
 
-        // Force shutdown of PLL0 (USB and Audio PLLs)
-        LPC_CGU->PLL0USB_CTRL.PD = 1;  // Itt a C++ struktúrát használjuk
-        LPC_CGU->PLL0AUDIO_CTRL |= 1;  // Set Power Down bit
+        LPC_CGU->PLL0USB_CTRL.PD = 1;
+        LPC_CGU->PLL0AUDIO_CTRL |= 1;
 
-        // Switch main system buses to ultra-low power 12MHz IRC
-        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;  // Flash
-        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;     // Core
-        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;   // I2C
+        // KÜLSŐ ÓRAJELEK (MCLK) ELNÉMÍTÁSA A CODEC/FPGA FELÉ
+        LPC_CGU->BASE_OUT_CLK.PD = 1;
+        LPC_CGU->BASE_AUDIO_CLK.PD = 1;
+        LPC_CGU->BASE_CGU_OUT0_CLK.PD = 1;
+        LPC_CGU->BASE_CGU_OUT1_CLK.PD = 1;
+
+        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;
+        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;
+        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;
         LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
-        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;  // GPIO
+        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;
 
-        // Set Chip Select pins (MAX2837, Codec) to High-Z (Inputs) to stop leakage
+        // Chip Select lábak bemenetté alakítása a szivárgás ellen
         LPC_GPIO->DIR[1] &= ~((1 << 11) | (1 << 14));
 
-        // Power disable of RF front end (Using standard portapack methods)
         gpio_og_vaa_disable.set();    // VAA -> HIGH
         gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
 
-        // SysTick and PLL1 disable
         SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
         lpc43xx::cgu::pll1::disable();
 
-        // Shut down external clock generator completely
         portapack::clock_generator.reset();
 
-        // Setup RTC wake up parameters
         rtc_interrupt_enable();
-        LPC_RTC->CIIR = (1 << 1);  // IMIN (1 minute interrupt enable)
-        LPC_RTC->ILR = 3;          // Clear all RTC interrupts
+        LPC_RTC->CIIR = (1 << 1);
+        LPC_RTC->ILR = 3;
 
         while (1) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
@@ -263,7 +258,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                         led_rx.off();
                     } else {
                         led_rx.off();
-                        led_tx.on();  // Charging indication
+                        led_tx.on();  // Töltést jelző LED hibátlanul fog működni!
                     }
                 } else {
                     led_tx.off();
@@ -271,62 +266,67 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                 }
             } else {
                 led_tx.off();
-                led_rx.on();  // Error indication
+                led_rx.on();
             }
 
-            // --------------- Run sleep ------------------------------------
+            // --------------- ALVÁS ELŐKÉSZÍTÉSE ------------------------------------
 
-            // Clear RTC flag
             LPC_RTC->ILR = 3;
 
-            // Save IRQ settings to restore after sleep
             uint32_t saved_iser0 = NVIC->ISER[0];
             uint32_t saved_iser1 = NVIC->ISER[1];
 
-            // Disable all IRQs in NVIC to protect WFI
             NVIC->ICER[0] = 0xFFFFFFFF;
             NVIC->ICER[1] = 0xFFFFFFFF;
 
-            // Clear all pending garbage IRQs
             NVIC->ICPR[0] = 0xFFFFFFFF;
             NVIC->ICPR[1] = 0xFFFFFFFF;
 
-            // Enable only RTC wake up
             NVIC_EnableIRQ(RTC_IRQn);
 
-            // Event Router (LPC43xx datasheet Chapter 12)
-            *(volatile uint32_t*)(0x40044008) = 0xFFFFFFFF;  // CLR_EN
-            *(volatile uint32_t*)(0x4004400C) = (1 << 5);    // SET_EN
-            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;  // CLR_STAT
+            *(volatile uint32_t*)(0x40044008) = 0xFFFFFFFF;
+            *(volatile uint32_t*)(0x4004400C) = (1 << 5);
+            *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
 
-            // Safely prepare CPU for sleep (Does not consume power)
             __disable_irq();
 
-            // Set Deep Sleep Bit
+            // -----------------------------------------------------------------
+            // A 32kHz-es MIKRO-ÁRAM TRÜKK
+            // WFI (alvás) alatt a processzor belső buszait 32kHz-re lassítjuk,
+            // ami kikapcsolja a 12MHz-es oszcillátort és spórol a dinamikus fogyasztáson!
+            // -----------------------------------------------------------------
+            LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 0;
+            LPC_CGU->BASE_M4_CLK.CLK_SEL = 0;
+            LPC_CGU->BASE_APB1_CLK.CLK_SEL = 0;
+            LPC_CGU->BASE_APB3_CLK.CLK_SEL = 0;
+            LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 0;
+
             SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
-            // Synchronize memory and pipeline before sleep
             __DSB();
             __ISB();
 
-            // Sleep! (CPU turns off here)
-            __WFI();
+            __WFI();  // Zzz...
 
-            // --- WAKE UP ---
+            // --- ÉBREDÉS ---
 
-            // Clear Deep Sleep Bit
+            // Azonnal visszaállítjuk 12MHz-re a buszokat a gyors ébredésért!
+            LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;
+            LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;
+            LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;
+            LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
+            LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;
+
             SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
             *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
 
-            // Restore normal operation IRQs (e.g. I2C)
             NVIC->ISER[0] = saved_iser0;
             NVIC->ISER[1] = saved_iser1;
 
-            // Safely wake CPU core
             __enable_irq();
 
             chEvtGetAndClearEvents(ALL_EVENTS);
-        }  // END while
+        }
     } else {
         portapack::display.wake(true);
     }
