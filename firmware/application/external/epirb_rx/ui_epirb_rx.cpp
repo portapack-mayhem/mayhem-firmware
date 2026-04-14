@@ -36,7 +36,7 @@ using namespace portapack;
 //#include "usb_serial_asyncmsg.hpp"
 
 namespace ui::external_app::epirb_rx {
-
+/*
 std::string EPIRBAppView::beacon_to_hex_string(const baseband::Packet& packet) {
     const char hex[] = "0123456789ABCDEF";
 
@@ -57,7 +57,7 @@ std::string EPIRBAppView::beacon_to_hex_string(const baseband::Packet& packet) {
     }
 
     return out;
-}
+}*/
 
 void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon) {
     // Convert packet bits to byte array for easier processing
@@ -197,15 +197,15 @@ ui::Rect EPIRBBeaconDetailView::draw_field(
     return {draw_rect.location() + ui::Point{0, draw_rect.height()}, draw_rect.size()};
 }
 */
-EPIRBListView::EPIRBListView(
+/*EPIRBListView::EPIRBListView(
     Rect parent_rect)
     : View(parent_rect) {
 
-    add_children({&beaconlist_view,
+    add_children({&beaconlist_view,*/
                   /*&button_map,
                   &button_clear,
-                  &button_log*/});
-
+                  &button_log*//*});
+*/
     /*button_map.on_select = [this](Button&) {
         // this->on_show_map();
     };
@@ -217,8 +217,8 @@ EPIRBListView::EPIRBListView(
     button_log.on_select = [this](Button&) {
         // this->on_toggle_log();
     };*/
-}
-
+/*}*/
+/*
 void EPIRBListView::set_db(BeaconDB& db) {
     beaconlist_view.set_db(db);
 }
@@ -226,7 +226,7 @@ void EPIRBListView::set_db(BeaconDB& db) {
 void EPIRBListView::refresh() {
     beaconlist_view.set_dirty();
 }
-
+*/
 EPIRBDetailView::EPIRBDetailView(
     Rect parent_rect)
     : View(parent_rect) {
@@ -238,7 +238,7 @@ EPIRBMapView::EPIRBMapView(
     Rect parent_rect)
     : View(parent_rect) {
 
-    add_children({&geomap/*,&geopos*/});
+    add_children({&geomap});
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
     geomap.set_tag(NO_BEACON);
@@ -268,15 +268,34 @@ void EPIRBMapView::add_marker(GeoMarker& marker) {
     geomap.store_marker(marker);
 }
 
-EPIRBRxView::EPIRBRxView(
-    Rect parent_rect)
-    : View(parent_rect) {
-    Coord waterfall_top = 13 * 16;
-    Coord waterfall_height = 6 * 16;
-    ui::Rect waterfall_rect{0, waterfall_top, screen_width, waterfall_height};
+void EPIRBMapView::on_show() {
+    // Fake orientation change to force map redraw
+    geomap.update_my_orientation(180,false);
+    geomap.update_my_orientation(0,true);
+}
 
-    add_child(&waterfall);
+EPIRBRxView::EPIRBRxView(
+    EPIRBAppView& parent,
+    Rect parent_rect)
+    : View(parent_rect), app_view(parent) {
+    ui::Rect waterfall_rect{0, 0, parent_rect.width(), parent_rect.height()-UI_POS_HEIGHT(1)};
     waterfall.set_parent_rect(waterfall_rect);
+}
+
+void EPIRBRxView::on_show() {
+    // Turn on spectrum
+    add_child(&waterfall);
+    app_view.epirb_rx_config_message.scpectrum_on = true;
+    app_view.send_config();
+    waterfall.start();
+}
+
+void EPIRBRxView::on_hide() {
+    // Turn off spectrum
+    remove_child(&waterfall);
+    waterfall.stop();
+    app_view.epirb_rx_config_message.scpectrum_on = false;
+    app_view.send_config();
 }
 
 EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
@@ -312,13 +331,10 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         this->on_tick_second();
     };
     tab_view.set_parent_rect(Rect(0,UI_POS_HEIGHT(4),screen_width,3*8));
-
-    /*options_algo.on_change = [this](size_t, ui::OptionsField::value_t v) {
-        // Send config to baseband
-        epirb_tx_message.data_len = v;
-
-        baseband::set_epirb_tx_config(epirb_tx_message);
-    };*/
+    view_list.hidden(false); 
+    view_detail.hidden(true);
+    view_map.hidden(true);
+    view_rx.hidden(true);
 
     view_list.set_db(beacon_db);
 
@@ -412,7 +428,8 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
 
         // console.write(beacon_info + "\n");
         //  TODO update beacon list
-        view_list.refresh();
+        //view_list.refresh();
+        view_list.set_dirty();
     }
 }
 
@@ -487,7 +504,7 @@ void EPIRBAppView::update_display() {
     std::string stats = std::string("Stats: ") +
                         STR_COLOR_GREEN + to_string_dec_uint(packets_valid) + "OK " +
                         STR_COLOR_YELLOW + to_string_dec_uint(packets_corrected) + "CORR " +
-                        STR_COLOR_RED + to_string_dec_uint(packets_error) + "ERR" + STR_COLOR_WHITE;
+                        STR_COLOR_RED + to_string_dec_uint(packets_error) + "ERR";
     label_packet_stats.set(stats);
 
     if (beacon_db.size() > 0) {
@@ -496,9 +513,9 @@ void EPIRBAppView::update_display() {
     }
 }
 
-std::string EPIRBAppView::format_location(Location& location) {
-    return to_string_decimal(location.latitude.getFloatValue(), 4) + "°," +
-           to_string_decimal(location.longitude.getFloatValue(), 4) + "°";
+void EPIRBAppView::send_config() {
+    // Send config to baseband
+    baseband::set_epirb_rx_config(epirb_rx_config_message);    
 }
 
 }  // namespace ui::external_app::epirb_rx

@@ -24,27 +24,24 @@
 namespace ui::external_app::epirb_rx {
 
 BeaconUIList::BeaconUIList(Rect parent_rect)
-    : Widget{parent_rect},
-      visible_lines_{(unsigned)parent_rect.height() / char_height} {
-    line_max_length = (parent_rect.width() - 8) / char_width;
+    : View{parent_rect} {
     this->set_focusable(true);
 }
 
 void BeaconUIList::paint(Painter& painter) {
     auto rect = screen_rect();
+    // Clear view
+    painter.fill_rectangle(rect, Theme::getInstance()->bg_darkest->background);
 
     if (!db_ || (db_->empty())) {
-        auto line_position = rect.location() + Point{7 * 8, 6 * 16};
-        painter.fill_rectangle(rect, Theme::getInstance()->bg_darkest->background);
-        painter.draw_string(line_position, *Theme::getInstance()->bg_darkest, "No beacons");
+        //auto line_position = rect.location() + Point{7 * 8, 6 * 16};
+        //painter.draw_string(line_position, *Theme::getInstance()->bg_darkest, "No beacons");
         return;
     }
 
     auto base_style = Theme::getInstance()->bg_darkest;
 
-    // TODO: could minimize redraw/re-read if necessary
-    //       with better change tracking.
-    for (auto offset = 0u; offset < visible_lines_; ++offset) {
+    for (auto offset = 0u; offset < BEACON_HISTORY_SIZE; ++offset) {
         // The whole frame needs to be cleared so every line 'slot'
         // is redrawn even when `text` just left empty.
         auto text = std::string{};
@@ -58,11 +55,6 @@ void BeaconUIList::paint(Painter& painter) {
             text = entry.formatSummary(true);
         }
 
-        // Pad right with ' ' so trailing chars are cleaned up.
-        // draw_glyph has less flicker than fill_rect when drawing.
-        /*if (text.length() < line_max_length)
-            text.resize(line_max_length, ' ');*/
-
         painter.draw_string(
             line_position, (is_selected ? style->invert() : *style), text);
     }
@@ -71,11 +63,7 @@ void BeaconUIList::paint(Painter& painter) {
     painter.draw_rectangle(rect, (has_focus() ? Theme::getInstance()->bg_darkest->foreground : Theme::getInstance()->bg_darkest->background));
 }
 
-void BeaconUIList::on_focus() {
-    set_dirty();
-}
-
-void BeaconUIList::on_blur() {
+void BeaconUIList::on_show() {
     set_dirty();
 }
 
@@ -105,7 +93,7 @@ bool BeaconUIList::on_touch(const TouchEvent event) {
     }
     return true;
 }
-
+/*
 bool BeaconUIList::on_keyboard(const KeyboardEvent key) {
     if (!db_ || db_->empty())
         return false;
@@ -127,7 +115,7 @@ bool BeaconUIList::on_keyboard(const KeyboardEvent key) {
 
     return false;
 }
-
+*/
 bool BeaconUIList::on_key(const KeyEvent key) {
     if (!db_ || db_->empty())
         return false;
@@ -162,11 +150,6 @@ bool BeaconUIList::on_encoder(EncoderEvent delta) {
     return true;
 }
 
-void BeaconUIList::set_parent_rect(Rect new_parent_rect) {
-    visible_lines_ = new_parent_rect.height() / char_height;
-    Widget::set_parent_rect(new_parent_rect);
-}
-
 void BeaconUIList::set_index(size_t index) {
     start_index_ = 0;
     selected_index_ = 0;
@@ -194,9 +177,9 @@ void BeaconUIList::adjust_selected_index(int delta) {
     }
 
     // Selection is off the bottom of the screen, move down.
-    else if (new_index >= (int32_t)visible_lines_) {
-        start_index_ = std::min<int32_t>(start_index_ + delta, db_->size() - visible_lines_);
-        selected_index_ = visible_lines_ - 1;
+    else if (new_index >= (int32_t)BEACON_HISTORY_SIZE) {
+        start_index_ = std::min<int32_t>(start_index_ + delta, db_->size() - BEACON_HISTORY_SIZE);
+        selected_index_ = BEACON_HISTORY_SIZE - 1;
     }
 
     // Otherwise, scroll within the screen, but not past the end.

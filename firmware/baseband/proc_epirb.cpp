@@ -39,10 +39,14 @@ EPIRBProcessor::EPIRBProcessor() {
     decim_1.configure(taps_11k0_decim_1.taps);
     channel_filter.configure(taps_11k0_channel.taps, 2);
     demod.configure(SAMPLE_RATE, 5000);
-    float squelch_threshold = 0.5;
-    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config, squelch_threshold);
-    squelch.set_threshold(squelch_threshold);
+    configure_audio();
+    channel_spectrum.set_decimation_factor(1);
     baseband_thread.start();
+}
+
+void EPIRBProcessor::configure_audio() {
+    float squelch_threshold = ((float)squelch_level)/100.0f;
+    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config, squelch_threshold);
 }
 
 float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
@@ -75,16 +79,21 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
     // Second decimation stage: 384 kHz / 8 -> 48 kHz
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
-    // Channel filter for audio out
-    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     // We use decim1 output as decimator output
     const auto decimator_out = decim_1_out;
 
+    // Feed IQ data into spectrum collector for the RF waterfall.
+    if(spectrum_on) channel_spectrum.feed(decim_1_out, -5500, 5500, 3400);
+
     feed_channel_stats(decimator_out);
 
-    auto audio = demod.execute(channel_out, audio_buffer);
-    // auto audio = demod.execute(decimator_out, audio_buffer);
-    audio_output.write(audio);
+    if(audio_on) {
+        // Channel filter for audio out
+        const auto  channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+        auto audio = demod.execute(channel_out, audio_buffer);
+        // auto audio = demod.execute(decimator_out, audio_buffer);
+        audio_output.write(audio);
+    }
 
     // Process each decimated sample through the matched filter
     for (size_t i = 0; i < decimator_out.count; i++) {
@@ -96,13 +105,13 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         last_sample = decimator_out.p[i];
 
         // Let's sum phase delta over a 6 sample window to get the full phase jump
-        ma_sum -= ma_buffer[ma_index];
-        ma_buffer[ma_index] = phase_delta;
-        ma_sum += ma_buffer[ma_index];
-        ma_index = (ma_index + 1) % MA_SIZE;
+        phase_delta_acc -= phase_delta_buffer[pahse_delta_index];
+        phase_delta_buffer[pahse_delta_index] = phase_delta;
+        phase_delta_acc += phase_delta_buffer[pahse_delta_index];
+        pahse_delta_index = (pahse_delta_index + 1) % PHASE_DELTA_ACC_SIZE;
 
         // Use accumulated delta
-        phase_delta = ma_sum;
+        phase_delta = phase_delta_acc;
 
         // State machine for COSPAS frame detection
         switch (current_state) {
@@ -113,7 +122,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 } else {
                     stability_counter++;
                     if (stability_counter > CARRIER_SAMPLES_THRESHOLD) {
-                        send_packet(0xFED0000000000001);
+                        //send_packet(0xFED0000000000001);
                         current_state = CARRIER_LOCKED;
                         frame_sample_count = 0;
                     }
@@ -123,11 +132,11 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
             case CARRIER_LOCKED:
                 // Carrier is locked, we now wait for a phase 1.1 rad phase jump corresponding to the befining of the frame
 
-                if (filtered_rise_detect(phase_delta > 0.8f)) {
+                if (filtered_rise_detect(phase_delta >= 0.7f)) {
                     // Jump detected (1.1 rad)
                     frame_sample_count = 0;
                     // send_packet(0xFED0000000000002);
-                    send_packet(0xFEE0000000000000 | CONF_FLOAT(phase_delta));
+                    //send_packet(0xFEE0000000000000 | CONF_FLOAT(phase_delta));
                     current_state = DATA_SYNC;
                     // send_packet(0xFEA0000000000000 | CONF_FLOAT(avg_phase));
                     // send_packet((((phase - avg_phase)>=0) ? 0xFEA0000000000000 : 0xFEB0000000000000) | CONF_FLOAT(phase));
@@ -166,8 +175,8 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                             }
                         } else if (sample_count > (SAMPLES_PER_SYMBOL * 2 + SAMPLES_MARGIN)) {
                             // We missed something...
-                            send_packet(0xFED0000000000003);
-                            send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
+                            //send_packet(0xFED0000000000003);
+                            //send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
                             // TODO
                             cur_bit = last_bit;
                         } else if (sample_count >= (SAMPLES_PER_SYMBOL * 2 - SAMPLES_MARGIN)) {
@@ -189,14 +198,14 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                         sample_count = 0;
                         packet_builder.execute(cur_bit);
                         last_bit = cur_bit;
-                        bit_history.add(cur_bit);
+                        /*bit_history.add(cur_bit);
                         history_size++;
                         if (history_size >= 64) {
                             history_size = 0;
                             // Create and send EPIRB packet message to application layer
                             send_packet(bit_history.value());
                             bit_history = BitHistory();
-                        }
+                        }*/
                     }
                 }
                 if (frame_sample_count > FRAME_MAX_SAMPLES) {
@@ -224,13 +233,14 @@ void EPIRBProcessor::frame_end() {
     current_state = IDLE;
     // send_packet(0xFED0000000000000);
     // send_packet(0xFEA0000000000000 | old_count);
-    if (history_size > 0) send_packet(bit_history.value());
+    /*if (history_size > 0) send_packet(bit_history.value());
     history_size = 0;
-    bit_history = BitHistory();
+    bit_history = BitHistory();*/
     // Reset packet builder
     packet_builder.reset_state();
 }
 
+/*
 void EPIRBProcessor::send_packet(uint64_t data) {
     baseband::Packet packet{};
     for (int8_t i = 63; i >= 0; i--) {
@@ -239,26 +249,31 @@ void EPIRBProcessor::send_packet(uint64_t data) {
     const EPIRBPacketMessage message{packet};
     shared_memory.application_queue.push(message);
 }
+*/
 
 void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
     // EPIRB packet received - validate and process
-    if (true /*packet.size() >= 112*/) {  // Minimum EPIRB data payload size (112 bits)
-        packets_received++;
-        last_packet_timestamp = Timestamp::now();
-
-        // send_packet(0xFEC0000000000000 | frame_sample_count);
-        //  Create and send EPIRB packet message to application layer
-        const EPIRBPacketMessage message{packet};
-        shared_memory.application_queue.push(message);
-    }
+    // send_packet(0xFEC0000000000000 | frame_sample_count);
+    //  Create and send EPIRB packet message to application layer
+    const EPIRBPacketMessage message{packet};
+    shared_memory.application_queue.push(message);
 }
 
 void EPIRBProcessor::on_message(const Message* const msg) {
     // Configure the processor
     switch (msg->id) {
-        case Message::ID::EPIRBTXData: {
-            // const auto message = *reinterpret_cast<const EPIRBTXDataMessage*>(msg);
-            //  TODO config
+        case Message::ID::UpdateSpectrum:
+        case Message::ID::SpectrumStreamingConfig:
+            channel_spectrum.on_message(msg);
+            break;
+        case Message::ID::EPIRBRXConfig: {
+            const EPIRBRXConfig message = *reinterpret_cast<const EPIRBRXConfig*>(msg);
+            audio_on = message.audio_on;
+            spectrum_on = message.scpectrum_on;
+            if(message.squelch != squelch_level) {
+                squelch_level = message.squelch;
+                configure_audio();
+            }
         } break;
 
         default:

@@ -93,6 +93,8 @@ class Beacon {
         UNKNOWN
     };
 
+    #define UNKNOWN_LABEL "Unk."
+
     static bool protocolIsUser(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::USER); };
     static bool protocolIsNational(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::NATIONAL_LOCATION); };
     static bool protocolIsStandard(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::STANDARD_LOCATION); };
@@ -115,7 +117,7 @@ class Beacon {
             case ProtocolType::SPARE:
                 return "Spare Protocol";
             default:
-                return "Unknown Protocol";
+                return UNKNOWN_LABEL;
         }
     }
 
@@ -304,7 +306,7 @@ class Beacon {
         if (protocol == Protocol::RLS) return "RLS Location Protocol";
         if (protocol == Protocol::ELT_DT) return "ELT(DT) Location Protocol";
         if (protocol == Protocol::SPARE) return "Spare";
-        return "Unknown Protocol";
+        return UNKNOWN_LABEL;
     }
 
     inline const char* getType() {
@@ -319,14 +321,14 @@ class Beacon {
         if (protocol == Protocol::STD_SHIP) return "SHIP";
         if (protocol == Protocol::RLS) return "RLS";
         if (protocol == Protocol::SPARE) return "SPARE";
-        return "UNK.";
+        return UNKNOWN_LABEL;
     }
 
     inline bool hasMainLocatingDevice() { return (mainLocatingDevice != MainLocatingDevice::UNDEFINED); }
     inline const char* getMainLocatingDeviceName() {
         if (mainLocatingDevice == MainLocatingDevice::EXTERNAL_NAV) return "Exernal";
         if (mainLocatingDevice == MainLocatingDevice::INTERNAL_NAV) return "Internal";
-        return "Undefined";
+        return UNKNOWN_LABEL;
     }
 
     inline bool hasAuxLocatingDevice() { return (auxLocatingDevice != AuxLocatingDevice::UNDEFINED); }
@@ -343,7 +345,7 @@ class Beacon {
             case AuxLocatingDevice::SART:
                 return "SART";
             default:
-                return "Undefined";
+                return UNKNOWN_LABEL;
         }
     }
 

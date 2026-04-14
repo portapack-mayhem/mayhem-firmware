@@ -65,7 +65,7 @@ enum class PacketStatus : uint8_t {
    private:
     LogFile log_file{};
 };*/
-
+/*
 class EPIRBListView : public View {
    public:
     EPIRBListView(Rect parent_rect);
@@ -76,19 +76,19 @@ class EPIRBListView : public View {
     // Beacon list
     BeaconUIList beaconlist_view{
         {0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+*/
+/*ui::Button button_map{
+    {0, 180, 60, 24},
+    "Map"};
 
-    /*ui::Button button_map{
-        {0, 180, 60, 24},
-        "Map"};
+ui::Button button_clear{
+    {64, 180, 60, 24},
+    "Clear"};
 
-    ui::Button button_clear{
-        {64, 180, 60, 24},
-        "Clear"};
-
-    ui::Button button_log{
-        {128, 180, 60, 24},
-        "Log"};*/
-};
+ui::Button button_log{
+    {128, 180, 60, 24},
+    "Log"};*/
+/*};*/
 
 class EPIRBDetailView : public View {
    public:
@@ -111,29 +111,31 @@ class EPIRBDetailView : public View {
 class EPIRBMapView : public View {
    public:
     EPIRBMapView(Rect parent_rect);
-    //void hidden(bool hide) override;
+    void on_show() override;
     void clear_main_marker();
     void set_main_marker(const std::string& label, float lat, float lon);
     void clear_markers();
     void add_marker(GeoMarker& marker);
 
    private:
-    const std::string NO_BEACON {"No beacon"};
-    /*GeoPos geopos{
-        {0, 0},
-        ui::GeoPos::alt_unit::METERS,
-        ui::GeoPos::spd_unit::NONE};*/
+    const std::string NO_BEACON{"No beacon"};
     GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
     float lat_{EPIRB_RX_DEFAULT_LATITUDE};
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
 };
 
+// Forward declaration
+class EPIRBAppView;
+
 class EPIRBRxView : public View {
    public:
-    EPIRBRxView(Rect parent_rect);
+    EPIRBRxView(EPIRBAppView& parent, Rect parent_rect);
+    void on_show() override;
+    void on_hide() override;
 
    private:
     spectrum::WaterfallView waterfall{};
+    EPIRBAppView& app_view;
 };
 
 /*
@@ -182,6 +184,10 @@ class EPIRBAppView final : public ui::View {
     void paint(ui::Painter&) override;
     void focus() override;
 
+    // Message to configure rx baseband
+    EPIRBRXConfig epirb_rx_config_message{};
+    void send_config();
+
     std::string title() const override { return "EPIRB RX"; }
 
    private:
@@ -192,7 +198,7 @@ class EPIRBAppView final : public ui::View {
 
     BeaconDB beacon_db{};
 
-//    EPIRBLogger logger{};
+    // EPIRBLogger logger{};
 
     static constexpr auto header_height = 4 * 16;
 
@@ -248,25 +254,24 @@ class EPIRBAppView final : public ui::View {
         "Latest:"};
 
     ui::Text text_latest_info{
-        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
+        {UI_POS_X(8), UI_POS_Y(3),
+         UI_POS_WIDTH_REMAINING(8 - 4 /*Make width larger than actual screen space as a workaround to https://github.com/portapack-mayhem/mayhem-firmware/issues/3144 */), UI_POS_HEIGHT(1)},
         ""};
 
     // Tab View
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH};
 
-    EPIRBListView view_list{view_rect};
+    // EPIRBListView view_list{view_rect};
+    BeaconUIList view_list{view_rect};
     EPIRBDetailView view_detail{view_rect};
     EPIRBMapView view_map{view_rect};
-    EPIRBRxView view_rx{view_rect};
+    EPIRBRxView view_rx{*this, view_rect};
 
     TabView tab_view{
         {"List", Theme::getInstance()->fg_cyan->foreground, &view_list},
         {"Detail", Theme::getInstance()->fg_green->foreground, &view_detail},
         {"Map", Theme::getInstance()->fg_yellow->foreground, &view_map},
         {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx}};
-
-    // Current EPIRBTXDataMessage for baseband
-    EPIRBTXDataMessage epirb_tx_message{};
 
     SignalToken signal_token_tick_second{};
     uint32_t beacons_received = 0;
@@ -289,8 +294,7 @@ class EPIRBAppView final : public ui::View {
     void on_tick_second();
 
     void update_display();
-    std::string format_location(Location& location);
-    std::string beacon_to_hex_string(const baseband::Packet& packet);
+    // std::string beacon_to_hex_string(const baseband::Packet& packet);
 };
 
 }  // namespace ui::external_app::epirb_rx

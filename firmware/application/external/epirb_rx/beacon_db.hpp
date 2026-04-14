@@ -26,7 +26,7 @@
 
 namespace ui::external_app::epirb_rx {
 
-#define BEACON_HISTORY_SIZE 16
+#define BEACON_HISTORY_SIZE 13
 
 class BeaconDB {
    public:

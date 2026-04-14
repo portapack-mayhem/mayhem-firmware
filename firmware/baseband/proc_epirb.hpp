@@ -32,12 +32,11 @@
 #include "rssi_thread.hpp"
 #include "channel_decimator.hpp"
 #include "matched_filter.hpp"
-#include "clock_recovery.hpp"
-#include "symbol_coding.hpp"
 #include "packet_builder.hpp"
 #include "baseband_packet.hpp"
 #include "message.hpp"
 #include "buffer.hpp"
+#include "spectrum_collector.hpp"
 
 #include "audio_output.hpp"
 #include "dsp_demodulate.hpp"
@@ -94,7 +93,7 @@ class EPIRBPacketBuilder {
                 if (packet.size() >= size) {
                     flush();
                 } else {
-                    if (packet_truncated()) {
+                    if (packet.size() >= packet.capacity()) {
                         reset_state();
                     }
                 }
@@ -124,10 +123,6 @@ class EPIRBPacketBuilder {
         Format,
         Payload,
     };
-
-    bool packet_truncated() const {
-        return packet.size() >= packet.capacity();
-    }
 
     BitHistory bit_history{};
     BitPattern real_sync_matcher{COSPAS_REAL_PREAMBLE, COSPAS_PREAMBLE_SIZE};
@@ -165,17 +160,21 @@ class EPIRBProcessor : public BasebandProcessor {
 
     AudioOutput audio_output{};
 
+    // Config
+    uint8_t squelch_level{50};
+    bool audio_on{true};
+    bool spectrum_on{false};
+
     std::array<float, 32> audio{};
     const buffer_f32_t audio_buffer{
         audio.data(),
         audio.size()};
 
-    // Variable pour le décodage Manchester (différentiel)
+    // Last received bit (for manchester deconding)
     bool last_bit = false;
     // Time of the last sent frame
-    uint32_t last_frame_time{0};
-    BitHistory bit_history{};
-    uint8_t history_size{0};
+    // BitHistory bit_history{};
+    // uint8_t history_size{0};
     uint16_t sample_count{0};
     uint16_t frame_sample_count{0};
     bool last_phase_positive = false;
@@ -188,13 +187,12 @@ class EPIRBProcessor : public BasebandProcessor {
     State current_state = IDLE;
 
     uint32_t stability_counter = 0;
-    float last_phase = 0.0f;
 
-    // Moving Average (30 samples = 1 symbole à 800Hz / 24kHz)
-    static constexpr size_t MA_SIZE = SAMPLES_ACCUMUMLATOR;
-    float ma_buffer[MA_SIZE] = {0.0f};
-    size_t ma_index = 0;
-    float ma_sum = 0.0f;
+    // Phase delta accumulator (6 samples)
+    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_ACCUMUMLATOR;
+    float phase_delta_buffer[PHASE_DELTA_ACC_SIZE] = {0.0f};
+    size_t pahse_delta_index = 0;
+    float phase_delta_acc = 0.0f;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -205,29 +203,17 @@ class EPIRBProcessor : public BasebandProcessor {
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    FMSquelch squelch{};
     dsp::demodulate::FM demod{};
-
+    SpectrumCollector channel_spectrum{};
+    // Store last stample for phase delta calculation
     complex16_t last_sample{};
 
-    // Simple bi-phase L decoder state
-    uint_fast8_t last_symbol = 0;
-
     // EPIRB packet structure:
-    // - Sync pattern: 000101010101... (15 bits)
-    // - Frame sync: 0111110 (7 bits)
-    // - Data: 112 bits
+    // - Sync pattern: 111111111111111 (15 bits)
+    // - Frame sync: 000101111(real) / 011010000(test) (9 bits)
+    // - Data: 120 bits (long frame) / // bits (short frame)
     // - BCH error correction: 10 bits
-    // Total: 144 bits
-    /*    EPIRBPacketBuilder packet_builder{
-            //{0b1111111111111110, 16, 0},  // Preamble pattern
-            BitPattern{0b11111111, 8, 0},  // Preamble pattern
-            //{144-16},                       // Fixed length
-            FixedLength{144 - 8},  // Fixed length
-            [this](const baseband::Packet& packet) {
-                this->payload_handler(packet);
-            }};*/
-
+    // Total: 144 bits (long frame) / 112  bits (short frame)
     EPIRBPacketBuilder packet_builder{
         this,
         [](void* ctx, const baseband::Packet& p) {
@@ -235,14 +221,11 @@ class EPIRBProcessor : public BasebandProcessor {
         }};
 
     void payload_handler(const baseband::Packet& packet);
-    void send_packet(uint64_t data);
+    // void send_packet(uint64_t data);
     float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);
     void frame_end();
     bool filtered_rise_detect(bool condition);
-
-    // Statistics
-    uint32_t packets_received = 0;
-    Timestamp last_packet_timestamp{};
+    void configure_audio();
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{

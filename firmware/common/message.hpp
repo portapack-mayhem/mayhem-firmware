@@ -161,6 +161,7 @@ class Message {
         ToneDetectData = 103,
         ToneDetectConfig = 104,
         FlexTosend = 105,
+        EPIRBRXConfig = 106,
         MAX
     };
 
@@ -388,6 +389,16 @@ class EPIRBPacketMessage : public Message {
     }
 
     baseband::Packet packet;
+};
+
+class EPIRBRXConfig : public Message {
+   public:
+    constexpr EPIRBRXConfig()
+        : Message{ID::EPIRBRXConfig} {
+    }
+    bool scpectrum_on = false;
+    bool audio_on = true;
+    uint8_t squelch{50};
 };
 
 class TPMSPacketMessage : public Message {

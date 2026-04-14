@@ -29,7 +29,7 @@
 
 namespace ui::external_app::epirb_rx {
 
-class BeaconUIList : public Widget {
+class BeaconUIList : public View {
    public:
     std::function<void(size_t)> on_select{};
     std::function<void()> on_leave{};  // Called when Right is pressed.
@@ -39,14 +39,11 @@ class BeaconUIList : public Widget {
     BeaconUIList& operator=(const BeaconUIList& other) = delete;
 
     void paint(Painter& painter) override;
-    void on_focus() override;
-    void on_blur() override;
+    void on_show() override;
     bool on_key(const KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
-    bool on_keyboard(const KeyboardEvent event) override;
+//    bool on_keyboard(const KeyboardEvent event) override;
     bool on_touch(const TouchEvent event) override;
-
-    void set_parent_rect(Rect new_parent_rect) override;
 
     void set_index(size_t index);
     size_t get_index() const;
@@ -54,11 +51,6 @@ class BeaconUIList : public Widget {
 
    private:
     void adjust_selected_index(int index);
-
-    static constexpr int8_t char_height = 16;
-    static constexpr int8_t char_width = 8;
-    uint8_t line_max_length = 29;
-    size_t visible_lines_{0};
 
     BeaconDB* db_{nullptr};
     size_t start_index_{0};
