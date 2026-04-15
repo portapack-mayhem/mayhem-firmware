@@ -111,33 +111,36 @@ void EPIRBDetailView::paint(Painter& /*painter*/) {
 }
 
 void EPIRBDetailView::set_beacon(Beacon& beacon) {
-    std::string beacon_text = STR_COLOR_CYAN + std::string("Beacon: ") + STR_COLOR_WHITE + beacon.getType() + "(";
-    if(beacon.frameMode == Beacon::FrameMode::NORMAL) {
-        beacon_text += STR_COLOR_YELLOW + std::string("Real");
-    } else {
-        beacon_text += STR_COLOR_GREEN + std::string("Test");
-    }
-    beacon_text += STR_COLOR_WHITE +  std::string(") - ") + beacon.formatTime() + "\n";
-    beacon_text += STR_COLOR_CYAN + std::string("Protocol: ") + STR_COLOR_WHITE + beacon.getProtocolName() + "\n";
-    //beacon_text += beacon.getProtocolDesciption() + ;
+    char buffer[48];
+    bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
+    sprintf(buffer,"%sBeacon:%s %s(%s%s%s) - %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.getType(),isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN,isReal ? "Real" : "Test",STR_COLOR_WHITE,beacon.formatTime().c_str());
+    std::string beacon_text = buffer;
+    sprintf(buffer,"%sProtocol:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.getProtocolName());
+    beacon_text += buffer;
+    //sprintf(buffer,"%s\n",beacon.getProtocolDesciption());
+    //beacon_text += buffer;
     if(beacon.hasAdditionalData) {
         beacon_text += beacon.additionalData + "\n";
     }
-    beacon_text += STR_COLOR_CYAN + std::string("Location: ") + STR_COLOR_WHITE + beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR) + "\n";
+    sprintf(buffer,"%sLocation:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str());
+    beacon_text += buffer;
     //beacon_text += beacon.country.toString() + "\n";
     if(!beacon.location.isUnknown()) {
         beacon_text += beacon.location.toString(Location::LocationFormat::SEXAGESIMAL) + "\n";
         beacon_text += beacon.location.toString(Location::LocationFormat::DECIMAL) + "\n";
     }
-    beacon_text += STR_COLOR_CYAN + std::string("Control: ");
-    beacon_text += beacon.isBch1Valid() ? STR_COLOR_GREEN + std::string("BCH1-OK") : STR_COLOR_RED + std::string("BCH1-KO");
+    sprintf(buffer,"%sControl: %s%s",STR_COLOR_CYAN,beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED,beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
+    beacon_text += buffer;
     if(beacon.hasBch2) {
-        beacon_text += beacon.isBch2Valid() ? STR_COLOR_GREEN + std::string(" BCH2-OK") : STR_COLOR_RED + std::string(" BCH2-KO");
+        sprintf(buffer," %s%s",beacon.isBch2Valid() ? STR_COLOR_GREEN : STR_COLOR_RED,beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
+        beacon_text += buffer;
     }
     beacon_text += "\n";
-    beacon_text += STR_COLOR_CYAN + std::string("Hex ID: ") + STR_COLOR_WHITE + beacon.hexId + "\n";
+    sprintf(buffer,"%sHex ID:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.hexId.c_str());
+    beacon_text += buffer;
     if(beacon.hasSerialNumber) {
-        beacon_text += STR_COLOR_CYAN + std::string("S/N: ") + STR_COLOR_WHITE + beacon.serialNumber + "\n";
+        sprintf(buffer,"%sS/N:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.serialNumber.c_str());
+        beacon_text += buffer;
     }
     text_beacon.clear(true);
     text_beacon.write(beacon_text);
