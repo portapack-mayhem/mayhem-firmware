@@ -155,6 +155,9 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 }
 
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
+    // portarf: 130mA (ESP32 won't turn off)
+    // H4m + hackrf one: r10 57mA
+    // H4m + hackrf pro:
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
@@ -177,14 +180,14 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 
 #ifdef PRALINE
-        // 1. TÁPVONALAK LEKAPCSOLÁSA
+        // 1. TURN OFF POWER RAILS
         gpio_vaa_disable.set();     // VAA_ENABLE P8_1 -> HIGH
         gpio_1v2_enable.clear();    // 1V2_E P8_7 -> LOW
         gpio_3v3aux_disable.set();  // 3V3 aux P6_7 -> HIGH
         gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 -> LOW
         gpio_VIN_enable.set();      // VIN_IN_EN P8_5 -> HIGH
 
-        // 2. FANTOMÁRAM MEGSZÜNTETÉSE
+        // 2. ELIMINATE LEAKAGE CURRENT
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
@@ -200,37 +203,25 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #endif
 
-        // ====================================================================
-        // EGYSZERI HARDVERES TAKARÍTÁS A CIKLUS ELŐTT
-        // ====================================================================
+        // ONE-TIME HARDWARE CLEANUP BEFORE THE LOOP
 
-        // USB0 PHY és USB PLL leállítása
+        // Stop USB0 PHY and USB PLL
         LPC_CGU->PLL0USB_CTRL.PD = 1;
         LPC_CREG->CREG0 |= (1 << 5);
 
-        // Külső oszcillátor (XTAL) és Audio PLL végleges leállítása
-        (*(volatile uint32_t*)(&LPC_CGU->XTAL_OSC_CTRL)) |= (1 << 0);
+        // Completely stop external oscillator (XTAL) and Audio PLL
         (*(volatile uint32_t*)(&LPC_CGU->PLL0AUDIO_CTRL)) |= (1 << 0);
 
-        // ADC0 és ADC1 analóg táp kikapcsolása
+        // Turn off ADC0 and ADC1 analog power
         LPC_ADC0->CR &= ~(1 << 21);
         LPC_ADC1->CR &= ~(1 << 21);
-
-        // Nem használt periféria buszok KIKAPCSOLÁSA (I2C1, SDIO, SSP1)
-        LPC_CGU->BASE_APB3_CLK.PD = 1;  // APB3 hajtja az I2C1-et! Kikapcsolva.
-        LPC_CGU->BASE_SDIO_CLK.PD = 1;
-        LPC_CGU->BASE_SSP1_CLK.PD = 1;
-        LPC_CGU->BASE_PERIPH_CLK.PD = 1;
-
-        // Chip Select lábak bemenetté alakítása a szivárgás ellen
-        LPC_GPIO->DIR[1] &= ~((1 << 11) | (1 << 14));
 
         rtc_interrupt_enable();
         LPC_RTC->CIIR = (1 << 1);
         LPC_RTC->ILR = 3;
 
         while (1) {
-            // Mérés (Az I2C0 ekkor aktív)
+            // Measurement (I2C0 is active at this point)
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
             if (valid_mask) {
@@ -251,9 +242,9 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                 led_rx.on();
             }
 
-            // --------------- ALVÁS ELŐKÉSZÍTÉSE ------------------------------------
+            // --------------- PREPARE FOR SLEEP ------------------------------------
 
-            // I2C0 leállítása és a hozzá tartozó busz (APB1) lekapcsolása az alvás idejére
+            // Stop I2C0 and disable its associated bus (APB1) during sleep
             portapack::i2c0.stop();
             LPC_CGU->BASE_APB1_CLK.PD = 1;
 
@@ -277,7 +268,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             // Flash Power-down
             LPC_CREG->CREG6.ETHMODE |= (1 << 2);
 
-            // PMC (PCON) beállítása Deep-sleepre
+            // Set PMC (PCON) to Deep-sleep
             (*(volatile uint32_t*)(0x40042000)) &= ~(0x7);
 
             __disable_irq();
@@ -287,15 +278,15 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             __DSB();
             __ISB();
 
-            __WFI();  // Zzz... A rendszer áramfelvétele itt leesik!
+            __WFI();  // sleep, wait for RTC interrupt
 
-            // --- ÉBREDÉS ---;
+            // --- WAKE UP ---;
 
-            // 1. Flash visszakapcsolása AZONNAL
+            // 1. Turn Flash back on IMMEDIATELY
             LPC_CREG->CREG6.ETHMODE &= ~(1 << 2);
             for (volatile int i = 0; i < 5000; i++) __asm__("nop");
 
-            // 2. I2C0 busz (APB1) és az I2C0 periféria visszakapcsolása a következő méréshez
+            // 2. Turn I2C0 bus (APB1) and I2C0 peripheral back on for the next measurement
             LPC_CGU->BASE_APB1_CLK.PD = 0;
             portapack::i2c0.start(i2c_config_12mhz);
 
