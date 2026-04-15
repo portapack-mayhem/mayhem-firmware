@@ -55,10 +55,6 @@ class Location {
             return floatValue;
         }
 
-        inline void toFloatString(char* angleStr) {
-            std::sprintf(angleStr, "'%02.6f'", getFloatValue());
-        }
-
        private:
         float floatValue = 255.0f;
     };
@@ -133,14 +129,6 @@ class Location {
         return locator;
     }
 
-    inline void formatFloatLocation(char* buffer, const char* format) {
-        char latStr[16];
-        latitude.toFloatString(latStr);
-        char longStr[16];
-        longitude.toFloatString(longStr);
-        std::sprintf(buffer, format, latStr, longStr);
-    }
-
     inline std::string toString(LocationFormat format) {
         if (isUnknown()) {
             return "GPS not synchronized";
@@ -163,10 +151,7 @@ class Location {
             default:
             case LocationFormat::DECIMAL:
                 if (decimalFormat.empty()) {
-                    //decimalFormat = to_string_decimal(latitude.getFloatValue(), 5) + ", "+ to_string_decimal(longitude.getFloatValue(), 5);
-                    char buffer[64];
-                    formatFloatLocation(buffer, "*%s*, *%s*");
-                    decimalFormat = buffer;
+                    decimalFormat = to_string_decimal(latitude.getFloatValue(), 5) + ", "+ to_string_decimal(longitude.getFloatValue(), 5);
                 }
                 return decimalFormat;
         }
