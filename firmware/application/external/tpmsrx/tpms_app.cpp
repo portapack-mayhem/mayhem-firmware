@@ -75,9 +75,12 @@ std::string id(tpms::TransponderID id) {
 }
 
 std::string pressure(Pressure pressure) {
-    return to_string_dec_int(pressure_unit == PRESSURE_UNIT_PSI ? pressure.psi() : pressure_unit == PRESSURE_UNIT_BAR ? pressure.bar()
-                                                                                                                      : pressure.kilopascal(),
-                             3);
+    if (pressure_unit == PRESSURE_UNIT_BAR) {
+        int bar10 = pressure.kilopascal() / 10;
+        return to_string_dec_int(bar10 / 10, 1) + "." + to_string_dec_int(bar10 % 10, 1);
+    }
+    return to_string_dec_int(
+        pressure_unit == PRESSURE_UNIT_PSI ? pressure.psi() : pressure.kilopascal(), 3);
 }
 
 std::string temperature(Temperature temperature) {
