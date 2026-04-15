@@ -268,7 +268,16 @@ void EPIRBMapView::add_marker(GeoMarker& marker) {
     geomap.store_marker(marker);
 }
 
+void EPIRBMapView::paint(Painter& painter) {
+    // Prevent view from clearing background
+}
+
 void EPIRBMapView::on_show() {
+    // Force redrawing map
+    repaint();
+}
+
+void EPIRBMapView::repaint() {
     // Fake orientation change to force map redraw
     geomap.update_my_orientation(180,false);
     geomap.update_my_orientation(0,true);
@@ -279,6 +288,7 @@ EPIRBRxView::EPIRBRxView(
     Rect parent_rect)
     : View(parent_rect), app_view(parent) {
     ui::Rect waterfall_rect{0, 0, parent_rect.width(), parent_rect.height()-UI_POS_HEIGHT(1)};
+    add_child(&waterfall);
     waterfall.set_parent_rect(waterfall_rect);
 }
 
@@ -292,10 +302,11 @@ void EPIRBRxView::on_show() {
 
 void EPIRBRxView::on_hide() {
     // Turn off spectrum
-    remove_child(&waterfall);
     waterfall.stop();
     app_view.epirb_rx_config_message.scpectrum_on = false;
     app_view.send_config();
+    remove_child(&waterfall);
+    app_view.refresh();
 }
 
 EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
@@ -377,8 +388,10 @@ void EPIRBAppView::set_parent_rect(const ui::Rect new_parent_rect) {
     console.set_parent_rect(console_rect);*/
 }
 
-void EPIRBAppView::paint(ui::Painter& /* painter */) {
-    // Custom painting if needed
+void EPIRBAppView::refresh() {
+    // Force map repaint
+    view_map.repaint();
+    set_dirty();
 }
 
 void EPIRBAppView::focus() {

@@ -111,11 +111,13 @@ class EPIRBDetailView : public View {
 class EPIRBMapView : public View {
    public:
     EPIRBMapView(Rect parent_rect);
+    void paint(Painter& painter) override;
     void on_show() override;
     void clear_main_marker();
     void set_main_marker(const std::string& label, float lat, float lon);
     void clear_markers();
     void add_marker(GeoMarker& marker);
+    void repaint();
 
    private:
     const std::string NO_BEACON{"No beacon"};
@@ -181,8 +183,8 @@ class EPIRBAppView final : public ui::View {
     ~EPIRBAppView();
 
     void set_parent_rect(const ui::Rect new_parent_rect) override;
-    void paint(ui::Painter&) override;
     void focus() override;
+    void refresh();
 
     // Message to configure rx baseband
     EPIRBRXConfig epirb_rx_config_message{};
