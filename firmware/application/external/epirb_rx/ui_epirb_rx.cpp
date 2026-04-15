@@ -124,8 +124,11 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
         beacon_text += beacon.additionalData + "\n";
     }
     beacon_text += STR_COLOR_CYAN + std::string("Location: ") + STR_COLOR_WHITE + beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR) + "\n";
-    beacon_text += beacon.location.toString(Location::LocationFormat::SEXAGESIMAL) + "\n";
-    beacon_text += beacon.location.toString(Location::LocationFormat::DECIMAL) + "\n";
+    //beacon_text += beacon.country.toString() + "\n";
+    if(!beacon.location.isUnknown()) {
+        beacon_text += beacon.location.toString(Location::LocationFormat::SEXAGESIMAL) + "\n";
+        beacon_text += beacon.location.toString(Location::LocationFormat::DECIMAL) + "\n";
+    }
     beacon_text += STR_COLOR_CYAN + std::string("Control: ");
     beacon_text += beacon.isBch1Valid() ? STR_COLOR_GREEN + std::string("BCH1-OK") : STR_COLOR_RED + std::string("BCH1-KO");
     if(beacon.hasBch2) {
