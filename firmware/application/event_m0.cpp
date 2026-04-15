@@ -155,9 +155,9 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 }
 
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
-    // portarf: 130mA (ESP32 won't turn off)
-    // H4m + hackrf one: r10 57mA
-    // H4m + hackrf pro:
+    // portarf: 121-130mA (ESP32 won't turn off)
+    // H4m + hackrf one: r10 48-57mA
+    // H4m + hackrf pro: 66
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
@@ -170,7 +170,15 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
     if (sleep) {
         portapack::shutdown(false, true);
+        lpc43xx::creg::m4txevent::disable();
+
+        // unmount SD card before sleep
+        f_mount(nullptr, reinterpret_cast<const TCHAR*>(_T("")), 0);
+        sdcDisconnect(&SDCD1);
+        sdcStop(&SDCD1);
+
         nvicDisableVector(DMA_IRQn);
+        nvicDisableVector(M4CORE_IRQn);
         chSysDisable();
         systick_stop();
         ShutdownMessage shutdown_message;
@@ -208,6 +216,19 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         // Stop USB0 PHY and USB PLL
         LPC_CGU->PLL0USB_CTRL.PD = 1;
         LPC_CREG->CREG0 |= (1 << 5);
+
+        // Disable SGPIO peripheral clock (CPLD data link)
+        LPC_CGU->BASE_PERIPH_CLK.PD = 1;
+
+        // Disable SDIO clock
+        LPC_CGU->BASE_SDIO_CLK.PD = 1;
+
+        // Stopping SPI0 and SPI1 clocks
+        LPC_CGU->BASE_SSP0_CLK.PD = 1;
+        LPC_CGU->BASE_SSP1_CLK.PD = 1;
+
+        // Disable LCD clock
+        LPC_CGU->BASE_LCD_CLK.PD = 1;
 
         // Completely stop external oscillator (XTAL) and Audio PLL
         (*(volatile uint32_t*)(&LPC_CGU->PLL0AUDIO_CTRL)) |= (1 << 0);
