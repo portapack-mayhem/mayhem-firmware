@@ -290,17 +290,6 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             __disable_irq();
 
-            // -----------------------------------------------------------------
-            // A 32kHz-es MIKRO-ÁRAM TRÜKK
-            // WFI (alvás) alatt a processzor belső buszait 32kHz-re lassítjuk,
-            // ami kikapcsolja a 12MHz-es oszcillátort és spórol a dinamikus fogyasztáson!
-            // -----------------------------------------------------------------
-            LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 0;
-            LPC_CGU->BASE_M4_CLK.CLK_SEL = 0;
-            LPC_CGU->BASE_APB1_CLK.CLK_SEL = 0;
-            LPC_CGU->BASE_APB3_CLK.CLK_SEL = 0;
-            LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 0;
-
             SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
             __DSB();
@@ -308,14 +297,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             __WFI();  // Zzz...
 
-            // --- ÉBREDÉS ---
-
-            // Azonnal visszaállítjuk 12MHz-re a buszokat a gyors ébredésért!
-            LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;
-            LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;
-            LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;
-            LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
-            LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;
+            // --- ÉBREDÉS ---;
 
             SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
             *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
