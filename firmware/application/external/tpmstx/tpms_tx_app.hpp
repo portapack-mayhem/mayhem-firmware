@@ -72,7 +72,7 @@ class TPMSTXView : public View {
     tpms::Reading::Type packet_type_{tpms::Reading::Type::Schrader};
     uint32_t transponder_id_{0x12345678};
     uint16_t pressure_kpa_{240};  // Default ~35 PSI
-    int16_t temperature_c_{25};   // Default 25°C
+    int16_t temperature_c_{25};   // Default 25-C
     uint8_t flags_{0x00};         // 3-bit function code (0-7), checksum is auto-calculated
     tpms::SignalType signal_type_{tpms::SignalType::FSK_19k2_Schrader};
 
@@ -87,6 +87,7 @@ class TPMSTXView : public View {
 
     void update_signal_type_from_packet();
     void switch_baseband();
+    void update_bar_display();
 
     void start_tx();
     void stop_tx();
@@ -114,60 +115,49 @@ class TPMSTXView : public View {
         {{0 * 8, 1 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "ID:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Pres:", Theme::getInstance()->fg_light->foreground},
-        {{0 * 8, 5 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
 
     Text label_temperature{
-        {0 * 8, 4 * 16, 5 * 8, 16},
+        {0 * 8, 5 * 16, 5 * 8, 16},
         "Temp:"};
 
     Text label_flags{
-        {0 * 8, 4 * 16, 5 * 8, 16},
+        {0 * 8, 5 * 16, 5 * 8, 16},
         "Func:"};
 
     OptionsField options_frequency{
         {6 * 8, 0 * 16},
-        6,
+        5,
         {
-            {"315.0 ", 315000000},
-            {"314.9 ", 314900000},
-            {"433.92", 433920000},
+            {"314.9", 314900000},
+            {"315.0", 315000000},
+            {"433.9", 433920000},
         }};
 
     OptionsField options_packet_type{
         {6 * 8, 1 * 16},
         10,
         {
-            // Original protocols
             {"Schrader", (int32_t)tpms::Reading::Type::Schrader},
-            {"FLM_64",   (int32_t)tpms::Reading::Type::FLM_64},
-            {"FLM_72",   (int32_t)tpms::Reading::Type::FLM_72},
-            {"FLM_80",   (int32_t)tpms::Reading::Type::FLM_80},
-            {"GMC_96",   (int32_t)tpms::Reading::Type::GMC_96},
-            // EU 433 MHz
-            {"Ford/VDO", (int32_t)tpms::Reading::Type::Ford},
-            {"Cit/PSA",  (int32_t)tpms::Reading::Type::Citroen_PSA},
-            {"Renault",  (int32_t)tpms::Reading::Type::Renault},
-            {"BMW G4/5", (int32_t)tpms::Reading::Type::BMW_G45},
-            {"BMW G2/3", (int32_t)tpms::Reading::Type::BMW_G23},
-            {"Porsche",  (int32_t)tpms::Reading::Type::Porsche},
-            // World 315 MHz
-            {"Toyota",   (int32_t)tpms::Reading::Type::Toyota},
-            {"Elantra",  (int32_t)tpms::Reading::Type::Elantra},
-            {"Jansite",  (int32_t)tpms::Reading::Type::Jansite},
-            {"Solar",    (int32_t)tpms::Reading::Type::SolarTruck},
-            {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
+            {"FLM_64", (int32_t)tpms::Reading::Type::FLM_64},
+            {"FLM_72", (int32_t)tpms::Reading::Type::FLM_72},
+            {"FLM_80", (int32_t)tpms::Reading::Type::FLM_80},
+            {"GMC_96", (int32_t)tpms::Reading::Type::GMC_96},
         }};
 
     OptionsField options_pressure{
         {11 * 8, 3 * 16},
         4,
-        {{"kPa", PRESSURE_UNIT_KPA},
-         {"PSI", PRESSURE_UNIT_PSI},
-         {"BAR", PRESSURE_UNIT_BAR}}};
+        {{"kPa ", PRESSURE_UNIT_KPA},
+         {"PSI ", PRESSURE_UNIT_PSI}}};
+
+    Text text_bar_tx{
+        {6 * 8, 4 * 16, 18 * 8, 16},
+        ""};
 
     OptionsField options_temperature{
-        {11 * 8, 4 * 16},
+        {11 * 8, 5 * 16},
         2,
         {{STR_DEGREES_C, TEMP_UNIT_CELSIUS},
          {STR_DEGREES_F, TEMP_UNIT_FAHRENHEIT}}};
@@ -190,21 +180,21 @@ class TPMSTXView : public View {
         ' '};
 
     NumberField field_temperature{
-        {6 * 8, 4 * 16},
+        {6 * 8, 5 * 16},
         4,
         {-99, 999},
         1,
         ' '};
 
     NumberField field_flags{
-        {6 * 8, 4 * 16},
+        {6 * 8, 5 * 16},
         1,
         {0, 7},
         1,
         ' '};
 
     NumberField field_repeat{
-        {6 * 8, 5 * 16},
+        {6 * 8, 6 * 16},
         3,
         {1, 100},
         1,
