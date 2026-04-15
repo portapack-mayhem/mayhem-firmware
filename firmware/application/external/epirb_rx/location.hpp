@@ -56,7 +56,7 @@ class Location {
         }
 
         inline void toFloatString(char* angleStr) {
-            std::sprintf(angleStr, "%015.6f\n", getFloatValue());
+            std::sprintf(angleStr, "'%02.6f'", getFloatValue());
         }
 
        private:
@@ -149,9 +149,9 @@ class Location {
             case LocationFormat::SEXAGESIMAL:
                 if (sexagesimalFormat.empty()) {
                     char buffer[64];
-                    std::sprintf(buffer, "%ld°%02ld'%02ld\"%c, %ld°%02ld'%02ld\"%c",
-                                  latitude.degrees, latitude.minutes, latitude.seconds, latitude.orientation ? 'S' : 'N',
-                                  longitude.degrees, longitude.minutes, longitude.seconds, longitude.orientation ? 'W' : 'E');
+                    std::sprintf(buffer, "%ld\xB0%02ld'%02ld\"%c, %ld\xB0%02ld'%02ld\"%c",  // 0xB0 is degree ° symbol in our 8x16 font
+                                 latitude.degrees, latitude.minutes, latitude.seconds, latitude.orientation ? 'S' : 'N',
+                                 longitude.degrees, longitude.minutes, longitude.seconds, longitude.orientation ? 'W' : 'E');
                     sexagesimalFormat = buffer;
                 }
                 return sexagesimalFormat;
@@ -163,8 +163,9 @@ class Location {
             default:
             case LocationFormat::DECIMAL:
                 if (decimalFormat.empty()) {
+                    //decimalFormat = to_string_decimal(latitude.getFloatValue(), 5) + ", "+ to_string_decimal(longitude.getFloatValue(), 5);
                     char buffer[64];
-                    formatFloatLocation(buffer, "%s, %s");
+                    formatFloatLocation(buffer, "*%s*, *%s*");
                     decimalFormat = buffer;
                 }
                 return decimalFormat;

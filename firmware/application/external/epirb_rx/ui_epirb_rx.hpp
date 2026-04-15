@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 EPIRB Decoder Implementation
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
  *
  * This file is part of PortaPack.
  *
@@ -52,7 +53,7 @@ enum class PacketStatus : uint8_t {
 };
 
 #define EPIRB_TAB_POS_Y (UI_POS_Y(4) + 3 * 8)
-#define EPIRB_TAB_HEIGTH (screen_height - EPIRB_TAB_POS_Y)
+#define EPIRB_TAB_HEIGTH (screen_height - EPIRB_TAB_POS_Y - UI_POS_HEIGHT(1))
 
 /*class EPIRBLogger {
    public:
@@ -65,44 +66,54 @@ enum class PacketStatus : uint8_t {
    private:
     LogFile log_file{};
 };*/
-/*
-class EPIRBListView : public View {
-   public:
-    EPIRBListView(Rect parent_rect);
-    void set_db(BeaconDB& db);
-    void refresh();
-
-   private:
-    // Beacon list
-    BeaconUIList beaconlist_view{
-        {0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
-*/
-/*ui::Button button_map{
-    {0, 180, 60, 24},
-    "Map"};
-
-ui::Button button_clear{
-    {64, 180, 60, 24},
-    "Clear"};
-
-ui::Button button_log{
-    {128, 180, 60, 24},
-    "Log"};*/
-/*};*/
 
 class EPIRBDetailView : public View {
    public:
     EPIRBDetailView(Rect parent_rect);
+    void set_beacon(Beacon& beacon);
+    void paint(Painter& painter) override;
 
    private:
-    Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(0)}, "Source:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(10)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(12)}, "AM frequency:         MHz", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(14)}, "AM   chan.:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(15)}, "BPSK chan.:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
+    ui::Console text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+    /*ui::Text text_beacon{
+        {UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH + 10, EPIRB_TAB_HEIGTH},
+        ""};*/
+    /*Labels labels{
+        {{UI_POS_X(0), UI_POS_Y(0)}, "Beacon:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Protocol:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), UI_POS_Y(4)}, "Location:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), UI_POS_Y(7)}, "Control:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), UI_POS_Y(8)}, "Hex ID:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), UI_POS_Y(9)}, "S/N:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), UI_POS_Y(10)}, "Data:", Theme::getInstance()->fg_cyan->foreground}};
+
+    ui::Text text_title{
+        {UI_POS_X(0), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10 - 4), UI_POS_HEIGHT(1)},
+        ""};
+    ui::Text text_protocol_title{
+        {UI_POS_X(1), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
+        ""};
+    ui::Text text_protocol_desc{
+        {UI_POS_X(2), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)},
+        ""};
+    ui::Text text_location_locator{
+        {UI_POS_X(4), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
+        ""};
+    ui::Text text_location_desc{
+        {UI_POS_X(5), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)},
+        ""};
+    ui::Text text_control{
+        {UI_POS_X(7), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10-8), UI_POS_HEIGHT(1)},
+        ""};
+    ui::Text text_hex_id{
+        {UI_POS_X(8), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
+        ""};
+    ui::Text text_serial{
+        {UI_POS_X(9), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
+        ""};
+    ui::Text text_data{
+        {UI_POS_X(10), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
+        ""};*/
 };
 
 #define EPIRB_RX_DEFAULT_LATITUDE 43.604f
@@ -129,54 +140,16 @@ class EPIRBMapView : public View {
 // Forward declaration
 class EPIRBAppView;
 
-class EPIRBRxView : public View {
+class EPIRBRxView : public spectrum::WaterfallView {
    public:
     EPIRBRxView(EPIRBAppView& parent, Rect parent_rect);
     void on_show() override;
     void on_hide() override;
 
    private:
-    spectrum::WaterfallView waterfall{};
     EPIRBAppView& app_view;
 };
 
-/*
-class EPIRBBeaconDetailView : public ui::View {
-   public:
-    std::function<void(void)> on_close{};
-
-    EPIRBBeaconDetailView(ui::NavigationView& nav);
-    EPIRBBeaconDetailView(const EPIRBBeaconDetailView&) = delete;
-    EPIRBBeaconDetailView& operator=(const EPIRBBeaconDetailView&) = delete;
-
-    void set_beacon(const Beacon& beacon);
-    const Beacon& beacon() const { return beacon_; }
-
-    void focus() override;
-    void paint(ui::Painter&) override;
-
-    ui::GeoMapView* get_geomap_view() { return geomap_view; }
-
-   private:
-    Beacon beacon_{};
-
-    ui::Button button_done{
-        {125, 224, 96, 24},
-        "Done"};
-    ui::Button button_see_map{
-        {19, 224, 96, 24},
-        "See on map"};
-
-    ui::GeoMapView* geomap_view{nullptr};
-
-    ui::Rect draw_field(
-        ui::Painter& painter,
-        const ui::Rect& draw_rect,
-        const ui::Style& style,
-        const std::string& label,
-        const std::string& value);
-};
-*/
 class EPIRBAppView final : public ui::View {
    public:
     EPIRBAppView(ui::NavigationView& nav);
@@ -238,7 +211,7 @@ class EPIRBAppView final : public ui::View {
         {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
 
     // Status display
-    ui::Text label_status{
+    /*ui::Text label_status{
         {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)},
         "Listening..."};
 
@@ -248,17 +221,17 @@ class EPIRBAppView final : public ui::View {
 
     ui::Text label_packet_stats{
         {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(29), UI_POS_HEIGHT(1)},
-        ""};
+        ""};*/
 
     // Latest beacon info display
-    ui::Text label_latest{
+    /*ui::Text label_latest{
         {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
-        "Latest:"};
+        "Latest:"};*/
 
-    ui::Text text_latest_info{
-        {UI_POS_X(8), UI_POS_Y(3),
-         UI_POS_WIDTH_REMAINING(8 - 4 /*Make width larger than actual screen space as a workaround to https://github.com/portapack-mayhem/mayhem-firmware/issues/3144 */), UI_POS_HEIGHT(1)},
-        ""};
+    //ui::Text text_latest_info{
+    //    {UI_POS_X(8), UI_POS_Y(3),
+    //     UI_POS_WIDTH_REMAINING(8 - 4 /*Make width larger than actual screen space as a workaround to https://github.com/portapack-mayhem/mayhem-firmware/issues/3144 */), UI_POS_HEIGHT(1)},
+    //    ""};
 
     // Tab View
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH};
@@ -275,7 +248,7 @@ class EPIRBAppView final : public ui::View {
         {"Map", Theme::getInstance()->fg_yellow->foreground, &view_map},
         {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx}};
 
-    SignalToken signal_token_tick_second{};
+    //SignalToken signal_token_tick_second{};
     uint32_t beacons_received = 0;
     uint32_t packets_valid = 0;
     uint32_t packets_corrected = 0;

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 EPIRB Decoder Implementation
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
  *
  * This file is part of PortaPack.
  *
@@ -95,143 +96,48 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
     log_file.write_entry(beacon.date, entry);
 }
 */
-/*
-EPIRBBeaconDetailView::EPIRBBeaconDetailView(ui::NavigationView& nav) {
-    add_children({&button_done,
-                  &button_see_map});
 
-    button_done.on_select = [this](Button&) {
-        if (on_close) on_close();
-    };
-
-    button_see_map.on_select = [this, &nav](Button&) {
-        if (!beacon_.location.isUnknown()) {
-            nav.push<GeoMapView>(
-                beacon_.hexId,  // tag as string
-                0,              // altitude
-                GeoPos::alt_unit::METERS,
-                GeoPos::spd_unit::NONE,
-                beacon_.location.latitude.getFloatValue(),
-                beacon_.location.longitude.getFloatValue(),
-                0,  // angle
-                [this]() {
-                    if (on_close) on_close();
-                });
-        }
-    };
-}
-
-void EPIRBBeaconDetailView::set_beacon(const Beacon& beacon) {
-    beacon_ = beacon;
-    set_dirty();
-}
-
-void EPIRBBeaconDetailView::focus() {
-    button_see_map.focus();
-}
-
-void EPIRBBeaconDetailView::paint(ui::Painter& painter) {
-    View::paint(painter);
-
-    const auto rect = screen_rect();
-    const auto s = style();
-
-    auto draw_cursor = rect.location();
-    draw_cursor += {8, 8};
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Beacon ID", beacon_.hexId)
-                      .location();
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Type", beacon_.getProtocolName())
-                      .location();
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Emergency", "None" )//format_emergency_type(beacon_)
-                      .location();
-
-    if (!beacon_.location.isUnknown()) {
-        draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                                 "Latitude", to_string_decimal(beacon_.location.latitude.getFloatValue(), 6) + "°")
-                          .location();
-
-        draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                                 "Longitude", to_string_decimal(beacon_.location.longitude.getFloatValue(), 6) + "°")
-                          .location();
-    } else {
-        draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                                 "Location", "Unknown")
-                          .location();
-    }
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Country", beacon_.country.alphaCode)
-                      .location();
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Time", to_string_datetime(beacon_.date, HMS))
-                      .location();
-
-    // Show packet status with appropriate color
-    std::string status_text = format_packet_status(beacon_);
-    // if (beacon_.error_count > 0 && beacon_.packet_status == PacketStatus::Corrected) {
-    //     status_text += " (" + to_string_dec_uint(beacon_.error_count) + " err)";
-    // }
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Status", status_text)
-                      .location();
-}
-
-ui::Rect EPIRBBeaconDetailView::draw_field(
-    ui::Painter& painter,
-    const ui::Rect& draw_rect,
-    const ui::Style& style,
-    const std::string& label,
-    const std::string& value) {
-    const auto label_width = 8 * 8;
-
-    painter.draw_string({draw_rect.location()}, style, label + ":");
-    painter.draw_string({draw_rect.location() + ui::Point{label_width, 0}}, style, value);
-
-    return {draw_rect.location() + ui::Point{0, draw_rect.height()}, draw_rect.size()};
-}
-*/
-/*EPIRBListView::EPIRBListView(
-    Rect parent_rect)
-    : View(parent_rect) {
-
-    add_children({&beaconlist_view,*/
-                  /*&button_map,
-                  &button_clear,
-                  &button_log*//*});
-*/
-    /*button_map.on_select = [this](Button&) {
-        // this->on_show_map();
-    };
-
-    button_clear.on_select = [this](Button&) {
-        // this->on_clear_beacons();
-    };
-
-    button_log.on_select = [this](Button&) {
-        // this->on_toggle_log();
-    };*/
-/*}*/
-/*
-void EPIRBListView::set_db(BeaconDB& db) {
-    beaconlist_view.set_db(db);
-}
-
-void EPIRBListView::refresh() {
-    beaconlist_view.set_dirty();
-}
-*/
 EPIRBDetailView::EPIRBDetailView(
     Rect parent_rect)
     : View(parent_rect) {
 
-    add_children({&labels});
+    //add_children({&labels});
+    add_children({&text_beacon});
+}
+
+void EPIRBDetailView::paint(Painter& /*painter*/) {
+    // Prevent scrolling
+    text_beacon.clear(false);
+}
+
+void EPIRBDetailView::set_beacon(Beacon& beacon) {
+    std::string beacon_text = STR_COLOR_CYAN + std::string("Beacon: ") + STR_COLOR_WHITE + beacon.getType() + "(";
+    if(beacon.frameMode == Beacon::FrameMode::NORMAL) {
+        beacon_text += STR_COLOR_YELLOW + std::string("Real");
+    } else {
+        beacon_text += STR_COLOR_GREEN + std::string("Test");
+    }
+    beacon_text += STR_COLOR_WHITE +  std::string(") - ") + beacon.formatTime() + "\n";
+    beacon_text += STR_COLOR_CYAN + std::string("Protocol: ") + STR_COLOR_WHITE + beacon.getProtocolName() + "\n";
+    //beacon_text += beacon.getProtocolDesciption() + ;
+    if(beacon.hasAdditionalData) {
+        beacon_text += beacon.additionalData + "\n";
+    }
+    beacon_text += STR_COLOR_CYAN + std::string("Location: ") + STR_COLOR_WHITE + beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR) + "\n";
+    beacon_text += beacon.location.toString(Location::LocationFormat::SEXAGESIMAL) + "\n";
+    beacon_text += beacon.location.toString(Location::LocationFormat::DECIMAL) + "\n";
+    beacon_text += STR_COLOR_CYAN + std::string("Control: ");
+    beacon_text += beacon.isBch1Valid() ? STR_COLOR_GREEN + std::string("BCH1-OK") : STR_COLOR_RED + std::string("BCH1-KO");
+    if(beacon.hasBch2) {
+        beacon_text += beacon.isBch2Valid() ? STR_COLOR_GREEN + std::string(" BCH2-OK") : STR_COLOR_RED + std::string(" BCH2-KO");
+    }
+    beacon_text += "\n";
+    beacon_text += STR_COLOR_CYAN + std::string("Hex ID: ") + STR_COLOR_WHITE + beacon.hexId + "\n";
+    if(beacon.hasSerialNumber) {
+        beacon_text += STR_COLOR_CYAN + std::string("S/N: ") + STR_COLOR_WHITE + beacon.serialNumber + "\n";
+    }
+    text_beacon.clear(true);
+    text_beacon.write(beacon_text);
 }
 
 EPIRBMapView::EPIRBMapView(
@@ -268,7 +174,7 @@ void EPIRBMapView::add_marker(GeoMarker& marker) {
     geomap.store_marker(marker);
 }
 
-void EPIRBMapView::paint(Painter& painter) {
+void EPIRBMapView::paint(Painter& /*painter*/) {
     // Prevent view from clearing background
 }
 
@@ -286,26 +192,23 @@ void EPIRBMapView::repaint() {
 EPIRBRxView::EPIRBRxView(
     EPIRBAppView& parent,
     Rect parent_rect)
-    : View(parent_rect), app_view(parent) {
-    ui::Rect waterfall_rect{0, 0, parent_rect.width(), parent_rect.height()-UI_POS_HEIGHT(1)};
-    add_child(&waterfall);
-    waterfall.set_parent_rect(waterfall_rect);
+    : spectrum::WaterfallView(), app_view(parent) {
+    ui::Rect waterfall_rect{0, EPIRB_TAB_POS_Y, parent_rect.width(), parent_rect.height()};
+    spectrum::WaterfallView::set_parent_rect(waterfall_rect);
 }
 
 void EPIRBRxView::on_show() {
     // Turn on spectrum
-    add_child(&waterfall);
     app_view.epirb_rx_config_message.scpectrum_on = true;
     app_view.send_config();
-    waterfall.start();
+    start();
 }
 
 void EPIRBRxView::on_hide() {
     // Turn off spectrum
-    waterfall.stop();
+    stop();
     app_view.epirb_rx_config_message.scpectrum_on = false;
     app_view.send_config();
-    remove_child(&waterfall);
     app_view.refresh();
 }
 
@@ -322,11 +225,11 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &rssi,
                   &field_volume,
                   &channel,
-                  &label_status,
-                  &label_beacons_count,
-                  &label_latest,
-                  &text_latest_info,
-                  &label_packet_stats,
+                  //&label_status,
+                  //&label_beacons_count,
+                  //&label_latest,
+                  //&text_latest_info,
+                  //&label_packet_stats,
                   &tab_view,
                   &view_list,
                   &view_detail,
@@ -338,9 +241,9 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     };
     options_frequency.set_by_value(receiver_model.target_frequency());
 
-    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+    /*signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
-    };
+    };*/
     tab_view.set_parent_rect(Rect(0,UI_POS_HEIGHT(4),screen_width,3*8));
     view_list.hidden(false); 
     view_detail.hidden(true);
@@ -356,8 +259,6 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     receiver_model.set_lna(32);
     receiver_model.set_vga(32);
     receiver_model.set_sampling_rate(3072000);
-    // receiver_model.set_sampling_rate(2457600);
-    // receiver_model.set_baseband_bandwidth(10000);
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
@@ -371,7 +272,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 }
 
 EPIRBAppView::~EPIRBAppView() {
-    rtc_time::signal_tick_second -= signal_token_tick_second;
+    //rtc_time::signal_tick_second -= signal_token_tick_second;
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -379,13 +280,6 @@ EPIRBAppView::~EPIRBAppView() {
 
 void EPIRBAppView::set_parent_rect(const ui::Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
-    /*
-    const auto console_rect = ui::Rect{
-        new_parent_rect.left(),
-        new_parent_rect.top() + header_height,
-        new_parent_rect.width(),
-        new_parent_rect.height() - header_height - 32};
-    console.set_parent_rect(console_rect);*/
 }
 
 void EPIRBAppView::refresh() {
@@ -410,6 +304,7 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
         Beacon& beacon = beacon_db.add_beacon();
         decode_packet(packet, beacon);
         beacons_received++;
+        view_detail.set_beacon(beacon);
 
         // Track packet statistics
         if (beacon.isFrameValid())
@@ -507,23 +402,23 @@ void EPIRBAppView::on_tick_second() {
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
 
-    label_status.set("Listening... " + to_string_datetime(datetime, HM));
+    //label_status.set("Listening... " + to_string_datetime(datetime, HM));
 }
 
 void EPIRBAppView::update_display() {
-    label_beacons_count.set("Beacons: " + to_string_dec_uint(beacons_received));
+    //label_beacons_count.set("Beacons: " + to_string_dec_uint(beacons_received));
 
     // Update packet statistics display
-    std::string stats = std::string("Stats: ") +
+    /*std::string stats = std::string("Stats: ") +
                         STR_COLOR_GREEN + to_string_dec_uint(packets_valid) + "OK " +
                         STR_COLOR_YELLOW + to_string_dec_uint(packets_corrected) + "CORR " +
                         STR_COLOR_RED + to_string_dec_uint(packets_error) + "ERR";
-    label_packet_stats.set(stats);
+    //label_packet_stats.set(stats);
 
     if (beacon_db.size() > 0) {
         auto& latest = beacon_db.get_latest_beacon();
         text_latest_info.set(latest.formatSummary(false));
-    }
+    }*/
 }
 
 void EPIRBAppView::send_config() {

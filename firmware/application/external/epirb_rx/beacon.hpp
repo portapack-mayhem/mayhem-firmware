@@ -93,7 +93,7 @@ class Beacon {
         UNKNOWN
     };
 
-    #define UNKNOWN_LABEL "Unk."
+#define UNKNOWN_LABEL "Unk."
 
     static bool protocolIsUser(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::USER); };
     static bool protocolIsNational(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::NATIONAL_LOCATION); };
@@ -246,7 +246,7 @@ class Beacon {
         protocol = Protocol::UNKNOWN;
         country.code = 0;
         country.alphaCode = "";
-        //country.longName = "";
+        // country.longName = "";
         country.shortName = "";
         location.clear();
         identifier = 0;
@@ -380,12 +380,18 @@ class Beacon {
             return ui::Color::red();
     }
 
+    inline std::string formatTime() {
+        std::string time;
+        time = to_string_dec_uint(date.hour(), 2, '0') + ":" +
+                  to_string_dec_uint(date.minute(), 2, '0') + ":" +
+                  to_string_dec_uint(date.second(), 2, '0');
+        return time;
+    }
+
     inline std::string formatSummary(bool with_time) {
         std::string summary;
         if (with_time) {
-            summary = to_string_dec_uint(date.hour(), 2, '0') + ":" +
-                      to_string_dec_uint(date.minute(), 2, '0') + ":" +
-                      to_string_dec_uint(date.second(), 2, '0') + "-";
+            summary = formatTime()+ "-";
         }
         std::string id = shortId();
         while (id.size() < 4) id = "_" + id;
