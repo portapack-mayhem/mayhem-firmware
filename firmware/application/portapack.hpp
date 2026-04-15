@@ -78,7 +78,7 @@ void set_antenna_bias(const bool v);
 bool get_antenna_bias();
 
 init_status_t init();
-void shutdown(const bool leave_screen_on = false);
+void shutdown(const bool leave_screen_on = false, const bool slow_clock = false);
 
 void setEventDispatcherToUSBSerial(EventDispatcher* evt);
 

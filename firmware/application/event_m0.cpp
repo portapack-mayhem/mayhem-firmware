@@ -159,15 +159,16 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
     int32_t current = 0;
 
     if (sleep) {
-        portapack::backlight()->off();
-        portapack::display.sleep(true);
+        portapack::shutdown(false, true);  // ez meghívja a radio::disable(); ha false akkor a kijelzőt is lelövi, audoót is, clpd, meggdma, 12 MHz-re állít mindent, kikapcsolja az órajel generátort is
+        // m4_request_shutdown(); //ez meghívja a creg::m4txevent::disable(); ami a nvicDisableVector(M4CORE_IRQn);
+        nvicDisableVector(DMA_IRQn);
+        chSysDisable();
+        systick_stop();
+        ShutdownMessage shutdown_message;
+        shared_memory.application_queue.push(shutdown_message);
+        shared_memory.baseband_message = nullptr;
 
-        radio::disable();
-        chThdSleepMilliseconds(50);
-        audio::output::stop();
-        chThdSleepMilliseconds(50);
-        m4_request_shutdown();
-        chThdSleepMilliseconds(50);
+        SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 
 #ifdef PRALINE
         // 1. TÁPVONALAK LEKAPCSOLÁSA (A te bevált szoftveres logikáddal)
@@ -188,6 +189,8 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         // Csak a bit 16-ot (MIX_BYPASS) tesszük bemenetté.
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #else
+        gpio_og_vaa_disable.set();    // VAA -> HIGH
+        gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
         // Sima HackRF Fantomáram védelem
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
@@ -196,53 +199,12 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #endif
 
-        // Turn off USB LED via software
-        led_usb.off();
-
         // Turn off USB0 PHY (hardware disable)
-        LPC_CREG->CREG0 |= (1 << 5);
-
-        // Stop ADCs
-        lpc43xx::adc::ADC<LPC_ADC0_BASE>::disable();
-        lpc43xx::adc::ADC<LPC_ADC1_BASE>::disable();
-
-        // -----------------------------------------------------------------
-        // HARDVERES ÓRAJEL ÉS PLL LEKAPCSOLÁSOK (Extra megtakarítás)
-        // -----------------------------------------------------------------
-        LPC_CCU1->CLK_M4_LCD_CFG.RUN = 0;    // LCD hardware branch
-        LPC_CCU1->CLK_M4_SDIO_CFG.RUN = 0;   // SD card M4 branch
-        LPC_CCU1->CLK_M4_DMA_CFG.RUN = 0;    // DMA controller
-        LPC_CCU1->CLK_APB1_I2S_CFG.RUN = 0;  // I2S audio bus
-
-        LPC_CCU2->CLK_SDIO_CFG.RUN = 0;   // SD card peripheral branch
-        LPC_CCU2->CLK_AUDIO_CFG.RUN = 0;  // Audio hardware branch
-
         LPC_CGU->PLL0USB_CTRL.PD = 1;
-        LPC_CGU->PLL0AUDIO_CTRL |= 1;
-
-        // KÜLSŐ ÓRAJELEK (MCLK) ELNÉMÍTÁSA A CODEC/FPGA FELÉ
-        LPC_CGU->BASE_OUT_CLK.PD = 1;
-        LPC_CGU->BASE_AUDIO_CLK.PD = 1;
-        LPC_CGU->BASE_CGU_OUT0_CLK.PD = 1;
-        LPC_CGU->BASE_CGU_OUT1_CLK.PD = 1;
-
-        LPC_CGU->BASE_SPIFI_CLK.CLK_SEL = 1;
-        LPC_CGU->BASE_M4_CLK.CLK_SEL = 1;
-        LPC_CGU->BASE_APB1_CLK.CLK_SEL = 1;
-        LPC_CGU->BASE_APB3_CLK.CLK_SEL = 1;
-        LPC_CGU->BASE_PERIPH_CLK.CLK_SEL = 1;
+        LPC_CREG->CREG0 |= (1 << 5);
 
         // Chip Select lábak bemenetté alakítása a szivárgás ellen
         LPC_GPIO->DIR[1] &= ~((1 << 11) | (1 << 14));
-
-        gpio_og_vaa_disable.set();    // VAA -> HIGH
-        gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
-
-        SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-        SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
-        lpc43xx::cgu::pll1::disable();
-
-        portapack::clock_generator.reset();
 
         rtc_interrupt_enable();
         LPC_RTC->CIIR = (1 << 1);
@@ -288,6 +250,12 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             *(volatile uint32_t*)(0x4004400C) = (1 << 5);
             *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
 
+            // 2. Flash Power-down (Mivel a CREG6 struktúrádban hiányzik a bit neve, így írjuk)
+            LPC_CREG->CREG6.ETHMODE |= (1 << 2);
+
+            // 3. PMC (PCON) beállítása Deep-sleepre (0x40042000)
+            (*(volatile uint32_t*)(0x40042000)) &= ~(0x7);
+
             __disable_irq();
 
             SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -298,6 +266,11 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             __WFI();  // Zzz...
 
             // --- ÉBREDÉS ---;
+            // 4. Flash visszakapcsolása (Fontos!)
+            LPC_CREG->CREG6.ETHMODE &= ~(1 << 2);
+
+            // Várjunk egy picit, amíg a Flash magához tér (kb. 100-200us)
+            for (volatile int i = 0; i < 5000; i++) __asm__("nop");
 
             SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
             *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
@@ -308,7 +281,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             __enable_irq();
 
             chEvtGetAndClearEvents(ALL_EVENTS);
-        }
+        }  // while (1) - end
     } else {
         portapack::display.wake(true);
     }
