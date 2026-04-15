@@ -118,6 +118,10 @@ class TPMSTXView : public View {
         {{0 * 8, 6 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
 
+    Text text_bar_tx{
+        {6 * 8, 4 * 16, 18 * 8, 16},
+        ""};
+
     Text label_temperature{
         {0 * 8, 5 * 16, 5 * 8, 16},
         "Temp:"};
@@ -130,8 +134,8 @@ class TPMSTXView : public View {
         {6 * 8, 0 * 16},
         6,
         {
-            {"315.0 ", 315000000},
             {"314.9 ", 314900000},
+            {"315.0 ", 315000000},
             {"433.92", 433920000},
         }};
 
@@ -141,34 +145,31 @@ class TPMSTXView : public View {
         {
             // Original protocols
             {"Schrader", (int32_t)tpms::Reading::Type::Schrader},
-            {"FLM_64",   (int32_t)tpms::Reading::Type::FLM_64},
-            {"FLM_72",   (int32_t)tpms::Reading::Type::FLM_72},
-            {"FLM_80",   (int32_t)tpms::Reading::Type::FLM_80},
-            {"GMC_96",   (int32_t)tpms::Reading::Type::GMC_96},
-            // EU 433 MHz
+            {"FLM_64", (int32_t)tpms::Reading::Type::FLM_64},
+            {"FLM_72", (int32_t)tpms::Reading::Type::FLM_72},
+            {"FLM_80", (int32_t)tpms::Reading::Type::FLM_80},
+            {"GMC_96", (int32_t)tpms::Reading::Type::GMC_96},
+            // EU 433MHz
             {"Ford/VDO", (int32_t)tpms::Reading::Type::Ford},
-            {"Cit/PSA",  (int32_t)tpms::Reading::Type::Citroen_PSA},
-            {"Renault",  (int32_t)tpms::Reading::Type::Renault},
+            {"Cit/PSA", (int32_t)tpms::Reading::Type::Citroen_PSA},
+            {"Renault", (int32_t)tpms::Reading::Type::Renault},
             {"BMW G4/5", (int32_t)tpms::Reading::Type::BMW_G45},
             {"BMW G2/3", (int32_t)tpms::Reading::Type::BMW_G23},
-            {"Porsche",  (int32_t)tpms::Reading::Type::Porsche},
-            // World 315 MHz
-            {"Toyota",   (int32_t)tpms::Reading::Type::Toyota},
-            {"Elantra",  (int32_t)tpms::Reading::Type::Elantra},
-            {"Jansite",  (int32_t)tpms::Reading::Type::Jansite},
-            {"Solar",    (int32_t)tpms::Reading::Type::SolarTruck},
+            {"Porsche", (int32_t)tpms::Reading::Type::Porsche},
+            // World 315MHz
+            {"Toyota", (int32_t)tpms::Reading::Type::Toyota},
+            {"Elantra", (int32_t)tpms::Reading::Type::Elantra},
+            {"Jansite", (int32_t)tpms::Reading::Type::Jansite},
+            {"Solar", (int32_t)tpms::Reading::Type::SolarTruck},
             {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
         }};
 
     OptionsField options_pressure{
         {11 * 8, 3 * 16},
         4,
-        {{"kPa ", PRESSURE_UNIT_KPA},
-         {"PSI ", PRESSURE_UNIT_PSI}}};
-
-    Text text_bar_tx{
-        {6 * 8, 4 * 16, 18 * 8, 16},
-        ""};
+        {{"kPa", PRESSURE_UNIT_KPA},
+         {"PSI", PRESSURE_UNIT_PSI},
+         {"BAR", PRESSURE_UNIT_BAR}}};
 
     OptionsField options_temperature{
         {11 * 8, 5 * 16},
