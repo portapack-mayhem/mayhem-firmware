@@ -519,7 +519,8 @@ void TPMSTXView::encode_and_transmit() {
         if (p8 > 255) p8 = 255;
         // temperature: temp8 = temp + 40
         int t8 = temperature_c_ + 40;
-        if (t8 < 0) t8 = 0; if (t8 > 255) t8 = 255;
+        if (t8 < 0) t8 = 0;
+        if (t8 > 255) t8 = 255;
         // Bitfield layout: b[4]=status_bit(7)|pressure[8:1], b[5]=pressure[0]|temp[8:1], b[6]=temp[0]|...
         b[4] = static_cast<uint8_t>((flags_ & 0x01) << 7) |
                static_cast<uint8_t>((p8 >> 1) & 0x7F);
