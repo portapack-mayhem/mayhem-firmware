@@ -105,17 +105,17 @@ class Beacon {
     static inline const char* getProtocolTypeName(Protocol protocol, bool longFrame) {
         switch (getProtocolType(protocol)) {
             case ProtocolType::STANDARD_LOCATION:
-                return "Standard Protocol";
+                return "Standard";
             case ProtocolType::NATIONAL_LOCATION:
-                return "National Protocol";
+                return "National";
             case ProtocolType::RLS_LOCATION:
                 return "RLS";
             case ProtocolType::ELT_DT_LOCATION:
                 return "ELT(DT)";
             case ProtocolType::USER:
-                return longFrame ? "User Location Protocol" : "User Protocol";
+                return longFrame ? "User Location" : "User";
             case ProtocolType::SPARE:
-                return "Spare Protocol";
+                return "Spare";
             default:
                 return UNKNOWN_LABEL;
         }
