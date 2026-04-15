@@ -56,6 +56,8 @@ using namespace lpc43xx;
 
 #include "irq_rtc.hpp"
 
+#include "i2c_lld.h"
+
 #include <array>
 
 #include "ui_navigation.hpp"
@@ -158,9 +160,13 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
     uint16_t voltage = 0;
     int32_t current = 0;
 
+    constexpr I2CConfig i2c_config_12mhz{
+        .high_count = 15,
+        .low_count = 15,
+    };
+
     if (sleep) {
-        portapack::shutdown(false, true);  // ez meghívja a radio::disable(); ha false akkor a kijelzőt is lelövi, audoót is, clpd, meggdma, 12 MHz-re állít mindent, kikapcsolja az órajel generátort is
-        // m4_request_shutdown(); //ez meghívja a creg::m4txevent::disable(); ami a nvicDisableVector(M4CORE_IRQn);
+        portapack::shutdown(false, true);
         nvicDisableVector(DMA_IRQn);
         chSysDisable();
         systick_stop();
@@ -171,27 +177,22 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 
 #ifdef PRALINE
-        // 1. TÁPVONALAK LEKAPCSOLÁSA (A te bevált szoftveres logikáddal)
+        // 1. TÁPVONALAK LEKAPCSOLÁSA
         gpio_vaa_disable.set();     // VAA_ENABLE P8_1 -> HIGH
         gpio_1v2_enable.clear();    // 1V2_E P8_7 -> LOW
         gpio_3v3aux_disable.set();  // 3V3 aux P6_7 -> HIGH
         gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 -> LOW
         gpio_VIN_enable.set();      // VIN_IN_EN P8_5 -> HIGH
 
-        // 2. FANTOMÁRAM (VISSZATÁPLÁLÁS) MEGSZÜNTETÉSE
-        // Bemenetre (High-Z) állítjuk a lábakat, hogy ne folyjon áram a lekapcsolt VAA felé.
+        // 2. FANTOMÁRAM MEGSZÜNTETÉSE
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
         LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
-
-        // JAVÍTÁS: A LED-eket (bit 0,1,2) BÉKÉN HAGYJUK, hogy működjön az RX/TX!
-        // Csak a bit 16-ot (MIX_BYPASS) tesszük bemenetté.
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #else
         gpio_og_vaa_disable.set();    // VAA -> HIGH
         gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
-        // Sima HackRF Fantomáram védelem
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
@@ -199,9 +200,27 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #endif
 
-        // Turn off USB0 PHY (hardware disable)
+        // ====================================================================
+        // EGYSZERI HARDVERES TAKARÍTÁS A CIKLUS ELŐTT
+        // ====================================================================
+
+        // USB0 PHY és USB PLL leállítása
         LPC_CGU->PLL0USB_CTRL.PD = 1;
         LPC_CREG->CREG0 |= (1 << 5);
+
+        // Külső oszcillátor (XTAL) és Audio PLL végleges leállítása
+        (*(volatile uint32_t*)(&LPC_CGU->XTAL_OSC_CTRL)) |= (1 << 0);
+        (*(volatile uint32_t*)(&LPC_CGU->PLL0AUDIO_CTRL)) |= (1 << 0);
+
+        // ADC0 és ADC1 analóg táp kikapcsolása
+        LPC_ADC0->CR &= ~(1 << 21);
+        LPC_ADC1->CR &= ~(1 << 21);
+
+        // Nem használt periféria buszok KIKAPCSOLÁSA (I2C1, SDIO, SSP1)
+        LPC_CGU->BASE_APB3_CLK.PD = 1;  // APB3 hajtja az I2C1-et! Kikapcsolva.
+        LPC_CGU->BASE_SDIO_CLK.PD = 1;
+        LPC_CGU->BASE_SSP1_CLK.PD = 1;
+        LPC_CGU->BASE_PERIPH_CLK.PD = 1;
 
         // Chip Select lábak bemenetté alakítása a szivárgás ellen
         LPC_GPIO->DIR[1] &= ~((1 << 11) | (1 << 14));
@@ -211,6 +230,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         LPC_RTC->ILR = 3;
 
         while (1) {
+            // Mérés (Az I2C0 ekkor aktív)
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
             if (valid_mask) {
@@ -220,7 +240,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                         led_rx.off();
                     } else {
                         led_rx.off();
-                        led_tx.on();  // Töltést jelző LED hibátlanul fog működni!
+                        led_tx.on();
                     }
                 } else {
                     led_tx.off();
@@ -232,6 +252,10 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             }
 
             // --------------- ALVÁS ELŐKÉSZÍTÉSE ------------------------------------
+
+            // I2C0 leállítása és a hozzá tartozó busz (APB1) lekapcsolása az alvás idejére
+            portapack::i2c0.stop();
+            LPC_CGU->BASE_APB1_CLK.PD = 1;
 
             LPC_RTC->ILR = 3;
 
@@ -250,10 +274,10 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             *(volatile uint32_t*)(0x4004400C) = (1 << 5);
             *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
 
-            // 2. Flash Power-down (Mivel a CREG6 struktúrádban hiányzik a bit neve, így írjuk)
+            // Flash Power-down
             LPC_CREG->CREG6.ETHMODE |= (1 << 2);
 
-            // 3. PMC (PCON) beállítása Deep-sleepre (0x40042000)
+            // PMC (PCON) beállítása Deep-sleepre
             (*(volatile uint32_t*)(0x40042000)) &= ~(0x7);
 
             __disable_irq();
@@ -263,14 +287,17 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             __DSB();
             __ISB();
 
-            __WFI();  // Zzz...
+            __WFI();  // Zzz... A rendszer áramfelvétele itt leesik!
 
             // --- ÉBREDÉS ---;
-            // 4. Flash visszakapcsolása (Fontos!)
-            LPC_CREG->CREG6.ETHMODE &= ~(1 << 2);
 
-            // Várjunk egy picit, amíg a Flash magához tér (kb. 100-200us)
+            // 1. Flash visszakapcsolása AZONNAL
+            LPC_CREG->CREG6.ETHMODE &= ~(1 << 2);
             for (volatile int i = 0; i < 5000; i++) __asm__("nop");
+
+            // 2. I2C0 busz (APB1) és az I2C0 periféria visszakapcsolása a következő méréshez
+            LPC_CGU->BASE_APB1_CLK.PD = 0;
+            portapack::i2c0.start(i2c_config_12mhz);
 
             SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
             *(volatile uint32_t*)(0x40044018) = 0xFFFFFFFF;
