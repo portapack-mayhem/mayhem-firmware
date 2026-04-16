@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - next
-      - TPMS Final
+      - TPMS-Final
 
     paths:
       - "firmware/**"
