@@ -77,7 +77,7 @@ __attribute__((section(".external_app.app_tpmsrx.application_information"), used
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ 7,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_tpms */ {'P', 'T', 'P', 'A'},
+    /*.m4_app_tag = {'P', 'T', 'P', 'A'} (tpmsall) */ {'P', 'T', 'P', 'A'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
