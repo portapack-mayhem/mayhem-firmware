@@ -111,7 +111,7 @@ void EPIRBDetailView::paint(Painter& /*painter*/) {
 }
 
 void EPIRBDetailView::set_beacon(Beacon& beacon) {
-    char buffer[48];
+    char buffer[400];
     bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
     sprintf(buffer,"%sBeacon:%s %s(%s%s%s) - %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.getType(),isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN,isReal ? "Real" : "Test",STR_COLOR_WHITE,beacon.formatTime().c_str());
     std::string beacon_text = buffer;
@@ -120,14 +120,14 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     //sprintf(buffer,"%s\n",beacon.getProtocolDesciption());
     //beacon_text += buffer;
     if(beacon.hasAdditionalData) {
-        beacon_text += beacon.additionalData + "\n";
+        sprintf(buffer,"%s\n",beacon.additionalData.c_str());
+        beacon_text += buffer;
     }
-    sprintf(buffer,"%sLocation:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str());
+    sprintf(buffer,"%sCountry:%s %s\n%sLocation:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.country.toString().c_str(),STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str());
     beacon_text += buffer;
-    //beacon_text += beacon.country.toString() + "\n";
     if(!beacon.location.isUnknown()) {
-        beacon_text += beacon.location.toString(Location::LocationFormat::SEXAGESIMAL) + "\n";
-        beacon_text += beacon.location.toString(Location::LocationFormat::DECIMAL) + "\n";
+        sprintf(buffer,"%s\n%s\n",beacon.location.toString(Location::LocationFormat::SEXAGESIMAL).c_str(),beacon.location.toString(Location::LocationFormat::DECIMAL).c_str());
+        beacon_text += buffer;
     }
     sprintf(buffer,"%sControl: %s%s",STR_COLOR_CYAN,beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED,beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
     beacon_text += buffer;
@@ -135,8 +135,7 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
         sprintf(buffer," %s%s",beacon.isBch2Valid() ? STR_COLOR_GREEN : STR_COLOR_RED,beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
         beacon_text += buffer;
     }
-    beacon_text += "\n";
-    sprintf(buffer,"%sHex ID:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.hexId.c_str());
+    sprintf(buffer,"\n%sHex ID:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.hexId.c_str());
     beacon_text += buffer;
     if(beacon.hasSerialNumber) {
         sprintf(buffer,"%sS/N:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.serialNumber.c_str());
