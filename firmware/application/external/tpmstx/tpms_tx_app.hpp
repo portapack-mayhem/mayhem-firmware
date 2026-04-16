@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026
+ * Copyright (C) 2026 Speedster04
  *
  * This file is part of PortaPack.
  *
@@ -72,7 +72,7 @@ class TPMSTXView : public View {
     tpms::Reading::Type packet_type_{tpms::Reading::Type::Schrader};
     uint32_t transponder_id_{0x12345678};
     uint16_t pressure_kpa_{240};  // Default ~35 PSI
-    int16_t temperature_c_{25};   // Default 25-C
+    int16_t temperature_c_{25};   // Default 25 C
     uint8_t flags_{0x00};         // 3-bit function code (0-7), checksum is auto-calculated
     tpms::SignalType signal_type_{tpms::SignalType::FSK_19k2_Schrader};
 
