@@ -264,49 +264,7 @@ class Beacon {
         parseFrame();
     }
 
-    inline const char* getFrameTitle() {
-        if (frameMode == FrameMode::SELF_TEST) return "Self-test 406";
-        if (frameMode == FrameMode::NORMAL) {
-            if (protocol == Protocol::USER_SERIAL) return "Serial 406";
-            if (protocol == Protocol::USER_TEST) return "User Test 406";
-            if (protocol == Protocol::USER_ORB) return "Orbitography 406";
-            if (protocol == Protocol::USER_NAT) return "National 406";
-            if (protocol == Protocol::STD_TEST) return "Test Std. 406";
-            if (protocol == Protocol::NAT_TEST) return "Test Nat. 406";
-            if (protocol == Protocol::SPARE) return "Spare 406";
-            return "Distress 406";
-        }
-        return "Unknown 406";
-    }
-
     inline const char* getProtocolName() { return getProtocolTypeName(protocol, longFrame); }
-
-    inline const char* getProtocolDesciption() {
-        if (protocol == Protocol::USER_EPIRB_MARITIME) return "EPIRB - Maritime";
-        if (protocol == Protocol::USER_EPIRB_RADIO) return "EPIRB - Radio Call Sign";
-        if (protocol == Protocol::USER_ELT) return "ELT - Aviation";
-        if (protocol == Protocol::USER_SERIAL) return "Serial User Protocol";
-        if (protocol == Protocol::USER_TEST) return "Test User Protocol";
-        if (protocol == Protocol::USER_ORB) return "Orbitography Protocol";
-        if (protocol == Protocol::USER_NAT) return "National User Protocol";
-        if (protocol == Protocol::USER_2G) return "2nd Generation Beacons";
-        if (protocol == Protocol::STD_EPIRB) return "EPIRB - MMSI / Location";
-        if (protocol == Protocol::STD_ELT_24) return "ELT-24-bit Address / Location";
-        if (protocol == Protocol::STD_ELT_SERIAL) return "ELT Serial Location";
-        if (protocol == Protocol::STD_ELT_AIRCRAFT) return "ELT Serial Aircradt Location";
-        if (protocol == Protocol::STD_EPIRB_SERIAL) return "EPIRB Serial Location";
-        if (protocol == Protocol::STD_PLB_SERIAL) return "PLB Serial Location";
-        if (protocol == Protocol::STD_SHIP) return "Ship Security Location";
-        if (protocol == Protocol::STD_TEST) return "Test Standard Location";
-        if (protocol == Protocol::NAT_ELT) return "ELT National Location";
-        if (protocol == Protocol::NAT_EPIRB) return "EPIRB National Location";
-        if (protocol == Protocol::NAT_PLB) return "PLB National Location";
-        if (protocol == Protocol::NAT_TEST) return "Test National Location";
-        if (protocol == Protocol::RLS) return "RLS Location Protocol";
-        if (protocol == Protocol::ELT_DT) return "ELT(DT) Location Protocol";
-        if (protocol == Protocol::SPARE) return "Spare";
-        return UNKNOWN_LABEL;
-    }
 
     inline const char* getType() {
         if ((protocol == Protocol::USER_EPIRB_MARITIME) || (protocol == Protocol::USER_EPIRB_RADIO) || (protocol == Protocol::STD_EPIRB) || (protocol == Protocol::STD_EPIRB_SERIAL) || (protocol == Protocol::NAT_EPIRB)) return "EPIRB";

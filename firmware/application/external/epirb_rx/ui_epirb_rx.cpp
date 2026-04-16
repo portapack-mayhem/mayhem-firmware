@@ -33,6 +33,7 @@ using namespace portapack;
 #include "ui.hpp"
 
 #include "message.hpp"
+#include "resources.hpp"
 
 // #include "usb_serial_asyncmsg.hpp"
 
@@ -102,8 +103,8 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
 */
 
 EPIRBDetailView::EPIRBDetailView(
-    Rect parent_rect)
-    : View(parent_rect) {
+    Rect parent_rect, ResourceManager& rm)
+    : View(parent_rect), resource_manager(rm) {
     // add_children({&labels});
     add_children({&text_beacon});
 }
@@ -119,7 +120,7 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
     buffer_pointer += sprintf(buffer_pointer, "%sBeacon:%s %s(%s%s%s) - %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getType(), isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN, isReal ? "Real" : "Test", STR_COLOR_WHITE, beacon.formatTime().c_str());
     buffer_pointer += sprintf(buffer_pointer, "%sProtocol:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getProtocolName());
-    // buffer_pointer+=sprintf(buffer_pointer,"%s\n",beacon.getProtocolDesciption());
+    buffer_pointer+=sprintf(buffer_pointer,"%s\n",resource_manager.get_protocol_description((uint8_t)beacon.protocol));
     if (beacon.hasAdditionalData) {
         buffer_pointer += sprintf(buffer_pointer, "%s\n", beacon.additionalData.c_str());
     }

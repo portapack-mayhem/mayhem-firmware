@@ -43,6 +43,7 @@
 #include "beacon.hpp"
 #include "beacon_db.hpp"
 #include "ui_beaconlist.hpp"
+#include "resources.hpp"
 
 namespace ui::external_app::epirb_rx {
 
@@ -69,11 +70,12 @@ enum class PacketStatus : uint8_t {
 
 class EPIRBDetailView : public View {
    public:
-    EPIRBDetailView(Rect parent_rect);
+    EPIRBDetailView(Rect parent_rect, ResourceManager& rm);
     void set_beacon(Beacon& beacon);
     void paint(Painter& painter) override;
 
    private:
+    ResourceManager& resource_manager;
     ui::Console text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
     /*ui::Text text_beacon{
         {UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH + 10, EPIRB_TAB_HEIGTH},
@@ -173,6 +175,8 @@ class EPIRBAppView final : public ui::View {
 
     BeaconDB beacon_db{};
 
+    ResourceManager resource_manager{};
+
     // EPIRBLogger logger{};
 
     static constexpr auto header_height = 4 * 16;
@@ -238,7 +242,7 @@ class EPIRBAppView final : public ui::View {
 
     // EPIRBListView view_list{view_rect};
     BeaconUIList view_list{view_rect};
-    EPIRBDetailView view_detail{view_rect};
+    EPIRBDetailView view_detail{view_rect,resource_manager};
     EPIRBMapView view_map{view_rect};
     EPIRBRxView view_rx{*this, view_rect};
 
