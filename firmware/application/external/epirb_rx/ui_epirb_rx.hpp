@@ -228,10 +228,10 @@ class EPIRBAppView final : public ui::View {
         {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
         "Latest:"};*/
 
-    //ui::Text text_latest_info{
-    //    {UI_POS_X(8), UI_POS_Y(3),
-    //     UI_POS_WIDTH_REMAINING(8 - 4 /*Make width larger than actual screen space as a workaround to https://github.com/portapack-mayhem/mayhem-firmware/issues/3144 */), UI_POS_HEIGHT(1)},
-    //    ""};
+    // ui::Text text_latest_info{
+    //     {UI_POS_X(8), UI_POS_Y(3),
+    //      UI_POS_WIDTH_REMAINING(8 - 4 /*Make width larger than actual screen space as a workaround to https://github.com/portapack-mayhem/mayhem-firmware/issues/3144 */), UI_POS_HEIGHT(1)},
+    //     ""};
 
     // Tab View
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH};
@@ -248,7 +248,7 @@ class EPIRBAppView final : public ui::View {
         {"Map", Theme::getInstance()->fg_yellow->foreground, &view_map},
         {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx}};
 
-    //SignalToken signal_token_tick_second{};
+    // SignalToken signal_token_tick_second{};
     uint32_t beacons_received = 0;
     uint32_t packets_valid = 0;
     uint32_t packets_corrected = 0;
@@ -256,13 +256,10 @@ class EPIRBAppView final : public ui::View {
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::EPIRBPacket,
-        [this](Message* const p) {
-            const auto message = static_cast<const EPIRBPacketMessage*>(p);
-            this->on_packet(message->packet);
-        }};
+        [this](Message* const p) { on_packet(p); }};
 
     static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
-    void on_packet(const baseband::Packet& packet);
+    void on_packet(Message* const p);
     void update_map();
     void on_clear_beacons();
     void on_toggle_log();

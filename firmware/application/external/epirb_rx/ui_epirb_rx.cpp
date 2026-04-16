@@ -34,9 +34,13 @@ using namespace portapack;
 
 #include "message.hpp"
 
-//#include "usb_serial_asyncmsg.hpp"
+// #include "usb_serial_asyncmsg.hpp"
 
 namespace ui::external_app::epirb_rx {
+
+int CountryManager::cache_count = 0;
+Country CountryManager::cache[16];
+
 /*
 std::string EPIRBAppView::beacon_to_hex_string(const baseband::Packet& packet) {
     const char hex[] = "0123456789ABCDEF";
@@ -100,8 +104,7 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
 EPIRBDetailView::EPIRBDetailView(
     Rect parent_rect)
     : View(parent_rect) {
-
-    //add_children({&labels});
+    // add_children({&labels});
     add_children({&text_beacon});
 }
 
@@ -114,23 +117,23 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     char buffer[400];
     char* buffer_pointer = buffer;
     bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
-    buffer_pointer+=sprintf(buffer_pointer,"%sBeacon:%s %s(%s%s%s) - %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.getType(),isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN,isReal ? "Real" : "Test",STR_COLOR_WHITE,beacon.formatTime().c_str());
-    buffer_pointer+=sprintf(buffer_pointer,"%sProtocol:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.getProtocolName());
-    //buffer_pointer+=sprintf(buffer_pointer,"%s\n",beacon.getProtocolDesciption());
-    if(beacon.hasAdditionalData) {
-        buffer_pointer+=sprintf(buffer_pointer,"%s\n",beacon.additionalData.c_str());
+    buffer_pointer += sprintf(buffer_pointer, "%sBeacon:%s %s(%s%s%s) - %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getType(), isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN, isReal ? "Real" : "Test", STR_COLOR_WHITE, beacon.formatTime().c_str());
+    buffer_pointer += sprintf(buffer_pointer, "%sProtocol:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getProtocolName());
+    // buffer_pointer+=sprintf(buffer_pointer,"%s\n",beacon.getProtocolDesciption());
+    if (beacon.hasAdditionalData) {
+        buffer_pointer += sprintf(buffer_pointer, "%s\n", beacon.additionalData.c_str());
     }
-    buffer_pointer+=sprintf(buffer_pointer,"%sCountry:%s\n%s\n%sLocation:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.country.toString().c_str(),STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str());
-    if(!beacon.location.isUnknown()) {
-        buffer_pointer+=sprintf(buffer_pointer,"%s\n%s\n",beacon.location.toString(Location::LocationFormat::SEXAGESIMAL).c_str(),beacon.location.toString(Location::LocationFormat::DECIMAL).c_str());
+    buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s\n%s\n%sLocation:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str());
+    if (!beacon.location.isUnknown()) {
+        buffer_pointer += sprintf(buffer_pointer, "%s\n%s\n", beacon.location.toString(Location::LocationFormat::SEXAGESIMAL).c_str(), beacon.location.toString(Location::LocationFormat::DECIMAL).c_str());
     }
-    buffer_pointer+=sprintf(buffer_pointer,"%sControl: %s%s",STR_COLOR_CYAN,beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED,beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
-    if(beacon.hasBch2) {
-        buffer_pointer+=sprintf(buffer_pointer," %s%s",beacon.isBch2Valid() ? STR_COLOR_GREEN : STR_COLOR_RED,beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
+    buffer_pointer += sprintf(buffer_pointer, "%sControl: %s%s", STR_COLOR_CYAN, beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
+    if (beacon.hasBch2) {
+        buffer_pointer += sprintf(buffer_pointer, " %s%s", beacon.isBch2Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
     }
-    buffer_pointer+=sprintf(buffer_pointer,"\n%sHex ID:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.hexId.c_str());
-    if(beacon.hasSerialNumber) {
-        buffer_pointer+=sprintf(buffer_pointer,"%sS/N:%s %s\n",STR_COLOR_CYAN,STR_COLOR_WHITE,beacon.serialNumber.c_str());
+    buffer_pointer += sprintf(buffer_pointer, "\n%sHex ID:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.hexId.c_str());
+    if (beacon.hasSerialNumber) {
+        sprintf(buffer_pointer, "%sS/N:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.serialNumber.c_str());
     }
     text_beacon.clear(true);
     text_beacon.write(buffer);
@@ -139,7 +142,6 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
 EPIRBMapView::EPIRBMapView(
     Rect parent_rect)
     : View(parent_rect) {
-
     add_children({&geomap});
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
@@ -151,7 +153,7 @@ EPIRBMapView::EPIRBMapView(
     geomap.move(lon_, lat_);
 }
 
-void EPIRBMapView::set_main_marker(const std::string& label, float lat, float lon){
+void EPIRBMapView::set_main_marker(const std::string& label, float lat, float lon) {
     geomap.set_tag(label);
     lat_ = lat;
     lon_ = lon;
@@ -159,7 +161,7 @@ void EPIRBMapView::set_main_marker(const std::string& label, float lat, float lo
 }
 
 void EPIRBMapView::clear_main_marker() {
-    set_main_marker(NO_BEACON,EPIRB_RX_DEFAULT_LATITUDE,EPIRB_RX_DEFAULT_LONGITUDE);
+    set_main_marker(NO_BEACON, EPIRB_RX_DEFAULT_LATITUDE, EPIRB_RX_DEFAULT_LONGITUDE);
 }
 
 void EPIRBMapView::clear_markers() {
@@ -181,8 +183,8 @@ void EPIRBMapView::on_show() {
 
 void EPIRBMapView::repaint() {
     // Fake orientation change to force map redraw
-    geomap.update_my_orientation(180,false);
-    geomap.update_my_orientation(0,true);
+    geomap.update_my_orientation(180, false);
+    geomap.update_my_orientation(0, true);
 }
 
 EPIRBRxView::EPIRBRxView(
@@ -212,8 +214,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
-    add_children({
-                  &label_frequency,
+    add_children({&label_frequency,
                   &options_frequency,
                   &field_rf_amp,
                   &field_lna,
@@ -240,8 +241,8 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     /*signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };*/
-    tab_view.set_parent_rect(Rect(0,UI_POS_HEIGHT(4),screen_width,3*8));
-    view_list.hidden(false); 
+    tab_view.set_parent_rect(Rect(0, UI_POS_HEIGHT(4), screen_width, 3 * 8));
+    view_list.hidden(false);
     view_detail.hidden(true);
     view_map.hidden(true);
     view_rx.hidden(true);
@@ -268,7 +269,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 }
 
 EPIRBAppView::~EPIRBAppView() {
-    //rtc_time::signal_tick_second -= signal_token_tick_second;
+    // rtc_time::signal_tick_second -= signal_token_tick_second;
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -288,11 +289,14 @@ void EPIRBAppView::focus() {
     options_frequency.focus();
 }
 
-void EPIRBAppView::on_packet(const baseband::Packet& packet) {
-    //std::string beacon_size = "Data size :" + to_string_dec_int(packet.size()) + "\n";
-    //UsbSerialAsyncmsg::asyncmsg(beacon_size);
-    //std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
-    //UsbSerialAsyncmsg::asyncmsg(beacon_string);
+void EPIRBAppView::on_packet(Message* const p) {
+    const auto message = static_cast<const EPIRBPacketMessage*>(p);
+    const baseband::Packet& packet = message->packet;
+
+    // std::string beacon_size = "Data size :" + to_string_dec_int(packet.size()) + "\n";
+    // UsbSerialAsyncmsg::asyncmsg(beacon_size);
+    // std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
+    // UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
     if (packet.size() > 64) {
@@ -308,7 +312,7 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
         else
             packets_error++;
 
-        if(!beacon.location.isUnknown()) {
+        if (!beacon.location.isUnknown()) {
             update_map();
         }
 
@@ -332,7 +336,7 @@ void EPIRBAppView::on_packet(const baseband::Packet& packet) {
 
         // console.write(beacon_info + "\n");
         //  TODO update beacon list
-        //view_list.refresh();
+        // view_list.refresh();
         view_list.set_dirty();
     }
 }
@@ -347,7 +351,7 @@ void EPIRBAppView::update_map() {
                 // Clear previously saved markers
                 view_map.clear_markers();
                 // Set new position
-                view_map.set_main_marker(std::string(beacon.getType()) + "-" + beacon.shortId(), beacon.location.latitude.getFloatValue(),beacon.location.longitude.getFloatValue());
+                view_map.set_main_marker(std::string(beacon.getType()) + "-" + beacon.shortId(), beacon.location.latitude.getFloatValue(), beacon.location.longitude.getFloatValue());
                 // Add all beacons with valid locations as markers
                 for (size_t j = 0; j < size; j++) {
                     if (i != j) {
@@ -398,11 +402,11 @@ void EPIRBAppView::on_tick_second() {
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
 
-    //label_status.set("Listening... " + to_string_datetime(datetime, HM));
+    // label_status.set("Listening... " + to_string_datetime(datetime, HM));
 }
 
 void EPIRBAppView::update_display() {
-    //label_beacons_count.set("Beacons: " + to_string_dec_uint(beacons_received));
+    // label_beacons_count.set("Beacons: " + to_string_dec_uint(beacons_received));
 
     // Update packet statistics display
     /*std::string stats = std::string("Stats: ") +
@@ -419,7 +423,7 @@ void EPIRBAppView::update_display() {
 
 void EPIRBAppView::send_config() {
     // Send config to baseband
-    baseband::set_epirb_rx_config(epirb_rx_config_message);    
+    baseband::set_epirb_rx_config(epirb_rx_config_message);
 }
 
 }  // namespace ui::external_app::epirb_rx

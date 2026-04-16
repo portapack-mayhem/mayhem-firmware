@@ -245,9 +245,8 @@ class Beacon {
         protocolCode = 0;
         protocol = Protocol::UNKNOWN;
         country.code = 0;
-        country.alphaCode = "";
-        // country.longName = "";
-        country.shortName = "";
+        country.alphaCode[0] = 0;
+        country.shortName[0] = 0;
         location.clear();
         identifier = 0;
         hasAdditionalData = false;
@@ -381,38 +380,19 @@ class Beacon {
     }
 
     inline std::string formatTime() {
-        std::string time;
-        time = to_string_dec_uint(date.hour(), 2, '0') + ":" +
-                  to_string_dec_uint(date.minute(), 2, '0') + ":" +
-                  to_string_dec_uint(date.second(), 2, '0');
-        return time;
+        char buffer[10];
+        sprintf(buffer,"%02d:%02d:%02d",date.hour(),date.minute(),date.second());
+        return buffer;
     }
 
     inline std::string formatSummary(bool with_time) {
-        std::string summary;
+        char buffer[64];
+        char* buffer_pointer = buffer;
         if (with_time) {
-            summary = formatTime()+ "-";
+            buffer_pointer+=sprintf(buffer_pointer,"%s-",formatTime().c_str());
         }
-        std::string id = shortId();
-        while (id.size() < 4) id = "_" + id;
-        summary += id;
-        summary += "-";
-        std::string type = getType();
-        while (type.size() < 5) type = "_" + type;
-        summary += type;
-        if (!location.isUnknown()) {
-            summary += "-" + location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR);
-        } else {
-            summary += "-      ";
-        }
-        std::string status_color;
-        if (isFrameValid())
-            status_color = STR_COLOR_GREEN;
-        else
-            status_color = STR_COLOR_RED;
-
-        summary += "[" + status_color + getSatus() + STR_COLOR_WHITE + "]";
-        return summary;
+        sprintf(buffer_pointer,"%4s-%5s-%s[%s%s%s]",shortId().c_str(),getType(),location.isUnknown()?"      ":location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str(),isFrameValid()?STR_COLOR_GREEN:STR_COLOR_RED,getSatus().c_str(),STR_COLOR_WHITE);
+        return buffer;
     }
 
    private:
@@ -564,6 +544,7 @@ class Beacon {
                     return "Other";
             }*/
         } else if (longFrame) {
+            char buffer[32];
             switch (protocolCode) {
                 case 0b0010:
                     hasSerialNumber = true;
@@ -572,7 +553,8 @@ class Beacon {
                 case 0b1100: {
                     hasAdditionalData = true;
                     uint32_t mmsi = getBits(frame, 41, 60);
-                    additionalData = "MMSI=" + toHexString(mmsi) + " MID=" + to_string_dec_uint(mmsi);
+                    sprintf(buffer,"MMSI=0x%08lX MID=%ld",mmsi,mmsi);
+                    additionalData = buffer;
                 } break;
                 case 0b0011: {
                     hasAdditionalData = true;
@@ -586,19 +568,21 @@ class Beacon {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
                     uint32_t csTaNumber = getBits(frame, 41, 50);
-                    additionalData = "C/S TA #=" + to_string_dec_uint(csTaNumber);
+                    sprintf(buffer,"C/S TA #=%ld",csTaNumber);
+                    additionalData = buffer;
                     setSerialNumber(getBits(frame, 51, 64));
                 } break;
                 case 0b0101: {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
                     uint32_t data = getBits(frame, 41, 45);
-                    additionalData = BAUDOT_CODE[data + 32];
+                    char char1 = BAUDOT_CODE[data + 32];
                     data = getBits(frame, 46, 50);
-                    additionalData += BAUDOT_CODE[data + 32];
+                    char char2 = BAUDOT_CODE[data + 32];
                     data = getBits(frame, 51, 55);
-                    additionalData += BAUDOT_CODE[data + 32];
-                    additionalData = "Op Design.=" + additionalData;
+                    char char3 = BAUDOT_CODE[data + 32];
+                    sprintf(buffer,"Op Design.=%c%c%c",char1,char2,char3);
+                    additionalData = buffer;
                     setSerialNumber(getBits(frame, 56, 64));
                 } break;
                 case 0b1000:
@@ -609,7 +593,8 @@ class Beacon {
                     hasAdditionalData = true;
                     setSerialNumber(getBits(frame, 41, 58));
                     uint32_t natNum = getBits(frame, 127, 132);
-                    additionalData = "Nati. data=" + to_string_dec_uint(natNum);
+                    sprintf(buffer,"Nati. data=%ld",natNum);
+                    additionalData = buffer;
                 } break;
             }
         }
@@ -647,7 +632,7 @@ class Beacon {
 
         longFrame = getBits(frame, 25, 25);
         parseProtocol();
-        country = Country::getCountry(getBits(frame, 27, 36));
+        CountryManager::get_country(getBits(frame, 27, 36),country);
 
         if (frame[2] == 0xD0)
             frameMode = FrameMode::SELF_TEST;
