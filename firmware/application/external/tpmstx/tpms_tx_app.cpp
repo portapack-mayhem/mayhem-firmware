@@ -357,7 +357,10 @@ void TPMSTXView::encode_and_transmit() {
             }
         }
 
-    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
+    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader &&
+               (packet_type_ == tpms::Reading::Type::FLM_64 ||
+                packet_type_ == tpms::Reading::Type::FLM_72 ||
+                packet_type_ == tpms::Reading::Type::FLM_80)) {
         // FSK 19.2k for FLM variants
         // Data is Manchester encoded: each data bit becomes two FSK symbols
         // Preamble: 14 x '01' + '10' = 30 bits (matches RX pattern exactly)
@@ -490,8 +493,6 @@ void TPMSTXView::encode_and_transmit() {
                 packet_type_ == tpms::Reading::Type::Elantra ||
                 packet_type_ == tpms::Reading::Type::Jansite ||
                 packet_type_ == tpms::Reading::Type::SolarTruck)) {
-        // EU/World protocols sharing the FSK 19k2 preamble path
-        // Note: this branch must be checked AFTER the FLM branch above
         // EU/World protocols sharing the FSK 19k2 preamble path
         symbol_rate = 19200;
 
