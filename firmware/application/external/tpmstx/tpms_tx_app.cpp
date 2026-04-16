@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026
+ * Copyright (C) 2026 Speedster04
  *
  * This file is part of PortaPack.
  *
@@ -217,10 +217,11 @@ void TPMSTXView::encode_and_transmit() {
     uint32_t sample_rate;
 
     // Set sample rate based on signal type to match transmitter config
-    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
-        sample_rate = 2280000;  // 2.28 MHz for FSK (matches transmitter_model config)
-    } else {
+    if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
+        signal_type_ == tpms::SignalType::OOK_8k4_Schrader) {
         sample_rate = 2000000;  // 2 MHz for OOK
+    } else {
+        sample_rate = 2280000;  // 2.28 MHz for FSK
     }
 
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader) {
@@ -486,8 +487,11 @@ void TPMSTXView::encode_and_transmit() {
                (packet_type_ == tpms::Reading::Type::Ford ||
                 packet_type_ == tpms::Reading::Type::Citroen_PSA ||
                 packet_type_ == tpms::Reading::Type::Renault ||
+                packet_type_ == tpms::Reading::Type::Elantra ||
                 packet_type_ == tpms::Reading::Type::Jansite ||
                 packet_type_ == tpms::Reading::Type::SolarTruck)) {
+        // EU/World protocols sharing the FSK 19k2 preamble path
+        // Note: this branch must be checked AFTER the FLM branch above
         // EU/World protocols sharing the FSK 19k2 preamble path
         symbol_rate = 19200;
 
@@ -793,20 +797,21 @@ void TPMSTXView::encode_and_transmit() {
     text_status.set("TX: " + to_string_dec_uint(binary_string.length()) + " bits");
 
     // Send via appropriate baseband (OOK or FSK)
-    if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader) {
-        // FSK mode: 19.2 kbaud, 38.4 kHz shift
-        baseband::set_fsk_data(
-            bitstream_length,
-            samples_per_bit,
-            38400,  // 38.4 kHz shift
-            256);   // Progress notice interval
-    } else {
+    if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
+        signal_type_ == tpms::SignalType::OOK_8k4_Schrader) {
         // OOK mode
         baseband::set_ook_data(
             bitstream_length,
             samples_per_bit,
             repeat_count_,
             pause_duration_);
+    } else {
+        // FSK mode: 19.2 kbaud (or ~40kbaud for BMW Gen4/5), 38.4 kHz shift
+        baseband::set_fsk_data(
+            bitstream_length,
+            samples_per_bit,
+            38400,  // 38.4 kHz shift
+            256);   // Progress notice interval
     }
 }
 
