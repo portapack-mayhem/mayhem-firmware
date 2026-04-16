@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2023 Mark Thompson
+ * Copyright (C) 2026 Speedster04
  *
  * This file is part of PortaPack.
  *
@@ -92,8 +93,10 @@ std::string id(tpms::TransponderID id) {
 
 std::string pressure(Pressure pressure) {
     if (pressure_unit == PRESSURE_UNIT_BAR) {
-        int bar10 = pressure.kilopascal() / 10;
-        return to_string_dec_int(bar10 / 10, 1) + "." + to_string_dec_int(bar10 % 10, 1);
+        // Pad to 3 chars for consistent table alignment (e.g. " 2.3" or "10.0")
+        const int bar10 = (pressure.kilopascal() * 10) / 100;
+        const auto bar_str = to_string_dec_int(bar10, 3);
+        return bar_str.substr(0, 2) + "." + bar_str.substr(2, 1);
     }
     return to_string_dec_int(
         pressure_unit == PRESSURE_UNIT_PSI ? pressure.psi() : pressure.kilopascal(), 3);
@@ -110,11 +113,23 @@ std::string flags(tpms::Flags flags) {
 static std::string signal_type(tpms::SignalType signal_type) {
     switch (signal_type) {
         case tpms::SignalType::FSK_19k2_Schrader:
-            return "FSK 38400 19200 Schrader";
+            return "FSK 19200 Schrader";
         case tpms::SignalType::OOK_8k192_Schrader:
-            return "OOK - 8192 Schrader";
+            return "OOK 8192 Schrader";
         case tpms::SignalType::OOK_8k4_Schrader:
-            return "OOK - 8400 Schrader";
+            return "OOK 8400 Schrader";
+        case tpms::SignalType::FSK_38k4_BMW_G45:
+            return "FSK 40000 BMW G4/5";
+        case tpms::SignalType::FSK_19k2_BMW_G23:
+            return "FSK 19200 BMW G2/3";
+        case tpms::SignalType::FSK_19k2_Porsche:
+            return "FSK 19200 Porsche";
+        case tpms::SignalType::FSK_19k2_Toyota:
+            return "FSK 19200 Toyota";
+        case tpms::SignalType::FSK_19k2_Elantra:
+            return "FSK 19200 Elantra";
+        case tpms::SignalType::FSK_19k2_JansiteSolar:
+            return "FSK 19200 JanSolar";
         default:
             return "- - - -";
     }
