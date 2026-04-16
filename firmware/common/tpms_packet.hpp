@@ -55,6 +55,31 @@ enum SignalType {
     FSK_19k2_JansiteSolar = 9,
 };
 
+inline constexpr const char* signal_type_name(const SignalType signal_type) {
+    switch (signal_type) {
+        case FSK_19k2_Schrader:
+            return "FSK 19200 Schrader";
+        case OOK_8k192_Schrader:
+            return "OOK 8192 Schrader";
+        case OOK_8k4_Schrader:
+            return "OOK 8400 Schrader";
+        case FSK_38k4_BMW_G45:
+            return "FSK 40000 BMW G4/5";
+        case FSK_19k2_BMW_G23:
+            return "FSK 19200 BMW G2/3";
+        case FSK_19k2_Porsche:
+            return "FSK 19200 Porsche";
+        case FSK_19k2_Toyota:
+            return "FSK 19200 Toyota";
+        case FSK_19k2_Elantra:
+            return "FSK 19200 Elantra";
+        case FSK_19k2_JansiteSolar:
+            return "FSK 19200 JanSolar";
+        default:
+            return "- - - -";
+    }
+}
+
 class TransponderID {
    public:
     constexpr TransponderID()
