@@ -200,6 +200,10 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     OOKClockRecovery clock_recovery_ook_8k192{channel_sample_rate / 8192.0f};
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_ook_8k192{
+        /* Preamble: 11*2, 01*14, 11, 10
+         * Payload: 37 Manchester-encoded bits
+         * Bit rate: 4096 Hz
+         */
         {0b010101010101010101011110, 24, 0},
         {},
         {37 * 2},
@@ -210,6 +214,10 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     OOKClockRecovery clock_recovery_ook_8k4{channel_sample_rate / 8400.0f};
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_ook_8k4{
+        /* Preamble: 01*40, 01, 10, 01, 01
+         * Payload: 76 Manchester-encoded bits
+         * Bit rate: 4200 Hz
+         */
         {0b01010101010101010101010101100101, 32, 0},
         {},
         {76 * 2},
