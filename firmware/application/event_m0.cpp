@@ -154,10 +154,98 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
     EventDispatcher::display_sleep = sleep;
 }
 
+void debug_power_down_state() {
+    // --- POWER DOWN DIAGNOSTICS ---
+    constexpr uint8_t MAX_ERRORS = 40;
+    uint8_t err_list[MAX_ERRORS];
+    uint8_t err_cnt = 0;
+
+    // Helper lambda: if condition is true, record the error code
+    auto check = [&](bool condition, uint8_t code) {
+        if (condition && err_cnt < MAX_ERRORS) {
+            err_list[err_cnt++] = code;
+        }
+    };
+
+    // --- 1. RGU (Reset Generation Unit) Checks ---
+    // 0 = Not in reset (active, consuming power), 1 = In reset (good)
+    check(!(LPC_RGU->RESET_ACTIVE_STATUS[0] & (1 << 24)), 1);  // USB0 is not in reset
+    check(!(LPC_RGU->RESET_ACTIVE_STATUS[0] & (1 << 25)), 2);  // USB1 is not in reset
+    check(!(LPC_RGU->RESET_ACTIVE_STATUS[0] & (1 << 22)), 3);  // Ethernet is not in reset
+    check(!(LPC_RGU->RESET_ACTIVE_STATUS[0] & (1 << 16)), 4);  // LCD is not in reset
+
+    // --- 2. CGU PLLs (PD == 0 means RUNNING) ---
+    check(LPC_CGU->PLL0USB_CTRL.PD == 0, 5);  // USB PLL is running
+                                              // check((*(volatile uint32_t*)(&LPC_CGU->PLL0AUDIO_CTRL) & 1) == 0, 6);  // Audio PLL is running
+
+    // --- 3. CGU Base Clocks (PD == 0 means RUNNING) ---
+    // check(LPC_CGU->BASE_USB0_CLK.PD == 0, 7);
+    // check(LPC_CGU->BASE_USB1_CLK.PD == 0, 8);
+    check(LPC_CGU->BASE_PERIPH_CLK.PD == 0, 9);
+    check(LPC_CGU->BASE_SDIO_CLK.PD == 0, 10);
+    check(LPC_CGU->BASE_SSP0_CLK.PD == 0, 11);
+    check(LPC_CGU->BASE_SSP1_CLK.PD == 0, 12);
+    check(LPC_CGU->BASE_LCD_CLK.PD == 0, 13);
+    // check(LPC_CGU->BASE_UART0_CLK.PD == 0, 14);
+    // check(LPC_CGU->BASE_UART1_CLK.PD == 0, 15);
+    // check(LPC_CGU->BASE_UART2_CLK.PD == 0, 16);
+    // check(LPC_CGU->BASE_UART3_CLK.PD == 0, 17);
+    // check(LPC_CGU->BASE_SPI_CLK.PD == 0, 18);
+    // check(LPC_CGU->BASE_OUT_CLK.PD == 0, 19);
+
+    // --- 4. CCU1 / CCU2 Branch Clocks (STAT bit0 == 1 means ACTIVE) ---
+    check((*(volatile uint8_t*)&LPC_CCU1->CLK_M4_LCD_STAT) & 1, 20);
+    check((*(volatile uint8_t*)&LPC_CCU1->CLK_M4_ETHERNET_STAT) & 1, 21);
+    check((*(volatile uint8_t*)&LPC_CCU1->CLK_M4_SDIO_STAT) & 1, 22);
+    check((*(volatile uint8_t*)&LPC_CCU1->CLK_M4_USB0_STAT) & 1, 23);
+    check((*(volatile uint8_t*)&LPC_CCU1->CLK_M4_USB1_STAT) & 1, 24);
+
+    // --- 5. Analog Peripherals ---
+    // ADC CR bit 21: 1 = operational, 0 = Power-down (off)
+    check((LPC_ADC0->CR & (1 << 21)) != 0, 25);
+    check((LPC_ADC1->CR & (1 << 21)) != 0, 26);
+    // DAC CR bit 16 (BIAS): fine-tune if other settings are needed
+    // check((LPC_DAC->CR & (1 << 16)) == 0, 27);
+
+    // Sanitize bounds
+    if (err_cnt > MAX_ERRORS) err_cnt = MAX_ERRORS;
+
+    // --- BLINKING CYCLE ---
+    for (volatile uint8_t i = 0; i < err_cnt; i++) {
+        volatile uint8_t limit = err_list[i];
+
+        // Limit increased to 30 to see higher error codes
+        if (limit > 30) limit = 30;
+
+        for (volatile uint8_t v = 0; v < limit; v++) {
+            led_tx.on();
+            led_rx.on();
+            for (volatile uint32_t d = 0; d < 300 * 1300; d++) __NOP();
+            led_tx.off();
+            led_rx.off();
+            for (volatile uint32_t d = 0; d < 300 * 1300; d++) __NOP();
+        }
+
+        // Longer pause between DIFFERENT CODES
+        for (volatile uint32_t d = 0; d < 1500 * 1300; d++) __NOP();
+
+        // Remove the break if you have the patience to watch them all,
+        // or leave it to show only the first 5 errors.
+        if (i >= 5) break;
+    }
+
+    // --- "DONE / EXIT" SIGNAL ---
+    // A long 2-second continuous light indicating the loop is finished
+    led_tx.on();
+    led_rx.on();
+    for (volatile uint32_t d = 0; d < 2000 * 1300; d++) __NOP();
+    led_tx.off();
+    led_rx.off();
+    for (volatile uint32_t d = 0; d < 500 * 1300; d++) __NOP();
+}
+
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
-    // portarf: 121-130mA (ESP32 won't turn off)
-    // H4m + hackrf one: r10 48-57mA
-    // H4m + hackrf pro: 66
+    // praline 54mA
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
@@ -172,7 +260,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         portapack::shutdown(false, true);
         lpc43xx::creg::m4txevent::disable();
 
-        // unmount SD card before sleep
+        // unmount SD card
         f_mount(nullptr, reinterpret_cast<const TCHAR*>(_T("")), 0);
         sdcDisconnect(&SDCD1);
         sdcStop(&SDCD1);
@@ -181,6 +269,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         nvicDisableVector(M4CORE_IRQn);
         chSysDisable();
         systick_stop();
+
         ShutdownMessage shutdown_message;
         shared_memory.application_queue.push(shutdown_message);
         shared_memory.baseband_message = nullptr;
@@ -188,22 +277,20 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 
 #ifdef PRALINE
-        // 1. TURN OFF POWER RAILS
-        gpio_vaa_disable.set();     // VAA_ENABLE P8_1 -> HIGH
-        gpio_1v2_enable.clear();    // 1V2_E P8_7 -> LOW
-        gpio_3v3aux_disable.set();  // 3V3 aux P6_7 -> HIGH
-        gpio_VBUS_enable.clear();   // VBUS_IN_EN P8_4 -> LOW
-        gpio_VIN_enable.set();      // VIN_IN_EN P8_5 -> HIGH
+        gpio_vaa_disable.set();
+        gpio_1v2_enable.clear();
+        gpio_3v3aux_disable.set();
+        // gpio_VBUS_enable.clear();
+        // gpio_VIN_enable.set();
 
-        // 2. ELIMINATE LEAKAGE CURRENT
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
         LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #else
-        gpio_og_vaa_disable.set();    // VAA -> HIGH
-        gpio_r9_vaa_disable.clear();  // 1V8 -> LOW
+        gpio_og_vaa_disable.set();
+        gpio_r9_vaa_disable.clear();
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
@@ -211,35 +298,37 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #endif
 
-        // ONE-TIME HARDWARE CLEANUP BEFORE THE LOOP
-
-        // Stop USB0 PHY and USB PLL
+        // CGU takarítás
+        LPC_RGU->RESET_CTRL[0] = (1 << 5);  // USB0 Reset
         LPC_CGU->PLL0USB_CTRL.PD = 1;
+        LPC_CGU->BASE_USB0_CLK.PD = 1;
         LPC_CREG->CREG0 |= (1 << 5);
 
-        // Disable SGPIO peripheral clock (CPLD data link)
+        // --- INNEN AZ ÚJAK ---
+        LPC_CGU->BASE_USB1_CLK.PD = 1;
+        LPC_CGU->BASE_UART0_CLK.PD = 1;
+        LPC_CGU->BASE_UART1_CLK.PD = 1;
+        LPC_CGU->BASE_UART2_CLK.PD = 1;
+        LPC_CGU->BASE_UART3_CLK.PD = 1;
+        LPC_CGU->BASE_SPI_CLK.PD = 1;
+        // ---------------------
         LPC_CGU->BASE_PERIPH_CLK.PD = 1;
-
-        // Disable SDIO clock
         LPC_CGU->BASE_SDIO_CLK.PD = 1;
-
-        // Stopping SPI0 and SPI1 clocks
         LPC_CGU->BASE_SSP0_CLK.PD = 1;
         LPC_CGU->BASE_SSP1_CLK.PD = 1;
-
-        // Disable LCD clock
         LPC_CGU->BASE_LCD_CLK.PD = 1;
+        LPC_CGU->BASE_OUT_CLK.PD = 1;
 
-        // Completely stop external oscillator (XTAL) and Audio PLL
         (*(volatile uint32_t*)(&LPC_CGU->PLL0AUDIO_CTRL)) |= (1 << 0);
 
-        // Turn off ADC0 and ADC1 analog power
         LPC_ADC0->CR &= ~(1 << 21);
         LPC_ADC1->CR &= ~(1 << 21);
 
         rtc_interrupt_enable();
         LPC_RTC->CIIR = (1 << 1);
         LPC_RTC->ILR = 3;
+
+        // debug_power_down_state();
 
         while (1) {
             // Measurement (I2C0 is active at this point)
