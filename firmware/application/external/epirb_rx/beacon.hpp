@@ -349,7 +349,9 @@ class Beacon {
     }
 
     inline void setSerialNumber(uint32_t serial) {
-        serialNumber = to_string_dec_uint(serial) + " (0x" + toHexString(serial) + ")";
+        char buffer[32];
+        sprintf(buffer,"%ld (0x%08lX)",serial,serial);
+        serialNumber = buffer;
     }
 
     inline bool isBch1Valid() { return (bch1 == computedBch1); }
