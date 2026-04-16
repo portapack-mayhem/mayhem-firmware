@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2023 Mark Thompson
- * Copyright (C) 2025 Speedster04
+ * Copyright (C) 2026 Speedster04
  *
  * This file is part of PortaPack.
  *
