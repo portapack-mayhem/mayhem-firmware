@@ -36,6 +36,34 @@ void rtc_interrupt_enable() {
     nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
 }
 
+void rtc_wakeup(uint32_t sleep_seconds) {
+    LPC_RTC->CIIR = 0;
+    LPC_RTC->AMR = 0xFF;
+    LPC_RTC->ILR = 3;
+
+    uint32_t sec = LPC_RTC->SEC;
+    uint32_t min = LPC_RTC->MIN;
+    uint32_t hrs = LPC_RTC->HRS;
+
+    sec += sleep_seconds;
+    while (sec >= 60) {
+        sec -= 60;
+        min++;
+    }
+    while (min >= 60) {
+        min -= 60;
+        hrs++;
+    }
+    while (hrs >= 24) {
+        hrs -= 24;
+    }
+
+    LPC_RTC->ASEC = sec;
+    LPC_RTC->AMIN = min;
+    LPC_RTC->AHRS = hrs;
+    LPC_RTC->AMR = 0xFF ^ ((1 << 0) | (1 << 1) | (1 << 2));
+}
+
 extern "C" {
 
 CH_IRQ_HANDLER(RTC_IRQHandler) {

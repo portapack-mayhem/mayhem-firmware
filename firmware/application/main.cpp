@@ -141,6 +141,8 @@ Continuous (Fox-oring)
 #include <string.h>
 #include "i2cdevmanager.hpp"
 
+#include "lpc43xx.inc"
+
 #include "rffc507x.hpp" /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
 rffc507x::RFFC507x first_if;
 ui::SystemView* system_view_ptr;
@@ -181,6 +183,28 @@ static void event_loop() {
 }
 
 int main(void) {
+    // =========================================================================
+    // 1. RTC TELJES TAKARÍTÁS
+    // =========================================================================
+    LPC_RTC->AMR = 0xFF;  // Riasztások megszakításának tiltása
+    LPC_RTC->ILR = 3;     // Beragadt megszakítási flagek törlése
+
+    // Töröljük a bent ragadt ébresztési időket, hogy az appok tiszta lapot lássanak!
+    LPC_RTC->ASEC = 0;
+    LPC_RTC->AMIN = 0;
+    LPC_RTC->AHRS = 0;
+
+    // =========================================================================
+    // 2. EVENT ROUTER VISSZAÁLLÍTÁSA (EZ OKOZTA A LEGNAGYOBB BAJT!)
+    // =========================================================================
+    volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
+    volatile uint32_t* evrt_clr_en = (volatile uint32_t*)(0x40044000 + 0xFE0);
+    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0xFE8);
+
+    *evrt_edge |= (1 << 5);       // Visszaállítás élvezéreltre (gyári alapállapot)
+    *evrt_clr_en = (1 << 5);      // RTC csatorna (5) routing LETILTÁSA
+    *evrt_clr_stat = 0xFFFFFFFF;  // Minden bent ragadt Event flag törlése
+
 #ifndef PRALINE      // Do not perform quick set up of GP01_RFF507X = 1 for PRALINE
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
 #endif
