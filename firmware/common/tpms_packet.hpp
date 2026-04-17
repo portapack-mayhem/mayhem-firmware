@@ -46,39 +46,10 @@ enum SignalType {
     OOK_8k192_Schrader = 2,
     OOK_8k4_Schrader = 3,
     // EU 433MHz extensions (proc_tpms_all)
-    FSK_38k4_BMW_G45 = 4,
-    FSK_19k2_BMW_G23 = 5,
     FSK_19k2_Porsche = 6,
     // World 315MHz extensions (proc_tpms_all)
-    FSK_19k2_Toyota = 7,
-    FSK_19k2_Elantra = 8,
     FSK_19k2_JansiteSolar = 9,
 };
-
-inline constexpr const char* signal_type_name(const SignalType signal_type) {
-    switch (signal_type) {
-        case FSK_19k2_Schrader:
-            return "FSK 19200 Schrader";
-        case OOK_8k192_Schrader:
-            return "OOK 8192 Schrader";
-        case OOK_8k4_Schrader:
-            return "OOK 8400 Schrader";
-        case FSK_38k4_BMW_G45:
-            return "FSK 40000 BMW G4/5";
-        case FSK_19k2_BMW_G23:
-            return "FSK 19200 BMW G2/3";
-        case FSK_19k2_Porsche:
-            return "FSK 19200 Porsche";
-        case FSK_19k2_Toyota:
-            return "FSK 19200 Toyota";
-        case FSK_19k2_Elantra:
-            return "FSK 19200 Elantra";
-        case FSK_19k2_JansiteSolar:
-            return "FSK 19200 JanSolar";
-        default:
-            return "- - - -";
-    }
-}
 
 class TransponderID {
    public:
@@ -118,15 +89,14 @@ class Reading {
         Citroen_PSA = 7,
         Renault = 8,
         // EU 433MHz (new M4 paths)
-        BMW_G45 = 9,
-        BMW_G23 = 10,
         Porsche = 11,
         // World 315MHz (new M4 paths)
-        Toyota = 12,
-        Elantra = 13,
         Jansite = 14,
         SolarTruck = 15,
         JansiteSolar = 16,
+        // EU 433MHz (FSK_19k2_Schrader path)
+        Hyundai_VDO = 17,
+        Abarth = 18,
     };
 
     constexpr Reading()
@@ -223,15 +193,13 @@ class Packet {
     Optional<Reading> reading_fsk_19k2_renault() const;
     Optional<Reading> reading_fsk_19k2_jansite() const;
     Optional<Reading> reading_fsk_19k2_solar_truck() const;
+    Optional<Reading> reading_fsk_19k2_hyundai_vdo() const;
+    Optional<Reading> reading_fsk_19k2_abarth() const;
 
     // EU 433MHz new M4 signal paths
-    Optional<Reading> reading_fsk_38k4_bmw_g45() const;
-    Optional<Reading> reading_fsk_19k2_bmw_g23() const;
     Optional<Reading> reading_fsk_19k2_porsche() const;
 
     // World 315MHz new M4 signal paths
-    Optional<Reading> reading_fsk_19k2_toyota() const;
-    Optional<Reading> reading_fsk_19k2_elantra() const;
     Optional<Reading> reading_fsk_19k2_jansite_solar() const;
 
     // NRZI decoder helper
