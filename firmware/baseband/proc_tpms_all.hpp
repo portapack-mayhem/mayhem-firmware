@@ -107,7 +107,7 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     // Preamble 0xCCCCCCCD (32 bits) -> BMW Gen2/3 NRZI, payload 90 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g23{
-        {0b11001100110011001100110011001101, 32, 1},
+        {0b11001100110011001100110011001101u, 32, 1},
         {},
         {90},
         [](const baseband::Packet& packet) {
