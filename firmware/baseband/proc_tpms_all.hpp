@@ -107,7 +107,7 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     // Preamble 0xCCCD (16 bits) -> BMW Gen2/3 NRZI, payload 90 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g23{
-        {0b1100110011001101, 16, 1},
+        {0b1100110011001101, 16, 0},
         {},
         {90},
         [](const baseband::Packet& packet) {
@@ -127,7 +127,7 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     // Preamble 0xa9e0 (12 bits) -> Toyota NRZI, payload 90 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_toyota{
-        {0b101010011110, 12, 1},
+        {0b101010011110, 12, 0},
         {},
         {90},
         [](const baseband::Packet& packet) {
@@ -137,7 +137,7 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     // Preamble 0x7155 (16 bits) -> Elantra/Honda std Manchester, payload 128 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_elantra{
-        {0b0111000101010101, 16, 1},
+        {0b0111000101010101, 16, 0},
         {},
         {128},
         [](const baseband::Packet& packet) {
@@ -159,7 +159,7 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     // Preamble 0xAA59 (16 bits) -> BMW Gen4/5, payload 176 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g45{
-        {0b1010101001011001, 16, 1},
+        {0b1010101001011001, 16, 0},
         {},
         {176},
         [](const baseband::Packet& packet) {
