@@ -42,7 +42,6 @@ void TPMSAllProcessor::execute(const buffer_c8_t& buffer) {
         if (mf.execute_once(decimator_out.p[i])) {
             const float mf_out = mf.get_output();
             clock_recovery_19k2(mf_out);
-            clock_recovery_bmw(mf_out);
             clock_recovery_jansite(mf_out);
         }
     }
