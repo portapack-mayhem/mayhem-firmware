@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2023 Mark Thompson
- * Copyright (C) 2026 Speedster04
  *
  * This file is part of PortaPack.
  *
@@ -21,11 +20,226 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_TPMS_H__
-#define __PROC_TPMS_H__
+#ifndef __TPMS_PACKET_H__
+#define __TPMS_PACKET_H__
 
-// This file is kept for build system compatibility.
-// The TPMS baseband processor is now implemented in proc_tpms_all.hpp.
-#include "proc_tpms_all.hpp"
+#include <cstdint>
+#include <cstddef>
 
-#endif /*__PROC_TPMS_H__*/
+#include "optional.hpp"
+
+#include "units.hpp"
+using units::Pressure;
+using units::Temperature;
+
+#include "baseband_packet.hpp"
+#include "manchester.hpp"
+#include "field_reader.hpp"
+
+namespace tpms {
+
+using Flags = uint8_t;
+
+enum SignalType {
+    // Original
+    FSK_19k2_Schrader = 1,
+    OOK_8k192_Schrader = 2,
+    OOK_8k4_Schrader = 3,
+    // EU 433MHz extensions (proc_tpms_all)
+    FSK_38k4_BMW_G45 = 4,
+    FSK_19k2_BMW_G23 = 5,
+    FSK_19k2_Porsche = 6,
+    // World 315MHz extensions (proc_tpms_all)
+    FSK_19k2_Toyota = 7,
+    FSK_19k2_Elantra = 8,
+    FSK_19k2_JansiteSolar = 9,
+};
+
+inline constexpr const char* signal_type_name(const SignalType signal_type) {
+    switch (signal_type) {
+        case FSK_19k2_Schrader:
+            return "FSK 19200 Schrader";
+        case OOK_8k192_Schrader:
+            return "OOK 8192 Schrader";
+        case OOK_8k4_Schrader:
+            return "OOK 8400 Schrader";
+        case FSK_38k4_BMW_G45:
+            return "FSK 40000 BMW G4/5";
+        case FSK_19k2_BMW_G23:
+            return "FSK 19200 BMW G2/3";
+        case FSK_19k2_Porsche:
+            return "FSK 19200 Porsche";
+        case FSK_19k2_Toyota:
+            return "FSK 19200 Toyota";
+        case FSK_19k2_Elantra:
+            return "FSK 19200 Elantra";
+        case FSK_19k2_JansiteSolar:
+            return "FSK 19200 JanSolar";
+        default:
+            return "- - - -";
+    }
+}
+
+class TransponderID {
+   public:
+    constexpr TransponderID()
+        : id_{0} {
+    }
+
+    constexpr TransponderID(
+        const uint32_t id)
+        : id_{id} {
+    }
+
+    constexpr uint32_t value() const {
+        return id_;
+    }
+
+    constexpr bool operator==(const TransponderID& other) const {
+        return id_ == other.id_;
+    }
+
+   private:
+    uint32_t id_;
+};
+
+class Reading {
+   public:
+    enum Type {
+        // Original
+        None = 0,
+        FLM_64 = 1,
+        FLM_72 = 2,
+        FLM_80 = 3,
+        Schrader = 4,
+        GMC_96 = 5,
+        // EU 433MHz (FSK_19k2_Schrader path)
+        Ford = 6,
+        Citroen_PSA = 7,
+        Renault = 8,
+        // EU 433MHz (new M4 paths)
+        BMW_G45 = 9,
+        BMW_G23 = 10,
+        Porsche = 11,
+        // World 315MHz (new M4 paths)
+        Toyota = 12,
+        Elantra = 13,
+        Jansite = 14,
+        SolarTruck = 15,
+        JansiteSolar = 16,
+    };
+
+    constexpr Reading()
+        : type_{Type::None} {
+    }
+
+    constexpr Reading(
+        Type type,
+        TransponderID id)
+        : type_{type},
+          id_{id} {
+    }
+
+    constexpr Reading(
+        Type type,
+        TransponderID id,
+        Optional<Pressure> pressure = {},
+        Optional<Temperature> temperature = {},
+        Optional<Flags> flags = {})
+        : type_{type},
+          id_{id},
+          pressure_{pressure},
+          temperature_{temperature},
+          flags_{flags} {
+    }
+
+    Type type() const {
+        return type_;
+    }
+
+    TransponderID id() const {
+        return id_;
+    }
+
+    Optional<Pressure> pressure() const {
+        return pressure_;
+    }
+
+    Optional<Temperature> temperature() const {
+        return temperature_;
+    }
+
+    Optional<Flags> flags() const {
+        return flags_;
+    }
+
+   private:
+    Type type_{Type::None};
+    TransponderID id_{0};
+    Optional<Pressure> pressure_{};
+    Optional<Temperature> temperature_{};
+    Optional<Flags> flags_{};
+};
+
+class Packet {
+   public:
+    constexpr Packet(
+        const baseband::Packet& packet,
+        const SignalType signal_type)
+        : packet_{packet},
+          signal_type_{signal_type},
+          decoder_{packet_, 0},
+          decoder_inv_{packet_, 1},
+          reader_{decoder_},
+          reader_inv_{decoder_inv_} {
+    }
+
+    SignalType signal_type() const { return signal_type_; }
+    Timestamp received_at() const;
+
+    FormattedSymbols symbols_formatted() const;
+
+    Optional<Reading> reading() const;
+
+   private:
+    using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
+
+    const baseband::Packet packet_;
+    const SignalType signal_type_;
+    const ManchesterDecoder decoder_;      // sense=0: standard Manchester
+    const ManchesterDecoder decoder_inv_;  // sense=1: inverted Manchester
+
+    const Reader reader_;
+    const Reader reader_inv_;
+
+    // Original decoders
+    Optional<Reading> reading_fsk_19k2_schrader() const;
+    Optional<Reading> reading_ook_8k192_schrader() const;
+    Optional<Reading> reading_ook_8k4_schrader() const;
+
+    // EU 433MHz sub-decoders (called from reading_fsk_19k2_schrader)
+    Optional<Reading> reading_fsk_19k2_ford() const;
+    Optional<Reading> reading_fsk_19k2_citroen() const;
+    Optional<Reading> reading_fsk_19k2_renault() const;
+    Optional<Reading> reading_fsk_19k2_jansite() const;
+    Optional<Reading> reading_fsk_19k2_solar_truck() const;
+
+    // EU 433MHz new M4 signal paths
+    Optional<Reading> reading_fsk_38k4_bmw_g45() const;
+    Optional<Reading> reading_fsk_19k2_bmw_g23() const;
+    Optional<Reading> reading_fsk_19k2_porsche() const;
+
+    // World 315MHz new M4 signal paths
+    Optional<Reading> reading_fsk_19k2_toyota() const;
+    Optional<Reading> reading_fsk_19k2_elantra() const;
+    Optional<Reading> reading_fsk_19k2_jansite_solar() const;
+
+    // NRZI decoder helper
+    size_t nrzi_decode(uint8_t* bytes, size_t n_bits, uint_fast8_t prev_bit) const;
+
+    size_t crc_valid_length() const;
+};
+
+} /* namespace tpms */
+
+#endif /*__TPMS_PACKET_H__*/
