@@ -73,6 +73,10 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
     if (r.is_valid()) return r;
     r = reading_fsk_19k2_solar_truck();
     if (r.is_valid()) return r;
+    r = reading_fsk_19k2_hyundai_vdo();
+    if (r.is_valid()) return r;
+    r = reading_fsk_19k2_abarth();
+    if (r.is_valid()) return r;
     return {};
 }
 
@@ -147,16 +151,8 @@ Optional<Reading> Packet::reading() const {
             return reading_ook_8k192_schrader();
         case SignalType::OOK_8k4_Schrader:
             return reading_ook_8k4_schrader();
-        case SignalType::FSK_38k4_BMW_G45:
-            return reading_fsk_38k4_bmw_g45();
-        case SignalType::FSK_19k2_BMW_G23:
-            return reading_fsk_19k2_bmw_g23();
         case SignalType::FSK_19k2_Porsche:
             return reading_fsk_19k2_porsche();
-        case SignalType::FSK_19k2_Toyota:
-            return reading_fsk_19k2_toyota();
-        case SignalType::FSK_19k2_Elantra:
-            return reading_fsk_19k2_elantra();
         case SignalType::FSK_19k2_JansiteSolar:
             return reading_fsk_19k2_jansite_solar();
         default:
@@ -205,7 +201,7 @@ size_t Packet::crc_valid_length() const {
 }
 
 // ---------------------------------------------------------------------------
-// NRZI helper (used by BMW G2/3, Porsche, Toyota decoders)
+// NRZI helper (used by Porsche decoder)
 // ---------------------------------------------------------------------------
 size_t Packet::nrzi_decode(uint8_t* bytes, size_t n_bits, uint_fast8_t prev_bit) const {
     const size_t available = packet_.size();
@@ -315,69 +311,6 @@ Optional<Reading> Packet::reading_fsk_19k2_solar_truck() const {
 // EU 433MHz new M4 signal path decoders
 // ---------------------------------------------------------------------------
 
-// BMW Gen4/5 + Audi (433.92 MHz) - inverted Manchester ~40kbps
-// Packet: MM II II II II PP TT [F1 F2 F3] CC (11 bytes BMW / 8 bytes Audi)
-// CRC-8 poly=0x2F init=0xAA (residue check over all N bytes == 0)
-Optional<Reading> Packet::reading_fsk_38k4_bmw_g45() const {
-    uint8_t b[11];
-    for (size_t i = 0; i < 11; i++) b[i] = static_cast<uint8_t>(reader_inv_.read(i * 8, 8));
-    uint8_t len = 0;
-    {
-        CRC<8> crc{0x2f, 0xaa};
-        for (size_t i = 0; i < 11; i++) crc.process_byte(b[i]);
-        if (crc.checksum() == 0) len = 11;
-    }
-    if (len == 0) {
-        CRC<8> crc{0x2f, 0xaa};
-        for (size_t i = 0; i < 8; i++) crc.process_byte(b[i]);
-        if (crc.checksum() == 0) len = 8;
-    }
-    if (len == 0) return {};
-    const uint32_t id = ((uint32_t)b[1] << 24) | ((uint32_t)b[2] << 16) |
-                        ((uint32_t)b[3] << 8) | b[4];
-    if (id == 0) return {};
-    const int pres_kpa_g45 = static_cast<int>(b[5]) * 245 / 100;
-    const int temp_c_g45   = static_cast<int>(b[6]) - 52;
-    // Plausibility: realistic tire pressure and temperature ranges
-    if (pres_kpa_g45 < 100 || pres_kpa_g45 > 450) return {};
-    if (temp_c_g45   < -40 || temp_c_g45   > 85)  return {};
-    return Reading{Reading::Type::BMW_G45, id,
-                   Pressure{pres_kpa_g45},
-                   Temperature{temp_c_g45}, Flags{b[0]}};
-}
-
-// BMW Gen2/3 (433.92 MHz) - NRZI 19200 bps, preamble 0xCCCD (last bit=1)
-// Packet Gen3: II II II II PP TT F1 F2 F3 CK CK (11 bytes)
-// CRC-16 poly=0x1021 init=0x0000 (residue check == 0)
-Optional<Reading> Packet::reading_fsk_19k2_bmw_g23() const {
-    uint8_t b[11]{};
-    const size_t decoded = nrzi_decode(b, 11 * 8, 1);
-    if (decoded < 10 * 8) return {};
-    uint8_t len = 0;
-    if (decoded >= 11 * 8) {
-        CRC<16> c{0x1021, 0x0000};
-        for (size_t i = 0; i < 11; i++) c.process_byte(b[i]);
-        if (c.checksum() == 0) len = 11;
-    }
-    if (len == 0) {
-        CRC<16> c{0x1021, 0x0000};
-        for (size_t i = 0; i < 10; i++) c.process_byte(b[i]);
-        if (c.checksum() == 0) len = 10;
-    }
-    if (len == 0) return {};
-    const uint32_t id = ((uint32_t)b[0] << 24) | ((uint32_t)b[1] << 16) |
-                        ((uint32_t)b[2] << 8) | b[3];
-    if (id == 0) return {};
-    const int pres_kpa_g23 = (static_cast<int>(b[4]) - 43) * 5 / 2;
-    const int temp_c_g23   = static_cast<int>(b[5]) - 40;
-    // Plausibility: pressure must be positive and realistic
-    if (pres_kpa_g23 < 100 || pres_kpa_g23 > 450) return {};
-    if (temp_c_g23   < -40 || temp_c_g23   > 85)  return {};
-    return Reading{Reading::Type::BMW_G23, id,
-                   Pressure{pres_kpa_g23},
-                   Temperature{temp_c_g23}, Flags{b[6]}};
-}
-
 // Porsche 987 Boxster/Cayman (433.92 MHz) - NRZI 19200 bps, preamble 0x333320 (last bit=0)
 // Packet: II II II II PP TT SS SS CK CK (10 bytes)
 // CRC-16 poly=0x1021 init=0xFFFF (residue check == 0)
@@ -399,49 +332,48 @@ Optional<Reading> Packet::reading_fsk_19k2_porsche() const {
 // World 315MHz new M4 signal path decoders
 // ---------------------------------------------------------------------------
 
-// Toyota PMV-C210 (315 MHz) - NRZI 19200 bps, preamble 0xa9e0 (12 bits, last bit=0)
-// Packet: II II II II x PP TT x iP CC (9 bytes, bitfields cross byte boundaries)
-// CRC-8 poly=0x07 init=0x80, with inverted pressure cross-check
-Optional<Reading> Packet::reading_fsk_19k2_toyota() const {
-    uint8_t b[9]{};
-    if (nrzi_decode(b, 9 * 8, 0) < 9 * 8) return {};
-    const int pressure8 = (static_cast<int>(b[4] & 0x7f) << 1) | (b[5] >> 7);
-    const int inv_pres = static_cast<int>(b[7] ^ 0xff);
-    if (pressure8 != inv_pres) return {};
-    CRC<8> crc{0x07, 0x80};
-    for (size_t i = 0; i < 8; i++) crc.process_byte(b[i]);
-    if (crc.checksum() != b[8]) return {};
+// Hyundai/VDO Continental TG1C (433.92 MHz)
+// Used in: BMW, Fiat-Chrysler-Alfa, PSA, Hyundai-KIA, Mitsubishi, Mazda
+// Packet: UU II II II II PP TT BB ?? CC (10 bytes)
+// CRC-8 poly=0x07 init=0xAA (residue check over all 10 bytes == 0)
+Optional<Reading> Packet::reading_fsk_19k2_hyundai_vdo() const {
+    uint8_t b[10];
+    for (size_t i = 0; i < 10; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
+    CRC<8> crc{0x07, 0xaa};
+    for (size_t i = 0; i < 10; i++) crc.process_byte(b[i]);
+    if (crc.checksum() != 0) return {};
+    const uint32_t id = ((uint32_t)b[1] << 24) | ((uint32_t)b[2] << 16) |
+                        ((uint32_t)b[3] << 8) | b[4];
+    if (id == 0) return {};
+    const int pres_kpa = static_cast<int>(b[5]) * 137 / 100;
+    const int temp_c   = static_cast<int>(b[6]) - 50;
+    if (pres_kpa < 100 || pres_kpa > 450) return {};
+    if (temp_c < -40  || temp_c > 85)     return {};
+    return Reading{Reading::Type::Hyundai_VDO, id,
+                   Pressure{pres_kpa},
+                   Temperature{temp_c}, Flags{b[0]}};
+}
+
+// Abarth 124 Spider / VDO TG1C (433.92 MHz)
+// Also: Fiat, Alfa Romeo, Lancia
+// Packet: II II II II ?? PP TT SS CC (9 bytes)
+// Checksum: XOR of bytes 0..8 == 0
+Optional<Reading> Packet::reading_fsk_19k2_abarth() const {
+    uint8_t b[9];
+    for (size_t i = 0; i < 9; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
+    uint8_t xr = 0;
+    for (size_t i = 0; i < 9; i++) xr ^= b[i];
+    if (xr != 0) return {};
     const uint32_t id = ((uint32_t)b[0] << 24) | ((uint32_t)b[1] << 16) |
                         ((uint32_t)b[2] << 8) | b[3];
     if (id == 0) return {};
-    const int pressure_kpa = (pressure8 * 1724 - 48300) / 1000;
-    const int temp8 = (static_cast<int>(b[5] & 0x7f) << 1) | (b[6] >> 7);
-    return Reading{Reading::Type::Toyota, id,
-                   Pressure{pressure_kpa > 0 ? pressure_kpa : 0},
-                   Temperature{temp8 - 40},
-                   Flags{static_cast<uint8_t>(b[4] >> 7)}};
-}
-
-// Hyundai Elantra / Honda Civic TRW GQ4-44T (315 MHz) - standard Manchester
-// Preamble 0x7155 (16 bits), CRC-8 poly=0x07 init=0x00
-// Packet: PP TT ID ID ID ID FF CC (8 bytes)
-Optional<Reading> Packet::reading_fsk_19k2_elantra() const {
-    uint8_t b[8];
-    for (size_t i = 0; i < 8; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
-    CRC<8> c{0x07, 0x00};
-    for (size_t i = 0; i < 8; i++) c.process_byte(b[i]);
-    if (c.checksum() != 0) return {};
-    const uint32_t id = ((uint32_t)b[2] << 24) | ((uint32_t)b[3] << 16) |
-                        ((uint32_t)b[4] << 8) | b[5];
-    if (id == 0) return {};
-    const int pres_kpa_e = static_cast<int>(b[0]) + 60;
-    const int temp_c_e   = static_cast<int>(b[1]) - 50;
-    // Plausibility: realistic tire pressure and temperature ranges
-    if (pres_kpa_e < 100 || pres_kpa_e > 450) return {};
-    if (temp_c_e   < -40 || temp_c_e   > 85)  return {};
-    return Reading{Reading::Type::Elantra, id,
-                   Pressure{pres_kpa_e},
-                   Temperature{temp_c_e}, Flags{b[6]}};
+    const int pres_kpa = static_cast<int>(b[5]) * 138 / 100;
+    const int temp_c   = static_cast<int>(b[6]) - 50;
+    if (pres_kpa < 100 || pres_kpa > 450) return {};
+    if (temp_c < -40  || temp_c > 85)     return {};
+    return Reading{Reading::Type::Abarth, id,
+                   Pressure{pres_kpa},
+                   Temperature{temp_c}, Flags{b[7]}};
 }
 
 // Jansite Solar Model (433.92 MHz) - inverted Manchester 19200 bps
