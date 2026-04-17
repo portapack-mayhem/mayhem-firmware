@@ -134,7 +134,13 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     }
     buffer_pointer += sprintf(buffer_pointer, "\n%sHex ID:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.hexId.c_str());
     if (beacon.hasSerialNumber) {
-        sprintf(buffer_pointer, "%sS/N:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.serialNumber.c_str());
+        buffer_pointer += sprintf(buffer_pointer, "%sS/N:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.serialNumber.c_str());
+    }
+    if(beacon.hasMainLocatingDevice()) {
+        buffer_pointer += sprintf(buffer_pointer, "%sMain loc. dev.:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getMainLocatingDeviceName());
+        if(beacon.hasAuxLocatingDevice()) {
+            buffer_pointer += sprintf(buffer_pointer, "%sAux loc. dev.:%s %s\n", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getAuxLocatingDeviceName());
+        }
     }
     text_beacon.clear(true);
     text_beacon.write(buffer);
