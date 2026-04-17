@@ -158,6 +158,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 }
 
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
+    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
@@ -232,38 +233,17 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         led_rx.off();
         led_usb.off();
 
-        // ================= EVENT ROUTER BEÁLLÍTÁSA =================
-        volatile uint32_t* evrt_hilo = (volatile uint32_t*)(0x40044000 + 0x000);
-        volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
-        volatile uint32_t* evrt_set_en = (volatile uint32_t*)(0x40044000 + 0xFDC);
-        volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0xFE8);
-
-        *evrt_hilo |= (1 << 5);       // Magas szint
-        *evrt_edge &= ~(1 << 5);      // SZINTVEZÉRELT!
-        *evrt_clr_stat = 0xFFFFFFFF;  // Flagek törlése
-        *evrt_set_en = (1 << 5);      // Csatorna (RTC) engedélyezése
-        // ===========================================================
+        rtc_wakeup_init();
 
         while (1) {
             // ================== AKKU OLVASÁS (I2C ÉL) ==================
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
-            if (valid_mask) {
-                if (current > 0) {
-                    if (percent >= 100 && current <= 5) {
-                        led_tx.off();
-                        led_rx.off();
-                    } else {
-                        led_rx.off();
-                        led_tx.on();
-                    }
-                } else {
-                    led_tx.off();
-                    led_rx.off();
-                }
-            } else {
+            if (percent >= 100 && current <= 5) {
                 led_tx.off();
-                led_rx.on();
+
+            } else {
+                led_tx.on();
             }
 
             // --------------- PREPARE FOR SLEEP -------------------------
@@ -294,7 +274,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             NVIC_EnableIRQ((IRQn_Type)53);
 
             // 3. Ébresztő beállítása
-            rtc_wakeup(30);
+            rtc_wakeup(10);
 
             // Várjunk egy picit a 32 kHz szinkronizációra
             for (volatile int d = 0; d < 100000; d++);  // mi a fasz??

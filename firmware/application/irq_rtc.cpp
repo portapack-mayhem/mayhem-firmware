@@ -36,11 +36,47 @@ void rtc_interrupt_enable() {
     nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
 }
 
-void rtc_wakeup(uint32_t sleep_seconds) {
+void rtc_reset_default() {
+    // 1. RTC TELJES TAKARÍTÁS
     LPC_RTC->CIIR = 0;
-    LPC_RTC->AMR = 0xFF;
-    LPC_RTC->ILR = 3;
+    LPC_RTC->AMR = 0xFF;  // Riasztások tiltása
+    LPC_RTC->ILR = 3;     // Beragadt megszakítási flagek törlése
+    LPC_RTC->ASEC = 0;
+    LPC_RTC->AMIN = 0;
+    LPC_RTC->AHRS = 0;
 
+    // 2. EVENT ROUTER VISSZAÁLLÍTÁSA (A VALÓDI CÍMEKKEL!)
+
+    volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
+    volatile uint32_t* evrt_clr_en = (volatile uint32_t*)(0x40044000 + 0x008);
+    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
+
+    *evrt_edge |= (1 << 5);       // Visszaállítás élvezéreltre
+    *evrt_clr_en = (1 << 5);      // RTC csatorna routing LETILTÁSA
+    *evrt_clr_stat = 0xFFFFFFFF;  // Pending Eventek törlése
+
+    // 3. USB PHY VISSZAKAPCSOLÁSA (CREG0 is akku-védett!)
+    LPC_CREG->CREG0 &= ~(1 << 5);
+}
+
+void rtc_wakeup_init() {
+    rtc_reset_default();
+
+    LPC_RGU->RESET_CTRL[1] = (1 << 24);  // M0APP_RST bit beállítása
+
+    volatile uint32_t* evrt_hilo = (volatile uint32_t*)(0x40044000 + 0x000);
+    volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
+    volatile uint32_t* evrt_set_en = (volatile uint32_t*)(0x40044000 + 0x00C);
+    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
+
+    *evrt_hilo |= (1 << 5);       // Magas szint
+    *evrt_edge &= ~(1 << 5);      // SZINTVEZÉRELT!
+    *evrt_clr_stat = 0xFFFFFFFF;  // Flagek törlése
+    *evrt_set_en = (1 << 5);      // Csatorna (RTC) engedélyezése
+}
+
+void rtc_wakeup(uint32_t sleep_seconds) {
+    // --- Idő kiszámítása ---
     uint32_t sec = LPC_RTC->SEC;
     uint32_t min = LPC_RTC->MIN;
     uint32_t hrs = LPC_RTC->HRS;
@@ -58,9 +94,12 @@ void rtc_wakeup(uint32_t sleep_seconds) {
         hrs -= 24;
     }
 
+    // --- Riasztás élesítése ---
     LPC_RTC->ASEC = sec;
     LPC_RTC->AMIN = min;
     LPC_RTC->AHRS = hrs;
+
+    // Csak a SEC, MIN, HRS egyezést figyeljük
     LPC_RTC->AMR = 0xFF ^ ((1 << 0) | (1 << 1) | (1 << 2));
 }
 
