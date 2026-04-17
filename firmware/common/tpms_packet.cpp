@@ -282,6 +282,8 @@ Optional<Reading> Packet::reading_fsk_19k2_jansite() const {
     const uint32_t id = ((uint32_t)b[0] << 20) | ((uint32_t)b[1] << 12) |
                         ((uint32_t)b[2] << 4) | (b[3] >> 4);
     if (id == 0) return {};
+    // Plausibility: upper 2 bytes of ID must be non-zero (false positives show 0x0000XXXX pattern)
+    if ((id >> 16) == 0) return {};
     // Plausibility check: pressure 0-240 raw, temperature 10-175 raw
     if (b[4] > 240 || b[5] < 10 || b[5] > 175) return {};
     return Reading{Reading::Type::Jansite, id,
@@ -334,9 +336,14 @@ Optional<Reading> Packet::reading_fsk_38k4_bmw_g45() const {
     const uint32_t id = ((uint32_t)b[1] << 24) | ((uint32_t)b[2] << 16) |
                         ((uint32_t)b[3] << 8) | b[4];
     if (id == 0) return {};
+    const int pres_kpa_g45 = static_cast<int>(b[5]) * 245 / 100;
+    const int temp_c_g45   = static_cast<int>(b[6]) - 52;
+    // Plausibility: realistic tire pressure and temperature ranges
+    if (pres_kpa_g45 < 100 || pres_kpa_g45 > 450) return {};
+    if (temp_c_g45   < -40 || temp_c_g45   > 85)  return {};
     return Reading{Reading::Type::BMW_G45, id,
-                   Pressure{static_cast<int>(b[5]) * 245 / 100},
-                   Temperature{static_cast<int>(b[6]) - 52}, Flags{b[0]}};
+                   Pressure{pres_kpa_g45},
+                   Temperature{temp_c_g45}, Flags{b[0]}};
 }
 
 // BMW Gen2/3 (433.92 MHz) - NRZI 19200 bps, preamble 0xCCCD (last bit=1)
@@ -361,9 +368,14 @@ Optional<Reading> Packet::reading_fsk_19k2_bmw_g23() const {
     const uint32_t id = ((uint32_t)b[0] << 24) | ((uint32_t)b[1] << 16) |
                         ((uint32_t)b[2] << 8) | b[3];
     if (id == 0) return {};
+    const int pres_kpa_g23 = (static_cast<int>(b[4]) - 43) * 5 / 2;
+    const int temp_c_g23   = static_cast<int>(b[5]) - 40;
+    // Plausibility: pressure must be positive and realistic
+    if (pres_kpa_g23 < 100 || pres_kpa_g23 > 450) return {};
+    if (temp_c_g23   < -40 || temp_c_g23   > 85)  return {};
     return Reading{Reading::Type::BMW_G23, id,
-                   Pressure{(static_cast<int>(b[4]) - 43) * 5 / 2},
-                   Temperature{static_cast<int>(b[5]) - 40}, Flags{b[6]}};
+                   Pressure{pres_kpa_g23},
+                   Temperature{temp_c_g23}, Flags{b[6]}};
 }
 
 // Porsche 987 Boxster/Cayman (433.92 MHz) - NRZI 19200 bps, preamble 0x333320 (last bit=0)
@@ -422,9 +434,14 @@ Optional<Reading> Packet::reading_fsk_19k2_elantra() const {
     const uint32_t id = ((uint32_t)b[2] << 24) | ((uint32_t)b[3] << 16) |
                         ((uint32_t)b[4] << 8) | b[5];
     if (id == 0) return {};
+    const int pres_kpa_e = static_cast<int>(b[0]) + 60;
+    const int temp_c_e   = static_cast<int>(b[1]) - 50;
+    // Plausibility: realistic tire pressure and temperature ranges
+    if (pres_kpa_e < 100 || pres_kpa_e > 450) return {};
+    if (temp_c_e   < -40 || temp_c_e   > 85)  return {};
     return Reading{Reading::Type::Elantra, id,
-                   Pressure{static_cast<int>(b[0]) + 60},
-                   Temperature{static_cast<int>(b[1]) - 50}, Flags{b[6]}};
+                   Pressure{pres_kpa_e},
+                   Temperature{temp_c_e}, Flags{b[6]}};
 }
 
 // Jansite Solar Model (433.92 MHz) - inverted Manchester 19200 bps
