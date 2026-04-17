@@ -105,9 +105,9 @@ class TPMSAllProcessor : public BasebandProcessor {
                 TPMSPacketMessage{tpms::SignalType::FSK_19k2_Schrader, packet});
         }};
 
-    // Preamble 0xCCCD (16 bits) -> BMW Gen2/3 NRZI, payload 90 bits
+    // Preamble 0xCCCCCCCD (32 bits) -> BMW Gen2/3 NRZI, payload 90 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g23{
-        {0b1100110011001101, 16, 1},
+        {0b11001100110011001100110011001101, 32, 1},
         {},
         {90},
         [](const baseband::Packet& packet) {
@@ -135,9 +135,9 @@ class TPMSAllProcessor : public BasebandProcessor {
                 TPMSPacketMessage{tpms::SignalType::FSK_19k2_Toyota, packet});
         }};
 
-    // Preamble 0x7155 (16 bits) -> Elantra/Honda std Manchester, payload 128 bits
+    // Preamble 0x557155 top 24 bits -> Elantra/Honda std Manchester, payload 128 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_elantra{
-        {0b0111000101010101, 16, 1},
+        {0b010101010111000101010101, 24, 1},
         {},
         {128},
         [](const baseband::Packet& packet) {
@@ -157,9 +157,9 @@ class TPMSAllProcessor : public BasebandProcessor {
             this->pb_bmw_g45.execute(s);
         }};
 
-    // Preamble 0xAA59 (16 bits) -> BMW Gen4/5, payload 176 bits
+    // Preamble 0xAAAAAA59 top 24 bits -> BMW Gen4/5, payload 176 bits
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g45{
-        {0b1010101001011001, 16, 1},
+        {0b101010101010101001011001, 24, 1},
         {},
         {176},
         [](const baseband::Packet& packet) {
