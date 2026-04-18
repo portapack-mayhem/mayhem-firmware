@@ -59,7 +59,9 @@ void TPMSTXView::update_signal_type_from_packet() {
         case tpms::Reading::Type::Citroen_PSA:
         case tpms::Reading::Type::Renault:
         case tpms::Reading::Type::Jansite:
-        case tpms::Reading::Type::SolarTruck:
+        case tpms::Reading::Type::Hyundai_VDO:
+        case tpms::Reading::Type::Abarth:
+        case tpms::Reading::Type::Renault_0435R:
             signal_type_ = tpms::SignalType::FSK_19k2_Schrader;
             break;
         // EU 433MHz (new M4 paths)
@@ -75,9 +77,6 @@ void TPMSTXView::update_signal_type_from_packet() {
         // World 315MHz
         case tpms::Reading::Type::Toyota:
             signal_type_ = tpms::SignalType::FSK_19k2_Toyota;
-            break;
-        case tpms::Reading::Type::Elantra:
-            signal_type_ = tpms::SignalType::FSK_19k2_Elantra;
             break;
         case tpms::Reading::Type::JansiteSolar:
             signal_type_ = tpms::SignalType::FSK_19k2_JansiteSolar;
@@ -490,9 +489,10 @@ void TPMSTXView::encode_and_transmit() {
                (packet_type_ == tpms::Reading::Type::Ford ||
                 packet_type_ == tpms::Reading::Type::Citroen_PSA ||
                 packet_type_ == tpms::Reading::Type::Renault ||
-                packet_type_ == tpms::Reading::Type::Elantra ||
                 packet_type_ == tpms::Reading::Type::Jansite ||
-                packet_type_ == tpms::Reading::Type::SolarTruck)) {
+                packet_type_ == tpms::Reading::Type::Hyundai_VDO ||
+                packet_type_ == tpms::Reading::Type::Abarth ||
+                packet_type_ == tpms::Reading::Type::Renault_0435R)) {
         // EU/World protocols sharing the FSK 19k2 preamble path
         symbol_rate = 19200;
 
@@ -564,21 +564,61 @@ void TPMSTXView::encode_and_transmit() {
                 for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
                     binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
 
-        } else if (packet_type_ == tpms::Reading::Type::Elantra) {
-            // Hyundai Elantra / Honda Civic TRW GQ4-44T - CRC-8
-            // Packet: PP TT ID ID ID ID FF CC (8 bytes)
-            uint8_t b[8] = {};
-            b[0] = static_cast<uint8_t>((pressure_kpa_ >= 60) ? pressure_kpa_ - 60 : 0);
-            b[1] = static_cast<uint8_t>(temperature_c_ + 50);
-            b[2] = (transponder_id_ >> 24) & 0xFF;
-            b[3] = (transponder_id_ >> 16) & 0xFF;
-            b[4] = (transponder_id_ >> 8) & 0xFF;
-            b[5] = transponder_id_ & 0xFF;
-            b[6] = flags_ & 0x07;
-            CRC<8> crc{0x07, 0x00};
-            for (int i = 0; i < 7; i++) crc.process_byte(b[i]);
-            b[7] = crc.checksum() & 0xFF;
-            for (size_t byte_idx = 0; byte_idx < 8; byte_idx++)
+        } else if (packet_type_ == tpms::Reading::Type::Hyundai_VDO) {
+            // Hyundai/VDO Continental TG1C - CRC-8 poly=0x07 init=0xAA
+            // Packet: UU II II II II PP TT BB ?? CC (10 bytes)
+            uint8_t b[10] = {};
+            b[0] = flags_;
+            b[1] = (transponder_id_ >> 24) & 0xFF;
+            b[2] = (transponder_id_ >> 16) & 0xFF;
+            b[3] = (transponder_id_ >> 8) & 0xFF;
+            b[4] = transponder_id_ & 0xFF;
+            b[5] = static_cast<uint8_t>(pressure_kpa_ * 100 / 137);
+            b[6] = static_cast<uint8_t>(temperature_c_ + 50);
+            b[7] = 0x00;
+            b[8] = 0x00;
+            CRC<8> crc{0x07, 0xaa};
+            for (int i = 0; i < 9; i++) crc.process_byte(b[i]);
+            b[9] = crc.checksum() & 0xFF;
+            for (size_t byte_idx = 0; byte_idx < 10; byte_idx++)
+                for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
+                    binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
+
+        } else if (packet_type_ == tpms::Reading::Type::Abarth) {
+            // Abarth/Fiat/Alfa Romeo - XOR checksum
+            // Packet: II II II II ?? PP TT SS CC (9 bytes)
+            uint8_t b[9] = {};
+            b[0] = (transponder_id_ >> 24) & 0xFF;
+            b[1] = (transponder_id_ >> 16) & 0xFF;
+            b[2] = (transponder_id_ >> 8) & 0xFF;
+            b[3] = transponder_id_ & 0xFF;
+            b[4] = 0x00;
+            b[5] = static_cast<uint8_t>(pressure_kpa_ * 100 / 138);
+            b[6] = static_cast<uint8_t>(temperature_c_ + 50);
+            b[7] = flags_;
+            uint8_t xr = 0;
+            for (int i = 0; i < 8; i++) xr ^= b[i];
+            b[8] = xr;
+            for (size_t byte_idx = 0; byte_idx < 9; byte_idx++)
+                for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
+                    binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
+
+        } else if (packet_type_ == tpms::Reading::Type::Renault_0435R) {
+            // Renault 0435R - newer Renault/Dacia/Nissan EU - XOR checksum
+            // Packet: CC II II II II PP TT RR ?? (9 bytes), b[0]=0xc0
+            uint8_t b[9] = {};
+            b[0] = 0xc0;
+            b[1] = (transponder_id_ >> 24) & 0xFF;
+            b[2] = (transponder_id_ >> 16) & 0xFF;
+            b[3] = (transponder_id_ >> 8) & 0xFF;
+            b[4] = transponder_id_ & 0xFF;
+            b[5] = static_cast<uint8_t>(pressure_kpa_ * 4 / 3);
+            b[6] = static_cast<uint8_t>(temperature_c_ + 30);
+            b[7] = 0x00;
+            uint8_t xr2 = 0;
+            for (int i = 0; i < 8; i++) xr2 ^= b[i];
+            b[8] = xr2;
+            for (size_t byte_idx = 0; byte_idx < 9; byte_idx++)
                 for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
                     binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
 
@@ -595,27 +635,6 @@ void TPMSTXView::encode_and_transmit() {
             b[5] = static_cast<uint8_t>(temperature_c_ + 50);
             b[6] = 0x00;
             for (size_t byte_idx = 0; byte_idx < 7; byte_idx++)
-                for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
-                    binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "01" : "10";  // inverted
-
-        } else if (packet_type_ == tpms::Reading::Type::SolarTruck) {
-            // Unbranded Solar TPMS for trucks - inverted Manchester, XOR checksum
-            uint8_t b[9] = {};
-            b[0] = (transponder_id_ >> 24) & 0xFF;
-            b[1] = (transponder_id_ >> 16) & 0xFF;
-            b[2] = (transponder_id_ >> 8) & 0xFF;
-            b[3] = transponder_id_ & 0xFF;
-            b[4] = flags_ & 0x0F;
-            int pkpa = (pressure_kpa_ > 4095) ? 4095 : pressure_kpa_;
-            b[5] = static_cast<uint8_t>(((flags_ >> 4) & 0x0F) << 4) | static_cast<uint8_t>((pkpa >> 8) & 0x0F);
-            b[6] = pkpa & 0xFF;
-            b[7] = static_cast<uint8_t>(temperature_c_);
-            uint8_t xr = 0;
-            for (int i = 0; i < 8; i++) xr ^= b[i];
-            b[8] = xr;
-            // State nibble (4 bits)
-            for (int bit = 3; bit >= 0; bit--) binary_string += "01";  // 0 inverted
-            for (size_t byte_idx = 0; byte_idx < 9; byte_idx++)
                 for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
                     binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "01" : "10";  // inverted
         }
@@ -733,29 +752,6 @@ void TPMSTXView::encode_and_transmit() {
                 binary_string += (char)('0' + out);
                 prev = out;
             }
-
-    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Elantra) {
-        // Hyundai Elantra / Honda Civic TRW GQ4-44T - standard Manchester
-        // Preamble: 14 x "01" + "10", CRC-8 poly=0x07 init=0x00
-        // Packet: PP TT ID ID ID ID FF CC (8 bytes)
-        symbol_rate = 19200;
-        for (int i = 0; i < 14; i++) binary_string += "01";
-        binary_string += "10";
-        uint8_t b[8] = {};
-        b[0] = static_cast<uint8_t>((pressure_kpa_ >= 60) ? pressure_kpa_ - 60 : 0);
-        b[1] = static_cast<uint8_t>(temperature_c_ + 50);
-        b[2] = (transponder_id_ >> 24) & 0xFF;
-        b[3] = (transponder_id_ >> 16) & 0xFF;
-        b[4] = (transponder_id_ >> 8) & 0xFF;
-        b[5] = transponder_id_ & 0xFF;
-        b[6] = flags_ & 0x07;
-        CRC<8> crc_el{0x07, 0x00};
-        for (int i = 0; i < 7; i++) crc_el.process_byte(b[i]);
-        b[7] = crc_el.checksum() & 0xFF;
-        for (size_t byte_idx = 0; byte_idx < 8; byte_idx++)
-            for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
-                binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
-        while (binary_string.length() < 190) binary_string += "01";
 
     } else if (signal_type_ == tpms::SignalType::FSK_19k2_JansiteSolar) {
         // Jansite Solar Model - inverted Manchester 19200 bps
