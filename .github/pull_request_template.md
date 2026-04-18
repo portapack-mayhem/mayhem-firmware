@@ -8,7 +8,7 @@ https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines
 ## Brief description of what you did
 
 <!-- Replace this line with a description of your changes. What problem does this PR solve? What does it add or fix?
-Don't forget to describe how maintainers can test your modifications !-->
+Don't forget to describe how maintainers can test your modifications! -->
 
 ---
 
