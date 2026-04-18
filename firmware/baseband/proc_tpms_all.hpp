@@ -79,7 +79,7 @@ class TPMSAllProcessor : public BasebandProcessor {
 
     // -----------------------------------------------------------------------
     // FSK 19200 bps -> drives all standard-preamble + NRZI protocols
-    // Schrader/FLM/Ford/Citroen/Renault/Jansite/SolarTruck/BMW_G23/Porsche/Toyota/Elantra
+    // Schrader/FLM/Ford/Citroen/Renault/Jansite/BMW_G23/Porsche/Toyota/HyundaiVDO/Abarth/Ren0435R
     // -----------------------------------------------------------------------
     clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_19k2{
         38400,
@@ -91,7 +91,6 @@ class TPMSAllProcessor : public BasebandProcessor {
             this->pb_bmw_g23.execute(s);
             this->pb_porsche.execute(s);
             this->pb_toyota.execute(s);
-            this->pb_elantra.execute(s);
         }};
 
     // Preamble 0x55 0x56 (30 bits) -> FLM, Schrader, GMC, Ford, Citroen,
@@ -133,16 +132,6 @@ class TPMSAllProcessor : public BasebandProcessor {
         [](const baseband::Packet& packet) {
             shared_memory.application_queue.push(
                 TPMSPacketMessage{tpms::SignalType::FSK_19k2_Toyota, packet});
-        }};
-
-    // Preamble 0x7155 (16 bits) -> Elantra/Honda std Manchester, payload 128 bits
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_elantra{
-        {0b0111000101010101, 16, 1},
-        {},
-        {128},
-        [](const baseband::Packet& packet) {
-            shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::FSK_19k2_Elantra, packet});
         }};
 
     // -----------------------------------------------------------------------
