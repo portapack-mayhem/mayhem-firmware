@@ -234,7 +234,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         led_usb.off();
 
         rtc_wakeup_init();
-
+        NVIC_EnableIRQ(I2C0_OR_I2C1_IRQn);
         while (1) {
             // ================== AKKU OLVASÁS (I2C ÉL) ==================
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
@@ -271,18 +271,18 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             // Csak az ébresztő megszakításokat engedélyezzük újra
             NVIC_EnableIRQ(RTC_IRQn);
-            NVIC_EnableIRQ((IRQn_Type)53);
+            NVIC_EnableIRQ(EVENTROUTER_IRQn);
 
             // 3. Ébresztő beállítása
             rtc_wakeup(10);
 
             // Várjunk egy picit a 32 kHz szinkronizációra
-            for (volatile int d = 0; d < 100000; d++);  // mi a fasz??
+            // for (volatile int d = 0; d < 100000; d++);  // mi a fasz??
 
             LPC_RTC->ILR = 3;
             *evrt_clr_stat = 0xFFFFFFFF;
             NVIC_ClearPendingIRQ(RTC_IRQn);
-            NVIC_ClearPendingIRQ((IRQn_Type)53);
+            NVIC_ClearPendingIRQ(EVENTROUTER_IRQn);
 
             __disable_irq();
 
@@ -323,7 +323,6 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             NVIC->ISER[2] = saved_iser2;
 
             // 3. A te eredeti biztonsági törlésed, ami megakadályozza a ChibiOS Event-fagyást
-            chEvtGetAndClearEvents(ALL_EVENTS);
 
         }  // while (1) - end  // while (1) - end
     } else {

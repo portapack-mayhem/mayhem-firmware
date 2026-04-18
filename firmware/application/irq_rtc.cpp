@@ -27,6 +27,8 @@
 using namespace lpc43xx;
 
 #include "event_m0.hpp"
+#include "nvic.h"
+#include "lpc43xx.inc"
 
 static Thread* thread_rtc_event = NULL;
 
@@ -37,46 +39,62 @@ void rtc_interrupt_enable() {
 }
 
 void rtc_reset_default() {
-    // 1. RTC TELJES TAKARÍTÁS
+    // 1. FULL RTC CLEANUP/RESET
     LPC_RTC->CIIR = 0;
-    LPC_RTC->AMR = 0xFF;  // Riasztások tiltása
-    LPC_RTC->ILR = 3;     // Beragadt megszakítási flagek törlése
+    LPC_RTC->AMR = 0xFF;  // Disable all alarms
+    LPC_RTC->ILR = 3;     // Clear stuck interrupt flags
     LPC_RTC->ASEC = 0;
     LPC_RTC->AMIN = 0;
     LPC_RTC->AHRS = 0;
 
-    // 2. EVENT ROUTER VISSZAÁLLÍTÁSA (A VALÓDI CÍMEKKEL!)
+    // 2. RESET EVENT ROUTER (Using absolute addresses)
 
     volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
     volatile uint32_t* evrt_clr_en = (volatile uint32_t*)(0x40044000 + 0x008);
     volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
 
-    *evrt_edge |= (1 << 5);       // Visszaállítás élvezéreltre
-    *evrt_clr_en = (1 << 5);      // RTC csatorna routing LETILTÁSA
-    *evrt_clr_stat = 0xFFFFFFFF;  // Pending Eventek törlése
+    *evrt_edge |= (1 << 5);       // Reset to edge-triggered
+    *evrt_clr_en = (1 << 5);      // DISABLE RTC channel routing
+    *evrt_clr_stat = 0xFFFFFFFF;  // Clear pending events
 
-    // 3. USB PHY VISSZAKAPCSOLÁSA (CREG0 is akku-védett!)
+    // 3. RE-ENABLE USB PHY (CREG0 is also battery-backed!)
     LPC_CREG->CREG0 &= ~(1 << 5);
 }
 
 void rtc_wakeup_init() {
     rtc_reset_default();
 
-    LPC_RGU->RESET_CTRL[1] = (1 << 24);  // M0APP_RST bit beállítása
+    // 1. Force RTC Clock (In case it was modified by the app)
+    // Bit 0: Enable, Bit 4: Calibration OFF
+    LPC_RTC->CCR = (1 << 0);
 
+    // 2. EVENT ROUTER - Link the RTC with the EVRT
+    // This is the 0x010 register in EVRT (ERCONTROL)
+    // Bit 0: RTC event enable
+    *(volatile uint32_t*)(0x40044010) |= (1 << 0);
+
+    // 3. EVENT ROUTER CONFIGURATION
     volatile uint32_t* evrt_hilo = (volatile uint32_t*)(0x40044000 + 0x000);
     volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
     volatile uint32_t* evrt_set_en = (volatile uint32_t*)(0x40044000 + 0x00C);
     volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
 
-    *evrt_hilo |= (1 << 5);       // Magas szint
-    *evrt_edge &= ~(1 << 5);      // SZINTVEZÉRELT!
-    *evrt_clr_stat = 0xFFFFFFFF;  // Flagek törlése
-    *evrt_set_en = (1 << 5);      // Csatorna (RTC) engedélyezése
+    *evrt_hilo |= (1 << 5);
+    *evrt_edge &= ~(1 << 5);  // Level-triggered (Better for wakeup)
+    *evrt_clr_stat = 0xFFFFFFFF;
+    *evrt_set_en = (1 << 5);
+
+    // 4. NVIC Cleanup
+    NVIC_ClearPendingIRQ(RTC_IRQn);
+    NVIC_ClearPendingIRQ(EVENTROUTER_IRQn);
+    NVIC_EnableIRQ(RTC_IRQn);
+    NVIC_EnableIRQ(EVENTROUTER_IRQn);
 }
 
 void rtc_wakeup(uint32_t sleep_seconds) {
-    // --- Idő kiszámítása ---
+    // 1. Safety cleanup after application tasks
+    LPC_RTC->CCR &= ~(1 << 4);  // Disable calibration (Important!)
+
     uint32_t sec = LPC_RTC->SEC;
     uint32_t min = LPC_RTC->MIN;
     uint32_t hrs = LPC_RTC->HRS;
@@ -94,13 +112,21 @@ void rtc_wakeup(uint32_t sleep_seconds) {
         hrs -= 24;
     }
 
-    // --- Riasztás élesítése ---
+    // 2. Write values to alarm registers
     LPC_RTC->ASEC = sec;
     LPC_RTC->AMIN = min;
     LPC_RTC->AHRS = hrs;
 
-    // Csak a SEC, MIN, HRS egyezést figyeljük
-    LPC_RTC->AMR = 0xFF ^ ((1 << 0) | (1 << 1) | (1 << 2));
+    // Mask for SEC, MIN, HRS (Disable all other alarm triggers)
+    uint32_t mask = 0xFF ^ ((1 << 0) | (1 << 1) | (1 << 2));
+    LPC_RTC->AMR = mask;
+
+    // Verify write (Sync with RTC domain)
+    while (LPC_RTC->ASEC != sec);
+    while (LPC_RTC->AMR != mask);
+
+    // Brief extra delay to allow internal logic to settle/latch
+    for (volatile int i = 0; i < 5000; i++) __asm__("nop");
 }
 
 extern "C" {
