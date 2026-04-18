@@ -51,7 +51,6 @@ enum SignalType {
     FSK_19k2_Porsche = 6,
     // World 315MHz extensions (proc_tpms_all)
     FSK_19k2_Toyota = 7,
-    FSK_19k2_Elantra = 8,
     FSK_19k2_JansiteSolar = 9,
 };
 
@@ -71,8 +70,6 @@ inline constexpr const char* signal_type_name(const SignalType signal_type) {
             return "FSK 19200 Porsche";
         case FSK_19k2_Toyota:
             return "FSK 19200 Toyota";
-        case FSK_19k2_Elantra:
-            return "FSK 19200 Elantra";
         case FSK_19k2_JansiteSolar:
             return "FSK 19200 JanSolar";
         default:
@@ -123,10 +120,12 @@ class Reading {
         Porsche = 11,
         // World 315MHz (new M4 paths)
         Toyota = 12,
-        Elantra = 13,
         Jansite = 14,
-        SolarTruck = 15,
         JansiteSolar = 16,
+        // EU 433MHz (FSK_19k2_Schrader path) - new
+        Hyundai_VDO = 17,
+        Abarth = 18,
+        Renault_0435R = 19,
     };
 
     constexpr Reading()
@@ -222,7 +221,9 @@ class Packet {
     Optional<Reading> reading_fsk_19k2_citroen() const;
     Optional<Reading> reading_fsk_19k2_renault() const;
     Optional<Reading> reading_fsk_19k2_jansite() const;
-    Optional<Reading> reading_fsk_19k2_solar_truck() const;
+    Optional<Reading> reading_fsk_19k2_hyundai_vdo() const;
+    Optional<Reading> reading_fsk_19k2_abarth() const;
+    Optional<Reading> reading_fsk_19k2_renault_0435r() const;
 
     // EU 433MHz new M4 signal paths
     Optional<Reading> reading_fsk_38k4_bmw_g45() const;
@@ -231,7 +232,6 @@ class Packet {
 
     // World 315MHz new M4 signal paths
     Optional<Reading> reading_fsk_19k2_toyota() const;
-    Optional<Reading> reading_fsk_19k2_elantra() const;
     Optional<Reading> reading_fsk_19k2_jansite_solar() const;
 
     // NRZI decoder helper
