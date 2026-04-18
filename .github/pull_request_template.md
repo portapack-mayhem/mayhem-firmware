@@ -20,7 +20,7 @@ Don't forget to describe how maintainers can test your modifications! -->
 
 ### 🖥️ Proof it compiles
 
-Attach a log snippet showing a successful build: the firmware size part. Example: 'Space remaining in flash ROM: 19552 bytes ( 1.9 %)'.
+Attach a log snippet showing a successful build from the final firmware size/space summary in the build output. Example: `Space remaining in flash ROM: 19552 bytes ( 1.9 % )`.
 
 <!-- Paste log below -->
 
