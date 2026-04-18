@@ -1,63 +1,67 @@
 <!--
 👋 Thank you for your contribution!
 
-⚠️ To help avoid extensive change requests or potential rejection, please review our simple Contributing Guidelines before you start coding: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines.
-
-Thank you again for contributing!
+⚠️ Before you start, please review our Contributing Guidelines:
+https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines
 -->
 
 ## Brief description of what you did
-<!-- Describe your changes in detail here. What problem does this PR solve? What features does it add or fix? -->
 
+<!-- Replace this line with a description of your changes. What problem does this PR solve? What does it add or fix?
+Don't forget to describe how maintainers can test your modifications !-->
+
+---
 
 ## Proof that your changes work
-<!--
-You MUST provide evidence that your changes are functional. PRs without proof will not be merged.
-Please include ALL of the following that apply to your PR:
--->
+
+> ⚠️ **PRs without proof will not be merged.** Please provide evidence for every section below that applies to your change.
+>
+> 🛈 **Trusted contributors:** If you have a track record of merged PRs that were properly tested and documented, maintainers may waive one or more of the proof sections below at their discretion. You are still encouraged to include whatever evidence you have, but sections may be marked `N/A — trusted contributor` with a short note. First-time contributors must provide full proof. See the [Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines) and [Trusted Contributors](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Trusted-Contributors) articles for details.
 
 ### 🖥️ Proof it compiles
-<!-- Screenshot or log output showing a successful build. -->
 
+Attach a log snippet showing a successful build: the firmware size part. Example: 'Space remaining in flash ROM: 19552 bytes ( 1.9 %)'.
+
+<!-- Paste log below -->
 
 ### 📱 Proof of testing on a real device
-<!--
-Attach photos, screenshots, or a short video showing your changes running on actual PortaPack hardware.
-Emulator or simulator output is NOT a substitute for real-device testing.
--->
 
+Attach photos, screenshots, or a short video of your changes running on actual PortaPack hardware. **Emulator or simulator output is not a substitute for real-device testing.**
+
+<!-- Paste photo / video / screenshot below -->
 
 ### 📡 Proof against a real emitter/receiver (if applicable)
-<!--
-If your PR involves RX/TX, protocol decoding, signal generation, or any RF-related functionality,
-you MUST demonstrate it working against a real emitter or receiver.
-Include photos, videos, logs, or waterfall/spectrum screenshots as appropriate.
-If this section does not apply to your PR, write "N/A" and briefly explain why.
--->
 
+If your PR involves RX/TX, protocol decoding, signal generation, or any RF-related functionality, you **must** demonstrate it working against a real emitter or receiver. Include photos, videos, logs, or waterfall/spectrum screenshots.
+
+If this section does not apply to your PR, write `N/A` below and briefly explain why.
+
+<!-- Paste RF evidence, or write N/A with a short justification -->
+
+---
 
 ## 📚 Wiki documentation commitment
-<!--
-By submitting this PR, you acknowledge and agree that once it is merged, you are responsible
-for creating or updating the corresponding wiki page at:
-https://github.com/portapack-mayhem/mayhem-firmware/wiki
+
+**By submitting this PR, you acknowledge that once it is merged you are responsible for creating or updating the corresponding page on the [project wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki).**
 
 Your wiki article should include:
-- A screenshot of the main app screen (strongly recommended)
-- A clear description of what the app does
-- An explanation of the controls / UI elements
-- Any known limitations, quirks, or caveats
+
+- A **screenshot of the main app screen** (strongly recommended)
+- A clear **description** of what the app does
+- An explanation of the **controls** and UI elements
+- Any known **limitations**, quirks, or caveats
 - Anything else a user should know to use the app effectively (dependencies, required hardware, file formats, etc.)
 
-If you are updating an existing app, please ensure the wiki page reflects your changes.
--->
+If you are modifying an existing app, make sure the wiki page reflects your changes.
 
+---
 
 ## Checklist
+
 - [ ] Kept changes minimal and limited to necessary files
 - [ ] Verified functionality remains intact and code compiles
-- [ ] Attached proof that the code compiles successfully
-- [ ] Attached proof of testing on real PortaPack hardware (photo/video/screenshot)
+- [ ] Attached proof that the code compiles successfully *(or marked N/A as a trusted contributor)*
+- [ ] Attached proof of testing on real PortaPack hardware *(or marked N/A as a trusted contributor)*
 - [ ] Attached proof of testing against a real emitter/receiver (if RF-related), or marked N/A with justification
 - [ ] I understand that by getting this PR merged, I am implicitly agreeing to create or update the corresponding wiki page (including a main-screen screenshot, description, controls, and limitations)
 - [ ] Reviewed the [Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines)
