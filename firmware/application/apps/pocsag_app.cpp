@@ -282,8 +282,9 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
 
             /* Serial: header + first chunk.
              * hex field contains rendered alpha as hex bytes (color escapes
-             * stripped).  Non-printable and uncorrectable chars show as '.'
-             * (0x2E) — original 7-bit values are not preserved.
+             * stripped).  Non-printable chars show as '.' (0x2E),
+             * uncorrectable chars show as '?' (0x3F) — original 7-bit
+             * values are not preserved.
              * Numeric decode goes in the quoted message field only. */
             if (portapack::usb_serial.serial_connected()) {
                 /* Build hex representation of decoded alpha characters. */
