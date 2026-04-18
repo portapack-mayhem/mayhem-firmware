@@ -36,7 +36,10 @@
 #include "baseband_packet.hpp"
 #include "message.hpp"
 #include "buffer.hpp"
+
+#ifdef SPECAN
 #include "spectrum_collector.hpp"
+#endif
 
 #include "audio_output.hpp"
 #include "dsp_demodulate.hpp"
@@ -204,7 +207,9 @@ class EPIRBProcessor : public BasebandProcessor {
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
+#ifdef SPECAN
     SpectrumCollector channel_spectrum{};
+#endif
     // Store last stample for phase delta calculation
     complex16_t last_sample{};
 

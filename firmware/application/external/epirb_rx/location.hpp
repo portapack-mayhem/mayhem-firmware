@@ -157,6 +157,11 @@ class Location {
         }
     }
 
+    inline void formatFloatLocation(char* buffer, const char* format)
+    {
+        sprintf(buffer,format,to_string_decimal(latitude.getFloatValue(), 6),to_string_decimal(longitude.getFloatValue(), 6));
+    }    
+
    private:
     std::string decimalFormat{};
     std::string sexagesimalFormat{};

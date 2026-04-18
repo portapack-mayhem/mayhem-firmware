@@ -29,8 +29,14 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
+
+#ifdef SPECAN
 #include "ui_spectrum.hpp"
+#endif
+
 #include "ui_tabview.hpp"
+
+#include "ui_qrcode.hpp"
 
 #include "event_m0.hpp"
 #include "message.hpp"
@@ -68,15 +74,26 @@ enum class PacketStatus : uint8_t {
     LogFile log_file{};
 };*/
 
+class TextArea : public Widget {
+   public:
+    TextArea(Rect parent_rect);
+
+    void set_content(std::string_view value);
+    void paint(Painter& painter) override;
+
+   private:
+    std::string content{};
+};
+
+
 class EPIRBDetailView : public View {
    public:
     EPIRBDetailView(Rect parent_rect, ResourceManager& rm);
     void set_beacon(Beacon& beacon);
-    void paint(Painter& painter) override;
 
    private:
     ResourceManager& resource_manager;
-    ui::Console text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+    TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
     /*ui::Text text_beacon{
         {UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH + 10, EPIRB_TAB_HEIGTH},
         ""};*/
@@ -139,9 +156,26 @@ class EPIRBMapView : public View {
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
 };
 
+class EPRIBQRView : public View {
+   public:
+    EPRIBQRView(Rect parent_rect);
+
+    void set_url(const std::string& url);
+
+   private:
+    QRCodeImage qr_code{
+        {UI_POS_X_CENTER(16), 63, 100, 100}};
+    /*Text text_qr {
+    { 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
+    "-"
+    };*/
+
+};
+
 // Forward declaration
 class EPIRBAppView;
 
+#ifdef SPECAN
 class EPIRBRxView : public spectrum::WaterfallView {
    public:
     EPIRBRxView(EPIRBAppView& parent, Rect parent_rect);
@@ -151,6 +185,7 @@ class EPIRBRxView : public spectrum::WaterfallView {
    private:
     EPIRBAppView& app_view;
 };
+#endif
 
 class EPIRBAppView final : public ui::View {
    public:
@@ -215,48 +250,42 @@ class EPIRBAppView final : public ui::View {
         {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
 
     // Status display
-    /*ui::Text label_status{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)},
-        "Listening..."};
-
-    ui::Text label_beacons_count{
-        {UI_POS_X(16), UI_POS_Y(1), UI_POS_WIDTH(14), UI_POS_HEIGHT(1)},
-        "Beacons: 0"};
-
-    ui::Text label_packet_stats{
-        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(29), UI_POS_HEIGHT(1)},
-        ""};*/
-
-    // Latest beacon info display
-    /*ui::Text label_latest{
-        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
-        "Latest:"};*/
-
-    // ui::Text text_latest_info{
-    //     {UI_POS_X(8), UI_POS_Y(3),
-    //      UI_POS_WIDTH_REMAINING(8 - 4 /*Make width larger than actual screen space as a workaround to https://github.com/portapack-mayhem/mayhem-firmware/issues/3144 */), UI_POS_HEIGHT(1)},
-    //     ""};
+    TextArea text_status{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(3)}};
+    ui::Text text_timeout{
+        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
+        ""};
+    SignalToken signal_token_tick_second{};
+    // Timeout string
+    int16_t timeout{0};
+    // The delay between each frame
+    uint16_t timeout_delay{50};
 
     // Tab View
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH};
 
-    // EPIRBListView view_list{view_rect};
     BeaconUIList view_list{view_rect};
     EPIRBDetailView view_detail{view_rect,resource_manager};
     EPIRBMapView view_map{view_rect};
+#ifdef SPECAN
     EPIRBRxView view_rx{*this, view_rect};
+#endif
+
+    EPRIBQRView view_qr{view_rect};
 
     TabView tab_view{
         {"List", Theme::getInstance()->fg_cyan->foreground, &view_list},
         {"Detail", Theme::getInstance()->fg_green->foreground, &view_detail},
         {"Map", Theme::getInstance()->fg_yellow->foreground, &view_map},
-        {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx}};
+#ifdef SPECAN
+        {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx},
+#endif
+        {"QR", Theme::getInstance()->fg_orange->foreground, &view_qr}
+    };
 
-    // SignalToken signal_token_tick_second{};
-    uint32_t beacons_received = 0;
-    uint32_t packets_valid = 0;
-    uint32_t packets_corrected = 0;
-    uint32_t packets_error = 0;
+    uint16_t beacons_received = 0;
+    uint16_t packets_valid = 0;
+    uint16_t packets_corrected = 0;
+    uint16_t packets_error = 0;
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::EPIRBPacket,
@@ -268,6 +297,7 @@ class EPIRBAppView final : public ui::View {
     void on_clear_beacons();
     void on_toggle_log();
     void on_tick_second();
+
 
     void update_display();
     // std::string beacon_to_hex_string(const baseband::Packet& packet);

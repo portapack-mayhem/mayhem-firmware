@@ -40,7 +40,9 @@ EPIRBProcessor::EPIRBProcessor() {
     channel_filter.configure(taps_11k0_channel.taps, 2);
     demod.configure(SAMPLE_RATE, 5000);
     configure_audio();
+#ifdef SPECAN
     channel_spectrum.set_decimation_factor(1);
+#endif
     baseband_thread.start();
 }
 
@@ -82,8 +84,10 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
     // We use decim1 output as decimator output
     const auto decimator_out = decim_1_out;
 
+#ifdef SPECAN
     // Feed IQ data into spectrum collector for the RF waterfall.
     if(spectrum_on) channel_spectrum.feed(decim_1_out, -5500, 5500, 3400);
+#endif
 
     feed_channel_stats(decimator_out);
 
@@ -262,10 +266,12 @@ void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
 void EPIRBProcessor::on_message(const Message* const msg) {
     // Configure the processor
     switch (msg->id) {
+#ifdef SPECAN
         case Message::ID::UpdateSpectrum:
         case Message::ID::SpectrumStreamingConfig:
             channel_spectrum.on_message(msg);
             break;
+#endif
         case Message::ID::EPIRBRXConfig: {
             const EPIRBRXConfig message = *reinterpret_cast<const EPIRBRXConfig*>(msg);
             audio_on = message.audio_on;
