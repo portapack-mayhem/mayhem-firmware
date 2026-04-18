@@ -160,15 +160,11 @@ class EPRIBQRView : public View {
    public:
     EPRIBQRView(Rect parent_rect);
 
-    void set_url(const std::string& url);
+    void set_url(const char* url);
 
    private:
     QRCodeImage qr_code{
         {UI_POS_X_CENTER(16), 63, 100, 100}};
-    /*Text text_qr {
-    { 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
-    "-"
-    };*/
 
 };
 
@@ -286,6 +282,8 @@ class EPIRBAppView final : public ui::View {
     uint16_t packets_valid = 0;
     uint16_t packets_corrected = 0;
     uint16_t packets_error = 0;
+
+    char qr_url[128];
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::EPIRBPacket,

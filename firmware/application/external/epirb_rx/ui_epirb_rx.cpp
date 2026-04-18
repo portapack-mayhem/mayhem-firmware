@@ -35,7 +35,7 @@ using namespace portapack;
 #include "message.hpp"
 #include "resources.hpp"
 
-// #include "usb_serial_asyncmsg.hpp"
+//#include "usb_serial_asyncmsg.hpp"
 
 namespace ui::external_app::epirb_rx {
 
@@ -220,12 +220,16 @@ void EPIRBMapView::repaint() {
 }
 
 EPRIBQRView::EPRIBQRView(Rect parent_rect) : View(parent_rect) {
+    qr_code.set_text("");
     add_children({&qr_code /*,&text_qr*/});
+    // Hide for now
+    qr_code.hidden(true);
 }
 
-void EPRIBQRView::set_url(const std::string& url) {
-    qr_code.set_text(url.c_str());
-    // text_qr.set(url);
+void EPRIBQRView::set_url(const char* url) {
+    if(url) qr_code.set_text(url);
+    qr_code.hidden((url == NULL));
+    qr_code.set_dirty();
 }
 
 #ifdef SPECAN
@@ -267,11 +271,6 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &channel,
                   &text_status,
                   &text_timeout,
-                  //&label_status,
-                  //&label_beacons_count,
-                  //&label_latest,
-                  //&text_latest_info,
-                  //&label_packet_stats,
                   &tab_view,
                   &view_list,
                   &view_detail,
@@ -322,7 +321,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 }
 
 EPIRBAppView::~EPIRBAppView() {
-    // rtc_time::signal_tick_second -= signal_token_tick_second;
+    rtc_time::signal_tick_second -= signal_token_tick_second;
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -367,9 +366,11 @@ void EPIRBAppView::on_packet(Message* const p) {
 
         if (!beacon.location.isUnknown()) {
             update_map();
-            char buffer[128];
-            beacon.location.formatFloatLocation(buffer, MAPS_URL_TEMPLATE);
-            view_qr.set_url(std::string(buffer));
+            beacon.location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
+            view_qr.set_url(qr_url);
+            //UsbSerialAsyncmsg::asyncmsg(std::string(qr_url));
+        } else {
+            view_qr.set_url(NULL);
         }
         // Update timeout
         timeout = (timeout_delay * -1);
@@ -451,19 +452,6 @@ void EPIRBAppView::update_display() {
     buffer_pointer += sprintf(buffer_pointer, "%sStats: %s%03dOK %s%03dCOR %s%03dERR\t", STR_COLOR_CYAN, STR_COLOR_GREEN, packets_valid, STR_COLOR_YELLOW, packets_corrected, STR_COLOR_RED, packets_error);
     sprintf(buffer_pointer, "%sLatest: %s%s", STR_COLOR_CYAN, STR_COLOR_WHITE, (beacon_db.size() > 0) ? beacon_db.get_latest_beacon().formatSummary(false).c_str() : "");
     text_status.set_content(buffer);
-    // label_beacons_count.set("Beacons: " + to_string_dec_uint(beacons_received));
-
-    // Update packet statistics display
-    /*std::string stats = std::string("Stats: ") +
-                        STR_COLOR_GREEN + to_string_dec_uint(packets_valid) + "OK " +
-                        STR_COLOR_YELLOW + to_string_dec_uint(packets_corrected) + "CORR " +
-                        STR_COLOR_RED + to_string_dec_uint(packets_error) + "ERR";
-    //label_packet_stats.set(stats);
-
-    if (beacon_db.size() > 0) {
-        auto& latest = beacon_db.get_latest_beacon();
-        text_latest_info.set(latest.formatSummary(false));
-    }*/
 }
 
 void EPIRBAppView::send_config() {
