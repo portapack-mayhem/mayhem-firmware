@@ -71,7 +71,11 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
     if (r.is_valid()) return r;
     r = reading_fsk_19k2_jansite();
     if (r.is_valid()) return r;
-    r = reading_fsk_19k2_solar_truck();
+    r = reading_fsk_19k2_hyundai_vdo();
+    if (r.is_valid()) return r;
+    r = reading_fsk_19k2_abarth();
+    if (r.is_valid()) return r;
+    r = reading_fsk_19k2_renault_0435r();
     if (r.is_valid()) return r;
     return {};
 }
@@ -155,8 +159,6 @@ Optional<Reading> Packet::reading() const {
             return reading_fsk_19k2_porsche();
         case SignalType::FSK_19k2_Toyota:
             return reading_fsk_19k2_toyota();
-        case SignalType::FSK_19k2_Elantra:
-            return reading_fsk_19k2_elantra();
         case SignalType::FSK_19k2_JansiteSolar:
             return reading_fsk_19k2_jansite_solar();
         default:
@@ -292,24 +294,71 @@ Optional<Reading> Packet::reading_fsk_19k2_jansite() const {
                    Flags{static_cast<uint8_t>(b[3] & 0x0f)}};
 }
 
-// Unbranded Solar TPMS for trucks (433.92 MHz) - inverted Manchester
-// Packet: U(4) II II II II WW F PPP TT CC (9 bytes after 4-bit state)
-// Checksum: XOR of all 9 bytes == 0
-Optional<Reading> Packet::reading_fsk_19k2_solar_truck() const {
+// Hyundai/VDO Continental TG1C (433.92 MHz)
+// Used in: Hyundai, KIA, BMW(older), Mitsubishi, Mazda, PSA
+// Packet: UU II II II II PP TT BB ?? CC (10 bytes)
+// CRC-8 poly=0x07 init=0xAA (residue check over all 10 bytes == 0)
+Optional<Reading> Packet::reading_fsk_19k2_hyundai_vdo() const {
+    uint8_t b[10];
+    for (size_t i = 0; i < 10; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
+    CRC<8> crc{0x07, 0xaa};
+    for (size_t i = 0; i < 10; i++) crc.process_byte(b[i]);
+    if (crc.checksum() != 0) return {};
+    const uint32_t id = ((uint32_t)b[1] << 24) | ((uint32_t)b[2] << 16) |
+                        ((uint32_t)b[3] << 8) | b[4];
+    if (id == 0) return {};
+    const int pres_kpa = static_cast<int>(b[5]) * 137 / 100;
+    const int temp_c   = static_cast<int>(b[6]) - 50;
+    if (pres_kpa < 100 || pres_kpa > 450) return {};
+    if (temp_c   < -40 || temp_c   > 85)  return {};
+    return Reading{Reading::Type::Hyundai_VDO, id,
+                   Pressure{pres_kpa},
+                   Temperature{temp_c}, Flags{b[0]}};
+}
+
+// Abarth 124 Spider / VDO TG1C (433.92 MHz)
+// Also: Fiat, Alfa Romeo, Lancia, Mazda
+// Packet: II II II II ?? PP TT SS CC (9 bytes)
+// Checksum: XOR of bytes 0..8 == 0
+Optional<Reading> Packet::reading_fsk_19k2_abarth() const {
     uint8_t b[9];
-    for (size_t i = 0; i < 9; i++) b[i] = static_cast<uint8_t>(reader_inv_.read(4 + i * 8, 8));
+    for (size_t i = 0; i < 9; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
     uint8_t xr = 0;
     for (size_t i = 0; i < 9; i++) xr ^= b[i];
     if (xr != 0) return {};
     const uint32_t id = ((uint32_t)b[0] << 24) | ((uint32_t)b[1] << 16) |
                         ((uint32_t)b[2] << 8) | b[3];
     if (id == 0) return {};
-    const int pressure_kpa = ((b[5] & 0x0f) << 8) | b[6];
-    return Reading{Reading::Type::SolarTruck, id,
-                   Pressure{pressure_kpa},
-                   Temperature{static_cast<int>(static_cast<int8_t>(b[7]))},
-                   Flags{static_cast<uint8_t>(b[5] >> 4)}};
+    const int pres_kpa = static_cast<int>(b[5]) * 138 / 100;
+    const int temp_c   = static_cast<int>(b[6]) - 50;
+    if (pres_kpa < 100 || pres_kpa > 450) return {};
+    if (temp_c   < -40 || temp_c   > 85)  return {};
+    return Reading{Reading::Type::Abarth, id,
+                   Pressure{pres_kpa},
+                   Temperature{temp_c}, Flags{b[7]}};
 }
+
+// Renault 0435R (433.92 MHz) - newer Renault/Dacia/Nissan EU models
+// Packet: CC II II II II PP TT RR ?? (9 bytes), b[0] always 0xc0
+// Checksum: XOR of bytes 0..8 == 0
+Optional<Reading> Packet::reading_fsk_19k2_renault_0435r() const {
+    uint8_t b[9];
+    for (size_t i = 0; i < 9; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
+    // Discriminator: first byte always 0xc0
+    if ((b[0] & 0xf0) != 0xc0) return {};
+    uint8_t xr = 0;
+    for (size_t i = 0; i < 9; i++) xr ^= b[i];
+    if (xr != 0) return {};
+    const uint32_t id = ((uint32_t)b[1] << 24) | ((uint32_t)b[2] << 16) |
+                        ((uint32_t)b[3] << 8) | b[4];
+    if (id == 0) return {};
+    const int pres_kpa = static_cast<int>(b[5]) * 3 / 4;
+    const int temp_c   = static_cast<int>(b[6]) - 30;
+    if (pres_kpa < 100 || pres_kpa > 450) return {};
+    if (temp_c   < -40 || temp_c   > 85)  return {};
+    return Reading{Reading::Type::Renault_0435R, id,
+                   Pressure{pres_kpa},
+                   Temperature{temp_c}, Flags{b[0]}};
 
 // ---------------------------------------------------------------------------
 // EU 433MHz new M4 signal path decoders
@@ -418,27 +467,6 @@ Optional<Reading> Packet::reading_fsk_19k2_toyota() const {
                    Pressure{pressure_kpa > 0 ? pressure_kpa : 0},
                    Temperature{temp8 - 40},
                    Flags{static_cast<uint8_t>(b[4] >> 7)}};
-}
-
-// Hyundai Elantra / Honda Civic TRW GQ4-44T (315 MHz) - standard Manchester
-// Preamble 0x7155 (16 bits), CRC-8 poly=0x07 init=0x00
-// Packet: PP TT ID ID ID ID FF CC (8 bytes)
-Optional<Reading> Packet::reading_fsk_19k2_elantra() const {
-    uint8_t b[8];
-    for (size_t i = 0; i < 8; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
-    CRC<8> c{0x07, 0x00};
-    for (size_t i = 0; i < 8; i++) c.process_byte(b[i]);
-    if (c.checksum() != 0) return {};
-    const uint32_t id = ((uint32_t)b[2] << 24) | ((uint32_t)b[3] << 16) |
-                        ((uint32_t)b[4] << 8) | b[5];
-    if (id == 0) return {};
-    const int pres_kpa_e = static_cast<int>(b[0]) + 60;
-    const int temp_c_e   = static_cast<int>(b[1]) - 50;
-    if (pres_kpa_e < 100 || pres_kpa_e > 450) return {};
-    if (temp_c_e   < -40 || temp_c_e   > 85)  return {};
-    return Reading{Reading::Type::Elantra, id,
-                   Pressure{pres_kpa_e},
-                   Temperature{temp_c_e}, Flags{b[6]}};
 }
 
 // Jansite Solar Model (433.92 MHz) - inverted Manchester 19200 bps
