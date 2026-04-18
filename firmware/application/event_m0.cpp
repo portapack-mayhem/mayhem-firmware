@@ -239,14 +239,27 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             // ================== AKKU OLVASÁS (I2C ÉL) ==================
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
-            if (percent >= 100 && current <= 5) {
-                led_tx.off();
+            if (valid_mask != 0) {
+                // Egyetlen logikai változó: tele van-e az akku?
+                // 1. eset: Van árammérés és az áram kicsi (tényleg tele)
+                // 2. eset: Csak feszültségmérés van, de a százalék elérte a 100-at
+                bool is_full = (valid_mask == 31 && percent >= 100 && current <= 10) ||
+                               (valid_mask == 1 && percent >= 100);
 
+                if (is_full) {
+                    led_tx.off();
+                } else {
+                    led_tx.on();
+                }
             } else {
-                led_tx.on();
-            }
-
-            // --------------- PREPARE FOR SLEEP -------------------------
+                // Nincs akku: TX ki, RX villog
+                led_tx.off();
+                led_rx.on();
+                for (volatile int d = 0; d < 100000; d++);
+                led_rx.off();
+                // Itt a második késleltetést elhagyhatod, ha ez egy ciklusban fut,
+                // mert a következő körig úgyis eltelik az idő.
+            }  // --------------- PREPARE FOR SLEEP -------------------------
 
             // 1. I2C leállítása és busz áramtalanítása az alváshoz
             portapack::i2c0.stop();
@@ -274,7 +287,11 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             NVIC_EnableIRQ(EVENTROUTER_IRQn);
 
             // 3. Ébresztő beállítása
-            rtc_wakeup(10);
+            if (valid_mask != 0) {
+                rtc_wakeup(60);
+            } else {
+                rtc_wakeup(3);
+            }
 
             // Várjunk egy picit a 32 kHz szinkronizációra
             // for (volatile int d = 0; d < 100000; d++);  // mi a fasz??
@@ -302,14 +319,6 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             // Szemét takarítása
             LPC_RTC->AMR = 0xFF;
             LPC_RTC->ILR = 3;
-
-            // Ébredési villogás
-            for (int j = 0; j < 3; j++) {
-                led_rx.on();
-                for (volatile int d = 0; d < 100000; d++);
-                led_rx.off();
-                for (volatile int d = 0; d < 100000; d++);
-            }
 
             // ============ RENDSZER ÚJRAÉLESZTÉSE A KÖVETKEZŐ KÖRHÖZ ============
 
