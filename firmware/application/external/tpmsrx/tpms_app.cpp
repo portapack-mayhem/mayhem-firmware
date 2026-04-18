@@ -74,14 +74,17 @@ std::string type_name(tpms::Reading::Type type) {
         // World 315MHz (new M4 paths)
         case tpms::Reading::Type::Toyota:
             return "Toyota";
-        case tpms::Reading::Type::Elantra:
-            return "Elantra";
         case tpms::Reading::Type::Jansite:
             return "Jansite";
-        case tpms::Reading::Type::SolarTruck:
-            return "Solar";
         case tpms::Reading::Type::JansiteSolar:
             return "JanSolar";
+        // EU 433MHz (FSK_19k2_Schrader path) - new
+        case tpms::Reading::Type::Hyundai_VDO:
+            return "Hyundai";
+        case tpms::Reading::Type::Abarth:
+            return "Abarth";
+        case tpms::Reading::Type::Renault_0435R:
+            return "Ren0435R";
         default:
             return "Unknown";
     }
@@ -126,8 +129,6 @@ static std::string signal_type(tpms::SignalType signal_type) {
             return "FSK 19200 Porsche";
         case tpms::SignalType::FSK_19k2_Toyota:
             return "FSK 19200 Toyota";
-        case tpms::SignalType::FSK_19k2_Elantra:
-            return "FSK 19200 Elantra";
         case tpms::SignalType::FSK_19k2_JansiteSolar:
             return "FSK 19200 JanSolar";
         default:
