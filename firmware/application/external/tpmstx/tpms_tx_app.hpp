@@ -158,10 +158,12 @@ class TPMSTXView : public View {
             {"Porsche", (int32_t)tpms::Reading::Type::Porsche},
             // World 315MHz
             {"Toyota", (int32_t)tpms::Reading::Type::Toyota},
-            {"Elantra", (int32_t)tpms::Reading::Type::Elantra},
             {"Jansite", (int32_t)tpms::Reading::Type::Jansite},
-            {"Solar", (int32_t)tpms::Reading::Type::SolarTruck},
             {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
+            // EU 433MHz - new
+            {"Hyundai", (int32_t)tpms::Reading::Type::Hyundai_VDO},
+            {"Abarth", (int32_t)tpms::Reading::Type::Abarth},
+            {"Ren0435R", (int32_t)tpms::Reading::Type::Renault_0435R},
         }};
 
     OptionsField options_pressure{
