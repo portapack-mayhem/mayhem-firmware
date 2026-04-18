@@ -284,7 +284,7 @@ Optional<Reading> Packet::reading_fsk_19k2_jansite() const {
     const uint32_t id = ((uint32_t)b[0] << 20) | ((uint32_t)b[1] << 12) |
                         ((uint32_t)b[2] << 4) | (b[3] >> 4);
     if (id == 0) return {};
-    // False positives show 0x0000XXXX pattern — upper bytes must be non-zero
+    // False positives show 0x0000XXXX pattern -- upper bytes must be non-zero
     if ((id >> 16) == 0) return {};
     // Plausibility check: pressure 0-240 raw, temperature 10-175 raw
     if (b[4] > 240 || b[5] < 10 || b[5] > 175) return {};
@@ -359,6 +359,7 @@ Optional<Reading> Packet::reading_fsk_19k2_renault_0435r() const {
     return Reading{Reading::Type::Renault_0435R, id,
                    Pressure{pres_kpa},
                    Temperature{temp_c}, Flags{b[0]}};
+}
 
 // ---------------------------------------------------------------------------
 // EU 433MHz new M4 signal path decoders
