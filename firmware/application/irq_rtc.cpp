@@ -56,9 +56,6 @@ void rtc_reset_default() {
     *evrt_edge |= (1 << 5);       // Reset to edge-triggered
     *evrt_clr_en = (1 << 5);      // DISABLE RTC channel routing
     *evrt_clr_stat = 0xFFFFFFFF;  // Clear pending events
-
-    // 3. RE-ENABLE USB PHY (CREG0 is also battery-backed!)
-    LPC_CREG->CREG0 &= ~(1 << 5);
 }
 
 void rtc_wakeup_init() {

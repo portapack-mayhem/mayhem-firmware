@@ -240,26 +240,20 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
             if (valid_mask != 0) {
-                // Egyetlen logikai változó: tele van-e az akku?
-                // 1. eset: Van árammérés és az áram kicsi (tényleg tele)
-                // 2. eset: Csak feszültségmérés van, de a százalék elérte a 100-at
                 bool is_full = (valid_mask == 31 && percent >= 100 && current <= 10) ||
                                (valid_mask == 1 && percent >= 100);
 
                 if (is_full) {
+                    led_rx.off();
                     led_tx.off();
                 } else {
+                    led_rx.off();
                     led_tx.on();
                 }
             } else {
-                // Nincs akku: TX ki, RX villog
                 led_tx.off();
                 led_rx.on();
-                for (volatile int d = 0; d < 100000; d++);
-                led_rx.off();
-                // Itt a második késleltetést elhagyhatod, ha ez egy ciklusban fut,
-                // mert a következő körig úgyis eltelik az idő.
-            }  // --------------- PREPARE FOR SLEEP -------------------------
+            }
 
             // 1. I2C leállítása és busz áramtalanítása az alváshoz
             portapack::i2c0.stop();
@@ -288,13 +282,10 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             // 3. Ébresztő beállítása
             if (valid_mask != 0) {
-                rtc_wakeup(60);
+                rtc_wakeup(5);
             } else {
                 rtc_wakeup(3);
             }
-
-            // Várjunk egy picit a 32 kHz szinkronizációra
-            // for (volatile int d = 0; d < 100000; d++);  // mi a fasz??
 
             LPC_RTC->ILR = 3;
             *evrt_clr_stat = 0xFFFFFFFF;
@@ -320,9 +311,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             LPC_RTC->AMR = 0xFF;
             LPC_RTC->ILR = 3;
 
-            // ============ RENDSZER ÚJRAÉLESZTÉSE A KÖVETKEZŐ KÖRHÖZ ============
-
-            // 1. I2C órajel és periféria visszakapcsolása
+                // 1. I2C órajel visszakapcsolása
             LPC_CGU->BASE_APB1_CLK.PD = 0;
             portapack::i2c0.start(i2c_config_12mhz);
 
@@ -330,8 +319,6 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             NVIC->ISER[0] = saved_iser0;
             NVIC->ISER[1] = saved_iser1;
             NVIC->ISER[2] = saved_iser2;
-
-            // 3. A te eredeti biztonsági törlésed, ami megakadályozza a ChibiOS Event-fagyást
 
         }  // while (1) - end  // while (1) - end
     } else {
