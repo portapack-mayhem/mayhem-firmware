@@ -58,27 +58,24 @@ std::string type_name(tpms::Reading::Type type) {
         case tpms::Reading::Type::GMC_96:
             return "GMC_96";
         // EU 433MHz (FSK_19k2_Schrader path)
-        case tpms::Reading::Type::Ford:
-            return "Ford/VDO";
+        case tpms::Reading::Type::TruckSolar:
+            return "TrkSolar";
         case tpms::Reading::Type::Citroen_PSA:
             return "Cit/PSA";
         case tpms::Reading::Type::Renault:
             return "Renault";
-        // EU 433MHz (new M4 paths)
-        case tpms::Reading::Type::BMW_G45:
-            return "BMW G4/5";
-        case tpms::Reading::Type::BMW_G23:
-            return "BMW G2/3";
-        case tpms::Reading::Type::Porsche:
-            return "Porsche";
-        // World 315MHz (new M4 paths)
-        case tpms::Reading::Type::Toyota:
-            return "Toyota";
+        // New Schrader-family / TRW (own SignalType or sub-decoder)
+        case tpms::Reading::Type::Elantra2012:
+            return "Elantra";
+        case tpms::Reading::Type::Schrader_SMD3MA4:
+            return "SMD3MA4";
+        case tpms::Reading::Type::Nissan:
+            return "Nissan";
         case tpms::Reading::Type::Jansite:
             return "Jansite";
         case tpms::Reading::Type::JansiteSolar:
             return "JanSolar";
-        // EU 433MHz (FSK_19k2_Schrader path) - new
+        // EU 433MHz (FSK_19k2_Schrader path) - second batch
         case tpms::Reading::Type::Hyundai_VDO:
             return "Hyundai";
         case tpms::Reading::Type::Abarth:
@@ -121,14 +118,10 @@ static std::string signal_type(tpms::SignalType signal_type) {
             return "OOK 8192 Schrader";
         case tpms::SignalType::OOK_8k4_Schrader:
             return "OOK 8400 Schrader";
-        case tpms::SignalType::FSK_38k4_BMW_G45:
-            return "FSK 40000 BMW G4/5";
-        case tpms::SignalType::FSK_19k2_BMW_G23:
-            return "FSK 19200 BMW G2/3";
-        case tpms::SignalType::FSK_19k2_Porsche:
-            return "FSK 19200 Porsche";
-        case tpms::SignalType::FSK_19k2_Toyota:
-            return "FSK 19200 Toyota";
+        case tpms::SignalType::FSK_19k2_Elantra2012:
+            return "FSK 19200 Elantra";
+        case tpms::SignalType::OOK_8k4_SMD3MA4:
+            return "OOK 8400 SMD3MA4";
         case tpms::SignalType::FSK_19k2_JansiteSolar:
             return "FSK 19200 JanSolar";
         default:
