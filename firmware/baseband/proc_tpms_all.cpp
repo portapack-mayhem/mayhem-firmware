@@ -42,7 +42,6 @@ void TPMSAllProcessor::execute(const buffer_c8_t& buffer) {
         if (mf.execute_once(decimator_out.p[i])) {
             const float mf_out = mf.get_output();
             clock_recovery_19k2(mf_out);
-            clock_recovery_bmw(mf_out);
             clock_recovery_jansite(mf_out);
         }
     }
@@ -55,6 +54,7 @@ void TPMSAllProcessor::execute(const buffer_c8_t& buffer) {
         });
         clock_recovery_ook_8k4(slicer_history, [this](const bool symbol) {
             this->pb_ook_8k4.execute(symbol);
+            this->pb_smd3ma4.execute(symbol);
         });
     }
 }
