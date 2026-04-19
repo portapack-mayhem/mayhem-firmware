@@ -121,8 +121,6 @@ struct FlexDecode {
     int long_address = 0;
     int64_t capcode = 0;
     AddrType addr_type = AddrType::SHORT;
-    int is_group = 0;
-    int is_temp_group = 0;
     int is_priority = 0;
 };
 
@@ -184,7 +182,7 @@ class FlexProcessor : public BasebandProcessor {
     // Parsing
     void parse_capcode(uint32_t aw1);
     void parse_alphanumeric(uint32_t* phaseptr, const uint8_t* word_bad, char PhaseNo, int mw1, int mw2, int flex_groupmessage);
-    void parse_numeric(uint32_t* phaseptr, char PhaseNo, int j);
+    void parse_numeric(uint32_t* phaseptr, const uint8_t* word_bad, char PhaseNo, int j);
     void parse_tone_only(uint32_t* phaseptr, char PhaseNo, int j);
     void parse_unknown(uint32_t* phaseptr, char PhaseNo, int mw1, int mw2);
 

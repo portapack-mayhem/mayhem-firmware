@@ -8,6 +8,9 @@
 #include <cmath>
 #include <cstring>
 
+// BCD character table for FLEX numeric messages (index 0-15)
+static const char flex_bcd[] = "0123456789.U -][";
+
 // Lightweight string helpers (no snprintf/heap on bare-metal M4)
 namespace {
 
@@ -566,7 +569,7 @@ void FlexProcessor::flex_sym(unsigned char sym) {
              * register.  If found, we validate timing.  If not found,
              * we fall back to the nominal 25ms skip (current behavior).
              *
-             * Only the MSB (bit_a) matters for C detection — it's a
+             * Only the MSB (bit_a) matters for C detection - it's a
              * 2-level pattern even in 4FSK modes. */
             unsigned char s2_sym = sync.polarity ? (3 - sym) : sym;
             int bit_a = (s2_sym > 1) ? 1 : 0;
@@ -687,7 +690,7 @@ void FlexProcessor::decode_phase(char PhaseNo) {
     /* Check if phase is all idle BEFORE BCH correction.
      * Idle fill uses alternating 0xFFFFFFFF and 0x00000000 words.
      * If every word is one of these two patterns, the phase has no
-     * real data — skip it to avoid BCH "correcting" idle into garbage. */
+     * real data - skip it to avoid BCH "correcting" idle into garbage. */
     {
         int all_idle = 1;
         for (int i = 0; i < 88; i++) {
@@ -721,6 +724,23 @@ void FlexProcessor::decode_phase(char PhaseNo) {
     int prio_count = (biw >> 4) & 0x0F;  // number of priority address words
 
     if (voffset < aoffset || voffset >= 88) return;
+
+    /* Always send BIW1 packet so the app knows we decoded a frame.
+     * This updates the status bar even for idle frames. */
+    {
+        flex::FlexPacket bpkt{};
+        bpkt.type = 9;
+        bpkt.bitrate = sync.baud * (sync.levels == 4 ? 2 : 1);
+        bpkt.cycle = fiw.cycleno;
+        bpkt.frame = fiw.frameno;
+        bpkt.phase = PhaseNo;
+        bpkt.is_inverted = sync.polarity;
+        bpkt.fiw_roaming = fiw.roaming;
+        bpkt.function = 0;
+        bpkt.biw_field = 0xFF;
+        bpkt.message[0] = '\0';
+        send_packet(bpkt);
+    }
 
     /* Parse BIW words (indices 1 through aoffset-1).
      * Each BIW word has a 3-bit type field (bits 4-6) that determines content.
@@ -778,7 +798,7 @@ void FlexProcessor::decode_phase(char PhaseNo) {
      * Tone-only addresses sit at the end of the address field with no
      * corresponding vector.  We find the last vector that passes checksum.
      * Note: for long addresses, the 2nd vector word (Vy) is a message word
-     * that won't pass checksum — so we count all passing words, not just
+     * that won't pass checksum - so we count all passing words, not just
      * consecutive ones from the start. */
     int n_valid_vecs = 0;
     for (int vi = 0; vi < (voffset - aoffset); vi++) {
@@ -801,16 +821,13 @@ void FlexProcessor::decode_phase(char PhaseNo) {
         if (j >= 88) break;
         if (phaseptr[i] == 0x00000000 || phaseptr[i] == 0x001FFFFF) continue;
 
-        /* Extract group/temp flags from raw address word (bits 20, 19)
-         * before parse_capcode classifies the word by range. */
-        uint32_t raw_aw = phaseptr[i];
-        int is_group = (raw_aw >> 20) & 1;
-        int is_temp_group = is_group ? ((raw_aw >> 19) & 1) : 0;
+        /* Address word - all 21 information bits are address data
+         * per 3.8.2.  Address type is determined by value range
+         * (Table 3.8.1-1).  Temporary addresses are range
+         * 0x1F7800-0x1F780F (3.8.2.3), identified via addr_type. */
         int is_priority = (addr_count < prio_count) ? 1 : 0;
 
         parse_capcode(phaseptr[i]);
-        decode.is_group = is_group;
-        decode.is_temp_group = is_temp_group;
         decode.is_priority = is_priority;
         addr_count++;
 
@@ -841,7 +858,7 @@ void FlexProcessor::decode_phase(char PhaseNo) {
                 /* Set 2-3 */
                 cap = (int64_t)(aw1 - 2064383) + (int64_t)(aw2 - 1867776) * 32768LL + 2068479LL;
             } else {
-                /* Unknown set — skip */
+                /* Unknown set - skip */
                 i++;
                 addr_count++;  // second address word counts
                 vec_count += 2;
@@ -852,7 +869,7 @@ void FlexProcessor::decode_phase(char PhaseNo) {
             i++;           // consumed 2 address words
             addr_count++;  // second address word also counts
 
-            /* Long addresses always have vectors — they cannot be tone-only.
+            /* Long addresses always have vectors - they cannot be tone-only.
              * (Tone-only is only for short addresses at the end of AF.)
              * The second vector word (Vy) contains the first message word,
              * not a checksummed vector, so skip the pre-scan check here. */
@@ -927,9 +944,9 @@ void FlexProcessor::decode_phase(char PhaseNo) {
                 parse_alphanumeric(phaseptr, word_bad, PhaseNo, mw1, mw2, 0);
             }
         } else if (decode.type == flex::PageType::STANDARD_NUMERIC || decode.type == flex::PageType::SPECIAL_NUMERIC || decode.type == flex::PageType::NUMBERED_NUMERIC) {
-            parse_numeric(phaseptr, PhaseNo, j);
+            parse_numeric(phaseptr, word_bad, PhaseNo, j);
         } else if (decode.type == flex::PageType::TONE) {
-            /* Vector type 2: Short Message / Tone.
+            /* Vector type 2: Short Message (3.9.2).
              * Sub-type t1t0 in bits 7-8, data d0-d11 in bits 9-20. */
             uint32_t t = (viw >> 7) & 0x03;
             uint32_t d = (viw >> 9) & 0x0FFF;
@@ -937,65 +954,69 @@ void FlexProcessor::decode_phase(char PhaseNo) {
             flex::FlexPacket packet{};
             packet.bitrate = sync.baud * (sync.levels == 4 ? 2 : 1);
             packet.capcode = decode.capcode;
-            packet.function = 0;
+            packet.function = t;
             packet.cycle = fiw.cycleno;
             packet.frame = fiw.frameno;
             packet.phase = PhaseNo;
             packet.is_inverted = sync.polarity;
             packet.fiw_roaming = fiw.roaming;
             packet.addr_type = static_cast<uint8_t>(decode.addr_type);
-            packet.is_group = decode.is_group;
-            packet.is_temp_group = decode.is_temp_group;
             packet.is_priority = decode.is_priority;
+            packet.type = 8;  // SHORT
 
-            if (t == 0 && d == 0) {
-                /* No data — pure tone via vector */
-                packet.type = 8;  // SMSG
-                strcpy(packet.message, "sub=tone");
-            } else if (t == 0) {
-                /* Numeric: 3 BCD digits in d0-d11 */
-                const char bcd[] = "0123456789 U -][";
-                char digits[4];
-                digits[0] = bcd[(d >> 0) & 0xF];
-                digits[1] = bcd[(d >> 4) & 0xF];
-                digits[2] = bcd[(d >> 8) & 0xF];
-                digits[3] = '\0';
-                packet.type = 8;  // SMSG
-                {
-                    char *p = packet.message, *e = p + sizeof(packet.message);
-                    p = str_append(p, e, "sub=numeric|digits=");
-                    str_append(p, e, digits);
+            if (t == 0 && d == 0xCCC) {
+                /* Tone-only: all digits are space (0xC) per STD-43A
+                 * Table 3.9.2-1 note. For long addresses, also check Vy. */
+                bool tone = true;
+                if (decode.long_address && j + 1 < 88) {
+                    uint32_t vy = phaseptr[j + 1] & 0xFFFFF;
+                    if (vy != 0xCCCCC) tone = false;
                 }
+                if (tone)
+                    strcpy(packet.message, "TONE");
+                else
+                    goto short_numeric;
+            } else if (t == 0) {
+            short_numeric:
+                /* Numeric: 3 BCD digits from Vx (d0-d11).
+                 * Long addresses: 5 more digits from Vy (d12-d31),
+                 * 8 digits total. d32 is spare (set to 0). */
+                char *p = packet.message, *e = p + sizeof(packet.message);
+                p = str_append(p, e, "NUM ");
+                *p++ = flex_bcd[(d >> 0) & 0xF];
+                *p++ = flex_bcd[(d >> 4) & 0xF];
+                *p++ = flex_bcd[(d >> 8) & 0xF];
+                if (decode.long_address && j + 1 < 88) {
+                    uint32_t vy = phaseptr[j + 1];
+                    *p++ = flex_bcd[(vy >> 0) & 0xF];
+                    *p++ = flex_bcd[(vy >> 4) & 0xF];
+                    *p++ = flex_bcd[(vy >> 8) & 0xF];
+                    *p++ = flex_bcd[(vy >> 12) & 0xF];
+                    *p++ = flex_bcd[(vy >> 16) & 0xF];
+                }
+                *p = '\0';
             } else if (t == 1) {
                 /* Source: S2S1S0 in d0-d2 */
-                packet.type = 8;
-                {
-                    char *p = packet.message, *e = p + sizeof(packet.message);
-                    p = str_append(p, e, "sub=source|src=");
-                    str_uint(p, e, d & 0x07);
-                }
+                char *p = packet.message, *e = p + sizeof(packet.message);
+                p = str_append(p, e, "SRC ");
+                str_uint(p, e, d & 0x07);
             } else if (t == 2) {
                 /* Numbered: S(3) + N(6) + R(1) */
                 uint32_t src = d & 0x07;
                 uint32_t n = (d >> 3) & 0x3F;
                 uint32_t r = (d >> 9) & 0x01;
-                packet.type = 8;
-                {
-                    char *p = packet.message, *e = p + sizeof(packet.message);
-                    p = str_append(p, e, "sub=numbered|src=");
-                    p = str_uint(p, e, src);
-                    p = str_append(p, e, "|seq=");
-                    p = str_uint(p, e, n);
-                    p = str_append(p, e, "|new=");
-                    str_uint(p, e, r);
-                }
+                char *p = packet.message, *e = p + sizeof(packet.message);
+                p = str_append(p, e, "SRC ");
+                p = str_uint(p, e, src);
+                p = str_append(p, e, " N=");
+                p = str_uint(p, e, n);
+                p = str_append(p, e, " R=");
+                str_uint(p, e, r);
             } else {
-                packet.type = 8;
-                {
-                    char *p = packet.message, *e = p + sizeof(packet.message);
-                    p = str_append(p, e, "sub=reserved|raw=");
-                    str_hex(p, e, d, 3);
-                }
+                /* Reserved */
+                char *p = packet.message, *e = p + sizeof(packet.message);
+                p = str_append(p, e, "RESERVED ");
+                str_hex(p, e, d, 3);
             }
             send_packet(packet);
         } else if (decode.type == flex::PageType::BINARY) {
@@ -1058,8 +1079,6 @@ void FlexProcessor::decode_phase(char PhaseNo) {
             packet.is_inverted = sync.polarity;
             packet.fiw_roaming = fiw.roaming;
             packet.addr_type = static_cast<uint8_t>(decode.addr_type);
-            packet.is_group = decode.is_group;
-            packet.is_temp_group = decode.is_temp_group;
             packet.is_priority = decode.is_priority;
             if (hex_hdr_valid) {
                 packet.frag = hex_f;
@@ -1093,8 +1112,6 @@ void FlexProcessor::decode_phase(char PhaseNo) {
             packet.is_inverted = sync.polarity;
             packet.fiw_roaming = fiw.roaming;
             packet.addr_type = static_cast<uint8_t>(decode.addr_type);
-            packet.is_group = decode.is_group;
-            packet.is_temp_group = decode.is_temp_group;
             packet.is_priority = decode.is_priority;
 
             if (itype == 0) {
@@ -1253,8 +1270,6 @@ void FlexProcessor::parse_alphanumeric(uint32_t* phaseptr, const uint8_t* word_b
     packet.is_inverted = sync.polarity;
     packet.fiw_roaming = fiw.roaming;
     packet.addr_type = static_cast<uint8_t>(decode.addr_type);
-    packet.is_group = decode.is_group;
-    packet.is_temp_group = decode.is_temp_group;
     packet.is_priority = decode.is_priority;
     if (hdr_valid) {
         packet.frag = hdr_f;
@@ -1276,9 +1291,8 @@ void FlexProcessor::parse_alphanumeric(uint32_t* phaseptr, const uint8_t* word_b
     send_packet(packet);
 }
 
-void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
+void FlexProcessor::parse_numeric(uint32_t* phaseptr, const uint8_t* word_bad, char PhaseNo, int j) {
     char message[256] = {0};
-    const char flex_bcd[] = "0123456789 U -][";
 
     /* Extract NNUM header fields from first message word if applicable.
      * Layout: K5K4(2) + N0-N5(6) + R0(1) + S0(1) + BCD digits... */
@@ -1288,28 +1302,33 @@ void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
     int w1 = phaseptr[j] >> 7;
     int w2 = w1 >> 7;
     w1 = w1 & 0x7f;
-    w2 = (w2 & 0x07) + w1;
+    int n_field = w2 & 0x07;  // word_count - 1
+    w2 = n_field + w1;
 
     // Bounds check: phase buffer is 88 words (indices 0-87)
-    // w1 and w2 are incremented below, so clamp to 86 max
-    if (w1 > 86) return;
-    if (w2 > 86) w2 = 86;
+    if (w1 > 87) return;
+    if (w2 > 87) w2 = 87;
 
-    int dw;
-    dw = phaseptr[w1];
+    /* For long addresses (3.9.1):
+     * 1-word: b field points to Vy. body[0] at w1.
+     * Multi-word: body[0] at Vy (j+1). b field points to MF body[1]. */
+    int body0_idx;
+    if (decode.long_address && n_field > 0)
+        body0_idx = j + 1;  // Vy = 2nd vector word
+    else
+        body0_idx = w1;
+    if (body0_idx < 0 || body0_idx >= 88) return;
+
+    int dw = phaseptr[body0_idx];
 
     if (is_nnum) {
         /* Extract N, R, S from the first message word's BCD stream.
          * After K5K4 (2 bits), next 6 bits = N, then R, then S.
          * These are consumed by the skip count (count starts at 4+10=14). */
-        uint32_t first_word = phaseptr[w1];
-        nnum_n = (first_word >> 2) & 0x3F;  // bits 2-7
-        nnum_r = (first_word >> 8) & 0x01;  // bit 8
-        nnum_s = (first_word >> 9) & 0x01;  // bit 9
+        nnum_n = (dw >> 2) & 0x3F;  // bits 2-7
+        nnum_r = (dw >> 8) & 0x01;  // bit 8
+        nnum_s = (dw >> 9) & 0x01;  // bit 9
     }
-
-    w1++;
-    w2++;
 
     unsigned char digit = 0;
     int count = 4;
@@ -1319,20 +1338,72 @@ void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
         count += 2;  // skip K5K4(2)
 
     int idx = 0;
-    for (int i = w1; i <= w2; i++) {
+
+    /* Phase 1: decode body[0] bits.
+     * For short addresses, body[0] is at w1 and we advance to w1+1.
+     * For long addresses, body[0] is at Vy (j+1), then we continue from w1. */
+    if (word_bad[body0_idx]) {
+        /* Uncorrectable word — emit '?' for each digit slot */
+        int data_bits = 21 - (count - 4); /* bits available after skip */
+        int lost_digits = data_bits / 4;
+        while (lost_digits-- > 0 && idx < 255)
+            message[idx++] = '?';
+        count = 4; /* reset for next word */
+        digit = 0;
+    } else {
         for (int k = 0; k < 21; k++) {
             digit = (digit >> 1) & 0x0F;
             if (dw & 0x01) digit ^= 0x08;
             dw >>= 1;
             if (--count == 0) {
-                if (digit != 0x0C && idx < 255) {
+                if (idx < 255) {
                     message[idx++] = flex_bcd[digit];
                 }
                 count = 4;
             }
         }
-        dw = phaseptr[i];
     }
+
+    /* Phase 2: decode remaining body words from MF.
+     * Short: body[1..n] at w1+1 .. w2.
+     * Long: MF has n_field words at w1 .. w1+n_field-1.
+     *   (n_field = total_words - 1; body[0] is at Vy, not in MF) */
+    int start, end;
+    if (decode.long_address) {
+        start = w1;
+        end = w1 + n_field - 1;  // empty when n_field=0
+    } else {
+        start = w1 + 1;
+        end = w2;
+    }
+    for (int i = start; i <= end && i < 88; i++) {
+        if (word_bad[i]) {
+            /* Uncorrectable word — emit '?' for each digit slot (5 per word) */
+            int lost_digits = 21 / 4; /* 5 digits per 21-bit word */
+            while (lost_digits-- > 0 && idx < 255)
+                message[idx++] = '?';
+            count = 4;
+            digit = 0;
+            continue;
+        }
+        dw = phaseptr[i];
+        for (int k = 0; k < 21; k++) {
+            digit = (digit >> 1) & 0x0F;
+            if (dw & 0x01) digit ^= 0x08;
+            dw >>= 1;
+            if (--count == 0) {
+                if (idx < 255) {
+                    message[idx++] = flex_bcd[digit];
+                }
+                count = 4;
+            }
+        }
+    }
+
+    /* Trim trailing BCD space padding (0x0C = ' ').
+     * The encoder pads unused nibble slots with 0x0C */
+    while (idx > 0 && message[idx - 1] == ' ')
+        idx--;
     message[idx] = '\0';
 
     flex::FlexPacket packet{};
@@ -1353,8 +1424,6 @@ void FlexProcessor::parse_numeric(uint32_t* phaseptr, char PhaseNo, int j) {
     packet.is_inverted = sync.polarity;
     packet.fiw_roaming = fiw.roaming;
     packet.addr_type = static_cast<uint8_t>(decode.addr_type);
-    packet.is_group = decode.is_group;
-    packet.is_temp_group = decode.is_temp_group;
     packet.is_priority = decode.is_priority;
     if (is_nnum) {
         packet.seq = nnum_n;
@@ -1381,8 +1450,6 @@ void FlexProcessor::parse_tone_only(uint32_t*, char PhaseNo, int) {
     packet.is_inverted = sync.polarity;
     packet.fiw_roaming = fiw.roaming;
     packet.addr_type = static_cast<uint8_t>(decode.addr_type);
-    packet.is_group = decode.is_group;
-    packet.is_temp_group = decode.is_temp_group;
     packet.is_priority = decode.is_priority;
     strcpy(packet.message, "");
 

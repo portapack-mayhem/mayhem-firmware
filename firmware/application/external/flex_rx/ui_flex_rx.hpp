@@ -37,13 +37,8 @@ class FlexAppView : public View {
     uint16_t status_cz_{0};
     uint16_t status_cc_{0};
 
-    // Message storage for console redraw
-    static constexpr size_t MAX_MESSAGES = 20;
-    std::vector<std::string> messages{};
-
     // Helper methods
     void log_message(const std::string& message);
-    void redraw_console();
     void update_freq(rf::Frequency f);
 
     // UI Elements - Row 0, dynamically positioned
