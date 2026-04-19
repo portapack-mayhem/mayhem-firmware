@@ -32,7 +32,9 @@ class BeaconDB {
    public:
     Beacon& add_beacon();
     Beacon& get_beacon(size_t index);
-    Beacon& get_latest_beacon();
+    Beacon& get_current_beacon();
+    size_t get_current_beacon_index();
+    void set_current_beacon(size_t index);
     size_t size();
     bool empty();
     void clear();
@@ -40,6 +42,7 @@ class BeaconDB {
    private:
     Beacon recent_beacons[BEACON_HISTORY_SIZE];
     int8_t recent_beacon_pos{0};
+    size_t current_beacon_index{0};
     bool recent_beacon_full{false};
 };
 

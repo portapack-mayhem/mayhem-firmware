@@ -32,7 +32,6 @@ namespace ui::external_app::epirb_rx {
 class BeaconUIList : public View {
    public:
     std::function<void(size_t)> on_select{};
-    std::function<void()> on_leave{};  // Called when Right is pressed.
 
     BeaconUIList(Rect parent_rect);
     BeaconUIList(const BeaconUIList& other) = delete;
@@ -42,7 +41,6 @@ class BeaconUIList : public View {
     void on_show() override;
     bool on_key(const KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
-//    bool on_keyboard(const KeyboardEvent event) override;
     bool on_touch(const TouchEvent event) override;
 
     void set_index(size_t index);

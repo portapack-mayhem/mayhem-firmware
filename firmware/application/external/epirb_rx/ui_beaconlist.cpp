@@ -78,53 +78,21 @@ bool BeaconUIList::on_touch(const TouchEvent event) {
         if (new_selected + start_index_ >= db_->size()) {
             return true;  // clicked, where there is no entry, skip it
         }
-        // selected_index_ is the current
-        if (selected_index_ == new_selected) {
-            // already selected, trigger on_select
-            if (on_select) {
-                // on_select(new_selected); //causes strange behavior, not so confident to use it
-            }
-            return true;
-        } else {
-            // just change selection
+        if (selected_index_ != new_selected) {
+            // Change selection
             selected_index_ = new_selected;
         }
         return true;
     }
     return true;
 }
-/*
-bool BeaconUIList::on_keyboard(const KeyboardEvent key) {
-    if (!db_ || db_->empty())
-        return false;
 
-    auto delta = 0;
-    if (key == '-' && get_index() > 0) delta = -1;
-    if (key == '+' && get_index() < db_->size() - 1) delta = 1;
-    if (delta != 0) {
-        adjust_selected_index(delta);
-        set_dirty();
-        return true;
-    }
-    if (key == 10) {
-        if (on_select) {
-            on_select(get_index());
-            return true;
-        }
-    }
-
-    return false;
-}
-*/
 bool BeaconUIList::on_key(const KeyEvent key) {
     if (!db_ || db_->empty())
         return false;
 
     if (key == KeyEvent::Select && on_select) {
         on_select(get_index());
-        return true;
-    } else if (key == KeyEvent::Right && on_leave) {
-        on_leave();
         return true;
     }
 

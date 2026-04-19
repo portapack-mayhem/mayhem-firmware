@@ -94,45 +94,6 @@ class EPIRBDetailView : public View {
    private:
     ResourceManager& resource_manager;
     TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
-    /*ui::Text text_beacon{
-        {UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH + 10, EPIRB_TAB_HEIGTH},
-        ""};*/
-    /*Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(0)}, "Beacon:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), UI_POS_Y(1)}, "Protocol:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), UI_POS_Y(4)}, "Location:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), UI_POS_Y(7)}, "Control:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), UI_POS_Y(8)}, "Hex ID:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), UI_POS_Y(9)}, "S/N:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), UI_POS_Y(10)}, "Data:", Theme::getInstance()->fg_cyan->foreground}};
-
-    ui::Text text_title{
-        {UI_POS_X(0), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10 - 4), UI_POS_HEIGHT(1)},
-        ""};
-    ui::Text text_protocol_title{
-        {UI_POS_X(1), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
-        ""};
-    ui::Text text_protocol_desc{
-        {UI_POS_X(2), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)},
-        ""};
-    ui::Text text_location_locator{
-        {UI_POS_X(4), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
-        ""};
-    ui::Text text_location_desc{
-        {UI_POS_X(5), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)},
-        ""};
-    ui::Text text_control{
-        {UI_POS_X(7), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10-8), UI_POS_HEIGHT(1)},
-        ""};
-    ui::Text text_hex_id{
-        {UI_POS_X(8), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
-        ""};
-    ui::Text text_serial{
-        {UI_POS_X(9), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
-        ""};
-    ui::Text text_data{
-        {UI_POS_X(10), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(10), UI_POS_HEIGHT(1)},
-        ""};*/
 };
 
 #define EPIRB_RX_DEFAULT_LATITUDE 43.604f
@@ -147,6 +108,7 @@ class EPIRBMapView : public View {
     void set_main_marker(const std::string& label, float lat, float lon);
     void clear_markers();
     void add_marker(GeoMarker& marker);
+    void hide_map(bool hide);
     void repaint();
 
    private:
@@ -154,6 +116,7 @@ class EPIRBMapView : public View {
     GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
     float lat_{EPIRB_RX_DEFAULT_LATITUDE};
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
+    bool map_hidden{true};
 };
 
 class EPRIBQRView : public View {
@@ -295,6 +258,7 @@ class EPIRBAppView final : public ui::View {
     void on_clear_beacons();
     void on_toggle_log();
     void on_tick_second();
+    void on_beacon_change();
 
 
     void update_display();

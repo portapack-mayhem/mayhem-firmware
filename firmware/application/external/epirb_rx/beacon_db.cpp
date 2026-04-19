@@ -38,14 +38,22 @@ bool BeaconDB::empty() {
     return (!recent_beacon_full && (recent_beacon_pos == 0));
 }
 
-Beacon& BeaconDB::get_beacon(size_t index){
+Beacon& BeaconDB::get_beacon(size_t index) {
     int16_t pos = (int16_t)recent_beacon_pos - 1 - index;
     while (pos < 0) pos += BEACON_HISTORY_SIZE;
     return recent_beacons[pos % BEACON_HISTORY_SIZE];
 }
 
-Beacon& BeaconDB::get_latest_beacon(){
-    return get_beacon(0);
+void BeaconDB::set_current_beacon(size_t index) {
+    current_beacon_index = index;
+}
+
+size_t BeaconDB::get_current_beacon_index() {
+    return current_beacon_index;
+}
+
+Beacon& BeaconDB::get_current_beacon() {
+    return get_beacon(current_beacon_index);
 }
 
 void BeaconDB::clear() {

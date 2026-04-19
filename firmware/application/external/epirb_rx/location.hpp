@@ -69,9 +69,6 @@ class Location {
     inline void clear() {
         latitude.clear();
         longitude.clear();
-        decimalFormat = "";
-        sexagesimalFormat = "";
-        locatorFormat = "";
     }
 
     inline bool isUnknown() {
@@ -129,43 +126,29 @@ class Location {
         return locator;
     }
 
-    inline std::string toString(LocationFormat format) {
+    inline std::string toString(LocationFormat format, int precision = 6) {
         if (isUnknown()) {
             return "GPS not synchronized";
         }
         switch (format) {
-            case LocationFormat::SEXAGESIMAL:
-                if (sexagesimalFormat.empty()) {
-                    char buffer[64];
-                    std::sprintf(buffer, "%ld\xB0%02ld'%02ld\"%c, %ld\xB0%02ld'%02ld\"%c",  // 0xB0 is degree ° symbol in our 8x16 font
-                                 latitude.degrees, latitude.minutes, latitude.seconds, latitude.orientation ? 'S' : 'N',
-                                 longitude.degrees, longitude.minutes, longitude.seconds, longitude.orientation ? 'W' : 'E');
-                    sexagesimalFormat = buffer;
-                }
-                return sexagesimalFormat;
+            case LocationFormat::SEXAGESIMAL: {
+                char buffer[64];
+                std::sprintf(buffer, "%ld\xB0%02ld'%02ld\"%c, %ld\xB0%02ld'%02ld\"%c",  // 0xB0 is degree ° symbol in our 8x16 font
+                             latitude.degrees, latitude.minutes, latitude.seconds, latitude.orientation ? 'S' : 'N',
+                             longitude.degrees, longitude.minutes, longitude.seconds, longitude.orientation ? 'W' : 'E');
+                return std::string(buffer);
+            }
             case LocationFormat::MAIDENHEAD_LOCATOR:
-                if (locatorFormat.empty()) {
-                    locatorFormat = gps_compute_locator(latitude.getFloatValue(), longitude.getFloatValue());
-                }
-                return locatorFormat;
+                return gps_compute_locator(latitude.getFloatValue(), longitude.getFloatValue(), precision);
             default:
             case LocationFormat::DECIMAL:
-                if (decimalFormat.empty()) {
-                    decimalFormat = to_string_decimal(latitude.getFloatValue(), 5) + ", "+ to_string_decimal(longitude.getFloatValue(), 5);
-                }
-                return decimalFormat;
+                return to_string_decimal(latitude.getFloatValue(), 5) + ", " + to_string_decimal(longitude.getFloatValue(), 5);
         }
     }
 
-    inline void formatFloatLocation(char* buffer, const char* format)
-    {
-        sprintf(buffer,format,to_string_decimal(latitude.getFloatValue(), 6).c_str(),to_string_decimal(longitude.getFloatValue(), 6).c_str());
-    }    
-
-   private:
-    std::string decimalFormat{};
-    std::string sexagesimalFormat{};
-    std::string locatorFormat{};
+    inline void formatFloatLocation(char* buffer, const char* format) {
+        sprintf(buffer, format, to_string_decimal(latitude.getFloatValue(), 6).c_str(), to_string_decimal(longitude.getFloatValue(), 6).c_str());
+    }
 };
 
 }  // namespace ui::external_app::epirb_rx
