@@ -78,8 +78,10 @@ class TPMSAllProcessor : public BasebandProcessor {
     dsp::matched_filter::MatchedFilter mf{rect_taps_307k2_38k4_all, 8};
 
     // -----------------------------------------------------------------------
-    // FSK 19200 bps -> drives all standard-preamble + NRZI protocols
-    // Schrader/FLM/Ford/Citroen/Renault/Jansite/BMW_G23/Porsche/Toyota/HyundaiVDO/Abarth/Ren0435R
+    // FSK 19200 bps -> drives Schrader preamble + Elantra2012 preamble
+    // Schrader/FLM/Citroen/Renault/Jansite/HyundaiVDO/Abarth/Ren0435R/TruckSolar/Nissan
+    // all share the Schrader preamble (0x55..56); Elantra2012 uses its own
+    // preamble (0x7155) on the same clock recovery path.
     // -----------------------------------------------------------------------
     clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_19k2{
         38400,
@@ -88,13 +90,12 @@ class TPMSAllProcessor : public BasebandProcessor {
         [this](const float raw_symbol) {
             const uint_fast8_t s = (raw_symbol >= 0.0f) ? 1 : 0;
             this->pb_schrader.execute(s);
-            this->pb_bmw_g23.execute(s);
-            this->pb_porsche.execute(s);
-            this->pb_toyota.execute(s);
+            this->pb_elantra2012.execute(s);
         }};
 
-    // Preamble 0x55 0x56 (30 bits) -> FLM, Schrader, GMC, Ford, Citroen,
-    //                                  Renault, Jansite TY02S, Solar Truck
+    // Preamble 0x55 0x56 (30 bits) -> FLM, Schrader, GMC, Citroen, Renault,
+    //                                  Jansite TY02S, HyundaiVDO, Abarth,
+    //                                  Renault_0435R, TruckSolar, Nissan
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_schrader{
         {0b010101010101010101010101010110, 30, 1},
         {},
@@ -104,56 +105,18 @@ class TPMSAllProcessor : public BasebandProcessor {
                 TPMSPacketMessage{tpms::SignalType::FSK_19k2_Schrader, packet});
         }};
 
-    // Preamble 0xCCCD (16 bits) -> BMW Gen2/3 NRZI, payload 90 bits
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g23{
-        {0b1100110011001101, 16, 1},
+    // Preamble 0x7155 (16 bits) -> Elantra 2012 / TRW, payload 128 Manchester
+    // bits = 64 data bits = 8 bytes. The preamble is NOT Manchester-encoded --
+    // it's the raw sync word 0111 0001 0101 0101, so we match 16 raw bits.
+    // After the preamble, the reader sees 8 bytes Manchester-decoded.
+    // Reference: rtl_433/src/devices/tpms_elantra2012.c
+    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_elantra2012{
+        {0b0111000101010101, 16, 0},
         {},
-        {90},
+        {128},
         [](const baseband::Packet& packet) {
             shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::FSK_19k2_BMW_G23, packet});
-        }};
-
-    // Preamble 0x333320 top 20 bits -> Porsche 987 NRZI, payload 80 bits
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_porsche{
-        {0b00110011001100110010, 20, 1},
-        {},
-        {80},
-        [](const baseband::Packet& packet) {
-            shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::FSK_19k2_Porsche, packet});
-        }};
-
-    // Preamble 0xa9e0 (12 bits) -> Toyota NRZI, payload 90 bits
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_toyota{
-        {0b101010011110, 12, 1},
-        {},
-        {90},
-        [](const baseband::Packet& packet) {
-            shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::FSK_19k2_Toyota, packet});
-        }};
-
-    // -----------------------------------------------------------------------
-    // FSK ~40000 bps -> BMW Gen4/5 + Audi inverted Manchester
-    // -----------------------------------------------------------------------
-    clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_bmw{
-        38400.0f,
-        40000.0f,
-        {0.0555f},
-        [this](const float raw_symbol) {
-            const uint_fast8_t s = (raw_symbol >= 0.0f) ? 1 : 0;
-            this->pb_bmw_g45.execute(s);
-        }};
-
-    // Preamble 0xAA59 (16 bits) -> BMW Gen4/5, payload 176 bits
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_bmw_g45{
-        {0b1010101001011001, 16, 1},
-        {},
-        {176},
-        [](const baseband::Packet& packet) {
-            shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::FSK_38k4_BMW_G45, packet});
+                TPMSPacketMessage{tpms::SignalType::FSK_19k2_Elantra2012, packet});
         }};
 
     // -----------------------------------------------------------------------
@@ -168,11 +131,16 @@ class TPMSAllProcessor : public BasebandProcessor {
             this->pb_jansite_solar.execute(s);
         }};
 
-    // Preamble 0xa6a65a (24 bits) -> Jansite Solar, payload 176 bits
+    // Preamble 0xa6a65a5a (32 raw bits) -> decoded 0xDD33 sync word.
+    // The 4 most-significant preamble bits (decoded 0xD) are what
+    // bitbuffer_search in rtl_433 effectively locks onto; we extend to the
+    // full 2-byte sync so the reader starts aligned on the data portion.
+    // Payload 144 raw bits = 9 decoded bytes:
+    //   II II II 00 TT PP 00 CC CC
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_jansite_solar{
-        {0b101001101010011001011010, 24, 1},
+        {0b10100110101001100101101001011010, 32, 1},
         {},
-        {176},
+        {144},
         [](const baseband::Packet& packet) {
             shared_memory.application_queue.push(
                 TPMSPacketMessage{tpms::SignalType::FSK_19k2_JansiteSolar, packet});
@@ -213,6 +181,21 @@ class TPMSAllProcessor : public BasebandProcessor {
         [](const baseband::Packet& packet) {
             shared_memory.application_queue.push(
                 TPMSPacketMessage{tpms::SignalType::OOK_8k4_Schrader, packet});
+        }};
+
+    // Schrader SMD3MA4 / 3039 (Subaru, Renault Koleos, Nissan 370Z, Infiniti)
+    // Preamble 0xF5555555E (36 raw bits, sense=1 for inverted decode).
+    // Payload: 37 Manchester-decoded bits = 74 raw bits.
+    // Shares clock_recovery_ook_8k4 with pb_ook_8k4 (both at ~8400 symbols/s);
+    // wired together in proc_tpms_all.cpp callback.
+    // Reference: rtl_433/src/devices/schraeder.c (SMD3MA4 branch)
+    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_smd3ma4{
+        {0b111101010101010101010101010101011110, 36, 1},
+        {},
+        {37 * 2},
+        [](const baseband::Packet& packet) {
+            shared_memory.application_queue.push(
+                TPMSPacketMessage{tpms::SignalType::OOK_8k4_SMD3MA4, packet});
         }};
 
     void on_message(const Message* const message);
