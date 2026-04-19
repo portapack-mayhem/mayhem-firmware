@@ -41,16 +41,15 @@ namespace tpms {
 using Flags = uint8_t;
 
 enum SignalType {
-    // Original
+    // Original Mayhem signal paths
     FSK_19k2_Schrader = 1,
     OOK_8k192_Schrader = 2,
     OOK_8k4_Schrader = 3,
-    // EU 433MHz extensions (proc_tpms_all)
-    FSK_38k4_BMW_G45 = 4,
-    FSK_19k2_BMW_G23 = 5,
-    FSK_19k2_Porsche = 6,
-    // World 315MHz extensions (proc_tpms_all)
-    FSK_19k2_Toyota = 7,
+    // Extensions (proc_tpms_all) -- slots 4, 5 recycled from ex-BMW protocols
+    FSK_19k2_Elantra2012 = 4,
+    OOK_8k4_SMD3MA4 = 5,
+    // Slots 6, 7 intentionally left unused (recycled from ex-Porsche/Toyota);
+    // reserved for future protocols.
     FSK_19k2_JansiteSolar = 9,
 };
 
@@ -62,14 +61,10 @@ inline constexpr const char* signal_type_name(const SignalType signal_type) {
             return "OOK 8192 Schrader";
         case OOK_8k4_Schrader:
             return "OOK 8400 Schrader";
-        case FSK_38k4_BMW_G45:
-            return "FSK 40000 BMW G4/5";
-        case FSK_19k2_BMW_G23:
-            return "FSK 19200 BMW G2/3";
-        case FSK_19k2_Porsche:
-            return "FSK 19200 Porsche";
-        case FSK_19k2_Toyota:
-            return "FSK 19200 Toyota";
+        case FSK_19k2_Elantra2012:
+            return "FSK 19200 Elantra";
+        case OOK_8k4_SMD3MA4:
+            return "OOK 8400 SMD3MA4";
         case FSK_19k2_JansiteSolar:
             return "FSK 19200 JanSolar";
         default:
@@ -110,19 +105,20 @@ class Reading {
         FLM_80 = 3,
         Schrader = 4,
         GMC_96 = 5,
-        // EU 433MHz (FSK_19k2_Schrader path)
-        Ford = 6,
+        // EU 433MHz (FSK_19k2_Schrader path -- slot 6 recycled from ex-Ford)
+        TruckSolar = 6,
         Citroen_PSA = 7,
         Renault = 8,
-        // EU 433MHz (new M4 paths)
-        BMW_G45 = 9,
-        BMW_G23 = 10,
-        Porsche = 11,
-        // World 315MHz (new M4 paths)
-        Toyota = 12,
+        // New Schrader-family / TRW extensions -- slots 9, 10, 11 recycled
+        // from ex-BMW_G45, BMW_G23, Porsche.
+        Elantra2012 = 9,        // own SignalType FSK_19k2_Elantra2012 (4)
+        Schrader_SMD3MA4 = 10,  // own SignalType OOK_8k4_SMD3MA4 (5)
+        Nissan = 11,            // sub-decoder in FSK_19k2_Schrader path
+        // Slot 12 intentionally left unused (recycled from ex-Toyota);
+        // reserved for future protocols.
         Jansite = 14,
         JansiteSolar = 16,
-        // EU 433MHz (FSK_19k2_Schrader path) - new
+        // EU 433MHz (FSK_19k2_Schrader path) - second batch
         Hyundai_VDO = 17,
         Abarth = 18,
         Renault_0435R = 19,
@@ -217,25 +213,19 @@ class Packet {
     Optional<Reading> reading_ook_8k4_schrader() const;
 
     // EU 433MHz sub-decoders (called from reading_fsk_19k2_schrader)
-    Optional<Reading> reading_fsk_19k2_ford() const;
     Optional<Reading> reading_fsk_19k2_citroen() const;
     Optional<Reading> reading_fsk_19k2_renault() const;
     Optional<Reading> reading_fsk_19k2_jansite() const;
     Optional<Reading> reading_fsk_19k2_hyundai_vdo() const;
     Optional<Reading> reading_fsk_19k2_abarth() const;
     Optional<Reading> reading_fsk_19k2_renault_0435r() const;
+    Optional<Reading> reading_fsk_19k2_truck_solar() const;
+    Optional<Reading> reading_fsk_19k2_nissan() const;
 
-    // EU 433MHz new M4 signal paths
-    Optional<Reading> reading_fsk_38k4_bmw_g45() const;
-    Optional<Reading> reading_fsk_19k2_bmw_g23() const;
-    Optional<Reading> reading_fsk_19k2_porsche() const;
-
-    // World 315MHz new M4 signal paths
-    Optional<Reading> reading_fsk_19k2_toyota() const;
+    // Extension signal paths (own SignalType, own PacketBuilder)
+    Optional<Reading> reading_fsk_19k2_elantra2012() const;
+    Optional<Reading> reading_ook_8k4_smd3ma4() const;
     Optional<Reading> reading_fsk_19k2_jansite_solar() const;
-
-    // NRZI decoder helper
-    size_t nrzi_decode(uint8_t* bytes, size_t n_bits, uint_fast8_t prev_bit) const;
 
     size_t crc_valid_length() const;
 };
