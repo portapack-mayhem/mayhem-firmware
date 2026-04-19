@@ -54,29 +54,23 @@ void TPMSTXView::update_signal_type_from_packet() {
         case tpms::Reading::Type::GMC_96:
             signal_type_ = tpms::SignalType::OOK_8k4_Schrader;
             break;
-        // EU 433MHz (FSK 19k2 path)
-        case tpms::Reading::Type::Ford:
+        // EU 433MHz (FSK 19k2 Schrader-preamble path - shared pb_schrader)
         case tpms::Reading::Type::Citroen_PSA:
         case tpms::Reading::Type::Renault:
         case tpms::Reading::Type::Jansite:
         case tpms::Reading::Type::Hyundai_VDO:
         case tpms::Reading::Type::Abarth:
         case tpms::Reading::Type::Renault_0435R:
+        case tpms::Reading::Type::TruckSolar:
+        case tpms::Reading::Type::Nissan:
             signal_type_ = tpms::SignalType::FSK_19k2_Schrader;
             break;
-        // EU 433MHz (new M4 paths)
-        case tpms::Reading::Type::BMW_G45:
-            signal_type_ = tpms::SignalType::FSK_38k4_BMW_G45;
+        // Schrader-family extensions with own preamble / SignalType
+        case tpms::Reading::Type::Elantra2012:
+            signal_type_ = tpms::SignalType::FSK_19k2_Elantra2012;
             break;
-        case tpms::Reading::Type::BMW_G23:
-            signal_type_ = tpms::SignalType::FSK_19k2_BMW_G23;
-            break;
-        case tpms::Reading::Type::Porsche:
-            signal_type_ = tpms::SignalType::FSK_19k2_Porsche;
-            break;
-        // World 315MHz
-        case tpms::Reading::Type::Toyota:
-            signal_type_ = tpms::SignalType::FSK_19k2_Toyota;
+        case tpms::Reading::Type::Schrader_SMD3MA4:
+            signal_type_ = tpms::SignalType::OOK_8k4_SMD3MA4;
             break;
         case tpms::Reading::Type::JansiteSolar:
             signal_type_ = tpms::SignalType::FSK_19k2_JansiteSolar;
@@ -150,7 +144,11 @@ void TPMSTXView::update_packet_display() {
 void TPMSTXView::update_field_visibility() {
     // Schrader: Show Func, Hide Temp (no temperature support)
     // GMC_96, FLM_xx: Hide Func, Show Temp (temperature supported, no func field)
-    if (packet_type_ == tpms::Reading::Type::Schrader) {
+    // Nissan, SMD3MA4: Hide Func, Hide Temp (neither carries temperature)
+    const bool is_schrader = (packet_type_ == tpms::Reading::Type::Schrader);
+    const bool no_temperature = (packet_type_ == tpms::Reading::Type::Nissan ||
+                                 packet_type_ == tpms::Reading::Type::Schrader_SMD3MA4);
+    if (is_schrader) {
         // Show Func field and label
         label_flags.hidden(false);
         field_flags.hidden(false);
@@ -165,10 +163,10 @@ void TPMSTXView::update_field_visibility() {
         // Hide Func field and label
         label_flags.hidden(true);
         field_flags.hidden(true);
-        // Show Temp field, label, and unit selector
-        label_temperature.hidden(false);
-        field_temperature.hidden(false);
-        options_temperature.hidden(false);
+        // Temp visibility depends on protocol
+        label_temperature.hidden(no_temperature);
+        field_temperature.hidden(no_temperature);
+        options_temperature.hidden(no_temperature);
         // Show 32-bit ID field, hide 24-bit ID field
         field_transponder_id_24.hidden(true);
         field_transponder_id_32.hidden(false);
@@ -486,13 +484,14 @@ void TPMSTXView::encode_and_transmit() {
         }
 
     } else if (signal_type_ == tpms::SignalType::FSK_19k2_Schrader &&
-               (packet_type_ == tpms::Reading::Type::Ford ||
-                packet_type_ == tpms::Reading::Type::Citroen_PSA ||
+               (packet_type_ == tpms::Reading::Type::Citroen_PSA ||
                 packet_type_ == tpms::Reading::Type::Renault ||
                 packet_type_ == tpms::Reading::Type::Jansite ||
                 packet_type_ == tpms::Reading::Type::Hyundai_VDO ||
                 packet_type_ == tpms::Reading::Type::Abarth ||
-                packet_type_ == tpms::Reading::Type::Renault_0435R)) {
+                packet_type_ == tpms::Reading::Type::Renault_0435R ||
+                packet_type_ == tpms::Reading::Type::TruckSolar ||
+                packet_type_ == tpms::Reading::Type::Nissan)) {
         // EU/World protocols sharing the FSK 19k2 preamble path
         symbol_rate = 19200;
 
@@ -500,26 +499,57 @@ void TPMSTXView::encode_and_transmit() {
         for (int i = 0; i < 14; i++) binary_string += "01";
         binary_string += "10";
 
-        if (packet_type_ == tpms::Reading::Type::Ford) {
-            // Ford/VDO Continental S180084730Z
-            // Packet: II II II II PP TT FF CC (8 bytes), SUM checksum
-            uint8_t b[8] = {};
+        if (packet_type_ == tpms::Reading::Type::TruckSolar) {
+            // TruckSolar (unbranded RV/truck retrofit sensors)
+            // Packet: IIII PP TT FF ...pad... CC (21 bytes, sum checksum)
+            // Reference: rtl_433/src/devices/tpms_truck.c
+            uint8_t b[21] = {};
             b[0] = (transponder_id_ >> 24) & 0xFF;
             b[1] = (transponder_id_ >> 16) & 0xFF;
             b[2] = (transponder_id_ >> 8) & 0xFF;
             b[3] = transponder_id_ & 0xFF;
-            int psi_raw = static_cast<int>(pressure_kpa_) * 100 / 172;
-            if (psi_raw > 511) psi_raw = 511;
-            b[4] = psi_raw & 0xFF;
-            b[5] = (temperature_c_ + 56) & 0x7F;
-            b[6] = flags_ & 0xDF;
-            if (psi_raw >= 256) b[6] |= 0x20;
+            // Pressure: kPa -> raw = kPa * 2000 / 6895 (inverse of decoder)
+            int praw = static_cast<int>(pressure_kpa_) * 2000 / 6895;
+            if (praw < 0) praw = 0;
+            if (praw > 255) praw = 255;
+            b[4] = static_cast<uint8_t>(praw);
+            b[5] = static_cast<uint8_t>(temperature_c_ + 50);
+            b[6] = flags_;
+            // b[7..19] remain zero (vehicle-specific filler)
             uint8_t sum = 0;
-            for (int i = 0; i < 7; i++) sum += b[i];
-            b[7] = sum;
-            for (size_t byte_idx = 0; byte_idx < 8; byte_idx++)
+            for (int i = 0; i < 20; i++) sum += b[i];
+            b[20] = sum;
+            for (size_t byte_idx = 0; byte_idx < 21; byte_idx++)
                 for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
                     binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
+
+        } else if (packet_type_ == tpms::Reading::Type::Nissan) {
+            // Nissan TPMS (37 bits, no CRC)
+            // Layout: MMM IIIIIIIIIIIIIIIIIIIIIIIIII PPPPPPPP
+            //   3 bit mode + 24 bit ID (split) + 8 bit pressure
+            // Reference: rtl_433/src/devices/tpms_nissan.c (protocol 248)
+            const uint32_t id24 = transponder_id_ & 0x00FFFFFFu;
+            const uint8_t mode = flags_ & 0x07;
+            // Pressure: kPa -> raw = kPa * 4000 / 6895 (inverse of decoder)
+            int praw = static_cast<int>(pressure_kpa_) * 4000 / 6895;
+            if (praw < 0) praw = 0;
+            if (praw > 255) praw = 255;
+            // Assemble 37 bits MSB-first:
+            //   [0..2]   mode (3 bits)
+            //   [3..26]  id (24 bits, split as 5+8+8+3)
+            //   [27..34] pressure (8 bits, split as 5+3)
+            //   [35..36] padding (2 bits zero)
+            uint64_t bits = 0;
+            bits |= ((uint64_t)mode & 0x07) << 34;                     // 3 MSB bits
+            bits |= ((uint64_t)((id24 >> 19) & 0x1F)) << 29;           // id-hi 5
+            bits |= ((uint64_t)((id24 >> 11) & 0xFF)) << 21;           // id 8
+            bits |= ((uint64_t)((id24 >> 3) & 0xFF)) << 13;            // id 8
+            bits |= ((uint64_t)(id24 & 0x07)) << 10;                   // id-lo 3
+            bits |= ((uint64_t)((praw >> 3) & 0x1F)) << 5;             // pres-hi 5
+            bits |= ((uint64_t)(praw & 0x07)) << 2;                    // pres-lo 3
+            // Emit 37 bits, Manchester-encoded ("10" for 1, "01" for 0)
+            for (int bit_idx = 36; bit_idx >= 0; bit_idx--)
+                binary_string += ((bits >> bit_idx) & 1) ? "10" : "01";
 
         } else if (packet_type_ == tpms::Reading::Type::Citroen_PSA) {
             // Citroen/PSA Group - XOR checksum
@@ -566,17 +596,21 @@ void TPMSTXView::encode_and_transmit() {
 
         } else if (packet_type_ == tpms::Reading::Type::Hyundai_VDO) {
             // Hyundai/VDO Continental TG1C - CRC-8 poly=0x07 init=0xAA
-            // Packet: UU II II II II PP TT BB ?? CC (10 bytes)
+            // Packet nibbles: UU IIIIIIII FR PP TT BB CC (10 bytes)
+            //   b[0]=state (user flags_), b[1..4]=ID,
+            //   b[5]=Flags(hi)+Repeat(lo), b[6]=Pressure (raw=kPa*8/11),
+            //   b[7]=Temp+50, b[8]=maybe_battery, b[9]=CRC
+            // Reference: rtl_433/src/devices/tpms_hyundai_vdo.c
             uint8_t b[10] = {};
             b[0] = flags_;
             b[1] = (transponder_id_ >> 24) & 0xFF;
             b[2] = (transponder_id_ >> 16) & 0xFF;
             b[3] = (transponder_id_ >> 8) & 0xFF;
             b[4] = transponder_id_ & 0xFF;
-            b[5] = static_cast<uint8_t>(pressure_kpa_ * 100 / 137);
-            b[6] = static_cast<uint8_t>(temperature_c_ + 50);
-            b[7] = 0x00;
-            b[8] = 0x00;
+            b[5] = 0x00;  // Flags+Repeat, unused for TX
+            b[6] = static_cast<uint8_t>(pressure_kpa_ * 8 / 11);
+            b[7] = static_cast<uint8_t>(temperature_c_ + 50);
+            b[8] = 0x00;  // maybe_battery
             CRC<8> crc{0x07, 0xaa};
             for (int i = 0; i < 9; i++) crc.process_byte(b[i]);
             b[9] = crc.checksum() & 0xFF;
@@ -604,20 +638,28 @@ void TPMSTXView::encode_and_transmit() {
                     binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
 
         } else if (packet_type_ == tpms::Reading::Type::Renault_0435R) {
-            // Renault 0435R - newer Renault/Dacia/Nissan EU - XOR checksum
-            // Packet: CC II II II II PP TT RR ?? (9 bytes), b[0]=0xc0
+            // Renault 0435R - newer Renault/Dacia EU - XOR checksum
+            // Packet nibbles: II II II fx PP TT AA CC tt (9 bytes)
+            //   b[0..2]=ID (24-bit, low 24 bits of transponder_id_),
+            //   b[3]=0xc0 (flags), b[4]=Pressure (raw=kPa*3/4),
+            //   b[5]=Temp+50, b[6]=centrifugal acc,
+            //   b[7]=XOR checksum, b[8]=tick counter (0x80=has_tick)
+            // Reference: rtl_433/src/devices/tpms_renault_0435r.c
             uint8_t b[9] = {};
-            b[0] = 0xc0;
-            b[1] = (transponder_id_ >> 24) & 0xFF;
-            b[2] = (transponder_id_ >> 16) & 0xFF;
-            b[3] = (transponder_id_ >> 8) & 0xFF;
-            b[4] = transponder_id_ & 0xFF;
-            b[5] = static_cast<uint8_t>(pressure_kpa_ * 4 / 3);
-            b[6] = static_cast<uint8_t>(temperature_c_ + 30);
-            b[7] = 0x00;
+            b[0] = (transponder_id_ >> 16) & 0xFF;
+            b[1] = (transponder_id_ >> 8) & 0xFF;
+            b[2] = transponder_id_ & 0xFF;
+            b[3] = 0xc0;
+            b[4] = static_cast<uint8_t>(pressure_kpa_ * 3 / 4);
+            b[5] = static_cast<uint8_t>(temperature_c_ + 50);
+            b[6] = 0x00;  // centrifugal acc
+            b[8] = 0x80;  // has_tick=1, tick=0 (first message)
             uint8_t xr2 = 0;
-            for (int i = 0; i < 8; i++) xr2 ^= b[i];
-            b[8] = xr2;
+            for (int i = 0; i < 9; i++) {
+                if (i == 7) continue;  // b[7] is the checksum slot itself
+                xr2 ^= b[i];
+            }
+            b[7] = xr2;
             for (size_t byte_idx = 0; byte_idx < 9; byte_idx++)
                 for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
                     binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
@@ -641,142 +683,92 @@ void TPMSTXView::encode_and_transmit() {
 
         while (binary_string.length() < 190) binary_string += "01";
 
-    } else if (signal_type_ == tpms::SignalType::FSK_38k4_BMW_G45) {
-        // BMW Gen4/5 + Audi - inverted Manchester ~40kbps
-        // Preamble: 0xAA59 (16 raw bits), CRC-8 poly=0x2F init=0xAA
-        symbol_rate = 40000;
-        binary_string = "1010101001011001";
-        uint8_t b[11] = {};
-        b[0] = flags_;
-        b[1] = (transponder_id_ >> 24) & 0xFF;
-        b[2] = (transponder_id_ >> 16) & 0xFF;
-        b[3] = (transponder_id_ >> 8) & 0xFF;
-        b[4] = transponder_id_ & 0xFF;
-        b[5] = static_cast<uint8_t>(pressure_kpa_ * 20 / 49);
-        b[6] = static_cast<uint8_t>(temperature_c_ + 52);
-        b[7] = 0x01;
-        b[8] = 0x00;
-        b[9] = 0x00;
-        CRC<8> crc{0x2f, 0xaa};
-        for (int i = 0; i < 10; i++) crc.process_byte(b[i]);
-        b[10] = crc.checksum() & 0xFF;
-        for (size_t byte_idx = 0; byte_idx < 11; byte_idx++)
+    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Elantra2012) {
+        // Elantra 2012 / TRW - Manchester 19200 bps
+        // Preamble 0x7155 (16 raw bits). Payload 8 bytes Manchester-encoded:
+        //   b[0] = Pressure - 60 kPa
+        //   b[1] = Temperature + 50 C
+        //   b[2..5] = 32-bit ID
+        //   b[6] = Flags (??SBT: Storage / Battery-low / Triggered)
+        //   b[7] = CRC-8 poly=0x07 init=0x00
+        // Reference: rtl_433/src/devices/tpms_elantra2012.c
+        symbol_rate = 19200;
+        binary_string = "0111000101010101";  // 16-bit sync 0x7155
+        uint8_t b[8] = {};
+        int p_raw = static_cast<int>(pressure_kpa_) - 60;
+        if (p_raw < 0) p_raw = 0;
+        if (p_raw > 255) p_raw = 255;
+        b[0] = static_cast<uint8_t>(p_raw);
+        b[1] = static_cast<uint8_t>(temperature_c_ + 50);
+        b[2] = (transponder_id_ >> 24) & 0xFF;
+        b[3] = (transponder_id_ >> 16) & 0xFF;
+        b[4] = (transponder_id_ >> 8) & 0xFF;
+        b[5] = transponder_id_ & 0xFF;
+        b[6] = flags_;
+        CRC<8> crc_elantra{0x07, 0x00};
+        for (int i = 0; i < 7; i++) crc_elantra.process_byte(b[i]);
+        b[7] = crc_elantra.checksum() & 0xFF;
+        for (size_t byte_idx = 0; byte_idx < 8; byte_idx++)
             for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
-                binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "01" : "10";  // inverted
+                binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
 
-    } else if (signal_type_ == tpms::SignalType::FSK_19k2_BMW_G23) {
-        // BMW Gen2/3 - NRZI 19200 bps, preamble 0xCCCD (last bit=1)
-        // CRC-16 poly=0x1021 init=0x0000
-        symbol_rate = 19200;
-        binary_string = "1100110011001101";
-        uint_fast8_t prev = 1;
-        uint8_t b[11] = {};
-        b[0] = (transponder_id_ >> 24) & 0xFF;
-        b[1] = (transponder_id_ >> 16) & 0xFF;
-        b[2] = (transponder_id_ >> 8) & 0xFF;
-        b[3] = transponder_id_ & 0xFF;
-        b[4] = static_cast<uint8_t>(pressure_kpa_ * 2 / 5 + 43);
-        b[5] = static_cast<uint8_t>(temperature_c_ + 40);
-        b[6] = flags_;
-        b[7] = 0x51;
-        b[8] = 0x03;
-        CRC<16> crc_bmw23{0x1021, 0x0000};
-        for (int i = 0; i < 9; i++) crc_bmw23.process_byte(b[i]);
-        uint16_t cs = crc_bmw23.checksum();
-        b[9] = (cs >> 8) & 0xFF;
-        b[10] = cs & 0xFF;
-        for (size_t byte_idx = 0; byte_idx < 11; byte_idx++)
-            for (int bit_idx = 7; bit_idx >= 0; bit_idx--) {
-                uint_fast8_t d = (b[byte_idx] >> bit_idx) & 1;
-                uint_fast8_t out = (d == 1) ? prev : (1 - prev);
-                binary_string += (char)('0' + out);
-                prev = out;
-            }
-
-    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Porsche) {
-        // Porsche 987 - NRZI 19200 bps, preamble 0x333320 top 20 bits (last bit=0)
-        // CRC-16 poly=0x1021 init=0xFFFF
-        symbol_rate = 19200;
-        binary_string = "00110011001100110010";
-        uint_fast8_t prev = 0;
-        uint8_t b[10] = {};
-        b[0] = (transponder_id_ >> 24) & 0xFF;
-        b[1] = (transponder_id_ >> 16) & 0xFF;
-        b[2] = (transponder_id_ >> 8) & 0xFF;
-        b[3] = transponder_id_ & 0xFF;
-        b[4] = static_cast<uint8_t>((pressure_kpa_ + 100) * 2 / 5);
-        b[5] = static_cast<uint8_t>(temperature_c_ + 40);
-        b[6] = flags_;
-        b[7] = 0x02;
-        CRC<16> crc_prs{0x1021, 0xffff};
-        for (int i = 0; i < 8; i++) crc_prs.process_byte(b[i]);
-        uint16_t cs = crc_prs.checksum();
-        b[8] = (cs >> 8) & 0xFF;
-        b[9] = cs & 0xFF;
-        for (size_t byte_idx = 0; byte_idx < 10; byte_idx++)
-            for (int bit_idx = 7; bit_idx >= 0; bit_idx--) {
-                uint_fast8_t d = (b[byte_idx] >> bit_idx) & 1;
-                uint_fast8_t out = (d == 1) ? prev : (1 - prev);
-                binary_string += (char)('0' + out);
-                prev = out;
-            }
-
-    } else if (signal_type_ == tpms::SignalType::FSK_19k2_Toyota) {
-        // Toyota PMV-C210 - NRZI 19200 bps, preamble 0xa9e0 (12 bits, last bit=0)
-        // CRC-8 poly=0x07 init=0x80, with inverted pressure cross-check
-        symbol_rate = 19200;
-        binary_string = "101010011110";
-        uint_fast8_t prev = 0;
-        uint8_t b[9] = {};
-        b[0] = (transponder_id_ >> 24) & 0xFF;
-        b[1] = (transponder_id_ >> 16) & 0xFF;
-        b[2] = (transponder_id_ >> 8) & 0xFF;
-        b[3] = transponder_id_ & 0xFF;
-        int p8 = pressure_kpa_ * 400 / 689 + 28;
-        if (p8 < 0) p8 = 0;
-        if (p8 > 255) p8 = 255;
-        int t8 = temperature_c_ + 40;
-        if (t8 < 0) t8 = 0;
-        if (t8 > 255) t8 = 255;
-        b[4] = static_cast<uint8_t>((flags_ & 0x01) << 7) | static_cast<uint8_t>((p8 >> 1) & 0x7F);
-        b[5] = static_cast<uint8_t>((p8 & 0x01) << 7) | static_cast<uint8_t>((t8 >> 1) & 0x7F);
-        b[6] = static_cast<uint8_t>((t8 & 0x01) << 7);
-        b[7] = static_cast<uint8_t>(p8 ^ 0xFF);
-        CRC<8> crc_toy{0x07, 0x80};
-        for (int i = 0; i < 8; i++) crc_toy.process_byte(b[i]);
-        b[8] = crc_toy.checksum() & 0xFF;
-        for (size_t byte_idx = 0; byte_idx < 9; byte_idx++)
-            for (int bit_idx = 7; bit_idx >= 0; bit_idx--) {
-                uint_fast8_t d = (b[byte_idx] >> bit_idx) & 1;
-                uint_fast8_t out = (d == 1) ? prev : (1 - prev);
-                binary_string += (char)('0' + out);
-                prev = out;
-            }
+    } else if (signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
+        // Schrader SMD3MA4 / 3039 - OOK Manchester ~8400 sym/s (inverted)
+        // Preamble: 36 raw bits 0xF5555555E
+        // Payload: 37 Manchester-decoded bits:
+        //   FFF IIIIIIIIIIIIIIIIIIIIIIII PPPPPPPP CC x
+        //   3 bit Flags, 24 bit ID, 8 bit Pressure (PSI*5), 2 bit check, 1 bit pad
+        // NOTE: No temperature. Pressure transmitted as raw_psi * 5.
+        // Reference: rtl_433/src/devices/schraeder.c (SMD3MA4 branch)
+        symbol_rate = 8400;
+        binary_string = "111101010101010101010101010101011110";  // 36-bit preamble
+        const uint32_t id24 = transponder_id_ & 0x00FFFFFFu;
+        const uint8_t flags3 = flags_ & 0x07;
+        // Pressure: kPa -> raw = kPa * 5000 / 6895 (inverse of decoder)
+        int praw = static_cast<int>(pressure_kpa_) * 5000 / 6895;
+        if (praw < 0) praw = 0;
+        if (praw > 255) praw = 255;
+        // Assemble 37 bits MSB-first into a byte array (5 bytes, last byte 5 bits)
+        uint8_t b[5] = {};
+        b[0] = static_cast<uint8_t>((flags3 << 5) | ((id24 >> 19) & 0x1F));
+        b[1] = static_cast<uint8_t>((id24 >> 11) & 0xFF);
+        b[2] = static_cast<uint8_t>((id24 >> 3) & 0xFF);
+        b[3] = static_cast<uint8_t>(((id24 & 0x07) << 5) | ((praw >> 3) & 0x1F));
+        b[4] = static_cast<uint8_t>(((praw & 0x07) << 5) | 0x00);  // check=0 placeholder
+        // Emit 37 bits, inverted Manchester to match pb_smd3ma4 sense=1
+        for (int bit_idx = 36; bit_idx >= 0; bit_idx--) {
+            const uint_fast8_t bit = (b[bit_idx / 8] >> (7 - (bit_idx % 8))) & 1;
+            binary_string += bit ? "01" : "10";  // inverted Manchester
+        }
 
     } else if (signal_type_ == tpms::SignalType::FSK_19k2_JansiteSolar) {
-        // Jansite Solar Model - inverted Manchester 19200 bps
-        // Preamble: 0xa6a65a (24 bits), CRC-16/BUYPASS poly=0x8005 init=0x0000
-        // Packet: SS SS II II II 00 TT PP 00 CK CK (11 bytes)
+        // Jansite Solar Model - Manchester 19200 bps
+        // Preamble 0xA6A65A5A (32 raw bits) encodes sync word 0xDD33.
+        // Payload (9 decoded bytes): II II II 00 TT PP 00 CC CC
+        //   b[0..2]=ID, b[3]=flags (unused), b[4]=Temp+55,
+        //   b[5]=Pressure (raw=kPa*5/8), b[6]=unknown,
+        //   b[7..8]=CRC-16/BUYPASS over [0xDD, 0x33, b[0..6]]
+        // Reference: rtl_433/src/devices/tpms_jansite_solar.c
         symbol_rate = 19200;
-        binary_string = "101001101010011001011010";
-        uint8_t b[11] = {};
-        b[0] = 0xDD;
-        b[1] = 0x33;
-        b[2] = (transponder_id_ >> 16) & 0xFF;
-        b[3] = (transponder_id_ >> 8) & 0xFF;
-        b[4] = transponder_id_ & 0xFF;
-        b[5] = flags_;
-        b[6] = static_cast<uint8_t>(temperature_c_ + 55);
-        b[7] = static_cast<uint8_t>(pressure_kpa_ * 5 / 8);
-        b[8] = 0x00;
+        binary_string = "10100110101001100101101001011010";  // 32-bit preamble
+        uint8_t b[9] = {};
+        b[0] = (transponder_id_ >> 16) & 0xFF;
+        b[1] = (transponder_id_ >> 8) & 0xFF;
+        b[2] = transponder_id_ & 0xFF;
+        b[3] = flags_;
+        b[4] = static_cast<uint8_t>(temperature_c_ + 55);
+        b[5] = static_cast<uint8_t>(pressure_kpa_ * 5 / 8);
+        b[6] = 0x00;
         CRC<16> crc_js{0x8005, 0x0000};
-        for (int i = 2; i < 9; i++) crc_js.process_byte(b[i]);
+        crc_js.process_byte(0xdd);
+        crc_js.process_byte(0x33);
+        for (int i = 0; i < 7; i++) crc_js.process_byte(b[i]);
         uint16_t cs = crc_js.checksum();
-        b[9] = (cs >> 8) & 0xFF;
-        b[10] = cs & 0xFF;
-        for (size_t byte_idx = 0; byte_idx < 11; byte_idx++)
+        b[7] = (cs >> 8) & 0xFF;
+        b[8] = cs & 0xFF;
+        for (size_t byte_idx = 0; byte_idx < 9; byte_idx++)
             for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
-                binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "01" : "10";  // inverted
+                binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";  // normal Manchester
 
     } else {
         text_status.set("Unknown signal type");
@@ -1061,7 +1053,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                     if (!type_str.empty()) {
                         int type = std::stoi(type_str);
                         if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) &&
-                            type <= static_cast<int>(tpms::Reading::Type::GMC_96)) {
+                            type <= static_cast<int>(tpms::Reading::Type::Renault_0435R)) {
                             packet_type_ = static_cast<tpms::Reading::Type>(type);
                             options_packet_type.set_by_value(type);
                         }
@@ -1093,7 +1085,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                     // Load signal type if available, otherwise auto-select based on packet type
                     if (!signal_type_str.empty()) {
                         int signal_type = std::stoi(signal_type_str);
-                        if (signal_type >= 1 && signal_type <= 3) {
+                        if (signal_type >= 1 && signal_type <= 9) {
                             signal_type_ = static_cast<tpms::SignalType>(signal_type);
                         } else {
                             // Fall back to auto-detect
