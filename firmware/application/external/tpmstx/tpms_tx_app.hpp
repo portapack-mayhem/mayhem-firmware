@@ -149,21 +149,20 @@ class TPMSTXView : public View {
             {"FLM_72", (int32_t)tpms::Reading::Type::FLM_72},
             {"FLM_80", (int32_t)tpms::Reading::Type::FLM_80},
             {"GMC_96", (int32_t)tpms::Reading::Type::GMC_96},
-            // EU 433MHz
-            {"Ford/VDO", (int32_t)tpms::Reading::Type::Ford},
+            // EU 433MHz - Schrader-preamble family
             {"Cit/PSA", (int32_t)tpms::Reading::Type::Citroen_PSA},
             {"Renault", (int32_t)tpms::Reading::Type::Renault},
-            {"BMW G4/5", (int32_t)tpms::Reading::Type::BMW_G45},
-            {"BMW G2/3", (int32_t)tpms::Reading::Type::BMW_G23},
-            {"Porsche", (int32_t)tpms::Reading::Type::Porsche},
-            // World 315MHz
-            {"Toyota", (int32_t)tpms::Reading::Type::Toyota},
-            {"Jansite", (int32_t)tpms::Reading::Type::Jansite},
-            {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
-            // EU 433MHz - new
             {"Hyundai", (int32_t)tpms::Reading::Type::Hyundai_VDO},
             {"Abarth", (int32_t)tpms::Reading::Type::Abarth},
             {"Ren0435R", (int32_t)tpms::Reading::Type::Renault_0435R},
+            {"TrkSolar", (int32_t)tpms::Reading::Type::TruckSolar},
+            {"Nissan", (int32_t)tpms::Reading::Type::Nissan},
+            // Schrader-family extensions (own preamble/SignalType)
+            {"Elantra", (int32_t)tpms::Reading::Type::Elantra2012},
+            {"SMD3MA4", (int32_t)tpms::Reading::Type::Schrader_SMD3MA4},
+            // Aftermarket
+            {"Jansite", (int32_t)tpms::Reading::Type::Jansite},
+            {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
         }};
 
     OptionsField options_pressure{
