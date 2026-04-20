@@ -87,7 +87,7 @@ class TPMSTXView : public View {
 
     void update_signal_type_from_packet();
     void switch_baseband();
-    void update_bar_display();
+    void update_pressure_info();
 
     void start_tx();
     void stop_tx();
@@ -118,8 +118,11 @@ class TPMSTXView : public View {
         {{0 * 8, 6 * 16}, "Rpt:", Theme::getInstance()->fg_light->foreground},
     };
 
-    Text text_bar_tx{
-        {6 * 8, 4 * 16, 18 * 8, 16},
+    // Info line below the pressure field. Shows the two other units than the
+    // currently selected input unit. Format: "2.3 bar / 33.4 PSI" (if input is
+    // kPa) or "2.3 bar / 230 kPa" (if input is PSI). bar always first.
+    Text text_pressure_info{
+        {6 * 8, 4 * 16, 24 * 8, 16},
         ""};
 
     Text label_temperature{
@@ -156,12 +159,10 @@ class TPMSTXView : public View {
             {"Abarth", (int32_t)tpms::Reading::Type::Abarth},
             {"Ren0435R", (int32_t)tpms::Reading::Type::Renault_0435R},
             {"TrkSolar", (int32_t)tpms::Reading::Type::TruckSolar},
-            {"Nissan", (int32_t)tpms::Reading::Type::Nissan},
             // Schrader-family extensions (own preamble/SignalType)
-            {"Elantra", (int32_t)tpms::Reading::Type::Elantra2012},
+            {"EG53MA4", (int32_t)tpms::Reading::Type::EG53MA4},
             {"SMD3MA4", (int32_t)tpms::Reading::Type::Schrader_SMD3MA4},
             // Aftermarket
-            {"Jansite", (int32_t)tpms::Reading::Type::Jansite},
             {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
         }};
 
@@ -169,8 +170,7 @@ class TPMSTXView : public View {
         {11 * 8, 3 * 16},
         4,
         {{"kPa", PRESSURE_UNIT_KPA},
-         {"PSI", PRESSURE_UNIT_PSI},
-         {"BAR", PRESSURE_UNIT_BAR}}};
+         {"PSI", PRESSURE_UNIT_PSI}}};
 
     OptionsField options_temperature{
         {11 * 8, 5 * 16},
