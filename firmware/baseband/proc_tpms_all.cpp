@@ -51,6 +51,7 @@ void TPMSAllProcessor::execute(const buffer_c8_t& buffer) {
         slicer_history = (slicer_history << 1) | sliced;
         clock_recovery_ook_8k192(slicer_history, [this](const bool symbol) {
             this->pb_ook_8k192.execute(symbol);
+            this->pb_eg53ma4.execute(symbol);
         });
         clock_recovery_ook_8k4(slicer_history, [this](const bool symbol) {
             this->pb_ook_8k4.execute(symbol);
