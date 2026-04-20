@@ -45,11 +45,13 @@ enum SignalType {
     FSK_19k2_Schrader = 1,
     OOK_8k192_Schrader = 2,
     OOK_8k4_Schrader = 3,
-    // Extensions (proc_tpms_all) -- slots 4, 5 recycled from ex-BMW protocols
-    FSK_19k2_Elantra2012 = 4,
+    // Extension signal paths. Slot 4 previously held FSK_19k2_Elantra2012
+    // (removed -- ghost signals), now reused for EG53MA4 Schrader (different
+    // packet length than Mayhem-original Schrader at 74 bits, so needs its
+    // own PacketBuilder).
+    OOK_8k192_EG53MA4 = 4,
     OOK_8k4_SMD3MA4 = 5,
-    // Slots 6, 7 intentionally left unused (recycled from ex-Porsche/Toyota);
-    // reserved for future protocols.
+    // Slots 6, 7 reserved for future protocols.
     FSK_19k2_JansiteSolar = 9,
 };
 
@@ -61,8 +63,8 @@ inline constexpr const char* signal_type_name(const SignalType signal_type) {
             return "OOK 8192 Schrader";
         case OOK_8k4_Schrader:
             return "OOK 8400 Schrader";
-        case FSK_19k2_Elantra2012:
-            return "FSK 19200 Elantra";
+        case OOK_8k192_EG53MA4:
+            return "OOK 8192 EG53MA4";
         case OOK_8k4_SMD3MA4:
             return "OOK 8400 SMD3MA4";
         case FSK_19k2_JansiteSolar:
@@ -109,14 +111,13 @@ class Reading {
         TruckSolar = 6,
         Citroen_PSA = 7,
         Renault = 8,
-        // New Schrader-family / TRW extensions -- slots 9, 10, 11 recycled
-        // from ex-BMW_G45, BMW_G23, Porsche.
-        Elantra2012 = 9,        // own SignalType FSK_19k2_Elantra2012 (4)
+        // Slot 9 was Elantra2012 -- removed due to too-short preamble ghost
+        // signals. Now repurposed for EG53MA4 Schrader sub-decoder.
+        EG53MA4 = 9,  // sub-decoder in OOK_8k192_Schrader path
         Schrader_SMD3MA4 = 10,  // own SignalType OOK_8k4_SMD3MA4 (5)
-        Nissan = 11,            // sub-decoder in FSK_19k2_Schrader path
-        // Slot 12 intentionally left unused (recycled from ex-Toyota);
-        // reserved for future protocols.
-        Jansite = 14,
+        // Slots 11 (ex-Nissan, removed), 12 (ex-Toyota) intentionally left
+        // unused. Slot 14 was Jansite TY02S (removed due to too-weak
+        // validation -- no CRC -- causing ghost signals).
         JansiteSolar = 16,
         // EU 433MHz (FSK_19k2_Schrader path) - second batch
         Hyundai_VDO = 17,
@@ -215,15 +216,13 @@ class Packet {
     // EU 433MHz sub-decoders (called from reading_fsk_19k2_schrader)
     Optional<Reading> reading_fsk_19k2_citroen() const;
     Optional<Reading> reading_fsk_19k2_renault() const;
-    Optional<Reading> reading_fsk_19k2_jansite() const;
     Optional<Reading> reading_fsk_19k2_hyundai_vdo() const;
     Optional<Reading> reading_fsk_19k2_abarth() const;
     Optional<Reading> reading_fsk_19k2_renault_0435r() const;
     Optional<Reading> reading_fsk_19k2_truck_solar() const;
-    Optional<Reading> reading_fsk_19k2_nissan() const;
 
     // Extension signal paths (own SignalType, own PacketBuilder)
-    Optional<Reading> reading_fsk_19k2_elantra2012() const;
+    Optional<Reading> reading_ook_8k192_eg53ma4() const;
     Optional<Reading> reading_ook_8k4_smd3ma4() const;
     Optional<Reading> reading_fsk_19k2_jansite_solar() const;
 
