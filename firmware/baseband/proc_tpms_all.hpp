@@ -90,12 +90,11 @@ class TPMSAllProcessor : public BasebandProcessor {
         [this](const float raw_symbol) {
             const uint_fast8_t s = (raw_symbol >= 0.0f) ? 1 : 0;
             this->pb_schrader.execute(s);
-            this->pb_elantra2012.execute(s);
         }};
 
     // Preamble 0x55 0x56 (30 bits) -> FLM, Schrader, GMC, Citroen, Renault,
-    //                                  Jansite TY02S, HyundaiVDO, Abarth,
-    //                                  Renault_0435R, TruckSolar, Nissan
+    //                                  HyundaiVDO, Abarth, Renault_0435R,
+    //                                  TruckSolar.
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_schrader{
         {0b010101010101010101010101010110, 30, 1},
         {},
@@ -105,19 +104,8 @@ class TPMSAllProcessor : public BasebandProcessor {
                 TPMSPacketMessage{tpms::SignalType::FSK_19k2_Schrader, packet});
         }};
 
-    // Preamble 0x7155 (16 bits) -> Elantra 2012 / TRW, payload 128 Manchester
-    // bits = 64 data bits = 8 bytes. The preamble is NOT Manchester-encoded --
-    // it's the raw sync word 0111 0001 0101 0101, so we match 16 raw bits.
-    // After the preamble, the reader sees 8 bytes Manchester-decoded.
-    // Reference: rtl_433/src/devices/tpms_elantra2012.c
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_elantra2012{
-        {0b0111000101010101, 16, 0},
-        {},
-        {128},
-        [](const baseband::Packet& packet) {
-            shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::FSK_19k2_Elantra2012, packet});
-        }};
+    // Elantra2012 / TRW -- REMOVED (16-bit preamble too short, caused ghost
+    // signals). Slot 4 (FSK_19k2_Elantra2012) reused for OOK_8k192_EG53MA4.
 
     // -----------------------------------------------------------------------
     // FSK 19200 bps -> Jansite Solar (separate clock, distinct preamble)
@@ -167,6 +155,26 @@ class TPMSAllProcessor : public BasebandProcessor {
         [](const baseband::Packet& packet) {
             shared_memory.application_queue.push(
                 TPMSPacketMessage{tpms::SignalType::OOK_8k192_Schrader, packet});
+        }};
+
+    // Schrader EG53MA4 (Opel/Saab/Vauxhall/Chevrolet, FCC MRXGG4)
+    // Preamble: 40 raw bits of alternating 01 (= 5 bytes of Manchester zero).
+    // We match 30 bits of 0101... pattern (longer than Mayhem pb_ook_8k192's
+    // 24-bit preamble to distinguish) followed by ...1110 as end-of-preamble
+    // sync-marker-absent; instead we just match 30 bits of 0101 and take 80
+    // data bits = 40 Manchester pairs after. Both Mayhem-Schrader (74 bits)
+    // and EG53MA4 (80 bits) PacketBuilders may match the same burst; decoder
+    // checksums weed out the false match.
+    // Payload: 80 Manchester-encoded bits = 10 data bytes (flags, ID, pressure,
+    // temperature, sum-checksum).
+    // Reference: rtl_433/src/devices/schraeder.c (schrader_EG53MA4_decode)
+    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_eg53ma4{
+        {0b010101010101010101010101010101, 30, 0},
+        {},
+        {80 * 2},
+        [](const baseband::Packet& packet) {
+            shared_memory.application_queue.push(
+                TPMSPacketMessage{tpms::SignalType::OOK_8k192_EG53MA4, packet});
         }};
 
     OOKClockRecovery clock_recovery_ook_8k4{channel_sample_rate / 8400.0f};
