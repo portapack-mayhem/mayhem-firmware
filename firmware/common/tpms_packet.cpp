@@ -63,8 +63,9 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
             break;
     }
     // Try EU/World sub-decoders on the same FSK 19k2 path
-    // Order: CRC-based decoders FIRST, then permissive plausibility-only decoders
-    // (TruckSolar, Jansite, Nissan).
+    // Order: CRC-based decoders FIRST, then permissive plausibility-only decoders.
+    // Jansite TY02S and Nissan have been removed due to ghost-signal issues
+    // (too weak validation -- no CRC).
     auto r = reading_fsk_19k2_citroen();
     if (r.is_valid()) return r;
     r = reading_fsk_19k2_renault();
@@ -77,12 +78,6 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
     if (r.is_valid()) return r;
     // TruckSolar: 168-bit Manchester payload with sum-check -- distinctive by length
     r = reading_fsk_19k2_truck_solar();
-    if (r.is_valid()) return r;
-    // Jansite: no CRC, only plausibility checks -- later in cascade
-    r = reading_fsk_19k2_jansite();
-    if (r.is_valid()) return r;
-    // Nissan: 37-bit, no CRC, plausibility only -- last resort
-    r = reading_fsk_19k2_nissan();
     if (r.is_valid()) return r;
     return {};
 }
@@ -158,8 +153,8 @@ Optional<Reading> Packet::reading() const {
             return reading_ook_8k192_schrader();
         case SignalType::OOK_8k4_Schrader:
             return reading_ook_8k4_schrader();
-        case SignalType::FSK_19k2_Elantra2012:
-            return reading_fsk_19k2_elantra2012();
+        case SignalType::OOK_8k192_EG53MA4:
+            return reading_ook_8k192_eg53ma4();
         case SignalType::OOK_8k4_SMD3MA4:
             return reading_ook_8k4_smd3ma4();
         case SignalType::FSK_19k2_JansiteSolar:
@@ -246,29 +241,8 @@ Optional<Reading> Packet::reading_fsk_19k2_renault() const {
                    Flags{static_cast<uint8_t>(b[0] >> 2)}};
 }
 
-// Jansite TY02S (315 + 433.92 MHz) - inverted Manchester, no CRC
-// Packet: II II II IS PP TT CC (7 bytes = 56 decoded bits)
-Optional<Reading> Packet::reading_fsk_19k2_jansite() const {
-    uint8_t b[7];
-    for (size_t i = 0; i < 7; i++) b[i] = static_cast<uint8_t>(reader_inv_.read(i * 8, 8));
-    const uint32_t id = ((uint32_t)b[0] << 20) | ((uint32_t)b[1] << 12) |
-                        ((uint32_t)b[2] << 4) | (b[3] >> 4);
-    if (id == 0) return {};
-    // Reject false positives with upper 12 bits all zero (real IDs are random,
-    // high bits zero indicates noise decoded through the Schrader preamble).
-    if ((id >> 20) == 0) return {};
-    // Plausibility: pressure raw 30..240 (~0.5..4 bar), temperature raw 30..150 (~-20..100 C).
-    // Tighter than raw sensor specs -- real tires never report outside this band.
-    if (b[4] < 30 || b[4] > 240) return {};
-    if (b[5] < 30 || b[5] > 150) return {};
-    // Byte 6 is documented as checksum. Valid packets practically never have b[6]==0
-    // when all preceding bytes are non-zero. Reject this common noise signature.
-    if (b[6] == 0 && b[0] && b[1] && b[2] && b[3] && b[4] && b[5]) return {};
-    return Reading{Reading::Type::Jansite, id,
-                   Pressure{static_cast<int>(b[4]) * 17 / 10},
-                   Temperature{static_cast<int>(b[5]) - 50},
-                   Flags{static_cast<uint8_t>(b[3] & 0x0f)}};
-}
+// Jansite TY02S removed -- too-weak validation (no CRC) caused ghost-signal
+// matches on noise via the Schrader preamble path.
 
 // Hyundai/VDO Continental TG1C (433.92 MHz)
 // Used in: Hyundai, KIA, BMW(older), Mitsubishi, Mazda, PSA
@@ -386,63 +360,52 @@ Optional<Reading> Packet::reading_fsk_19k2_truck_solar() const {
 // Reference: rtl_433/src/devices/tpms_nissan.c (protocol 248)
 // WARNING: no CRC. Relies entirely on strict plausibility checks.
 // Placed last in the decoder cascade.
-Optional<Reading> Packet::reading_fsk_19k2_nissan() const {
-    const auto mode = reader_.read(0, 3);
-    // ID is spread across the packet:
-    //   b[0]: 3 mode | 5 id-hi
-    //   b[1]: 8 id
-    //   b[2]: 8 id
-    //   b[3]: 3 id-lo | 5 pres-hi
-    //   b[4]: 3 pres-lo | ...
-    const uint32_t id = ((reader_.read(3, 5) << 19) |
-                         (reader_.read(8, 8) << 11) |
-                         (reader_.read(16, 8) << 3) |
-                         reader_.read(24, 3));
-    const auto pressure_raw = ((reader_.read(27, 5) << 3) | reader_.read(32, 3));
-
-    // Strict validation to avoid false positives (no CRC here):
-    // - ID cannot be zero
-    // - Mode in observed range (real sensors use 0x00..0x07, avoid 0 as ambiguous)
-    // - Pressure raw in plausible tire range (25..55 PSI -> raw ~100..220)
-    if (id == 0) return {};
-    if (mode == 0) return {};  // avoid noise matches
-    if (pressure_raw < 60 || pressure_raw > 250) return {};
-    // Pressure: raw / 4 PSI -> kPa = raw * 6895 / 4000
-    const int pres_kpa = static_cast<int>(pressure_raw) * 6895 / 4000;
-    if (pres_kpa < 100 || pres_kpa > 450) return {};
-    return Reading{Reading::Type::Nissan, id,
-                   Pressure{pres_kpa},
-                   {},  // no temperature in Nissan packet
-                   Flags{static_cast<uint8_t>(mode)}};
-}
+// Nissan removed -- no CRC, plausibility-only validation caused ghost-signal
+// matches on noise via the Schrader preamble path.
 
 // ---------------------------------------------------------------------------
-// Elantra 2012 / TRW (433.92 MHz) -- own SignalType FSK_19k2_Elantra2012
+// Schrader EG53MA4 (433.92 MHz EU, 315 MHz US)
 // ---------------------------------------------------------------------------
-// Preamble 0x7155 (16 bits, handled by dedicated pb_elantra2012 in proc_tpms_all)
-// Packet (8 bytes): PP TT IIII FF CC
-//   b[0] = Pressure (+60 kPa)
-//   b[1] = Temperature (-50 C)
-//   b[2..5] = 32-bit ID
-//   b[6] = Flags (??SBT: Storage/Battery-low/Triggered in low bits)
-//   b[7] = CRC-8 poly=0x07 init=0x00
-// Reference: rtl_433/src/devices/tpms_elantra2012.c (protocol 186 in older builds)
-Optional<Reading> Packet::reading_fsk_19k2_elantra2012() const {
-    uint8_t b[8];
-    for (size_t i = 0; i < 8; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
-    CRC<8> crc{0x07, 0x00};
-    for (size_t i = 0; i < 7; i++) crc.process_byte(b[i]);
-    if (crc.checksum() != b[7]) return {};
-    const uint32_t id = ((uint32_t)b[2] << 24) | ((uint32_t)b[3] << 16) |
-                        ((uint32_t)b[4] << 8) | b[5];
+// FCC-ID: MRXGG4. Used in Saab, Opel, Vauxhall, Chevrolet (2006-2025 GM),
+// OEM No. 13348393 / 13540600.
+// Own SignalType OOK_8k192_EG53MA4 (handled by pb_eg53ma4 in proc_tpms_all).
+//
+// Packet: 120 raw bits, first 40 discarded as preamble, then 80 data bits
+// = 10 data bytes. Layout (per rtl_433 schraeder.c):
+//   b[0..3] = 32-bit status/battery flags (opaque)
+//   b[4..6] = 24-bit ID
+//   b[7]    = Pressure in 25 mbar units (kPa = raw * 2.5 = raw * 5/2)
+//   b[8]    = Temperature in degrees Fahrenheit (!)
+//   b[9]    = Sum checksum over b[0..8] mod 256
+// We convert Fahrenheit to Celsius internally for UI consistency.
+// Reference: rtl_433/src/devices/schraeder.c (schrader_EG53MA4_decode)
+Optional<Reading> Packet::reading_ook_8k192_eg53ma4() const {
+    uint8_t b[10];
+    for (size_t i = 0; i < 10; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
+
+    // Sum checksum
+    uint16_t sum = 0;
+    for (size_t i = 0; i < 9; i++) sum += b[i];
+    if ((sum & 0xff) != b[9]) return {};
+
+    // Sanity: reject all-zero payload (noise)
+    if (!b[1] && !b[2] && !b[4] && !b[5] && !b[7] && !b[8]) return {};
+
+    const uint32_t id = ((uint32_t)b[4] << 16) | ((uint32_t)b[5] << 8) | b[6];
     if (id == 0) return {};
-    const int pres_kpa = static_cast<int>(b[0]) + 60;
-    const int temp_c = static_cast<int>(b[1]) - 50;
+
+    const uint8_t flags = b[0];  // keep one byte for UI/Flags field
+    const int pres_kpa = static_cast<int>(b[7]) * 5 / 2;  // 25 mbar per bit
+    // Fahrenheit -> Celsius: C = (F - 32) * 5 / 9
+    const int temp_c = (static_cast<int>(b[8]) - 32) * 5 / 9;
+
+    // Plausibility: real tires 100..450 kPa, temperature -40..85 C
     if (pres_kpa < 100 || pres_kpa > 450) return {};
     if (temp_c < -40 || temp_c > 85) return {};
-    return Reading{Reading::Type::Elantra2012, id,
+
+    return Reading{Reading::Type::EG53MA4, id,
                    Pressure{pres_kpa},
-                   Temperature{temp_c}, Flags{b[6]}};
+                   Temperature{temp_c}, Flags{flags}};
 }
 
 // ---------------------------------------------------------------------------
