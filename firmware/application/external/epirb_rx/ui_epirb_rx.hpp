@@ -103,7 +103,6 @@ class EPIRBMapView : public View {
     EPIRBMapView(Rect parent_rect);
     void paint(Painter& painter) override;
     void on_show() override;
-    void clear_main_marker();
     void set_main_marker(const std::string& label, float lat, float lon);
     void clear_markers();
     void add_marker(GeoMarker& marker);
@@ -111,7 +110,6 @@ class EPIRBMapView : public View {
     void repaint();
 
    private:
-    const std::string NO_BEACON{"No beacon"};
     GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
     float lat_{EPIRB_RX_DEFAULT_LATITUDE};
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
@@ -129,18 +127,15 @@ class EPRIBQRView : public View {
 
     void set_beacon(Beacon* beacon);
     void update_qr();
+    void update_display();
 
    private:
     bool show_map{true};
     Beacon* current_beacon{nullptr};
     char qr_url[128];
 
-    /*Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(2)}, "QR mode:", Theme::getInstance()->fg_cyan->foreground},
-        {{UI_POS_X(0), QR_HEIGHT}, "Data:", Theme::getInstance()->fg_cyan->foreground}};*/
-
     ui::OptionsField options_qr{
-        {UI_POS_X(0), UI_POS_Y(0)},
+        {UI_POS_X(5), UI_POS_Y(1)},
         6,
         {
             {"Map", 0},
@@ -148,9 +143,9 @@ class EPRIBQRView : public View {
         }};
 
     QRCodeImage qr_code{
-        {UI_POS_MAXWIDTH - QR_WIDTH, 0, QR_WIDTH, QR_HEIGHT}};
+        {UI_POS_MAXWIDTH - QR_WIDTH - UI_POS_X(1), UI_POS_Y(1), QR_WIDTH, QR_HEIGHT}};
 
-    //TextArea text_data{{UI_POS_X(0), QR_HEIGHT + UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)}};
+    TextArea text_data{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT - UI_POS_Y(1)}};
 };
 
 // Forward declaration
@@ -206,14 +201,14 @@ class EPIRBAppView final : public ui::View {
         7,
         {
             {"406.028", 406028000},
-            {"406.021", 406021000},
-            {"406.022", 406022000},
-            {"406.023", 406023000},
-            {"406.024", 406024000},
+            //{"406.021", 406021000},
+            //{"406.022", 406022000},
+            //{"406.023", 406023000},
+            //{"406.024", 406024000},
             {"406.025", 406025000},
-            {"406.028", 406028000},
+            //{"406.028", 406028000},
             {"406.037", 406037000},
-            {"406.040", 406040000},
+            //{"406.040", 406040000},
             {"433.025", 433025000},
             {"144.875", 144875000},
         }};

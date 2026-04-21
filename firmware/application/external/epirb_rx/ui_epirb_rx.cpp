@@ -175,8 +175,6 @@ EPIRBMapView::EPIRBMapView(
     add_children({&geomap});
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
-    geomap.set_tag(NO_BEACON);
-    // geomap.set_hide_center_marker(true); //todo test if needed
     geomap.init();
     geomap.set_focusable(true);
     geomap.clear_markers();
@@ -192,10 +190,6 @@ void EPIRBMapView::set_main_marker(const std::string& label, float lat, float lo
     geomap.move(lon_, lat_);
 }
 
-void EPIRBMapView::clear_main_marker() {
-    set_main_marker(NO_BEACON, EPIRB_RX_DEFAULT_LATITUDE, EPIRB_RX_DEFAULT_LONGITUDE);
-}
-
 void EPIRBMapView::clear_markers() {
     geomap.clear_markers();
 }
@@ -205,7 +199,7 @@ void EPIRBMapView::add_marker(GeoMarker& marker) {
 }
 
 void EPIRBMapView::paint(Painter& painter) {
-    // Prevent view from clearing background
+    // Prevent view from clearing background if map is not hidden
     if (map_hidden) {
         View::paint(painter);
         painter.draw_string({UI_POS_X_CENTER(7), UI_POS_MAXHEIGHT / 2 - (UI_POS_HEIGHT(1) / 2)}, *Theme::getInstance()->fg_light, "No data");
@@ -230,26 +224,34 @@ void EPIRBMapView::repaint() {
 }
 
 EPRIBQRView::EPRIBQRView(Rect parent_rect) : View(parent_rect) {
-    qr_code.set_text("");
-    add_children({/*&labels,*/ &options_qr, &qr_code, /*&text_data*/});
+    add_children({&text_data, &options_qr, &qr_code});
     // Hide for now
     qr_code.hidden(true);
     options_qr.on_change = [this](size_t, ui::OptionsField::value_t v) {
         show_map = (v == 0);
         update_qr();
     };
+    update_display();
 }
 
 void EPRIBQRView::set_beacon(Beacon* beacon) {
     current_beacon = beacon;
     update_qr();
+    update_display();
+}
+
+void EPRIBQRView::update_display() {
     // Update data
-    /*char buffer[128];
-    std::string line1 = beacon->toHexString(beacon->frame,true,3,11);
-    // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
-    std::string  line2 = beacon->longFrame ? beacon->toHexString(beacon->frame,true,11,18) : beacon->toHexString(beacon->frame,true,11,14);
-    sprintf(buffer, "%s\n%s", line1.c_str(), line2.c_str());
-    text_data.set_content(buffer);*/
+    char buffer[128];
+    char* buffer_pointer = buffer;
+    buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
+    if(current_beacon) {
+        std::string line1 = current_beacon->toHexString(current_beacon->frame,true,3,11);
+        // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
+        std::string  line2 = current_beacon->longFrame ? current_beacon->toHexString(current_beacon->frame,true,11,18) : current_beacon->toHexString(current_beacon->frame,true,11,14);
+        sprintf(buffer_pointer, "%sData:%s\t%s\t%s",STR_COLOR_CYAN, STR_COLOR_WHITE,line1.c_str(), line2.c_str());
+    }
+    text_data.set_content(buffer);
 }
 
 void EPRIBQRView::update_qr() {
@@ -468,8 +470,8 @@ void EPIRBAppView::on_clear_beacons() {
     packets_valid = 0;
     packets_corrected = 0;
     packets_error = 0;
-    view_map.clear_markers();
-    view_map.clear_main_marker();
+    update_map();
+    view_qr.set_beacon(nullptr);
     update_display();
 }
 
