@@ -135,7 +135,6 @@ EPIRBDetailView::EPIRBDetailView(
     Rect parent_rect,
     ResourceManager& rm)
     : View(parent_rect), resource_manager(rm) {
-    // add_children({&labels});
     add_children({&text_beacon});
 }
 
@@ -207,10 +206,10 @@ void EPIRBMapView::add_marker(GeoMarker& marker) {
 
 void EPIRBMapView::paint(Painter& painter) {
     // Prevent view from clearing background
-    if(map_hidden){
+    if (map_hidden) {
         View::paint(painter);
-        painter.draw_string({UI_POS_X_CENTER(7), UI_POS_MAXHEIGHT/2 - (UI_POS_HEIGHT(1)/2)}, *Theme::getInstance()->fg_light, "No data");
-    } 
+        painter.draw_string({UI_POS_X_CENTER(7), UI_POS_MAXHEIGHT / 2 - (UI_POS_HEIGHT(1) / 2)}, *Theme::getInstance()->fg_light, "No data");
+    }
 }
 
 void EPIRBMapView::on_show() {
@@ -232,15 +231,42 @@ void EPIRBMapView::repaint() {
 
 EPRIBQRView::EPRIBQRView(Rect parent_rect) : View(parent_rect) {
     qr_code.set_text("");
-    add_children({&qr_code /*,&text_qr*/});
+    add_children({/*&labels,*/ &options_qr, &qr_code, /*&text_data*/});
     // Hide for now
     qr_code.hidden(true);
+    options_qr.on_change = [this](size_t, ui::OptionsField::value_t v) {
+        show_map = (v == 0);
+        update_qr();
+    };
 }
 
-void EPRIBQRView::set_url(const char* url) {
-    if (url) qr_code.set_text(url);
-    // Hide QR code if no data
-    qr_code.hidden(!url);
+void EPRIBQRView::set_beacon(Beacon* beacon) {
+    current_beacon = beacon;
+    update_qr();
+    // Update data
+    /*char buffer[128];
+    std::string line1 = beacon->toHexString(beacon->frame,true,3,11);
+    // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
+    std::string  line2 = beacon->longFrame ? beacon->toHexString(beacon->frame,true,11,18) : beacon->toHexString(beacon->frame,true,11,14);
+    sprintf(buffer, "%s\n%s", line1.c_str(), line2.c_str());
+    text_data.set_content(buffer);*/
+}
+
+void EPRIBQRView::update_qr() {
+    bool show_qr = false;
+    if (current_beacon) {
+        if (show_map) {
+            if (!current_beacon->location.isUnknown()) {
+                current_beacon->location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
+                show_qr = true;
+            }
+        } else {
+            sprintf(qr_url, BEACON_URL_TEMPALTE, current_beacon->hexString(false).c_str());
+            show_qr = true;
+        }
+    }
+    if (show_qr) qr_code.set_text(qr_url);
+    qr_code.hidden(!show_qr);
     set_dirty();
 }
 
@@ -397,13 +423,7 @@ void EPIRBAppView::on_packet(Message* const p) {
 
 void EPIRBAppView::on_beacon_change() {
     Beacon& cur_beacon = beacon_db.get_current_beacon();
-    if (!cur_beacon.location.isUnknown()) {
-        cur_beacon.location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
-        view_qr.set_url(qr_url);
-        // UsbSerialAsyncmsg::asyncmsg(std::string(qr_url));
-    } else {
-        view_qr.set_url(NULL);
-    }
+    view_qr.set_beacon(&cur_beacon);
     update_map();
     // Update display
     update_display();

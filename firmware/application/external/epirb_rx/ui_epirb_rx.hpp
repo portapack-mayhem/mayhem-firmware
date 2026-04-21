@@ -60,7 +60,7 @@ enum class PacketStatus : uint8_t {
 };
 
 #define EPIRB_TAB_POS_Y (UI_POS_Y(4) + 3 * 8)
-#define EPIRB_TAB_HEIGTH (screen_height - EPIRB_TAB_POS_Y - UI_POS_HEIGHT(1))
+#define EPIRB_TAB_HEIGHT (screen_height - EPIRB_TAB_POS_Y - UI_POS_HEIGHT(1))
 
 /*class EPIRBLogger {
    public:
@@ -85,7 +85,6 @@ class TextArea : public Widget {
     std::string content{};
 };
 
-
 class EPIRBDetailView : public View {
    public:
     EPIRBDetailView(Rect parent_rect, ResourceManager& rm);
@@ -93,7 +92,7 @@ class EPIRBDetailView : public View {
 
    private:
     ResourceManager& resource_manager;
-    TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+    TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
 };
 
 #define EPIRB_RX_DEFAULT_LATITUDE 43.604f
@@ -113,22 +112,45 @@ class EPIRBMapView : public View {
 
    private:
     const std::string NO_BEACON{"No beacon"};
-    GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH}};
+    GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
     float lat_{EPIRB_RX_DEFAULT_LATITUDE};
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
     bool map_hidden{true};
 };
 
+#define QR_WIDTH 126
+#define QR_HEIGHT 127
+
 class EPRIBQRView : public View {
    public:
     EPRIBQRView(Rect parent_rect);
+    EPRIBQRView(const EPRIBQRView&) = delete;
+    EPRIBQRView& operator=(const EPRIBQRView&) = delete;
 
-    void set_url(const char* url);
+    void set_beacon(Beacon* beacon);
+    void update_qr();
 
    private:
-    QRCodeImage qr_code{
-        {UI_POS_X_CENTER(16), 63, 100, 100}};
+    bool show_map{true};
+    Beacon* current_beacon{nullptr};
+    char qr_url[128];
 
+    /*Labels labels{
+        {{UI_POS_X(0), UI_POS_Y(2)}, "QR mode:", Theme::getInstance()->fg_cyan->foreground},
+        {{UI_POS_X(0), QR_HEIGHT}, "Data:", Theme::getInstance()->fg_cyan->foreground}};*/
+
+    ui::OptionsField options_qr{
+        {UI_POS_X(0), UI_POS_Y(0)},
+        6,
+        {
+            {"Map", 0},
+            {"Detail", 1}
+        }};
+
+    QRCodeImage qr_code{
+        {UI_POS_MAXWIDTH - QR_WIDTH, 0, QR_WIDTH, QR_HEIGHT}};
+
+    //TextArea text_data{{UI_POS_X(0), QR_HEIGHT + UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)}};
 };
 
 // Forward declaration
@@ -184,8 +206,14 @@ class EPIRBAppView final : public ui::View {
         7,
         {
             {"406.028", 406028000},
+            {"406.021", 406021000},
+            {"406.022", 406022000},
+            {"406.023", 406023000},
+            {"406.024", 406024000},
             {"406.025", 406025000},
+            {"406.028", 406028000},
             {"406.037", 406037000},
+            {"406.040", 406040000},
             {"433.025", 433025000},
             {"144.875", 144875000},
         }};
@@ -220,10 +248,10 @@ class EPIRBAppView final : public ui::View {
     uint16_t timeout_delay{50};
 
     // Tab View
-    Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGTH};
+    Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT};
 
     BeaconUIList view_list{view_rect};
-    EPIRBDetailView view_detail{view_rect,resource_manager};
+    EPIRBDetailView view_detail{view_rect, resource_manager};
     EPIRBMapView view_map{view_rect};
 #ifdef SPECAN
     EPIRBRxView view_rx{*this, view_rect};
@@ -238,15 +266,12 @@ class EPIRBAppView final : public ui::View {
 #ifdef SPECAN
         {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx},
 #endif
-        {"QR", Theme::getInstance()->fg_orange->foreground, &view_qr}
-    };
+        {"QR", Theme::getInstance()->fg_orange->foreground, &view_qr}};
 
     uint16_t beacons_received = 0;
     uint16_t packets_valid = 0;
     uint16_t packets_corrected = 0;
     uint16_t packets_error = 0;
-
-    char qr_url[128];
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::EPIRBPacket,
@@ -259,7 +284,6 @@ class EPIRBAppView final : public ui::View {
     void on_toggle_log();
     void on_tick_second();
     void on_beacon_change();
-
 
     void update_display();
     // std::string beacon_to_hex_string(const baseband::Packet& packet);

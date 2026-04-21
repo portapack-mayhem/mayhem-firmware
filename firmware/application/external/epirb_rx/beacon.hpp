@@ -219,7 +219,7 @@ class Beacon {
 
     static inline std::string toHexString(uint32_t data) {
         char buffer[11];
-        std::sprintf(buffer, "0x%08lX", data);
+        sprintf(buffer, "0x%08lX", data);
         return std::string(buffer);
     }
 
@@ -227,7 +227,7 @@ class Beacon {
         char buffer[4];
         std::string result = "";
         for (uint8_t i = start; i < end; i++) {
-            std::sprintf(buffer, "%02X", frame[i]);
+            sprintf(buffer, "%02X", frame[i]);
             if (withSpace && i > start) result += " ";
             result += buffer;
         }
