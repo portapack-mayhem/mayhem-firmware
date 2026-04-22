@@ -64,7 +64,7 @@ class TimeSinkWaveformWidget : public Widget {
     const int16_t* data_q_{nullptr};
     size_t length_;
     Color color_;
-    Color color_q_{Color::yellow()}; // Default color for Q
+    Color color_q_{Color::yellow()};  // Default color for Q
     std::array<Coord, max_columns> current_y_{};
     std::array<std::array<Coord, max_columns>, max_persistence_frames> history_y_{};
     std::array<Coord, max_columns> current_y_q_{};
@@ -113,7 +113,7 @@ class TimeSinkView : public View {
     uint8_t persistence_frames{1};
     uint8_t trigger_mode{static_cast<uint8_t>(TriggerMode::Rising)};
     int32_t trigger_level{0};
-    uint8_t channel_mode{0}; // 0=I, 1=Q, 2=I&Q
+    uint8_t channel_mode{0};  // 0=I, 1=Q, 2=I&Q
     size_t trigger_lock_index{0};
     bool trigger_lock_valid{false};
     app_settings::SettingsManager settings_{
