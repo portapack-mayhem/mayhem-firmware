@@ -66,12 +66,12 @@ void TimeSinkProcessor::execute_time_domain(const buffer_c8_t& buffer) {
     for (size_t i = 0; i < num_samples; i++) {
         const size_t sample_index = std::min(i * stride, buffer.count - 1);
         if (channel == 0) {
-            time_domain_spectrum.db[i] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].real()) + 128, 0, 255));
+            time_domain_spectrum.db[i] = static_cast<uint8_t>(std::max<int32_t>(0, std::min<int32_t>(static_cast<int32_t>(buffer.p[sample_index].real()) + 128, 255)));
         } else if (channel == 1) {
-            time_domain_spectrum.db[i] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].imag()) + 128, 0, 255));
+            time_domain_spectrum.db[i] = static_cast<uint8_t>(std::max<int32_t>(0, std::min<int32_t>(static_cast<int32_t>(buffer.p[sample_index].imag()) + 128, 255)));
         } else {
-            time_domain_spectrum.db[i * 2] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].real()) + 128, 0, 255));
-            time_domain_spectrum.db[i * 2 + 1] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].imag()) + 128, 0, 255));
+            time_domain_spectrum.db[i * 2] = static_cast<uint8_t>(std::max<int32_t>(0, std::min<int32_t>(static_cast<int32_t>(buffer.p[sample_index].real()) + 128, 255)));
+            time_domain_spectrum.db[i * 2 + 1] = static_cast<uint8_t>(std::max<int32_t>(0, std::min<int32_t>(static_cast<int32_t>(buffer.p[sample_index].imag()) + 128, 255)));
         }
     }
 

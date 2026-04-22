@@ -409,15 +409,15 @@ void TimeSinkView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         if (spectrum.channel_filter_low_frequency == 2) {
             const int32_t centered_i = static_cast<int32_t>(spectrum.db[src_index * 2]) - 128;
             const int32_t scaled_i = centered_i * 256;
-            waveform_buffer[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled_i, -32768, 32767));
+            waveform_buffer[x] = static_cast<int16_t>(std::max<int32_t>(-32768, std::min<int32_t>(scaled_i, 32767)));
             
             const int32_t centered_q = static_cast<int32_t>(spectrum.db[src_index * 2 + 1]) - 128;
             const int32_t scaled_q = centered_q * 256;
-            waveform_buffer_q[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled_q, -32768, 32767));
+            waveform_buffer_q[x] = static_cast<int16_t>(std::max<int32_t>(-32768, std::min<int32_t>(scaled_q, 32767)));
         } else {
             const int32_t centered = static_cast<int32_t>(spectrum.db[src_index]) - 128;
             const int32_t scaled = centered * 256;
-            waveform_buffer[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled, -32768, 32767));
+            waveform_buffer[x] = static_cast<int16_t>(std::max<int32_t>(-32768, std::min<int32_t>(scaled, 32767)));
         }
     }
 
