@@ -405,12 +405,12 @@ void TimeSinkView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         const size_t offset = (x * window_size) / waveform_points;
         const size_t src_index =
             (trigger_index + offset) % source_count;
-        
+
         if (spectrum.channel_filter_low_frequency == 2) {
             const int32_t centered_i = static_cast<int32_t>(spectrum.db[src_index * 2]) - 128;
             const int32_t scaled_i = centered_i * 256;
             waveform_buffer[x] = static_cast<int16_t>(std::max<int32_t>(-32768, std::min<int32_t>(scaled_i, 32767)));
-            
+
             const int32_t centered_q = static_cast<int32_t>(spectrum.db[src_index * 2 + 1]) - 128;
             const int32_t scaled_q = centered_q * 256;
             waveform_buffer_q[x] = static_cast<int16_t>(std::max<int32_t>(-32768, std::min<int32_t>(scaled_q, 32767)));
