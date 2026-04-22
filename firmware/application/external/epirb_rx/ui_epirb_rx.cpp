@@ -41,7 +41,7 @@ namespace ui::external_app::epirb_rx {
 
 // URL templates
 #define MAPS_URL_TEMPLATE "https://www.google.com/maps/search/?api=1&query=%s%%2C%s"
-#define BEACON_URL_TEMPALTE "https://decoder2.herokuapp.com/decoded/%s"
+#define BEACON_URL_TEMPALTE "https://decoder2.herokuapp.com/decoded/"
 
 int CountryManager::cache_count = 0;
 Country CountryManager::cache[16];
@@ -252,10 +252,15 @@ void EPRIBQRView::update_display() {
     char* buffer_pointer = buffer;
     buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
     if(current_beacon) {
-        std::string line1 = current_beacon->toHexString(current_beacon->frame,true,3,11);
+        buffer_pointer += sprintf(buffer_pointer, "%sData:%s\t",STR_COLOR_CYAN, STR_COLOR_WHITE);
         // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
-        std::string  line2 = current_beacon->longFrame ? current_beacon->toHexString(current_beacon->frame,true,11,18) : current_beacon->toHexString(current_beacon->frame,true,11,14);
-        sprintf(buffer_pointer, "%sData:%s\t%s\t%s",STR_COLOR_CYAN, STR_COLOR_WHITE,line1.c_str(), line2.c_str());
+        buffer_pointer += current_beacon->toHexString(buffer_pointer,current_beacon->frame,true,3,11);
+        (*(buffer_pointer++)) = '\t';
+        if(current_beacon->longFrame) {
+            current_beacon->toHexString(buffer_pointer, current_beacon->frame,true,11,18);
+        } else {
+            current_beacon->toHexString(buffer_pointer, current_beacon->frame,true,11,14);
+        }
     }
     text_data.set_content(buffer);
 }
@@ -269,7 +274,9 @@ void EPRIBQRView::update_qr() {
                 show_qr = true;
             }
         } else {
-            sprintf(qr_url, BEACON_URL_TEMPALTE, current_beacon->hexString(false).c_str());
+            char* buffer_pointer = qr_url;
+            buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPALTE);
+            current_beacon->hexString(buffer_pointer,false);
             show_qr = true;
         }
     }

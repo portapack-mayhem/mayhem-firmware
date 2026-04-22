@@ -217,20 +217,17 @@ class Beacon {
     static inline uint64_t computeBCH1(uint8_t* frame) { return computeBCH(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
     static inline uint64_t computeBCH2(uint8_t* frame) { return computeBCH(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
 
-    static inline std::string toHexString(uint32_t data) {
-        char buffer[11];
-        sprintf(buffer, "0x%08lX", data);
-        return std::string(buffer);
+    static inline size_t toHexString(char* buffer, uint32_t data) {
+        return sprintf(buffer, "0x%08lX", data);
     }
 
-    static inline std::string toHexString(uint8_t* frame, bool withSpace, int start, int end) {
-        char buffer[4];
-        std::string result = "";
+    static inline size_t toHexString(char* buffer, uint8_t* frame, bool withSpace, int start, int end) {
+        size_t result = 0;
         for (uint8_t i = start; i < end; i++) {
-            sprintf(buffer, "%02X", frame[i]);
-            if (withSpace && i > start) result += " ";
-            result += buffer;
+            if (withSpace && i > start) buffer[result++] = ' ';
+            result += sprintf((buffer + result), "%02X", frame[i]);
         }
+        buffer[result] = 0;
         return result;
     }
 
@@ -317,8 +314,8 @@ class Beacon {
     inline bool isFrameValid() { return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty); }
     inline bool isOrbito() { return (protocol == Protocol::USER_ORB); }
 
-    inline std::string hexString(bool withHeader) {
-        return toHexString(frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
+    inline size_t hexString(char* buffer, bool withHeader) {
+        return toHexString(buffer, frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
     }
 
     inline std::string shortId() {
