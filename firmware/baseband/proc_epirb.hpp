@@ -109,7 +109,7 @@ class EPIRBPacketBuilder {
     }
 
     void flush() {
-        packet.set_timestamp(Timestamp::now());
+        //packet.set_timestamp(Timestamp::now());
         if (handler) handler(context, packet);
         reset_state();
     }
@@ -166,7 +166,9 @@ class EPIRBProcessor : public BasebandProcessor {
     // Config
     uint8_t squelch_level{50};
     bool audio_on{true};
+#ifdef SPECAN
     bool spectrum_on{false};
+#endif
 
     std::array<float, 32> audio{};
     const buffer_f32_t audio_buffer{

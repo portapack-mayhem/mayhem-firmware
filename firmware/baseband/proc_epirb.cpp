@@ -47,8 +47,7 @@ EPIRBProcessor::EPIRBProcessor() {
 }
 
 void EPIRBProcessor::configure_audio() {
-    float squelch_threshold = ((float)squelch_level)/100.0f;
-    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config, squelch_threshold);
+    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config,  ((float)squelch_level) / 50.0);
 }
 
 float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
@@ -86,14 +85,14 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
 #ifdef SPECAN
     // Feed IQ data into spectrum collector for the RF waterfall.
-    if(spectrum_on) channel_spectrum.feed(decim_1_out, -5500, 5500, 3400);
+    if (spectrum_on) channel_spectrum.feed(decim_1_out, -5500, 5500, 3400);
 #endif
 
     feed_channel_stats(decimator_out);
 
-    if(audio_on) {
+    if (audio_on) {
         // Channel filter for audio out
-        const auto  channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+        const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
         auto audio = demod.execute(channel_out, audio_buffer);
         // auto audio = demod.execute(decimator_out, audio_buffer);
         audio_output.write(audio);
@@ -126,7 +125,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 } else {
                     stability_counter++;
                     if (stability_counter > CARRIER_SAMPLES_THRESHOLD) {
-                        //send_packet(0xFED0000000000001);
+                        // send_packet(0xFED0000000000001);
                         current_state = CARRIER_LOCKED;
                         frame_sample_count = 0;
                     }
@@ -140,7 +139,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                     // Jump detected (1.1 rad)
                     frame_sample_count = 0;
                     // send_packet(0xFED0000000000002);
-                    //send_packet(0xFEE0000000000000 | CONF_FLOAT(phase_delta));
+                    // send_packet(0xFEE0000000000000 | CONF_FLOAT(phase_delta));
                     current_state = DATA_SYNC;
                     // send_packet(0xFEA0000000000000 | CONF_FLOAT(avg_phase));
                     // send_packet((((phase - avg_phase)>=0) ? 0xFEA0000000000000 : 0xFEB0000000000000) | CONF_FLOAT(phase));
@@ -179,8 +178,8 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                             }
                         } else if (sample_count > (SAMPLES_PER_SYMBOL * 2 + SAMPLES_MARGIN)) {
                             // We missed something...
-                            //send_packet(0xFED0000000000003);
-                            //send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
+                            // send_packet(0xFED0000000000003);
+                            // send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
                             // TODO
                             cur_bit = last_bit;
                         } else if (sample_count >= (SAMPLES_PER_SYMBOL * 2 - SAMPLES_MARGIN)) {
@@ -275,8 +274,10 @@ void EPIRBProcessor::on_message(const Message* const msg) {
         case Message::ID::EPIRBRXConfig: {
             const EPIRBRXConfig message = *reinterpret_cast<const EPIRBRXConfig*>(msg);
             audio_on = message.audio_on;
+#ifdef SPECAN
             spectrum_on = message.scpectrum_on;
-            if(message.squelch != squelch_level) {
+#endif
+            if (message.squelch != squelch_level) {
                 squelch_level = message.squelch;
                 configure_audio();
             }

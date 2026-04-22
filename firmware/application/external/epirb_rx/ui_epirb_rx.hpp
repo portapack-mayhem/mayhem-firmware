@@ -134,13 +134,11 @@ class EPRIBQRView : public View {
     Beacon* current_beacon{nullptr};
     char qr_url[128];
 
-    ui::OptionsField options_qr{
+    OptionsField options_qr{
         {UI_POS_X(5), UI_POS_Y(1)},
         6,
-        {
-            {"Map", 0},
-            {"Detail", 1}
-        }};
+        {{"Map", 0},
+         {"Detail", 1}}};
 
     QRCodeImage qr_code{
         {UI_POS_MAXWIDTH - QR_WIDTH - UI_POS_X(1), UI_POS_Y(1), QR_WIDTH, QR_HEIGHT}};
@@ -179,8 +177,12 @@ class EPIRBAppView final : public ui::View {
     std::string title() const override { return "EPIRB RX"; }
 
    private:
+    uint8_t squelch{50};
     app_settings::SettingsManager settings_{
-        "rx_epirb", app_settings::Mode::RX};
+        "rx_epirb", app_settings::Mode::RX,
+        {
+            {"squelch"sv, &squelch},
+        }};
 
     ui::NavigationView& nav_;
 
@@ -190,46 +192,34 @@ class EPIRBAppView final : public ui::View {
 
     // EPIRBLogger logger{};
 
-    static constexpr auto header_height = 4 * 16;
-
-    ui::Text label_frequency{
-        {UI_POS_X(0), UI_POS_Y(0), 4 * 8, 1 * 16},
-        "Freq"};
-
-    ui::OptionsField options_frequency{
-        {UI_POS_X(5), UI_POS_Y(0)},
+    OptionsField options_frequency{
+        {UI_POS_X(0), UI_POS_Y(0)},
         7,
-        {
-            {"406.028", 406028000},
-            //{"406.021", 406021000},
-            //{"406.022", 406022000},
-            //{"406.023", 406023000},
-            //{"406.024", 406024000},
-            {"406.025", 406025000},
-            //{"406.028", 406028000},
-            {"406.037", 406037000},
-            //{"406.040", 406040000},
-            {"433.025", 433025000},
-            {"144.875", 144875000},
-        }};
+        {}};
 
     ui::RFAmpField field_rf_amp{
-        {UI_POS_X(13), UI_POS_Y(0)}};
+        {UI_POS_X(8), UI_POS_Y(0)}};
 
     ui::LNAGainField field_lna{
-        {UI_POS_X(15), UI_POS_Y(0)}};
+        {UI_POS_X(10), UI_POS_Y(0)}};
 
     ui::VGAGainField field_vga{
-        {UI_POS_X(18), UI_POS_Y(0)}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
 
     ui::RSSI rssi{
-        {UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(16), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(22), 4}};
 
     ui::Channel channel{
-        {UI_POS_X(21), UI_POS_Y(0) + 5, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(16), UI_POS_Y(0) + 5, UI_POS_WIDTH_REMAINING(22), 4}};
+
+    //ui::Audio audio{
+    //    {UI_POS_X(16), UI_POS_Y(0) + 10, UI_POS_WIDTH_REMAINING(22), 4}};
 
     ui::AudioVolumeField field_volume{
         {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
+
+    //NumberField field_squelch{
+    //    {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},2,{0, 99},1,' '};
 
     // Status display
     TextArea text_status{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(3)}};

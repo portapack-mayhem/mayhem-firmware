@@ -35,6 +35,7 @@ class ResourceManager {
    public:
     ResourceManager() {
         load_file((epirb_dir / u"RES/PDESC.RES"),pdesc);
+        load_file((epirb_dir / u"FREQ.TXT"),freq);
     }
 
     const char* get_protocol_description(uint8_t line) const {
@@ -44,8 +45,13 @@ class ResourceManager {
         return UNKNOWN_LABEL;
     }
 
+    const std::vector<std::string>& get_frequencies() const {
+        return freq;
+    }
+
    private:
     std::vector<std::string> pdesc{};
+    std::vector<std::string> freq{};
 
     void load_file(const std::filesystem::path& path, std::vector<std::string>& vect) {
         FIL file;

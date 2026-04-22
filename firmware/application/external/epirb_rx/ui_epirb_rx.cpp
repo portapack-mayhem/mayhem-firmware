@@ -150,12 +150,12 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
         buffer_pointer += sprintf(buffer_pointer, "%s\t", beacon.additionalData.c_str());
     }
     buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s %s(%d) - %s\t%sLocation:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.alphaCode, beacon.country.code, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE);
-    buffer_pointer += beacon.location.toString(buffer_pointer,Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
+    buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
     (*(buffer_pointer++)) = '\t';
     if (!beacon.location.isUnknown()) {
-        buffer_pointer += beacon.location.toString(buffer_pointer,Location::LocationFormat::SEXAGESIMAL);
+        buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::SEXAGESIMAL);
         (*(buffer_pointer++)) = '\t';
-        buffer_pointer += beacon.location.toString(buffer_pointer,Location::LocationFormat::DECIMAL);
+        buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::DECIMAL);
         (*(buffer_pointer++)) = '\t';
     }
     buffer_pointer += sprintf(buffer_pointer, "%sControl: %s%s", STR_COLOR_CYAN, beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
@@ -251,15 +251,15 @@ void EPRIBQRView::update_display() {
     char buffer[128];
     char* buffer_pointer = buffer;
     buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
-    if(current_beacon) {
-        buffer_pointer += sprintf(buffer_pointer, "%sData:%s\t",STR_COLOR_CYAN, STR_COLOR_WHITE);
+    if (current_beacon) {
+        buffer_pointer += sprintf(buffer_pointer, "%sData:%s\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
         // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
-        buffer_pointer += current_beacon->toHexString(buffer_pointer,current_beacon->frame,true,3,11);
+        buffer_pointer += current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 3, 11);
         (*(buffer_pointer++)) = '\t';
-        if(current_beacon->longFrame) {
-            current_beacon->toHexString(buffer_pointer, current_beacon->frame,true,11,18);
+        if (current_beacon->longFrame) {
+            current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 11, 18);
         } else {
-            current_beacon->toHexString(buffer_pointer, current_beacon->frame,true,11,14);
+            current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 11, 14);
         }
     }
     text_data.set_content(buffer);
@@ -276,7 +276,7 @@ void EPRIBQRView::update_qr() {
         } else {
             char* buffer_pointer = qr_url;
             buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPALTE);
-            current_beacon->hexString(buffer_pointer,false);
+            current_beacon->hexString(buffer_pointer, false);
             show_qr = true;
         }
     }
@@ -314,12 +314,13 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
-    add_children({&label_frequency,
-                  &options_frequency,
+    add_children({&options_frequency,
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
                   &rssi,
+                  //&audio,
+                  //&field_squelch,
                   &field_volume,
                   &channel,
                   &text_status,
@@ -332,6 +333,14 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &view_rx,
 #endif
                   &view_qr});
+    using option_t = std::pair<std::string, int32_t>;
+    using options_t = std::vector<option_t>;
+    options_t frequ_options;
+    for (auto freq : resource_manager.get_frequencies()) {
+        int32_t freq_value = atol(freq.c_str());
+        frequ_options.emplace_back(to_string_rounded_freq(freq_value,3), freq_value);
+    }
+    options_frequency.set_options(frequ_options);
 
     options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
         receiver_model.set_target_frequency(v);
@@ -357,6 +366,13 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         beacon_db.set_current_beacon(selected);
         on_beacon_change();
     };
+
+    /*field_squelch.set_value(squelch);
+    field_squelch.on_change = [this](int32_t v) {
+        squelch = v;
+        epirb_rx_config_message.squelch = squelch;
+        send_config();
+    };*/
 
     // Configure receiver for default EPIRB frequency (406.028 MHz)
     // TODO : Load from conf
@@ -511,8 +527,8 @@ void EPIRBAppView::update_display() {
     buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacons:%s%3d\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacons_received);
     buffer_pointer += sprintf(buffer_pointer, "%sStats: %s%03dOK %s%03dCOR %s%03dERR\t", STR_COLOR_CYAN, STR_COLOR_GREEN, packets_valid, STR_COLOR_YELLOW, packets_corrected, STR_COLOR_RED, packets_error);
     buffer_pointer += sprintf(buffer_pointer, "%sCurrent:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE);
-    if(!beacon_db.empty()) {
-        beacon_db.get_current_beacon().formatSummary(buffer_pointer,false);
+    if (!beacon_db.empty()) {
+        beacon_db.get_current_beacon().formatSummary(buffer_pointer, false);
     }
     text_status.set_content(buffer);
 }
