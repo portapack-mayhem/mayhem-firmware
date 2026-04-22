@@ -192,7 +192,6 @@ class TimeSinkView : public View {
             {"2  ", 2},
             {"4  ", 4},
             {"8  ", 8},
-            {"16 ", 16},
         }};
 
     OptionsField options_trigger_mode{
