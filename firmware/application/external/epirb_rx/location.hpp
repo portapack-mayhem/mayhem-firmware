@@ -79,7 +79,9 @@ class Location {
         return (char)x + 65;
     }
 
-    static inline std::string gps_compute_locator(float lat, float lon, int precision = 6) {
+    static inline size_t gps_compute_locator(char* buffer, float lat, float lon, int precision = 6) {
+        size_t result = 0;
+
         lon += 180.0f;
         lat += 90.0f;
 
@@ -104,45 +106,42 @@ class Location {
         int G = lon / (5.0f / 600.0f);
         int H = lat / (2.5f / 600.0f);
 
-        std::string locator;
-
-        locator += char('A' + A);
-        locator += char('A' + B);
+        buffer[result++] = char('A' + A);
+        buffer[result++] = char('A' + B);
 
         if (precision >= 4) {
-            locator += char('0' + C);
-            locator += char('0' + D);
+            buffer[result++] = char('0' + C);
+            buffer[result++] = char('0' + D);
         }
 
         if (precision >= 6) {
-            locator += char('a' + E);
-            locator += char('a' + F);
+            buffer[result++] = char('a' + E);
+            buffer[result++] = char('a' + F);
         }
 
         if (precision >= 8) {
-            locator += char('0' + G);
-            locator += char('0' + H);
+            buffer[result++] = char('0' + G);
+            buffer[result++] = char('0' + H);
         }
-        return locator;
+        buffer[result] = 0;
+        return result;
     }
 
-    inline std::string toString(LocationFormat format, int precision = 6) {
+    inline size_t toString(char* buffer, LocationFormat format, int precision = 6) {
         if (isUnknown()) {
-            return "GPS not synchronized";
+            return sprintf(buffer, "%s", "GPS not synchronized");
         }
         switch (format) {
             case LocationFormat::SEXAGESIMAL: {
-                char buffer[64];
-                std::sprintf(buffer, "%ld\xB0%02ld'%02ld\"%c, %ld\xB0%02ld'%02ld\"%c",  // 0xB0 is degree ° symbol in our 8x16 font
+                return sprintf(buffer, "%ld\xB0%02ld'%02ld\"%c, %ld\xB0%02ld'%02ld\"%c",  // 0xB0 is degree ° symbol in our 8x16 font
                              latitude.degrees, latitude.minutes, latitude.seconds, latitude.orientation ? 'S' : 'N',
                              longitude.degrees, longitude.minutes, longitude.seconds, longitude.orientation ? 'W' : 'E');
-                return std::string(buffer);
             }
             case LocationFormat::MAIDENHEAD_LOCATOR:
-                return gps_compute_locator(latitude.getFloatValue(), longitude.getFloatValue(), precision);
+                return gps_compute_locator(buffer,latitude.getFloatValue(), longitude.getFloatValue(), precision);
             default:
             case LocationFormat::DECIMAL:
-                return to_string_decimal(latitude.getFloatValue(), 5) + ", " + to_string_decimal(longitude.getFloatValue(), 5);
+                return sprintf(buffer,"%s, %s", to_string_decimal(latitude.getFloatValue(), 5).c_str(), to_string_decimal(longitude.getFloatValue(), 5).c_str());
         }
     }
 

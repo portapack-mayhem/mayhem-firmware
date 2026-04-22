@@ -339,20 +339,24 @@ class Beacon {
             return ui::Color::red();
     }
 
-    inline std::string formatTime() {
-        char buffer[10];
-        sprintf(buffer,"%02d:%02d:%02d",date.hour(),date.minute(),date.second());
-        return buffer;
+    inline size_t formatTime(char* buffer) {
+        return sprintf(buffer,"%02d:%02d:%02d",date.hour(),date.minute(),date.second());
     }
 
-    inline std::string formatSummary(bool with_time) {
-        char buffer[64];
-        char* buffer_pointer = buffer;
+    inline size_t formatSummary(char* buffer, bool with_time) {
+        size_t result = 0;
         if (with_time) {
-            buffer_pointer+=sprintf(buffer_pointer,"%s-",formatTime().c_str());
+            result+=formatTime(buffer);
+            buffer[result++] = '-';
         }
-        sprintf(buffer_pointer,"%4s-%5s-%s[%s%s%s]",shortId().c_str(),getType(),location.isUnknown()?"      ":location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR).c_str(),isFrameValid()?STR_COLOR_GREEN:STR_COLOR_RED,getSatus().c_str(),STR_COLOR_WHITE);
-        return buffer;
+        result += sprintf((buffer+result),"%4s-%5s-",shortId().c_str(),getType());
+        if(location.isUnknown()) {
+            result += sprintf((buffer+result),"      ");
+        } else {
+            result += location.toString((buffer+result),Location::LocationFormat::MAIDENHEAD_LOCATOR);
+        }
+        result += sprintf((buffer+result),"[%s%s%s]",isFrameValid()?STR_COLOR_GREEN:STR_COLOR_RED,getSatus().c_str(),STR_COLOR_WHITE);
+        return result;
     }
 
    private:

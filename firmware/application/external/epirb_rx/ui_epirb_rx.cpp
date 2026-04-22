@@ -142,15 +142,21 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     char buffer[400];
     char* buffer_pointer = buffer;
     bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
-    buffer_pointer += sprintf(buffer_pointer, "%sBeacon:%s %s(%s%s%s) - %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getType(), isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN, isReal ? "Real" : "Test", STR_COLOR_WHITE, beacon.formatTime().c_str());
-    buffer_pointer += sprintf(buffer_pointer, "%sProtocol:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getProtocolName());
+    buffer_pointer += sprintf(buffer_pointer, "%sBeacon:%s %s(%s%s%s) - ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getType(), isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN, isReal ? "Real" : "Test", STR_COLOR_WHITE);
+    buffer_pointer += beacon.formatTime(buffer_pointer);
+    buffer_pointer += sprintf(buffer_pointer, "\t%sProtocol:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getProtocolName());
     buffer_pointer += sprintf(buffer_pointer, "%s\t", resource_manager.get_protocol_description((uint8_t)beacon.protocol));
     if (beacon.hasAdditionalData) {
         buffer_pointer += sprintf(buffer_pointer, "%s\t", beacon.additionalData.c_str());
     }
-    buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s %s(%d) - %s\t%sLocation:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.alphaCode, beacon.country.code, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.location.toString(Location::LocationFormat::MAIDENHEAD_LOCATOR, 8).c_str());
+    buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s %s(%d) - %s\t%sLocation:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.alphaCode, beacon.country.code, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE);
+    buffer_pointer += beacon.location.toString(buffer_pointer,Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
+    (*(buffer_pointer++)) = '\t';
     if (!beacon.location.isUnknown()) {
-        buffer_pointer += sprintf(buffer_pointer, "%s\t%s\t", beacon.location.toString(Location::LocationFormat::SEXAGESIMAL).c_str(), beacon.location.toString(Location::LocationFormat::DECIMAL).c_str());
+        buffer_pointer += beacon.location.toString(buffer_pointer,Location::LocationFormat::SEXAGESIMAL);
+        (*(buffer_pointer++)) = '\t';
+        buffer_pointer += beacon.location.toString(buffer_pointer,Location::LocationFormat::DECIMAL);
+        (*(buffer_pointer++)) = '\t';
     }
     buffer_pointer += sprintf(buffer_pointer, "%sControl: %s%s", STR_COLOR_CYAN, beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
     if (beacon.hasBch2) {
@@ -497,7 +503,10 @@ void EPIRBAppView::update_display() {
     char* buffer_pointer = buffer;
     buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacons:%s%3d\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacons_received);
     buffer_pointer += sprintf(buffer_pointer, "%sStats: %s%03dOK %s%03dCOR %s%03dERR\t", STR_COLOR_CYAN, STR_COLOR_GREEN, packets_valid, STR_COLOR_YELLOW, packets_corrected, STR_COLOR_RED, packets_error);
-    sprintf(buffer_pointer, "%sCurrent:%s %s", STR_COLOR_CYAN, STR_COLOR_WHITE, (beacon_db.size() > 0) ? beacon_db.get_current_beacon().formatSummary(false).c_str() : "");
+    buffer_pointer += sprintf(buffer_pointer, "%sCurrent:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE);
+    if(!beacon_db.empty()) {
+        beacon_db.get_current_beacon().formatSummary(buffer_pointer,false);
+    }
     text_status.set_content(buffer);
 }
 

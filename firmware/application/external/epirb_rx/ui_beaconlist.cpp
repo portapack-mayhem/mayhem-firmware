@@ -52,7 +52,9 @@ void BeaconUIList::paint(Painter& painter) {
 
         if (index < db_->size()) {
             auto& entry = db_->get_beacon(index);
-            text = entry.formatSummary(true);
+            char buffer[64];
+            entry.formatSummary(buffer,true);
+            text = std::string(buffer);
         }
 
         painter.draw_string(
