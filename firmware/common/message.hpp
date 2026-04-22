@@ -319,14 +319,17 @@ class TimeSinkConfigMessage : public Message {
    public:
     constexpr TimeSinkConfigMessage(
         size_t sampling_rate,
-        size_t trigger)
+        size_t trigger,
+        uint8_t channel)
         : Message{ID::TimeSinkConfig},
           sampling_rate{sampling_rate},
-          trigger{trigger} {
+          trigger{trigger},
+          channel{channel} {
     }
 
     size_t sampling_rate{0};
     size_t trigger{0};
+    uint8_t channel{0};
 };
 
 struct AudioSpectrum {

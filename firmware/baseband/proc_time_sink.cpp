@@ -56,19 +56,23 @@ void TimeSinkProcessor::execute_time_domain(const buffer_c8_t& buffer) {
         return;
     }
 
-    const size_t stride = std::max<size_t>(1, buffer.count / time_domain_spectrum.db.size());
+    const size_t num_samples = (channel == 2) ? (time_domain_spectrum.db.size() / 2) : time_domain_spectrum.db.size();
+    const size_t stride = std::max<size_t>(1, buffer.count / num_samples);
     time_domain_spectrum.sampling_rate = buffer.sampling_rate / stride;
-    time_domain_spectrum.channel_filter_low_frequency = 0;
+    time_domain_spectrum.channel_filter_low_frequency = channel;
     time_domain_spectrum.channel_filter_high_frequency = 0;
     time_domain_spectrum.channel_filter_transition = 0;
 
-    for (size_t i = 0; i < time_domain_spectrum.db.size(); i++) {
+    for (size_t i = 0; i < num_samples; i++) {
         const size_t sample_index = std::min(i * stride, buffer.count - 1);
-        const int32_t normalized = std::clamp<int32_t>(
-            static_cast<int32_t>(buffer.p[sample_index].real()) + 128,
-            0,
-            255);
-        time_domain_spectrum.db[i] = static_cast<uint8_t>(normalized);
+        if (channel == 0) {
+            time_domain_spectrum.db[i] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].real()) + 128, 0, 255));
+        } else if (channel == 1) {
+            time_domain_spectrum.db[i] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].imag()) + 128, 0, 255));
+        } else {
+            time_domain_spectrum.db[i * 2] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].real()) + 128, 0, 255));
+            time_domain_spectrum.db[i * 2 + 1] = static_cast<uint8_t>(std::clamp<int32_t>(static_cast<int32_t>(buffer.p[sample_index].imag()) + 128, 0, 255));
+        }
     }
 
     time_domain_request_update = true;
@@ -109,6 +113,7 @@ void TimeSinkProcessor::on_message(const Message* const msg) {
             const auto& message = *reinterpret_cast<const TimeSinkConfigMessage*>(msg);
             baseband_fs = message.sampling_rate;
             trigger = message.trigger;
+            channel = message.channel;
             baseband_thread.set_sampling_rate(baseband_fs);
             phase = 0;
             time_domain_request_update = false;

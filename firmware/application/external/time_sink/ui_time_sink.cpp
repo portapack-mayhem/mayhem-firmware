@@ -59,6 +59,19 @@ void TimeSinkWaveformWidget::reset_cache() {
     needs_clear_ = true;
 }
 
+void TimeSinkWaveformWidget::set_data_q(const int16_t* data_q, Color color_q) {
+    data_q_ = data_q;
+    color_q_ = color_q;
+    reset_cache();
+    set_dirty();
+}
+
+void TimeSinkWaveformWidget::set_color(Color color) {
+    color_ = color;
+    reset_cache();
+    set_dirty();
+}
+
 void TimeSinkWaveformWidget::set_persistence_frames(uint8_t frames) {
     const auto clamped = static_cast<uint8_t>(std::clamp<size_t>(
         frames,
@@ -113,6 +126,9 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
     for (size_t x = 0; x < columns; ++x) {
         const size_t src_index = (x * length_) / columns;
         current_y_[x] = sample_to_y(r, data_[src_index]);
+        if (data_q_) {
+            current_y_q_[x] = sample_to_y(r, data_q_[src_index]);
+        }
     }
 
     // Draw first, then erase stale pixels so the trace never disappears mid-refresh.
@@ -120,6 +136,11 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
         display.draw_pixel(
             {static_cast<Coord>(r.left() + x), current_y_[x]},
             color_);
+        if (data_q_) {
+            display.draw_pixel(
+                {static_cast<Coord>(r.left() + x), current_y_q_[x]},
+                color_q_);
+        }
     }
 
     if (history_count_ >= persistence_frames_) {
@@ -127,12 +148,12 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
 
         for (size_t x = 0; x < columns; ++x) {
             const auto expired_y = history_y_[expired_slot][x];
-            bool keep = (expired_y == current_y_[x]);
+            bool keep = (expired_y == current_y_[x]) || (data_q_ && expired_y == current_y_q_[x]);
 
             if (!keep) {
                 for (size_t i = 1; i < history_count_; ++i) {
                     const size_t slot = (history_head_ + i) % max_persistence_frames;
-                    if (history_y_[slot][x] == expired_y) {
+                    if (history_y_[slot][x] == expired_y || (data_q_ && history_y_q_[slot][x] == expired_y)) {
                         keep = true;
                         break;
                     }
@@ -144,6 +165,27 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
                     {static_cast<Coord>(r.left() + x), expired_y},
                     background);
             }
+
+            if (data_q_) {
+                const auto expired_y_q = history_y_q_[expired_slot][x];
+                bool keep_q = (expired_y_q == current_y_[x]) || (expired_y_q == current_y_q_[x]);
+
+                if (!keep_q) {
+                    for (size_t i = 1; i < history_count_; ++i) {
+                        const size_t slot = (history_head_ + i) % max_persistence_frames;
+                        if (history_y_[slot][x] == expired_y_q || history_y_q_[slot][x] == expired_y_q) {
+                            keep_q = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!keep_q && expired_y_q != expired_y) {
+                    display.draw_pixel(
+                        {static_cast<Coord>(r.left() + x), expired_y_q},
+                        background);
+                }
+            }
         }
 
         history_head_ = (history_head_ + 1) % max_persistence_frames;
@@ -152,6 +194,9 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
 
     const size_t tail_slot = (history_head_ + history_count_) % max_persistence_frames;
     std::copy_n(current_y_.begin(), columns, history_y_[tail_slot].begin());
+    if (data_q_) {
+        std::copy_n(current_y_q_.begin(), columns, history_y_q_[tail_slot].begin());
+    }
     ++history_count_;
 }
 
@@ -168,6 +213,7 @@ TimeSinkView::TimeSinkView(NavigationView& nav)
         &field_vga,
         &options_sample_rate,
         &field_trigger,
+        &options_channel_mode,
         &options_persistence,
         &options_trigger_mode,
         &field_trigger_level,
@@ -192,6 +238,24 @@ TimeSinkView::TimeSinkView(NavigationView& nav)
         trigger = static_cast<uint8_t>(v);
         apply_spectrum_config();
     };
+
+    options_channel_mode.set_by_nearest_value(channel_mode);
+    channel_mode = static_cast<uint8_t>(options_channel_mode.selected_index_value());
+    options_channel_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        channel_mode = static_cast<uint8_t>(v);
+        apply_spectrum_config();
+        if (channel_mode == 2) {
+            waveform.set_color(Color::red());
+            waveform.set_data_q(waveform_buffer_q, Color::blue());
+        } else {
+            waveform.set_color(Theme::getInstance()->fg_light->foreground);
+            waveform.set_data_q(nullptr, Color::black());
+        }
+    };
+    if (channel_mode == 2) {
+        waveform.set_color(Color::red());
+        waveform.set_data_q(waveform_buffer_q, Color::blue());
+    }
 
     options_persistence.set_by_nearest_value(persistence_frames);
     persistence_frames = options_persistence.selected_index_value();
@@ -247,11 +311,13 @@ void TimeSinkView::apply_spectrum_config() {
 
     baseband::set_time_sink(
         sampling_rate,
-        trigger);
+        trigger,
+        channel_mode);
 }
 
 size_t TimeSinkView::find_stable_trigger_index(const ChannelSpectrum& spectrum) {
-    if (spectrum.db.size() < 2) {
+    const size_t num_samples = (spectrum.channel_filter_low_frequency == 2) ? (spectrum.db.size() / 2) : spectrum.db.size();
+    if (num_samples < 2) {
         return 0;
     }
 
@@ -280,21 +346,23 @@ size_t TimeSinkView::find_stable_trigger_index(const ChannelSpectrum& spectrum) 
         128 + trigger_level,
         hysteresis,
         255 - hysteresis);
-    const size_t center = spectrum.db.size() / 2;
+    const size_t center = num_samples / 2;
     const size_t reference_index = trigger_lock_valid ? trigger_lock_index : center;
 
     bool found = false;
     size_t best_index = 0;
-    size_t best_distance = spectrum.db.size();
-    const auto circular_distance = [count = spectrum.db.size()](size_t a, size_t b) -> size_t {
+    size_t best_distance = num_samples;
+    const auto circular_distance = [count = num_samples](size_t a, size_t b) -> size_t {
         const size_t linear =
             (a > b) ? (a - b) : (b - a);
         return std::min(linear, count - linear);
     };
 
-    for (size_t i = 1; i < spectrum.db.size(); ++i) {
-        const int32_t prev = spectrum.db[i - 1];
-        const int32_t curr = spectrum.db[i];
+    for (size_t i = 1; i < num_samples; ++i) {
+        const size_t idx_prev = (spectrum.channel_filter_low_frequency == 2) ? ((i - 1) * 2) : (i - 1);
+        const size_t idx_curr = (spectrum.channel_filter_low_frequency == 2) ? (i * 2) : i;
+        const int32_t prev = spectrum.db[idx_prev];
+        const int32_t curr = spectrum.db[idx_curr];
 
         bool crossing = false;
         if (mode == TriggerMode::Rising) {
@@ -330,16 +398,27 @@ size_t TimeSinkView::find_stable_trigger_index(const ChannelSpectrum& spectrum) 
 
 void TimeSinkView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     const size_t trigger_index = find_stable_trigger_index(spectrum);
-    const size_t source_count = spectrum.db.size();
+    const size_t source_count = (spectrum.channel_filter_low_frequency == 2) ? (spectrum.db.size() / 2) : spectrum.db.size();
     const size_t window_size = source_count;
 
     for (size_t x = 0; x < waveform_points; x++) {
         const size_t offset = (x * window_size) / waveform_points;
         const size_t src_index =
             (trigger_index + offset) % source_count;
-        const int32_t centered = static_cast<int32_t>(spectrum.db[src_index]) - 128;
-        const int32_t scaled = centered * 256;
-        waveform_buffer[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled, -32768, 32767));
+        
+        if (spectrum.channel_filter_low_frequency == 2) {
+            const int32_t centered_i = static_cast<int32_t>(spectrum.db[src_index * 2]) - 128;
+            const int32_t scaled_i = centered_i * 256;
+            waveform_buffer[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled_i, -32768, 32767));
+            
+            const int32_t centered_q = static_cast<int32_t>(spectrum.db[src_index * 2 + 1]) - 128;
+            const int32_t scaled_q = centered_q * 256;
+            waveform_buffer_q[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled_q, -32768, 32767));
+        } else {
+            const int32_t centered = static_cast<int32_t>(spectrum.db[src_index]) - 128;
+            const int32_t scaled = centered * 256;
+            waveform_buffer[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled, -32768, 32767));
+        }
     }
 
     waveform.set_dirty();

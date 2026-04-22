@@ -102,7 +102,8 @@ void set_spectrum(
     const size_t trigger);
 void set_time_sink(
     const size_t sampling_rate,
-    const size_t trigger);
+    const size_t trigger,
+    const uint8_t channel);
 void set_siggen_tone(const uint32_t tone);
 void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t duration);
 void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw);

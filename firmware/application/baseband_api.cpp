@@ -345,9 +345,10 @@ void set_spectrum(
 
 void set_time_sink(
     const size_t sampling_rate,
-    const size_t trigger) {
+    const size_t trigger,
+    const uint8_t channel) {
     const TimeSinkConfigMessage message{
-        sampling_rate, trigger};
+        sampling_rate, trigger, channel};
     send_message(&message);
 }
 

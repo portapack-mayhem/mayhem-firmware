@@ -50,19 +50,25 @@ class TimeSinkWaveformWidget : public Widget {
     void on_show() override;
     void paint(Painter& painter) override;
     void set_persistence_frames(uint8_t frames);
+    void set_data_q(const int16_t* data_q, Color color_q);
+    void set_color(Color color);
 
    private:
     static constexpr size_t max_columns = time_sink_waveform_points;
-    static constexpr size_t max_persistence_frames = 16;  // this is sad that we cant have 32 histories in ext app due to memory constraints
+    static constexpr size_t max_persistence_frames = 8;  // this is sad that we cant have 32 histories in ext app due to memory constraints
 
     void reset_cache();
     Coord sample_to_y(const Rect& r, int16_t sample) const;
 
     const int16_t* data_;
+    const int16_t* data_q_{nullptr};
     size_t length_;
     Color color_;
+    Color color_q_{Color::yellow()}; // Default color for Q
     std::array<Coord, max_columns> current_y_{};
     std::array<std::array<Coord, max_columns>, max_persistence_frames> history_y_{};
+    std::array<Coord, max_columns> current_y_q_{};
+    std::array<std::array<Coord, max_columns>, max_persistence_frames> history_y_q_{};
     size_t history_count_{0};
     size_t history_head_{0};
     uint8_t persistence_frames_{1};
@@ -107,6 +113,7 @@ class TimeSinkView : public View {
     uint8_t persistence_frames{1};
     uint8_t trigger_mode{static_cast<uint8_t>(TriggerMode::Rising)};
     int32_t trigger_level{0};
+    uint8_t channel_mode{0}; // 0=I, 1=Q, 2=I&Q
     size_t trigger_lock_index{0};
     bool trigger_lock_valid{false};
     app_settings::SettingsManager settings_{
@@ -118,14 +125,17 @@ class TimeSinkView : public View {
             {"persistence_frames"sv, &persistence_frames},
             {"trigger_mode"sv, &trigger_mode},
             {"trigger_level"sv, &trigger_level},
+            {"channel_mode"sv, &channel_mode},
         }};
 
     int16_t waveform_buffer[waveform_points]{0};
+    int16_t waveform_buffer_q[waveform_points]{0};
     ChannelSpectrumFIFO* fifo = nullptr;
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "SR:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(11), UI_POS_Y(1)}, "DEC:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(21), UI_POS_Y(1)}, "CH:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(2)}, "PST:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(9), UI_POS_Y(2)}, "TRM:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(19), UI_POS_Y(2)}, "LVL:", Theme::getInstance()->fg_light->foreground},
@@ -159,11 +169,20 @@ class TimeSinkView : public View {
         }};
 
     NumberField field_trigger{
-        {UI_POS_X(17), UI_POS_Y(1)},
+        {UI_POS_X(15), UI_POS_Y(1)},
         3,
         {0, 128},
         1,
         ' '};
+
+    OptionsField options_channel_mode{
+        {UI_POS_X(24), UI_POS_Y(1)},
+        3,
+        {
+            {"I  ", 0},
+            {"Q  ", 1},
+            {"I&Q", 2},
+        }};
 
     OptionsField options_persistence{
         {UI_POS_X(3), UI_POS_Y(2)},

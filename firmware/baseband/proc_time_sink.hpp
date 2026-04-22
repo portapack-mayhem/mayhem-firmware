@@ -46,6 +46,7 @@ class TimeSinkProcessor : public BasebandProcessor {
     ChannelSpectrumFIFO fifo{fifo_data, ChannelSpectrumConfigMessage::fifo_k};
 
     size_t phase = 0, trigger = 127;
+    uint8_t channel = 0;
     bool time_streaming = false;
     volatile bool time_domain_request_update = false;
 
