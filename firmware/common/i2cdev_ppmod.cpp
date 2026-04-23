@@ -242,4 +242,10 @@ std::vector<uint8_t> I2cDev_PPmod::downloadStandaloneApp(uint32_t index, size_t 
     return ret;
 }
 
+void I2cDev_PPmod::send_poweroff_command() {
+    if (isLocked()) return;  // device is busy
+    Command cmd = Command::COMMAND_POWER_OFF;
+    i2c_read(nullptr, 0, (uint8_t*)&cmd, 2);
+}
+
 }  // namespace i2cdev
