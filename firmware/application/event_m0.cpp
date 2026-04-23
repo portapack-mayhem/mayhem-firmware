@@ -44,6 +44,9 @@ using namespace hackrf::one;
 
 #include "i2c_lld.h"
 
+#include "i2cdevmanager.hpp"
+#include "i2cdev_ppmod.hpp"
+
 #include "lpc43xx.inc"
 #include "nvic.h"
 #include "lpc43xx_m0.h"
@@ -159,6 +162,9 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
     };
 
     if (sleep) {
+        auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+        if (dev) dev->send_poweroff_command();
+
         portapack::shutdown(false, true);
         rffc507x::spi::SPI().power_down();
 
@@ -244,17 +250,17 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                     led_tx.off();
                 } else if ((voltage < 4150 && current < 10) || valid_mask == 0) {
                     // Case 2: Not full but low current draw (<10mA) -> Charging error
-                    led_tx.off();
-                    led_rx.on();  // RX LED indicates error/idle
+                    led_tx.on();
+                    led_rx.off();  // RX LED indicates error/idle
                 } else {
                     // Case 3: Actively charging
-                    led_rx.off();
-                    led_tx.on();  // TX LED indicates charging
+                    led_rx.on();
+                    led_tx.off();  // TX LED indicates charging
                 }
             } else {
                 // Case 4: Battery IC not detected -> Error
-                led_tx.off();
-                led_rx.on();
+                led_tx.on();
+                led_rx.off();
             }
 
             // Shut down I2C and power down the APB bus for sleep
