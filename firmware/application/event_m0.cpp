@@ -149,7 +149,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 }
 
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
-    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
+    LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;
     bool detect = false;
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
@@ -165,8 +165,8 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
         if (dev) dev->send_poweroff_command();
 
-        portapack::shutdown(false, true);
         rffc507x::spi::SPI().power_down();
+        portapack::shutdown(false, true);
 
         // Unmount SD card and stop driver
         f_mount(nullptr, reinterpret_cast<const TCHAR*>(_T("")), 0);
@@ -293,7 +293,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             }
 
             LPC_RTC->ILR = 3;
-            *evrt_clr_stat = 0xFFFFFFFF;
+            LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;
             NVIC_ClearPendingIRQ(RTC_IRQn);
             NVIC_ClearPendingIRQ(EVENTROUTER_IRQn);
 

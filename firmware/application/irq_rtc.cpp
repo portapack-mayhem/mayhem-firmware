@@ -47,15 +47,16 @@ void rtc_reset_default() {
     LPC_RTC->AMIN = 0;
     LPC_RTC->AHRS = 0;
 
-    // 2. RESET EVENT ROUTER (Using absolute addresses)
+    // 2. RESET EVENT ROUTER
 
-    volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
-    volatile uint32_t* evrt_clr_en = (volatile uint32_t*)(0x40044000 + 0x008);
-    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
+    // Reset to edge-triggered
+    LPC_EVENTROUTER->EDGE |= (1 << 5);
 
-    *evrt_edge |= (1 << 5);       // Reset to edge-triggered
-    *evrt_clr_en = (1 << 5);      // DISABLE RTC channel routing
-    *evrt_clr_stat = 0xFFFFFFFF;  // Clear pending events
+    // DISABLE RTC channel routing
+    LPC_EVENTROUTER->CLR_EN = (1 << 5);
+
+    // Clear pending events
+    LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;
 }
 
 void rtc_wakeup_init() {
@@ -65,23 +66,13 @@ void rtc_wakeup_init() {
     // Bit 0: Enable, Bit 4: Calibration OFF
     LPC_RTC->CCR = (1 << 0);
 
-    // 2. EVENT ROUTER - Link the RTC with the EVRT
-    // This is the 0x010 register in EVRT (ERCONTROL)
-    // Bit 0: RTC event enable
-    *(volatile uint32_t*)(0x40044010) |= (1 << 0);
+    // 2. EVENT ROUTER CONFIGURATION
+    LPC_EVENTROUTER->HILO |= (1 << 5);
+    LPC_EVENTROUTER->EDGE &= ~(1 << 5);      // Level-triggered (Better for wakeup)
+    LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;  // Clear pending events
+    LPC_EVENTROUTER->SET_EN = (1 << 5);      // Enable RTC channel routing
 
-    // 3. EVENT ROUTER CONFIGURATION
-    volatile uint32_t* evrt_hilo = (volatile uint32_t*)(0x40044000 + 0x000);
-    volatile uint32_t* evrt_edge = (volatile uint32_t*)(0x40044000 + 0x004);
-    volatile uint32_t* evrt_set_en = (volatile uint32_t*)(0x40044000 + 0x00C);
-    volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
-
-    *evrt_hilo |= (1 << 5);
-    *evrt_edge &= ~(1 << 5);  // Level-triggered (Better for wakeup)
-    *evrt_clr_stat = 0xFFFFFFFF;
-    *evrt_set_en = (1 << 5);
-
-    // 4. NVIC Cleanup
+    // 3. NVIC Cleanup
     NVIC_ClearPendingIRQ(RTC_IRQn);
     NVIC_ClearPendingIRQ(EVENTROUTER_IRQn);
     NVIC_EnableIRQ(RTC_IRQn);

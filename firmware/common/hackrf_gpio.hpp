@@ -128,8 +128,8 @@ constexpr GPIO gpio_q_invert = gpio[GPIO0_13];
 constexpr GPIO gpio_vaa_disable = gpio[GPIO4_1];      // VAA disable (P8_1)
 constexpr GPIO gpio_1v2_enable = gpio[GPIO4_7];       // 1V2 enable (P8_7)
 constexpr GPIO gpio_3v3aux_disable = gpio[GPIO5_15];  // 3V3 aux disable (P6_7)
-constexpr GPIO gpio_VBUS_enable = gpio[GPIO8_4];      // VBUS_IN_EN P8_4 ->LOW
-constexpr GPIO gpio_VIN_enable = gpio[GPIO8_5];       // VIN_IN_EN P8_5 ->HIGH
+constexpr GPIO gpio_vbus_enable = gpio[GPIO8_4];      // VBUS_IN_EN P8_4 ->LOW
+constexpr GPIO gpio_vin_enable = gpio[GPIO8_5];       // VIN_IN_EN P8_5 ->HIGH
 // PRALINE RF path control
 constexpr GPIO gpio_tx_enable = gpio[GPIO3_4];  // TX enable (P6_5)
 // constexpr GPIO gpio_mix_enable_n = gpio[GPIO3_2];       // Mixer enable inverted (P6_3)

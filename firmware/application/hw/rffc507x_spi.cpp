@@ -104,7 +104,7 @@ data_t SPI::transfer_word(const Direction direction, const address_t address, co
 }
 
 void SPI::power_down() {
-    // A 0x01 adress the MIX_CTRL register. A 0x0000
+    // A 0x01 address the MIX_CTRL register. A 0x0000
     transfer_word(Direction::Write, 0x01, 0x0000);
 
     // a chip 300 µA-es Power Down
