@@ -250,17 +250,17 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
                     led_tx.off();
                 } else if ((voltage < 4150 && current < 10) || valid_mask == 0) {
                     // Case 2: Not full but low current draw (<10mA) -> Charging error
-                    led_tx.on();
-                    led_rx.off();  // RX LED indicates error/idle
+                    led_tx.on();  // LED indicates error/idle
+                    led_rx.off();
                 } else {
                     // Case 3: Actively charging
-                    led_rx.on();
-                    led_tx.off();  // TX LED indicates charging
+                    led_rx.on();  // LED indicates charging
+                    led_tx.off();
                 }
             } else {
-                // Case 4: Battery IC not detected -> Error
+                // Case 4: Battery IC not detected -> Error or H2 or older, so don't show that as an error.
                 led_tx.on();
-                led_rx.off();
+                led_rx.on();
             }
 
             // Shut down I2C and power down the APB bus for sleep
