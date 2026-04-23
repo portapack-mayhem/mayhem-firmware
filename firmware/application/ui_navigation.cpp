@@ -347,7 +347,7 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
         // Only show charging modal when transitioning to charging state
         nav_.display_modal(
             "CHARGING",
-            "Device on while charging? \n \nYou can exit by pressing the \nreset button. The TX LED \nindicates the charging \nstatus. While it is lit, it \nis charging.",
+            "Device on while charging? \n \nExit: Press reset button. \n \nTX LED: Charging. \nRX LED: Charging error. \nLEDs OFF: Charge complete.",
             YESNO,
             [this](bool keep_screen_on) {
                 if (!keep_screen_on) {

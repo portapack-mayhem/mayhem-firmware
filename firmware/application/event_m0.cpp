@@ -40,26 +40,14 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
-#include "gpio.hpp"
+#include "irq_rtc.hpp"
 
-#include "adc.hpp"
+#include "i2c_lld.h"
 
-#include "audio.hpp"
-
-#include "si5351.hpp"
-using namespace si5351;
-
-#include "lpc43xx_cpp.hpp"
-
-#include "core_control.hpp"
-
-#include "irq_rtc.hpp"  // kell
-
-#include "i2c_lld.h"  //kell
-
-#include "lpc43xx.inc"   //kell
-#include "nvic.h"        //kell
-#include "lpc43xx_m0.h"  //kell
+#include "lpc43xx.inc"
+#include "nvic.h"
+#include "lpc43xx_m0.h"
+#include "rffc507x_spi.hpp"
 
 #include <array>
 
@@ -159,6 +147,7 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
     volatile uint32_t* evrt_clr_stat = (volatile uint32_t*)(0x40044000 + 0x018);
+    bool detect = false;
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
@@ -171,16 +160,19 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
     if (sleep) {
         portapack::shutdown(false, true);
+        rffc507x::spi::SPI().power_down();
 
-        // unmount SD card
+        // Unmount SD card and stop driver
         f_mount(nullptr, reinterpret_cast<const TCHAR*>(_T("")), 0);
         sdcDisconnect(&SDCD1);
         sdcStop(&SDCD1);
 
+        // Signal application shutdown
         ShutdownMessage shutdown_message;
         shared_memory.application_queue.push(shutdown_message);
         shared_memory.baseband_message = nullptr;
 
+        // Disable core interrupts and system tick
         nvicDisableVector(DMA_IRQn);
         nvicDisableVector(M4CORE_IRQn);
         chSysDisable();
@@ -189,15 +181,16 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 
 #ifdef PRALINE
+        // Power management and GPIO configuration for Praline hardware
         gpio_vaa_disable.set();
         gpio_1v2_enable.clear();
-        gpio_3v3aux_disable.set();
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
         LPC_GPIO->DIR[1] &= ~0xFFFF1000;
         LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
         LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #else
+        // Power management and GPIO configuration for legacy hardware
         gpio_og_vaa_disable.set();
         gpio_r9_vaa_disable.clear();
         LPC_GPIO->DIR[0] &= ~0xFFFF4000;
@@ -207,7 +200,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
         LPC_GPIO->DIR[5] &= ~(1 << 16);
 #endif
 
-        // CGU takarítás
+        // Power down peripherals (CGU cleanup)
         LPC_RGU->RESET_CTRL[0] = (1 << 5);  // USB0 Reset
         LPC_CGU->PLL0USB_CTRL.PD = 1;
         LPC_CGU->BASE_USB0_CLK.PD = 1;
@@ -235,39 +228,45 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
         rtc_wakeup_init();
         NVIC_EnableIRQ(I2C0_OR_I2C1_IRQn);
-        while (1) {
-            // ================== AKKU OLVASÁS (I2C ÉL) ==================
-            battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
 
-            if (valid_mask != 0) {
-                bool is_full = (valid_mask == 31 && percent >= 100 && current <= 10) ||
-                               (valid_mask == 1 && percent >= 100);
+        while (1) {
+            // --- Battery Status Check (I2C) ---
+            detect = battery::BatteryManagement::isDetected();
+            if (detect) {
+                battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
+
+                bool is_full = (valid_mask == 31 && percent == 100 && current <= 10) ||
+                               (valid_mask == 1 && percent == 100);
 
                 if (is_full) {
+                    // Case 1: Battery full (All LEDs off)
                     led_rx.off();
                     led_tx.off();
+                } else if ((voltage < 4150 && current < 10) || valid_mask == 0) {
+                    // Case 2: Not full but low current draw (<10mA) -> Charging error
+                    led_tx.off();
+                    led_rx.on();  // RX LED indicates error/idle
                 } else {
+                    // Case 3: Actively charging
                     led_rx.off();
-                    led_tx.on();
+                    led_tx.on();  // TX LED indicates charging
                 }
             } else {
+                // Case 4: Battery IC not detected -> Error
                 led_tx.off();
                 led_rx.on();
             }
 
-            // 1. I2C leállítása és busz áramtalanítása az alváshoz
+            // Shut down I2C and power down the APB bus for sleep
             portapack::i2c0.stop();
             LPC_CGU->BASE_APB1_CLK.PD = 1;
 
-            // =====================================================================
-            // ÚJ FIX: A MEGSZAKÍTÁSOK MENTÉSE ITT, KÖZVETLENÜL LETILTÁS ELŐTT!
-            // Így garantáltan az I2C friss, aktuális állapotát fagyasztjuk be.
-            // =====================================================================
+            // Save interrupt states before mass disable
             uint32_t saved_iser0 = NVIC->ISER[0];
             uint32_t saved_iser1 = NVIC->ISER[1];
             uint32_t saved_iser2 = NVIC->ISER[2];
 
-            // 2. MEGSZAKÍTÁSOK LETILTÁSA ALVÁS ELŐTT
+            // Disable and clear all pending interrupts
             NVIC->ICER[0] = 0xFFFFFFFF;
             NVIC->ICER[1] = 0xFFFFFFFF;
             NVIC->ICER[2] = 0xFFFFFFFF;
@@ -276,13 +275,13 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             NVIC->ICPR[1] = 0xFFFFFFFF;
             NVIC->ICPR[2] = 0xFFFFFFFF;
 
-            // Csak az ébresztő megszakításokat engedélyezzük újra
+            // Re-enable only necessary wakeup sources
             NVIC_EnableIRQ(RTC_IRQn);
             NVIC_EnableIRQ(EVENTROUTER_IRQn);
 
-            // 3. Ébresztő beállítása
-            if (valid_mask != 0) {
-                rtc_wakeup(5);
+            // Configure RTC wakeup interval
+            if (valid_mask != 0 || detect) {
+                rtc_wakeup(60);
             } else {
                 rtc_wakeup(3);
             }
@@ -294,33 +293,38 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             __disable_irq();
 
-            // 4. Mehet a garantált, zavartalan mélyalvás
+            // Configure and enter Deep Sleep
             SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
             __DSB();
             __ISB();
 
-            // ITT ALSZIK EL
+            // CPU enters sleep here
             __WFI();
 
-            // IDE JUT EL, HA FELÉBREDT
+            // --- WAKEUP SEQUENCE ---
             __enable_irq();
             SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
 
-            // Szemét takarítása
+            // Cleanup RTC and restore peripheral clocks
             LPC_RTC->AMR = 0xFF;
             LPC_RTC->ILR = 3;
+            LPC_CGU->BASE_APB1_CLK.PD = 0;
+            LPC_RGU->RESET_CTRL[1] = (1 << 16);
 
-                // 1. I2C órajel visszakapcsolása
+            // Short delay for power stability (3V3 rail)
+            for (volatile int d = 0; d < 10000; d++);
+
+            // Restart I2C controller
             LPC_CGU->BASE_APB1_CLK.PD = 0;
             portapack::i2c0.start(i2c_config_12mhz);
 
-            // 2. MEGSZAKÍTÁSOK VISSZAÁLLÍTÁSA (Pontosan az elalvás előtti állapotra)
+            // Restore original interrupt enable states
             NVIC->ISER[0] = saved_iser0;
             NVIC->ISER[1] = saved_iser1;
             NVIC->ISER[2] = saved_iser2;
 
-        }  // while (1) - end  // while (1) - end
+        }  // End of while(1) deep sleep loop
     } else {
         portapack::display.wake(true);
     }
