@@ -93,7 +93,7 @@ class I2cDev_PPmod : public I2cDev {
     uint16_t get_shell_buffer_bytes();
     bool get_shell_get_buffer_data(uint8_t* buff, size_t len);
 
-    void send_poweroff_command();  // sends the command to power off the device. Restarting the app needs a full power cycle!
+    bool send_poweroff_command();  // sends the command to power off the device. Restarting the esp needs a full power cycle!
 
    private:
     uint8_t self_timer = 0;
