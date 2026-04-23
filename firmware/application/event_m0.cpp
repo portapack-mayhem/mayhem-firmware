@@ -207,7 +207,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 #endif
 
         // Power down peripherals (CGU cleanup)
-        LPC_RGU->RESET_CTRL[0] = (1 << 5);  // USB0 Reset
+        LPC_RGU->RESET_CTRL[0] |= (1 << 17);  // USB0 Reset
         LPC_CGU->PLL0USB_CTRL.PD = 1;
         LPC_CGU->BASE_USB0_CLK.PD = 1;
         LPC_CREG->CREG0 |= (1 << 5);
