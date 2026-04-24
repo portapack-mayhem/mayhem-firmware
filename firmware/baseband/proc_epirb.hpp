@@ -154,7 +154,7 @@ class EPIRBProcessor : public BasebandProcessor {
     static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60 samples per symbol
     static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
     static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
-    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 10;  // Accumulate phase change across 6 samples
+    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 5;  // Accumulate phase change across 6 samples
     static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Frame max length (add 1% error margin)
 
     static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
