@@ -59,7 +59,8 @@ class I2cDev_PPmod : public I2cDev {
         COMMAND_SHELL_PPTOMOD_DATA,       // pp shell to esp. size not defined
         COMMAND_SHELL_MODTOPP_DATA_SIZE,  // how many bytes the esp has to send to pp's shell
         COMMAND_SHELL_MODTOPP_DATA,       // the actual bytes sent by esp. 1st byte's 1st bit is the "hasmore" flag, the remaining 7 bits are the size of the data. exactly 64 byte follows.
-
+        // poweroff command
+        COMMAND_POWER_OFF,  // requests power off from the esp, and after it needs a full power cycle to get it back again
     };
 
     typedef struct {
@@ -91,6 +92,8 @@ class I2cDev_PPmod : public I2cDev {
     std::optional<uint16_t> get_light_data();
     uint16_t get_shell_buffer_bytes();
     bool get_shell_get_buffer_data(uint8_t* buff, size_t len);
+
+    bool send_poweroff_command();  // sends the command to power off the device. Restarting the esp needs a full power cycle!
 
    private:
     uint8_t self_timer = 0;

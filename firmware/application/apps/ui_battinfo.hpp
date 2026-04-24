@@ -69,29 +69,29 @@ class BattinfoView : public View {
     };
 
     Text text_percent{
-        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
     Text text_voltage{
-        {UI_POS_X(13), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(2), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
     Text text_method{
-        {UI_POS_X(13), UI_POS_Y(3), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
     Text text_capacity{
-        {UI_POS_X(13), UI_POS_Y(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(4), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
     Text text_current{
-        {UI_POS_X(13), UI_POS_Y(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(5), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
     Text text_charge{
-        {UI_POS_X(13), UI_POS_Y(6), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(6), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
     Text text_ttef{
-        {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
 
     /* Text text_cycles{
-        {UI_POS_X(13), UI_POS_Y(8), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(8), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
 
     Text text_warn{
