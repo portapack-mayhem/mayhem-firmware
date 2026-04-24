@@ -181,7 +181,7 @@ class EPIRBAppView final : public ui::View {
     app_settings::SettingsManager settings_{
         "rx_epirb", app_settings::Mode::RX,
         {
-            {"squelch"sv, &squelch},
+            {"epirb_squelch"sv, &squelch},
         }};
 
     ui::NavigationView& nav_;
@@ -224,7 +224,7 @@ class EPIRBAppView final : public ui::View {
     // Status display
     TextArea text_status{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(3)}};
     ui::Text text_timeout{
-        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
+        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         ""};
     SignalToken signal_token_tick_second{};
     // Timeout string

@@ -367,19 +367,23 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         on_beacon_change();
     };
 
-    /*field_squelch.set_value(squelch);
-    field_squelch.on_change = [this](int32_t v) {
-        squelch = v;
-        epirb_rx_config_message.squelch = squelch;
-        send_config();
-    };*/
+    //field_squelch.set_value(receiver_model.squelch_level());
+    // Restore squelch value
+    epirb_rx_config_message.squelch = squelch;
+    send_config();
+    //field_squelch.on_change = [this](int32_t v) {
+    //    epirb_rx_config_message.squelch = v;
+    //    send_config();
+    //};
 
     // Configure receiver for default EPIRB frequency (406.028 MHz)
-    // TODO : Load from conf
-    receiver_model.set_target_frequency(406025000);
-    receiver_model.set_rf_amp(true);
-    receiver_model.set_lna(32);
-    receiver_model.set_vga(32);
+    // Receiver parameters are loaded from settings
+    //receiver_model.set_target_frequency(406025000);
+    //receiver_model.set_rf_amp(true);
+    //receiver_model.set_lna(32);
+    //receiver_model.set_vga(32);
+
+    // Force sample rate to patch baseband processor
     receiver_model.set_sampling_rate(3072000);
 
     audio::set_rate(audio::Rate::Hz_24000);
@@ -430,7 +434,6 @@ void EPIRBAppView::on_packet(Message* const p) {
         Beacon& beacon = beacon_db.add_beacon();
         decode_packet(packet, beacon);
         beacons_received++;
-        view_detail.set_beacon(beacon);
 
         // Track packet statistics
         if (beacon.isFrameValid())
@@ -454,6 +457,7 @@ void EPIRBAppView::on_packet(Message* const p) {
 
 void EPIRBAppView::on_beacon_change() {
     Beacon& cur_beacon = beacon_db.get_current_beacon();
+    view_detail.set_beacon(cur_beacon);
     view_qr.set_beacon(&cur_beacon);
     update_map();
     // Update display
