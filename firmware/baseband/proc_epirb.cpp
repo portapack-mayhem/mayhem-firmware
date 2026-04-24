@@ -47,7 +47,7 @@ EPIRBProcessor::EPIRBProcessor() {
 }
 
 void EPIRBProcessor::configure_audio() {
-    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config,  ((float)squelch_level) / 100.0f);
+    audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config,  ((float)squelch_level) / 40.0f);
 }
 
 float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {

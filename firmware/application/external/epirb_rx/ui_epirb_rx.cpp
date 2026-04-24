@@ -367,12 +367,13 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         on_beacon_change();
     };
 
-    //field_squelch.set_value(receiver_model.squelch_level());
     // Restore squelch value
+    //field_squelch.set_value(squelch);
     epirb_rx_config_message.squelch = squelch;
     send_config();
     //field_squelch.on_change = [this](int32_t v) {
-    //    epirb_rx_config_message.squelch = v;
+    //    squelch = v;
+    //    epirb_rx_config_message.squelch = squelch;
     //    send_config();
     //};
 
