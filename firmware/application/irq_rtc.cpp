@@ -48,8 +48,7 @@ void rtc_reset_default() {
     LPC_RTC->AHRS = 0;
 
     // 2. RESET EVENT ROUTER
-
-    // Reset to edge-triggered
+    // Reset to edge-triggered (Garantálja, hogy nem ragad be az ébresztés!)
     LPC_EVENTROUTER->EDGE |= (1 << 5);
 
     // DISABLE RTC channel routing
@@ -68,7 +67,7 @@ void rtc_wakeup_init() {
 
     // 2. EVENT ROUTER CONFIGURATION
     LPC_EVENTROUTER->HILO |= (1 << 5);
-    LPC_EVENTROUTER->EDGE &= ~(1 << 5);      // Level-triggered (Better for wakeup)
+    LPC_EVENTROUTER->EDGE |= (1 << 5);       // <-- JAVÍTVA! (Itt volt a hiba a te kódodban)
     LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;  // Clear pending events
     LPC_EVENTROUTER->SET_EN = (1 << 5);      // Enable RTC channel routing
 

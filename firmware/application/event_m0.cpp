@@ -149,7 +149,6 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
 }
 
 void EventDispatcher::charge_deep_sleep(const bool sleep) {
-    LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;
     bool detect = false;
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
@@ -207,7 +206,7 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 #endif
 
         // Power down peripherals (CGU cleanup)
-        LPC_RGU->RESET_CTRL[0] |= (1 << 17);  // USB0 Reset
+        LPC_RGU->RESET_CTRL[0] = (1 << 5);  // USB0 Reset
         LPC_CGU->PLL0USB_CTRL.PD = 1;
         LPC_CGU->BASE_USB0_CLK.PD = 1;
         LPC_CREG->CREG0 |= (1 << 5);
