@@ -172,13 +172,15 @@ class Beacon {
     bool hasAdditionalData{false};
     std::string additionalData{};
     bool hasSerialNumber{false};
-    std::string serialNumber{};
-    std::string hexId{};
+    char serialNumber[32] {0};
+    char hexId[32] {0};
     uint32_t bch1{};
     uint32_t computedBch1{};
+    bool bch1Corrected{false};
     bool hasBch2{false};
     uint32_t bch2{};
     uint32_t computedBch2{};
+    bool bch2Corrected{false};
     bool isEmpty{true};
 
     static inline uint64_t getBits(uint8_t* data, int startBit, int endBit) {
@@ -249,16 +251,41 @@ class Beacon {
         hasAdditionalData = false;
         additionalData = "";
         hasSerialNumber = false;
-        serialNumber = "";
-        hexId = "";
+        serialNumber[0] = 0;
+        hexId[0] = 0;
         bch1 = 0;
         computedBch1 = 0;
         hasBch2 = false;
+        bch1Corrected = false;
         bch2 = 0;
         computedBch2 = 0;
+        bch2Corrected = false;
         isEmpty = true;
         std::memcpy(frame, (const void*)frameBuffer, BEACON_DATA_SIZE);
         parseFrame();
+    }
+
+    inline void flipBit(int bit) {
+        int byteIdx = (bit - 1) / 8;
+        int bitIdx = 7 - ((bit - 1) % 8);
+        frame[byteIdx] ^= (1 << bitIdx);
+    }
+
+    inline void simpleCorrection(bool isBCH1) {
+        for (int i = (isBCH1 ? 25 : 107); i <= (isBCH1 ? 85 : 132); i++) {
+            flipBit(i);
+            if ((isBCH1 ? (computeBCH1(frame) == bch1) : (computeBCH2(frame) == bch2))) {
+                if(isBCH1) {
+                    computedBch1 = bch1;
+                    bch1Corrected = true;
+                } else {
+                    computedBch2 = bch2;
+                    bch2Corrected = true;
+                }
+                break;
+            }
+            flipBit(i);  // Restore bit value
+        }
     }
 
     inline const char* getProtocolName() { return getProtocolTypeName(protocol, longFrame); }
@@ -304,9 +331,7 @@ class Beacon {
     }
 
     inline void setSerialNumber(uint32_t serial) {
-        char buffer[32];
-        sprintf(buffer,"%ld (0x%08lX)",serial,serial);
-        serialNumber = buffer;
+        sprintf(serialNumber, "%ld (0x%08lX)", serial, serial);
     }
 
     inline bool isBch1Valid() { return (bch1 == computedBch1); }
@@ -319,7 +344,8 @@ class Beacon {
     }
 
     inline std::string shortId() {
-        return (hexId.size() >= 4) ? hexId.substr(0, 4) : hexId;
+        std::string result = std::string(hexId);
+        return (result.size() >= 4) ? result.substr(0, 4) : result;
     }
 
     inline std::string getSatus() {
@@ -337,22 +363,22 @@ class Beacon {
     }
 
     inline size_t formatTime(char* buffer) {
-        return sprintf(buffer,"%02d:%02d:%02d",date.hour(),date.minute(),date.second());
+        return sprintf(buffer, "%02d:%02d:%02d", date.hour(), date.minute(), date.second());
     }
 
     inline size_t formatSummary(char* buffer, bool with_time) {
         size_t result = 0;
         if (with_time) {
-            result+=formatTime(buffer);
+            result += formatTime(buffer);
             buffer[result++] = '-';
         }
-        result += sprintf((buffer+result),"%4s-%5s-",shortId().c_str(),getType());
-        if(location.isUnknown()) {
-            result += sprintf((buffer+result),"      ");
+        result += sprintf((buffer + result), "%4s-%5s-", shortId().c_str(), getType());
+        if (location.isUnknown()) {
+            result += sprintf((buffer + result), "      ");
         } else {
-            result += location.toString((buffer+result),Location::LocationFormat::MAIDENHEAD_LOCATOR);
+            result += location.toString((buffer + result), Location::LocationFormat::MAIDENHEAD_LOCATOR);
         }
-        result += sprintf((buffer+result),"[%s%s%s]",isFrameValid()?STR_COLOR_GREEN:STR_COLOR_RED,getSatus().c_str(),STR_COLOR_WHITE);
+        result += sprintf((buffer + result), "[%s%s%s]", isFrameValid() ? STR_COLOR_GREEN : STR_COLOR_RED, getSatus().c_str(), STR_COLOR_WHITE);
         return result;
     }
 
@@ -514,7 +540,7 @@ class Beacon {
                 case 0b1100: {
                     hasAdditionalData = true;
                     uint32_t mmsi = getBits(frame, 41, 60);
-                    sprintf(buffer,"MMSI=0x%08lX MID=%ld",mmsi,mmsi);
+                    sprintf(buffer, "MMSI=0x%08lX MID=%ld", mmsi, mmsi);
                     additionalData = buffer;
                 } break;
                 case 0b0011: {
@@ -529,7 +555,7 @@ class Beacon {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
                     uint32_t csTaNumber = getBits(frame, 41, 50);
-                    sprintf(buffer,"C/S TA #=%ld",csTaNumber);
+                    sprintf(buffer, "C/S TA #=%ld", csTaNumber);
                     additionalData = buffer;
                     setSerialNumber(getBits(frame, 51, 64));
                 } break;
@@ -542,7 +568,7 @@ class Beacon {
                     char char2 = BAUDOT_CODE[data + 32];
                     data = getBits(frame, 51, 55);
                     char char3 = BAUDOT_CODE[data + 32];
-                    sprintf(buffer,"Op Design.=%c%c%c",char1,char2,char3);
+                    sprintf(buffer, "Op Design.=%c%c%c", char1, char2, char3);
                     additionalData = buffer;
                     setSerialNumber(getBits(frame, 56, 64));
                 } break;
@@ -554,7 +580,7 @@ class Beacon {
                     hasAdditionalData = true;
                     setSerialNumber(getBits(frame, 41, 58));
                     uint32_t natNum = getBits(frame, 127, 132);
-                    sprintf(buffer,"Nati. data=%ld",natNum);
+                    sprintf(buffer, "Nati. data=%ld", natNum);
                     additionalData = buffer;
                 } break;
             }
@@ -593,7 +619,7 @@ class Beacon {
 
         longFrame = getBits(frame, 25, 25);
         parseProtocol();
-        CountryManager::get_country(getBits(frame, 27, 36),country);
+        CountryManager::get_country(getBits(frame, 27, 36), country);
 
         if (frame[2] == 0xD0)
             frameMode = FrameMode::SELF_TEST;
@@ -603,9 +629,7 @@ class Beacon {
             frameMode = FrameMode::UNKNOWN;
 
         identifier = getBits(frame, 26, 85);
-        char buffer[32];
-        std::sprintf(buffer, "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
-        hexId = std::string(buffer);
+        std::sprintf(hexId, "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
 
         if (longFrame) {
             if (protocolIsUser(protocol) && !isOrbito()) {
@@ -763,10 +787,27 @@ class Beacon {
 
         bch1 = getBits(frame, 86, 106);
         computedBch1 = computeBCH1(frame);
+        // Try and correct single bit error on  BCH1 (bits 25-85)
+        if (computedBch1 != bch1) {
+            simpleCorrection(true);
+        }
+
         hasBch2 = !isOrbito();
         if (hasBch2) {
             bch2 = getBits(frame, 133, 144);
             computedBch2 = computeBCH2(frame);
+            // Try and correct single bit error on  BCH2 (bits 107 - 132)
+            if (computedBch2 != bch2) {
+                simpleCorrection(false);
+            }
+        }
+        static bool isCorrecting = false;
+        // If BCH1 or BCH2 has been corrected, we need to parse frame again to update beacon properties
+        if (!isCorrecting && (bch1Corrected || bch2Corrected)) {
+            // Prevent recursion
+            isCorrecting = true;
+            parseFrame();
+            isCorrecting = false;
         }
     }
 };

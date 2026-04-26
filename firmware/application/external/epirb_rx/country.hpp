@@ -28,6 +28,8 @@
 
 namespace ui::external_app::epirb_rx {
 
+#define DISABLE_COUNTRY_CACHE
+
 // Country struct
 struct Country {
     int16_t code;
@@ -38,6 +40,7 @@ struct Country {
 class CountryManager {
    public:
     static void get_country(int code, Country& out) {
+#ifndef DISABLE_COUNTRY_CACHE
         // Check cache
         for (int i = 0; i < cache_count; i++) {
             if (cache[i].code == code) {
@@ -50,22 +53,26 @@ class CountryManager {
                 return;
             }
         }
-
+#endif
         // Cache miss => load from file
         if (load_from_file(code, out)) {
+#ifndef DISABLE_COUNTRY_CACHE
             // Insert in cache
             int limit = (cache_count < 16) ? cache_count : 15;
             for (int j = limit; j > 0; j--) cache[j] = cache[j - 1];
             cache[0] = out;
             if (cache_count < 16) cache_count++;
+#endif
         } else {
             out.code = code;
         }
     }
 
    private:
+#ifndef DISABLE_COUNTRY_CACHE
     static Country cache[16];
     static int cache_count;
+#endif
 
     static bool load_from_file(int target_code, Country& out) {
         FIL file;

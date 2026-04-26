@@ -167,7 +167,7 @@ class EPIRBAppView final : public ui::View {
     ~EPIRBAppView();
 
     void set_parent_rect(const ui::Rect new_parent_rect) override;
-    void focus() override;
+    //void focus() override;
     void refresh();
 
     // Message to configure rx baseband
@@ -265,8 +265,8 @@ class EPIRBAppView final : public ui::View {
     static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
     void on_packet(Message* const p);
     void update_map();
-    void on_clear_beacons();
-    void on_toggle_log();
+    //void on_clear_beacons();
+    //void on_toggle_log();
     void on_tick_second();
     void on_beacon_change();
 

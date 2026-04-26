@@ -165,7 +165,7 @@ class EPIRBProcessor : public BasebandProcessor {
 
     // Config
     uint8_t squelch_level{50};
-    bool audio_on{true};
+    //bool audio_on{true};
 #ifdef SPECAN
     bool spectrum_on{false};
 #endif
@@ -177,7 +177,7 @@ class EPIRBProcessor : public BasebandProcessor {
 
     // Last received bit (for manchester deconding)
     bool last_bit = false;
-    // Time of the last sent frame
+    // Bit history for debug purpose
     // BitHistory bit_history{};
     // uint8_t history_size{0};
     uint16_t sample_count{0};

@@ -43,8 +43,10 @@ namespace ui::external_app::epirb_rx {
 #define MAPS_URL_TEMPLATE "https://www.google.com/maps/search/?api=1&query=%s%%2C%s"
 #define BEACON_URL_TEMPALTE "https://decoder2.herokuapp.com/decoded/"
 
+#ifndef DISABLE_COUNTRY_CACHE
 int CountryManager::cache_count = 0;
 Country CountryManager::cache[16];
+#endif
 
 TextArea::TextArea(
     Rect parent_rect)
@@ -162,9 +164,9 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     if (beacon.hasBch2) {
         buffer_pointer += sprintf(buffer_pointer, " %s%s", beacon.isBch2Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
     }
-    buffer_pointer += sprintf(buffer_pointer, "\t%sHex ID:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.hexId.c_str());
+    buffer_pointer += sprintf(buffer_pointer, "\t%sHex ID:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.hexId);
     if (beacon.hasSerialNumber) {
-        buffer_pointer += sprintf(buffer_pointer, "%sS/N:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.serialNumber.c_str());
+        buffer_pointer += sprintf(buffer_pointer, "%sS/N:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.serialNumber);
     }
     if (beacon.hasMainLocatingDevice()) {
         buffer_pointer += sprintf(buffer_pointer, "%sMain loc. dev.:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getMainLocatingDeviceName());
@@ -387,10 +389,10 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     // Force sample rate to patch baseband processor
     receiver_model.set_sampling_rate(3072000);
 
+    receiver_model.enable();
+
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
-
-    receiver_model.enable();
 
     update_display();
 
@@ -416,9 +418,9 @@ void EPIRBAppView::refresh() {
     view_map.repaint();
 }
 
-void EPIRBAppView::focus() {
+/*void EPIRBAppView::focus() {
     options_frequency.focus();
-}
+}*/
 
 void EPIRBAppView::on_packet(Message* const p) {
     const auto message = static_cast<const EPIRBPacketMessage*>(p);
@@ -430,7 +432,7 @@ void EPIRBAppView::on_packet(Message* const p) {
     // UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
-    if (packet.size() > 64) {
+    //if (packet.size() > 64) {
         // Actual beacon
         Beacon& beacon = beacon_db.add_beacon();
         decode_packet(packet, beacon);
@@ -453,7 +455,7 @@ void EPIRBAppView::on_packet(Message* const p) {
         }*/
 
         view_list.set_dirty();
-    }
+    //}
 }
 
 void EPIRBAppView::on_beacon_change() {
@@ -498,6 +500,7 @@ void EPIRBAppView::update_map() {
     view_map.repaint();
 }
 
+/*
 void EPIRBAppView::on_clear_beacons() {
     beacon_db.clear();
     beacons_received = 0;
@@ -507,19 +510,19 @@ void EPIRBAppView::on_clear_beacons() {
     update_map();
     view_qr.set_beacon(nullptr);
     update_display();
-}
+}*/
 
-void EPIRBAppView::on_toggle_log() {
+/*void EPIRBAppView::on_toggle_log() {
     // Toggle logging functionality
-    /*if (logger) {
+    if (logger) {
         logger.reset();
         button_log.set_text("Log");
     } else {
         logger = std::make_unique<EPIRBLogger>();
         logger->append("epirb_rx.txt");
         button_log.set_text("Stop");
-    }*/
-}
+    }
+}*/
 
 void EPIRBAppView::on_tick_second() {
     timeout++;

@@ -90,13 +90,13 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
     feed_channel_stats(decimator_out);
 
-    if (audio_on) {
+    //if (audio_on) {
         // Channel filter for audio out
         const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
         auto audio = demod.execute(channel_out, audio_buffer);
         // auto audio = demod.execute(decimator_out, audio_buffer);
         audio_output.write(audio);
-    }
+    //}
 
     // Process each decimated sample through the matched filter
     for (size_t i = 0; i < decimator_out.count; i++) {
@@ -273,7 +273,7 @@ void EPIRBProcessor::on_message(const Message* const msg) {
 #endif
         case Message::ID::EPIRBRXConfig: {
             const EPIRBRXConfig message = *reinterpret_cast<const EPIRBRXConfig*>(msg);
-            audio_on = message.audio_on;
+            //audio_on = message.audio_on;
 #ifdef SPECAN
             spectrum_on = message.scpectrum_on;
 #endif
