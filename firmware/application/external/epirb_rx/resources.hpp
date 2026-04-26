@@ -34,8 +34,8 @@ namespace ui::external_app::epirb_rx {
 class ResourceManager {
    public:
     ResourceManager() {
-        load_file((epirb_dir / u"RES/PDESC.RES"),pdesc);
-        load_file((epirb_dir / u"FREQ.TXT"),freq);
+        load_file((epirb_dir / u"RES/PDESC.RES"), pdesc);
+        load_file((epirb_dir / u"FREQ.TXT"), freq);
     }
 
     const char* get_protocol_description(uint8_t line) const {
@@ -59,14 +59,14 @@ class ResourceManager {
             TCHAR line_buffer[32];
             while (f_gets(line_buffer, sizeof(line_buffer) / sizeof(TCHAR), &file)) {
                 std::string s;
-                for (int i = 0; line_buffer[i] != '\0' && line_buffer[i] != '\n' ; i++) {
+                for (int i = 0; line_buffer[i] != '\0' && line_buffer[i] != '\n'; i++) {
                     s += (char)line_buffer[i];
                 }
                 vect.push_back(std::move(s));
             }
             f_close(&file);
         }
-        if(vect.empty()) vect.push_back(UNKNOWN_LABEL);
+        if (vect.empty()) vect.push_back(UNKNOWN_LABEL);
     }
 };
 

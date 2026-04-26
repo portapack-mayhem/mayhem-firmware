@@ -102,7 +102,7 @@ class Beacon {
     static bool protocolIsRlsOrElt(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::RLS_LOCATION || getProtocolType(protocol) == ProtocolType::ELT_DT_LOCATION); };
     static bool protocolIsUnknown(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::UNKNOWN); };
 
-    static inline const char* getProtocolTypeName(Protocol protocol, bool longFrame) {
+    static const char* getProtocolTypeName(Protocol protocol, bool longFrame) {
         switch (getProtocolType(protocol)) {
             case ProtocolType::STANDARD_LOCATION:
                 return "Standard";
@@ -121,7 +121,7 @@ class Beacon {
         }
     }
 
-    static inline ProtocolType getProtocolType(Protocol protocol) {
+    static ProtocolType getProtocolType(Protocol protocol) {
         switch (protocol) {
             case Protocol::USER_EPIRB_MARITIME:
             case Protocol::USER_EPIRB_RADIO:
@@ -172,8 +172,8 @@ class Beacon {
     bool hasAdditionalData{false};
     std::string additionalData{};
     bool hasSerialNumber{false};
-    char serialNumber[32] {0};
-    char hexId[32] {0};
+    char serialNumber[32]{0};
+    char hexId[32]{0};
     uint32_t bch1{};
     uint32_t computedBch1{};
     bool bch1Corrected{false};
@@ -183,7 +183,7 @@ class Beacon {
     bool bch2Corrected{false};
     bool isEmpty{true};
 
-    static inline uint64_t getBits(uint8_t* data, int startBit, int endBit) {
+    static uint64_t getBits(uint8_t* data, int startBit, int endBit) {
         uint64_t result = 0;
         startBit--;
         int numBits = endBit - startBit;
@@ -201,7 +201,7 @@ class Beacon {
         return result;
     }
 
-    static inline uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {
+    static uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {
         int dataLength = endBit - startBit + 1;
         int totalLength = dataLength + polyLength - 1;
         uint64_t result = getBits(frame, startBit, startBit + polyLength - 1);
@@ -216,14 +216,14 @@ class Beacon {
         return result;
     }
 
-    static inline uint64_t computeBCH1(uint8_t* frame) { return computeBCH(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
-    static inline uint64_t computeBCH2(uint8_t* frame) { return computeBCH(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
+    static uint64_t computeBCH1(uint8_t* frame) { return computeBCH(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
+    static uint64_t computeBCH2(uint8_t* frame) { return computeBCH(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
 
-    static inline size_t toHexString(char* buffer, uint32_t data) {
+    static size_t toHexString(char* buffer, uint32_t data) {
         return sprintf(buffer, "0x%08lX", data);
     }
 
-    static inline size_t toHexString(char* buffer, uint8_t* frame, bool withSpace, int start, int end) {
+    static size_t toHexString(char* buffer, uint8_t* frame, bool withSpace, int start, int end) {
         size_t result = 0;
         for (uint8_t i = start; i < end; i++) {
             if (withSpace && i > start) buffer[result++] = ' ';
@@ -237,7 +237,7 @@ class Beacon {
     Beacon(const Beacon& other) = delete;
     Beacon& operator=(const Beacon& other) = delete;
 
-    inline void setFrame(const uint8_t* frameBuffer) {
+    void setFrame(const uint8_t* frameBuffer) {
         frameMode = FrameMode::UNKNOWN;
         mainLocatingDevice = MainLocatingDevice::UNDEFINED;
         auxLocatingDevice = AuxLocatingDevice::UNDEFINED;
@@ -265,17 +265,17 @@ class Beacon {
         parseFrame();
     }
 
-    inline void flipBit(int bit) {
+    void flipBit(int bit) {
         int byteIdx = (bit - 1) / 8;
         int bitIdx = 7 - ((bit - 1) % 8);
         frame[byteIdx] ^= (1 << bitIdx);
     }
 
-    inline void simpleCorrection(bool isBCH1) {
+    void simpleCorrection(bool isBCH1) {
         for (int i = (isBCH1 ? 25 : 107); i <= (isBCH1 ? 85 : 132); i++) {
             flipBit(i);
             if ((isBCH1 ? (computeBCH1(frame) == bch1) : (computeBCH2(frame) == bch2))) {
-                if(isBCH1) {
+                if (isBCH1) {
                     computedBch1 = bch1;
                     bch1Corrected = true;
                 } else {
@@ -288,9 +288,9 @@ class Beacon {
         }
     }
 
-    inline const char* getProtocolName() { return getProtocolTypeName(protocol, longFrame); }
+    const char* getProtocolName() { return getProtocolTypeName(protocol, longFrame); }
 
-    inline const char* getType() {
+    const char* getType() {
         if ((protocol == Protocol::USER_EPIRB_MARITIME) || (protocol == Protocol::USER_EPIRB_RADIO) || (protocol == Protocol::STD_EPIRB) || (protocol == Protocol::STD_EPIRB_SERIAL) || (protocol == Protocol::NAT_EPIRB)) return "EPIRB";
         if ((protocol == Protocol::USER_ELT) || (protocol == Protocol::STD_ELT_24) || (protocol == Protocol::STD_ELT_SERIAL) || (protocol == Protocol::STD_ELT_AIRCRAFT) || (protocol == Protocol::NAT_ELT) || (protocol == Protocol::ELT_DT)) return "ELT";
         if ((protocol == Protocol::STD_PLB_SERIAL) || (protocol == Protocol::NAT_PLB)) return "PLB";
@@ -305,15 +305,15 @@ class Beacon {
         return UNKNOWN_LABEL;
     }
 
-    inline bool hasMainLocatingDevice() { return (mainLocatingDevice != MainLocatingDevice::UNDEFINED); }
-    inline const char* getMainLocatingDeviceName() {
+    bool hasMainLocatingDevice() { return (mainLocatingDevice != MainLocatingDevice::UNDEFINED); }
+    const char* getMainLocatingDeviceName() {
         if (mainLocatingDevice == MainLocatingDevice::EXTERNAL_NAV) return "Exernal";
         if (mainLocatingDevice == MainLocatingDevice::INTERNAL_NAV) return "Internal";
         return UNKNOWN_LABEL;
     }
 
-    inline bool hasAuxLocatingDevice() { return (auxLocatingDevice != AuxLocatingDevice::UNDEFINED); }
-    inline const char* getAuxLocatingDeviceName() {
+    bool hasAuxLocatingDevice() { return (auxLocatingDevice != AuxLocatingDevice::UNDEFINED); }
+    const char* getAuxLocatingDeviceName() {
         switch (auxLocatingDevice) {
             case AuxLocatingDevice::NONE:
                 return "No device";
@@ -330,43 +330,43 @@ class Beacon {
         }
     }
 
-    inline void setSerialNumber(uint32_t serial) {
+    void setSerialNumber(uint32_t serial) {
         sprintf(serialNumber, "%ld (0x%08lX)", serial, serial);
     }
 
-    inline bool isBch1Valid() { return (bch1 == computedBch1); }
-    inline bool isBch2Valid() { return (bch2 == computedBch2); }
-    inline bool isFrameValid() { return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty); }
-    inline bool isOrbito() { return (protocol == Protocol::USER_ORB); }
+    bool isBch1Valid() { return (bch1 == computedBch1); }
+    bool isBch2Valid() { return (bch2 == computedBch2); }
+    bool isFrameValid() { return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty); }
+    bool isOrbito() { return (protocol == Protocol::USER_ORB); }
 
-    inline size_t hexString(char* buffer, bool withHeader) {
+    size_t hexString(char* buffer, bool withHeader) {
         return toHexString(buffer, frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
     }
 
-    inline std::string shortId() {
+    std::string shortId() {
         std::string result = std::string(hexId);
         return (result.size() >= 4) ? result.substr(0, 4) : result;
     }
 
-    inline std::string getSatus() {
+    std::string getSatus() {
         if (isFrameValid())
             return "OK";
         else
             return "KO";
     }
 
-    inline ui::Color getColor() {
+    ui::Color getColor() {
         if (isFrameValid())
             return ui::Color::green();
         else
             return ui::Color::red();
     }
 
-    inline size_t formatTime(char* buffer) {
+    size_t formatTime(char* buffer) {
         return sprintf(buffer, "%02d:%02d:%02d", date.hour(), date.minute(), date.second());
     }
 
-    inline size_t formatSummary(char* buffer, bool with_time) {
+    size_t formatSummary(char* buffer, bool with_time) {
         size_t result = 0;
         if (with_time) {
             result += formatTime(buffer);
@@ -389,7 +389,7 @@ class Beacon {
                                              ' ', 'T', ' ', 'O', ' ', 'H', 'N', 'M', ' ', 'L', 'R', 'G', 'I', 'P', 'C', 'V',
                                              'E', 'Z', 'D', 'B', 'S', 'Y', 'F', 'X', 'A', 'W', 'J', ' ', 'U', 'Q', 'K', '\0'};
 
-    inline void parseProtocol() {
+    void parseProtocol() {
         protocolFlag = getBits(frame, 26, 26);
         if (protocolFlag)
             protocolCode = getBits(frame, 37, 39);
@@ -475,7 +475,7 @@ class Beacon {
         }
     }
 
-    inline void parseAdditionalData() {
+    void parseAdditionalData() {
         hasAdditionalData = false;
         hasSerialNumber = false;
         if (protocolFlag) {
@@ -587,7 +587,7 @@ class Beacon {
         }
     }
 
-    inline void parseLocatingDevices() {
+    void parseLocatingDevices() {
         bool mainLoc;
         if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
             mainLoc = getBits(frame, 111, 111);
@@ -613,7 +613,7 @@ class Beacon {
         }
     }
 
-    inline void parseFrame() {
+    void parseFrame() {
         long latofmin, latofsec, lonofmin, lonofsec;
         bool latoffset, lonoffset;
 

@@ -34,8 +34,8 @@ void BeaconUIList::paint(Painter& painter) {
     painter.fill_rectangle(rect, Theme::getInstance()->bg_darkest->background);
 
     if (!db_ || (db_->empty())) {
-        //auto line_position = rect.location() + Point{7 * 8, 6 * 16};
-        //painter.draw_string(line_position, *Theme::getInstance()->bg_darkest, "No beacons");
+        // auto line_position = rect.location() + Point{7 * 8, 6 * 16};
+        // painter.draw_string(line_position, *Theme::getInstance()->bg_darkest, "No beacons");
         return;
     }
 
@@ -53,7 +53,7 @@ void BeaconUIList::paint(Painter& painter) {
         if (index < db_->size()) {
             auto& entry = db_->get_beacon(index);
             char buffer[64];
-            entry.formatSummary(buffer,true);
+            entry.formatSummary(buffer, true);
             text = std::string(buffer);
         }
 

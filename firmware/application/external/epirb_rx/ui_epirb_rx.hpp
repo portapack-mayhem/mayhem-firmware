@@ -167,7 +167,7 @@ class EPIRBAppView final : public ui::View {
     ~EPIRBAppView();
 
     void set_parent_rect(const ui::Rect new_parent_rect) override;
-    //void focus() override;
+    // void focus() override;
     void refresh();
 
     // Message to configure rx baseband
@@ -179,7 +179,8 @@ class EPIRBAppView final : public ui::View {
    private:
     uint8_t squelch{50};
     app_settings::SettingsManager settings_{
-        "rx_epirb", app_settings::Mode::RX,
+        "rx_epirb",
+        app_settings::Mode::RX,
         {
             {"epirb_squelch"sv, &squelch},
         }};
@@ -212,14 +213,14 @@ class EPIRBAppView final : public ui::View {
     ui::Channel channel{
         {UI_POS_X(16), UI_POS_Y(0) + 5, UI_POS_WIDTH_REMAINING(22), 4}};
 
-    //ui::Audio audio{
-    //    {UI_POS_X(16), UI_POS_Y(0) + 10, UI_POS_WIDTH_REMAINING(22), 4}};
+    // ui::Audio audio{
+    //     {UI_POS_X(16), UI_POS_Y(0) + 10, UI_POS_WIDTH_REMAINING(22), 4}};
 
     ui::AudioVolumeField field_volume{
         {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
 
-    //NumberField field_squelch{
-    //    {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},2,{0, 99},1,' '};
+    // NumberField field_squelch{
+    //     {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},2,{0, 99},1,' '};
 
     // Status display
     TextArea text_status{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(3)}};
@@ -265,8 +266,8 @@ class EPIRBAppView final : public ui::View {
     static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
     void on_packet(Message* const p);
     void update_map();
-    //void on_clear_beacons();
-    //void on_toggle_log();
+    // void on_clear_beacons();
+    // void on_toggle_log();
     void on_tick_second();
     void on_beacon_change();
 

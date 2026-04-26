@@ -340,7 +340,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     options_t frequ_options;
     for (auto freq : resource_manager.get_frequencies()) {
         int32_t freq_value = atol(freq.c_str());
-        frequ_options.emplace_back(to_string_rounded_freq(freq_value,3), freq_value);
+        frequ_options.emplace_back(to_string_rounded_freq(freq_value, 3), freq_value);
     }
     options_frequency.set_options(frequ_options);
 
@@ -370,21 +370,21 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     };
 
     // Restore squelch value
-    //field_squelch.set_value(squelch);
+    // field_squelch.set_value(squelch);
     epirb_rx_config_message.squelch = squelch;
     send_config();
-    //field_squelch.on_change = [this](int32_t v) {
-    //    squelch = v;
-    //    epirb_rx_config_message.squelch = squelch;
-    //    send_config();
-    //};
+    // field_squelch.on_change = [this](int32_t v) {
+    //     squelch = v;
+    //     epirb_rx_config_message.squelch = squelch;
+    //     send_config();
+    // };
 
     // Configure receiver for default EPIRB frequency (406.028 MHz)
     // Receiver parameters are loaded from settings
-    //receiver_model.set_target_frequency(406025000);
-    //receiver_model.set_rf_amp(true);
-    //receiver_model.set_lna(32);
-    //receiver_model.set_vga(32);
+    // receiver_model.set_target_frequency(406025000);
+    // receiver_model.set_rf_amp(true);
+    // receiver_model.set_lna(32);
+    // receiver_model.set_vga(32);
 
     // Force sample rate to patch baseband processor
     receiver_model.set_sampling_rate(3072000);
@@ -432,29 +432,29 @@ void EPIRBAppView::on_packet(Message* const p) {
     // UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
-    //if (packet.size() > 64) {
-        // Actual beacon
-        Beacon& beacon = beacon_db.add_beacon();
-        decode_packet(packet, beacon);
-        beacons_received++;
+    // if (packet.size() > 64) {
+    // Actual beacon
+    Beacon& beacon = beacon_db.add_beacon();
+    decode_packet(packet, beacon);
+    beacons_received++;
 
-        // Track packet statistics
-        if (beacon.isFrameValid())
-            packets_valid++;
-        else
-            packets_error++;
+    // Track packet statistics
+    if (beacon.isFrameValid())
+        packets_valid++;
+    else
+        packets_error++;
 
-        // Update timeout
-        timeout = (timeout_delay * -1);
-        // Update display
-        on_beacon_change();
+    // Update timeout
+    timeout = (timeout_delay * -1);
+    // Update display
+    on_beacon_change();
 
-        // Log the beacon
-        /*if (logger) {
-            logger->on_packet(beacon);
-        }*/
+    // Log the beacon
+    /*if (logger) {
+        logger->on_packet(beacon);
+    }*/
 
-        view_list.set_dirty();
+    view_list.set_dirty();
     //}
 }
 
