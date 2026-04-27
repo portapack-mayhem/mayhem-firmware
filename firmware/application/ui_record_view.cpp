@@ -99,6 +99,9 @@ RecordView::RecordView(
 
 RecordView::~RecordView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
+    if (is_active()) {
+        capture_thread.reset();
+    }
 }
 
 void RecordView::focus() {

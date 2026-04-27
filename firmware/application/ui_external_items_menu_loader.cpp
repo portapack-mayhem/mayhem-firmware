@@ -99,6 +99,7 @@ namespace ui {
 
 /* static */ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
+    bitmaps.shrink_to_fit();
 
     std::vector<GridItemEx> external_apps;
 

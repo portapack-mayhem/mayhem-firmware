@@ -50,8 +50,9 @@
 #include "lfsr_random.hpp"
 #include "sd_card.hpp"
 #include "external_app.hpp"
-#include "view_factory.hpp"
 #include "battery.hpp"
+
+using ViewProducer = std::unique_ptr<View> (*)(NavigationView&);
 
 // for incrementing fake date when RTC battery is dead
 #define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
@@ -74,7 +75,7 @@ class CstrCmp {
     bool operator()(const char* a, const char* b) const;
 };
 
-// Should only be used as part of the appList in NavigationView, the viewFactory will never be destroyed.
+// Should only be used as part of the appList in NavigationView.
 class AppInfo {
    public:
     const char* id;  // MUST be unique! Used by serial command to start the app so it also has to make sense
@@ -82,7 +83,7 @@ class AppInfo {
     app_location_t menuLocation;
     Color iconColor;
     const Bitmap* icon;
-    ViewFactoryBase* viewFactory;  // Never destroyed, and I believe it's ok ;) Having a unique_ptr here breaks the initializer list of appList
+    ViewProducer producer;
 };
 
 struct AppInfoConsole {

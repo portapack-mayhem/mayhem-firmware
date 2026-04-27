@@ -33,24 +33,51 @@
 #define EXT_APP_EXPECTED_CHECKSUM 0x00000000
 
 namespace ui {
-
 template <size_t Width, size_t Height>
 class DynamicBitmap {
    public:
-    static constexpr size_t buffer_size = Width * Height / (sizeof(uint8_t) * 8);  // one bit per pixel
+    static constexpr size_t buffer_size = Width * Height / (sizeof(uint8_t) * 8);
 
+    // Main constructor
     DynamicBitmap(const uint8_t data[buffer_size])
-        : _buffer(buffer_size, 0),
-          _bitmap{new Bitmap{{Width, Height}, &_buffer[0]}} {
-        memcpy(&_buffer[0], data, buffer_size);
+        : _bitmap{{Width, Height}, _buffer.data()} {
+        std::memcpy(_buffer.data(), data, buffer_size);
     }
 
-    const Bitmap* bitmap() { return _bitmap.get(); }
+    DynamicBitmap(const DynamicBitmap& other)
+        : _buffer(other._buffer),
+          _bitmap{{Width, Height}, _buffer.data()} {}
+
+    DynamicBitmap(DynamicBitmap&& other) noexcept
+        : _buffer(std::move(other._buffer)),
+          _bitmap{{Width, Height}, _buffer.data()} {}
+
+    DynamicBitmap& operator=(const DynamicBitmap& other) {
+        if (this != &other) {
+            _buffer = other._buffer;
+            _bitmap = Bitmap{{Width, Height}, _buffer.data()};
+        }
+        return *this;
+    }
+
+    DynamicBitmap& operator=(DynamicBitmap&& other) noexcept {
+        if (this != &other) {
+            _buffer = std::move(other._buffer);
+            _bitmap = Bitmap{{Width, Height}, _buffer.data()};
+        }
+        return *this;
+    }
+
+    // Destructor (Default is fine, no heap memory to free manually)
+    ~DynamicBitmap() = default;
+
+    const Bitmap* bitmap() const { return &_bitmap; }
 
    private:
-    // Allocating both members so the class is movable without invalidation.
-    std::vector<uint8_t> _buffer;
-    std::unique_ptr<Bitmap> _bitmap;
+    // Order matters: _buffer must be declared before _bitmap
+    // so it is initialized first and its .data() pointer is valid.
+    std::array<uint8_t, buffer_size> _buffer{};
+    Bitmap _bitmap{};
 };
 
 class ExternalItemsMenuLoader {
