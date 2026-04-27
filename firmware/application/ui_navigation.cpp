@@ -656,6 +656,7 @@ void NavigationView::pop(bool trigger_update) {
 
     free_view();
     view_stack.pop_back();
+    view_stack.shrink_to_fit();
 
     // NB: These are executed _after_ the view has been
     // destroyed. The old view MUST NOT be referenced in
