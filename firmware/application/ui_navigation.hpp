@@ -52,14 +52,13 @@
 #include "external_app.hpp"
 #include "battery.hpp"
 
-using ViewProducer = std::unique_ptr<View> (*)(NavigationView&);
-
 // for incrementing fake date when RTC battery is dead
 #define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
 
 using namespace sd_card;
 
 namespace ui {
+using ViewProducer = std::unique_ptr<View> (*)(NavigationView&);
 
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
 void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile = true);

@@ -704,6 +704,7 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
 }
 
 static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) {
+    if (element.id == nullptr) return;
     if (strlen(element.id) == 0) return;
     chprintf(chp, element.id);
     chprintf(chp, " ");
@@ -740,8 +741,7 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    // TODO(u-foka): Somehow order static and dynamic app lists together
-    for (auto& element : ui::NavigationView::appList) {  // Use the map as its ordered by id
+    for (auto& element : ui::NavigationView::appList) {
         printAppInfo(chp, element);
     }
     ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
