@@ -40,7 +40,7 @@ constexpr size_t time_sink_waveform_points = 240;
 
 class TimeSinkWaveformWidget : public Widget {
    public:
-    TimeSinkWaveformWidget(Rect parent_rect, const int16_t* data, size_t length, Color color);
+    TimeSinkWaveformWidget(Rect parent_rect, const int8_t* data, size_t length, Color color);
     TimeSinkWaveformWidget(const TimeSinkWaveformWidget&) = delete;
     TimeSinkWaveformWidget(TimeSinkWaveformWidget&&) = delete;
     TimeSinkWaveformWidget& operator=(const TimeSinkWaveformWidget&) = delete;
@@ -56,13 +56,13 @@ class TimeSinkWaveformWidget : public Widget {
     static constexpr size_t max_persistence_frames = 16;  // this is sad that we cant have 32 histories in ext app due to memory constraints
 
     void reset_cache();
-    Coord sample_to_y(const Rect& r, int16_t sample) const;
+    Coord sample_to_y(const Rect& r, int8_t sample) const;
 
-    const int16_t* data_;
+    const int8_t* data_;
     size_t length_;
     Color color_;
     std::array<Coord, max_columns> current_y_{};
-    std::array<std::array<Coord, max_columns>, max_persistence_frames> history_y_{};
+    std::array<std::array<int8_t, max_columns>, max_persistence_frames> history_samples_{};
     size_t history_count_{0};
     size_t history_head_{0};
     uint8_t persistence_frames_{1};
@@ -120,7 +120,7 @@ class TimeSinkView : public View {
             {"trigger_level"sv, &trigger_level},
         }};
 
-    int16_t waveform_buffer[waveform_points]{0};
+    int8_t waveform_buffer[waveform_points]{0};
     ChannelSpectrumFIFO* fifo = nullptr;
 
     Labels labels{
