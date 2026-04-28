@@ -1381,17 +1381,17 @@ void NewButton::paint(Painter& painter) {
 
         if (!text_.empty()) {
             auto label_r = style.font.size_of(text_);
-            std::string text_to_draw = text_;
-            if (label_r.width() > r.width() - 2) {
-                // Truncate text to fit
-                size_t max_chars = (r.width() - 2) / style.font.char_width();
-                text_to_draw = text_.substr(0, max_chars);
-                label_r = style.font.size_of(text_to_draw);
-            }
             if (bitmap_) {
                 y += spacing;
             }
-            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+            if (label_r.width() > r.width() - 2) {
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                std::string text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+            } else {
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_);
+            }
         }
     } else {  // no valign
         if (bitmap_) {
@@ -1406,15 +1406,14 @@ void NewButton::paint(Painter& painter) {
 
         if (!text_.empty()) {
             auto label_r = style.font.size_of(text_);
-            std::string text_to_draw = text_;
             if (label_r.width() > r.width() - 2) {
-                // Truncate text to fit
                 size_t max_chars = (r.width() - 2) / style.font.char_width();
-                text_to_draw = text_.substr(0, max_chars);
+                std::string text_to_draw = text_.substr(0, max_chars);
                 label_r = style.font.size_of(text_to_draw);
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style, text_to_draw);
+            } else {
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style, text_);
             }
-            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
-                                text_to_draw);
         }
     }
 }
