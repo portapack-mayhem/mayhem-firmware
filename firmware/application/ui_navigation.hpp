@@ -452,8 +452,8 @@ class SystemView : public View {
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
     NotificationView notification_view{navigation_view};
-    DfuMenu overlay{navigation_view};
-    DfuMenu2 overlay2{navigation_view};
+    std::unique_ptr<DfuMenu> overlay{nullptr};
+    std::unique_ptr<DfuMenu2> overlay2{nullptr};
     Context& context_;
 };
 
