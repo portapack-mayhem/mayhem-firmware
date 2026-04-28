@@ -741,6 +741,7 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
+    // todo U-foka : sort the list
     for (auto& element : ui::NavigationView::appList) {
         printAppInfo(chp, element);
     }
