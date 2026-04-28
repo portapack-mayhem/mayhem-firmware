@@ -703,7 +703,7 @@ void Console::clear(bool clear_buffer = false) {
     pos = {0, 0};
 }
 
-void Console::write(std::string message) {
+void Console::write(const std::string& message) {
     bool escape = false;
 
     if (!hidden() && drawn()) {
@@ -754,7 +754,7 @@ void Console::getWidgetName(std::string& result) {
     result = "Console";
 }
 
-void Console::writeln(std::string message) {
+void Console::writeln(const std::string& message) {
     write(message + "\n");
 }
 
@@ -845,7 +845,7 @@ Checkbox::Checkbox(
     set_focusable(true);
 }
 
-void Checkbox::set_text(const std::string value) {
+void Checkbox::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -977,7 +977,7 @@ Button::Button(
     set_focusable(true);
 }
 
-void Button::set_text(const std::string value) {
+void Button::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1124,7 +1124,7 @@ ButtonWithEncoder::ButtonWithEncoder(
     set_focusable(true);
 }
 
-void ButtonWithEncoder::set_text(const std::string value) {
+void ButtonWithEncoder::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1296,7 +1296,7 @@ NewButton::NewButton(
     set_focusable(true);
 }
 
-void NewButton::set_text(const std::string value) {
+void NewButton::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
