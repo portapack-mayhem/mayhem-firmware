@@ -104,7 +104,7 @@ std::string to_string_bin(
     if (l >= 33) l = 32;
     char p[33];
     for (uint8_t c = 0; c < l; c++) {
-        if (n & (1 << (l - 1 - c)))
+        if (n & (1UL << (l - 1 - c)))
             p[c] = '1';
         else
             p[c] = '0';
@@ -130,28 +130,19 @@ std::string to_string_dec_uint(
     return q;
 }
 
-std::string to_string_dec_int(
-    const int32_t n,
-    const int32_t l,
-    const char fill) {
+std::string to_string_dec_int(const int32_t n, const int32_t l, const char fill) {
     const size_t negative = (n < 0) ? 1 : 0;
     uint32_t n_abs = negative ? -n : n;
-
-    char p[16];
+    char p[24];
+    int32_t safe_l = std::min<int32_t>(l, sizeof(p) - 1);
     auto term = p + sizeof(p) - 1;
-    auto q = to_string_dec_uint_pad_internal(term, n_abs, l - negative, fill);
-
-    // Add sign.
+    auto q = to_string_dec_uint_pad_internal(term, n_abs, safe_l - negative, fill);
     if (negative) {
         *(--q) = '-';
     }
-
-    // Right justify.
-    // (This code is redundant and won't do anything if a fill character was specified)
-    while ((term - q) < l) {
-        *(--q) = ' ';
+    while ((term - q) < safe_l) {
+        *(--q) = (fill ? fill : ' ');
     }
-
     return q;
 }
 
@@ -259,38 +250,32 @@ std::string to_string_time_ms(const uint32_t ms) {
     return final_str;
 }
 
-static char* to_string_hex_internal(char* ptr, uint64_t value, uint8_t length) {
-    if (length == 0)
-        return ptr;
-
-    *(--ptr) = uint_to_char(value & 0xF, 16);
-    return to_string_hex_internal(ptr, value >> 4, length - 1);
-}
-
 std::string to_string_hex(uint64_t value, int32_t length) {
     constexpr uint8_t buffer_length = 33;
     char buffer[buffer_length];
-
     char* ptr = &buffer[buffer_length - 1];
     *ptr = '\0';
-
-    length = std::min<uint8_t>(buffer_length - 1, length);
-    return to_string_hex_internal(ptr, value, length);
+    length = std::min<int32_t>(buffer_length - 1, length);
+    for (int32_t i = 0; i < length; ++i) {
+        *(--ptr) = uint_to_char(value & 0xF, 16);
+        value >>= 4;
+    }
+    return std::string(ptr);
 }
 
 std::string to_string_hex_array(uint8_t* array, int32_t length) {
-    std::string str_return;
-    str_return.reserve(length * 2);
-
-    for (uint8_t i = 0; i < length; i++)
-        str_return += to_string_hex(array[i], 2);
-
-    return str_return;
+    std::string s;
+    s.resize(length * 2);
+    for (int i = 0; i < length; i++) {
+        s[i * 2] = uint_to_char((array[i] >> 4) & 0xF, 16);
+        s[i * 2 + 1] = uint_to_char(array[i] & 0xF, 16);
+    }
+    return s;
 }
 
 std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format) {
     std::string string{""};
-
+    string.reserve(20);
     if (format == YMDHMS) {
         string += to_string_dec_uint(value.year(), 4) + "-" +
                   to_string_dec_uint(value.month(), 2, '0') + "-" +
@@ -307,20 +292,33 @@ std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format) {
 }
 
 std::string to_string_timestamp(const rtc::RTC& value) {
-    return to_string_dec_uint(value.year(), 4, '0') +
-           to_string_dec_uint(value.month(), 2, '0') +
-           to_string_dec_uint(value.day(), 2, '0') +
-           to_string_dec_uint(value.hour(), 2, '0') +
-           to_string_dec_uint(value.minute(), 2, '0') +
-           to_string_dec_uint(value.second(), 2, '0');
+    std::string result;
+    // YYYYMMDDHHMMSS = 14 characters
+    result.reserve(14);
+    result += to_string_dec_uint(value.year(), 4, '0');
+    result += to_string_dec_uint(value.month(), 2, '0');
+    result += to_string_dec_uint(value.day(), 2, '0');
+    result += to_string_dec_uint(value.hour(), 2, '0');
+    result += to_string_dec_uint(value.minute(), 2, '0');
+    result += to_string_dec_uint(value.second(), 2, '0');
+
+    return result;
 }
 
 std::string to_string_FAT_timestamp(const FATTimestamp& timestamp) {
-    return to_string_dec_uint((timestamp.FAT_date >> 9) + 1980) + "-" +
-           to_string_dec_uint((timestamp.FAT_date >> 5) & 0xF, 2, '0') + "-" +
-           to_string_dec_uint((timestamp.FAT_date & 0x1F), 2, '0') + " " +
-           to_string_dec_uint((timestamp.FAT_time >> 11), 2, '0') + ":" +
-           to_string_dec_uint((timestamp.FAT_time >> 5) & 0x3F, 2, '0');
+    std::string result;
+    // YYYY-MM-DD HH:MM = 16 characters
+    result.reserve(16);
+    result += to_string_dec_uint((timestamp.FAT_date >> 9) + 1980);
+    result += '-';
+    result += to_string_dec_uint((timestamp.FAT_date >> 5) & 0xF, 2, '0');
+    result += '-';
+    result += to_string_dec_uint((timestamp.FAT_date & 0x1F), 2, '0');
+    result += ' ';
+    result += to_string_dec_uint((timestamp.FAT_time >> 11), 2, '0');
+    result += ':';
+    result += to_string_dec_uint((timestamp.FAT_time >> 5) & 0x3F, 2, '0');
+    return result;
 }
 
 std::string to_string_file_size(uint32_t file_size) {
@@ -339,20 +337,25 @@ std::string to_string_file_size(uint32_t file_size) {
 }
 
 std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length, bool noColon) {
-    std::string string;
-
-    string += to_string_hex(macAddress[0], 2);
-
-    for (int i = 1; i < length; i++) {
-        string += noColon ? to_string_hex(macAddress[i], 2) : ":" + to_string_hex(macAddress[i], 2);
+    if (length == 0 || macAddress == nullptr) return "";
+    std::string result;
+    // Size = 2 chars per byte + 1 colon between bytes (if used)
+    result.reserve((length * 2) + (noColon ? 0 : length - 1));
+    constexpr char hex_chars[] = "0123456789ABCDEF";
+    for (int i = 0; i < length; i++) {
+        // Append the colon separator (if not the first byte)
+        if (i > 0 && !noColon) {
+            result += ':';
+        }
+        result += hex_chars[(macAddress[i] >> 4) & 0x0F];
+        result += hex_chars[macAddress[i] & 0x0F];
     }
-
-    return string;
+    return result;
 }
 
 std::string to_string_formatted_mac_address(const char* macAddress) {
     std::string formattedAddress;
-
+    formattedAddress.reserve(17);
     for (int i = 0; i < 12; i += 2) {
         if (i > 0) {
             formattedAddress += ':';
@@ -377,16 +380,16 @@ void generateRandomMacAddress(char* macAddress) {
 
 uint64_t readUntil(File& file, char* result, std::size_t maxBufferSize, char delimiter) {
     std::size_t bytesRead = 0;
-
+    if (maxBufferSize == 0) return 0;
     while (true) {
         char ch;
         File::Result<File::Size> readResult = file.read(&ch, 1);
 
         if (readResult.is_ok() && readResult.value() > 0) {
             if (ch == delimiter) {
-                // Found a space character, stop reading
+                // Found the delimiter character, stop reading
                 break;
-            } else if (bytesRead < maxBufferSize) {
+            } else if (bytesRead < maxBufferSize - 1) {
                 // Append the character to the result if there's space
                 result[bytesRead++] = ch;
             } else {
@@ -408,12 +411,13 @@ std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precisi
     const uint32_t powers_of_ten[5] = {1, 10, 100, 1000, 10000};
     std::string string{""};
     uint32_t prefix_index = base_unit;
+    if (prefix_index > 6) prefix_index = 6;
     double integer_part;
     double fractional_part;
 
     precision = std::min((uint32_t)4, precision);
 
-    while (n > 1000) {
+    while (n > 1000 && prefix_index < 6) {
         n /= 1000.0;
         prefix_index++;
     }
@@ -426,7 +430,7 @@ std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precisi
     if (precision)
         string += '.' + to_string_dec_uint(fractional_part, precision, '0');
 
-    if (prefix_index != 3)
+    if (unit_prefix[prefix_index] != 0)
         string += unit_prefix[prefix_index];
 
     return string;
