@@ -787,11 +787,11 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             return a.desired_position < b.desired_position;
         });
 
-        for (auto const& gridItem : externalItems) {
+        for (auto & gridItem : externalItems) {
             if (gridItem.desired_position < 0) {
-                grid.add_item(gridItem, true);
+                grid.add_item(std::move(gridItem), true);
             } else {
-                grid.insert_item(gridItem, gridItem.desired_position, true);
+                grid.insert_item(std::move(gridItem), gridItem.desired_position, true);
             }
 
         }
