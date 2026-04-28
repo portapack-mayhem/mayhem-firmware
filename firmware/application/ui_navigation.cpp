@@ -82,28 +82,6 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
-bool CstrCmp::operator()(const char* a, const char* b) const {
-    return strcmp(a, b) < 0;
-}
-
-static NavigationView::AppMap generate_app_map(const NavigationView::AppList& appList) {
-    NavigationView::AppMap out;
-
-    for (auto& app : appList) {
-        if (app.id == nullptr) {
-            // Skip items with no id
-            continue;
-        }
-
-        auto res = out.emplace(app.id, app);
-        if (!res.second) {
-            chDbgPanic("Application cannot be added, ID not unique!");
-        }
-    }
-
-    return out;
-}
-
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
@@ -150,15 +128,14 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<FlashUtilityView>(nav); }},
 };
 
-const NavigationView::AppMap NavigationView::appMap = generate_app_map(NavigationView::appList);
-
 bool NavigationView::StartAppByName(const char* name) {
     home(false);
 
-    auto it = appMap.find(name);
-    if (it != appMap.end()) {
-        push_view(it->second.producer(*this));
-        return true;
+    for (const auto& app : appList) {
+        if (app.id != nullptr && strcmp(app.id, name) == 0) {
+            push_view(app.producer(*this));
+            return true;
+        }
     }
     return false;
 }

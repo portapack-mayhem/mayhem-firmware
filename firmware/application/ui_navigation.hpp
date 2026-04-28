@@ -70,11 +70,6 @@ enum modal_t {
     ABORT
 };
 
-class CstrCmp {
-   public:
-    bool operator()(const char* a, const char* b) const;
-};
-
 // Should only be used as part of the appList in NavigationView.
 class AppInfo {
    public:
@@ -138,10 +133,7 @@ class NavigationView : public View {
     bool set_on_pop(std::function<void()> on_pop);
 
     // App list is used to preserve order, so the menu items in the menu grid can stay in place
-    // App map is used to look up apps by id used by serial app start
-    using AppMap = std::map<const char*, const AppInfo&, CstrCmp>;
     using AppList = std::vector<AppInfo>;
-    static const AppMap appMap;
     static const AppList appList;
 
     bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
