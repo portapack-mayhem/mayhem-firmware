@@ -253,9 +253,8 @@ bool I2cDev_MAX17055::initialize_custom_parameters() {
     if (!write_register(0x1E, 0x03C0)) return false;                                  // IChgTerm
     if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty
     if (!write_register(0x60, 0x0090)) return false;                                  // Unknown register
-    if (!write_register(0x46, ((designcap / 32) * 44138) * designcap)) return false;  // dPAcc
+    if (!write_register(0x46, ((designcap / 32) * 44138) / designcap)) return false;  // dPAcc = dQAcc * 44138 / DesignCap (Maxim EZ config)
     if (!write_register(0xDB, 0x8000)) return false;                                  // ModelCfg  --we should wait till it loads here. While (ReadRegister(0xDB)&0x8000) Wait(10)；//do not continue until ModelCFG.Refresh == 0
-    if (!write_register(0x40, 0x0001)) return false;                                  // Set user mem to 1
     return true;
 }
 
@@ -284,12 +283,10 @@ bool I2cDev_MAX17055::clear_por() {
 }
 
 bool I2cDev_MAX17055::needsInitialization() {
-    uint16_t UserMem1 = read_register(0x40);
-
-    if (UserMem1 == 0) {
-        return true;
-    }
-    return false;
+    // Status.POR (bit 1) is set by hardware on power-on-reset and stays set
+    // until cleared by clear_por(). It's the only reliable signal that the
+    // IC has lost its learned parameters and needs re-initialization.
+    return (read_register(0x00) & 0x0002) != 0;
 }
 
 void I2cDev_MAX17055::partialInit() {
