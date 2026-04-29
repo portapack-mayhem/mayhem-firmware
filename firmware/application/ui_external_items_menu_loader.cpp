@@ -357,6 +357,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
     if (checksum != EXT_APP_EXPECTED_CHECKSUM)
         return false;
 
+    nav.pop();
     application_information.externalAppEntry(nav);
     return true;
 }

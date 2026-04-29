@@ -762,8 +762,13 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
                            [&nav, p_app]() {
                                if (p_app->menuLocation == HOME) {
                                    nav.store_last_menu_name(p_app->displayName);
+                                   nav.push_view(p_app->producer(nav));
+                               } else {
+                                   NavigationView& local_nav = nav;
+                                   auto new_view = p_app->producer(local_nav);
+                                   local_nav.pop();
+                                   local_nav.push_view(std::move(new_view));
                                }
-                               nav.push_view(p_app->producer(nav));
                            }},
                           true);
         }
@@ -923,7 +928,7 @@ SystemView::SystemView(
         {{0, 0},
          {parent_rect.width(), status_view_height}});
     status_view.on_back = [this]() {
-        if (this->navigation_view.view_stack_size() == 1) {
+        if (this->navigation_view.view_stack_size() == 2) {
             const AppInfo* lastmenu = nullptr;
             const auto last_menu_name = this->navigation_view.get_last_menu_name();
             this->navigation_view.store_last_menu_name("");
