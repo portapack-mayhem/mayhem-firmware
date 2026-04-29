@@ -157,25 +157,9 @@ class TPMSAllProcessor : public BasebandProcessor {
                 TPMSPacketMessage{tpms::SignalType::OOK_8k192_Schrader, packet});
         }};
 
-    // Schrader EG53MA4 (Opel/Saab/Vauxhall/Chevrolet, FCC MRXGG4)
-    // Preamble: 40 raw bits of alternating 01 (= 5 bytes of Manchester zero).
-    // We match 30 bits of 0101... pattern (longer than Mayhem pb_ook_8k192's
-    // 24-bit preamble to distinguish) followed by ...1110 as end-of-preamble
-    // sync-marker-absent; instead we just match 30 bits of 0101 and take 80
-    // data bits = 40 Manchester pairs after. Both Mayhem-Schrader (74 bits)
-    // and EG53MA4 (80 bits) PacketBuilders may match the same burst; decoder
-    // checksums weed out the false match.
-    // Payload: 80 Manchester-encoded bits = 10 data bytes (flags, ID, pressure,
-    // temperature, sum-checksum).
-    // Reference: rtl_433/src/devices/schraeder.c (schrader_EG53MA4_decode)
-    PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_eg53ma4{
-        {0b010101010101010101010101010101, 30, 0},
-        {},
-        {80 * 2},
-        [](const baseband::Packet& packet) {
-            shared_memory.application_queue.push(
-                TPMSPacketMessage{tpms::SignalType::OOK_8k192_EG53MA4, packet});
-        }};
+    // EG53MA4 PacketBuilder removed -- collided with pb_ook_8k192 because its
+    // preamble (pure 0101..., no sync marker) matched in the middle of normal
+    // Mayhem-Schrader streams, consuming bits before pb_ook_8k192 saw them.
 
     OOKClockRecovery clock_recovery_ook_8k4{channel_sample_rate / 8400.0f};
     PacketBuilder<BitPattern, NeverMatch, FixedLength> pb_ook_8k4{
