@@ -138,6 +138,10 @@ class NavigationView : public View {
     bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
     void handle_autostart();
 
+    void store_last_menu_name(const std::string& name) { last_menu_name_ = name; }
+    std::string get_last_menu_name() const { return last_menu_name_; }
+    size_t view_stack_size() const { return view_stack.size(); }
+
    private:
     struct ViewState {
         std::unique_ptr<View> view;
@@ -150,6 +154,7 @@ class NavigationView : public View {
 
     void free_view();
     void update_view();
+    std::string last_menu_name_{};  // this stores the last menu name, when we replace the menu with the app, we'll know, where to navigate back
 };
 
 /* Holds widgets and grows dynamically toward the left.

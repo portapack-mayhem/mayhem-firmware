@@ -77,6 +77,10 @@ void ExtSensorsView::on_any() {
     has_data = true;
 }
 
+void ExtSensorsView::on_show() {
+    i2cdev::I2CDevManager::set_autoscan_interval(3);
+}
+
 void ExtSensorsView::on_gps(const GPSPosDataMessage* msg) {
     on_any();
     std::string tmp = to_string_decimal(msg->lat, 5);

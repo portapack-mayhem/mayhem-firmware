@@ -393,7 +393,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         }
     }
 
-    nav.push<StandaloneView>(app_image);
+    nav.replace<StandaloneView>(app_image);
     return true;
 }
 
@@ -407,7 +407,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         }
     }
 
-    nav.push<StandaloneView>(app_image);
+    nav.replace<StandaloneView>(app_image);
     return true;
 }
 

@@ -757,10 +757,14 @@ void NavigationView::handle_autostart() {
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
+            const AppInfo* p_app = &app;
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, &app]() {
-                            i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
-                            nav.push_view(app.producer(nav)); }},
+                           [&nav, p_app]() {
+                               if (p_app->menuLocation == HOME) {
+                                   nav.store_last_menu_name(p_app->displayName);
+                               }
+                               nav.push_view(p_app->producer(nav));
+                           }},
                           true);
         }
     };
@@ -919,6 +923,23 @@ SystemView::SystemView(
         {{0, 0},
          {parent_rect.width(), status_view_height}});
     status_view.on_back = [this]() {
+        if (this->navigation_view.view_stack_size() == 2) {
+            const AppInfo* lastmenu = nullptr;
+            if (!this->navigation_view.get_last_menu_name().empty()) {
+                this->navigation_view.store_last_menu_name("");
+                for (const auto& app : NavigationView::appList) {
+                    if (app.displayName == this->navigation_view.get_last_menu_name()) {
+                        lastmenu = &app;
+                        break;
+                    }
+                }
+                if (lastmenu) {
+                    this->navigation_view.pop();
+                    this->navigation_view.push_view(lastmenu->producer(this->navigation_view));
+                    return;
+                }
+            }
+        }
         this->navigation_view.pop();
     };
 
@@ -935,6 +956,7 @@ SystemView::SystemView(
     navigation_view.on_view_changed = [this](const View& new_view) {
         if (!this->navigation_view.is_top()) {
             remove_child(&info_view);
+            i2cdev::I2CDevManager::set_autoscan_interval(0);
         } else {
             add_child(&info_view);
             info_view.refresh();
