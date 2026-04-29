@@ -9,7 +9,13 @@
 
 namespace ui {
 
-/* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
+/* static */ std::vector<std::unique_ptr<DynamicBitmap<16, 16>>> ExternalItemsMenuLoader::bitmaps;
+
+// to save ram when entering an app
+void ExternalItemsMenuLoader::unload_external_items() {
+    bitmaps.clear();
+    bitmaps.shrink_to_fit();
+}
 
 // iterates over all possible ext apps-s, and if it is runnable on the current system, it'll call the callback, and pass minimal info. used to print to console, and for autostart setting's app list. where the minimal info is enough
 // please keep in sync with load_external_items
@@ -97,7 +103,7 @@ namespace ui {
     }
 }
 
-/* static */ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
+std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
     bitmaps.shrink_to_fit();
 
@@ -127,8 +133,8 @@ namespace ui {
 
                 gridItem.color = Color((uint16_t)appInfo->icon_color);
 
-                auto dyn_bmp = DynamicBitmap<16, 16>{appInfo->bitmap_data};
-                gridItem.bitmap = dyn_bmp.bitmap();
+                auto dyn_bmp = std::make_unique<DynamicBitmap<16, 16>>(appInfo->bitmap_data);
+                gridItem.bitmap = dyn_bmp->bitmap();
                 bitmaps.push_back(std::move(dyn_bmp));
 
                 gridItem.on_select = [&nav, appInfo, i]() {
@@ -205,8 +211,8 @@ namespace ui {
         if (versionMatches) {
             gridItem.color = Color((uint16_t)application_information.icon_color);
 
-            auto dyn_bmp = DynamicBitmap<16, 16>{application_information.bitmap_data};
-            gridItem.bitmap = dyn_bmp.bitmap();
+            auto dyn_bmp = std::make_unique<DynamicBitmap<16, 16>>(application_information.bitmap_data);
+            gridItem.bitmap = dyn_bmp->bitmap();
             bitmaps.push_back(std::move(dyn_bmp));
 
             gridItem.on_select = [&nav, app_location, filePath]() {
@@ -256,8 +262,8 @@ namespace ui {
 
         gridItem.color = Color((uint16_t)application_information.icon_color);
 
-        auto dyn_bmp = DynamicBitmap<16, 16>{application_information.bitmap_data};
-        gridItem.bitmap = dyn_bmp.bitmap();
+        auto dyn_bmp = std::make_unique<DynamicBitmap<16, 16>>(application_information.bitmap_data);
+        gridItem.bitmap = dyn_bmp->bitmap();
         bitmaps.push_back(std::move(dyn_bmp));
 
         gridItem.on_select = [&nav, app_location, filePath]() {
