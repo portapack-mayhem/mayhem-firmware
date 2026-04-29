@@ -925,14 +925,16 @@ SystemView::SystemView(
     status_view.on_back = [this]() {
         if (this->navigation_view.view_stack_size() == 2) {
             const AppInfo* lastmenu = nullptr;
-            if (!this->navigation_view.get_last_menu_name().empty()) {
-                this->navigation_view.store_last_menu_name("");
+            const auto last_menu_name = this->navigation_view.get_last_menu_name();
+            this->navigation_view.store_last_menu_name("");
+            if (!last_menu_name.empty()) {
                 for (const auto& app : NavigationView::appList) {
-                    if (app.displayName == this->navigation_view.get_last_menu_name()) {
+                    if (app.displayName == last_menu_name) {
                         lastmenu = &app;
                         break;
                     }
                 }
+
                 if (lastmenu) {
                     this->navigation_view.pop();
                     this->navigation_view.push_view(lastmenu->producer(this->navigation_view));

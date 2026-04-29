@@ -58,6 +58,8 @@
 using namespace sd_card;
 
 namespace ui {
+
+class NavigationView;
 using ViewProducer = std::unique_ptr<View> (*)(NavigationView&);
 
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);

@@ -52,21 +52,8 @@ class DynamicBitmap {
         : _buffer(std::move(other._buffer)),
           _bitmap{{Width, Height}, _buffer.data()} {}
 
-    DynamicBitmap& operator=(const DynamicBitmap& other) {
-        if (this != &other) {
-            _buffer = other._buffer;
-            _bitmap = Bitmap{{Width, Height}, _buffer.data()};
-        }
-        return *this;
-    }
-
-    DynamicBitmap& operator=(DynamicBitmap&& other) noexcept {
-        if (this != &other) {
-            _buffer = std::move(other._buffer);
-            _bitmap = Bitmap{{Width, Height}, _buffer.data()};
-        }
-        return *this;
-    }
+    DynamicBitmap& operator=(const DynamicBitmap& other) = delete;
+    DynamicBitmap& operator=(DynamicBitmap&& other) noexcept = delete;
 
     // Destructor (Default is fine, no heap memory to free manually)
     ~DynamicBitmap() = default;

@@ -132,7 +132,7 @@ std::string to_string_dec_uint(
 
 std::string to_string_dec_int(const int32_t n, const int32_t l, const char fill) {
     const size_t negative = (n < 0) ? 1 : 0;
-    uint32_t n_abs = negative ? -n : n;
+    uint32_t n_abs = negative ? static_cast<uint32_t>(-(int64_t)n) : static_cast<uint32_t>(n);
     char p[24];
     int32_t safe_l = std::min<int32_t>(l, sizeof(p) - 1);
     auto term = p + sizeof(p) - 1;
