@@ -347,11 +347,11 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
         // Only show charging modal when transitioning to charging state
         nav_.display_modal(
             "CHARGING",
-            "Screen on while charging?",
+            "Enter deep sleep? \n \nExit: Press reset button. \n \nRX LED: Charging. \nTX LED: Charging error. \nLEDs OFF: Charge complete.",
             YESNO,
-            [this](bool keep_screen_on) {
-                if (!keep_screen_on) {
-                    EventDispatcher::set_display_sleep(true);
+            [this](bool deepsleep) {
+                if (deepsleep) {
+                    EventDispatcher::charge_deep_sleep(true);
                 }
             });
     }

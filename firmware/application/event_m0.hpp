@@ -63,6 +63,8 @@ class EventDispatcher {
 
     static void set_display_sleep(const bool sleep);
 
+    static void charge_deep_sleep(const bool sleep);
+
     static inline void check_fifo_isr() {
         if (!shared_memory.application_queue.is_empty()) {
             events_flag_isr(EVT_MASK_APPLICATION);
