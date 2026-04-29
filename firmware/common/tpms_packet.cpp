@@ -153,8 +153,6 @@ Optional<Reading> Packet::reading() const {
             return reading_ook_8k192_schrader();
         case SignalType::OOK_8k4_Schrader:
             return reading_ook_8k4_schrader();
-        case SignalType::OOK_8k192_EG53MA4:
-            return reading_ook_8k192_eg53ma4();
         case SignalType::OOK_8k4_SMD3MA4:
             return reading_ook_8k4_smd3ma4();
         case SignalType::FSK_19k2_JansiteSolar:
@@ -363,50 +361,10 @@ Optional<Reading> Packet::reading_fsk_19k2_truck_solar() const {
 // Nissan removed -- no CRC, plausibility-only validation caused ghost-signal
 // matches on noise via the Schrader preamble path.
 
-// ---------------------------------------------------------------------------
-// Schrader EG53MA4 (433.92 MHz EU, 315 MHz US)
-// ---------------------------------------------------------------------------
-// FCC-ID: MRXGG4. Used in Saab, Opel, Vauxhall, Chevrolet (2006-2025 GM),
-// OEM No. 13348393 / 13540600.
-// Own SignalType OOK_8k192_EG53MA4 (handled by pb_eg53ma4 in proc_tpms_all).
-//
-// Packet: 120 raw bits, first 40 discarded as preamble, then 80 data bits
-// = 10 data bytes. Layout (per rtl_433 schraeder.c):
-//   b[0..3] = 32-bit status/battery flags (opaque)
-//   b[4..6] = 24-bit ID
-//   b[7]    = Pressure in 25 mbar units (kPa = raw * 2.5 = raw * 5/2)
-//   b[8]    = Temperature in degrees Fahrenheit (!)
-//   b[9]    = Sum checksum over b[0..8] mod 256
-// We convert Fahrenheit to Celsius internally for UI consistency.
-// Reference: rtl_433/src/devices/schraeder.c (schrader_EG53MA4_decode)
-Optional<Reading> Packet::reading_ook_8k192_eg53ma4() const {
-    uint8_t b[10];
-    for (size_t i = 0; i < 10; i++) b[i] = static_cast<uint8_t>(reader_.read(i * 8, 8));
-
-    // Sum checksum
-    uint16_t sum = 0;
-    for (size_t i = 0; i < 9; i++) sum += b[i];
-    if ((sum & 0xff) != b[9]) return {};
-
-    // Sanity: reject all-zero payload (noise)
-    if (!b[1] && !b[2] && !b[4] && !b[5] && !b[7] && !b[8]) return {};
-
-    const uint32_t id = ((uint32_t)b[4] << 16) | ((uint32_t)b[5] << 8) | b[6];
-    if (id == 0) return {};
-
-    const uint8_t flags = b[0];  // keep one byte for UI/Flags field
-    const int pres_kpa = static_cast<int>(b[7]) * 5 / 2;  // 25 mbar per bit
-    // Fahrenheit -> Celsius: C = (F - 32) * 5 / 9
-    const int temp_c = (static_cast<int>(b[8]) - 32) * 5 / 9;
-
-    // Plausibility: real tires 100..450 kPa, temperature -40..85 C
-    if (pres_kpa < 100 || pres_kpa > 450) return {};
-    if (temp_c < -40 || temp_c > 85) return {};
-
-    return Reading{Reading::Type::EG53MA4, id,
-                   Pressure{pres_kpa},
-                   Temperature{temp_c}, Flags{flags}};
-}
+// EG53MA4 removed -- bit-stream collision on the OOK 8k192 path with
+// pb_ook_8k192 (Mayhem-original Schrader): EG53MA4's preamble has no
+// distinctive sync marker and consumed bits before pb_ook_8k192 could see the
+// Schrader sync. To be reimplemented as a standalone app in the future.
 
 // ---------------------------------------------------------------------------
 // Schrader SMD3MA4 / 3039 (Subaru, Renault Koleos, Nissan 370Z, Infiniti FX)
