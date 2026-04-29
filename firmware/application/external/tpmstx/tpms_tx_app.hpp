@@ -160,7 +160,6 @@ class TPMSTXView : public View {
             {"Ren0435R", (int32_t)tpms::Reading::Type::Renault_0435R},
             {"TrkSolar", (int32_t)tpms::Reading::Type::TruckSolar},
             // Schrader-family extensions (own preamble/SignalType)
-            {"EG53MA4", (int32_t)tpms::Reading::Type::EG53MA4},
             {"SMD3MA4", (int32_t)tpms::Reading::Type::Schrader_SMD3MA4},
             // Aftermarket
             {"JanSolar", (int32_t)tpms::Reading::Type::JansiteSolar},
