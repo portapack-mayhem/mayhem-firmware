@@ -923,7 +923,7 @@ SystemView::SystemView(
         {{0, 0},
          {parent_rect.width(), status_view_height}});
     status_view.on_back = [this]() {
-        if (this->navigation_view.view_stack_size() == 2) {
+        if (this->navigation_view.view_stack_size() == 1) {
             const AppInfo* lastmenu = nullptr;
             const auto last_menu_name = this->navigation_view.get_last_menu_name();
             this->navigation_view.store_last_menu_name("");
