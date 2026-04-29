@@ -64,9 +64,6 @@ void TPMSTXView::update_signal_type_from_packet() {
             signal_type_ = tpms::SignalType::FSK_19k2_Schrader;
             break;
         // Schrader-family extensions with own preamble / SignalType
-        case tpms::Reading::Type::EG53MA4:
-            signal_type_ = tpms::SignalType::OOK_8k192_EG53MA4;
-            break;
         case tpms::Reading::Type::Schrader_SMD3MA4:
             signal_type_ = tpms::SignalType::OOK_8k4_SMD3MA4;
             break;
@@ -88,7 +85,6 @@ void TPMSTXView::switch_baseband() {
 
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
         signal_type_ == tpms::SignalType::OOK_8k4_Schrader ||
-        signal_type_ == tpms::SignalType::OOK_8k192_EG53MA4 ||
         signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
         baseband::run_image(portapack::spi_flash::image_tag_ook);
     } else {
@@ -166,7 +162,7 @@ void TPMSTXView::update_packet_display() {
 
 void TPMSTXView::update_field_visibility() {
     // Schrader: Show Func, Hide Temp (no temperature support)
-    // GMC_96, FLM_xx, EG53MA4, SMD3MA4: Hide Func, Temp per-protocol.
+    // GMC_96, FLM_xx, SMD3MA4: Hide Func, Temp per-protocol.
     // SMD3MA4: no temperature in protocol.
     const bool is_schrader = (packet_type_ == tpms::Reading::Type::Schrader);
     const bool no_temperature = (packet_type_ == tpms::Reading::Type::Schrader_SMD3MA4);
@@ -240,7 +236,6 @@ void TPMSTXView::encode_and_transmit() {
     // Set sample rate based on signal type to match transmitter config
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
         signal_type_ == tpms::SignalType::OOK_8k4_Schrader ||
-        signal_type_ == tpms::SignalType::OOK_8k192_EG53MA4 ||
         signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
         sample_rate = 2000000;  // 2 MHz for OOK
     } else {
@@ -671,54 +666,6 @@ void TPMSTXView::encode_and_transmit() {
 
         while (binary_string.length() < 190) binary_string += "01";
 
-    } else if (signal_type_ == tpms::SignalType::OOK_8k192_EG53MA4) {
-        // Schrader EG53MA4 - OOK Manchester 8192 sym/s
-        // Preamble: 40 raw bits of alternating 01 (= 5 bytes of Manchester zero).
-        // Payload: 10 bytes (80 raw data bits, 160 Manchester-encoded bits):
-        //   b[0..3] = 32-bit status/battery flags (sent as 0x00000000 for TX)
-        //   b[4..6] = 24-bit ID (lower 24 bits of transponder_id_)
-        //   b[7]    = Pressure in 25 mbar units (raw = kPa * 2 / 5)
-        //   b[8]    = Temperature in degrees Fahrenheit (C * 9 / 5 + 32)
-        //   b[9]    = Sum checksum over b[0..8] mod 256
-        // Reference: rtl_433/src/devices/schraeder.c (schrader_EG53MA4_decode)
-        symbol_rate = 8192;
-        // 40-bit preamble (5 bytes of Manchester-encoded zeros = 10 pairs of "01")
-        binary_string = "";
-        for (int i = 0; i < 40; i++) binary_string += "01";
-
-        uint8_t b[10] = {};
-        // b[0..3] = 32-bit flags. Semantics not fully documented per rtl_433;
-        // use 0x00000000 for transmission (the reader accepts any value since
-        // it's just dumped as hex to flags_str).
-        b[0] = 0x00;
-        b[1] = 0x00;
-        b[2] = 0x00;
-        b[3] = 0x00;
-        // 24-bit ID
-        b[4] = (transponder_id_ >> 16) & 0xFF;
-        b[5] = (transponder_id_ >> 8) & 0xFF;
-        b[6] = transponder_id_ & 0xFF;
-        // Pressure: kPa -> raw (25 mbar per bit -> raw = kPa * 2/5)
-        int praw_eg = static_cast<int>(pressure_kpa_) * 2 / 5;
-        if (praw_eg < 0) praw_eg = 0;
-        if (praw_eg > 255) praw_eg = 255;
-        b[7] = static_cast<uint8_t>(praw_eg);
-        // Temperature: Celsius -> Fahrenheit (F = C * 9 / 5 + 32)
-        // Handles negative C values via signed arithmetic before clamping.
-        int temp_f = static_cast<int>(temperature_c_) * 9 / 5 + 32;
-        if (temp_f < 0) temp_f = 0;
-        if (temp_f > 255) temp_f = 255;
-        b[8] = static_cast<uint8_t>(temp_f);
-        // Sum checksum over b[0..8]
-        uint16_t sum_eg = 0;
-        for (int i = 0; i < 9; i++) sum_eg += b[i];
-        b[9] = static_cast<uint8_t>(sum_eg & 0xFF);
-
-        // Manchester-encode the 80 data bits (RX uses sense=0: '1' = "10", '0' = "01")
-        for (size_t byte_idx = 0; byte_idx < 10; byte_idx++)
-            for (int bit_idx = 7; bit_idx >= 0; bit_idx--)
-                binary_string += ((b[byte_idx] >> bit_idx) & 1) ? "10" : "01";
-
     } else if (signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
         // Schrader SMD3MA4 / 3039 - OOK Manchester ~8400 sym/s (inverted)
         // Preamble: 36 raw bits 0xF5555555E
@@ -796,7 +743,6 @@ void TPMSTXView::encode_and_transmit() {
     // Send via appropriate baseband (OOK or FSK)
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
         signal_type_ == tpms::SignalType::OOK_8k4_Schrader ||
-        signal_type_ == tpms::SignalType::OOK_8k192_EG53MA4 ||
         signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
         // OOK mode
         baseband::set_ook_data(
@@ -819,7 +765,6 @@ void TPMSTXView::handle_tx_complete() {
     // OOK repeats are handled by the baseband processor
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
         signal_type_ == tpms::SignalType::OOK_8k4_Schrader ||
-        signal_type_ == tpms::SignalType::OOK_8k192_EG53MA4 ||
         signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
         // OOK repeats are handled by baseband, just stop here
         stop_tx();
@@ -865,7 +810,6 @@ void TPMSTXView::start_tx() {
     // Configure transmitter based on modulation type
     if (signal_type_ == tpms::SignalType::OOK_8k192_Schrader ||
         signal_type_ == tpms::SignalType::OOK_8k4_Schrader ||
-        signal_type_ == tpms::SignalType::OOK_8k192_EG53MA4 ||
         signal_type_ == tpms::SignalType::OOK_8k4_SMD3MA4) {
         // OOK configuration
         transmitter_model.set_sampling_rate(2000000);  // 2 MHz for OOK
