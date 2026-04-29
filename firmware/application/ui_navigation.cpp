@@ -760,13 +760,16 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
             const AppInfo* p_app = &app;
             grid.add_item({app.displayName, app.iconColor, app.icon,
                            [&nav, p_app]() {
+                               NavigationView& local_nav = nav;
                                if (p_app->menuLocation == HOME) {
-                                   nav.store_last_menu_name(p_app->displayName);
-                                   nav.push_view(p_app->producer(nav));
+                                   local_nav.store_last_menu_name(p_app->displayName);
+                                   local_nav.set_last_menu_went_deeper(false);
+                                   auto new_view = p_app->producer(local_nav);
+                                   local_nav.push_view(std::move(new_view));
                                } else {
-                                   NavigationView& local_nav = nav;
                                    auto new_view = p_app->producer(local_nav);
                                    local_nav.pop();
+                                   local_nav.set_last_menu_went_deeper(true);
                                    local_nav.push_view(std::move(new_view));
                                }
                            }},
@@ -940,7 +943,7 @@ SystemView::SystemView(
                     }
                 }
 
-                if (lastmenu) {
+                if (lastmenu && this->navigation_view.get_last_menu_went_deeper()) {
                     this->navigation_view.pop();
                     this->navigation_view.push_view(lastmenu->producer(this->navigation_view));
                     return;

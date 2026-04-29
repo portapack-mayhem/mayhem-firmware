@@ -144,6 +144,9 @@ class NavigationView : public View {
     std::string get_last_menu_name() const { return last_menu_name_; }
     size_t view_stack_size() const { return view_stack.size(); }
 
+    bool get_last_menu_went_deeper() { return last_menu_went_deeper; }
+    void set_last_menu_went_deeper(bool went_deeper) { last_menu_went_deeper = went_deeper; }
+
    private:
     struct ViewState {
         std::unique_ptr<View> view;
@@ -157,6 +160,7 @@ class NavigationView : public View {
     void free_view();
     void update_view();
     std::string last_menu_name_{};  // this stores the last menu name, when we replace the menu with the app, we'll know, where to navigate back
+    bool last_menu_went_deeper = false;
 };
 
 /* Holds widgets and grows dynamically toward the left.

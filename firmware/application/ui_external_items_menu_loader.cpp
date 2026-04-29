@@ -358,6 +358,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         return false;
 
     nav.pop();
+    nav.set_last_menu_went_deeper(true);
     application_information.externalAppEntry(nav);
     return true;
 }
@@ -394,6 +395,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         }
     }
 
+    nav.set_last_menu_went_deeper(true);
     nav.replace<StandaloneView>(app_image);
     return true;
 }
@@ -408,6 +410,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         }
     }
 
+    nav.set_last_menu_went_deeper(true);
     nav.replace<StandaloneView>(app_image);
     return true;
 }
