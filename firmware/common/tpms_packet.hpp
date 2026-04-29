@@ -45,11 +45,10 @@ enum SignalType {
     FSK_19k2_Schrader = 1,
     OOK_8k192_Schrader = 2,
     OOK_8k4_Schrader = 3,
-    // Extension signal paths. Slot 4 previously held FSK_19k2_Elantra2012
-    // (removed -- ghost signals), now reused for EG53MA4 Schrader (different
-    // packet length than Mayhem-original Schrader at 74 bits, so needs its
-    // own PacketBuilder).
-    OOK_8k192_EG53MA4 = 4,
+    // Extension signal paths. Slot 4 is unused (was FSK_19k2_Elantra2012,
+    // removed -- ghost signals; was briefly OOK_8k192_EG53MA4, removed --
+    // bit-stream collision with pb_ook_8k192. EG53MA4 will be a separate
+    // standalone app in the future.).
     OOK_8k4_SMD3MA4 = 5,
     // Slots 6, 7 reserved for future protocols.
     FSK_19k2_JansiteSolar = 9,
@@ -63,8 +62,6 @@ inline constexpr const char* signal_type_name(const SignalType signal_type) {
             return "OOK 8192 Schrader";
         case OOK_8k4_Schrader:
             return "OOK 8400 Schrader";
-        case OOK_8k192_EG53MA4:
-            return "OOK 8192 EG53MA4";
         case OOK_8k4_SMD3MA4:
             return "OOK 8400 SMD3MA4";
         case FSK_19k2_JansiteSolar:
@@ -111,9 +108,9 @@ class Reading {
         TruckSolar = 6,
         Citroen_PSA = 7,
         Renault = 8,
-        // Slot 9 was Elantra2012 -- removed due to too-short preamble ghost
-        // signals. Now repurposed for EG53MA4 Schrader sub-decoder.
-        EG53MA4 = 9,  // sub-decoder in OOK_8k192_Schrader path
+        // Slot 9 was Elantra2012 (removed) and briefly EG53MA4 (removed --
+        // collides with Mayhem-original Schrader on the OOK 8k192 path).
+        // EG53MA4 will be a standalone app in the future.
         Schrader_SMD3MA4 = 10,  // own SignalType OOK_8k4_SMD3MA4 (5)
         // Slots 11 (ex-Nissan, removed), 12 (ex-Toyota) intentionally left
         // unused. Slot 14 was Jansite TY02S (removed due to too-weak
@@ -222,7 +219,6 @@ class Packet {
     Optional<Reading> reading_fsk_19k2_truck_solar() const;
 
     // Extension signal paths (own SignalType, own PacketBuilder)
-    Optional<Reading> reading_ook_8k192_eg53ma4() const;
     Optional<Reading> reading_ook_8k4_smd3ma4() const;
     Optional<Reading> reading_fsk_19k2_jansite_solar() const;
 
