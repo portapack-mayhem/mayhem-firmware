@@ -65,8 +65,6 @@ std::string type_name(tpms::Reading::Type type) {
         case tpms::Reading::Type::Renault:
             return "Renault";
         // Schrader-family extensions (own SignalType)
-        case tpms::Reading::Type::EG53MA4:
-            return "EG53MA4";
         case tpms::Reading::Type::Schrader_SMD3MA4:
             return "SMD3MA4";
         case tpms::Reading::Type::JansiteSolar:
@@ -114,8 +112,6 @@ static std::string signal_type(tpms::SignalType signal_type) {
             return "OOK 8192 Schrader";
         case tpms::SignalType::OOK_8k4_Schrader:
             return "OOK 8400 Schrader";
-        case tpms::SignalType::OOK_8k192_EG53MA4:
-            return "OOK 8192 EG53MA4";
         case tpms::SignalType::OOK_8k4_SMD3MA4:
             return "OOK 8400 SMD3MA4";
         case tpms::SignalType::FSK_19k2_JansiteSolar:
