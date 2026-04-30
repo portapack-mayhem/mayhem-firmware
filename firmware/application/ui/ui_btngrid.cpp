@@ -28,6 +28,7 @@
 #include "rtc_time.hpp"
 #include "sd_card.hpp"
 #include <algorithm>
+#include "ui_external_items_menu_loader.hpp"
 
 namespace ui {
 
@@ -60,6 +61,7 @@ BtnGridView::BtnGridView(
 }
 
 BtnGridView::~BtnGridView() {
+    ExternalItemsMenuLoader::unload_external_items();
 }
 
 void BtnGridView::set_max_rows(int rows) {
@@ -87,6 +89,7 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
             remove_child(item.get());
 
         menu_item_views.clear();
+        menu_item_views.shrink_to_fit();
     }
 
     button_w = screen_width / rows_;
@@ -137,6 +140,7 @@ void BtnGridView::set_arrow_down_enabled(bool enabled) {
 void BtnGridView::clear() {
     // clear vector and release memory, not using swap since it's causing capture to glitch/fault
     menu_items.clear();
+    menu_items.shrink_to_fit();
 
     // TODO(u-foka): Clean up my mess, move this somewhere to clear memory when the view is not visible, but not to be confused with clearing the menu items...
     for (auto& item : menu_item_views)
@@ -144,10 +148,11 @@ void BtnGridView::clear() {
 
     // clear vector and release memory, not using swap since it's causing capture to glitch/fault
     menu_item_views.clear();
+    menu_item_views.shrink_to_fit();
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items, bool inhibit_update) {
-    for (auto item : new_items) {
+    for (const auto& item : new_items) {
         if (!blacklisted_app(item))
             menu_items.push_back(item);
     }
@@ -389,39 +394,34 @@ bool BtnGridView::on_encoder(const EncoderEvent event) {
 
 /* BlackList ******************************************************/
 
-std::unique_ptr<char> blacklist_ptr{};
-size_t blacklist_len{};
+std::string blacklist_data{};
 
 void load_blacklist() {
     File f;
-
     auto error = f.open(BLACKLIST);
     if (error)
         return;
-
-    // allocating two extra bytes for leading & trailing commas
-    blacklist_ptr = std::unique_ptr<char>(new char[f.size() + 2]);
-    if (f.read(blacklist_ptr.get() + 1, f.size())) {
-        blacklist_len = f.size() + 2;
-
-        // replace any CR/LF characters with comma delineator, and add comma prefix/suffix, to simplify searching
-        char* ptr = blacklist_ptr.get();
-        *ptr = ',';
-        *(ptr + blacklist_len - 1) = ',';
-        for (size_t i = 0; i < blacklist_len; i++, ptr++) {
-            if (*ptr == 0x0D || *ptr == 0x0A)
-                *ptr = ',';
+    // Resize string to fit file + 2 commas, filling it with commas by default
+    blacklist_data.assign(f.size() + 2, ',');
+    // Read directly into the string's buffer (offset by 1 to leave the first comma)
+    if (f.read(blacklist_data.data() + 1, f.size())) {
+        // Replace any CR/LF characters with commas
+        for (char& c : blacklist_data) {
+            if (c == '\r' || c == '\n') {
+                c = ',';
+            }
         }
+    } else {
+        blacklist_data.clear();  // Clear if read fails
     }
 }
 
 bool BtnGridView::blacklisted_app(GridItem new_item) {
     std::string app_name = "," + new_item.text + ",";
-
-    if (blacklist_len < app_name.size())
+    if (blacklist_data.size() < app_name.size())
         return false;
 
-    return std::search(blacklist_ptr.get(), blacklist_ptr.get() + blacklist_len, app_name.begin(), app_name.end()) < blacklist_ptr.get() + blacklist_len;
+    return blacklist_data.find(app_name) != std::string::npos;
 }
 
 void BtnGridView::page_up() {

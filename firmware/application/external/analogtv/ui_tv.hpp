@@ -79,8 +79,9 @@ class TVView : public Widget {
     void paint(Painter& painter) override;
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void on_adjust_xcorr(uint8_t xcorr);
-    // ui::Color video_buffer[13312];
-    uint8_t video_buffer_int[13312 + 128]{0};  // 128 is for the over length caused by x_correction
+    // 256 samples from current callback + 128 overlap from the previous callback
+    uint8_t window_buffer[384]{0};
+
     uint32_t count = 0;
     uint8_t x_correction = 0;
 

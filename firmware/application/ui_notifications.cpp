@@ -6,8 +6,8 @@ extern ui::SystemView* system_view_ptr;
 
 namespace ui {
 
-NotificationEntryView::NotificationEntryView(const NotificationEntry& entry, NotificationView* notifhandler)
-    : entry_(entry), notifhandler_(notifhandler) {
+NotificationEntryView::NotificationEntryView(NotificationEntry entry, NotificationView* notifhandler)
+    : entry_(std::move(entry)), notifhandler_(notifhandler) {
     add_children({&background, &border, &title_text, &message_text, &close_button});
     border.set_outline(true);
     if (entry_.icon != NOTIF_ICON_NONE) {
@@ -94,13 +94,12 @@ void NotificationView::rearrange_notifications() {
     }
 }
 
-void NotificationView::add_notification(NotificationEntry& entry) {
+void NotificationView::add_notification(NotificationEntry entry) {
     if (notification_views_.size() >= max_notifications) {
         notification_views_.erase(notification_views_.begin());
     }
-
     entry.id = ++curr_not_id;
-    notification_views_.push_back(std::make_unique<NotificationEntryView>(entry, this));
+    notification_views_.push_back(std::make_unique<NotificationEntryView>(std::move(entry), this));
 
     rearrange_notifications();
 }

@@ -131,35 +131,39 @@ void TVView::on_channel_spectrum(
     // I was hoping that by doing this, I can have a longer buffer like 39936, then the frame will looks better vertically
     // however this is useless until now.
 
-    for (size_t i = 0; i < 256; i++) {
-        // video_buffer[i+count*256] = spectrum_rgb4_lut[spectrum.db[i]];
-        video_buffer_int[i + count * 256] = 255 - spectrum.db[i];
+    // Left the original comment, but rewrote the function.
+
+    // Shift the last 128 pixels of the previous packet to the front
+    // This overlap handles an x_correction shift of up to 128 pixels seamlessly.
+    for (size_t i = 0; i < 128; i++) {
+        window_buffer[i] = window_buffer[i + 256];
     }
-    count = count + 1;
-    if (count == 52 - 1) {
-        ui::Color line_buffer[128];
-        Coord line;
-        uint32_t bmp_px;
 
-        /*for (line = 0; line < 104; line++)
-                {
-                        for (bmp_px = 0; bmp_px < 128; bmp_px++)
-                        {
-                                //line_buffer[bmp_px] = video_buffer[bmp_px+line*128];
-                                line_buffer[bmp_px] = spectrum_rgb4_lut[video_buffer_int[bmp_px+line*128 + x_correction]];
-                        }
+    // Load the new 256 pixels into the remainder of the buffer
+    for (size_t i = 0; i < 256; i++) {
+        window_buffer[i + 128] = 255 - spectrum.db[i];
+    }
 
-                        display.render_line({ 0, line + 100 }, 128, line_buffer);
-                }*/
-        for (line = 0; line < 208; line = line + 2) {
-            for (bmp_px = 0; bmp_px < 128; bmp_px++) {
-                // line_buffer[bmp_px] = video_buffer[bmp_px+line*128];
-                line_buffer[bmp_px] = spectrum_rgb4_lut[video_buffer_int[bmp_px + line / 2 * 128 + x_correction]];
-            }
+    ui::Color line_buffer[128];
 
-            display.render_line({0, line + 100}, 128, line_buffer);
-            display.render_line({0, line + 101}, 128, line_buffer);
-        }
+    // Render the first line of this batch (matches original doubled-height behavior)
+    for (size_t bmp_px = 0; bmp_px < 128; bmp_px++) {
+        line_buffer[bmp_px] = spectrum_rgb4_lut[window_buffer[bmp_px + x_correction]];
+    }
+    display.render_line({0, (Coord)(count * 4 + 100)}, 128, line_buffer);
+    display.render_line({0, (Coord)(count * 4 + 101)}, 128, line_buffer);
+
+    // Render the second line of this batch
+    for (size_t bmp_px = 0; bmp_px < 128; bmp_px++) {
+        line_buffer[bmp_px] = spectrum_rgb4_lut[window_buffer[bmp_px + 128 + x_correction]];
+    }
+    display.render_line({0, (Coord)(count * 4 + 102)}, 128, line_buffer);
+    display.render_line({0, (Coord)(count * 4 + 103)}, 128, line_buffer);
+
+    count++;
+
+    // Reset at 52 (52 * 2 lines = 104 lines total)
+    if (count >= 52) {
         count = 0;
     }
 }

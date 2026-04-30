@@ -33,7 +33,7 @@ namespace ui::external_app::time_sink {
 
 TimeSinkWaveformWidget::TimeSinkWaveformWidget(
     Rect parent_rect,
-    const int16_t* data,
+    const int8_t* data,
     size_t length,
     Color color)
     : Widget{parent_rect},
@@ -71,10 +71,10 @@ void TimeSinkWaveformWidget::set_persistence_frames(uint8_t frames) {
     }
 }
 
-Coord TimeSinkWaveformWidget::sample_to_y(const Rect& r, int16_t sample) const {
+Coord TimeSinkWaveformWidget::sample_to_y(const Rect& r, int8_t sample) const {
     const int32_t y_center = r.top() + (r.height() / 2);
     const int32_t y_span = std::max<int32_t>(1, r.height() - 1);
-    const int32_t y = y_center - (static_cast<int32_t>(sample) * y_span) / 65536;
+    const int32_t y = y_center - (static_cast<int32_t>(sample) * y_span) / 256;
     return static_cast<Coord>(std::clamp<int32_t>(y, r.top(), r.bottom() - 1));
 }
 
@@ -115,7 +115,6 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
         current_y_[x] = sample_to_y(r, data_[src_index]);
     }
 
-    // Draw first, then erase stale pixels so the trace never disappears mid-refresh.
     for (size_t x = 0; x < columns; ++x) {
         display.draw_pixel(
             {static_cast<Coord>(r.left() + x), current_y_[x]},
@@ -126,13 +125,13 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
         const size_t expired_slot = history_head_;
 
         for (size_t x = 0; x < columns; ++x) {
-            const auto expired_y = history_y_[expired_slot][x];
+            const auto expired_y = sample_to_y(r, history_samples_[expired_slot][x]);
             bool keep = (expired_y == current_y_[x]);
 
             if (!keep) {
                 for (size_t i = 1; i < history_count_; ++i) {
                     const size_t slot = (history_head_ + i) % max_persistence_frames;
-                    if (history_y_[slot][x] == expired_y) {
+                    if (sample_to_y(r, history_samples_[slot][x]) == expired_y) {
                         keep = true;
                         break;
                     }
@@ -151,7 +150,10 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
     }
 
     const size_t tail_slot = (history_head_ + history_count_) % max_persistence_frames;
-    std::copy_n(current_y_.begin(), columns, history_y_[tail_slot].begin());
+    for (size_t x = 0; x < columns; ++x) {
+        const size_t src_index = (x * length_) / columns;
+        history_samples_[tail_slot][x] = data_[src_index];
+    }
     ++history_count_;
 }
 
@@ -338,8 +340,7 @@ void TimeSinkView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         const size_t src_index =
             (trigger_index + offset) % source_count;
         const int32_t centered = static_cast<int32_t>(spectrum.db[src_index]) - 128;
-        const int32_t scaled = centered * 256;
-        waveform_buffer[x] = static_cast<int16_t>(std::clamp<int32_t>(scaled, -32768, 32767));
+        waveform_buffer[x] = static_cast<int8_t>(std::clamp<int32_t>(centered, -128, 127));
     }
 
     waveform.set_dirty();
