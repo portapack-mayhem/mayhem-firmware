@@ -57,6 +57,9 @@ void BeaconUIList::paint(Painter& painter) {
             text = std::string(buffer);
         }
 
+        if (index == db_->get_current_beacon_index())
+            style = Theme::getInstance()->bg_medium;
+
         painter.draw_string(
             line_position, (is_selected ? style->invert() : *style), text);
     }
@@ -95,6 +98,7 @@ bool BeaconUIList::on_key(const KeyEvent key) {
 
     if (key == KeyEvent::Select && on_select) {
         on_select(get_index());
+        set_dirty();
         return true;
     }
 

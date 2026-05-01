@@ -451,6 +451,8 @@ void EPIRBAppView::on_packet(Message* const p) {
 
         // Update timeout
         timeout = (countdown * -1);
+        // Reset selection
+        beacon_db.set_current_beacon(0);
         // Update display
         on_beacon_change();
 
