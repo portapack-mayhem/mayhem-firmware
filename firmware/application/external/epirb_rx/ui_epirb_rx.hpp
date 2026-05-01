@@ -167,7 +167,7 @@ class EPIRBAppView final : public ui::View {
     ~EPIRBAppView();
 
     void set_parent_rect(const ui::Rect new_parent_rect) override;
-    // void focus() override;
+    void focus() override;
     void refresh();
 
     // Message to configure rx baseband

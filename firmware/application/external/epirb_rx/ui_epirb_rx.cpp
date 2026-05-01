@@ -418,9 +418,9 @@ void EPIRBAppView::refresh() {
     view_map.repaint();
 }
 
-/*void EPIRBAppView::focus() {
+void EPIRBAppView::focus() {
     options_frequency.focus();
-}*/
+}
 
 void EPIRBAppView::on_packet(Message* const p) {
     const auto message = static_cast<const EPIRBPacketMessage*>(p);
@@ -432,36 +432,35 @@ void EPIRBAppView::on_packet(Message* const p) {
     // UsbSerialAsyncmsg::asyncmsg(beacon_string);
 
     // Decode the EPIRB packet
-    // if (packet.size() > 64) {
-    // Actual beacon
-    Beacon& beacon = beacon_db.add_beacon();
-    decode_packet(packet, beacon);
-    beacons_received++;
+    if (packet.size() > 64) {
+        // Actual beacon
+        Beacon& beacon = beacon_db.add_beacon();
+        decode_packet(packet, beacon);
+        beacons_received++;
 
-    // Track packet statistics
-    if (beacon.isFrameValid()){
-        if(beacon.bch1Corrected || beacon.bch2Corrected) {
-            packets_corrected++;
+        // Track packet statistics
+        if (beacon.isFrameValid()) {
+            if (beacon.bch1Corrected || beacon.bch2Corrected) {
+                packets_corrected++;
+            } else {
+                packets_valid++;
+            }
         } else {
-            packets_valid++;
+            packets_error++;
         }
+
+        // Update timeout
+        timeout = (timeout_delay * -1);
+        // Update display
+        on_beacon_change();
+
+        // Log the beacon
+        /*if (logger) {
+            logger->on_packet(beacon);
+        }*/
+
+        view_list.set_dirty();
     }
-    else {
-        packets_error++;
-    }
-
-    // Update timeout
-    timeout = (timeout_delay * -1);
-    // Update display
-    on_beacon_change();
-
-    // Log the beacon
-    /*if (logger) {
-        logger->on_packet(beacon);
-    }*/
-
-    view_list.set_dirty();
-    //}
 }
 
 void EPIRBAppView::on_beacon_change() {
