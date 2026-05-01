@@ -160,9 +160,9 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
         buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::DECIMAL);
         (*(buffer_pointer++)) = '\t';
     }
-    buffer_pointer += sprintf(buffer_pointer, "%sControl: %s%s", STR_COLOR_CYAN, beacon.isBch1Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
+    buffer_pointer += sprintf(buffer_pointer, "%sControl: %s%s", STR_COLOR_CYAN, beacon.isBch1Valid() ? beacon.bch1Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
     if (beacon.hasBch2) {
-        buffer_pointer += sprintf(buffer_pointer, " %s%s", beacon.isBch2Valid() ? STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
+        buffer_pointer += sprintf(buffer_pointer, " %s%s", beacon.isBch2Valid() ? beacon.bch2Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
     }
     buffer_pointer += sprintf(buffer_pointer, "\t%sHex ID:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.hexId);
     if (beacon.hasSerialNumber) {
@@ -439,10 +439,16 @@ void EPIRBAppView::on_packet(Message* const p) {
     beacons_received++;
 
     // Track packet statistics
-    if (beacon.isFrameValid())
-        packets_valid++;
-    else
+    if (beacon.isFrameValid()){
+        if(beacon.bch1Corrected || beacon.bch2Corrected) {
+            packets_corrected++;
+        } else {
+            packets_valid++;
+        }
+    }
+    else {
         packets_error++;
+    }
 
     // Update timeout
     timeout = (timeout_delay * -1);
