@@ -117,6 +117,7 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
             remove_child(item.get());
 
         menu_item_views.clear();
+        menu_item_views.shrink_to_fit();
     }
 
     for (size_t c = 0; c < displayed_max; c++) {
@@ -149,6 +150,7 @@ void MenuView::clear() {
         item->set_item(nullptr);
 
     menu_items.clear();
+    menu_items.shrink_to_fit();
     highlighted_item = 0;
     offset = 0;
 }

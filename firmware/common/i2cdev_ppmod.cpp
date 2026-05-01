@@ -246,7 +246,9 @@ bool I2cDev_PPmod::send_poweroff_command() {
     if (isLocked()) return false;  // device is busy
     Command cmd = Command::COMMAND_POWER_OFF;
     uint8_t tmp = 0;  // result of the ack. 0 = no, 1 = ok
-    i2c_read((uint8_t*)&cmd, 2, &tmp, 1);
+    if (!i2c_read((uint8_t*)&cmd, 2, &tmp, 1)) {
+        return false;
+    }
     return (tmp == 1);
 }
 

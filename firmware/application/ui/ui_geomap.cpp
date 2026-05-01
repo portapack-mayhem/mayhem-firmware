@@ -251,15 +251,13 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
             }
         }
     } else {
-        ui::Color* zoom_out_buffer = new ui::Color[(pixels * (-map_zoom))];
+        ui::Color zoom_out_buffer[(pixels * (-map_zoom))];
         map_file.read(zoom_out_buffer, (pixels * (-map_zoom)) << 1);
-
         // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
         // Future TODO: Average each group of pixels (in both X & Y directions if possible).
         for (int i = 0; i < width; i++) {
             buffer[i] = zoom_out_buffer[i * (-map_zoom)];
         }
-        delete[] zoom_out_buffer;
     }
 }
 
@@ -333,8 +331,9 @@ void GeoMap::set_osm_max_zoom(bool changeboth) {
     for (uint8_t i = map_osm_zoom; i > 0; i--) {
         int tile_x = lon2tile(lon_, i);
         int tile_y = lat2tile(lat_, i);
-        std::string filename = "/OSM/" + to_string_dec_int(i) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp";
-        std::filesystem::path file_path(filename);
+        char path_buffer[64];
+        snprintf(path_buffer, sizeof(path_buffer), "/OSM/%d/%d/%d.bmp", i, tile_x, tile_y);
+        std::filesystem::path file_path(path_buffer);
         if (file_exists(file_path)) {
             map_osm_real_zoom = i;
             if (changeboth) map_osm_zoom = i;
@@ -347,7 +346,7 @@ void GeoMap::set_osm_max_zoom(bool changeboth) {
 
 // checks if the tile file presents or not. to determine if we got osm or not
 uint8_t GeoMap::find_osm_file_tile() {
-    std::string filename = "/OSM/" + to_string_dec_int(0) + "/" + to_string_dec_int(0) + "/" + to_string_dec_int(0) + ".bmp";
+    std::string filename = "/OSM/0/0/0.bmp";
     std::filesystem::path file_path(filename);
     if (file_exists(file_path)) return 1;
     return 0;  // not found
@@ -456,22 +455,24 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         display.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);
         return false;
     }
-    std::vector<ui::Color> line(clip_w);
+
+    map_line_buffer.resize(clip_w);
+
     if (bmp.is_bottomup()) {
         for (int y = clip_h - 1; y >= 0; --y) {
             int source_row = src_y + y;
             int dest_row = dest_y + y;
             bmp.seek(src_x, source_row);
-            bmp.read_next_px_cnt(line.data(), clip_w, false);
-            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
+            bmp.read_next_px_cnt(map_line_buffer.data(), clip_w, false);
+            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, map_line_buffer);
         }
     } else {
         for (int y = 0; y < clip_h; ++y) {
             int source_row = src_y + y;
             int dest_row = dest_y + y;
             bmp.seek(src_x, source_row);
-            bmp.read_next_px_cnt(line.data(), clip_w, false);
-            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
+            bmp.read_next_px_cnt(map_line_buffer.data(), clip_w, false);
+            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, map_line_buffer);
         }
     }
     return true;
@@ -479,11 +480,11 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
 
 void GeoMap::paint(Painter& painter) {
     const auto r = screen_rect();
-    std::vector<ui::Color> map_line_buffer;
-    map_line_buffer.resize(r.width());
     int16_t zoom_seek_x, zoom_seek_y;
 
     if (!use_osm) {
+        map_line_buffer.resize(r.width());
+
         // Ony redraw map if it moved by at least 1 pixel or the markers list was updated
         if (map_zoom <= 1) {
             // Zooming out, or no zoom
@@ -755,7 +756,7 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
     display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
-void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
+void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string& itemTag, const Color color, const Color fontColor, const Color backColor) {
     const auto r = screen_rect();
 
     int tagOffset = 10;

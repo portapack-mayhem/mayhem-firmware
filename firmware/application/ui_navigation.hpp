@@ -50,7 +50,6 @@
 #include "lfsr_random.hpp"
 #include "sd_card.hpp"
 #include "external_app.hpp"
-#include "view_factory.hpp"
 #include "battery.hpp"
 
 // for incrementing fake date when RTC battery is dead
@@ -59,6 +58,9 @@
 using namespace sd_card;
 
 namespace ui {
+
+class NavigationView;
+using ViewProducer = std::unique_ptr<View> (*)(NavigationView&);
 
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc);
 void add_external_items(NavigationView& nav, app_location_t location, BtnGridView& grid, uint8_t error_tile_pos, bool show_error_tile = true);
@@ -69,12 +71,7 @@ enum modal_t {
     ABORT
 };
 
-class CstrCmp {
-   public:
-    bool operator()(const char* a, const char* b) const;
-};
-
-// Should only be used as part of the appList in NavigationView, the viewFactory will never be destroyed.
+// Should only be used as part of the appList in NavigationView.
 class AppInfo {
    public:
     const char* id;  // MUST be unique! Used by serial command to start the app so it also has to make sense
@@ -82,7 +79,7 @@ class AppInfo {
     app_location_t menuLocation;
     Color iconColor;
     const Bitmap* icon;
-    ViewFactoryBase* viewFactory;  // Never destroyed, and I believe it's ok ;) Having a unique_ptr here breaks the initializer list of appList
+    ViewProducer producer;
 };
 
 struct AppInfoConsole {
@@ -137,14 +134,18 @@ class NavigationView : public View {
     bool set_on_pop(std::function<void()> on_pop);
 
     // App list is used to preserve order, so the menu items in the menu grid can stay in place
-    // App map is used to look up apps by id used by serial app start
-    using AppMap = std::map<const char*, const AppInfo&, CstrCmp>;
     using AppList = std::vector<AppInfo>;
-    static const AppMap appMap;
     static const AppList appList;
 
     bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
     void handle_autostart();
+
+    void store_last_menu_name(const std::string& name) { last_menu_name_ = name; }
+    std::string get_last_menu_name() const { return last_menu_name_; }
+    size_t view_stack_size() const { return view_stack.size(); }
+
+    bool get_last_menu_went_deeper() { return last_menu_went_deeper; }
+    void set_last_menu_went_deeper(bool went_deeper) { last_menu_went_deeper = went_deeper; }
 
    private:
     struct ViewState {
@@ -158,6 +159,8 @@ class NavigationView : public View {
 
     void free_view();
     void update_view();
+    std::string last_menu_name_{};  // this stores the last menu name, when we replace the menu with the app, we'll know, where to navigate back
+    bool last_menu_went_deeper = false;
 };
 
 /* Holds widgets and grows dynamically toward the left.
@@ -451,8 +454,8 @@ class SystemView : public View {
     SystemStatusView status_view{navigation_view};
     InformationView info_view{navigation_view};
     NotificationView notification_view{navigation_view};
-    DfuMenu overlay{navigation_view};
-    DfuMenu2 overlay2{navigation_view};
+    std::unique_ptr<DfuMenu> overlay{nullptr};
+    std::unique_ptr<DfuMenu2> overlay2{nullptr};
     Context& context_;
 };
 

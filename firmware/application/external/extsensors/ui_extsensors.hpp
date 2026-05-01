@@ -78,6 +78,8 @@ class ExtSensorsView : public View {
     void on_orientation(const OrientationDataMessage* msg);
     void on_environment(const EnvironmentDataMessage* msg);
 
+    void on_show() override;
+
     MessageHandlerRegistration message_handler_gps{
         Message::ID::GPSPosData,
         [this](Message* const p) {

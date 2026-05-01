@@ -170,7 +170,7 @@ bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t by
     if (bytes == 0) return false;
     // Create a new buffer to hold both reg and data
     uint8_t total_size = reg_size + bytes;
-    uint8_t* buffer = new uint8_t[total_size];
+    uint8_t buffer[total_size];
     // Copy the register data into the buffer
     if (reg_size > 0 && reg) {
         memcpy(buffer, reg, reg_size);
@@ -179,8 +179,6 @@ bool I2cDev::i2c_write(uint8_t* reg, uint8_t reg_size, uint8_t* data, uint8_t by
     memcpy(buffer + reg_size, data, bytes);
     // Transmit the combined data
     bool result = i2cbus.transmit(addr, buffer, total_size, 150);
-    // Clean up the dynamically allocated buffer
-    delete[] buffer;
     if (!result)
         got_error();
     else

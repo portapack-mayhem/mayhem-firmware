@@ -1168,6 +1168,21 @@ typedef struct {
 } LPC_RTC_Type;
 
 // ------------------------------------------------------------------------------------------------
+// -----                                         EVENT ROUTER                                 -----
+// ------------------------------------------------------------------------------------------------
+
+typedef struct {
+  __IO uint32_t HILO;       /* +0x000 */
+  __IO uint32_t EDGE;       /* +0x004 */
+  __O  uint32_t CLR_EN;     /* +0x008 */
+  __O  uint32_t SET_EN;     /* +0x00C */
+  __I  uint32_t STATUS;     /* +0x010 */
+  __I  uint32_t ENABLE;     /* +0x014 */
+  __O  uint32_t CLR_STAT;   /* +0x018 */
+  __O  uint32_t SET_STAT;   /* +0x01C */
+} LPC_EVENTROUTER_Type;
+
+// ------------------------------------------------------------------------------------------------
 // -----                                       USART0/2/3                                     -----
 // ------------------------------------------------------------------------------------------------
 
@@ -1466,6 +1481,7 @@ typedef struct {
 #define LPC_ADC1                  ((LPC_ADCx_Type           *) LPC_ADC1_BASE)
 #define LPC_GPIO                  ((LPC_GPIO_Type           *) LPC_GPIO_BASE)
 #define LPC_SGPIO                 ((LPC_SGPIO_Type          *) LPC_SGPIO_BASE)
+#define LPC_EVENTROUTER           ((LPC_EVENTROUTER_Type *) LPC_EVENT_ROUTER_BASE)
 
 #ifdef __cplusplus
 }

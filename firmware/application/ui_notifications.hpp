@@ -29,11 +29,11 @@ class NotificationEntry {
     uint16_t id = 0;
 
     NotificationEntry() = default;
-    NotificationEntry(const std::string& source_app, const std::string& title, const std::string& message, notification_icon_t icon = NOTIF_ICON_NONE, uint16_t timeout = 10000, uint16_t id = 0)
-        : source_app(source_app), title(title), message(message), icon(icon), timeout(timeout), id(id) {}
+    NotificationEntry(std::string source_app, std::string title, std::string message, notification_icon_t icon = NOTIF_ICON_NONE, uint16_t timeout = 10000, uint16_t id = 0)
+        : source_app(std::move(source_app)), title(std::move(title)), message(std::move(message)), icon(icon), timeout(timeout), id(id) {}
 
-    static NotificationEntry build(const std::string& source_app, const std::string& title, const std::string& message, notification_icon_t icon = NOTIF_ICON_NONE, uint16_t timeout = 10000) {
-        return NotificationEntry{source_app, title, message, icon, timeout, 0};
+    static NotificationEntry build(std::string source_app, std::string title, std::string message, notification_icon_t icon = NOTIF_ICON_NONE, uint16_t timeout = 10000) {
+        return NotificationEntry{std::move(source_app), std::move(title), std::move(message), icon, timeout, 0};
     }
 
     bool increase_time(uint16_t delta) {
@@ -47,8 +47,7 @@ class NotificationEntry {
 
 class NotificationEntryView : public View {
    public:
-    NotificationEntryView(const NotificationEntry& entry, NotificationView* notifhandler);
-
+    NotificationEntryView(NotificationEntry entry, NotificationView* notifhandler);
     NotificationEntryView(const NotificationEntryView&) = delete;
     NotificationEntryView& operator=(const NotificationEntryView&) = delete;
 
@@ -72,7 +71,7 @@ class NotificationView : public View {
     NotificationView(NavigationView& nav);
     ~NotificationView();
 
-    void add_notification(NotificationEntry& entry);
+    void add_notification(NotificationEntry entry);
     void remove_notification(uint16_t id);
     void open_notification(std::string app_name);
 

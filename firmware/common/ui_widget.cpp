@@ -703,7 +703,7 @@ void Console::clear(bool clear_buffer = false) {
     pos = {0, 0};
 }
 
-void Console::write(std::string message) {
+void Console::write(const std::string& message) {
     bool escape = false;
 
     if (!hidden() && drawn()) {
@@ -754,7 +754,7 @@ void Console::getWidgetName(std::string& result) {
     result = "Console";
 }
 
-void Console::writeln(std::string message) {
+void Console::writeln(const std::string& message) {
     write(message + "\n");
 }
 
@@ -845,7 +845,7 @@ Checkbox::Checkbox(
     set_focusable(true);
 }
 
-void Checkbox::set_text(const std::string value) {
+void Checkbox::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -977,7 +977,7 @@ Button::Button(
     set_focusable(true);
 }
 
-void Button::set_text(const std::string value) {
+void Button::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1124,7 +1124,7 @@ ButtonWithEncoder::ButtonWithEncoder(
     set_focusable(true);
 }
 
-void ButtonWithEncoder::set_text(const std::string value) {
+void ButtonWithEncoder::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1296,7 +1296,7 @@ NewButton::NewButton(
     set_focusable(true);
 }
 
-void NewButton::set_text(const std::string value) {
+void NewButton::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1381,17 +1381,17 @@ void NewButton::paint(Painter& painter) {
 
         if (!text_.empty()) {
             auto label_r = style.font.size_of(text_);
-            std::string text_to_draw = text_;
-            if (label_r.width() > r.width() - 2) {
-                // Truncate text to fit
-                size_t max_chars = (r.width() - 2) / style.font.char_width();
-                text_to_draw = text_.substr(0, max_chars);
-                label_r = style.font.size_of(text_to_draw);
-            }
             if (bitmap_) {
                 y += spacing;
             }
-            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+            if (label_r.width() > r.width() - 2) {
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                std::string text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+            } else {
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_);
+            }
         }
     } else {  // no valign
         if (bitmap_) {
@@ -1406,15 +1406,14 @@ void NewButton::paint(Painter& painter) {
 
         if (!text_.empty()) {
             auto label_r = style.font.size_of(text_);
-            std::string text_to_draw = text_;
             if (label_r.width() > r.width() - 2) {
-                // Truncate text to fit
                 size_t max_chars = (r.width() - 2) / style.font.char_width();
-                text_to_draw = text_.substr(0, max_chars);
+                std::string text_to_draw = text_.substr(0, max_chars);
                 label_r = style.font.size_of(text_to_draw);
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style, text_to_draw);
+            } else {
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style, text_);
             }
-            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
-                                text_to_draw);
         }
     }
 }

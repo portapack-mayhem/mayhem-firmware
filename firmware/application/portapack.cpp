@@ -339,6 +339,20 @@ static void shutdown_base() {
     clock_manager.shutdown();
 }
 
+static void shutdown_base_12mhz() {
+    i2c0.stop();
+
+    set_clock_config(clock_config_irc);
+
+    cgu::pll1::disable();
+
+    set_idivc_base_clocks(cgu::CLK_SEL::IRC);
+
+    i2c0.start(i2c_config_boot_clock);
+
+    clock_manager.shutdown();
+}
+
 static void set_cpu_clock_speed() {
     /* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
      * core clock speed to the 110 - 204MHz range.
@@ -698,7 +712,7 @@ init_status_t init() {
     return return_code;
 }
 
-void shutdown(const bool leave_screen_on) {
+void shutdown(const bool leave_screen_on, const bool slow_clock) {
     gpdma::controller.disable();
 
     if (!leave_screen_on) {
@@ -712,7 +726,11 @@ void shutdown(const bool leave_screen_on) {
 
     hackrf::cpld::init_from_eeprom();
 
-    shutdown_base();
+    if (slow_clock) {
+        shutdown_base_12mhz();
+    } else {
+        shutdown_base();
+    }
 }
 
 void setEventDispatcherToUSBSerial(EventDispatcher* evt) {
