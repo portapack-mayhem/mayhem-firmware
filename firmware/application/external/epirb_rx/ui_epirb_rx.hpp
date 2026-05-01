@@ -178,11 +178,14 @@ class EPIRBAppView final : public ui::View {
 
    private:
     uint8_t squelch{50};
+    // The delay between each frame
+    uint32_t countdown{50};
     app_settings::SettingsManager settings_{
         "rx_epirb",
         app_settings::Mode::RX,
         {
             {"epirb_squelch"sv, &squelch},
+            {"countdown"sv, &countdown},
         }};
 
     ui::NavigationView& nav_;
@@ -230,8 +233,6 @@ class EPIRBAppView final : public ui::View {
     SignalToken signal_token_tick_second{};
     // Timeout string
     int16_t timeout{0};
-    // The delay between each frame
-    uint16_t timeout_delay{50};
 
     // Tab View
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT};

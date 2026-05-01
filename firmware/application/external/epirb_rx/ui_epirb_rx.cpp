@@ -450,7 +450,7 @@ void EPIRBAppView::on_packet(Message* const p) {
         }
 
         // Update timeout
-        timeout = (timeout_delay * -1);
+        timeout = (countdown * -1);
         // Update display
         on_beacon_change();
 
