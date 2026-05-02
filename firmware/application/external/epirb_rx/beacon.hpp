@@ -336,17 +336,14 @@ class Beacon {
 
     bool isBch1Valid() { return (bch1 == computedBch1); }
     bool isBch2Valid() { return (bch2 == computedBch2); }
-    bool isFrameValid() { return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty); }
+    bool isFrameValid();
     bool isOrbito() { return (protocol == Protocol::USER_ORB); }
 
     size_t hexString(char* buffer, bool withHeader) {
         return toHexString(buffer, frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
     }
 
-    std::string shortId() {
-        std::string result = std::string(hexId);
-        return (result.size() >= 4) ? result.substr(0, 4) : result;
-    }
+    std::string shortId();
 
     std::string getSatus() {
         if (isFrameValid())
@@ -355,16 +352,7 @@ class Beacon {
             return "KO";
     }
 
-    ui::Color getColor() {
-        if (isFrameValid())
-            return ui::Color::green();
-        else
-            return ui::Color::red();
-    }
-
-    size_t formatTime(char* buffer) {
-        return sprintf(buffer, "%02d:%02d:%02d", date.hour(), date.minute(), date.second());
-    }
+    size_t formatTime(char* buffer);
 
     size_t formatSummary(char* buffer, bool with_time);
 

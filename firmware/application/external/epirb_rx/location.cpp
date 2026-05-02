@@ -42,6 +42,19 @@ size_t Beacon::formatSummary(char* buffer, bool with_time) {
     return result;
 }
 
+bool Beacon::isFrameValid() {
+    return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty);
+}
+
+std::string Beacon::shortId() {
+    std::string result = std::string(hexId);
+    return (result.size() >= 4) ? result.substr(0, 4) : result;
+}
+
+size_t Beacon::formatTime(char* buffer) {
+    return sprintf(buffer, "%02d:%02d:%02d", date.hour(), date.minute(), date.second());
+}
+
 void Location::Angle::clear() {
     degrees = 255;
     minutes = 0;
