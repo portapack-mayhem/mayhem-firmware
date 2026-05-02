@@ -20,10 +20,27 @@
  */
 
 #include "location.hpp"
+#include "beacon.hpp"
 #include <cstdio>
 #include "string_format.hpp"
 
 namespace ui::external_app::epirb_rx {
+
+size_t Beacon::formatSummary(char* buffer, bool with_time) {
+    size_t result = 0;
+    if (with_time) {
+        result += formatTime(buffer);
+        buffer[result++] = '-';
+    }
+    result += sprintf((buffer + result), "%4s-%5s-", shortId().c_str(), getType());
+    if (location.isUnknown()) {
+        result += sprintf((buffer + result), "      ");
+    } else {
+        result += location.toString((buffer + result), Location::LocationFormat::MAIDENHEAD_LOCATOR);
+    }
+    result += sprintf((buffer + result), "[%s%s%s]", isFrameValid() ? (bch1Corrected || bch2Corrected) ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, getSatus().c_str(), STR_COLOR_WHITE);
+    return result;
+}
 
 void Location::Angle::clear() {
     degrees = 255;
