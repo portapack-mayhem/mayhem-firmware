@@ -55,7 +55,8 @@ TextArea::TextArea(
 
 void TextArea::paint(Painter& painter) {
     const auto rect = screen_rect();
-    const Style& s = style();
+    const Style& s = has_focus() ? style().invert() : style();
+
     painter.fill_rectangle(rect, s.background);
     // We use \t as line separator since \n is used in STR_COLOR_GREEN
     auto rows = split_string(content, '\t');
@@ -71,6 +72,15 @@ void TextArea::paint(Painter& painter) {
 void TextArea::set_content(std::string_view value) {
     content = std::string{value};
     set_dirty();
+}
+
+bool TextArea::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Select && on_select) {
+        on_select(*this);
+        set_dirty();
+        return true;
+    }
+    return false;
 }
 
 /*
@@ -321,8 +331,10 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &field_lna,
                   &field_vga,
                   &rssi,
-                  //&audio,
-                  //&field_squelch,
+    //&audio,
+#ifdef SQUELCH
+                  &field_squelch,
+#endif
                   &field_volume,
                   &channel,
                   &text_status,
@@ -353,6 +365,12 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         this->on_tick_second();
     };
 
+    text_timeout.set_focusable(true);
+    text_timeout.on_select = [this](TextArea&) {
+        timeout = ((countdown+1) * -1);
+        on_tick_second();
+    };
+
     tab_view.set_parent_rect(Rect(0, UI_POS_HEIGHT(4), screen_width, 3 * 8));
     view_list.hidden(false);
     view_detail.hidden(true);
@@ -369,22 +387,19 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
         on_beacon_change();
     };
 
+#ifdef SQUELCH
     // Restore squelch value
-    // field_squelch.set_value(squelch);
+    field_squelch.set_value(squelch);
+#endif
     epirb_rx_config_message.squelch = squelch;
     send_config();
-    // field_squelch.on_change = [this](int32_t v) {
-    //     squelch = v;
-    //     epirb_rx_config_message.squelch = squelch;
-    //     send_config();
-    // };
-
-    // Configure receiver for default EPIRB frequency (406.028 MHz)
-    // Receiver parameters are loaded from settings
-    // receiver_model.set_target_frequency(406025000);
-    // receiver_model.set_rf_amp(true);
-    // receiver_model.set_lna(32);
-    // receiver_model.set_vga(32);
+#ifdef SQUELCH
+    field_squelch.on_change = [this](int32_t v) {
+        squelch = v;
+        epirb_rx_config_message.squelch = squelch;
+        send_config();
+    };
+#endif
 
     // Force sample rate to patch baseband processor
     receiver_model.set_sampling_rate(3072000);
@@ -533,7 +548,7 @@ void EPIRBAppView::on_clear_beacons() {
 
 void EPIRBAppView::on_tick_second() {
     timeout++;
-    text_timeout.set(to_string_dec_uint(abs(timeout)));
+    text_timeout.set_content(to_string_dec_uint(abs(timeout)));
 }
 
 void EPIRBAppView::update_display() {

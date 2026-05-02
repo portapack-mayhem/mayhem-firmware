@@ -51,6 +51,8 @@
 #include "ui_beaconlist.hpp"
 #include "resources.hpp"
 
+#define SQUELCH
+
 namespace ui::external_app::epirb_rx {
 
 enum class PacketStatus : uint8_t {
@@ -78,8 +80,11 @@ class TextArea : public Widget {
    public:
     TextArea(Rect parent_rect);
 
+    std::function<void(TextArea&)> on_select{};
+
     void set_content(std::string_view value);
     void paint(Painter& painter) override;
+    bool on_key(const KeyEvent key) override;
 
    private:
     std::string content{};
@@ -222,14 +227,15 @@ class EPIRBAppView final : public ui::View {
     ui::AudioVolumeField field_volume{
         {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
 
-    // NumberField field_squelch{
-    //     {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},2,{0, 99},1,' '};
+#ifdef SQUELCH
+    NumberField field_squelch{
+         {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},2,{0, 99},1,' '};
+#endif
 
     // Status display
     TextArea text_status{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(3)}};
-    ui::Text text_timeout{
-        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
-        ""};
+    TextArea text_timeout{
+        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)}};
     SignalToken signal_token_tick_second{};
     // Timeout string
     int16_t timeout{0};
