@@ -43,10 +43,10 @@ namespace ui::external_app::epirb_rx {
 #define BCH_12_POLY_LENGTH 13
 
 // See content of sdcard/EPIRB/RES/BEACON.RES
-#define ADDITIONAL_DATA_RESOURCE_START 25
-#define LONG_ADDITIONAL_DATA_RESOURCE_START 33
-#define EMERGENCY_RESOURCE_START 39
-#define EMERGENCY_OTHER_RESOURCE_START 39
+#define ADDITIONAL_DATA_RESOURCE_START 24
+#define LONG_ADDITIONAL_DATA_RESOURCE_START 32
+#define EMERGENCY_RESOURCE_START 38
+#define EMERGENCY_OTHER_RESOURCE_START 48
 
 class Beacon {
    public:
@@ -536,13 +536,13 @@ class Beacon {
                 case 0b1100: {
                     hasAdditionalData = true;
                     uint32_t mmsi = getBits(41, 60);
-                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START), mmsi, mmsi);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(LONG_ADDITIONAL_DATA_RESOURCE_START), mmsi, mmsi);
                 } break;
                 case 0b0011: {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
                     setSerialNumber(getBits(41, 64));
-                    strcpy(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 1));
+                    strcpy(additionalData, ResourceManager::get_beacon_resource(LONG_ADDITIONAL_DATA_RESOURCE_START + 1));
                 } break;
                 case 0b0100:
                 case 0b0110:
@@ -550,7 +550,7 @@ class Beacon {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
                     uint32_t csTaNumber = getBits(41, 50);
-                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 2), csTaNumber);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(LONG_ADDITIONAL_DATA_RESOURCE_START + 2), csTaNumber);
                     setSerialNumber(getBits(51, 64));
                 } break;
                 case 0b0101: {
@@ -562,7 +562,7 @@ class Beacon {
                     char char2 = BAUDOT_CODE[data + 32];
                     data = getBits(51, 55);
                     char char3 = BAUDOT_CODE[data + 32];
-                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 3), char1, char2, char3);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(LONG_ADDITIONAL_DATA_RESOURCE_START + 3), char1, char2, char3);
                     setSerialNumber(getBits(56, 64));
                 } break;
                 case 0b1000:
@@ -573,7 +573,7 @@ class Beacon {
                     hasAdditionalData = true;
                     setSerialNumber(getBits(41, 58));
                     uint32_t natNum = getBits(127, 132);
-                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 4), natNum);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(LONG_ADDITIONAL_DATA_RESOURCE_START + 4), natNum);
                 } break;
             }
         }

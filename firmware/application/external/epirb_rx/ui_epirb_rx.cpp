@@ -172,6 +172,9 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     if (beacon.hasAdditionalData) {
         buffer_pointer += sprintf(buffer_pointer, "%s\t", beacon.additionalData);
     }
+    if (beacon.hasEmergency) {
+        buffer_pointer += sprintf(buffer_pointer, "\t%sEmergency:%s %s\t", STR_COLOR_CYAN, STR_COLOR_RED, beacon.emergencyType);
+    }
     buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s %s(%d) - %s\t%sLocation:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.alphaCode, beacon.country.code, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE);
     buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
     (*(buffer_pointer++)) = '\t';
