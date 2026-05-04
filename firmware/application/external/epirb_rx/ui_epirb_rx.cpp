@@ -48,8 +48,18 @@ int CountryManager::cache_count = 0;
 Country CountryManager::cache[16];
 #endif
 
-std::vector<std::string> ResourceManager::beacon_res{};
-std::vector<std::string> ResourceManager::freq{};
+ResourceManager* ResourceManager::current = nullptr;
+
+void ResourceManager::destroy() {
+    if (current != nullptr)
+        delete current;
+    current = nullptr;
+}
+
+ResourceManager* ResourceManager::getInstance() {
+    if (current == nullptr) current = new ResourceManager();
+    return ResourceManager::current;
+}
 
 TextArea::TextArea(
     Rect parent_rect)
@@ -425,6 +435,7 @@ EPIRBAppView::~EPIRBAppView() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
+    ResourceManager::destroy();
 }
 
 void EPIRBAppView::set_parent_rect(const ui::Rect new_parent_rect) {

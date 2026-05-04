@@ -31,28 +31,38 @@ namespace ui::external_app::epirb_rx {
 
 #define UNKNOWN_LABEL "Unk."
 
+extern std::vector<std::string> beacon_res;
+extern std::vector<std::string> freq;
+
 class ResourceManager {
    public:
+    static ResourceManager* getInstance();
+
+    static ResourceManager* current;
+    static void destroy();  // used from standalone app, to prevent memleak
+
     static const char* get_beacon_resource(uint8_t line) {
-        if (beacon_res.empty()) {
-            load_file((epirb_dir / u"RES/BEACON.RES"), beacon_res);
+        ResourceManager* rm = getInstance();
+        if (rm->beacon_res.empty()) {
+            load_file((epirb_dir / u"RES/BEACON.RES"), rm->beacon_res);
         }
-        if (line < beacon_res.size()) {
-            return beacon_res[line].c_str();
+        if (line < rm->beacon_res.size()) {
+            return rm->beacon_res[line].c_str();
         }
         return UNKNOWN_LABEL;
     }
 
     static const std::vector<std::string>& get_frequencies() {
-        if (freq.empty()) {
-            load_file((epirb_dir / u"FREQ.TXT"), freq);
+        ResourceManager* rm = getInstance();
+        if (rm->freq.empty()) {
+            load_file((epirb_dir / u"FREQ.TXT"), rm->freq);
         }
-        return freq;
+        return rm->freq;
     }
 
    private:
-    static std::vector<std::string> beacon_res;
-    static std::vector<std::string> freq;
+    std::vector<std::string> beacon_res{};
+    std::vector<std::string> freq{};
 
     static void load_file(const std::filesystem::path& path, std::vector<std::string>& vect) {
         FIL file;
