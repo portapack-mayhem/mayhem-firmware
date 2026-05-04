@@ -52,6 +52,7 @@
 #include "resources.hpp"
 
 #define SQUELCH
+// #define LOGGER
 
 namespace ui::external_app::epirb_rx {
 
@@ -64,7 +65,8 @@ enum class PacketStatus : uint8_t {
 #define EPIRB_TAB_POS_Y (UI_POS_Y(4) + 3 * 8)
 #define EPIRB_TAB_HEIGHT (screen_height - EPIRB_TAB_POS_Y - UI_POS_HEIGHT(1))
 
-/*class EPIRBLogger {
+#ifdef LOGGER
+class EPIRBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
@@ -74,7 +76,8 @@ enum class PacketStatus : uint8_t {
 
    private:
     LogFile log_file{};
-};*/
+};
+#endif
 
 class TextArea : public Widget {
    public:
@@ -92,11 +95,10 @@ class TextArea : public Widget {
 
 class EPIRBDetailView : public View {
    public:
-    EPIRBDetailView(Rect parent_rect, ResourceManager& rm);
+    EPIRBDetailView(Rect parent_rect);
     void set_beacon(Beacon& beacon);
 
    private:
-    ResourceManager& resource_manager;
     TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
 };
 
@@ -197,9 +199,9 @@ class EPIRBAppView final : public ui::View {
 
     BeaconDB beacon_db{};
 
-    ResourceManager resource_manager{};
-
-    // EPIRBLogger logger{};
+#ifdef LOGGER
+    std::unique_ptr<EPIRBLogger> logger{};
+#endif
 
     OptionsField options_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -229,7 +231,11 @@ class EPIRBAppView final : public ui::View {
 
 #ifdef SQUELCH
     NumberField field_squelch{
-         {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},2,{0, 99},1,' '};
+        {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},
+        2,
+        {0, 99},
+        1,
+        ' '};
 #endif
 
     // Status display
@@ -244,7 +250,7 @@ class EPIRBAppView final : public ui::View {
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT};
 
     BeaconUIList view_list{view_rect};
-    EPIRBDetailView view_detail{view_rect, resource_manager};
+    EPIRBDetailView view_detail{view_rect};
     EPIRBMapView view_map{view_rect};
 #ifdef SPECAN
     EPIRBRxView view_rx{*this, view_rect};

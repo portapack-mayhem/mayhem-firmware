@@ -33,27 +33,28 @@ namespace ui::external_app::epirb_rx {
 
 class ResourceManager {
    public:
-    ResourceManager() {
-        load_file((epirb_dir / u"RES/PDESC.RES"), pdesc);
-        load_file((epirb_dir / u"FREQ.TXT"), freq);
-    }
-
-    const char* get_protocol_description(uint8_t line) const {
-        if (line < pdesc.size()) {
-            return pdesc[line].c_str();
+    static const char* get_beacon_resource(uint8_t line) {
+        if (beacon_res.empty()) {
+            load_file((epirb_dir / u"RES/BEACON.RES"), beacon_res);
+        }
+        if (line < beacon_res.size()) {
+            return beacon_res[line].c_str();
         }
         return UNKNOWN_LABEL;
     }
 
-    const std::vector<std::string>& get_frequencies() const {
+    static const std::vector<std::string>& get_frequencies() {
+        if (freq.empty()) {
+            load_file((epirb_dir / u"FREQ.TXT"), freq);
+        }
         return freq;
     }
 
    private:
-    std::vector<std::string> pdesc{};
-    std::vector<std::string> freq{};
+    static std::vector<std::string> beacon_res;
+    static std::vector<std::string> freq;
 
-    void load_file(const std::filesystem::path& path, std::vector<std::string>& vect) {
+    static void load_file(const std::filesystem::path& path, std::vector<std::string>& vect) {
         FIL file;
         if (f_open(&file, path.tchar(), FA_READ) == FR_OK) {
             TCHAR line_buffer[32];

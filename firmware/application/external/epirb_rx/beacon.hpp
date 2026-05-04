@@ -31,6 +31,7 @@
 #include "country.hpp"
 #include "location.hpp"
 #include "rtc_time.hpp"
+#include "resources.hpp"
 
 namespace ui::external_app::epirb_rx {
 
@@ -40,6 +41,12 @@ namespace ui::external_app::epirb_rx {
 #define BCH_21_POLY_LENGTH 22
 #define BCH_12_POLYNOMIAL 0b1010100111001UL
 #define BCH_12_POLY_LENGTH 13
+
+// See content of sdcard/EPIRB/RES/BEACON.RES
+#define ADDITIONAL_DATA_RESOURCE_START 25
+#define LONG_ADDITIONAL_DATA_RESOURCE_START 33
+#define EMERGENCY_RESOURCE_START 39
+#define EMERGENCY_OTHER_RESOURCE_START 39
 
 class Beacon {
    public:
@@ -170,7 +177,7 @@ class Beacon {
     uint64_t identifier{0};
     rtc::RTC date{};
     bool hasAdditionalData{false};
-    std::string additionalData{};
+    char additionalData[48]{0};
     bool hasSerialNumber{false};
     char serialNumber[32]{0};
     char hexId[32]{0};
@@ -182,12 +189,16 @@ class Beacon {
     uint32_t computedBch2{};
     bool bch2Corrected{false};
     bool isEmpty{true};
+    bool hasEmergency{false};
+    bool isAutoamticEmergency{false};
+    bool isMaritime{false};
+    char emergencyType[32]{0};
 
-    static uint64_t getBits(uint8_t* data, int startBit, int endBit) {
+    uint64_t getBits(int startBit, int endBit) {
         uint64_t result = 0;
         startBit--;
         int numBits = endBit - startBit;
-        const uint8_t* pData = &(data[startBit / 8]);
+        const uint8_t* pData = &(frame[startBit / 8]);
         uint8_t b = *pData;
         int bitOffset = 7 - (startBit % 8);
         for (int i = 0; i < numBits; ++i) {
@@ -201,23 +212,23 @@ class Beacon {
         return result;
     }
 
-    static uint64_t computeBCH(uint8_t* frame, int startBit, int endBit, unsigned long poly, int polyLength) {
+    uint64_t computeBCH(int startBit, int endBit, unsigned long poly, int polyLength) {
         int dataLength = endBit - startBit + 1;
         int totalLength = dataLength + polyLength - 1;
-        uint64_t result = getBits(frame, startBit, startBit + polyLength - 1);
+        uint64_t result = getBits(startBit, startBit + polyLength - 1);
         for (int i = polyLength; i <= totalLength; i++) {
             bool firstBit = result >> (polyLength - 1);
             if (firstBit) result = result ^ poly;
             if (i < totalLength) {
                 result = result << 1;
-                if (i < dataLength) result |= getBits(frame, startBit + i, startBit + i);
+                if (i < dataLength) result |= getBits(startBit + i, startBit + i);
             }
         }
         return result;
     }
 
-    static uint64_t computeBCH1(uint8_t* frame) { return computeBCH(frame, 25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
-    static uint64_t computeBCH2(uint8_t* frame) { return computeBCH(frame, 107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
+    uint64_t computeBCH1() { return computeBCH(25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
+    uint64_t computeBCH2() { return computeBCH(107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
 
     static size_t toHexString(char* buffer, uint32_t data) {
         return sprintf(buffer, "0x%08lX", data);
@@ -249,7 +260,7 @@ class Beacon {
         location.clear();
         identifier = 0;
         hasAdditionalData = false;
-        additionalData = "";
+        additionalData[0] = 0;
         hasSerialNumber = false;
         serialNumber[0] = 0;
         hexId[0] = 0;
@@ -261,6 +272,10 @@ class Beacon {
         computedBch2 = 0;
         bch2Corrected = false;
         isEmpty = true;
+        hasEmergency = false;
+        isAutoamticEmergency = false;
+        isMaritime = false;
+        emergencyType[0] = 0;
         std::memcpy(frame, (const void*)frameBuffer, BEACON_DATA_SIZE);
         parseFrame();
     }
@@ -274,7 +289,7 @@ class Beacon {
     void simpleCorrection(bool isBCH1) {
         for (int i = (isBCH1 ? 25 : 107); i <= (isBCH1 ? 85 : 132); i++) {
             flipBit(i);
-            if ((isBCH1 ? (computeBCH1(frame) == bch1) : (computeBCH2(frame) == bch2))) {
+            if ((isBCH1 ? (computeBCH1() == bch1) : (computeBCH2() == bch2))) {
                 if (isBCH1) {
                     computedBch1 = bch1;
                     bch1Corrected = true;
@@ -364,11 +379,11 @@ class Beacon {
                                              'E', 'Z', 'D', 'B', 'S', 'Y', 'F', 'X', 'A', 'W', 'J', ' ', 'U', 'Q', 'K', '\0'};
 
     void parseProtocol() {
-        protocolFlag = getBits(frame, 26, 26);
+        protocolFlag = getBits(26, 26);
         if (protocolFlag)
-            protocolCode = getBits(frame, 37, 39);
+            protocolCode = getBits(37, 39);
         else
-            protocolCode = getBits(frame, 37, 40);
+            protocolCode = getBits(37, 40);
 
         if (!longFrame || protocolFlag == 1) {
             switch (protocolCode) {
@@ -380,6 +395,7 @@ class Beacon {
                     break;
                 case 0b010:
                     protocol = Protocol::USER_EPIRB_MARITIME;
+                    isMaritime = true;
                     break;
                 case 0b011:
                     protocol = Protocol::USER_SERIAL;
@@ -392,6 +408,7 @@ class Beacon {
                     break;
                 case 0b110:
                     protocol = Protocol::USER_EPIRB_RADIO;
+                    isMaritime = true;
                     break;
                 case 0b111:
                     protocol = Protocol::USER_TEST;
@@ -454,97 +471,99 @@ class Beacon {
         hasSerialNumber = false;
         if (protocolFlag) {
             if (protocolCode == 0b011) {
-                uint8_t serialUserProtocol = getBits(frame, 40, 42);
+                uint8_t serialUserProtocol = getBits(40, 42);
                 hasAdditionalData = true;
                 switch (serialUserProtocol) {
-                    case 0b000:
-                        additionalData = "ELTs/SN";
-                        break;
-                    case 0b001:
-                        additionalData = "ELTs/AC op & SN";
-                        break;
-                    case 0b010:
-                        additionalData = "FF EPIRBs/SN";
-                        break;
-                    case 0b011:
-                        additionalData = "ELTs+AC 24-bit ad.";
-                        break;
                     case 0b100:
-                        additionalData = "NFF EPIRBs/SN";
-                        break;
+                        isMaritime = true;
+                        // fallthrough
+                    case 0b000:
+                    case 0b001:
+                    case 0b010:
+                    case 0b011:
                     case 0b110:
-                        additionalData = "PLBs/SN";
+                        strcpy(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + serialUserProtocol));
                         break;
                     default:
                         hasAdditionalData = false;
                 }
                 hasSerialNumber = true;
-                setSerialNumber(getBits(frame, 44, 67));
+                setSerialNumber(getBits(44, 67));
             }
-            // TODO Get emergency info out of bits 107-112 (see spec page 54: "Non protected data fields")
-            /*switch (EmergencyType::Fire) {
-                case EmergencyType::Fire:
-                    return "Fire";
-                case EmergencyType::Flooding:
-                    return "Flooding";
-                case EmergencyType::Collision:
-                    return "Collision";
-                case EmergencyType::Grounding:
-                    return "Grounding";
-                case EmergencyType::Sinking:
-                    return "Sinking";
-                case EmergencyType::Disabled:
-                    return "Disabled";
-                case EmergencyType::Abandoning:
-                    return "Abandoning";
-                case EmergencyType::Piracy:
-                    return "Piracy";
-                case EmergencyType::Man_Overboard:
-                    return "MOB";
-                default:
-                    return "Other";
-            }*/
+            if (!longFrame) {
+                hasEmergency = getBits(107, 107);
+                if (hasEmergency) {
+                    isAutoamticEmergency = getBits(108, 108);
+                    if (isMaritime) {
+                        uint8_t emmergency = getBits(109, 112);
+                        switch (emmergency) {
+                            case 0b0001:
+                            case 0b0010:
+                            case 0b0011:
+                            case 0b0100:
+                            case 0b0101:
+                            case 0b0110:
+                            case 0b0111:
+                            case 0b1000:
+                                strcpy(emergencyType, ResourceManager::get_beacon_resource(EMERGENCY_RESOURCE_START + emmergency));
+                                break;
+                            default:
+                                strcpy(emergencyType, ResourceManager::get_beacon_resource(EMERGENCY_RESOURCE_START));
+                        }
+                    } else {
+                        bool fire = getBits(109, 109);
+                        bool med = getBits(110, 110);
+                        bool disabled = getBits(111, 111);
+                        char* emmergency_pointer = emergencyType;
+                        if (fire) emmergency_pointer += sprintf(emmergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START));
+                        if (med) {
+                            if (fire) emmergency_pointer += sprintf(emmergency_pointer, "%c", '+');
+                            emmergency_pointer += sprintf(emmergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START + 1));
+                        }
+                        if (disabled) {
+                            if (fire || med) emmergency_pointer += sprintf(emmergency_pointer, "%c", '+');
+                            sprintf(emmergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START + 2));
+                        }
+                    }
+                }
+            }
         } else if (longFrame) {
-            char buffer[32];
             switch (protocolCode) {
                 case 0b0010:
                     hasSerialNumber = true;
-                    setSerialNumber(getBits(frame, 61, 64));
+                    setSerialNumber(getBits(61, 64));
                     break;
                 case 0b1100: {
                     hasAdditionalData = true;
-                    uint32_t mmsi = getBits(frame, 41, 60);
-                    sprintf(buffer, "MMSI=0x%08lX MID=%ld", mmsi, mmsi);
-                    additionalData = buffer;
+                    uint32_t mmsi = getBits(41, 60);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START), mmsi, mmsi);
                 } break;
                 case 0b0011: {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
-                    setSerialNumber(getBits(frame, 41, 64));
-                    additionalData = "24 bits AC ad.";
+                    setSerialNumber(getBits(41, 64));
+                    strcpy(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 1));
                 } break;
                 case 0b0100:
                 case 0b0110:
                 case 0b0111: {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
-                    uint32_t csTaNumber = getBits(frame, 41, 50);
-                    sprintf(buffer, "C/S TA #=%ld", csTaNumber);
-                    additionalData = buffer;
-                    setSerialNumber(getBits(frame, 51, 64));
+                    uint32_t csTaNumber = getBits(41, 50);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 2), csTaNumber);
+                    setSerialNumber(getBits(51, 64));
                 } break;
                 case 0b0101: {
                     hasAdditionalData = true;
                     hasSerialNumber = true;
-                    uint32_t data = getBits(frame, 41, 45);
+                    uint32_t data = getBits(41, 45);
                     char char1 = BAUDOT_CODE[data + 32];
-                    data = getBits(frame, 46, 50);
+                    data = getBits(46, 50);
                     char char2 = BAUDOT_CODE[data + 32];
-                    data = getBits(frame, 51, 55);
+                    data = getBits(51, 55);
                     char char3 = BAUDOT_CODE[data + 32];
-                    sprintf(buffer, "Op Design.=%c%c%c", char1, char2, char3);
-                    additionalData = buffer;
-                    setSerialNumber(getBits(frame, 56, 64));
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 3), char1, char2, char3);
+                    setSerialNumber(getBits(56, 64));
                 } break;
                 case 0b1000:
                 case 0b1010:
@@ -552,10 +571,9 @@ class Beacon {
                 case 0b1111: {
                     hasSerialNumber = true;
                     hasAdditionalData = true;
-                    setSerialNumber(getBits(frame, 41, 58));
-                    uint32_t natNum = getBits(frame, 127, 132);
-                    sprintf(buffer, "Nati. data=%ld", natNum);
-                    additionalData = buffer;
+                    setSerialNumber(getBits(41, 58));
+                    uint32_t natNum = getBits(127, 132);
+                    sprintf(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + 4), natNum);
                 } break;
             }
         }
@@ -564,18 +582,18 @@ class Beacon {
     void parseLocatingDevices() {
         bool mainLoc;
         if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
-            mainLoc = getBits(frame, 111, 111);
+            mainLoc = getBits(111, 111);
             mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
         } else if (protocolIsUser(protocol) || protocolIsRls(protocol)) {
-            mainLoc = getBits(frame, 107, 107);
+            mainLoc = getBits(107, 107);
             mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
         }
         if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
-            auxLocatingDevice = getBits(frame, 112, 112) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
+            auxLocatingDevice = getBits(112, 112) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
         } else if (protocolIsRls(protocol)) {
-            auxLocatingDevice = getBits(frame, 108, 108) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
+            auxLocatingDevice = getBits(108, 108) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
         } else if (protocolIsUser(protocol) && protocolCode != 0b100) {
-            uint8_t aux = getBits(frame, 84, 85);
+            uint8_t aux = getBits(84, 85);
             if (aux == 0b00)
                 auxLocatingDevice = AuxLocatingDevice::NONE;
             else if (aux == 0b01)
@@ -591,9 +609,9 @@ class Beacon {
         long latofmin, latofsec, lonofmin, lonofsec;
         bool latoffset, lonoffset;
 
-        longFrame = getBits(frame, 25, 25);
+        longFrame = getBits(25, 25);
         parseProtocol();
-        CountryManager::get_country(getBits(frame, 27, 36), country);
+        CountryManager::get_country(getBits(27, 36), country);
 
         if (frame[2] == 0xD0)
             frameMode = FrameMode::SELF_TEST;
@@ -602,7 +620,7 @@ class Beacon {
         else
             frameMode = FrameMode::UNKNOWN;
 
-        identifier = getBits(frame, 26, 85);
+        identifier = getBits(26, 85);
         std::sprintf(hexId, "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
 
         if (longFrame) {
@@ -759,8 +777,8 @@ class Beacon {
         } else
             isEmpty = false;
 
-        bch1 = getBits(frame, 86, 106);
-        computedBch1 = computeBCH1(frame);
+        bch1 = getBits(86, 106);
+        computedBch1 = computeBCH1();
         // Try and correct single bit error on  BCH1 (bits 25-85)
         if (computedBch1 != bch1) {
             simpleCorrection(true);
@@ -768,8 +786,8 @@ class Beacon {
 
         hasBch2 = !isOrbito();
         if (hasBch2) {
-            bch2 = getBits(frame, 133, 144);
-            computedBch2 = computeBCH2(frame);
+            bch2 = getBits(133, 144);
+            computedBch2 = computeBCH2();
             // Try and correct single bit error on  BCH2 (bits 107 - 132)
             if (computedBch2 != bch2) {
                 simpleCorrection(false);

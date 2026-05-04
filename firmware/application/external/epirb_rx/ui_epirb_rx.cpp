@@ -48,6 +48,9 @@ int CountryManager::cache_count = 0;
 Country CountryManager::cache[16];
 #endif
 
+std::vector<std::string> ResourceManager::beacon_res{};
+std::vector<std::string> ResourceManager::freq{};
+
 TextArea::TextArea(
     Rect parent_rect)
     : Widget{parent_rect} {
@@ -124,29 +127,27 @@ void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon)
     rtcGetTime(&RTCD1, &datetime);
     beacon.date = datetime;
 }
-/*
+
+#ifdef LOGGER
 void EPIRBLogger::on_packet(Beacon& beacon) {
     std::string entry = std::string(beacon.getType()) + "," +
                         beacon.hexId + "," +
                         beacon.getProtocolName();  // + ",";
                                                    // to_string_dec_uint(static_cast<uint8_t>(beacon.emergency_type)) + ",";
-    UsbSerialAsyncmsg::asyncmsg("Log location");
-    if (!beacon.location.isUnknown()) {
+    /*if (!beacon.location.isUnknown()) {
         entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
     } else {
         entry += ",";
     }
-    UsbSerialAsyncmsg::asyncmsg("Log country");
     entry += "," + beacon.country.toString() + "," +
-             beacon.getSatus() + "\n";
+             beacon.getSatus() + "\n";*/
     log_file.write_entry(beacon.date, entry);
 }
-*/
+#endif
 
 EPIRBDetailView::EPIRBDetailView(
-    Rect parent_rect,
-    ResourceManager& rm)
-    : View(parent_rect), resource_manager(rm) {
+    Rect parent_rect)
+    : View(parent_rect) {
     add_children({&text_beacon});
 }
 
@@ -157,9 +158,9 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     buffer_pointer += sprintf(buffer_pointer, "%sBeacon:%s %s(%s%s%s) - ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getType(), isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN, isReal ? "Real" : "Test", STR_COLOR_WHITE);
     buffer_pointer += beacon.formatTime(buffer_pointer);
     buffer_pointer += sprintf(buffer_pointer, "\t%sProtocol:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getProtocolName());
-    buffer_pointer += sprintf(buffer_pointer, "%s\t", resource_manager.get_protocol_description((uint8_t)beacon.protocol));
+    buffer_pointer += sprintf(buffer_pointer, "%s\t", ResourceManager::get_beacon_resource((uint8_t)beacon.protocol));
     if (beacon.hasAdditionalData) {
-        buffer_pointer += sprintf(buffer_pointer, "%s\t", beacon.additionalData.c_str());
+        buffer_pointer += sprintf(buffer_pointer, "%s\t", beacon.additionalData);
     }
     buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s %s(%d) - %s\t%sLocation:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.alphaCode, beacon.country.code, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE);
     buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
@@ -350,7 +351,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t frequ_options;
-    for (auto freq : resource_manager.get_frequencies()) {
+    for (auto freq : ResourceManager::get_frequencies()) {
         int32_t freq_value = atol(freq.c_str());
         frequ_options.emplace_back(to_string_rounded_freq(freq_value, 3), freq_value);
     }
@@ -367,7 +368,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 
     text_timeout.set_focusable(true);
     text_timeout.on_select = [this](TextArea&) {
-        timeout = ((countdown+1) * -1);
+        timeout = ((countdown + 1) * -1);
         on_tick_second();
     };
 
@@ -411,10 +412,12 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 
     update_display();
 
-    /*logger = std::make_unique<EPIRBLogger>();
+#ifdef LOGGER
+    logger = std::make_unique<EPIRBLogger>();
     if (logger) {
         logger->append(logs_dir / "epirb_rx.txt");
-    }*/
+    }
+#endif
 }
 
 EPIRBAppView::~EPIRBAppView() {
