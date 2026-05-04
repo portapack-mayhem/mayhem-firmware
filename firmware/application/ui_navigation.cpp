@@ -946,6 +946,8 @@ SystemView::SystemView(
                 if (lastmenu && this->navigation_view.get_last_menu_went_deeper()) {
                     this->navigation_view.pop();
                     this->navigation_view.push_view(lastmenu->producer(this->navigation_view));
+                    this->navigation_view.store_last_menu_name(lastmenu->displayName);  // since we opened it again, store it again
+                    this->navigation_view.set_last_menu_went_deeper(false);             // not yet
                     return;
                 }
             }
