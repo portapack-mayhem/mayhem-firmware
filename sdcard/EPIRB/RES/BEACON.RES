@@ -21,7 +21,8 @@ Test National Location
 RLS Location Protocol
 ELT(DT) Location Protocol
 Spare
-# From line 24, additional data
+Unkonwn
+# L. 25: additional data
 ELTs/SN
 ELTs/AC op & SN
 FF EPIRBs/SN
@@ -29,13 +30,13 @@ ELTs+AC 24-bit ad.
 NFF EPIRBs/SN
 Not Used
 PLBs/SN
-# From line 32, long additinal data
+# L. 33: long additinal data
 MMSI=0x%08lX MID=%ld
 24 bits AC ad.
 C/S TA #=%ld
 Op Design.=%c%c%c
 Nati. data=%ld
-# From line 38, emmergency
+# L. 39: emmergency
 Other
 Fire
 Flooding
@@ -45,7 +46,7 @@ Capsizing
 Sinking
 Disabled
 Abandoning
-# From line 48, other emmergency
+# L. 49: other emmergency
 Fire
 Med.
 Dis.

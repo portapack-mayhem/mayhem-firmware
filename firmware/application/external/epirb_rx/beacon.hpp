@@ -43,10 +43,10 @@ namespace ui::external_app::epirb_rx {
 #define BCH_12_POLY_LENGTH 13
 
 // See content of sdcard/EPIRB/RES/BEACON.RES
-#define ADDITIONAL_DATA_RESOURCE_START 24
-#define LONG_ADDITIONAL_DATA_RESOURCE_START 32
-#define EMERGENCY_RESOURCE_START 38
-#define EMERGENCY_OTHER_RESOURCE_START 48
+#define ADDITIONAL_DATA_RESOURCE_START 25
+#define LONG_ADDITIONAL_DATA_RESOURCE_START 33
+#define EMERGENCY_RESOURCE_START 39
+#define EMERGENCY_OTHER_RESOURCE_START 49
 
 class Beacon {
    public:
@@ -475,11 +475,11 @@ class Beacon {
                 hasAdditionalData = true;
                 switch (serialUserProtocol) {
                     case 0b100:
+                    case 0b010:
                         isMaritime = true;
                         // fallthrough
                     case 0b000:
                     case 0b001:
-                    case 0b010:
                     case 0b011:
                     case 0b110:
                         strcpy(additionalData, ResourceManager::get_beacon_resource(ADDITIONAL_DATA_RESOURCE_START + serialUserProtocol));
@@ -784,7 +784,7 @@ class Beacon {
             simpleCorrection(true);
         }
 
-        hasBch2 = !isOrbito();
+        hasBch2 = longFrame && !isOrbito();
         if (hasBch2) {
             bch2 = getBits(133, 144);
             computedBch2 = computeBCH2();
