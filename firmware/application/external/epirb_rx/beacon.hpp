@@ -102,15 +102,15 @@ class Beacon {
 
 #define UNKNOWN_LABEL "Unk."
 
-    static bool protocolIsUser(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::USER); };
-    static bool protocolIsNational(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::NATIONAL_LOCATION); };
-    static bool protocolIsStandard(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::STANDARD_LOCATION); };
-    static bool protocolIsRls(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::RLS_LOCATION); };
-    static bool protocolIsRlsOrElt(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::RLS_LOCATION || getProtocolType(protocol) == ProtocolType::ELT_DT_LOCATION); };
-    static bool protocolIsUnknown(Protocol protocol) { return (getProtocolType(protocol) == ProtocolType::UNKNOWN); };
+    bool protocolIsUser() { return (protocolType == ProtocolType::USER); };
+    bool protocolIsNational() { return (protocolType == ProtocolType::NATIONAL_LOCATION); };
+    bool protocolIsStandard() { return (protocolType == ProtocolType::STANDARD_LOCATION); };
+    bool protocolIsRls() { return (protocolType == ProtocolType::RLS_LOCATION); };
+    bool protocolIsRlsOrElt() { return (protocolType == ProtocolType::RLS_LOCATION || protocolType == ProtocolType::ELT_DT_LOCATION); };
+    bool protocolIsUnknown() { return (protocolType == ProtocolType::UNKNOWN); };
 
-    static const char* getProtocolTypeName(Protocol protocol, bool longFrame) {
-        switch (getProtocolType(protocol)) {
+    const char* getProtocolName() {
+        switch (protocolType) {
             case ProtocolType::STANDARD_LOCATION:
                 return "Standard";
             case ProtocolType::NATIONAL_LOCATION:
@@ -171,6 +171,7 @@ class Beacon {
     AuxLocatingDevice auxLocatingDevice{AuxLocatingDevice::UNDEFINED};
     long protocolCode{0};
     Protocol protocol{Protocol::UNKNOWN};
+    ProtocolType protocolType{ProtocolType::UNKNOWN};
     Country country{};
     uint8_t frame[BEACON_DATA_SIZE];
     Location location{};
@@ -254,6 +255,7 @@ class Beacon {
         auxLocatingDevice = AuxLocatingDevice::UNDEFINED;
         protocolCode = 0;
         protocol = Protocol::UNKNOWN;
+        protocolType = ProtocolType::UNKNOWN;
         country.code = 0;
         country.alphaCode[0] = 0;
         country.shortName[0] = 0;
@@ -302,8 +304,6 @@ class Beacon {
             flipBit(i);  // Restore bit value
         }
     }
-
-    const char* getProtocolName() { return getProtocolTypeName(protocol, longFrame); }
 
     const char* getType() {
         if ((protocol == Protocol::USER_EPIRB_MARITIME) || (protocol == Protocol::USER_EPIRB_RADIO) || (protocol == Protocol::STD_EPIRB) || (protocol == Protocol::STD_EPIRB_SERIAL) || (protocol == Protocol::NAT_EPIRB)) return "EPIRB";
@@ -488,7 +488,8 @@ class Beacon {
                         hasAdditionalData = false;
                 }
                 hasSerialNumber = true;
-                setSerialNumber(getBits(44, 67));
+                setSerialNumber((serialUserProtocol == 0b011) ? getBits(44, 67) : (serialUserProtocol == 0b001) ? getBits(62, 73)
+                                                                                                            : getBits(44, 63));
             }
             if (!longFrame) {
                 hasEmergency = getBits(107, 107);
@@ -581,18 +582,18 @@ class Beacon {
 
     void parseLocatingDevices() {
         bool mainLoc;
-        if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
+        if (protocolIsStandard() || protocolIsNational()) {
             mainLoc = getBits(111, 111);
             mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
-        } else if (protocolIsUser(protocol) || protocolIsRls(protocol)) {
+        } else if (protocolIsUser() || protocolIsRls()) {
             mainLoc = getBits(107, 107);
             mainLocatingDevice = mainLoc ? MainLocatingDevice::INTERNAL_NAV : MainLocatingDevice::EXTERNAL_NAV;
         }
-        if (protocolIsStandard(protocol) || protocolIsNational(protocol)) {
+        if (protocolIsStandard() || protocolIsNational()) {
             auxLocatingDevice = getBits(112, 112) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
-        } else if (protocolIsRls(protocol)) {
+        } else if (protocolIsRls()) {
             auxLocatingDevice = getBits(108, 108) ? AuxLocatingDevice::MHZ121_5 : AuxLocatingDevice::NONE_OR_OTHER;
-        } else if (protocolIsUser(protocol) && protocolCode != 0b100) {
+        } else if (protocolIsUser() && protocolCode != 0b100) {
             uint8_t aux = getBits(84, 85);
             if (aux == 0b00)
                 auxLocatingDevice = AuxLocatingDevice::NONE;
@@ -611,6 +612,7 @@ class Beacon {
 
         longFrame = getBits(25, 25);
         parseProtocol();
+        protocolType = getProtocolType(protocol);
         CountryManager::get_country(getBits(27, 36), country);
 
         if (frame[2] == 0xD0)
@@ -620,18 +622,15 @@ class Beacon {
         else
             frameMode = FrameMode::UNKNOWN;
 
-        identifier = getBits(26, 85);
-        std::sprintf(hexId, "%07lX%08lX", (uint32_t)(identifier >> 32), (uint32_t)identifier);
-
         if (longFrame) {
-            if (protocolIsUser(protocol) && !isOrbito()) {
+            if (protocolIsUser() && !isOrbito()) {
                 location.latitude.orientation = (frame[13] & 0x10) >> 4;
                 location.latitude.degrees = ((frame[13] & 0x0F) << 3 | (frame[14] & 0xE0) >> 5);
                 location.latitude.minutes = ((frame[14] & 0x1E) >> 1) * 4;
                 location.longitude.orientation = (frame[14] & 0x01);
                 location.longitude.degrees = (frame[15]);
                 location.longitude.minutes = ((frame[16] & 0xF0) >> 4) * 4;
-            } else if (protocolIsNational(protocol)) {
+            } else if (protocolIsNational()) {
                 latoffset = (frame[14] & 0x80) >> 7;
                 location.latitude.orientation = (frame[7] & 0x20) >> 5;
                 location.latitude.degrees = ((frame[7] & 0x1F) << 2 | (frame[8] & 0xC0) >> 6);
@@ -674,7 +673,7 @@ class Beacon {
                         location.longitude.minutes -= 1;
                     }
                 }
-            } else if (protocolIsStandard(protocol)) {
+            } else if (protocolIsStandard()) {
                 latoffset = (frame[14] & 0x80) >> 7;
                 location.latitude.orientation = (frame[8] & 0x80) >> 7;
                 location.latitude.degrees = (frame[8] & 0x7F);
@@ -717,7 +716,7 @@ class Beacon {
                         location.longitude.minutes -= 1;
                     }
                 }
-            } else if (protocolIsRlsOrElt(protocol)) {
+            } else if (protocolIsRlsOrElt()) {
                 latoffset = (frame[14] & 0x20) >> 5;
                 location.latitude.orientation = (frame[8] & 0x20) >> 5;
                 location.latitude.degrees = ((frame[8] & 0x1F) << 2) | ((frame[9] & 0xC0) >> 6);
@@ -765,6 +764,26 @@ class Beacon {
 
         parseAdditionalData();
         parseLocatingDevices();
+
+        identifier = getBits(26, 85);
+
+        uint32_t hexIdHigh = (uint32_t)(identifier >> 32);
+        uint32_t hexIdLow = (uint32_t)identifier;
+
+        if (protocolIsStandard()) {
+            // default value of bits 65 to 74 = 0 111111111 / default value of bits 75 to 85 = 0 1111111111
+            hexIdLow &= 0b11111111'11100000'00000000'00000000;
+            hexIdLow |= 0b00000000'00001111'11111011'11111111;
+        } else if (protocolIsNational()) {
+            // default value of bits 59 to 71 = 0 1111111 00000 / default value of bits 72 to 85 = 0 11111111 00000
+            hexIdLow &= 0b11111000'00000000'00000000'00000000;
+            hexIdLow |= 0b00000011'11111000'00011111'11100000;
+        } else if (protocolIsRlsOrElt()) {
+            // default value of bits 67 to 75 = 0 11111111 / default value of bits 76 to 85 = 0 111111111
+            hexIdLow &= 0b11111111'11111000'00000000'00000000;
+            hexIdLow |= 0b00000000'00000011'11111101'11111111;
+        }
+        std::sprintf(hexId, "%07lX%08lX", hexIdHigh, hexIdLow);
 
         if (isOrbito() && !longFrame) {
             isEmpty = true;
