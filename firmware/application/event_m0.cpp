@@ -268,17 +268,11 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             // Save interrupt states before mass disable
             uint32_t saved_iser0 = NVIC->ISER[0];
-            uint32_t saved_iser1 = NVIC->ISER[1];
-            uint32_t saved_iser2 = NVIC->ISER[2];
 
             // Disable and clear all pending interrupts
             NVIC->ICER[0] = 0xFFFFFFFF;
-            NVIC->ICER[1] = 0xFFFFFFFF;
-            NVIC->ICER[2] = 0xFFFFFFFF;
 
             NVIC->ICPR[0] = 0xFFFFFFFF;
-            NVIC->ICPR[1] = 0xFFFFFFFF;
-            NVIC->ICPR[2] = 0xFFFFFFFF;
 
             // Re-enable only necessary wakeup sources
             NVIC_EnableIRQ(RTC_IRQn);
@@ -326,8 +320,6 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
             // Restore original interrupt enable states
             NVIC->ISER[0] = saved_iser0;
-            NVIC->ISER[1] = saved_iser1;
-            NVIC->ISER[2] = saved_iser2;
 
         }  // End of while(1) deep sleep loop
     } else {
