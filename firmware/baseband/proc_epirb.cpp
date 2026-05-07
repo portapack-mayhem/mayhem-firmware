@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 EPIRB Receiver Implementation
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
  *
  * This file is part of PortaPack.
  *
@@ -94,7 +95,6 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
     //  Channel filter for audio out
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
-    // auto audio = demod.execute(decimator_out, audio_buffer);
     audio_output.write(audio);
     //}
 

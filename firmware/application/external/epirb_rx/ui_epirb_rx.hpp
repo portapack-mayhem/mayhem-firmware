@@ -30,6 +30,9 @@
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
 
+// Specan is disable to keep application size below the 32k limit
+// #define SPECAN
+
 #ifdef SPECAN
 #include "ui_spectrum.hpp"
 #endif

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 EPIRB Receiver Implementation
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
  *
  * This file is part of PortaPack.
  *
@@ -37,6 +38,9 @@
 #include "message.hpp"
 #include "buffer.hpp"
 
+// Specan is disable to keep application size below the 32k limit
+// #define SPECAN
+
 #ifdef SPECAN
 #include "spectrum_collector.hpp"
 #endif
@@ -50,11 +54,21 @@ namespace baseband {
 class Packet;
 }
 
+// COSPAS / SARSAT 406 frame constants
+// Size of preamble (bits)
 #define COSPAS_PREAMBLE_SIZE 24
+// Size of long frame (bits)
 #define COSPAS_LONG_FRAME_SIZE 144
+// Siz of short frame (bits)
 #define COSPAS_SHORT_FRAME_SIZE 112
+// Preamble for real frames
 #define COSPAS_REAL_PREAMBLE 0b1111'1111'1111'1110'0010'1111
+// Preable for test frames
 #define COSPAS_TEST_PREAMBLE 0b1111'1111'1111'1110'1101'0000
+
+// Dedicated EPIRB PacketBuilder
+// Usees diedicated preamble detection logic to find both real and test frames
+// Also as a dedicated packet size detection based on frame's size bit
 class EPIRBPacketBuilder {
    public:
     using EPIRBHandler = void (*)(void* context, const baseband::Packet& packet);
@@ -72,6 +86,7 @@ class EPIRBPacketBuilder {
 
         switch (state) {
             case State::Preamble: {
+                // Detect both real and test fram preambles
                 bool is_real = real_sync_matcher(bit_history, packet.size());
                 bool is_test = test_sync_matcher(bit_history, packet.size());
                 if (is_real || is_test) {
@@ -109,6 +124,7 @@ class EPIRBPacketBuilder {
     }
 
     void flush() {
+        // Timestamp is not set here to save some app space (not used on ui side)
         // packet.set_timestamp(Timestamp::now());
         if (handler) handler(context, packet);
         reset_state();
@@ -147,15 +163,15 @@ class EPIRBProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    // Baseband frequency is 3,072,000 samples / sec
+    // Baseband frequency is set to 3,072,000 samples / sec
     static constexpr uint32_t BASEBAND_SAMPLE_RATE = 3072000;
     static constexpr uint32_t SAMPLE_RATE = BASEBAND_SAMPLE_RATE / 8 / 8;    // We use to decimators with factor 8 each
     static constexpr uint32_t SYMBOL_RATE = 800;                             // 400 bps + Manchester (2 1/2 bits per symbol) => 800
     static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60 samples per symbol
     static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
     static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
-    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 5;   // Accumulate phase change across 6 samples
-    static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Frame max length (add 1% error margin)
+    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 5;   // Accumulate phase change across 12 samples
+    static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Filter peaks of less than 3 samples
 
     static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
     static constexpr size_t CARRIER_MAX_SAMPLES = 0.900f * SAMPLE_RATE;          // Carrier + frame lasts 160ms + 520ms + 100ms post carrier = 880ms
@@ -165,6 +181,7 @@ class EPIRBProcessor : public BasebandProcessor {
 
     // Config
     uint8_t squelch_level{50};
+    // Audio on/off logic is disabled to save app space
     // bool audio_on{true};
 #ifdef SPECAN
     bool spectrum_on{false};
@@ -177,20 +194,23 @@ class EPIRBProcessor : public BasebandProcessor {
 
     // Last received bit (for manchester deconding)
     bool last_bit = false;
-    // Bit history for debug purpose
-    // BitHistory bit_history{};
-    // uint8_t history_size{0};
+    // Sample count since last symbol
     uint16_t sample_count{0};
+    // Sample count since frame start
     uint16_t frame_sample_count{0};
+    // True if last phase shift was positive, false otherwise
     bool last_phase_positive = false;
+    // Counter used for peak filtering
     uint16_t rise_detection_count{0};
 
+    // Frame detection state machine states
     enum State { IDLE,
                  CARRIER_LOCKED,
                  DATA_SYNC,
                  POST_FRAME };
+    // Current state for frame detection state machine
     State current_state = IDLE;
-
+    // Carrier detection counter
     uint32_t stability_counter = 0;
 
     // Phase delta accumulator (6 samples)
@@ -207,7 +227,9 @@ class EPIRBProcessor : public BasebandProcessor {
     // Decimation chain for 406 MHz EPIRB signal processing
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    // Audio filtering
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    // Audio demodulation
     dsp::demodulate::FM demod{};
 #ifdef SPECAN
     SpectrumCollector channel_spectrum{};
