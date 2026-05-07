@@ -31,15 +31,15 @@
 #include "event_m4.hpp"
 #include <ch.h>
 
-#define CONF_FLOAT(F) (uint32_t)(fabsf(F) * 100)
-
 EPIRBProcessor::EPIRBProcessor() {
     // Configure the decimation filters for narrowband EPIRB signal
-    // Target: Reduce 2.457600 MHz to ~38.4 kHz for 800 bps processing
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
+    // Configure channel filter for audio filtering
     channel_filter.configure(taps_11k0_channel.taps, 2);
+    // Configure demodulation for audio output
     demod.configure(SAMPLE_RATE, 5000);
+    // Configure audio output (+squelch level)
     configure_audio();
 #ifdef SPECAN
     channel_spectrum.set_decimation_factor(1);
@@ -48,14 +48,16 @@ EPIRBProcessor::EPIRBProcessor() {
 }
 
 void EPIRBProcessor::configure_audio() {
+    // UI sends an squelch value ranging from 0 to 99, 0 disables squelch, dividing UI value by 40 gives a valid UI threashold around 50
     audio_output.configure(audio_24k_hpf_300hz_config, audio_24k_deemph_300_6_config, ((float)squelch_level) / 40.0f);
 }
 
 float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16_t& sample1) {
-    // Calculate the phase difference between two samples.
+    // Calculate the phase difference between two samples
     float dI = sample1.real() * sample0.real() + sample1.imag() * sample0.imag();
     float dQ = sample1.imag() * sample0.real() - sample1.real() * sample0.imag();
     float phase_diff = atan2f(dQ, dI);
+    // Prevent phase diff from wrapping around
     if (phase_diff > M_PI) phase_diff -= 2.0f * M_PI;
     if (phase_diff < -M_PI) phase_diff += 2.0f * M_PI;
     return phase_diff;
@@ -64,6 +66,7 @@ float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16
 bool EPIRBProcessor::filtered_rise_detect(bool condition) {
     bool result = false;
     if (condition) {
+        // If rise condition is matched, filter peaks that last less than 3 samples
         rise_detection_count++;
         if (rise_detection_count >= RISE_FILTER_SAMPLES) {
             result = true;
@@ -98,7 +101,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
     audio_output.write(audio);
     //}
 
-    // Process each decimated sample through the matched filter
+    // Process each decimated sample through state machine
     for (size_t i = 0; i < decimator_out.count; i++) {
         // Track sample count since last symbol and since begining of the frame
         sample_count++;
@@ -107,7 +110,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         float phase_delta = get_phase_diff(last_sample, decimator_out.p[i]);
         last_sample = decimator_out.p[i];
 
-        // Let's sum phase delta over a 6 sample window to get the full phase jump
+        // Let's sum phase delta over a 12 sample window to get the full phase jump
         phase_delta_acc -= phase_delta_buffer[pahse_delta_index];
         phase_delta_buffer[pahse_delta_index] = phase_delta;
         phase_delta_acc += phase_delta_buffer[pahse_delta_index];
@@ -120,12 +123,13 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         switch (current_state) {
             case IDLE:
                 // We are waiting for a 160ms empty carrier => phase shouls be stable during this period
+                // We accept a 0.6 phase shift since phase may drift durring carrier if carrier frequency is not alligned with tuner frequency
                 if (filtered_rise_detect(phase_delta >= 0.6f)) {
                     stability_counter = 0;
                 } else {
                     stability_counter++;
                     if (stability_counter > CARRIER_SAMPLES_THRESHOLD) {
-                        // send_packet(0xFED0000000000001);
+                        // Carrier has been stable long enought, go to locked state
                         current_state = CARRIER_LOCKED;
                         frame_sample_count = 0;
                     }
@@ -134,18 +138,18 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
             case CARRIER_LOCKED:
                 // Carrier is locked, we now wait for a phase 1.1 rad phase jump corresponding to the befining of the frame
-
+                // Let's use a 0.7 phase jump threshold
                 if (filtered_rise_detect(phase_delta >= 0.7f)) {
-                    // Jump detected (1.1 rad)
+                    // Jump detected, frame starts now
                     frame_sample_count = 0;
-                    // send_packet(0xFED0000000000002);
-                    // send_packet(0xFEE0000000000000 | CONF_FLOAT(phase_delta));
+                    // Go to data sync state
                     current_state = DATA_SYNC;
-                    // send_packet(0xFEA0000000000000 | CONF_FLOAT(avg_phase));
-                    // send_packet((((phase - avg_phase)>=0) ? 0xFEA0000000000000 : 0xFEB0000000000000) | CONF_FLOAT(phase));
+                    // Frame should always start with a positive phase shift
                     last_phase_positive = true;
+                    // And a 1 value
                     last_bit = true;
                 } else if (frame_sample_count > CARRIER_MAX_SAMPLES) {
+                    // We missed sync pattern
                     frame_end();
                 }
                 break;
@@ -158,29 +162,24 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                     // Absolute phase jump is expected to be 2.2 rad
                     // Phase jump is either positive or negative
                     bool phase_positive = (phase_delta >= 0.0f);
-                    // send_packet((phase_positive ? 0xFCB0000000000000 : 0xFCC0000000000000) | CONF_FLOAT(phase_delta));
 
                     if (phase_positive != last_phase_positive) {
                         // Phase jumped to the opposit direction of last jump
-                        // send_packet((phase_positive ? 0xFEB0000000000000 : 0xFEC0000000000000) | CONF_FLOAT(phase_delta));
-                        // send_packet((phase_positive ? 0xFAB0000000000000 : 0xFAC0000000000000) | frame_sample_count);
                         last_phase_positive = phase_positive;
                         bool cur_bit;
                         // Phase change => how long since last change ?
                         if ((frame_sample_count >= (SAMPLES_PER_SYMBOL - SAMPLES_MARGIN)) && (frame_sample_count <= (SAMPLES_PER_SYMBOL + SAMPLES_MARGIN))) {
                             // Frame start
                             if (!phase_positive) {
-                                // Search for falling edge
-                                // send_packet(0xFAB000000000000B);
+                                // Symbol detection is made on falling edge
                                 cur_bit = true;
                             } else {
+                                // Ignore rising edge
                                 continue;
                             }
                         } else if (sample_count > (SAMPLES_PER_SYMBOL * 2 + SAMPLES_MARGIN)) {
                             // We missed something...
-                            // send_packet(0xFED0000000000003);
-                            // send_packet(0xFEA0000000000000 | (uint32_t)sample_count);
-                            // TODO
+                            // Let's keep same value for current bit
                             cur_bit = last_bit;
                         } else if (sample_count >= (SAMPLES_PER_SYMBOL * 2 - SAMPLES_MARGIN)) {
                             // 2 symbols since last change => bit value changes
@@ -189,7 +188,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                             // Phase change occured in first half bit => we keep the same value
                             if ((phase_positive && last_bit) || (!phase_positive && !last_bit)) {
                                 sample_count = 0;
-                                // Ignore rising edge if current value is 1 and falling edge if current value is 0
+                                // Ignore rising edge if current value is 1 and falling edge if current value is 0 and move to next symbol
                                 continue;
                             }
                             // Same value on falling/rising edge
@@ -198,26 +197,21 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                             // Filter the rest
                             continue;
                         }
+                        // Store new bit and move to next symbol
                         sample_count = 0;
                         packet_builder.execute(cur_bit);
                         last_bit = cur_bit;
-                        /*bit_history.add(cur_bit);
-                        history_size++;
-                        if (history_size >= 64) {
-                            history_size = 0;
-                            // Create and send EPIRB packet message to application layer
-                            send_packet(bit_history.value());
-                            bit_history = BitHistory();
-                        }*/
                     }
                 }
                 if (frame_sample_count > FRAME_MAX_SAMPLES) {
+                    // End of frame
                     current_state = POST_FRAME;
                     packet_builder.flush();
                 }
             } break;
             case POST_FRAME:
                 if (frame_sample_count > CARRIER_MAX_SAMPLES) {
+                    // End of carrier
                     frame_end();
                 }
             default:
@@ -227,37 +221,16 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void EPIRBProcessor::frame_end() {
-    // uint16_t old_count = frame_sample_count;
     sample_count = 0;
     frame_sample_count = 0;
     stability_counter = 0;
     last_phase_positive = false;
     last_bit = false;
-    current_state = IDLE;
-    // send_packet(0xFED0000000000000);
-    // send_packet(0xFEA0000000000000 | old_count);
-    /*if (history_size > 0) send_packet(bit_history.value());
-    history_size = 0;
-    bit_history = BitHistory();*/
-    // Reset packet builder
     packet_builder.reset_state();
 }
 
-/*
-void EPIRBProcessor::send_packet(uint64_t data) {
-    baseband::Packet packet{};
-    for (int8_t i = 63; i >= 0; i--) {
-        packet.add((data >> i) & 0x1);
-    }
-    const EPIRBPacketMessage message{packet};
-    shared_memory.application_queue.push(message);
-}
-*/
-
 void EPIRBProcessor::payload_handler(const baseband::Packet& packet) {
-    // EPIRB packet received - validate and process
-    // send_packet(0xFEC0000000000000 | frame_sample_count);
-    //  Create and send EPIRB packet message to application layer
+    // EPIRB packet received: create and send EPIRB packet message to application layer
     const EPIRBPacketMessage message{packet};
     shared_memory.application_queue.push(message);
 }
@@ -278,6 +251,7 @@ void EPIRBProcessor::on_message(const Message* const msg) {
             spectrum_on = message.scpectrum_on;
 #endif
             if (message.squelch != squelch_level) {
+                // Update squelch config
                 squelch_level = message.squelch;
                 configure_audio();
             }

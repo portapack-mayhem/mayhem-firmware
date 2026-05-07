@@ -250,10 +250,13 @@ class EPIRBProcessor : public BasebandProcessor {
         }};
 
     void payload_handler(const baseband::Packet& packet);
-    // void send_packet(uint64_t data);
+    // Compute phase diff between two samples
     float get_phase_diff(const complex16_t& sample0, const complex16_t& sample1);
+    // End current frame
     void frame_end();
+    // Rise detection with peak filtering
     bool filtered_rise_detect(bool condition);
+    // Configure audio processing
     void configure_audio();
 
     /* NB: Threads should be the last members in the class definition. */
