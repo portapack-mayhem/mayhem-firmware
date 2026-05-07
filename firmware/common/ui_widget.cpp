@@ -424,7 +424,7 @@ void Text::paint(Painter& painter) {
                     if (color_idx < std::size(term_colors)) {
                         next_color = term_colors[color_idx];
                     } else {
-                        next_color = default_style.foreground;
+                        next_color = active_color;
                     }
                     scan_offset++;
                 }
