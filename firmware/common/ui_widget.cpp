@@ -435,7 +435,7 @@ void Text::paint(Painter& painter) {
         }
         size_t chunk_len = scan_offset - current_offset;
         // Create a temporary style for this line, initialized with the carried-over color
-        Style line_style = {font : default_style.font, background : default_style.background, foreground : active_color};
+        Style line_style = {.font = default_style.font, .background = default_style.background, .foreground = active_color};
         painter.draw_string(
             rect.location() + Point(0, line_idx * line_height),
             line_style,
