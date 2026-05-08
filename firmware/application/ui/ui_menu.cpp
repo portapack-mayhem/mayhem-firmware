@@ -159,16 +159,15 @@ size_t MenuView::item_count() const {
     return menu_items.size();
 }
 
-void MenuView::add_item(MenuItem new_item) {
-    menu_items.push_back(new_item);
+void MenuView::add_item(MenuItem&& new_item) {
+    menu_items.push_back(std::move(new_item));
 
     update_items();
 }
 
 void MenuView::add_items(std::initializer_list<MenuItem> new_items) {
-    for (auto item : new_items) {
-        add_item(item);
-    }
+    menu_items.insert(menu_items.end(), new_items);
+    update_items();
 }
 
 void MenuView::update_items() {

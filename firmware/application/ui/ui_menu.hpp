@@ -83,7 +83,7 @@ class MenuView : public View {
 
     ~MenuView();
 
-    void add_item(MenuItem new_item);
+    void add_item(MenuItem&& new_item);
     void add_items(std::initializer_list<MenuItem> new_items);
     void clear();
     size_t item_count() const;
