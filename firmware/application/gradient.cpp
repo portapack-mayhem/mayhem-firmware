@@ -28,13 +28,11 @@ namespace fs = std::filesystem;
 const std::filesystem::path default_gradient_file = u"waterfall.txt";
 
 Gradient::Gradient() {
-    prev_index = 0;
-    prev_r = 0;
-    prev_g = 0;
-    prev_b = 0;
+    step(0, 0, 0, 0);
 }
 
 void Gradient::set_default() {
+    step(0, 0, 0, 0);
     step(86, 0, 0, 255);
     step(171, 0, 255, 0);
     step(255, 255, 0, 0);
@@ -46,6 +44,8 @@ bool Gradient::load_file(const std::filesystem::path& file_path) {
 
     if (error)
         return false;
+
+    step(0, 0, 0, 0);
 
     auto reader = FileLineReader(gradient_file);
     for (const auto& line : reader) {
