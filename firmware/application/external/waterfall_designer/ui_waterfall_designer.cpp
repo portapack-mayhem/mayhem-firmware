@@ -193,15 +193,12 @@ void WaterfallDesignerView::on_profile_changed(std::filesystem::path new_profile
     auto reader = FileLineReader(playlist_file);
 
     for (const auto& line : reader) {
+        // remove empty lines
+        if (line == "\n" || line == "\r\n" || line == "\r") continue;
         profile_levels.push_back(line);
     }
 
     for (auto& line : profile_levels) {
-        // remove empty lines
-        if (line == "\n" || line == "\r\n" || line == "\r") {
-            profile_levels.erase(std::remove(profile_levels.begin(), profile_levels.end(), line), profile_levels.end());
-        }
-
         // remove line end \n etc
         if (line.length() > 0 && (line[line.length() - 1] == '\n' || line[line.length() - 1] == '\r')) {
             line = line.substr(0, line.length() - 1);
