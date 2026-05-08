@@ -226,6 +226,7 @@ void EPIRBProcessor::frame_end() {
     stability_counter = 0;
     last_phase_positive = false;
     last_bit = false;
+    current_state = IDLE;
     packet_builder.reset_state();
 }
 
