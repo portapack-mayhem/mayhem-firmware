@@ -26,6 +26,7 @@
 
 namespace ui::external_app::epirb_rx {
 
+// Size of beacon database calculated to match the beacon list component size
 #define BEACON_HISTORY_SIZE 13
 
 class BeaconDB {
@@ -40,9 +41,13 @@ class BeaconDB {
     void clear();
 
    private:
+    // Actual beacon database array
     Beacon recent_beacons[BEACON_HISTORY_SIZE];
+    // Position of the insertion pointer
     int8_t recent_beacon_pos{0};
+    // Beacon selection handling
     size_t current_beacon_index{0};
+    // True when database is full
     bool recent_beacon_full{false};
 };
 

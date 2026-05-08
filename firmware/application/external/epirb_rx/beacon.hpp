@@ -19,12 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*
- * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
- *
- * This file is part of PortaPack.
- */
-
 #ifndef __BEACON_RX_H__
 #define __BEACON_RX_H__
 
@@ -35,8 +29,10 @@
 
 namespace ui::external_app::epirb_rx {
 
+// Size for beacon frame buffer
 #define BEACON_DATA_SIZE 18  // Max 144 bits => 18 bytes
 
+// Constants for BCH control code calculation
 #define BCH_21_POLYNOMIAL 0b1001101101100111100011UL
 #define BCH_21_POLY_LENGTH 22
 #define BCH_12_POLYNOMIAL 0b1010100111001UL
@@ -48,14 +44,20 @@ namespace ui::external_app::epirb_rx {
 #define EMERGENCY_RESOURCE_START 39
 #define EMERGENCY_OTHER_RESOURCE_START 49
 
+/**
+ * This is the main class for beaon handling
+ */
 class Beacon {
    public:
+    // Real beacon or test beacon ?
     enum class FrameMode { NORMAL,
                            SELF_TEST,
                            UNKNOWN };
+    // Type of main location device
     enum class MainLocatingDevice { UNDEFINED,
                                     INTERNAL_NAV,
                                     EXTERNAL_NAV };
+    // Type of aux location device
     enum class AuxLocatingDevice { UNDEFINED,
                                    NONE,
                                    NONE_OR_OTHER,
@@ -63,6 +65,7 @@ class Beacon {
                                    MHZ121_5,
                                    SART };
 
+    // Protcol type
     enum class ProtocolType {
         UNKNOWN,
         USER,
@@ -73,6 +76,7 @@ class Beacon {
         SPARE
     };
 
+    // Protocol
     enum class Protocol {
         USER_EPIRB_MARITIME,
         USER_EPIRB_RADIO,
@@ -102,13 +106,20 @@ class Beacon {
 
 #define UNKNOWN_LABEL "Unk."
 
+    // Returns true for User protocol beacons
     bool protocolIsUser() { return (protocolType == ProtocolType::USER); };
+    // Returns true for National Location protocol beacons
     bool protocolIsNational() { return (protocolType == ProtocolType::NATIONAL_LOCATION); };
+    // Returns true for Standard Location protocol beacons
     bool protocolIsStandard() { return (protocolType == ProtocolType::STANDARD_LOCATION); };
+    // Returns true for RLS location protocol beacons
     bool protocolIsRls() { return (protocolType == ProtocolType::RLS_LOCATION); };
+    // Returns true for RLS or ELT Location protocol beacons
     bool protocolIsRlsOrElt() { return (protocolType == ProtocolType::RLS_LOCATION || protocolType == ProtocolType::ELT_DT_LOCATION); };
+    // Returns true for unknown protocol beacons
     bool protocolIsUnknown() { return (protocolType == ProtocolType::UNKNOWN); };
 
+    // Returns the protocol name
     const char* getProtocolName() {
         switch (protocolType) {
             case ProtocolType::STANDARD_LOCATION:
@@ -128,7 +139,8 @@ class Beacon {
         }
     }
 
-    static ProtocolType getProtocolType(Protocol protocol) {
+    // Get protocol type for the given protocol
+    ProtocolType getProtocolType() {
         switch (protocol) {
             case Protocol::USER_EPIRB_MARITIME:
             case Protocol::USER_EPIRB_RADIO:
@@ -489,7 +501,7 @@ class Beacon {
                 }
                 hasSerialNumber = true;
                 setSerialNumber((serialUserProtocol == 0b011) ? getBits(44, 67) : (serialUserProtocol == 0b001) ? getBits(62, 73)
-                                                                                                            : getBits(44, 63));
+                                                                                                                : getBits(44, 63));
             }
             if (!longFrame) {
                 hasEmergency = getBits(107, 107);
@@ -612,7 +624,7 @@ class Beacon {
 
         longFrame = getBits(25, 25);
         parseProtocol();
-        protocolType = getProtocolType(protocol);
+        protocolType = getProtocolType();
         CountryManager::get_country(getBits(27, 36), country);
 
         if (frame[2] == 0xD0)

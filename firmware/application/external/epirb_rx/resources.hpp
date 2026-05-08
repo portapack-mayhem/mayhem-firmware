@@ -34,13 +34,22 @@ namespace ui::external_app::epirb_rx {
 extern std::vector<std::string> beacon_res;
 extern std::vector<std::string> freq;
 
+/**
+ * This class is used to load string resources from SD card.
+ * This is done mostly to reduce application size and keep it under the 32kb limit.
+ * It's also used to load frequency values, allowing users to customize frequency list by editing FREQ.TXT file on SD card.
+ */
 class ResourceManager {
    public:
+    // Singleton getter
     static ResourceManager* getInstance();
 
+    // Singleton instance
     static ResourceManager* current;
-    static void destroy();  // used from standalone app, to prevent memleak
+    // Used from standalone app, to prevent memleak
+    static void destroy();
 
+    // Get a string from BEACON.RES file
     static const char* get_beacon_resource(uint8_t line) {
         ResourceManager* rm = getInstance();
         if (rm->beacon_res.empty()) {
@@ -52,6 +61,7 @@ class ResourceManager {
         return UNKNOWN_LABEL;
     }
 
+    // Get frequency values
     static const std::vector<std::string>& get_frequencies() {
         ResourceManager* rm = getInstance();
         if (rm->freq.empty()) {
@@ -61,16 +71,20 @@ class ResourceManager {
     }
 
    private:
+    // BEACON.RES content
     std::vector<std::string> beacon_res{};
+    // FREQ.TXT content
     std::vector<std::string> freq{};
 
     static void load_file(const std::filesystem::path& path, std::vector<std::string>& vect) {
         FIL file;
         if (f_open(&file, path.tchar(), FA_READ) == FR_OK) {
             TCHAR line_buffer[32];
+            // Read the file line by line
             while (f_gets(line_buffer, sizeof(line_buffer) / sizeof(TCHAR), &file)) {
                 std::string s;
                 for (int i = 0; line_buffer[i] != '\0' && line_buffer[i] != '\n'; i++) {
+                    // Convert each TCHAR in char
                     s += (char)line_buffer[i];
                 }
                 vect.push_back(std::move(s));

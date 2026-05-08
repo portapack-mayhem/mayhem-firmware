@@ -88,6 +88,13 @@ void EPIRBTXAppView::on_timer() {
                 text_timeout.set(timeout);
             }
             if (now > (last_frame_time + (delay * 1000))) {
+                if(mode_file && slideshow_enabled) {
+                    // Move on to next frame
+                    selected_beacon++;
+                    if (selected_beacon >= beacons.size()) selected_beacon = 0;
+                    // Update selection
+                    file_mode_ui->options_frame.set_selected_index(selected_beacon);
+                }
                 // Send a new frame after the delay
                 start_tx();
             }
@@ -269,6 +276,13 @@ void EPIRBTXAppView::update_mode() {
             add_child(&file_mode_ui->text_description_label);
             add_child(&file_mode_ui->text_description);
             add_child(&file_mode_ui->text_description_end);
+            add_child(&file_mode_ui->checkbox_slideshow);
+            // Restore settings
+            file_mode_ui->checkbox_slideshow.set_value(slideshow_enabled);
+            // Add callback
+            file_mode_ui->checkbox_slideshow.on_select = [this](Checkbox&, bool v) {
+                slideshow_enabled = v;
+            };
         }
     } else {
         // Clear beacons to save ram for Map display and Locatior editor
@@ -278,6 +292,7 @@ void EPIRBTXAppView::update_mode() {
             remove_child(&file_mode_ui->text_description_label);
             remove_child(&file_mode_ui->text_description);
             remove_child(&file_mode_ui->text_description_end);
+            remove_child(&file_mode_ui->checkbox_slideshow);
             file_mode_ui.reset();
         }
         beacons.clear();

@@ -58,6 +58,8 @@ class Location {
 
     static char gps_letterize(int x);
 
+    // For code size optimization reasons, string manipulation is performed with char buffers
+    // with no char buffer size check. Caller methods take care of providing large enough buffers
     static size_t gps_compute_locator(char* buffer, float lat, float lon, int precision = 6);
     size_t toString(char* buffer, LocationFormat format, int precision = 6);
 

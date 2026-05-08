@@ -23,6 +23,10 @@
 
 namespace ui::external_app::epirb_rx {
 
+/**
+ * Add a beacon to the database.
+ * @return the added beacon reference.
+ */
 Beacon& BeaconDB::add_beacon() {
     Beacon& result = recent_beacons[recent_beacon_pos];
     recent_beacon_pos = (recent_beacon_pos + 1) % BEACON_HISTORY_SIZE;
@@ -30,32 +34,59 @@ Beacon& BeaconDB::add_beacon() {
     return result;
 }
 
+/**
+ * Get the size of the beacon database
+ * @return the size of the beacon database
+ */
 size_t BeaconDB::size() {
     return recent_beacon_full ? BEACON_HISTORY_SIZE : recent_beacon_pos;
 }
 
+/**
+ * Returns true if the database is empty
+ * @return true if the database is empty
+ */
 bool BeaconDB::empty() {
     return (!recent_beacon_full && (recent_beacon_pos == 0));
 }
 
+/**
+ * Returns the beacon at the provided index
+ */
 Beacon& BeaconDB::get_beacon(size_t index) {
+    // Start from last beacon et go backward
     int16_t pos = (int16_t)recent_beacon_pos - 1 - index;
     while (pos < 0) pos += BEACON_HISTORY_SIZE;
     return recent_beacons[pos % BEACON_HISTORY_SIZE];
 }
 
+/**
+ * Set currently selected beacon
+ * @param index the selected index
+ */
 void BeaconDB::set_current_beacon(size_t index) {
     current_beacon_index = index;
 }
 
+/**
+ * Get currently selected index
+ * @return the currently selected index
+ */
 size_t BeaconDB::get_current_beacon_index() {
     return current_beacon_index;
 }
 
+/**
+ * Get the currently selected beacon
+ * @return the currently selected beacon
+ */
 Beacon& BeaconDB::get_current_beacon() {
     return get_beacon(current_beacon_index);
 }
 
+/**
+ * Clear beacon database
+ */
 void BeaconDB::clear() {
     recent_beacon_pos = 0;
     recent_beacon_full = false;

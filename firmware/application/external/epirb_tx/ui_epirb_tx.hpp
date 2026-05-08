@@ -169,6 +169,8 @@ class EPIRBTXAppView : public View {
 
     // True when using a beacon from the BEACONS.TXT file
     bool mode_file{false};
+    // True when slideshow is enabled for file mode (change beacon after every transmission)
+    bool slideshow_enabled{false};
     // True when looping on sending beacons is enabled
     bool loop_enabled{true};
     // True if AM emergency signal transmission is enabled
@@ -204,6 +206,7 @@ class EPIRBTXAppView : public View {
             {"loop"sv, &loop_enabled},
             {"delay"sv, &delay},
             {"file"sv, &mode_file},
+            {"slideshow"sv, &slideshow_enabled},
             {"am"sv, &am_enabled},
             {"soc"sv, &send_on_change},
             {"type"sv, &beacon_type},
@@ -256,6 +259,11 @@ class EPIRBTXAppView : public View {
         Text text_description_end{
             {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
             ""};
+        Checkbox checkbox_slideshow{
+            {UI_POS_X(0), UI_POS_Y(5)},
+            9,
+            "Slideshow",
+            true};
     };
     std::unique_ptr<FileModeWidgets> file_mode_ui { };
 

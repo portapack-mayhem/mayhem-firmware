@@ -23,6 +23,8 @@
 #include <cstdio>
 #include "string_format.hpp"
 
+// Some but not all methods of beacon class have been externalized in .cpp file
+// This has been done to try and optimize application size by preventing the compiler to inline methods
 namespace ui::external_app::epirb_rx {
 
 size_t Beacon::formatSummary(char* buffer, bool with_time) {
