@@ -24,6 +24,7 @@
 
 namespace fs = std::filesystem;
 static const fs::path c8_ext = u".C8";
+static const fs::path cu8_ext = u".CU8";
 
 namespace file_convert {
 
@@ -59,20 +60,41 @@ void c8_to_c16(const void* buffer, File::Size bytes) {
     }
 }
 
+// Convert cu8 buffer to c16 buffer.
+// Same buffer used for input & output; input size is bytes; output size is 2*bytes.
+void cu8_to_c16(const void* buffer, File::Size bytes) {
+    complexu8_t* src = (complexu8_t*)buffer;
+    complex16_t* dest = (complex16_t*)buffer;
+    uint32_t i = bytes / sizeof(complexu8_t);
+
+    if (i != 0) {
+        do {
+            i--;
+            int16_t re_out = ((int16_t)src[i].real() - 128) * 256;
+            int16_t im_out = ((int16_t)src[i].imag() - 128) * 256;
+            dest[i] = {(int16_t)re_out, (int16_t)im_out};
+        } while (i != 0);
+    }
+}
+
 } /* namespace file_convert */
 
 // Automatically enables C8/C16 conversion based on file extension
 Optional<File::Error> FileConvertReader::open(const std::filesystem::path& filename) {
     convert_c8_to_c16 = path_iequal(filename.extension(), c8_ext);
+    convert_cu8_to_c16 = path_iequal(filename.extension(), cu8_ext);
     return file_.open(filename);
 }
 
 // If C8 conversion enabled, half the number of bytes are read from the file & expanded to fill the whole buffer.
 File::Result<File::Size> FileConvertReader::read(void* const buffer, const File::Size bytes) {
-    auto read_result = file_.read(buffer, convert_c8_to_c16 ? bytes / 2 : bytes);
+    auto read_result = file_.read(buffer, (convert_c8_to_c16 || convert_cu8_to_c16) ? bytes / 2 : bytes);
     if (read_result.is_ok()) {
         if (convert_c8_to_c16) {
             file_convert::c8_to_c16(buffer, read_result.value());
+            read_result = read_result.value() * 2;
+        } else if (convert_cu8_to_c16) {
+            file_convert::cu8_to_c16(buffer, read_result.value());
             read_result = read_result.value() * 2;
         }
         bytes_read_ += read_result.value();

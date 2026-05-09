@@ -30,6 +30,7 @@
 
 namespace fs = std::filesystem;
 static const fs::path c8_ext{u".C8"};
+static const fs::path cu8_ext{u".CU8"};
 static const fs::path c16_ext{u".C16"};
 
 Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BYTE mode) {
@@ -543,11 +544,13 @@ bool path_iequal(
 
 bool is_cxx_capture_file(const path& filename) {
     auto ext = filename.extension();
-    return path_iequal(c8_ext, ext) || path_iequal(c16_ext, ext);
+    return path_iequal(c8_ext, ext) || path_iequal(cu8_ext, ext) || path_iequal(c16_ext, ext);
 }
 
 uint8_t capture_file_sample_size(const path& filename) {
     if (path_iequal(filename.extension(), c8_ext))
+        return sizeof(complex8_t);
+    if (path_iequal(filename.extension(), cu8_ext))
         return sizeof(complex8_t);
     if (path_iequal(filename.extension(), c16_ext))
         return sizeof(complex16_t);
