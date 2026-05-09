@@ -52,6 +52,7 @@ class FileConvertReader : public stream::Reader {
     const File& file() const& { return file_; }
 
     bool convert_c8_to_c16{};
+    bool convert_cu8_to_c16{};
 
    protected:
     File file_{};
