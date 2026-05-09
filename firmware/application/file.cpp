@@ -551,7 +551,7 @@ uint8_t capture_file_sample_size(const path& filename) {
     if (path_iequal(filename.extension(), c8_ext))
         return sizeof(complex8_t);
     if (path_iequal(filename.extension(), cu8_ext))
-        return sizeof(complex8_t);
+        return sizeof(complexu8_t);
     if (path_iequal(filename.extension(), c16_ext))
         return sizeof(complex16_t);
     return 0;
