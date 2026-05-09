@@ -83,6 +83,9 @@ class MenuView : public View {
 
     ~MenuView();
 
+    // This function takes a temporary to avoid copies and heap allocations.
+    // To pass a variable 'item', use add_item(std::move(item)),
+    // or construct the MenuItem in the call, add_item(MenuItem{...})
     void add_item(MenuItem&& new_item);
     void add_items(std::initializer_list<MenuItem> new_items);
     void clear();
