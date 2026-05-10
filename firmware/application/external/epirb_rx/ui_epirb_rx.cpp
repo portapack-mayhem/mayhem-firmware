@@ -35,8 +35,6 @@ using namespace portapack;
 #include "message.hpp"
 #include "resources.hpp"
 
-// #include "usb_serial_asyncmsg.hpp"
-
 namespace ui::external_app::epirb_rx {
 
 // URL templates
@@ -48,6 +46,7 @@ int CountryManager::cache_count = 0;
 Country CountryManager::cache[16];
 #endif
 
+// ResourceManager class
 ResourceManager* ResourceManager::current = nullptr;
 
 void ResourceManager::destroy() {
@@ -61,6 +60,7 @@ ResourceManager* ResourceManager::getInstance() {
     return ResourceManager::current;
 }
 
+// TextArea class
 TextArea::TextArea(
     Rect parent_rect)
     : Widget{parent_rect} {
@@ -87,6 +87,7 @@ void TextArea::set_content(std::string_view value) {
     set_dirty();
 }
 
+#ifdef RESET_TIMER
 bool TextArea::on_key(const KeyEvent key) {
     if (key == KeyEvent::Select && on_select) {
         on_select(*this);
@@ -95,30 +96,9 @@ bool TextArea::on_key(const KeyEvent key) {
     }
     return false;
 }
+#endif
 
-/*
-std::string EPIRBAppView::beacon_to_hex_string(const baseband::Packet& packet) {
-    const char hex[] = "0123456789ABCDEF";
-
-    std::string out;
-    out.resize(36);
-    size_t frame_size = std::min(packet.size(), (size_t)144);
-
-    for (size_t i = 0; i < frame_size / 8; i++) {
-        uint8_t byte_val = 0;
-        for (size_t bit = 0; bit < 8 && (i * 8 + bit) < frame_size; bit++) {
-            if (packet[i * 8 + bit]) {
-                byte_val |= (1 << (7 - bit));
-            }
-        }
-
-        out[i * 2] = hex[byte_val >> 4];
-        out[i * 2 + 1] = hex[byte_val & 0x0F];
-    }
-
-    return out;
-}*/
-
+// EPIRBAppView class
 void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon) {
     // Convert packet bits to byte array for easier processing
     uint8_t data[18];
@@ -155,6 +135,7 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
 }
 #endif
 
+// EPIRBDetailView class
 EPIRBDetailView::EPIRBDetailView(
     Rect parent_rect)
     : View(parent_rect) {
@@ -162,6 +143,7 @@ EPIRBDetailView::EPIRBDetailView(
 }
 
 void EPIRBDetailView::set_beacon(Beacon& beacon) {
+    // We use a single TextArea widget to display beacon information for code size optimization
     char buffer[400];
     char* buffer_pointer = buffer;
     bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
@@ -201,6 +183,7 @@ void EPIRBDetailView::set_beacon(Beacon& beacon) {
     text_beacon.set_content(buffer);
 }
 
+// EPIRBMapView class
 EPIRBMapView::EPIRBMapView(
     Rect parent_rect)
     : View(parent_rect) {
@@ -255,6 +238,7 @@ void EPIRBMapView::repaint() {
     set_dirty();
 }
 
+// EPRIBQRView class
 EPRIBQRView::EPRIBQRView(Rect parent_rect) : View(parent_rect) {
     add_children({&text_data, &options_qr, &qr_code});
     // Hide for now
@@ -273,7 +257,7 @@ void EPRIBQRView::set_beacon(Beacon* beacon) {
 }
 
 void EPRIBQRView::update_display() {
-    // Update data
+    // Update data => we use a single TextArea component for code size optimizaton
     char buffer[128];
     char* buffer_pointer = buffer;
     buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
@@ -292,15 +276,21 @@ void EPRIBQRView::update_display() {
 }
 
 void EPRIBQRView::update_qr() {
+    // Update QR code
     bool show_qr = false;
     if (current_beacon) {
+        // We have a beacon
         if (show_map) {
+            // Map is selected
             if (!current_beacon->location.isUnknown()) {
+                // Loation is known => actually draw QR
                 current_beacon->location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
                 show_qr = true;
             }
         } else {
+            // Detail is selected
             char* buffer_pointer = qr_url;
+            // Send to heroku decoder
             buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPALTE);
             current_beacon->hexString(buffer_pointer, false);
             show_qr = true;
@@ -336,6 +326,7 @@ void EPIRBRxView::on_hide() {
 }
 #endif
 
+// App View
 EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
@@ -364,6 +355,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t frequ_options;
+    // Set frequency combo content according to FREQ.TXT file content
     for (auto freq : ResourceManager::get_frequencies()) {
         int32_t freq_value = atol(freq.c_str());
         frequ_options.emplace_back(to_string_rounded_freq(freq_value, 3), freq_value);
@@ -373,17 +365,21 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
         receiver_model.set_target_frequency(v);
     };
+    // Restore frequency from preferencies
     options_frequency.set_by_value(receiver_model.target_frequency());
 
+    // Tick second timer
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
 
+#ifdef RESET_TIMER
     text_timeout.set_focusable(true);
     text_timeout.on_select = [this](TextArea&) {
         timeout = ((countdown + 1) * -1);
         on_tick_second();
     };
+#endif
 
     tab_view.set_parent_rect(Rect(0, UI_POS_HEIGHT(4), screen_width, 3 * 8));
     view_list.hidden(false);
@@ -415,7 +411,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     };
 #endif
 
-    // Force sample rate to patch baseband processor
+    // Force sample rate to match baseband processor
     receiver_model.set_sampling_rate(3072000);
 
     receiver_model.enable();
@@ -434,15 +430,15 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 }
 
 EPIRBAppView::~EPIRBAppView() {
+    // Remove tick second timer
     rtc_time::signal_tick_second -= signal_token_tick_second;
+    // Stop audio processor
     audio::output::stop();
+    // Stop receiver
     receiver_model.disable();
     baseband::shutdown();
+    // Cleanup ResourceManager
     ResourceManager::destroy();
-}
-
-void EPIRBAppView::set_parent_rect(const ui::Rect new_parent_rect) {
-    View::set_parent_rect(new_parent_rect);
 }
 
 void EPIRBAppView::refresh() {
@@ -458,15 +454,11 @@ void EPIRBAppView::on_packet(Message* const p) {
     const auto message = static_cast<const EPIRBPacketMessage*>(p);
     const baseband::Packet& packet = message->packet;
 
-    // std::string beacon_size = "Data size :" + to_string_dec_int(packet.size()) + "\n";
-    // UsbSerialAsyncmsg::asyncmsg(beacon_size);
-    // std::string beacon_string = "Data:" + beacon_to_hex_string(packet) + "\n";
-    // UsbSerialAsyncmsg::asyncmsg(beacon_string);
-
     // Decode the EPIRB packet
     if (packet.size() > 64) {
         // Actual beacon
         Beacon& beacon = beacon_db.add_beacon();
+        // Get a new beacon from database and load it
         decode_packet(packet, beacon);
         beacons_received++;
 
@@ -488,17 +480,21 @@ void EPIRBAppView::on_packet(Message* const p) {
         // Update display
         on_beacon_change();
 
+#ifdef LOGGER
         // Log the beacon
-        /*if (logger) {
+        if (logger) {
             logger->on_packet(beacon);
-        }*/
+        }
+#endif
 
         view_list.set_dirty();
     }
 }
 
 void EPIRBAppView::on_beacon_change() {
+    // Beacon selection has changed => get new selection
     Beacon& cur_beacon = beacon_db.get_current_beacon();
+    // Update detail, qr and map tab
     view_detail.set_beacon(cur_beacon);
     view_qr.set_beacon(&cur_beacon);
     update_map();
@@ -539,36 +535,13 @@ void EPIRBAppView::update_map() {
     view_map.repaint();
 }
 
-/*
-void EPIRBAppView::on_clear_beacons() {
-    beacon_db.clear();
-    beacons_received = 0;
-    packets_valid = 0;
-    packets_corrected = 0;
-    packets_error = 0;
-    update_map();
-    view_qr.set_beacon(nullptr);
-    update_display();
-}*/
-
-/*void EPIRBAppView::on_toggle_log() {
-    // Toggle logging functionality
-    if (logger) {
-        logger.reset();
-        button_log.set_text("Log");
-    } else {
-        logger = std::make_unique<EPIRBLogger>();
-        logger->append("epirb_rx.txt");
-        button_log.set_text("Stop");
-    }
-}*/
-
 void EPIRBAppView::on_tick_second() {
     timeout++;
     text_timeout.set_content(to_string_dec_uint(abs(timeout)));
 }
 
 void EPIRBAppView::update_display() {
+    // We use a single TextArea for code size optimization
     char buffer[128];
     char* buffer_pointer = buffer;
     buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacons:%s%3d\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacons_received);

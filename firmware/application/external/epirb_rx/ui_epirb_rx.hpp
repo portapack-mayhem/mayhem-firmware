@@ -33,6 +33,11 @@
 // Specan is disable to keep application size below the 32k limit
 // #define SPECAN
 
+// Disable timout reset on select to save approx 200 bytes of flash
+#define RESET_TIMER
+#define SQUELCH
+// #define LOGGER
+
 #ifdef SPECAN
 #include "ui_spectrum.hpp"
 #endif
@@ -54,18 +59,21 @@
 #include "ui_beaconlist.hpp"
 #include "resources.hpp"
 
-#define SQUELCH
-// #define LOGGER
 
 namespace ui::external_app::epirb_rx {
 
+/**
+ * Status of a packet
+ */
 enum class PacketStatus : uint8_t {
     Valid = 0,
     Corrected = 1,
     Error = 2
 };
 
+// Position of tabs in tab view
 #define EPIRB_TAB_POS_Y (UI_POS_Y(4) + 3 * 8)
+// Height of tabs in tab view
 #define EPIRB_TAB_HEIGHT (screen_height - EPIRB_TAB_POS_Y - UI_POS_HEIGHT(1))
 
 #ifdef LOGGER
@@ -82,20 +90,28 @@ class EPIRBLogger {
 };
 #endif
 
+/**
+ * Dedicated TextArea component used to optimize application code size
+ */
 class TextArea : public Widget {
    public:
     TextArea(Rect parent_rect);
 
+#ifdef RESET_TIMER
     std::function<void(TextArea&)> on_select{};
+    bool on_key(const KeyEvent key) override;
+#endif
 
     void set_content(std::string_view value);
     void paint(Painter& painter) override;
-    bool on_key(const KeyEvent key) override;
 
    private:
     std::string content{};
 };
 
+/**
+ * View for beacon detail tab
+ */
 class EPIRBDetailView : public View {
    public:
     EPIRBDetailView(Rect parent_rect);
@@ -108,6 +124,9 @@ class EPIRBDetailView : public View {
 #define EPIRB_RX_DEFAULT_LATITUDE 43.604f
 #define EPIRB_RX_DEFAULT_LONGITUDE 1.458f
 
+/**
+ * View for beacon map tab
+ */
 class EPIRBMapView : public View {
    public:
     EPIRBMapView(Rect parent_rect);
@@ -129,6 +148,9 @@ class EPIRBMapView : public View {
 #define QR_WIDTH 126
 #define QR_HEIGHT 127
 
+/**
+ * Vieaw for Beacon QR tab
+ */
 class EPRIBQRView : public View {
    public:
     EPRIBQRView(Rect parent_rect);
@@ -176,7 +198,6 @@ class EPIRBAppView final : public ui::View {
     EPIRBAppView(ui::NavigationView& nav);
     ~EPIRBAppView();
 
-    void set_parent_rect(const ui::Rect new_parent_rect) override;
     void focus() override;
     void refresh();
 
@@ -282,13 +303,10 @@ class EPIRBAppView final : public ui::View {
     static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
     void on_packet(Message* const p);
     void update_map();
-    // void on_clear_beacons();
-    // void on_toggle_log();
     void on_tick_second();
     void on_beacon_change();
 
     void update_display();
-    // std::string beacon_to_hex_string(const baseband::Packet& packet);
 };
 
 }  // namespace ui::external_app::epirb_rx

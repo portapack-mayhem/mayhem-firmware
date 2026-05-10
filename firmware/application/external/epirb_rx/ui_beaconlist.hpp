@@ -29,6 +29,9 @@
 
 namespace ui::external_app::epirb_rx {
 
+/**
+ * Beacon list component
+ */
 class BeaconUIList : public View {
    public:
     std::function<void(size_t)> on_select{};
@@ -41,9 +44,7 @@ class BeaconUIList : public View {
     void on_show() override;
     bool on_key(const KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
-    bool on_touch(const TouchEvent event) override;
 
-    void set_index(size_t index);
     size_t get_index() const;
     void set_db(BeaconDB& db);
 

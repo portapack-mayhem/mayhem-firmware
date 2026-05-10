@@ -43,6 +43,7 @@ namespace ui::external_app::epirb_rx {
 #define LONG_ADDITIONAL_DATA_RESOURCE_START 33
 #define EMERGENCY_RESOURCE_START 39
 #define EMERGENCY_OTHER_RESOURCE_START 49
+#define AUX_DEVICE_RESOURCE_START 53
 
 /**
  * This is the main class for beaon handling
@@ -139,7 +140,7 @@ class Beacon {
         }
     }
 
-    // Get protocol type for the given protocol
+    // Get protocol type for this beacon
     ProtocolType getProtocolType() {
         switch (protocol) {
             case Protocol::USER_EPIRB_MARITIME:
@@ -176,37 +177,70 @@ class Beacon {
         }
     }
 
+    // True for long frames, fals for short grames
     bool longFrame{true};
+    // True if protocol flag is set for this frame
     bool protocolFlag{false};
+    // Frame mode (Test or Real)
     FrameMode frameMode{FrameMode::UNKNOWN};
+    // Main location device
     MainLocatingDevice mainLocatingDevice{MainLocatingDevice::UNDEFINED};
+    // Axiliary location device
     AuxLocatingDevice auxLocatingDevice{AuxLocatingDevice::UNDEFINED};
+    // Protocol code for this beacon
     long protocolCode{0};
+    // Protocol of this beacon
     Protocol protocol{Protocol::UNKNOWN};
+    // Protocol type of this beacon
     ProtocolType protocolType{ProtocolType::UNKNOWN};
+    // Country of this beacon
     Country country{};
+    // Frame data
     uint8_t frame[BEACON_DATA_SIZE];
+    // Location of this beacon
     Location location{};
+    // HexId of this beacon
     uint64_t identifier{0};
+    // Date of reception of this beacon
     rtc::RTC date{};
+    // Trus if this beacon has additional data
     bool hasAdditionalData{false};
+    // The additional data tring
     char additionalData[48]{0};
+    // True if this beacon has a serial number
     bool hasSerialNumber{false};
+    // The serial number string
     char serialNumber[32]{0};
+    // Beacon's Hex ID string
     char hexId[32]{0};
+    // BCH1 code value
     uint32_t bch1{};
+    // BCH1 calculated value
     uint32_t computedBch1{};
+    // True if data has been corrected to match BCH1 code
     bool bch1Corrected{false};
+    // True if this beacon has a BCH2 correction code
     bool hasBch2{false};
+    // BCH2 code value
     uint32_t bch2{};
+    // BCH2 calculated value
     uint32_t computedBch2{};
+    // True if data has been corrected to match BCH2 code
     bool bch2Corrected{false};
+    // True if this beacon is empty (not initialized)
     bool isEmpty{true};
+    // True if thsi beacon contains emergency data
     bool hasEmergency{false};
+    // True if emenrgency data is automatic for this beacon
     bool isAutoamticEmergency{false};
+    // True if this beacon is a Maritime beacon
     bool isMaritime{false};
+    // Emergency type string
     char emergencyType[32]{0};
 
+    /**
+     * Returns the requested bits in this beacon's frame
+     */
     uint64_t getBits(int startBit, int endBit) {
         uint64_t result = 0;
         startBit--;
@@ -225,6 +259,9 @@ class Beacon {
         return result;
     }
 
+    /**
+     * Compute a BCH control code for the given bits and poly
+     */
     uint64_t computeBCH(int startBit, int endBit, unsigned long poly, int polyLength) {
         int dataLength = endBit - startBit + 1;
         int totalLength = dataLength + polyLength - 1;
@@ -240,13 +277,18 @@ class Beacon {
         return result;
     }
 
+    /**
+     * Compute BCH1 code
+     */
     uint64_t computeBCH1() { return computeBCH(25, 85, BCH_21_POLYNOMIAL, BCH_21_POLY_LENGTH); }
+    /**
+     * Compute BCH2 code
+     */
     uint64_t computeBCH2() { return computeBCH(107, 132, BCH_12_POLYNOMIAL, BCH_12_POLY_LENGTH); }
 
-    static size_t toHexString(char* buffer, uint32_t data) {
-        return sprintf(buffer, "0x%08lX", data);
-    }
-
+    /**
+     * Convert this frame's data to an hex string
+     */
     static size_t toHexString(char* buffer, uint8_t* frame, bool withSpace, int start, int end) {
         size_t result = 0;
         for (uint8_t i = start; i < end; i++) {
@@ -261,6 +303,9 @@ class Beacon {
     Beacon(const Beacon& other) = delete;
     Beacon& operator=(const Beacon& other) = delete;
 
+    /**
+     * Set the data for this Beacon and parse it
+     */
     void setFrame(const uint8_t* frameBuffer) {
         frameMode = FrameMode::UNKNOWN;
         mainLocatingDevice = MainLocatingDevice::UNDEFINED;
@@ -294,12 +339,18 @@ class Beacon {
         parseFrame();
     }
 
+    /**
+     * Flip the specified bit in this beacon's data
+     */
     void flipBit(int bit) {
         int byteIdx = (bit - 1) / 8;
         int bitIdx = 7 - ((bit - 1) % 8);
         frame[byteIdx] ^= (1 << bitIdx);
     }
 
+    /**
+     * Single bit error correction to match BCH1 or BCH2 code
+     */
     void simpleCorrection(bool isBCH1) {
         for (int i = (isBCH1 ? 25 : 107); i <= (isBCH1 ? 85 : 132); i++) {
             flipBit(i);
@@ -317,6 +368,9 @@ class Beacon {
         }
     }
 
+    /**
+     * Return the string representation of this beacon's type
+     */
     const char* getType() {
         if ((protocol == Protocol::USER_EPIRB_MARITIME) || (protocol == Protocol::USER_EPIRB_RADIO) || (protocol == Protocol::STD_EPIRB) || (protocol == Protocol::STD_EPIRB_SERIAL) || (protocol == Protocol::NAT_EPIRB)) return "EPIRB";
         if ((protocol == Protocol::USER_ELT) || (protocol == Protocol::STD_ELT_24) || (protocol == Protocol::STD_ELT_SERIAL) || (protocol == Protocol::STD_ELT_AIRCRAFT) || (protocol == Protocol::NAT_ELT) || (protocol == Protocol::ELT_DT)) return "ELT";
@@ -332,46 +386,75 @@ class Beacon {
         return UNKNOWN_LABEL;
     }
 
+    /**
+     * Returns true if this beacon has a main location device
+     */
     bool hasMainLocatingDevice() { return (mainLocatingDevice != MainLocatingDevice::UNDEFINED); }
+
+    /**
+     * Returns this beacon's main location device string representation
+     */
     const char* getMainLocatingDeviceName() {
         if (mainLocatingDevice == MainLocatingDevice::EXTERNAL_NAV) return "Exernal";
         if (mainLocatingDevice == MainLocatingDevice::INTERNAL_NAV) return "Internal";
         return UNKNOWN_LABEL;
     }
 
+    /**
+     * Returns true if this beacon has a main location device
+     */
     bool hasAuxLocatingDevice() { return (auxLocatingDevice != AuxLocatingDevice::UNDEFINED); }
+
+    /**
+     * Returns true if this beacon has a main location device
+     */
     const char* getAuxLocatingDeviceName() {
-        switch (auxLocatingDevice) {
-            case AuxLocatingDevice::NONE:
-                return "No device";
-            case AuxLocatingDevice::NONE_OR_OTHER:
-                return "Other/no device";
-            case AuxLocatingDevice::OTHER:
-                return "Other device";
-            case AuxLocatingDevice::MHZ121_5:
-                return "121.5 MHz";
-            case AuxLocatingDevice::SART:
-                return "SART";
-            default:
-                return UNKNOWN_LABEL;
-        }
+        return ResourceManager::get_beacon_resource(AUX_DEVICE_RESOURCE_START + ((int)auxLocatingDevice));
     }
 
+    /**
+     * Set the serial number for this beacon
+     */
     void setSerialNumber(uint32_t serial) {
         sprintf(serialNumber, "%ld (0x%08lX)", serial, serial);
     }
 
+    /**
+     * Returns true if BCH1 code is valid
+     */
     bool isBch1Valid() { return (bch1 == computedBch1); }
+
+    /**
+     * Returns true if BCH2 code is valid
+     */
+
     bool isBch2Valid() { return (bch2 == computedBch2); }
+
+    /**
+     * Returns true if frame is valid
+     */
     bool isFrameValid();
+
+    /**
+     * Returns true if frame is orbito
+     */
     bool isOrbito() { return (protocol == Protocol::USER_ORB); }
 
+    /**
+     * Write the hex preresentation of this frame in the provided buffer
+     */
     size_t hexString(char* buffer, bool withHeader) {
         return toHexString(buffer, frame, false, (withHeader ? 0 : 3), (longFrame ? 18 : 14));
     }
 
+    /**
+     * Returns the short ID for this beacon
+     */
     std::string shortId();
 
+    /**
+     * Returns the string representation of the status of this frame
+     */
     std::string getSatus() {
         if (isFrameValid())
             return "OK";
@@ -379,8 +462,14 @@ class Beacon {
             return "KO";
     }
 
+    /**
+     * Format this beacon's time
+     */
     size_t formatTime(char* buffer);
 
+    /**
+     * Format this beacon's summary
+     */
     size_t formatSummary(char* buffer, bool with_time);
 
    private:
@@ -390,6 +479,9 @@ class Beacon {
                                              ' ', 'T', ' ', 'O', ' ', 'H', 'N', 'M', ' ', 'L', 'R', 'G', 'I', 'P', 'C', 'V',
                                              'E', 'Z', 'D', 'B', 'S', 'Y', 'F', 'X', 'A', 'W', 'J', ' ', 'U', 'Q', 'K', '\0'};
 
+    /**
+     * Parse this beacon's protocol
+     */
     void parseProtocol() {
         protocolFlag = getBits(26, 26);
         if (protocolFlag)
@@ -478,6 +570,9 @@ class Beacon {
         }
     }
 
+    /**
+     * Parse this beacon's additional data
+     */
     void parseAdditionalData() {
         hasAdditionalData = false;
         hasSerialNumber = false;
@@ -592,6 +687,9 @@ class Beacon {
         }
     }
 
+    /**
+     * Parse this beacon's locating device
+     */
     void parseLocatingDevices() {
         bool mainLoc;
         if (protocolIsStandard() || protocolIsNational()) {
@@ -618,6 +716,9 @@ class Beacon {
         }
     }
 
+    /**
+     * Parse this beacon's frame data
+     */
     void parseFrame() {
         long latofmin, latofsec, lonofmin, lonofsec;
         bool latoffset, lonoffset;

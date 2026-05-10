@@ -50,3 +50,10 @@ Abandoning
 Fire
 Med.
 Dis.
+# L. 53: 
+Undefined
+No device
+Other/no device
+Other device
+121.5 MHz
+SART

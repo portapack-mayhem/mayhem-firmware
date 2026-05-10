@@ -34,8 +34,6 @@ void BeaconUIList::paint(Painter& painter) {
     painter.fill_rectangle(rect, Theme::getInstance()->bg_darkest->background);
 
     if (!db_ || (db_->empty())) {
-        // auto line_position = rect.location() + Point{7 * 8, 6 * 16};
-        // painter.draw_string(line_position, *Theme::getInstance()->bg_darkest, "No beacons");
         return;
     }
 
@@ -51,6 +49,7 @@ void BeaconUIList::paint(Painter& painter) {
         auto style = base_style;
 
         if (index < db_->size()) {
+            // Get beacon entry and format it's summary
             auto& entry = db_->get_beacon(index);
             char buffer[64];
             entry.formatSummary(buffer, true);
@@ -58,8 +57,10 @@ void BeaconUIList::paint(Painter& painter) {
         }
 
         if (index == db_->get_current_beacon_index())
+            // If this is the currently displayed beacon change color
             style = Theme::getInstance()->bg_medium;
 
+        // Draw entry line
         painter.draw_string(
             line_position, (is_selected ? style->invert() : *style), text);
     }
@@ -72,37 +73,19 @@ void BeaconUIList::on_show() {
     set_dirty();
 }
 
-bool BeaconUIList::on_touch(const TouchEvent event) {
-    if (!db_ || db_->empty())
-        return false;
-    if (event.type == TouchEvent::Type::Start) {
-        focus();
-        set_dirty();
-        int16_t rel_y = event.point.y() - screen_rect().top();
-        size_t new_selected = rel_y / char_height;
-        if (new_selected + start_index_ >= db_->size()) {
-            return true;  // clicked, where there is no entry, skip it
-        }
-        if (selected_index_ != new_selected) {
-            // Change selection
-            selected_index_ = new_selected;
-        }
-        return true;
-    }
-    return true;
-}
-
 bool BeaconUIList::on_key(const KeyEvent key) {
     if (!db_ || db_->empty())
         return false;
 
     if (key == KeyEvent::Select && on_select) {
+        // Select this beacon
         on_select(get_index());
         set_dirty();
         return true;
     }
 
     auto delta = 0;
+    // Change position in the list
     if (key == KeyEvent::Up && get_index() > 0)
         delta = -1;
     else if (key == KeyEvent::Down && get_index() < db_->size() - 1)
@@ -118,16 +101,10 @@ bool BeaconUIList::on_key(const KeyEvent key) {
 bool BeaconUIList::on_encoder(EncoderEvent delta) {
     if (!db_ || db_->empty())
         return false;
-
+    // Change position in the list according to encoder
     adjust_selected_index(delta);
     set_dirty();
     return true;
-}
-
-void BeaconUIList::set_index(size_t index) {
-    start_index_ = 0;
-    selected_index_ = 0;
-    adjust_selected_index(index);
 }
 
 size_t BeaconUIList::get_index() const {
