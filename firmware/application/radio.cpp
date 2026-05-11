@@ -413,6 +413,10 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 }
 
 void disable() {
+    shared_memory.radio_tx_drain = 1;  // Drain the current dma queue.
+    while (shared_memory.radio_tx_drain) {
+        chThdSleepMilliseconds(1);
+    }
     set_antenna_bias(false);
     baseband_codec.set_mode(max5864::Mode::Shutdown);
 #ifdef PRALINE

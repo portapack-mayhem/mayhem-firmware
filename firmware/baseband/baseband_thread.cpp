@@ -90,8 +90,7 @@ void BasebandThread::run() {
 #ifdef PRALINE
     shared_memory.m4_streaming_marker = 0xAA;  // Phase 0 instrumentation
 #endif
-    uint8_t need_to_stop = 0;  // 0 = can run. 1 = prepare stop, 2 = stop.
-    while (need_to_stop < 2) {
+    while (!chThdShouldTerminate()) {
 #ifdef PRALINE
         shared_memory.m4_baseband_loops++;  // Phase 0 instrumentation
 #endif
@@ -117,10 +116,13 @@ void BasebandThread::run() {
             }
 
             if (baseband_processor_) {
-                baseband_processor_->execute(buffer);
+                if (shared_memory.radio_tx_drain == 0) {  // only generate if not draining.
+                    baseband_processor_->execute(buffer);
+                }
             }
+        } else {
+            shared_memory.radio_tx_drain = 0;  // signal, that we have drained it. not a problem if after this we'll generate new ones, those won't matter.
         }
-        if (chThdShouldTerminate()) need_to_stop++;
     }
 
     i2s::i2s0::tx_mute();
