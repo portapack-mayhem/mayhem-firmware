@@ -50,7 +50,7 @@ using namespace hackrf::one;
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
-
+#include "baseband_api.hpp"
 #include "hal.h"  // For LPC_SGPIO
 
 #include <array>
@@ -413,7 +413,7 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 }
 
 void disable() {
-    if (direction == rf::Direction::Transmit) {
+    if (direction == rf::Direction::Transmit && baseband::is_image_running()) {
         static constexpr uint32_t radio_tx_drain_timeout_ms = 100;
         shared_memory.radio_tx_drain = 1;  // Request drain of the current DMA queue.
         for (uint32_t waited_ms = 0;
