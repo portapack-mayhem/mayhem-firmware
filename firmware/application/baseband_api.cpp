@@ -361,6 +361,11 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_meteor_lrpt_rx_config(uint8_t flags, uint8_t symbol_rate_k) {
+    const MeteorLrptRxConfigureMessage message{flags, symbol_rate_k};
+    send_message(&message);
+}
+
 void set_flex_config() {
     const FlexConfigureMessage message{};
     send_message(&message);

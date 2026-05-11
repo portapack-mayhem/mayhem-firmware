@@ -63,6 +63,7 @@ cmake-build-debug/
 .idea
 *.swp
 .claude
+.cursor
 
 # VSCodium extensions
 .history

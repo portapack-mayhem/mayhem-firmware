@@ -109,6 +109,7 @@ MEMORY
     ram_external_app_two_tone_pager        (rwx) : org = 0xAE040000, len = 32k
     ram_external_app_two_tone_rx           (rwx) : org = 0xAE050000, len = 32k
     ram_external_app_flex_tx               (rwx) : org = 0xAE060000, len = 32k
+    ram_external_app_meteor_lrpt_rx        (rwx) : org = 0xAE070000, len = 32k
 }
 
 SECTIONS
@@ -628,4 +629,10 @@ SECTIONS
         KEEP(*(.external_app.app_flex_tx.application_information));
         *(*ui*external_app*flex_tx*);
     } > ram_external_app_flex_tx
+
+    .external_app_meteor_lrpt_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_meteor_lrpt_rx.application_information));
+        *(*ui*external_app*meteor_lrpt_rx*);
+    } > ram_external_app_meteor_lrpt_rx
 }

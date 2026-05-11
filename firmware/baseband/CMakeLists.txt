@@ -655,6 +655,20 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNOA noaaapt_rx)
 
+### Meteor LRPT Rx
+
+set(MODE_CPPSRC
+	proc_meteor_lrpt_rx.cpp
+	meteor_lrpt/ccsds_derandomize.cpp
+	meteor_lrpt/meteor_cc_decoder.cpp
+	meteor_lrpt/meteor_jpeg_scan.cpp
+	meteor_lrpt/meteor_nrzm.cpp
+	meteor_lrpt/meteor_bpsk_ccsds_deframer.cpp
+	meteor_lrpt/rs223_decode.cpp
+	meteor_lrpt/meteor_soft_correlate.cpp
+)
+DeclareTargets(PMLR meteor_lrpt_rx)
+
 ### Audio transmit
 
 set(MODE_CPPSRC
