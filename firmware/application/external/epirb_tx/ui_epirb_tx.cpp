@@ -88,7 +88,7 @@ void EPIRBTXAppView::on_timer() {
                 text_timeout.set(timeout);
             }
             if (now > (last_frame_time + (delay * 1000))) {
-                if(mode_file && slideshow_enabled) {
+                if (mode_file && slideshow_enabled) {
                     // Move on to next frame
                     selected_beacon++;
                     if (selected_beacon >= beacons.size()) selected_beacon = 0;
@@ -314,7 +314,7 @@ void EPIRBTXAppView::update_mode() {
 }
 
 EPIRBTXAppView::EPIRBTXAppView(
-    NavigationView& nav): nav_{nav} {
+    NavigationView& nav) : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,

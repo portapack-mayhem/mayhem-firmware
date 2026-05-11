@@ -265,7 +265,7 @@ class EPIRBTXAppView : public View {
             "Slideshow",
             true};
     };
-    std::unique_ptr<FileModeWidgets> file_mode_ui { };
+    std::unique_ptr<FileModeWidgets> file_mode_ui{};
 
     // For manual mode
     Text text_beacon_type{
