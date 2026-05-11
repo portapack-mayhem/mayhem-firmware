@@ -35,8 +35,8 @@
 
 // Comment to disable timout reset on select and save approx 200 bytes of flash
 #ifndef PRALINE
-    // Application does not fit on Praline with RESET_TIMER enabled
-    #define RESET_TIMER
+// Application does not fit on Praline with RESET_TIMER enabled
+#define RESET_TIMER
 #endif
 // Comment to disable squelch control
 #define SQUELCH
@@ -64,7 +64,6 @@
 #include "beacon_db.hpp"
 #include "ui_beaconlist.hpp"
 #include "resources.hpp"
-
 
 namespace ui::external_app::epirb_rx {
 
@@ -286,7 +285,7 @@ class EPIRBAppView final : public ui::View {
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT};
 
     BeaconUIList view_list{view_rect};
-    EPIRBDetailView view_detail{view_rect,(*this)};
+    EPIRBDetailView view_detail{view_rect, (*this)};
     EPIRBMapView view_map{view_rect};
 #ifdef SPECAN
     EPIRBRxView view_rx{*this, view_rect};

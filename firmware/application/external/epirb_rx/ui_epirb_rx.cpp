@@ -137,7 +137,8 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
 
 // EPIRBDetailView class
 EPIRBDetailView::EPIRBDetailView(
-    Rect parent_rect, EPIRBAppView& parent)
+    Rect parent_rect,
+    EPIRBAppView& parent)
     : View(parent_rect), parent_app(parent) {
     add_children({&text_beacon});
     set_focusable(true);
@@ -147,18 +148,17 @@ EPIRBDetailView::EPIRBDetailView(
 bool EPIRBDetailView::on_encoder(EncoderEvent delta) {
     // Change position in the list according to encoder
     int32_t size = (int32_t)parent_app.beacon_db.size();
-    if(size == 0) return true;
+    if (size == 0) return true;
     // Get current  index
     int32_t current_index = (int32_t)parent_app.beacon_db.get_current_beacon_index();
     // Compute new index with wrap around
-    int32_t new_index = (current_index + delta + size) % size;    
+    int32_t new_index = (current_index + delta + size) % size;
     // Set new index
-    parent_app.beacon_db.set_current_beacon(new_index%size);
+    parent_app.beacon_db.set_current_beacon(new_index % size);
     parent_app.on_beacon_change();
     return true;
 }
 #endif
-
 
 void EPIRBDetailView::set_beacon(Beacon& beacon) {
     // We use a single TextArea widget to display beacon information for code size optimization
@@ -556,7 +556,7 @@ void EPIRBAppView::update_map() {
 void EPIRBAppView::on_tick_second() {
     timeout++;
     // Limit to 3 digits
-    if(timeout > 999) timeout = 0;
+    if (timeout > 999) timeout = 0;
     text_timeout.set_content(to_string_dec_uint(abs(timeout)));
 }
 
@@ -564,7 +564,7 @@ void EPIRBAppView::update_display() {
     // We use a single TextArea for code size optimization
     char buffer[128];
     char* buffer_pointer = buffer;
-    buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacon:%s%2d/%d\t", STR_COLOR_CYAN, STR_COLOR_WHITE,(beacon_db.get_current_beacon_index()+1),beacons_received);
+    buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacon:%s%2d/%d\t", STR_COLOR_CYAN, STR_COLOR_WHITE, (beacon_db.get_current_beacon_index() + 1), beacons_received);
     buffer_pointer += sprintf(buffer_pointer, "%sStats: %s%03dOK %s%03dCOR %s%03dERR\t", STR_COLOR_CYAN, STR_COLOR_GREEN, packets_valid, STR_COLOR_YELLOW, packets_corrected, STR_COLOR_RED, packets_error);
     buffer_pointer += sprintf(buffer_pointer, "%sCurrent:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE);
     if (!beacon_db.empty()) {
