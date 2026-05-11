@@ -314,7 +314,8 @@ void EPIRBTXAppView::update_mode() {
 }
 
 EPIRBTXAppView::EPIRBTXAppView(
-    NavigationView& nav) : nav_{nav} {
+    NavigationView& nav)
+    : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,

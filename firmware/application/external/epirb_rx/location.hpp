@@ -35,7 +35,8 @@ class Location {
         bool orientation = false;  // false = N/E, true = S/W
 
         Angle() {}
-        Angle(long degrees) : degrees(degrees) {}
+        Angle(long degrees)
+            : degrees(degrees) {}
 
         void clear();
 

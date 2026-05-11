@@ -257,7 +257,8 @@ void EPIRBMapView::repaint() {
 }
 
 // EPRIBQRView class
-EPRIBQRView::EPRIBQRView(Rect parent_rect) : View(parent_rect) {
+EPRIBQRView::EPRIBQRView(Rect parent_rect)
+    : View(parent_rect) {
     add_children({&text_data, &options_qr, &qr_code});
     // Hide for now
     qr_code.hidden(true);
