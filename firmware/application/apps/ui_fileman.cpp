@@ -43,6 +43,7 @@ namespace ui {
 static const fs::path txt_ext{u".TXT"};
 static const fs::path ppl_ext{u".PPL"};
 static const fs::path c8_ext{u".C8"};
+static const fs::path cu8_ext{u".CU8"};
 static const fs::path c16_ext{u".C16"};
 static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
@@ -89,7 +90,10 @@ fs::path get_partner_file(fs::path path) {
     else if (path_iequal(ext, txt_ext)) {
         path.replace_extension(c8_ext);
         if (!fs::file_exists(path))
+            path.replace_extension(cu8_ext);
+        if (!fs::file_exists(path))
             path.replace_extension(c16_ext);
+
     } else
         return {};
 

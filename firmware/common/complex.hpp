@@ -106,10 +106,12 @@ struct complex<int16_t> {
 } /* namespace std */
 
 using complex8_t = std::complex<int8_t>;
+using complexu8_t = std::complex<uint8_t>;
 using complex16_t = std::complex<int16_t>;
 using complex32_t = std::complex<int32_t>;
 
 static_assert(sizeof(complex8_t) == 2, "complex8_t size wrong");
+static_assert(sizeof(complexu8_t) == 2, "complexu8_t size wrong");
 static_assert(sizeof(complex16_t) == 4, "complex16_t size wrong");
 static_assert(sizeof(complex32_t) == 8, "complex32_t size wrong");
 

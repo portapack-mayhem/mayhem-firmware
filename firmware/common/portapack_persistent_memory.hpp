@@ -47,7 +47,7 @@
 
 // to check battery mins and maxes in pmem, and validity
 #define BATT_18650_MIN_MAH 1000
-#define BATT_18650_MAX_MAH 5000
+#define BATT_18650_MAX_MAH 20000
 
 using namespace modems;
 using namespace serializer;
