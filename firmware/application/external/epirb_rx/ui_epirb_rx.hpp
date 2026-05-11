@@ -122,7 +122,9 @@ class EPIRBDetailView : public View {
    public:
     EPIRBDetailView(Rect parent_rect, EPIRBAppView& parent);
     void set_beacon(Beacon& beacon);
+#ifdef DETAIL_TAB_BEACON_SEL
     bool on_encoder(EncoderEvent delta) override;
+#endif
 
    private:
     TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
