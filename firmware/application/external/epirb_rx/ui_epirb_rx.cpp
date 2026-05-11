@@ -137,10 +137,28 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
 
 // EPIRBDetailView class
 EPIRBDetailView::EPIRBDetailView(
-    Rect parent_rect)
-    : View(parent_rect) {
+    Rect parent_rect, EPIRBAppView& parent)
+    : View(parent_rect), parent_app(parent) {
     add_children({&text_beacon});
+    set_focusable(true);
 }
+
+#ifdef DETAIL_TAB_BEACON_SEL
+bool EPIRBDetailView::on_encoder(EncoderEvent delta) {
+    // Change position in the list according to encoder
+    int32_t size = (int32_t)parent_app.beacon_db.size();
+    if(size == 0) return true;
+    // Get current  index
+    int32_t current_index = (int32_t)parent_app.beacon_db.get_current_beacon_index();
+    // Compute new index with wrap around
+    int32_t new_index = (current_index + delta + size) % size;    
+    // Set new index
+    parent_app.beacon_db.set_current_beacon(new_index%size);
+    parent_app.on_beacon_change();
+    return true;
+}
+#endif
+
 
 void EPIRBDetailView::set_beacon(Beacon& beacon) {
     // We use a single TextArea widget to display beacon information for code size optimization

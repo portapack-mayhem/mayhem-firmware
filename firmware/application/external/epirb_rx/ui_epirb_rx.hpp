@@ -33,9 +33,12 @@
 // Specan is disable to keep application size below the 32k limit
 // #define SPECAN
 
-// Disable timout reset on select to save approx 200 bytes of flash
+// Comment to disable timout reset on select and save approx 200 bytes of flash
 #define RESET_TIMER
+// Comment to disable squelch control
 #define SQUELCH
+// Comment to disable beacon selection by encoder on detail tab
+#define DETAIL_TAB_BEACON_SEL
 // #define LOGGER
 
 #ifdef SPECAN
@@ -109,16 +112,21 @@ class TextArea : public Widget {
     std::string content{};
 };
 
+// Forward declaration
+class EPIRBAppView;
+
 /**
  * View for beacon detail tab
  */
 class EPIRBDetailView : public View {
    public:
-    EPIRBDetailView(Rect parent_rect);
+    EPIRBDetailView(Rect parent_rect, EPIRBAppView& parent);
     void set_beacon(Beacon& beacon);
+    bool on_encoder(EncoderEvent delta) override;
 
    private:
     TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
+    EPIRBAppView& parent_app;
 };
 
 #define EPIRB_RX_DEFAULT_LATITUDE 43.604f
@@ -178,9 +186,6 @@ class EPRIBQRView : public View {
     TextArea text_data{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT - UI_POS_Y(1)}};
 };
 
-// Forward declaration
-class EPIRBAppView;
-
 #ifdef SPECAN
 class EPIRBRxView : public spectrum::WaterfallView {
    public:
@@ -204,6 +209,10 @@ class EPIRBAppView final : public ui::View {
     // Message to configure rx baseband
     EPIRBRXConfig epirb_rx_config_message{};
     void send_config();
+    // Beacons database
+    BeaconDB beacon_db{};
+    // Update display when beacon selection changed0
+    void on_beacon_change();
 
     std::string title() const override { return "EPIRB RX"; }
 
@@ -220,8 +229,6 @@ class EPIRBAppView final : public ui::View {
         }};
 
     ui::NavigationView& nav_;
-
-    BeaconDB beacon_db{};
 
 #ifdef LOGGER
     std::unique_ptr<EPIRBLogger> logger{};
@@ -274,7 +281,7 @@ class EPIRBAppView final : public ui::View {
     Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT};
 
     BeaconUIList view_list{view_rect};
-    EPIRBDetailView view_detail{view_rect};
+    EPIRBDetailView view_detail{view_rect,(*this)};
     EPIRBMapView view_map{view_rect};
 #ifdef SPECAN
     EPIRBRxView view_rx{*this, view_rect};
@@ -304,7 +311,6 @@ class EPIRBAppView final : public ui::View {
     void on_packet(Message* const p);
     void update_map();
     void on_tick_second();
-    void on_beacon_change();
 
     void update_display();
 };
