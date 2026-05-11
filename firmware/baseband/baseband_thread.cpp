@@ -124,7 +124,7 @@ void BasebandThread::run() {
             shared_memory.radio_tx_drain = 0;  // signal, that we have drained it. not a problem if after this we'll generate new ones, those won't matter.
         }
     }
-
+    shared_memory.radio_tx_drain = 0;
     i2s::i2s0::tx_mute();
     baseband::dma::disable();
     baseband_sgpio.streaming_disable();
