@@ -413,10 +413,19 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 }
 
 void disable() {
-    shared_memory.radio_tx_drain = 1;  // Drain the current dma queue.
-    while (shared_memory.radio_tx_drain) {
+    static constexpr uint32_t radio_tx_drain_timeout_ms = 100;
+
+    shared_memory.radio_tx_drain = 1;  // Request drain of the current DMA queue.
+    for (uint32_t waited_ms = 0;
+         shared_memory.radio_tx_drain && (waited_ms < radio_tx_drain_timeout_ms);
+         ++waited_ms) {
         chThdSleepMilliseconds(1);
     }
+
+    /* Never allow shutdown to block indefinitely waiting for a drain
+     * acknowledgement that may never arrive in normal operation. */
+    shared_memory.radio_tx_drain = 0;
+
     set_antenna_bias(false);
     baseband_codec.set_mode(max5864::Mode::Shutdown);
 #ifdef PRALINE
