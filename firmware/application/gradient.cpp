@@ -28,13 +28,11 @@ namespace fs = std::filesystem;
 const std::filesystem::path default_gradient_file = u"waterfall.txt";
 
 Gradient::Gradient() {
-    prev_index = 0;
-    prev_r = 0;
-    prev_g = 0;
-    prev_b = 0;
+    step(0, 0, 0, 0);
 }
 
 void Gradient::set_default() {
+    step(0, 0, 0, 0);
     step(86, 0, 0, 255);
     step(171, 0, 255, 0);
     step(255, 255, 0, 0);
@@ -46,6 +44,9 @@ bool Gradient::load_file(const std::filesystem::path& file_path) {
 
     if (error)
         return false;
+
+    // make sure the table starts at 0
+    step(0, 0, 0, 0);
 
     auto reader = FileLineReader(gradient_file);
     for (const auto& line : reader) {
@@ -73,17 +74,24 @@ bool Gradient::load_file(const std::filesystem::path& file_path) {
         }
     }
 
+    // extend the gradient from the current index to the end of the table
+    step(255, prev_r, prev_g, prev_b);
+
     return true;
 }
 
 void Gradient::step(int16_t index, int16_t r, int16_t g, int16_t b) {
-    for (int16_t i = prev_index; i <= index; i++) {
-        float x = (float)(i - prev_index) / (index - prev_index);
-        float y = 1.0f - x;
+    // prevent division by 0 if index == prev_index
+    int16_t range = index - prev_index;
+    if (range == 0) range = 1;
 
-        int16_t new_r = prev_r * y + r * x;
-        int16_t new_g = prev_g * y + g * x;
-        int16_t new_b = prev_b * y + b * x;
+    for (int16_t i = prev_index; i <= index; i++) {
+        int16_t t = i - prev_index;
+
+        int16_t new_r = prev_r + (t * (r - prev_r) + range / 2) / range;
+        int16_t new_g = prev_g + (t * (g - prev_g) + range / 2) / range;
+        int16_t new_b = prev_b + (t * (b - prev_b) + range / 2) / range;
+
         if (i <= 255) lut[i] = ui::Color(new_r, new_g, new_b);
     }
 

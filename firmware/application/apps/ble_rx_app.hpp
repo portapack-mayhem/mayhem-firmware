@@ -322,10 +322,10 @@ class BLERxView : public View {
         {UI_POS_X(21), UI_POS_Y(0)}};
 
     RSSI rssi{
-        {UI_POS_X(24), 0, UI_POS_WIDTH_REMAINING(6), 4}};
+        {UI_POS_X(24), 0, UI_POS_WIDTH_REMAINING(24), 4}};
 
     Channel channel{
-        {UI_POS_X(24), 5, UI_POS_WIDTH_REMAINING(6), 4}};
+        {UI_POS_X(24), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
     Labels label_sort{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Sort:", Theme::getInstance()->fg_light->foreground}};
