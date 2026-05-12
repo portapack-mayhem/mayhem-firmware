@@ -49,7 +49,6 @@ int MeteorDeinterleaverReader::autocorrelate(unsigned* rotation_out, int period_
         return 0;
 
     const int ones_sz = 8 * period_bytes;
-    const int avg_sz = 8 * period_bytes + 8;
     std::array<int, 8 * kMaxPeriodBytes> ones_count{};
     std::array<int, 8 * kMaxPeriodBytes + 8> average_bit{};
 

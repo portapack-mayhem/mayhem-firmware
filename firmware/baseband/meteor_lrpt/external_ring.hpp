@@ -20,6 +20,11 @@ class MeteorDeintRamRing final : public IMeteorDeintRing {
    public:
     MeteorDeintRamRing();
     ~MeteorDeintRamRing() override;
+
+    MeteorDeintRamRing(const MeteorDeintRamRing&) = delete;
+    MeteorDeintRamRing& operator=(const MeteorDeintRamRing&) = delete;
+    MeteorDeintRamRing(MeteorDeintRamRing&&) = delete;
+    MeteorDeintRamRing& operator=(MeteorDeintRamRing&&) = delete;
     void write_byte(uint32_t index_mod, int8_t v) override;
     int8_t read_byte(uint32_t index_mod) const override;
 

@@ -120,7 +120,8 @@ struct SharedMemory {
     struct MeteorLrptG4Ipc {
         static constexpr uint32_t kMagic = 0x4D344734; /* 'M4G4' */
         static constexpr size_t kInputPathUtf8Max = 96;
-        static constexpr size_t kLiveRingSlots = 2;
+        /** Single slot: minimal Bank2 RAM; M4 drops CADUs if M0 has not popped yet (`live_ring_overflows`). */
+        static constexpr size_t kLiveRingSlots = 1;
         volatile uint32_t magic{0};
         volatile uint8_t enabled{0};
         volatile uint8_t lrpt_flags_snapshot{0};

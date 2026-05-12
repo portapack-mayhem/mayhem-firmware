@@ -20,8 +20,7 @@ constexpr uint16_t kMsumrImageApidMin = 64;
 constexpr uint16_t kMsumrImageApidMax = 69;
 constexpr size_t kReassemblyStreams = (size_t)(kMsumrImageApidMax - kMsumrImageApidMin + 1);
 /** Per-stream cap (M0 AHB SRAM budget — see `LPC43xx_M0.ld` / `SharedMemory::MeteorLrptG4Ipc`). */
-/** Fits M0 AHB RAM with heap-allocated TJpgDec workspace (see `jpeg_decode.cpp`). */
-constexpr size_t kReassemblyCapBytes = 888;
+constexpr size_t kReassemblyCapBytes = 760;
 
 class MsumrDemux {
    public:

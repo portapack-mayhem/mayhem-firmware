@@ -346,7 +346,12 @@ set(CPPSRC
 	ui_external_items_menu_loader.cpp
 )
 
-set_source_files_properties(${CPPSRC} PROPERTIES COMPILE_FLAGS -flto) # Add lto flag to the non-external sources only
+# Historically we forced `-flto` on internal C++ objects even when ChibiOS `USE_LTO` was `no`.
+# That spikes compiler RAM (LTO streaming) and breaks lean Docker builds with misleading errors
+# like "Cannot allocate memory" while opening standard headers. Only enable when LTO is on.
+if(USE_LTO STREQUAL "yes")
+	set_source_files_properties(${CPPSRC} PROPERTIES COMPILE_FLAGS -flto)
+endif()
 
 list (APPEND CPPSRC ${EXTCPPSRC}) # Append external sources after setting lto flag to internal ones
 
@@ -376,9 +381,10 @@ set(ASMSRC
 	lz4.S
 )
 
+# FatFs lives under .../ext/fatfs/src — keep it off the normal `-I` list so `#include <ext/...>`
+# from libstdc++ is never resolved under the FatFs tree. Added as `-idirafter` on the target.
 set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC}
 	${HALINC} ${PLATFORMINC} ${BOARDINC}
-	${FATFSINC}
 	${CHIBIOS}/os/various
 	${HACKRF_PATH}/firmware/libopencm3/include
 	${HACKRF_PATH}/firmware/common
@@ -508,6 +514,9 @@ add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 set_source_files_properties(
 	meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
 	PROPERTIES COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:C>:-Os>"
+)
+target_compile_options(${PROJECT_NAME}.elf PRIVATE
+	"$<$<COMPILE_LANGUAGE:C,CXX>:-idirafter${CHIBIOS_PORTAPACK}/ext/fatfs/src>"
 )
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
