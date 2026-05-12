@@ -101,7 +101,7 @@ bool TextArea::on_key(const KeyEvent key) {
 // EPIRBAppView class
 void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon) {
     // Convert packet bits to byte array for easier processing
-    uint8_t data[18];
+    uint8_t data[BEACON_DATA_SIZE]{};
     for (size_t i = 0; i < std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE); i++) {
         uint8_t byte_val = 0;
         for (int bit = 0; bit < 8 && (i * 8 + bit) < packet.size(); bit++) {
