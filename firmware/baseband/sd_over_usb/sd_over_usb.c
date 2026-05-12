@@ -110,7 +110,7 @@ void start_usb(void) {
 
     usb_endpoint_init(&usb_endpoint_control_out, false);
     /* Match the new usb_endpoint_init() contract introduced upstream by
-     * db73ecbf — control IN needs ZLP for transfers whose length is a
+     * db73ecbf, control IN needs ZLP for transfers whose length is a
      * multiple of the EP0 max packet size, otherwise the host hangs. */
     usb_endpoint_init(&usb_endpoint_control_in, true);
 
