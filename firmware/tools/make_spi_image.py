@@ -268,7 +268,9 @@ print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "
 #^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
 
 # copy the fast flash script
-build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
+# Prefer the active CMake build directory (derived from output_path) over a hard-coded `build/`.
+# This avoids permission issues when building in an alternate workdir (e.g. `-B build-docker-ci`).
+build_dir = os.path.abspath(os.path.join(os.path.dirname(output_path), os.pardir))
 flash_py_path = os.path.join(build_dir, 'flash.py')
 
 if not os.path.exists(flash_py_path):

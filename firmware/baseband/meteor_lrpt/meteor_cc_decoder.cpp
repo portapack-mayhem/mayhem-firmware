@@ -156,7 +156,7 @@ void MeteorCcDecoder::decode_soft(const int8_t* soft_in, uint8_t* out_bytes, siz
 
     init_viterbi(d_start_state_chaining);
 
-    const size_t nbytes = std::min(out_len_bytes, d_frame_size / 8U);
+    const size_t nbytes = std::min(out_len_bytes, static_cast<size_t>(d_frame_size / 8U));
     for (size_t b = 0; b < nbytes; b++) {
         uint8_t v = 0;
         for (int j = 0; j < 8; j++)

@@ -13,9 +13,9 @@ Use that article as the **human-facing reference** for antenna, SatDump pipeline
 | Gate | Criterion | Mayhem status (high level) |
 |------|-----------|----------------------------|
 | **G1** | External app loads M4 (`PMLR`), RX usable at 137.9 MHz | **Meteor LRPT** external app + baseband image; Capture mode; default 137.9 MHz. |
-| **G2** | Soft symbols or decimated IQ correlate vs SatDump on same golden `.C16` | **Partial:** M4 DC block + shaping FIR + soft buffer; `corr_soft.py` for host lag search. **Todo:** optional M4→SD soft dump or host-side capture hook for automated G2; Gardner / symbol PLL when CPU allows. |
-| **G3** | CADU stream matches SatDump (frame-aligned compare; RS repair counts) | **Partial:** Legacy path matches SatDump (correlator, rotate_soft, Viterbi, NRZ-M **bytes**, RS). **M2-x non-interleaved:** on-device `BPSK_CCSDS_Deframer` + NRZ-M **bits** + same Viterbi block as legacy (no SatDump `Viterbi1_2` BER re-lock yet). **M2-x interleaved:** `DeinterleaverReader` **~2.65 MiB** — not on M4; checkbox uses byte-ASM fallback (SatDump-inexact). **Tools:** `compare_cadu.py`, `golden_cadu_workflow.py`. Status **B** = RS-repair stress 0..1000 (not RF BER). |
-| **G4** | BMP/visual vs SatDump | **Deferred until G3:** MSU-MR APID demux, JPEG (`tjpgd` on M0), RGB BMP — plan forbids heavy product work before G3. |
+| **G2** | Soft symbols or decimated IQ correlate vs SatDump on same golden `.C16` | **Partial:** M4 DC block + shaping FIR + soft buffer; `corr_soft.py` for host lag search. **Symbol timing:** Gardner-style TED + Catmull–Rom fractional strobes in [`proc_meteor_lrpt_rx.cpp`](../../firmware/baseband/proc_meteor_lrpt_rx.cpp); status `sym_timing_err` / `sym_timing_lock` in [`message.hpp`](../../firmware/common/message.hpp) (diagnostic; correlate with ASM/RS before treating as “RF lock”). Gains live in [`meteor_symbol_timing.hpp`](../../firmware/baseband/meteor_lrpt/meteor_symbol_timing.hpp). |
+| **G3** | CADU stream matches SatDump (frame-aligned compare; RS repair counts) | **Partial:** Legacy path matches SatDump (correlator, rotate_soft, Viterbi, NRZ-M **bytes**, RS). **M2-x non-interleaved:** on-device `BPSK_CCSDS_Deframer` + NRZ-M **bits** + same Viterbi block as legacy. **M2-x interleaved:** when M0 IPC + SD rings are up, M4 runs dual `MeteorViterbi12` + winner + deframer + RS on deinterleaved streams; otherwise legacy byte probe. Host: [`SOFT_FORMAT.md`](SOFT_FORMAT.md), `test_m2x_pipeline_host.cpp`, `test_m2x_interleaved_ram_pipeline_host.cpp`, `m2x_interleaved_decode.py`, `SATDUMP_VENDOR.md`. Status **B** = RS-repair stress 0..1000 (not RF BER). **G** / lock = Gardner-style symbol timing diagnostic on M4. |
+| **G4** | BMP/visual vs SatDump | **MVP on M0:** MSU-MR CADU scan (`msumr_demux`), baseline JPEG via **TJpgDec** (`firmware/application/meteor_lrpt_g4/third_party/tjpgd/`), 24 bpp BMP under `/LRPT/`. **Operator:** default tail **`/LRPT/g4_cadu.C8`** matches **CADU** `RecordView` raw extension; enable **MSU-MR** in the LRPT app — see [`G4_PRODUCT.md`](G4_PRODUCT.md). LCD **thumbnail** + optional **Img** paging viewer use shared `MeteorLrptG4Ipc` + `File` reads (no large `Message` payloads). **Live M4→M0 ring** optional via **Live** checkbox. |
 
 ## Pinned SatDump reference
 
@@ -25,9 +25,10 @@ Use that article as the **human-facing reference** for antenna, SatDump pipeline
 - **Primary sources for parity:**
   - `plugins/meteor_support/meteor/module_meteor_lrpt_decoder.cpp` — CADU FEC (legacy + M2-x).
   - `plugins/meteor_support/meteor/deint.*`, `deframer.*`
-  - `plugins/meteor_support/meteor/module_meteor_instruments.cpp` — CADU to instruments.
-  - `plugins/meteor_support/meteor/instruments/msumr/` — MSU-MR / JPEG path.
+  - `plugins/meteor_support/meteor/module_meteor_instruments.cpp` — CADU to instruments (G4 / MSU-MR context).
+  - `plugins/meteor_support/meteor/instruments/msumr/` — MSU-MR / JPEG path (e.g. `lrpt_msumr_reader.cpp`, `module_meteor_msumr_lrpt.cpp`).
 
+Full operator steps and acceptance notes: **[G4_PRODUCT.md](G4_PRODUCT.md)**.
 ## Mayhem IQ capture (golden input)
 
 1. Build Mayhem with Capture app; set SPEC bandwidth **150k** or **250k**; center **137.9 MHz** (Meteor M2-3 / M2-4 LRPT).
@@ -43,22 +44,48 @@ Use that article as the **human-facing reference** for antenna, SatDump pipeline
 | `pass01_satdump.cadu` | (fill) | SatDump CADU output |
 | `pass01_satdump_rgb.png` | (fill) | Reference image |
 
-**Golden CADU check:** after filling paths, run:
+**Golden CADU / soft checks:** after filling paths, run:
 
 `python tools/meteor_lrpt/golden_cadu_workflow.py path/mayhem.cadu path/satdump.cadu --frame 1020`
+
+`python tools/meteor_lrpt/golden_cadu_workflow.py --validate-soft-file path/mayhem.C8 --soft-block-bytes 8192` (interleaved SOFT) or `--soft-block-bytes 16384` (legacy).
+
+Dockerized host builds: [`run_reader_long_golden_docker.sh`](run_reader_long_golden_docker.sh) / [`run_reader_long_golden_docker.ps1`](run_reader_long_golden_docker.ps1).
 
 If SatDump exports **1024-byte** records (ASM + 1020 body per chunk), add e.g. `--normalize-mayhem b`.
 
 ## Licence note
 
-SatDump-derived code in `firmware/baseband/meteor_lrpt/` must remain compatible with SatDump’s licence and this project’s **GPL v2**. Prefer documented ports with file-level attribution headers and entries in **`SATDUMP_VENDOR.md`** (pinned commit + MIT/GPL/LGPL breakdown). After changing the pin or URL list, run `python tools/meteor_lrpt/verify_satdump_vendor_urls.py` (network) to confirm raw sources still resolve.
+SatDump-derived code in `firmware/baseband/meteor_lrpt/` must remain compatible with SatDump’s licence and this project’s **GPL v2**. Prefer documented ports with file-level attribution headers and entries in **`SATDUMP_VENDOR.md`** (pinned commit + MIT/GPL/LGPL breakdown). **G4:** vendored **tjpgd** (ChaN / permissive) lives under `firmware/application/meteor_lrpt_g4/third_party/tjpgd/` with `LICENSE.txt`. After changing the pin or URL list, run `python tools/meteor_lrpt/verify_satdump_vendor_urls.py` (network) to confirm raw sources still resolve.
+
+## SOFT stream (Mayhem REC)
+
+Full byte layout, block size, and SatDump alignment notes: **[SOFT_FORMAT.md](SOFT_FORMAT.md)**.
+
+### Interleaved M2-x (host parity)
+
+1. Record IQ `.C16` with Mayhem Capture **or** SOFT `.C8` per `SOFT_FORMAT.md`.
+2. Run **SatDump** with `METEOR M2-x LRPT 72k` and `interleaved: true` on the meteor_lrpt_decoder module (see a-centauri / SatDump docs).
+3. Export SatDump CADU; compare with `golden_cadu_workflow.py` or `compare_cadu.py`.
+4. Optional: `python tools/meteor_lrpt/m2x_interleaved_decode.py --dry-run` prints pointers; set `SATDUMP_CMD` for future subprocess wiring.
+
+Firmware building blocks (ring + `deinterleave` core, PHASE_90 duplicate helper) live under `firmware/baseband/meteor_lrpt/` and `firmware/application/meteor_lrpt_sector_file_ring.*`. Live SD feasibility: **[SD_IOPS_GATE.md](SD_IOPS_GATE.md)**.
 
 ## Tooling
 
 - `compare_cadu.py` — byte-aligned CADU comparison; options `--frame`, `--skip-a` / `--skip-b`, `--normalize-mayhem {none,a,b,both}`, `--max-frames`.
+- `compare_bmp.py` — compare two **24 bpp** BMP pixel buffers (same WxH); optional `--max-diff` tolerance (G4 / regression).
 - `golden_cadu_workflow.py` — thin wrapper that invokes `compare_cadu.py` with the same arguments (for docs/CI).
 - `verify_satdump_vendor_urls.py` — HEAD-checks every `raw.githubusercontent.com` URL embedded in `SATDUMP_VENDOR.md` (use when rebasing the SatDump pin).
 - `corr_soft.py` — exploratory lag correlation on raw int8 soft dumps (G2 aid).
+- `deint_sector_histogram.py` — distinct 512-byte sectors per batch for the **write** loop and the **sequential read** pass in `meteor_deinterleave`; CSV includes `distinct_read_sectors`, `min_write_idx` / `max_write_idx`; see `data/deint_sector_metrics_example.csv`.
+- `test_msumr_g4_host.cpp` — host smoke: CCSDS-wrapped CADU + `MsumrDemux` JPEG callback count; default run adds **multi-CADU reassembly** + **parallel APID 64/68** regression (Docker CI with `run_reader_long_golden_docker.*`).
+- `test_tjpgd_g4_host.cpp` — host golden: vendored **TJpgDec** decode of `data/g4_tiny_baseline.jpg` (dims + RGB accumulator vs pinned constants).
+- **M0:** `meteor_deinterleave_file_ring` in [`firmware/application/meteor_lrpt_sector_file_ring.*`](firmware/application/meteor_lrpt_sector_file_ring.hpp) — FatFs-efficient deinterleave (sector batch writes + sequential sector reads); use when the ring backend is `MeteorDeintFileRing` (not used from M4 baseband yet; see Option A plan).
+- `m2x_interleaved_decode.py` — host helper for SatDump-equivalent interleaved M2-x CADU (see script `--help`).
+- `SD_IOPS_GATE.md` — how to benchmark SD RMW vs `deint_sector_histogram.py` for live-decode feasibility.
+- `test_external_ring_host.cpp` — optional host compile of RAM ring + `meteor_deinterleave` + short-path `read_samples` (see file header `g++` line).
+- `test_reader_long_golden_host.cpp` — long-path `read_samples(8192)` regression: compares FNV-1a digest of the full ring; refresh constant with `--dump-golden`. Run under Docker: `tools/meteor_lrpt/run_reader_long_golden_docker.ps1` or `.sh`.
 - **Mayhem SOFT `.C8` REC:** In **Meteor LRPT** app, use the second **SOFT** row (16 384-byte writes). Each block is one Viterbi input buffer (`int8` I/Q pairs). Do **not** run SOFT and CADU recorders at the same time (single M4 `CaptureConfig` path).
 - `test_nrzm_standalone.c` — host-only smoke compile: `gcc -Wall -Wextra -O2 test_nrzm_standalone.c -o test_nrzm && ./test_nrzm`
 
@@ -69,7 +96,7 @@ Full `portapack-h1` / baseband images need **gcc-arm-none-eabi** (see repo `dock
 ## Mayhem firmware notes
 
 - External app **Meteor LRPT** (RX menu) loads baseband tag `PMLR` / `image_tag_meteor_lrpt_rx`, keeps `ReceiverModel::Mode::Capture`, and runs the M4 chain at **3.072 Msps** IQ into the decimator stack documented in `proc_meteor_lrpt_rx.*`. **G2 soft path:** export a contiguous int8 soft buffer from the same tap as `soft_buf_` (e.g. SD raw sidecar or future `RecordView` mode) and run `corr_soft.py` against SatDump-exported soft for lag/scale sanity.
-- **FEC parity:** legacy path includes depth-4 **RS(255,223)** after ASM (same interleave / basis as SatDump `decode_interlaved(..., false, 4, …)`). **M2-x non-interleaved:** `BPSK_CCSDS_Deframer` (SatDump port) + optional NRZ-M on bits; **M2-x interleaved** still needs phased deinterleave + dual-stream Viterbi — firmware falls back to the legacy byte-ASM probe. SatDump `Viterbi1_2` (BER-based re-lock / IQ swap) is **not** ported yet.
+- **FEC parity:** legacy path includes depth-4 **RS(255,223)** after ASM (same interleave / basis as SatDump `decode_interlaved(..., false, 4, …)`). **M2-x non-interleaved:** `BPSK_CCSDS_Deframer` (SatDump port) + optional NRZ-M on bits. **M2-x interleaved:** M0 `MeteorDeintFileRing` + sector-batched `meteor_deinterleave_file_ring` + dual `MeteorDeinterleaverReader`; M4 `MeteorViterbi12` (SatDump `Viterbi1_2` port) + `M2xInterleavedPostDeintPipeline`. Host smoke: compile [`test_m2x_pipeline_host.cpp`](test_m2x_pipeline_host.cpp) (see file header `g++` line).
 - **SD / RecordView:** SPEC **150k** or **250k** is recommended for LRPT. Very high SPEC bandwidths can hit **yellow** record thresholds in `RecordView::set_sampling_rate` (CPU + SD card); if recording glitches, reduce bandwidth or use a faster SD card.
 - **PRALINE builds:** re-check `receiver_model.cpp` LPF / **PRALINE** bandwidth selection after changing default sample rates or anti-alias paths for this app.
 - **Freqman:** copy `sdcard/FREQMAN/METEOR_LRPT.TXT` to the SD card for quick LRPT presets (137.9 MHz primary, 137.1 MHz backup).
@@ -82,3 +109,10 @@ Full `portapack-h1` / baseband images need **gcc-arm-none-eabi** (see repo `dock
 3. Toggle **80k sym** only when capturing an 80 ksym/s variant; leave off for nominal **72k**.
 4. **BMP** (checkbox) saves a thin grayscale scroll of JPEG-preview heuristics (not full MSU-MR RGB product).
 5. Compare against SatDump using the pinned commit; run `golden_cadu_workflow.py` or `compare_cadu.py` (see **Golden CADU check** above).
+
+## Regression / iteration (M2-x interleaved work)
+
+1. After changing `meteor_deinterleaver.*`, `external_ring.*`, or SatDump pin: run `python tools/meteor_lrpt/verify_satdump_vendor_urls.py`.
+2. Re-run `deint_sector_histogram.py` if `deinterleave` constants change.
+3. Re-run `golden_cadu_workflow.py` on stored golden CADU pair; if mismatch, bisect host SatDump vs new ring-backed prototype (`test_external_ring_host.cpp`).
+4. After changing `meteor_deinterleaver_reader.*` or `meteor_soft_correlate.*` (rotate/autocorr): run `tools/meteor_lrpt/run_reader_long_golden_docker.ps1` (or `.sh`); if the ring digest changes intentionally, re-run `test_reader_long_golden_host.cpp` with `--dump-golden` and update the `kExpectedRingFnv1a64` constant.

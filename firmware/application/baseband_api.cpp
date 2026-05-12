@@ -27,6 +27,8 @@
 #include "tonesets.hpp"
 #include "dsp_iir_config.hpp"
 
+#include "meteor_lrpt_deint_service.hpp"
+#include "meteor_lrpt_g4_service.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
@@ -362,6 +364,10 @@ void set_noaaapt_config() {
 }
 
 void set_meteor_lrpt_rx_config(uint8_t flags, uint8_t symbol_rate_k) {
+    meteor_lrpt::deint_service_configure(flags);
+    meteor_lrpt::deint_service_start_thread();
+    meteor_lrpt_g4_init();
+    meteor_lrpt_g4_configure(flags);
     const MeteorLrptRxConfigureMessage message{flags, symbol_rate_k};
     send_message(&message);
 }

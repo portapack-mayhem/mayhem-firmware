@@ -144,7 +144,8 @@ for external_image_prefix in sys.argv[4:]:
 	external_application_image[m4_app_offset_header_position:m4_app_offset_header_position+4] = app_image_len.to_bytes(4, byteorder='little')
 
 	if (len(external_application_image) > maximum_application_size) != 0:
-		print("application {} can not exceed 32kb: {} bytes used".format(external_image_prefix, len(external_application_image)))
+		print("application {} can not exceed {} bytes: {} bytes used".format(
+			external_image_prefix, maximum_application_size, len(external_application_image)))
 		sys.exit(-1)
 
 	checksum = 0

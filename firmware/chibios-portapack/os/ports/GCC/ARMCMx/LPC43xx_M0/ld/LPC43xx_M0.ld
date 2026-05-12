@@ -19,7 +19,8 @@
  * LPC43xx M0 memory setup.
  */
 __main_stack_size__     = 0x0400;   /* Exceptions/interrupts stack */
-__process_stack_size__  = 0x1000;   /* main() stack */
+/* main() / ChibiOS idle stack; trimmed to keep M0 AHB RAM (64 KiB) under budget with Meteor LRPT + G4 BSS. */
+__process_stack_size__  = 0x0a00;   /* was 0x1000; tightened for G4 demux/JPEG BSS */
 
 MEMORY
 {

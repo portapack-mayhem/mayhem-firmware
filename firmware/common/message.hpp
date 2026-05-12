@@ -1206,7 +1206,7 @@ class SSTVRXConfigureMessage : public Message {
    public:
     constexpr SSTVRXConfigureMessage(
         const uint8_t code)
-        : Message{id : ID::SSTVRXConfigure},
+        : Message{ID::SSTVRXConfigure},
           code(code) {
     }
 
@@ -1908,7 +1908,9 @@ class FlexTosendMessage : public Message {
     uint8_t msg[240] = {0};
 };
 
-/* Meteor LRPT (M2-x) RX — M4 to M0 status / preview (keep payloads small; see plan) */
+/* Meteor LRPT (M2-x) RX — M4 to M0 status / preview (keep payloads small; see plan).
+ * G4/MSU-MR counters stay in `SharedMemory::MeteorLrptG4Ipc` — do not grow this struct without
+ * re-running the `static_assert` below vs `Message::MAX_SIZE`. */
 class MeteorLrptRxConfigureMessage : public Message {
    public:
     constexpr MeteorLrptRxConfigureMessage(
@@ -1918,7 +1920,7 @@ class MeteorLrptRxConfigureMessage : public Message {
           flags{flags_},
           symbol_rate_k{symbol_rate_k_} {
     }
-    /* bit0 m2x_mode, bit1 interleaved, bit2 diff_decode, bit3 legacy_correlator_path */
+    /* bit0 m2x_mode, bit1 interleaved, bit2 diff_decode, bit3 legacy_correlator_path, bit6 G4 MSU-MR, bit7 G4 live ring */
     uint8_t flags{0};
     uint8_t symbol_rate_k{72};
 };
@@ -1950,6 +1952,20 @@ class MeteorLrptRxStatusDataMessage : public Message {
     /* Best 64-bit sync match score 0..64; corr_lock = strong match at block start (see meteor_soft_correlate) */
     uint8_t corr_score{0};
     uint8_t corr_lock{0};
+    /* bit0: M2-x interleaved — recommend host post-decode (tools/meteor_lrpt/m2x_interleaved_decode.py); bit1: SD deint active (reserved) */
+    uint8_t interleaved_mode_flags{0};
+    /** After `M2xInterleavedPostDeintPipeline::process`: Viterbi1_2 winner 0=A / 1=B; states ST_IDLE=0 / ST_SYNCED=1 */
+    uint8_t m2x_vit_winner{0};
+    uint8_t m2x_vit_state_a{0};
+    uint8_t m2x_vit_state_b{0};
+    /** Gardner / symbol PLL: 1 when loop considers timing locked (see proc_meteor_lrpt_rx). */
+    uint8_t sym_timing_lock{0};
+    /** Gardner timing error snapshot (scaled int); diagnostic only. */
+    int16_t sym_timing_err{0};
+    /** Low 16 bits of `SharedMemory::MeteorLrptIpc::dropped` when last status pushed. */
+    uint16_t ipc_deint_dropped{0};
+    /** Saturating snapshot of `MeteorLrptIpc::sd_deint_errors` (sector SD deinterleave failures). */
+    uint16_t ipc_sd_deint_errors{0};
 };
 
 class MeteorLrptRxPreviewLineMessage : public Message {
@@ -1961,5 +1977,8 @@ class MeteorLrptRxPreviewLineMessage : public Message {
     uint16_t pixel_count{0};
     uint8_t gray[240]{0};
 };
+
+static_assert(sizeof(MeteorLrptRxStatusDataMessage) <= Message::MAX_SIZE, "MeteorLrptRxStatusDataMessage too large for queue");
+static_assert(sizeof(MeteorLrptRxPreviewLineMessage) <= Message::MAX_SIZE, "MeteorLrptRxPreviewLineMessage too large for queue");
 
 #endif /*__MESSAGE_H__*/

@@ -68,7 +68,7 @@ RecordView::RecordView(
       filename_stem_pattern{filename_stem_pattern},
       folder{folder},
       file_type{file_type},
-      write_size{write_size},
+      write_size_{write_size},
       buffer_count{buffer_count} {
     ensure_directory(folder);
     add_children({
@@ -137,6 +137,12 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
     }
 
     return actual_sampling_rate;
+}
+
+void RecordView::set_raw_capture_block_size(size_t bytes) {
+    if (is_active())
+        return;
+    write_size_ = bytes;
 }
 
 OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
@@ -260,7 +266,7 @@ void RecordView::start() {
         button_record.set_bitmap(&bitmap_stop);
         capture_thread = std::make_unique<CaptureThread>(
             std::move(writer),
-            write_size, buffer_count,
+            write_size_, buffer_count,
             []() {
                 CaptureThreadDoneMessage message{};
                 EventDispatcher::send_message(message);

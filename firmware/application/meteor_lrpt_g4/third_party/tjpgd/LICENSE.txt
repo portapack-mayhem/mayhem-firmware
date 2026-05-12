@@ -1,0 +1,10 @@
+Tiny JPEG Decompressor (TJpgDec) — R0.03
+Copyright (C) 2021 ChaN / Bodmer distribution (see tjpgd.c header).
+
+Upstream: ChaN, http://elm-chan.org/fsw/tjpgd/
+This tree’s sources were taken from the Bodmer/TJpg_Decoder mirror on GitHub
+(raw `tjpgd.c`, `tjpgd.h`, `tjpgdcnf.h`) for embedded use.
+
+Licence: permissive (BSD-style / ChaN licence text in source files).
+Mayhem (GPL v2) links this C decoder on M0; combined work is distributed under
+GPL v2 with this third-party component retained under its original terms.

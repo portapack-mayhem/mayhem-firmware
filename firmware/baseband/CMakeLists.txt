@@ -656,18 +656,27 @@ set(MODE_CPPSRC
 DeclareTargets(PNOA noaaapt_rx)
 
 ### Meteor LRPT Rx
+#
+# PMLR .ppma image is M4 baseband + M0 external UI (see export_external_apps.py, 32 KiB cap).
+# This module is large; prefer size over speed here so the combined image fits.
 
+set(MODE_FLAGS "-Os")
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MeteorLrptDeintSources.cmake)
 set(MODE_CPPSRC
 	proc_meteor_lrpt_rx.cpp
 	meteor_lrpt/ccsds_derandomize.cpp
 	meteor_lrpt/meteor_cc_decoder.cpp
+	meteor_lrpt/meteor_cc_encoder.cpp
+	meteor_lrpt/meteor_viterbi12.cpp
+	meteor_lrpt/meteor_m2x_interleaved_pipeline.cpp
 	meteor_lrpt/meteor_jpeg_scan.cpp
 	meteor_lrpt/meteor_nrzm.cpp
 	meteor_lrpt/meteor_bpsk_ccsds_deframer.cpp
 	meteor_lrpt/rs223_decode.cpp
-	meteor_lrpt/meteor_soft_correlate.cpp
+	${METEOR_LRPT_DEINT_CPPSRC_BASEBAND}
 )
 DeclareTargets(PMLR meteor_lrpt_rx)
+set(MODE_FLAGS "-O3")
 
 ### Audio transmit
 

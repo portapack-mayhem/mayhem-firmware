@@ -132,10 +132,13 @@ set(CSRC
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
 	${HACKRF_PATH}/firmware/common/platform_detect.c
 	${CHIBIOS}/os/various/chprintf.c
+	meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
 )
 
 #look for all i2cdev_ files
 file(GLOB I2CDEV_SOURCES ${COMMON}/i2cdev_*.cpp)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MeteorLrptDeintSources.cmake)
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -218,6 +221,15 @@ set(CPPSRC
 	keeloq_keystore.cpp
 	log_file.cpp
 	metadata_file.cpp
+	meteor_lrpt_sector_file_ring.cpp
+	meteor_lrpt_deinterleave_dispatch_m0.cpp
+	meteor_lrpt_deint_service.cpp
+	meteor_lrpt_msumr.cpp
+	meteor_lrpt_g4/msumr_demux.cpp
+	meteor_lrpt_g4/jpeg_decode.cpp
+	meteor_lrpt_g4/meteor_lrpt_g4_preview.cpp
+	meteor_lrpt_g4_service.cpp
+	${METEOR_LRPT_DEINT_CPPSRC_APPLICATION}
 	flipper_subfile.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
@@ -377,6 +389,10 @@ set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC
 	protocols
 	bmps
 )
+# M0 Meteor LRPT: `meteor_lrpt` headers + shared deinterleave sources (see ../cmake/MeteorLrptDeintSources.cmake).
+list(APPEND INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/../baseband)
+list(APPEND INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/meteor_lrpt_g4)
+list(APPEND INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/meteor_lrpt_g4/third_party/tjpgd)
 
 #
 # Project, sources and paths
@@ -489,6 +505,10 @@ add_custom_command(
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+set_source_files_properties(
+	meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
+	PROPERTIES COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:C>:-Os>"
+)
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
 )

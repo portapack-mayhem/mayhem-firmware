@@ -111,6 +111,19 @@ static void rotate_soft_pairs(int8_t* soft, size_t nbytes, unsigned phase, bool 
 
 }  // namespace
 
+void rotate_soft_satdump(int8_t* soft_io, size_t nbytes, unsigned phase_mod4, bool iq_swap) {
+    if (!soft_io || nbytes == 0)
+        return;
+    rotate_soft_pairs(soft_io, nbytes, phase_mod4 & 3u, iq_swap);
+}
+
+void copy_soft_phase90(const int8_t* src, int8_t* dst, size_t nbytes) {
+    if (!src || !dst || nbytes == 0)
+        return;
+    std::memcpy(dst, src, nbytes);
+    rotate_soft_pairs(dst, nbytes, 1, false);
+}
+
 void correlate_rotate_qpsk_legacy(int8_t* soft_io, size_t length, bool diff_decode, CorrQpskResult* out) {
     if (!out || length < 64 || (length % 8) != 0)
         return;

@@ -35,6 +35,8 @@
 
 #include "buffer_exchange.hpp"
 
+#include "meteor_lrpt_deint_service.hpp"
+
 #include "ch.h"
 
 #include "hackrf_gpio.hpp"
@@ -66,6 +68,7 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
     chSysLockFromIsr();
     BufferExchange::handle_isr();
     EventDispatcher::check_fifo_isr();
+    meteor_lrpt::deint_service_signal_from_isr();
     chSysUnlockFromIsr();
 
     creg::m4txevent::clear();

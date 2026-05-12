@@ -5,6 +5,7 @@ Compare two CADU streams (raw bytes) for Meteor LRPT parity testing.
 Usage:
   python compare_cadu.py mayhem.cadu satdump.cadu [--frame 1020]
   python compare_cadu.py a.cadu b.cadu --frame 1024 --normalize-mayhem b
+  python compare_cadu.py --validate-soft-file path/to.C8 --soft-block-bytes 8192
 
 Exit code 0 if byte-identical after optional transforms; 1 on mismatch.
 """
@@ -13,6 +14,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import sys
+from pathlib import Path
 
 ASM_BE = bytes([0x1A, 0xCF, 0xFC, 0x1D])
 
@@ -41,10 +43,27 @@ def strip_leading_bytes(data: bytes, n: int) -> bytes:
     return data[n:]
 
 
+def validate_soft_alignment(path: Path, block_bytes: int) -> int:
+    if block_bytes not in (8192, 16384):
+        print("FAIL: --soft-block-bytes must be 8192 or 16384", file=sys.stderr)
+        return 1
+    data = read_all(str(path))
+    if len(data) % block_bytes != 0:
+        print(
+            f"FAIL: soft file length {len(data)} is not a multiple of {block_bytes} "
+            f"(remainder {len(data) % block_bytes})",
+            file=sys.stderr,
+        )
+        return 1
+    nblk = len(data) // block_bytes
+    print(f"OK: soft stream {len(data)} bytes = {nblk} x {block_bytes}-byte block(s)")
+    return 0
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Compare CADU binary streams (Meteor LRPT / Mayhem parity)")
-    p.add_argument("file_a", help="First CADU stream (e.g. Mayhem)")
-    p.add_argument("file_b", help="Second CADU stream (e.g. SatDump)")
+    p.add_argument("file_a", nargs="?", help="First CADU stream (e.g. Mayhem)")
+    p.add_argument("file_b", nargs="?", help="Second CADU stream (e.g. SatDump)")
     p.add_argument(
         "--frame",
         type=int,
@@ -75,7 +94,28 @@ def main() -> int:
         default=0,
         help="Compare at most this many frames (0 = all)",
     )
+    p.add_argument(
+        "--validate-soft-file",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help="Check .C8 (or raw soft) length is an exact multiple of --soft-block-bytes; skips CADU compare",
+    )
+    p.add_argument(
+        "--soft-block-bytes",
+        type=int,
+        default=16384,
+        choices=(8192, 16384),
+        help="Soft record block size (16384 legacy; 8192 M2-x interleaved on-device)",
+    )
     args = p.parse_args()
+
+    if args.validate_soft_file is not None:
+        return validate_soft_alignment(args.validate_soft_file, args.soft_block_bytes)
+
+    if not args.file_a or not args.file_b:
+        print("FAIL: provide file_a and file_b (or use --validate-soft-file)", file=sys.stderr)
+        return 1
 
     a = read_all(args.file_a)
     b = read_all(args.file_b)

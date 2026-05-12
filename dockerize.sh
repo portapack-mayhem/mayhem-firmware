@@ -10,7 +10,7 @@
 # The image will be automatically build if it
 # does not exist, but if the dockerfile changes
 # it need to be rebuilt manually.
-# 
+#
 # Advanced parameters:
 # - Get a shell inside the build image to
 #   inspect problems: ./dockerize.sh shell
@@ -72,7 +72,12 @@ start_docker() {
       build_image
    fi
 
-   exec docker run -v "${DIR}:/havoc" -u "$(id -u):$(id -g)" -ti --rm "${IMAGE}" "$@"
+   # -t requires a real TTY; CI / scripted runs often have none (docker then errors).
+   run_opts=(-i)
+   if [ -t 1 ]; then
+      run_opts+=(-t)
+   fi
+   exec docker run -v "${DIR}:/havoc" -u "$(id -u):$(id -g)" "${run_opts[@]}" --rm "${IMAGE}" "$@"
 }
 
 if [ "$1" = 'shell' ]; then # open a shell into the container

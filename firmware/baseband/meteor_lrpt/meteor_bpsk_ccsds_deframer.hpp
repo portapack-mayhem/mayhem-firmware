@@ -32,7 +32,10 @@ class MeteorBpskCcsdsDeframer {
 
     int get_state() const { return d_state_; }
 
-    /* Returns number of complete frames written to output (1024 bytes each, contiguous). */
+    /**
+     * Feeds unpacked bits (0/1 per byte). **Stateful:** `d_state_`, `shifter_`, and partial CADU
+     * assembly persist across calls for continuous SatDump-style streaming.
+     */
     int work(const uint8_t* input_bits, int num_bits, uint8_t* output_bytes);
 
    private:

@@ -24,6 +24,7 @@
 
 #include "meteor_lrpt/meteor_bpsk_ccsds_deframer.hpp"
 #include "meteor_lrpt/meteor_cc_decoder.hpp"
+#include "meteor_lrpt/meteor_m2x_interleaved_pipeline.hpp"
 #include "meteor_lrpt/meteor_nrzm.hpp"
 
 #include <array>
@@ -99,6 +100,9 @@ class MeteorLrptRx : public BasebandProcessor {
     void configure(const MeteorLrptRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
     void try_decode_block();
+    void finish_interleaved_from_m0();
+    bool interleaved_ipc_ready() const;
+    size_t soft_bytes_target() const;
     bool process_soft_to_frame(const int8_t* soft, std::array<uint8_t, 1024>& frame);
     bool post_fec_frame_checks(std::array<uint8_t, 1024>& frame);
     bool process_m2x_noninterleaved(const int8_t* soft, bool diff, std::array<uint8_t, 1024>& frame);
@@ -110,6 +114,7 @@ class MeteorLrptRx : public BasebandProcessor {
     static constexpr size_t baseband_fs = 3072000;
     static constexpr uint32_t fs_sym_path = 192000;
     static constexpr size_t soft_bytes_needed = 16384;
+    static constexpr size_t interleaved_soft_bytes = 8192;
 
     bool configured{false};
     uint8_t flags_{0};
@@ -127,8 +132,17 @@ class MeteorLrptRx : public BasebandProcessor {
     uint32_t rrc_w_{0};
 
     float agc_gain_{256.0f};
-    uint32_t phase_acc_{0};
+    /** Fractional symbol phase 0..1; Gardner adjusts `sym_rate_fine_` (small fractional rate tweak). */
+    float sym_phase_f_{0};
+    float sym_pll_i_{0};
+    float sym_rate_fine_{0};
+    float sym_last_ted_{0};
+    /** Gardner TED taps (updated only on symbol strobes, cubic-interpolated I). */
+    int32_t sym_ir_hist_[3]{};
     int32_t prev_q_{0};
+    /** Last four scaled I/Q (÷1024 float) for Catmull–Rom fractional strobes (polyphase timing). */
+    float sym_ci_hist_[4]{};
+    float sym_cq_hist_[4]{};
 
     std::array<int8_t, 17000> soft_buf_{};
     std::array<int8_t, 17000> soft_rot_work_{};
@@ -138,13 +152,16 @@ class MeteorLrptRx : public BasebandProcessor {
     MeteorNrzmByteDecoder nrzm_{};
     MeteorNrzmBitDecoder nrzm_bits_{};
     MeteorBpskCcsdsDeframer bpsk_deframer_{};
+    meteor_lrpt::M2xInterleavedPostDeintPipeline interleaved_post_{};
     std::array<uint8_t, 8192> m2x_bits_{};
     std::array<uint8_t, 2048> deframer_batch_out_{};
 
     uint32_t execute_count_{0};
+    /** `SharedMemory::MeteorLrptIpc::seq` for the active M0 deinterleave block (interleaved IPC handshake). */
+    uint32_t m4_ipc_post_seq_{0};
 
     std::unique_ptr<StreamInput> cadu_stream_{};
-    /* G2: int8 soft pairs (16384 B/block) — selected by CaptureConfig write_size == 16384 */
+    /* G2: int8 I/Q soft pairs; `CaptureConfig` write_size 16384 (legacy) or 8192 (M2-x interleaved). See SOFT_FORMAT.md. */
     std::unique_ptr<StreamInput> soft_stream_{};
 
     MeteorLrptRxStatusDataMessage status_{};

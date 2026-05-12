@@ -32,6 +32,12 @@ struct CorrQpskResult {
  * `length` must be a multiple of 8 (16384 for LRPT). */
 void correlate_rotate_qpsk_legacy(int8_t* soft_io, size_t length, bool diff_decode, CorrQpskResult* out);
 
+/* SatDump `rotate_soft` on int8 I/Q pairs: phase 0..3, optional IQ swap (see rotation.cpp). */
+void rotate_soft_satdump(int8_t* soft_io, size_t nbytes, unsigned phase_mod4, bool iq_swap);
+
+/* SatDump DintSampleReader path2: copy then rotate_soft(..., PHASE_90, false) on int8 I/Q pairs. */
+void copy_soft_phase90(const int8_t* src, int8_t* dst, size_t nbytes);
+
 }  // namespace meteor_lrpt
 
 #endif /* __METEOR_SOFT_CORRELATE_HPP__ */

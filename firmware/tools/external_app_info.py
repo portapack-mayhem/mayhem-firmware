@@ -22,6 +22,8 @@
 #
 
 # external app address ranges below must match those in linker file "external.ld"
-maximum_application_size = 32*1024
+# Packaged .ppma size = M0 external section + optional M4 chunk (see export_external_apps.py).
+# Meteor LRPT (PMLR) includes a large M4 baseband image; 32 KiB was insufficient.
+maximum_application_size = 48 * 1024
 external_apps_address_start = 0xADB00000
 external_apps_address_end = 0xAE080000

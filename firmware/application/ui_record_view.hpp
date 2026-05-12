@@ -66,6 +66,9 @@ class RecordView : public View {
     void set_file_type(const FileType v) { file_type = v; }
     void set_auto_trim(bool v) { auto_trim = v; }
 
+    /** Bytes per baseband capture write; must match M4 `CaptureConfig` `write_size`. Ignored while recording. */
+    void set_raw_capture_block_size(size_t bytes);
+
     void start();
     void stop();
     void on_hide() override;
@@ -103,7 +106,7 @@ class RecordView : public View {
     const std::filesystem::path filename_stem_pattern;
     const std::filesystem::path folder;
     FileType file_type;
-    const size_t write_size;
+    size_t write_size_;
     const size_t buffer_count;
     uint32_t sampling_rate{0};
     SignalToken signal_token_tick_second{};
