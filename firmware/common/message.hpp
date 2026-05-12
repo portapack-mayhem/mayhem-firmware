@@ -396,7 +396,7 @@ class EPIRBRXConfig : public Message {
     constexpr EPIRBRXConfig()
         : Message{ID::EPIRBRXConfig} {
     }
-    bool scpectrum_on = false;
+    bool spectrum_on = false;
     bool audio_on = true;
     uint8_t squelch{50};
 };

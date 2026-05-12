@@ -331,7 +331,7 @@ EPIRBRxView::EPIRBRxView(
 
 void EPIRBRxView::on_show() {
     // Turn on spectrum
-    app_view.epirb_rx_config_message.scpectrum_on = true;
+    app_view.epirb_rx_config_message.spectrum_on = true;
     app_view.send_config();
     start();
 }
@@ -339,7 +339,7 @@ void EPIRBRxView::on_show() {
 void EPIRBRxView::on_hide() {
     // Turn off spectrum
     stop();
-    app_view.epirb_rx_config_message.scpectrum_on = false;
+    app_view.epirb_rx_config_message.spectrum_on = false;
     app_view.send_config();
     app_view.refresh();
 }

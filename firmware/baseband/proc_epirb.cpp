@@ -249,7 +249,7 @@ void EPIRBProcessor::on_message(const Message* const msg) {
             const EPIRBRXConfig message = *reinterpret_cast<const EPIRBRXConfig*>(msg);
             // audio_on = message.audio_on;
 #ifdef SPECAN
-            spectrum_on = message.scpectrum_on;
+            spectrum_on = message.spectrum_on;
 #endif
             if (message.squelch != squelch_level) {
                 // Update squelch config
