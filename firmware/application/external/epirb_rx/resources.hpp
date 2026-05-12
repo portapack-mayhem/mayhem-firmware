@@ -83,7 +83,7 @@ class ResourceManager {
             // Read the file line by line
             while (f_gets(line_buffer, sizeof(line_buffer) / sizeof(TCHAR), &file)) {
                 std::string s;
-                for (int i = 0; line_buffer[i] != '\0' && line_buffer[i] != '\n'; i++) {
+                for (int i = 0; line_buffer[i] != '\0' && line_buffer[i] != '\n' && line_buffer[i] != '\r'; i++) {
                     // Convert each TCHAR in char
                     s += (char)line_buffer[i];
                 }
