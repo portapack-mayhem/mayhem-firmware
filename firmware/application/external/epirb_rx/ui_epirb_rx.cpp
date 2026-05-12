@@ -160,42 +160,60 @@ bool EPIRBDetailView::on_encoder(EncoderEvent delta) {
 }
 #endif
 
+// Append "CYAN<label>:WHITE <value>\t" — the most repeated pattern in set_beacon.
+// Shared format string deduplicates ~5 unique formats; %s for label lets the
+// per-call-site cost drop to a single function call.
+static char* append_field(char* p, const char* label, const char* value) {
+    return p + sprintf(p, STR_COLOR_CYAN "%s:" STR_COLOR_WHITE " %s\t", label, value);
+}
+
 void EPIRBDetailView::set_beacon(Beacon& beacon) {
     // We use a single TextArea widget to display beacon information for code size optimization
     char buffer[400];
-    char* buffer_pointer = buffer;
+    char* p = buffer;
     bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
-    buffer_pointer += sprintf(buffer_pointer, "%sBeacon:%s %s(%s%s%s) - ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getType(), isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN, isReal ? "Real" : "Test", STR_COLOR_WHITE);
-    buffer_pointer += beacon.formatTime(buffer_pointer);
-    buffer_pointer += sprintf(buffer_pointer, "\t%sProtocol:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getProtocolName());
-    buffer_pointer += sprintf(buffer_pointer, "%s\t", ResourceManager::get_beacon_resource((uint8_t)beacon.protocol));
+    p += sprintf(p, STR_COLOR_CYAN "Beacon:" STR_COLOR_WHITE " %s(%s%s" STR_COLOR_WHITE ") - ",
+                 beacon.getType(),
+                 isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN,
+                 isReal ? "Real" : "Test");
+    p += beacon.formatTime(p);
+    *p++ = '\t';
+    p = append_field(p, "Protocol", beacon.getProtocolName());
+    p += sprintf(p, "%s\t", ResourceManager::get_beacon_resource((uint8_t)beacon.protocol));
     if (beacon.hasAdditionalData) {
-        buffer_pointer += sprintf(buffer_pointer, "%s\t", beacon.additionalData);
+        p += sprintf(p, "%s\t", beacon.additionalData);
     }
     if (beacon.hasEmergency) {
-        buffer_pointer += sprintf(buffer_pointer, "%sEmergency:%s %s\t", STR_COLOR_CYAN, STR_COLOR_RED, beacon.emergencyType);
+        p += sprintf(p, STR_COLOR_CYAN "Emergency:" STR_COLOR_RED " %s\t", beacon.emergencyType);
     }
-    buffer_pointer += sprintf(buffer_pointer, "%sCountry:%s %s(%d) - %s\t%sLocation:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.country.alphaCode, beacon.country.code, beacon.country.shortName, STR_COLOR_CYAN, STR_COLOR_WHITE);
-    buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
-    (*(buffer_pointer++)) = '\t';
+    p += sprintf(p, STR_COLOR_CYAN "Country:" STR_COLOR_WHITE " %s(%d) - %s\t" STR_COLOR_CYAN "Location:" STR_COLOR_WHITE " ",
+                 beacon.country.alphaCode, beacon.country.code, beacon.country.shortName);
+    p += beacon.location.toString(p, Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
+    *p++ = '\t';
     if (!beacon.location.isUnknown()) {
-        buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::SEXAGESIMAL);
-        (*(buffer_pointer++)) = '\t';
-        buffer_pointer += beacon.location.toString(buffer_pointer, Location::LocationFormat::DECIMAL);
-        (*(buffer_pointer++)) = '\t';
+        p += beacon.location.toString(p, Location::LocationFormat::SEXAGESIMAL);
+        *p++ = '\t';
+        p += beacon.location.toString(p, Location::LocationFormat::DECIMAL);
+        *p++ = '\t';
     }
-    buffer_pointer += sprintf(buffer_pointer, "%sControl: %s%s", STR_COLOR_CYAN, beacon.isBch1Valid() ? beacon.bch1Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
+    // BCH status: color depends on validity/correction, so the color stays a %s substitution.
+    p += sprintf(p, STR_COLOR_CYAN "Control: %s%s",
+                 beacon.isBch1Valid() ? (beacon.bch1Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN) : STR_COLOR_RED,
+                 beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
     if (beacon.hasBch2) {
-        buffer_pointer += sprintf(buffer_pointer, " %s%s", beacon.isBch2Valid() ? beacon.bch2Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
+        p += sprintf(p, " %s%s",
+                     beacon.isBch2Valid() ? (beacon.bch2Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN) : STR_COLOR_RED,
+                     beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
     }
-    buffer_pointer += sprintf(buffer_pointer, "\t%sHex ID:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.hexId);
+    *p++ = '\t';
+    p = append_field(p, "Hex ID", beacon.hexId);
     if (beacon.hasSerialNumber) {
-        buffer_pointer += sprintf(buffer_pointer, "%sS/N:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.serialNumber);
+        p = append_field(p, "S/N", beacon.serialNumber);
     }
     if (beacon.hasMainLocatingDevice()) {
-        buffer_pointer += sprintf(buffer_pointer, "%sMain loc. dev.:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getMainLocatingDeviceName());
+        p = append_field(p, "Main loc. dev.", beacon.getMainLocatingDeviceName());
         if (beacon.hasAuxLocatingDevice()) {
-            sprintf(buffer_pointer, "%sAux loc. dev.:%s %s\t", STR_COLOR_CYAN, STR_COLOR_WHITE, beacon.getAuxLocatingDeviceName());
+            append_field(p, "Aux loc. dev.", beacon.getAuxLocatingDeviceName());
         }
     }
     text_beacon.set_content(buffer);
