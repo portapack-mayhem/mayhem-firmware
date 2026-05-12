@@ -65,6 +65,8 @@ class CountryManager {
 #endif
         } else {
             out.code = code;
+            out.alphaCode[0] = "\0';
+                               out.shortName[0] = '\0';
         }
     }
 
