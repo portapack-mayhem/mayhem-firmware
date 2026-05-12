@@ -331,7 +331,7 @@ void MeteorLrptRx::try_decode_block() {
     const bool diff = (flags_ & (1u << 2)) != 0;
     const bool leg_corr_fallback = (flags_ & (1u << 3)) != 0;
 
-    /* SOFT REC block size matches `soft_bytes_target()` (see tools/meteor_lrpt/SOFT_FORMAT.md). */
+    /* SOFT REC block size matches `soft_bytes_target()` (SatDump SOFT block layout parity). */
     if (soft_stream_) {
         (void)soft_stream_->write(soft_buf_.data(), soft_bytes_target());
     }

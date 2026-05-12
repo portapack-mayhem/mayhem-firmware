@@ -1952,7 +1952,7 @@ class MeteorLrptRxStatusDataMessage : public Message {
     /* Best 64-bit sync match score 0..64; corr_lock = strong match at block start (see meteor_soft_correlate) */
     uint8_t corr_score{0};
     uint8_t corr_lock{0};
-    /* bit0: M2-x interleaved — recommend host post-decode (tools/meteor_lrpt/m2x_interleaved_decode.py); bit1: SD deint active (reserved) */
+    /* bit0: M2-x interleaved — optional host post-decode (local tools/meteor_lrpt if present; gitignored); bit1: SD deint active (reserved) */
     uint8_t interleaved_mode_flags{0};
     /** After `M2xInterleavedPostDeintPipeline::process`: Viterbi1_2 winner 0=A / 1=B; states ST_IDLE=0 / ST_SYNCED=1 */
     uint8_t m2x_vit_winner{0};
