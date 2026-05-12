@@ -104,7 +104,6 @@ class GlassView : public View {
     };
 
     void on_freqchg(int64_t freq);
-    int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     std::vector<preset_entry> presets_db{};
     void manage_beep_audio();
     void update_display_beep();
