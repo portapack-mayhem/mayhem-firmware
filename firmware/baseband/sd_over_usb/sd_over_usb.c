@@ -22,6 +22,28 @@
 
 #include "sd_over_usb.h"
 #include "scsi.h"
+#include "usb_descriptor.h"
+
+#include <string.h>
+
+/* Defined in hackrf/firmware/hackrf_usb/usb_device.c. After upstream commit
+ * 85dfacf6 ("Universalize: firmware/hackrf_usb"), the global `usb_device` is
+ * left zero-initialized and is populated at runtime from per-board
+ * `usb_device_*` constants inside hackrf_usb.c. The sd_over_usb baseband
+ * does not link hackrf_usb.c, so populate `usb_device` ourselves before
+ * usb_run(). The descriptor fields are const-qualified, so use the upstream
+ * memcpy-from-template pattern. */
+extern usb_configuration_t* usb_configurations[];
+
+static const usb_device_t usb_device_sd_over_usb = {
+    .descriptor = usb_descriptor_device,
+    .descriptor_strings = usb_descriptor_strings,
+    .qualifier_descriptor = usb_descriptor_device_qualifier,
+    .configurations = &usb_configurations,
+    .configuration = 0,
+    .wcid_string_descriptor = wcid_string_descriptor,
+    .wcid_feature_descriptor = wcid_feature_descriptor,
+};
 
 volatile bool scsi_running = false;
 
@@ -74,6 +96,8 @@ void start_usb(void) {
     pin_setup();
     cpu_clock_init();
 
+    memcpy(&usb_device, &usb_device_sd_over_usb, sizeof(usb_device_sd_over_usb));
+
     usb_set_configuration_changed_cb(usb_configuration_changed);
     usb_peripheral_reset();
 
@@ -85,7 +109,10 @@ void start_usb(void) {
     usb_queue_init(&usb_endpoint_bulk_in_queue);
 
     usb_endpoint_init(&usb_endpoint_control_out, false);
-    usb_endpoint_init(&usb_endpoint_control_in, false);
+    /* Match the new usb_endpoint_init() contract introduced upstream by
+     * db73ecbf — control IN needs ZLP for transfers whose length is a
+     * multiple of the EP0 max packet size, otherwise the host hangs. */
+    usb_endpoint_init(&usb_endpoint_control_in, true);
 
     nvic_set_priority(NVIC_USB0_IRQ, 255);
 
