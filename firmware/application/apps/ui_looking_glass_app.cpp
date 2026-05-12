@@ -44,7 +44,7 @@ GlassView::~GlassView() {
 
 // Function to map the value from one range to another
 int32_t GlassView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
-    return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+    return toLow + ((value - fromLow) * (toHigh - toLow) + (fromHigh - fromLow) / 2) / (fromHigh - fromLow);
 }
 
 void GlassView::update_display_beep() {
@@ -140,15 +140,6 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
     if (pixel_index == screen_width)  // got an entire waterfall line
     {
         if (live_frequency_view > 0) {
-            constexpr int rssi_sample_range = SPEC_NB_BINS;
-            constexpr float rssi_voltage_min = 0.4;
-            constexpr float rssi_voltage_max = 2.2;
-            constexpr float adc_voltage_max = 3.3;
-            constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
-            constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
-            constexpr int raw_delta = raw_max - raw_min;
-            const range_t<int> y_max_range{0, screen_height - (108 + 16)};
-
             // drawing and keeping track of max freq
             for (uint16_t xpos = 0; xpos < screen_width; xpos++) {
                 // save max powerwull freq
@@ -156,13 +147,12 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                     max_freq_power = spectrum_data[xpos];
                     max_freq_hold = get_freq_from_bin_pos(xpos);
                 }
-                int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (screen_height - (108 + 16))) / raw_delta);
-                uint8_t color_gradient = (point * 255) / 212;
+                int16_t point = map(spectrum_data[xpos], 0, 255, 0, 196);
                 // clear if not in peak view
                 if (live_frequency_view != 2) {
                     display.fill_rectangle({{xpos, 108 + 16}, {1, screen_height - point}}, {0, 0, 0});
                 }
-                display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, {color_gradient, 0, uint8_t(255 - color_gradient)});
+                display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, gradient.lut[spectrum_data[xpos]]);
             }
             if (last_max_freq != max_freq_hold) {
                 last_max_freq = max_freq_hold;
