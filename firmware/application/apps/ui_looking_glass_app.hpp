@@ -104,6 +104,8 @@ class GlassView : public View {
     };
 
     void on_freqchg(int64_t freq);
+    // Function to map the value from one range to another
+    int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     std::vector<preset_entry> presets_db{};
     void manage_beep_audio();
     void update_display_beep();
@@ -162,6 +164,9 @@ class GlassView : public View {
     uint8_t bin_length = screen_width;
     uint8_t offset = 0;
     uint8_t ignore_dc = 0;
+
+    // start of spectrum area
+    static constexpr int spectrum_y = (108 + 16);
 
     Labels labels{
         {{0, UI_POS_Y(0)}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
