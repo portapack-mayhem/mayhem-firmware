@@ -64,7 +64,7 @@
 268:SAN:San Marino
 269:SWT:Swiss
 270:CZH:Czech Rep
-271:TUR:TÃƒÂ¼rkiye
+271:TUR:Turkiye
 272:UKR:Ukraine
 273:RUS:Russia
 274:MKD:North Mac

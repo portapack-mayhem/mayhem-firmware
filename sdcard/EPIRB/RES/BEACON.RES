@@ -9,7 +9,7 @@ National User Protocol
 EPIRB - MMSI / Location
 ELT-24-bit Address / Location
 ELT Serial Location
-ELT Serial Aircradt Location
+ELT Serial Aircraft Location
 EPIRB Serial Location
 PLB Serial Location
 Ship Security Location
@@ -21,7 +21,7 @@ Test National Location
 RLS Location Protocol
 ELT(DT) Location Protocol
 Spare
-Unkonwn
+Unknown
 # L. 25: additional data
 ELTs/SN
 ELTs/AC op & SN
