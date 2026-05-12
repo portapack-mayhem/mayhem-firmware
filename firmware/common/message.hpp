@@ -164,6 +164,7 @@ class Message {
         MeteorLrptRxConfigure = 106,
         MeteorLrptRxStatusData = 107,
         MeteorLrptRxPreviewLine = 108,
+        EPIRBRXConfig = 106,
         MAX
     };
 
@@ -391,6 +392,16 @@ class EPIRBPacketMessage : public Message {
     }
 
     baseband::Packet packet;
+};
+
+class EPIRBRXConfig : public Message {
+   public:
+    constexpr EPIRBRXConfig()
+        : Message{ID::EPIRBRXConfig} {
+    }
+    bool spectrum_on = false;
+    bool audio_on = true;
+    uint8_t squelch{50};
 };
 
 class TPMSPacketMessage : public Message {

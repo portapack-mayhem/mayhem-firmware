@@ -161,6 +161,7 @@ struct SharedMemory {
         volatile uint8_t preview_rgb[kPreviewRgbBytes]{};
     } meteor_lrpt_g4_ipc{};
 
+    uint8_t volatile radio_tx_drain{0};  // to indicate the baseband thread to drain the tx buffer, and wait for it, before radio::disable()
 #ifdef PRALINE
     // Phase 0 instrumentation counters for PRALINE radio debugging
     uint32_t volatile m4_dma_xfr_count{0};    // DMA transfer_complete() calls

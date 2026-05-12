@@ -267,6 +267,10 @@ set(EXTCPPSRC
 	#epirb_rx 168 byte flash 
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
+	external/epirb_rx/ui_beaconlist.cpp
+	external/epirb_rx/beacon_db.cpp
+	external/epirb_rx/beacon.cpp
+	external/epirb_rx/location.cpp
 
 	#epirb_tx
 	external/epirb_tx/main.cpp
