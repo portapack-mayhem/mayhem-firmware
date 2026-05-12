@@ -99,37 +99,40 @@ static void maidenhead_to_decimal(const std::string& loc, float& lat, float& lon
     lat = -90.0f;
 
     int pairs = loc.size() / 2;
+
     if (pairs > 5)
         pairs = 5;
 
-    for (int i = 0; i < pairs; i++) {
-        char c1 = loc[i * 2];
-        char c2 = loc[i * 2 + 1];
-        if (c1 >= 'a' && c1 <= 'z') c1 -= ('a' - 'A');
-        if (c2 >= 'a' && c2 <= 'z') c2 -= ('a' - 'A');
+    if (pairs > 0) {
+        for (int i = 0; i < pairs; i++) {
+            char c1 = loc[i * 2];
+            char c2 = loc[i * 2 + 1];
+            if (c1 >= 'a' && c1 <= 'z') c1 -= ('a' - 'A');
+            if (c2 >= 'a' && c2 <= 'z') c2 -= ('a' - 'A');
 
-        float lon_size = lon_step[i];
-        float lat_size = lat_step[i];
+            float lon_size = lon_step[i];
+            float lat_size = lat_step[i];
 
-        int v1, v2;
+            int v1, v2;
 
-        if (i % 2 == 0)  // letters
-        {
-            v1 = c1 - 'A';
-            v2 = c2 - 'A';
-        } else  // digits
-        {
-            v1 = c1 - '0';
-            v2 = c2 - '0';
+            if (i % 2 == 0)  // letters
+            {
+                v1 = c1 - 'A';
+                v2 = c2 - 'A';
+            } else  // digits
+            {
+                v1 = c1 - '0';
+                v2 = c2 - '0';
+            }
+
+            lon += v1 * lon_size;
+            lat += v2 * lat_size;
         }
 
-        lon += v1 * lon_size;
-        lat += v2 * lat_size;
+        // Cell center
+        lon += lon_step[pairs - 1] / 2.0f;
+        lat += lat_step[pairs - 1] / 2.0f;
     }
-
-    // Cell center
-    lon += lon_step[pairs - 1] / 2.0f;
-    lat += lat_step[pairs - 1] / 2.0f;
 }
 
 /**
